@@ -18,7 +18,7 @@ from os.path import expanduser
 
 # https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
 VR_SHELL = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell'
-#VR_SHELL  = '/Users/rossning92/ovrsource/Software/Apps/Native/VrShell'
+# VR_SHELL  = '/Users/rossning92/ovrsource/Software/Apps/Native/VrShell'
 
 VR_DRIVER = '/Users/rossning92/ovrsource/Software/OculusSDK/Mobile/VrDriver'
 PANEL_APP = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell/MyFancyProject'
@@ -43,7 +43,7 @@ def insert_line_if_not_exist(line, file, after_line=None):
         success = False
         for i in range(len(lines)):
             if lines[i].strip() == line.strip():
-                print('`%s` is already in `%s`: line %d' % (line, file, i+1))
+                print('`%s` is already in `%s`: line %d' % (line, file, i + 1))
                 return False
 
         for i in range(len(lines)):
@@ -344,37 +344,47 @@ def hg_test():
     out = out.decode()
     out = re.findall('changeset:\s+([a-z0-9]+)', out)
 
-
     subprocess.call('cd ~/ovrsource ; hg checkout %s' % out[2], shell=True)
     subprocess.call('cd ~/ovrsource ; hg graft %s' % out[0], shell=True)
     subprocess.call('cd ~/ovrsource ; hg graft %s' % out[1], shell=True)
 
-class Example(QWidget):
 
+class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.ui = uic.loadUi('MainDialog.ui', self)
         self.installEventFilter(self)
-
+        self.setWindowTitle('MyScripts - GUI')
         self.matched_items = []
 
-    def on_inputBox_textChanged(self, user_input):
+        self.on_inputBox_textChanged()
+
+    def on_inputBox_textChanged(self, user_input=None):
         self.ui.listWidget.clear()
         self.matched_items = []
-        user_input = user_input.lower()
 
-        user_input_tokens = user_input.split(' ')
-        for i in range(len(menu_items)):
-            menu_name = menu_items[i].name.lower()
-            matched = all([(x in menu_name) for x in user_input_tokens])
-            if matched:
-                self.matched_items.append(i)
+        if user_input is None or user_input == '':
+            self.matched_items = list(range(len(menu_items)))
+        else:
+            user_input = user_input.lower()
+            user_input_tokens = user_input.split(' ')
+            for i in range(len(menu_items)):
+                menu_name = menu_items[i].name.lower()
+                matched = all([(x in menu_name) for x in user_input_tokens])
+                if matched:
+                    self.matched_items.append(i)
 
         for i in self.matched_items:
             self.ui.listWidget.addItem('[%d] %s' % (i + 1, menu_items[i]))
 
         if self.ui.listWidget.count() > 0:
             self.ui.listWidget.setCurrentRow(0)
+
+    def event(self, e):
+        if e.type() == QEvent.WindowActivate:
+            self.ui.inputBox.setFocus(True)
+            self.ui.inputBox.selectAll()
+        return super().event(e)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
@@ -384,7 +394,9 @@ class Example(QWidget):
             idx = self.matched_items[0]
 
             if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
+                self.hide()
                 menu_items[idx].execute()
+                self.show()
                 return True
 
             if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_E:
@@ -416,9 +428,9 @@ if __name__ == '__main__':
     for file in files:
         menu_items.append(ScriptItem(file))
 
-    if False:
+    if True:
         app = QApplication(sys.argv)
-        ex = Example()
+        ex = MainWindow()
         ex.show()
         sys.exit(app.exec_())
 
