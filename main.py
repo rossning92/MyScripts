@@ -365,6 +365,10 @@ class MainWindow(QWidget):
 
         if user_input is None or user_input == '':
             self.matched_items = list(range(len(menu_items)))
+        elif user_input.isdigit():
+            idx = int(user_input) - 1
+            if idx >= 0 and idx < len(menu_items):
+                self.matched_items.append(idx)
         else:
             user_input = user_input.lower()
             user_input_tokens = user_input.split(' ')
@@ -388,6 +392,10 @@ class MainWindow(QWidget):
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
+
+            if e.key() == Qt.Key_0:
+                print('YOYO')
+                
 
             if len(self.matched_items) == 0:
                 return False
@@ -423,10 +431,13 @@ if __name__ == '__main__':
     print(Fore.LIGHTGREEN_EX + time + ' Script is loaded' + Fore.RESET)
 
     # Load scripts
+    script_items = []
     files = glob.glob('scripts/*.*', recursive=True)
     files.sort(key=os.path.getmtime, reverse=True)
     for file in files:
-        menu_items.append(ScriptItem(file))
+        script_items.append(ScriptItem(file))
+
+    menu_items = script_items + menu_items
 
     if True:
         app = QApplication(sys.argv)
