@@ -67,7 +67,7 @@ def insert_line_if_not_exist(line, file, after_line=None):
 
 
 def get_context(windows_path=False):
-    ovrsource = 'ovrsource3'
+    ovrsource = 'ovrsource'
     if windows_path:
         ovrsource = 'C:\\open\\' + ovrsource
     else:
@@ -395,7 +395,7 @@ class MainWindow(QWidget):
 
             if e.key() == Qt.Key_0:
                 print('YOYO')
-                
+
 
             if len(self.matched_items) == 0:
                 return False
