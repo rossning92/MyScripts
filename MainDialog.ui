@@ -21,12 +21,24 @@
 	font: 12pt &quot;Consolas&quot;;
 }</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QListWidget" name="listWidget"/>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QListWidget" name="listWidget">
+       <property name="styleSheet">
+        <string notr="true">selection-color: rgb(61, 96, 255);
+selection-background-color: rgb(255, 170, 255);</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="inputBox"/>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QLineEdit" name="inputBox"/>
+    <widget class="QWidget" name="variableWidget" native="true"/>
    </item>
   </layout>
  </widget>

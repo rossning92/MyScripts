@@ -10,10 +10,11 @@ import glob
 import jinja2
 import re
 import sys
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QEvent
 from os.path import expanduser
+import json
 
 
 # https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
@@ -66,6 +67,9 @@ def insert_line_if_not_exist(line, file, after_line=None):
     return False
 
 
+variables = {}
+
+
 def get_context(windows_path=False):
     ovrsource = 'ovrsource'
     if windows_path:
@@ -79,7 +83,8 @@ def get_context(windows_path=False):
         'PANEL_APP': PANEL_APP,
         'SETUP_ENV': SETUP_ENV,
         'OVRSOURCE': ovrsource,
-        'BUILD_CONFIG': 'Debug'
+        'BUILD_CONFIG': 'Debug',
+        **variables
     }
 
 
@@ -188,6 +193,12 @@ class ScriptItem(Item):
             bash(script)
         else:
             print('Not supported script:', self.ext)
+
+    def get_variables(self):
+        with open(self.script_path) as f:
+            script = f.read()
+            variables = re.findall(r'\{\{([A-Z_]+)\}\}', script)
+            return variables
 
     def include(script_name):
         return ScriptItem.loaded_scripts[script_name].render()
@@ -349,6 +360,46 @@ def hg_test():
     subprocess.call('cd ~/ovrsource ; hg graft %s' % out[1], shell=True)
 
 
+class EditVariableWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.variableUIs = {}
+        self.setLayout(QFormLayout())
+
+        try:
+            with open('variables.json') as f:
+                self.variables = json.load(f)
+        except Exception:
+            self.variables = {}
+
+    def init(self, varList=[]):
+        for i in range(self.layout().count()):
+            self.layout().itemAt(i).widget().deleteLater()
+
+        row = 0
+        self.variableUIs = {}
+        for variable in varList:
+            comboBox = QComboBox()
+            comboBox.setEditable(True)
+            if variable in self.variables:
+                comboBox.setCurrentText(self.variables[variable])
+
+            self.layout().addRow(QLabel(variable + ':'), comboBox)
+
+            self.variableUIs[variable] = comboBox
+            row += 1
+
+    def save(self):
+        for k, v in self.variableUIs.items():
+            self.variables[k] = v.currentText()
+
+        with open('variables.json', 'w') as f:
+            json.dump(self.variables, f, indent=4)
+
+    def get_variables(self):
+        return self.variables
+
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -356,6 +407,9 @@ class MainWindow(QWidget):
         self.installEventFilter(self)
         self.setWindowTitle('MyScripts - GUI')
         self.matched_items = []
+
+        self.editVariableWidget = EditVariableWidget()
+        self.ui.layout().addWidget(self.editVariableWidget)
 
         self.on_inputBox_textChanged()
 
@@ -380,6 +434,8 @@ class MainWindow(QWidget):
 
         for i in self.matched_items:
             self.ui.listWidget.addItem('[%d] %s' % (i + 1, menu_items[i]))
+            if 'get_variables' in dir(menu_items[i]):
+                self.editVariableWidget.init(menu_items[i].get_variables())
 
         if self.ui.listWidget.count() > 0:
             self.ui.listWidget.setCurrentRow(0)
@@ -396,12 +452,14 @@ class MainWindow(QWidget):
             if e.key() == Qt.Key_0:
                 print('YOYO')
 
-
             if len(self.matched_items) == 0:
                 return False
             idx = self.matched_items[0]
 
             if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
+                self.ui.editVariableWidget.save()
+                global variables
+                variables = self.ui.editVariableWidget.get_variables()
                 self.hide()
                 menu_items[idx].execute()
                 self.show()
@@ -441,8 +499,10 @@ if __name__ == '__main__':
 
     if True:
         app = QApplication(sys.argv)
+
         ex = MainWindow()
         ex.show()
+
         sys.exit(app.exec_())
 
     while True:
