@@ -71,7 +71,7 @@ variables = {}
 
 
 def get_context(windows_path=False):
-    ovrsource = 'ovrsource'
+    ovrsource = 'ovrsource2'
     if windows_path:
         ovrsource = 'C:\\open\\' + ovrsource
     else:
@@ -120,16 +120,19 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         temp.write(cmd.encode('utf-8'))
         temp.flush()
 
-        params = [
-            'cmd.exe',
-            '/c',
-            'start /i cmd /c' if newterminal else '',
-            temp.name]
+
+        cmdline = 'cmd /c {}{}{}'.format(
+            'start /i cmd /c ' if newterminal else '',
+            temp.name,
+            ' & pause' if newterminal else ''
+        )
         if runasadmin:
             params.insert(0, 'Elevate.exe')
             # params.append('& if errorlevel 1 pause') # Pause when failure
 
-        subprocess.call(params)
+        print(cmdline)
+        ret = subprocess.call(cmdline)
+        print(Fore.LIGHTGREEN_EX + 'Script return code: ' + str(ret) + Fore.RESET)
 
 
 menu_items = []
