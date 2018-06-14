@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">* {
 	background-color: rgb(32, 32, 32);
-	color: rgb(255, 255, 255);
+	color: white;
 	border: none;
 	font: 12pt &quot;Consolas&quot;;
 }</string>

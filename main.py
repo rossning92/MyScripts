@@ -71,21 +71,19 @@ variables = {}
 
 
 def get_context(windows_path=False):
-    ovrsource = 'ovrsource2'
-    if windows_path:
-        ovrsource = 'C:\\open\\' + ovrsource
-    else:
-        ovrsource = '/c/open/' + ovrsource
-
-    return {
+    context = {
         'VR_SHELL': VR_SHELL,
         'VR_DRIVER': VR_DRIVER,
         'PANEL_APP': PANEL_APP,
         'SETUP_ENV': SETUP_ENV,
-        'OVRSOURCE': ovrsource,
-        'BUILD_CONFIG': 'Debug',
-        **variables
-    }
+        **variables}
+
+    # TODO:
+    if not windows_path:
+        if 'OVRSOURCE' in context:
+            context['OVRSOURCE'] = context['OVRSOURCE'].replace('C:', '/c').replace('\\', '//')
+
+    return context
 
 
 def open_text_editor(path):
@@ -121,14 +119,13 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         temp.flush()
 
 
-        cmdline = 'cmd /c {}{}{}'.format(
+        cmdline = '{}cmd /c {}{}{}'.format(
+            'Elevate.exe ' if runasadmin else '',
             'start /i cmd /c ' if newterminal else '',
             temp.name,
-            ' & pause' if newterminal else ''
+            ' & pause' if newterminal or runasadmin else ''
         )
-        if runasadmin:
-            params.insert(0, 'Elevate.exe')
-            # params.append('& if errorlevel 1 pause') # Pause when failure
+        # params.append('& if errorlevel 1 pause') # Pause when failure
 
         print(cmdline)
         ret = subprocess.call(cmdline)
@@ -201,6 +198,7 @@ class ScriptItem(Item):
         with open(self.script_path) as f:
             script = f.read()
             variables = re.findall(r'\{\{([A-Z_]+)\}\}', script)
+            variables = list(set(variables))  # Remove duplicates
             return variables
 
     def include(script_name):
@@ -286,38 +284,6 @@ def _build_vrdriver_fov_on_and_off():
 
 
 @menu_item
-def get_ovrsource________():
-    OVR_SRC_PATH = r'C:\open\ovrsource2'
-
-    # https://our.intern.facebook.com/intern/wiki/Dex/ovrsource
-    # ovrsource: bi-directional bridge:
-    #   Oculus Perforce server <=> Mercurial repository
-    if os.name == 'nt':
-        cmd(f'''
-fbclone ovrsource {OVR_SRC_PATH}
-cd {OVR_SRC_PATH}
-hg sparse enableprofile SparseProfiles/OculusPCSDK.sparse
-hg sparse enableprofile SparseProfiles/OculusCoreTech.sparse
-''')
-
-    if os.name == 'posix':
-        bash(f'''
-cd ~
-if [ ! -d ovrsource ]; then
-    fbclone ovrsource --sparse SparseProfiles/OculusSkyline.sparse
-fi
-cd ovrsource
-
-
-#hg sparse enableprofile SparseProfiles/OculusVrShell.sparse
-#hg sparse enableprofile SparseProfiles/OculusMobileSDK.sparse
-
-#hg sparse enableprofile SparseProfiles/OculusPCSDK.sparse
-#hg sparse enableprofile SparseProfiles/OculusCoreTech.sparse
-''')
-
-
-@menu_item
 def edit_script():
     items = list(ScriptItem.loaded_scripts.values())
     idx = select_item(items, prompt='Edit script: enter script name:')
@@ -383,6 +349,7 @@ class EditVariableWidget(QWidget):
         self.variableUIs = {}
         for variable in varList:
             comboBox = QComboBox()
+            comboBox.setMinimumContentsLength(20)
             comboBox.setEditable(True)
             if variable in self.variables:
                 comboBox.setCurrentText(self.variables[variable])
@@ -406,10 +373,14 @@ class EditVariableWidget(QWidget):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.matched_items = []
+
         self.ui = uic.loadUi('MainDialog.ui', self)
+
+        # self.ui.listWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+
         self.installEventFilter(self)
         self.setWindowTitle('MyScripts - GUI')
-        self.matched_items = []
 
         self.editVariableWidget = EditVariableWidget()
         self.ui.layout().addWidget(self.editVariableWidget)
