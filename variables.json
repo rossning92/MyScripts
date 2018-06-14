@@ -1,10 +1,4 @@
 {
-    "VARIABLE": "HELLO",
-    "A": "A",
-    "B": "B",
-    "C": "C",
-    "HELLO_WORLD": "D",
-    "D": "d",
-    "E": "d",
-    "F": "d"
+    "OVRSOURCE": "C:\\open\\ovrsource2",
+    "BUILD_CONFIG": "Debug"
 }
