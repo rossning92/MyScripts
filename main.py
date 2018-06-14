@@ -347,7 +347,6 @@ class EditVariableWidget(QWidget):
 
         row = 0
         self.variableUIs = {}
-        print(varList)
         for variable in varList:
             comboBox = QComboBox()
             comboBox.setMinimumContentsLength(20)
@@ -426,8 +425,10 @@ class MainWindow(QWidget):
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
 
-            if e.key() == Qt.Key_0:
-                print('YOYO')
+            if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_F:
+                self.ui.inputBox.setFocus(True)
+                self.ui.inputBox.selectAll()
+                return True
 
             if len(self.matched_items) == 0:
                 return False
