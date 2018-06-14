@@ -7,5 +7,4 @@ set QML2_IMPORT_PATH=
 
 start "MyScripts - Console" python autoreload.py
 
-cd ahk
-start AutoHotkeyU64 hotkeys.ahk
+start bin\AutoHotkeyU64.exe ahk\hotkeys.ahk

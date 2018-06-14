@@ -123,7 +123,7 @@ def cmd(cmd, newterminal=False, runasadmin=False):
             'Elevate.exe ' if runasadmin else '',
             'start /i cmd /c ' if newterminal else '',
             temp.name,
-            ' & pause' if newterminal or runasadmin else ''
+            ''# ' & pause' if newterminal or runasadmin else ''
         )
         # params.append('& if errorlevel 1 pause') # Pause when failure
 
@@ -184,13 +184,20 @@ class ScriptItem(Item):
         return script
 
     def execute(self):
-        script = self.render()
         if self.ext == '.cmd':
+            script = self.render()
             cmd(script,
                 runasadmin=('run_as_admin' in self.flags),
                 newterminal=('new_window' in self.flags))
+
         elif self.ext == '.sh':
+            script = self.render()
             bash(script)
+
+        elif self.ext == '.py':
+            subprocess.call(
+                ['python', self.script_path])
+
         else:
             print('Not supported script:', self.ext)
 
