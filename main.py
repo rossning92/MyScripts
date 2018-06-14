@@ -347,6 +347,7 @@ class EditVariableWidget(QWidget):
 
         row = 0
         self.variableUIs = {}
+        print(varList)
         for variable in varList:
             comboBox = QComboBox()
             comboBox.setMinimumContentsLength(20)
@@ -408,11 +409,13 @@ class MainWindow(QWidget):
 
         for i in self.matched_items:
             self.ui.listWidget.addItem('[%d] %s' % (i + 1, menu_items[i]))
-            if 'get_variables' in dir(menu_items[i]):
-                self.editVariableWidget.init(menu_items[i].get_variables())
 
-        if self.ui.listWidget.count() > 0:
+        self.editVariableWidget.init()  # Clear all widget
+        if len(self.matched_items) > 0:
+            first_matched_item = menu_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
+            if 'get_variables' in dir(first_matched_item):
+                self.editVariableWidget.init(first_matched_item.get_variables())
 
     def event(self, e):
         if e.type() == QEvent.WindowActivate:
