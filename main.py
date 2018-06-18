@@ -38,7 +38,7 @@ export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_NDK:$PATH
 
 
 def get_mtime():
-    for filename in glob.iglob('scripts/*.*', recursive=True):
+    for filename in glob.iglob('scripts/**/*.*', recursive=True):
         yield os.stat(filename).st_mtime
 
 
@@ -219,7 +219,7 @@ class ScriptItem(Item):
         # BUG: jinja2 doesn't support '\' in path
         self.script_path = script_path.replace('\\', '/')
 
-        base_name = os.path.basename(self.script_path)
+        base_name = self.script_path.replace('scripts/', '')
         name, ext = os.path.splitext(base_name)
 
         self.ext = ext
@@ -474,7 +474,7 @@ class EditVariableWidget(QWidget):
 def init_menu_items():
     # Load scripts
     script_items = []
-    files = glob.glob('scripts/*.*', recursive=True)
+    files = glob.glob('scripts/**/*.*', recursive=True)
     files.sort(key=os.path.getmtime, reverse=True)
     for file in files:
         script_items.append(ScriptItem(file))
