@@ -37,6 +37,35 @@ export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_NDK:$PATH
 '''
 
 
+def get_mtime():
+    for filename in glob.iglob('scripts/*.*', recursive=True):
+        yield os.stat(filename).st_mtime
+
+
+def should_update():
+    global last_max_mtime
+    global last_item_count
+
+    mtime_list = list(get_mtime())
+    item_count = len(mtime_list)
+    max_mtime = max(mtime_list)
+
+    try:
+        last_max_mtime
+        last_item_count
+    except NameError:
+        last_max_mtime = max_mtime
+        last_item_count = item_count
+        return False
+
+    if item_count != last_item_count or max_mtime > last_max_mtime:
+        last_max_mtime = max_mtime
+        last_item_count = item_count
+        return True
+    else:
+        return False
+
+
 class Process:
     def __init__(self, args):
         self.ps = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -147,7 +176,7 @@ def cmd(cmd, newterminal=False, runasadmin=False):
             'Elevate.exe ' if runasadmin else '',
             'start /i cmd /c ' if newterminal else '',
             temp.name,
-            ''# ' & pause' if newterminal or runasadmin else ''
+            ''  # ' & pause' if newterminal or runasadmin else ''
         )
         # params.append('& if errorlevel 1 pause') # Pause when failure
 
@@ -157,6 +186,7 @@ def cmd(cmd, newterminal=False, runasadmin=False):
 
 
 menu_items = []
+lagency_menu_items = []
 
 
 class Item:
@@ -177,7 +207,7 @@ class MenuItem(Item):
 
 
 def menu_item(f):
-    menu_items.append(MenuItem(f))
+    lagency_menu_items.append(MenuItem(f))
     return f
 
 
@@ -200,6 +230,9 @@ class ScriptItem(Item):
 
         ScriptItem.loaded_scripts[self.name] = self
 
+        if 'autorun' in self.flags:
+            self.execute()
+
     def render(self):
         template = ScriptItem.env.get_template(self.script_path)
         script = template.render({
@@ -211,38 +244,45 @@ class ScriptItem(Item):
         script = self.render()
 
         # TODO:
-        assert os.name == 'nt'
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
-            # cmd = cmd.replace('\n', '\r\n')  # TODO
-            temp.write(script.encode('utf-8'))
-            temp.flush()
+        if False:
+            assert os.name == 'nt'
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
+                # cmd = cmd.replace('\n', '\r\n')  # TODO
+                temp.write(script.encode('utf-8'))
+                temp.flush()
 
-            runasadmin = False
-            newterminal = False
-            cmdline = '{}cmd /c {}{}{}'.format(
-                'Elevate.exe ' if runasadmin else '',
-                'start /i cmd /c ' if newterminal else '',
-                temp.name,
-                ' & pause' if newterminal or runasadmin else ''
-            )
-            # params.append('& if errorlevel 1 pause') # Pause when failure
+                runasadmin = False
+                newterminal = False
+                cmdline = '{}cmd /c {}{}{}'.format(
+                    'Elevate.exe ' if runasadmin else '',
+                    'start /i cmd /c ' if newterminal else '',
+                    temp.name,
+                    ' & pause' if newterminal or runasadmin else ''
+                )
+                # params.append('& if errorlevel 1 pause') # Pause when failure
 
-            print(cmdline)
-            ps = Process(cmdline)
-            while not ps.is_terminated():
-                data = ps.read()
-                print(data)
-                if data is not None:
-                    print(data.decode(), end='')
-                time.sleep(.1)
+                print(cmdline)
+                ps = Process(cmdline)
+                while not ps.is_terminated():
+                    data = ps.read()
+                    print(data)
+                    if data is not None:
+                        print(data.decode(), end='')
+                    time.sleep(.1)
 
-            return
+                return
 
-        if self.ext == '.cmd':
-            script = self.render()
-            cmd(script,
-                runasadmin=('run_as_admin' in self.flags),
-                newterminal=('new_window' in self.flags))
+        if self.ext == '.ahk':
+            if os.name == 'nt':
+                subprocess.Popen(
+                    ['bin/AutoHotkeyU64.exe', self.script_path])
+
+        elif self.ext == '.cmd':
+            if os.name == 'nt':
+                script = self.render()
+                cmd(script,
+                    runasadmin=('run_as_admin' in self.flags),
+                    newterminal=('new_window' in self.flags))
 
         elif self.ext == '.sh':
             script = self.render()
@@ -431,6 +471,18 @@ class EditVariableWidget(QWidget):
         return self.variables
 
 
+def init_menu_items():
+    # Load scripts
+    script_items = []
+    files = glob.glob('scripts/*.*', recursive=True)
+    files.sort(key=os.path.getmtime, reverse=True)
+    for file in files:
+        script_items.append(ScriptItem(file))
+
+    global menu_items
+    menu_items = script_items + lagency_menu_items
+
+
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -448,7 +500,17 @@ class MainWindow(QWidget):
 
         self.on_inputBox_textChanged()
 
+        self.startTimer(1000)
+
+    def timerEvent(self, e):
+        if should_update():
+            init_menu_items()
+            self.update_items(self.ui.inputBox.text())
+
     def on_inputBox_textChanged(self, user_input=None):
+        self.update_items(user_input)
+
+    def update_items(self, user_input=None):
         self.ui.listWidget.clear()
         self.matched_items = []
 
@@ -527,14 +589,7 @@ if __name__ == '__main__':
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
 
-    # Load scripts
-    script_items = []
-    files = glob.glob('scripts/*.*', recursive=True)
-    files.sort(key=os.path.getmtime, reverse=True)
-    for file in files:
-        script_items.append(ScriptItem(file))
-
-    menu_items = script_items + menu_items
+    init_menu_items()
 
     if True:
         app = QApplication(sys.argv)
@@ -551,6 +606,3 @@ if __name__ == '__main__':
         menu_items[opt].execute()
 
         last_opt = opt
-
-
-# hg rebase -s <target_commit_id> -d <dest_commit_id>

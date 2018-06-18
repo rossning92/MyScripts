@@ -6,14 +6,8 @@ import time
 import sys
 
 
-def file_filter(name):
-    return name.endswith(".py")
-
-
 def get_mtime():
     for filename in glob.iglob('*.py'):
-        yield os.stat(filename).st_mtime
-    for filename in glob.iglob('scripts/*.*', recursive=True):
         yield os.stat(filename).st_mtime
 
 
