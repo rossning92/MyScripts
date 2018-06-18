@@ -1,3 +1,3 @@
 /scripts/*
 .DS_Store
-!/scripts/\[autorun\]Hotkeys.ahk
+!/scripts/common
