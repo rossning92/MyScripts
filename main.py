@@ -15,6 +15,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import Qt, QEvent
 from os.path import expanduser
 import json
+import time
 
 
 # https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
@@ -34,6 +35,30 @@ export ANDROID_NDK_HOME=$ANDROID_NDK
 export ADB_PATH=$ANDROID_SDK_ROOT/platform-tools/adb
 export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_NDK:$PATH
 '''
+
+
+class Process:
+    def __init__(self, args):
+        self.ps = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def is_terminated(self):
+        return self.ps.poll() is not None
+
+    def read(self):
+        if self.ps.poll() is not None:
+            return None
+
+        result = b''
+
+        out = self.ps.stdout.read1(1024)
+        if out is not None:
+            result += out
+
+        err = self.ps.stdout.read1(1024)
+        if err is not None:
+            result += err
+
+        return result
 
 
 def insert_line_if_not_exist(line, file, after_line=None):
@@ -118,7 +143,6 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         temp.write(cmd.encode('utf-8'))
         temp.flush()
 
-
         cmdline = '{}cmd /c {}{}{}'.format(
             'Elevate.exe ' if runasadmin else '',
             'start /i cmd /c ' if newterminal else '',
@@ -184,6 +208,36 @@ class ScriptItem(Item):
         return script
 
     def execute(self):
+        script = self.render()
+
+        # TODO:
+        assert os.name == 'nt'
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
+            # cmd = cmd.replace('\n', '\r\n')  # TODO
+            temp.write(script.encode('utf-8'))
+            temp.flush()
+
+            runasadmin = False
+            newterminal = False
+            cmdline = '{}cmd /c {}{}{}'.format(
+                'Elevate.exe ' if runasadmin else '',
+                'start /i cmd /c ' if newterminal else '',
+                temp.name,
+                ' & pause' if newterminal or runasadmin else ''
+            )
+            # params.append('& if errorlevel 1 pause') # Pause when failure
+
+            print(cmdline)
+            ps = Process(cmdline)
+            while not ps.is_terminated():
+                data = ps.read()
+                print(data)
+                if data is not None:
+                    print(data.decode(), end='')
+                time.sleep(.1)
+
+            return
+
         if self.ext == '.cmd':
             script = self.render()
             cmd(script,
@@ -470,8 +524,8 @@ class MainWindow(QWidget):
 
 
 if __name__ == '__main__':
-    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(Fore.LIGHTGREEN_EX + time + ' Script is loaded' + Fore.RESET)
+    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
 
     # Load scripts
     script_items = []
