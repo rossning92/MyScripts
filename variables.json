@@ -1,5 +1,9 @@
 {
     "OVRSOURCE": "C:\\open\\ovrsource2",
-    "BUILD_CONFIG": "Debug",
-    "DIFF": "D8450550"
+    "BUILD_CONFIG": "Release",
+    "DIFF": "D8450550",
+    "PROJECT_NAME": "ExampleProject1",
+    "DEP_LibOVR": "1",
+    "DEP_OpenCV": "1",
+    "REV_TO_MODIFY": "1"
 }

@@ -172,16 +172,16 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         temp.write(cmd.encode('utf-8'))
         temp.flush()
 
-        cmdline = '{}cmd /c {}{}{}'.format(
-            'Elevate.exe ' if runasadmin else '',
+        args = '{}cmd /c {}{}{}'.format(
+            'bin\Elevate.exe ' if runasadmin else '',
             'start /i cmd /c ' if newterminal else '',
             temp.name,
             ''  # ' & pause' if newterminal or runasadmin else ''
         )
         # params.append('& if errorlevel 1 pause') # Pause when failure
 
-        print(cmdline)
-        ret = subprocess.call(cmdline)
+        print(args)
+        ret = subprocess.call(args)
         print(Fore.LIGHTGREEN_EX + 'Script return code: ' + str(ret) + Fore.RESET)
 
 
@@ -237,7 +237,7 @@ class ScriptItem(Item):
         template = ScriptItem.env.get_template(self.script_path)
         script = template.render({
             'include': ScriptItem.include,
-            **get_context(self.ext.lower() == '.cmd')})
+            **get_context(self.ext.lower() == '.cmd' or self.ext.lower() == '.py')})
         return script
 
     def execute(self):
@@ -289,8 +289,13 @@ class ScriptItem(Item):
             bash(script)
 
         elif self.ext == '.py':
-            subprocess.call(
-                ['python', self.script_path])
+            script = self.render()
+            if os.name == 'posix':
+                subprocess.call(
+                    ['python3', '-c', script])
+            else:
+                subprocess.call(
+                    ['python', '-c', script])
 
         else:
             print('Not supported script:', self.ext)
@@ -298,7 +303,7 @@ class ScriptItem(Item):
     def get_variables(self):
         with open(self.script_path) as f:
             script = f.read()
-            variables = re.findall(r'\{\{([A-Z_]+)\}\}', script)
+            variables = re.findall(r'\{\{([a-zA-Z_]+)\}\}', script)
             variables = list(set(variables))  # Remove duplicates
             return variables
 
