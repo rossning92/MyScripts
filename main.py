@@ -12,13 +12,16 @@ import re
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtCore import *
 from os.path import expanduser
 import json
 import time
-
+import threading
+from gui import ProcessWidget
 
 # https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
+
+
 VR_SHELL = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell'
 # VR_SHELL  = '/Users/rossning92/ovrsource/Software/Apps/Native/VrShell'
 
@@ -64,30 +67,6 @@ def should_update():
         return True
     else:
         return False
-
-
-class Process:
-    def __init__(self, args):
-        self.ps = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    def is_terminated(self):
-        return self.ps.poll() is not None
-
-    def read(self):
-        if self.ps.poll() is not None:
-            return None
-
-        result = b''
-
-        out = self.ps.stdout.read1(1024)
-        if out is not None:
-            result += out
-
-        err = self.ps.stdout.read1(1024)
-        if err is not None:
-            result += err
-
-        return result
 
 
 def insert_line_if_not_exist(line, file, after_line=None):
@@ -181,8 +160,9 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         # params.append('& if errorlevel 1 pause') # Pause when failure
 
         print(args)
-        ret = subprocess.call(args)
-        print(Fore.LIGHTGREEN_EX + 'Script return code: ' + str(ret) + Fore.RESET)
+        # ret = subprocess.call(args)
+        # print(Fore.LIGHTGREEN_EX + 'Script return code: ' + str(ret) + Fore.RESET)
+        return args
 
 
 menu_items = []
@@ -230,14 +210,11 @@ class ScriptItem(Item):
 
         ScriptItem.loaded_scripts[self.name] = self
 
-        if 'autorun' in self.flags:
-            self.execute()
-
     def render(self):
         template = ScriptItem.env.get_template(self.script_path)
         script = template.render({
             'include': ScriptItem.include,
-            **get_context(self.ext.lower() == '.cmd' or self.ext.lower() == '.py')})
+            **get_context(self.ext.lower() == '.cmd' or self.ext.lower() == '.py' or self.ext.lower() == '.ps1')})
         return script
 
     def execute(self):
@@ -262,7 +239,6 @@ class ScriptItem(Item):
                 # params.append('& if errorlevel 1 pause') # Pause when failure
 
                 print(cmdline)
-                ps = Process(cmdline)
                 while not ps.is_terminated():
                     data = ps.read()
                     print(data)
@@ -270,19 +246,27 @@ class ScriptItem(Item):
                         print(data.decode(), end='')
                     time.sleep(.1)
 
-                return
+                return cmdline
 
-        if self.ext == '.ahk':
+        if self.ext == '.ps1':
             if os.name == 'nt':
+                script = self.render()
                 subprocess.Popen(
-                    ['bin/AutoHotkeyU64.exe', self.script_path])
+                    ['PowerShell.exe',
+                     '-ExecutionPolicy', 'Bypass',
+                     '-Command', script])
+
+        elif self.ext == '.ahk':
+            if os.name == 'nt':
+                subprocess.Popen(['bin/AutoHotkeyU64.exe', self.script_path])
 
         elif self.ext == '.cmd':
             if os.name == 'nt':
                 script = self.render()
-                cmd(script,
-                    runasadmin=('run_as_admin' in self.flags),
-                    newterminal=('new_window' in self.flags))
+                args = cmd(script,
+                           runasadmin=('run_as_admin' in self.flags),
+                           newterminal=('new_window' in self.flags))
+                return args
 
         elif self.ext == '.sh':
             script = self.render()
@@ -354,7 +338,6 @@ def _build_panelapp_multiple_res():
     ref_res = (1280, 1440)
 
     for i in range(len(res)):
-
         res_str = '%dx%d' % (res[i][0], res[i][1])
         print(Fore.LIGHTGREEN_EX + 'Building for res: ' + res_str + Fore.RESET)
 
@@ -379,8 +362,10 @@ def _build_panelapp_multiple_res():
         ''')
 
         # Copy files
-        bash(f'cp {VR_SHELL}/VrShell/Projects/Android-MP/build/outputs/apk/release/vrshell-release.apk {res_str}_vrshell.apk')
-        bash(f'cp {PANEL_APP}/Projects/Android/build/outputs/apk/release/MyFancyProject-armeabi-v7a-release.apk {res_str}_panelapp.apk')
+        bash(
+            f'cp {VR_SHELL}/VrShell/Projects/Android-MP/build/outputs/apk/release/vrshell-release.apk {res_str}_vrshell.apk')
+        bash(
+            f'cp {PANEL_APP}/Projects/Android/build/outputs/apk/release/MyFancyProject-armeabi-v7a-release.apk {res_str}_panelapp.apk')
 
 
 @menu_item
@@ -505,6 +490,16 @@ class MainWindow(QWidget):
 
         self.on_inputBox_textChanged()
 
+        # Process list ui
+        self.processWidget = ProcessWidget()
+        self.ui.layout().addWidget(self.processWidget)
+
+        # Autorun script
+        global menu_items
+        for item in menu_items:
+            if type(item) == ScriptItem and 'autorun' in item.flags:
+                item.execute()
+
         self.startTimer(1000)
 
     def timerEvent(self, e):
@@ -567,7 +562,9 @@ class MainWindow(QWidget):
                 global variables
                 variables = self.ui.editVariableWidget.get_variables()
                 self.hide()
-                menu_items[idx].execute()
+                args = menu_items[idx].execute()
+                if args is not None:
+                    self.processWidget.run(args)
                 self.show()
                 return True
 
