@@ -3,3 +3,4 @@
 !/scripts/common
 /variables.json
 /__pycache__/
+__pycache__/

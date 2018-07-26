@@ -274,12 +274,18 @@ class ScriptItem(Item):
 
         elif self.ext == '.py':
             script = self.render()
+            
+            env = os.environ
+            env['PYTHONPATH'] = os.path.join(os.getcwd(), 'libs')
+            
+            cwd = os.path.dirname(self.script_path)
+            
             if os.name == 'posix':
                 subprocess.call(
-                    ['python3', '-c', script])
+                    ['python3', '-c', script], env=env, cwd=cwd)
             else:
                 subprocess.call(
-                    ['python', '-c', script])
+                    ['python', '-c', script], env=env, cwd=cwd)
 
         else:
             print('Not supported script:', self.ext)
