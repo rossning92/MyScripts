@@ -6,7 +6,7 @@
     "DEP_LibOVR": "1",
     "DEP_OpenCV": "1",
     "REV_TO_MODIFY": "enable and test DDC",
-    "AMEND": "1",
+    "AMEND": "Y",
     "ET_LIVE": "Y",
     "LIVE_VIEW": "",
     "EVT_ASSM_NUM": "2",

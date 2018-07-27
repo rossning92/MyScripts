@@ -277,6 +277,7 @@ class ScriptItem(Item):
             
             env = os.environ
             env['PYTHONPATH'] = os.path.join(os.getcwd(), 'libs')
+            env['PYTHONDONTWRITEBYTECODE'] = '1'
             
             cwd = os.path.dirname(self.script_path)
             
@@ -290,6 +291,9 @@ class ScriptItem(Item):
         else:
             print('Not supported script:', self.ext)
 
+        if 'autorun' not in self.flags:
+            os.utime(self.script_path, None)  # Update modified and access time
+        
     def get_variables(self):
         with open(self.script_path) as f:
             script = f.read()
@@ -536,7 +540,7 @@ class MainWindow(QWidget):
                     self.matched_items.append(i)
 
         for i in self.matched_items:
-            self.ui.listWidget.addItem('[%d] %s' % (i + 1, menu_items[i]))
+            self.ui.listWidget.addItem('%3d. %s' % (i + 1, menu_items[i]))
 
         self.editVariableWidget.init()  # Clear all widget
         if len(self.matched_items) > 0:
