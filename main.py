@@ -295,11 +295,17 @@ class ScriptItem(Item):
             os.utime(self.script_path, None)  # Update modified and access time
         
     def get_variables(self):
-        with open(self.script_path) as f:
-            script = f.read()
-            variables = re.findall(r'\{\{([a-zA-Z_]+)\}\}', script)
-            variables = list(set(variables))  # Remove duplicates
-            return variables
+        variables = []
+        class MyContext(jinja2.runtime.Context):
+            def resolve(self, key):
+                if key == 'include':
+                    return ScriptItem.include
+                variables.append(key)
+
+        ScriptItem.env.context_class = MyContext
+        self.render()
+        ScriptItem.env.context_class = jinja2.runtime.Context
+        return variables
 
     def include(script_name):
         return ScriptItem.loaded_scripts[script_name].render()
@@ -448,7 +454,7 @@ class EditVariableWidget(QWidget):
 
         row = 0
         self.variableUIs = {}
-        for variable in varList:
+        for variable in sorted(varList):
             comboBox = QComboBox()
             comboBox.setMinimumContentsLength(20)
             comboBox.setEditable(True)
