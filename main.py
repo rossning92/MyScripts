@@ -40,30 +40,29 @@ export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_NDK:$PATH
 '''
 
 
-def get_mtime():
-    for filename in glob.iglob('scripts/**/*.*', recursive=True):
-        yield os.stat(filename).st_mtime
-
-
 def should_update():
     global last_max_mtime
-    global last_item_count
+    global last_file_list
 
-    mtime_list = list(get_mtime())
-    item_count = len(mtime_list)
+    mtime_list = []
+    file_list = []
+    for f in glob.iglob('scripts/**/*.*', recursive=True):
+        mtime_list.append(os.stat(f).st_mtime)
+        file_list.append(f)
+
     max_mtime = max(mtime_list)
 
     try:
         last_max_mtime
-        last_item_count
+        last_file_list
     except NameError:
         last_max_mtime = max_mtime
-        last_item_count = item_count
+        last_file_list = file_list
         return False
 
-    if item_count != last_item_count or max_mtime > last_max_mtime:
+    if file_list != last_file_list or max_mtime > last_max_mtime:
         last_max_mtime = max_mtime
-        last_item_count = item_count
+        last_file_list = file_list
         return True
     else:
         return False
@@ -252,8 +251,8 @@ class ScriptItem(Item):
             if os.name == 'nt':
                 script = self.render()
                 subprocess.Popen(
-                    ['PowerShell.exe',
-                     '-ExecutionPolicy', 'Bypass',
+                    ['PowerShell.exe', '-NoProfile',
+                     '-ExecutionPolicy', 'unrestricted',
                      '-Command', script])
 
         elif self.ext == '.ahk':
@@ -274,13 +273,13 @@ class ScriptItem(Item):
 
         elif self.ext == '.py':
             script = self.render()
-            
+
             env = os.environ
             env['PYTHONPATH'] = os.path.join(os.getcwd(), 'libs')
             env['PYTHONDONTWRITEBYTECODE'] = '1'
-            
+
             cwd = os.path.dirname(self.script_path)
-            
+
             if os.name == 'posix':
                 subprocess.call(
                     ['python3', '-c', script], env=env, cwd=cwd)
@@ -293,9 +292,10 @@ class ScriptItem(Item):
 
         if 'autorun' not in self.flags:
             os.utime(self.script_path, None)  # Update modified and access time
-        
+
     def get_variables(self):
         variables = []
+
         class MyContext(jinja2.runtime.Context):
             def resolve(self, key):
                 if key == 'include':
@@ -580,7 +580,8 @@ class MainWindow(QWidget):
                 self.hide()
                 args = menu_items[idx].execute()
                 if args is not None:
-                    self.processWidget.run(args)
+                    subprocess.call(args)  # HACK
+                    # self.processWidget.run(args)
                 self.show()
                 return True
 

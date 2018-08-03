@@ -1,1 +1,1 @@
-pip install colorama
+pip install -r requirement.txt

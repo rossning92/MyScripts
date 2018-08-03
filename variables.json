@@ -1,5 +1,5 @@
 {
-    "OVRSOURCE": "C:\\open\\ovrsource2",
+    "OVRSOURCE": "C:\\open\\ovrsource",
     "BUILD_CONFIG": "Release",
     "DIFF": "D8450550",
     "PROJECT_NAME": "ExampleProject1",
@@ -11,5 +11,6 @@
     "LIVE_VIEW": "",
     "EVT_ASSM_NUM": "2",
     "CMAKE_DELETE_CACHE": "Y",
-    "ET_SHOW_CAMERA_STREAM": ""
+    "ET_SHOW_CAMERA_STREAM": "",
+    "EXPERIMENT_CODE_PATH": "/c/github/code"
 }
