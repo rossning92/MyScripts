@@ -6,7 +6,7 @@ set QT_QPA_PLATFORM_PLUGIN_PATH=
 set QML_IMPORT_PATH=
 set QML2_IMPORT_PATH=
 
-set PATH=C:\Python36;C:\Python36\Scripts;%LOCALAPPDATA%\Programs\Python\Python36;%PATH%
+set PATH=C:\Python36;C:\Python36\Scripts;%LOCALAPPDATA%\Programs\Python\Python36;%LOCALAPPDATA%\Programs\Python\Python36\Scripts;%PATH%
 
 call install.cmd
 
