@@ -18,6 +18,7 @@ import json
 import time
 import threading
 from gui import ProcessWidget
+from libs.myutils import *
 
 # https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
 
@@ -102,22 +103,6 @@ def insert_line_if_not_exist(line, file, after_line=None):
 variables = {}
 
 
-def get_context(windows_path=False):
-    context = {
-        'VR_SHELL': VR_SHELL,
-        'VR_DRIVER': VR_DRIVER,
-        'PANEL_APP': PANEL_APP,
-        'SETUP_ENV': SETUP_ENV,
-        **variables}
-
-    # TODO:
-    if not windows_path:
-        if 'OVRSOURCE' in context:
-            context['OVRSOURCE'] = context['OVRSOURCE'].replace('C:', '/c').replace('\\', '//')
-
-    return context
-
-
 def open_text_editor(path):
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
@@ -126,43 +111,6 @@ def open_text_editor(path):
 
 
 colorama.init()
-
-
-def bash(cmd):
-    if os.name == 'nt':
-        subprocess.call([
-            # r'C:\Program Files\Git\git-bash.exe',
-            r'C:\Program Files\Git\bin\bash.exe',
-            '--login',
-            '-i',
-            '-c',
-            cmd])
-    elif os.name == 'posix':  # MacOSX
-        subprocess.call(cmd, shell=True)
-    else:
-        raise Exception('Non supported OS version')
-
-
-def cmd(cmd, newterminal=False, runasadmin=False):
-    assert os.name == 'nt'
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
-        # cmd = cmd.replace('\n', '\r\n')  # TODO
-        temp.write(cmd.encode('utf-8'))
-        temp.flush()
-
-        args = '{}cmd /c {}{}{}'.format(
-            'bin\Elevate.exe ' if runasadmin else '',
-            'start /i cmd /c ' if newterminal else '',
-            temp.name,
-            ''  # ' & pause' if newterminal or runasadmin else ''
-        )
-        # params.append('& if errorlevel 1 pause') # Pause when failure
-
-        print(args)
-        # ret = subprocess.call(args)
-        # print(Fore.LIGHTGREEN_EX + 'Script return code: ' + str(ret) + Fore.RESET)
-        return args
-
 
 menu_items = []
 lagency_menu_items = []
@@ -188,127 +136,6 @@ class MenuItem(Item):
 def menu_item(f):
     lagency_menu_items.append(MenuItem(f))
     return f
-
-
-class ScriptItem(Item):
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
-    loaded_scripts = {}
-
-    def __init__(self, script_path):
-        # BUG: jinja2 doesn't support '\' in path
-        self.script_path = script_path.replace('\\', '/')
-
-        base_name = self.script_path.replace('scripts/', '')
-        name, ext = os.path.splitext(base_name)
-
-        self.ext = ext
-
-        patt = r'\[([a-zA-Z_][a-zA-Z_0-9]*)\]'
-        self.flags = set(re.findall(patt, name))
-        self.name = re.sub(patt, '', name)
-
-        ScriptItem.loaded_scripts[self.name] = self
-
-    def render(self):
-        template = ScriptItem.env.get_template(self.script_path)
-        script = template.render({
-            'include': ScriptItem.include,
-            **get_context(self.ext.lower() == '.cmd' or self.ext.lower() == '.py' or self.ext.lower() == '.ps1')})
-        return script
-
-    def execute(self):
-        script = self.render()
-
-        # TODO:
-        if False:
-            assert os.name == 'nt'
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
-                # cmd = cmd.replace('\n', '\r\n')  # TODO
-                temp.write(script.encode('utf-8'))
-                temp.flush()
-
-                runasadmin = False
-                newterminal = False
-                cmdline = '{}cmd /c {}{}{}'.format(
-                    'Elevate.exe ' if runasadmin else '',
-                    'start /i cmd /c ' if newterminal else '',
-                    temp.name,
-                    ' & pause' if newterminal or runasadmin else ''
-                )
-                # params.append('& if errorlevel 1 pause') # Pause when failure
-
-                print(cmdline)
-                while not ps.is_terminated():
-                    data = ps.read()
-                    print(data)
-                    if data is not None:
-                        print(data.decode(), end='')
-                    time.sleep(.1)
-
-                return cmdline
-
-        if self.ext == '.ps1':
-            if os.name == 'nt':
-                script = self.render()
-                subprocess.Popen(
-                    ['PowerShell.exe', '-NoProfile',
-                     '-ExecutionPolicy', 'unrestricted',
-                     '-Command', script])
-
-        elif self.ext == '.ahk':
-            if os.name == 'nt':
-                subprocess.Popen(['bin/AutoHotkeyU64.exe', self.script_path])
-
-        elif self.ext == '.cmd':
-            if os.name == 'nt':
-                script = self.render()
-                args = cmd(script,
-                           runasadmin=('run_as_admin' in self.flags),
-                           newterminal=('new_window' in self.flags))
-                return args
-
-        elif self.ext == '.sh':
-            script = self.render()
-            bash(script)
-
-        elif self.ext == '.py':
-            script = self.render()
-
-            env = os.environ
-            env['PYTHONPATH'] = os.path.join(os.getcwd(), 'libs')
-            env['PYTHONDONTWRITEBYTECODE'] = '1'
-
-            cwd = os.path.dirname(self.script_path)
-
-            if os.name == 'posix':
-                subprocess.call(
-                    ['python3', '-c', script], env=env, cwd=cwd)
-            else:
-                subprocess.call(
-                    ['python', '-c', script], env=env, cwd=cwd)
-
-        else:
-            print('Not supported script:', self.ext)
-
-        if 'autorun' not in self.flags:
-            os.utime(self.script_path, None)  # Update modified and access time
-
-    def get_variables(self):
-        variables = []
-
-        class MyContext(jinja2.runtime.Context):
-            def resolve(self, key):
-                if key == 'include':
-                    return ScriptItem.include
-                variables.append(key)
-
-        ScriptItem.env.context_class = MyContext
-        self.render()
-        ScriptItem.env.context_class = jinja2.runtime.Context
-        return variables
-
-    def include(script_name):
-        return ScriptItem.loaded_scripts[script_name].render()
 
 
 def exec2(name):
@@ -553,7 +380,7 @@ class MainWindow(QWidget):
             first_matched_item = menu_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
             if 'get_variables' in dir(first_matched_item):
-                self.editVariableWidget.init(first_matched_item.get_variables())
+                self.editVariableWidget.init(first_matched_item.get_variable_names())
 
     def event(self, e):
         if e.type() == QEvent.WindowActivate:
@@ -579,9 +406,9 @@ class MainWindow(QWidget):
                 variables = self.ui.editVariableWidget.get_variables()
                 self.hide()
                 args = menu_items[idx].execute()
-                if args is not None:
-                    subprocess.call(args)  # HACK
-                    # self.processWidget.run(args)
+                # if args is not None:
+                #     subprocess.call(args)  # HACK
+                #     # self.processWidget.run(args)
                 self.show()
                 return True
 
