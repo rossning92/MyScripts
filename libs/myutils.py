@@ -96,7 +96,7 @@ class ScriptItem():
     def render(self):
         template = ScriptItem.env.get_template(self.script_path)
         script = template.render({
-            'include': ScriptItem.include,
+            'include': ScriptItem.include.__get__(self, ScriptItem),
             **self.get_variables()})
         return script
 
