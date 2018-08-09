@@ -168,10 +168,12 @@ class ScriptItem():
             script = self.render()
 
             env = os.environ
-            env['PYTHONPATH'] = os.path.join(os.getcwd(), 'libs')
+            env['PYTHONPATH'] = os.path.dirname(__file__)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             cwd = os.path.dirname(self.script_path)
+            if cwd == '':  # TODO: cwd can not be empty string
+                cwd = '.'
 
             if os.name == 'posix':
                 subprocess.call(
@@ -203,8 +205,8 @@ class ScriptItem():
 
     def include(self, script_name):
         script_path = find_script(script_name, os.path.dirname(self.script_path))
-        script_path = os.path.dirname(self.script_path) + '/' + script_path
         assert script_path is not None
+        script_path = os.path.dirname(self.script_path) + '/' + script_path
         return ScriptItem(script_path).render()
 
 
@@ -214,7 +216,7 @@ def find_script(script_name, search_dir=None):
         if os.path.isdir(f):
             continue
 
-        if script_name in f:
+        if script_name + '.' in f:  # TODO: hack: find script more accurately
             script_path = f
 
     return script_path
