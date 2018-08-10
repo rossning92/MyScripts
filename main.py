@@ -21,8 +21,9 @@ import threading
 from gui import ProcessWidget
 from libs.myutils import *
 
-# https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
+SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
 
+# https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
 
 VR_SHELL = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell'
 # VR_SHELL  = '/Users/rossning92/ovrsource/Software/Apps/Native/VrShell'
@@ -303,9 +304,6 @@ class EditVariableWidget(QWidget):
 
     def get_variables(self):
         return self.variables
-
-
-SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1'}
 
 
 def init_menu_items():
