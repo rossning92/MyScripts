@@ -5,6 +5,8 @@ import jinja2
 import re
 import tempfile
 import yaml
+import platform
+
 
 def msbuild(vcproj):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
@@ -15,9 +17,12 @@ def msbuild(vcproj):
     assert ret == 0
 
 
+def get_variable_file():
+    return os.path.dirname(__file__) + '/../variables.' + platform.node() + '.json'
+
+
 def get_arg(name):
-    path = os.path.join(os.path.dirname(__file__), '../variables.json')
-    with open(path) as f:
+    with open(get_variable_file(), 'r') as f:
         variables = json.load(f)
     return variables[name]
 
@@ -99,8 +104,11 @@ class ScriptItem():
         return script
 
     def get_variables(self):
+        if not os.path.isfile(get_variable_file()):
+            return {}
+
         variables = {}
-        with open(os.path.dirname(__file__) + '/../variables.json', 'r') as f:
+        with open(get_variable_file(), 'r') as f:
             variables = json.load(f)
 
         # HACK: Convert to unix path
@@ -220,7 +228,6 @@ class ScriptItem():
         return yaml.load(open(config_file, 'r', encoding='utf-8').read())
 
 
-
 def find_script(script_name, search_dir=None):
     script_path = None
     for f in os.listdir(search_dir if search_dir else '.'):
@@ -251,4 +258,3 @@ def _convert_to_unix_path(path):
         path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' + x.group(0)[0].lower()), path)
         path = path.replace('\\', '/')
     return path
-

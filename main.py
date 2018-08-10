@@ -272,7 +272,7 @@ class EditVariableWidget(QWidget):
         self.setLayout(QFormLayout())
 
         try:
-            with open('variables.json') as f:
+            with open(get_variable_file()) as f:
                 self.variables = json.load(f)
         except Exception:
             self.variables = {}
@@ -299,7 +299,7 @@ class EditVariableWidget(QWidget):
         for k, v in self.variableUIs.items():
             self.variables[k] = v.currentText()
 
-        with open('variables.json', 'w') as f:
+        with open(get_variable_file(), 'w') as f:
             json.dump(self.variables, f, indent=4)
 
     def get_variables(self):
