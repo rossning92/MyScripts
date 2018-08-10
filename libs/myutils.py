@@ -57,20 +57,18 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         temp.write(cmd.encode('utf-8'))
         temp.flush()
 
-        args = '{}cmd /c {}{}{}'.format(
+        args = '{}cmd /c {}"{}{}"'.format(
             'bin\Elevate.exe ' if runasadmin else '',
             'start /i cmd /c ' if newterminal else '',
             temp.name,
-            ''  # ' & pause' if newterminal or runasadmin else ''
+            ' & if errorlevel 1 pause' if newterminal else ''
         )
-        # params.append('& if errorlevel 1 pause') # Pause when failure
-
         print(args)
-        # ret = subprocess.call(args)
-        # print(Fore.LIGHTGREEN_EX + 'Script return code: ' + str(ret) + Fore.RESET)
         return args
 
+
 __error_code = 0
+
 
 class ScriptItem():
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
@@ -228,7 +226,9 @@ def run_script(script_name):
 
     global __error_code
     __error_code = 0
-    ScriptItem(script_path).execute()
+    script = ScriptItem(script_path)
+    script.flags.discard('new_window')
+    script.execute()
     assert __error_code == 0
 
 # os.chdir('../scripts')
