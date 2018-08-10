@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
 
-import subprocess
 import datetime
-import os
-import tempfile
 from colorama import Fore
 import colorama
 import glob
-import jinja2
-import re
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from os.path import expanduser
-import json
-import time
-import threading
 from gui import ProcessWidget
 from libs.myutils import *
 
