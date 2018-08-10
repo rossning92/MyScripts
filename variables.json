@@ -15,6 +15,5 @@
     "EXPERIMENT_CODE_PATH": "/c/github/code",
     "DEP_Boost": "",
     "GENERATE_DLL": "Y",
-    "RUN_STOCK_EYE_TRACKING_DEMO": "Y",
-    "RUN_ORT_EYE_TRACKING": ""
+    "RUN_STOCK_EYE_TRACKING_DEMO": "Y"
 }

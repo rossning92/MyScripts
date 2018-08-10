@@ -102,6 +102,11 @@ class ScriptItem():
         variables = {}
         with open(os.path.dirname(__file__) + '/../variables.json', 'r') as f:
             variables = json.load(f)
+
+        # HACK: Convert to unix path
+        if self.ext == '.sh':
+            variables = {k: _convert_to_unix_path(v) for k, v in variables.items()}
+
         return variables
 
     def execute(self):
@@ -231,5 +236,11 @@ def run_script(script_name):
     script.execute()
     assert __error_code == 0
 
-# os.chdir('../scripts')
-# run_script('HelloWorld')
+
+def _convert_to_unix_path(path):
+    patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
+    if re.match(patt, path):
+        path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' + x.group(0)[0].lower()), path)
+        path = path.replace('\\', '/')
+    return path
+
