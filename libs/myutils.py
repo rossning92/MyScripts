@@ -188,8 +188,8 @@ class ScriptItem():
         else:
             print('Not supported script:', self.ext)
 
-        if 'autorun' not in self.flags:
-            os.utime(self.script_path, None)  # Update modified and access time
+        # if 'autorun' not in self.flags:
+        #     # os.utime(self.script_path, None)  # Update modified and access time
 
     def get_variable_names(self):
         variables = set()
