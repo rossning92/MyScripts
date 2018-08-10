@@ -353,12 +353,13 @@ class MainWindow(QWidget):
 
         self.startTimer(1000)
 
+        # Register hotkey
         for item in menu_items:
             config = item.get_config()
             if config is not None:
                 if config['hotkey']:
-                    print(config['hotkey'])
-                    QShortcut(QKeySequence(config['hotkey']), self, lambda: item.execute())
+                    print('Hotkey registered:', config['hotkey'])
+                    QShortcut(QKeySequence(config['hotkey']), self, lambda item=item: item.execute())
 
     def timerEvent(self, e):
         if should_update():
