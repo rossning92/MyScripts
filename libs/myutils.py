@@ -187,11 +187,14 @@ class ScriptItem():
                 cwd = '.'
 
             if os.name == 'posix':
-                subprocess.call(
-                    ['python3', '-c', script], env=env, cwd=cwd)
+                args = ['python3', '-c', script]
             else:
-                subprocess.call(
-                    ['python', '-c', script], env=env, cwd=cwd)
+                args = ['python', '-c', script]
+
+            if 'new_window' in self.flags:
+                subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
+            else:
+                subprocess.call(args, env=env, cwd=cwd)
 
         else:
             print('Not supported script:', self.ext)
