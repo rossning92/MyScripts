@@ -13,6 +13,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from os.path import expanduser
 import json
 import time
@@ -304,16 +305,23 @@ class EditVariableWidget(QWidget):
         return self.variables
 
 
+SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1'}
+
+
 def init_menu_items():
     # Load scripts
     script_items = []
     files = glob.glob('scripts/**/*.*', recursive=True)
     files.sort(key=os.path.getmtime, reverse=True)
     for file in files:
+        ext = os.path.splitext(file)[1].lower()
+        if ext not in SCRIPT_EXTENSIONS:
+            continue
+
         script_items.append(ScriptItem(file))
 
     global menu_items
-    menu_items = script_items + lagency_menu_items
+    menu_items = script_items  # + lagency_menu_items
 
 
 class MainWindow(QWidget):
@@ -344,6 +352,13 @@ class MainWindow(QWidget):
                 item.execute()
 
         self.startTimer(1000)
+
+        for item in menu_items:
+            config = item.get_config()
+            if config is not None:
+                if config['hotkey']:
+                    print(config['hotkey'])
+                    QShortcut(QKeySequence(config['hotkey']), self, lambda: item.execute())
 
     def timerEvent(self, e):
         if should_update():

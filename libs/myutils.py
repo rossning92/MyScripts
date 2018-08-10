@@ -4,7 +4,7 @@ import json
 import jinja2
 import re
 import tempfile
-
+import yaml
 
 def msbuild(vcproj):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
@@ -211,6 +211,14 @@ class ScriptItem():
         assert script_path is not None
         script_path = os.path.dirname(self.script_path) + '/' + script_path
         return ScriptItem(script_path).render()
+
+    def get_config(self):
+        config_file = os.path.splitext(self.script_path)[0] + '.yaml'
+        if not os.path.exists(config_file):
+            return None
+
+        return yaml.load(open(config_file, 'r', encoding='utf-8').read())
+
 
 
 def find_script(script_name, search_dir=None):
