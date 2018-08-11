@@ -62,13 +62,10 @@ def cmd(cmd, newterminal=False, runasadmin=False):
         temp.write(cmd.encode('utf-8'))
         temp.flush()
 
-        args = '{}cmd /c {}"{}{}"'.format(
+        args = '{}cmd /c {}'.format(
             'bin\Elevate.exe ' if runasadmin else '',
-            'start /i cmd /c ' if newterminal else '',
             temp.name,
-            ' & if errorlevel 1 pause' if newterminal else ''
         )
-        print(args)
         return args
 
 
