@@ -119,42 +119,18 @@ class ScriptItem():
 
     def execute(self):
         script = self.render()
-
-        # TODO:
-        if False:
-            assert os.name == 'nt'
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
-                # cmd = cmd.replace('\n', '\r\n')  # TODO
-                temp.write(script.encode('utf-8'))
-                temp.flush()
-
-                runasadmin = False
-                newterminal = False
-                cmdline = '{}cmd /c {}{}{}'.format(
-                    'Elevate.exe ' if runasadmin else '',
-                    'start /i cmd /c ' if newterminal else '',
-                    temp.name,
-                    ' & pause' if newterminal or runasadmin else ''
-                )
-                # params.append('& if errorlevel 1 pause') # Pause when failure
-
-                print(cmdline)
-                while not ps.is_terminated():
-                    data = ps.read()
-                    print(data)
-                    if data is not None:
-                        print(data.decode(), end='')
-                    time.sleep(.1)
-
-                return cmdline
+        args = None
+        env = os.environ
+        cwd = os.path.dirname(self.script_path)
+        if cwd == '':  # TODO: cwd can not be empty string
+            cwd = '.'
 
         if self.ext == '.ps1':
             if os.name == 'nt':
                 script = self.render()
-                subprocess.Popen(
-                    ['PowerShell.exe', '-NoProfile',
-                     '-ExecutionPolicy', 'unrestricted',
-                     '-Command', script])
+                args = ['PowerShell.exe', '-NoProfile',
+                        '-ExecutionPolicy', 'unrestricted',
+                        '-Command', script]
 
         elif self.ext == '.ahk':
             if os.name == 'nt':
@@ -166,10 +142,6 @@ class ScriptItem():
                 args = cmd(script,
                            runasadmin=('run_as_admin' in self.flags),
                            newterminal=('new_window' in self.flags))
-                global __error_code
-                __error_code = subprocess.call(args)
-
-                # return args
 
         elif self.ext == '.sh':
             script = self.render()
@@ -178,26 +150,24 @@ class ScriptItem():
         elif self.ext == '.py':
             script = self.render()
 
-            env = os.environ
             env['PYTHONPATH'] = os.path.dirname(__file__)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
-
-            cwd = os.path.dirname(self.script_path)
-            if cwd == '':  # TODO: cwd can not be empty string
-                cwd = '.'
 
             if os.name == 'posix':
                 args = ['python3', '-c', script]
             else:
                 args = ['python', '-c', script]
 
+        else:
+            print('Not supported script:', self.ext)
+
+        # Run commands
+        if args is not None:
+            global __error_code
             if 'new_window' in self.flags:
                 subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
             else:
-                subprocess.call(args, env=env, cwd=cwd)
-
-        else:
-            print('Not supported script:', self.ext)
+                __error_code = subprocess.call(args, env=env, cwd=cwd)
 
         # if 'autorun' not in self.flags:
         #     # os.utime(self.script_path, None)  # Update modified and access time
