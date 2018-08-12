@@ -235,14 +235,16 @@ class ScriptMeta():
             'autoRun': False
         }
 
-        meta_file = os.path.splitext(script_path)[0] + '.yaml'
-        if os.path.exists(meta_file):
-            o = yaml.load(open(meta_file, 'r').read())
+        self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
+        if os.path.exists(self.meta_file):
+            o = yaml.load(open(self.meta_file, 'r').read())
             # override default config
-            for k, v in o.items():
-                self.meta[k] = v
-        else:
-            yaml.dump(self.meta, open(meta_file, 'w'), default_flow_style=False)
+            if o is not None:
+                for k, v in o.items():
+                    self.meta[k] = v
+
+    def save(self):
+        yaml.dump(self.meta, open(self.meta_file, 'w'), default_flow_style=False)
 
 
 def get_script_meta(script_path):
