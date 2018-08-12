@@ -338,18 +338,17 @@ class MainWindow(QWidget):
         # Autorun script
         global menu_items
         for item in menu_items:
-            if type(item) == ScriptItem and 'autorun' in item.flags:
+            if type(item) == ScriptItem and item.meta['autoRun']:
                 item.execute()
 
         self.startTimer(1000)
 
         # Register hotkey
         for item in menu_items:
-            config = item.get_config()
-            if config is not None:
-                if config['hotkey']:
-                    print('Hotkey registered:', config['hotkey'])
-                    QShortcut(QKeySequence(config['hotkey']), self, lambda item=item: item.execute())
+            hotkey = item.meta['hotkey']
+            if hotkey is not None:
+                print('Hotkey registered:', hotkey)
+                QShortcut(QKeySequence(hotkey), self, lambda item=item: item.execute())
 
     def timerEvent(self, e):
         if should_update():

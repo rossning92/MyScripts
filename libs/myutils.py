@@ -55,7 +55,7 @@ def bash(cmd):
         raise Exception('Non supported OS version')
 
 
-def cmd(cmd, newterminal=False, runasadmin=False):
+def cmd(cmd, runasadmin=False):
     assert os.name == 'nt'
     with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
         # cmd = cmd.replace('\n', '\r\n')  # TODO
@@ -89,9 +89,13 @@ class ScriptItem():
 
         self.ext = ext
 
+        # Load flags
         patt = r'\[([a-zA-Z_][a-zA-Z_0-9]*)\]'
         self.flags = set(re.findall(patt, name))
         self.name = re.sub(patt, '', name)
+
+        # Load meta
+        self.meta = get_script_meta(self.script_path)
 
     def render(self):
         template = ScriptItem.env.get_template(self.script_path)
@@ -137,8 +141,7 @@ class ScriptItem():
             if os.name == 'nt':
                 script = self.render()
                 args = cmd(script,
-                           runasadmin=('run_as_admin' in self.flags),
-                           newterminal=('new_window' in self.flags))
+                           runasadmin=self.meta['runAsAdmin'])
 
         elif self.ext == '.sh':
             script = self.render()
@@ -161,7 +164,7 @@ class ScriptItem():
         # Run commands
         if args is not None:
             global __error_code
-            if 'new_window' in self.flags:
+            if self.meta['newWindow']:
                 subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
             else:
                 __error_code = subprocess.call(args, env=env, cwd=cwd)
@@ -189,13 +192,6 @@ class ScriptItem():
         assert script_path is not None
         script_path = os.path.dirname(self.script_path) + '/' + script_path
         return ScriptItem(script_path).render()
-
-    def get_config(self):
-        config_file = os.path.splitext(self.script_path)[0] + '.yaml'
-        if not os.path.exists(config_file):
-            return None
-
-        return yaml.load(open(config_file, 'r', encoding='utf-8').read())
 
 
 def find_script(script_name, search_dir=None):
@@ -228,3 +224,26 @@ def _convert_to_unix_path(path):
         path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' + x.group(0)[0].lower()), path)
         path = path.replace('\\', '/')
     return path
+
+
+class ScriptMeta():
+    def __init__(self, script_path):
+        self.meta = {
+            'hotkey': None,
+            'newWindow': False,
+            'runAsAdmin': False,
+            'autoRun': False
+        }
+
+        meta_file = os.path.splitext(script_path)[0] + '.yaml'
+        if os.path.exists(meta_file):
+            o = yaml.load(open(meta_file, 'r').read())
+            # override default config
+            for k, v in o.items():
+                self.meta[k] = v
+        else:
+            yaml.dump(self.meta, open(meta_file, 'w'), default_flow_style=False)
+
+
+def get_script_meta(script_path):
+    return ScriptMeta(script_path).meta
