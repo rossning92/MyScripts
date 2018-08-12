@@ -86,13 +86,9 @@ class ScriptItem():
         name, ext = os.path.splitext(script_path)
         name = name[8:]  # strip starting scripts/
         name = name.replace('\\', '/')
+        self.name = name
 
         self.ext = ext
-
-        # Load flags
-        patt = r'\[([a-zA-Z_][a-zA-Z_0-9]*)\]'
-        self.flags = set(re.findall(patt, name))
-        self.name = re.sub(patt, '', name)
 
         # Load meta
         self.meta = get_script_meta(self.script_path)
@@ -189,7 +185,8 @@ class ScriptItem():
 
     def include(self, script_name):
         script_path = find_script(script_name, os.path.dirname(self.script_path))
-        assert script_path is not None
+        if script_path is None:
+            raise Exception('Cannot find script: %s' % script_name)
         script_path = os.path.dirname(self.script_path) + '/' + script_path
         return ScriptItem(script_path).render()
 
