@@ -308,6 +308,11 @@ def init_menu_items():
         if ext not in SCRIPT_EXTENSIONS:
             continue
 
+        # Hide files starting with '_'
+        base_name = os.path.basename(ext)
+        if base_name.startswith('_'):
+            continue
+
         script_items.append(ScriptItem(file))
 
     global menu_items
