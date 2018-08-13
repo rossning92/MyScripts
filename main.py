@@ -17,10 +17,6 @@ SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
 
 # https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
 
-VR_SHELL = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell'
-# VR_SHELL  = '/Users/rossning92/ovrsource/Software/Apps/Native/VrShell'
-
-VR_DRIVER = '/Users/rossning92/ovrsource/Software/OculusSDK/Mobile/VrDriver'
 PANEL_APP = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell/MyFancyProject'
 
 SETUP_ENV = '''
