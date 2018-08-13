@@ -128,6 +128,8 @@ class ScriptItem():
                 args = ['PowerShell.exe', '-NoProfile',
                         '-ExecutionPolicy', 'unrestricted',
                         '-Command', script]
+            if self.meta['runAsAdmin']:
+                args.insert(0, 'bin\Elevate.exe')
 
         elif self.ext == '.ahk':
             if os.name == 'nt':
