@@ -43,7 +43,6 @@ def append_line(file_path, insert_line):
 def bash(cmd):
     if os.name == 'nt':
         subprocess.call([
-            # r'C:\Program Files\Git\git-bash.exe',
             r'C:\Program Files\Git\bin\bash.exe',
             '--login',
             '-i',
@@ -62,10 +61,9 @@ def cmd(cmd, runasadmin=False):
         temp.write(cmd.encode('utf-8'))
         temp.flush()
 
-        args = '{}cmd /c {}'.format(
-            'bin\Elevate.exe ' if runasadmin else '',
-            temp.name,
-        )
+        args = ['cmd.exe', '/c', temp.name]
+        if runasadmin:
+            args.insert(0, 'bin\Elevate.exe')
         return args
 
 
@@ -161,10 +159,12 @@ class ScriptItem():
 
         # Run commands
         if args is not None:
-            global __error_code
             if self.meta['newWindow']:
-                subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
+                # subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
+                subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args,
+                                 env=env, cwd=cwd)
             else:
+                global __error_code
                 __error_code = subprocess.call(args, env=env, cwd=cwd)
 
         # if 'autorun' not in self.flags:
