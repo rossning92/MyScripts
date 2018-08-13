@@ -309,7 +309,7 @@ def init_menu_items():
             continue
 
         # Hide files starting with '_'
-        base_name = os.path.basename(ext)
+        base_name = os.path.basename(file)
         if base_name.startswith('_'):
             continue
 
