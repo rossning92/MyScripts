@@ -389,8 +389,14 @@ class MainWindow(QWidget):
         if len(self.matched_items) > 0:
             first_matched_item = menu_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
+
+            # Display variable list
             if 'get_variables' in dir(first_matched_item):
                 self.editVariableWidget.init(first_matched_item.get_variable_names())
+
+            # Save current selected menu items
+            # with open('data/SelectedScript.txt', 'w') as f:
+            #    f.write(first_matched_item.script_path)
 
     def event(self, e):
         if e.type() == QEvent.WindowActivate:
