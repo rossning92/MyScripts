@@ -276,7 +276,11 @@ class EditVariableWidget(QWidget):
             comboBox.setMinimumContentsLength(20)
             comboBox.setEditable(True)
             if variable in self.variables:
-                comboBox.setCurrentText(self.variables[variable])
+                var_values = self.variables[variable]
+                for v in var_values:
+                    comboBox.addItem(v)
+            if comboBox.count() > 0:
+                comboBox.setCurrentIndex(comboBox.count() - 1)
 
             self.layout().addRow(QLabel(variable + ':'), comboBox)
 
@@ -285,7 +289,18 @@ class EditVariableWidget(QWidget):
 
     def save(self):
         for k, v in self.variableUIs.items():
-            self.variables[k] = v.currentText()
+            text = v.currentText()
+            if k not in self.variables:
+                var_values = []
+                self.variables[k] = var_values
+            else:
+                var_values = self.variables[k]
+
+            try:
+                var_values.remove(text)
+            except ValueError:
+                pass
+            var_values.append(text)
 
         with open(get_variable_file(), 'w') as f:
             json.dump(self.variables, f, indent=4)

@@ -77,6 +77,8 @@ class ScriptItem():
         return self.name
 
     def __init__(self, script_path):
+        self.fake_render = False
+
         # BUG: jinja2 doesn't support '\' in path
         script_path = script_path.replace('\\', '/')
         self.script_path = script_path
@@ -93,9 +95,12 @@ class ScriptItem():
 
     def render(self):
         template = ScriptItem.env.get_template(self.script_path)
-        script = template.render({
+        ctx = {
             'include': ScriptItem.include.__get__(self, ScriptItem),
-            **self.get_variables()})
+        }
+        if not self.fake_render:
+            ctx = {**ctx, **self.get_variables()}
+        script = template.render(ctx)
         return script
 
     def get_variables(self):
@@ -105,6 +110,9 @@ class ScriptItem():
         variables = {}
         with open(get_variable_file(), 'r') as f:
             variables = json.load(f)
+
+        # Let only last modified value
+        variables = {k: (v[-1] if len(v) > 0 else '') for k, v in variables.items()}
 
         # HACK: Convert to unix path
         if self.ext == '.sh':
@@ -161,7 +169,7 @@ class ScriptItem():
         if args is not None:
             if self.meta['newWindow']:
                 # subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
-                subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args,
+                subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'error'] + args,
                                  env=env, cwd=cwd)
             else:
                 global __error_code
@@ -181,7 +189,9 @@ class ScriptItem():
                 variables.add(key)
 
         ScriptItem.env.context_class = MyContext
+        self.fake_render = True
         self.render()
+        self.fake_render = False
         ScriptItem.env.context_class = jinja2.runtime.Context
         return list(variables)
 
