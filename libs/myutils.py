@@ -77,8 +77,6 @@ class ScriptItem():
         return self.name
 
     def __init__(self, script_path):
-        self.fake_render = False
-
         # BUG: jinja2 doesn't support '\' in path
         script_path = script_path.replace('\\', '/')
         self.script_path = script_path
@@ -97,9 +95,8 @@ class ScriptItem():
         template = ScriptItem.env.get_template(self.script_path)
         ctx = {
             'include': ScriptItem.include.__get__(self, ScriptItem),
+            **self.get_variables()
         }
-        if not self.fake_render:
-            ctx = {**ctx, **self.get_variables()}
         script = template.render(ctx)
         return script
 
@@ -189,9 +186,7 @@ class ScriptItem():
                 variables.add(key)
 
         ScriptItem.env.context_class = MyContext
-        self.fake_render = True
         self.render()
-        self.fake_render = False
         ScriptItem.env.context_class = jinja2.runtime.Context
         return list(variables)
 
