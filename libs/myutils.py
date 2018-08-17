@@ -127,7 +127,6 @@ class ScriptItem():
         return variables
 
     def execute(self):
-        script = self.render()
         args = None
         env = os.environ
         cwd = os.path.dirname(self.script_path)
