@@ -92,14 +92,6 @@ def insert_line_if_not_exist(line, file, after_line=None):
 
 variables = {}
 
-
-def open_text_editor(path):
-    if os.name == 'posix':
-        subprocess.Popen(['atom', path])
-    else:
-        subprocess.Popen(['notepad++', path])
-
-
 colorama.init()
 
 menu_items = []
@@ -397,8 +389,10 @@ class MainWindow(QWidget):
 
         self.editVariableWidget.init()  # Clear all widget
         if len(self.matched_items) > 0:
+            # Set selected items
             first_matched_item = menu_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
+            os.environ['ROSS_SELECTED_SCRIPT_PATH'] = first_matched_item.script_path  # HACK
 
             # Display variable list
             if 'get_variables' in dir(first_matched_item):
