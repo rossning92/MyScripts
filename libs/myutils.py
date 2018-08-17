@@ -61,17 +61,19 @@ def bash(cmd):
         raise Exception('Non supported OS version')
 
 
+def write_temp_file(text, ext):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
+        temp.write(text.encode('utf-8'))
+        return temp.name
+
+
 def cmd(cmd, runasadmin=False):
     assert os.name == 'nt'
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.cmd') as temp:
-        # cmd = cmd.replace('\n', '\r\n')  # TODO
-        temp.write(cmd.encode('utf-8'))
-        temp.flush()
-
-        args = ['cmd.exe', '/c', temp.name]
-        if runasadmin:
-            args.insert(0, 'bin\Elevate.exe')
-        return args
+    file_name = write_temp_file(cmd, '.cmd')
+    args = ['cmd.exe', '/c', file_name]
+    if runasadmin:
+        args.insert(0, 'bin\Elevate.exe')
+    return args
 
 
 __error_code = 0
@@ -135,9 +137,10 @@ class ScriptItem():
         if self.ext == '.ps1':
             if os.name == 'nt':
                 script = self.render()
+                file_path = write_temp_file(script, '.ps1')
                 args = ['PowerShell.exe', '-NoProfile',
                         '-ExecutionPolicy', 'unrestricted',
-                        '-Command', script]
+                        file_path]
             if self.meta['runAsAdmin']:
                 args.insert(0, 'bin\Elevate.exe')
 
