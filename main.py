@@ -309,27 +309,6 @@ class EditVariableWidget(QWidget):
         return self.variables
 
 
-def init_menu_items():
-    # Load scripts
-    script_items = []
-    files = glob.glob('scripts/**/*.*', recursive=True)
-    files.sort(key=os.path.getmtime, reverse=True)
-    for file in files:
-        ext = os.path.splitext(file)[1].lower()
-        if ext not in SCRIPT_EXTENSIONS:
-            continue
-
-        # Hide files starting with '_'
-        base_name = os.path.basename(file)
-        if base_name.startswith('_'):
-            continue
-
-        script_items.append(ScriptItem(file))
-
-    global menu_items
-    menu_items = script_items  # + lagency_menu_items
-
-
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -345,17 +324,12 @@ class MainWindow(QWidget):
         self.editVariableWidget = EditVariableWidget()
         self.ui.layout().addWidget(self.editVariableWidget)
 
+        self.init_menu_items()
         self.on_inputBox_textChanged()
 
         # Process list ui
         self.processWidget = ProcessWidget()
         self.ui.layout().addWidget(self.processWidget)
-
-        # Autorun script
-        global menu_items
-        for item in menu_items:
-            if type(item) == ScriptItem and item.meta['autoRun']:
-                item.execute()
 
         self.startTimer(1000)
 
@@ -368,8 +342,33 @@ class MainWindow(QWidget):
 
     def timerEvent(self, e):
         if should_update():
-            init_menu_items()
+            self.init_menu_items()
             self.update_items(self.ui.inputBox.text())
+
+    def init_menu_items(self):
+        # Load scripts
+        script_items = []
+        files = glob.glob('scripts/**/*.*', recursive=True)
+        files.sort(key=os.path.getmtime, reverse=True)
+        for file in files:
+            ext = os.path.splitext(file)[1].lower()
+            if ext not in SCRIPT_EXTENSIONS:
+                continue
+
+            script = ScriptItem(file)
+
+            # Check if auto run script
+            # TODO: only run modified scripts
+            if script.meta['autoRun']:
+                script.execute()
+
+            # Hide files starting with '_'
+            base_name = os.path.basename(file)
+            if not base_name.startswith('_'):
+                script_items.append(script)
+
+        global menu_items
+        menu_items = script_items
 
     def on_inputBox_textChanged(self, user_input=None):
         self.update_items(user_input)
@@ -461,8 +460,6 @@ class MainWindow(QWidget):
 if __name__ == '__main__':
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
-
-    init_menu_items()
 
     if True:
         app = QApplication(sys.argv)
