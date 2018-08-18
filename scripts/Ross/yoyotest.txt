@@ -1,31 +1,0 @@
-ffmpeg version 4.0.2 Copyright (c) 2000-2018 the FFmpeg developers
-  built with gcc 7.3.1 (GCC) 20180722
-  configuration: --enable-gpl --enable-version3 --enable-sdl2 --enable-bzlib --enable-fontconfig --enable-gnutls --enable-iconv --enable-libass --enable-libbluray --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-libopus --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libtheora --enable-libtwolame --enable-libvpx --enable-libwavpack --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-libzimg --enable-lzma --enable-zlib --enable-gmp --enable-libvidstab --enable-libvorbis --enable-libvo-amrwbenc --enable-libmysofa --enable-libspeex --enable-libxvid --enable-libaom --enable-libmfx --enable-amf --enable-ffnvcodec --enable-cuvid --enable-d3d11va --enable-nvenc --enable-nvdec --enable-dxva2 --enable-avisynth
-  libavutil      56. 14.100 / 56. 14.100
-  libavcodec     58. 18.100 / 58. 18.100
-  libavformat    58. 12.100 / 58. 12.100
-  libavdevice    58.  3.100 / 58.  3.100
-  libavfilter     7. 16.100 /  7. 16.100
-  libswscale      5.  1.100 /  5.  1.100
-  libswresample   3.  1.100 /  3.  1.100
-  libpostproc    55.  1.100 / 55.  1.100
-[gdigrab @ 000001c2da19b780] Capturing whole desktop as 1920x1080x32 at (0,0)
-[gdigrab @ 000001c2da19b780] Stream #0: not enough frames to estimate rate; consider increasing probesize
-Input #0, gdigrab, from 'desktop':
-  Duration: N/A, start: 1534636067.273112, bitrate: 3981337 kb/s
-    Stream #0:0: Video: bmp, bgra, 1920x1080, 3981337 kb/s, 60 fps, 1000k tbr, 1000k tbn, 1000k tbc
-Stream mapping:
-  Stream #0:0 -> #0:0 (bmp (native) -> h264 (libx264))
-Press [q] to stop, [?] for help
-[libx264 @ 000001c2da19fa80] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
-[libx264 @ 000001c2da19fa80] profile High 4:4:4 Predictive, level 4.2, 4:4:4 8-bit
-[libx264 @ 000001c2da19fa80] 264 - core 155 r2901 7d0ff22 - H.264/MPEG-4 AVC codec - Copyleft 2003-2018 - http://www.videolan.org/x264.html - options: cabac=0 ref=1 deblock=0:0:0 analyse=0:0 me=dia subme=0 psy=0 mixed_ref=0 me_range=16 chroma_me=1 trellis=0 8x8dct=0 cqm=0 deadzone=21,11 fast_pskip=0 chroma_qp_offset=0 threads=6 lookahead_threads=1 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=0 keyint=250 keyint_min=25 scenecut=0 intra_refresh=0 rc=cqp mbtree=0 qp=0
-Output #0, matroska, to 'output.mkv':
-  Metadata:
-    encoder         : Lavf58.12.100
-    Stream #0:0: Video: h264 (libx264) (H264 / 0x34363248), yuv444p, 1920x1080, q=-1--1, 60 fps, 1k tbn, 60 tbc
-    Metadata:
-      encoder         : Lavc58.18.100 libx264
-    Side data:
-      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: -1
-frame=   14 fps=0.0 q=0.0 size=       1kB time=00:00:00.25 bitrate=  23.0kbits/s speed=0.495x    frame=   30 fps= 29 q=0.0 size=       1kB time=00:00:00.85 bitrate=   6.8kbits/s speed=0.81x    frame=   46 fps= 29 q=0.0 size=       1kB time=00:00:01.38 bitrate=   4.2kbits/s speed=0.876x    frame=   62 fps= 29 q=0.0 size=       1kB time=00:00:01.91 bitrate=   3.0kbits/s speed=0.912x    frame=   78 fps= 29 q=0.0 size=       1kB time=00:00:02.45 bitrate=   2.4kbits/s speed=0.926x    frame=   93 fps= 30 q=0.0 size=       1kB time=00:00:02.95 bitrate=   2.0kbits/s speed=0.938x    frame=  109 fps= 30 q=0.0 size=       1kB time=00:00:03.48 bitrate=   1.7kbits/s speed=0.947x    frame=  125 fps= 30 q=0.0 size=       1kB time=00:00:04.01 bitrate=   1.4kbits/s speed=0.954x    frame=  140 fps= 30 q=0.0 size=       1kB time=00:00:04.53 bitrate=   1.3kbits/s speed=0.959x    frame=  156 fps= 30 q=0.0 size=    4593kB time=00:00:05.06 bitrate=7424.4kbits/s speed=0.962x    
