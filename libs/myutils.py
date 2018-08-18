@@ -174,12 +174,13 @@ class ScriptItem():
         # Run commands
         if args is not None:
             if self.meta['newWindow']:
-                # subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
-                mintty = [
-                    r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'error'
-                ]
-                subprocess.Popen(mintty + args,
-                                 env=env, cwd=cwd)
+                if True:
+                    subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
+                else:
+                    mintty = [
+                        r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'error'
+                    ]
+                    subprocess.Popen(mintty + args, env=env, cwd=cwd)
             else:
                 global __error_code
                 __error_code = subprocess.call(args, env=env, cwd=cwd)

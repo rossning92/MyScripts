@@ -2,14 +2,21 @@ import os
 import datetime
 import subprocess
 import sys
+from PyQt5.QtWidgets import QApplication, QInputDialog
 
-dt = datetime.datetime.now()
-file_name = dt.strftime('Temp_%Y%m%d_%H%M%S.cmd')
+os.chdir('../')
 
-#with open(file_name, 'w') as f:
-#    pass
+_app = QApplication([])
+file_path, okPressed = QInputDialog.getText(None, "Create New Script", "Script name:")
+if okPressed:
+    dir_name = os.path.dirname(file_path)
+    os.makedirs(dir_name, exist_ok=True)
 
-if sys.platform == 'darwin':
-    subprocess.Popen(['atom'])
-else:
-    subprocess.Popen(['notepad++'])
+    # Create empty file
+    with open(file_path, 'w') as f:
+        pass
+
+    if sys.platform == 'darwin':
+        subprocess.Popen(['atom', file_path])
+    else:
+        subprocess.Popen(['notepad++', file_path])
