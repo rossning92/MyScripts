@@ -6,3 +6,4 @@ git config --global user.email "rossning92@gmail.com"
 git config --global user.name "Ross Ning"
 
 choco install googlechrome -y
+choco install ffmpeg -y
