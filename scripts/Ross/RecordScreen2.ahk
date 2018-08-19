@@ -1,4 +1,5 @@
 SetWorkingDir %A_Desktop%
+Gui -DPIScale
 
 WinGetPos, x, y, w, h, ahk_exe notepad++.exe
 
