@@ -31,7 +31,7 @@ def get_variable_file():
 def get_arg(name):
     with open(get_variable_file(), 'r') as f:
         variables = json.load(f)
-    return variables[name]
+    return variables[name][-1]
 
 
 def append_line(file_path, insert_line):
