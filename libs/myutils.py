@@ -173,7 +173,7 @@ class ScriptItem():
         if args is not None:
             if self.meta['newWindow']:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
-                if os.path.exists(CONEMU)  and control_down:
+                if control_down and os.path.exists(CONEMU):
                     subprocess.Popen([CONEMU,
                                       '-Dir', cwd,
                                       '-LoadCfgFile', 'data/ConEmu.xml',
