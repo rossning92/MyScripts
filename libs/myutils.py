@@ -174,11 +174,12 @@ class ScriptItem():
         # Run commands
         if args is not None:
             if self.meta['newWindow']:
-                if True:
-                    # now = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
-                    # args = ['cmd', '/c'] + args + ['|', 'tee', '%Temp%\\Log_' + now + '.txt']
+                CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
+                if os.path.exists(CONEMU):
+                    subprocess.Popen([CONEMU, '-LoadCfgFile', 'data/ConEmu.xml', '-run', '-cur_console:n'] + args)
+                elif True:
                     subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
-                else:
+                elif True:
                     mintty = [
                         r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'
                     ]
