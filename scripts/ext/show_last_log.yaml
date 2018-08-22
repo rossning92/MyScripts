@@ -1,0 +1,4 @@
+autoRun: false
+hotkey: Ctrl+L
+newWindow: false
+runAsAdmin: false
