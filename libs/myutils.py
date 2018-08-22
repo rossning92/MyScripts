@@ -179,7 +179,10 @@ class ScriptItem():
                                       '-LoadCfgFile', 'data/ConEmu.xml',
                                       '-run', '-cur_console:n'] + args)
                 elif True:
-                    subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
+                    subprocess.Popen(args,
+                                     creationflags=subprocess.CREATE_NEW_CONSOLE,
+                                     env=env,
+                                     cwd=cwd)
                 elif True:
                     mintty = [
                         r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'
