@@ -2,7 +2,7 @@ choco install notepadplusplus -y
 choco install conemu -y
 
 choco install git -y
-git config --global core.ignorecase false
+::git config core.ignorecase false
 git config --global user.email "rossning92@gmail.com"
 git config --global user.name "Ross Ning"
 
