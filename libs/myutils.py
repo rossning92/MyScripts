@@ -129,9 +129,7 @@ class ScriptItem():
     def execute(self):
         args = None
         env = os.environ
-        cwd = os.path.dirname(self.script_path)
-        if cwd == '':  # TODO: cwd can not be empty string
-            cwd = '.'
+        cwd = os.path.join(os.getcwd(),os.path.dirname(self.script_path))
 
         if self.ext == '.ps1':
             if os.name == 'nt':
@@ -176,7 +174,10 @@ class ScriptItem():
             if self.meta['newWindow']:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
                 if os.path.exists(CONEMU):
-                    subprocess.Popen([CONEMU, '-LoadCfgFile', 'data/ConEmu.xml', '-run', '-cur_console:n'] + args)
+                    subprocess.Popen([CONEMU,
+                                      '-Dir', cwd,
+                                      '-LoadCfgFile', 'data/ConEmu.xml',
+                                      '-run', '-cur_console:n'] + args)
                 elif True:
                     subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
                 elif True:
