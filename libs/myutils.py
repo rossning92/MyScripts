@@ -178,7 +178,7 @@ class ScriptItem():
                     subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
                 else:
                     mintty = [
-                        r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'error'
+                        r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'
                     ]
                     subprocess.Popen(mintty + args, env=env, cwd=cwd)
             else:
