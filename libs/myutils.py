@@ -50,12 +50,11 @@ def append_line(file_path, insert_line):
 
 def bash(cmd):
     if os.name == 'nt':
-        subprocess.call([
-            r'C:\Program Files\Git\bin\bash.exe',
-            '--login',
-            '-i',
-            '-c',
-            cmd])
+        return [r'C:\Program Files\Git\bin\bash.exe',
+                '--login',
+                '-i',
+                '-c',
+                cmd]
     elif os.name == 'posix':  # MacOSX
         subprocess.call(cmd, shell=True)
     else:
@@ -156,7 +155,7 @@ class ScriptItem():
 
         elif self.ext == '.sh':
             script = self.render()
-            bash(script)
+            args = bash(script)
 
         elif self.ext == '.py':
             script = self.render()
