@@ -425,7 +425,10 @@ class MainWindow(QWidget):
                 global variables
                 variables = self.ui.editVariableWidget.get_variables()
                 self.hide()
-                args = menu_items[idx].execute()
+
+                control_down = e.modifiers() == Qt.ControlModifier
+                args = menu_items[idx].execute(control_down)
+
                 # if args is not None:
                 #     subprocess.call(args)  # HACK
                 #     # self.processWidget.run(args)
