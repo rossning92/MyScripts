@@ -1,6 +1,6 @@
 /scripts/*
 .DS_Store
-!/scripts/common
+!/scripts/ext
 !/scripts/Ross
 /variables.json
 /__pycache__/

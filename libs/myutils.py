@@ -6,6 +6,7 @@ import re
 import tempfile
 import yaml
 import platform
+import datetime
 
 
 def open_text_editor(path):
@@ -175,6 +176,8 @@ class ScriptItem():
         if args is not None:
             if self.meta['newWindow']:
                 if True:
+                    now = datetime.datetime.now().strftime('%y%m%d_%H%M%S')
+                    args = ['cmd', '/c'] + args + ['|', 'tee', '%Temp%\\Log_' + now + '.txt']
                     subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE, env=env, cwd=cwd)
                 else:
                     mintty = [
