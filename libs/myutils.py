@@ -171,23 +171,20 @@ class ScriptItem():
 
         # Run commands
         if args is not None:
-            if self.meta['newWindow']:
+            if self.meta['newWindow'] or control_down:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
-                if control_down and os.path.exists(CONEMU):
+                if False and control_down and os.path.exists(CONEMU):
                     subprocess.Popen([CONEMU,
                                       '-Dir', cwd,
                                       '-LoadCfgFile', 'data/ConEmu.xml',
                                       '-run'] + args)
-                elif True:
+                elif not control_down:
                     subprocess.Popen(args,
                                      creationflags=subprocess.CREATE_NEW_CONSOLE,
                                      env=env,
                                      cwd=cwd)
-                elif True:
-                    mintty = [
-                        r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'
-                    ]
-                    subprocess.Popen(mintty + args, env=env, cwd=cwd)
+                else:
+                    subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args, env=env, cwd=cwd)
             else:
                 global __error_code
                 __error_code = subprocess.call(args, env=env, cwd=cwd)
