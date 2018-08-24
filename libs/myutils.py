@@ -189,6 +189,16 @@ class ScriptItem():
             else:
                 args = ['python', '-c', script]
 
+            if self.meta['runAsAdmin']:  # HACK: run python as admin
+                elivate_exe = os.path.abspath(os.path.dirname(__file__) + '/../bin/Elevate.exe')
+                script_full_path = os.path.abspath(os.path.join(os.getcwd(), self.script_path))
+                script_dir = os.path.dirname(script_full_path)
+                script_file = os.path.basename(script_full_path)
+                args = [elivate_exe,
+                        'cmd', '/c',
+                        'cd', script_dir, '&'
+                        'python', script_file, '&', 'pause']
+
         else:
             print('Not supported script:', self.ext)
 
