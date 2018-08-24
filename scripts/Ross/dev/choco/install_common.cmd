@@ -1,6 +1,5 @@
 choco install notepadplusplus -y
-choco install 7zip -y
-::choco install conemu -y
+choco install conemu -y
 
 choco install git -y
 ::git config core.ignorecase false
