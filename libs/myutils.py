@@ -20,9 +20,17 @@ def open_text_editor(path):
 
 def msbuild(vcproj):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
-    MSBUILD = r'"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe" /p:Configuration=Release /p:WarningLevel=0 /p:Platform=x64 /maxcpucount /verbosity:Quiet /nologo'
+    
+    msbuild = [
+        r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe",
+        r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"
+    ]
+    msbuild = [x for x in msbuild if os.path.exists(x)]
+    assert len(msbuild) > 0
+    
+    params = '/p:Configuration=Release /p:WarningLevel=0 /p:Platform=x64 /maxcpucount /verbosity:Quiet /nologo'
 
-    args = '%s "%s"' % (MSBUILD, vcproj)
+    args = '"%s" %s "%s"' % (msbuild[0], params, vcproj)
     ret = subprocess.call(args)
     assert ret == 0
 
