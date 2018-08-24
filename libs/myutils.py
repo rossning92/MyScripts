@@ -8,6 +8,8 @@ import yaml
 import platform
 import datetime
 
+ADD_PARENT_DIRS_TO_PYTHON_PATH = True
+
 
 def open_text_editor(path):
     if os.name == 'posix':
@@ -158,7 +160,20 @@ class ScriptItem():
         elif self.ext == '.py':
             script = self.render()
 
-            env['PYTHONPATH'] = os.path.dirname(__file__)
+            python_path = [os.path.dirname(__file__)]
+            if ADD_PARENT_DIRS_TO_PYTHON_PATH:
+                script_root_path = os.path.dirname(__file__) + '/../scripts'
+                script_root_path = os.path.abspath(script_root_path)
+                script_full_path = os.path.join(os.getcwd(), self.script_path)
+                parent_dir = os.path.dirname(script_full_path)
+                while True:
+                    parent_dir = os.path.abspath(parent_dir + '/../')
+                    if parent_dir.startswith(script_root_path):
+                        python_path.append(parent_dir)
+                    else:
+                        break
+            env['PYTHONPATH'] = ';'.join(python_path)
+
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             if os.name == 'posix':
@@ -184,7 +199,8 @@ class ScriptItem():
                                      env=env,
                                      cwd=cwd)
                 else:
-                    subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args, env=env, cwd=cwd)
+                    subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args, env=env,
+                                     cwd=cwd)
             else:
                 global __error_code
                 __error_code = subprocess.call(args, env=env, cwd=cwd)
