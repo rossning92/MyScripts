@@ -6,10 +6,8 @@ import re
 import tempfile
 import yaml
 import platform
-import datetime
 import ctypes
 import sys
-import shlex
 
 ADD_PARENT_DIRS_TO_PYTHON_PATH = True
 
