@@ -7,6 +7,9 @@ import tempfile
 import yaml
 import platform
 import datetime
+import ctypes
+import sys
+import shlex
 
 ADD_PARENT_DIRS_TO_PYTHON_PATH = True
 
@@ -20,14 +23,14 @@ def open_text_editor(path):
 
 def msbuild(vcproj):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
-    
+
     msbuild = [
         r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe",
         r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"
     ]
     msbuild = [x for x in msbuild if os.path.exists(x)]
     assert len(msbuild) > 0
-    
+
     params = '/p:Configuration=Release /p:WarningLevel=0 /p:Platform=x64 /maxcpucount /verbosity:Quiet /nologo'
 
     args = '"%s" %s "%s"' % (msbuild[0], params, vcproj)
@@ -77,12 +80,10 @@ def write_temp_file(text, ext):
         return temp.name
 
 
-def cmd(cmd, runasadmin=False):
+def cmd(cmd):
     assert os.name == 'nt'
     file_name = write_temp_file(cmd, '.cmd')
     args = ['cmd.exe', '/c', file_name]
-    if runasadmin:
-        args.insert(0, 'bin\Elevate.exe')
     return args
 
 
@@ -148,8 +149,6 @@ class ScriptItem():
                 args = ['PowerShell.exe', '-NoProfile',
                         '-ExecutionPolicy', 'unrestricted',
                         file_path]
-            if self.meta['runAsAdmin']:
-                args.insert(0, 'bin\Elevate.exe')
 
         elif self.ext == '.ahk':
             if os.name == 'nt':
@@ -158,8 +157,7 @@ class ScriptItem():
         elif self.ext == '.cmd':
             if os.name == 'nt':
                 script = self.render()
-                args = cmd(script,
-                           runasadmin=self.meta['runAsAdmin'])
+                args = cmd(script)
 
         elif self.ext == '.sh':
             script = self.render()
@@ -185,26 +183,38 @@ class ScriptItem():
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             if os.name == 'posix':
-                args = ['python3', '-c', script]
+                args = [sys.executable, '-c', script]
             else:
-                args = ['python', '-c', script]
+                args = [sys.executable, '-c', script]
 
             if self.meta['runAsAdmin']:  # HACK: run python as admin
-                elivate_exe = os.path.abspath(os.path.dirname(__file__) + '/../bin/Elevate.exe')
-                script_full_path = os.path.abspath(os.path.join(os.getcwd(), self.script_path))
-                script_dir = os.path.dirname(script_full_path)
-                script_file = os.path.basename(script_full_path)
-                args = [elivate_exe,
-                        'cmd', '/c',
-                        'cd', script_dir, '&'
-                        'python', script_file, '&', 'pause']
+                # elevate_exe = os.path.abspath(os.path.dirname(__file__) + '/../bin/Elevate.exe')
+                # script_full_path = os.path.abspath(os.path.join(os.getcwd(), self.script_path))
+                # script_dir = os.path.dirname(script_full_path)
+                # script_file = os.path.basename(script_full_path)
+                # args = [elevate_exe,
+                #         'cmd', '/c',
+                #         'cd', script_dir, '&'
+                #         'python', script_file, '&', 'pause']
+                pass
 
         else:
             print('Not supported script:', self.ext)
 
         # Run commands
         if args is not None:
-            if self.meta['newWindow'] or control_down:
+            if self.meta['runAsAdmin']:
+                quoted_args = subprocess.list2cmdline(args[1:])
+                print(quoted_args)
+                ctypes.windll.shell32.ShellExecuteW(
+                    None,  # hwnd
+                    "runas",  # verb
+                    args[0],  # Python executable
+                    quoted_args,  # Python file
+                    cwd,
+                    1)
+
+            elif self.meta['newWindow'] or control_down:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
                 if False and control_down and os.path.exists(CONEMU):
                     subprocess.Popen([CONEMU,
