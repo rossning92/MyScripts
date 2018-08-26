@@ -9,13 +9,15 @@ desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop')
 
 clip1 = VideoFileClip(r"C:\Users\Ross\Desktop\Lecture 5 _ Convolutional Neural Networks-bNb2fEVKeEo.mkv")
 clip2 = VideoFileClip(r"C:\Users\Ross\Desktop\Lecture 9 _ CNN Architectures-DAOcjicFr1Y.mkv")
+w = clip1.w
+h = clip1.h
 
 clip_left = clip1 \
-    .fx(vfx.all.crop, x1=0, y1=0, x2=clip1.w // 2, y2=clip1.h) \
+    .fx(vfx.all.crop, x1=0, y1=0, x2=w // 2, y2=h) \
     .subclip(0)
 
 clip_right = clip2 \
-    .fx(vfx.all.crop, x1=0, y1=0, x2=clip1.w // 2, y2=clip1.h) \
+    .fx(vfx.all.crop, x1=0, y1=0, x2=w // 2, y2=h) \
     .subclip(1)
 
 
