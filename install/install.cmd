@@ -1,0 +1,1 @@
+@powershell.exe -NoProfile -InputFormat None -ExecutionPolicy Bypass %~dp0install.ps1
