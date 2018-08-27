@@ -1,1 +1,1 @@
-Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass `"$PSScriptRoot\install_required_packages.ps1`"" -Verb runas
+Start-Process powershell -Wait -ArgumentList "-NoProfile -ExecutionPolicy Bypass `"$PSScriptRoot\install_required_packages.ps1`"" -Verb runas
