@@ -19,5 +19,8 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People
 :: Set File Explorer to "Open to This PC"
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 1 /f
 
+:: Remove pinned items from Taskbar
+reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /F
+
 taskkill /f /im explorer.exe
 start explorer.exe
