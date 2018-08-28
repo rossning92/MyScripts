@@ -10,7 +10,8 @@ _app = QApplication([])
 file_path, okPressed = QInputDialog.getText(None, "Create New Script", "Script name:")
 if okPressed:
     dir_name = os.path.dirname(file_path)
-    os.makedirs(dir_name, exist_ok=True)
+    if dir_name != '':
+        os.makedirs(dir_name, exist_ok=True)
 
     # Create empty file
     with open(file_path, 'w') as f:
