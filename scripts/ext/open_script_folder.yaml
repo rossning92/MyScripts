@@ -1,1 +1,4 @@
+autoRun: false
 hotkey: Ctrl+Shift+O
+newWindow: false
+runAsAdmin: false
