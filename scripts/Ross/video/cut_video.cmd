@@ -1,0 +1,1 @@
+ffmpeg -ss 00:00:01.385 -i input.mp4 -strict -2 -t 4 output2.mp4
