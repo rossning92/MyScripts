@@ -227,9 +227,10 @@ class ScriptItem():
             print('Not supported script:', self.ext)
 
         # Append file if in clipboard
-        file_path = cb_get_file()
-        if file_path is not None:
-            args.append(file_path)
+        if args is not None:
+            file_path = cb_get_file()
+            if file_path is not None:
+                args.append(file_path)
 
         # Run commands
         if args is not None:
