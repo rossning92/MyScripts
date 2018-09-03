@@ -1,1 +1,0 @@
-choco source add --name=default --priority=-1 -s="https://chocolatey.org/api/v2/"
