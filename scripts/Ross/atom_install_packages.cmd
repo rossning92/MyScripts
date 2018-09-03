@@ -1,0 +1,1 @@
+apm install latex

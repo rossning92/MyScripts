@@ -4,9 +4,9 @@ import os
 
 os.chdir('../../')
 
+files = glob.glob(r'C:\Program Files\JetBrains\**\pycharm64.exe', recursive=True) \
+      + glob.glob(r'C:\Program Files (x86)\JetBrains\**\pycharm64.exe', recursive=True)
 
-files = glob.glob(r'C:\Program Files\JetBrains\**\pycharm64.exe', recursive=True)
-
-assert len(files) > 0
+assert(len(files) > 0)
 
 subprocess.Popen([files[0], os.getcwd()])

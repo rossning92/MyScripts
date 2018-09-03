@@ -10,4 +10,4 @@ print('Open Folder: ' + os.getcwd())
 if sys.platform == 'darwin':
     subprocess.call('open .', shell=True)
 elif sys.platform == 'win32':
-    subprocess.call('cmd /c start ' + os.getcwd())
+    subprocess.call(['cmd', '/c', 'start', '', os.getcwd()])
