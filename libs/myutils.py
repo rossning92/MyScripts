@@ -12,6 +12,33 @@ import sys
 ADD_PARENT_DIRS_TO_PYTHON_PATH = True
 
 
+def cb_get_file():
+    if sys.platform == 'win32':
+        import win32clipboard
+
+        file_path = None
+        win32clipboard.OpenClipboard(None)
+
+        fmt = 0
+        while True:
+            fmt = win32clipboard.EnumClipboardFormats(fmt)
+            if fmt == 0:
+                break
+
+            if fmt > 0xC000:
+                fmt_name = win32clipboard.GetClipboardFormatName(fmt)
+                # print(fmt_name)
+
+                if fmt_name == 'FileNameW':
+                    data = win32clipboard.GetClipboardData(fmt)
+                    file_path = data.decode('utf-16').strip('\0x00')
+
+        win32clipboard.CloseClipboard()
+        return file_path
+    else:
+        return None
+
+
 def open_text_editor(path):
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
@@ -199,6 +226,11 @@ class ScriptItem():
         else:
             print('Not supported script:', self.ext)
 
+        # Append file if in clipboard
+        file_path = cb_get_file()
+        if file_path is not None:
+            args.append(file_path)
+
         # Run commands
         if args is not None:
             if self.meta['runAsAdmin']:
@@ -312,30 +344,3 @@ class ScriptMeta():
 
 def get_script_meta(script_path):
     return ScriptMeta(script_path).meta
-
-
-def cb_get_file():
-    if sys.platform == 'win32':
-        import win32clipboard
-
-        file_path = None
-        win32clipboard.OpenClipboard(None)
-
-        fmt = 0
-        while True:
-            fmt = win32clipboard.EnumClipboardFormats(fmt)
-            if fmt == 0:
-                break
-
-            if fmt > 0xC000:
-                fmt_name = win32clipboard.GetClipboardFormatName(fmt)
-                # print(fmt_name)
-
-                if fmt_name == 'FileNameW':
-                    data = win32clipboard.GetClipboardData(fmt)
-                    file_path = data.decode('utf-16').strip('\0x00')
-
-        win32clipboard.CloseClipboard()
-        return file_path
-    else:
-        return None

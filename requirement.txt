@@ -2,3 +2,4 @@ colorama
 PyQt5==5.10.1
 jinja2
 pyyaml
+pywin32
