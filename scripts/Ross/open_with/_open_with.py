@@ -320,7 +320,8 @@ assoc = {
 program_path = {
     'notepad++': 'notepad++.exe',
     'VLC': 'C:\\Program Files\\VideoLAN\\VLC\\vlc.exe',
-    'IrfanView': 'C:\\Program Files\\IrfanView\\i_view64.exe'
+    'IrfanView': 'C:\\Program Files\\IrfanView\\i_view64.exe',
+    'SumatraPDF': 'SumatraPDF.exe'
 }
 
 
