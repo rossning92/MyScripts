@@ -334,8 +334,12 @@ def main():
     program = assoc[ext]
     if program not in program_path:
         raise '%s not found' % program
+    program = program_path[program]
 
     subprocess.Popen([program, file_path])
 
 
-main()
+try:
+    main()
+except:
+    input()
