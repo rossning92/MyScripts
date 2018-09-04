@@ -1,8 +1,8 @@
 @echo off
 
-set UNITY="C:\Program Files\Unity\Editor\Unity.exe"
-set UNITY_PROJECT_PATH="C:\Users\Ross\Documents\Unity\TestProject"
-set UNITY_OUTPUT_EXE="C:\Temp\TestProject\TestProject.exe"
+set UNITY="C:\Program Files\Unity 2018.2.0b9\Editor\Unity.exe"
+set UNITY_PROJECT_PATH="{{UNITY_PROJECT_PATH}}"
+set UNITY_OUTPUT_EXE="{{UNITY_PROJECT_PATH}}\Build\Build.exe"
 set UNITY_LOG="%LOCALAPPDATA%\Unity\Editor\Editor.log"
 
 
