@@ -1,3 +1,5 @@
+@echo off
+
 :: Hide cortana
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /t REG_DWORD /d 0 /f
 
