@@ -29,8 +29,9 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 '''
-with open('CMakeLists.txt', 'w') as f:
-    f.write(content)
+if not os.path.exists('CMakeLists.txt'):
+    with open('CMakeLists.txt', 'w') as f:
+        f.write(content)
 
 # Add cmake to PATH
 os.environ['PATH'] = r'C:\Program Files\CMake\bin' + os.pathsep + os.environ['PATH']
