@@ -309,7 +309,7 @@ def run_script(script_name):
     global __error_code
     __error_code = 0
     script = ScriptItem(script_path)
-    script.flags.discard('new_window')
+    script.meta['newWindow'] = False
     script.execute()
     assert __error_code == 0
 
