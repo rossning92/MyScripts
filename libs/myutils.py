@@ -309,7 +309,8 @@ def find_script(script_name, search_dir='.'):
 
 def run_script(script_name):
     script_path = find_script(script_name)
-    assert script_path is not None
+    if script_path is None:
+        raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
 
     global __error_code
     __error_code = 0
