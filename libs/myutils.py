@@ -311,7 +311,8 @@ def run_script(script_name):
     script = ScriptItem(script_path)
     script.meta['newWindow'] = False
     script.execute()
-    assert __error_code == 0
+    if __error_code != 0:
+        raise Exception('[ERROR] %s returns %d' % (script_name, __error_code))
 
 
 def _convert_to_unix_path(path):
