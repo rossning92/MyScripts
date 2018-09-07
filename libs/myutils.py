@@ -290,14 +290,19 @@ class ScriptItem():
         return ScriptItem(script_path).render()
 
 
-def find_script(script_name, search_dir=None):
+def find_script(script_name, search_dir='.'):
+    dir_name = os.path.dirname(script_name)
+    if dir_name != '':
+        search_dir = dir_name
+        script_name = os.path.basename(script_name)
+
     script_path = None
     for f in os.listdir(search_dir if search_dir else '.'):
         if os.path.isdir(f):
             continue
 
         if script_name + '.' in f:  # TODO: hack: find script more accurately
-            script_path = f
+            script_path = os.path.join(search_dir, f)
 
     return script_path
 
