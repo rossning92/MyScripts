@@ -287,6 +287,10 @@ class ScriptItem():
 
 
 def find_script(script_name, search_dir='.'):
+    script_path = os.path.join(search_dir, script_name)
+    if os.path.exists(script_path):
+        return script_path
+
     dir_name = os.path.dirname(script_name)
     if dir_name != '':
         search_dir = dir_name
