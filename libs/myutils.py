@@ -213,22 +213,11 @@ class ScriptItem():
             else:
                 args = [sys.executable, tmp_script_file]
 
-            if sys.platform == 'win32':  # HACK: win32
+            if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
                 args = ['cmd', '/c',
                         'set', 'PYTHONPATH=' + ';'.join(python_path),
                         'set', 'PYTHONDONTWRITEBYTECODE=1' + ';'.join(python_path),
                         '&'] + args
-
-            if self.meta['runAsAdmin']:  # HACK: run python as admin
-                # elevate_exe = os.path.abspath(os.path.dirname(__file__) + '/../bin/Elevate.exe')
-                # script_full_path = os.path.abspath(os.path.join(os.getcwd(), self.script_path))
-                # script_dir = os.path.dirname(script_full_path)
-                # script_file = os.path.basename(script_full_path)
-                # args = [elevate_exe,
-                #         'cmd', '/c',
-                #         'cd', script_dir, '&'
-                #         'python', script_file, '&', 'pause']
-                pass
 
         else:
             print('Not supported script:', self.ext)
