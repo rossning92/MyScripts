@@ -204,8 +204,8 @@ class ScriptItem():
                         python_path.append(parent_dir)
                     else:
                         break
-            env['PYTHONPATH'] = ';'.join(python_path)
 
+            env['PYTHONPATH'] = ';'.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             if os.name == 'posix':
@@ -213,7 +213,11 @@ class ScriptItem():
             else:
                 args = [sys.executable, tmp_script_file]
 
-            args = ['cmd', '/c', 'set', 'PYTHONPATH=' + ';'.join(python_path), '&'] + args
+            if sys.platform == 'win32':  # HACK: win32
+                args = ['cmd', '/c',
+                        'set', 'PYTHONPATH=' + ';'.join(python_path),
+                        'set', 'PYTHONDONTWRITEBYTECODE=1' + ';'.join(python_path),
+                        '&'] + args
 
             if self.meta['runAsAdmin']:  # HACK: run python as admin
                 # elevate_exe = os.path.abspath(os.path.dirname(__file__) + '/../bin/Elevate.exe')
