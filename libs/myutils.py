@@ -190,6 +190,7 @@ class ScriptItem():
 
         elif self.ext == '.py':
             script = self.render()
+            tmp_script_file = write_temp_file(script, '.py')
 
             python_path = [os.path.dirname(__file__)]
             if ADD_PARENT_DIRS_TO_PYTHON_PATH:
@@ -208,9 +209,11 @@ class ScriptItem():
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             if os.name == 'posix':
-                args = [sys.executable, '-c', script]
+                args = [sys.executable, tmp_script_file]
             else:
-                args = [sys.executable, '-c', script]
+                args = [sys.executable, tmp_script_file]
+
+            args = ['cmd', '/c', 'set', 'PYTHONPATH=' + ';'.join(python_path), '&'] + args
 
             if self.meta['runAsAdmin']:  # HACK: run python as admin
                 # elevate_exe = os.path.abspath(os.path.dirname(__file__) + '/../bin/Elevate.exe')
