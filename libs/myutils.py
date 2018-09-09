@@ -243,11 +243,14 @@ class ScriptItem():
 
             elif self.meta['newWindow'] or control_down:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
-                if False and control_down and os.path.exists(CONEMU):
+                if control_down and os.path.exists(CONEMU):
                     subprocess.Popen([CONEMU,
                                       '-Dir', cwd,
                                       '-LoadCfgFile', 'data/ConEmu.xml',
-                                      '-run'] + args)
+                                      '-Max',
+                                      '-Title', self.name,
+                                      '-run',
+                                      '-cur_console:c0'] + args)
                 elif not control_down:
                     subprocess.Popen(args,
                                      creationflags=subprocess.CREATE_NEW_CONSOLE,
@@ -308,6 +311,7 @@ def find_script(script_name, search_dir='.'):
 
 
 def run_script(script_name):
+    print('\n>>> RunScript: %s' % script_name)
     script_path = find_script(script_name)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
