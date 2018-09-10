@@ -15,7 +15,7 @@ Loop
         else if ( InStr(Clipboard, "https://www.bilibili.com/video/") = 1 )
 		{
 			lastUrl := Clipboard
-			Run you-get %lastUrl%
+			Run you-get --no-caption --playlist %lastUrl%
 		}
     }
     Sleep 1000
