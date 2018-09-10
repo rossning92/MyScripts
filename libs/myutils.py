@@ -198,6 +198,7 @@ class ScriptItem():
                 script_root_path = os.path.abspath(script_root_path)
                 script_full_path = os.path.join(os.getcwd(), self.script_path)
                 parent_dir = os.path.dirname(script_full_path)
+                python_path.append(parent_dir)
                 while True:
                     parent_dir = os.path.abspath(parent_dir + '/../')
                     if parent_dir.startswith(script_root_path):
