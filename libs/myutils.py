@@ -46,7 +46,7 @@ def open_text_editor(path):
         subprocess.Popen(['notepad++', path])
 
 
-def msbuild(vcproj):
+def msbuild(vcproj, build_config='Release'):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
 
     msbuild = [
@@ -56,7 +56,7 @@ def msbuild(vcproj):
     msbuild = [x for x in msbuild if os.path.exists(x)]
     assert len(msbuild) > 0
 
-    params = '/p:Configuration=Release /p:WarningLevel=0 /p:Platform=x64 /maxcpucount /verbosity:Quiet /nologo'
+    params = '/p:Configuration=' + build_config + ' /p:WarningLevel=0 /p:Platform=x64 /maxcpucount /verbosity:Quiet /nologo'
 
     args = '"%s" %s "%s"' % (msbuild[0], params, vcproj)
     ret = subprocess.call(args)

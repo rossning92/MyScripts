@@ -36,6 +36,10 @@ class _MyDialog(QDialog):
         self.listWidget.setFont(QFont('Consolas', 10))
         for opt in options:
             self.listWidget.addItem(opt)
+
+        if self.listWidget.count() > 0:
+            self.listWidget.setCurrentRow(0)
+
         layout.addWidget(self.listWidget)
 
     def eventFilter(self, obj, e):
