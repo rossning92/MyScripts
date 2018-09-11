@@ -1,5 +1,5 @@
 @echo off
-call _conda.cmd
+call conda\_conda.cmd
 
 call activate.bat
 
