@@ -43,7 +43,10 @@ def open_text_editor(path):
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
     else:
-        subprocess.Popen(['notepad++', path])
+        try:
+            subprocess.Popen(['notepad++', path])
+        except:
+            subprocess.Popen(['notepad', path])
 
 
 def msbuild(vcproj, build_config='Release'):
