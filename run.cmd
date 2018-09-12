@@ -17,4 +17,7 @@ if not %errorlevel%==0 (
 	call install\install.cmd
 )
 
+:: Install python modules
+pip install -r requirement.txt
+
 start "MyScripts - Console" python autoreload.py
