@@ -118,7 +118,7 @@ def cmd(cmd):
 __error_code = 0
 
 
-class ScriptItem():
+class ScriptItem:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
 
     def __str__(self):
@@ -337,7 +337,7 @@ def _convert_to_unix_path(path):
     return path
 
 
-class ScriptMeta():
+class ScriptMeta:
     def __init__(self, script_path):
         self.meta = {
             'hotkey': None,

@@ -95,7 +95,7 @@ variables = {}
 colorama.init()
 
 menu_items = []
-lagency_menu_items = []
+legacy_menu_items = []
 
 
 class Item:
@@ -116,7 +116,7 @@ class MenuItem(Item):
 
 
 def menu_item(f):
-    lagency_menu_items.append(MenuItem(f))
+    legacy_menu_items.append(MenuItem(f))
     return f
 
 
@@ -197,38 +197,6 @@ def _build_panelapp_multiple_res():
 def _build_vrdriver_fov_on_and_off():
     exec2('build_VrDriver')
     bash(f'cp {VR_DRIVER}/Projects/Android/build/outputs/apk/release/VrDriver-release.apk vrdriver.apk')
-
-
-@menu_item
-def edit_script():
-    items = list(ScriptItem.loaded_scripts.values())
-    idx = select_item(items, prompt='Edit script: enter script name:')
-    path = items[idx].script_path
-    if os.name == 'posix':
-        subprocess.Popen(['atom', path])
-    else:
-        subprocess.Popen(['notepad++', path])
-
-
-@menu_item
-def show_script():
-    items = list(ScriptItem.loaded_scripts.values())
-    idx = select_item(items, prompt='Show script: enter script name:')
-    script = items[idx].render()
-    ext = items[idx].ext
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
-        f.write(script.encode())
-        f.flush()
-        open_text_editor(f.name)
-
-
-@menu_item
-def new_script():
-    print(Fore.LIGHTGREEN_EX + 'Enter new script name:' + Fore.RESET)
-    user_input = input('> ')
-    path = 'scripts/' + user_input
-    subprocess.Popen(['notepad++', path])
 
 
 @menu_item
