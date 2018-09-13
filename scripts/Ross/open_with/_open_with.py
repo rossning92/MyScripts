@@ -341,5 +341,6 @@ def main():
 
 try:
     main()
-except:
+except Exception as e:
+    print(e)
     input()

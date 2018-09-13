@@ -289,7 +289,7 @@ class ScriptItem():
         script_path = find_script(script_name, os.path.dirname(self.script_path))
         if script_path is None:
             raise Exception('Cannot find script: %s' % script_name)
-        script_path = os.path.dirname(self.script_path) + '/' + script_path
+        #script_path = os.path.dirname(self.script_path) + '/' + script_path
         return ScriptItem(script_path).render()
 
 
