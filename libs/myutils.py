@@ -43,6 +43,10 @@ def open_text_editor(path):
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
     else:
+        if os.path.splitext(path)[1] == '.py':
+            if subprocess.call(['python', 'scripts/ext/open_in_PyCharm.py', path]) == 0:
+                return
+
         try:
             subprocess.Popen(['notepad++', path])
         except:
