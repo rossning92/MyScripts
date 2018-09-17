@@ -5,7 +5,7 @@ GUI_WINDOW = MyScripts - GUI
 
 ^q::
 	; If explorer is active, copy file path to clipboard
-	if (WinActive("ahk_exe explorer.exe") or WinActive("ahk_exe everything.exe")) {
+	if WinActive("ahk_exe explorer.exe") {
 		Send ^c
 	}
 
