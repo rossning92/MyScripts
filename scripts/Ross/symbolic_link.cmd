@@ -1,3 +1,2 @@
-echo %cd%
-
-pause
+cd ..
+mklink /d link E:\Documents\Scripts
