@@ -11,11 +11,15 @@ if len(files) == 0:
 pycharm = files[0]
 
 # Open python file or project folder
-print(len(sys.argv) == 2)
-file = sys.argv[1]
-if os.path.exists(file) and os.path.splitext(file)[1] == '.py':
-    subprocess.Popen([pycharm, file])
+if len(sys.argv) == 2:
+    arg1 = sys.argv[1]
+    if os.path.exists(arg1):
+        if os.path.splitext(arg1)[1] == '.py':
+            subprocess.Popen([pycharm, arg1])
+        elif os.path.isdir(arg1):
+            subprocess.Popen([pycharm, arg1])
 else:
     os.chdir('../../')
     subprocess.Popen([pycharm, os.getcwd()])
+
 sys.exit(0)

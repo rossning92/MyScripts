@@ -191,6 +191,11 @@ class ScriptItem:
                 script = self.render()
                 args = cmd(script)
 
+                # HACK: change working directory
+                if sys.platform == 'win32' and self.meta['runAsAdmin']:
+                    args = ['cmd', '/c',
+                            'cd', '/d', cwd, '&'] + args
+
         elif self.ext == '.sh':
             script = self.render()
             args = bash(script)
