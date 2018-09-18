@@ -143,6 +143,8 @@ class ScriptItem:
         # Load meta
         self.meta = get_script_meta(self.script_path)
 
+        self.override_variables = None
+
     def render(self):
         template = ScriptItem.env.get_template(self.script_path)
         ctx = {
@@ -151,6 +153,9 @@ class ScriptItem:
         }
         script = template.render(ctx)
         return script
+
+    def set_override_variables(self, variables):
+        self.override_variables = variables
 
     def get_variables(self):
         if not os.path.isfile(get_variable_file()):
@@ -166,6 +171,9 @@ class ScriptItem:
         # HACK: Convert to unix path
         if self.ext == '.sh':
             variables = {k: _convert_to_unix_path(v) for k, v in variables.items()}
+
+        if self.override_variables:
+            variables = {**variables, **self.override_variables}
 
         return variables
 
@@ -323,7 +331,7 @@ def find_script(script_name, search_dir='.'):
     return script_path
 
 
-def run_script(script_name):
+def run_script(script_name, variables=None):
     print('\n>>> RunScript: %s' % script_name)
     script_path = find_script(script_name)
     if script_path is None:
@@ -333,6 +341,10 @@ def run_script(script_name):
     __error_code = 0
     script = ScriptItem(script_path)
     script.meta['newWindow'] = False
+
+    if variables:
+        script.set_override_variables(variables)
+
     script.execute()
     if __error_code != 0:
         raise Exception('[ERROR] %s returns %d' % (script_name, __error_code))
