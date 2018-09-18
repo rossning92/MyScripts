@@ -146,7 +146,9 @@ class ScriptItem:
         self.override_variables = None
 
     def render(self):
-        template = ScriptItem.env.get_template(self.script_path)
+        with open(self.script_path, 'r', encoding='utf-8') as f:
+            source = f.read()
+        template = ScriptItem.env.from_string(source)
         ctx = {
             'include': ScriptItem.include.__get__(self, ScriptItem),
             **self.get_variables()
@@ -312,6 +314,7 @@ class ScriptItem:
 
 def find_script(script_name, search_dir='.'):
     script_path = os.path.join(search_dir, script_name)
+
     if os.path.exists(script_path):
         return script_path
 
