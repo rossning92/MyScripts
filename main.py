@@ -420,18 +420,7 @@ if __name__ == '__main__':
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
 
-    if True:
-        app = QApplication(sys.argv)
-
-        ex = MainWindow()
-        ex.show()
-
-        sys.exit(app.exec_())
-
-    while True:
-        opt = select_item(self.script_items, prompt='Run script:')
-
-        # Execute command
-        self.script_items[opt].execute()
-
-        last_opt = opt
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec_())
