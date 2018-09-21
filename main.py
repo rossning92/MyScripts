@@ -94,9 +94,6 @@ variables = {}
 
 colorama.init()
 
-menu_items = []
-legacy_menu_items = []
-
 
 class Item:
     def __str__(self):
@@ -116,12 +113,11 @@ class MenuItem(Item):
 
 
 def menu_item(f):
-    legacy_menu_items.append(MenuItem(f))
     return f
 
 
 def exec2(name):
-    matched = list(filter(lambda x: x.name == name, menu_items))
+    matched = list(filter(lambda x: x.name == name, self.script_items))
     matched[0].execute()
 
 
@@ -272,6 +268,7 @@ class EditVariableWidget(QWidget):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.script_items = []
         self.matched_items = []
 
         self.ui = uic.loadUi('MainDialog.ui', self)
@@ -284,7 +281,7 @@ class MainWindow(QWidget):
         self.editVariableWidget = EditVariableWidget()
         self.ui.layout().addWidget(self.editVariableWidget)
 
-        self.init_menu_items()
+        self.init_script_items()
         self.on_inputBox_textChanged()
 
         # Process list ui
@@ -294,7 +291,7 @@ class MainWindow(QWidget):
         self.startTimer(1000)
 
         # Register hotkey
-        for item in menu_items:
+        for item in self.script_items:
             hotkey = item.meta['hotkey']
             if hotkey is not None:
                 print('Hotkey registered:', hotkey)
@@ -302,12 +299,12 @@ class MainWindow(QWidget):
 
     def timerEvent(self, e):
         if should_update():
-            self.init_menu_items()
+            self.init_script_items()
             self.update_items(self.ui.inputBox.text())
 
-    def init_menu_items(self):
+    def init_script_items(self):
         # Load scripts
-        script_items = []
+        self.script_items = []
         files = glob.glob('scripts/**/*.*', recursive=True)
         files.sort(key=os.path.getmtime, reverse=True)
         for file in files:
@@ -325,10 +322,7 @@ class MainWindow(QWidget):
             # Hide files starting with '_'
             base_name = os.path.basename(file)
             if not base_name.startswith('_'):
-                script_items.append(script)
-
-        global menu_items
-        menu_items = script_items
+                self.script_items.append(script)
 
     def on_inputBox_textChanged(self, user_input=None):
         self.update_items(user_input)
@@ -338,27 +332,27 @@ class MainWindow(QWidget):
         self.matched_items = []
 
         if user_input is None or user_input == '':
-            self.matched_items = list(range(len(menu_items)))
+            self.matched_items = list(range(len(self.script_items)))
         elif user_input.isdigit():
             idx = int(user_input) - 1
-            if idx >= 0 and idx < len(menu_items):
+            if idx >= 0 and idx < len(self.script_items):
                 self.matched_items.append(idx)
         else:
             user_input = user_input.lower()
             user_input_tokens = user_input.split(' ')
-            for i in range(len(menu_items)):
-                menu_name = menu_items[i].name.lower()
+            for i in range(len(self.script_items)):
+                menu_name = self.script_items[i].name.lower()
                 matched = all([(x in menu_name) for x in user_input_tokens])
                 if matched:
                     self.matched_items.append(i)
 
         for i in self.matched_items:
-            self.ui.listWidget.addItem('%3d. %s' % (i + 1, menu_items[i]))
+            self.ui.listWidget.addItem('%3d. %s' % (i + 1, self.script_items[i]))
 
         self.editVariableWidget.init()  # Clear all widget
         if len(self.matched_items) > 0:
             # Set selected items
-            first_matched_item = menu_items[self.matched_items[0]]
+            first_matched_item = self.script_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
             os.environ['ROSS_SELECTED_SCRIPT_PATH'] = first_matched_item.script_path  # HACK
 
@@ -395,7 +389,7 @@ class MainWindow(QWidget):
                 self.hide()
 
                 control_down = e.modifiers() == Qt.ControlModifier
-                args = menu_items[idx].execute(control_down)
+                args = self.script_items[idx].execute(control_down)
 
                 # if args is not None:
                 #     subprocess.call(args)  # HACK
@@ -404,14 +398,14 @@ class MainWindow(QWidget):
                 return True
 
             if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_E:
-                path = menu_items[idx].script_path
+                path = self.script_items[idx].script_path
                 open_text_editor(path)
                 return True
 
             if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_O:
-                path = menu_items[idx].script_path
-                script = menu_items[idx].render()
-                ext = menu_items[idx].ext
+                path = self.script_items[idx].script_path
+                script = self.script_items[idx].render()
+                ext = self.script_items[idx].ext
 
                 with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
                     f.write(script.encode())
@@ -435,9 +429,9 @@ if __name__ == '__main__':
         sys.exit(app.exec_())
 
     while True:
-        opt = select_item(menu_items, prompt='Run script:')
+        opt = select_item(self.script_items, prompt='Run script:')
 
         # Execute command
-        menu_items[opt].execute()
+        self.script_items[opt].execute()
 
         last_opt = opt
