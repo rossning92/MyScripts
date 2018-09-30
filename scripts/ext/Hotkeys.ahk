@@ -17,3 +17,7 @@ GUI_WINDOW = MyScripts - GUI
         WinActivate % GUI_WINDOW
     }
 	return
+	
+#c::
+	Run chrome.exe
+	return
