@@ -268,6 +268,7 @@ class ScriptItem:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
                 if control_down and os.path.exists(CONEMU):
                     subprocess.Popen([CONEMU,
+                                      '-NoUpdate',
                                       '-Dir', cwd,
                                       # '-LoadCfgFile', 'data/ConEmu.xml',
                                       '-Max',
