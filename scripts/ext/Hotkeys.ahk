@@ -19,5 +19,9 @@ GUI_WINDOW = MyScripts - GUI
 	return
 	
 #c::
-	Run chrome.exe
+	if WinExist("ahk_exe chrome.exe") {
+		WinActivate
+	} else {
+		Run chrome.exe
+	}
 	return
