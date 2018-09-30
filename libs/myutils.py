@@ -269,6 +269,8 @@ class ScriptItem:
                 if control_down and os.path.exists(CONEMU):
                     subprocess.Popen([CONEMU,
                                       '-NoUpdate',
+                                      '-nokeyhooks', '-nomacro', '-nohotkey',
+                                      '-nocloseconfirm',
                                       '-Dir', cwd,
                                       # '-LoadCfgFile', 'data/ConEmu.xml',
                                       '-Max',
