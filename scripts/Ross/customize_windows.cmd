@@ -22,7 +22,8 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 1 /f
 
 :: Remove pinned items from Taskbar
-reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /F
+reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins" /v MailPin /t REG_DWORD /d 0 /f
 
 taskkill /f /im explorer.exe
 start explorer.exe
