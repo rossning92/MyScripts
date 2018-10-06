@@ -285,7 +285,8 @@ class ScriptItem:
                                      env=env,
                                      cwd=cwd)
                 else:
-                    subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args, env=env,
+                    subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args,
+                                     env=env,
                                      cwd=cwd)
             else:
                 global __error_code
