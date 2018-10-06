@@ -1,1 +1,2 @@
+cd /d %USERPROFILE%
 start

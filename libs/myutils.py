@@ -253,7 +253,7 @@ class ScriptItem:
 
         # Run commands
         if args is not None:
-            if self.meta['runAsAdmin']:
+            if self.meta['runAsAdmin'] and False:
                 quoted_args = subprocess.list2cmdline(args[1:])
                 print(quoted_args)
                 ctypes.windll.shell32.ShellExecuteW(
@@ -267,16 +267,18 @@ class ScriptItem:
             elif self.meta['newWindow'] or control_down:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
                 if control_down and os.path.exists(CONEMU):
-                    subprocess.Popen([CONEMU,
-                                      '-NoUpdate',
-                                      '-resetdefault', # '-LoadCfgFile', 'data/ConEmu.xml',
-                                      '-nokeyhooks', '-nomacro', '-nohotkey',
-                                      '-nocloseconfirm',
-                                      '-Dir', cwd,
-                                      '-Max',
-                                      '-Title', self.name,
-                                      '-run',
-                                      '-cur_console:c0'] + args)
+                    admin_switch = 'a' if self.meta['runAsAdmin'] else ''
+                    args = [CONEMU,
+                            '-NoUpdate',
+                            '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
+                            '-nokeyhooks', '-nomacro', '-nohotkey',
+                            '-nocloseconfirm',
+                            '-Dir', cwd,
+                            '-Max',
+                            '-Title', self.name,
+                            '-run',
+                            '-cur_console:c0' + admin_switch] + args
+                    subprocess.Popen(args)
                 elif not control_down:
                     subprocess.Popen(args,
                                      creationflags=subprocess.CREATE_NEW_CONSOLE,
