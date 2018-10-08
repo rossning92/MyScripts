@@ -253,21 +253,11 @@ class ScriptItem:
 
         # Run commands
         if args is not None:
-            if self.meta['runAsAdmin'] and False:
-                quoted_args = subprocess.list2cmdline(args[1:])
-                print(quoted_args)
-                ctypes.windll.shell32.ShellExecuteW(
-                    None,  # hwnd
-                    "runas",  # verb
-                    args[0],  # Python executable
-                    quoted_args,  # Python file
-                    cwd,
-                    1)
 
-            elif self.meta['newWindow'] or control_down:
+            # Check if new window is needed
+            if self.meta['newWindow'] or control_down:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
-                if control_down and os.path.exists(CONEMU):
-                    admin_switch = 'a' if self.meta['runAsAdmin'] else ''
+                if os.path.exists(CONEMU):
                     args = [CONEMU,
                             '-NoUpdate',
                             '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
@@ -277,23 +267,34 @@ class ScriptItem:
                             '-Max',
                             '-Title', self.name,
                             '-run',
-                            '-cur_console:c0' + admin_switch] + args
-                    subprocess.Popen(args)
-                elif not control_down:
-                    subprocess.Popen(args,
-                                     creationflags=subprocess.CREATE_NEW_CONSOLE,
-                                     env=env,
-                                     cwd=cwd)
-                else:
-                    subprocess.Popen([r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args,
-                                     env=env,
-                                     cwd=cwd)
+                            '-cur_console:c0'] + args
+
+                elif os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
+                    args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
+
+                    # subprocess.Popen(args,
+                    #                  creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    #                  env=env,
+                    #                  cwd=cwd)
+
+            # Check if run as admin
+            if self.meta['runAsAdmin']:
+                quoted_args = subprocess.list2cmdline(args[1:])
+                print(quoted_args)
+                ctypes.windll.shell32.ShellExecuteW(
+                    None,  # hwnd
+                    "runas",  # verb
+                    args[0],  # Python executable
+                    quoted_args,  # Python file
+                    cwd,
+                    1)
             else:
                 global __error_code
                 __error_code = subprocess.call(args, env=env, cwd=cwd)
 
-        # if 'autorun' not in self.flags:
-        #     # os.utime(self.script_path, None)  # Update modified and access time
+
+                # if 'autorun' not in self.flags:
+                #     # os.utime(self.script_path, None)  # Update modified and access time
 
     def get_variable_names(self):
         variables = set()
