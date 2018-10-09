@@ -329,7 +329,7 @@ def main():
     file_path = sys.argv[1]
     ext = os.path.splitext(file_path)[1].lower()
     if ext not in assoc:
-        raise '%s is not defined' % ext
+        raise Exception('%s is not defined' % ext)
 
     program = assoc[ext]
     if program not in program_path:
