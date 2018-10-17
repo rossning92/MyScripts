@@ -1,0 +1,1 @@
+WinActivate ahk_exe pycharm64.exe
