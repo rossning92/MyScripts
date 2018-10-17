@@ -10,8 +10,7 @@ if len(files) == 0:
     sys.exit(1)
 pycharm = files[0]
 
-# Open python file specified in command line argument
-if len(sys.argv) == 2:
+if len(sys.argv) == 2:  # Open python file
     arg1 = sys.argv[1]
     if os.path.exists(arg1):
         if os.path.splitext(arg1)[1] == '.py':
