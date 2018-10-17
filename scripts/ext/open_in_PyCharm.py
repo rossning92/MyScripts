@@ -18,6 +18,7 @@ if len(sys.argv) == 2:
             subprocess.Popen([pycharm, arg1])
         elif os.path.isdir(arg1):
             subprocess.Popen([pycharm, arg1])
+
 else:  # Open project folder
     project_folder = os.path.abspath(os.getcwd() + '/../../')
     subprocess.Popen([pycharm, project_folder])
