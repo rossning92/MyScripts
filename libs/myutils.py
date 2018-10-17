@@ -121,6 +121,7 @@ def cmd(cmd):
     return args
 
 
+# TODO: move to a new file
 class ScriptItem:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
 
