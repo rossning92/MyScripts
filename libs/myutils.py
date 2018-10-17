@@ -44,7 +44,9 @@ def open_text_editor(path):
         subprocess.Popen(['atom', path])
     else:
         if os.path.splitext(path)[1] == '.py':
-            if subprocess.call(['python', 'scripts/ext/open_in_PyCharm.py', path]) == 0:
+            script = ScriptItem('scripts/ext/open_in_PyCharm.py')
+            script.execute()
+            if script.return_code == 0:
                 return
 
         try:
@@ -130,6 +132,7 @@ class ScriptItem:
 
     def __init__(self, script_path):
         # BUG: jinja2 doesn't support '\' in path
+        self.return_code = 0
         script_path = script_path.replace('\\', '/')
         self.script_path = script_path
 
@@ -181,7 +184,7 @@ class ScriptItem:
 
     def execute(self, control_down=False):
         args = None
-        env = os.environ
+        env = os.environ.copy()
         cwd = os.path.join(os.getcwd(), os.path.dirname(self.script_path))
 
         if self.ext == '.ps1':
@@ -291,7 +294,7 @@ class ScriptItem:
             else:
                 global __error_code
                 __error_code = subprocess.call(args, env=env, cwd=cwd)
-
+                self.return_code = __error_code
 
                 # if 'autorun' not in self.flags:
                 #     # os.utime(self.script_path, None)  # Update modified and access time
