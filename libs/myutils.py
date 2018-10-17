@@ -40,12 +40,14 @@ def cb_get_file():
 
 
 def open_text_editor(path):
+    path = os.path.abspath(os.getcwd() + os.path.sep + path)
+
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
     else:
         if os.path.splitext(path)[1] == '.py':
             script = ScriptItem('scripts/ext/open_in_PyCharm.py')
-            script.execute()
+            script.execute(path)
             if script.return_code == 0:
                 return
 
@@ -181,8 +183,10 @@ class ScriptItem:
 
         return variables
 
-    def execute(self, control_down=False):
-        args = None
+    def execute(self, args=None, control_down=False):
+        if type(args) == str:
+            args = [args]
+
         env = os.environ.copy()
         cwd = os.path.join(os.getcwd(), os.path.dirname(self.script_path))
 
@@ -234,9 +238,9 @@ class ScriptItem:
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             if os.name == 'posix':
-                args = [sys.executable, tmp_script_file]
+                args = [sys.executable, tmp_script_file] + args
             else:
-                args = [sys.executable, tmp_script_file]
+                args = [sys.executable, tmp_script_file] + args
 
             if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
                 args = ['cmd', '/c',

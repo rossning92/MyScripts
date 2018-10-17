@@ -11,12 +11,14 @@ if len(files) == 0:
 pycharm = files[0]
 
 if len(sys.argv) == 2:  # Open python file
-    arg1 = sys.argv[1]
-    if os.path.exists(arg1):
-        if os.path.splitext(arg1)[1] == '.py':
-            subprocess.Popen([pycharm, arg1])
-        elif os.path.isdir(arg1):
-            subprocess.Popen([pycharm, arg1])
+    file = sys.argv[1]
+    if os.path.exists(file):
+        if os.path.splitext(file)[1] == '.py':
+            subprocess.Popen([pycharm, file])
+        elif os.path.isdir(file):
+            subprocess.Popen([pycharm, file])
+    else:
+        raise Exception('Cannot find the file: %s' % file)
 
 else:  # Open project folder
     project_folder = os.path.abspath(os.getcwd() + '/../../')
