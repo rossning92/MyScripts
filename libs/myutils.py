@@ -121,9 +121,6 @@ def cmd(cmd):
     return args
 
 
-__error_code = 0
-
-
 class ScriptItem:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
 
@@ -292,9 +289,7 @@ class ScriptItem:
                     cwd,
                     1)
             else:
-                global __error_code
-                __error_code = subprocess.call(args, env=env, cwd=cwd)
-                self.return_code = __error_code
+                self.return_code = subprocess.call(args, env=env, cwd=cwd)
 
                 # if 'autorun' not in self.flags:
                 #     # os.utime(self.script_path, None)  # Update modified and access time
@@ -350,8 +345,6 @@ def run_script(script_name, variables=None):
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
 
-    global __error_code
-    __error_code = 0
     script = ScriptItem(script_path)
     script.meta['newWindow'] = False
 
@@ -359,8 +352,8 @@ def run_script(script_name, variables=None):
         script.set_override_variables(variables)
 
     script.execute()
-    if __error_code != 0:
-        raise Exception('[ERROR] %s returns %d' % (script_name, __error_code))
+    if script.return_code != 0:
+        raise Exception('[ERROR] %s returns %d' % (script_name, script.return_code))
 
 
 def _convert_to_unix_path(path):
