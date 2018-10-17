@@ -129,8 +129,9 @@ class ScriptItem:
         return self.name
 
     def __init__(self, script_path):
-        # BUG: jinja2 doesn't support '\' in path
         self.return_code = 0
+
+        # BUG: jinja2 doesn't support '\' in path
         script_path = script_path.replace('\\', '/')
         self.script_path = script_path
 
