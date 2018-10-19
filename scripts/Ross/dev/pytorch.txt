@@ -1,0 +1,7 @@
+git clone https://github.com/pytorch/examples
+cd examples/dcgan
+cd ../..
+
+git clone https://github.com/fyu/lsun
+conda activate py27
+python download.py -c bedroom
