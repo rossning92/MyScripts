@@ -389,7 +389,7 @@ class MainWindow(QWidget):
                 self.hide()
 
                 control_down = e.modifiers() == Qt.ControlModifier
-                args = self.script_items[idx].execute(control_down)
+                args = self.script_items[idx].execute(control_down=control_down)
 
                 # if args is not None:
                 #     subprocess.call(args)  # HACK

@@ -184,7 +184,9 @@ class ScriptItem:
         return variables
 
     def execute(self, args=None, control_down=False):
-        if type(args) == str:
+        if args is None:
+            args = []
+        elif type(args) == str:
             args = [args]
 
         env = os.environ.copy()
@@ -258,7 +260,7 @@ class ScriptItem:
                 args.append(file_path)
 
         # Run commands
-        if args is not None:
+        if args is not None and len(args) > 0:
 
             # Check if new window is needed
             if self.meta['newWindow'] or control_down:
