@@ -1,3 +1,5 @@
+set -e
+
 git config credential.helper store
 
 git add -A
