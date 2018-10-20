@@ -370,6 +370,21 @@ class MainWindow(QWidget):
             self.ui.inputBox.selectAll()
         return super().event(e)
 
+    def execute(self, control_down):
+        idx = self.matched_items[0]
+
+        self.ui.editVariableWidget.save()
+        global variables
+        variables = self.ui.editVariableWidget.get_variables()
+        self.hide()
+
+        args = self.script_items[idx].execute(control_down=control_down)
+
+        # if args is not None:
+        #     subprocess.call(args)  # HACK
+        #     # self.processWidget.run(args)
+        self.show()
+
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
 
@@ -383,18 +398,7 @@ class MainWindow(QWidget):
             idx = self.matched_items[0]
 
             if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
-                self.ui.editVariableWidget.save()
-                global variables
-                variables = self.ui.editVariableWidget.get_variables()
-                self.hide()
-
-                control_down = e.modifiers() == Qt.ControlModifier
-                args = self.script_items[idx].execute(control_down=control_down)
-
-                # if args is not None:
-                #     subprocess.call(args)  # HACK
-                #     # self.processWidget.run(args)
-                self.show()
+                self.execute(e.modifiers() == Qt.ControlModifier)
                 return True
 
             if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_E:
