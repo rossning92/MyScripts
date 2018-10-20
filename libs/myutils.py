@@ -263,7 +263,8 @@ class ScriptItem:
         if args is not None and len(args) > 0:
 
             # Check if new window is needed
-            if self.meta['newWindow'] or control_down:
+            new_window = self.meta['newWindow'] or control_down
+            if new_window:
                 CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
                 if os.path.exists(CONEMU):
                     args = [CONEMU,
@@ -297,7 +298,10 @@ class ScriptItem:
                     cwd,
                     1)
             else:
-                self.return_code = subprocess.call(args, env=env, cwd=cwd)
+                if new_window:
+                    subprocess.Popen(args, env=env, cwd=cwd)
+                else:
+                    self.return_code = subprocess.call(args, env=env, cwd=cwd)
 
                 # if 'autorun' not in self.flags:
                 #     # os.utime(self.script_path, None)  # Update modified and access time
