@@ -374,7 +374,7 @@ class MainWindow(QWidget):
             self.ui.inputBox.selectAll()
         return super().event(e)
 
-    def execute(self, control_down):
+    def execute_selected_script(self, control_down):
         idx = self.matched_items[0]
 
         self.ui.editVariableWidget.save()
@@ -417,7 +417,7 @@ class MainWindow(QWidget):
             idx = self.matched_items[0]
 
             if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
-                self.execute(e.modifiers() == Qt.ControlModifier)
+                self.execute_selected_script(e.modifiers() == Qt.ControlModifier)
                 return True
 
             if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_E:
