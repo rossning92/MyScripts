@@ -4,7 +4,6 @@ import datetime
 from colorama import Fore
 import colorama
 import glob
-import sys
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
 from PyQt5.QtCore import *
@@ -12,7 +11,6 @@ from PyQt5.QtGui import *
 from os.path import expanduser
 from gui import ProcessWidget
 from libs.myutils import *
-from collections import OrderedDict
 import time
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
