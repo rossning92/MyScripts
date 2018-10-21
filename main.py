@@ -12,6 +12,8 @@ from PyQt5.QtGui import *
 from os.path import expanduser
 from gui import ProcessWidget
 from libs.myutils import *
+from collections import OrderedDict
+import time
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
 
@@ -268,6 +270,7 @@ class EditVariableWidget(QWidget):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.script_access_time = {}
         self.script_items = []
         self.matched_items = []
 
@@ -331,6 +334,7 @@ class MainWindow(QWidget):
         self.ui.listWidget.clear()
         self.matched_items = []
 
+        # Initialize matched items
         if user_input is None or user_input == '':
             self.matched_items = list(range(len(self.script_items)))
         elif user_input.isdigit():
@@ -376,13 +380,28 @@ class MainWindow(QWidget):
         self.ui.editVariableWidget.save()
         global variables
         variables = self.ui.editVariableWidget.get_variables()
+
         self.hide()
 
-        args = self.script_items[idx].execute(control_down=control_down)
+        script = self.script_items[idx]
+        script.execute(control_down=control_down)
 
-        # if args is not None:
-        #     subprocess.call(args)  # HACK
-        #     # self.processWidget.run(args)
+        # Update script access time
+        self.script_access_time[script.script_path] = time.time()
+
+        # sort scripts
+        def sort_script(script):
+            if script.script_path in self.script_access_time:
+                return self.script_access_time[script.script_path]
+            else:
+                return 0.0
+
+
+        # Update input box
+        self.ui.inputBox.setText(script.name)
+
+        self.script_items = sorted(self.script_items, key=sort_script, reverse=True)
+
         self.show()
 
     def eventFilter(self, obj, e):
