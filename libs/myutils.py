@@ -254,7 +254,7 @@ class ScriptItem:
             print('Not supported script:', self.ext)
 
         # Append file if in clipboard
-        if args is not None:
+        if args is not None and self.meta['autoRun']:
             file_path = cb_get_file()
             if file_path is not None:
                 args.append(file_path)
