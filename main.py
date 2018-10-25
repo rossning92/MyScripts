@@ -394,13 +394,12 @@ class MainWindow(QWidget):
             else:
                 return 0.0
 
-
-        # Update input box
-        self.ui.inputBox.setText(script.name)
-
         self.script_items = sorted(self.script_items, key=sort_script, reverse=True)
 
         self.show()
+
+        # Update input box
+        self.ui.inputBox.setText(script.name)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
