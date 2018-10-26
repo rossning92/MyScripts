@@ -303,7 +303,7 @@ class MainWindow(QWidget):
         # Load scripts
         self.script_items = []
         files = glob.glob('scripts/**/*.*', recursive=True)
-        files.sort(key=os.path.getmtime, reverse=True)
+        # files.sort(key=os.path.getmtime, reverse=True)
         for file in files:
             ext = os.path.splitext(file)[1].lower()
             if ext not in SCRIPT_EXTENSIONS:
@@ -398,9 +398,10 @@ class MainWindow(QWidget):
     def sort_scripts(self):
         def key(script):
             if script.script_path in self.script_access_time:
-                return self.script_access_time[script.script_path]
+                return max(self.script_access_time[script.script_path],
+                           os.path.getmtime(script.script_path))
             else:
-                return 0.0
+                return os.path.getmtime(script.script_path)
 
         self.script_items = sorted(self.script_items, key=key, reverse=True)
 
