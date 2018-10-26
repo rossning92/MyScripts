@@ -101,23 +101,6 @@ variables = {}
 colorama.init()
 
 
-class Item:
-    def __str__(self):
-        return self.name
-
-    def execute(self):
-        raise NotImplementedError
-
-
-class MenuItem(Item):
-    def __init__(self, func):
-        self.name = func.__name__
-        self.func = func
-
-    def execute(self):
-        self.func()
-
-
 def menu_item(f):
     return f
 
