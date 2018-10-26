@@ -31,6 +31,12 @@ export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_NDK:$PATH
 '''
 
 
+def get_data_folder():
+    folder = os.path.join('data', platform.node())
+    os.makedirs(folder, exist_ok=True)
+    return folder
+
+
 def should_update():
     global last_max_mtime
     global last_file_list
@@ -268,7 +274,14 @@ class EditVariableWidget(QWidget):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.script_access_time = {}
+
+        # Load script access time
+        try:
+            with open(get_data_folder() + '/script_access_time.json', 'r') as f:
+                self.script_access_time = json.load(f)
+        except:
+            self.script_access_time = {}
+
         self.script_items = []
         self.matched_items = []
 
@@ -324,6 +337,8 @@ class MainWindow(QWidget):
             base_name = os.path.basename(file)
             if not base_name.startswith('_'):
                 self.script_items.append(script)
+
+        self.sort_scripts()
 
     def on_inputBox_textChanged(self, user_input=None):
         self.update_items(user_input)
@@ -386,20 +401,25 @@ class MainWindow(QWidget):
 
         # Update script access time
         self.script_access_time[script.script_path] = time.time()
+        with open(get_data_folder() + '/script_access_time.json', 'w') as f:
+            json.dump(self.script_access_time, f, indent=4)
 
         # sort scripts
-        def sort_script(script):
-            if script.script_path in self.script_access_time:
-                return self.script_access_time[script.script_path]
-            else:
-                return 0.0
-
-        self.script_items = sorted(self.script_items, key=sort_script, reverse=True)
+        self.sort_scripts()
 
         self.show()
 
         # Update input box
         self.ui.inputBox.setText(script.name)
+
+    def sort_scripts(self):
+        def key(script):
+            if script.script_path in self.script_access_time:
+                return self.script_access_time[script.script_path]
+            else:
+                return 0.0
+
+        self.script_items = sorted(self.script_items, key=key, reverse=True)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
