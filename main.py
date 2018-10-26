@@ -275,7 +275,7 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Load script access time
+        # Init script access time
         try:
             with open(get_data_folder() + '/script_access_time.json', 'r') as f:
                 self.script_access_time = json.load(f)
