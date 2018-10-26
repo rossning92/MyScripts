@@ -279,7 +279,7 @@ class MainWindow(QWidget):
         try:
             with open(get_data_folder() + '/script_access_time.json', 'r') as f:
                 self.script_access_time = json.load(f)
-        except:
+        except FileNotFoundError:
             self.script_access_time = {}
 
         self.script_items = []
