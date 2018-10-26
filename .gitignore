@@ -1,9 +1,9 @@
-/scripts/*
+__pycache__/
 .DS_Store
+.idea/
+/scripts/*
 !/scripts/ext
 !/scripts/Ross
 /variables.json
-__pycache__/
-/.idea/
 /variables.*
 /data
