@@ -202,7 +202,10 @@ class ScriptItem:
 
         elif self.ext == '.ahk':
             if os.name == 'nt':
-                subprocess.Popen(['bin/AutoHotkeyU64.exe', self.script_path])
+                script_abs_path = os.path.join(os.getcwd(), self.script_path)
+                subprocess.Popen(
+                    ['bin/AutoHotkeyU64.exe', script_abs_path],
+                    cwd=cwd)
 
         elif self.ext == '.cmd':
             if os.name == 'nt':
@@ -255,9 +258,11 @@ class ScriptItem:
 
         # Append file if in clipboard
         if args is not None and self.meta['autoRun'] is False:
-            file_path = cb_get_file()
-            if file_path is not None:
-                args.append(file_path)
+            with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
+                jsn = json.load(f)
+
+            if len(jsn['selectedFiles']) > 0:
+                args.append(jsn['selectedFiles'][0])
 
         # Run commands
         if args is not None and len(args) > 0:

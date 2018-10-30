@@ -1,13 +1,14 @@
 #SingleInstance, Force
+#include _ExplorerHelper.ahk
+
 
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
 
+
 ^q::
 	; If explorer is active, copy file path to clipboard
-	if WinActive("ahk_exe explorer.exe") {
-		Send ^c
-	}
+	WriteExplorerInfoToJson()
 
 	; Activate script window
     if WinExist(CONSOLE_WINDOW) {
