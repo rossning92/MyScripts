@@ -1,1 +1,1 @@
-choco install unity --version 2018.2.0
+choco install unity --version 2018.2.0 -y
