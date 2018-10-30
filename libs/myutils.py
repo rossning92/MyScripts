@@ -261,7 +261,6 @@ class ScriptItem:
             try:
                 with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
                     jsn = json.load(f)
-                    print(jsn)
 
                 if len(jsn['selectedFiles']) > 0:
                     args.append(jsn['selectedFiles'][0])
