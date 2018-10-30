@@ -256,14 +256,17 @@ class ScriptItem:
         else:
             print('Not supported script:', self.ext)
 
-        # Append file if in clipboard
         if args is not None and self.meta['autoRun'] is False:
-            with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
-                jsn = json.load(f)
-                print(jsn)
+            # Append selected file in explorer
+            try:
+                with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
+                    jsn = json.load(f)
+                    print(jsn)
 
-            if len(jsn['selectedFiles']) > 0:
-                args.append(jsn['selectedFiles'][0])
+                if len(jsn['selectedFiles']) > 0:
+                    args.append(jsn['selectedFiles'][0])
+            except:
+                pass
 
         # Run commands
         if args is not None and len(args) > 0:
