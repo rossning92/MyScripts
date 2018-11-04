@@ -256,16 +256,19 @@ class ScriptItem:
         else:
             print('Not supported script:', self.ext)
 
+        # Set selected file and current folder to as environment variables
         if args is not None and self.meta['autoRun'] is False:
-            # Append selected file in explorer
             try:
                 with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
                     jsn = json.load(f)
 
-                if len(jsn['selectedFiles']) > 0:
-                    args.append(jsn['selectedFiles'][0])
+                if len(jsn['selectedFiles']) == 1:
+                    env['SELECTED_FILE'] = jsn['selectedFiles'][0]
+
+                if len(jsn['currentFolder']) == 1:
+                    env['CURRENT_FOLDER'] = jsn['currentFolder']
             except:
-                pass
+                print('Unable to get explorer info.')
 
         # Run commands
         if args is not None and len(args) > 0:
