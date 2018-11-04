@@ -238,7 +238,7 @@ class ScriptItem:
                 if len(jsn['selectedFiles']) == 1:
                     env['SELECTED_FILE'] = jsn['selectedFiles'][0]
 
-                if len(jsn['currentFolder']) == 1:
+                if jsn['currentFolder']:
                     env['CURRENT_FOLDER'] = jsn['currentFolder']
             except:
                 print('Unable to get explorer info.')
