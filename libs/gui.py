@@ -16,12 +16,17 @@ def run(args):
 
 
 _app = QApplication([])
+font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+font.setPointSize(12)
+_app.setFont(font)
 
 
 class MyDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.installEventFilter(self)
+        self.setMinimumWidth(800)
+        self.setWindowTitle('-')
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
@@ -48,7 +53,6 @@ class OptionDialog(MyDialog):
 
         self.listWidget = QListWidget()
         self.listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.listWidget.setFont(QFont('Consolas', 10))
         for opt in options:
             self.listWidget.addItem(opt)
 
@@ -95,18 +99,26 @@ class SearchDialog(MyDialog):
         self.on_lineEdit_textChanged("")
 
     def on_lineEdit_textChanged(self, text):
+        kw_list = text.split()
+
         self.listWidget.clear()
         self.matched_items.clear()
         self.selected_index = -1
 
         for i in range(len(self.items)):
-            if str(self.items[i]).startswith(text):
+            if SearchDialog._kw_match(kw_list, str(self.items[i])):
                 self.listWidget.addItem(self.items[i])
                 self.matched_items.append(i)
 
         if self.listWidget.count() > 0:
             self.selected_index = 0
             self.listWidget.item(0).setSelected(True)
+
+    def _kw_match(kw_list, text):
+        for kw in kw_list:
+            if kw not in text:
+                return False
+        return True
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
@@ -136,4 +148,7 @@ def search(items):
     if return_code != QDialog.Accepted:
         return -1
 
-    print(dialog.selected_index)
+    return dialog.selected_index
+
+
+# search(['hello' + str(i) for i in range(5)])
