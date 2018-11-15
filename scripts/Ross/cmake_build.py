@@ -3,7 +3,7 @@ import os
 import subprocess
 import shutil
 
-SRC_PATH = r'{{CMAKE_SRC_PATH}}'
+SRC_PATH = os.environ['CURRENT_FOLDER']
 if SRC_PATH.endswith('.cpp') or SRC_PATH.endswith('.c'):
     basename = os.path.basename(SRC_PATH)
     project_name = os.path.splitext(basename)[0]
