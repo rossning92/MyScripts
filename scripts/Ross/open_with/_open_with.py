@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import traceback
 
 assoc = {
     '.0-win-64bit-build1': 'PathAdd',
@@ -318,10 +319,10 @@ assoc = {
 }
 
 program_path = {
-    'notepad++': 'notepad++.exe',
-    'VLC': 'C:\\Program Files\\VideoLAN\\VLC\\vlc.exe',
-    'IrfanView': 'C:\\Program Files\\IrfanView\\i_view64.exe',
-    'SumatraPDF': 'SumatraPDF.exe'
+    'notepad++': ['notepad++.exe'],
+    'VLC': ['C:\\Program Files\\VideoLAN\\VLC\\vlc.exe', r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"],
+    'IrfanView': ['C:\\Program Files\\IrfanView\\i_view64.exe'],
+    'SumatraPDF': ['SumatraPDF.exe']
 }
 
 
@@ -336,11 +337,21 @@ def main():
         raise Exception('%s not found' % program)
     program = program_path[program]
 
-    subprocess.Popen([program, file_path])
+    for p in program:
+        try:
+            args = [p, file_path]
+            subprocess.Popen(args)
+            return
+        except:
+            pass
 
+    print('Cannot run %s' % program)
+    input()
 
 try:
     main()
 except Exception as e:
+    traceback.print_exc(file=sys.stdout)
     print(e)
     input()
+
