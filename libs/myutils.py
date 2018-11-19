@@ -175,10 +175,13 @@ class ScriptItem:
 
         elif self.ext == '.ahk':
             if os.name == 'nt':
+                # HACK: add python path to env var
+                env['PYTHONPATH'] = os.path.dirname(__file__)
+
                 script_abs_path = os.path.join(os.getcwd(), self.script_path)
                 subprocess.Popen(
                     ['bin/AutoHotkeyU64.exe', script_abs_path],
-                    cwd=cwd)
+                    cwd=cwd, env=env)
 
         elif self.ext == '.cmd':
             if os.name == 'nt':

@@ -115,8 +115,9 @@ class SearchDialog(MyDialog):
             self.listWidget.item(0).setSelected(True)
 
     def _kw_match(kw_list, text):
+        text = text.lower()
         for kw in kw_list:
-            if kw not in text:
+            if kw.lower() not in text:
                 return False
         return True
 
