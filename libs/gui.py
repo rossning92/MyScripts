@@ -149,7 +149,7 @@ def search(items):
     if return_code != QDialog.Accepted:
         return -1
 
-    return dialog.selected_index
+    return dialog.matched_items[dialog.selected_index]
 
 
 # search(['hello' + str(i) for i in range(5)])
