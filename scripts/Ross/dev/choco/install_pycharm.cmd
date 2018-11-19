@@ -1,0 +1,1 @@
+choco install pycharm-community -y
