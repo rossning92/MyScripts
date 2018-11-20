@@ -1,7 +1,7 @@
 import cson
 import os
 
-cfg_file = os.path.expanduser('~') + '/.atom/config.cson'
+cfg_file = os.path.expanduser('~/.atom/config.cson')
 
 with open(cfg_file, 'r') as f:
     obj = cson.loads(f.read())
