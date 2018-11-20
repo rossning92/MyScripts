@@ -47,7 +47,7 @@ for file_path in get_all_scripts():
             matched_files.add(file_path)
 
 answer = input('Enter Y to replace "%s" with "%s": ' % (kw, replacement))
-if not answer == 'Y':
+if not answer.lower() == 'y':
     sys.exit(1)
 
 # Replace all occurrence
