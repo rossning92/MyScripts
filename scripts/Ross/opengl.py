@@ -1,12 +1,12 @@
-from subprocess import call
+from _shutil import *
 import os
 
-os.chdir("{{PROJECT_DIR}}")
-if not os.path.exists('LearnOpenGL'):
+chdir("{{PROJECT_DIR}}")
+if not exists('LearnOpenGL'):
     call('git clone https://github.com/JoeyDeVries/LearnOpenGL.git')
 
-os.chdir('LearnOpenGL')
+chdir('LearnOpenGL')
 
 os.environ['PATH'] = r'C:\Program Files\CMake\bin' + os.pathsep + os.environ['PATH']
-os.makedirs('build', exist_ok=True)
+mkdir('build')
 call(['cmake', '-G' 'Visual Studio 15 2017', '..'], cwd='build')
