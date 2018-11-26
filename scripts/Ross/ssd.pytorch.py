@@ -15,18 +15,17 @@ dirs = [
 ]
 os.environ["PATH"] = os.pathsep.join(dirs) + os.pathsep + os.environ["PATH"]
 
-call('pip install visdom', shell=True)
+call('pip install visdom')
 
 mkdir('weights')
 chdir('weights')
 download('https://s3.amazonaws.com/amdegroot-models/ssd300_mAP_77.43_v2.pth')
 chdir('..')
 
-call('conda install opencv -y', shell=True)
+call('conda install opencv -y')
 
-#call('pip install imutils', shell=True)
-#call('python -m demo.live', shell=True)
-
+# call('pip install imutils', shell=True)
+# call('python -m demo.live', shell=True)
 
 call('pip3 install --upgrade pip')
 call('pip install jupyter')
