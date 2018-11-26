@@ -1,4 +1,4 @@
-from gui import search
+from _gui import search
 import sys
 import subprocess
 
