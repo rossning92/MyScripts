@@ -19,4 +19,5 @@ idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
 
+subprocess.call('choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"')
 subprocess.call('choco install %s -y' % pkg_list[idx])
