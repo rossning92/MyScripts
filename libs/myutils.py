@@ -16,7 +16,7 @@ def open_text_editor(path):
     else:
         if os.path.splitext(path)[1] == '.py':
             script = ScriptItem('scripts/ext/open_in_PyCharm.py')
-            script.execute(path)
+            script.execute(os.path.abspath(path))
             if script.return_code == 0:
                 return
 
