@@ -30,5 +30,6 @@ for m in module_names:
     print('Copy %s ...' % python_file)
     shutil.copy(python_file, OUT_DIR)
 
-print('Copy %s ...' % script)
-shutil.copy(script, OUT_DIR)
+print('Write script: %s ...' % script)
+with open('%s/%s' % (OUT_DIR, os.path.basename(script)), 'w') as f:
+    f.write(myutils.ScriptItem(script).render())
