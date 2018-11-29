@@ -11,8 +11,6 @@ import sys
 
 
 def open_text_editor(path):
-    path = os.path.abspath(os.getcwd() + os.path.sep + path)
-
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
     else:

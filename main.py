@@ -354,7 +354,7 @@ class MainWindow(QWidget):
             # Set selected items
             first_matched_item = self.script_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
-            os.environ['ROSS_SELECTED_SCRIPT_PATH'] = first_matched_item.script_path  # HACK
+            os.environ['ROSS_SELECTED_SCRIPT_PATH'] = os.path.join(os.getcwd(), first_matched_item.script_path)
 
             # Display variable list
             if 'get_variables' in dir(first_matched_item):

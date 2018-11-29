@@ -1,0 +1,4 @@
+autoRun: false
+hotkey: Ctrl+Shift+E
+newWindow: false
+runAsAdmin: false

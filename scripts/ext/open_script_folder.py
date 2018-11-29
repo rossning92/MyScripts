@@ -4,7 +4,7 @@ import os
 
 script_path = os.environ['ROSS_SELECTED_SCRIPT_PATH']
 script_dir = os.path.dirname(script_path)
-os.chdir('../../' + script_dir)
+os.chdir(script_dir)
 print('Open Folder: ' + os.getcwd())
 
 if sys.platform == 'darwin':
