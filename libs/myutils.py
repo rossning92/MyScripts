@@ -9,8 +9,6 @@ import platform
 import ctypes
 import sys
 
-ADD_PARENT_DIRS_TO_PYTHON_PATH = True
-
 
 def open_text_editor(path):
     path = os.path.abspath(os.getcwd() + os.path.sep + path)
@@ -96,7 +94,24 @@ def cmd(cmd):
     return args
 
 
-# TODO: move to a new file
+def get_python_path(script_path):
+    python_path = [os.path.dirname(__file__)]
+
+    if True:  # Add path directories to python path
+        script_root_path = os.path.dirname(__file__) + '/../scripts'
+        script_root_path = os.path.abspath(script_root_path)
+        script_full_path = os.path.join(os.getcwd(), script_path)
+        parent_dir = os.path.dirname(script_full_path)
+        python_path.append(parent_dir)
+        while True:
+            parent_dir = os.path.abspath(parent_dir + '/../')
+            if parent_dir.startswith(script_root_path):
+                python_path.append(parent_dir)
+            else:
+                break
+    return python_path
+
+
 class ScriptItem:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
 
@@ -201,19 +216,7 @@ class ScriptItem:
             script = self.render()
             tmp_script_file = write_temp_file(script, '.py')
 
-            python_path = [os.path.dirname(__file__)]
-            if ADD_PARENT_DIRS_TO_PYTHON_PATH:
-                script_root_path = os.path.dirname(__file__) + '/../scripts'
-                script_root_path = os.path.abspath(script_root_path)
-                script_full_path = os.path.join(os.getcwd(), self.script_path)
-                parent_dir = os.path.dirname(script_full_path)
-                python_path.append(parent_dir)
-                while True:
-                    parent_dir = os.path.abspath(parent_dir + '/../')
-                    if parent_dir.startswith(script_root_path):
-                        python_path.append(parent_dir)
-                    else:
-                        break
+            python_path = get_python_path(self.script_path)
 
             env['PYTHONPATH'] = ';'.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
