@@ -93,7 +93,7 @@ def cmd(cmd):
 
 
 def get_python_path(script_path):
-    python_path = [os.path.dirname(__file__)]
+    python_path = []
 
     if True:  # Add path directories to python path
         script_root_path = os.path.dirname(__file__) + '/../scripts'
@@ -107,6 +107,8 @@ def get_python_path(script_path):
                 python_path.append(parent_dir)
             else:
                 break
+
+    python_path.append(os.path.dirname(__file__))
     return python_path
 
 
