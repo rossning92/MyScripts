@@ -10,6 +10,32 @@ import ctypes
 import sys
 
 
+def run_elevated(args, wait=True):
+    if platform.system() == 'Windows':
+        import win32api
+        import win32con
+        import win32event
+        import win32process
+        from win32com.shell.shell import ShellExecuteEx
+        from win32com.shell import shellcon
+
+        quoted_args = subprocess.list2cmdline(args[1:])
+        process_info = ShellExecuteEx(nShow=win32con.SW_SHOW,
+                                      fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
+                                      lpVerb='runas',
+                                      lpFile=args[0],
+                                      lpParameters=quoted_args)
+        if wait:
+            win32event.WaitForSingleObject(process_info['hProcess'], 600000)
+            ret = win32process.GetExitCodeProcess(process_info['hProcess'])
+            win32api.CloseHandle(process_info['hProcess'])
+        else:
+            ret = process_info
+    else:
+        ret = subprocess.call(['sudo'] + args, shell=True)
+    return ret
+
+
 def open_text_editor(path):
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
@@ -278,15 +304,8 @@ class ScriptItem:
 
             # Check if run as admin
             if self.meta['runAsAdmin']:
-                quoted_args = subprocess.list2cmdline(args[1:])
-                print(quoted_args)
-                ctypes.windll.shell32.ShellExecuteW(
-                    None,  # hwnd
-                    "runas",  # verb
-                    args[0],  # Python executable
-                    quoted_args,  # Python file
-                    cwd,
-                    1)
+                print('Run elevated:', args)
+                run_elevated(args)
             else:
                 if new_window:
                     subprocess.Popen(args, env=env, cwd=cwd)
