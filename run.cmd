@@ -14,7 +14,7 @@ set PATH=%CONDA_PATH%;%CONDA_PATH%\Scripts;C:\Python36;C:\Python36\Scripts;%LOCA
 :: Install required packages
 where python
 if not %errorlevel%==0 (
-	call install\install.cmd
+	call install\install_all.cmd
 )
 
 :: Install python modules

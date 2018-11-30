@@ -1,0 +1,1 @@
+choco install python --version 3.6.4 -y

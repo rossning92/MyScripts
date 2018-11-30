@@ -1,0 +1,1 @@
+@powershell Start-Process cmd -verb runAs -wait -ArgumentList "/c","%~dp0install_all.cmd"
