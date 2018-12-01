@@ -305,7 +305,7 @@ class ScriptItem:
             # Check if run as admin
             if self.meta['runAsAdmin']:
                 print('Run elevated:', args)
-                run_elevated(args)
+                run_elevated(args, wait=not new_window)
             else:
                 if new_window:
                     subprocess.Popen(args, env=env, cwd=cwd)
