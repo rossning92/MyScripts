@@ -10,7 +10,8 @@ pkg_list = [
     'selenium-chrome-driver',
     'miktex',
     'unity --version 2018.2.0',
-    'sketchup'
+    'sketchup',
+    'visualstudio2017community'
 ]
 
 pkg_list = sorted(pkg_list)
