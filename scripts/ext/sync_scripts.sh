@@ -1,4 +1,3 @@
-set -e
 cd ../..
 
 git config credential.helper store
