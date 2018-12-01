@@ -8,7 +8,7 @@ if [ ! -d ".git" ]; then
 	git remote add origin https://github.com/rossning92/MyScripts
 	git branch --set-upstream-to=origin/master master
 	git fetch
-	git pull
+	git reset --hard origin/master
 fi
 
 git add -A
