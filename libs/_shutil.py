@@ -3,8 +3,12 @@ import os
 from os import chdir
 from os.path import exists
 import sys
-import requests
 
+try:
+    import requests
+except:
+    call('pip install requests')
+    import requests
 
 def mkdir(path):
     os.makedirs(path, exist_ok=True)
