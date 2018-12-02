@@ -1,7 +1,7 @@
 from subprocess import call, check_output
 import os
 from os import chdir
-from os.path import exists
+from os.path import exists, expanduser, expandvars
 import sys
 
 try:
@@ -10,16 +10,17 @@ except:
     call('pip install requests')
     import requests
 
+
 def mkdir(path):
     os.makedirs(path, exist_ok=True)
 
 
 def download(url, filename=None):
-
     if filename is None:
         filename = os.path.basename(url)
 
     if exists(filename):
+        print('File already exists: %s' % filename)
         return
 
     print('Download: %s' % url)
