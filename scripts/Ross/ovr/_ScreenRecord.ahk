@@ -24,50 +24,42 @@ SetWindow(windowTitle)
     g_windowTitle := windowTitle
 }
 
-InitVLC()
+Record()
 {
     global g_windowTitle
     if (g_windowTitle == "")
     {
         MsgBox g_windowTitle is not set
-        return false
+        ExitApp
     }
     
-    ; Start VLC
+	WinActivate %g_windowTitle%
+    WinWaitActive %g_windowTitle%
     if not WinGetClientPos(g_windowTitle, x, y, w, h)
     {
         MsgBox Cannot find window: %g_windowTitle%
         return false
     }
+	
+	; Start VLC
     WinClose ahk_exe vlc.exe
-    Run "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe" screen:// :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
-    WinWaitActive, ahk_exe vlc.exe
-    Sleep 1000
-    
-    return true
+	FormatTime, now, R, yyyyMMdd_hhmmss
+	fileOut = %A_MyDocuments%\Record_%now%.mp4
+	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" screen:// :sout=#transcode{vcodec=h264,vb=0,scale=0,acodec=mpga,ab=128,channels=2,samplerate=44100}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
+    Run, %commandLine%,, Min
 }
 
-Record()
+Stop()
 {
-    global g_windowTitle
-
-    Process, Exist, vlc.exe
-    if (ErrorLevel = 0)
-        if not InitVLC()
-            return
-    
-    WinActivate %g_windowTitle%
-    WinWaitActive %g_windowTitle%
-    
-    ControlSend,, +r{Shift Up}, ahk_exe vlc.exe
+    WinClose ahk_exe vlc.exe
 }
 
 Exit()
 {
+	Stop()
     ExitApp
 }
 
 SetKeyDelay, 10, 10
 SetWorkingDir % A_Desktop
-Hotkey, F7, Record
 Hotkey, Esc, Exit
