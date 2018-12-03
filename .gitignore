@@ -3,7 +3,7 @@ __pycache__/
 .idea/
 /scripts/*
 !/scripts/ext
-!/scripts/Ross
+!/scripts/r
 /variables.json
 /variables.*
 /data
