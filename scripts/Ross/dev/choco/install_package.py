@@ -11,7 +11,8 @@ pkg_list = [
     'miktex',
     'unity --version 2018.2.0',
     'sketchup',
-    'visualstudio2017community'
+    'visualstudio2017community',
+    'blender'
 ]
 
 pkg_list = sorted(pkg_list)
