@@ -3,6 +3,8 @@ import os
 from os import chdir
 from os.path import exists, expanduser, expandvars
 import sys
+from shutil import copytree, rmtree
+import shutil
 
 try:
     import requests
@@ -40,3 +42,9 @@ def download(url, filename=None):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
+
+
+def copy(src, dst):
+    if dst.endswith('/') or dst.endswith('\\'):
+        mkdir(dst)
+        shutil.copy(src, dst)
