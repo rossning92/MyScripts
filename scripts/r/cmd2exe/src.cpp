@@ -86,6 +86,7 @@ int main(int argc, char** argv)
     ifs.read(buff, 4);
     ifs.seekg(-4, ios::cur);
 
+    // This exe is a proxy exe
     if (strcmp(buff, TAG) == 0)
     {
         ifs.seekg(-4, ios::cur);
