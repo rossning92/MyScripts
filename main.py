@@ -444,7 +444,7 @@ if __name__ == '__main__':
     bin_dir = os.path.join(os.getcwd(), 'bin')
     os.environ['PATH'] = os.pathsep.join([
         bin_dir,
-        os.path.abspath('./tmp/bin')
+        os.path.abspath('./tmp/bin')  # exe proxy
     ]) + os.pathsep + os.environ['PATH']
     os.environ['PYTHONPATH'] = os.path.abspath('./libs')
 
