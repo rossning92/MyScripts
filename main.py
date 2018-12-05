@@ -442,7 +442,11 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     bin_dir = os.path.join(os.getcwd(), 'bin')
-    os.environ['PATH'] += os.pathsep + bin_dir
+    os.environ['PATH'] = os.pathsep.join([
+        bin_dir,
+        os.path.abspath('./tmp/bin')
+    ]) + os.pathsep + os.environ['PATH']
+    os.environ['PYTHONPATH'] = os.path.abspath('./libs')
 
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
