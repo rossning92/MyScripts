@@ -21,10 +21,16 @@ def run_exe(exe, args):
     return False
 
 
-exe = sys.argv[1]
-args = sys.argv[2:]
-if not run_exe(exe, args):
-    # Install package
-    run_elevated(['choco', 'install', CHOCO_PKG_MAP[exe], '-y'], wait=True)
+if __name__ == '__main__':
+    # Set up PATH
+    os.environ['PATH'] = os.pathsep.join([
+        r'C:\Program Files\CMake\bin'
+    ]) + os.pathsep + os.environ['PATH']
 
-    run_exe(exe, args)
+    exe = sys.argv[1]
+    args = sys.argv[2:]
+    if not run_exe(exe, args):
+        # Install package
+        run_elevated(['choco', 'install', CHOCO_PKG_MAP[exe], '-y'], wait=True)
+
+        run_exe(exe, args)

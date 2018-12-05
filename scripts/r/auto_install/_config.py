@@ -9,5 +9,8 @@ CHOCO_PKG_MAP = {
     'conemu': 'conemu',
     '7z': '7zip',
     'sumatrapdf': 'sumatrapdf',
-    'git': 'git'
+    'git': 'git',
+    'ffmpeg': 'ffmpeg',
+    'vlc': 'vlc',
+    'cmake': 'cmake'
 }

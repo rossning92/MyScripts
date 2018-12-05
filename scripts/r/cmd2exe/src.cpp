@@ -83,11 +83,11 @@ int main(int argc, char** argv)
 		// Set working directory
 		char exeDir[BUFF_SIZE];
 		sprintf_s(exeDir, BUFF_SIZE, "%s%s", drive, dir);
-		if (!SetCurrentDirectory(exeDir))
-		{
-			cout << "Error: failed to set current directory to: " << exeDir << endl;
-			return 1;
-		}
+		// if (!SetCurrentDirectory(exeDir))
+		// {
+		// 	cout << "Error: failed to set current directory to: " << exeDir << endl;
+		// 	return 1;
+		// }
 	
         ifs.seekg(-4, ios::cur);
         size_t size;
