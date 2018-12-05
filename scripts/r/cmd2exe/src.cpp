@@ -28,25 +28,25 @@ bool writeExecutable(const string& srcExe, const string& outExe, int i, int argc
         return false;
     }
 
-    stringstream ss;
+    stringstream args_ss;
     for (int j = i; j < argc; j++)
     {
-        if (j > i) ss << " ";
+        if (j > i) args_ss << " ";
 
         if (strstr(argv[j], " ") == nullptr)
         {
-            ss << argv[j];
+            args_ss << argv[j];
         }
         else
         {
-            ss << "\"" << argv[j] << "\"";
+            args_ss << "\"" << argv[j] << "\"";
         }
     }
 
-    auto str = ss.str();
-    ofs.write(str.data(), str.size());
+    auto args = args_ss.str();
+    ofs.write(args.data(), args.size());
 
-    int size = (int)str.size();
+    int size = (int)args.size();
     ofs.write((char*)&size, 4);
 
     ofs.write(TAG, 4);
@@ -57,8 +57,8 @@ bool writeExecutable(const string& srcExe, const string& outExe, int i, int argc
 
 int main(int argc, char** argv)
 {
-    char currentExe[BUFF_SIZE];
-    int ret = GetModuleFileNameA(NULL, currentExe, BUFF_SIZE);
+    char exeFileName[BUFF_SIZE];
+    int ret = GetModuleFileNameA(NULL, exeFileName, BUFF_SIZE);
     if (ret == 0) {
         cout << "Error: GetModuleFileNameA() failed" << endl;
         return 1;
@@ -68,18 +68,9 @@ int main(int argc, char** argv)
     char dir[BUFF_SIZE];
     char fname[BUFF_SIZE];
     char ext[BUFF_SIZE];
-    _splitpath_s(currentExe, drive, BUFF_SIZE, dir, BUFF_SIZE, fname, BUFF_SIZE, ext, BUFF_SIZE);
+    _splitpath_s(exeFileName, drive, BUFF_SIZE, dir, BUFF_SIZE, fname, BUFF_SIZE, ext, BUFF_SIZE);
 
-    // Set working directory
-    char exeDir[BUFF_SIZE];
-    sprintf_s(exeDir, BUFF_SIZE, "%s%s", drive, dir);
-    if (!SetCurrentDirectory(exeDir))
-    {
-        cout << "Error: failed to set current directory to: " << exeDir << endl;
-        return 1;
-    }
-
-    ifstream ifs(currentExe);
+    ifstream ifs(exeFileName);
     ifs.seekg(0, ifs.end);
     ifs.seekg(-4, ios::cur);
     char buff[5] = { 0 };
@@ -89,6 +80,15 @@ int main(int argc, char** argv)
     // This exe is a proxy exe
     if (strcmp(buff, TAG) == 0)
     {
+		// Set working directory
+		char exeDir[BUFF_SIZE];
+		sprintf_s(exeDir, BUFF_SIZE, "%s%s", drive, dir);
+		if (!SetCurrentDirectory(exeDir))
+		{
+			cout << "Error: failed to set current directory to: " << exeDir << endl;
+			return 1;
+		}
+	
         ifs.seekg(-4, ios::cur);
         size_t size;
         ifs.read((char*)&size, 4);
@@ -98,8 +98,23 @@ int main(int argc, char** argv)
         vector<char> command(size + 1, '\0');
         ifs.read(command.data(), size);
 
-        cout << "Run command: " << command.data() << endl;
-        return system(command.data());
+        stringstream args_ss;
+        args_ss << command.data();
+        for (int i = 1; i < argc; i++) // Do not pass first parameter
+        {
+            args_ss << " ";
+            if (strstr(argv[i], " ") == nullptr)
+            {
+                args_ss << argv[i];
+            }
+            else
+            {
+                args_ss << "\"" << argv[i] << "\"";
+            }
+        }
+
+        cout << "Run command: " << args_ss.str() << endl;
+        return system(args_ss.str().c_str());
     }
     else
     {
@@ -127,7 +142,7 @@ int main(int argc, char** argv)
                     return -1;
                 }
 
-                if (writeExecutable(currentExe, outFile, i + 1, argc, argv))
+                if (writeExecutable(exeFileName, outFile, i + 1, argc, argv))
                     return 0;
                 else
                     return 1;
