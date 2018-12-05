@@ -9,7 +9,7 @@
 #include <vector>
 
 #define TAG        "EXEC"
-#define BUFF_SIZE  256
+#define BUFF_SIZE  1024
 
 using namespace std;
 
@@ -64,11 +64,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    char drive[BUFF_SIZE];
-    char dir[BUFF_SIZE];
-    char fname[BUFF_SIZE];
-    char ext[BUFF_SIZE];
-    _splitpath_s(exeFileName, drive, BUFF_SIZE, dir, BUFF_SIZE, fname, BUFF_SIZE, ext, BUFF_SIZE);
+    // char drive[BUFF_SIZE];
+    // char dir[BUFF_SIZE];
+    // char fname[BUFF_SIZE];
+    // char ext[BUFF_SIZE];
+    // _splitpath_s(exeFileName, drive, BUFF_SIZE, dir, BUFF_SIZE, fname, BUFF_SIZE, ext, BUFF_SIZE);
 
     ifstream ifs(exeFileName);
     ifs.seekg(0, ifs.end);
@@ -81,8 +81,8 @@ int main(int argc, char** argv)
     if (strcmp(buff, TAG) == 0)
     {
 		// Set working directory
-		char exeDir[BUFF_SIZE];
-		sprintf_s(exeDir, BUFF_SIZE, "%s%s", drive, dir);
+		// char exeDir[BUFF_SIZE];
+		// sprintf_s(exeDir, BUFF_SIZE, "%s%s", drive, dir);
 		// if (!SetCurrentDirectory(exeDir))
 		// {
 		// 	cout << "Error: failed to set current directory to: " << exeDir << endl;
