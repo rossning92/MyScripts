@@ -179,7 +179,7 @@ class ScriptItem:
             args = [args]
 
         env = os.environ.copy()
-        cwd = os.path.join(os.getcwd(), os.path.dirname(self.script_path))
+        cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(self.script_path)))
 
         if self.ext == '.ps1':
             if os.name == 'nt':
