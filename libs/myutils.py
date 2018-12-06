@@ -1,5 +1,8 @@
-import subprocess
 import os
+import sys
+
+sys.path.append(os.path.dirname(__file__))
+import subprocess
 import json
 import jinja2
 import re
@@ -7,8 +10,7 @@ import tempfile
 import yaml
 import platform
 import ctypes
-import sys
-from libs._shutil import run_elevated
+from _shutil import run_elevated
 import shlex
 
 

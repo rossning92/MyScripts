@@ -1,0 +1,4 @@
+autoRun: false
+hotkey: Ctrl+P
+newWindow: false
+runAsAdmin: false
