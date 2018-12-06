@@ -288,9 +288,6 @@ class ScriptItem:
                 else:
                     self.return_code = subprocess.call(args, env=env, cwd=cwd)
 
-                # if 'autorun' not in self.flags:
-                #     # os.utime(self.script_path, None)  # Update modified and access time
-
     def get_variable_names(self):
         variables = set()
         include_func = ScriptItem.include.__get__(self, ScriptItem)
