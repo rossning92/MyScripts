@@ -9,6 +9,7 @@ import platform
 import ctypes
 import sys
 from libs._shutil import run_elevated
+import shlex
 
 
 def open_text_editor(path):
@@ -279,7 +280,7 @@ class ScriptItem:
 
             # Check if run as admin
             if self.meta['runAsAdmin']:
-                print('Run elevated:', args)
+                print('Run elevated:', ' '.join([shlex.quote(x) for x in args]))
                 run_elevated(args, wait=not new_window)
             else:
                 if new_window:
