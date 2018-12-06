@@ -1,4 +1,4 @@
 autoRun: false
-hotkey: null
+hotkey: Ctrl+Shift+P
 newWindow: false
 runAsAdmin: true
