@@ -7,9 +7,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <assert.h>
 
-#define TAG        "EXEC"
-#define BUFF_SIZE  1024
+const char* TAG = "EXEC";
+const int BUFF_SIZE = 1024;
 
 using namespace std;
 
@@ -18,7 +19,7 @@ bool writeExecutable(const string& srcExe, const string& outExe, int i, int argc
     if (!CopyFile(srcExe.c_str(), outExe.c_str(), FALSE))
     {
         cout << "Cannot copy file." << endl;
-        return 1;
+        return false;
     }
 
     ofstream ofs(outExe, ios::app);
@@ -61,42 +62,46 @@ int main(int argc, char** argv)
     int ret = GetModuleFileNameA(NULL, exeFileName, BUFF_SIZE);
     if (ret == 0) {
         cout << "Error: GetModuleFileNameA() failed" << endl;
-        return 1;
+        return -1;
     }
 
-    // char drive[BUFF_SIZE];
-    // char dir[BUFF_SIZE];
-    // char fname[BUFF_SIZE];
-    // char ext[BUFF_SIZE];
-    // _splitpath_s(exeFileName, drive, BUFF_SIZE, dir, BUFF_SIZE, fname, BUFF_SIZE, ext, BUFF_SIZE);
+    HANDLE hFile = CreateFileA(exeFileName,
+        GENERIC_READ,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+    assert(hFile != INVALID_HANDLE_VALUE);
 
-    ifstream ifs(exeFileName);
-    ifs.seekg(0, ifs.end);
-    ifs.seekg(-4, ios::cur);
-    char buff[5] = { 0 };
-    ifs.read(buff, 4);
-    ifs.seekg(-4, ios::cur);
+    DWORD dwFileSize = GetFileSize(hFile, NULL);
+
+    HANDLE hMapFile = CreateFileMapping(hFile,
+        NULL,           // default security
+        PAGE_READONLY,  // read/write permission
+        0,              // size of mapping object, high
+        dwFileSize,     // size of mapping object, low
+        NULL);          // name of mapping object
+    assert(hMapFile);
+
+    LPVOID lpMapAddress = MapViewOfFile(hMapFile,
+        FILE_MAP_READ,
+        0,           // high-order 32 bits of file offset
+        0,           // low-order 32 bits of file offset
+        dwFileSize); // number of bytes to map
+    assert(lpMapAddress);
+
+    char* pCur = (char*)lpMapAddress + dwFileSize - 4;
 
     // This exe is a proxy exe
-    if (strcmp(buff, TAG) == 0)
+    if (strncmp(pCur, TAG, 4) == 0)
     {
-		// Set working directory
-		// char exeDir[BUFF_SIZE];
-		// sprintf_s(exeDir, BUFF_SIZE, "%s%s", drive, dir);
-		// if (!SetCurrentDirectory(exeDir))
-		// {
-		// 	cout << "Error: failed to set current directory to: " << exeDir << endl;
-		// 	return 1;
-		// }
-	
-        ifs.seekg(-4, ios::cur);
-        size_t size;
-        ifs.read((char*)&size, 4);
-        ifs.seekg(-4, ios::cur);
+        pCur -= 4;
+        int size = *((int*)pCur);
 
-        ifs.seekg(-(int)size, ios::cur);
+        pCur -= size;
         vector<char> command(size + 1, '\0');
-        ifs.read(command.data(), size);
+        memcpy(command.data(), pCur, size);
 
         stringstream args_ss;
         args_ss << command.data();
@@ -116,40 +121,48 @@ int main(int argc, char** argv)
         cout << "Run command: " << args_ss.str() << endl;
         return system(args_ss.str().c_str());
     }
-    else
+
+    // Close memory map of file
+    BOOL bFlag = UnmapViewOfFile(lpMapAddress);
+    assert(bFlag);
+
+    bFlag = CloseHandle(hMapFile);
+    assert(bFlag);
+
+    bFlag = CloseHandle(hFile);
+    assert(bFlag);
+
+    string outFile;
+
+    // Parse command line arguments
+    for (int i = 1; i < argc; i++)
     {
-        string outFile;
-
-        // Parse command line arguments
-        for (int i = 1; i < argc; i++)
+        if (strcmp(argv[i], "-o") == 0)
         {
-            if (strcmp(argv[i], "-o") == 0)
+            if (i + 1 >= argc)
             {
-                if (i + 1 >= argc)
-                {
-                    cout << "Error: no argument after -o" << endl;
-                    return 1;
-                }
-                outFile = argv[i + 1];
-                i++;
-                continue;
+                cout << "Error: no argument after -o" << endl;
+                return -1;
             }
-            else if (strcmp(argv[i], "-c") == 0)
-            {
-                if (outFile.empty())
-                {
-                    cout << "Error: please specify output file by using -o" << endl;
-                    return -1;
-                }
-
-                if (writeExecutable(exeFileName, outFile, i + 1, argc, argv))
-                    return 0;
-                else
-                    return 1;
-            }
+            outFile = argv[i + 1];
+            i++;
+            continue;
         }
+        else if (strcmp(argv[i], "-c") == 0)
+        {
+            if (outFile.empty())
+            {
+                cout << "Error: please specify output file by using -o" << endl;
+                return -1;
+            }
 
-        cout << "Error: please check parameters" << endl;
-        return 1;
+            if (writeExecutable(exeFileName, outFile, i + 1, argc, argv))
+                return 0;
+            else
+                return -1;
+        }
     }
+
+    cout << "Error: please check parameters" << endl;
+    return -1;
 }
