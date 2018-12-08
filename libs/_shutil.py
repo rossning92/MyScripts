@@ -25,7 +25,9 @@ except:
     import requests
 
 
-def mkdir(path):
+def mkdir(path, expand=True):
+    if expand:
+        path = expanduser(path)
     os.makedirs(path, exist_ok=True)
 
 

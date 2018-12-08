@@ -18,4 +18,3 @@ elif exists(r'C:\tools\miniconda3'):
 
 # Prepend anaconda to PATH
 environ["PATH"] = pathsep.join(conda_path) + pathsep + environ["PATH"]
-subprocess.call('cmd /c start')
