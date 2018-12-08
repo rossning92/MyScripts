@@ -1,5 +1,5 @@
 import subprocess
-from subprocess import call, check_output
+from subprocess import check_output
 import os
 from os import chdir
 from os.path import exists, expanduser, expandvars
@@ -7,6 +7,11 @@ import sys
 from shutil import copytree, rmtree
 import shutil
 import platform
+
+
+def call(*kargs):
+    return subprocess.call(*kargs, shell=True)
+
 
 try:
     import requests
