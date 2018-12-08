@@ -8,6 +8,33 @@ import shutil
 import platform
 
 
+def get_conemu_args(title=None, cwd=None):
+    CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
+    if os.path.exists(CONEMU):
+        args = [
+            CONEMU,
+            '-NoUpdate',
+            '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
+            '-nokeyhooks', '-nomacro', '-nohotkey',
+            '-nocloseconfirm',
+            '-Max'
+        ]
+
+        if cwd:
+            args += ['-Dir', cwd]
+        if title:
+            args += ['-Title', title]
+
+        args += [
+            '-run',
+            '-cur_console:c0'
+        ]
+
+        return args
+    else:
+        return None
+
+
 def chdir(path, expand=True):
     if expand:
         path = expanduser(path)

@@ -10,7 +10,7 @@ import tempfile
 import yaml
 import platform
 import ctypes
-from _shutil import run_elevated
+from _shutil import run_elevated, get_conemu_args
 import shlex
 
 
@@ -259,18 +259,9 @@ class ScriptItem:
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
             if new_window:
-                CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
-                if os.path.exists(CONEMU):
-                    args = [CONEMU,
-                            '-NoUpdate',
-                            '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
-                            '-nokeyhooks', '-nomacro', '-nohotkey',
-                            '-nocloseconfirm',
-                            '-Dir', cwd,
-                            '-Max',
-                            '-Title', self.name,
-                            '-run',
-                            '-cur_console:c0'] + args
+                conemu_args = get_conemu_args(title=self.name, cwd=cwd)
+                if conemu_args:
+                    args = conemu_args + args
 
                 elif os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
                     args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
