@@ -30,6 +30,14 @@ def open_text_editor(path):
             subprocess.Popen(['notepad', path])
 
 
+def _args_to_str(args):
+    if platform.system() == 'windows':
+        args = ['"%s"' % a if ' ' in a else a for a in args]
+    else:
+        args = [shlex.quote(x) for x in args]
+    return ' '.join(args)
+
+
 def msbuild(vcproj, build_config='Release'):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
 
@@ -274,7 +282,7 @@ class ScriptItem:
 
             # Check if run as admin
             if self.meta['runAsAdmin']:
-                print('Run elevated:', ' '.join([shlex.quote(x) for x in args]))
+                print('Run elevated:', _args_to_str(args))
                 run_elevated(args, wait=not new_window)
             else:
                 if new_window:
