@@ -259,9 +259,9 @@ class ScriptItem:
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
             if new_window:
-                conemu_args = get_conemu_args(title=self.name, cwd=cwd)
-                if conemu_args:
-                    args = conemu_args + args
+                conemu = get_conemu_args(title=self.name, cwd=cwd)
+                if conemu:
+                    args = conemu + args
 
                 elif os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
                     args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
