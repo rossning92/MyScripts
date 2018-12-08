@@ -1,12 +1,17 @@
 import subprocess
 from subprocess import check_output
 import os
-from os import chdir
 from os.path import exists, expanduser, expandvars
 import sys
 from shutil import copytree, rmtree
 import shutil
 import platform
+
+
+def chdir(path, expand=True):
+    if expand:
+        path = expanduser(path)
+    os.chdir(path)
 
 
 def call(*kargs):
