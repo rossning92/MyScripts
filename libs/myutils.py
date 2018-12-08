@@ -232,9 +232,10 @@ class ScriptItem:
 
             if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
                 args = ['cmd', '/c',
-                        'set', 'PYTHONPATH=' + ';'.join(python_path),
-                        'set', 'PYTHONDONTWRITEBYTECODE=1',
-                        '&'] + args
+                        'cd', '/d', cwd, '&',
+                        'set', 'PYTHONPATH=' + ';'.join(python_path), '&',
+                        'set', 'PYTHONDONTWRITEBYTECODE=1', '&'
+                        ] + args
 
         else:
             print('Not supported script:', self.ext)
