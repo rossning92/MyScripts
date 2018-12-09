@@ -7,4 +7,4 @@ conemu = get_conemu_args()
 if conemu:
     args = conemu + args
 
-call(args)
+Popen(args)

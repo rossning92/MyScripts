@@ -1,5 +1,5 @@
 import subprocess
-from subprocess import check_output
+from subprocess import check_output, Popen
 import os
 from os.path import exists, expanduser, expandvars
 import sys
