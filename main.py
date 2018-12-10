@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
+import os
 
-sys.path.append('libs')
+sys.path.append(os.path.abspath('./libs'))
 
 import datetime
 from colorama import Fore
