@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import sys
+
+sys.path.append('libs')
 
 import datetime
 from colorama import Fore
@@ -10,7 +13,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from os.path import expanduser
 from gui import ProcessWidget
-from libs.myutils import *
+from myutils import *
 import time
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
