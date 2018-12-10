@@ -8,11 +8,7 @@ set QT_QPA_PLATFORM_PLUGIN_PATH=
 set QML_IMPORT_PATH=
 set QML2_IMPORT_PATH=
 
-
-set CONDA_PATH=
-
-:: Anaconda3 prefered
-set PATH=%LOCALAPPDATA%\Continuum\anaconda3;%USERPROFILE%\anaconda3;C:\tools\miniconda3;C:\Python36;%LOCALAPPDATA%\Programs\Python\Python36;%PATH%
+call install\find_python.cmd
 
 :: Install required packages
 where python
