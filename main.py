@@ -188,20 +188,6 @@ def _build_vrdriver_fov_on_and_off():
     bash(f'cp {VR_DRIVER}/Projects/Android/build/outputs/apk/release/VrDriver-release.apk vrdriver.apk')
 
 
-@menu_item
-def hg_test():
-    # Enable histedit extension
-    insert_line_if_not_exist('histedit =', '~/.hgrc', '[extensions]')
-
-    out = subprocess.check_output('cd ~/ovrsource ; hg log --limit 3', shell=True)
-    out = out.decode()
-    out = re.findall('changeset:\s+([a-z0-9]+)', out)
-
-    subprocess.call('cd ~/ovrsource ; hg checkout %s' % out[2], shell=True)
-    subprocess.call('cd ~/ovrsource ; hg graft %s' % out[0], shell=True)
-    subprocess.call('cd ~/ovrsource ; hg graft %s' % out[1], shell=True)
-
-
 class EditVariableWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
