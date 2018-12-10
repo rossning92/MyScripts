@@ -451,6 +451,8 @@ if __name__ == '__main__':
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
 
+    print('Python executable: %s' % sys.executable)
+
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
