@@ -34,22 +34,37 @@ def export_python(script_path):
         # Find dependencies recursively
         export_python(python_module)
 
+
+def export_script(script_path):
+    with open(script_path, 'r') as f:
+        content = f.read()
+
     # Find dependencies to other scripts
+    old_new_path_map = {}
     other_scripts = re.findall(r'(?<=\W)(?:(?:\w+|\.\.)/)*\w+\.(?:py|cmd|ahk|sh)(?=\W)', content)
     for s in other_scripts:
-        s = os.path.abspath(os.path.dirname(script_path) + '/' + s)
-        if os.path.exists(s):
-            shutil.copy(s, '%s/%s' % (OUT_DIR, os.path.basename(s)))
-            print('Copy: %s' % s)
+        script_abs_path = os.path.abspath(os.path.dirname(script_path) + '/' + s)
+        file_name = os.path.basename(script_abs_path)
+        if os.path.exists(script_abs_path):
+            shutil.copy(script_abs_path, '%s/%s' % (OUT_DIR, file_name))
+            old_new_path_map[s] = file_name
+            print('Copy: %s' % script_abs_path)
+            export_script(script_abs_path)  # Recurse
 
+    if os.path.splitext(script_path)[1] == '.py':
+        export_python(script_path)
+
+    # Replace script path
+    for k, v in old_new_path_map.items():
+        content = content.replace(k, v)
+
+    # Render scripts
     out_file = '%s/%s' % (OUT_DIR, os.path.basename(script_path))
-    if os.path.basename(script_path).startswith('_'):
-        shutil.copy(script_path, out_file)
-    else:
-        print('Render script: %s' % script_path)
-        with open(out_file, 'w') as f:
-            f.write(_script.ScriptItem(script_path).render())
+    print('Render: %s' % script_path)
+    with open(out_file, 'w') as f:
+        # _script.ScriptItem(script_path).render()
+        f.write(content)
 
 
 if os.path.splitext(script_path)[1].lower() == '.py':
-    export_python(script_path)
+    export_script(script_path)
