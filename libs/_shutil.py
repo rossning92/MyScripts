@@ -6,6 +6,7 @@ import sys
 from shutil import copytree, rmtree
 import shutil
 import platform
+from time import sleep
 
 
 def get_conemu_args(title=None, cwd=None):

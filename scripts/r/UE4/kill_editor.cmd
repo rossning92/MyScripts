@@ -1,0 +1,1 @@
+taskkill /f /im UE4Editor.exe
