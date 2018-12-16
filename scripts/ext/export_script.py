@@ -25,6 +25,7 @@ def export_python_script(script_path):
     python_path = myutils.get_python_path(script_path)
 
     for m in module_names:
+        print(m)
         python_file = find_module(python_path, m)
         assert (python_file is not None)
 
