@@ -1,4 +1,4 @@
-import myutils
+import _script
 import os
 import re
 import shutil
@@ -17,25 +17,39 @@ def find_module(python_path, module):
     return None
 
 
-def export_python_script(script_path):
+def export_python(script_path):
     with open(script_path, 'r') as f:
-        s = f.read()
+        content = f.read()
 
-    module_names = re.findall('(?:^from|import) (_[a-zA-Z_]+)', s, flags=re.MULTILINE)
-    python_path = myutils.get_python_path(script_path)
-
+    # Find imports dependencies
+    module_names = re.findall(r'(?:^from|import) (_[a-zA-Z_]+)', content, flags=re.MULTILINE)
+    python_path = _script.get_python_path(script_path)
     for m in module_names:
-        print(m)
-        python_file = find_module(python_path, m)
-        assert (python_file is not None)
+        python_module = find_module(python_path, m)
+        assert (python_module is not None)
 
-        print('Copy %s ...' % python_file)
-        shutil.copy(python_file, OUT_DIR)
+        print('Copy: %s' % python_module)
+        shutil.copy(python_module, OUT_DIR)
 
-    print('Write script: %s ...' % script_path)
-    with open('%s/%s' % (OUT_DIR, os.path.basename(script_path)), 'w') as f:
-        f.write(myutils.ScriptItem(script_path).render())
+        # Find dependencies recursively
+        export_python(python_module)
+
+    # Find dependencies to other scripts
+    other_scripts = re.findall(r'(?<=\W)(?:(?:\w+|\.\.)/)*\w+\.(?:py|cmd|ahk|sh)(?=\W)', content)
+    for s in other_scripts:
+        s = os.path.abspath(os.path.dirname(script_path) + '/' + s)
+        if os.path.exists(s):
+            shutil.copy(s, '%s/%s' % (OUT_DIR, os.path.basename(s)))
+            print('Copy: %s' % s)
+
+    out_file = '%s/%s' % (OUT_DIR, os.path.basename(script_path))
+    if os.path.basename(script_path).startswith('_'):
+        shutil.copy(script_path, out_file)
+    else:
+        print('Render script: %s' % script_path)
+        with open(out_file, 'w') as f:
+            f.write(_script.ScriptItem(script_path).render())
 
 
 if os.path.splitext(script_path)[1].lower() == '.py':
-    export_python_script(script_path)
+    export_python(script_path)
