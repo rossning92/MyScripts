@@ -46,13 +46,6 @@ def call(*kargs):
     return subprocess.call(*kargs, shell=True)
 
 
-try:
-    import requests
-except:
-    call('pip install requests')
-    import requests
-
-
 def mkdir(path, expand=True):
     if expand:
         path = expanduser(path)
@@ -60,6 +53,12 @@ def mkdir(path, expand=True):
 
 
 def download(url, filename=None):
+    try:
+        import requests
+    except:
+        call('pip install requests')
+        import requests
+
     if filename is None:
         filename = os.path.basename(url)
 
