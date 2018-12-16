@@ -19,13 +19,13 @@ ClipChanged(Type) {
 				g_lastUrl := Clipboard
 				
 				SetDownloadDir("Youtube")
-				Run youtube-dl -f bestvideo+bestaudio %g_lastUrl%
+				Run cmd /c youtube-dl -f bestvideo+bestaudio %g_lastUrl% & timeout 10
 			}
 			else if ( InStr(Clipboard, "https://www.bilibili.com/video/") = 1 )
 			{
 				g_lastUrl := Clipboard
 				SetDownloadDir("Bilibili")
-				Run you-get --no-caption --playlist %g_lastUrl%
+				Run cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 10
 			}
 		}
 	
