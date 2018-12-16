@@ -208,6 +208,8 @@ class ScriptItem:
 
                 if len(jsn['selectedFiles']) == 1:
                     env['SELECTED_FILE'] = jsn['selectedFiles'][0]
+                elif len(jsn['selectedFiles']) > 1:
+                    env['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
 
                 if jsn['currentFolder']:
                     env['CURRENT_FOLDER'] = jsn['currentFolder']
