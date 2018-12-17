@@ -26,3 +26,9 @@ GUI_WINDOW = MyScripts - GUI
 		Run chrome.exe
 	}
 	return
+
+#If WinActive("ahk_exe ConEmu64.exe")
+    Esc::
+        WinClose ahk_exe ConEmu64.exe
+        return
+#If
