@@ -7,6 +7,7 @@ from shutil import copytree, rmtree
 import shutil
 import platform
 from time import sleep
+import glob
 
 
 def get_conemu_args(title=None, cwd=None):
@@ -115,3 +116,8 @@ def run_elevated(args, wait=True):
     else:
         ret = subprocess.call(['sudo'] + args, shell=True)
     return ret
+
+
+def remove(files):
+    for f in glob.glob(files):
+        os.remove(f)
