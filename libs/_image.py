@@ -25,7 +25,11 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
                    gif_duration=500):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
-    file_list = glob(image_files)
+    if type(image_files) == list:
+        file_list = image_files
+    else:
+        file_list = glob(image_files)
+
     if len(file_list) == 0:
         raise Exception('No image files has been found: %s' % image_files)
 
