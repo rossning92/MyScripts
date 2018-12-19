@@ -21,10 +21,18 @@ def _draw_centered_text(im, text, box, text_outline):
     del draw
 
 
-def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2):
+def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
+                   gif_duration=500):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
     file_list = glob(image_files)
+    if len(file_list) == 0:
+        raise Exception('No image files has been found: %s' % image_files)
+
+    # Adjust column size if it's smaller than the number of files
+    if len(file_list) < cols:
+        cols = len(file_list)
+
     imgs = [Image.open(f) for f in file_list]
     if scale != 1.0:
         imgs = [im.resize((int(im.width * scale), int(im.height * scale)), Image.NEAREST) for im in imgs]
@@ -56,7 +64,7 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
     imgs[0].save(out_file + '.gif',
                  save_all=True,
                  append_images=imgs[1:],
-                 duration=500,
+                 duration=gif_duration,
                  loop=0)  # Repeat forever
 
 
