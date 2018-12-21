@@ -10,7 +10,7 @@ from time import sleep
 import glob
 
 
-def get_conemu_args(title=None, cwd=None):
+def get_conemu_args(title=None, cwd=None, small_window=False):
     CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
     if os.path.exists(CONEMU):
         args = [
@@ -18,14 +18,18 @@ def get_conemu_args(title=None, cwd=None):
             '-NoUpdate',
             '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
             '-nokeyhooks', '-nomacro', '-nohotkey',
-            '-nocloseconfirm',
-            '-Max'
+            '-nocloseconfirm'
         ]
 
         if cwd:
             args += ['-Dir', cwd]
         if title:
             args += ['-Title', title]
+
+        if small_window:
+            args += ['-Font', 'Courier', '-Size', '10']
+        else:
+            args += ['-Max']
 
         args += [
             '-run',
@@ -89,7 +93,13 @@ def download(url, filename=None):
 def copy(src, dst):
     if dst.endswith('/') or dst.endswith('\\'):
         mkdir(dst)
-        shutil.copy(src, dst)
+
+    file_list = glob.glob(src)
+    if len(file_list) == 0:
+        raise Exception('No file being found: %s' % src)
+
+    for f in file_list:
+        shutil.copy(f, dst)
 
 
 def run_elevated(args, wait=True):
