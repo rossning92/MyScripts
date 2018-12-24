@@ -8,7 +8,7 @@ import tempfile
 import yaml
 import platform
 import ctypes
-from _shutil import run_elevated, get_conemu_args
+from _shutil import run_elevated, get_conemu_args, append_line
 from _script import *
 import shlex
 
@@ -44,16 +44,3 @@ def msbuild(vcproj, build_config='Release'):
     args = '"%s" %s "%s"' % (msbuild[0], params, vcproj)
     ret = subprocess.call(args)
     assert ret == 0
-
-
-def append_line(file_path, insert_line):
-    lines = None
-    with open(file_path, 'r', newline='\n') as f:
-        lines = f.readlines()
-
-    if insert_line not in lines:
-        lines.append(insert_line)
-        with open(file_path, 'w', newline='\n') as f:
-            f.writelines(lines)
-    else:
-        print('[WARNING] Line exists: "%s"' % insert_line)

@@ -8,6 +8,7 @@ import shutil
 import platform
 from time import sleep
 import glob
+import re
 
 
 def get_conemu_args(title=None, cwd=None, small_window=False):
@@ -131,3 +132,29 @@ def run_elevated(args, wait=True):
 def remove(files):
     for f in glob.glob(files):
         os.remove(f)
+
+
+def replace(file, patt, repl):
+    with open(file, 'r') as f:
+        s = f.read()
+
+    for x in re.findall(patt, s):
+        print('Replace in file "%s": "%s" => "%s"' % (file, patt, repl))
+
+    s = re.sub(patt, repl, s)
+
+    with open(file, 'w') as f:
+        f.write(s)
+
+
+def append_line(file_path, insert_line):
+    lines = None
+    with open(file_path, 'r', newline='\n') as f:
+        lines = f.readlines()
+
+    if insert_line not in lines:
+        lines.append(insert_line)
+        with open(file_path, 'w', newline='\n') as f:
+            f.writelines(lines)
+    else:
+        print('[WARNING] Line exists: "%s"' % insert_line)
