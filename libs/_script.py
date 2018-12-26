@@ -12,13 +12,18 @@ from _shutil import run_elevated, get_conemu_args
 import shlex
 
 
-def bash(cmd):
+def bash(cmd, wsl=False):
     if os.name == 'nt':
-        return [r'C:\Program Files\Git\bin\bash.exe',
-                '--login',
-                '-i',
-                '-c',
-                cmd]
+        if wsl:  # WSL (Windows Subsystem for Linux)
+            if not os.path.exists(r'C:\Windows\System32\bash.exe'):
+                raise Exception('WSL (Windows Subsystem for Linux) is not installed.')
+            return ['bash.exe', '-c', cmd]
+        else:
+            return [r'C:\Program Files\Git\bin\bash.exe',
+                    '--login',
+                    '-i',
+                    '-c',
+                    cmd]
     elif os.name == 'posix':  # MacOSX
         subprocess.call(cmd, shell=True)
     else:
@@ -174,7 +179,7 @@ class ScriptItem:
 
         elif self.ext == '.sh':
             script = self.render()
-            args = bash(script)
+            args = bash(script, wsl=self.meta['wsl'])
 
         elif self.ext == '.py':
             script = self.render()
@@ -320,7 +325,8 @@ class ScriptMeta:
             'hotkey': None,
             'newWindow': False,
             'runAsAdmin': False,
-            'autoRun': False
+            'autoRun': False,
+            'wsl': False
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
