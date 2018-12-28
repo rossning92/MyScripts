@@ -3,12 +3,12 @@ from subprocess import check_output, Popen
 import os
 from os.path import exists, expanduser, expandvars
 import sys
-from shutil import copytree, rmtree
 import shutil
 import platform
 from time import sleep
 import glob
 import re
+from distutils.dir_util import copy_tree
 
 
 def get_conemu_args(title=None, cwd=None, small_window=False):
@@ -48,8 +48,8 @@ def chdir(path, expand=True):
     os.chdir(path)
 
 
-def call(*kargs):
-    return subprocess.call(*kargs, shell=True)
+def call(*kargs, cwd=None, env=None, shell=True):
+    return subprocess.call(*kargs, shell=shell, cwd=cwd, env=env)
 
 
 def mkdir(path, expand=True):
@@ -95,12 +95,16 @@ def copy(src, dst):
     if dst.endswith('/') or dst.endswith('\\'):
         mkdir(dst)
 
-    file_list = glob.glob(src)
-    if len(file_list) == 0:
-        raise Exception('No file being found: %s' % src)
+    if os.path.isdir(src):
+        copy_tree(src, dst)
 
-    for f in file_list:
-        shutil.copy(f, dst)
+    else:
+        file_list = glob.glob(src)
+        if len(file_list) == 0:
+            raise Exception('No file being found: %s' % src)
+
+        for f in file_list:
+            shutil.copy(f, dst)
 
 
 def run_elevated(args, wait=True):
