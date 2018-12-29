@@ -151,14 +151,14 @@ def replace(file, patt, repl):
         f.write(s)
 
 
-def append_line(file_path, insert_line):
+def append_line(file_path, s):
     lines = None
-    with open(file_path, 'r', newline='\n') as f:
-        lines = f.readlines()
+    with open(file_path, 'r') as f:
+        text = f.read()
 
-    if insert_line not in lines:
-        lines.append(insert_line)
+    if s not in text:
+        text += '\n' + s
         with open(file_path, 'w', newline='\n') as f:
-            f.writelines(lines)
+            f.write(text)
     else:
-        print('[WARNING] Line exists: "%s"' % insert_line)
+        print('[WARNING] Content exists:' + s)
