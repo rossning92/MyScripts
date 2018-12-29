@@ -158,7 +158,7 @@ def append_line(file_path, s):
 
     if s not in text:
         text += '\n' + s
-        with open(file_path, 'w', newline='\n') as f:
+        with open(file_path, 'w') as f:
             f.write(text)
     else:
         print('[WARNING] Content exists:' + s)
