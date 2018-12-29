@@ -273,13 +273,14 @@ class ScriptItem:
         return ScriptItem(script_path).render()
 
 
-def find_script(script_name, search_dir='.'):
-    script_path = os.path.join(search_dir, script_name)
+def find_script(script_name, search_dir=None):
+    if search_dir:
+        script_name = os.path.join(search_dir, script_name)
 
-    if os.path.exists(script_path):
-        return script_path
+    if os.path.exists(script_name):
+        return script_name
 
-    for f in glob.glob(script_path + '*'):
+    for f in glob.glob(script_name + '*'):
         if os.path.isdir(f):
             continue
 
