@@ -10,6 +10,7 @@ import platform
 import ctypes
 from _shutil import run_elevated, get_conemu_args
 import shlex
+import glob
 
 
 def bash(cmd, wsl=False):
@@ -278,20 +279,17 @@ def find_script(script_name, search_dir='.'):
     if os.path.exists(script_path):
         return script_path
 
-    dir_name = os.path.dirname(script_name)
-    if dir_name != '':
-        search_dir = dir_name
-        script_name = os.path.basename(script_name)
-
-    script_path = None
-    for f in os.listdir(search_dir if search_dir else '.'):
+    for f in glob.glob(script_path + '*'):
         if os.path.isdir(f):
             continue
 
-        if script_name + '.' in f:  # TODO: hack: find script more accurately
-            script_path = os.path.join(search_dir, f)
+        if os.path.splitext(f)[1] == '.yaml':
+            continue
 
-    return script_path
+        print(os.path.abspath(f))
+        return os.path.abspath(f)
+
+    return None
 
 
 def run_script(script_name, variables=None):
