@@ -2,13 +2,7 @@ import glob
 import subprocess
 import os
 import sys
-
-# Get pycharm binary
-files = glob.glob(r'C:\Program Files\JetBrains\**\pycharm64.exe', recursive=True) + glob.glob(
-    r'C:\Program Files (x86)\JetBrains\**\pycharm64.exe', recursive=True)
-if len(files) == 0:
-    sys.exit(1)
-pycharm = files[0]
+from _pycharm import pycharm
 
 if len(sys.argv) == 2:  # Open python file
     file = sys.argv[1]
