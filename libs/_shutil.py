@@ -52,9 +52,9 @@ def chdir(path, expand=True):
     os.chdir(path)
 
 
-def call(args, cwd=None, env=None, shell=True, color_map=None):
-    if color_map is not None:
-        return call_highlight(args, shell=shell, cwd=cwd, env=env, color_map=color_map)
+def call(args, cwd=None, env=None, shell=True, highlight=None):
+    if highlight is not None:
+        return call_highlight(args, shell=shell, cwd=cwd, env=env, highlight=highlight)
     else:
         return subprocess.call(args, shell=shell, cwd=cwd, env=env)
 
@@ -181,7 +181,7 @@ def get_clip():
     return text
 
 
-def call_highlight(args, shell=False, cwd=None, env=None, color_map=None):
+def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
     from colorama import init, Fore, Back, Style
 
     COLOR_MAP = {
@@ -213,7 +213,7 @@ def call_highlight(args, shell=False, cwd=None, env=None, color_map=None):
                 break
             que.put(data)
 
-    assert color_map is not None
+    assert highlight is not None
     ps = subprocess.Popen(args,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
@@ -232,7 +232,7 @@ def call_highlight(args, shell=False, cwd=None, env=None, color_map=None):
                 break
 
         index_color_list = []
-        for patt, color in color_map.items():
+        for patt, color in highlight.items():
             # Query ANSI character color codes
             if color in COLOR_MAP:
                 color = COLOR_MAP[color]
