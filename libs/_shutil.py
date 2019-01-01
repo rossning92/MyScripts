@@ -1,6 +1,7 @@
 import subprocess
 from subprocess import check_output, Popen
 import os
+from os import getcwd
 from os.path import exists, expanduser, expandvars
 import sys
 import shutil
@@ -9,6 +10,9 @@ from time import sleep
 import glob
 import re
 from distutils.dir_util import copy_tree
+import colorama
+import threading
+import queue
 
 
 def get_conemu_args(title=None, cwd=None, small_window=False):
@@ -48,8 +52,11 @@ def chdir(path, expand=True):
     os.chdir(path)
 
 
-def call(*kargs, cwd=None, env=None, shell=True):
-    return subprocess.call(*kargs, shell=shell, cwd=cwd, env=env)
+def call(args, cwd=None, env=None, shell=True, color_map=None):
+    if color_map is not None:
+        return call_highlight(args, shell=shell, cwd=cwd, env=env, color_map=color_map)
+    else:
+        return subprocess.call(args, shell=shell, cwd=cwd, env=env)
 
 
 def mkdir(path, expand=True):
@@ -162,3 +169,93 @@ def append_line(file_path, s):
             f.write(text)
     else:
         print('[WARNING] Content exists:' + s)
+
+
+def get_clip():
+    import win32clipboard
+    win32clipboard.OpenClipboard()
+    try:
+        text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
+    finally:
+        win32clipboard.CloseClipboard()
+    return text
+
+
+def call_highlight(args, shell=False, cwd=None, env=None, color_map=None):
+    from colorama import init, Fore, Back, Style
+
+    COLOR_MAP = {
+        'black': Fore.LIGHTBLACK_EX,
+        'red': Fore.LIGHTRED_EX,
+        'green': Fore.LIGHTGREEN_EX,
+        'yellow': Fore.LIGHTYELLOW_EX,
+        'blue': Fore.LIGHTBLUE_EX,
+        'magenta': Fore.LIGHTMAGENTA_EX,
+        'cyan': Fore.LIGHTCYAN_EX,
+        'white': Fore.LIGHTWHITE_EX,
+        'BLACK': Back.BLACK,
+        'RED': Back.RED,
+        'GREEN': Back.GREEN,
+        'YELLOW': Back.YELLOW,
+        'BLUE': Back.BLUE,
+        'MAGENTA': Back.MAGENTA,
+        'CYAN': Back.CYAN,
+        'WHITE': Back.WHITE,
+    }
+
+    init()
+
+    def _read_pipe(pipe, que):
+        while True:
+            data = pipe.readline()
+            if data == b'':  # Terminated
+                que.put(b'')
+                break
+            que.put(data)
+
+    assert color_map is not None
+    ps = subprocess.Popen(args,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          shell=shell, cwd=cwd, env=env)
+    que = queue.Queue()
+
+    threading.Thread(target=_read_pipe, args=(ps.stdout, que)).start()
+    threading.Thread(target=_read_pipe, args=(ps.stderr, que)).start()
+
+    terminated = 0
+    while True:
+        line = que.get()
+        if line == b'':
+            terminated += 1
+            if terminated == 2:
+                break
+
+        index_color_list = []
+        for patt, color in color_map.items():
+            # Query ANSI character color codes
+            if color in COLOR_MAP:
+                color = COLOR_MAP[color]
+
+            for match in re.finditer(patt.encode(), line):
+                index_color_list.append((match.start(), color.encode()))
+                index_color_list.append((match.end(), None))
+        index_color_list = sorted(index_color_list, key=lambda x: x[0])
+
+        if len(index_color_list) > 0:
+
+            color_stack = [Style.RESET_ALL.encode()]
+            indices, colors = zip(*index_color_list)
+            parts = [line[i:j] for i, j in zip(indices, indices[1:] + (None,))]
+
+            line = line[0:indices[0]]
+            for i in range(len(parts)):
+                if colors[i]:
+                    line += colors[i]
+                    color_stack.append(colors[i])
+                else:
+                    color_stack.pop()
+                    line += color_stack[-1]
+                line += parts[i]
+
+        print(line.decode(), end='')
