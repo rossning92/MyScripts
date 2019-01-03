@@ -192,7 +192,9 @@ class EditVariableWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.variableUIs = {}
-        self.setLayout(QFormLayout())
+        layout = QFormLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
         try:
             with open(get_variable_file()) as f:
