@@ -1,1 +1,1 @@
-WinActivate ahk_exe pycharm64.exe
+WinActivate MyScripts ahk_exe pycharm64.exe
