@@ -1,0 +1,1 @@
+adb shell am kill {{ANDROID_PACKAGE_NAME}}
