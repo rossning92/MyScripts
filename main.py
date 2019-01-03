@@ -272,8 +272,8 @@ class MainWindow(QWidget):
         self.on_inputBox_textChanged()
 
         # Process list ui
-        self.processWidget = ProcessWidget()
-        self.ui.layout().addWidget(self.processWidget)
+        # self.processWidget = ProcessWidget()
+        # self.ui.layout().addWidget(self.processWidget)
 
         self.startTimer(1000)
 
@@ -350,9 +350,9 @@ class MainWindow(QWidget):
             if 'get_variables' in dir(first_matched_item):
                 self.editVariableWidget.init(first_matched_item.get_variable_names())
 
-            # Save current selected menu items
-            # with open('data/SelectedScript.txt', 'w') as f:
-            #    f.write(first_matched_item.script_path)
+                # Save current selected menu items
+                # with open('data/SelectedScript.txt', 'w') as f:
+                #    f.write(first_matched_item.script_path)
 
     def event(self, e):
         if e.type() == QEvent.WindowActivate:
