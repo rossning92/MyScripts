@@ -13,6 +13,7 @@ from distutils.dir_util import copy_tree
 import colorama
 import threading
 import queue
+import locale
 
 
 def get_conemu_args(title=None, cwd=None, small_window=False):
@@ -23,7 +24,8 @@ def get_conemu_args(title=None, cwd=None, small_window=False):
             '-NoUpdate',
             '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
             '-nokeyhooks', '-nomacro', '-nohotkey',
-            '-nocloseconfirm'
+            '-nocloseconfirm',
+            # '-GuiMacro', 'palette 1 "<Solarized Light>"',
         ]
 
         if cwd:
@@ -258,4 +260,4 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
                     line += color_stack[-1]
                 line += parts[i]
 
-        print(line.decode(), end='')
+        print(line.decode(locale.getpreferredencoding()), end='')
