@@ -329,11 +329,19 @@ class ScriptMeta:
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
+        default_meta_file = os.path.join(os.path.dirname(script_path), 'default.yaml')
+
+        obj = None
         if os.path.exists(self.meta_file):
-            o = yaml.load(open(self.meta_file, 'r').read())
+            obj = yaml.load(open(self.meta_file, 'r').read())
+
+        elif os.path.exists(default_meta_file):
+            obj = yaml.load(open(default_meta_file, 'r').read())
+
+        if obj:
             # override default config
-            if o is not None:
-                for k, v in o.items():
+            if obj is not None:
+                for k, v in obj.items():
                     self.meta[k] = v
 
     def save(self):
