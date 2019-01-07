@@ -16,4 +16,5 @@ def open_with_pycharm(path):
     pycharm = get_pycharm_executable()
     subprocess.Popen([pycharm, path])
 
-    subprocess.Popen(['AutoHotkeyU64.exe', os.path.join(os.path.dirname(__file__), '_activate_pycharm.ahk')])
+    ahk_script = os.path.join(os.path.dirname(__file__), '_activate_pycharm.ahk')
+    subprocess.Popen(['AutoHotkeyU64.exe', ahk_script])
