@@ -12,9 +12,14 @@ def get_pycharm_executable():
     return pycharm
 
 
-def open_with_pycharm(path):
+def open_in_pycharm(path):
     pycharm = get_pycharm_executable()
     subprocess.Popen([pycharm, path])
 
     ahk_script = os.path.join(os.path.dirname(__file__), '_activate_pycharm.ahk')
     subprocess.Popen(['AutoHotkeyU64.exe', ahk_script])
+
+
+def open_in_androidstudio(path):
+    studio = r"C:\Program Files\Android\Android Studio\bin\studio64.exe"
+    subprocess.Popen([studio, path])

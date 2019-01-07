@@ -1,6 +1,6 @@
 import os
 import sys
-from _pycharm import open_with_pycharm
+from _editor import open_in_pycharm
 
 # Open python file
 if len(sys.argv) == 2:
@@ -10,4 +10,4 @@ if len(sys.argv) == 2:
 else:
     path = os.path.abspath(os.getcwd() + '/../../')
 
-open_with_pycharm(path)
+open_in_pycharm(path)
