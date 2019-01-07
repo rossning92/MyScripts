@@ -1,5 +1,3 @@
-import glob
-import subprocess
 import os
 import sys
 from _pycharm import open_with_pycharm
