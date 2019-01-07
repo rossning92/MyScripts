@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 import re
 
-driver = None
+driver: webdriver.Chrome = None
 
 
 def click(ele):
