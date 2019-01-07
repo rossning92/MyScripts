@@ -2,22 +2,14 @@ import glob
 import subprocess
 import os
 import sys
-from _pycharm import pycharm
+from _pycharm import open_with_pycharm
 
-if len(sys.argv) == 2:  # Open python file
-    file = sys.argv[1]
-    if os.path.exists(file):
-        if os.path.splitext(file)[1] == '.py':
-            subprocess.Popen([pycharm, file])
-        elif os.path.isdir(file):
-            subprocess.Popen([pycharm, file])
-    else:
-        raise Exception('Cannot find the file: %s' % file)
+# Open python file
+if len(sys.argv) == 2:
+    path = sys.argv[1]
 
-else:  # Open project folder
-    project_folder = os.path.abspath(os.getcwd() + '/../../')
-    subprocess.Popen([pycharm, project_folder])
+# Open project folder
+else:
+    path = os.path.abspath(os.getcwd() + '/../../')
 
-subprocess.Popen(['AutoHotkeyU64.exe', '_activate_pycharm.ahk'])
-
-sys.exit(0)
+open_with_pycharm(path)
