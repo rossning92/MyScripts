@@ -13,7 +13,10 @@ packages = [
     'markdown-writer',
     'markdown-image-assistant',
 
-    'sublime-style-column-selection'
+    'sublime-style-column-selection',
+
+    'language-dot',
+    'graphviz-preview-plus',
 ]
 
 for pkg in packages:
