@@ -19,7 +19,18 @@ ClipChanged(Type) {
 				g_lastUrl := Clipboard
 				
 				SetDownloadDir("Youtube")
-				Run cmd /c youtube-dl -f bestvideo+bestaudio %g_lastUrl% & timeout 10
+                fmt = bestvideo+bestaudio
+                
+                Sleep 1000
+                GetKeyState, keyState, Control
+                if (keyState == "D")
+                {
+                    fmt = 134+140  ; 360p + audio
+                    Msgbox Download 360p video format
+                }
+                
+                Run cmd /c youtube-dl -f "%fmt%" %g_lastUrl% --no-mtime & timeout 10 
+                
 			}
 			else if ( InStr(Clipboard, "https://www.bilibili.com/video/") = 1 )
 			{
