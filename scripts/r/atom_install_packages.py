@@ -3,6 +3,8 @@ import sys
 import subprocess
 
 packages = [
+    'sublime-style-column-selection',
+
     # Latex
     'language-latex',
     'latex',
@@ -13,8 +15,7 @@ packages = [
     'markdown-writer',
     'markdown-image-assistant',
 
-    'sublime-style-column-selection',
-
+    # Graphviz
     'language-dot',
     'graphviz-preview-plus',
 ]
