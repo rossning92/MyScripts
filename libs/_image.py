@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
-from glob import glob
+import glob
 import os
 import math
 import re
@@ -22,13 +22,13 @@ def _draw_centered_text(im, text, box, text_outline):
 
 
 def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
-                   gif_duration=500):
+                   gif_duration=500, generate_atlas=True, draw_label=True):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
     if type(image_files) == list:
         file_list = image_files
     else:
-        file_list = glob(image_files)
+        file_list = glob.glob(image_files)
 
     if len(file_list) == 0:
         raise Exception('No image files has been found: %s' % image_files)
@@ -41,34 +41,38 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
     if scale != 1.0:
         imgs = [im.resize((int(im.width * scale), int(im.height * scale)), Image.NEAREST) for im in imgs]
 
-    num_imgs = len(imgs)
-    rows = int(math.ceil(num_imgs / cols))
-    im_combined = Image.new('RGB',
-                            (imgs[0].width * cols + spacing * (cols - 1),
-                             imgs[0].height * rows + spacing * (rows - 1)))
+    # Add text
+    if draw_label:
+        for i in range(len(imgs)):
+            im = imgs[i]
+            text = os.path.splitext(os.path.basename(file_list[i]))[0]
+            if parse_file_name is not None:
+                text = parse_file_name(text)
+            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[1].height), text_outline)
 
-    for i in range(len(imgs)):
-        im = imgs[i]
-        text = os.path.splitext(os.path.basename(file_list[i]))[0]
-        if parse_file_name is not None:
-            text = parse_file_name(text)
-        _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[1].height), text_outline)
+    if generate_atlas:
+        num_imgs = len(imgs)
+        rows = int(math.ceil(num_imgs / cols))
+        im_combined = Image.new('RGB',
+                                (imgs[0].width * cols + spacing * (cols - 1),
+                                 imgs[0].height * rows + spacing * (rows - 1)))
+        c = 0
+        for m in range(len(imgs)):
+            i = c // cols
+            j = c % cols
+            x = j * imgs[0].width + j * spacing
+            y = i * imgs[0].height + i * spacing
+            im_combined.paste(imgs[m], (x, y))
+            c += 1
 
-    c = 0
-    for m in range(len(imgs)):
-        i = c // cols
-        j = c % cols
-        x = j * imgs[0].width + j * spacing
-        y = i * imgs[0].height + i * spacing
-        im_combined.paste(imgs[m], (x, y))
-        c += 1
-
-    im_combined.save(out_file + '.png')
+        os.makedirs(os.path.dirname(out_file), exist_ok=True)
+        im_combined.save(out_file + '.png')
 
     imgs[0].save(out_file + '.gif',
                  save_all=True,
                  append_images=imgs[1:],
                  duration=gif_duration,
+                 quality=100,
                  loop=0)  # Repeat forever
 
 

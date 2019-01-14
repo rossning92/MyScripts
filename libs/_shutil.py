@@ -101,8 +101,10 @@ def download(url, filename=None):
 
 
 def copy(src, dst):
-    if dst.endswith('/') or dst.endswith('\\'):
-        mkdir(dst)
+    # Create dirs if not exists
+    dir_name = os.path.dirname(dst)
+    if not exists(dir_name):
+        os.makedirs(dir_name, exist_ok=True)
 
     if os.path.isdir(src):
         copy_tree(src, dst)
