@@ -283,7 +283,7 @@ class MainWindow(QWidget):
         for item in self.script_items:
             hotkey = item.meta['hotkey']
             if hotkey is not None:
-                print('Hotkey registered: %s: %s' % (hotkey, item.name))
+                print('Hotkey: %s: %s' % (hotkey, item.name))
                 QShortcut(QKeySequence(hotkey), self, lambda item=item: item.execute())
 
         self.register_key_hooks()
