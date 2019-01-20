@@ -322,6 +322,7 @@ class ScriptMeta:
     def __init__(self, script_path):
         self.meta = {
             'hotkey': None,
+            'globalHotkey': None,
             'newWindow': False,
             'runAsAdmin': False,
             'autoRun': False,

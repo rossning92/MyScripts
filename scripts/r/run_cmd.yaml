@@ -1,4 +1,6 @@
 autoRun: false
+globalHotkey: Win+Alt+P
 hotkey: Ctrl+P
 newWindow: true
 runAsAdmin: false
+wsl: false

@@ -286,6 +286,18 @@ class MainWindow(QWidget):
                 print('Hotkey registered: %s: %s' % (hotkey, item.name))
                 QShortcut(QKeySequence(hotkey), self, lambda item=item: item.execute())
 
+        self.register_key_hooks()
+
+    def register_key_hooks(self):
+        import keyboard
+        keyboard.unhook_all()
+        for item in self.script_items:
+            hotkey = item.meta['globalHotkey']
+            if hotkey is not None:
+                print('Global Hotkey: %s: %s' % (hotkey, item.name))
+                keyboard.add_hotkey(hotkey,
+                                    lambda item=item: item.execute())
+
     def timerEvent(self, e):
         if should_update():
             self.init_script_items()
