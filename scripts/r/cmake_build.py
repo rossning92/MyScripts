@@ -16,14 +16,16 @@ else:
 os.chdir(src_dir)
 
 # Create CMakeList.txt
-content = '''cmake_minimum_required(VERSION 3.12)
+content = '''cmake_minimum_required(VERSION 2.7)
 
 set(PROJECT_NAME ''' + project_name + ''')
 
 project(${PROJECT_NAME})
 
 file(GLOB srcs "*.h" "*.cpp")
-add_executable(${PROJECT_NAME} ${srcs})
+add_executable(${PROJECT_NAME} 
+    ${srcs}
+)
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})

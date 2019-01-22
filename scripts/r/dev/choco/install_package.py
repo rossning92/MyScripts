@@ -12,7 +12,8 @@ pkg_list = [
     'unity --version 2018.2.0',
     'sketchup',
     'visualstudio2017community',
-    'blender'
+    'blender',
+    'graphviz',
 ]
 
 pkg_list = sorted(pkg_list)
