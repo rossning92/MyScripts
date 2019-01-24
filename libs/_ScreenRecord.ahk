@@ -34,32 +34,36 @@ Record()
     }
     
 	WinActivate %g_windowTitle%
-    WinWaitActive %g_windowTitle%
+    WinWaitActive %g_windowTitle%, , 2
+    if (ErrorLevel = 1)
+    {
+        MsgBox, 16, ERROR, Cannot find window: "%g_windowTitle%"
+        ExitApp
+    }
+    
     if not WinGetClientPos(g_windowTitle, x, y, w, h)
     {
-        MsgBox Cannot find window: %g_windowTitle%
-        return false
+        MsgBox, 16, ERROR, Fail to get window geometry: %g_windowTitle%
+        ExitApp
     }
 	
 	; Start VLC
     WinClose ahk_exe vlc.exe
 	FormatTime, now, R, yyyyMMdd_hhmmss
-	fileOut = %A_MyDocuments%\Record_%now%.mp4
-	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" screen:// :sout=#transcode{vcodec=h264,vb=0,scale=0,acodec=mpga,ab=128,channels=2,samplerate=44100}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
-    Run, %commandLine%,, Min
+	fileOut = %A_Desktop%\Record_%now%.mp4
+	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" --qt-start-minimized screen:// :sout=#transcode{vcodec=mp4v,acodec=mp4a}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
+    clipboard := commandLine
+    Run, %commandLine%
 }
 
 Stop()
 {
+    DetectHiddenWindows On
     WinClose ahk_exe vlc.exe
-}
-
-Exit()
-{
-	Stop()
+    DetectHiddenWindows Off
     ExitApp
 }
 
 SetKeyDelay, 10, 10
 SetWorkingDir % A_Desktop
-Hotkey, Esc, Exit
+Hotkey, Esc, Stop

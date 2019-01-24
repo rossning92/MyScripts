@@ -1,6 +1,6 @@
-#include _ScreenRecord.ahk
+#include ./../../../libs/_ScreenRecord.ahk
 
 SetWindow("Oculus Mirror")
 Record()
-Sleep 45000
+Sleep 60000
 Stop()
