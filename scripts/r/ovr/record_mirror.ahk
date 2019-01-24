@@ -1,4 +1,4 @@
-#include ./../../../libs/_ScreenRecord.ahk
+#include ../../../libs/_ScreenRecord.ahk
 
 SetWindow("Oculus Mirror")
 Record()

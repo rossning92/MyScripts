@@ -66,5 +66,4 @@ def export_script(script_path):
         f.write(content)
 
 
-if os.path.splitext(script_path)[1].lower() == '.py':
-    export_script(script_path)
+export_script(script_path)
