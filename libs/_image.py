@@ -5,7 +5,7 @@ import math
 import re
 
 
-def _draw_centered_text(im, text, box, text_outline):
+def _draw_centered_text(im, text, box, text_outline, font_color):
     draw = ImageDraw.Draw(im)
     font = ImageFont.truetype("arial.ttf", box[3] // 16)
     w, h = draw.multiline_textsize(text, font=font)
@@ -16,13 +16,13 @@ def _draw_centered_text(im, text, box, text_outline):
     draw.multiline_text((x + text_outline, y), text, font=font, fill="black")
     draw.multiline_text((x, y - text_outline), text, font=font, fill="black")
     draw.multiline_text((x, y + text_outline), text, font=font, fill="black")
-    draw.multiline_text((x, y), text, font=font, fill="white")
+    draw.multiline_text((x, y), text, font=font, fill=font_color)
 
     del draw
 
 
 def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
-                   gif_duration=500, generate_atlas=True, draw_label=True):
+                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, font_color='white'):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
     if type(image_files) == list:
@@ -48,7 +48,9 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
             text = os.path.splitext(os.path.basename(file_list[i]))[0]
             if parse_file_name is not None:
                 text = parse_file_name(text)
-            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[1].height), text_outline)
+            elif labels is not None:
+                text = labels[i]
+            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[1].height), text_outline, font_color)
 
     if generate_atlas:
         num_imgs = len(imgs)
@@ -65,7 +67,9 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
             im_combined.paste(imgs[m], (x, y))
             c += 1
 
-        os.makedirs(os.path.dirname(out_file), exist_ok=True)
+        dir_name = os.path.dirname(out_file)
+        if dir_name:
+            os.makedirs(os.path.dirname(out_file), exist_ok=True)
         im_combined.save(out_file + '.png')
 
     imgs[0].save(out_file + '.gif',
