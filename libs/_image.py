@@ -5,12 +5,22 @@ import math
 import re
 
 
-def _draw_centered_text(im, text, box, text_outline, font_color):
+def _draw_centered_text(im, text, box, text_outline, font_color, align='center'):
+    PADDING = 4
+
     draw = ImageDraw.Draw(im)
     font = ImageFont.truetype("arial.ttf", box[3] // 16)
     w, h = draw.multiline_textsize(text, font=font)
-    x = box[0] + (box[2] - w) / 2
-    y = box[1] + (box[3] - h) / 2
+
+    if align == 'top':
+        x = box[0] + (box[2] - w) / 2
+        y = box[1] + PADDING
+    elif align == 'topLeft':
+        x = box[0] + PADDING
+        y = box[1] + PADDING
+    else:  # center
+        x = box[0] + (box[2] - w) / 2
+        y = box[1] + (box[3] - h) / 2
 
     draw.multiline_text((x - text_outline, y), text, font=font, fill="black")
     draw.multiline_text((x + text_outline, y), text, font=font, fill="black")
@@ -22,7 +32,8 @@ def _draw_centered_text(im, text, box, text_outline, font_color):
 
 
 def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
-                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, font_color='white'):
+                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, font_color='white', title=None,
+                   title_color='white'):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
     if type(image_files) == list:
@@ -70,6 +81,14 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
         dir_name = os.path.dirname(out_file)
         if dir_name:
             os.makedirs(os.path.dirname(out_file), exist_ok=True)
+
+        if title is not None:
+            _draw_centered_text(im_combined,
+                                title,
+                                (0, 0, im_combined.width, im_combined.height),
+                                text_outline,
+                                title_color,
+                                align='topLeft')
         im_combined.save(out_file + '.png')
 
     imgs[0].save(out_file + '.gif',
