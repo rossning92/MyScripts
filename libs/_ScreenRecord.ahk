@@ -52,7 +52,6 @@ Record()
 	FormatTime, now, R, yyyyMMdd_hhmmss
 	fileOut = %A_Desktop%\Record_%now%.mp4
 	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" --qt-start-minimized screen:// :sout=#transcode{vcodec=mp4v,acodec=mp4a}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
-    clipboard := commandLine
     Run, %commandLine%
 }
 
@@ -61,9 +60,14 @@ Stop()
     DetectHiddenWindows On
     WinClose ahk_exe vlc.exe
     DetectHiddenWindows Off
+}
+
+Exit()
+{
+    Stop()
     ExitApp
 }
 
 SetKeyDelay, 10, 10
 SetWorkingDir % A_Desktop
-Hotkey, Esc, Stop
+Hotkey, Esc, Exit
