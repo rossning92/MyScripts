@@ -100,6 +100,7 @@ class SearchWidget(QWidget):
         vbox.addWidget(self.lineEdit)
 
         self.listWidget = QListWidget()
+        self.listWidget.setFocusPolicy(Qt.NoFocus)
         self.listWidget.itemDoubleClicked.connect(self.listWidget_itemDoubleClicked)
         self.listWidget.itemSelectionChanged.connect(self.listWidget_itemSelectionChanged)
         vbox.addWidget(self.listWidget)
@@ -168,8 +169,8 @@ class SearchWidget(QWidget):
 
         self.listWidget.item(self.selected_index).setSelected(True)
 
-    def selected_index(self):
-        if self.selected_index <= 0:
+    def get_selected(self):
+        if self.selected_index < 0:
             return -1
         else:
             return self.matched_items[self.selected_index]
@@ -185,8 +186,8 @@ def search(items, title=''):
     if return_code != QDialog.Accepted:
         return -1
 
-    return dialog.selected_index()
+    return sw.get_selected()
 
 
 if __name__ == '__main__':
-    search(['hello' + str(i) for i in range(5)])
+    print(search(['hello' + str(i) for i in range(5)]))
