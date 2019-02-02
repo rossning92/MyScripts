@@ -101,6 +101,7 @@ class SearchWidget(QWidget):
 
         self.listWidget = QListWidget()
         self.listWidget.setFocusPolicy(Qt.NoFocus)
+        self.listWidget.setStyleSheet("QListView::item:selected { background: #3a4660; color: #ffffff; }")
         self.listWidget.itemDoubleClicked.connect(self.listWidget_itemDoubleClicked)
         self.listWidget.itemSelectionChanged.connect(self.listWidget_itemSelectionChanged)
         vbox.addWidget(self.listWidget)
@@ -112,7 +113,7 @@ class SearchWidget(QWidget):
         self.installEventFilter(self)
 
     def listWidget_itemDoubleClicked(self, item):
-        self.accept()
+        pass
 
     def listWidget_itemSelectionChanged(self):
         for i in range(self.listWidget.count()):
