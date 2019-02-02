@@ -45,13 +45,9 @@ class MyDialog(QDialog):
         return False
 
 
-class OptionDialog(MyDialog):
-    def __init__(self, options, title=None):
+class SelectWidget(QWidget):
+    def __init__(self, options):
         super().__init__()
-
-        if title:
-            self.setWindowTitle(title)
-        self.resize(800, 400)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -69,23 +65,31 @@ class OptionDialog(MyDialog):
 
         self.installEventFilter(self)
 
+    def get_selected(self):
+        selected_indices = []
+        for i in range(self.listWidget.count()):
+            if self.listWidget.item(i).isSelected():
+                selected_indices.append(i)
+        return selected_indices
+
 
 def select_options(options, title=None):
-    dialog = OptionDialog(options, title)
+    dialog = MyDialog()
+    if title:
+        dialog.setWindowTitle(title)
+
+    sw = SelectWidget(options)
+    dialog.layout().addWidget(sw)
+
     return_code = dialog.exec_()
     if return_code != QDialog.Accepted:
         return []
 
-    selected_indices = []
-    lw = dialog.listWidget
-    for i in range(lw.count()):
-        if lw.item(i).isSelected():
-            selected_indices.append(i)
-    return selected_indices
+    return sw.get_selected()
 
 
 class SearchWidget(QWidget):
-    def __init__(self, items, title=''):
+    def __init__(self, items):
         super().__init__()
 
         self.items = items
@@ -177,10 +181,12 @@ class SearchWidget(QWidget):
             return self.matched_items[self.selected_index]
 
 
-def search(items, title=''):
+def search(items, title=None):
     dialog = MyDialog()
+    if title:
+        dialog.setWindowTitle(title)
 
-    sw = SearchWidget(items, title=title)
+    sw = SearchWidget(items)
     dialog.layout().addWidget(sw)
 
     return_code = dialog.exec_()
