@@ -24,9 +24,15 @@ _app.setFont(font)
 class MyDialog(QDialog):
     def __init__(self, title=''):
         super().__init__()
+
         self.installEventFilter(self)
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint)
+        self.resize(800, 400)
+
+        vbox = QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(vbox)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
@@ -61,6 +67,8 @@ class OptionDialog(MyDialog):
 
         layout.addWidget(self.listWidget)
 
+        self.installEventFilter(self)
+
 
 def select_options(options, title=None):
     dialog = OptionDialog(options, title)
@@ -76,9 +84,9 @@ def select_options(options, title=None):
     return selected_indices
 
 
-class SearchDialog(MyDialog):
+class SearchWidget(QWidget):
     def __init__(self, items, title=''):
-        super().__init__(title=title)
+        super().__init__()
 
         self.items = items
         self.matched_items = []
@@ -100,6 +108,8 @@ class SearchDialog(MyDialog):
 
         self.on_lineEdit_textChanged("")
 
+        self.installEventFilter(self)
+
     def listWidget_itemDoubleClicked(self, item):
         self.accept()
 
@@ -119,7 +129,7 @@ class SearchDialog(MyDialog):
         self.selected_index = -1
 
         for i in range(len(self.items)):
-            if SearchDialog._kw_match(kw_list, str(self.items[i])):
+            if self._kw_match(kw_list, str(self.items[i])):
                 self.listWidget.addItem(self.items[i])
                 self.matched_items.append(i)
 
@@ -130,7 +140,7 @@ class SearchDialog(MyDialog):
         self.listWidget.setMinimumWidth(self.listWidget.sizeHintForColumn(0) + 100)
         self.resize(800, 600)
 
-    def _kw_match(kw_list, text):
+    def _kw_match(self, kw_list, text):
         text = text.lower()
         for kw in kw_list:
             if kw.lower() not in text:
@@ -158,13 +168,25 @@ class SearchDialog(MyDialog):
 
         self.listWidget.item(self.selected_index).setSelected(True)
 
+    def selected_index(self):
+        if self.selected_index <= 0:
+            return -1
+        else:
+            return self.matched_items[self.selected_index]
+
 
 def search(items, title=''):
-    dialog = SearchDialog(items, title=title)
+    dialog = MyDialog()
+
+    sw = SearchWidget(items, title=title)
+    dialog.layout().addWidget(sw)
+
     return_code = dialog.exec_()
     if return_code != QDialog.Accepted:
         return -1
 
-    return dialog.matched_items[dialog.selected_index]
+    return dialog.selected_index()
 
-# search(['hello' + str(i) for i in range(5)])
+
+if __name__ == '__main__':
+    search(['hello' + str(i) for i in range(5)])
