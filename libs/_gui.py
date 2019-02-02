@@ -30,9 +30,9 @@ class MyDialog(QDialog):
         self.setWindowFlags(Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint)
         self.resize(800, 400)
 
-        vbox = QVBoxLayout()
-        vbox.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(vbox)
+        layout = QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
