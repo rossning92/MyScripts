@@ -40,9 +40,12 @@ class MyDialog(QDialog):
                 self.accept()
                 return True
             elif e.key() == Qt.Key_Escape:
-                self.reject()
-                return True
+                sys.exit(1)
+                # return True
         return False
+
+    def add_shortcut(self, hotkey, func):
+        QShortcut(QKeySequence(hotkey), self, func)
 
 
 class SelectWidget(QWidget):

@@ -4,13 +4,17 @@ import subprocess
 import shutil
 
 SRC_PATH = os.environ['CURRENT_FOLDER']
-if SRC_PATH.endswith('.cpp') or SRC_PATH.endswith('.c'):
-    basename = os.path.basename(SRC_PATH)
-    project_name = os.path.splitext(basename)[0]
-    src_dir = os.path.dirname(SRC_PATH)
-else:
-    project_name = 'example'
-    src_dir = SRC_PATH
+BUILD_LIB = '{{BUILD_LIB}}' == 'Y'
+
+project_name = 'example'
+src_dir = SRC_PATH
+
+if 'SELECTED_FILE' in os.environ:
+    f = os.environ['SELECTED_FILE']
+    if f.endswith('.cpp') or f.endswith('.c'):
+        basename = os.path.basename(f)
+        project_name = os.path.splitext(basename)[0]
+        src_dir = os.path.dirname(f)
 
 # Change to source folder
 os.chdir(src_dir)
@@ -23,7 +27,7 @@ set(PROJECT_NAME ''' + project_name + ''')
 project(${PROJECT_NAME})
 
 file(GLOB srcs "*.h" "*.cpp")
-add_executable(${PROJECT_NAME} 
+''' + ('add_library' if BUILD_LIB else 'add_executable') + '''(${PROJECT_NAME} SHARED
     ${srcs}
 )
 
@@ -49,5 +53,5 @@ if '{{CMAKE_REMOVE_CACHE}}' == 'Y':
         os.remove('CMakeCache.txt')
 
 # Build
-subprocess.call(['cmake', '-G' 'Visual Studio 15 2017', '..'])
+subprocess.call(['cmake', '-G' 'Visual Studio 15 2017 Win64', '..'])
 subprocess.call(['cmake', '--build', '.', '--config', 'Release'])

@@ -1,0 +1,12 @@
+from _shutil import *
+import _setup_android_env
+
+os.environ['DATA_CACHE_DIR']= r'C:\UE4-DataCache'
+
+chdir(r'{{UE_SOURCE}}\Engine\Binaries\Win64')
+
+
+
+#set UE-SharedDataCachePath=%DATA_CACHE_DIR%
+#start UE4Editor.exe -ddc=noshared
+Popen('UE4Editor.exe')

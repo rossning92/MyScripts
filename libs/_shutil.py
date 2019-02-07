@@ -154,7 +154,7 @@ def replace(file, patt, repl):
         s = f.read()
 
     for x in re.findall(patt, s):
-        print('Replace in file "%s": "%s" => "%s"' % (file, patt, repl))
+        print('In file "%s":\n  %s => %s' % (file, patt, repl))
 
     s = re.sub(patt, repl, s)
 
