@@ -286,17 +286,37 @@ class MainWindow(QWidget):
                 print('Hotkey: %s: %s' % (hotkey, item.name))
                 QShortcut(QKeySequence(hotkey), self, lambda item=item: item.execute())
 
-        self.register_key_hooks()
+        self.register_global_hotkeys()
 
-    def register_key_hooks(self):
-        import keyboard
-        keyboard.unhook_all()
-        for item in self.script_items:
-            hotkey = item.meta['globalHotkey']
-            if hotkey is not None:
-                print('Global Hotkey: %s: %s' % (hotkey, item.name))
-                keyboard.add_hotkey(hotkey,
-                                    lambda item=item: item.execute())
+    def register_global_hotkeys(self):
+        if platform.system() == 'Windows':
+            with open('tmp/GlobalHotkey.ahk', 'w') as f:
+                f.write('#SingleInstance Force\n')
+
+                for item in self.script_items:
+                    hotkey = item.meta['globalHotkey']
+                    if hotkey is not None:
+                        print('Global Hotkey: %s: %s' % (hotkey, item.name))
+                        hotkey = hotkey.replace('Ctrl+', '^')
+                        hotkey = hotkey.replace('Alt+', '!')
+                        hotkey = hotkey.replace('Shift+', '+')
+                        hotkey = hotkey.replace('Win+', '#')
+
+                        f.write(f'''
+                            {hotkey}::Run python -c "from _script import *;run_script('{item.script_path}')"
+                        '''.strip() + '\n')
+
+            subprocess.Popen(['AutoHotkeyU64.exe', 'tmp/GlobalHotkey.ahk'])
+
+        else:
+            import keyboard
+            keyboard.unhook_all()
+            for item in self.script_items:
+                hotkey = item.meta['globalHotkey']
+                if hotkey is not None:
+                    print('Global Hotkey: %s: %s' % (hotkey, item.name))
+                    keyboard.add_hotkey(hotkey,
+                                        lambda item=item: item.execute())
 
     def timerEvent(self, e):
         if should_update():
