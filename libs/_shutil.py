@@ -263,3 +263,8 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
                 line += parts[i]
 
         print(line.decode(locale.getpreferredencoding()), end='')
+
+
+def prepend_to_path(p):
+    env = os.environ
+    env['PATH'] = os.pathsep.join(p) + os.pathsep + env['PATH']
