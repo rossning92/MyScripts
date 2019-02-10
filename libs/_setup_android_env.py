@@ -4,6 +4,7 @@ env = os.environ
 
 # Android-SDK
 ADK_SEARCH_PATH = [
+    # Installed by choco
     r'C:\Android\android-sdk',
 
     # Default SDK path installed by Android Studio
