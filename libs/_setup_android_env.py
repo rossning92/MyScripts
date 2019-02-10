@@ -1,8 +1,5 @@
 from _shutil import *
 
-env = os.environ
-
-# Android-SDK
 ADK_SEARCH_PATH = [
     # Installed by choco
     r'C:\Android\android-sdk',
@@ -11,6 +8,7 @@ ADK_SEARCH_PATH = [
     os.path.abspath(os.getenv('LOCALAPPDATA') + '/Android/Sdk')
 ]
 
+# ANDROID_HOME
 for p in ADK_SEARCH_PATH:
     if os.path.exists(p):
         env['ANDROID_HOME'] = p
@@ -31,6 +29,7 @@ path = [
     env['ANDROID_HOME'] + '/build-tools',
     env['ANDROID_HOME'] + '/tools',
     env['ANDROID_HOME'] + '/tools/bin',
+    env['ANDROID_HOME'] + '/ndk-bundle',
     jdk_path,
 ]
 prepend_to_path(path)

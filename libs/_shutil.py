@@ -268,3 +268,6 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
 def prepend_to_path(p):
     env = os.environ
     env['PATH'] = os.pathsep.join(p) + os.pathsep + env['PATH']
+
+
+env = os.environ
