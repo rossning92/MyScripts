@@ -24,14 +24,13 @@ env['ANDROID_NDK_HOME'] = \
     env['NDK_ROOT'] = \
     env['ANDROID_HOME'] + '/ndk-bundle'
 
-# JDK
-jdk_path = sorted(glob.glob(r'C:\Program Files\Java\jdk*'), reverse=True)[0]
-env['PATH'] += os.pathsep + jdk_path + '\\bin'
-
+# Set PATH environ
+jdk_path = sorted(glob.glob(r'C:\Program Files\Java\jdk*'), reverse=True)[0] + '\\bin'
 path = [
     env['ANDROID_HOME'] + '/platform-tools',
     env['ANDROID_HOME'] + '/build-tools',
     env['ANDROID_HOME'] + '/tools',
     env['ANDROID_HOME'] + '/tools/bin',
+    jdk_path,
 ]
 prepend_to_path(path)
