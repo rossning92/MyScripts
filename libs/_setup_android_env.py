@@ -1,16 +1,12 @@
-import os
-import glob
-
-
-def prepend_to_path(p):
-    env['PATH'] = os.pathsep.join(p) + env['PATH']
-
+from _shutil import *
 
 env = os.environ
 
 # Android-SDK
 ADK_SEARCH_PATH = [
     r'C:\Android\android-sdk',
+
+    # Default SDK path installed by Android Studio
     os.path.abspath(os.getenv('LOCALAPPDATA') + '/Android/Sdk')
 ]
 
@@ -35,5 +31,6 @@ path = [
     env['ANDROID_HOME'] + '/platform-tools',
     env['ANDROID_HOME'] + '/build-tools',
     env['ANDROID_HOME'] + '/tools',
+    env['ANDROID_HOME'] + '/tools/bin',
 ]
 prepend_to_path(path)

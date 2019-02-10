@@ -1,5 +1,5 @@
 from subprocess import call
-import _setup
+import _setup_android_env
 
 packages = [
     'platforms;android-21',
