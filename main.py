@@ -94,11 +94,6 @@ def menu_item(f):
     return f
 
 
-def exec2(name):
-    matched = list(filter(lambda x: x.name == name, self.script_items))
-    matched[0].execute()
-
-
 def select_item(items, prompt='PLEASE INPUT:'):
     matched_items = []
     while True:
