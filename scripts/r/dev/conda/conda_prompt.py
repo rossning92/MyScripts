@@ -3,8 +3,9 @@ from _shutil import *
 
 args = ['cmd', '/K', 'activate.bat']
 
-conemu = get_conemu_args()
-if conemu:
-    args = conemu + args
+try:
+    args = conemu_wrap_args(args)
+except:
+    print('ConEmu not installed. Fallback to cmd.')
 
 Popen(args)

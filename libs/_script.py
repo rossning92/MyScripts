@@ -8,7 +8,7 @@ import tempfile
 import yaml
 import platform
 import ctypes
-from _shutil import run_elevated, get_conemu_args
+from _shutil import run_elevated, conemu_wrap_args
 import shlex
 import glob
 
@@ -228,17 +228,11 @@ class ScriptItem:
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
             if new_window:
-                conemu = get_conemu_args(title=self.name, cwd=cwd)
-                if conemu:
-                    args = conemu + args
-
-                elif os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
-                    args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
-
-                    # subprocess.Popen(args,
-                    #                  creationflags=subprocess.CREATE_NEW_CONSOLE,
-                    #                  env=env,
-                    #                  cwd=cwd)
+                try:
+                    args = conemu_wrap_args(args, title=self.name, cwd=cwd)
+                except:
+                    if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
+                        args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
 
             # Check if run as admin
             if self.meta['runAsAdmin']:

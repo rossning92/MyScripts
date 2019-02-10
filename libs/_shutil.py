@@ -16,10 +16,11 @@ import queue
 import locale
 
 
-def get_conemu_args(title=None, cwd=None, small_window=False):
+def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
     CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
+
     if os.path.exists(CONEMU):
-        args = [
+        args2 = [
             CONEMU,
             '-NoUpdate',
             '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
@@ -29,23 +30,23 @@ def get_conemu_args(title=None, cwd=None, small_window=False):
         ]
 
         if cwd:
-            args += ['-Dir', cwd]
+            args2 += ['-Dir', cwd]
         if title:
-            args += ['-Title', title]
+            args2 += ['-Title', title]
 
         if small_window:
-            args += ['-Font', 'Courier', '-Size', '10']
+            args2 += ['-Font', 'Courier', '-Size', '10']
         else:
-            args += ['-Max']
+            args2 += ['-Max']
 
-        args += [
+        args2 += [
             '-run',
             '-cur_console:c0'
         ]
 
-        return args
+        return args2 + args
     else:
-        return None
+        raise Exception('ConEmu not installed.')
 
 
 def chdir(path, expand=True):
