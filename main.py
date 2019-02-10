@@ -19,21 +19,6 @@ import time
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
 
-# https://phabricator.intern.facebook.com/diffusion/OVRSOURCE/browse/master/Software/Apps/Native/VrShell/
-
-PANEL_APP = '/Users/rossning92/vrshell/ovrsource/Software/Apps/Native/VrShell/MyFancyProject'
-
-SETUP_ENV = '''
-export ANDROID_HOME=/opt/android_sdk
-export ANDROID_SDK=$ANDROID_HOME
-export ANDROID_SDK_ROOT=$ANDROID_SDK
-export ANDROID_NDK=/opt/android_sdk/ndk-bundle
-export ANDROID_NDK_REPOSITORY=$ANDROID_NDK
-export ANDROID_NDK_HOME=$ANDROID_NDK
-export ADB_PATH=$ANDROID_SDK_ROOT/platform-tools/adb
-export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_NDK:$PATH
-'''
-
 
 def get_data_folder():
     folder = os.path.join('data', platform.node())
@@ -143,49 +128,6 @@ def select_item(items, prompt='PLEASE INPUT:'):
 
             if len(items) == 0:
                 matched_items = range(len(items))
-
-
-@menu_item
-def _build_panelapp_multiple_res():
-    # Different resolutions
-    res = ((1440, 1620), (1320, 1485), (1200, 1350), (1080, 1215), (960, 1080))
-    ref_res = (1280, 1440)
-
-    for i in range(len(res)):
-        res_str = '%dx%d' % (res[i][0], res[i][1])
-        print(Fore.LIGHTGREEN_EX + 'Building for res: ' + res_str + Fore.RESET)
-
-        # Modify src files
-        ratio = res[i][0] / ref_res[0]
-        bash(f'''
-        cd {PANEL_APP}/Src
-        sed -i.bak 's|(1)|{ratio}|g' MyFancyProject.cpp
-        cd {VR_SHELL}/VrShell/Src/AppModel
-        sed -i.bak 's|(1)|{ratio}|g' PanelRenderLayer.cpp
-        ''')
-
-        exec2('build_my_panel_app')
-        exec2('build_VrShell')
-
-        # Recover src files
-        bash(f'''
-        cd {PANEL_APP}/Src
-        mv MyFancyProject.cpp.bak MyFancyProject.cpp
-        cd {VR_SHELL}/VrShell/Src/AppModel
-        mv PanelRenderLayer.cpp.bak PanelRenderLayer.cpp
-        ''')
-
-        # Copy files
-        bash(
-            f'cp {VR_SHELL}/VrShell/Projects/Android-MP/build/outputs/apk/release/vrshell-release.apk {res_str}_vrshell.apk')
-        bash(
-            f'cp {PANEL_APP}/Projects/Android/build/outputs/apk/release/MyFancyProject-armeabi-v7a-release.apk {res_str}_panelapp.apk')
-
-
-@menu_item
-def _build_vrdriver_fov_on_and_off():
-    exec2('build_VrDriver')
-    bash(f'cp {VR_DRIVER}/Projects/Android/build/outputs/apk/release/VrDriver-release.apk vrdriver.apk')
 
 
 class EditVariableWidget(QWidget):
