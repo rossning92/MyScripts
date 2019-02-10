@@ -1,4 +1,5 @@
 from subprocess import call
+import _setup
 
 packages = [
     'platforms;android-21',
