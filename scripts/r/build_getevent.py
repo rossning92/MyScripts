@@ -18,23 +18,24 @@ mkdir(project_dir)
 chdir(project_dir)
 
 # Download files
-mkdir('jni')
-chdir('jni')
+if not exists('jni'):
+    mkdir('jni')
+    chdir('jni')
 
-download('https://raw.githubusercontent.com/aosp-mirror/platform_system_core/master/toolbox/getevent.c')
-replace('getevent.c', 'getevent_main', 'main')
+    with open('Android.mk', 'w') as f:
+        f.write(mk)
 
-download('https://raw.githubusercontent.com/aosp-mirror/platform_system_core/master/toolbox/generate-input.h-labels.py')
-with open('Android.mk', 'w') as f:
-    f.write(mk)
+    download('https://raw.githubusercontent.com/aosp-mirror/platform_system_core/master/toolbox/getevent.c')
+    replace('getevent.c', 'getevent_main', 'main')
 
+    download(
+        'https://raw.githubusercontent.com/aosp-mirror/platform_system_core/master/toolbox/generate-input.h-labels.py')
+    call('python generate-input.h-labels.py > input.h-labels.h')
 
 # Build
 setup_py27()
-call('python generate-input.h-labels.py > input.h-labels.h')
 chdir(project_dir)
 call('ndk-build')
-
 
 # Run
 chdir(project_dir + '/obj/local/armeabi-v7a')
