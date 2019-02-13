@@ -150,12 +150,13 @@ def remove(files):
         os.remove(f)
 
 
-def replace(file, patt, repl):
+def replace(file, patt, repl, debug_output=False):
     with open(file, 'r') as f:
         s = f.read()
 
-    for x in re.findall(patt, s):
-        print('In file "%s":\n  %s => %s' % (file, patt, repl))
+    if debug_output:
+        for x in re.findall(patt, s):
+            print('In file "%s":\n  %s => %s' % (file, x, repl))
 
     s = re.sub(patt, repl, s)
 
