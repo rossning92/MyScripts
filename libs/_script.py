@@ -26,7 +26,7 @@ def bash(cmd, wsl=False):
                     '-c',
                     cmd]
     elif os.name == 'posix':  # MacOSX
-        subprocess.call(cmd, shell=True)
+        return ['bash', '-c', cmd]
     else:
         raise Exception('Non supported OS version')
 
@@ -188,7 +188,7 @@ class ScriptItem:
 
             python_path = get_python_path(self.script_path)
 
-            env['PYTHONPATH'] = ';'.join(python_path)
+            env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
             if os.name == 'posix':
