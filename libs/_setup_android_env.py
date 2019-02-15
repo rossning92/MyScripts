@@ -33,3 +33,5 @@ path = [
     jdk_path,
 ]
 prepend_to_path(path)
+
+studio = r'C:\Program Files\Android\Android Studio\bin\studio64.exe'

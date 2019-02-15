@@ -14,6 +14,7 @@ pkg_list = [
     'visualstudio2017community',
     'blender',
     'graphviz',
+    'inkscape',
 ]
 
 pkg_list = sorted(pkg_list)
