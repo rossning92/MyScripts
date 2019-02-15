@@ -85,13 +85,7 @@ def insert_line_if_not_exist(line, file, after_line=None):
     return False
 
 
-variables = {}
-
 colorama.init()
-
-
-def menu_item(f):
-    return f
 
 
 def select_item(items, prompt='PLEASE INPUT:'):
@@ -335,8 +329,6 @@ class MainWindow(QWidget):
         idx = self.matched_items[0]
 
         self.ui.editVariableWidget.save()
-        global variables
-        variables = self.ui.editVariableWidget.get_variables()
 
         self.hide()
 
