@@ -2,7 +2,7 @@ from _gui import search
 import sys
 import subprocess
 
-pkg_list = [
+other = [
     'miktex',
     'unity --version 2018.2.0',
     'sketchup',
@@ -33,8 +33,11 @@ for_work = [
     'selenium-chrome-driver',
 ]
 
-pkg_list = sorted(['@for work'] + pkg_list + dev + media)
+other_options = [
+    '@for work',
+]
 
+pkg_list = sorted(other_options + other + dev + media)
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
