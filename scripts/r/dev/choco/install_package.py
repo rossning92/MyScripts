@@ -3,6 +3,7 @@ import sys
 import subprocess
 
 pkg_list = [
+	'atom',
     'androidstudio',
     'android-sdk',
     'p4v',
