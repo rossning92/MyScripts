@@ -233,9 +233,21 @@ class MainWindow(QWidget):
                         hotkey = hotkey.replace('Shift+', '+')
                         hotkey = hotkey.replace('Win+', '#')
 
-                        f.write(f'''
-                            {hotkey}::Run python -c "from _script import *;run_script('{item.script_path}')"
-                        '''.strip() + '\n')
+                        f.write(f'''#SingleInstance, Force
+
+{hotkey}::RunScript("{item.name}", "{item.script_path}")
+
+RunScript(name, path)
+{{
+    If WinExist(name)
+    {{
+        WinActivate % name
+    }}
+    else
+    {{
+        Run python -c "from _script import *;run_script('%path%')"
+    }}
+}}''')
 
             subprocess.Popen(['AutoHotkeyU64.exe', 'tmp/GlobalHotkey.ahk'])
 
