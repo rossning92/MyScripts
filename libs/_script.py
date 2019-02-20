@@ -11,6 +11,7 @@ import ctypes
 from _shutil import run_elevated, conemu_wrap_args
 import shlex
 import glob
+import locale
 
 
 def bash(cmd, wsl=False):
@@ -295,6 +296,11 @@ def run_script(script_name, variables=None):
 
     script = ScriptItem(script_path)
     script.meta['newWindow'] = False
+
+    # Set console window title (for windows only)
+    if platform.system() == 'Windows':
+        win_title = script.name.encode(locale.getpreferredencoding())
+        ctypes.windll.kernel32.SetConsoleTitleA(win_title)
 
     if variables:
         script.set_override_variables(variables)
