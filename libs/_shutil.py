@@ -187,7 +187,7 @@ def get_clip():
     return text
 
 
-def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
+def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
     from colorama import init, Fore, Back, Style
 
     COLOR_MAP = {
@@ -219,7 +219,8 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
                 break
             que.put(data)
 
-    assert highlight is not None
+    if highlight is None:
+        highlight = {}
     ps = subprocess.Popen(args,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
@@ -237,6 +238,12 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
             if terminated == 2:
                 break
 
+        # Filter line by pre-defined functions
+        if filter_line:
+            line = filter_line(line)
+            if line is None:
+                continue
+
         index_color_list = []
         for patt, color in highlight.items():
             # Query ANSI character color codes
@@ -249,7 +256,6 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None):
         index_color_list = sorted(index_color_list, key=lambda x: x[0])
 
         if len(index_color_list) > 0:
-
             color_stack = [Style.RESET_ALL.encode()]
             indices, colors = zip(*index_color_list)
             parts = [line[i:j] for i, j in zip(indices, indices[1:] + (None,))]
