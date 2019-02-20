@@ -26,7 +26,7 @@ reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins" /v MailPin /t REG_DWORD /d 0 /f
 
 :: Disable UAC
-reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 0 /f
+call disable_UAC.cmd
 
 taskkill /f /im explorer.exe
 start explorer.exe
