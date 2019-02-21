@@ -14,7 +14,6 @@ packages = [
     'markdown-preview-enhanced',
     'markdown-writer',
     'markdown-image-assistant',
-    'markdown-toc',
 
     # Graphviz
     'language-dot',
