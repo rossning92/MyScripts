@@ -20,6 +20,7 @@ dev = [
     'visualstudio2017community',
     'androidstudio',
     'android-sdk',
+    'llvm',
 ]
 
 media = [

@@ -1,0 +1,6 @@
+autoRun: false
+globalHotkey: null
+hotkey: Ctrl+I
+newWindow: false
+runAsAdmin: true
+wsl: false

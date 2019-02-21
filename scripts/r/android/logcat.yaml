@@ -1,0 +1,6 @@
+autoRun: false
+globalHotkey: Win+Alt+L
+hotkey: null
+newWindow: false
+runAsAdmin: false
+wsl: false
