@@ -55,7 +55,6 @@ def write_temp_file(text, ext):
 
 def get_variable_file():
     file = os.path.abspath(os.path.dirname(__file__) + '/../variables.' + platform.node() + '.json')
-    input(file)
     return file
 
 
