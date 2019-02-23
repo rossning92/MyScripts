@@ -5,6 +5,7 @@ import subprocess
 other = [
     'miktex',
     'unity --version 2018.2.0',
+    'unity --version 2018.2.14',
     'sketchup',
     'blender',
     'graphviz',
