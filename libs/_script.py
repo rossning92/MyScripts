@@ -98,7 +98,7 @@ class ScriptItem:
         self.script_path = script_path
 
         name, ext = os.path.splitext(script_path)
-        name = name[8:]  # strip starting scripts/
+        name = re.sub(r'scripts[\\/]', '', name)  # strip starting scripts/
         name = name.replace('\\', '/')
         self.name = name
 
@@ -300,6 +300,11 @@ def run_script(script_name, variables=None):
 
     # Set console window title (for windows only)
     if platform.system() == 'Windows':
+        # Save previous title
+        MAX_BUFFER = 260
+        saved_title = (ctypes.c_char * MAX_BUFFER)()
+        res = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
+
         win_title = script.name.encode(locale.getpreferredencoding())
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
 
@@ -310,6 +315,9 @@ def run_script(script_name, variables=None):
     if script.return_code != 0:
         raise Exception('[ERROR] %s returns %d' % (script_name, script.return_code))
 
+    # Restore title
+    if platform.system() == 'Windows':
+        ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
 def _convert_to_unix_path(path):
     patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'

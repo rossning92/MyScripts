@@ -1,4 +1,7 @@
 from _shutil import *
+from _script import *
+
+run_script('unlock.sh')
 
 call('adb shell "am start -a android.media.action.VIDEO_CAPTURE"')
 
