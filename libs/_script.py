@@ -134,12 +134,13 @@ class ScriptItem:
         # Let only last modified value
         variables = {k: (v[-1] if len(v) > 0 else '') for k, v in variables.items()}
 
+        # Override variables
+        if self.override_variables:
+            variables = {**variables, **self.override_variables}
+
         # HACK: Convert to unix path
         if self.ext == '.sh':
             variables = {k: _convert_to_unix_path(v) for k, v in variables.items()}
-
-        if self.override_variables:
-            variables = {**variables, **self.override_variables}
 
         return variables
 
@@ -318,6 +319,7 @@ def run_script(script_name, variables=None):
     # Restore title
     if platform.system() == 'Windows':
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
+
 
 def _convert_to_unix_path(path):
     patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
