@@ -4,4 +4,6 @@ import _setup_android_env
 
 if 'CURRENT_FOLDER' in os.environ:
     os.chdir(os.environ['CURRENT_FOLDER'])
+else:
+    os.chdir(os.path.expanduser('~'))
 subprocess.call(['cmd'])
