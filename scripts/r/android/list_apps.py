@@ -22,4 +22,6 @@ if i == -1:
     sys.exit(1)
 
 if opt[i] == 'start':
-    call('adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg)
+    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
+    print(args)
+    call(args)

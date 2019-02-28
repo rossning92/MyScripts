@@ -5,7 +5,8 @@ files = list(glob.glob('*.dot'))
 files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
 src_file = files[0]
 
-dst_file = os.path.splitext(src_file)[0] + '.png'
+fmt = 'png'
+dst_file = os.path.splitext(src_file)[0] + f'.{fmt}'
 
-call(f'cmd /c dot -Tpng "{src_file}" -o "{dst_file}"')
+call(f'cmd /c dot -T{fmt} "{src_file}" -o "{dst_file}"')
 Popen([r"C:\Program Files\IrfanView\i_view64.exe", dst_file])
