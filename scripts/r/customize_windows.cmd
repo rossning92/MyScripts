@@ -25,6 +25,9 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v La
 reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins" /v MailPin /t REG_DWORD /d 0 /f
 
+:: Turn off hibernation
+powercfg.exe /hibernate off
+
 :: Disable UAC
 call disable_UAC.cmd
 
