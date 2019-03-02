@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import threading
+import queue
 
 check_error_code = True
 
@@ -104,6 +105,11 @@ class SearchWidget(QWidget):
         self.search_func = search_func
         self.cancel_func = cancel_func
         self.on_new_line.connect(self.on_new_line_slot)
+        self.new_text = None
+        self.condition = threading.Condition()
+        self.search_thread = threading.Thread(target=self._search_thread)
+        self.search_thread.daemon = True
+        self.search_thread.start()
 
         self.selected_index = -1
 
@@ -159,20 +165,32 @@ class SearchWidget(QWidget):
         self.resize(800, 600)
 
     def on_new_line_slot(self, line):
-        self.listWidget.addItem(line)
+        if line is None:
+            self.listWidget.clear()
+        else:
+            self.listWidget.addItem(line)
 
-    def _search_thread(self, text):
-        for l in self.search_func(text):
-            self.on_new_line.emit(l)
+    def _search_thread(self):
+        text = None
+        while True:
+            with self.condition:
+                while text == self.new_text:
+                    self.condition.wait()
+                text = self.new_text
+
+            print('Clear')
+            self.on_new_line.emit(None)
+            for l in self.search_func(text):
+                self.on_new_line.emit(l)
+            print('Finished')
 
     def _search_async(self, text):
         if self.cancel_func is not None:
             self.cancel_func()
 
-        self.listWidget.clear()
-
-        t = threading.Thread(target=self._search_thread, args=(text,))
-        t.start()
+        with self.condition:
+            self.new_text = text
+            self.condition.notify()
 
     def on_lineEdit_textChanged(self, text):
         if self.search_func is not None:

@@ -187,6 +187,44 @@ def get_clip():
     return text
 
 
+def check_output2(args, shell=None, cwd=None, env=None):
+    class ReturnObject:
+        def __init__(self, ps):
+            self.ps = ps
+
+        def _read_pipe(self, pipe, que):
+            while True:
+                data = pipe.readline()
+                if data == b'':  # Terminated
+                    que.put(b'')
+                    break
+                que.put(data)
+
+        def readlines(self):
+            que = queue.Queue()
+            threading.Thread(target=self._read_pipe, args=(self.ps.stdout, que)).start()
+            threading.Thread(target=self._read_pipe, args=(self.ps.stderr, que)).start()
+
+            terminated = 0
+            while True:
+                line = que.get()
+                if line == b'':
+                    terminated += 1
+                    if terminated == 2:
+                        break
+
+                yield line
+
+        def kill(self):
+            ps.kill()
+
+    ps = subprocess.Popen(args,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          shell=shell, cwd=cwd, env=env)
+    return ReturnObject(ps)
+
+
 def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
     from colorama import init, Fore, Back, Style
 
@@ -211,33 +249,10 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
 
     init()
 
-    def _read_pipe(pipe, que):
-        while True:
-            data = pipe.readline()
-            if data == b'':  # Terminated
-                que.put(b'')
-                break
-            que.put(data)
-
     if highlight is None:
         highlight = {}
-    ps = subprocess.Popen(args,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE,
-                          shell=shell, cwd=cwd, env=env)
-    que = queue.Queue()
 
-    threading.Thread(target=_read_pipe, args=(ps.stdout, que)).start()
-    threading.Thread(target=_read_pipe, args=(ps.stderr, que)).start()
-
-    terminated = 0
-    while True:
-        line = que.get()
-        if line == b'':
-            terminated += 1
-            if terminated == 2:
-                break
-
+    for line in check_output2(args, shell=shell, cwd=cwd, env=env).readlines():
         # Filter line by pre-defined functions
         if filter_line:
             line = filter_line(line)
