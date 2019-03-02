@@ -188,7 +188,7 @@ def get_clip():
 
 
 def check_output2(args, shell=None, cwd=None, env=None):
-    class ReturnObject:
+    class MyProcess:
         def __init__(self, ps):
             self.ps = ps
 
@@ -222,7 +222,7 @@ def check_output2(args, shell=None, cwd=None, env=None):
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
                           shell=shell, cwd=cwd, env=env)
-    return ReturnObject(ps)
+    return MyProcess(ps)
 
 
 def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
