@@ -22,6 +22,7 @@ dev = [
     'androidstudio',
     'android-sdk',
     'llvm',
+    'ripgrep',
 ]
 
 media = [

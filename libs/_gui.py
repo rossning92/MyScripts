@@ -4,6 +4,8 @@ import subprocess
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+import threading
+import queue
 
 check_error_code = True
 
@@ -92,11 +94,18 @@ def select_options(options, title=None):
 
 
 class SearchWidget(QWidget):
-    def __init__(self, items):
+    on_new_line = pyqtSignal(str)
+
+    def __init__(self, items=None, search_func=None, cancel_func=None):
         super().__init__()
 
-        self.items = items
+        self.items = items if items is not None else []
         self.matched_items = []
+
+        self.search_func = search_func
+        self.cancel_func = cancel_func
+        self.on_new_line.connect(self.on_new_line_slot)
+
         self.selected_index = -1
 
         vbox = QVBoxLayout()
@@ -115,7 +124,8 @@ class SearchWidget(QWidget):
 
         self.setLayout(vbox)
 
-        self.on_lineEdit_textChanged("")
+        if items is not None:
+            self.on_lineEdit_textChanged("")
 
         self.installEventFilter(self)
 
@@ -130,7 +140,7 @@ class SearchWidget(QWidget):
 
         self.selected_index = -1
 
-    def on_lineEdit_textChanged(self, text):
+    def _search_item(self, text):
         kw_list = text.split()
 
         self.listWidget.clear()
@@ -148,6 +158,28 @@ class SearchWidget(QWidget):
 
         self.listWidget.setMinimumWidth(self.listWidget.sizeHintForColumn(0) + 100)
         self.resize(800, 600)
+
+    def on_new_line_slot(self, line):
+        self.listWidget.addItem(line)
+
+    def _search_thread(self, text):
+        for l in self.search_func(text):
+            self.on_new_line.emit(l)
+
+    def _search_async(self, text):
+        if self.cancel_func is not None:
+            self.cancel_func()
+
+        self.listWidget.clear()
+
+        t = threading.Thread(target=self._search_thread, args=(text,))
+        t.start()
+
+    def on_lineEdit_textChanged(self, text):
+        if self.search_func is not None:
+            self._search_async(text)
+        else:
+            self._search_item(text)
 
     def _kw_match(self, kw_list, text):
         text = text.lower()
@@ -184,12 +216,12 @@ class SearchWidget(QWidget):
             return self.matched_items[self.selected_index]
 
 
-def search(items, title=None):
+def search(items=None, title=None, search_func=None, cancel_func=None):
     dialog = MyDialog()
     if title:
         dialog.setWindowTitle(title)
 
-    sw = SearchWidget(items)
+    sw = SearchWidget(items=items, search_func=search_func, cancel_func=cancel_func)
     dialog.layout().addWidget(sw)
 
     return_code = dialog.exec_()

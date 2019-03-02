@@ -1,2 +1,2 @@
 sudo apt update
-sudo apt-get install python3.6
+sudo apt-get install python2.7 python3.6 python-pip
