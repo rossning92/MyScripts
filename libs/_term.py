@@ -53,21 +53,24 @@ class ListWidget():
             else:
                 match = None
 
-            if match:
-                substr = line[0: match[0][0]]
-                stdscr.addstr(i, 0, substr)
+            try:  # HACK: ignore exception on addstr
+                if match:
+                    substr = line[0: match[0][0]]
+                    stdscr.addstr(i, 0, substr)
 
-                for j in range(len(match)):
-                    stdscr.attron(curses.color_pair(3))
-                    substr = line[match[j][0]: match[j][1]]
-                    stdscr.addstr(i, match[j][0], substr)
-                    stdscr.attroff(curses.color_pair(3))
+                    for j in range(len(match)):
+                        stdscr.attron(curses.color_pair(3))
+                        substr = line[match[j][0]: match[j][1]]
+                        stdscr.addstr(i, match[j][0], substr)
+                        stdscr.attroff(curses.color_pair(3))
 
-                    end_pos = match[j + 1][0] if j < len(match) - 1 else None
-                    substr = line[match[j][1]: end_pos]
-                    stdscr.addstr(i, match[j][1], substr)
-            else:
-                stdscr.addstr(i, 0, line)
+                        end_pos = match[j + 1][0] if j < len(match) - 1 else None
+                        substr = line[match[j][1]: end_pos]
+                        stdscr.addstr(i, match[j][1], substr)
+                else:
+                    stdscr.addstr(i, 0, line)
+            except:
+                pass
 
         stdscr.attron(curses.color_pair(2))
         stdscr.addstr(height - 1, 0, '(%d / %d)' % (self.cur_page, len(self.lines) // (height - 1)) + self.cur_input)
