@@ -290,14 +290,14 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None):
+def run_script(script_name, variables=None, new_window=False):
     print('\n>>> RunScript: %s' % script_name)
     script_path = find_script(script_name)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
 
     script = ScriptItem(script_path)
-    script.meta['newWindow'] = False
+    script.meta['newWindow'] = new_window
 
     # Set console window title (for windows only)
     if platform.system() == 'Windows':

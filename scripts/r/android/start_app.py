@@ -1,5 +1,6 @@
 from _shutil import *
 from _gui import *
+from _script import *
 
 s = check_output('adb shell pm list packages').decode()
 s = s.replace('package:', '')
@@ -22,6 +23,10 @@ if i == -1:
     sys.exit(1)
 
 if opt[i] == 'start':
+    call('adb shell am kill %s' % pkg)
+
     args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
     print(args)
-    call(args)
+    Popen(args)
+
+    run_script('logcat', variables={'PKG_NAME': pkg}, new_window=True)
