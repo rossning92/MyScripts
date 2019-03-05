@@ -1,7 +1,7 @@
 import glob
 import subprocess
 import os
-
+from _shutil import exec_ahk
 
 def get_pycharm_executable():
     files = glob.glob(r'C:\Program Files\JetBrains\**\pycharm64.exe', recursive=True) + glob.glob(
@@ -26,6 +26,7 @@ def open_in_androidstudio(path, line=None):
         args += ['--line', str(line)]
     args.append(path)
     subprocess.Popen(args)
+    exec_ahk('WinActivate ahk_exe studio64.exe')
 
 
 def open_with_text_editor(path, line_no=None):

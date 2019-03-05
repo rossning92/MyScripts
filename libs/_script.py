@@ -4,11 +4,10 @@ import subprocess
 import json
 import jinja2
 import re
-import tempfile
 import yaml
 import platform
 import ctypes
-from _shutil import run_elevated, conemu_wrap_args
+from _shutil import *
 import shlex
 import glob
 import locale
@@ -45,12 +44,6 @@ def _args_to_str(args):
     else:
         args = [shlex.quote(x) for x in args]
     return ' '.join(args)
-
-
-def write_temp_file(text, ext):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
-        temp.write(text.encode('utf-8'))
-        return temp.name
 
 
 def get_variable_file():

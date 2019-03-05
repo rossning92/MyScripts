@@ -10,10 +10,24 @@ from time import sleep
 import glob
 import re
 from distutils.dir_util import copy_tree
-import colorama
 import threading
 import queue
 import locale
+import tempfile
+
+
+def write_temp_file(text, ext):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
+        temp.write(text.encode('utf-8'))
+        return temp.name
+
+
+def exec_ahk(script):
+    assert os.name == 'nt'
+    file = write_temp_file(script, '.ahk')
+    args = ['AutoHotkeyU64.exe', file]
+    Popen(args)
+    return args
 
 
 def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
