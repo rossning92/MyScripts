@@ -290,7 +290,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False):
+def run_script(script_name, variables=None, new_window=False, set_console_title=True):
     print('\n>>> RunScript: %s' % script_name)
     script_path = find_script(script_name)
     if script_path is None:
@@ -300,7 +300,7 @@ def run_script(script_name, variables=None, new_window=False):
     script.meta['newWindow'] = new_window
 
     # Set console window title (for windows only)
-    if platform.system() == 'Windows':
+    if set_console_title and platform.system() == 'Windows':
         # Save previous title
         MAX_BUFFER = 260
         saved_title = (ctypes.c_char * MAX_BUFFER)()
@@ -317,7 +317,7 @@ def run_script(script_name, variables=None, new_window=False):
         raise Exception('[ERROR] %s returns %d' % (script_name, script.return_code))
 
     # Restore title
-    if platform.system() == 'Windows':
+    if set_console_title and platform.system() == 'Windows':
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
 
