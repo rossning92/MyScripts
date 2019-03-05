@@ -1,6 +1,12 @@
 from _shutil import *
 
 
+def start_app(pkg_name):
+    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg_name
+    print('Start app: ' + args)
+    call(args)
+
+
 def logcat(pkg_name=None):
     pid_map = {}
 
@@ -31,5 +37,6 @@ def logcat(pkg_name=None):
                    filter_line=filter_line,
                    highlight={
                        ' (E|F) ': 'RED',
-                       ' W ': 'YELLOW'
+                       ' W ': 'YELLOW',
+                       'ROSS:': 'GREEN'
                    })

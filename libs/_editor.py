@@ -20,9 +20,12 @@ def open_in_pycharm(path):
     subprocess.Popen(['AutoHotkeyU64.exe', ahk_script])
 
 
-def open_in_androidstudio(path):
-    studio = r"C:\Program Files\Android\Android Studio\bin\studio64.exe"
-    subprocess.Popen([studio, path])
+def open_in_androidstudio(path, line=None):
+    args = [r"C:\Program Files\Android\Android Studio\bin\studio64.exe"]
+    if line is not None:
+        args += ['--line', str(line)]
+    args.append(path)
+    subprocess.Popen(args)
 
 
 def open_with_text_editor(path, line_no=None):
