@@ -215,12 +215,19 @@ def check_output2(args, shell=None, cwd=None, env=None):
                 que.put(data)
 
         def readlines(self):
+            import keyboard
+
             que = queue.Queue()
             threading.Thread(target=self._read_pipe, args=(self.ps.stdout, que)).start()
             threading.Thread(target=self._read_pipe, args=(self.ps.stderr, que)).start()
 
             terminated = 0
             while True:
+                # HACK
+                if keyboard.is_pressed('r'):
+                    with que.mutex:
+                        que.queue.clear()
+
                 line = que.get()
                 if line == b'':
                     terminated += 1
