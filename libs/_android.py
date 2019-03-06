@@ -7,7 +7,7 @@ def start_app(pkg_name):
     call(args)
 
 
-def logcat(pkg_name=None):
+def logcat(pkg_name=None, highlight=None):
     pid_map = {}
 
     def filter_line(line):
@@ -33,11 +33,15 @@ def logcat(pkg_name=None):
 
     call('adb logcat -c')
 
+    if highlight is None:
+        highlight = {}
+
     call_highlight('adb logcat',
                    filter_line=filter_line,
                    highlight={
                        ' (E|F) ': 'RED',
                        ' W ': 'YELLOW',
                        'ROSS:': 'GREEN',
-                       r'\[\[.*?\]\]': 'red'
+                       r'\[\[.*?\]\]': 'red',
+                       **highlight
                    })
