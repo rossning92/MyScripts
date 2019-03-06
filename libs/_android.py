@@ -38,5 +38,6 @@ def logcat(pkg_name=None):
                    highlight={
                        ' (E|F) ': 'RED',
                        ' W ': 'YELLOW',
-                       'ROSS:': 'GREEN'
+                       'ROSS:': 'GREEN',
+                       r'\[\[.*?\]\]': 'red'
                    })
