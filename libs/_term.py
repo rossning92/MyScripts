@@ -126,6 +126,35 @@ class ListWidget():
             self.update_screen(self.stdscr)
 
 
+def wait_key(prompt=None, timeout=2):
+    if prompt is None:
+        prompt = 'Press enter to skip...'
+
+    ret = False
+
+    def main(stdscr):
+        stdscr.nodelay(True)
+        stdscr.addstr(prompt)
+        elapsed = 0.0
+        while True:
+            if elapsed > timeout:
+                break
+
+            stdscr.addstr(0, 0, '%s (%d)' % (prompt, int(timeout - elapsed) + 1))
+
+            ch = stdscr.getch()
+            if ch == ord('\n'):
+                wait_key.ret = True
+                break
+
+            time.sleep(0.1)
+            elapsed += 0.1
+
+    curses.wrapper(main)
+
+    return ret
+
+
 def sigint_handler(signum, frame):
     pass
 

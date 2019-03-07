@@ -40,8 +40,8 @@ def logcat(pkg_name=None, highlight=None):
                    filter_line=filter_line,
                    highlight={
                        ' (E|F) ': 'RED',
+                       '!!.*?!!': 'RED',
                        ' W ': 'YELLOW',
                        'ROSS:': 'GREEN',
-                       r'\[\[.*?\]\]': 'red',
                        **highlight
                    })
