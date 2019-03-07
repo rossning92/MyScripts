@@ -1,20 +1,21 @@
 from os import environ, pathsep
-from os.path import expanduser, exists
+from os.path import expanduser, exists, join
 import subprocess
 
-conda_path = []
+SEARCH_PATH = [
+    '~/Anaconda3',
+    r'C:\tools\miniconda3',
+    r'C:\tools\anaconda3',
+]
 
-if exists(expanduser(r'~/Anaconda3')):
-    conda_path += [
-        expanduser(r'~/Anaconda3'),
-        expanduser(r'~/Anaconda3/Scripts')
-    ]
+for p in SEARCH_PATH:
+    if exists(expanduser(p)):
+        print("Found Anaconda3: " + p)
+        conda_path = [
+            expanduser(p),
+            expanduser(join(p, 'Scripts'))
+        ]
 
-elif exists(r'C:\tools\miniconda3'):
-    conda_path += [
-        r'C:\tools\miniconda3',
-        r'C:\tools\miniconda3\Scripts'
-    ]
-
-# Prepend anaconda to PATH
-environ["PATH"] = pathsep.join(conda_path) + pathsep + environ["PATH"]
+        # Prepend anaconda to PATH
+        environ["PATH"] = pathsep.join(conda_path) + pathsep + environ["PATH"]
+        break

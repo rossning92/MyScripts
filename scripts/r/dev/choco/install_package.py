@@ -15,6 +15,7 @@ other = [
 dev = [
     'atom',
     'graphviz',
+    'anaconda3',
     'miniconda3',
     'pycharm-community',
     'cmake',
