@@ -153,10 +153,3 @@ def wait_key(prompt=None, timeout=2):
     curses.wrapper(main)
 
     return ret
-
-
-def sigint_handler(signum, frame):
-    pass
-
-
-signal.signal(signal.SIGINT, sigint_handler)
