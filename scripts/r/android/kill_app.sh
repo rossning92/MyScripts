@@ -1,1 +1,1 @@
-adb shell am kill {{ANDROID_PACKAGE_NAME}}
+adb shell am force-stop {{ANDROID_PACKAGE_NAME}}
