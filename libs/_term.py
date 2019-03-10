@@ -17,6 +17,7 @@ class ListWidget():
         self.last_update = 0
         self.select_mode = False
         self.search_str = ''
+        self.caret_pos = 0
 
         self.stdscr = curses.initscr()
         curses.noecho()
@@ -24,9 +25,10 @@ class ListWidget():
         self.stdscr.keypad(1)
         curses.start_color()
         curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         self.stdscr.nodelay(True)
+        #self.stdscr.scrollok(1)
 
     def update_screen(self, stdscr):
         height, width = stdscr.getmaxyx()
@@ -72,9 +74,15 @@ class ListWidget():
             except:
                 pass
 
-        stdscr.attron(curses.color_pair(2))
-        stdscr.addstr(height - 1, 0, '(%d / %d)' % (self.cur_page, len(self.lines) // (height - 1)) + self.cur_input)
-        stdscr.attroff(curses.color_pair(2))
+        # stdscr.attron(curses.color_pair(2))
+        status_text = '[%d / %d]' % (self.cur_page, len(self.lines) // (height - 1))
+        stdscr.insstr(height - 1, width - len(status_text), status_text)
+
+        stdscr.addstr(height - 1, 0, self.cur_input)
+        stdscr.move(height - 1, self.caret_pos)
+        # stdscr.attroff(curses.color_pair(2))
+
+
 
         stdscr.refresh()
 
@@ -92,8 +100,13 @@ class ListWidget():
                 self.cur_page = max(self.cur_page - 1, 0)
             elif c == curses.KEY_DOWN:
                 self.cur_page = min(self.cur_page + 1, max_page)
-            elif c == curses.KEY_BACKSPACE or c == 127 or c == ord('\b'):
-                self.cur_input = self.cur_input[:-1]
+            elif c == curses.KEY_LEFT:
+                self.caret_pos = max(self.caret_pos - 1, 0)
+            elif c == curses.KEY_RIGHT:
+                self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
+            elif c == ord('\b'):
+                self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
+                self.caret_pos -= 1
                 text_changed = True
             elif c == curses.ascii.ctrl(ord('c')):
                 if self.select_mode:
@@ -101,6 +114,7 @@ class ListWidget():
                     self.select_mode = False
                 else:
                     self.cur_input = ''
+                    self.caret_pos = 0
                     self.select_mode = False
                     text_changed = True
             elif c == ord('\n'):
@@ -111,7 +125,8 @@ class ListWidget():
                 elif self.select_mode and self.item_selected:
                     self.item_selected(int(self.cur_input))
             else:
-                self.cur_input += chr(c)
+                self.cur_input = self.cur_input[:self.caret_pos] + chr(c) + self.cur_input[self.caret_pos:]
+                self.caret_pos += 1
                 text_changed = True
 
             if text_changed and not self.select_mode:
