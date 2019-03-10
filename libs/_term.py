@@ -28,7 +28,7 @@ class ListWidget():
         curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         self.stdscr.nodelay(True)
-        #self.stdscr.scrollok(1)
+        # self.stdscr.scrollok(1)
 
     def update_screen(self, stdscr):
         height, width = stdscr.getmaxyx()
@@ -82,12 +82,16 @@ class ListWidget():
         stdscr.move(height - 1, self.caret_pos)
         # stdscr.attroff(curses.color_pair(2))
 
-
-
         stdscr.refresh()
 
     def update_input(self, stdscr):
+
         height, width = stdscr.getmaxyx()
+        # resize = curses.is_term_resized(height, width)
+        # if resize is True:
+        #     height, width = stdscr.getmaxyx()
+        #     curses.resize_term(height, width)
+
         max_page = len(self.lines) // (height - 1)
 
         while True:
