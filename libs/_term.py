@@ -115,6 +115,7 @@ class ListWidget():
             elif c == curses.ascii.ctrl(ord('c')):
                 if self.select_mode:
                     self.cur_input = self.search_str
+                    self.caret_pos = len(self.search_str)
                     self.select_mode = False
                 else:
                     self.cur_input = ''
@@ -126,6 +127,7 @@ class ListWidget():
                     self.select_mode = True
                     self.search_str = self.cur_input
                     self.cur_input = ''
+                    self.caret_pos = 0
                 elif self.select_mode and self.item_selected:
                     self.item_selected(int(self.cur_input))
             else:
