@@ -359,6 +359,10 @@ RunScript(name, path)
         # Update input box
         self.ui.inputBox.setText(script.name)
 
+        # HACK: reset title
+        if platform.system() == 'Windows':
+            ctypes.windll.kernel32.SetConsoleTitleA('MyScripts - Console')
+
     def sort_scripts(self):
         def key(script):
             if script.script_path in self.script_access_time:
