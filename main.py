@@ -223,7 +223,7 @@ class MainWindow(QWidget):
         if platform.system() == 'Windows':
             with open('tmp/GlobalHotkey.ahk', 'w') as f:
                 f.write('''#SingleInstance, Force
-SetTitleMatchMode, 2
+; SetTitleMatchMode, 2
 RunScript(name, path)
 {
     If WinExist(name)
