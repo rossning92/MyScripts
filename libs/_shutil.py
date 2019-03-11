@@ -14,6 +14,7 @@ import threading
 import queue
 import locale
 import tempfile
+from tempfile import gettempdir
 
 
 def write_temp_file(text, ext):
