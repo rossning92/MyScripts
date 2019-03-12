@@ -70,11 +70,14 @@ def chdir(path, expand=True):
     os.chdir(path)
 
 
-def call(args, cwd=None, env=None, shell=True, highlight=None):
+def call(args, cwd=None, env=None, shell=True, highlight=None, check_call=True):
     if highlight is not None:
         return call_highlight(args, shell=shell, cwd=cwd, env=env, highlight=highlight)
     else:
-        return subprocess.check_call(args, shell=shell, cwd=cwd, env=env)
+        if check_call:
+            return subprocess.check_call(args, shell=shell, cwd=cwd, env=env)
+        else:
+            return subprocess.call(args, shell=shell, cwd=cwd, env=env)
 
 
 def mkdir(path, expand=True):
