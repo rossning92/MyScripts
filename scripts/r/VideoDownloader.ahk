@@ -17,6 +17,7 @@ ClipChanged(Type) {
 			if ( InStr(Clipboard, "https://www.youtube.com/watch") = 1 )
 			{
 				g_lastUrl := Clipboard
+                url := SubStr(g_lastUrl, 1, 43)
 				
 				SetDownloadDir("Youtube")
                 fmt = bestvideo+bestaudio
@@ -29,7 +30,7 @@ ClipChanged(Type) {
                     Msgbox Download 360p video format
                 }
                 
-                Run cmd /c youtube-dl -f "%fmt%" %g_lastUrl% --no-mtime & timeout 10 
+                Run cmd /c youtube-dl -f "%fmt%" %url% --no-mtime & timeout 10 
                 
 			}
 			else if ( InStr(Clipboard, "https://www.bilibili.com/video/") = 1 )
