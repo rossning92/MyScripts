@@ -15,6 +15,7 @@ import queue
 import locale
 import tempfile
 from tempfile import gettempdir
+import datetime
 
 
 def write_temp_file(text, ext):
@@ -316,6 +317,10 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
 def prepend_to_path(p):
     env = os.environ
     env['PATH'] = os.pathsep.join(p) + os.pathsep + env['PATH']
+
+
+def get_cur_time_str():
+    return datetime.datetime.now().strftime('%y%m%d%H%M%S')
 
 
 env = os.environ
