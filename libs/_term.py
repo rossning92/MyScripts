@@ -18,6 +18,8 @@ class ListWidget():
         self.select_mode = False
         self.search_str = ''
         self.caret_pos = 0
+        self.block_mode = False
+        self.exit = False
 
         self.stdscr = curses.initscr()
         curses.noecho()
@@ -85,7 +87,6 @@ class ListWidget():
         stdscr.refresh()
 
     def update_input(self, stdscr):
-
         height, width = stdscr.getmaxyx()
         # resize = curses.is_term_resized(height, width)
         # if resize is True:
@@ -110,9 +111,9 @@ class ListWidget():
                 self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
             elif c == ord('\b'):
                 self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
-                self.caret_pos -= 1
+                self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
-            elif c == curses.ascii.ctrl(ord('c')):
+            elif c == 0x7F: # Ctrl + Backspace
                 if self.select_mode:
                     self.cur_input = self.search_str
                     self.caret_pos = len(self.search_str)
@@ -122,6 +123,8 @@ class ListWidget():
                     self.caret_pos = 0
                     self.select_mode = False
                     text_changed = True
+            elif c == curses.ascii.ctrl(ord('c')):
+                self.exit = True
             elif c == ord('\n'):
                 if not self.select_mode:
                     self.select_mode = True
@@ -138,13 +141,28 @@ class ListWidget():
             if text_changed and not self.select_mode:
                 self.text_changed(self.cur_input)
 
+            if self.block_mode:
+                break
+
     def update(self):
         cur_time = time.time()
-        if cur_time > self.last_update + 0.5:
+        if cur_time > self.last_update + 0.5 or self.block_mode:
             self.last_update = cur_time
 
             self.update_input(self.stdscr)
             self.update_screen(self.stdscr)
+
+    def exec(self):
+        self.set_block_mode(True)
+        self.update_screen(self.stdscr)
+        while True:
+            if self.exit:
+                return
+            self.update()
+
+    def set_block_mode(self, block_mode):
+        self.block_mode = block_mode
+        self.stdscr.nodelay(not block_mode)
 
 
 def wait_key(prompt=None, timeout=2):

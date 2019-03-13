@@ -37,6 +37,7 @@ def init():
     options.add_argument('user-data-dir=%s' % chrome_profile)  # Path to your chrome profile
     driver = webdriver.Chrome(chrome_options=options)
     driver.implicitly_wait(10)
+    return driver
 
 
-init()
+#init()
