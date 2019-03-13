@@ -23,7 +23,8 @@ if i == -1:
     sys.exit(1)
 
 if opt[i] == 'start':
-    call('adb shell am kill %s' % pkg)
+    # call('adb shell am kill %s' % pkg)
+    call(f'adb shell am force-stop {pkg}')
 
     args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
     print(args)
