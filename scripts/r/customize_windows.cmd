@@ -25,6 +25,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v La
 reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins" /v MailPin /t REG_DWORD /d 0 /f
 
+:: Disable recent items
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f
+rd /s /q "%APPDATA%\Microsoft\Windows\Recent"
+
 :: Turn off hibernation
 powercfg.exe /hibernate off
 
