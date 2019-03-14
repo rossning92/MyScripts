@@ -4,6 +4,22 @@ from _editor import *
 
 SRC_DIR = r'{{SOURCE_FOLDER}}'
 
+repo_root = None
+rel_path = None
+
+if False:
+    tmp_path = ''
+    for comp in SRC_DIR.split('\\'):
+        tmp_path += comp + '\\'
+        if exists(tmp_path + '.gitignore'):
+            print('REPO ROOT: ' + tmp_path)
+            repo_root = tmp_path
+            rel_path = SRC_DIR.replace(repo_root, '')
+            print(rel_path)
+            break
+
+    input()
+
 
 def text_changed(s):
     global cur_text
@@ -26,7 +42,10 @@ ps = None
 lines = []
 files = set()
 cur_text = None
-chdir(SRC_DIR)
+if repo_root:
+    chdir(repo_root)
+else:
+    chdir(SRC_DIR)
 lw = ListWidget(lines=lines, text_changed=text_changed, item_selected=item_selected)
 
 text = None
@@ -40,7 +59,12 @@ while True:
         lines.clear()
         continue
 
-    ps = check_output2('rg --line-number -F "%s"' % text)
+    args = f'rg --line-number -F "{text}"'
+    if rel_path:
+        args += ' ' + rel_path
+    args += ' -g "!intermediates/" -g "!build/"'
+
+    ps = check_output2(args)
 
     lines.clear()
     files.clear()

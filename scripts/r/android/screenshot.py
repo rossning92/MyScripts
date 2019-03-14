@@ -2,7 +2,7 @@ from subprocess import check_call
 import datetime
 import os
 
-os.chdir(os.path.expanduser('~'))
+os.chdir(os.path.expanduser('~/Desktop'))
 
 file_name = datetime.datetime.now().strftime('Screenshot_%y%m%d%H%M%S.png')
 
