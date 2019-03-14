@@ -6,6 +6,97 @@ import re
 import signal
 
 
+class InputWindow():
+    def __init__(self, text_changed=None):
+        self.cur_input = ''
+        self.caret_pos = 0
+        self.text_changed = text_changed
+        self.last_update = 0
+        self.block_mode = False
+        self.exit = False
+        self.input_stack = []
+
+        self.stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        self.stdscr.keypad(1)
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        self.stdscr.nodelay(True)
+
+    def update_screen(self, stdscr):
+        height, width = stdscr.getmaxyx()
+        stdscr.clear()
+
+        # Input text at bottom left
+        stdscr.addstr(height - 1, 0, self.cur_input)
+        stdscr.move(height - 1, self.caret_pos)
+
+        stdscr.refresh()
+
+    def update_input(self, stdscr):
+        while True:
+            text_changed = False
+            ch = stdscr.getch()
+
+            if ch == curses.ERR:
+                break
+            elif ch == curses.KEY_LEFT:
+                self.caret_pos = max(self.caret_pos - 1, 0)
+            elif ch == curses.KEY_RIGHT:
+                self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
+            elif ch == ord('\b'):
+                self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
+                self.caret_pos = max(self.caret_pos - 1, 0)
+                text_changed = True
+            elif ch == curses.ascii.ctrl(ord('c')):
+                if len(self.input_stack) > 0:
+                    self.cur_input = self.input_stack.pop()
+                    self.caret_pos = len(self.cur_input)
+                else:
+                    self.cur_input = ''
+                    self.caret_pos = 0
+                    text_changed = True
+            elif ch == curses.ascii.ctrl(ord('w')):
+                self.exit = True
+            elif ch == ord('\n'):
+                self.input_stack.append(self.cur_input)
+                self.cur_input = ''
+                self.caret_pos = 0
+            else:
+                self.cur_input = self.cur_input[:self.caret_pos] + chr(ch) + self.cur_input[self.caret_pos:]
+                self.caret_pos += 1
+                text_changed = True
+
+            if text_changed and self.text_changed:
+                self.text_changed(self.cur_input)
+
+            if self.block_mode:
+                break
+
+    def update(self):
+        cur_time = time.time()
+        if cur_time > self.last_update + 0.5 or self.block_mode:
+            self.last_update = cur_time
+
+            self.update_input(self.stdscr)
+            self.update_screen(self.stdscr)
+
+    def exec(self):
+        self.set_block_mode(True)
+        self.update_screen(self.stdscr)
+        while True:
+            if self.exit:
+                return
+            self.update()
+
+    def set_block_mode(self, block_mode):
+        self.block_mode = block_mode
+        self.stdscr.nodelay(not block_mode)
+
+
 class ListWidget():
     def __init__(self, lines=None, text_changed=None, item_selected=None):
         self.lines = lines
@@ -113,7 +204,7 @@ class ListWidget():
                 self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
-            elif c == 0x7F: # Ctrl + Backspace
+            elif c == 0x7F:  # Ctrl + Backspace
                 if self.select_mode:
                     self.cur_input = self.search_str
                     self.caret_pos = len(self.search_str)
