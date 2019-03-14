@@ -1,6 +1,4 @@
 from _term import *
 
 lines = ['Hello %s' % i for i in range(10)]
-lw = InputWindow()
-
-lw.exec()
+w = FilterWindow('ping 127.0.0.1 -t')

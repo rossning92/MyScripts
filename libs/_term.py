@@ -4,6 +4,7 @@ import threading
 import time
 import re
 import signal
+from _shutil import *
 
 
 class InputWindow():
@@ -26,15 +27,20 @@ class InputWindow():
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         self.stdscr.nodelay(True)
 
-    def update_screen(self, stdscr):
-        height, width = stdscr.getmaxyx()
-        stdscr.clear()
+    def update_screen2(self):
+        pass
+
+    def update_screen(self):
+        height, width = self.stdscr.getmaxyx()
+        self.stdscr.clear()
+
+        self.update_screen2()
 
         # Input text at bottom left
-        stdscr.addstr(height - 1, 0, self.cur_input)
-        stdscr.move(height - 1, self.caret_pos)
+        self.stdscr.addstr(height - 1, 0, self.cur_input)
+        self.stdscr.move(height - 1, self.caret_pos)
 
-        stdscr.refresh()
+        self.stdscr.refresh()
 
     def update_input(self, stdscr):
         while True:
@@ -82,7 +88,7 @@ class InputWindow():
             self.last_update = cur_time
 
             self.update_input(self.stdscr)
-            self.update_screen(self.stdscr)
+            self.update_screen()
 
     def exec(self):
         self.set_block_mode(True)
@@ -95,6 +101,25 @@ class InputWindow():
     def set_block_mode(self, block_mode):
         self.block_mode = block_mode
         self.stdscr.nodelay(not block_mode)
+
+
+class FilterWindow(InputWindow):
+    def __init__(self, args):
+        super().__init__()
+
+        self.lines = []
+        self.ps = check_output2(args)
+        for l in self.ps.readlines():
+            self.lines.append(l.decode(errors='replace'))
+            self.update()
+
+    def update_screen2(self):
+        height, width = self.stdscr.getmaxyx()
+
+        filtered_lines = [l for l in self.lines if self.cur_input.lower() in l.lower()]
+        n = min(len(filtered_lines), height - 1)
+        for i in range(n):
+            self.stdscr.addstr(i, 0, filtered_lines[i])
 
 
 class ListWidget():
