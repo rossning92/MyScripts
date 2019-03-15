@@ -7,7 +7,7 @@ def start_app(pkg_name):
     call(args)
 
 
-def logcat(pkg_name=None, highlight=None):
+def logcat(pkg_name=None, highlight=None, filter_str=None):
     pid_map = {}
 
     def filter_line(line):
@@ -28,6 +28,10 @@ def logcat(pkg_name=None, highlight=None):
 
             if pkg_name.encode() not in process_name:
                 return None
+
+        # filter by string
+        if filter_str and filter_str.encode() not in line:
+            return None
 
         return line
 

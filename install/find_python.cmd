@@ -6,6 +6,12 @@ if %errorlevel%==0 exit /b 0
 call :find_python %USERPROFILE%\anaconda3
 if %errorlevel%==0 exit /b 0
 
+call :find_python C:\tools\Anaconda3
+if %errorlevel%==0 (
+	call activate.bat
+	exit /b 0
+)
+
 call :find_python %LOCALAPPDATA%\Programs\Python\Python36
 if %errorlevel%==0 exit /b 0
 

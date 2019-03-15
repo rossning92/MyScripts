@@ -10,7 +10,7 @@ chdir('~/Desktop')
 print('Press Ctrl-C to stop recording...')
 
 file = 'Recording_%s.mp4' % get_cur_time_str()
-extra_args = '--time-limit 5 --bit-rate 8M'
+extra_args = '--time-limit 10 --bit-rate 8M'
 call(f'adb shell screenrecord /sdcard/{file} {extra_args}', check_call=False)
 
 call(f'adb pull /sdcard/{file}')

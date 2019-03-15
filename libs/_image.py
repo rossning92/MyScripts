@@ -61,7 +61,7 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
                 text = parse_file_name(text)
             elif labels is not None:
                 text = labels[i]
-            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[1].height), text_outline, font_color)
+            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color)
 
     if generate_atlas:
         num_imgs = len(imgs)

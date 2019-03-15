@@ -1,5 +1,5 @@
 autoRun: false
-globalHotkey: null
+globalHotkey: Win+Alt+V
 hotkey: null
 newWindow: true
 runAsAdmin: false
