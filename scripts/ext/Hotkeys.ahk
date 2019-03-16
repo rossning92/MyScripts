@@ -32,3 +32,22 @@ GUI_WINDOW = MyScripts - GUI
         WinClose ahk_exe ConEmu64.exe
         return
 #If
+
+~LButton & WheelUp::
+    Suspend, Permit
+    SoundSet +10
+    SoundPlay *16
+    return
+
+~LButton & WheelDown::
+    Suspend, Permit
+    SoundSet -10
+    SoundPlay *16
+    return
+
+#F4::
+    Suspend, Permit
+    WinGet, pid, PID, A
+    Process, Close, %pid%
+    SoundPlay %BEEP_FILE%
+    return
