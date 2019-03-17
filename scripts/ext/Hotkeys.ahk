@@ -1,10 +1,11 @@
 #SingleInstance, Force
 #include _ExplorerHelper.ahk
 
-
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
 
+SetTitleMatchMode, 2
+return
 
 ^q::
 	; If explorer is active, copy file path to clipboard
@@ -20,7 +21,7 @@ GUI_WINDOW = MyScripts - GUI
 	return
 	
 #c::
-	if WinExist("ahk_exe chrome.exe") {
+	if WinExist("- Google Chrome ahk_exe chrome.exe") {
 		WinActivate
 	} else {
 		Run chrome.exe
