@@ -244,6 +244,9 @@ def check_output2(args, shell=None, cwd=None, env=None):
         def kill(self):
             ps.kill()
 
+        def return_code(self):
+            return self.ps.wait()
+
     ps = subprocess.Popen(args,
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE,
@@ -278,7 +281,8 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
     if highlight is None:
         highlight = {}
 
-    for line in check_output2(args, shell=shell, cwd=cwd, env=env).readlines():
+    ps = check_output2(args, shell=shell, cwd=cwd, env=env);
+    for line in ps.readlines():
         # Filter line by pre-defined functions
         if filter_line:
             line = filter_line(line)
@@ -313,6 +317,11 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
 
         print(line.decode(locale.getpreferredencoding()), end='')
 
+    ret = ps.return_code()
+    if ret != 0:
+        raise Exception("Process returned non zero")
+
+    return ret
 
 def prepend_to_path(p):
     env = os.environ
