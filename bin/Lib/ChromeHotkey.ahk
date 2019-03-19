@@ -1,4 +1,5 @@
 #SingleInstance, Force
+#InstallKeybdHook
 
 SetTitleMatchMode, 2
 
