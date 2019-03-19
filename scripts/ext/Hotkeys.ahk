@@ -1,4 +1,5 @@
 #SingleInstance, Force
+#InstallKeybdHook
 #include _ExplorerHelper.ahk
 
 CONSOLE_WINDOW = MyScripts - Console
