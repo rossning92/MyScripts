@@ -146,6 +146,10 @@ def run_elevated(args, wait=True):
         import win32process
         from win32com.shell.shell import ShellExecuteEx
         from win32com.shell import shellcon
+        import shlex
+
+        if type(args) == str:
+            args = shlex.split(args)
 
         quoted_args = subprocess.list2cmdline(args[1:])
         process_info = ShellExecuteEx(nShow=win32con.SW_SHOW,
