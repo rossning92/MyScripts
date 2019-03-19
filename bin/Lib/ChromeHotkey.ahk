@@ -22,7 +22,7 @@ HotkeyPressed()
 	url := hotkeyInfo[A_ThisHotkey].url
 	if WinExist(title . " ahk_exe chrome.exe")
     {
-        WinActivate, %title%
+        WinActivate
     }
     else
     {
