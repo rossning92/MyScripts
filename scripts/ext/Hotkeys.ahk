@@ -1,11 +1,16 @@
 #SingleInstance, Force
 #InstallKeybdHook
 #include _ExplorerHelper.ahk
+#include <ChromeHotkey>
 
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
 
 SetTitleMatchMode, 2
+
+AddChromeHotkey("#!l", "- Wunderlist", "https://www.wunderlist.com/webapp#/lists/inbox")
+AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
+
 return
 
 ^q::
