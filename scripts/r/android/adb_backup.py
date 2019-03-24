@@ -2,6 +2,7 @@ from _shutil import *
 
 APP = 'com.coolapk.market'
 APP = 'cn.mdict'
+APP = 'com.github.shadowsocks'
 
 d = 'C:\\tools\\abe'
 mkdir(d)

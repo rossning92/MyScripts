@@ -22,7 +22,6 @@ pkgs = [x.replace('package:', '') for x in lines]
 total = len(pkgs)
 for i in range(total):
     pkg_name = pkgs[i]
-    pkg_name = 'com.github.shadowsocks'
     print(Fore.LIGHTYELLOW_EX + '(%d / %d) Backup %s ...' % (i + 1, total, pkg_name) + Fore.RESET)
 
     if os.path.exists('%s.apk' % pkg_name):
