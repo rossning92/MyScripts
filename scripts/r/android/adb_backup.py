@@ -1,6 +1,5 @@
 from _shutil import *
 
-APP = 'com.facebook.mobilehome'
 APP = 'com.coolapk.market'
 APP = 'cn.mdict'
 
