@@ -36,3 +36,6 @@ elif opt[i] == 'backup':
     out_dir = expanduser('~/Desktop/android_backup')
     mkdir(out_dir)
     backup_pkg(pkg, out_dir=out_dir)
+
+elif opt[i] == 'uninstall':
+    call(f'adb uninstall {pkg}')

@@ -63,3 +63,4 @@ def backup_pkg(pkg, out_dir=None):
     # Pull data
     subprocess.call(f'adb shell su -c tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')
     subprocess.call(f'adb pull /sdcard/{pkg}.tar', cwd=out_dir)
+    subprocess.call(f'adb shell rm /sdcard/{pkg}.tar')

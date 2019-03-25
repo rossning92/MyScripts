@@ -13,7 +13,7 @@ if exists(tar_file):
     call(f'adb push "{tar_file}" /sdcard/')
     call(f'adb shell su -c tar -xf /sdcard/{pkg}.tar')
 
-    out = check_output('adb shell dumpsys package com.github.shadowsocks | grep userId')
+    out = check_output(f'adb shell dumpsys package {pkg} | grep userId')
     out = out.decode().strip()
 
     userId = re.findall(r'userId=(\d+)', out)[0]
