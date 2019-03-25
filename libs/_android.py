@@ -49,3 +49,17 @@ def logcat(pkg_name=None, highlight=None, filter_str=None):
                        'ROSS:': 'GREEN',
                        **highlight
                    })
+
+
+def backup_pkg(pkg, out_dir=None):
+    # Get apk path
+    # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
+    out = subprocess.check_output('adb shell pm path %s' % pkg)
+    apk_path = out.decode().strip().replace('package:', '')
+
+    # Pull apk
+    subprocess.call('adb pull %s %s.apk' % (apk_path, pkg), cwd=out_dir)
+
+    # Pull data
+    subprocess.call(f'adb shell su -c tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')
+    subprocess.call(f'adb pull /sdcard/{pkg}.tar', cwd=out_dir)

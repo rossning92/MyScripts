@@ -1,6 +1,7 @@
 from _shutil import *
 from _gui import *
 from _script import *
+from _android import *
 
 s = check_output('adb shell pm list packages').decode()
 s = s.replace('package:', '')
@@ -15,7 +16,8 @@ print("Selected: " + pkg)
 
 opt = [
     'start',
-    'uninstall'
+    'uninstall',
+    'backup',
 ]
 
 i = search(opt)
@@ -31,3 +33,8 @@ if opt[i] == 'start':
     Popen(args)
 
     run_script('logcat', variables={'PKG_NAME': pkg}, new_window=True)
+
+elif opt[i] == 'backup':
+    out_dir = expanduser('~/Desktop/android_backup')
+    mkdir(out_dir)
+    backup_pkg(pkg, out_dir=out_dir)
