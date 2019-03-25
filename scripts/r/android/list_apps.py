@@ -28,9 +28,7 @@ if opt[i] == 'start':
     # call('adb shell am kill %s' % pkg)
     call(f'adb shell am force-stop {pkg}')
 
-    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
-    print(args)
-    Popen(args)
+    start_app(pkg)
 
     run_script('logcat', variables={'PKG_NAME': pkg}, new_window=True)
 

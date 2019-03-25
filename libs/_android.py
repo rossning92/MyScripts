@@ -1,8 +1,8 @@
 from _shutil import *
 
 
-def start_app(pkg_name):
-    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg_name
+def start_app(pkg):
+    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
     print('Start app: ' + args)
     call(args)
 
