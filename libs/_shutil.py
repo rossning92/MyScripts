@@ -258,6 +258,39 @@ def check_output2(args, shell=None, cwd=None, env=None):
     return MyProcess(ps)
 
 
+def print_color(msg, color='yellow'):
+    from colorama import init
+    from colorama import Fore, Back, Style
+
+    COLOR_MAP = {
+        'black': Fore.LIGHTBLACK_EX,
+        'red': Fore.LIGHTRED_EX,
+        'green': Fore.LIGHTGREEN_EX,
+        'yellow': Fore.LIGHTYELLOW_EX,
+        'blue': Fore.LIGHTBLUE_EX,
+        'magenta': Fore.LIGHTMAGENTA_EX,
+        'cyan': Fore.LIGHTCYAN_EX,
+        'white': Fore.LIGHTWHITE_EX,
+        'BLACK': Back.BLACK,
+        'RED': Back.RED,
+        'GREEN': Back.GREEN,
+        'YELLOW': Back.YELLOW,
+        'BLUE': Back.BLUE,
+        'MAGENTA': Back.MAGENTA,
+        'CYAN': Back.CYAN,
+        'WHITE': Back.WHITE,
+    }
+
+    if not print_color.colorama_initialized:
+        init()
+        print_color.colorama_initialized = True
+
+    print(COLOR_MAP[color] + msg + Style.RESET_ALL)
+
+
+print_color.colorama_initialized = False
+
+
 def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
     from colorama import init, Fore, Back, Style
 
