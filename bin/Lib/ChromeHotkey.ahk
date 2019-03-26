@@ -30,7 +30,7 @@ HotkeyPressed()
     }
     else if ( hotkeyHwndMap.HasKey(A_ThisHotkey) and WinExist("ahk_id" hotkeyHwndMap[A_ThisHotkey]) )
     {
-        WinActivate % hotkeyHwndMap[A_ThisHotkey]
+        WinActivate % "ahk_id " hotkeyHwndMap[A_ThisHotkey]
     }
     else
     {
