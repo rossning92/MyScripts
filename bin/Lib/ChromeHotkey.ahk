@@ -4,6 +4,7 @@
 SetTitleMatchMode, 2
 
 hotkeyInfo := {}
+hotkeyHwndMap := {}
 
 AddChromeHotkey(hotkey, title, url)
 {
@@ -15,6 +16,7 @@ AddChromeHotkey(hotkey, title, url)
 HotkeyPressed()
 {
 	global hotkeyInfo
+    global hotkeyHwndMap
 	
 	chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 	
@@ -23,6 +25,12 @@ HotkeyPressed()
 	if WinExist(title . " ahk_exe chrome.exe")
     {
         WinActivate
+        WinGet, hwnd, ID
+        hotkeyHwndMap[A_ThisHotkey] := hwnd
+    }
+    else if ( hotkeyHwndMap.HasKey(A_ThisHotkey) and WinExist("ahk_id" hotkeyHwndMap[A_ThisHotkey]) )
+    {
+        WinActivate % hotkeyHwndMap[A_ThisHotkey]
     }
     else
     {
