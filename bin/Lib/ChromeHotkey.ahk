@@ -36,11 +36,22 @@ HotkeyPressed()
     else
     {
         Run %chrome% --start-maximized --app=%url%
-        WinWait, title . ahk_exe chrome.exe,, 5
+        WinWait, %title% ahk_exe chrome.exe,, 10
         if ErrorLevel
+        {
+            SoundPlay *16
             return
+        }
         
         WinGet, hwnd, ID
         hotkeyHwndMap[A_ThisHotkey] := hwnd
+        ToolTip, Chrome detected, 0, 0
+        SetTimer, RemoveToolTip, -2000
     }
+}
+
+RemoveToolTip()
+{
+    ToolTip
+    return
 }
