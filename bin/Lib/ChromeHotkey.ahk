@@ -25,6 +25,7 @@ HotkeyPressed()
 	if WinExist(title . " ahk_exe chrome.exe")
     {
         WinActivate
+        
         WinGet, hwnd, ID
         hotkeyHwndMap[A_ThisHotkey] := hwnd
     }
@@ -35,5 +36,11 @@ HotkeyPressed()
     else
     {
         Run %chrome% --start-maximized --app=%url%
+        WinWait, title . ahk_exe chrome.exe,, 5
+        if ErrorLevel
+            return
+        
+        WinGet, hwnd, ID
+        hotkeyHwndMap[A_ThisHotkey] := hwnd
     }
 }
