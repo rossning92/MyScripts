@@ -87,7 +87,7 @@ class ScriptItem:
         self.return_code = 0
 
         # BUG: jinja2 doesn't support '\' in path
-        script_path = script_path.replace('\\', '/')
+        script_path = script_path.replace(os.path.sep, '/')
         self.script_path = script_path
 
         name, ext = os.path.splitext(script_path)
