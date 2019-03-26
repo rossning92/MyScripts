@@ -35,5 +35,8 @@ powercfg.exe /hibernate off
 :: Disable UAC
 call disable_UAC.cmd
 
+:: Turn off animation
+reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_DWORD /d 0 /f
+
 taskkill /f /im explorer.exe
 start explorer.exe
