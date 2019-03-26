@@ -190,6 +190,7 @@ class MainWindow(QWidget):
 
         self.script_items = []
         self.matched_items = []
+        self.modified_time = {}
 
         self.ui = uic.loadUi('MainDialog.ui', self)
 
@@ -275,17 +276,22 @@ RunScript(name, path)
             if ext not in SCRIPT_EXTENSIONS:
                 continue
 
+            mtime = os.path.getmtime(file)
+
             script = ScriptItem(file)
 
-            # Check if auto run script
-            # TODO: only run modified scripts
-            if script.meta['autoRun']:
-                script.execute()
+            if file not in self.modified_time or mtime > self.modified_time[file]:
+                # Check if auto run script
+                if script.meta['autoRun']:
+                    print('Autorun: ' + file)
+                    script.execute()
 
             # Hide files starting with '_'
             base_name = os.path.basename(file)
             if not base_name.startswith('_'):
                 self.script_items.append(script)
+
+            self.modified_time[file] = mtime
 
         self.sort_scripts()
 
