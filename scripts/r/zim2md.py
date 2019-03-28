@@ -22,7 +22,7 @@ def replace_title(s):
 
 
 def convert_to_md(file_path):
-    print('Converting: %s' % file_path)
+    #print('Converting: %s' % file_path)
 
     with open(file_path, encoding='utf-8') as f:
         s = f.read()
@@ -32,7 +32,7 @@ def convert_to_md(file_path):
 
     # Images
     base_name = os.path.basename(os.path.splitext(file_path)[0])
-    s = re.sub(r'\{\{\./(.*?)\}\}', r'![](%s/\1)' % base_name, s)
+    s = re.sub(r'\{\{\.[/\\](.*?)\}\}', r'![](%s/\1)' % base_name, s)
 
     # Links
     s = re.sub(r'\[\[\+(.*?)\]\]', lambda x: r'[%s](%s/%s.md)' % (x.group(1), base_name, x.group(1).replace(' ', '_')),
@@ -40,11 +40,18 @@ def convert_to_md(file_path):
     # s = re.sub(r'\[\[\./(.*?)\]\]', r'[File](\1)', s)
 
     file_md = os.path.splitext(file_path)[0] + '.md'
-    with open(file_md, 'w', encoding='utf-8') as f:
-        f.write(s)
+
+    existing_content = None
+    if os.path.exists(file_md):
+        existing_content = open(file_md, 'r', encoding='utf-8').read()
+
+    if s != existing_content:
+        print('Output: %s' % file_md)
+        with open(file_md, 'w', encoding='utf-8') as f:
+            f.write(s)
 
 
-os.chdir(r'E:\Documents\Zim\Notebooks\Notebook')
+os.chdir(r'E:\Documents\Notes')
 
 for f in glob.glob('**/*.txt', recursive=True):
     convert_to_md(f)
