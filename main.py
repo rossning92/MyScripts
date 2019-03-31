@@ -18,6 +18,7 @@ from myutils import *
 import time
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
+GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
 
 def get_data_folder():
@@ -222,7 +223,7 @@ class MainWindow(QWidget):
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
-            with open('tmp/GlobalHotkey.ahk', 'w') as f:
+            with open(GLOBAL_HOTKEY, 'w') as f:
                 f.write('''#SingleInstance, Force
 ; SetTitleMatchMode, 2
 RunScript(name, path)
@@ -249,7 +250,7 @@ RunScript(name, path)
 
                         f.write(f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
 
-            subprocess.Popen(['AutoHotkeyU64.exe', 'tmp/GlobalHotkey.ahk'])
+            subprocess.Popen(['AutoHotkeyU64.exe', GLOBAL_HOTKEY])
 
         else:
             import keyboard

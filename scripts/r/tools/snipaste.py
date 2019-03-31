@@ -13,7 +13,7 @@ install_dir = 'C:\\Snipaste'
 
 if not exists(install_dir):
     chdir(gettempdir())
-    download(url, 'Snipaste.zip')
+    download(url, 'Snipaste.zip', redownload=True)
     unzip('Snipaste.zip', install_dir)
 
 with open(install_dir + '\\config.ini', 'w') as f:
