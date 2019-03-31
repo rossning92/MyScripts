@@ -87,7 +87,7 @@ def mkdir(path, expand=True):
     os.makedirs(path, exist_ok=True)
 
 
-def download(url, filename=None):
+def download(url, filename=None, redownload=False):
     try:
         import requests
     except:
@@ -97,7 +97,7 @@ def download(url, filename=None):
     if filename is None:
         filename = os.path.basename(url)
 
-    if exists(filename):
+    if exists(filename) and not redownload:
         print('File already exists: %s' % filename)
         return
 
