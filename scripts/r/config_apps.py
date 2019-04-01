@@ -14,3 +14,4 @@ tree.write(config_file)
 # Sumatra
 config_file = r"C:\ProgramData\chocolatey\lib\sumatrapdf.commandline\tools\SumatraPDF-settings.txt"
 replace(config_file, 'RememberOpenedFiles = .*', 'RememberOpenedFiles = false', debug_output=True)
+replace(config_file, 'UseTabs = .*', 'UseTabs = false', debug_output=True)

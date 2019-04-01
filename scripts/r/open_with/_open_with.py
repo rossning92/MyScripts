@@ -315,14 +315,16 @@ assoc = {
     '.yml': 'notepad++',
     '.zim': 'notepad++',
     '.zip': 'GoogleDrive.cmd',
-    '.zxp': 'notepad++'
+    '.zxp': 'notepad++',
+    '.gz': '7z',
 }
 
 program_path = {
     'notepad++': ['notepad++.exe'],
-    'VLC': ['C:\\Program Files\\VideoLAN\\VLC\\vlc.exe', r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"],
-    'IrfanView': ['C:\\Program Files\\IrfanView\\i_view64.exe'],
-    'SumatraPDF': ['SumatraPDF.exe']
+    'VLC': [r'C:\Program Files\VideoLAN\VLC\vlc.exe', r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"],
+    'IrfanView': [r'C:\Program Files\IrfanView\i_view64.exe'],
+    'SumatraPDF': ['SumatraPDF.exe'],
+    '7z': [r"C:\Program Files\7-Zip\7zFM.exe"],
 }
 
 
@@ -348,10 +350,10 @@ def main():
     print('Cannot run %s' % program)
     input()
 
+
 try:
     main()
 except Exception as e:
     traceback.print_exc(file=sys.stdout)
     print(e)
     input()
-
