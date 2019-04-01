@@ -20,13 +20,14 @@ call('pip install "tensorflow>=1.7.0"')
 call('pip install tensorflow-hub')
 
 # Retrain
-download('https://github.com/tensorflow/hub/raw/master/examples/image_retraining/retrain.py')
-call('python retrain.py --image_dir flower_photos')
+if False:
+    download('https://github.com/tensorflow/hub/raw/master/examples/image_retraining/retrain.py')
+    call('python retrain.py --image_dir flower_photos')
 
 
 download('https://github.com/tensorflow/tensorflow/raw/master/tensorflow/examples/label_image/label_image.py')
 exec_bash(r'''python label_image.py \
---graph=/tmp/output_graph.pb --labels=/tmp/output_labels.txt \
+--graph=tmp/output_graph.pb --labels=tmp/output_labels.txt \
 --input_layer=Placeholder \
 --output_layer=final_result \
---image=$HOME/flower_photos/daisy/21652746_cc379e0eea_m.jpg''')
+--image=flower_photos/daisy/21652746_cc379e0eea_m.jpg''')
