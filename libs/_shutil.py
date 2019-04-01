@@ -370,4 +370,29 @@ def get_cur_time_str():
     return datetime.datetime.now().strftime('%y%m%d%H%M%S')
 
 
+def exec_bash(script, wsl=False):
+    args = None
+    if os.name == 'nt':
+        if wsl:  # WSL (Windows Subsystem for Linux)
+            if not os.path.exists(r'C:\Windows\System32\bash.exe'):
+                raise Exception('WSL (Windows Subsystem for Linux) is not installed.')
+            args = ['bash.exe', '-c', script]
+        else:
+            args = [
+                r'C:\Program Files\Git\bin\bash.exe',
+                '--login',
+                '-i',
+                '-c',
+                script
+            ]
+    elif os.name == 'posix':  # MacOSX
+        args = ['bash', '-c', script]
+    else:
+        raise Exception('Non supported OS version')
+
+    ret = subprocess.call(args)
+    if ret != 0:
+        raise Exception('Bash returned non-zero value.')
+
+
 env = os.environ
