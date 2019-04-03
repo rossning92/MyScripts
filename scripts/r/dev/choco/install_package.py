@@ -41,7 +41,11 @@ other_options = [
     '@for work',
 ]
 
-pkg_list = sorted(other_options + other + dev + media)
+redist = [
+    'dotnet4.5',
+]
+
+pkg_list = sorted(other_options + other + dev + media + redist)
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
