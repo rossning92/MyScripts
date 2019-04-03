@@ -41,11 +41,11 @@ other_options = [
     '@for work',
 ]
 
-redist = [
-    'dotnet4.5',
+ue4 = [
+    'directx',
 ]
 
-pkg_list = sorted(other_options + other + dev + media + redist)
+pkg_list = sorted(other_options + other + dev + media + ue4)
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
