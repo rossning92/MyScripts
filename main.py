@@ -234,7 +234,7 @@ RunScript(name, path)
     }
     else
     {
-        Run python -c "from _script import *;run_script('%path%')"
+        Run cmd /c python -c "from _script import *;run_script('%path%')" || pause
     }
 }
 ''')
