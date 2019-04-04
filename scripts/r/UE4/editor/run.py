@@ -28,12 +28,13 @@ os.environ['DATA_CACHE_DIR'] = r'C:\UE4-DataCache'
 
 chdir(r'{{UE_SOURCE}}\Engine\Binaries\Win64')
 
-print('Setup NVPACK env...')
-for k, v in NVPACK.items():
-    if k != 'PATH':
-        env[k] = v
-    else:
-        prepend_to_path(v)
+if exists('C:\\NVPACK'):
+    print('Setup NVPACK env...')
+    for k, v in NVPACK.items():
+        if k != 'PATH':
+            env[k] = v
+        else:
+            prepend_to_path(v)
 
 # set UE-SharedDataCachePath=%DATA_CACHE_DIR%
 # start UE4Editor.exe -ddc=noshared
