@@ -30,7 +30,7 @@ def logcat(pkg_name=None, highlight=None, filter_str=None):
                 return None
 
         # filter by string
-        if filter_str and filter_str.encode() not in line:
+        if filter_str and re.search(filter_str.encode(), line) is None:
             return None
 
         return line
