@@ -24,6 +24,7 @@ dev = [
     'android-sdk',
     'llvm',
     'ripgrep',
+    'vscode',
 ]
 
 media = [
