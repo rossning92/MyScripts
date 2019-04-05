@@ -68,9 +68,10 @@ while True:
 
     lines.clear()
     files.clear()
-    for l in ps.readlines():
-        s = l.decode(errors='replace')
-        s = s.strip()
-        lines.append(s)
+    for l in ps.readlines(block=False, timeout=0.1):
+        if l is not None:
+            s = l.decode(errors='replace')
+            s = s.strip()
+            lines.append(s)
 
         lw.update()

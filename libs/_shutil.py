@@ -223,7 +223,7 @@ def check_output2(args, shell=None, cwd=None, env=None):
                     break
                 que.put(data)
 
-        def readlines(self):
+        def readlines(self, block=True, timeout=None):
             import keyboard
 
             que = queue.Queue()
@@ -236,14 +236,16 @@ def check_output2(args, shell=None, cwd=None, env=None):
                 if keyboard.is_pressed('r'):
                     with que.mutex:
                         que.queue.clear()
+                try:
+                    line = que.get(block=block, timeout=timeout)
+                    if line == b'':
+                        terminated += 1
+                        if terminated == 2:
+                            break
 
-                line = que.get()
-                if line == b'':
-                    terminated += 1
-                    if terminated == 2:
-                        break
-
-                yield line
+                    yield line
+                except queue.Empty:
+                    yield None
 
         def kill(self):
             ps.kill()
@@ -362,7 +364,7 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
 
 
 def prepend_to_path(p):
-    assert(type(p) == list)
+    assert (type(p) == list)
     env = os.environ
     env['PATH'] = os.pathsep.join(p) + os.pathsep + env['PATH']
 
