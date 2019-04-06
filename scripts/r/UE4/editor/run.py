@@ -1,5 +1,4 @@
 from _shutil import *
-import _setup_android_env
 
 NVPACK = {
     "ANDROID_HOME": "C:\\NVPACK\\android-sdk-windows",
