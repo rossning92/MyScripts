@@ -187,10 +187,16 @@ class ScriptItem:
             env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
-            if os.name == 'posix':
-                args = [sys.executable, tmp_script_file] + args
+            if self.meta['anaconda']:
+                import _conda
+                python_executable = _conda.get_conda_path() + '/python.exe'
             else:
-                args = [sys.executable, tmp_script_file] + args
+                python_executable = sys.executable
+
+            if os.name == 'posix':
+                args = [python_executable, tmp_script_file] + args
+            else:
+                args = [python_executable, tmp_script_file] + args
 
             if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
                 args = ['cmd', '/c',
@@ -331,7 +337,8 @@ class ScriptMeta:
             'newWindow': False,
             'runAsAdmin': False,
             'autoRun': False,
-            'wsl': False
+            'wsl': False,
+            'anaconda': False
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'

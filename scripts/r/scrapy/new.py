@@ -1,5 +1,5 @@
 from _shutil import *
-import _conda
+import _conda; _conda.setup_env()
 from _pycharm import pycharm
 import webbrowser
 

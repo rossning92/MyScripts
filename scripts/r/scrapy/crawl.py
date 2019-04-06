@@ -1,5 +1,5 @@
 from _shutil import *
-import _conda
+import _conda; _conda.setup_env()
 
 chdir('~/Projects/scrapy/{{SCRAPY_PROJECT}}')
 
