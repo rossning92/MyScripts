@@ -128,13 +128,23 @@ class EditVariableWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        try:
-            with open(get_variable_file()) as f:
-                self.variables = json.load(f)
-        except Exception:
-            self.variables = {}
+        self.variables = {}
+        self.variables_mtime = None
 
-    def init(self, varList=[]):
+    def load_variables(self):
+        try:
+            file = get_variable_file()
+            mtime = os.path.getmtime(file)
+            if self.variables_mtime is None or mtime > self.variables_mtime:
+                with open(file) as f:
+                    self.variables = json.load(f)
+                    self.variables_mtime = mtime
+        except Exception:
+            print('Failed to load variable file.')
+
+    def update_items(self, varList=[]):
+        self.load_variables()
+
         for i in range(self.layout().count()):
             self.layout().itemAt(i).widget().deleteLater()
 
@@ -322,7 +332,7 @@ RunScript(name, path)
         for i in self.matched_items:
             self.ui.listWidget.addItem('%3d. %s' % (i + 1, self.script_items[i]))
 
-        self.editVariableWidget.init()  # Clear all widget
+        self.editVariableWidget.update_items()  # Clear all widget
         if len(self.matched_items) > 0:
             # Set selected items
             first_matched_item = self.script_items[self.matched_items[0]]
@@ -331,7 +341,7 @@ RunScript(name, path)
 
             # Display variable list
             if 'get_variables' in dir(first_matched_item):
-                self.editVariableWidget.init(first_matched_item.get_variable_names())
+                self.editVariableWidget.update_items(first_matched_item.get_variable_names())
 
                 # Save current selected menu items
                 # with open('data/SelectedScript.txt', 'w') as f:
