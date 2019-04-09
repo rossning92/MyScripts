@@ -27,12 +27,7 @@ if i == -1:
 set_variable('PKG_NAME', pkg)
 
 if opt[i] == 'start':
-    # call('adb shell am kill %s' % pkg)
-    call(f'adb shell am force-stop {pkg}')
-
-    start_app(pkg)
-
-    run_script('logcat', variables={'PKG_NAME': pkg}, new_window=True)
+    run_script('start_app', variables={'PKG_NAME': pkg}, new_window=True)
 
 elif opt[i] == 'backup':
     out_dir = expanduser('~/Desktop/android_backup')

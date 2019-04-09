@@ -8,4 +8,4 @@ call(f'adb shell am force-stop {pkg}')
 
 start_app(pkg)
 
-run_script('logcat', variables={'PKG_NAME': pkg}, new_window=True)
+run_script('logcat', variables={'PKG_NAME': pkg})
