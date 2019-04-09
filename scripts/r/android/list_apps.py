@@ -24,6 +24,8 @@ i = search(opt)
 if i == -1:
     sys.exit(1)
 
+set_variable('PKG_NAME', pkg)
+
 if opt[i] == 'start':
     # call('adb shell am kill %s' % pkg)
     call(f'adb shell am force-stop {pkg}')

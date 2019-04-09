@@ -57,6 +57,22 @@ def get_arg(name):
     return variables[name][-1]
 
 
+def set_variable(name, val):
+    file = get_variable_file()
+    with open(file, 'r') as f:
+        variables = json.load(f)
+
+    vals = variables[name]
+    try:
+        vals.remove(val)
+    except ValueError:
+        pass
+    vals.append(val)
+
+    with open(file, 'w') as f:
+        json.dump(variables, f, indent=4)
+
+
 def get_python_path(script_path):
     python_path = []
 
