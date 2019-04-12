@@ -6,7 +6,7 @@ WinGetClientPos( winTitle, ByRef x, ByRef y, ByRef w, ByRef h )
     if hwnd =
     {
         return false
-    }    
+    }
     
 	VarSetCapacity( size, 16, 0 )
 	DllCall( "GetClientRect", UInt, hwnd, Ptr, &size )
@@ -24,9 +24,16 @@ SetWindow(windowTitle)
     g_windowTitle := windowTitle
 }
 
+RecordClientArea(b)
+{
+    global g_recordClientArea
+    g_recordClientArea := b
+}
+
 Record()
 {
-    global g_windowTitle
+    global g_windowTitle, g_recordClientArea
+    
     if (g_windowTitle == "")
     {
         MsgBox g_windowTitle is not set
@@ -41,10 +48,23 @@ Record()
         ExitApp
     }
     
-    if not WinGetClientPos(g_windowTitle, x, y, w, h)
+    if g_recordClientArea
     {
-        MsgBox, 16, ERROR, Fail to get window geometry: %g_windowTitle%
-        ExitApp
+        if not WinGetClientPos(g_windowTitle, x, y, w, h)
+        {
+            MsgBox, 16, ERROR, Fail to get client geometry: %g_windowTitle%
+            ExitApp
+        }
+    }
+    else
+    {
+        WinGet, hwnd, ID, %winTitle%
+        if hwnd =
+        {
+            MsgBox, 16, ERROR, Fail to get window geometry: %g_windowTitle%
+            ExitApp
+        }
+        WinGetPosEx(hwnd, x, y, w, h)
     }
 	
 	; Start VLC
@@ -68,6 +88,69 @@ Exit()
     ExitApp
 }
 
+WinGetPosEx(hWindow, ByRef X = "", ByRef Y = "", ByRef Width = "", ByRef Height = "", ByRef Offset_X = "", ByRef Offset_Y = "")
+{
+    Static Dummy5693, RECTPlus, S_OK := 0x0, DWMWA_EXTENDED_FRAME_BOUNDS := 9
+
+    ;-- Workaround for AutoHotkey Basic
+    PtrType := (A_PtrSize=8) ? "Ptr" : "UInt"
+
+    ;-- Get the window's dimensions
+    ;     Note: Only the first 16 bytes of the RECTPlus structure are used by the
+    ;     DwmGetWindowAttribute and GetWindowRect functions.
+    VarSetCapacity(RECTPlus, 24,0)
+    DWMRC := DllCall("dwmapi\DwmGetWindowAttribute"
+            ,PtrType,hWindow                                                                ;-- hwnd
+            ,"UInt",DWMWA_EXTENDED_FRAME_BOUNDS                         ;-- dwAttribute
+            ,PtrType,&RECTPlus                                                            ;-- pvAttribute
+            ,"UInt",16)                                                                         ;-- cbAttribute
+
+    If (DWMRC <> S_OK) {
+        If ErrorLevel in -3, -4     ;-- Dll or function not found (older than Vista)
+        {
+            ;-- Do nothing else (for now)
+        } Else
+            outputdebug,
+                (LTrim Join`s
+                 Function: %A_ThisFunc% -
+                 Unknown error calling "dwmapi\DwmGetWindowAttribute".
+                 RC = %DWMRC%,
+                 ErrorLevel = %ErrorLevel%,
+                 A_LastError = %A_LastError%.
+                 "GetWindowRect" used instead.
+                )
+
+        ;-- Collect the position and size from "GetWindowRect"
+        DllCall("GetWindowRect", PtrType, hWindow, PtrType, &RECTPlus)
+    }
+
+    ;-- Populate the output variables
+    X := Left := NumGet(RECTPlus, 0, "Int")
+    Y := Top  := NumGet(RECTPlus, 4, "Int")
+    Right     := NumGet(RECTPlus, 8, "Int")
+    Bottom    := NumGet(RECTPlus, 12, "Int")
+    Width     := Right-Left
+    Height    := Bottom-Top
+    OffSet_X  := 0
+    OffSet_Y  := 0
+
+    ;-- If DWM is not used (older than Vista or DWM not enabled), we're done
+    If (DWMRC <> S_OK)
+        Return &RECTPlus
+
+    ;-- Collect dimensions via GetWindowRect
+    VarSetCapacity(RECT, 16, 0)
+    DllCall("GetWindowRect", PtrType, hWindow, PtrType, &RECT)
+    GWR_Width := NumGet(RECT, 8, "Int") - NumGet(RECT, 0, "Int")        ;-- Right minus Left
+    GWR_Height := NumGet(RECT, 12, "Int") - NumGet(RECT, 4, "Int")    ;-- Bottom minus Top
+
+    ;-- Calculate offsets and update output variables
+    NumPut(Offset_X := (Width    - GWR_Width)    // 2, RECTPlus, 16, "Int")
+    NumPut(Offset_Y := (Height - GWR_Height) // 2, RECTPlus, 20, "Int")
+    Return &RECTPlus
+}
+
+g_recordClientArea := True
 SetKeyDelay, 10, 10
 SetWorkingDir % A_Desktop
 Hotkey, Esc, Exit
