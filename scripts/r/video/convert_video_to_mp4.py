@@ -4,7 +4,10 @@ import sys
 import locale
 
 os.chdir(os.environ['CURRENT_FOLDER'])
-files = os.listdir('.')
+if 'SELECTED_FILE' in os.environ:
+    files = [os.path.basename(os.environ['SELECTED_FILE'])]
+else:
+    files = os.listdir('.')
 
 for f in files:
     if not os.path.isfile(f):
@@ -17,7 +20,8 @@ for f in files:
         'ffmpeg',
         '-i', f,
         # '-filter:v', 'crop=200:200:305:86',
-        # '-codec:v', 'libx264', '-preset', 'ultrafast', '-crf', '0',  # Lossless
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22',  # Lossless
+        '-c:a', 'aac', '-b:a', '128k',
         out_file
     ]
     subprocess.call(args)
