@@ -235,6 +235,12 @@ class ScriptItem:
                         'set', 'PYTHONDONTWRITEBYTECODE=1', '&'
                         ] + args
 
+        elif self.ext == '.vbs':
+            assert os.name == 'nt'
+
+            script_abs_path = os.path.join(os.getcwd(), self.script_path)
+            args = ['cscript', '//nologo', script_abs_path]
+
         else:
             print('Not supported script:', self.ext)
 

@@ -17,7 +17,7 @@ from gui import ProcessWidget
 from myutils import *
 import time
 
-SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk'}
+SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk', '.vbs'}
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
 
