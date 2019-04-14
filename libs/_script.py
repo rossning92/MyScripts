@@ -46,9 +46,23 @@ def _args_to_str(args):
     return ' '.join(args)
 
 
+def get_data_folder():
+    app_dir = os.path.abspath(os.path.dirname(__file__) + '/../')
+    folder = os.path.join(app_dir, 'data', platform.node())
+    os.makedirs(folder, exist_ok=True)
+    return folder
+
+
 def get_variable_file():
-    file = os.path.abspath(os.path.dirname(__file__) + '/../variables.' + platform.node() + '.json')
-    return file
+    variable_file = os.path.join(get_data_folder(), 'variables.json')
+
+    if True:  # Deprecated: copy old variable file to new path
+        my_script_dir = os.path.abspath(os.path.dirname(__file__) + '/../')
+        variable_file2 = my_script_dir + '/variables.' + platform.node() + '.json'
+        if exists(variable_file2):
+            shutil.copy(variable_file2, variable_file)
+
+    return variable_file
 
 
 def get_arg(name):
