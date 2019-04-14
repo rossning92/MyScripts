@@ -33,6 +33,10 @@ return
 		Run chrome.exe
 	}
 	return
+    
+#+c::
+    Run chrome.exe --user-data-dir=%USERPROFILE%\ChromeData2
+	return
 
 #If WinActive("ahk_exe ConEmu64.exe")
     Esc::
