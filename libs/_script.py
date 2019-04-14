@@ -154,7 +154,7 @@ class ScriptItem:
         with open(get_variable_file(), 'r') as f:
             variables = json.load(f)
 
-        # Let only last modified value
+        # Get only last modified value
         variables = {k: (v[-1] if len(v) > 0 else '') for k, v in variables.items()}
 
         # Override variables
