@@ -1,5 +1,9 @@
 notepad++:
   executable:
+    - notepad++.exe
+
+VLC:
+  executable:
     - C:\Program Files\VideoLAN\VLC\vlc.exe
     - C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
 
