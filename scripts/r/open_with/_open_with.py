@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import traceback
+import _appmanager
 
 assoc = {
     '.0-win-64bit-build1': 'PathAdd',
@@ -319,14 +320,6 @@ assoc = {
     '.gz': '7z',
 }
 
-program_path = {
-    'notepad++': ['notepad++.exe'],
-    'VLC': [r'C:\Program Files\VideoLAN\VLC\vlc.exe', r"C:\Program Files (x86)\VideoLAN\VLC\vlc.exe"],
-    'IrfanView': [r'C:\Program Files\IrfanView\i_view64.exe'],
-    'SumatraPDF': ['SumatraPDF.exe'],
-    '7z': [r"C:\Program Files\7-Zip\7zFM.exe"],
-}
-
 
 def main():
     file_path = sys.argv[1]
@@ -335,20 +328,8 @@ def main():
         raise Exception('%s is not defined' % ext)
 
     program = assoc[ext]
-    if program not in program_path:
-        raise Exception('%s not found' % program)
-    program = program_path[program]
-
-    for p in program:
-        try:
-            args = [p, file_path]
-            subprocess.Popen(args)
-            return
-        except:
-            pass
-
-    print('Cannot run %s' % program)
-    input()
+    args = [_appmanager.get_executable(program), file_path]
+    subprocess.Popen(args)
 
 
 try:

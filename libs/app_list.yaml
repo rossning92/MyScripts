@@ -1,0 +1,16 @@
+notepad++:
+  executable:
+    - C:\Program Files\VideoLAN\VLC\vlc.exe
+    - C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
+
+IrfanView:
+  executable:
+    - C:\Program Files\IrfanView\i_view64.exe
+
+SumatraPDF:
+  executable:
+    - SumatraPDF.exe
+
+7z:
+  executable:
+    - C:\Program Files\7-Zip\7zFM.exe
