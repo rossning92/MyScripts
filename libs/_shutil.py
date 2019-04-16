@@ -396,7 +396,10 @@ def exec_bash(script, wsl=False):
     else:
         raise Exception('Non supported OS version')
 
-    ret = subprocess.call(args)
+    # HACK: disable path conversion
+    env = os.environ.copy()
+    env['MSYS_NO_PATHCONV'] = '1'
+    ret = subprocess.call(args, env=env)
     if ret != 0:
         raise Exception('Bash returned non-zero value.')
 
