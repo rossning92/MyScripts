@@ -37,5 +37,5 @@ def setup_android_env():
     prepend_to_path(path)
 
 
-setup_android_env()
+# setup_android_env()
 studio = r'C:\Program Files\Android\Android Studio\bin\studio64.exe'

@@ -1,6 +1,6 @@
 from _shutil import *
 from _pyenv import *
-import _setup_android_env
+import _setup_android_env; _setup_android_env.setup_android_env()
 
 mk = '''
 LOCAL_PATH := $(call my-dir)
