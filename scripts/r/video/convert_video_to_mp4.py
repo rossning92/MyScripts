@@ -1,13 +1,6 @@
-import os
-import subprocess
-import sys
-import locale
+from _shutil import *
 
-os.chdir(os.environ['CURRENT_FOLDER'])
-if 'SELECTED_FILE' in os.environ:
-    files = [os.path.basename(os.environ['SELECTED_FILE'])]
-else:
-    files = os.listdir('.')
+files = get_files(cd=True)
 
 for f in files:
     if not os.path.isfile(f):
