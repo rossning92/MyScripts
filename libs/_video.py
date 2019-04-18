@@ -1,22 +1,19 @@
 import subprocess
 import os
 
-try:
-    import moviepy
-except:
-    subprocess.call('pip install moviepy')
-    import requests
-
-from moviepy.editor import VideoFileClip, TextClip, ColorClip, clips_array, vfx
-import numpy as np
-import moviepy.editor as mpy
-
 
 def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, fps=None):
+    os.environ['IMAGEMAGICK_BINARY'] = r"C:\Program Files\ImageMagick-7.0.8-Q16\magick.exe"
+    try:
+        import moviepy
+    except:
+        subprocess.call('pip install moviepy')
+
+    from moviepy.editor import VideoFileClip, TextClip, ColorClip, clips_array, vfx
+    import numpy as np
+
     if out_file is None:
         out_file = 'combined.mp4'
-
-    os.environ['IMAGEMAGICK_BINARY'] = r"C:\Program Files\ImageMagick-7.0.8-Q16\magick.exe"
 
     if type(vid_files[0]) == str:
         vid_clips = [VideoFileClip(x, resize_algorithm='fast_bilinear') for x in vid_files]
