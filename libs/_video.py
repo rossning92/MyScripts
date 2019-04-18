@@ -18,7 +18,7 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
 
     os.environ['IMAGEMAGICK_BINARY'] = r"C:\Program Files\ImageMagick-7.0.8-Q16\magick.exe"
 
-    if vid_files[0] is str:
+    if type(vid_files[0]) == str:
         vid_clips = [VideoFileClip(x, resize_algorithm='fast_bilinear') for x in vid_files]
     else:
         vid_clips = vid_files
