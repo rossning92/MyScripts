@@ -404,4 +404,19 @@ def exec_bash(script, wsl=False):
         raise Exception('Bash returned non-zero value.')
 
 
+def get_files(cd=False):
+    cur_folder = os.environ['CURRENT_FOLDER']
+
+    if 'SELECTED_FILES' in os.environ:
+        files = [os.path.basename(os.environ['SELECTED_FILES'])]
+    else:
+        files = list(glob.glob(cur_folder + '/*.*'))
+
+    if cd:
+        os.chdir(cur_folder)
+        files = [f.replace(cur_folder + os.path.sep, '') for f in files]  # Relative path
+
+    return files
+
+
 env = os.environ
