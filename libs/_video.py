@@ -62,3 +62,28 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
     final = clips_array(arr)
 
     final.write_videofile(out_file, fps=fps)
+
+
+def make_video(images, fps=30):
+    w = images[0].shape[1]
+    h = images[0].shape[0]
+    command = [
+        'ffmpeg',
+        '-y',  # (optional) overwrite output file if it exists
+        '-f', 'rawvideo',
+        '-vcodec', 'rawvideo',
+        '-s', f'{w}x{h}',  # size of one frame
+        '-pix_fmt', 'bgr24',
+        '-r', fps,  # frames per second
+        '-i', '-',  # The imput comes from a pipe
+        '-an',  # Tells FFMPEG not to expect any audio
+        '-vcodec', 'libx264',
+        'my_output_videofile.mp4'
+    ]
+
+    ps = subprocess.Popen(command, stdin=subprocess.PIPE)
+
+    for im in images:
+        ps.stdin.write(im.tostring())
+
+    ps.stdin.close()
