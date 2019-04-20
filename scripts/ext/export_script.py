@@ -2,8 +2,9 @@ import _script
 import os
 import re
 import shutil
+from os.path import splitext, join, basename, expanduser, exists, abspath, dirname, sep
 
-OUT_DIR = os.path.expanduser('~/Desktop/ScriptExport')
+OUT_DIR = expanduser('~/Desktop/ScriptExport')
 os.makedirs(OUT_DIR, exist_ok=True)
 
 script_path = os.getenv('ROSS_SELECTED_SCRIPT_PATH')
@@ -11,20 +12,21 @@ script_path = os.getenv('ROSS_SELECTED_SCRIPT_PATH')
 
 def find_module(python_path, module):
     for p in python_path:
-        path = os.path.join(p, module + '.py')
-        if os.path.exists(path):
+        path = join(p, module + '.py')
+        if exists(path):
             return path
     return None
 
 
 def export_python(script_path):
-    with open(script_path, 'r') as f:
+    with open(script_path, 'rb') as f:
         content = f.read()
 
     # Find imports dependencies
-    module_names = re.findall(r'(?:^from|import) (_[a-zA-Z_]+)', content, flags=re.MULTILINE)
+    module_names = re.findall(rb'(?:^from|import) (_[a-zA-Z_]+)', content, flags=re.MULTILINE)
     python_path = _script.get_python_path(script_path)
     for m in module_names:
+        m = m.decode()
         python_module = find_module(python_path, m)
         assert (python_module is not None)
 
@@ -43,23 +45,30 @@ def export_script(script_path):
     old_new_path_map = {}
     other_scripts = re.findall(r'(?<=\W)(?:(?:\w+|\.\.)/)*\w+\.(?:py|cmd|ahk|sh)(?=\W)', content)
     for s in other_scripts:
-        script_abs_path = os.path.abspath(os.path.dirname(script_path) + '/' + s)
-        file_name = os.path.basename(script_abs_path)
-        if os.path.exists(script_abs_path):
+        script_abs_path = abspath(dirname(script_path) + '/' + s)
+        file_name = basename(script_abs_path)
+        if exists(script_abs_path):
             shutil.copy(script_abs_path, '%s/%s' % (OUT_DIR, file_name))
             old_new_path_map[s] = file_name
             print('Copy: %s' % script_abs_path)
             export_script(script_abs_path)  # Recurse
 
-    if os.path.splitext(script_path)[1] == '.py':
+    if splitext(script_path)[1] == '.py':
         export_python(script_path)
+
+        launcher = f'{OUT_DIR}{sep}{splitext(basename(script_path))[0]}.cmd'
+        shutil.copy('../../install/find_python.cmd',
+                    f'{OUT_DIR}{sep}_find_python.cmd')
+        with open(launcher, 'w') as f:
+            f.write(f'@call _find_python.cmd\n'
+                    f'@python {basename(script_path)}\n')
 
     # Replace script path
     for k, v in old_new_path_map.items():
         content = content.replace(k, v)
 
     # Render scripts
-    out_file = '%s/%s' % (OUT_DIR, os.path.basename(script_path))
+    out_file = '%s/%s' % (OUT_DIR, basename(script_path))
     print('Render: %s' % script_path)
     with open(out_file, 'w') as f:
         # _script.ScriptItem(script_path).render()
