@@ -13,6 +13,16 @@ AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 return
 
+#If WinActive("- Gmail ahk_exe chrome.exe")
+    !r::
+        Send *a
+        Sleep 500
+        Send +i
+        Sleep 500
+        Send *n
+        return
+#If
+
 ^q::
 	; If explorer is active, copy file path to clipboard
 	WriteExplorerInfoToJson()
