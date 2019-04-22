@@ -2,7 +2,7 @@ import subprocess
 from subprocess import check_output, Popen
 import os
 from os import getcwd
-from os.path import exists, expanduser, expandvars
+from os.path import exists, expanduser, expandvars, dirname
 import sys
 import shutil
 import platform
@@ -417,6 +417,13 @@ def get_files(cd=False):
         files = [f.replace(cur_folder + os.path.sep, '') for f in files]  # Relative path
 
     return files
+
+
+def unzip(file, to):
+    import zipfile
+    mkdir(to)
+    with zipfile.ZipFile(file, 'r') as zip:
+        zip.extractall(to)
 
 
 env = os.environ
