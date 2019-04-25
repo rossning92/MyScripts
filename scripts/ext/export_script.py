@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 from os.path import splitext, join, basename, expanduser, exists, abspath, dirname, sep
+import subprocess
 
 OUT_DIR = expanduser('~/Desktop/ScriptExport')
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -74,5 +75,6 @@ def export_script(script_path):
         # _script.ScriptItem(script_path).render()
         f.write(content)
 
+    subprocess.call(f'start "" "{OUT_DIR}"', shell=True)
 
 export_script(script_path)
