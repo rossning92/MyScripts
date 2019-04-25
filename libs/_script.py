@@ -12,6 +12,8 @@ import shlex
 import glob
 import locale
 
+ACTIVE_CONSOLE_ON_EXIT = False
+
 
 def bash(cmd, wsl=False):
     if os.name == 'nt':
@@ -264,6 +266,8 @@ class ScriptItem:
 
         # Run commands
         if args is not None and len(args) > 0:
+            if ACTIVE_CONSOLE_ON_EXIT and platform.system() == 'Windows':
+                args = ['cmd', '/c'] + args + ['&', 'python', '-m', 'activate_console']
 
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
