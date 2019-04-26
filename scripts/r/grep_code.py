@@ -35,7 +35,7 @@ def grep(src_dir):
         arr = lines[i].split(':')
         file = os.path.join(src_dir, arr[0])
         line_no = arr[1]
-        open_in_androidstudio(file, line_no)
+        open_in_vscode(file, line_no)
 
     if repo_root:
         chdir(repo_root)
@@ -57,7 +57,7 @@ def grep(src_dir):
         args = f'rg --line-number -F "{text}"'
         if rel_path:
             args += ' ' + rel_path
-        args += ' -g "!intermediates/" -g "!build/"'
+        args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
 
         ps = check_output2(args)
 

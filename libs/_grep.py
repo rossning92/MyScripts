@@ -36,6 +36,14 @@ def goto_code(file, line_no=None):
     exec_ahk('WinActivate ahk_exe studio64.exe')
 
 
+def goto_code(file, line_no=None):
+    vscode = r'C:\Program Files\Microsoft VS Code\Code.exe'
+    if line_no is None:
+        subprocess.Popen([vscode, file])
+    else:
+        subprocess.Popen([vscode, f'{file}:{line_no}', '-g'])
+
+
 def show_bookmarks(data):
     names = [x['name'] for x in data['bookmarks']]
     idx = search(names)

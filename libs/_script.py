@@ -20,6 +20,8 @@ def bash(cmd, wsl=False):
         if wsl:  # WSL (Windows Subsystem for Linux)
             if not os.path.exists(r'C:\Windows\System32\bash.exe'):
                 raise Exception('WSL (Windows Subsystem for Linux) is not installed.')
+            # Escape dollar sign? Why?
+            cmd = cmd.replace('$', r'\$')
             return ['bash.exe', '-c', cmd]
         else:
             return [r'C:\Program Files\Git\bin\bash.exe',

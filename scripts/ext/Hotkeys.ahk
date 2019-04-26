@@ -72,3 +72,14 @@ return
     Process, Close, %pid%
     SoundPlay %BEEP_FILE%
     return
+	
+!#F4::
+	; Close all explorer windows
+	WinGet, winList, List, ahk_class CabinetWClass
+	Loop, %winList%
+	{
+		this_id := winList%A_Index%
+		WinClose, ahk_id %this_id%
+	}
+	return
+	

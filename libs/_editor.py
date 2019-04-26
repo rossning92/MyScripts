@@ -3,6 +3,7 @@ import subprocess
 import os
 from _shutil import exec_ahk
 
+
 def get_pycharm_executable():
     files = glob.glob(r'C:\Program Files\JetBrains\**\pycharm64.exe', recursive=True) + glob.glob(
         r'C:\Program Files (x86)\JetBrains\**\pycharm64.exe', recursive=True)
@@ -27,6 +28,14 @@ def open_in_androidstudio(path, line=None):
     args.append(path)
     subprocess.Popen(args)
     exec_ahk('WinActivate ahk_exe studio64.exe')
+
+
+def open_in_vscode(file, line_no=None):
+    vscode = r'C:\Program Files\Microsoft VS Code\Code.exe'
+    if line_no is None:
+        subprocess.Popen([vscode, file])
+    else:
+        subprocess.Popen([vscode, f'{file}:{line_no}', '-g'])
 
 
 def open_with_text_editor(path, line_no=None):

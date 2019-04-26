@@ -12,7 +12,7 @@ def logcat(pkg_name=None, highlight=None, filter_str=None):
 
     def filter_line(line):
         # Filter by pkg_name
-        if pkg_name is not None:
+        if pkg_name:
             try:
                 arr = line.split()
                 pid = int(arr[2])

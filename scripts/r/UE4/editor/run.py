@@ -1,7 +1,7 @@
 from _shutil import *
 from _nvpack import *
 
-setup_nvpack()
+setup_nvpack(r'{{NVPACK_ROOT}}')
 
 os.environ['DATA_CACHE_DIR'] = r'C:\UE4-DataCache'
 

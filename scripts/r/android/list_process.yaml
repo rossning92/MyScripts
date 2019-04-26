@@ -1,6 +1,6 @@
 anaconda: false
 autoRun: false
-globalHotkey: Win+Alt+L
+globalHotkey: null
 hotkey: null
 newWindow: true
 runAsAdmin: false

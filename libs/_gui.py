@@ -70,6 +70,9 @@ class SelectWidget(QWidget):
 
         self.installEventFilter(self)
 
+        # Auto adjust width
+        self.listWidget.setMinimumWidth(self.listWidget.sizeHintForColumn(0) + 10)
+
     def get_selected(self):
         selected_indices = []
         for i in range(self.listWidget.count()):

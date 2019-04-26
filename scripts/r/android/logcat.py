@@ -1,3 +1,3 @@
 from _android import *
 
-logcat('{{PKG_NAME}}')
+logcat(r'{{PKG_NAME}}', filter_str=r'{{LOGCAT_FILTER}}')
