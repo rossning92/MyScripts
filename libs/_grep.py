@@ -2,12 +2,14 @@ from _gui import *
 from _shutil import *
 
 
-def search_code(text, search_path):
+def search_code(text, search_path, extra_params=None):
     args = [
         'rg',
         '-g', '!ThirdParty/', '-g', '!Extras/', '-g', '!Plugins/',
         '-F', text, '--line-number'
     ]
+    if extra_params:
+        args += extra_params
     # print(args)
     out = subprocess.check_output(args, shell=True, stderr=subprocess.PIPE, cwd=search_path)
     out = out.decode()
@@ -50,17 +52,33 @@ def show_bookmarks(data):
     if idx == -1:
         sys.exit(1)
 
-    bm = data['bookmarks'][idx]
+    bookmark = data['bookmarks'][idx]
 
-    if 'code' in bm:
+    if 'code' in bookmark:
         result = []
-        if 'path' in bm:
-            for p in bm['path']:
-                if os.path.exists(p):
-                    result += search_code(text=bm['code'], search_path=p)
+        if 'path' in bookmark:
+            # Allow both str of list of str
+            if type(bookmark['path']) == str:
+                path_list = [bookmark['path']]
+            elif type(bookmark['path']) == list:
+                path_list = bookmark['path']
+            else:
+                raise Exception('Invalid value in `path`.')
+
+            for path in path_list:
+                if os.path.isdir(path):  # directory
+                    result += search_code(text=bookmark['code'], search_path=path)
+                else:  # file or glob
+                    dir_path = os.path.dirname(path)
+                    file_name = os.path.basename(path)
+
+                    result += search_code(text=bookmark['code'],
+                                          search_path=dir_path,
+                                          extra_params=['-g', file_name])
+
         else:
             if os.path.exists(data['path']):
-                result += search_code(text=bm['code'], search_path=data['path'])
+                result += search_code(text=bookmark['code'], search_path=data['path'])
 
         if len(result) == 1:
             goto_code(result[0][0], result[0][1])
@@ -69,7 +87,7 @@ def show_bookmarks(data):
             i = indices[0]
             goto_code(result[i][0], result[i][1])
     else:
-        goto_code(bm['path'])
+        goto_code(bookmark['path'])
 
 
 if __name__ == '__main__':
