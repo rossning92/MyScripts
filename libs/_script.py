@@ -234,10 +234,12 @@ class ScriptItem:
                 args = [python_executable, tmp_script_file] + args
 
             if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
+                bin_path = os.path.dirname(__file__) + os.path.sep + 'bin'
                 args = ['cmd', '/c',
                         'cd', '/d', cwd, '&',
                         'set', 'PYTHONPATH=' + ';'.join(python_path), '&',
                         'set', 'PYTHONDONTWRITEBYTECODE=1', '&'
+                        'set', f'PATH={bin_path};%PATH%'
                         ] + args
 
         elif self.ext == '.vbs':
