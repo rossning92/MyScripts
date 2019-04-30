@@ -5,4 +5,4 @@ chdir('~/Projects')
 
 if not exists('HotkeyR'):
     call('git clone https://github.com/rossning92/HotkeyR')
-call(['AutoHotkeyU64.exe', expanduser('HotkeyR/HotkeyR.ahk')])
+Popen(['AutoHotkeyU64.exe', expanduser('HotkeyR/HotkeyR.ahk')])
