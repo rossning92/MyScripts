@@ -7,6 +7,23 @@ import signal
 from _shutil import *
 
 
+def getch():
+    if platform.system() == 'Windows':
+        import msvcrt
+        return msvcrt.getch().decode()
+
+    else:
+        import sys, tty, termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+
 class InputWindow():
     def __init__(self, text_changed=None):
         self.cur_input = ''

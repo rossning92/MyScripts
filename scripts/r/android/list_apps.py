@@ -27,6 +27,7 @@ if i == -1:
 set_variable('PKG_NAME', pkg)
 
 if opt[i] == 'start':
+    set_variable('PKG_NAME', pkg)
     run_script('start_app', variables={'PKG_NAME': pkg}, new_window=True)
 
 elif opt[i] == 'backup':
