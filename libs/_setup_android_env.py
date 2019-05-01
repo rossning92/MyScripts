@@ -24,11 +24,14 @@ def setup_android_env():
         env['NDK_ROOT'] = \
         env['ANDROID_HOME'] + '/ndk-bundle'
 
+    # Android build tools (latest)
+    build_tools_path = sorted(list(glob.glob(env['ANDROID_HOME'] + '\\build-tools\\*')))[-1]
+
     # Set PATH environ
     jdk_path = sorted(glob.glob(r'C:\Program Files\Java\jdk*'), reverse=True)[0] + '\\bin'
     path = [
         env['ANDROID_HOME'] + '/platform-tools',
-        env['ANDROID_HOME'] + '/build-tools',
+        build_tools_path,
         env['ANDROID_HOME'] + '/tools',
         env['ANDROID_HOME'] + '/tools/bin',
         env['ANDROID_HOME'] + '/ndk-bundle',
