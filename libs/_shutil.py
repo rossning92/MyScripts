@@ -408,7 +408,7 @@ def get_files(cd=False):
     cur_folder = os.environ['CURRENT_FOLDER']
 
     if 'SELECTED_FILES' in os.environ:
-        files = [os.path.basename(os.environ['SELECTED_FILES'])]
+        files = [os.environ['SELECTED_FILES']]
     else:
         files = list(glob.glob(cur_folder + '/*.*'))
 
