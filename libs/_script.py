@@ -276,6 +276,19 @@ class ScriptItem:
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
             if new_window:
+
+                if True:  # HACK: use python wrapper: active console window once finished
+                    args = [
+                        sys.executable, '-c',
+                        'import subprocess\n'
+                        'import ctypes\n'
+                        'import sys\n'
+                        f'ret = subprocess.call({args})\n'
+                        'hwnd = ctypes.windll.kernel32.GetConsoleWindow()\n'
+                        'ctypes.windll.user32.SetForegroundWindow(hwnd)\n'
+                        'sys.exit(ret)'
+                    ]
+
                 try:
                     args = conemu_wrap_args(args, title=self.name, cwd=cwd)
                 except:
