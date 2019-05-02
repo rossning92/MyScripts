@@ -11,6 +11,10 @@ def logcat(pkg_name=None, highlight=None, filter_str=None):
     pid_map = {}
 
     def filter_line(line):
+        # Always show fatal message (backtrace)
+        if b' F DEBUG ' in line:
+            return line
+
         # Filter by pkg_name
         if pkg_name:
             try:
