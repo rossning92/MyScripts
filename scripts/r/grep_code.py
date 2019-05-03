@@ -27,7 +27,7 @@ def grep(src_dir):
     def text_changed(s):
         nonlocal ps, cur_text
         cur_text = s
-        if ps:
+        if ps is not None:
             ps.kill()
             ps = None
 
