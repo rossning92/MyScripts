@@ -230,23 +230,24 @@ class ListWidget():
 
         while True:
             text_changed = False
-            c = stdscr.getch()
 
-            if c == curses.ERR:
+            ch = stdscr.getch()
+
+            if ch == curses.ERR:
                 break
-            elif c == curses.KEY_UP:
+            elif ch == curses.KEY_UP:
                 self.cur_page = max(self.cur_page - 1, 0)
-            elif c == curses.KEY_DOWN:
+            elif ch == curses.KEY_DOWN:
                 self.cur_page = min(self.cur_page + 1, max_page)
-            elif c == curses.KEY_LEFT:
+            elif ch == curses.KEY_LEFT:
                 self.caret_pos = max(self.caret_pos - 1, 0)
-            elif c == curses.KEY_RIGHT:
+            elif ch == curses.KEY_RIGHT:
                 self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
-            elif c == ord('\b'):
+            elif ch == ord('\b'):
                 self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
-            elif c == 0x7F:  # Ctrl + Backspace
+            elif ch == 0x7F:  # Ctrl + Backspace
                 if self.select_mode:
                     self.cur_input = self.search_str
                     self.caret_pos = len(self.search_str)
@@ -256,9 +257,9 @@ class ListWidget():
                     self.caret_pos = 0
                     self.select_mode = False
                     text_changed = True
-            elif c == curses.ascii.ctrl(ord('c')):
+            elif ch == curses.ascii.ctrl(ord('c')):
                 self.exit = True
-            elif c == ord('\n'):
+            elif ch == ord('\n'):
                 if not self.select_mode:
                     self.select_mode = True
                     self.search_str = self.cur_input
@@ -267,7 +268,7 @@ class ListWidget():
                 elif self.select_mode and self.item_selected:
                     self.item_selected(int(self.cur_input))
             else:
-                self.cur_input = self.cur_input[:self.caret_pos] + chr(c) + self.cur_input[self.caret_pos:]
+                self.cur_input = self.cur_input[:self.caret_pos] + chr(ch) + self.cur_input[self.caret_pos:]
                 self.caret_pos += 1
                 text_changed = True
 

@@ -16,6 +16,7 @@ import locale
 import tempfile
 from tempfile import gettempdir
 import datetime
+import signal
 
 
 def write_temp_file(text, ext):
@@ -217,6 +218,10 @@ def check_output2(args, shell=None, cwd=None, env=None):
 
         def _read_pipe(self, pipe, que):
             while True:
+                if ps.poll() is not None:
+                    que.put(b'')
+                    break
+
                 data = pipe.readline()
                 if data == b'':  # Terminated
                     que.put(b'')
@@ -248,7 +253,10 @@ def check_output2(args, shell=None, cwd=None, env=None):
                     yield None
 
         def kill(self):
-            ps.kill()
+            if platform.system() == 'Windows':  # HACK on windows
+                call(f'taskkill /f /t /pid {self.ps.pid}')
+            else:
+                self.ps.kill()
 
         def return_code(self):
             return self.ps.wait()
