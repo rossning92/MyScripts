@@ -221,10 +221,6 @@ class ListWidget():
 
     def update_input(self, stdscr):
         height, width = stdscr.getmaxyx()
-        # resize = curses.is_term_resized(height, width)
-        # if resize is True:
-        #     height, width = stdscr.getmaxyx()
-        #     curses.resize_term(height, width)
 
         max_page = len(self.lines) // (height - 1)
 
@@ -235,6 +231,8 @@ class ListWidget():
 
             if ch == curses.ERR:
                 break
+            elif ch == curses.KEY_RESIZE:
+                curses.resize_term(0, 0)  # HACK: on windows: https://pypi.org/project/windows-curses/
             elif ch == curses.KEY_UP:
                 self.cur_page = max(self.cur_page - 1, 0)
             elif ch == curses.KEY_DOWN:
