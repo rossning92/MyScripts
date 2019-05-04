@@ -57,7 +57,9 @@ def grep(src_dir):
         args = f'rg --line-number -F "{text}"'
         if rel_path:
             args += ' ' + rel_path
-        args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
+
+        if not exists('.gitignore'):
+            args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
 
         ps = check_output2(args)
 
