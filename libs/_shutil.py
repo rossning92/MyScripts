@@ -215,34 +215,33 @@ def check_output2(args, shell=None, cwd=None, env=None):
     class MyProcess:
         def __init__(self, ps):
             self.ps = ps
+            self.que = queue.Queue()
+            threading.Thread(target=self._read_pipe, args=(self.ps.stdout)).start()
+            threading.Thread(target=self._read_pipe, args=(self.ps.stderr)).start()
 
-        def _read_pipe(self, pipe, que):
+        def _read_pipe(self, pipe):
             while True:
                 if ps.poll() is not None:
-                    que.put(b'')
+                    self.que.put(b'')
                     break
 
                 data = pipe.readline()
                 if data == b'':  # Terminated
-                    que.put(b'')
+                    self.que.put(b'')
                     break
-                que.put(data)
+                self.que.put(data)
 
         def readlines(self, block=True, timeout=None):
             import keyboard
-
-            que = queue.Queue()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stdout, que)).start()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stderr, que)).start()
 
             terminated = 0
             while True:
                 # HACK
                 if keyboard.is_pressed('r'):
-                    with que.mutex:
-                        que.queue.clear()
+                    with self.que.mutex:
+                        self.que.queue.clear()
                 try:
-                    line = que.get(block=block, timeout=timeout)
+                    line = self.que.get(block=block, timeout=timeout)
                     if line == b'':
                         terminated += 1
                         if terminated == 2:
@@ -251,6 +250,10 @@ def check_output2(args, shell=None, cwd=None, env=None):
                     yield line
                 except queue.Empty:
                     yield None
+
+        def readline(self, block=True):
+            line = self.que.get(block=block)
+            return line
 
         def kill(self):
             if platform.system() == 'Windows':  # HACK on windows

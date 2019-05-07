@@ -10,4 +10,9 @@ call('git config --global difftool.prompt false')
 call(['git', 'config', '--global', 'difftool.meld.cmd', 'meld "$LOCAL" "$REMOTE"'])
 
 chdir(r'{{GIT_REPO}}')
-call('git difftool')
+
+args = 'git difftool'
+if '{{GIT_DIFF_PREVIOUS}}':
+    args += ' HEAD~{{GIT_DIFF_PREVIOUS}}'
+
+call(args)

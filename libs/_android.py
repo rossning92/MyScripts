@@ -68,3 +68,17 @@ def backup_pkg(pkg, out_dir=None):
     subprocess.call(f'adb shell su -c tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')
     subprocess.call(f'adb pull /sdcard/{pkg}.tar', cwd=out_dir)
     subprocess.call(f'adb shell rm /sdcard/{pkg}.tar')
+
+
+def screenshot(out_file=None):
+    if out_file is None:
+        os.chdir(os.path.expanduser('~/Desktop'))
+        out_file = datetime.datetime.now().strftime('Screenshot_%y%m%d%H%M%S.png')
+    else:
+        os.chdir(os.path.dirname(out_file))
+        out_file = os.path.basename(out_file)
+
+    print('Taking screenshot...')
+    subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % out_file])
+    subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % out_file])
+    subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % out_file])

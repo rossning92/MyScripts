@@ -10,6 +10,8 @@ other = [
     'blender',
     'graphviz',
     'inkscape',
+    'mousewithoutborders',
+    'tightvnc',
 ]
 
 dev = [
