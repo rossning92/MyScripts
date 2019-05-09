@@ -216,8 +216,8 @@ def check_output2(args, shell=None, cwd=None, env=None):
         def __init__(self, ps):
             self.ps = ps
             self.que = queue.Queue()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stdout)).start()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stderr)).start()
+            threading.Thread(target=self._read_pipe, args=(self.ps.stdout,)).start()
+            threading.Thread(target=self._read_pipe, args=(self.ps.stderr,)).start()
 
         def _read_pipe(self, pipe):
             while True:
