@@ -8,4 +8,4 @@ if not exists(bin_file):
     unzip('scrcpy.zip', r'C:\tools')
 
 chdir(dirname(bin_file))
-Popen(bin_file)
+call(bin_file)
