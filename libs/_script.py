@@ -15,6 +15,19 @@ import locale
 ACTIVE_CONSOLE_ON_EXIT = False
 
 
+def set_console_title(title):
+    if platform.system() == 'Windows':
+        MAX_BUFFER = 260
+        enc = locale.getpreferredencoding()
+
+        saved_title = (ctypes.c_char * MAX_BUFFER)()
+        old = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
+        old = old.decode(enc)
+
+        win_title = title.encode(enc)
+        ctypes.windll.kernel32.SetConsoleTitleA(win_title)
+
+
 def bash(cmd, wsl=False):
     if os.name == 'nt':
         if wsl:  # WSL (Windows Subsystem for Linux)
