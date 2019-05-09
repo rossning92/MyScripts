@@ -8,7 +8,14 @@ SetWorkingDir %A_ScriptDir%
     F3::
         filePath := getSelectedFilePath()
 		if (filePath) {
-			Run python _open_with.py "%filePath%"
+			Run python _open_with.py "%filePath%" 0
+		}
+        return
+		
+	F4::
+		filePath := getSelectedFilePath()
+		if (filePath) {
+			Run python _open_with.py "%filePath%" 1
 		}
         return
         

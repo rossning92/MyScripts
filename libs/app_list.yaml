@@ -18,3 +18,7 @@ SumatraPDF:
 7z:
   executable:
     - C:\Program Files\7-Zip\7zFM.exe
+
+vscode:
+  executable:
+    - C:\Program Files\Microsoft VS Code\Code.exe

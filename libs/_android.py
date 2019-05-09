@@ -72,13 +72,11 @@ def backup_pkg(pkg, out_dir=None):
 
 def screenshot(out_file=None):
     if out_file is None:
-        os.chdir(os.path.expanduser('~/Desktop'))
-        out_file = datetime.datetime.now().strftime('Screenshot_%y%m%d%H%M%S.png')
+        src_file = datetime.datetime.now().strftime('Screenshot_%y%m%d%H%M%S.png')
     else:
-        os.chdir(os.path.dirname(out_file))
-        out_file = os.path.basename(out_file)
+        src_file = os.path.basename(out_file)
 
     print('Taking screenshot...')
-    subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % out_file])
-    subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % out_file])
-    subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % out_file])
+    subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % src_file])
+    subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % src_file, out_file])
+    subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % src_file])

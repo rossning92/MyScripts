@@ -32,7 +32,7 @@ def _draw_centered_text(im, text, box, text_outline, font_color, align='center')
 
 
 def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
-                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, font_color='white', title=None,
+                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, label_align='center', font_color='white', title=None,
                    title_color='white'):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
@@ -61,7 +61,7 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
                 text = parse_file_name(text)
             elif labels is not None:
                 text = labels[i]
-            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color)
+            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color, align=label_align)
 
     if generate_atlas:
         num_imgs = len(imgs)
