@@ -17,18 +17,22 @@ ACTIVE_CONSOLE_ON_EXIT = False
 
 def set_console_title(title):
     if platform.system() == 'Windows':
-        MAX_BUFFER = 260
-        enc = locale.getpreferredencoding()
-
-        saved_title = (ctypes.c_char * MAX_BUFFER)()
-        old = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
-        old = old.decode(enc)
-
-        win_title = title.encode(enc)
+        old = get_console_title()
+        win_title = title.encode(locale.getpreferredencoding())
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
-
         return old
-    
+
+    return None
+
+
+def get_console_title():
+    if platform.system() == 'Windows':
+        MAX_BUFFER = 260
+        saved_title = (ctypes.c_char * MAX_BUFFER)()
+        ret = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
+        assert ret > 0
+        return saved_title.value.decode(locale.getpreferredencoding())
+
     return None
 
 
@@ -300,14 +304,16 @@ class ScriptItem:
                         'import subprocess\n'
                         'import ctypes\n'
                         'import sys\n'
+                        'import _script as s\n'
                         f'ret = subprocess.call({args})\n'
                         'hwnd = ctypes.windll.kernel32.GetConsoleWindow()\n'
                         'ctypes.windll.user32.SetForegroundWindow(hwnd)\n'
+                        's.set_console_title(s.get_console_title() + " (Finished)")\n'
                         'sys.exit(ret)'
                     ]
 
                 try:
-                    args = conemu_wrap_args(args, title=self.name, cwd=cwd)
+                    args = conemu_wrap_args(args, cwd=cwd)
                 except:
                     if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
                         args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
