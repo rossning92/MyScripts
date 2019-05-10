@@ -305,6 +305,7 @@ class ScriptItem:
                         'import ctypes\n'
                         'import sys\n'
                         'import _script as s\n'
+                        f's.set_console_title(r"{self.name}")\n'
                         f'ret = subprocess.call({args})\n'
                         'hwnd = ctypes.windll.kernel32.GetConsoleWindow()\n'
                         'ctypes.windll.user32.SetForegroundWindow(hwnd)\n'
