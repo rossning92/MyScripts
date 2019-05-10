@@ -1,6 +1,7 @@
 from _shutil import *
 import re
 
+call('adb root')
 s = check_output('adb -d shell ifconfig wlan0').decode()
 match = re.findall(r'inet addr:([^ ]+)', s)
 ip = match[0]

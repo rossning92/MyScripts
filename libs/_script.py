@@ -27,6 +27,10 @@ def set_console_title(title):
         win_title = title.encode(enc)
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
 
+        return old
+    
+    return None
+
 
 def bash(cmd, wsl=False):
     if os.name == 'nt':
