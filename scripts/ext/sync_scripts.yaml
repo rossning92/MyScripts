@@ -1,4 +1,7 @@
+anaconda: false
 autoRun: false
+globalHotkey: null
 hotkey: Ctrl+S
-newWindow: false
+newWindow: true
 runAsAdmin: false
+wsl: false
