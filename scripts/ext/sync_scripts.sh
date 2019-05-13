@@ -10,6 +10,10 @@ if [ ! -d ".git" ]; then
 	git branch --set-upstream-to=origin/master master
 fi
 
+git status --short
+echo 'Ctrl-C to cancel...'
+sleep 3
+
 git add -A
 git commit -m 'message'
 git pull --rebase
