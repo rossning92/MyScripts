@@ -19,6 +19,7 @@ def find_function_deps(tree):
             if type(node.func) == ast.Name:
                 func_name = node.func.id
                 used_functions.add(func_name)
+                print(func_name)
 
     FunctionCallVisitor().visit(tree)
     return list(used_functions)
@@ -50,7 +51,6 @@ src_file = r"android/adb_backup.py"
 # used_functions += find_function_deps(parse_ast(r"../libs/_shutil.py"))
 
 
-
 used_functions = []
 used_functions += find_function_deps(parse_ast(src_file))
 
@@ -58,7 +58,7 @@ function_def = {}
 with open(src_file, 'r', encoding='utf-8') as f:
     lines = f.readlines()
 
-out_lines =[]
+out_lines = []
 for line in lines:
     line = line.rstrip()
 
@@ -80,4 +80,4 @@ for line in lines:
     else:
         out_lines.append(line)
 
-print('\n'.join(out_lines))
+# print('\n'.join(out_lines))
