@@ -12,6 +12,7 @@ other = [
     'inkscape',
     'mousewithoutborders',
     'tightvnc',
+    'gifcam',
 ]
 
 dev = [
