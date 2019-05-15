@@ -1,16 +1,21 @@
 import urllib.request
 import os
 import subprocess
-
-
-def download(url):
-    print('Downloading "%s" ...' % url)
-    file_name = os.path.basename(url)
-    urllib.request.urlretrieve(url, file_name)
-
+from _shutil import *
 
 os.chdir(os.path.join(os.environ['USERPROFILE'], 'Downloads'))
 
-download('https://renderdoc.org/stable/1.1/RenderDoc_1.1_64.msi')
+from requests_html import HTMLSession
 
-os.system('RenderDoc_1.1_64.msi')
+session = HTMLSession()
+
+r = session.get('https://renderdoc.org/builds')
+nodes = r.html.xpath(".//a[contains(text(),'Nightly') and contains(text(),'ZIP')]")
+url = nodes[0].attrs['href']
+
+f = download(url)
+print(f)
+
+DEST = r'C:\Tools\RenderDoc'
+remove(DEST)
+unzip(f, DEST)

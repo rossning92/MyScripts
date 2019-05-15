@@ -100,7 +100,7 @@ def download(url, filename=None, redownload=False):
 
     if exists(filename) and not redownload:
         print('File already exists: %s' % filename)
-        return
+        return filename
 
     print('Download: %s' % url)
     with open(filename, 'wb') as f:
@@ -119,6 +119,7 @@ def download(url, filename=None, redownload=False):
                 sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
+    return filename
 
 
 def copy(src, dst):
@@ -170,8 +171,15 @@ def run_elevated(args, wait=True):
 
 
 def remove(files):
-    for f in glob.glob(files):
-        os.remove(f)
+    if type(files) == str:
+        files = [files]
+
+    for file in files:
+        if os.path.isdir(file):
+            shutil.rmtree(file)
+        else:
+            for match in glob.glob(file):
+                os.remove(match)
 
 
 def replace(file, patt, repl, debug_output=False):
@@ -435,6 +443,10 @@ def unzip(file, to):
     mkdir(to)
     with zipfile.ZipFile(file, 'r') as zip:
         zip.extractall(to)
+
+
+def get_time_str():
+    return datetime.datetime.now().strftime('%y%m%d%H%M%S')
 
 
 env = os.environ
