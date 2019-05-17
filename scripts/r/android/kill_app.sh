@@ -1,1 +1,1 @@
-adb shell am force-stop {{ANDROID_PACKAGE_NAME}}
+adb shell am force-stop {{PKG_NAME}}
