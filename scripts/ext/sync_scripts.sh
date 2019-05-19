@@ -13,7 +13,8 @@ fi
 status=$(git status --short)
 echo $status
 if [[ ! -z "$status" ]]; then
-    read -n 1 -s -r -p "Press (y) to continue...\n" input
+    echo "Press (y) to continue..."
+    read -n 1 -s -r input
     
     if [ "$input" = "y" ]; then
         git add -A
