@@ -68,9 +68,12 @@ def export_script(script_path):
         shutil.copy('../../install/find_python.cmd',
                     f'{OUT_DIR}{sep}_find_python.cmd')
         with open(launcher, 'w') as f:
-            f.write(f'@call _find_python.cmd\n'
-                    f'@python {basename(script_path)}\n'
-                    f'@if %errorlevel% neq 0 pause\n')
+            f.write('@echo off\n' +
+                    'cd /d "%~dp0"\n' +
+                    'call _find_python.cmd\n' +
+                    'if exist requirements.txt pip install -r requirements.txt\n' +
+                    'python %s\n' % basename(script_path) +
+                    'if %errorlevel% neq 0 pause\n')
 
     # Replace script path
     for k, v in old_new_path_map.items():

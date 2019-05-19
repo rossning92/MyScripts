@@ -10,8 +10,8 @@ if [ ! -d ".git" ]; then
 	git branch --set-upstream-to=origin/master master
 fi
 
+git status --short
 status=$(git status --short)
-echo $status
 if [[ ! -z "$status" ]]; then
     echo "Press ENTER to commit those files..."
     read -n 1 -s -r input
