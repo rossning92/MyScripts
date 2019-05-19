@@ -25,11 +25,13 @@ def get_executable(app_name):
         pkg_name = app_name
         if 'choco' in app:
             pkg_name = app['choco']
+        print('Installing %s...' % pkg_name)
         run_elevated(['choco', 'install', pkg_name, '-y'])
         executable = find_executable()
 
-    print(executable)
     return executable
 
 
-get_executable('7z')
+if __name__ == '__main__':
+    # For testing
+    get_executable('7z')
