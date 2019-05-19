@@ -8,5 +8,5 @@ call(f'adb shell am force-stop {pkg}')
 
 start_app(pkg)
 
-if '{{START_APP_SHOW_LOGCAT}}':
+if '{{RESTART_APP_SHOW_LOGCAT}}':
     logcat(pkg)
