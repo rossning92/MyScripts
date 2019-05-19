@@ -19,10 +19,8 @@ if [[ ! -z "$status" ]]; then
     if [ "$input" = "y" ]; then
         git add -A
         git commit -m 'message'
-        git pull --rebase
-        git push
     fi
 fi
 
-
-
+git pull --rebase
+git push
