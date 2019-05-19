@@ -10,11 +10,15 @@ if [ ! -d ".git" ]; then
 	git branch --set-upstream-to=origin/master master
 fi
 
-git status --short
-echo 'Ctrl-C to cancel...'
-sleep 3
+status=$(git status --short)
+echo $status
+if [[ ! -z "$status" ]]; then
+    read -n 1 -s -r -p "Press (y) to continue..."
+    git add -A
+    git commit -m 'message'
+    git pull --rebase
+    git push
+fi
 
-git add -A
-git commit -m 'message'
-git pull --rebase
-git push
+
+
