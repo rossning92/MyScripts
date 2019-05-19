@@ -13,11 +13,14 @@ fi
 status=$(git status --short)
 echo $status
 if [[ ! -z "$status" ]]; then
-    read -n 1 -s -r -p "Press (y) to continue..."
-    git add -A
-    git commit -m 'message'
-    git pull --rebase
-    git push
+    read -n 1 -s -r -p "Press (y) to continue...\n" input
+    
+    if [ "$input" = "y" ]; then
+        git add -A
+        git commit -m 'message'
+        git pull --rebase
+        git push
+    fi
 fi
 
 
