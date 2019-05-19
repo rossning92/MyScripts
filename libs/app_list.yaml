@@ -1,6 +1,7 @@
 notepad++:
   executable:
     - notepad++.exe
+  choco: notepadplusplus
 
 VLC:
   executable:
@@ -18,6 +19,7 @@ SumatraPDF:
 7z:
   executable:
     - C:\Program Files\7-Zip\7zFM.exe
+  choco: 7zip
 
 vscode:
   executable:

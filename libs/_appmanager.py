@@ -1,22 +1,32 @@
 import yaml
 import shutil
 from os.path import dirname, join
+from _shutil import run_elevated
 
 
 def get_executable(app_name):
     with open(join(dirname(__file__), 'app_list.yaml'), 'r') as f:
         app_list = yaml.load(f.read())
 
-    matched_apps = [v for k, v in app_list.items() if app_name.lower() == k.lower()]
-    app = matched_apps[0]
+    matched_apps = [k for k, v in app_list.items() if app_name.lower() == k.lower()]
+    app_name = matched_apps[0]
+    app = app_list[app_name]
 
-    executable = None
-    for e in app['executable']:
-        if shutil.which(e):
-            executable = e
-            break
+    def find_executable():
+        for exe in app['executable']:
+            if shutil.which(exe):
+                return exe
+        return None
 
-    # TODO: install app
+    # Install app if not exists
+    executable = find_executable()
+
+    if executable is None:
+        pkg_name = app_name
+        if 'choco' in app:
+            pkg_name = app['choco']
+        run_elevated(['choco', 'install', pkg_name, '-y'])
+        executable = find_executable()
 
     print(executable)
     return executable
