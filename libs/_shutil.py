@@ -72,6 +72,24 @@ def chdir(path, expand=True):
     os.chdir(path)
 
 
+def call2(args):
+    subprocess.check_call(args, shell=True)
+
+
+def start_in_new_terminal(args):
+    import platform
+    import subprocess
+
+    if platform.system() == 'Windows':
+        import shlex
+
+        if type(args) == list:
+            args = [shlex.quote(x) for x in args]
+        args = args.replace('|', '^|')  # Escape '|'
+        args = 'start cmd /S /C "%s"' % args
+        subprocess.call(args, shell=True)
+
+
 def call(args, cwd=None, env=None, shell=True, highlight=None, check_call=True):
     if highlight is not None:
         return call_highlight(args, shell=shell, cwd=cwd, env=env, highlight=highlight)

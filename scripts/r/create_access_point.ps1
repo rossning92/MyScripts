@@ -31,6 +31,7 @@ $configuration.Ssid = "test888"
 AwaitAction $tetheringManager.ConfigureAccessPointAsync($configuration)
 
 # Start Mobile Hotspot
+Echo "Starting Mobile Hotspot..."
 Await ($tetheringManager.StartTetheringAsync()) ([Windows.Networking.NetworkOperators.NetworkOperatorTetheringOperationResult])
 
 # Stop Mobile Hotspot
