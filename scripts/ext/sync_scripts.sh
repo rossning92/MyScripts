@@ -13,10 +13,10 @@ fi
 status=$(git status --short)
 echo $status
 if [[ ! -z "$status" ]]; then
-    echo "Press (y) to continue..."
+    echo "Press ENTER to commit those files..."
     read -n 1 -s -r input
     
-    if [ "$input" = "y" ]; then
+    if [[ -z $input ]]; then
         git add -A
         git commit -m 'message'
     fi
