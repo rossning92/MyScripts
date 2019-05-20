@@ -35,12 +35,17 @@ def exec_ahk(script):
 
 def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
     CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
+    # CONF_PATH = os.path.expandvars('%APPDATA%\\ConEmu.xml')
+    # if not exists(CONF_PATH) or True:
+    #     src = os.path.abspath(os.path.dirname(__file__) + '/../data/ConEmu.xml')
+    #     copy(src, CONF_PATH)
 
     if os.path.exists(CONEMU):
         args2 = [
             CONEMU,
             '-NoUpdate',
-            '-resetdefault',  # '-LoadCfgFile', 'data/ConEmu.xml',
+            '-resetdefault',
+            # '-Config', CONF_PATH,
             '-nokeyhooks', '-nomacro', '-nohotkey',
             '-nocloseconfirm',
             # '-GuiMacro', 'palette 1 "<Solarized Light>"',
@@ -52,7 +57,7 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
             args2 += ['-Title', title]
 
         if small_window:
-            args2 += ['-Font', 'Courier', '-Size', '10']
+            args2 += ['-Font', 'Consolas', '-Size', '10']
         else:
             args2 += ['-Max']
 
