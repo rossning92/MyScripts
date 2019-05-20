@@ -317,7 +317,8 @@ assoc = {
     '.zim': ['notepad++', 'vscode'],
     '.zip': ['GoogleDrive.cmd'],
     '.zxp': ['notepad++', 'vscode'],
-    '.gz': ['7z']
+    '.gz': ['7z'],
+    '.usf': ['notepad++', 'vscode']
 }
 
 
