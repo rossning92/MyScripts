@@ -5,7 +5,13 @@ from _shutil import *
 
 os.chdir(os.path.join(os.environ['USERPROFILE'], 'Downloads'))
 
-from requests_html import HTMLSession
+while True:
+    try:
+        from requests_html import HTMLSession
+
+        break
+    except:
+        subprocess.call(['python', '-m', 'pip', 'install', 'requests_html'])
 
 session = HTMLSession()
 
