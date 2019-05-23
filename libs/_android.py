@@ -80,3 +80,11 @@ def screenshot(out_file=None):
     subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % src_file])
     subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % src_file, out_file])
     subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % src_file])
+
+
+def get_active_pkg_and_activity():
+    out = check_output('adb shell "dumpsys activity activities | grep mFocusedActivity"', shell=True).decode().strip()
+    match = re.search(r'\{([^}]+)\}', out).group(1)
+    pkg_activity = match.split()[2]
+    pkg, activity = pkg_activity.split('/')
+    return pkg, activity
