@@ -115,7 +115,7 @@ def download(url, filename=None, redownload=False):
     try:
         import requests
     except:
-        call('pip install requests')
+        subprocess.call([sys.executable, '-m', 'pip', 'install', 'requests'])
         import requests
 
     if filename is None:
@@ -462,6 +462,7 @@ def get_files(cd=False):
 
 
 def unzip(file, to=None):
+    print('Unzip "%s"...' % file)
     import zipfile
     if to:
         mkdir(to)
