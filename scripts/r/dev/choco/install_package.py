@@ -13,6 +13,8 @@ other = [
     'mousewithoutborders',
     'tightvnc',
     'gifcam',
+    'autohotkey',
+    'nsis',
 ]
 
 dev = [

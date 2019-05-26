@@ -461,9 +461,12 @@ def get_files(cd=False):
     return files
 
 
-def unzip(file, to):
+def unzip(file, to=None):
     import zipfile
-    mkdir(to)
+    if to:
+        mkdir(to)
+    else:
+        to = '.'
     with zipfile.ZipFile(file, 'r') as zip:
         zip.extractall(to)
 
