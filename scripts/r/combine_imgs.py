@@ -7,5 +7,5 @@ cols = '{{COMBINE_IMG_COLS}}'
 cols = int(cols) if cols else None
 
 combine_images(image_files='*.png',
-               out_file='out.png',
+               out_file='out/out.png',
                cols=cols)

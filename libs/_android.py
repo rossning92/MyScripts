@@ -7,6 +7,11 @@ def start_app(pkg):
     call(args)
 
 
+def restart_app(pkg):
+    call(f'adb shell am force-stop {pkg}')
+    start_app(pkg)
+
+
 def logcat(pkg_name=None, highlight=None, filter_str=None):
     pid_map = {}
 
