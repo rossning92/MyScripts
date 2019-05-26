@@ -406,12 +406,14 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
 
 
 def prepend_to_path(p):
-    env = os.environ
     if type(p) == list:
         s = os.pathsep.join(p)
     elif type(p) == str:
         s = p
-    env['PATH'] = s + os.pathsep + env['PATH']
+    else:
+        raise ValueError()
+
+    os.environ['PATH'] = s + os.pathsep + os.environ['PATH']
 
 
 def get_cur_time_str():
