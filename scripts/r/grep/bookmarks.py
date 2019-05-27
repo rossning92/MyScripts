@@ -19,8 +19,9 @@ def parse_bookmarks(file):  # parse .md file
             key = match.group(1)
             val = match.group(2)
 
-            if val == 'path':  # `path` should be a list
+            if key == 'path':  # `path` should be a list
                 val = val.split('|')
+                val = [x.strip() for x in val]
 
             if key == 'name':  # Store last parsed bookmark
                 if 'name' in cur_vals:  # not empty
@@ -31,10 +32,13 @@ def parse_bookmarks(file):  # parse .md file
 
     return bookmarks
 
+
 if __name__ == '__main__':
     bookmarks = []
     for f in glob.glob('../../../data/grep/*.md'):
         f = os.path.abspath(f)
         bookmarks += parse_bookmarks(f)
+
+    # print(json.dumps(bookmarks, indent=4))
 
     show_bookmarks(bookmarks=bookmarks)
