@@ -46,33 +46,26 @@ def goto_code(file, line_no=None):
         subprocess.Popen([vscode, f'{file}:{line_no}', '-g'])
 
 
-def show_bookmarks(data):
-    names = [x['name'] for x in data['bookmarks']]
+def show_bookmarks(bookmarks):
+    names = [x['name'] for x in bookmarks]
     idx = search(names)
     if idx == -1:
         sys.exit(1)
 
-    bookmark = data['bookmarks'][idx]
+    bookmark = bookmarks[idx]
 
-    if 'code' in bookmark:
+    if 'kw' in bookmark:
         result = []
         if 'path' in bookmark:
-            # Allow both str of list of str
-            if type(bookmark['path']) == str:
-                path_list = [bookmark['path']]
-            elif type(bookmark['path']) == list:
-                path_list = bookmark['path']
-            else:
-                raise Exception('Invalid value in `path`.')
-
-            for path in path_list:
+            assert type(bookmark['path']) == list  # `path` must be a list
+            for path in bookmark['path']:
                 if os.path.isdir(path):  # directory
-                    result += search_code(text=bookmark['code'], search_path=path)
+                    result += search_code(text=bookmark['kw'], search_path=path)
                 else:  # file or glob
                     dir_path = os.path.dirname(path)
                     file_name = os.path.basename(path)
 
-                    result += search_code(text=bookmark['code'],
+                    result += search_code(text=bookmark['kw'],
                                           search_path=dir_path,
                                           extra_params=['-g', file_name])
 

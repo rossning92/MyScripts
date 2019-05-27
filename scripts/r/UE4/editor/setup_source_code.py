@@ -5,6 +5,7 @@ setup_nvpack(r'{{NVPACK_ROOT}}')
 
 chdir(r'{{UE_SOURCE}}')
 
-call('cmd /c Setup.bat')
+if exists('Setup.bat'):
+    call('cmd /c Setup.bat')
 
 call('cmd /c GenerateProjectFiles.bat -2017')

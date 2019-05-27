@@ -1,0 +1,7 @@
+anaconda: false
+autoRun: false
+globalHotkey: Win+Alt+F12
+hotkey: null
+newWindow: false
+runAsAdmin: false
+wsl: false
