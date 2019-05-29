@@ -32,8 +32,10 @@ def _draw_centered_text(im, text, box, text_outline, font_color, align='center')
 
 
 def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
-                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, label_align='center', font_color='white', title=None,
-                   title_color='white'):
+                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, label_align='center',
+                   font_color='white', title=None,
+                   title_color='white',
+                   col_major_order=False):
     out_file = os.path.splitext(out_file)[0]  # Remove file extension
 
     if type(image_files) == list:
@@ -61,21 +63,33 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
                 text = parse_file_name(text)
             elif labels is not None:
                 text = labels[i]
-            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color, align=label_align)
+            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
+                                align=label_align)
 
     if generate_atlas:
         num_imgs = len(imgs)
         rows = int(math.ceil(num_imgs / cols))
+        if col_major_order:  # Swap rows and cols
+            t = rows
+            rows = cols
+            cols = t
+
         im_combined = Image.new('RGB',
                                 (imgs[0].width * cols + spacing * (cols - 1),
                                  imgs[0].height * rows + spacing * (rows - 1)))
-        c = 0
-        for m in range(len(imgs)):
-            i = c // cols
-            j = c % cols
+
+        for c in range(len(imgs)):
+            if not col_major_order:
+                i = c // cols
+                j = c % cols
+            else:
+                j = c // rows
+                i = c % rows
+            print(i, j)
+
             x = j * imgs[0].width + j * spacing
             y = i * imgs[0].height + i * spacing
-            im_combined.paste(imgs[m], (x, y))
+            im_combined.paste(imgs[c], (x, y))
             c += 1
 
         dir_name = os.path.dirname(out_file)
