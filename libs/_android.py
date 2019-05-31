@@ -3,12 +3,14 @@ from _shutil import *
 
 def start_app(pkg):
     args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
-    print('Start app: ' + args)
-    call(args)
+    print('> ' + args)
+    subprocess.call(args, shell=True)
 
 
 def restart_app(pkg):
-    call(f'adb shell am force-stop {pkg}')
+    args = f'adb shell am force-stop {pkg}'
+    print('> ' + args)
+    subprocess.call(args, shell=True)
     start_app(pkg)
 
 
@@ -69,9 +71,17 @@ def backup_pkg(pkg, out_dir=None):
     # Pull apk
     subprocess.call('adb pull %s %s.apk' % (apk_path, pkg), cwd=out_dir)
 
+    # Check root permission
+    try:
+        subprocess.call('adb root')
+        su = ''
+    except:
+        su = 'su -c'
+
     # Pull data
-    subprocess.call(f'adb shell su -c tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')
+    subprocess.call(f'adb shell {su} tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')
     subprocess.call(f'adb pull /sdcard/{pkg}.tar', cwd=out_dir)
+    subprocess.call(f'adb pull /sdcard/android/obb/{pkg}', cwd=out_dir)
     subprocess.call(f'adb shell rm /sdcard/{pkg}.tar')
 
 

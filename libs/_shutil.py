@@ -81,17 +81,24 @@ def call2(args):
     subprocess.check_call(args, shell=True)
 
 
-def start_in_new_terminal(args):
-    import platform
-    import subprocess
+def start_in_new_terminal(args, title=None):
+    import shlex
+
+    # Convert argument list to string
+    if type(args) == list:
+        args = [shlex.quote(x) for x in args]
 
     if platform.system() == 'Windows':
-        import shlex
-
-        if type(args) == list:
-            args = [shlex.quote(x) for x in args]
         args = args.replace('|', '^|')  # Escape '|'
-        args = 'start cmd /S /C "%s"' % args
+        title_arg = ('"' + title + '"') if title else ''
+        args = 'start %s cmd /S /C "%s"' % (title_arg, args)
+        subprocess.call(args, shell=True)
+
+    elif platform.system() == 'Darwin':
+        args = args.replace("'", "'\"'\"'")
+        args = args.replace('"', '\\"')
+        args = """osascript -e 'tell application "Terminal" to do script "%s"'""" % args
+        print(args)
         subprocess.call(args, shell=True)
 
 

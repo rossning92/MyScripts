@@ -157,6 +157,7 @@ class ScriptItem:
         self.meta = get_script_meta(self.script_path)
 
         self.override_variables = None
+        self.console_title = None
 
     def render(self):
         with open(self.script_path, 'r', encoding='utf-8') as f:
@@ -305,7 +306,7 @@ class ScriptItem:
                         'import ctypes\n'
                         'import sys\n'
                         'import _script as s\n'
-                        f's.set_console_title(r"{self.name}")\n'
+                        f's.set_console_title(r"{self.console_title if self.console_title else self.name}")\n'
                         f'ret = subprocess.call({args})\n'
                         'hwnd = ctypes.windll.kernel32.GetConsoleWindow()\n'
                         'ctypes.windll.user32.SetForegroundWindow(hwnd)\n'
@@ -372,7 +373,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, set_console_title=True):
+def run_script(script_name, variables=None, new_window=False, set_console_title=True, console_title=None):
     print('\n>>> RunScript: %s' % script_name)
     script_path = find_script(script_name)
     if script_path is None:
@@ -380,6 +381,7 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
 
     script = ScriptItem(script_path)
     script.meta['newWindow'] = new_window
+    script.console_title = console_title
 
     # Set console window title (for windows only)
     if set_console_title and platform.system() == 'Windows':
@@ -387,8 +389,7 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
         MAX_BUFFER = 260
         saved_title = (ctypes.c_char * MAX_BUFFER)()
         res = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
-
-        win_title = script.name.encode(locale.getpreferredencoding())
+        win_title = console_title.encode(locale.getpreferredencoding())
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
 
     if variables:
