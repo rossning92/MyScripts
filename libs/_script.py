@@ -389,7 +389,7 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
         MAX_BUFFER = 260
         saved_title = (ctypes.c_char * MAX_BUFFER)()
         res = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
-        win_title = console_title.encode(locale.getpreferredencoding())
+        win_title = script.name.encode(locale.getpreferredencoding())
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
 
     if variables:
