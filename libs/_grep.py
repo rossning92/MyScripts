@@ -46,6 +46,28 @@ def goto_code(file, line_no=None):
         subprocess.Popen([vscode, f'{file}:{line_no}', '-g'])
 
 
+def search_code_and_goto(text, path_list):
+    result = []
+    assert type(path_list) == list  # `path` must be a list
+    for path in path_list:
+        if os.path.isdir(path):  # directory
+            result += search_code(text=text, search_path=path)
+        else:  # file or glob
+            dir_path = os.path.dirname(path)
+            file_name = os.path.basename(path)
+
+            result += search_code(text=text,
+                                  search_path=dir_path,
+                                  extra_params=['-g', file_name])
+
+    if len(result) == 1:
+        goto_code(result[0][0], result[0][1])
+    elif len(result) > 1:
+        indices = select_options([f'{x[0]}:{x[1]}' for x in result])
+        i = indices[0]
+        goto_code(result[i][0], result[i][1])
+
+
 def show_bookmarks(bookmarks):
     names = [x['name'] for x in bookmarks]
     idx = search(names)
@@ -55,30 +77,7 @@ def show_bookmarks(bookmarks):
     bookmark = bookmarks[idx]
 
     if 'kw' in bookmark:
-        result = []
-        if 'path' in bookmark:
-            assert type(bookmark['path']) == list  # `path` must be a list
-            for path in bookmark['path']:
-                if os.path.isdir(path):  # directory
-                    result += search_code(text=bookmark['kw'], search_path=path)
-                else:  # file or glob
-                    dir_path = os.path.dirname(path)
-                    file_name = os.path.basename(path)
-
-                    result += search_code(text=bookmark['kw'],
-                                          search_path=dir_path,
-                                          extra_params=['-g', file_name])
-
-        else:
-            if os.path.exists(data['path']):
-                result += search_code(text=bookmark['code'], search_path=data['path'])
-
-        if len(result) == 1:
-            goto_code(result[0][0], result[0][1])
-        elif len(result) > 1:
-            indices = select_options([f'{x[0]}:{x[1]}' for x in result])
-            i = indices[0]
-            goto_code(result[i][0], result[i][1])
+        search_code_and_goto(bookmark['kw'], path_list=bookmark['path'])
     else:
         goto_code(bookmark['path'])
 
