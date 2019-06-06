@@ -103,3 +103,13 @@ def get_active_pkg_and_activity():
     pkg_activity = match.split()[2]
     pkg, activity = pkg_activity.split('/')
     return pkg, activity
+
+
+def take_screenshot(file_name=None):
+    if not file_name:
+        file_name = datetime.datetime.now().strftime('Screenshot_%y%m%d%H%M%S.png')
+
+    print('Taking screenshot ...')
+    subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % file_name])
+    subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % file_name])
+    subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % file_name])

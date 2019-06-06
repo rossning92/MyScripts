@@ -245,7 +245,7 @@ class ListWidget():
                 self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
-            elif ch == 0x7F:  # Ctrl + Backspace
+            elif ch == curses.ascii.ctrl(ord('c')):  # Ctrl + C
                 if self.select_mode:
                     self.cur_input = self.search_str
                     self.caret_pos = len(self.search_str)
@@ -255,7 +255,7 @@ class ListWidget():
                     self.caret_pos = 0
                     self.select_mode = False
                     text_changed = True
-            elif ch == curses.ascii.ctrl(ord('c')):
+            elif ch == curses.ascii.ctrl(ord('w')):
                 self.exit = True
             elif ch == ord('\n'):
                 if not self.select_mode:

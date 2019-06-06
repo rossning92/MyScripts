@@ -1,3 +1,3 @@
 from _android import *
 
-logcat(filter_str='ROSS:')
+logcat(filter_str=' (E|F) |ROSS:')

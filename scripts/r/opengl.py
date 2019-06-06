@@ -1,7 +1,11 @@
 from _shutil import *
 import os
 
-chdir("{{PROJECT_DIR}}")
+proj_dir = r"{{PROJECT_DIR}}"
+if not proj_dir:
+    proj_dir = "C:\\Projects"
+
+chdir(proj_dir)
 if not exists('LearnOpenGL'):
     call('git clone https://github.com/JoeyDeVries/LearnOpenGL.git')
 

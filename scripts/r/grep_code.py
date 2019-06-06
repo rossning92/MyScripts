@@ -59,7 +59,7 @@ def grep(src_dir):
             args += ' ' + rel_path
 
         if not exists('.gitignore'):
-            args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
+           args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
 
         ps = check_output2(args)
 

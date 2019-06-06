@@ -25,10 +25,14 @@ def write_temp_file(text, ext):
         return temp.name
 
 
-def exec_ahk(script):
+def exec_ahk(script, tmp_script_path=None):
     assert os.name == 'nt'
-    file = write_temp_file(script, '.ahk')
-    args = ['AutoHotkeyU64.exe', file]
+    if not tmp_script_path:
+        tmp_script_path = write_temp_file(script, '.ahk')
+    else:
+        with open(tmp_script_path, 'w') as f:
+            f.write(script)
+    args = ['AutoHotkeyU64.exe', tmp_script_path]
     Popen(args)
     return args
 
@@ -484,5 +488,9 @@ def unzip(file, to=None):
 def get_time_str():
     return datetime.datetime.now().strftime('%y%m%d%H%M%S')
 
+
+def make_and_change_dir(path):
+    os.makedirs(path, exist_ok=True)
+    os.chdir(path)
 
 env = os.environ
