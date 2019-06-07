@@ -31,35 +31,43 @@ def _draw_centered_text(im, text, box, text_outline, font_color, align='center')
     del draw
 
 
-def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=4, scale=1.0, text_outline=2,
-                   gif_duration=500, generate_atlas=True, draw_label=True, labels=None, label_align='center',
+def combine_images(image_files=None, images=None, out_file=None, parse_file_name=None, cols=4, spacing=4, scale=1.0,
+                   text_outline=2,
+                   gif_duration=500, generate_atlas=True, generate_gif=True, draw_label=True, labels=None,
+                   label_align='center',
                    font_color='white', title=None,
                    title_color='white',
                    col_major_order=False):
-    out_file = os.path.splitext(out_file)[0]  # Remove file extension
+    if image_files:
+        if type(image_files) == list:
+            file_list = image_files
+        else:
+            file_list = glob.glob(image_files)
 
-    if type(image_files) == list:
-        file_list = image_files
+        if len(file_list) == 0:
+            raise Exception('No image files has been found: %s' % image_files)
+
+        imgs = [Image.open(f) for f in file_list]
+        if scale != 1.0:
+            imgs = [im.resize((int(im.width * scale), int(im.height * scale)), Image.NEAREST) for im in imgs]
+
+    elif images:
+        # Convert to PIL image
+        imgs = [Image.fromarray(x, 'RGB') for x in images]
+
     else:
-        file_list = glob.glob(image_files)
-
-    if len(file_list) == 0:
-        raise Exception('No image files has been found: %s' % image_files)
+        raise Exception("`image_files` and `images` cannot be None at the same time.")
 
     # Adjust column size if it's smaller than the number of files
-    if len(file_list) < cols:
-        cols = len(file_list)
-
-    imgs = [Image.open(f) for f in file_list]
-    if scale != 1.0:
-        imgs = [im.resize((int(im.width * scale), int(im.height * scale)), Image.NEAREST) for im in imgs]
+    if len(imgs) < cols:
+        cols = len(imgs)
 
     # Add text
     if draw_label:
         for i in range(len(imgs)):
             im = imgs[i]
-            text = os.path.splitext(os.path.basename(file_list[i]))[0]
             if parse_file_name is not None:
+                text = os.path.splitext(os.path.basename(file_list[i]))[0]
                 text = parse_file_name(text)
             elif labels is not None:
                 text = labels[i]
@@ -92,10 +100,6 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
             im_combined.paste(imgs[c], (x, y))
             c += 1
 
-        dir_name = os.path.dirname(out_file)
-        if dir_name:
-            os.makedirs(os.path.dirname(out_file), exist_ok=True)
-
         if title is not None:
             _draw_centered_text(im_combined,
                                 title,
@@ -103,14 +107,26 @@ def combine_images(image_files, out_file, parse_file_name=None, cols=4, spacing=
                                 text_outline,
                                 title_color,
                                 align='topLeft')
-        im_combined.save(out_file + '.png')
 
-    imgs[0].save(out_file + '.gif',
-                 save_all=True,
-                 append_images=imgs[1:],
-                 duration=gif_duration,
-                 quality=100,
-                 loop=0)  # Repeat forever
+    if out_file:
+        out_file = os.path.splitext(out_file)[0]  # Remove file extension
+        dir_name = os.path.dirname(out_file)
+        if dir_name:
+            os.makedirs(os.path.dirname(out_file), exist_ok=True)
+
+        if generate_atlas:
+            im_combined.save(out_file + '.png')
+
+        if generate_gif:
+            imgs[0].save(out_file + '.gif',
+                         save_all=True,
+                         append_images=imgs[1:],
+                         duration=gif_duration,
+                         quality=100,
+                         loop=0)  # Repeat forever
+
+    import numpy
+    return numpy.array(im_combined)
 
 
 def parse_file_name(s):
