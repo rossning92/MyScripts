@@ -216,9 +216,9 @@ class ScriptItem:
                 # HACK: add python path to env var
                 env['PYTHONPATH'] = os.path.dirname(__file__)
 
-                script_abs_path = os.path.join(os.getcwd(), self.script_path)
+                script_abs_path = os.path.abspath(self.script_path)
                 subprocess.Popen(
-                    ['bin/AutoHotkeyU64.exe', script_abs_path],
+                    ['AutoHotkeyU64.exe', script_abs_path],
                     cwd=cwd, env=env)
 
         elif self.ext == '.cmd':
@@ -354,21 +354,22 @@ class ScriptItem:
 
 
 def find_script(script_name, search_dir=None):
-    if search_dir:
-        script_name = os.path.join(search_dir, script_name)
+    if script_name.startswith('/'):
+        script_path = os.path.abspath(os.path.dirname(__file__) + '/../scripts' + script_name)
+    elif search_dir:
+        script_path = os.path.join(search_dir, script_name)
+    else:
+        script_path = os.path.abspath(script_name)
 
-    if os.path.exists(script_name):
-        return script_name
+    if os.path.exists(script_path):
+        return script_path
 
-    for f in glob.glob(script_name + '*'):
+    for f in glob.glob(script_path + '*'):
         if os.path.isdir(f):
             continue
-
         if os.path.splitext(f)[1] == '.yaml':
             continue
-
-        print(os.path.abspath(f))
-        return os.path.abspath(f)
+        return f
 
     return None
 
