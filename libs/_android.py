@@ -14,6 +14,16 @@ def restart_app(pkg):
     start_app(pkg)
 
 
+def restart_current_app():
+    out = check_output('adb shell "dumpsys activity activities | grep mFocusedActivity"', shell=True).decode().strip()
+    match = re.search(r'\{([^}]+)\}', out).group(1)
+    pkg_activity = match.split()[2]
+    pkg, activity = pkg_activity.split('/')
+
+    call2('adb shell am force-stop %s' % pkg)
+    call2('adb shell am start -n %s' % pkg_activity)
+
+
 def logcat(pkg_name=None, highlight=None, filter_str=None):
     pid_map = {}
 

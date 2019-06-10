@@ -1,5 +1,7 @@
 from _shutil import *
 import re
+from _setup_android_env import *
+from _android import *
 
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
@@ -43,3 +45,13 @@ obb_folder = os.path.splitext(file)[0]
 if os.path.isdir(obb_folder):
     print('Push obb...')
     call2(f'adb push "{obb_folder}" /sdcard/android/obb')
+
+# Run app
+setup_android_env()
+out = subprocess.check_output(['aapt', 'dump', 'badging', file]).decode()
+package_name = re.search("package: name='(.*?)'", out).group(1)
+activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
+print('PackageName: %s' % package_name)
+print('LaunchableActivity: %s' % activity_name)
+start_app(package_name)
+logcat(package_name)

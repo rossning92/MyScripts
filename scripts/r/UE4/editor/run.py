@@ -10,4 +10,9 @@ chdir(r'{{UE_SOURCE}}\Engine\Binaries\Win64')
 
 # set UE-SharedDataCachePath=%DATA_CACHE_DIR%
 # start UE4Editor.exe -ddc=noshared
-Popen('UE4Editor.exe')
+try:
+    call2('taskkill /f /im UE4Editor.exe')
+except:
+    pass
+
+call2('start UE4Editor.exe')

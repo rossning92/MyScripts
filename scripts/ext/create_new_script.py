@@ -6,8 +6,14 @@ from PyQt5.QtWidgets import QApplication, QInputDialog
 
 os.chdir('../')
 
+relpath = os.getenv('ROSS_SELECTED_SCRIPT_PATH').replace(os.getcwd(), '')
+relpath = os.path.dirname(relpath)
+relpath += '/'
+relpath = relpath[1:]
+
+
 _app = QApplication([])
-file_path, okPressed = QInputDialog.getText(None, "Create New Script", "Script name:")
+file_path, okPressed = QInputDialog.getText(None, "Create New Script", "Script name:", text=relpath)
 if okPressed:
     dir_name = os.path.dirname(file_path)
     if dir_name != '':
