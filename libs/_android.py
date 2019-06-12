@@ -26,7 +26,7 @@ def restart_current_app():
     call2('adb shell am start -n %s' % pkg_activity)
 
 
-def logcat(pkg_name=None, highlight=None, filter_str=None):
+def logcat(pkg_name=None, highlight=None, filter_str=None, clear=True):
     pid_map = {}
 
     def filter_line(line):
@@ -58,7 +58,8 @@ def logcat(pkg_name=None, highlight=None, filter_str=None):
 
         return line
 
-    call('adb logcat -c')
+    if clear:
+        call2('adb logcat -c')
 
     if highlight is None:
         highlight = {}
