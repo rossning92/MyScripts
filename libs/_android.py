@@ -8,10 +8,12 @@ def start_app(pkg):
 
 
 def restart_app(pkg):
-    args = f'adb shell am force-stop {pkg}'
-    print('> ' + args)
-    subprocess.call(args, shell=True)
-    start_app(pkg)
+    print('Stop app: ' + pkg)
+    call2('adb shell am force-stop %s' % pkg)
+
+    print('Start app: ' + pkg)
+    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
+    call2(args)
 
 
 def restart_current_app():

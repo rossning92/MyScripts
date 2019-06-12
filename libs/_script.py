@@ -146,8 +146,13 @@ class ScriptItem:
         script_path = script_path.replace(os.path.sep, '/')
         self.script_path = script_path
 
+        # TODO: clean up code logic
+        script_root_path = os.path.abspath(os.path.dirname(__file__) + '/../scripts')
+        script_root_path = script_root_path.replace('\\', '/') + '/'
+
         name, ext = os.path.splitext(script_path)
-        name = re.sub(r'scripts[\\/]', '', name)  # strip starting scripts/
+        name = name.replace(script_root_path, '')
+        name = re.sub(r'^scripts[\\/]', '', name)  # strip starting scripts/
         name = name.replace('\\', '/')
         self.name = name
 

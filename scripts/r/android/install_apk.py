@@ -48,10 +48,14 @@ if os.path.isdir(obb_folder):
 
 # Run app
 setup_android_env()
+print('Start the app...')
 out = subprocess.check_output(['aapt', 'dump', 'badging', file]).decode()
-package_name = re.search("package: name='(.*?)'", out).group(1)
-activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
-print('PackageName: %s' % package_name)
-print('LaunchableActivity: %s' % activity_name)
-start_app(package_name)
-logcat(package_name)
+try:
+    package_name = re.search("package: name='(.*?)'", out).group(1)
+    activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
+    print('PackageName: %s' % package_name)
+    print('LaunchableActivity: %s' % activity_name)
+    start_app(package_name)
+    logcat(package_name)
+except:
+    print('Cannot launch the app')
