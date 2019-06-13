@@ -24,3 +24,7 @@ SumatraPDF:
 vscode:
   executable:
     - C:\Program Files\Microsoft VS Code\Code.exe
+
+PotPlayer:
+  executable:
+    - C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe
