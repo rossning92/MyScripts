@@ -24,12 +24,14 @@ def export_python(script_path):
         content = f.read()
 
     # Find imports dependencies
-    module_names = re.findall(rb'(?:^from|import) (_[a-zA-Z_]+)', content, flags=re.MULTILINE)
-    python_path = _script.get_python_path(script_path)
+    module_names = re.findall(rb'(?:^from|import) (_[a-zA-Z0-9_]+)', content, flags=re.MULTILINE)
+
+    search_paths = _script.get_python_path(script_path)
     for m in module_names:
         m = m.decode()
-        python_module = find_module(python_path, m)
-        assert (python_module is not None)
+        python_module = find_module(search_paths, m)
+        if python_module is None:
+            raise Exception('Cannot find python module: %s' % m)
 
         print('Copy: %s' % python_module)
         shutil.copy(python_module, OUT_DIR)
