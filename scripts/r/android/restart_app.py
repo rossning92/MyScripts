@@ -7,4 +7,4 @@ pkg = '{{PKG_NAME}}'
 restart_app(pkg)
 
 if '{{RESTART_APP_SHOW_LOGCAT}}':
-    logcat(pkg)
+    logcat(pkg, clear=False)

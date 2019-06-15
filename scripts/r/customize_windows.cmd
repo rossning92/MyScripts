@@ -29,6 +29,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\Auxill
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f
 rd /s /q "%APPDATA%\Microsoft\Windows\Recent"
 
+:: Disable Game Bar (Win+G)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v GameDVR_Enabled /t REG_DWORD /d 0 /f
+
 :: Turn off hibernation
 powercfg.exe /hibernate off
 
