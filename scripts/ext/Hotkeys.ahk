@@ -1,6 +1,6 @@
 #SingleInstance, Force
 #InstallKeybdHook
-#include _ExplorerHelper.ahk
+#include <ExplorerHelper>
 #include <ChromeHotkey>
 
 CONSOLE_WINDOW = MyScripts - Console

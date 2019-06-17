@@ -235,6 +235,7 @@ class MainWindow(QWidget):
         if platform.system() == 'Windows':
             with open(GLOBAL_HOTKEY, 'w') as f:
                 f.write('''#SingleInstance, Force
+#include <ExplorerHelper>
 ; SetTitleMatchMode, 2
 RunScript(name, path)
 {
@@ -244,6 +245,7 @@ RunScript(name, path)
     }
     else
     {
+        WriteExplorerInfoToJson()
         Run cmd /c python -c "from _script import *;run_script('%path%')" || pause
     }
 }

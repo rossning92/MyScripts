@@ -1,5 +1,5 @@
 from _shutil import *
-
+import datetime
 
 def start_app(pkg):
     args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
@@ -26,12 +26,14 @@ def restart_current_app():
     call2('adb shell am start -n %s' % pkg_activity)
 
 
-def logcat(pkg_name=None, highlight=None, filter_str=None, clear=True):
+def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log_after_secs=-2):
     pid_map = {}
 
     def filter_line(line):
         # Always show fatal message (backtrace)
         if b' F DEBUG ' in line:
+            return line
+        elif b'ROSS:' in line:
             return line
 
         # Filter by pkg_name
@@ -52,11 +54,25 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=True):
             if pkg_name.encode() not in process_name:
                 return None
 
-        # filter by string
+        if show_log_after_secs is not None:
+            try:
+                dt = datetime.datetime.strptime(line[:14].decode(), '%m-%d %H:%M:%S')
+                if dt < dt_start:
+                    return None
+            except:
+                pass
+
+        # Filter by string
         if filter_str and re.search(filter_str.encode(), line) is None:
             return None
 
         return line
+
+    if show_log_after_secs is not None:
+        out = subprocess.check_output(['adb', 'shell', "date '+%m-%d %H:%M:%S'"], shell=True)
+        out = out.decode().strip()
+        dt_start = datetime.datetime.strptime(out, '%m-%d %H:%M:%S')
+        dt_start += datetime.timedelta(seconds=show_log_after_secs)
 
     if clear:
         call2('adb logcat -c')

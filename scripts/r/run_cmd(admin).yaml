@@ -1,4 +1,7 @@
+anaconda: false
 autoRun: false
+globalHotkey: Alt+Win+[
 hotkey: Ctrl+Shift+P
 newWindow: false
 runAsAdmin: true
+wsl: false

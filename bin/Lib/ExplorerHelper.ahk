@@ -1,4 +1,4 @@
-#include _JSON.ahk 
+#include <JSON> 
 
 WriteExplorerInfoToJson()
 {
