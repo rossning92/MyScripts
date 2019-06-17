@@ -205,8 +205,25 @@ class ScriptItem:
         elif type(args) == str:
             args = [args]
 
-        env = os.environ.copy()
+        env = {}
         cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(self.script_path)))
+
+        # Set selected file and current folder to as environment variables
+        if args is not None and self.meta['autoRun'] is False:
+            try:
+                with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
+                    jsn = json.load(f)
+
+                if len(jsn['selectedFiles']) == 1:
+                    env['SELECTED_FILE'] = jsn['selectedFiles'][0]
+
+                if len(jsn['selectedFiles']) >= 1:
+                    env['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
+
+                if jsn['currentFolder']:
+                    env['CURRENT_FOLDER'] = jsn['currentFolder']
+            except:
+                print('Unable to get explorer info.')
 
         if self.ext == '.ps1':
             if os.name == 'nt':
@@ -224,7 +241,7 @@ class ScriptItem:
                 script_abs_path = os.path.abspath(self.script_path)
                 subprocess.Popen(
                     ['AutoHotkeyU64.exe', script_abs_path],
-                    cwd=cwd, env=env)
+                    cwd=cwd, env={**os.environ, **env})
 
         elif self.ext == '.cmd':
             if os.name == 'nt':
@@ -262,12 +279,15 @@ class ScriptItem:
 
             if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
                 bin_path = os.path.abspath(os.path.dirname(__file__) + '/../bin')
-                args = ['cmd', '/c',
-                        'cd', '/d', cwd, '&',
-                        'set', 'PYTHONPATH=' + ';'.join(python_path), '&',
-                        'set', 'PYTHONDONTWRITEBYTECODE=1', '&',
-                        'set', f'PATH={bin_path};%PATH%', '&',
-                        ] + args
+                set_env_var = []
+                for k, v in env.items():
+                    set_env_var += ['set', '%s=%s' % (k, v), '&']
+
+                args = [
+                           'cmd', '/c',
+                           'cd', '/d', cwd, '&',
+                           'set', f'PATH={bin_path};%PATH%', '&'
+                       ] + set_env_var + args
 
         elif self.ext == '.vbs':
             assert os.name == 'nt'
@@ -278,23 +298,6 @@ class ScriptItem:
         else:
             print('Not supported script:', self.ext)
 
-        # Set selected file and current folder to as environment variables
-        if args is not None and self.meta['autoRun'] is False:
-            try:
-                with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
-                    jsn = json.load(f)
-
-                if len(jsn['selectedFiles']) == 1:
-                    env['SELECTED_FILE'] = jsn['selectedFiles'][0]
-
-                if len(jsn['selectedFiles']) >= 1:
-                    env['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
-
-                if jsn['currentFolder']:
-                    env['CURRENT_FOLDER'] = jsn['currentFolder']
-            except:
-                print('Unable to get explorer info.')
-
         # Run commands
         if args is not None and len(args) > 0:
             if ACTIVE_CONSOLE_ON_EXIT and platform.system() == 'Windows':
@@ -304,7 +307,7 @@ class ScriptItem:
             new_window = self.meta['newWindow'] or control_down
             if new_window:
 
-                if True:  # HACK: use python wrapper: active console window once finished
+                if True:  # HACK: use python wrapper: activate console window once finished
                     args = [
                         sys.executable, '-c',
                         'import subprocess\n'
@@ -331,9 +334,9 @@ class ScriptItem:
                 run_elevated(args, wait=not new_window)
             else:
                 if new_window:
-                    subprocess.Popen(args, env=env, cwd=cwd)
+                    subprocess.Popen(args, env={**os.environ, **env}, cwd=cwd)
                 else:
-                    self.return_code = subprocess.call(args, env=env, cwd=cwd)
+                    self.return_code = subprocess.call(args, env={**os.environ, **env}, cwd=cwd)
 
     def get_variable_names(self):
         variables = set()
