@@ -18,6 +18,7 @@ other = [
 ]
 
 dev = [
+    'conemu',
     'atom',
     'graphviz',
     'anaconda3',
@@ -30,6 +31,7 @@ dev = [
     'llvm',
     'ripgrep',
     'vscode',
+    'sumatrapdf',
 ]
 
 media = [
