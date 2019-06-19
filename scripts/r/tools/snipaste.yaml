@@ -1,4 +1,5 @@
-autoRun: true
+anaconda: false
+autoRun: false
 globalHotkey: null
 hotkey: null
 newWindow: false

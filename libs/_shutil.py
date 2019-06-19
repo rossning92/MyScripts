@@ -61,9 +61,9 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
             args2 += ['-Title', title]
 
         if small_window:
-            args2 += ['-Font', 'Consolas', '-Size', '10']
+            args2 += ['-Font', 'Consolas', '-Size', '14']
         else:
-            args2 += ['-Max']
+            args2 += ['-Max', 'Consolas', '-Size', '14']
 
         args2 += [
             '-run',
