@@ -302,8 +302,9 @@ class ScriptItem:
             print('Not supported script:', self.ext)
 
         if self.meta['singleInstance']:
-            # HACK:
-            exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
+            # HACK: only works on windows
+            if platform.system() == 'Windows':
+                exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
 
         # Run commands
         if args is not None and len(args) > 0:
