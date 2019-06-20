@@ -301,7 +301,7 @@ class ScriptItem:
         else:
             print('Not supported script:', self.ext)
 
-        if self.meta['singleInstance']:
+        if self.meta['restartInstance']:
             # HACK: only works on windows
             if platform.system() == 'Windows':
                 exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
@@ -439,7 +439,7 @@ class ScriptMeta:
             'autoRun': False,
             'wsl': False,
             'anaconda': False,
-            'singleInstance': False
+            'restartInstance': False
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
