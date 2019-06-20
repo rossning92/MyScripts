@@ -25,7 +25,7 @@ def write_temp_file(text, ext):
         return temp.name
 
 
-def exec_ahk(script, tmp_script_path=None):
+def exec_ahk(script, tmp_script_path=None, wait=False):
     assert os.name == 'nt'
     if not tmp_script_path:
         tmp_script_path = write_temp_file(script, '.ahk')
@@ -33,8 +33,11 @@ def exec_ahk(script, tmp_script_path=None):
         with open(tmp_script_path, 'w') as f:
             f.write(script)
     args = ['AutoHotkeyU64.exe', tmp_script_path]
-    Popen(args)
-    return args
+    if wait:
+        return subprocess.call(args)
+    else:
+        Popen(args)
+        return args
 
 
 def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
@@ -313,6 +316,19 @@ def check_output2(args, shell=None, cwd=None, env=None):
     return MyProcess(ps)
 
 
+def check_output_echo(args):
+    out = ''
+    with subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as p:
+        for line in p.stdout:
+            print(line, end='')  # process line here
+            out += line
+
+    if p.returncode != 0:
+        raise subprocess.CalledProcessError(p.returncode, p.args)
+
+    return out
+
+
 def print_color(msg, color='yellow'):
     from colorama import init
     from colorama import Fore, Back, Style
@@ -492,5 +508,6 @@ def get_time_str():
 def make_and_change_dir(path):
     os.makedirs(path, exist_ok=True)
     os.chdir(path)
+
 
 env = os.environ

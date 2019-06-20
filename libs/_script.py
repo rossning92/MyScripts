@@ -164,6 +164,9 @@ class ScriptItem:
         self.override_variables = None
         self.console_title = None
 
+    def get_console_title(self):
+        return self.console_title if self.console_title else self.name
+
     def render(self):
         with open(self.script_path, 'r', encoding='utf-8') as f:
             source = f.read()
@@ -298,6 +301,10 @@ class ScriptItem:
         else:
             print('Not supported script:', self.ext)
 
+        if self.meta['singleInstance']:
+            # HACK:
+            exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
+
         # Run commands
         if args is not None and len(args) > 0:
             if ACTIVE_CONSOLE_ON_EXIT and platform.system() == 'Windows':
@@ -430,7 +437,8 @@ class ScriptMeta:
             'runAsAdmin': False,
             'autoRun': False,
             'wsl': False,
-            'anaconda': False
+            'anaconda': False,
+            'singleInstance': False
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
