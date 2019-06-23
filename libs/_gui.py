@@ -251,5 +251,13 @@ def search(items=None, title=None, search_func=None, cancel_func=None):
     return sw.get_selected()
 
 
+def gui_input(title=None, prompt=None, text=None):
+    text, ok_pressed = QInputDialog.getText(None, title, prompt, text=text)
+    if ok_pressed:
+        return text
+    else:
+        return None
+
+
 if __name__ == '__main__':
     print(search(['hello' + str(i) for i in range(5)]))

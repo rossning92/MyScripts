@@ -256,6 +256,16 @@ def get_clip():
     return text
 
 
+def set_clip(s):
+    try:
+        import pyperclip
+    except ImportError:
+        subprocess.call([sys.executable, '-m', 'pip', 'install', 'pyperclip'])
+        import pyperclip
+
+    pyperclip.copy(s)
+
+
 def check_output2(args, shell=None, cwd=None, env=None):
     class MyProcess:
         def __init__(self, ps):

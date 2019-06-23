@@ -17,6 +17,11 @@ other = [
     'nsis',
 ]
 
+common = [
+    'everything',
+    'irfanview',
+]
+
 dev = [
     'conemu',
     'atom',
@@ -53,7 +58,7 @@ ue4 = [
     'directx',
 ]
 
-pkg_list = sorted(other_options + other + dev + media + ue4)
+pkg_list = sorted(other_options + other + dev + media + ue4 + common)
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
@@ -61,7 +66,7 @@ if idx < 0:
 subprocess.call('choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"')
 
 if pkg_list[idx] == '@for work':
-    for pkg in for_work + media + dev:
+    for pkg in for_work + media + dev + common:
         subprocess.call('choco install %s -y' % pkg)
 else:
     subprocess.call('choco install %s -y' % pkg_list[idx])
