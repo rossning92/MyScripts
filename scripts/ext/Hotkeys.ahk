@@ -90,4 +90,6 @@ return
 		WinClose, ahk_id %this_id%
 	}
 	return
+    
+!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 	
