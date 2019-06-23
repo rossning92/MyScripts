@@ -2,8 +2,18 @@ from _shutil import *
 from _term import *
 import json
 
+out = subprocess.check_output('reg query HKCU\Environment', shell=True)
+out = out.decode()
+lines = out.splitlines()
+env_vars = {}
+for l in lines:
+    cols = l.split(maxsplit=2)
+    if len(cols) != 3:
+        continue
+    env_vars[cols[0]] = cols[2]
+
 data = {}
-for k, v in env.items():
+for k, v in env_vars.items():
     if 'NVPACK' in k or 'NVPACK' in v:
         if k == 'PATH':
             arr = v.split(';')
@@ -13,7 +23,9 @@ for k, v in env.items():
             data[k] = v
 
 json_str = json.dumps(data, indent=4)
-print(json_str)
+print('Modified env vars:', json_str)
+input('Press enter to continue...')
+
 
 if wait_key('backup NVPACK env vars'):
     with open(expanduser('~/NVPACK_env.txt'), 'w') as f:
