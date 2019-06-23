@@ -51,7 +51,7 @@ PKGS = {
     ]
 }
 
-pkg_list = ['@for work'] + sorted([app for cate in PKGS.values() for app in cate])
+pkg_list = ['@for work'] + sorted(set([app for cate in PKGS.values() for app in cate]))
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
