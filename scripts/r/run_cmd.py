@@ -2,7 +2,8 @@ import os
 import subprocess
 
 try:
-    import _setup_android_env; _setup_android_env.setup_android_env()
+    import _setup_android_env as android
+    android.setup_android_env()
 except:
     print('[WARNING] Android env not found.')
 
