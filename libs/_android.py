@@ -3,18 +3,26 @@ import datetime
 
 
 def start_app(pkg):
-    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
-    print('> ' + args)
-    subprocess.call(args, shell=True)
+    if False:
+        args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
+        print('> ' + args)
+        subprocess.call(args, shell=True)
+    else:
+        args = f'adb shell "dumpsys package | grep -i {pkg} | grep Activity"'
+        out = subprocess.check_output(args, shell=True)
+        out = out.decode()
+
+        id, pkg_activity = out.split()
+        print('> ActivityName: ' + pkg_activity)
+        args = 'adb shell am start -n %s' % pkg_activity
+        print('> ' + args)
+        call2(args)
 
 
 def restart_app(pkg):
     print('Stop app: ' + pkg)
     call2('adb shell am force-stop %s' % pkg)
-
-    print('Start app: ' + pkg)
-    args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
-    call2(args)
+    start_app(pkg)
 
 
 def restart_current_app():

@@ -1,4 +1,5 @@
 #SingleInstance, Force
+#InstallKeybdHook
 
 SetWorkingDir %A_ScriptDir%
 
