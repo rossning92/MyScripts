@@ -344,14 +344,20 @@ class ScriptItem:
                 if new_window or self.meta['background']:
                     # Check whether or not hide window
                     startupinfo = None
+                    creationflags = 0
                     if self.meta['background']:
                         if platform.system() == 'Windows':
                             SW_HIDE = 0
                             startupinfo = subprocess.STARTUPINFO()
                             startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
                             startupinfo.wShowWindow = SW_HIDE
+                            creationflags = subprocess.CREATE_NEW_CONSOLE
 
-                    subprocess.Popen(args, env={**os.environ, **env}, cwd=cwd, startupinfo=startupinfo)
+                    subprocess.Popen(args,
+                                     env={**os.environ, **env},
+                                     cwd=cwd,
+                                     startupinfo=startupinfo,
+                                     creationflags=creationflags)
                 else:
                     self.return_code = subprocess.call(args, env={**os.environ, **env}, cwd=cwd)
 
