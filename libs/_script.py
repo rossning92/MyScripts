@@ -341,8 +341,17 @@ class ScriptItem:
                 print('Run elevated:', _args_to_str(args))
                 run_elevated(args, wait=not new_window)
             else:
-                if new_window:
-                    subprocess.Popen(args, env={**os.environ, **env}, cwd=cwd)
+                if new_window or self.meta['hide']:
+                    # Check whether or not hide window
+                    startupinfo = None
+                    if self.meta['hide']:
+                        if platform.system() == 'Windows':
+                            SW_HIDE = 0
+                            startupinfo = subprocess.STARTUPINFO()
+                            startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                            startupinfo.wShowWindow = SW_HIDE
+
+                    subprocess.Popen(args, env={**os.environ, **env}, cwd=cwd, startupinfo=startupinfo)
                 else:
                     self.return_code = subprocess.call(args, env={**os.environ, **env}, cwd=cwd)
 
@@ -439,7 +448,8 @@ class ScriptMeta:
             'autoRun': False,
             'wsl': False,
             'anaconda': False,
-            'restartInstance': False
+            'restartInstance': False,
+            'hide': False
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
