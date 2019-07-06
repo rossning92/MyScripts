@@ -341,10 +341,10 @@ class ScriptItem:
                 print('Run elevated:', _args_to_str(args))
                 run_elevated(args, wait=not new_window)
             else:
-                if new_window or self.meta['hide']:
+                if new_window or self.meta['background']:
                     # Check whether or not hide window
                     startupinfo = None
-                    if self.meta['hide']:
+                    if self.meta['background']:
                         if platform.system() == 'Windows':
                             SW_HIDE = 0
                             startupinfo = subprocess.STARTUPINFO()
@@ -449,7 +449,7 @@ class ScriptMeta:
             'wsl': False,
             'anaconda': False,
             'restartInstance': False,
-            'hide': False
+            'background': False
         }
 
         self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
