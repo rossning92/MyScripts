@@ -1,12 +1,7 @@
 from _shutil import *
-import zipfile
 
-
-def unzip(file, to):
-    mkdir(to)
-    with zipfile.ZipFile(file, 'r') as zip:
-        zip.extractall(to)
-
+if platform.system() != 'Windows':
+    sys.exit(0)
 
 url = 'https://dl.snipaste.com/win-x64'
 install_dir = 'C:\\Snipaste'
