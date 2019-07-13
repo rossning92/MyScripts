@@ -5,6 +5,12 @@ import math
 import re
 
 
+def crop_image(file_name, rect):
+    im = Image.open(file_name)
+    im = im.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
+    im.save(file_name)
+
+
 def _draw_centered_text(im, text, box, text_outline, font_color, align='center'):
     PADDING = 4
 

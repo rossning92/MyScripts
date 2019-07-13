@@ -17,6 +17,7 @@ import tempfile
 from tempfile import gettempdir
 import datetime
 import signal
+import ctypes
 
 
 def write_temp_file(text, ext):
@@ -117,6 +118,40 @@ def call(args, cwd=None, env=None, shell=True, highlight=None, check_call=True):
             return subprocess.check_call(args, shell=shell, cwd=cwd, env=env)
         else:
             return subprocess.call(args, shell=shell, cwd=cwd, env=env)
+
+
+def run_in_background(cmd):
+    # ANSI escape codes for colors
+    GREEN = '\u001b[32;1m'
+    YELLOW = '\u001b[33;1m'
+    RED = '\u001b[31;1m'
+    BLUE = '\u001b[34;1m'
+    MAGENTA = '\u001b[35;1m'
+    CYAN = '\u001b[36;1m'
+    RESET = '\033[0m'
+
+    # Enable ANSI escape sequence processing for the console window by calling
+    # the SetConsoleMode Windows API with the ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    # flag set.
+    if platform.system() == "Windows":
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
+    def print_output(ps):
+        while True:
+            line = ps.stdout.readline()
+            # stdout is thread-safe
+            sys.stdout.buffer.write(YELLOW.encode() + line + RESET.encode())
+            sys.stdout.flush()
+            if line == '' and ps.poll() is not None:
+                break
+
+    ps = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    t = threading.Thread(target=print_output, args=(ps,))
+    t.daemon = True  # Kill the thread when program exits
+    t.start()
+    return ps
 
 
 def mkdir(path, expand=True):
