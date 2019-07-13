@@ -374,37 +374,31 @@ def check_output_echo(args):
     return out
 
 
-def print_color(msg, color='yellow'):
-    from colorama import init
-    from colorama import Fore, Back, Style
-
+def print2(msg, color='yellow'):
+    # ANSI escape codes for colors
     COLOR_MAP = {
-        'black': Fore.LIGHTBLACK_EX,
-        'red': Fore.LIGHTRED_EX,
-        'green': Fore.LIGHTGREEN_EX,
-        'yellow': Fore.LIGHTYELLOW_EX,
-        'blue': Fore.LIGHTBLUE_EX,
-        'magenta': Fore.LIGHTMAGENTA_EX,
-        'cyan': Fore.LIGHTCYAN_EX,
-        'white': Fore.LIGHTWHITE_EX,
-        'BLACK': Back.BLACK,
-        'RED': Back.RED,
-        'GREEN': Back.GREEN,
-        'YELLOW': Back.YELLOW,
-        'BLUE': Back.BLUE,
-        'MAGENTA': Back.MAGENTA,
-        'CYAN': Back.CYAN,
-        'WHITE': Back.WHITE,
+        'green': '\u001b[32;1m',
+        'yellow': '\u001b[33;1m',
+        'red': '\u001b[31;1m',
+        'blue': '\u001b[34;1m',
+        'magenta': '\u001b[35;1m',
+        'cyan': '\u001b[36;1m'
     }
+    RESET = '\033[0m'
 
-    if not print_color.colorama_initialized:
-        init()
-        print_color.colorama_initialized = True
+    try:
+        print2.initialized
+    except AttributeError:
+        print2.initialized = False
 
-    print(COLOR_MAP[color] + msg + Style.RESET_ALL)
+    # Enable ANSI escape sequence processing for the console window by calling
+    # the SetConsoleMode Windows API with the ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    # flag set.
+    if not print2.initialized and platform.system() == "Windows":
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
-
-print_color.colorama_initialized = False
+    print(COLOR_MAP[color] + msg + RESET)
 
 
 def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
