@@ -406,7 +406,7 @@ def find_script(script_name, search_dir=None):
 
 
 def run_script(script_name, variables=None, new_window=False, set_console_title=True, console_title=None):
-    print('\n>>> RunScript: %s' % script_name)
+    print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
