@@ -72,9 +72,9 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
     if draw_label:
         for i in range(len(imgs)):
             im = imgs[i]
-            text = os.path.splitext(os.path.basename(file_list[i]))[0]
-            text = text.replace('_', ' ')
             if parse_file_name is not None:
+                text = os.path.splitext(os.path.basename(file_list[i]))[0]
+                text = text.replace('_', ' ')
                 text = parse_file_name(text)
             elif labels is not None:
                 text = labels[i]
