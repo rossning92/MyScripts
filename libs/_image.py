@@ -11,7 +11,7 @@ def crop_image(file_name, rect):
     im.save(file_name)
 
 
-def _draw_centered_text(im, text, box, text_outline, font_color, align='center'):
+def draw_text(im, text, box, text_outline=2, font_color='white', align='center'):
     PADDING = 4
 
     draw = ImageDraw.Draw(im)
@@ -28,11 +28,11 @@ def _draw_centered_text(im, text, box, text_outline, font_color, align='center')
         x = box[0] + (box[2] - w) / 2
         y = box[1] + (box[3] - h) / 2
 
-    draw.multiline_text((x - text_outline, y), text, font=font, fill="black")
-    draw.multiline_text((x + text_outline, y), text, font=font, fill="black")
-    draw.multiline_text((x, y - text_outline), text, font=font, fill="black")
-    draw.multiline_text((x, y + text_outline), text, font=font, fill="black")
-    draw.multiline_text((x, y), text, font=font, fill=font_color)
+    draw.multiline_text((x - text_outline, y), text, font=font, fill="black", align='center')
+    draw.multiline_text((x + text_outline, y), text, font=font, fill="black", align='center')
+    draw.multiline_text((x, y - text_outline), text, font=font, fill="black", align='center')
+    draw.multiline_text((x, y + text_outline), text, font=font, fill="black", align='center')
+    draw.multiline_text((x, y), text, font=font, fill=font_color, align='center')
 
     del draw
 
@@ -78,8 +78,8 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
                 text = parse_file_name(text)
             elif labels is not None:
                 text = labels[i]
-            _draw_centered_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
-                                align=label_align)
+            draw_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
+                      align=label_align)
 
     if generate_atlas:
         num_imgs = len(imgs)
@@ -108,12 +108,12 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
             c += 1
 
         if title is not None:
-            _draw_centered_text(im_combined,
-                                title,
-                                (0, 0, im_combined.width, im_combined.height),
-                                text_outline,
-                                title_color,
-                                align='topLeft')
+            draw_text(im_combined,
+                      title,
+                      (0, 0, im_combined.width, im_combined.height),
+                      text_outline,
+                      title_color,
+                      align='topLeft')
 
     if out_file:
         out_file = os.path.splitext(out_file)[0]  # Remove file extension
