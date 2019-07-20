@@ -6,15 +6,20 @@ for f in files:
     if not os.path.isfile(f):
         continue
 
-    name_no_ext = os.path.splitext(f)[0]
-    out_file = 'out_%s.mp4' % name_no_ext
+    fn, ext = os.path.splitext(f)
+    out_file = '%s_out.%s' % (fn, ext)
 
     args = [
         'ffmpeg',
-        '-i', f,
+        '-i', f]
+
+    if '{{CONVERT_VIDEO_480P}}':
+        args += ['-s', 'hd480']
+
+    args += [
         # '-filter:v', 'crop=200:200:305:86',
         '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22',  # Lossless
         '-c:a', 'aac', '-b:a', '128k',
-        out_file
-    ]
+        out_file]
+
     subprocess.call(args)
