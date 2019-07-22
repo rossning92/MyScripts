@@ -91,6 +91,12 @@ def get_variable_file():
     return variable_file
 
 
+def get_all_variables():
+    with open(get_variable_file(), 'r') as f:
+        variables = json.load(f)
+        return variables
+
+
 def get_arg(name):
     with open(get_variable_file(), 'r') as f:
         variables = json.load(f)
