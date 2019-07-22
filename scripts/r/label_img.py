@@ -4,13 +4,14 @@ from _gui import *
 from PIL import Image
 
 f = get_files(cd=True)[0]
+fn, ext = os.path.splitext(f)
+text_file = fn + '.txt'
 
-call(['notepad.exe', 'string.txt'])
-
-with open('string.txt', 'r') as fp:
+call(['notepad.exe', text_file])
+with open(text_file, 'r') as fp:
     text = fp.read()
 
 im = Image.open(f)
-draw_text(im, text, (0, 0, im.width, im.height), align='center')
-fn, ext = os.path.splitext(f)
+draw_text(im, text, (0, 0, im.width, im.height), align='top')
+
 im.save(fn + '_labelled' + ext)
