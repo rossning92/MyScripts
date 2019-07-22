@@ -1,9 +1,13 @@
 import os
 import subprocess
 import sys
+from _shutil import *
+
 
 os.system('taskkill /f /im OculusMirror.exe')
 os.chdir(r"C:\Program Files\Oculus\Support\oculus-diagnostics")
+
+run_elevated('REG ADD "HKLM\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" /V "C:\Program Files\Oculus\Support\oculus-diagnostics\OculusMirror.exe" /T REG_SZ /D "~ HIGHDPIAWARE" /F')
 
 # OculusMirror
 #   [--help /?]
@@ -16,10 +20,14 @@ os.chdir(r"C:\Program Files\Oculus\Support\oculus-diagnostics")
 
 args = [
     'OculusMirror.exe',
-    '--Size', '1296', '720'
+    # '--Size', '1296', '720'
 ]
 if "{{POST_DISTORTION}}" == "Y":
     args.append('--PostDistortion')
 else:
     args.append('--RectilinearBothEyes')
+if '{{MIRROW_LEFT_EYE}}':
+    args.append('--LeftEyeOnly')
+    args += ['--Size', '1080', '1200']
+
 subprocess.Popen(args)

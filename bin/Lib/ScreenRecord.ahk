@@ -72,6 +72,7 @@ Record()
 	FormatTime, now, R, yyyyMMdd_hhmmss
 	fileOut = %A_Desktop%\Record_%now%.mp4
 	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" --qt-start-minimized screen:// :sout=#transcode{vcodec=mp4v,acodec=mp4a}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
+    MsgBox % commandLine
     Run, %commandLine%
 }
 
