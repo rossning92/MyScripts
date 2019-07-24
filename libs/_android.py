@@ -11,6 +11,7 @@ def start_app(pkg, use_monkey=False):
         args = f'adb shell "dumpsys package | grep -i {pkg} | grep Activity"'
         out = subprocess.check_output(args, shell=True)
         out = out.decode()
+        out = out.splitlines()[0].strip()
 
         id, pkg_activity = out.split()
         print('> ActivityName: ' + pkg_activity)

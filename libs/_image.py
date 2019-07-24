@@ -11,11 +11,11 @@ def crop_image(file_name, rect):
     im.save(file_name)
 
 
-def draw_text(im, text, box, text_outline=2, font_color='white', align='center'):
+def draw_text(im, text, box, text_outline=2, font_color='white', align='center', font_scale=1.0):
     PADDING = 4
 
     draw = ImageDraw.Draw(im)
-    font = ImageFont.truetype("arial.ttf", box[3] // 16)
+    font = ImageFont.truetype("arial.ttf", int(box[3] / 16 * font_scale))
     w, h = draw.multiline_textsize(text, font=font)
 
     if align == 'top':
