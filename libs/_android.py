@@ -8,10 +8,10 @@ def start_app(pkg, use_monkey=False):
         print('> ' + args)
         subprocess.call(args, shell=True)
     else:
-        args = f'adb shell "dumpsys package | grep -i {pkg} | grep Activity"'
+        args = f'adb shell "dumpsys package | grep -i {pkg}/ | grep Activity"'
         out = subprocess.check_output(args, shell=True)
-        out = out.decode()
-        out = out.splitlines()[0].strip()
+        out = out.decode().strip()
+        # out = out.splitlines()[0].strip()
 
         id, pkg_activity = out.split()
         print('> ActivityName: ' + pkg_activity)

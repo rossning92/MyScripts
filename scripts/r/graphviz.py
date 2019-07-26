@@ -1,7 +1,7 @@
 from _shutil import *
 
 chdir(r'{{GRAPHVIZ_SRC_FOLDER}}')
-files = list(glob.glob('*.dot'))
+files = list(glob.glob('**/*.dot', recursive=True))
 files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
 src_file = files[0]
 
@@ -12,4 +12,4 @@ for fmt in formats:
     call(f'cmd /c dot -T{fmt} "{src_file}" -o "{dst_file}"')
 
     if fmt == 'png':
-        Popen([r"C:\Program Files\IrfanView\i_view64.exe", dst_file])
+        Popen([r"C:\Program Files\IrfanView\i_view64.exe", os.path.abspath(dst_file)])

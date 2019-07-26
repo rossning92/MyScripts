@@ -84,6 +84,7 @@ assoc = {
     '.dtshd': ['VLC', 'PotPlayer'],
     '.dvr-ms': ['VLC', 'PotPlayer'],
     '.dxf': ['notepad++', 'vscode'],
+    '.dot': ['notepad++', 'vscode'],
     '.eac3': ['VLC', 'PotPlayer'],
     '.efu': ['notepad++', 'vscode'],
     '.ejs': ['notepad++', 'vscode'],
