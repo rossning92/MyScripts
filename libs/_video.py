@@ -2,7 +2,7 @@ import subprocess
 import os
 
 
-def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, fps=None):
+def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, fps=None, crop_rect=None):
     os.environ['IMAGEMAGICK_BINARY'] = r"C:\Program Files\ImageMagick-7.0.8-Q16\magick.exe"
     try:
         import moviepy
@@ -11,6 +11,7 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
 
     from moviepy.editor import VideoFileClip, TextClip, ColorClip, clips_array, vfx
     import numpy as np
+    from moviepy.video.fx.all import crop
 
     if out_file is None:
         out_file = 'combined.mp4'
@@ -22,6 +23,13 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
     max_h = np.max([x.h for x in vid_clips])
 
     vid_clips = [x.fx(vfx.resize, max_h / x.h) for x in vid_clips]
+    if crop_rect:
+        vid_clips = [crop(x,
+                          x1=crop_rect[0],
+                          y1=crop_rect[1],
+                          width=crop_rect[2],
+                          height=crop_rect[3]) for x in vid_clips]
+
     vid_clips = [x.margin(2) for x in vid_clips]
 
     dura = np.max([x.duration for x in vid_clips])
@@ -75,7 +83,7 @@ def make_video(images, fps=30, out_file='output.mp4'):
         '-i', '-',  # The imput comes from a pipe
         '-an',  # Tells FFMPEG not to expect any audio
 
-        #'-vcodec', 'rawvideo',
+        # '-vcodec', 'rawvideo',
         # '-c:v', 'libx264', '-preset', 'slow', '-crf', '22', '-vf','scale=-2:720',
         out_file
     ]

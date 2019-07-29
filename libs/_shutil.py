@@ -26,7 +26,7 @@ def write_temp_file(text, ext):
         return temp.name
 
 
-def exec_ahk(script, tmp_script_path=None, wait=False):
+def exec_ahk(script, tmp_script_path=None, wait=True):
     assert os.name == 'nt'
     if not tmp_script_path:
         tmp_script_path = write_temp_file(script, '.ahk')
@@ -518,7 +518,7 @@ def get_files(cd=False):
     cur_folder = os.environ['CURRENT_FOLDER']
 
     if 'SELECTED_FILES' in os.environ:
-        files = [os.environ['SELECTED_FILES']]
+        files = os.environ['SELECTED_FILES'].split('|')
     else:
         files = list(glob.glob(cur_folder + '/*.*'))
 
