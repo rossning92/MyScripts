@@ -40,7 +40,7 @@ PKGS = {
     'media': [
         'ffmpeg',
         'vlc',
-        'imagemagick',
+        'imagemagick.app',
     ],
     'for_work': [
         'p4v',
