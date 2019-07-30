@@ -28,3 +28,7 @@ vscode:
 PotPlayer:
   executable:
     - C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe
+
+ripgrep:
+  executable:
+    - C:\ProgramData\chocolatey\lib\ripgrep\tools\rg.exe

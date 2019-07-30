@@ -4,6 +4,6 @@ background: false
 globalHotkey: null
 hotkey: null
 newWindow: true
-restartInstance: true
+restartInstance: false
 runAsAdmin: false
 wsl: false

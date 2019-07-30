@@ -1,10 +1,11 @@
 from _gui import *
 from _shutil import *
-
+from _appmanager import get_executable
 
 def search_code(text, search_path, extra_params=None):
+    rg = get_executable('ripgrep')
     args = [
-        'rg',
+        rg,
         '-g', '!ThirdParty/', '-g', '!Extras/', '-g', '!Plugins/',
         '-F', text, '--line-number'
     ]
@@ -47,6 +48,7 @@ def goto_code(file, line_no=None):
 
 
 def search_code_and_goto(text, path_list):
+    print2(str(path_list))
     result = []
     assert type(path_list) == list  # `path` must be a list
     for path in path_list:

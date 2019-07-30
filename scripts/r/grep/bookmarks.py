@@ -13,7 +13,7 @@ def parse_bookmarks(file):  # parse .md file
     bookmarks = []
     cur_vals = {}
     vars = get_all_variables()
-    vars = {k: v[0] for k, v in vars.items()}
+    vars = {k: v[-1] for k, v in vars.items()}
     for line in lines:
         line = line.rstrip('\n').rstrip('\r')
 
