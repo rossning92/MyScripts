@@ -5,8 +5,17 @@ import math
 import re
 
 
-def crop_image(file_name, rect):
+def crop_image(file_name, rect=None, rect_normalized=None):
     im = Image.open(file_name)
+
+    if rect_normalized:
+        rect = [
+            rect_normalized[0] * im.width,
+            rect_normalized[1] * im.height,
+            rect_normalized[2] * im.width,
+            rect_normalized[3] * im.height
+        ]
+
     im = im.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
     im.save(file_name)
 
@@ -43,7 +52,8 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
                    label_align='center',
                    font_color='white', title=None,
                    title_color='white',
-                   col_major_order=False):
+                   col_major_order=False,
+                   font_scale=1.0):
     if image_files:
         if type(image_files) == list:
             file_list = image_files
@@ -72,14 +82,17 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
     if draw_label:
         for i in range(len(imgs)):
             im = imgs[i]
+
+            text = os.path.splitext(os.path.basename(file_list[i]))[0]
             if parse_file_name is not None:
-                text = os.path.splitext(os.path.basename(file_list[i]))[0]
-                text = text.replace('_', ' ')
                 text = parse_file_name(text)
-            elif labels is not None:
+            else:
+                text = text.replace('_', ' ')
+
+            if labels is not None:
                 text = labels[i]
             draw_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
-                      align=label_align)
+                      align=label_align, font_scale=font_scale)
 
     if generate_atlas:
         num_imgs = len(imgs)
@@ -113,7 +126,8 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
                       (0, 0, im_combined.width, im_combined.height),
                       text_outline,
                       title_color,
-                      align='topLeft')
+                      align='topLeft',
+                      font_scale=font_scale)
 
     if out_file:
         out_file = os.path.splitext(out_file)[0]  # Remove file extension
