@@ -411,14 +411,18 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, set_console_title=True, console_title=None):
+def run_script(script_name, variables=None, new_window=False, set_console_title=False, console_title=None):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
 
     script = ScriptItem(script_path)
+
+    # Override meta
     script.meta['newWindow'] = new_window
+    script.meta['restartInstance'] = False
+
     script.console_title = console_title
 
     # Set console window title (for windows only)
