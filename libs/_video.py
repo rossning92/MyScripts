@@ -84,7 +84,9 @@ def make_video(images, fps=30, out_file='output.mp4'):
         '-an',  # Tells FFMPEG not to expect any audio
 
         # '-vcodec', 'rawvideo',
-        # '-c:v', 'libx264', '-preset', 'slow', '-crf', '22', '-vf','scale=-2:720',
+        #'-vcodec', 'huffyuv',
+        '-c:v', 'libx264', '-preset', 'slow', '-crf', '0',
+        # '-vf','scale=-2:720',
         out_file
     ]
 
