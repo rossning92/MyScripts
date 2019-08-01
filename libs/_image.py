@@ -5,7 +5,7 @@ import math
 import re
 
 
-def crop_image(file_name, rect=None, rect_normalized=None):
+def crop_image_file(file_name, rect=None, rect_normalized=None):
     im = Image.open(file_name)
 
     if rect_normalized:
@@ -18,6 +18,10 @@ def crop_image(file_name, rect=None, rect_normalized=None):
 
     im = im.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
     im.save(file_name)
+
+
+def crop_image(im, rect):
+    return im[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]]
 
 
 def draw_text(im, text, box, text_outline=2, font_color='white', align='center', font_scale=1.0):
@@ -83,14 +87,15 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
         for i in range(len(imgs)):
             im = imgs[i]
 
-            text = os.path.splitext(os.path.basename(file_list[i]))[0]
-            if parse_file_name is not None:
-                text = parse_file_name(text)
-            else:
-                text = text.replace('_', ' ')
-
             if labels is not None:
                 text = labels[i]
+            else:
+                text = os.path.splitext(os.path.basename(file_list[i]))[0]
+                if parse_file_name is not None:
+                    text = parse_file_name(text)
+                else:
+                    text = text.replace('_', ' ')
+
             draw_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
                       align=label_align, font_scale=font_scale)
 
