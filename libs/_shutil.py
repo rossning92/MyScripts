@@ -529,6 +529,13 @@ def get_files(cd=False):
     return files
 
 
+def cd_current_dir():
+    if 'CURRENT_FOLDER' in os.environ:
+        os.chdir(os.environ['CURRENT_FOLDER'])
+    else:
+        os.chdir(os.path.expanduser('~'))
+
+
 def unzip(file, to=None):
     print('Unzip "%s"...' % file)
     import zipfile

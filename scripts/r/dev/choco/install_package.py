@@ -16,6 +16,7 @@ PKGS = {
         'gifcam',
         'autohotkey',
         'nsis',
+        'teamviewer',
     ],
     'common': [
         'everything',
