@@ -58,6 +58,7 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
                    title_color='white',
                    col_major_order=False,
                    font_scale=1.0):
+    file_list = None
     if image_files:
         if type(image_files) == list:
             file_list = image_files
@@ -89,15 +90,18 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
 
             if labels is not None:
                 text = labels[i]
-            else:
+            elif file_list is not None:
                 text = os.path.splitext(os.path.basename(file_list[i]))[0]
                 if parse_file_name is not None:
                     text = parse_file_name(text)
                 else:
                     text = text.replace('_', ' ')
+            else:
+                draw_label = False
 
-            draw_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
-                      align=label_align, font_scale=font_scale)
+            if draw_label:
+                draw_text(im, text, (0, 0, imgs[0].width, imgs[0].height), text_outline, font_color,
+                          align=label_align, font_scale=font_scale)
 
     if generate_atlas:
         num_imgs = len(imgs)

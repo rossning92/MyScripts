@@ -246,7 +246,7 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c python -c "from _script import *;run_script('%path%')" || pause
+        Run cmd /c python -c "from _script import *;run_script('%path%'`, set_console_title=True)" || pause
     }
 }
 ''')
