@@ -5,5 +5,5 @@ _conda.setup_env()
 
 cd_current_dir()
 
-args = ['cmd', '/K', 'activate.bat']
-call(args)
+args = ['cmd', '/K', 'call', 'activate.bat']
+call2(args)
