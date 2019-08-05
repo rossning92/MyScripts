@@ -7,6 +7,8 @@ if '{{CROP_RECT}}':
 else:
     CROP_RECT = None
 
+fps = int('{{IMG2VID_FPS}}') if '{{IMG2VID_FPS}}' else 30
+
 
 def crop_image(im, rect):
     return im[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2], :]
@@ -26,4 +28,4 @@ for i, f in enumerate(files):
         im = crop_image(im, CROP_RECT)
     imgs.append(im)
 
-make_video(imgs, out_file='out.mp4')
+make_video(imgs, out_file='out.mp4', fps=fps)

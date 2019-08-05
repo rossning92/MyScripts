@@ -24,6 +24,38 @@ def crop_image(im, rect):
     return im[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]]
 
 
+def show_im(*imgs, format='rgb', out_image_name=None):
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(len(imgs), 1))
+    for i, im in enumerate(imgs):
+        if len(im.shape) == 3 and im.shape[2] == 3 and format == 'bgr':
+            im = im[..., ::-1]
+
+        # Visualize two channel image (e.g. optical flow, vector)
+        if len(im.shape) == 3 and im.shape[2] == 2:
+            import cv2
+            import numpy as np
+
+            hsv = np.zeros([im.shape[0], im.shape[1], 3])
+            hsv[..., 1] = 255
+            mag, ang = cv2.cartToPolar(im[..., 0], im[..., 1])
+            hsv[..., 0] = ang * 180 / np.pi / 2
+            hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+            hsv = hsv.astype(np.uint8)
+            im = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+        fig.add_subplot(1, len(imgs), i + 1)
+        plt.imshow(im)
+
+    if out_image_name:
+        plt.savefig(out_image_name, dpi=200)
+    else:
+        plt.show()
+
+    plt.close(fig)
+
+
 def draw_text(im, text, box, text_outline=2, font_color='white', align='center', font_scale=1.0):
     PADDING = 4
 
@@ -122,7 +154,6 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
             else:
                 j = c // rows
                 i = c % rows
-            print(i, j)
 
             x = j * imgs[0].width + j * spacing
             y = i * imgs[0].height + i * spacing
