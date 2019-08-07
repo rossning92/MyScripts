@@ -30,4 +30,7 @@ if '{{MIRROW_LEFT_EYE}}':
     args.append('--LeftEyeOnly')
     args += ['--Size', '1080', '1200']
 
+if '{{MIRROR_SAVE_IMG}}':
+    args += ['--Screenshot', expanduser('~/Desktop/Mirror_%s.png' % get_cur_time_str())]
+
 subprocess.Popen(args)
