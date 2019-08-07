@@ -167,7 +167,7 @@ def setup_android_env():
     for p in ADK_SEARCH_PATH:
         if os.path.exists(p):
             env['ANDROID_HOME'] = p
-            print('Set ANDROID_HOME to %s' % p)
+            print2('ANDROID_HOME=%s' % p)
             break
 
     # NDK
