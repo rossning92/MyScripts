@@ -256,7 +256,7 @@ class ScriptItem:
                 args = cmd(script)
 
                 # HACK: change working directory
-                if sys.platform == 'win32' and self.meta['runAsAdmin']:
+                if platform.system() == 'Windows' and self.meta['runAsAdmin']:
                     args = ['cmd', '/c',
                             'cd', '/d', cwd, '&'] + args
 
@@ -284,17 +284,6 @@ class ScriptItem:
             else:
                 args = [python_executable, tmp_script_file] + args
 
-            if sys.platform == 'win32' and self.meta['runAsAdmin']:  # HACK: win32 run as admin
-                bin_path = os.path.abspath(os.path.dirname(__file__) + '/../bin')
-                set_env_var = []
-                for k, v in env.items():
-                    set_env_var += ['set', '%s=%s' % (k, v), '&']
-
-                args = [
-                           'cmd', '/c',
-                           'cd', '/d', cwd, '&',
-                           'set', f'PATH={bin_path};%PATH%', '&'
-                       ] + set_env_var + args
 
         elif self.ext == '.vbs':
             assert os.name == 'nt'
@@ -338,7 +327,7 @@ class ScriptItem:
                         args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
 
             # Check if run as admin
-            if self.meta['runAsAdmin']:
+            if platform.system() == 'Windows' and self.meta['runAsAdmin']:
                 # Set environment variables through command lines
                 bin_path = os.path.abspath(os.path.dirname(__file__) + '/../bin')
                 set_env_var = []
