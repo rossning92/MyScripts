@@ -12,8 +12,6 @@ import shlex
 import glob
 import locale
 
-ACTIVE_CONSOLE_ON_EXIT = False
-
 
 def set_console_title(title):
     if platform.system() == 'Windows':
@@ -64,7 +62,7 @@ def cmd(cmd):
 
 
 def _args_to_str(args):
-    if platform.system() == 'windows':
+    if platform.system() == 'Windows':
         args = ['"%s"' % a if ' ' in a else a for a in args]
     else:
         args = [shlex.quote(x) for x in args]
@@ -314,9 +312,6 @@ class ScriptItem:
 
         # Run commands
         if args is not None and len(args) > 0:
-            if ACTIVE_CONSOLE_ON_EXIT and platform.system() == 'Windows':
-                args = ['cmd', '/c'] + args + ['&', 'python', '-m', 'activate_console']
-
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
             if new_window:
@@ -324,15 +319,15 @@ class ScriptItem:
                 if True:  # HACK: use python wrapper: activate console window once finished
                     args = [
                         sys.executable, '-c',
-                        'import subprocess\n'
-                        'import ctypes\n'
-                        'import sys\n'
-                        'import _script as s\n'
-                        f's.set_console_title(r"{self.console_title if self.console_title else self.name}")\n'
-                        f'ret = subprocess.call({args})\n'
-                        'hwnd = ctypes.windll.kernel32.GetConsoleWindow()\n'
-                        'ctypes.windll.user32.SetForegroundWindow(hwnd)\n'
-                        's.set_console_title(s.get_console_title() + " (Finished)")\n'
+                        'import subprocess;'
+                        'import ctypes;'
+                        f'import sys;sys.path.append(r"{os.path.dirname(__file__)}");'
+                        'import _script as s;'
+                        f's.set_console_title(r"{self.console_title if self.console_title else self.name}");'
+                        f'ret = subprocess.call({args});'
+                        'hwnd = ctypes.windll.kernel32.GetConsoleWindow();'
+                        'ctypes.windll.user32.SetForegroundWindow(hwnd);'
+                        's.set_console_title(s.get_console_title() + " (Finished)");'
                         'sys.exit(ret)'
                     ]
 
@@ -344,7 +339,19 @@ class ScriptItem:
 
             # Check if run as admin
             if self.meta['runAsAdmin']:
-                print('Run elevated:', _args_to_str(args))
+                # Set environment variables through command lines
+                bin_path = os.path.abspath(os.path.dirname(__file__) + '/../bin')
+                set_env_var = []
+                for k, v in env.items():
+                    set_env_var += ['set', '%s=%s' % (k, v), '&']
+
+                args = ['cmd', '/c',
+                        'cd', '/d', cwd, '&',
+                        'set', f'PATH={bin_path};%PATH%', '&'
+                        ] + set_env_var + args
+
+                print2('Run elevated:')
+                print(_args_to_str(args))
                 run_elevated(args, wait=not new_window)
             else:
                 if new_window or self.meta['background']:
