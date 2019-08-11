@@ -36,17 +36,8 @@ return
     }
 	return
 	
-#c::
-	if WinExist("- Google Chrome ahk_exe chrome.exe") {
-		WinActivate
-	} else {
-		Run chrome.exe
-	}
-	return
-    
-#+c::
-    Run chrome.exe --user-data-dir=%USERPROFILE%\ChromeData2
-	return
+#c::ActivateChrome(0)
+#+c::ActivateChrome(1)
 
 #If WinActive("ahk_exe ConEmu64.exe")
     Esc::
@@ -93,3 +84,34 @@ return
     
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 	
+	
+ActivateChrome(index=0)
+{
+	if (index = 0)
+	{
+		condition := "NOT CommandLine LIKE '%--user-data-dir=%' AND NOT CommandLine LIKE '%--type=%'"
+	}
+	else
+	{
+		condition := "CommandLine LIKE '%ChromeData2%' AND NOT CommandLine LIKE '%--type=%'"
+	}
+
+	pid =
+	for process in ComObjGet("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name='chrome.exe' AND " condition)
+		pid := process.ProcessID
+	if pid
+	{
+		WinActivate, ahk_pid %pid%
+	}
+	else
+	{
+		if (index = 0)
+		{
+			Run chrome.exe
+		}
+		else
+		{
+			Run chrome.exe --user-data-dir=%USERPROFILE%\ChromeData2
+		}
+	}
+}
