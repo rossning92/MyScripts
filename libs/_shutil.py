@@ -160,6 +160,22 @@ def mkdir(path, expand=True):
     os.makedirs(path, exist_ok=True)
 
 
+def get_pretty_time_delta(seconds):
+    sign_string = ' ago' if seconds < 0 else ''
+    seconds = abs(int(seconds))
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%d day %02d:%02d:%02d%s' % (days, hours, minutes, seconds, sign_string)
+    elif hours > 0:
+        return '%dh%s' % (hours, sign_string)
+    elif minutes > 0:
+        return '%d min%s' % (minutes, sign_string)
+    else:
+        return '%02d sec%s' % (seconds, sign_string)
+
+
 def download(url, filename=None, redownload=False):
     try:
         import requests
