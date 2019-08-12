@@ -9,4 +9,4 @@ rect = [float(x) for x in '{{CROP_IMG_RECT}}'.split()]
 
 for f in files:
     copy(f, 'cropped/' + f)
-    crop_image('cropped/' + f, rect_normalized=rect)
+    crop_image_file('cropped/' + f, rect_normalized=rect)
