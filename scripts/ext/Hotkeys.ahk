@@ -98,10 +98,14 @@ ActivateChrome(index=0)
 
 	pid =
 	for process in ComObjGet("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name='chrome.exe' AND " condition)
-		pid := process.ProcessID
-	if pid
 	{
-		WinActivate, ahk_pid %pid%
+		pid := process.ProcessID
+		break
+	}
+	
+	if ( pid != "" and WinExist("- Google Chrome ahk_pid " pid) )
+	{
+		WinActivate
 	}
 	else
 	{
