@@ -17,6 +17,7 @@ PKGS = {
         'autohotkey',
         'nsis',
         'teamviewer',
+        'spacesniffer',
     ],
     'common': [
         'everything',

@@ -6,8 +6,8 @@ files = get_files(cd=True)
 
 mkdir('out')
 
-rect = [float(x) for x in '{{CROP_IMG_RECT}}'.split()]
-scale = [float(x) for x in '{{CROP_IMG_SCALE}}'.split()]
+rect = [float(x) for x in '{{IMG_BATCH_CONV_RECT}}'.split()]
+scale = [float(x) for x in '{{IMG_BATCH_CONV_SCALE}}'.split()]
 
 for f in files:
     im = Image.open(f)
