@@ -7,21 +7,36 @@ import re
 
 def crop_image_file(file_name, rect=None, rect_normalized=None):
     im = Image.open(file_name)
-
-    if rect_normalized:
-        rect = [
-            rect_normalized[0] * im.width,
-            rect_normalized[1] * im.height,
-            rect_normalized[2] * im.width,
-            rect_normalized[3] * im.height
-        ]
-
-    im = im.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
+    im = crop_image(im, rect, rect_normalized)
     im.save(file_name)
 
 
-def crop_image(im, rect):
-    return im[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]]
+def crop_image(im, rect=None, rect_normalized=None):
+    import numpy as np
+    if type(im) == np.ndarray:
+        h, w = im.shape[0:2]
+    else:
+        w, h = im.width, im.height
+
+    if rect_normalized:
+        rect = [
+            rect_normalized[0] * w,
+            rect_normalized[1] * h,
+            rect_normalized[2] * w,
+            rect_normalized[3] * h
+        ]
+        rect = [int(x) for x in rect]
+
+    if type(im) == np.ndarray:
+        im = im[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2]]
+    else:
+        im = im.crop((rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]))
+
+    return im
+
+
+def scale_image(im, sx, sy):
+    return im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.ANTIALIAS)
 
 
 def show_im(*imgs, format='rgb', out_image_name=None):

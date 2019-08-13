@@ -2,12 +2,11 @@ import os
 import subprocess
 import sys
 import locale
+from _shutil import *
 
-os.chdir(os.environ['CURRENT_FOLDER'])
-if 'SELECTED_FILE' in os.environ:
-    files = [os.path.basename(os.environ['SELECTED_FILE'])]
-else:
-    files = os.listdir('.')
+fps = int('{{VID_TO_IMG_FPS}}') if '{{VID_TO_IMG_FPS}}' else 60
+
+files = get_files(cd=True)
 
 for f in files:
     if not os.path.isfile(f):
@@ -17,5 +16,5 @@ for f in files:
 
     os.makedirs(name_no_ext, exist_ok=True)
 
-    args = f'ffmpeg -i "{f}" -r 60 {name_no_ext}/Frame_%04d.bmp'
+    args = f'ffmpeg -i "{f}" -r {fps} -qscale:v 2 {name_no_ext}/%04d.jpg -hide_banner'
     subprocess.call(args)
