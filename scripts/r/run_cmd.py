@@ -2,13 +2,12 @@ import os
 import subprocess
 from _cmake import setup_cmake
 from _shutil import *
+from _setup_android_env import *
 
 try:
-    import _setup_android_env as android
-
-    android.setup_android_env()
-except:
-    print('[WARNING] Android env not found.')
+    setup_android_env()
+except Exception as e:
+    print2('ERROR: ' + str(e), color='red')
 
 cd_current_dir()
 

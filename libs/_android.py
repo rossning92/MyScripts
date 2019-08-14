@@ -155,6 +155,8 @@ def take_screenshot(file_name=None):
 
 
 def setup_android_env():
+    env = os.environ
+
     ADK_SEARCH_PATH = [
         # Installed by choco
         r'C:\Android\android-sdk',
@@ -169,6 +171,8 @@ def setup_android_env():
             env['ANDROID_HOME'] = p
             print2('ANDROID_HOME=%s' % p)
             break
+    if 'ANDROID_HOME' not in env:
+        raise Exception('Cannot find ANDROID_HOME')
 
     # NDK
     env['ANDROID_NDK_HOME'] = \
@@ -181,7 +185,12 @@ def setup_android_env():
     build_tools_path = sorted(list(glob.glob(env['ANDROID_HOME'] + '\\build-tools\\*')))[-1]
 
     # Set PATH environ
-    jdk_path = sorted(glob.glob(r'C:\Program Files\Java\jdk*'), reverse=True)[0] + '\\bin'
+    jdk_list = sorted(glob.glob(r'C:\Program Files\Java\jdk*'))
+    if len(jdk_list) == 0:
+        raise Exception('Cannot find JDK')
+    jdk_path = jdk_list[-1] + '\\bin'  # Choose latest JDK
+
+    # Setup PATH
     path = [
         env['ANDROID_HOME'] + '/platform-tools',
         build_tools_path,
@@ -190,4 +199,5 @@ def setup_android_env():
         env['ANDROID_HOME'] + '/ndk-bundle',
         jdk_path,
     ]
+
     prepend_to_path(path)
