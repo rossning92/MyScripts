@@ -5,8 +5,6 @@ import os
 sys.path.append(os.path.abspath('./libs'))
 
 import datetime
-from colorama import Fore
-import colorama
 import glob
 from PyQt5.QtWidgets import *
 from PyQt5 import uic
@@ -86,9 +84,6 @@ def insert_line_if_not_exist(line, file, after_line=None):
     return False
 
 
-colorama.init()
-
-
 def select_item(items, prompt='PLEASE INPUT:'):
     matched_items = []
     while True:
@@ -97,7 +92,7 @@ def select_item(items, prompt='PLEASE INPUT:'):
             print('[%d] %s' % (i + 1, items[i]))
 
         # Get user input
-        print(Fore.LIGHTGREEN_EX + prompt + Fore.RESET)
+        print2(prompt, color='green')
         user_input = input('> ')
         user_input = user_input.lower()
 
@@ -432,7 +427,7 @@ if __name__ == '__main__':
     os.environ['PYTHONPATH'] = os.path.abspath('./libs')
 
     time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(Fore.LIGHTGREEN_EX + time_now + ' Script is loaded' + Fore.RESET)
+    print2(time_now + ' Script is loaded', color='green')
 
     print('Python executable: %s' % sys.executable)
 
