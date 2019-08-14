@@ -43,16 +43,17 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
 
 def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
     CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
-    # CONF_PATH = os.path.expandvars('%APPDATA%\\ConEmu.xml')
-    # if not exists(CONF_PATH) or True:
-    #     src = os.path.abspath(os.path.dirname(__file__) + '/../data/ConEmu.xml')
-    #     copy(src, CONF_PATH)
+
+    # Disable update check
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v KeyboardHooks /t REG_BINARY /d 02 /f')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckHourly /t REG_BINARY /d 00 /f')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckOnStartup /t REG_BINARY /d 00 /f')
 
     if os.path.exists(CONEMU):
         args2 = [
             CONEMU,
             '-NoUpdate',
-            '-resetdefault',
+            # '-resetdefault',
             # '-Config', CONF_PATH,
             '-nokeyhooks', '-nomacro', '-nohotkey',
             '-nocloseconfirm',
