@@ -409,11 +409,6 @@ RunScript(name, path)
                 self.execute_selected_script(e.modifiers() == Qt.ControlModifier)
                 return True
 
-            if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_E:
-                path = self.script_items[idx].script_path
-                open_text_editor(path)
-                return True
-
             if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_O:
                 path = self.script_items[idx].script_path
                 script = self.script_items[idx].render()
