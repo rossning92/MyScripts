@@ -37,7 +37,7 @@ return
 	return
 	
 #c::ActivateChrome(0)
-#+c::ActivateChrome(1)
+#!c::ActivateChrome(1)
 
 #If WinActive("ahk_exe ConEmu64.exe")
     Esc::

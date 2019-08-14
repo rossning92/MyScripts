@@ -339,7 +339,8 @@ RunScript(name, path)
             # Set selected items
             first_matched_item = self.script_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
-            os.environ['ROSS_SELECTED_SCRIPT_PATH'] = os.path.join(os.getcwd(), first_matched_item.script_path)
+            script_abs_path = os.path.abspath(first_matched_item.script_path)
+            os.environ['ROSS_SELECTED_SCRIPT_PATH'] = script_abs_path
 
             # Display variable list
             if 'get_variables' in dir(first_matched_item):

@@ -46,6 +46,6 @@ def open_with_text_editor(path, line_no=None):
             args = ['notepad++', path]
             if line_no is not None:
                 args.append(f'-n{line_no}')
-            subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(args, close_fds=True)
         except:
-            subprocess.Popen(['notepad', path], creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(['notepad', path], close_fds=True)
