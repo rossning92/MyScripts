@@ -189,7 +189,6 @@ def setup_android_env():
         env['ANDROID_HOME'] + '/ndk-bundle',
     ]
 
-
     # Set PATH environ
     jdk_list = sorted(glob.glob(r'C:\Program Files\Java\jdk*'))
     if len(jdk_list) == 0:
