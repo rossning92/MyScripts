@@ -17,7 +17,8 @@ def open_in_pycharm(path):
     pycharm = get_pycharm_executable()
     subprocess.Popen([pycharm, path])
 
-    ahk_script = os.path.join(os.path.dirname(__file__), '_activate_pycharm.ahk')
+    ahk_script = os.path.join(os.path.dirname(
+        __file__), '_activate_pycharm.ahk')
     subprocess.Popen(['AutoHotkeyU64.exe', ahk_script])
 
 
@@ -42,10 +43,13 @@ def open_with_text_editor(path, line_no=None):
     if os.name == 'posix':
         subprocess.Popen(['atom', path])
     else:
-        try:
-            args = ['notepad++', path]
-            if line_no is not None:
-                args.append(f'-n{line_no}')
-            subprocess.Popen(args, close_fds=True)
-        except:
-            subprocess.Popen(['notepad', path], close_fds=True)
+        if os.path.splitext(path)[1] == '.py':
+            open_in_pycharm(path)
+        else:
+            try:
+                args = ['notepad++', path]
+                if line_no is not None:
+                    args.append(f'-n{line_no}')
+                subprocess.Popen(args, close_fds=True)
+            except:
+                subprocess.Popen(['notepad', path], close_fds=True)
