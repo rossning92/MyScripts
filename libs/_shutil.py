@@ -45,9 +45,9 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
     CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
 
     # Disable update check
-    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v KeyboardHooks /t REG_BINARY /d 02 /f')
-    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckHourly /t REG_BINARY /d 00 /f')
-    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckOnStartup /t REG_BINARY /d 00 /f')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v KeyboardHooks /t REG_BINARY /d 02 /f >nul')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckHourly /t REG_BINARY /d 00 /f >nul')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckOnStartup /t REG_BINARY /d 00 /f >nul')
 
     if os.path.exists(CONEMU):
         args2 = [
