@@ -335,6 +335,7 @@ class ScriptItem:
                     set_env_var += ['set', '%s=%s' % (k, v), '&']
 
                 args = ['cmd', '/c',
+                        'title', self.name, '&',
                         'cd', '/d', cwd, '&',
                         'set', f'PATH={bin_path};%PATH%', '&'
                         ] + set_env_var + args

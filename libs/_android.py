@@ -181,23 +181,27 @@ def setup_android_env():
         env['NDK_ROOT'] = \
         env['ANDROID_HOME'] + '/ndk-bundle'
 
-    # Android build tools (latest)
-    build_tools_path = sorted(list(glob.glob(env['ANDROID_HOME'] + '\\build-tools\\*')))[-1]
+    # Setup PATH
+    path = [
+        env['ANDROID_HOME'] + '/platform-tools',
+        env['ANDROID_HOME'] + '/tools',
+        env['ANDROID_HOME'] + '/tools/bin',
+        env['ANDROID_HOME'] + '/ndk-bundle',
+    ]
+
 
     # Set PATH environ
     jdk_list = sorted(glob.glob(r'C:\Program Files\Java\jdk*'))
     if len(jdk_list) == 0:
         raise Exception('Cannot find JDK')
     jdk_path = jdk_list[-1] + '\\bin'  # Choose latest JDK
+    print2('JDK: ' + jdk_path)
+    path.append(jdk_path)
 
-    # Setup PATH
-    path = [
-        env['ANDROID_HOME'] + '/platform-tools',
-        build_tools_path,
-        env['ANDROID_HOME'] + '/tools',
-        env['ANDROID_HOME'] + '/tools/bin',
-        env['ANDROID_HOME'] + '/ndk-bundle',
-        jdk_path,
-    ]
+    # Android build tools (latest)
+    path_list = sorted(glob.glob(env['ANDROID_HOME'] + '\\build-tools\\*'))
+    if len(path_list) > 0:
+        print2('Android SDK: build-tools: ' + path_list[-1])
+        path.append(path_list[-1])
 
     prepend_to_path(path)
