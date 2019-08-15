@@ -4,7 +4,6 @@
 SetTitleMatchMode, 2
 
 hotkeyInfo := {}
-hotkeyHwndMap := {}
 
 AddChromeHotkey(hotkey, title, url)
 {
@@ -16,35 +15,31 @@ AddChromeHotkey(hotkey, title, url)
 HotkeyPressed()
 {
 	global hotkeyInfo
-    global hotkeyHwndMap
 
 	chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 
-	title := hotkeyInfo[A_ThisHotkey].title
+	title := hotkeyInfo[A_ThisHotkey].title  ; Deprecated
 	url := hotkeyInfo[A_ThisHotkey].url
-	if WinExist(title . " ahk_exe chrome.exe")
-    {
-        WinActivate
 
-        WinGet, hwnd, ID
-        hotkeyHwndMap[A_ThisHotkey] := hwnd
-    }
-    else if ( hotkeyHwndMap.HasKey(A_ThisHotkey) and WinExist("ahk_id" hotkeyHwndMap[A_ThisHotkey]) )
+    RegRead, win_id, HKEY_CURRENT_USER\Software\ChromeHotkey, %A_ThisHotkey%
+    if WinExist("ahk_id" win_id)
     {
-        WinActivate % "ahk_id " hotkeyHwndMap[A_ThisHotkey]
+        WinActivate ahk_id %win_id%
     }
     else
     {
+        WinGet, current_win_id, ID
         Run %chrome% --start-maximized --app=%url%
-        WinWait, %title% ahk_exe chrome.exe,, 10
+        WinWaitNotActive, ahk_id %current_win_id%
+        WinWait, ahk_exe chrome.exe,, 10
         if ErrorLevel
         {
             SoundPlay *16
             return
         }
 
-        WinGet, hwnd, ID
-        hotkeyHwndMap[A_ThisHotkey] := hwnd
+        WinGet, win_id, ID
+        RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\ChromeHotkey, %A_ThisHotkey%, %win_id%
         ToolTip, Chrome detected, 0, 0
         SetTimer, RemoveToolTip, -2000
     }
