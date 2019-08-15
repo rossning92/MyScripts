@@ -22,7 +22,10 @@ def start_app(pkg, use_monkey=False):
 
 def restart_app(pkg):
     print('Stop app: ' + pkg)
-    call2('adb shell am force-stop %s' % pkg)
+    args = 'adb shell am force-stop %s' % pkg
+    print('> ' + args)
+    call2(args)
+
     start_app(pkg)
 
 
@@ -40,6 +43,15 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
     pid_map = {}
 
     def filter_line(line):
+        # Filter by time
+        if show_log_after_secs is not None:
+            try:
+                dt = datetime.datetime.strptime(line[:14].decode(), '%m-%d %H:%M:%S')
+                if dt < dt_start:
+                    return None
+            except:
+                pass
+
         # Always show fatal message (backtrace)
         if b' F DEBUG ' in line:
             return line
@@ -63,14 +75,6 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
 
             if pkg_name.encode() not in process_name:
                 return None
-
-        if show_log_after_secs is not None:
-            try:
-                dt = datetime.datetime.strptime(line[:14].decode(), '%m-%d %H:%M:%S')
-                if dt < dt_start:
-                    return None
-            except:
-                pass
 
         # Filter by string
         if filter_str and re.search(filter_str.encode(), line) is None:

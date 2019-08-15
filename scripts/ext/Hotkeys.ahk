@@ -35,7 +35,7 @@ return
         WinActivate % GUI_WINDOW
     }
 	return
-	
+
 #c::ActivateChrome(0)
 #!c::ActivateChrome(1)
 
@@ -63,7 +63,7 @@ return
     Process, Close, %pid%
     SoundPlay %BEEP_FILE%
     return
-	
+
 !#F4::
 	; Close all explorer windows
 	WinGet, winList, List, ahk_class CabinetWClass
@@ -72,7 +72,7 @@ return
 		this_id := winList%A_Index%
 		WinClose, ahk_id %this_id%
 	}
-	
+
 	; Close "(Finished)" windows
 	WinGet, winList, List, (Finished)
 	Loop, %winList%
@@ -81,10 +81,10 @@ return
 		WinClose, ahk_id %this_id%
 	}
 	return
-    
+
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
-	
-	
+
+
 ActivateChrome(index=0)
 {
 	if (index = 0)
@@ -102,7 +102,7 @@ ActivateChrome(index=0)
 		pid := process.ProcessID
 		break
 	}
-	
+
 	if ( pid != "" and WinExist("- Google Chrome ahk_pid " pid) )
 	{
 		WinActivate

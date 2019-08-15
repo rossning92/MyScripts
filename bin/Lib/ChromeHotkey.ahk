@@ -17,15 +17,15 @@ HotkeyPressed()
 {
 	global hotkeyInfo
     global hotkeyHwndMap
-	
+
 	chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-	
+
 	title := hotkeyInfo[A_ThisHotkey].title
 	url := hotkeyInfo[A_ThisHotkey].url
 	if WinExist(title . " ahk_exe chrome.exe")
     {
         WinActivate
-        
+
         WinGet, hwnd, ID
         hotkeyHwndMap[A_ThisHotkey] := hwnd
     }
@@ -42,7 +42,7 @@ HotkeyPressed()
             SoundPlay *16
             return
         }
-        
+
         WinGet, hwnd, ID
         hotkeyHwndMap[A_ThisHotkey] := hwnd
         ToolTip, Chrome detected, 0, 0
