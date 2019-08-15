@@ -28,7 +28,7 @@ HotkeyPressed()
     }
     else
     {
-        WinGet, current_win_id, ID
+        WinGet, current_win_id, ID, A
         Run %chrome% --start-maximized --app=%url%
         WinWaitNotActive, ahk_id %current_win_id%
         WinWait, ahk_exe chrome.exe,, 10

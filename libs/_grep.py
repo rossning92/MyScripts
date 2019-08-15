@@ -74,7 +74,7 @@ def show_bookmarks(bookmarks):
     names = [x['name'] for x in bookmarks]
     idx = search(names)
     if idx == -1:
-        sys.exit(1)
+        sys.exit(0)
 
     bookmark = bookmarks[idx]
 
