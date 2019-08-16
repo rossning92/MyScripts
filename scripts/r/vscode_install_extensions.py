@@ -6,6 +6,7 @@ donjayamanne.githistory
 ms-python.python
 ms-vscode.cpptools
 stkb.rewrap
+shd101wyy.markdown-preview-enhanced
 '''
 
 extensions = [x for x in extensions.splitlines()]
