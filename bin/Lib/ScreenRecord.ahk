@@ -68,28 +68,59 @@ Record(fileOut="")
     }
 	
 	; Start VLC
-    WinClose ahk_exe vlc.exe
-	FormatTime, now, R, yyyyMMdd_hhmmss
-	if ( fileOut = "" )
-	{
-	    fileOut = %A_Desktop%\Record_%now%.mp4
-    }
-	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" --qt-start-minimized screen:// :sout=#transcode{vcodec=mp4v,acodec=mp4a}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
-    ; MsgBox % commandLine
-    Run, %commandLine%
+    StartRecordFFmpeg(x, y, w, h)
 }
 
 Stop()
 {
-    DetectHiddenWindows On
-    WinClose ahk_exe vlc.exe
-    DetectHiddenWindows Off
+    StopRecordFFmpeg()
 }
 
 Exit()
 {
     Stop()
     ExitApp
+}
+
+StartRecordVLC(x, y, w, h, fileOut="")
+{
+    WinClose ahk_exe vlc.exe
+	if ( fileOut = "" )
+	{
+        FormatTime, now, R, yyyyMMdd_hhmmss
+	    fileOut = %A_Desktop%\Record_%now%.mp4
+    }
+	commandLine = "C:\Program Files\VideoLAN\VLC\vlc.exe" --qt-start-minimized screen:// :sout=#transcode{vcodec=mp4v,acodec=mp4a}:file{dst=%fileOut%} :screen-fps=60 :screen-left=%x% :screen-top=%y% :screen-width=%w% :screen-height=%h%
+    Run, %commandLine%
+}
+
+StopRecordVLC()
+{
+    DetectHiddenWindows On
+    WinClose ahk_exe vlc.exe
+    DetectHiddenWindows Off
+}
+
+StartRecordFFmpeg(x, y, w, h)
+{
+    ; Make sure w and h are divisible by 2
+    if ( Mod(w, 2) = 1 )
+        w -= 1
+    if ( Mod(h, 2) = 1 )
+        h -= 1
+
+    SetWorkingDir % A_Desktop
+
+    FormatTime, now, R, yyyyMMdd_hhmmss
+    fileOut = Record_%now%.mp4
+
+    sizeParams = -offset_x %x% -offset_y %y% -video_size %w%x%h%
+    Run, ffmpeg -y -f gdigrab -framerate 60 %sizeParams% -i desktop -c:v libx264 -crf 0 -preset ultrafast %fileOut%,, Min
+}
+
+StopRecordFFmpeg()
+{
+    ControlSend, ahk_parent, q, ahk_exe ffmpeg.exe
 }
 
 WinGetPosEx(hWindow, ByRef X = "", ByRef Y = "", ByRef Width = "", ByRef Height = "", ByRef Offset_X = "", ByRef Offset_Y = "")
