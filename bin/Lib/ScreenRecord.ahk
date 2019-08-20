@@ -115,7 +115,7 @@ StartRecordFFmpeg(x, y, w, h)
     fileOut = Record_%now%.mp4
 
     sizeParams = -offset_x %x% -offset_y %y% -video_size %w%x%h% -draw_mouse 0
-    Run, ffmpeg -y -f gdigrab -framerate 60 %sizeParams% -i desktop -c:v libx264 -crf 0 -preset ultrafast %fileOut%,, Min
+    Run, ffmpeg -y -f gdigrab -framerate 60 %sizeParams% -i desktop -f dshow -i audio="virtual-audio-capturer" -c:v libx264 -crf 0 -preset ultrafast %fileOut%,, Min
 }
 
 StopRecordFFmpeg()
