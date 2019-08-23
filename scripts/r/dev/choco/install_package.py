@@ -18,6 +18,7 @@ PKGS = {
         'nsis',
         'teamviewer',
         'spacesniffer',
+        'audacity',
     ],
     'common': [
         'everything',

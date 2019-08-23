@@ -180,7 +180,7 @@ assoc = {
     '.mov': ['VLC', 'PotPlayer'],
     '.mp2': ['VLC', 'PotPlayer'],
     '.mp2v': ['VLC', 'PotPlayer'],
-    '.mp3': ['VLC', 'PotPlayer'],
+    '.mp3': ['VLC', 'Audacity'],
     '.mp4': ['VLC', 'PotPlayer'],
     '.mpa': ['VLC', 'PotPlayer'],
     '.mpc': ['VLC', 'PotPlayer'],

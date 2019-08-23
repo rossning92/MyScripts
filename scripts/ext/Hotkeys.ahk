@@ -119,3 +119,9 @@ ActivateChrome(index=0)
 		}
 	}
 }
+
++F1::
+	Send {F1}
+	WinWaitActive ahk_exe Snipaste.exe
+	Send r
+	Send ^+s

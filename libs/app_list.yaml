@@ -1,38 +1,42 @@
 notepad++:
   executable:
-    - notepad++.exe
+  - notepad++.exe
   choco: notepadplusplus
 
 VLC:
   executable:
-    - C:\Program Files\VideoLAN\VLC\vlc.exe
-    - C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
+  - C:\Program Files\VideoLAN\VLC\vlc.exe
+  - C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
 
 IrfanView:
   executable:
-    - C:\Program Files\IrfanView\i_view64.exe
+  - C:\Program Files\IrfanView\i_view64.exe
 
 SumatraPDF:
   executable:
-    - SumatraPDF.exe
+  - SumatraPDF.exe
 
 7z:
   executable:
-    - C:\Program Files\7-Zip\7z.exe
+  - C:\Program Files\7-Zip\7z.exe
   choco: 7zip
 
 vscode:
   executable:
-    - C:\Program Files\Microsoft VS Code\Code.exe
+  - C:\Program Files\Microsoft VS Code\Code.exe
 
 PotPlayer:
   executable:
-    - C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe
+  - C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe
 
 ripgrep:
   executable:
-    - C:\ProgramData\chocolatey\lib\ripgrep\tools\rg.exe
+  - C:\ProgramData\chocolatey\lib\ripgrep\tools\rg.exe
 
 veracrypt:
   executable:
-    - C:\Program Files\VeraCrypt\VeraCrypt.exe
+  - C:\Program Files\VeraCrypt\VeraCrypt.exe
+
+Audacity:
+  executable:
+  - C:\Program Files (x86)\Audacity\audacity.exe
