@@ -275,15 +275,12 @@ class ScriptItem:
 
             if self.meta['anaconda']:
                 import _conda
-                python_executable = _conda.get_conda_path() + '/python.exe'
+                _conda.setup_env()
+                args = ['cmd', '/c', 'activate', '&', 'python', tmp_script_file] + args
+
             else:
                 python_executable = sys.executable
-
-            if os.name == 'posix':
                 args = [python_executable, tmp_script_file] + args
-            else:
-                args = [python_executable, tmp_script_file] + args
-
 
         elif self.ext == '.vbs':
             assert os.name == 'nt'
