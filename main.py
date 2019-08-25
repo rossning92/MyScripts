@@ -281,6 +281,7 @@ RunScript(name, path)
             self.update_items(self.ui.inputBox.text())
 
     def init_script_items(self):
+        # TODO: move to configuration file
         SCRIPT_PATH_LIST = [
             ['', 'scripts'],
             ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
