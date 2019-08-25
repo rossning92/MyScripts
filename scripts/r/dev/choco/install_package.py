@@ -19,6 +19,7 @@ PKGS = {
         'teamviewer',
         'spacesniffer',
         'audacity',
+        'putty',
     ],
     'common': [
         'everything',
