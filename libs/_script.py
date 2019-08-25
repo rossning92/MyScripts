@@ -275,8 +275,8 @@ class ScriptItem:
 
             if self.meta['anaconda']:
                 import _conda
-                _conda.setup_env()
-                args = ['cmd', '/c', 'activate', '&', 'python', tmp_script_file] + args
+                activate = _conda.get_conda_path() + '\\Scripts\\activate.bat'
+                args = ['cmd', '/c', activate, '&', 'python', tmp_script_file] + args
 
             else:
                 python_executable = sys.executable
