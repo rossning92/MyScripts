@@ -143,7 +143,7 @@ class ScriptItem:
     def __str__(self):
         return self.name
 
-    def __init__(self, script_path):
+    def __init__(self, script_path, name=None):
         self.return_code = 0
 
         # BUG: jinja2 doesn't support '\' in path
@@ -154,12 +154,13 @@ class ScriptItem:
         script_root_path = os.path.abspath(os.path.dirname(__file__) + '/../scripts')
         script_root_path = script_root_path.replace('\\', '/') + '/'
 
-        name, ext = os.path.splitext(script_path)
-        name = name.replace(script_root_path, '')
-        name = re.sub(r'^scripts[\\/]', '', name)  # strip starting scripts/
-        name = name.replace('\\', '/')
-        self.name = name
+        # Script display name
+        if name:
+            self.name = name
+        else:
+            self.name = script_path
 
+        _, ext = os.path.splitext(script_path)
         self.ext = ext
 
         # Load meta

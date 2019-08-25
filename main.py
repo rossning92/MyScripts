@@ -53,6 +53,12 @@ def should_update():
         return False
 
 
+def _replace_prefix(text, prefix, repl=''):
+    if text.startswith(prefix):
+        return repl + text[len(prefix):]
+    return text  # or whatever
+
+
 def insert_line_if_not_exist(line, file, after_line=None):
     lines = None
     with open(expanduser(file), 'r') as f:
@@ -275,31 +281,41 @@ RunScript(name, path)
             self.update_items(self.ui.inputBox.text())
 
     def init_script_items(self):
-        # Load scripts
+        SCRIPT_PATH_LIST = [
+            ['', 'scripts'],
+            ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
+        ]
         self.script_items = []
-        files = glob.glob('scripts/**/*.*', recursive=True)
-        # files.sort(key=os.path.getmtime, reverse=True)
-        for file in files:
-            ext = os.path.splitext(file)[1].lower()
-            if ext not in SCRIPT_EXTENSIONS:
-                continue
 
-            mtime = os.path.getmtime(file)
+        for prefix, script_path in SCRIPT_PATH_LIST:
+            print2(script_path)
+            files = glob.glob(script_path + os.path.sep + '**', recursive=True)
+            # files.sort(key=os.path.getmtime, reverse=True)
+            for file in files:
+                ext = os.path.splitext(file)[1].lower()
+                if ext not in SCRIPT_EXTENSIONS:
+                    continue
 
-            script = ScriptItem(file)
+                mtime = os.path.getmtime(file)
 
-            if file not in self.modified_time or mtime > self.modified_time[file]:
-                # Check if auto run script
-                if script.meta['autoRun']:
-                    print('Autorun: ' + file)
-                    script.execute()
+                name = _replace_prefix(file, script_path, prefix)
+                name = name.replace('\\', '/')
+                name = _replace_prefix(name, '/', '')
 
-            # Hide files starting with '_'
-            base_name = os.path.basename(file)
-            if not base_name.startswith('_'):
-                self.script_items.append(script)
+                script = ScriptItem(file, name=name)
 
-            self.modified_time[file] = mtime
+                if file not in self.modified_time or mtime > self.modified_time[file]:
+                    # Check if auto run script
+                    if script.meta['autoRun']:
+                        print('Autorun: ' + file)
+                        script.execute()
+
+                # Hide files starting with '_'
+                base_name = os.path.basename(file)
+                if not base_name.startswith('_'):
+                    self.script_items.append(script)
+
+                self.modified_time[file] = mtime
 
         self.sort_scripts()
 
