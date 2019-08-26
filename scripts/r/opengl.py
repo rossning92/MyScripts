@@ -1,15 +1,8 @@
 from _shutil import *
 import os
+from _git import *
 
-proj_dir = r"{{PROJECT_DIR}}"
-if not proj_dir:
-    proj_dir = "C:\\Projects"
-
-chdir(proj_dir)
-if not exists('LearnOpenGL'):
-    call('git clone https://github.com/JoeyDeVries/LearnOpenGL.git')
-
-chdir('LearnOpenGL')
+git_clone('https://github.com/JoeyDeVries/LearnOpenGL')
 
 os.environ['PATH'] = r'C:\Program Files\CMake\bin' + os.pathsep + os.environ['PATH']
 mkdir('build')

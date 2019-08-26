@@ -10,7 +10,7 @@ from _shutil import *
 def getch():
     if platform.system() == 'Windows':
         import msvcrt
-        return msvcrt.getch().decode()
+        return msvcrt.getch().decode(errors='replace')
 
     else:
         import sys, tty, termios
