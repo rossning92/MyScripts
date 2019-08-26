@@ -289,7 +289,6 @@ RunScript(name, path)
         self.script_items = []
 
         for prefix, script_path in SCRIPT_PATH_LIST:
-            print2(script_path)
             files = glob.glob(script_path + os.path.sep + '**', recursive=True)
             # files.sort(key=os.path.getmtime, reverse=True)
             for file in files:
