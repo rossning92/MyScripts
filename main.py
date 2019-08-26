@@ -247,7 +247,7 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c python -c "from _script import *;run_script('%path%'`, set_console_title=True)" || pause
+        Run cmd /c python -c "from _script import *;run_script('%path%'`, set_console_title=True`, console_title='%name%')" || pause
     }
 }
 ''')
@@ -300,6 +300,7 @@ RunScript(name, path)
                 mtime = os.path.getmtime(file)
 
                 name = _replace_prefix(file, script_path, prefix)
+                name = os.path.splitext(name)[0]  # Remove ext
                 name = name.replace('\\', '/')
                 name = _replace_prefix(name, '/', '')
 
