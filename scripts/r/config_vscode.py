@@ -13,11 +13,11 @@ extensions = [x for x in extensions.splitlines()]
 extensions = [x.strip() for x in extensions]
 extensions = [x for x in extensions if x]
 
-# Install extensions
+print2('Install extensions...')
 for ext in extensions:
     call2('code --install-extension %s' % ext)
 
-# Key bindings
+print2('Update key bindings...')
 with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:
     f.write('''
 [
@@ -29,7 +29,7 @@ with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:
 ]
     '''.strip())
 
-# User setting
+print2('Update user settings...')
 setting_file = expandvars('%APPDATA%/Code/User/settings.json')
 data = json.load(open(setting_file))
 data['pasteImage.path'] = "${currentFileNameWithoutExt}"
