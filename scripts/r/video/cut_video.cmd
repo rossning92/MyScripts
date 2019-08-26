@@ -1,1 +1,0 @@
-ffmpeg -ss 00:00:01.385 -i %1 -strict -2 -t 4 "%~dpn1_cut.mp4"
