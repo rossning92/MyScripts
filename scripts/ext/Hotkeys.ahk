@@ -125,3 +125,7 @@ ActivateChrome(index=0)
 	WinWaitActive ahk_exe Snipaste.exe
 	Send r
 	Send ^+s
+
+#v::
+	WinActivate ahk_exe code.exe
+	return
