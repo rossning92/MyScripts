@@ -247,9 +247,11 @@ class ScriptItem:
                 env['PYTHONPATH'] = os.path.dirname(__file__)
 
                 script_abs_path = os.path.abspath(self.script_path)
-                subprocess.Popen(
-                    ['AutoHotkeyU64.exe', script_abs_path],
-                    cwd=cwd, env={**os.environ, **env})
+                args = ['AutoHotkeyU64.exe', script_abs_path]
+                self.meta['background'] = True
+
+                if self.meta['runAsAdmin']:
+                    args = ['start'] + args
 
         elif self.ext == '.cmd':
             if os.name == 'nt':
@@ -340,7 +342,7 @@ class ScriptItem:
 
                 print2('Run elevated:')
                 print(_args_to_str(args))
-                run_elevated(args, wait=not new_window)
+                run_elevated(args, wait=(not new_window))
             else:
                 if new_window or self.meta['background']:
                     # Check whether or not hide window
@@ -358,7 +360,8 @@ class ScriptItem:
                                      env={**os.environ, **env},
                                      cwd=cwd,
                                      startupinfo=startupinfo,
-                                     creationflags=creationflags)
+                                     creationflags=creationflags,
+                                     close_fds=True)
                 else:
                     self.return_code = subprocess.call(args, env={**os.environ, **env}, cwd=cwd)
 
