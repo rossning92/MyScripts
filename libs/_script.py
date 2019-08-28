@@ -341,7 +341,7 @@ class ScriptItem:
                         ] + set_env_var + args
 
                 print2('Run elevated:')
-                print(_args_to_str(args))
+                print2(_args_to_str(args), color='cyan')
                 run_elevated(args, wait=(not new_window))
             else:
                 if new_window or self.meta['background']:
