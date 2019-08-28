@@ -472,10 +472,10 @@ class ScriptMeta:
 
         obj = None
         if os.path.exists(self.meta_file):
-            obj = yaml.load(open(self.meta_file, 'r').read())
+            obj = yaml.load(open(self.meta_file, 'r').read(), Loader=yaml.FullLoader)
 
         elif os.path.exists(default_meta_file):
-            obj = yaml.load(open(default_meta_file, 'r').read())
+            obj = yaml.load(open(default_meta_file, 'r').read(), Loader=yaml.FullLoader)
 
         if obj:
             # override default config
