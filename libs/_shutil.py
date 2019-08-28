@@ -18,6 +18,7 @@ from tempfile import gettempdir
 import datetime
 import signal
 import ctypes
+import time
 
 
 def write_temp_file(text, ext):
@@ -571,6 +572,13 @@ def get_time_str():
 def make_and_change_dir(path):
     os.makedirs(path, exist_ok=True)
     os.chdir(path)
+
+
+def get_pretty_mtime(file):
+    dt = os.path.getmtime(file)
+    now = time.time()
+    seconds = int(dt - now)
+    return get_pretty_time_delta(seconds)
 
 
 env = os.environ

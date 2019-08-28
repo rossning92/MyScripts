@@ -408,11 +408,6 @@ RunScript(name, path)
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
 
-            if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_F:
-                self.ui.inputBox.setFocus(True)
-                self.ui.inputBox.selectAll()
-                return True
-
             if len(self.matched_items) == 0:
                 return False
             idx = self.matched_items[0]
@@ -421,15 +416,27 @@ RunScript(name, path)
                 self.execute_selected_script(e.modifiers() == Qt.ControlModifier)
                 return True
 
-            if e.modifiers() == Qt.ControlModifier and e.key() == Qt.Key_O:
-                path = self.script_items[idx].script_path
-                script = self.script_items[idx].render()
-                ext = self.script_items[idx].ext
+            if e.modifiers() == Qt.ControlModifier:
+                if e.key() == Qt.Key_O:
+                    path = self.script_items[idx].script_path
+                    script = self.script_items[idx].render()
+                    ext = self.script_items[idx].ext
 
-                with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
-                    f.write(script.encode())
-                    f.flush()
-                    open_text_editor(f.name)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as f:
+                        f.write(script.encode())
+                        f.flush()
+                        open_text_editor(f.name)
+                        return True
+
+                elif e.key() == Qt.Key_F:
+                    self.ui.inputBox.setFocus(True)
+                    self.ui.inputBox.selectAll()
+                    return True
+
+            if e.modifiers() == Qt.ControlModifier | Qt.ShiftModifier:
+                if e.key() == Qt.Key_C:
+                    script = self.script_items[idx]
+                    set_clip(script.name)
                     return True
 
         return super().eventFilter(obj, e)
