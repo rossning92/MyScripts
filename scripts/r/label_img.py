@@ -13,6 +13,7 @@ with open(text_file, 'r') as fp:
 
 im = Image.open(f)
 font_scale = float('{{LABEL_IMG_FONT_SCALE}}') if '{{LABEL_IMG_FONT_SCALE}}' else 1.0
-draw_text(im, text, (0, 0, im.width, im.height), align='top', font_scale=font_scale)
+font_color = '{{LABEL_IMG_FONT_COLOR}}' if '{{LABEL_IMG_FONT_COLOR}}' else 'white'
+draw_text(im, text, (0, 0, im.width, im.height), align='top', font_scale=font_scale, font_color=font_color)
 
 im.save(fn + '_labelled' + ext)
