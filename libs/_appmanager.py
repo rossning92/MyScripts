@@ -7,7 +7,7 @@ import subprocess
 
 def get_executable(app_name):
     with open(join(dirname(__file__), 'app_list.yaml'), 'r') as f:
-        app_list = yaml.load(f.read())
+        app_list = yaml.load(f.read(), Loader=yaml.FullLoader)
 
     matched_apps = [k for k, v in app_list.items() if app_name.lower() == k.lower()]
     app_name = matched_apps[0]
