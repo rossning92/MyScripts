@@ -2,7 +2,7 @@
 
 $!h::SendEmoji("😃")
 $!s::SendEmoji("😢")
-$!t::SendEmoji("😜")
+$!t::SendEmoji("😉")
 
 SendEmoji(s)
 {
