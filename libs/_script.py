@@ -216,23 +216,6 @@ class ScriptItem:
         env = {}
         cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(self.script_path)))
 
-        # Set selected file and current folder to as environment variables
-        if args is not None and self.meta['autoRun'] is False:
-            try:
-                with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
-                    jsn = json.load(f)
-
-                if len(jsn['selectedFiles']) == 1:
-                    env['SELECTED_FILE'] = jsn['selectedFiles'][0]
-
-                if len(jsn['selectedFiles']) >= 1:
-                    env['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
-
-                if jsn['currentFolder']:
-                    env['CURRENT_FOLDER'] = jsn['currentFolder']
-            except:
-                print('Unable to get explorer info.')
-
         if self.ext == '.ps1':
             if os.name == 'nt':
                 script = self.render()

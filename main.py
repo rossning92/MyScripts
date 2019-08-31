@@ -228,9 +228,29 @@ class MainWindow(QWidget):
             hotkey = item.meta['hotkey']
             if hotkey is not None:
                 print('Hotkey: %s: %s' % (hotkey, item.name))
-                QShortcut(QKeySequence(hotkey), self, lambda item=item: item.execute())
+                QShortcut(QKeySequence(hotkey), self, lambda item=item: self.execute_script(item))
 
         self.register_global_hotkeys()
+
+    def execute_script(self, script, control_down=False):
+        # Set selected file and current folder to as environment variables
+        if script.meta['autoRun'] is False:
+            try:
+                with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
+                    jsn = json.load(f)
+
+                if len(jsn['selectedFiles']) == 1:
+                    env['SELECTED_FILE'] = jsn['selectedFiles'][0]
+
+                if len(jsn['selectedFiles']) >= 1:
+                    env['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
+
+                if jsn['currentFolder']:
+                    env['CURRENT_FOLDER'] = jsn['currentFolder']
+            except:
+                print('Unable to get explorer info.')
+
+        script.execute(control_down=control_down)
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
@@ -273,7 +293,7 @@ RunScript(name, path)
                 if hotkey is not None:
                     print('Global Hotkey: %s: %s' % (hotkey, item.name))
                     keyboard.add_hotkey(hotkey,
-                                        lambda item=item: item.execute())
+                                        lambda item=item: self.execute_script(item))
 
     def timerEvent(self, e):
         if should_update():
@@ -376,7 +396,7 @@ RunScript(name, path)
         self.hide()
 
         script = self.script_items[idx]
-        script.execute(control_down=control_down)
+        self.execute_script(script, control_down=control_down)
 
         # Update script access time
         self.script_access_time[script.script_path] = time.time()

@@ -210,3 +210,12 @@ def parse_file_name(s):
     gain_y = re.findall('GainY\((.*?)\)', s)[0].replace('.00', '')
     s = 'GainX: %s\nGainY: %s' % (gain_x, gain_y)
     return s
+
+
+def select_region(image_file):
+    import cv2
+    im = cv2.imread(image_file)
+
+    # Select ROI
+    box = cv2.selectROI(im)
+    return box
