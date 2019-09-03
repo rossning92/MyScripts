@@ -204,7 +204,7 @@ class ScriptItem:
         # Convert into private namespace (shorter variable name)
         prefix = self.get_public_variable_prefix()
         variables = {
-            re.sub('^' + re.escape(prefix) + '_', '_', k): _convert_to_unix_path(v)
+            re.sub('^' + re.escape(prefix) + '_', '_', k): v
             for k, v in variables.items()
         }
 
