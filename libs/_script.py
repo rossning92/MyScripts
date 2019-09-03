@@ -201,11 +201,21 @@ class ScriptItem:
         if self.override_variables:
             variables = {**variables, **self.override_variables}
 
+        # Convert into private namespace (shorter variable name)
+        prefix = self._get_variable_prefix()
+        variables = {
+            re.sub('^' + re.escape(prefix) + '_', '_', k): _convert_to_unix_path(v)
+            for k, v in variables.items()
+        }
+
         # HACK: Convert to unix path
         if self.ext == '.sh':
             variables = {k: _convert_to_unix_path(v) for k, v in variables.items()}
 
         return variables
+
+    def _get_variable_prefix(self):
+        return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
     def execute(self, args=None, control_down=False):
         if args is None:
@@ -361,7 +371,14 @@ class ScriptItem:
         ScriptItem.env.context_class = MyContext
         self.render()
         ScriptItem.env.context_class = jinja2.runtime.Context
-        return list(variables)
+
+        variables = list(variables)
+
+        # Convert private variable to global namespace
+        prefix = self._get_variable_prefix()
+        variables = [prefix + v if v.startswith('_') else v for v in variables]
+
+        return variables
 
     def include(self, script_name):
         script_path = find_script(script_name, os.path.dirname(self.script_path))

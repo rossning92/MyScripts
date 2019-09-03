@@ -68,12 +68,12 @@ Record(fileOut="")
     }
 	
 	; Start VLC
-    StartRecordFFmpeg(x, y, w, h)
+    StartRecordVLC(x, y, w, h)
 }
 
 Stop()
 {
-    StopRecordFFmpeg()
+    StopRecordVLC()
 }
 
 Exit()
