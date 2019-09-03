@@ -202,7 +202,7 @@ class ScriptItem:
             variables = {**variables, **self.override_variables}
 
         # Convert into private namespace (shorter variable name)
-        prefix = self._get_variable_prefix()
+        prefix = self.get_public_variable_prefix()
         variables = {
             re.sub('^' + re.escape(prefix) + '_', '_', k): _convert_to_unix_path(v)
             for k, v in variables.items()
@@ -214,7 +214,7 @@ class ScriptItem:
 
         return variables
 
-    def _get_variable_prefix(self):
+    def get_public_variable_prefix(self):
         return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
     def execute(self, args=None, control_down=False):
@@ -375,7 +375,7 @@ class ScriptItem:
         variables = list(variables)
 
         # Convert private variable to global namespace
-        prefix = self._get_variable_prefix()
+        prefix = self.get_public_variable_prefix()
         variables = [prefix + v if v.startswith('_') else v for v in variables]
 
         return variables

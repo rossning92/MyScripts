@@ -143,7 +143,7 @@ class EditVariableWidget(QWidget):
         except Exception:
             print('Failed to load variable file.')
 
-    def update_items(self, varList=[]):
+    def update_items(self, varList=[], hide_prefix=None):
         self.load_variables()
 
         for i in range(self.layout().count()):
@@ -162,7 +162,12 @@ class EditVariableWidget(QWidget):
             if comboBox.count() > 0:
                 comboBox.setCurrentIndex(comboBox.count() - 1)
 
-            self.layout().addRow(QLabel(variable + ':'), comboBox)
+            # Label text
+            if hide_prefix:
+                label_text = re.sub('^' + re.escape(hide_prefix), '', variable)
+            else:
+                label_text = variable
+            self.layout().addRow(QLabel(label_text), comboBox)
 
             self.variableUIs[variable] = comboBox
             row += 1
@@ -376,7 +381,8 @@ RunScript(name, path)
 
             # Display variable list
             if 'get_variables' in dir(first_matched_script):
-                self.editVariableWidget.update_items(first_matched_script.get_variable_names())
+                self.editVariableWidget.update_items(first_matched_script.get_variable_names(),
+                                                     hide_prefix=first_matched_script.get_public_variable_prefix())
 
                 # Save current selected menu items
                 # with open('data/SelectedScript.txt', 'w') as f:
