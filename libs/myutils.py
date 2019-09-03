@@ -8,7 +8,7 @@ import tempfile
 import yaml
 import platform
 import ctypes
-from _shutil import run_elevated, conemu_wrap_args, append_line
+from _shutil import run_elevated, conemu_wrap_args, append_line, update_env_var_explorer
 from _script import *
 import shlex
 

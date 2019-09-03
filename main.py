@@ -240,20 +240,7 @@ class MainWindow(QWidget):
     def execute_script(self, script, control_down=False):
         # Set selected file and current folder to as environment variables
         if script.meta['autoRun'] is False:
-            try:
-                with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
-                    jsn = json.load(f)
-
-                if len(jsn['selectedFiles']) == 1:
-                    env['SELECTED_FILE'] = jsn['selectedFiles'][0]
-
-                if len(jsn['selectedFiles']) >= 1:
-                    env['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
-
-                if jsn['currentFolder']:
-                    env['CURRENT_FOLDER'] = jsn['currentFolder']
-            except:
-                print('Unable to get explorer info.')
+            update_env_var_explorer()
 
         script.execute(control_down=control_down)
 
@@ -272,7 +259,7 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c python -c "from _script import *;run_script('%path%'`, set_console_title=True`, console_title='%name%')" || pause
+        Run cmd /c python -c "from _script import *;update_env_var_explorer();run_script('%path%'`, set_console_title=True`, console_title='%name%')" || pause
     }
 }
 ''')

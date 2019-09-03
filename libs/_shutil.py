@@ -19,6 +19,7 @@ import datetime
 import signal
 import ctypes
 import time
+import json
 
 
 def write_temp_file(text, ext):
@@ -580,5 +581,21 @@ def get_pretty_mtime(file):
     seconds = int(dt - now)
     return get_pretty_time_delta(seconds)
 
+
+def update_env_var_explorer():
+    try:
+        with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
+            jsn = json.load(f)
+
+        if len(jsn['selectedFiles']) == 1:
+            os.environ['SELECTED_FILE'] = jsn['selectedFiles'][0]
+
+        if len(jsn['selectedFiles']) >= 1:
+            os.environ['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
+
+        if jsn['currentFolder']:
+            os.environ['CURRENT_FOLDER'] = jsn['currentFolder']
+    except:
+        print('Unable to get explorer info.')
 
 env = os.environ
