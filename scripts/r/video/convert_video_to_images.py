@@ -4,7 +4,7 @@ import sys
 import locale
 from _shutil import *
 
-fps = int('{{VID_TO_IMG_FPS}}') if '{{VID_TO_IMG_FPS}}' else 60
+fps = int('{{_FPS}}') if '{{_FPS}}' else 60
 
 files = get_files(cd=True)
 

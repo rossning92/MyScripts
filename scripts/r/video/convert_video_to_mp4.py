@@ -13,7 +13,7 @@ for f in files:
         'ffmpeg',
         '-i', f]
 
-    if '{{CONVERT_VIDEO_480P}}':
+    if '{{_480P}}':
         args += ['-s', 'hd480']
 
     args += [
