@@ -545,6 +545,7 @@ def get_files(cd=False):
         os.chdir(cur_folder)
         files = [f.replace(cur_folder + os.path.sep, '') for f in files]  # Relative path
 
+    files = [x for x in files if os.path.isfile(x)]
     return files
 
 
@@ -597,5 +598,6 @@ def update_env_var_explorer():
             os.environ['CURRENT_FOLDER'] = jsn['currentFolder']
     except:
         print('Unable to get explorer info.')
+
 
 env = os.environ

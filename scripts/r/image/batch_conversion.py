@@ -8,8 +8,10 @@ files = get_files(cd=True)
 
 mkdir('out')
 
-rect_arg = [float(x) for x in '{{IMG_BATCH_CONV_RECT}}'.split()]
-scale = [float(x) for x in '{{IMG_BATCH_CONV_SCALE}}'.split()]
+rect_arg = [float(x) for x in '{{_CROP_RECT}}'.split()]
+scale = [float(x) for x in '{{_SCALE}}'.split()]
+img_size = [int(x) for x in '{{_OUT_IMG_SIZE}}'.split()]
+keep_ratio = bool('{{_KEEP_RATIO}}')
 
 crop = False
 for f in files:
@@ -33,6 +35,18 @@ for f in files:
 
     if len(scale) == 2:
         im = scale_image(im, scale[0], scale[1])
+    elif len(img_size) == 2:
+        if keep_ratio:
+            aspect = im.size[0] / im.size[1]
+            out_aspect = img_size[0] / img_size[1]
+            if out_aspect > aspect:
+                crop_rect = [0, 0, im.size[0], im.size[0] / out_aspect]
+            else:
+                crop_rect = [0, 0, im.size[1] * out_aspect, im.size[1]]
+            print(crop_rect)
+            im = crop_image(im, rect=crop_rect)
+
+        im = im.resize((img_size[0], img_size[1]), Image.ANTIALIAS)
 
     print('Output: out/' + f)
     im.save('out/' + f, quality=100)
