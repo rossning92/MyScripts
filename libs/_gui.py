@@ -251,10 +251,23 @@ def search(items=None, title=None, search_func=None, cancel_func=None):
     return sw.get_selected()
 
 
-def gui_input(title=None, prompt=None, text=None):
-    text, ok_pressed = QInputDialog.getText(None, title, prompt, text=text)
-    if ok_pressed:
-        return text
+def gui_input(prompt=None, default_text=None):
+    input_dialog = QInputDialog(None)
+    input_dialog.setInputMode(QInputDialog.TextInput)
+    input_dialog.setWindowTitle(prompt)
+    input_dialog.setLabelText(prompt)
+    input_dialog.setTextValue(default_text)
+    input_dialog.resize(800, 400)
+    input_dialog.setStyleSheet('''
+    font: 12pt "Consolas";
+    color: rgb(255, 255, 255);
+    border: none;
+    background-color: rgb(0, 0, 0);
+    ''')
+
+    ok = input_dialog.exec_()
+    if ok:
+        return input_dialog.textValue()
     else:
         return None
 

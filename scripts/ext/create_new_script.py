@@ -2,7 +2,7 @@ import os
 import datetime
 import subprocess
 import sys
-from PyQt5.QtWidgets import QApplication, QInputDialog
+from _gui import gui_input
 
 os.chdir('../')
 
@@ -12,24 +12,8 @@ rel_path = rel_path[1:]
 rel_path = rel_path.replace('\\', '/')
 rel_path += '/'
 
-_app = QApplication([])
-
-input_dialog = QInputDialog(None)
-input_dialog.setInputMode(QInputDialog.TextInput)
-input_dialog.setWindowTitle('Create New Script')
-input_dialog.setLabelText('Script name:')
-input_dialog.setTextValue(rel_path)
-input_dialog.resize(800, 400)
-input_dialog.setStyleSheet('''
-font: 12pt "Consolas";
-color: rgb(255, 255, 255);
-border: none;
-background-color: rgb(0, 0, 0);
-''')
-
-ok = input_dialog.exec_()
-if ok:
-    file_path = input_dialog.textValue()
+file_path = gui_input('Script name:', rel_path)
+if file_path:
     dir_name = os.path.dirname(file_path)
     if dir_name != '':
         os.makedirs(dir_name, exist_ok=True)
