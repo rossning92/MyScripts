@@ -8,8 +8,9 @@ os.chdir('../')
 
 rel_path = os.getenv('ROSS_SELECTED_SCRIPT_PATH').replace(os.getcwd(), '')
 rel_path = os.path.dirname(rel_path)
-rel_path += '/'
 rel_path = rel_path[1:]
+rel_path = rel_path.replace('\\', '/')
+rel_path += '/'
 
 _app = QApplication([])
 
@@ -18,6 +19,7 @@ input_dialog.setInputMode(QInputDialog.TextInput)
 input_dialog.setWindowTitle('Create New Script')
 input_dialog.setLabelText('Script name:')
 input_dialog.setTextValue(rel_path)
+input_dialog.resize(800, 400)
 input_dialog.setStyleSheet('''
 font: 12pt "Consolas";
 color: rgb(255, 255, 255);
