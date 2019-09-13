@@ -33,4 +33,5 @@ print2('Update user settings...')
 setting_file = expandvars('%APPDATA%/Code/User/settings.json')
 data = json.load(open(setting_file))
 data['pasteImage.path'] = "${currentFileNameWithoutExt}"
+data['workbench.editor.enablePreviewFromQuickOpen'] = False
 json.dump(data, open(setting_file, 'w'), indent=4)
