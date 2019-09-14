@@ -20,6 +20,7 @@ PKGS = {
         'spacesniffer',
         'audacity',
         'putty',
+        'thunderbird',
     ],
     'common': [
         'everything',
