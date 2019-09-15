@@ -240,9 +240,11 @@ class MainWindow(QWidget):
     def execute_script(self, script, control_down=False):
         # Set selected file and current folder to as environment variables
         if script.meta['autoRun'] is False:
-            update_env_var_explorer()
+            args = update_env_var_explorer()
+        else:
+            args = None
 
-        script.execute(control_down=control_down)
+        script.execute(control_down=control_down, args=args)
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':

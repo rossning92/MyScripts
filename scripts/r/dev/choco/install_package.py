@@ -21,6 +21,7 @@ PKGS = {
         'audacity',
         'putty',
         'thunderbird',
+        'pandoc',
     ],
     'common': [
         'everything',

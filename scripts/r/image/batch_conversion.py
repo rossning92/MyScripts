@@ -48,5 +48,10 @@ for f in files:
 
         im = im.resize((img_size[0], img_size[1]), Image.ANTIALIAS)
 
-    print('Output: out/' + f)
-    im.save('out/' + f, quality=100)
+    name, ext = os.path.splitext(f)
+    if '{{_OUT_FORMAT}}':
+        ext = '.' + '{{_OUT_FORMAT}}'
+    out_file = name + ext
+
+    print('Output: out/' + out_file)
+    im.save('out/' + out_file, quality=90)

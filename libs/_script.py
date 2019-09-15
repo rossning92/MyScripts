@@ -218,10 +218,12 @@ class ScriptItem:
         return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
     def execute(self, args=None, control_down=False):
-        if args is None:
-            args = []
-        elif type(args) == str:
+        if type(args) == str:
             args = [args]
+        elif type(args) == list:
+            args = args
+        else:
+            args = []
 
         env = {}
         cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(self.script_path)))
@@ -234,7 +236,7 @@ class ScriptItem:
                         '-ExecutionPolicy', 'unrestricted',
                         file_path]
 
-        elif self.ext == '.ahk':
+        elif self.ext == '.ahk' or self.ext == '.bat':
             if os.name == 'nt':
                 # HACK: add python path to env var
                 env['PYTHONPATH'] = os.path.dirname(__file__)
@@ -249,7 +251,7 @@ class ScriptItem:
         elif self.ext == '.cmd':
             if os.name == 'nt':
                 script = self.render()
-                args = cmd(script)
+                args = cmd(script) + args
 
                 # HACK: change working directory
                 if platform.system() == 'Windows' and self.meta['runAsAdmin']:

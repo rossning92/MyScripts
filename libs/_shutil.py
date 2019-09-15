@@ -588,16 +588,24 @@ def update_env_var_explorer():
         with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
             jsn = json.load(f)
 
-        if len(jsn['selectedFiles']) == 1:
-            os.environ['SELECTED_FILE'] = jsn['selectedFiles'][0]
+        files = jsn['selectedFiles']
+        if not files:
+            return None
 
-        if len(jsn['selectedFiles']) >= 1:
-            os.environ['SELECTED_FILES'] = '|'.join(jsn['selectedFiles'])
+        if len(files) == 1:
+            os.environ['SELECTED_FILE'] = files[0]
+
+        if len(files) >= 1:
+            os.environ['SELECTED_FILES'] = '|'.join(files)
 
         if jsn['currentFolder']:
             os.environ['CURRENT_FOLDER'] = jsn['currentFolder']
+
+        return files
+
     except:
         print('Unable to get explorer info.')
+        return None
 
 
 env = os.environ
