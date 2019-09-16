@@ -588,6 +588,9 @@ def update_env_var_explorer():
         with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
             jsn = json.load(f)
 
+        if jsn['currentFolder']:
+            os.environ['CURRENT_FOLDER'] = jsn['currentFolder']
+
         files = jsn['selectedFiles']
         if not files:
             return None
@@ -597,9 +600,6 @@ def update_env_var_explorer():
 
         if len(files) >= 1:
             os.environ['SELECTED_FILES'] = '|'.join(files)
-
-        if jsn['currentFolder']:
-            os.environ['CURRENT_FOLDER'] = jsn['currentFolder']
 
         return files
 
