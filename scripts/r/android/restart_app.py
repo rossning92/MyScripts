@@ -6,5 +6,5 @@ pkg = '{{PKG_NAME}}'
 
 restart_app(pkg)
 
-if '{{RESTART_APP_SHOW_LOGCAT}}':
+if '{{_SHOW_LOGCAT}}':
     logcat(pkg)
