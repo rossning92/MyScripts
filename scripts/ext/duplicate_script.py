@@ -19,7 +19,7 @@ rel_path += '/'
 file_path = gui_input('Duplicate script:', rel_path)
 if file_path:
     dir_name = os.path.dirname(file_path)
-    if dir_name != '':
+    if dir_name:
         os.makedirs(dir_name, exist_ok=True)
 
     copy(src_script, file_path)

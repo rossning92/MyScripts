@@ -216,7 +216,7 @@ def download(url, filename=None, redownload=False):
 def copy(src, dst):
     # Create dirs if not exists
     dir_name = os.path.dirname(dst)
-    if not exists(dir_name):
+    if dir_name and not exists(dir_name):
         os.makedirs(dir_name, exist_ok=True)
 
     if os.path.isdir(src):

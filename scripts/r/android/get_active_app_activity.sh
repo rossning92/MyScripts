@@ -1,1 +1,1 @@
-adb shell "dumpsys activity activities | grep mFocusedActivity"
+adb shell "dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp'"
