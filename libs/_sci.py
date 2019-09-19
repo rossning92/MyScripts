@@ -1,6 +1,9 @@
-import matplotlib.pyplot as plt
+from _shutil import try_import
 import os
-import numpy as np
+
+try_import('matplotlib.pyplot', as_='plt')
+try_import('numpy', as_='np')
+try_import('pandas', as_='pd')
 
 
 def save_fig(out_file='figure.png'):
