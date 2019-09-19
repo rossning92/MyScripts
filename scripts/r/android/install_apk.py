@@ -6,7 +6,7 @@ from _android import *
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
-print('Install apk...')
+print2('Install apk...')
 try:
     check_output(['adb', 'install', '-r', file], stderr=subprocess.STDOUT)
 except subprocess.CalledProcessError as e:
@@ -26,7 +26,7 @@ su = ''
 tar_file = os.path.splitext(file)[0] + '.tar'
 pkg = os.path.splitext(os.path.basename(file))[0]
 if exists(tar_file):
-    print('Restore data...')
+    print2('Restore data...')
     call(f'adb push "{tar_file}" /sdcard/')
     call(f'adb shell {su} tar -xf /sdcard/{pkg}.tar')
 
@@ -34,16 +34,16 @@ if exists(tar_file):
     out = out.decode().strip()
 
     userId = re.findall(r'userId=(\d+)', out)[0]
-    print(f'Change owner of {pkg} => {userId}')
+    print2(f'Change owner of {pkg} => {userId}')
     call(f'adb shell {su} chown -R {userId}:{userId} /data/data/{pkg}')
 
-    print('Reset SELinux perms')
+    print2('Reset SELinux perms')
     call(f'adb shell {su} restorecon -R /data/data/{pkg}')
 
 # Push obb file
 obb_folder = os.path.splitext(file)[0]
 if os.path.isdir(obb_folder):
-    print('Push obb...')
+    print2('Push obb...')
     call2(f'adb push "{obb_folder}" /sdcard/android/obb')
 
 # Run app
