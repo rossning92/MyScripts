@@ -217,5 +217,6 @@ def select_region(image_file):
     im = cv2.imread(image_file)
 
     # Select ROI
-    box = cv2.selectROI(im)
+    cv2.namedWindow("Image", 2)
+    box = cv2.selectROI("Image", im, False, False)
     return box

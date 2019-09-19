@@ -23,6 +23,15 @@ font.setPointSize(10)
 _app.setFont(font)
 
 
+def get_qss():
+    return '''
+        font: 12pt "Consolas";
+        color: rgb(255, 255, 255);
+        border: none;
+        background-color: rgb(0, 0, 0);
+    '''
+
+
 class MyDialog(QDialog):
     def __init__(self, title=''):
         super().__init__()
@@ -31,6 +40,8 @@ class MyDialog(QDialog):
         self.setWindowTitle(title)
         self.setWindowFlags(Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint)
         self.resize(800, 400)
+
+        self.setStyleSheet(get_qss())
 
         layout = QGridLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -165,7 +176,7 @@ class SearchWidget(QWidget):
             self.listWidget.item(0).setSelected(True)
 
         self.listWidget.setMinimumWidth(self.listWidget.sizeHintForColumn(0) + 100)
-        self.resize(800, 600)
+        # self.resize(800, 600)
 
     def on_new_line_slot(self, line):
         if line is None:
@@ -238,6 +249,7 @@ class SearchWidget(QWidget):
 
 def search(items=None, title=None, search_func=None, cancel_func=None):
     dialog = MyDialog()
+
     if title:
         dialog.setWindowTitle(title)
 
@@ -258,12 +270,7 @@ def gui_input(prompt=None, default_text=None):
     input_dialog.setLabelText(prompt)
     input_dialog.setTextValue(default_text)
     input_dialog.resize(800, 400)
-    input_dialog.setStyleSheet('''
-    font: 12pt "Consolas";
-    color: rgb(255, 255, 255);
-    border: none;
-    background-color: rgb(0, 0, 0);
-    ''')
+    input_dialog.setStyleSheet(get_qss())
 
     ok = input_dialog.exec_()
     if ok:

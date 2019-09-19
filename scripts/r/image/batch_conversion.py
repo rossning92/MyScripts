@@ -28,6 +28,9 @@ for f in files:
             if (np.array(rect_arg) <= 1.0).all():
                 rect_normalized = rect_arg
                 rect = None
+            else:
+                rect = rect_arg
+                rect_normalized = None
             crop = True
 
     if crop:
