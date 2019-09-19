@@ -608,17 +608,18 @@ def update_env_var_explorer():
         return None
 
 
-def try_import(module_name, as_=None, pkg_name=None):
-    if not as_:
-        as_ = module_name
+def try_import(module_name, pkg_name=None):
+    import importlib
     if not pkg_name:
         pkg_name = module_name
     try:
-        globals()[as_] = __import__(module_name)
+        module = importlib.import_module(module_name)
+        globals()[module_name] = module
+        return module
     except ModuleNotFoundError:
         subprocess.check_call([sys.executable, '-m',
                                'pip', 'install', pkg_name])
-        try_import(module_name, as_)
+        try_import(module_name)
 
 
 env = os.environ
