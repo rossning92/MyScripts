@@ -25,10 +25,17 @@ _app.setFont(font)
 
 def get_qss():
     return '''
-        font: 12pt "Consolas";
-        color: rgb(255, 255, 255);
-        border: none;
-        background-color: rgb(0, 0, 0);
+        * {
+            font: 12pt "Consolas";
+            color: rgb(255, 255, 255);
+            border: none;
+            background-color: rgb(0, 0, 0);
+        }
+        
+        QWidget:item:selected {
+            background-color: orange;
+            color: rgb(0, 0, 0);
+        }
     '''
 
 
