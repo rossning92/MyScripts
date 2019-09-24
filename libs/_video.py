@@ -69,30 +69,34 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
     final.write_videofile(out_file, fps=fps)
 
 
-def make_video(images, fps=30, out_file='output.mp4'):
-    w = images[0].shape[1]
-    h = images[0].shape[0]
-    command = [
-        'ffmpeg',
-        '-y',  # (optional) overwrite output file if it exists
-        '-f', 'rawvideo',
-        '-vcodec', 'rawvideo',
-        '-s', f'{w}x{h}',  # size of one frame
-        '-pix_fmt', 'bgr24',
-        '-r', str(fps),  # frames per second
-        '-i', '-',  # The imput comes from a pipe
-        '-an',  # Tells FFMPEG not to expect any audio
-
-        # '-vcodec', 'rawvideo',
-        #'-vcodec', 'huffyuv',
-        '-c:v', 'libx264', '-preset', 'slow', '-crf', '0',
-        # '-vf','scale=-2:720',
-        out_file
-    ]
-
-    ps = subprocess.Popen(command, stdin=subprocess.PIPE)
+def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
+    ps = None
 
     for im in images:
+        if not ps:
+            w = im.shape[1]
+            h = im.shape[0]
+            command = [
+                'ffmpeg',
+                '-y',  # (optional) overwrite output file if it exists
+                '-f', 'rawvideo',
+                '-vcodec', 'rawvideo',
+                '-s', f'{w}x{h}',  # size of one frame
+                '-pix_fmt', format,
+                '-r', str(fps),  # frames per second
+                '-i', '-',  # The imput comes from a pipe
+                '-an',  # Tells FFMPEG not to expect any audio
+
+                # '-vcodec', 'rawvideo',
+                # '-vcodec', 'huffyuv',
+                '-c:v', 'libx264', '-preset', 'slow', '-crf', '0',
+                # '-hwaccel', 'cuvid',
+                # '-vf','scale=-2:720',
+                out_file
+            ]
+
+            ps = subprocess.Popen(command, stdin=subprocess.PIPE)
+
         ps.stdin.write(im.tostring())
 
     ps.stdin.close()
