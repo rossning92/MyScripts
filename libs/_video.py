@@ -32,7 +32,7 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
 
     vid_clips = [x.margin(2) for x in vid_clips]
 
-    dura = np.max([x.duration for x in vid_clips])
+    dura = np.min([x.duration for x in vid_clips])
     print('Duration: %i' % dura)
 
     def create_text_clip(text, dura):

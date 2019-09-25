@@ -17,4 +17,5 @@ for i in range(n):
     check_call(['adb', 'pull', '-a', '/sdcard/%s' % file_name])
     check_call(['adb', 'shell', 'rm /sdcard/%s' % file_name])
 
-# os.system(file_name)
+if n == 1:
+    os.system(f'start "" "{file_name}"')

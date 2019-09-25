@@ -8,7 +8,10 @@ assert os.path.splitext(file)[1].lower() == '.apk'
 
 print2('Install apk...')
 try:
-    check_output(['adb', 'install', '-r', file], stderr=subprocess.STDOUT)
+    check_output(['adb', 'install',
+                  '-r',  # Replace existing apps without clearing data
+                  '-d',  # Allow downgrade
+                  file], stderr=subprocess.STDOUT)
 except subprocess.CalledProcessError as e:
     msg = e.output.decode()
     match = re.search('INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)', msg)
