@@ -60,8 +60,7 @@ class MyDialog(QDialog):
                 self.accept()
                 return True
             elif e.key() == Qt.Key_Escape:
-                sys.exit(1)
-                # return True
+                sys.exit(0)
         return False
 
     def add_shortcut(self, hotkey, func):

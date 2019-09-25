@@ -30,10 +30,11 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
                           width=crop_rect[2],
                           height=crop_rect[3]) for x in vid_clips]
 
-    vid_clips = [x.margin(2) for x in vid_clips]
+    vid_clips = [v.margin(2) for v in vid_clips]
 
-    dura = np.min([x.duration for x in vid_clips])
-    print('Duration: %i' % dura)
+    min_duration = np.min([v.duration for v in vid_clips])
+    print('Set duration to min of all videos: %i' % min_duration)
+    vid_clips = [v.set_duration(min_duration) for v in vid_clips]
 
     def create_text_clip(text, dura):
         global src
@@ -45,7 +46,7 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
 
     if titles is None:
         titles = [os.path.splitext(os.path.basename(x))[0] for x in vid_files]
-    text_clips = [create_text_clip(x, dura) for x in titles]
+    text_clips = [create_text_clip(x, min_duration) for x in titles]
 
     arr = []
     if columns is not None:

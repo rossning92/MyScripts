@@ -1,4 +1,7 @@
 from _shutil import *
+from _appmanager import *
+
+get_executable('sox')
 
 
 def create_noise_profile(in_file):
