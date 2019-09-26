@@ -226,6 +226,11 @@ class ScriptItem:
             args = []
 
         env = {}
+
+        # HACK: pass current folder
+        if 'CURRENT_FOLDER' in os.environ:
+            env['CURRENT_FOLDER'] = os.environ['CURRENT_FOLDER']
+
         cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(self.script_path)))
 
         if self.ext == '.ps1':
@@ -290,7 +295,7 @@ class ScriptItem:
             print('Not supported script:', self.ext)
 
         if self.meta['restartInstance']:
-            # HACK: only works on windows
+            # Only works on windows for now
             if platform.system() == 'Windows':
                 exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
 
