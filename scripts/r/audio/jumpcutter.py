@@ -67,7 +67,13 @@ for f in glob.glob('tmp/cut/*'):
     base_name = os.path.basename(f)
     subprocess.call([
         'ffmpeg', '-i', f,
-        '-filter_complex', 'loudnorm=I=-10,acompressor=threshold=-21dB:ratio=2:attack=10:release=250,loudnorm=I=-10',
+        '-filter_complex', 'loudnorm=I=-10,'
+                           'acompressor=threshold=-21dB:ratio=4:attack=10:release=250,'
+                           'loudnorm=I=-10,'
+                           'equalizer=f=1:width_type=h:width=40:g=-20,'
+                           'equalizer=f=80:width_type=h:width=40:g=5,'
+                           'equalizer=f=700:width_type=h:width=400:g=-10,'
+                           'equalizer=f=12500:width_type=h:width=999:g=10',
         # '-af', 'equalizer=f=1000:t=h:width=200:g=-50',
         'out/%s' % base_name,
         '-y'
