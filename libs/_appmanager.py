@@ -15,12 +15,13 @@ def get_executable(app_name):
 
     def find_executable():
         if 'executable' not in app:
-            return None
+            if shutil.which(app_name):
+                return app_name
 
         for exe in app['executable']:
             if shutil.which(exe):
                 return exe
-            
+
         return None
 
     # Install app if not exists

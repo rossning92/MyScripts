@@ -119,13 +119,14 @@ if __name__ == '__main__':
     make_and_change_dir(out_folder)
 
     rec = Recorder(channels=2)
-    print('SPACE - start / stop recording\n'
-          'N     - Create noise profile\n')
 
     recorder = None
     playback = None
     file_name = None
     while True:
+        print2('SPACE - start / stop recording\n'
+               'N     - Create noise profile\n')
+
         ch = getch()
 
         if ch == ' ':
@@ -160,12 +161,13 @@ if __name__ == '__main__':
                 recorder = None
 
             if os.path.exists(file_name):
-                print('File removed: %s' % file_name)
+                print2('File deleted: %s' % file_name, color='red')
                 os.remove(file_name)
 
         elif ch == 'n':
             print2('Create noise profile. Please be quiet...', color='green')
             sleep(1)
+            print('Start collecting.')
             with rec.open('noise.wav', 'wb') as r:
                 r.start_recording()
                 sleep(3)

@@ -63,18 +63,22 @@ for f in glob.glob('tmp/filtered_voice/*'):
 
 # Post process
 mkdir('out')
-for f in glob.glob('tmp/cut/*'):
+for f in glob.glob('*.wav'):
+    print2(f)
     base_name = os.path.basename(f)
-    subprocess.call([
-        'ffmpeg', '-i', f,
-        '-filter_complex', 'loudnorm=I=-10,'
-                           'acompressor=threshold=-21dB:ratio=4:attack=10:release=250,'
-                           'loudnorm=I=-10,'
-                           'equalizer=f=1:width_type=h:width=40:g=-20,'
-                           'equalizer=f=80:width_type=h:width=40:g=5,'
-                           'equalizer=f=700:width_type=h:width=400:g=-10,'
-                           'equalizer=f=12500:width_type=h:width=999:g=10',
-        # '-af', 'equalizer=f=1000:t=h:width=200:g=-50',
-        'out/%s' % base_name,
-        '-y'
-    ])
+    # subprocess.call([
+    #     'ffmpeg', '-i', f,
+    #     '-filter_complex', 'loudnorm,'
+    #                        'acompressor=threshold=-21dB:ratio=4:attack=10:release=250,'
+    #                        'equalizer=f=1:width_type=h:width=40:g=-20,'
+    #                        'equalizer=f=80:width_type=h:width=40:g=5,'
+    #                        'equalizer=f=700:width_type=h:width=400:g=-10,'
+    #                        'equalizer=f=12500:width_type=h:width=999:g=10,'
+    #                        'loudnorm',
+    #
+    #     # '-af', 'equalizer=f=1000:t=h:width=200:g=-50',
+    #     'out/%s' % base_name,
+    #     '-y'
+    # ])
+    subprocess.call(f'sox --norm=-3 tmp/cut/{f} tmp/{f}.norm.wav')
+    subprocess.call(f'sox tmp/{f}.norm.wav out/{f} compand 0.01,0.2 -40,-3 -5 equalizer 80 40h 5 equalizer 800 400h -10')
