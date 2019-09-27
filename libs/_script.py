@@ -146,28 +146,19 @@ class ScriptItem:
     def __init__(self, script_path, name=None):
         self.return_code = 0
 
-        # BUG: jinja2 doesn't support '\' in path
+        # Deal with links
+        if os.path.splitext(script_path)[1].lower() == '.link':
+            script_path = open(script_path, 'r', encoding='utf-8').read().strip()
+
+        # TODO: jinja2 doesn't support '\' in path. Seems fixed?
         script_path = script_path.replace(os.path.sep, '/')
-        self.script_path = script_path
 
-        # TODO: clean up code logic
-        script_root_path = os.path.abspath(os.path.dirname(__file__) + '/../scripts')
-        script_root_path = script_root_path.replace('\\', '/') + '/'
-
-        # Script display name
-        if name:
-            self.name = name
-        else:
-            self.name = script_path
-
-        _, ext = os.path.splitext(script_path)
-        self.ext = ext
-
-        # Load meta
-        self.meta = get_script_meta(self.script_path)
-
+        self.meta = get_script_meta(script_path)  # Load meta
+        self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
+        self.name = name if name else script_path  # Script display name
         self.override_variables = None
         self.console_title = None
+        self.script_path = script_path
 
     def get_console_title(self):
         return self.console_title if self.console_title else self.name
