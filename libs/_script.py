@@ -34,31 +34,31 @@ def get_console_title():
     return None
 
 
-def bash(cmd, wsl=False):
+def bash(bash, wsl=False):
     if os.name == 'nt':
         if wsl:  # WSL (Windows Subsystem for Linux)
             if not os.path.exists(r'C:\Windows\System32\bash.exe'):
                 raise Exception('WSL (Windows Subsystem for Linux) is not installed.')
             # Escape dollar sign? Why?
-            cmd = cmd.replace('$', r'\$')
-            return ['bash.exe', '-c', cmd]
+            bash = bash.replace('$', r'\$')
+            return ['bash.exe', '-c', bash]
         else:
             return [r'C:\Program Files\Git\bin\bash.exe',
                     '--login',
                     '-i',
                     '-c',
-                    cmd]
+                    bash]
     elif os.name == 'posix':  # MacOSX
-        return ['bash', '-c', cmd]
+        return ['bash', '-c', bash]
     else:
         raise Exception('Non supported OS version')
 
 
-def cmd(cmd):
+def exec_cmd(cmd):
     assert os.name == 'nt'
     file_name = write_temp_file(cmd, '.cmd')
     args = ['cmd.exe', '/c', file_name]
-    return args
+    subprocess.check_call(args)
 
 
 def _args_to_str(args):
@@ -235,11 +235,14 @@ class ScriptItem:
 
         if self.ext == '.ps1':
             if os.name == 'nt':
-                script = self.render()
-                file_path = write_temp_file(script, '.ps1')
+                if self.meta['template']:
+                    script_path = write_temp_file(self.render(), '.ps1')
+                else:
+                    script_path = os.path.realpath(self.script_path)
+
                 args = ['PowerShell.exe', '-NoProfile',
                         '-ExecutionPolicy', 'unrestricted',
-                        file_path]
+                        script_path]
 
         elif self.ext == '.ahk' or self.ext == '.bat':
             if os.name == 'nt':
@@ -255,8 +258,12 @@ class ScriptItem:
 
         elif self.ext == '.cmd':
             if os.name == 'nt':
-                script = self.render()
-                args = cmd(script) + args
+                if self.meta['template']:
+                    batch_file = write_temp_file(self.render(), '.cmd')
+                else:
+                    batch_file = os.path.realpath(self.script_path)
+
+                args = ['cmd.exe', '/c', batch_file] + args
 
                 # HACK: change working directory
                 if platform.system() == 'Windows' and self.meta['runAsAdmin']:
@@ -264,12 +271,14 @@ class ScriptItem:
                             'cd', '/d', cwd, '&'] + args
 
         elif self.ext == '.sh':
-            script = self.render()
-            args = bash(script, wsl=self.meta['wsl'])
+            # TODO: if self.meta['template']:
+            args = bash(self.render(), wsl=self.meta['wsl'])
 
         elif self.ext == '.py':
-            script = self.render()
-            tmp_script_file = write_temp_file(script, '.py')
+            if self.meta['template']:
+                python_file = write_temp_file(self.render(), '.py')
+            else:
+                python_file = os.path.realpath(self.script_path)
 
             python_path = get_python_path(self.script_path)
 
@@ -279,11 +288,11 @@ class ScriptItem:
             if self.meta['anaconda']:
                 import _conda
                 activate = _conda.get_conda_path() + '\\Scripts\\activate.bat'
-                args = ['cmd', '/c', activate, '&', 'python', tmp_script_file] + args
+                args = ['cmd', '/c', activate, '&', 'python', python_file] + args
 
             else:
                 python_executable = sys.executable
-                args = [python_executable, tmp_script_file] + args
+                args = [python_executable, python_file] + args
 
         elif self.ext == '.vbs':
             assert os.name == 'nt'
@@ -462,6 +471,7 @@ def _convert_to_unix_path(path):
 
 def get_default_meta():
     return {
+        'template': True,
         'hotkey': None,
         'globalHotkey': None,
         'newWindow': False,
