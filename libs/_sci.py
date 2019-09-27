@@ -1,5 +1,6 @@
 from _shutil import try_import
 import os
+import glob
 
 plt = try_import('matplotlib.pyplot', pkg_name='matplotlib')
 np = try_import('numpy')
@@ -18,3 +19,9 @@ def save_fig(out_file='figure.png', open_file=True):
 
 
 plt.style.use('fivethirtyeight')
+
+
+def read_csv(csv_files):
+    data_frames = [pd.read_csv(f) for f in glob.glob(csv_files)]
+    df = pd.concat(data_frames, ignore_index=True)
+    return df

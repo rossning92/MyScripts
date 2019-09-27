@@ -210,5 +210,8 @@ def setup_android_env():
     prepend_to_path(path)
 
 
-def adb_shell(command):
-    subprocess.check_call(['adb', 'shell', command])
+def adb_shell(command, check=True):
+    if check:
+        subprocess.check_call(['adb', 'shell', command])
+    else:
+        subprocess.call(['adb', 'shell', command])
