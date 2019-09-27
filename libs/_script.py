@@ -460,39 +460,44 @@ def _convert_to_unix_path(path):
     return path
 
 
-class ScriptMeta:
-    def __init__(self, script_path):
-        self.meta = {
-            'hotkey': None,
-            'globalHotkey': None,
-            'newWindow': False,
-            'runAsAdmin': False,
-            'autoRun': False,
-            'wsl': False,
-            'anaconda': False,
-            'restartInstance': False,
-            'background': False
-        }
+def get_default_meta():
+    return {
+        'hotkey': None,
+        'globalHotkey': None,
+        'newWindow': False,
+        'runAsAdmin': False,
+        'autoRun': False,
+        'wsl': False,
+        'anaconda': False,
+        'restartInstance': False,
+        'background': False
+    }
 
-        self.meta_file = os.path.splitext(script_path)[0] + '.yaml'
-        default_meta_file = os.path.join(os.path.dirname(script_path), 'default.yaml')
 
-        obj = None
-        if os.path.exists(self.meta_file):
-            obj = yaml.load(open(self.meta_file, 'r').read(), Loader=yaml.FullLoader)
+def load_meta_file(meta_file):
+    return yaml.load(open(meta_file, 'r').read(), Loader=yaml.FullLoader)
 
-        elif os.path.exists(default_meta_file):
-            obj = yaml.load(open(default_meta_file, 'r').read(), Loader=yaml.FullLoader)
 
-        if obj:
-            # override default config
-            if obj is not None:
-                for k, v in obj.items():
-                    self.meta[k] = v
-
-    def save(self):
-        yaml.dump(self.meta, open(self.meta_file, 'w'), default_flow_style=False)
+def save_meta_file(data, meta_file):
+    yaml.dump(data, open(meta_file, 'w'), default_flow_style=False)
 
 
 def get_script_meta(script_path):
-    return ScriptMeta(script_path).meta
+    script_meta_file = os.path.splitext(script_path)[0] + '.yaml'
+    default_meta_file = os.path.join(os.path.dirname(script_path), 'default.yaml')
+
+    meta = get_default_meta()
+
+    data = None
+    if os.path.exists(script_meta_file):
+        data = load_meta_file(script_meta_file)
+
+    elif os.path.exists(default_meta_file):
+        data = load_meta_file(default_meta_file)
+
+    # override default config
+    if data is not None:
+        for k, v in data.items():
+            meta[k] = v
+
+    return meta

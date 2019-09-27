@@ -1,4 +1,9 @@
+anaconda: false
 autoRun: false
+background: false
+globalHotkey: null
 hotkey: Ctrl+M
 newWindow: false
+restartInstance: false
 runAsAdmin: false
+wsl: false

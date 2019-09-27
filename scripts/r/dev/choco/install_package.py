@@ -22,6 +22,7 @@ PKGS = {
         'putty',
         'thunderbird',
         'pandoc',
+        'vmware-workstation-player',
     ],
     'common': [
         'everything',
