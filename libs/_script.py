@@ -146,10 +146,6 @@ class ScriptItem:
     def __init__(self, script_path, name=None):
         self.return_code = 0
 
-        # Deal with links
-        if os.path.splitext(script_path)[1].lower() == '.link':
-            script_path = open(script_path, 'r', encoding='utf-8').read().strip()
-
         # TODO: jinja2 doesn't support '\' in path. Seems fixed?
         script_path = script_path.replace(os.path.sep, '/')
 
@@ -160,19 +156,28 @@ class ScriptItem:
         self.console_title = None
         self.script_path = script_path
 
+        # Deal with links
+        if os.path.splitext(script_path)[1].lower() == '.link':
+            self.real_script_path = open(script_path, 'r', encoding='utf-8').read().strip()
+            self.real_ext = os.path.splitext(self.real_script_path)[1].lower()
+        else:
+            self.real_script_path = None
+            self.real_ext = None
+
     def get_console_title(self):
         return self.console_title if self.console_title else self.name
 
     def render(self):
-        with open(self.script_path, 'r', encoding='utf-8') as f:
+        script_path = self.real_script_path if self.real_script_path else self.script_path
+
+        with open(script_path, 'r', encoding='utf-8') as f:
             source = f.read()
         template = ScriptItem.env.from_string(source)
         ctx = {
             'include': ScriptItem.include.__get__(self, ScriptItem),
             **self.get_variables()
         }
-        script = template.render(ctx)
-        return script
+        return template.render(ctx)
 
     def set_override_variables(self, variables):
         self.override_variables = variables
@@ -209,6 +214,9 @@ class ScriptItem:
         return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
     def execute(self, args=None, control_down=False):
+        script_path = self.real_script_path if self.real_script_path else self.script_path
+        ext = self.real_ext if self.real_ext else self.ext
+
         if type(args) == str:
             args = [args]
         elif type(args) == list:
@@ -222,37 +230,37 @@ class ScriptItem:
         if 'CURRENT_FOLDER' in os.environ:
             env['CURRENT_FOLDER'] = os.environ['CURRENT_FOLDER']
 
-        cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(self.script_path)))
+        cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(script_path)))
 
-        if self.ext == '.ps1':
+        if ext == '.ps1':
             if os.name == 'nt':
                 if self.meta['template']:
-                    script_path = write_temp_file(self.render(), '.ps1')
+                    ps_path = write_temp_file(self.render(), '.ps1')
                 else:
-                    script_path = os.path.realpath(self.script_path)
+                    ps_path = os.path.realpath(script_path)
 
                 args = ['PowerShell.exe', '-NoProfile',
                         '-ExecutionPolicy', 'unrestricted',
-                        script_path]
+                        ps_path]
 
-        elif self.ext == '.ahk' or self.ext == '.bat':
+        elif ext == '.ahk' or ext == '.bat':
             if os.name == 'nt':
                 # HACK: add python path to env var
                 env['PYTHONPATH'] = os.path.dirname(__file__)
 
-                script_abs_path = os.path.abspath(self.script_path)
+                script_abs_path = os.path.abspath(script_path)
                 args = ['AutoHotkeyU64.exe', script_abs_path]
                 self.meta['background'] = True
 
                 if self.meta['runAsAdmin']:
                     args = ['start'] + args
 
-        elif self.ext == '.cmd':
+        elif ext == '.cmd':
             if os.name == 'nt':
                 if self.meta['template']:
                     batch_file = write_temp_file(self.render(), '.cmd')
                 else:
-                    batch_file = os.path.realpath(self.script_path)
+                    batch_file = os.path.realpath(script_path)
 
                 args = ['cmd.exe', '/c', batch_file] + args
 
@@ -261,17 +269,17 @@ class ScriptItem:
                     args = ['cmd', '/c',
                             'cd', '/d', cwd, '&'] + args
 
-        elif self.ext == '.sh':
+        elif ext == '.sh':
             # TODO: if self.meta['template']:
             args = bash(self.render(), wsl=self.meta['wsl'])
 
-        elif self.ext == '.py':
+        elif ext == '.py':
             if self.meta['template']:
                 python_file = write_temp_file(self.render(), '.py')
             else:
-                python_file = os.path.realpath(self.script_path)
+                python_file = os.path.realpath(script_path)
 
-            python_path = get_python_path(self.script_path)
+            python_path = get_python_path(script_path)
 
             env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
@@ -285,14 +293,14 @@ class ScriptItem:
                 python_executable = sys.executable
                 args = [python_executable, python_file] + args
 
-        elif self.ext == '.vbs':
+        elif ext == '.vbs':
             assert os.name == 'nt'
 
-            script_abs_path = os.path.join(os.getcwd(), self.script_path)
+            script_abs_path = os.path.join(os.getcwd(), script_path)
             args = ['cscript', '//nologo', script_abs_path]
 
         else:
-            print('Not supported script:', self.ext)
+            print('Not supported script:', ext)
 
         if self.meta['restartInstance']:
             # Only works on windows for now
