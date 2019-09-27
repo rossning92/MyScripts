@@ -7,10 +7,19 @@ import signal
 from _shutil import *
 
 
-def getch():
+def getch(timeout=-1):
     if platform.system() == 'Windows':
         import msvcrt
-        return msvcrt.getch().decode(errors='replace')
+        time_elapsed = 0
+        if timeout > 0:
+            while not msvcrt.kbhit() and time_elapsed < timeout:
+                sleep(0.1)
+                time_elapsed += 0.1
+
+        if time_elapsed < timeout:
+            return msvcrt.getch().decode(errors='replace')
+        else:
+            return None
 
     else:
         import sys, tty, termios
@@ -300,22 +309,5 @@ class ListWidget():
 def wait_key(prompt=None, timeout=2):
     if prompt is None:
         prompt = 'Press enter to skip...'
-
-    def main(stdscr):
-        stdscr.nodelay(True)
-        stdscr.addstr(prompt)
-        elapsed = 0.0
-        while True:
-            if elapsed > timeout:
-                return False
-
-            stdscr.addstr(0, 0, '%s (%d)' % (prompt, int(timeout - elapsed) + 1))
-
-            ch = stdscr.getch()
-            if ch == ord('\n'):
-                return True
-
-            time.sleep(0.1)
-            elapsed += 0.1
-
-    return curses.wrapper(main)
+    print2(prompt, color='green')
+    return getch(timeout=timeout)
