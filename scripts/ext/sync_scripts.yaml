@@ -1,7 +1,10 @@
 anaconda: false
 autoRun: false
+background: false
 globalHotkey: null
 hotkey: Ctrl+S
 newWindow: true
+restartInstance: false
 runAsAdmin: false
+template: true
 wsl: false

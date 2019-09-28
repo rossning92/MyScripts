@@ -324,7 +324,7 @@ class ScriptItem:
             new_window = self.meta['newWindow'] or control_down
             if new_window:
 
-                if True:  # HACK: use python wrapper: activate console window once finished
+                if sys.platform == 'win32':  # HACK: use python wrapper: activate console window once finished
                     args = [
                         sys.executable, '-c',
                         'import subprocess;'
@@ -339,12 +339,15 @@ class ScriptItem:
                         'sys.exit(ret)'
                     ]
 
-                try:
-                    args = conemu_wrap_args(args, cwd=cwd, small_window=True)
-                except:
-                    if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
-                        args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
-                                '--hold', 'always'] + args
+                    try:
+                        args = conemu_wrap_args(args, cwd=cwd, small_window=True)
+                    except:
+                        if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
+                            args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
+                                    '--hold', 'always'] + args
+                    
+                elif sys.platform == 'linux':
+                    args = ['gnome-terminal', '--'] + args
 
             # Check if run as admin
             if platform.system() == 'Windows' and self.meta['runAsAdmin']:

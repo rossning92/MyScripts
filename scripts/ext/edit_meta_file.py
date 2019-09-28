@@ -1,5 +1,6 @@
 import os
-from myutils import *
+from _editor import *
+from _script import *
 
 os.chdir('../../')
 
@@ -9,4 +10,4 @@ meta_file = os.path.abspath(os.path.splitext(script_path)[0] + '.yaml')
 meta = get_script_meta(meta_file)
 save_meta_file(meta, meta_file)
 
-open_text_editor(meta_file)
+open_with_text_editor(meta_file)

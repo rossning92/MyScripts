@@ -6,4 +6,5 @@ hotkey: Ctrl+M
 newWindow: false
 restartInstance: false
 runAsAdmin: false
+template: true
 wsl: false
