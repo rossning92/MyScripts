@@ -1,4 +1,5 @@
 PyQt5==5.10.1; sys_platform == 'win32'
+PyQt5; sys_platform != 'win32'
 jinja2
 pyyaml
 pywin32; sys_platform == 'win32'
