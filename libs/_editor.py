@@ -41,7 +41,7 @@ def open_in_vscode(file, line_no=None):
 
 def open_with_text_editor(path, line_no=None):
     if os.name == 'posix':
-        subprocess.Popen(['atom', path])
+        subprocess.Popen(['code', path])
     else:
         if os.path.splitext(path)[1] == '.py':
             open_in_pycharm(path)

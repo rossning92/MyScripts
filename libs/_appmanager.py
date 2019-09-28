@@ -3,9 +3,13 @@ import shutil
 from os.path import dirname, join
 from _shutil import run_elevated
 import subprocess
+import sys
 
 
 def get_executable(app_name):
+    if sys.platform == 'linux':
+        return
+
     with open(join(dirname(__file__), 'app_list.yaml'), 'r') as f:
         app_list = yaml.load(f.read(), Loader=yaml.FullLoader)
 
