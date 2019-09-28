@@ -348,7 +348,7 @@ class ScriptItem:
                                     '--hold', 'always'] + args
 
                 elif sys.platform == 'linux':
-                    args = ['gnome-terminal', '--'] + args
+                    args = ['x-terminal-emulator', '--'] + args
 
             # Check if run as admin
             if platform.system() == 'Windows' and self.meta['runAsAdmin']:
