@@ -18,6 +18,13 @@ import time
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk', '.vbs', '.link'}
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
+def add_keyboard_hooks(keyboard_hooks):
+    if sys.platform != 'linux':
+        import keyboard
+        keyboard.unhook_all()
+        for hotkey, func in keyboard_hooks.items():
+            keyboard.add_hotkey(hotkey, func)
+
 
 def get_data_folder():
     folder = os.path.join('data', platform.node())
@@ -280,14 +287,13 @@ RunScript(name, path)
             subprocess.Popen(['AutoHotkeyU64.exe', GLOBAL_HOTKEY])
 
         else:
-            import keyboard
-            keyboard.unhook_all()
+            keyboard_hooks = {}
             for item in self.script_items:
                 hotkey = item.meta['globalHotkey']
                 if hotkey is not None:
                     print('Global Hotkey: %s: %s' % (hotkey, item.name))
-                    keyboard.add_hotkey(hotkey,
-                                        lambda item=item: self.execute_script(item))
+                    keyboard_hooks[hotkey] = lambda item=item: self.execute_script(item)
+            add_keyboard_hooks(keyboard_hooks)
 
     def timerEvent(self, e):
         if should_update():

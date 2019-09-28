@@ -1,6 +1,9 @@
 cd ../..
 
+git config --global user.email "rossning92@github.com"
+git config --global user.name "rossning92"
 git config credential.helper store
+
 
 if [ ! -d ".git" ]; then
 	git init
