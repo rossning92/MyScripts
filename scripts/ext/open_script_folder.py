@@ -11,3 +11,5 @@ if sys.platform == 'darwin':
     subprocess.call('open .', shell=True)
 elif sys.platform == 'win32':
     subprocess.call(['cmd', '/c', 'start', '', os.getcwd()])
+elif sys.platform == 'linux':
+    subprocess.call(['xdg-open', '.'])

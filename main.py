@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
+import time
+from gui import ProcessWidget
+from os.path import expanduser
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5 import uic
+from PyQt5.QtWidgets import *
+import glob
+import datetime
 import sys
 import os
 
 sys.path.append(os.path.abspath('./libs'))
-
-import datetime
-import glob
-from PyQt5.QtWidgets import *
-from PyQt5 import uic
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from os.path import expanduser
-from gui import ProcessWidget
 from myutils import *
-import time
 
-SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat', '.sh', '.ps1', '.ahk', '.vbs', '.link'}
+SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat',
+                     '.sh', '.ps1', '.ahk', '.vbs', '.link'}
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
+
 
 def add_keyboard_hooks(keyboard_hooks):
     if sys.platform != 'linux':
@@ -220,7 +221,8 @@ class MainWindow(QWidget):
 
         # self.ui.listWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
-        self.installEventFilter(self)
+        QCoreApplication.instance().installEventFilter(self)
+
         self.setWindowTitle('MyScripts - GUI')
 
         self.editVariableWidget = EditVariableWidget()
@@ -235,12 +237,15 @@ class MainWindow(QWidget):
 
         self.startTimer(1000)
 
+        self.setFocusPolicy(Qt.StrongFocus)
+
         # Register hotkey
         for item in self.script_items:
             hotkey = item.meta['hotkey']
             if hotkey is not None:
                 print('Hotkey: %s: %s' % (hotkey, item.name))
-                QShortcut(QKeySequence(hotkey), self, lambda item=item: self.execute_script(item))
+                QShortcut(QKeySequence(hotkey), self,
+                          lambda item=item: self.execute_script(item))
 
         self.register_global_hotkeys()
 
@@ -282,7 +287,8 @@ RunScript(name, path)
                         hotkey = hotkey.replace('Shift+', '+')
                         hotkey = hotkey.replace('Win+', '#')
 
-                        f.write(f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
+                        f.write(
+                            f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
 
             subprocess.Popen(['AutoHotkeyU64.exe', GLOBAL_HOTKEY])
 
@@ -292,7 +298,8 @@ RunScript(name, path)
                 hotkey = item.meta['globalHotkey']
                 if hotkey is not None:
                     print('Global Hotkey: %s: %s' % (hotkey, item.name))
-                    keyboard_hooks[hotkey] = lambda item=item: self.execute_script(item)
+                    keyboard_hooks[hotkey] = lambda item=item: self.execute_script(
+                        item)
             add_keyboard_hooks(keyboard_hooks)
 
     def timerEvent(self, e):
@@ -364,7 +371,8 @@ RunScript(name, path)
                     self.matched_items.append(i)
 
         for i in self.matched_items:
-            self.ui.listWidget.addItem('%3d. %s' % (i + 1, self.script_items[i]))
+            self.ui.listWidget.addItem(
+                '%3d. %s' % (i + 1, self.script_items[i]))
 
         self.editVariableWidget.update_items()  # Clear all widget
         if len(self.matched_items) > 0:
@@ -428,13 +436,13 @@ RunScript(name, path)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
-
             if len(self.matched_items) == 0:
                 return False
             idx = self.matched_items[0]
 
             if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
-                self.execute_selected_script(e.modifiers() == Qt.ControlModifier)
+                self.execute_selected_script(
+                    e.modifiers() == Qt.ControlModifier)
                 return True
 
             if e.modifiers() == Qt.ControlModifier:
@@ -452,6 +460,10 @@ RunScript(name, path)
                 elif e.key() == Qt.Key_F:
                     self.ui.inputBox.setFocus(True)
                     self.ui.inputBox.selectAll()
+                    return True
+
+                elif e.key() == Qt.Key_E: # TODO: HACK: QShortcut `Ctrl+E` does not work on Ubuntu
+                    run_script('scripts/ext/edit_script')
                     return True
 
             if e.modifiers() == Qt.ControlModifier | Qt.ShiftModifier:
