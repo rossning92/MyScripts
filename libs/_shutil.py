@@ -44,6 +44,8 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
 
 
 def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
+    assert sys.platform == 'win32'
+
     CONEMU = r'C:\Program Files\ConEmu\ConEmu64.exe'
 
     # Disable update check
@@ -207,7 +209,8 @@ def download(url, filename=None, redownload=False):
                 downloaded += len(data)
                 f.write(data)
                 done = int(50 * downloaded / total)
-                sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50 - done)))
+                sys.stdout.write('\r[{}{}]'.format(
+                    '█' * done, '.' * (50 - done)))
                 sys.stdout.flush()
     sys.stdout.write('\n')
     return filename
@@ -325,8 +328,10 @@ def check_output2(args, shell=None, cwd=None, env=None):
         def __init__(self, ps):
             self.ps = ps
             self.que = queue.Queue()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stdout,)).start()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stderr,)).start()
+            threading.Thread(target=self._read_pipe,
+                             args=(self.ps.stdout,)).start()
+            threading.Thread(target=self._read_pipe,
+                             args=(self.ps.stderr,)).start()
 
         def _read_pipe(self, pipe):
             while True:
@@ -447,7 +452,7 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
     if highlight is None:
         highlight = {}
 
-    ps = check_output2(args, shell=shell, cwd=cwd, env=env);
+    ps = check_output2(args, shell=shell, cwd=cwd, env=env)
     for line in ps.readlines():
         # Filter line by pre-defined functions
         if filter_line:
@@ -510,7 +515,8 @@ def exec_bash(script, wsl=False):
     if os.name == 'nt':
         if wsl:  # WSL (Windows Subsystem for Linux)
             if not os.path.exists(r'C:\Windows\System32\bash.exe'):
-                raise Exception('WSL (Windows Subsystem for Linux) is not installed.')
+                raise Exception(
+                    'WSL (Windows Subsystem for Linux) is not installed.')
             args = ['bash.exe', '-c', script]
         else:
             args = [
@@ -543,7 +549,8 @@ def get_files(cd=False):
 
     if cd:
         os.chdir(cur_folder)
-        files = [f.replace(cur_folder + os.path.sep, '') for f in files]  # Relative path
+        files = [f.replace(cur_folder + os.path.sep, '')
+                 for f in files]  # Relative path
 
     files = [x for x in files if os.path.isfile(x)]
     return files
@@ -584,6 +591,9 @@ def get_pretty_mtime(file):
 
 
 def update_env_var_explorer():
+    if sys.platform != 'win32':
+        return
+
     try:
         with open(os.path.join(os.environ['TEMP'], 'ExplorerInfo.json')) as f:
             jsn = json.load(f)
