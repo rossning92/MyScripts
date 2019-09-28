@@ -38,7 +38,8 @@ def bash(bash, wsl=False):
     if os.name == 'nt':
         if wsl:  # WSL (Windows Subsystem for Linux)
             if not os.path.exists(r'C:\Windows\System32\bash.exe'):
-                raise Exception('WSL (Windows Subsystem for Linux) is not installed.')
+                raise Exception(
+                    'WSL (Windows Subsystem for Linux) is not installed.')
             # Escape dollar sign? Why?
             bash = bash.replace('$', r'\$')
             return ['bash.exe', '-c', bash]
@@ -81,7 +82,8 @@ def get_variable_file():
 
     if True:  # Deprecated: copy old variable file to new path
         my_script_dir = os.path.abspath(os.path.dirname(__file__) + '/../')
-        variable_file2 = os.path.abspath(my_script_dir + '/variables.' + platform.node() + '.json')
+        variable_file2 = os.path.abspath(
+            my_script_dir + '/variables.' + platform.node() + '.json')
         if exists(variable_file2):
             shutil.copy(variable_file2, variable_file)
             os.remove(variable_file2)
@@ -150,7 +152,8 @@ class ScriptItem:
         script_path = script_path.replace(os.path.sep, '/')
 
         self.meta = get_script_meta(script_path)  # Load meta
-        self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
+        self.ext = os.path.splitext(script_path)[
+            1].lower()  # Extension / script type
         self.name = name if name else script_path  # Script display name
         self.override_variables = None
         self.console_title = None
@@ -158,7 +161,8 @@ class ScriptItem:
 
         # Deal with links
         if os.path.splitext(script_path)[1].lower() == '.link':
-            self.real_script_path = open(script_path, 'r', encoding='utf-8').read().strip()
+            self.real_script_path = open(
+                script_path, 'r', encoding='utf-8').read().strip()
             self.real_ext = os.path.splitext(self.real_script_path)[1].lower()
         else:
             self.real_script_path = None
@@ -191,7 +195,8 @@ class ScriptItem:
             variables = json.load(f)
 
         # Get only last modified value
-        variables = {k: (v[-1] if len(v) > 0 else '') for k, v in variables.items()}
+        variables = {k: (v[-1] if len(v) > 0 else '')
+                     for k, v in variables.items()}
 
         # Override variables
         if self.override_variables:
@@ -206,7 +211,8 @@ class ScriptItem:
 
         # HACK: Convert to unix path
         if self.ext == '.sh':
-            variables = {k: _convert_to_unix_path(v) for k, v in variables.items()}
+            variables = {k: _convert_to_unix_path(
+                v) for k, v in variables.items()}
 
         return variables
 
@@ -230,7 +236,8 @@ class ScriptItem:
         if 'CURRENT_FOLDER' in os.environ:
             env['CURRENT_FOLDER'] = os.environ['CURRENT_FOLDER']
 
-        cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(script_path)))
+        cwd = os.path.abspath(os.path.join(
+            os.getcwd(), os.path.dirname(script_path)))
 
         if ext == '.ps1':
             if os.name == 'nt':
@@ -243,7 +250,7 @@ class ScriptItem:
                         '-ExecutionPolicy', 'unrestricted',
                         ps_path]
 
-        elif ext == '.ahk' or ext == '.bat':
+        elif ext == '.ahk':
             if os.name == 'nt':
                 # HACK: add python path to env var
                 env['PYTHONPATH'] = os.path.dirname(__file__)
@@ -255,7 +262,7 @@ class ScriptItem:
                 if self.meta['runAsAdmin']:
                     args = ['start'] + args
 
-        elif ext == '.cmd':
+        elif ext == '.cmd' or ext == '.bat':
             if os.name == 'nt':
                 if self.meta['template']:
                     batch_file = write_temp_file(self.render(), '.cmd')
@@ -268,6 +275,9 @@ class ScriptItem:
                 if platform.system() == 'Windows' and self.meta['runAsAdmin']:
                     args = ['cmd', '/c',
                             'cd', '/d', cwd, '&'] + args
+            else:
+                print('OS does not support script: %s' % script_path)
+                return
 
         elif ext == '.sh':
             # TODO: if self.meta['template']:
@@ -287,7 +297,8 @@ class ScriptItem:
             if self.meta['anaconda']:
                 import _conda
                 activate = _conda.get_conda_path() + '\\Scripts\\activate.bat'
-                args = ['cmd', '/c', activate, '&', 'python', python_file] + args
+                args = ['cmd', '/c', activate, '&',
+                        'python', python_file] + args
 
             else:
                 python_executable = sys.executable
@@ -332,12 +343,14 @@ class ScriptItem:
                     args = conemu_wrap_args(args, cwd=cwd, small_window=True)
                 except:
                     if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
-                        args = [r"C:\Program Files\Git\usr\bin\mintty.exe", '--hold', 'always'] + args
+                        args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
+                                '--hold', 'always'] + args
 
             # Check if run as admin
             if platform.system() == 'Windows' and self.meta['runAsAdmin']:
                 # Set environment variables through command lines
-                bin_path = os.path.abspath(os.path.dirname(__file__) + '/../bin')
+                bin_path = os.path.abspath(
+                    os.path.dirname(__file__) + '/../bin')
                 set_env_var = []
                 for k, v in env.items():
                     set_env_var += ['set', '%s=%s' % (k, v), '&']
@@ -371,7 +384,8 @@ class ScriptItem:
                                      creationflags=creationflags,
                                      close_fds=True)
                 else:
-                    self.return_code = subprocess.call(args, env={**os.environ, **env}, cwd=cwd)
+                    self.return_code = subprocess.call(
+                        args, env={**os.environ, **env}, cwd=cwd)
 
     def get_variable_names(self):
         variables = set()
@@ -396,7 +410,8 @@ class ScriptItem:
         return variables
 
     def include(self, script_name):
-        script_path = find_script(script_name, os.path.dirname(self.script_path))
+        script_path = find_script(
+            script_name, os.path.dirname(self.script_path))
         if script_path is None:
             raise Exception('Cannot find script: %s' % script_name)
         # script_path = os.path.dirname(self.script_path) + '/' + script_path
@@ -405,7 +420,8 @@ class ScriptItem:
 
 def find_script(script_name, search_dir=None):
     if script_name.startswith('/'):
-        script_path = os.path.abspath(os.path.dirname(__file__) + '/../scripts' + script_name)
+        script_path = os.path.abspath(os.path.dirname(
+            __file__) + '/../scripts' + script_name)
     elif search_dir:
         script_path = os.path.join(search_dir, script_name)
     else:
@@ -453,7 +469,8 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
 
     script.execute()
     if script.return_code != 0:
-        raise Exception('[ERROR] %s returns %d' % (script_name, script.return_code))
+        raise Exception('[ERROR] %s returns %d' %
+                        (script_name, script.return_code))
 
     # Restore title
     if set_console_title and platform.system() == 'Windows':
@@ -463,7 +480,8 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
 def _convert_to_unix_path(path):
     patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
     if re.match(patt, path):
-        path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' + x.group(0)[0].lower()), path)
+        path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' +
+                                                  x.group(0)[0].lower()), path)
         path = path.replace('\\', '/')
     return path
 
@@ -493,7 +511,8 @@ def save_meta_file(data, meta_file):
 
 def get_script_meta(script_path):
     script_meta_file = os.path.splitext(script_path)[0] + '.yaml'
-    default_meta_file = os.path.join(os.path.dirname(script_path), 'default.yaml')
+    default_meta_file = os.path.join(
+        os.path.dirname(script_path), 'default.yaml')
 
     meta = get_default_meta()
 
