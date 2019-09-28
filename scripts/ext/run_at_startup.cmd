@@ -1,0 +1,1 @@
+@reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v MyScripts /t REG_SZ /d "%~dp0..\..\run.cmd" /f
