@@ -340,12 +340,13 @@ class ScriptItem:
                     ]
 
                     try:
-                        args = conemu_wrap_args(args, cwd=cwd, small_window=True)
+                        args = conemu_wrap_args(
+                            args, cwd=cwd, small_window=True)
                     except:
                         if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
                             args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
                                     '--hold', 'always'] + args
-                    
+
                 elif sys.platform == 'linux':
                     args = ['gnome-terminal', '--'] + args
 
