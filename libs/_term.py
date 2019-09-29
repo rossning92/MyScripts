@@ -15,11 +15,9 @@ def getch(timeout=-1):
             while not msvcrt.kbhit() and time_elapsed < timeout:
                 sleep(0.1)
                 time_elapsed += 0.1
-
-        if time_elapsed < timeout:
-            return msvcrt.getch().decode(errors='replace')
+            return msvcrt.getch().decode(errors='replace') if time_elapsed < timeout else None
         else:
-            return None
+            return msvcrt.getch().decode(errors='replace')
 
     else:
         import sys, tty, termios

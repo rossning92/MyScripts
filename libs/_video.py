@@ -74,23 +74,28 @@ def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
     ps = None
 
     for im in images:
-        if not ps:
+        if not ps:  # Initialize
             w = im.shape[1]
             h = im.shape[0]
             command = [
                 'ffmpeg',
                 '-y',  # (optional) overwrite output file if it exists
                 '-f', 'rawvideo',
-                '-vcodec', 'rawvideo',
+                # '-vcodec', 'rawvideo',
                 '-s', f'{w}x{h}',  # size of one frame
-                '-pix_fmt', format,
-                '-r', str(fps),  # frames per second
+                '-pix_fmt', format]
+
+            if fps and fps > 0:
+                command += ['-r', str(fps)]
+
+            command += [
                 '-i', '-',  # The imput comes from a pipe
                 '-an',  # Tells FFMPEG not to expect any audio
 
                 # '-vcodec', 'rawvideo',
                 # '-vcodec', 'huffyuv',
-                '-c:v', 'libx264', '-preset', 'slow', '-crf', '0',
+                # '-c:v', 'libx264', '-preset', 'slow', '-crf', '0',
+                '-c:v', 'h264_nvenc', '-profile', 'high444p', '-pixel_format', 'yuv444p', '-preset', 'default',
                 # '-hwaccel', 'cuvid',
                 # '-vf','scale=-2:720',
                 out_file

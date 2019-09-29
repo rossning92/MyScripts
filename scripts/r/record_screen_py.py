@@ -24,7 +24,6 @@ def get_images():
             # Get raw pixels from the screen, save it to a Numpy array
             img = numpy.array(sct.grab(monitor))
 
-            print(img.shape)
             yield img
 
             print('fps: {0}'.format(1 / (time.time() - last_time)))
@@ -58,7 +57,24 @@ def get_active_window_rect():
 
 
 def record():
-    make_video(get_images(), format='rgb32', fps=60, out_file='Record_%s.mp4' % get_time_str())
+    make_video(get_images(), format='rgb32', fps=None, out_file='Record_%s.mp4' % get_time_str())
+
+
+def record_ffmpeg():
+    win_rect = get_active_window_rect()
+
+    print(win_rect)
+    file_name = 'Record_%s.mkv' % get_time_str()
+
+    subprocess.call([
+        'ffmpeg',
+        '-f', 'gdigrab',
+        '-framerate', '60',
+        '-offset_x', str(win_rect[0]), '-offset_y', str(win_rect[1]),
+        '-video_size', '%dx%d' % (win_rect[2], win_rect[3]),
+        '-i', 'desktop',
+        file_name
+    ])
 
 
 chdir(expanduser('~/Desktop'))

@@ -23,6 +23,7 @@ PKGS = {
         'thunderbird',
         'pandoc',
         'vmware-workstation-player',
+        'sharex',
     ],
     'common': [
         'everything',

@@ -81,4 +81,6 @@ for f in glob.glob('*.wav'):
     #     '-y'
     # ])
     subprocess.call(f'sox --norm=-3 tmp/cut/{f} tmp/{f}.norm.wav')
-    subprocess.call(f'sox tmp/{f}.norm.wav out/{f} compand 0.01,0.2 -40,-3 -5 equalizer 80 40h 5 equalizer 800 400h -10')
+    subprocess.call(f'sox tmp/{f}.norm.wav out/{f}'
+                    f' compand 0.001,0.2 -40,-3 -5 0'
+                    f' equalizer 80 40h 5 equalizer 800 400h -10')
