@@ -47,4 +47,5 @@ def install_sharex():
     setting_path = expandvars(r'%USERPROFILE%\Documents\ShareX')
 
 
-install_sharex()
+install_snipaste()
+# install_sharex()
