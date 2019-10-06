@@ -7,7 +7,7 @@ for f in files:
         continue
 
     fn, ext = os.path.splitext(f)
-    out_file = '%s_out.%s' % (fn, '.mp4')
+    out_file = '%s_out.mp4' % fn
 
     args = [
         'ffmpeg',
@@ -18,7 +18,7 @@ for f in files:
 
     args += [
         # '-filter:v', 'crop=200:200:305:86',
-        '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '22',  # Lossless
+        '-c:v', 'libx264', '-preset', 'slow', '-crf', '22',  # Lossless
         '-c:a', 'aac', '-b:a', '128k',
         out_file]
 
