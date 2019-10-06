@@ -32,7 +32,7 @@ for f in glob.glob('tmp/filtered_voice/*'):
     rate, data2 = wavfile.read(original_file)
 
     rate, data = wavfile.read(filtered_voice_file)
-    thres = np.max(np.abs(data)) * 0.2
+    thres = np.max(np.abs(data)) * 0.1
 
     data0 = data[:, 0]
     keep = np.abs(data0) > thres

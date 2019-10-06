@@ -6,6 +6,11 @@ try_import('pyaudio')
 import pyaudio
 import wave
 
+# TODO: cleanup by pa.terminate()
+pa = pyaudio.PyAudio()
+
+FILE_PREFIX = '{{_FILE_PREFIX}}' if '{{_FILE_PREFIX}}' else 'AudioRecord'
+
 
 class Recorder(object):
     """
@@ -30,7 +35,6 @@ class RecordingFile(object):
         self.channels = channels
         self.rate = rate
         self.frames_per_buffer = frames_per_buffer
-        self._pa = pyaudio.PyAudio()
         self.wavefile = self._prepare_file(self.fname, self.mode)
         self._stream = None
 
@@ -42,11 +46,11 @@ class RecordingFile(object):
 
     def record(self, duration):
         # Use a stream with no callback function in blocking mode
-        self._stream = self._pa.open(format=pyaudio.paInt16,
-                                     channels=self.channels,
-                                     rate=self.rate,
-                                     input=True,
-                                     frames_per_buffer=self.frames_per_buffer)
+        self._stream = pa.open(format=pyaudio.paInt16,
+                               channels=self.channels,
+                               rate=self.rate,
+                               input=True,
+                               frames_per_buffer=self.frames_per_buffer)
         for _ in range(int(self.rate / self.frames_per_buffer * duration)):
             audio = self._stream.read(self.frames_per_buffer)
             self.wavefile.writeframes(audio)
@@ -54,12 +58,12 @@ class RecordingFile(object):
 
     def start_recording(self):
         # Use a stream with a callback in non-blocking mode
-        self._stream = self._pa.open(format=pyaudio.paInt16,
-                                     channels=self.channels,
-                                     rate=self.rate,
-                                     input=True,
-                                     frames_per_buffer=self.frames_per_buffer,
-                                     stream_callback=self.get_callback())
+        self._stream = pa.open(format=pyaudio.paInt16,
+                               channels=self.channels,
+                               rate=self.rate,
+                               input=True,
+                               frames_per_buffer=self.frames_per_buffer,
+                               stream_callback=self.get_callback())
         self._stream.start_stream()
         return self
 
@@ -76,13 +80,12 @@ class RecordingFile(object):
 
     def close(self):
         self._stream.close()
-        self._pa.terminate()
         self.wavefile.close()
 
     def _prepare_file(self, fname, mode='wb'):
         wavefile = wave.open(fname, mode)
         wavefile.setnchannels(self.channels)
-        wavefile.setsampwidth(self._pa.get_sample_size(pyaudio.paInt16))
+        wavefile.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
         wavefile.setframerate(self.rate)
         return wavefile
 
@@ -93,25 +96,26 @@ class Player:
 
         wf = wave.open(file_name, 'rb')
 
-        self.py_audio = pyaudio.PyAudio()
-
         # define callback (2)
         def callback(in_data, frame_count, time_info, status):
             data = wf.readframes(frame_count)
             return (data, pyaudio.paContinue)
 
-        self.stream = self.py_audio.open(format=self.py_audio.get_format_from_width(wf.getsampwidth()),
-                                         channels=wf.getnchannels(),
-                                         rate=wf.getframerate(),
-                                         output=True,
-                                         stream_callback=callback)
+        self.stream = pa.open(format=pa.get_format_from_width(wf.getsampwidth()),
+                              channels=wf.getnchannels(),
+                              rate=wf.getframerate(),
+                              output=True,
+                              stream_callback=callback)
 
         self.stream.start_stream()
 
     def close(self):
         self.stream.stop_stream()
         self.stream.close()
-        self.py_audio.terminate()
+
+
+def get_audio_file_name(prefix=FILE_PREFIX, postfix='.wav'):
+    return '%s_%s%s' % (prefix, get_time_str(), postfix)
 
 
 if __name__ == '__main__':
@@ -122,20 +126,35 @@ if __name__ == '__main__':
 
     recorder = None
     playback = None
-    file_name = None
+
+
+    def stop_all():
+        global playback, recorder
+
+        if playback is not None:
+            playback.close()
+            playback = None
+
+        if recorder is not None:
+            recorder.close()
+            recorder = None
+
+
     while True:
         print2('SPACE - start / stop recording\n'
-               'N     - Create noise profile\n')
+               'N     - Create noise profile\n'
+               'L     - List files')
 
         ch = getch()
+        print(ch)
 
         if ch == ' ':
             if recorder is None:
-                file_name = 'AudioRecord_%s.wav' % get_time_str()
+                file_name = get_audio_file_name()
 
                 recorder = rec.open(file_name, 'wb')
                 recorder.start_recording()
-                print2('Recording started.', color='green')
+                print2('Recording started: %s' % file_name, color='green')
 
                 if playback is not None:
                     playback.close()
@@ -145,26 +164,22 @@ if __name__ == '__main__':
                 recorder.stop_recording()
                 recorder.close()
                 recorder = None
-                print2('Recording stopped. Saved as %s' % file_name, color='red')
+                print2('Recording stopped.', color='red')
 
                 denoise(in_file=file_name)
 
                 playback = Player(file_name)
 
         elif ch == 'd':
-            if playback is not None:
-                playback.close()
-                playback = None
-
-            if recorder is not None:
-                recorder.close()
-                recorder = None
+            stop_all()
 
             if os.path.exists(file_name):
                 print2('File deleted: %s' % file_name, color='red')
                 os.remove(file_name)
 
         elif ch == 'n':
+            stop_all()
+
             print2('Create noise profile. Please be quiet...', color='green')
             sleep(1)
             print('Start collecting.')

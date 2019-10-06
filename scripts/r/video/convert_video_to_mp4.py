@@ -17,6 +17,7 @@ for f in files:
         args += ['-s', 'hd480']
 
     args += [
+        '-r', '23.976',
         # '-filter:v', 'crop=200:200:305:86',
         '-c:v', 'libx264', '-preset', 'slow', '-crf', '22',  # Lossless
         '-c:a', 'aac', '-b:a', '128k',

@@ -106,3 +106,25 @@ def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
         ps.stdin.write(im.tostring())
 
     ps.stdin.close()
+
+
+def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True):
+    args = ['ffmpeg',
+            '-i', in_file]
+
+    if start_and_duration:
+        args += ['-ss', str(start_and_duration[0]),
+                 '-strict', '-2',
+                 '-t', str(start_and_duration[1])]
+
+    if reencode:
+        if nvenc:
+            args += ['-c:v', 'h264_nvenc', '-preset', 'slow', '-qp', '19']
+        else:
+            args += ['-c:v', 'libx264', '-preset', 'slow', '-crf', '22']
+
+        args += ['-c:a', 'aac', '-b:a', '128k']  # Audio
+
+    args += [out_file]
+
+    subprocess.check_call(args)
