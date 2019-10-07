@@ -12,10 +12,11 @@ import numpy as np
 
 
 def save_fig(out_file='figure.png', open_file=True):
+    out_file = os.path.realpath(out_file)
     plt.gcf().tight_layout()
     plt.savefig(out_file, dpi=200)
     if open_file:
-        os.system(out_file)
+        os.system('start "" "%s"' % out_file)
 
 
 plt.style.use('fivethirtyeight')
