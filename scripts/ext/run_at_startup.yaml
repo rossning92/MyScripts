@@ -1,5 +1,5 @@
 anaconda: false
-autoRun: false
+autoRun: true
 background: false
 globalHotkey: null
 hotkey: null
