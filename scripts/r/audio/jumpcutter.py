@@ -80,10 +80,15 @@ for f in glob.glob('*.wav'):
     #     'out/%s' % base_name,
     #     '-y'
     # ])
-    subprocess.call(f'sox --norm=-3 tmp/cut/{f} tmp/{f}.norm.wav')
-    subprocess.call(f'sox tmp/{f}.norm.wav out/{f}'
-                    f' compand'
-                    f' 0.001,0.03'  # attack1,decay1
-                    f' -50,-90,-40,-3'
-                    f' -10 -90'  # gain initial-volume-dB
-                    f' equalizer 80 40h -0 equalizer 800 400h -10')
+
+    subprocess.check_call(f'ffmpeg -i tmp/cut/{f} -c:v copy -af loudnorm=I=-14:LRA=1 -ar 44100 tmp/{f}.norm.wav -y')
+    # subprocess.call(f'sox --norm=-3 tmp/cut/{f} tmp/{f}.norm.wav')
+    # subprocess.call(f'sox tmp/cut/{f} tmp/{f}.norm.wav loudness -14')
+
+    THRES = '-10'
+    subprocess.check_call(f'sox tmp/{f}.norm.wav out/{f}'
+                          f' compand'
+                          f' 0.005,0.2'  # attack1,decay1
+                          f' -31,-90,-30,-30,{THRES},{THRES},0,{THRES}'
+                          f' 0 -90'  # gain initial-volume-dB
+                          f' equalizer 800 400h -10 treble 5 4k 1s')
