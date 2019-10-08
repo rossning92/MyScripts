@@ -1,7 +1,10 @@
 anaconda: false
 autoRun: false
+background: false
 globalHotkey: Alt+Win+[
 hotkey: Ctrl+Shift+P
-newWindow: false
+newWindow: true
+restartInstance: false
 runAsAdmin: true
+template: true
 wsl: false

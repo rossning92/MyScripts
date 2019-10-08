@@ -271,10 +271,10 @@ class ScriptItem:
 
                 args = ['cmd.exe', '/c', batch_file] + args
 
-                # HACK: change working directory
-                if platform.system() == 'Windows' and self.meta['runAsAdmin']:
-                    args = ['cmd', '/c',
-                            'cd', '/d', cwd, '&'] + args
+                # # HACK: change working directory
+                # if platform.system() == 'Windows' and self.meta['runAsAdmin']:
+                #     args = ['cmd', '/c',
+                #             'cd', '/d', cwd, '&'] + args
             else:
                 print('OS does not support script: %s' % script_path)
                 return
@@ -323,15 +323,15 @@ class ScriptItem:
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
             if new_window:
-
-                if sys.platform == 'win32':  # HACK: use python wrapper: activate console window once finished
+                # HACK: python wrapper: activate console window once finished
+                if sys.platform == 'win32' and not self.meta['runAsAdmin']:
                     args = [
                         sys.executable, '-c',
                         'import subprocess;'
                         'import ctypes;'
                         f'import sys;sys.path.append(r"{os.path.dirname(__file__)}");'
                         'import _script as s;'
-                        f's.set_console_title(r"{self.console_title if self.console_title else self.name}");'
+                        f's.set_console_title(r"{self.get_console_title()}");'
                         f'ret = subprocess.call({args});'
                         'hwnd = ctypes.windll.kernel32.GetConsoleWindow();'
                         'ctypes.windll.user32.SetForegroundWindow(hwnd);'
@@ -360,7 +360,7 @@ class ScriptItem:
                     set_env_var += ['set', '%s=%s' % (k, v), '&']
 
                 args = ['cmd', '/c',
-                        'title', self.name, '&',
+                        'title', self.get_console_title(), '&',
                         'cd', '/d', cwd, '&',
                         'set', f'PATH={bin_path};%PATH%', '&'
                         ] + set_env_var + args
