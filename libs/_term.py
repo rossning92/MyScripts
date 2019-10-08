@@ -308,4 +308,7 @@ def wait_key(prompt=None, timeout=2):
     if prompt is None:
         prompt = 'Press enter to skip...'
     print2(prompt, color='green')
-    return getch(timeout=timeout)
+    ch = getch(timeout=timeout)
+    if ch:
+        print('key pressed: %s' % ch)
+    return ch
