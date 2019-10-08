@@ -13,22 +13,6 @@ from _script import *
 import shlex
 
 
-def open_text_editor(path):
-    if os.name == 'posix':
-        subprocess.Popen(['atom', path])
-    else:
-        if os.path.splitext(path)[1] == '.py':
-            script = ScriptItem('scripts/ext/open_in_PyCharm.py')
-            script.execute(os.path.abspath(path))
-            if script.return_code == 0:
-                return
-
-        try:
-            subprocess.Popen(['notepad++', path])
-        except:
-            subprocess.Popen(['notepad', path])
-
-
 def msbuild(vcproj, build_config='Release'):
     print('[ Building `%s`... ]' % os.path.basename(vcproj))
 

@@ -12,7 +12,9 @@ import sys
 import os
 
 sys.path.append(os.path.abspath('./libs'))
-from myutils import *
+from _shutil import *
+from _script import *
+from _gui import *
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat',
                      '.sh', '.ps1', '.ahk', '.vbs', '.link'}
