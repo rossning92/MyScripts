@@ -1,7 +1,6 @@
 from _shutil import *
 from _nvpack import *
 
-# TODO: install DirectX
 run_elevated('choco install directx -y')
 
 # TODO: install vs2017 C++ and C#
