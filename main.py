@@ -266,9 +266,13 @@ class MainWindow(QWidget):
 ; SetTitleMatchMode, 2
 RunScript(name, path)
 {
-    If WinExist(name)
+    if WinExist(name)
     {
         WinActivate % name
+    }
+    else if WinExist("Administrator:  " name)
+    {
+        WinActivate % "Administrator:  " name
     }
     else
     {
@@ -462,7 +466,7 @@ RunScript(name, path)
                     self.ui.inputBox.selectAll()
                     return True
 
-                elif e.key() == Qt.Key_E: # TODO: HACK: QShortcut `Ctrl+E` does not work on Ubuntu
+                elif e.key() == Qt.Key_E:  # TODO: HACK: QShortcut `Ctrl+E` does not work on Ubuntu
                     run_script('scripts/ext/edit_script')
                     return True
 
