@@ -92,3 +92,7 @@ for f in glob.glob('*.wav'):
                           f' -31,-90,-30,-30,{THRES},{THRES},0,{THRES}'
                           f' 0 -90'  # gain initial-volume-dB
                           f' equalizer 800 400h -10 treble 5 4k 1s')
+
+chdir('out')
+os.environ['CURRENT_FOLDER'] = os.getcwd()
+run_script('/r/audio/concat')

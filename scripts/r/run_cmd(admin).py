@@ -3,4 +3,4 @@ import subprocess
 
 if 'CURRENT_FOLDER' in os.environ:
     os.chdir(os.environ['CURRENT_FOLDER'])
-subprocess.call('cmd')
+subprocess.Popen('cmd', close_fds=True)
