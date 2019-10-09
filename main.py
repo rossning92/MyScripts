@@ -97,8 +97,6 @@ def insert_line_if_not_exist(line, file, after_line=None):
         f.writelines(lines)
         return True
 
-    return False
-
 
 def select_item(items, prompt='PLEASE INPUT:'):
     matched_items = []
