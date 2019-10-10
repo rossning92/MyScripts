@@ -88,7 +88,7 @@ for f in glob.glob('*.wav'):
     THRES = '-10'
     subprocess.check_call(f'sox tmp/{f}.norm.wav out/{f}'
                           f' compand'
-                          f' 0.005,0.2'  # attack1,decay1
+                          f' 0.001,0.2'  # attack1,decay1
                           f' -31,-90,-30,-30,{THRES},{THRES},0,{THRES}'
                           f' 0 -90'  # gain initial-volume-dB
                           f' equalizer 800 400h -10 treble 5 4k 1s')
