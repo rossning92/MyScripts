@@ -161,6 +161,7 @@ class EditVariableWidget(QWidget):
         self.variableUIs = {}
         for variable in sorted(varList):
             comboBox = QComboBox()
+
             comboBox.setMinimumContentsLength(20)
             comboBox.setEditable(True)
             if variable in self.variables:
@@ -170,6 +171,14 @@ class EditVariableWidget(QWidget):
             if comboBox.count() > 0:
                 comboBox.setCurrentIndex(comboBox.count() - 1)
 
+            # Auto complete
+            completer = QCompleter(var_values)
+            completer.setCaseSensitivity(Qt.CaseInsensitive)
+            completer.setFilterMode(Qt.MatchContains)
+            completer.setCompletionMode(QCompleter.PopupCompletion)
+            completer.popup().setStyleSheet(get_qss())
+            comboBox.setCompleter(completer)
+
             # Label text
             if hide_prefix:
                 label_text = re.sub('^' + re.escape(hide_prefix), '', variable)
@@ -178,6 +187,7 @@ class EditVariableWidget(QWidget):
             self.layout().addRow(QLabel(label_text), comboBox)
 
             self.variableUIs[variable] = comboBox
+
             row += 1
 
     def save(self):
