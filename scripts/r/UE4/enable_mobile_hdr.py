@@ -1,7 +1,7 @@
 from _shutil import *
 import stat
 
-ENABLE_VULKAN = True
+ENABLE_VULKAN = False
 
 
 def add_value(ini_file, section, kvps):
@@ -48,8 +48,9 @@ chdir(r'{{UE4_PROJECT}}')
 
 add_value('Config/DefaultEngine.ini', '[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]', [
     '+PackageForOculusMobile=Quest',
-    'bSupportsVulkan=True',
+    'bSupportsVulkan=True' if ENABLE_VULKAN else '',
     'bPackageDataInsideApk=True',
+    'bPackageForGearVR=True',  # Mobile
 ])
 
 add_value('Config/DefaultEngine.ini', '[/Script/Engine.RendererSettings]', [

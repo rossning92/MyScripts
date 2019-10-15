@@ -1,20 +1,18 @@
 @echo off
 
-
 taskkill /f /im UE4Editor.exe 2>nul
-
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 call _msbuild "{{UE_SOURCE}}\UE4.sln" /t:Engine\UE4 /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
-
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 :: For build lighting
 call _msbuild "{{UE_SOURCE}}\UE4.sln" /t:Programs\UnrealLightmass /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
-
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 :: For viewing profiling data
-::call _msbuild "{{UE_SOURCE}}\UE4.sln" /t:Programs\UnrealFrontend /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
-
-if %errorlevel% neq 0 exit /b %errorlevel%
+:: call _msbuild "{{UE_SOURCE}}\UE4.sln" /t:Programs\UnrealFrontend /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
+:: if %errorlevel% neq 0 exit /b %errorlevel%
 
 exit /b 0
 
