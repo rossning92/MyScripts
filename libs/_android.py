@@ -173,17 +173,21 @@ def setup_android_env():
     for p in ADK_SEARCH_PATH:
         if os.path.exists(p):
             env['ANDROID_HOME'] = p
-            print2('ANDROID_HOME=%s' % p)
+            print2('ANDROID_HOME: %s' % p)
             break
     if 'ANDROID_HOME' not in env:
         raise Exception('Cannot find ANDROID_HOME')
 
     # NDK
-    env['ANDROID_NDK_HOME'] = \
-        env['ANDROID_NDK_ROOT'] = \
-        env['NDKROOT'] = \
-        env['NDK_ROOT'] = \
-        env['ANDROID_HOME'] + '/ndk-bundle'
+    p = os.path.join(env['ANDROID_HOME'], 'ndk-bundle')
+    if exists(p):
+        print2('ANDROID_NDK_HOME: %s' % p)
+        env['ANDROID_NDK_HOME'] = \
+            env['ANDROID_NDK'] = \
+            env['ANDROID_NDK_ROOT'] = \
+            env['NDKROOT'] = \
+            env['NDK_ROOT'] = \
+            p
 
     # Setup PATH
     path = [
@@ -193,12 +197,12 @@ def setup_android_env():
         env['ANDROID_HOME'] + '/ndk-bundle',
     ]
 
-    # Set PATH environ
+    # JDK
     jdk_list = sorted(glob.glob(r'C:\Program Files\Java\jdk*'))
     if len(jdk_list) == 0:
         raise Exception('Cannot find JDK')
     jdk_path = jdk_list[-1] + '\\bin'  # Choose latest JDK
-    print2('JDK: ' + jdk_path)
+    print2('JDK_HOME: %s' % jdk_path)
     path.append(jdk_path)
 
     # Android build tools (latest)

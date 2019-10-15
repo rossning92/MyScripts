@@ -229,15 +229,20 @@ def copy(src, dst):
         os.makedirs(dir_name, exist_ok=True)
 
     if os.path.isdir(src):
-        copy_tree(src, dst)
+        if dst.endswith('/'):
+            dst = os.path.realpath(dst + os.path.basename(src))
+            copy_tree(src, dst)
+            print('%s => %s' % (src, dst))
 
+    elif os.path.isfile(src):
+        shutil.copy(src, dst)
     else:
         file_list = glob.glob(src)
         if len(file_list) == 0:
             raise Exception('No file being found: %s' % src)
 
         for f in file_list:
-            shutil.copy(f, dst)
+            copy(f, dst)
 
 
 def run_elevated(args, wait=True):
