@@ -95,7 +95,7 @@ def call2(args):
 
 
 def call_echo(args):
-    print('>', end='')
+    print('> ', end='')
     print2(str(args), color='cyan')
     subprocess.check_call(args, shell=True)
 
@@ -236,6 +236,8 @@ def copy(src, dst):
 
     elif os.path.isfile(src):
         shutil.copy(src, dst)
+        print('%s => %s' % (src, dst))
+
     else:
         file_list = glob.glob(src)
         if len(file_list) == 0:
@@ -282,9 +284,11 @@ def remove(files):
     for file in files:
         if os.path.isdir(file):
             shutil.rmtree(file)
+            print('Delete: %s' % file)
         else:
             for match in glob.glob(file):
                 os.remove(match)
+                print('Delete: %s' % file)
 
 
 def replace(file, patt, repl, debug_output=False):

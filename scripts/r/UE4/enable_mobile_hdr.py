@@ -49,7 +49,7 @@ chdir(r'{{UE4_PROJECT}}')
 add_value('Config/DefaultEngine.ini', '[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]', [
     '+PackageForOculusMobile=Quest',
     'bSupportsVulkan=True' if ENABLE_VULKAN else '',
-    'bPackageDataInsideApk=True',
+    # 'bPackageDataInsideApk=True',
     'bPackageForGearVR=True',  # Mobile
 ])
 

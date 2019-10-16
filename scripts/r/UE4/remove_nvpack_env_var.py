@@ -23,9 +23,8 @@ for k, v in env_vars.items():
             data[k] = v
 
 json_str = json.dumps(data, indent=4)
-print('Modified env vars:', json_str)
-input('Press enter to continue...')
-
+print('Backup nvpack env variables: %s', json_str)
+input('Press enter to remove those variables...')
 
 if wait_key('backup NVPACK env vars'):
     with open(expanduser('~/NVPACK_env.txt'), 'w') as f:
