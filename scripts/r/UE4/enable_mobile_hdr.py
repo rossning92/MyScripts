@@ -50,7 +50,13 @@ add_value('Config/DefaultEngine.ini', '[/Script/AndroidRuntimeSettings.AndroidRu
     '+PackageForOculusMobile=Quest',
     'bSupportsVulkan=True' if ENABLE_VULKAN else '',
     # 'bPackageDataInsideApk=True',
-    'bPackageForGearVR=True',  # Mobile
+
+    'bPackageForGearVR=True',  # for mobile device
+
+    'MinSDKVersion=25',
+    'TargetSDKVersion=25',
+    'bFullScreen=True',
+    'bRemoveOSIG=True',
 ])
 
 add_value('Config/DefaultEngine.ini', '[/Script/Engine.RendererSettings]', [
