@@ -2,6 +2,7 @@ import glob
 import subprocess
 import os
 from _shutil import exec_ahk
+from _appmanager import get_executable
 
 
 def get_pycharm_executable():
@@ -32,11 +33,14 @@ def open_in_androidstudio(path, line=None):
 
 
 def open_in_vscode(file, line_no=None):
-    vscode = r'C:\Program Files\Microsoft VS Code\Code.exe'
-    if line_no is None:
-        subprocess.Popen([vscode, file])
+    vscode = get_executable('vscode')
+    if type(file) == str:
+        if line_no is None:
+            subprocess.Popen([vscode, file], close_fds=True)
+        else:
+            subprocess.Popen([vscode, f'{file}:{line_no}', '-g'], close_fds=True)
     else:
-        subprocess.Popen([vscode, f'{file}:{line_no}', '-g'])
+        subprocess.Popen([vscode] + file, close_fds=True)
 
 
 def open_with_text_editor(path, line_no=None):
