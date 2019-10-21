@@ -1,4 +1,5 @@
 from _shutil import *
+from _video import *
 
 files = get_files(cd=True)
 
@@ -9,18 +10,9 @@ for f in files:
     fn, ext = os.path.splitext(f)
     out_file = '%s_out.mp4' % fn
 
-    args = [
-        'ffmpeg',
-        '-i', f]
-
     if '{{_480P}}':
-        args += ['-s', 'hd480']
+        extra_args = ['-s', 'hd480']
+    else:
+        extra_args = None
 
-    args += [
-        '-r', '23.976',
-        # '-filter:v', 'crop=200:200:305:86',
-        '-c:v', 'libx264', '-preset', 'slow', '-crf', '22',  # Lossless
-        '-c:a', 'aac', '-b:a', '128k',
-        out_file]
-
-    subprocess.call(args)
+    ffmpeg(f, out_file=out_file, extra_args=extra_args, reencode=True)

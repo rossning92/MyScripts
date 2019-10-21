@@ -24,3 +24,13 @@ def denoise(in_file, out_file=None):
 
     else:
         print('WARNING: Skip noise reduction: profile does not exist.')
+
+
+def concat_audio(audio_files, silence_secs, out_file, channels=2):
+    call2(f'sox -n -r 44100 -c {channels} tmp/silence.wav trim 0.0 {silence_secs}')
+
+    mkdir('tmp')
+    audio_files = ' tmp/silence.wav '.join(audio_files)
+
+    print2('Output %s' % out_file)
+    call2(f'sox {audio_files} {out_file}')

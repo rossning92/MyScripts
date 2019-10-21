@@ -108,7 +108,7 @@ def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
     ps.stdin.close()
 
 
-def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True):
+def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True, extra_args=None):
     args = ['ffmpeg',
             '-i', in_file]
 
@@ -116,6 +116,9 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
         args += ['-ss', str(start_and_duration[0]),
                  '-strict', '-2',
                  '-t', str(start_and_duration[1])]
+
+    if extra_args:
+        args += extra_args
 
     if reencode:
         if nvenc:
@@ -125,6 +128,6 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
 
         args += ['-c:a', 'aac', '-b:a', '128k']  # Audio
 
-    args += [out_file]
+    args += [out_file, '-y']  # Override file
 
     subprocess.check_call(args)
