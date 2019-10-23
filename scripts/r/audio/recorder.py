@@ -139,26 +139,28 @@ if __name__ == '__main__':
             recorder.close()
             recorder = None
 
-
+    file_name = None
     while True:
-        print2('SPACE - start / stop recording\n'
-               'N     - Create noise profile\n'
-               'L     - List files')
+        print2(
+            'SPACE - Start / Stop recording\n'
+            'ENTER - Record Next\n'
+            'N     - Create noise profile\n'
+            'L     - List files\n'
+        )
 
         ch = getch()
         print(ch)
 
         if ch == ' ':
             if recorder is None:
-                file_name = get_audio_file_name()
-
-                recorder = rec.open(file_name, 'wb')
-                recorder.start_recording()
-                print2('Recording started: %s' % file_name, color='green')
-
                 if playback is not None:
                     playback.close()
                     playback = None
+
+                file_name = get_audio_file_name()
+                recorder = rec.open(file_name, 'wb')
+                recorder.start_recording()
+                print2('Recording started: %s' % file_name, color='green')
 
             else:
                 recorder.stop_recording()
@@ -169,6 +171,17 @@ if __name__ == '__main__':
                 denoise(in_file=file_name)
 
                 playback = Player(file_name)
+
+        elif ch == '\r':
+            stop_all()
+
+            if file_name is not None:
+                denoise(in_file=file_name)
+
+            file_name = get_audio_file_name()
+            recorder = rec.open(file_name, 'wb')
+            recorder.start_recording()
+            print2('Recording started: %s' % file_name, color='green')
 
         elif ch == 'd':
             stop_all()

@@ -23,13 +23,23 @@ chdir(os.environ['CURRENT_FOLDER'])
 mkdir('tmp/cut')
 mkdir('out')
 out_file_list = []
-for f in glob.glob('*.wav'):
+for f in glob.glob('Audio*.wav'):
+    print2('Processing: %s' % f)
+
     name_no_ext = os.path.splitext(os.path.basename(f))[0]
 
+    # Convert to mono
     in_file = f
     out_file = 'tmp/%s.mono.wav' % name_no_ext
     if not os.path.exists(out_file):
         call2('sox %s %s channels 1' % (in_file, out_file))
+
+    # Normalization
+    in_file = out_file
+    out_file = f'tmp/{f}.norm.wav'
+    if not os.path.exists(out_file):
+        subprocess.check_call(
+            f'ffmpeg -i {in_file} -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y')
 
     in_file = out_file
     filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext
@@ -42,8 +52,8 @@ for f in glob.glob('*.wav'):
         ])
 
     # Cut
-    cut_file = 'tmp/%s.cut.wav' % name_no_ext
-    if not os.path.exists(cut_file):
+    out_file = 'tmp/%s.cut.wav' % name_no_ext
+    if not os.path.exists(out_file):
         rate, data2 = wavfile.read(in_file)
         border_samples = int(BORDER_IGNORE * rate)
         data2 = data2[border_samples:-border_samples]
@@ -77,24 +87,22 @@ for f in glob.glob('*.wav'):
             plt.plot(data_vis)
             plt.show()
 
-        wavfile.write(cut_file, rate, data2)
+        wavfile.write(out_file, rate, data2)
 
-    # Normalization / Compress
-    print2(f)
+    # Compress
+    in_file = out_file
     out_file = f'out/{f}'
-
     if not os.path.exists(out_file):
         subprocess.check_call(
-            f'ffmpeg -i {cut_file} -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 tmp/{f}.norm.wav -y')
-        # subprocess.call(f'sox --norm=-3 tmp/cut/{f} tmp/{f}.norm.wav')
-        # subprocess.call(f'sox tmp/cut/{f} tmp/{f}.norm.wav loudness -14')
+            f'sox {in_file} {out_file}'
+            f' equalizer 800 400h -10 treble 5 4k 1s'
+            f' compand'
+            f' 0.001,0.2'  # attack1,decay1
+            f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESS_THRES_DB},{COMPRESS_THRES_DB},0,{COMPRESS_THRES_DB}'
+            f' 0 -90'  # gain initial-volume-dB
 
-        subprocess.check_call(f'sox tmp/{f}.norm.wav {out_file}'
-                              f' compand'
-                              f' 0.001,0.2'  # attack1,decay1
-                              f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESS_THRES_DB},{COMPRESS_THRES_DB},0,{COMPRESS_THRES_DB}'
-                              f' 0 -90'  # gain initial-volume-dB
-                              f' equalizer 800 400h -10 treble 5 4k 1s')
+        )
+
     out_file_list.append(out_file)
 
 concat_audio(out_file_list, 0.2, out_file='out/concat.wav', channels=1)
