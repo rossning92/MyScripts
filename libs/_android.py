@@ -158,9 +158,7 @@ def take_screenshot(file_name=None):
     subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % file_name])
 
 
-def setup_android_env():
-    env = os.environ
-
+def get_adk_path():
     ADK_SEARCH_PATH = [
         # Installed by choco
         r'C:\Android\android-sdk',
@@ -169,14 +167,22 @@ def setup_android_env():
         os.path.abspath(os.getenv('LOCALAPPDATA') + '/Android/Sdk')
     ]
 
-    # ANDROID_HOME
     for p in ADK_SEARCH_PATH:
         if os.path.exists(p):
-            env['ANDROID_HOME'] = p
-            print2('ANDROID_HOME: %s' % p)
-            break
-    if 'ANDROID_HOME' not in env:
+            return p
+
+    return None
+
+
+def setup_android_env():
+    env = os.environ
+
+    # ANDROID_HOME
+    android_home = get_adk_path()
+    if android_home is None:
         raise Exception('Cannot find ANDROID_HOME')
+    print2('ANDROID_HOME: %s' % android_home)
+    env['ANDROID_HOME'] = android_home
 
     # NDK
     p = os.path.join(env['ANDROID_HOME'], 'ndk-bundle')

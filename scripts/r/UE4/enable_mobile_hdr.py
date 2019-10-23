@@ -16,6 +16,9 @@ def add_value(ini_file, section, kvps):
 
     # Remove existing value
     for kvp in kvps:
+        if not kvp:
+            continue
+
         k, v = kvp.split('=')
         indices = [i for i in range(len(lines)) if lines[i].startswith(k + '=')]
         lines = [lines[i] for i in range(len(lines)) if i not in indices]

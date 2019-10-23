@@ -1,4 +1,5 @@
 from _shutil import *
+from _android import *
 
 
 def find_path(p):
@@ -8,22 +9,44 @@ def find_path(p):
     return found[0]
 
 
+def hack_replace_platform_tools(nvpack_root):
+    adk_platform_tools = os.path.realpath(get_adk_path() + '/platform-tools')
+    assert os.path.exists(adk_platform_tools)
+    print2('ADB version:')
+    call2([os.path.realpath(adk_platform_tools + '/adb.exe'),
+           '--version'])
+
+    nvpack_platform_tools = os.path.realpath(nvpack_root + "/android-sdk-windows/platform-tools")
+    assert os.path.exists(adk_platform_tools)
+
+    if not os.path.exists(nvpack_platform_tools + '_bak'):
+        os.rename(nvpack_platform_tools, nvpack_platform_tools + '_bak')
+        call2('mklink /D "%s" "%s"' % (nvpack_platform_tools, adk_platform_tools))
+
+
 def setup_nvpack(nvpack_root=None):
     if not nvpack_root:
         nvpack_root = 'C:\\NVPACK'
 
+    hack_replace_platform_tools(nvpack_root)
+
     NVPACK = {
         "ANDROID_HOME": nvpack_root + "\\android-sdk-windows",
+
+        # NOTE: Remove hard coded value here (see below)
         # "ANDROID_NDK_ROOT": nvpack_root + "\\android-ndk-r12b",
         # "ANT_HOME": nvpack_root + "\\apache-ant-1.8.2",
         # "GRADLE_HOME": nvpack_root + "\\gradle-2.9",
         # "JAVA_HOME": nvpack_root + "\\jdk1.8.0_77",
         # "NDKROOT": nvpack_root + "\\android-ndk-r12b",
         # "NDK_ROOT": nvpack_root + "\\android-ndk-r12b",
+
         "NVPACK_NDK_TOOL_VERSION": "4.9",
         "NVPACK_NDK_VERSION": "android-ndk-r12b",
         "NVPACK_ROOT": nvpack_root,
         "PATH": [
+
+            # NOTE: Remove hard coded value here (see below)
             # "C:\\NVPACK\\gradle-2.9\\bin",
             # "C:\\NVPACK\\apache-ant-1.8.2\\bin",
             # "C:\\NVPACK\\jdk1.8.0_77\\bin",

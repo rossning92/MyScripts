@@ -24,6 +24,7 @@ PKGS = {
         'pandoc',
         'vmware-workstation-player',
         'sharex',
+        'epicgameslauncher',
     ],
     'common': [
         'everything',
