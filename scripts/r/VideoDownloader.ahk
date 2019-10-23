@@ -20,7 +20,7 @@ ClipChanged(Type) {
                 url := SubStr(g_lastUrl, 1, 43)
 
 				SetDownloadDir("Youtube")
-                fmt = bestvideo[ext=mp4]
+                fmt = bestvideo+bestaudio
 
 				ToolTip, Press space to start downloading...
 
