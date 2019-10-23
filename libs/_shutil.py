@@ -437,6 +437,8 @@ def print2(msg, color='yellow'):
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
+    if type(msg) is not str:
+        msg = str(msg)
     print(COLOR_MAP[color] + msg + RESET)
 
 
@@ -645,6 +647,16 @@ def try_import(module_name, pkg_name=None):
         subprocess.check_call([sys.executable, '-m',
                                'pip', 'install', pkg_name])
         try_import(module_name)
+
+
+def get_ip_addr():
+    if sys.platform == 'win32':
+        command = 'powershell -Command "Get-NetIPAddress -AddressFamily IPv4 | foreach { $_.IPAddress }"'
+        out = subprocess.check_output(command)
+        out = out.decode()
+        return out.splitlines()
+
+    return []
 
 
 env = os.environ
