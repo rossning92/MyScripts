@@ -32,26 +32,10 @@ def setup_nvpack(nvpack_root=None):
 
     NVPACK = {
         "ANDROID_HOME": nvpack_root + "\\android-sdk-windows",
-
-        # NOTE: Remove hard coded value here (see below)
-        # "ANDROID_NDK_ROOT": nvpack_root + "\\android-ndk-r12b",
-        # "ANT_HOME": nvpack_root + "\\apache-ant-1.8.2",
-        # "GRADLE_HOME": nvpack_root + "\\gradle-2.9",
-        # "JAVA_HOME": nvpack_root + "\\jdk1.8.0_77",
-        # "NDKROOT": nvpack_root + "\\android-ndk-r12b",
-        # "NDK_ROOT": nvpack_root + "\\android-ndk-r12b",
-
         "NVPACK_NDK_TOOL_VERSION": "4.9",
         "NVPACK_NDK_VERSION": "android-ndk-r12b",
         "NVPACK_ROOT": nvpack_root,
         "PATH": [
-
-            # NOTE: Remove hard coded value here (see below)
-            # "C:\\NVPACK\\gradle-2.9\\bin",
-            # "C:\\NVPACK\\apache-ant-1.8.2\\bin",
-            # "C:\\NVPACK\\jdk1.8.0_77\\bin",
-            # "C:\\NVPACK\\android-ndk-r12b",
-
             nvpack_root + "\\android-sdk-windows\\extras\\android\\support",
             nvpack_root + "\\android-sdk-windows\\build-tools",
             nvpack_root + "\\android-sdk-windows\\platform-tools",
