@@ -20,17 +20,18 @@ ClipChanged(Type) {
                 url := SubStr(g_lastUrl, 1, 43)
 
 				SetDownloadDir("Youtube")
-                fmt = bestvideo+bestaudio
 
 				ToolTip, Press space to start downloading...
 
-				KeyWait, Space, D T3
+				Input, key, L1T3
 
-				if ( ErrorLevel = 0 )
+				if ( key = " " )
 				{
-					; fmt = 134+140  ; 360p + audio
-                    ; Msgbox Download 360p video format
-					Run cmd /c youtube-dl -f "%fmt%" %url% --no-mtime & timeout 10
+					Run cmd /c youtube-dl -f bestvideo+bestaudio %url% --no-mtime & timeout 5
+				}
+				else if ( key = "v" )
+				{
+					Run cmd /c youtube-dl -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5
 				}
 
 				ToolTip
@@ -39,7 +40,7 @@ ClipChanged(Type) {
 			{
 				g_lastUrl := Clipboard
 				SetDownloadDir("Bilibili")
-				Run cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 10
+				Run cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 5
 			}
 		}
 
