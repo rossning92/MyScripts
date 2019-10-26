@@ -5,6 +5,7 @@ g_lastUrl := Clipboard
 OnClipboardChange("ClipChanged")
 return
 
+
 ClipChanged(Type) {
 
 	global g_lastUrl
@@ -19,37 +20,45 @@ ClipChanged(Type) {
 				g_lastUrl := Clipboard
                 url := SubStr(g_lastUrl, 1, 43)
 
-				SetDownloadDir("Youtube")
+				dir := GetDownloadDir("Youtube")
 
-				ToolTip, Press space to start downloading...
-
-				Input, key, L1T3
-
+				key := WaitKey()
 				if ( key = " " )
 				{
-					Run cmd /c youtube-dl -f bestvideo+bestaudio %url% --no-mtime & timeout 5
+					Run cmd /c youtube-dl -f bestvideo+bestaudio %url% --no-mtime & timeout 5, % dir
 				}
 				else if ( key = "v" )
 				{
-					Run cmd /c youtube-dl -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5
+					Run cmd /c youtube-dl -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5, % dir
 				}
-
-				ToolTip
 			}
 			else if ( InStr(Clipboard, "https://www.bilibili.com/video/") = 1 )
 			{
 				g_lastUrl := Clipboard
-				SetDownloadDir("Bilibili")
-				Run cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 5
+
+				dir := GetDownloadDir("Bilibili")
+
+				key := WaitKey()
+				if ( key = " " )
+				{
+					Run cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 5, % dir
+				}
 			}
 		}
 
 	}
 }
 
-SetDownloadDir(dir)
+GetDownloadDir(dir)
 {
 	dir := A_Desktop "\" dir
 	FileCreateDir %dir%
-	SetWorkingDir %dir%
+	return dir
+}
+
+WaitKey() {
+	ToolTip, Press space to start downloading...
+	Input, key, L1T3
+	ToolTip
+	return key
 }
