@@ -6,9 +6,6 @@ from _android import *
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
-
-
-
 adb_install(file)
 
 # TODO: check super su / root permission
