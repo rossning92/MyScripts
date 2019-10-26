@@ -225,3 +225,21 @@ def adb_shell(command, check=True):
         subprocess.check_call(['adb', 'shell', command])
     else:
         subprocess.call(['adb', 'shell', command])
+
+
+def adb_install(file):
+    print2('Install apk...')
+    try:
+        subprocess.check_output(
+            ['adb', 'install',
+             '-r',  # Replace existing apps without clearing data
+             '-d',  # Allow downgrade
+             file], stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        msg = e.output.decode()
+        match = re.search('INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)', msg)
+        if match is not None:
+            pkg = match.group(1)
+            print('[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s...' % pkg)
+            call('adb uninstall %s' % pkg)
+            subprocess.check_call(['adb', 'install', '-r', file])

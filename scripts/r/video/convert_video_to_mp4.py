@@ -11,7 +11,7 @@ for f in files:
     out_file = '%s_out.mp4' % fn
 
     if '{{_480P}}':
-        extra_args = ['-s', 'hd480']
+        extra_args = ['-s', 'hd480', '-r', '60']
     else:
         extra_args = None
 

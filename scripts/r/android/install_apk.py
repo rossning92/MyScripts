@@ -6,20 +6,10 @@ from _android import *
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
-print2('Install apk...')
-try:
-    check_output(['adb', 'install',
-                  '-r',  # Replace existing apps without clearing data
-                  '-d',  # Allow downgrade
-                  file], stderr=subprocess.STDOUT)
-except subprocess.CalledProcessError as e:
-    msg = e.output.decode()
-    match = re.search('INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)', msg)
-    if match is not None:
-        pkg = match.group(1)
-        print('[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s...' % pkg)
-        call('adb uninstall %s' % pkg)
-        subprocess.check_call(['adb', 'install', '-r', file])
+
+
+
+adb_install(file)
 
 # TODO: check super su / root permission
 su = 'su -c'
