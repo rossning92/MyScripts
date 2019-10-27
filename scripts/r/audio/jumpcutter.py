@@ -5,10 +5,15 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from _audio import *
 
-BORDER_IGNORE = 0.2
+BORDER_IGNORE = 0.1
 LOUDNESS_DB = -21
-COMPRESS_THRES_DB = -10
+
+COMPRESSOR_ATTACK = 0.001
+COMPRESSOR_DECAY = 0.05
+COMPRESSOR_THRES_DB = -20
+
 NOISE_GATE_DB = -50
+TREBLE_BOOST_DB = 2
 
 
 def rolling_window(a, window):
@@ -95,10 +100,10 @@ for f in glob.glob('Audio*.wav'):
     if not os.path.exists(out_file):
         subprocess.check_call(
             f'sox {in_file} {out_file}'
-            f' equalizer 800 400h -10 treble 5 4k 1s'
+            f' equalizer 800 400h -10 treble {TREBLE_BOOST_DB} 4k 1s'
             f' compand'
-            f' 0.001,0.2'  # attack1,decay1
-            f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESS_THRES_DB},{COMPRESS_THRES_DB},0,{COMPRESS_THRES_DB}'
+            f' {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}'  # attack1,decay1
+            f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB},0,{COMPRESSOR_THRES_DB}'
             f' 0 -90'  # gain initial-volume-dB
 
         )
