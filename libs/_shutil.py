@@ -90,6 +90,46 @@ def chdir(path, expand=True):
     os.chdir(path)
 
 
+def getch(timeout=-1):
+    if platform.system() == 'Windows':
+        import msvcrt
+        import sys
+        time_elapsed = 0
+        if timeout > 0:
+            while not msvcrt.kbhit() and time_elapsed < timeout:
+                sleep(0.5)
+                time_elapsed += 0.5
+                print('.', end='', flush=True)
+            return msvcrt.getch().decode(errors='replace') if time_elapsed < timeout else None
+        else:
+            return msvcrt.getch().decode(errors='replace')
+
+    else:
+        import sys, tty, termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(sys.stdin.fileno())
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
+
+
+def cd(path, expand=True):
+    if expand:
+        path = expanduser(path)
+
+    path = os.path.realpath(path)
+
+    if not os.path.exists(path):
+        print('"%s" not exist, create? (y/n)' % path)
+        if 'y' == getch():
+            os.makedirs(path)
+
+    os.chdir(path)
+
+
 def call2(args):
     subprocess.check_call(args, shell=True)
 
@@ -413,7 +453,7 @@ def check_output_echo(args):
     return out
 
 
-def print2(msg, color='yellow'):
+def print2(msg, color='yellow', end='\n'):
     # ANSI escape codes for colors
     COLOR_MAP = {
         'green': '\u001b[32;1m',
@@ -439,7 +479,7 @@ def print2(msg, color='yellow'):
 
     if type(msg) is not str:
         msg = str(msg)
-    print(COLOR_MAP[color] + msg + RESET)
+    print(COLOR_MAP[color] + msg + RESET, end=end)
 
 
 def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
@@ -657,6 +697,24 @@ def get_ip_addr():
         return out.splitlines()
 
     return []
+
+
+def convert_to_unix_path(path):
+    patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
+    if re.match(patt, path):
+        path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' +
+                                                  x.group(0)[0].lower()), path)
+        path = path.replace('\\', '/')
+    return path
+
+
+def wait_key(prompt=None, timeout=2):
+    if prompt is None:
+        prompt = 'Press enter to skip'
+    print2(prompt, color='green', end='')
+    ch = getch(timeout=timeout)
+    print()
+    return ch
 
 
 env = os.environ

@@ -211,7 +211,7 @@ class ScriptItem:
 
         # HACK: Convert to unix path
         if self.ext == '.sh':
-            variables = {k: _convert_to_unix_path(
+            variables = {k: convert_to_unix_path(
                 v) for k, v in variables.items()}
 
         return variables
@@ -294,10 +294,29 @@ class ScriptItem:
             env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
-            if self.meta['anaconda']:
+            if self.meta['conda']:
+                assert sys.platform == 'win32'
                 import _conda
-                activate = _conda.get_conda_path() + '\\Scripts\\activate.bat'
-                args = ['cmd', '/c', activate, '&',
+
+                env_name = self.meta['conda']
+                conda_path = _conda.get_conda_path()
+
+                activate = conda_path + '\\Scripts\\activate.bat'
+
+                if not exists(conda_path + '\\envs\\' + env_name):
+                    call_echo('call "%s" & conda create --name %s python=3.6' % (activate, env_name))
+
+                args = ['cmd', '/c', 'call', activate, env_name, '&',
+                        'python', python_file] + args
+
+            elif self.meta['venv']:
+                assert sys.platform == 'win32'
+                venv_path = os.path.expanduser('~\\venv\\%s' % self.meta['venv'])
+                if not exists(venv_path):
+                    call_echo([sys.executable, '-m', 'venv', venv_path])
+
+                args = ['cmd', '/c',
+                        'call', '%s\\Scripts\\activate.bat' % venv_path, '&',
                         'python', python_file] + args
 
             else:
@@ -481,15 +500,6 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
 
-def _convert_to_unix_path(path):
-    patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
-    if re.match(patt, path):
-        path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' +
-                                                  x.group(0)[0].lower()), path)
-        path = path.replace('\\', '/')
-    return path
-
-
 def get_default_meta():
     return {
         'template': True,
@@ -499,9 +509,10 @@ def get_default_meta():
         'runAsAdmin': False,
         'autoRun': False,
         'wsl': False,
-        'anaconda': False,
+        'conda': None,
         'restartInstance': False,
-        'background': False
+        'background': False,
+        'venv': None,
     }
 
 

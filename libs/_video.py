@@ -131,3 +131,22 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
     args += [out_file, '-y']  # Override file
 
     subprocess.check_call(args)
+
+
+def extract_imgs(f, fps=1, out_folder='out'):
+    os.makedirs(out_folder, exist_ok=True)
+
+    subprocess.check_call([
+        'ffmpeg',
+        '-hwaccel', 'cuvid',
+        # '-ss', '50',
+        '-i', f,
+        '-an',
+        # '-vf', f'fps=1/60',
+        # '-vf', "select='not(mod(n,800))'",
+        '-vf', "select='eq(pict_type,PICT_TYPE_I)'",
+        # '-vframes:v', '1',
+        '-vsync', 'vfr',
+        '-qscale:v', '2',
+        os.path.join(out_folder, "%04d.jpg"),
+    ])

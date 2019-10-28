@@ -7,30 +7,6 @@ import signal
 from _shutil import *
 
 
-def getch(timeout=-1):
-    if platform.system() == 'Windows':
-        import msvcrt
-        time_elapsed = 0
-        if timeout > 0:
-            while not msvcrt.kbhit() and time_elapsed < timeout:
-                sleep(0.1)
-                time_elapsed += 0.1
-            return msvcrt.getch().decode(errors='replace') if time_elapsed < timeout else None
-        else:
-            return msvcrt.getch().decode(errors='replace')
-
-    else:
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-
-
 class InputWindow():
     def __init__(self, text_changed=None):
         self.cur_input = ''
@@ -302,13 +278,3 @@ class ListWidget():
     def set_block_mode(self, block_mode):
         self.block_mode = block_mode
         self.stdscr.nodelay(not block_mode)
-
-
-def wait_key(prompt=None, timeout=2):
-    if prompt is None:
-        prompt = 'Press enter to skip...'
-    print2(prompt, color='green')
-    ch = getch(timeout=timeout)
-    if ch:
-        print('key pressed: %s' % ch)
-    return ch
