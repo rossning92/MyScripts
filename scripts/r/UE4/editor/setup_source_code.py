@@ -10,7 +10,8 @@ setup_nvpack(r'{{NVPACK_ROOT}}')
 
 chdir(r'{{UE_SOURCE}}')
 
-if exists('Setup.bat'):
-    call('cmd /c Setup.bat')
+if not exists('UE4.sln'):
+    if exists('Setup.bat'):
+        call_echo('Setup.bat')
 
-call('cmd /c GenerateProjectFiles.bat -2017')
+    call_echo('GenerateProjectFiles.bat -2017')
