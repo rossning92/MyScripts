@@ -5,8 +5,10 @@ run_elevated('choco install directx -y')
 
 # TODO: install vs2017 C++ and C#
 
-
-setup_nvpack(r'{{NVPACK_ROOT}}')
+try:
+    setup_nvpack(r'{{NVPACK_ROOT}}')
+except:
+    print2('WARNING: NVPACK not found.')
 
 chdir(r'{{UE_SOURCE}}')
 
