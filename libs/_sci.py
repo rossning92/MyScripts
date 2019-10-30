@@ -11,9 +11,14 @@ import pandas as pd
 import numpy as np
 
 
-def save_fig(out_file='figure.png', open_file=True):
+def save_fig(out_file='figure.png', open_file=True, size_inch=None):
     out_file = os.path.realpath(out_file)
+
+    if size_inch:
+        plt.gcf().set_size_inches(size_inch[0], size_inch[1])
+
     plt.gcf().tight_layout()
+
     plt.savefig(out_file, dpi=200)
     if open_file:
         os.system('start "" "%s"' % out_file)

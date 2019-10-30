@@ -243,3 +243,21 @@ def adb_install(file):
             print('[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s...' % pkg)
             call('adb uninstall %s' % pkg)
             subprocess.check_call(['adb', 'install', '-r', file])
+
+
+def sample_proc_stat():
+    adb_shell('''
+    rm /data/local/tmp/proc_stat.txt
+    total_secs=60
+    while [ $total_secs -gt 0 ]; do
+        cat /proc/stat >> /data/local/tmp/proc_stat.txt
+        echo --- >> /data/local/tmp/proc_stat.txt
+        echo $total_secs
+
+        let total_secs=$total_secs-1
+        sleep 1
+    done
+    ''')
+
+    call2('adb pull /data/local/tmp/proc_stat.txt')
+    
