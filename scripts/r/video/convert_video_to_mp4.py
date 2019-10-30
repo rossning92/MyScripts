@@ -12,6 +12,8 @@ for f in files:
 
     if '{{_480P}}':
         extra_args = ['-s', 'hd480', '-r', '60']
+    elif '{{_720P}}':
+        extra_args = ['-s', 'hd720', '-r', '60']
     else:
         extra_args = None
 

@@ -3,8 +3,7 @@ from _shutil import *
 
 def ue4_command(cmd):
     args = 'adb shell "am broadcast -a android.intent.action.RUN -e cmd \'%s\'"' % cmd
-    print(args)
-    call2(args)
+    call_echo(args)
 
 
 def ue4_recenter():

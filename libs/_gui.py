@@ -64,6 +64,7 @@ class MyDialog(QDialog):
         return False
 
     def add_shortcut(self, hotkey, func):
+        print('%s => %s' % (hotkey, func.__name__))
         QShortcut(QKeySequence(hotkey), self, func)
 
 
