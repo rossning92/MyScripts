@@ -52,7 +52,6 @@ def find_all_function_def(python_module):
 def get_function_dep_tree(function_def, function_name, scores):
     if function_name in function_def.keys():
         scores[function_name] += 1
-        print(function_name)
         function_names = find_used_function_names(function_def[function_name])
         for f in function_names:
             get_function_dep_tree(function_def, f, scores)
