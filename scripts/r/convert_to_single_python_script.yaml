@@ -1,7 +1,0 @@
-anaconda: false
-autoRun: false
-globalHotkey: null
-hotkey: Ctrl+T
-newWindow: false
-runAsAdmin: false
-wsl: false

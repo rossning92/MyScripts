@@ -260,4 +260,3 @@ def sample_proc_stat():
     ''')
 
     call2('adb pull /data/local/tmp/proc_stat.txt')
-    
