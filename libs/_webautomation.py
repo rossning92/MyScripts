@@ -6,7 +6,11 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 import re
 
-driver: webdriver.Chrome = None
+chrome_profile = 'C:\\ChromeProfile'
+options = webdriver.ChromeOptions()
+options.add_argument('user-data-dir=%s' % chrome_profile)  # Path to your chrome profile
+driver = webdriver.Chrome(chrome_options=options)
+driver.implicitly_wait(10)
 
 
 def click(ele):
@@ -28,16 +32,3 @@ def find_by_xpath(xpath):
 
 def send_keys(keys):
     ActionChains(driver).send_keys(keys).perform()
-
-
-def init():
-    global driver
-    chrome_profile = 'C:\\ChromeProfile'
-    options = webdriver.ChromeOptions()
-    options.add_argument('user-data-dir=%s' % chrome_profile)  # Path to your chrome profile
-    driver = webdriver.Chrome(chrome_options=options)
-    driver.implicitly_wait(10)
-    return driver
-
-
-#init()
