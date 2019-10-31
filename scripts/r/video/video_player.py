@@ -5,9 +5,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
+
 class Player(QMainWindow):
     """A simple Media Player using VLC and Qt
     """
+
     def __init__(self, master=None):
         QMainWindow.__init__(self, master)
         self.setWindowTitle("Media Player")
@@ -27,13 +29,13 @@ class Player(QMainWindow):
         self.setCentralWidget(self.widget)
 
         # In this widget, the video will be drawn
-        if sys.platform == "darwin": # for MacOS
+        if sys.platform == "darwin":  # for MacOS
             self.videoframe = QMacCocoaViewContainer(0)
         else:
             self.videoframe = QFrame()
         self.palette = self.videoframe.palette()
-        self.palette.setColor (QPalette.Window,
-                               QColor(0,0,0))
+        self.palette.setColor(QPalette.Window,
+                              QColor(0, 0, 0))
         self.videoframe.setPalette(self.palette)
         self.videoframe.setAutoFillBackground(True)
 
@@ -126,11 +128,11 @@ class Player(QMainWindow):
         # this is platform specific!
         # you have to give the id of the QFrame (or similar object) to
         # vlc, different platforms have different functions for this
-        if sys.platform.startswith('linux'): # for Linux using the X Server
+        if sys.platform.startswith('linux'):  # for Linux using the X Server
             self.mediaplayer.set_xwindow(self.videoframe.winId())
-        elif sys.platform == "win32": # for Windows
+        elif sys.platform == "win32":  # for Windows
             self.mediaplayer.set_hwnd(self.videoframe.winId())
-        elif sys.platform == "darwin": # for MacOS
+        elif sys.platform == "darwin":  # for MacOS
             self.mediaplayer.set_nsobject(self.videoframe.winId())
         self.PlayPause()
 
@@ -162,6 +164,7 @@ class Player(QMainWindow):
                 # "Pause", not the desired behavior of a media player
                 # this will fix it
                 self.Stop()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
