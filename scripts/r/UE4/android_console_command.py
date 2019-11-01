@@ -1,11 +1,14 @@
 from _shutil import *
 from _term import *
+from _ue4 import *
 
 commands = {
     'r': 'vr.HeadTracking.Reset',
     'm': 'ke * MoveCameraEvent',
     '[': 'vr.PixelDensity 0.1',
     ']': 'vr.PixelDensity 1.0',
+    'f': 'stat fps',
+    'u': 'stat unit',
 }
 
 # Engine\Build\Android\Java\src\com\epicgames\ue4\ConsoleCmdReceiver.java
@@ -14,12 +17,15 @@ while True:
         print('%s - %s' % (k, v))
 
     s = getch()
-    if s in commands:
+    if s == '\r':
+        print2('Console command: ', end='')
+        cmd = input()
+    elif s in commands:
         cmd = commands[s]
     else:
         cmd = s
 
-    print2('Run Command: %s' % cmd)
+    print(cmd)
 
-    args = f'''adb shell "am broadcast -a android.intent.action.RUN -e cmd '{cmd}'"'''
-    call2(args)
+    # print2('Run Command: %s' % cmd)
+    ue4_command(cmd)
