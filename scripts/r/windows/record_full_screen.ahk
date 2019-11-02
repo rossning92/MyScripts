@@ -1,6 +1,19 @@
 #SingleInstance, Force
 
-F7::StartStopRecord()
+
+ToolTip, F7 to start`nF12 to exit
+return
+
+
+F7::
+	StartStopRecord()
+	ToolTip
+	return
+	
+
+F12::
+	ExitApp
+	return
 
 
 StartStopRecord()
