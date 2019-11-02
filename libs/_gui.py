@@ -286,5 +286,11 @@ def gui_input(prompt=None, default_text=None):
         return None
 
 
+def gui_question(prompt):
+    reply = QMessageBox.question(None, "Test", prompt,
+                                 QMessageBox.Yes | QMessageBox.No)
+    return reply == QMessageBox.Yes
+
+
 if __name__ == '__main__':
     print(search(['hello' + str(i) for i in range(5)]))

@@ -1,0 +1,11 @@
+autoRun: false
+background: false
+conda: null
+globalHotkey: null
+hotkey: Ctrl+Shift+D
+newWindow: false
+restartInstance: false
+runAsAdmin: false
+template: true
+venv: null
+wsl: false

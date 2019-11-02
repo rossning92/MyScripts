@@ -174,6 +174,10 @@ class ScriptItem:
     def render(self):
         script_path = self.real_script_path if self.real_script_path else self.script_path
 
+        if not os.path.exists(script_path):
+            print2('WARNING: cannot locate the script: %s' % self.name)
+            return None
+
         with open(script_path, 'r', encoding='utf-8') as f:
             source = f.read()
         template = ScriptItem.env.from_string(source)
