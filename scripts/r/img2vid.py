@@ -15,7 +15,7 @@ def crop_image(im, rect):
 
 
 cur_folder = os.environ['CURRENT_FOLDER']
-chdir(cur_folder)
+cd(cur_folder)
 
 files = list(glob.glob('*.png'))
 files = sorted(files)

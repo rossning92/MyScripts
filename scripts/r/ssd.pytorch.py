@@ -1,12 +1,12 @@
 from _shutil import *
 
 mkdir(r'{{PROJECT_DIR}}')
-chdir(r'{{PROJECT_DIR}}')
+cd(r'{{PROJECT_DIR}}')
 
 if not exists('ssd.pytorch'):
     call('git clone https://github.com/amdegroot/ssd.pytorch')
 
-chdir('ssd.pytorch')
+cd('ssd.pytorch')
 
 # Conda path
 dirs = [
@@ -18,9 +18,9 @@ os.environ["PATH"] = os.pathsep.join(dirs) + os.pathsep + os.environ["PATH"]
 call('pip install visdom')
 
 mkdir('weights')
-chdir('weights')
+cd('weights')
 download('https://s3.amazonaws.com/amdegroot-models/ssd300_mAP_77.43_v2.pth')
-chdir('..')
+cd('..')
 
 call('conda install opencv -y')
 

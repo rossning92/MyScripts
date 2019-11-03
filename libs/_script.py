@@ -287,8 +287,8 @@ class ScriptItem:
             # TODO: if self.meta['template']:
             args = bash(self.render(), wsl=self.meta['wsl'])
 
-        elif ext == '.py':
-            if self.meta['template']:
+        elif ext == '.py' or ext == '.ipynb':
+            if self.meta['template'] and ext == '.py':
                 python_file = write_temp_file(self.render(), '.py')
             else:
                 python_file = os.path.realpath(script_path)
@@ -298,7 +298,17 @@ class ScriptItem:
             env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
-            if self.meta['conda']:
+            if ext == '.py':
+                args = ['python', python_file] + args
+            elif ext == '.ipynb':
+                args = ['jupyter', 'notebook', python_file] + args
+
+                # HACK: always use new window for jupyter notebook
+                self.meta['newWindow'] = True
+            else:
+                assert False
+
+            if self.meta['conda'] is not None:
                 assert sys.platform == 'win32'
                 import _conda
 
@@ -310,8 +320,7 @@ class ScriptItem:
                 if not exists(conda_path + '\\envs\\' + env_name):
                     call_echo('call "%s" & conda create --name %s python=3.6' % (activate, env_name))
 
-                args = ['cmd', '/c', 'call', activate, env_name, '&',
-                        'python', python_file] + args
+                args = ['cmd', '/c', 'call', activate, env_name, '&'] + args
 
             elif self.meta['venv']:
                 assert sys.platform == 'win32'
@@ -320,12 +329,8 @@ class ScriptItem:
                     call_echo([sys.executable, '-m', 'venv', venv_path])
 
                 args = ['cmd', '/c',
-                        'call', '%s\\Scripts\\activate.bat' % venv_path, '&',
-                        'python', python_file] + args
+                        'call', '%s\\Scripts\\activate.bat' % venv_path, '&'] + args
 
-            else:
-                python_executable = sys.executable
-                args = [python_executable, python_file] + args
 
         elif ext == '.vbs':
             assert os.name == 'nt'

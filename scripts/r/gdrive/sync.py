@@ -68,7 +68,11 @@ def create_dir(name):
 if __name__ == '__main__':
     install_gdrive()
 
-    path = env['CURRENT_FOLDER']
+    path = env['SELECTED_FILE']
+    if not os.path.isdir(path):
+        print2('ERROR: %s is not a folder.' % path, color='red')
+        exit(1)
+
     print('Backup `%s`? (Y/N)' % path)
     if getch() != 'y':
         sys.exit(0)

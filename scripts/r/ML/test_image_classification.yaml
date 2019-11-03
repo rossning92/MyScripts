@@ -1,0 +1,11 @@
+autoRun: false
+background: false
+conda: tf2
+globalHotkey: null
+hotkey: null
+newWindow: true
+restartInstance: false
+runAsAdmin: false
+template: true
+venv: null
+wsl: false

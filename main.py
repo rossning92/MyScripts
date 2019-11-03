@@ -17,7 +17,7 @@ from _script import *
 from _gui import *
 
 SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat',
-                     '.sh', '.ps1', '.ahk', '.vbs', '.link'}
+                     '.sh', '.ps1', '.ahk', '.vbs', '.link', '.ipynb'}
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
 

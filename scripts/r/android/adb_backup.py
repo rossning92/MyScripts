@@ -6,11 +6,11 @@ APP = 'com.github.shadowsocks'
 
 d = 'C:\\tools\\abe'
 mkdir(d)
-chdir(d)
+cd(d)
 
 download('https://github.com/nelenkov/android-backup-extractor/releases/download/20181012025725-d750899/abe-all.jar')
 
-chdir(expanduser('~/Desktop'))
+cd(expanduser('~/Desktop'))
 
 call(f'adb backup -apk -f backup.ab {APP}')
 
