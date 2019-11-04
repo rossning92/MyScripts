@@ -260,3 +260,23 @@ def sample_proc_stat():
     ''')
 
     call2('adb pull /data/local/tmp/proc_stat.txt')
+
+
+def get_pkg_name_apk(file):
+    setup_android_env()
+    print('Start the app...')
+    out = subprocess.check_output(['aapt', 'dump', 'badging', file]).decode()
+    package_name = re.search("package: name='(.*?)'", out).group(1)
+    print('PackageName: %s' % package_name)
+    # activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
+    # print('LaunchableActivity: %s' % activity_name)
+    return package_name
+
+
+def run_apk(file):
+    try:
+        pkg = get_pkg_name_apk(file)
+        start_app(pkg)
+        return pkg
+    except:
+        print('Cannot launch the app')

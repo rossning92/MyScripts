@@ -37,15 +37,6 @@ if os.path.isdir(obb_folder):
     call2(f'adb push "{obb_folder}" /sdcard/android/obb')
 
 # Run app
-setup_android_env()
-print('Start the app...')
-out = subprocess.check_output(['aapt', 'dump', 'badging', file]).decode()
-try:
-    package_name = re.search("package: name='(.*?)'", out).group(1)
-    activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
-    print('PackageName: %s' % package_name)
-    print('LaunchableActivity: %s' % activity_name)
-    start_app(package_name)
-    logcat(package_name)
-except:
-    print('Cannot launch the app')
+pkg = get_pkg_name_apk(file)
+start_app(pkg)
+logcat(pkg)

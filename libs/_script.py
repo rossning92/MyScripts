@@ -34,7 +34,7 @@ def get_console_title():
     return None
 
 
-def bash(bash, wsl=False):
+def bash(bash, wsl=False, env=None):
     if os.name == 'nt':
         if wsl:  # WSL (Windows Subsystem for Linux)
             if not os.path.exists(r'C:\Windows\System32\bash.exe'):
@@ -44,6 +44,9 @@ def bash(bash, wsl=False):
             bash = bash.replace('$', r'\$')
             return ['bash.exe', '-c', bash]
         else:
+            if env is not None:
+                env['MSYS_NO_PATHCONV'] = '1'  # Disable path conversion
+
             return [r'C:\Program Files\Git\bin\bash.exe',
                     '--login',
                     '-i',
@@ -285,7 +288,7 @@ class ScriptItem:
 
         elif ext == '.sh':
             # TODO: if self.meta['template']:
-            args = bash(self.render(), wsl=self.meta['wsl'])
+            args = bash(self.render(), wsl=self.meta['wsl'], env=env)
 
         elif ext == '.py' or ext == '.ipynb':
             if self.meta['template'] and ext == '.py':
