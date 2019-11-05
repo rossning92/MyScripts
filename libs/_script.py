@@ -390,11 +390,10 @@ class ScriptItem:
                 for k, v in env.items():
                     set_env_var += ['set', '%s=%s' % (k, v), '&']
 
-                args = ['cmd', '/c',
-                        'title', self.get_console_title(), '&',
-                        'cd', '/d', cwd, '&',
-                        'set', f'PATH={bin_path};%PATH%', '&'
-                        ] + set_env_var + args
+                args = ['cmd', '/c'] + \
+                       (['title', self.get_console_title(), '&'] if ext != '.ahk' else []) + \
+                       ['cd', '/d', cwd, '&'] + \
+                       ['set', f'PATH={bin_path};%PATH%', '&'] + set_env_var + args
 
                 print2('Run elevated:')
                 print2(_args_to_str(args), color='cyan')
