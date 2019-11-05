@@ -1,7 +1,7 @@
 from _shutil import *
 import stat
 
-ENABLE_VULKAN = False
+ENABLE_VULKAN = '{{_VULKAN}}'
 
 
 def add_value(ini_file, section, kvps):
