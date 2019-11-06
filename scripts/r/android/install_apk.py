@@ -6,6 +6,8 @@ from _android import *
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
+# call_echo('adb wait-for-device')
+
 adb_install(file)
 
 # TODO: check super su / root permission
@@ -38,5 +40,8 @@ if os.path.isdir(obb_folder):
 
 # Run app
 pkg = get_pkg_name_apk(file)
-start_app(pkg)
-logcat(pkg)
+try:
+    start_app(pkg)
+    logcat(pkg)
+except:
+    print2('ERROR: start app failed.', color='red')
