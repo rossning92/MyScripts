@@ -238,6 +238,7 @@ class ScriptItem:
             args = []
 
         env = {}
+        creationflags = 0
 
         # HACK: pass current folder
         if 'CURRENT_FOLDER' in os.environ:
@@ -370,13 +371,14 @@ class ScriptItem:
                         'sys.exit(ret)'
                     ]
 
-                    try:
-                        args = conemu_wrap_args(
-                            args, cwd=cwd, small_window=True)
-                    except:
-                        if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
-                            args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
-                                    '--hold', 'always'] + args
+                    # try:
+                    #     args = conemu_wrap_args(
+                    #         args, cwd=cwd, small_window=True)
+                    # except:
+                    #     if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
+                    #         args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
+                    #                 '--hold', 'always'] + args
+                    creationflags = subprocess.CREATE_NEW_CONSOLE
 
                 elif sys.platform == 'linux':
                     args = ['x-terminal-emulator', '-e'] + args
@@ -402,7 +404,6 @@ class ScriptItem:
                 if new_window or self.meta['background']:
                     # Check whether or not hide window
                     startupinfo = None
-                    creationflags = 0
                     if self.meta['background']:
                         if platform.system() == 'Windows':
                             SW_HIDE = 0
