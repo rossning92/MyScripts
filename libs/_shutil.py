@@ -717,4 +717,8 @@ def wait_key(prompt=None, timeout=2):
     return ch
 
 
+def start_process(args):
+    subprocess.Popen(args, close_fds=True)
+
+
 env = os.environ
