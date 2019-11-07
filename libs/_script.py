@@ -368,6 +368,7 @@ class ScriptItem:
                         'hwnd = ctypes.windll.kernel32.GetConsoleWindow();'
                         'ctypes.windll.user32.SetForegroundWindow(hwnd);'
                         's.set_console_title(s.get_console_title() + " (Finished)");'
+                        'pause;'
                         'sys.exit(ret)'
                     ]
 
