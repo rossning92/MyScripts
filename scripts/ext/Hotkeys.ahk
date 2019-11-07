@@ -23,66 +23,72 @@ return
         return
 #If
 
-^q::
-	; If explorer is active, copy file path to clipboard
-	WriteExplorerInfoToJson()
-
-	; Activate script window
-    if WinExist(CONSOLE_WINDOW) {
-        WinActivate % CONSOLE_WINDOW
-        WinActivate % GUI_WINDOW
-    } else {
-        WinActivate % GUI_WINDOW
-    }
-	return
-
-#c::ActivateChrome(0)
-#!c::ActivateChrome(1)
-
 #If WinActive("ahk_exe ConEmu64.exe")
     Esc::
         WinClose ahk_exe ConEmu64.exe
         return
 #If
 
-~LButton & WheelUp::
-    Suspend, Permit
-    SoundSet +5
-    SoundPlay *16
-    return
 
-~LButton & WheelDown::
-    Suspend, Permit
-    SoundSet -5
-    SoundPlay *16
-    return
+#If not WinActive("ahk_exe vncviewer.exe")
+	
+	!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
+	#c::ActivateChrome(0)
+	#!c::ActivateChrome(1)
+	
+	^q::
+		; If explorer is active, copy file path to clipboard
+		WriteExplorerInfoToJson()
 
-#F4::
-    Suspend, Permit
-    WinGet, pid, PID, A
-    Process, Close, %pid%
-    SoundPlay %BEEP_FILE%
-    return
+		; Activate script window
+		if WinExist(CONSOLE_WINDOW) {
+			WinActivate % CONSOLE_WINDOW
+			WinActivate % GUI_WINDOW
+		} else {
+			WinActivate % GUI_WINDOW
+		}
+		return
 
-!#F4::
-	; Close all explorer windows
-	WinGet, winList, List, ahk_class CabinetWClass
-	Loop, %winList%
-	{
-		this_id := winList%A_Index%
-		WinClose, ahk_id %this_id%
-	}
+	~LButton & WheelUp::
+		Suspend, Permit
+		SoundSet +5
+		SoundPlay *16
+		return
 
-	; Close "(Finished)" windows
-	WinGet, winList, List, (Finished)
-	Loop, %winList%
-	{
-		this_id := winList%A_Index%
-		WinClose, ahk_id %this_id%
-	}
-	return
+	~LButton & WheelDown::
+		Suspend, Permit
+		SoundSet -5
+		SoundPlay *16
+		return
 
-!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
+	#F4::
+		Suspend, Permit
+		WinGet, pid, PID, A
+		Process, Close, %pid%
+		SoundPlay %BEEP_FILE%
+		return
+
+	!#F4::
+		; Close all explorer windows
+		WinGet, winList, List, ahk_class CabinetWClass
+		Loop, %winList%
+		{
+			this_id := winList%A_Index%
+			WinClose, ahk_id %this_id%
+		}
+
+		; Close "(Finished)" windows
+		WinGet, winList, List, (Finished)
+		Loop, %winList%
+		{
+			this_id := winList%A_Index%
+			WinClose, ahk_id %this_id%
+		}
+		return
+	
+#If
+
+
 
 
 ActivateChrome(index=0)
