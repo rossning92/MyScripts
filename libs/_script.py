@@ -368,18 +368,24 @@ class ScriptItem:
                         'hwnd = ctypes.windll.kernel32.GetConsoleWindow();'
                         'ctypes.windll.user32.SetForegroundWindow(hwnd);'
                         's.set_console_title(s.get_console_title() + " (Finished)");'
-                        'input("press any key...");'
                         'sys.exit(ret)'
                     ]
 
-                    # try:
-                    #     args = conemu_wrap_args(
-                    #         args, cwd=cwd, small_window=True)
-                    # except:
-                    #     if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
-                    #         args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
-                    #                 '--hold', 'always'] + args
-                    creationflags = subprocess.CREATE_NEW_CONSOLE
+                    while True:  # Create new console window on windows
+                        try:
+                            args = conemu_wrap_args(
+                                args, cwd=cwd, small_window=True)
+                            break
+                        except:
+                            pass
+
+                        if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
+                            args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
+                                    '--hold', 'always'] + args
+                            break
+
+                        creationflags = subprocess.CREATE_NEW_CONSOLE
+                        break
 
                 elif sys.platform == 'linux':
                     args = ['x-terminal-emulator', '-e'] + args
