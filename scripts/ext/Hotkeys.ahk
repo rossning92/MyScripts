@@ -30,7 +30,7 @@ return
 #If
 
 
-#If not WinActive("ahk_exe vncviewer.exe")
+#If not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
 	
 	!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 	#c::ActivateChrome(0)
