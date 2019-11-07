@@ -268,7 +268,8 @@ class MainWindow(QWidget):
         else:
             args = None
 
-        if script.ext in ['.py', '.cmd', '.bat', '.ps1', '.ipynb']:  # HACK: always create new window
+        # HACK: always create new window
+        if not script.name.startswith('ext/') and script.ext in ['.py', '.cmd', '.bat', '.ps1', '.ipynb']:
             control_down = True
 
         script.execute(control_down=control_down, args=args)
