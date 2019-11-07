@@ -354,6 +354,7 @@ class ScriptItem:
         if args is not None and len(args) > 0:
             # Check if new window is needed
             new_window = self.meta['newWindow'] or control_down
+
             if new_window:
                 # HACK: python wrapper: activate console window once finished
                 if sys.platform == 'win32' and not self.meta['runAsAdmin']:
