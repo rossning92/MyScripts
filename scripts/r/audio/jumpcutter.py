@@ -6,13 +6,13 @@ from scipy import signal
 from _audio import *
 
 BORDER_IGNORE = 0.1
-LOUDNESS_DB = -21
+LOUDNESS_DB = -14
 
 COMPRESSOR_ATTACK = 0.001
-COMPRESSOR_DECAY = 0.05
-COMPRESSOR_THRES_DB = -20
+COMPRESSOR_DECAY = 0.2 # 0.05
+COMPRESSOR_THRES_DB = -14
 
-NOISE_GATE_DB = -50
+NOISE_GATE_DB = -30
 TREBLE_BOOST_DB = 2
 
 
@@ -43,8 +43,12 @@ for f in glob.glob('Audio*.wav'):
     in_file = out_file
     out_file = f'tmp/{f}.norm.wav'
     if not os.path.exists(out_file):
+        # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
+        # to calculate short-term loudness in the source and adjust the destination
+        # to meet the target parameters. The sample file is only a second long,
+        # which looks to be the reason for the anomalous normalization.
         subprocess.check_call(
-            f'ffmpeg -i {in_file} -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y')
+            f'ffmpeg -i {in_file} -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y')
 
     in_file = out_file
     filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext

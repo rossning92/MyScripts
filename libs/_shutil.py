@@ -721,4 +721,16 @@ def start_process(args):
     subprocess.Popen(args, close_fds=True)
 
 
+def setup_nodejs(install=False):
+    NODE_JS_PATH = r'C:\Program Files\nodejs'
+    if exists(NODE_JS_PATH):
+        print2('NodeJS: %s' % NODE_JS_PATH)
+
+        prepend_to_path([NODE_JS_PATH,
+                         expandvars('%APPDATA%\\npm')])
+
+    if install and not os.path.exists(NODE_JS_PATH):
+        run_elevated('choco install nodejs -y')
+
+
 env = os.environ

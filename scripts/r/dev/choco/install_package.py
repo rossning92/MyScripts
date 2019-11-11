@@ -45,6 +45,7 @@ PKGS = {
         'ripgrep',
         'vscode',
         'sumatrapdf',
+        'nodejs',
     ],
     'media': [
         'ffmpeg',

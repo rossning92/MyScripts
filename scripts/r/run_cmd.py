@@ -13,4 +13,6 @@ cd_current_dir()
 
 setup_cmake()
 
+setup_nodejs()
+
 subprocess.call(['cmd'])

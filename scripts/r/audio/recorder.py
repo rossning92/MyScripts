@@ -1,6 +1,7 @@
 from _shutil import *
 from _term import *
 from _audio import *
+from _script import *
 
 try_import('pyaudio')
 import pyaudio
@@ -10,6 +11,12 @@ import wave
 pa = pyaudio.PyAudio()
 
 FILE_PREFIX = '{{_FILE_PREFIX}}' if '{{_FILE_PREFIX}}' else 'AudioRecord'
+
+FILE_PREFIX = os.path.splitext(os.path.basename(get_files()[0]))[0]
+print2('FILE_PREFIX: %s' % FILE_PREFIX, color='green')
+
+
+# set_variable('_FILE_PREFIX', FILE_PREFIX)
 
 
 class Recorder(object):
@@ -138,6 +145,7 @@ if __name__ == '__main__':
         if recorder is not None:
             recorder.close()
             recorder = None
+
 
     file_name = None
     while True:
