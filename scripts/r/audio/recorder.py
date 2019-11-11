@@ -12,8 +12,9 @@ pa = pyaudio.PyAudio()
 
 FILE_PREFIX = '{{_FILE_PREFIX}}' if '{{_FILE_PREFIX}}' else 'AudioRecord'
 
-FILE_PREFIX = os.path.splitext(os.path.basename(get_files()[0]))[0]
-print2('FILE_PREFIX: %s' % FILE_PREFIX, color='green')
+if 0:
+    FILE_PREFIX = os.path.splitext(os.path.basename(get_files()[0]))[0]
+    print2('FILE_PREFIX: %s' % FILE_PREFIX, color='green')
 
 
 # set_variable('_FILE_PREFIX', FILE_PREFIX)
