@@ -335,7 +335,6 @@ class ScriptItem:
                 args = ['cmd', '/c',
                         'call', '%s\\Scripts\\activate.bat' % venv_path, '&'] + args
 
-
         elif ext == '.vbs':
             assert os.name == 'nt'
 
@@ -344,11 +343,6 @@ class ScriptItem:
 
         else:
             print('Not supported script:', ext)
-
-        if self.meta['restartInstance']:
-            # Only works on windows for now
-            if platform.system() == 'Windows':
-                exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
 
         # Run commands
         if args is not None and len(args) > 0:
@@ -497,6 +491,11 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
 
     if console_title:
         script.console_title = console_title
+
+    if script.meta['restartInstance']:
+        # Only works on windows for now
+        if platform.system() == 'Windows':
+            exec_ahk(f'WinClose, {script.get_console_title()}', wait=True)
 
     # Set console window title (for windows only)
     if set_console_title and platform.system() == 'Windows':
