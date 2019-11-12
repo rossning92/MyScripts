@@ -321,7 +321,7 @@ class ScriptItem:
 
                 activate = conda_path + '\\Scripts\\activate.bat'
 
-                if not exists(conda_path + '\\envs\\' + env_name):
+                if env_name != 'base' and not exists(conda_path + '\\envs\\' + env_name):
                     call_echo('call "%s" & conda create --name %s python=3.6' % (activate, env_name))
 
                 args = ['cmd', '/c', 'call', activate, env_name, '&'] + args
@@ -493,7 +493,7 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
 
     # Override meta
     script.meta['newWindow'] = new_window
-    script.meta['restartInstance'] = False
+    script.meta['restartInstance'] = True
 
     if console_title:
         script.console_title = console_title

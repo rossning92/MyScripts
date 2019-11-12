@@ -15,7 +15,12 @@ Gui, Show, x0 y400 w400 h400 NoActivate
 
 UpdateOSD:
     MouseGetPos, MouseX, MouseY
-    GuiControl,, MyText, % CPULoad()
+	
+	out =
+	; out += ComObjCreate("WScript.Shell").Exec("adb devices").StdOut.ReadAll() "`n"
+	out += CPULoad() "`n"
+	
+    GuiControl,, MyText, % out
 return
 
 CPULoad()

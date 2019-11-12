@@ -1,7 +1,14 @@
-from _conda import setup_env
 from _shutil import *
 import os
 
-setup_env()
+cd(os.environ['CURRENT_FOLDER'])
 
-call(f'call activate & jupyter notebook "{os.environ["SELECTED_FILE"]}"')
+args = 'jupyter notebook'
+if 'SELECTED_FILE' in os.environ:
+    args += ' "' + os.environ["SELECTED_FILE"] + '"'
+
+try:
+    call2(args)
+except:
+    call2('conda install jupyter -y')
+    call2(args)
