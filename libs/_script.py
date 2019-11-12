@@ -344,6 +344,11 @@ class ScriptItem:
         else:
             print('Not supported script:', ext)
 
+        if self.meta['restartInstance']:
+            # Only works on windows for now
+            if platform.system() == 'Windows':
+                exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
+
         # Run commands
         if args is not None and len(args) > 0:
             # Check if new window is needed
@@ -477,7 +482,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, set_console_title=False, console_title=None):
+def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
@@ -487,18 +492,15 @@ def run_script(script_name, variables=None, new_window=False, set_console_title=
 
     # Override meta
     script.meta['newWindow'] = new_window
-    script.meta['restartInstance'] = True
+
+    if restart_instance:
+        script.meta['restartInstance'] = True
 
     if console_title:
         script.console_title = console_title
 
-    if script.meta['restartInstance']:
-        # Only works on windows for now
-        if platform.system() == 'Windows':
-            exec_ahk(f'WinClose, {script.get_console_title()}', wait=True)
-
     # Set console window title (for windows only)
-    if set_console_title and platform.system() == 'Windows':
+    if console_title and platform.system() == 'Windows':
         # Save previous title
         MAX_BUFFER = 260
         saved_title = (ctypes.c_char * MAX_BUFFER)()
