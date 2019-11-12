@@ -293,7 +293,7 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c python -c "from _script import *;update_env_var_explorer();run_script('%path%'`, console_title='%name%'`, restart_instance=True)" || pause
+        Run cmd /c python -c "from _script import *;update_env_var_explorer();run_script('%path%'`, console_title='%name%'`, restart_instance=False)" || pause
     }
 }
 ''')

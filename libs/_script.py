@@ -493,8 +493,8 @@ def run_script(script_name, variables=None, new_window=False, console_title=None
     # Override meta
     script.meta['newWindow'] = new_window
 
-    if restart_instance:
-        script.meta['restartInstance'] = True
+    if restart_instance is not None:
+        script.meta['restartInstance'] = restart_instance
 
     if console_title:
         script.console_title = console_title
