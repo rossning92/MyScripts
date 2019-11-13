@@ -7,21 +7,30 @@ Gui +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20
 MyText = 123123123
 Gui, Color, %CustomColor%
 Gui, Font, q3 s14 c00FF00, Arial
-Gui, Add, Text, vMyText, Gui, Add, Text
+Gui, Add, Text, vMyText w400 h400
 WinSet, TransColor, %CustomColor% 150 ; Make color invisible
-SetTimer, UpdateOSD, 1000
-Gosub, UpdateOSD  ; Run first update
+
 Gui, Show, x0 y400 w400 h400 NoActivate  
 
-UpdateOSD:
-    MouseGetPos, MouseX, MouseY
+objExecObject := ComObjCreate("WScript.Shell").Exec("python system_stats_.py")
+while not objExecObject.StdOut.AtEndOfStream
+{
+	text =
+	while not objExecObject.StdOut.AtEndOfStream
+	{
+		line := objExecObject.StdOut.Readline()
+		if (line = "")
+			break
+			
+		text := text . line . "`n"
+	}
 	
-	out =
-	; out += ComObjCreate("WScript.Shell").Exec("adb devices").StdOut.ReadAll() "`n"
-	out += CPULoad() "`n"
-	
-    GuiControl,, MyText, % out
+	GuiControl,, MyText, % text
+}
+
+ExitApp
 return
+
 
 CPULoad()
 { 
