@@ -1,4 +1,5 @@
 from _shutil import *
+from _android import *
 
 try_import('psutil')
 import psutil
@@ -26,6 +27,8 @@ def adb_device_stat():
 
 
 if __name__ == '__main__':
+    setup_android_env()
+
     threading.Thread(target=adb_device_stat).start()
 
     i = 0
