@@ -6,9 +6,8 @@ WinClose system_stats_
 
 CustomColor = EEAA99  ; Can be any RGB color.
 Gui +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20
-MyText = 123123123
 Gui, Color, %CustomColor%
-Gui, Font, q3 s14 c00FF00, Arial
+Gui, Font, q3 c00FF00 s12, consolas
 Gui, Add, Text, vMyText w400 h400
 WinSet, TransColor, %CustomColor% 150 ; Make color invisible
 
