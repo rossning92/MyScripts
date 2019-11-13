@@ -1,5 +1,7 @@
 #SingleInstance, Force
 
+WinClose system_stats_
+
 ; MsgBox % ComObjCreate("WScript.Shell").Exec("cmd.exe /q /c dir").StdOut.ReadAll()
 
 CustomColor = EEAA99  ; Can be any RGB color.
@@ -12,7 +14,7 @@ WinSet, TransColor, %CustomColor% 150 ; Make color invisible
 
 Gui, Show, x0 y400 w400 h400 NoActivate  
 
-objExecObject := ComObjCreate("WScript.Shell").Exec("python system_stats_.py")
+objExecObject := ComObjCreate("WScript.Shell").Exec("cmd /c title system_stats_ & python system_stats_.py")
 while not objExecObject.StdOut.AtEndOfStream
 {
 	text =
