@@ -14,10 +14,13 @@ def adb_device_stat():
             out = subprocess.check_output('adb devices', universal_newlines=True)
             out = out.splitlines()[1:]
             out = filter(lambda x: x, out)
-            out = [re.sub('\s+device', '', x) for x in out]
+            out = [x[:6] for x in out]
             devices = ' | '.join(out)
         except:
-            pass
+            devices = 'err'
+
+        if not devices:
+            devices = 'n/a'
 
         sleep(5)
 
