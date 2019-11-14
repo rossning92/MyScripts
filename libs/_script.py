@@ -226,7 +226,7 @@ class ScriptItem:
     def get_public_variable_prefix(self):
         return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
-    def execute(self, args=None, control_down=False):
+    def execute(self, args=None, control_down=False, restart_instance=None):
         script_path = self.real_script_path if self.real_script_path else self.script_path
         ext = self.real_ext if self.real_ext else self.ext
 
@@ -344,7 +344,7 @@ class ScriptItem:
         else:
             print('Not supported script:', ext)
 
-        if self.meta['restartInstance']:
+        if (restart_instance is not None and restart_instance) or self.meta['restartInstance']:
             # Only works on windows for now
             if platform.system() == 'Windows':
                 exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
@@ -482,7 +482,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False):
+def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=None):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
@@ -492,9 +492,6 @@ def run_script(script_name, variables=None, new_window=False, console_title=None
 
     # Override meta
     script.meta['newWindow'] = new_window
-
-    if restart_instance is not None:
-        script.meta['restartInstance'] = restart_instance
 
     if console_title:
         script.console_title = console_title
@@ -511,13 +508,13 @@ def run_script(script_name, variables=None, new_window=False, console_title=None
     if variables:
         script.set_override_variables(variables)
 
-    script.execute()
+    script.execute(restart_instance=restart_instance)
     if script.return_code != 0:
         raise Exception('[ERROR] %s returns %d' %
                         (script_name, script.return_code))
 
     # Restore title
-    if set_console_title and platform.system() == 'Windows':
+    if console_title and platform.system() == 'Windows':
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
 
@@ -531,7 +528,7 @@ def get_default_meta():
         'autoRun': False,
         'wsl': False,
         'conda': None,
-        'restartInstance': False,
+        'restartInstance': True,
         'background': False,
         'venv': None,
     }

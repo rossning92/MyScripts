@@ -269,10 +269,12 @@ class MainWindow(QWidget):
             args = None
 
         # HACK: always create new window
+        restart_instance = None
         if not script.name.startswith('ext/') and script.ext in ['.py', '.cmd', '.bat', '.ps1', '.ipynb']:
             control_down = True
+            restart_instance = True
 
-        script.execute(control_down=control_down, args=args)
+        script.execute(control_down=control_down, args=args, restart_instance=restart_instance)
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
