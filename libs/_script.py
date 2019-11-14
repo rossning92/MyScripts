@@ -482,7 +482,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=None):
+def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
