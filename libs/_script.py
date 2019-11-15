@@ -344,7 +344,10 @@ class ScriptItem:
         else:
             print('Not supported script:', ext)
 
-        if (restart_instance is not None and restart_instance) or self.meta['restartInstance']:
+        if restart_instance is None:
+            restart_instance = self.meta['restartInstance']
+
+        if restart_instance:
             # Only works on windows for now
             if platform.system() == 'Windows':
                 exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)

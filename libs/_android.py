@@ -39,7 +39,7 @@ def restart_current_app():
     call2('adb shell am start -n %s' % pkg_activity)
 
 
-def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log_after_secs=-2):
+def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log_after_secs=-2, exclude=()):
     pid_map = {}
 
     def filter_line(line):
@@ -79,6 +79,11 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
         # Filter by string
         if filter_str and re.search(filter_str.encode(), line) is None:
             return None
+
+        # Filter by exclude
+        for x in exclude:
+            if x.encode() in line:
+                return None
 
         return line
 
