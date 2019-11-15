@@ -7,6 +7,7 @@ ms-python.python
 ms-vscode.cpptools
 stkb.rewrap
 shd101wyy.markdown-preview-enhanced
+mdickin.markdown-shortcuts
 '''
 
 extensions = [x for x in extensions.splitlines()]
