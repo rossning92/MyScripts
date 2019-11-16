@@ -8,8 +8,8 @@ from _audio import *
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
 
-COMPRESSOR_ATTACK = 0.001
-COMPRESSOR_DECAY = 0.2 # 0.05
+COMPRESSOR_ATTACK = 0.0005
+COMPRESSOR_DECAY = 0.2  # 0.05
 COMPRESSOR_THRES_DB = -14
 
 NOISE_GATE_DB = -30
@@ -28,6 +28,7 @@ chdir(os.environ['CURRENT_FOLDER'])
 mkdir('tmp/cut')
 mkdir('out')
 out_file_list = []
+out_norm_files = []
 for f in glob.glob('Audio*.wav'):
     print2('Processing: %s' % f)
 
@@ -97,6 +98,7 @@ for f in glob.glob('Audio*.wav'):
             plt.show()
 
         wavfile.write(out_file, rate, data2)
+    out_norm_files.append(out_file)
 
     # Compress
     in_file = out_file
@@ -115,4 +117,5 @@ for f in glob.glob('Audio*.wav'):
     out_file_list.append(out_file)
 
 concat_audio(out_file_list, 0.2, out_file='out/concat.wav', channels=1)
+concat_audio(out_norm_files, 0.2, out_file='out/concat_norm.wav', channels=1)
 call2('start out/concat.wav')
