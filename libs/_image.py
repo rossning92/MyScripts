@@ -111,6 +111,7 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
             file_list = image_files
         else:
             file_list = glob.glob(image_files)
+            file_list = [x for x in file_list if os.path.isfile(x)]
 
         if len(file_list) == 0:
             raise Exception('No image files has been found: %s' % image_files)
