@@ -1,15 +1,17 @@
 from _shutil import *
-
-f = get_files(cd=True)
-
-lines = '''
-Function
-'''.strip()
-
-file_name = 'function_title'
-
 import asyncio
 from pyppeteer import launch
+
+TITLES = '''
+Function
+Test
+1
+2
+3
+abc
+'''.strip()
+
+FILE_PREFIX = 'function_title'
 
 SCALE = 1
 
@@ -86,17 +88,15 @@ def write_to_file(text, file_name):
             'deviceScaleFactor': SCALE,
         })
         # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
-        await page.setContent(a)
-        time.sleep(1)
-        await page.screenshot({'path': file_name})
+        await page.goto('data:text/html,' + a)
+        await page.screenshot({'path': file_name, 'omitBackground': True})
         await browser.close()
 
     asyncio.get_event_loop().run_until_complete(main())
 
+if __name__ == '__main__':
+    cd(r'{{WORK_DIR}}')
 
-# call2('start ' + file_name)
-
-
-for i, line in enumerate(lines.splitlines()):
-    print(i)
-    write_to_file(line, '%s_%02d.png' % (file_name, i + 1))
+    for i, line in enumerate(TITLES.splitlines()):
+        print(i)
+        write_to_file(line, '%s_%02d.png' % (FILE_PREFIX, i + 1))
