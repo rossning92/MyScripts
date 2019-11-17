@@ -16,8 +16,7 @@ from _shutil import *
 from _script import *
 from _gui import *
 
-SCRIPT_EXTENSIONS = {'.py', '.cmd', '.bat',
-                     '.sh', '.ps1', '.ahk', '.vbs', '.link', '.ipynb'}
+
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
 
@@ -270,7 +269,7 @@ class MainWindow(QWidget):
 
         # HACK: always create new window
         restart_instance = None
-        if not script.name.startswith('ext/') and script.ext in ['.py', '.cmd', '.bat', '.ps1', '.ipynb']:
+        if not script.name.startswith('ext/') and script.ext in ['.py', '.cmd', '.bat', '.ps1', '.ipynb', '.js']:
             control_down = True
             restart_instance = True
 

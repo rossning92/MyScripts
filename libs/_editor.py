@@ -49,6 +49,8 @@ def open_with_text_editor(path, line_no=None):
     else:
         if os.path.splitext(path)[1] == '.py':
             open_in_pycharm(path)
+        elif os.path.splitext(path)[1] == '.js':
+            open_in_vscode(path)
         else:
             try:
                 args = ['notepad++', path]

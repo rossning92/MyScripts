@@ -724,13 +724,19 @@ def start_process(args):
 def setup_nodejs(install=False):
     NODE_JS_PATH = r'C:\Program Files\nodejs'
     if exists(NODE_JS_PATH):
-        print2('NodeJS: %s' % NODE_JS_PATH)
+        print2('Node.js: %s' % NODE_JS_PATH)
 
         prepend_to_path([NODE_JS_PATH,
                          expandvars('%APPDATA%\\npm')])
 
     if install and not os.path.exists(NODE_JS_PATH):
         run_elevated('choco install nodejs -y')
+
+    if sys.platform == 'win32':
+        global_modules = os.path.expandvars('%APPDATA%/npm/node_modules')
+        if os.path.exists(global_modules):
+            os.environ['NODE_PATH'] = global_modules
+            print2('NODE_PATH: %s' % global_modules)
 
 
 env = os.environ

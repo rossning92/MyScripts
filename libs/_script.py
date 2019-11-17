@@ -12,6 +12,12 @@ import shlex
 import glob
 import locale
 
+SCRIPT_EXTENSIONS = {
+    '.sh', '.js', '.link',
+    '.py', '.ipynb',  # Python
+    '.cmd', '.bat', '.ps1', '.ahk', '.vbs',  # Windows specific
+}
+
 
 def set_console_title(title):
     if platform.system() == 'Windows':
@@ -287,8 +293,12 @@ class ScriptItem:
                 print('OS does not support script: %s' % script_path)
                 return
 
-        elif ext == '.sh':
+        elif ext == '.js':
             # TODO: if self.meta['template']:
+            setup_nodejs()
+            args = ['node', os.path.basename(script_path)]
+
+        elif ext == '.sh':
             args = bash(self.render(), wsl=self.meta['wsl'], env=env)
 
         elif ext == '.py' or ext == '.ipynb':
@@ -350,7 +360,7 @@ class ScriptItem:
         if restart_instance:
             # Only works on windows for now
             if platform.system() == 'Windows':
-                exec_ahk(f'WinClose, {self.get_console_title()}', wait=True)
+                exec_ahk(f'WinClose, {self.get_console_title()}, , , - Visual Studio Code', wait=True)
 
         # Run commands
         if args is not None and len(args) > 0:
