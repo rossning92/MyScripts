@@ -12,7 +12,7 @@ const puppeteer = require('puppeteer');
   await page.screenshot({ path: 'example.png' });
 
   await browser.close();
-})();
 
-const exec = require('child_process').exec;
-exec('start example.png');
+  const exec = require('child_process').exec;
+  exec('start example.png');
+})();
