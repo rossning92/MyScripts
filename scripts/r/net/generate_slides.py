@@ -94,6 +94,7 @@ def write_to_file(text, file_name):
 
     asyncio.get_event_loop().run_until_complete(main())
 
+
 if __name__ == '__main__':
     cd(r'{{WORK_DIR}}')
 

@@ -47,6 +47,7 @@ reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_DWORD /d
 reg add HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
 reg add HKCU\Console /v FaceName /t REG_SZ /d Consolas /f
 reg add HKCU\Console /v FontSize /t REG_DWORD /d 0x120000 /f
+reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f
 
 reg add HKCU\Console /v ColorTable00 /t REG_DWORD /d 0x000c0c0c /f
 reg add HKCU\Console /v ColorTable01 /t REG_DWORD /d 0x00da3700 /f
@@ -64,6 +65,7 @@ reg add HKCU\Console /v ColorTable12 /t REG_DWORD /d 0x005648e7 /f
 reg add HKCU\Console /v ColorTable13 /t REG_DWORD /d 0x009e00b4 /f
 reg add HKCU\Console /v ColorTable14 /t REG_DWORD /d 0x00a5f1f9 /f
 reg add HKCU\Console /v ColorTable15 /t REG_DWORD /d 0x00f2f2f2 /f
+
 
 reg add HKCU\Console\%%SystemRoot%%_SYSTEM32_cmd.exe /v CodePage /t REG_DWORD /d 65001 /f
 
