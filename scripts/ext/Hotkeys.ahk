@@ -85,6 +85,16 @@ return
 			WinClose, ahk_id %this_id%
 		}
 		return
+		
+	+F1::
+		Send {F1}
+		WinWaitActive ahk_exe Snipaste.exe
+		Send r
+		Send ^+s
+
+	#v::
+		WinActivate ahk_exe code.exe
+		return
 	
 #If
 
@@ -126,12 +136,3 @@ ActivateChrome(index=0)
 	}
 }
 
-+F1::
-	Send {F1}
-	WinWaitActive ahk_exe Snipaste.exe
-	Send r
-	Send ^+s
-
-#v::
-	WinActivate ahk_exe code.exe
-	return
