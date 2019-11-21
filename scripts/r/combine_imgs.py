@@ -3,11 +3,10 @@ from _shutil import *
 
 os.chdir(env['CURRENT_FOLDER'])
 
-cols = '{{_COLS}}'
-cols = int(cols) if cols else None
+cols = int('{{_COLS}}') if '{{_COLS}}' else None
 col_major_order = True if '{{_COL_MAJOR_ORDER}}' else False
 draw_label = True if '{{_DRAW_LABEL}}' else False
-label_align = '{{_LABEL_ALIGN}}' if '{{_LABEL_ALIGN}}' else 'center'
+label_align = '{{_LABEL_ALIGN}}' if '{{_LABEL_ALIGN}}' else 'top'
 gif_gen = True if '{{_GIF_GENERATION}}' else False
 gif_duration = int('{{_GIF_DURA}}') if '{{_GIF_DURA}}' else 500
 font_scale = float('{{_FONT_SCALE}}') if '{{_FONT_SCALE}}' else 1.0
@@ -23,3 +22,5 @@ combine_images(image_files='*.*',
                gif_duration=gif_duration,
                font_scale=font_scale,
                font_color=font_color)
+
+call2('start out/out.png')

@@ -100,7 +100,7 @@ def draw_text(im, text, box, text_outline=2, font_color='white', align='center',
 def combine_images(image_files=None, images=None, out_file=None, parse_file_name=None, cols=4, spacing=4, scale=1.0,
                    text_outline=2,
                    gif_duration=500, generate_atlas=True, generate_gif=True, draw_label=True, labels=None,
-                   label_align='center',
+                   label_align='top',
                    font_color='white', title=None,
                    title_color='white',
                    col_major_order=False,
@@ -126,6 +126,9 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
 
     else:
         raise Exception("`image_files` and `images` cannot be None at the same time.")
+
+    if not cols:
+        cols = math.ceil(math.sqrt(len(imgs)))
 
     # Adjust column size if it's smaller than the number of files
     if len(imgs) < cols:
