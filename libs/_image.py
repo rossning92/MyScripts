@@ -88,10 +88,9 @@ def draw_text(im, text, box, text_outline=2, font_color='white', align='center',
         x = box[0] + (box[2] - w) / 2
         y = box[1] + (box[3] - h) / 2
 
-    draw.multiline_text((x - text_outline, y), text, font=font, fill="black", align='center')
-    draw.multiline_text((x + text_outline, y), text, font=font, fill="black", align='center')
-    draw.multiline_text((x, y - text_outline), text, font=font, fill="black", align='center')
-    draw.multiline_text((x, y + text_outline), text, font=font, fill="black", align='center')
+    t = text_outline
+    for dx, dy in [[0, t], [t, 0], [-t, 0], [0, -t]]:
+        draw.multiline_text((x + dx, y + dy), text, font=font, fill="black", align='center')
     draw.multiline_text((x, y), text, font=font, fill=font_color, align='center')
 
     del draw
