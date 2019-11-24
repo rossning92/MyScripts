@@ -13,6 +13,8 @@ COMPRESSOR_DECAY = 0.2  # 0.05
 COMPRESSOR_THRES_DB = -14
 
 NOISE_GATE_DB = -30
+
+MIDDLE_FREQ_DB = -5
 TREBLE_BOOST_DB = 2
 
 PADDING = 0.2
@@ -107,7 +109,8 @@ for f in glob.glob('Audio*.wav'):
     if not os.path.exists(out_file):
         subprocess.check_call(
             f'sox {in_file} {out_file}'
-            f' equalizer 800 400h -10 treble {TREBLE_BOOST_DB} 4k 1s'
+            f' equalizer 800 400h {MIDDLE_FREQ_DB}'
+            f' treble {TREBLE_BOOST_DB} 4k 1s'
             f' compand'
             f' {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}'  # attack1,decay1
             f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB},0,{COMPRESSOR_THRES_DB}'

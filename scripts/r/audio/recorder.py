@@ -122,17 +122,27 @@ class WavePlayer:
         self.stream.start_stream()
 
     def stop(self):
-        if self.wavefile:
-            self.wavefile.close()
-            self.wavefile = None
-
-        if self.stream:
+        if self.stream is not None:
             self.stream.stop_stream()
             self.stream.close()
+            self.stream = None
+
+        if self.wavefile is not None:
+            self.wavefile.close()
+            self.wavefile = None
 
 
 def get_audio_file_name(prefix=FILE_PREFIX, postfix='.wav'):
     return '%s_%s%s' % (prefix, get_time_str(), postfix)
+
+
+def print_help():
+    print2(
+        'SPACE - Start / stop recording\n'
+        'ENTER - Record next\n'
+        'N     - Create noise profile\n'
+        ', .   - Browse files\n'
+    )
 
 
 if __name__ == '__main__':
@@ -143,6 +153,11 @@ if __name__ == '__main__':
 
     recorder = None
     playback = WavePlayer()
+    cur_file_index = 0
+
+
+    def get_audio_files():
+        return list(glob.glob(FILE_PREFIX + '_*.wav'))
 
 
     def stop_all():
@@ -155,21 +170,60 @@ if __name__ == '__main__':
             recorder = None
 
 
+    def playback_file(filename=None, offset=None):
+        global cur_file_index
+
+        files = get_audio_files()
+        n = len(files)
+        if n == 0:
+            return
+
+        if filename is not None:
+            cur_file_index = files.index(filename)
+            assert cur_file_index >= 0
+
+        else:
+            cur_file_index = max(min(cur_file_index + offset, len(files) - 1), 0)
+
+        cur_file = files[cur_file_index]
+        print(f'({cur_file_index+1}/{n}) {cur_file}')
+        playback.play(cur_file)
+
+
+    def delete_cur():
+        global cur_file_index
+
+        files = get_audio_files()
+        if cur_file_index >= len(files):
+            return
+
+        file_name = files[cur_file_index]
+        if os.path.exists(file_name):
+            print2('File deleted: %s' % file_name, color='red')
+            os.remove(file_name)
+
+
+    print_help()
+
+    cur_file_index = len(get_audio_files()) - 1
     file_name = None
     while True:
-        print2(
-            'SPACE - Start / Stop recording\n'
-            'ENTER - Record Next\n'
-            'N     - Create noise profile\n'
-            'L     - List files\n'
-        )
-
         ch = getch()
-        print(ch)
 
-        if ch == ' ':
+        if ch == 'h':
+            print_help()
+
+        elif ch == ' ':
             if recorder is None:
-                file_name = get_audio_file_name()
+                playback.stop()
+
+                files = get_audio_files()
+                if cur_file_index < len(files) - 1:
+                    prefix = os.path.splitext(files[cur_file_index])[0]
+                else:
+                    prefix = FILE_PREFIX
+
+                file_name = get_audio_file_name(prefix=prefix)
                 recorder = rec.open(file_name, 'wb')
                 recorder.start_recording()
                 print2('Recording started: %s' % file_name, color='green')
@@ -182,7 +236,7 @@ if __name__ == '__main__':
 
                 denoise(in_file=file_name)
 
-                playback.play(file_name)
+                playback_file(file_name)
 
         elif ch == '\r':
             stop_all()
@@ -197,10 +251,7 @@ if __name__ == '__main__':
 
         elif ch == 'd':
             stop_all()
-
-            if os.path.exists(file_name):
-                print2('File deleted: %s' % file_name, color='red')
-                os.remove(file_name)
+            delete_cur()
 
         elif ch == 'n':
             stop_all()
@@ -215,3 +266,9 @@ if __name__ == '__main__':
 
             create_noise_profile('noise.wav')
             print('Noise profile created.')
+
+        elif ch == ',':
+            playback_file(offset=-1)
+
+        elif ch == '.':
+            playback_file(offset=1)
