@@ -98,28 +98,37 @@ class RecordingFile(object):
         return wavefile
 
 
-class Player:
-    def __init__(self, file_name):
-        CHUNK = 1024
+class WavePlayer:
+    def __init__(self):
+        self.wavefile = None
+        self.stream = None
 
-        wf = wave.open(file_name, 'rb')
+    def play(self, file_name):
+        self.stop()
+
+        self.wavefile = wave.open(file_name, 'rb')
 
         # define callback (2)
         def callback(in_data, frame_count, time_info, status):
-            data = wf.readframes(frame_count)
+            data = self.wavefile.readframes(frame_count)
             return (data, pyaudio.paContinue)
 
-        self.stream = pa.open(format=pa.get_format_from_width(wf.getsampwidth()),
-                              channels=wf.getnchannels(),
-                              rate=wf.getframerate(),
+        self.stream = pa.open(format=pa.get_format_from_width(self.wavefile.getsampwidth()),
+                              channels=self.wavefile.getnchannels(),
+                              rate=self.wavefile.getframerate(),
                               output=True,
                               stream_callback=callback)
 
         self.stream.start_stream()
 
-    def close(self):
-        self.stream.stop_stream()
-        self.stream.close()
+    def stop(self):
+        if self.wavefile:
+            self.wavefile.close()
+            self.wavefile = None
+
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
 
 
 def get_audio_file_name(prefix=FILE_PREFIX, postfix='.wav'):
@@ -133,15 +142,13 @@ if __name__ == '__main__':
     rec = Recorder(channels=2)
 
     recorder = None
-    playback = None
+    playback = WavePlayer()
 
 
     def stop_all():
-        global playback, recorder
+        global recorder
 
-        if playback is not None:
-            playback.close()
-            playback = None
+        playback.stop()
 
         if recorder is not None:
             recorder.close()
@@ -162,10 +169,6 @@ if __name__ == '__main__':
 
         if ch == ' ':
             if recorder is None:
-                if playback is not None:
-                    playback.close()
-                    playback = None
-
                 file_name = get_audio_file_name()
                 recorder = rec.open(file_name, 'wb')
                 recorder.start_recording()
@@ -179,7 +182,7 @@ if __name__ == '__main__':
 
                 denoise(in_file=file_name)
 
-                playback = Player(file_name)
+                playback.play(file_name)
 
         elif ch == '\r':
             stop_all()

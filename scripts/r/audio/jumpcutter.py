@@ -15,6 +15,7 @@ COMPRESSOR_THRES_DB = -14
 NOISE_GATE_DB = -30
 TREBLE_BOOST_DB = 2
 
+PADDING = 0.2
 
 def rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)
@@ -85,8 +86,8 @@ for f in glob.glob('Audio*.wav'):
         #     keep = keep.any(axis=-1)
 
         keep_indices = np.argwhere(keep == True).flatten()
-        start = max(keep_indices[0] - int(rate * 0.25), 0)
-        end = min(keep_indices[-1] + int(rate * 0.25), data.shape[0])
+        start = max(keep_indices[0] - int(rate * PADDING), 0)
+        end = min(keep_indices[-1] + int(rate * PADDING), data.shape[0])
 
         data2 = data2[start:end]
 
