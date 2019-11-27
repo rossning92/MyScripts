@@ -58,7 +58,7 @@ GetDownloadDir(dir)
 
 WaitKey() {
 	ToolTip, Press space to start downloading...
-	Input, key, L1T3
+	Input, key, L1T10
 	ToolTip
 	return key
 }
