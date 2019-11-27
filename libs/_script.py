@@ -312,16 +312,7 @@ class ScriptItem:
             env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
-            if ext == '.py':
-                args = ['python', python_file] + args
-            elif ext == '.ipynb':
-                args = ['jupyter', 'notebook', python_file] + args
-
-                # HACK: always use new window for jupyter notebook
-                self.meta['newWindow'] = True
-            else:
-                assert False
-
+            args_activate = []
             if self.meta['conda'] is not None:
                 assert sys.platform == 'win32'
                 import _conda
@@ -334,7 +325,7 @@ class ScriptItem:
                 if env_name != 'base' and not exists(conda_path + '\\envs\\' + env_name):
                     call_echo('call "%s" & conda create --name %s python=3.6' % (activate, env_name))
 
-                args = ['cmd', '/c', 'call', activate, env_name, '&'] + args
+                args_activate = ['cmd', '/c', 'call', activate, env_name, '&']
 
             elif self.meta['venv']:
                 assert sys.platform == 'win32'
@@ -342,8 +333,18 @@ class ScriptItem:
                 if not exists(venv_path):
                     call_echo([sys.executable, '-m', 'venv', venv_path])
 
-                args = ['cmd', '/c',
-                        'call', '%s\\Scripts\\activate.bat' % venv_path, '&'] + args
+                args_activate = ['cmd', '/c',
+                                 'call', '%s\\Scripts\\activate.bat' % venv_path, '&']
+
+            if ext == '.py':
+                args = args_activate + ['python' if args_activate else sys.executable, python_file] + args
+            elif ext == '.ipynb':
+                args = args_activate + ['jupyter', 'notebook', python_file] + args
+
+                # HACK: always use new window for jupyter notebook
+                self.meta['newWindow'] = True
+            else:
+                assert False
 
         elif ext == '.vbs':
             assert os.name == 'nt'

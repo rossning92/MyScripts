@@ -6,17 +6,17 @@ donjayamanne.githistory
 ms-python.python
 ms-vscode.cpptools
 stkb.rewrap
+streetsidesoftware.code-spell-checker
 shd101wyy.markdown-preview-enhanced
 mdickin.markdown-shortcuts
 '''
 
-extensions = [x for x in extensions.splitlines()]
-extensions = [x.strip() for x in extensions]
+extensions = [x.strip() for x in extensions.splitlines()]
 extensions = [x for x in extensions if x]
 
 print2('Install extensions...')
 for ext in extensions:
-    call2('code --install-extension %s' % ext)
+    call_echo('code --install-extension %s' % ext)
 
 print2('Update key bindings...')
 with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:

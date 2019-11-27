@@ -1,7 +1,12 @@
 anaconda: false
 autoRun: false
+background: false
+conda: null
 globalHotkey: Win+Alt+I
 hotkey: Ctrl+I
 newWindow: false
+restartInstance: true
 runAsAdmin: true
+template: true
+venv: null
 wsl: false
