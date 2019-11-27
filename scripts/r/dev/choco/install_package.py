@@ -25,6 +25,7 @@ PKGS = {
         'vmware-workstation-player',
         'sharex',
         'epicgameslauncher',
+        'unity-hub',
     ],
     'common': [
         'everything',
