@@ -147,9 +147,9 @@ def get_audio_file_name(prefix=FILE_PREFIX, postfix='.wav'):
 class MyFancyRecorder:
     def __init__(self):
         self.rec = WaveRecorder(channels=2)
-        self.recorder = None
         self.playback = WavePlayer()
-        self.cur_file_index = 0
+        self.cur_file_index = len(self.get_audio_files())
+        self.prefix = FILE_PREFIX
 
     def print_help(self):
         print2(
@@ -164,27 +164,36 @@ class MyFancyRecorder:
 
     def stop_all(self):
         self.playback.stop()
+        self.rec.stop()
 
-        if self.recorder is not None:
-            self.recorder.close()
-            self.recorder = None
+    def set_cur_file(self, filename=None, offset=None):
+        files = self.get_audio_files()
+        if filename is not None:
+            files = self.get_audio_files()
+            self.cur_file_index = files.index(filename)
+            assert self.cur_file_index >= 0
+        else:
+            assert offset is not None
+            self.cur_file_index = max(min(self.cur_file_index + offset, len(files) - 1), 0)
 
-    def play_file(self, filename=None, offset=None):
+
+    def play_file(self, filename=None, offset=None, set_prefix=False):
         files = self.get_audio_files()
         n = len(files)
         if n == 0:
             return
 
-        if filename is not None:
-            self.cur_file_index = files.index(filename)
-            assert self.cur_file_index >= 0
-
-        else:
-            self.cur_file_index = max(min(self.cur_file_index + offset, len(files) - 1), 0)
+        self.set_cur_file(filename, offset)
 
         cur_file = files[self.cur_file_index]
         print(f'({self.cur_file_index+1}/{n}) {cur_file}')
         self.playback.play(cur_file)
+
+        if set_prefix:
+            if self.cur_file_index < len(files) - 1:
+                self.prefix = os.path.splitext(files[self.cur_file_index])[0]
+            else:
+                self.prefix = FILE_PREFIX
 
     def delete_cur_file(self):
         files = self.get_audio_files()
@@ -199,7 +208,6 @@ class MyFancyRecorder:
     def main_loop(self):
         self.print_help()
 
-        cur_file_index = len(self.get_audio_files()) - 1
         file_name = None
         while True:
             ch = getch()
@@ -212,14 +220,9 @@ class MyFancyRecorder:
                     self.rec.stop()
                     self.playback.stop()
 
-                    files = self.get_audio_files()
-                    if cur_file_index < len(files) - 1:
-                        prefix = os.path.splitext(files[cur_file_index])[0]
-                    else:
-                        prefix = FILE_PREFIX
-
-                    file_name = get_audio_file_name(prefix=prefix)
+                    file_name = get_audio_file_name(prefix=self.prefix)
                     self.rec.record(file_name)
+                    self.set_cur_file(file_name)
                     print2('Recording started: %s' % file_name, color='green')
 
                 else:
@@ -249,10 +252,10 @@ class MyFancyRecorder:
                 print('Noise profile created.')
 
             elif ch == ',':
-                self.play_file(offset=-1)
+                self.play_file(offset=-1, set_prefix=True)
 
             elif ch == '.':
-                self.play_file(offset=1)
+                self.play_file(offset=1, set_prefix=True)
 
 
 if __name__ == '__main__':
