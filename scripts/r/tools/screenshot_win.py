@@ -42,10 +42,21 @@ def install_sharex():
     if not exists(exe_path):
         run_elevated('choco install sharex -y')
 
-    subprocess.Popen(exe_path, close_fds=True)
+
 
     setting_path = expandvars(r'%USERPROFILE%\Documents\ShareX')
 
+    config_file = os.path.join(setting_path, 'ApplicationConfig.json')
 
-install_snipaste()
-# install_sharex()
+    config = json.load(open(config_file))
+    config['DefaultTaskSettings']['UploadSettings']['NameFormatPattern'] = '%yy%mo%d%h%mi%s_%ms'
+    config['DefaultTaskSettings']['UploadSettings']['NameFormatPatternActiveWindow'] = '%yy%mo%d%h%mi%s_%ms'
+    # config['DefaultTaskSettings']['CaptureSettings']['FFmpegOptions']
+    json.dump(config, open(config_file, 'w'))
+
+    subprocess.call('taskkill /f /im ShareX.exe')
+    subprocess.Popen(exe_path, close_fds=True)
+
+
+# install_snipaste()
+install_sharex()

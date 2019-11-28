@@ -1,4 +1,4 @@
-autoRun: true
+autoRun: false
 background: false
 conda: null
 globalHotkey: null
