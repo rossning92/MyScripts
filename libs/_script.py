@@ -232,7 +232,7 @@ class ScriptItem:
     def get_public_variable_prefix(self):
         return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
-    def execute(self, args=None, control_down=False, restart_instance=None):
+    def execute(self, args=None, new_window=False, restart_instance=None):
         script_path = self.real_script_path if self.real_script_path else self.script_path
         ext = self.real_ext if self.real_ext else self.ext
 
@@ -275,6 +275,8 @@ class ScriptItem:
 
                 if self.meta['runAsAdmin']:
                     args = ['start'] + args
+
+                self.meta['newWindow'] = False  # Disable console window for ahk
 
         elif ext == '.cmd' or ext == '.bat':
             if os.name == 'nt':
@@ -355,18 +357,18 @@ class ScriptItem:
         else:
             print('Not supported script:', ext)
 
-        if restart_instance is None:
-            restart_instance = self.meta['restartInstance']
-
-        if restart_instance:
-            # Only works on windows for now
-            if platform.system() == 'Windows':
-                exec_ahk(f'WinClose, {self.get_console_title()}, , , - Visual Studio Code', wait=True)
-
         # Run commands
         if args is not None and len(args) > 0:
             # Check if new window is needed
-            new_window = self.meta['newWindow'] or control_down
+            new_window |= self.meta['newWindow']
+
+            if restart_instance is None:
+                restart_instance = self.meta['restartInstance']
+
+            if restart_instance and new_window:
+                # Only works on windows for now
+                if platform.system() == 'Windows':
+                    exec_ahk(f'WinClose, {self.get_console_title()}, , , - Visual Studio Code', wait=True)
 
             if new_window:
                 # HACK: python wrapper: activate console window once finished
@@ -537,7 +539,7 @@ def get_default_meta():
         'template': True,
         'hotkey': None,
         'globalHotkey': None,
-        'newWindow': False,
+        'newWindow': True,
         'runAsAdmin': False,
         'autoRun': False,
         'wsl': False,

@@ -273,7 +273,7 @@ class MainWindow(QWidget):
             control_down = True
             restart_instance = True
 
-        script.execute(control_down=control_down, args=args, restart_instance=restart_instance)
+        script.execute(new_window=control_down, args=args, restart_instance=restart_instance)
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':

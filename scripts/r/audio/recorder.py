@@ -2,6 +2,7 @@ from _shutil import *
 from _term import *
 from _audio import *
 from _script import *
+from _gui import *
 
 try_import('pyaudio')
 import pyaudio
@@ -144,11 +145,15 @@ def get_audio_file_name(prefix=FILE_PREFIX, postfix='.wav'):
     return '%s_%s%s' % (prefix, get_time_str(), postfix)
 
 
+def get_audio_files():
+    return list(glob.glob(FILE_PREFIX + '_*.wav'))
+
+
 class MyFancyRecorder:
     def __init__(self):
         self.rec = WaveRecorder(channels=2)
         self.playback = WavePlayer()
-        self.cur_file_index = len(self.get_audio_files())
+        self.cur_file_index = len(get_audio_files())
         self.prefix = FILE_PREFIX
 
     def print_help(self):
@@ -159,26 +164,22 @@ class MyFancyRecorder:
             ', .   - Browse files\n'
         )
 
-    def get_audio_files(self):
-        return list(glob.glob(FILE_PREFIX + '_*.wav'))
-
     def stop_all(self):
         self.playback.stop()
         self.rec.stop()
 
     def set_cur_file(self, filename=None, offset=None):
-        files = self.get_audio_files()
+        files = get_audio_files()
         if filename is not None:
-            files = self.get_audio_files()
+            files = get_audio_files()
             self.cur_file_index = files.index(filename)
             assert self.cur_file_index >= 0
         else:
             assert offset is not None
             self.cur_file_index = max(min(self.cur_file_index + offset, len(files) - 1), 0)
 
-
     def play_file(self, filename=None, offset=None, set_prefix=False):
-        files = self.get_audio_files()
+        files = get_audio_files()
         n = len(files)
         if n == 0:
             return
@@ -196,7 +197,7 @@ class MyFancyRecorder:
                 self.prefix = FILE_PREFIX
 
     def delete_cur_file(self):
-        files = self.get_audio_files()
+        files = get_audio_files()
         if self.cur_file_index >= len(files):
             return
 
@@ -258,8 +259,78 @@ class MyFancyRecorder:
                 self.play_file(offset=1, set_prefix=True)
 
 
+from PyQt5.QtMultimedia import *
+
+
+class RecorderGui(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.cur_file_index = 0
+        self.audio_files = []
+
+        # Widgets
+        self.setLayout(QVBoxLayout())
+
+        self.label = QLabel()
+        self.label.setText('yoyo')
+        self.layout().addWidget(self.label)
+
+        self.list_widget = QListWidget()
+        self.list_widget.itemSelectionChanged.connect(self.lw_selection_changed)
+        self.layout().addWidget(self.list_widget)
+
+        # Media player
+        self.playlist = None
+
+        self.player = QMediaPlayer()
+        self.player.stateChanged.connect(self.qmp_state_changed)
+
+        self.update_audio_files()
+
+        self.resize(500, 500)
+
+    def set_cur_file(self, offset):
+        self.cur_file_index = max(min(self.cur_file_index + offset, len(self.audio_files) - 1), 0)
+
+        self.list_widget.blockSignals(True)
+        self.list_widget.setCurrentRow(self.cur_file_index)
+        self.list_widget.blockSignals(False)
+
+    def lw_selection_changed(self):
+        self.cur_file_index = self.list_widget.currentRow()
+
+        self.play_cur_file()
+
+    def play_cur_file(self):
+        self.player.blockSignals(True)
+
+        self.playlist = QMediaPlaylist()
+        self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.audio_files[self.cur_file_index])))
+        self.player.setPlaylist(self.playlist)
+        self.player.stop()
+        self.player.play()
+
+        self.player.blockSignals(False)
+
+    def update_audio_files(self):
+        self.audio_files = get_audio_files()
+        self.list_widget.clear()
+        for f in self.audio_files:
+            self.list_widget.addItem(f)
+
+    def qmp_state_changed(self):
+        if self.player.state() == QMediaPlayer.StoppedState:
+            print('end')
+            self.set_cur_file(offset=1)
+            self.play_cur_file()
+
+
 if __name__ == '__main__':
     out_folder = expanduser('~/Desktop/{{_OUT_FOLDER}}')
     make_and_change_dir(out_folder)
+
+    # d = RecorderGui()
+    # d.exec()
 
     MyFancyRecorder().main_loop()
