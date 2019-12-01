@@ -1,4 +1,4 @@
 autoRun: true
 hotkey: null
-newWindow: false
+newWindow: true
 runAsAdmin: false

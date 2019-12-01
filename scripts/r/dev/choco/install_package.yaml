@@ -4,7 +4,7 @@ background: false
 conda: null
 globalHotkey: Win+Alt+I
 hotkey: Ctrl+I
-newWindow: false
+newWindow: true
 restartInstance: true
 runAsAdmin: true
 template: true

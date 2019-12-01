@@ -3,7 +3,7 @@ background: false
 conda: null
 globalHotkey: null
 hotkey: null
-newWindow: false
+newWindow: true
 restartInstance: false
 runAsAdmin: false
 template: true

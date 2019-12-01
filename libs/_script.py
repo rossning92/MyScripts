@@ -555,7 +555,7 @@ def load_meta_file(meta_file):
 
 
 def save_meta_file(data, meta_file):
-    yaml.dump(data, open(meta_file, 'w'), default_flow_style=False)
+    yaml.dump(data, open(meta_file, 'w', newline='\n'), default_flow_style=False)
 
 
 def get_script_meta(script_path):

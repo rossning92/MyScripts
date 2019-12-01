@@ -4,8 +4,8 @@ conda: null
 globalHotkey: null
 hotkey: null
 newWindow: false
-restartInstance: false
-runAsAdmin: true
+restartInstance: true
+runAsAdmin: false
 template: true
 venv: null
 wsl: false

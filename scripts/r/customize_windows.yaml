@@ -1,6 +1,6 @@
 autoRun: false
 globalHotkey: null
 hotkey: null
-newWindow: false
+newWindow: true
 runAsAdmin: true
 wsl: false

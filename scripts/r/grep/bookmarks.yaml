@@ -2,6 +2,6 @@ anaconda: false
 autoRun: false
 globalHotkey: Win+Alt+F12
 hotkey: null
-newWindow: false
+newWindow: true
 runAsAdmin: false
 wsl: false

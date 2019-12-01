@@ -1,6 +1,6 @@
-conda: null
 autoRun: false
 background: false
+conda: null
 globalHotkey: null
 hotkey: null
 newWindow: true

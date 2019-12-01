@@ -162,6 +162,7 @@ class MyFancyRecorder:
             'ENTER - Record next\n'
             'N     - Create noise profile\n'
             ', .   - Browse files\n'
+            'O     - Output composed file\n'
         )
 
     def stop_all(self):
@@ -258,6 +259,10 @@ class MyFancyRecorder:
             elif ch == '.':
                 self.play_file(offset=1, set_prefix=True)
 
+            elif ch == 'o':
+                self.stop_all()
+                run_script('/r/audio/jumpcutter')
+
 
 from PyQt5.QtMultimedia import *
 
@@ -327,7 +332,7 @@ class RecorderGui(QDialog):
 
 
 if __name__ == '__main__':
-    out_folder = expanduser('~/Desktop/{{_OUT_FOLDER}}')
+    out_folder = expanduser(r'{{_OUT_FOLDER}}')
     make_and_change_dir(out_folder)
 
     # d = RecorderGui()
