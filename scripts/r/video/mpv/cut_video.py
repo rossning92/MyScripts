@@ -4,7 +4,8 @@ from _shutil import *
 mpv = get_executable('mpv')
 file = get_files()[0]
 
+script = os.path.join(os.path.dirname(__file__), 'excerpt.lua')
 subprocess.Popen(['mpv',
-                  '--script=%s' % os.path.realpath(os.path.dirname(__file__)),
+                  '--script=%s' % script,
                   '--script-opts=osc-layout=bottombar',
                   file])
