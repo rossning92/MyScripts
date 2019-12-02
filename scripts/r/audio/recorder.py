@@ -8,6 +8,8 @@ try_import('pyaudio')
 import pyaudio
 import wave
 
+import jumpcutter
+
 # TODO: cleanup by pa.terminate()
 pa = pyaudio.PyAudio()
 
@@ -384,14 +386,16 @@ class RecorderGui(QDialog):
 
                 return True
 
+            elif e.key() == Qt.Key_O:
+                self.stop_all()
+
+                jumpcutter.create_final_vocal()
+
         return super().eventFilter(obj, e)
 
     def stop_all(self):
         self.recorder.stop()
         self.player.stop()
-
-
-
 
 
 if __name__ == '__main__':
