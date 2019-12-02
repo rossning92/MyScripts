@@ -6,6 +6,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 import threading
 import queue
+import time
 
 check_error_code = True
 
@@ -290,6 +291,21 @@ def gui_question(prompt):
     reply = QMessageBox.question(None, "Test", prompt,
                                  QMessageBox.Yes | QMessageBox.No)
     return reply == QMessageBox.Yes
+
+
+def show_progress_bar(total_secs, text='Wait...'):
+    STEPS = 100
+
+    progress = QProgressDialog(text, "Cancel", 0, 100, None)
+    progress.setWindowModality(Qt.WindowModal)
+    progress.show()
+
+    for i in range(STEPS):
+        progress.setValue(i * 100 // STEPS)
+        QApplication.processEvents()
+        time.sleep(total_secs / STEPS)
+
+    progress.close()
 
 
 if __name__ == '__main__':

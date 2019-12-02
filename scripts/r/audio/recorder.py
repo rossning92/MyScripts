@@ -271,7 +271,7 @@ class RecorderGui(QDialog):
     def __init__(self):
         super().__init__()
 
-        self.recoder = WaveRecorder(channels=2)
+        self.recorder = WaveRecorder(channels=2)
 
         self.audio_files = get_audio_files()
         self.cur_file_index = len(self.audio_files) - 1
@@ -347,13 +347,13 @@ class RecorderGui(QDialog):
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:
             if e.key() == Qt.Key_Space:
-                if not self.recoder.is_recording():
-                    self.stop_everything()
+                if not self.recorder.is_recording():
+                    self.stop_all()
 
                     self.label.setText('<font color=green>Recording</font>')
 
                     file_name = get_audio_file_name(prefix=FILE_PREFIX)
-                    self.recoder.record(file_name)
+                    self.recorder.record(file_name)
 
                     self.cur_file_index += 1
                     self.audio_files.insert(self.cur_file_index, file_name)
@@ -361,7 +361,7 @@ class RecorderGui(QDialog):
                     self.update_gui()
 
                 else:
-                    self.stop_everything()
+                    self.stop_all()
 
                     self.label.setText('Stopped')
 
@@ -371,11 +371,27 @@ class RecorderGui(QDialog):
 
                 return True
 
+            elif e.key() == Qt.Key_N:
+                self.stop_all()
+
+                show_progress_bar(0.5, text='Wait')
+
+                self.recorder.record('noise.wav')
+                show_progress_bar(3, text='Create noise profile...')
+                self.recorder.stop()
+
+                create_noise_profile('noise.wav')
+
+                return True
+
         return super().eventFilter(obj, e)
 
-    def stop_everything(self):
-        self.recoder.stop()
+    def stop_all(self):
+        self.recorder.stop()
         self.player.stop()
+
+
+
 
 
 if __name__ == '__main__':
