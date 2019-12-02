@@ -173,9 +173,19 @@ class ScriptItem:
             self.real_script_path = open(
                 script_path, 'r', encoding='utf-8').read().strip()
             self.real_ext = os.path.splitext(self.real_script_path)[1].lower()
+
+            self.check_link_existence()
         else:
             self.real_script_path = None
             self.real_ext = None
+
+    def check_link_existence(self):
+        if self.real_script_path is not None:
+            if not os.path.exists(self.real_script_path):
+                print2('WARNING: cannot locate the script: %s. Link removed.' % self.name)
+                os.remove(self.script_path)
+                return False
+        return True
 
     def get_console_title(self):
         return self.console_title if self.console_title else self.name
@@ -183,9 +193,8 @@ class ScriptItem:
     def render(self):
         script_path = self.real_script_path if self.real_script_path else self.script_path
 
-        if not os.path.exists(script_path):
-            print2('WARNING: cannot locate the script: %s' % self.name)
-            return None
+        if not self.check_link_existence():
+            return
 
         with open(script_path, 'r', encoding='utf-8') as f:
             source = f.read()
@@ -498,7 +507,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False):
+def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False, overwrite_meta=None):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
@@ -511,6 +520,10 @@ def run_script(script_name, variables=None, new_window=False, console_title=None
 
     if console_title:
         script.console_title = console_title
+
+    if overwrite_meta:
+        for k, v in overwrite_meta.items():
+            script.meta[k] = v
 
     # Set console window title (for windows only)
     if console_title and platform.system() == 'Windows':
@@ -578,3 +591,12 @@ def get_script_meta(script_path):
             meta[k] = v
 
     return meta
+
+
+def create_script_link(script_file):
+    script_dir = os.path.realpath(os.path.dirname(__file__) + '/../scripts')
+    link_file = os.path.splitext(os.path.basename(script_file))[0] + '.link'
+    link_file = os.path.join(script_dir, link_file)
+    with open(link_file, 'w', encoding='utf-8') as f:
+        f.write(script_file)
+    print('Link created: %s' % link_file)
