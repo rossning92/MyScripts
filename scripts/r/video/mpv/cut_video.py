@@ -2,7 +2,7 @@ from _appmanager import *
 from _shutil import *
 
 mpv = get_executable('mpv')
-file = get_files()[0]
+file = get_files(cd=True)[0]
 
 script = os.path.join(os.path.dirname(__file__), 'excerpt.lua')
 subprocess.Popen(['mpv',
