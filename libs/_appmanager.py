@@ -20,13 +20,13 @@ def get_executable(app_name):
         app = app_list[app_name]
 
     def find_executable():
-        if 'executable' not in app:
-            if shutil.which(app_name):
-                return app_name
-        else:
+        if 'executable' in app:
             for exe in app['executable']:
                 if shutil.which(exe):
                     return exe
+        else:
+            if shutil.which(app_name):
+                return app_name
 
         return None
 
