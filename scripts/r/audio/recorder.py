@@ -153,7 +153,7 @@ def get_audio_files():
 
 class MyFancyRecorder:
     def __init__(self):
-        self.rec = WaveRecorder(channels=2)
+        self.recorder = WaveRecorder(channels=2)
         self.playback = WavePlayer()
         self.cur_file_index = len(get_audio_files())
         self.prefix = FILE_PREFIX
@@ -169,7 +169,7 @@ class MyFancyRecorder:
 
     def stop_all(self):
         self.playback.stop()
-        self.rec.stop()
+        self.recorder.stop()
 
     def set_cur_file(self, filename=None, offset=None):
         files = get_audio_files()
@@ -220,17 +220,17 @@ class MyFancyRecorder:
                 self.print_help()
 
             elif ch == ' ':
-                if not self.rec.is_recording():
-                    self.rec.stop()
+                if not self.recorder.is_recording():
+                    self.recorder.stop()
                     self.playback.stop()
 
                     file_name = get_audio_file_name(prefix=self.prefix)
-                    self.rec.record(file_name)
+                    self.recorder.record(file_name)
                     self.set_cur_file(file_name)
                     print2('Recording started: %s' % file_name, color='green')
 
                 else:
-                    self.rec.stop()
+                    self.recorder.stop()
                     print2('Recording stopped.', color='red')
 
                     denoise(in_file=file_name)
@@ -247,7 +247,7 @@ class MyFancyRecorder:
                 print2('Create noise profile. Please be quiet...', color='green')
                 sleep(1)
                 print('Start collecting.')
-                with self.rec.open('noise.wav', 'wb') as r:
+                with self.recorder.open('noise.wav', 'wb') as r:
                     r.start_recording()
                     sleep(3)
                     r.stop_recording()
@@ -263,7 +263,7 @@ class MyFancyRecorder:
 
             elif ch == 'o':
                 self.stop_all()
-                run_script('/r/audio/jumpcutter')
+                jumpcutter.create_final_vocal()
 
 
 from PyQt5.QtMultimedia import *
@@ -402,7 +402,7 @@ if __name__ == '__main__':
     out_folder = expanduser(r'{{_OUT_FOLDER}}')
     make_and_change_dir(out_folder)
 
-    d = RecorderGui()
-    d.exec()
+    # d = RecorderGui()
+    # d.exec()
 
     MyFancyRecorder().main_loop()
