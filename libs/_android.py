@@ -30,7 +30,7 @@ def restart_app(pkg):
 
 
 def restart_current_app():
-    out = check_output('adb shell "dumpsys activity activities | grep -E \'mFocusedActivity|mResumedActivity\'"', shell=True).decode().strip()
+    out = subprocess.check_output('adb shell "dumpsys activity activities | grep -E \'mFocusedActivity|mResumedActivity\'"', shell=True).decode().strip()
     match = re.search(r'\{([^}]+)\}', out).group(1)
     pkg_activity = match.split()[2]
     pkg, activity = pkg_activity.split('/')
