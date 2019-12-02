@@ -271,14 +271,16 @@ class RecorderGui(QDialog):
     def __init__(self):
         super().__init__()
 
-        self.cur_file_index = 0
-        self.audio_files = []
+        self.recoder = WaveRecorder(channels=2)
+
+        self.audio_files = get_audio_files()
+        self.cur_file_index = len(self.audio_files) - 1
 
         # Widgets
         self.setLayout(QVBoxLayout())
 
         self.label = QLabel()
-        self.label.setText('yoyo')
+        self.label.setText('Rec')
         self.layout().addWidget(self.label)
 
         self.list_widget = QListWidget()
@@ -291,16 +293,20 @@ class RecorderGui(QDialog):
         self.player = QMediaPlayer()
         self.player.stateChanged.connect(self.qmp_state_changed)
 
-        self.update_audio_files()
+        self.update_gui()
 
         self.resize(500, 500)
+
+        QCoreApplication.instance().installEventFilter(self)
 
     def set_cur_file(self, offset):
         self.cur_file_index = max(min(self.cur_file_index + offset, len(self.audio_files) - 1), 0)
 
-        self.list_widget.blockSignals(True)
-        self.list_widget.setCurrentRow(self.cur_file_index)
-        self.list_widget.blockSignals(False)
+    def get_cur_file_name(self):
+        if self.cur_file_index < 0:
+            return None
+        else:
+            return self.audio_files[self.cur_file_index]
 
     def lw_selection_changed(self):
         self.cur_file_index = self.list_widget.currentRow()
@@ -318,24 +324,65 @@ class RecorderGui(QDialog):
 
         self.player.blockSignals(False)
 
-    def update_audio_files(self):
-        self.audio_files = get_audio_files()
+    def update_gui(self):
+        self.list_widget.blockSignals(True)
+
         self.list_widget.clear()
         for f in self.audio_files:
             self.list_widget.addItem(f)
 
+        if self.cur_file_index >= 0:
+            self.list_widget.setCurrentRow(self.cur_file_index)
+
+        self.list_widget.blockSignals(False)
+
     def qmp_state_changed(self):
+        return
+
         if self.player.state() == QMediaPlayer.StoppedState:
-            print('end')
             self.set_cur_file(offset=1)
             self.play_cur_file()
+            self.update_gui()
+
+    def eventFilter(self, obj, e):
+        if e.type() == QEvent.KeyPress:
+            if e.key() == Qt.Key_Space:
+                if not self.recoder.is_recording():
+                    self.stop_everything()
+
+                    self.label.setText('<font color=green>Recording</font>')
+
+                    file_name = get_audio_file_name(prefix=FILE_PREFIX)
+                    self.recoder.record(file_name)
+
+                    self.cur_file_index += 1
+                    self.audio_files.insert(self.cur_file_index, file_name)
+
+                    self.update_gui()
+
+                else:
+                    self.stop_everything()
+
+                    self.label.setText('Stopped')
+
+                    denoise(in_file=self.get_cur_file_name())
+
+                    self.play_cur_file()
+
+                return True
+
+        return super().eventFilter(obj, e)
+
+    def stop_everything(self):
+        self.recoder.stop()
+        self.player.stop()
 
 
 if __name__ == '__main__':
     out_folder = expanduser(r'{{_OUT_FOLDER}}')
     make_and_change_dir(out_folder)
 
-    # d = RecorderGui()
-    # d.exec()
+    d = RecorderGui()
+    d.exec()
 
     MyFancyRecorder().main_loop()
