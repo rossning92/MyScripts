@@ -13,23 +13,25 @@ def get_executable(app_name):
 
     matched_apps = [k for k, v in app_list.items(
     ) if app_name.lower() == k.lower()]
-    app_name = matched_apps[0]
-    app = app_list[app_name]
+
+    app = {}
+    if len(matched_apps) > 0:
+        app_name = matched_apps[0]
+        app = app_list[app_name]
 
     def find_executable():
         if 'executable' not in app:
             if shutil.which(app_name):
                 return app_name
-
-        for exe in app['executable']:
-            if shutil.which(exe):
-                return exe
+        else:
+            for exe in app['executable']:
+                if shutil.which(exe):
+                    return exe
 
         return None
 
     # Install app if not exists
     executable = find_executable()
-
     if executable is None:
         if sys.platform == 'win32':
             run_elevated(

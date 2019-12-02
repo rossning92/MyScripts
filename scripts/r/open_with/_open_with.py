@@ -152,6 +152,7 @@ assoc = {
     '.log': ['notepad++', 'vscode'],
     '.lrc': ['notepad++', 'vscode'],
     '.lyx': ['notepad++', 'vscode'],
+    '.lua': ['notepad++', 'vscode'],
     '.m1a': ['VLC', 'PotPlayer'],
     '.m1v': ['VLC', 'PotPlayer'],
     '.m2a': ['VLC', 'PotPlayer'],
