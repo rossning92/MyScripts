@@ -377,7 +377,9 @@ class ScriptItem:
             if restart_instance and new_window:
                 # Only works on windows for now
                 if platform.system() == 'Windows':
-                    exec_ahk(f'WinClose, {self.get_console_title()}, , , - Visual Studio Code', wait=True)
+                    exec_ahk(
+                        f'SetTitleMatchMode RegEx\nWinClose, {self.get_console_title()}, , , .*?- Visual Studio Code',
+                        wait=True)
 
             if new_window:
                 # HACK: python wrapper: activate console window once finished
@@ -507,7 +509,8 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False, overwrite_meta=None):
+def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False,
+               overwrite_meta=None):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
     if script_path is None:
