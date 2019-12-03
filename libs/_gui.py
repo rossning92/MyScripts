@@ -10,14 +10,6 @@ import time
 
 check_error_code = True
 
-
-def run(args):
-    ps = subprocess.Popen(args)
-    ret = ps.wait()
-    if check_error_code and ret != 0:
-        raise Exception('Process returns non zero')
-
-
 _app = QApplication([])
 
 
