@@ -1,6 +1,8 @@
 from _shutil import *
 from _video import *
 
+fps = '{{_FPS}}' if '{{_FPS}}' else '60'
+
 files = get_files(cd=True)
 
 for f in files:
@@ -11,9 +13,9 @@ for f in files:
     out_file = '%s_out.mp4' % fn
 
     if '{{_480P}}':
-        extra_args = ['-s', 'hd480', '-r', '60']
+        extra_args = ['-s', 'hd480', '-r', fps]
     elif '{{_720P}}':
-        extra_args = ['-s', 'hd720', '-r', '60']
+        extra_args = ['-s', 'hd720', '-r', fps]
     else:
         extra_args = None
 
