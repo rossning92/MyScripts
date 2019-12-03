@@ -19,9 +19,11 @@ def run(args):
 
 
 _app = QApplication([])
-font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-font.setPointSize(10)
-_app.setFont(font)
+
+
+# font = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+# font.setPointSize(10)
+# _app.setFont(font)
 
 
 def get_qss():
