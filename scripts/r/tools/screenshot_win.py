@@ -43,6 +43,11 @@ def install_sharex():
         run_elevated('choco install sharex -y')
 
     setting_path = expandvars(r'%USERPROFILE%\Documents\ShareX')
+    if not exists(setting_path):
+        subprocess.Popen([exe_path, '-silent'], close_fds=True)
+        while subprocess.call('tasklist | find "ShareX.exe"', shell=True) == 0:
+            subprocess.call('taskkill /im ShareX.exe')
+            time.sleep(0.5)
 
     config_file = os.path.join(setting_path, 'ApplicationConfig.json')
     config = json.load(open(config_file))
