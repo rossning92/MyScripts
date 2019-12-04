@@ -45,11 +45,15 @@ def install_sharex():
     setting_path = expandvars(r'%USERPROFILE%\Documents\ShareX')
 
     config_file = os.path.join(setting_path, 'ApplicationConfig.json')
-
     config = json.load(open(config_file))
     config['DefaultTaskSettings']['UploadSettings']['NameFormatPattern'] = '%yy%mo%d%h%mi%s_%ms'
     config['DefaultTaskSettings']['UploadSettings']['NameFormatPatternActiveWindow'] = '%yy%mo%d%h%mi%s_%ms'
     # config['DefaultTaskSettings']['CaptureSettings']['FFmpegOptions']
+    json.dump(config, open(config_file, 'w'))
+
+    config_file = os.path.join(setting_path, 'HotkeysConfig.json')
+    config = json.load(open(config_file))
+    config['Hotkeys'][0]['HotkeyInfo']['Hotkey'] = 'F1'
     json.dump(config, open(config_file, 'w'))
 
     subprocess.call('taskkill /f /im ShareX.exe')
