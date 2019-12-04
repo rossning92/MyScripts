@@ -2,9 +2,9 @@ from _shutil import try_import
 import os
 import glob
 
-plt = try_import('matplotlib.pyplot', pkg_name='matplotlib')
-np = try_import('numpy')
-pd = try_import('pandas')
+try_import('matplotlib.pyplot', pkg_name='matplotlib')
+try_import('numpy')
+try_import('pandas')
 
 import matplotlib.pyplot as plt
 import pandas as pd
