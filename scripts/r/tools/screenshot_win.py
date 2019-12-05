@@ -54,6 +54,7 @@ def install_sharex():
     config['DefaultTaskSettings']['UploadSettings']['NameFormatPattern'] = '%yy%mo%d%h%mi%s_%ms'
     config['DefaultTaskSettings']['UploadSettings']['NameFormatPatternActiveWindow'] = '%yy%mo%d%h%mi%s_%ms'
     # config['DefaultTaskSettings']['CaptureSettings']['FFmpegOptions']
+    config['DefaultTaskSettings']['CaptureSettings']['ShowCursor'] = False
     json.dump(config, open(config_file, 'w'))
 
     config_file = os.path.join(setting_path, 'HotkeysConfig.json')
