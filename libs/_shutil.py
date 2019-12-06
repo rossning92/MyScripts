@@ -118,7 +118,8 @@ def getch(timeout=-1):
 
 def cd(path, expand=True):
     if expand:
-        path = expanduser(path)
+        path = os.path.expanduser(path)
+        path = os.path.expandvars(path)
 
     path = os.path.realpath(path)
 
@@ -717,8 +718,8 @@ def wait_key(prompt=None, timeout=2):
     return ch
 
 
-def start_process(args):
-    subprocess.Popen(args, close_fds=True)
+def start_process(args, shell=True):
+    subprocess.Popen(args, close_fds=True, shell=shell)
 
 
 def setup_nodejs(install=False):

@@ -120,11 +120,10 @@ def backup_pkg(pkg, out_dir=None):
     subprocess.call('adb pull %s %s.apk' % (apk_path, pkg), cwd=out_dir)
 
     # Check root permission
-    try:
-        subprocess.call('adb root')
-        su = ''
-    except:
+    if subprocess.call('adb shell type su') == 0:
         su = 'su -c'
+    else:
+        su = ''
 
     # Pull data
     subprocess.call(f'adb shell {su} tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')

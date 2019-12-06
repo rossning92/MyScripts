@@ -164,7 +164,8 @@ class MyFancyRecorder:
             'ENTER - Record next\n'
             'N     - Create noise profile\n'
             ', .   - Browse files\n'
-            'O     - Output composed file\n'
+            'E     - Output composed file\n'
+            'O     - Output folder\n'
         )
 
     def stop_all(self):
@@ -261,9 +262,12 @@ class MyFancyRecorder:
             elif ch == '.':
                 self.play_file(offset=1, set_prefix=True)
 
-            elif ch == 'o':
+            elif ch == 'e':
                 self.stop_all()
                 jumpcutter.create_final_vocal()
+
+            elif ch == 'o':
+                start_process('explorer .')
 
 
 from PyQt5.QtMultimedia import *
@@ -386,10 +390,13 @@ class RecorderGui(QDialog):
 
                 return True
 
-            elif e.key() == Qt.Key_O:
+            elif e.key() == Qt.Key_E:
                 self.stop_all()
 
                 jumpcutter.create_final_vocal()
+
+            elif e.key() == Qt.Key_O:
+                call2('explorer .')
 
         return super().eventFilter(obj, e)
 

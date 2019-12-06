@@ -117,7 +117,10 @@ def set_variable(name, val):
     with open(file, 'r') as f:
         variables = json.load(f)
 
+    if name not in variables:
+        variables[name] = []
     vals = variables[name]
+
     try:
         vals.remove(val)
     except ValueError:
