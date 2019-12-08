@@ -30,7 +30,9 @@ def restart_app(pkg):
 
 
 def restart_current_app():
-    out = subprocess.check_output('adb shell "dumpsys activity activities | grep -E \'mFocusedActivity|mResumedActivity\'"', shell=True).decode().strip()
+    out = subprocess.check_output(
+        'adb shell "dumpsys activity activities | grep -E \'mFocusedActivity|mResumedActivity\'"',
+        shell=True).decode().strip()
     match = re.search(r'\{([^}]+)\}', out).group(1)
     pkg_activity = match.split()[2]
     pkg, activity = pkg_activity.split('/')
@@ -125,11 +127,13 @@ def backup_pkg(pkg, out_dir=None):
     else:
         su = ''
 
-    # Pull data
-    subprocess.call(f'adb shell {su} tar -cf /sdcard/{pkg}.tar /data/data/{pkg}')
+    print2('Backup app data...')
+    subprocess.call(f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}")
     subprocess.call(f'adb pull /sdcard/{pkg}.tar', cwd=out_dir)
-    subprocess.call(f'adb pull /sdcard/android/obb/{pkg}', cwd=out_dir)
     subprocess.call(f'adb shell rm /sdcard/{pkg}.tar')
+
+    print2('Backup obb...')
+    subprocess.call(f'adb pull /sdcard/android/obb/{pkg}', cwd=out_dir)
 
 
 def screenshot(out_file=None):
@@ -225,10 +229,20 @@ def setup_android_env():
 
 
 def adb_shell(command, check=True):
-    if check:
-        subprocess.check_call(['adb', 'shell', command])
-    else:
-        subprocess.call(['adb', 'shell', command])
+    subprocess.run(['adb', 'shell', command], check=check)
+
+
+def adb_shell2(command, check=True, root=True):
+    if root and not hasattr(adb_shell2, "super_su"):
+        # Check root permission
+        adb_shell2.super_su = subprocess.call('adb shell type su') == 0
+        if not adb_shell2.super_su:
+            subprocess.check_call(['adb', 'root'])
+
+    if adb_shell2.super_su:
+        command = 'su -c ' + command
+
+    subprocess.run(['adb', 'shell', command], check=check)
 
 
 def adb_install(file):
@@ -247,6 +261,34 @@ def adb_install(file):
             print('[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s...' % pkg)
             call('adb uninstall %s' % pkg)
             subprocess.check_call(['adb', 'install', '-r', file])
+
+
+def adb_install2(file):
+    adb_install(file)
+
+    # Push data
+    tar_file = os.path.splitext(file)[0] + '.tar'
+    pkg = os.path.splitext(os.path.basename(file))[0]
+    if exists(tar_file):
+        print2('Restore data...')
+        call(f'adb push "{tar_file}" /sdcard/')
+        adb_shell2(f'tar -xf /sdcard/{pkg}.tar', root=True)
+
+        out = check_output(f'adb shell dumpsys package {pkg} | grep userId')
+        out = out.decode().strip()
+
+        userId = re.findall(r'userId=(\d+)', out)[0]
+        print2(f'Change owner of {pkg} => {userId}')
+        adb_shell2(f'chown -R {userId}:{userId} /data/data/{pkg}', root=True)
+
+        print2('Reset SELinux perms')
+        adb_shell2(f'restorecon -R /data/data/{pkg}', root=True)
+
+    # Push obb file
+    obb_folder = os.path.splitext(file)[0]
+    if os.path.isdir(obb_folder):
+        print2('Push obb...')
+        call2(f'adb push "{obb_folder}" /sdcard/android/obb')
 
 
 def sample_proc_stat():

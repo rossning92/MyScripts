@@ -10,11 +10,11 @@ LOUDNESS_DB = -14
 
 COMPRESSOR_ATTACK = 0.0
 COMPRESSOR_DECAY = 0.2  # 0.05
-COMPRESSOR_THRES_DB = -14
+COMPRESSOR_THRES_DB = -20
 
 NOISE_GATE_DB = -30
 
-MIDDLE_FREQ_DB = -5
+MIDDLE_FREQ_DB = -10
 TREBLE_BOOST_DB = 2
 
 PADDING = 0.2
@@ -113,7 +113,7 @@ def create_final_vocal():
                 f' treble {TREBLE_BOOST_DB} 4k 1s'
                 f' compand'
                 f' {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}'  # attack1,decay1
-                f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB},0,{COMPRESSOR_THRES_DB}'
+                f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{LOUDNESS_DB},0,{LOUDNESS_DB}'
                 f' 0 -90'  # gain initial-volume-dB
 
             )
