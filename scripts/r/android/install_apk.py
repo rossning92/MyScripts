@@ -6,9 +6,6 @@ from _android import *
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
-# call_echo('adb wait-for-device')
-
-
 adb_install2(file)
 
 # Run app

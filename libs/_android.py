@@ -264,6 +264,9 @@ def adb_install(file):
 
 
 def adb_install2(file):
+    """
+    Install + restore app data.
+    """
     adb_install(file)
 
     # Push data
