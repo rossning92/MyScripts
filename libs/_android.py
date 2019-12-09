@@ -245,8 +245,16 @@ def adb_shell2(command, check=True, root=True):
     subprocess.run(['adb', 'shell', command], check=check)
 
 
+def pm_list_packages():
+    s = check_output('adb shell pm list packages').decode()
+    s = s.replace('package:', '')
+    lines = s.splitlines()
+    lines = sorted(lines)
+    return lines
+
+
 def adb_install(file):
-    print2('Install apk...')
+    print('Install apk...')
     try:
         subprocess.check_output(
             ['adb', 'install',
@@ -273,7 +281,7 @@ def adb_install2(file):
     tar_file = os.path.splitext(file)[0] + '.tar'
     pkg = os.path.splitext(os.path.basename(file))[0]
     if exists(tar_file):
-        print2('Restore data...')
+        print('Restore data...')
         call(f'adb push "{tar_file}" /sdcard/')
         adb_shell2(f'tar -xf /sdcard/{pkg}.tar', root=True)
 
@@ -281,16 +289,16 @@ def adb_install2(file):
         out = out.decode().strip()
 
         userId = re.findall(r'userId=(\d+)', out)[0]
-        print2(f'Change owner of {pkg} => {userId}')
+        print(f'Change owner of {pkg} => {userId}')
         adb_shell2(f'chown -R {userId}:{userId} /data/data/{pkg}', root=True)
 
-        print2('Reset SELinux perms')
+        print('Reset SELinux perms')
         adb_shell2(f'restorecon -R /data/data/{pkg}', root=True)
 
     # Push obb file
     obb_folder = os.path.splitext(file)[0]
     if os.path.isdir(obb_folder):
-        print2('Push obb...')
+        print('Push obb...')
         call2(f'adb push "{obb_folder}" /sdcard/android/obb')
 
 
