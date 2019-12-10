@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+set -e
+python -c "from _script import *; run_script('$1')"
