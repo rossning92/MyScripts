@@ -317,10 +317,11 @@ assoc = {
     '.yaml': ['notepad++', 'vscode'],
     '.yml': ['notepad++', 'vscode'],
     '.zim': ['notepad++', 'vscode'],
-    '.zip': ['GoogleDrive.cmd'],
+    '.zip': ['7zFM'],
     '.zxp': ['notepad++', 'vscode'],
-    '.gz': ['7z'],
-    '.usf': ['notepad++', 'vscode']
+    '.gz': ['7zFM'],
+    '.usf': ['notepad++', 'vscode'],
+    '.tar': ['7zFM'],
 }
 
 

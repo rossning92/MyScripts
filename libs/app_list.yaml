@@ -21,6 +21,11 @@ SumatraPDF:
     - C:\Program Files\7-Zip\7z.exe
   choco: 7zip
 
+7zFM:
+  executable:
+    - C:\Program Files\7-Zip\7zFM.exe
+  choco: 7zip
+
 vscode:
   executable:
     - C:\Program Files\Microsoft VS Code\Code.exe

@@ -325,11 +325,11 @@ def remove(files):
     for file in files:
         if os.path.isdir(file):
             shutil.rmtree(file)
-            print('Delete: %s' % file)
+            print('Deleted: %s' % file)
         else:
             for match in glob.glob(file):
                 os.remove(match)
-                print('Delete: %s' % file)
+                print('Deleted: %s' % match)
 
 
 def replace(file, patt, repl, debug_output=False):
