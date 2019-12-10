@@ -44,3 +44,6 @@ Audacity:
 
 sox:
   choco: sox.portable
+
+magick:
+  choco: imagemagick
