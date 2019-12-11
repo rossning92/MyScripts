@@ -310,7 +310,7 @@ RunScript(name, path)
                         f.write(
                             f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
 
-            subprocess.Popen(['AutoHotkeyU64.exe', GLOBAL_HOTKEY])
+            subprocess.Popen([AHK_EXE, GLOBAL_HOTKEY], close_fds=True, shell=True)
 
         else:
             keyboard_hooks = {}

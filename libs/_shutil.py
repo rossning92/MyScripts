@@ -21,6 +21,8 @@ import ctypes
 import time
 import json
 
+AHK_EXE = 'AutoHotkeyU64.exe'
+
 
 def write_temp_file(text, ext):
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
@@ -35,9 +37,9 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
     else:
         with open(tmp_script_path, 'w') as f:
             f.write(script)
-    args = ['AutoHotkeyU64.exe', tmp_script_path]
+    args = [AHK_EXE, tmp_script_path]
     if wait:
-        return subprocess.call(args)
+        return subprocess.call(args, shell=True)
     else:
         Popen(args)
         return args

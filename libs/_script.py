@@ -257,6 +257,7 @@ class ScriptItem:
 
         env = {}
         creationflags = 0
+        shell = False
 
         # HACK: pass current folder
         if 'CURRENT_FOLDER' in os.environ:
@@ -282,13 +283,14 @@ class ScriptItem:
                 env['PYTHONPATH'] = os.path.dirname(__file__)
 
                 script_abs_path = os.path.abspath(script_path)
-                args = ['AutoHotkeyU64.exe', script_abs_path]
+                args = [AHK_EXE, script_abs_path]
                 self.meta['background'] = True
 
                 if self.meta['runAsAdmin']:
                     args = ['start'] + args
 
                 self.meta['newWindow'] = False  # Disable console window for ahk
+                # shell = True  # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
 
         elif ext == '.cmd' or ext == '.bat':
             if os.name == 'nt':
@@ -454,7 +456,8 @@ class ScriptItem:
                                      cwd=cwd,
                                      startupinfo=startupinfo,
                                      creationflags=creationflags,
-                                     close_fds=True)
+                                     close_fds=True,
+                                     shell=shell)
                 else:
                     self.return_code = subprocess.call(
                         args, env={**os.environ, **env}, cwd=cwd)
