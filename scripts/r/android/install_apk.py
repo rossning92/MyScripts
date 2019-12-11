@@ -12,6 +12,6 @@ adb_install2(file)
 pkg = get_pkg_name_apk(file)
 try:
     start_app(pkg)
-    logcat(pkg)
 except:
     print2('ERROR: start app failed.', color='red')
+logcat(pkg)
