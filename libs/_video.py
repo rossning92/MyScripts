@@ -1,5 +1,6 @@
 import subprocess
 import os
+import shlex
 
 
 def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, fps=None, crop_rect=None):
@@ -129,7 +130,7 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
         args += ['-c:a', 'aac', '-b:a', '128k']  # Audio
 
     args += [out_file, '-y']  # Override file
-
+    print('> ' + ' '.join(args))
     subprocess.check_call(args)
 
 
