@@ -441,6 +441,12 @@ def check_output2(args, shell=None, cwd=None, env=None):
     return MyProcess(ps)
 
 
+def read_lines(args):
+    s = subprocess.check_output(args, universal_newlines=True)
+    lines = s.splitlines()
+    return [x.strip() for x in lines]
+
+
 def check_output_echo(args):
     out = ''
     with subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as p:
