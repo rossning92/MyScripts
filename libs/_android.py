@@ -282,8 +282,8 @@ def adb_install2(file):
     pkg = os.path.splitext(os.path.basename(file))[0]
     if exists(tar_file):
         print('Restore data...')
-        call(f'adb push "{tar_file}" /sdcard/')
-        adb_shell2(f'tar -xf /sdcard/{pkg}.tar', root=True)
+        call(f'adb push "{tar_file}" /data/local/tmp/')
+        adb_shell2(f'tar -xf /data/local/tmp/{pkg}.tar', root=True)
 
         out = check_output(f'adb shell dumpsys package {pkg} | grep userId')
         out = out.decode().strip()
