@@ -10,3 +10,9 @@ adb shell am start -a android.intent.action.ATTACH_DATA -c android.intent.catego
 
 adb shell settings put system op_navigation_bar_type 3 # Navigation gestures
 adb shell settings put system status_bar_show_battery_percent 1
+
+# Lift up display: OP5t
+adb shell settings put system prox_wake_enabled 1
+adb shell settings put system doze_enabled 1
+adb shell settings put system aod_clock_style 1
+

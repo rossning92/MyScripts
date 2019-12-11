@@ -177,7 +177,7 @@ class SearchWidget(QWidget):
             self.selected_index = 0
             self.listWidget.item(0).setSelected(True)
 
-        self.listWidget.setMinimumWidth(self.listWidget.sizeHintForColumn(0) + 100)
+        # self.listWidget.resize(min(1000, self.listWidget.sizeHintForColumn(0) + 100), 600)
         # self.resize(800, 600)
 
     def on_new_line_slot(self, line):
