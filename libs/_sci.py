@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 
-def save_fig(out_file='figure.png', open_file=True, size_inch=None):
+def save_fig(out_file='figure.png', open_file=True, size_inch=None, dpi=300):
     out_file = os.path.realpath(out_file)
 
     if size_inch:
@@ -19,12 +19,13 @@ def save_fig(out_file='figure.png', open_file=True, size_inch=None):
 
     plt.gcf().tight_layout()
 
-    plt.savefig(out_file, dpi=200)
+    plt.savefig(out_file, dpi=dpi)
     if open_file:
         os.system('start "" "%s"' % out_file)
 
 
-plt.style.use('fivethirtyeight')
+def setup_plt_style():
+    plt.style.use('fivethirtyeight')
 
 
 def read_csv(csv_files):
