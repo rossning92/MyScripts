@@ -257,6 +257,7 @@ def search(items=None, title=None, search_func=None, cancel_func=None):
 
     sw = SearchWidget(items=items, search_func=search_func, cancel_func=cancel_func)
     dialog.layout().addWidget(sw)
+    dialog.setWindowTitle(os.path.basename(sys.modules['__main__'].__file__))
 
     return_code = dialog.exec_()
     if return_code != QDialog.Accepted:
