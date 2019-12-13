@@ -283,14 +283,16 @@ class ScriptItem:
                 env['PYTHONPATH'] = os.path.dirname(__file__)
 
                 script_abs_path = os.path.abspath(script_path)
-                args = [AHK_EXE, script_abs_path]
+                args = [get_ahk_exe(), script_abs_path]
                 self.meta['background'] = True
 
                 if self.meta['runAsAdmin']:
                     args = ['start'] + args
 
                 self.meta['newWindow'] = False  # Disable console window for ahk
-                # shell = True  # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
+
+                # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
+                shell = True
 
         elif ext == '.cmd' or ext == '.bat':
             if os.name == 'nt':

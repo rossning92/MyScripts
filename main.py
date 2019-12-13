@@ -293,7 +293,7 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c python -c "from _script import *;update_env_var_explorer();run_script('%path%'`, console_title='%name%'`, restart_instance=False)" || pause
+        Run cmd /c ''' + sys.executable + ' "' + os.path.realpath('bin/run_script.py') + '''" --console_title "%name%" --restart_instance False "%path%" || pause
     }
 }
 ''')
@@ -310,7 +310,7 @@ RunScript(name, path)
                         f.write(
                             f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
 
-            subprocess.Popen([AHK_EXE, GLOBAL_HOTKEY], close_fds=True, shell=True)
+            subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
 
         else:
             keyboard_hooks = {}

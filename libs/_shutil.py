@@ -21,7 +21,18 @@ import ctypes
 import time
 import json
 
-AHK_EXE = 'AutoHotkeyU64.exe'
+
+def get_ahk_exe():
+    AHK_EXE = 'AutoHotkeyU64.exe'
+    AHK_EXE = os.path.expandvars('%ProgramFiles%\\AutoHotkey\\AutoHotkeyU64_UIA.exe')
+
+    if not hasattr(get_ahk_exe, 'init'):
+        os.makedirs(os.path.expanduser('~\\Documents\\AutoHotkey'), exist_ok=True)
+        subprocess.call('MKLINK /D "%USERPROFILE%\\Documents\\AutoHotkey\\Lib" "{}"'.format(
+            os.path.realpath(os.path.dirname(__file__) + '/../bin/Lib')), shell=True)
+        get_ahk_exe.init = True
+
+    return AHK_EXE
 
 
 def write_temp_file(text, ext):
@@ -37,7 +48,7 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
     else:
         with open(tmp_script_path, 'w') as f:
             f.write(script)
-    args = [AHK_EXE, tmp_script_path]
+    args = [get_ahk_exe(), tmp_script_path]
     if wait:
         return subprocess.call(args, shell=True)
     else:
