@@ -496,6 +496,8 @@ RunScript(name, path)
 
 
 if __name__ == '__main__':
+    t_start = time.time()
+
     bin_dir = os.path.join(os.getcwd(), 'bin')
     os.environ['PATH'] = os.pathsep.join([
         bin_dir,
@@ -503,12 +505,14 @@ if __name__ == '__main__':
     ]) + os.pathsep + os.environ['PATH']
     os.environ['PYTHONPATH'] = os.path.abspath('./libs')
 
-    time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print2(time_now + ' Script is loaded', color='green')
-
     print('Python executable: %s' % sys.executable)
 
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
+
+    t_end = time.time()
+    # time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print2('Script is loaded. Takes %.2f secs.' % (t_end - t_start), color='green')
+
     sys.exit(app.exec_())
