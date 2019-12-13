@@ -13,7 +13,7 @@ call install\find_python.cmd
 :: Install required packages
 where python
 if not %errorlevel%==0 (
-	call install\install_all_elivated.cmd
+	call install\install_all_elevated.cmd
 )
 
 :: Install python modules
