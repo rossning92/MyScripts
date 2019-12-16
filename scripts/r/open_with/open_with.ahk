@@ -10,17 +10,17 @@ EnvSet, PYTHONPATH, %A_ScriptDir%\..\..\..\libs
     F3::
         filePath := getSelectedFilePath()
 		if (filePath) {
-			Run python _open_with.py "%filePath%" 0
+			Run ..\..\..\bin\python36.cmd _open_with.py "%filePath%" 0
 		}
         return
-		
+
 	F4::
 		filePath := getSelectedFilePath()
 		if (filePath) {
-			Run python _open_with.py "%filePath%" 1
+			Run ..\..\..\bin\python36.cmd _open_with.py "%filePath%" 1
 		}
         return
-        
+
 #if
 
 
@@ -40,7 +40,7 @@ getSelectedFilePath()
 	; Restore clipboard
     Clipboard := clipSaved
     clipSaved =
-    
+
 	; Check file existance
 	if not FileExist(filePath)
 		return
@@ -53,6 +53,6 @@ getSelectedFilePath()
         ; get target file path
         FileGetShortcut %filePath%, filePath
     }
-	
+
     return filePath
 }
