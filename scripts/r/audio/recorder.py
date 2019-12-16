@@ -172,23 +172,26 @@ class MyFancyRecorder:
         self.playback.stop()
         self.recorder.stop()
 
-    def set_cur_file(self, filename=None, offset=None):
+    def set_cur_file(self, filename=None, offset=None, index=None):
         files = get_audio_files()
         if filename is not None:
             files = get_audio_files()
             self.cur_file_index = files.index(filename)
             assert self.cur_file_index >= 0
-        else:
-            assert offset is not None
+        elif offset is not None:
             self.cur_file_index = max(min(self.cur_file_index + offset, len(files) - 1), 0)
+        elif index is not None:
+            self.cur_file_index = max(min(index, len(files) - 1), 0)
+        else:
+            assert False
 
-    def play_file(self, filename=None, offset=None, set_prefix=False):
+    def play_file(self, filename=None, offset=None, set_prefix=False, index=None):
         files = get_audio_files()
         n = len(files)
         if n == 0:
             return
 
-        self.set_cur_file(filename, offset)
+        self.set_cur_file(filename, offset=offset, index=index)
 
         cur_file = files[self.cur_file_index]
         print(f'({self.cur_file_index+1}/{n}) {cur_file}')
@@ -216,6 +219,7 @@ class MyFancyRecorder:
         file_name = None
         while True:
             ch = getch()
+            print(ch)
 
             if ch == 'h':
                 self.print_help()
@@ -261,6 +265,12 @@ class MyFancyRecorder:
 
             elif ch == '.':
                 self.play_file(offset=1, set_prefix=True)
+
+            elif ch == '[':
+                self.play_file(index=0, set_prefix=True)
+
+            elif ch == ']':
+                self.play_file(index=999, set_prefix=True)
 
             elif ch == 'e':
                 self.stop_all()
