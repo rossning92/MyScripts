@@ -52,13 +52,14 @@ def create_final_vocal():
             # to meet the target parameters. The sample file is only a second long,
             # which looks to be the reason for the anomalous normalization.
             subprocess.check_call(
-                f'ffmpeg -i {in_file} -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y')
+                f'ffmpeg -hide_banner -loglevel panic -i {in_file} -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y')
 
         in_file = out_file
         filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext
         if not os.path.exists(filtered_voice_file):
             call2([
-                'ffmpeg', '-i', in_file,
+                'ffmpeg', '-hide_banner', '-loglevel', 'panic',
+                '-i', in_file,
                 '-af', 'lowpass=3000,highpass=200',
                 filtered_voice_file,
                 '-y'
