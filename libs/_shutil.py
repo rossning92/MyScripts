@@ -22,9 +22,11 @@ import time
 import json
 
 
-def get_ahk_exe():
-    AHK_EXE = 'AutoHotkeyU64.exe'
-    AHK_EXE = os.path.expandvars('%ProgramFiles%\\AutoHotkey\\AutoHotkeyU64_UIA.exe')
+def get_ahk_exe(uia=True):
+    if uia:
+        ahk_exe = os.path.expandvars('%ProgramFiles%\\AutoHotkey\\AutoHotkeyU64_UIA.exe')
+    else:
+        ahk_exe = 'AutoHotkeyU64.exe'
 
     if not hasattr(get_ahk_exe, 'init'):
         os.makedirs(os.path.expanduser('~\\Documents\\AutoHotkey'), exist_ok=True)
@@ -32,7 +34,7 @@ def get_ahk_exe():
             os.path.realpath(os.path.dirname(__file__) + '/../bin/Lib')), shell=True)
         get_ahk_exe.init = True
 
-    return AHK_EXE
+    return ahk_exe
 
 
 def write_temp_file(text, ext):
