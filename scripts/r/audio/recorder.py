@@ -151,12 +151,17 @@ def get_audio_files():
     return list(glob.glob(FILE_PREFIX + '_*.wav'))
 
 
-class MyFancyRecorder:
+class MyTerminalRecorder:
     def __init__(self):
         self.recorder = WaveRecorder(channels=2)
         self.playback = WavePlayer()
-        self.cur_file_index = len(get_audio_files())
-        self.prefix = FILE_PREFIX
+
+        audio_files = get_audio_files()
+        self.cur_file_index = len(audio_files)
+        if self.cur_file_index == 0:
+            self.cur_file_name = FILE_PREFIX + '_001.wav'
+        else:
+            self.cur_file_name = audio_files[-1]
 
     def print_help(self):
         print2(
@@ -198,10 +203,7 @@ class MyFancyRecorder:
         self.playback.play(cur_file)
 
         if set_prefix:
-            if self.cur_file_index < len(files) - 1:
-                self.prefix = os.path.splitext(files[self.cur_file_index])[0]
-            else:
-                self.prefix = FILE_PREFIX
+            self.cur_file_name = files[self.cur_file_index]
 
     def delete_cur_file(self):
         files = get_audio_files()
@@ -229,9 +231,9 @@ class MyFancyRecorder:
                     self.recorder.stop()
                     self.playback.stop()
 
-                    file_name = get_audio_file_name(prefix=self.prefix)
+                    file_name = get_next_file_name(self.cur_file_name)
                     self.recorder.record(file_name)
-                    self.set_cur_file(file_name)
+                    self.cur_file_name = file_name
                     print2('Recording started: %s' % file_name, color='green')
 
                 else:
@@ -422,4 +424,4 @@ if __name__ == '__main__':
     # d = RecorderGui()
     # d.exec()
 
-    MyFancyRecorder().main_loop()
+    MyTerminalRecorder().main_loop()

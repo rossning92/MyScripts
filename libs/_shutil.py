@@ -768,4 +768,29 @@ def setup_nodejs(install=False):
             print2('NODE_PATH: %s' % global_modules)
 
 
+def get_next_file_name(file):
+    name, ext = os.path.splitext(file)
+    basename = os.path.basename(name)
+    folder = os.path.dirname(name)
+    match = re.search('^(.*?)(\d*)$', basename)
+    prefix = match.group(1)
+
+    if match.group(2):
+        digits = match.group(2)
+        len_digits = len(digits)
+        digits = int(digits)
+        new_digits = ('{:0%dd}' % len_digits).format(digits + 1)
+        if len(new_digits) == len_digits:
+            new_file = os.path.join(folder, prefix + new_digits + ext)
+        else:
+            new_file = name + '_001' + ext
+    else:
+        new_file = name + '_001' + ext
+
+    if os.path.exists(new_file):
+        new_file = name + '_001' + ext
+
+    return new_file
+
+
 env = os.environ
