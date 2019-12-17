@@ -215,6 +215,9 @@ class MyTerminalRecorder:
             print2('File deleted: %s' % file_name, color='red')
             os.remove(file_name)
 
+            if self.cur_file_index - 1 >= 0:
+                self.cur_file_name = files[self.cur_file_index - 1]
+
     def main_loop(self):
         self.print_help()
 
