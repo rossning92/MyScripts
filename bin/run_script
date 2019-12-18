@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-python run_script.py $@
+python "$(dirname "$0")/run_script.py" $@

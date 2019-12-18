@@ -1,14 +1,14 @@
 import yaml
 import shutil
-from os.path import dirname, join
 from _shutil import run_elevated
 import subprocess
 import sys
+import os
 from _script import run_script
 
 
 def get_executable(app_name):
-    with open(join(dirname(__file__), 'app_list.yaml'), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), 'app_list.yaml'), 'r') as f:
         app_list = yaml.load(f.read(), Loader=yaml.FullLoader)
 
     matched_apps = [k for k, v in app_list.items(
@@ -19,9 +19,14 @@ def get_executable(app_name):
         app_name = matched_apps[0]
         app = app_list[app_name]
 
+    print(app)
+
     def find_executable():
         if 'executable' in app:
             for exe in app['executable']:
+                if os.path.exists(exe):
+                    return exe
+
                 if shutil.which(exe):
                     return exe
         else:

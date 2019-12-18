@@ -52,3 +52,5 @@ sox:
 
 magick:
   choco: imagemagick
+  executable:
+    - C:\Program Files\ImageMagick-7.0.9-Q16\magick.exe

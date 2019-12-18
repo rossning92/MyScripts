@@ -1,1 +1,2 @@
-@python run_script.py %*
+@python "%~dp0run_script.py" %*
+goto :eof

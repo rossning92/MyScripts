@@ -1,9 +1,9 @@
 from _shutil import *
 from _appmanager import *
 
-get_executable('magick')
+magick = get_executable('magick')
 get_executable('ghostscript')
-
+print(magick)
 
 
 f = get_files()[0]
