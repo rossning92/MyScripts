@@ -224,7 +224,6 @@ class MyTerminalRecorder:
         file_name = None
         while True:
             ch = getch()
-            print(ch)
 
             if ch == 'h':
                 self.print_help()

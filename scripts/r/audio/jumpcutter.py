@@ -94,6 +94,9 @@ def create_final_vocal():
 
             data2 = data2[start:end]
 
+            zeros = np.zeros([int(rate * PADDING)], dtype=data2.dtype)
+            data2 = np.concatenate((data2, zeros))
+
             # For visualization
             if False:
                 indices = np.linspace(0, data.shape[0] - 1, 5000, dtype=int)
@@ -121,8 +124,8 @@ def create_final_vocal():
 
         out_file_list.append(out_file)
 
-    concat_audio(out_file_list, 0.2, out_file='out/concat.wav', channels=1)
-    concat_audio(out_norm_files, 0.2, out_file='out/concat_norm.wav', channels=1)
+    concat_audio(out_file_list, 0, out_file='out/concat.wav', channels=1)
+    concat_audio(out_norm_files, 0, out_file='out/concat_norm.wav', channels=1)
     call2('start out/concat.wav')
 
 
