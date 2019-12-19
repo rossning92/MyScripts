@@ -109,6 +109,10 @@ def get_all_variables():
 def get_arg(name):
     with open(get_variable_file(), 'r') as f:
         variables = json.load(f)
+
+    if name not in variables:
+        return None
+
     return variables[name][-1]
 
 
@@ -385,7 +389,7 @@ class ScriptItem:
                 # Only works on windows for now
                 if platform.system() == 'Windows':
                     exec_ahk(
-                        f'SetTitleMatchMode RegEx\nWinClose, {self.get_console_title()}, , , .*?- Visual Studio Code',
+                        f'SetTitleMatchMode RegEx\nWinClose, ^{re.escape(self.get_console_title())}, , , .*?- Visual Studio Code',
                         wait=True)
 
             if new_window:

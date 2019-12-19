@@ -1,15 +1,12 @@
 from _shutil import *
 import asyncio
 from pyppeteer import launch
+import jinja2
+from _script import *
+from _gui import *
 
-TITLES = '''
-Function
-Test
-1
-2
-3
-abc
-'''.strip()
+try_import('slugify', pkg_name='python-slugify')
+from slugify import slugify
 
 FILE_PREFIX = 'function_title'
 
@@ -17,67 +14,8 @@ SCALE = 1
 
 
 def write_to_file(text, file_name):
-    a = '''
-    
-    <!DOCTYPE html>
-    <html>
-    
-    <head>
-        <link href="https://fonts.googleapis.com/css?family=Arvo&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
-        <style>
-            @import "compass/css3";
-    
-            @import "compass/css3/transform";
-            @import url(https://fonts.googleapis.com/css?family=Bangers);
-    
-            body {
-                background-color: #000000;
-            }
-    
-            html,
-            body {
-                height: 100%;
-            }
-    
-            html {
-                display: table;
-                margin: auto;
-            }
-    
-            body {
-                display: table-cell;
-                vertical-align: middle;
-            }
-    
-            h1 {
-                text-align: center;
-                font-weight: normal;
-                color: #fff;
-                /* text-transform: uppercase; */
-                white-space: nowrap;
-                font-size: 8vw;
-                z-index: 1000;
-                font-family: 'Arvo', serif;
-                /*font-family: 'Roboto Mono', monospace;*/
-                font-weight: bold;
-                /* text-shadow: 5px 5px 0 rgba(0, 0, 0, 0.7); */
-                /* @include skew(0, -6.7deg, false);
-                @include transition-property(font-size);
-                @include transition-duration(0.5s); */
-    
-            }
-        </style>
-    </head>
-    
-    <body>
-    
-        <h1>''' + text + '''</h1>
-    
-    </body>
-    
-    </html>
-    '''
+    template = templateEnv.get_template(TEMPLATE_FILE)
+    a = template.render({'text': text})  # this is where to put args to the template renderer
 
     async def main():
         browser = await launch()
@@ -96,8 +34,26 @@ def write_to_file(text, file_name):
 
 
 if __name__ == '__main__':
-    cd(r'{{WORK_DIR}}')
+    templateLoader = jinja2.FileSystemLoader(searchpath=os.getcwd())
+    templateEnv = jinja2.Environment(loader=templateLoader)
 
-    for i, line in enumerate(TITLES.splitlines()):
-        print(i)
-        write_to_file(line, '%s_%02d.png' % (FILE_PREFIX, i + 1))
+    TEMPLATE_FILE = '{{GS_TEMPLATE}}'
+    if not TEMPLATE_FILE:
+        templates = list(sorted(glob.glob('*.html')))
+        i = search(templates)
+        TEMPLATE_FILE = templates[i]
+        set_variable('GS_TEMPLATE', TEMPLATE_FILE)
+
+    in_file = get_files()[0]
+    out_folder = os.path.dirname(in_file)
+
+    with open(in_file, encoding='utf-8') as f:
+        s = f.read()
+    slides = s.split('---')
+    slides = [x.strip() for x in slides]
+
+    for slide in slides:
+        out_file = os.path.join(out_folder, slugify(slide) + '.png')
+        if not os.path.exists(out_file):
+            print2('Generate %s ...' % out_file)
+            write_to_file(slide, out_file)

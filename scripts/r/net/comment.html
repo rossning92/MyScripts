@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Arvo&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        @import "compass/css3";
+        @import "compass/css3/transform";
+        @import url('https://fonts.googleapis.com/css?family=Open+Sans:800&display=swap');
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        html {
+            display: table;
+            margin: auto;
+        }
+
+        body {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: normal;
+            color: #FEE715;
+            /* text-transform: uppercase; */
+            white-space: nowrap;
+            font-size: 6vw;
+            z-index: 1000;
+            font-family: 'Open Sans', sans-serif, "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei";
+            font-weight: bold;
+            /* text-shadow: 5px 5px 0 rgba(0, 0, 0, 0.7); */
+            /* @include skew(0, -6.7deg, false);
+                @include transition-property(font-size);
+                @include transition-duration(0.5s); */
+            -webkit-text-stroke: 4px black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>{{text}}</h1>
+
+</body>
+
+</html>
