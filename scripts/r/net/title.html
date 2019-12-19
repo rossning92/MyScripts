@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Arvo&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        @import "compass/css3";
+        @import "compass/css3/transform";
+        @import url('https://fonts.googleapis.com/css?family=Open+Sans:800&display=swap');
+
+        html,
+        body {
+            background-color: black;
+            height: 100%;
+        }
+
+        html {
+            display: table;
+            margin: auto;
+        }
+
+        body {
+            display: table-cell;
+            vertical-align: middle;
+            font-family: 'Open Sans', sans-serif, "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei";
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            /* text-transform: uppercase; */
+            white-space: nowrap;
+            font-size: 8vw;
+            margin: 0;
+        }
+
+        h2 {
+            white-space: nowrap;
+            font-size: 4vw;
+            margin: 0;
+            color: #ffeaa7;
+        }
+    </style>
+</head>
+
+<body>
+    {% set lines = text.splitlines() %}
+    <h1>{{ lines[0] }}</h1>
+    {% if lines|length > 1 %}
+    <h2>{{ lines[1] }}</h2>
+    {% endif %}
+
+</body>
+
+</html>

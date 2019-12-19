@@ -18,7 +18,7 @@ def write_to_file(text, file_name):
     a = template.render({'text': text})  # this is where to put args to the template renderer
 
     async def main():
-        browser = await launch()
+        browser = await launch({'headless': False})
         page = await browser.newPage()
         await page.setViewport({
             'width': int(1920 / SCALE),
