@@ -4,6 +4,7 @@ from pyppeteer import launch
 import jinja2
 from _script import *
 from _gui import *
+import markdown2
 
 try_import('slugify', pkg_name='python-slugify')
 from slugify import slugify
@@ -13,8 +14,8 @@ FILE_PREFIX = 'function_title'
 SCALE = 1
 
 
-def write_to_file(text, file_name):
-    template = templateEnv.get_template(TEMPLATE_FILE)
+def write_to_file(text, file_name, template_file):
+    template = templateEnv.get_template(template_file)
     a = template.render({'text': text})  # this is where to put args to the template renderer
 
     async def main():
@@ -37,14 +38,19 @@ if __name__ == '__main__':
     templateLoader = jinja2.FileSystemLoader(searchpath=os.getcwd())
     templateEnv = jinja2.Environment(loader=templateLoader)
 
-    TEMPLATE_FILE = '{{GS_TEMPLATE}}'
-    if not TEMPLATE_FILE:
-        templates = list(sorted(glob.glob('*.html')))
-        i = search(templates)
-        TEMPLATE_FILE = templates[i]
-        set_variable('GS_TEMPLATE', TEMPLATE_FILE)
-
     in_file = get_files()[0]
+    in_file_name = os.path.splitext(os.path.basename(in_file))[0]
+    template_file = in_file_name + '.html'
+    if not os.path.exists(template_file):
+
+        # Specify template file from parameter
+        template_file = '{{GS_TEMPLATE}}'
+        if not template_file:
+            templates = list(sorted(glob.glob('*.html')))
+            i = search(templates)
+            template_file = templates[i]
+            set_variable('GS_TEMPLATE', template_file)
+
     out_folder = os.path.dirname(in_file)
 
     with open(in_file, encoding='utf-8') as f:
@@ -54,6 +60,11 @@ if __name__ == '__main__':
 
     for slide in slides:
         out_file = os.path.join(out_folder, slugify(slide) + '.png')
-        if not os.path.exists(out_file):
+        if not os.path.exists(out_file) or True:
             print2('Generate %s ...' % out_file)
-            write_to_file(slide, out_file)
+
+            markdown_text = markdown2.markdown(slide, extras=['break-on-newline', 'fenced-code-blocks'])
+            print(markdown_text)
+            write_to_file(markdown_text,
+                          out_file,
+                          template_file)
