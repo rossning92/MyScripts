@@ -248,6 +248,10 @@ class ScriptItem:
     def get_public_variable_prefix(self):
         return os.path.splitext(os.path.basename(self.script_path))[0].upper()
 
+    def convert_private_variables(self, variables):
+        prefix = self.get_public_variable_prefix()
+        return {(prefix + k if k.startswith('_') else k): v for k, v in variables.items()}
+
     def execute(self, args=None, new_window=False, restart_instance=None):
         script_path = self.real_script_path if self.real_script_path else self.script_path
         ext = self.real_ext if self.real_ext else self.ext
@@ -389,7 +393,8 @@ class ScriptItem:
                 # Only works on windows for now
                 if platform.system() == 'Windows':
                     exec_ahk(
-                        f'SetTitleMatchMode RegEx\nWinClose, ^{re.escape(self.get_console_title())}, , , .*?- Visual Studio Code',
+                        'SetTitleMatchMode RegEx\nWinClose, ^' + re.escape(
+                            self.get_console_title()) + ', , , .*?- Visual Studio Code',
                         wait=True)
 
             if new_window:
