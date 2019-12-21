@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     for slide in slides:
         out_file = os.path.join(out_folder, slugify(slide) + '.png')
-        if not os.path.exists(out_file) or True:
+        if not os.path.exists(out_file):
             print2('Generate %s ...' % out_file)
 
             markdown_text = markdown2.markdown(slide, extras=['break-on-newline', 'fenced-code-blocks'])

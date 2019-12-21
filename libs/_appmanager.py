@@ -19,8 +19,6 @@ def get_executable(app_name):
         app_name = matched_apps[0]
         app = app_list[app_name]
 
-    print(app)
-
     def find_executable():
         if 'executable' in app:
             for exe in app['executable']:

@@ -7,6 +7,7 @@ try_import('numpy')
 try_import('pandas')
 
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 import pandas as pd
 import numpy as np
 
