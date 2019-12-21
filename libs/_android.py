@@ -3,11 +3,13 @@ import datetime
 
 
 def start_app(pkg, use_monkey=True):
+    ret = 1
     if use_monkey:
         args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
         print('> ' + args)
-        subprocess.call(args, shell=True)
-    else:
+        ret = subprocess.call(args, shell=True)
+
+    if ret > 0:
         args = f'adb shell "dumpsys package | grep -i {pkg}/ | grep Activity"'
         out = subprocess.check_output(args, shell=True)
         out = out.decode().strip()
@@ -182,7 +184,7 @@ def get_adk_path():
     return None
 
 
-def setup_android_env():
+def setup_android_env(ndk_version=None):
     env = os.environ
 
     # ANDROID_HOME
@@ -193,15 +195,25 @@ def setup_android_env():
     env['ANDROID_HOME'] = android_home
 
     # NDK
-    p = os.path.join(env['ANDROID_HOME'], 'ndk-bundle')
-    if exists(p):
-        print2('ANDROID_NDK_HOME: %s' % p)
+    ndk_path = None
+    if ndk_version is not None:
+        match = glob.glob(os.path.join(env['ANDROID_HOME'], 'ndk', '%s*' % ndk_version))
+        if match:
+            ndk_path = match[0]
+
+    if ndk_path is None:
+        p = os.path.join(env['ANDROID_HOME'], 'ndk-bundle')
+        if exists(p):
+            ndk_path = p
+
+    if ndk_path:
+        print2('ANDROID_NDK_HOME: %s' % ndk_path)
         env['ANDROID_NDK_HOME'] = \
             env['ANDROID_NDK'] = \
             env['ANDROID_NDK_ROOT'] = \
             env['NDKROOT'] = \
             env['NDK_ROOT'] = \
-            p
+            ndk_path
 
     # Setup PATH
     path = [
