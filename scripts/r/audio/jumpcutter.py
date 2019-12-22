@@ -36,6 +36,7 @@ def create_final_vocal():
         print2('Processing: %s' % f)
 
         name_no_ext = os.path.splitext(os.path.basename(f))[0]
+        mtime = os.path.getmtime(f)
 
         # Convert to mono
         in_file = f
@@ -46,17 +47,18 @@ def create_final_vocal():
         # Normalization
         in_file = out_file
         out_file = f'tmp/{f}.norm.wav'
-        if not os.path.exists(out_file):
+        if not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
             # to calculate short-term loudness in the source and adjust the destination
             # to meet the target parameters. The sample file is only a second long,
             # which looks to be the reason for the anomalous normalization.
             subprocess.check_call(
                 f'ffmpeg -hide_banner -loglevel panic -i {in_file} -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y')
+            os.utime(out_file, (mtime, mtime))
 
         in_file = out_file
         filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext
-        if not os.path.exists(filtered_voice_file):
+        if not os.path.exists(filtered_voice_file) or os.path.getmtime(filtered_voice_file) != mtime:
             call2([
                 'ffmpeg', '-hide_banner', '-loglevel', 'panic',
                 '-i', in_file,
@@ -64,10 +66,11 @@ def create_final_vocal():
                 filtered_voice_file,
                 '-y'
             ])
+            os.utime(filtered_voice_file, (mtime, mtime))
 
         # Cut
         out_file = 'tmp/%s.cut.wav' % name_no_ext
-        if not os.path.exists(out_file):
+        if not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             rate, data2 = wavfile.read(in_file)
             border_samples = int(BORDER_IGNORE * rate)
             data2 = data2[border_samples:-border_samples]
@@ -105,12 +108,14 @@ def create_final_vocal():
                 plt.show()
 
             wavfile.write(out_file, rate, data2)
+            os.utime(out_file, (mtime, mtime))
+
         out_norm_files.append(out_file)
 
         # Compress
         in_file = out_file
         out_file = f'out/{f}'
-        if not os.path.exists(out_file):
+        if not os.path.exists(out_file)  or os.path.getmtime(out_file) != mtime:
             subprocess.check_call(
                 f'sox {in_file} {out_file}'
                 f' equalizer 800 400h {MIDDLE_FREQ_DB}'
@@ -121,6 +126,7 @@ def create_final_vocal():
                 f' 0 -90'  # gain initial-volume-dB
 
             )
+            os.utime(out_file, (mtime, mtime))
 
         out_file_list.append(out_file)
 

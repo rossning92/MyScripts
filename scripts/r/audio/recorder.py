@@ -159,7 +159,7 @@ class MyTerminalRecorder:
         audio_files = get_audio_files()
         self.cur_file_index = len(audio_files)
         if self.cur_file_index == 0:
-            self.cur_file_name = FILE_PREFIX + '_001.wav'
+            self.cur_file_name = FILE_PREFIX + '_000.wav'
         else:
             self.cur_file_name = audio_files[-1]
 
