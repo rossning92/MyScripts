@@ -7,8 +7,8 @@
   <title>untitled</title>
   <script src="https://cdn.rawgit.com/dataarts/dat.gui/d5b6178e/build/dat.gui.js"></script>
   <script src="https://cdn.rawgit.com/spite/ccapture.js/0bb38d6f/build/CCapture.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/pixi.js/4.3.5/pixi.min.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/pixi.js/4.3.5/pixi.min.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.1.3/pixi.min.js"></script>
   <script src="tween.umd.js"></script>
 </head>
 
@@ -17,8 +17,6 @@
   <script>
 
     let renderer, stage;
-    let num_circles = 100;
-    let circles = new Array();
     let velocity = { max_vx: 3, min_vx: 1, max_vy: 3, min_vy: 1 };
     let capturer = null;
 
@@ -31,42 +29,59 @@
     }
 
     var gui = new dat.gui.GUI();
+    gui.add(options, 'format', ['gif', 'webm-mediarecorder', 'webm']);
+    gui.add(options, 'framerate', ['10FPS', '30FPS', '60FPS', '120FPS']);
+    gui.add(options, 'start');
+    gui.add(options, 'stop');
 
-    let recording = gui.addFolder('Recording');
-    recording.add(options, 'format', ['gif', 'webm-mediarecorder', 'webm']);
-    recording.add(options, 'framerate', ['10FPS', '30FPS', '60FPS', '120FPS']);
-    recording.add(options, 'start');
-    recording.add(options, 'stop');
+
+
     function createCircles() {
-      for (let i = 0; i < num_circles; i++) {
-        let circle = new PIXI.Graphics();
-        let radius = Math.floor(Math.random() * (20 - 8 + 1)) + 8;
-        circle.beginFill('0x' + randomColor());
-        circle.drawCircle(0, 0, radius);
-        circle.endFill();
-        /* Math.floor(Math.random() * (max - min + 1)) + min; */
-        circle.x = Math.floor(Math.random() * (renderer.width - radius - radius + 1)) + radius;
-        circle.y = Math.floor(Math.random() * (renderer.height - radius - radius + 1)) + radius;
 
-        let vx = Math.random() * (velocity.max_vx - velocity.min_vx) + velocity.min_vx;
-        vx = Math.random() > 0.5 ? vx : -vx;
-        let vy = Math.random() * (velocity.max_vy - velocity.min_vy) + velocity.min_vy;
-        vy = Math.random() > 0.5 ? vy : -vy;
 
-        circle.radius = radius;
-        circle.vx = vx;
-        circle.vy = vy;
-        stage.addChild(circle);
-        circles.push(circle);
 
-        const tween = new TWEEN.Tween({ x: 0, y: 0 }) // Create a new tween that modifies 'coords'.
-          .to({ x: 300, y: 200 }, 2000) // Move to (300, 200) in 1 second.
-          .easing(TWEEN.Easing.Quadratic.Out) // Use an easing function to make the animation smooth.
-          .onUpdate((v) => {
-            circle.x = v.x;
-            circle.y = v.y;
-          })
-          .start(); // Start the tween immediately.
+      let rectRotation = new PIXI.Graphics();
+      rectRotation.x = renderer.width / 2;
+      rectRotation.y = renderer.height / 2;
+      rectRotation.rotation = -45 * Math.PI / 180;
+      stage.addChild(rectRotation);
+
+      // new TWEEN.Tween(rectRotation)
+      //     .to({rotation: 45 * Math.PI / 180}, 500)
+      //     .delay(200)
+      //     .start();
+
+
+
+      // CREATE SOME RECTANGLES FOR THE WIPE
+      DURATION = 300
+      INTERVAL = 5
+      SINGLE_RECT_DURATION = 500
+      let setPointColors = ["0xf39909", "0xa51981", "0xff1981", "0xf30009"];
+      for (var i = 0; i < Math.floor(DURATION / INTERVAL); i++) {
+        let rect = new PIXI.Graphics();
+        let colorIndex = Math.floor(Math.random() * setPointColors.length);
+        rect.beginFill(setPointColors[colorIndex], 1);
+
+        rect.drawRect(0, 0, renderer.width, renderer.height * 2);
+        rect.pivot.x = renderer.width / 2;
+        rect.pivot.y = renderer.height;
+        // rect.rotation = -45 * 3.14 / 180;
+
+        rectRotation.addChild(rect);
+
+
+        rect.width = 0;
+
+        new TWEEN.Tween(rect)
+          .to({
+            x: i % 2 == 0 ? renderer.width * 1.5 : -renderer.width * 1.5,
+            width: renderer.width
+          }, SINGLE_RECT_DURATION)
+          .delay(200 + i * INTERVAL)
+          .easing(TWEEN.Easing.Exponential.InOut)
+          .start();
+
       }
     }
     function initRecording() {
@@ -88,14 +103,17 @@
       capturer.start();
     }
     function stopRecording() {
-      capturer.stop();
-      capturer.save();
+      if (capturer !== null) {
+        capturer.stop();
+        capturer.save();
+      }
     }
 
     function resetAnimation() {
-      renderer = PIXI.autoDetectRenderer(256, 256, { antialias: true, transparent: false });
+      // Custom PIXI application
+      renderer = new PIXI.Renderer({ width: 600, height: 600, antialias: true, backgroundColor: "0xffffff" });
       renderer.autoResize = false;
-      renderer.resize(window.innerWidth, window.innerHeight);
+      // renderer.resize(window.innerWidth, window.innerHeight);
 
       /* Add the canvas to the HTML document */
       let c = document.getElementsByTagName("canvas")[0];
@@ -125,6 +143,8 @@
     function randomColor() {
       return Math.floor(Math.random() * 16777215).toString(16);
     }
+
+    // startRecording();
 
   </script>
 </body>
