@@ -325,7 +325,8 @@ class ScriptItem:
             args = ['node', os.path.basename(script_path)]
 
         elif ext == '.sh':
-            args = bash(self.render(), wsl=self.meta['wsl'], env=env)
+            bash_cmd = self.render() if self.meta['template'] else script_path
+            args = bash(bash_cmd, wsl=self.meta['wsl'], env=env)
 
         elif ext == '.py' or ext == '.ipynb':
             if self.meta['template'] and ext == '.py':

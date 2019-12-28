@@ -403,7 +403,7 @@ RunScript(name, path)
             os.environ['ROSS_SELECTED_SCRIPT_PATH'] = script_abs_path
 
             # Display variable list
-            if 'get_variables' in dir(first_matched_script):
+            if 'get_variables' in dir(first_matched_script) and first_matched_script.meta['template']:
                 self.editVariableWidget.update_items(first_matched_script.get_variable_names(),
                                                      hide_prefix=first_matched_script.get_public_variable_prefix())
 
