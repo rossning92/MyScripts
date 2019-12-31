@@ -252,7 +252,7 @@ class ScriptItem:
         prefix = self.get_public_variable_prefix()
         return {(prefix + k if k.startswith('_') else k): v for k, v in variables.items()}
 
-    def execute(self, args=None, new_window=False, restart_instance=None):
+    def execute(self, args=None, new_window=None, restart_instance=None):
         script_path = self.real_script_path if self.real_script_path else self.script_path
         ext = self.real_ext if self.real_ext else self.ext
 
@@ -385,7 +385,8 @@ class ScriptItem:
         # Run commands
         if args is not None and len(args) > 0:
             # Check if new window is needed
-            new_window |= self.meta['newWindow']
+            if new_window is None:
+                new_window = self.meta['newWindow']
 
             if restart_instance is None:
                 restart_instance = self.meta['restartInstance']

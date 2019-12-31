@@ -272,7 +272,11 @@ class MainWindow(QWidget):
         #     control_down = True
         #     restart_instance = True
 
-        script.execute(new_window=control_down, args=args, restart_instance=restart_instance)
+        new_window = None
+        if control_down:
+            new_window = True
+
+        script.execute(new_window=new_window, args=args, restart_instance=restart_instance)
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
@@ -357,7 +361,7 @@ RunScript(name, path)
                     if script.meta['autoRun']:
                         print2('AUTORUN: ', end='', color='cyan')
                         print(file)
-                        script.execute()
+                        script.execute(new_window=False)
 
                 # Hide files starting with '_'
                 base_name = os.path.basename(file)
