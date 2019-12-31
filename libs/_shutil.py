@@ -291,7 +291,7 @@ def copy(src, dst):
             print('%s => %s' % (src, dst))
 
     elif os.path.isfile(src):
-        shutil.copy(src, dst)
+        shutil.copy2(src, dst)
         print('%s => %s' % (src, dst))
 
     else:

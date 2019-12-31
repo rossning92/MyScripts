@@ -355,7 +355,8 @@ RunScript(name, path)
                 if file not in self.modified_time or mtime > self.modified_time[file]:
                     # Check if auto run script
                     if script.meta['autoRun']:
-                        print('Autorun: ' + file)
+                        print2('AUTORUN: ', end='', color='cyan')
+                        print(file)
                         script.execute()
 
                 # Hide files starting with '_'
