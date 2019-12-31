@@ -1,11 +1,10 @@
-anaconda: false
 autoRun: false
 background: false
 conda: null
 globalHotkey: null
 hotkey: null
 newWindow: true
-restartInstance: false
+restartInstance: true
 runAsAdmin: true
 template: true
 venv: null

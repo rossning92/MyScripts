@@ -34,7 +34,8 @@ return
 	
 	!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 	#c::ActivateChrome(0)
-	#!c::ActivateChrome(1)
+	#!c::ActivateChrome(2)
+	#!2::ActivateChrome(3)
 	
 	^q::
 		; If explorer is active, copy file path to clipboard
@@ -109,7 +110,7 @@ ActivateChrome(index=0)
 	}
 	else
 	{
-		condition := "CommandLine LIKE '%ChromeData2%' AND NOT CommandLine LIKE '%--type=%'"
+		condition := "CommandLine LIKE '%ChromeData" index "%' AND NOT CommandLine LIKE '%--type=%'"
 	}
 
 	pid =
@@ -131,7 +132,7 @@ ActivateChrome(index=0)
 		}
 		else
 		{
-			Run chrome.exe --user-data-dir=%USERPROFILE%\ChromeData2
+			Run chrome.exe --user-data-dir=%USERPROFILE%\ChromeData%index%
 		}
 	}
 }
