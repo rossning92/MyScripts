@@ -61,7 +61,7 @@ assoc = {
     '.cs': ['notepad++', 'vscode'],
     '.cson': ['notepad++', 'vscode'],
     '.css': ['notepad++', 'vscode'],
-    '.csv': ['notepad++', 'vscode'],
+    '.csv': ['notepad++', 'tad'],
     '.cu': ['notepad++', 'vscode'],
     '.cue': ['VLC', 'mpv'],
     '.cxx': ['notepad++', 'vscode'],

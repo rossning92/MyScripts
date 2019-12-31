@@ -146,8 +146,8 @@ def cd(path, expand=True):
     os.chdir(path)
 
 
-def call2(args):
-    subprocess.check_call(args, shell=True)
+def call2(args, check=True):
+    subprocess.run(args, shell=True, check=check)
 
 
 def call_echo(args):
