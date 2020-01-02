@@ -44,7 +44,7 @@ def get_executable(app_name):
             if 'choco' in app:
                 pkg_name = app['choco']
             print('Installing %s...' % pkg_name)
-            run_elevated(['choco', 'install', pkg_name, '-y'])
+            run_elevated(['choco', 'install', '--source=chocolatey', pkg_name, '-y'])
             executable = find_executable()
 
         elif sys.platform == 'linux':

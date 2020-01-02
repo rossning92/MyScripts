@@ -1,8 +1,8 @@
 from _shutil import *
 
 url = get_clip()
-if not url.endswith('.m3u8'):
-    sys.exit(1)
+# if not url.endswith('.m3u8'):
+#     sys.exit(1)
 
 chdir(expanduser('~/Desktop'))
 

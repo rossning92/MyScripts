@@ -751,24 +751,28 @@ def start_process(args, shell=True):
 
 
 def setup_nodejs(install=False):
-    NODE_JS_PATH = r'C:\Program Files\nodejs'
-    if exists(NODE_JS_PATH):
-        print2('Node.js: %s' % NODE_JS_PATH)
-
-        prepend_to_path([NODE_JS_PATH,
-                         expandvars('%APPDATA%\\npm')])
-
-    if install and not os.path.exists(NODE_JS_PATH):
-        run_elevated('choco install nodejs -y')
-
     if sys.platform == 'win32':
+        NODE_JS_PATH = r'C:\Program Files\nodejs'
+        if install and not os.path.exists(NODE_JS_PATH):
+            run_elevated('choco install nodejs -y')
+
+        if exists(NODE_JS_PATH):
+            print2('Node.js: %s' % NODE_JS_PATH)
+
+            prepend_to_path([NODE_JS_PATH,
+                             expandvars('%APPDATA%\\npm')])
+
         global_modules = os.path.expandvars('%APPDATA%/npm/node_modules')
         if os.path.exists(global_modules):
             os.environ['NODE_PATH'] = global_modules
             print2('NODE_PATH: %s' % global_modules)
+    else:
+        print('setup_nodejs() not supported for current OS. Ignored.')
 
 
 def get_next_file_name(file):
+    POSTFIX_START = '_001'
+
     name, ext = os.path.splitext(file)
     basename = os.path.basename(name)
     folder = os.path.dirname(name)
@@ -783,12 +787,12 @@ def get_next_file_name(file):
         if len(new_digits) == len_digits:
             new_file = os.path.join(folder, prefix + new_digits + ext)
         else:
-            new_file = name + '_001' + ext
+            new_file = name + POSTFIX_START + ext
     else:
-        new_file = name + '_001' + ext
+        new_file = name + POSTFIX_START + ext
 
     if os.path.exists(new_file):
-        new_file = name + '_001' + ext
+        new_file = name + POSTFIX_START + ext
 
     return new_file
 
