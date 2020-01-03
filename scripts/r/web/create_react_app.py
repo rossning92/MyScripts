@@ -28,4 +28,17 @@ data['scripts']['dev'] = 'concurrently --kill-others-on-fail "yarn server" "yarn
 with open('package.json', 'w') as f:
     json.dump(data, f, indent=2)
 
+FLASK_APP = '''
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+'''
+if not os.path.exists('server.py'):
+    with open('server.py', 'w', newline='\n') as f:
+        f.write(FLASK_APP)
+
+# Start dev server
 call2('yarn dev')
