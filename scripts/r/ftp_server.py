@@ -3,7 +3,7 @@ from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 
 authorizer = DummyAuthorizer()
-authorizer.add_anonymous("{{FTP_ROOT}}")
+authorizer.add_anonymous(r"{{FTP_ROOT}}")
 
 handler = FTPHandler
 handler.authorizer = authorizer
