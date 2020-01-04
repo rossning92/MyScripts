@@ -1,25 +1,26 @@
 from _shutil import *
 import asyncio
 from pyppeteer import launch
-import jinja2
 from _script import *
 from _gui import *
+
+try_import('markdown2', pkg_name='markdown2')
 import markdown2
 
 try_import('slugify', pkg_name='python-slugify')
 from slugify import slugify
-
-FILE_PREFIX = 'function_title'
 
 SCALE = 1
 
 
 def write_to_file(text, file_name, template_file):
     template = templateEnv.get_template(template_file)
-    a = template.render({'text': text})  # this is where to put args to the template renderer
+    html = template.render({'text': text})  # this is where to put args to the template renderer
+    with open(file_name + '.html', 'w') as f:
+        f.write(html)
 
     async def main():
-        browser = await launch({'headless': False})
+        browser = await launch(headless=False)
         page = await browser.newPage()
         await page.setViewport({
             'width': int(1920 / SCALE),
@@ -27,7 +28,7 @@ def write_to_file(text, file_name, template_file):
             'deviceScaleFactor': SCALE,
         })
         # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
-        await page.goto('data:text/html,' + a)
+        await page.goto('data:text/html,' + html)
         await page.screenshot({'path': file_name, 'omitBackground': True})
         await browser.close()
 

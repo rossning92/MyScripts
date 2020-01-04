@@ -760,7 +760,8 @@ def setup_nodejs(install=False):
             print2('Node.js: %s' % NODE_JS_PATH)
 
             prepend_to_path([NODE_JS_PATH,
-                             expandvars('%APPDATA%\\npm')])
+                             expandvars('%APPDATA%\\npm'),
+                             expandvars('%USERPROFILE%\\node_modules\\.bin')])
 
         global_modules = os.path.expandvars('%APPDATA%/npm/node_modules')
         if os.path.exists(global_modules):

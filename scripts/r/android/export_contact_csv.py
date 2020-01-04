@@ -25,7 +25,7 @@ if __name__ == '__main__':
     # Groups
     groups = {}
     with open('groups.txt', encoding='utf-8') as f:
-        lines = f.readlines()
+        lines = [line for line in f.readlines() if line.strip()]
     for line in lines:
         contact_id = re.search("\\b_id=(\\d+)", line).group(1)
         title = re.search("\\btitle=(.*?),", line).group(1)
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # Raw contacts
     contacts = defaultdict(Contact)
     with open('raw_contacts.txt', encoding='utf-8') as f:
-        lines = f.readlines()
+        lines = [line for line in f.readlines() if line.strip()]
     for line in lines:
         contact_id = re.search("\\b_id=(.*?),", line).group(1)
         name = re.search("\\bdisplay_name=(.*?),", line).group(1)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # Data / relationship
     with open('data.txt', encoding='utf-8') as f:
-        lines = f.readlines()
+        lines = [line for line in f.readlines() if line.strip()]
     for line in lines:
         if 'mimetype=vnd.android.cursor.item/phone' in line:
             contact_id = re.search("\\braw_contact_id=(.*?),", line).group(1)
