@@ -13,7 +13,7 @@
 
         html,
         body {
-            /* background-color: black; */
+            background-color: black;
             height: 100%;
         }
 
@@ -54,6 +54,22 @@
     </style>
 </head>
 
-<body>{{ text }}</body>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
+    <script>
+        window.onload = function () {
+            return;
+
+            anime({
+                targets: 'ul > li',
+                opacity: ['0%', '100%'],
+                translateX: ['-50vw', '0'],
+                duration: 500,
+                delay: anime.stagger(100) // increase delay by 100ms for each elements.
+            });
+        };
+    </script>
+    {{ text }}
+</body>
 
 </html>

@@ -3,6 +3,7 @@ import asyncio
 from pyppeteer import launch
 from _script import *
 from _gui import *
+import webbrowser
 
 try_import('markdown2', pkg_name='markdown2')
 import markdown2
@@ -11,28 +12,34 @@ try_import('slugify', pkg_name='python-slugify')
 from slugify import slugify
 
 SCALE = 1
+GEN_HTML = '{{GEN_HTML}}'
+REGENERATE = True
 
 
 def write_to_file(text, file_name, template_file):
     template = templateEnv.get_template(template_file)
     html = template.render({'text': text})  # this is where to put args to the template renderer
-    with open(file_name + '.html', 'w') as f:
-        f.write(html)
 
-    async def main():
-        browser = await launch(headless=False)
-        page = await browser.newPage()
-        await page.setViewport({
-            'width': int(1920 / SCALE),
-            'height': int(1080 / SCALE),
-            'deviceScaleFactor': SCALE,
-        })
-        # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
-        await page.goto('data:text/html,' + html)
-        await page.screenshot({'path': file_name, 'omitBackground': True})
-        await browser.close()
+    if GEN_HTML:
+        html_file_name = file_name + '.html'
+        with open(html_file_name, 'w') as f:
+            f.write(html)
+        webbrowser.open(html_file_name)
+    else:
+        async def main():
+            browser = await launch(headless=False)
+            page = await browser.newPage()
+            await page.setViewport({
+                'width': int(1920 / SCALE),
+                'height': int(1080 / SCALE),
+                'deviceScaleFactor': SCALE,
+            })
+            # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
+            await page.goto('data:text/html,' + html)
+            await page.screenshot({'path': file_name, 'omitBackground': True})
+            await browser.close()
 
-    asyncio.get_event_loop().run_until_complete(main())
+        asyncio.get_event_loop().run_until_complete(main())
 
 
 if __name__ == '__main__':
@@ -43,7 +50,6 @@ if __name__ == '__main__':
     in_file_name = os.path.splitext(os.path.basename(in_file))[0]
     template_file = in_file_name + '.html'
     if not os.path.exists(template_file):
-
         # Specify template file from parameter
         template_file = '{{GS_TEMPLATE}}'
         if not template_file:
@@ -61,7 +67,7 @@ if __name__ == '__main__':
 
     for slide in slides:
         out_file = os.path.join(out_folder, slugify(slide) + '.png')
-        if not os.path.exists(out_file):
+        if REGENERATE or (not os.path.exists(out_file)):
             print2('Generate %s ...' % out_file)
 
             markdown_text = markdown2.markdown(slide, extras=['break-on-newline', 'fenced-code-blocks'])
