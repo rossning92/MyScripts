@@ -1,6 +1,7 @@
 from _shutil import *
 
-FPS = 60
+FPS = 25
+DURATION = int('{{_DURA}}') if '{{_DURA}}' else 1
 
 setup_nodejs()
 input_file = get_files(cd=True)[0]
@@ -18,6 +19,6 @@ input_file = get_files(cd=True)[0]
 call2(f'timesnap {input_file}'
       f' --viewport=1920,1080'
       f' --fps={FPS}'
-      f' --duration=1'
+      f' --duration={DURATION}'
       f' --output-stdout'
       f' | ffmpeg -framerate {FPS} -i pipe:0 -y video.mp4')

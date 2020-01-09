@@ -28,7 +28,7 @@
             font-family: 'Open Sans', 'Noto Sans SC', sans-serif;
             font-weight: bold;
             color: white;
-            font-size: 4vw;
+            font-size: 7.1vh;
             text-align: center;
         }
 
@@ -51,6 +51,23 @@
             margin: 0;
             color: #eae7af;
         }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: auto auto;
+        }
+
+        .grid-item {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            font-size: 30px;
+            text-align: center;
+        }
+
+        ul>li {
+            text-align: left;
+        }
     </style>
 </head>
 
@@ -58,18 +75,28 @@
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
     <script>
         window.onload = function () {
-            return;
+            // return;
+
+            // var elements = document.querySelectorAll('ul > li');
 
             anime({
                 targets: 'ul > li',
+                fontSize: ['0', '100%'],
                 opacity: ['0%', '100%'],
-                translateX: ['-50vw', '0'],
-                duration: 500,
-                delay: anime.stagger(100) // increase delay by 100ms for each elements.
+                translateX: ['-50%', 0],
+                delay: anime.stagger(1000),
+                duration: 500
             });
+
         };
     </script>
     {{ text }}
+    <!-- <div class="grid-container">
+        <div class="grid-item">1</div>
+        <div class="grid-item">2</div>
+        <div class="grid-item">3</div>
+        <div class="grid-item">4</div>
+    </div> -->
 </body>
 
 </html>
