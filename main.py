@@ -27,6 +27,11 @@ SCRIPT_PATH_LIST = [
 SCRIPT_REFRESH_INTERVAL = 2000
 
 
+def timeit2(func):
+    import timeit
+    print(timeit.timeit(func, number=1))
+
+
 def add_keyboard_hooks(keyboard_hooks):
     if sys.platform != 'linux':
         import keyboard
@@ -236,6 +241,7 @@ class MainWindow(QWidget):
         self.script_items = []
         self.matched_items = []
         self.modified_time = {}
+        self.script_by_path = {}
 
         self.ui = uic.loadUi('MainDialog.ui', self)
 
