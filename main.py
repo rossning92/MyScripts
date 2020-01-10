@@ -18,6 +18,14 @@ from _gui import *
 
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
+# TODO: move to configuration file
+SCRIPT_PATH_LIST = [
+    ['', 'scripts'],
+    ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
+]
+
+SCRIPT_REFRESH_INTERVAL = 2000
+
 
 def add_keyboard_hooks(keyboard_hooks):
     if sys.platform != 'linux':
@@ -33,15 +41,17 @@ def get_data_folder():
     return folder
 
 
-def should_update():
+def should_update(folder_list):
     global last_max_mtime
     global last_file_list
 
     mtime_list = []
     file_list = []
-    for f in glob.iglob('scripts/**/*.*', recursive=True):
-        mtime_list.append(os.stat(f).st_mtime)
-        file_list.append(f)
+
+    for folder in folder_list:
+        for f in glob.iglob(os.path.join(folder, '**', '*.*'), recursive=True):
+            mtime_list.append(os.stat(f).st_mtime)
+            file_list.append(f)
 
     max_mtime = max(mtime_list)
 
@@ -245,7 +255,7 @@ class MainWindow(QWidget):
         # self.processWidget = ProcessWidget()
         # self.ui.layout().addWidget(self.processWidget)
 
-        self.startTimer(1000)
+        self.startTimer(SCRIPT_REFRESH_INTERVAL)
 
         self.setFocusPolicy(Qt.StrongFocus)
 
@@ -324,21 +334,15 @@ RunScript(name, path)
             add_keyboard_hooks(keyboard_hooks)
 
     def timerEvent(self, e):
-        if should_update():
+        if should_update([x[1] for x in SCRIPT_PATH_LIST]):
             self.init_script_items()
-            self.update_items(self.ui.inputBox.text())
+            self.update_gui(self.ui.inputBox.text())
 
     def init_script_items(self):
-        # TODO: move to configuration file
-        SCRIPT_PATH_LIST = [
-            ['', 'scripts'],
-            ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
-        ]
         self.script_items = []
 
         for prefix, script_path in SCRIPT_PATH_LIST:
             files = glob.glob(script_path + os.path.sep + '**', recursive=True)
-            # files.sort(key=os.path.getmtime, reverse=True)
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
                 if ext not in SCRIPT_EXTENSIONS:
@@ -370,9 +374,9 @@ RunScript(name, path)
         self.sort_scripts()
 
     def on_inputBox_textChanged(self, user_input=None):
-        self.update_items(user_input)
+        self.update_gui(user_input)
 
-    def update_items(self, user_input=None):
+    def update_gui(self, user_input=None):
         self.ui.listWidget.clear()
         self.matched_items = []
 
