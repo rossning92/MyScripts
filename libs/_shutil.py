@@ -457,13 +457,13 @@ def check_output2(args, shell=None, cwd=None, env=None):
 
 
 def read_lines(args, echo=False):
-    with subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as p:
+    with subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1) as p:
         for line in p.stdout:
             # process line here
             line = line.strip()
             if echo:
                 print(line)
-            yield line
+            yield line.decode(errors='ignore')
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
@@ -508,7 +508,7 @@ def print2(msg, color='yellow', end='\n'):
 
     if type(msg) is not str:
         msg = str(msg)
-    print(COLOR_MAP[color] + msg + RESET, end=end)
+    print(COLOR_MAP[color] + msg + RESET, end=end, flush=True)
 
 
 def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter_line=None):
@@ -796,6 +796,14 @@ def get_next_file_name(file):
         new_file = name + POSTFIX_START + ext
 
     return new_file
+
+
+def yes(msg=''):
+    msg += ' (y/n): '
+    print2(msg, end='', color='green')
+    ch = getch()
+    print()
+    return ch == 'y'
 
 
 env = os.environ

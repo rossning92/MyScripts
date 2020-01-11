@@ -2,7 +2,7 @@ autoRun: false
 background: false
 conda: null
 globalHotkey: null
-hotkey: null
+hotkey: Ctrl+H
 newWindow: false
 restartInstance: true
 runAsAdmin: false
