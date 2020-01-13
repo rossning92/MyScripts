@@ -22,7 +22,7 @@ def write_to_file(text, file_name, template_file):
 
     if GEN_HTML:
         html_file_name = file_name + '.html'
-        with open(html_file_name, 'w') as f:
+        with open(html_file_name, 'w', encoding='utf-8') as f:
             f.write(html)
         webbrowser.open(html_file_name)
     else:
