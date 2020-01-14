@@ -401,6 +401,7 @@ class ScriptItem:
 
             if new_window:
                 # HACK: python wrapper: activate console window once finished
+                # TODO: extra console window will be created when runAsAdmin & newWindow
                 if sys.platform == 'win32' and not self.meta['runAsAdmin']:
                     args = [
                         sys.executable, '-c',
