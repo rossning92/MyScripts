@@ -106,7 +106,7 @@ def get_all_variables():
         return variables
 
 
-def get_arg(name):
+def get_variable(name):
     with open(get_variable_file(), 'r') as f:
         variables = json.load(f)
 
