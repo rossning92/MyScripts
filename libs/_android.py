@@ -106,6 +106,7 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
     call_highlight('adb logcat',
                    filter_line=filter_line,
                    highlight={
+                       '^(E|F)/': 'RED',
                        ' (E|F) ': 'RED',
                        '!!.*?!!': 'RED',
                        ' W ': 'YELLOW',

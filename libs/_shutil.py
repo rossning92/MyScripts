@@ -572,7 +572,7 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
                     line += color_stack[-1]
                 line += parts[i]
 
-        print(line.decode(locale.getpreferredencoding()), end='')
+        print(line.decode(locale.getpreferredencoding(), errors='ignore'), end='')
 
     ret = ps.return_code()
     if ret != 0:
