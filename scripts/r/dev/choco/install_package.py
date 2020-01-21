@@ -26,6 +26,7 @@ PKGS = {
         'sharex',
         'epicgameslauncher',
         'unity-hub',
+        'golang',
     ],
     'common': [
         'everything',

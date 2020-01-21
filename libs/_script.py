@@ -344,6 +344,7 @@ class ScriptItem:
             env['PYTHONPATH'] = os.pathsep.join(python_path)
             env['PYTHONDONTWRITEBYTECODE'] = '1'
 
+            # Conda / venv support
             args_activate = []
             if self.meta['conda'] is not None:
                 assert sys.platform == 'win32'
