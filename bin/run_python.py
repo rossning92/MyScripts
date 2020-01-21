@@ -1,0 +1,39 @@
+import runpy
+import sys
+import subprocess
+from importlib import import_module
+from importlib.abc import MetaPathFinder
+
+
+PYTHON_MODULE_LIST = {
+    'jinja2': 'jinja2',
+    'keyboard': 'keyboard',
+    'matplotlib': 'matplotlib',
+    'numpy': 'numpy',
+    'pandas': 'pandas',
+    'PIL': 'pillow',
+    'pyftpdlib': 'pyftpdlib',
+    'PyQt5': 'PyQt5==5.10.1',
+    'pywin32': 'pywin32',
+    'pyyaml': 'pyyaml',
+    'requests': 'requests',
+}
+
+
+class MyMetaPathFinder(MetaPathFinder):
+    """
+    A importlib.abc.MetaPathFinder to auto-install missing modules using pip
+    """
+    def find_spec(fullname, path, target=None):
+        if path == None:
+            if fullname in PYTHON_MODULE_LIST:
+                installed = subprocess.call(
+                    [sys.executable, "-m", "pip", "install", PYTHON_MODULE_LIST[fullname]])
+                if installed == 0:
+                    return import_module(fullname)
+
+
+if __name__ == '__main__':
+    sys.meta_path.append(MyMetaPathFinder)
+
+    runpy.run_path(sys.argv[1])

@@ -364,7 +364,8 @@ class ScriptItem:
                                  'call', '%s\\Scripts\\activate.bat' % venv_path, '&']
 
             if ext == '.py':
-                args = args_activate + ['python' if args_activate else sys.executable, python_file] + args
+                run_py = os.path.abspath(os.path.dirname(__file__) + '/../bin/run_python.py')
+                args = args_activate + ['python' if args_activate else sys.executable, run_py, python_file] + args
             elif ext == '.ipynb':
                 args = args_activate + ['jupyter', 'notebook', python_file] + args
 
