@@ -1,3 +1,2 @@
-set -e
 ssh-keygen
-ssh-copy-id root@{{SSH_HOST}}
+ssh-copy-id {{SSH_USER}}@{{SSH_HOST}}
