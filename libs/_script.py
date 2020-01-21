@@ -203,7 +203,12 @@ class ScriptItem:
         if not self.check_link_existence():
             return
 
-        with open(script_path, 'r', encoding='utf-8') as f:
+        if self.ext in ['.bat', '.cmd']:
+            encoding = locale.getpreferredencoding()
+        else:
+            encoding = 'utf-8'
+
+        with open(script_path, 'r', encoding=encoding) as f:
             source = f.read()
         template = ScriptItem.env.from_string(source)
         ctx = {

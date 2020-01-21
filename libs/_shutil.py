@@ -39,7 +39,12 @@ def get_ahk_exe(uia=True):
 
 def write_temp_file(text, ext):
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
-        temp.write(text.encode('utf-8'))
+        if ext in ['.bat', '.cmd']:
+            encoding = locale.getpreferredencoding()
+        else:
+            encoding = 'utf-8'
+
+        temp.write(text.encode(encoding))
         return temp.name
 
 
