@@ -73,12 +73,9 @@ if __name__ == '__main__':
         print2('ERROR: %s is not a folder.' % path, color='red')
         exit(1)
 
-    print('Backup `%s`? (Y/N)' % path)
+    print('Backup `%s`? (y/n)' % path)
     if getch() != 'y':
         sys.exit(0)
-
-    # mkdir('C:\\gdrive')
-    # path = 'C:\\gdrive\\Notes'
 
     name = os.path.basename(path)
     fileId = create_dir(name)
