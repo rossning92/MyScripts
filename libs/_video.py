@@ -109,8 +109,10 @@ def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
     ps.stdin.close()
 
 
-def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True, extra_args=None):
+def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True, extra_args=None,
+           quality=100):
     args = ['ffmpeg',
+            '-hide_banner', '-loglevel', 'panic',
             '-i', in_file]
 
     if start_and_duration:
@@ -123,7 +125,9 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
 
     if reencode:
         if nvenc:
-            args += ['-c:v', 'h264_nvenc', '-preset', 'slow', '-qp', '19']
+            args += ['-c:v', 'h264_nvenc', '-preset', 'slow']
+            if quality > 90:
+                args += ['-qp', '19']
         else:
             args += ['-c:v', 'libx264', '-preset', 'slow', '-crf', '22']
 
