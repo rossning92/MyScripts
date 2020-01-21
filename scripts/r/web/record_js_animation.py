@@ -4,6 +4,8 @@ FPS = 25
 DURATION = int('{{_DURA}}') if '{{_DURA}}' else 1
 
 setup_nodejs()
+call2('yarn global add timesnap')
+
 input_file = get_files(cd=True)[0]
 
 # https://github.com/tungs/timesnap

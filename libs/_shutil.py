@@ -586,11 +586,12 @@ def call_highlight(args, shell=False, cwd=None, env=None, highlight=None, filter
     return ret
 
 
-def prepend_to_path(p):
-    if type(p) == list:
-        s = os.pathsep.join(p)
-    elif type(p) == str:
-        s = p
+def prepend_to_path(path):
+    if type(path) == list:
+        path = [x for x in path if os.path.exists(x)]
+        s = os.pathsep.join(path)
+    elif type(path) == str:
+        s = path
     else:
         raise ValueError()
 
@@ -765,13 +766,15 @@ def setup_nodejs(install=False):
             print2('Node.js: %s' % NODE_JS_PATH)
 
             prepend_to_path([NODE_JS_PATH,
-                             expandvars('%APPDATA%\\npm'),
-                             expandvars('%USERPROFILE%\\node_modules\\.bin')])
+                             os.path.expandvars('%APPDATA%\\npm'),
+                             os.path.expandvars('%USERPROFILE%\\node_modules\\.bin'),
+                             os.path.expandvars('%LOCALAPPDATA%\\Yarn\\bin')])
 
         global_modules = os.path.expandvars('%APPDATA%/npm/node_modules')
         if os.path.exists(global_modules):
             os.environ['NODE_PATH'] = global_modules
             print2('NODE_PATH: %s' % global_modules)
+
     else:
         print('setup_nodejs() not supported for current OS. Ignored.')
 
