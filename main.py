@@ -40,7 +40,7 @@ def add_keyboard_hooks(keyboard_hooks):
             keyboard.add_hotkey(hotkey, func)
 
 
-def get_data_folder():
+def get_user_data_folder():
     folder = os.path.join('data', platform.node())
     os.makedirs(folder, exist_ok=True)
     return folder
@@ -233,7 +233,7 @@ class MainWindow(QWidget):
 
         # Init script access time
         try:
-            with open(get_data_folder() + '/script_access_time.json', 'r') as f:
+            with open(get_user_data_folder() + '/script_access_time.json', 'r') as f:
                 self.script_access_time = json.load(f)
         except FileNotFoundError:
             self.script_access_time = {}
@@ -441,7 +441,7 @@ RunScript(name, path)
 
         # Update script access time
         self.script_access_time[script.script_path] = time.time()
-        with open(get_data_folder() + '/script_access_time.json', 'w') as f:
+        with open(get_user_data_folder() + '/script_access_time.json', 'w') as f:
             json.dump(self.script_access_time, f, indent=4)
 
         # sort scripts
