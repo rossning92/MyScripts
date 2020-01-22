@@ -630,3 +630,29 @@ def create_script_link(script_file):
     with open(link_file, 'w', encoding='utf-8') as f:
         f.write(script_file)
     print('Link created: %s' % link_file)
+
+
+def is_instance_running():
+    if sys.platform == 'win32':
+        LOCK_PATH = os.path.join(tempfile.gettempdir(), "myscripts_lock")
+        try:
+            if os.path.exists(LOCK_PATH):
+                os.unlink(LOCK_PATH)
+            fh = os.open(LOCK_PATH, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+        except EnvironmentError as err:
+            if err.errno == 13:
+                return True
+            else:
+                raise
+    else:
+        import fcntl
+        try:
+            fh = open(LOCK_PATH, 'w')
+            fcntl.lockf(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except EnvironmentError as err:
+            if fh is not None:
+                return True
+            else:
+                raise
+
+    return False

@@ -508,6 +508,10 @@ RunScript(name, path)
 
 
 if __name__ == '__main__':
+    if is_instance_running():
+        print('An instance is running. Exited.')
+        sys.exit(0)
+
     t_start = time.time()
 
     bin_dir = os.path.join(os.getcwd(), 'bin')
