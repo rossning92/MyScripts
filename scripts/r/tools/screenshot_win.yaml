@@ -1,6 +1,6 @@
 anaconda: false
 autoRun: true
-background: false
+background: true
 conda: null
 globalHotkey: null
 hotkey: null

@@ -37,6 +37,12 @@ check_on_start=false
     call(f'start {install_dir}\\Snipaste.exe')
 
 
+def kill_proc():
+    while subprocess.call('tasklist | find "ShareX.exe"', shell=True) == 0:
+        subprocess.call('taskkill /im ShareX.exe')
+        time.sleep(0.5)
+
+
 def install_sharex():
     exe_path = r'C:\Program Files\ShareX\ShareX.exe'
     if not exists(exe_path):
@@ -45,9 +51,7 @@ def install_sharex():
     setting_path = expandvars(r'%USERPROFILE%\Documents\ShareX')
     if not exists(setting_path):
         subprocess.Popen([exe_path, '-silent'], close_fds=True)
-        while subprocess.call('tasklist | find "ShareX.exe"', shell=True) == 0:
-            subprocess.call('taskkill /im ShareX.exe')
-            time.sleep(0.5)
+        kill_proc()
 
     config_file = os.path.join(setting_path, 'ApplicationConfig.json')
     config = json.load(open(config_file))
@@ -62,7 +66,7 @@ def install_sharex():
     config['Hotkeys'][0]['HotkeyInfo']['Hotkey'] = 'F1'
     json.dump(config, open(config_file, 'w'))
 
-    subprocess.call('taskkill /f /im ShareX.exe')
+    kill_proc()
     subprocess.Popen([exe_path, '-silent'], close_fds=True)
 
 
