@@ -648,6 +648,12 @@ def get_files(cd=False):
     return files
 
 
+def get_selected_folder():
+    files = os.environ['SELECTED_FILES'].split('|')
+    folders = [x for x in files if os.path.isdir(x)]
+    return folders[0]
+
+
 def cd_current_dir():
     if 'CURRENT_FOLDER' in os.environ:
         os.chdir(os.environ['CURRENT_FOLDER'])
