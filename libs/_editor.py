@@ -1,7 +1,7 @@
 import glob
 import subprocess
 import os
-from _shutil import exec_ahk
+from _shutil import exec_ahk, start_process
 from _appmanager import get_executable
 
 
@@ -59,3 +59,10 @@ def open_with_text_editor(path, line_no=None):
                 subprocess.Popen(args, close_fds=True)
             except:
                 subprocess.Popen(['notepad', path], close_fds=True)
+
+
+def edit_myscript_script(file):
+    project_folder = os.path.realpath(os.path.dirname(__file__) + '/../')
+    os.chdir(project_folder)
+    vscode = get_executable('code')
+    start_process([vscode, project_folder, file])
