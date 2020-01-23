@@ -1,8 +1,14 @@
 from _script import *
 
 TEMP_SHELL_SCRIPT_PATH = '/tmp/tmp_script.sh'
+USER_HOST = '{{SSH_USER}}@{{SSH_HOST}}'
 
-script = ScriptItem(os.environ['ROSS_SELECTED_SCRIPT_PATH'])
+script_path = os.environ['ROSS_SELECTED_SCRIPT_PATH']
+if script_path.endswith('run_script_remotely.py'):
+    print('Parameter saved...')
+    exit(0)
+
+script = ScriptItem(script_path)
 tmp_script_file = write_temp_file(script.render(), '.sh')
 
 if script.ext != '.sh':
@@ -10,12 +16,16 @@ if script.ext != '.sh':
     exit(0)
 
 if sys.platform == 'win32':
-    call2('plink -ssh {{SSH_USER}}@{{SSH_HOST}} -m ' + tmp_script_file)
+    args = f'plink -ssh -batch {USER_HOST} -m {tmp_script_file}'
+    if '{{SSH_PWD}}':
+        args += ' -pw {{SSH_PWD}}'
+    call2(args)
 else:
     print2('Upload shell script...')
     call2(['scp',
-        tmp_script_file,  # source
-        '{{SSH_USER}}@{{SSH_HOST}}:' + TEMP_SHELL_SCRIPT_PATH])  # dest
+           tmp_script_file,  # source
+           USER_HOST + ':' + TEMP_SHELL_SCRIPT_PATH])  # dest
 
-    print2('Run shell script on {{SSH_USER}}@{{SSH_HOST}}...')
-    call2(['ssh', '{{SSH_USER}}@{{SSH_HOST}}', 'bash ' + TEMP_SHELL_SCRIPT_PATH])
+    print2(f'Run shell script on {USER_HOST}...')
+    call2(['ssh', USER_HOST,
+           'bash ' + TEMP_SHELL_SCRIPT_PATH])
