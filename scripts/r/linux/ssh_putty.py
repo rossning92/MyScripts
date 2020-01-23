@@ -1,3 +1,6 @@
 from _shutil import *
 
-start_process('putty -ssh {{SSH_USER}}@{{SSH_HOST}}')
+args = 'putty -ssh {{SSH_USER}}@{{SSH_HOST}}'
+if '{{SSH_PWD}}':
+    args += ' -pw {{SSH_PWD}}'
+start_process(args)
