@@ -837,4 +837,19 @@ def open_directory(d):
             pass
 
 
+def write_text_file(content, file):
+    content = content.strip()
+
+    with open(file, 'r', encoding='utf-8') as f:
+        s = f.read()
+
+    if s == content:
+        return False
+
+    with open(file, 'w', encoding='utf-8') as f:
+        f.write(content.strip())
+
+    return True
+
+
 env = os.environ
