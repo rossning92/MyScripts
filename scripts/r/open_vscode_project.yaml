@@ -1,7 +1,7 @@
 autoRun: false
 background: false
 conda: null
-globalHotkey: null
+globalHotkey: Win+Alt+V
 hotkey: null
 newWindow: false
 restartInstance: true

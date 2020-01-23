@@ -23,4 +23,4 @@ if file_path:
     with open(file_path, 'w') as f:
         pass
 
-    edit_myscript_script(file_path)
+    edit_myscript_script(os.path.realpath(file_path))
