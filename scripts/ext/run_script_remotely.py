@@ -16,7 +16,7 @@ if script.ext != '.sh':
     exit(0)
 
 if sys.platform == 'win32':
-    args = f'putty -batch -ssh {USER_HOST} -m {tmp_script_file}'
+    args = f'plink -ssh {USER_HOST} -m {tmp_script_file}'
     if '{{SSH_PWD}}':
         args += ' -pw {{SSH_PWD}}'
     call2(args)
