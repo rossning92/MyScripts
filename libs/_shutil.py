@@ -820,7 +820,7 @@ def yes(msg=''):
     return ch == 'y'
 
 
-def open_directory(d):
+def open_directory(d='.'):
     if sys.platform == 'win32':
         os.startfile(d)
         # subprocess.Popen(['start', d], shell= True)
