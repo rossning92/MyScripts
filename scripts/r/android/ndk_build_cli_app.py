@@ -1,6 +1,8 @@
 from _shutil import *
 from _android import *
 
+TARGET = 'testapp'
+
 
 def run(target):
     call2(f'adb push obj/local/armeabi-v7a/{target} /data/local/tmp')
@@ -14,13 +16,13 @@ make_and_change_dir(expanduser('~/Projects/test_ndk_project'))
 
 mkdir('jni')
 
-write_text_file('''
+write_text_file(f'''
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE     := testapp
-LOCAL_SRC_FILES  := testapp.c
+LOCAL_MODULE     := {TARGET}
+LOCAL_SRC_FILES  := {TARGET}.c
 
 include $(BUILD_EXECUTABLE)
 ''', 'jni/Android.mk')
@@ -32,7 +34,7 @@ int main()
 	printf( "Hello World" );
     return 0;
 }
-''', 'jni/testapp.c')
+''', f'jni/{TARGET}.c')
 
 write_text_file('''
 APP_ABI := armeabi-v7a arm64-v8a
@@ -41,4 +43,4 @@ APP_ABI := armeabi-v7a arm64-v8a
 call2('ndk-build')
 
 
-run('testapp')
+run(TARGET)
