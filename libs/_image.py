@@ -39,7 +39,7 @@ def scale_image(im, sx, sy):
     return im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.ANTIALIAS)
 
 
-def show_im(*imgs, format='rgb', out_image_name=None):
+def show_im(*imgs, format='rgb', out_image_name=None, origin='upper'):
     import matplotlib.pyplot as plt
 
     fig = plt.figure(figsize=(len(imgs), 1))
@@ -61,7 +61,7 @@ def show_im(*imgs, format='rgb', out_image_name=None):
             im = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
         fig.add_subplot(1, len(imgs), i + 1)
-        plt.imshow(im)
+        plt.imshow(im, origin=origin)
 
     if out_image_name:
         plt.savefig(out_image_name, dpi=200)
