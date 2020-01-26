@@ -14,9 +14,12 @@ PYTHON_MODULE_LIST = {
     'PIL': 'pillow',
     'pyftpdlib': 'pyftpdlib',
     'PyQt5': 'PyQt5==5.10.1',
-    'pywin32': 'pywin32',
     'pyyaml': 'pyyaml',
     'requests': 'requests',
+    'win32api': 'pywin32',
+    'win32con': 'pywin32',
+    'win32gui': 'pywin32',
+    'win32ui': 'pywin32',
 }
 
 
