@@ -3,5 +3,8 @@ from _shutil import *
 mkdir('~/Projects')
 chdir('~/Projects')
 
-call('git clone %s --depth=1' % '{{GIT_URL}}')
-open_directory('.')
+folder = os.path.basename('{{GIT_URL}}')
+if not exists(folder):
+    call('git clone %s --depth=1' % '{{GIT_URL}}')
+
+open_directory(folder)
