@@ -8,7 +8,7 @@ GUI_WINDOW = MyScripts - GUI
 
 SetTitleMatchMode, 2
 
-AddChromeHotkey("#!.", "- Wunderlist", "https://www.wunderlist.com/webapp#/lists/inbox")
+AddChromeHotkey("#!.", "- To Do", "https://to-do.microsoft.com/tasks")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 return
