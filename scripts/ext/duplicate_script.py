@@ -24,4 +24,4 @@ if file_path:
 
     copy(src_script, file_path)
 
-    open_with_text_editor(file_path)
+    edit_myscript_script(file_path)

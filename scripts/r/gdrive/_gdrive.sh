@@ -1,4 +1,5 @@
 # https://github.com/odeke-em/drive/blob/master/platform_packages.md
+set -e
 
 if ! [ -x "$(command -v drive)" ]; then
     sudo add-apt-repository ppa:twodopeshaggy/drive -y
@@ -6,11 +7,17 @@ if ! [ -x "$(command -v drive)" ]; then
     sudo apt-get install drive -y
 fi
 
-cd ~
-cd /mnt/c  # If is in WSL mode
 
-mkdir -p gdrive
-cd gdrive
+if [[ -z "$GDRIVE_ROOT" ]]; then
+    cd ~
+    cd /mnt/c  # If is in WSL mode
+    mkdir -p gdrive
+    cd gdrive
+else
+    cd "$GDRIVE_ROOT"
+fi
+
+
 if [[ ! -d ".gd" ]]; then
     drive init
 fi
