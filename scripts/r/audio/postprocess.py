@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from _audio import *
 
+ALWAYS_GENERATE = False
+
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
 
@@ -14,6 +16,7 @@ COMPRESSOR_THRES_DB = -20
 
 NOISE_GATE_DB = -30
 
+BASS_BOOST_DB = -2
 MIDDLE_FREQ_DB = -10
 TREBLE_BOOST_DB = 2
 
@@ -47,7 +50,7 @@ def create_final_vocal():
         # Normalization
         in_file = out_file
         out_file = f'tmp/{f}.norm.wav'
-        if not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+        if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
             # to calculate short-term loudness in the source and adjust the destination
             # to meet the target parameters. The sample file is only a second long,
@@ -58,7 +61,7 @@ def create_final_vocal():
 
         in_file = out_file
         filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext
-        if not os.path.exists(filtered_voice_file) or os.path.getmtime(filtered_voice_file) != mtime:
+        if ALWAYS_GENERATE or not os.path.exists(filtered_voice_file) or os.path.getmtime(filtered_voice_file) != mtime:
             call2([
                 'ffmpeg', '-hide_banner', '-loglevel', 'panic',
                 '-i', in_file,
@@ -70,7 +73,7 @@ def create_final_vocal():
 
         # Cut
         out_file = 'tmp/%s.cut.wav' % name_no_ext
-        if not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+        if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             rate, data2 = wavfile.read(in_file)
             border_samples = int(BORDER_IGNORE * rate)
             data2 = data2[border_samples:-border_samples]
@@ -115,10 +118,11 @@ def create_final_vocal():
         # Compress
         in_file = out_file
         out_file = f'out/{f}'
-        if not os.path.exists(out_file)  or os.path.getmtime(out_file) != mtime:
+        if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             subprocess.check_call(
                 f'sox {in_file} {out_file}'
                 f' equalizer 800 400h {MIDDLE_FREQ_DB}'
+                f' bass {BASS_BOOST_DB} 100'
                 f' treble {TREBLE_BOOST_DB} 4k 1s'
                 f' compand'
                 f' {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}'  # attack1,decay1
@@ -136,6 +140,8 @@ def create_final_vocal():
 
 
 if __name__ == '__main__':
-    chdir(os.environ['CURRENT_FOLDER'])
+    folder = os.environ['CURRENT_FOLDER']
+    print('Project folder: %s' % folder)
+    chdir(folder)
 
     create_final_vocal()

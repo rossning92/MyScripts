@@ -8,7 +8,7 @@ try_import('pyaudio')
 import pyaudio
 import wave
 
-import jumpcutter
+import postprocess
 
 # TODO: cleanup by pa.terminate()
 pa = pyaudio.PyAudio()
@@ -278,7 +278,7 @@ class MyTerminalRecorder:
 
             elif ch == 'e':
                 self.stop_all()
-                jumpcutter.create_final_vocal()
+                postprocess.create_final_vocal()
 
             elif ch == 'o':
                 start_process('explorer .')
@@ -407,7 +407,7 @@ class RecorderGui(QDialog):
             elif e.key() == Qt.Key_E:
                 self.stop_all()
 
-                jumpcutter.create_final_vocal()
+                postprocess.create_final_vocal()
 
             elif e.key() == Qt.Key_O:
                 call2('explorer .')
