@@ -122,8 +122,8 @@ def create_final_vocal():
             subprocess.check_call(
                 f'sox {in_file} {out_file}'
                 f' equalizer 800 400h {MIDDLE_FREQ_DB}'
-                f' bass {BASS_BOOST_DB} 100'
-                f' treble {TREBLE_BOOST_DB} 4k 1s'
+                f' bass {BASS_FREQ_DB} 100'
+                f' treble {TREBLE_FREQ_DB} 4k 1s'
                 f' compand'
                 f' {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}'  # attack1,decay1
                 f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{LOUDNESS_DB},0,{LOUDNESS_DB}'
