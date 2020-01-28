@@ -21,4 +21,5 @@ for f in sorted(glob.glob('*')):
 #         os.rename(f, new_name)
 #     i += 1
 
-ffmpeg(in_file='img%04d' + image_ext, extra_args=['-r', fps])
+
+ffmpeg(in_file='{{_IN_FILES}}' + image_ext, extra_args=['-r', fps])

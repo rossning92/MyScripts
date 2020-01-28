@@ -11,3 +11,4 @@ build/
 /tmp/
 .ipynb_checkpoints
 *.pyc
+/.vscode

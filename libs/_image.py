@@ -39,10 +39,12 @@ def scale_image(im, sx, sy):
     return im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.ANTIALIAS)
 
 
-def show_im(*imgs, format='rgb', out_image_name=None, origin='upper'):
+def show_im(*imgs, format='rgb', out_image_name=None, origin='upper', text=None):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(figsize=(len(imgs), 1))
+    plt.style.use('dark_background')
+
+    fig = plt.figure(figsize=(len(imgs) * 4, 1 * 4))
     for i, im in enumerate(imgs):
         if len(im.shape) == 3 and im.shape[2] == 3 and format == 'bgr':
             im = im[..., ::-1]
@@ -60,8 +62,12 @@ def show_im(*imgs, format='rgb', out_image_name=None, origin='upper'):
             hsv = hsv.astype(np.uint8)
             im = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-        fig.add_subplot(1, len(imgs), i + 1)
+        ax = fig.add_subplot(1, len(imgs), i + 1)
+        if text:
+            ax.title.set_text(text[i])
         plt.imshow(im, origin=origin)
+
+    plt.tight_layout()
 
     if out_image_name:
         plt.savefig(out_image_name, dpi=200)
@@ -90,8 +96,10 @@ def draw_text(im, text, box, text_outline=2, font_color='white', align='center',
 
     t = text_outline
     for dx, dy in [[0, t], [t, 0], [-t, 0], [0, -t]]:
-        draw.multiline_text((x + dx, y + dy), text, font=font, fill="black", align='center')
-    draw.multiline_text((x, y), text, font=font, fill=font_color, align='center')
+        draw.multiline_text((x + dx, y + dy), text,
+                            font=font, fill="black", align='center')
+    draw.multiline_text((x, y), text, font=font,
+                        fill=font_color, align='center')
 
     del draw
 
@@ -117,14 +125,16 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
 
         imgs = [Image.open(f) for f in file_list]
         if scale != 1.0:
-            imgs = [im.resize((int(im.width * scale), int(im.height * scale)), Image.NEAREST) for im in imgs]
+            imgs = [im.resize(
+                (int(im.width * scale), int(im.height * scale)), Image.NEAREST) for im in imgs]
 
     elif images:
         # Convert to PIL image
         imgs = [Image.fromarray(x, 'RGB') for x in images]
 
     else:
-        raise Exception("`image_files` and `images` cannot be None at the same time.")
+        raise Exception(
+            "`image_files` and `images` cannot be None at the same time.")
 
     if not cols:
         cols = math.ceil(math.sqrt(len(imgs)))
