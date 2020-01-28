@@ -24,12 +24,14 @@ import json
 
 def get_ahk_exe(uia=True):
     if uia:
-        ahk_exe = os.path.expandvars('%ProgramFiles%\\AutoHotkey\\AutoHotkeyU64_UIA.exe')
+        ahk_exe = os.path.expandvars(
+            '%ProgramFiles%\\AutoHotkey\\AutoHotkeyU64_UIA.exe')
     else:
         ahk_exe = 'AutoHotkeyU64.exe'
 
     if not hasattr(get_ahk_exe, 'init'):
-        os.makedirs(os.path.expanduser('~\\Documents\\AutoHotkey'), exist_ok=True)
+        os.makedirs(os.path.expanduser(
+            '~\\Documents\\AutoHotkey'), exist_ok=True)
         subprocess.call('MKLINK /D "%USERPROFILE%\\Documents\\AutoHotkey\\Lib" "{}"'.format(
             os.path.realpath(os.path.dirname(__file__) + '/../bin/Lib')), shell=True)
         get_ahk_exe.init = True
@@ -125,7 +127,9 @@ def getch(timeout=-1):
             return msvcrt.getch().decode(errors='replace')
 
     else:
-        import sys, tty, termios
+        import sys
+        import tty
+        import termios
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -773,7 +777,8 @@ def setup_nodejs(install=False):
 
             prepend_to_path([NODE_JS_PATH,
                              os.path.expandvars('%APPDATA%\\npm'),
-                             os.path.expandvars('%USERPROFILE%\\node_modules\\.bin'),
+                             os.path.expandvars(
+                                 '%USERPROFILE%\\node_modules\\.bin'),
                              os.path.expandvars('%LOCALAPPDATA%\\Yarn\\bin')])
 
         global_modules = os.path.expandvars('%APPDATA%/npm/node_modules')
@@ -852,6 +857,36 @@ def write_text_file(content, file):
         f.write(content.strip())
 
     return True
+
+
+def refresh_env():
+    if sys.platform == 'win32':
+        REG_PATH = [
+            'HKLM\System\CurrentControlSet\Control\Session Manager\Environment',
+            'HKCU\Environment'
+        ]
+
+        origin_path = os.environ['PATH'].split(';')
+
+        for reg_path in REG_PATH:
+            out = subprocess.check_output(
+                'reg query "%s"' % reg_path,
+                universal_newlines=True)
+            lines = out.splitlines()
+            lines = [x.strip() for x in lines if x.strip()]
+            lines = lines[1:]  # Skip first line
+
+            for line in lines:
+                cols = line.split(maxsplit=2)
+                if cols[0].upper() == 'PATH':
+                    path = cols[2]
+                    path = path.split(';')
+
+                    for p in path:
+                        # Add to PATH if not exists
+                        if p not in origin_path:
+                            print('New PATH: %s' % p)
+                            origin_path.append(p)
 
 
 env = os.environ
