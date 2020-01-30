@@ -38,7 +38,8 @@ def open_in_vscode(file, line_no=None):
         if line_no is None:
             subprocess.Popen([vscode, file], close_fds=True)
         else:
-            subprocess.Popen([vscode, f'{file}:{line_no}', '-g'], close_fds=True)
+            subprocess.Popen(
+                [vscode, f'{file}:{line_no}', '-g'], close_fds=True)
     else:
         subprocess.Popen([vscode] + file, close_fds=True)
 
@@ -59,10 +60,3 @@ def open_with_text_editor(path, line_no=None):
                 subprocess.Popen(args, close_fds=True)
             except:
                 subprocess.Popen(['notepad', path], close_fds=True)
-
-
-def edit_myscript_script(file):
-    project_folder = os.path.realpath(os.path.dirname(__file__) + '/../')
-    os.chdir(project_folder)
-    vscode = get_executable('code')
-    start_process([vscode, project_folder, file])
