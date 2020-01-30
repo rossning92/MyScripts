@@ -6,6 +6,7 @@ from _android import *
 file = os.environ['SELECTED_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
+print('APK file: %s' % file)
 adb_install2(file)
 
 # Run app
