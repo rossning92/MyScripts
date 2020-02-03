@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import os
 
-os.chdir(os.path.expanduser('~/Desktop'))
+os.chdir(r'{{_DIR}}' if r'{{_DIR}}' else os.environ['CURRENT_FOLDER'])
 
 PORT = 8000
 
