@@ -19,19 +19,25 @@ with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:
     '''.strip())
 
 
-print2('Install extensions...')
-extensions = '''
-donjayamanne.githistory
-ms-python.python
-ms-vscode.cpptools
-stkb.rewrap
-streetsidesoftware.code-spell-checker
-shd101wyy.markdown-preview-enhanced
-mdickin.markdown-shortcuts
-'''
+print2('Update settings...')
+f = expandvars('%APPDATA%/Code/User/settings.json')
+data = json.load(open(f))
+data['python.pythonPath'] = sys.executable.replace('\\', '/')
+json.dump(data, open(f, 'w'), indent=4)
 
-extensions = [x.strip() for x in extensions.splitlines()]
-extensions = [x for x in extensions if x]
+
+print2('Install extensions...')
+extensions = [
+    'donjayamanne.githistory',
+    'ms-python.python',
+    'ms-vscode.cpptools',
+    'stkb.rewrap',
+    'streetsidesoftware.code-spell-checker',
+
+    # Markdown
+    'shd101wyy.markdown-preview-enhanced',
+    'mdickin.markdown-shortcuts',
+]
 
 for ext in extensions:
     call_echo('code --install-extension %s' % ext)

@@ -100,6 +100,12 @@ return
 #If
 
 
+#If WinActive("ahk_exe vncviewer.exe")
+	F8::
+		Send {F8}
+		Send f
+		return
+#If
 
 
 ActivateChrome(index=0)
