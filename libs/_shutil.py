@@ -83,7 +83,7 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
             # '-Config', CONF_PATH,
             '-nokeyhooks', '-nomacro', '-nohotkey',
             '-nocloseconfirm',
-            # '-GuiMacro', 'palette 1 "<Solarized Light>"',
+            '-GuiMacro', 'palette 1 "<Solarized Light>"',
         ]
 
         if cwd:
