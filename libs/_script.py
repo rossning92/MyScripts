@@ -536,7 +536,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False,
+def run_script(script_name, variables=None, new_window=None, console_title=None, restart_instance=False,
                overwrite_meta=None):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)
@@ -544,9 +544,6 @@ def run_script(script_name, variables=None, new_window=False, console_title=None
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
 
     script = ScriptItem(script_path)
-
-    # Override meta
-    script.meta['newWindow'] = new_window
 
     if console_title:
         script.console_title = console_title
@@ -567,7 +564,7 @@ def run_script(script_name, variables=None, new_window=False, console_title=None
     if variables:
         script.set_override_variables(variables)
 
-    script.execute(restart_instance=restart_instance)
+    script.execute(restart_instance=restart_instance, new_window=new_window)
     if script.return_code != 0:
         raise Exception('[ERROR] %s returns %d' %
                         (script_name, script.return_code))

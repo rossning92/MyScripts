@@ -310,7 +310,7 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c ''' + sys.executable + ' "' + os.path.realpath('bin/run_script.py') + '''" --console_title "%name%" --new_window "%path%" || pause
+        Run cmd /c ''' + sys.executable + ' "' + os.path.realpath('bin/run_script.py') + '''" --console_title "%name%" --restart_instance 0 "%path%" || pause
     }
 }
 ''')

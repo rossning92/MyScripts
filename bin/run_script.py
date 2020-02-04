@@ -6,10 +6,15 @@ sys.path.insert(0, os.path.realpath(
     os.path.dirname(__file__) + '/../libs'))
 from _script import *
 
+
+def to_bool(s):
+    return bool(int(s))
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--console_title', default=None)
-parser.add_argument('--restart_instance', default=False, action='store_true')
-parser.add_argument('--new_window', default=False, action='store_true')
+parser.add_argument('--restart_instance', type=to_bool, default=None)
+parser.add_argument('--new_window', type=to_bool, default=None)
 parser.add_argument('script_name', type=str)
 args = parser.parse_args()
 
