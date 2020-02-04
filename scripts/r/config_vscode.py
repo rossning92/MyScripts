@@ -23,6 +23,7 @@ print2('Update settings...')
 f = expandvars('%APPDATA%/Code/User/settings.json')
 data = json.load(open(f))
 data['python.pythonPath'] = sys.executable.replace('\\', '/')
+data['cSpell.enabledLanguageIds'] = ['markdown', 'text']
 json.dump(data, open(f, 'w'), indent=4)
 
 
