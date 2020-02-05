@@ -8,7 +8,7 @@ def _revert_file(file):
     subprocess.check_call(['hg', 'revert', file])
 
 
-def insert_code(file, regex, code, mode="after"):
+def insert_code(file, patt, code, mode="after", use_regex=False):
     file = os.path.realpath(file)
 
     if file not in modified_sources:
@@ -17,9 +17,14 @@ def insert_code(file, regex, code, mode="after"):
 
     s = open(file, 'rU').read()
 
-    matches = re.findall('^.*' + regex + '.*$', s, re.MULTILINE)
+    if use_regex:
+        patt = '^.*' + patt + '.*$'
+    else:
+        patt = '^.*' + re.escape(patt) + '.*$'
+
+    matches = re.findall(patt, s, re.MULTILINE)
     if not matches:
-        print2('ERROR: fail to locate code:\n%s' % regex, color='red')
+        print2('ERROR: fail to locate code:\n%s' % patt, color='red')
         sys.exit(1)
 
     print2('Patching: %s:' % file, color='magenta')
@@ -41,9 +46,13 @@ def insert_code(file, regex, code, mode="after"):
     open(file, 'w', newline='\n').write(s)
 
 
-def append_code(file, regex, code):
-    insert_code(file, regex, code, mode='after')
+def append_code(file, patt, code):
+    insert_code(file, patt, code, mode='after')
 
 
-def prepend_code(file, regex, code):
-    insert_code(file, regex, code, mode='before')
+def prepend_code(file, patt, code):
+    insert_code(file, patt, code, mode='before')
+
+
+def read_source(f):
+    return open(f, 'r', encoding='utf-8').read()

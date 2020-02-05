@@ -40,6 +40,7 @@ PKGS = {
         'miniconda3',
         'pycharm-community',
         'cmake',
+        'cmake --version=3.10.2 --force',
         'visualstudio2017community',
         'androidstudio',
         'android-sdk',

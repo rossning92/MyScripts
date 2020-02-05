@@ -2,7 +2,7 @@ from _shutil import *
 import datetime
 
 
-def start_app(pkg, use_monkey=True):
+def start_app(pkg, use_monkey=False):
     ret = 1
     if use_monkey:
         args = 'adb shell monkey -p %s -c android.intent.category.LAUNCHER 1' % pkg
