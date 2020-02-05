@@ -43,59 +43,13 @@ def restart_current_app():
     call2('adb shell am start -n %s' % pkg_activity)
 
 
-def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log_after_secs=-2, exclude=()):
-    pid_map = {}
-
-    def filter_line(line):
-        # Filter by time
-        if show_log_after_secs is not None:
-            try:
-                dt = datetime.datetime.strptime(line[:14].decode(), '%m-%d %H:%M:%S')
-                if dt < dt_start:
-                    return None
-            except:
-                pass
-
-        # Always show fatal message (backtrace)
-        if b' F DEBUG ' in line:
-            return line
-        elif b'ROSS:' in line:
-            return line
-
-        # Filter by pkg_name
-        if pkg_name:
-            try:
-                arr = line.split()
-                pid = int(arr[2])
-            except:
-                return line
-
-            if pid not in pid_map:
-                out = check_output('adb shell ps -p %d' % pid)
-                process_name = out.split()[-1]
-                pid_map[pid] = process_name
-            else:
-                process_name = pid_map[pid]
-
-            if pkg_name.encode() not in process_name:
-                return None
-
-        # Filter by string
-        if filter_str and re.search(filter_str.encode(), line) is None:
-            return None
-
-        # Filter by exclude
-        for x in exclude:
-            if x.encode() in line:
-                return None
-
-        return line
-
-    if show_log_after_secs is not None:
-        out = subprocess.check_output(['adb', 'shell', "date '+%m-%d %H:%M:%S'"], shell=True)
-        out = out.decode().strip()
-        dt_start = datetime.datetime.strptime(out, '%m-%d %H:%M:%S')
-        dt_start += datetime.timedelta(seconds=show_log_after_secs)
+def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log_after_secs=-2, level=None):
+    # if show_log_after_secs is not None:
+    #     out = subprocess.check_output(
+    #         ['adb', 'shell', "date '+%m-%d %H:%M:%S'"], shell=True)
+    #     out = out.decode().strip()
+    #     dt_start = datetime.datetime.strptime(out, '%m-%d %H:%M:%S')
+    #     dt_start += datetime.timedelta(seconds=show_log_after_secs)
 
     if clear:
         call2('adb logcat -c')
@@ -103,16 +57,63 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
     if highlight is None:
         highlight = {}
 
-    call_highlight('adb logcat',
-                   filter_line=filter_line,
-                   highlight={
-                       '^(E|F)/': 'RED',
-                       ' (E|F) ': 'RED',
-                       '!!.*?!!': 'RED',
-                       ' W ': 'YELLOW',
-                       'ROSS:': 'GREEN',
-                       **highlight
-                   })
+    pid_map = {}
+    last_proc = None
+
+    for line in read_lines(['adb', 'logcat', '-v', 'brief']):
+        match = re.match(r'^([A-Z])/([^\(]+)\(\s+(\d+)\):(.*)$', line)
+        if match is None:
+            print(line)
+            continue
+
+        lvl = match.group(1)
+        tag = match.group(2)
+        pid = int(match.group(3))
+        message = match.group(4)
+
+        # # Filter by time
+        # if show_log_after_secs is not None:
+        #     try:
+        #         dt = datetime.datetime.strptime(line[:14].decode(), '%m-%d %H:%M:%S')
+        #         if dt < dt_start:
+        #             return None
+        #     except:
+        #         pass
+
+        show_line = True
+
+        # Filter by level
+        if level and not re.search(lvl, level):
+            show_line = False
+
+        # Filter by string
+        if filter_str and not re.search(filter_str, message):
+            show_line = False
+
+        # Filter by pid
+        if pid not in pid_map:
+            out = subprocess.check_output('adb shell ps -p %d' % pid,
+                                          universal_newlines=True)
+            proc = out.split()[-1]
+            pid_map[pid] = proc
+        else:
+            proc = pid_map[pid]
+
+        if show_line:
+            # Output process name
+            if last_proc != proc:
+                print2(proc + ':')
+                last_proc = proc
+
+            lvl_text = ' %s ' % lvl
+            if lvl == 'W':
+                print2(lvl_text, color='YELLOW', end='')
+            elif lvl == 'E' or lvl == 'F':
+                print2(lvl_text, color='RED', end='')
+            else:
+                print(lvl_text, end='')
+            print(': ' + tag + ': ' + message)
+
 
 
 def backup_pkg(pkg, out_dir=None):

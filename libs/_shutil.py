@@ -466,13 +466,14 @@ def check_output2(args, shell=None, cwd=None, env=None):
 
 
 def read_lines(args, echo=False):
-    with subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1) as p:
-        for line in p.stdout:
-            # process line here
-            line = line.strip()
-            if echo:
-                print(line)
-            yield line.decode(errors='ignore')
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1)
+    for line in p.stdout:
+        # process line here
+        line = line.strip()
+        line = line.decode(errors='ignore')
+        if echo:
+            print(line)
+        yield line
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
@@ -499,7 +500,9 @@ def print2(msg, color='yellow', end='\n'):
         'red': '\u001b[31;1m',
         'blue': '\u001b[34;1m',
         'magenta': '\u001b[35;1m',
-        'cyan': '\u001b[36;1m'
+        'cyan': '\u001b[36;1m',
+        'YELLOW': '\u001b[43;1m',
+        'RED': '\u001b[41;1m'
     }
     RESET = '\033[0m'
 

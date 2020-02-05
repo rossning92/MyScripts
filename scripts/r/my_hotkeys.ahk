@@ -30,7 +30,7 @@ return
 #If
 
 
-#If not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
+#If not MouseIsOverAndActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
 	
 	!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 	#c::ActivateChrome(0)
@@ -143,3 +143,15 @@ ActivateChrome(index=0)
 	}
 }
 
+
+MouseIsOverAndActive(title) {
+    MouseGetPos,,, id
+	if not WinActive("ahk_id " id)
+		return false
+
+	WinGet, matched_win_id, ID, %title%
+	if (id = matched_win_id)
+		return true
+	else
+		return false
+}
