@@ -514,6 +514,8 @@ if __name__ == '__main__':
 
     t_start = time.time()
 
+    refresh_env()
+
     bin_dir = os.path.join(os.getcwd(), 'bin')
     os.environ['PATH'] = os.pathsep.join([
         bin_dir,
