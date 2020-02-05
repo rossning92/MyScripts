@@ -13,6 +13,9 @@ def get_selected_script_dir_rel():
 
 
 def edit_myscript_script(file):
+    if os.path.splitext(file)[1] == '.link':
+        file = open(file, 'r', encoding='utf-8').read().strip()
+
     project_folder = os.path.realpath(os.path.dirname(__file__) + '/../')
     os.chdir(project_folder)
     vscode = get_executable('code')
