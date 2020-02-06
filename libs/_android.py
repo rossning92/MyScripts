@@ -43,7 +43,24 @@ def restart_current_app():
     call2('adb shell am start -n %s' % pkg_activity)
 
 
-def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log_after_secs=-2, level=None):
+def logcat(pkg_name=None,
+           highlight=None,
+           filter_str=None,
+           clear=False,
+           show_log_after_secs=-2,
+           level=None,
+           exclude=None,
+           exclude_proc=None):
+
+    if level:
+        level = re.compile(level)
+    if exclude:
+        exclude = re.compile(exclude)
+    if filter_str:
+        filter_str = re.compile(filter_str)
+    if exclude_proc:
+        exclude_proc = re.compile(exclude_proc)
+
     # if show_log_after_secs is not None:
     #     out = subprocess.check_output(
     #         ['adb', 'shell', "date '+%m-%d %H:%M:%S'"], shell=True)
@@ -83,14 +100,18 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
         show_line = True
 
         # Filter by level
-        if level and not re.search(lvl, level):
+        if level and not re.search(level, lvl):
             show_line = False
 
-        # Filter by string
+        # Filter by tag or message
         if filter_str and not re.search(filter_str, message):
             show_line = False
 
-        # Filter by pid
+        # Exclude by tag or message
+        if exclude and (re.search(exclude, tag) or re.search(exclude, message)):
+            show_line = False
+
+        # Get process name
         if pid not in pid_map:
             out = subprocess.check_output('adb shell ps -p %d' % pid,
                                           universal_newlines=True)
@@ -98,6 +119,14 @@ def logcat(pkg_name=None, highlight=None, filter_str=None, clear=False, show_log
             pid_map[pid] = proc
         else:
             proc = pid_map[pid]
+
+        # Exclude by process name
+        if exclude_proc and re.search(exclude_proc, proc):
+            show_line = False
+
+        # HACK
+        if 'ROSS' in message:
+            show_line = True
 
         if show_line:
             # Output process name

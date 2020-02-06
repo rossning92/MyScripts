@@ -17,6 +17,10 @@ print('Press Ctrl-C to stop recording...')
 
 file = 'Recording_%s.mp4' % get_cur_time_str()
 extra_args = f'--time-limit {max_secs} --bit-rate 8M'
+
+if '{{_SIZE}}':
+    extra_args += ' --size {{_SIZE}}' 
+
 call(f'adb shell screenrecord /sdcard/{file} {extra_args}', check_call=False)
 
 call(f'adb pull /sdcard/{file}')
