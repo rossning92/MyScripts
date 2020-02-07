@@ -43,7 +43,7 @@ def restart_current_app():
     call2('adb shell am start -n %s' % pkg_activity)
 
 
-def logcat(pkg_name=None,
+def logcat(proc_name=None,
            highlight=None,
            filter_str=None,
            clear=False,
@@ -60,6 +60,8 @@ def logcat(pkg_name=None,
         filter_str = re.compile(filter_str)
     if exclude_proc:
         exclude_proc = re.compile(exclude_proc)
+    # if proc_name:
+    #     proc_name = re.compile(proc_name)
 
     # if show_log_after_secs is not None:
     #     out = subprocess.check_output(
@@ -119,6 +121,10 @@ def logcat(pkg_name=None,
             pid_map[pid] = proc
         else:
             proc = pid_map[pid]
+
+        # Filter by tag or message
+        if proc_name and (proc not in proc_name):
+            show_line = False
 
         # Exclude by process name
         if exclude_proc and re.search(exclude_proc, proc):
