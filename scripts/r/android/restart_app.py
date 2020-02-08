@@ -4,7 +4,9 @@ from _android import *
 
 pkg = '{{PKG_NAME}}'
 
+call2('adb logcat -c')
+
 restart_app(pkg)
 
 if '{{_SHOW_LOGCAT}}':
-    logcat(pkg)
+    logcat(proc_name=pkg)

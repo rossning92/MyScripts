@@ -845,7 +845,7 @@ def open_directory(d='.'):
             pass
 
 
-def write_text_file(content, file):
+def write_text_file(content, file, overwrite=True):
     content = content.strip()
 
     # Don't rewrite the file if content does not change.
@@ -856,8 +856,9 @@ def write_text_file(content, file):
         if s == content:
             return False
 
-    with open(file, 'w', encoding='utf-8') as f:
-        f.write(content.strip())
+    if not os.path.exists(file) or overwrite:
+        with open(file, 'w', encoding='utf-8') as f:
+            f.write(content.strip())
 
     return True
 
