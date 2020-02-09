@@ -150,7 +150,6 @@ def logcat(proc_name=None,
             print(': ' + tag + ': ' + message)
 
 
-
 def backup_pkg(pkg, out_dir=None):
     # Get apk path
     # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
@@ -167,7 +166,8 @@ def backup_pkg(pkg, out_dir=None):
         su = ''
 
     print2('Backup app data...')
-    subprocess.call(f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}")
+    subprocess.call(
+        f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}")
     subprocess.call(f'adb pull /sdcard/{pkg}.tar', cwd=out_dir)
     subprocess.call(f'adb shell rm /sdcard/{pkg}.tar')
 
@@ -182,13 +182,16 @@ def screenshot(out_file=None):
         src_file = os.path.basename(out_file)
 
     print('Taking screenshot...')
-    subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % src_file])
-    subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % src_file, out_file])
+    subprocess.check_call(
+        ['adb', 'shell', 'screencap -p /sdcard/%s' % src_file])
+    subprocess.check_call(
+        ['adb', 'pull', '-a', '/sdcard/%s' % src_file, out_file])
     subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % src_file])
 
 
 def get_active_pkg_and_activity():
-    out = check_output('adb shell "dumpsys activity activities | grep -E \'mFocusedActivity|mResumedActivity\'"', shell=True).decode().strip()
+    out = check_output(
+        'adb shell "dumpsys activity activities | grep -E \'mFocusedActivity|mResumedActivity\'"', shell=True).decode().strip()
     match = re.search(r'\{([^}]+)\}', out).group(1)
     pkg_activity = match.split()[2]
     pkg, activity = pkg_activity.split('/')
@@ -200,7 +203,8 @@ def take_screenshot(file_name=None):
         file_name = datetime.datetime.now().strftime('Screenshot_%y%m%d%H%M%S.png')
 
     print('Taking screenshot ...')
-    subprocess.check_call(['adb', 'shell', 'screencap -p /sdcard/%s' % file_name])
+    subprocess.check_call(
+        ['adb', 'shell', 'screencap -p /sdcard/%s' % file_name])
     subprocess.check_call(['adb', 'pull', '-a', '/sdcard/%s' % file_name])
     subprocess.check_call(['adb', 'shell', 'rm /sdcard/%s' % file_name])
 
@@ -234,7 +238,8 @@ def setup_android_env(ndk_version=None):
     # NDK
     ndk_path = None
     if ndk_version is not None:
-        match = glob.glob(os.path.join(env['ANDROID_HOME'], 'ndk', '%s*' % ndk_version))
+        match = glob.glob(os.path.join(
+            env['ANDROID_HOME'], 'ndk', '%s*' % ndk_version))
         if match:
             ndk_path = match[0]
 
@@ -312,7 +317,8 @@ def adb_install(file):
              file], stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         msg = e.output.decode()
-        match = re.search('INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)', msg)
+        match = re.search(
+            'INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)', msg)
         if match is not None:
             pkg = match.group(1)
             print('[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s...' % pkg)
@@ -386,3 +392,21 @@ def run_apk(file):
         return pkg
     except:
         print('Cannot launch the app')
+
+
+def unlock_device(pin):
+    out = subprocess.check_output(
+        ['adb', 'shell', 'dumpsys power | grep "mWakefulness="'],
+        universal_newlines=True)
+
+    if 'Dozing' in out:
+        adb_shell('input keyevent 82')
+        sleep(1)
+
+        # Swipe up
+        adb_shell('input touchscreen swipe 930 880 930 380')
+        sleep(1)
+
+        # Type pin
+        adb_shell('input text %s' % pin)
+        adb_shell('input keyevent KEYCODE_ENTER')
