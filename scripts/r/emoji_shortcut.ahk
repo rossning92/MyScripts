@@ -1,8 +1,10 @@
 ﻿#SingleInstance Force
 
-$!h::SendEmoji("😃")
-$!s::SendEmoji("😢")
-$!t::SendEmoji("😉")
+$>!h::SendEmoji("😃")
+$>!s::SendEmoji("😢")
+$>!w::SendEmoji("😉")
+$>!k::SendEmoji("😏")
+$>!y::SendEmoji("👍")
 
 SendEmoji(s)
 {
