@@ -44,7 +44,7 @@ def open_in_vscode(file, line_no=None):
         subprocess.Popen([vscode] + file, close_fds=True)
 
 
-def open_with_text_editor(path, line_no=None):
+def open_in_text_editor(path, line_no=None):
     if os.name == 'posix':
         subprocess.Popen(['code', path])
     else:

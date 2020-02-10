@@ -140,7 +140,7 @@ def getch(timeout=-1):
         return ch
 
 
-def cd(path, expand=True):
+def cd(path, expand=True, create_folder=False):
     if expand:
         path = os.path.expanduser(path)
         path = os.path.expandvars(path)
@@ -148,8 +148,7 @@ def cd(path, expand=True):
     path = os.path.realpath(path)
 
     if not os.path.exists(path):
-        print('"%s" not exist, create? (y/n)' % path)
-        if 'y' == getch():
+        if create_folder or yes('"%s" not exist, create?' % path):
             os.makedirs(path)
 
     os.chdir(path)
