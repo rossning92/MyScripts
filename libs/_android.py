@@ -63,12 +63,15 @@ def logcat(proc_name=None,
     # if proc_name:
     #     proc_name = re.compile(proc_name)
 
-    # if show_log_after_secs is not None:
-    #     out = subprocess.check_output(
-    #         ['adb', 'shell', "date '+%m-%d %H:%M:%S'"], shell=True)
-    #     out = out.decode().strip()
-    #     dt_start = datetime.datetime.strptime(out, '%m-%d %H:%M:%S')
-    #     dt_start += datetime.timedelta(seconds=show_log_after_secs)
+    args = ['adb', 'logcat', '-v', 'brief']
+
+    if show_log_after_secs is not None:
+        out = subprocess.check_output(
+            ['adb', 'shell', "date '+%m-%d %H:%M:%S'"], shell=True)
+        out = out.decode().strip()
+        dt_start = datetime.datetime.strptime(out, '%m-%d %H:%M:%S')
+        dt_start += datetime.timedelta(seconds=show_log_after_secs)
+        args += ['-T', dt_start.strftime('%m-%d %H:%M:%S') + '.000']
 
     if clear:
         call2('adb logcat -c')
@@ -79,8 +82,9 @@ def logcat(proc_name=None,
     pid_map = {}
     last_proc = None
 
-    for line in read_lines(['adb', 'logcat', '-v', 'brief']):
-        match = re.match(r'^([A-Z])/([^\(]+)\(\s*(\d+)\):(.*)$', line)
+    LOGCAT_PATTERN = re.compile(r'^([A-Z])/([^\(]+)\(\s*(\d+)\):(.*)$')
+    for line in read_lines(args):
+        match = re.match(LOGCAT_PATTERN, line)
         if match is None:
             print(line)
             continue
