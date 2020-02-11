@@ -80,7 +80,7 @@ def logcat(proc_name=None,
     last_proc = None
 
     for line in read_lines(['adb', 'logcat', '-v', 'brief']):
-        match = re.match(r'^([A-Z])/([^\(]+)\(\s+(\d+)\):(.*)$', line)
+        match = re.match(r'^([A-Z])/([^\(]+)\(\s*(\d+)\):(.*)$', line)
         if match is None:
             print(line)
             continue

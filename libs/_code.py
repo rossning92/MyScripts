@@ -8,10 +8,10 @@ def _revert_file(file):
     subprocess.check_call(['hg', 'revert', file])
 
 
-def insert_code(file, patt, code, mode="after", use_regex=False):
+def patch_code(file, patt, code, mode="after", use_regex=False, revert_file=True):
     file = os.path.realpath(file)
 
-    if file not in modified_sources:
+    if revert_file and file not in modified_sources:
         _revert_file(file)
         modified_sources.add(file)
 
@@ -27,10 +27,12 @@ def insert_code(file, patt, code, mode="after", use_regex=False):
         print2('ERROR: fail to locate code:\n%s' % patt, color='red')
         sys.exit(1)
 
-    print2('Patching: %s:' % file, color='magenta')
+    print('## Patching: %s:' % file)
     for match in matches:
         if mode == 'after':
             print(match.strip())
+        elif mode == 'replace':
+            print2('- ' + match.strip(), color='red')
         print2('+ ' + code.strip().splitlines()[0].strip(), color='green')
         if mode == 'before':
             print(match.strip())
@@ -40,6 +42,8 @@ def insert_code(file, patt, code, mode="after", use_regex=False):
             s = re.sub(re.escape(match), match + '\n' + code, s)
         elif mode == 'before':
             s = re.sub(re.escape(match), code + '\n' + match, s)
+        elif mode == 'replace':
+            s = re.sub(re.escape(match), code, s)
         else:
             raise Exception('wrong value in mode param')
 
@@ -47,11 +51,15 @@ def insert_code(file, patt, code, mode="after", use_regex=False):
 
 
 def append_code(file, patt, code):
-    insert_code(file, patt, code, mode='after')
+    patch_code(file, patt, code, mode='after')
 
 
 def prepend_code(file, patt, code):
-    insert_code(file, patt, code, mode='before')
+    patch_code(file, patt, code, mode='before')
+
+
+def replace_code(file, patt, code, revert_file=True):
+    patch_code(file, patt, code, mode='replace', revert_file=revert_file)
 
 
 def read_source(f):

@@ -536,7 +536,7 @@ def find_script(script_name, search_dir=None):
     return None
 
 
-def run_script(script_name, variables=None, new_window=None, console_title=None, restart_instance=False,
+def run_script(script_name, variables=None, new_window=False, console_title=None, restart_instance=False,
                overwrite_meta=None):
     print2('RunScript: %s' % script_name, color='green')
     script_path = find_script(script_name)

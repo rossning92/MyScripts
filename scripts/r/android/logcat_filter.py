@@ -1,3 +1,4 @@
 from _android import *
 
-logcat(r'{{PKG_NAME}}', filter_str=r'{{_FILTER}}')
+logcat(filter_str=re.escape(r'{{_FILTER}}'),
+       proc_name=r'{{_PROC_NAME}}')
