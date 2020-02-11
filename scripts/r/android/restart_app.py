@@ -2,7 +2,7 @@ from _shutil import *
 from _script import *
 from _android import *
 
-pkg = '{{PKG_NAME}}'
+pkg = r'{{PKG_NAME}}'
 
 call2('adb logcat -c')
 

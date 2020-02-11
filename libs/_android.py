@@ -51,6 +51,7 @@ def logcat(proc_name=None,
            level=None,
            exclude=None,
            exclude_proc=None):
+    call2('adb wait-for-device')
 
     if level:
         level = re.compile(level)
@@ -60,8 +61,8 @@ def logcat(proc_name=None,
         filter_str = re.compile(filter_str)
     if exclude_proc:
         exclude_proc = re.compile(exclude_proc)
-    # if proc_name:
-    #     proc_name = re.compile(proc_name)
+    if type(proc_name) == str:
+        proc_name = re.compile(re.escape(proc_name))
 
     args = ['adb', 'logcat', '-v', 'brief']
 
@@ -126,11 +127,11 @@ def logcat(proc_name=None,
         else:
             proc = pid_map[pid]
 
-        # Filter by tag or message
-        if proc_name and (proc not in proc_name):
+        # Filter by process name (include)
+        if proc_name and not re.search(proc_name, proc):
             show_line = False
 
-        # Exclude by process name
+        # Exclude by process name (exclude)
         if exclude_proc and re.search(exclude_proc, proc):
             show_line = False
 
@@ -326,7 +327,7 @@ def adb_install(file):
         if match is not None:
             pkg = match.group(1)
             print('[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s...' % pkg)
-            call('adb uninstall %s' % pkg)
+            subprocess.call(['adb', 'uninstall', pkg])
             subprocess.check_call(['adb', 'install', '-r', file])
 
 
