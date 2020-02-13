@@ -22,6 +22,11 @@ def start_app(pkg, use_monkey=False):
         call2(args)
 
 
+def kill_app(pkg):
+    args = 'adb shell am force-stop %s' % pkg
+    call_echo(args)
+
+
 def restart_app(pkg):
     print('Stop app: ' + pkg)
     args = 'adb shell am force-stop %s' % pkg

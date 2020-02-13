@@ -1,11 +1,6 @@
 from _shutil import try_import
 import os
 import glob
-
-try_import('matplotlib.pyplot', pkg_name='matplotlib')
-try_import('numpy')
-try_import('pandas')
-
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
@@ -33,3 +28,10 @@ def read_csv(csv_files):
     data_frames = [pd.read_csv(f) for f in glob.glob(csv_files)]
     df = pd.concat(data_frames, ignore_index=True)
     return df
+
+
+def append_csv(df, csv_file):
+    if os.path.exists(csv_file):
+        df2 = pd.read_csv(csv_file)
+        df = pd.concat([df2, df], sort=False)
+    df.to_csv(csv_file, index=False)
