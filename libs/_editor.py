@@ -3,6 +3,7 @@ import subprocess
 import os
 from _shutil import exec_ahk, start_process
 from _appmanager import get_executable
+import json
 
 
 def get_pycharm_executable():
@@ -30,6 +31,32 @@ def open_in_androidstudio(path, line=None):
     args.append(path)
     subprocess.Popen(args)
     exec_ahk('WinActivate ahk_exe studio64.exe')
+
+
+def vscode_set_include_path(include_path):
+    include_path = [os.path.realpath(x).replace('\\', '/')
+                    for x in include_path]
+
+    # Default configuration file
+    data = {
+        "configurations": [
+            {
+                "name": "Win32",
+                "includePath": []
+            }
+        ]
+    }
+
+    F = '.vscode/c_cpp_properties.json'
+    if os.path.exists(F):
+        with open(F) as f:
+            data = json.load(f)
+
+    data['configurations'][0]['includePath'] = include_path
+
+    os.makedirs('.vscode', exist_ok=True)
+    with open(F, 'w') as f:
+        json.dump(data, f, indent=4)
 
 
 def open_in_vscode(file, line_no=None):
