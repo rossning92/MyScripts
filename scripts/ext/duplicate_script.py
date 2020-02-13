@@ -15,4 +15,4 @@ if file_path:
 
     copy(src_script, file_path)
 
-    edit_myscript_script(os.path.realpath(script_path))
+    edit_myscript_script(os.path.realpath(file_path))

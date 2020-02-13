@@ -8,4 +8,4 @@ restartInstance: true
 runAsAdmin: false
 template: true
 venv: null
-wsl: false
+wsl: true
