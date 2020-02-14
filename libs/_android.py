@@ -267,6 +267,8 @@ def setup_android_env(ndk_version=None):
             env['NDK_ROOT'] = \
             ndk_path
 
+        print(open(ndk_path + '/source.properties').read())
+
     # Setup PATH
     path = [
         env['ANDROID_HOME'] + '/platform-tools',

@@ -464,9 +464,13 @@ def check_output2(args, shell=None, cwd=None, env=None):
     return MyProcess(ps)
 
 
-def read_lines(args, echo=False):
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, bufsize=1)
-    for line in p.stdout:
+def read_lines(args, echo=False, read_err=False):
+    p = subprocess.Popen(args,
+                         stdout=subprocess.PIPE if (not read_err) else None,
+                         stderr=subprocess.PIPE if read_err else None,
+                         bufsize=1)
+
+    for line in (p.stderr if read_err else p.stdout):
         # process line here
         line = line.strip()
         line = line.decode(errors='ignore')
@@ -474,6 +478,7 @@ def read_lines(args, echo=False):
             print(line)
         yield line
 
+    p.wait()
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
 

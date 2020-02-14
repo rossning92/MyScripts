@@ -108,8 +108,8 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
                    text_outline=2,
                    gif_duration=500, generate_atlas=True, generate_gif=True, draw_label=True, labels=None,
                    label_align='top',
-                   font_color='white', title=None,
-                   title_color='white',
+                   title=None, title_align='top', title_color='white',
+                   font_color='white',
                    col_major_order=False,
                    font_scale=1.0):
     file_list = None
@@ -194,7 +194,7 @@ def combine_images(image_files=None, images=None, out_file=None, parse_file_name
                       (0, 0, im_combined.width, im_combined.height),
                       text_outline,
                       title_color,
-                      align='topLeft',
+                      align=title_align,
                       font_scale=font_scale)
 
     if out_file:
