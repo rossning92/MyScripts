@@ -1,3 +1,3 @@
 @echo off
 
-start putty -serial COM16 -sercfg 115200
+start putty -serial {{COM_PORT}} -sercfg 115200

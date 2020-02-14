@@ -16,7 +16,7 @@ chdir('~/Desktop')
 print('Press Ctrl-C to stop recording...')
 
 file = 'Recording_%s.mp4' % get_cur_time_str()
-extra_args = f'--time-limit {max_secs} --bit-rate 8M'
+extra_args = f'--time-limit {max_secs} --bit-rate 20M'
 
 if '{{_SIZE}}':
     extra_args += ' --size {{_SIZE}}' 
