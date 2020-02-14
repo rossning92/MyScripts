@@ -1,2 +1,2 @@
-echo 'Connect to remote adb... (Ctrl-C to close)'
-ssh -N -L 5037:127.0.0.1:5037 {{_HOST_IP}}
+echo 'Map remote 5037 to local... (Ctrl-C to close)'
+plink -R 5037:localhost:5037 {{SSH_USER}}@{{SSH_HOST}} -pw {{SSH_PWD}}

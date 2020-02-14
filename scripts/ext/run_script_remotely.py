@@ -5,7 +5,7 @@ USER_HOST = '{{SSH_USER}}@{{SSH_HOST}}'
 
 
 def run_bash_script_ssh(bash_script_file, user_host):
-    if sys.platform == 'win32':
+    if True:  # plink is preferred (better automation)
         args = f'plink -ssh {user_host} -m {bash_script_file}'
         if '{{SSH_PWD}}':
             args += ' -pw {{SSH_PWD}}'
@@ -22,7 +22,8 @@ def run_bash_script_ssh(bash_script_file, user_host):
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
-    call2(f'vagrant upload {bash_script_file} {TEMP_SHELL_SCRIPT_PATH} {vagrant_id}')
+    call2(
+        f'vagrant upload {bash_script_file} {TEMP_SHELL_SCRIPT_PATH} {vagrant_id}')
     call2(f'vagrant ssh -c "bash {TEMP_SHELL_SCRIPT_PATH}" {vagrant_id}')
 
 
