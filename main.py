@@ -498,12 +498,6 @@ RunScript(name, path)
                     run_script('scripts/ext/edit_script')
                     return True
 
-            if e.modifiers() == Qt.ControlModifier | Qt.ShiftModifier:
-                if e.key() == Qt.Key_C:
-                    script = self.script_items[idx]
-                    set_clip(script.name)
-                    return True
-
         return super().eventFilter(obj, e)
 
 
