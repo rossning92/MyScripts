@@ -3,6 +3,7 @@ import os
 import subprocess
 import traceback
 import _appmanager
+from _shutil import run_elevated
 
 assoc = {
     '.0-win-64bit-build1': ['PathAdd'],
@@ -330,6 +331,15 @@ def main():
     program_id = int(sys.argv[2])
 
     ext = os.path.splitext(file_path)[1].lower()
+
+    # HACK: hijack extension handling
+    if ext == '.vhd':
+        run_elevated([
+            'powershell', '-Command',
+            "Mount-VHD -Path '%s'" % file_path
+        ])
+        return
+
     if ext not in assoc:
         raise Exception('%s is not defined' % ext)
 
