@@ -38,6 +38,9 @@ extensions = [
     # Markdown
     'shd101wyy.markdown-preview-enhanced',
     'mdickin.markdown-shortcuts',
+
+    # JS
+    'esbenp.prettier-vscode',
 ]
 
 for ext in extensions:

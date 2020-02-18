@@ -22,4 +22,4 @@ for f in sorted(glob.glob('*')):
 #     i += 1
 
 
-ffmpeg(in_file='{{_IN_FILES}}' + image_ext, extra_args=['-r', fps])
+ffmpeg(in_file='{{_IN_FILES}}', extra_args=['-r', fps])
