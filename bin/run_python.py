@@ -13,6 +13,7 @@ PYTHON_MODULE_LIST = {
     'pandas': 'pandas',
     'PIL': 'pillow',
     'pyftpdlib': 'pyftpdlib',
+    'pyppeteer': 'pyppeteer',
     'PyQt5': 'PyQt5==5.10.1',
     'pyyaml': 'pyyaml',
     'requests': 'requests',
