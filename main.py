@@ -357,9 +357,11 @@ RunScript(name, path)
                 mtime = os.path.getmtime(file)
 
                 name = _replace_prefix(file, script_path, prefix)
-                name = os.path.splitext(name)[0]  # Remove ext
+                name, ext = os.path.splitext(name)  # Remove ext
                 name = name.replace('\\', '/')
                 name = _replace_prefix(name, '/', '')
+                if ext == '.link':
+                    name += ' [lnk]'
 
                 script = ScriptItem(file, name=name)
 
