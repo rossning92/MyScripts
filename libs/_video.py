@@ -18,7 +18,8 @@ def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, f
         out_file = 'combined.mp4'
 
     if type(vid_files[0]) == str:
-        vid_clips = [VideoFileClip(x, resize_algorithm='fast_bilinear') for x in vid_files]
+        vid_clips = [VideoFileClip(
+            x, resize_algorithm='fast_bilinear') for x in vid_files]
     else:
         vid_clips = vid_files
     max_h = np.max([x.h for x in vid_clips])
@@ -110,10 +111,12 @@ def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
 
 
 def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True, extra_args=None,
-           quality=100):
+           quality=100, no_output=True):
     args = ['ffmpeg',
-            '-hide_banner', '-loglevel', 'panic',
             '-i', in_file]
+
+    if no_output:
+        args += ['-hide_banner', '-loglevel', 'panic']
 
     if start_and_duration:
         args += ['-ss', str(start_and_duration[0]),
