@@ -897,4 +897,26 @@ def refresh_env():
                             origin_path.append(p)
 
 
+def wait_for_new_file(file_pattern):
+    max_mtime = 0.0
+    for f in glob.glob(file_pattern):
+        max_mtime = max(os.path.getmtime(f), max_mtime)
+
+    print('Wait for file: `%s` ...' % file_pattern)
+    while True:
+        for f in glob.glob(file_pattern):
+            mtime = os.path.getmtime(f)
+            if mtime > max_mtime:
+                # Wait until file is closed
+                while True:
+                    try:
+                        os.rename(f, f)
+                        print('File created: %s' % f)
+                        return f
+                    except:
+                        time.sleep(0.1)
+
+        time.sleep(0.1)
+
+
 env = os.environ
