@@ -354,6 +354,10 @@ RunScript(name, path)
                 if ext not in SCRIPT_EXTENSIONS:
                     continue
 
+                # File has been removed during iteration
+                if not os.path.exists(file):
+                    continue
+
                 mtime = os.path.getmtime(file)
 
                 name = _replace_prefix(file, script_path, prefix)
