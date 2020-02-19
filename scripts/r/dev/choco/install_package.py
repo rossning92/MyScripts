@@ -27,6 +27,7 @@ PKGS = {
         'epicgameslauncher',
         'unity-hub',
         'golang',
+        'nvidia-display-driver',
     ],
     'common': [
         'everything',
