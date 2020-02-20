@@ -16,7 +16,12 @@ file_name = os.path.basename(f)
 # Convert video to gif
 # fps=25,scale=w=-1:h=480
 out_gif = os.path.splitext(file_name)[0] + '.gif'
-args = f'ffmpeg -i "{file_name}" -filter_complex "[0:v] fps={fps},split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1" "{out_gif}" -y'
+args = (f'ffmpeg -i "{file_name}"'
+        ' -filter_complex'
+        # ' "[0:v] fps={fps},split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1"'
+        ' "[0:v] fps={fps},split [a][b];[a] palettegen [p];[b][p] paletteuse'
+        ' "{out_gif}"'
+        ' -y')
 call2(args)
 
 # Optimize gif
