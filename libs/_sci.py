@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import pandas as pd
 import numpy as np
+import math
 
 
 def save_fig(out_file='figure.png', open_file=True, size_inch=None, dpi=300):
