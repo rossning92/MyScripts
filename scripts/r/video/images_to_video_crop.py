@@ -17,8 +17,14 @@ def crop_image(im, rect):
 cur_folder = os.environ['CURRENT_FOLDER']
 cd(cur_folder)
 
-files = list(glob.glob('*.png'))
+files = os.listdir('.')
+files = [x for x in files if x.endswith(
+    '.jpg') or x.endswith('.png') or x.endswith('.bmp')]
 files = sorted(files)
+
+if len(files) == 0:
+    print('ERROR: no image files found.')
+    sys.exit(1)
 
 imgs = []
 for i, f in enumerate(files):

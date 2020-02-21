@@ -7,6 +7,8 @@ if not max_secs:
 else:
     max_secs = int(max_secs)
 
+bit_rate = '{{_BIT_RATE}}' if '{{_BIT_RATE}}' else '20M'
+
 signal.signal(signal.SIGINT, lambda a, b: None)
 
 chdir('~/Desktop')
@@ -16,10 +18,10 @@ chdir('~/Desktop')
 print('Press Ctrl-C to stop recording...')
 
 file = 'Recording_%s.mp4' % get_cur_time_str()
-extra_args = f'--time-limit {max_secs} --bit-rate 20M'
+extra_args = f'--time-limit {max_secs} --bit-rate {bit_rate}'
 
 if '{{_SIZE}}':
-    extra_args += ' --size {{_SIZE}}' 
+    extra_args += ' --size {{_SIZE}}'
 
 call(f'adb shell screenrecord /sdcard/{file} {extra_args}', check_call=False)
 

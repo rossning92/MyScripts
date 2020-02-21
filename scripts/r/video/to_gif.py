@@ -19,12 +19,18 @@ out_gif = os.path.splitext(file_name)[0] + '.gif'
 args = [f'ffmpeg', '-i', file_name,
         '-filter_complex']
 
+# Filter complex
+filter = f'[0:v] fps={fps}'
+if '{{_SCALE_H}}':
+    filter += ',scale=-1:{{_SCALE_H}}'
+filter += ',split [a][b];'
+
 if '{{_SINGLE_PALETTE}}':
-    args.append(
-        f'[0:v] fps={fps},split [a][b];[a] palettegen [p];[b][p] paletteuse')
+    filter += '[a] palettegen [p];[b][p] paletteuse'
 else:
-    args.append(
-        f'[0:v] fps={fps},split [a][b];[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1')
+    filter += '[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1'
+
+args.append(filter)
 
 args += [out_gif, '-y']
 
