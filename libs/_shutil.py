@@ -919,4 +919,9 @@ def wait_for_new_file(file_pattern):
         time.sleep(0.1)
 
 
+def slugify(s):
+    import slugify as slug
+    return slug.slugify(s)
+
+
 env = os.environ

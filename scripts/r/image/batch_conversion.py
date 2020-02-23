@@ -2,9 +2,8 @@ from _shutil import *
 from _image import *
 import numpy as np
 
-print2(os.environ['CURRENT_FOLDER'])
+cd(os.environ['CURRENT_FOLDER'])
 
-files = get_files(cd=True)
 
 mkdir('out')
 
@@ -12,6 +11,11 @@ rect_arg = [float(x) for x in '{{_CROP_RECT}}'.split()]
 scale = [float(x) for x in '{{_SCALE}}'.split()]
 img_size = [int(x) for x in '{{_OUT_IMG_SIZE}}'.split()]
 keep_ratio = bool('{{_KEEP_RATIO}}')
+
+
+files = os.listdir('.')
+files = [x for x in files if x.endswith(
+    '.jpg') or x.endswith('.png') or x.endswith('.bmp')]
 
 crop = False
 for f in files:

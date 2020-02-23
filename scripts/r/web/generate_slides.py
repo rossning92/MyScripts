@@ -12,16 +12,21 @@ try_import('slugify', pkg_name='python-slugify')
 from slugify import slugify
 
 SCALE = 1
-GEN_HTML = '{{GEN_HTML}}'
+GEN_HTML = bool('{{GEN_HTML}}')
 REGENERATE = True
 
+templateLoader = jinja2.FileSystemLoader(searchpath=os.path.dirname(
+    os.path.realpath(__file__)))
+templateEnv = jinja2.Environment(loader=templateLoader)
 
-def write_to_file(text, file_name, template_file):
+
+def generate_slide(text, out_file, template_file, gen_html=False):
     template = templateEnv.get_template(template_file)
-    html = template.render({'text': text})  # this is where to put args to the template renderer
+    # this is where to put args to the template renderer
+    html = template.render({'text': text})
 
-    if GEN_HTML:
-        html_file_name = file_name + '.html'
+    if gen_html:
+        html_file_name = out_file + '.html'
         with open(html_file_name, 'w', encoding='utf-8') as f:
             f.write(html)
         webbrowser.open(html_file_name)
@@ -36,16 +41,13 @@ def write_to_file(text, file_name, template_file):
             })
             # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
             await page.goto('data:text/html,' + html)
-            await page.screenshot({'path': file_name, 'omitBackground': True})
+            await page.screenshot({'path': out_file, 'omitBackground': True})
             await browser.close()
 
         asyncio.get_event_loop().run_until_complete(main())
 
 
 if __name__ == '__main__':
-    templateLoader = jinja2.FileSystemLoader(searchpath=os.getcwd())
-    templateEnv = jinja2.Environment(loader=templateLoader)
-
     in_file = get_files()[0]
     in_file_name = os.path.splitext(os.path.basename(in_file))[0]
     template_file = in_file_name + '.html'
@@ -70,8 +72,10 @@ if __name__ == '__main__':
         if REGENERATE or (not os.path.exists(out_file)):
             print2('Generate %s ...' % out_file)
 
-            markdown_text = markdown2.markdown(slide, extras=['break-on-newline', 'fenced-code-blocks'])
+            markdown_text = markdown2.markdown(
+                slide, extras=['break-on-newline', 'fenced-code-blocks'])
             print(markdown_text)
-            write_to_file(markdown_text,
-                          out_file,
-                          template_file)
+            generate_slide(markdown_text,
+                           out_file,
+                           template_file,
+                           gen_html=GEN_HTML)
