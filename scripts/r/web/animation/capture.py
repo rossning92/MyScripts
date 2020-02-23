@@ -16,7 +16,8 @@ if True:
 
 async def main():
     browser = await launch(headless=False,
-                           args=['--disable-dev-shm-usage'])
+                           args=['--disable-dev-shm-usage'],
+                           executablePath=r"C:\Program Files (x86)\Chromium\Application\chrome.exe",)
     page = await browser.newPage()
     url = 'http://localhost:8080'
     if name:

@@ -6,11 +6,12 @@ if not WinExist("Adobe Premiere Pro")
 }
 return
 
-SetKeyDelay, 50, 50
+SetKeyDelay, 100, 100
 
 
 
-^1::  ; Extend and frame hold previous clip
+^1::  ; Choose clip you want to extend first
+
 	Send +{End}
 	Send !c  ; Clip menu
 	Send v   ; Video options
