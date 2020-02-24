@@ -1,35 +1,42 @@
-from _shutil import *
-import asyncio
-from pyppeteer import launch
-from _script import *
 from _gui import *
-import webbrowser
-
-try_import('markdown2', pkg_name='markdown2')
+from _script import *
+from _shutil import *
+from pyppeteer import launch
+import asyncio
 import markdown2
-
-try_import('slugify', pkg_name='python-slugify')
-from slugify import slugify
+import webbrowser
 
 SCALE = 1
 GEN_HTML = bool('{{GEN_HTML}}')
 REGENERATE = True
 
-templateLoader = jinja2.FileSystemLoader(searchpath=os.path.dirname(
-    os.path.realpath(__file__)))
-templateEnv = jinja2.Environment(loader=templateLoader)
+_root = os.path.dirname(os.path.realpath(__file__))
+_template_loader = jinja2.FileSystemLoader(searchpath=_root)
+_template_env = jinja2.Environment(loader=_template_loader)
+_palette = json.load(open(os.path.join(_root, 'palette.json')))
 
 
-def generate_slide(text, out_file, template_file, gen_html=False):
-    template = templateEnv.get_template(template_file)
+def generate_slide(text, template_file, out_file=None, gen_html=False):
+    text = markdown2.markdown(
+        text, extras=['break-on-newline', 'fenced-code-blocks'])
+    print(text)
+
+    if out_file is None:
+        out_file = slugify(text) + '.png'
+
+    template = _template_env.get_template(template_file)
     # this is where to put args to the template renderer
-    html = template.render({'text': text})
+    html = template.render({
+        'text': text,
+        'palette': _palette
+    })
 
     if gen_html:
         html_file_name = out_file + '.html'
         with open(html_file_name, 'w', encoding='utf-8') as f:
             f.write(html)
-        webbrowser.open(html_file_name)
+        # webbrowser.open(html_file_name)
+
     else:
         async def main():
             browser = await launch(headless=False)
@@ -67,15 +74,12 @@ if __name__ == '__main__':
     slides = s.split('---')
     slides = [x.strip() for x in slides]
 
-    for slide in slides:
-        out_file = os.path.join(out_folder, slugify(slide) + '.png')
+    for text in slides:
+        out_file = os.path.join(out_folder, slugify(text) + '.png')
         if REGENERATE or (not os.path.exists(out_file)):
             print2('Generate %s ...' % out_file)
 
-            markdown_text = markdown2.markdown(
-                slide, extras=['break-on-newline', 'fenced-code-blocks'])
-            print(markdown_text)
-            generate_slide(markdown_text,
-                           out_file,
+            generate_slide(text,
                            template_file,
+                           out_file=out_file,
                            gen_html=GEN_HTML)

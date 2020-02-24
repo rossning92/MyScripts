@@ -14,6 +14,10 @@ with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:
     {
         "key": "shift+alt+r",
         "command": "revealFileInOS",
+    },
+    {
+        "key": "shift+alt+c",
+        "command": "copyFilePath"
     }
 ]
     '''.strip())

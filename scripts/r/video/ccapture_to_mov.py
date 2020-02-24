@@ -1,7 +1,7 @@
 from _shutil import *
 
 
-def convert_to_mov(tar_file, fps):
+def convert_to_mov(tar_file, fps, out_file=None):
     name = os.path.splitext(tar_file)[0]
     tmp_folder = tempfile.gettempdir() + os.path.sep + \
         os.path.basename(name)
@@ -12,7 +12,8 @@ def convert_to_mov(tar_file, fps):
 
     # Convert
     in_file = os.path.join(tmp_folder, '%07d.png')
-    out_file = name + '.mov'
+    if out_file is None:
+        out_file = name + '.mov'
     call2([
         'ffmpeg',
         '-r', str(fps),

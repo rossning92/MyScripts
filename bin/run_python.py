@@ -8,6 +8,7 @@ from importlib.abc import MetaPathFinder
 PYTHON_MODULE_LIST = {
     'jinja2': 'jinja2',
     'keyboard': 'keyboard',
+    'markdown2': 'markdown2',
     'matplotlib': 'matplotlib',
     'numpy': 'numpy',
     'pandas': 'pandas',
@@ -17,6 +18,7 @@ PYTHON_MODULE_LIST = {
     'PyQt5': 'PyQt5==5.10.1',
     'pyyaml': 'pyyaml',
     'requests': 'requests',
+    'slugify': 'python-slugify',
     'win32api': 'pywin32',
     'win32con': 'pywin32',
     'win32gui': 'pywin32',
