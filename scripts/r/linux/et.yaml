@@ -1,11 +1,11 @@
 autoRun: false
 background: false
 conda: null
-globalHotkey: Win+Alt+P
+globalHotkey: null
 hotkey: null
 newWindow: true
 restartInstance: true
 runAsAdmin: false
 template: true
 venv: null
-wsl: false
+wsl: true

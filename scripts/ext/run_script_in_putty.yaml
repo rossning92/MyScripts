@@ -1,9 +1,9 @@
 autoRun: false
 background: false
 conda: null
-globalHotkey: Win+Alt+P
-hotkey: null
-newWindow: true
+globalHotkey: null
+hotkey: Ctrl+P
+newWindow: false
 restartInstance: true
 runAsAdmin: false
 template: true
