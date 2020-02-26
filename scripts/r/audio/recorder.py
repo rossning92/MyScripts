@@ -167,6 +167,7 @@ class MyTerminalRecorder:
         print2(
             'SPACE - Start / stop recording\n'
             'ENTER - Record next\n'
+            'D     - Delete current\n'
             'N     - Create noise profile\n'
             ', .   - Browse files\n'
             'E     - Output composed file\n'

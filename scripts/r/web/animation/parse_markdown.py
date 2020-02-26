@@ -23,7 +23,7 @@ for text in get_meta_data('slide'):
                                    gen_html=True)
 
 
-for text in get_meta_data('title'):
+for text in get_meta_data('title:'):
     h1 = re.search('^# (.*)', text, flags=re.MULTILINE).group(1)
     h2 = re.search('^## (.*)', text, flags=re.MULTILINE).group(1)
 
