@@ -2,6 +2,10 @@ from _shutil import *
 import json
 
 
+call_echo([sys.executable, '-m', 'pip', 'install', 'pylint'])
+call_echo([sys.executable, '-m', 'pip', 'install', 'autopep8'])
+
+
 print2('Update key bindings...')
 with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:
     f.write('''
@@ -29,6 +33,7 @@ try:
     data = json.load(open(f))
 except FileNotFoundError:
     data = {}
+data['workbench.colorTheme'] = 'Visual Studio Light'
 data['python.pythonPath'] = sys.executable.replace('\\', '/')
 data['cSpell.enabledLanguageIds'] = ['markdown', 'text']
 data['search.exclude'] = {
