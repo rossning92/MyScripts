@@ -18,7 +18,7 @@ def edit_myscript_script(file):
 
     project_folder = os.path.realpath(os.path.dirname(__file__) + '/../')
     os.chdir(project_folder)
-    vscode = get_executable('code')
+    vscode = get_executable('vscode')
     start_process([vscode, project_folder, file])
 
 

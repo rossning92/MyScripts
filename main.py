@@ -295,7 +295,7 @@ class MainWindow(QWidget):
         if platform.system() == 'Windows':
             with open(GLOBAL_HOTKEY, 'w') as f:
                 f.write('''#SingleInstance, Force
-#include <ExplorerHelper>
+#include libs/ahk/ExplorerHelper.ahk
 ; SetTitleMatchMode, 2
 RunScript(name, path)
 {

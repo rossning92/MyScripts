@@ -39,7 +39,7 @@ PKGS = {
         'graphviz',
         'anaconda3',
         'miniconda3',
-        'pycharm-community',
+        # 'pycharm-community',
         'cmake',
         'cmake --version=3.10.2 --force',
         'visualstudio2017community',
@@ -73,7 +73,7 @@ if idx < 0:
 subprocess.call('choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"')
 
 if pkg_list[idx] == '@for work':
-    for pkg in [PKGS['for_work'] + PKGS['media'] + PKGS['dev'] + PKGS['common']]:
+    for pkg in PKGS['for_work'] + PKGS['media'] + PKGS['dev'] + PKGS['common']:
         subprocess.call('choco install %s -y' % pkg)
 else:
     subprocess.call('choco install %s -y' % pkg_list[idx])

@@ -25,7 +25,10 @@ with open(expandvars('%APPDATA%/Code/User/keybindings.json'), 'w') as f:
 
 print2('Update settings...')
 f = expandvars('%APPDATA%/Code/User/settings.json')
-data = json.load(open(f))
+try:
+    data = json.load(open(f))
+except FileNotFoundError:
+    data = {}
 data['python.pythonPath'] = sys.executable.replace('\\', '/')
 data['cSpell.enabledLanguageIds'] = ['markdown', 'text']
 data['search.exclude'] = {
@@ -50,6 +53,7 @@ extensions = [
     'esbenp.prettier-vscode',
 ]
 
+prepend_to_path(r'C:\Program Files\Microsoft VS Code\bin')
 for ext in extensions:
     call_echo('code --install-extension %s' % ext)
 
