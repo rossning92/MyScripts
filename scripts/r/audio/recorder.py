@@ -1,3 +1,4 @@
+from PyQt5.QtMultimedia import *
 from _shutil import *
 from _term import *
 from _audio import *
@@ -156,11 +157,10 @@ class MyTerminalRecorder:
         self.recorder = WaveRecorder(channels=2)
         self.playback = WavePlayer()
 
+        self.cur_file_name = None
+
         audio_files = get_audio_files()
-        self.cur_file_index = len(audio_files)
-        if self.cur_file_index == 0:
-            self.cur_file_name = FILE_PREFIX + '_000.wav'
-        else:
+        if len(audio_files) > 0:
             self.cur_file_name = audio_files[-1]
 
     def print_help(self):
@@ -178,51 +178,50 @@ class MyTerminalRecorder:
         self.playback.stop()
         self.recorder.stop()
 
-    def set_cur_file(self, filename=None, offset=None, index=None):
+    def navigate_file(self, next=None, go_to_end=None):
         files = get_audio_files()
-        if filename is not None:
-            files = get_audio_files()
-            self.cur_file_index = files.index(filename)
-            assert self.cur_file_index >= 0
-        elif offset is not None:
-            self.cur_file_index = max(min(self.cur_file_index + offset, len(files) - 1), 0)
-        elif index is not None:
-            self.cur_file_index = max(min(index, len(files) - 1), 0)
-        else:
-            assert False
-
-    def play_file(self, filename=None, offset=None, set_prefix=False, index=None):
-        files = get_audio_files()
-        n = len(files)
-        if n == 0:
+        try:
+            i = files.index(self.cur_file_name)
+        except ValueError:
+            self.cur_file_name = None
             return
 
-        self.set_cur_file(filename, offset=offset, index=index)
+        n = len(files)
 
-        cur_file = files[self.cur_file_index]
-        print(f'({self.cur_file_index+1}/{n}) {cur_file}')
-        self.playback.play(cur_file)
+        if next is not None:
+            if i > 0 and next == False:
+                i -= 1
+            elif i < n - 1 and next:
+                i += 1
+        elif go_to_end is not None:
+            if go_to_end:
+                i = n - 1
+            else:
+                i = 0
 
-        if set_prefix:
-            self.cur_file_name = files[self.cur_file_index]
+        self.cur_file_name = files[i]
+        print(f'({i+1}/{n}) {self.cur_file_name}')
+
+    def play_cur_file(self):
+        if self.cur_file_name:
+            self.playback.play(self.cur_file_name)
 
     def delete_cur_file(self):
-        files = get_audio_files()
-        if self.cur_file_index >= len(files):
+        if not self.cur_file_name:
             return
 
-        file_name = files[self.cur_file_index]
-        if os.path.exists(file_name):
-            print2('File deleted: %s' % file_name, color='red')
-            os.remove(file_name)
+        file_name = self.cur_file_name
 
-            if self.cur_file_index - 1 >= 0:
-                self.cur_file_name = files[self.cur_file_index - 1]
+        self.navigate_file(next=False)
+
+        if os.path.exists(file_name):
+            os.remove(file_name)
+            print2('File deleted: %s' % file_name, color='red')
 
     def main_loop(self):
         self.print_help()
 
-        file_name = None
+        new_file_name = None
         while True:
             ch = getch()
 
@@ -234,18 +233,24 @@ class MyTerminalRecorder:
                     self.recorder.stop()
                     self.playback.stop()
 
-                    file_name = get_next_file_name(self.cur_file_name)
-                    self.recorder.record(file_name)
-                    self.cur_file_name = file_name
-                    print2('Recording started: %s' % file_name, color='green')
+                    if self.cur_file_name:
+                        new_file_name = get_next_file_name(self.cur_file_name)
+                    else:
+                        new_file_name = FILE_PREFIX + '_001.wav'
+
+                    self.cur_file_name = new_file_name
+
+                    self.recorder.record(new_file_name)
+                    print2('Recording started: %s' %
+                           new_file_name, color='green')
 
                 else:
                     self.recorder.stop()
                     print2('Recording stopped.', color='red')
 
-                    denoise(in_file=file_name)
+                    denoise(in_file=new_file_name)
 
-                    self.play_file(file_name)
+                    self.play_cur_file()
 
             elif ch == 'd':
                 self.stop_all()
@@ -266,16 +271,24 @@ class MyTerminalRecorder:
                 print('Noise profile created.')
 
             elif ch == ',':
-                self.play_file(offset=-1, set_prefix=True)
+                self.stop_all()
+                self.navigate_file(next=False)
+                self.play_cur_file()
 
             elif ch == '.':
-                self.play_file(offset=1, set_prefix=True)
+                self.stop_all()
+                self.navigate_file(next=True)
+                self.play_cur_file()
 
             elif ch == '[':
-                self.play_file(index=0, set_prefix=True)
+                self.stop_all()
+                self.navigate_file(go_to_end=False)
+                self.play_cur_file()
 
             elif ch == ']':
-                self.play_file(index=999, set_prefix=True)
+                self.stop_all()
+                self.navigate_file(go_to_end=True)
+                self.play_cur_file()
 
             elif ch == 'e':
                 self.stop_all()
@@ -283,9 +296,6 @@ class MyTerminalRecorder:
 
             elif ch == 'o':
                 start_process('explorer .')
-
-
-from PyQt5.QtMultimedia import *
 
 
 class RecorderGui(QDialog):
@@ -305,7 +315,8 @@ class RecorderGui(QDialog):
         self.layout().addWidget(self.label)
 
         self.list_widget = QListWidget()
-        self.list_widget.itemSelectionChanged.connect(self.lw_selection_changed)
+        self.list_widget.itemSelectionChanged.connect(
+            self.lw_selection_changed)
         self.layout().addWidget(self.list_widget)
 
         # Media player
@@ -321,7 +332,8 @@ class RecorderGui(QDialog):
         QCoreApplication.instance().installEventFilter(self)
 
     def set_cur_file(self, offset):
-        self.cur_file_index = max(min(self.cur_file_index + offset, len(self.audio_files) - 1), 0)
+        self.cur_file_index = max(
+            min(self.cur_file_index + offset, len(self.audio_files) - 1), 0)
 
     def get_cur_file_name(self):
         if self.cur_file_index < 0:
@@ -338,7 +350,8 @@ class RecorderGui(QDialog):
         self.player.blockSignals(True)
 
         self.playlist = QMediaPlaylist()
-        self.playlist.addMedia(QMediaContent(QUrl.fromLocalFile(self.audio_files[self.cur_file_index])))
+        self.playlist.addMedia(QMediaContent(
+            QUrl.fromLocalFile(self.audio_files[self.cur_file_index])))
         self.player.setPlaylist(self.playlist)
         self.player.stop()
         self.player.play()
