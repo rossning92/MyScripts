@@ -81,7 +81,7 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
             '-NoUpdate',
             # '-resetdefault',
             # '-Config', CONF_PATH,
-            '-nokeyhooks', '-nomacro', '-nohotkey',
+            '-nokeyhooks', '-nomacro',  # '-nohotkey',
             '-nocloseconfirm',
             '-GuiMacro', 'palette 1 "<Cobalt2>"',
         ]

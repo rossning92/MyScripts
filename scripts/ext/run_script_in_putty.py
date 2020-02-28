@@ -11,12 +11,28 @@ if __name__ == '__main__':
         print('Script type is not supported: %s' % script.ext)
         exit(0)
 
-    set_clip(s + '\n')
+    set_clip(s)
+    # exec_ahk('''
+    #     WinActivate ahk_exe putty.exe
+    #     WinWaitActive ahk_exe putty.exe
+    #     if ErrorLevel
+    #         return
+
+    #     Send +{Ins}
+    # ''')
+
     exec_ahk('''
-        WinActivate ahk_exe putty.exe
-        WinWaitActive ahk_exe putty.exe
+        WinActivate r/linux/et
+        WinWaitActive r/linux/et,, 2
         if ErrorLevel
             return
 
-        Send +{Ins}
+        Send ^v
+
+        Loop 2 {
+            WinWaitActive, ahk_exe ConEmu64.exe, Continue?, 2
+            if ErrorLevel
+                return
+            Send {Enter}
+        }
     ''')

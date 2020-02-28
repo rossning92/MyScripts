@@ -189,7 +189,8 @@ class ScriptItem:
     def check_link_existence(self):
         if self.real_script_path is not None:
             if not os.path.exists(self.real_script_path):
-                print2('WARNING: cannot locate the script: %s. Link removed.' % self.name)
+                print2(
+                    'WARNING: cannot locate the script: %s. Link removed.' % self.name)
                 os.remove(self.script_path)
                 return False
         return True
@@ -302,7 +303,8 @@ class ScriptItem:
                 if self.meta['runAsAdmin']:
                     args = ['start'] + args
 
-                self.meta['newWindow'] = False  # Disable console window for ahk
+                # Disable console window for ahk
+                self.meta['newWindow'] = False
 
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
@@ -356,13 +358,15 @@ class ScriptItem:
                 activate = conda_path + '\\Scripts\\activate.bat'
 
                 if env_name != 'base' and not exists(conda_path + '\\envs\\' + env_name):
-                    call_echo('call "%s" & conda create --name %s python=3.6' % (activate, env_name))
+                    call_echo(
+                        'call "%s" & conda create --name %s python=3.6' % (activate, env_name))
 
                 args_activate = ['cmd', '/c', 'call', activate, env_name, '&']
 
             elif self.meta['venv']:
                 assert sys.platform == 'win32'
-                venv_path = os.path.expanduser('~\\venv\\%s' % self.meta['venv'])
+                venv_path = os.path.expanduser(
+                    '~\\venv\\%s' % self.meta['venv'])
                 if not exists(venv_path):
                     call_echo([sys.executable, '-m', 'venv', venv_path])
 
@@ -370,10 +374,14 @@ class ScriptItem:
                                  'call', '%s\\Scripts\\activate.bat' % venv_path, '&']
 
             if ext == '.py':
-                run_py = os.path.abspath(os.path.dirname(__file__) + '/../bin/run_python.py')
-                args = args_activate + ['python' if args_activate else sys.executable, run_py, python_file] + args
+                run_py = os.path.abspath(os.path.dirname(
+                    __file__) + '/../bin/run_python.py')
+                args = args_activate + \
+                    ['python' if args_activate else sys.executable,
+                        run_py, python_file] + args
             elif ext == '.ipynb':
-                args = args_activate + ['jupyter', 'notebook', python_file] + args
+                args = args_activate + ['jupyter',
+                                        'notebook', python_file] + args
 
                 # HACK: always use new window for jupyter notebook
                 self.meta['newWindow'] = True
@@ -426,8 +434,14 @@ class ScriptItem:
 
                     while True:  # Create new console window on windows
                         try:
+                            # HACK:
+                            if self.get_console_title() == 'r/linux/et':
+                                title = 'r/linux/et'
+                            else:
+                                title = None
+
                             args = conemu_wrap_args(
-                                args, cwd=cwd, small_window=True)
+                                args, cwd=cwd, small_window=True, title=title)
                             break
                         except:
                             pass
@@ -453,9 +467,10 @@ class ScriptItem:
                     set_env_var += ['set', '%s=%s' % (k, v), '&']
 
                 args = ['cmd', '/c'] + \
-                       (['title', self.get_console_title(), '&'] if ext != '.ahk' else []) + \
-                       ['cd', '/d', cwd, '&'] + \
-                       ['set', f'PATH={bin_path};%PATH%', '&'] + set_env_var + args
+                    (['title', self.get_console_title(), '&'] if ext != '.ahk' else []) + \
+                    ['cd', '/d', cwd, '&'] + \
+                    ['set', f'PATH={bin_path};%PATH%',
+                     '&'] + set_env_var + args
 
                 print2('Run elevated:')
                 print2(_args_to_str(args), color='cyan')
@@ -595,7 +610,8 @@ def load_meta_file(meta_file):
 
 
 def save_meta_file(data, meta_file):
-    yaml.dump(data, open(meta_file, 'w', newline='\n'), default_flow_style=False)
+    yaml.dump(data, open(meta_file, 'w', newline='\n'),
+              default_flow_style=False)
 
 
 def get_script_meta(script_path):
