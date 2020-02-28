@@ -169,7 +169,8 @@ class MyTerminalRecorder:
             'ENTER - Record next\n'
             'D     - Delete current\n'
             'N     - Create noise profile\n'
-            ', .   - Browse files\n'
+            ', .   - Go to prev / next\n'
+            '[ ]   - Go to first / last\n'
             'E     - Output composed file\n'
             'O     - Output folder\n'
         )
