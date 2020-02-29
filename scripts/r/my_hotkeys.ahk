@@ -13,6 +13,7 @@ AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 return
 
+
 #If WinActive("- Gmail ahk_exe chrome.exe")
     !r::
         Send *a
@@ -20,12 +21,6 @@ return
         Send +i
         Sleep 500
         Send *n
-        return
-#If
-
-#If WinActive("ahk_exe ConEmu64.exe")
-    Esc::
-        WinClose ahk_exe ConEmu64.exe
         return
 #If
 
