@@ -59,7 +59,6 @@ def get_scripts_recursive(directory):
                 yield os.path.join(root, f)
 
 
-
 def should_update(folder_list):
     global last_max_mtime
     global last_file_list
