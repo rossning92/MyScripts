@@ -52,9 +52,12 @@ def get_scripts_recursive(directory):
     for root, dirs, files in os.walk(directory, topdown=True):
         dirs[:] = [d for d in dirs if not d.startswith('_')]
         for f in files:
-            yield os.path.join(root, f)
+            ext = os.path.splitext(f)[1].lower()
 
-    # TODO: filter script type here
+            # Filter by script extensions
+            if ext in SCRIPT_EXTENSIONS:
+                yield os.path.join(root, f)
+
 
 
 def should_update(folder_list):
@@ -364,8 +367,6 @@ RunScript(name, path)
             files = get_scripts_recursive(script_path)
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
-                if ext not in SCRIPT_EXTENSIONS:
-                    continue
 
                 # File has been removed during iteration
                 if not os.path.exists(file):
