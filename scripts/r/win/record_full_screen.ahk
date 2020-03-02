@@ -34,7 +34,7 @@ StartRecord()
 
 	FormatTime, now, R, yyyyMMdd_hhmmss
 
-	commandLine = ffmpeg -f gdigrab -framerate 60 -i desktop ScreenRecord_%now%.mkv
+	commandLine = ffmpeg -f gdigrab -framerate 60 -i desktop ScreenRecord_%now%.mp4
 	Run, % commandLine,, Min
 }
 

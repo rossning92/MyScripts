@@ -181,24 +181,26 @@ class MyTerminalRecorder:
 
     def navigate_file(self, next=None, go_to_end=None):
         files = get_audio_files()
-        try:
-            i = files.index(self.cur_file_name)
-        except ValueError:
-            self.cur_file_name = None
+        n = len(files)
+        if n == 0:
             return
 
-        n = len(files)
-
-        if next is not None:
-            if i > 0 and next == False:
-                i -= 1
-            elif i < n - 1 and next:
-                i += 1
-        elif go_to_end is not None:
+        if go_to_end is not None:
             if go_to_end:
                 i = n - 1
             else:
                 i = 0
+        elif next is not None:
+            try:
+                i = files.index(self.cur_file_name)
+            except ValueError:
+                self.cur_file_name = None
+                return
+
+            if i > 0 and next == False:
+                i -= 1
+            elif i < n - 1 and next:
+                i += 1
 
         self.cur_file_name = files[i]
         print(f'({i+1}/{n}) {self.cur_file_name}')

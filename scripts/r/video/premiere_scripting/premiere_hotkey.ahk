@@ -11,6 +11,7 @@ SetKeyDelay, 100, 100
 
 
 ^1::  ; Choose clip you want to extend first
+	KeyWait, Control, U
 
 	Send +{End}
 	Send !c  ; Clip menu

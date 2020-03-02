@@ -10,7 +10,7 @@ SCALE = 1
 GEN_HTML = bool('{{GEN_HTML}}')
 REGENERATE = True
 
-_root = os.path.dirname(os.path.realpath(__file__))
+_root = os.path.realpath('.')
 _template_loader = jinja2.FileSystemLoader(searchpath=_root)
 _template_env = jinja2.Environment(loader=_template_loader)
 _palette = json.load(open(os.path.join(_root, 'palette.json')))

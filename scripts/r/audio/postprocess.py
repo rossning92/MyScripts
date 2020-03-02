@@ -36,7 +36,7 @@ def create_final_vocal():
     out_file_list = []
     out_norm_files = []
     for f in glob.glob('Audio*.wav'):
-        print2('Processing: %s' % f)
+        # print2('Processing: %s' % f)
 
         name_no_ext = os.path.splitext(os.path.basename(f))[0]
         mtime = os.path.getmtime(f)
@@ -44,13 +44,16 @@ def create_final_vocal():
         # Convert to mono
         in_file = f
         out_file = 'tmp/%s.mono.wav' % name_no_ext
-        if not os.path.exists(out_file):
+        if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+            print(out_file)
             call2('sox %s %s channels 1' % (in_file, out_file))
+            os.utime(out_file, (mtime, mtime))
 
         # Normalization
         in_file = out_file
         out_file = f'tmp/{f}.norm.wav'
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+            print(out_file)
             # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
             # to calculate short-term loudness in the source and adjust the destination
             # to meet the target parameters. The sample file is only a second long,
@@ -62,6 +65,7 @@ def create_final_vocal():
         in_file = out_file
         filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext
         if ALWAYS_GENERATE or not os.path.exists(filtered_voice_file) or os.path.getmtime(filtered_voice_file) != mtime:
+            print(filtered_voice_file)
             call2([
                 'ffmpeg', '-hide_banner', '-loglevel', 'panic',
                 '-i', in_file,
@@ -74,6 +78,7 @@ def create_final_vocal():
         # Cut
         out_file = 'tmp/%s.cut.wav' % name_no_ext
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+            print(out_file)
             rate, data2 = wavfile.read(in_file)
             border_samples = int(BORDER_IGNORE * rate)
             data2 = data2[border_samples:-border_samples]
@@ -119,6 +124,7 @@ def create_final_vocal():
         in_file = out_file
         out_file = f'out/{f}'
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+            print(out_file)
             subprocess.check_call(
                 f'sox {in_file} {out_file}'
                 f' equalizer 800 400h {MIDDLE_FREQ_DB}'
