@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import time
 from gui import ProcessWidget
 from os.path import expanduser
@@ -11,10 +12,11 @@ import datetime
 import sys
 import os
 
-sys.path.append(os.path.abspath('./libs'))
-from _shutil import *
-from _script import *
-from _gui import *
+if 1:
+    sys.path.append(os.path.abspath('./libs'))
+    from _gui import *
+    from _script import *
+    from _shutil import *
 
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
@@ -46,6 +48,15 @@ def get_user_data_folder():
     return folder
 
 
+def get_scripts_recursive(directory):
+    for root, dirs, files in os.walk(directory, topdown=True):
+        dirs[:] = [d for d in dirs if not d.startswith('_')]
+        for f in files:
+            yield os.path.join(root, f)
+
+    # TODO: filter script type here
+
+
 def should_update(folder_list):
     global last_max_mtime
     global last_file_list
@@ -54,7 +65,7 @@ def should_update(folder_list):
     file_list = []
 
     for folder in folder_list:
-        for f in glob.iglob(os.path.join(folder, '**', '*.*'), recursive=True):
+        for f in get_scripts_recursive(folder):
             mtime_list.append(os.stat(f).st_mtime)
             file_list.append(f)
 
@@ -289,7 +300,8 @@ class MainWindow(QWidget):
         #     restart_instance = True
 
         new_window = True if control_down else None
-        script.execute(new_window=new_window, args=args, restart_instance=restart_instance)
+        script.execute(new_window=new_window, args=args,
+                       restart_instance=restart_instance)
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
@@ -327,7 +339,8 @@ RunScript(name, path)
                         f.write(
                             f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
 
-            subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
+            subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY],
+                             close_fds=True, shell=True)
 
         else:
             keyboard_hooks = {}
@@ -348,7 +361,7 @@ RunScript(name, path)
         self.script_items = []
 
         for prefix, script_path in SCRIPT_PATH_LIST:
-            files = glob.glob(script_path + os.path.sep + '**', recursive=True)
+            files = get_scripts_recursive(script_path)
             for file in files:
                 ext = os.path.splitext(file)[1].lower()
                 if ext not in SCRIPT_EXTENSIONS:
@@ -531,6 +544,7 @@ if __name__ == '__main__':
 
     t_end = time.time()
     # time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print2('Script is loaded. Takes %.2f secs.' % (t_end - t_start), color='green')
+    print2('Script is loaded. Takes %.2f secs.' %
+           (t_end - t_start), color='green')
 
     sys.exit(app.exec_())

@@ -1,0 +1,27 @@
+{
+  "name": "anime",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "ccapture.js": "^1.1.0",
+    "css-loader": "^3.4.2",
+    "dat.gui": "^0.7.6",
+    "gsap": "^3.1.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "seedrandom": "^3.0.5",
+    "three": "^0.112.1",
+    "three.meshline": "^1.2.0",
+    "webm-writer": "^0.2.4",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
+  },
+  "scripts": {
+    "dev": "webpack --mode development",
+    "start": "webpack-dev-server --env.entryFolder=./pages --open --watch"
+  },
+  "bin": {
+    "start-app": "bin/start-app.js"
+  }
+}
