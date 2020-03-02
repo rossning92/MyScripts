@@ -2,6 +2,7 @@
 #InstallKeybdHook
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
+#include _RapidHotkey.ahk
 
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
@@ -22,6 +23,18 @@ return
         Sleep 500
         Send *n
         return
+#If
+
+
+#If WinActive("ahk_exe ConEmu64.exe")
+    Esc::
+		KeyWait, Esc, U
+		KeyWait, Esc, D T.3
+		If ErrorLevel
+			return
+
+		WinClose ahk_exe ConEmu64.exe
+		return
 #If
 
 
