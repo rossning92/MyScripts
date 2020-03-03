@@ -2,7 +2,6 @@
 #InstallKeybdHook
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
-#include _RapidHotkey.ahk
 
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
