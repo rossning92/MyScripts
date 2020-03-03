@@ -74,3 +74,6 @@ reg add HKCU\Console\%%SystemRoot%%_SYSTEM32_cmd.exe /v CodePage /t REG_DWORD /d
 
 taskkill /f /im explorer.exe
 start explorer.exe
+
+:: Set default browser manually
+"%windir%\system32\control.exe" /name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings
