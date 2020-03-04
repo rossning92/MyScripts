@@ -4,7 +4,7 @@ if __name__ == '__main__':
     script_path = os.environ['ROSS_SELECTED_SCRIPT_PATH']
 
     script = ScriptItem(script_path)
-    s = script.render()
+    s = script.render() + '\n'
     tmp_script_file = write_temp_file(s, '.sh')
 
     if script.ext != '.sh':
@@ -29,10 +29,13 @@ if __name__ == '__main__':
 
         Send ^v
 
-        Loop 2 {
-            WinWaitActive, ahk_exe ConEmu64.exe, Continue?, 2
-            if ErrorLevel
-                return
-            Send {Enter}
-        }
+        ; Loop 2 {
+        ;    WinWaitActive, ahk_exe ConEmu64.exe, Continue?, 2
+        ;    if ErrorLevel
+        ;        return
+        ;    Send {Enter}
+        ; }
+
+        ; Execute the last line
+        ; Send {Enter}
     ''')

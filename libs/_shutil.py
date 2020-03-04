@@ -74,6 +74,8 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
     call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v KeyboardHooks /t REG_BINARY /d 02 /f >nul')
     call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckHourly /t REG_BINARY /d 00 /f >nul')
     call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckOnStartup /t REG_BINARY /d 00 /f >nul')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v ClipboardConfirmEnter /t REG_BINARY /d 00 /f >nul')
+    call2(r'reg add HKCU\Software\ConEmu\.Vanilla /v ClipboardConfirmLonger /t REG_DWORD /d 00 /f >nul')
 
     if os.path.exists(CONEMU):
         args2 = [

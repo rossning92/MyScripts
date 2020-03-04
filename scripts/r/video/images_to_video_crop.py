@@ -26,9 +26,14 @@ if len(files) == 0:
     print('ERROR: no image files found.')
     sys.exit(1)
 
+n = len(files)
+if '{{_TOTAL_FRAMES}}':
+    n = int('{{_TOTAL_FRAMES}}')
+
 imgs = []
-for i, f in enumerate(files):
-    print('Processing (%d / %d)...' % (i, len(files)))
+for i in range(n):
+    f = files[i]
+    print('Processing (%d / %d)...' % (i, n))
     im = cv2.imread(f)
     if CROP_RECT:
         im = crop_image(im, CROP_RECT)
