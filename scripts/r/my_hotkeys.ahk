@@ -27,10 +27,10 @@ return
 
 #If WinActive("ahk_exe ConEmu64.exe")
     Esc::
-		KeyWait, Esc, U
-		KeyWait, Esc, D T.3
-		If ErrorLevel
-			return
+		; KeyWait, Esc, U
+		; KeyWait, Esc, D T.3
+		; If ErrorLevel
+		; 	return
 
 		WinClose ahk_exe ConEmu64.exe
 		return
