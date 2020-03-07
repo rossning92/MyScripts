@@ -4,4 +4,5 @@ if ! [ -x "$(command -v et)" ]; then
     sudo apt-get install et -y
 fi
 
-et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080
+# et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080
+expect -c 'spawn et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080; expect "password:"; send "{{SSH_PWD}}\r"; interact;'
