@@ -1,4 +1,3 @@
-from PyQt5.QtMultimedia import *
 from _shutil import *
 from _term import *
 from _audio import *
@@ -13,7 +12,7 @@ import postprocess
 # TODO: cleanup by pa.terminate()
 pa = pyaudio.PyAudio()
 
-FILE_PREFIX = 'AudioRecord'
+FILE_PREFIX = 'record'
 
 
 class RecordingFile(object):
@@ -229,15 +228,21 @@ class MyTerminalRecorder:
         print2('Create noise profile. Please be quiet...', color='green')
         sleep(1)
         print('Start collecting.')
-        with self.recorder.open('noise.wav', 'wb') as r:
+
+        os.makedirs('tmp', exist_ok=True)
+        with self.recorder.open('tmp/noise.wav', 'wb') as r:
             r.start_recording()
             sleep(3)
             r.stop_recording()
 
-        create_noise_profile('noise.wav')
+        create_noise_profile('tmp/noise.wav')
         print('Noise profile created.')
 
     def start_stop_record(self):
+        """
+        :return: new recorded file name when recording finishes otherwise None
+        """
+
         if not self.recorder.is_recording():
             self.recorder.stop()
             self.playback.stop()
@@ -253,6 +258,8 @@ class MyTerminalRecorder:
             print2('Recording started: %s' %
                    self.new_file_name, color='green')
 
+            return None
+
         else:
             self.recorder.stop()
             print2('Recording stopped.', color='red')
@@ -260,6 +267,8 @@ class MyTerminalRecorder:
             denoise(in_file=self.new_file_name)
 
             self._play_cur_file()
+
+            return self.new_file_name
 
     def main_loop(self):
         self.print_help()
@@ -305,141 +314,6 @@ class MyTerminalRecorder:
 
             elif ch == 'o':
                 start_process('explorer .')
-
-
-class RecorderGui(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.recorder = WaveRecorder(channels=2)
-
-        self.audio_files = get_audio_files()
-        self.cur_file_index = len(self.audio_files) - 1
-
-        # Widgets
-        self.setLayout(QVBoxLayout())
-
-        self.label = QLabel()
-        self.label.setText('Rec')
-        self.layout().addWidget(self.label)
-
-        self.list_widget = QListWidget()
-        self.list_widget.itemSelectionChanged.connect(
-            self.lw_selection_changed)
-        self.layout().addWidget(self.list_widget)
-
-        # Media player
-        self.playlist = None
-
-        self.player = QMediaPlayer()
-        self.player.stateChanged.connect(self.qmp_state_changed)
-
-        self.update_gui()
-
-        self.resize(500, 500)
-
-        QCoreApplication.instance().installEventFilter(self)
-
-    def set_cur_file(self, offset):
-        self.cur_file_index = max(
-            min(self.cur_file_index + offset, len(self.audio_files) - 1), 0)
-
-    def get_cur_file_name(self):
-        if self.cur_file_index < 0:
-            return None
-        else:
-            return self.audio_files[self.cur_file_index]
-
-    def lw_selection_changed(self):
-        self.cur_file_index = self.list_widget.currentRow()
-
-        self.play_cur_file()
-
-    def play_cur_file(self):
-        self.player.blockSignals(True)
-
-        self.playlist = QMediaPlaylist()
-        self.playlist.addMedia(QMediaContent(
-            QUrl.fromLocalFile(self.audio_files[self.cur_file_index])))
-        self.player.setPlaylist(self.playlist)
-        self.player.stop()
-        self.player.play()
-
-        self.player.blockSignals(False)
-
-    def update_gui(self):
-        self.list_widget.blockSignals(True)
-
-        self.list_widget.clear()
-        for f in self.audio_files:
-            self.list_widget.addItem(f)
-
-        if self.cur_file_index >= 0:
-            self.list_widget.setCurrentRow(self.cur_file_index)
-
-        self.list_widget.blockSignals(False)
-
-    def qmp_state_changed(self):
-        return
-
-        if self.player.state() == QMediaPlayer.StoppedState:
-            self.set_cur_file(offset=1)
-            self.play_cur_file()
-            self.update_gui()
-
-    def eventFilter(self, obj, e):
-        if e.type() == QEvent.KeyPress:
-            if e.key() == Qt.Key_Space:
-                if not self.recorder.is_recording():
-                    self.stop_all()
-
-                    self.label.setText('<font color=green>Recording</font>')
-
-                    file_name = get_audio_file_name(prefix=FILE_PREFIX)
-                    self.recorder.record(file_name)
-
-                    self.cur_file_index += 1
-                    self.audio_files.insert(self.cur_file_index, file_name)
-
-                    self.update_gui()
-
-                else:
-                    self.stop_all()
-
-                    self.label.setText('Stopped')
-
-                    denoise(in_file=self.get_cur_file_name())
-
-                    self.play_cur_file()
-
-                return True
-
-            elif e.key() == Qt.Key_N:
-                self.stop_all()
-
-                show_progress_bar(0.5, text='Wait')
-
-                self.recorder.record('noise.wav')
-                show_progress_bar(3, text='Create noise profile...')
-                self.recorder.stop()
-
-                create_noise_profile('noise.wav')
-
-                return True
-
-            elif e.key() == Qt.Key_E:
-                self.stop_all()
-
-                postprocess.create_final_vocal()
-
-            elif e.key() == Qt.Key_O:
-                call2('explorer .')
-
-        return super().eventFilter(obj, e)
-
-    def stop_all(self):
-        self.recorder.stop()
-        self.player.stop()
 
 
 if __name__ == '__main__':

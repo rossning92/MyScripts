@@ -29,13 +29,13 @@ def rolling_window(a, window):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-def create_final_vocal():
+def create_final_vocal(prefix='record_'):
     # Filter out voice
     mkdir('tmp/cut')
     mkdir('out')
     out_file_list = []
     out_norm_files = []
-    for f in glob.glob('Audio*.wav'):
+    for f in glob.glob(prefix + '*.wav'):
         # print2('Processing: %s' % f)
 
         name_no_ext = os.path.splitext(os.path.basename(f))[0]
