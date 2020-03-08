@@ -14,7 +14,12 @@ def toggle_recording():
 
     if not is_recording:
         print2('Start recording.')
-        start_process(os.path.expandvars(r'%LOCALAPPDATA%\carnac\Carnac.exe'))
+        exec_ahk('''
+        WinGet hwnd, ID, A
+        Run %LOCALAPPDATA%\carnac\Carnac.exe
+        Sleep 500
+        WinActivate ahk_id %hwnd%
+        ''')
     else:
         print2('stop recording.')
         call2('taskkill /f /im Carnac.exe 1>NUL 2>NUL', check=False)
@@ -31,6 +36,11 @@ while True:
 
     activate_cur_terminal()
     file_name = input('input file name (no ext): ')
+    if not file_name:
+        print2('Discard %s.' % new_file, color='red')
+        os.remove(new_file)
+        continue
+
     file_name = slugify(file_name)
     file_name += '.mp4'
     print2('file saved: %s' % file_name, color='green')
