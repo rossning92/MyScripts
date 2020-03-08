@@ -1,13 +1,16 @@
 from _shutil import *
 import keyboard
 from _term import *
+import r.audio.recorder as rec
 
 PROJ_DIR = r'C:\Data\how_to_make_video'
 
 is_recording = False
 
+recorder = rec.TerminalRecorder(out_dir=os.path.join(PROJ_DIR, 'record'))
 
-def toggle_recording():
+
+def start_stop_screencap():
     global is_recording
 
     keyboard.send('alt+F9')
@@ -27,25 +30,30 @@ def toggle_recording():
     is_recording = not is_recording
 
 
-keyboard.add_hotkey('`', toggle_recording, suppress=True)
+def start_stop_recording():
+    recorder.start_stop_record()
 
 
-while True:
-    new_file = wait_for_new_file(os.path.expandvars(
-        r'%USERPROFILE%\Videos\Desktop\*.mp4'))
+if __name__ == '__main__':
 
-    activate_cur_terminal()
-    file_name = input('input file name (no ext): ')
-    if not file_name:
-        print2('Discard %s.' % new_file, color='red')
-        os.remove(new_file)
-        continue
+    keyboard.add_hotkey('`', start_stop_screencap, suppress=True)
+    keyboard.add_hotkey('space', start_stop_recording, suppress=True)
 
-    file_name = slugify(file_name)
-    file_name += '.mp4'
-    print2('file saved: %s' % file_name, color='green')
-    
-    set_clip(file_name)
+    while True:
+        new_file = wait_for_new_file(os.path.expandvars(
+            r'%USERPROFILE%\Videos\Desktop\*.mp4'))
 
-    os.rename(new_file, os.path.join(PROJ_DIR, file_name))
-    
+        activate_cur_terminal()
+        file_name = input('input file name (no ext): ')
+        if not file_name:
+            print2('Discard %s.' % new_file, color='red')
+            os.remove(new_file)
+            continue
+
+        file_name = slugify(file_name)
+        file_name += '.mp4'
+        print2('file saved: %s' % file_name, color='green')
+
+        set_clip(file_name)
+
+        os.rename(new_file, os.path.join(PROJ_DIR, file_name))

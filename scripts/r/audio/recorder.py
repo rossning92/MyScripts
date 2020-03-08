@@ -7,7 +7,9 @@ from _gui import *
 import pyaudio
 import wave
 
-import postprocess
+if 1:
+    sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+    import postprocess
 
 # TODO: cleanup by pa.terminate()
 pa = pyaudio.PyAudio()
@@ -146,19 +148,20 @@ def get_audio_file_name(prefix=FILE_PREFIX, postfix='.wav'):
     return '%s_%s%s' % (prefix, get_time_str(), postfix)
 
 
-def get_audio_files():
-    return list(glob.glob(FILE_PREFIX + '_*.wav'))
+def get_audio_files(out_dir):
+    return list(glob.glob(os.path.join(out_dir, FILE_PREFIX + '_*.wav')))
 
 
 class TerminalRecorder:
-    def __init__(self):
+    def __init__(self, out_dir='.'):
+        self.out_dir = out_dir
         self.recorder = WaveRecorder(channels=2)
         self.playback = WavePlayer()
 
         self.cur_file_name = None
         self.new_file_name = None
 
-        audio_files = get_audio_files()
+        audio_files = get_audio_files(self.out_dir)
         if len(audio_files) > 0:
             self.cur_file_name = audio_files[-1]
 
@@ -179,7 +182,7 @@ class TerminalRecorder:
         self.recorder.stop()
 
     def _navigate_file(self, next=None, go_to_end=None):
-        files = get_audio_files()
+        files = get_audio_files(self.out_dir)
         n = len(files)
         if n == 0:
             return
@@ -230,12 +233,12 @@ class TerminalRecorder:
         print('Start collecting.')
 
         os.makedirs('tmp', exist_ok=True)
-        with self.recorder.open('tmp/noise.wav', 'wb') as r:
+        with self.recorder.open(os.path.join(self.out_dir, 'tmp/noise.wav'), 'wb') as r:
             r.start_recording()
             sleep(3)
             r.stop_recording()
 
-        create_noise_profile('tmp/noise.wav')
+        create_noise_profile(os.path.join(self.out_dir, 'tmp/noise.wav'))
         print('Noise profile created.')
 
     def start_stop_record(self):
@@ -250,7 +253,8 @@ class TerminalRecorder:
             if self.cur_file_name:
                 self.new_file_name = get_next_file_name(self.cur_file_name)
             else:
-                self.new_file_name = FILE_PREFIX + '_001.wav'
+                self.new_file_name = os.path.join(
+                    self.out_dir, FILE_PREFIX + '_001.wav')
 
             self.cur_file_name = self.new_file_name
 
