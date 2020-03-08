@@ -167,10 +167,19 @@ class ScriptItem:
         # TODO: jinja2 doesn't support '\' in path. Seems fixed?
         script_path = script_path.replace(os.path.sep, '/')
 
+        # Script display name
+        if name:
+            self.name = name
+        else:
+            self.name = script_path
+
+            # Absolute path -> relative path
+            root = get_script_root().replace('\\', '/')
+            self.name = re.sub('^' + re.escape(root) + '/', '', self.name)
+
         self.meta = get_script_meta(script_path)  # Load meta
         self.ext = os.path.splitext(script_path)[
             1].lower()  # Extension / script type
-        self.name = name if name else script_path  # Script display name
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
@@ -527,6 +536,11 @@ class ScriptItem:
             raise Exception('Cannot find script: %s' % script_name)
         # script_path = os.path.dirname(self.script_path) + '/' + script_path
         return ScriptItem(script_path).render()
+
+
+def get_script_root():
+    return os.path.abspath(os.path.dirname(
+        __file__) + '/../scripts')
 
 
 def find_script(script_name, search_dir=None):

@@ -5,7 +5,6 @@ from _audio import *
 from _script import *
 from _gui import *
 
-try_import('pyaudio')
 import pyaudio
 import wave
 
@@ -158,6 +157,7 @@ class MyTerminalRecorder:
         self.playback = WavePlayer()
 
         self.cur_file_name = None
+        self.new_file_name = None
 
         audio_files = get_audio_files()
         if len(audio_files) > 0:
@@ -175,11 +175,11 @@ class MyTerminalRecorder:
             'O     - Output folder\n'
         )
 
-    def stop_all(self):
+    def _stop_all(self):
         self.playback.stop()
         self.recorder.stop()
 
-    def navigate_file(self, next=None, go_to_end=None):
+    def _navigate_file(self, next=None, go_to_end=None):
         files = get_audio_files()
         n = len(files)
         if n == 0:
@@ -205,26 +205,65 @@ class MyTerminalRecorder:
         self.cur_file_name = files[i]
         print(f'({i+1}/{n}) {self.cur_file_name}')
 
-    def play_cur_file(self):
+    def _play_cur_file(self):
         if self.cur_file_name:
             self.playback.play(self.cur_file_name)
 
     def delete_cur_file(self):
+        self._stop_all()
+
         if not self.cur_file_name:
             return
 
         file_name = self.cur_file_name
 
-        self.navigate_file(next=False)
+        self._navigate_file(next=False)
 
         if os.path.exists(file_name):
             os.remove(file_name)
             print2('File deleted: %s' % file_name, color='red')
 
+    def create_noise_profile(self):
+        self._stop_all()
+
+        print2('Create noise profile. Please be quiet...', color='green')
+        sleep(1)
+        print('Start collecting.')
+        with self.recorder.open('noise.wav', 'wb') as r:
+            r.start_recording()
+            sleep(3)
+            r.stop_recording()
+
+        create_noise_profile('noise.wav')
+        print('Noise profile created.')
+
+    def start_stop_record(self):
+        if not self.recorder.is_recording():
+            self.recorder.stop()
+            self.playback.stop()
+
+            if self.cur_file_name:
+                self.new_file_name = get_next_file_name(self.cur_file_name)
+            else:
+                self.new_file_name = FILE_PREFIX + '_001.wav'
+
+            self.cur_file_name = self.new_file_name
+
+            self.recorder.record(self.new_file_name)
+            print2('Recording started: %s' %
+                   self.new_file_name, color='green')
+
+        else:
+            self.recorder.stop()
+            print2('Recording stopped.', color='red')
+
+            denoise(in_file=self.new_file_name)
+
+            self._play_cur_file()
+
     def main_loop(self):
         self.print_help()
 
-        new_file_name = None
         while True:
             ch = getch()
 
@@ -232,69 +271,36 @@ class MyTerminalRecorder:
                 self.print_help()
 
             elif ch == ' ':
-                if not self.recorder.is_recording():
-                    self.recorder.stop()
-                    self.playback.stop()
-
-                    if self.cur_file_name:
-                        new_file_name = get_next_file_name(self.cur_file_name)
-                    else:
-                        new_file_name = FILE_PREFIX + '_001.wav'
-
-                    self.cur_file_name = new_file_name
-
-                    self.recorder.record(new_file_name)
-                    print2('Recording started: %s' %
-                           new_file_name, color='green')
-
-                else:
-                    self.recorder.stop()
-                    print2('Recording stopped.', color='red')
-
-                    denoise(in_file=new_file_name)
-
-                    self.play_cur_file()
+                self.start_stop_record()
 
             elif ch == 'd':
-                self.stop_all()
                 self.delete_cur_file()
 
             elif ch == 'n':
-                self.stop_all()
-
-                print2('Create noise profile. Please be quiet...', color='green')
-                sleep(1)
-                print('Start collecting.')
-                with self.recorder.open('noise.wav', 'wb') as r:
-                    r.start_recording()
-                    sleep(3)
-                    r.stop_recording()
-
-                create_noise_profile('noise.wav')
-                print('Noise profile created.')
+                self.create_noise_profile()
 
             elif ch == ',':
-                self.stop_all()
-                self.navigate_file(next=False)
-                self.play_cur_file()
+                self._stop_all()
+                self._navigate_file(next=False)
+                self._play_cur_file()
 
             elif ch == '.':
-                self.stop_all()
-                self.navigate_file(next=True)
-                self.play_cur_file()
+                self._stop_all()
+                self._navigate_file(next=True)
+                self._play_cur_file()
 
             elif ch == '[':
-                self.stop_all()
-                self.navigate_file(go_to_end=False)
-                self.play_cur_file()
+                self._stop_all()
+                self._navigate_file(go_to_end=False)
+                self._play_cur_file()
 
             elif ch == ']':
-                self.stop_all()
-                self.navigate_file(go_to_end=True)
-                self.play_cur_file()
+                self._stop_all()
+                self._navigate_file(go_to_end=True)
+                self._play_cur_file()
 
             elif ch == 'e':
-                self.stop_all()
+                self._stop_all()
                 postprocess.create_final_vocal()
 
             elif ch == 'o':
@@ -437,10 +443,12 @@ class RecorderGui(QDialog):
 
 
 if __name__ == '__main__':
-    out_folder = expanduser(r'{{_OUT_FOLDER}}')
-    make_and_change_dir(out_folder)
+    if 'RECORD_OUT_DIR' not in os.environ:
+        out_dir = expanduser(r'{{_OUT_FOLDER}}')
+    else:
+        out_dir = os.environ['RECORD_OUT_DIR']
 
-    # d = RecorderGui()
-    # d.exec()
+    print('Record Out Dir: %s' % out_dir)
+    make_and_change_dir(out_dir)
 
     MyTerminalRecorder().main_loop()
