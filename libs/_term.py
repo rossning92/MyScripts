@@ -278,3 +278,10 @@ class ListWidget():
     def set_block_mode(self, block_mode):
         self.block_mode = block_mode
         self.stdscr.nodelay(not block_mode)
+
+
+def activate_cur_terminal():
+    if sys.platform == 'win32':
+        import ctypes
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        ctypes.windll.user32.SetForegroundWindow(hwnd)

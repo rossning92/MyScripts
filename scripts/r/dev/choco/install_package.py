@@ -28,6 +28,7 @@ PKGS = {
         'unity-hub',
         'golang',
         'nvidia-display-driver',
+        'carnac',
     ],
     'common': [
         'everything',
@@ -65,12 +66,14 @@ PKGS = {
     ]
 }
 
-pkg_list = ['@for work'] + sorted(set([app for cate in PKGS.values() for app in cate]))
+pkg_list = ['@for work'] + \
+    sorted(set([app for cate in PKGS.values() for app in cate]))
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
 
-subprocess.call('choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"')
+subprocess.call(
+    'choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"')
 
 if pkg_list[idx] == '@for work':
     for pkg in PKGS['for_work'] + PKGS['media'] + PKGS['dev'] + PKGS['common']:

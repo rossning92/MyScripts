@@ -904,7 +904,7 @@ def wait_for_new_file(file_pattern):
     for f in glob.glob(file_pattern):
         max_mtime = max(os.path.getmtime(f), max_mtime)
 
-    print('Wait for file: `%s` ...' % file_pattern)
+    print('wait for new file: %s ' % file_pattern)
     while True:
         for f in glob.glob(file_pattern):
             mtime = os.path.getmtime(f)
@@ -913,7 +913,7 @@ def wait_for_new_file(file_pattern):
                 while True:
                     try:
                         os.rename(f, f)
-                        print('File created: %s' % f)
+                        print('file created: %s' % f)
                         return f
                     except:
                         time.sleep(0.1)
