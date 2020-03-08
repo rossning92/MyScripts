@@ -150,7 +150,7 @@ def get_audio_files():
     return list(glob.glob(FILE_PREFIX + '_*.wav'))
 
 
-class MyTerminalRecorder:
+class TerminalRecorder:
     def __init__(self):
         self.recorder = WaveRecorder(channels=2)
         self.playback = WavePlayer()
@@ -325,4 +325,4 @@ if __name__ == '__main__':
     print('Record Out Dir: %s' % out_dir)
     make_and_change_dir(out_dir)
 
-    MyTerminalRecorder().main_loop()
+    TerminalRecorder().main_loop()
