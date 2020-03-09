@@ -233,12 +233,12 @@ class TerminalRecorder:
         print('Start collecting.')
 
         os.makedirs('tmp', exist_ok=True)
-        with self.recorder.open(os.path.join(self.out_dir, 'tmp/noise.wav'), 'wb') as r:
+        with self.recorder.open('tmp/noise.wav', 'wb') as r:
             r.start_recording()
             sleep(3)
             r.stop_recording()
 
-        create_noise_profile(os.path.join(self.out_dir, 'tmp/noise.wav'))
+        create_noise_profile('tmp/noise.wav')
         print('Noise profile created.')
 
     def start_stop_record(self):
