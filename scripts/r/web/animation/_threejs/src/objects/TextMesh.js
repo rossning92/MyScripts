@@ -54,10 +54,13 @@ export default class TextMesh extends Object3D {
     this.color = color;
     this.letterSpacing = letterSpacing;
 
+    this.fontZh = fontLoader.parse(require("../fonts/sourceHanBold3000"));
+    this.fontEn = fontLoader.parse(require("../fonts/muliBold").default);
+
     if (font == "zh") {
-      this.font = fontLoader.parse(require("../fonts/sourceHanBold3000"));
+      this.font = this.fontZh;
     } else {
-      this.font = fontLoader.parse(require("../fonts/muliBold").default);
+      this.font = this.fontEn;
     }
 
     if (material) {
@@ -159,6 +162,8 @@ export default class TextMesh extends Object3D {
   }
 
   set text(text) {
+    const english = /^[A-Za-z0-9]*$/;
+
     this.children.length = 0;
 
     if (1) {
@@ -171,8 +176,10 @@ export default class TextMesh extends Object3D {
         if (letter === " ") {
           totalWidth += this.size * 0.5;
         } else {
+          const font = english.test(letter) ? this.fontEn : this.fontZh;
+
           const geom = new THREE.ShapeBufferGeometry(
-            this.font.generateShapes(letter, this.size, 1)
+            font.generateShapes(letter, this.size, 1)
           );
           geom.computeBoundingBox();
           const mat = new MeshBasicMaterial({

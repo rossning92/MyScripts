@@ -2,7 +2,7 @@ from _shutil import *
 import generate_slides
 import urllib
 import webbrowser
-import capture_js_animation
+import capture_animation
 
 
 def get_meta_data(type_):
@@ -12,7 +12,7 @@ def get_meta_data(type_):
     return matches
 
 
-f = r'C:\Users\Ross\Google Drive\Notes\Kidslogic\Coding_in_3_minutes\ep13\ep13.md'
+f = r'{{MD_FILE}}'
 OUT_DIR = r'{{OUT_DIR}}'
 
 
@@ -29,22 +29,34 @@ for s in get_meta_data('ani:'):
     out_file = slugify('ani-' + s) + '.mov'
     if not os.path.exists(out_file):
         url = 'http://localhost:8080/%s.html' % s
-        capture_js_animation.capture_js_animation(
+        capture_animation.capture_js_animation(
             url,
             out_file=out_file
         )
 
-for text in get_meta_data('title:'):
-    out_file = slugify('title-' + text) + '.mov'
+
+for s in get_meta_data('title-animation:'):
+    out_file = slugify('title-animation-' + s) + '.mov'
 
     if not os.path.exists(out_file):
-        h1 = re.search('^# (.*)', text, flags=re.MULTILINE).group(1)
-        h2 = re.search('^## (.*)', text, flags=re.MULTILINE).group(1)
-        url = 'http://localhost:8080/title.html?h1=%s&h2=%s' % (
+        h1 = re.search('^# (.*)', s, flags=re.MULTILINE).group(1)
+        h2 = re.search('^## (.*)', s, flags=re.MULTILINE).group(1)
+        url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
             urllib.parse.quote(h1),
             urllib.parse.quote(h2)
         )
-        capture_js_animation.capture_js_animation(
+        capture_animation.capture_js_animation(
             url,
             out_file=out_file)
-    # webbrowser.open(url)
+
+
+for s in get_meta_data('list-animation:'):
+    out_file = slugify('list-animation-' + s) + '.mov'
+
+    if not os.path.exists(out_file):
+        url = 'http://localhost:8080/list-animation.html?s=%s' % (
+            urllib.parse.quote(s)
+        )
+        capture_animation.capture_js_animation(
+            url,
+            out_file=out_file)

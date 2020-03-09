@@ -1812,6 +1812,22 @@ function addAnime(
       );
     });
   }
+  if (aniEnter && aniEnter.includes("fastType")) {
+    object3d.children.forEach(x => {
+      tl.fromTo(
+        x,
+        {
+          visible: false
+        },
+        {
+          visible: true,
+          ease: "steps(1)",
+          duration: 0.02
+        }
+      );
+    });
+    tl.set({}, {}, ">+0.5");
+  }
 
   if (animation && animation == "spin") {
     tl.to(object3d.rotation, {

@@ -103,6 +103,7 @@ if __name__ == '__main__':
         file_name += '.mp4'
         print2('file saved: %s' % file_name, color='green')
 
-        set_clip(file_name)
+        clip = '<!-- video: %s -->' % file_name
+        set_clip(clip)
 
         os.rename(new_file, os.path.join(PROJ_DIR, file_name))
