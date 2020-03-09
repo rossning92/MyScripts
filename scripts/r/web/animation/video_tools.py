@@ -72,9 +72,9 @@ def export_recordings():
 
 
 if __name__ == '__main__':
-    wrapper = RecorderWrapper()
-
     cd(PROJ_DIR)
+
+    wrapper = RecorderWrapper()
 
     keyboard.add_hotkey('`', wrapper.start_stop_screencap, suppress=True)
 
@@ -100,7 +100,8 @@ if __name__ == '__main__':
             continue
 
         file_name = slugify(file_name)
-        file_name += '.mp4'
+        os.makedirs('screencap', exist_ok=True)
+        file_name = 'screencap/' + file_name + '.mp4'
         print2('file saved: %s' % file_name, color='green')
 
         clip = '<!-- video: %s -->' % file_name
