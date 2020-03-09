@@ -18,7 +18,7 @@ class RecorderWrapper:
 
         if not self.is_recording:
             print2('Start recording.')
-            exec_ahk('''
+            exec_ahk(r'''
             WinGet hwnd, ID, A
             Run %LOCALAPPDATA%\carnac\Carnac.exe
             Sleep 500
@@ -54,10 +54,12 @@ if __name__ == '__main__':
 
     keyboard.add_hotkey('`', wrapper.start_stop_screencap, suppress=True)
 
-    keyboard.add_hotkey('F3', wrapper.start_stop_recording, suppress=True)
+    keyboard.add_hotkey('F7', wrapper.start_stop_recording, suppress=True)
+
+    keyboard.add_hotkey('F8', wrapper.delete_cur_file, suppress=True)
+
     keyboard.add_hotkey(
-        'F5', wrapper.recorder.create_noise_profile, suppress=True)
-    keyboard.add_hotkey('F4', wrapper.delete_cur_file, suppress=True)
+        'F9', wrapper.recorder.create_noise_profile, suppress=True)
 
     while True:
         new_file = wait_for_new_file(os.path.expandvars(
