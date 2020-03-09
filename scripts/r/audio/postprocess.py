@@ -29,13 +29,21 @@ def rolling_window(a, window):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-def create_final_vocal(prefix='record_'):
+def _create_dir_if_not_exists(file):
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+
+
+def create_final_vocal(prefix='record_', file_list=[]):
     # Filter out voice
-    mkdir('tmp/cut')
+    mkdir('tmp')
     mkdir('out')
     out_file_list = []
     out_norm_files = []
-    for f in glob.glob(prefix + '*.wav'):
+
+    if not file_list:
+        file_list = sorted(glob.glob(prefix + '*.wav'))
+
+    for f in file_list:
         # print2('Processing: %s' % f)
 
         name_no_ext = os.path.splitext(os.path.basename(f))[0]
@@ -43,7 +51,8 @@ def create_final_vocal(prefix='record_'):
 
         # Convert to mono
         in_file = f
-        out_file = 'tmp/%s.mono.wav' % name_no_ext
+        out_file = f'tmp/{f}.mono.wav'
+        _create_dir_if_not_exists(out_file)
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             print(out_file)
             call2('sox %s %s channels 1' % (in_file, out_file))
@@ -63,7 +72,7 @@ def create_final_vocal(prefix='record_'):
             os.utime(out_file, (mtime, mtime))
 
         in_file = out_file
-        filtered_voice_file = 'tmp/%s.voice_only.wav' % name_no_ext
+        filtered_voice_file = f'tmp/{f}.voice_only.wav'
         if ALWAYS_GENERATE or not os.path.exists(filtered_voice_file) or os.path.getmtime(filtered_voice_file) != mtime:
             print(filtered_voice_file)
             call2([
@@ -76,7 +85,7 @@ def create_final_vocal(prefix='record_'):
             os.utime(filtered_voice_file, (mtime, mtime))
 
         # Cut
-        out_file = 'tmp/%s.cut.wav' % name_no_ext
+        out_file = f'tmp/{f}.cut.wav'
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             print(out_file)
             rate, data2 = wavfile.read(in_file)
@@ -123,6 +132,7 @@ def create_final_vocal(prefix='record_'):
         # Compress
         in_file = out_file
         out_file = f'out/{f}'
+        _create_dir_if_not_exists(out_file)
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             print(out_file)
             subprocess.check_call(

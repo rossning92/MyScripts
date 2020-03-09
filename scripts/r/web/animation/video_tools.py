@@ -2,16 +2,18 @@ from _shutil import *
 import keyboard
 from _term import *
 import r.audio.recorder as rec
+import r.audio.postprocess as pp
 
 PROJ_DIR = r'C:\Data\how_to_make_video'
 MD_FILE = r"{{_MD_FILE}}"
+RECORD_FOLDER = 'record'
 
 
 class RecorderWrapper:
     def __init__(self):
         self.file_saved = False
         self.is_recording = False
-        self.recorder = rec.TerminalRecorder('record')
+        self.recorder = rec.TerminalRecorder(RECORD_FOLDER)
 
     def start_stop_screencap(self):
         keyboard.send('alt+F9')
@@ -47,6 +49,28 @@ class RecorderWrapper:
             self.file_saved = False
 
 
+def get_meta_data(file, type_):
+    s = open(file, 'r', encoding='utf-8').read()
+    matches = re.findall('<!-- ' + type_ + r'([\w\W]+?)-->', s)
+    matches = [x.strip() for x in matches]
+    return matches
+
+
+def export_recordings():
+    recordings = get_meta_data(MD_FILE, 'record:')
+
+    all_recordings = map(lambda x: x.replace('\\', '/'),
+                         glob.glob(os.path.join(RECORD_FOLDER, '*.wav')))
+
+    unused_files = sorted(list(set(all_recordings) - set(recordings)))
+    print('\n'.join(unused_files))
+    if unused_files and yes('remove unused recordings?'):
+        for x in unused_files:
+            os.remove(x)
+
+    pp.create_final_vocal(file_list=recordings)
+
+
 if __name__ == '__main__':
     wrapper = RecorderWrapper()
 
@@ -60,6 +84,9 @@ if __name__ == '__main__':
 
     keyboard.add_hotkey(
         'F9', wrapper.recorder.create_noise_profile, suppress=True)
+
+    keyboard.add_hotkey(
+        'F12', export_recordings, suppress=True)
 
     while True:
         new_file = wait_for_new_file(os.path.expandvars(
