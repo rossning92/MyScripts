@@ -310,6 +310,8 @@ def _prompt(options, prompt_type, message):
     ]
 
     answers = PyInquirer.prompt(questions)
+    if not answers:
+        return None
 
     selected_indices = answers[prompt_type]
     return selected_indices
