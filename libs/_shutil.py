@@ -775,7 +775,7 @@ def start_process(args, shell=True):
     subprocess.Popen(args, close_fds=True, shell=shell)
 
 
-def setup_nodejs(install=False):
+def setup_nodejs(install=True):
     if sys.platform == 'win32':
         NODE_JS_PATH = r'C:\Program Files\nodejs'
         if install and not os.path.exists(NODE_JS_PATH):

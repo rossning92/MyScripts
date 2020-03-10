@@ -23,6 +23,7 @@ PYTHON_MODULE_LIST = {
     'win32con': 'pywin32',
     'win32gui': 'pywin32',
     'win32ui': 'pywin32',
+    'websockets': 'websockets',
 }
 
 

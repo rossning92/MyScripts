@@ -168,7 +168,8 @@ class TerminalRecorder:
     def print_help(self):
         print2(
             'SPACE - Start / stop recording\n'
-            'ENTER - Record next\n'
+            'R     - Start recording\n'
+            'S     - Stop recording\n'
             'D     - Delete current\n'
             'N     - Create noise profile\n'
             ', .   - Go to prev / next\n'
@@ -247,32 +248,39 @@ class TerminalRecorder:
         """
 
         if not self.recorder.is_recording():
-            self.recorder.stop()
-            self.playback.stop()
-
-            if self.cur_file_name:
-                self.new_file_name = get_next_file_name(self.cur_file_name)
-            else:
-                self.new_file_name = os.path.join(
-                    self.out_dir, FILE_PREFIX + '_001.wav')
-
-            self.cur_file_name = self.new_file_name
-
-            self.recorder.record(self.new_file_name)
-            print2('Recording started: %s' %
-                   self.new_file_name, color='green')
-
+            self.start_record()
             return None
-
         else:
+            self.stop_record()
+            return self.new_file_name
+
+    def start_record(self):
+        if self.recorder.is_recording():
+            self.delete_cur_file()
+
+        self.recorder.stop()
+        self.playback.stop()
+
+        if self.cur_file_name:
+            self.new_file_name = get_next_file_name(self.cur_file_name)
+        else:
+            self.new_file_name = os.path.join(
+                self.out_dir, FILE_PREFIX + '_001.wav')
+
+        self.cur_file_name = self.new_file_name
+
+        self.recorder.record(self.new_file_name)
+        print2('Recording started: %s' %
+               self.new_file_name, color='green')
+
+    def stop_record(self):
+        if self.recorder.is_recording():
             self.recorder.stop()
             print2('Recording stopped.', color='red')
 
             denoise(in_file=self.new_file_name)
 
             self._play_cur_file()
-
-            return self.new_file_name
 
     def main_loop(self):
         self.print_help()
@@ -285,6 +293,12 @@ class TerminalRecorder:
 
             elif ch == ' ':
                 self.start_stop_record()
+
+            elif ch == 'r':
+                self.start_record()
+
+            elif ch == 's':
+                self.stop_record()
 
             elif ch == 'd':
                 self.delete_cur_file()
@@ -321,10 +335,10 @@ class TerminalRecorder:
 
 
 if __name__ == '__main__':
-    if 'RECORD_OUT_DIR' not in os.environ:
-        out_dir = expanduser(r'{{_OUT_FOLDER}}')
+    if 'RECORD_OUT_DIR' in os.environ:
+        out_dir = os.path.abspath(os.environ['RECORD_OUT_DIR'])
     else:
-        out_dir = os.environ['RECORD_OUT_DIR']
+        out_dir = expanduser(r'{{_OUT_FOLDER}}')
 
     print('Record Out Dir: %s' % out_dir)
     make_and_change_dir(out_dir)
