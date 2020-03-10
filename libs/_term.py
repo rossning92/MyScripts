@@ -296,20 +296,32 @@ def activate_cur_terminal():
         ctypes.windll.user32.SetForegroundWindow(hwnd)
 
 
-def prompt_checkbox(options, message='Please select'):
+def _prompt(options, prompt_type, message):
     import PyInquirer
 
     selected_indices = []
     questions = [
         {
-            'type': 'checkbox',
+            'type': prompt_type,
             'message': message,
-            'name': 'checkbox',
-            'choices': [{'name': x} for x in options]
+            'name': prompt_type,
+            'choices': [{'name': x, 'value': i} for i, x in enumerate(options)]
         }
     ]
 
     answers = PyInquirer.prompt(questions)
 
-    selected_indices = [options.index(val) for val in answers['checkbox']]
+    selected_indices = answers[prompt_type]
     return selected_indices
+
+
+def prompt_checkbox(options, message='Please select'):
+    return _prompt(options=options,
+                   prompt_type='checkbox',
+                   message=message)
+
+
+def prompt_list(options, message='Please select'):
+    return _prompt(options=options,
+                   prompt_type='list',
+                   message=message)
