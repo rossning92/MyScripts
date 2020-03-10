@@ -49,6 +49,7 @@ PKGS = {
         'llvm',
         'ripgrep',
         'vscode',
+        'visualstudiocode-insiders --pre',
         'sumatrapdf',
         'nodejs',
     ],

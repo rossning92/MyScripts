@@ -5,23 +5,32 @@ SetTitleMatchMode, 2
 
 hotkeyInfo := {}
 
-AddChromeHotkey(hotkey, title, url)
+AddChromeHotkey(hotkey, title, url, open:=False)
 {
 	global hotkeyInfo
 	hotkeyInfo[hotkey] := {"title": title, "url": url}
 	Hotkey, %hotkey%, HotkeyPressed
+
+    if (open)
+    {
+        ActivateChromeWindow(hotkey)
+    }
 }
 
 HotkeyPressed()
 {
-	global hotkeyInfo
+    ActivateChromeWindow(A_ThisHotkey)
+}
 
-	chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+ActivateChromeWindow(key)
+{
+    global hotkeyInfo
+    chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 
-	title := hotkeyInfo[A_ThisHotkey].title  ; Deprecated
-	url := hotkeyInfo[A_ThisHotkey].url
+    title := hotkeyInfo[key].title  ; Deprecated
+	url := hotkeyInfo[key].url
 
-    RegRead, win_id, HKEY_CURRENT_USER\Software\ChromeHotkey, %A_ThisHotkey%
+    RegRead, win_id, HKEY_CURRENT_USER\Software\ChromeHotkey, %key%
     if WinExist("ahk_id" win_id)
     {
         WinActivate ahk_id %win_id%
@@ -39,8 +48,8 @@ HotkeyPressed()
         }
 
         WinGet, win_id, ID
-        RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\ChromeHotkey, %A_ThisHotkey%, %win_id%
-        ToolTip, Chrome detected, 0, 0
+        RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\ChromeHotkey, %key%, %win_id%
+        ToolTip, %key% => %win_id%, 0, 0
         SetTimer, RemoveToolTip, -2000
     }
 }

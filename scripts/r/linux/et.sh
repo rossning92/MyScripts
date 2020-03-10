@@ -5,4 +5,4 @@ if ! [ -x "$(command -v et)" ]; then
 fi
 
 # et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080
-expect -c 'spawn et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080; expect "password:"; send "{{SSH_PWD}}\r"; interact;'
+expect -c 'spawn et -x -r 15037:5037 -t 5901:5900 {{SSH_USER}}@{{SSH_HOST}}:8080; expect "password:"; send "{{SSH_PWD}}\r"; interact;'
