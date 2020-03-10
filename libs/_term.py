@@ -54,7 +54,8 @@ class InputWindow():
             elif ch == curses.KEY_RIGHT:
                 self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
             elif ch == ord('\b'):
-                self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
+                self.cur_input = self.cur_input[:self.caret_pos -
+                                                1] + self.cur_input[self.caret_pos:]
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
             elif ch == curses.ascii.ctrl(ord('c')):
@@ -72,7 +73,8 @@ class InputWindow():
                 self.cur_input = ''
                 self.caret_pos = 0
             else:
-                self.cur_input = self.cur_input[:self.caret_pos] + chr(ch) + self.cur_input[self.caret_pos:]
+                self.cur_input = self.cur_input[:self.caret_pos] + \
+                    chr(ch) + self.cur_input[self.caret_pos:]
                 self.caret_pos += 1
                 text_changed = True
 
@@ -116,7 +118,8 @@ class FilterWindow(InputWindow):
     def update_screen2(self):
         height, width = self.stdscr.getmaxyx()
 
-        filtered_lines = [l for l in self.lines if self.cur_input.lower() in l.lower()]
+        filtered_lines = [
+            l for l in self.lines if self.cur_input.lower() in l.lower()]
         n = min(len(filtered_lines), height - 1)
         for i in range(n):
             self.stdscr.addstr(i, 0, filtered_lines[i])
@@ -169,7 +172,8 @@ class ListWidget():
 
             # Highlight cur_input
             if self.cur_input:
-                match = [(m.start(), m.end()) for m in re.finditer(self.cur_input, line)]
+                match = [(m.start(), m.end())
+                         for m in re.finditer(self.cur_input, line)]
             else:
                 match = None
 
@@ -184,7 +188,8 @@ class ListWidget():
                         stdscr.addstr(i, match[j][0], substr)
                         stdscr.attroff(curses.color_pair(3))
 
-                        end_pos = match[j + 1][0] if j < len(match) - 1 else None
+                        end_pos = match[j +
+                                        1][0] if j < len(match) - 1 else None
                         substr = line[match[j][1]: end_pos]
                         stdscr.addstr(i, match[j][1], substr)
                 else:
@@ -193,7 +198,8 @@ class ListWidget():
                 pass
 
         # stdscr.attron(curses.color_pair(2))
-        status_text = '[%d / %d]' % (self.cur_page, len(self.lines) // (height - 1))
+        status_text = '[%d / %d]' % (self.cur_page,
+                                     len(self.lines) // (height - 1))
         stdscr.insstr(height - 1, width - len(status_text), status_text)
 
         stdscr.addstr(height - 1, 0, self.cur_input)
@@ -215,7 +221,8 @@ class ListWidget():
             if ch == curses.ERR:
                 break
             elif ch == curses.KEY_RESIZE:
-                curses.resize_term(0, 0)  # HACK: on windows: https://pypi.org/project/windows-curses/
+                # HACK: on windows: https://pypi.org/project/windows-curses/
+                curses.resize_term(0, 0)
             elif ch == curses.KEY_UP:
                 self.cur_page = max(self.cur_page - 1, 0)
             elif ch == curses.KEY_DOWN:
@@ -225,7 +232,8 @@ class ListWidget():
             elif ch == curses.KEY_RIGHT:
                 self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
             elif ch == ord('\b'):
-                self.cur_input = self.cur_input[:self.caret_pos - 1] + self.cur_input[self.caret_pos:]
+                self.cur_input = self.cur_input[:self.caret_pos -
+                                                1] + self.cur_input[self.caret_pos:]
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
             elif ch == curses.ascii.ctrl(ord('c')):  # Ctrl + C
@@ -249,7 +257,8 @@ class ListWidget():
                 elif self.select_mode and self.item_selected:
                     self.item_selected(int(self.cur_input))
             else:
-                self.cur_input = self.cur_input[:self.caret_pos] + chr(ch) + self.cur_input[self.caret_pos:]
+                self.cur_input = self.cur_input[:self.caret_pos] + \
+                    chr(ch) + self.cur_input[self.caret_pos:]
                 self.caret_pos += 1
                 text_changed = True
 
@@ -285,3 +294,22 @@ def activate_cur_terminal():
         import ctypes
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         ctypes.windll.user32.SetForegroundWindow(hwnd)
+
+
+def prompt_checkbox(options, message='Please select'):
+    import PyInquirer
+
+    selected_indices = []
+    questions = [
+        {
+            'type': 'checkbox',
+            'message': message,
+            'name': 'checkbox',
+            'choices': [{'name': x} for x in options]
+        }
+    ]
+
+    answers = PyInquirer.prompt(questions)
+
+    selected_indices = [options.index(val) for val in answers['checkbox']]
+    return selected_indices
