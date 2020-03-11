@@ -13,14 +13,14 @@ PROJ_DIR = r'C:\Data\how_to_make_video'
 
 def get_meta_data(type_):
     s = open('index.md', 'r', encoding='utf-8').read()
-    matches = re.findall('<!-- ' + type_ + r'([\w\W]+?)-->', s)
+    matches = re.findall(r'<!-- ' + type_ + r'([\w\W]+?)-->', s)
     matches = [x.strip() for x in matches]
     return matches
 
 
 def get_all_meta_data():
     s = open('index.md', 'r', encoding='utf-8').read()
-    matches = re.findall('<!--\s*([a-zA-z-_]+:[\d\D]+?)\s*-->', s)
+    matches = re.findall(r'<!--\s*([a-zA-z-_]+:[\d\D]+?)\s*-->', s)
     matches = [x.strip() for x in matches]
     return matches
 
