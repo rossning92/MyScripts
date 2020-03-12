@@ -1,15 +1,13 @@
 from _script import *
 
 TEMP_SHELL_SCRIPT_PATH = '/tmp/tmp_script.sh'
-USER_HOST = '{{SSH_USER}}@{{SSH_HOST}}'
-SSH_PORT = int('{{SSH_PORT}}') if '{{SSH_PORT}}' else None
 
 
-def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None):
+def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
     if True:  # plink is preferred (better automation)
         args = f'plink -ssh {user_host} -m {bash_script_file}'
-        if '{{SSH_PWD}}':
-            args += ' -pw {{SSH_PWD}}'
+        if ssh_pwd:
+            args += ' -pw %s' % ssh_pwd
         if ssh_port:
             args += ' -P %d' % ssh_port
         call2(args)
@@ -46,4 +44,10 @@ if __name__ == '__main__':
     if '{{VAGRANT_ID}}':
         run_bash_script_vagrant(tmp_script_file, '{{VAGRANT_ID}}')
     else:
-        run_bash_script_ssh(tmp_script_file, USER_HOST, SSH_PORT)
+        ssh_host = '{{SSH_USER}}@{{SSH_HOST}}'
+        ssh_port = int('{{SSH_PORT}}') if '{{SSH_PORT}}' else None
+        ssh_pwd = r'{{SSH_PWD}}' if r'{{SSH_PWD}}' else None
+        run_bash_script_ssh(tmp_script_file,
+                            ssh_host, 
+                            ssh_port,
+                            ssh_pwd=ssh_pwd)
