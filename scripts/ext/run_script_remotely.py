@@ -2,13 +2,16 @@ from _script import *
 
 TEMP_SHELL_SCRIPT_PATH = '/tmp/tmp_script.sh'
 USER_HOST = '{{SSH_USER}}@{{SSH_HOST}}'
+SSH_PORT = int('{{SSH_PORT}}') if '{{SSH_PORT}}' else None
 
 
-def run_bash_script_ssh(bash_script_file, user_host):
+def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None):
     if True:  # plink is preferred (better automation)
         args = f'plink -ssh {user_host} -m {bash_script_file}'
         if '{{SSH_PWD}}':
             args += ' -pw {{SSH_PWD}}'
+        if ssh_port:
+            args += ' -P %d' % ssh_port
         call2(args)
     else:
         print2('Upload shell script...')
@@ -43,4 +46,4 @@ if __name__ == '__main__':
     if '{{VAGRANT_ID}}':
         run_bash_script_vagrant(tmp_script_file, '{{VAGRANT_ID}}')
     else:
-        run_bash_script_ssh(tmp_script_file, USER_HOST)
+        run_bash_script_ssh(tmp_script_file, USER_HOST, SSH_PORT)

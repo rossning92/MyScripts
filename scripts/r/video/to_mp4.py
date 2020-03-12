@@ -2,8 +2,8 @@ from _shutil import *
 from _video import *
 
 
-quality = '{{_QUALITY}}' if '{{_QUALITY}}' else 0
-
+quality = int('{{_QUALITY}}') if '{{_QUALITY}}' else 0
+crop_rect = [int(x) for x in '{{_CROP_RECT}}'.split()] if '{{_CROP_RECT}}' else None
 files = get_files(cd=True)
 
 for f in files:
@@ -22,6 +22,13 @@ for f in files:
     # Scale (-2 indicates divisible by 2)
     if '{{_SCALE_H}}':
         extra_args += ['-vf', 'scale=-2:{{_SCALE_H}}']
+
+    # Crop video
+    if crop_rect:
+        extra_args += [
+            '-filter:v',
+            f'crop={crop_rect[2]}:{crop_rect[3]}:{crop_rect[0]}:{crop_rect[1]}'
+        ]
 
     # Cut video
     start_and_duration = None
