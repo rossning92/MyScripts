@@ -298,7 +298,7 @@ assoc = {
     '.vert': ['notepad++', 'vscode'],
     '.vmx': ['notepad++', 'vscode'],
     '.vob': ['VLC', 'mpv'],
-    '.wav': ['VLC', 'Audacity'],
+    '.wav': ['mpv', 'Audacity'],
     '.wax': ['VLC', 'mpv'],
     '.wdapk': ['notepad++', 'vscode'],
     '.webm': ['VLC', 'mpv'],
