@@ -96,7 +96,13 @@ final_audio_clip = CompositeAudioClip(audio_clips)
 
 final_clip = CompositeVideoClip(video_clips, size=(
     1920, 1080)).set_audio(final_audio_clip)
-final_clip.write_videofile('out.mp4', codec='h264_nvenc', threads=8)
+
+# final_clip.show(10.5, interactive=True)
+# final_clip.preview(fps=10, audio=False)
+
+final_clip.write_videofile('out.mp4', codec='h264_nvenc', threads=8, fps=10)
+
+
 
 sys.exit(0)
 
