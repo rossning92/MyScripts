@@ -25,6 +25,7 @@ PYTHON_MODULE_LIST = {
     'win32ui': 'pywin32',
     'websockets': 'websockets',
     'PyInquirer': 'PyInquirer',
+    'filelock': 'filelock',  # a platform independent file lock.
 }
 
 
