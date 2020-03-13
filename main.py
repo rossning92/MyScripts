@@ -68,7 +68,12 @@ def should_update(folder_list):
 
     for folder in folder_list:
         for f in get_scripts_recursive(folder):
-            mtime_list.append(os.stat(f).st_mtime)
+            mtime_list.append(os.path.getmtime(f))
+            script_config_file = get_script_config_file(f)
+
+            # Check if config file is updated
+            if script_config_file:
+                mtime_list.append(os.path.getmtime(script_config_file))
             file_list.append(f)
 
     max_mtime = max(mtime_list)
@@ -360,6 +365,7 @@ RunScript(name, path)
             self.update_gui(self.ui.inputBox.text())
 
     def init_script_items(self):
+        # TODO: only update modified scripts
         self.script_items = []
 
         for prefix, script_path in SCRIPT_PATH_LIST:
@@ -372,6 +378,9 @@ RunScript(name, path)
                     continue
 
                 mtime = os.path.getmtime(file)
+                script_config_file = get_script_config_file(file)
+                if script_config_file:
+                    mtime = max(mtime, os.path.getmtime(script_config_file))
 
                 name = _replace_prefix(file, script_path, prefix)
                 name, ext = os.path.splitext(name)  # Remove ext

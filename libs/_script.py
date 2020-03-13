@@ -628,6 +628,11 @@ def save_meta_file(data, meta_file):
               default_flow_style=False)
 
 
+def get_script_config_file(script_path):
+    script_meta_file = os.path.splitext(script_path)[0] + '.yaml'
+    return script_meta_file if os.path.exists(script_meta_file) else None
+
+
 def get_script_meta(script_path):
     script_meta_file = os.path.splitext(script_path)[0] + '.yaml'
     default_meta_file = os.path.join(

@@ -1,4 +1,11 @@
+autoRun: true
+background: false
+conda: null
+globalHotkey: null
 hotkey: null
 newWindow: false
+restartInstance: true
 runAsAdmin: false
-autoRun: true
+template: true
+venv: null
+wsl: false
