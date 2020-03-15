@@ -14,7 +14,7 @@ import locale
 
 # TODO: move to configuration file
 SCRIPT_PATH_LIST = [
-    ['', 'scripts'],
+    ['', os.path.abspath(os.path.dirname(__file__) + '/../scripts')],
     ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
 ]
 
