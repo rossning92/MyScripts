@@ -20,11 +20,6 @@ if 1:
 
 GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
 
-# TODO: move to configuration file
-SCRIPT_PATH_LIST = [
-    ['', 'scripts'],
-    ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
-]
 
 SCRIPT_REFRESH_INTERVAL = 2000
 
@@ -46,17 +41,6 @@ def get_user_data_folder():
     folder = os.path.join('data', platform.node())
     os.makedirs(folder, exist_ok=True)
     return folder
-
-
-def get_scripts_recursive(directory):
-    for root, dirs, files in os.walk(directory, topdown=True):
-        dirs[:] = [d for d in dirs if not d.startswith('_')]
-        for f in files:
-            ext = os.path.splitext(f)[1].lower()
-
-            # Filter by script extensions
-            if ext in SCRIPT_EXTENSIONS:
-                yield os.path.join(root, f)
 
 
 def should_update(folder_list):
@@ -92,12 +76,6 @@ def should_update(folder_list):
         return True
     else:
         return False
-
-
-def _replace_prefix(text, prefix, repl=''):
-    if text.startswith(prefix):
-        return repl + text[len(prefix):]
-    return text  # or whatever
 
 
 def insert_line_if_not_exist(line, file, after_line=None):
@@ -272,7 +250,9 @@ class MainWindow(QWidget):
         self.editVariableWidget = EditVariableWidget()
         self.ui.layout().addWidget(self.editVariableWidget)
 
-        self.init_script_items()
+        load_scripts(self.script_items, self.modified_time)
+        self.sort_scripts()
+
         self.on_inputBox_textChanged()
 
         # Process list ui
@@ -361,51 +341,9 @@ RunScript(name, path)
 
     def timerEvent(self, e):
         if should_update([x[1] for x in SCRIPT_PATH_LIST]):
-            self.init_script_items()
+            load_scripts(self.script_items, self.modified_time)
+            self.sort_scripts()
             self.update_gui(self.ui.inputBox.text())
-
-    def init_script_items(self):
-        # TODO: only update modified scripts
-        self.script_items = []
-
-        for prefix, script_path in SCRIPT_PATH_LIST:
-            files = get_scripts_recursive(script_path)
-            for file in files:
-                ext = os.path.splitext(file)[1].lower()
-
-                # File has been removed during iteration
-                if not os.path.exists(file):
-                    continue
-
-                mtime = os.path.getmtime(file)
-                script_config_file = get_script_config_file(file)
-                if script_config_file:
-                    mtime = max(mtime, os.path.getmtime(script_config_file))
-
-                name = _replace_prefix(file, script_path, prefix)
-                name, ext = os.path.splitext(name)  # Remove ext
-                name = name.replace('\\', '/')
-                name = _replace_prefix(name, '/', '')
-                if ext == '.link':
-                    name += ' [lnk]'
-
-                script = ScriptItem(file, name=name)
-
-                if file not in self.modified_time or mtime > self.modified_time[file]:
-                    # Check if auto run script
-                    if script.meta['autoRun']:
-                        print2('AUTORUN: ', end='', color='cyan')
-                        print(file)
-                        script.execute(new_window=False)
-
-                # Hide files starting with '_'
-                base_name = os.path.basename(file)
-                if not base_name.startswith('_'):
-                    self.script_items.append(script)
-
-                self.modified_time[file] = mtime
-
-        self.sort_scripts()
 
     def on_inputBox_textChanged(self, user_input=None):
         self.update_gui(user_input)

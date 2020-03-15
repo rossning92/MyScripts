@@ -12,6 +12,12 @@ import shlex
 import glob
 import locale
 
+# TODO: move to configuration file
+SCRIPT_PATH_LIST = [
+    ['', 'scripts'],
+    ['gdrive', expandvars(r"%USERPROFILE%\Google Drive\Scripts")]
+]
+
 SCRIPT_EXTENSIONS = {
     '.sh', '.js', '.link',
     '.py', '.ipynb',  # Python
@@ -701,3 +707,62 @@ def update_script_acesss_time(script):
 
     with open(config_file, 'w') as f:
         json.dump(data, f)
+
+
+def _replace_prefix(text, prefix, repl=''):
+    if text.startswith(prefix):
+        return repl + text[len(prefix):]
+    return text  # or whatever
+
+
+def get_scripts_recursive(directory):
+    for root, dirs, files in os.walk(directory, topdown=True):
+        dirs[:] = [d for d in dirs if not d.startswith('_')]
+        for f in files:
+            ext = os.path.splitext(f)[1].lower()
+
+            # Filter by script extensions
+            if ext in SCRIPT_EXTENSIONS:
+                yield os.path.join(root, f)
+
+
+def load_scripts(script_list, modified_time):
+    # TODO: only update modified scripts
+    script_list.clear()
+
+    for prefix, script_path in SCRIPT_PATH_LIST:
+        files = get_scripts_recursive(script_path)
+        for file in files:
+            ext = os.path.splitext(file)[1].lower()
+
+            # File has been removed during iteration
+            if not os.path.exists(file):
+                continue
+
+            mtime = os.path.getmtime(file)
+            script_config_file = get_script_config_file(file)
+            if script_config_file:
+                mtime = max(mtime, os.path.getmtime(script_config_file))
+
+            name = _replace_prefix(file, script_path, prefix)
+            name, ext = os.path.splitext(name)  # Remove ext
+            name = name.replace('\\', '/')
+            name = _replace_prefix(name, '/', '')
+            if ext == '.link':
+                name += ' [lnk]'
+
+            script = ScriptItem(file, name=name)
+
+            if file not in modified_time or mtime > modified_time[file]:
+                # Check if auto run script
+                if script.meta['autoRun']:
+                    print2('AUTORUN: ', end='', color='cyan')
+                    print(file)
+                    script.execute(new_window=False)
+
+            # Hide files starting with '_'
+            base_name = os.path.basename(file)
+            if not base_name.startswith('_'):
+                script_list.append(script)
+
+            modified_time[file] = mtime

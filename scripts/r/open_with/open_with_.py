@@ -6,7 +6,6 @@ import _appmanager
 from _shutil import run_elevated
 
 assoc = {
-    '.0-win-64bit-build1': ['PathAdd'],
     '.3g2': ['VLC', 'mpv'],
     '.3gp': ['VLC', 'mpv'],
     '.3gp2': ['VLC', 'mpv'],
