@@ -326,17 +326,14 @@ assoc = {
 }
 
 
-def main():
-    file_path = sys.argv[1]
-    program_id = int(sys.argv[2])
-
-    ext = os.path.splitext(file_path)[1].lower()
+def open_with(file, program_id=0):
+    ext = os.path.splitext(file)[1].lower()
 
     # HACK: hijack extension handling
     if ext == '.vhd':
         run_elevated([
             'powershell', '-Command',
-            "Mount-VHD -Path '%s'" % file_path
+            "Mount-VHD -Path '%s'" % file
         ])
         return
 
@@ -344,13 +341,16 @@ def main():
         raise Exception('%s is not defined' % ext)
 
     program = assoc[ext][program_id]
-    args = [_appmanager.get_executable(program), file_path]
-    subprocess.Popen(args)
+    args = [_appmanager.get_executable(program), file]
+    subprocess.Popen(args, close_fds=True)
 
 
-try:
-    main()
-except Exception as e:
-    traceback.print_exc(file=sys.stdout)
-    print(e)
-    input()
+if __name__ == '__main__':
+    try:
+        file = sys.argv[1]
+        program_id = int(sys.argv[2])
+        open_with(file, program_id)
+    except Exception as e:
+        traceback.print_exc(file=sys.stdout)
+        print(e)
+        input()
