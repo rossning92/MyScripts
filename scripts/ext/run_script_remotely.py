@@ -35,6 +35,7 @@ if __name__ == '__main__':
         exit(0)
 
     script = ScriptItem(script_path)
+    update_script_acesss_time(script)
     tmp_script_file = write_temp_file(script.render(), '.sh')
 
     if script.ext != '.sh':

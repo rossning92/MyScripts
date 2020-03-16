@@ -701,7 +701,7 @@ def is_instance_running():
 def update_script_acesss_time(script):
     data_path = os.path.abspath(os.path.dirname(
         __file__) + '/../data/' + platform.node())
-    config_file = os.path.join(data_path, '/script_access_time.json')
+    config_file = os.path.join(data_path, 'script_access_time.json')
     with open(config_file, 'r') as f:
         data = json.load(f)
 
