@@ -1,6 +1,7 @@
 import subprocess
 import os
 import shlex
+import sys
 
 
 def generate_video_matrix(vid_files, titles=None, out_file=None, columns=None, fps=None, crop_rect=None):
@@ -110,8 +111,26 @@ def make_video(images, fps=30, out_file='output.mp4', format='bgr24'):
     ps.stdin.close()
 
 
+def _get_media_duration(f):
+    dura = subprocess.check_output([
+        'ffprobe',
+        '-v', 'error',
+        '-show_entries', 'format=duration',
+        '-of', 'default=noprint_wrappers=1:nokey=1',
+        f
+    ], universal_newlines=True)
+    return float(dura)
+
+
 def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True, extra_args=None,
-           quality=100, no_output=False, crf=22, preset='slow'):
+           quality=100, no_output=False, crf=None, preset='slow', bitrate=None, max_size_mb=None):
+    if crf and crf < 19:
+        raise Exception(
+            'ERROR: 19 is visually identical to 0. Do not go lower.')
+
+    if max_size_mb:
+        bitrate = '%.0fk' % (max_size_mb * 8192 / _get_media_duration(in_file))
+
     args = ['ffmpeg',
             '-i', in_file]
 
@@ -128,17 +147,47 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
 
     if reencode:
         if nvenc:
-            args += ['-c:v', 'h264_nvenc', '-preset', preset]
-            if quality > 90:
-                args += ['-qp', '19']
+            args += ['-c:v', 'h264_nvenc']
+            if not bitrate and crf:
+                args += ['-rc:v', 'vbr_hq', '-cq:v', '%d' % crf]
         else:
-            args += ['-c:v', 'libx264', '-preset', 'slow', '-crf', '%d' % crf]
+            args += ['-c:v', 'libx264']
+            if not bitrate and crf:
+                args += ['-crf', '%d' % crf]
 
-        args += ['-c:a', 'aac', '-b:a', '128k']  # Audio
+        args += ['-preset', preset]
 
         args += ['-pix_fmt', 'yuv420p']  # Wide used pixel format
 
+        if bitrate:
+            args += [
+                '-b:v', bitrate,
+                '-maxrate', bitrate,
+                '-bufsize', bitrate,
+            ]
+
+            if 1:
+                subprocess.call(args + [
+                    '-pass', '1',
+                    '-an',
+                    '-f', 'mp4',
+                    'nul' if sys.platform == 'win32' else '/dev/null', '-y'
+                ])  # first pass
+
+                args += ['-pass', '2']
+
+            # args += [
+            #     '-maxrate', bitrate,
+            #     '-bufsize', bitrate,
+            # ]
+
+        args += [
+            '-c:a', 'aac',
+            '-b:a', '128k'
+        ]  # Audio
+
     args += [out_file, '-y']  # Override file
+
     print('> ' + ' '.join(args))
     subprocess.check_call(args)
 

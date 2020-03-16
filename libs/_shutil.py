@@ -753,11 +753,15 @@ def get_ip_addr():
     return []
 
 
-def convert_to_unix_path(path):
+def convert_to_unix_path(path, wsl=False):
     patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
     if re.match(patt, path):
-        path = re.sub(r'^([a-zA-Z]):', lambda x: ('/' +
-                                                  x.group(0)[0].lower()), path)
+        if wsl:
+            path = re.sub(r'^([a-zA-Z]):',
+                          lambda x: ('/mnt/' + x.group(0)[0].lower()), path)
+        else:
+            path = re.sub(r'^([a-zA-Z]):',
+                          lambda x: ('/' + x.group(0)[0].lower()), path)
         path = path.replace('\\', '/')
     return path
 

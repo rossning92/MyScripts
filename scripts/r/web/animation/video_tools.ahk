@@ -2,7 +2,7 @@
 
 is_recording := False
 
-PROJECT_DIR = C:\Data\123
+PROJECT_DIR = C:\Data\ep14
 AUDIO_RECORDER_TITLE = r/audio/recorder
 
 SetWorkingDir, %PROJECT_DIR%
@@ -55,6 +55,7 @@ return
 
 ; Export
 $F12::
+    Send ^s
     Run, cmd /c set "PYTHONPATH=%A_ScriptDir%\..\..\..;%A_ScriptDir%\..\..\..\..\libs" & python "%A_ScriptDir%\_export_final_audio.py" || pause
 return
 

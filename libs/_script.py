@@ -259,10 +259,12 @@ class ScriptItem:
             for k, v in variables.items()
         }
 
-        # HACK: Convert to unix path
-        if self.ext == '.sh':
-            variables = {k: convert_to_unix_path(
-                v) for k, v in variables.items()}
+        # Convert to unix path if on Windows
+        if sys.platform == 'win32' and self.ext == '.sh':
+            variables = {
+                k: convert_to_unix_path(v, wsl=self.meta['wsl'])
+                for k, v in variables.items()
+            }
 
         return variables
 

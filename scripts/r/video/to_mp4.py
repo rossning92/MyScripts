@@ -2,8 +2,8 @@ from _shutil import *
 from _video import *
 
 
-quality = int('{{_QUALITY}}') if '{{_QUALITY}}' else 0
-crop_rect = [int(x) for x in '{{_CROP_RECT}}'.split()] if '{{_CROP_RECT}}' else None
+crop_rect = [int(x)
+             for x in '{{_CROP_RECT}}'.split()] if '{{_CROP_RECT}}' else None
 files = get_files(cd=True)
 
 for f in files:
@@ -38,7 +38,11 @@ for f in files:
     # Pixel format
     extra_args += ['-pix_fmt', 'yuv420p']
 
-    ffmpeg(f, out_file=out_file, extra_args=extra_args,
-           reencode=True, quality=quality,
-           start_and_duration=start_and_duration,
-           nvenc=bool('{{_HW_ENC}}'))
+    ffmpeg(
+        f, out_file=out_file, extra_args=extra_args,
+        reencode=True, 
+        crf=int('{{_CRF}}') if '{{_CRF}}' else None,
+        start_and_duration=start_and_duration,
+        nvenc=bool('{{_HW_ENC}}'),
+        max_size_mb=float('{{_MAX_SIZE_MB}}') if '{{_MAX_SIZE_MB}}' else None,
+    )
