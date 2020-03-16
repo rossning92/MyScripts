@@ -22,5 +22,5 @@ def setup_cmake(version='3.10.2', install=False):
         CMAKE_PATH = r'C:\Program Files\CMake\bin'
         if os.path.exists(CMAKE_PATH):
             print('CMake Path: %s' % CMAKE_PATH)
-            prepend_to_path(CMAKE_PATH + os.path.sep + 'bin')
+            prepend_to_path(CMAKE_PATH)
             return

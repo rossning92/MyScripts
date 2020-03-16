@@ -31,7 +31,9 @@ chdir('build')
 
 # Reference: https://github.com/LunarG/VulkanSamples/blob/master/BUILD.md
 if not exists('glslang'):
-    call2('python ../scripts/update_deps.py --arch x64')  # download and build dependencies
+    # download and build dependencies
+    call2('python ../scripts/update_deps.py --arch x64')
+
 
 print2('# Create the Visual Studio Project Files')
 call2('cmake -C helper.cmake -A x64 ..')
