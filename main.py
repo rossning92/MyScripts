@@ -227,17 +227,11 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Init script access time
-        try:
-            with open(get_user_data_folder() + '/script_access_time.json', 'r') as f:
-                self.script_access_time = json.load(f)
-        except FileNotFoundError:
-            self.script_access_time = {}
-
         self.script_items = []
         self.matched_items = []
         self.modified_time = {}
         self.script_by_path = {}
+        self.mtime_script_access_time = 0
 
         self.ui = uic.loadUi('MainDialog.ui', self)
 
@@ -342,7 +336,8 @@ RunScript(name, path)
     def timerEvent(self, e):
         if should_update([x[1] for x in SCRIPT_PATH_LIST]):
             load_scripts(self.script_items, self.modified_time)
-            self.sort_scripts()
+        
+        if self.sort_scripts():
             self.update_gui(self.ui.inputBox.text())
 
     def on_inputBox_textChanged(self, user_input=None):
@@ -406,9 +401,7 @@ RunScript(name, path)
         self.execute_script(script, control_down=control_down)
 
         # Update script access time
-        self.script_access_time[script.script_path] = time.time()
-        with open(get_user_data_folder() + '/script_access_time.json', 'w') as f:
-            json.dump(self.script_access_time, f, indent=4)
+        update_script_acesss_time(script)
 
         # sort scripts
         self.sort_scripts()
@@ -423,14 +416,22 @@ RunScript(name, path)
             ctypes.windll.kernel32.SetConsoleTitleA(b'MyScripts - Console')
 
     def sort_scripts(self):
-        def key(script):
-            if script.script_path in self.script_access_time:
-                return max(self.script_access_time[script.script_path],
-                           os.path.getmtime(script.script_path))
-            else:
-                return os.path.getmtime(script.script_path)
+        script_access_time, mtime = get_all_script_access_time()
+        if mtime > self.mtime_script_access_time:
+            self.mtime_script_access_time = mtime
 
-        self.script_items = sorted(self.script_items, key=key, reverse=True)
+            def key(script):
+                if script.script_path in script_access_time:
+                    return max(script_access_time[script.script_path],
+                            os.path.getmtime(script.script_path))
+                else:
+                    return os.path.getmtime(script.script_path)
+
+            self.script_items = sorted(self.script_items, key=key, reverse=True)
+
+            return True
+        else:
+            return False
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:

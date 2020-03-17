@@ -698,10 +698,15 @@ def is_instance_running():
     return False
 
 
-def update_script_acesss_time(script):
+def _get_script_access_time_config():
     data_path = os.path.abspath(os.path.dirname(
         __file__) + '/../data/' + platform.node())
     config_file = os.path.join(data_path, 'script_access_time.json')
+    return config_file
+
+
+def update_script_acesss_time(script):
+    config_file = _get_script_access_time_config()
     with open(config_file, 'r') as f:
         data = json.load(f)
 
@@ -709,6 +714,23 @@ def update_script_acesss_time(script):
 
     with open(config_file, 'w') as f:
         json.dump(data, f)
+
+
+def get_all_script_access_time():
+    self = get_all_script_access_time
+    
+    if not hasattr(self, "mtime"):
+        self.mtime = 0
+
+    config_file = _get_script_access_time_config()
+    mtime = os.path.getmtime(config_file)
+    if mtime > self.mtime:
+        with open(config_file, 'r') as f:
+            self.cached_data = json.load(f)
+
+        self.mtime = mtime
+
+    return self.cached_data, self.mtime
 
 
 def _replace_prefix(text, prefix, repl=''):
