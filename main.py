@@ -334,10 +334,19 @@ RunScript(name, path)
             add_keyboard_hooks(keyboard_hooks)
 
     def timerEvent(self, e):
+        should_sort_script = False
+
         if should_update([x[1] for x in SCRIPT_PATH_LIST]):
             load_scripts(self.script_items, self.modified_time)
-        
-        if self.sort_scripts():
+            should_sort_script = True
+
+        script_access_time, mtime = get_all_script_access_time()
+        if mtime > self.mtime_script_access_time:
+            self.mtime_script_access_time = mtime
+            should_sort_script = True
+
+        if should_sort_script:
+            self.sort_scripts(script_access_time=script_access_time)
             self.update_gui(self.ui.inputBox.text())
 
     def on_inputBox_textChanged(self, user_input=None):
@@ -415,23 +424,15 @@ RunScript(name, path)
         if platform.system() == 'Windows':
             ctypes.windll.kernel32.SetConsoleTitleA(b'MyScripts - Console')
 
-    def sort_scripts(self):
-        script_access_time, mtime = get_all_script_access_time()
-        if mtime > self.mtime_script_access_time:
-            self.mtime_script_access_time = mtime
+    def sort_scripts(self, script_access_time={}):
+        def key(script):
+            if script.script_path in script_access_time:
+                return max(script_access_time[script.script_path],
+                           os.path.getmtime(script.script_path))
+            else:
+                return os.path.getmtime(script.script_path)
 
-            def key(script):
-                if script.script_path in script_access_time:
-                    return max(script_access_time[script.script_path],
-                            os.path.getmtime(script.script_path))
-                else:
-                    return os.path.getmtime(script.script_path)
-
-            self.script_items = sorted(self.script_items, key=key, reverse=True)
-
-            return True
-        else:
-            return False
+        self.script_items = sorted(self.script_items, key=key, reverse=True)
 
     def eventFilter(self, obj, e):
         if e.type() == QEvent.KeyPress:

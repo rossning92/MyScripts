@@ -4,22 +4,27 @@ TEMP_SHELL_SCRIPT_PATH = '/tmp/tmp_script.sh'
 
 
 def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
-    if True:  # plink is preferred (better automation)
+    if 1:  # plink is preferred (better automation)
         args = f'plink -ssh {user_host} -m {bash_script_file}'
         if ssh_pwd:
             args += ' -pw %s' % ssh_pwd
         if ssh_port:
             args += ' -P %d' % ssh_port
         call2(args)
+
     else:
-        print2('Upload shell script...')
+        # print2('Upload shell script...')
         call2(['scp',
                bash_script_file,  # source
                user_host + ':' + TEMP_SHELL_SCRIPT_PATH])  # dest
 
         print2(f'Run shell script on {user_host}...')
-        call2(['ssh', user_host,
-               'bash ' + TEMP_SHELL_SCRIPT_PATH])
+        args = ['ssh', user_host]
+        if ssh_port:
+            args += ['-p', '%d' % ssh_port]
+
+        args += [TEMP_SHELL_SCRIPT_PATH]
+        call2(args)
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
@@ -49,6 +54,6 @@ if __name__ == '__main__':
         ssh_port = int('{{SSH_PORT}}') if '{{SSH_PORT}}' else None
         ssh_pwd = r'{{SSH_PWD}}' if r'{{SSH_PWD}}' else None
         run_bash_script_ssh(tmp_script_file,
-                            ssh_host, 
+                            ssh_host,
                             ssh_port,
                             ssh_pwd=ssh_pwd)
