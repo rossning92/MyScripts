@@ -305,7 +305,7 @@ def _prompt(options, message=None):
 
     print('%s (indices, sep by space)> ' % message, flush=True, end='')
     selections = input()
-    selections = [int(x) for x in selections.split()]
+    selections = [int(x)-1 for x in selections.split()]
     return selections
 
 
@@ -315,5 +315,11 @@ def prompt_checkbox(options, message=None):
 
 
 def prompt_list(options, message=None):
-    return _prompt(options=options,
-                   message=message)
+    selected = _prompt(options=options,
+                       message=message)
+    if len(selected) == 1:
+        return selected[0]
+    elif len(selected) == 0:
+        return None
+    else:
+        raise Exception('Please only select 1 item.')
