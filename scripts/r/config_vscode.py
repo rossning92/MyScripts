@@ -65,6 +65,9 @@ if not '{{SKIP_EXTENSIONS}}':
 
         # JS
         'esbenp.prettier-vscode',
+
+        # Shell script
+        'foxundermoon.shell-format',
     ]
 
     prepend_to_path(r'C:\Program Files\Microsoft VS Code\bin')
