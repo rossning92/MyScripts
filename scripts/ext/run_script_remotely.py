@@ -10,7 +10,7 @@ def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
             args += ' -pw %s' % ssh_pwd
         if ssh_port:
             args += ' -P %d' % ssh_port
-        call2(args)
+        call_echo(args)
 
     else:
         # print2('Upload shell script...')
