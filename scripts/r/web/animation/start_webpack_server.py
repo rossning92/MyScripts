@@ -5,7 +5,7 @@ sample_project_path = os.path.abspath('./_sample_project')
 setup_nodejs()
 project_path = r'{{ANIMATION_PROJECT_PATH}}' if r'{{ANIMATION_PROJECT_PATH}}' else None
 
-cd('_threejs')
+cd('_framework')
 if not os.path.exists('node_modules'):
     call_echo('yarn install')
     call_echo('yarn link')

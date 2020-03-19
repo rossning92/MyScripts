@@ -7,7 +7,9 @@ const config = require("../webpack.config.js")({
 });
 
 const compiler = webpack(config);
-const server = new WebpackDevServer(compiler);
+const server = new WebpackDevServer(compiler, {
+  open: true
+});
 
 server.listen(8080, "localhost", () => {
   console.log("dev server listening on port 8080");
