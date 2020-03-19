@@ -1477,6 +1477,9 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
 
         let parentGroup = new THREE.Group();
 
+        const unnamedGroup = new THREE.Group();
+        parentGroup.add(unnamedGroup);
+
         for (let i = 0; i < paths.length; i++) {
           let path = paths[i];
 
@@ -1493,8 +1496,8 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
           let mesh = new THREE.Mesh(geometry, material);
 
           const name = _getNodeName(path.userData.node);
+
           if (name) {
-            // console.log(name)
             let group = parentGroup.children.filter(x => x.name == name)[0];
             if (!group) {
               group = new THREE.Group();
@@ -1504,7 +1507,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
 
             group.add(mesh);
           } else {
-            parentGroup.add(mesh);
+            unnamedGroup.add(mesh);
           }
         }
 
@@ -1660,7 +1663,7 @@ function newScene(initFunction) {
 function createArrow({
   from = new THREE.Vector3(0, 0, 0),
   to = new THREE.Vector3(0, 1, 0),
-  lineWidth = 0.25,
+  lineWidth = 0.1,
   arrowEnd = true,
   arrowStart = false,
   color = 0xffff00
@@ -1692,9 +1695,18 @@ function createArrow({
   }
 
   {
-    var geometry = new THREE.PlaneGeometry(lineWidth, halfLength * 2);
+    let length = halfLength * 2;
+    let offset = halfLength;
+
+    if (arrowEnd) {
+      length -= lineWidth * 4;
+      offset -= lineWidth * 4 * 0.5;
+    }
+
+    var geometry = new THREE.PlaneGeometry(lineWidth, length);
 
     var plane = new THREE.Mesh(geometry, material);
+    plane.translateY(offset);
 
     group.add(plane);
   }
@@ -1713,9 +1725,9 @@ function createArrow({
 
     const geometry = new THREE.Geometry();
     geometry.vertices = [
-      new THREE.Vector3(-lineWidth, 0, 0),
-      new THREE.Vector3(lineWidth, 0, 0),
-      new THREE.Vector3(0, lineWidth * 2, 0)
+      new THREE.Vector3(-lineWidth * 2, -lineWidth * 4, 0),
+      new THREE.Vector3(lineWidth * 2, -lineWidth * 4, 0),
+      new THREE.Vector3(0, 0, 0)
     ];
     geometry.faces.push(new THREE.Face3(0, 1, 2));
 
@@ -1723,15 +1735,14 @@ function createArrow({
     group.add(mesh);
 
     if (i == 0) {
-      mesh.translateY(-halfLength);
       mesh.rotation.z = Math.PI;
     } else {
-      mesh.translateY(halfLength);
+      mesh.translateY(halfLength * 2);
     }
   }
 
   group.setRotationFromQuaternion(quaternion);
-  group.position.set(center.x, center.y, center.z);
+  group.position.set(from.x, from.y, from.z);
   scene.add(group);
   return group;
 }
@@ -1863,19 +1874,22 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
 async function addAsync(
   obj,
   {
-    x = 0,
-    y = 0,
-    z = 0,
-    rotX = 0,
-    rotY = 0,
-    rotZ = 0,
+    x = null,
+    y = null,
+    z = null,
+    rotX = null,
+    rotY = null,
+    rotZ = null,
     position = null,
     aniEnter = "fade",
     aniExit = null,
     animation = null,
     color = 0xffffff,
     opacity = 1.0,
-    scale = 1,
+    sx = null,
+    sy = null,
+    sz = null,
+    scale = null,
     vertices = [],
     wireframe = false,
     outline = false,
@@ -1976,13 +1990,33 @@ async function addAsync(
     });
   }
 
-  mesh.scale.multiplyScalar(scale);
+  if (scale != null) {
+    mesh.scale.multiplyScalar(scale);
+  } else {
+    if (sx != null) {
+      mesh.scale.x *= sx;
+    }
+    if (sy != null) {
+      mesh.scale.y *= sy;
+    }
+    if (sz != null) {
+      mesh.scale.z *= sz;
+    }
+  }
+
+  // Position
   if (position != null) {
     mesh.position.set(position.x, position.y, position.z);
   } else {
-    mesh.position.set(x, y, z);
+    if (x != null) mesh.position.x = x;
+    if (y != null) mesh.position.y = y;
+    if (z != null) mesh.position.z = z;
   }
-  mesh.rotation.set(rotX, rotY, rotZ);
+
+  // Rotation
+  if (rotX != null) mesh.rotation.x = rotX;
+  if (rotY != null) mesh.rotation.y = rotY;
+  if (rotZ != null) mesh.rotation.z = rotZ;
 
   addAnime(mesh, { aniEnter, aniExit, aniPos, animation });
 
