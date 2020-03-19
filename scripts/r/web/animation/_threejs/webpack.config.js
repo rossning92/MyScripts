@@ -12,7 +12,7 @@ const plugins = [
 module.exports = env => {
   // The folder that contains source code and resource files (images, videos,
   // etc.)
-  let entryFolder = path.join(__dirname, "pages");
+  let entryFolder = path.resolve(__dirname, "pages");
   if (env && env.entryFolder) {
     entryFolder = env.entryFolder;
   }
@@ -33,7 +33,7 @@ module.exports = env => {
     plugins.push(
       new HtmlWebpackPlugin({
         filename: name + ".html",
-        template: "index.html",
+        template: path.resolve(__dirname, "index.html"),
         chunks: [name]
       })
     );

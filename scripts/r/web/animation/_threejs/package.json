@@ -1,6 +1,7 @@
 {
-  "name": "anime",
+  "name": "yo",
   "version": "1.0.0",
+  "main": "src/yo.js",
   "license": "MIT",
   "dependencies": {
     "ccapture.js": "^1.1.0",
