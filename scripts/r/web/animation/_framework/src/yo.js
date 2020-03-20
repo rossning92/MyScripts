@@ -1788,68 +1788,96 @@ async function loadTexture(url) {
 
 function addAnime(
   object3d,
-  { aniEnter = null, aniExit = null, aniPos = "+=0", animation = null } = {}
+  { aniPos = "+=0", aniHold = 1, animation = "fadeIn" } = {}
 ) {
   const tl = gsap.timeline();
 
-  if (aniEnter && aniEnter.includes("fade")) {
-    tl.add(addFadeIn(object3d));
-  }
-  if (aniEnter && aniEnter.includes("jump")) {
-    tl.add(addJumpIn(object3d));
-  }
-  if (aniEnter && aniEnter.includes("flip")) {
-    tl.from(object3d.rotation, { y: Math.PI * 4 }, "<");
-  }
-  if (aniEnter && aniEnter.includes("grow")) {
-    tl.from(
-      object3d.scale,
-      { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out" },
-      "<"
-    );
-  }
-  if (aniEnter && aniEnter.includes("typing")) {
-    object3d.children.forEach(x => {
-      tl.fromTo(
-        x,
-        {
-          visible: false
-        },
-        {
-          visible: true,
-          ease: "steps(1)",
-          duration: 0.1
-        }
-      );
-    });
-  }
-  if (aniEnter && aniEnter.includes("fastType")) {
-    object3d.children.forEach(x => {
-      tl.fromTo(
-        x,
-        {
-          visible: false
-        },
-        {
-          visible: true,
-          ease: "steps(1)",
-          duration: 0.02
-        }
-      );
-    });
-    tl.set({}, {}, ">+0.5");
-  }
+  if (animation) {
+    const animationList = animation.split("|");
 
-  if (animation && animation == "spin") {
-    tl.to(object3d.rotation, {
-      y: object3d.rotation.y + Math.PI * 2 * 4,
-      duration: 2,
-      ease: "none"
+    // Enter animation
+    animationList.forEach(animation => {
+      if (animation == "fadeIn") {
+        tl.add(addFadeIn(object3d));
+      } else if (animation == "jumpIn") {
+        tl.add(addJumpIn(object3d));
+      } else if (animation == "spinIn") {
+        tl.from(object3d.rotation, { y: Math.PI * 4 }, "<");
+      } else if (animation == "grow") {
+        tl.from(
+          object3d.scale,
+          { x: 0.01, y: 0.01, z: 0.01, ease: "expo.out" },
+          "<"
+        );
+      } else if (animation == "grow2") {
+        tl.from(
+          object3d.scale,
+          { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out" },
+          "<"
+        );
+      } else if (animation == "type") {
+        object3d.children.forEach(x => {
+          tl.fromTo(
+            x,
+            {
+              visible: false
+            },
+            {
+              visible: true,
+              ease: "steps(1)",
+              duration: 0.1
+            },
+            ">"
+          );
+        });
+      } else if (animation == "fastType") {
+        object3d.children.forEach(x => {
+          tl.fromTo(
+            x,
+            {
+              visible: false
+            },
+            {
+              visible: true,
+              ease: "steps(1)",
+              duration: 0.02
+            },
+            ">"
+          );
+        });
+        tl.set({}, {}, ">+0.5");
+      }
     });
-  }
 
-  if (aniExit == "fade") {
-    tl.add(addFadeIn(object3d, { ease: "power1.in" }).reverse(), ">1");
+    // Animation
+    animationList.forEach(animation => {
+      if (animation == "rotation") {
+        tl.to(
+          object3d.rotation,
+          {
+            y: object3d.rotation.y + Math.PI * 2 * 4,
+            duration: 2,
+            ease: "none"
+          },
+          ">"
+        );
+      }
+    });
+
+    // Exit animation
+    const tlExitAnimation = gsap.timeline();
+    animationList.forEach(animation => {
+      if (animation == "fadeOut") {
+        tlExitAnimation.add(
+          addFadeIn(object3d, { ease: "power1.in" }).reverse(),
+          "<"
+        );
+      }
+    });
+
+    if (tlExitAnimation.duration() > 0) {
+      tl.add(tlExitAnimation, ">" + aniHold.toString());
+    }
   }
 
   if (tl.duration() > 0) {
@@ -1881,9 +1909,7 @@ async function addAsync(
     rotY = null,
     rotZ = null,
     position = null,
-    aniEnter = "fade",
-    aniExit = null,
-    animation = null,
+    animation = "fadeIn",
     color = 0xffffff,
     opacity = 1.0,
     sx = null,
@@ -2018,7 +2044,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  addAnime(mesh, { aniEnter, aniExit, aniPos, animation });
+  addAnime(mesh, { aniPos, animation });
 
   if (parent != null) {
     parent.add(mesh);
