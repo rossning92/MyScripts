@@ -32,6 +32,10 @@ const MOTION_BLUR_SAMPLES = 1;
 
 var captureStatus;
 var globalTimeline = gsap.timeline({ onComplete: stopCapture });
+
+const mainTimeline = gsap.timeline();
+globalTimeline.add(mainTimeline, "0");
+
 let stats;
 let capturer = null;
 let renderer;
@@ -1222,7 +1226,7 @@ function addFlash(object3d, { repeat = 5, position = "+=0" } = {}) {
     tl.add(addFadeIn(object3d));
     tl.add(addFadeIn(object3d).reverse());
   }
-  globalTimeline.add(tl, position);
+  mainTimeline.add(tl, position);
   return tl;
 }
 
@@ -1881,7 +1885,7 @@ function addAnime(
   }
 
   if (tl.duration() > 0) {
-    globalTimeline.add(tl, aniPos);
+    mainTimeline.add(tl, aniPos);
   }
 }
 
@@ -2131,7 +2135,7 @@ function getQueryString(url) {
 }
 
 function pause(t) {
-  globalTimeline.set({}, {}, "+=" + t.toString());
+  mainTimeline.set({}, {}, "+=" + t.toString());
 }
 
 var seedrandom = require("seedrandom");
@@ -2166,6 +2170,23 @@ function getGridLayoutPositions({
     }
   }
   return results;
+}
+
+function addSpinningAnimation(object3d, { speed = 1, duration = 10 } = {}) {
+  const tl = gsap.timeline();
+  tl.fromTo(
+    object3d.rotation,
+    {
+      z: 0
+    },
+    {
+      z: -2 * Math.PI * speed,
+      duration: 10,
+      ease: "none"
+    },
+    0
+  );
+  globalTimeline.add(tl, "0");
 }
 
 export default {
@@ -2210,7 +2231,8 @@ export default {
   createExplosionAnimation,
   setSeed,
   getGridLayoutPositions,
-  random
+  random,
+  addSpinningAnimation
 };
 
 export { THREE, gsap };
