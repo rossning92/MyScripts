@@ -667,28 +667,6 @@ function createRingAnimation() {
 
 // createRingAnimation();
 
-function addAnimation(object3d) {
-  gsap.from(object3d.position, {
-    x: 0,
-    duration: 0.5,
-    delay: 0.5,
-    ease: "power3.out"
-  });
-
-  let material;
-  if (object3d.children.length > 0) {
-    material = object3d.children[0].material;
-  } else {
-    material = object3d.material;
-  }
-
-  gsap.fromTo(
-    material,
-    { opacity: 0 },
-    { opacity: 1, duration: 1, ease: "power.out", delay: 0.5 }
-  );
-}
-
 function createCanvas({ width = 64, height = 64 } = {}) {
   let canvas = document.createElement("canvas");
   canvas.width = width;
@@ -1775,7 +1753,7 @@ function addText(
   });
   mesh.position.set(x, y, z);
 
-  addAnime(mesh, { aniEnter, aniExit });
+  addAnimation(mesh, { aniEnter, aniExit });
 
   scene.add(mesh);
 
@@ -1790,9 +1768,10 @@ async function loadTexture(url) {
   });
 }
 
-function addAnime(
+function addAnimation(
   object3d,
-  { aniPos = "+=0", aniHold = 1, animation = "fadeIn" } = {}
+  animation = "fadeIn",
+  { aniPos = "+=0", aniHold = 1 } = {}
 ) {
   const tl = gsap.timeline();
 
@@ -1934,7 +1913,7 @@ async function addAsync(
     fontSize = 1.0,
     arrowFrom = new THREE.Vector3(0, 0, 0),
     arrowTo = new THREE.Vector3(0, 1, 0),
-    lineWidth = 0.1,
+    lineWidth = 0.1
   } = {}
 ) {
   let material;
@@ -2050,7 +2029,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  addAnime(mesh, { aniPos, animation });
+  addAnimation(mesh, animation, { aniPos });
 
   if (parent != null) {
     parent.add(mesh);
@@ -2227,14 +2206,15 @@ export default {
   getBoundingBox,
   addFlash,
   getQueryString,
-  addAnime: addAnime,
+  addAnimation,
   createTriangleVertices,
   pause,
   createExplosionAnimation,
   setSeed,
   getGridLayoutPositions,
   random,
-  addSpinningAnimation
+  addSpinningAnimation,
+  mainTimeline,
 };
 
 export { THREE, gsap };
