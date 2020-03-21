@@ -104,18 +104,21 @@ function initCapture() {
   });
 }
 
-function startCapture() {
+function startCapture({ resetTiming = true } = {}) {
   if (gridHelper != null) {
     gridHelper.visible = false;
   }
 
-  start = null;
-  gsap.ticker.remove(gsap.updateRoot);
-  gsap.updateRoot(0);
+  if (resetTiming) {
+    // Reset gsap
+    gsap.ticker.remove(gsap.updateRoot);
+
+    lastTs = null;
+  }
 
   initCapture();
   capturer.start();
-  globalTimeline.seek(0);
+
   captureStatus.innerText = "capturing";
 }
 
@@ -260,17 +263,32 @@ function setupScene(width, height) {
   }
 }
 
-var start;
-function animate(time) {
-  if (!start) {
-    start = time;
-  }
-  let timestamp = time - start;
+var lastTs = null;
+var timeElapsed = 0;
 
-  gsap.updateRoot(timestamp / 1000);
+function animate(
+  time /* `time` parameter is buggy in `ccapture`. Do not use! */
+) {
+  const nowInSecs = Date.now() / 1000;
 
-  /* Loop this function */
   requestAnimationFrame(animate);
+
+  {
+    // Compute `timeElapsed`. This works for both animation preview and capture.
+    let delta;
+    if (lastTs == null) {
+      delta = 0;
+      lastTs = nowInSecs;
+      globalTimeline.seek(0);
+    } else {
+      delta = nowInSecs - lastTs;
+      lastTs = nowInSecs;
+    }
+
+    timeElapsed += delta;
+  }
+
+  gsap.updateRoot(timeElapsed);
 
   cameraControls.update();
 
@@ -278,7 +296,6 @@ function animate(time) {
 
   stats.update();
 
-  /* Record Video */
   if (capturer) capturer.capture(renderer.domElement);
 }
 
@@ -2170,6 +2187,14 @@ function addSpinningAnimation(object3d, { speed = 1, duration = 10 } = {}) {
   globalTimeline.add(tl, "0");
 }
 
+function addCut() {
+  mainTimeline.call(() => {
+    if (capturer !== null) {
+      console.log("CutPoint: " + globalTimeline.time().toString());
+    }
+  });
+}
+
 export default {
   addCollapseAnimation,
   addExplosionAnimation,
@@ -2215,6 +2240,7 @@ export default {
   random,
   addSpinningAnimation,
   mainTimeline,
+  addCut
 };
 
 export { THREE, gsap };
