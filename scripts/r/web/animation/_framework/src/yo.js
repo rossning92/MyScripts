@@ -1933,7 +1933,8 @@ async function addAsync(
     font = "en",
     fontSize = 1.0,
     arrowFrom = new THREE.Vector3(0, 0, 0),
-    arrowTo = new THREE.Vector3(0, 1, 0)
+    arrowTo = new THREE.Vector3(0, 1, 0),
+    lineWidth = 0.1,
   } = {}
 ) {
   let material;
@@ -2008,7 +2009,8 @@ async function addAsync(
     mesh = createArrow({
       from: arrowFrom,
       to: arrowTo,
-      color
+      color,
+      lineWidth
     });
   } else if (typeof obj == "string") {
     mesh = new TextMesh({
