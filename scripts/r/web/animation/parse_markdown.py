@@ -3,13 +3,14 @@ import generate_slides
 import urllib
 import webbrowser
 import capture_animation
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip, ColorClip
 from moviepy.config import change_settings
 import moviepy.video.fx.all as vfx
+from r.open_with.open_with_ import open_with
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
-PROJ_DIR = r'C:\Data\how_to_make_video'
+PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 
 video_clips = []
 audio_clips = []
@@ -44,7 +45,7 @@ def get_all_meta_data():
 
 def get_all_python_block():
     s = open('index.md', 'r', encoding='utf-8').read()
-    matches = re.findall(r'```py\s+([\w\W+]+?)\s+```', s)
+    matches = re.findall(r'<!---\s*([\w\W]+?)\s*-->', s)
     matches = [x.strip() for x in matches]
     return matches
 
@@ -142,6 +143,9 @@ for b in blocks[0:2]:
 final_audio_clip = CompositeAudioClip(audio_clips)
 # final_audio_clip.write_audiofile('out.mp3', fps=44100)
 
+if len(video_clips) == 0:
+    video_clips.append(ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
+
 final_clip = CompositeVideoClip(video_clips, size=(
     1920, 1080)).set_audio(final_audio_clip)
 
@@ -149,6 +153,8 @@ final_clip = CompositeVideoClip(video_clips, size=(
 # final_clip.preview(fps=10, audio=False)
 
 final_clip.write_videofile('out.mp4', codec='h264_nvenc', threads=8, fps=25)
+
+open_with('out.mp4')
 
 
 sys.exit(0)
