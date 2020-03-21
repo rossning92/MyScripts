@@ -70,6 +70,42 @@ def audio(f):
         print(cur_markers)
 
 
+def animation(s):
+    out_file = 'animation/' + slugify(s) + '.mov'
+    print(out_file)
+
+    os.makedirs('animation', exist_ok=True)
+    if not os.path.exists(out_file):
+        url = 'http://localhost:8080/%s.html' % s
+        capture_animation.capture_js_animation(
+            url,
+            out_file=out_file)
+
+    # Get markers
+    markers = _get_markers(out_file)
+    if markers:
+        # Try to align with audio markers
+        for i, (m1, m2) in enumerate(zip(cur_markers, markers)):
+            clip = VideoFileClip(out_file)
+
+            if i < len(markers) - 1:
+                clip = clip.subclip(m2, markers[i+1])
+                delta = (cur_markers[i+1] - cur_markers[i]
+                         ) - (markers[i+1] - markers[i])
+                if delta > 0:
+                    clip = clip.fx(vfx.freeze, 'end', delta)
+            else:
+                clip = clip.subclip(m2)
+
+            clip = clip.set_start(cur_pos + m1)
+            print(m2, cur_pos + m1)
+            video_clips.append(clip)
+
+    else:
+        clip = VideoFileClip(out_file).set_start(cur_pos)
+        video_clips.append(clip)
+
+
 def title_animation(s):
     out_file = 'animation/title-animation-' + slugify(s) + '.mov'
     print(out_file)
@@ -136,7 +172,7 @@ cd(PROJ_DIR)
 
 
 blocks = get_all_python_block()
-for b in blocks[0:2]:
+for b in blocks:
     exec(b, globals())
 
 
@@ -144,7 +180,8 @@ final_audio_clip = CompositeAudioClip(audio_clips)
 # final_audio_clip.write_audiofile('out.mp3', fps=44100)
 
 if len(video_clips) == 0:
-    video_clips.append(ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
+    video_clips.append(
+        ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
 
 final_clip = CompositeVideoClip(video_clips, size=(
     1920, 1080)).set_audio(final_audio_clip)
