@@ -5,7 +5,7 @@ import r.audio.postprocess as pp
 
 def get_meta_data(file, type_):
     s = open(file, 'r', encoding='utf-8').read()
-    matches = re.findall('<!-- ' + type_ + r'([\w\W]+?)-->', s)
+    matches = re.findall(r"audio\('([\w\W]+?)'\)", s)
     matches = [x.strip() for x in matches]
     return matches
 

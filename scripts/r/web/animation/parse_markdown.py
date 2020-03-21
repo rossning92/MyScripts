@@ -55,10 +55,12 @@ def audio(f):
 
     cur_pos += cur_duration
 
+    # HACK: 
     f = 'out/' + f
     print(f)
 
-    audio_clip = AudioFileClip(f)
+    # HACK: still don't know why changing buffersize would help reduce the noise at the end
+    audio_clip = AudioFileClip(f,buffersize=400000)
     cur_duration = audio_clip.duration
 
     audio_clip = audio_clip.set_start(cur_pos)
@@ -177,7 +179,7 @@ for b in blocks:
 
 
 final_audio_clip = CompositeAudioClip(audio_clips)
-# final_audio_clip.write_audiofile('out.mp3', fps=44100)
+# final_audio_clip.write_audiofile('out.wav')
 
 if len(video_clips) == 0:
     video_clips.append(
@@ -189,7 +191,7 @@ final_clip = CompositeVideoClip(video_clips, size=(
 # final_clip.show(10.5, interactive=True)
 # final_clip.preview(fps=10, audio=False)
 
-final_clip.write_videofile('out.mp4', codec='h264_nvenc', threads=8, fps=25)
+final_clip.write_videofile('out.mp4', codec='nvenc', threads=8, fps=25)
 
 open_with('out.mp4')
 
