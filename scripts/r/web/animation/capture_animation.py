@@ -40,7 +40,12 @@ def capture_js_animation(url, out_file=None):
 
     asyncio.get_event_loop().run_until_complete(main())
     tar_file = out_file + '.tar'
-    return convert_to_mov(tar_file, fps=25, out_file=out_file)
+    result = convert_to_mov(tar_file, fps=25, out_file=out_file)
+
+    # Remove tar file
+    os.remove(tar_file)
+
+    return result
 
 
 if __name__ == "__main__":

@@ -2184,7 +2184,7 @@ function getGridLayoutPositions({
   return results;
 }
 
-function addSpinningAnimation(object3d, { speed = 1, duration = 10 } = {}) {
+function addSpinningAnimation(object3d, { speed = 0.1, duration = 10 } = {}) {
   const tl = gsap.timeline();
   tl.fromTo(
     object3d.rotation,
@@ -2192,8 +2192,8 @@ function addSpinningAnimation(object3d, { speed = 1, duration = 10 } = {}) {
       z: 0
     },
     {
-      z: -2 * Math.PI * speed,
-      duration: 10,
+      z: -2 * Math.PI * (duration * speed),
+      duration,
       ease: "none"
     },
     0
