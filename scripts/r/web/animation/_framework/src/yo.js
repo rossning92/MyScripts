@@ -30,6 +30,7 @@ const AA_METHOD = "msaa";
 const ENABLE_MOTION_BLUR_PASS = false;
 const MOTION_BLUR_SAMPLES = 1;
 
+var outFileName = null;
 var captureStatus;
 var globalTimeline = gsap.timeline({ onComplete: stopCapture });
 
@@ -89,22 +90,9 @@ gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
-function initCapture() {
-  capturer = new CCapture({
-    verbose: true,
-    display: false,
-    framerate: parseInt(options.framerate),
-    motionBlurFrames: MOTION_BLUR_SAMPLES,
-    quality: 100,
-    format: options.format,
-    workersPath: "dist/src/",
-    timeLimit: 0,
-    frameLimit: 0,
-    autoSaveTime: 0
-  });
-}
+function startCapture({ resetTiming = true, name = "animation" } = {}) {
+  outFileName = name;
 
-function startCapture({ resetTiming = true } = {}) {
   if (gridHelper != null) {
     gridHelper.visible = false;
   }
@@ -116,7 +104,20 @@ function startCapture({ resetTiming = true } = {}) {
     lastTs = null;
   }
 
-  initCapture();
+  capturer = new CCapture({
+    verbose: true,
+    display: false,
+    framerate: parseInt(options.framerate),
+    motionBlurFrames: MOTION_BLUR_SAMPLES,
+    quality: 100,
+    format: options.format,
+    workersPath: "dist/src/",
+    timeLimit: 0,
+    frameLimit: 0,
+    autoSaveTime: 0,
+    name
+  });
+
   capturer.start();
 
   captureStatus.innerText = "capturing";
@@ -130,6 +131,15 @@ function stopCapture() {
     capturer.save();
     capturer = null;
     captureStatus.innerText = "stopped";
+
+    var FileSaver = require("file-saver");
+    var blob = new Blob([JSON.stringify(metaData)], {
+      type: "text/plain;charset=utf-8"
+    });
+    FileSaver.saveAs(
+      blob,
+      outFileName != null ? outFileName + ".json" : "animation-meta-file.json"
+    );
   }
 }
 
@@ -1598,6 +1608,10 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   return tl;
 }
 
+const metaData = {
+  cutPoints: []
+};
+
 function newScene(initFunction) {
   (async () => {
     await initFunction();
@@ -2191,6 +2205,7 @@ function addCut() {
   mainTimeline.call(() => {
     if (capturer !== null) {
       console.log("CutPoint: " + globalTimeline.time().toString());
+      metaData["cutPoints"].push(globalTimeline.time());
     }
   });
 }

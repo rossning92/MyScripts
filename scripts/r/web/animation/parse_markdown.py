@@ -55,12 +55,12 @@ def audio(f):
 
     cur_pos += cur_duration
 
-    # HACK: 
+    # HACK:
     f = 'out/' + f
     print(f)
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
-    audio_clip = AudioFileClip(f,buffersize=400000)
+    audio_clip = AudioFileClip(f, buffersize=400000)
     cur_duration = audio_clip.duration
 
     audio_clip = audio_clip.set_start(cur_pos)
@@ -72,8 +72,12 @@ def audio(f):
         print(cur_markers)
 
 
-def animation(s):
-    out_file = 'animation/' + slugify(s) + '.mov'
+def animation(s, part=None):
+    file_prefix = 'animation/' + slugify(s)
+    if part is not None:
+        out_file = '%s-%d.mov' % (file_prefix, part)
+    else:
+        out_file = '%s.mov' % file_prefix
     print(out_file)
 
     os.makedirs('animation', exist_ok=True)
@@ -81,7 +85,7 @@ def animation(s):
         url = 'http://localhost:8080/%s.html' % s
         capture_animation.capture_js_animation(
             url,
-            out_file=out_file)
+            out_file=file_prefix)
 
     # Get markers
     markers = _get_markers(out_file)
@@ -108,6 +112,7 @@ def animation(s):
         video_clips.append(clip)
 
 
+# TODO: refactor
 def title_animation(s):
     out_file = 'animation/title-animation-' + slugify(s) + '.mov'
     print(out_file)
@@ -128,6 +133,7 @@ def title_animation(s):
     video_clips.append(clip)
 
 
+# TODO: refactor
 def list_animation(s):
     out_file = 'animation/list-animation-' + slugify(s) + '.mov'
     print(out_file)
