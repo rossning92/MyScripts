@@ -10,7 +10,7 @@ yo.newScene(async () => {
   if (!h1_text) h1_text = "标题动画测试";
   const h1 = await yo.addAsync(h1_text, {
     y: 1,
-    animation: "jump"
+    animation: "fastType"
   });
   group.add(h1);
 
@@ -18,7 +18,9 @@ yo.newScene(async () => {
   if (!h2_text) h2_text = "Title Animation Test";
   const h2 = await yo.addAsync(h2_text, {
     fontSize: 0.6,
-    color: yo.palette[3]
+    color: yo.palette[3],
+    animation: "fastType",
+    aniPos: "-=0.4"
   });
   group.add(h2);
   h2.position.y = -0.8;
