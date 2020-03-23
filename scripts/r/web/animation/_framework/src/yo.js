@@ -753,21 +753,24 @@ function createLine3D({ color = 0xffffff, points = [], lineWidth = 0.1 } = {}) {
   return mesh;
 }
 
-function addWipeAnimation(
+function createWipeAnimation(
   object3d,
-  { direction3d = new THREE.Vector3(-1, 0, 0), distance = 5.0 } = {}
+  { direction3d = new THREE.Vector3(-1, 0, 0) } = {}
 ) {
   let localPlane = new THREE.Plane(direction3d, 0);
+  const boundingBox = getBoundingBox(object3d);
+  console.log(boundingBox);
+
   object3d.material.clippingPlanes = [localPlane];
   renderer.localClippingEnabled = true;
 
   const tween = gsap.fromTo(
     localPlane,
-    { constant: -distance },
+    { constant: boundingBox.min.x * 1.1 },
     {
-      constant: distance,
+      constant: boundingBox.max.x * 1.1,
       duration: 0.6,
-      ease: "power3.out"
+      ease: "expo.out"
     }
   );
 
@@ -1861,6 +1864,8 @@ function addAnimation(
           );
         });
         // tl.set({}, {}, ">+0.5");
+      } else if (animation == "wipe") {
+        tl.add(createWipeAnimation(object3d, "<"));
       }
     });
 
@@ -1945,7 +1950,8 @@ async function addAsync(
     fontSize = 1.0,
     arrowFrom = new THREE.Vector3(0, 0, 0),
     arrowTo = new THREE.Vector3(0, 1, 0),
-    lineWidth = 0.1
+    lineWidth = 0.1,
+    gridSize = 10
   } = {}
 ) {
   let material;
@@ -2023,6 +2029,12 @@ async function addAsync(
       color,
       lineWidth
     });
+  } else if (obj == "grid") {
+    const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
+    gridHelper.rotation.x = Math.PI / 2;
+    gridHelper.position.z = 0.01;
+
+    mesh = gridHelper;
   } else if (typeof obj == "string") {
     mesh = new TextMesh({
       text: obj,
@@ -2221,7 +2233,7 @@ export default {
   addLights,
   addShake2D,
   addTextFlyInAnimation,
-  addWipeAnimation,
+  addWipeAnimation: createWipeAnimation,
   camera,
   canvasDrawTriangle,
   createObject,
