@@ -13,7 +13,7 @@ if not os.path.exists('node_modules'):
 cd(project_path)
 call_echo('yarn link yo')
 
-copy(sample_project_path + '/', project_path + '/')
+# copy(sample_project_path + '/', project_path + '/')
 
 os.environ['ENTRY_FOLDER'] = project_path
 script = os.path.join('node_modules', 'yo', 'bin', 'start-app.js')

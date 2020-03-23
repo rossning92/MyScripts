@@ -12,31 +12,33 @@ const plugins = [
 module.exports = env => {
   // The folder that contains source code and resource files (images, videos,
   // etc.)
-  let entryFolder = path.resolve(__dirname, "pages");
+  const entryFolders = [path.resolve(__dirname, "pages")];
   if (env && env.entryFolder) {
-    entryFolder = env.entryFolder;
+    entryFolders.push(env.entryFolder);
   }
 
   // Setup HtmlWebpackPlugin for all found entries. Automatically search all
   // files under `./src/pages` folder and added as webpack entries.
   const entries = {};
 
-  fs.readdirSync(entryFolder).forEach(file => {
-    if (path.extname(file).toLowerCase() !== ".js") {
-      return;
-    }
+  entryFolders.forEach(entryFolder => {
+    fs.readdirSync(entryFolder).forEach(file => {
+      if (path.extname(file).toLowerCase() !== ".js") {
+        return;
+      }
 
-    const file_path = entryFolder + "/" + file;
-    const name = path.basename(file, ".js");
-    entries[name] = file_path;
+      const file_path = entryFolder + "/" + file;
+      const name = path.basename(file, ".js");
+      entries[name] = file_path;
 
-    plugins.push(
-      new HtmlWebpackPlugin({
-        filename: name + ".html",
-        template: path.resolve(__dirname, "index.html"),
-        chunks: [name]
-      })
-    );
+      plugins.push(
+        new HtmlWebpackPlugin({
+          filename: name + ".html",
+          template: path.resolve(__dirname, "index.html"),
+          chunks: [name]
+        })
+      );
+    });
   });
 
   return {
@@ -52,7 +54,7 @@ module.exports = env => {
     },
     mode: "development",
     devServer: {
-      contentBase: entryFolder
+      contentBase: entryFolders
     },
     resolve: {
       modules: [
