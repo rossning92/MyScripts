@@ -759,7 +759,6 @@ function createWipeAnimation(
 ) {
   let localPlane = new THREE.Plane(direction3d, 0);
   const boundingBox = getBoundingBox(object3d);
-  console.log(boundingBox);
 
   object3d.material.clippingPlanes = [localPlane];
   renderer.localClippingEnabled = true;
@@ -1896,7 +1895,11 @@ function addAnimation(
     });
 
     if (tlExitAnimation.duration() > 0) {
-      tl.add(tlExitAnimation, ">" + aniHold.toString());
+      // Hold the animation for a while before running exit animation
+      if (aniHold > 0 && tl.duration() > 0) {
+        tl.set({}, {}, "+=" + aniHold.toString());
+      }
+      tl.add(tlExitAnimation);
     }
   }
 
@@ -2223,6 +2226,10 @@ function addCut() {
   });
 }
 
+function moveTo(object3d, options, position = "+=0") {
+  mainTimeline.add(createMoveToAnimation(object3d, options), position);
+}
+
 export default {
   addCollapseAnimation,
   addExplosionAnimation,
@@ -2268,7 +2275,8 @@ export default {
   random,
   addSpinningAnimation,
   mainTimeline,
-  addCut
+  addCut,
+  moveTo
 };
 
 export { THREE, gsap };
