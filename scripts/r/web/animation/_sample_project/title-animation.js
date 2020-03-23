@@ -7,17 +7,16 @@ yo.newScene(async () => {
   const group = yo.addGroup();
 
   let h1_text = yo.getQueryString().h1;
-  if (!h1_text) h1_text = "图形编程";
-  const h1 = yo.addText(h1_text, {
+  if (!h1_text) h1_text = "标题动画测试";
+  const h1 = await yo.addAsync(h1_text, {
     y: 1,
-    font: "zh",
-    aniEnter: "jump"
+    animation: "jump"
   });
   group.add(h1);
 
   let h2_text = yo.getQueryString().h2;
-  if (!h2_text) h2_text = "Graphics Programming";
-  const h2 = yo.addText(h2_text, {
+  if (!h2_text) h2_text = "Title Animation Test";
+  const h2 = await yo.addAsync(h2_text, {
     fontSize: 0.6,
     color: yo.palette[3]
   });
@@ -30,15 +29,15 @@ yo.newScene(async () => {
 
   {
     const MARGIN = 2;
-    const leftBracket = yo.addText("[", {
+    const leftBracket = await yo.addAsync("[", {
       color: yo.palette[1],
-      aniEnter: null
+      animation: null
     });
     leftBracket.position.x = center.x - size.x * 0.5 - MARGIN;
 
-    const rightBracket = yo.addText("]", {
+    const rightBracket = await yo.addAsync("]", {
       color: yo.palette[1],
-      aniEnter: null
+      animation: null
     });
     rightBracket.position.x = center.x + size.x * 0.5 + MARGIN;
 

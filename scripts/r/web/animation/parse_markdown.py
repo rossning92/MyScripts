@@ -72,8 +72,9 @@ def audio(f):
         print(cur_markers)
 
 
-def animation(s, part=None):
-    file_prefix = 'animation/' + slugify(s)
+def _animation(url, file_prefix, part=None):
+    file_prefix = 'animation/' + slugify(file_prefix)
+
     if part is not None:
         out_file = '%s-%d.mov' % (file_prefix, part)
     else:
@@ -82,7 +83,7 @@ def animation(s, part=None):
 
     os.makedirs('animation', exist_ok=True)
     if not os.path.exists(out_file):
-        url = 'http://localhost:8080/%s.html' % s
+
         capture_animation.capture_js_animation(
             url,
             out_file=file_prefix)
@@ -112,25 +113,20 @@ def animation(s, part=None):
         video_clips.append(clip)
 
 
-# TODO: refactor
-def title_animation(s):
-    out_file = 'animation/title-animation-' + slugify(s) + '.mov'
-    print(out_file)
+def animation(s, part=None):
+    url = 'http://localhost:8080/%s.html' % s
+    file_prefix = slugify(s)
+    _animation(url, file_prefix, part=part)
 
-    os.makedirs('animation', exist_ok=True)
-    if not os.path.exists(out_file):
-        h1 = re.search('^# (.*)', s, flags=re.MULTILINE).group(1)
-        h2 = re.search('^## (.*)', s, flags=re.MULTILINE).group(1)
-        url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
-            urllib.parse.quote(h1),
-            urllib.parse.quote(h2)
-        )
-        capture_animation.capture_js_animation(
-            url,
-            out_file=out_file)
 
-    clip = VideoFileClip(out_file).set_start(cur_pos)
-    video_clips.append(clip)
+def title_animation(h1, h2, part=None):
+    file_prefix = slugify('title-%s-%s' % (h1, h2))
+    url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
+        urllib.parse.quote(h1),
+        urllib.parse.quote(h2)
+    )
+
+    _animation(url, file_prefix, part=part)
 
 
 # TODO: refactor

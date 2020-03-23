@@ -1806,7 +1806,7 @@ function addAnimation(
 ) {
   const tl = gsap.timeline();
 
-  if (animation) {
+  if (animation != null) {
     const animationList = animation.split("|");
 
     // Enter animation
