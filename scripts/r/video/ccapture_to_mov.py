@@ -59,7 +59,7 @@ def convert_to_mov(tar_file, fps, out_file=None):
 
     else:
         f = '%s.mov' % out_file
-        _images_to_video(f, sub_image_files, fps)
+        _images_to_video(f, image_files, fps)
         out_files.append(f)
 
     remove(tmp_folder)
