@@ -287,7 +287,7 @@ function animate(
     // Compute `timeElapsed`. This works for both animation preview and capture.
     let delta;
     if (lastTs == null) {
-      delta = 0;
+      delta = 0.000001;
       lastTs = nowInSecs;
       globalTimeline.seek(0);
     } else {
@@ -1841,11 +1841,11 @@ function addAnimation(
               ease: "steps(1)",
               duration: 0.1
             },
-            ">"
+            "<"
           );
         });
       } else if (animation == "fastType") {
-        object3d.children.forEach(x => {
+        object3d.children.forEach((x, i) => {
           tl.fromTo(
             x,
             {
@@ -1854,12 +1854,13 @@ function addAnimation(
             {
               visible: true,
               ease: "steps(1)",
-              duration: 0.02
+              duration: 0.02,
+              delay: i * 0.02
             },
-            ">"
+            "<"
           );
         });
-        tl.set({}, {}, ">+0.5");
+        // tl.set({}, {}, ">+0.5");
       }
     });
 

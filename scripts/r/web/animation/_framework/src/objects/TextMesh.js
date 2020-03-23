@@ -16,7 +16,6 @@ import {
 
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
 
-import fontFile from "../fonts/sourceHanBold3000";
 import gsap from "gsap";
 import { MeshLine, MeshLineMaterial } from "three.meshline";
 import * as THREE from "three";
@@ -54,14 +53,12 @@ export default class TextMesh extends Object3D {
     this.color = color;
     this.letterSpacing = letterSpacing;
 
-    this.fontZh = fontLoader.parse(require("../fonts/sourceHanBold3000"));
+    this.fontName = font;
+    this.fontZh = fontLoader.parse(require("../fonts/sourceHan3000Bold"));
     this.fontEn = fontLoader.parse(require("../fonts/muliBold").default);
-
-    if (font == "zh") {
-      this.font = this.fontZh;
-    } else {
-      this.font = this.fontEn;
-    }
+    this.fontMath = fontLoader.parse(
+      require("../fonts/latinModernMathRegular")
+    );
 
     if (material) {
       this.material = material;
@@ -176,7 +173,12 @@ export default class TextMesh extends Object3D {
         if (letter === " ") {
           totalWidth += this.size * 0.5;
         } else {
-          const font = english.test(letter) ? this.fontEn : this.fontZh;
+          let font;
+          if (this.fontName == "math") {
+            font = this.fontMath;
+          } else {
+            font = english.test(letter) ? this.fontEn : this.fontZh;
+          }
 
           const geom = new THREE.ShapeBufferGeometry(
             font.generateShapes(letter, this.size, 1)
