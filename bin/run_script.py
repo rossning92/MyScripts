@@ -14,7 +14,7 @@ def to_bool(s):
 parser = argparse.ArgumentParser()
 parser.add_argument('--console_title', default=None)
 parser.add_argument('--restart_instance', type=to_bool, default=None)
-parser.add_argument('--new_window', type=to_bool, default=None)
+parser.add_argument('--new_window', type=to_bool, default=False)
 parser.add_argument('script_name', type=str)
 args = parser.parse_args()
 
