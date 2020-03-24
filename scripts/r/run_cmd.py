@@ -11,7 +11,7 @@ except Exception as e:
 
 cd_current_dir()
 
-setup_cmake()
+setup_cmake(install=False)
 
 setup_nodejs(install=False)
 

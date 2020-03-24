@@ -2,7 +2,7 @@ import os
 from _shutil import *
 
 
-def setup_cmake(version='3.10.2', install=False):
+def setup_cmake(version='3.10.2', install=True):
     if sys.platform == 'win32':
         if version:
             CMAKE_PATH = 'C:\\tools\\cmake-%s-win64-x64' % version
