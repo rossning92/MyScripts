@@ -449,24 +449,27 @@ class ScriptItem:
                         'sys.exit(ret)'
                     ]
 
-                    while True:  # Create new console window on windows
-                        try:
-                            # HACK:
-                            if self.get_console_title() == 'r/linux/et':
-                                title = 'r/linux/et'
-                            else:
-                                title = None
+                    # Create new console window on windows
+                    while True:
+                        # WSL does not work quite well with third party terminals.
+                        if not self.meta['wsl']:
+                            try:
+                                # HACK:
+                                if self.get_console_title() == 'r/linux/et':
+                                    title = 'r/linux/et'
+                                else:
+                                    title = None
 
-                            args = conemu_wrap_args(
-                                args, cwd=cwd, small_window=True, title=title)
-                            break
-                        except:
-                            pass
+                                args = conemu_wrap_args(
+                                    args, cwd=cwd, small_window=True, title=title)
+                                break
+                            except Exception:
+                                pass
 
-                        if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
-                            args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
-                                    '--hold', 'always'] + args
-                            break
+                            if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
+                                args = [r"C:\Program Files\Git\usr\bin\mintty.exe",
+                                        '--hold', 'always'] + args
+                                break
 
                         creationflags = subprocess.CREATE_NEW_CONSOLE
                         break
@@ -718,7 +721,7 @@ def update_script_acesss_time(script):
 
 def get_all_script_access_time():
     self = get_all_script_access_time
-    
+
     if not hasattr(self, "mtime"):
         self.mtime = 0
 

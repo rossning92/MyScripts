@@ -103,7 +103,6 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
             '-cur_console:c0'
         ]
 
-        # print(args)
         # args[0:0] = ['set', 'PATH=%PATH%;C:\Program Files\ConEmu\ConEmu\wsl', '&',
         # CONEMU_INSTALL_DIR + "\\ConEmu\\conemu-cyg-64.exe"]
 
