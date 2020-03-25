@@ -452,7 +452,7 @@ class ScriptItem:
                     # Create new console window on windows
                     while True:
                         # WSL does not work quite well with third party terminals.
-                        if not self.meta['wsl']:
+                        if True:  # not self.meta['wsl']:
                             try:
                                 # HACK:
                                 if self.get_console_title() == 'r/linux/et':
