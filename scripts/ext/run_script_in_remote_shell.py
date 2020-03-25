@@ -11,13 +11,15 @@ if __name__ == '__main__':
         print('Script type is not supported: %s' % script.ext)
         exit(0)
 
-    s = "cat > /tmp/script.sh <<'__EOF__'\n" + \
-        s + '\n__EOF__\nclear\nsource /tmp/script.sh\n'
-
-    # s = ''.join(['\\x%x' % ord(x) for x in s])
-    # s = "echo -n -e '" + s + "' > /tmp/tmpscript.sh && bash /tmp/tmpscript.sh"
-
+    s = (
+        "cat > /tmp/script.sh <<'__EOF__'\n"
+        + s + '\n' +
+        '__EOF__\n'
+        'clear\n'
+        'source /tmp/script.sh\n'
+    )
     set_clip(s)
+
     # exec_ahk('''
     #     WinActivate ahk_exe putty.exe
     #     WinWaitActive ahk_exe putty.exe
