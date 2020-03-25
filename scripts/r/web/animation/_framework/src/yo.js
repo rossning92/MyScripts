@@ -43,6 +43,7 @@ let renderer;
 let composer;
 let scene;
 let camera;
+let lightGroup;
 let cameraControls;
 let palette = [
   // '#1abc9c',
@@ -153,7 +154,20 @@ function resize(width, height) {
   renderer.setSize(width, height);
 }
 
-function setupScene(width, height) {
+function setupOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
+  const aspect = WIDTH / HEIGHT;
+  const frustumSize = 16;
+  camera = new THREE.OrthographicCamera(
+    (frustumSize * aspect) / -2,
+    (frustumSize * aspect) / 2,
+    frustumSize / 2,
+    frustumSize / -2,
+    -1000,
+    1000
+  );
+}
+
+function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   let options = {
     // antialias: true,
   };
@@ -162,6 +176,8 @@ function setupScene(width, height) {
   }
 
   renderer = new THREE.WebGLRenderer(options);
+  renderer.localClippingEnabled = true;
+
   renderer.setSize(width, height);
   document.body.appendChild(renderer.domElement);
 
@@ -171,24 +187,12 @@ function setupScene(width, height) {
     document.body.appendChild(stats.dom);
   }
 
-  scene = new THREE.Scene();
   scene.background = 0;
 
-  if (1) {
+  if (camera == null) {
     camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 5000);
     camera.position.set(0, 0, 10);
     camera.lookAt(new Vector3(0, 0, 0));
-  } else {
-    const aspect = width / height;
-    const frustumSize = 1;
-    camera = new THREE.OrthographicCamera(
-      (frustumSize * aspect) / -2,
-      (frustumSize * aspect) / 2,
-      frustumSize / 2,
-      frustumSize / -2,
-      0,
-      1000
-    );
   }
 
   cameraControls = new OrbitControls(camera, renderer.domElement);
@@ -322,7 +326,8 @@ function moveCameraTo({ x = 0, y = 0, z = 10 }) {
   });
 }
 
-setupScene(WIDTH, HEIGHT);
+scene = new THREE.Scene();
+
 // createText({ text: '3 minute' });
 // createText({ text: '\nprogramming' });
 // createLine();
@@ -761,7 +766,6 @@ function createWipeAnimation(
   const boundingBox = getBoundingBox(object3d);
 
   object3d.material.clippingPlanes = [localPlane];
-  renderer.localClippingEnabled = true;
 
   const tween = gsap.fromTo(
     localPlane,
@@ -1237,26 +1241,22 @@ function addFlash(object3d, { repeat = 5, position = "+=0" } = {}) {
   return tl;
 }
 
-function addLights() {
-  const light0 = new THREE.PointLight(0xffffff, 1, 0);
-  light0.position.set(0, 200, 0);
-  scene.add(light0);
+function addDefaultLights() {
+  if (lightGroup == null) {
+    const lightGroup = addGroup();
 
-  const light1 = new THREE.PointLight(0xffffff, 1, 0);
-  light1.position.set(100, 200, 100);
-  scene.add(light1);
+    const light0 = new THREE.PointLight(0xffffff, 1, 0);
+    light0.position.set(0, 200, 0);
+    lightGroup.add(light0);
 
-  const light2 = new THREE.PointLight(0xffffff, 1, 0);
-  light2.position.set(-100, -200, -100);
-  scene.add(light2);
+    const light1 = new THREE.PointLight(0xffffff, 1, 0);
+    light1.position.set(100, 200, 100);
+    lightGroup.add(light1);
 
-  // const light0 = new THREE.DirectionalLight( 0xffffff, 1.0 );
-  // light0.position.set(-1,1,1);
-  // scene.add( light0 );
-
-  // const light1 = new THREE.DirectionalLight( 0xffffff, 1.0 );
-  // light1.position.set(1,1,1);
-  // scene.add( light1 );
+    const light2 = new THREE.PointLight(0xffffff, 1, 0);
+    light2.position.set(-100, -200, -100);
+    lightGroup.add(light2);
+  }
 }
 
 function createTriangle({
@@ -1663,6 +1663,8 @@ function newScene(initFunction) {
       scene.add(gridHelper);
     }
 
+    setupScene({ width: WIDTH, height: HEIGHT });
+
     // Start animation
     requestAnimationFrame(animate);
   })();
@@ -1960,6 +1962,7 @@ async function addAsync(
   let material;
 
   if (lighting) {
+    addDefaultLights();
     material = new THREE.MeshPhongMaterial({
       color,
       // emissive: 0x072534,
@@ -2024,6 +2027,9 @@ async function addAsync(
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+    mesh = new THREE.Mesh(geometry, material);
+  } else if (obj == "pyramid") {
+    const geometry = new THREE.ConeGeometry(0.5, 1.0, 4, 32);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "arrow") {
     mesh = createArrow({
@@ -2217,6 +2223,16 @@ function addSpinningAnimation(object3d, { speed = 0.1, duration = 10 } = {}) {
   globalTimeline.add(tl, "0");
 }
 
+function add3DSpinning(object3d) {
+  // Spinning
+  const clock = new THREE.Clock();
+  object3d.onBeforeRender = () => {
+    const delta = clock.getDelta();
+    object3d.rotation.y += delta;
+    object3d.rotation.x = Math.sin(clock.getElapsedTime()) * 0.5;
+  };
+}
+
 function addCut() {
   mainTimeline.call(() => {
     if (capturer !== null) {
@@ -2237,7 +2253,7 @@ export default {
   addFadeOut,
   addGlitch,
   addJumpIn,
-  addLights,
+  addLights: addDefaultLights,
   addShake2D,
   addTextFlyInAnimation,
   addWipeAnimation: createWipeAnimation,
@@ -2276,7 +2292,9 @@ export default {
   addSpinningAnimation,
   mainTimeline,
   addCut,
-  moveTo
+  moveTo,
+  add3DSpinning,
+  setupOrthoCamera
 };
 
 export { THREE, gsap };
