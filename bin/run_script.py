@@ -2,12 +2,16 @@ import argparse
 import os
 import sys
 
-sys.path.insert(0, os.path.realpath(
-    os.path.dirname(__file__) + '/../libs'))
-from _script import *
+if 1:
+    sys.path.insert(0, os.path.realpath(
+        os.path.dirname(__file__) + '/../libs'))
+    from _script import *
 
 
 def to_bool(s):
+    if s == 'None':
+        return None
+
     return bool(int(s))
 
 

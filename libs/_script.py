@@ -463,7 +463,7 @@ class ScriptItem:
                                 args = conemu_wrap_args(
                                     args, cwd=cwd, small_window=True, title=title)
                                 break
-                            except Exception:
+                            except Exception as e:
                                 pass
 
                             if os.path.exists(r'C:\Program Files\Git\usr\bin\mintty.exe'):
