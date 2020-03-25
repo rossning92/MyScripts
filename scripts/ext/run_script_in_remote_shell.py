@@ -4,6 +4,8 @@ if __name__ == '__main__':
     script_path = os.environ['ROSS_SELECTED_SCRIPT_PATH']
 
     script = ScriptItem(script_path)
+    update_script_acesss_time(script)
+    
     s = script.render() + '\n'
     tmp_script_file = write_temp_file(s, '.sh')
 
