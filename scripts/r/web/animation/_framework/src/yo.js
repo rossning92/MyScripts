@@ -73,6 +73,8 @@ let palette = [
 var glitchPass;
 var gridHelper;
 
+var animationCallbacks = [];
+
 let options = {
   /* Recording options */
   format: "png",
@@ -287,9 +289,9 @@ function animate(
 
   requestAnimationFrame(animate);
 
+  let delta;
   {
     // Compute `timeElapsed`. This works for both animation preview and capture.
-    let delta;
     if (lastTs == null) {
       delta = 0.000001;
       lastTs = nowInSecs;
@@ -305,6 +307,10 @@ function animate(
   gsap.updateRoot(timeElapsed);
 
   cameraControls.update();
+
+  animationCallbacks.forEach(callback => {
+    callback(delta, timeElapsed);
+  });
 
   render();
 
@@ -2224,13 +2230,21 @@ function addSpinningAnimation(object3d, { speed = 0.1, duration = 10 } = {}) {
 }
 
 function add3DSpinning(object3d) {
-  // Spinning
-  const clock = new THREE.Clock();
-  object3d.onBeforeRender = () => {
-    const delta = clock.getDelta();
+  animationCallbacks.push((delta, elapsed) => {
     object3d.rotation.y += delta;
-    object3d.rotation.x = Math.sin(clock.getElapsedTime()) * 0.5;
-  };
+    object3d.rotation.x = Math.sin(elapsed) * 0.5;
+  });
+}
+
+function addPulse(object3d) {
+  const scaleCopy = object3d.scale.clone();
+  animationCallbacks.push((delta, elapsed) => {
+    const s = 1 + Math.sin(elapsed * 50) * 0.01;
+
+    object3d.scale.x = scaleCopy.x * s;
+    object3d.scale.y = scaleCopy.y * s;
+    object3d.scale.z = scaleCopy.z * s;
+  });
 }
 
 function addCut() {
@@ -2294,6 +2308,7 @@ export default {
   addCut,
   moveTo,
   add3DSpinning,
+  addPulse,
   setupOrthoCamera
 };
 
