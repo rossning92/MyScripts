@@ -12,7 +12,7 @@ if __name__ == '__main__':
         exit(0)
 
     s = "cat > /tmp/script.sh <<'__EOF__'\n" + \
-        s + '\n__EOF__\nsource /tmp/script.sh\n'
+        s + '\n__EOF__\nclear\nsource /tmp/script.sh\n'
 
     # s = ''.join(['\\x%x' % ord(x) for x in s])
     # s = "echo -n -e '" + s + "' > /tmp/tmpscript.sh && bash /tmp/tmpscript.sh"
@@ -32,6 +32,9 @@ if __name__ == '__main__':
         WinWaitActive r/linux/et,, 2
         if ErrorLevel
             return
+
+        Send ^c
+        Sleep 500
 
         Send ^v
 
