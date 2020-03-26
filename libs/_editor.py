@@ -64,12 +64,15 @@ def open_in_vscode(file, line_no=None):
     vscode = get_executable('vscode')
     if type(file) == str:
         if line_no is None:
-            subprocess.Popen([vscode, file], close_fds=True)
+            args = [vscode, file]
+
         else:
-            subprocess.Popen(
-                [vscode, f'{file}:{line_no}', '-g'], close_fds=True)
+            args = [vscode, f'{file}:{line_no}', '-g']
     else:
-        subprocess.Popen([vscode] + file, close_fds=True)
+        args = [vscode] + file
+
+    FNULL = open(os.devnull, 'w')
+    subprocess.Popen(args, stdout=FNULL, stderr=FNULL)
 
 
 def open_in_text_editor(path, line_no=None):
