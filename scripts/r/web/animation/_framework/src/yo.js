@@ -295,7 +295,7 @@ function animate(
     if (lastTs == null) {
       delta = 0.000001;
       lastTs = nowInSecs;
-      globalTimeline.seek(0);
+      globalTimeline.seek(0, false);
     } else {
       delta = nowInSecs - lastTs;
       lastTs = nowInSecs;
@@ -1631,7 +1631,7 @@ function newScene(initFunction) {
       gui
         .add(options, "timeline", 0, globalTimeline.totalDuration())
         .onChange(val => {
-          globalTimeline.seek(val);
+          globalTimeline.seek(val, false);
         });
 
       Object.keys(globalTimeline.labels).forEach(key => {
@@ -1646,7 +1646,7 @@ function newScene(initFunction) {
 
         console.log(this);
         labels[label] = () => {
-          globalTimeline.seek(time);
+          globalTimeline.seek(time, false);
         };
         folder.add(labels, label);
       });
@@ -2248,6 +2248,7 @@ function addPulse(object3d) {
 }
 
 function addCut() {
+  pause(1);
   mainTimeline.call(() => {
     if (capturer !== null) {
       console.log("CutPoint: " + globalTimeline.time().toString());
@@ -2258,6 +2259,23 @@ function addCut() {
 
 function moveTo(object3d, options, position = "+=0") {
   mainTimeline.add(createMoveToAnimation(object3d, options), position);
+}
+
+function addCustomAnimation(
+  callback,
+  { startVal = 0, endVal = 1, aniPos = "+=0" } = {}
+) {
+  const data = { val: startVal };
+  mainTimeline.to(
+    data,
+    {
+      val: endVal,
+      onUpdate: () => {
+        callback(data.val);
+      }
+    },
+    aniPos
+  );
 }
 
 export default {
@@ -2309,7 +2327,8 @@ export default {
   moveTo,
   add3DSpinning,
   addPulse,
-  setupOrthoCamera
+  setupOrthoCamera,
+  addCustomAnimation
 };
 
 export { THREE, gsap };
