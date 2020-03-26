@@ -113,7 +113,7 @@ def _animation(url, file_prefix, part=None):
         video_clips.append(clip)
 
 
-def animation(s, part=None):
+def anim(s, part=None):
     url = 'http://localhost:8080/%s.html' % s
     file_prefix = slugify(s)
     _animation(url, file_prefix, part=part)
