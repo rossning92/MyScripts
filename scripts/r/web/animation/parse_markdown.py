@@ -119,7 +119,7 @@ def anim(s, part=None):
     _animation(url, file_prefix, part=part)
 
 
-def title_animation(h1, h2, part=None):
+def title_anim(h1, h2, part=None):
     file_prefix = slugify('title-%s-%s' % (h1, h2))
     url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
         urllib.parse.quote(h1),
@@ -130,7 +130,7 @@ def title_animation(h1, h2, part=None):
 
 
 # TODO: refactor
-def list_animation(s):
+def list_anim(s):
     out_file = 'animation/list-animation-' + slugify(s) + '.mov'
     print(out_file)
 
