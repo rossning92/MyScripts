@@ -118,9 +118,22 @@ def _animation(url, file_prefix, part=None):
             video_clips.append(clip)
 
     else:
-        clip = VideoFileClip(out_file).set_start(video_track_cur_pos)
+        if video_clips:
+            prev_start, prev_clip = video_clips[-1]
+            prev_duration = prev_clip.duration
+            prev_end = prev_start + prev_duration
+            gap = video_track_cur_pos - prev_end
+            if gap > 0:
+                print('fill the gap:', gap)
+
+                clip = prev_clip.to_ImageClip(
+                    prev_duration-0.001).set_duration(gap)
+                video_clips.append((prev_end, clip))
+
+        clip = VideoFileClip(out_file)
+        video_clips.append((video_track_cur_pos, clip))
+
         video_track_cur_pos += clip.duration
-        video_clips.append(clip)
 
 
 def anim(s, part=None):
@@ -197,7 +210,8 @@ if len(video_clips) == 0:
     video_clips.append(
         ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
 
-final_clip = CompositeVideoClip(video_clips, size=(
+
+final_clip = CompositeVideoClip([clip.set_start(start) for start, clip in video_clips], size=(
     1920, 1080)).set_audio(final_audio_clip)
 
 # final_clip.show(10.5, interactive=True)
