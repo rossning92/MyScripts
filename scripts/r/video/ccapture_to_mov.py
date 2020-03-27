@@ -5,18 +5,31 @@ def _images_to_video(out_file, image_files, fps):
     txt_body = '\n'.join(["file '%s'" % x for x in image_files])
     txt_file = write_temp_file(txt_body, '.txt')
 
-    call2([
-        'ffmpeg',
-        '-r', str(fps),
-        '-f', 'concat', '-safe', '0',
-        '-i', txt_file,
-        '-vcodec', 'prores_ks',
-        '-pix_fmt', 'yuva444p10le',
-        '-alpha_bits', '16',
-        '-profile:v', '4444',
-        '-f', 'mov',
-        out_file, '-y'
-    ])
+    if 1:
+        call2([
+            'ffmpeg',
+            '-r', str(fps),
+            '-f', 'concat', '-safe', '0',
+            '-i', txt_file,
+            '-vcodec', 'prores_ks',
+            '-pix_fmt', 'yuva444p10le',
+            '-alpha_bits', '16',
+            '-profile:v', '4444',
+            '-f', 'mov',
+            out_file, '-y'
+        ])
+    else:
+        call2([
+            'ffmpeg',
+            '-r', str(fps),
+            '-f', 'concat', '-safe', '0',
+            '-i', txt_file,
+            '-vcodec', 'libx264',
+            '-preset', 'fast',
+            '-crf', '22',
+            '-f', 'mov',
+            out_file, '-y'
+        ])
 
 
 def convert_to_mov(tar_file, fps, out_file=None):

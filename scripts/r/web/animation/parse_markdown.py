@@ -79,7 +79,7 @@ def audio(f):
         print(cur_markers)
 
 
-def _animation(url, file_prefix, part=None):
+def _animation(url, file_prefix, part, pos):
     global video_track_cur_pos
 
     file_prefix = 'animation/' + slugify(file_prefix)
@@ -126,20 +126,20 @@ def _animation(url, file_prefix, part=None):
             if gap > 0:
                 print('fill the gap:', gap)
 
-                clip = prev_clip.to_ImageClip(
-                    prev_duration-0.001).set_duration(gap)
+                t_lastframe = prev_duration - (1 / prev_clip.fps)
+                clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
                 video_clips.append((prev_end, clip))
 
         clip = VideoFileClip(out_file)
-        video_clips.append((video_track_cur_pos, clip))
+        video_clips.append((pos + video_track_cur_pos, clip))
 
-        video_track_cur_pos += clip.duration
+        video_track_cur_pos += pos + clip.duration
 
 
-def anim(s, part=None):
+def anim(s, part=None, pos=0):
     url = 'http://localhost:8080/%s.html' % s
     file_prefix = slugify(s)
-    _animation(url, file_prefix, part=part)
+    _animation(url, file_prefix, part=part, pos=pos)
 
 
 def title_anim(h1, h2, part=None):

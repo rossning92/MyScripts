@@ -1153,12 +1153,16 @@ function createMoveToAnimation(
   {
     x = null,
     y = null,
-    scale = 1.0,
+    scale = null,
     dx = null,
     dy = null,
     rotX = null,
     rotY = null,
-    rotZ = null
+    rotZ = null,
+    sx = null,
+    sy = null,
+    sz = null,
+    duration = 0.5
   } = {}
 ) {
   if (x == null) x = object3d.position.x;
@@ -1169,7 +1173,7 @@ function createMoveToAnimation(
 
   let tl = gsap.timeline({
     defaults: {
-      duration: 0.5,
+      duration,
       ease: "expo.out"
     }
   });
@@ -1179,15 +1183,22 @@ function createMoveToAnimation(
   if (rotY != null) tl.to(object3d.rotation, { y: rotY }, "<");
   if (rotZ != null) tl.to(object3d.rotation, { z: rotZ }, "<");
 
-  tl.to(
-    object3d.scale,
-    {
-      x: object3d.scale.x * scale,
-      y: object3d.scale.y * scale,
-      z: object3d.scale.z * scale
-    },
-    "<"
-  );
+  if (scale != null) {
+    tl.to(
+      object3d.scale,
+      {
+        x: object3d.scale.x * scale,
+        y: object3d.scale.y * scale,
+        z: object3d.scale.z * scale
+      },
+      "<"
+    );
+  } else {
+    if (sx != null) tl.to(object3d.scale, { x: sx }, "<");
+    if (sy != null) tl.to(object3d.scale, { y: sy }, "<");
+    if (sz != null) tl.to(object3d.scale, { z: sz }, "<");
+  }
+
   return tl;
 }
 
@@ -2258,7 +2269,16 @@ function addCut() {
 }
 
 function moveTo(object3d, options, position = "+=0") {
-  mainTimeline.add(createMoveToAnimation(object3d, options), position);
+  if (object3d instanceof Array) {
+    for (let i = 0; i < object3d.length; i++) {
+      mainTimeline.add(
+        createMoveToAnimation(object3d[i], options),
+        i == 0 ? position : "<"
+      );
+    }
+  } else {
+    mainTimeline.add(createMoveToAnimation(object3d, options), position);
+  }
 }
 
 function addCustomAnimation(
