@@ -15,8 +15,12 @@ PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 video_clips = []
 audio_clips = []
 cur_markers = None
-cur_pos = 0
-cur_duration = 0
+
+audio_track_cur_pos = 0
+audio_track_cur_duration = 0
+
+video_track_cur_pos = 0
+video_track_cur_duration = 0
 
 
 def _get_markers(file):
@@ -51,9 +55,12 @@ def get_all_python_block():
 
 
 def audio(f):
-    global cur_pos, cur_duration, audio_clips, cur_markers
+    global audio_track_cur_pos, audio_track_cur_duration, audio_clips, cur_markers, video_track_cur_pos
 
-    cur_pos += cur_duration
+    audio_track_cur_pos += audio_track_cur_duration
+
+    # Also forward video track pos
+    video_track_cur_pos = audio_track_cur_pos
 
     # HACK:
     f = 'out/' + f
@@ -61,9 +68,9 @@ def audio(f):
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
-    cur_duration = audio_clip.duration
+    audio_track_cur_duration = audio_clip.duration
 
-    audio_clip = audio_clip.set_start(cur_pos)
+    audio_clip = audio_clip.set_start(audio_track_cur_pos)
     audio_clips.append(audio_clip)
 
     # Get markers
@@ -73,6 +80,8 @@ def audio(f):
 
 
 def _animation(url, file_prefix, part=None):
+    global video_track_cur_pos
+
     file_prefix = 'animation/' + slugify(file_prefix)
 
     if part is not None:
@@ -104,12 +113,13 @@ def _animation(url, file_prefix, part=None):
             else:
                 clip = clip.subclip(m2)
 
-            clip = clip.set_start(cur_pos + m1)
-            print(m2, cur_pos + m1)
+            clip = clip.set_start(video_track_cur_pos + m1)
+            print(m2, video_track_cur_pos + m1)
             video_clips.append(clip)
 
     else:
-        clip = VideoFileClip(out_file).set_start(cur_pos)
+        clip = VideoFileClip(out_file).set_start(video_track_cur_pos)
+        video_track_cur_pos += clip.duration
         video_clips.append(clip)
 
 
@@ -159,12 +169,12 @@ def list_anim(s):
             else:
                 clip = clip.subclip(m2)
 
-            clip = clip.set_start(cur_pos + m1)
-            print(m2, cur_pos + m1)
+            clip = clip.set_start(audio_track_cur_pos + m1)
+            print(m2, audio_track_cur_pos + m1)
             video_clips.append(clip)
 
     else:
-        clip = VideoFileClip(out_file).set_start(cur_pos)
+        clip = VideoFileClip(out_file).set_start(audio_track_cur_pos)
         video_clips.append(clip)
 
 
@@ -176,7 +186,7 @@ cd(PROJ_DIR)
 
 
 blocks = get_all_python_block()
-for b in blocks:
+for b in blocks[30:]:
     exec(b, globals())
 
 
