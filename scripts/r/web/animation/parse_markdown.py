@@ -7,6 +7,7 @@ from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, Com
 from moviepy.config import change_settings
 import moviepy.video.fx.all as vfx
 from r.open_with.open_with_ import open_with
+import re
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -20,7 +21,6 @@ audio_track_cur_pos = 0
 audio_track_cur_duration = 0
 
 video_track_cur_pos = 0
-video_track_cur_duration = 0
 
 
 def _get_markers(file):
@@ -77,6 +77,16 @@ def audio(f):
     cur_markers = _get_markers(f)
     if cur_markers:
         print(cur_markers)
+
+
+def set_cur(p):
+    global video_track_cur_pos
+
+    if type(p) == str:
+        match = re.match(r'^\+=([-+]?\d*\.?\d*)$', p)
+        if match:
+            delta = float(match.group(1))
+            video_track_cur_pos += delta
 
 
 def _animation(url, file_prefix, part, pos):
