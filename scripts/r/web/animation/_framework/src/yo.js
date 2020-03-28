@@ -1833,9 +1833,9 @@ function addAnimation(
     // Enter animation
     animationList.forEach(animation => {
       if (animation == "fadeIn") {
-        tl.add(addFadeIn(object3d));
+        tl.add(addFadeIn(object3d), "<");
       } else if (animation == "jumpIn") {
-        tl.add(addJumpIn(object3d));
+        tl.add(addJumpIn(object3d), "<");
       } else if (animation == "spinIn") {
         tl.from(object3d.rotation, { y: Math.PI * 4 }, "<");
       } else if (animation == "grow") {
@@ -1850,22 +1850,8 @@ function addAnimation(
           { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out" },
           "<"
         );
-      } else if (animation == "type") {
-        object3d.children.forEach(x => {
-          tl.fromTo(
-            x,
-            {
-              visible: false
-            },
-            {
-              visible: true,
-              ease: "steps(1)",
-              duration: 0.1
-            },
-            "<"
-          );
-        });
-      } else if (animation == "fastType") {
+      } else if (animation == "type" || animation == "fastType") {
+        const speed = animation == "fastType" ? 0.005 : 0.01;
         object3d.children.forEach((x, i) => {
           tl.fromTo(
             x,
@@ -1875,8 +1861,8 @@ function addAnimation(
             {
               visible: true,
               ease: "steps(1)",
-              duration: 0.02,
-              delay: i * 0.02
+              duration: speed,
+              delay: i * speed,
             },
             "<"
           );

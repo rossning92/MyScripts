@@ -13,6 +13,9 @@ change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
 PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 
+FPS = 25
+FADEOUT_DURATION = 0.25
+
 video_clips = []
 audio_clips = []
 cur_markers = None
@@ -21,6 +24,8 @@ audio_track_cur_pos = 0
 audio_track_cur_duration = 0
 
 video_track_cur_pos = 0
+
+add_fade_out = False
 
 
 def _get_markers(file):
@@ -82,15 +87,35 @@ def audio(f):
 def set_cur(p):
     global video_track_cur_pos
 
+    PATT_FLOAT = r'([-+]?\d*\.?\d*)'
+
     if type(p) == str:
-        match = re.match(r'^\+=([-+]?\d*\.?\d*)$', p)
+        match = re.match(r'^\+=' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
             video_track_cur_pos += delta
+            return
+
+        match = re.match(r'^\<' + PATT_FLOAT + '$', p)
+        if match:
+            delta = float(match.group(1))
+            start, _ = video_clips[-1]
+            video_track_cur_pos = start + delta
 
 
-def _animation(url, file_prefix, part, pos):
-    global video_track_cur_pos
+def _add_fadeout():
+    global add_fade_out
+
+    if add_fade_out:
+        start, clip = video_clips[-1]
+        clip = clip.fx(vfx.fadeout, FADEOUT_DURATION)
+        video_clips[-1] = (start, clip)
+
+        add_fade_out = False
+
+
+def _animation(url, file_prefix, part):
+    global video_track_cur_pos, add_fade_out
 
     file_prefix = 'animation/' + slugify(file_prefix)
 
@@ -109,7 +134,7 @@ def _animation(url, file_prefix, part, pos):
 
     # Get markers
     markers = _get_markers(out_file)
-    if markers:
+    if markers:  # TODO: refactor logic here.
         # Try to align with audio markers
         for i, (m1, m2) in enumerate(zip(cur_markers, markers)):
             clip = VideoFileClip(out_file)
@@ -132,6 +157,8 @@ def _animation(url, file_prefix, part, pos):
             prev_start, prev_clip = video_clips[-1]
             prev_duration = prev_clip.duration
             prev_end = prev_start + prev_duration
+
+            # Fill the blank
             gap = video_track_cur_pos - prev_end
             if gap > 0:
                 print('fill the gap:', gap)
@@ -140,16 +167,17 @@ def _animation(url, file_prefix, part, pos):
                 clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
                 video_clips.append((prev_end, clip))
 
+        _add_fadeout()
+
         clip = VideoFileClip(out_file)
-        video_clips.append((pos + video_track_cur_pos, clip))
+        video_clips.append((video_track_cur_pos, clip))
+        video_track_cur_pos += clip.duration
 
-        video_track_cur_pos += pos + clip.duration
 
-
-def anim(s, part=None, pos=0):
+def anim(s, part=None):
     url = 'http://localhost:8080/%s.html' % s
     file_prefix = slugify(s)
-    _animation(url, file_prefix, part=part, pos=pos)
+    _animation(url, file_prefix, part=part)
 
 
 def title_anim(h1, h2, part=None):
@@ -160,6 +188,11 @@ def title_anim(h1, h2, part=None):
     )
 
     _animation(url, file_prefix, part=part)
+
+
+def fadeout():
+    global add_fade_out
+    add_fade_out = True
 
 
 # TODO: refactor
@@ -227,7 +260,7 @@ final_clip = CompositeVideoClip([clip.set_start(start) for start, clip in video_
 # final_clip.show(10.5, interactive=True)
 # final_clip.preview(fps=10, audio=False)
 
-final_clip.write_videofile('out.mp4', codec='nvenc', threads=8, fps=25)
+final_clip.write_videofile('out.mp4', codec='nvenc', threads=8, fps=FPS)
 
 open_with('out.mp4')
 
