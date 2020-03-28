@@ -161,7 +161,7 @@ def _animation(url, file_prefix, part):
             # Fill the blank
             gap = video_track_cur_pos - prev_end
             if gap > 0:
-                print('fill the gap:', gap)
+                print('frame hold (duration=%.2f)' % gap)
 
                 t_lastframe = prev_duration - (1 / prev_clip.fps)
                 clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
