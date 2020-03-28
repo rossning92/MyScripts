@@ -1969,7 +1969,8 @@ async function addAsync(
     arrowFrom = new THREE.Vector3(0, 0, 0),
     arrowTo = new THREE.Vector3(0, 1, 0),
     lineWidth = 0.1,
-    gridSize = 10
+    gridSize = 10,
+    centralAngle = Math.PI * 2
   } = {}
 ) {
   let material;
@@ -2036,7 +2037,7 @@ async function addAsync(
     const geometry = new THREE.PlaneGeometry(width, height);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "circle") {
-    const geometry = new THREE.CircleGeometry(0.5, 32);
+    const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
@@ -2285,7 +2286,13 @@ function moveTo(object3d, options, position = "+=0") {
 
 function addCustomAnimation(
   callback,
-  { startVal = 0, endVal = 1, aniPos = "+=0", ease = "expo.out" } = {}
+  {
+    startVal = 0,
+    endVal = 1,
+    aniPos = "+=0",
+    ease = "expo.out",
+    duration = 0.5
+  } = {}
 ) {
   const data = { val: startVal };
   mainTimeline.to(
@@ -2295,7 +2302,8 @@ function addCustomAnimation(
       onUpdate: () => {
         callback(data.val);
       },
-      ease
+      ease,
+      duration
     },
     aniPos
   );
