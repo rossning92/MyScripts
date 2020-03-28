@@ -1151,8 +1151,10 @@ function jumpTo(object3d, { x = 0, y = 0 }) {
 function createMoveToAnimation(
   object3d,
   {
+    position = null,
     x = null,
     y = null,
+    z = null,
     scale = null,
     dx = null,
     dy = null,
@@ -1165,9 +1167,6 @@ function createMoveToAnimation(
     duration = 0.5
   } = {}
 ) {
-  if (x == null) x = object3d.position.x;
-  if (y == null) y = object3d.position.y;
-
   if (dx != null) x = object3d.position.x + dx;
   if (dy != null) y = object3d.position.y + dy;
 
@@ -1177,7 +1176,18 @@ function createMoveToAnimation(
       ease: "expo.out"
     }
   });
-  tl.to(object3d.position, { x, y });
+
+  if (position != null) {
+    tl.to(
+      object3d.position,
+      { x: position.x, y: position.y, z: position.z },
+      "<"
+    );
+  } else {
+    if (x != null) tl.to(object3d.position, { x }, "<");
+    if (y != null) tl.to(object3d.position, { y }, "<");
+    if (z != null) tl.to(object3d.position, { z }, "<");
+  }
 
   if (rotX != null) tl.to(object3d.rotation, { x: rotX }, "<");
   if (rotY != null) tl.to(object3d.rotation, { y: rotY }, "<");
@@ -1862,7 +1872,7 @@ function addAnimation(
               visible: true,
               ease: "steps(1)",
               duration: speed,
-              delay: i * speed,
+              delay: i * speed
             },
             "<"
           );
@@ -2244,6 +2254,12 @@ function addPulse(object3d) {
   });
 }
 
+function add2DSpinning(object3d, { speed = 1.0 } = {}) {
+  animationCallbacks.push((delta, elapsed) => {
+    object3d.rotation.z -= delta * speed;
+  });
+}
+
 function addCut() {
   pause(1);
   mainTimeline.call(() => {
@@ -2269,7 +2285,7 @@ function moveTo(object3d, options, position = "+=0") {
 
 function addCustomAnimation(
   callback,
-  { startVal = 0, endVal = 1, aniPos = "+=0" } = {}
+  { startVal = 0, endVal = 1, aniPos = "+=0", ease = "expo.out" } = {}
 ) {
   const data = { val: startVal };
   mainTimeline.to(
@@ -2278,7 +2294,8 @@ function addCustomAnimation(
       val: endVal,
       onUpdate: () => {
         callback(data.val);
-      }
+      },
+      ease
     },
     aniPos
   );
@@ -2334,7 +2351,8 @@ export default {
   add3DSpinning,
   addPulse,
   setupOrthoCamera,
-  addCustomAnimation
+  addCustomAnimation,
+  add2DSpinning
 };
 
 export { THREE, gsap };

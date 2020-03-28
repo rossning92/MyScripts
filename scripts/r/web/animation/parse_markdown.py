@@ -167,6 +167,10 @@ def _animation(url, file_prefix, part):
                 clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
                 video_clips.append((prev_end, clip))
 
+            else:
+                video_clips[-1] = prev_start, prev_clip.set_duration(
+                    video_track_cur_pos - prev_start)
+
         _add_fadeout()
 
         clip = VideoFileClip(out_file)
