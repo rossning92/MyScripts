@@ -1,3 +1,4 @@
+Menu, Tray, Icon, animation_toolkit.ico
 #SingleInstance, Force
 
 is_recording := False
@@ -57,6 +58,11 @@ return
 $F12::
     Send ^s
     Run, cmd /c set "PYTHONPATH=%A_ScriptDir%\..\..\..;%A_ScriptDir%\..\..\..\..\libs" & python "%A_ScriptDir%\_export_final_audio.py" || pause
+return
+
+!Esc::
+    WinClose, %AUDIO_RECORDER_TITLE%
+    ExitApp
 return
 
 GetLatestRecoding()
