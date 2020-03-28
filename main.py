@@ -287,7 +287,8 @@ class MainWindow(QWidget):
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
             with open(GLOBAL_HOTKEY, 'w') as f:
-                f.write('''#SingleInstance, Force
+                f.write('''#NoTrayIcon
+#SingleInstance, Force
 #include libs/ahk/ExplorerHelper.ahk
 ; SetTitleMatchMode, 2
 RunScript(name, path)

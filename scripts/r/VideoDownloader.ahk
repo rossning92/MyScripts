@@ -1,3 +1,4 @@
+#NoTrayIcon
 #SingleInstance Force
 #Persistent
 

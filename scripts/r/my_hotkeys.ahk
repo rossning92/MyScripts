@@ -1,3 +1,4 @@
+#NoTrayIcon
 #SingleInstance, Force
 #InstallKeybdHook
 #include ../../libs/ahk/ExplorerHelper.ahk

@@ -1,4 +1,5 @@
-﻿#SingleInstance Force
+﻿#NoTrayIcon
+#SingleInstance Force
 
 $>!h::SendEmoji("😃")
 $>!s::SendEmoji("😢")
