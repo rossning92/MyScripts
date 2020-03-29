@@ -133,7 +133,7 @@ def create_image_seq_clip(tar_file):
     return clip
 
 
-def _video(video_file):
+def _video(video_file, clip_operations=None, speed=None):
     global video_track_cur_pos
 
     if video_clips:
@@ -165,6 +165,12 @@ def _video(video_file):
 
     # if video_clips:
     #     clip = clip.set_position((45,150))
+
+    if speed is not None:
+        clip = clip.fx(vfx.speedx, speed)
+
+    if clip_operations is not None:
+        clip = clip_operations(clip)
 
     video_clips.append((video_track_cur_pos, clip))
     video_track_cur_pos += clip.duration
@@ -276,6 +282,15 @@ def list_anim(s):
 
 def video(f):
     _video(f)
+
+
+def screencap(f, speed=None):
+    _video(
+        f,
+        clip_operations=lambda x: x.crop(
+            x1=0, y1=0, x2=2560, y2=1380).resize(0.75).set_position((0, 22)),
+        speed=speed,
+    )
 
 
 cd(PROJ_DIR)
