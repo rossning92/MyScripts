@@ -3,7 +3,7 @@ import generate_slides
 import urllib
 import webbrowser
 import capture_animation
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip, ColorClip
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip, ColorClip, ImageSequenceClip
 from moviepy.config import change_settings
 import moviepy.video.fx.all as vfx
 from r.open_with.open_with_ import open_with
@@ -118,6 +118,21 @@ def _add_fadeout():
         add_fade_out = False
 
 
+def create_image_seq_clip(tar_file):
+    tmp_folder = os.path.join(tempfile.gettempdir(), 'animation',
+                              os.path.splitext(os.path.basename(tar_file))[0])
+
+    # Unzip
+    print2('Unzip to %s' % tmp_folder)
+    shutil.unpack_archive(tar_file, tmp_folder)
+
+    # Get all image files
+    image_files = sorted(glob.glob((os.path.join(tmp_folder, '*.png'))))
+
+    clip = ImageSequenceClip(image_files, fps=FPS)
+    return clip
+
+
 def _video(video_file):
     global video_track_cur_pos
 
@@ -143,7 +158,10 @@ def _video(video_file):
 
     _add_fadeout()
 
-    clip = VideoFileClip(video_file)
+    if video_file.endswith('.tar'):
+        clip = create_image_seq_clip(video_file)
+    else:
+        clip = VideoFileClip(video_file)
 
     # if video_clips:
     #     clip = clip.set_position((45,150))

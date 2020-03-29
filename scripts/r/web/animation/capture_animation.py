@@ -12,7 +12,7 @@ if True:
 # pip3 install websockets==6.0 --force-reinstall
 
 
-def capture_js_animation(url, out_file=None):
+def capture_js_animation(url, out_file=None, output_video_file=True):
     if out_file is None:
         out_file = 'animation_%s' % get_time_str()
 
@@ -42,15 +42,18 @@ def capture_js_animation(url, out_file=None):
         await browser.close()
 
     asyncio.get_event_loop().run_until_complete(main())
-    tar_file = out_file + '.tar'
-    result = convert_to_mov(tar_file, fps=25, out_file=out_file)
 
-    # Remove tar file
-    os.remove(tar_file)
+    tar_file = out_file + '.tar'
+    if output_video_file:
+        result = convert_to_mov(tar_file, fps=25, out_file=out_file)
+        os.remove(tar_file)
+    else:
+        result = tar_file
 
     return result
 
 
 if __name__ == "__main__":
     cd(expanduser('~/Downloads'))
-    capture_js_animation('http://localhost:8080/' + '{{HTML_FILE}}')
+    capture_js_animation('http://localhost:8080/' + '{{HTML_FILE}}',
+                         output_video_file=bool('{{_OUTPUT_VID_FILE}}'))
