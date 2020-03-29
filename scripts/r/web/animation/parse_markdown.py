@@ -3,7 +3,7 @@ import generate_slides
 import urllib
 import webbrowser
 import capture_animation
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip, ColorClip, ImageSequenceClip
+from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip, ColorClip, ImageSequenceClip, ImageClip
 from moviepy.config import change_settings
 import moviepy.video.fx.all as vfx
 from r.open_with.open_with_ import open_with
@@ -133,6 +133,10 @@ def set_playhead(p):
     raise Exception('Invalid param.')
 
 
+def image(f, pos=None):
+    _video(f, pos=pos)
+
+
 def _add_fadeout():
     global _add_fade_out
 
@@ -159,7 +163,7 @@ def create_image_seq_clip(tar_file):
     return clip
 
 
-def _video(video_file, clip_operations=None, speed=None):
+def _video(video_file, clip_operations=None, speed=None, pos=None):
     if _get_cur_vid_track():
         prev_start, prev_clip = _get_cur_vid_track()[-1]
         prev_duration = prev_clip.duration
@@ -184,6 +188,8 @@ def _video(video_file, clip_operations=None, speed=None):
 
     if video_file.endswith('.tar'):
         clip = create_image_seq_clip(video_file)
+    elif video_file.endswith('.png'):
+        clip = ImageClip(video_file).set_duration(2).crossfadein(FADEOUT_DURATION)
     else:
         clip = VideoFileClip(video_file)
 
@@ -195,6 +201,9 @@ def _video(video_file, clip_operations=None, speed=None):
 
     if clip_operations is not None:
         clip = clip_operations(clip)
+
+    if pos is not None:
+        clip = clip.set_position(pos)
 
     _get_cur_vid_track().append((_playhead_history[-1], clip))
 
