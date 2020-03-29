@@ -16,16 +16,29 @@ PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 FPS = 25
 FADEOUT_DURATION = 0.25
 
-video_clips = []
 audio_clips = []
 cur_markers = None
 
-audio_track_cur_pos = 0
-audio_track_cur_duration = 0
+_audio_track_cur_pos = 0
+_playhead_history = [0]
 
-video_track_cur_pos = 0
+_audio_track_cur_duration = 0
 
-add_fade_out = False
+
+_add_fade_out = False
+
+_video_tracks = {}
+_cur_vid_track_name = 'default'
+
+
+def _get_cur_vid_track():
+    if _cur_vid_track_name not in _video_tracks:
+        track = []
+        _video_tracks[_cur_vid_track_name] = track
+    else:
+        track = _video_tracks[_cur_vid_track_name]
+
+    return track
 
 
 def _get_markers(file):
@@ -64,12 +77,12 @@ def get_all_python_block():
 
 
 def audio(f):
-    global audio_track_cur_pos, audio_track_cur_duration, audio_clips, cur_markers, video_track_cur_pos
+    global _audio_track_cur_pos, _audio_track_cur_duration, audio_clips, cur_markers
 
-    audio_track_cur_pos += audio_track_cur_duration
+    _audio_track_cur_pos += _audio_track_cur_duration
 
     # Also forward video track pos
-    video_track_cur_pos = audio_track_cur_pos
+    _playhead_history.append(_audio_track_cur_pos)
 
     # HACK:
     f = 'out/' + f
@@ -77,9 +90,9 @@ def audio(f):
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
-    audio_track_cur_duration = audio_clip.duration
+    _audio_track_cur_duration = audio_clip.duration
 
-    audio_clip = audio_clip.set_start(audio_track_cur_pos)
+    audio_clip = audio_clip.set_start(_audio_track_cur_pos)
     audio_clips.append(audio_clip)
 
     # Get markers
@@ -88,34 +101,46 @@ def audio(f):
         print(cur_markers)
 
 
-def set_cur(p):
-    global video_track_cur_pos
-
+def set_playhead(p):
     PATT_FLOAT = r'([-+]?\d*\.?\d*)'
 
     if type(p) == str:
         match = re.match(r'^\+=' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
-            video_track_cur_pos += delta
+
+            _playhead_history.append(_playhead_history[-1] + delta)
+
             return
 
         match = re.match(r'^\<' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
-            start, _ = video_clips[-1]
-            video_track_cur_pos = start + delta
+            start, _ = _get_cur_vid_track()[-1]
+
+            _playhead_history.append(start + delta)
+
+            return
+
+        match = re.match(r'^last\+' + PATT_FLOAT + '$', p)
+        if match:
+            delta = float(match.group(1))
+            _playhead_history.append(_playhead_history[-2] + delta)
+
+            return
+
+        raise Exception('Invalid param.')
 
 
 def _add_fadeout():
-    global add_fade_out
+    global _add_fade_out
 
-    if add_fade_out:
-        start, clip = video_clips[-1]
+    if _add_fade_out:
+        start, clip = _get_cur_vid_track()[-1]
         clip = clip.fx(vfx.fadeout, FADEOUT_DURATION)
-        video_clips[-1] = (start, clip)
+        _get_cur_vid_track()[-1] = (start, clip)
 
-        add_fade_out = False
+        _add_fade_out = False
 
 
 def create_image_seq_clip(tar_file):
@@ -134,27 +159,25 @@ def create_image_seq_clip(tar_file):
 
 
 def _video(video_file, clip_operations=None, speed=None):
-    global video_track_cur_pos
-
-    if video_clips:
-        prev_start, prev_clip = video_clips[-1]
+    if _get_cur_vid_track():
+        prev_start, prev_clip = _get_cur_vid_track()[-1]
         prev_duration = prev_clip.duration
         prev_end = prev_start + prev_duration
 
         # Fill the blank
-        gap = video_track_cur_pos - prev_end
+        gap = _playhead_history[-1] - prev_end
         if gap > 0:
             print('frame hold (duration=%.2f)' % gap)
 
             t_lastframe = prev_duration - (1 / prev_clip.fps)
             clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
-            video_clips.append((prev_end, clip))
+            _get_cur_vid_track().append((prev_end, clip))
 
         else:
             print('previous video clipped')
 
-            video_clips[-1] = prev_start, prev_clip.set_duration(
-                video_track_cur_pos - prev_start)
+            _get_cur_vid_track()[-1] = prev_start, prev_clip.set_duration(
+                _playhead_history[-1] - prev_start)
 
     _add_fadeout()
 
@@ -172,12 +195,13 @@ def _video(video_file, clip_operations=None, speed=None):
     if clip_operations is not None:
         clip = clip_operations(clip)
 
-    video_clips.append((video_track_cur_pos, clip))
-    video_track_cur_pos += clip.duration
+    _get_cur_vid_track().append((_playhead_history[-1], clip))
+
+    _playhead_history.append(_playhead_history[-1] + clip.duration)
 
 
 def _animation(url, file_prefix, part):
-    global video_track_cur_pos, add_fade_out
+    global _add_fade_out
 
     file_prefix = 'animation/' + slugify(file_prefix)
 
@@ -212,9 +236,9 @@ def _animation(url, file_prefix, part):
             else:
                 clip = clip.subclip(m2)
 
-            clip = clip.set_start(video_track_cur_pos + m1)
-            print(m2, video_track_cur_pos + m1)
-            video_clips.append(clip)
+            clip = clip.set_start(_playhead_history[-1] + m1)
+            print(m2, _playhead_history[-1] + m1)
+            _get_cur_vid_track().append(clip)
 
     else:
         _video(out_file)
@@ -237,8 +261,8 @@ def title_anim(h1, h2, part=None):
 
 
 def fadeout():
-    global add_fade_out
-    add_fade_out = True
+    global _add_fade_out
+    _add_fade_out = True
 
 
 # TODO: refactor
@@ -271,13 +295,13 @@ def list_anim(s):
             else:
                 clip = clip.subclip(m2)
 
-            clip = clip.set_start(audio_track_cur_pos + m1)
-            print(m2, audio_track_cur_pos + m1)
-            video_clips.append(clip)
+            clip = clip.set_start(_audio_track_cur_pos + m1)
+            print(m2, _audio_track_cur_pos + m1)
+            _get_cur_vid_track().append(clip)
 
     else:
-        clip = VideoFileClip(out_file).set_start(audio_track_cur_pos)
-        video_clips.append(clip)
+        clip = VideoFileClip(out_file).set_start(_audio_track_cur_pos)
+        _get_cur_vid_track().append(clip)
 
 
 def video(f):
@@ -291,6 +315,11 @@ def screencap(f, speed=None):
             x1=0, y1=0, x2=2560, y2=1380).resize(0.75).set_position((0, 22)),
         speed=speed,
     )
+
+
+def set_vid_track(name):
+    global _cur_vid_track_name
+    _cur_vid_track_name = name
 
 
 cd(PROJ_DIR)
@@ -308,13 +337,16 @@ else:
     final_audio_clip = None
 
 
-# TODO: refactor
-if len(video_clips) == 0:
-    video_clips.append(
-        ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
+# # TODO: refactor
+# if len(video_clips) == 0:
+#     video_clips.append(
+#         ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
 
-
-final_clip = CompositeVideoClip([clip.set_start(start) for start, clip in video_clips], size=(
+video_clips = []
+for track in _video_tracks.values():
+    for start, clip in track:
+        video_clips.append(clip.set_start(start))
+final_clip = CompositeVideoClip(video_clips, size=(
     1920, 1080)).set_audio(final_audio_clip)
 
 # final_clip.show(10.5, interactive=True)
