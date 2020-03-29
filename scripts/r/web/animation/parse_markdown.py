@@ -104,6 +104,7 @@ def audio(f):
 def set_playhead(p):
     PATT_FLOAT = r'([-+]?\d*\.?\d*)'
 
+    success = False
     if type(p) == str:
         match = re.match(r'^\+=' + PATT_FLOAT + '$', p)
         if match:
@@ -129,7 +130,7 @@ def set_playhead(p):
 
             return
 
-        raise Exception('Invalid param.')
+    raise Exception('Invalid param.')
 
 
 def _add_fadeout():
