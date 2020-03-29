@@ -53,7 +53,11 @@ def get_all_meta_data():
 
 
 def get_all_python_block():
-    s = open('index.md', 'r', encoding='utf-8').read()
+    lines = open('index.md', 'r', encoding='utf-8').readlines()
+    lines = lines[247:]
+
+    s = '\n'.join(lines)
+
     matches = re.findall(r'<!---\s*([\w\W]+?)\s*-->', s)
     matches = [x.strip() for x in matches]
     return matches
@@ -114,6 +118,40 @@ def _add_fadeout():
         add_fade_out = False
 
 
+def _video(video_file):
+    global video_track_cur_pos
+
+    if video_clips:
+        prev_start, prev_clip = video_clips[-1]
+        prev_duration = prev_clip.duration
+        prev_end = prev_start + prev_duration
+
+        # Fill the blank
+        gap = video_track_cur_pos - prev_end
+        if gap > 0:
+            print('frame hold (duration=%.2f)' % gap)
+
+            t_lastframe = prev_duration - (1 / prev_clip.fps)
+            clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
+            video_clips.append((prev_end, clip))
+
+        else:
+            print('previous video clipped')
+
+            video_clips[-1] = prev_start, prev_clip.set_duration(
+                video_track_cur_pos - prev_start)
+
+    _add_fadeout()
+
+    clip = VideoFileClip(video_file)
+
+    # if video_clips:
+    #     clip = clip.set_position((45,150))
+
+    video_clips.append((video_track_cur_pos, clip))
+    video_track_cur_pos += clip.duration
+
+
 def _animation(url, file_prefix, part):
     global video_track_cur_pos, add_fade_out
 
@@ -134,7 +172,9 @@ def _animation(url, file_prefix, part):
 
     # Get markers
     markers = _get_markers(out_file)
-    if markers:  # TODO: refactor logic here.
+    if markers:
+        raise Exception('TODO: refactor logic here.')
+
         # Try to align with audio markers
         for i, (m1, m2) in enumerate(zip(cur_markers, markers)):
             clip = VideoFileClip(out_file)
@@ -153,29 +193,7 @@ def _animation(url, file_prefix, part):
             video_clips.append(clip)
 
     else:
-        if video_clips:
-            prev_start, prev_clip = video_clips[-1]
-            prev_duration = prev_clip.duration
-            prev_end = prev_start + prev_duration
-
-            # Fill the blank
-            gap = video_track_cur_pos - prev_end
-            if gap > 0:
-                print('frame hold (duration=%.2f)' % gap)
-
-                t_lastframe = prev_duration - (1 / prev_clip.fps)
-                clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
-                video_clips.append((prev_end, clip))
-
-            else:
-                video_clips[-1] = prev_start, prev_clip.set_duration(
-                    video_track_cur_pos - prev_start)
-
-        _add_fadeout()
-
-        clip = VideoFileClip(out_file)
-        video_clips.append((video_track_cur_pos, clip))
-        video_track_cur_pos += clip.duration
+        _video(out_file)
 
 
 def anim(s, part=None):
@@ -239,20 +257,25 @@ def list_anim(s):
 
 
 def video(f):
-    print('video')
+    _video(f)
 
 
 cd(PROJ_DIR)
 
 
 blocks = get_all_python_block()
-for b in blocks[30:]:
+for b in blocks:
     exec(b, globals())
 
 
-final_audio_clip = CompositeAudioClip(audio_clips)
-# final_audio_clip.write_audiofile('out.wav')
+if audio_clips:
+    final_audio_clip = CompositeAudioClip(audio_clips)
+    # final_audio_clip.write_audiofile('out.wav')
+else:
+    final_audio_clip = None
 
+
+# TODO: refactor
 if len(video_clips) == 0:
     video_clips.append(
         ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
