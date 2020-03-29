@@ -12,10 +12,10 @@ WinClose, %AUDIO_RECORDER_TITLE%
 Run, cmd /c title %AUDIO_RECORDER_TITLE% & set "PYTHONPATH=%A_ScriptDir%\..\..\..\..\libs" & set "RECORD_OUT_DIR=record" & python "%A_ScriptDir%\..\..\audio\recorder.py"
 
 ; Screencap (full screen)
-$`::
-    Send !{f9}
-    
+$F6::
     if (not is_recording) {
+        Send !{f9}
+
         WinGet hwnd, ID, A
         Run, %LOCALAPPDATA%\carnac\Carnac.exe
         
@@ -24,7 +24,12 @@ $`::
         Sleep 1000
         WinActivate ahk_id %hwnd%
     } else {
+        
+
         Process, Close, Carnac.exe
+
+        Send !{f9}
+        Sleep, 1000  ; Make sure that the window is not pop up when recording stops.
         
         WinActivate, ahk_pid %pid_screencap%
     }

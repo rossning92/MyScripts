@@ -13,6 +13,9 @@ if True:
 
 
 def capture_js_animation(url, out_file=None):
+    if out_file is None:
+        out_file = 'animation_%s' % get_time_str()
+
     async def main():
         browser = await launch(headless=False,
                                args=['--disable-dev-shm-usage'],
@@ -49,4 +52,5 @@ def capture_js_animation(url, out_file=None):
 
 
 if __name__ == "__main__":
+    cd(expanduser('~/Downloads'))
     capture_js_animation('http://localhost:8080/' + '{{HTML_FILE}}')

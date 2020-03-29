@@ -19,10 +19,38 @@ import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
 import gsap from "gsap";
 import { MeshLine, MeshLineMaterial } from "three.meshline";
 import * as THREE from "three";
-// import font2 from '../utils/cn.json'
 
 const fontLoader = new FontLoader();
-// const font = fontLoader.load('fonts/cn.json');
+
+const ENGLISH_LETTER_PATT = /^[A-Za-z0-9]*$/;
+
+const fontMap = {};
+
+function loadFont(fontName = null, letter = null) {
+  if (fontName === null && letter !== null) {
+    fontName = ENGLISH_LETTER_PATT.test(letter) ? "en" : "zh";
+  }
+
+  if (fontName in fontMap) {
+    return fontMap[fontName];
+  } else {
+    let font;
+    if (fontName == "zh") {
+      font = fontLoader.parse(require("../fonts/sourceHan3000Bold"));
+    } else if (fontName == "en") {
+      font = fontLoader.parse(require("../fonts/muliBold").default);
+    } else if (fontName == "math") {
+      font = fontLoader.parse(require("../fonts/latinModernMathRegular"));
+    } else if (fontName == "code") {
+      font = fontLoader.parse(require("../fonts/sourceCodeProRegular"));
+    } else {
+      throw `Invalid font name: ${fontName}`;
+    }
+
+    fontMap[fontName] = font;
+    return font;
+  }
+}
 
 function createLitMaterial() {
   const material = new THREE.MeshStandardMaterial({
@@ -43,7 +71,7 @@ export default class TextMesh extends Object3D {
     color = "#ffffff",
     opacity = 1,
     wireframe = false,
-    font = "en",
+    font = null,
     material = null
   } = {}) {
     super();
@@ -54,11 +82,6 @@ export default class TextMesh extends Object3D {
     this.letterSpacing = letterSpacing;
 
     this.fontName = font;
-    this.fontZh = fontLoader.parse(require("../fonts/sourceHan3000Bold"));
-    this.fontEn = fontLoader.parse(require("../fonts/muliBold").default);
-    this.fontMath = fontLoader.parse(
-      require("../fonts/latinModernMathRegular")
-    );
 
     if (material) {
       this.material = material;
@@ -159,8 +182,6 @@ export default class TextMesh extends Object3D {
   }
 
   set text(text) {
-    const english = /^[A-Za-z0-9]*$/;
-
     this.children.length = 0;
 
     if (1) {
@@ -173,12 +194,7 @@ export default class TextMesh extends Object3D {
         if (letter === " ") {
           totalWidth += this.size * 0.5;
         } else {
-          let font;
-          if (this.fontName == "math") {
-            font = this.fontMath;
-          } else {
-            font = english.test(letter) ? this.fontEn : this.fontZh;
-          }
+          const font = loadFont(this.fontName, letter);
 
           const geom = new THREE.ShapeBufferGeometry(
             font.generateShapes(letter, this.size, 1)

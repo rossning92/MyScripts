@@ -72,6 +72,7 @@ let palette = [
 
 var glitchPass;
 var gridHelper;
+let backgroundAlpha = 1.0;
 
 var animationCallbacks = [];
 
@@ -172,6 +173,7 @@ function setupOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
 function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   let options = {
     // antialias: true,
+    alpha: true
   };
   if (AA_METHOD == "msaa") {
     options.antialias = true;
@@ -189,6 +191,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     document.body.appendChild(stats.dom);
   }
 
+  renderer.setClearColor(0x000000, backgroundAlpha);
   scene.background = 0;
 
   if (camera == null) {
@@ -1982,7 +1985,6 @@ async function addAsync(
       // emissive: 0x072534,
       // side: THREE.DoubleSide,
       flatShading: true
-      // transparent:
     });
   } else {
     material = new THREE.MeshBasicMaterial({
@@ -2309,6 +2311,10 @@ function addCustomAnimation(
   );
 }
 
+function setBackgroundAlpha(alpha) {
+  backgroundAlpha = alpha;
+}
+
 export default {
   addCollapseAnimation,
   addExplosionAnimation,
@@ -2360,7 +2366,8 @@ export default {
   addPulse,
   setupOrthoCamera,
   addCustomAnimation,
-  add2DSpinning
+  add2DSpinning,
+  setBackgroundAlpha,
 };
 
 export { THREE, gsap };
