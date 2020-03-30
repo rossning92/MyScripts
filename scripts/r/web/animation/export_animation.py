@@ -28,7 +28,7 @@ _audio_track_cur_duration = 0
 _add_fade_out = False
 
 _video_tracks = {}
-_cur_vid_track_name = 'default'
+_cur_vid_track_name = None  # default video track
 
 
 def _get_cur_vid_track():
@@ -189,11 +189,16 @@ def _add_clip(file, clip_operations=None, speed=None, pos=None):
 
     _add_fadeout()
 
-    if file.endswith('.tar'):
+    if file is None:
+        clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(2)
+
+    elif file.endswith('.tar'):
         clip = create_image_seq_clip(file)
+
     elif file.endswith('.png'):
         clip = ImageClip(file).set_duration(
             2).crossfadein(FADEOUT_DURATION)
+
     else:
         clip = VideoFileClip(file)
 
@@ -273,6 +278,10 @@ def title_anim(h1, h2, part=None):
     _animation(url, file_prefix, part=part)
 
 
+def placeholder():
+    _add_clip(None)
+
+
 def fadeout():
     global _add_fade_out
     _add_fade_out = True
@@ -330,7 +339,7 @@ def screencap(f, speed=None):
     )
 
 
-def set_track(name):
+def set_track(name=None):
     global _cur_vid_track_name
     _cur_vid_track_name = name
 
