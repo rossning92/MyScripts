@@ -117,6 +117,7 @@ return
 
 #Up::
     WinMaximize, A
+    WinSet, AlwaysOnTop, Off, A
 return
 
 #If
