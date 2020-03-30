@@ -1,6 +1,12 @@
+if 1:
+    import os
+    import sys
+    sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
+    sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + '/../'))
+
 from _shutil import *
-from . import capture_animation
-from .. import generate_slides
+import capture_animation
+import generate_slides
 from r.open_with.open_with_ import open_with
 import re
 import urllib
