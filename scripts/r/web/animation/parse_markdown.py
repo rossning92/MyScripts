@@ -129,6 +129,7 @@ def set_playhead(p):
             delta = float(match.group(2))
             _playhead_history.append(
                 _playhead_history[-index_back_in_history - 1] + delta)
+            print(_playhead_history)
 
             return
 
@@ -136,7 +137,7 @@ def set_playhead(p):
 
 
 def image(f, pos=None):
-    _video(f, pos=pos)
+    _add_clip(f, pos=pos)
 
 
 def _add_fadeout():
@@ -165,7 +166,7 @@ def create_image_seq_clip(tar_file):
     return clip
 
 
-def _video(video_file, clip_operations=None, speed=None, pos=None):
+def _add_clip(file, clip_operations=None, speed=None, pos=None):
     if _get_cur_vid_track():
         prev_start, prev_clip = _get_cur_vid_track()[-1]
         prev_duration = prev_clip.duration
@@ -188,13 +189,13 @@ def _video(video_file, clip_operations=None, speed=None, pos=None):
 
     _add_fadeout()
 
-    if video_file.endswith('.tar'):
-        clip = create_image_seq_clip(video_file)
-    elif video_file.endswith('.png'):
-        clip = ImageClip(video_file).set_duration(
+    if file.endswith('.tar'):
+        clip = create_image_seq_clip(file)
+    elif file.endswith('.png'):
+        clip = ImageClip(file).set_duration(
             2).crossfadein(FADEOUT_DURATION)
     else:
-        clip = VideoFileClip(video_file)
+        clip = VideoFileClip(file)
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
@@ -253,7 +254,7 @@ def _animation(url, file_prefix, part):
             _get_cur_vid_track().append(clip)
 
     else:
-        _video(out_file)
+        _add_clip(out_file)
 
 
 def anim(s, part=None):
@@ -317,11 +318,11 @@ def list_anim(s):
 
 
 def video(f):
-    _video(f)
+    _add_clip(f)
 
 
 def screencap(f, speed=None):
-    _video(
+    _add_clip(
         f,
         clip_operations=lambda x: x.crop(
             x1=0, y1=0, x2=2560, y2=1380).resize(0.75).set_position((0, 22)),
@@ -329,7 +330,7 @@ def screencap(f, speed=None):
     )
 
 
-def set_vid_track(name):
+def set_track(name):
     global _cur_vid_track_name
     _cur_vid_track_name = name
 
