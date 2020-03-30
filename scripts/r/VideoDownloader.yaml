@@ -2,3 +2,4 @@ autoRun: true
 hotkey: null
 newWindow: true
 runAsAdmin: false
+template: false

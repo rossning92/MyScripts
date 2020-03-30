@@ -39,15 +39,30 @@ def get_ahk_exe(uia=True):
     return ahk_exe
 
 
-def write_temp_file(text, ext):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
-        if ext in ['.bat', '.cmd']:
-            encoding = locale.getpreferredencoding()
-        else:
-            encoding = 'utf-8'
+def write_temp_file(text, file_path):
+    name, ext = os.path.splitext(file_path)
 
-        temp.write(text.encode(encoding))
-        return temp.name
+    # Convert into bytes
+    if ext in ['.bat', '.cmd']:
+        encoding = locale.getpreferredencoding()
+    else:
+        encoding = 'utf-8'
+    bytes = text.encode(encoding)
+
+    if name == '':
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
+            temp.write(bytes)
+            return temp.name
+    else:
+        full_path = os.path.join(tempfile.gettempdir(), file_path)
+
+        subfolder = os.path.dirname(full_path)
+        if subfolder:
+            os.makedirs(subfolder, exist_ok=True)
+
+        with open(full_path, 'wb') as f:
+            f.write(bytes)
+            return full_path
 
 
 def exec_ahk(script, tmp_script_path=None, wait=True):

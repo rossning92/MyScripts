@@ -1,15 +1,17 @@
 Menu, Tray, Icon, animation_toolkit.ico
 #SingleInstance, Force
 
+SCRIPT_DIR := A_WorkingDir
+
 is_recording := False
 
-PROJECT_DIR = C:\Data\ep14
+PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
 AUDIO_RECORDER_TITLE = r/audio/recorder
 
 SetWorkingDir, %PROJECT_DIR%
 
 WinClose, %AUDIO_RECORDER_TITLE%
-Run, cmd /c title %AUDIO_RECORDER_TITLE% & set "PYTHONPATH=%A_ScriptDir%\..\..\..\..\libs" & set "RECORD_OUT_DIR=record" & python "%A_ScriptDir%\..\..\audio\recorder.py"
+Run, cmd /c title %AUDIO_RECORDER_TITLE% & set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & set "RECORD_OUT_DIR=record" & python "%SCRIPT_DIR%\..\..\audio\recorder.py"
 
 ; Screencap (full screen)
 $F6::
@@ -19,7 +21,7 @@ $F6::
         WinGet hwnd, ID, A
         Run, %LOCALAPPDATA%\carnac\Carnac.exe
         
-        Run, cmd /c set "PYTHONPATH=%A_ScriptDir%\..\..\..\..\libs" & python "%A_ScriptDir%\_wait_for_screencap.py", , Min, pid_screencap
+        Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\_wait_for_screencap.py", , Min, pid_screencap
         
         Sleep 1000
         WinActivate ahk_id %hwnd%
@@ -62,7 +64,7 @@ return
 ; Export
 $F12::
     Send ^s
-    Run, cmd /c set "PYTHONPATH=%A_ScriptDir%\..\..\..;%A_ScriptDir%\..\..\..\..\libs" & python "%A_ScriptDir%\_export_final_audio.py" || pause
+    Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..;%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\_export_final_audio.py" || pause
 return
 
 !Esc::

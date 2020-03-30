@@ -313,8 +313,19 @@ class ScriptItem:
                 # HACK: add python path to env var
                 env['PYTHONPATH'] = os.path.dirname(__file__)
 
-                script_abs_path = os.path.abspath(script_path)
-                args = [get_ahk_exe(), script_abs_path]
+                if self.meta['template']:
+                    script_path = write_temp_file(
+                        self.render(),
+                        os.path.join(
+                            'GeneratedAhkScript/',
+                            os.path.basename(self.script_path)
+                        )
+                    )
+                else:
+                    script_path = os.path.abspath(script_path)
+
+                args = [get_ahk_exe(), script_path]
+
                 self.meta['background'] = True
 
                 if self.meta['runAsAdmin']:
