@@ -107,10 +107,16 @@ return
 
 #Left::
     MoveWindow("left")
+    WinSet, AlwaysOnTop, Off, A
 return
 
 #Right::
     MoveWindow("right")
+    WinSet, AlwaysOnTop, On, A
+return
+
+#Up::
+    WinMaximize, A
 return
 
 #If
