@@ -123,10 +123,12 @@ def set_playhead(p):
 
             return
 
-        match = re.match(r'^last\+' + PATT_FLOAT + '$', p)
+        match = re.match(r'^(\^+)' + PATT_FLOAT + '$', p)
         if match:
-            delta = float(match.group(1))
-            _playhead_history.append(_playhead_history[-2] + delta)
+            index_back_in_history = len(match.group(1))
+            delta = float(match.group(2))
+            _playhead_history.append(
+                _playhead_history[-index_back_in_history - 1] + delta)
 
             return
 
@@ -189,12 +191,10 @@ def _video(video_file, clip_operations=None, speed=None, pos=None):
     if video_file.endswith('.tar'):
         clip = create_image_seq_clip(video_file)
     elif video_file.endswith('.png'):
-        clip = ImageClip(video_file).set_duration(2).crossfadein(FADEOUT_DURATION)
+        clip = ImageClip(video_file).set_duration(
+            2).crossfadein(FADEOUT_DURATION)
     else:
         clip = VideoFileClip(video_file)
-
-    # if video_clips:
-    #     clip = clip.set_position((45,150))
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
@@ -203,7 +203,9 @@ def _video(video_file, clip_operations=None, speed=None, pos=None):
         clip = clip_operations(clip)
 
     if pos is not None:
-        clip = clip.set_position(pos)
+        half_size = [x // 2 for x in clip.size]
+        clip = clip.set_position(
+            (pos[0] - half_size[0], pos[1] - half_size[1]))
 
     _get_cur_vid_track().append((_playhead_history[-1], clip))
 
