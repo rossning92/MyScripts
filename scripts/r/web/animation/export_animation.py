@@ -174,7 +174,7 @@ def _add_clip(file, clip_operations=None, speed=None, pos=None):
 
         # Fill the blank
         gap = _playhead_history[-1] - prev_end
-        if gap > 0:
+        if gap > 0 and type(prev_clip) == VideoFileClip:
             print('frame hold (duration=%.2f)' % gap)
 
             t_lastframe = prev_duration - (1 / prev_clip.fps)
