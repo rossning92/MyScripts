@@ -106,14 +106,11 @@ return
 return
 
 #Left::
-    WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
-    w := A_ScreenWidth - A_ScreenWidth / 4
-    h := A_ScreenHeight - th
-    x := 0
-    y := 0
-    
-    WinRestore, A
-    WinMove, A, , %x%, %y%, %w%, %h%
+    MoveWindow("left")
+return
+
+#Right::
+    MoveWindow("right")
 return
 
 #If
@@ -126,6 +123,23 @@ Send f
 return
 #If
     
+MoveWindow(pos="left") {
+    WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
+    
+    if (pos = "left") {
+        x := 0
+        w := A_ScreenWidth * 3 / 4
+    } else {
+        x := A_ScreenWidth * 3 / 4
+        w := A_ScreenWidth / 4
+    }
+    
+    y := 0
+    h := A_ScreenHeight - th
+    
+    WinRestore, A
+    WinMove, A, , %x%, %y%, %w%, %h%
+}
 
 ActivateChrome(index=0)
 {
