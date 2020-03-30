@@ -1,12 +1,9 @@
-import asyncio
-from pyppeteer import launch
-import time
-import sys
 from _shutil import *
-
-if True:
-    sys.path.append('../../video')
-    from ccapture_to_mov import convert_to_mov
+from pyppeteer import launch
+from r.video.ccapture_to_mov import convert_to_mov
+import asyncio
+import sys
+import time
 
 # Fix for `callFunctionOn: Target closed.`
 # pip3 install websockets==6.0 --force-reinstall

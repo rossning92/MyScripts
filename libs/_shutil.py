@@ -41,6 +41,9 @@ def get_ahk_exe(uia=True):
 
 def write_temp_file(text, file_path):
     name, ext = os.path.splitext(file_path)
+    if ext == '':
+        ext = name
+        name = ''
 
     # Convert into bytes
     if ext in ['.bat', '.cmd']:

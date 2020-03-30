@@ -1,15 +1,17 @@
 from _shutil import *
-import generate_slides
-import urllib
-import webbrowser
-import capture_animation
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip, CompositeAudioClip, ColorClip, ImageSequenceClip, ImageClip
-from moviepy.config import change_settings
-import moviepy.video.fx.all as vfx
+from . import capture_animation
+from .. import generate_slides
 from r.open_with.open_with_ import open_with
 import re
+import urllib
+import webbrowser
 
-change_settings({"FFMPEG_BINARY": "ffmpeg"})
+if 1:  # Import moviepy
+    os.environ['IMAGEMAGICK_BINARY'] = r"C:\Program Files\ImageMagick-7.0.9-Q16\magick.exe"
+    from moviepy.config import change_settings
+    from moviepy.editor import *
+    import moviepy.video.fx.all as vfx
+    change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
 PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 
@@ -166,7 +168,7 @@ def create_image_seq_clip(tar_file):
     return clip
 
 
-def _add_clip(file, clip_operations=None, speed=None, pos=None):
+def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None):
     if _get_cur_vid_track():
         prev_start, prev_clip = _get_cur_vid_track()[-1]
         prev_duration = prev_clip.duration
@@ -189,7 +191,11 @@ def _add_clip(file, clip_operations=None, speed=None, pos=None):
 
     _add_fadeout()
 
-    if file is None:
+    if text is not None:
+        clip = TextClip(text, fontsize=48, color='white').set_duration(
+            2).set_position(("center", "bottom"))
+
+    elif file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(2)
 
     elif file.endswith('.tar'):
@@ -278,6 +284,15 @@ def title_anim(h1, h2, part=None):
     _animation(url, file_prefix, part=part)
 
 
+def text(text):
+    set_track('text')
+    set_playhead('^0')
+    _add_clip(text=text)
+    set_track()
+
+    set_playhead('^^0')
+
+
 def placeholder():
     _add_clip(None)
 
@@ -327,6 +342,7 @@ def list_anim(s):
 
 
 def video(f):
+    print('Video: %s' % f)
     _add_clip(f)
 
 
@@ -344,49 +360,33 @@ def set_track(name=None):
     _cur_vid_track_name = name
 
 
-cd(PROJ_DIR)
+def export_video(resolution=(1920, 1080), fps=FPS):
+    if audio_clips:
+        final_audio_clip = CompositeAudioClip(audio_clips)
+        # final_audio_clip.write_audiofile('out.wav')
+    else:
+        final_audio_clip = None
+
+    video_clips = []
+    for track in _video_tracks.values():
+        for start, clip in track:
+            video_clips.append(clip.set_start(start))
+    final_clip = CompositeVideoClip(
+        video_clips, size=resolution).set_audio(final_audio_clip)
+
+    # final_clip.show(10.5, interactive=True)
+    # final_clip.preview(fps=10, audio=False)
+
+    final_clip.write_videofile('out.mp4', codec='nvenc', threads=8, fps=fps)
+
+    open_with('out.mp4')
 
 
-blocks = get_all_python_block()
-for b in blocks:
-    exec(b, globals())
+if __name__ == '__main__':
+    cd(PROJ_DIR)
 
+    blocks = get_all_python_block()
+    for b in blocks:
+        exec(b, globals())
 
-if audio_clips:
-    final_audio_clip = CompositeAudioClip(audio_clips)
-    # final_audio_clip.write_audiofile('out.wav')
-else:
-    final_audio_clip = None
-
-
-# # TODO: refactor
-# if len(video_clips) == 0:
-#     video_clips.append(
-#         ColorClip((1920, 1080), color=(39, 60, 117), duration=1))
-
-video_clips = []
-for track in _video_tracks.values():
-    for start, clip in track:
-        video_clips.append(clip.set_start(start))
-final_clip = CompositeVideoClip(video_clips, size=(
-    1920, 1080)).set_audio(final_audio_clip)
-
-# final_clip.show(10.5, interactive=True)
-# final_clip.preview(fps=10, audio=False)
-
-final_clip.write_videofile('out.mp4', codec='nvenc', threads=8, fps=FPS)
-
-open_with('out.mp4')
-
-
-sys.exit(0)
-
-
-# for s in get_meta_data('ani:'):
-#     out_file = slugify('ani-' + s) + '.mov'
-#     if not os.path.exists(out_file):
-#         url = 'http://localhost:8080/%s.html' % s
-#         capture_animation.capture_js_animation(
-#             url,
-#             out_file=out_file
-#         )
+    export_video()
