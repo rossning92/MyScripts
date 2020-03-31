@@ -11,11 +11,13 @@ import urllib
 import webbrowser
 
 if 1:  # Import moviepy
-    os.environ['IMAGEMAGICK_BINARY'] = r"C:\Program Files\ImageMagick-7.0.9-Q16\magick.exe"
+    f = glob.glob(r'C:\Program Files\ImageMagick-*\magick.exe')[0]
+    os.environ['IMAGEMAGICK_BINARY'] = f
     from moviepy.config import change_settings
     from moviepy.editor import *
     import moviepy.video.fx.all as vfx
-    change_settings({"FFMPEG_BINARY": "ffmpeg"})
+
+change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
 PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 
