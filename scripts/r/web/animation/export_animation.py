@@ -1,14 +1,14 @@
+import webbrowser
+import urllib
+import re
+import capture_animation
+from r.open_with.open_with_ import open_with
+from _shutil import *
 if 1:
     import os
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from _shutil import *
-from r.open_with.open_with_ import open_with
-import capture_animation
-import re
-import urllib
-import webbrowser
 
 if 1:  # Import moviepy
     f = glob.glob(r'C:\Program Files\ImageMagick-*\magick.exe')[0]
@@ -28,7 +28,8 @@ audio_clips = []
 cur_markers = None
 
 _audio_track_cur_pos = 0
-_playhead_history = [0]
+_pos_list = [0]
+_pos_tags = {}
 
 _audio_track_cur_duration = 0
 
@@ -90,7 +91,8 @@ def audio(f):
     _audio_track_cur_pos += _audio_track_cur_duration
 
     # Also forward video track pos
-    _playhead_history.append(_audio_track_cur_pos)
+    _pos_tags['audio'] = _audio_track_cur_pos
+    _pos_list.append(_audio_track_cur_pos)
 
     # HACK:
     f = 'out/' + f
@@ -109,7 +111,7 @@ def audio(f):
         print(cur_markers)
 
 
-def set_playhead(p):
+def pos(p):
     PATT_FLOAT = r'([-+]?\d*\.?\d*)'
 
     success = False
@@ -118,7 +120,7 @@ def set_playhead(p):
         if match:
             delta = float(match.group(1))
 
-            _playhead_history.append(_playhead_history[-1] + delta)
+            _pos_list.append(_pos_list[-1] + delta)
 
             return
 
@@ -127,7 +129,7 @@ def set_playhead(p):
             delta = float(match.group(1))
             start, _ = _get_cur_vid_track()[-1]
 
-            _playhead_history.append(start + delta)
+            _pos_list.append(start + delta)
 
             return
 
@@ -135,9 +137,16 @@ def set_playhead(p):
         if match:
             index_back_in_history = len(match.group(1))
             delta = float(match.group(2))
-            _playhead_history.append(
-                _playhead_history[-index_back_in_history - 1] + delta)
-            print(_playhead_history)
+            _pos_list.append(
+                _pos_list[-index_back_in_history - 1] + delta)
+
+            return
+
+        match = re.match(r'^([a-z_]+)' + PATT_FLOAT + '$', p)
+        if match:
+            tag = match.group(1)
+            delta = float(match.group(2))
+            _pos_list.append(_pos_tags[tag] + delta)
 
             return
 
@@ -174,14 +183,14 @@ def create_image_seq_clip(tar_file):
     return clip
 
 
-def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None):
+def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None):
     if _get_cur_vid_track():
         prev_start, prev_clip = _get_cur_vid_track()[-1]
         prev_duration = prev_clip.duration
         prev_end = prev_start + prev_duration
 
         # Fill the blank
-        gap = _playhead_history[-1] - prev_end
+        gap = _pos_list[-1] - prev_end
         if gap > 0 and type(prev_clip) == VideoFileClip:
             print('frame hold (duration=%.2f)' % gap)
 
@@ -193,7 +202,7 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None):
             print('previous video clipped')
 
             _get_cur_vid_track()[-1] = prev_start, prev_clip.set_duration(
-                _playhead_history[-1] - prev_start)
+                _pos_list[-1] - prev_start)
 
     _add_fadeout()
 
@@ -225,9 +234,12 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None):
         clip = clip.set_position(
             (pos[0] - half_size[0], pos[1] - half_size[1]))
 
-    _get_cur_vid_track().append((_playhead_history[-1], clip))
+    if tag:
+        _pos_tags[tag] = _pos_list[-1]
 
-    _playhead_history.append(_playhead_history[-1] + clip.duration)
+    _get_cur_vid_track().append((_pos_list[-1], clip))
+
+    _pos_list.append(_pos_list[-1] + clip.duration)
 
 
 def _animation(url, file_prefix, part):
@@ -266,8 +278,8 @@ def _animation(url, file_prefix, part):
             else:
                 clip = clip.subclip(m2)
 
-            clip = clip.set_start(_playhead_history[-1] + m1)
-            print(m2, _playhead_history[-1] + m1)
+            clip = clip.set_start(_pos_list[-1] + m1)
+            print(m2, _pos_list[-1] + m1)
             _get_cur_vid_track().append(clip)
 
     else:
@@ -291,12 +303,12 @@ def title_anim(h1, h2, part=None):
 
 
 def text(text):
-    set_track('text')
-    set_playhead('^0')
+    track('text')
+    pos('^0')
     _add_clip(text=text)
-    set_track()
+    track()
 
-    set_playhead('^^0')
+    pos('^^0')
 
 
 def placeholder():
@@ -349,7 +361,7 @@ def list_anim(s):
 
 def video(f):
     print('Video: %s' % f)
-    _add_clip(f)
+    _add_clip(f, tag='video')
 
 
 def screencap(f, speed=None):
@@ -358,10 +370,11 @@ def screencap(f, speed=None):
         clip_operations=lambda x: x.crop(
             x1=0, y1=0, x2=2560, y2=1380).resize(0.75).set_position((0, 22)),
         speed=speed,
+        tag='video'
     )
 
 
-def set_track(name=None):
+def track(name=None):
     global _cur_vid_track_name
     _cur_vid_track_name = name
 
@@ -384,7 +397,7 @@ def export_video(resolution=(1920, 1080), fps=FPS):
     # final_clip.preview(fps=10, audio=False)
 
     final_clip.write_videofile(
-        'out.mp4', codec='libx264', threads=8, fps=fps, 
+        'out.mp4', codec='libx264', threads=8, fps=fps,
         ffmpeg_params=['-crf', '19'])
 
     open_with('out.mp4')
