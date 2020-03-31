@@ -1,13 +1,11 @@
 if 1:
     import os
     import sys
-    sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
-    sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + '/../'))
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from _shutil import *
-import capture_animation
-import generate_slides
 from r.open_with.open_with_ import open_with
+import capture_animation
 import re
 import urllib
 import webbrowser
@@ -383,7 +381,9 @@ def export_video(resolution=(1920, 1080), fps=FPS):
     # final_clip.show(10.5, interactive=True)
     # final_clip.preview(fps=10, audio=False)
 
-    final_clip.write_videofile('out.mp4', codec='nvenc', threads=8, fps=fps)
+    final_clip.write_videofile(
+        'out.mp4', codec='libx264', threads=8, fps=fps, 
+        ffmpeg_params=['-crf', '19'])
 
     open_with('out.mp4')
 

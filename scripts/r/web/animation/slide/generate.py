@@ -22,13 +22,13 @@ _template_env = jinja2.Environment(loader=_template_loader)
 _palette = json.load(open(os.path.join(_root, 'palette.json')))
 
 
-def generate_slide(text, template_file, out_file=None, gen_html=False):
+def generate_slide(text, template_file, out_file=None, gen_html=False, im_size=(1920, 1080)):
+    if out_file is None:
+        out_file = slugify(text) + '.png'
+
     text = markdown2.markdown(
         text, extras=['break-on-newline', 'fenced-code-blocks'])
     print(text)
-
-    if out_file is None:
-        out_file = slugify(text) + '.png'
 
     template = _template_env.get_template(template_file)
     # this is where to put args to the template renderer
@@ -48,8 +48,8 @@ def generate_slide(text, template_file, out_file=None, gen_html=False):
             browser = await launch(headless=False)
             page = await browser.newPage()
             await page.setViewport({
-                'width': int(1920 / SCALE),
-                'height': int(1080 / SCALE),
+                'width': int(im_size[0] / SCALE),
+                'height': int(im_size[1] / SCALE),
                 'deviceScaleFactor': SCALE,
             })
             # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
@@ -59,8 +59,15 @@ def generate_slide(text, template_file, out_file=None, gen_html=False):
 
         asyncio.get_event_loop().run_until_complete(main())
 
+    return out_file
+
 
 if __name__ == '__main__':
+    im_size = (
+        int('{{_W}}') if '{{_W}}' else 1920,
+        int('{{_H}}') if '{{_H}}' else 1080,
+    )
+
     in_file = get_files()[0]
     in_file_name = os.path.splitext(os.path.basename(in_file))[0]
     template_file = in_file_name + '.html'
@@ -88,4 +95,5 @@ if __name__ == '__main__':
             generate_slide(text,
                            template_file,
                            out_file=out_file,
-                           gen_html=GEN_HTML)
+                           gen_html=GEN_HTML,
+                           im_size=im_size)

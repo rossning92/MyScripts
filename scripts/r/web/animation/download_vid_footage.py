@@ -1,5 +1,5 @@
 from _shutil import *
-import generate_slides
+from slide import generate
 from _video import *
 
 
@@ -26,7 +26,7 @@ call_echo(
     f'youtube-dl -f bestvideo[ext=mp4] --no-mtime -o {file_name}.%(ext)s {url}')
 
 # Slide
-generate_slides.generate_slide(text='Source: %s' % title,
+generate.generate_slide(text='Source: %s' % title,
                                out_file=file_name + '.png',
                                template_file='caption.html')
 
