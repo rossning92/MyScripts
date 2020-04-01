@@ -4,6 +4,8 @@
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
 
+WindowList := ["", ""]
+
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
 
@@ -106,18 +108,26 @@ return
 return
 
 #Left::
-    MoveWindow("left")
-    WinSet, AlwaysOnTop, Off, A
+    WinGet, current_win_id, ID, A
+    WindowList[1] := current_win_id
+    UpdateWindowPosition()
+    WinActivate, %current_win_id%
 return
 
 #Right::
-    MoveWindow("right")
-    WinSet, AlwaysOnTop, On, A
+    WinGet, current_win_id, ID, A
+    WindowList[2] := current_win_id
+    UpdateWindowPosition()
+    WinActivate, %current_win_id%
 return
 
 #Up::
     WinMaximize, A
     WinSet, AlwaysOnTop, Off, A
+return
+
+#y::
+    UpdateWindowPosition()
 return
 
 #If
@@ -130,23 +140,40 @@ Send f
 return
 #If
     
-MoveWindow(pos="left") {
+ArrayHasValue(array, needle) {
+    if not IsObject(array) {
+        return false
+    }
+    for k, v in array {
+        if (needle = v) {
+            return true
+        }
+    }
+    return false
+}
+
+UpdateWindowPosition() {
+    global WindowList
+    
     WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
     RATIO := 2 / 3
     
-    if (pos = "left") {
-        x := 0
-        w := Floor(A_ScreenWidth * RATIO)
-    } else {
-        x := Floor(A_ScreenWidth * RATIO)
-        w := Floor(A_ScreenWidth * (1 - RATIO))
+    for i, hwnd in WindowList {
+        if (i = 1) {
+            x := 0
+            w := Floor(A_ScreenWidth * RATIO)
+        } else {
+            x := Floor(A_ScreenWidth * RATIO)
+            w := Floor(A_ScreenWidth * (1 - RATIO))
+        }
+        
+        y := 0
+        h := A_ScreenHeight - th
+        
+        WinRestore, ahk_id %hwnd%
+        WinActivate, ahk_id %hwnd%
+        WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
     }
-    
-    y := 0
-    h := A_ScreenHeight - th
-    
-    WinRestore, A
-    WinMove, A, , %x%, %y%, %w%, %h%
 }
 
 ActivateChrome(index=0)
