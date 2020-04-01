@@ -21,7 +21,7 @@ NormalKeyList := "a`nb`nc`nd`ne`nf`ng`nh`ni`nj`nk`nl`nm`nn`no`np`nq`nr`ns`nt`nu`
 NumberKeyList := "1`n2`n3`n4`n5`n6`n7`n8`n9`n0" ;list of key names separated by `n that make up words as well as their numpad equivalents
 OtherKeyList := "'`n-" ;list of key names separated by `n that make up words
 ResetKeyList := "Control`nEsc`nSpace`nHome`nPGUP`nPGDN`nEnd`nLeft`nRight`nRButton`nMButton`n,`n.`n/`n[`n]`n;`n\`n=`n```n"""  ;list of key names separated by `n that cause suggestions to reset
-TriggerKeyList := "Tab`nEnter" ;list of key names separated by `n that trigger completion
+TriggerKeyList := "Tab" ;list of key names separated by `n that trigger completion
 
 TrayTip, Settings, Click the tray icon to modify settings, 5, 1
 
