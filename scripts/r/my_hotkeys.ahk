@@ -132,13 +132,14 @@ return
     
 MoveWindow(pos="left") {
     WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
+    RATIO := 2 / 3
     
     if (pos = "left") {
         x := 0
-        w := A_ScreenWidth * 3 / 4
+        w := Floor(A_ScreenWidth * RATIO)
     } else {
-        x := A_ScreenWidth * 3 / 4
-        w := A_ScreenWidth / 4
+        x := Floor(A_ScreenWidth * RATIO)
+        w := Floor(A_ScreenWidth * (1 - RATIO))
     }
     
     y := 0
