@@ -4,7 +4,7 @@
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
 
-WindowList := ["", ""]
+WindowList := {}
 
 CONSOLE_WINDOW = MyScripts - Console
 GUI_WINDOW = MyScripts - GUI
@@ -108,26 +108,16 @@ return
 return
 
 #Left::
-    WinGet, current_win_id, ID, A
-    WindowList[1] := current_win_id
-    UpdateWindowPosition()
-    WinActivate, %current_win_id%
+    UpdateWindowPosition("left")
 return
 
 #Right::
-    WinGet, current_win_id, ID, A
-    WindowList[2] := current_win_id
-    UpdateWindowPosition()
-    WinActivate, %current_win_id%
+    UpdateWindowPosition("right")
 return
 
 #Up::
     WinMaximize, A
     WinSet, AlwaysOnTop, Off, A
-return
-
-#y::
-    UpdateWindowPosition()
 return
 
 #If
@@ -152,17 +142,34 @@ ArrayHasValue(array, needle) {
     return false
 }
 
-UpdateWindowPosition() {
+UpdateWindowPosition(pos) {
     global WindowList
+    
+    WinGet, curHwnd, ID, A
+    
+    prevPos := ""
+    for p, hwnd in WindowList {
+        if (hwnd = curHwnd) {
+            prevPos := p
+            break
+        }
+    }
+    
+    if (prevPos != "") {
+        ; If current window already in WindowList
+        WindowList[prevPos] := WindowList[pos]   
+    }
+    WindowList[pos] := curHwnd
     
     WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
     RATIO := 2 / 3
     
-    for i, hwnd in WindowList {
-        if (i = 1) {
+    for pos, hwnd in WindowList {
+        if (pos = "left") {
             x := 0
             w := Floor(A_ScreenWidth * RATIO)
-        } else {
+        } else if (pos = "right")
+        {
             x := Floor(A_ScreenWidth * RATIO)
             w := Floor(A_ScreenWidth * (1 - RATIO))
         }
@@ -171,9 +178,13 @@ UpdateWindowPosition() {
         h := A_ScreenHeight - th
         
         WinRestore, ahk_id %hwnd%
-        WinActivate, ahk_id %hwnd%
         WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
+        if (hwnd != curHwnd) {
+            WinActivate, ahk_id %hwnd%
+        }
     }
+
+    WinActivate, ahk_id %curHwnd%
 }
 
 ActivateChrome(index=0)
