@@ -7,6 +7,7 @@ $>!w::SendEmoji("😉")
 $>!k::SendEmoji("😏")
 $>!y::SendEmoji("👍")
 $>!t::SendEmoji("😛")
+$>!m::SendEmoji("🙂")
 
 SendEmoji(s)
 {
