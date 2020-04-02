@@ -116,8 +116,15 @@ return
 return
 
 #Up::
-    WinMaximize, A
-    WinSet, AlwaysOnTop, Off, A
+    WinGet, curHwnd, ID, A
+    WinMaximize, ahk_id %curHwnd%
+    
+    for p, hwnd in WindowList {
+        if (hwnd = curHwnd) {
+            WindowList.Delete(p)
+            break
+        }
+    }
 return
 
 #If
@@ -183,7 +190,7 @@ UpdateWindowPosition(pos) {
             WinActivate, ahk_id %hwnd%
         }
     }
-
+    
     WinActivate, ahk_id %curHwnd%
 }
 
