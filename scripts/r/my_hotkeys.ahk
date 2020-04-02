@@ -185,6 +185,8 @@ UpdateWindowPosition(pos) {
         h := A_ScreenHeight - th
         
         WinRestore, ahk_id %hwnd%
+        WinSet, Style, +0x40000, ahk_id %hwnd%
+        WinSet, Style, +Resize, ahk_id %hwnd%
         WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
         if (hwnd != curHwnd) {
             WinActivate, ahk_id %hwnd%

@@ -797,7 +797,8 @@ def wait_key(prompt=None, timeout=2):
 
 
 def start_process(args, shell=True):
-    subprocess.Popen(args, close_fds=True, shell=shell)
+    FNULL = open(os.devnull, 'w')
+    subprocess.Popen(args, shell=shell, stdout=FNULL, stderr=FNULL)
 
 
 def setup_nodejs(install=True):
