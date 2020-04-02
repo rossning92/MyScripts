@@ -43,21 +43,20 @@ def generate_slide(text, template_file, out_file=None, gen_html=False, im_size=(
             f.write(html)
         # webbrowser.open(html_file_name)
 
-    else:
-        async def main():
-            browser = await launch(headless=False)
-            page = await browser.newPage()
-            await page.setViewport({
-                'width': int(im_size[0] / SCALE),
-                'height': int(im_size[1] / SCALE),
-                'deviceScaleFactor': SCALE,
-            })
-            # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
-            await page.goto('data:text/html,' + html)
-            await page.screenshot({'path': out_file, 'omitBackground': True})
-            await browser.close()
+    async def main():
+        browser = await launch(headless=False)
+        page = await browser.newPage()
+        await page.setViewport({
+            'width': int(im_size[0] / SCALE),
+            'height': int(im_size[1] / SCALE),
+            'deviceScaleFactor': SCALE,
+        })
+        # await page.goto('file://' + os.path.realpath(f).replace('\\', '/'))
+        await page.goto('data:text/html,' + html)
+        await page.screenshot({'path': out_file, 'omitBackground': True})
+        await browser.close()
 
-        asyncio.get_event_loop().run_until_complete(main())
+    asyncio.get_event_loop().run_until_complete(main())
 
     return out_file
 

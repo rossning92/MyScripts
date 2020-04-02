@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Muli&family=Source+Code+Pro&family=Noto+Sans+SC&display=swap');
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      html {
+        display: table;
+        margin: auto;
+      }
+
+      body {
+        /* background-color: {{ palette[0] }}; */
+        display: table-cell;
+        vertical-align: middle;
+        font-family: 'Muli', 'Noto Sans SC', sans-serif;
+        /* font-weight: bold; */
+        color: white;
+        font-size: 7.1vh;
+        text-align: center;
+      }
+
+      p {
+        margin: 0;
+        /* https://owumaro.github.io/text-stroke-generator/ */
+        text-shadow: rgb(0, 0, 0) 2px 0px 0px, rgb(0, 0, 0) 1.75517px 0.958851px 0px, rgb(0, 0, 0) 1.0806px 1.68294px 0px, rgb(0, 0, 0) 0.141474px 1.99499px 0px, rgb(0, 0, 0) -0.832294px 1.81859px 0px, rgb(0, 0, 0) -1.60229px 1.19694px 0px, rgb(0, 0, 0) -1.97998px 0.28224px 0px, rgb(0, 0, 0) -1.87291px -0.701566px 0px, rgb(0, 0, 0) -1.30729px -1.5136px 0px, rgb(0, 0, 0) -0.421592px -1.95506px 0px, rgb(0, 0, 0) 0.567324px -1.91785px 0px, rgb(0, 0, 0) 1.41734px -1.41108px 0px, rgb(0, 0, 0) 1.92034px -0.558831px 0px;
+      }
+
+      h1 {
+        white-space: nowrap;
+        font-size: 6vw;
+        margin: 0;
+      }
+
+      h2 {
+        white-space: nowrap;
+        font-size: 4vw;
+        margin: 0;
+        color: {{ palette[-2] }};
+      }
+
+      pre {
+        display: inline-block;
+        background-color: #09343f;
+        border-radius: 0.2em;
+        font-size: 85%;
+        margin: 0;
+        text-align: left;
+        padding: 0.4em;
+      }
+
+      code {
+        font-family: 'Source Code Pro';
+        border-radius: 3px;
+        margin: 0;
+        color: #eae7af;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: auto auto;
+      }
+
+      .grid-item {
+        background-color: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        font-size: 30px;
+        text-align: center;
+      }
+
+      ul > li {
+        text-align: left;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
+    <script>
+      window.onload = function() {
+        // return;
+
+        // var elements = document.querySelectorAll('ul > li');
+
+        anime({
+          targets: "ul > li",
+          fontSize: ["0", "100%"],
+          opacity: ["0%", "100%"],
+          translateX: ["-50%", 0],
+          delay: anime.stagger(1000),
+          duration: 500
+        });
+      };
+    </script>
+    {{ text }}
+    <!-- <div class="grid-container">
+        <div class="grid-item">1</div>
+        <div class="grid-item">2</div>
+        <div class="grid-item">3</div>
+        <div class="grid-item">4</div>
+    </div> -->
+  </body>
+</html>

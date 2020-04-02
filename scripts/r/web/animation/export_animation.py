@@ -2,6 +2,7 @@ import webbrowser
 import urllib
 import re
 import capture_animation
+from slide.generate import generate_slide
 from r.open_with.open_with_ import open_with
 from _shutil import *
 if 1:
@@ -21,7 +22,7 @@ change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
 PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 
-FPS = 25
+FPS = int('{{_FPS}}')
 FADEOUT_DURATION = 0.25
 
 audio_clips = []
@@ -372,6 +373,18 @@ def screencap(f, speed=None):
         speed=speed,
         tag='video'
     )
+
+
+def md(s):
+    mkdir('slides')
+    out_file = 'slides/%s.png' % slugify(s)
+
+    if not os.path.exists(out_file):
+        generate_slide(s,
+                       template_file='markdown.html',
+                       out_file=out_file)
+
+    _add_clip(out_file)
 
 
 def track(name=None):
