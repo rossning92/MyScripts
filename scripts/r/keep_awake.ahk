@@ -1,8 +1,8 @@
 #SingleInstance, force
 #Persistent
 
+Menu, Tray, Icon, keep_awake.ico
 CoordMode, ToolTip, Screen
-ToolTip, Keep Awake`n(Alt-Esc to Exit), 0, 0
 SetTimer, NoSleep, 30000
 Return
 
