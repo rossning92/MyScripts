@@ -18,7 +18,7 @@ if __name__ == '__main__':
         + s + '\n' +
         '__EOF__\n'
         'clear\n'
-        'source /tmp/script.sh\n'
+        'bash /tmp/script.sh\n'
     )
     set_clip(s)
 
