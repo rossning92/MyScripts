@@ -2,7 +2,7 @@ from _shutil import *
 import signal
 
 
-def screen_cap(out_file=None, max_secs=10, bit_rate='20M'):
+def screen_record(out_file=None, max_secs=10, bit_rate='20M'):
     print('Press Ctrl-C to stop recording...')
 
     signal.signal(signal.SIGINT, lambda a, b: None)
@@ -12,8 +12,8 @@ def screen_cap(out_file=None, max_secs=10, bit_rate='20M'):
 
     extra_args = f'--time-limit {max_secs} --bit-rate {bit_rate}'
 
-    if '{{_SIZE}}':
-        extra_args += ' --size {{_SIZE}}'
+    # if '{{_SIZE}}':
+    #     extra_args += ' --size {{_SIZE}}'
 
     call(
         f'adb shell screenrecord /sdcard/screen_record.mp4 {extra_args}', check_call=False)
@@ -26,7 +26,7 @@ def screen_cap(out_file=None, max_secs=10, bit_rate='20M'):
 if __name__ == '__main__':
     chdir('~/Desktop')
 
-    out_file = screen_cap(
+    out_file = screen_record(
         max_secs=int('{{_MAX_SECS}}') if '{{_MAX_SECS}}' else 10,
         bit_rate='{{_BIT_RATE}}' if '{{_BIT_RATE}}' else '20M'
     )
