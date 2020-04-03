@@ -15,29 +15,11 @@ Run, cmd /c title %AUDIO_RECORDER_TITLE% & set "PYTHONPATH=%SCRIPT_DIR%\..\..\..
 
 ; Screencap (full screen)
 $F6::
-    if (not is_recording) {
-        Send !{f9}
+    ToggleRecording()
+return
 
-        WinGet hwnd, ID, A
-        Run, %LOCALAPPDATA%\carnac\Carnac.exe
-        
-        Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\_wait_for_screencap.py", , Min, pid_screencap
-        
-        Sleep 1000
-        WinActivate ahk_id %hwnd%
-    } else {
-        
-
-        Process, Close, Carnac.exe
-
-        Send !{f9}
-        Sleep, 1000  ; Make sure that the window is not pop up when recording stops.
-        
-        WinActivate, ahk_pid %pid_screencap%
-    }
-    
-    is_recording := not is_recording
-    
+$^F6::
+    ToggleRecording(False)
 return
 
 ; Start recording
@@ -75,8 +57,42 @@ return
 GetLatestRecoding()
 {
     Loop record\*.wav
-    if ( A_LoopFileTimeModified >= Time )
+    if ( A_LoopFileTimeModified >= Time ) {    
         Time := A_LoopFileTimeModified, File := A_LoopFileName
+    }
     
-    return File
+return File
+}
+
+ToggleRecording(enable_carnac:=True)
+{
+    global SCRIPT_DIR
+    global is_recording
+    global pid_screencap
+    
+    if (not is_recording) {
+        Send !{f9}
+        
+        WinGet hwnd, ID, A
+        
+        if (enable_carnac) {
+            Run, %LOCALAPPDATA%\carnac\Carnac.exe
+        }
+        
+        Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\_wait_for_screencap.py", , Min, pid_screencap
+        
+        Sleep 1000
+        WinActivate ahk_id %hwnd%
+    } else {
+        if (enable_carnac) {
+            Process, Close, Carnac.exe
+        }
+        
+        Send !{f9}
+        Sleep, 1000  ; Make sure that the window is not pop up when recording stops.
+        
+        WinActivate, ahk_pid %pid_screencap%
+    }
+    
+    is_recording := not is_recording
 }

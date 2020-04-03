@@ -519,6 +519,10 @@ def check_output_echo(args):
     return out
 
 
+def get_output(args):
+    return subprocess.check_output(args, universal_newlines=True)
+
+
 def print2(msg, color='yellow', end='\n'):
     # ANSI escape codes for colors
     COLOR_MAP = {
