@@ -1,4 +1,5 @@
 from _shutil import *
+from _term import *
 
 proj_dir = r'C:\Users\Ross\Projects\UnityToonShader'
 
@@ -9,25 +10,33 @@ def insert_line(line_no, line):
     print(line_no, line)
 
     exec_ahk('''
-    WinActivate ahk_exe devenv.exe
-    MouseClick, L, 500, 500
+WinActivate ahk_exe devenv.exe
+MouseClick, L, 500, 500
 
-    Send ^g
-    Send ''' + str(line_no) + '''
+Send ^g
+Send ''' + str(line_no) + '''
+Send {Enter}
+
+SendLevel 1
+Send ^{F6}
+SendLevel 0
+
+Sleep 1000
+
+Send {Up}
+Send {End}
+
+s =
+(
+''' + line + '''
+)
+leadingSpace := True
+Loop, parse, s, `n, `r
+{
     Send {Enter}
+    Sleep 200
 
-    SendLevel 1
-    Send ^{F6}
-    SendLevel 0
-
-    Sleep 1000
-
-    Send {Home}
-    Send ^{Enter}
-
-    s := "''' + line + '''"
-    leadingSpace := True
-    Loop, Parse, s
+    Loop, Parse, A_LoopField
     {
         SendRaw %A_LoopField%
         if (A_LoopField = "`t")
@@ -48,35 +57,57 @@ def insert_line(line_no, line):
             Sleep %t%
         }
     }
+}
 
-    Sleep 2000
+Sleep 2000
 
-    SendLevel 1
-    Send ^{F6}
-    SendLevel 0
-    
+SendLevel 1
+Send ^{F6}
+SendLevel 0
     ''')
 
     time.sleep(2)
-    sys.exit(0)
 
 
 cd(proj_dir)
 
-args = f'git --no-pager diff {rev}^ {rev}'
-print2(args)
+
+lines = list(read_lines('git log --pretty="format:%h %s" master'))
+i = 2
+# i = prompt_list(lines)
+
+commit, message = lines[i].split(maxsplit=1)
+
+# call_echo(['git', 'checkout', commit + '^'], shell=False)
+
+args = f'git --no-pager diff {commit}^ {commit}'
 s = get_output(args)
 lines = s.splitlines()
 
+
 line_no = None
-for l in lines:
-    m = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', l)
+line_start = None
+content = []
+i = 0
+for line in lines:
+    m = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', line)
     if m:
-        line_no = int(m.group(1))
+        line_no = int(m.group(3))
     else:
         if line_no is not None:
-            if l.startswith('+'):
-                added_line = l[1:]
-                insert_line(line_no, added_line)
+            if line.startswith('+'):
+
+                if line_start is None:
+                    line_start = line_no
+
+                content.append(line[1:])
+
+            elif line_start is not None:
+                if i == 2:
+                    insert_line(line_start, '\n'.join(content))
+
+                line_start = None
+                content.clear()
+                i += 1
 
             line_no += 1

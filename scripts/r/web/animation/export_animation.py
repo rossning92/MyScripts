@@ -195,7 +195,9 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
         if gap > 0 and type(prev_clip) == VideoFileClip:
             print('frame hold (duration=%.2f)' % gap)
 
-            t_lastframe = prev_duration - (1 / prev_clip.fps)
+            # Frame hold last frame
+            print((1 / prev_clip.fps))
+            t_lastframe = prev_duration - (1 / prev_clip.fps) * 2
             clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
             _get_cur_vid_track().append((prev_end, clip))
 
