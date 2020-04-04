@@ -1,3 +1,4 @@
+from typing import Any, NamedTuple
 import webbrowser
 import urllib
 import re
@@ -39,6 +40,14 @@ _add_fade_out = False
 
 _video_tracks = {}
 _cur_vid_track_name = None  # default video track
+
+
+class ClipWrapper(NamedTuple):
+    file: str = None
+    start: float = 0
+    duration: float = None
+    mpy_clip: Any = None
+    speed: float = 1
 
 
 def _get_cur_vid_track():
@@ -185,27 +194,32 @@ def create_image_seq_clip(tar_file):
 
 
 def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None):
+    # cw = ClipWrapper()
+
     if _get_cur_vid_track():
         prev_start, prev_clip = _get_cur_vid_track()[-1]
         prev_duration = prev_clip.duration
         prev_end = prev_start + prev_duration
 
         # Fill the blank
-        gap = _pos_list[-1] - prev_end
-        if gap > 0 and type(prev_clip) == VideoFileClip:
-            print('frame hold (duration=%.2f)' % gap)
+        # gap = _pos_list[-1] - prev_end
+        # if gap > 0 and type(prev_clip) == VideoFileClip and False:
+        #     print('frame hold (duration=%.2f)' % gap)
 
-            # Frame hold last frame
-            print((1 / prev_clip.fps))
-            t_lastframe = prev_duration - (1 / prev_clip.fps) * 2
-            clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
-            _get_cur_vid_track().append((prev_end, clip))
+        #     # Frame hold last frame
+        #     print(prev_clip.duration, prev_duration - (1 / prev_clip.fps))
+        #     t_lastframe = prev_duration - (1 / prev_clip.fps)
+        #     clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
+        #     _get_cur_vid_track().append((prev_end, clip))
+        # else:
 
-        else:
-            print('previous video clipped')
+        dura = _pos_list[-1] - prev_start
+        print('previous video clipped: %.2f' % dura)
 
-            _get_cur_vid_track()[-1] = prev_start, prev_clip.set_duration(
-                _pos_list[-1] - prev_start)
+        # Use duration to extend / hold the last frame instead of creating new clips.
+        prev_clip = prev_clip.set_duration(dura)
+
+        _get_cur_vid_track()[-1] = prev_start, prev_clip
 
     _add_fadeout()
 
