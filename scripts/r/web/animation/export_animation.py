@@ -43,7 +43,7 @@ _audio_track_cur_duration = 0
 _add_fade_out = False
 
 _video_tracks = {}
-_cur_vid_track_name = None  # default video track
+_cur_vid_track_name = '@'  # default video track
 
 
 class ClipWrapper(NamedTuple):
@@ -238,7 +238,7 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
             2).set_position(("center", "bottom"))
 
     elif file is None:
-        clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(2)
+        clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
 
     elif file.endswith('.tar'):
         clip = create_image_seq_clip(file)
@@ -413,7 +413,7 @@ def md(s):
     _add_clip(out_file)
 
 
-def track(name=None):
+def track(name='@'):
     global _cur_vid_track_name
     _cur_vid_track_name = name
 
@@ -429,7 +429,7 @@ def export_video(resolution=(1920, 1080), fps=FPS):
         final_audio_clip = None
 
     video_clips = []
-    for track in _video_tracks.values():
+    for _, track in sorted(_video_tracks.items()):
         for start, clip in track:
             video_clips.append(clip.set_start(start))
     final_clip = CompositeVideoClip(
