@@ -25,6 +25,10 @@ PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 
 FPS = int('{{_FPS}}')
 FADEOUT_DURATION = 0.25
+PARSE_LINE_START = int(
+    '{{_PARSE_LINE_START}}') if '{{_PARSE_LINE_START}}' else 0
+PARSE_LINE_LENGTH = int(
+    '{{_PARSE_LINE_LENGTH}}') if '{{_PARSE_LINE_LENGTH}}' else 30
 
 audio_clips = []
 cur_markers = None
@@ -86,7 +90,7 @@ def get_all_meta_data():
 
 def get_all_python_block():
     lines = open('index.md', 'r', encoding='utf-8').readlines()
-    lines = lines[247:]
+    lines = lines[PARSE_LINE_START:PARSE_LINE_START+PARSE_LINE_LENGTH]
 
     s = '\n'.join(lines)
 
@@ -193,11 +197,9 @@ def create_image_seq_clip(tar_file):
     return clip
 
 
-def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None):
-    # cw = ClipWrapper()
-
+def _update_prev_clip(track):
     if _get_cur_vid_track():
-        prev_start, prev_clip = _get_cur_vid_track()[-1]
+        prev_start, prev_clip = track[-1]
         prev_duration = prev_clip.duration
         prev_end = prev_start + prev_duration
 
@@ -210,7 +212,7 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
         #     print(prev_clip.duration, prev_duration - (1 / prev_clip.fps))
         #     t_lastframe = prev_duration - (1 / prev_clip.fps)
         #     clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
-        #     _get_cur_vid_track().append((prev_end, clip))
+        #     track.append((prev_end, clip))
         # else:
 
         dura = _pos_list[-1] - prev_start
@@ -219,9 +221,15 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
         # Use duration to extend / hold the last frame instead of creating new clips.
         prev_clip = prev_clip.set_duration(dura)
 
-        _get_cur_vid_track()[-1] = prev_start, prev_clip
+        track[-1] = prev_start, prev_clip
 
     _add_fadeout()
+
+
+def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None):
+    # cw = ClipWrapper()
+
+    _update_prev_clip(_get_cur_vid_track())
 
     if text is not None:
         clip = TextClip(text, fontsize=48, color='white').set_duration(
@@ -409,6 +417,9 @@ def track(name=None):
 
 
 def export_video(resolution=(1920, 1080), fps=FPS):
+    for track in _video_tracks.values():
+        _update_prev_clip(track)
+
     if audio_clips:
         final_audio_clip = CompositeAudioClip(audio_clips)
         # final_audio_clip.write_audiofile('out.wav')
