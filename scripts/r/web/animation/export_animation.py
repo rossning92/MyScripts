@@ -26,9 +26,9 @@ PROJ_DIR = r'{{VIDEO_PROJECT_DIR}}'
 FPS = int('{{_FPS}}')
 FADEOUT_DURATION = 0.25
 PARSE_LINE_START = int(
-    '{{_PARSE_LINE_START}}') if '{{_PARSE_LINE_START}}' else 0
-PARSE_LINE_LENGTH = int(
-    '{{_PARSE_LINE_LENGTH}}') if '{{_PARSE_LINE_LENGTH}}' else 30
+    '{{_PARSE_LINE_START}}') if '{{_PARSE_LINE_START}}' else None
+PARSE_LINE_END = int(
+    '{{_PARSE_LINE_END}}') if '{{_PARSE_LINE_END}}' else None
 
 audio_clips = []
 cur_markers = None
@@ -90,7 +90,9 @@ def get_all_meta_data():
 
 def get_all_python_block():
     lines = open('index.md', 'r', encoding='utf-8').readlines()
-    lines = lines[PARSE_LINE_START:PARSE_LINE_START+PARSE_LINE_LENGTH]
+
+    if PARSE_LINE_START is not None:
+        lines = lines[(PARSE_LINE_START + 1): (PARSE_LINE_END + 2)]
 
     s = '\n'.join(lines)
 
@@ -336,7 +338,7 @@ def text(text):
     pos('^^0')
 
 
-def placeholder():
+def empty():
     _add_clip(None)
 
 
