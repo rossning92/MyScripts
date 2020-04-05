@@ -74,7 +74,7 @@ cd(proj_dir)
 
 lines = list(read_lines('git log --pretty="format:%h %s" master'))
 i = 2
-# i = prompt_list(lines)
+i = prompt_list(lines)
 
 commit, message = lines[i].split(maxsplit=1)
 
@@ -103,7 +103,7 @@ for line in lines:
                 content.append(line[1:])
 
             elif line_start is not None:
-                if i == 2:
+                if i == 0:
                     insert_line(line_start, '\n'.join(content))
 
                 line_start = None
