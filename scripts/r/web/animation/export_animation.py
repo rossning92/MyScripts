@@ -204,7 +204,7 @@ def create_image_seq_clip(tar_file):
 
 
 def _update_prev_clip(track):
-    if _get_cur_vid_track():
+    if track:
         prev_start, prev_clip = track[-1]
         prev_duration = prev_clip.duration
         prev_end = prev_start + prev_duration
@@ -222,7 +222,7 @@ def _update_prev_clip(track):
         # else:
 
         dura = _pos_list[-1] - prev_start
-        print('previous video clipped: %.2f' % dura)
+        print('previous clip start, duration updated: %.2f, %.2f' % (prev_start, dura))
 
         # Use duration to extend / hold the last frame instead of creating new clips.
         prev_clip = prev_clip.set_duration(dura)

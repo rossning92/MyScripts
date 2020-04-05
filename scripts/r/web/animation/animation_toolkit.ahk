@@ -13,6 +13,10 @@ SetWorkingDir, %PROJECT_DIR%
 WinClose, %AUDIO_RECORDER_TITLE%
 Run, cmd /c title %AUDIO_RECORDER_TITLE% & set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & set "RECORD_OUT_DIR=record" & python "%SCRIPT_DIR%\..\..\audio\recorder.py"
 
+$F5::
+    RunPython("_screenshot.py", True)
+return
+
 ; Screencap (full screen)
 $F6::
     ToggleRecording()
@@ -46,7 +50,7 @@ return
 ; Export
 $F12::
     Send ^s
-    Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..;%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\_export_final_audio.py" || pause
+    RunPython("_export_final_audio.py")
 return
 
 !Esc::
@@ -95,4 +99,16 @@ ToggleRecording(enable_carnac:=True)
     }
     
     is_recording := not is_recording
+}
+
+RunPython(file, min:=False) {
+    global SCRIPT_DIR
+
+    if (min) {
+        minParam = Min
+    } else {
+        minParam =
+    }
+    
+    Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..;%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\%file%" || pause, , %minParam%
 }

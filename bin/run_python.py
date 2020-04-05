@@ -26,6 +26,7 @@ PYTHON_MODULE_LIST = {
     'websockets': 'websockets',
     'filelock': 'filelock',  # a platform independent file lock.
     'prompt_toolkit': 'prompt_toolkit',  # Not compatible with PyInquirer
+    'pyscreenshot': 'pyscreenshot',
 }
 
 
