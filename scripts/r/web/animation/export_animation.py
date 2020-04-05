@@ -54,14 +54,18 @@ class ClipWrapper(NamedTuple):
     speed: float = 1
 
 
-def _get_cur_vid_track():
-    if _cur_vid_track_name not in _video_tracks:
+def _get_vid_track(name):
+    if name not in _video_tracks:
         track = []
-        _video_tracks[_cur_vid_track_name] = track
+        _video_tracks[name] = track
     else:
-        track = _video_tracks[_cur_vid_track_name]
+        track = _video_tracks[name]
 
     return track
+
+
+def _get_cur_vid_track():
+    return _get_vid_track(_cur_vid_track_name)
 
 
 def _get_markers(file):
@@ -169,8 +173,8 @@ def pos(p):
     raise Exception('Invalid param.')
 
 
-def image(f, pos=None):
-    _add_clip(f, pos=pos)
+def image(f, pos=None, track=None):
+    _add_clip(f, pos=pos, track=track)
 
 
 def _add_fadeout():
@@ -228,10 +232,15 @@ def _update_prev_clip(track):
     _add_fadeout()
 
 
-def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None):
+def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
     # cw = ClipWrapper()
 
-    _update_prev_clip(_get_cur_vid_track())
+    if track is None:
+        track = _get_cur_vid_track()
+    else:
+        track = _get_vid_track(track)
+
+    _update_prev_clip(track)
 
     if text is not None:
         clip = TextClip(text, fontsize=48, color='white').set_duration(
@@ -264,12 +273,12 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
     if tag:
         _pos_tags[tag] = _pos_list[-1]
 
-    _get_cur_vid_track().append((_pos_list[-1], clip))
+    track.append((_pos_list[-1], clip))
 
     _pos_list.append(_pos_list[-1] + clip.duration)
 
 
-def _animation(url, file_prefix, part):
+def _animation(url, file_prefix, part, track=None):
     global _add_fade_out
 
     file_prefix = 'animation/' + slugify(file_prefix)
@@ -310,7 +319,7 @@ def _animation(url, file_prefix, part):
             _get_cur_vid_track().append(clip)
 
     else:
-        _add_clip(out_file)
+        _add_clip(out_file, track=track)
 
 
 def anim(s, part=None):
@@ -329,17 +338,8 @@ def title_anim(h1, h2, part=None):
     _animation(url, file_prefix, part=part)
 
 
-def text(text):
-    track('text')
-    pos('^0')
-    _add_clip(text=text)
-    track()
-
-    pos('^^0')
-
-
-def empty():
-    _add_clip(None)
+def empty(track=None):
+    _add_clip(None, track=track)
 
 
 def fadeout():
@@ -386,22 +386,23 @@ def list_anim(s):
         _get_cur_vid_track().append(clip)
 
 
-def video(f):
+def video(f, track=None):
     print('Video: %s' % f)
-    _add_clip(f, tag='video')
+    _add_clip(f, tag='video', track=track)
 
 
-def screencap(f, speed=None):
+def screencap(f, speed=None, track=None):
     _add_clip(
         f,
         clip_operations=lambda x: x.crop(
             x1=0, y1=0, x2=2560, y2=1380).resize(0.75).set_position((0, 22)),
         speed=speed,
-        tag='video'
+        tag='video',
+        track=track,
     )
 
 
-def md(s):
+def md(s, track='text'):
     mkdir('slides')
     out_file = 'slides/%s.png' % slugify(s)
 
@@ -410,7 +411,7 @@ def md(s):
                        template_file='markdown.html',
                        out_file=out_file)
 
-    _add_clip(out_file)
+    _add_clip(out_file, track=track)
 
 
 def track(name='@'):
