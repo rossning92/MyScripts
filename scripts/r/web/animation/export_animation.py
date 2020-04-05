@@ -222,7 +222,8 @@ def _update_prev_clip(track):
         # else:
 
         dura = _pos_list[-1] - prev_start
-        print('previous clip start, duration updated: %.2f, %.2f' % (prev_start, dura))
+        print('previous clip start, duration updated: %.2f, %.2f' %
+              (prev_start, dura))
 
         # Use duration to extend / hold the last frame instead of creating new clips.
         prev_clip = prev_clip.set_duration(dura)
@@ -443,7 +444,7 @@ def export_video(resolution=(1920, 1080), fps=FPS):
         'out.mp4', codec='libx264', threads=8, fps=fps,
         ffmpeg_params=['-crf', '19'])
 
-    open_with('out.mp4')
+    open_with('out.mp4', program_id=1)
 
 
 if __name__ == '__main__':
