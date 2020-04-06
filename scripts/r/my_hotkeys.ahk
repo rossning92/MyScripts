@@ -4,6 +4,8 @@
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
 
+SetCapsLockState, AlwaysOff
+
 WindowList := {}
 
 CONSOLE_WINDOW = MyScripts - Console
@@ -15,6 +17,9 @@ AddChromeHotkey("#!.", "- To Do", "https://to-do.microsoft.com/tasks")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 return
+
+*CapsLock::Send {LWin Down}{LCtrl Down}
+*CapsLock Up::Send {LWin Up}{LCtrl Up}
 
 #If WinActive("- Gmail ahk_exe chrome.exe")
     !r::
@@ -129,11 +134,15 @@ return
 
 #If
     
-
-#If WinActive("ahk_exe vncviewer.exe")
+#If WinExist("ahk_exe vncviewer.exe")
 F8::
-Send {F8}
-Send f
+if (not VncActive) {
+    WinActivate, ahk_exe vncviewer.exe
+    VncActive := True
+} else {
+    WinMinimize, ahk_exe vncviewer.exe
+    VncActive := False
+}
 return
 #If
     
@@ -164,7 +173,7 @@ UpdateWindowPosition(pos) {
     
     if (prevPos != "") {
         ; If current window already in WindowList
-        WindowList[prevPos] := WindowList[pos]   
+        WindowList[prevPos] := WindowList[pos] 
     }
     WindowList[pos] := curHwnd
     
