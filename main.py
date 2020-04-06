@@ -286,7 +286,20 @@ class MainWindow(QWidget):
 
     def register_global_hotkeys(self):
         if platform.system() == 'Windows':
+            htk_definitions = ''
             with open(GLOBAL_HOTKEY, 'w') as f:
+                for item in self.script_items:
+                    hotkey = item.meta['globalHotkey']
+                    if hotkey is not None:
+                        print('Global Hotkey: %s: %s' % (hotkey, item.name))
+                        hotkey = hotkey.replace('Ctrl+', '^')
+                        hotkey = hotkey.replace('Alt+', '!')
+                        hotkey = hotkey.replace('Shift+', '+')
+                        hotkey = hotkey.replace('Win+', '#')
+
+                        htk_definitions += f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
+
+                # TODO: use templates
                 f.write('''#NoTrayIcon
 #SingleInstance, Force
 #include libs/ahk/ExplorerHelper.ahk
@@ -307,19 +320,11 @@ RunScript(name, path)
         Run cmd /c ''' + sys.executable + ' "' + os.path.realpath('bin/run_script.py') + '''" --new_window=None --console_title "%name%" --restart_instance 0 "%path%" || pause
     }
 }
+
+#If not WinActive("ahk_exe vncviewer.exe")
+''' + htk_definitions + '''
+#If
 ''')
-
-                for item in self.script_items:
-                    hotkey = item.meta['globalHotkey']
-                    if hotkey is not None:
-                        print('Global Hotkey: %s: %s' % (hotkey, item.name))
-                        hotkey = hotkey.replace('Ctrl+', '^')
-                        hotkey = hotkey.replace('Alt+', '!')
-                        hotkey = hotkey.replace('Shift+', '+')
-                        hotkey = hotkey.replace('Win+', '#')
-
-                        f.write(
-                            f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n')
 
             subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY],
                              close_fds=True, shell=True)
