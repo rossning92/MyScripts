@@ -11,8 +11,9 @@ $>!m::SendEmoji("🙂")
 
 SendEmoji(s)
 {
-    clipSave := ClipboardAll
-    Clipboard := s
-    Send, ^v
-    Clipboard := clipSave
+    Send %s%
+    ; clipSave := ClipboardAll
+    ; Clipboard := s
+    ; Send, ^v
+    ; Clipboard := clipSave
 }
