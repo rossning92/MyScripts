@@ -49,7 +49,6 @@ return
 
 ; Export
 $F12::
-    Send ^s
     RunPython("_export_final_audio.py")
 return
 

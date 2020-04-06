@@ -26,10 +26,7 @@ Sleep 1000
 Send {Up}
 Send {End}
 
-s =
-(
-''' + line + '''
-)
+s := "''' + line.replace('"', '""').replace('\n', '`n') + '''"
 
 Loop, parse, s, `n, `r
 {
