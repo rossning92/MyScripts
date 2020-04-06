@@ -30,12 +30,13 @@ s =
 (
 ''' + line + '''
 )
-leadingSpace := True
+
 Loop, parse, s, `n, `r
 {
     Send {Enter}
     Sleep 200
 
+    leadingSpace := True
     Loop, Parse, A_LoopField
     {
         SendRaw %A_LoopField%

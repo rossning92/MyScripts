@@ -415,6 +415,10 @@ def md(s, track='text'):
     _add_clip(out_file, track=track)
 
 
+def hl(pos):
+    image('images/highlight.png', pos=pos, track='hl')
+
+
 def track(name='@'):
     global _cur_vid_track_name
     _cur_vid_track_name = name
