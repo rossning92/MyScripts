@@ -26,14 +26,14 @@ ClipChanged(Type) {
 				key := WaitKey()
 				if ( key = " " )
 				{
-					Run cmd /c youtube-dl -f bestvideo+bestaudio %url% --no-mtime & timeout 5, % dir
+					Run, cmd /c youtube-dl -f bestvideo+bestaudio %url% --no-mtime & timeout 5, % dir, Min
 				}
 				else if ( key = "v" )
 				{
-					Run cmd /c youtube-dl -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5, % dir
+					Run, cmd /c youtube-dl -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5, % dir, Min
 				}
 			}
-			else if ( InStr(Clipboard, "https://www.bilibili.com/video/") = 1 )
+			else if ( RegExMatch(Clipboard, "https://(www\.)?bilibili\.com/video/") )
 			{
 				g_lastUrl := Clipboard
 
@@ -42,7 +42,7 @@ ClipChanged(Type) {
 				key := WaitKey()
 				if ( key = " " )
 				{
-					Run cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 5, % dir
+					Run, cmd /c you-get --no-caption --playlist %g_lastUrl% & timeout 5, % dir, Min
 				}
 			}
 		}
