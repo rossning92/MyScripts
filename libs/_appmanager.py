@@ -7,6 +7,21 @@ import os
 from _script import run_script
 
 
+def choco_install(name):
+    run_elevated([
+        'choco',
+        'source',
+        'add',
+        '--name=chocolatey',
+        '--priority=100',
+        '-s="https://chocolatey.org/api/v2/"'
+    ])
+
+    run_elevated([
+        'choco', 'install', '--source=chocolatey', name, '-y'
+    ])
+
+
 def get_executable(app_name):
     with open(os.path.join(os.path.dirname(__file__), 'app_list.yaml'), 'r') as f:
         app_list = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -37,14 +52,14 @@ def get_executable(app_name):
     executable = find_executable()
     if executable is None:
         if sys.platform == 'win32':
-            run_elevated(
-                'choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"')
 
             pkg_name = app_name
             if 'choco' in app:
                 pkg_name = app['choco']
             print('Installing %s...' % pkg_name)
-            run_elevated(['choco', 'install', '--source=chocolatey', pkg_name, '-y'])
+
+            choco_install(pkg_name)
+
             executable = find_executable()
 
         elif sys.platform == 'linux':
