@@ -20,8 +20,16 @@ for f in files:
         extra_args += ['-r', '{{_FPS}}']
 
     # Scale (-2 indicates divisible by 2)
-    if '{{_SCALE_H}}':
-        extra_args += ['-vf', 'scale=-2:{{_SCALE_H}}']
+    if '{{_RESIZE_H}}':
+        extra_args += ['-vf', 'scale=-2:{{_RESIZE_H}}']
+
+    # Scale (-2 indicates divisible by 2)
+    elif '{{_RESIZE_W}}':
+        extra_args += ['-vf', 'scale={{_RESIZE_W}}:-2']
+
+    if '{{_TO_ANAMORPHIC}}':
+        extra_args += ['-filter:v',
+                       'scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132']
 
     # Crop video
     if crop_rect:
@@ -40,9 +48,10 @@ for f in files:
 
     ffmpeg(
         f, out_file=out_file, extra_args=extra_args,
-        reencode=True, 
+        reencode=True,
         crf=int('{{_CRF}}') if '{{_CRF}}' else None,
         start_and_duration=start_and_duration,
         nvenc=bool('{{_HW_ENC}}'),
         max_size_mb=float('{{_MAX_SIZE_MB}}') if '{{_MAX_SIZE_MB}}' else None,
+        no_audio=bool('{{_NO_AUDIO}}')
     )

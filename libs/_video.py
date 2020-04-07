@@ -123,7 +123,7 @@ def _get_media_duration(f):
 
 
 def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False, nvenc=True, extra_args=None,
-           quality=100, no_output=False, crf=None, preset='slow', bitrate=None, max_size_mb=None):
+           quality=100, no_output=False, crf=None, preset='slow', bitrate=None, max_size_mb=None, no_audio=False):
     if crf and crf < 19:
         raise Exception(
             'ERROR: 19 is visually identical to 0. Do not go lower.')
@@ -181,10 +181,13 @@ def ffmpeg(in_file, out_file='out.mp4', start_and_duration=None, reencode=False,
             #     '-bufsize', bitrate,
             # ]
 
-        args += [
-            '-c:a', 'aac',
-            '-b:a', '128k'
-        ]  # Audio
+        if no_audio:
+            args += ['-an']
+        else:
+            args += [
+                '-c:a', 'aac',
+                '-b:a', '128k'
+            ]  # Audio
 
     args += [out_file, '-y']  # Override file
 
