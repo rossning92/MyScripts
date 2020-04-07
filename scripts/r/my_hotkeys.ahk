@@ -21,6 +21,18 @@ return
 *CapsLock::Send {LWin Down}{LCtrl Down}
 *CapsLock Up::Send {LWin Up}{LCtrl Up}
 
+~LButton & WheelUp::
+    Suspend, Permit
+    SoundSet +5
+    SoundPlay *16
+return
+
+~LButton & WheelDown::
+    Suspend, Permit
+    SoundSet -5
+    SoundPlay *16
+return
+
 #If WinActive("- Gmail ahk_exe chrome.exe")
     !r::
     Send *a
@@ -30,7 +42,7 @@ return
     Send *n
 return
 #If
-    
+
 
 #If WinActive("ahk_exe ConEmu64.exe")
 Esc::
@@ -42,10 +54,10 @@ Esc::
 WinClose ahk_exe ConEmu64.exe
 return
 #If
-    
+
 
 #If not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
-    
+
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 #c::ActivateChrome(0)
 #!c::ActivateChrome(2)
@@ -54,7 +66,7 @@ return
 ^q::
     ; If explorer is active, copy file path to clipboard
     WriteExplorerInfoToJson()
-    
+
     ; Activate script window
     if WinExist(CONSOLE_WINDOW) {
         WinActivate % CONSOLE_WINDOW
@@ -62,18 +74,6 @@ return
     } else {
         WinActivate % GUI_WINDOW
     }
-return
-
-~LButton & WheelUp::
-    Suspend, Permit
-    SoundSet +5
-    SoundPlay *16
-return
-
-~LButton & WheelDown::
-    Suspend, Permit
-    SoundSet -5
-    SoundPlay *16
 return
 
 #F4::
@@ -91,7 +91,7 @@ return
         this_id := winList%A_Index%
         WinClose, ahk_id %this_id%
     }
-    
+
     ; Close "(Finished)" windows
     WinGet, winList, List, (Finished)
     Loop, %winList%
@@ -123,7 +123,7 @@ return
 #Up::
     WinGet, curHwnd, ID, A
     WinMaximize, ahk_id %curHwnd%
-    
+
     for p, hwnd in WindowList {
         if (hwnd = curHwnd) {
             WindowList.Delete(p)
@@ -133,19 +133,17 @@ return
 return
 
 #If
-    
+
 #If WinExist("ahk_exe vncviewer.exe")
-F8::
-if (not VncActive) {
-    WinActivate, ahk_exe vncviewer.exe
-    VncActive := True
-} else {
-    WinMinimize, ahk_exe vncviewer.exe
-    VncActive := False
-}
-return
+    F8::
+        if WinActive("ahk_exe vncviewer.exe") {
+            WinMinimize, ahk_exe vncviewer.exe
+        } else {
+            WinActivate, ahk_exe vncviewer.exe
+        }
+    return
 #If
-    
+
 ArrayHasValue(array, needle) {
     if not IsObject(array) {
         return false
@@ -160,9 +158,9 @@ ArrayHasValue(array, needle) {
 
 UpdateWindowPosition(pos) {
     global WindowList
-    
+
     WinGet, curHwnd, ID, A
-    
+
     prevPos := ""
     for p, hwnd in WindowList {
         if (hwnd = curHwnd) {
@@ -170,16 +168,16 @@ UpdateWindowPosition(pos) {
             break
         }
     }
-    
+
     if (prevPos != "") {
         ; If current window already in WindowList
-        WindowList[prevPos] := WindowList[pos] 
+        WindowList[prevPos] := WindowList[pos]
     }
     WindowList[pos] := curHwnd
-    
+
     WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
     RATIO := 2 / 3
-    
+
     for pos, hwnd in WindowList {
         if (pos = "left") {
             x := 0
@@ -189,10 +187,10 @@ UpdateWindowPosition(pos) {
             x := Floor(A_ScreenWidth * RATIO)
             w := Floor(A_ScreenWidth * (1 - RATIO))
         }
-        
+
         y := 0
         h := A_ScreenHeight - th
-        
+
         WinRestore, ahk_id %hwnd%
         WinSet, Style, +0x40000, ahk_id %hwnd%
         WinSet, Style, +Resize, ahk_id %hwnd%
@@ -201,7 +199,7 @@ UpdateWindowPosition(pos) {
             WinActivate, ahk_id %hwnd%
         }
     }
-    
+
     WinActivate, ahk_id %curHwnd%
 }
 
@@ -215,14 +213,14 @@ ActivateChrome(index=0)
     {
         condition := "CommandLine LIKE '%ChromeData" index "%' AND NOT CommandLine LIKE '%--type=%'"
     }
-    
+
     pid =
     for process in ComObjGet("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name='chrome.exe' AND " condition)
     {
         pid := process.ProcessID
         break
     }
-    
+
     if ( pid != "" and WinExist("- Google Chrome ahk_pid " pid) )
     {
         WinActivate
@@ -244,7 +242,7 @@ MouseIsOverAndActive(title) {
     MouseGetPos,,, id
     if not WinActive("ahk_id " id)
         return false
-    
+
     WinGet, matched_win_id, ID, %title%
     if (id = matched_win_id)
         return true
