@@ -17,8 +17,7 @@ def f2():
 
 
 setup_cmake()
-mkdir('C:\\Projects')
-chdir('C:\\Projects')
+cd('~/Projects')
 
 # shutil.rmtree('VulkanSamples')
 
