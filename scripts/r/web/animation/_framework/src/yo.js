@@ -67,7 +67,7 @@ let palette = [
   "#4ecdc4",
   "#ff6b6b",
   "#ffe66d",
-  "#f7fff7"
+  "#f7fff7",
 ];
 
 var glitchPass;
@@ -80,12 +80,12 @@ let options = {
   /* Recording options */
   format: "png",
   framerate: "25FPS",
-  start: function() {
+  start: function () {
     startCapture();
   },
-  stop: function() {
+  stop: function () {
     stopCapture();
-  }
+  },
 };
 
 var gui = new dat.gui.GUI();
@@ -119,7 +119,7 @@ function startCapture({ resetTiming = true, name = "animation" } = {}) {
     timeLimit: 0,
     frameLimit: 0,
     autoSaveTime: 0,
-    name
+    name,
   });
 
   capturer.start();
@@ -138,7 +138,7 @@ function stopCapture() {
 
     var FileSaver = require("file-saver");
     var blob = new Blob([JSON.stringify(metaData)], {
-      type: "text/plain;charset=utf-8"
+      type: "text/plain;charset=utf-8",
     });
     FileSaver.saveAs(
       blob,
@@ -173,7 +173,7 @@ function setupOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
 function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   let options = {
     // antialias: true,
-    alpha: true
+    alpha: true,
   };
   if (AA_METHOD == "msaa") {
     options.antialias = true;
@@ -230,7 +230,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
       interpolateGeometry: 1,
       smearIntensity: 1,
       blurTransparent: true,
-      renderCameraBlur: true
+      renderCameraBlur: true,
     };
     let motionPass = new MotionBlurPass(scene, camera, options);
     composer.addPass(motionPass);
@@ -311,7 +311,7 @@ function animate(
 
   cameraControls.update();
 
-  animationCallbacks.forEach(callback => {
+  animationCallbacks.forEach((callback) => {
     callback(delta, timeElapsed);
   });
 
@@ -331,7 +331,7 @@ function moveCameraTo({ x = 0, y = 0, z = 10 }) {
       camera.lookAt(new Vector3(0, 0, 0));
     },
     duration: 0.5,
-    ease: "expo.out"
+    ease: "expo.out",
   });
 }
 
@@ -416,17 +416,17 @@ function createAnimatedLines() {
     "#FDFFFC",
     "#FDFFFC",
     "#EA526F",
-    "#71b9f2"
-  ].map(col => new THREE.Color(col));
+    "#71b9f2",
+  ].map((col) => new THREE.Color(col));
   const STATIC_PROPS = {
     nbrOfPoints: 4,
     speed: 0.03,
     turbulence: new THREE.Vector3(1, 0.8, 1),
     orientation: new THREE.Vector3(1, 0, 0),
-    transformLineMethod: p => {
+    transformLineMethod: (p) => {
       const a = (0.5 - Math.abs(0.5 - p)) * 3;
       return a;
-    }
+    },
   };
 
   const POSITION_X = -3.2;
@@ -448,7 +448,7 @@ function createAnimatedLines() {
         length: getRandomFloat(LENGTH_MIN, LENGTH_MAX),
         visibleLength: getRandomFloat(0.05, 0.8),
         position: new THREE.Vector3(POSITION_X, 0.3, getRandomFloat(-1, 1)),
-        color: getRandomItem(COLORS)
+        color: getRandomItem(COLORS),
       });
       line.rotation.x = getRandomFloat(0, Math.PI * 2);
 
@@ -463,7 +463,7 @@ function createAnimatedLines() {
             getRandomFloat(-5, 5),
             getRandomFloat(-10, 6)
           ),
-          color: getRandomItem(COLORS)
+          color: getRandomItem(COLORS),
         });
         line.rotation.x = getRandomFloat(0, Math.PI * 2);
       }
@@ -471,7 +471,7 @@ function createAnimatedLines() {
   }
   var lineGenerator = new CustomLineGenerator(
     {
-      frequency: 0.1
+      frequency: 0.1,
     },
     STATIC_PROPS
   );
@@ -599,7 +599,7 @@ function createTextParticles(text = "Hello Codepen ♥") {
             color: palette[n % palette.length],
             transparent: false,
             opacity: 1,
-            wireframe: false
+            wireframe: false,
           });
           var geometry = new THREE.IcosahedronGeometry(1);
 
@@ -621,7 +621,7 @@ function createTextParticles(text = "Hello Codepen ♥") {
           if (1) {
             mesh.scale.set(0, 0, 0);
             const params = {
-              scale: 0
+              scale: 0,
             };
             gsap.to(params, {
               scale: (0.5 + (Math.random() - 0.5) * 0.5) / S,
@@ -630,7 +630,7 @@ function createTextParticles(text = "Hello Codepen ♥") {
               onUpdate: () => {
                 mesh.scale.set(params.scale, params.scale, params.scale);
               },
-              delay: 2 + Math.random()
+              delay: 2 + Math.random(),
             });
           }
 
@@ -669,7 +669,7 @@ function createRingAnimation() {
     color: "#ffffff",
     // TODO: don't hard code value here.
     resolution: new THREE.Vector2(WIDTH, HEIGHT),
-    sizeAttenuation: !false // Line width constant regardless distance
+    sizeAttenuation: !false, // Line width constant regardless distance
   });
 
   let mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
@@ -683,23 +683,23 @@ function createRingAnimation() {
   if (1) {
     let vals = {
       start: 0,
-      end: 0
+      end: 0,
     };
     let tl = gsap.timeline({
       defaults: { duration: 1, ease: "power3.out" },
       onUpdate: () => {
         material.uniforms.dashOffset.value = vals.start;
         material.uniforms.dashRatio.value = 1 - (vals.end - vals.start);
-      }
+      },
     });
     tl.to(vals, {
       end: 1,
-      duration: 2
+      duration: 2,
     }).to(
       vals,
       {
         start: 1,
-        duration: 2
+        duration: 2,
       },
       "<0.5"
     );
@@ -736,7 +736,7 @@ function createRect({ color = 0xffff00 } = {}) {
     color: color,
     side: THREE.DoubleSide,
     transparent: true,
-    opacity: 1.0
+    opacity: 1.0,
   });
   var plane = new THREE.Mesh(geometry, material);
   // scene.add(plane);
@@ -760,7 +760,7 @@ function createLine3D({ color = 0xffffff, points = [], lineWidth = 0.1 } = {}) {
   let material = new THREE.MeshBasicMaterial({
     color,
     side: THREE.DoubleSide,
-    transparent: true
+    transparent: true,
   });
 
   let mesh = new THREE.Mesh(geometry, material);
@@ -782,7 +782,7 @@ function createWipeAnimation(
     {
       constant: boundingBox.max.x * 1.1,
       duration: 0.6,
-      ease: "expo.out"
+      ease: "expo.out",
     }
   );
 
@@ -796,7 +796,7 @@ function createCircle2D() {
   let material = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity: 1.0
+    opacity: 1.0,
   });
 
   let circle = new THREE.Mesh(geometry, material);
@@ -808,7 +808,7 @@ function createObject({
   type = "sphere",
   materialType = "basic",
   segments = 32,
-  color = 0xffffff
+  color = 0xffffff,
 } = {}) {
   let geometry;
   if (type == "sphere") {
@@ -822,7 +822,7 @@ function createObject({
   let material;
   if (materialType == "phong") {
     material = new THREE.MeshPhongMaterial({
-      color
+      color,
     });
   } else if (materialType == "physical") {
     material = new THREE.MeshPhysicalMaterial({
@@ -831,13 +831,13 @@ function createObject({
       metalness: 0.9,
       roughness: 0.5,
       color,
-      normalScale: new THREE.Vector2(0.15, 0.15)
+      normalScale: new THREE.Vector2(0.15, 0.15),
     });
   } else {
     material = new THREE.MeshBasicMaterial({
       color,
       transparent: true,
-      opacity: 1.0
+      opacity: 1.0,
     });
   }
 
@@ -856,7 +856,7 @@ function addPulseAnimation(object3d) {
       opacity: 0.3,
       yoyo: true,
       repeat: 5,
-      ease: "power2.in"
+      ease: "power2.in",
       // repeatDelay: 0.4,
     }
   );
@@ -864,10 +864,10 @@ function addPulseAnimation(object3d) {
 
 //// GLOW MESH
 
-const dilateGeometry = function(geometry, length) {
+const dilateGeometry = function (geometry, length) {
   // gather vertexNormals from geometry.faces
   var vertexNormals = new Array(geometry.vertices.length);
-  geometry.faces.forEach(function(face) {
+  geometry.faces.forEach(function (face) {
     if (face instanceof THREE.Face4) {
       vertexNormals[face.a] = face.vertexNormals[0];
       vertexNormals[face.b] = face.vertexNormals[1];
@@ -880,7 +880,7 @@ const dilateGeometry = function(geometry, length) {
     } else console.assert(false);
   });
   // modify the vertices according to vertextNormal
-  geometry.vertices.forEach(function(vertex, idx) {
+  geometry.vertices.forEach(function (vertex, idx) {
     var vertexNormal = vertexNormals[idx];
     vertex.x += vertexNormal.x * length;
     vertex.y += vertexNormal.y * length;
@@ -888,7 +888,7 @@ const dilateGeometry = function(geometry, length) {
   });
 };
 
-const createAtmosphereMaterial = function() {
+const createAtmosphereMaterial = function () {
   var vertexShader = [
     "varying vec3	vVertexWorldPosition;",
     "varying vec3	vVertexNormal;",
@@ -902,7 +902,7 @@ const createAtmosphereMaterial = function() {
 
     "	// set gl_Position",
     "	gl_Position	= projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
-    "}"
+    "}",
   ].join("\n");
   var fragmentShader = [
     "uniform vec3	glowColor;",
@@ -920,7 +920,7 @@ const createAtmosphereMaterial = function() {
     "	viewCameraToVertex	= normalize(viewCameraToVertex);",
     "	float intensity		= pow(coeficient + dot(vVertexNormal, viewCameraToVertex), power);",
     "	gl_FragColor		= vec4(glowColor, intensity);",
-    "}"
+    "}",
   ].join("\n");
 
   // create custom material from the shader code above
@@ -929,27 +929,27 @@ const createAtmosphereMaterial = function() {
     uniforms: {
       coeficient: {
         type: "f",
-        value: 1.0
+        value: 1.0,
       },
       power: {
         type: "f",
-        value: 2
+        value: 2,
       },
       glowColor: {
         type: "c",
-        value: new THREE.Color("pink")
-      }
+        value: new THREE.Color("pink"),
+      },
     },
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
     //blending	: THREE.AdditiveBlending,
     transparent: true,
-    depthWrite: false
+    depthWrite: false,
   });
   return material;
 };
 
-const GeometricGlowMesh = function(mesh, { color = "cyan" } = {}) {
+const GeometricGlowMesh = function (mesh, { color = "cyan" } = {}) {
   var object3d = new THREE.Object3D();
 
   var geometry = mesh.geometry.clone();
@@ -990,17 +990,17 @@ function createRectMeshLine({ lineWidth = 0.1, color = 0x00ff00 } = {}) {
       new THREE.Vector3(-0.5, 0.5, 0),
       new THREE.Vector3(0.5, 0.5, 0),
       new THREE.Vector3(0.5, -0.5, 0),
-      new THREE.Vector3(-0.5, -0.5, 0)
+      new THREE.Vector3(-0.5, -0.5, 0),
     ],
     lineWidth,
-    color
+    color,
   });
   return mesh;
 }
 
 function createRectLine({ color = 0x00ff00 } = {}) {
   var material = new THREE.LineBasicMaterial({
-    color
+    color,
   });
 
   var geometry = new THREE.Geometry();
@@ -1021,7 +1021,7 @@ function createGrid({
   cols = 10,
   lineWidth = 0.05,
   useMeshLine = false,
-  color = 0x00ff00
+  color = 0x00ff00,
 } = {}) {
   const group = new THREE.Group();
   for (let i = 0; i < rows; i++) {
@@ -1030,11 +1030,11 @@ function createGrid({
       if (useMeshLine) {
         cellObject = createRectMeshLine({
           lineWidth,
-          color
+          color,
         });
       } else {
         cellObject = createRectLine({
-          color
+          color,
         });
       }
 
@@ -1052,11 +1052,11 @@ function addFadeIn(
   const tl = gsap.timeline({ defaults: { duration, ease } });
 
   const materials = new Set();
-  const getMaterialsRecursive = object3d => {
+  const getMaterialsRecursive = (object3d) => {
     if (object3d.material != null) {
       materials.add(object3d.material);
     }
-    object3d.children.forEach(child => {
+    object3d.children.forEach((child) => {
       getMaterialsRecursive(child);
     });
   };
@@ -1064,7 +1064,7 @@ function addFadeIn(
   getMaterialsRecursive(object3d);
 
   // console.log(materials);
-  materials.forEach(material => {
+  materials.forEach((material) => {
     material.transparent = true;
 
     // tl.fromTo(
@@ -1082,11 +1082,11 @@ function addFadeIn(
     tl.fromTo(
       material,
       {
-        opacity: 0
+        opacity: 0,
       },
       {
         opacity,
-        duration
+        duration,
       },
       "<"
     );
@@ -1101,7 +1101,7 @@ function setOpacity(object3d, opacity = 1.0) {
     object3d.material.opacity = opacity;
   }
 
-  object3d.children.forEach(x => {
+  object3d.children.forEach((x) => {
     setOpacity(x, opacity);
   });
 }
@@ -1117,12 +1117,12 @@ function addJumpIn(object3d, { ease = "elastic.out(1, 0.2)" } = {}) {
   tl.from(object3d.position, {
     y: object3d.position.y + 1,
     ease,
-    duration
+    duration,
   });
 
   tl.add(
     addFadeIn(object3d, {
-      duration
+      duration,
     }),
     "<"
   );
@@ -1136,14 +1136,14 @@ function jumpTo(object3d, { x = 0, y = 0 }) {
     x,
     y,
     ease: "elastic.out(1, 0.2)",
-    duration: 0.5
+    duration: 0.5,
   });
 
   tl.from(
     object3d.material,
     {
       opacity: 0,
-      duration: 0.5
+      duration: 0.5,
     },
     "<"
   );
@@ -1167,7 +1167,7 @@ function createMoveToAnimation(
     sx = null,
     sy = null,
     sz = null,
-    duration = 0.5
+    duration = 0.5,
   } = {}
 ) {
   if (dx != null) x = object3d.position.x + dx;
@@ -1176,8 +1176,8 @@ function createMoveToAnimation(
   let tl = gsap.timeline({
     defaults: {
       duration,
-      ease: "expo.out"
-    }
+      ease: "expo.out",
+    },
   });
 
   if (position != null) {
@@ -1202,7 +1202,7 @@ function createMoveToAnimation(
       {
         x: object3d.scale.x * scale,
         y: object3d.scale.y * scale,
-        z: object3d.scale.z * scale
+        z: object3d.scale.z * scale,
       },
       "<"
     );
@@ -1223,25 +1223,25 @@ function flyIn(
     duration = 0.5,
     deltaRotation = -Math.PI * 4,
     beginScale = 0.01,
-    ease = "power2.out"
+    ease = "power2.out",
   } = {}
 ) {
   let tl = gsap.timeline({
     defaults: {
       duration,
-      ease
-    }
+      ease,
+    },
   });
 
   tl.from(object3d.position, {
     x: object3d.position.x + dx,
-    y: object3d.position.y + dy
+    y: object3d.position.y + dy,
   });
 
   tl.from(
     object3d.rotation,
     {
-      z: object3d.rotation.z + deltaRotation
+      z: object3d.rotation.z + deltaRotation,
     },
     "<"
   );
@@ -1251,7 +1251,7 @@ function flyIn(
     {
       x: beginScale,
       y: beginScale,
-      z: beginScale
+      z: beginScale,
     },
     "<"
   );
@@ -1293,10 +1293,10 @@ function createTriangle({
   vertices = [
     new THREE.Vector3(-1.732, -1, 0),
     new THREE.Vector3(1.732, -1, 0),
-    new THREE.Vector3(0, 2, 0)
+    new THREE.Vector3(0, 2, 0),
   ],
   color = 0xffffff,
-  opacity = 1.0
+  opacity = 1.0,
 } = {}) {
   let geometry = new THREE.Geometry();
 
@@ -1307,7 +1307,7 @@ function createTriangle({
   let material = new THREE.MeshBasicMaterial({
     color,
     transparent: true,
-    opacity
+    opacity,
   });
 
   let mesh = new THREE.Mesh(geometry, material);
@@ -1330,7 +1330,7 @@ function addShake2D(
   var initProps = {
     x: object3d.position.x,
     y: object3d.position.y,
-    rotation: object3d.position.z
+    rotation: object3d.position.z,
   };
 
   //shake a bunch of times
@@ -1338,14 +1338,14 @@ function addShake2D(
     const offset = R(-strength, strength);
     tl.to(object3d.position, duration, {
       x: initProps.x + offset,
-      y: initProps.y - offset
+      y: initProps.y - offset,
       // rotation: initProps.rotation + R(-5, 5)
     });
   }
   //return to pre-shake values
   tl.to(object3d.position, duration, {
     x: initProps.x,
-    y: initProps.y
+    y: initProps.y,
     // scale: initProps.scale,
     // rotation: initProps.rotation
   });
@@ -1357,13 +1357,13 @@ function createTriangleOutline({ color = "0xffffff" } = {}) {
   const VERTICES = [
     new THREE.Vector3(-1.732, -1, 0),
     new THREE.Vector3(1.732, -1, 0),
-    new THREE.Vector3(0, 2, 0)
+    new THREE.Vector3(0, 2, 0),
   ];
 
   const triangleStroke = createLine3D({
     points: VERTICES.concat(VERTICES[0]),
     lineWidth: 0.3,
-    color
+    color,
   });
   triangleStroke.position.set(-6.4, -6.4, 0.02);
   // triangleStroke.scale.set(0.2, 0.2, 0.2);
@@ -1378,30 +1378,30 @@ function addExplosionAnimation(
   const tl = gsap.timeline({
     defaults: {
       duration,
-      ease: ease
-    }
+      ease: ease,
+    },
   });
 
   tl.from(
-    objectGroup.children.map(x => x.position),
+    objectGroup.children.map((x) => x.position),
     {
       x: 0,
-      y: 0
+      y: 0,
     },
     0
   );
   tl.from(
-    objectGroup.children.map(x => x.scale),
+    objectGroup.children.map((x) => x.scale),
     {
       x: 0.001,
-      y: 0.001
+      y: 0.001,
     },
     0
   );
   tl.from(
-    objectGroup.children.map(x => x.rotation),
+    objectGroup.children.map((x) => x.rotation),
     {
-      z: 0
+      z: 0,
     },
     0
   );
@@ -1417,18 +1417,18 @@ function createExplosionAnimation(
     rotationMax = Math.PI * 8,
     radiusMin = 1,
     radiusMax = 8,
-    stagger = 0
+    stagger = 0,
   } = {}
 ) {
   const tl = gsap.timeline({
     defaults: {
       duration,
-      ease: ease
-    }
+      ease: ease,
+    },
   });
 
   let delay = 0;
-  objectGroup.children.forEach(child => {
+  objectGroup.children.forEach((child) => {
     const r = radiusMin + (radiusMax - radiusMin) * rng();
     const theta = rng() * 2 * Math.PI;
     const x = r * Math.cos(theta);
@@ -1457,22 +1457,22 @@ function addCollapseAnimation(objectGroup, { duration = 0.5 } = {}) {
   const tl = gsap.timeline({
     defaults: {
       duration,
-      ease: "expo.out"
-    }
+      ease: "expo.out",
+    },
   });
   tl.to(
-    objectGroup.children.map(x => x.position),
+    objectGroup.children.map((x) => x.position),
     {
       x: 0,
-      y: 0
+      y: 0,
     },
     0
   );
   tl.to(
-    objectGroup.children.map(x => x.scale),
+    objectGroup.children.map((x) => x.scale),
     {
       x: 0.001,
-      y: 0.001
+      y: 0.001,
     },
     0
   );
@@ -1481,7 +1481,7 @@ function addCollapseAnimation(objectGroup, { duration = 0.5 } = {}) {
 
 function getCompoundBoundingBox(object3D) {
   var box = null;
-  object3D.traverse(function(obj3D) {
+  object3D.traverse(function (obj3D) {
     var geometry = obj3D.geometry;
     if (geometry === undefined) return;
     geometry.computeBoundingBox();
@@ -1513,7 +1513,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
       // resource URL
       url,
       // called when the resource is loaded
-      function(data) {
+      function (data) {
         let paths = data.paths;
 
         let parentGroup = new THREE.Group();
@@ -1527,7 +1527,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
           let material = new THREE.MeshBasicMaterial({
             color: color !== null ? color : path.color,
             side: THREE.DoubleSide,
-            depthWrite: false
+            depthWrite: false,
           });
 
           const shapes = path.toShapes(isCCW);
@@ -1539,7 +1539,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
           const name = _getNodeName(path.userData.node);
 
           if (name) {
-            let group = parentGroup.children.filter(x => x.name == name)[0];
+            let group = parentGroup.children.filter((x) => x.name == name)[0];
             if (!group) {
               group = new THREE.Group();
               group.name = name;
@@ -1563,8 +1563,8 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
 
         const scale = 1.0 / Math.max(boxSize.x, boxSize.y, boxSize.z);
 
-        parentGroup.children.forEach(group => {
-          group.children.forEach(subMesh => {
+        parentGroup.children.forEach((group) => {
+          group.children.forEach((subMesh) => {
             // Scale and translate geometry
             subMesh.geometry.translate(
               -boxCenter.x,
@@ -1585,11 +1585,11 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
         resolve(parentGroup);
       },
       // called when loading is in progresses
-      function(xhr) {
+      function (xhr) {
         // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
       },
       // called when loading has errors
-      function(error) {
+      function (error) {
         console.log("An error happened");
         reject(error);
       }
@@ -1615,7 +1615,7 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   textMesh.children.forEach((letter, i) => {
     const vals = {
       position: -textMesh.size * 2,
-      rotation: -Math.PI / 2
+      rotation: -Math.PI / 2,
     };
     tl.to(
       vals,
@@ -1629,7 +1629,7 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
           letter.position.y = vals.position;
           letter.position.z = vals.position * 2;
           letter.rotation.x = vals.rotation;
-        }
+        },
       },
       `-=${duration - 0.03}`
     );
@@ -1641,7 +1641,7 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
 }
 
 const metaData = {
-  cutPoints: []
+  cutPoints: [],
 };
 
 function newScene(initFunction) {
@@ -1654,17 +1654,17 @@ function newScene(initFunction) {
       options.timeline = 0;
       gui
         .add(options, "timeline", 0, globalTimeline.totalDuration())
-        .onChange(val => {
+        .onChange((val) => {
           globalTimeline.seek(val, false);
         });
 
-      Object.keys(globalTimeline.labels).forEach(key => {
+      Object.keys(globalTimeline.labels).forEach((key) => {
         console.log(`${key} ${globalTimeline.labels[key]}`);
       });
 
       const folder = gui.addFolder("Timeline Labels");
       var labels = new Object();
-      Object.keys(globalTimeline.labels).forEach(key => {
+      Object.keys(globalTimeline.labels).forEach((key) => {
         const label = key;
         const time = globalTimeline.labels[key];
 
@@ -1713,7 +1713,7 @@ function createArrow({
   lineWidth = 0.1,
   arrowEnd = true,
   arrowStart = false,
-  color = 0xffff00
+  color = 0xffff00,
 } = {}) {
   const direction = new THREE.Vector3();
   direction.subVectors(to, from);
@@ -1774,7 +1774,7 @@ function createArrow({
     geometry.vertices = [
       new THREE.Vector3(-lineWidth * 2, -lineWidth * 4, 0),
       new THREE.Vector3(lineWidth * 2, -lineWidth * 4, 0),
-      new THREE.Vector3(0, 0, 0)
+      new THREE.Vector3(0, 0, 0),
     ];
     geometry.faces.push(new THREE.Face3(0, 1, 2));
 
@@ -1806,7 +1806,7 @@ function addText(
     aniExit = null,
     color = 0xffffff,
     font = "en",
-    fontSize = 1.0
+    fontSize = 1.0,
   } = {}
 ) {
   const mesh = new TextMesh({
@@ -1814,7 +1814,7 @@ function addText(
     font,
     size: 0.5,
     color,
-    size: fontSize
+    size: fontSize,
   });
   mesh.position.set(x, y, z);
 
@@ -1827,7 +1827,7 @@ function addText(
 
 async function loadTexture(url) {
   return new Promise((resolve, reject) => {
-    new THREE.TextureLoader().load(url, texture => {
+    new THREE.TextureLoader().load(url, (texture) => {
       resolve(texture);
     });
   });
@@ -1844,13 +1844,15 @@ function addAnimation(
     const animationList = animation.split("|");
 
     // Enter animation
-    animationList.forEach(animation => {
+    animationList.forEach((animation) => {
       if (animation == "fadeIn") {
         tl.add(addFadeIn(object3d), "<");
       } else if (animation == "jumpIn") {
         tl.add(addJumpIn(object3d), "<");
       } else if (animation == "spinIn") {
-        tl.from(object3d.rotation, { y: Math.PI * 4 }, "<");
+        tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
+      } else if (animation == "rotateIn") {
+        tl.from(object3d.rotation, { z: -Math.PI * 2 }, "<");
       } else if (animation == "grow") {
         tl.from(
           object3d.scale,
@@ -1869,13 +1871,13 @@ function addAnimation(
           tl.fromTo(
             x,
             {
-              visible: false
+              visible: false,
             },
             {
               visible: true,
               ease: "steps(1)",
               duration: speed,
-              delay: i * speed
+              delay: i * speed,
             },
             "<"
           );
@@ -1887,14 +1889,14 @@ function addAnimation(
     });
 
     // Animation
-    animationList.forEach(animation => {
+    animationList.forEach((animation) => {
       if (animation == "rotation") {
         tl.to(
           object3d.rotation,
           {
             y: object3d.rotation.y + Math.PI * 2 * 4,
             duration: 2,
-            ease: "none"
+            ease: "none",
           },
           ">"
         );
@@ -1903,7 +1905,7 @@ function addAnimation(
 
     // Exit animation
     const tlExitAnimation = gsap.timeline();
-    animationList.forEach(animation => {
+    animationList.forEach((animation) => {
       if (animation == "fadeOut") {
         tlExitAnimation.add(
           addFadeIn(object3d, { ease: "power1.in" }).reverse(),
@@ -1973,7 +1975,7 @@ async function addAsync(
     arrowTo = new THREE.Vector3(0, 1, 0),
     lineWidth = 0.1,
     gridSize = 10,
-    centralAngle = Math.PI * 2
+    centralAngle = Math.PI * 2,
   } = {}
 ) {
   let material;
@@ -1984,7 +1986,7 @@ async function addAsync(
       color,
       // emissive: 0x072534,
       // side: THREE.DoubleSide,
-      flatShading: true
+      flatShading: true,
     });
   } else {
     material = new THREE.MeshBasicMaterial({
@@ -1992,7 +1994,7 @@ async function addAsync(
       color,
       transparent: opacity < 1.0 ? true : false,
       opacity,
-      wireframe
+      wireframe,
     });
   }
 
@@ -2002,10 +2004,10 @@ async function addAsync(
     scene.add(mesh);
   } else if (obj.endsWith(".png")) {
     const texture = await loadTexture(obj);
-    texture.anisotropy = renderer.getMaxAnisotropy();
+    // texture.anisotropy = renderer.getMaxAnisotropy();
     const material = new THREE.MeshBasicMaterial({
       map: texture,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
     });
 
     const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
@@ -2026,7 +2028,7 @@ async function addAsync(
       mesh = createLine3D({
         points: vertices.concat(vertices[0]),
         lineWidth: outlineWidth,
-        color
+        color,
       });
     } else {
       const geometry = new THREE.Geometry();
@@ -2052,7 +2054,7 @@ async function addAsync(
       from: arrowFrom,
       to: arrowTo,
       color,
-      lineWidth
+      lineWidth,
     });
   } else if (obj == "grid") {
     const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
@@ -2066,7 +2068,7 @@ async function addAsync(
       font,
       size: 0.5,
       color,
-      size: fontSize
+      size: fontSize,
     });
   }
 
@@ -2203,7 +2205,7 @@ function getGridLayoutPositions({
   rows = 1,
   cols = 1,
   width = 25,
-  height = 14
+  height = 14,
 } = {}) {
   const gapX = width / cols;
   const gapY = height / rows;
@@ -2227,12 +2229,12 @@ function addSpinningAnimation(object3d, { speed = 0.1, duration = 10 } = {}) {
   tl.fromTo(
     object3d.rotation,
     {
-      z: 0
+      z: 0,
     },
     {
       z: -2 * Math.PI * (duration * speed),
       duration,
-      ease: "none"
+      ease: "none",
     },
     0
   );
@@ -2293,7 +2295,7 @@ function addCustomAnimation(
     endVal = 1,
     aniPos = "+=0",
     ease = "expo.out",
-    duration = 0.5
+    duration = 0.5,
   } = {}
 ) {
   const data = { val: startVal };
@@ -2305,7 +2307,7 @@ function addCustomAnimation(
         callback(data.val);
       },
       ease,
-      duration
+      duration,
     },
     aniPos
   );

@@ -96,7 +96,7 @@ def get_all_python_block():
     lines = open('index.md', 'r', encoding='utf-8').readlines()
 
     if PARSE_LINE_START is not None:
-        lines = lines[(PARSE_LINE_START + 1): (PARSE_LINE_END + 2)]
+        lines = lines[(PARSE_LINE_START - 1): (PARSE_LINE_END)]
 
     s = '\n'.join(lines)
 
@@ -281,7 +281,6 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
 
 def _animation(url, file_prefix, part, track=None):
     global _add_fade_out
-
     file_prefix = 'animation/' + slugify(file_prefix)
 
     if part is not None:
