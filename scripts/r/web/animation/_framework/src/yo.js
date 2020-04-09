@@ -1969,7 +1969,7 @@ async function addAsync(
     parent = null,
     lighting = false,
     ccw = true,
-    font = "en",
+    font = null,
     fontSize = 1.0,
     arrowFrom = new THREE.Vector3(0, 0, 0),
     arrowTo = new THREE.Vector3(0, 1, 0),
