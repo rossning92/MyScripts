@@ -19,6 +19,7 @@ for f in files:
     if '{{_FPS}}':
         extra_args += ['-r', '{{_FPS}}']
 
+    # TODO: merge to following filter_v
     # Scale (-2 indicates divisible by 2)
     if '{{_RESIZE_H}}':
         extra_args += ['-vf', 'scale=-2:{{_RESIZE_H}}']
@@ -27,16 +28,23 @@ for f in files:
     elif '{{_RESIZE_W}}':
         extra_args += ['-vf', 'scale={{_RESIZE_W}}:-2']
 
-    if '{{_TO_ANAMORPHIC}}':
-        extra_args += ['-filter:v',
-                       'scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132']
+    filter_v = []
 
     # Crop video
     if crop_rect:
-        extra_args += [
-            '-filter:v',
-            f'crop={crop_rect[2]}:{crop_rect[3]}:{crop_rect[0]}:{crop_rect[1]}'
-        ]
+        filter_v.append(
+            f'crop={crop_rect[2]}:{crop_rect[3]}:{crop_rect[0]}:{crop_rect[1]}')
+
+    if '{{_TO_ANAMORPHIC}}':
+        filter_v.append(
+            'scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132')
+
+    elif '{{_CROP_TO_1080P}}':
+        filter_v.append(
+            'scale=1920:-2,crop=1920:1080:0:0')
+
+    if filter_v:
+        extra_args += ['-filter:v', ','.join(filter_v)]
 
     # Cut video
     start_and_duration = None

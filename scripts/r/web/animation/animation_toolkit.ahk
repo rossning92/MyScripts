@@ -13,7 +13,7 @@ SetWorkingDir, %PROJECT_DIR%
 WinClose, %AUDIO_RECORDER_TITLE%
 Run, cmd /c title %AUDIO_RECORDER_TITLE% & set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & set "RECORD_OUT_DIR=record" & python "%SCRIPT_DIR%\..\..\audio\recorder.py"
 
-$F5::
+$F10::
     RunPython("_screenshot.py", True)
 return
 
