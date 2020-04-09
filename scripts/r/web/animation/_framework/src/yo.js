@@ -1168,6 +1168,7 @@ function createMoveToAnimation(
     sy = null,
     sz = null,
     duration = 0.5,
+    ease = "expo.out"
   } = {}
 ) {
   if (dx != null) x = object3d.position.x + dx;
@@ -1176,7 +1177,7 @@ function createMoveToAnimation(
   let tl = gsap.timeline({
     defaults: {
       duration,
-      ease: "expo.out",
+      ease,
     },
   });
 

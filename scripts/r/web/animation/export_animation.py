@@ -328,6 +328,15 @@ def anim(s, part=None):
     _animation(url, file_prefix, part=part)
 
 
+def image_anim(file, t=5):
+    url = 'http://localhost:8080/image.html?t=%s&src=%s' % (
+        urllib.parse.quote('%d' % t),
+        urllib.parse.quote(file)
+    )
+    file_prefix = os.path.splitext(file)[0]
+    _animation(url, file_prefix, part=None)
+
+
 def title_anim(h1, h2, part=None):
     file_prefix = slugify('title-%s-%s' % (h1, h2))
     url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
