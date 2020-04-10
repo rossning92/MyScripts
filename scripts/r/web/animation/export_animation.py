@@ -40,7 +40,7 @@ _pos_tags = {}
 _audio_track_cur_duration = 0
 
 
-_add_fade_out = False
+_add_fadeout_to_last_clip = False
 
 _video_tracks = {}
 _cur_vid_track_name = '@'  # default video track
@@ -55,7 +55,10 @@ class _ClipWrapper:
         self.speed: float = 1
 
 
-def _get_vid_track(name):
+def _get_vid_track(name=None):
+    if name is None:
+        name = _cur_vid_track_name
+
     if name not in _video_tracks:
         track = []
         _video_tracks[name] = track
@@ -63,10 +66,6 @@ def _get_vid_track(name):
         track = _video_tracks[name]
 
     return track
-
-
-def _get_cur_vid_track():
-    return _get_vid_track(_cur_vid_track_name)
 
 
 def _get_markers(file):
@@ -148,7 +147,7 @@ def pos(p):
         match = re.match(r'^\<' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
-            cw = _get_cur_vid_track()[-1]
+            cw = _get_vid_track()[-1]
 
             _pos_list.append(cw.start + delta)
 
@@ -178,14 +177,14 @@ def image(f, pos=None, track=None):
     _add_clip(f, pos=pos, track=track)
 
 
-def _add_fadeout():
-    global _add_fade_out
+def _add_fadeout(track):
+    global _add_fadeout_to_last_clip
 
-    if _add_fade_out:
-        cw = _get_cur_vid_track()[-1]
+    if _add_fadeout_to_last_clip:
+        cw = track[-1]
         cw.mpy_clip = cw.mpy_clip.fx(vfx.fadeout, FADEOUT_DURATION)
 
-        _add_fade_out = False
+        _add_fadeout_to_last_clip = False
 
 
 def create_image_seq_clip(tar_file):
@@ -204,24 +203,13 @@ def create_image_seq_clip(tar_file):
 
 
 def _update_prev_clip(track):
-    if track:
-        cw = track[-1]
+    _clip_extend_prev_clip(track)
 
-        cw.duration = _pos_list[-1] - cw.start
-        print('previous clip start, duration updated: %.2f, %.2f' %
-              (cw.start, cw.duration))
-
-        # Use duration to extend / hold the last frame instead of creating new clips.
-        cw.mpy_clip = cw.mpy_clip.set_duration(cw.duration)
-
-    _add_fadeout()
+    _add_fadeout(track)
 
 
 def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
-    if track is None:
-        track = _get_cur_vid_track()
-    else:
-        track = _get_vid_track(track)
+    track = _get_vid_track(track)
 
     _update_prev_clip(track)
 
@@ -266,7 +254,8 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
 
 
 def _animation(url, file_prefix, part, track=None):
-    global _add_fade_out
+    global _add_fadeout_to_last_clip
+
     file_prefix = 'animation/' + slugify(file_prefix)
 
     if part is not None:
@@ -313,13 +302,30 @@ def title_anim(h1, h2, part=None):
     _animation(url, file_prefix, part=part)
 
 
+def _clip_extend_prev_clip(track=None):
+    if len(track) == 0:
+        return
+
+    cw = track[-1]
+
+    if cw.duration is None:
+        cw.duration = _pos_list[-1] - cw.start
+        print('previous clip start, duration updated: %.2f, %.2f' %
+              (cw.start, cw.duration))
+
+        # Use duration to extend / hold the last frame instead of creating new clips.
+        cw.mpy_clip = cw.mpy_clip.set_duration(cw.duration)
+
+
 def empty(track=None):
-    _add_clip(None, track=track)
+    track = _get_vid_track(track)
+    _clip_extend_prev_clip(track)
 
 
+# TODO: This does not work
 def fadeout():
-    global _add_fade_out
-    _add_fade_out = True
+    global _add_fadeout_to_last_clip
+    _add_fadeout_to_last_clip = True
 
 
 # TODO: refactor
@@ -339,7 +345,7 @@ def list_anim(s):
     # Get markers
     # markers = _get_markers(out_file)
 
-    _get_cur_vid_track().append(clip)
+    _get_vid_track().append(clip)
 
 
 def video(f, track=None):
