@@ -46,12 +46,13 @@ _video_tracks = {}
 _cur_vid_track_name = '@'  # default video track
 
 
-class ClipWrapper(NamedTuple):
-    file: str = None
-    start: float = 0
-    duration: float = None
-    mpy_clip: Any = None
-    speed: float = 1
+class _ClipWrapper:
+    def __init__(self):
+        self.file: str = None
+        self.start: float = 0
+        self.duration: float = None
+        self.mpy_clip: Any = None
+        self.speed: float = 1
 
 
 def _get_vid_track(name):
@@ -147,9 +148,9 @@ def pos(p):
         match = re.match(r'^\<' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
-            start, _ = _get_cur_vid_track()[-1]
+            cw = _get_cur_vid_track()[-1]
 
-            _pos_list.append(start + delta)
+            _pos_list.append(cw.start + delta)
 
             return
 
@@ -181,9 +182,8 @@ def _add_fadeout():
     global _add_fade_out
 
     if _add_fade_out:
-        start, clip = _get_cur_vid_track()[-1]
-        clip = clip.fx(vfx.fadeout, FADEOUT_DURATION)
-        _get_cur_vid_track()[-1] = (start, clip)
+        cw = _get_cur_vid_track()[-1]
+        cw.mpy_clip = cw.mpy_clip.fx(vfx.fadeout, FADEOUT_DURATION)
 
         _add_fade_out = False
 
@@ -205,37 +205,19 @@ def create_image_seq_clip(tar_file):
 
 def _update_prev_clip(track):
     if track:
-        prev_start, prev_clip = track[-1]
-        prev_duration = prev_clip.duration
-        prev_end = prev_start + prev_duration
+        cw = track[-1]
 
-        # Fill the blank
-        # gap = _pos_list[-1] - prev_end
-        # if gap > 0 and type(prev_clip) == VideoFileClip and False:
-        #     print('frame hold (duration=%.2f)' % gap)
-
-        #     # Frame hold last frame
-        #     print(prev_clip.duration, prev_duration - (1 / prev_clip.fps))
-        #     t_lastframe = prev_duration - (1 / prev_clip.fps)
-        #     clip = prev_clip.to_ImageClip(t_lastframe).set_duration(gap)
-        #     track.append((prev_end, clip))
-        # else:
-
-        dura = _pos_list[-1] - prev_start
+        cw.duration = _pos_list[-1] - cw.start
         print('previous clip start, duration updated: %.2f, %.2f' %
-              (prev_start, dura))
+              (cw.start, cw.duration))
 
         # Use duration to extend / hold the last frame instead of creating new clips.
-        prev_clip = prev_clip.set_duration(dura)
-
-        track[-1] = prev_start, prev_clip
+        cw.mpy_clip = cw.mpy_clip.set_duration(cw.duration)
 
     _add_fadeout()
 
 
 def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
-    # cw = ClipWrapper()
-
     if track is None:
         track = _get_cur_vid_track()
     else:
@@ -274,7 +256,11 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
     if tag:
         _pos_tags[tag] = _pos_list[-1]
 
-    track.append((_pos_list[-1], clip))
+    cw = _ClipWrapper()
+    cw.mpy_clip = clip
+    cw.start = _pos_list[-1]
+
+    track.append(cw)
 
     _pos_list.append(_pos_list[-1] + clip.duration)
 
@@ -297,29 +283,9 @@ def _animation(url, file_prefix, part, track=None):
             out_file=file_prefix)
 
     # Get markers
-    markers = _get_markers(out_file)
-    if markers:
-        raise Exception('TODO: refactor logic here.')
+    # markers = _get_markers(out_file)
 
-        # Try to align with audio markers
-        for i, (m1, m2) in enumerate(zip(cur_markers, markers)):
-            clip = VideoFileClip(out_file)
-
-            if i < len(markers) - 1:
-                clip = clip.subclip(m2, markers[i+1])
-                delta = (cur_markers[i+1] - cur_markers[i]
-                         ) - (markers[i+1] - markers[i])
-                if delta > 0:
-                    clip = clip.fx(vfx.freeze, 'end', delta)
-            else:
-                clip = clip.subclip(m2)
-
-            clip = clip.set_start(_pos_list[-1] + m1)
-            print(m2, _pos_list[-1] + m1)
-            _get_cur_vid_track().append(clip)
-
-    else:
-        _add_clip(out_file, track=track)
+    _add_clip(out_file, track=track)
 
 
 def anim(s, part=None):
@@ -371,28 +337,9 @@ def list_anim(s):
             out_file=out_file)
 
     # Get markers
-    markers = _get_markers(out_file)
-    if markers:
-        # Try to align with audio markers
-        for i, (m1, m2) in enumerate(zip(cur_markers, markers)):
-            clip = VideoFileClip(out_file)
+    # markers = _get_markers(out_file)
 
-            if i < len(markers) - 1:
-                clip = clip.subclip(m2, markers[i+1])
-                delta = (cur_markers[i+1] - cur_markers[i]
-                         ) - (markers[i+1] - markers[i])
-                if delta > 0:
-                    clip = clip.fx(vfx.freeze, 'end', delta)
-            else:
-                clip = clip.subclip(m2)
-
-            clip = clip.set_start(_audio_track_cur_pos + m1)
-            print(m2, _audio_track_cur_pos + m1)
-            _get_cur_vid_track().append(clip)
-
-    else:
-        clip = VideoFileClip(out_file).set_start(_audio_track_cur_pos)
-        _get_cur_vid_track().append(clip)
+    _get_cur_vid_track().append(clip)
 
 
 def video(f, track=None):
@@ -444,8 +391,8 @@ def export_video(resolution=(1920, 1080), fps=FPS):
 
     video_clips = []
     for _, track in sorted(_video_tracks.items()):
-        for start, clip in track:
-            video_clips.append(clip.set_start(start))
+        for cw in track:
+            video_clips.append(cw.mpy_clip.set_start(cw.start))
     final_clip = CompositeVideoClip(
         video_clips, size=resolution).set_audio(final_audio_clip)
 
