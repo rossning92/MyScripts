@@ -14,8 +14,6 @@ yo.newScene(async () => {
   });
   group.add(h1);
 
-  yo.addCut();
-
   let h2_text = yo.getQueryString().h2;
   if (!h2_text) h2_text = "Title Animation Test";
   const h2 = await yo.addAsync(h2_text, {

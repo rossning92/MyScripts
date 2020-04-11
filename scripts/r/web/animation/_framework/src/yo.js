@@ -1659,6 +1659,8 @@ function newScene(initFunction) {
 
     await initFunction();
 
+    _addMarkerToTimeline();
+
     {
       // Create timeline GUI
 
@@ -2276,11 +2278,15 @@ function add2DSpinning(object3d, { speed = 1.0 } = {}) {
   });
 }
 
-function addCut() {
+function _addMarkerToTimeline() {
   if (subClipDurations.length > 0) {
     currentCutPoint += subClipDurations.shift();
     mainTimeline.set({}, {}, `${currentCutPoint}`);
   }
+}
+
+function addCut() {
+  _addMarkerToTimeline();
 
   mainTimeline.call(() => {
     if (capturer !== null) {

@@ -44,6 +44,7 @@ def convert_to_mov(tar_file, fps, out_file=None):
     # Unzip
     print2('Unzip to %s' % tmp_folder)
     shutil.unpack_archive(tar_file, tmp_folder)
+    print2(tmp_folder, color='red')
 
     # Get all image files
     image_files = sorted(glob.glob((os.path.join(tmp_folder, '*.png'))))

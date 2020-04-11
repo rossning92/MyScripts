@@ -47,6 +47,7 @@ class _AnimationInfo:
     def __init__(self):
         self.clip_info_list = []
         self.url = None
+        self.url_params = {}
 
 
 audio_clips = []
@@ -282,34 +283,34 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
     return clip_info
 
 
-def _animation(url, name, track=None):
-    _animations[name].url = url
-    _animations[name].clip_info_list.append(_add_clip(track=track))
+def _animation(url, name, track=None, params={}):
+    anim = _animations[name]
+    anim.url = url
+    anim.url_params = params
+    anim.clip_info_list.append(_add_clip(track=track))
 
 
 def anim(s):
-    url = 'http://localhost:8080/%s.html' % s
-    file_prefix = slugify(s)
-    _animation(url, file_prefix)
+    _animation(
+        url='http://localhost:8080/%s.html' % s,
+        name=slugify(s),
+    )
 
 
 def image_anim(file, t=5):
-    url = 'http://localhost:8080/image.html?t=%s&src=%s' % (
-        urllib.parse.quote('%d' % t),
-        urllib.parse.quote(file)
+    _animation(
+        url='http://localhost:8080/image.html',
+        name=os.path.splitext(file)[0],
+        params={'t': '%d' % t, 'src': file}
     )
-    file_prefix = os.path.splitext(file)[0]
-    _animation(url, file_prefix)
 
 
 def title_anim(h1, h2):
-    file_prefix = slugify('title-%s-%s' % (h1, h2))
-    url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
-        urllib.parse.quote(h1),
-        urllib.parse.quote(h2)
+    _animation(
+        url='http://localhost:8080/title-animation.html',
+        name=slugify('title-%s-%s' % (h1, h2)),
+        params={'h1': h1, 'h2': h2},
     )
-
-    _animation(url, file_prefix)
 
 
 def _clip_extend_prev_clip(track=None):
@@ -403,18 +404,30 @@ def export_video(resolution=(1920, 1080), fps=FPS):
             subclip_dura_list = '|'.join(
                 ['%g' % x.duration for x in animation_info.clip_info_list])
             print(subclip_dura_list)
-            out_file = 'animation/%s.mov' % name
+            out_file = 'tmp/animation/%s.mov' % name
+            os.makedirs('tmp/animation', exist_ok=True)
 
             if 1:  # generate animation video file
-                os.makedirs('animation', exist_ok=True)
+
                 if not os.path.exists(out_file):
+                    params = {
+                        'cut': subclip_dura_list,
+                        **animation_info.url_params
+                    }
+
+                    final_url = animation_info.url + '?' + '&'.join([
+                        '%s=%s' % (k, urllib.parse.quote(
+                            v)) for k, v in params.items()
+                    ])
+
                     capture_animation.capture_js_animation(
-                        animation_info.url + ('?cut=%s' % urllib.parse.quote(subclip_dura_list)),
-                        out_file=out_file)
+                        url=final_url,
+                        out_file=out_file,
+                    )
 
             for i, clip_info in enumerate(animation_info.clip_info_list):
                 clip_info.mpy_clip = _create_mpy_clip(
-                    file=(out_file if i == 0 else 'animation/%s.%d.mov' % (name, i)))
+                    file=(out_file if i == 0 else 'tmp/animation/%s.%d.mov' % (name, i)))
 
     # Update clip length and fx for each track.
     for track in _video_tracks.values():
