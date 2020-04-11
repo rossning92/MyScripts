@@ -46,7 +46,7 @@ _video_tracks = {}
 _cur_vid_track_name = '@'  # default video track
 
 
-class _ClipWrapper:
+class _ClipInfo:
     def __init__(self):
         self.file: str = None
         self.start: float = 0
@@ -147,9 +147,9 @@ def pos(p):
         match = re.match(r'^\<' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
-            cw = _get_vid_track()[-1]
+            clip_info = _get_vid_track()[-1]
 
-            _pos_list.append(cw.start + delta)
+            _pos_list.append(clip_info.start + delta)
 
             return
 
@@ -181,8 +181,9 @@ def _add_fadeout(track):
     global _add_fadeout_to_last_clip
 
     if _add_fadeout_to_last_clip:
-        cw = track[-1]
-        cw.mpy_clip = cw.mpy_clip.fx(vfx.fadeout, FADEOUT_DURATION)
+        clip_info = track[-1]
+        clip_info.mpy_clip = clip_info.mpy_clip.fx(
+            vfx.fadeout, FADEOUT_DURATION)
 
         _add_fadeout_to_last_clip = False
 
@@ -208,16 +209,12 @@ def _update_prev_clip(track):
     _add_fadeout(track)
 
 
-def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
+def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
     track = _get_vid_track(track)
 
     _update_prev_clip(track)
 
-    if text is not None:
-        clip = TextClip(text, fontsize=48, color='white').set_duration(
-            2).set_position(("center", "bottom"))
-
-    elif file is None:
+    if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
 
     elif file.endswith('.tar'):
@@ -244,11 +241,11 @@ def _add_clip(file=None, text=None, clip_operations=None, speed=None, pos=None, 
     if tag:
         _pos_tags[tag] = _pos_list[-1]
 
-    cw = _ClipWrapper()
-    cw.mpy_clip = clip
-    cw.start = _pos_list[-1]
+    clip_info = _ClipInfo()
+    clip_info.mpy_clip = clip
+    clip_info.start = _pos_list[-1]
 
-    track.append(cw)
+    track.append(clip_info)
 
     _pos_list.append(_pos_list[-1] + clip.duration)
 
@@ -306,15 +303,16 @@ def _clip_extend_prev_clip(track=None):
     if len(track) == 0:
         return
 
-    cw = track[-1]
+    clip_info = track[-1]
 
-    if cw.duration is None:
-        cw.duration = _pos_list[-1] - cw.start
+    if clip_info.duration is None:
+        clip_info.duration = _pos_list[-1] - clip_info.start
         print('previous clip start, duration updated: %.2f, %.2f' %
-              (cw.start, cw.duration))
+              (clip_info.start, clip_info.duration))
 
         # Use duration to extend / hold the last frame instead of creating new clips.
-        cw.mpy_clip = cw.mpy_clip.set_duration(cw.duration)
+        clip_info.mpy_clip = clip_info.mpy_clip.set_duration(
+            clip_info.duration)
 
 
 def empty(track=None):
@@ -397,8 +395,8 @@ def export_video(resolution=(1920, 1080), fps=FPS):
 
     video_clips = []
     for _, track in sorted(_video_tracks.items()):
-        for cw in track:
-            video_clips.append(cw.mpy_clip.set_start(cw.start))
+        for clip_info in track:
+            video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
     final_clip = CompositeVideoClip(
         video_clips, size=resolution).set_audio(final_audio_clip)
 
