@@ -60,11 +60,11 @@ def convert_to_mov(tar_file, fps, out_file=None):
         indices.insert(0, 0)  # prepend frame 0
         indices.append(len(image_files))  # append last frame index + 1
 
-        n = 1
+        n = 0
         for i in range(len(indices)-1):
             sub_image_files = image_files[indices[i]:indices[i+1]]
 
-            f = '%s-%d.mov' % (out_file, n)
+            f = ('%s.mov' % out_file) if (n == 0) else ('%s.%d.mov' % (out_file, n))
             _images_to_video(f, sub_image_files, fps)
             out_files.append(f)
 

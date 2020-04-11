@@ -6,6 +6,8 @@ import capture_animation
 from slide.generate import generate_slide
 from r.open_with.open_with_ import open_with
 from _shutil import *
+from collections import defaultdict
+
 if 1:
     import os
     import sys
@@ -30,6 +32,23 @@ PARSE_LINE_START = int(
 PARSE_LINE_END = int(
     '{{_PARSE_LINE_END}}') if '{{_PARSE_LINE_END}}' else None
 
+
+class _ClipInfo:
+    def __init__(self):
+        self.file: str = None
+        self.start: float = 0
+        self.duration: float = None
+        self.mpy_clip: Any = None
+        self.speed: float = 1
+        self.pos = None
+
+
+class _AnimationInfo:
+    def __init__(self):
+        self.clip_info_list = []
+        self.url = None
+
+
 audio_clips = []
 cur_markers = None
 
@@ -45,14 +64,7 @@ _add_fadeout_to_last_clip = False
 _video_tracks = {}
 _cur_vid_track_name = '@'  # default video track
 
-
-class _ClipInfo:
-    def __init__(self):
-        self.file: str = None
-        self.start: float = 0
-        self.duration: float = None
-        self.mpy_clip: Any = None
-        self.speed: float = 1
+_animations = defaultdict(_AnimationInfo)
 
 
 def _get_vid_track(name=None):
@@ -182,10 +194,12 @@ def _add_fadeout(track):
 
     if _add_fadeout_to_last_clip:
         clip_info = track[-1]
-        clip_info.mpy_clip = clip_info.mpy_clip.fx(
-            vfx.fadeout, FADEOUT_DURATION)
 
-        _add_fadeout_to_last_clip = False
+        if clip_info.mpy_clip is not None:
+            clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                vfx.fadeout, FADEOUT_DURATION)
+
+            _add_fadeout_to_last_clip = False
 
 
 def create_image_seq_clip(tar_file):
@@ -206,14 +220,10 @@ def create_image_seq_clip(tar_file):
 def _update_prev_clip(track):
     _clip_extend_prev_clip(track)
 
-    _add_fadeout(track)
+    # _add_fadeout(track)
 
 
-def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
-    track = _get_vid_track(track)
-
-    _update_prev_clip(track)
-
+def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
 
@@ -238,46 +248,49 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
         clip = clip.set_position(
             (pos[0] - half_size[0], pos[1] - half_size[1]))
 
+    return clip
+
+
+def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
+    track = _get_vid_track(track)
+
+    _update_prev_clip(track)
+
+    cur_pos = _pos_list[-1]
+
     if tag:
-        _pos_tags[tag] = _pos_list[-1]
+        _pos_tags[tag] = cur_pos
 
     clip_info = _ClipInfo()
-    clip_info.mpy_clip = clip
-    clip_info.start = _pos_list[-1]
 
+    if file is not None:
+        clip_info.mpy_clip = _create_mpy_clip(
+            file=file,
+            clip_operations=clip_operations,
+            speed=speed,
+            pos=pos
+        )
+
+        # Advance the pos
+        _pos_list.append(cur_pos + clip_info.mpy_clip.duration)
+
+    clip_info.start = cur_pos
+    clip_info.pos = pos
+    clip_info.speed = speed
     track.append(clip_info)
 
-    _pos_list.append(_pos_list[-1] + clip.duration)
+    return clip_info
 
 
-def _animation(url, file_prefix, part, track=None):
-    global _add_fadeout_to_last_clip
-
-    file_prefix = 'animation/' + slugify(file_prefix)
-
-    if part is not None:
-        out_file = '%s-%d.mov' % (file_prefix, part)
-    else:
-        out_file = '%s.mov' % file_prefix
-    print(out_file)
-
-    os.makedirs('animation', exist_ok=True)
-    if not os.path.exists(out_file):
-
-        capture_animation.capture_js_animation(
-            url,
-            out_file=file_prefix)
-
-    # Get markers
-    # markers = _get_markers(out_file)
-
-    _add_clip(out_file, track=track)
+def _animation(url, name, track=None):
+    _animations[name].url = url
+    _animations[name].clip_info_list.append(_add_clip(track=track))
 
 
-def anim(s, part=None):
+def anim(s):
     url = 'http://localhost:8080/%s.html' % s
     file_prefix = slugify(s)
-    _animation(url, file_prefix, part=part)
+    _animation(url, file_prefix)
 
 
 def image_anim(file, t=5):
@@ -286,17 +299,17 @@ def image_anim(file, t=5):
         urllib.parse.quote(file)
     )
     file_prefix = os.path.splitext(file)[0]
-    _animation(url, file_prefix, part=None)
+    _animation(url, file_prefix)
 
 
-def title_anim(h1, h2, part=None):
+def title_anim(h1, h2):
     file_prefix = slugify('title-%s-%s' % (h1, h2))
     url = 'http://localhost:8080/title-animation.html?h1=%s&h2=%s' % (
         urllib.parse.quote(h1),
         urllib.parse.quote(h2)
     )
 
-    _animation(url, file_prefix, part=part)
+    _animation(url, file_prefix)
 
 
 def _clip_extend_prev_clip(track=None):
@@ -310,10 +323,6 @@ def _clip_extend_prev_clip(track=None):
         print('previous clip start, duration updated: %.2f, %.2f' %
               (clip_info.start, clip_info.duration))
 
-        # Use duration to extend / hold the last frame instead of creating new clips.
-        clip_info.mpy_clip = clip_info.mpy_clip.set_duration(
-            clip_info.duration)
-
 
 def empty(track=None):
     track = _get_vid_track(track)
@@ -326,7 +335,7 @@ def fadeout():
     _add_fadeout_to_last_clip = True
 
 
-# TODO: refactor
+# TODO: This does not work
 def list_anim(s):
     out_file = 'animation/list-animation-' + slugify(s) + '.mov'
     print(out_file)
@@ -384,8 +393,38 @@ def track(name='@'):
 
 
 def export_video(resolution=(1920, 1080), fps=FPS):
+    # Update last clip for each track.
     for track in _video_tracks.values():
         _update_prev_clip(track)
+
+    # Animation
+    if 1:
+        for name, animation_info in _animations.items():
+            animation_split = '|'.join(
+                ['%g' % x.duration for x in animation_info.clip_info_list])
+            print(animation_split)
+            out_file = 'animation/%s.mov' % name
+
+            if 1:  # generate animation video file
+                os.makedirs('animation', exist_ok=True)
+                if not os.path.exists(out_file):
+                    capture_animation.capture_js_animation(
+                        animation_info.url,
+                        out_file=out_file)
+
+            for i, clip_info in enumerate(animation_info.clip_info_list):
+                clip_info.mpy_clip = _create_mpy_clip(
+                    file=(out_file if i == 0 else 'animation/%s.%d.mov' % (name, i)))
+
+    # Update clip length and fx for each track.
+    for track in _video_tracks.values():
+        for clip_info in track:
+            assert (clip_info.mpy_clip is not None) and (
+                clip_info.duration is not None)
+
+            # Use duration to extend / hold the last frame instead of creating new clips.
+            clip_info.mpy_clip = clip_info.mpy_clip.set_duration(
+                clip_info.duration)
 
     if audio_clips:
         final_audio_clip = CompositeAudioClip(audio_clips)
