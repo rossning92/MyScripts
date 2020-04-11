@@ -379,7 +379,8 @@ def md(s, track='text'):
     if not os.path.exists(out_file):
         generate_slide(s,
                        template_file='markdown.html',
-                       out_file=out_file)
+                       out_file=out_file,
+                       gen_html=True)
 
     _add_clip(out_file, track=track)
 
