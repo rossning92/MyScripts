@@ -8,7 +8,7 @@ const config = require("../webpack.config.js")({
 
 const compiler = webpack(config);
 const server = new WebpackDevServer(compiler, {
-  open: true
+  open: false
 });
 
 server.listen(8080, "localhost", () => {

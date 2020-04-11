@@ -1168,7 +1168,7 @@ function createMoveToAnimation(
     sy = null,
     sz = null,
     duration = 0.5,
-    ease = "expo.out"
+    ease = "expo.out",
   } = {}
 ) {
   if (dx != null) x = object3d.position.x + dx;
@@ -2005,7 +2005,7 @@ async function addAsync(
     scene.add(mesh);
   } else if (obj.endsWith(".png")) {
     const texture = await loadTexture(obj);
-    // texture.anisotropy = renderer.getMaxAnisotropy();
+    texture.anisotropy = 16; // renderer.getMaxAnisotropy(); TODO: do not hardcode
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.DoubleSide,

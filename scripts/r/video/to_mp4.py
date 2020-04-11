@@ -41,7 +41,7 @@ for f in files:
 
     elif '{{_CROP_TO_1080P}}':
         filter_v.append(
-            'scale=1920:-2,crop=1920:1080:0:0')
+            'scale=1920:-2,pad=1920:1080:0:0')
 
     if filter_v:
         extra_args += ['-filter:v', ','.join(filter_v)]
