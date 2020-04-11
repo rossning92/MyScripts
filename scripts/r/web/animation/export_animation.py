@@ -400,16 +400,16 @@ def export_video(resolution=(1920, 1080), fps=FPS):
     # Animation
     if 1:
         for name, animation_info in _animations.items():
-            animation_split = '|'.join(
+            subclip_dura_list = '|'.join(
                 ['%g' % x.duration for x in animation_info.clip_info_list])
-            print(animation_split)
+            print(subclip_dura_list)
             out_file = 'animation/%s.mov' % name
 
             if 1:  # generate animation video file
                 os.makedirs('animation', exist_ok=True)
                 if not os.path.exists(out_file):
                     capture_animation.capture_js_animation(
-                        animation_info.url,
+                        animation_info.url + ('?cut=%s' % urllib.parse.quote(subclip_dura_list)),
                         out_file=out_file)
 
             for i, clip_info in enumerate(animation_info.clip_info_list):

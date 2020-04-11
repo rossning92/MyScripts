@@ -88,6 +88,9 @@ let options = {
   },
 };
 
+let subClipDurations = [];
+let currentCutPoint = 0;
+
 var gui = new dat.gui.GUI();
 gui.add(options, "format", ["gif", "webm-mediarecorder", "webm", "png"]);
 gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
@@ -1647,6 +1650,13 @@ const metaData = {
 
 function newScene(initFunction) {
   (async () => {
+    {
+      let cut = getQueryString().cut;
+      if (cut) {
+        subClipDurations = cut.split("|").map((x) => parseFloat(x));
+      }
+    }
+
     await initFunction();
 
     {
@@ -2267,7 +2277,11 @@ function add2DSpinning(object3d, { speed = 1.0 } = {}) {
 }
 
 function addCut() {
-  pause(1);
+  if (subClipDurations.length > 0) {
+    currentCutPoint += subClipDurations.shift();
+    mainTimeline.set({}, {}, `${currentCutPoint}`);
+  }
+
   mainTimeline.call(() => {
     if (capturer !== null) {
       console.log("CutPoint: " + globalTimeline.time().toString());

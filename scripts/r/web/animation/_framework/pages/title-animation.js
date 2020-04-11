@@ -10,9 +10,11 @@ yo.newScene(async () => {
   if (!h1_text) h1_text = "标题动画测试";
   const h1 = await yo.addAsync(h1_text, {
     y: 1,
-    animation: "fadeIn|jumpIn"
+    animation: "fadeIn|jumpIn",
   });
   group.add(h1);
+
+  yo.addCut();
 
   let h2_text = yo.getQueryString().h2;
   if (!h2_text) h2_text = "Title Animation Test";
@@ -32,13 +34,13 @@ yo.newScene(async () => {
     const MARGIN = 2;
     const leftBracket = await yo.addAsync("[", {
       color: yo.palette[1],
-      animation: null
+      animation: null,
     });
     leftBracket.position.x = center.x - size.x * 0.5 - MARGIN;
 
     const rightBracket = await yo.addAsync("]", {
       color: yo.palette[1],
-      animation: null
+      animation: null,
     });
     rightBracket.position.x = center.x + size.x * 0.5 + MARGIN;
 

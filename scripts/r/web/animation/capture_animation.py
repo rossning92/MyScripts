@@ -11,7 +11,8 @@ import time
 
 def capture_js_animation(url, out_file=None, output_video_file=True):
     if out_file is None:
-        out_file = 'animation_%s' % get_time_str()
+        out_file = 'animation_%s.mov' % get_time_str()
+    prefix, ext = os.path.splitext(out_file)
 
     async def main():
         browser = await launch(headless=False,
@@ -21,7 +22,7 @@ def capture_js_animation(url, out_file=None, output_video_file=True):
 
         await page._client.send('Page.setDownloadBehavior', {
             'behavior': 'allow',
-            'downloadPath': os.path.abspath(os.path.dirname(out_file))
+            'downloadPath': os.path.abspath(os.path.dirname(prefix))
         })
 
         await page.goto(url)
@@ -29,7 +30,7 @@ def capture_js_animation(url, out_file=None, output_video_file=True):
         time.sleep(1.0)
 
         print('Start capture.')
-        await page.evaluate('() => { window.startCapture({name: "%s"}); }' % os.path.basename(out_file))
+        await page.evaluate('() => { window.startCapture({name: "%s"}); }' % os.path.basename(prefix))
 
         await page.waitForXPath("//*[@id='captureStatus' and contains(., 'stopped')]", timeout=0)
 
@@ -40,9 +41,9 @@ def capture_js_animation(url, out_file=None, output_video_file=True):
 
     asyncio.get_event_loop().run_until_complete(main())
 
-    tar_file = out_file + '.tar'
+    tar_file = prefix + '.tar'
     if output_video_file:
-        result = convert_to_mov(tar_file, fps=25, out_file=out_file)
+        result = convert_to_mov(tar_file, fps=25, out_file=prefix)
         os.remove(tar_file)
     else:
         result = tar_file
