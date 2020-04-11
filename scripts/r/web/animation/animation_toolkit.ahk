@@ -18,11 +18,11 @@ $F10::
 return
 
 ; Screencap (full screen)
-$F6::
+$^F6::
     ToggleRecording()
 return
 
-$^F6::
+$F6::
     ToggleRecording(False)
 return
 
