@@ -490,6 +490,11 @@ if __name__ == '__main__':
         if PARSE_LINE_START is not None:
             lines = lines[(PARSE_LINE_START - 1): (PARSE_LINE_END)]
 
+        # Remove all comments
+        s = '\n'.join(lines)
+        re.sub('<!--.*?-->', '', s)
+        lines = s.splitlines()
+
         for line in lines:
             if line.startswith('! '):
                 python_code = line.lstrip('! ')
