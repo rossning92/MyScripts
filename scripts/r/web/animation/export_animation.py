@@ -57,8 +57,6 @@ _audio_track_cur_pos = 0
 _pos_list = [0]
 _pos_tags = {}
 
-_audio_track_cur_duration = 0
-
 
 _add_fadeout_to_last_clip = False
 
@@ -124,11 +122,8 @@ def record(f):
 
 
 def audio(f):
-    global _audio_track_cur_pos, _audio_track_cur_duration, audio_clips, cur_markers
+    global _audio_track_cur_pos, audio_clips, cur_markers
 
-    _audio_track_cur_pos += _audio_track_cur_duration
-
-    # Also forward video track pos
     _pos_tags['audio'] = _audio_track_cur_pos
     _pos_list.append(_audio_track_cur_pos)
 
@@ -139,7 +134,9 @@ def audio(f):
 
     audio_clips.append(audio_clip)
 
-    _audio_track_cur_duration = audio_clip.duration
+    # Forward audio track pos
+    _audio_track_cur_pos += audio_clip.duration
+    _pos_tags['audio_end'] = _audio_track_cur_pos
 
     # Get markers
     cur_markers = _get_markers(f)
