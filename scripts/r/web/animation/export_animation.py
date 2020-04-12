@@ -55,7 +55,7 @@ cur_markers = None
 
 _audio_track_cur_pos = 0
 _pos_list = [0]
-_pos_tags = {}
+_pos_tags = {'a': 0}
 
 
 _add_fadeout_to_last_clip = False
@@ -121,22 +121,26 @@ def record(f):
     audio('out/record/' + f)
 
 
-def audio(f):
-    global _audio_track_cur_pos, audio_clips, cur_markers
+def audio_gap(duration):
+    _pos_tags['a'] += duration
 
-    _pos_tags['audio'] = _audio_track_cur_pos
-    _pos_list.append(_audio_track_cur_pos)
+
+def audio(f):
+    global audio_clips, cur_markers
+
+    _pos_tags['as'] = _pos_tags['a']
+    _pos_list.append(_pos_tags['as'])
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
 
-    audio_clip = audio_clip.set_start(_audio_track_cur_pos)
+    audio_clip = audio_clip.set_start(_pos_tags['a'])
 
     audio_clips.append(audio_clip)
 
     # Forward audio track pos
-    _audio_track_cur_pos += audio_clip.duration
-    _pos_tags['audio_end'] = _audio_track_cur_pos
+    _pos_tags['a'] += audio_clip.duration
+    _pos_tags['ae'] = _pos_tags['a']
 
     # Get markers
     cur_markers = _get_markers(f)
