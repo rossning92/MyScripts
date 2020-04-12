@@ -373,8 +373,8 @@ def screencap(f, speed=None, track=None):
 
 
 def md(s, track='text'):
-    mkdir('slides')
-    out_file = 'slides/%s.png' % slugify(s)
+    mkdir('tmp/slides')
+    out_file = 'tmp/slides/%s.png' % slugify(s)
 
     if not os.path.exists(out_file):
         generate_slide(s,
