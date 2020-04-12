@@ -118,6 +118,11 @@ def get_all_python_block():
     return matches
 
 
+def record(f):
+    print(f)
+    audio('out/record/' + f)
+
+
 def audio(f):
     global _audio_track_cur_pos, _audio_track_cur_duration, audio_clips, cur_markers
 
@@ -127,16 +132,14 @@ def audio(f):
     _pos_tags['audio'] = _audio_track_cur_pos
     _pos_list.append(_audio_track_cur_pos)
 
-    # HACK:
-    f = 'out/' + f
-    print(f)
-
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
-    _audio_track_cur_duration = audio_clip.duration
 
     audio_clip = audio_clip.set_start(_audio_track_cur_pos)
+
     audio_clips.append(audio_clip)
+
+    _audio_track_cur_duration = audio_clip.duration
 
     # Get markers
     cur_markers = _get_markers(f)
