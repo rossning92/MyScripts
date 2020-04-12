@@ -392,7 +392,7 @@ def md(s, track='text', **kwargs):
                        out_file=out_file,
                        gen_html=True)
 
-    _add_clip(out_file, track=track, **kwargs)
+    _add_clip(out_file, track=track, fadein=True, fadeout=True, **kwargs)
 
 
 def hl(pos, track='hl'):
