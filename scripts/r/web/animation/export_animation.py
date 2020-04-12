@@ -41,6 +41,8 @@ class _ClipInfo:
         self.mpy_clip: Any = None
         self.speed: float = 1
         self.pos = None
+        self.fadein: bool = False
+        self.fadeout: bool = False
 
 
 class _AnimationInfo:
@@ -256,7 +258,7 @@ def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None):
     return clip
 
 
-def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None):
+def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None, fadein=False, fadeout=False):
     track = _get_vid_track(track)
 
     _update_prev_clip(track)
@@ -282,22 +284,26 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
     clip_info.start = cur_pos
     clip_info.pos = pos
     clip_info.speed = speed
+    clip_info.fadein = fadein
+    clip_info.fadeout = fadeout
     track.append(clip_info)
 
     return clip_info
 
 
-def _animation(url, name, track=None, params={}):
+def _animation(url, name, track=None, params={}, **kwargs):
     anim = _animations[name]
     anim.url = url
     anim.url_params = params
-    anim.clip_info_list.append(_add_clip(track=track))
+    anim.clip_info_list.append(
+        _add_clip(track=track, **kwargs))
 
 
-def anim(s):
+def anim(s, **kwargs):
     _animation(
         url='http://localhost:8080/%s.html' % s,
         name=slugify(s),
+        **kwargs
     )
 
 
@@ -334,35 +340,9 @@ def empty(track=None):
     _clip_extend_prev_clip(track)
 
 
-# TODO: This does not work
-def fadeout():
-    global _add_fadeout_to_last_clip
-    _add_fadeout_to_last_clip = True
-
-
-# TODO: This does not work
-def list_anim(s):
-    out_file = 'animation/list-animation-' + slugify(s) + '.mov'
-    print(out_file)
-
-    os.makedirs('animation', exist_ok=True)
-    if not os.path.exists(out_file):
-        url = 'http://localhost:8080/list-animation.html?s=%s' % (
-            urllib.parse.quote(s)
-        )
-        capture_animation.capture_js_animation(
-            url,
-            out_file=out_file)
-
-    # Get markers
-    # markers = _get_markers(out_file)
-
-    _get_vid_track().append(clip)
-
-
-def video(f, track=None, pos=None):
+def video(f, **kwargs):
     print('Video: %s' % f)
-    _add_clip(f, tag='video', track=track, pos=pos)
+    _add_clip(f, tag='video', **kwargs)
 
 
 def screencap(f, speed=None, track=None):
@@ -443,6 +423,14 @@ def export_video(resolution=(1920, 1080), fps=FPS):
             # Use duration to extend / hold the last frame instead of creating new clips.
             clip_info.mpy_clip = clip_info.mpy_clip.set_duration(
                 clip_info.duration)
+
+            if clip_info.fadein:
+                clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                    vfx.fadein, FADEOUT_DURATION)
+
+            if clip_info.fadeout:
+                clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                    vfx.fadeout, FADEOUT_DURATION)
 
     if audio_clips:
         final_audio_clip = CompositeAudioClip(audio_clips)
