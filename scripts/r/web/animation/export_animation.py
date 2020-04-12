@@ -356,9 +356,9 @@ def list_anim(s):
     _get_vid_track().append(clip)
 
 
-def video(f, track=None):
+def video(f, track=None, pos=None):
     print('Video: %s' % f)
-    _add_clip(f, tag='video', track=track)
+    _add_clip(f, tag='video', track=track, pos=pos)
 
 
 def screencap(f, speed=None, track=None):
@@ -385,8 +385,8 @@ def md(s, track='text'):
     _add_clip(out_file, track=track)
 
 
-def hl(pos):
-    image('images/highlight.png', pos=pos, track='hl')
+def hl(pos, track='hl'):
+    image('images/highlight.png', pos=pos, track=track)
 
 
 def track(name='@'):

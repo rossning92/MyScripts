@@ -287,6 +287,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
 
 var lastTs = null;
 var timeElapsed = 0;
+var animTimeElapsed = 0;
 
 function animate(
   time /* `time` parameter is buggy in `ccapture`. Do not use! */
@@ -302,12 +303,14 @@ function animate(
       delta = 0.000001;
       lastTs = nowInSecs;
       globalTimeline.seek(0, false);
+      animTimeElapsed = 0;
     } else {
       delta = nowInSecs - lastTs;
       lastTs = nowInSecs;
     }
 
     timeElapsed += delta;
+    animTimeElapsed += delta;
   }
 
   gsap.updateRoot(timeElapsed);
@@ -315,7 +318,7 @@ function animate(
   cameraControls.update();
 
   animationCallbacks.forEach((callback) => {
-    callback(delta, timeElapsed);
+    callback(delta, animTimeElapsed);
   });
 
   render();
@@ -1048,12 +1051,7 @@ function createGrid({
   return group;
 }
 
-function addFadeIn(
-  object3d,
-  { duration = 0.5, ease = "power1.out", opacity = 1.0 } = {}
-) {
-  const tl = gsap.timeline({ defaults: { duration, ease } });
-
+function getAllMaterials(object3d) {
   const materials = new Set();
   const getMaterialsRecursive = (object3d) => {
     if (object3d.material != null) {
@@ -1063,8 +1061,17 @@ function addFadeIn(
       getMaterialsRecursive(child);
     });
   };
-
   getMaterialsRecursive(object3d);
+  return materials;
+}
+
+function addFadeIn(
+  object3d,
+  { duration = 0.5, ease = "power1.out", opacity = 1.0 } = {}
+) {
+  const tl = gsap.timeline({ defaults: { duration, ease } });
+
+  const materials = getAllMaterials(object3d);
 
   // console.log(materials);
   materials.forEach((material) => {
@@ -1265,14 +1272,18 @@ function flyIn(
   return tl;
 }
 
-function addFlash(object3d, { repeat = 5, position = "+=0" } = {}) {
-  const tl = gsap.timeline();
-  for (let i = 0; i < repeat; i++) {
-    tl.add(addFadeIn(object3d));
-    tl.add(addFadeIn(object3d).reverse());
-  }
-  mainTimeline.add(tl, position);
-  return tl;
+function addFlash(object3d, { speed = 4 } = {}) {
+  const materials = getAllMaterials(object3d);
+
+  materials.forEach((material) => {
+    material.transparent = true;
+  });
+
+  animationCallbacks.push((delta, elapsed) => {
+    materials.forEach((material) => {
+      material.opacity = Math.max(0, Math.sin(elapsed * speed));
+    });
+  });
 }
 
 function addDefaultLights() {
@@ -1989,6 +2000,7 @@ async function addAsync(
     lineWidth = 0.1,
     gridSize = 10,
     centralAngle = Math.PI * 2,
+    letterSpacing = 0.05,
   } = {}
 ) {
   let material;
@@ -2082,6 +2094,7 @@ async function addAsync(
       size: 0.5,
       color,
       size: fontSize,
+      letterSpacing
     });
   }
 
@@ -2237,23 +2250,6 @@ function getGridLayoutPositions({
   return results;
 }
 
-function addSpinningAnimation(object3d, { speed = 0.1, duration = 10 } = {}) {
-  const tl = gsap.timeline();
-  tl.fromTo(
-    object3d.rotation,
-    {
-      z: 0,
-    },
-    {
-      z: -2 * Math.PI * (duration * speed),
-      duration,
-      ease: "none",
-    },
-    0
-  );
-  globalTimeline.add(tl, "0");
-}
-
 function add3DSpinning(object3d) {
   animationCallbacks.push((delta, elapsed) => {
     object3d.rotation.y += delta;
@@ -2381,7 +2377,6 @@ export default {
   setSeed,
   getGridLayoutPositions,
   random,
-  addSpinningAnimation,
   mainTimeline,
   addCut,
   moveTo,

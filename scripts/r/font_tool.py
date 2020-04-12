@@ -8,5 +8,5 @@ f = download(
 print(f)
 text = open(f, encoding='utf-8').read()
 subprocess.check_call(['pyftsubset',
-                       r"C:\Users\Ross\Downloads\SourceHanSansCN\SourceHanSansCN-Bold.ttf",
+                       r"C:\Users\Ross\Downloads\SourceHanSansCN-Medium.ttf",
                        f'--text={text}'])

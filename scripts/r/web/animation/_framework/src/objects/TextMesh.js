@@ -36,7 +36,7 @@ function loadFont(fontName = null, letter = null) {
   } else {
     let font;
     if (fontName == "zh") {
-      font = fontLoader.parse(require("../fonts/sourceHan3000Bold"));
+      font = fontLoader.parse(require("../fonts/sourceHan3000Medium"));
     } else if (fontName == "en") {
       font = fontLoader.parse(require("../fonts/muliBold").default);
     } else if (fontName == "math") {

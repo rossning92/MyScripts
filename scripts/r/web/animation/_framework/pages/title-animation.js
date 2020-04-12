@@ -11,6 +11,7 @@ yo.newScene(async () => {
   const h1 = await yo.addAsync(h1_text, {
     y: 1,
     animation: "fadeIn|jumpIn",
+    letterSpacing: 0.2,
   });
   group.add(h1);
 
@@ -42,7 +43,7 @@ yo.newScene(async () => {
     });
     rightBracket.position.x = center.x + size.x * 0.5 + MARGIN;
 
-    yo.addFlash(leftBracket, { position: 0, repeat: 10 });
-    yo.addFlash(rightBracket, { position: 0, repeat: 10 });
+    yo.addFlash(leftBracket);
+    yo.addFlash(rightBracket);
   }
 });
