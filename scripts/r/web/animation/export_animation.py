@@ -328,11 +328,12 @@ def image_anim(file, t=5):
     )
 
 
-def title_anim(h1, h2):
+def title_anim(h1, h2, **kwargs):
     _animation(
         url='http://localhost:8080/title-animation.html',
         name=slugify('title-%s-%s' % (h1, h2)),
         params={'h1': h1, 'h2': h2},
+        **kwargs
     )
 
 
@@ -445,7 +446,7 @@ def export_video(resolution=(1920, 1080), fps=FPS):
                 clip_info.mpy_clip = clip_info.mpy_clip.fx(
                     vfx.fadeout, FADEOUT_DURATION)
 
-    _audio_clips.append(_create_bgm())
+    # _audio_clips.extend(_create_bgm())
 
     if _audio_clips:
         final_audio_clip = CompositeAudioClip(_audio_clips)
@@ -470,10 +471,17 @@ def export_video(resolution=(1920, 1080), fps=FPS):
 
 
 def _create_bgm():
-    clip = AudioFileClip('music/bgm.mp3', buffersize=400000)
-    clip = clip.subclip(13.8).set_duration(50).fx(
-        afx.volumex, 0.2).fx(afx.audio_fadein, 0.25)
-    return clip
+    for i in range(2):
+        clip = AudioFileClip('music/bgm.mp3', buffersize=400000)
+
+        if i == 0:
+            clip = clip.subclip(13.8).set_duration(50).fx(
+                afx.volumex, 0.2).fx(afx.audio_fadein, 0.25)
+        else:
+            clip = clip.subclip(13.8+16).set_start(16).set_duration(50-16).fx(
+                afx.volumex, 0.8).fx(afx.audio_fadein, 0.25)
+
+        yield clip
 
 
 if __name__ == '__main__':

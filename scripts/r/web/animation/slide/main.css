@@ -1,0 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Muli&family=Source+Code+Pro&family=Noto+Sans+SC&display=swap");
+
+body {
+  font-family: "Muli", "Noto Sans SC", sans-serif;
+  color: white;
+  font-size: 5vh;
+}
+
+code {
+  font-family: "Source Code Pro";
+}
