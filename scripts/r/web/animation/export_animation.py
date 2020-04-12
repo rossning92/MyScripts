@@ -91,6 +91,50 @@ def _get_markers(file):
         return None
 
 
+def _get_pos(p):
+    PATT_FLOAT = r'([-+]?\d*\.?\d*)'
+
+    if p is None:
+        return _pos_list[-1]
+
+    if type(p) == int or type(p) == float:
+        return float(p)
+
+    if type(p) == str:
+        if p in _pos_tags:
+            return _pos_tags[p]
+
+        match = re.match(r'^\+=' + PATT_FLOAT + '$', p)
+        if match:
+            delta = float(match.group(1))
+            return _pos_list[-1] + delta
+
+        match = re.match(r'^\<' + PATT_FLOAT + '$', p)
+        if match:
+            delta = float(match.group(1))
+            clip_info = _get_vid_track()[-1]
+            return clip_info.start + delta
+
+        match = re.match(r'^(\^+)' + PATT_FLOAT + '$', p)
+        if match:
+            index_back_in_history = len(match.group(1))
+            delta = float(match.group(2))
+            return _pos_list[-index_back_in_history - 1] + delta
+
+        match = re.match(r'^([a-z_]+)' + PATT_FLOAT + '$', p)
+        if match:
+            tag = match.group(1)
+            delta = float(match.group(2))
+            return _pos_tags[tag] + delta
+
+    raise Exception('Invalid param.')
+
+
+def _set_pos(p):
+    new_pos = _get_pos(p)
+    _pos_list.append(new_pos)
+
+
 def get_meta_data(type_):
     s = open('index.md', 'r', encoding='utf-8').read()
     matches = re.findall(r'<!-- ' + type_ + r'([\w\W]+?)-->', s)
@@ -118,31 +162,36 @@ def get_all_python_block():
     return matches
 
 
-def record(f):
+def record(f, **kwargs):
     print(f)
-    audio('out/record/' + f)
+    audio('out/record/' + f, **kwargs)
 
 
 def audio_gap(duration):
     _pos_tags['a'] += duration
 
 
-def audio(f):
+def audio(f, pos='a', duration=None, start=None):
     global audio_clips, cur_markers
 
-    _pos_tags['as'] = _pos_tags['a']
+    _pos_tags['as'] = _get_pos(pos)
     _pos_list.append(_pos_tags['as'])
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
 
-    audio_clip = audio_clip.set_start(_pos_tags['a'])
+    audio_clip = audio_clip.set_start(_pos_tags['as'])
+
+    if start is not None:
+        audio_clip = audio_clip.subclip(start)
+
+    if duration is not None:
+        audio_clip = audio_clip.set_duration(duration)
 
     audio_clips.append(audio_clip)
 
     # Forward audio track pos
-    _pos_tags['a'] += audio_clip.duration
-    _pos_tags['ae'] = _pos_tags['a']
+    _pos_tags['a'] = _pos_tags['ae'] = _pos_tags['as'] + audio_clip.duration
 
     # Get markers
     cur_markers = _get_markers(f)
@@ -151,45 +200,7 @@ def audio(f):
 
 
 def pos(p):
-    PATT_FLOAT = r'([-+]?\d*\.?\d*)'
-
-    success = False
-    if type(p) == str:
-        match = re.match(r'^\+=' + PATT_FLOAT + '$', p)
-        if match:
-            delta = float(match.group(1))
-
-            _pos_list.append(_pos_list[-1] + delta)
-
-            return
-
-        match = re.match(r'^\<' + PATT_FLOAT + '$', p)
-        if match:
-            delta = float(match.group(1))
-            clip_info = _get_vid_track()[-1]
-
-            _pos_list.append(clip_info.start + delta)
-
-            return
-
-        match = re.match(r'^(\^+)' + PATT_FLOAT + '$', p)
-        if match:
-            index_back_in_history = len(match.group(1))
-            delta = float(match.group(2))
-            _pos_list.append(
-                _pos_list[-index_back_in_history - 1] + delta)
-
-            return
-
-        match = re.match(r'^([a-z_]+)' + PATT_FLOAT + '$', p)
-        if match:
-            tag = match.group(1)
-            delta = float(match.group(2))
-            _pos_list.append(_pos_tags[tag] + delta)
-
-            return
-
-    raise Exception('Invalid param.')
+    _set_pos(p)
 
 
 def image(f, pos=None, track=None):
