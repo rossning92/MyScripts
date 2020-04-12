@@ -137,33 +137,6 @@ def _set_pos(p):
     _pos_list.append(new_pos)
 
 
-def get_meta_data(type_):
-    s = open('index.md', 'r', encoding='utf-8').read()
-    matches = re.findall(r'<!-- ' + type_ + r'([\w\W]+?)-->', s)
-    matches = [x.strip() for x in matches]
-    return matches
-
-
-def get_all_meta_data():
-    s = open('index.md', 'r', encoding='utf-8').read()
-    matches = re.findall(r'<!--\s*([a-zA-z-_]+:[\d\D]+?)\s*-->', s)
-    matches = [x.strip() for x in matches]
-    return matches
-
-
-def get_all_python_block():
-    lines = open('index.md', 'r', encoding='utf-8').readlines()
-
-    if PARSE_LINE_START is not None:
-        lines = lines[(PARSE_LINE_START - 1): (PARSE_LINE_END)]
-
-    s = '\n'.join(lines)
-
-    matches = re.findall(r'<!---\s*([\w\W]+?)\s*-->', s)
-    matches = [x.strip() for x in matches]
-    return matches
-
-
 def record(f, **kwargs):
     print(f)
     audio('tmp/record/' + f + '.final.wav', **kwargs)
@@ -371,7 +344,7 @@ def video(f, **kwargs):
     _add_clip(f, tag='video', **kwargs)
 
 
-def screencap(f, speed=None, track=None):
+def screencap(f, speed=None, track=None, **kwargs):
     _add_clip(
         f,
         clip_operations=lambda x: x.crop(
@@ -379,6 +352,7 @@ def screencap(f, speed=None, track=None):
         speed=speed,
         tag='video',
         track=track,
+        **kwargs
     )
 
 
@@ -443,13 +417,15 @@ def export_video(resolution=(1920, 1080), fps=FPS):
 
     # Update clip length and fx for each track.
     for track in _video_tracks.values():
-        for clip_info in track:
-            assert (clip_info.mpy_clip is not None) and (
-                clip_info.duration is not None)
+        for i, clip_info in enumerate(track):
+            assert clip_info.mpy_clip is not None
+            assert clip_info.duration is not None if i < len(
+                track) - 1 else True
 
-            # Use duration to extend / hold the last frame instead of creating new clips.
-            clip_info.mpy_clip = clip_info.mpy_clip.set_duration(
-                clip_info.duration)
+            if clip_info.duration is not None:
+                # Use duration to extend / hold the last frame instead of creating new clips.
+                clip_info.mpy_clip = clip_info.mpy_clip.set_duration(
+                    clip_info.duration)
 
             if clip_info.fadein:
                 if clip_info.file.endswith('.png'):
@@ -508,8 +484,15 @@ def _create_bgm():
 if __name__ == '__main__':
     cd(PROJ_DIR)
 
-    blocks = get_all_python_block()
-    for b in blocks:
-        exec(b, globals())
+    with open('index.md', 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+        if PARSE_LINE_START is not None:
+            lines = lines[(PARSE_LINE_START - 1): (PARSE_LINE_END)]
+
+        for line in lines:
+            if line.startswith('! '):
+                python_code = line.lstrip('! ')
+                exec(python_code, globals())
 
     export_video()
