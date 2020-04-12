@@ -33,6 +33,15 @@ def _create_dir_if_not_exists(file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
 
+def create_normalized(name, in_file, mtime):
+    out_file = f'tmp/{name}.final.wav'
+    if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
+        print(out_file)
+        subprocess.check_call(f"sox {in_file} {out_file} norm -5")
+        os.utime(out_file, (mtime, mtime))
+    return out_file
+
+
 def create_final_vocal(prefix='record_', file_list=[]):
     # Filter out voice
     mkdir('tmp')
@@ -99,15 +108,6 @@ def create_final_vocal(prefix='record_', file_list=[]):
             data0 = data
             keep = np.abs(data0) > thres
 
-            # if False:
-            #     data_roll_window = rolling_window(np.squeeze(data[:, 0]), 3)
-            #     keep2 = np.abs(data_roll_window).any(axis=-1) > thres
-            #     print(keep2)
-
-            # if True:
-            #     keep = rolling_window(keep, int(rate * 0.5))
-            #     keep = keep.any(axis=-1)
-
             keep_indices = np.argwhere(keep == True).flatten()
             start = max(keep_indices[0] - int(rate * PADDING), 0)
             end = min(keep_indices[-1] + int(rate * PADDING), data.shape[0])
@@ -131,7 +131,7 @@ def create_final_vocal(prefix='record_', file_list=[]):
 
         # Compress
         in_file = out_file
-        out_file = f'out/{f}'
+        out_file = f'tmp/{f}.compressed.wav'
         _create_dir_if_not_exists(out_file)
         if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
             print(out_file)
@@ -148,11 +148,15 @@ def create_final_vocal(prefix='record_', file_list=[]):
             )
             os.utime(out_file, (mtime, mtime))
 
+        out_file = create_normalized(name=f, in_file=out_file, mtime=mtime)
+
         out_file_list.append(out_file)
 
     concat_audio(out_file_list, 0, out_file='out/concat.wav', channels=1)
-    concat_audio(out_norm_files, 0, out_file='out/concat_norm.wav', channels=1)
     call2('start out/concat.wav')
+
+    # subprocess.check_call(
+    #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
 
 
 if __name__ == '__main__':

@@ -3,15 +3,17 @@ from _term import *
 import r.audio.postprocess as pp
 
 
-def get_meta_data(file, type_):
-    s = open(file, 'r', encoding='utf-8').read()
-    matches = re.findall(r"audio\('([\w\W]+?)'\)", s)
+def get_recording_files(md_file):
+    s = open(md_file, 'r', encoding='utf-8').read()
+    matches = re.findall(r"record\('([\w\W]+?)'\)", s)
     matches = [x.strip() for x in matches]
     return matches
 
 
 def export_recordings():
-    recordings = get_meta_data('index.md', 'record:')
+    recordings = get_recording_files('index.md')
+    recordings = [('record/' + x) for x in recordings]
+    print(recordings)
 
     all_recordings = map(lambda x: x.replace('\\', '/'),
                          glob.glob(os.path.join('record', '*.wav')))

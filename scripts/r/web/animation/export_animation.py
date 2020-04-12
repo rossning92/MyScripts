@@ -8,6 +8,7 @@ from r.open_with.open_with_ import open_with
 from _shutil import *
 from collections import defaultdict
 
+
 if 1:
     import os
     import sys
@@ -20,6 +21,7 @@ if 1:  # Import moviepy
     from moviepy.config import change_settings
     from moviepy.editor import *
     import moviepy.video.fx.all as vfx
+    import moviepy.audio.fx.all as afx
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -52,7 +54,7 @@ class _AnimationInfo:
         self.url_params = {}
 
 
-audio_clips = []
+_audio_clips = []
 cur_markers = None
 
 _audio_track_cur_pos = 0
@@ -164,7 +166,7 @@ def get_all_python_block():
 
 def record(f, **kwargs):
     print(f)
-    audio('out/record/' + f, **kwargs)
+    audio('tmp/record/' + f + '.final.wav', **kwargs)
 
 
 def audio_gap(duration):
@@ -172,7 +174,7 @@ def audio_gap(duration):
 
 
 def audio(f, pos='a', duration=None, start=None):
-    global audio_clips, cur_markers
+    global cur_markers
 
     _pos_tags['as'] = _get_pos(pos)
     _pos_list.append(_pos_tags['as'])
@@ -180,15 +182,15 @@ def audio(f, pos='a', duration=None, start=None):
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
 
-    audio_clip = audio_clip.set_start(_pos_tags['as'])
-
     if start is not None:
         audio_clip = audio_clip.subclip(start)
+
+    audio_clip = audio_clip.set_start(_pos_tags['as'])
 
     if duration is not None:
         audio_clip = audio_clip.set_duration(duration)
 
-    audio_clips.append(audio_clip)
+    _audio_clips.append(audio_clip)
 
     # Forward audio track pos
     _pos_tags['a'] = _pos_tags['ae'] = _pos_tags['as'] + audio_clip.duration
@@ -443,9 +445,10 @@ def export_video(resolution=(1920, 1080), fps=FPS):
                 clip_info.mpy_clip = clip_info.mpy_clip.fx(
                     vfx.fadeout, FADEOUT_DURATION)
 
-    if audio_clips:
-        final_audio_clip = CompositeAudioClip(audio_clips)
-        # final_audio_clip.write_audiofile('out.wav')
+    _audio_clips.append(_create_bgm())
+
+    if _audio_clips:
+        final_audio_clip = CompositeAudioClip(_audio_clips)
     else:
         final_audio_clip = None
 
@@ -464,6 +467,13 @@ def export_video(resolution=(1920, 1080), fps=FPS):
         ffmpeg_params=['-crf', '19'])
 
     open_with('out.mp4', program_id=1)
+
+
+def _create_bgm():
+    clip = AudioFileClip('music/bgm.mp3', buffersize=400000)
+    clip = clip.subclip(13.8).set_duration(50).fx(
+        afx.volumex, 0.2).fx(afx.audio_fadein, 0.25)
+    return clip
 
 
 if __name__ == '__main__':
