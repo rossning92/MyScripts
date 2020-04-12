@@ -382,7 +382,7 @@ def screencap(f, speed=None, track=None):
     )
 
 
-def md(s, track='text', **kwargs):
+def md(s, track='md', **kwargs):
     mkdir('tmp/slides')
     out_file = 'tmp/slides/%s.png' % slugify(s)
 
@@ -406,9 +406,9 @@ def track(name='@'):
 
 
 def export_video(resolution=(1920, 1080), fps=FPS):
-    # Update last clip for each track.
-    for track in _video_tracks.values():
-        _update_prev_clip(track)
+    # # Update last clip for each track.
+    # for track in _video_tracks.values():
+    #     _update_prev_clip(track)
 
     # Animation
     if 1:
