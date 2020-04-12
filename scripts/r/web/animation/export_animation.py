@@ -205,8 +205,8 @@ def pos(p):
     _set_pos(p)
 
 
-def image(f, pos=None, track=None):
-    _add_clip(f, pos=pos, track=track)
+def image(f, pos=None, track=None, **kwargs):
+    _add_clip(f, pos=pos, track=track, **kwargs)
 
 
 def _add_fadeout(track):
@@ -251,8 +251,7 @@ def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None, text
         clip = create_image_seq_clip(file)
 
     elif file.endswith('.png'):
-        clip = ImageClip(file).set_duration(
-            2).crossfadein(FADEOUT_DURATION)
+        clip = ImageClip(file).set_duration(2)
 
     else:
         clip = VideoFileClip(file)
@@ -293,6 +292,12 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
         _pos_tags[tag] = cur_pos
 
     clip_info = _ClipInfo()
+    clip_info.file = file
+    clip_info.start = cur_pos
+    clip_info.pos = pos
+    clip_info.speed = speed
+    clip_info.fadein = fadein
+    clip_info.fadeout = fadeout
 
     if file is not None:
         clip_info.mpy_clip = _create_mpy_clip(
@@ -306,11 +311,6 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
         # Advance the pos
         _pos_list.append(cur_pos + clip_info.mpy_clip.duration)
 
-    clip_info.start = cur_pos
-    clip_info.pos = pos
-    clip_info.speed = speed
-    clip_info.fadein = fadein
-    clip_info.fadeout = fadeout
     track.append(clip_info)
 
     return clip_info
@@ -382,7 +382,7 @@ def screencap(f, speed=None, track=None):
     )
 
 
-def md(s, track='text'):
+def md(s, track='text', **kwargs):
     mkdir('tmp/slides')
     out_file = 'tmp/slides/%s.png' % slugify(s)
 
@@ -392,11 +392,12 @@ def md(s, track='text'):
                        out_file=out_file,
                        gen_html=True)
 
-    _add_clip(out_file, track=track)
+    _add_clip(out_file, track=track, **kwargs)
 
 
 def hl(pos, track='hl'):
-    image('images/highlight.png', pos=pos, track=track)
+    image('images/highlight.png', pos=pos,
+          track=track, fadein=True, fadeout=True)
 
 
 def track(name='@'):
@@ -451,12 +452,20 @@ def export_video(resolution=(1920, 1080), fps=FPS):
                 clip_info.duration)
 
             if clip_info.fadein:
-                clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                    vfx.fadein, FADEOUT_DURATION)
+                if clip_info.file.endswith('.png'):
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
+                        FADEOUT_DURATION)
+                else:
+                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                        vfx.fadein, FADEOUT_DURATION)
 
             if clip_info.fadeout:
-                clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                    vfx.fadeout, FADEOUT_DURATION)
+                if clip_info.file.endswith('.png'):
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
+                        FADEOUT_DURATION)
+                else:
+                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                        vfx.fadeout, FADEOUT_DURATION)
 
     # _audio_clips.extend(_create_bgm())
 
