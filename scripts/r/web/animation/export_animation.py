@@ -243,7 +243,7 @@ def _update_prev_clip(track):
     # _add_fadeout(track)
 
 
-def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None):
+def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None, text_overlay=None):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
 
@@ -256,6 +256,17 @@ def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None):
 
     else:
         clip = VideoFileClip(file)
+
+        if text_overlay is not None:
+            overlay_file = 'overlay_%s.png' % slugify(text_overlay)
+            if not os.path.exists(overlay_file):
+                generate_slide(
+                    text_overlay,
+                    template_file='source.html',
+                    out_file=overlay_file
+                )
+            im_clip = ImageClip(overlay_file).set_duration(clip.duration)
+            clip = CompositeVideoClip([clip, im_clip])
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
@@ -271,7 +282,7 @@ def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None):
     return clip
 
 
-def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None, fadein=False, fadeout=False):
+def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None, fadein=False, fadeout=False, **kwargs):
     track = _get_vid_track(track)
 
     _update_prev_clip(track)
@@ -288,7 +299,8 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
             file=file,
             clip_operations=clip_operations,
             speed=speed,
-            pos=pos
+            pos=pos,
+            **kwargs
         )
 
         # Advance the pos
