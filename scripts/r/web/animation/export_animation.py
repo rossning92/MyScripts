@@ -484,7 +484,7 @@ def export_video(resolution=(1920, 1080), fps=FPS):
                     clip_info.duration)
 
             if clip_info.fadein:
-                if clip_info.file.endswith('.png'):
+                if clip_info.file and clip_info.file.endswith('.png'):
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
                         FADEOUT_DURATION)
                 else:
@@ -492,7 +492,7 @@ def export_video(resolution=(1920, 1080), fps=FPS):
                         vfx.fadein, FADEOUT_DURATION)
 
             if clip_info.fadeout:
-                if clip_info.file.endswith('.png'):
+                if clip_info.file and clip_info.file.endswith('.png'):
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
                         FADEOUT_DURATION)
                 else:
