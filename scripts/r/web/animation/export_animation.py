@@ -22,6 +22,8 @@ if 1:  # Import moviepy
     from moviepy.editor import *
     import moviepy.video.fx.all as vfx
     import moviepy.audio.fx.all as afx
+    from moviepy.video.tools.subtitles import SubtitlesClip
+
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -166,7 +168,7 @@ def _add_subtitle_clip(start, end, text):
             template_file='source.html',
             out_file=out_file
         )
-    
+
     # ci = _ClipInfo()
     # # ci.mpy_clip = TextClip('yoyo', font='Arial',
     # #                        fontsize=88, color='white').set_duration(5)
@@ -174,6 +176,7 @@ def _add_subtitle_clip(start, end, text):
     # ci.start = start
     # ci.duration = 5
     # _video_tracks['sub'].append(ci)
+
 
 def record(f, **kwargs):
     print(f)
@@ -543,6 +546,12 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     for _, track in _video_tracks.items():
         for clip_info in track:
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
+
+    # def generator(txt): return TextClip(
+    #     txt, font='Arial', fontsize=16, color='white')
+    # subtitle_clip = SubtitlesClip("out.srt", generator)
+    # video_clips.append(subtitle_clip)
+
     final_clip = CompositeVideoClip(
         video_clips, size=resolution).set_audio(final_audio_clip)
 
