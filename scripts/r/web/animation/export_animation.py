@@ -157,6 +157,24 @@ def _format_time(sec):
     )
 
 
+def _add_subtitle_clip(start, end, text):
+    mkdir('tmp/subtitle')
+    out_file = 'tmp/subtitle/%s.png' % slugify(text)
+    if not os.path.exists(out_file):
+        generate_slide(
+            text,
+            template_file='source.html',
+            out_file=out_file
+        )
+    
+    # ci = _ClipInfo()
+    # # ci.mpy_clip = TextClip('yoyo', font='Arial',
+    # #                        fontsize=88, color='white').set_duration(5)
+    # ci.mpy_clip = ImageClip(out_file).set_duration(1)
+    # ci.start = start
+    # ci.duration = 5
+    # _video_tracks['sub'].append(ci)
+
 def record(f, **kwargs):
     print(f)
     audio('tmp/record/' + f + '.final.wav', **kwargs)
@@ -188,6 +206,8 @@ def record(f, **kwargs):
                 word,
                 ''
             ])
+
+            # _add_subtitle_clip(start=start, end=end, text=word)
 
             end += word_dura
             start = end
@@ -288,7 +308,8 @@ def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None, text
         clip = VideoFileClip(file)
 
         if text_overlay is not None:
-            overlay_file = 'overlay_%s.png' % slugify(text_overlay)
+            mkdir('tmp/text_overlay')
+            overlay_file = 'tmp/text_overlay/%s.png' % slugify(text_overlay)
             if not os.path.exists(overlay_file):
                 generate_slide(
                     text_overlay,
@@ -312,12 +333,12 @@ def _create_mpy_clip(file=None, clip_operations=None, speed=None, pos=None, text
     return clip
 
 
-def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None, fadein=False, fadeout=False, **kwargs):
+def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, track=None, fadein=False, fadeout=False, start=None, **kwargs):
     track = _get_vid_track(track)
 
     _update_prev_clip(track)
 
-    cur_pos = _pos_list[-1]
+    cur_pos = _get_pos(start)
 
     if tag:
         _pos_dict[tag] = cur_pos
@@ -446,7 +467,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     # ci = _ClipInfo()
     # ci.mpy_clip = TextClip('yoyo', font='Arial',
     #                        fontsize=88, color='white').set_duration(5)
-    # ci.mpy_clip = ImageClip('screencap/create-toon-shader.png').set_duration(5)
+    # ci.mpy_clip = ImageClip('screenshot/add-smoothstep.png').set_duration(5)
     # _video_tracks['md'] = [ci]
 
     # Animation
@@ -519,7 +540,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
         final_audio_clip = None
 
     video_clips = []
-    for _, track in sorted(_video_tracks.items()):
+    for _, track in _video_tracks.items():
         for clip_info in track:
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
     final_clip = CompositeVideoClip(
