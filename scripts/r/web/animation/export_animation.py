@@ -166,7 +166,6 @@ def record(f, **kwargs):
 
     start = end = _get_pos('as')
     subtitle = _subtitle[-1].strip()
-    subtitle = subtitle.replace(' ', '')
 
     if subtitle[-1] not in END_CHAR:
         subtitle += END_CHAR[0]
@@ -575,5 +574,7 @@ if __name__ == '__main__':
                 _subtitle.append(line)
 
     _export_srt()
+
+    sys.exit(0)
 
     export_video()
