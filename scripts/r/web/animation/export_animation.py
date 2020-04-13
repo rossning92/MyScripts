@@ -7,7 +7,7 @@ from slide.generate import generate_slide
 from r.open_with.open_with_ import open_with
 from _shutil import *
 from collections import defaultdict
-
+from collections import OrderedDict
 
 if 1:
     import os
@@ -65,8 +65,10 @@ _pos_dict = {'a': 0}
 
 _add_fadeout_to_last_clip = False
 
-_video_tracks = {}
-_cur_vid_track_name = '@'  # default video track
+_video_tracks = OrderedDict(
+    [('vid', []), ('hl', []), ('hl2', []), ('md', []), ('sub', [])]
+)
+_cur_vid_track_name = 'vid'  # default video track
 
 _animations = defaultdict(_AnimationInfo)
 
@@ -431,15 +433,21 @@ def hl(pos, track='hl'):
           track=track, fadein=True, fadeout=True)
 
 
-def track(name='@'):
+def track(name='vid'):
     global _cur_vid_track_name
     _cur_vid_track_name = name
 
 
-def export_video(resolution=(1920, 1080), fps=FPS):
+def _export_video(resolution=(1920, 1080), fps=FPS):
     # # Update last clip for each track.
     # for track in _video_tracks.values():
     #     _update_prev_clip(track)
+
+    # ci = _ClipInfo()
+    # ci.mpy_clip = TextClip('yoyo', font='Arial',
+    #                        fontsize=88, color='white').set_duration(5)
+    # ci.mpy_clip = ImageClip('screencap/create-toon-shader.png').set_duration(5)
+    # _video_tracks['md'] = [ci]
 
     # Animation
     if 1:
@@ -575,6 +583,6 @@ if __name__ == '__main__':
 
     _export_srt()
 
-    sys.exit(0)
+    # sys.exit(0)
 
-    export_video()
+    _export_video()
