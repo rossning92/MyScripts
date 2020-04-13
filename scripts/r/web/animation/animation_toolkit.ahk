@@ -35,7 +35,7 @@ return
 $F8::
     ControlSend, , s, %AUDIO_RECORDER_TITLE%
     s := GetLatestRecoding()
-    s = <!--- record('%s%') -->
+    s = record('%s%')
     Clipboard := s
     if WinActive("ahk_exe code.exe") {
         Send ^v

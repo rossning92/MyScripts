@@ -59,7 +59,7 @@ cur_markers = None
 
 _audio_track_cur_pos = 0
 _pos_list = [0]
-_pos_tags = {'a': 0}
+_pos_dict = {'a': 0}
 
 
 _add_fadeout_to_last_clip = False
@@ -68,6 +68,10 @@ _video_tracks = {}
 _cur_vid_track_name = '@'  # default video track
 
 _animations = defaultdict(_AnimationInfo)
+
+_subtitle = []
+_srt_lines = []
+_srt_index = 1
 
 
 def _get_vid_track(name=None):
@@ -103,20 +107,23 @@ def _get_pos(p):
         return float(p)
 
     if type(p) == str:
-        if p in _pos_tags:
-            return _pos_tags[p]
+        if p in _pos_dict:
+            return _pos_dict[p]
 
+        # TODO: remove
         match = re.match(r'^\+=' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
             return _pos_list[-1] + delta
 
+        # TODO: remove
         match = re.match(r'^\<' + PATT_FLOAT + '$', p)
         if match:
             delta = float(match.group(1))
             clip_info = _get_vid_track()[-1]
             return clip_info.start + delta
 
+        # TODO: remove
         match = re.match(r'^(\^+)' + PATT_FLOAT + '$', p)
         if match:
             index_back_in_history = len(match.group(1))
@@ -127,7 +134,7 @@ def _get_pos(p):
         if match:
             tag = match.group(1)
             delta = float(match.group(2))
-            return _pos_tags[tag] + delta
+            return _pos_dict[tag] + delta
 
     raise Exception('Invalid param.')
 
@@ -137,20 +144,69 @@ def _set_pos(p):
     _pos_list.append(new_pos)
 
 
+def _format_time(sec):
+    td = datetime.timedelta(seconds=sec)
+    return '%02d:%02d:%02d,%03d' % (
+        td.seconds // 3600,
+        td.seconds // 60,
+        td.seconds % 60,
+        td.microseconds // 1000
+    )
+
+
 def record(f, **kwargs):
     print(f)
     audio('tmp/record/' + f + '.final.wav', **kwargs)
 
+    END_CHAR = ['。', '，', '！']
+
+    global _srt_index
+    assert len(_subtitle) > 0
+
+    start = end = _get_pos('as')
+    subtitle = _subtitle[-1].strip()
+    subtitle = subtitle.replace(' ', '')
+
+    if subtitle[-1] not in END_CHAR:
+        subtitle += END_CHAR[0]
+
+    length = len(subtitle)
+    word_dura = (_get_pos('ae') - start) / length
+
+    i = 0
+    MAX = 5
+    word = ''
+
+    while i < length:
+        if subtitle[i] in ['，', '。', '！'] and len(word) > MAX:
+            _srt_lines.extend([
+                '%d' % _srt_index,
+                '%s --> %s' % (_format_time(start),
+                               _format_time(end)),
+                word,
+                ''
+            ])
+
+            end += word_dura
+            start = end
+            word = ''
+            _srt_index += 1
+        else:
+            word += subtitle[i]
+            end += word_dura
+
+        i += 1
+
 
 def audio_gap(duration):
-    _pos_tags['a'] += duration
+    _pos_dict['a'] += duration
 
 
 def audio(f, pos='a', duration=None, start=None):
     global cur_markers
 
-    _pos_tags['as'] = _get_pos(pos)
-    _pos_list.append(_pos_tags['as'])
+    _pos_dict['as'] = _get_pos(pos)
+    _pos_list.append(_pos_dict['as'])
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
@@ -158,7 +214,7 @@ def audio(f, pos='a', duration=None, start=None):
     if start is not None:
         audio_clip = audio_clip.subclip(start)
 
-    audio_clip = audio_clip.set_start(_pos_tags['as'])
+    audio_clip = audio_clip.set_start(_pos_dict['as'])
 
     if duration is not None:
         audio_clip = audio_clip.set_duration(duration)
@@ -166,7 +222,7 @@ def audio(f, pos='a', duration=None, start=None):
     _audio_clips.append(audio_clip)
 
     # Forward audio track pos
-    _pos_tags['a'] = _pos_tags['ae'] = _pos_tags['as'] + audio_clip.duration
+    _pos_dict['a'] = _pos_dict['ae'] = _pos_dict['as'] + audio_clip.duration
 
     # Get markers
     cur_markers = _get_markers(f)
@@ -262,7 +318,7 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
     cur_pos = _pos_list[-1]
 
     if tag:
-        _pos_tags[tag] = cur_pos
+        _pos_dict[tag] = cur_pos
 
     clip_info = _ClipInfo()
     clip_info.file = file
@@ -481,6 +537,11 @@ def _create_bgm():
         yield clip
 
 
+def _export_srt():
+    with open('out.srt', 'w', encoding='utf-8') as f:
+        f.write('\n'.join(_srt_lines))
+
+
 if __name__ == '__main__':
     cd(PROJ_DIR)
 
@@ -492,12 +553,22 @@ if __name__ == '__main__':
 
         # Remove all comments
         s = '\n'.join(lines)
-        re.sub('<!--.*?-->', '', s)
+        s = re.sub('<!--[\d\D]*?-->', '', s)
         lines = s.splitlines()
 
         for line in lines:
+            line = line.strip()
             if line.startswith('! '):
                 python_code = line.lstrip('! ')
                 exec(python_code, globals())
+
+            elif line.startswith('#'):
+                pass
+
+            elif line != '':
+                print2(line, color='green')
+                _subtitle.append(line)
+
+    _export_srt()
 
     export_video()
