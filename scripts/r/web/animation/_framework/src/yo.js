@@ -1454,11 +1454,11 @@ function createExplosionAnimation(
     const rotation = rotationMin + rng() * (rotationMax - rotationMin);
     tl.fromTo(child.rotation, { z: 0 }, { z: rotation }, delay);
 
-    const targetScale = rng() * 0.5 + 0.5;
+    const targetScale = child.scale.clone().multiplyScalar((rng() * 0.5 + 0.5));
     tl.fromTo(
       child.scale,
       { x: 0.001, y: 0.001, z: 0.001 },
-      { x: targetScale, y: targetScale, z: targetScale },
+      { x: targetScale.x, y: targetScale.y, z: targetScale.z },
       delay
     );
 

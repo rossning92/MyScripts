@@ -101,11 +101,8 @@ return
     }
 return
 
-+F1::
-    Send {F1}
-    WinWaitActive ahk_exe Snipaste.exe
-    Send r
-    Send ^+s
+$F1::
+    Send ^{PrintScreen}
 return
 
 #v::

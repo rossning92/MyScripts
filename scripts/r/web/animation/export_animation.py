@@ -51,6 +51,7 @@ class _AnimationInfo:
     def __init__(self):
         self.clip_info_list = []
         self.url = None
+        self.calc_length = True
         self.url_params = {}
 
 
@@ -345,10 +346,11 @@ def _add_clip(file=None, clip_operations=None, speed=None, pos=None, tag=None, t
     return clip_info
 
 
-def _animation(url, name, track=None, params={}, **kwargs):
+def _animation(url, name, track=None, params={}, calc_length=True, **kwargs):
     anim = _animations[name]
     anim.url = url
     anim.url_params = params
+    anim.calc_length = calc_length
     anim.clip_info_list.append(
         _add_clip(track=track, **kwargs))
 
@@ -443,9 +445,6 @@ def export_video(resolution=(1920, 1080), fps=FPS):
     # Animation
     if 1:
         for name, animation_info in _animations.items():
-            subclip_dura_list = '|'.join(
-                ['%g' % x.duration for x in animation_info.clip_info_list])
-            print(subclip_dura_list)
             out_file = 'tmp/animation/%s.mov' % name
             os.makedirs('tmp/animation', exist_ok=True)
 
@@ -453,9 +452,15 @@ def export_video(resolution=(1920, 1080), fps=FPS):
 
                 if not os.path.exists(out_file):
                     params = {
-                        'cut': subclip_dura_list,
                         **animation_info.url_params
                     }
+
+                    if animation_info.calc_length:
+                        subclip_dura_list = '|'.join(
+                            ['%g' % x.duration for x in animation_info.clip_info_list])
+                        print(subclip_dura_list)
+
+                        params += {'cut': subclip_dura_list}
 
                     final_url = animation_info.url + '?' + '&'.join([
                         '%s=%s' % (k, urllib.parse.quote(
