@@ -160,22 +160,24 @@ def _format_time(sec):
 
 
 def _add_subtitle_clip(start, end, text):
-    mkdir('tmp/subtitle')
-    out_file = 'tmp/subtitle/%s.png' % slugify(text)
-    if not os.path.exists(out_file):
-        generate_slide(
-            text,
-            template_file='source.html',
-            out_file=out_file
-        )
+    if 0:
+        mkdir('tmp/subtitle')
+        out_file = 'tmp/subtitle/%s.png' % slugify(text)
+        if not os.path.exists(out_file):
+            generate_slide(
+                text,
+                template_file='source.html',
+                out_file=out_file
+            )
 
-    # ci = _ClipInfo()
-    # # ci.mpy_clip = TextClip('yoyo', font='Arial',
-    # #                        fontsize=88, color='white').set_duration(5)
+    ci = _ClipInfo()
+    ci.mpy_clip = TextClip(text, font='Source-Han-Sans-CN',
+                           fontsize=44, color='white').set_duration(end - start).set_pos(('center', 910))
     # ci.mpy_clip = ImageClip(out_file).set_duration(1)
-    # ci.start = start
-    # ci.duration = 5
-    # _video_tracks['sub'].append(ci)
+    # print(TextClip.list('font'))
+    ci.start = start
+    ci.duration = end - start
+    _video_tracks['sub'].append(ci)
 
 
 def record(f, **kwargs):
@@ -210,7 +212,7 @@ def record(f, **kwargs):
                 ''
             ])
 
-            # _add_subtitle_clip(start=start, end=end, text=word)
+            _add_subtitle_clip(start=start, end=end, text=word)
 
             end += word_dura
             start = end
@@ -611,7 +613,7 @@ if __name__ == '__main__':
                 print2(line, color='green')
                 _subtitle.append(line)
 
-    _export_srt()
+    # _export_srt()
 
     # sys.exit(0)
 
