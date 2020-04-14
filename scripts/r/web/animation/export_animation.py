@@ -172,7 +172,7 @@ def _add_subtitle_clip(start, end, text):
 
     ci = _ClipInfo()
     ci.mpy_clip = TextClip(text, font='Source-Han-Sans-CN',
-                           fontsize=44, color='white').set_duration(end - start).set_pos(('center', 910))
+                           fontsize=44, color='white', print_cmd=True).set_duration(end - start).set_pos(('center', 910))
     # ci.mpy_clip = ImageClip(out_file).set_duration(1)
     # print(TextClip.list('font'))
     ci.start = start
