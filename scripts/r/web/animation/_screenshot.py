@@ -25,7 +25,7 @@ os.makedirs('screenshot', exist_ok=True)
 file_name = 'screenshot/%s.png' % get_time_str()
 im.save(file_name)
 
-clip = "<!--- image('%s') -->" % file_name
+clip = "! image('%s')" % file_name
 set_clip(clip)
 print('Clip is set to: %s' + clip)
 wait_key()
