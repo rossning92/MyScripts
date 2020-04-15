@@ -159,22 +159,39 @@ def _format_time(sec):
 
 
 def _add_subtitle_clip(start, end, text):
-    if 0:
-        mkdir("tmp/subtitle")
-        out_file = "tmp/subtitle/%s.png" % slugify(text)
-        if not os.path.exists(out_file):
-            generate_slide(text, template_file="source.html", out_file=out_file)
+    # Generate subtitle png image using magick
+    tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
+    os.close(tempfile_fd)
+    cmd = [
+        glob.glob(r"C:\Program Files\ImageMagick-*\magick.exe")[0],
+        "-background",
+        "transparent",
+        "-fill",
+        "white",
+        "-font",
+        "Source-Han-Sans-CN",
+        "-pointsize",
+        "44",
+        "-stroke",
+        "#555555",
+        "-strokewidth",
+        "6",
+        'label:%s' % text,
+        "-stroke",
+        "None",
+        "-fill",
+        "White",
+        'label:%s' % text,
+        "-layers",
+        "merge",
+        "PNG32:%s" % tempfilename,
+    ]
+    subprocess.check_call(cmd)
 
     ci = _ClipInfo()
     ci.mpy_clip = (
-        TextClip(
-            text, font="Source-Han-Sans-CN", fontsize=44, color="white", print_cmd=True
-        )
-        .set_duration(end - start)
-        .set_pos(("center", 910))
+        ImageClip(tempfilename).set_duration(end - start).set_pos(("center", 910))
     )
-    # ci.mpy_clip = ImageClip(out_file).set_duration(1)
-    # print(TextClip.list('font'))
     ci.start = start
     ci.duration = end - start
     _video_tracks["sub"].append(ci)
