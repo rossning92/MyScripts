@@ -127,18 +127,23 @@ def logcat(proc_name=None,
         if pid not in pid_map:
             out = subprocess.check_output('adb shell ps -p %d' % pid,
                                           universal_newlines=True)
-            proc = out.split()[-1]
+            lines = out.splitlines()
+            if len(lines) == 1:
+                proc = None
+            else:
+                proc = out.split()[-1]
             pid_map[pid] = proc
         else:
             proc = pid_map[pid]
 
-        # Filter by process name (include)
-        if proc_name and not re.search(proc_name, proc):
-            show_line = False
+        if proc is not None:
+            # Filter by process name (include)
+            if proc_name and not re.search(proc_name, proc):
+                show_line = False
 
-        # Exclude by process name (exclude)
-        if exclude_proc and re.search(exclude_proc, proc):
-            show_line = False
+            # Exclude by process name (exclude)
+            if exclude_proc and re.search(exclude_proc, proc):
+                show_line = False
 
         # HACK
         if 'ROSS' in message:
@@ -147,7 +152,7 @@ def logcat(proc_name=None,
         if show_line:
             # Output process name
             if last_proc != proc:
-                print2(proc + ':')
+                print2('%s (%d)' % (proc, pid))
                 last_proc = proc
 
             lvl_text = ' %s ' % lvl
