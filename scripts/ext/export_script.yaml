@@ -1,4 +1,11 @@
 autoRun: false
+background: false
+conda: null
+globalHotkey: null
 hotkey: Ctrl+Shift+E
 newWindow: false
+restartInstance: true
 runAsAdmin: false
+template: true
+venv: null
+wsl: false
