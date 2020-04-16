@@ -8,6 +8,7 @@ from r.open_with.open_with_ import open_with
 from _shutil import *
 from collections import defaultdict
 from collections import OrderedDict
+import numpy as np
 
 if 1:
     import os
@@ -76,6 +77,8 @@ _animations = defaultdict(_AnimationInfo)
 _subtitle = []
 _srt_lines = []
 _srt_index = 1
+_bgm = {}
+_bgm_operations = []
 
 
 def _get_vid_track(name=None):
@@ -176,12 +179,12 @@ def _add_subtitle_clip(start, end, text):
         "#555555",
         "-strokewidth",
         "6",
-        'label:%s' % text,
+        "label:%s" % text,
         "-stroke",
         "None",
         "-fill",
         "White",
-        'label:%s' % text,
+        "label:%s" % text,
         "-layers",
         "merge",
         "PNG32:%s" % tempfilename,
@@ -244,7 +247,17 @@ def record(f, **kwargs):
 
 
 def audio_gap(duration):
+    _bgm_operations.append((_pos_dict["a"], "in"))
+
     _pos_dict["a"] += duration
+    _pos_list.append(_pos_dict["a"])
+
+    _bgm_operations.append((_pos_dict["a"], "out"))
+
+
+def bgm(op):
+    print("bgm:", (_pos_list[-1], op))
+    _bgm_operations.append((_pos_list[-1], op))
 
 
 def audio(f, pos="a", duration=None, start=None):
@@ -566,7 +579,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                         vfx.fadeout, FADEOUT_DURATION
                     )
 
-    # _audio_clips.extend(_create_bgm())
+    _audio_clips.extend(_create_bgm())
 
     if _audio_clips:
         final_audio_clip = CompositeAudioClip(_audio_clips)
@@ -598,26 +611,25 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
 
 def _create_bgm():
-    for i in range(2):
-        clip = AudioFileClip("music/bgm.mp3", buffersize=400000)
+    xp = [0]
+    fp = [0.2]
+    for i, (start, op) in enumerate(_bgm_operations):
+        if op == "in":
+            xp += [start, start + 0.5]
+            fp += [0.2, 1]
+        elif op == "out":
+            xp += [start, start + 0.5]
+            fp += [1, 0.2]
 
-        if i == 0:
-            clip = (
-                clip.subclip(13.8)
-                .set_duration(50)
-                .fx(afx.volumex, 0.2)
-                .fx(afx.audio_fadein, 0.25)
-            )
-        else:
-            clip = (
-                clip.subclip(13.8 + 16)
-                .set_start(16)
-                .set_duration(50 - 16)
-                .fx(afx.volumex, 0.8)
-                .fx(afx.audio_fadein, 0.25)
-            )
+    clip = AudioFileClip("music/bgm.mp3").subclip(13.8, 60)
 
-        yield clip
+    def volume_adjust(gf, t):
+        factor = np.interp(t, xp, fp)
+        factor = np.vstack([factor, factor]).T
+        return factor * gf(t)
+
+    clip = clip.fl(volume_adjust)
+    yield clip
 
 
 def _export_srt():
