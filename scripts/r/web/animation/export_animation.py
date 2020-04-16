@@ -615,7 +615,7 @@ def _create_bgm():
     fp = [0.2]
     for i, (start, op) in enumerate(_bgm_operations):
         if op == "in":
-            xp += [start, start + 0.5]
+            xp += [start - 0.5, start]
             fp += [0.2, 1]
         elif op == "out":
             xp += [start, start + 0.5]
