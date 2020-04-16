@@ -611,14 +611,15 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
 
 def _create_bgm():
+    AUDIO_FADE_DURA = 0.25
     xp = [0]
     fp = [0.2]
     for i, (start, op) in enumerate(_bgm_operations):
         if op == "in":
-            xp += [start - 0.5, start]
+            xp += [start - AUDIO_FADE_DURA, start]
             fp += [0.2, 1]
         elif op == "out":
-            xp += [start, start + 0.5]
+            xp += [start, start + AUDIO_FADE_DURA]
             fp += [1, 0.2]
 
     clip = AudioFileClip("music/bgm.mp3").subclip(13.8, 60)
