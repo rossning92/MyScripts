@@ -30,9 +30,6 @@ if __name__ == "__main__":
     tmp_script_file = write_temp_file(script.render(), ".sh")
 
     if script.ext == ".sh":
-        print("Script type is not supported: %s" % script.ext)
-        exit(0)
-
         if "{{VAGRANT_ID}}":
             run_bash_script_vagrant(tmp_script_file, "{{VAGRANT_ID}}")
         else:
