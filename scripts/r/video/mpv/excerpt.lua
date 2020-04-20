@@ -204,7 +204,10 @@ function excerpt_write_handler()
         'libx264',
         '-crf',
         '19',
-        '-an',
+        '-c:a',
+        'aac',
+        '-b:a',
+        '128k',
         tostring(dstname)
     }
 
