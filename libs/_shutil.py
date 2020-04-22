@@ -535,7 +535,9 @@ def read_lines(args, echo=False, read_err=False, max_lines=None, check_returncod
             if sys.platform == "win32":
                 FNULL = open(os.devnull, "w")
                 subprocess.call(
-                    "taskkill /f /t /pid %d" % ps.pid, stdout=FNULL, stderr=FNULL
+                    ["taskkill", "/f", "/t", "/pid", "%d" % ps.pid],
+                    stdout=FNULL,
+                    stderr=FNULL,
                 )
             else:
                 ps.send_signal(signal.SIGINT)
