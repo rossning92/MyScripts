@@ -36,6 +36,8 @@ FADEOUT_DURATION = 0.25
 PARSE_LINE_START = int("{{_PARSE_LINE_START}}") if "{{_PARSE_LINE_START}}" else None
 PARSE_LINE_END = int("{{_PARSE_LINE_END}}") if "{{_PARSE_LINE_END}}" else None
 
+ADD_SUBTITLE = False
+
 
 class _ClipInfo:
     def __init__(self):
@@ -209,41 +211,42 @@ def record(f, **kwargs):
     global _srt_index
     assert len(_subtitle) > 0
 
-    start = end = _get_pos("as")
-    subtitle = _subtitle[-1].strip()
+    if ADD_SUBTITLE:
+        start = end = _get_pos("as")
+        subtitle = _subtitle[-1].strip()
 
-    if subtitle[-1] not in END_CHAR:
-        subtitle += END_CHAR[0]
+        if subtitle[-1] not in END_CHAR:
+            subtitle += END_CHAR[0]
 
-    length = len(subtitle)
-    word_dura = (_get_pos("ae") - start) / length
+        length = len(subtitle)
+        word_dura = (_get_pos("ae") - start) / length
 
-    i = 0
-    MAX = 5
-    word = ""
+        i = 0
+        MAX = 5
+        word = ""
 
-    while i < length:
-        if subtitle[i] in ["，", "。", "！"] and len(word) > MAX:
-            _srt_lines.extend(
-                [
-                    "%d" % _srt_index,
-                    "%s --> %s" % (_format_time(start), _format_time(end)),
-                    word,
-                    "",
-                ]
-            )
+        while i < length:
+            if subtitle[i] in ["，", "。", "！"] and len(word) > MAX:
+                _srt_lines.extend(
+                    [
+                        "%d" % _srt_index,
+                        "%s --> %s" % (_format_time(start), _format_time(end)),
+                        word,
+                        "",
+                    ]
+                )
 
-            _add_subtitle_clip(start=start, end=end, text=word)
+                _add_subtitle_clip(start=start, end=end, text=word)
 
-            end += word_dura
-            start = end
-            word = ""
-            _srt_index += 1
-        else:
-            word += subtitle[i]
-            end += word_dura
+                end += word_dura
+                start = end
+                word = ""
+                _srt_index += 1
+            else:
+                word += subtitle[i]
+                end += word_dura
 
-        i += 1
+            i += 1
 
 
 def audio_gap(duration):
@@ -579,12 +582,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                         vfx.fadeout, FADEOUT_DURATION
                     )
 
-    _audio_clips.extend(_create_bgm())
-
-    if _audio_clips:
-        final_audio_clip = CompositeAudioClip(_audio_clips)
-    else:
-        final_audio_clip = None
+    _create_bgm()
 
     video_clips = []
     for _, track in _video_tracks.items():
@@ -596,8 +594,10 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     # subtitle_clip = SubtitlesClip("out.srt", generator)
     # video_clips.append(subtitle_clip)
 
-    final_clip = CompositeVideoClip(video_clips, size=resolution).set_audio(
-        final_audio_clip
+    final_clip = CompositeVideoClip(video_clips, size=resolution)
+
+    final_clip = final_clip.set_audio(
+        CompositeAudioClip(_audio_clips + [final_clip.audio])
     )
 
     # final_clip.show(10.5, interactive=True)
@@ -611,6 +611,11 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
 
 def _create_bgm():
+    BGM_PATH = "music/bgm.mp3"
+
+    if not os.path.exists(BGM_PATH):
+        return
+
     AUDIO_FADE_DURA = 0.25
     xp = [0]
     fp = [0.2]
@@ -622,7 +627,7 @@ def _create_bgm():
             xp += [start, start + AUDIO_FADE_DURA]
             fp += [1, 0.2]
 
-    clip = AudioFileClip("music/bgm.mp3").subclip(13.8, 60)
+    clip = AudioFileClip(BGM_PATH).subclip(13.8, 60)
 
     def volume_adjust(gf, t):
         factor = np.interp(t, xp, fp)
@@ -630,7 +635,7 @@ def _create_bgm():
         return factor * gf(t)
 
     clip = clip.fl(volume_adjust)
-    yield clip
+    _audio_clips.append(clip)
 
 
 def _export_srt():
