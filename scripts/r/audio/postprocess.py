@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from _audio import *
 
-ALWAYS_GENERATE = True
+ALWAYS_GENERATE = False
 
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
@@ -38,7 +38,7 @@ def create_normalized(name, in_file, mtime):
     out_file = f'tmp/{name}.final.wav'
     if ALWAYS_GENERATE or not os.path.exists(out_file) or os.path.getmtime(out_file) != mtime:
         print(out_file)
-        subprocess.check_call(f"sox {in_file} {out_file} norm -5")
+        subprocess.check_call(f"sox {in_file} {out_file} norm -7.5")
         os.utime(out_file, (mtime, mtime))
     return out_file
 
