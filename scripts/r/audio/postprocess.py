@@ -5,22 +5,23 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from _audio import *
 
-ALWAYS_GENERATE = False
+ALWAYS_GENERATE = True
 
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
 
 COMPRESSOR_ATTACK = 0.0
-COMPRESSOR_DECAY = 0.2  # 0.05
-COMPRESSOR_THRES_DB = -20
+COMPRESSOR_DECAY = 0.085  # 0.05
+COMPRESSOR_THRES_DB = -15
+COMPRESSOR_RATIO = 4
 
-NOISE_GATE_DB = -30
+NOISE_GATE_DB = -999
 
-BASS_FREQ_DB = -2
-MIDDLE_FREQ_DB = -10
-TREBLE_FREQ_DB = 2
+BASS_FREQ_DB = 0
+MIDDLE_FREQ_DB = -4
+TREBLE_FREQ_DB = 1
 
-PADDING = 0.2
+PADDING = 0.15
 
 
 def rolling_window(a, window):
@@ -142,7 +143,10 @@ def create_final_vocal(prefix='record_', file_list=[]):
                 f' treble {TREBLE_FREQ_DB} 4k 1s'
                 f' compand'
                 f' {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}'  # attack1,decay1
-                f' {NOISE_GATE_DB-1},-90,{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{LOUDNESS_DB},0,{LOUDNESS_DB}'
+                f' {NOISE_GATE_DB-1},-inf'
+                f',{NOISE_GATE_DB},{NOISE_GATE_DB}'
+                f',{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB}'
+                f',0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}'
                 f' 0 -90'  # gain initial-volume-dB
 
             )

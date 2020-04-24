@@ -202,9 +202,9 @@ def _add_subtitle_clip(start, end, text):
     _video_tracks["sub"].append(ci)
 
 
-def record(f, **kwargs):
+def record(f, start="a", **kwargs):
     print(f)
-    audio("tmp/record/" + f + ".final.wav", **kwargs)
+    audio("tmp/record/" + f + ".final.wav", start=start, **kwargs)
 
     END_CHAR = ["。", "，", "！"]
 
@@ -263,17 +263,17 @@ def bgm(op):
     _bgm_operations.append((_pos_list[-1], op))
 
 
-def audio(f, pos="a", duration=None, start=None):
+def audio(f, start=None, duration=None):
     global cur_markers
 
-    _pos_dict["as"] = _get_pos(pos)
+    _pos_dict["as"] = _get_pos(start)
     _pos_list.append(_pos_dict["as"])
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     audio_clip = AudioFileClip(f, buffersize=400000)
 
-    if start is not None:
-        audio_clip = audio_clip.subclip(start)
+    # if start is not None:
+    #     audio_clip = audio_clip.subclip(start)
 
     audio_clip = audio_clip.set_start(_pos_dict["as"])
 
@@ -295,8 +295,8 @@ def pos(p):
     _set_pos(p)
 
 
-def image(f, pos=None, track=None, **kwargs):
-    _add_clip(f, pos=pos, track=track, **kwargs)
+def image(f, track=None, **kwargs):
+    _add_clip(f, track=track, **kwargs)
 
 
 def _add_fadeout(track):
@@ -336,7 +336,12 @@ def _update_prev_clip(track):
 
 
 def _create_mpy_clip(
-    file=None, clip_operations=None, speed=None, pos=None, text_overlay=None
+    file=None,
+    clip_operations=None,
+    speed=None,
+    pos=None,
+    text_overlay=None,
+    no_audio=False,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
@@ -366,6 +371,9 @@ def _create_mpy_clip(
     if clip_operations is not None:
         clip = clip_operations(clip)
 
+    if no_audio:
+        clip = clip.set_audio(None)
+
     if pos is not None:
         half_size = [x // 2 for x in clip.size]
         clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
@@ -390,7 +398,9 @@ def _add_clip(
     _update_prev_clip(track)
 
     cur_pos = _get_pos(start)
+    _pos_dict["vs"] = cur_pos
 
+    # TODO: remove??
     if tag:
         _pos_dict[tag] = cur_pos
 
@@ -409,6 +419,8 @@ def _add_clip(
 
         # Advance the pos
         _pos_list.append(cur_pos + clip_info.mpy_clip.duration)
+
+        _pos_dict["ve"] = _pos_dict["vs"] + clip_info.mpy_clip.duration
 
     track.append(clip_info)
 
