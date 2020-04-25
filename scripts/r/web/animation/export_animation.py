@@ -79,6 +79,8 @@ _animations = defaultdict(_AnimationInfo)
 _subtitle = []
 _srt_lines = []
 _srt_index = 1
+
+_bgm_file = None
 _bgm = {}
 _bgm_operations = []
 
@@ -258,9 +260,14 @@ def audio_gap(duration):
     _bgm_operations.append((_pos_dict["a"], "out"))
 
 
-def bgm(op):
-    print("bgm:", (_pos_list[-1], op))
-    _bgm_operations.append((_pos_list[-1], op))
+def bgm(v):
+    print("bgm:", (_pos_list[-1], v))
+    _bgm_operations.append((_pos_list[-1], v))
+
+
+def bgm_file(file):
+    global _bgm_file
+    _bgm_file = file
 
 
 def audio(f, start=None, duration=None):
@@ -342,6 +349,7 @@ def _create_mpy_clip(
     pos=None,
     text_overlay=None,
     no_audio=False,
+    duration=None,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
@@ -354,6 +362,9 @@ def _create_mpy_clip(
 
     else:
         clip = VideoFileClip(file)
+
+        if duration is not None:
+            clip = clip.set_duration(duration)
 
         if text_overlay is not None:
             mkdir("tmp/text_overlay")
@@ -623,23 +634,29 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
 
 def _create_bgm():
-    BGM_PATH = "music/bgm.mp3"
+    VOLUME_DIM = 0.15
 
-    if not os.path.exists(BGM_PATH):
+    if _bgm_file is None:
         return
+
+    if not os.path.exists(_bgm_file):
+        raise Exception("Please make sure `%s` exists.")
 
     AUDIO_FADE_DURA = 0.25
     xp = [0]
-    fp = [0.2]
-    for i, (start, op) in enumerate(_bgm_operations):
-        if op == "in":
+    fp = [VOLUME_DIM]
+    cur_vol = VOLUME_DIM
+    for i, (start, vol) in enumerate(_bgm_operations):
+        if isinstance(vol, (int, float)):
             xp += [start - AUDIO_FADE_DURA, start]
-            fp += [0.2, 1]
-        elif op == "out":
-            xp += [start, start + AUDIO_FADE_DURA]
-            fp += [1, 0.2]
+            fp += [cur_vol, vol]
+            cur_vol = vol
+        
+        else:
+            raise Exception('unsupported bgm parameter type:' % type(vol))
 
-    clip = AudioFileClip(BGM_PATH).subclip(13.8, 60)
+    # .subclip(13.8, 60)
+    clip = AudioFileClip(_bgm_file).set_duration(60)
 
     def volume_adjust(gf, t):
         factor = np.interp(t, xp, fp)
