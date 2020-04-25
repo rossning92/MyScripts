@@ -34,8 +34,8 @@ def capture_js_animation(url, out_file=None, output_video_file=True):
 
         await page.waitForXPath("//*[@id='captureStatus' and contains(., 'stopped')]", timeout=0)
 
-        # TODO: Wait until file is saved
-        time.sleep(1)
+        while not exists(prefix + '.tar'):
+            time.sleep(0.5)
 
         await browser.close()
 

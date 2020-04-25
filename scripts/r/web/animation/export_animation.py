@@ -567,15 +567,9 @@ def _framehold_track_gap(track):
 
 
 def _export_video(resolution=(1920, 1080), fps=FPS):
-    # # Update last clip for each track.
-    # for track in _video_tracks.values():
-    #     _update_prev_clip(track)
-
-    # ci = _VideoClipInfo()
-    # ci.mpy_clip = TextClip('yoyo', font='Arial',
-    #                        font_size=88, color='white').set_duration(5)
-    # ci.mpy_clip = ImageClip('screenshot/add-smoothstep.png').set_duration(5)
-    # _video_tracks['md'] = [ci]
+    # Update clip duration for each track
+    for track in _video_tracks.values():
+        _framehold_track_gap(track)
 
     # Animation
     if 1:
@@ -594,7 +588,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                         )
                         print(subclip_dura_list)
 
-                        params += {"cut": subclip_dura_list}
+                        params.update({"t": subclip_dura_list})
 
                     final_url = (
                         animation_info.url
@@ -616,10 +610,8 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                     file=(out_file if i == 0 else "tmp/animation/%s.%d.mov" % (name, i))
                 )
 
-    # Update clip length and fx for each track.
+    # Update fx for each track.
     for track in _video_tracks.values():
-        _framehold_track_gap(track)
-
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
             assert clip_info.duration is not None if i < len(track) - 1 else True
