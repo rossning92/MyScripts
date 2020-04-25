@@ -38,6 +38,8 @@ PARSE_LINE_END = int("{{_PARSE_LINE_END}}") if "{{_PARSE_LINE_END}}" else None
 
 ADD_SUBTITLE = False
 
+VOLUME_DIM = 0.15
+
 
 class _VideoClipInfo:
     def __init__(self):
@@ -89,7 +91,7 @@ _srt_index = 1
 
 _bgm_file = None
 _bgm = {}
-_bgm_volume_keypoints = []
+_bgm_vol = []
 
 
 def _get_vid_track(name=None):
@@ -270,17 +272,17 @@ def record(f, start="a", **kwargs):
 
 
 def audio_gap(duration):
-    _bgm_volume_keypoints.append((_pos_dict["a"], "in"))
+    _bgm_vol.append((_pos_dict["a"], "in"))
 
     _pos_dict["a"] += duration
     _pos_list.append(_pos_dict["a"])
 
-    _bgm_volume_keypoints.append((_pos_dict["a"], "out"))
+    _bgm_vol.append((_pos_dict["a"], "out"))
 
 
 def bgm(vol, duration=0.25):
     print("bgm:", (_pos_list[-1], vol, duration))
-    _bgm_volume_keypoints.append((_pos_list[-1], vol, duration))
+    _bgm_vol.append((_pos_list[-1], vol, duration))
 
 
 def bgm_file(file):
@@ -375,6 +377,7 @@ def _create_mpy_clip(
     text_overlay=None,
     no_audio=False,
     duration=None,
+    vol=None,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
@@ -383,7 +386,7 @@ def _create_mpy_clip(
         clip = create_image_seq_clip(file)
 
     elif file.endswith(".png"):
-        clip = ImageClip(file).set_duration(2)
+        clip = ImageClip(file).set_duration(4)
 
     else:
         clip = VideoFileClip(file)
@@ -409,6 +412,9 @@ def _create_mpy_clip(
 
     if no_audio:
         clip = clip.set_audio(None)
+    
+    if clip.audio is not None and vol:
+        clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
 
     if pos is not None:
         # half_size = [x // 2 for x in clip.size]
@@ -666,14 +672,12 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     open_with("out.mp4", program_id=1)
 
 
-def _adjust_mpy_audio_clip_volume(clip, volume_keypoints):
-    VOLUME_DIM = 0.15
+def _adjust_mpy_audio_clip_volume(clip, vol):
+    xp = []
+    fp = []
+    cur_vol = 0
 
-    xp = [0]
-    fp = [VOLUME_DIM]
-    cur_vol = VOLUME_DIM
-
-    for i, (start, vol, duration) in enumerate(volume_keypoints):
+    for i, (start, vol, duration) in enumerate(vol):
         if isinstance(vol, (int, float)):
             xp += [start, start + duration]
             fp += [cur_vol, vol]
@@ -700,7 +704,7 @@ def _create_bgm():
     # .subclip(13.8, 60)
     clip = AudioFileClip(_bgm_file).set_duration(60)
 
-    clip = _adjust_mpy_audio_clip_volume(clip, _bgm_volume_keypoints)
+    clip = _adjust_mpy_audio_clip_volume(clip, [0, VOLUME_DIM, 0.5] + _bgm_vol)
 
     _audio_clips.append(clip)
 
