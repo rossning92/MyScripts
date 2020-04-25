@@ -165,7 +165,13 @@ def _format_time(sec):
     )
 
 
-def _generate_text_image(text, font="Source-Han-Sans-CN", fontsize=44):
+def _generate_text_image(
+    text,
+    font="Source-Han-Sans-CN",
+    font_size=44,
+    color="#ffffff",
+    stroke_color="#555555",
+):
     # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
     os.close(tempfile_fd)
@@ -173,21 +179,21 @@ def _generate_text_image(text, font="Source-Han-Sans-CN", fontsize=44):
         glob.glob(r"C:\Program Files\ImageMagick-*\magick.exe")[0],
         "-background",
         "transparent",
-        "-fill",
-        "white",
         "-font",
         font,
         "-pointsize",
-        "%d" % fontsize,
+        "%d" % font_size,
         "-stroke",
-        "#555555",
+        stroke_color,
         "-strokewidth",
         "6",
+        "-gravity",
+        "center",
         "label:%s" % text,
         "-stroke",
         "None",
         "-fill",
-        "White",
+        color,
         "label:%s" % text,
         "-layers",
         "merge",
@@ -265,9 +271,9 @@ def audio_gap(duration):
     _bgm_operations.append((_pos_dict["a"], "out"))
 
 
-def bgm(v):
-    print("bgm:", (_pos_list[-1], v))
-    _bgm_operations.append((_pos_list[-1], v))
+def bgm(vol, duration=0.25):
+    print("bgm:", (_pos_list[-1], vol, duration))
+    _bgm_operations.append((_pos_list[-1], vol, duration))
 
 
 def bgm_file(file):
@@ -312,8 +318,10 @@ def image(f, **kwargs):
 
 
 def text(text, track="sub", **kwargs):
-    temp_file = _generate_text_image(text, font="zcool-gdh", fontsize=100)
-    _add_clip(temp_file, track=track, pos=("center", 910), **kwargs)
+    temp_file = _generate_text_image(
+        text, font="zcool-gdh", font_size=100, color="#ffd700", stroke_color="#6900ff",
+    )
+    _add_clip(temp_file, track=track, pos=("center", 750), **kwargs)
 
 
 def _add_fadeout(track):
@@ -552,7 +560,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
     # ci = _ClipInfo()
     # ci.mpy_clip = TextClip('yoyo', font='Arial',
-    #                        fontsize=88, color='white').set_duration(5)
+    #                        font_size=88, color='white').set_duration(5)
     # ci.mpy_clip = ImageClip('screenshot/add-smoothstep.png').set_duration(5)
     # _video_tracks['md'] = [ci]
 
@@ -634,11 +642,6 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
         for clip_info in track:
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
 
-    # def generator(txt): return TextClip(
-    #     txt, font='Arial', fontsize=16, color='white')
-    # subtitle_clip = SubtitlesClip("out.srt", generator)
-    # video_clips.append(subtitle_clip)
-
     final_clip = CompositeVideoClip(video_clips, size=resolution)
 
     if final_clip.audio:
@@ -665,13 +668,12 @@ def _create_bgm():
     if not os.path.exists(_bgm_file):
         raise Exception("Please make sure `%s` exists.")
 
-    AUDIO_FADE_DURA = 0.25
     xp = [0]
     fp = [VOLUME_DIM]
     cur_vol = VOLUME_DIM
-    for i, (start, vol) in enumerate(_bgm_operations):
+    for i, (start, vol, duration) in enumerate(_bgm_operations):
         if isinstance(vol, (int, float)):
-            xp += [start - AUDIO_FADE_DURA, start]
+            xp += [start, start + duration]
             fp += [cur_vol, vol]
             cur_vol = vol
 
