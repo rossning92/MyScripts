@@ -165,7 +165,7 @@ def _format_time(sec):
     )
 
 
-def _add_subtitle_clip(start, end, text):
+def _generate_text_image(text, font="Source-Han-Sans-CN", fontsize=44):
     # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
     os.close(tempfile_fd)
@@ -176,9 +176,9 @@ def _add_subtitle_clip(start, end, text):
         "-fill",
         "white",
         "-font",
-        "Source-Han-Sans-CN",
+        font,
         "-pointsize",
-        "44",
+        "%d" % fontsize,
         "-stroke",
         "#555555",
         "-strokewidth",
@@ -194,6 +194,11 @@ def _add_subtitle_clip(start, end, text):
         "PNG32:%s" % tempfilename,
     ]
     subprocess.check_call(cmd)
+    return tempfilename
+
+
+def _add_subtitle_clip(start, end, text):
+    tempfilename = _generate_text_image(text)
 
     ci = _ClipInfo()
     ci.mpy_clip = (
@@ -302,8 +307,13 @@ def pos(p):
     _set_pos(p)
 
 
-def image(f, track=None, **kwargs):
-    _add_clip(f, track=track, **kwargs)
+def image(f, **kwargs):
+    _add_clip(f, **kwargs)
+
+
+def text(text, track="sub", **kwargs):
+    temp_file = _generate_text_image(text, font="zcool-gdh", fontsize=100)
+    _add_clip(temp_file, track=track, pos=("center", 910), **kwargs)
 
 
 def _add_fadeout(track):
@@ -386,8 +396,9 @@ def _create_mpy_clip(
         clip = clip.set_audio(None)
 
     if pos is not None:
-        half_size = [x // 2 for x in clip.size]
-        clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
+        # half_size = [x // 2 for x in clip.size]
+        # clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
+        clip = clip.set_position(pos)
 
     return clip
 
@@ -406,7 +417,7 @@ def _add_clip(
 ):
     track = _get_vid_track(track)
 
-    _update_prev_clip(track)
+    # _update_prev_clip(track)
 
     cur_pos = _get_pos(start)
     _pos_dict["vs"] = cur_pos
@@ -429,9 +440,9 @@ def _add_clip(
         )
 
         # Advance the pos
-        _pos_list.append(cur_pos + clip_info.mpy_clip.duration)
-
-        _pos_dict["ve"] = _pos_dict["vs"] + clip_info.mpy_clip.duration
+        end = cur_pos + clip_info.mpy_clip.duration
+        _pos_list.append(end)
+        _pos_dict["ve"] = end
 
     track.append(clip_info)
 
@@ -476,7 +487,7 @@ def _clip_extend_prev_clip(track=None):
     if clip_info.duration is None:
         clip_info.duration = _pos_list[-1] - clip_info.start
         print(
-            "previous clip start, duration updated: %.2f, %.2f"
+            "previous clip (start, duration) updated: (%.2f, %.2f)"
             % (clip_info.start, clip_info.duration)
         )
 
@@ -523,6 +534,15 @@ def hl(pos, track="hl"):
 def track(name="vid"):
     global _cur_vid_track_name
     _cur_vid_track_name = name
+
+
+def _framehold_track_gap(track):
+    prev_clip_info = None
+    for clip_info in track:
+        if (prev_clip_info is not None) and (clip_info.duration is None):
+            prev_clip_info.duration = clip_info.start - prev_clip_info.start
+
+        prev_clip_info = clip_info
 
 
 def _export_video(resolution=(1920, 1080), fps=FPS):
@@ -577,6 +597,8 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
     # Update clip length and fx for each track.
     for track in _video_tracks.values():
+        _framehold_track_gap(track)
+
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
             assert clip_info.duration is not None if i < len(track) - 1 else True
@@ -619,9 +641,10 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
     final_clip = CompositeVideoClip(video_clips, size=resolution)
 
-    final_clip = final_clip.set_audio(
-        CompositeAudioClip(_audio_clips + [final_clip.audio])
-    )
+    if final_clip.audio:
+        _audio_clips.append(final_clip.audio)
+
+    final_clip = final_clip.set_audio(CompositeAudioClip(_audio_clips))
 
     # final_clip.show(10.5, interactive=True)
     # final_clip.preview(fps=10, audio=False)
@@ -651,9 +674,9 @@ def _create_bgm():
             xp += [start - AUDIO_FADE_DURA, start]
             fp += [cur_vol, vol]
             cur_vol = vol
-        
+
         else:
-            raise Exception('unsupported bgm parameter type:' % type(vol))
+            raise Exception("unsupported bgm parameter type:" % type(vol))
 
     # .subclip(13.8, 60)
     clip = AudioFileClip(_bgm_file).set_duration(60)
