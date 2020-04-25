@@ -39,7 +39,7 @@ PARSE_LINE_END = int("{{_PARSE_LINE_END}}") if "{{_PARSE_LINE_END}}" else None
 ADD_SUBTITLE = False
 
 
-class _ClipInfo:
+class _VideoClipInfo:
     def __init__(self):
         self.file: str = None
         self.start: float = 0
@@ -49,6 +49,13 @@ class _ClipInfo:
         self.pos = None
         self.fadein: bool = False
         self.fadeout: bool = False
+
+
+class _AudioClipInfo:
+    def __init__(self):
+        self.file: str = None
+        self.mpy_clip: Any = None
+        self.speed: float = 1
 
 
 class _AnimationInfo:
@@ -206,7 +213,7 @@ def _generate_text_image(
 def _add_subtitle_clip(start, end, text):
     tempfilename = _generate_text_image(text)
 
-    ci = _ClipInfo()
+    ci = _VideoClipInfo()
     ci.mpy_clip = (
         ImageClip(tempfilename).set_duration(end - start).set_pos(("center", 910))
     )
@@ -434,7 +441,7 @@ def _add_clip(
     if tag:
         _pos_dict[tag] = cur_pos
 
-    clip_info = _ClipInfo()
+    clip_info = _VideoClipInfo()
     clip_info.file = file
     clip_info.start = cur_pos
     clip_info.pos = pos
@@ -558,7 +565,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     # for track in _video_tracks.values():
     #     _update_prev_clip(track)
 
-    # ci = _ClipInfo()
+    # ci = _VideoClipInfo()
     # ci.mpy_clip = TextClip('yoyo', font='Arial',
     #                        font_size=88, color='white').set_duration(5)
     # ci.mpy_clip = ImageClip('screenshot/add-smoothstep.png').set_duration(5)
