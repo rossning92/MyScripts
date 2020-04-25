@@ -89,7 +89,7 @@ _srt_index = 1
 
 _bgm_file = None
 _bgm = {}
-_bgm_operations = []
+_bgm_volume_keypoints = []
 
 
 def _get_vid_track(name=None):
@@ -270,17 +270,17 @@ def record(f, start="a", **kwargs):
 
 
 def audio_gap(duration):
-    _bgm_operations.append((_pos_dict["a"], "in"))
+    _bgm_volume_keypoints.append((_pos_dict["a"], "in"))
 
     _pos_dict["a"] += duration
     _pos_list.append(_pos_dict["a"])
 
-    _bgm_operations.append((_pos_dict["a"], "out"))
+    _bgm_volume_keypoints.append((_pos_dict["a"], "out"))
 
 
 def bgm(vol, duration=0.25):
     print("bgm:", (_pos_list[-1], vol, duration))
-    _bgm_operations.append((_pos_list[-1], vol, duration))
+    _bgm_volume_keypoints.append((_pos_list[-1], vol, duration))
 
 
 def bgm_file(file):
@@ -666,19 +666,14 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     open_with("out.mp4", program_id=1)
 
 
-def _create_bgm():
+def _adjust_mpy_audio_clip_volume(clip, volume_keypoints):
     VOLUME_DIM = 0.15
-
-    if _bgm_file is None:
-        return
-
-    if not os.path.exists(_bgm_file):
-        raise Exception("Please make sure `%s` exists.")
 
     xp = [0]
     fp = [VOLUME_DIM]
     cur_vol = VOLUME_DIM
-    for i, (start, vol, duration) in enumerate(_bgm_operations):
+
+    for i, (start, vol, duration) in enumerate(volume_keypoints):
         if isinstance(vol, (int, float)):
             xp += [start, start + duration]
             fp += [cur_vol, vol]
@@ -687,15 +682,26 @@ def _create_bgm():
         else:
             raise Exception("unsupported bgm parameter type:" % type(vol))
 
-    # .subclip(13.8, 60)
-    clip = AudioFileClip(_bgm_file).set_duration(60)
-
     def volume_adjust(gf, t):
         factor = np.interp(t, xp, fp)
         factor = np.vstack([factor, factor]).T
         return factor * gf(t)
 
-    clip = clip.fl(volume_adjust)
+    return clip.fl(volume_adjust)
+
+
+def _create_bgm():
+    if _bgm_file is None:
+        return
+
+    if not os.path.exists(_bgm_file):
+        raise Exception("Please make sure `%s` exists.")
+
+    # .subclip(13.8, 60)
+    clip = AudioFileClip(_bgm_file).set_duration(60)
+
+    clip = _adjust_mpy_audio_clip_volume(clip, _bgm_volume_keypoints)
+
     _audio_clips.append(clip)
 
 

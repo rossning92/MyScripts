@@ -5,7 +5,7 @@ import r.audio.postprocess as pp
 
 def get_recording_files(md_file):
     s = open(md_file, 'r', encoding='utf-8').read()
-    matches = re.findall(r"record\('([\w\W]+?)'\)", s)
+    matches = re.findall(r"record\('([\w\W]+?.wav)", s)
     matches = [x.strip() for x in matches]
     return matches
 
