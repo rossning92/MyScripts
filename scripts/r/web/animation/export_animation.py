@@ -635,7 +635,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
 
             if clip_info.fadein:
                 # TODO: crossfadein and crossfadeout is very slow in moviepy
-                if 'hl' in track_name:
+                if track_name != 'vid':
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
                         FADEOUT_DURATION
                     )
@@ -645,7 +645,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                     )
 
             if clip_info.fadeout:
-                if 'hl' in track_name:
+                if track_name != 'vid':
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
                         FADEOUT_DURATION
                     )
