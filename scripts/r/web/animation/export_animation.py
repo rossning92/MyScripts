@@ -98,6 +98,8 @@ def _get_vid_track(name=None):
     if name is None:
         name = _cur_vid_track_name
 
+    print('  track=%s' % name)
+
     if name not in _video_tracks:
         track = []
         _video_tracks[name] = track
@@ -280,7 +282,7 @@ def audio_gap(duration):
     _bgm_vol.append((_pos_dict["a"], "out"))
 
 
-def bgm(vol, duration=0.25):
+def bgm_vol(vol, duration=0.25):
     print("bgm:", (_pos_list[-1], vol, duration))
     _bgm_vol.append((_pos_list[-1], vol, duration))
 
@@ -323,6 +325,7 @@ def pos(p):
 
 
 def image(f, **kwargs):
+    print('image: %s' % f)
     _add_clip(f, **kwargs)
 
 
@@ -412,9 +415,12 @@ def _create_mpy_clip(
 
     if no_audio:
         clip = clip.set_audio(None)
-    
+
     if clip.audio is not None and vol:
-        clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
+        if isinstance(vol, (int, float)):
+            clip.audio = clip.audio.fx(afx.volumex, vol)
+        else:
+            clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
 
     if pos is not None:
         # half_size = [x // 2 for x in clip.size]
@@ -482,11 +488,12 @@ def anim(s, **kwargs):
     _animation(url="http://localhost:8080/%s.html" % s, name=slugify(s), **kwargs)
 
 
-def image_anim(file, t=5):
+def image_anim(file, t=5, **kwargs):
     _animation(
         url="http://localhost:8080/image.html",
         name=os.path.splitext(file)[0],
         params={"t": "%d" % t, "src": file},
+        **kwargs
     )
 
 
@@ -499,31 +506,33 @@ def title_anim(h1, h2, **kwargs):
     )
 
 
-def _clip_extend_prev_clip(track=None):
+def _clip_extend_prev_clip(track=None, start=None):
     if len(track) == 0:
         return
 
     clip_info = track[-1]
 
     if clip_info.duration is None:
-        clip_info.duration = _pos_list[-1] - clip_info.start
+        clip_info.duration = _get_pos(start) - clip_info.start
         print(
             "previous clip (start, duration) updated: (%.2f, %.2f)"
             % (clip_info.start, clip_info.duration)
         )
 
 
-def empty(track=None):
+def empty(track=None, start=None):
+    print('empty: track=%s' % track)
     track = _get_vid_track(track)
-    _clip_extend_prev_clip(track)
+    _clip_extend_prev_clip(track, start=start)
 
 
 def video(f, **kwargs):
-    print("Video: %s" % f)
+    print("video: %s" % f)
     _add_clip(f, tag="video", **kwargs)
 
 
 def screencap(f, speed=None, track=None, **kwargs):
+    print("screencap: %s" % f)
     _add_clip(
         f,
         clip_operations=lambda x: x.crop(x1=0, y1=0, x2=2560, y2=1380)
@@ -560,7 +569,7 @@ def track(name="vid"):
 def _framehold_track_gap(track):
     prev_clip_info = None
     for clip_info in track:
-        if (prev_clip_info is not None) and (clip_info.duration is None):
+        if (prev_clip_info is not None) and (prev_clip_info.duration is None):
             prev_clip_info.duration = clip_info.start - prev_clip_info.start
 
         prev_clip_info = clip_info
@@ -696,7 +705,7 @@ def _create_bgm():
     # .subclip(13.8, 60)
     clip = AudioFileClip(_bgm_file).set_duration(60)
 
-    clip = _adjust_mpy_audio_clip_volume(clip, [0, VOLUME_DIM, 0.5] + _bgm_vol)
+    clip = _adjust_mpy_audio_clip_volume(clip, [(0, VOLUME_DIM, 0.5)] + _bgm_vol)
 
     _audio_clips.append(clip)
 
