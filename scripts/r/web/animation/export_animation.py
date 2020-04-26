@@ -98,7 +98,7 @@ def _get_vid_track(name=None):
     if name is None:
         name = _cur_vid_track_name
 
-    print('  track=%s' % name)
+    print("  track=%s" % name)
 
     if name not in _video_tracks:
         track = []
@@ -325,7 +325,7 @@ def pos(p):
 
 
 def image(f, **kwargs):
-    print('image: %s' % f)
+    print("image: %s" % f)
     _add_clip(f, **kwargs)
 
 
@@ -423,9 +423,13 @@ def _create_mpy_clip(
             clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
 
     if pos is not None:
-        # half_size = [x // 2 for x in clip.size]
-        # clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
-        clip = clip.set_position(pos)
+        # (x, y) marks the center location of the of the clip instead of the top
+        # left corner.
+        if isinstance(pos[0], (int, float)):
+            half_size = [x // 2 for x in clip.size]
+            clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
+        else:
+            clip = clip.set_position(pos)
 
     return clip
 
@@ -521,7 +525,7 @@ def _clip_extend_prev_clip(track=None, start=None):
 
 
 def empty(track=None, start=None):
-    print('empty: track=%s' % track)
+    print("empty: track=%s" % track)
     track = _get_vid_track(track)
     _clip_extend_prev_clip(track, start=start)
 
@@ -534,7 +538,7 @@ def video(f, **kwargs):
 def screencap(f, speed=None, track=None, **kwargs):
     print("screencap: %s" % f)
     _add_clip(
-        f,
+        "screencap/" + f,
         clip_operations=lambda x: x.crop(x1=0, y1=0, x2=2560, y2=1380)
         .resize(0.75)
         .set_position((0, 22)),
@@ -630,6 +634,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(clip_info.duration)
 
             if clip_info.fadein:
+                # TODO: fadein and fadeout is very slow in moviepy
                 if clip_info.file and clip_info.file.endswith(".png"):
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
                         FADEOUT_DURATION

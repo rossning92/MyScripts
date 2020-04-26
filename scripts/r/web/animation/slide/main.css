@@ -3,7 +3,8 @@
 body {
   font-family: "Muli", "Noto Sans SC", sans-serif;
   color: white;
-  font-size: 5vh;
+  /* font-size: 5vh; */
+  font-size: 50px;
 }
 
 code {
