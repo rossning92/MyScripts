@@ -623,7 +623,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                     file=(out_file if i == 0 else "tmp/animation/%s.%d.mov" % (name, i))
                 )
 
-    # Update fx for each track.
+    # Update MoviePy clip object in each track.
     for track_name, track in _video_tracks.items():
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
