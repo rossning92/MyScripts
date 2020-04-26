@@ -624,7 +624,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                 )
 
     # Update fx for each track.
-    for track in _video_tracks.values():
+    for track_name, track in _video_tracks.items():
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
             assert clip_info.duration is not None if i < len(track) - 1 else True
@@ -634,8 +634,8 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(clip_info.duration)
 
             if clip_info.fadein:
-                # TODO: fadein and fadeout is very slow in moviepy
-                if clip_info.file and clip_info.file.endswith(".png"):
+                # TODO: crossfadein and crossfadeout is very slow in moviepy
+                if 'hl' in track_name:
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
                         FADEOUT_DURATION
                     )
@@ -645,7 +645,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                     )
 
             if clip_info.fadeout:
-                if clip_info.file and clip_info.file.endswith(".png"):
+                if 'hl' in track_name:
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
                         FADEOUT_DURATION
                     )
