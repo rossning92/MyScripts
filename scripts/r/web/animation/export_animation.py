@@ -630,12 +630,22 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
             assert clip_info.duration is not None if i < len(track) - 1 else True
 
             if clip_info.duration is not None:
+                # Unlink audio clip from video clip (adjust audio duration)
+                if clip_info.mpy_clip.audio is not None:
+                    audio_clip = clip_info.mpy_clip.audio.set_start(
+                        clip_info.start
+                    ).set_duration(
+                        min(clip_info.duration, clip_info.mpy_clip.audio.duration)
+                    )
+                    _audio_clips.append(audio_clip)
+                    clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
+
                 # Use duration to extend / hold the last frame instead of creating new clips.
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(clip_info.duration)
 
             if clip_info.fadein:
                 # TODO: crossfadein and crossfadeout is very slow in moviepy
-                if track_name != 'vid':
+                if track_name != "vid":
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
                         FADEOUT_DURATION
                     )
@@ -645,7 +655,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                     )
 
             if clip_info.fadeout:
-                if track_name != 'vid':
+                if track_name != "vid":
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
                         FADEOUT_DURATION
                     )
