@@ -14,7 +14,7 @@ dest_file = "screencap/" + name + ".mp4"
 os.rename(new_file, dest_file)
 print2("file saved: %s" % dest_file, color="green")
 
-clip = "! screencap('%s')" % name + ".mp4"
+clip = "! screencap('%s.mp4')" % name
 set_clip(clip)
 print("Clip is set to: %s" + clip)
 wait_key()
