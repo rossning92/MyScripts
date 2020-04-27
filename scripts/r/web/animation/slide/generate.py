@@ -39,7 +39,8 @@ def generate_slide(
         html_file_name = out_file + ".html"
         with open(html_file_name, "w", encoding="utf-8") as f:
             f.write(html)
-        # webbrowser.open(html_file_name)
+    else:
+        html_file_name = write_temp_file(html, ".html")
 
     async def screenshotDOMElement(*, page, selector, path):
         rect = await page.evaluate(

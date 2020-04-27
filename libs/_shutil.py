@@ -430,6 +430,19 @@ def append_line(file_path, s):
         print("[WARNING] Content exists:" + s)
 
 
+def append_file(file, s):
+    if os.path.exists(file):
+        with open(file, "r", encoding="utf-8") as f:
+            text = f.read()
+    else:
+        text = ""
+
+    text += "\n" + s
+
+    with open(file, "w", encoding="utf-8") as f:
+        f.write(text)
+
+
 def get_clip():
     import win32clipboard
 

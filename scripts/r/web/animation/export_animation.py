@@ -439,7 +439,6 @@ def _add_clip(
     clip_operations=None,
     speed=None,
     pos=None,
-    tag=None,
     track=None,
     fadein=False,
     fadeout=False,
@@ -452,10 +451,6 @@ def _add_clip(
 
     cur_pos = _get_pos(start)
     _pos_dict["vs"] = cur_pos
-
-    # TODO: remove??
-    if tag:
-        _pos_dict[tag] = cur_pos
 
     clip_info = _VideoClipInfo()
     clip_info.file = file
@@ -532,7 +527,7 @@ def empty(track=None, start=None):
 
 def video(f, **kwargs):
     print("video: %s" % f)
-    _add_clip(f, tag="video", **kwargs)
+    _add_clip(f, **kwargs)
 
 
 def screencap(f, speed=None, track=None, **kwargs):
@@ -543,7 +538,6 @@ def screencap(f, speed=None, track=None, **kwargs):
         .resize(0.75)
         .set_position((0, 22)),
         speed=speed,
-        tag="video",
         track=track,
         **kwargs
     )
