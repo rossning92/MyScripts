@@ -33,7 +33,7 @@ PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
 
 FPS = int("{{_FPS}}")
 FADEOUT_DURATION = 0.25
-PARSE_LINE_START = int("{{_PARSE_LINE_START}}") if "{{_PARSE_LINE_START}}" else None
+PARSE_LINE_BEGIN = int("{{_PARSE_LINE_BEGIN}}") if "{{_PARSE_LINE_BEGIN}}" else None
 PARSE_LINE_END = int("{{_PARSE_LINE_END}}") if "{{_PARSE_LINE_END}}" else None
 
 ADD_SUBTITLE = False
@@ -425,7 +425,9 @@ def _create_mpy_clip(
     if pos is not None:
         # (x, y) marks the center location of the of the clip instead of the top
         # left corner.
-        if isinstance(pos[0], (int, float)):
+        if pos == 'center':
+            clip = clip.set_position(('center', 'center'))
+        elif isinstance(pos[0], (int, float)):
             half_size = [x // 2 for x in clip.size]
             clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
         else:
@@ -543,7 +545,7 @@ def screencap(f, speed=None, track=None, **kwargs):
     )
 
 
-def md(s, track="md", **kwargs):
+def md(s, track="md", fadein=True, fadeout=True, **kwargs):
     mkdir("tmp/slides")
     out_file = "tmp/slides/%s.png" % slugify(s)
 
@@ -552,7 +554,7 @@ def md(s, track="md", **kwargs):
             s, template_file="markdown.html", out_file=out_file, gen_html=True
         )
 
-    _add_clip(out_file, track=track, fadein=True, fadeout=True, **kwargs)
+    _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, **kwargs)
 
 
 def hl(pos, track="hl"):
@@ -730,8 +732,8 @@ if __name__ == "__main__":
     with open("index.md", "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-        if PARSE_LINE_START is not None:
-            lines = lines[(PARSE_LINE_START - 1) : (PARSE_LINE_END)]
+        if PARSE_LINE_BEGIN is not None:
+            lines = lines[(PARSE_LINE_BEGIN - 1) : (PARSE_LINE_END)]
 
         # Remove all comments
         s = "\n".join(lines)
