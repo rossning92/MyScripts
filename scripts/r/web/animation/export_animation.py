@@ -307,13 +307,14 @@ def bgm_vol(v, **kwawgs):
     vol(v, track="bgm", **kwawgs)
 
 
-def _add_audio_clip(file, track=None, start=None, subclip=None, duration=None):
+def _add_audio_clip(file, track=None, start=None, subclip=None, duration=None, move_playhead=True):
     clips = _get_audio_track(track).clips
 
     start = _get_pos(start)
 
-    _pos_dict["as"] = start
-    _pos_list.append(_pos_dict["as"])
+    if move_playhead:
+        _pos_dict["as"] = start
+        _pos_list.append(_pos_dict["as"])
 
     clip_info = _AudioClipInfo()
 
@@ -328,8 +329,9 @@ def _add_audio_clip(file, track=None, start=None, subclip=None, duration=None):
     clip_info.subclip = subclip
     clip_info.start = start
 
-    # Forward audio track pos
-    _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + clip_info.mpy_clip.duration
+    if move_playhead:
+        # Forward audio track pos
+        _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + clip_info.mpy_clip.duration
 
     clips.append(clip_info)
 
