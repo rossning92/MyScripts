@@ -51,6 +51,7 @@ class _VideoClipInfo:
         self.pos = None
         self.fadein: bool = False
         self.fadeout: bool = False
+        self.text_overlay: str = None
 
 
 class _AudioClipInfo:
@@ -79,7 +80,7 @@ _pos_dict = {"a": 0}
 _add_fadeout_to_last_clip = False
 
 _video_tracks = OrderedDict(
-    [("vid", []), ("hl", []), ("hl2", []), ("md", []), ("sub", [])]
+    [("vid", []), ("hl", []), ("hl2", []), ("md", []), ("overlay", []), ("sub", [])]
 )
 _cur_vid_track_name = "vid"  # default video track
 
@@ -393,19 +394,9 @@ def _create_mpy_clip(
 
     else:
         clip = VideoFileClip(file)
-
-        if duration is not None:
-            clip = clip.set_duration(duration)
-
-        if text_overlay is not None:
-            mkdir("tmp/text_overlay")
-            overlay_file = "tmp/text_overlay/%s.png" % slugify(text_overlay)
-            if not os.path.exists(overlay_file):
-                generate_slide(
-                    text_overlay, template_file="source.html", out_file=overlay_file
-                )
-            im_clip = ImageClip(overlay_file).set_duration(clip.duration)
-            clip = CompositeVideoClip([clip, im_clip])
+    
+    if duration is not None:
+        clip = clip.set_duration(duration)
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
@@ -445,6 +436,8 @@ def _add_clip(
     fadein=False,
     fadeout=False,
     start=None,
+    duration=None,
+    text_overlay=None,
     **kwargs
 ):
     track = _get_vid_track(track)
@@ -461,10 +454,12 @@ def _add_clip(
     clip_info.speed = speed
     clip_info.fadein = fadein
     clip_info.fadeout = fadeout
+    clip_info.text_overlay = text_overlay
+    clip_info.duration = duration
 
     if file is not None:
         clip_info.mpy_clip = _create_mpy_clip(
-            file=file, clip_operations=clip_operations, speed=speed, pos=pos, **kwargs
+            file=file, clip_operations=clip_operations, speed=speed, pos=pos, duration=duration, **kwargs
         )
 
         # Advance the pos
@@ -566,7 +561,7 @@ def track(name="vid"):
     _cur_vid_track_name = name
 
 
-def _framehold_track_gap(track):
+def _update_clip_duration(track):
     prev_clip_info = None
     for clip_info in track:
         if (prev_clip_info is not None) and (prev_clip_info.duration is None):
@@ -574,11 +569,28 @@ def _framehold_track_gap(track):
 
         prev_clip_info = clip_info
 
+    # update last clip duration
+    if len(track) > 0 and track[-1].duration is None:
+        track[-1].duration = track[-1].mpy_clip.duration
+
 
 def _export_video(resolution=(1920, 1080), fps=FPS):
     # Update clip duration for each track
     for track in _video_tracks.values():
-        _framehold_track_gap(track)
+        _update_clip_duration(track)
+
+    # Add text overlay clip
+    for track in _video_tracks.values():
+        for clip_info in track:
+            if clip_info.text_overlay is not None:
+                mkdir("tmp/text_overlay")
+                overlay_file = "tmp/text_overlay/%s.png" % slugify(clip_info.text_overlay)
+                if not os.path.exists(overlay_file):
+                    generate_slide(
+                        clip_info.text_overlay, template_file="source.html", out_file=overlay_file
+                    )
+                assert clip_info.duration is not None
+                _add_clip(overlay_file, start=clip_info.start, duration=clip_info.duration, track='overlay')
 
     # Animation
     if 1:
@@ -623,7 +635,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     for track_name, track in _video_tracks.items():
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
-            assert clip_info.duration is not None if i < len(track) - 1 else True
+            assert clip_info.duration is not None
 
             if clip_info.duration is not None:
                 # Unlink audio clip from video clip (adjust audio duration)
