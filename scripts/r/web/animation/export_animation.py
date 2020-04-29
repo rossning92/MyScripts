@@ -307,7 +307,9 @@ def bgm_vol(v, **kwawgs):
     vol(v, track="bgm", **kwawgs)
 
 
-def _add_audio_clip(file, track=None, start=None, subclip=None, duration=None, move_playhead=True):
+def _add_audio_clip(
+    file, track=None, start=None, subclip=None, duration=None, move_playhead=True
+):
     clips = _get_audio_track(track).clips
 
     start = _get_pos(start)
@@ -347,9 +349,9 @@ def pos(p):
     _set_pos(p)
 
 
-def image(f, **kwargs):
+def image(f, pos="center", **kwargs):
     print("image: %s" % f)
-    _add_clip(f, **kwargs)
+    _add_clip(f, pos=pos, **kwargs)
 
 
 def text(text, track="sub", **kwargs):
@@ -567,7 +569,7 @@ def screencap(f, speed=None, track=None, **kwargs):
     )
 
 
-def md(s, track="md", fadein=True, fadeout=True, **kwargs):
+def md(s, track="md", fadein=True, fadeout=True, pos="center", **kwargs):
     mkdir("tmp/slides")
     out_file = "tmp/slides/%s.png" % slugify(s)
 
@@ -576,7 +578,7 @@ def md(s, track="md", fadein=True, fadeout=True, **kwargs):
             s, template_file="markdown.html", out_file=out_file, gen_html=True
         )
 
-    _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, **kwargs)
+    _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
 def hl(pos, track="hl"):
