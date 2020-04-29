@@ -20,7 +20,7 @@ CorrectCase := False ;whether or not to fix uppercase or lowercase to match the 
 NormalKeyList := "a`nb`nc`nd`ne`nf`ng`nh`ni`nj`nk`nl`nm`nn`no`np`nq`nr`ns`nt`nu`nv`nw`nx`ny`nz" ;list of key names separated by `n that make up words in upper and lower case variants
 NumberKeyList := "1`n2`n3`n4`n5`n6`n7`n8`n9`n0" ;list of key names separated by `n that make up words as well as their numpad equivalents
 OtherKeyList := "'`n-" ;list of key names separated by `n that make up words
-ResetKeyList := "Control`nEsc`nSpace`nHome`nPGUP`nPGDN`nEnd`nLeft`nRight`nRButton`nMButton`n,`n.`n/`n[`n]`n;`n\`n=`n```n"""  ;list of key names separated by `n that cause suggestions to reset
+ResetKeyList := "Control`nEnter`nEsc`nSpace`nHome`nPGUP`nPGDN`nEnd`nLeft`nRight`nRButton`nMButton`n,`n.`n/`n[`n]`n;`n\`n=`n```n"""  ;list of key names separated by `n that cause suggestions to reset
 TriggerKeyList := "Tab" ;list of key names separated by `n that trigger completion
 
 TrayTip, Settings, Click the tray icon to modify settings, 5, 1
@@ -284,6 +284,9 @@ GuiControlGet, Index,, Matched
 TempList := "`n" . MatchList . "`n"
 Position := InStr(TempList,"`n",0,1,Index) + 1
 NewWord := SubStr(TempList,Position,InStr(TempList,"`n",0,Position) - Position)
+
+; Remove keywords used for searching only
+NewWord := RegExReplace(NewWord,".*?\|","")
 
 SendWord(CurrentWord,NewWord,CorrectCase)
 
