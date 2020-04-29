@@ -59,6 +59,14 @@ class _AudioClipInfo:
         self.file: str = None
         self.mpy_clip: Any = None
         self.speed: float = 1
+        self.start: float = None
+        self.subclip: float = None
+
+
+class _AudioTrack:
+    def __init__(self):
+        self.clips = []
+        self.vol_keypoints = []
 
 
 class _AnimationInfo:
@@ -69,7 +77,6 @@ class _AnimationInfo:
         self.url_params = {}
 
 
-_audio_clips = []
 cur_markers = None
 
 _audio_track_cur_pos = 0
@@ -84,30 +91,40 @@ _video_tracks = OrderedDict(
 )
 _cur_vid_track_name = "vid"  # default video track
 
+_audio_tracks = OrderedDict([("bgm", _AudioTrack()), ("record", _AudioTrack())])
+_cur_audio_track_name = "record"
+
 _animations = defaultdict(_AnimationInfo)
 
 _subtitle = []
 _srt_lines = []
 _srt_index = 1
 
-_bgm_file = None
+_bgm_clip = None
 _bgm = {}
 _bgm_vol = []
+
+
+def _get_track(tracks, name):
+    print("  track=%s" % name)
+
+    if name not in tracks:
+        raise Exception("track is not defined: %s" % name)
+    track = tracks[name]
+
+    return track
 
 
 def _get_vid_track(name=None):
     if name is None:
         name = _cur_vid_track_name
+    return _get_track(_video_tracks, name)
 
-    print("  track=%s" % name)
 
-    if name not in _video_tracks:
-        track = []
-        _video_tracks[name] = track
-    else:
-        track = _video_tracks[name]
-
-    return track
+def _get_audio_track(name=None):
+    if name is None:
+        name = _cur_audio_track_name
+    return _get_track(_audio_tracks, name)
 
 
 def _get_markers(file):
@@ -275,50 +292,53 @@ def record(f, start="a", **kwargs):
 
 
 def audio_gap(duration):
-    _bgm_vol.append((_pos_dict["a"], "in"))
-
     _pos_dict["a"] += duration
     _pos_list.append(_pos_dict["a"])
 
-    _bgm_vol.append((_pos_dict["a"], "out"))
+
+def vol(vol, duration=0.25, track=None, start=None):
+    start = _get_pos(start)
+
+    print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, start, duration))
+    _get_audio_track(track).vol_keypoints.append((start, vol, duration))
 
 
-def bgm_vol(vol, duration=0.25):
-    print("bgm:", (_pos_list[-1], vol, duration))
-    _bgm_vol.append((_pos_list[-1], vol, duration))
+def bgm_vol(v, **kwawgs):
+    vol(v, track="bgm", **kwawgs)
 
 
-def bgm_file(file):
-    global _bgm_file
-    _bgm_file = file
+def _add_audio_clip(file, track=None, start=None, subclip=None, duration=None):
+    clips = _get_audio_track(track).clips
 
+    start = _get_pos(start)
 
-def audio(f, start=None, duration=None):
-    global cur_markers
-
-    _pos_dict["as"] = _get_pos(start)
+    _pos_dict["as"] = start
     _pos_list.append(_pos_dict["as"])
 
+    clip_info = _AudioClipInfo()
+
+    if not os.path.exists(file):
+        raise Exception("Please make sure `%s` exists." % file)
+    clip_info.file = file
+
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
-    audio_clip = AudioFileClip(f, buffersize=400000)
+    clip_info.mpy_clip = AudioFileClip(file, buffersize=400000)
 
-    # if start is not None:
-    #     audio_clip = audio_clip.subclip(start)
-
-    audio_clip = audio_clip.set_start(_pos_dict["as"])
-
-    if duration is not None:
-        audio_clip = audio_clip.set_duration(duration)
-
-    _audio_clips.append(audio_clip)
+    clip_info.duration = duration
+    clip_info.subclip = subclip
+    clip_info.start = start
 
     # Forward audio track pos
-    _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + audio_clip.duration
+    _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + clip_info.mpy_clip.duration
 
-    # Get markers
-    cur_markers = _get_markers(f)
-    if cur_markers:
-        print(cur_markers)
+    clips.append(clip_info)
+
+    return clip_info
+
+
+def audio(f, **kwargs):
+    global cur_markers
+    _add_audio_clip(f, **kwargs)
 
 
 def pos(p):
@@ -394,7 +414,7 @@ def _create_mpy_clip(
 
     else:
         clip = VideoFileClip(file)
-    
+
     if duration is not None:
         clip = clip.set_duration(duration)
 
@@ -416,8 +436,8 @@ def _create_mpy_clip(
     if pos is not None:
         # (x, y) marks the center location of the of the clip instead of the top
         # left corner.
-        if pos == 'center':
-            clip = clip.set_position(('center', 'center'))
+        if pos == "center":
+            clip = clip.set_position(("center", "center"))
         elif isinstance(pos[0], (int, float)):
             half_size = [x // 2 for x in clip.size]
             clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
@@ -459,7 +479,12 @@ def _add_clip(
 
     if file is not None:
         clip_info.mpy_clip = _create_mpy_clip(
-            file=file, clip_operations=clip_operations, speed=speed, pos=pos, duration=duration, **kwargs
+            file=file,
+            clip_operations=clip_operations,
+            speed=speed,
+            pos=pos,
+            duration=duration,
+            **kwargs
         )
 
         # Advance the pos
@@ -575,6 +600,8 @@ def _update_clip_duration(track):
 
 
 def _export_video(resolution=(1920, 1080), fps=FPS):
+    audio_clips = []
+
     # Update clip duration for each track
     for track in _video_tracks.values():
         _update_clip_duration(track)
@@ -584,13 +611,22 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
         for clip_info in track:
             if clip_info.text_overlay is not None:
                 mkdir("tmp/text_overlay")
-                overlay_file = "tmp/text_overlay/%s.png" % slugify(clip_info.text_overlay)
+                overlay_file = "tmp/text_overlay/%s.png" % slugify(
+                    clip_info.text_overlay
+                )
                 if not os.path.exists(overlay_file):
                     generate_slide(
-                        clip_info.text_overlay, template_file="source.html", out_file=overlay_file
+                        clip_info.text_overlay,
+                        template_file="source.html",
+                        out_file=overlay_file,
                     )
                 assert clip_info.duration is not None
-                _add_clip(overlay_file, start=clip_info.start, duration=clip_info.duration, track='overlay')
+                _add_clip(
+                    overlay_file,
+                    start=clip_info.start,
+                    duration=clip_info.duration,
+                    track="overlay",
+                )
 
     # Animation
     if 1:
@@ -645,7 +681,7 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                     ).set_duration(
                         min(clip_info.duration, clip_info.mpy_clip.audio.duration)
                     )
-                    _audio_clips.append(audio_clip)
+                    audio_clips.append(audio_clip)
                     clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
 
                 # Use duration to extend / hold the last frame instead of creating new clips.
@@ -672,19 +708,45 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
                         vfx.fadeout, FADEOUT_DURATION
                     )
 
-    _create_bgm()
-
     video_clips = []
     for _, track in _video_tracks.items():
         for clip_info in track:
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
 
+    if len(video_clips) == 0:
+        raise Exception("no video clips??")
     final_clip = CompositeVideoClip(video_clips, size=resolution)
 
-    if final_clip.audio:
-        _audio_clips.append(final_clip.audio)
+    # Deal with audio clips
+    for _, track in _audio_tracks.items():
+        clips = []
+        for clip_info in track.clips:
+            clip = clip_info.mpy_clip
 
-    final_clip = final_clip.set_audio(CompositeAudioClip(_audio_clips))
+            if clip_info.subclip is not None:
+                clip = clip.subclip(clip_info.subclip)
+
+            if clip_info.start is not None:
+                clip = clip.set_start(clip_info.start)
+
+            if clip_info.duration is not None:
+                clip = clip.set_duration(clip_info.duration)
+
+            clips.append(clip)
+
+        if len(clips) > 0:
+            clip = CompositeAudioClip(clips)
+            if len(track.vol_keypoints) > 0:
+                clip = _adjust_mpy_audio_clip_volume(clip, track.vol_keypoints)
+                print(track.vol_keypoints)
+
+            audio_clips.append(clip)
+
+    if final_clip.audio:
+        audio_clips.append(final_clip.audio)
+
+    if len(audio_clips) > 0:
+        final_clip = final_clip.set_audio(CompositeAudioClip(audio_clips))
 
     # final_clip.show(10.5, interactive=True)
     # final_clip.preview(fps=10, audio=False)
@@ -696,12 +758,12 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
     open_with("out.mp4", program_id=1)
 
 
-def _adjust_mpy_audio_clip_volume(clip, vol):
+def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
     xp = []
     fp = []
     cur_vol = 0
 
-    for i, (start, vol, duration) in enumerate(vol):
+    for i, (start, vol, duration) in enumerate(vol_keypoints):
         if isinstance(vol, (int, float)):
             xp += [start, start + duration]
             fp += [cur_vol, vol]
@@ -716,21 +778,6 @@ def _adjust_mpy_audio_clip_volume(clip, vol):
         return factor * gf(t)
 
     return clip.fl(volume_adjust)
-
-
-def _create_bgm():
-    if _bgm_file is None:
-        return
-
-    if not os.path.exists(_bgm_file):
-        raise Exception("Please make sure `%s` exists.")
-
-    # .subclip(13.8, 60)
-    clip = AudioFileClip(_bgm_file).set_duration(60)
-
-    clip = _adjust_mpy_audio_clip_volume(clip, [(0, VOLUME_DIM, 0.5)] + _bgm_vol)
-
-    _audio_clips.append(clip)
 
 
 def _export_srt():
