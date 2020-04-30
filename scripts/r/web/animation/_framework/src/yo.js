@@ -2033,6 +2033,7 @@ async function addAsync(
     const material = new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.DoubleSide,
+      transparent: true,
     });
 
     const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
