@@ -409,7 +409,7 @@ function generateLinearGradientTexture() {
 import LineGenerator from "./objects/LineGenerator";
 import getRandomFloat from "./utils/getRandomFloat";
 import getRandomItem from "./utils/getRandomItem";
-import { Vector3 } from "three";
+import { Vector3, Material } from "three";
 function createAnimatedLines() {
   /**
    * * *******************
@@ -1386,6 +1386,7 @@ function createTriangleOutline({ color = "0xffffff" } = {}) {
   return triangleStroke;
 }
 
+// TODO: Deprecated.
 function addExplosionAnimation(
   objectGroup,
   { ease = "expo.out", duration = 1.5 } = {}
@@ -1454,10 +1455,41 @@ function createExplosionAnimation(
     const rotation = rotationMin + rng() * (rotationMax - rotationMin);
     tl.fromTo(child.rotation, { z: 0 }, { z: rotation }, delay);
 
-    const targetScale = child.scale.clone().multiplyScalar((rng() * 0.5 + 0.5));
+    const targetScale = child.scale.clone().multiplyScalar(rng() * 0.5 + 0.5);
     tl.fromTo(
       child.scale,
       { x: 0.001, y: 0.001, z: 0.001 },
+      { x: targetScale.x, y: targetScale.y, z: targetScale.z },
+      delay
+    );
+
+    delay += stagger;
+  });
+
+  return tl;
+}
+
+function createGroupFlyInAnimation(
+  objectGroup,
+  {
+    ease = "expo.out",
+    duration = 1,
+    stagger = 0,
+  } = {}
+) {
+  const tl = gsap.timeline({
+    defaults: {
+      duration,
+      ease: ease,
+    },
+  });
+
+  let delay = 0;
+  objectGroup.children.forEach((child) => {
+    
+    const targetScale = child.scale.clone().multiplyScalar(0.01);
+    tl.from(
+      child.scale,
       { x: targetScale.x, y: targetScale.y, z: targetScale.z },
       delay
     );
@@ -2095,7 +2127,7 @@ async function addAsync(
       size: 0.5,
       color,
       size: fontSize,
-      letterSpacing
+      letterSpacing,
     });
   }
 
@@ -2375,6 +2407,7 @@ export default {
   createTriangleVertices,
   pause,
   createExplosionAnimation,
+  createGroupFlyInAnimation,
   setSeed,
   getGridLayoutPositions,
   random,
