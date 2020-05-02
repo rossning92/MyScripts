@@ -32,11 +32,11 @@ change_settings({"FFMPEG_BINARY": "ffmpeg"})
 PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
 
 FPS = int("{{_FPS}}")
-FADEOUT_DURATION = 0.25
+FADEOUT_DURATION = 0.2
 PARSE_LINE_BEGIN = int("{{_PARSE_LINE_BEGIN}}") if "{{_PARSE_LINE_BEGIN}}" else None
 PARSE_LINE_END = int("{{_PARSE_LINE_END}}") if "{{_PARSE_LINE_END}}" else None
 
-ADD_SUBTITLE = False
+ADD_SUBTITLE = bool("{{_ADD_SUBTITLE}}")
 
 VOLUME_DIM = 0.15
 
@@ -91,7 +91,9 @@ _video_tracks = OrderedDict(
 )
 _cur_vid_track_name = "vid"  # default video track
 
-_audio_tracks = OrderedDict([("bgm", _AudioTrack()), ("record", _AudioTrack())])
+_audio_tracks = OrderedDict(
+    [("bgm", _AudioTrack()), ("record", _AudioTrack()), ("sfx", _AudioTrack())]
+)
 _cur_audio_track_name = "record"
 
 _animations = defaultdict(_AnimationInfo)
@@ -173,6 +175,7 @@ def _get_pos(p):
         match = re.match(r"^([a-z_]+)" + PATT_FLOAT + "$", p)
         if match:
             tag = match.group(1)
+            assert match.group(2) != ""
             delta = float(match.group(2))
             return _pos_dict[tag] + delta
 
@@ -197,9 +200,9 @@ def _format_time(sec):
 def _generate_text_image(
     text,
     font="Source-Han-Sans-CN",
-    font_size=44,
+    font_size=50,
     color="#ffffff",
-    stroke_color="#555555",
+    stroke_color="#000000",
 ):
     # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
@@ -248,12 +251,12 @@ def record(f, start="a", **kwargs):
     print(f)
     audio("tmp/record/" + f + ".final.wav", start=start, **kwargs)
 
-    END_CHAR = ["。", "，", "！"]
+    END_CHAR = ["。", "，", "！", "、"]
 
     global _srt_index
-    assert len(_subtitle) > 0
 
     if ADD_SUBTITLE:
+        assert len(_subtitle) > 0
         start = end = _get_pos("as")
         subtitle = _subtitle[-1].strip()
 
@@ -333,7 +336,9 @@ def _add_audio_clip(
 
     if move_playhead:
         # Forward audio track pos
-        _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + clip_info.mpy_clip.duration
+        _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + (
+            clip_info.mpy_clip.duration if duration is None else duration
+        )
 
     clips.append(clip_info)
 
@@ -345,6 +350,24 @@ def audio(f, **kwargs):
     _add_audio_clip(f, **kwargs)
 
 
+def audio_end(*, start=None, track=None):
+    start = _get_pos(start)
+
+    clips = _get_audio_track(track).clips
+
+    duration = start - clips[-1].start
+    assert duration > 0
+    clips[-1].duration = duration
+
+
+def bgm(f, move_playhead=False, **kwargs):
+    audio(f, track="bgm", move_playhead=move_playhead, **kwargs)
+
+
+def sfx(f, **kwargs):
+    audio(f, track="sfx", move_playhead=False, **kwargs)
+
+
 def pos(p):
     _set_pos(p)
 
@@ -354,11 +377,15 @@ def image(f, pos="center", **kwargs):
     _add_clip(f, pos=pos, **kwargs)
 
 
-def text(text, track="sub", **kwargs):
+def text(text, track="sub", font_size=100, pos="center", **kwargs):
     temp_file = _generate_text_image(
-        text, font="zcool-gdh", font_size=100, color="#ffd700", stroke_color="#6900ff",
+        text,
+        font="zcool-gdh",
+        font_size=font_size,
+        color="#ffd700",
+        stroke_color="#6900ff",
     )
-    _add_clip(temp_file, track=track, pos=("center", 750), **kwargs)
+    _add_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
 def _add_fadeout(track):
@@ -581,8 +608,15 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", **kwargs):
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl"):
-    image("images/highlight.png", pos=pos, track=track, fadein=True, fadeout=True)
+def hl(pos, track="hl", **kwargs):
+    image(
+        "images/highlight.png",
+        pos=pos,
+        track=track,
+        fadein=True,
+        fadeout=True,
+        **kwargs
+    )
 
 
 def track(name="vid"):

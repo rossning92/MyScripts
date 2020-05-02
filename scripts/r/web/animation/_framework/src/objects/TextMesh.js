@@ -11,7 +11,7 @@ import {
   Geometry,
   Vector3,
   Vector2,
-  BufferGeometry
+  BufferGeometry,
 } from "three";
 
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
@@ -43,6 +43,8 @@ function loadFont(fontName = null, letter = null) {
       font = fontLoader.parse(require("../fonts/latinModernMathRegular"));
     } else if (fontName == "code") {
       font = fontLoader.parse(require("../fonts/sourceCodeProRegular"));
+    } else if (fontName == "gdh") {
+      font = fontLoader.parse(require("../fonts/gdhRegular"));
     } else {
       throw `Invalid font name: ${fontName}`;
     }
@@ -58,7 +60,7 @@ function createLitMaterial() {
     color: 0x00ff00,
     transparent: false,
     opacity: 1,
-    wireframe: false
+    wireframe: false,
   });
   return material;
 }
@@ -72,7 +74,7 @@ export default class TextMesh extends Object3D {
     opacity = 1,
     wireframe = false,
     font = null,
-    material = null
+    material = null,
   } = {}) {
     super();
 
@@ -110,7 +112,7 @@ export default class TextMesh extends Object3D {
       let lineColor = new Color(color);
       let matDark = new MeshBasicMaterial({
         color: color,
-        side: DoubleSide
+        side: DoubleSide,
       });
 
       shapes.push.apply(shapes, holeShapes);
@@ -123,9 +125,9 @@ export default class TextMesh extends Object3D {
         let points = shape.getPoints();
 
         if (0) {
-          let points3D = points.map(p => new Vector3(p.x, p.y, 0));
+          let points3D = points.map((p) => new Vector3(p.x, p.y, 0));
           let geometry = new Geometry();
-          points3D.forEach(p => geometry.vertices.push(p));
+          points3D.forEach((p) => geometry.vertices.push(p));
           geometry.translate(xMid, 0, 0);
 
           let line = new MeshLine();
@@ -149,7 +151,7 @@ export default class TextMesh extends Object3D {
             color: "#000000",
             // TODO: don't hard code value here.
             resolution: new Vector2(1920, 1080),
-            sizeAttenuation: !false // Line width constant regardless distance
+            sizeAttenuation: !false, // Line width constant regardless distance
           });
 
           // new BufferGeometry().fromGeometry(line.geometry);
@@ -161,9 +163,9 @@ export default class TextMesh extends Object3D {
             const vals = { svg: 0 };
             gsap.to(vals, 5, {
               svg: 1,
-              onUpdate: x => {
+              onUpdate: (x) => {
                 material.uniforms.dashOffset.value = vals.svg;
-              }
+              },
             });
           }
 
@@ -190,7 +192,7 @@ export default class TextMesh extends Object3D {
       const letterSize = [];
       let minY = 999,
         maxY = -999;
-      letters.forEach(letter => {
+      letters.forEach((letter) => {
         if (letter === " ") {
           totalWidth += this.size * 0.5;
         } else {
@@ -201,7 +203,7 @@ export default class TextMesh extends Object3D {
           );
           geom.computeBoundingBox();
           const mat = new MeshBasicMaterial({
-            color: this.color
+            color: this.color,
             // wireframe,
           });
           const mesh = new Mesh(geom, mat);
@@ -253,7 +255,7 @@ export default class TextMesh extends Object3D {
             bevelThickness: 1,
             bevelSize: 1,
             bevelOffset: 0,
-            bevelSegments: 1
+            bevelSegments: 1,
           };
 
           geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
@@ -265,7 +267,7 @@ export default class TextMesh extends Object3D {
         // Separate material for animation
         const material = new MeshBasicMaterial({
           color: this.color,
-          transparent: true
+          transparent: true,
         });
 
         const mesh = new Mesh(geometry, material);

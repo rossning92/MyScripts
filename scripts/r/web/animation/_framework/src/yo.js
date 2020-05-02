@@ -242,7 +242,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     // motionPass.renderToScreen = true;
   }
 
-  if (0) {
+  if (1) {
     // Bloom pass
     let bloomPass = new UnrealBloomPass(
       new THREE.Vector2(WIDTH, HEIGHT),
@@ -1387,42 +1387,42 @@ function createTriangleOutline({ color = "0xffffff" } = {}) {
 }
 
 // TODO: Deprecated.
-function addExplosionAnimation(
-  objectGroup,
-  { ease = "expo.out", duration = 1.5 } = {}
-) {
-  const tl = gsap.timeline({
-    defaults: {
-      duration,
-      ease: ease,
-    },
-  });
+// function addExplosionAnimation(
+//   objectGroup,
+//   { ease = "expo.out", duration = 1.5 } = {}
+// ) {
+//   const tl = gsap.timeline({
+//     defaults: {
+//       duration,
+//       ease: ease,
+//     },
+//   });
 
-  tl.from(
-    objectGroup.children.map((x) => x.position),
-    {
-      x: 0,
-      y: 0,
-    },
-    0
-  );
-  tl.from(
-    objectGroup.children.map((x) => x.scale),
-    {
-      x: 0.001,
-      y: 0.001,
-    },
-    0
-  );
-  tl.from(
-    objectGroup.children.map((x) => x.rotation),
-    {
-      z: 0,
-    },
-    0
-  );
-  return tl;
-}
+//   tl.from(
+//     objectGroup.children.map((x) => x.position),
+//     {
+//       x: 0,
+//       y: 0,
+//     },
+//     0
+//   );
+//   tl.from(
+//     objectGroup.children.map((x) => x.scale),
+//     {
+//       x: 0.001,
+//       y: 0.001,
+//     },
+//     0
+//   );
+//   tl.from(
+//     objectGroup.children.map((x) => x.rotation),
+//     {
+//       z: 0,
+//     },
+//     0
+//   );
+//   return tl;
+// }
 
 function createExplosionAnimation(
   objectGroup,
@@ -1444,11 +1444,12 @@ function createExplosionAnimation(
   });
 
   let delay = 0;
-  objectGroup.children.forEach((child) => {
+  objectGroup.children.forEach((child, i) => {
     const r = radiusMin + (radiusMax - radiusMin) * rng();
     const theta = rng() * 2 * Math.PI;
     const x = r * Math.cos(theta);
     const y = r * Math.sin(theta);
+    child.position.z += 0.01 * i;  // z-fighting
 
     tl.fromTo(child.position, { x: 0, y: 0 }, { x, y }, delay);
 
@@ -1469,13 +1470,13 @@ function createExplosionAnimation(
   return tl;
 }
 
+function addExplosionAnimation(group, options, aniPos = "<") {
+  yo.tl.add(mainTimeline.createExplosionAnimation(group, options), aniPos);
+}
+
 function createGroupFlyInAnimation(
   objectGroup,
-  {
-    ease = "expo.out",
-    duration = 1,
-    stagger = 0,
-  } = {}
+  { ease = "expo.out", duration = 1, stagger = 0 } = {}
 ) {
   const tl = gsap.timeline({
     defaults: {
@@ -1486,7 +1487,6 @@ function createGroupFlyInAnimation(
 
   let delay = 0;
   objectGroup.children.forEach((child) => {
-    
     const targetScale = child.scale.clone().multiplyScalar(0.01);
     tl.from(
       child.scale,
@@ -1700,6 +1700,8 @@ function newScene(initFunction) {
       }
     }
 
+    setupScene({ width: WIDTH, height: HEIGHT });
+
     await initFunction();
 
     _addMarkerToTimeline();
@@ -1748,8 +1750,6 @@ function newScene(initFunction) {
       gridHelper.rotation.x = Math.PI / 2;
       scene.add(gridHelper);
     }
-
-    setupScene({ width: WIDTH, height: HEIGHT });
 
     // Start animation
     requestAnimationFrame(animate);
@@ -2057,7 +2057,7 @@ async function addAsync(
 
   let mesh;
   if (obj.endsWith(".svg")) {
-    mesh = await loadSVG(obj, { isCCW: ccw });
+    mesh = await loadSVG(obj, { isCCW: ccw, color });
     scene.add(mesh);
   } else if (obj.endsWith(".png")) {
     const texture = await loadTexture(obj);

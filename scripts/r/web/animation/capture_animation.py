@@ -63,6 +63,6 @@ def capture_js_animation(url, out_file=None, output_video_file=True):
 if __name__ == "__main__":
     cd(expanduser("~/Downloads"))
 
-    out_file = os.path.splitext("{{HTML_FILE}}")[0] + ".mp4"
+    out_file = os.path.splitext("{{_NAME}}")[0] + ".mp4"
     print('output: %s' % out_file)
-    capture_js_animation("http://localhost:8080/" + "{{HTML_FILE}}", out_file=out_file)
+    capture_js_animation("http://localhost:8080/" + "{{_NAME}}.html", out_file=out_file)
