@@ -572,7 +572,7 @@ def _clip_extend_prev_clip(track=None, start=None):
         )
 
 
-def empty(track=None, start=None):
+def video_end(track=None, start=None):
     print("empty: track=%s" % track)
     track = _get_vid_track(track)
     _clip_extend_prev_clip(track, start=start)
