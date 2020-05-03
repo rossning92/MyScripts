@@ -354,6 +354,9 @@ def audio_end(*, start=None, track=None):
     start = _get_pos(start)
 
     clips = _get_audio_track(track).clips
+    if len(clips) == 0:
+        print2("WARNING: no previous audio clip to set the end point.")
+        return
 
     duration = start - clips[-1].start
     assert duration > 0
