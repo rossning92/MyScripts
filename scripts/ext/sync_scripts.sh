@@ -21,7 +21,7 @@ if [[ ! -z "$status" ]]; then
     
     if [[ -z $input ]]; then
         git add -A
-        git commit -m 'message'
+        git commit -m 'commit with no message.'
     fi
 fi
 
