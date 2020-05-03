@@ -787,10 +787,15 @@ def _export_video(resolution=(1920, 1080), fps=FPS):
         audio_clips.append(final_clip.audio)
 
     if len(audio_clips) > 0:
-        final_clip = final_clip.set_audio(CompositeAudioClip(audio_clips))
+        final_audio_clip = CompositeAudioClip(audio_clips)
+
+        # XXX: Workaround for exception: 'CompositeAudioClip' object has no attribute 'fps'.
+        # See: https://github.com/Zulko/moviepy/issues/863
+        # final_audio_clip.fps = 44100
+
+        final_clip = final_clip.set_audio(final_audio_clip)
 
     # final_clip.show(10.5, interactive=True)
-    # final_clip.preview(fps=10, audio=False)
 
     final_clip.write_videofile(
         "out.mp4", codec="libx264", threads=8, fps=fps, ffmpeg_params=["-crf", "19"]
