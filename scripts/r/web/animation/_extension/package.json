@@ -1,8 +1,6 @@
 {
-  "name": "decorator-sample",
-  "description": "Sample for the decorator API",
+  "name": "my-animation-extension",
   "version": "0.0.1",
-  "publisher": "vscode-samples",
   "license": "MIT",
   "engines": {
     "vscode": "^1.32.0"
