@@ -1,0 +1,57 @@
+{
+  "name": "decorator-sample",
+  "description": "Sample for the decorator API",
+  "version": "0.0.1",
+  "publisher": "vscode-samples",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.32.0"
+  },
+  "repository": {
+    "url": "https://github.com/Microsoft/vscode-extension-samples"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "colors": [
+      {
+        "id": "myextension.largeNumberBackground",
+        "description": "Background decoration color for large numbers",
+        "defaults": {
+          "dark": "#FF000055",
+          "light": "#FF000055",
+          "highContrast": "#FF000055"
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "yo.runSelection",
+        "title": "Run Selection"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "yo.runSelection",
+        "key": "alt+enter"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "lint": "tslint -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.0",
+    "tslint": "^5.19.0",
+    "typescript": "^3.8.3",
+    "@types/vscode": "^1.32.0"
+  }
+}

@@ -9,6 +9,8 @@ from _shutil import *
 from collections import defaultdict
 from collections import OrderedDict
 import numpy as np
+import argparse
+
 
 if 1:
     import os
@@ -27,18 +29,11 @@ if 1:  # Import moviepy
     from moviepy.video.tools.subtitles import SubtitlesClip
 
 
-change_settings({"FFMPEG_BINARY": "ffmpeg"})
-
-PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
-
-FPS = int("{{_FPS}}")
-FADEOUT_DURATION = 0.2
-PARSE_LINE_BEGIN = int("{{_PARSE_LINE_BEGIN}}") if "{{_PARSE_LINE_BEGIN}}" else None
-PARSE_LINE_END = int("{{_PARSE_LINE_END}}") if "{{_PARSE_LINE_END}}" else None
-
-ADD_SUBTITLE = bool("{{_ADD_SUBTITLE}}")
-
+ADD_SUBTITLE = False
 VOLUME_DIM = 0.15
+FADEOUT_DURATION = 0.2
+
+change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
 
 class _VideoClipInfo:
@@ -640,7 +635,7 @@ def _update_clip_duration(track):
         track[-1].duration = track[-1].mpy_clip.duration
 
 
-def _export_video(resolution=(1920, 1080), fps=FPS):
+def _export_video(resolution=(1920, 1080), fps=25):
     audio_clips = []
 
     # Update clip duration for each track
@@ -831,35 +826,70 @@ def _export_srt():
         f.write("\n".join(_srt_lines))
 
 
+def _parse_text(text, **kwargs):
+    # Remove all comments
+    text = re.sub("<!--[\d\D]*?-->", "", text)
+
+    lines = text.splitlines()
+    for line in lines:
+        line = line.strip()
+        if line.startswith("! "):
+            python_code = line.lstrip("! ")
+            exec(python_code, globals())
+
+        elif line.startswith("#"):
+            pass
+
+        elif line != "":
+            print2(line, color="green")
+            _subtitle.append(line)
+
+            # _export_srt()
+        # sys.exit(0)
+
+    _export_video(**kwargs)
+
+
 if __name__ == "__main__":
-    cd(PROJ_DIR)
+    print(os.getcwd())
 
-    with open("index.md", "r", encoding="utf-8") as f:
-        lines = f.readlines()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stdin", default=False, action="store_true")
+    parser.add_argument("-i", "--input", type=str, default=None)
+    args = parser.parse_args()
 
-        if PARSE_LINE_BEGIN is not None:
-            lines = lines[(PARSE_LINE_BEGIN - 1) : (PARSE_LINE_END)]
+    try:
+        if args.stdin:
+            s = sys.stdin.read()
+            _parse_text(s)
 
-        # Remove all comments
-        s = "\n".join(lines)
-        s = re.sub("<!--[\d\D]*?-->", "", s)
-        lines = s.splitlines()
+        elif args.input:
+            _parse_text(args.input)
 
-        for line in lines:
-            line = line.strip()
-            if line.startswith("! "):
-                python_code = line.lstrip("! ")
-                exec(python_code, globals())
+        else:
+            PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
 
-            elif line.startswith("#"):
-                pass
+            FPS = int("{{_FPS}}") if "{{_FPS}}" else 25
+            PARSE_LINE_RANGE = (
+                [int(x) for x in "{{_PARSE_LINE_RANGE}}".split()]
+                if "{{_PARSE_LINE_RANGE}}"
+                else None
+            )
+            ADD_SUBTITLE = bool("{{_ADD_SUBTITLE}}")
 
-            elif line != "":
-                print2(line, color="green")
-                _subtitle.append(line)
+            cd(PROJ_DIR)
 
-    # _export_srt()
+            with open("index.md", "r", encoding="utf-8") as f:
+                s = f.read()
 
-    # sys.exit(0)
+                # Filter lines
+                lines = s.splitlines()
+                if PARSE_LINE_RANGE is not None:
+                    lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
+                s = "\n".join(lines)
 
-    _export_video()
+                _parse_text(s)
+
+    except Exception as e:
+        print(e)
+        input("press enter key to exit...")
