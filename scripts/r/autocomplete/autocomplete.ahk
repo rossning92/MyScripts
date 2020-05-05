@@ -8,6 +8,7 @@
 
 SetBatchLines, -1
 
+LastModifiedTime := ""
 WordListFile := A_ScriptDir . "\WordList.txt" ;path of the wordlist file
 
 MaxResults := 20 ;maximum number of results to display
@@ -58,6 +59,9 @@ Gosub, ResetWord
 SetHotkeys(NormalKeyList,NumberKeyList,OtherKeyList,ResetKeyList,TriggerKeyList)
 
 OnExit, ExitSub
+
+SetTimer, TimerFunc, 1000
+
 Return
 
 ExitSub:
@@ -451,4 +455,22 @@ URLDecode(Encoded)
     }
     StringReplace, Encoded, Encoded, `%25, `%, All
     Return, Encoded
+}
+
+TimerFunc()
+{
+    global WordListFile
+    global LastModifiedTime
+
+    FileGetTime, modifiedTime, %WordListFile%, M
+
+    if (LastModifiedTime != "")
+    {
+        if (LastModifiedTime != modifiedTime)
+        {
+            Reload
+        }
+    }
+
+    LastModifiedTime := modifiedTime
 }
