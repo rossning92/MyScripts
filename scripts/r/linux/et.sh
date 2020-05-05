@@ -9,4 +9,4 @@ if ! [ -x "$(command -v expect)" ]; then
 fi
 
 # et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080
-expect -c 'set timeout -1; spawn et -x -r 15037:5037 -t 1234:22 {{SSH_USER}}@{{SSH_HOST}}:8080; expect "password:"; send "{{SSH_PWD}}\r"; interact;'
+expect -c 'set timeout -1; spawn et -x -r 5037:5037 -t 1234:22 {{SSH_USER}}@{{SSH_HOST}}:8080; expect "password:"; send "{{SSH_PWD}}\r"; interact;'
