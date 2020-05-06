@@ -242,9 +242,9 @@ def _add_subtitle_clip(start, end, text):
     _video_tracks["sub"].append(ci)
 
 
-def record(f, start="a", **kwargs):
+def record(f, t="a", **kwargs):
     print(f)
-    audio("tmp/record/" + f + ".final.wav", start=start, **kwargs)
+    audio("tmp/record/" + f + ".final.wav", t=t, **kwargs)
 
     END_CHAR = ["。", "，", "！", "、"]
 
@@ -294,11 +294,11 @@ def audio_gap(duration):
     _pos_list.append(_pos_dict["a"])
 
 
-def vol(vol, duration=0.25, track=None, start=None):
-    start = _get_pos(start)
+def vol(vol, duration=0.25, track=None, t=None):
+    t = _get_pos(t)
 
-    print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, start, duration))
-    _get_audio_track(track).vol_keypoints.append((start, vol, duration))
+    print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
+    _get_audio_track(track).vol_keypoints.append((t, vol, duration))
 
 
 def bgm_vol(v, **kwawgs):
@@ -306,14 +306,14 @@ def bgm_vol(v, **kwawgs):
 
 
 def _add_audio_clip(
-    file, track=None, start=None, subclip=None, duration=None, move_playhead=True
+    file, track=None, t=None, subclip=None, duration=None, move_playhead=True
 ):
     clips = _get_audio_track(track).clips
 
-    start = _get_pos(start)
+    t = _get_pos(t)
 
     if move_playhead:
-        _pos_dict["as"] = start
+        _pos_dict["as"] = t
         _pos_list.append(_pos_dict["as"])
 
     clip_info = _AudioClipInfo()
@@ -327,7 +327,7 @@ def _add_audio_clip(
 
     clip_info.duration = duration
     clip_info.subclip = subclip
-    clip_info.start = start
+    clip_info.start = t
 
     if move_playhead:
         # Forward audio track pos
@@ -345,15 +345,15 @@ def audio(f, **kwargs):
     _add_audio_clip(f, **kwargs)
 
 
-def audio_end(*, start=None, track=None):
-    start = _get_pos(start)
+def audio_end(*, t=None, track=None):
+    t = _get_pos(t)
 
     clips = _get_audio_track(track).clips
     if len(clips) == 0:
         print2("WARNING: no previous audio clip to set the end point.")
         return
 
-    duration = start - clips[-1].start
+    duration = t - clips[-1].start
     assert duration > 0
     clips[-1].duration = duration
 
@@ -484,7 +484,7 @@ def _add_clip(
     track=None,
     fadein=False,
     fadeout=False,
-    start=None,
+    t=None,
     duration=None,
     text_overlay=None,
     **kwargs
@@ -493,12 +493,12 @@ def _add_clip(
 
     # _update_prev_clip(track)
 
-    cur_pos = _get_pos(start)
-    _pos_dict["vs"] = cur_pos
+    t = _get_pos(t)
+    _pos_dict["vs"] = t
 
     clip_info = _VideoClipInfo()
     clip_info.file = file
-    clip_info.start = cur_pos
+    clip_info.start = t
     clip_info.pos = pos
     clip_info.speed = speed
     clip_info.fadein = fadein
@@ -517,7 +517,7 @@ def _add_clip(
         )
 
         # Advance the pos
-        end = cur_pos + clip_info.mpy_clip.duration
+        end = t + clip_info.mpy_clip.duration
         _pos_list.append(end)
         _pos_dict["ve"] = end
 
@@ -556,24 +556,24 @@ def title_anim(h1, h2, **kwargs):
     )
 
 
-def _clip_extend_prev_clip(track=None, start=None):
+def _clip_extend_prev_clip(track=None, t=None):
     if len(track) == 0:
         return
 
     clip_info = track[-1]
 
     if clip_info.duration is None:
-        clip_info.duration = _get_pos(start) - clip_info.start
+        clip_info.duration = _get_pos(t) - clip_info.start
         print(
             "previous clip (start, duration) updated: (%.2f, %.2f)"
             % (clip_info.start, clip_info.duration)
         )
 
 
-def video_end(track=None, start=None):
+def video_end(track=None, t=None):
     print("empty: track=%s" % track)
     track = _get_vid_track(track)
-    _clip_extend_prev_clip(track, start=start)
+    _clip_extend_prev_clip(track, t=t)
 
 
 def video(f, **kwargs):
@@ -659,7 +659,7 @@ def _export_video(resolution=(1920, 1080), fps=25):
                 assert clip_info.duration is not None
                 _add_clip(
                     overlay_file,
-                    start=clip_info.start,
+                    t=clip_info.start,
                     duration=clip_info.duration,
                     track="overlay",
                 )
