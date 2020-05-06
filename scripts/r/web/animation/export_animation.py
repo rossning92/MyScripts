@@ -72,8 +72,6 @@ class _AnimationInfo:
         self.url_params = {}
 
 
-cur_markers = None
-
 _audio_track_cur_pos = 0
 _pos_list = [0]
 _pos_dict = {"a": 0}
@@ -82,7 +80,7 @@ _pos_dict = {"a": 0}
 _add_fadeout_to_last_clip = False
 
 _video_tracks = OrderedDict(
-    [("vid", []), ("hl", []), ("hl2", []), ("md", []), ("overlay", []), ("sub", [])]
+    [("vid", []), ("hl", []), ("hl2", []), ("md", []), ("overlay", []), ("text", [])]
 )
 _cur_vid_track_name = "vid"  # default video track
 
@@ -239,7 +237,7 @@ def _add_subtitle_clip(start, end, text):
     )
     ci.start = start
     ci.duration = end - start
-    _video_tracks["sub"].append(ci)
+    _video_tracks["text"].append(ci)
 
 
 def record(f, t="a", **kwargs):
@@ -341,7 +339,6 @@ def _add_audio_clip(
 
 
 def audio(f, **kwargs):
-    global cur_markers
     _add_audio_clip(f, **kwargs)
 
 
@@ -375,7 +372,7 @@ def image(f, pos="center", **kwargs):
     _add_clip(f, pos=pos, **kwargs)
 
 
-def text(text, track="sub", font_size=100, pos="center", **kwargs):
+def text(text, track="text", font_size=100, pos="center", **kwargs):
     temp_file = _generate_text_image(
         text,
         font="zcool-gdh",
