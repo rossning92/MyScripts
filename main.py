@@ -13,12 +13,12 @@ import sys
 import os
 
 if 1:
-    sys.path.append(os.path.abspath('./libs'))
+    sys.path.append(os.path.abspath("./libs"))
     from _gui import *
     from _script import *
     from _shutil import *
 
-GLOBAL_HOTKEY = gettempdir() + '/GlobalHotkey.ahk'
+GLOBAL_HOTKEY = gettempdir() + "/GlobalHotkey.ahk"
 
 
 SCRIPT_REFRESH_INTERVAL = 2000
@@ -26,19 +26,21 @@ SCRIPT_REFRESH_INTERVAL = 2000
 
 def timeit2(func):
     import timeit
+
     print(timeit.timeit(func, number=1))
 
 
 def add_keyboard_hooks(keyboard_hooks):
-    if sys.platform != 'linux':
+    if sys.platform != "linux":
         import keyboard
+
         keyboard.unhook_all()
         for hotkey, func in keyboard_hooks.items():
             keyboard.add_hotkey(hotkey, func)
 
 
 def get_user_data_folder():
-    folder = os.path.join('data', platform.node())
+    folder = os.path.join("data", platform.node())
     os.makedirs(folder, exist_ok=True)
     return folder
 
@@ -80,18 +82,18 @@ def should_update(folder_list):
 
 def insert_line_if_not_exist(line, file, after_line=None):
     lines = None
-    with open(expanduser(file), 'r') as f:
+    with open(expanduser(file), "r") as f:
         lines = f.readlines()
 
         success = False
         for i in range(len(lines)):
             if lines[i].strip() == line.strip():
-                print('`%s` is already in `%s`: line %d' % (line, file, i + 1))
+                print("`%s` is already in `%s`: line %d" % (line, file, i + 1))
                 return False
 
         for i in range(len(lines)):
             if lines[i].strip() == after_line.strip():
-                lines.insert(i + 1, line + '\n')
+                lines.insert(i + 1, line + "\n")
                 success = True
                 break
 
@@ -102,31 +104,31 @@ def insert_line_if_not_exist(line, file, after_line=None):
     if lines is None:
         return False
 
-    with open(expanduser(file), 'w') as f:
+    with open(expanduser(file), "w") as f:
         f.writelines(lines)
         return True
 
 
-def select_item(items, prompt='PLEASE INPUT:'):
+def select_item(items, prompt="PLEASE INPUT:"):
     matched_items = []
     while True:
         print()
         for i in matched_items:
-            print('[%d] %s' % (i + 1, items[i]))
+            print("[%d] %s" % (i + 1, items[i]))
 
         # Get user input
-        print2(prompt, color='green')
-        user_input = input('> ')
+        print2(prompt, color="green")
+        user_input = input("> ")
         user_input = user_input.lower()
 
-        if user_input == '':
+        if user_input == "":
             return matched_items[0]
         elif user_input.isdigit():
             return int(user_input) - 1
         else:
             matched_items = []
 
-            user_input_tokens = user_input.split(' ')
+            user_input_tokens = user_input.split(" ")
             for i in range(len(items)):
                 menu_name = items[i].name.lower()
 
@@ -158,7 +160,7 @@ class EditVariableWidget(QWidget):
                     self.variables = json.load(f)
                     self.variables_mtime = mtime
         except Exception:
-            print('Failed to load variable file.')
+            print("Failed to load variable file.")
 
     def update_items(self, varList=[], hide_prefix=None):
         self.load_variables()
@@ -192,7 +194,7 @@ class EditVariableWidget(QWidget):
 
             # Label text
             if hide_prefix:
-                label_text = re.sub('^' + re.escape(hide_prefix), '', variable)
+                label_text = re.sub("^" + re.escape(hide_prefix), "", variable)
             else:
                 label_text = variable
             self.layout().addRow(QLabel(label_text), comboBox)
@@ -216,7 +218,7 @@ class EditVariableWidget(QWidget):
                 pass
             var_values.append(text)
 
-        with open(get_variable_file(), 'w') as f:
+        with open(get_variable_file(), "w") as f:
             json.dump(self.variables, f, indent=4)
 
     def get_variables(self):
@@ -233,13 +235,13 @@ class MainWindow(QWidget):
         self.script_by_path = {}
         self.mtime_script_access_time = 0
 
-        self.ui = uic.loadUi('MainDialog.ui', self)
+        self.ui = uic.loadUi("MainDialog.ui", self)
 
         # self.ui.listWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
         QCoreApplication.instance().installEventFilter(self)
 
-        self.setWindowTitle('MyScripts - GUI')
+        self.setWindowTitle("MyScripts - GUI")
 
         self.editVariableWidget = EditVariableWidget()
         self.ui.layout().addWidget(self.editVariableWidget)
@@ -259,17 +261,20 @@ class MainWindow(QWidget):
 
         # Register hotkey
         for item in self.script_items:
-            hotkey = item.meta['hotkey']
+            hotkey = item.meta["hotkey"]
             if hotkey is not None:
-                print('Hotkey: %s: %s' % (hotkey, item.name))
-                QShortcut(QKeySequence(hotkey), self,
-                          lambda item=item: self.execute_script(item))
+                print("Hotkey: %s: %s" % (hotkey, item.name))
+                QShortcut(
+                    QKeySequence(hotkey),
+                    self,
+                    lambda item=item: self.execute_script(item),
+                )
 
         self.register_global_hotkeys()
 
     def execute_script(self, script, control_down=False):
         # Set selected file and current folder to as environment variables
-        if script.meta['autoRun'] is False:
+        if script.meta["autoRun"] is False:
             args = update_env_var_explorer()
         else:
             args = None
@@ -281,26 +286,28 @@ class MainWindow(QWidget):
         #     restart_instance = True
 
         new_window = True if control_down else None
-        script.execute(new_window=new_window, args=args,
-                       restart_instance=restart_instance)
+        script.execute(
+            new_window=new_window, args=args, restart_instance=restart_instance
+        )
 
     def register_global_hotkeys(self):
-        if platform.system() == 'Windows':
-            htk_definitions = ''
-            with open(GLOBAL_HOTKEY, 'w') as f:
+        if platform.system() == "Windows":
+            htk_definitions = ""
+            with open(GLOBAL_HOTKEY, "w") as f:
                 for item in self.script_items:
-                    hotkey = item.meta['globalHotkey']
+                    hotkey = item.meta["globalHotkey"]
                     if hotkey is not None:
-                        print('Global Hotkey: %s: %s' % (hotkey, item.name))
-                        hotkey = hotkey.replace('Ctrl+', '^')
-                        hotkey = hotkey.replace('Alt+', '!')
-                        hotkey = hotkey.replace('Shift+', '+')
-                        hotkey = hotkey.replace('Win+', '#')
+                        print("Global Hotkey: %s: %s" % (hotkey, item.name))
+                        hotkey = hotkey.replace("Ctrl+", "^")
+                        hotkey = hotkey.replace("Alt+", "!")
+                        hotkey = hotkey.replace("Shift+", "+")
+                        hotkey = hotkey.replace("Win+", "#")
 
                         htk_definitions += f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
 
                 # TODO: use templates
-                f.write('''#NoTrayIcon
+                f.write(
+                    """#NoTrayIcon
 #SingleInstance, Force
 #include libs/ahk/ExplorerHelper.ahk
 ; SetTitleMatchMode, 2
@@ -317,26 +324,31 @@ RunScript(name, path)
     else
     {
         WriteExplorerInfoToJson()
-        Run cmd /c ''' + sys.executable + ' "' + os.path.realpath('bin/run_script.py') + '''" --new_window=None --console_title "%name%" --restart_instance 0 "%path%" || pause
+        Run cmd /c """
+                    + sys.executable
+                    + ' "'
+                    + os.path.realpath("bin/run_script.py")
+                    + """" --new_window=None --console_title "%name%" --restart_instance 0 "%path%" || pause
     }
 }
 
 #If not WinActive("ahk_exe vncviewer.exe")
-''' + htk_definitions + '''
+"""
+                    + htk_definitions
+                    + """
 #If
-''')
+"""
+                )
 
-            subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY],
-                             close_fds=True, shell=True)
+            subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
 
         else:
             keyboard_hooks = {}
             for item in self.script_items:
-                hotkey = item.meta['globalHotkey']
+                hotkey = item.meta["globalHotkey"]
                 if hotkey is not None:
-                    print('Global Hotkey: %s: %s' % (hotkey, item.name))
-                    keyboard_hooks[hotkey] = lambda item=item: self.execute_script(
-                        item)
+                    print("Global Hotkey: %s: %s" % (hotkey, item.name))
+                    keyboard_hooks[hotkey] = lambda item=item: self.execute_script(item)
             add_keyboard_hooks(keyboard_hooks)
 
     def timerEvent(self, e):
@@ -363,7 +375,7 @@ RunScript(name, path)
         self.matched_items = []
 
         # Initialize matched items
-        if user_input is None or user_input == '':
+        if user_input is None or user_input == "":
             self.matched_items = list(range(len(self.script_items)))
         elif user_input.isdigit():
             idx = int(user_input) - 1
@@ -371,7 +383,7 @@ RunScript(name, path)
                 self.matched_items.append(idx)
         else:
             user_input = user_input.lower()
-            user_input_tokens = user_input.split(' ')
+            user_input_tokens = user_input.split(" ")
             for i in range(len(self.script_items)):
                 menu_name = self.script_items[i].name.lower()
                 matched = all([(x in menu_name) for x in user_input_tokens])
@@ -379,8 +391,7 @@ RunScript(name, path)
                     self.matched_items.append(i)
 
         for i in self.matched_items:
-            self.ui.listWidget.addItem(
-                '%3d. %s' % (i + 1, self.script_items[i]))
+            self.ui.listWidget.addItem("%3d. %s" % (i + 1, self.script_items[i]))
 
         self.editVariableWidget.update_items()  # Clear all widget
         if len(self.matched_items) > 0:
@@ -388,12 +399,17 @@ RunScript(name, path)
             first_matched_script = self.script_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
             script_abs_path = os.path.abspath(first_matched_script.script_path)
-            os.environ['ROSS_SELECTED_SCRIPT_PATH'] = script_abs_path
+            os.environ["ROSS_SELECTED_SCRIPT_PATH"] = script_abs_path
 
             # Display variable list
-            if 'get_variables' in dir(first_matched_script) and first_matched_script.meta['template']:
-                self.editVariableWidget.update_items(first_matched_script.get_variable_names(),
-                                                     hide_prefix=first_matched_script.get_public_variable_prefix())
+            if (
+                "get_variables" in dir(first_matched_script)
+                and first_matched_script.meta["template"]
+            ):
+                self.editVariableWidget.update_items(
+                    first_matched_script.get_variable_names(),
+                    hide_prefix=first_matched_script.get_public_variable_prefix(),
+                )
 
                 # Save current selected menu items
                 # with open('data/SelectedScript.txt', 'w') as f:
@@ -427,14 +443,16 @@ RunScript(name, path)
         self.ui.inputBox.setText(script.name)
 
         # HACK: reset title
-        if platform.system() == 'Windows':
-            ctypes.windll.kernel32.SetConsoleTitleA(b'MyScripts - Console')
+        if platform.system() == "Windows":
+            ctypes.windll.kernel32.SetConsoleTitleA(b"MyScripts - Console")
 
     def sort_scripts(self, script_access_time={}):
         def key(script):
             if script.script_path in script_access_time:
-                return max(script_access_time[script.script_path],
-                           os.path.getmtime(script.script_path))
+                return max(
+                    script_access_time[script.script_path],
+                    os.path.getmtime(script.script_path),
+                )
             else:
                 return os.path.getmtime(script.script_path)
 
@@ -447,8 +465,7 @@ RunScript(name, path)
             idx = self.matched_items[0]
 
             if e.key() == Qt.Key_Enter or e.key() == Qt.Key_Return:
-                self.execute_selected_script(
-                    e.modifiers() == Qt.ControlModifier)
+                self.execute_selected_script(e.modifiers() == Qt.ControlModifier)
                 return True
 
             if e.modifiers() == Qt.ControlModifier:
@@ -468,30 +485,35 @@ RunScript(name, path)
                     self.ui.inputBox.selectAll()
                     return True
 
-                elif e.key() == Qt.Key_E:  # TODO: HACK: QShortcut `Ctrl+E` does not work on Ubuntu
-                    run_script('scripts/ext/edit_script')
+                elif (
+                    e.key() == Qt.Key_E
+                ):  # TODO: HACK: QShortcut `Ctrl+E` does not work on Ubuntu
+                    run_script("scripts/ext/edit_script")
                     return True
 
         return super().eventFilter(obj, e)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if is_instance_running():
-        print('An instance is running. Exited.')
+        print("An instance is running. Exited.")
         sys.exit(0)
 
     t_start = time.time()
 
     refresh_env()
 
-    bin_dir = os.path.join(os.getcwd(), 'bin')
-    os.environ['PATH'] = os.pathsep.join([
-        bin_dir,
-        os.path.abspath('./tmp/bin')  # exe proxy
-    ]) + os.pathsep + os.environ['PATH']
-    os.environ['PYTHONPATH'] = os.path.abspath('./libs')
+    setup_nodejs(install=False)
 
-    print('Python executable: %s' % sys.executable)
+    bin_dir = os.path.join(os.getcwd(), "bin")
+    os.environ["PATH"] = (
+        os.pathsep.join([bin_dir, os.path.abspath("./tmp/bin")])  # exe proxy
+        + os.pathsep
+        + os.environ["PATH"]
+    )
+    os.environ["PYTHONPATH"] = os.path.abspath("./libs")
+
+    print("Python executable: %s" % sys.executable)
 
     app = QApplication(sys.argv)
     main_window = MainWindow()
@@ -499,7 +521,6 @@ if __name__ == '__main__':
 
     t_end = time.time()
     # time_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print2('Script is loaded. Takes %.2f secs.' %
-           (t_end - t_start), color='green')
+    print2("Script is loaded. Takes %.2f secs." % (t_end - t_start), color="green")
 
     sys.exit(app.exec_())
