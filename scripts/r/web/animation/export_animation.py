@@ -887,11 +887,15 @@ def _parse_text(text, **kwargs):
     lines = text.splitlines()
     for line in lines:
         line = line.strip()
+
         if line.startswith("! "):
             python_code = line.lstrip("! ")
             exec(python_code, globals())
 
         elif line.startswith("#"):
+            pass
+
+        elif line == "---":
             pass
 
         elif line != "":
