@@ -1,3 +1,13 @@
+if 1:
+    import sys
+    import traceback
+
+    def excepthook(exc_type, exc_value, exc_traceback):
+        traceback.print_tb(exc_traceback)
+        input("press enter key...")
+
+    sys.excepthook = excepthook
+
 from typing import Any, NamedTuple
 import webbrowser
 import urllib
@@ -10,7 +20,7 @@ from collections import defaultdict
 from collections import OrderedDict
 import numpy as np
 import argparse
-
+import hashlib
 
 if 1:
     import os
@@ -32,6 +42,7 @@ if 1:  # Import moviepy
 ADD_SUBTITLE = False
 VOLUME_DIM = 0.15
 FADEOUT_DURATION = 0.2
+TTS = True
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -241,8 +252,11 @@ def _add_subtitle_clip(start, end, text):
 
 
 def record(f, t="a", **kwargs):
-    print(f)
-    audio("tmp/record/" + f + ".final.wav", t=t, **kwargs)
+    if not os.path.exists(f):
+        f = "tmp/record/" + f + ".final.wav"
+        assert os.path.exists(f)
+
+    audio(f, t=t, **kwargs)
 
     END_CHAR = ["。", "，", "！", "、"]
 
@@ -747,7 +761,8 @@ def _export_video(resolution=(1920, 1080), fps=25):
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
 
     if len(video_clips) == 0:
-        raise Exception("no video clips??")
+        video_clips.append(ColorClip((200, 200), color=(0, 1, 0)).set_duration(2))
+        # raise Exception("no video clips??")
     final_clip = CompositeVideoClip(video_clips, size=resolution)
 
     # Deal with audio clips
@@ -823,9 +838,51 @@ def _export_srt():
         f.write("\n".join(_srt_lines))
 
 
+def _parse_script(text):
+    _subtitle.append(text)
+
+    if TTS:
+        hash_object = hashlib.md5(text.encode())
+        hash = hash_object.hexdigest()[0:16]
+
+        mkdir("tmp/tts")
+        file_name = "tmp/tts/%s.wav" % hash
+        if not exists(file_name):
+            print("generate tts file: %s" % file_name)
+            tmp_file = "tmp/tts/%s_gtts.mp3" % hash
+            call2(
+                [
+                    "gtts-cli",
+                    text,
+                    "--lang",
+                    "zh-cn",
+                    "--nocheck",
+                    "--output",
+                    tmp_file,
+                ]
+            )
+            call2(
+                [
+                    "ffmpeg",
+                    "-hide_banner",
+                    "-loglevel",
+                    "panic",
+                    "-i",
+                    tmp_file,
+                    "-filter:a",
+                    "atempo=1.75",
+                    "-vn",
+                    file_name,
+                ]
+            )
+            os.remove(tmp_file)
+
+        record(file_name)
+
+
 def _parse_text(text, **kwargs):
     # Remove all comments
-    text = re.sub("<!--[\d\D]*?-->", "", text)
+    text = re.sub(r"<!--[\d\D]*?-->", "", text)
 
     lines = text.splitlines()
     for line in lines:
@@ -839,7 +896,7 @@ def _parse_text(text, **kwargs):
 
         elif line != "":
             print2(line, color="green")
-            _subtitle.append(line)
+            _parse_script(line)
 
             # _export_srt()
         # sys.exit(0)
@@ -855,38 +912,33 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", type=str, default=None)
     args = parser.parse_args()
 
-    try:
-        if args.stdin:
-            s = sys.stdin.read()
+    if args.stdin:
+        s = sys.stdin.read()
+        _parse_text(s)
+
+    elif args.input:
+        _parse_text(args.input)
+
+    else:
+        PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
+
+        FPS = int("{{_FPS}}") if "{{_FPS}}" else 25
+        PARSE_LINE_RANGE = (
+            [int(x) for x in "{{_PARSE_LINE_RANGE}}".split()]
+            if "{{_PARSE_LINE_RANGE}}"
+            else None
+        )
+        ADD_SUBTITLE = bool("{{_ADD_SUBTITLE}}")
+
+        cd(PROJ_DIR)
+
+        with open("index.md", "r", encoding="utf-8") as f:
+            s = f.read()
+
+            # Filter lines
+            lines = s.splitlines()
+            if PARSE_LINE_RANGE is not None:
+                lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
+            s = "\n".join(lines)
+
             _parse_text(s)
-
-        elif args.input:
-            _parse_text(args.input)
-
-        else:
-            PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
-
-            FPS = int("{{_FPS}}") if "{{_FPS}}" else 25
-            PARSE_LINE_RANGE = (
-                [int(x) for x in "{{_PARSE_LINE_RANGE}}".split()]
-                if "{{_PARSE_LINE_RANGE}}"
-                else None
-            )
-            ADD_SUBTITLE = bool("{{_ADD_SUBTITLE}}")
-
-            cd(PROJ_DIR)
-
-            with open("index.md", "r", encoding="utf-8") as f:
-                s = f.read()
-
-                # Filter lines
-                lines = s.splitlines()
-                if PARSE_LINE_RANGE is not None:
-                    lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
-                s = "\n".join(lines)
-
-                _parse_text(s)
-
-    except Exception as e:
-        print(e)
-        input("press enter key to exit...")
