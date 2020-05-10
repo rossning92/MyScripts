@@ -4,6 +4,7 @@ if 1:
 
     def excepthook(exc_type, exc_value, exc_traceback):
         traceback.print_tb(exc_traceback)
+        print(exc_value)
         input("press enter key...")
 
     sys.excepthook = excepthook
@@ -884,23 +885,39 @@ def _parse_text(text, **kwargs):
     # Remove all comments
     text = re.sub(r"<!--[\d\D]*?-->", "", text)
 
-    lines = text.splitlines()
-    for line in lines:
-        line = line.strip()
+    p = 0  # Current position
+    p1 = 0  # End position of a tokenized word
+    while p1 >= 0:
+        if text[p : p + 2] == "! ":
+            p1 = text.find("\n", p)
+            python_code = text[p + 2: p1].strip()
+            p = p1 + 1
 
-        if line.startswith("! "):
-            python_code = line.lstrip("! ")
             exec(python_code, globals())
 
-        elif line.startswith("#"):
-            pass
+        elif text[p : p + 2] == "{{":
+            p1 = text.find("}}", p)
+            python_code = text[p + 2: p1].strip()
+            p = p1 + 1
 
-        elif line == "---":
-            pass
+            exec(python_code, globals())
 
-        elif line != "":
-            print2(line, color="green")
-            _parse_script(line)
+        elif text[p : p + 1] == "#":
+            p1 = text.find("\n", p)
+            p = p1 + 1
+
+        elif text[p : p + 3] == "---":
+            p1 = text.find("\n", p)
+            p = p1 + 1
+
+        else:
+            p1 = text.find("\n", p)
+            line = text[p:p1].strip()
+            p = p1 + 1
+
+            if line != "":
+                print2(line, color="green")
+                _parse_script(line)
 
             # _export_srt()
         # sys.exit(0)
@@ -936,7 +953,7 @@ if __name__ == "__main__":
 
         cd(PROJ_DIR)
 
-        with open("index.md", "r", encoding="utf-8") as f:
+        with open("index.md", "r", encoding="utf-8", newline="\n") as f:
             s = f.read()
 
             # Filter lines
