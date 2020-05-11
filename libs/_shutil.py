@@ -198,8 +198,8 @@ def cd(path, expand=True, mkdir=False):
     os.chdir(path)
 
 
-def call2(args, check=True):
-    subprocess.run(args, shell=True, check=check)
+def call2(args, check=True, shell=True, **kwargs):
+    subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
 def call_echo(args, shell=True):

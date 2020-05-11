@@ -16,6 +16,7 @@ import re
 import capture_animation
 from slide.generate import generate_slide
 from r.open_with.open_with_ import open_with
+from r.web.carbon_gen_code_image import gen_code_image
 from _shutil import *
 from collections import defaultdict
 from collections import OrderedDict
@@ -110,6 +111,12 @@ _srt_index = 1
 _bgm_clip = None
 _bgm = {}
 _bgm_vol = []
+
+
+def _get_hash(text):
+    hash_object = hashlib.md5(text.encode())
+    hash = hash_object.hexdigest()[0:16]
+    return hash
 
 
 def _get_track(tracks, name):
@@ -398,6 +405,14 @@ def text(text, track="text", font_size=100, pos="center", **kwargs):
     _add_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
+def code(s, track="vid", **kwargs):
+    mkdir("tmp/codeimg")
+    tmp_file = "tmp/codeimg/%s.png" % _get_hash(s)
+    if not os.path.exists(tmp_file):
+        gen_code_image(s, out_file=tmp_file)
+    _add_clip(tmp_file, track=track, **kwargs)
+
+
 def _add_fadeout(track):
     global _add_fadeout_to_last_clip
 
@@ -583,7 +598,7 @@ def _clip_extend_prev_clip(track=None, t=None):
 
 
 def video_end(track=None, t=None):
-    print("empty: track=%s" % track)
+    print("video_end: track=%s" % track)
     track = _get_vid_track(track)
     _clip_extend_prev_clip(track, t=t)
 
@@ -618,13 +633,14 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", **kwargs):
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", **kwargs):
+def hl(pos, track="hl", duration=4, **kwargs):
     image(
-        "images/highlight.png",
+        "../image/highlight.png",
         pos=pos,
         track=track,
         fadein=True,
         fadeout=True,
+        duration=duration,
         **kwargs
     )
 
@@ -843,12 +859,11 @@ def _parse_script(text):
     _subtitle.append(text)
 
     if TTS:
-        hash_object = hashlib.md5(text.encode())
-        hash = hash_object.hexdigest()[0:16]
+        hash = _get_hash(text)
 
         mkdir("tmp/tts")
         file_name = "tmp/tts/%s.wav" % hash
-        if not exists(file_name):
+        if not os.path.exists(file_name):
             print("generate tts file: %s" % file_name)
             tmp_file = "tmp/tts/%s_gtts.mp3" % hash
             call2(
@@ -890,15 +905,15 @@ def _parse_text(text, **kwargs):
     while p1 >= 0:
         if text[p : p + 2] == "! ":
             p1 = text.find("\n", p)
-            python_code = text[p + 2: p1].strip()
+            python_code = text[p + 2 : p1 + 1].strip()
             p = p1 + 1
 
             exec(python_code, globals())
 
         elif text[p : p + 2] == "{{":
             p1 = text.find("}}", p)
-            python_code = text[p + 2: p1].strip()
-            p = p1 + 1
+            python_code = text[p + 2 : p1].strip()
+            p = p1 + 2
 
             exec(python_code, globals())
 
