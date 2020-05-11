@@ -43,6 +43,8 @@ def generate_slide(
         html_file_name = write_temp_file(html, ".html")
 
     async def screenshotDOMElement(*, page, selector, path):
+        PADDING = 4
+
         rect = await page.evaluate(
             """selector => {
             const element = document.querySelector(selector);
@@ -56,10 +58,10 @@ def generate_slide(
             {
                 "path": path,
                 "clip": {
-                    "x": rect["left"],
-                    "y": rect["top"],
-                    "width": rect["width"],
-                    "height": rect["height"],
+                    "x": rect["left"] - PADDING,
+                    "y": rect["top"] - PADDING,
+                    "width": rect["width"] + PADDING * 2,
+                    "height": rect["height"] + PADDING * 2,
                 },
             }
         )

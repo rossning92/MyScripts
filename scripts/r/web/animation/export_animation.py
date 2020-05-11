@@ -897,38 +897,41 @@ def _parse_script(text):
 
 
 def _parse_text(text, **kwargs):
+    def find_next(text, needle, p):
+        pos = text.find(needle, p)
+        if pos < 0:
+            pos = len(text)
+        return pos
+
     # Remove all comments
     text = re.sub(r"<!--[\d\D]*?-->", "", text)
 
     p = 0  # Current position
-    p1 = 0  # End position of a tokenized word
-    while p1 >= 0:
+    while p < len(text):
         if text[p : p + 2] == "! ":
-            p1 = text.find("\n", p)
-            python_code = text[p + 2 : p1 + 1].strip()
-            p = p1 + 1
+            end = find_next(text, "\n", p)
+            python_code = text[p + 2 : end].strip()
+            p = end + 1
 
             exec(python_code, globals())
 
         elif text[p : p + 2] == "{{":
-            p1 = text.find("}}", p)
-            python_code = text[p + 2 : p1].strip()
-            p = p1 + 2
+            end = find_next(text, "}}", p)
+            python_code = text[p + 2 : end].strip()
+            p = end + 2
 
             exec(python_code, globals())
 
         elif text[p : p + 1] == "#":
-            p1 = text.find("\n", p)
-            p = p1 + 1
+            p = find_next(text, "\n", p) + 1
 
         elif text[p : p + 3] == "---":
-            p1 = text.find("\n", p)
-            p = p1 + 1
+            p = find_next(text, "\n", p) + 1
 
         else:
-            p1 = text.find("\n", p)
-            line = text[p:p1].strip()
-            p = p1 + 1
+            end = find_next(text, "\n", p)
+            line = text[p:end].strip()
+            p = end + 1
 
             if line != "":
                 print2(line, color="green")
