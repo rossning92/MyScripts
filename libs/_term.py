@@ -7,9 +7,9 @@ import signal
 from _shutil import *
 
 
-class InputWindow():
+class InputWindow:
     def __init__(self, text_changed=None):
-        self.cur_input = ''
+        self.cur_input = ""
         self.caret_pos = 0
         self.text_changed = text_changed
         self.last_update = 0
@@ -53,28 +53,33 @@ class InputWindow():
                 self.caret_pos = max(self.caret_pos - 1, 0)
             elif ch == curses.KEY_RIGHT:
                 self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
-            elif ch == ord('\b'):
-                self.cur_input = self.cur_input[:self.caret_pos -
-                                                1] + self.cur_input[self.caret_pos:]
+            elif ch == ord("\b"):
+                self.cur_input = (
+                    self.cur_input[: self.caret_pos - 1]
+                    + self.cur_input[self.caret_pos :]
+                )
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
-            elif ch == curses.ascii.ctrl(ord('c')):
+            elif ch == curses.ascii.ctrl(ord("c")):
                 if len(self.input_stack) > 0:
                     self.cur_input = self.input_stack.pop()
                     self.caret_pos = len(self.cur_input)
                 else:
-                    self.cur_input = ''
+                    self.cur_input = ""
                     self.caret_pos = 0
                     text_changed = True
-            elif ch == curses.ascii.ctrl(ord('w')):
+            elif ch == curses.ascii.ctrl(ord("w")):
                 self.exit = True
-            elif ch == ord('\n'):
+            elif ch == ord("\n"):
                 self.input_stack.append(self.cur_input)
-                self.cur_input = ''
+                self.cur_input = ""
                 self.caret_pos = 0
             else:
-                self.cur_input = self.cur_input[:self.caret_pos] + \
-                    chr(ch) + self.cur_input[self.caret_pos:]
+                self.cur_input = (
+                    self.cur_input[: self.caret_pos]
+                    + chr(ch)
+                    + self.cur_input[self.caret_pos :]
+                )
                 self.caret_pos += 1
                 text_changed = True
 
@@ -112,30 +117,29 @@ class FilterWindow(InputWindow):
         self.lines = []
         self.ps = check_output2(args)
         for l in self.ps.readlines():
-            self.lines.append(l.decode(errors='replace'))
+            self.lines.append(l.decode(errors="replace"))
             self.update()
 
     def update_screen2(self):
         height, width = self.stdscr.getmaxyx()
 
-        filtered_lines = [
-            l for l in self.lines if self.cur_input.lower() in l.lower()]
+        filtered_lines = [l for l in self.lines if self.cur_input.lower() in l.lower()]
         n = min(len(filtered_lines), height - 1)
         for i in range(n):
             self.stdscr.addstr(i, 0, filtered_lines[i])
 
 
-class ListWidget():
+class ListWidget:
     def __init__(self, lines=None, text_changed=None, item_selected=None):
         self.lines = lines
         self.cur_page = 0
-        self.cur_input = ''
+        self.cur_input = ""
         self._cond = threading.Condition()
         self.text_changed = text_changed
         self.item_selected = item_selected
         self.last_update = 0
         self.select_mode = False
-        self.search_str = ''
+        self.search_str = ""
         self.caret_pos = 0
         self.block_mode = False
         self.exit = False
@@ -166,31 +170,31 @@ class ListWidget():
 
             idx = start_line + i
             line = self.lines[idx]
-            line = '%d ' % idx + line
-            line = line.replace('\t', '    ')  # replace tab with space
+            line = "%d " % idx + line
+            line = line.replace("\t", "    ")  # replace tab with space
             line = line[:width]
 
             # Highlight cur_input
             if self.cur_input:
-                match = [(m.start(), m.end())
-                         for m in re.finditer(self.cur_input, line)]
+                match = [
+                    (m.start(), m.end()) for m in re.finditer(self.cur_input, line)
+                ]
             else:
                 match = None
 
             try:  # HACK: ignore exception on addstr
                 if match:
-                    substr = line[0: match[0][0]]
+                    substr = line[0 : match[0][0]]
                     stdscr.addstr(i, 0, substr)
 
                     for j in range(len(match)):
                         stdscr.attron(curses.color_pair(3))
-                        substr = line[match[j][0]: match[j][1]]
+                        substr = line[match[j][0] : match[j][1]]
                         stdscr.addstr(i, match[j][0], substr)
                         stdscr.attroff(curses.color_pair(3))
 
-                        end_pos = match[j +
-                                        1][0] if j < len(match) - 1 else None
-                        substr = line[match[j][1]: end_pos]
+                        end_pos = match[j + 1][0] if j < len(match) - 1 else None
+                        substr = line[match[j][1] : end_pos]
                         stdscr.addstr(i, match[j][1], substr)
                 else:
                     stdscr.addstr(i, 0, line)
@@ -198,8 +202,7 @@ class ListWidget():
                 pass
 
         # stdscr.attron(curses.color_pair(2))
-        status_text = '[%d / %d]' % (self.cur_page,
-                                     len(self.lines) // (height - 1))
+        status_text = "[%d / %d]" % (self.cur_page, len(self.lines) // (height - 1))
         stdscr.insstr(height - 1, width - len(status_text), status_text)
 
         stdscr.addstr(height - 1, 0, self.cur_input)
@@ -231,34 +234,39 @@ class ListWidget():
                 self.caret_pos = max(self.caret_pos - 1, 0)
             elif ch == curses.KEY_RIGHT:
                 self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
-            elif ch == ord('\b'):
-                self.cur_input = self.cur_input[:self.caret_pos -
-                                                1] + self.cur_input[self.caret_pos:]
+            elif ch == ord("\b"):
+                self.cur_input = (
+                    self.cur_input[: self.caret_pos - 1]
+                    + self.cur_input[self.caret_pos :]
+                )
                 self.caret_pos = max(self.caret_pos - 1, 0)
                 text_changed = True
-            elif ch == curses.ascii.ctrl(ord('c')):  # Ctrl + C
+            elif ch == curses.ascii.ctrl(ord("c")):  # Ctrl + C
                 if self.select_mode:
                     self.cur_input = self.search_str
                     self.caret_pos = len(self.search_str)
                     self.select_mode = False
                 else:
-                    self.cur_input = ''
+                    self.cur_input = ""
                     self.caret_pos = 0
                     self.select_mode = False
                     text_changed = True
-            elif ch == curses.ascii.ctrl(ord('w')):
+            elif ch == curses.ascii.ctrl(ord("w")):
                 self.exit = True
-            elif ch == ord('\n'):
+            elif ch == ord("\n"):
                 if not self.select_mode:
                     self.select_mode = True
                     self.search_str = self.cur_input
-                    self.cur_input = ''
+                    self.cur_input = ""
                     self.caret_pos = 0
                 elif self.select_mode and self.item_selected:
                     self.item_selected(int(self.cur_input))
             else:
-                self.cur_input = self.cur_input[:self.caret_pos] + \
-                    chr(ch) + self.cur_input[self.caret_pos:]
+                self.cur_input = (
+                    self.cur_input[: self.caret_pos]
+                    + chr(ch)
+                    + self.cur_input[self.caret_pos :]
+                )
                 self.caret_pos += 1
                 text_changed = True
 
@@ -290,36 +298,57 @@ class ListWidget():
 
 
 def activate_cur_terminal():
-    if sys.platform == 'win32':
+    if sys.platform == "win32":
         import ctypes
+
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         ctypes.windll.user32.SetForegroundWindow(hwnd)
 
 
 def _prompt(options, message=None):
     for i, option in enumerate(options):
-        print('%d. %s' % (i+1, option))
+        print("%d. %s" % (i + 1, option))
 
     if message is None:
-        message = 'selections'
+        message = "selections"
 
-    print('%s (indices, sep by space)> ' % message, flush=True, end='')
+    print("%s (indices, sep by space)> " % message, flush=True, end="")
     selections = input()
-    selections = [int(x)-1 for x in selections.split()]
+    selections = [int(x) - 1 for x in selections.split()]
     return selections
 
 
 def prompt_checkbox(options, message=None):
-    return _prompt(options=options,
-                   message=message)
+    return _prompt(options=options, message=message)
 
 
 def prompt_list(options, message=None):
-    selected = _prompt(options=options,
-                       message=message)
+    selected = _prompt(options=options, message=message)
     if len(selected) == 1:
         return selected[0]
     elif len(selected) == 0:
         return None
     else:
-        raise Exception('Please only select 1 item.')
+        raise Exception("Please only select 1 item.")
+
+
+def prompt_autocomplete(options, message=""):
+    from prompt_toolkit import prompt
+    from prompt_toolkit.completion import (
+        WordCompleter,
+        FuzzyCompleter,
+        Completer,
+        Completion,
+    )
+
+    class MyCustomCompleter(Completer):
+        def get_completions(self, document, complete_event):
+            for option in options:
+                yield Completion(option)
+
+    text = prompt(
+        "%s> " % message,
+        completer=FuzzyCompleter(MyCustomCompleter()),
+        complete_while_typing=True,
+    )
+    return text
