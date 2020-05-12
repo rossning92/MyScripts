@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="node_modules/codemirror/doc/docs.css" />
+<link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css" />
+<!-- <link rel="stylesheet" href="node_modules/codemirror/theme/monokai.css" /> -->
+<link rel="stylesheet" href="vscode-dark.css" />
+<script src="node_modules/codemirror/lib/codemirror.js"></script>
+<script src="node_modules/codemirror/mode/python/python.js"></script>
+<script src="node_modules/codemirror/addon/selection/active-line.js"></script>
+<script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
+<style>
+  body {
+    background-color: #adb7c1;
+    width: 1920px;
+    height: 1080px;
+    font-size: 40px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .page {
+    box-shadow: 0 0 0.22em 0 rgba(0, 0, 0, 0.3);
+    border-radius: 0.14em;
+    overflow: hidden;
+    line-height: 0;
+    width: 80%;
+    margin: 0 auto 0 auto;
+  }
+  .page .titlebar {
+    background-color: #202124;
+    border-top-left-radius: 0.14em;
+    border-top-right-radius: 0.14em;
+    padding: 0.8em;
+    box-sizing: border-box;
+  }
+  .page .titlebar .dot {
+    width: 0.6em;
+    height: 0.6em;
+    background-color: #ccc;
+    display: inline-block;
+    border-radius: 50%;
+  }
+  .page .titlebar .dot.close {
+    background-color: #ff6159;
+  }
+  .page .titlebar .dot.minimise {
+    background-color: #ffbf2f;
+  }
+  .page .titlebar .dot.maximise {
+    background-color: #29cf42;
+  }
+  .page .titlebar .dot + .dot {
+    margin-left: 0.2em;
+  }
+  .page .spacer {
+    height: 400px;
+  }
+  .styled-background {
+    background-color: #1e496c;
+    /* border-radius: 6px; */
+  }
+</style>
+
+<article>
+  <div class="page">
+    <div class="titlebar">
+      <div class="dot close"></div>
+      <div class="dot minimise"></div>
+      <div class="dot maximise"></div>
+    </div>
+    <form>
+      <textarea id="code" name="code">
+def fibonacci(n):
+    a = 0
+    b = 1
+    nums = []
+    for _ in range(n):
+        yield a
+        a, b = b, a + b
+    return nums
+    
+    
+for i in fibonacci(10):
+    print(i)
+</textarea
+      >
+    </form>
+  </div>
+
+  <script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+      mode: { name: "python", version: 3, singleLineStringErrors: false },
+      lineNumbers: true,
+      styleActiveLine: true,
+      matchBrackets: true,
+    });
+    editor.setOption("theme", "vscode-dark");
+    editor.markText(
+      { line: 6, ch: 1 },
+      { line: 6, ch: 5 },
+      { className: "styled-background" }
+    );
+  </script>
+</article>

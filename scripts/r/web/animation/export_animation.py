@@ -405,11 +405,11 @@ def text(text, track="text", font_size=100, pos="center", **kwargs):
     _add_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
-def code(s, track="vid", **kwargs):
+def code(s, track="vid", line_no=True, **kwargs):
     mkdir("tmp/codeimg")
     tmp_file = "tmp/codeimg/%s.png" % _get_hash(s)
     if not os.path.exists(tmp_file):
-        gen_code_image(s, out_file=tmp_file)
+        gen_code_image(s, out_file=tmp_file, line_no=line_no)
     _add_clip(tmp_file, track=track, **kwargs)
 
 
@@ -466,7 +466,7 @@ def _create_mpy_clip(
         clip = create_image_seq_clip(file)
 
     elif file.endswith(".png"):
-        clip = ImageClip(file).set_duration(4)
+        clip = ImageClip(file).set_duration(10)
 
     else:
         clip = VideoFileClip(file)
@@ -633,14 +633,13 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", **kwargs):
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", duration=4, **kwargs):
+def hl(pos, track="hl", **kwargs):
     image(
         "../image/highlight.png",
         pos=pos,
         track=track,
         fadein=True,
         fadeout=True,
-        duration=duration,
         **kwargs
     )
 

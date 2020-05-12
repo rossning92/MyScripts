@@ -12,3 +12,4 @@ build/
 .ipynb_checkpoints
 *.pyc
 /.vscode
+node_modules/

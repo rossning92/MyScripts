@@ -1,10 +1,9 @@
 from _gui import *
 from _script import *
 from _shutil import *
-from pyppeteer import launch
-import asyncio
 import markdown2
 import webbrowser
+from r.web.webscreenshot import webscreenshot
 
 SCALE = 1
 GEN_HTML = bool("{{GEN_HTML}}")
@@ -36,61 +35,13 @@ def generate_slide(
     html = template.render({"text": text, "palette": _palette})
 
     if gen_html:
-        html_file_name = out_file + ".html"
-        with open(html_file_name, "w", encoding="utf-8") as f:
+        html_file = out_file + ".html"
+        with open(html_file, "w", encoding="utf-8") as f:
             f.write(html)
     else:
-        html_file_name = write_temp_file(html, ".html")
+        html_file = write_temp_file(html, ".html")
 
-    async def screenshotDOMElement(*, page, selector, path):
-        PADDING = 4
-
-        rect = await page.evaluate(
-            """selector => {
-            const element = document.querySelector(selector);
-            const {x, y, width, height} = element.getBoundingClientRect();
-            return {left: x, top: y, width, height, id: element.id};
-        }""",
-            selector,
-        )
-
-        return await page.screenshot(
-            {
-                "path": path,
-                "clip": {
-                    "x": rect["left"] - PADDING,
-                    "y": rect["top"] - PADDING,
-                    "width": rect["width"] + PADDING * 2,
-                    "height": rect["height"] + PADDING * 2,
-                },
-            }
-        )
-
-    async def main():
-        browser = await launch(
-            headless=False,
-            executablePath=r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
-        )
-        page = await browser.newPage()
-
-        # await page.setViewport({
-        #     'width': int(im_size[0] / SCALE),
-        #     'height': int(im_size[1] / SCALE),
-        #     'deviceScaleFactor': SCALE,
-        # })
-
-        await page.goto("file://" + os.path.realpath(html_file_name).replace("\\", "/"))
-
-        screenshot_params = {"path": out_file, "omitBackground": True}
-        # await page.screenshot(screenshot_params)
-
-        # Screenshot DOM element only
-        element = await page.querySelector("body")
-        await element.screenshot(screenshot_params)
-
-        await browser.close()
-
-    asyncio.get_event_loop().run_until_complete(main())
+    webscreenshot(html_file=html_file, out_file=out_file)
 
     return out_file
 

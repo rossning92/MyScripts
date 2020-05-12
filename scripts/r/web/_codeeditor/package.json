@@ -1,0 +1,9 @@
+{
+  "name": "1234",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "codemirror": "^5.53.2"
+  }
+}

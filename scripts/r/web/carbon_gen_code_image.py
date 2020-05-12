@@ -4,7 +4,7 @@ IMG_SIZE = (1920, 1080)
 BORDER = 2
 
 
-def gen_code_image(code, out_file):
+def gen_code_image(code, out_file, line_no=True):
     with open(expanduser("~/.carbon-now.json"), "w") as f:
         json.dump(
             {
@@ -15,7 +15,7 @@ def gen_code_image(code, out_file):
                     "wc": True,  # Window controls
                     "fm": "Hack",
                     "fs": "24px",
-                    "ln": True,  # Line no
+                    "ln": line_no,  # Line no
                     "ds": True,  # Drop shadow
                     "dsyoff": "0px",
                     "dsblur": "10px",
