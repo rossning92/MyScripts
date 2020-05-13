@@ -1019,4 +1019,8 @@ def slugify(s):
     return slug.slugify(s)
 
 
+def get_script_root():
+    return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+
+
 env = os.environ

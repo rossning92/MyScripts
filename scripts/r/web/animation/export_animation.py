@@ -16,7 +16,6 @@ import re
 import capture_animation
 from slide.generate import generate_slide
 from r.open_with.open_with_ import open_with
-from r.web.carbon_gen_code_image import gen_code_image
 from _shutil import *
 from collections import defaultdict
 from collections import OrderedDict
@@ -405,12 +404,34 @@ def text(text, track="text", font_size=100, pos="center", **kwargs):
     _add_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
-def code(s, track="vid", line_no=True, **kwargs):
+def code_carbon(s, track="vid", line_no=True, **kwargs):
+    from r.web.carbon_gen_code_image import gen_code_image
+
     mkdir("tmp/codeimg")
     tmp_file = "tmp/codeimg/%s.png" % _get_hash(s)
     if not os.path.exists(tmp_file):
         gen_code_image(s, out_file=tmp_file, line_no=line_no)
     _add_clip(tmp_file, track=track, **kwargs)
+
+
+def code(s, track="vid", line_no=True, mark=[], **kwargs):
+    from r.web.webscreenshot import webscreenshot
+
+    mkdir("tmp/codeimg")
+    tmp_file = "tmp/codeimg/%s.png" % _get_hash(s + str(mark))
+    if not os.path.exists(tmp_file):
+        javascript = "setCode('%s'); " % s.replace("'", "\\'").replace("\n", "\\n")
+        mark_group = list(zip(*(iter(mark),) * 4))
+        for x in mark_group:
+            javascript += "markText(%d, %d, %d, %d); " % (x[0], x[1], x[2], x[3])
+
+        webscreenshot(
+            html_file=get_script_root() + "/r/web/_codeeditor/codeeditor.html",
+            out_file=tmp_file,
+            javascript=javascript,
+        )
+
+    _add_clip(tmp_file, track=track, transparent=False, **kwargs)
 
 
 def _add_fadeout(track):
@@ -458,6 +479,7 @@ def _create_mpy_clip(
     no_audio=False,
     duration=None,
     vol=None,
+    transparent=True,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
@@ -466,7 +488,9 @@ def _create_mpy_clip(
         clip = create_image_seq_clip(file)
 
     elif file.endswith(".png"):
-        clip = ImageClip(file).set_duration(10)
+        clip = ImageClip(file).set_duration(5)
+        if not transparent:
+            clip = clip.set_mask(None)
 
     else:
         clip = VideoFileClip(file)

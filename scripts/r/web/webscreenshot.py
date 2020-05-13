@@ -45,16 +45,13 @@ def webscreenshot(html_file, out_file=None, javascript=None):
 
         await page.goto("file://" + os.path.realpath(html_file).replace("\\", "/"))
 
-        screenshot_params = {"path": out_file, "omitBackground": True}
-        # await page.screenshot(screenshot_params)
-
         if javascript:
             await page.evaluate("() => { %s }" % javascript)
 
         # Screenshot DOM element only
         element = await page.querySelector("body")
+        screenshot_params = {"path": out_file, "omitBackground": True}
         await element.screenshot(screenshot_params)
-        input()
 
         await browser.close()
 
