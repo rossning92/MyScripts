@@ -2,9 +2,10 @@ from pyppeteer import launch
 import asyncio
 import os
 from _shutil import open_directory
+import sys
 
 
-def webscreenshot(html_file, out_file=None, javascript=None):
+def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
     if out_file is None:
         out_file = os.path.splitext(html_file)[0] + ".png"
 
@@ -47,6 +48,10 @@ def webscreenshot(html_file, out_file=None, javascript=None):
 
         if javascript:
             await page.evaluate("() => { %s }" % javascript)
+
+        if debug:
+            input('press any key to exit...')
+            sys.exit(0)
 
         # Screenshot DOM element only
         element = await page.querySelector("body")

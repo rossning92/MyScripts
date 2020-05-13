@@ -414,7 +414,7 @@ def code_carbon(s, track="vid", line_no=True, **kwargs):
     _add_clip(tmp_file, track=track, **kwargs)
 
 
-def code(s, track="vid", line_no=True, mark=[], **kwargs):
+def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     from r.web.webscreenshot import webscreenshot
 
     mkdir("tmp/codeimg")
@@ -429,6 +429,7 @@ def code(s, track="vid", line_no=True, mark=[], **kwargs):
             html_file=get_script_root() + "/r/web/_codeeditor/codeeditor.html",
             out_file=tmp_file,
             javascript=javascript,
+            debug=debug,
         )
 
     _add_clip(tmp_file, track=track, transparent=False, **kwargs)
