@@ -4,7 +4,7 @@ import os
 from _shutil import open_directory
 
 
-def webscreenshot(html_file, out_file=None):
+def webscreenshot(html_file, out_file=None, javascript=None):
     if out_file is None:
         out_file = os.path.splitext(html_file)[0] + ".png"
 
@@ -48,9 +48,13 @@ def webscreenshot(html_file, out_file=None):
         screenshot_params = {"path": out_file, "omitBackground": True}
         # await page.screenshot(screenshot_params)
 
+        if javascript:
+            await page.evaluate("() => { %s }" % javascript)
+
         # Screenshot DOM element only
         element = await page.querySelector("body")
         await element.screenshot(screenshot_params)
+        input()
 
         await browser.close()
 
@@ -60,5 +64,7 @@ def webscreenshot(html_file, out_file=None):
 
 
 if __name__ == "__main__":
-    out = webscreenshot(r"{{_FILE}}")
+    out = webscreenshot(
+        r"{{_FILE}}", javascript="setCode('hello, world!'); markText(0, 0, 0, 5);"
+    )
     open_directory(out)

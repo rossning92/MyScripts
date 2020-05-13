@@ -57,8 +57,7 @@
     height: 400px;
   }
   .styled-background {
-    background-color: #1e496c;
-    /* border-radius: 6px; */
+    background-color: #f65c78;
   }
 </style>
 
@@ -96,10 +95,16 @@ for i in fibonacci(10):
       matchBrackets: true,
     });
     editor.setOption("theme", "vscode-dark");
-    editor.markText(
-      { line: 6, ch: 1 },
-      { line: 6, ch: 5 },
-      { className: "styled-background" }
-    );
+
+    window.setCode = (s) => {
+      editor.setValue(s);
+    };
+    window.markText = (i0, j0, i1, j1) => {
+      editor.markText(
+        { line: i0, ch: j0 },
+        { line: i1, ch: j1 },
+        { className: "styled-background" }
+      );
+    };
   </script>
 </article>
