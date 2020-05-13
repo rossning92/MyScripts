@@ -168,7 +168,23 @@ class ScriptItem:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
 
     def __str__(self):
-        return self.name
+        result = self.name
+
+        if self.ext == ".link":
+            result += " [lnk]"
+
+        # Name: show shortcut
+        if self.meta["hotkey"]:
+            result += "  (%s)" % self.meta["hotkey"].lower().replace(
+                "win+", "#"
+            ).replace("ctrl+", "^").replace("alt+", "!").replace("shift+", "+")
+
+        if self.meta["globalHotkey"]:
+            result += "  (%s)" % self.meta["globalHotkey"].lower().replace(
+                "win+", "#"
+            ).replace("ctrl+", "^").replace("alt+", "!").replace("shift+", "+")
+
+        return result
 
     def __init__(self, script_path, name=None):
         self.return_code = 0
@@ -834,16 +850,8 @@ def load_scripts(script_list, modified_time):
             name, ext = os.path.splitext(name)  # Remove ext
             name = name.replace("\\", "/")
             name = _replace_prefix(name, "/", "")
-            if ext == ".link":
-                name += " [lnk]"
 
             script = ScriptItem(file, name=name)
-
-            # Name: show shortcut
-            if script.meta["hotkey"]:
-                script.name += "  (%s)" % script.meta["hotkey"].replace("Ctrl+", "^").replace(
-                    "Alt+", "!"
-                ).replace("Shift+", "+")
 
             if file not in modified_time or mtime > modified_time[file]:
                 # Check if auto run script
