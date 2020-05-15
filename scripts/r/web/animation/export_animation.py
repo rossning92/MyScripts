@@ -647,8 +647,9 @@ def screencap(f, speed=None, track=None, **kwargs):
 
 
 def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwargs):
-    mkdir("tmp/slides")
-    out_file = "tmp/slides/%s.png" % slugify(name if name else s)
+    mkdir("tmp/md")
+    # out_file = "tmp/slides/%s.png" % slugify(name if name else s)
+    out_file = "tmp/md/%s.png" % _get_hash(s)
 
     if not os.path.exists(out_file):
         generate_slide(
