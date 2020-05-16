@@ -22,13 +22,14 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 
 gsap.ticker.remove(gsap.updateRoot);
 
-const ENABLE_GLITCH_PASS = false;
-const RENDER_TARGET_SCALE = 1;
-const WIDTH = 1920 * RENDER_TARGET_SCALE;
-const HEIGHT = 1080 * RENDER_TARGET_SCALE;
-const AA_METHOD = "msaa";
-const ENABLE_MOTION_BLUR_PASS = false;
-const MOTION_BLUR_SAMPLES = 1;
+let ENABLE_GLITCH_PASS = false;
+let RENDER_TARGET_SCALE = 1;
+let WIDTH = 1920 * RENDER_TARGET_SCALE;
+let HEIGHT = 1080 * RENDER_TARGET_SCALE;
+let AA_METHOD = "msaa";
+let ENABLE_MOTION_BLUR_PASS = false;
+let MOTION_BLUR_SAMPLES = 1;
+let BLOOM_ENABLED = false;
 
 var outFileName = null;
 var captureStatus;
@@ -242,7 +243,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     // motionPass.renderToScreen = true;
   }
 
-  if (1) {
+  if (BLOOM_ENABLED) {
     // Bloom pass
     let bloomPass = new UnrealBloomPass(
       new THREE.Vector2(WIDTH, HEIGHT),
@@ -1065,6 +1066,7 @@ function getAllMaterials(object3d) {
   return materials;
 }
 
+// TODO: Deprecated
 function addFadeIn(
   object3d,
   { duration = 0.5, ease = "power1.out", opacity = 1.0 } = {}
@@ -1103,6 +1105,42 @@ function addFadeIn(
   });
 
   return tl;
+}
+
+function fadeIn(
+  object3d,
+  {
+    duration = 0.5,
+    ease = "power1.out",
+    opacity = 1.0,
+    t = "+=0",
+    timeline = null,
+  } = {}
+) {
+  const tl = gsap.timeline({ defaults: { duration, ease } });
+
+  const materials = getAllMaterials(object3d);
+
+  materials.forEach((material) => {
+    material.transparent = true;
+    tl.fromTo(
+      material,
+      {
+        opacity: 0,
+      },
+      {
+        opacity,
+        duration,
+      },
+      "<"
+    );
+  });
+
+  if (timeline != null) {
+    timeline.add(tl, t);
+  } else {
+    mainTimeline.add(tl, t);
+  }
 }
 
 function setOpacity(object3d, opacity = 1.0) {
@@ -1178,7 +1216,7 @@ function createMoveToAnimation(
     sy = null,
     sz = null,
     duration = 0.5,
-    ease = "expo.out",
+    ease = "power2.out",
   } = {}
 ) {
   if (dx != null) x = object3d.position.x + dx;
@@ -1232,9 +1270,10 @@ function flyIn(
     dx = 0.0,
     dy = 0.0,
     duration = 0.5,
-    deltaRotation = -Math.PI * 4,
+    beginDegrees = 0,
     beginScale = 0.01,
-    ease = "power2.out",
+    ease = "power.in",
+    t = "+=0",
   } = {}
 ) {
   let tl = gsap.timeline({
@@ -1252,7 +1291,7 @@ function flyIn(
   tl.from(
     object3d.rotation,
     {
-      z: object3d.rotation.z + deltaRotation,
+      z: object3d.rotation.z + (beginDegrees * Math.PI) / 180,
     },
     "<"
   );
@@ -1260,14 +1299,16 @@ function flyIn(
   tl.from(
     object3d.scale,
     {
-      x: beginScale,
-      y: beginScale,
-      z: beginScale,
+      x: beginScale * object3d.scale.x,
+      y: beginScale * object3d.scale.y,
+      z: beginScale * object3d.scale.z,
     },
     "<"
   );
 
   tl.add(addFadeIn(object3d), "<");
+
+  mainTimeline.add(tl, t);
 
   return tl;
 }
@@ -1449,7 +1490,7 @@ function createExplosionAnimation(
     const theta = rng() * 2 * Math.PI;
     const x = r * Math.cos(theta);
     const y = r * Math.sin(theta);
-    child.position.z += 0.01 * i;  // z-fighting
+    child.position.z += 0.01 * i; // z-fighting
 
     tl.fromTo(child.position, { x: 0, y: 0 }, { x, y }, delay);
 
@@ -1655,6 +1696,8 @@ function addGlitch({ duration = 0.2 } = {}) {
   }
 }
 
+// TODO: this is just creating a timeline object but not adding to the main
+// timeline.
 function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   const tl = gsap.timeline();
 
@@ -1687,9 +1730,50 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   return tl;
 }
 
+function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
+  const tl = gsap.timeline();
+
+  // Animation
+  const stagger = duration / object3D.children.length / 2;
+  object3D.children.forEach((obj, i) => {
+    const vals = {
+      position: -object3D.size * 2,
+      rotation: -Math.PI / 2,
+    };
+    tl.to(
+      vals,
+      duration,
+      {
+        position: 0,
+        rotation: 0,
+
+        ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
+        onUpdate: () => {
+          obj.position.y = vals.position;
+          obj.position.z = vals.position * 2;
+          obj.rotation.x = vals.rotation;
+        },
+      },
+      `-=${duration - stagger}`
+    );
+
+    fadeIn(obj, { duration, t: "<", timeline: tl });
+  });
+
+  mainTimeline.add(tl, t);
+  return tl;
+}
+
 const metaData = {
   cutPoints: [],
 };
+
+function setBloom(enabled) {
+  if (enabled) {
+    BLOOM_ENABLED = true;
+    AA_METHOD = 'fxaa';
+  }
+}
 
 function newScene(initFunction) {
   (async () => {
@@ -1921,6 +2005,22 @@ function addAnimation(
           { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out" },
           "<"
         );
+      } else if (animation == "growX") {
+        tl.from(object3d.scale, { x: 0.01, ease: "expo.out" }, "<");
+      } else if (animation == "growY") {
+        tl.from(object3d.scale, { y: 0.01, ease: "expo.out" }, "<");
+      } else if (animation == "growX2") {
+        tl.from(
+          object3d.scale,
+          { x: 0.01, ease: "elastic.out(1, 0.75)", duration: 1 },
+          "<"
+        );
+      } else if (animation == "growY2") {
+        tl.from(object3d.scale, { y: 0.01, ease: "elastic.out(1, 0.75)" }, "<");
+      } else if (animation == "growX3") {
+        tl.from(object3d.scale, { x: 0.01, ease: "back.out" }, "<");
+      } else if (animation == "growY3") {
+        tl.from(object3d.scale, { y: 0.01, ease: "back.out" }, "<");
       } else if (animation == "type" || animation == "fastType") {
         const speed = animation == "fastType" ? 0.005 : 0.01;
         object3d.children.forEach((x, i) => {
@@ -1941,6 +2041,21 @@ function addAnimation(
         // tl.set({}, {}, ">+0.5");
       } else if (animation == "wipe") {
         tl.add(createWipeAnimation(object3d, "<"));
+      } else if (animation == "flyIn") {
+        const duration = 0.5;
+        const ease = "elastic.out";
+        tl.from(object3d.position, {
+          x: object3d.position.x + 20,
+          duration,
+          ease,
+        });
+
+        tl.add(
+          addFadeIn(object3d, {
+            duration,
+          }),
+          "<"
+        );
       }
     });
 
@@ -2325,16 +2440,16 @@ function addCut() {
   });
 }
 
-function moveTo(object3d, options, position = "+=0") {
+function moveTo(object3d, { t = "+=0", ...options } = {}) {
   if (object3d instanceof Array) {
     for (let i = 0; i < object3d.length; i++) {
       mainTimeline.add(
         createMoveToAnimation(object3d[i], options),
-        i == 0 ? position : "<"
+        i == 0 ? t : "<"
       );
     }
   } else {
-    mainTimeline.add(createMoveToAnimation(object3d, options), position);
+    mainTimeline.add(createMoveToAnimation(object3d, options), t);
   }
 }
 
@@ -2371,6 +2486,7 @@ export default {
   addCollapseAnimation,
   addExplosionAnimation,
   addFadeIn,
+  fadeIn,
   addFadeOut,
   addGlitch,
   addJumpIn,
@@ -2408,6 +2524,7 @@ export default {
   pause,
   createExplosionAnimation,
   createGroupFlyInAnimation,
+  groupFlyIn,
   setSeed,
   getGridLayoutPositions,
   random,

@@ -10,7 +10,7 @@ yo.newScene(async () => {
   if (!h1_text) h1_text = "标题动画测试";
   const h1 = await yo.addAsync(h1_text, {
     y: 1,
-    animation: "fadeIn|jumpIn",
+    animation: "fadeIn|growX2",
     letterSpacing: 0.2,
   });
   group.add(h1);
@@ -20,30 +20,37 @@ yo.newScene(async () => {
   const h2 = await yo.addAsync(h2_text, {
     fontSize: 0.6,
     color: yo.palette[3],
-    animation: "fastType",
+    animation: null,
   });
   group.add(h2);
-  h2.position.y = -0.8;
+  h2.position.y = -1.0;
+
+  yo.groupFlyIn(h2, { beginDegrees: 90, beginScale: 10, t: "0.2" });
 
   const bb = yo.getBoundingBox(group);
   const center = bb.getCenter(new THREE.Vector3());
   const size = bb.getSize(new THREE.Vector3());
 
-  {
-    const MARGIN = 2;
-    const leftBracket = await yo.addAsync("[", {
+  const MARGIN = 2;
+  for (let i = 0; i < 2; i++) {
+    const t = i == 0 ? -1 : 1;
+
+    const bracket = await yo.addAsync(i == 0 ? "{" : "}", {
+      x: center.x + t * size.x * 0.5,
+      y: 0.25,
+      fontSize: 1.2,
       color: yo.palette[1],
       animation: null,
+      parent: group,
     });
-    leftBracket.position.x = center.x - size.x * 0.5 - MARGIN;
 
-    const rightBracket = await yo.addAsync("]", {
-      color: yo.palette[1],
-      animation: null,
+    yo.moveTo(bracket, {
+      x: center.x + t * (size.x * 0.5 + MARGIN),
+      duration: 2,
+      t: "<",
     });
-    rightBracket.position.x = center.x + size.x * 0.5 + MARGIN;
-
-    yo.addFlash(leftBracket);
-    yo.addFlash(rightBracket);
+    yo.addAnimation(bracket, "grow", { aniPos: "<" });
   }
+
+  yo.moveTo(group, { scale: 1.25, t: "0.8" });
 });

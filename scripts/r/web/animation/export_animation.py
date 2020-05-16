@@ -481,6 +481,7 @@ def _create_mpy_clip(
     duration=None,
     vol=None,
     transparent=True,
+    subclip=None,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
@@ -495,6 +496,9 @@ def _create_mpy_clip(
 
     else:
         clip = VideoFileClip(file)
+
+    if subclip is not None:
+        clip = clip.subclip(subclip)
 
     if duration is not None:
         clip = clip.set_duration(duration)
