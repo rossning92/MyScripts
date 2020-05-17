@@ -449,9 +449,12 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     tmp_file = "tmp/codeimg/%s.png" % _get_hash(s + str(mark))
     if not os.path.exists(tmp_file):
         javascript = "setCode('%s'); " % s.replace("'", "\\'").replace("\n", "\\n")
+
         mark_group = list(zip(*(iter(mark),) * 4))
         for x in mark_group:
-            javascript += "markText(%d, %d, %d, %d); " % (x[0], x[1], x[2], x[3])
+            javascript += "markText(%d, %d, %d, %d); " % (x[0], x[1], x[2], x[3],)
+
+        javascript += "showLineNumbers(%s); " % ("true" if line_no else "false")
 
         webscreenshot(
             html_file=get_script_root() + "/r/web/_codeeditor/codeeditor.html",
