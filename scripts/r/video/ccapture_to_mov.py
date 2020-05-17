@@ -112,4 +112,4 @@ if __name__ == "__main__":
         print("Input file should be a .tar file")
         sys.exit(1)
 
-    convert_to_mov(f, fps=int("{{_FPS}}"))
+    convert_to_mov(f, fps=int("{{_FPS}}"), out_file=name + '.mp4')

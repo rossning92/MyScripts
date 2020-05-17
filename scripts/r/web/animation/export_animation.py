@@ -43,7 +43,7 @@ if 1:  # Import moviepy
 ADD_SUBTITLE = False
 VOLUME_DIM = 0.15
 FADEOUT_DURATION = 0.2
-TTS = True
+AUTO_TTS = False
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -151,6 +151,9 @@ def _get_markers(file):
 
 
 def _get_pos(p):
+    if isinstance(p, (int, float)):
+        return p
+
     PATT_FLOAT = r"([-+]?\d*\.?\d*)"
 
     if p is None:
@@ -193,9 +196,12 @@ def _get_pos(p):
     raise Exception("Invalid param.")
 
 
-def _set_pos(p):
-    new_pos = _get_pos(p)
-    _pos_list.append(new_pos)
+def _set_pos(t, tag=None):
+    t = _get_pos(t)
+    _pos_list.append(t)
+
+    if tag is not None:
+        _pos_dict[tag] = t
 
 
 def _format_time(sec):
@@ -375,17 +381,28 @@ def audio_end(*, t=None, track=None):
     assert duration > 0
     clips[-1].duration = duration
 
+    _pos_dict["a"] = t
+    _pos_list.append(_pos_dict["a"])
 
-def bgm(f, move_playhead=False, **kwargs):
-    audio(f, track="bgm", move_playhead=move_playhead, **kwargs)
+
+def bgm(f, move_playhead=False, t="a", in_duration=0.5, out_duration=0.5, vol=0.1, **kwargs):
+    print("bgm: %s" % f)
+    t = _get_pos(t)
+
+    if len(_get_audio_track("bgm").clips) > 0:
+        bgm_vol(0, duration=out_duration, t=t - out_duration)
+        audio_end(track="bgm", t=t)
+
+    audio(f, track="bgm", move_playhead=move_playhead, t=t, **kwargs)
+    bgm_vol(vol, duration=in_duration, t=t)
 
 
 def sfx(f, **kwargs):
     audio(f, track="sfx", move_playhead=False, **kwargs)
 
 
-def pos(p):
-    _set_pos(p)
+def pos(p, tag=None):
+    _set_pos(p, tag=tag)
 
 
 def image(f, pos="center", **kwargs):
@@ -884,45 +901,42 @@ def _export_srt():
         f.write("\n".join(_srt_lines))
 
 
+def tts():
+    text = _subtitle[-1]
+    hash = _get_hash(text)
+
+    mkdir("tmp/tts")
+    file_name = "tmp/tts/%s.wav" % hash
+    if not os.path.exists(file_name):
+        print("generate tts file: %s" % file_name)
+        tmp_file = "tmp/tts/%s_gtts.mp3" % hash
+        call2(
+            ["gtts-cli", text, "--lang", "zh-cn", "--nocheck", "--output", tmp_file,]
+        )
+        call2(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "panic",
+                "-i",
+                tmp_file,
+                "-filter:a",
+                "atempo=1.75",
+                "-vn",
+                file_name,
+            ]
+        )
+        os.remove(tmp_file)
+
+    record(file_name)
+
+
 def _parse_script(text):
     _subtitle.append(text)
 
-    if TTS:
-        hash = _get_hash(text)
-
-        mkdir("tmp/tts")
-        file_name = "tmp/tts/%s.wav" % hash
-        if not os.path.exists(file_name):
-            print("generate tts file: %s" % file_name)
-            tmp_file = "tmp/tts/%s_gtts.mp3" % hash
-            call2(
-                [
-                    "gtts-cli",
-                    text,
-                    "--lang",
-                    "zh-cn",
-                    "--nocheck",
-                    "--output",
-                    tmp_file,
-                ]
-            )
-            call2(
-                [
-                    "ffmpeg",
-                    "-hide_banner",
-                    "-loglevel",
-                    "panic",
-                    "-i",
-                    tmp_file,
-                    "-filter:a",
-                    "atempo=1.75",
-                    "-vn",
-                    file_name,
-                ]
-            )
-            os.remove(tmp_file)
-
-        record(file_name)
+    if AUTO_TTS:
+        tts()
 
 
 def _parse_text(text, **kwargs):

@@ -1771,7 +1771,7 @@ const metaData = {
 function setBloom(enabled) {
   if (enabled) {
     BLOOM_ENABLED = true;
-    AA_METHOD = 'fxaa';
+    AA_METHOD = "fxaa";
   }
 }
 
@@ -2002,7 +2002,7 @@ function addAnimation(
       } else if (animation == "grow2") {
         tl.from(
           object3d.scale,
-          { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out" },
+          { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out(1, 0.75)" },
           "<"
         );
       } else if (animation == "growX") {
@@ -2124,7 +2124,7 @@ async function addAsync(
     rotZ = null,
     position = null,
     animation = "fadeIn",
-    color = 0xffffff,
+    color = null,
     opacity = 1.0,
     sx = null,
     sy = null,
@@ -2155,7 +2155,7 @@ async function addAsync(
   if (lighting) {
     addDefaultLights();
     material = new THREE.MeshPhongMaterial({
-      color,
+      color: color != null ? color : 0xffffff,
       // emissive: 0x072534,
       // side: THREE.DoubleSide,
       flatShading: true,
@@ -2163,7 +2163,7 @@ async function addAsync(
   } else {
     material = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
-      color,
+      color: color != null ? color : 0xffffff,
       transparent: opacity < 1.0 ? true : false,
       opacity,
       wireframe,
@@ -2201,7 +2201,7 @@ async function addAsync(
       mesh = createLine3D({
         points: vertices.concat(vertices[0]),
         lineWidth: outlineWidth,
-        color,
+        color: color != null ? color : 0xffffff,
       });
     } else {
       const geometry = new THREE.Geometry();
@@ -2226,7 +2226,7 @@ async function addAsync(
     mesh = createArrow({
       from: arrowFrom,
       to: arrowTo,
-      color,
+      color: color != null ? color : 0xffffff,
       lineWidth,
     });
   } else if (obj == "grid") {
@@ -2240,7 +2240,7 @@ async function addAsync(
       text: obj,
       font,
       size: 0.5,
-      color,
+      color: color != null ? color : 0xffffff,
       size: fontSize,
       letterSpacing,
     });
@@ -2482,6 +2482,10 @@ function setBackgroundAlpha(alpha) {
   backgroundAlpha = alpha;
 }
 
+function setMotionBlur(enabled) {
+  MOTION_BLUR_SAMPLES = enabled ? 16 : 1;
+}
+
 export default {
   addCollapseAnimation,
   addExplosionAnimation,
@@ -2537,6 +2541,7 @@ export default {
   addCustomAnimation,
   add2DSpinning,
   setBackgroundAlpha,
+  setMotionBlur,
 };
 
 export { THREE, gsap };
