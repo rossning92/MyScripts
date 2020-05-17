@@ -586,9 +586,12 @@ def _add_clip(
     clip_info.start = t
     clip_info.pos = pos
     clip_info.speed = speed
+
+    # Note that crossfade, fadein and fadeout can not be specified at the same time.
+    clip_info.crossfade = (not fadein and not fadeout) and (crossfade or _crossfade)
     clip_info.fadein = fadein
     clip_info.fadeout = fadeout
-    clip_info.crossfade = crossfade or _crossfade
+
     clip_info.text_overlay = text_overlay
     clip_info.duration = duration
 
@@ -811,28 +814,12 @@ def _export_video(resolution=(1920, 1080), fps=25):
                 # Use duration to extend / hold the last frame instead of creating new clips.
                 duration = clip_info.duration
 
-                # crossfade?
+                # Crossfade?
+                EPSILON = 0.1  # To avoid float point error
                 if i + 1 < len(track) and track[i + 1].crossfade:
-                    duration += FADE_DURATION * 0.5
+                    duration += FADE_DURATION * 0.5 + EPSILON
 
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
-
-            if clip_info.fadein:
-                # TODO: crossfadein and crossfadeout is very slow in moviepy
-                if track_name != "vid":
-                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(FADE_DURATION)
-                else:
-                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadein, FADE_DURATION
-                    )
-
-            if clip_info.fadeout:
-                if track_name != "vid":
-                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(FADE_DURATION)
-                else:
-                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadeout, FADE_DURATION
-                    )
 
             if clip_info.crossfade:
                 video_clips.append(
@@ -844,6 +831,26 @@ def _export_video(resolution=(1920, 1080), fps=25):
                     clip_info.mpy_clip.set_start(clip_info.start + 0.5 * FADE_DURATION)
                 )
             else:
+                if clip_info.fadein:
+                    # TODO: crossfadein and crossfadeout is very slow in moviepy
+                    if track_name != "vid":
+                        clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
+                            FADE_DURATION
+                        )
+                    else:
+                        clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                            vfx.fadein, FADE_DURATION
+                        )
+
+                if clip_info.fadeout:
+                    if track_name != "vid":
+                        clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
+                            FADE_DURATION
+                        )
+                    else:
+                        clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                            vfx.fadeout, FADE_DURATION
+                        )
 
                 video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
 
