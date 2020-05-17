@@ -42,8 +42,8 @@ if 1:  # Import moviepy
 
 ADD_SUBTITLE = False
 VOLUME_DIM = 0.15
-FADEOUT_DURATION = 0.2
-AUTO_TTS = False
+FADE_DURATION = 0.2
+AUTO_TTS = True
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -58,6 +58,7 @@ class _VideoClipInfo:
         self.pos = None
         self.fadein: bool = False
         self.fadeout: bool = False
+        self.crossfade: bool = False
         self.text_overlay: str = None
 
 
@@ -110,6 +111,13 @@ _srt_index = 1
 _bgm_clip = None
 _bgm = {}
 _bgm_vol = []
+
+_crossfade = False
+
+
+def crossfade(b):
+    global _crossfade
+    _crossfade = b
 
 
 def _get_hash(text):
@@ -369,7 +377,7 @@ def audio(f, **kwargs):
     _add_audio_clip(f, **kwargs)
 
 
-def audio_end(*, t=None, track=None):
+def audio_end(*, t=None, track=None, move_playhead=True):
     t = _get_pos(t)
 
     clips = _get_audio_track(track).clips
@@ -381,17 +389,20 @@ def audio_end(*, t=None, track=None):
     assert duration > 0
     clips[-1].duration = duration
 
-    _pos_dict["a"] = t
-    _pos_list.append(_pos_dict["a"])
+    if move_playhead:
+        _pos_dict["a"] = t
+        _pos_list.append(_pos_dict["a"])
 
 
-def bgm(f, move_playhead=False, t="a", in_duration=0.5, out_duration=0.5, vol=0.1, **kwargs):
+def bgm(
+    f, move_playhead=False, t="a", in_duration=0.5, out_duration=0.5, vol=0.1, **kwargs
+):
     print("bgm: %s" % f)
     t = _get_pos(t)
 
     if len(_get_audio_track("bgm").clips) > 0:
         bgm_vol(0, duration=out_duration, t=t - out_duration)
-        audio_end(track="bgm", t=t)
+        audio_end(track="bgm", t=t, move_playhead=False)
 
     audio(f, track="bgm", move_playhead=move_playhead, t=t, **kwargs)
     bgm_vol(vol, duration=in_duration, t=t)
@@ -459,7 +470,7 @@ def _add_fadeout(track):
         clip_info = track[-1]
 
         if clip_info.mpy_clip is not None:
-            clip_info.mpy_clip = clip_info.mpy_clip.fx(vfx.fadeout, FADEOUT_DURATION)
+            clip_info.mpy_clip = clip_info.mpy_clip.fx(vfx.fadeout, FADE_DURATION)
 
             _add_fadeout_to_last_clip = False
 
@@ -557,6 +568,7 @@ def _add_clip(
     track=None,
     fadein=False,
     fadeout=False,
+    crossfade=None,
     t=None,
     duration=None,
     text_overlay=None,
@@ -576,6 +588,7 @@ def _add_clip(
     clip_info.speed = speed
     clip_info.fadein = fadein
     clip_info.fadeout = fadeout
+    clip_info.crossfade = crossfade or _crossfade
     clip_info.text_overlay = text_overlay
     clip_info.duration = duration
 
@@ -778,6 +791,7 @@ def _export_video(resolution=(1920, 1080), fps=25):
                 )
 
     # Update MoviePy clip object in each track.
+    video_clips = []
     for track_name, track in _video_tracks.items():
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
@@ -795,33 +809,43 @@ def _export_video(resolution=(1920, 1080), fps=25):
                     clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
 
                 # Use duration to extend / hold the last frame instead of creating new clips.
-                clip_info.mpy_clip = clip_info.mpy_clip.set_duration(clip_info.duration)
+                duration = clip_info.duration
+
+                # crossfade?
+                if i + 1 < len(track) and track[i + 1].crossfade:
+                    duration += FADE_DURATION * 0.5
+
+                clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
 
             if clip_info.fadein:
                 # TODO: crossfadein and crossfadeout is very slow in moviepy
                 if track_name != "vid":
-                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
-                        FADEOUT_DURATION
-                    )
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(FADE_DURATION)
                 else:
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadein, FADEOUT_DURATION
+                        vfx.fadein, FADE_DURATION
                     )
 
             if clip_info.fadeout:
                 if track_name != "vid":
-                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
-                        FADEOUT_DURATION
-                    )
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(FADE_DURATION)
                 else:
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadeout, FADEOUT_DURATION
+                        vfx.fadeout, FADE_DURATION
                     )
 
-    video_clips = []
-    for _, track in _video_tracks.items():
-        for clip_info in track:
-            video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
+            if clip_info.crossfade:
+                video_clips.append(
+                    clip_info.mpy_clip.set_duration(FADE_DURATION)
+                    .crossfadein(FADE_DURATION)
+                    .set_start(clip_info.start - 0.5 * FADE_DURATION)
+                )
+                video_clips.append(
+                    clip_info.mpy_clip.set_start(clip_info.start + 0.5 * FADE_DURATION)
+                )
+            else:
+
+                video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
 
     if len(video_clips) == 0:
         video_clips.append(ColorClip((200, 200), color=(0, 1, 0)).set_duration(2))
