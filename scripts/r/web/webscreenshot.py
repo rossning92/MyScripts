@@ -44,13 +44,15 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
         #     'deviceScaleFactor': SCALE,
         # })
 
+        await page.setViewport({'width': 1920, 'height': 1080})
+
         await page.goto("file://" + os.path.realpath(html_file).replace("\\", "/"))
 
         if javascript:
             await page.evaluate("() => { %s }" % javascript)
 
         if debug:
-            input('press any key to exit...')
+            input("press any key to exit...")
             sys.exit(0)
 
         # Screenshot DOM element only
