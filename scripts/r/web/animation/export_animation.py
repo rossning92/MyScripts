@@ -43,7 +43,7 @@ if 1:  # Import moviepy
 ADD_SUBTITLE = False
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
-AUTO_TTS = True
+AUTO_TTS = False
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
