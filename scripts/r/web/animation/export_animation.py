@@ -107,6 +107,7 @@ _animations = defaultdict(_AnimationInfo)
 _subtitle = []
 _srt_lines = []
 _srt_index = 1
+_last_subtitle_index = -1
 
 _bgm_clip = None
 _bgm = {}
@@ -282,11 +283,18 @@ def record(f, t="a", **kwargs):
     END_CHAR = ["。", "，", "！", "、"]
 
     global _srt_index
+    global _last_subtitle_index
 
     if ADD_SUBTITLE:
         assert len(_subtitle) > 0
+
+        idx = len(_subtitle) - 1
+        if _last_subtitle_index == idx:
+            print2("WARNING: subtitle used twice: %s" % _subtitle[idx])
+        _last_subtitle_index = idx
+
         start = end = _get_pos("as")
-        subtitle = _subtitle[-1].strip()
+        subtitle = _subtitle[idx].strip()
 
         if subtitle[-1] not in END_CHAR:
             subtitle += END_CHAR[0]
