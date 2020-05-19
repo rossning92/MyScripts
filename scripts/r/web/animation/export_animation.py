@@ -98,7 +98,12 @@ _video_tracks = OrderedDict(
 _cur_vid_track_name = "vid"  # default video track
 
 _audio_tracks = OrderedDict(
-    [("bgm", _AudioTrack()), ("record", _AudioTrack()), ("sfx", _AudioTrack())]
+    [
+        ("bgm", _AudioTrack()),
+        ("bgm2", _AudioTrack()),
+        ("record", _AudioTrack()),
+        ("sfx", _AudioTrack()),
+    ]
 )
 _cur_audio_track_name = "record"
 
@@ -335,11 +340,15 @@ def audio_gap(duration):
     _pos_list.append(_pos_dict["a"])
 
 
-def vol(vol, duration=0.25, track=None, t=None):
+def _set_vol(vol, duration=0.25, track=None, t=None):
     t = _get_pos(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
     _get_audio_track(track).vol_keypoints.append((t, vol, duration))
+
+
+def vol(vol, **kwargs):
+    _set_vol(vol, **kwargs)
 
 
 def bgm_vol(v, **kwawgs):
@@ -403,17 +412,24 @@ def audio_end(*, t=None, track=None, move_playhead=True):
 
 
 def bgm(
-    f, move_playhead=False, t="a", in_duration=0.5, out_duration=0.5, vol=0.1, **kwargs
+    f,
+    move_playhead=False,
+    t="a",
+    in_duration=0.5,
+    out_duration=0.5,
+    vol=0.1,
+    track="bgm",
+    **kwargs
 ):
     print("bgm: %s" % f)
     t = _get_pos(t)
 
-    if len(_get_audio_track("bgm").clips) > 0:
-        bgm_vol(0, duration=out_duration, t=t - out_duration)
-        audio_end(track="bgm", t=t, move_playhead=False)
+    if len(_get_audio_track(track).clips) > 0:
+        _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
+        audio_end(track=track, t=t, move_playhead=False)
 
-    audio(f, track="bgm", move_playhead=move_playhead, t=t, **kwargs)
-    bgm_vol(vol, duration=in_duration, t=t)
+    audio(f, track=track, move_playhead=move_playhead, t=t, **kwargs)
+    _set_vol(vol, duration=in_duration, t=t, track=track)
 
 
 def sfx(f, **kwargs):
@@ -523,7 +539,7 @@ def _create_mpy_clip(
     subclip=None,
 ):
     if file is None:
-        clip = ColorClip((200, 200), color=(0, 1, 0)).set_duration(0)
+        clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
 
     elif file.endswith(".tar"):
         clip = create_image_seq_clip(file)
@@ -606,20 +622,19 @@ def _add_clip(
     clip_info.text_overlay = text_overlay
     clip_info.duration = duration
 
-    if file is not None:
-        clip_info.mpy_clip = _create_mpy_clip(
-            file=file,
-            clip_operations=clip_operations,
-            speed=speed,
-            pos=pos,
-            duration=duration,
-            **kwargs
-        )
+    clip_info.mpy_clip = _create_mpy_clip(
+        file=file,
+        clip_operations=clip_operations,
+        speed=speed,
+        pos=pos,
+        duration=duration,
+        **kwargs
+    )
 
-        # Advance the pos
-        end = t + clip_info.mpy_clip.duration
-        _pos_list.append(end)
-        _pos_dict["ve"] = end
+    # Advance the pos
+    end = t + clip_info.mpy_clip.duration
+    _pos_list.append(end)
+    _pos_dict["ve"] = end
 
     track.append(clip_info)
 
@@ -679,6 +694,10 @@ def video_end(track=None, t=None):
 def video(f, **kwargs):
     print("video: %s" % f)
     _add_clip(f, **kwargs)
+
+
+def empty(**kwargs):
+    _add_clip(None, **kwargs)
 
 
 def screencap(f, speed=None, track=None, **kwargs):
