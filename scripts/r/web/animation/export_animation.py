@@ -40,7 +40,7 @@ if 1:  # Import moviepy
     from moviepy.video.tools.subtitles import SubtitlesClip
 
 
-ADD_SUBTITLE = False
+ADD_SUBTITLE = True
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
 AUTO_TTS = False

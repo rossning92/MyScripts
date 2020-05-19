@@ -363,8 +363,7 @@ function generateRandomString(length) {
 // requestAnimationFrame(animate);
 
 function randomInt(min, max) {
-  var random = Math.floor(Math.random() * (max - min + 1)) + min;
-  return random;
+  return Math.floor(random() * (max - min + 1)) + min;
 }
 
 function createLine() {
