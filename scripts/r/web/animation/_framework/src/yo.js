@@ -1248,9 +1248,9 @@ function createMoveToAnimation(
     tl.to(
       object3d.scale,
       {
-        x: object3d.scale.x * scale,
-        y: object3d.scale.y * scale,
-        z: object3d.scale.z * scale,
+        x: scale,
+        y: scale,
+        z: scale,
       },
       "<"
     );
@@ -1295,15 +1295,17 @@ function flyIn(
     "<"
   );
 
-  tl.from(
-    object3d.scale,
-    {
-      x: beginScale * object3d.scale.x,
-      y: beginScale * object3d.scale.y,
-      z: beginScale * object3d.scale.z,
-    },
-    "<"
-  );
+  if (beginScale != null) {
+    tl.from(
+      object3d.scale,
+      {
+        x: beginScale,
+        y: beginScale,
+        z: beginScale,
+      },
+      "<"
+    );
+  }
 
   tl.add(addFadeIn(object3d), "<");
 
@@ -2541,6 +2543,7 @@ export default {
   add2DSpinning,
   setBackgroundAlpha,
   setMotionBlur,
+  setBloom,
 };
 
 export { THREE, gsap };
