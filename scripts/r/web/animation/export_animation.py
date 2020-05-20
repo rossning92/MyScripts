@@ -69,12 +69,12 @@ class _AudioClipInfo:
         self.speed: float = 1
         self.start: float = None
         self.subclip: float = None
+        self.vol_keypoints = []
 
 
 class _AudioTrack:
     def __init__(self):
         self.clips = []
-        self.vol_keypoints = []
 
 
 class _AnimationInfo:
@@ -347,7 +347,13 @@ def _set_vol(vol, duration=0.25, track=None, t=None):
     t = _get_pos(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
-    _get_audio_track(track).vol_keypoints.append((t, vol, duration))
+    track_ = _get_audio_track(track)
+    if len(track_.clips) == 0:
+        raise Exception("No audio clip to set volume in track: %s" % track)
+
+    t_in_clip = t - track_.clips[-1].start
+    assert t_in_clip >= 0
+    track_.clips[-1].vol_keypoints.append((t_in_clip, vol, duration))
 
 
 def vol(vol, **kwargs):
@@ -418,6 +424,7 @@ def bgm(
     f,
     move_playhead=False,
     t="a",
+    crossfade=0,
     in_duration=0.5,
     out_duration=0.5,
     vol=0.1,
@@ -428,11 +435,19 @@ def bgm(
     t = _get_pos(t)
 
     if len(_get_audio_track(track).clips) > 0:
-        _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
-        audio_end(track=track, t=t, move_playhead=False)
+        if crossfade > 0:
+            _set_vol(0, duration=crossfade, t=t, track=track)
+            audio_end(track=track, t=t + crossfade, move_playhead=False)
+        else:
+            _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
+            audio_end(track=track, t=t, move_playhead=False)
 
     audio(f, track=track, move_playhead=move_playhead, t=t, **kwargs)
-    _set_vol(vol, duration=in_duration, t=t, track=track)
+
+    if crossfade > 0:
+        _set_vol(vol, duration=crossfade, t=t, track=track)
+    else:
+        _set_vol(vol, duration=in_duration, t=t, track=track)
 
 
 def sfx(f, **kwargs):
@@ -907,14 +922,14 @@ def _export_video(resolution=(1920, 1080), fps=25):
             if clip_info.duration is not None:
                 clip = clip.set_duration(clip_info.duration)
 
+            # Adjust volume by keypoints
+            if len(clip_info.vol_keypoints) > 0:
+                clip = _adjust_mpy_audio_clip_volume(clip, clip_info.vol_keypoints)
+
             clips.append(clip)
 
         if len(clips) > 0:
             clip = CompositeAudioClip(clips)
-            if len(track.vol_keypoints) > 0:
-                clip = _adjust_mpy_audio_clip_volume(clip, track.vol_keypoints)
-                print(track.vol_keypoints)
-
             audio_clips.append(clip)
 
     if final_clip.audio:
