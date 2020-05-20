@@ -235,6 +235,9 @@ def _generate_text_image(
     color="#ffffff",
     stroke_color="#000000",
 ):
+    # Escape `%` in ImageMagick
+    text = text.replace("%", "%%")
+
     # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
     os.close(tempfile_fd)
