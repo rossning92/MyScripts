@@ -234,6 +234,7 @@ class MainWindow(QWidget):
         self.modified_time = {}
         self.script_by_path = {}
         self.mtime_script_access_time = 0
+        self.last_args = None
 
         self.ui = uic.loadUi("MainDialog.ui", self)
 
@@ -276,8 +277,10 @@ class MainWindow(QWidget):
         # Set selected file and current folder to as environment variables
         if script.meta["autoRun"] is False:
             args = update_env_var_explorer()
-        else:
-            args = None
+            if not args:
+                args = self.last_args
+            else:
+                self.last_args = args
 
         # HACK: always create new window
         restart_instance = None
