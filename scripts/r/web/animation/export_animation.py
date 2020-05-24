@@ -126,12 +126,6 @@ def crossfade(b):
     _crossfade = b
 
 
-def _get_hash(text):
-    hash_object = hashlib.md5(text.encode())
-    hash = hash_object.hexdigest()[0:16]
-    return hash
-
-
 def _get_track(tracks, name):
     print("  track=%s" % name)
 
@@ -478,7 +472,7 @@ def code_carbon(s, track="vid", line_no=True, **kwargs):
     from r.web.carbon_gen_code_image import gen_code_image
 
     mkdir("tmp/codeimg")
-    tmp_file = "tmp/codeimg/%s.png" % _get_hash(s)
+    tmp_file = "tmp/codeimg/%s.png" % get_hash(s)
     if not os.path.exists(tmp_file):
         gen_code_image(s, out_file=tmp_file, line_no=line_no)
     _add_clip(tmp_file, track=track, **kwargs)
@@ -488,7 +482,7 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     from r.web.webscreenshot import webscreenshot
 
     mkdir("tmp/codeimg")
-    tmp_file = "tmp/codeimg/%s.png" % _get_hash(s + str(mark))
+    tmp_file = "tmp/codeimg/%s.png" % get_hash(s + str(mark))
     if not os.path.exists(tmp_file):
         javascript = "setCode('%s'); " % s.replace("'", "\\'").replace("\n", "\\n")
 
@@ -551,6 +545,7 @@ def _create_mpy_clip(
     pos=None,
     text_overlay=None,
     no_audio=False,
+    na=False,
     duration=None,
     vol=None,
     transparent=True,
@@ -582,7 +577,7 @@ def _create_mpy_clip(
     if clip_operations is not None:
         clip = clip_operations(clip)
 
-    if no_audio:
+    if no_audio or na:
         clip = clip.set_audio(None)
 
     if clip.audio is not None and vol:
@@ -734,7 +729,7 @@ def screencap(f, speed=None, track=None, **kwargs):
 def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwargs):
     mkdir("tmp/md")
     # out_file = "tmp/slides/%s.png" % slugify(name if name else s)
-    out_file = "tmp/md/%s.png" % _get_hash(s)
+    out_file = "tmp/md/%s.png" % get_hash(s)
 
     if not os.path.exists(out_file):
         generate_slide(
@@ -982,7 +977,7 @@ def _export_srt():
 
 def tts():
     text = _subtitle[-1]
-    hash = _get_hash(text)
+    hash = get_hash(text)
 
     mkdir("tmp/tts")
     file_name = "tmp/tts/%s.wav" % hash

@@ -1,7 +1,7 @@
 from pyppeteer import launch
 import asyncio
 import os
-from _shutil import open_directory
+from _shutil import shell_open
 import sys
 
 
@@ -71,4 +71,4 @@ if __name__ == "__main__":
     out = webscreenshot(
         r"{{_FILE}}", javascript="setCode('hello, world!'); markText(0, 0, 0, 5);"
     )
-    open_directory(out)
+    shell_open(out)

@@ -1,3 +1,3 @@
 from _shutil import *
 
-open_directory(os.path.expanduser("~/.vscode/extensions"))
+shell_open(os.path.expanduser("~/.vscode/extensions"))

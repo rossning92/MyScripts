@@ -22,6 +22,13 @@ import time
 import json
 
 
+def get_hash(text):
+    import hashlib
+    hash_object = hashlib.md5(text.encode())
+    hash = hash_object.hexdigest()[0:16]
+    return hash
+
+
 def get_ahk_exe(uia=True):
     if uia:
         ahk_exe = os.path.expandvars(
@@ -926,7 +933,7 @@ def yes(msg=""):
     return ch == "y"
 
 
-def open_directory(d="."):
+def shell_open(d="."):
     if sys.platform == "win32":
         os.startfile(d)
         # subprocess.Popen(['start', d], shell= True)
