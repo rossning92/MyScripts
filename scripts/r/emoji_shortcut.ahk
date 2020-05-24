@@ -2,7 +2,7 @@
 #SingleInstance Force
 
 $>!h::SendEmoji("😃")
-$>!s::SendEmoji("😢")
+$>!s::SendEmoji("😞")
 $>!w::SendEmoji("😉")
 $>!k::SendEmoji("😏")
 $>!y::SendEmoji("👍")

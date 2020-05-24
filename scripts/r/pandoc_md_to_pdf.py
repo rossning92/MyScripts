@@ -17,10 +17,10 @@ def generate_diagram(match):
 
     if match.group(1).strip() == "dot2":
         s = """digraph G {
-        rankdir=LR
+        rankdir=TB
 
-        graph [dpi=200]
-        node [shape=record]
+        graph [fontsize=14 dpi=300]
+        node [shape=record fontname="Source Han Serif CN"]
         // node [fontname="Latin Modern Mono"]
         // edge [fontname="Latin Modern Mono"]
 
@@ -73,6 +73,7 @@ p = subprocess.Popen(
         "CJKmainfont=Source Han Serif CN",
         "-V",
         "geometry=margin=1in",
+        "--dpi=300",
     ],
     stdin=subprocess.PIPE,
 )
