@@ -9,3 +9,7 @@
     \latexincludegraphics[#1]{#2}
   \end{center}
 }
+
+\usepackage[left]{lineno}
+\usepackage{etoolbox}
+\preto{\verbatim}{\linenumbers\footnotesize}

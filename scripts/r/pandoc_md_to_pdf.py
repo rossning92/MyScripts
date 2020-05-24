@@ -14,7 +14,6 @@ s = open(f, encoding="utf-8").read()
 
 
 def generate_diagram(match):
-
     if match.group(1).strip() == "dot2":
         s = """digraph G {
         rankdir=TB
@@ -50,8 +49,17 @@ def generate_diagram(match):
     return "[unsupported diagram]"
 
 
-s = re.sub(r"```(\w+)\n([\d\D]*?)```", generate_diagram, s)
+def eval_python_code(match):
+    python_code = match.group(1)
+    result = eval(python_code, globals())
+    if result is not None:
+        return str(result)
+    else:
+        return ""
 
+
+s = re.sub(r"```(\w+)\n([\d\D]*?)```", generate_diagram, s)
+s = re.sub(r"\{\{([\d\D]*?)\}\}", eval_python_code, s)
 
 print("Generating pdf...")
 p = subprocess.Popen(
