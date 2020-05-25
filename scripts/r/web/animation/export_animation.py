@@ -941,8 +941,16 @@ def _export_video(resolution=(1920, 1080), fps=25):
 
     # final_clip.show(10.5, interactive=True)
 
+    os.makedirs("tmp/out", exist_ok=True)
+    out_filename = "tmp/out/" + get_time_str()
     final_clip.write_videofile(
-        "out.mp4", codec="libx264", threads=8, fps=fps, ffmpeg_params=["-crf", "19"]
+        "%s.mp4" % out_filename,
+        temp_audiofile="%s.mp3" % out_filename,
+        remove_temp=False,
+        codec="libx264",
+        threads=8,
+        fps=fps,
+        ffmpeg_params=["-crf", "19"],
     )
 
     open_with("out.mp4", program_id=1)
@@ -1032,8 +1040,8 @@ def _parse_text(text, **kwargs):
 
             exec(python_code, globals())
 
-        elif text[p : p + 2] == "{{":
-            end = find_next(text, "}}", p)
+        elif text[p : p + 2] == "{" + "{":
+            end = find_next(text, "}" + "}", p)
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
