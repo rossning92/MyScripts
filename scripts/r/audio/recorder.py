@@ -243,7 +243,7 @@ class TerminalRecorder:
     def create_noise_profile(self):
         self._stop_all()
 
-        print2("please be quiet...", color="green")
+        print("please be quiet")
         sleep(1)
         print("start collecting noise profile")
 

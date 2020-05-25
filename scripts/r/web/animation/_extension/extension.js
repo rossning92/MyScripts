@@ -5,55 +5,48 @@ const process = require("process");
 
 var child;
 
+function getRecorderProcess() {
+  if (child == null) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor == null) {
+      return null;
+    }
+
+    const fileName = editor.document.fileName;
+    if (path.basename(fileName) != "index.md") {
+      return null;
+    }
+
+    child = cp.spawn("python", ["-u", "-m", "r.audio.recorder"], {
+      env: {
+        ...process.env,
+        RECORD_OUT_DIR: path.resolve(path.dirname(fileName) + "/record"),
+        RECODER_INTERACTIVE: "0",
+      },
+    });
+
+    child.on("close", (code) => {
+      vscode.window.showInformationMessage(
+        `recorder process exited with code ${code}`
+      );
+    });
+
+    child.stdout.on("data", (data) => {
+      vscode.window.showInformationMessage(`${data}`);
+    });
+
+    child.stderr.on("data", (data) => {
+      vscode.window.showInformationMessage(`${data}`);
+    });
+  }
+
+  return child;
+}
+
 function activate(context) {
   context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((status) => {
-      const editor = vscode.window.activeTextEditor;
-      if (editor) {
-        const fileName = editor.document.fileName;
-        if (path.basename(fileName) == "index.md") {
-          child = cp.spawn("python", ["-u", "-m", "r.audio.recorder"], {
-            env: {
-              ...process.env,
-              RECORD_OUT_DIR: path.resolve(path.dirname(fileName) + "/record"),
-              RECODER_INTERACTIVE: "0",
-            },
-          });
-
-          child.on("close", (code) => {
-            vscode.window.showInformationMessage(
-              `child process exited with code ${code}`
-            );
-          });
-
-          child.stdout.on("data", (data) => {
-            vscode.window.showInformationMessage(`stdout: ${data}`);
-          });
-
-          child.stderr.on("data", (data) => {
-            vscode.window.showInformationMessage(`stderr: ${data}`);
-          });
-
-          // child.stdin.setEncoding("utf-8");
-          // child.stdout.pipe(process.stdout);
-
-          // child.stdin.write(selectionText);
-          // child.stdin.end();
-
-          vscode.window.showInformationMessage("yoyo");
-        }
-      }
-    })
+    vscode.window.onDidChangeActiveTextEditor((status) => {})
   );
-
-  // const child = cp.spawn("python", [
-
-  // ]);
-  // child.stdin.setEncoding("utf-8");
-  // child.stdout.pipe(process.stdout);
-
-  // child.stdin.write(selectionText);
-  // child.stdin.end();
 
   vscode.commands.registerCommand("yo.runSelection", function () {
     let editor = vscode.window.activeTextEditor;
@@ -77,20 +70,20 @@ function activate(context) {
           selectionText,
         ],
       });
-      // terminal.sendText("echo 'Sent text immediately after creating'");
       terminal.show();
     }
   });
 
   vscode.commands.registerCommand("yo.startRecording", function () {
-    if (child != null) {
-      child.stdin.write("r\n");
-    }
+    getRecorderProcess().stdin.write("r\n");
   });
+
   vscode.commands.registerCommand("yo.stopRecording", function () {
-    if (child != null) {
-      child.stdin.write("s\n");
-    }
+    getRecorderProcess().stdin.write("s\n");
+  });
+
+  vscode.commands.registerCommand("yo.collectNoiseProfile", function () {
+    getRecorderProcess().stdin.write("n\n");
   });
 
   // console.log("decorator sample is activated");

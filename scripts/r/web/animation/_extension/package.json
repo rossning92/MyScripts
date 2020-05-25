@@ -30,15 +30,19 @@
     "commands": [
       {
         "command": "yo.runSelection",
-        "title": "Run Selection"
+        "title": "Animation ToolKit: Run Selection"
       },
       {
         "command": "yo.startRecording",
-        "title": "Start Recording"
+        "title": "Animation ToolKit: Start Recording"
       },
       {
         "command": "yo.stopRecording",
-        "title": "Stop Recording"
+        "title": "Animation ToolKit: Stop Recording"
+      },
+      {
+        "command": "yo.collectNoiseProfile",
+        "title": "Animation ToolKit: Collect Noise Profile"
       }
     ],
     "keybindings": [
@@ -53,6 +57,10 @@
       {
         "command": "yo.stopRecording",
         "key": "f8"
+      },
+      {
+        "command": "yo.collectNoiseProfile",
+        "key": "f9"
       }
     ]
   },
