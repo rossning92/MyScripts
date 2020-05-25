@@ -24,6 +24,7 @@ import json
 
 def get_hash(text):
     import hashlib
+
     hash_object = hashlib.md5(text.encode())
     hash = hash_object.hexdigest()[0:16]
     return hash
@@ -775,7 +776,7 @@ def unzip(file, to=None):
 
 
 def get_time_str():
-    return datetime.datetime.now().strftime("%y%m%d%H%M%S")
+    return datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 
 def make_and_change_dir(path):
