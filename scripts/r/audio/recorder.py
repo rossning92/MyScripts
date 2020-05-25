@@ -159,7 +159,7 @@ def get_audio_files(out_dir):
 
 
 class TerminalRecorder:
-    def __init__(self, out_dir=".", interactive=True):
+    def __init__(self, out_dir="", interactive=True):
         self.out_dir = out_dir
         self.recorder = WaveRecorder(channels=2)
         self.playback = WavePlayer()
@@ -288,7 +288,7 @@ class TerminalRecorder:
     def stop_record(self):
         if self.recorder.is_recording():
             self.recorder.stop()
-            print("stop recording")
+            print("stop recording: %s" % self.new_file_name)
 
             denoise(in_file=self.new_file_name)
 

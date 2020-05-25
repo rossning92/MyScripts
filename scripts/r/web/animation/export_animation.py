@@ -953,7 +953,7 @@ def _export_video(resolution=(1920, 1080), fps=25):
         ffmpeg_params=["-crf", "19"],
     )
 
-    open_with("out.mp4", program_id=1)
+    open_with(f"{out_filename}.mp4", program_id=1)
 
 
 def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):

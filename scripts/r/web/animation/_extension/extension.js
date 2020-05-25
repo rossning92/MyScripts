@@ -33,6 +33,18 @@ function getRecorderProcess() {
 
     child.stdout.on("data", (data) => {
       vscode.window.showInformationMessage(`${data}`);
+      const s = data.toString("utf8").trim();
+      if (s.startsWith("stop recording:")) {
+        const fileName = s.split(":")[1].trim();
+
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          const selection = editor.selection;
+          editor.edit((editBuilder) => {
+            editBuilder.replace(selection, `{{ record('${fileName}') }}`);
+          });
+        }
+      }
     });
 
     child.stderr.on("data", (data) => {
