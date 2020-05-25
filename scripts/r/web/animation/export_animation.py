@@ -282,7 +282,7 @@ def record(f, t="a", **kwargs):
 
     audio(f, t=t, **kwargs)
 
-    END_CHAR = ["。", "，", "！", "、"]
+    END_CHAR = ["。", "，", "！", "、", "；"]
 
     global _srt_index
     global _last_subtitle_index
