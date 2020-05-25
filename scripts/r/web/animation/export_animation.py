@@ -945,8 +945,8 @@ def _export_video(resolution=(1920, 1080), fps=25):
 
     # final_clip.show(10.5, interactive=True)
 
-    os.makedirs("tmp/out", exist_ok=True)
-    out_filename = "tmp/out/" + get_time_str()
+    os.makedirs("out", exist_ok=True)
+    out_filename = "out/" + get_time_str()
     final_clip.write_videofile(
         "%s.mp4" % out_filename,
         temp_audiofile="%s.mp3" % out_filename,
