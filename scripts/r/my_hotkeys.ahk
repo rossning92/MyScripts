@@ -132,7 +132,7 @@ return
 #If
 
 #If WinExist("ahk_exe vncviewer.exe")
-    F8::
+    F11::
         if WinActive("ahk_exe vncviewer.exe") {
             WinMinimize, ahk_exe vncviewer.exe
         } else {

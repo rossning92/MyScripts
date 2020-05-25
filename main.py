@@ -374,6 +374,7 @@ RunScript(name, path)
         self.update_gui(user_input)
 
     def update_gui(self, user_input=None):
+        self.last_args = None
         self.ui.listWidget.clear()
         self.matched_items = []
 

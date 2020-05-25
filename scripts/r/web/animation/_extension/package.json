@@ -31,12 +31,28 @@
       {
         "command": "yo.runSelection",
         "title": "Run Selection"
+      },
+      {
+        "command": "yo.startRecording",
+        "title": "Start Recording"
+      },
+      {
+        "command": "yo.stopRecording",
+        "title": "Stop Recording"
       }
     ],
     "keybindings": [
       {
         "command": "yo.runSelection",
         "key": "alt+enter"
+      },
+      {
+        "command": "yo.startRecording",
+        "key": "f7"
+      },
+      {
+        "command": "yo.stopRecording",
+        "key": "f8"
       }
     ]
   },
