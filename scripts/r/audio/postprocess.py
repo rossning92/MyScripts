@@ -197,7 +197,7 @@ def create_final_vocal(prefix="record_", file_list=[]):
 
 if __name__ == "__main__":
     folder = r"{{_AUDIO_DIR}}"
-    print("Project folder: %s" % folder)
+    print("input audio folder: %s" % folder)
     chdir(folder)
 
     create_final_vocal()

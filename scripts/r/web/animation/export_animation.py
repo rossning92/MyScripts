@@ -16,6 +16,7 @@ import re
 import capture_animation
 from slide.generate import generate_slide
 from r.open_with.open_with_ import open_with
+from r.audio.postprocess import process_audio_file
 from _shutil import *
 from collections import defaultdict
 from collections import OrderedDict
@@ -277,8 +278,11 @@ def _add_subtitle_clip(start, end, text):
 
 def record(f, t="a", **kwargs):
     if not os.path.exists(f):
-        f = "tmp/record/" + f + ".final.wav"
+        f = "record/" + f
         assert os.path.exists(f)
+
+    # Post-process audio
+    f = process_audio_file(f)
 
     audio(f, t=t, **kwargs)
 
@@ -423,7 +427,7 @@ def bgm(
     out_duration=0.5,
     vol=0.1,
     track="bgm",
-    **kwargs
+    **kwargs,
 ):
     print("bgm: %s" % f)
     t = _get_pos(t)
@@ -612,7 +616,7 @@ def _add_clip(
     t=None,
     duration=None,
     text_overlay=None,
-    **kwargs
+    **kwargs,
 ):
     track = _get_vid_track(track)
 
@@ -641,7 +645,7 @@ def _add_clip(
         speed=speed,
         pos=pos,
         duration=duration,
-        **kwargs
+        **kwargs,
     )
 
     # Advance the pos
@@ -671,7 +675,7 @@ def image_anim(file, t=5, **kwargs):
         url="http://localhost:8080/image.html",
         name=os.path.splitext(file)[0],
         params={"t": "%d" % t, "src": file},
-        **kwargs
+        **kwargs,
     )
 
 
@@ -680,7 +684,7 @@ def title_anim(h1, h2, **kwargs):
         url="http://localhost:8080/title-animation.html",
         name=slugify("title-%s-%s" % (h1, h2)),
         params={"h1": h1, "h2": h2},
-        **kwargs
+        **kwargs,
     )
 
 
@@ -722,7 +726,7 @@ def screencap(f, speed=None, track=None, **kwargs):
         .set_position((0, 22)),
         speed=speed,
         track=track,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -746,7 +750,7 @@ def hl(pos, track="hl", **kwargs):
         track=track,
         fadein=True,
         fadeout=True,
-        **kwargs
+        **kwargs,
     )
 
 
