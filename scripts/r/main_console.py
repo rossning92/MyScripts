@@ -31,4 +31,4 @@ while True:
     if found:
         list(found)[0].execute()
     else:
-        print2("ERROR: unrecognized command.", color='red')
+        print2("ERROR: unrecognized command.", color="red")
