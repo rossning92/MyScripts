@@ -752,8 +752,8 @@ def create_script_link(script_file):
 
 
 def is_instance_running():
+    LOCK_PATH = os.path.join(tempfile.gettempdir(), "myscripts_lock")
     if sys.platform == "win32":
-        LOCK_PATH = os.path.join(tempfile.gettempdir(), "myscripts_lock")
         try:
             if os.path.exists(LOCK_PATH):
                 os.unlink(LOCK_PATH)
