@@ -1,6 +1,12 @@
 from _script import *
 from prompt_toolkit import prompt
-from prompt_toolkit.completion import WordCompleter, FuzzyCompleter, Completer, Completion
+from prompt_toolkit.completion import (
+    WordCompleter,
+    FuzzyWordCompleter,
+    FuzzyCompleter,
+    Completer,
+    Completion,
+)
 
 
 scripts = []
@@ -15,8 +21,14 @@ class MyCustomCompleter(Completer):
             yield Completion(script.name)
 
 
-text = prompt('> ', completer=FuzzyCompleter(MyCustomCompleter()),
-              complete_while_typing=True)
-found = filter(lambda x: x.name == text, scripts)
-if found:
-    list(found)[0].execute()
+while True:
+    text = prompt(
+        "> ",
+        completer=FuzzyWordCompleter([x.name for x in scripts],),
+        complete_while_typing=True,
+    )
+    found = list(filter(lambda x: x.name == text, scripts))
+    if found:
+        list(found)[0].execute()
+    else:
+        print2("ERROR: unrecognized command.", color='red')
