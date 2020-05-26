@@ -292,48 +292,50 @@ def record(f, t="a", **kwargs):
     global _last_subtitle_index
 
     if ADD_SUBTITLE:
-        assert len(_subtitle) > 0
+        if len(_subtitle) == 0:
+            print("WARNING: no subtitle found")
 
-        idx = len(_subtitle) - 1
-        if _last_subtitle_index == idx:
-            print2("WARNING: subtitle used twice: %s" % _subtitle[idx])
-        _last_subtitle_index = idx
+        else:
+            idx = len(_subtitle) - 1
+            if _last_subtitle_index == idx:
+                print2("WARNING: subtitle used twice: %s" % _subtitle[idx])
+            _last_subtitle_index = idx
 
-        start = end = _get_pos("as")
-        subtitle = _subtitle[idx].strip()
+            start = end = _get_pos("as")
+            subtitle = _subtitle[idx].strip()
 
-        if subtitle[-1] not in END_CHAR:
-            subtitle += END_CHAR[0]
+            if subtitle[-1] not in END_CHAR:
+                subtitle += END_CHAR[0]
 
-        length = len(subtitle)
-        word_dura = (_get_pos("ae") - start) / length
+            length = len(subtitle)
+            word_dura = (_get_pos("ae") - start) / length
 
-        i = 0
-        MAX = 5
-        word = ""
+            i = 0
+            MAX = 5
+            word = ""
 
-        while i < length:
-            if subtitle[i] in ["，", "。", "！"] and len(word) > MAX:
-                _srt_lines.extend(
-                    [
-                        "%d" % _srt_index,
-                        "%s --> %s" % (_format_time(start), _format_time(end)),
-                        word,
-                        "",
-                    ]
-                )
+            while i < length:
+                if subtitle[i] in ["，", "。", "！"] and len(word) > MAX:
+                    _srt_lines.extend(
+                        [
+                            "%d" % _srt_index,
+                            "%s --> %s" % (_format_time(start), _format_time(end)),
+                            word,
+                            "",
+                        ]
+                    )
 
-                _add_subtitle_clip(start=start, end=end, text=word)
+                    _add_subtitle_clip(start=start, end=end, text=word)
 
-                end += word_dura
-                start = end
-                word = ""
-                _srt_index += 1
-            else:
-                word += subtitle[i]
-                end += word_dura
+                    end += word_dura
+                    start = end
+                    word = ""
+                    _srt_index += 1
+                else:
+                    word += subtitle[i]
+                    end += word_dura
 
-            i += 1
+                i += 1
 
 
 def audio_gap(duration):
