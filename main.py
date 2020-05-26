@@ -281,6 +281,8 @@ class MainWindow(QWidget):
                 args = self.last_args
             else:
                 self.last_args = args
+        else:
+            args = []
 
         # HACK: always create new window
         restart_instance = None
