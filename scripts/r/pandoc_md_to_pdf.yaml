@@ -6,6 +6,6 @@ hotkey: null
 newWindow: true
 restartInstance: true
 runAsAdmin: false
-template: false
+template: true
 venv: null
 wsl: false

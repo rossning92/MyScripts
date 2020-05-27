@@ -6,7 +6,16 @@ f = get_files()[0]
 
 cd(os.path.dirname(f))
 infile = os.path.basename(f)
-outfile = os.path.splitext(infile)[0] + ".pdf"
+
+
+outfile = os.path.splitext(infile)[0]
+if "{{_GEN_TEX}}":
+    outfile += ".tex"
+elif "{{_GEN_DOCX}}":
+    outfile += ".docx"
+else:
+    outfile += ".pdf"
+
 
 print(f"{infile} => {outfile}")
 
@@ -16,7 +25,7 @@ s = open(f, encoding="utf-8").read()
 def generate_diagram(match):
     if match.group(1).strip() == "dot2":
         s = """digraph G {
-        rankdir=TB
+        rankdir=LR
 
         graph [fontsize=14 dpi=300]
         node [shape=record fontname="Source Han Serif CN"]
@@ -82,11 +91,15 @@ p = subprocess.Popen(
         "-V",
         "geometry=margin=1in",
         "--dpi=300",
+        "-V",
+        "papersize:a4",
     ],
     stdin=subprocess.PIPE,
 )
 p.stdin.write(s.encode("utf-8"))
 p.stdin.close()
-p.wait()
+ret = p.wait()
+if ret != 0:
+    raise Exception("pandoc returns non zero")
 
 shell_open(outfile)
