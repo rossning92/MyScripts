@@ -149,7 +149,7 @@ def _get_media_duration(f):
 
 def ffmpeg(
     in_file,
-    out_file="out.mp4",
+    out_file=None,
     start_and_duration=None,
     reencode=False,
     nvenc=True,
@@ -162,6 +162,12 @@ def ffmpeg(
     max_size_mb=None,
     no_audio=False,
 ):
+    if out_file is None:
+        os.makedirs("out", exist_ok=True)
+        out_file = os.path.join(
+            os.path.dirname(in_file), "out", os.path.basename(in_file)
+        )
+
     if crf and crf < 19:
         raise Exception("ERROR: 19 is visually identical to 0. Do not go lower.")
 
@@ -242,6 +248,8 @@ def ffmpeg(
 
     print("> " + " ".join(args))
     subprocess.check_call(args)
+
+    return out_file
 
 
 def extract_imgs(f, fps=1, out_folder="out"):

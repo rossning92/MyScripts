@@ -305,6 +305,32 @@ def activate_cur_terminal():
         ctypes.windll.user32.SetForegroundWindow(hwnd)
 
 
+def search(options):
+    matched_indices = []
+
+    while True:
+        print(">", flush=True, end="")
+        kw = input()
+
+        if kw.isdigit():
+            try:
+                idx = int(kw)
+                return matched_indices[idx]
+            except:
+                print2("ERROR: invalid input.", color="red")
+
+        else:
+            matched_indices.clear()
+
+            tokens = kw.split(" ")
+            for i, s in enumerate(options):
+                if all([(token in s) for token in tokens]):
+                    matched_indices.append(i)
+
+            for i, idx in enumerate(matched_indices):
+                print("[%d] %s" % (i, options[idx]))
+
+
 def _prompt(options, message=None):
     for i, option in enumerate(options):
         print("%d. %s" % (i + 1, option))
@@ -312,7 +338,7 @@ def _prompt(options, message=None):
     if message is None:
         message = "selections"
 
-    print("%s (indices, sep by space)> " % message, flush=True, end="")
+    print("%s (indices, sep by space)>" % message, flush=True, end="")
     selections = input()
     selections = [int(x) - 1 for x in selections.split()]
     return selections
