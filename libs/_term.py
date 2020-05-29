@@ -309,7 +309,7 @@ def search(options):
     matched_indices = []
 
     while True:
-        print(">", flush=True, end="")
+        print2("> ", end="", color="green")
         kw = input()
 
         if kw.isdigit():
@@ -338,7 +338,7 @@ def _prompt(options, message=None):
     if message is None:
         message = "selections"
 
-    print("%s (indices, sep by space)>" % message, flush=True, end="")
+    print("%s (indices, sep by space)> " % message, flush=True, end="")
     selections = input()
     selections = [int(x) - 1 for x in selections.split()]
     return selections
