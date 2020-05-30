@@ -224,9 +224,9 @@ class ScriptItem:
         if self.real_script_path is not None:
             if not os.path.exists(self.real_script_path):
                 print2(
-                    "WARNING: cannot locate the script: %s. Link removed." % self.name
+                    "WARNING: cannot locate the link: %s" % self.name
                 )
-                os.remove(self.script_path)
+                # os.remove(self.script_path)
                 return False
         return True
 
