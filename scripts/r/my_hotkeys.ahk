@@ -23,13 +23,13 @@ return
 
 ~LButton & WheelUp::
     Suspend, Permit
-    SoundSet +5
+    SoundSet +2
     SoundPlay *16
 return
 
 ~LButton & WheelDown::
     Suspend, Permit
-    SoundSet -5
+    SoundSet -2
     SoundPlay *16
 return
 
