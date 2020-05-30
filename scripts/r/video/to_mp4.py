@@ -46,6 +46,9 @@ for f in files:
     elif "{{_ROTATE_CCW}}":
         filter_v.append("transpose=2")
 
+    if "{{_SPEED}}":
+        filter_v.append("setpts=PTS/%.2f" % float("{{_SPEED}}"))
+
     if filter_v:
         extra_args += ["-filter:v", ",".join(filter_v)]
 

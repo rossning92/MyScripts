@@ -29,6 +29,7 @@ PKGS = {
         "golang",
         "nvidia-display-driver",
         "carnac",
+        "win32diskimager",
     ],
     "common": ["everything", "irfanview",],
     "dev": [
