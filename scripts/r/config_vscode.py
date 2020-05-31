@@ -66,6 +66,7 @@ if not "{{SKIP_EXTENSIONS}}":
         "esbenp.prettier-vscode",
         # Shell script
         "foxundermoon.shell-format",
+        # "ms-vscode-remote.vscode-remote-extensionpack",
     ]
 
     prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
