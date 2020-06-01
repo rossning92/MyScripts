@@ -66,6 +66,8 @@ if not "{{SKIP_EXTENSIONS}}":
         "esbenp.prettier-vscode",
         # Shell script
         "foxundermoon.shell-format",
+        # Python
+        "njpwerner.autodocstring",
         # "ms-vscode-remote.vscode-remote-extensionpack",
     ]
 

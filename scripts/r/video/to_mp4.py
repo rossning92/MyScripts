@@ -9,8 +9,8 @@ for f in files:
     if not os.path.isfile(f):
         continue
 
-    fn, ext = os.path.splitext(f)
-    out_file = "%s_out.mp4" % fn
+    mkdir("out")
+    out_file = "out/%s" % os.path.basename(f)
 
     extra_args = []
 
