@@ -18,15 +18,6 @@ for f in files:
     if "{{_FPS}}":
         extra_args += ["-r", "{{_FPS}}"]
 
-    # TODO: merge to following filter_v
-    # Scale (-2 indicates divisible by 2)
-    if "{{_RESIZE_H}}":
-        extra_args += ["-vf", "scale=-2:{{_RESIZE_H}}"]
-
-    # Scale (-2 indicates divisible by 2)
-    elif "{{_RESIZE_W}}":
-        extra_args += ["-vf", "scale={{_RESIZE_W}}:-2"]
-
     filter_v = []
 
     # Crop video
@@ -48,6 +39,12 @@ for f in files:
 
     if "{{_SPEED}}":
         filter_v.append("setpts=PTS/%.2f" % float("{{_SPEED}}"))
+
+    # Scale (-2 indicates divisible by 2)
+    if "{{_RESIZE_H}}":
+        filter_v.append("scale=-2:{{_RESIZE_H}}")
+    elif "{{_RESIZE_W}}":
+        filter_v.append("scale={{_RESIZE_W}}:-2")
 
     if filter_v:
         extra_args += ["-filter:v", ",".join(filter_v)]
