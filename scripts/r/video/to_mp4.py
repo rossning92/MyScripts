@@ -46,6 +46,11 @@ for f in files:
     elif "{{_RESIZE_W}}":
         filter_v.append("scale={{_RESIZE_W}}:-2")
 
+    if "{{_TEXT_OVERLAY}}":
+        filter_v.append(
+            "drawtext=text='{{_TEXT_OVERLAY}}':fontcolor=white@1.0:fontsize=100:x=(w-text_w)/2:y=(h-text_h)/2"
+        )
+
     if filter_v:
         extra_args += ["-filter:v", ",".join(filter_v)]
 
