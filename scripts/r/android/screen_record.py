@@ -3,7 +3,11 @@ import signal
 from _video import *
 
 
-def screen_record(out_file=None, max_secs=10, bit_rate="20M"):
+def screen_record(out_file=None, max_secs=10, bit_rate="40M"):
+    """
+    adb shell screenrecord /sdcard/screen_record.mp4 --time-limit 5 --bit-rate 40M
+    """
+
     print("Press Ctrl-C to stop recording...")
 
     signal.signal(signal.SIGINT, lambda a, b: None)

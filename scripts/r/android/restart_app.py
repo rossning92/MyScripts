@@ -2,11 +2,14 @@ from _shutil import *
 from _script import *
 from _android import *
 
-pkg = r'{{PKG_NAME}}'
+# Run app using monkey:
+# adb shell monkey -p your.app.package.name -c android.intent.category.LAUNCHER 1
 
-call2('adb logcat -c')
+pkg = r"{{PKG_NAME}}"
 
-restart_app(pkg, use_monkey=bool('{{USE_MONKEY}}'))
+call2("adb logcat -c")
 
-if '{{_SHOW_LOGCAT}}':
+restart_app(pkg, use_monkey=bool("{{USE_MONKEY}}"))
+
+if "{{_SHOW_LOGCAT}}":
     logcat(proc_name=pkg)
