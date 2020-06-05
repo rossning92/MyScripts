@@ -844,8 +844,9 @@ def get_ip_addr():
 
 
 def convert_to_unix_path(path, wsl=False):
-    patt = r'^[a-zA-Z]:\\(((?![<>:"/\\|?*]).)+((?<![ .])\\)?)*$'
-    if re.match(patt, path):
+    path = path.replace("\\", "/")
+    PATT = r'^[a-zA-Z]:/(((?![<>:"//|?*]).)+((?<![ .])/)?)*$'
+    if re.match(PATT, path):
         if wsl:
             path = re.sub(
                 r"^([a-zA-Z]):", lambda x: ("/mnt/" + x.group(0)[0].lower()), path
@@ -854,7 +855,6 @@ def convert_to_unix_path(path, wsl=False):
             path = re.sub(
                 r"^([a-zA-Z]):", lambda x: ("/" + x.group(0)[0].lower()), path
             )
-        path = path.replace("\\", "/")
     return path
 
 

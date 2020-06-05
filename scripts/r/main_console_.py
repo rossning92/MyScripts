@@ -1,3 +1,10 @@
+import sys
+import os
+
+sys.path.append(os.path.realpath("../../libs"))
+sys.path.append(os.path.realpath("../../bin"))
+
+import run_python
 from _script import *
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import (
@@ -12,7 +19,7 @@ from prompt_toolkit.completion import (
 scripts = []
 modified_time = {}
 
-load_scripts(scripts, modified_time)
+load_scripts(scripts, modified_time, autorun=False)
 
 
 class MyCustomCompleter(Completer):

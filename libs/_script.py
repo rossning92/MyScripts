@@ -395,7 +395,9 @@ class ScriptItem:
             if self.meta["template"]:
                 bash_cmd = self.render()
             else:
-                bash_cmd = _args_to_str([script_path] + args)
+                bash_cmd = _args_to_str(
+                    [convert_to_unix_path(script_path, wsl=self.meta["wsl"])] + args
+                )
 
             args = bash(bash_cmd, wsl=self.meta["wsl"], env=env)
 
@@ -842,7 +844,7 @@ def get_scripts_recursive(directory):
                 yield os.path.join(root, f)
 
 
-def load_scripts(script_list, modified_time):
+def load_scripts(script_list, modified_time, autorun=True):
     # TODO: only update modified scripts
     script_list.clear()
 
@@ -870,7 +872,7 @@ def load_scripts(script_list, modified_time):
 
             if file not in modified_time or mtime > modified_time[file]:
                 # Check if auto run script
-                if script.meta["autoRun"]:
+                if script.meta["autoRun"] and autorun:
                     print2("AUTORUN: ", end="", color="cyan")
                     print(file)
                     script.execute(new_window=False)
