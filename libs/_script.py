@@ -53,14 +53,21 @@ def get_console_title():
     return None
 
 
+def wrap_wsl(commands):
+    if type(commands) in [list, tuple]:
+        commands = _args_to_str(commands)
+
+    if not os.path.exists(r"C:\Windows\System32\bash.exe"):
+        raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
+    # Escape dollar sign? Why?
+    commands = commands.replace("$", r"\$")
+    return ["bash.exe", "-c", commands]
+
+
 def bash(bash, wsl=False, env=None):
     if os.name == "nt":
         if wsl:  # WSL (Windows Subsystem for Linux)
-            if not os.path.exists(r"C:\Windows\System32\bash.exe"):
-                raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
-            # Escape dollar sign? Why?
-            bash = bash.replace("$", r"\$")
-            return ["bash.exe", "-c", bash]
+            return wrap_wsl(bash)
         else:
             if env is not None:
                 env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
@@ -223,9 +230,7 @@ class ScriptItem:
     def check_link_existence(self):
         if self.real_script_path is not None:
             if not os.path.exists(self.real_script_path):
-                print2(
-                    "WARNING: cannot locate the link: %s" % self.name
-                )
+                print2("WARNING: cannot locate the link: %s" % self.name)
                 # os.remove(self.script_path)
                 return False
         return True
@@ -391,14 +396,20 @@ class ScriptItem:
                 bash_cmd = self.render()
             else:
                 bash_cmd = _args_to_str([script_path] + args)
-                
+
             args = bash(bash_cmd, wsl=self.meta["wsl"], env=env)
 
         elif ext == ".py" or ext == ".ipynb":
+            python_exec = sys.executable
+
             if self.meta["template"] and ext == ".py":
                 python_file = write_temp_file(self.render(), ".py")
             else:
                 python_file = os.path.realpath(script_path)
+
+            if sys.platform == "win32" and self.meta["wsl"]:
+                python_file = convert_to_unix_path(python_file, wsl=self.meta["wsl"])
+                python_exec = "python3"
 
             python_path = get_python_path(script_path)
 
@@ -430,7 +441,7 @@ class ScriptItem:
                 assert sys.platform == "win32"
                 venv_path = os.path.expanduser("~\\venv\\%s" % self.meta["venv"])
                 if not exists(venv_path):
-                    call_echo([sys.executable, "-m", "venv", venv_path])
+                    call_echo(["python", "-m", "venv", venv_path])
 
                 args_activate = [
                     "cmd",
@@ -444,15 +455,12 @@ class ScriptItem:
                 run_py = os.path.abspath(
                     os.path.dirname(__file__) + "/../bin/run_python.py"
                 )
-                args = (
-                    args_activate
-                    + [
-                        "python" if args_activate else sys.executable,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+
+                # TODO: make it more general
+                if sys.platform == "win32" and self.meta["wsl"]:
+                    run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
+
+                args = args_activate + [python_exec, run_py, python_file,] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -460,6 +468,9 @@ class ScriptItem:
                 self.meta["newWindow"] = True
             else:
                 assert False
+
+            if self.meta["wsl"]:
+                args = wrap_wsl(args)
 
         elif ext == ".vbs":
             assert os.name == "nt"
