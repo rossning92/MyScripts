@@ -553,7 +553,13 @@ class ScriptItem:
                         break
 
                 elif sys.platform == "linux":
-                    args = ["x-terminal-emulator", "-e"] + args
+                    args = ["tmux", "split-window"] + args
+                    # args = ["x-terminal-emulator", "-e"] + args
+
+                else:
+                    raise Exception(
+                        "newWindow flag is not supported on target platform."
+                    )
 
             # Check if run as admin
             if platform.system() == "Windows" and self.meta["runAsAdmin"]:
