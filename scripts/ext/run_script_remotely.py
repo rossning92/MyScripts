@@ -5,8 +5,9 @@ TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
 def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
     # plink is preferred (better automation)
-    # -t switch to force a use of an interactive session
-    args = f"plink -ssh -t {user_host} -m {bash_script_file}"
+    # -t: switch to force a use of an interactive session
+    # -no-antispoof: omit anti-spoofing prompt after authentication
+    args = f"plink -ssh -no-antispoof -t {user_host} -m {bash_script_file}"
     if ssh_pwd:
         args += " -pw %s" % ssh_pwd
     if ssh_port:
