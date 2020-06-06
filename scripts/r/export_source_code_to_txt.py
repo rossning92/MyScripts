@@ -4,7 +4,7 @@ import chardet
 
 cd(os.environ["CURRENT_FOLDER"])
 
-EXT = [".cpp", ".c", ".java", ".py", ".h", ".cs", ".html", ".cshtml", ".jsp"]
+EXT = [".cpp", ".c", ".java", ".py", ".h", ".cs", ".html", ".cshtml", ".jsp", ".sql"]
 
 txt = []
 
