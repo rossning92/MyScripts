@@ -4,7 +4,7 @@ import chardet
 
 cd(os.environ["CURRENT_FOLDER"])
 
-EXT = [".cpp", ".c", ".java", ".py", ".h", ".cs", ".html", ".cshtml"]
+EXT = [".cpp", ".c", ".java", ".py", ".h", ".cs", ".html", ".cshtml", ".jsp"]
 
 txt = []
 
@@ -31,6 +31,7 @@ for file in glob.glob("**/*", recursive=True):
         txt.append(s)
         txt.append("```")
 
-
+lines = "\n".join(txt).splitlines()
+print("total lines: %d" % len(lines))
 with open("source.txt", "w", encoding="utf-8") as f:
-    f.write("\n".join(txt))
+    f.write("\n".join(lines))
