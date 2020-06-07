@@ -54,6 +54,10 @@ for f in files:
     if filter_v:
         extra_args += ["-filter:v", ",".join(filter_v)]
 
+    if "{{_SPEED}}":
+        filter_a = "atempo={{_SPEED}}"
+        extra_args += ["-filter:a", filter_a]
+
     # Cut video
     start_and_duration = None
     if "{{_START_AND_DURATION}}":
