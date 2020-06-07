@@ -1,4 +1,4 @@
-run_script /r/android/oneplus/unlock.sh
+run_script /r/android/unlock.sh
 
 # Set display timeout to 1 minute.
 adb shell settings put system screen_off_timeout 60000
