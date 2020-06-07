@@ -54,17 +54,25 @@ def get_console_title():
 
 
 def wrap_wsl(commands):
+    if not os.path.exists(r"C:\Windows\System32\bash.exe"):
+        raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
+
     if type(commands) in [list, tuple]:
         commands = _args_to_str(commands)
 
-    if not os.path.exists(r"C:\Windows\System32\bash.exe"):
-        raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
-    # Escape dollar sign? Why?
-    commands = commands.replace("$", r"\$")
-    return ["bash.exe", "-c", commands]
+    # To create a temp sh files to invoke commands to avoid command being parsed
+    # by current shell 
+    tmp_sh_file = write_temp_file(commands, ".sh")
+    tmp_sh_file = convert_to_unix_path(tmp_sh_file, wsl=True)
+
+    # # Escape dollar sign? Why?
+    # commands = commands.replace("$", r"\$")
+    # return ["bash.exe", "-c", commands]
+
+    return ["bash", tmp_sh_file]
 
 
-def bash(bash, wsl=False, env=None):
+def wrap_bash_commands(bash, wsl=False, env=None):
     if os.name == "nt":
         if wsl:  # WSL (Windows Subsystem for Linux)
             return wrap_wsl(bash)
@@ -169,6 +177,17 @@ def get_python_path(script_path):
 
     python_path.append(os.path.dirname(__file__))
     return python_path
+
+
+def wt_wrap_args(args, wsl=False, **kwargs):
+    assert sys.platform == "win32"
+
+    if wsl:
+        args = ["wt", "-p", "Ubuntu"] + args
+    else:
+        args = conemu_wrap_args(args, **kwargs)
+
+    return args
 
 
 class ScriptItem:
@@ -399,7 +418,7 @@ class ScriptItem:
                     [convert_to_unix_path(script_path, wsl=self.meta["wsl"])] + args
                 )
 
-            args = bash(bash_cmd, wsl=self.meta["wsl"], env=env)
+            args = wrap_bash_commands(bash_cmd, wsl=self.meta["wsl"], env=env)
 
         elif ext == ".py" or ext == ".ipynb":
             python_exec = sys.executable
@@ -505,21 +524,23 @@ class ScriptItem:
             if new_window:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
-                if sys.platform == "win32" and not self.meta["runAsAdmin"]:
-                    args = [
-                        sys.executable,
-                        "-c",
-                        "import subprocess;"
-                        "import ctypes;"
-                        f'import sys;sys.path.append(r"{os.path.dirname(__file__)}");'
-                        "import _script as s;"
-                        f's.set_console_title(r"{self.get_console_title()}");'
-                        f"ret = subprocess.call({args});"
-                        "hwnd = ctypes.windll.kernel32.GetConsoleWindow();"
-                        "ctypes.windll.user32.SetForegroundWindow(hwnd);"
-                        's.set_console_title(s.get_console_title() + " (Finished)");'
-                        "sys.exit(ret)",
-                    ]
+                if sys.platform == "win32" and (not self.meta["runAsAdmin"]):
+
+                    if not self.meta["wsl"]:
+                        args = [
+                            sys.executable,
+                            "-c",
+                            "import subprocess;"
+                            "import ctypes;"
+                            f'import sys;sys.path.append(r"{os.path.dirname(__file__)}");'
+                            "import _script as s;"
+                            f's.set_console_title(r"{self.get_console_title()}");'
+                            f"ret = subprocess.call({args});"
+                            "hwnd = ctypes.windll.kernel32.GetConsoleWindow();"
+                            "ctypes.windll.user32.SetForegroundWindow(hwnd);"
+                            's.set_console_title(s.get_console_title() + " (Finished)");'
+                            "sys.exit(ret)",
+                        ]
 
                     # Create new console window on windows
                     while True:
@@ -532,8 +553,12 @@ class ScriptItem:
                                 else:
                                     title = None
 
-                                args = conemu_wrap_args(
-                                    args, cwd=cwd, small_window=True, title=title
+                                args = wt_wrap_args(
+                                    args,
+                                    cwd=cwd,
+                                    small_window=True,
+                                    title=title,
+                                    wsl=self.meta["wsl"],
                                 )
                                 break
                             except Exception as e:
