@@ -774,7 +774,7 @@ def _update_clip_duration(track):
         track[-1].duration = track[-1].mpy_clip.duration
 
 
-def _export_video(resolution=(1920, 1080), fps=25):
+def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
     audio_clips = []
 
     # Update clip duration for each track
@@ -949,17 +949,24 @@ def _export_video(resolution=(1920, 1080), fps=25):
 
     os.makedirs("out", exist_ok=True)
     out_filename = "out/" + get_time_str()
-    final_clip.write_videofile(
-        "%s.mp4" % out_filename,
-        temp_audiofile="%s.mp3" % out_filename,
-        remove_temp=False,
-        codec="libx264",
-        threads=8,
-        fps=fps,
-        ffmpeg_params=["-crf", "19"],
-    )
 
-    open_with(f"{out_filename}.mp4", program_id=1)
+    if audio_only:
+        final_audio_clip.fps = 44100
+        final_audio_clip.write_audiofile("%s.mp3" % out_filename)
+        open_with("%s.mp3" % out_filename, program_id=0)
+
+    else:
+        final_clip.write_videofile(
+            "%s.mp4" % out_filename,
+            temp_audiofile="%s.mp3" % out_filename,
+            remove_temp=False,
+            codec="libx264",
+            threads=8,
+            fps=fps,
+            ffmpeg_params=["-crf", "19"],
+        )
+
+        open_with(f"{out_filename}.mp4", program_id=1)
 
 
 def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
@@ -1080,14 +1087,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--stdin", default=False, action="store_true")
     parser.add_argument("-i", "--input", type=str, default=None)
+    parser.add_argument("-a", "--audio_only", action="store_true", default=False)
     args = parser.parse_args()
+
+    # HACK
+    if args.audio_only:
+        ADD_SUBTITLE = False
 
     if args.stdin:
         s = sys.stdin.read()
-        _parse_text(s)
+        _parse_text(s, audio_only=args.audio_only)
 
     elif args.input:
-        _parse_text(args.input)
+        _parse_text(args.input, audio_only=args.audio_only)
 
     else:
         PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
@@ -1111,4 +1123,4 @@ if __name__ == "__main__":
                 lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
             s = "\n".join(lines)
 
-            _parse_text(s)
+            _parse_text(s, audio_only=args.audio_only)

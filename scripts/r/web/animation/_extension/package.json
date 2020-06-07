@@ -33,6 +33,10 @@
         "title": "Animation ToolKit: Run Selection"
       },
       {
+        "command": "yo.exportAudio",
+        "title": "Animation ToolKit: Export Audio Only"
+      },
+      {
         "command": "yo.startRecording",
         "title": "Animation ToolKit: Start Recording"
       },
@@ -49,6 +53,10 @@
       {
         "command": "yo.runSelection",
         "key": "alt+enter"
+      },
+      {
+        "command": "yo.exportAudio",
+        "key": "ctrl+alt+enter"
       },
       {
         "command": "yo.startRecording",

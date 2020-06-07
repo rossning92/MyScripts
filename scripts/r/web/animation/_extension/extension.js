@@ -55,35 +55,48 @@ function getRecorderProcess() {
   return child;
 }
 
+function export_animation({ audioOnly = false } = {}) {
+  let editor = vscode.window.activeTextEditor;
+  if (editor) {
+    let document = editor.document;
+    let selection = editor.selection;
+    let selectionText = document.getText(selection);
+
+    var activeFilePath = vscode.window.activeTextEditor.document.fileName;
+    var activeDirectory = path.dirname(activeFilePath);
+    vscode.window.showInformationMessage(activeDirectory);
+
+    const shellArgs = [
+      "-m",
+      "r.web.animation.export_animation",
+      "-i",
+      selectionText,
+    ];
+    if (audioOnly) {
+      shellArgs.push("--audio_only");
+    }
+
+    const terminal = vscode.window.createTerminal({
+      name: "yoyo",
+      cwd: activeDirectory,
+      shellPath: "python.exe",
+      shellArgs: shellArgs,
+    });
+    terminal.show();
+  }
+}
+
 function activate(context) {
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((status) => {})
   );
 
   vscode.commands.registerCommand("yo.runSelection", function () {
-    let editor = vscode.window.activeTextEditor;
-    if (editor) {
-      let document = editor.document;
-      let selection = editor.selection;
-      let selectionText = document.getText(selection);
+    export_animation();
+  });
 
-      var activeFilePath = vscode.window.activeTextEditor.document.fileName;
-      var activeDirectory = path.dirname(activeFilePath);
-      vscode.window.showInformationMessage(activeDirectory);
-
-      const terminal = vscode.window.createTerminal({
-        name: "yoyo",
-        cwd: activeDirectory,
-        shellPath: "python.exe",
-        shellArgs: [
-          "-m",
-          "r.web.animation.export_animation",
-          "-i",
-          selectionText,
-        ],
-      });
-      terminal.show();
-    }
+  vscode.commands.registerCommand("yo.exportAudio", function () {
+    export_animation({ audioOnly: true });
   });
 
   vscode.commands.registerCommand("yo.startRecording", function () {
