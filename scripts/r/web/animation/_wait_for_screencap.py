@@ -14,7 +14,7 @@ dest_file = "screencap/" + name + ".mp4"
 os.rename(new_file, dest_file)
 print2("file saved: %s" % dest_file, color="green")
 
-clip = "! screencap('%s.mp4', no_audio=True)" % name
+clip = "{{ video('screencap/%s.mp4', na=True) }}" % name
 set_clip(clip)
 print("Clip is set to: %s" + clip)
 wait_key()
