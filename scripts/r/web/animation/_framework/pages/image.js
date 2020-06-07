@@ -20,7 +20,7 @@ yo.newScene(async () => {
 
   const im = await yo.addAsync(src, {
     y: -y * t * 0.5,
-    // animation: "rotateIn",
+    animation: null,
   });
 
   const viewportW = 28.444 + x;

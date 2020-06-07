@@ -805,8 +805,9 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
 
     # Animation
     if 1:
+        ANIM_EXT = "mp4"
         for name, animation_info in _animations.items():
-            out_file = "tmp/animation/%s.mov" % name
+            out_file = "tmp/animation/%s.%s" % (name, ANIM_EXT)
             os.makedirs("tmp/animation", exist_ok=True)
 
             if 1:  # generate animation video file
@@ -839,7 +840,11 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
 
             for i, clip_info in enumerate(animation_info.clip_info_list):
                 clip_info.mpy_clip = _create_mpy_clip(
-                    file=(out_file if i == 0 else "tmp/animation/%s.%d.mov" % (name, i))
+                    file=(
+                        out_file
+                        if i == 0
+                        else "tmp/animation/%s.%d.%s" % (name, i, ANIM_EXT)
+                    )
                 )
 
     # Update MoviePy clip object in each track.
