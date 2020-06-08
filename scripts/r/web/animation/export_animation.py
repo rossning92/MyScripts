@@ -618,8 +618,12 @@ def _add_clip(
     t=None,
     duration=None,
     text_overlay=None,
+    transparent=True,
     **kwargs,
 ):
+    if (track is None and _cur_vid_track_name == "vid") or (track == "vid"):
+        transparent = False
+
     track = _get_vid_track(track)
 
     # _update_prev_clip(track)
@@ -647,6 +651,7 @@ def _add_clip(
         speed=speed,
         pos=pos,
         duration=duration,
+        transparent=transparent,
         **kwargs,
     )
 
@@ -672,11 +677,11 @@ def anim(s, **kwargs):
     _animation(url="http://localhost:8080/%s.html" % s, name=slugify(s), **kwargs)
 
 
-def image_anim(file, t=5, **kwargs):
+def image_anim(file, duration=5, **kwargs):
     _animation(
         url="http://localhost:8080/image.html",
         name=os.path.splitext(file)[0],
-        params={"t": "%d" % t, "src": file},
+        params={"t": "%d" % duration, "src": file},
         **kwargs,
     )
 

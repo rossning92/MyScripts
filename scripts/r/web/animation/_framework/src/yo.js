@@ -1216,6 +1216,7 @@ function createMoveToAnimation(
     sz = null,
     duration = 0.5,
     ease = "power2.out",
+    multiplyScale = null,
   } = {}
 ) {
   if (dx != null) x = object3d.position.x + dx;
@@ -1251,6 +1252,16 @@ function createMoveToAnimation(
         x: scale,
         y: scale,
         z: scale,
+      },
+      "<"
+    );
+  } else if (multiplyScale != null) {
+    tl.to(
+      object3d.scale,
+      {
+        x: object3d.scale.x * multiplyScale,
+        y: object3d.scale.y * multiplyScale,
+        z: object3d.scale.z * multiplyScale,
       },
       "<"
     );
@@ -2175,7 +2186,7 @@ async function addAsync(
   if (obj.endsWith(".svg")) {
     mesh = await loadSVG(obj, { isCCW: ccw, color });
     scene.add(mesh);
-  } else if (obj.endsWith(".png")) {
+  } else if (obj.endsWith(".png") || obj.endsWith(".jpg")) {
     const texture = await loadTexture(obj);
     texture.anisotropy = 16; // renderer.getMaxAnisotropy(); TODO: do not hardcode
     const material = new THREE.MeshBasicMaterial({

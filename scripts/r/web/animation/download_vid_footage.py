@@ -5,19 +5,9 @@ from _video import *
 
 cd(r"{{VIDEO_PROJECT_DIR}}")
 
-
-exec_ahk(
-    """
-    WinActivate, ahk_exe chrome.exe
-    Send {F6}
-    Send ^c
-    ClipWait 2
-    Send {Esc}
-"""
-)
-
 url = get_clip()
 
+print2("Please make sure the url is copied to your clipboard!")
 start_and_duration = input("<start> <duration>: ")
 
 title = check_output_echo(
