@@ -120,6 +120,7 @@ return
 #Up::
     WinGet, curHwnd, ID, A
     WinMaximize, ahk_id %curHwnd%
+    WinSet, AlwaysOnTop, Off, ahk_id %curHwnd%
     
     for p, hwnd in WindowList {
         if (hwnd = curHwnd) {
