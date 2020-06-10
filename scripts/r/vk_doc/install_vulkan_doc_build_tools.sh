@@ -1,3 +1,6 @@
+# Please refer to:
+# https://github.com/KhronosGroup/Vulkan-Docs/blob/master/BUILD.adoc
+
 sudo apt-get update
 
 sudo apt install build-essential python3 git cmake bison flex \
@@ -8,7 +11,6 @@ sudo apt install ruby ruby-dev -y
 
 sudo gem install --no-rdoc --no-ri asciidoctor coderay json-schema asciidoctor-mathematical asciidoctor-diagram
 sudo gem install --no-rdoc --no-ri --pre asciidoctor-pdf
-
 
 # To generate chunk
 # sudo apt install jq -y

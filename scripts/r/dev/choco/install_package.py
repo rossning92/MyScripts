@@ -30,6 +30,7 @@ PKGS = {
         "nvidia-display-driver",
         "carnac",
         "win32diskimager",
+        "docker-desktop",
     ],
     "common": ["everything", "irfanview",],
     "dev": [

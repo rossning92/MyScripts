@@ -97,7 +97,7 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
         return args
 
 
-def conemu_wrap_args(args, title=None, cwd=None, small_window=False):
+def conemu_wrap_args(args, title=None, cwd=None, small_window=False, wsl=False):
     assert sys.platform == "win32"
 
     CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"

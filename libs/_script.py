@@ -553,7 +553,7 @@ class ScriptItem:
                                 else:
                                     title = None
 
-                                args = wt_wrap_args(
+                                args = conemu_wrap_args(
                                     args,
                                     cwd=cwd,
                                     small_window=True,
@@ -574,7 +574,6 @@ class ScriptItem:
                                 ] + args
                                 break
 
-                        creationflags = subprocess.CREATE_NEW_CONSOLE
                         break
 
                 elif sys.platform == "linux":
@@ -582,9 +581,10 @@ class ScriptItem:
                     # args = ["x-terminal-emulator", "-e"] + args
 
                 else:
-                    raise Exception(
-                        "newWindow flag is not supported on target platform."
-                    )
+                    creationflags = subprocess.CREATE_NEW_CONSOLE
+                    # raise Exception(
+                    #     "newWindow flag is not supported on target platform."
+                    # )
 
             # Check if run as admin
             if platform.system() == "Windows" and self.meta["runAsAdmin"]:
