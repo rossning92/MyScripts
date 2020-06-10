@@ -23,7 +23,7 @@ def resize(im, w=None, h=None):
     elif (w is None) and (h is None):
         raise Exception("w and h cannot be both None")
 
-    return im.resize((w, h), resample=Image.BILINEAR)
+    return im.resize((w, h), resample=Image.LANCZOS)
 
 
 rect_arg = [float(x) for x in "{{_CROP_RECT}}".split()]

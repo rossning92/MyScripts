@@ -563,7 +563,7 @@ def _create_mpy_clip(
     elif file.endswith(".tar"):
         clip = create_image_seq_clip(file)
 
-    elif file.endswith(".png"):
+    elif file.endswith(".png") or file.endswith(".jpg"):
         clip = ImageClip(file).set_duration(5)
         if not transparent:
             clip = clip.set_mask(None)
