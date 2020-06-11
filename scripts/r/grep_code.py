@@ -12,27 +12,27 @@ def grep(src_dir, exclude=[]):
     cur_text = None
 
     if False:
-        tmp_path = ''
-        for comp in src_dir.split('\\'):
-            tmp_path += comp + '\\'
-            if exists(tmp_path + '.gitignore'):
-                print('REPO ROOT: ' + tmp_path)
+        tmp_path = ""
+        for comp in src_dir.split("\\"):
+            tmp_path += comp + "\\"
+            if exists(tmp_path + ".gitignore"):
+                print("REPO ROOT: " + tmp_path)
                 repo_root = tmp_path
-                rel_path = src_dir.replace(repo_root, '')
+                rel_path = src_dir.replace(repo_root, "")
                 print(rel_path)
                 break
 
         input()
 
-    def text_changed(s):
+    def on_text_changed(s):
         nonlocal ps, cur_text
         cur_text = s
         if ps is not None:
             ps.kill()
             ps = None
 
-    def item_selected(i):
-        arr = lines[i].split(':')
+    def on_item_selected(i):
+        arr = lines[i].split(":")
         file = os.path.join(src_dir, arr[0])
         line_no = arr[1]
         open_in_vscode(file, line_no)
@@ -41,7 +41,10 @@ def grep(src_dir, exclude=[]):
         chdir(repo_root)
     else:
         chdir(src_dir)
-    lw = ListWidget(lines=lines, text_changed=text_changed, item_selected=item_selected)
+    
+    lw = ListWindowAsync(
+        lines=lines, on_text_changed=on_text_changed, on_item_selected=on_item_selected
+    )
 
     text = None
     while True:
@@ -50,15 +53,15 @@ def grep(src_dir, exclude=[]):
             lw.update()
         text = cur_text
 
-        if text == '':
+        if text == "":
             lines.clear()
             continue
 
         args = f'rg --line-number -F "{text}"'
         if rel_path:
-            args += ' ' + rel_path
+            args += " " + rel_path
 
-        if not exists('.gitignore'):
+        if not exists(".gitignore"):
             args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
         for x in exclude:
             args += ' -g "!%s"' % x
@@ -69,11 +72,11 @@ def grep(src_dir, exclude=[]):
         files.clear()
         for l in ps.readlines(block=False, timeout=0.1):
             if l is not None:
-                s = l.decode(errors='replace')
+                s = l.decode(errors="replace")
                 s = s.strip()
                 lines.append(s)
 
             lw.update()
 
 
-grep(src_dir=r'{{SOURCE_FOLDER}}', exclude='{{_EXCLUDE}}'.split())
+grep(src_dir=r"{{SOURCE_FOLDER}}", exclude="{{_EXCLUDE}}".split())

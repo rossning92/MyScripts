@@ -8,10 +8,10 @@ from _shutil import *
 
 
 class InputWindow:
-    def __init__(self, text_changed=None):
+    def __init__(self, on_text_changed=None):
         self.cur_input = ""
         self.caret_pos = 0
-        self.text_changed = text_changed
+        self.on_text_changed = on_text_changed
         self.last_update = 0
         self.block_mode = False
         self.exit = False
@@ -83,8 +83,8 @@ class InputWindow:
                 self.caret_pos += 1
                 text_changed = True
 
-            if text_changed and self.text_changed:
-                self.text_changed(self.cur_input)
+            if text_changed and self.on_text_changed:
+                self.on_text_changed(self.cur_input)
 
             if self.block_mode:
                 break
@@ -129,14 +129,14 @@ class FilterWindow(InputWindow):
             self.stdscr.addstr(i, 0, filtered_lines[i])
 
 
-class ListWidget:
-    def __init__(self, lines=None, text_changed=None, item_selected=None):
+class ListWindowAsync:
+    def __init__(self, lines=None, on_text_changed=None, on_item_selected=None):
         self.lines = lines
         self.cur_page = 0
         self.cur_input = ""
         self._cond = threading.Condition()
-        self.text_changed = text_changed
-        self.item_selected = item_selected
+        self.on_text_changed = on_text_changed
+        self.on_item_selected = on_item_selected
         self.last_update = 0
         self.select_mode = False
         self.search_str = ""
@@ -259,8 +259,8 @@ class ListWidget:
                     self.search_str = self.cur_input
                     self.cur_input = ""
                     self.caret_pos = 0
-                elif self.select_mode and self.item_selected:
-                    self.item_selected(int(self.cur_input))
+                elif self.select_mode and self.on_item_selected:
+                    self.on_item_selected(int(self.cur_input))
             else:
                 self.cur_input = (
                     self.cur_input[: self.caret_pos]
@@ -270,8 +270,12 @@ class ListWidget:
                 self.caret_pos += 1
                 text_changed = True
 
-            if text_changed and not self.select_mode:
-                self.text_changed(self.cur_input)
+            if (
+                text_changed
+                and not self.select_mode
+                and self.on_text_changed is not None
+            ):
+                self.on_text_changed(self.cur_input)
 
             if self.block_mode:
                 break
