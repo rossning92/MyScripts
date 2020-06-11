@@ -16,7 +16,7 @@ class ListWindow:
         self.exit = False
         self.input_stack = []
         self.selection = None
-        self.match_indices = []
+        self.match_indices = range(len(items))
 
         self.stdscr = curses.initscr()
         curses.noecho()
@@ -32,10 +32,7 @@ class ListWindow:
         height, width = self.stdscr.getmaxyx()
         self.stdscr.clear()
 
-        if len(self.match_indices) == 0:
-            items = self.items
-        else:
-            items = [self.items[i] for i in self.match_indices]
+        items = [self.items[i] for i in self.match_indices]
         items = items[: height - 1]
 
         for i, item in enumerate(items):
@@ -95,7 +92,7 @@ class ListWindow:
 
     def on_text_changed(self, text):
         self.match_indices = [
-            i for i, x in enumerate(self.items) if self.cur_input.lower() in x
+            i for i, x in enumerate(self.items) if self.cur_input.lower() in x.lower()
         ]
 
     def update(self):
