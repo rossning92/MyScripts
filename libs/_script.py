@@ -61,7 +61,7 @@ def wrap_wsl(commands):
         commands = _args_to_str(commands)
 
     # To create a temp sh files to invoke commands to avoid command being parsed
-    # by current shell 
+    # by current shell
     tmp_sh_file = write_temp_file(commands, ".sh")
     tmp_sh_file = convert_to_unix_path(tmp_sh_file, wsl=True)
 
@@ -556,12 +556,11 @@ class ScriptItem:
                                 args = conemu_wrap_args(
                                     args,
                                     cwd=cwd,
-                                    small_window=True,
                                     title=title,
                                     wsl=self.meta["wsl"],
                                 )
                                 break
-                            except Exception as e:
+                            except Exception:
                                 pass
 
                             if os.path.exists(

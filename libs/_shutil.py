@@ -97,27 +97,19 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
         return args
 
 
-def conemu_wrap_args(args, title=None, cwd=None, small_window=False, wsl=False):
+def conemu_wrap_args(args, title=None, cwd=None, wsl=False):
     assert sys.platform == "win32"
 
     CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 
     # Disable update check
-    call2(
-        r"reg add HKCU\Software\ConEmu\.Vanilla /v KeyboardHooks /t REG_BINARY /d 02 /f >nul"
-    )
-    call2(
-        r"reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckHourly /t REG_BINARY /d 00 /f >nul"
-    )
-    call2(
-        r"reg add HKCU\Software\ConEmu\.Vanilla /v Update.CheckOnStartup /t REG_BINARY /d 00 /f >nul"
-    )
-    call2(
-        r"reg add HKCU\Software\ConEmu\.Vanilla /v ClipboardConfirmEnter /t REG_BINARY /d 00 /f >nul"
-    )
-    call2(
-        r"reg add HKCU\Software\ConEmu\.Vanilla /v ClipboardConfirmLonger /t REG_DWORD /d 00 /f >nul"
-    )
+    PREFIX = r"reg add HKCU\Software\ConEmu\.Vanilla"
+    call2(PREFIX + " /v KeyboardHooks /t REG_BINARY /d 02 /f >nul")
+    call2(PREFIX + " /v Update.CheckHourly /t REG_BINARY /d 00 /f >nul")
+    call2(PREFIX + " /v Update.CheckOnStartup /t REG_BINARY /d 00 /f >nul")
+    call2(PREFIX + " /v ClipboardConfirmEnter /t REG_BINARY /d 00 /f >nul")
+    call2(PREFIX + " /v ClipboardConfirmLonger /t REG_DWORD /d 00 /f >nul")
+    call2(PREFIX + " /v Multi.CloseConfirmFlags /t REG_BINARY /d 00 /f >nul")
 
     if os.path.exists(CONEMU_INSTALL_DIR):
         args2 = [
@@ -137,12 +129,18 @@ def conemu_wrap_args(args, title=None, cwd=None, small_window=False, wsl=False):
         if title:
             args2 += ["-Title", title]
 
-        if small_window:
+        if 1:
             args2 += ["-Font", "Consolas", "-Size", "14"]
         else:
-            args2 += ["-Max", "Consolas", "-Size", "14"]
+            args2 += ["-Max", "-Font", "Consolas", "-Size", "14"]
 
-        args2 += ["-run", "-cur_console:c0"]
+        args2 += [
+            "-run",
+            # Enable exit confirmation
+            # "-cur_console:c0",
+            # Disable exit confirmation
+            "-cur_console:n",
+        ]
 
         # args[0:0] = ['set', 'PATH=%PATH%;C:\Program Files\ConEmu\ConEmu\wsl', '&',
         # CONEMU_INSTALL_DIR + "\\ConEmu\\conemu-cyg-64.exe"]
