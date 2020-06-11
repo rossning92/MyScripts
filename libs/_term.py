@@ -32,7 +32,7 @@ class ListWindow:
         height, width = self.stdscr.getmaxyx()
         self.stdscr.clear()
 
-        if self.match_indices is None:
+        if len(self.match_indices) == 0:
             items = self.items
         else:
             items = [self.items[i] for i in self.match_indices]
@@ -99,8 +99,8 @@ class ListWindow:
         ]
 
     def update(self):
-        self.update_input()
         self.update_screen()
+        self.update_input()
 
     def exec(self):
         while True:
