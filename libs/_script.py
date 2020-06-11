@@ -553,7 +553,7 @@ class ScriptItem:
                                 else:
                                     title = None
 
-                                args = conemu_wrap_args(
+                                args = wt_wrap_args(
                                     args,
                                     cwd=cwd,
                                     small_window=True,
