@@ -7,6 +7,112 @@ import signal
 from _shutil import *
 
 
+class ListWindow:
+    def __init__(self, items):
+        self.items = items
+        self.cur_input = ""
+        self.caret_pos = 0
+        self.last_update = 0
+        self.exit = False
+        self.input_stack = []
+        self.selection = None
+        self.match_indices = []
+
+        self.stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        self.stdscr.keypad(1)
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        self.stdscr.nodelay(False)
+
+    def update_screen(self):
+        height, width = self.stdscr.getmaxyx()
+        self.stdscr.clear()
+
+        if self.match_indices is None:
+            items = self.items
+        else:
+            items = [self.items[i] for i in self.match_indices]
+        items = items[: height - 1]
+
+        for i, item in enumerate(items):
+            self.stdscr.addstr(i, 0, item)
+
+        # The user input is display at the bottom of the screen
+        self.stdscr.addstr(height - 1, 0, self.cur_input)
+        self.stdscr.move(height - 1, self.caret_pos)
+
+        self.stdscr.refresh()
+
+    def update_input(self):
+        text_changed = False
+        ch = self.stdscr.getch()
+
+        if ch == curses.ERR:
+            pass
+        elif ch == curses.KEY_LEFT:
+            self.caret_pos = max(self.caret_pos - 1, 0)
+        elif ch == curses.KEY_RIGHT:
+            self.caret_pos = min(self.caret_pos + 1, len(self.cur_input))
+        elif ch == ord("\b"):
+            self.cur_input = (
+                self.cur_input[: self.caret_pos - 1] + self.cur_input[self.caret_pos :]
+            )
+            self.caret_pos = max(self.caret_pos - 1, 0)
+            text_changed = True
+        elif ch == curses.ascii.ctrl(ord("c")):
+            if len(self.input_stack) > 0:
+                self.cur_input = self.input_stack.pop()
+                self.caret_pos = len(self.cur_input)
+            else:
+                self.cur_input = ""
+                self.caret_pos = 0
+                text_changed = True
+        elif ch == curses.ascii.ctrl(ord("w")):
+            self.exit = True
+        elif ch == ord("\n"):
+            self.input_stack.append(self.cur_input)
+            self.on_item_selected()
+            self.cur_input = ""
+            self.caret_pos = 0
+        else:
+            self.cur_input = (
+                self.cur_input[: self.caret_pos]
+                + chr(ch)
+                + self.cur_input[self.caret_pos :]
+            )
+            self.caret_pos += 1
+            text_changed = True
+
+        if text_changed:
+            self.on_text_changed(self.cur_input)
+
+    def on_item_selected(self):
+        self.selection = self.match_indices[0]
+
+    def on_text_changed(self, text):
+        self.match_indices = [
+            i for i, x in enumerate(self.items) if self.cur_input.lower() in x
+        ]
+
+    def update(self):
+        self.update_input()
+        self.update_screen()
+
+    def exec(self):
+        while True:
+            if self.exit:
+                return None
+
+            if self.selection is not None:
+                return self.selection
+
+            self.update()
+
+
 class InputWindow:
     def __init__(self, on_text_changed=None):
         self.cur_input = ""
@@ -99,7 +205,7 @@ class InputWindow:
 
     def exec(self):
         self.set_block_mode(True)
-        self.update_screen(self.stdscr)
+        self.update_screen()
         while True:
             if self.exit:
                 return
