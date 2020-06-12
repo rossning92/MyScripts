@@ -73,6 +73,8 @@ def wrap_wsl(commands):
 
 
 def wrap_bash_commands(commands, wsl=False, env=None):
+    assert type(commands) == str
+
     if os.name == "nt" and wsl:  # WSL (Windows Subsystem for Linux)
         return wrap_wsl(commands)
 
