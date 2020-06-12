@@ -35,9 +35,9 @@ if __name__ == "__main__":
         bit_rate="{{_BIT_RATE}}" if "{{_BIT_RATE}}" else "20M",
     )
 
-    extra_args = ["-r", "60"]
     if "{{_RESIZE_H}}":
+        extra_args = ["-r", "60"]
         extra_args += ["-vf", "scale=-2:{{_RESIZE_H}}"]
-    out_file = ffmpeg(out_file, extra_args=extra_args)
+        out_file = ffmpeg(out_file, extra_args=extra_args)
 
-    shell_open(out_file)
+        shell_open(out_file)
