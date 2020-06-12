@@ -75,19 +75,16 @@ def wrap_wsl(commands):
 def wrap_bash_commands(commands, wsl=False, env=None):
     if os.name == "nt" and wsl:  # WSL (Windows Subsystem for Linux)
         return wrap_wsl(commands)
-    
+
     elif os.name == "nt":
         if env is not None:
             env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
 
         tmp_sh_file = write_temp_file(commands, ".sh")
-
         return [r"C:\Program Files\Git\bin\bash.exe", "--login", "-i", tmp_sh_file]
 
-    elif os.name == "posix":  # Linux
+    else:  # Linux
         return ["bash", "-c", commands]
-    else:
-        raise Exception("Non supported OS version")
 
 
 def exec_cmd(cmd):
