@@ -72,17 +72,20 @@ def wrap_wsl(commands):
     return ["bash", tmp_sh_file]
 
 
-def wrap_bash_commands(bash, wsl=False, env=None):
-    if os.name == "nt":
-        if wsl:  # WSL (Windows Subsystem for Linux)
-            return wrap_wsl(bash)
-        else:
-            if env is not None:
-                env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
+def wrap_bash_commands(commands, wsl=False, env=None):
+    if os.name == "nt" and wsl:  # WSL (Windows Subsystem for Linux)
+        return wrap_wsl(commands)
+    
+    elif os.name == "nt":
+        if env is not None:
+            env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
 
-            return [r"C:\Program Files\Git\bin\bash.exe", "--login", "-i", "-c", bash]
-    elif os.name == "posix":  # MacOSX
-        return ["bash", "-c", bash]
+        tmp_sh_file = write_temp_file(commands, ".sh")
+
+        return [r"C:\Program Files\Git\bin\bash.exe", "--login", "-i", tmp_sh_file]
+
+    elif os.name == "posix":  # Linux
+        return ["bash", "-c", commands]
     else:
         raise Exception("Non supported OS version")
 
@@ -179,15 +182,37 @@ def get_python_path(script_path):
     return python_path
 
 
-def wt_wrap_args(args, wsl=False, **kwargs):
-    assert sys.platform == "win32"
+def wt_wrap_args(args, wsl=False, title=None, **kwargs):
+    if sys.platform != "win32":
+        raise Exception("the function can only be called on windows platform.")
 
-    if wsl:
-        args = ["wt", "-p", "Ubuntu"] + args
-    else:
-        args = conemu_wrap_args(args, **kwargs)
+    CONFIG_FILE = os.path.expandvars(
+        r"%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    )
 
-    return args
+    with open(CONFIG_FILE, "r") as f:
+        lines = f.read().splitlines()
+
+    lines = [x for x in lines if not x.lstrip().startswith("//")]
+    data = json.loads("\n".join(lines))
+
+    data["profiles"]["defaults"]["closeOnExit"] = "graceful"
+
+    if title:
+        filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
+        if len(filtered) == 0:
+            data["profiles"]["list"].append(
+                {
+                    "name": title,
+                    "hidden": False,
+                    "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
+                }
+            )
+
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+    return ["wt", "-p", title] + args
 
 
 class ScriptItem:
@@ -525,8 +550,8 @@ class ScriptItem:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
                 if sys.platform == "win32" and (not self.meta["runAsAdmin"]):
-
-                    if not self.meta["wsl"]:
+                    # TODO:
+                    if not self.meta["wsl"] and False:
                         args = [
                             sys.executable,
                             "-c",
@@ -542,38 +567,23 @@ class ScriptItem:
                             "sys.exit(ret)",
                         ]
 
-                    # Create new console window on windows
-                    while True:
-                        # WSL does not work quite well with third party terminals.
-                        if True:  # not self.meta['wsl']:
-                            try:
-                                # HACK:
-                                if self.get_console_title() == "r/linux/et":
-                                    title = "r/linux/et"
-                                else:
-                                    title = None
+                    # Create new terminal using Windows Terminal
+                    try:
+                        args = wt_wrap_args(
+                            args,
+                            cwd=cwd,
+                            title=self.get_console_title(),
+                            wsl=self.meta["wsl"],
+                        )
+                    except Exception as e:
+                        print("Error on Windows Terminal:", e)
 
-                                args = conemu_wrap_args(
-                                    args,
-                                    cwd=cwd,
-                                    title=title,
-                                    wsl=self.meta["wsl"],
-                                )
-                                break
-                            except Exception:
-                                pass
-
-                            if os.path.exists(
-                                r"C:\Program Files\Git\usr\bin\mintty.exe"
-                            ):
-                                args = [
-                                    r"C:\Program Files\Git\usr\bin\mintty.exe",
-                                    "--hold",
-                                    "always",
-                                ] + args
-                                break
-
-                        break
+                        if os.path.exists(r"C:\Program Files\Git\usr\bin\mintty.exe"):
+                            args = [
+                                r"C:\Program Files\Git\usr\bin\mintty.exe",
+                                "--hold",
+                                "always",
+                            ] + args
 
                 elif sys.platform == "linux":
                     args = ["tmux", "split-window"] + args
@@ -621,6 +631,7 @@ class ScriptItem:
                             startupinfo.wShowWindow = SW_HIDE
                             creationflags = subprocess.CREATE_NEW_CONSOLE
 
+                    print(args)
                     subprocess.Popen(
                         args,
                         env={**os.environ, **env},
