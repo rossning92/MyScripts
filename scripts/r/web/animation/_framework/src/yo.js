@@ -1477,6 +1477,18 @@ function createTriangleOutline({ color = "0xffffff" } = {}) {
 //   return tl;
 // }
 
+function halton(index, base) {
+  var result = 0;
+  var f = 1 / base;
+  var i = index;
+  while (i > 0) {
+    result = result + f * (i % base);
+    i = Math.floor(i / base);
+    f = f / base;
+  }
+  return result;
+}
+
 function createExplosionAnimation(
   objectGroup,
   {
@@ -2555,6 +2567,7 @@ export default {
   setBackgroundAlpha,
   setMotionBlur,
   setBloom,
+  generateRandomString,
 };
 
 export { THREE, gsap };

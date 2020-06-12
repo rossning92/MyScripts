@@ -44,7 +44,7 @@ if 1:  # Import moviepy
 ADD_SUBTITLE = True
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
-AUTO_TTS = False
+AUTO_GENERATE_TTS = False
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -276,13 +276,14 @@ def _add_subtitle_clip(start, end, text):
     _video_tracks["text"].append(ci)
 
 
-def record(f, t="a", **kwargs):
+def record(f, t="a", postprocess=True, **kwargs):
     if not os.path.exists(f):
         f = "record/" + f
         assert os.path.exists(f)
 
     # Post-process audio
-    f = process_audio_file(f)
+    if postprocess:
+        f = process_audio_file(f)
 
     audio(f, t=t, **kwargs)
 
@@ -717,7 +718,7 @@ def video_end(track=None, t=None):
 
 def video(f, **kwargs):
     print("video: %s" % f)
-    _add_clip(f, **kwargs)
+    _add_clip(f, pos="center", **kwargs)
 
 
 def empty(**kwargs):
@@ -845,11 +846,13 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
 
             for i, clip_info in enumerate(animation_info.clip_info_list):
                 clip_info.mpy_clip = _create_mpy_clip(
-                    file=(
-                        out_file
-                        if i == 0
-                        else "tmp/animation/%s.%d.%s" % (name, i, ANIM_EXT)
-                    )
+                    # file=(
+                    #     out_file
+                    #     if i == 0
+                    #     else "tmp/animation/%s.%d.%s" % (name, i, ANIM_EXT)
+                    # )
+                    # HACK:
+                    file=out_file
                 )
 
     # Update MoviePy clip object in each track.
@@ -1006,7 +1009,7 @@ def _export_srt():
         f.write("\n".join(_srt_lines))
 
 
-def tts():
+def _tts():
     text = _subtitle[-1]
     hash = get_hash(text)
 
@@ -1034,14 +1037,19 @@ def tts():
         )
         os.remove(tmp_file)
 
-    record(file_name)
+    record(file_name, postprocess=False)
+
+
+def tts(enabled=True):
+    global AUTO_GENERATE_TTS
+    AUTO_GENERATE_TTS = enabled
 
 
 def _parse_script(text):
     _subtitle.append(text)
 
-    if AUTO_TTS:
-        tts()
+    if AUTO_GENERATE_TTS:
+        _tts()
 
 
 def _parse_text(text, **kwargs):
