@@ -51,6 +51,15 @@ for f in files:
             "drawtext=text='{{_TEXT_OVERLAY}}':fontcolor=white@1.0:fontsize=100:x=(w-text_w)/2:y=(h-text_h)/2"
         )
 
+    if "{{_REVERSE}}":
+        filter_v.append("reverse")
+
+    if "{{_REMOVE_DUPLICATED_FRAMES}}":
+        filter_v.append("mpdecimate,setpts=N/FRAME_RATE/TB")
+
+    if "{{_TEST}}":
+        filter_v.append("setpts=2.0*PTS*(1+random(0)*0.02)")
+
     if filter_v:
         extra_args += ["-filter:v", ",".join(filter_v)]
 

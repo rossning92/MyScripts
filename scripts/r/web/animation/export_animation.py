@@ -761,9 +761,9 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", duration=3, **kwargs):
+def hl(pos, track="hl", duration=3, file="../image/highlight.png", **kwargs):
     image(
-        "../image/highlight.png",
+        file,
         pos=pos,
         track=track,
         fadein=True,
