@@ -558,6 +558,7 @@ def _create_mpy_clip(
     transparent=True,
     subclip=None,
     extract_frame=None,
+    loop=False,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
@@ -573,11 +574,9 @@ def _create_mpy_clip(
     else:
         clip = VideoFileClip(file)
 
+    # video clip operations / fx
     if subclip is not None:
         clip = clip.subclip(subclip)
-
-    if duration is not None:
-        clip = clip.set_duration(duration)
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
@@ -596,6 +595,13 @@ def _create_mpy_clip(
             clip.audio = clip.audio.fx(afx.volumex, vol)
         else:
             clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
+
+    # Loop or change duration
+    if loop:
+        clip = clip.fx(vfx.loop).set_duration(clip.duration)
+
+    if duration is not None:
+        clip = clip.set_duration(duration)
 
     if pos is not None:
         # (x, y) marks the center location of the of the clip instead of the top

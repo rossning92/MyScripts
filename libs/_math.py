@@ -8,7 +8,7 @@ import numpy as np
 import math
 
 
-def save_fig(out_file='figure.png', open_file=True, size_inch=None, dpi=300):
+def save_fig(out_file="figure.png", open_file=True, size_inch=None, dpi=300):
     out_file = os.path.realpath(out_file)
 
     if size_inch:
@@ -22,7 +22,11 @@ def save_fig(out_file='figure.png', open_file=True, size_inch=None, dpi=300):
 
 
 def setup_plt_style():
-    plt.style.use('fivethirtyeight')
+    plt.style.use("fivethirtyeight")
+
+
+def use_dark_theme():
+    plt.style.use("dark_background")
 
 
 def read_csv(csv_files):
