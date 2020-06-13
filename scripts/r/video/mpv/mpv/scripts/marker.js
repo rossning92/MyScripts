@@ -10,13 +10,13 @@ function add_marker() {
   var time_pos = mp.get_property_number("time-pos");
   var mouse_pos = mp.get_mouse_pos();
   var s =
-    "hl(t='as+" +
+    "{{ hl(t='as+" +
     time_pos.toFixed(3) +
     "', pos=(" +
     mouse_pos.x +
     ", " +
     mouse_pos.y +
-    "))";
+    ")) }}";
 
   out += s + "\n";
 
