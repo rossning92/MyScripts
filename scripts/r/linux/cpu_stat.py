@@ -1,5 +1,5 @@
 from _shutil import *
-from _sci import *
+from _math import *
 
 
 core_names = []
