@@ -557,6 +557,7 @@ def _create_mpy_clip(
     vol=None,
     transparent=True,
     subclip=None,
+    extract_frame=None,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
@@ -580,6 +581,9 @@ def _create_mpy_clip(
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
+
+    if extract_frame is not None:
+        clip = clip.to_ImageClip(extract_frame).set_duration(5)
 
     if clip_operations is not None:
         clip = clip_operations(clip)
@@ -751,13 +755,14 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", **kwargs):
+def hl(pos, track="hl", duration=3, **kwargs):
     image(
         "../image/highlight.png",
         pos=pos,
         track=track,
         fadein=True,
         fadeout=True,
+        duration=duration,
         **kwargs,
     )
 
