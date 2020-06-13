@@ -301,6 +301,7 @@ class ScriptItem:
             "include": ScriptItem.include.__get__(self, ScriptItem),
             **self.get_variables(),
         }
+        print(self.name)
         return template.render(ctx)
 
     def set_override_variables(self, variables):
