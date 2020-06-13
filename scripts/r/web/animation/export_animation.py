@@ -287,6 +287,8 @@ def record(f, t="a", postprocess=True, **kwargs):
 
     audio(f, t=t, **kwargs)
 
+    _pos_dict["re"] = _get_pos("ae")
+
     END_CHAR = ["。", "，", "！", "、", "；", "？"]
 
     global _srt_index
@@ -788,7 +790,13 @@ def _update_clip_duration(track):
 
     # update last clip duration
     if len(track) > 0 and track[-1].duration is None:
-        track[-1].duration = track[-1].mpy_clip.duration
+        duration = track[-1].mpy_clip.duration
+
+        # Extend the last video clip to match the voice track
+        if "re" in _pos_dict:
+            duration = max(duration, _pos_dict["re"] - clip_info.start)
+        
+        track[-1].duration = duration
 
 
 def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
