@@ -633,7 +633,6 @@ def _create_mpy_clip(
     return clip
 
 
-
 def _add_clip(
     file=None,
     clip_operations=None,
@@ -1088,6 +1087,25 @@ def _parse_script(text):
         _tts()
 
 
+def _convert_to_readable_time(seconds):
+    seconds = int(seconds)
+    seconds = seconds % (24 * 3600)
+    hour = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+
+    if hour > 0:
+        return "%d:%02d:%02d" % (hour, minutes, seconds)
+    else:
+        return "%02d:%02d" % (minutes, seconds)
+
+
+def _write_timestamp(t, section_name):
+    with open("timestamp.txt", "a", encoding="utf-8") as f:
+        f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
+
+
 def _parse_text(text, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
@@ -1115,7 +1133,12 @@ def _parse_text(text, **kwargs):
             exec(python_code, globals())
 
         elif text[p : p + 1] == "#":
-            p = find_next(text, "\n", p) + 1
+            end = find_next(text, "\n", p)
+
+            line = text[p:end].strip()
+            _write_timestamp(_pos_dict["a"], line)
+
+            p = end + 1
 
         elif text[p : p + 3] == "---":
             p = find_next(text, "\n", p) + 1
