@@ -795,7 +795,7 @@ def _update_clip_duration(track):
         # Extend the last video clip to match the voice track
         if "re" in _pos_dict:
             duration = max(duration, _pos_dict["re"] - clip_info.start)
-        
+
         track[-1].duration = duration
 
 
@@ -909,7 +909,9 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
                     .set_start(clip_info.start - 0.5 * FADE_DURATION)
                 )
                 video_clips.append(
-                    clip_info.mpy_clip.set_start(clip_info.start + 0.5 * FADE_DURATION)
+                    clip_info.mpy_clip.subclip(FADE_DURATION).set_start(
+                        clip_info.start + 0.5 * FADE_DURATION
+                    )
                 )
             else:
                 if clip_info.fadein:
