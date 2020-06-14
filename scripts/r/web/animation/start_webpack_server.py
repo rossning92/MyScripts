@@ -26,6 +26,11 @@ if not os.path.exists("package.json"):
 
 # copy(sample_project_path + '/', project_path + '/')
 
-os.environ["ENTRY_FOLDER"] = project_path
+try:
+    os.environ["ENTRY"] = get_files()[0]
+except:
+    print("No js file selected.")
+    os.environ["ENTRY_FOLDER"] = project_path
+
 script = os.path.join("node_modules", "yo", "bin", "start-app.js")
 call_echo(["node", script])

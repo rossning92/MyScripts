@@ -13,7 +13,7 @@ const plugins = [
 // files under `./src/pages` folder and added as webpack entries.
 const entries = {};
 
-function add_entry(file) {
+function addEntry(file) {
   const name = path.basename(file, ".js");
   entries[name] = file;
 
@@ -27,23 +27,23 @@ function add_entry(file) {
 }
 
 module.exports = (env) => {
-  // The folder that contains source code and resource files (images, videos,
-  // etc.)
-  const entryFolders = [path.resolve(__dirname, "pages")];
-  if (env && env.entryFolder) {
-    entryFolders.push(env.entryFolder);
-  }
+  if (env && env.entry) {
+    addEntry(env.entry);
+  } else if (env && env.entryFolder) {
+    // The folder that contains source code and resource files (images, videos,
+    // etc.)
+    const entryFolders = [path.resolve(__dirname, "pages"), env.entryFolder];
+    entryFolders.forEach((dir) => {
+      fs.readdirSync(dir).forEach((file) => {
+        if (path.extname(file).toLowerCase() !== ".js") {
+          return;
+        }
 
-  entryFolders.forEach((dir) => {
-    fs.readdirSync(dir).forEach((file) => {
-      if (path.extname(file).toLowerCase() !== ".js") {
-        return;
-      }
-
-      const fullPath = path.join(dir, file);
-      add_entry(fullPath);
+        const fullPath = path.join(dir, file);
+        addEntry(fullPath);
+      });
     });
-  });
+  }
 
   return {
     entry: entries,
@@ -57,9 +57,6 @@ module.exports = (env) => {
       ],
     },
     mode: "development",
-    devServer: {
-      contentBase: entryFolders,
-    },
     resolve: {
       modules: [
         path.resolve(__dirname, "src"),
