@@ -5,11 +5,28 @@ const fs = require("fs");
 
 const plugins = [
   new MiniCssExtractPlugin({
-    filename: "style.css"
-  })
+    filename: "style.css",
+  }),
 ];
 
-module.exports = env => {
+// Setup HtmlWebpackPlugin for all found entries. Automatically search all
+// files under `./src/pages` folder and added as webpack entries.
+const entries = {};
+
+function add_entry(file) {
+  const name = path.basename(file, ".js");
+  entries[name] = file;
+
+  plugins.push(
+    new HtmlWebpackPlugin({
+      filename: name + ".html",
+      template: path.resolve(__dirname, "index.html"),
+      chunks: [name],
+    })
+  );
+}
+
+module.exports = (env) => {
   // The folder that contains source code and resource files (images, videos,
   // etc.)
   const entryFolders = [path.resolve(__dirname, "pages")];
@@ -17,27 +34,14 @@ module.exports = env => {
     entryFolders.push(env.entryFolder);
   }
 
-  // Setup HtmlWebpackPlugin for all found entries. Automatically search all
-  // files under `./src/pages` folder and added as webpack entries.
-  const entries = {};
-
-  entryFolders.forEach(entryFolder => {
-    fs.readdirSync(entryFolder).forEach(file => {
+  entryFolders.forEach((dir) => {
+    fs.readdirSync(dir).forEach((file) => {
       if (path.extname(file).toLowerCase() !== ".js") {
         return;
       }
 
-      const file_path = entryFolder + "/" + file;
-      const name = path.basename(file, ".js");
-      entries[name] = file_path;
-
-      plugins.push(
-        new HtmlWebpackPlugin({
-          filename: name + ".html",
-          template: path.resolve(__dirname, "index.html"),
-          chunks: [name]
-        })
-      );
+      const fullPath = path.join(dir, file);
+      add_entry(fullPath);
     });
   });
 
@@ -48,20 +52,20 @@ module.exports = env => {
       rules: [
         {
           test: /\.css$/i,
-          use: [MiniCssExtractPlugin.loader, "css-loader"]
-        }
-      ]
+          use: [MiniCssExtractPlugin.loader, "css-loader"],
+        },
+      ],
     },
     mode: "development",
     devServer: {
-      contentBase: entryFolders
+      contentBase: entryFolders,
     },
     resolve: {
       modules: [
         path.resolve(__dirname, "src"),
         path.resolve(__dirname, "node_modules"),
-        "node_modules"
-      ]
-    }
+        "node_modules",
+      ],
+    },
   };
 };

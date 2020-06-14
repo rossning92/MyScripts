@@ -3,7 +3,8 @@ const webpack = require("webpack");
 const process = require("process");
 
 const config = require("../webpack.config.js")({
-  entryFolder: process.env.ENTRY_FOLDER
+  entryFolder: process.env.ENTRY_FOLDER,
+  entry: process.env.ENTRY,
 });
 
 const compiler = webpack(config);
