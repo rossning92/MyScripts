@@ -23,6 +23,7 @@ from collections import OrderedDict
 import numpy as np
 import argparse
 import hashlib
+from PIL import Image
 
 if 1:
     import os
@@ -547,6 +548,13 @@ def _update_prev_clip(track):
     # _add_fadeout(track)
 
 
+def _load_and_expand_img(f):
+    fg = Image.open(f).convert("RGBA")
+    bg = Image.new("RGB", (1920, 1080))
+    bg.paste(fg, ((bg.width - fg.width) // 2, (bg.height - fg.height) // 2), fg)
+    return np.array(bg)
+
+
 def _create_mpy_clip(
     file=None,
     clip_operations=None,
@@ -561,6 +569,7 @@ def _create_mpy_clip(
     subclip=None,
     extract_frame=None,
     loop=False,
+    expand=False,
 ):
     if file is None:
         clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
@@ -569,7 +578,12 @@ def _create_mpy_clip(
         clip = create_image_seq_clip(file)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
-        clip = ImageClip(file).set_duration(5)
+        if expand:
+            clip = ImageClip(_load_and_expand_img(file))
+        else:
+            clip = ImageClip(file)
+
+        clip = clip.set_duration(5)
         if not transparent:
             clip = clip.set_mask(None)
 
@@ -617,6 +631,7 @@ def _create_mpy_clip(
             clip = clip.set_position(pos)
 
     return clip
+
 
 
 def _add_clip(
