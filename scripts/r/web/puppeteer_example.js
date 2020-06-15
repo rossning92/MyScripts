@@ -2,14 +2,16 @@ const os = require("os");
 const puppeteer = require("puppeteer");
 const path = require("path");
 
-let page;
-let browser;
-
 (async () => {
-  browser = await puppeteer.launch({
+  const browser = await puppeteer.launch({
     headless: false,
+    defaultViewport: null,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
     userDataDir: path.join(os.homedir(), "puppeteer-chromium-data-dir"),
+    // executablePath:
+    //   "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+    // userDataDir: path.join(os.homedir(), "ChromeData2"),
   });
-  page = await browser.newPage();
+  const page = await browser.newPage();
+  await page.goto("https://www.google.com");
 })();
