@@ -22,6 +22,7 @@ function addEntry(file) {
       filename: name + ".html",
       template: path.resolve(__dirname, "index.html"),
       chunks: [name],
+      title: name,
     })
   );
 }

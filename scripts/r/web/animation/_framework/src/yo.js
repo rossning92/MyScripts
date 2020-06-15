@@ -1713,7 +1713,7 @@ function addGlitch({ duration = 0.2 } = {}) {
   if (glitchPass != null) {
     const tl = gsap.timeline();
     tl.set(glitchPass, { factor: 1 });
-    tl.set(glitchPass, { factor: 0 }, `+=${duration}`);
+    tl.set(glitchPass, { factor: 0 }, `<${duration}`);
     return tl;
   } else {
     return gsap.timeline();
