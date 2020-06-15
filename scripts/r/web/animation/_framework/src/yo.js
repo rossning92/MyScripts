@@ -262,11 +262,6 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     // alert();
   }
 
-  if (ENABLE_GLITCH_PASS) {
-    glitchPass = new GlitchPass();
-    composer.addPass(glitchPass);
-  }
-
   if (AA_METHOD == "fxaa") {
     composer.addPass(createFxaaPass(renderer));
   } else if (AA_METHOD == "ssaa") {
@@ -283,6 +278,11 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     taaRenderPass.unbiased = false;
     taaRenderPass.sampleLevel = 4;
     composer.addPass(taaRenderPass);
+  }
+
+  if (ENABLE_GLITCH_PASS) {
+    glitchPass = new GlitchPass();
+    composer.addPass(glitchPass);
   }
 }
 
