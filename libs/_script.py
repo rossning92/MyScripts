@@ -181,7 +181,7 @@ def get_python_path(script_path):
     return python_path
 
 
-def wt_wrap_args(args, wsl=False, title=None, **kwargs):
+def wt_wrap_args(args, wsl=False, title=None, close_on_exit=True, cwd=None):
     THEME = {
         "name": "Dracula",
         "background": "#282A36",
@@ -217,21 +217,22 @@ def wt_wrap_args(args, wsl=False, title=None, **kwargs):
     lines = [x for x in lines if not x.lstrip().startswith("//")]
     data = json.loads("\n".join(lines))
 
-    data["profiles"]["defaults"]["closeOnExit"] = "graceful"
     data["profiles"]["defaults"]["colorScheme"] = "Dracula"
     # data["profiles"]["defaults"]["fontSize"] = 10
     data["schemes"] = [THEME]
 
     if title:
         filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
+        profile = {
+            "name": title,
+            "hidden": False,
+            "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
+            "closeOnExit": "graceful" if close_on_exit else "never",
+        }
         if len(filtered) == 0:
-            data["profiles"]["list"].append(
-                {
-                    "name": title,
-                    "hidden": False,
-                    "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
-                }
-            )
+            data["profiles"]["list"].append(profile)
+        else:
+            filtered[0].update(profile)
 
     with open(CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=4)
@@ -598,6 +599,7 @@ class ScriptItem:
                             cwd=cwd,
                             title=self.get_console_title(),
                             wsl=self.meta["wsl"],
+                            close_on_exit=self.meta["closeOnExit"],
                         )
                     except Exception as e:
                         print("Error on Windows Terminal:", e)
@@ -783,6 +785,7 @@ def get_default_meta():
         "restartInstance": True,
         "background": False,
         "venv": None,
+        "closeOnExit": True,
     }
 
 
