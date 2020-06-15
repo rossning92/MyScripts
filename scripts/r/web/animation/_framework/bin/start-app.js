@@ -18,5 +18,17 @@ const server = new WebpackDevServer(compiler, {
 });
 
 server.listen(8080, "localhost", () => {
-  console.log("dev server listening on port 8080");
+  if (process.env.ENTRY) {
+    const url =
+      "http://localhost:8080/" +
+      path.basename(process.env.ENTRY, ".js") +
+      ".html";
+    const start =
+      process.platform == "darwin"
+        ? "open"
+        : process.platform == "win32"
+        ? "start"
+        : "xdg-open";
+    require("child_process").exec(start + " " + url);
+  }
 });

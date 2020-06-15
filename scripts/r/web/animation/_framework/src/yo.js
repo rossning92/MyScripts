@@ -760,7 +760,7 @@ function createLine3D({ color = 0xffffff, points = [], lineWidth = 0.1 } = {}) {
 
   let lineColor = new THREE.Color(0xffffff);
   let style = SVGLoader.getStrokeStyle(lineWidth, lineColor.getStyle());
-  style.strokeLineJoin = "round";
+  // style.strokeLineJoin = "round";
   let geometry = SVGLoader.pointsToStroke(points, style);
 
   let material = new THREE.MeshBasicMaterial({
@@ -2234,6 +2234,18 @@ async function addAsync(
 
       mesh = new THREE.Mesh(geometry, material);
     }
+  } else if (obj == "triangleOutline") {
+    if (vertices.length == 0) {
+      vertices = createTriangleVertices();
+    }
+
+    mesh = createLine3D({
+      points: vertices.concat(vertices[0]),
+      lineWidth,
+      color,
+    });
+    // triangleStroke.scale.set(0.2, 0.2, 0.2);
+    // scene.add(triangleStroke);
   } else if (obj == "rect" || obj == "rectangle") {
     const geometry = new THREE.PlaneGeometry(width, height);
     mesh = new THREE.Mesh(geometry, material);
@@ -2506,8 +2518,17 @@ function setBackgroundAlpha(alpha) {
   backgroundAlpha = alpha;
 }
 
-function setMotionBlur(enabled) {
-  MOTION_BLUR_SAMPLES = enabled ? 16 : 1;
+function setMotionBlur(v) {
+  if (isNaN(v)) {
+    MOTION_BLUR_SAMPLES = v ? 16 : 1;
+  } else {
+    MOTION_BLUR_SAMPLES = v;
+  }
+  AA_METHOD = "fxaa";
+}
+function setGlitch(enabled) {
+  ENABLE_GLITCH_PASS = true;
+  AA_METHOD = "fxaa";
 }
 
 export default {
@@ -2568,6 +2589,7 @@ export default {
   setMotionBlur,
   setBloom,
   generateRandomString,
+  setGlitch,
 };
 
 export { THREE, gsap };
