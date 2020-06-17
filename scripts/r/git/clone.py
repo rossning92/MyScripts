@@ -6,7 +6,7 @@ mkdir("~/Projects")
 chdir("~/Projects")
 
 folder = os.path.basename("{{GIT_URL}}")
-folder = folder.rstrip(".git")
+folder = re.sub(".git$", "", folder)
 
 if not exists(folder):
     call("git clone %s --depth=1" % "{{GIT_URL}}")

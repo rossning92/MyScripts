@@ -218,7 +218,7 @@ def wt_wrap_args(args, wsl=False, title=None, close_on_exit=True, cwd=None):
     data = json.loads("\n".join(lines))
 
     data["profiles"]["defaults"]["colorScheme"] = "Dracula"
-    # data["profiles"]["defaults"]["fontSize"] = 10
+    # data["profiles"]["defaults"]["fontSize"] = 12
     data["schemes"] = [THEME]
 
     if title:
