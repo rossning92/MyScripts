@@ -5,6 +5,31 @@ const process = require("process");
 
 var child;
 
+function registerAutoComplete(context) {
+  const provider = vscode.languages.registerCompletionItemProvider(
+    "plaintext",
+    {
+      provideCompletionItems(document, position) {
+        const linePrefix = document
+          .lineAt(position)
+          .text.substr(0, position.character);
+        if (!linePrefix.endsWith("console.")) {
+          return undefined;
+        }
+
+        return [
+          new vscode.CompletionItem("log", vscode.CompletionItemKind.Method),
+          new vscode.CompletionItem("warn", vscode.CompletionItemKind.Method),
+          new vscode.CompletionItem("error", vscode.CompletionItemKind.Method),
+        ];
+      },
+    },
+    "." // trigger key
+  );
+
+  context.subscriptions.push(provider);
+}
+
 function getRecorderProcess() {
   if (child == null) {
     const editor = vscode.window.activeTextEditor;
@@ -110,6 +135,8 @@ function activate(context) {
   vscode.commands.registerCommand("yo.collectNoiseProfile", function () {
     getRecorderProcess().stdin.write("n\n");
   });
+
+  registerAutoComplete(context);
 
   // console.log("decorator sample is activated");
   // let timeout = undefined;
