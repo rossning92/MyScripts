@@ -5,11 +5,29 @@ const process = require("process");
 
 var child;
 
+function documentIsActive() {
+  const editor = vscode.window.activeTextEditor;
+  if (editor == null) {
+    return false;
+  }
+
+  const fileName = editor.document.fileName;
+  if (path.basename(fileName) != "index.md") {
+    return false;
+  }
+
+  return true;
+}
+
 function registerAutoComplete(context) {
   const provider = vscode.languages.registerCompletionItemProvider(
-    "plaintext",
+    { pattern: "**/index.md" },
     {
       provideCompletionItems(document, position) {
+        // if (!documentIsActive()) {
+        //   return undefined;
+        // }
+
         const linePrefix = document
           .lineAt(position)
           .text.substr(0, position.character);
@@ -32,13 +50,7 @@ function registerAutoComplete(context) {
 
 function getRecorderProcess() {
   if (child == null) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor == null) {
-      return null;
-    }
-
-    const fileName = editor.document.fileName;
-    if (path.basename(fileName) != "index.md") {
+    if (!documentIsActive()) {
       return null;
     }
 
