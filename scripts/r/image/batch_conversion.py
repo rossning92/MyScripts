@@ -3,7 +3,7 @@ from _image import *
 import numpy as np
 
 
-def crop_border(pil_image):
+def crop_border2(pil_image):
     np_array = np.array(pil_image)
     blank_px = [255, 255, 255, 0]
     mask = np_array != blank_px
@@ -12,6 +12,12 @@ def crop_border(pil_image):
     x1, y1, z1 = coords.max(axis=0) + 1
     cropped_box = np_array[x0:x1, y0:y1, z0:z1]
     pil_image = Image.fromarray(cropped_box, "RGBA")
+    return pil_image
+
+
+def crop_border(pil_image):
+    imageBox = pil_image.getbbox()
+    pil_image = pil_image.crop(imageBox)
     return pil_image
 
 
