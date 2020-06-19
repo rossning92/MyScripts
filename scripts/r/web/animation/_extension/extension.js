@@ -6,7 +6,7 @@ const fs = require("fs");
 
 var child;
 
-function documentIsActive() {
+function isDocumentActive() {
   const editor = vscode.window.activeTextEditor;
   if (editor == null) {
     return false;
@@ -85,7 +85,7 @@ function registerAutoComplete(context) {
 
 function getRecorderProcess() {
   if (child == null) {
-    if (!documentIsActive()) {
+    if (!isDocumentActive()) {
       return null;
     }
 
