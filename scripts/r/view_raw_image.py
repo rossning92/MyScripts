@@ -3,8 +3,18 @@ import numpy as np
 from _shutil import *
 from _image import *
 
+if "{{_DTYPE}}" == "f32":
+    dtype = np.float32
+elif "{{_DTYPE}}" == "f16":
+    dtype = np.float16
+else:
+    dtype = np.uint8
+
 f = get_files()[0]
-im = np.fromfile(f, dtype=np.uint8)
+
+im = np.fromfile(f, dtype=dtype)
+if dtype == np.float16:
+    im = im.astype(np.float32)
 
 width, height = [int(x) for x in "{{_SIZE}}".split()]
 
