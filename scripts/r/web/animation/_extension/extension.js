@@ -37,7 +37,9 @@ function getFiles(dir, filter, fileList = []) {
     const fileStat = fs.lstatSync(filePath);
 
     if (fileStat.isDirectory()) {
-      getFiles(filePath, filter, fileList);
+      if (file != "tmp") {
+        getFiles(filePath, filter, fileList);
+      }
     } else if (filter(filePath)) {
       fileList.push(filePath);
     }
@@ -56,6 +58,8 @@ function registerAutoComplete(context) {
 
         let files = [];
         getFiles(projectDir, (x) => x.endsWith(".mp4"), files);
+
+        // Convert to relative path
         files = files.map((x) =>
           x.replace(projectDir + path.sep, "").replace("\\", "/")
         );
@@ -63,14 +67,17 @@ function registerAutoComplete(context) {
         const completionItems = [];
         files.forEach((file) => {
           completionItems.push(
-            new vscode.CompletionItem(file, vscode.CompletionItemKind.Method)
+            new vscode.CompletionItem(
+              file + "'", // Auto closing single quote
+              vscode.CompletionItemKind.File
+            )
           );
         });
 
         return completionItems;
       },
     },
-    '"' // trigger key
+    "'" // trigger key
   );
 
   context.subscriptions.push(provider);
@@ -177,79 +184,6 @@ function activate(context) {
   });
 
   registerAutoComplete(context);
-
-  // console.log("decorator sample is activated");
-  // let timeout = undefined;
-
-  // const decorationType = vscode.window.createTextEditorDecorationType(
-  //   {
-  //     cursor: "crosshair",
-  //     // use a themable color. See package.json for the declaration and default values.
-  //     backgroundColor: { id: "myextension.largeNumberBackground" },
-  //   }
-  // );
-  // let activeEditor = vscode.window.activeTextEditor;
-  // function updateDecorations() {
-  //   if (!activeEditor) {
-  //     return;
-  //   }
-  //   const regEx = /\d+/g;
-  //   const text = activeEditor.document.getText();
-  //   const smallNumbers = [];
-  //   const largeNumbers = [];
-  //   let match;
-  //   const myContent = new vscode.MarkdownString(
-  //     "*yoyo* [link](command:yo.hello)"
-  //   );
-  //   myContent.isTrusted = true;
-
-  //   while ((match = regEx.exec(text))) {
-  //     const startPos = activeEditor.document.positionAt(match.index);
-  //     const endPos = activeEditor.document.positionAt(
-  //       match.index + match[0].length
-  //     );
-  //     const decoration = {
-  //       range: new vscode.Range(startPos, endPos),
-  //       hoverMessage: myContent,
-  //     };
-  //     if (match[0].length < 3) {
-  //       smallNumbers.push(decoration);
-  //     } else {
-  //       largeNumbers.push(decoration);
-  //     }
-  //   }
-
-  //   activeEditor.setDecorations(decorationType, largeNumbers);
-  // }
-  // function triggerUpdateDecorations() {
-  //   if (timeout) {
-  //     clearTimeout(timeout);
-  //     timeout = undefined;
-  //   }
-  //   timeout = setTimeout(updateDecorations, 500);
-  // }
-  // if (activeEditor) {
-  //   triggerUpdateDecorations();
-  // }
-  // vscode.window.onDidChangeActiveTextEditor(
-  //   (editor) => {
-  //     activeEditor = editor;
-  //     if (editor) {
-  //       triggerUpdateDecorations();
-  //     }
-  //   },
-  //   null,
-  //   context.subscriptions
-  // );
-  // vscode.workspace.onDidChangeTextDocument(
-  //   (event) => {
-  //     if (activeEditor && event.document === activeEditor.document) {
-  //       triggerUpdateDecorations();
-  //     }
-  //   },
-  //   null,
-  //   context.subscriptions
-  // );
 }
 
 exports.activate = activate;
