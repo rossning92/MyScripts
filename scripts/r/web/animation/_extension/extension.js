@@ -2,6 +2,7 @@ const vscode = require("vscode");
 const cp = require("child_process");
 const path = require("path");
 const process = require("process");
+const fs = require("fs");
 
 var child;
 
@@ -19,30 +20,57 @@ function documentIsActive() {
   return true;
 }
 
+function getProjectDir() {
+  const editor = vscode.window.activeTextEditor;
+  if (editor == null) {
+    return null;
+  }
+
+  return path.dirname(editor.document.fileName);
+}
+
+function getFiles(dir, filter, fileList = []) {
+  const files = fs.readdirSync(dir);
+
+  files.forEach((file) => {
+    const filePath = path.join(dir, file);
+    const fileStat = fs.lstatSync(filePath);
+
+    if (fileStat.isDirectory()) {
+      getFiles(filePath, filter, fileList);
+    } else if (filter(filePath)) {
+      fileList.push(filePath);
+    }
+  });
+
+  return fileList;
+}
+
 function registerAutoComplete(context) {
   const provider = vscode.languages.registerCompletionItemProvider(
     { pattern: "**/index.md" },
     {
       provideCompletionItems(document, position) {
-        // if (!documentIsActive()) {
-        //   return undefined;
-        // }
+        const projectDir = getProjectDir();
+        if (projectDir == null) return;
 
-        const linePrefix = document
-          .lineAt(position)
-          .text.substr(0, position.character);
-        if (!linePrefix.endsWith("console.")) {
-          return undefined;
-        }
+        let files = [];
+        getFiles(projectDir, (x) => x.endsWith(".mp4"), files);
+        files = files.map((x) =>
+          x.replace(projectDir + path.sep, "").replace("\\", "/")
+        );
 
-        return [
-          new vscode.CompletionItem("log", vscode.CompletionItemKind.Method),
-          new vscode.CompletionItem("warn", vscode.CompletionItemKind.Method),
-          new vscode.CompletionItem("error", vscode.CompletionItemKind.Method),
-        ];
+        const completionItems = [];
+        files.forEach((file) => {
+          completionItems.push(
+            new vscode.CompletionItem(file, vscode.CompletionItemKind.Method)
+          );
+        });
+
+        return completionItems;
       },
     },
-    "." // trigger key
+    '"' // trigger key
   );
 
   context.subscriptions.push(provider);
