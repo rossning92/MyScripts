@@ -54,7 +54,14 @@ function registerAutoComplete(context) {
     {
       provideCompletionItems(document, position) {
         const projectDir = getProjectDir();
-        if (projectDir == null) return;
+        if (projectDir == null) return undefined;
+
+        const linePrefix = document
+          .lineAt(position)
+          .text.substr(0, position.character);
+        if ((linePrefix.match(/'/g) || []).length % 2 == 0) {
+          return undefined;
+        }
 
         let files = [];
         getFiles(projectDir, (x) => x.endsWith(".mp4"), files);
