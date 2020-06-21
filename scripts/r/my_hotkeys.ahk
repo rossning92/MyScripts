@@ -268,12 +268,14 @@ MouseIsOverAndActive(title) {
 
 CenterActiveWindow() {
     WinGetPos,,, width, height, A
-    WinMove, A,, (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2)
+    width := 1920
+    height := 1080
+    WinMove, A,, (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height
 }
 
 ToggleDesktopIcons() {
     ControlGet, HWND, Hwnd,, SysListView321, ahk_class WorkerW
-
+    
     If DllCall("IsWindowVisible", UInt, HWND)
         WinHide, ahk_id %HWND%
     Else
