@@ -47,6 +47,10 @@
       {
         "command": "yo.collectNoiseProfile",
         "title": "Animation ToolKit: Collect Noise Profile"
+      },
+      {
+        "command": "yo.openFileUnderCursor",
+        "title": "Animation ToolKit: Open File Under Cursor"
       }
     ],
     "keybindings": [
@@ -69,6 +73,10 @@
       {
         "command": "yo.collectNoiseProfile",
         "key": "f9"
+      },
+      {
+        "command": "yo.openFileUnderCursor",
+        "key": "f4"
       }
     ]
   },

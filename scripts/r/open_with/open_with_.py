@@ -344,7 +344,7 @@ def open_with(file, program_id=0):
 if __name__ == "__main__":
     try:
         file = sys.argv[1]
-        program_id = int(sys.argv[2])
+        program_id = int(sys.argv[2]) if len(sys.argv) >= 3 else 0
         open_with(file, program_id)
     except Exception as e:
         traceback.print_exc(file=sys.stdout)

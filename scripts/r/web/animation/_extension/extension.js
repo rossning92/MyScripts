@@ -6,6 +6,102 @@ const fs = require("fs");
 
 var child;
 
+function openFileUnderCursor() {
+  if (!isDocumentActive) {
+    return;
+  }
+
+  const editor = vscode.window.activeTextEditor;
+
+  if (editor.selection.isEmpty) {
+    const position = editor.selection.active;
+    const line = editor.document.lineAt(position).text;
+    const found = line.match(/'(.*?)'/);
+    if (found !== null) {
+      const filePath = path.join(getProjectDir(), found[1]);
+
+      const args = ["-m", "r.open_with.open_with_", filePath];
+      cp.spawnSync("python", args);
+    }
+  }
+}
+
+function initializeDecorations(context) {
+  let timeout = undefined;
+
+  const decorationType = vscode.window.createTextEditorDecorationType({
+    cursor: "crosshair",
+    // use a themable color. See package.json for the declaration and default values.
+    backgroundColor: { id: "myextension.largeNumberBackground" },
+  });
+  let activeEditor = vscode.window.activeTextEditor;
+  function updateDecorations() {
+    if (!activeEditor) {
+      return;
+    }
+    const regEx = /\d+/g;
+    const text = activeEditor.document.getText();
+    const smallNumbers = [];
+    const largeNumbers = [];
+    let match;
+    const myContent = new vscode.MarkdownString(
+      "*yoyo* [link](command:yo.hello)"
+    );
+    myContent.isTrusted = true;
+
+    while ((match = regEx.exec(text))) {
+      const startPos = activeEditor.document.positionAt(match.index);
+      const endPos = activeEditor.document.positionAt(
+        match.index + match[0].length
+      );
+      const decoration = {
+        range: new vscode.Range(startPos, endPos),
+        hoverMessage: myContent,
+      };
+      if (match[0].length < 3) {
+        smallNumbers.push(decoration);
+      } else {
+        largeNumbers.push(decoration);
+      }
+    }
+
+    activeEditor.setDecorations(decorationType, largeNumbers);
+  }
+
+  function triggerUpdateDecorations() {
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = undefined;
+    }
+    timeout = setTimeout(updateDecorations, 500);
+  }
+
+  if (activeEditor) {
+    triggerUpdateDecorations();
+  }
+
+  vscode.window.onDidChangeActiveTextEditor(
+    (editor) => {
+      activeEditor = editor;
+      if (editor) {
+        triggerUpdateDecorations();
+      }
+    },
+    null,
+    context.subscriptions
+  );
+
+  vscode.workspace.onDidChangeTextDocument(
+    (event) => {
+      if (activeEditor && event.document === activeEditor.document) {
+        triggerUpdateDecorations();
+      }
+    },
+    null,
+    context.subscriptions
+  );
+}
+
 function isDocumentActive() {
   const editor = vscode.window.activeTextEditor;
   if (editor == null) {
@@ -147,7 +243,7 @@ function export_animation({ audioOnly = false } = {}) {
 
     var activeFilePath = vscode.window.activeTextEditor.document.fileName;
     var activeDirectory = path.dirname(activeFilePath);
-    vscode.window.showInformationMessage(activeDirectory);
+    // vscode.window.showInformationMessage(activeDirectory);
 
     const shellArgs = [
       "-m",
@@ -194,7 +290,13 @@ function activate(context) {
     getRecorderProcess().stdin.write("n\n");
   });
 
+  vscode.commands.registerCommand("yo.openFileUnderCursor", function () {
+    openFileUnderCursor();
+  });
+
   registerAutoComplete(context);
+
+  // initializeDecorations(context);
 }
 
 exports.activate = activate;
