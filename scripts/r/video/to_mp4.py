@@ -87,4 +87,5 @@ for f in files:
         no_audio=bool("{{_NO_AUDIO}}"),
     )
 
-    open_with(out_file)
+    if len(files) == 1:
+        open_with(out_file)

@@ -29,23 +29,21 @@ function getProjectDir() {
   return path.dirname(editor.document.fileName);
 }
 
-function getFiles(dir, filter, fileList = []) {
-  const files = fs.readdirSync(dir);
-
-  files.forEach((file) => {
+function getFiles(dir, filter, files = []) {
+  fs.readdirSync(dir).forEach((file) => {
     const filePath = path.join(dir, file);
     const fileStat = fs.lstatSync(filePath);
 
     if (fileStat.isDirectory()) {
       if (file != "tmp") {
-        getFiles(filePath, filter, fileList);
+        getFiles(filePath, filter, files);
       }
     } else if (filter(filePath)) {
-      fileList.push(filePath);
+      files.push(filePath);
     }
   });
 
-  return fileList;
+  return files;
 }
 
 function registerAutoComplete(context) {
@@ -56,15 +54,20 @@ function registerAutoComplete(context) {
         const projectDir = getProjectDir();
         if (projectDir == null) return undefined;
 
-        const linePrefix = document
-          .lineAt(position)
-          .text.substr(0, position.character);
-        if ((linePrefix.match(/'/g) || []).length % 2 == 0) {
+        if (
+          position.character < 2 ||
+          document.lineAt(position).text[position.character - 2] !== "{"
+        ) {
           return undefined;
         }
 
         let files = [];
         getFiles(projectDir, (x) => x.endsWith(".mp4"), files);
+        files = files.sort(function (a, b) {
+          return -(
+            fs.statSync(a).mtime.getTime() - fs.statSync(b).mtime.getTime()
+          );
+        });
 
         // Convert to relative path
         files = files.map((x) =>
@@ -72,19 +75,20 @@ function registerAutoComplete(context) {
         );
 
         const completionItems = [];
-        files.forEach((file) => {
-          completionItems.push(
-            new vscode.CompletionItem(
-              file + "'", // Auto closing single quote
-              vscode.CompletionItemKind.File
-            )
+        files.forEach((file, i) => {
+          const label = ` video('${file}') `; // Auto closing single quote
+          const item = new vscode.CompletionItem(
+            label,
+            vscode.CompletionItemKind.File
           );
+          item.sortText = i.toString().padStart(5, "0");
+          completionItems.push(item);
         });
 
         return completionItems;
       },
     },
-    "'" // trigger key
+    "{" // trigger key
   );
 
   context.subscriptions.push(provider);
@@ -99,7 +103,7 @@ function getRecorderProcess() {
     child = cp.spawn("python", ["-u", "-m", "r.audio.recorder"], {
       env: {
         ...process.env,
-        RECORD_OUT_DIR: path.resolve(path.dirname(fileName) + "/record"),
+        RECORD_OUT_DIR: path.resolve(getProjectDir() + "/record"),
         RECODER_INTERACTIVE: "0",
       },
     });

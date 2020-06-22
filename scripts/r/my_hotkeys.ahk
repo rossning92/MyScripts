@@ -134,6 +134,10 @@ return
     CenterActiveWindow()
 return
 
+#2::
+    CenterActiveWindow(width:=1440, height:=810)
+return
+
 !#d::
     ToggleDesktopIcons()
 return
@@ -266,10 +270,8 @@ MouseIsOverAndActive(title) {
         return false
 }
 
-CenterActiveWindow() {
-    WinGetPos,,, width, height, A
-    width := 1920
-    height := 1080
+CenterActiveWindow(width:=1920, height:=1080) {
+    ; WinGetPos,,, width, height, A
     WinMove, A,, (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height
 }
 
