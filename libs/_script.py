@@ -228,6 +228,7 @@ def wt_wrap_args(args, wsl=False, title=None, close_on_exit=True, cwd=None):
             "hidden": False,
             "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
             "closeOnExit": "graceful" if close_on_exit else "never",
+            "suppressApplicationTitle": True,
         }
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)
