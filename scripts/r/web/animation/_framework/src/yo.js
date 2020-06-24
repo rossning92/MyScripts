@@ -2161,6 +2161,7 @@ async function addAsync(
     width = 1,
     height = 1,
     aniPos = "+=0",
+    t = null,
     parent = null,
     lighting = false,
     ccw = true,
@@ -2310,7 +2311,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  addAnimation(mesh, animation, { aniPos });
+  addAnimation(mesh, animation, { aniPos: t !== null ? t : aniPos });
 
   if (parent != null) {
     parent.add(mesh);
@@ -2519,8 +2520,8 @@ function setBackgroundAlpha(alpha) {
 }
 
 function setMotionBlur(v) {
-  if (isNaN(v)) {
-    MOTION_BLUR_SAMPLES = v ? 16 : 1;
+  if (v === true) {
+    MOTION_BLUR_SAMPLES = 16;
   } else {
     MOTION_BLUR_SAMPLES = v;
   }
