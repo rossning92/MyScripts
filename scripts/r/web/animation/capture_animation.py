@@ -9,7 +9,7 @@ import time
 # pip3 install websockets==6.0 --force-reinstall
 
 
-def capture_js_animation(url, out_file=None, output_video_file=True):
+def capture_js_animation(url, out_file=None):
     if out_file is None:
         out_file = "animation_%s.mov" % get_time_str()
     prefix, ext = os.path.splitext(out_file)
@@ -51,8 +51,8 @@ def capture_js_animation(url, out_file=None, output_video_file=True):
     asyncio.get_event_loop().run_until_complete(main())
 
     tar_file = prefix + ".tar"
-    if output_video_file:
-        result = convert_to_mov(tar_file, fps=25, out_file=prefix+ext)
+    if not out_file.endswith(".tar"):
+        result = convert_to_mov(tar_file, fps=25, out_file=prefix + ext)
         os.remove(tar_file)
     else:
         result = tar_file
@@ -64,5 +64,5 @@ if __name__ == "__main__":
     cd(expanduser("~/Downloads"))
 
     out_file = os.path.splitext("{{_NAME}}")[0] + ".mp4"
-    print('output: %s' % out_file)
+    print("output: %s" % out_file)
     capture_js_animation("http://localhost:8080/" + "{{_NAME}}.html", out_file=out_file)

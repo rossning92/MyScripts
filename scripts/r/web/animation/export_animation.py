@@ -46,6 +46,7 @@ ADD_SUBTITLE = True
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
 AUTO_GENERATE_TTS = False
+IMAGE_SEQUENCE_FPS = 25
 
 change_settings({"FFMPEG_BINARY": "ffmpeg"})
 
@@ -85,6 +86,7 @@ class _AnimationInfo:
         self.url = None
         self.calc_length = True
         self.url_params = {}
+        self.overlay = False
 
 
 _audio_track_cur_pos = 0
@@ -138,9 +140,14 @@ def _get_track(tracks, name):
     return track
 
 
-def _get_vid_track(name=None):
+def _get_vid_track_name(name):
     if name is None:
         name = _cur_vid_track_name
+    return name
+
+
+def _get_vid_track(name=None):
+    name = _get_vid_track_name(name)
     return _get_track(_video_tracks, name)
 
 
@@ -226,7 +233,7 @@ def _format_time(sec):
 
 def _generate_text_image(
     text,
-    font="Source-Han-Sans-CN",
+    font="Source-Han-Sans-CN-Medium",
     font_size=50,
     color="#ffffff",
     stroke_color="#000000",
@@ -248,7 +255,7 @@ def _generate_text_image(
         "-stroke",
         stroke_color,
         "-strokewidth",
-        "6",
+        "4",
         "-gravity",
         "center",
         "label:%s" % text,
@@ -538,7 +545,7 @@ def create_image_seq_clip(tar_file):
     # Get all image files
     image_files = sorted(glob.glob((os.path.join(tmp_folder, "*.png"))))
 
-    clip = ImageSequenceClip(image_files, fps=FPS)
+    clip = ImageSequenceClip(image_files, fps=IMAGE_SEQUENCE_FPS)
     return clip
 
 
@@ -696,7 +703,11 @@ def _animation(url, name, track=None, params={}, calc_length=True, **kwargs):
     anim = _animations[name]
     anim.url = url
     anim.url_params = params
-    anim.calc_length = calc_length
+
+    overlay = True if (_get_vid_track_name(track) != 'vid') else False
+    anim.overlay = overlay
+    anim.calc_length = calc_length and not overlay
+
     anim.clip_info_list.append(_add_clip(track=track, **kwargs))
 
 
@@ -777,7 +788,7 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", duration=3, file="../image/highlight.png", **kwargs):
+def hl(pos, track="hl", duration=2, file="../image/cursor.png", **kwargs):
     image(
         file,
         pos=pos,
@@ -842,11 +853,15 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
                     track="overlay",
                 )
 
-    # Animation
+    # Generate animation clips
     if 1:
-        ANIM_EXT = "mp4"
         for name, animation_info in _animations.items():
-            out_file = "tmp/animation/%s.%s" % (name, ANIM_EXT)
+            if animation_info.overlay:
+                anim_ext = "tar"
+            else:
+                anim_ext = "mp4"
+
+            out_file = "tmp/animation/%s.%s" % (name, anim_ext)
             os.makedirs("tmp/animation", exist_ok=True)
 
             if 1:  # generate animation video file
@@ -882,11 +897,13 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
                     # file=(
                     #     out_file
                     #     if i == 0
-                    #     else "tmp/animation/%s.%d.%s" % (name, i, ANIM_EXT)
+                    #     else "tmp/animation/%s.%d.%s" % (name, i, anim_ext)
                     # )
                     # HACK:
                     file=out_file
                 )
+                if animation_info.overlay:
+                    clip_info.duration = clip_info.mpy_clip.duration
 
     # Update MoviePy clip object in each track.
     video_clips = []
