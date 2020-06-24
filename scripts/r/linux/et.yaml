@@ -1,5 +1,6 @@
 autoRun: false
 background: false
+closeOnExit: false
 conda: null
 globalHotkey: Win+Alt+E
 hotkey: null
