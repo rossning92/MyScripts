@@ -16,6 +16,14 @@ SetTitleMatchMode, 2
 AddChromeHotkey("#!.", "- To Do", "https://to-do.microsoft.com/tasks")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
+WinGet, LastWindowHwnd, ID, A
+SetTimer, ReinstallKeyHooks, 2000
+return
+
+ReinstallKeyHooks:
+    If (WinActive("ahk_exe tvnviewer.exe")) {
+        Reload
+    }
 return
 
 *CapsLock::Send {LWin Down}{LCtrl Down}
@@ -56,7 +64,7 @@ return
 #If
     
 
-#If not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
+#If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
     
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 #c::ActivateChrome(0)
@@ -144,12 +152,12 @@ return
 
 #If
     
-#If WinExist("ahk_exe vncviewer.exe")
-F11::
-if WinActive("ahk_exe vncviewer.exe") {
-    WinMinimize, ahk_exe vncviewer.exe
+#If WinExist("ahk_exe tvnviewer.exe")
+$F11::
+if WinActive("ahk_exe tvnviewer.exe") {
+    WinMinimize, ahk_exe tvnviewer.exe
 } else {
-    WinActivate, ahk_exe vncviewer.exe
+    WinActivate, ahk_exe tvnviewer.exe
 }
 return
 #If

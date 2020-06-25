@@ -158,7 +158,7 @@ function registerAutoComplete(context) {
         }
 
         let files = [];
-        getFiles(projectDir, (x) => x.endsWith(".mp4"), files);
+        getFiles(projectDir, (x) => /\.(png|jpg|mp4)$/g.test(x), files);
         files = files.sort(function (a, b) {
           return -(
             fs.statSync(a).mtime.getTime() - fs.statSync(b).mtime.getTime()

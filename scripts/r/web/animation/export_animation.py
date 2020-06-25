@@ -474,6 +474,21 @@ def image(f, pos="center", **kwargs):
     _add_clip(f, pos=pos, **kwargs)
 
 
+def overlay(
+    f, pos="center", duration=3, fadein=True, fadeout=True, track="overlay", **kwargs
+):
+    print("image: %s" % f)
+    _add_clip(
+        f,
+        pos=pos,
+        duration=duration,
+        fadein=fadein,
+        fadeout=fadeout,
+        track=track,
+        **kwargs,
+    )
+
+
 def text(text, track="text", font_size=100, pos="center", **kwargs):
     temp_file = _generate_text_image(
         text,
@@ -704,7 +719,7 @@ def _animation(url, name, track=None, params={}, calc_length=True, **kwargs):
     anim.url = url
     anim.url_params = params
 
-    overlay = True if (_get_vid_track_name(track) != 'vid') else False
+    overlay = True if (_get_vid_track_name(track) != "vid") else False
     anim.overlay = overlay
     anim.calc_length = calc_length and not overlay
 
