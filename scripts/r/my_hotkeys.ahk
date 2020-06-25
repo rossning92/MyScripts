@@ -15,15 +15,6 @@ SetTitleMatchMode, 2
 AddChromeHotkey("#!.", "- To Do", "https://to-do.microsoft.com/tasks")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
-WinGet, LastWindowHwnd, ID, A
-SetTimer, ReinstallKeyHooks, 2000
-return
-
-ReinstallKeyHooks:
-    ; Not the best solution. But TightVNCViewer always hook the keys when window activates.
-    If (WinActive("ahk_exe tvnviewer.exe")) {
-        Reload
-    }
 return
 
 *CapsLock::Send {LWin Down}{LCtrl Down}
@@ -153,7 +144,7 @@ return
 #If
     
 #If WinExist("ahk_exe tvnviewer.exe")
-$F11::
+$XButton2::
 if WinActive("ahk_exe tvnviewer.exe") {
     WinMinimize, ahk_exe tvnviewer.exe
 } else {
