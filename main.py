@@ -312,8 +312,7 @@ class MainWindow(QWidget):
 
                 # TODO: use templates
                 f.write(
-                    """#NoTrayIcon
-#SingleInstance, Force
+                    """#SingleInstance, Force
 #include libs/ahk/ExplorerHelper.ahk
 ; SetTitleMatchMode, 2
 RunScript(name, path)
