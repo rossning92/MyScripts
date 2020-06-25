@@ -1,7 +1,7 @@
 from _shutil import *
 from _term import *
 
-new_file = wait_for_new_file(os.path.expandvars(r"%USERPROFILE%\Videos\Desktop\*.mp4"))
+new_file = wait_for_new_file(os.path.expandvars(r"%USERPROFILE%\Videos\**\*.mp4"))
 
 name = input("input file name (no ext): ")
 if not name:

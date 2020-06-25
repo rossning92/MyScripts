@@ -1004,7 +1004,7 @@ def wait_for_new_file(file_pattern):
 
     print("wait for new file: %s " % file_pattern)
     while True:
-        for f in glob.glob(file_pattern):
+        for f in glob.glob(file_pattern, recursive=True):
             mtime = os.path.getmtime(f)
             if mtime > max_mtime:
                 # Wait until file is closed
