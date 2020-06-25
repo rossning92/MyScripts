@@ -20,6 +20,7 @@ SetTimer, ReinstallKeyHooks, 2000
 return
 
 ReinstallKeyHooks:
+    ; Not the best solution. But TightVNCViewer always hook the keys when window activates.
     If (WinActive("ahk_exe tvnviewer.exe")) {
         Reload
     }
