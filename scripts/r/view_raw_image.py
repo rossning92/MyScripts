@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from _shutil import *
 from _image import *
+from _math import *
 
 if "{{_DTYPE}}" == "f32":
     dtype = np.float32

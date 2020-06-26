@@ -595,13 +595,25 @@ class ScriptItem:
 
                     # Create new terminal using Windows Terminal
                     try:
-                        args = wt_wrap_args(
-                            args,
-                            cwd=cwd,
-                            title=self.get_console_title(),
-                            wsl=self.meta["wsl"],
-                            close_on_exit=self.meta["closeOnExit"],
-                        )
+                        if self.meta["terminal"] is None:
+                            args = wt_wrap_args(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.meta["wsl"],
+                                close_on_exit=self.meta["closeOnExit"],
+                            )
+                        elif self.meta["terminal"] == "conemu":
+                            args = conemu_wrap_args(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.meta["wsl"],
+                            )
+                        else:
+                            raise Exception(
+                                "Non-supported terminal: %s" % self.meta["terminal"]
+                            )
                     except Exception as e:
                         print("Error on Windows Terminal:", e)
 
@@ -787,6 +799,7 @@ def get_default_meta():
         "background": False,
         "venv": None,
         "closeOnExit": True,
+        "terminal": None,
     }
 
 
