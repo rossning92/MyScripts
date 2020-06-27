@@ -213,6 +213,7 @@ UpdateWindowPosition(pos) {
             WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
         }
         
+        ; ResizeWindow("ahk_id " hwnd, x, y, w, h)
         WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
         if (hwnd != curHwnd) {
             WinActivate, ahk_id %hwnd%
@@ -270,8 +271,7 @@ MouseIsOverAndActive(title) {
 }
 
 CenterActiveWindow(width:=1920, height:=1080) {
-    ; WinGetPos,,, width, height, A
-    WinMove, A,, (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height
+    ResizeWindow("A", (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height)
 }
 
 ToggleDesktopIcons() {
@@ -281,4 +281,31 @@ ToggleDesktopIcons() {
         WinHide, ahk_id %HWND%
     Else
         WinShow, ahk_id %HWND%
+}
+
+ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
+    WinGet hwnd, ID, %wintitle% ; WinExist() sets the last found window
+    
+    If ((X . Y . W . H) = "")
+        Return False
+    If !WinExist("ahk_id " . hwnd)
+        Return False
+    VarSetCapacity(WI, 60, 0) ; WINDOWINFO structure
+    NumPut(60, WI, "Uint")
+    If !DllCall("GetWindowInfo", "Ptr", hwnd, "Ptr", &WI)
+        Return False
+    WX := NumGet(WI, 4, "Int") ; X coordinate of the window
+    WY := NumGet(WI, 8, "Int") ; Y coordinate of the window
+    WW := NumGet(WI, 12, "Int") - WX ; width of the window
+    WH := NumGet(WI, 16, "Int") - WY ; height of the window
+    BW := NumGet(WI, 48, "UInt") - 1 ; border width - 1
+    BH := NumGet(WI, 52, "UInt") - 1 ; border height - 1
+    X := X <> "" ? X - BW : WX
+    Y := Y <> "" ? Y : WY
+    W := W <> "" ? W + BW + BW : WW
+    H := H <> "" ? H + BH : WH
+    
+    
+    DllCall("MoveWindow", "Ptr", hwnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
+    WinRestore ahk_id %hwnd%
 }
