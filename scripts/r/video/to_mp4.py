@@ -2,7 +2,7 @@ from _shutil import *
 from _video import *
 from r.open_with.open_with_ import open_with
 
-crop_rect = [int(x) for x in "{{_CROP_RECT}}".split()] if "{{_CROP_RECT}}" else None
+crop_rect = [int(x) for x in "{{_CROP_RECT}}".split()[0:4]] if "{{_CROP_RECT}}" else None
 files = get_files(cd=True)
 
 for f in files:
