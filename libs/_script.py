@@ -873,7 +873,7 @@ def is_instance_running():
     return False
 
 
-def _get_script_access_time_config():
+def _get_script_access_time_file():
     data_path = os.path.abspath(
         os.path.dirname(__file__) + "/../data/" + platform.node()
     )
@@ -882,9 +882,12 @@ def _get_script_access_time_config():
 
 
 def update_script_acesss_time(script):
-    config_file = _get_script_access_time_config()
-    with open(config_file, "r") as f:
-        data = json.load(f)
+    config_file = _get_script_access_time_file()
+    if os.path.exists(config_file):
+        with open(config_file, "r") as f:
+            data = json.load(f)
+    else:
+        data = {}
 
     data[script.script_path] = time.time()
 
@@ -898,7 +901,7 @@ def get_all_script_access_time():
     if not hasattr(self, "mtime"):
         self.mtime = 0
 
-    config_file = _get_script_access_time_config()
+    config_file = _get_script_access_time_file()
     if not os.path.exists(config_file):
         return {}, 0
 
