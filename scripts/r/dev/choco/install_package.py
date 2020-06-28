@@ -33,6 +33,7 @@ PKGS = {
         "docker-desktop",
     ],
     "common": ["everything", "irfanview", "googlechrome"],
+    "@ross": ["google-backup-and-sync"],
     "dev": [
         "conemu",
         "atom",
@@ -58,7 +59,9 @@ PKGS = {
     "ue4": ["directx",],
 }
 
-pkg_list = ["@for work"] + sorted(set([app for cate in PKGS.values() for app in cate]))
+pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
+    set([app for cate in PKGS.values() for app in cate])
+)
 idx = search(pkg_list)
 if idx < 0:
     sys.exit(1)
@@ -70,5 +73,10 @@ subprocess.call(
 if pkg_list[idx] == "@for work":
     for pkg in PKGS["for_work"] + PKGS["media"] + PKGS["dev"] + PKGS["common"]:
         subprocess.call("choco install %s -y" % pkg)
+
+elif pkg_list[idx].startswith("@"):
+    for pkg in PKGS[pkg_list[idx]]:
+        subprocess.call("choco install %s -y" % pkg)
+
 else:
     subprocess.call("choco install %s -y" % pkg_list[idx])
