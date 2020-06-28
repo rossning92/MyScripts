@@ -73,6 +73,7 @@ class _AudioClipInfo:
         self.start: float = None
         self.subclip: float = None
         self.vol_keypoints = []
+        self.loop = False
 
 
 class _AudioTrack:
@@ -376,7 +377,13 @@ def bgm_vol(v, **kwawgs):
 
 
 def _add_audio_clip(
-    file, track=None, t=None, subclip=None, duration=None, move_playhead=True
+    file,
+    track=None,
+    t=None,
+    subclip=None,
+    duration=None,
+    move_playhead=True,
+    loop=False,
 ):
     clips = _get_audio_track(track).clips
 
@@ -398,6 +405,7 @@ def _add_audio_clip(
     clip_info.duration = duration
     clip_info.subclip = subclip
     clip_info.start = t
+    clip_info.loop = loop
 
     if move_playhead:
         # Forward audio track pos
@@ -869,7 +877,7 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
                 )
 
     # Generate animation clips
-    if 1:
+    if not audio_only:
         for name, animation_info in _animations.items():
             if animation_info.overlay:
                 anim_ext = "tar"
@@ -997,11 +1005,14 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
             if clip_info.subclip is not None:
                 clip = clip.subclip(clip_info.subclip)
 
+            if clip_info.duration is not None:
+                if clip_info.loop:
+                    clip = clip.fx(afx.audio_loop, duration=clip_info.duration)
+                else:
+                    clip = clip.set_duration(clip_info.duration)
+
             if clip_info.start is not None:
                 clip = clip.set_start(clip_info.start)
-
-            if clip_info.duration is not None:
-                clip = clip.set_duration(clip_info.duration)
 
             # Adjust volume by keypoints
             if len(clip_info.vol_keypoints) > 0:
