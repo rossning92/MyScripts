@@ -899,6 +899,9 @@ def get_all_script_access_time():
         self.mtime = 0
 
     config_file = _get_script_access_time_config()
+    if not os.path.exists(config_file):
+        return {}, 0
+
     mtime = os.path.getmtime(config_file)
     if mtime > self.mtime:
         with open(config_file, "r") as f:

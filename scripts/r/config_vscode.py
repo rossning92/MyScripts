@@ -46,6 +46,8 @@ data["cSpell.enabledLanguageIds"] = ["markdown", "text"]
 data["search.exclude"] = {"**/build": True}
 data["pasteImage.path"] = "${currentFileNameWithoutExt}"
 data["workbench.editor.enablePreviewFromQuickOpen"] = False
+
+call_echo([sys.executable, "-m", "pip", "install", "black"])
 data["python.formatting.provider"] = "black"
 
 json.dump(data, open(f, "w"), indent=4)

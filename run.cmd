@@ -8,10 +8,8 @@ set QT_QPA_PLATFORM_PLUGIN_PATH=
 set QML_IMPORT_PATH=
 set QML2_IMPORT_PATH=
 
+:: Find python executable
 call install\find_python.cmd
-
-:: Install required packages
-where python
 if not %errorlevel%==0 (
 	call install\install_all_elevated.cmd
 )

@@ -32,7 +32,7 @@ PKGS = {
         "win32diskimager",
         "docker-desktop",
     ],
-    "common": ["everything", "irfanview",],
+    "common": ["everything", "irfanview", "googlechrome"],
     "dev": [
         "conemu",
         "atom",
