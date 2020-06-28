@@ -10,7 +10,8 @@ def install_font(url):
     for f in glob.glob("*.otf"):
         font_name = os.path.splitext(f)[0]
         dst_file = os.path.join(
-            expanduser("~/AppData/Local/Microsoft/Windows/Fonts"), os.path.basename(f)
+            expanduser("~\\AppData\\Local\\Microsoft\\Windows\\Fonts"),
+            os.path.basename(f),
         )
         copy(f, dst_file)
         command = rf'reg add "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts" /v "{font_name}" /t REG_SZ /d "{dst_file}" /f'

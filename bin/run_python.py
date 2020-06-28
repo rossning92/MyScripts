@@ -29,6 +29,7 @@ PYTHON_MODULE_LIST = {
     "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
     "pyscreenshot": "pyscreenshot",
     "jieba": "jieba",
+    "pyaudio": "pyaudio",
 }
 
 
