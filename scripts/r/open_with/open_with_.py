@@ -181,7 +181,7 @@ assoc = {
     ".mov": ["mpv", "VLC"],
     ".mp2": ["mpv", "VLC"],
     ".mp2v": ["mpv", "VLC"],
-    ".mp3": ["VLC", "Audacity"],
+    ".mp3": ["mpv", "Audacity"],
     ".mp4": ["mpv", "VLC"],
     ".mpa": ["mpv", "VLC"],
     ".mpc": ["mpv", "VLC"],

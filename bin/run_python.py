@@ -10,6 +10,7 @@ PYTHON_MODULE_LIST = {
     "keyboard": "keyboard",
     "markdown2": "markdown2",
     "matplotlib": "matplotlib",
+    "scipy": "scipy",
     "numpy": "numpy",
     "pandas": "pandas",
     "PIL": "pillow",

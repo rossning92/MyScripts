@@ -24,6 +24,7 @@ import numpy as np
 import argparse
 import hashlib
 from PIL import Image
+from _appmanager import get_executable
 
 if 1:
     import os
@@ -33,7 +34,7 @@ if 1:
 
 
 if 1:  # Import moviepy
-    f = glob.glob(r"C:\Program Files\ImageMagick-*\magick.exe")[0]
+    f = get_executable("magick")
     os.environ["IMAGEMAGICK_BINARY"] = f
     from moviepy.config import change_settings
     from moviepy.editor import *
@@ -48,7 +49,7 @@ FADE_DURATION = 0.2
 AUTO_GENERATE_TTS = False
 IMAGE_SEQUENCE_FPS = 25
 
-change_settings({"FFMPEG_BINARY": "ffmpeg"})
+# change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
 
 class _VideoClipInfo:

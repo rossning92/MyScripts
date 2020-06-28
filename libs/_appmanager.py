@@ -4,30 +4,30 @@ from _shutil import run_elevated
 import subprocess
 import sys
 import os
+import glob
 from _script import run_script
 
 
 def choco_install(name):
-    run_elevated([
-        'choco',
-        'source',
-        'add',
-        '--name=chocolatey',
-        '--priority=100',
-        '-s="https://chocolatey.org/api/v2/"'
-    ])
+    run_elevated(
+        [
+            "choco",
+            "source",
+            "add",
+            "--name=chocolatey",
+            "--priority=100",
+            '-s="https://chocolatey.org/api/v2/"',
+        ]
+    )
 
-    run_elevated([
-        'choco', 'install', '--source=chocolatey', name, '-y'
-    ])
+    run_elevated(["choco", "install", "--source=chocolatey", name, "-y"])
 
 
 def get_executable(app_name):
-    with open(os.path.join(os.path.dirname(__file__), 'app_list.yaml'), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), "app_list.yaml"), "r") as f:
         app_list = yaml.load(f.read(), Loader=yaml.FullLoader)
 
-    matched_apps = [k for k, v in app_list.items(
-    ) if app_name.lower() == k.lower()]
+    matched_apps = [k for k, v in app_list.items() if app_name.lower() == k.lower()]
 
     app = {}
     if len(matched_apps) > 0:
@@ -35,10 +35,11 @@ def get_executable(app_name):
         app = app_list[app_name]
 
     def find_executable():
-        if 'executable' in app:
-            for exe in app['executable']:
-                if os.path.exists(exe):
-                    return exe
+        if "executable" in app:
+            for exe in app["executable"]:
+                match = list(glob.glob(exe))
+                if len(match) > 0:
+                    return match[0]
 
                 if shutil.which(exe):
                     return exe
@@ -51,25 +52,25 @@ def get_executable(app_name):
     # Install app if not exists
     executable = find_executable()
     if executable is None:
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
 
             pkg_name = app_name
-            if 'choco' in app:
-                pkg_name = app['choco']
-            print('Installing %s...' % pkg_name)
+            if "choco" in app:
+                pkg_name = app["choco"]
+            print("Installing %s..." % pkg_name)
 
             choco_install(pkg_name)
 
             executable = find_executable()
 
-        elif sys.platform == 'linux':
-            if 'linux_install' in app:
-                run_script(app['linux_install'])
+        elif sys.platform == "linux":
+            if "linux_install" in app:
+                run_script(app["linux_install"])
                 executable = find_executable()
 
     return executable
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # For testing
-    get_executable('7z')
+    get_executable("7z")

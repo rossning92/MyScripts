@@ -53,8 +53,7 @@ sox:
 magick:
   choco: imagemagick
   executable:
-    - C:\Program Files\ImageMagick-7.0.9-Q16\magick.exe
-    - C:\Program Files\ImageMagick-7.0.8-Q16\magick.exe
+    - C:\Program Files\ImageMagick-*\magick.exe
 
 tad:
   executable:
@@ -63,3 +62,7 @@ tad:
 adobereader:
   executable:
     - C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe
+
+ffmpeg:
+  executable:
+    - C:\ProgramData\chocolatey\bin\ffmpeg.exe
