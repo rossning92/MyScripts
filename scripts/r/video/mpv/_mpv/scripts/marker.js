@@ -26,7 +26,7 @@ function set_in_time() {
     out_time = in_time;
   }
 
-  show_excerpt_info();
+  show_cut_info();
 }
 
 function set_out_time() {
@@ -39,10 +39,10 @@ function set_out_time() {
     in_time = out_time;
   }
 
-  show_excerpt_info();
+  show_cut_info();
 }
 
-function show_excerpt_info() {
+function show_cut_info() {
   var message = "";
   message += "begin=" + in_time.toFixed(3) + "s\n";
   message += "end=" + out_time.toFixed(3) + "s\n";
@@ -85,7 +85,7 @@ function cut_video() {
     "-b:a",
     "128k",
     filePathNoExt +
-      "-excerpt-" +
+      "-cut-" +
       in_time.toFixed(3) +
       "-" +
       out_time.toFixed(3) +
