@@ -1,7 +1,7 @@
 from pyppeteer import launch
 import asyncio
 import os
-from _shutil import shell_open
+from _shutil import shell_open, get_files
 import sys
 
 
@@ -44,7 +44,7 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
         #     'deviceScaleFactor': SCALE,
         # })
 
-        await page.setViewport({'width': 1920, 'height': 1080})
+        await page.setViewport({"width": 1920, "height": 1080})
 
         await page.goto("file://" + os.path.realpath(html_file).replace("\\", "/"))
 
@@ -68,7 +68,6 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
 
 
 if __name__ == "__main__":
-    out = webscreenshot(
-        r"{{_FILE}}", javascript="setCode('hello, world!'); markText(0, 0, 0, 5);"
-    )
+    f = get_files()[0]
+    out = webscreenshot(f)
     shell_open(out)
