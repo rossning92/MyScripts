@@ -18,10 +18,11 @@ def install_font(url):
         call_echo(command)
 
 
-install_font(
-    "https://github.com/adobe-fonts/source-han-sans/raw/release/OTF/SourceHanSansSC.zip"
-)
+if __name__ == "__main__":
+    install_font(
+        "https://github.com/adobe-fonts/source-han-sans/raw/release/OTF/SourceHanSansSC.zip"
+    )
 
-install_font(
-    "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/SubsetOTF/SourceHanSerifCN.zip"
-)
+    install_font(
+        "https://raw.githubusercontent.com/adobe-fonts/source-han-serif/release/SubsetOTF/SourceHanSerifCN.zip"
+    )
