@@ -11,7 +11,6 @@ import run_python
 from _script import *
 
 
-
 class Input:
     def __init__(self):
         self.text = ""
@@ -54,6 +53,20 @@ class Input:
             pass
 
 
+def sort_scripts(scripts):
+    script_access_time, _ = get_all_script_access_time()
+
+    def key(script):
+        if script.script_path in script_access_time:
+            return max(
+                script_access_time[script.script_path],
+                os.path.getmtime(script.script_path),
+            )
+        else:
+            return os.path.getmtime(script.script_path)
+
+    return sorted(scripts, key=key, reverse=True)
+
 def search_scripts(scripts, kw):
     if not kw:
         for s in scripts:
@@ -69,6 +82,7 @@ def main(stdscr):
     scripts = []
     modified_time = {}
     load_scripts(scripts, modified_time, autorun=False)
+    scripts = sort_scripts(scripts)
 
     # # Clear screen
     # stdscr.clear()
