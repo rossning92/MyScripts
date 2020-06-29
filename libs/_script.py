@@ -892,7 +892,7 @@ def update_script_acesss_time(script):
     data[script.script_path] = time.time()
 
     with open(config_file, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
 
 def get_all_script_access_time():
