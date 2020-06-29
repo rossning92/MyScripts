@@ -42,7 +42,6 @@ class Input:
         self.caret_pos = 0
 
     def on_update_screen(self, stdscr, row, cursor=False):
-        
 
         stdscr.addstr(row, 0, self.text)
 
@@ -75,6 +74,10 @@ class Input:
             pass
 
 
+def search_scripts(scripts, kw):
+    return filter(lambda x: kw in x.name, scripts)
+
+
 def main(stdscr):
     scripts = []
     modified_time = {}
@@ -98,16 +101,25 @@ def main(stdscr):
     while True:
         height, width = stdscr.getmaxyx()
 
-        ch = stdscr.getch()
-        input_.on_getch(ch)
+        # Search scripts
+        matched_scripts = list(search_scripts(scripts, input_.text))
 
-        # update screen
+        # Keyboard event
+        ch = stdscr.getch()
+        if ch == ord("\n"):
+            if matched_scripts:
+                matched_scripts[0].execute()
+        else:
+            input_.on_getch(ch)
+
+        # Sreen update
         stdscr.clear()
 
         input_.on_update_screen(stdscr, 0)
 
+        # Get matched scripts
         row = 2
-        for script in filter(lambda x: input_.text in x.name, scripts):
+        for script in matched_scripts:
             stdscr.addstr(row, 0, script.name)
             row += 1
             if row >= height:
