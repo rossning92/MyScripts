@@ -4,8 +4,8 @@ import curses
 import curses.ascii
 import re
 
-sys.path.append(os.path.realpath("../../libs"))
-sys.path.append(os.path.realpath("../../bin"))
+sys.path.append(os.path.join(os.path.realpath(os.path.dirname(__file__)), "libs"))
+sys.path.append(os.path.join(os.path.realpath(os.path.dirname(__file__)), "bin"))
 
 import run_python
 from _script import *
@@ -67,6 +67,7 @@ def sort_scripts(scripts):
 
     return sorted(scripts, key=key, reverse=True)
 
+
 def search_scripts(scripts, kw):
     if not kw:
         for s in scripts:
@@ -81,8 +82,6 @@ def search_scripts(scripts, kw):
 def main(stdscr):
     scripts = []
     modified_time = {}
-    load_scripts(scripts, modified_time, autorun=False)
-    scripts = sort_scripts(scripts)
 
     # # Clear screen
     # stdscr.clear()
@@ -99,7 +98,15 @@ def main(stdscr):
 
     input_ = Input()
 
+    last_ts = 0
+
     while True:
+        # Reload scripts
+        now = time.time()
+        if now - last_ts > 2.0:
+            load_scripts(scripts, modified_time, autorun=False)
+            scripts = sort_scripts(scripts)
+
         height, width = stdscr.getmaxyx()
 
         # Keyboard event
@@ -116,8 +123,6 @@ def main(stdscr):
         # Sreen update
         stdscr.clear()
 
-        input_.on_update_screen(stdscr, 0)
-
         # Get matched scripts
         row = 2
         for script in matched_scripts:
@@ -126,7 +131,10 @@ def main(stdscr):
             if row >= height:
                 break
 
+        input_.on_update_screen(stdscr, 0, cursor=True)
         stdscr.refresh()
+
+        last_ts = now
 
 
 curses.wrapper(main)
