@@ -40,11 +40,10 @@ def get_ahk_exe(uia=True):
 
     if not hasattr(get_ahk_exe, "init"):
         os.makedirs(os.path.expanduser("~\\Documents\\AutoHotkey"), exist_ok=True)
-        subprocess.call(
-            'MKLINK /D "%USERPROFILE%\\Documents\\AutoHotkey\\Lib" "{}"'.format(
+        run_elevated(
+            r'cmd /c MKLINK /D "%USERPROFILE%\Documents\AutoHotkey\Lib" "{}"'.format(
                 os.path.realpath(os.path.dirname(__file__) + "/../bin/Lib")
-            ),
-            shell=True,
+            )
         )
         get_ahk_exe.init = True
 
@@ -91,9 +90,16 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
             f.write(script)
     args = [get_ahk_exe(), tmp_script_path]
     if wait:
-        return subprocess.call(args, shell=True)
+        with open(os.devnull, "w") as FNULL:
+            subprocess.call(
+                args,
+                shell=True,  # shell is required for starting UIA process
+                stdin=FNULL,
+                stdout=FNULL,
+                stderr=FNULL,
+            )
     else:
-        Popen(args)
+        subprocess.Popen(args)
         return args
 
 

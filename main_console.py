@@ -36,7 +36,7 @@ class Input:
             self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
             self.caret_pos = max(self.caret_pos - 1, 0)
             text_changed = True
-        elif ch == curses.ascii.ctrl(ord("a")):
+        elif ch == curses.ascii.ctrl(ord("c")):
             self.text = ""
             self.caret_pos = 0
             text_changed = True
@@ -114,6 +114,7 @@ def main(stdscr):
         if ch == ord("\n"):
             if matched_scripts:
                 matched_scripts[0].execute()
+                update_script_acesss_time(script)
         else:
             input_.on_getch(ch)
 
