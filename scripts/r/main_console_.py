@@ -61,6 +61,10 @@ class Input:
             self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
             self.caret_pos = max(self.caret_pos - 1, 0)
             text_changed = True
+        elif ch == curses.ascii.ctrl(ord("a")):
+            self.text = ""
+            self.caret_pos = 0
+            text_changed = True
         elif ch == ord("\n"):
             pass
         elif re.match("[\x00-\x7F]", chr(ch)):
@@ -75,7 +79,14 @@ class Input:
 
 
 def search_scripts(scripts, kw):
-    return filter(lambda x: kw in x.name, scripts)
+    if not kw:
+        for s in scripts:
+            yield s
+
+    tokens = kw.split(" ")
+    for i, script in enumerate(scripts):
+        if all([(x in script.name.lower()) for x in tokens]):
+            yield script
 
 
 def main(stdscr):
@@ -101,9 +112,6 @@ def main(stdscr):
     while True:
         height, width = stdscr.getmaxyx()
 
-        # Search scripts
-        matched_scripts = list(search_scripts(scripts, input_.text))
-
         # Keyboard event
         ch = stdscr.getch()
         if ch == ord("\n"):
@@ -111,6 +119,9 @@ def main(stdscr):
                 matched_scripts[0].execute()
         else:
             input_.on_getch(ch)
+
+        # Search scripts
+        matched_scripts = list(search_scripts(scripts, input_.text))
 
         # Sreen update
         stdscr.clear()
