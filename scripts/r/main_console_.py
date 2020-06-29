@@ -1,39 +1,15 @@
 import sys
 import os
+import curses
+import curses.ascii
+import re
 
 sys.path.append(os.path.realpath("../../libs"))
 sys.path.append(os.path.realpath("../../bin"))
 
 import run_python
-import re
-
 from _script import *
 
-# from prompt_toolkit import prompt
-# from prompt_toolkit.completion import (
-#     WordCompleter,
-#     FuzzyWordCompleter,
-#     FuzzyCompleter,
-#     Completer,
-#     Completion,
-# )
-
-
-# while True:
-#     text = prompt(
-#         "> ",
-#         completer=FuzzyWordCompleter([x.name for x in scripts],),
-#         complete_while_typing=True,
-#     )
-#     found = list(filter(lambda x: x.name == text, scripts))
-#     if found:
-#         list(found)[0].execute()
-#     else:
-#         print2("ERROR: unrecognized command.", color="red")
-
-
-import curses
-import curses.ascii
 
 
 class Input:
