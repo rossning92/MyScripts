@@ -31,6 +31,7 @@ PKGS = {
         "carnac",
         "win32diskimager",
         "docker-desktop",
+        "rufus",
     ],
     "common": ["everything", "irfanview", "googlechrome"],
     "@ross": ["google-backup-and-sync"],
