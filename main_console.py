@@ -155,6 +155,9 @@ def main(stdscr):
                 _, script = matched_scripts[0]
                 script.execute()
                 update_script_acesss_time(script)
+        
+        elif ch == curses.ascii.ctrl(ord("w")):
+            return
 
         elif ch in hotkeys:
             hotkeys[ch].execute()
