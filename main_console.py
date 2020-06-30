@@ -70,13 +70,13 @@ def sort_scripts(scripts):
 
 def search_scripts(scripts, kw):
     if not kw:
-        for s in scripts:
-            yield s
+        for i, s in enumerate(scripts):
+            yield i, s
 
     tokens = kw.split(" ")
     for i, script in enumerate(scripts):
         if all([(x in script.name.lower()) for x in tokens]):
-            yield script
+            yield i, script
 
 
 def on_hotkey():
@@ -139,8 +139,8 @@ def main(stdscr):
 
         # Get matched scripts
         row = 2
-        for script in matched_scripts:
-            stdscr.addstr(row, 0, str(script))
+        for i, script in matched_scripts:
+            stdscr.addstr(row, 0, "%d. %s" % (i + 1, str(script)))
             row += 1
             if row >= height:
                 break
@@ -152,7 +152,8 @@ def main(stdscr):
         ch = stdscr.getch()
         if ch == ord("\n"):
             if matched_scripts:
-                matched_scripts[0].execute()
+                _, script = matched_scripts[0]
+                script.execute()
                 update_script_acesss_time(script)
 
         elif ch in hotkeys:
