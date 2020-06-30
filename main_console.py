@@ -140,7 +140,7 @@ def main(stdscr):
         # Get matched scripts
         row = 2
         for script in matched_scripts:
-            stdscr.addstr(row, 0, script.name)
+            stdscr.addstr(row, 0, str(script))
             row += 1
             if row >= height:
                 break
