@@ -131,19 +131,6 @@ def main(stdscr):
 
         height, width = stdscr.getmaxyx()
 
-        # Keyboard event
-        ch = stdscr.getch()
-        if ch == ord("\n"):
-            if matched_scripts:
-                matched_scripts[0].execute()
-                update_script_acesss_time(script)
-                
-        elif ch in hotkeys:
-            hotkeys[ch].execute()
-
-        else:
-            input_.on_getch(ch)
-
         # Search scripts
         matched_scripts = list(search_scripts(scripts, input_.text))
 
@@ -160,6 +147,19 @@ def main(stdscr):
 
         input_.on_update_screen(stdscr, 0, cursor=True)
         stdscr.refresh()
+
+        # Keyboard event
+        ch = stdscr.getch()
+        if ch == ord("\n"):
+            if matched_scripts:
+                matched_scripts[0].execute()
+                update_script_acesss_time(script)
+
+        elif ch in hotkeys:
+            hotkeys[ch].execute()
+
+        else:
+            input_.on_getch(ch)
 
         last_ts = now
 
