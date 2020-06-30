@@ -36,7 +36,7 @@ class Input:
             self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
             self.caret_pos = max(self.caret_pos - 1, 0)
             text_changed = True
-        elif ch == curses.ascii.ctrl(ord("c")):
+        elif ch == curses.ascii.ctrl(ord("a")):
             self.text = ""
             self.caret_pos = 0
             text_changed = True
