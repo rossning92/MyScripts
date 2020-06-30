@@ -79,6 +79,26 @@ def search_scripts(scripts, kw):
             yield script
 
 
+def on_hotkey():
+    pass
+
+
+def register_hotkeys(scripts):
+    hotkeys = {}
+    for script in scripts:
+        hotkey = script.meta["hotkey"]
+        if hotkey is not None:
+            print("Hotkey: %s: %s" % (hotkey, script.name))
+
+            key = hotkey[-1]
+
+            if "Ctrl+" in hotkey:
+                hotkey2 = curses.ascii.ctrl(ord(key))
+                hotkeys[hotkey2] = script
+
+    return hotkeys
+
+
 def main(stdscr):
     scripts = []
     modified_time = {}
@@ -99,6 +119,7 @@ def main(stdscr):
     input_ = Input()
 
     last_ts = 0
+    hotkeys = {}
 
     while True:
         # Reload scripts
@@ -106,6 +127,7 @@ def main(stdscr):
         if now - last_ts > 2.0:
             load_scripts(scripts, modified_time, autorun=False)
             scripts = sort_scripts(scripts)
+            hotkeys = register_hotkeys(scripts)
 
         height, width = stdscr.getmaxyx()
 
@@ -115,6 +137,10 @@ def main(stdscr):
             if matched_scripts:
                 matched_scripts[0].execute()
                 update_script_acesss_time(script)
+                
+        elif ch in hotkeys:
+            hotkeys[ch].execute()
+
         else:
             input_.on_getch(ch)
 
