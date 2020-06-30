@@ -71,6 +71,8 @@ if not "{{SKIP_EXTENSIONS}}":
         # Python
         "njpwerner.autodocstring",
         # "ms-vscode-remote.vscode-remote-extensionpack",
+        # Ahk
+        "cweijan.vscode-autohotkey-plus",
     ]
 
     prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
