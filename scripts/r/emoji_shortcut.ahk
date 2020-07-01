@@ -1,19 +1,11 @@
 ﻿#SingleInstance Force
 
-$>!h::SendEmoji("😃")
-$>!s::SendEmoji("😞")
-$>!w::SendEmoji("😉")
-$>!k::SendEmoji("😏")
-$>!y::SendEmoji("👍")
-$>!t::SendEmoji("😛")
-$>!m::SendEmoji("🙂")
-$>!u::SendEmoji("☂️")
+$>!h::Send 😃
+$>!s::Send 😞
+$>!w::Send 😉
+$>!k::Send 😏
+$>!y::Send 👍
+$>!t::Send 😛
+$>!m::Send 🙂
+$>!u::Send ☂️
 
-SendEmoji(s)
-{
-    Send %s%
-    ; clipSave := ClipboardAll
-    ; Clipboard := s
-    ; Send, ^v
-    ; Clipboard := clipSave
-}
