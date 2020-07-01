@@ -17,7 +17,7 @@ with open(r"C:\ProgramData\Carnac\PopupSettings.settings", "w") as f:
         r'{"Key":"ItemOpacity","Value":"0.5"},'
         r'{"Key":"ItemFadeDelay","Value":"2"},'
         r'{"Key":"DetectShortcutsOnly","Value":"false"},'
-        r'{"Key":"ShowOnlyModifiers","Value":"false"},'
+        r'{"Key":"ShowOnlyModifiers","Value":"true"},'
         r'{"Key":"ShowSpaceAsUnicode","Value":"false"},'
         r'{"Key":"ShowApplicationIcon","Value":"false"},'
         r'{"Key":"ProcessFilterExpression","Value":""},'
