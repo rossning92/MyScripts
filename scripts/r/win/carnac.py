@@ -6,7 +6,7 @@ INSTALL_PATH = os.path.expandvars(r"%LOCALAPPDATA%\carnac")
 with open(r"C:\ProgramData\Carnac\PopupSettings.settings", "w") as f:
     f.write(
         r'[{"Key":"FontSize","Value":"40"},'
-        r'{"Key":"ItemBackgroundColor","Value":"Black"},'
+        r'{"Key":"ItemBackgroundColor","Value":"Maroon"},'
         r'{"Key":"FontColor","Value":"White"},'
         r'{"Key":"TopOffset","Value":"0"},'
         r'{"Key":"BottomOffset","Value":"100"},'
@@ -15,7 +15,7 @@ with open(r"C:\ProgramData\Carnac\PopupSettings.settings", "w") as f:
         r'{"Key":"AutoUpdate","Value":"false"},'
         r'{"Key":"ItemMaxWidth","Value":"350"},'
         r'{"Key":"ItemOpacity","Value":"0.5"},'
-        r'{"Key":"ItemFadeDelay","Value":"5"},'
+        r'{"Key":"ItemFadeDelay","Value":"2"},'
         r'{"Key":"DetectShortcutsOnly","Value":"false"},'
         r'{"Key":"ShowOnlyModifiers","Value":"false"},'
         r'{"Key":"ShowSpaceAsUnicode","Value":"false"},'
