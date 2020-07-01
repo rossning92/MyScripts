@@ -86,9 +86,9 @@ function cut_video() {
     "128k",
     filePathNoExt +
       "-cut-" +
-      in_time.toFixed(3) +
+      in_time.toFixed(0) +
       "-" +
-      out_time.toFixed(3) +
+      out_time.toFixed(0) +
       ".mp4",
   ];
 
