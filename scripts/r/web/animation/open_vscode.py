@@ -15,5 +15,7 @@ os.makedirs(os.path.join(proj_dir, "record"), exist_ok=True)
 os.makedirs(os.path.join(proj_dir, "tmp"), exist_ok=True)
 os.makedirs(os.path.join(proj_dir, "video"), exist_ok=True)
 os.makedirs(os.path.join(proj_dir, "image"), exist_ok=True)
+os.makedirs(os.path.join(proj_dir, "screencap"), exist_ok=True)
+os.makedirs(os.path.join(proj_dir, "screenshot"), exist_ok=True)
 
 open_in_vscode([proj_dir, os.path.join(proj_dir, "index.md")])
