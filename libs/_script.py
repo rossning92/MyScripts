@@ -11,6 +11,8 @@ from _shutil import *
 import shlex
 import glob
 import locale
+from _appmanager import get_executable
+
 
 # TODO: move to configuration file
 SCRIPT_PATH_LIST = [
@@ -389,6 +391,11 @@ class ScriptItem:
         env = {}
         creationflags = 0
         shell = False
+
+        # Install packages
+        if self.meta["packages"] is not None:
+            for pkg in self.meta["packages"].split("|"):
+                get_executable(pkg)
 
         # HACK: pass current folder
         if "CURRENT_FOLDER" in os.environ:
@@ -800,6 +807,7 @@ def get_default_meta():
         "venv": None,
         "closeOnExit": True,
         "terminal": None,
+        "packages": None,
     }
 
 

@@ -5,22 +5,27 @@ import subprocess
 import sys
 import os
 import glob
-from _script import run_script
+
+# from _script import run_script
 
 
 def choco_install(name):
-    run_elevated(
-        [
-            "choco",
-            "source",
-            "add",
-            "--name=chocolatey",
-            "--priority=100",
-            '-s="https://chocolatey.org/api/v2/"',
-        ]
+    out = subprocess.check_output(
+        "choco list --local-only %s" % name, shell=True, universal_newlines=True
     )
-
-    run_elevated(["choco", "install", "--source=chocolatey", name, "-y"])
+    if "0 packages installed" in out:
+        print("Installing %s..." % name)
+        run_elevated(
+            [
+                "choco",
+                "source",
+                "add",
+                "--name=chocolatey",
+                "--priority=100",
+                '-s="https://chocolatey.org/api/v2/"',
+            ]
+        )
+        run_elevated(["choco", "install", "--source=chocolatey", name, "-y"])
 
 
 def get_executable(app_name):
@@ -57,16 +62,16 @@ def get_executable(app_name):
             pkg_name = app_name
             if "choco" in app:
                 pkg_name = app["choco"]
-            print("Installing %s..." % pkg_name)
 
             choco_install(pkg_name)
 
             executable = find_executable()
 
         elif sys.platform == "linux":
-            if "linux_install" in app:
-                run_script(app["linux_install"])
-                executable = find_executable()
+            # if "linux_install" in app:
+            #     run_script(app["linux_install"])
+            #     executable = find_executable()
+            pass
 
     return executable
 
