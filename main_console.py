@@ -120,7 +120,7 @@ def main(stdscr):
     curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    stdscr = curses.initscr()
+    # stdscr = curses.initscr()
     stdscr.keypad(1)
     stdscr.nodelay(False)
 
@@ -158,6 +158,8 @@ def main(stdscr):
 
         # Keyboard event
         ch = stdscr.getch()
+        raise Exception(ch)
+
         if ch == ord("\n"):
             if matched_scripts:
                 _, script = matched_scripts[0]
@@ -173,6 +175,7 @@ def main(stdscr):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
 
+            # XXX: need to verify if it's safe to call endwin()
             curses.endwin()
             hotkeys[ch].execute()
 
