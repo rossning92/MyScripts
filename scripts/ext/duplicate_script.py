@@ -5,7 +5,7 @@ from _ext import *
 
 os.chdir('../')
 rel_path = get_selected_script_dir_rel()
-src_script = os.getenv('ROSS_SELECTED_SCRIPT_PATH')
+src_script = os.getenv('_SCRIPT_PATH')
 
 file_path = gui_input('Duplicate script:', rel_path)
 if file_path:

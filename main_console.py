@@ -90,11 +90,19 @@ def register_hotkeys(scripts):
         if hotkey is not None:
             print("Hotkey: %s: %s" % (hotkey, script.name))
 
-            key = hotkey[-1]
+            hotkey = hotkey.lower()
+            key = hotkey[-1].lower()
 
-            if "Ctrl+" in hotkey:
-                hotkey2 = curses.ascii.ctrl(ord(key))
-                hotkeys[hotkey2] = script
+            if "ctrl+" in hotkey:
+                ch = curses.ascii.ctrl(ord(key))
+                hotkeys[ch] = script
+            elif "shift+" in hotkey:
+                ch = ord(key.upper())
+                hotkeys[ch] = script
+            elif "alt+" in hotkey:
+                ch = ord(key.upper())
+                hotkeys[ch] = script
+                print(ch, key)
 
     return hotkeys
 
@@ -155,11 +163,17 @@ def main(stdscr):
                 _, script = matched_scripts[0]
                 script.execute()
                 update_script_acesss_time(script)
-        
+
         elif ch == curses.ascii.ctrl(ord("w")):
             return
 
         elif ch in hotkeys:
+            if matched_scripts:
+                _, script = matched_scripts[0]
+                script_abs_path = os.path.abspath(script.script_path)
+                os.environ["_SCRIPT_PATH"] = script_abs_path
+
+            curses.endwin()
             hotkeys[ch].execute()
 
         else:

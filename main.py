@@ -406,7 +406,7 @@ RunScript(name, path)
             first_matched_script = self.script_items[self.matched_items[0]]
             self.ui.listWidget.setCurrentRow(0)
             script_abs_path = os.path.abspath(first_matched_script.script_path)
-            os.environ["ROSS_SELECTED_SCRIPT_PATH"] = script_abs_path
+            os.environ["_SCRIPT_PATH"] = script_abs_path
 
             # Display variable list
             if (

@@ -2,7 +2,7 @@ from _shutil import *
 
 script_root = os.path.realpath(os.path.realpath(__file__) + '/../../')
 
-script_path = os.environ['ROSS_SELECTED_SCRIPT_PATH']
+script_path = os.environ['_SCRIPT_PATH']
 
 # Get relative path
 script_path = re.sub('^' + re.escape(script_root), '', script_path)
