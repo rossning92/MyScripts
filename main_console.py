@@ -155,7 +155,6 @@ def main(stdscr):
 
         # Keyboard event
         ch = stdscr.getch()
-        raise Exception(curses.keyname(ch))
 
         if ch == ord("\n"):
             if matched_scripts:
