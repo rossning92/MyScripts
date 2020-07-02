@@ -154,13 +154,15 @@ class EditVariableWidget(QWidget):
     def load_variables(self):
         try:
             file = get_variable_file()
+            if not os.path.exists(file):
+                return
             mtime = os.path.getmtime(file)
             if self.variables_mtime is None or mtime > self.variables_mtime:
                 with open(file) as f:
                     self.variables = json.load(f)
                     self.variables_mtime = mtime
-        except Exception:
-            print("Failed to load variable file.")
+        except Exception as ex:
+            print("Failed to load variable file: %s" % str(ex))
 
     def update_items(self, varList=[], hide_prefix=None):
         self.load_variables()

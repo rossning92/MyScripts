@@ -115,16 +115,6 @@ def get_data_folder():
 
 def get_variable_file():
     variable_file = os.path.join(get_data_folder(), "variables.json")
-
-    if True:  # Deprecated: copy old variable file to new path
-        my_script_dir = os.path.abspath(os.path.dirname(__file__) + "/../")
-        variable_file2 = os.path.abspath(
-            my_script_dir + "/variables." + platform.node() + ".json"
-        )
-        if exists(variable_file2):
-            shutil.copy(variable_file2, variable_file)
-            os.remove(variable_file2)
-
     return variable_file
 
 
