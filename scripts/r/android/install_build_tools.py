@@ -14,8 +14,8 @@ packages = [
     # 'platforms;android-24',
     # 'platforms;android-26',
     'build-tools;27.0.3',
-    'lldb;3.1',
-    "ndk;18.1.5063045",
+    # 'lldb;3.1',
+    # "ndk;18.1.5063045",
     # 'ndk-bundle',
 ]
 
