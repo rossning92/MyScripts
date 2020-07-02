@@ -522,7 +522,7 @@ def check_output2(args, shell=None, cwd=None, env=None):
 
         def kill(self):
             if platform.system() == "Windows":  # HACK on windows
-                subprocess.call(f"taskkill /f /t /pid {self.ps.pid}")
+                subprocess.call("taskkill /f /t /pid %d" % self.ps.pid)
             else:
                 self.ps.kill()
 

@@ -96,13 +96,10 @@ def register_hotkeys(scripts):
             if "ctrl+" in hotkey:
                 ch = curses.ascii.ctrl(ord(key))
                 hotkeys[ch] = script
-            elif "shift+" in hotkey:
+            elif "shift+" in hotkey or "alt+" in hotkey:
+                # HACK: use `shift+` in place of `alt+`
                 ch = ord(key.upper())
                 hotkeys[ch] = script
-            elif "alt+" in hotkey:
-                ch = ord(key.upper())
-                hotkeys[ch] = script
-                print(ch, key)
 
     return hotkeys
 
@@ -158,7 +155,7 @@ def main(stdscr):
 
         # Keyboard event
         ch = stdscr.getch()
-        raise Exception(ch)
+        raise Exception(curses.keyname(ch))
 
         if ch == ord("\n"):
             if matched_scripts:

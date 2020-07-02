@@ -578,16 +578,22 @@ class ScriptItem:
                         args = [
                             sys.executable,
                             "-c",
-                            "import subprocess;"
-                            "import ctypes;"
-                            f'import sys;sys.path.append(r"{os.path.dirname(__file__)}");'
-                            "import _script as s;"
-                            f's.set_console_title(r"{self.get_console_title()}");'
-                            f"ret = subprocess.call({args});"
-                            "hwnd = ctypes.windll.kernel32.GetConsoleWindow();"
-                            "ctypes.windll.user32.SetForegroundWindow(hwnd);"
-                            's.set_console_title(s.get_console_title() + " (Finished)");'
-                            "sys.exit(ret)",
+                            (
+                                "import subprocess;"
+                                "import ctypes;"
+                                'import sys;sys.path.append(r"'
+                                + os.path.dirname(__file__)
+                                + '");'
+                                "import _script as s;"
+                                's.set_console_title(r"'
+                                + self.get_console_title()
+                                + '");'
+                                "ret = subprocess.call(" + args + ");"
+                                "hwnd = ctypes.windll.kernel32.GetConsoleWindow();"
+                                "ctypes.windll.user32.SetForegroundWindow(hwnd);"
+                                's.set_console_title(s.get_console_title() + " (Finished)");'
+                                "sys.exit(ret)"
+                            ),
                         ]
 
                     # Create new terminal using Windows Terminal
@@ -647,7 +653,7 @@ class ScriptItem:
                         else []
                     )
                     + ["cd", "/d", cwd, "&"]
-                    + ["set", f"PATH={bin_path};%PATH%", "&"]
+                    + ["set", "PATH=" + bin_path + ";%PATH%", "&"]
                     + set_env_var
                     + args
                 )
