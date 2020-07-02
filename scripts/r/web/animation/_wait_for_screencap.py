@@ -1,7 +1,8 @@
 from _shutil import *
 from _term import *
 
-try:
+
+if __name__ == "__main__":
     os.chdir(os.environ["VIDEO_PROJECT_DIR"])
 
     new_file = wait_for_new_file(os.path.expandvars(r"%USERPROFILE%\Videos\**\*.mp4"))
@@ -22,6 +23,3 @@ try:
     print("Clip is set to: %s" + clip)
     wait_key()
 
-except Exception as e:
-    print(e)
-    input()
