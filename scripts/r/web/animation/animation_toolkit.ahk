@@ -5,15 +5,15 @@ SCRIPT_DIR := A_WorkingDir
 
 is_recording := False
 
-PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
+VIDEO_PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
 AUDIO_RECORDER_TITLE = r/audio/recorder
 
-SetWorkingDir, %PROJECT_DIR%
+SetWorkingDir, %VIDEO_PROJECT_DIR%
 
 return
 
 $F10::
-    RunPython("_screenshot.py", True)
+    RunScript("_screenshot.py", True)
 return
 
 ; Screencap (full screen)
@@ -45,7 +45,7 @@ ToggleRecording(enable_carnac:=True)
             Run, %LOCALAPPDATA%\carnac\Carnac.exe
         }
         
-        Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\_wait_for_screencap.py", , Min, pid_screencap
+        pid_screencap := RunScript(SCRIPT_DIR . "\_wait_for_screencap.py")
         
         Sleep 1000
         WinActivate ahk_id %hwnd%
@@ -63,8 +63,9 @@ ToggleRecording(enable_carnac:=True)
     is_recording := not is_recording
 }
 
-RunPython(file, min:=False) {
+RunScript(file, min:=False) {
     global SCRIPT_DIR
+    global VIDEO_PROJECT_DIR
     
     if (min) {
         minParam = Min
@@ -72,5 +73,6 @@ RunPython(file, min:=False) {
         minParam =
     }
     
-    Run, cmd /c set "PYTHONPATH=%SCRIPT_DIR%\..\..\..;%SCRIPT_DIR%\..\..\..\..\libs" & python "%SCRIPT_DIR%\%file%" || pause, , %minParam%
+    Run, cmd /c set "VIDEO_PROJECT_DIR=%VIDEO_PROJECT_DIR%" && %SCRIPT_DIR%\..\..\..\..\bin\run_script.exe "%file%" || pause, , %minParam%, pid
+    return pid
 }
