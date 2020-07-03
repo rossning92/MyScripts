@@ -273,7 +273,7 @@ MouseIsOverAndActive(title) {
 }
 
 CenterActiveWindow(width:=1920, height:=1080) {
-    ResizeWindow("A", (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height)
+    ResizeWindow2("A", (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height)
 }
 
 ToggleDesktopIcons() {
@@ -283,6 +283,11 @@ ToggleDesktopIcons() {
         WinHide, ahk_id %HWND%
     Else
         WinShow, ahk_id %HWND%
+}
+
+ResizeWindow2(wintitle, x := "", y := "", w := "", h := "") {
+    WinGet hwnd, ID, %wintitle%
+    WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
 }
 
 ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {

@@ -718,6 +718,10 @@ def _add_clip(
     _pos_list.append(end)
     _pos_dict["ve"] = end
 
+    while len(track) > 0 and clip_info.start < track[-1].start:
+        print("WARNING: clip `%s` has been removed" % track[-1].file)
+        track.pop()
+
     track.append(clip_info)
 
     return clip_info
@@ -834,6 +838,7 @@ def _update_clip_duration(track):
     for clip_info in track:
         if (prev_clip_info is not None) and (prev_clip_info.duration is None):
             prev_clip_info.duration = clip_info.start - prev_clip_info.start
+            assert prev_clip_info.duration > 0
 
         prev_clip_info = clip_info
 
@@ -949,12 +954,14 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
 
                 # Use duration to extend / hold the last frame instead of creating new clips.
                 duration = clip_info.duration
+                assert duration > 0
 
                 # Crossfade?
                 EPSILON = 0.1  # To avoid float point error
                 if i + 1 < len(track) and track[i + 1].crossfade:
                     duration += FADE_DURATION * 0.5 + EPSILON
 
+                assert duration > 0
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
 
             if clip_info.crossfade:
