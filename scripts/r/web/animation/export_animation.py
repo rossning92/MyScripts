@@ -498,6 +498,15 @@ def overlay(
     )
 
 
+def comment(text, pos=(960, 200), duration=4, **kwargs):
+    md(
+        '<span style="color:#f6e58d;font-size:0.8em">%s</span>' % text,
+        pos=pos,
+        duration=duration,
+        **kwargs,
+    )
+
+
 def text(text, track="text", font_size=100, pos="center", **kwargs):
     temp_file = _generate_text_image(
         text,

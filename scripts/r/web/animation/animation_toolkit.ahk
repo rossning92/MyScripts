@@ -63,7 +63,7 @@ ToggleRecording(enable_carnac:=True)
     is_recording := not is_recording
 }
 
-RunScript(file, min:=False) {
+RunScript(file, min:=True) {
     global SCRIPT_DIR
     global VIDEO_PROJECT_DIR
     
