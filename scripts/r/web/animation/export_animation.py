@@ -257,7 +257,7 @@ def _generate_text_image(
         "-stroke",
         stroke_color,
         "-strokewidth",
-        "5",
+        "6",
         "-gravity",
         "center",
         "label:%s" % text,
