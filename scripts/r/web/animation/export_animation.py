@@ -251,7 +251,7 @@ def _generate_text_image(
         "-background",
         "transparent",
         "-font",
-        font,
+        r"C:/Windows/Fonts/SourceHanSansSC-Medium.otf",
         "-pointsize",
         "%d" % font_size,
         "-stroke",
