@@ -5,7 +5,7 @@ INSTALL_PATH = os.path.expandvars(r"%LOCALAPPDATA%\carnac")
 
 with open(r"C:\ProgramData\Carnac\PopupSettings.settings", "w") as f:
     f.write(
-        r'[{"Key":"FontSize","Value":"60"},'  # 400
+        r'[{"Key":"FontSize","Value":"80"},'  # 400
         r'{"Key":"ItemBackgroundColor","Value":"Maroon"},'
         r'{"Key":"FontColor","Value":"White"},'
         r'{"Key":"TopOffset","Value":"0"},'

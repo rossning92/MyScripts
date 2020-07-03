@@ -116,6 +116,8 @@ return
     UpdateWindowPosition("right")
 return
 
+#t::WinSet, AlwaysOnTop, Toggle, A
+
 #Up::
     WinGet, curHwnd, ID, A
     WinMaximize, ahk_id %curHwnd%
