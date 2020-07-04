@@ -891,6 +891,8 @@ def setup_nodejs(install=True):
                     os.path.expandvars("%APPDATA%\\npm"),
                     os.path.expandvars("%USERPROFILE%\\node_modules\\.bin"),
                     os.path.expandvars("%LOCALAPPDATA%\\Yarn\\bin"),
+                    os.path.expandvars("%ProgramFiles%\\Yarn\\bin\\yarn.cmd"),
+                    os.path.expandvars("%ProgramFiles(x86)%\\Yarn\\bin\\yarn.cmd"),
                 ]
             )
 
