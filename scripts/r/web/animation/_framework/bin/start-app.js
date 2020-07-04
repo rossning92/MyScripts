@@ -5,7 +5,6 @@ const path = require("path");
 
 const config = require("../webpack.config.js")({
   entry: process.env.ENTRY,
-  entryFolder: process.env.ENTRY_FOLDER,
 });
 
 const compiler = webpack(config);
@@ -14,7 +13,7 @@ const server = new WebpackDevServer(compiler, {
   open: false,
   contentBase: process.env.ENTRY
     ? path.dirname(process.env.ENTRY)
-    : process.env.ENTRY_FOLDER,
+    : path.join(__dirname, "pages"),
 });
 
 server.listen(8080, "localhost", () => {
@@ -23,12 +22,13 @@ server.listen(8080, "localhost", () => {
       "http://localhost:8080/" +
       path.basename(process.env.ENTRY, ".js") +
       ".html";
-    const start =
-      process.platform == "darwin"
-        ? "open"
-        : process.platform == "win32"
-        ? "start"
-        : "xdg-open";
-    require("child_process").exec(start + " " + url);
+
+    // const start =
+    //   process.platform == "darwin"
+    //     ? "open"
+    //     : process.platform == "win32"
+    //     ? "start"
+    //     : "xdg-open";
+    // require("child_process").exec(start + " " + url);
   }
 });

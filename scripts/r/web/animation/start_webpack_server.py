@@ -1,7 +1,7 @@
 from _shutil import *
 
 
-def start_server(file=None, folder=None):
+def start_server(file=None):
     ANIME_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "_framework")
 
     if not os.path.exists(os.path.join(ANIME_ROOT, "node_modules")):
@@ -26,13 +26,6 @@ def start_server(file=None, folder=None):
 
     if file is not None:
         os.environ["ENTRY"] = file
-    elif folder is None:
-        print("No js file selected.")
-        # project_path = (
-        #     r"{{ANIMATION_PROJECT_PATH}}" if r"{{ANIMATION_PROJECT_PATH}}" else None
-        # )
-        cd(folder)
-        os.environ["ENTRY_FOLDER"] = folder
 
     script = os.path.join(ANIME_ROOT, "bin", "start-app.js")
     ps = subprocess.Popen(["node", script])
@@ -40,5 +33,6 @@ def start_server(file=None, folder=None):
 
 
 if __name__ == "__main__":
-    ps = start_server(get_files()[0])
+    ps = start_server()
     ps.wait()
+    input()

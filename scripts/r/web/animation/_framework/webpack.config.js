@@ -30,10 +30,10 @@ function addEntry(file) {
 module.exports = (env) => {
   if (env && env.entry) {
     addEntry(env.entry);
-  } else if (env && env.entryFolder) {
+  } else {
     // The folder that contains source code and resource files (images, videos,
     // etc.)
-    const entryFolders = [path.resolve(__dirname, "pages"), env.entryFolder];
+    const entryFolders = [path.resolve(__dirname, "pages")];
     entryFolders.forEach((dir) => {
       fs.readdirSync(dir).forEach((file) => {
         if (path.extname(file).toLowerCase() !== ".js") {

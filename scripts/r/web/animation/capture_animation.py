@@ -5,12 +5,30 @@ from r.web.animation.start_webpack_server import start_server
 import asyncio
 import sys
 import time
+import urllib
 
 # Fix for `callFunctionOn: Target closed.`
 # pip3 install websockets==6.0 --force-reinstall
 
 
-def capture_js_animation(url, out_file=None):
+def capture_js_animation(in_file, out_file=None, params=None):
+    assert in_file.lower().endswith(".js")
+
+    ps = start_server(in_file)
+
+    name = os.path.basename(os.path.splitext(in_file)[0])
+    print("Generating animation: %s" % name + ".mp4")
+    url = "http://localhost:8080/%s.html" % name
+
+    if params:
+        url = (
+            url
+            + "?"
+            + "&".join(
+                ["%s=%s" % (k, urllib.parse.quote(v)) for k, v in params.items()]
+            )
+        )
+
     if out_file is None:
         out_file = "animation_%s.mov" % get_time_str()
     prefix, ext = os.path.splitext(out_file)
@@ -58,6 +76,8 @@ def capture_js_animation(url, out_file=None):
     else:
         result = tar_file
 
+    ps.kill()
+
     return result
 
 
@@ -66,10 +86,7 @@ if __name__ == "__main__":
 
     f = get_files()[0]
     assert f.endswith(".js")
-    ps = start_server(f)
+    out_file = os.path.splitext(f)[0] + ".mp4"
 
-    name = os.path.basename(os.path.splitext(f)[0])
-    print("output: %s" % name + ".mp4")
-    capture_js_animation("http://localhost:8080/%s.html" % name, out_file=name + ".mp4")
+    capture_js_animation(f, out_file=out_file)
 
-    ps.kill()

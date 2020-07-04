@@ -26,6 +26,8 @@ import hashlib
 from PIL import Image
 from _appmanager import get_executable
 
+SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 if 1:
     import os
     import sys
@@ -85,7 +87,7 @@ class _AudioTrack:
 class _AnimationInfo:
     def __init__(self):
         self.clip_info_list = []
-        self.url = None
+        self.in_file = None
         self.calc_length = True
         self.url_params = {}
         self.overlay = False
@@ -738,9 +740,9 @@ def _add_clip(
     return clip_info
 
 
-def _animation(url, name, track=None, params={}, calc_length=True, **kwargs):
+def _animation(in_file, name, track=None, params={}, calc_length=True, **kwargs):
     anim = _animations[name]
-    anim.url = url
+    anim.in_file = in_file
     anim.url_params = params
 
     overlay = True if (_get_vid_track_name(track) != "vid") else False
@@ -751,12 +753,14 @@ def _animation(url, name, track=None, params={}, calc_length=True, **kwargs):
 
 
 def anim(s, **kwargs):
-    _animation(url="http://localhost:8080/%s.html" % s, name=slugify(s), **kwargs)
+    _animation(
+        in_file=os.path.abspath("animation/%s.js" % s), name=slugify(s), **kwargs
+    )
 
 
 def image_anim(file, duration=5, **kwargs):
     _animation(
-        url="http://localhost:8080/image.html",
+        in_file=os.path.abspath(SCRIPT_ROOT + "/_framework/pages/image.js"),
         name=os.path.splitext(file)[0],
         params={"t": "%d" % duration, "src": file},
         **kwargs,
@@ -765,7 +769,7 @@ def image_anim(file, duration=5, **kwargs):
 
 def title_anim(h1, h2, **kwargs):
     _animation(
-        url="http://localhost:8080/title-animation.html",
+        in_file=os.path.abspath(SCRIPT_ROOT + "/_framework/pages/title-animation.js"),
         name=slugify("title-%s-%s" % (h1, h2)),
         params={"h1": h1, "h2": h2},
         **kwargs,
@@ -917,19 +921,10 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
 
                         params.update({"t": subclip_dura_list})
 
-                    final_url = (
-                        animation_info.url
-                        + "?"
-                        + "&".join(
-                            [
-                                "%s=%s" % (k, urllib.parse.quote(v))
-                                for k, v in params.items()
-                            ]
-                        )
-                    )
-
                     capture_animation.capture_js_animation(
-                        url=final_url, out_file=out_file,
+                        in_file=animation_info.in_file,
+                        out_file=out_file,
+                        params=params,
                     )
 
             for i, clip_info in enumerate(animation_info.clip_info_list):
