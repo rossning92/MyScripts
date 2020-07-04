@@ -34,8 +34,8 @@ if 1:
 
 
 if 1:  # Import moviepy
-    f = get_executable("magick")
-    os.environ["IMAGEMAGICK_BINARY"] = f
+    IMAGE_MAGICK = get_executable("magick")
+    os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
     from moviepy.config import change_settings
     from moviepy.editor import *
     import moviepy.video.fx.all as vfx
@@ -236,7 +236,7 @@ def _format_time(sec):
 def _generate_text_image(
     text,
     font="Source-Han-Sans-CN-Medium",
-    font_size=50,
+    font_size=45,
     color="#ffffff",
     stroke_color="#000000",
 ):
@@ -247,7 +247,7 @@ def _generate_text_image(
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
     os.close(tempfile_fd)
     cmd = [
-        glob.glob(r"C:\Program Files\ImageMagick-*\magick.exe")[0],
+        IMAGE_MAGICK,
         "-background",
         "transparent",
         "-font",
@@ -257,7 +257,9 @@ def _generate_text_image(
         "-stroke",
         stroke_color,
         "-strokewidth",
-        "6",
+        "4",
+        "-kerning",
+        "%d" % int(font_size * 0.05),
         "-gravity",
         "center",
         "label:%s" % text,

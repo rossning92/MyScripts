@@ -3,6 +3,9 @@ from _editor import *
 
 proj_dir = r"{{VIDEO_PROJECT_DIR}}"
 
+if not proj_dir:
+    raise Exception('Invalid project dir.')
+
 subprocess.call(
     'MKLINK /J "%USERPROFILE%\\.vscode\\extensions\\my-animation-extension" "{}"'.format(
         os.path.join(os.getcwd(), "_extension")
