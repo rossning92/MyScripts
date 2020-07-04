@@ -287,6 +287,7 @@ ToggleDesktopIcons() {
 
 ResizeWindow2(wintitle, x := "", y := "", w := "", h := "") {
     WinGet hwnd, ID, %wintitle%
+    WinRestore, ahk_id %hwnd%
     WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
 }
 
