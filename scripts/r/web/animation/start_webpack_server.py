@@ -33,6 +33,10 @@ def start_server(file=None):
 
 
 if __name__ == "__main__":
-    ps = start_server()
+    f = get_files()[0]
+    ps = start_server(f)
+
+    url = "http://localhost:8080/%s.html" % os.path.splitext(os.path.basename(f))[0]
+    shell_open(url)
+
     ps.wait()
-    input()
