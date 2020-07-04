@@ -1198,6 +1198,7 @@ def _parse_text(text, **kwargs):
             p = end + 1
 
         elif text[p : p + 3] == "---":
+            audio_gap(0.2)
             p = find_next(text, "\n", p) + 1
 
         else:
