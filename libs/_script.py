@@ -384,8 +384,13 @@ class ScriptItem:
 
         # Install packages
         if self.meta["packages"] is not None:
-            for pkg in self.meta["packages"].split("|"):
+            packages = self.meta["packages"].split()
+            for pkg in packages:
                 get_executable(pkg)
+
+            if "node" in packages:
+                print("node package is required.")
+                setup_nodejs(install=False)
 
         # HACK: pass current folder
         if "CURRENT_FOLDER" in os.environ:
