@@ -214,10 +214,10 @@ def call2(args, check=True, shell=True, **kwargs):
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
-def call_echo(args, shell=True):
+def call_echo(args, shell=True, **kwargs):
     print("> ", end="")
     print2(str(args), color="cyan")
-    subprocess.check_call(args, shell=shell)
+    subprocess.check_call(args, shell=shell, **kwargs)
 
 
 def start_in_new_terminal(args, title=None):

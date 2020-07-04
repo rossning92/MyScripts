@@ -1,6 +1,7 @@
 from _shutil import *
 from pyppeteer import launch
 from r.video.ccapture_to_mov import convert_to_mov
+from r.web.animation.start_webpack_server import start_server
 import asyncio
 import sys
 import time
@@ -63,6 +64,12 @@ def capture_js_animation(url, out_file=None):
 if __name__ == "__main__":
     cd(expanduser("~/Downloads"))
 
-    out_file = os.path.splitext("{{_NAME}}")[0] + ".mp4"
-    print("output: %s" % out_file)
-    capture_js_animation("http://localhost:8080/" + "{{_NAME}}.html", out_file=out_file)
+    f = get_files()[0]
+    assert f.endswith(".js")
+    ps = start_server(f)
+
+    name = os.path.basename(os.path.splitext(f)[0])
+    print("output: %s" % name + ".mp4")
+    capture_js_animation("http://localhost:8080/%s.html" % name, out_file=name + ".mp4")
+
+    ps.kill()
