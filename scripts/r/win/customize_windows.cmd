@@ -79,3 +79,7 @@ start explorer.exe
 
 :: Set default browser manually
 "%windir%\system32\control.exe" /name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings
+
+:: Disable sleep
+powercfg /change standby-timeout-ac 0
+powercfg /change standby-timeout-dc 0
