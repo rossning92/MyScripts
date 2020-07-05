@@ -45,8 +45,6 @@ ToggleRecording(enable_carnac:=True)
             Run, %LOCALAPPDATA%\carnac\Carnac.exe
         }
         
-        pid_screencap := RunScript(SCRIPT_DIR . "\_wait_for_screencap.py")
-        
         Sleep 1000
         WinActivate ahk_id %hwnd%
     } else {
@@ -57,13 +55,13 @@ ToggleRecording(enable_carnac:=True)
         Send !{f9}
         Sleep, 1000 ; Make sure that the window is not pop up when recording stops.
         
-        WinActivate, ahk_pid %pid_screencap%
+        RunScript(SCRIPT_DIR . "\_wait_for_screencap.py")
     }
     
     is_recording := not is_recording
 }
 
-RunScript(file, min:=True) {
+RunScript(file, min:=False) {
     global SCRIPT_DIR
     global VIDEO_PROJECT_DIR
     

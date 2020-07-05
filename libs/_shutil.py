@@ -1005,10 +1005,12 @@ def refresh_env():
                             origin_path.append(p)
 
 
-def wait_for_new_file(file_pattern):
+def wait_for_new_file(file_pattern, allow_exists=False):
     max_mtime = 0.0
-    for f in glob.glob(file_pattern):
-        max_mtime = max(os.path.getmtime(f), max_mtime)
+
+    if not allow_exists:
+        for f in glob.glob(file_pattern):
+            max_mtime = max(os.path.getmtime(f), max_mtime)
 
     print("wait for new file: %s " % file_pattern)
     while True:
