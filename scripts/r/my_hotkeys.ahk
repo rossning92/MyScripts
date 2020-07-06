@@ -227,6 +227,8 @@ UpdateWindowPosition(pos) {
 
 ActivateChrome(index=0)
 {
+    CHROME_EXE = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
     if (index = 0)
     {
         condition := "NOT CommandLine LIKE '%--user-data-dir=%' AND NOT CommandLine LIKE '%--type=%'"
@@ -251,11 +253,11 @@ ActivateChrome(index=0)
     {
         if (index = 0)
         {
-            Run chrome.exe
+            Run %CHROME_EXE%
         }
         else
         {
-            Run chrome.exe --user-data-dir=%USERPROFILE%\ChromeData%index%
+            Run %CHROME_EXE% --user-data-dir=%USERPROFILE%\ChromeData%index%
         }
     }
 }
