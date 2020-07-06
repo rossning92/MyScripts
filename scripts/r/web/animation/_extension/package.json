@@ -78,6 +78,12 @@
         "command": "yo.openFileUnderCursor",
         "key": "f4"
       }
+    ],
+    "snippets": [
+      {
+        "language": "markdown",
+        "path": "./snippets.json"
+      }
     ]
   },
   "scripts": {

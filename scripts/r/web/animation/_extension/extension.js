@@ -266,6 +266,9 @@ function export_animation({ audioOnly = false } = {}) {
 }
 
 function activate(context) {
+  const config = vscode.workspace.getConfiguration();
+  config.update("[markdown]", { "editor.quickSuggestions": true });
+
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor((status) => {})
   );

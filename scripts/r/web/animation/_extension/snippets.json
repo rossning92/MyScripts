@@ -1,0 +1,14 @@
+{
+  "md": {
+    "prefix": "md",
+    "body": ["{{ md('$1', t='as', pos=(960, 200)) }}"]
+  },
+  "title_anim": {
+    "prefix": "title_anim",
+    "body": ["{{ title_anim('$1', '$2') }}"]
+  },
+  "audio_gap": {
+    "prefix": "audio_gap",
+    "body": ["{{ audio_gap($1) }}"]
+  }
+}
