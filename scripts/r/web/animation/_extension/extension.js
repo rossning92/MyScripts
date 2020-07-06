@@ -131,7 +131,8 @@ function getFiles(dir, filter, files = []) {
     const fileStat = fs.lstatSync(filePath);
 
     if (fileStat.isDirectory()) {
-      if (file != "tmp") {
+      // If not in excluded folders
+      if (!/(tmp|out)$/g.test(file)) {
         getFiles(filePath, filter, files);
       }
     } else if (filter(filePath)) {
