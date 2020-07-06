@@ -172,7 +172,7 @@ function registerAutoComplete(context) {
 
         const completionItems = [];
         files.forEach((file, i) => {
-          const label = ` video('${file}') `; // Auto closing single quote
+          const label = ` clip('${file}') `; // Auto closing single quote
           const item = new vscode.CompletionItem(
             label,
             vscode.CompletionItemKind.File

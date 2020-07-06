@@ -482,9 +482,19 @@ def pos(p, tag=None):
     _set_pos(p, tag=tag)
 
 
+# Deprecated
 def image(f, pos="center", **kwargs):
-    print("image: %s" % f)
-    _add_clip(f, pos=pos, **kwargs)
+    clip(f, **kwargs)
+
+
+# Deprecated
+def video(f, **kwargs):
+    clip(f, **kwargs)
+
+
+def clip(f, **kwargs):
+    print("clip: %s" % f)
+    _add_clip(f, pos="center", **kwargs)
 
 
 def overlay(
@@ -796,11 +806,6 @@ def video_end(track=None, t=None):
     _clip_extend_prev_clip(track, t=t)
 
 
-def video(f, **kwargs):
-    print("video: %s" % f)
-    _add_clip(f, pos="center", **kwargs)
-
-
 def empty(**kwargs):
     _add_clip(None, **kwargs)
 
@@ -832,7 +837,7 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
 
 
 def hl(pos, track="hl", duration=2, file="../image/cursor.png", **kwargs):
-    image(
+    clip(
         file,
         pos=pos,
         track=track,
