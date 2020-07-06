@@ -12,7 +12,7 @@ import shlex
 import glob
 import locale
 from _appmanager import get_executable
-
+from _editor import open_in_vscode
 
 # TODO: move to configuration file
 SCRIPT_PATH_LIST = [
@@ -30,7 +30,8 @@ SCRIPT_EXTENSIONS = {
     ".bat",
     ".ps1",
     ".ahk",
-    ".vbs",  # Windows specific
+    ".vbs",  # Windows specific,
+    ".md",
 }
 
 
@@ -370,6 +371,10 @@ class ScriptItem:
             self.real_script_path if self.real_script_path else self.script_path
         )
         ext = self.real_ext if self.real_ext else self.ext
+
+        if ext == ".md":
+            open_in_vscode(script_path)
+            return
 
         if type(args) == str:
             args = [args]
