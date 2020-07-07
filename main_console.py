@@ -107,6 +107,18 @@ def register_hotkeys(scripts):
     return hotkeys
 
 
+def get_script_variables(script):
+    all_vars = get_all_variables()
+    vars = {}
+    for var_name in script.get_variable_names():
+        if var_name in all_vars:
+            vars[var_name] = all_vars[var_name][-1]
+        else:
+            vars[var_name] = ""
+
+    return vars
+
+
 def main(stdscr):
     scripts = []
     modified_time = {}
@@ -129,6 +141,8 @@ def main(stdscr):
     last_ts = 0
     hotkeys = {}
 
+    variables = get_all_variables()
+
     while True:
         # Reload scripts
         now = time.time()
@@ -147,10 +161,19 @@ def main(stdscr):
 
         # Get matched scripts
         row = 2
-        for i, script in matched_scripts:
-            stdscr.addstr(row, 0, "%d. %s" % (i + 1, str(script)))
+        for i, (idx, script) in enumerate(matched_scripts):
+            stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(script)))
             row += 1
-            if row >= height:
+
+            if i == 0:
+                vars = get_script_variables(script)
+                variable_row_start = max(5, height - len(vars))
+                for i, (var_name, var_val) in enumerate(vars.items()):
+                    if variable_row_start + i >= height:
+                        break
+                    stdscr.addstr(variable_row_start + i, 0, var_name + ": " + var_val)
+
+            if row >= variable_row_start:
                 break
 
         input_.on_update_screen(stdscr, 0, cursor=True)
