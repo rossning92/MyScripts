@@ -55,7 +55,7 @@ return
 #If
     
 
-#If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
+#If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
     
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 #c::ActivateChrome(0)
@@ -145,12 +145,16 @@ return
 
 #If
     
-#If WinExist("ahk_exe tvnviewer.exe")
+#If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_exe vncviewer.exe")
 $XButton2::
 if WinActive("ahk_exe tvnviewer.exe") {
     WinMinimize, ahk_exe tvnviewer.exe
-} else {
+} else if WinActive("ahk_exe vncviewer.exe") {
+    WinMinimize, ahk_exe vncviewer.exe
+} else if WinExist("ahk_exe tvnviewer.exe") {
     WinActivate, ahk_exe tvnviewer.exe
+} else if WinExist("ahk_exe vncviewer.exe") {
+    WinActivate, ahk_exe vncviewer.exe
 }
 return
 #If
