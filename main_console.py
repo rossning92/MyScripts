@@ -12,16 +12,19 @@ from _script import *
 
 
 class Input:
-    def __init__(self):
+    def __init__(self, label=""):
         self.text = ""
+        self.label = label
         self.caret_pos = 0
 
     def on_update_screen(self, stdscr, row, cursor=False):
+        stdscr.addstr(row, 0, self.label)
 
-        stdscr.addstr(row, 0, self.text)
+        text_start = len(self.label) + 1 if self.label else 0
+        stdscr.addstr(row, text_start, self.text)
 
         if cursor:
-            stdscr.move(row, self.caret_pos)
+            stdscr.move(row, self.caret_pos + text_start)
 
     def on_getch(self, ch):
         text_changed = False
@@ -121,7 +124,7 @@ def main(stdscr):
     stdscr.keypad(1)
     stdscr.nodelay(False)
 
-    input_ = Input()
+    input_ = Input(">")
 
     last_ts = 0
     hotkeys = {}
