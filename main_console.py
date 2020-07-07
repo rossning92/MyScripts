@@ -147,19 +147,26 @@ def main(stdscr):
 
         # Get matched scripts
         row = 2
+        max_row = height
         for i, (idx, script) in enumerate(matched_scripts):
             stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(script)))
             row += 1
 
             if i == 0:
                 vars = get_script_variables(script)
-                variable_row_start = max(5, height - len(vars))
-                for i, (var_name, var_val) in enumerate(vars.items()):
-                    if variable_row_start + i >= height:
-                        break
-                    stdscr.addstr(variable_row_start + i, 0, var_name + ": " + var_val)
+                if len(vars):
+                    max_width = max([len(val_name) for val_name in vars]) + 1
+                    max_row = max(5, height - len(vars))
+                    for i, (var_name, var_val) in enumerate(vars.items()):
+                        if max_row + i >= height:
+                            break
+                        stdscr.addstr(
+                            max_row + i,
+                            0,
+                            var_name.ljust(max_width) + ": " + var_val,
+                        )
 
-            if row >= variable_row_start:
+            if row >= max_row:
                 break
 
         input_.on_update_screen(stdscr, 0, cursor=True)
