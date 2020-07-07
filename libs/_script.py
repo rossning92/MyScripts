@@ -125,6 +125,18 @@ def get_all_variables():
         return variables
 
 
+def get_script_variables(script):
+    all_vars = get_all_variables()
+    vars = {}
+    for var_name in script.get_variable_names():
+        if var_name in all_vars:
+            vars[var_name] = all_vars[var_name][-1]
+        else:
+            vars[var_name] = ""
+
+    return vars
+
+
 def get_variable(name):
     with open(get_variable_file(), "r") as f:
         variables = json.load(f)
