@@ -71,15 +71,15 @@ def sort_scripts(scripts):
     return sorted(scripts, key=key, reverse=True)
 
 
-def search_scripts(scripts, kw):
+def search_items(items, kw):
     if not kw:
-        for i, s in enumerate(scripts):
+        for i, s in enumerate(items):
             yield i, s
-
-    tokens = kw.split(" ")
-    for i, script in enumerate(scripts):
-        if all([(x in script.name.lower()) for x in tokens]):
-            yield i, script
+    else:
+        tokens = kw.split(" ")
+        for i, item in enumerate(items):
+            if all([(x in str(item).lower()) for x in tokens]):
+                yield i, item
 
 
 def on_hotkey():
@@ -105,6 +105,59 @@ def register_hotkeys(scripts):
                 hotkeys[ch] = script
 
     return hotkeys
+
+
+class SearchWindow:
+    def __init__(self, stdscr, items):
+        input_ = Input(">")
+        self.items = items
+
+        while True:
+            height, width = stdscr.getmaxyx()
+
+            # Search scripts
+            matched_items = list(search_items(items, input_.text))
+
+            # Sreen update
+            stdscr.clear()
+
+            # Get matched scripts
+            row = 2
+            max_row = height
+            for i, (idx, item) in enumerate(matched_items):
+                stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(item)))
+                row += 1
+                if row >= max_row:
+                    break
+
+            input_.on_update_screen(stdscr, 0, cursor=True)
+            stdscr.refresh()
+
+            # Keyboard event
+            ch = stdscr.getch()
+
+            if ch == ord("\n"):
+                if len(matched_items) > 0:
+                    _, item = matched_items[0]
+                else:
+                    item = None
+
+                self.on_accept(input_.text, item)
+
+            elif ch == curses.ascii.ctrl(ord("w")):
+                return
+
+            elif self.on_getch(ch):
+                pass
+
+            else:
+                input_.on_getch(ch)
+
+    def on_getch(self, ch):
+        return False
+
+    def on_accept(self, text, item):
+        pass
 
 
 def main(stdscr):
@@ -140,7 +193,7 @@ def main(stdscr):
         height, width = stdscr.getmaxyx()
 
         # Search scripts
-        matched_scripts = list(search_scripts(scripts, input_.text))
+        matched_scripts = list(search_items(scripts, input_.text))
 
         # Sreen update
         stdscr.clear()
@@ -161,9 +214,7 @@ def main(stdscr):
                         if max_row + i >= height:
                             break
                         stdscr.addstr(
-                            max_row + i,
-                            0,
-                            var_name.ljust(max_width) + ": " + var_val,
+                            max_row + i, 0, var_name.ljust(max_width) + ": " + var_val,
                         )
 
             if row >= max_row:
@@ -183,6 +234,19 @@ def main(stdscr):
 
         elif ch == curses.ascii.ctrl(ord("w")):
             return
+
+        elif ch == curses.ascii.ctrl(ord("u")):
+            if matched_scripts:
+                _, script = matched_scripts[0]
+
+                vars = get_script_variables(script)
+                if len(vars):
+                    max_width = max([len(val_name) for val_name in vars]) + 1
+                    items = []
+                    for i, (var_name, var_val) in enumerate(vars.items()):
+                        items.append(var_name.ljust(max_width) + ": " + var_val)
+                    
+                    SearchWindow(stdscr, items)
 
         elif ch in hotkeys:
             if matched_scripts:
