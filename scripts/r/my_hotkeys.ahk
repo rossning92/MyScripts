@@ -2,6 +2,7 @@
 #InstallKeybdHook
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
+#include win/change_screen_resolution.ahk
 
 SetCapsLockState, AlwaysOff
 
