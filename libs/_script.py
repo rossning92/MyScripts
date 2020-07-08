@@ -12,6 +12,7 @@ import shlex
 import glob
 import locale
 from _appmanager import get_executable
+from _editor import open_in_vscode
 
 # TODO: move to configuration file
 SCRIPT_PATH_LIST = [
@@ -384,8 +385,9 @@ class ScriptItem:
         ext = self.real_ext if self.real_ext else self.ext
 
         if ext == ".md":
-            with open(script_path, "r", encoding="utf-8") as f:
-                set_clip(f.read())
+            # with open(script_path, "r", encoding="utf-8") as f:
+            #     set_clip(f.read())
+            open_in_vscode(script_path)
             return
 
         if type(args) == str:
