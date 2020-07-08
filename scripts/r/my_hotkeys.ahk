@@ -2,7 +2,6 @@
 #InstallKeybdHook
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
-#include win/change_screen_resolution.ahk
 
 SetCapsLockState, AlwaysOff
 
@@ -324,3 +323,5 @@ ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
     DllCall("MoveWindow", "Ptr", hwnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
     WinRestore ahk_id %hwnd%
 }
+
+#include win/change_screen_resolution.ahk
