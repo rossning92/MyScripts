@@ -359,4 +359,6 @@ if __name__ == "__main__":
         os.environ["RECODER_INTERACTIVE"] == "0"
     )
 
+    run_script("/r/audio/set_mic_volume.ps1")
+
     TerminalRecorder(interactive=not non_interactive).main_loop()
