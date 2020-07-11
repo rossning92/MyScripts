@@ -358,20 +358,27 @@ RunScript(name, path)
             add_keyboard_hooks(keyboard_hooks)
 
     def timerEvent(self, e):
-        should_sort_script = False
+        retry = True
+        while not retry:
+            try:
+                should_sort_script = False
 
-        if should_update([x[1] for x in SCRIPT_PATH_LIST]):
-            load_scripts(self.script_items, self.modified_time)
-            should_sort_script = True
+                if should_update([x[1] for x in SCRIPT_PATH_LIST]):
+                    load_scripts(self.script_items, self.modified_time)
+                    should_sort_script = True
 
-        script_access_time, mtime = get_all_script_access_time()
-        if mtime > self.mtime_script_access_time:
-            self.mtime_script_access_time = mtime
-            should_sort_script = True
+                script_access_time, mtime = get_all_script_access_time()
+                if mtime > self.mtime_script_access_time:
+                    self.mtime_script_access_time = mtime
+                    should_sort_script = True
 
-        if should_sort_script:
-            self.sort_scripts(script_access_time=script_access_time)
-            self.update_gui(self.ui.inputBox.text())
+                if should_sort_script:
+                    self.sort_scripts(script_access_time=script_access_time)
+                    self.update_gui(self.ui.inputBox.text())
+
+                retry = False
+            except FileNotFoundError:
+                print("FileNotFoundError, retrying...")
 
     def on_inputBox_textChanged(self, user_input=None):
         self.update_gui(user_input)

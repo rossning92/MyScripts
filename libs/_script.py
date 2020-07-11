@@ -302,6 +302,10 @@ class ScriptItem:
             self.real_script_path = None
             self.real_ext = None
 
+        # XXX: Workaround for mac
+        if sys.platform == "darwin":
+            self.meta["newWindow"] = False
+
     def check_link_existence(self):
         if self.real_script_path is not None:
             if not os.path.exists(self.real_script_path):

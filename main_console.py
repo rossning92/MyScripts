@@ -245,7 +245,7 @@ def main(stdscr):
                     items = []
                     for i, (var_name, var_val) in enumerate(vars.items()):
                         items.append(var_name.ljust(max_width) + ": " + var_val)
-                    
+
                     SearchWindow(stdscr, items)
 
         elif ch in hotkeys:
