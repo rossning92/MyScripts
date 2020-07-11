@@ -62,6 +62,14 @@ function cut_video() {
     return;
   }
 
+  var outFile =
+    filePathNoExt +
+    "-cut-" +
+    in_time.toFixed(0) +
+    "-" +
+    out_time.toFixed(0) +
+    ".mp4";
+
   var p = {};
   p["cancellable"] = false;
   p["args"] = [
@@ -84,12 +92,20 @@ function cut_video() {
     "aac",
     "-b:a",
     "128k",
-    filePathNoExt +
-      "-cut-" +
-      in_time.toFixed(0) +
-      "-" +
-      out_time.toFixed(0) +
-      ".mp4",
+    outFile,
+  ];
+
+  p["args"] = [
+    "ffmpeg",
+    "-ss",
+    in_time.toFixed(3),
+    "-i",
+    filePath,
+    "-t",
+    (out_time - in_time).toFixed(3),
+    "-c",
+    "copy",
+    outFile,
   ];
 
   var res = mp.utils.subprocess(p);
