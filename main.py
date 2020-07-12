@@ -462,7 +462,7 @@ RunScript(name, path)
 
         # HACK: reset title
         if platform.system() == "Windows":
-            ctypes.windll.kernel32.SetConsoleTitleA(b"MyScripts - Console")
+            ctypes.windll.kernel32.SetConsoleTitleA(b"my_scripts_console")
 
     def sort_scripts(self, script_access_time={}):
         def key(script):

@@ -7,8 +7,7 @@ SetCapsLockState, AlwaysOff
 
 WindowList := {}
 
-CONSOLE_WINDOW = MyScripts - Console
-GUI_WINDOW = MyScripts - GUI
+CONSOLE_WINDOW = my_scripts_console
 
 SetTitleMatchMode, 2
 
@@ -69,9 +68,6 @@ return
     ; Activate script window
     if WinExist(CONSOLE_WINDOW) {
         WinActivate % CONSOLE_WINDOW
-        WinActivate % GUI_WINDOW
-    } else {
-        WinActivate % GUI_WINDOW
     }
 return
 

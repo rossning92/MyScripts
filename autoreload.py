@@ -7,11 +7,11 @@ import sys
 
 
 def get_mtime():
-    for filename in glob.iglob('*.py'):
+    for filename in glob.iglob("*.py"):
         yield os.stat(filename).st_mtime
 
 
-command = [sys.executable, 'main_console.py']
+command = [sys.executable, "main_console.py"]
 
 # How often we check the filesystem for changes (in seconds)
 WAIT = 1
@@ -31,6 +31,10 @@ while True:
             last_mtime = max_mtime
             process.kill()
             process = subprocess.Popen(command)
+
+        if process.poll() is not None:
+            process = subprocess.Popen(command)
+
         time.sleep(WAIT)
     except KeyboardInterrupt:
         process.kill()
