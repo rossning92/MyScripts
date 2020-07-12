@@ -147,7 +147,7 @@ class SearchWindow:
                 else:
                     self.on_tab_pressed(self.input_.text, item_index)
 
-            elif ch == curses.ascii.ESC:
+            elif ch == 27:
                 return
 
             elif self.on_getch(ch):
@@ -312,7 +312,7 @@ def main(stdscr):
             state.execute_script = lambda: state.hotkeys[ch].execute()
             return
 
-        else:
+        elif ch != 0:
             input_.on_getch(ch)
 
 

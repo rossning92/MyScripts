@@ -11,7 +11,7 @@ def get_mtime():
         yield os.stat(filename).st_mtime
 
 
-command = [sys.executable, 'main.py']
+command = [sys.executable, 'main_console.py']
 
 # How often we check the filesystem for changes (in seconds)
 WAIT = 1
