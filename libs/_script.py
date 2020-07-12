@@ -712,7 +712,7 @@ class ScriptItem:
                         shell=shell,
                     )
                 else:
-                    self.return_code = subprocess.call(
+                    subprocess.check_call(
                         args, env={**os.environ, **env}, cwd=cwd
                     )
 
