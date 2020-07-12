@@ -12,10 +12,10 @@ from _script import *
 
 
 class Input:
-    def __init__(self, label=""):
-        self.text = ""
+    def __init__(self, label="", text=""):
+        self.text = text
         self.label = label
-        self.caret_pos = 0
+        self.caret_pos = len(text)
 
     def on_update_screen(self, stdscr, row, cursor=False):
         stdscr.addstr(row, 0, self.label)
@@ -108,10 +108,11 @@ def register_hotkeys(scripts):
 
 
 class SearchWindow:
-    def __init__(self, stdscr, items):
-        input_ = Input(">")
+    def __init__(self, stdscr, items, label=">", text=""):
+        input_ = Input(label=label, text=text)
         self.items = items
-        self.rejected = False
+        self.closed = False
+        self.stdscr = stdscr
 
         while True:
             height, width = stdscr.getmaxyx()
@@ -137,13 +138,17 @@ class SearchWindow:
             # Keyboard event
             ch = stdscr.getch()
 
-            if ch == ord("\n"):
+            if ch == ord("\n") or ch == ord("\t"):
                 if len(matched_items) > 0:
-                    _, item = matched_items[0]
+                    item_index, item = matched_items[0]
                 else:
                     item = None
+                    item_index = -1
 
-                self.on_accept(input_.text, item)
+                if ch == ord("\n"):
+                    self.on_enter_pressed(input_.text, item_index)
+                else:
+                    self.on_tab_pressed(input_.text, item_index)
 
             elif ch == 27:
                 return
@@ -154,25 +159,59 @@ class SearchWindow:
             else:
                 input_.on_getch(ch)
 
-            if self.rejected:
+            if self.closed:
                 return
 
     def on_getch(self, ch):
         return False
 
-    def on_accept(self, text, item):
+    def on_enter_pressed(self, text, item_index):
         pass
 
-    def reject(self):
-        self.rejected = True
+    def on_tab_pressed(self, text, item_index):
+        pass
+
+    def close(self):
+        self.closed = True
 
 
 class VariableEditWindow(SearchWindow):
+    def __init__(self, stdscr, vars, var_name):
+        self.vars = vars
+        self.var_name = var_name
+
+        super().__init__(stdscr, [], label=var_name + " :", text=self.vars[var_name])
+
+    def on_enter_pressed(self, text, item_index):
+        self.vars[self.var_name] = text
+        self.close()
+
+
+class VariableSearchWindow(SearchWindow):
+    def __init__(self, stdscr, script):
+        self.vars = get_script_variables(script)
+        self.items = []
+
+        if len(self.vars):
+            self.update_items()
+            super().__init__(stdscr, self.items, label="%s >" % (script.name))
+
+    def update_items(self):
+        self.items.clear()
+        max_width = max([len(val_name) for val_name in self.vars]) + 1
+        for _, (var_name, var_val) in enumerate(self.vars.items()):
+            self.items.append(var_name.ljust(max_width) + ": " + var_val)
+
     def on_getch(self, ch):
         if ch == ord("\t"):
-            self.reject()
+            self.close()
         else:
             super().on_getch(ch)
+
+    def on_enter_pressed(self, text, item_index):
+        var_name = list(self.vars)[item_index]
+        VariableEditWindow(self.stdscr, self.vars, var_name)
+        self.update_items()
 
 
 class State:
@@ -264,14 +303,7 @@ def main(stdscr):
             if matched_scripts:
                 _, script = matched_scripts[0]
 
-                vars = get_script_variables(script)
-                if len(vars):
-                    max_width = max([len(val_name) for val_name in vars]) + 1
-                    items = []
-                    for i, (var_name, var_val) in enumerate(vars.items()):
-                        items.append(var_name.ljust(max_width) + ": " + var_val)
-
-                    VariableEditWindow(stdscr, items)
+                VariableSearchWindow(stdscr, script)
 
         elif ch in state.hotkeys:
             if matched_scripts:
