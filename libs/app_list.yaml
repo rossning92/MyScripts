@@ -28,8 +28,8 @@ SumatraPDF:
 
 vscode:
   executable:
-    - code
     - C:\Program Files\Microsoft VS Code\Code.exe
+    - code
   linux_install: /r/install_vscode_linux
 
 PotPlayer:
