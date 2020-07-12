@@ -3,6 +3,7 @@ import os
 import curses
 import curses.ascii
 import re
+import time
 
 sys.path.append(os.path.join(os.path.realpath(os.path.dirname(__file__)), "libs"))
 sys.path.append(os.path.join(os.path.realpath(os.path.dirname(__file__)), "bin"))
@@ -324,5 +325,8 @@ if __name__ == "__main__":
         if state.execute_script is not None:
             state.execute_script()
             state.execute_script = None
+
+            # HACK: workaround: key bindings will not work on windows.
+            time.sleep(1)
         else:
             break
