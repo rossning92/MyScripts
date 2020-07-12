@@ -277,5 +277,6 @@ if __name__ == "__main__":
         curses.wrapper(main)
         if execute_script is not None:
             execute_script()
+            execute_script = None
         else:
             break
