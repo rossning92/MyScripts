@@ -243,7 +243,7 @@ def main(stdscr):
                 execute_script = lambda: script.execute()
                 return
 
-        elif ch == curses.ascii.ctrl(ord("w")):
+        elif ch == curses.ascii.ctrl(ord("c")):
             return
 
         elif ch == curses.ascii.ctrl(ord("u")):
