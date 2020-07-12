@@ -160,20 +160,16 @@ class SearchWindow:
         pass
 
 
-scripts = []
-modified_time = {}
-last_ts = 0
-hotkeys = {}
-execute_script = None
+class State:
+    def __init__(self):
+        self.scripts = []
+        self.modified_time = {}
+        self.last_ts = 0
+        self.hotkeys = {}
+        self.execute_script = None
 
 
 def main(stdscr):
-    global scripts
-    global modified_time
-    global last_ts
-    global hotkeys
-    global execute_script
-
     # # Clear screen
     # stdscr.clear()
 
@@ -192,16 +188,16 @@ def main(stdscr):
     while True:
         # Reload scripts
         now = time.time()
-        if now - last_ts > 2.0:
-            load_scripts(scripts, modified_time, autorun=False)
-            scripts = sort_scripts(scripts)
-            hotkeys = register_hotkeys(scripts)
-        last_ts = now
+        if now - state.last_ts > 2.0:
+            load_scripts(state.scripts, state.modified_time, autorun=False)
+            state.scripts = sort_scripts(state.scripts)
+            state.hotkeys = register_hotkeys(state.scripts)
+        state.last_ts = now
 
         height, width = stdscr.getmaxyx()
 
         # Search scripts
-        matched_scripts = list(search_items(scripts, input_.text))
+        matched_scripts = list(search_items(state.scripts, input_.text))
 
         # Sreen update
         stdscr.clear()
@@ -240,7 +236,7 @@ def main(stdscr):
 
                 update_script_acesss_time(script)
 
-                execute_script = lambda: script.execute()
+                state.execute_script = lambda: script.execute()
                 return
 
         elif ch == curses.ascii.ctrl(ord("c")):
@@ -259,13 +255,13 @@ def main(stdscr):
 
                     SearchWindow(stdscr, items)
 
-        elif ch in hotkeys:
+        elif ch in state.hotkeys:
             if matched_scripts:
                 _, script = matched_scripts[0]
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
 
-            execute_script = lambda: hotkeys[ch].execute()
+            state.execute_script = lambda: state.hotkeys[ch].execute()
             return
 
         else:
@@ -273,10 +269,12 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
+    state = State()
+
     while True:
         curses.wrapper(main)
-        if execute_script is not None:
-            execute_script()
-            execute_script = None
+        if state.execute_script is not None:
+            state.execute_script()
+            state.execute_script = None
         else:
             break

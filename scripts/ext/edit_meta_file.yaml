@@ -1,12 +1,15 @@
 anaconda: false
 autoRun: false
 background: false
+closeOnExit: true
 conda: null
 globalHotkey: null
-hotkey: Ctrl+M
+hotkey: Shift+M
 newWindow: false
+packages: null
 restartInstance: false
 runAsAdmin: false
 template: true
+terminal: null
 venv: null
 wsl: false
