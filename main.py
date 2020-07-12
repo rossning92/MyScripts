@@ -267,6 +267,10 @@ class MainWindow(QWidget):
             hotkey = item.meta["hotkey"]
             if hotkey is not None:
                 print("Hotkey: %s: %s" % (hotkey, item.name))
+
+                # HACK: Convert `Shift+` to `Alt+`
+                hotkey = hotkey.replace("Shift+", "Alt+")
+
                 QShortcut(
                     QKeySequence(hotkey),
                     self,

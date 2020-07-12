@@ -357,7 +357,6 @@ if __name__ == "__main__":
             os.environ["CURRENT_FOLDER"] = data["current_folder"]
 
         files = data["selected_files"]
-        print(files)
 
         open_with(files, program_id)
     except Exception as e:
