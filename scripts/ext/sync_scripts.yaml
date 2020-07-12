@@ -5,7 +5,7 @@ closeOnExit: true
 conda: null
 globalHotkey: null
 hotkey: Shift+S
-newWindow: true
+newWindow: false
 packages: null
 restartInstance: true
 runAsAdmin: false
