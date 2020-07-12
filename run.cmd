@@ -2,6 +2,8 @@
 
 cd /d "%~dp0"
 
+chcp 65001
+
 set QTDIR=
 set QT_PLUGIN_PATH=
 set QT_QPA_PLATFORM_PLUGIN_PATH=
@@ -17,4 +19,6 @@ if not %errorlevel%==0 (
 :: Install python modules
 pip install -r requirement.txt
 
-start "my_scripts_console" python autoreload.py
+title my_scripts_console
+
+python autoreload.py
