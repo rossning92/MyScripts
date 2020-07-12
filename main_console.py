@@ -147,7 +147,7 @@ class SearchWindow:
                 else:
                     self.on_tab_pressed(self.input_.text, item_index)
 
-            elif ch == 27:
+            elif ch == curses.ascii.ESC:
                 return
 
             elif self.on_getch(ch):
