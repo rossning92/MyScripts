@@ -2,7 +2,7 @@
 
 WriteExplorerInfoToJson()
 {
-    jsn := { "currentFolder" : Explorer_GetPath(), "selectedFiles" : Explorer_GetSelected() }
+    jsn := { "current_folder" : Explorer_GetPath(), "selected_files" : Explorer_GetSelected() }
     str := JSON.Dump(jsn, "", 4)
     file = %A_Temp%\ExplorerInfo.json
     FileDelete, %file%

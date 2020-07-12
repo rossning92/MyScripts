@@ -803,10 +803,10 @@ def update_env_var_explorer():
         with open(os.path.join(os.environ["TEMP"], "ExplorerInfo.json")) as f:
             jsn = json.load(f)
 
-        if jsn["currentFolder"]:
-            os.environ["CURRENT_FOLDER"] = jsn["currentFolder"]
+        if jsn["current_folder"]:
+            os.environ["CURRENT_FOLDER"] = jsn["current_folder"]
 
-        files = jsn["selectedFiles"]
+        files = jsn["selected_files"]
         if not files:
             return None
 
