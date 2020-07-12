@@ -1,7 +1,9 @@
-import sys
+import json
 import os
 import subprocess
+import sys
 import traceback
+
 import _appmanager
 from _shutil import run_elevated
 
@@ -325,27 +327,39 @@ assoc = {
 }
 
 
-def open_with(file, program_id=0):
-    ext = os.path.splitext(file)[1].lower()
+def open_with(files, program_id=0):
+    if type(files) == str:
+        files = [files]
+
+    ext = os.path.splitext(files[0])[1].lower()
 
     # HACK: hijack extension handling
     if ext == ".vhd":
-        run_elevated(["powershell", "-Command", "Mount-VHD -Path '%s'" % file])
+        run_elevated(["powershell", "-Command", "Mount-VHD -Path '%s'" % files])
         return
 
     if ext not in assoc:
         raise Exception("%s is not defined" % ext)
 
     program = assoc[ext][program_id]
-    args = [_appmanager.get_executable(program), file]
+    args = [_appmanager.get_executable(program)] + files
     subprocess.Popen(args, close_fds=True)
 
 
 if __name__ == "__main__":
     try:
-        file = sys.argv[1]
-        program_id = int(sys.argv[2]) if len(sys.argv) >= 3 else 0
-        open_with(file, program_id)
+        program_id = int(sys.argv[1])
+        
+        with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
+            data = json.load(f)
+
+        if data["current_folder"]:
+            os.environ["CURRENT_FOLDER"] = data["current_folder"]
+
+        files = data["selected_files"]
+        print(files)
+
+        open_with(files, program_id)
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
         print(e)

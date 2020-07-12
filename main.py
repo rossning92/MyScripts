@@ -329,7 +329,7 @@ RunScript(name, path)
     }
     else
     {
-        WriteExplorerInfoToJson()
+        WriteDefaultExplorerInfo()
         Run cmd /c """
                     + sys.executable
                     + ' "'

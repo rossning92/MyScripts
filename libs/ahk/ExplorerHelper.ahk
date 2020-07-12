@@ -1,12 +1,17 @@
 #include %A_LineFile%\..\JSON.ahk 
 
-WriteExplorerInfoToJson()
+WriteExplorerInfo(file)
 {
-    jsn := { "current_folder" : Explorer_GetPath(), "selected_files" : Explorer_GetSelected() }
-    str := JSON.Dump(jsn, "", 4)
-    file = %A_Temp%\ExplorerInfo.json
+    data := { "current_folder" : Explorer_GetPath(), "selected_files" : Explorer_GetSelected() }
+    str := JSON.Dump(data, "", 4)
     FileDelete, %file%
     FileAppend, %str%, %file%
+}
+
+WriteDefaultExplorerInfo()
+{
+    file = %A_Temp%\ExplorerInfo.json
+    WriteExplorerInfo(file)
 }
 
 Explorer_GetPath(hwnd="")
@@ -23,9 +28,9 @@ Explorer_GetPath(hwnd="")
     ; thanks to polyethene
     Loop
         If RegExMatch(path, "i)(?<=%)[\da-f]{1,2}", hex)
-            StringReplace, path, path, `%%hex%, % Chr("0x" . hex), All
-        Else Break
-    return path
+        StringReplace, path, path, `%%hex%, % Chr("0x" . hex), All
+    Else Break
+        return path
 }
 
 Explorer_GetAll(hwnd="")
@@ -50,7 +55,7 @@ Explorer_GetWindow(hwnd="")
     {
         for window in ComObjCreate("Shell.Application").Windows
             if (window.hwnd==hwnd)
-                return window
+            return window
     }
     else if (class ~= "Progman|WorkerW") 
         return "desktop" ; desktop found
@@ -62,7 +67,7 @@ Explorer_Get(hwnd="",selection=false)
     
     if !(window := Explorer_GetWindow(hwnd))
         return []
-        
+    
     if (window="desktop")
     {
         ControlGet, hwWindow, HWND,, SysListView321, ahk_class Progman

@@ -64,7 +64,7 @@ return
 
 ^q::
     ; If explorer is active, copy file path to clipboard
-    WriteExplorerInfoToJson()
+    WriteDefaultExplorerInfo()
     
     ; Activate script window
     if WinExist(CONSOLE_WINDOW) {
