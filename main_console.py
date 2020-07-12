@@ -144,7 +144,7 @@ class SearchWindow:
 
                 self.on_accept(input_.text, item)
 
-            elif ch == curses.ascii.ctrl(ord("w")):
+            elif ch == 27:
                 return
 
             elif self.on_getch(ch):
@@ -239,10 +239,13 @@ def main(stdscr):
                 state.execute_script = lambda: script.execute()
                 return
 
+        elif ch == 27:
+            pass
+
         elif ch == curses.ascii.ctrl(ord("c")):
             return
 
-        elif ch == curses.ascii.ctrl(ord("u")):
+        elif ch == ord("\t"):
             if matched_scripts:
                 _, script = matched_scripts[0]
 
