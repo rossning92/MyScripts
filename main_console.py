@@ -160,9 +160,19 @@ class SearchWindow:
         pass
 
 
+scripts = []
+modified_time = {}
+last_ts = 0
+hotkeys = {}
+execute_script = None
+
+
 def main(stdscr):
-    scripts = []
-    modified_time = {}
+    global scripts
+    global modified_time
+    global last_ts
+    global hotkeys
+    global execute_script
 
     # # Clear screen
     # stdscr.clear()
@@ -179,9 +189,6 @@ def main(stdscr):
 
     input_ = Input(">")
 
-    last_ts = 0
-    hotkeys = {}
-
     while True:
         # Reload scripts
         now = time.time()
@@ -189,6 +196,7 @@ def main(stdscr):
             load_scripts(scripts, modified_time, autorun=False)
             scripts = sort_scripts(scripts)
             hotkeys = register_hotkeys(scripts)
+        last_ts = now
 
         height, width = stdscr.getmaxyx()
 
@@ -229,8 +237,11 @@ def main(stdscr):
         if ch == ord("\n"):
             if matched_scripts:
                 _, script = matched_scripts[0]
-                script.execute()
+
                 update_script_acesss_time(script)
+
+                execute_script = lambda: script.execute()
+                return
 
         elif ch == curses.ascii.ctrl(ord("w")):
             return
@@ -254,14 +265,17 @@ def main(stdscr):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
 
-            # XXX: need to verify if it's safe to call endwin()
-            curses.endwin()
-            hotkeys[ch].execute()
+            execute_script = lambda: hotkeys[ch].execute()
+            return
 
         else:
             input_.on_getch(ch)
 
-        last_ts = now
 
-
-curses.wrapper(main)
+if __name__ == "__main__":
+    while True:
+        curses.wrapper(main)
+        if execute_script is not None:
+            execute_script()
+        else:
+            break
