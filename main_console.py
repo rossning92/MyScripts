@@ -111,6 +111,7 @@ class SearchWindow:
     def __init__(self, stdscr, items):
         input_ = Input(">")
         self.items = items
+        self.rejected = False
 
         while True:
             height, width = stdscr.getmaxyx()
@@ -153,11 +154,25 @@ class SearchWindow:
             else:
                 input_.on_getch(ch)
 
+            if self.rejected:
+                return
+
     def on_getch(self, ch):
         return False
 
     def on_accept(self, text, item):
         pass
+
+    def reject(self):
+        self.rejected = True
+
+
+class VariableEditWindow(SearchWindow):
+    def on_getch(self, ch):
+        if ch == ord("\t"):
+            self.reject()
+        else:
+            super().on_getch(ch)
 
 
 class State:
@@ -256,7 +271,7 @@ def main(stdscr):
                     for i, (var_name, var_val) in enumerate(vars.items()):
                         items.append(var_name.ljust(max_width) + ": " + var_val)
 
-                    SearchWindow(stdscr, items)
+                    VariableEditWindow(stdscr, items)
 
         elif ch in state.hotkeys:
             if matched_scripts:
