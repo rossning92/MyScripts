@@ -21,14 +21,18 @@ class Input:
         stdscr.addstr(row, 0, self.label)
 
         text_start = len(self.label) + 1 if self.label else 0
+        stdscr.attron(curses.color_pair(1))
         stdscr.addstr(row, text_start, self.text)
+        stdscr.attroff(curses.color_pair(1))
 
         if cursor:
             stdscr.move(row, self.caret_pos + text_start)
 
-    def on_getch(self, ch):
-        text_changed = False
+    def clear(self):
+        self.text = ""
+        self.caret_pos = 0
 
+    def on_getch(self, ch):
         if ch == curses.ERR:
             pass
         elif ch == curses.KEY_LEFT:
@@ -38,11 +42,8 @@ class Input:
         elif ch == ord("\b"):
             self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
             self.caret_pos = max(self.caret_pos - 1, 0)
-            text_changed = True
         elif ch == curses.ascii.ctrl(ord("a")):
-            self.text = ""
-            self.caret_pos = 0
-            text_changed = True
+            self.clear()
         elif ch == ord("\n"):
             pass
         elif re.match("[\x00-\x7F]", chr(ch)):
@@ -50,10 +51,6 @@ class Input:
                 self.text[: self.caret_pos] + chr(ch) + self.text[self.caret_pos :]
             )
             self.caret_pos += 1
-            text_changed = True
-
-        if text_changed:
-            pass
 
 
 def sort_scripts(scripts):
@@ -109,7 +106,7 @@ def register_hotkeys(scripts):
 
 class SearchWindow:
     def __init__(self, stdscr, items, label=">", text=""):
-        input_ = Input(label=label, text=text)
+        self.input_ = Input(label=label, text=text)
         self.items = items
         self.closed = False
         self.stdscr = stdscr
@@ -118,7 +115,7 @@ class SearchWindow:
             height, width = stdscr.getmaxyx()
 
             # Search scripts
-            matched_items = list(search_items(items, input_.text))
+            matched_items = list(search_items(items, self.input_.text))
 
             # Sreen update
             stdscr.clear()
@@ -132,7 +129,7 @@ class SearchWindow:
                 if row >= max_row:
                     break
 
-            input_.on_update_screen(stdscr, 0, cursor=True)
+            self.input_.on_update_screen(stdscr, 0, cursor=True)
             stdscr.refresh()
 
             # Keyboard event
@@ -146,9 +143,9 @@ class SearchWindow:
                     item_index = -1
 
                 if ch == ord("\n"):
-                    self.on_enter_pressed(input_.text, item_index)
+                    self.on_enter_pressed(self.input_.text, item_index)
                 else:
-                    self.on_tab_pressed(input_.text, item_index)
+                    self.on_tab_pressed(self.input_.text, item_index)
 
             elif ch == 27:
                 return
@@ -157,7 +154,7 @@ class SearchWindow:
                 pass
 
             else:
-                input_.on_getch(ch)
+                self.input_.on_getch(ch)
 
             if self.closed:
                 return
@@ -212,6 +209,7 @@ class VariableSearchWindow(SearchWindow):
         var_name = list(self.vars)[item_index]
         VariableEditWindow(self.stdscr, self.vars, var_name)
         self.update_items()
+        self.input_.clear()
 
 
 class State:
@@ -230,10 +228,10 @@ def main(stdscr):
     curses.noecho()
     curses.cbreak()
     curses.start_color()
-    curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    # stdscr = curses.initscr()
+    stdscr = curses.initscr()
     stdscr.keypad(1)
     stdscr.nodelay(False)
 
