@@ -363,7 +363,7 @@ RunScript(name, path)
 
     def timerEvent(self, e):
         retry = True
-        while not retry:
+        while retry:
             try:
                 should_sort_script = False
 
