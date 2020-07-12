@@ -46,7 +46,7 @@ def setup_console_font():
     )
 
 
-class Input:
+class InputWidget:
     def __init__(self, label="", text=""):
         self.text = text
         self.label = label
@@ -141,7 +141,7 @@ def register_hotkeys(scripts):
 
 class SearchWindow:
     def __init__(self, stdscr, items, label=">", text=""):
-        self.input_ = Input(label=label, text=text)
+        self.input_ = InputWidget(label=label, text=text)
         self.items = items
         self.closed = False
         self.stdscr = stdscr
@@ -270,7 +270,7 @@ def main(stdscr):
     stdscr.keypad(1)
     stdscr.nodelay(False)
 
-    input_ = Input(">")
+    input_ = InputWidget(">")
 
     while True:
         # Reload scripts
