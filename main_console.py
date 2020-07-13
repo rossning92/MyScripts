@@ -437,8 +437,8 @@ def main(stdscr):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
 
-            state.execute_script = lambda: execute_script(script)
-            return
+                state.execute_script = lambda: execute_script(script)
+                return
 
         elif ch != 0:
             input_.on_getch(ch)
