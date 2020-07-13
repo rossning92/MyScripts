@@ -216,6 +216,16 @@ class SearchWindow:
         self.closed = True
 
 
+def save_variables(variables):
+    with open(get_variable_file(), "r") as f:
+        data = json.load(f)
+
+    data.update(variables)
+
+    with open(get_variable_file(), "w") as f:
+        json.dump(data, f, indent=4)
+
+
 class VariableEditWindow(SearchWindow):
     def __init__(self, stdscr, vars, var_name):
         self.vars = vars
@@ -225,36 +235,50 @@ class VariableEditWindow(SearchWindow):
             stdscr,
             [],
             label=var_name + " :",
-            text=(self.vars[var_name][-1] if len(self.vars[var_name]) > 0 else ""),
+            text=(
+                self.vars[var_name][-1]
+                if var_name in self.vars and len(self.vars[var_name]) > 0
+                else ""
+            ),
         )
 
     def on_enter_pressed(self, text, item_index):
-        self.vars[self.var_name] = text
+        if self.var_name not in self.vars:
+            self.vars[self.var_name] = []
+        try:
+            self.vars[self.var_name].remove(text)
+        except ValueError:
+            pass
+        self.vars[self.var_name].append(text)
+
+        save_variables(self.vars)
         self.close()
 
 
-def get_variable_str_list(variables):
+def get_variable_str_list(vars, var_names):
     result = []
-    max_width = max([len(val_name) for val_name in variables]) + 1
-    for _, (var_name, var_val) in enumerate(variables.items()):
-        result.append(
-            var_name.ljust(max_width) + ": " + (var_val[-1] if len(var_val) > 0 else "")
+    max_width = max([len(val_name) for val_name in var_names]) + 1
+    for var_name in var_names:
+        var_val = (
+            vars[var_name][-1] if (var_name in vars and len(vars[var_name]) > 0) else ""
         )
+        result.append(var_name.ljust(max_width) + ": " + var_val)
     return result
 
 
 class VariableSearchWindow(SearchWindow):
     def __init__(self, stdscr, script):
-        self.vars = get_script_variables(script)
+        self.vars = get_all_variables()
+        self.var_names = sorted(script.get_variable_names())
         self.items = []
 
-        if len(self.vars):
+        if len(self.var_names) > 0:
             self.update_items()
             super().__init__(stdscr, self.items, label="%s >" % (script.name))
 
     def update_items(self):
         self.items.clear()
-        self.items.extend(get_variable_str_list(self.vars))
+        self.items.extend(get_variable_str_list(self.vars, self.var_names))
 
     def on_getch(self, ch):
         if ch == ord("\t"):
@@ -263,7 +287,7 @@ class VariableSearchWindow(SearchWindow):
             super().on_getch(ch)
 
     def on_enter_pressed(self, text, item_index):
-        var_name = list(self.vars)[item_index]
+        var_name = self.var_names[item_index]
         VariableEditWindow(self.stdscr, self.vars, var_name)
         self.update_items()
         self.input_.clear()
@@ -370,7 +394,7 @@ def main(stdscr):
         # Reload scripts
         now = time.time()
         if now - state.last_ts > 2.0:
-            load_scripts(state.scripts, state.modified_time, autorun=True)
+            load_scripts(state.scripts, state.modified_time, autorun=False)
             state.scripts = sort_scripts(state.scripts)
             state.hotkeys = register_hotkeys(state.scripts)
             register_global_hotkeys(state.scripts)
@@ -395,7 +419,9 @@ def main(stdscr):
             if i == 0:
                 vars = get_script_variables(script)
                 if len(vars):
-                    str_list = get_variable_str_list(vars)
+                    str_list = get_variable_str_list(
+                        vars, sorted(script.get_variable_names())
+                    )
                     max_row = max(5, height - len(vars))
                     for i, s in enumerate(str_list):
                         if max_row + i >= height:
