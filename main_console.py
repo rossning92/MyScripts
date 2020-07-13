@@ -323,7 +323,8 @@ def main(stdscr):
 
                 update_script_acesss_time(script)
 
-                state.execute_script = lambda: script.execute()
+                args = update_env_var_explorer()
+                state.execute_script = lambda: script.execute(args=args)
                 return
 
         elif ch == 27:
