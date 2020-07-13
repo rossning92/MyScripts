@@ -16,6 +16,13 @@ AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 return
 
+AutoUpdateWindowPos()
+{
+    ; UpdateWindowPosition("left")
+    ; UpdateWindowPosition("left")
+    UpdateActiveWindowPosition()
+}
+
 *CapsLock::Send {LWin Down}{LCtrl Down}
 *CapsLock Up::Send {LWin Up}{LCtrl Up}
 
@@ -110,6 +117,7 @@ return
 
 #Right::
     UpdateWindowPosition("right")
+    SetTimer, AutoUpdateWindowPos, 500
 return
 
 #t::WinSet, AlwaysOnTop, Toggle, A
@@ -125,6 +133,8 @@ return
             break
         }
     }
+
+    SetTimer, AutoUpdateWindowPos, Off
 return
 
 #1::
@@ -206,14 +216,14 @@ UpdateWindowPosition(pos) {
         WinSet, Style, +0x40000, ahk_id %hwnd%
         WinSet, Style, +Resize, ahk_id %hwnd%
         
-        if (pos = "right")
-        {
-            WinSet, AlwaysOnTop, On, ahk_id %hwnd%
-        }
-        else
-        {
-            WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
-        }
+        ; if (pos = "right")
+        ; {
+        ;     WinSet, AlwaysOnTop, On, ahk_id %hwnd%
+        ; }
+        ; else
+        ; {
+        ;     WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
+        ; }
         
         ; ResizeWindow("ahk_id " hwnd, x, y, w, h)
         WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
@@ -223,6 +233,31 @@ UpdateWindowPosition(pos) {
     }
     
     WinActivate, ahk_id %curHwnd%
+}
+
+UpdateActiveWindowPosition() {
+    global WindowList
+    
+    WinGet, curHwnd, ID, A
+    
+    for pos, hwnd in WindowList {
+        if (hwnd = curHwnd and pos = "right") {
+            return
+        }
+    }
+    
+    WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
+    RATIO := 2 / 3
+    w := Floor(A_ScreenWidth * RATIO)
+    x := 0
+    y := 0
+    h := A_ScreenHeight - th
+
+    WinRestore, ahk_id %curHwnd%
+    WinSet, Style, +0x40000, ahk_id %curHwnd%
+    WinSet, Style, +Resize, ahk_id %curHwnd%
+    
+    WinMove, ahk_id %curHwnd%, , %x%, %y%, %w%, %h%
 }
 
 ActivateChrome(index=0)
