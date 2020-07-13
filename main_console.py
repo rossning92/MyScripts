@@ -5,8 +5,9 @@ import curses.ascii
 import re
 import time
 
-sys.path.append(os.path.join(os.path.realpath(os.path.dirname(__file__)), "libs"))
-sys.path.append(os.path.join(os.path.realpath(os.path.dirname(__file__)), "bin"))
+SCRIPT_ROOT = os.path.realpath(os.path.dirname(__file__))
+sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
+sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
 import run_python
 from _script import *
@@ -444,12 +445,25 @@ def main(stdscr):
             input_.on_getch(ch)
 
 
-if __name__ == "__main__":
-    # setup_console_font()
+def init():
+    os.environ["PATH"] = os.pathsep.join(
+        [os.path.join(SCRIPT_ROOT, "bin"), os.environ["PATH"]]
+    )
+    os.environ["PYTHONPATH"] = os.path.abspath("./libs")
+
+    refresh_env()
+
+    setup_nodejs(install=False)
 
     if is_instance_running():
         print("An instance is running. Exited.")
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    # setup_console_font()
+
+    init()
 
     state = State()
 
