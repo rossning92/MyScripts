@@ -233,7 +233,7 @@ class VariableEditWindow(SearchWindow):
 
         super().__init__(
             stdscr,
-            [],
+            self.vars[var_name] if var_name in self.vars else [],
             label=var_name + " :",
             text=(
                 self.vars[var_name][-1]
@@ -394,7 +394,7 @@ def main(stdscr):
         # Reload scripts
         now = time.time()
         if now - state.last_ts > 2.0:
-            load_scripts(state.scripts, state.modified_time, autorun=False)
+            load_scripts(state.scripts, state.modified_time, autorun=True)
             state.scripts = sort_scripts(state.scripts)
             state.hotkeys = register_hotkeys(state.scripts)
             register_global_hotkeys(state.scripts)
