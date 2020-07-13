@@ -33,6 +33,8 @@ while True:
             process = subprocess.Popen(command)
 
         if process.poll() is not None:
+            if process.poll() != 0:
+                input("press enter to continue...")
             process = subprocess.Popen(command)
 
         time.sleep(WAIT)
