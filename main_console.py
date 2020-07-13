@@ -15,6 +15,11 @@ from _script import *
 GLOBAL_HOTKEY = gettempdir() + "/GlobalHotkey.ahk"
 
 
+def execute_script(script):
+    args = update_env_var_explorer()
+    script.execute(args=args)
+
+
 def setup_console_font():
     import ctypes
 
@@ -340,7 +345,7 @@ else
             hotkey = script.meta["globalHotkey"]
             if hotkey is not None:
                 print("Global Hotkey: %s: %s" % (hotkey, script.name))
-                keyboard_hooks[hotkey] = lambda script=script: script.execute()
+                keyboard_hooks[hotkey] = lambda script=script: execute_script(script)
         add_keyboard_hooks(keyboard_hooks)
 
 
@@ -411,8 +416,7 @@ def main(stdscr):
 
                 update_script_acesss_time(script)
 
-                args = update_env_var_explorer()
-                state.execute_script = lambda: script.execute(args=args)
+                state.execute_script = lambda: execute_script(script)
                 return
 
         elif ch == 27:
@@ -433,7 +437,7 @@ def main(stdscr):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
 
-            state.execute_script = lambda: state.hotkeys[ch].execute()
+            state.execute_script = lambda: execute_script(script)
             return
 
         elif ch != 0:
