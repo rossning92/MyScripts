@@ -449,7 +449,7 @@ def init():
     os.environ["PATH"] = os.pathsep.join(
         [os.path.join(SCRIPT_ROOT, "bin"), os.environ["PATH"]]
     )
-    os.environ["PYTHONPATH"] = os.path.abspath("./libs")
+    os.environ["PYTHONPATH"] = os.path.join(SCRIPT_ROOT, "libs")
 
     refresh_env()
 
