@@ -130,9 +130,9 @@ def get_script_variables(script):
     vars = {}
     for var_name in script.get_variable_names():
         if var_name in all_vars:
-            vars[var_name] = all_vars[var_name][-1]
+            vars[var_name] = all_vars[var_name]
         else:
-            vars[var_name] = ""
+            vars[var_name] = []
 
     return vars
 
@@ -712,9 +712,7 @@ class ScriptItem:
                         shell=shell,
                     )
                 else:
-                    subprocess.check_call(
-                        args, env={**os.environ, **env}, cwd=cwd
-                    )
+                    subprocess.check_call(args, env={**os.environ, **env}, cwd=cwd)
 
     def get_variable_names(self):
         variables = set()

@@ -212,11 +212,26 @@ class VariableEditWindow(SearchWindow):
         self.vars = vars
         self.var_name = var_name
 
-        super().__init__(stdscr, [], label=var_name + " :", text=self.vars[var_name])
+        super().__init__(
+            stdscr,
+            [],
+            label=var_name + " :",
+            text=(self.vars[var_name][-1] if len(self.vars[var_name]) > 0 else ""),
+        )
 
     def on_enter_pressed(self, text, item_index):
         self.vars[self.var_name] = text
         self.close()
+
+
+def get_variable_str_list(variables):
+    result = []
+    max_width = max([len(val_name) for val_name in variables]) + 1
+    for _, (var_name, var_val) in enumerate(variables.items()):
+        result.append(
+            var_name.ljust(max_width) + ": " + (var_val[-1] if len(var_val) > 0 else "")
+        )
+    return result
 
 
 class VariableSearchWindow(SearchWindow):
@@ -230,9 +245,7 @@ class VariableSearchWindow(SearchWindow):
 
     def update_items(self):
         self.items.clear()
-        max_width = max([len(val_name) for val_name in self.vars]) + 1
-        for _, (var_name, var_val) in enumerate(self.vars.items()):
-            self.items.append(var_name.ljust(max_width) + ": " + var_val)
+        self.items.extend(get_variable_str_list(self.vars))
 
     def on_getch(self, ch):
         if ch == ord("\t"):
@@ -299,14 +312,12 @@ def main(stdscr):
             if i == 0:
                 vars = get_script_variables(script)
                 if len(vars):
-                    max_width = max([len(val_name) for val_name in vars]) + 1
+                    str_list = get_variable_str_list(vars)
                     max_row = max(5, height - len(vars))
-                    for i, (var_name, var_val) in enumerate(vars.items()):
+                    for i, s in enumerate(str_list):
                         if max_row + i >= height:
                             break
-                        stdscr.addstr(
-                            max_row + i, 0, var_name.ljust(max_width) + ": " + var_val,
-                        )
+                        stdscr.addstr(max_row + i, 0, s)
 
             if row >= max_row:
                 break
