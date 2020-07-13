@@ -12,6 +12,9 @@ import run_python
 from _script import *
 
 
+GLOBAL_HOTKEY = gettempdir() + "/GlobalHotkey.ahk"
+
+
 def setup_console_font():
     import ctypes
 
@@ -269,6 +272,78 @@ class State:
         self.execute_script = None
 
 
+def add_keyboard_hooks(keyboard_hooks):
+    if sys.platform != "linux":
+        import keyboard
+
+        keyboard.unhook_all()
+        for hotkey, func in keyboard_hooks.items():
+            keyboard.add_hotkey(hotkey, func)
+
+
+def register_global_hotkeys(scripts):
+    if platform.system() == "Windows":
+        htk_definitions = ""
+        with open(GLOBAL_HOTKEY, "w") as f:
+            for item in scripts:
+                hotkey = item.meta["globalHotkey"]
+                if hotkey is not None:
+                    print("Global Hotkey: %s: %s" % (hotkey, item.name))
+                    hotkey = hotkey.replace("Ctrl+", "^")
+                    hotkey = hotkey.replace("Alt+", "!")
+                    hotkey = hotkey.replace("Shift+", "+")
+                    hotkey = hotkey.replace("Win+", "#")
+
+                    htk_definitions += (
+                        f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
+                    )
+
+            # TODO: use templates
+            f.write(
+                """#SingleInstance, Force
+#include libs/ahk/ExplorerHelper.ahk
+; SetTitleMatchMode, 2
+RunScript(name, path)
+{
+if WinExist(name)
+{
+    WinActivate % name
+}
+else if WinExist("Administrator:  " name)
+{
+    WinActivate % "Administrator:  " name
+}
+else
+{
+    WriteDefaultExplorerInfo()
+    Run cmd /c """
+                + sys.executable
+                + ' "'
+                + os.path.realpath("bin/run_script.py")
+                + """" --new_window=None --console_title "%name%" --restart_instance 0 "%path%" || pause
+}
+}
+
+#If not WinActive("ahk_exe vncviewer.exe")
+"""
+                + htk_definitions
+                + """
+#If
+"""
+            )
+
+        subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
+
+    else:
+        keyboard_hooks = {}
+        for script in scripts:
+            hotkey = script.meta["globalHotkey"]
+            if hotkey is not None:
+                print("Global Hotkey: %s: %s" % (hotkey, script.name))
+                keyboard_hooks[hotkey] = lambda script=script: script.execute()
+        add_keyboard_hooks(keyboard_hooks)
+
+
 def main(stdscr):
     # # Clear screen
     # stdscr.clear()
@@ -292,6 +367,8 @@ def main(stdscr):
             load_scripts(state.scripts, state.modified_time, autorun=True)
             state.scripts = sort_scripts(state.scripts)
             state.hotkeys = register_hotkeys(state.scripts)
+            register_global_hotkeys(state.scripts)
+
         state.last_ts = now
 
         height, width = stdscr.getmaxyx()
