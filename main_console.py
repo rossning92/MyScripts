@@ -12,7 +12,7 @@ import run_python
 from _script import *
 
 
-GLOBAL_HOTKEY = gettempdir() + "/GlobalHotkey.ahk"
+GLOBAL_HOTKEY = os.path.join(tempfile.gettempdir(), "GlobalHotkey.ahk")
 
 
 def execute_script(script):
