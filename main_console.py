@@ -306,8 +306,7 @@ class VariableSearchWindow(SearchWindow):
             super().__init__(stdscr, self.items, label="%s >" % (script.name))
 
     def update_items(self):
-        self.items.clear()
-        self.items.extend(get_variable_str_list(self.vars, self.var_names))
+        self.items[:] = get_variable_str_list(self.vars, self.var_names)
 
     def on_enter_pressed(self, text, item_index):
         var_name = self.var_names[item_index]
@@ -405,10 +404,10 @@ class MainWindow(SearchWindow):
         # Reload scripts
         now = time.time()
         if now - state.last_ts > 2.0:
-            if load_scripts(state.scripts, state.modified_time, autorun=True):
-                state.scripts = sort_scripts(state.scripts)
-                state.hotkeys = register_hotkeys(state.scripts)
-                register_global_hotkeys(state.scripts)
+            load_scripts(state.scripts, state.modified_time, autorun=True)
+            state.scripts[:] = sort_scripts(state.scripts)
+            state.hotkeys = register_hotkeys(state.scripts)
+            register_global_hotkeys(state.scripts)
 
         state.last_ts = now
 
