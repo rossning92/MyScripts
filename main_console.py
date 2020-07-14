@@ -115,12 +115,12 @@ def sort_scripts(scripts):
 def search_items(items, kw):
     if not kw:
         for i, s in enumerate(items):
-            yield i, s
+            yield i
     else:
         tokens = kw.split(" ")
         for i, item in enumerate(items):
             if all([(x in str(item).lower()) for x in tokens]):
-                yield i, item
+                yield i
 
 
 def on_hotkey():
@@ -154,7 +154,7 @@ class SearchWindow:
         self.items = items
         self.closed = False
         self.stdscr = stdscr
-        self.matched_items = []
+        self.matched_item_indices = []
         self.selected_index = 0
         self.width = -1
         self.height = -1
@@ -169,7 +169,7 @@ class SearchWindow:
                 last_input = self.input_.text
 
                 # Search scripts
-                self.matched_items = list(search_items(items, self.input_.text))
+                self.matched_item_indices = list(search_items(items, self.input_.text))
 
                 self.selected_index = 0
 
@@ -185,8 +185,8 @@ class SearchWindow:
                 pass
 
             elif ch == ord("\n"):
-                if len(self.matched_items) > 0:
-                    item_index, _ = self.matched_items[self.selected_index]
+                if len(self.matched_item_indices) > 0:
+                    item_index = self.matched_item_indices[self.selected_index]
                     self.on_enter_pressed(self.input_.text, item_index)
 
             elif ch == curses.KEY_UP:
@@ -194,7 +194,7 @@ class SearchWindow:
 
             elif ch == curses.KEY_DOWN:
                 self.selected_index = min(
-                    self.selected_index + 1, len(self.matched_items) - 1
+                    self.selected_index + 1, len(self.matched_item_indices) - 1
                 )
 
             elif ch == curses.ascii.ESC:
@@ -209,10 +209,12 @@ class SearchWindow:
     def on_update_screen(self):
         # Get matched scripts
         row = 2
-        for i, (idx, item) in enumerate(self.matched_items):
+        for i, item_index in enumerate(self.matched_item_indices):
             if self.selected_index == i:  # Hightlight on
                 self.stdscr.attron(curses.color_pair(2))
-            self.stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(item)))
+            self.stdscr.addstr(
+                row, 0, "%d. %s" % (item_index + 1, str(self.items[item_index]))
+            )
             if self.selected_index == i:  # Highlight off
                 self.stdscr.attroff(curses.color_pair(2))
 
@@ -223,9 +225,9 @@ class SearchWindow:
         self.input_.on_update_screen(self.stdscr, 0, cursor=True)
 
     def get_selected_item(self):
-        if len(self.matched_items) > 0:
-            _, item = self.matched_items[self.selected_index]
-            return item
+        if len(self.matched_item_indices) > 0:
+            item_index = self.matched_item_indices[self.selected_index]
+            return self.items[item_index]
         else:
             return None
 
