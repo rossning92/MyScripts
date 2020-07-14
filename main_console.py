@@ -154,54 +154,75 @@ class SearchWindow:
         self.items = items
         self.closed = False
         self.stdscr = stdscr
+        self.matched_items = []
+        self.selected_index = 0
+        self.width = -1
+        self.height = -1
 
+        last_input = None
         while True:
-            height, width = stdscr.getmaxyx()
+            self.on_main_loop()
 
-            # Search scripts
-            matched_items = list(search_items(items, self.input_.text))
+            self.height, self.width = stdscr.getmaxyx()
+
+            if last_input != self.input_.text:
+                last_input = self.input_.text
+
+                # Search scripts
+                self.matched_items = list(search_items(items, self.input_.text))
+
+                self.selected_index = 0
 
             # Sreen update
             stdscr.clear()
-
-            # Get matched scripts
-            row = 2
-            max_row = height
-            for i, (idx, item) in enumerate(matched_items):
-                stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(item)))
-                row += 1
-                if row >= max_row:
-                    break
-
-            self.input_.on_update_screen(stdscr, 0, cursor=True)
+            self.on_update_screen()
             stdscr.refresh()
 
             # Keyboard event
             ch = stdscr.getch()
 
-            if ch == ord("\n") or ch == ord("\t"):
-                if len(matched_items) > 0:
-                    item_index, item = matched_items[0]
+            if self.on_getch(ch):
+                pass
+
+            elif ch == ord("\n"):
+                if len(self.matched_items) > 0:
+                    item_index, item = self.matched_items[0]
                 else:
                     item = None
                     item_index = -1
-
-                if ch == ord("\n"):
                     self.on_enter_pressed(self.input_.text, item_index)
-                else:
-                    self.on_tab_pressed(self.input_.text, item_index)
 
-            elif ch == 27:
+            elif ch == curses.ascii.ESC:
                 return
 
-            elif self.on_getch(ch):
-                pass
-
-            else:
+            elif ch != 0:
                 self.input_.on_getch(ch)
 
             if self.closed:
                 return
+
+    def on_update_screen(self):
+        # Get matched scripts
+        row = 2
+        for i, (idx, item) in enumerate(self.matched_items):
+            if self.selected_index == i:  # Hightlight on
+                self.stdscr.attron(curses.color_pair(2))
+            self.stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(item)))
+            if self.selected_index == i:  # Highlight off
+                self.stdscr.attroff(curses.color_pair(2))
+
+            row += 1
+            if row >= self.height:
+                break
+
+        self.input_.on_update_screen(self.stdscr, 0, cursor=True)
+
+    def get_selected_item(self):
+        if len(self.matched_items) > 0:
+            _, item = self.matched_items[0]
+            return item
+        else:
+            return None
 
     def on_getch(self, ch):
         return False
@@ -210,6 +231,9 @@ class SearchWindow:
         pass
 
     def on_tab_pressed(self, text, item_index):
+        pass
+
+    def on_main_loop(self):
         pass
 
     def close(self):
@@ -279,12 +303,6 @@ class VariableSearchWindow(SearchWindow):
     def update_items(self):
         self.items.clear()
         self.items.extend(get_variable_str_list(self.vars, self.var_names))
-
-    def on_getch(self, ch):
-        if ch == ord("\t"):
-            self.close()
-        else:
-            super().on_getch(ch)
 
     def on_enter_pressed(self, text, item_index):
         var_name = self.var_names[item_index]
@@ -374,23 +392,11 @@ else
         add_keyboard_hooks(keyboard_hooks)
 
 
-def main(stdscr):
-    # # Clear screen
-    # stdscr.clear()
+class MainWindow(SearchWindow):
+    def __init__(self, stdscr):
+        super().__init__(stdscr, items=state.scripts)
 
-    curses.noecho()
-    curses.cbreak()
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    stdscr = curses.initscr()
-    stdscr.keypad(1)
-    stdscr.nodelay(False)
-
-    input_ = InputWidget(">")
-
-    while True:
+    def on_main_loop(self):
         # Reload scripts
         now = time.time()
         if now - state.last_ts > 2.0:
@@ -401,74 +407,72 @@ def main(stdscr):
 
         state.last_ts = now
 
-        height, width = stdscr.getmaxyx()
+    def on_enter_pressed(self, text, item_index):
+        if item_index >= 0:
+            script = self.items[item_index]
 
-        # Search scripts
-        matched_scripts = list(search_items(state.scripts, input_.text))
+            update_script_acesss_time(script)
 
-        # Sreen update
-        stdscr.clear()
+            state.execute_script = lambda: execute_script(script)
+            self.close()
 
-        # Get matched scripts
-        row = 2
-        max_row = height
-        for i, (idx, script) in enumerate(matched_scripts):
-            stdscr.addstr(row, 0, "%d. %s" % (idx + 1, str(script)))
-            row += 1
-
-            if i == 0:
-                vars = get_script_variables(script)
-                if len(vars):
-                    str_list = get_variable_str_list(
-                        vars, sorted(script.get_variable_names())
-                    )
-                    max_row = max(5, height - len(vars))
-                    for i, s in enumerate(str_list):
-                        if max_row + i >= height:
-                            break
-                        stdscr.addstr(max_row + i, 0, s)
-
-            if row >= max_row:
-                break
-
-        input_.on_update_screen(stdscr, 0, cursor=True)
-        stdscr.refresh()
-
-        # Keyboard event
-        ch = stdscr.getch()
-
-        if ch == ord("\n"):
-            if matched_scripts:
-                _, script = matched_scripts[0]
-
-                update_script_acesss_time(script)
-
-                state.execute_script = lambda: execute_script(script)
-                return
-
-        elif ch == 27:
-            pass
-
-        elif ch == curses.ascii.ctrl(ord("c")):
-            return
+    def on_getch(self, ch):
+        if ch == ch == curses.ascii.ESC:
+            return True
 
         elif ch == ord("\t"):
-            if matched_scripts:
-                _, script = matched_scripts[0]
-
-                VariableSearchWindow(stdscr, script)
+            script = self.get_selected_item()
+            if script is not None:
+                VariableSearchWindow(self.stdscr, script)
+                return True
 
         elif ch in state.hotkeys:
-            if matched_scripts:
-                _, script = matched_scripts[0]
+            script = self.get_selected_item()
+            if script is not None:
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
 
                 state.execute_script = lambda: execute_script(state.hotkeys[ch])
-                return
+                self.close()
+                return True
 
-        elif ch != 0:
-            input_.on_getch(ch)
+        return False
+
+    def on_update_screen(self):
+        height = self.height
+
+        script = self.get_selected_item()
+        if script is not None:
+            vars = get_script_variables(script)
+            if len(vars):
+                str_list = get_variable_str_list(
+                    vars, sorted(script.get_variable_names())
+                )
+                height = max(5, height - len(vars))
+                for i, s in enumerate(str_list):
+                    if height + i >= self.height:
+                        break
+                    self.stdscr.addstr(height + i, 0, s)
+
+        self.height = height
+        super().on_update_screen()
+
+
+def main(stdscr):
+    # # Clear screen
+    # stdscr.clear()
+
+    curses.noecho()
+    curses.cbreak()
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+    stdscr = curses.initscr()
+    stdscr.keypad(1)
+    stdscr.nodelay(False)
+
+    MainWindow(stdscr)
 
 
 def init():
