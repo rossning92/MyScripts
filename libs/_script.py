@@ -962,7 +962,31 @@ def get_scripts_recursive(directory):
                 yield os.path.join(root, f)
 
 
+def script_updated():
+    if not hasattr(script_updated, "last_mtime"):
+        script_updated.last_mtime = 0
+
+    mtime = 0
+    for _, d in SCRIPT_PATH_LIST:
+        for f in get_scripts_recursive(d):
+            mtime = max(mtime, os.path.getmtime(f))
+            script_config_file = get_script_config_file(f)
+
+            # Check if config file is updated
+            if script_config_file:
+                mtime = max(mtime, os.path.getmtime(script_config_file))
+
+    if mtime > script_updated.last_mtime:
+        script_updated.last_mtime = mtime
+        return True
+    else:
+        return False
+
+
 def load_scripts(script_list, modified_time, autorun=True):
+    if not script_updated():
+        return
+
     # TODO: only update modified scripts
     script_list.clear()
 
