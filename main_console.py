@@ -187,7 +187,9 @@ class SearchWindow:
             elif ch == ord("\n"):
                 if len(self.matched_item_indices) > 0:
                     item_index = self.matched_item_indices[self.selected_index]
-                    self.on_enter_pressed(self.input_.text, item_index)
+                else:
+                    item_index = -1
+                self.on_enter_pressed(self.input_.text, item_index)
 
             elif ch == curses.KEY_UP:
                 self.selected_index = max(self.selected_index - 1, 0)
