@@ -985,7 +985,7 @@ def script_updated():
 
 def load_scripts(script_list, modified_time, autorun=True):
     if not script_updated():
-        return
+        return False
 
     # TODO: only update modified scripts
     script_list.clear()
@@ -1025,3 +1025,6 @@ def load_scripts(script_list, modified_time, autorun=True):
                 script_list.append(script)
 
             modified_time[file] = mtime
+
+    return True
+

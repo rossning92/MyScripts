@@ -405,10 +405,10 @@ class MainWindow(SearchWindow):
         # Reload scripts
         now = time.time()
         if now - state.last_ts > 2.0:
-            load_scripts(state.scripts, state.modified_time, autorun=True)
-            state.scripts = sort_scripts(state.scripts)
-            state.hotkeys = register_hotkeys(state.scripts)
-            register_global_hotkeys(state.scripts)
+            if load_scripts(state.scripts, state.modified_time, autorun=True):
+                state.scripts = sort_scripts(state.scripts)
+                state.hotkeys = register_hotkeys(state.scripts)
+                register_global_hotkeys(state.scripts)
 
         state.last_ts = now
 
