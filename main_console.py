@@ -186,11 +186,16 @@ class SearchWindow:
 
             elif ch == ord("\n"):
                 if len(self.matched_items) > 0:
-                    item_index, item = self.matched_items[0]
-                else:
-                    item = None
-                    item_index = -1
+                    item_index, _ = self.matched_items[self.selected_index]
                     self.on_enter_pressed(self.input_.text, item_index)
+
+            elif ch == curses.KEY_UP:
+                self.selected_index = max(self.selected_index - 1, 0)
+
+            elif ch == curses.KEY_DOWN:
+                self.selected_index = min(
+                    self.selected_index + 1, len(self.matched_items) - 1
+                )
 
             elif ch == curses.ascii.ESC:
                 return
@@ -219,7 +224,7 @@ class SearchWindow:
 
     def get_selected_item(self):
         if len(self.matched_items) > 0:
-            _, item = self.matched_items[0]
+            _, item = self.matched_items[self.selected_index]
             return item
         else:
             return None
