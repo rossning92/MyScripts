@@ -160,9 +160,8 @@ class SearchWindow:
         self.height = -1
 
         last_input = None
+        self.on_main_loop()
         while True:
-            self.on_main_loop()
-
             self.height, self.width = stdscr.getmaxyx()
 
             if last_input != self.input_.text:
@@ -207,6 +206,8 @@ class SearchWindow:
 
             if self.closed:
                 return
+
+            self.on_main_loop()
 
     def on_update_screen(self):
         # Get matched scripts
