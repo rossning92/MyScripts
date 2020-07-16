@@ -249,7 +249,7 @@ UpdateActiveWindowPosition() {
     if (win_class = "Windows.UI.Core.CoreWindow") {
         return
     }
-
+    
     if (win_class = "Shell_TrayWnd") {
         return
     }
@@ -336,10 +336,24 @@ ToggleDesktopIcons() {
         WinShow, ahk_id %HWND%
 }
 
-ResizeWindow2(wintitle, x := "", y := "", w := "", h := "") {
-    WinGet hwnd, ID, %wintitle%
-    WinRestore, ahk_id %hwnd%
-    WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
+ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
+    If ((X . Y . W . H) = "") ;
+        Return False
+    WinGet, hWnd, ID, %WinTitle% ; taken from Coco's version
+    WinRestore, ahk_id %hWnd%
+    If !(hWnd)
+        Return False
+    DL := DT := DR := DB := 0
+    VarSetCapacity(RC, 16, 0)
+    DllCall("GetWindowRect", "Ptr", hWnd, "Ptr", &RC)
+    WL := NumGet(RC, 0, "Int"), WT := NumGet(RC, 4, "Int"), WR := NumGet(RC, 8, "Int"), WB := NumGet(RC, 12, "Int")
+    If (DllCall("Dwmapi.dll\DwmGetWindowAttribute", "Ptr", hWnd, "UInt", 9, "Ptr", &RC, "UInt", 16) = 0) { ; S_OK = 0
+        FL := NumGet(RC, 0, "Int"), FT := NumGet(RC, 4, "Int"), FR := NumGet(RC, 8, "Int"), FB := NumGet(RC, 12, "Int")
+        DL := WL - FL, DT := WT - FT, DR := WR - FR, DB := WB - FB
+    }
+    X := X <> "" ? X + DL : WL, Y := Y <> "" ? Y + DT : WT
+    W := W <> "" ? W - DL + DR : WR - WL - 1, H := H <> "" ? H - DT + DB - 1: WB - WT
+    Return DllCall("MoveWindow", "Ptr", hWnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
 }
 
 ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
