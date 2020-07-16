@@ -268,21 +268,28 @@ def setup_android_env(ndk_version=None):
 
     # NDK
     ndk_path = None
-    if ndk_version is not None:
-        match = glob.glob(os.path.join(env["ANDROID_HOME"], "ndk", "%s*" % ndk_version))
+    if (ndk_version is not None) and (android_home is not None):
+        match = glob.glob(os.path.join(android_home, "ndk", "%s*" % ndk_version))
         if match:
             ndk_path = match[0]
 
-    if ndk_path is None:
-        p = os.path.join(env["ANDROID_HOME"], "ndk-bundle")
+    if (android_home is not None) and (ndk_path is None):
+        p = os.path.join(android_home, "ndk-bundle")
         if exists(p):
             ndk_path = p
 
+    if (android_home is not None) and (ndk_path is None):
+        found = sorted(list(glob.glob(os.path.join(android_home, "ndk/*"))))
+        if found:
+            ndk_path = found[-1]
+
     if ndk_path:
         print2("ANDROID_NDK_HOME: %s" % ndk_path)
-        env["ANDROID_NDK_HOME"] = env["ANDROID_NDK"] = env["ANDROID_NDK_ROOT"] = env[
-            "NDKROOT"
-        ] = env["NDK_ROOT"] = ndk_path
+        env["ANDROID_NDK_HOME"] = ndk_path
+        env["ANDROID_NDK"] = ndk_path
+        env["ANDROID_NDK_ROOT"] = ndk_path
+        env["NDKROOT"] = ndk_path
+        env["NDK_ROOT"] = ndk_path
 
         print(open(ndk_path + "/source.properties").read())
 
@@ -446,4 +453,3 @@ def unlock_device(pin):
         # Type pin
         adb_shell("input text %s" % pin)
         adb_shell("input keyevent KEYCODE_ENTER")
-
