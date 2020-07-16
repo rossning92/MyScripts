@@ -180,7 +180,10 @@ class SearchWindow:
             # Keyboard event
             ch = stdscr.getch()
 
-            if self.on_getch(ch):
+            if ch == -1: # getch() timeout
+                pass
+
+            elif self.on_getch(ch):
                 pass
 
             elif ch == ord("\n"):
@@ -409,10 +412,10 @@ class MainWindow(SearchWindow):
         # Reload scripts
         now = time.time()
         if now - state.last_ts > 2.0:
-            load_scripts(state.scripts, state.modified_time, autorun=True)
+            if load_scripts(state.scripts, state.modified_time, autorun=True):
+                state.hotkeys = register_hotkeys(state.scripts)
+                register_global_hotkeys(state.scripts)
             state.scripts[:] = sort_scripts(state.scripts)
-            state.hotkeys = register_hotkeys(state.scripts)
-            register_global_hotkeys(state.scripts)
 
         state.last_ts = now
 
@@ -480,6 +483,7 @@ def main(stdscr):
     stdscr = curses.initscr()
     stdscr.keypad(1)
     stdscr.nodelay(False)
+    stdscr.timeout(1000)
 
     MainWindow(stdscr)
 

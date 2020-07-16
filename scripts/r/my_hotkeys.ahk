@@ -133,7 +133,7 @@ return
             break
         }
     }
-
+    
     SetTimer, AutoUpdateWindowPos, Off
 return
 
@@ -238,10 +238,24 @@ UpdateWindowPosition(pos) {
 UpdateActiveWindowPosition() {
     global WindowList
     
-    WinGet, curHwnd, ID, A
+    WinGet, cur_hwnd, ID, A
+    
+    ControlGet, HWND, hwnd,, SysListView321, ahk_class WorkerW
+    if (hwnd = cur_hwnd) {
+        return
+    }
+    
+    WinGetClass, win_class, ahk_id %hwnd%
+    if (win_class = "Windows.UI.Core.CoreWindow") {
+        return
+    }
+
+    if (win_class = "Shell_TrayWnd") {
+        return
+    }
     
     for pos, hwnd in WindowList {
-        if (hwnd = curHwnd and pos = "right") {
+        if (hwnd = cur_hwnd and pos = "right") {
             return
         }
     }
@@ -252,18 +266,18 @@ UpdateActiveWindowPosition() {
     x := 0
     y := 0
     h := A_ScreenHeight - th
-
-    WinRestore, ahk_id %curHwnd%
-    WinSet, Style, +0x40000, ahk_id %curHwnd%
-    WinSet, Style, +Resize, ahk_id %curHwnd%
     
-    WinMove, ahk_id %curHwnd%, , %x%, %y%, %w%, %h%
+    WinRestore, ahk_id %cur_hwnd%
+    WinSet, Style, +0x40000, ahk_id %cur_hwnd%
+    WinSet, Style, +Resize, ahk_id %cur_hwnd%
+    
+    WinMove, ahk_id %cur_hwnd%, , %x%, %y%, %w%, %h%
 }
 
 ActivateChrome(index=0)
 {
     CHROME_EXE = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-
+    
     if (index = 0)
     {
         condition := "NOT CommandLine LIKE '%--user-data-dir=%' AND NOT CommandLine LIKE '%--type=%'"
