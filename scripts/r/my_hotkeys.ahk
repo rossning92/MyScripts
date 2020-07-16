@@ -225,8 +225,7 @@ UpdateWindowPosition(pos) {
         ;     WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
         ; }
         
-        ; ResizeWindow("ahk_id " hwnd, x, y, w, h)
-        WinMove, ahk_id %hwnd%, , %x%, %y%, %w%, %h%
+        ResizeWindow2("ahk_id " hwnd, x, y, w, h)
         if (hwnd != curHwnd) {
             WinActivate, ahk_id %hwnd%
         }
