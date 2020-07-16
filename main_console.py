@@ -164,11 +164,11 @@ class SearchWindow:
         while True:
             self.height, self.width = stdscr.getmaxyx()
 
-            if last_input != self.input_.text:
-                last_input = self.input_.text
+            if last_input != self.get_text():
+                last_input = self.get_text()
 
                 # Search scripts
-                self.matched_item_indices = list(search_items(items, self.input_.text))
+                self.matched_item_indices = list(search_items(items, self.get_text()))
 
                 self.selected_index = 0
 
@@ -180,18 +180,14 @@ class SearchWindow:
             # Keyboard event
             ch = stdscr.getch()
 
-            if ch == -1: # getch() timeout
+            if ch == -1:  # getch() timeout
                 pass
 
             elif self.on_getch(ch):
                 pass
 
             elif ch == ord("\n"):
-                if len(self.matched_item_indices) > 0:
-                    item_index = self.matched_item_indices[self.selected_index]
-                else:
-                    item_index = -1
-                self.on_enter_pressed(self.input_.text, item_index)
+                self.on_enter_pressed(self.get_text(), self.get_selected_index())
 
             elif ch == curses.KEY_UP:
                 self.selected_index = max(self.selected_index - 1, 0)
@@ -211,6 +207,15 @@ class SearchWindow:
                 return
 
             self.on_main_loop()
+
+    def get_selected_index(self):
+        if len(self.matched_item_indices) > 0:
+            return self.matched_item_indices[self.selected_index]
+        else:
+            return -1
+
+    def get_text(self):
+        return self.input_.text
 
     def on_update_screen(self):
         # Get matched scripts
@@ -279,17 +284,30 @@ class VariableEditWindow(SearchWindow):
             ),
         )
 
-    def on_enter_pressed(self, text, item_index):
+    def save_variable_val(self, val):
         if self.var_name not in self.vars:
             self.vars[self.var_name] = []
         try:
-            self.vars[self.var_name].remove(text)
+            self.vars[self.var_name].remove(val)
         except ValueError:
             pass
-        self.vars[self.var_name].append(text)
+        self.vars[self.var_name].append(val)
 
         save_variables(self.vars)
+
+    def on_enter_pressed(self, text, item_index):
+        self.save_variable_val(text)
         self.close()
+
+    def on_getch(self, ch):
+        if ch == ord("\t"):
+            val = self.get_selected_item()
+            if val is not None:
+                self.save_variable_val(val)
+            self.close()
+            return True
+
+        return False
 
 
 def get_variable_str_list(vars, var_names):
@@ -317,7 +335,17 @@ class VariableSearchWindow(SearchWindow):
         self.items[:] = get_variable_str_list(self.vars, self.var_names)
 
     def on_enter_pressed(self, text, item_index):
-        var_name = self.var_names[item_index]
+        self.edit_variable()
+
+    def on_getch(self, ch):
+        if ch == ord("\t"):
+            self.edit_variable()
+            return True
+        return False
+
+    def edit_variable(self):
+        index = self.get_selected_index()
+        var_name = self.var_names[index]
         VariableEditWindow(self.stdscr, self.vars, var_name)
         self.update_items()
         self.input_.clear()
