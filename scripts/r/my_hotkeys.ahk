@@ -352,7 +352,7 @@ ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
         DL := WL - FL, DT := WT - FT, DR := WR - FR, DB := WB - FB
     }
     X := X <> "" ? X + DL : WL, Y := Y <> "" ? Y + DT : WT
-    W := W <> "" ? W - DL + DR : WR - WL - 1, H := H <> "" ? H - DT + DB - 1: WB - WT
+    W := W <> "" ? W - DL + DR : WR - WL, H := H <> "" ? H - DT + DB: WB - WT
     Return DllCall("MoveWindow", "Ptr", hWnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
 }
 
