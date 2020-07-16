@@ -417,7 +417,7 @@ class MainWindow(SearchWindow):
                 register_global_hotkeys(state.scripts)
             state.scripts[:] = sort_scripts(state.scripts)
 
-        state.last_ts = now
+            state.last_ts = now
 
     def on_enter_pressed(self, text, item_index):
         if item_index >= 0:
