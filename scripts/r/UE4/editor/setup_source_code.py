@@ -19,7 +19,7 @@ if not exists("UE4.sln"):
         # Remove UnrealVersionSelector
         with open("Setup.bat") as f:
             s = f.read().replace(
-                ".\Engine\Binaries\Win64\UnrealVersionSelector-Win64-Shipping.exe /register",
+                r".\Engine\Binaries\Win64\UnrealVersionSelector-Win64-Shipping.exe /register",
                 "",
             )
         with open("Setup2.bat", "w") as f:
