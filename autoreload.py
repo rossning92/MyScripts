@@ -1,9 +1,18 @@
 #!/usr/bin/env python
-import os
-import subprocess
 import glob
-import time
+import os
+import signal
+import subprocess
 import sys
+import time
+
+
+def handler(signum, frame):
+    pass
+
+
+# Set the signal handler
+signal.signal(signal.SIGINT, handler)
 
 
 def get_mtime():
@@ -31,9 +40,10 @@ while True:
             last_mtime = max_mtime
             process.kill()
             process = subprocess.Popen(command)
-
-        if process.poll() is not None:
-            if process.poll() != 0:
+        
+        ret = process.poll()
+        if ret is not None:
+            if ret != 0:
                 input("press enter to continue...")
             process = subprocess.Popen(command)
 
