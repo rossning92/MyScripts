@@ -16,9 +16,9 @@ from _script import *
 GLOBAL_HOTKEY = os.path.join(tempfile.gettempdir(), "GlobalHotkey.ahk")
 
 
-def execute_script(script):
+def execute_script(script, close_on_exit=None):
     args = update_env_var_explorer()
-    script.execute(args=args)
+    script.execute(args=args, close_on_exit=close_on_exit)
 
 
 def setup_console_font():
@@ -187,7 +187,7 @@ class SearchWindow:
                 pass
 
             elif ch == ord("\n"):
-                self.on_enter_pressed(self.get_text(), self.get_selected_index())
+                self.on_enter_pressed()
 
             elif ch == curses.KEY_UP:
                 self.selected_index = max(self.selected_index - 1, 0)
@@ -245,10 +245,10 @@ class SearchWindow:
     def on_getch(self, ch):
         return False
 
-    def on_enter_pressed(self, text, item_index):
+    def on_enter_pressed(self):
         pass
 
-    def on_tab_pressed(self, text, item_index):
+    def on_tab_pressed(self):
         pass
 
     def on_main_loop(self):
@@ -295,8 +295,8 @@ class VariableEditWindow(SearchWindow):
 
         save_variables(self.vars)
 
-    def on_enter_pressed(self, text, item_index):
-        self.save_variable_val(text)
+    def on_enter_pressed(self):
+        self.save_variable_val(self.get_text())
         self.close()
 
     def on_getch(self, ch):
@@ -334,7 +334,7 @@ class VariableSearchWindow(SearchWindow):
     def update_items(self):
         self.items[:] = get_variable_str_list(self.vars, self.var_names)
 
-    def on_enter_pressed(self, text, item_index):
+    def on_enter_pressed(self):
         self.edit_variable()
 
     def on_getch(self, ch):
@@ -447,17 +447,28 @@ class MainWindow(SearchWindow):
 
             state.last_ts = now
 
-    def on_enter_pressed(self, text, item_index):
-        if item_index >= 0:
-            script = self.items[item_index]
+    def run_selected_script(self, close_on_exit=None):
+        index = self.get_selected_index()
+        if index >= 0:
+            script = self.items[index]
 
             update_script_acesss_time(script)
 
-            state.execute_script = lambda: execute_script(script)
+            state.execute_script = lambda: execute_script(
+                script, close_on_exit=close_on_exit
+            )
             self.close()
 
     def on_getch(self, ch):
         if ch == ch == curses.ascii.ESC:
+            return True
+
+        elif ch == ord("\n"):
+            self.run_selected_script()
+            return True
+
+        elif ch == ord("!"):
+            self.run_selected_script()
             return True
 
         elif ch == ord("\t"):

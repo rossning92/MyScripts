@@ -382,7 +382,9 @@ class ScriptItem:
             (prefix + k if k.startswith("_") else k): v for k, v in variables.items()
         }
 
-    def execute(self, args=None, new_window=None, restart_instance=None):
+    def execute(
+        self, args=None, new_window=None, restart_instance=None, close_on_exit=None
+    ):
         script_path = (
             self.real_script_path if self.real_script_path else self.script_path
         )
@@ -632,7 +634,11 @@ class ScriptItem:
                                 cwd=cwd,
                                 title=self.get_console_title(),
                                 wsl=self.meta["wsl"],
-                                close_on_exit=self.meta["closeOnExit"],
+                                close_on_exit=(
+                                    close_on_exit
+                                    if close_on_exit is not None
+                                    else self.meta["closeOnExit"]
+                                ),
                             )
                         elif self.meta["terminal"] == "conemu":
                             args = conemu_wrap_args(

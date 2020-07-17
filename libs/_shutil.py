@@ -760,6 +760,10 @@ def get_selected_folder():
     return folders[0]
 
 
+def get_current_folder():
+    return os.environ["CURRENT_FOLDER"]
+
+
 def cd_current_dir():
     if "CURRENT_FOLDER" in os.environ:
         os.chdir(os.environ["CURRENT_FOLDER"])
