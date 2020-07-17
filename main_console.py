@@ -1,7 +1,5 @@
 import sys
 import os
-import curses
-import curses.ascii
 import re
 import time
 
@@ -11,6 +9,7 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
 import run_python
 from _script import *
+from _term import *
 
 
 GLOBAL_HOTKEY = os.path.join(tempfile.gettempdir(), "GlobalHotkey.ahk")
@@ -55,48 +54,6 @@ def setup_console_font():
     )
 
 
-class InputWidget:
-    def __init__(self, label="", text=""):
-        self.text = text
-        self.label = label
-        self.caret_pos = len(text)
-
-    def on_update_screen(self, stdscr, row, cursor=False):
-        stdscr.addstr(row, 0, self.label)
-
-        text_start = len(self.label) + 1 if self.label else 0
-        stdscr.attron(curses.color_pair(1))
-        stdscr.addstr(row, text_start, self.text)
-        stdscr.attroff(curses.color_pair(1))
-
-        if cursor:
-            stdscr.move(row, self.caret_pos + text_start)
-
-    def clear(self):
-        self.text = ""
-        self.caret_pos = 0
-
-    def on_getch(self, ch):
-        if ch == curses.ERR:
-            pass
-        elif ch == curses.KEY_LEFT:
-            self.caret_pos = max(self.caret_pos - 1, 0)
-        elif ch == curses.KEY_RIGHT:
-            self.caret_pos = min(self.caret_pos + 1, len(self.text))
-        elif ch == ord("\b"):
-            self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
-            self.caret_pos = max(self.caret_pos - 1, 0)
-        elif ch == curses.ascii.ctrl(ord("a")):
-            self.clear()
-        elif ch == ord("\n"):
-            pass
-        elif re.match("[\x00-\x7F]", chr(ch)):
-            self.text = (
-                self.text[: self.caret_pos] + chr(ch) + self.text[self.caret_pos :]
-            )
-            self.caret_pos += 1
-
-
 def sort_scripts(scripts):
     script_access_time, _ = get_all_script_access_time()
 
@@ -110,17 +67,6 @@ def sort_scripts(scripts):
             return os.path.getmtime(script.script_path)
 
     return sorted(scripts, key=key, reverse=True)
-
-
-def search_items(items, kw):
-    if not kw:
-        for i, s in enumerate(items):
-            yield i
-    else:
-        tokens = kw.split(" ")
-        for i, item in enumerate(items):
-            if all([(x in str(item).lower()) for x in tokens]):
-                yield i
 
 
 def on_hotkey():
@@ -146,116 +92,6 @@ def register_hotkeys(scripts):
                 hotkeys[ch] = script
 
     return hotkeys
-
-
-class SearchWindow:
-    def __init__(self, stdscr, items, label=">", text=""):
-        self.input_ = InputWidget(label=label, text=text)
-        self.items = items
-        self.closed = False
-        self.stdscr = stdscr
-        self.matched_item_indices = []
-        self.selected_index = 0
-        self.width = -1
-        self.height = -1
-
-        last_input = None
-        self.on_main_loop()
-        while True:
-            self.height, self.width = stdscr.getmaxyx()
-
-            if last_input != self.get_text():
-                last_input = self.get_text()
-
-                # Search scripts
-                self.matched_item_indices = list(search_items(items, self.get_text()))
-
-                self.selected_index = 0
-
-            # Sreen update
-            stdscr.clear()
-            self.on_update_screen()
-            stdscr.refresh()
-
-            # Keyboard event
-            ch = stdscr.getch()
-
-            if ch == -1:  # getch() timeout
-                pass
-
-            elif self.on_getch(ch):
-                pass
-
-            elif ch == ord("\n"):
-                self.on_enter_pressed()
-
-            elif ch == curses.KEY_UP:
-                self.selected_index = max(self.selected_index - 1, 0)
-
-            elif ch == curses.KEY_DOWN:
-                self.selected_index = min(
-                    self.selected_index + 1, len(self.matched_item_indices) - 1
-                )
-
-            elif ch == curses.ascii.ESC:
-                return
-
-            elif ch != 0:
-                self.input_.on_getch(ch)
-
-            if self.closed:
-                return
-
-            self.on_main_loop()
-
-    def get_selected_index(self):
-        if len(self.matched_item_indices) > 0:
-            return self.matched_item_indices[self.selected_index]
-        else:
-            return -1
-
-    def get_text(self):
-        return self.input_.text
-
-    def on_update_screen(self):
-        # Get matched scripts
-        row = 2
-        for i, item_index in enumerate(self.matched_item_indices):
-            if self.selected_index == i:  # Hightlight on
-                self.stdscr.attron(curses.color_pair(2))
-            self.stdscr.addstr(
-                row, 0, "%d. %s" % (item_index + 1, str(self.items[item_index]))
-            )
-            if self.selected_index == i:  # Highlight off
-                self.stdscr.attroff(curses.color_pair(2))
-
-            row += 1
-            if row >= self.height:
-                break
-
-        self.input_.on_update_screen(self.stdscr, 0, cursor=True)
-
-    def get_selected_item(self):
-        if len(self.matched_item_indices) > 0:
-            item_index = self.matched_item_indices[self.selected_index]
-            return self.items[item_index]
-        else:
-            return None
-
-    def on_getch(self, ch):
-        return False
-
-    def on_enter_pressed(self):
-        pass
-
-    def on_tab_pressed(self):
-        pass
-
-    def on_main_loop(self):
-        pass
-
-    def close(self):
-        self.closed = True
 
 
 def save_variables(variables):
@@ -510,20 +346,7 @@ class MainWindow(SearchWindow):
 
 
 def main(stdscr):
-    # # Clear screen
-    # stdscr.clear()
-
-    curses.noecho()
-    curses.cbreak()
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
-    stdscr = curses.initscr()
-    stdscr.keypad(1)
-    stdscr.nodelay(False)
-    stdscr.timeout(1000)
-
+    init_curses()
     MainWindow(stdscr)
 
 
