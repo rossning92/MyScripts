@@ -68,6 +68,9 @@ reg add HKCU\Console /v ColorTable13 /t REG_DWORD /d 0x009e00b4 /f
 reg add HKCU\Console /v ColorTable14 /t REG_DWORD /d 0x00a5f1f9 /f
 reg add HKCU\Console /v ColorTable15 /t REG_DWORD /d 0x00f2f2f2 /f
 
+:: Notification duration
+reg add "HKCU\Control Panel\Accessibility" /v MessageDuration /t REG_DWORD /d 60 /f
+
 :: Change wallpaper
 reg add "HKCU\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "" /f
 reg add "HKCU\Control Panel\Colors" /v Background /t REG_SZ /d "0 0 0" /f

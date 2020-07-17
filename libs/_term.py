@@ -466,28 +466,6 @@ def prompt_list(options, message=None):
         raise Exception("Please only select 1 item.")
 
 
-def prompt_autocomplete(options, message=""):
-    from prompt_toolkit import prompt
-    from prompt_toolkit.completion import (
-        WordCompleter,
-        FuzzyCompleter,
-        Completer,
-        Completion,
-    )
-
-    class MyCustomCompleter(Completer):
-        def get_completions(self, document, complete_event):
-            for option in options:
-                yield Completion(option)
-
-    text = prompt(
-        "%s> " % message,
-        completer=FuzzyCompleter(MyCustomCompleter()),
-        complete_while_typing=True,
-    )
-    return text
-
-
 def search_items(items, kw):
     if not kw:
         for i, s in enumerate(items):
