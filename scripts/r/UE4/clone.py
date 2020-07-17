@@ -1,7 +1,7 @@
 from _shutil import *
 from _script import *
 
-VERSION = '{{UE4_VERSION}}' if '{{UE4_VERSION}}' else '4.25'
+VERSION = '{{UE4_VERSION}}' if '{{UE4_VERSION}}' else '4.25.0-release'
 PROJ_FOLDER = r'{{UE_SOURCE}}'
 if not PROJ_FOLDER:
     PROJ_FOLDER = os.path.realpath(os.path.expanduser('~/Projects/UE' + VERSION))
