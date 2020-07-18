@@ -121,7 +121,7 @@ function cut_video() {
   }
 }
 
-mp.add_forced_key_binding("i", "set_in_time", set_in_time);
-mp.add_forced_key_binding("o", "set_out_time", set_out_time);
-mp.add_forced_key_binding("m", "add_marker", add_marker);
-mp.add_forced_key_binding("x", "cut_video", cut_video);
+// mp.add_forced_key_binding("i", "set_in_time", set_in_time);
+// mp.add_forced_key_binding("o", "set_out_time", set_out_time);
+// mp.add_forced_key_binding("m", "add_marker", add_marker);
+// mp.add_forced_key_binding("x", "cut_video", cut_video);

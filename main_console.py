@@ -55,18 +55,23 @@ def setup_console_font():
 
 
 def sort_scripts(scripts):
-    script_access_time, _ = get_all_script_access_time()
+    while True:
+        try:
+            script_access_time, _ = get_all_script_access_time()
 
-    def key(script):
-        if script.script_path in script_access_time:
-            return max(
-                script_access_time[script.script_path],
-                os.path.getmtime(script.script_path),
-            )
-        else:
-            return os.path.getmtime(script.script_path)
+            def key(script):
+                if script.script_path in script_access_time:
+                    return max(
+                        script_access_time[script.script_path],
+                        os.path.getmtime(script.script_path),
+                    )
+                else:
+                    return os.path.getmtime(script.script_path)
 
-    return sorted(scripts, key=key, reverse=True)
+            return sorted(scripts, key=key, reverse=True)
+
+        except FileNotFoundError:
+            pass
 
 
 def on_hotkey():
