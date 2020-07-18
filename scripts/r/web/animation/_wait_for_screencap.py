@@ -1,6 +1,6 @@
 from _shutil import *
 from _term import *
-
+from video_editor import edit_video
 
 if __name__ == "__main__":
     os.chdir(os.environ["VIDEO_PROJECT_DIR"])
@@ -24,6 +24,7 @@ if __name__ == "__main__":
         clip = "{" + "{ video('screencap/%s.mp4', na=True) }}" % name
         set_clip(clip)
         print("Clip is set to: %s" + clip)
+        edit_video(os.path.abspath(dest_file))
 
     wait_key()
 
