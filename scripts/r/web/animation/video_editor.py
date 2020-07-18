@@ -37,6 +37,7 @@ def edit_video(file):
     @mpv.on_key_press("x")
     def cut_video_file():
         if in_time is not None and out_time is not None:
+            mpv.command("show-text", "Cutting video...", "3000")
             out_file = get_temp_file()
             args = [
                 "ffmpeg",
@@ -63,7 +64,7 @@ def edit_video(file):
             subprocess.check_call(args)
             history_files.append(out_file)
             mpv.play(out_file)
-            mpv.command("show-text", "File cut.", "3000")
+            mpv.command("show-text", "Done.", "3000")
 
     @mpv.on_key_press("ctrl+s")
     def save():
@@ -84,15 +85,14 @@ def edit_video(file):
         mpv.play(history_files[-1])
         mpv.command("show-text", "Undo", "3000")
 
-    @mpv.on_key_press("1")
-    def code_typing_effect():
+    def create_filtered_video(vf):
         out_file = get_temp_file()
         args = [
             "ffmpeg",
             "-i",
             history_files[-1],
             "-filter:v",
-            "crop=1920:1080:320:180,scale=1920:-2,reverse,mpdecimate,setpts=N/FRAME_RATE/TB,setpts=2.0*PTS*(1+random(0)*0.02)",
+            vf,
             "-pix_fmt",
             "yuv420p",
             "-c:v",
@@ -110,7 +110,24 @@ def edit_video(file):
         subprocess.check_call(args)
         history_files.append(out_file)
         mpv.play(out_file)
-        mpv.command("show-text", "Code typing effect.", "3000")
+        mpv.command("show-text", "Done.", "3000")
+
+    @mpv.on_key_press("c")
+    def crop_video():
+        mpv.command("show-text", "Cropping video...", "3000")
+        create_filtered_video("crop=1920:1080:320:180")
+
+    @mpv.on_key_press("1")
+    def code_typing_effect():
+        mpv.command("show-text", "Creating typing effect...", "3000")
+        create_filtered_video(
+            "crop=1920:1080:320:180"
+            ",scale=1920:-2"
+            ",reverse"
+            ",mpdecimate"
+            ",setpts=N/FRAME_RATE/TB"
+            ",setpts=2.0*PTS*(1+random(0)*0.02)"
+        )
 
 
 if __name__ == "__main__":
