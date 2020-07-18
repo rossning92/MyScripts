@@ -55,7 +55,7 @@ ToggleRecording(enable_carnac:=True)
         Send !{f9}
         Sleep, 1000 ; Make sure that the window is not pop up when recording stops.
         
-        RunScript(SCRIPT_DIR . "\_wait_for_screencap.py")
+        RunScript(SCRIPT_DIR . "\_save_screencap.py")
     }
     
     is_recording := not is_recording
