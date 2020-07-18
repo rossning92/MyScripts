@@ -304,7 +304,7 @@ class MainWindow(SearchWindow):
             return True
 
         elif ch == ord("!"):
-            self.run_selected_script()
+            self.run_selected_script(close_on_exit=False)
             return True
 
         elif ch == ord("\t"):

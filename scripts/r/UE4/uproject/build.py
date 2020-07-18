@@ -1,14 +1,39 @@
 from _shutil import *
+from _android import *
 
-uproject_dir = r'{{UE4_PROJECT_DIR}}'
-uproject_file = glob.glob('*.uproject.dir')[0]
+setup_android_env()
 
+uproject_dir = r"{{UE4_PROJECT_DIR}}"
 cd(uproject_dir)
 
-call_echo([
-    "{{UE_SOURCE}}\Engine\Build\BatchFiles\RunUAT.bat",
-    "BuildCookRun","-project=%s" % uproject_file,"-clientconfig=Development",
-])
+uproject_file = glob.glob(os.path.join(uproject_dir, "*.uproject"))[0]
+print(uproject_file)
+
+call_echo(
+    [
+        r"{{UE_SOURCE}}\Engine\Build\BatchFiles\RunUAT.bat",
+        "BuildCookRun",
+        "-nocompileeditor",
+        "-nop4",
+        "-project=%s" % uproject_file,
+        "-cook",
+        "-stage",
+        "-archive",
+        "-archivedirectory=C:/tmp",
+        "-package",
+        # "-ue4exe=C:\Users\rossning92\Unreal Projects\UE4.25-OVR\Engine\Binaries\Win64\UE4Editor-Cmd.exe",
+        "-pak",
+        "-prereqs",  # Prerequisites installer
+        "-nodebuginfo",
+        "-targetplatform=Android",
+        "-cookflavor=ASTC",
+        "-build",
+        "-CrashReporter",
+        "-clientconfig=Shipping",
+        "-utf8output",
+        "-compile",
+    ]
+)
 
 
 # taskkill /f /im {{UE4_PROJECT_NAME}}* 2>nul
