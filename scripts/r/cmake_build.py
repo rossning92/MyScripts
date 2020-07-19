@@ -29,10 +29,10 @@ set(PROJECT_NAME """
 
 project(${PROJECT_NAME})
 include_directories(${PROJECT_SOURCE_DIR})
-set(SRC_FILES 
-    ${PROJECT_SOURCE_DIR}/*.h
-    ${PROJECT_SOURCE_DIR}/*.cpp
-    ${PROJECT_SOURCE_DIR}/*.c
+file(GLOB SRC_FILES
+    "${PROJECT_SOURCE_DIR}/*.h"
+    "${PROJECT_SOURCE_DIR}/*.cpp"
+    "${PROJECT_SOURCE_DIR}/*.c"
 )
 """
     + ("add_library" if BUILD_LIB else "add_executable")
@@ -65,3 +65,8 @@ if "{{CMAKE_REMOVE_CACHE}}" == "Y":
 # Build
 subprocess.call(["cmake", "-G" "Visual Studio 15 2017 Win64", ".."])
 subprocess.call(["cmake", "--build", ".", "--config", "Release"])
+
+
+os.chdir("Release")
+print("Run executable: %s" % project_name)
+subprocess.call(project_name, shell=True)

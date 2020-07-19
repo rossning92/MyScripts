@@ -75,7 +75,7 @@ def edit_video(file):
                 os.remove(file)
 
         del history_files[1:]
-        mpv.command("show-text", "File saved.", "3000")
+        mpv.command("show-text", "File saved: %s" % history_files[0], "3000")
 
     @mpv.on_key_press("ctrl+z")
     def undo():
@@ -128,6 +128,11 @@ def edit_video(file):
             ",setpts=N/FRAME_RATE/TB"
             ",setpts=2.0*PTS*(1+random(0)*0.02)"
         )
+
+    @mpv.on_key_press("2")
+    def set_speed_2x():
+        mpv.command("show-text", "Setting speed to 2x...", "3000")
+        create_filtered_video("setpts=PTS/2")
 
 
 if __name__ == "__main__":

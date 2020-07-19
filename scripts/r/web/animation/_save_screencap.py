@@ -26,5 +26,3 @@ if __name__ == "__main__":
         print("Clip is set to: %s" + clip)
         edit_video(os.path.abspath(dest_file))
 
-    wait_key()
-

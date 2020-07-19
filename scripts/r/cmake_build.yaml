@@ -5,8 +5,10 @@ conda: null
 globalHotkey: null
 hotkey: null
 newWindow: true
+packages: cmake
 restartInstance: true
 runAsAdmin: false
 template: true
+terminal: null
 venv: null
 wsl: false
