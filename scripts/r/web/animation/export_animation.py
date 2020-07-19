@@ -691,7 +691,7 @@ def _add_clip(
     file=None,
     clip_operations=None,
     speed=None,
-    pos='center',
+    pos="center",
     track=None,
     fadein=False,
     fadeout=False,
@@ -700,6 +700,7 @@ def _add_clip(
     duration=None,
     text_overlay=None,
     transparent=True,
+    move_playhead=True,
     **kwargs,
 ):
     if (track is None and _cur_vid_track_name == "vid") or (track == "vid"):
@@ -710,7 +711,9 @@ def _add_clip(
     # _update_prev_clip(track)
 
     t = _get_pos(t)
-    _pos_dict["vs"] = t
+
+    if move_playhead:
+        _pos_dict["vs"] = t
 
     clip_info = _VideoClipInfo()
     clip_info.file = file
@@ -736,10 +739,10 @@ def _add_clip(
         **kwargs,
     )
 
-    # Advance the pos
-    end = t + clip_info.mpy_clip.duration
-    _pos_list.append(end)
-    _pos_dict["ve"] = end
+    if move_playhead:  # Advance the pos
+        end = t + clip_info.mpy_clip.duration
+        _pos_list.append(end)
+        _pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
         print("WARNING: clip `%s` has been removed" % track[-1].file)
