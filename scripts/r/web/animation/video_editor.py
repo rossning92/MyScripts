@@ -117,7 +117,7 @@ def edit_video(file):
         mpv.command("show-text", "Cropping video...", "3000")
         create_filtered_video("crop=1920:1080:320:180")
 
-    @mpv.on_key_press("1")
+    @mpv.on_key_press("t")
     def code_typing_effect():
         mpv.command("show-text", "Creating typing effect...", "3000")
         create_filtered_video(
@@ -128,6 +128,11 @@ def edit_video(file):
             ",setpts=N/FRAME_RATE/TB"
             ",setpts=2.0*PTS*(1+random(0)*0.02)"
         )
+
+    @mpv.on_key_press("r")
+    def crop_chrome():
+        mpv.command("show-text", "Cropping chrome...", "3000")
+        create_filtered_video("crop=2537:1330:0:50" ",scale=1920:-2")
 
     @mpv.on_key_press("2")
     def set_speed_2x():

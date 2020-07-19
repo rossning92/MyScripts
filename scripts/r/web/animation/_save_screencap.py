@@ -15,7 +15,7 @@ if __name__ == "__main__":
         os.remove(new_file)
 
     else:
-        name = slugify(name)
+        name = "%d-%s" % (int(time.time()), slugify(name))
         os.makedirs("screencap", exist_ok=True)
         dest_file = "screencap/" + name + ".mp4"
         os.rename(new_file, dest_file)
