@@ -168,7 +168,7 @@ function registerAutoComplete(context) {
 
         // Convert to relative path
         files = files.map((x) =>
-          x.replace(projectDir + path.sep, "").replace("\\", "/")
+          x.replace(projectDir + path.sep, "").replace(/\\/g, "/")
         );
 
         const completionItems = [];
