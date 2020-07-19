@@ -51,7 +51,11 @@
       {
         "command": "yo.openFileUnderCursor",
         "title": "Animation ToolKit: Open File Under Cursor"
-      }
+      },
+      {
+				"command": "yo.insertAllClipsInFolder",
+				"title": "Animation ToolKit: Insert All Clips In Folder"
+			}
     ],
     "keybindings": [
       {

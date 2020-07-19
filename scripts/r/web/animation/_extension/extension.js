@@ -20,7 +20,11 @@ function openFileUnderCursor() {
     if (found !== null) {
       const filePath = path.join(getProjectDir(), found[1]);
 
-      const args = ["-m", "r.open_with.open_with_", filePath];
+      const args = [
+        "-c",
+        `from r.open_with.open_with_ import open_with; open_with(r'${filePath}', 0)`,
+        filePath,
+      ];
       cp.spawnSync("python", args);
     }
   }
@@ -125,15 +129,21 @@ function getProjectDir() {
   return path.dirname(editor.document.fileName);
 }
 
-function getFiles(dir, filter, files = []) {
+function getRelativePath(prefix, p) {
+  return p.replace(prefix + path.sep, "").replace(/\\/g, "/");
+}
+
+function getFiles(dir, filter, files = [], dirs = []) {
   fs.readdirSync(dir).forEach((file) => {
     const filePath = path.join(dir, file);
     const fileStat = fs.lstatSync(filePath);
 
     if (fileStat.isDirectory()) {
+      dirs.push(filePath);
+
       // If not in excluded folders
       if (!/(tmp|out)$/g.test(file)) {
-        getFiles(filePath, filter, files);
+        getFiles(filePath, filter, files, dirs);
       }
     } else if (filter(filePath)) {
       files.push(filePath);
@@ -167,9 +177,7 @@ function registerAutoComplete(context) {
         });
 
         // Convert to relative path
-        files = files.map((x) =>
-          x.replace(projectDir + path.sep, "").replace(/\\/g, "/")
-        );
+        files = files.map((x) => getRelativePath(projectDir, x));
 
         const completionItems = [];
         files.forEach((file, i) => {
@@ -266,6 +274,34 @@ function export_animation({ audioOnly = false } = {}) {
   }
 }
 
+async function insertAllClipsInFolder() {
+  const editor = vscode.window.activeTextEditor;
+  if (editor == null) return undefined;
+
+  const projectDir = getProjectDir();
+  if (projectDir == null) return undefined;
+
+  let dirs = [];
+  getFiles(projectDir, (x) => x, [], dirs);
+  // dirs = dirs.map((x) => getRelativePath(projectDir, x));
+
+  const selectedDir = await vscode.window.showQuickPick(dirs, {
+    placeHolder: "from which folder you'd like to insert all clips",
+  });
+
+  const files = [];
+  getFiles(selectedDir, (x) => /\.mp4$/g.test(x), files);
+
+  const linesToInsert = files.map(
+    (x) => `{{ clip('${getRelativePath(projectDir, x)}') }}`
+  );
+
+  const selection = editor.selection;
+  editor.edit((editBuilder) => {
+    editBuilder.replace(selection, linesToInsert.join("\n"));
+  });
+}
+
 function activate(context) {
   const config = vscode.workspace.getConfiguration();
   config.update("[markdown]", { "editor.quickSuggestions": true });
@@ -297,6 +333,11 @@ function activate(context) {
   vscode.commands.registerCommand("yo.openFileUnderCursor", function () {
     openFileUnderCursor();
   });
+
+  vscode.commands.registerCommand(
+    "yo.insertAllClipsInFolder",
+    insertAllClipsInFolder
+  );
 
   registerAutoComplete(context);
 
