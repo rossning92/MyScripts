@@ -494,7 +494,7 @@ def video(f, **kwargs):
 
 def clip(f, **kwargs):
     print("clip: %s" % f)
-    _add_clip(f, pos="center", **kwargs)
+    _add_clip(f, **kwargs)
 
 
 def overlay(
@@ -691,7 +691,7 @@ def _add_clip(
     file=None,
     clip_operations=None,
     speed=None,
-    pos=None,
+    pos='center',
     track=None,
     fadein=False,
     fadeout=False,
