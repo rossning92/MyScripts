@@ -847,6 +847,7 @@ def hl(pos, track="hl", duration=2, file="../image/cursor.png", **kwargs):
         fadein=True,
         fadeout=True,
         duration=duration,
+        move_playhead=False,
         **kwargs,
     )
 

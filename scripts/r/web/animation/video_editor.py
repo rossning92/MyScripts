@@ -77,6 +77,11 @@ def edit_video(file):
         del history_files[1:]
         mpv.command("show-text", "File saved: %s" % history_files[0], "3000")
 
+        try:
+            mpv.terminate()
+        except RuntimeError:
+            pass
+
     @mpv.on_key_press("ctrl+z")
     def undo():
         if len(history_files) > 1:
