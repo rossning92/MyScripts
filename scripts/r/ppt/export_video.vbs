@@ -1,18 +1,19 @@
 Set wshShell = CreateObject( "WScript.Shell" )
-USERPROFILE = wshShell.ExpandEnvironmentStrings( "%USERPROFILE%" )
-Set wshShell = Nothing
+Set app = CreateObject("PowerPoint.Application")
+Set fso = CreateObject("Scripting.FileSystemObject")
 
+' USERPROFILE = wshShell.ExpandEnvironmentStrings( "%USERPROFILE%" )
 
-Set objPPT = CreateObject("PowerPoint.Application")
+outFile = app.ActivePresentation.Path & "\" & fso.GetBaseName(fso.GetFile(app.ActivePresentation.FullName)) & ".mp4"
 
 UseTimingsAndNarrations = True
 VertResolution          = 1080
 FramesPerSecond         = 60
 Quality                 = 100
-FileName                = USERPROFILE & "\Desktop\Your PowerPoint Video.wmv"
+FileName                = outFile
 DefaultSlideDuration    = 4
 
-objPPT.ActivePresentation.CreateVideo _
+app.ActivePresentation.CreateVideo _
     FileName, _
     UseTimingsAndNarrations, _
     DefaultSlideDuration, _
@@ -20,4 +21,4 @@ objPPT.ActivePresentation.CreateVideo _
     FramesPerSecond, _
     Quality
 
-' objPPT.Quit
+' app.Quit
