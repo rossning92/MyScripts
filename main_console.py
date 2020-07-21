@@ -333,18 +333,22 @@ class MainWindow(SearchWindow):
     def on_update_screen(self):
         height = self.height
 
-        script = self.get_selected_item()
-        if script is not None:
-            vars = get_script_variables(script)
-            if len(vars):
-                str_list = get_variable_str_list(
-                    vars, sorted(script.get_variable_names())
-                )
-                height = max(5, height - len(vars))
-                for i, s in enumerate(str_list):
-                    if height + i >= self.height:
-                        break
-                    self.stdscr.addstr(height + i, 0, s)
+        try:
+            script = self.get_selected_item()
+            if script is not None:
+                vars = get_script_variables(script)
+                if len(vars):
+                    str_list = get_variable_str_list(
+                        vars, sorted(script.get_variable_names())
+                    )
+                    height = max(5, height - len(vars))
+                    for i, s in enumerate(str_list):
+                        if height + i >= self.height:
+                            break
+                        self.stdscr.addstr(height + i, 0, s)
+
+        except FileNotFoundError:  # Scripts have been removed
+            pass
 
         self.height = height
         super().on_update_screen()

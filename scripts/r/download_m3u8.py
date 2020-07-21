@@ -4,6 +4,17 @@ url = get_clip()
 # if not url.endswith('.m3u8'):
 #     sys.exit(1)
 
-chdir(expanduser('~/Desktop'))
+chdir(expanduser("~/Desktop"))
 
-call2('ffmpeg -i %s -c copy -bsf:a aac_adtstoasc %s.mp4' % (url, get_cur_time_str()))
+call_echo(
+    [
+        "ffmpeg",
+        "-protocol_whitelist",
+        "file,http,https,tcp,tls,crypto",
+        "-i",
+        url,
+        "-c",
+        "copy",
+        "%s.mp4" % get_cur_time_str(),
+    ], shell=False
+)
