@@ -47,7 +47,7 @@ def add_value(ini_file, section, kvps):
     print()
 
 
-chdir(r'{{UE4_PROJECT}}')
+chdir(r'{{UE4_PROJECT_DIR}}')
 
 add_value('Config/DefaultEngine.ini', '[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]', [
     '+PackageForOculusMobile=Quest',

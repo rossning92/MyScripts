@@ -9,6 +9,11 @@ cd(uproject_dir)
 uproject_file = glob.glob(os.path.join(uproject_dir, "*.uproject"))[0]
 print(uproject_file)
 
+uproject_name = os.path.splitext(os.path.basename(uproject_dir))[0]
+
+out_dir = "C:/tmp/%s" % uproject_name
+mkdir(out_dir)
+
 call_echo(
     [
         r"{{UE_SOURCE}}\Engine\Build\BatchFiles\RunUAT.bat",
@@ -19,7 +24,7 @@ call_echo(
         "-cook",
         "-stage",
         "-archive",
-        "-archivedirectory=C:/tmp",
+        "-archivedirectory=%s" % out_dir,
         "-package",
         # "-ue4exe=C:\Users\rossning92\Unreal Projects\UE4.25-OVR\Engine\Binaries\Win64\UE4Editor-Cmd.exe",
         "-pak",
@@ -36,17 +41,17 @@ call_echo(
 )
 
 
-# taskkill /f /im {{UE4_PROJECT_NAME}}* 2>nul
+# taskkill /f /im { {UE4_PROJECT_NAME}}* 2>nul
 
 # set BUILD_CONFIG=Development
 # :: set BUILD_CONFIG=Debug
 
 
-# call ..\_msbuild.cmd "{{UE_SOURCE}}\UE4.sln" /t:Games\{{UE4_PROJECT_NAME}} /p:Configuration="%BUILD_CONFIG%" /p:Platform=Win64 /maxcpucount /nologo
+# call ..\_msbuild.cmd "{{UE_SOURCE}}\UE4.sln" /t:Games\{ {UE4_PROJECT_NAME}} /p:Configuration="%BUILD_CONFIG%" /p:Platform=Win64 /maxcpucount /nologo
 # if %errorlevel% neq 0 exit /b %errorlevel%
 
 
 # exit /b 0
 
 
-# :: call "{{UE_SOURCE}}\Engine\Build\BatchFiles\Build.bat" "{{UE4_PROJECT_NAME}}" Win64 %BUILD_CONFIG% -waitmutex-2017
+# :: call "{{UE_SOURCE}}\Engine\Build\BatchFiles\Build.bat" "{ {UE4_PROJECT_NAME}}" Win64 %BUILD_CONFIG% -waitmutex-2017

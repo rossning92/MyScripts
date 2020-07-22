@@ -20,4 +20,3 @@ except:
     pass
 
 call2("start UE4Editor.exe")
-input()
