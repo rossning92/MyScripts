@@ -237,6 +237,11 @@ UpdateWindowPosition(pos) {
 UpdateActiveWindowPosition() {
     global WindowList
     
+    ; If right window was closed.
+    if not WinExist("ahk_id " WindowList["right"]) {
+        SetTimer, AutoUpdateWindowPos, Off
+    }
+
     WinGet, cur_hwnd, ID, A
     
     ControlGet, HWND, hwnd,, SysListView321, ahk_class WorkerW
