@@ -58,11 +58,10 @@ def get_executable(app_name):
     executable = find_executable()
     if executable is None:
         if sys.platform == "win32":
-
             pkg_name = app_name
             if "choco" in app:
                 pkg_name = app["choco"]
-
+            
             choco_install(pkg_name)
 
             executable = find_executable()

@@ -217,7 +217,7 @@ def call2(args, check=True, shell=True, **kwargs):
 def call_echo(args, shell=True, **kwargs):
     print("> ", end="")
     print2(str(args), color="cyan")
-    subprocess.check_call(args, shell=shell, **kwargs)
+    subprocess.run(args, shell=shell, **kwargs)
 
 
 def start_in_new_terminal(args, title=None):
@@ -714,7 +714,7 @@ def get_cur_time_str():
     return datetime.datetime.now().strftime("%y%m%d%H%M%S")
 
 
-def exec_bash(script, wsl=False):
+def exec_bash(script, wsl=False, echo=False):
     args = None
     if os.name == "nt":
         if wsl:  # WSL (Windows Subsystem for Linux)
@@ -722,6 +722,9 @@ def exec_bash(script, wsl=False):
                 raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
             args = ["bash.exe", "-c", script]
         else:
+            if echo:
+                print("> ", end="")
+                print2(str(script), color="cyan")
             args = [r"C:\Program Files\Git\bin\bash.exe", "--login", "-i", "-c", script]
     elif os.name == "posix":  # MacOSX
         args = ["bash", "-c", script]
