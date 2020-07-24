@@ -20,9 +20,16 @@ function openFileUnderCursor() {
     if (found !== null) {
       const filePath = path.join(getProjectDir(), found[1]);
 
+      // const args = [
+      //   "-c",
+      //   `from r.open_with.open_with_ import open_with; open_with(r'${filePath}', 0)`,
+      //   filePath,
+      // ];
+      // cp.spawnSync("python", args);
+
       const args = [
         "-c",
-        `from r.open_with.open_with_ import open_with; open_with(r'${filePath}', 0)`,
+        `from r.web.animation.video_editor import edit_video; edit_video(r"${filePath}")`,
         filePath,
       ];
       cp.spawnSync("python", args);
