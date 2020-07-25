@@ -7,7 +7,7 @@ def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
     # plink is preferred (better automation)
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
-    args = f"plink -ssh -no-antispoof -t {user_host} -m {bash_script_file}"
+    args = f"plink -ssh -t {user_host} -m {bash_script_file}"
     if ssh_pwd:
         args += " -pw %s" % ssh_pwd
     if ssh_port:
@@ -16,27 +16,35 @@ def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
-    call_echo(f"vagrant upload {bash_script_file} {TEMP_SHELL_SCRIPT_PATH} {vagrant_id}")
+    call_echo(
+        f"vagrant upload {bash_script_file} {TEMP_SHELL_SCRIPT_PATH} {vagrant_id}"
+    )
     call_echo(f'vagrant ssh -c "bash {TEMP_SHELL_SCRIPT_PATH}" {vagrant_id}')
 
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT_PATH"]
+    script_path = os.environ["_SCRIPT_PATH_"]
     if script_path.endswith("run_script_remotely.py"):
         print("Parameter saved...")
         exit(0)
 
     script = ScriptItem(script_path)
-    update_script_acesss_time(script)
+    # update_script_acesss_time(script)
     tmp_script_file = write_temp_file(script.render(), ".sh")
 
     if script.ext == ".sh":
         if "{{VAGRANT_ID}}":
             run_bash_script_vagrant(tmp_script_file, "{{VAGRANT_ID}}")
         else:
-            ssh_host = "{{SSH_USER}}@{{SSH_HOST}}"
-            ssh_port = int("{{SSH_PORT}}") if "{{SSH_PORT}}" else None
-            ssh_pwd = r"{{SSH_PWD}}" if r"{{SSH_PWD}}" else None
+            try:
+                ssh_host = os.environ["_SSH_HOST_"]
+                ssh_port = int(os.environ["_SSH_PORT_"])
+                ssh_pwd = os.environ["_SSH_PWD_"]
+            except KeyError:
+                ssh_host = "{{SSH_USER}}@{{SSH_HOST}}"
+                ssh_port = int("{{SSH_PORT}}") if "{{SSH_PORT}}" else None
+                ssh_pwd = r"{{SSH_PWD}}" if r"{{SSH_PWD}}" else None
+
             run_bash_script_ssh(tmp_script_file, ssh_host, ssh_port, ssh_pwd=ssh_pwd)
 
     else:

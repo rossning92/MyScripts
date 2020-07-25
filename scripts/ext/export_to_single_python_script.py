@@ -116,7 +116,7 @@ if __name__ == "__main__":
     os.system('cls')
 
     out_dir = os.path.expanduser('~/Desktop/ScriptExport')
-    script_path = os.getenv('_SCRIPT_PATH')
+    script_path = os.getenv('_SCRIPT_PATH_')
     out_script = out_dir + os.path.sep + os.path.basename(script_path)
 
     s = transform_python_script(script_path)

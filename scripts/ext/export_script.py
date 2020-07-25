@@ -8,7 +8,7 @@ import subprocess
 OUT_DIR = expanduser('~/Desktop/ScriptExport')
 os.makedirs(OUT_DIR, exist_ok=True)
 
-script_path = os.getenv('_SCRIPT_PATH')
+script_path = os.getenv('_SCRIPT_PATH_')
 
 
 def find_module(python_path, module):

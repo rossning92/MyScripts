@@ -322,7 +322,7 @@ class MainWindow(SearchWindow):
             script = self.get_selected_item()
             if script is not None:
                 script_abs_path = os.path.abspath(script.script_path)
-                os.environ["_SCRIPT_PATH"] = script_abs_path
+                os.environ["_SCRIPT_PATH_"] = script_abs_path
 
                 state.execute_script = lambda: execute_script(state.hotkeys[ch])
                 self.close()

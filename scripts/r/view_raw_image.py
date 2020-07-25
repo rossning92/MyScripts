@@ -4,10 +4,12 @@ from _shutil import *
 from _image import *
 from _math import *
 
-if "{{_DTYPE}}" == "f32":
+if "{{_DTYPE}}" == "float32":
     dtype = np.float32
-elif "{{_DTYPE}}" == "f16":
+elif "{{_DTYPE}}" == "float16":
     dtype = np.float16
+elif "{{_DTYPE}}" == "int16":
+    dtype = np.int16
 else:
     dtype = np.uint8
 
