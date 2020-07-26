@@ -67,8 +67,6 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
         await element.screenshot(screenshot_params)
         # await screenshotDOMElement(page=page, selector="table", path=out_file)
 
-        input()
-
         await browser.close()
 
     asyncio.get_event_loop().run_until_complete(main())
