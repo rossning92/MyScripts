@@ -3,6 +3,7 @@ import asyncio
 import os
 from _shutil import shell_open, get_files
 import sys
+import time
 
 
 async def screenshotDOMElement(*, page, selector, path):
@@ -28,9 +29,7 @@ async def screenshotDOMElement(*, page, selector, path):
     )
 
 
-def webscreenshot(
-    html_file, out_file=None, javascript=None, debug=False, full_page=False
-):
+def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
     if out_file is None:
         out_file = os.path.splitext(html_file)[0] + ".png"
 
@@ -47,9 +46,12 @@ def webscreenshot(
         #     'deviceScaleFactor': SCALE,
         # })
 
-        await page.setViewport({"width": 1920, "height": 1080})
+        await page.setViewport({"width": 1920, "height": 2000})
 
-        await page.goto("file://" + os.path.realpath(html_file).replace("\\", "/"))
+        await page.goto(
+            "file://" + os.path.realpath(html_file).replace("\\", "/"),
+            waitUntil="networkidle0",
+        )
 
         if javascript:
             await page.evaluate("() => { %s }" % javascript)
@@ -61,10 +63,11 @@ def webscreenshot(
         # Screenshot DOM element only
         element = await page.querySelector("body")
         screenshot_params = {"path": out_file, "omitBackground": True}
-        if full_page:
-            screenshot_params["fullPage"] = True
 
         await element.screenshot(screenshot_params)
+        # await screenshotDOMElement(page=page, selector="table", path=out_file)
+
+        input()
 
         await browser.close()
 
@@ -75,5 +78,5 @@ def webscreenshot(
 
 if __name__ == "__main__":
     f = get_files()[0]
-    out = webscreenshot(f, full_page=True)
+    out = webscreenshot(f)
     shell_open(out)
