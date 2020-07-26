@@ -11,11 +11,13 @@ BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
 
 COMPRESSOR_ATTACK = 0.0
-COMPRESSOR_DECAY = 0.085  # 0.05
+COMPRESSOR_DECAY = 0.085
 COMPRESSOR_THRES_DB = -15
 COMPRESSOR_RATIO = 4
 
 NOISE_GATE_DB = -999
+
+RECORD_MIN_VOLUME_TO_KEEP = 0.05
 
 BASS_FREQ_DB = 0
 MIDDLE_FREQ_DB = -4
@@ -120,7 +122,7 @@ def process_audio_file(f):
 
         rate, data = wavfile.read(filtered_voice_file)
         data = data[border_samples:-border_samples]
-        thres = np.max(np.abs(data)) * 0.1
+        thres = np.max(np.abs(data)) * RECORD_MIN_VOLUME_TO_KEEP
 
         data0 = data
         keep = np.abs(data0) > thres
