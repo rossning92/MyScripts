@@ -5,31 +5,34 @@ from _shutil import shell_open, get_files
 import sys
 
 
-def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
+async def screenshotDOMElement(*, page, selector, path):
+    rect = await page.evaluate(
+        """selector => {
+        const element = document.querySelector(selector);
+        const {x, y, width, height} = element.getBoundingClientRect();
+        return {left: x, top: y, width, height, id: element.id};
+    }""",
+        selector,
+    )
+
+    return await page.screenshot(
+        {
+            "path": path,
+            "clip": {
+                "x": rect["left"],
+                "y": rect["top"],
+                "width": rect["width"],
+                "height": rect["height"],
+            },
+        }
+    )
+
+
+def webscreenshot(
+    html_file, out_file=None, javascript=None, debug=False, full_page=False
+):
     if out_file is None:
         out_file = os.path.splitext(html_file)[0] + ".png"
-
-    async def screenshotDOMElement(*, page, selector, path):
-        rect = await page.evaluate(
-            """selector => {
-            const element = document.querySelector(selector);
-            const {x, y, width, height} = element.getBoundingClientRect();
-            return {left: x, top: y, width, height, id: element.id};
-        }""",
-            selector,
-        )
-
-        return await page.screenshot(
-            {
-                "path": path,
-                "clip": {
-                    "x": rect["left"],
-                    "y": rect["top"],
-                    "width": rect["width"],
-                    "height": rect["height"],
-                },
-            }
-        )
 
     async def main():
         browser = await launch(
@@ -58,6 +61,9 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
         # Screenshot DOM element only
         element = await page.querySelector("body")
         screenshot_params = {"path": out_file, "omitBackground": True}
+        if full_page:
+            screenshot_params["fullPage"] = True
+
         await element.screenshot(screenshot_params)
 
         await browser.close()
@@ -69,5 +75,5 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
 
 if __name__ == "__main__":
     f = get_files()[0]
-    out = webscreenshot(f)
+    out = webscreenshot(f, full_page=True)
     shell_open(out)
