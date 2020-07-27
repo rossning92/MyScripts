@@ -327,21 +327,38 @@ assoc = {
 }
 
 
+def open_with_hook(files, program_id):
+    ext = os.path.splitext(files[0])[1].lower()
+
+    # HACK: hijack extension handling
+    if ext == ".vhd":
+        run_elevated(["powershell", "-Command", "Mount-VHD -Path '%s'" % files])
+        return True
+
+    if program_id == 1 and ext in [".mp4", ".webm"]:
+        from r.web.animation.video_editor import edit_video
+
+        edit_video(files[0])
+
+        return True
+
+    return False
+
+
 def open_with(files, program_id=0):
     if type(files) == str:
         files = [files]
 
     ext = os.path.splitext(files[0])[1].lower()
 
-    # HACK: hijack extension handling
-    if ext == ".vhd":
-        run_elevated(["powershell", "-Command", "Mount-VHD -Path '%s'" % files])
+    if open_with_hook(files, program_id):
         return
 
     if ext not in assoc:
         raise Exception("%s is not defined" % ext)
 
     program = assoc[ext][program_id]
+
     args = [_appmanager.get_executable(program)] + files
     subprocess.Popen(args, close_fds=True)
 
@@ -349,7 +366,7 @@ def open_with(files, program_id=0):
 if __name__ == "__main__":
     try:
         program_id = int(sys.argv[1])
-        
+
         with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
             data = json.load(f)
 

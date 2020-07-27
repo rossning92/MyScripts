@@ -2254,7 +2254,7 @@ async function addAsync(
     const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "ring") {
-    const geometry = new THREE.RingGeometry(0.90, 1, 64);
+    const geometry = new THREE.RingGeometry(0.9, 1, 64);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
@@ -2530,9 +2530,15 @@ function setMotionBlur(v) {
   }
   AA_METHOD = "fxaa";
 }
+
 function setGlitch(enabled) {
   ENABLE_GLITCH_PASS = true;
   AA_METHOD = "fxaa";
+}
+
+function setViewportSize(w, h) {
+  WIDTH = w;
+  HEIGHT = h;
 }
 
 export default {
@@ -2594,6 +2600,7 @@ export default {
   setBloom,
   generateRandomString,
   setGlitch,
+  setViewportSize,
 };
 
 export { THREE, gsap };
