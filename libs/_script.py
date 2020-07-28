@@ -971,19 +971,23 @@ def get_scripts_recursive(directory):
 def script_updated():
     if not hasattr(script_updated, "last_mtime"):
         script_updated.last_mtime = 0
+        script_updated.file_list = None
 
     mtime = 0
+    file_list = []
     for _, d in SCRIPT_PATH_LIST:
         for f in get_scripts_recursive(d):
             mtime = max(mtime, os.path.getmtime(f))
             script_config_file = get_script_config_file(f)
+            file_list.append(f)
 
             # Check if config file is updated
             if script_config_file:
                 mtime = max(mtime, os.path.getmtime(script_config_file))
 
-    if mtime > script_updated.last_mtime:
+    if (mtime > script_updated.last_mtime) or (file_list != script_updated.file_list):
         script_updated.last_mtime = mtime
+        script_updated.file_list = file_list
         return True
     else:
         return False
