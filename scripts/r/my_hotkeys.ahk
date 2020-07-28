@@ -14,6 +14,8 @@ SetTitleMatchMode, 2
 AddChromeHotkey("#!.", "- To Do", "https://to-do.microsoft.com/tasks")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
+SetTimer, CheckIfRShiftIsPressed, 1000
+
 return
 
 AutoUpdateWindowPos()
@@ -153,15 +155,7 @@ return
     
 #If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_exe vncviewer.exe")
 $XButton2::
-if WinActive("ahk_exe tvnviewer.exe") {
-    WinMinimize, ahk_exe tvnviewer.exe
-} else if WinActive("ahk_exe vncviewer.exe") {
-    WinMinimize, ahk_exe vncviewer.exe
-} else if WinExist("ahk_exe tvnviewer.exe") {
-    WinActivate, ahk_exe tvnviewer.exe
-} else if WinExist("ahk_exe vncviewer.exe") {
-    WinActivate, ahk_exe vncviewer.exe
-}
+ToggleVNC()
 return
 #If
     
@@ -241,7 +235,7 @@ UpdateActiveWindowPosition() {
     if not WinExist("ahk_id " WindowList["right"]) {
         SetTimer, AutoUpdateWindowPos, Off
     }
-
+    
     WinGet, cur_hwnd, ID, A
     
     ControlGet, HWND, hwnd,, SysListView321, ahk_class WorkerW
@@ -385,6 +379,27 @@ ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
     
     DllCall("MoveWindow", "Ptr", hwnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
     WinRestore ahk_id %hwnd%
+}
+
+ToggleVNC()
+{
+    if WinActive("ahk_exe tvnviewer.exe") {
+        WinMinimize, ahk_exe tvnviewer.exe
+    } else if WinActive("ahk_exe vncviewer.exe") {
+        WinMinimize, ahk_exe vncviewer.exe
+    } else if WinExist("ahk_exe tvnviewer.exe") {
+        WinActivate, ahk_exe tvnviewer.exe
+    } else if WinExist("ahk_exe vncviewer.exe") {
+        WinActivate, ahk_exe vncviewer.exe
+    }
+}
+
+CheckIfRShiftIsPressed()
+{
+    if (GetKeyState("RShift", "P"))
+    {
+        ToggleVNC()
+    }
 }
 
 #include win/change_screen_resolution.ahk

@@ -21,4 +21,4 @@ pip install -r requirement.txt
 
 title my_scripts_console
 
-python autoreload.py
+python main_console.py

@@ -354,7 +354,7 @@ class MainWindow(SearchWindow):
         super().on_update_screen()
 
 
-def main(stdscr):
+def curse_main(stdscr):
     init_curses()
     MainWindow(stdscr)
 
@@ -374,15 +374,15 @@ def init():
         sys.exit(0)
 
 
-if __name__ == "__main__":
-    # setup_console_font()
-
+def main_loop():
+    global state
+    
     init()
 
     state = State()
 
     while True:
-        curses.wrapper(main)
+        curses.wrapper(curse_main)
         if state.execute_script is not None:
             state.execute_script()
             state.execute_script = None
@@ -391,3 +391,10 @@ if __name__ == "__main__":
             time.sleep(1)
         else:
             break
+
+
+if __name__ == "__main__":
+    # setup_console_font()
+
+    main_loop()
+

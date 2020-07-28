@@ -1,7 +1,7 @@
 from _shutil import *
 from _editor import *
 
-chdir(r'{{GRAPHVIZ_SRC_FOLDER}}')
+cd(r'{{GRAPHVIZ_SRC_FOLDER}}')
 
 template = '''
 digraph G {
