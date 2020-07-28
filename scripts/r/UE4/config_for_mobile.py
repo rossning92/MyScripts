@@ -73,6 +73,8 @@ def config_uproject(project_dir, vulkan=True, multiview=True):
         "[/Script/Engine.RendererSettings]",
         [
             "r.MobileHDR=False",
+            "r.MobileMSAA=4",
+            "r.MSAA.CompositingSampleCount=4",
             "vr.MobileMultiView=%s" % str(multiview),
             "vr.MobileMultiView.Direct=%s" % str(multiview),
         ],
