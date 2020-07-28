@@ -2,7 +2,7 @@ from _shutil import *
 import stat
 
 
-def add_value(ini_file, section, kvps):
+def _add_value(ini_file, section, kvps):
     print("== " + ini_file + " ==")
     if os.path.exists(ini_file):
         with open(ini_file) as f:
@@ -46,9 +46,9 @@ def add_value(ini_file, section, kvps):
 
 
 def config_uproject(project_dir, vulkan=True, multiview=True):
-    chdir(project_dir)
+    os.chdir(project_dir)
 
-    add_value(
+    _add_value(
         "Config/DefaultEngine.ini",
         "[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]",
         [
@@ -65,11 +65,10 @@ def config_uproject(project_dir, vulkan=True, multiview=True):
             "bRemoveOSIG=True",
             "+bBuildForArmV7=False",
             "+bBuildForArm64=True",
-            "+bSupportsVulkan=True",
         ],
     )
 
-    add_value(
+    _add_value(
         "Config/DefaultEngine.ini",
         "[/Script/Engine.RendererSettings]",
         [
@@ -79,7 +78,7 @@ def config_uproject(project_dir, vulkan=True, multiview=True):
         ],
     )
 
-    add_value(
+    _add_value(
         "Saved/Config/Windows/Game.ini",
         "[/Script/UnrealEd.ProjectPackagingSettings]",
         ["BuildConfiguration=PPBC_Shipping",],
@@ -87,4 +86,4 @@ def config_uproject(project_dir, vulkan=True, multiview=True):
 
 
 if __name__ == "__main__":
-    config_uproject(r"{{UE4_PROJECT_DIR}}")
+    config_uproject(r"{{UE4_PROJECT_DIR}}", vulkan=bool("{{_VULKAN}}"))
