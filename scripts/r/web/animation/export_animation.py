@@ -849,12 +849,12 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", duration=2, file="../animation/click.tar", preset=-1, **kwargs):
+def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
     PRESETS = [
-        "../animation/click.tar",
         "../image/cursor.png",
+        "../animation/click.tar",
     ]
-    if preset >= 0:
+    if file is None and preset >= 0:
         file = PRESETS[preset]
 
     clip(
