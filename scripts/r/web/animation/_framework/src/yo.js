@@ -2254,7 +2254,7 @@ async function addAsync(
     const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "ring") {
-    const geometry = new THREE.RingGeometry(0.9, 1, 64);
+    const geometry = new THREE.RingGeometry(0.8, 1, 64);
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);

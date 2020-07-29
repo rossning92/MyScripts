@@ -580,8 +580,6 @@ def _add_fadeout(track):
             _add_fadeout_to_last_clip = False
 
 
-
-
 def create_image_seq_clip(tar_file):
     print("Load animation clip from %s" % tar_file)
     image_files = []
@@ -851,7 +849,14 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", duration=2, file="../animation/click.tar", **kwargs):
+def hl(pos, track="hl", duration=2, file="../animation/click.tar", preset=-1, **kwargs):
+    PRESETS = [
+        "../animation/click.tar",
+        "../image/cursor.png",
+    ]
+    if preset >= 0:
+        file = PRESETS[preset]
+
     clip(
         file,
         pos=pos,
