@@ -214,10 +214,10 @@ def call2(args, check=True, shell=True, **kwargs):
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
-def call_echo(args, shell=True, **kwargs):
+def call_echo(args, shell=True, check=True, **kwargs):
     print("> ", end="")
     print2(str(args), color="cyan")
-    subprocess.run(args, shell=shell, **kwargs)
+    subprocess.run(args, shell=shell, check=check, **kwargs)
 
 
 def start_in_new_terminal(args, title=None):
@@ -592,7 +592,7 @@ def check_output_echo(args):
 
 
 def get_output(args):
-    return subprocess.check_output(args, universal_newlines=True)
+    return subprocess.check_output(args).decode("utf-8", errors="ignore")
 
 
 def print2(msg, color="yellow", end="\n"):
