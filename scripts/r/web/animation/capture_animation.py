@@ -84,9 +84,14 @@ def capture_js_animation(in_file, out_file=None, params=None):
 if __name__ == "__main__":
     cd(expanduser("~/Downloads"))
 
+    if "{{_FORMAT}}":
+        format = "{{_FORMAT}}"
+    else:
+        format = "mp4"
+
     f = get_files()[0]
     assert f.endswith(".js")
-    out_file = os.path.splitext(f)[0] + ".mp4"
+    out_file = "%s.%s" % (os.path.splitext(f)[0], format)
 
     capture_js_animation(f, out_file=out_file)
 

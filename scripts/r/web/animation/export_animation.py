@@ -9,22 +9,24 @@ if 1:
 
     sys.excepthook = excepthook
 
-from typing import Any, NamedTuple
-import webbrowser
-import urllib
-import re
-import capture_animation
-from slide.generate import generate_slide
-from r.open_with.open_with_ import open_with
-from r.audio.postprocess import process_audio_file
-from _shutil import *
-from collections import defaultdict
-from collections import OrderedDict
-import numpy as np
 import argparse
 import hashlib
+import re
+import tarfile
+import urllib
+import webbrowser
+from collections import OrderedDict, defaultdict
+from typing import Any, NamedTuple
+
+import numpy as np
 from PIL import Image
+
+import capture_animation
 from _appmanager import get_executable
+from _shutil import *
+from r.audio.postprocess import process_audio_file
+from r.open_with.open_with_ import open_with
+from slide.generate import generate_slide
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -578,19 +580,29 @@ def _add_fadeout(track):
             _add_fadeout_to_last_clip = False
 
 
+
+
 def create_image_seq_clip(tar_file):
-    tmp_folder = os.path.join(
-        tempfile.gettempdir(),
-        "animation",
-        os.path.splitext(os.path.basename(tar_file))[0],
-    )
+    print("Load animation clip from %s" % tar_file)
+    image_files = []
+    t = tarfile.open(tar_file, "r")
+    for member in t.getmembers():
+        with t.extractfile(member) as fp:
+            im = Image.open(fp)
+            image_files.append(np.array(im))
 
-    # Unzip
-    print2("Unzip to %s" % tmp_folder)
-    shutil.unpack_archive(tar_file, tmp_folder)
+    # tmp_folder = os.path.join(
+    #     tempfile.gettempdir(),
+    #     "animation",
+    #     os.path.splitext(os.path.basename(tar_file))[0],
+    # )
 
-    # Get all image files
-    image_files = sorted(glob.glob((os.path.join(tmp_folder, "*.png"))))
+    # # Unzip
+    # print2("Unzip to %s" % tmp_folder)
+    # shutil.unpack_archive(tar_file, tmp_folder)
+
+    # # Get all image files
+    # image_files = sorted(glob.glob((os.path.join(tmp_folder, "*.png"))))
 
     clip = ImageSequenceClip(image_files, fps=IMAGE_SEQUENCE_FPS)
     return clip
@@ -839,7 +851,7 @@ def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwar
     _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
 
 
-def hl(pos, track="hl", duration=2, file="../image/cursor.png", **kwargs):
+def hl(pos, track="hl", duration=2, file="../animation/click.tar", **kwargs):
     clip(
         file,
         pos=pos,
