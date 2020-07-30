@@ -85,6 +85,9 @@ for f in files:
     if "{{_CROP_BORDER}}":
         im = crop_border(im)
 
+    if "{{_DRAW_LABEL}}":
+        draw_text(im, os.path.splitext(os.path.basename(f))[0])
+
     w = None
     h = None
     if "{{_RESIZE_W}}":

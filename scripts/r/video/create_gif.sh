@@ -1,1 +1,3 @@
-magick -delay 100 *.png 123.gif
+cd "${CURRENT_FOLDER}"
+
+magick -delay 50 *.png 123.gif

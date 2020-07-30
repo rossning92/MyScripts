@@ -96,8 +96,9 @@ def show_im(
 
 
 def draw_text(
-    im, text, box, text_outline=2, font_color="white", align="center", font_scale=1.0
+    im, text, text_outline=2, font_color="white", align="center", font_scale=1.0
 ):
+    box = (0, 0, im.width, im.height)
     PADDING = 4
 
     draw = ImageDraw.Draw(im)
@@ -200,7 +201,6 @@ def combine_images(
                 draw_text(
                     im,
                     text,
-                    (0, 0, imgs[0].width, imgs[0].height),
                     text_outline,
                     font_color,
                     align=label_align,
@@ -240,7 +240,6 @@ def combine_images(
             draw_text(
                 im_combined,
                 title,
-                (0, 0, im_combined.width, im_combined.height),
                 text_outline,
                 title_color,
                 align=title_align,
