@@ -45,7 +45,7 @@ def _add_value(ini_file, section, kvps):
     print()
 
 
-def config_uproject(project_dir, vulkan=True, multiview=True):
+def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
     os.chdir(project_dir)
 
     _add_value(
@@ -73,8 +73,8 @@ def config_uproject(project_dir, vulkan=True, multiview=True):
         "[/Script/Engine.RendererSettings]",
         [
             "r.MobileHDR=False",
-            "r.MobileMSAA=4",
-            "r.MSAA.CompositingSampleCount=4",
+            "r.MobileMSAA=%d" % msaa,
+            "r.MSAA.CompositingSampleCount=%d" % msaa,
             "vr.MobileMultiView=%s" % str(multiview),
             "vr.MobileMultiView.Direct=%s" % str(multiview),
         ],
