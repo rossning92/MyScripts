@@ -7,12 +7,16 @@ if not exists("vcpkg"):
     # cd("vcpkg")
 
 while True:
-    print("s - search\n" "q - quit\n")
+    print("s - search\n" "q - quit\n" "i - install\n")
     ch = getch()
     if ch == "s":
-        kw = input("search for libaries:")
+        kw = input("search for libaries: ")
         call_echo(r".\vcpkg\vcpkg search %s" % kw)
 
     elif ch == "q":
         sys.exit(0)
+
+    elif ch == "i":
+        pkg_name = input("install by package name: ")
+        call_echo(r".\vcpkg\vcpkg install %s" % pkg_name)
 

@@ -2,8 +2,11 @@ import sys
 import os
 import subprocess
 import shutil
+from _shutil import *
 
 SRC_PATH = os.environ["CURRENT_FOLDER"]
+print2("Project dir: %s" % SRC_PATH)
+
 BUILD_LIB = "{{BUILD_LIB}}" == "Y"
 
 project_name = "example"
@@ -23,12 +26,14 @@ os.chdir(src_dir)
 content = (
     """cmake_minimum_required(VERSION 2.7)
 
-set(PROJECT_NAME """
+project("""
     + project_name
     + """)
 
-project(${PROJECT_NAME})
+# find_package(XXX)
+
 include_directories(${PROJECT_SOURCE_DIR})
+
 file(GLOB SRC_FILES
     "${PROJECT_SOURCE_DIR}/*.h"
     "${PROJECT_SOURCE_DIR}/*.cpp"
@@ -36,15 +41,17 @@ file(GLOB SRC_FILES
 )
 """
     + ("add_library" if BUILD_LIB else "add_executable")
-    + """(${PROJECT_NAME}
+    + """(main
     ${SRC_FILES}
 )
-
-set(CMAKE_SUPPRESS_REGENERATION true)
-set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
-set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 """
 )
+
+# XXX: Removed from CMakeLists.txt
+# set(CMAKE_SUPPRESS_REGENERATION true)
+# set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT main)
+# set_target_properties(main PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
 if not os.path.exists("CMakeLists.txt"):
     with open("CMakeLists.txt", "w") as f:
         f.write(content)
@@ -52,10 +59,7 @@ if not os.path.exists("CMakeLists.txt"):
 # Add cmake to PATH
 os.environ["PATH"] = r"C:\Program Files\CMake\bin" + os.pathsep + os.environ["PATH"]
 
-# Create and switch to build folder
-if not os.path.exists("build"):
-    os.mkdir("build")
-os.chdir("build")
+# shutil.rmtree("build")
 
 # Remove cmake cache
 if "{{CMAKE_REMOVE_CACHE}}" == "Y":
@@ -63,10 +67,21 @@ if "{{CMAKE_REMOVE_CACHE}}" == "Y":
         os.remove("CMakeCache.txt")
 
 # Build
-subprocess.call(["cmake", "-G" "Visual Studio 15 2017 Win64", ".."])
-subprocess.call(["cmake", "--build", ".", "--config", "Release"])
+args = []
+# args = ["cmake", "-G" "Visual Studio 15 2017 Win64", ".."]
+args += [
+    "cmake",
+    "-DCMAKE_TOOLCHAIN_FILE=C:/Users/Ross/vcpkg/scripts/buildsystems/vcpkg.cmake",
+    "-B",
+    "build",
+    "-S",
+    ".",
+]
+call_echo(args)
+call_echo(["cmake", "--build", "build", "--config", "Release"])
 
+call_echo(".\\build\\Release\\main.exe")
 
-os.chdir("Release")
-print("Run executable: %s" % project_name)
-subprocess.call(project_name, shell=True)
+# os.chdir("Release")
+# print("Run executable: %s" % project_name)
+# subprocess.call(project_name, shell=True)
