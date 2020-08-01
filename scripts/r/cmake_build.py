@@ -4,23 +4,28 @@ import subprocess
 import shutil
 from _shutil import *
 
-SRC_PATH = os.environ["CURRENT_FOLDER"]
-print2("Project dir: %s" % SRC_PATH)
 
 BUILD_LIB = "{{BUILD_LIB}}" == "Y"
 
 project_name = "example"
-src_dir = SRC_PATH
 
-if "SELECTED_FILE" in os.environ:
-    f = os.environ["SELECTED_FILE"]
-    if f.endswith(".cpp") or f.endswith(".c"):
-        basename = os.path.basename(f)
-        project_name = os.path.splitext(basename)[0]
-        src_dir = os.path.dirname(f)
+if r"{{_PROJ_DIR}}":
+    project_dir = r"{{_PROJ_DIR}}"
+else:
+    project_dir = os.environ["CURRENT_FOLDER"]
+
+print2("Project dir: %s" % project_dir)
+
+
+# if "SELECTED_FILE" in os.environ:
+#     f = os.environ["SELECTED_FILE"]
+#     if f.endswith(".cpp") or f.endswith(".c"):
+#         basename = os.path.basename(f)
+#         project_name = os.path.splitext(basename)[0]
+#         project_dir = os.path.dirname(f)
 
 # Change to source folder
-os.chdir(src_dir)
+os.chdir(project_dir)
 
 # Create CMakeList.txt
 content = (
