@@ -540,6 +540,10 @@ def check_output2(args, shell=None, cwd=None, env=None):
     return MyProcess(ps)
 
 
+def fnull():
+    return open(os.devnull, "w")
+
+
 def read_lines(args, echo=False, read_err=False, max_lines=None, check_returncode=True):
     ps = subprocess.Popen(
         args,

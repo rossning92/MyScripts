@@ -479,8 +479,11 @@ def search_items(items, kw):
 
 class InputWidget:
     def __init__(self, label="", text=""):
-        self.text = text
         self.label = label
+        self.set_text(text)
+
+    def set_text(self, text):
+        self.text = text
         self.caret_pos = len(text)
 
     def on_update_screen(self, stdscr, row, cursor=False):

@@ -144,8 +144,7 @@ class VariableEditWindow(SearchWindow):
         if ch == ord("\t"):
             val = self.get_selected_item()
             if val is not None:
-                self.save_variable_val(val)
-            self.close()
+                self.input_.set_text(val)
             return True
 
         return False
@@ -376,7 +375,7 @@ def init():
 
 def main_loop():
     global state
-    
+
     init()
 
     state = State()
@@ -397,4 +396,3 @@ if __name__ == "__main__":
     # setup_console_font()
 
     main_loop()
-
