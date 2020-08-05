@@ -1,6 +1,14 @@
 autoRun: false
+background: false
+closeOnExit: true
+conda: null
 globalHotkey: Win+Alt+G
 hotkey: null
 newWindow: true
+packages: peco
+restartInstance: true
 runAsAdmin: false
+template: true
+terminal: null
+venv: null
 wsl: false

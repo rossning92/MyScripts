@@ -595,8 +595,10 @@ def check_output_echo(args):
     return out
 
 
-def get_output(args):
-    return subprocess.check_output(args).decode("utf-8", errors="ignore")
+def get_output(args, shell=True, **kwargs):
+    return subprocess.check_output(args, shell=shell, **kwargs).decode(
+        "utf-8", errors="ignore"
+    )
 
 
 def print2(msg, color="yellow", end="\n"):
