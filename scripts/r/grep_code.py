@@ -45,8 +45,9 @@ def grep(src_dir, exclude=[]):
     out = get_output(args)
 
     file, line_number, *_ = out.split(":")
-    print(file, line_number)
-    open_in_vscode(file)
+    line_number = int(line_number)
+    print("Goto: %s: %d" % (file, line_number))
+    open_in_vscode(file, line_number)
 
 
 if __name__ == "__main__":
