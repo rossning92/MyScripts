@@ -1243,8 +1243,6 @@ def _parse_text(text, **kwargs):
 
 
 if __name__ == "__main__":
-    print(os.getcwd())
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--stdin", default=False, action="store_true")
     parser.add_argument("-i", "--input", type=str, default=None)
@@ -1258,8 +1256,8 @@ if __name__ == "__main__":
         ADD_SUBTITLE = False
 
     if args.proj_dir is not None:
-        print("Set project dir: %s" % args.proj_dir)
         os.chdir(args.proj_dir)
+    print("Project dir: %s" % os.getcwd())
 
     if args.stdin:
         s = sys.stdin.read()
