@@ -1,4 +1,4 @@
-from python_mpv_jsonipc import MPV
+from .python_mpv_jsonipc import MPV
 import sys
 import subprocess
 from _shutil import *
