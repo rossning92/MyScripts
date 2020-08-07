@@ -1248,12 +1248,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--stdin", default=False, action="store_true")
     parser.add_argument("-i", "--input", type=str, default=None)
+    parser.add_argument("--proj_dir", type=str, default=None)
     parser.add_argument("-a", "--audio_only", action="store_true", default=False)
+
     args = parser.parse_args()
 
     # HACK
     if args.audio_only:
         ADD_SUBTITLE = False
+
+    if args.proj_dir is not None:
+        print("Set project dir: %s" % args.proj_dir)
+        os.chdir(args.proj_dir)
 
     if args.stdin:
         s = sys.stdin.read()

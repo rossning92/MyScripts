@@ -570,7 +570,6 @@ class ScriptItem:
 
             if self.meta["wsl"]:
                 args = wrap_wsl(args)
-
         elif ext == ".vbs":
             assert os.name == "nt"
 
@@ -784,6 +783,7 @@ def run_script(
     console_title=None,
     restart_instance=False,
     overwrite_meta=None,
+    args=None,
 ):
     print2("RunScript: %s" % script_name, color="green")
     script_path = find_script(script_name)
@@ -811,7 +811,7 @@ def run_script(
     if variables:
         script.set_override_variables(variables)
 
-    script.execute(restart_instance=restart_instance, new_window=new_window)
+    script.execute(restart_instance=restart_instance, new_window=new_window, args=args)
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (script_name, script.return_code))
 

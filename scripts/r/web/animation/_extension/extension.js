@@ -262,10 +262,12 @@ function export_animation({ audioOnly = false } = {}) {
     // vscode.window.showInformationMessage(activeDirectory);
 
     const shellArgs = [
-      "-m",
-      "r.web.animation.export_animation",
+      "/r/web/animation/export_animation",
+      "--",
       "-i",
       selectionText,
+      "--proj_dir",
+      getProjectDir(),
     ];
     if (audioOnly) {
       shellArgs.push("--audio_only");
@@ -274,7 +276,7 @@ function export_animation({ audioOnly = false } = {}) {
     const terminal = vscode.window.createTerminal({
       name: "yoyo",
       cwd: activeDirectory,
-      shellPath: "python.exe",
+      shellPath: "run_script.exe",
       shellArgs: shellArgs,
     });
     terminal.show();

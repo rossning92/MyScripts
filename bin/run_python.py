@@ -57,4 +57,5 @@ class MyMetaPathFinder(MetaPathFinder):
 sys.meta_path.append(MyMetaPathFinder)
 
 if __name__ == "__main__":
-    runpy.run_path(sys.argv[1], run_name="__main__")
+    del sys.argv[0]
+    runpy.run_path(sys.argv[0], run_name="__main__")
