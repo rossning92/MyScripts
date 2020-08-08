@@ -6,6 +6,18 @@ if r"{{DATA_DIR}}":
     DATA_DIR = r"{{DATA_DIR}}"
 
 
+def install_glslang():
+    assert sys.platform == "win32"
+    path = os.path.abspath("/tools/glslang")
+    if not exists(path):
+        cd(gettempdir())
+        f = download(
+            "https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip"
+        )
+        unzip(f, to=path)
+    return os.path.abspath("/tools/glslang/bin/glslangValidator.exe")
+
+
 call_echo([sys.executable, "-m", "pip", "install", "pylint"])
 call_echo([sys.executable, "-m", "pip", "install", "autopep8"])
 
@@ -50,6 +62,8 @@ data["workbench.editor.enablePreviewFromQuickOpen"] = False
 call_echo([sys.executable, "-m", "pip", "install", "black"])
 data["python.formatting.provider"] = "black"
 
+data["glsllint.glslangValidatorPath"] = install_glslang()
+
 json.dump(data, open(f, "w"), indent=4)
 
 
@@ -73,6 +87,9 @@ if not "{{SKIP_EXTENSIONS}}":
         # "ms-vscode-remote.vscode-remote-extensionpack",
         # Ahk
         "cweijan.vscode-autohotkey-plus",
+        # Shader
+        "slevesque.shader",
+        "cadenas.vscode-glsllint",
     ]
 
     prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")

@@ -17,6 +17,9 @@ if __name__ == "__main__":
     # Init repo
     if not os.path.exists(".git"):
         call_echo("git init")
+        call_echo(
+            "git remote add origin https://github.com/rossning92/%s.git" % repo_name
+        )
 
     # Add .gitignore
     if not os.path.exists(".gitignore"):
@@ -32,5 +35,4 @@ if __name__ == "__main__":
         call_echo('git commit -m "Initial commit"')
 
     # Push
-    call_echo("git remote add origin https://github.com/rossning92/%s.git" % repo_name)
     call_echo("git push -u origin master")

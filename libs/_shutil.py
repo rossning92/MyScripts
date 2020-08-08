@@ -875,6 +875,24 @@ def convert_to_unix_path(path, wsl=False):
     return path
 
 
+def add_to_path(path):
+    s = get_output(r"reg query HKCU\Environment /v PATH")
+    s = re.search(r"PATH\s+(?:REG_SZ|REG_EXPAND_SZ)\s+(.*)", s).group(1).strip()
+    paths = s.split(";")
+    new_paths = []
+    for p in paths:
+        if os.path.isdir(p):
+            new_paths.append(p)
+        else:
+            print("Removed from PATH: %s" % p)
+
+    if path not in new_paths:
+        new_paths.append(path)
+        print("Added to PATH: %s" % path)
+
+    call('reg add HKCU\Environment /v PATH /d "%s" /f' % ";".join(new_paths))
+
+
 def wait_key(prompt=None, timeout=2):
     if prompt is None:
         prompt = "Press enter to skip"
