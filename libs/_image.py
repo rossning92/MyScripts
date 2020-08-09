@@ -12,6 +12,13 @@ def crop_image_file(file_name, rect=None, rect_normalized=None):
     im.save(file_name)
 
 
+def load_im(f):
+    return np.array(Image.open(f))
+
+def save_im(im, f):
+    Image.fromarray(im).save(f)
+
+
 def crop_image(im, rect=None, rect_normalized=None):
     import numpy as np
 
