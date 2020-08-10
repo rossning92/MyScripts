@@ -196,7 +196,7 @@ def getch(timeout=-1):
         return ch
 
 
-def cd(path, expand=True, mkdir=False):
+def cd(path, expand=True, auto_create_dir=False):
     if expand:
         path = os.path.expanduser(path)
         path = os.path.expandvars(path)
@@ -204,7 +204,7 @@ def cd(path, expand=True, mkdir=False):
     path = os.path.realpath(path)
 
     if not os.path.exists(path):
-        if mkdir or yes('"%s" not exist, create?' % path):
+        if auto_create_dir or yes('"%s" not exist, create?' % path):
             os.makedirs(path)
 
     os.chdir(path)
