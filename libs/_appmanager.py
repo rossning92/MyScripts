@@ -41,13 +41,14 @@ def get_executable(app_name):
 
     def find_executable():
         if "executable" in app:
-            for exe in app["executable"]:
-                match = list(glob.glob(exe))
+            for exec_path in app["executable"]:
+                exec_path = os.path.expandvars(exec_path)
+                match = list(glob.glob(exec_path))
                 if len(match) > 0:
                     return match[0]
 
-                if shutil.which(exe):
-                    return exe
+                if shutil.which(exec_path):
+                    return exec_path
         else:
             if shutil.which(app_name):
                 return app_name
@@ -61,7 +62,7 @@ def get_executable(app_name):
             pkg_name = app_name
             if "choco" in app:
                 pkg_name = app["choco"]
-            
+
             choco_install(pkg_name)
 
             executable = find_executable()

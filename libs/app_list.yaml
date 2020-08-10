@@ -15,6 +15,7 @@ IrfanView:
 SumatraPDF:
   executable:
     - SumatraPDF.exe
+    - "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
 
 7z:
   executable:
