@@ -231,6 +231,14 @@ def get_active_pkg_and_activity():
     return pkg, activity
 
 
+def get_device_name():
+    out = subprocess.check_output(
+        ["adb", "shell", "getprop", "ro.build.fingerprint"]
+    ).decode()
+    model = out.split("/")[1]
+    return model
+
+
 def take_screenshot(file_name=None):
     if not file_name:
         file_name = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")

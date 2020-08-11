@@ -18,15 +18,15 @@ ClipChanged(Type) {
                 g_lastUrl := Clipboard
                 url := SubStr(g_lastUrl, 1, 43)
                 
-                dir := GetDownloadDir("Youtube")
-                
                 key := WaitKey()
                 if ( key = " " )
                 {
+                    dir := GetDownloadDir("Youtube")
                     Run, cmd /c youtube-dl -f bestvideo+bestaudio %url% --no-mtime & timeout 5, % dir, Min
                 }
                 else if ( key = "v" )
                 {
+                    dir := GetDownloadDir("Youtube")
                     Run, cmd /c youtube-dl -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5, % dir, Min
                 }
             }
