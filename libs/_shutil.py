@@ -216,7 +216,7 @@ def call2(args, check=True, shell=True, **kwargs):
 
 def call_echo(args, shell=True, check=True, **kwargs):
     import shlex
-    
+
     print("> ", end="")
     if type(args) == list:
         s = " ".join([shlex.quote(x) for x in args])
