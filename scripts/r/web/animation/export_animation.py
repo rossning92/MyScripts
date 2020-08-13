@@ -305,7 +305,7 @@ def record(f, t="a", postprocess=True, **kwargs):
 
     _pos_dict["re"] = _get_pos("ae")
 
-    END_CHAR = ["。", "，", "！", "、", "；", "？"]
+    END_CHARS = ["。", "，", "！", "、", "；", "？", "|"]
 
     global _srt_index
     global _last_subtitle_index
@@ -323,8 +323,8 @@ def record(f, t="a", postprocess=True, **kwargs):
             start = end = _get_pos("as")
             subtitle = _subtitle[idx].strip()
 
-            if subtitle[-1] not in END_CHAR:
-                subtitle += END_CHAR[0]
+            if subtitle[-1] not in END_CHARS:
+                subtitle += END_CHARS[0]
 
             length = len(subtitle)
             word_dura = (_get_pos("ae") - start) / length
@@ -334,7 +334,7 @@ def record(f, t="a", postprocess=True, **kwargs):
             word = ""
 
             while i < length:
-                if subtitle[i] in ["，", "。", "！"] and len(word) > MAX:
+                if subtitle[i] in END_CHARS and len(word) > MAX:
                     _srt_lines.extend(
                         [
                             "%d" % _srt_index,
