@@ -3,6 +3,7 @@ const cp = require("child_process");
 const path = require("path");
 const process = require("process");
 const fs = require("fs");
+const os = require("os");
 
 var child;
 
@@ -250,6 +251,27 @@ function getRecorderProcess() {
   return child;
 }
 
+function getRandomString() {
+  return (
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15)
+  );
+}
+
+function writeTempTextFile(text) {
+  const fs = require("fs");
+
+  const file = path.join(
+    os.tmpdir(),
+    "animation-" + getRandomString() + ".txt"
+  );
+  fs.writeFileSync(file, text, {
+    encoding: "utf8",
+  });
+
+  return file;
+}
+
 function export_animation({ audioOnly = false } = {}) {
   let editor = vscode.window.activeTextEditor;
   if (editor) {
@@ -261,22 +283,26 @@ function export_animation({ audioOnly = false } = {}) {
     var activeDirectory = path.dirname(activeFilePath);
     // vscode.window.showInformationMessage(activeDirectory);
 
+    const textFile = writeTempTextFile(selectionText);
     const shellArgs = [
+      "/c",
+      "run_script",
       "/r/web/animation/export_animation",
       "--",
       "-i",
-      selectionText,
+      textFile,
       "--proj_dir",
       getProjectDir(),
     ];
     if (audioOnly) {
       shellArgs.push("--audio_only");
     }
+    shellArgs.push("||", "pause");
 
     const terminal = vscode.window.createTerminal({
       name: "yoyo",
       cwd: activeDirectory,
-      shellPath: "run_script.exe",
+      shellPath: "cmd.exe",
       shellArgs: shellArgs,
     });
     terminal.show();

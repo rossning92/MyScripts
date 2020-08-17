@@ -1,14 +1,3 @@
-if 1:
-    import sys
-    import traceback
-
-    def excepthook(exc_type, exc_value, exc_traceback):
-        traceback.print_tb(exc_traceback)
-        print(exc_value)
-        input("press enter key...")
-
-    sys.excepthook = excepthook
-
 import argparse
 import hashlib
 import re
@@ -1268,7 +1257,8 @@ if __name__ == "__main__":
         _parse_text(s, audio_only=args.audio_only)
 
     elif args.input:
-        _parse_text(args.input, audio_only=args.audio_only)
+        with open(args.input, "r", encoding="utf-8") as f:
+            _parse_text(f.read(), audio_only=args.audio_only)
 
     else:
         PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
