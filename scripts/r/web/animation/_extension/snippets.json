@@ -14,5 +14,13 @@
   "tts": {
     "prefix": "tts",
     "body": ["{{ tts(True) }}"]
+  },
+  "bgm": {
+    "prefix": "bgm",
+    "body": ["{{ bgm('$1', norm=True) }}"]
+  },
+  "crossfade": {
+    "prefix": "crossfade",
+    "body": ["{{ crossfade(True) }}"]
   }
 }
