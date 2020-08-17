@@ -197,6 +197,16 @@ def create_final_vocal(prefix="record_", file_list=[]):
     #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
 
 
+def dynamic_audio_normalize(f):
+    name, ext = os.path.splitext(f)
+    out_file = "%s-norm%s" % (name, ext)
+    if not os.path.exists(out_file):
+        call_echo(
+            ["ffmpeg", "-i", f, "-af", "dynaudnorm, afade=t=in:ss=0:d=0.5", out_file]
+        )
+    return out_file
+
+
 if __name__ == "__main__":
     folder = r"{{_AUDIO_DIR}}"
     print("input audio folder: %s" % folder)

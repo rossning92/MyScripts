@@ -24,7 +24,7 @@ from PIL import Image
 import capture_animation
 from _appmanager import get_executable
 from _shutil import *
-from r.audio.postprocess import process_audio_file
+from r.audio.postprocess import process_audio_file, dynamic_audio_normalize
 from r.open_with.open_with_ import open_with
 from slide.generate import generate_slide
 
@@ -453,12 +453,16 @@ def bgm(
     crossfade=0,
     in_duration=0.5,
     out_duration=0.5,
-    vol=0.1,
+    vol=0.15,
     track="bgm",
+    norm=False,
     **kwargs,
 ):
     print("bgm: %s" % f)
     t = _get_pos(t)
+
+    if norm:
+        f = dynamic_audio_normalize(f)
 
     if len(_get_audio_track(track).clips) > 0:
         if crossfade > 0:
