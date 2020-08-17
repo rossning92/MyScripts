@@ -3,7 +3,7 @@ from _script import *
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
 
-def run_bash_script_ssh(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
+def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
     # plink is preferred (better automation)
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 ssh_port = int("{{SSH_PORT}}") if "{{SSH_PORT}}" else None
                 ssh_pwd = r"{{SSH_PWD}}" if r"{{SSH_PWD}}" else None
 
-            run_bash_script_ssh(tmp_script_file, ssh_host, ssh_port, ssh_pwd=ssh_pwd)
+            ssh_run_bash_script(tmp_script_file, ssh_host, ssh_port, ssh_pwd=ssh_pwd)
 
     else:
         print2("script extension not supported: %s" % script.ext, color="red")
