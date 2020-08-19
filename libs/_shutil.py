@@ -436,7 +436,6 @@ def replace(file, patt, repl, debug_output=False):
 
 
 def append_line(file_path, s):
-    lines = None
     with open(file_path, "r") as f:
         text = f.read()
 
