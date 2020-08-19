@@ -243,7 +243,7 @@ else if WinExist("Administrator:  " name)
 }
 else
 {
-    WriteDefaultExplorerInfo()
+    UpdateExplorerInfo()
     Run cmd /c """
                 + sys.executable
                 + ' "'

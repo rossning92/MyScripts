@@ -72,7 +72,7 @@ return
 
 ^q::
     ; If explorer is active, copy file path to clipboard
-    WriteDefaultExplorerInfo()
+    UpdateExplorerInfo()
     
     ; Activate script window
     if WinExist(CONSOLE_WINDOW) {

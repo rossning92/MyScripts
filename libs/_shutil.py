@@ -819,7 +819,7 @@ def update_env_var_explorer():
         return
 
     try:
-        with open(os.path.join(os.environ["TEMP"], "ExplorerInfo.json")) as f:
+        with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
             data = json.load(f)
 
         if data["current_folder"]:

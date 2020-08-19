@@ -1,17 +1,55 @@
 #include %A_LineFile%\..\JSON.ahk 
 
-WriteExplorerInfo(file)
+UpdateExplorerInfo()
 {
-    data := { "current_folder" : Explorer_GetPath(), "selected_files" : Explorer_GetSelected() }
+    selectedFiles := Explorer_GetSelected()
+    data := { "current_folder" : Explorer_GetPath(), "selected_files" : selectedFiles }
     str := JSON.Dump(data, "", 4)
-    FileDelete, %file%
-    FileAppend, %str%, %file%
+    
+    INFO_FILE := A_Temp "\ow_explorer_info.json"
+    FileDelete, %INFO_FILE%
+    FileAppend, %str%, %INFO_FILE%
+    
+    if (selectedFiles.Length() = 0) {
+        DumpSelectedFilePath()
+    }
 }
 
-WriteDefaultExplorerInfo()
+DumpSelectedFilePath()
 {
-    file = %A_Temp%\ExplorerInfo.json
-    WriteExplorerInfo(file)
+    ; Save clipboard
+    clipSaved := ClipboardAll
+    
+    ; Get file path
+    Clipboard =
+    Send ^c
+    ClipWait, 0.2
+    if ErrorLevel
+        return
+    filePath = %clipboard%
+    
+    ; Restore clipboard
+    Clipboard := clipSaved
+    clipSaved =
+    
+    ; Check file existance
+    if not FileExist(filePath)
+        return
+    
+    ; Check if selected file is a shortcut
+    SplitPath filePath, , , ext
+    StringLower ext, ext
+    if (ext = "lnk")
+    {
+        ; get target file path
+        FileGetShortcut %filePath%, filePath
+    }
+    
+    data := { "current_folder": "", "selected_files" : [filePath] }
+    str := JSON.Dump(data, "", 4)
+    INFO_FILE := A_Temp "\ow_explorer_info.json"
+    FileDelete, %INFO_FILE%
+    FileAppend, %str%, %INFO_FILE%
 }
 
 Explorer_GetPath(hwnd="")

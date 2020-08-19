@@ -333,7 +333,7 @@ RunScript(name, path)
     }
     else
     {
-        WriteDefaultExplorerInfo()
+        UpdateExplorerInfo()
         Run cmd /c """
                     + sys.executable
                     + ' "'
