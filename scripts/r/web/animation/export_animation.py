@@ -442,7 +442,7 @@ def bgm(
     crossfade=0,
     in_duration=0.5,
     out_duration=0.5,
-    vol=0.15,
+    vol=0.10,
     track="bgm",
     norm=False,
     **kwargs,

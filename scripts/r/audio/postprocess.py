@@ -202,7 +202,14 @@ def dynamic_audio_normalize(f):
     out_file = "%s-norm%s" % (name, ext)
     if not os.path.exists(out_file):
         call_echo(
-            ["ffmpeg", "-i", f, "-af", "dynaudnorm, afade=t=in:ss=0:d=0.5", out_file]
+            [
+                "ffmpeg",
+                "-i",
+                f,
+                "-af",
+                "dynaudnorm=p=1/sqrt(2):m=100:s=12:g=15",
+                out_file,
+            ]
         )
     return out_file
 
