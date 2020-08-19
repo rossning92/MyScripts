@@ -166,6 +166,7 @@ class VariableSearchWindow(SearchWindow):
         self.vars = get_all_variables()
         self.var_names = sorted(script.get_variable_names())
         self.items = []
+        self.enter_pressed = False
 
         if len(self.var_names) > 0:
             self.update_items()
@@ -175,7 +176,8 @@ class VariableSearchWindow(SearchWindow):
         self.items[:] = get_variable_str_list(self.vars, self.var_names)
 
     def on_enter_pressed(self):
-        self.edit_variable()
+        self.enter_pressed = True
+        self.close()
 
     def on_getch(self, ch):
         if ch == ord("\t"):
@@ -314,7 +316,9 @@ class MainWindow(SearchWindow):
         elif ch == ord("\t"):
             script = self.get_selected_item()
             if script is not None:
-                VariableSearchWindow(self.stdscr, script)
+                w = VariableSearchWindow(self.stdscr, script)
+                if w.enter_pressed:
+                    self.run_selected_script()
                 return True
 
         elif ch in state.hotkeys:
