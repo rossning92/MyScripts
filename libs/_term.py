@@ -523,13 +523,17 @@ class InputWidget:
 
 
 class SearchWindow:
-    def __init__(self, stdscr, items, label=">", text=""):
+    def __init__(self, stdscr=None, items=[], label=">", text=""):
         self.input_ = InputWidget(label=label, text=text)
         self.items = items
         self.closed = False
+
+        if stdscr is None:
+            stdscr = init_curses()
         self.stdscr = stdscr
+
         self.matched_item_indices = []
-        self.selected_index = 0
+        self.selected_row = 0
         self.width = -1
         self.height = -1
 
@@ -544,7 +548,7 @@ class SearchWindow:
                 # Search scripts
                 self.matched_item_indices = list(search_items(items, self.get_text()))
 
-                self.selected_index = 0
+                self.selected_row = 0
 
             # Sreen update
             stdscr.clear()
@@ -564,11 +568,11 @@ class SearchWindow:
                 self.on_enter_pressed()
 
             elif ch == curses.KEY_UP:
-                self.selected_index = max(self.selected_index - 1, 0)
+                self.selected_row = max(self.selected_row - 1, 0)
 
             elif ch == curses.KEY_DOWN:
-                self.selected_index = min(
-                    self.selected_index + 1, len(self.matched_item_indices) - 1
+                self.selected_row = min(
+                    self.selected_row + 1, len(self.matched_item_indices) - 1
                 )
 
             elif ch == curses.ascii.ESC:
@@ -584,7 +588,7 @@ class SearchWindow:
 
     def get_selected_index(self):
         if len(self.matched_item_indices) > 0:
-            return self.matched_item_indices[self.selected_index]
+            return self.matched_item_indices[self.selected_row]
         else:
             return -1
 
@@ -595,12 +599,12 @@ class SearchWindow:
         # Get matched scripts
         row = 2
         for i, item_index in enumerate(self.matched_item_indices):
-            if self.selected_index == i:  # Hightlight on
+            if self.selected_row == i:  # Hightlight on
                 self.stdscr.attron(curses.color_pair(2))
             self.stdscr.addstr(
                 row, 0, "%d. %s" % (item_index + 1, str(self.items[item_index]))
             )
-            if self.selected_index == i:  # Highlight off
+            if self.selected_row == i:  # Highlight off
                 self.stdscr.attroff(curses.color_pair(2))
 
             row += 1
@@ -611,7 +615,7 @@ class SearchWindow:
 
     def get_selected_item(self):
         if len(self.matched_item_indices) > 0:
-            item_index = self.matched_item_indices[self.selected_index]
+            item_index = self.matched_item_indices[self.selected_row]
             return self.items[item_index]
         else:
             return None
@@ -620,7 +624,7 @@ class SearchWindow:
         return False
 
     def on_enter_pressed(self):
-        pass
+        self.close()
 
     def on_tab_pressed(self):
         pass
@@ -633,13 +637,14 @@ class SearchWindow:
 
 
 def init_curses():
+    stdscr = curses.initscr()
     curses.noecho()
     curses.cbreak()
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
     curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
-    stdscr = curses.initscr()
     stdscr.keypad(1)
     stdscr.nodelay(False)
     stdscr.timeout(1000)
+    return stdscr
