@@ -118,11 +118,7 @@ class VariableEditWindow(SearchWindow):
             stdscr,
             self.vars[var_name] if var_name in self.vars else [],
             label=var_name + " :",
-            text=(
-                self.vars[var_name][-1]
-                if var_name in self.vars and len(self.vars[var_name]) > 0
-                else ""
-            ),
+            text="",
         )
 
     def save_variable_val(self, val):
@@ -132,7 +128,7 @@ class VariableEditWindow(SearchWindow):
             self.vars[self.var_name].remove(val)
         except ValueError:
             pass
-        self.vars[self.var_name].append(val)
+        self.vars[self.var_name].insert(0, val)
 
         save_variables(self.vars)
 
@@ -155,7 +151,7 @@ def get_variable_str_list(vars, var_names):
     max_width = max([len(val_name) for val_name in var_names]) + 1
     for var_name in var_names:
         var_val = (
-            vars[var_name][-1] if (var_name in vars and len(vars[var_name]) > 0) else ""
+            vars[var_name][0] if (var_name in vars and len(vars[var_name]) > 0) else ""
         )
         result.append(var_name.ljust(max_width) + ": " + var_val)
     return result
