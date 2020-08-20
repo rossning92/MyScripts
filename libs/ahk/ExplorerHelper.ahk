@@ -17,6 +17,9 @@ UpdateExplorerInfo()
 
 DumpSelectedFilePath()
 {
+    if not WinActive("ahk_exe everything.exe") and not WinActive("ahk_exe explorer.exe")
+        return
+    
     ; Save clipboard
     clipSaved := ClipboardAll
     
