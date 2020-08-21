@@ -2,7 +2,7 @@ from _shutil import *
 import datetime
 
 
-def start_app(pkg, use_monkey=False):
+def start_app(pkg, use_monkey=True):
     ret = 1
     if use_monkey:
         args = "adb shell monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg
@@ -27,7 +27,7 @@ def kill_app(pkg):
     call_echo(args)
 
 
-def restart_app(pkg, use_monkey=False):
+def restart_app(pkg, use_monkey=True):
     print("Stop app: " + pkg)
     args = "adb shell am force-stop %s" % pkg
     print("> " + args)

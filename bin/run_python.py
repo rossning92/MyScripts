@@ -30,6 +30,7 @@ PYTHON_MODULE_LIST = {
     "pyscreenshot": "pyscreenshot",
     "jieba": "jieba",
     "pyaudio": "pyaudio",
+    "cv2": "opencv-python",
 }
 
 

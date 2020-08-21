@@ -47,3 +47,19 @@ def append_csv(df, csv_file):
         df2 = pd.read_csv(csv_file)
         df = pd.concat([df2, df], sort=False)
     df.to_csv(csv_file, index=False)
+
+
+def save_animation_as_gif(animate):
+    import matplotlib.animation as animation
+
+    anim = animation.FuncAnimation(
+        plt.gcf(),
+        animate,
+        frames=np.arange(0.0, 2 * np.pi, 0.05),
+        interval=10,
+        blit=True,
+        repeat=False,
+    )
+
+    # save animation at 30 frames per second
+    anim.save("myAnimation.gif", writer="imagemagick", fps=25)

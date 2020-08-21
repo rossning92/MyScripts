@@ -144,7 +144,7 @@ def get_variable(name):
     if name not in variables:
         return None
 
-    return variables[name][-1]
+    return variables[name][0]
 
 
 def set_variable(name, val):
@@ -351,7 +351,7 @@ class ScriptItem:
             variables = json.load(f)
 
         # Get only last modified value
-        variables = {k: (v[-1] if len(v) > 0 else "") for k, v in variables.items()}
+        variables = {k: (v[0] if len(v) > 0 else "") for k, v in variables.items()}
 
         # Override variables
         if self.override_variables:
