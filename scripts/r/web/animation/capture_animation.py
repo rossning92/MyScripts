@@ -11,10 +11,10 @@ import urllib
 # pip3 install websockets==6.0 --force-reinstall
 
 
-def capture_js_animation(in_file, out_file=None, params=None):
+def capture_js_animation(in_file, out_file=None, params=None, content_base=None):
     assert in_file.lower().endswith(".js")
 
-    ps = start_server(in_file)
+    ps = start_server(in_file, content_base=content_base)
 
     name = os.path.basename(os.path.splitext(in_file)[0])
     print("Generating animation: %s" % name + ".mp4")

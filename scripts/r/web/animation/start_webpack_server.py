@@ -1,7 +1,7 @@
 from _shutil import *
 
 
-def start_server(file=None):
+def start_server(file=None, content_base=None):
     ANIME_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "_framework")
 
     if not os.path.exists(os.path.join(ANIME_ROOT, "node_modules")):
@@ -24,11 +24,14 @@ def start_server(file=None):
     # sample_project_path = os.path.abspath("./_sample_project")
     # copy(sample_project_path + '/', project_path + '/')
 
+    env = os.environ.copy()
     if file is not None:
-        os.environ["ENTRY"] = file
+        env["ENTRY"] = file
+    if content_base is not None:
+        env["CONTENT_BASE"] = content_base
 
     script = os.path.join(ANIME_ROOT, "bin", "start-app.js")
-    ps = subprocess.Popen(["node", script])
+    ps = subprocess.Popen(["node", script], env=env)
     return ps
 
 

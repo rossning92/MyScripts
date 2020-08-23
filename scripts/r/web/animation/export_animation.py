@@ -944,6 +944,7 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
                         in_file=animation_info.in_file,
                         out_file=out_file,
                         params=params,
+                        content_base=os.getcwd(),
                     )
 
             for i, clip_info in enumerate(animation_info.clip_info_list):

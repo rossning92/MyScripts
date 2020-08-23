@@ -11,9 +11,9 @@ const compiler = webpack(config);
 
 const server = new WebpackDevServer(compiler, {
   open: false,
-  contentBase: process.env.ENTRY
-    ? path.dirname(process.env.ENTRY)
-    : path.join(__dirname, "pages"),
+  contentBase: process.env.CONTENT_BASE
+    ? process.env.CONTENT_BASE
+    : path.dirname(process.env.ENTRY),
 });
 
 server.listen(8080, "localhost", () => {
