@@ -8,6 +8,7 @@ if __name__ == "__main__":
     new_file = wait_for_new_file(
         os.path.expandvars(r"%USERPROFILE%\Videos\**\*.mp4"), allow_exists=True
     )
+    print(new_file)
 
     name = input("input file name (no ext): ")
     if not name:

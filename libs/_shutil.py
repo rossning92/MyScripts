@@ -1043,35 +1043,30 @@ def refresh_env():
 
 def wait_for_new_file(file_pattern, allow_exists=False):
     max_mtime = 0.0
-
-    if not allow_exists:
-        for f in glob.glob(file_pattern):
-            max_mtime = max(os.path.getmtime(f), max_mtime)
-
-    print("wait for new file: %s " % file_pattern)
     newest_file = None
-    while True:
-        for f in glob.glob(file_pattern, recursive=True):
-            mtime = os.path.getmtime(f)
-            if mtime > max_mtime:
-                newest_file = f
-                max_mtime = mtime
-        
-        if allow_exists:
-            break
-        else:
-            time.sleep(0.1)
+    for f in glob.glob(file_pattern):
+        mtime = os.path.getmtime(f)
+        if mtime > max_mtime:
+            newest_file = f
+            max_mtime = mtime
     
-    # Wait until file is closed
-    while newest_file is not None:
-        try:
-            os.rename(newest_file, newest_file)
-            print("file created: %s" % newest_file)
-            return newest_file
-        except:
-            time.sleep(0.1)
-
-    return None
+    if allow_exists:
+        return newest_file
+    else:
+        print("wait for new file: %s " % file_pattern)
+        while True:
+            for f in glob.glob(file_pattern, recursive=True):
+                mtime = os.path.getmtime(f)
+                if mtime > max_mtime:            
+                    # Wait until file is closed
+                    try:
+                        os.rename(newest_file, newest_file)
+                        print("file created: %s" % newest_file)
+                        return newest_file
+                    except:
+                        time.sleep(0.1)
+    
+    
 
 def slugify(s):
     import slugify as slug
