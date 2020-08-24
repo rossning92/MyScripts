@@ -3,9 +3,11 @@ from _android import *
 
 setup_android_env()
 
-# https://github.com/xiaocong/uiautomator
+# https://github.com/openatx/uiautomator2
+# python -m uiautomator2 init
 # "C:\Android\android-sdk\tools\bin\uiautomatorviewer.bat"
+# pip install --upgrade --pre uiautomator2
 
-call('pip install uiautomator --upgrade')
 
-call('python -c "import code; from uiautomator import device as d; code.interact(local=locals())"')
+call("pip install --upgrade --pre uiautomator2")
+

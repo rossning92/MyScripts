@@ -8,6 +8,6 @@ if [[ $out == *"Dozing"* ]]; then
 	adb shell input touchscreen swipe 540 1000 540 200
 	sleep 1
 	
-    adb shell input text 123475
+    adb shell input text {{ANDROID_PIN}}
     adb shell input keyevent KEYCODE_ENTER
 fi
