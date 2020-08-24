@@ -1049,21 +1049,29 @@ def wait_for_new_file(file_pattern, allow_exists=False):
             max_mtime = max(os.path.getmtime(f), max_mtime)
 
     print("wait for new file: %s " % file_pattern)
+    newest_file = None
     while True:
         for f in glob.glob(file_pattern, recursive=True):
             mtime = os.path.getmtime(f)
             if mtime > max_mtime:
-                # Wait until file is closed
-                while True:
-                    try:
-                        os.rename(f, f)
-                        print("file created: %s" % f)
-                        return f
-                    except:
-                        time.sleep(0.1)
+                newest_file = f
+                max_mtime = mtime
+        
+        if allow_exists:
+            break
+        else:
+            time.sleep(0.1)
+    
+    # Wait until file is closed
+    while newest_file is not None:
+        try:
+            os.rename(newest_file, newest_file)
+            print("file created: %s" % newest_file)
+            return newest_file
+        except:
+            time.sleep(0.1)
 
-        time.sleep(0.1)
-
+    return None
 
 def slugify(s):
     import slugify as slug
