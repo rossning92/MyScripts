@@ -1,9 +1,15 @@
 anaconda: false
 autoRun: false
 background: false
-globalHotkey: Alt+Win+]
+closeOnExit: true
+conda: null
+globalHotkey: null
 hotkey: null
 newWindow: true
+packages: null
 restartInstance: false
 runAsAdmin: false
+template: true
+terminal: null
+venv: null
 wsl: false
