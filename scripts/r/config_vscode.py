@@ -90,6 +90,7 @@ if not "{{SKIP_EXTENSIONS}}":
         # Shader
         "slevesque.shader",
         "cadenas.vscode-glsllint",
+        "xaver.clang-format",
     ]
 
     prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
