@@ -28,7 +28,8 @@ def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
             user_host + ":/tmp/s.sh",
         ]
     )
-    call_echo(["wsl", "ssh", user_host, "bash /tmp/s.sh"])
+    # -t : interactive session
+    call_echo(["wsl", "ssh", "-t", user_host, "bash /tmp/s.sh"])
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
