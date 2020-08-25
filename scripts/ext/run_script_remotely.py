@@ -15,6 +15,10 @@ def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
     call_echo(args)
 
 
+def ssh_exec_command(user_host, command):
+    call_echo(["wsl", "ssh", user_host, command])
+
+
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
     call_echo(
         f"vagrant upload {bash_script_file} {TEMP_SHELL_SCRIPT_PATH} {vagrant_id}"
