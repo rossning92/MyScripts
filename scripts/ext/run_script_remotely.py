@@ -3,7 +3,7 @@ from _script import *
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
 
-def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
+def ssh_run_bash_script_plink(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
     # plink is preferred (better automation)
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
@@ -17,6 +17,18 @@ def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
 
 def ssh_exec_command(user_host, command):
     call_echo(["wsl", "ssh", user_host, command])
+
+
+def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
+    call_echo(
+        [
+            "wsl",
+            "scp",
+            convert_to_unix_path(bash_script_file, wsl=True),
+            user_host + ":/tmp/s.sh",
+        ]
+    )
+    call_echo(["wsl", "ssh", user_host, "bash /tmp/s.sh"])
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
