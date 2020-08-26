@@ -354,7 +354,7 @@ class MainWindow(SearchWindow):
 
 
 def curse_main(stdscr):
-    init_curses()
+    init_curses(stdscr)
     MainWindow(stdscr)
 
 
