@@ -139,6 +139,16 @@ def edit_video(file):
         mpv.command("show-text", "Cropping chrome...", "3000")
         create_filtered_video("crop=2537:1330:0:50" ",scale=1920:-2")
 
+    @mpv.on_key_press("1")
+    def to_1080p():
+        mpv.command("show-text", "Scale to 1080p...", "3000")
+        create_filtered_video("scale=-2:1080")
+
+    @mpv.on_key_press("7")
+    def to_720p():
+        mpv.command("show-text", "Scale to 720p...", "3000")
+        create_filtered_video("scale=-2:720")
+
     @mpv.on_key_press("2")
     def set_speed_2x():
         mpv.command("show-text", "Setting speed to 2x...", "3000")
