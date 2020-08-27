@@ -19,7 +19,7 @@ If NOT (fso.FolderExists(exportDir)) Then
 End If
 
 
-i = 0
+i = 1
 For Each sld In app.ActivePresentation.Slides
     fileName = exportDir & "\\" & PadDigits(i, 4) & ".png"
     sld.Export fileName, "PNG", w, h
