@@ -1,4 +1,4 @@
-from _gui import search
+from _term import SearchWindow
 import sys
 import subprocess
 
@@ -63,7 +63,7 @@ PKGS = {
 pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
     set([app for cate in PKGS.values() for app in cate])
 )
-idx = search(pkg_list)
+idx = SearchWindow(items=pkg_list).get_selected_index()
 if idx < 0:
     sys.exit(1)
 
