@@ -42,6 +42,7 @@ FADE_DURATION = 0.2
 AUTO_GENERATE_TTS = False
 IMAGE_SEQUENCE_FPS = 25
 FPS = 25
+SCALE = 1.0
 
 # change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
@@ -693,6 +694,9 @@ def _create_mpy_clip(
         else:
             clip = clip.set_position(pos)
 
+    if SCALE != 1.0:
+        clip = clip.resize(SCALE)
+
     return clip
 
 
@@ -894,6 +898,8 @@ def _update_clip_duration(track):
 
 
 def _export_video(resolution=(1920, 1080), audio_only=False):
+    resolution = [int(x * SCALE) for x in resolution]
+
     audio_clips = []
 
     # Update clip duration for each track
