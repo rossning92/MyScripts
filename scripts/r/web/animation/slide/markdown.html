@@ -104,29 +104,6 @@
   </head>
 
   <body>
-    <script src="https://cdn.jsdelivr.net/npm/animejs@3.0.1/lib/anime.min.js"></script>
-    <script>
-      window.onload = function () {
-        // return;
-
-        // var elements = document.querySelectorAll('ul > li');
-
-        anime({
-          targets: "ul > li",
-          fontSize: ["0", "100%"],
-          opacity: ["0%", "100%"],
-          translateX: ["-50%", 0],
-          delay: anime.stagger(1000),
-          duration: 500,
-        });
-      };
-    </script>
     {{ text }}
-    <!-- <div class="grid-container">
-        <div class="grid-item">1</div>
-        <div class="grid-item">2</div>
-        <div class="grid-item">3</div>
-        <div class="grid-item">4</div>
-    </div> -->
   </body>
 </html>
