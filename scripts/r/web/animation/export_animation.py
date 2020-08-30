@@ -168,7 +168,7 @@ def _get_pos(p):
     if isinstance(p, (int, float)):
         return p
 
-    PATT_FLOAT = r"[+-]?([0-9]*[.])?[0-9]+"
+    PATT_NUMBER = r"[+-]?(?:[0-9]*[.])?[0-9]+"
 
     if p is None:
         return _pos_list[-1]
@@ -180,30 +180,10 @@ def _get_pos(p):
         if p in _pos_dict:
             return _pos_dict[p]
 
-        # TODO: remove
-        match = re.match(r"^\+=" + PATT_FLOAT + "$", p)
-        if match:
-            delta = float(match.group(1))
-            return _pos_list[-1] + delta
-
-        # TODO: remove
-        match = re.match(r"^\<" + PATT_FLOAT + "$", p)
-        if match:
-            delta = float(match.group(1))
-            clip_info = _get_vid_track()[-1]
-            return clip_info.start + delta
-
-        # TODO: remove
-        match = re.match(r"^(\^+)" + PATT_FLOAT + "$", p)
-        if match:
-            index_back_in_history = len(match.group(1))
-            delta = float(match.group(2))
-            return _pos_list[-index_back_in_history - 1] + delta
-
-        match = re.match(r"^([a-z_]+)" + PATT_FLOAT + "$", p)
+        match = re.match(r"^([a-z_]+)(" + PATT_NUMBER + ")$", p)
         if match:
             tag = match.group(1)
-            assert match.group(2) != ""
+            assert match.group(2)
             delta = float(match.group(2))
             return _pos_dict[tag] + delta
 
@@ -1195,24 +1175,57 @@ def _write_timestamp(t, section_name):
         f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
 
 
-def _default_function_table():
+def _interface():
     return {
+        "anim": lambda: None,
+        "audio_end": lambda: None,
+        "audio_gap": lambda: None,
+        "audio": lambda: None,
+        "bgm_vol": lambda: None,
+        "bgm": lambda: None,
+        "clip": lambda: None,
+        "code_carbon": lambda: None,  # deprecated, use `code` instead
+        "code": lambda: None,
+        "comment": lambda: None,
+        "crossfade": lambda: None,
+        "empty": lambda: None,  # deprecated
+        "fps": lambda: None,
+        "hl": lambda: None,
+        "image_anim": lambda: None,
+        "image": lambda: None,  # deprecated, use `clip` instead
+        "md": lambda: None,
+        "overlay": lambda: None,
+        "pos": lambda: None,
+        "record": lambda: None,
+        "sfx": lambda: None,
+        "text": lambda: None,
+        "title_anim": lambda: None,
+        "tts": lambda: None,
+        "video_end": lambda: None,
+        "video": lambda: None,  # deprecated, use `clip` instead
+        "vol": lambda: None,
+    }
+
+
+def _default_impl():
+    return {
+        **_interface(),
         "anim": anim,
-        "audio": audio,
         "audio_end": audio_end,
         "audio_gap": audio_gap,
-        "bgm": bgm,
+        "audio": audio,
         "bgm_vol": bgm_vol,
+        "bgm": bgm,
         "clip": clip,
+        "code_carbon": code_carbon,  # deprecated, use `code` instead
         "code": code,
-        "code_carbon": code_carbon,
         "comment": comment,
         "crossfade": crossfade,
-        "empty": empty,
+        "empty": empty,  # deprecated
         "fps": fps,
         "hl": hl,
-        "image": image,
         "image_anim": image_anim,
+        "image": image,  # deprecated, use `clip` instead
         "md": md,
         "overlay": overlay,
         "pos": pos,
@@ -1221,8 +1234,8 @@ def _default_function_table():
         "text": text,
         "title_anim": title_anim,
         "tts": tts,
-        "video": video,
         "video_end": video_end,
+        "video": video,  # deprecated, use `clip` instead
         "vol": vol,
     }
 
@@ -1244,14 +1257,14 @@ def _parse_text(text, **kwargs):
             python_code = text[p + 2 : end].strip()
             p = end + 1
 
-            exec(python_code, _default_function_table())
+            exec(python_code, _default_impl())
 
         elif text[p : p + 2] == "{" + "{":
             end = find_next(text, "}" + "}", p)
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
-            exec(python_code, _default_function_table())
+            exec(python_code, _default_impl())
 
         elif text[p : p + 1] == "#":
             end = find_next(text, "\n", p)
