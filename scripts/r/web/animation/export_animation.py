@@ -1195,6 +1195,38 @@ def _write_timestamp(t, section_name):
         f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
 
 
+def _default_function_table():
+    return {
+        "anim": anim,
+        "audio": audio,
+        "audio_end": audio_end,
+        "audio_gap": audio_gap,
+        "bgm": bgm,
+        "bgm_vol": bgm_vol,
+        "clip": clip,
+        "code": code,
+        "code_carbon": code_carbon,
+        "comment": comment,
+        "crossfade": crossfade,
+        "empty": empty,
+        "fps": fps,
+        "hl": hl,
+        "image": image,
+        "image_anim": image_anim,
+        "md": md,
+        "overlay": overlay,
+        "pos": pos,
+        "record": record,
+        "sfx": sfx,
+        "text": text,
+        "title_anim": title_anim,
+        "tts": tts,
+        "video": video,
+        "video_end": video_end,
+        "vol": vol,
+    }
+
+
 def _parse_text(text, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
@@ -1212,14 +1244,14 @@ def _parse_text(text, **kwargs):
             python_code = text[p + 2 : end].strip()
             p = end + 1
 
-            exec(python_code, globals())
+            exec(python_code, _default_function_table())
 
         elif text[p : p + 2] == "{" + "{":
             end = find_next(text, "}" + "}", p)
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
-            exec(python_code, globals())
+            exec(python_code, _default_function_table())
 
         elif text[p : p + 1] == "#":
             end = find_next(text, "\n", p)
