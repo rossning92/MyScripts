@@ -58,5 +58,8 @@ if __name__ == "__main__":
             commit()
         elif ch == "a":
             commit(amend=True)
+        elif ch == "A":
+            commit(amend=True)
+            call_echo("git push -u origin master --force")
         elif ch == "p":
             call_echo("git push -u origin master --force")
