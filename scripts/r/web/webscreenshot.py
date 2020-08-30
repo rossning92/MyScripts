@@ -37,7 +37,7 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
         browser = await launch(
             headless=False,
             executablePath=r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
-            args=["--font-render-hinting=max"],
+            args=["--enable-font-antialiasing", "--font-render-hinting=max"],
         )
         page = await browser.newPage()
 

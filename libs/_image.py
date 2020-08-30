@@ -15,6 +15,7 @@ def crop_image_file(file_name, rect=None, rect_normalized=None):
 def load_im(f):
     return np.array(Image.open(f))
 
+
 def save_im(im, f):
     Image.fromarray(im).save(f)
 
@@ -45,7 +46,35 @@ def crop_image(im, rect=None, rect_normalized=None):
 
 
 def scale_image(im, sx, sy):
-    return im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.ANTIALIAS)
+    if type(im) == str:
+        f = im
+        im = Image.open(f)
+    else:
+        f = None
+
+    im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.LANCZOS)
+
+    if f is not None:
+        im.save(f)
+        return f
+    else:
+        return im
+
+
+def resize_image(im, w, h):
+    if type(im) == str:
+        f = im
+        im = Image.open(f)
+    else:
+        f = None
+
+    im = im.resize((w, h), Image.LANCZOS)
+
+    if f is not None:
+        im.save(f)
+        return f
+    else:
+        return im
 
 
 def show_im(

@@ -13,7 +13,7 @@ SetWorkingDir, %VIDEO_PROJECT_DIR%
 return
 
 $F10::
-    RunScript("_screenshot.py", True)
+    RunScript(SCRIPT_DIR . "\screenshot_.py", min:=True)
 return
 
 ; Screencap (full screen)
@@ -55,7 +55,7 @@ ToggleRecording(enable_carnac:=True)
         Send !{f9}
         Sleep, 1000 ; Make sure that the window is not pop up when recording stops.
         
-        RunScript(SCRIPT_DIR . "\_save_screencap.py")
+        RunScript(SCRIPT_DIR . "\save_screencap_.py")
     }
     
     is_recording := not is_recording

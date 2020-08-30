@@ -31,6 +31,7 @@ PYTHON_MODULE_LIST = {
     "jieba": "jieba",
     "pyaudio": "pyaudio",
     "cv2": "opencv-python",
+    "mss": "mss",
 }
 
 
