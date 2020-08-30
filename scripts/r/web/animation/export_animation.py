@@ -41,6 +41,7 @@ VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
 AUTO_GENERATE_TTS = False
 IMAGE_SEQUENCE_FPS = 25
+FPS = 25
 
 # change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
@@ -492,6 +493,11 @@ def clip(f, **kwargs):
     _add_clip(f, **kwargs)
 
 
+def fps(v):
+    global FPS
+    FPS = v
+
+
 def overlay(
     f, pos="center", duration=3, fadein=True, fadeout=True, track="overlay", **kwargs
 ):
@@ -887,7 +893,7 @@ def _update_clip_duration(track):
         track[-1].duration = duration
 
 
-def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
+def _export_video(resolution=(1920, 1080), audio_only=False):
     audio_clips = []
 
     # Update clip duration for each track
@@ -1087,7 +1093,7 @@ def _export_video(resolution=(1920, 1080), fps=25, audio_only=False):
             remove_temp=False,
             codec="libx264",
             threads=8,
-            fps=fps,
+            fps=FPS,
             ffmpeg_params=["-crf", "19"],
         )
 
@@ -1264,7 +1270,6 @@ if __name__ == "__main__":
     else:
         PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
 
-        FPS = int("{{_FPS}}") if "{{_FPS}}" else 25
         PARSE_LINE_RANGE = (
             [int(x) for x in "{{_PARSE_LINE_RANGE}}".split()]
             if "{{_PARSE_LINE_RANGE}}"
