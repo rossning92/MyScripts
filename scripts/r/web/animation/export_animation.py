@@ -87,7 +87,7 @@ class _AnimationInfo:
 
 _audio_track_cur_pos = 0
 _pos_list = [0]
-_pos_dict = {"a": 0}
+_pos_dict = {"a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
 
 
 _add_fadeout_to_last_clip = False
@@ -167,7 +167,7 @@ def _get_pos(p):
     if isinstance(p, (int, float)):
         return p
 
-    PATT_FLOAT = r"([-+]?\d*\.?\d*)"
+    PATT_FLOAT = r"[+-]?([0-9]*[.])?[0-9]+"
 
     if p is None:
         return _pos_list[-1]
@@ -206,7 +206,7 @@ def _get_pos(p):
             delta = float(match.group(2))
             return _pos_dict[tag] + delta
 
-    raise Exception("Invalid param.")
+    raise Exception("Invalid pos='%s'" % p)
 
 
 def _set_pos(t, tag=None):
