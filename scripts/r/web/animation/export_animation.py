@@ -1240,7 +1240,15 @@ def _default_impl():
     }
 
 
-def _parse_text(text, **kwargs):
+def _remove_unused_recordings(s):
+    recordings = set()
+    impl = {**_interface(), "record": (lambda f, **kargs: recordings.add(f))}
+    _parse_text(s, impl=impl)
+    print(recordings)
+    input()
+
+
+def _parse_text(text, impl=_default_impl(), **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1257,14 +1265,14 @@ def _parse_text(text, **kwargs):
             python_code = text[p + 2 : end].strip()
             p = end + 1
 
-            exec(python_code, _default_impl())
+            exec(python_code, impl)
 
         elif text[p : p + 2] == "{" + "{":
             end = find_next(text, "}" + "}", p)
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
-            exec(python_code, _default_impl())
+            exec(python_code, impl)
 
         elif text[p : p + 1] == "#":
             end = find_next(text, "\n", p)
@@ -1290,8 +1298,6 @@ def _parse_text(text, **kwargs):
             # _export_srt()
         # sys.exit(0)
 
-    _export_video(**kwargs)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -1299,6 +1305,9 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input", type=str, default=None)
     parser.add_argument("--proj_dir", type=str, default=None)
     parser.add_argument("-a", "--audio_only", action="store_true", default=False)
+    parser.add_argument(
+        "--remove_unused_recordings", action="store_true", default=False
+    )
 
     args = parser.parse_args()
 
@@ -1310,13 +1319,13 @@ if __name__ == "__main__":
         os.chdir(args.proj_dir)
     print("Project dir: %s" % os.getcwd())
 
+    # Read text
     if args.stdin:
         s = sys.stdin.read()
-        _parse_text(s, audio_only=args.audio_only)
 
     elif args.input:
         with open(args.input, "r", encoding="utf-8") as f:
-            _parse_text(f.read(), audio_only=args.audio_only)
+            s = f.read()
 
     else:
         PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
@@ -1339,4 +1348,5 @@ if __name__ == "__main__":
                 lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
             s = "\n".join(lines)
 
-            _parse_text(s, audio_only=args.audio_only)
+    _parse_text(s, audio_only=args.audio_only)
+    _export_video(audio_only=args.audio_only)
