@@ -272,7 +272,10 @@ function writeTempTextFile(text) {
   return file;
 }
 
-function export_animation({ audioOnly = false } = {}) {
+function export_animation({
+  audioOnly = false,
+  removeUnusedRecordings = false,
+} = {}) {
   let editor = vscode.window.activeTextEditor;
   if (editor) {
     let document = editor.document;
@@ -296,6 +299,9 @@ function export_animation({ audioOnly = false } = {}) {
     ];
     if (audioOnly) {
       shellArgs.push("--audio_only");
+    }
+    if (removeUnusedRecordings) {
+      shellArgs.push("--remove_unused_recordings");
     }
     shellArgs.push("||", "pause");
 
@@ -373,6 +379,10 @@ function activate(context) {
     "yo.insertAllClipsInFolder",
     insertAllClipsInFolder
   );
+
+  vscode.commands.registerCommand("yo.removeUnusedRecordings", function () {
+    export_animation({ audioOnly: true, removeUnusedRecordings: true });
+  });
 
   registerAutoComplete(context);
 

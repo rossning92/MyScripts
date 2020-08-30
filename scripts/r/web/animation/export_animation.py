@@ -1171,39 +1171,39 @@ def _convert_to_readable_time(seconds):
 
 
 def _write_timestamp(t, section_name):
-    with open("timestamp.txt", "a", encoding="utf-8") as f:
+    with open("timestamp.txt", "w", encoding="utf-8") as f:
         f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
 
 
 def _interface():
     return {
-        "anim": lambda: None,
-        "audio_end": lambda: None,
-        "audio_gap": lambda: None,
-        "audio": lambda: None,
-        "bgm_vol": lambda: None,
-        "bgm": lambda: None,
-        "clip": lambda: None,
-        "code_carbon": lambda: None,  # deprecated, use `code` instead
-        "code": lambda: None,
-        "comment": lambda: None,
-        "crossfade": lambda: None,
-        "empty": lambda: None,  # deprecated
-        "fps": lambda: None,
-        "hl": lambda: None,
-        "image_anim": lambda: None,
-        "image": lambda: None,  # deprecated, use `clip` instead
-        "md": lambda: None,
-        "overlay": lambda: None,
-        "pos": lambda: None,
-        "record": lambda: None,
-        "sfx": lambda: None,
-        "text": lambda: None,
-        "title_anim": lambda: None,
-        "tts": lambda: None,
-        "video_end": lambda: None,
-        "video": lambda: None,  # deprecated, use `clip` instead
-        "vol": lambda: None,
+        "anim": lambda *_, **__: None,
+        "audio_end": lambda *_, **__: None,
+        "audio_gap": lambda *_, **__: None,
+        "audio": lambda *_, **__: None,
+        "bgm_vol": lambda *_, **__: None,
+        "bgm": lambda *_, **__: None,
+        "clip": lambda *_, **__: None,
+        "code_carbon": lambda *_, **__: None,  # deprecated, use `code` instead
+        "code": lambda *_, **__: None,
+        "comment": lambda *_, **__: None,
+        "crossfade": lambda *_, **__: None,
+        "empty": lambda *_, **__: None,  # deprecated
+        "fps": lambda *_, **__: None,
+        "hl": lambda *_, **__: None,
+        "image_anim": lambda *_, **__: None,
+        "image": lambda *_, **__: None,  # deprecated, use `clip` instead
+        "md": lambda *_, **__: None,
+        "overlay": lambda *_, **__: None,
+        "pos": lambda *_, **__: None,
+        "record": lambda *_, **__: None,
+        "sfx": lambda *_, **__: None,
+        "text": lambda *_, **__: None,
+        "title_anim": lambda *_, **__: None,
+        "tts": lambda *_, **__: None,
+        "video_end": lambda *_, **__: None,
+        "video": lambda *_, **__: None,  # deprecated, use `clip` instead
+        "vol": lambda *_, **__: None,
     }
 
 
@@ -1244,8 +1244,17 @@ def _remove_unused_recordings(s):
     recordings = set()
     impl = {**_interface(), "record": (lambda f, **kargs: recordings.add(f))}
     _parse_text(s, impl=impl)
-    print(recordings)
-    input()
+
+    file_to_delete = []
+    for f in os.listdir("record"):
+        if f not in recordings and f.endswith(".wav"):
+            file_to_delete.append(f)
+
+    print("Used recordings: %d" % len(recordings))
+    print("Recordings to delete: %d" % len(file_to_delete))
+    if input("press y to confirm deletion: ") == "y":
+        for f in file_to_delete:
+            os.remove(os.path.join("record", f))
 
 
 def _parse_text(text, impl=_default_impl(), **kwargs):
@@ -1348,5 +1357,8 @@ if __name__ == "__main__":
                 lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
             s = "\n".join(lines)
 
-    _parse_text(s, audio_only=args.audio_only)
-    _export_video(audio_only=args.audio_only)
+    if args.remove_unused_recordings:
+        _remove_unused_recordings(s)
+    else:
+        _parse_text(s, audio_only=args.audio_only)
+        _export_video(audio_only=args.audio_only)

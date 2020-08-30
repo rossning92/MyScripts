@@ -55,6 +55,10 @@
       {
 				"command": "yo.insertAllClipsInFolder",
 				"title": "Animation ToolKit: Insert All Clips In Folder"
+      },
+      {
+				"command": "yo.removeUnusedRecordings",
+				"title": "Animation ToolKit: Remove Unused Recordings"
 			}
     ],
     "keybindings": [
