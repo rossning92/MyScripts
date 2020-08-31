@@ -326,8 +326,30 @@ def setup_android_env(ndk_version=None):
     prepend_to_path(path)
 
 
-def adb_shell(command, check=True):
-    subprocess.run(["adb", "shell", command], check=check)
+def adb_shell(command, check=True, **kwargs):
+    print('EXEC: adb shell "%s"' % command)
+    subprocess.run(["adb", "shell", command], check=check, **kwargs)
+
+
+def wait_until_boot_complete():
+    call_echo("adb wait-for-device")
+    while True:
+        try:
+            if (
+                subprocess.check_output(
+                    ["adb", "shell", "getprop", "sys.boot_completed"],
+                    universal_newlines=True,
+                ).strip()
+                == "1"
+            ):
+                break
+
+            print(".", end="", flush=True)
+            time.sleep(2)
+
+        except Exception as e:
+            print(e)
+            time.sleep(2)
 
 
 def adb_shell2(command, check=True, root=True):

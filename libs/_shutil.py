@@ -22,6 +22,10 @@ import time
 import json
 
 
+def get_script_root():
+    return os.path.abspath(os.path.dirname(__file__))
+
+
 def get_hash(text):
     import hashlib
 
@@ -1049,7 +1053,7 @@ def wait_for_new_file(file_pattern, allow_exists=False):
         if mtime > max_mtime:
             newest_file = f
             max_mtime = mtime
-    
+
     if allow_exists:
         return newest_file
     else:
@@ -1057,7 +1061,7 @@ def wait_for_new_file(file_pattern, allow_exists=False):
         while True:
             for f in glob.glob(file_pattern, recursive=True):
                 mtime = os.path.getmtime(f)
-                if mtime > max_mtime:            
+                if mtime > max_mtime:
                     # Wait until file is closed
                     try:
                         os.rename(newest_file, newest_file)
@@ -1065,8 +1069,7 @@ def wait_for_new_file(file_pattern, allow_exists=False):
                         return newest_file
                     except:
                         time.sleep(0.1)
-    
-    
+
 
 def slugify(s):
     import slugify as slug

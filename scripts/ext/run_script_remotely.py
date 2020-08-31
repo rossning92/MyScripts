@@ -29,7 +29,11 @@ def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
         ]
     )
     # -t : interactive session
-    call_echo(["wsl", "ssh", "-t", user_host, "source ~/.bash_profile ; bash /tmp/s.sh"])
+    call_echo(
+        ["wsl", "ssh", "-t", user_host, "source ~/.bash_profile ; bash /tmp/s.sh"]
+    )
+    if wait_key("press any key to pause..."):
+        input("press any key to exit...")
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
