@@ -12,7 +12,7 @@ def wait_until_file_modified(f):
             return
 
 
-os.chdir(os.environ["CURRENT_FOLDER"])
+os.chdir(os.environ["_CUR_DIR"])
 
 files = glob.glob("**/*", recursive=True)
 files = [x for x in files if os.path.isfile(x)]

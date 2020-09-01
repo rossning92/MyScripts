@@ -9,7 +9,7 @@ get_executable("magick")
 
 fps = "{{_FPS}}" if "{{_FPS}}" else 15
 
-f = os.environ["SELECTED_FILE"]
+f = os.environ["_FILE"]
 os.chdir(os.path.dirname(f))
 file_name = os.path.basename(f)
 

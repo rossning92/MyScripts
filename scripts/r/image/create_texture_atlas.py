@@ -3,7 +3,7 @@ from _image import *
 import numpy as np
 
 
-cd(os.environ['CURRENT_FOLDER'])
+cd(os.environ['_CUR_DIR'])
 mkdir('out')
 
 atlas = None

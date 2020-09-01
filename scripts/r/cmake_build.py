@@ -12,13 +12,13 @@ project_name = "example"
 if r"{{_PROJ_DIR}}":
     project_dir = r"{{_PROJ_DIR}}"
 else:
-    project_dir = os.environ["CURRENT_FOLDER"]
+    project_dir = os.environ["_CUR_DIR"]
 
 print2("Project dir: %s" % project_dir)
 
 
-# if "SELECTED_FILE" in os.environ:
-#     f = os.environ["SELECTED_FILE"]
+# if "_FILE" in os.environ:
+#     f = os.environ["_FILE"]
 #     if f.endswith(".cpp") or f.endswith(".c"):
 #         basename = os.path.basename(f)
 #         project_name = os.path.splitext(basename)[0]

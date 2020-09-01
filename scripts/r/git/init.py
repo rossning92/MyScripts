@@ -1,7 +1,7 @@
 import os
 from subprocess import call
 
-os.chdir(os.environ['CURRENT_FOLDER'])
+os.chdir(os.environ['_CUR_DIR'])
 
 call('git init')
 open('.gitignore', 'w')

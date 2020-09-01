@@ -12,7 +12,7 @@ if os.path.isdir(OUT_DIR):
     time.sleep(1)
 os.makedirs(OUT_DIR, exist_ok=True)
 
-script_path = os.getenv("_SCRIPT_PATH_")
+script_path = os.getenv("_SCRIPT_PATH")
 
 exported_python_modules = set()
 exported_scripts = set()

@@ -3,7 +3,7 @@ import re
 from _setup_android_env import *
 from _android import *
 
-file = os.environ['SELECTED_FILE']
+file = os.environ['_FILE']
 assert os.path.splitext(file)[1].lower() == '.apk'
 
 print('APK file: %s' % file)

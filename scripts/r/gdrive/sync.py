@@ -68,7 +68,7 @@ def create_dir(name):
 if __name__ == '__main__':
     install_gdrive()
 
-    path = env['SELECTED_FILE']
+    path = env['_FILE']
     if not os.path.isdir(path):
         print2('ERROR: %s is not a folder.' % path, color='red')
         exit(1)

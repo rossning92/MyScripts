@@ -755,10 +755,10 @@ def exec_bash(script, wsl=False, echo=False):
 
 
 def get_files(cd=False):
-    cur_folder = os.environ["CURRENT_FOLDER"]
+    cur_folder = os.environ["_CUR_DIR"]
 
-    if "SELECTED_FILES" in os.environ:
-        files = os.environ["SELECTED_FILES"].split("|")
+    if "_FILES" in os.environ:
+        files = os.environ["_FILES"].split("|")
     else:
         files = list(glob.glob(cur_folder + "/*.*"))
 
@@ -773,18 +773,18 @@ def get_files(cd=False):
 
 
 def get_selected_folder():
-    files = os.environ["SELECTED_FILES"].split("|")
+    files = os.environ["_FILES"].split("|")
     folders = [x for x in files if os.path.isdir(x)]
     return folders[0]
 
 
 def get_current_folder():
-    return os.environ["CURRENT_FOLDER"]
+    return os.environ["_CUR_DIR"]
 
 
 def cd_current_dir():
-    if "CURRENT_FOLDER" in os.environ:
-        os.chdir(os.environ["CURRENT_FOLDER"])
+    if "_CUR_DIR" in os.environ:
+        os.chdir(os.environ["_CUR_DIR"])
     else:
         os.chdir(os.path.expanduser("~"))
 
@@ -826,17 +826,17 @@ def update_env_var_explorer():
             data = json.load(f)
 
         if data["current_folder"]:
-            os.environ["CURRENT_FOLDER"] = data["current_folder"]
+            os.environ["_CUR_DIR"] = data["current_folder"]
 
         files = data["selected_files"]
         if not files:
             return None
 
         if len(files) == 1:
-            os.environ["SELECTED_FILE"] = files[0]
+            os.environ["_FILE"] = files[0]
 
         if len(files) >= 1:
-            os.environ["SELECTED_FILES"] = "|".join(files)
+            os.environ["_FILES"] = "|".join(files)
 
         return files
 

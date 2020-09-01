@@ -2,7 +2,7 @@ from _shutil import *
 import chardet
 
 
-cd(os.environ["CURRENT_FOLDER"])
+cd(os.environ["_CUR_DIR"])
 
 EXT = [".cpp", ".c", ".java", ".py", ".h", ".cs", ".html", ".cshtml", ".jsp", ".sql"]
 

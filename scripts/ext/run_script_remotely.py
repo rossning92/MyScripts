@@ -44,7 +44,7 @@ def run_bash_script_vagrant(bash_script_file, vagrant_id):
 
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT_PATH_"]
+    script_path = os.environ["_SCRIPT_PATH"]
     if script_path.endswith("run_script_remotely.py"):
         print("Parameter saved...")
         exit(0)
