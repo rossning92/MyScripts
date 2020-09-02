@@ -720,6 +720,9 @@ class ScriptItem:
                     subprocess.check_call(args, env={**os.environ, **env}, cwd=cwd)
 
     def get_variable_names(self):
+        if not self.meta["template"]:
+            return {}
+
         variables = set()
         include_func = ScriptItem.include.__get__(self, ScriptItem)
 
