@@ -12,7 +12,7 @@ font_scale = float("{{_FONT_SCALE}}") if "{{_FONT_SCALE}}" else 1.0
 font_color = "{{_FONT_COLOR}}" if "{{_FONT_COLOR}}" else "white"
 
 combine_images(
-    image_files=get_files(cd=True),
+    image_files=sorted(get_files(cd=True)),
     out_file="out/out.png",
     cols=cols,
     col_major_order=col_major_order,

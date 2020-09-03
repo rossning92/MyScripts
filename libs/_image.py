@@ -52,7 +52,7 @@ def scale_image(im, sx, sy):
     else:
         f = None
 
-    im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.LANCZOS)
+    im = im.resize((int(sx * im.size[0]), int(sy * im.size[1])), Image.LANCZOS)
 
     if f is not None:
         im.save(f)
@@ -196,6 +196,7 @@ def combine_images(
 
         imgs = [Image.open(f) for f in file_list]
         if scale != 1.0:
+            print("Scaling image by %g" % scale)
             imgs = [
                 im.resize(
                     (int(im.width * scale), int(im.height * scale)), Image.NEAREST
