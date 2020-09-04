@@ -68,6 +68,8 @@ def write_temp_file(text, file_path):
     else:
         encoding = "utf-8"
     bytes = text.encode(encoding)
+    if ext in [".ahk"]:
+        bytes = "\ufeff".encode() + bytes
 
     if name == "":
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp:
@@ -90,7 +92,8 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
     if not tmp_script_path:
         tmp_script_path = write_temp_file(script, ".ahk")
     else:
-        with open(tmp_script_path, "w") as f:
+        with open(tmp_script_path, "w", encoding="utf-8") as f:
+            f.write("\ufeff")  # BOM utf-8
             f.write(script)
     args = [get_ahk_exe(), tmp_script_path]
     if wait:
