@@ -12,12 +12,22 @@ def crop_image_file(file_name, rect=None, rect_normalized=None):
     im.save(file_name)
 
 
-def load_im(f):
-    return np.array(Image.open(f))
+def load_im(file):
+    im = Image.open(file)
+    return np.array(im)
+
+
+def to_pil_image(im):
+    from PIL import Image
+
+    if type(im) != Image.Image:
+        im = Image.fromarray(im)
+    return im
 
 
 def save_im(im, f):
-    Image.fromarray(im).save(f)
+    im = to_pil_image(im)
+    im.save(f)
 
 
 def crop_image(im, rect=None, rect_normalized=None):
@@ -87,6 +97,7 @@ def show_im(
     split_channels=False
 ):
     import matplotlib.pyplot as plt
+    import numpy as np
 
     if split_channels:
         imgs = [imgs[0][:, :, i] for i in range(imgs[0].shape[-1])]
@@ -96,6 +107,8 @@ def show_im(
 
     fig = plt.figure(figsize=(len(imgs) * 4, 1 * 4))
     for i, im in enumerate(imgs):
+        if not isinstance(im, (np.ndarray)):
+            im = np.array(im)
         if len(im.shape) == 3 and im.shape[2] == 3 and format == "bgr":
             im = im[..., ::-1]
 
@@ -323,3 +336,60 @@ def select_region(image_file):
     cv2.namedWindow("Image", 2)
     box = cv2.selectROI("Image", im, False, False)
     return box
+
+
+def to_ndarray(im):
+    if not isinstance(im, (np.ndarray)):
+        im = np.array(im)
+    return im
+
+
+def select_roi(im):
+    from matplotlib.widgets import RectangleSelector
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    im = to_ndarray(im)
+
+    roi = None
+
+    def line_select_callback(eclick, erelease):
+        x1, y1 = eclick.xdata, eclick.ydata
+        x2, y2 = erelease.xdata, erelease.ydata
+
+        nonlocal roi
+        roi = [min(x1, x2), min(y1, y2), np.abs(x1 - x2), np.abs(y1 - y2)]
+        roi = [round(x) for x in roi]
+
+    _, ax = plt.subplots()
+    rs = RectangleSelector(
+        ax,
+        line_select_callback,
+        drawtype="box",
+        useblit=False,
+        button=[1],
+        minspanx=5,
+        minspany=5,
+        spancoords="pixels",
+        interactive=True,
+    )
+
+    plt.imshow(im, origin="upper")
+
+    mng = plt.get_current_fig_manager()
+    mng.full_screen_toggle()
+    plt.show()
+
+    return roi
+
+
+def screenshot_image():
+    from mss import mss
+    from PIL import Image
+    import numpy as np
+
+    with mss() as sct:
+        sct_img = sct.grab(sct.monitors[1])
+        im = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
+
+    return np.array(im)

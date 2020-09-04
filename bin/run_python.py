@@ -32,6 +32,7 @@ PYTHON_MODULE_LIST = {
     "pyaudio": "pyaudio",
     "cv2": "opencv-python",
     "mss": "mss",
+    "skimage": "scikit-image",
 }
 
 

@@ -1084,4 +1084,14 @@ def get_script_root():
     return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
 
 
+def load_data(name):
+    with open(name + ".json", "r") as f:
+        return json.load(f)
+
+
+def save_data(data,name):
+    with open(name + ".json", "w") as f:
+        json.dump(data, f, indent=4)
+
+
 env = os.environ
