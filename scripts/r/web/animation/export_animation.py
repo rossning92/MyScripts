@@ -122,6 +122,16 @@ _bgm_vol = []
 _crossfade = False
 
 
+def _format_time(sec):
+    td = datetime.timedelta(seconds=sec)
+    return "%02d:%02d:%02d,%03d" % (
+        td.seconds // 3600,
+        td.seconds // 60,
+        td.seconds % 60,
+        td.microseconds // 1000,
+    )
+
+
 def crossfade(b):
     global _crossfade
     _crossfade = b
@@ -196,16 +206,6 @@ def _set_pos(t, tag=None):
 
     if tag is not None:
         _pos_dict[tag] = t
-
-
-def _format_time(sec):
-    td = datetime.timedelta(seconds=sec)
-    return "%02d:%02d:%02d,%03d" % (
-        td.seconds // 3600,
-        td.seconds // 60,
-        td.seconds % 60,
-        td.microseconds // 1000,
-    )
 
 
 def _generate_text_image(
@@ -1149,8 +1149,9 @@ def tts(enabled=True):
     AUTO_GENERATE_TTS = enabled
 
 
-def _parse_script(text):
-    _subtitle.append(text)
+def _parse_line(line):
+    print2(line, color="green")
+    _subtitle.append(line)
 
     if AUTO_GENERATE_TTS:
         _tts()
@@ -1257,7 +1258,7 @@ def _remove_unused_recordings(s):
             os.remove(os.path.join("record", f))
 
 
-def _parse_text(text, impl=_default_impl(), **kwargs):
+def _parse_text(text, impl=_default_impl(), parse_line=None, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1300,12 +1301,28 @@ def _parse_text(text, impl=_default_impl(), **kwargs):
             line = text[p:end].strip()
             p = end + 1
 
-            if line != "":
-                print2(line, color="green")
-                _parse_script(line)
+            if line != "" and parse_line is not None:
+                parse_line(line)
 
             # _export_srt()
         # sys.exit(0)
+
+
+def _show_stats(s):
+    TIME_PER_CHAR = 0.1334154351395731
+
+    total = 0
+
+    def parse_line(line):
+        nonlocal total
+        total += len(line)
+
+    _parse_text(s, impl=_interface(), parse_line=parse_line)
+
+    total_secs = TIME_PER_CHAR * total
+    print("Estimated Time: %s" % _format_time(total_secs))
+
+    input()
 
 
 if __name__ == "__main__":
@@ -1317,6 +1334,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--remove_unused_recordings", action="store_true", default=False
     )
+    parser.add_argument("--show_stats", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -1359,6 +1377,8 @@ if __name__ == "__main__":
 
     if args.remove_unused_recordings:
         _remove_unused_recordings(s)
+    elif args.show_stats:
+        _show_stats(s)
     else:
-        _parse_text(s, audio_only=args.audio_only)
+        _parse_text(s, audio_only=args.audio_only, parse_line=_parse_line)
         _export_video(audio_only=args.audio_only)

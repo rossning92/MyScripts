@@ -788,7 +788,7 @@ def run_script(
     overwrite_meta=None,
     args=None,
 ):
-    print2("RunScript: %s" % script_name, color="green")
+    print2("RunScript: %s: %s" % (script_name, str(args)), color="green")
     script_path = find_script(script_name)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)

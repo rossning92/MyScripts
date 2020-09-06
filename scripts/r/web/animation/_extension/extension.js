@@ -272,10 +272,7 @@ function writeTempTextFile(text) {
   return file;
 }
 
-function export_animation({
-  audioOnly = false,
-  removeUnusedRecordings = false,
-} = {}) {
+function export_animation({ extraArgs = null } = {}) {
   let editor = vscode.window.activeTextEditor;
   if (editor) {
     let document = editor.document;
@@ -287,7 +284,7 @@ function export_animation({
     // vscode.window.showInformationMessage(activeDirectory);
 
     const textFile = writeTempTextFile(selectionText);
-    const shellArgs = [
+    let shellArgs = [
       "/c",
       "run_script",
       "/r/web/animation/export_animation",
@@ -297,12 +294,10 @@ function export_animation({
       "--proj_dir",
       getProjectDir(),
     ];
-    if (audioOnly) {
-      shellArgs.push("--audio_only");
+    if (extraArgs !== null) {
+      shellArgs = shellArgs.concat(extraArgs);
     }
-    if (removeUnusedRecordings) {
-      shellArgs.push("--remove_unused_recordings");
-    }
+
     shellArgs.push("||", "pause");
 
     const terminal = vscode.window.createTerminal({
@@ -356,7 +351,7 @@ function activate(context) {
   });
 
   vscode.commands.registerCommand("yo.exportAudio", function () {
-    export_animation({ audioOnly: true });
+    export_animation({ extraArgs: ["--audio_only"] });
   });
 
   vscode.commands.registerCommand("yo.startRecording", function () {
@@ -381,7 +376,15 @@ function activate(context) {
   );
 
   vscode.commands.registerCommand("yo.removeUnusedRecordings", function () {
-    export_animation({ audioOnly: true, removeUnusedRecordings: true });
+    export_animation({
+      extraArgs: ["--audio_only", "--remove_unused_recordings"],
+    });
+  });
+
+  vscode.commands.registerCommand("yo.showStats", function () {
+    export_animation({
+      extraArgs: ["--show_stats"],
+    });
   });
 
   registerAutoComplete(context);
