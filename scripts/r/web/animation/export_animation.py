@@ -36,7 +36,8 @@ if 1:  # Import moviepy
     from moviepy.video.tools.subtitles import SubtitlesClip
 
 
-ADD_SUBTITLE = True
+_add_subtitle = True
+
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
 AUTO_GENERATE_TTS = False
@@ -281,7 +282,7 @@ def record(f, t="a", postprocess=True, **kwargs):
     global _srt_index
     global _last_subtitle_index
 
-    if ADD_SUBTITLE:
+    if _add_subtitle:
         if len(_subtitle) == 0:
             print("WARNING: no subtitle found")
 
@@ -1149,6 +1150,12 @@ def tts(enabled=True):
     AUTO_GENERATE_TTS = enabled
 
 
+def final(b=True):
+    global _add_subtitle
+    _add_subtitle = b
+    _crossfade = b
+
+
 def _parse_line(line):
     print2(line, color="green")
     _subtitle.append(line)
@@ -1238,6 +1245,8 @@ def _default_impl():
         "video_end": video_end,
         "video": video,  # deprecated, use `clip` instead
         "vol": vol,
+        "final": final,
+        **__import__("_util_func").__dict__,
     }
 
 
@@ -1340,7 +1349,7 @@ if __name__ == "__main__":
 
     # HACK
     if args.audio_only:
-        ADD_SUBTITLE = False
+        _add_subtitle = False
 
     if args.proj_dir is not None:
         os.chdir(args.proj_dir)
@@ -1362,7 +1371,7 @@ if __name__ == "__main__":
             if "{{_PARSE_LINE_RANGE}}"
             else None
         )
-        ADD_SUBTITLE = bool("{{_ADD_SUBTITLE}}")
+        _add_subtitle = bool("{{_ADD_SUBTITLE}}")
 
         cd(PROJ_DIR)
 
