@@ -46,6 +46,8 @@ call disable_UAC.cmd
 reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_DWORD /d 0 /f
 
 :: Customize console window
+reg add HKCU\Console\%SystemRoot^%_system32_cmd.exe /v CodePage /t REG_DWORD /d 65001
+
 reg add HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
 reg add HKCU\Console /v FaceName /t REG_SZ /d Consolas /f
 reg add HKCU\Console /v FontSize /t REG_DWORD /d 0x120000 /f

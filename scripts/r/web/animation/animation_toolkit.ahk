@@ -2,11 +2,9 @@ Menu, Tray, Icon, animation_toolkit.ico
 #SingleInstance, Force
 
 SCRIPT_DIR := A_WorkingDir
+VIDEO_PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
 
 is_recording := False
-
-VIDEO_PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
-AUDIO_RECORDER_TITLE = r/audio/recorder
 
 SetWorkingDir, %VIDEO_PROJECT_DIR%
 
@@ -23,11 +21,6 @@ return
 
 $F6::
     ToggleRecording(False)
-return
-
-!Esc::
-    WinClose, %AUDIO_RECORDER_TITLE%
-    ExitApp
 return
 
 ToggleRecording(enable_carnac:=True)

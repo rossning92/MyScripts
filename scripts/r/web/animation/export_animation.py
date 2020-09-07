@@ -1267,7 +1267,7 @@ def _remove_unused_recordings(s):
             os.remove(os.path.join("record", f))
 
 
-def _parse_text(text, impl=_default_impl(), parse_line=None, **kwargs):
+def _parse_text(text, impl, parse_line=None, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1389,5 +1389,7 @@ if __name__ == "__main__":
     elif args.show_stats:
         _show_stats(s)
     else:
-        _parse_text(s, audio_only=args.audio_only, parse_line=_parse_line)
+        _parse_text(
+            s, impl=_default_impl(), audio_only=args.audio_only, parse_line=_parse_line
+        )
         _export_video(audio_only=args.audio_only)
