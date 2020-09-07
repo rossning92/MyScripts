@@ -2,10 +2,12 @@
 #InstallKeybdHook
 #include ../../libs/ahk/ExplorerHelper.ahk
 #include ../../libs/ahk/ChromeHotkey.ahk
+#include ../../libs/ahk/VirtualDesktop.ahk
 
 SetCapsLockState, AlwaysOff
 
 WindowList := {}
+CurrentDesktop := 0
 
 CONSOLE_WINDOW = my_scripts_console
 
@@ -145,6 +147,12 @@ return
 
 #2::
     CenterActiveWindow(width:=1440, height:=810)
+return
+
+#0::
+    CurrentDesktop := 1 - CurrentDesktop
+    SwitchDesktopByNumber(CurrentDesktop + 1)
+    ToggleDesktopIcons(1 - CurrentDesktop)
 return
 
 !#d::
@@ -325,13 +333,15 @@ CenterActiveWindow(width:=1920, height:=1080) {
     ResizeWindow2("A", (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height)
 }
 
-ToggleDesktopIcons() {
-    ControlGet, HWND, Hwnd,, SysListView321, ahk_class WorkerW
+ToggleDesktopIcons(show:=True) {
+    ; ahk_class WorkerW
+    ControlGet, HWND, Hwnd,, SysListView321, ahk_class Progman
     
-    If DllCall("IsWindowVisible", UInt, HWND)
-        WinHide, ahk_id %HWND%
-    Else
+    if ( not DllCall("IsWindowVisible", UInt, HWND) or show ) {
         WinShow, ahk_id %HWND%
+    } else {
+        WinHide, ahk_id %HWND%
+    }
 }
 
 ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
