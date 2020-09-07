@@ -237,7 +237,7 @@ function getRecorderProcess() {
         if (editor) {
           const selection = editor.selection;
           editor.edit((editBuilder) => {
-            editBuilder.replace(selection, `{{ record('${fileName}') }}`);
+            editBuilder.replace(selection, `{{ record('record/${fileName}') }}`);
           });
         }
       }

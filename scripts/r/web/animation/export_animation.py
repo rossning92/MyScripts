@@ -36,14 +36,14 @@ if 1:  # Import moviepy
     from moviepy.video.tools.subtitles import SubtitlesClip
 
 
-_add_subtitle = True
+_add_subtitle = False
+_scale = 0.25
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
 AUTO_GENERATE_TTS = False
 IMAGE_SEQUENCE_FPS = 25
 FPS = 25
-SCALE = 1.0
 
 # change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
@@ -227,7 +227,7 @@ def _generate_text_image(
         "-background",
         "transparent",
         "-font",
-        r"C:/Windows/Fonts/SourceHanSansSC-Medium.otf",
+        r"C:/Windows/Fonts/SourceHanSansSC-Bold.otf",
         "-pointsize",
         "%d" % font_size,
         "-stroke",
@@ -675,8 +675,8 @@ def _create_mpy_clip(
         else:
             clip = clip.set_position(pos)
 
-    if SCALE != 1.0:
-        clip = clip.resize(SCALE)
+    if _scale != 1.0:
+        clip = clip.resize(_scale)
 
     return clip
 
@@ -879,7 +879,7 @@ def _update_clip_duration(track):
 
 
 def _export_video(resolution=(1920, 1080), audio_only=False):
-    resolution = [int(x * SCALE) for x in resolution]
+    resolution = [int(x * _scale) for x in resolution]
 
     audio_clips = []
 
@@ -1152,8 +1152,13 @@ def tts(enabled=True):
 
 def final(b=True):
     global _add_subtitle
-    _add_subtitle = b
-    _crossfade = b
+    global _scale
+    global _crossfade
+
+    if b:
+        _add_subtitle = True
+        _crossfade = True
+        _scale = 1.0
 
 
 def _parse_line(line):
@@ -1216,7 +1221,7 @@ def _interface():
 
 
 def _default_impl():
-    return {
+    impl = {
         **_interface(),
         "anim": anim,
         "audio_end": audio_end,
@@ -1246,8 +1251,14 @@ def _default_impl():
         "video": video,  # deprecated, use `clip` instead
         "vol": vol,
         "final": final,
-        **__import__("_util_func").__dict__,
     }
+
+    MODULE = "index.py"
+    if os.path.exists(MODULE):
+        sys.path.append(os.getcwd())
+        exec(open(MODULE, "r", encoding="utf-8").read(), impl)
+
+    return impl
 
 
 def _remove_unused_recordings(s):

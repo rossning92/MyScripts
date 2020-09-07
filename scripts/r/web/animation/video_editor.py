@@ -120,7 +120,7 @@ def edit_video(file):
     @mpv.on_key_press("c")
     def crop_video():
         mpv.command("show-text", "Cropping video...", "3000")
-        create_filtered_video("crop=1920:1080:0:0")
+        create_filtered_video("crop=1920:1080:320:180")
 
     @mpv.on_key_press("t")
     def code_typing_effect():

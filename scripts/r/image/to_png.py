@@ -3,6 +3,6 @@ from _shutil import *
 
 
 for f in get_files():
-    if not f.endswith('.png'):
-        with Image.open(f) as im:
-            im.save(os.path.splitext(f)[0] + '.png')
+    if not f.endswith(".png"):
+        im = Image.open(f).convert("RGBA")
+        im.save(os.path.splitext(f)[0] + ".png")

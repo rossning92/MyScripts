@@ -149,6 +149,10 @@ return
     CenterActiveWindow(width:=1440, height:=810)
 return
 
+#3::
+    ResizeWindow2("A", 0, 0, 1632, 918)
+return
+
 #0::
     CurrentDesktop := 1 - CurrentDesktop
     SwitchDesktopByNumber(CurrentDesktop + 1)

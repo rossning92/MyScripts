@@ -186,7 +186,9 @@ def get_python_path(script_path):
     return python_path
 
 
-def wt_wrap_args(args, wsl=False, title=None, close_on_exit=True, cwd=None):
+def wt_wrap_args(
+    args, wsl=False, title=None, close_on_exit=True, cwd=None, font_size=10
+):
     THEME = {
         "name": "Dracula",
         "background": "#282A36",
@@ -234,6 +236,8 @@ def wt_wrap_args(args, wsl=False, title=None, close_on_exit=True, cwd=None):
             "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
             "closeOnExit": "graceful" if close_on_exit else "never",
             "suppressApplicationTitle": True,
+            "fontSize": font_size,
+            # "icon": "C:\\tmp\\wsl.ico",
         }
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)

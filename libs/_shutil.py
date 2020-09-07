@@ -1089,9 +1089,49 @@ def load_data(name):
         return json.load(f)
 
 
-def save_data(data,name):
+def save_data(data, name):
     with open(name + ".json", "w") as f:
         json.dump(data, f, indent=4)
+
+
+def screen_record(out_file, rect=None, mouse_cursor=True):
+    args = [
+        "ffmpeg",
+        "-y",
+        "-f",
+        "gdigrab",
+        "-draw_mouse",
+        "%d" % int(mouse_cursor),
+        "-framerate",
+        "60",
+    ]
+    if rect is not None:
+        args += [
+            "-offset_x",
+            "%d" % rect[0],
+            "-offset_y",
+            "%d" % rect[1],
+            "-video_size",
+            "%dx%d" % (rect[2], rect[3]),
+        ]
+    args += [
+        "-i",
+        "desktop",
+        "-c:v",
+        "libx264",
+        "-crf",
+        "0",
+        "-preset",
+        "ultrafast",
+        out_file,
+    ]
+    ps = subprocess.Popen(args, stdin=subprocess.PIPE)
+
+    def stop():
+        ps.stdin.write(b"q")
+        ps.stdin.close()
+
+    return stop
 
 
 env = os.environ
