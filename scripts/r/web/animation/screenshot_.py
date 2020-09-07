@@ -13,7 +13,7 @@ def print_help():
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screenshot"))
+    os.chdir(os.environ["VIDEO_PROJECT_DIR"])
 
     # The simplest use, save a screen shot of the 1st monitor
     with mss() as sct:
@@ -23,8 +23,8 @@ if __name__ == "__main__":
 
     activate_cur_terminal()
     name = input("screenshot name (no extension): ")
-    f = "%d-%s.png" % (int(time.time()), slugify(name))
     os.makedirs("screencap", exist_ok=True)
+    f = "screencap/%d-%s.png" % (int(time.time()), slugify(name))
     im.save(f)
 
     print_help()
