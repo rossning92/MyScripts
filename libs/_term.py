@@ -181,11 +181,13 @@ class SearchWindow:
 
             elif ch == curses.KEY_UP:
                 self.selected_row = max(self.selected_row - 1, 0)
+                self.on_item_selected()
 
             elif ch == curses.KEY_DOWN:
                 self.selected_row = min(
                     self.selected_row + 1, len(self.matched_item_indices) - 1
                 )
+                self.on_item_selected()
 
             elif ch == curses.ascii.ESC:
                 return
@@ -213,9 +215,11 @@ class SearchWindow:
         for i, item_index in enumerate(self.matched_item_indices):
             if self.selected_row == i:  # Hightlight on
                 self.stdscr.attron(curses.color_pair(2))
-            self.stdscr.addstr(
-                row, 0, "%d. %s" % (item_index + 1, str(self.items[item_index]))
-            )
+            s = "%d. %s" % (item_index + 1, str(self.items[item_index]))
+            try:
+                self.stdscr.addstr(row, 0, s)
+            except curses.error:
+                pass
             if self.selected_row == i:  # Highlight off
                 self.stdscr.attroff(curses.color_pair(2))
 
@@ -246,6 +250,9 @@ class SearchWindow:
 
     def close(self):
         self.closed = True
+
+    def on_item_selected(self):
+        pass
 
 
 def init_curses(stdscr):
