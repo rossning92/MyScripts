@@ -38,6 +38,8 @@ if 1:  # Import moviepy
 
 _add_subtitle = False
 _scale = 0.25
+_audio_only = False
+_impl = None
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
@@ -878,7 +880,7 @@ def _update_clip_duration(track):
         track[-1].duration = duration
 
 
-def _export_video(resolution=(1920, 1080), audio_only=False):
+def _export_video(resolution=(1920, 1080)):
     resolution = [int(x * _scale) for x in resolution]
 
     audio_clips = []
@@ -910,7 +912,7 @@ def _export_video(resolution=(1920, 1080), audio_only=False):
                 )
 
     # Generate animation clips
-    if not audio_only:
+    if not _audio_only:
         for name, animation_info in _animations.items():
             if animation_info.overlay:
                 anim_ext = "tar"
@@ -1068,7 +1070,7 @@ def _export_video(resolution=(1920, 1080), audio_only=False):
     os.makedirs("out", exist_ok=True)
     out_filename = "out/" + get_time_str()
 
-    if audio_only:
+    if _audio_only:
         final_audio_clip.fps = 44100
         final_audio_clip.write_audiofile("%s.mp3" % out_filename)
         open_with("%s.mp3" % out_filename, program_id=0)
@@ -1161,7 +1163,7 @@ def final(b=True):
         _scale = 1.0
 
 
-def _parse_line(line):
+def parse_line(line):
     print2(line, color="green")
     _subtitle.append(line)
 
@@ -1217,6 +1219,7 @@ def _interface():
         "video_end": lambda *_, **__: None,
         "video": lambda *_, **__: None,  # deprecated, use `clip` instead
         "vol": lambda *_, **__: None,
+        "include": lambda *_, **__: None,
     }
 
 
@@ -1251,8 +1254,22 @@ def _default_impl():
         "video": video,  # deprecated, use `clip` instead
         "vol": vol,
         "final": final,
+        "parse_line": parse_line,
     }
 
+    # Include function
+    def include(file):
+        with open(file, "r", encoding="utf-8") as f:
+            s = f.read()
+
+        cwd = os.getcwd()
+        os.chdir(os.path.dirname(os.path.abspath(file)))
+        _parse_text(s, impl)
+        os.chdir(cwd)
+
+    impl["include"] = include
+
+    # Import `index.py` if exists
     MODULE = "index.py"
     if os.path.exists(MODULE):
         sys.path.append(os.getcwd())
@@ -1278,7 +1295,7 @@ def _remove_unused_recordings(s):
             os.remove(os.path.join("record", f))
 
 
-def _parse_text(text, impl, parse_line=None, **kwargs):
+def _parse_text(text, impl, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1321,8 +1338,8 @@ def _parse_text(text, impl, parse_line=None, **kwargs):
             line = text[p:end].strip()
             p = end + 1
 
-            if line != "" and parse_line is not None:
-                parse_line(line)
+            if line != "":
+                impl["parse_line"](line)
 
             # _export_srt()
         # sys.exit(0)
@@ -1337,7 +1354,7 @@ def _show_stats(s):
         nonlocal total
         total += len(line)
 
-    _parse_text(s, impl=_interface(), parse_line=parse_line)
+    _parse_text(s, impl={**_interface(), "parse_line": parse_line})
 
     total_secs = TIME_PER_CHAR * total
     print("Estimated Time: %s" % _format_time(total_secs))
@@ -1360,6 +1377,7 @@ if __name__ == "__main__":
 
     # HACK
     if args.audio_only:
+        _audio_only = True
         _add_subtitle = False
 
     if args.proj_dir is not None:
@@ -1400,7 +1418,5 @@ if __name__ == "__main__":
     elif args.show_stats:
         _show_stats(s)
     else:
-        _parse_text(
-            s, impl=_default_impl(), audio_only=args.audio_only, parse_line=_parse_line
-        )
-        _export_video(audio_only=args.audio_only)
+        _parse_text(s, impl=_default_impl())
+        _export_video()
