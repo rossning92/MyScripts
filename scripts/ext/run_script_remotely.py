@@ -32,7 +32,7 @@ def ssh_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None
     call_echo(
         ["wsl", "ssh", "-t", user_host, "source ~/.bash_profile ; bash /tmp/s.sh"]
     )
-    if wait_key("press any key to pause..."):
+    if wait_key("press any key to pause"):
         input("press any key to exit...")
 
 

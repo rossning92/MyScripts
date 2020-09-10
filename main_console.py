@@ -374,12 +374,6 @@ def init():
 
 
 def main_loop():
-    global state
-
-    init()
-
-    state = State()
-
     while True:
         curses.wrapper(curse_main)
         if state.execute_script is not None:
@@ -394,5 +388,10 @@ def main_loop():
 
 if __name__ == "__main__":
     # setup_console_font()
-
-    main_loop()
+    init()
+    state = State()
+    while True:
+        try:
+            main_loop()
+        except:
+            input("Press any key to retry...")
