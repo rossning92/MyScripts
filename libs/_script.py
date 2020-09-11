@@ -160,7 +160,7 @@ def set_variable(name, val):
         vals.remove(val)
     except ValueError:
         pass
-    vals.append(val)
+    vals.insert(0, val)
 
     with open(file, "w") as f:
         json.dump(variables, f, indent=4)
