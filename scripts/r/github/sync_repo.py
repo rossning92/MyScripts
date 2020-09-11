@@ -7,6 +7,7 @@ def print_help():
 
 def commit(dry_run=False, amend=False):
     if dry_run:
+        print("Git status:")
         if get_output("git status --short").strip():
             call_echo("git add -A --dry-run")
     else:
@@ -47,10 +48,10 @@ if __name__ == "__main__":
         with open(".gitignore", "w") as f:
             f.writelines(["/build"])
 
+    commit(dry_run=True)
+
     print_help()
     while True:
-        commit(dry_run=True)
-
         ch = getch()
         if ch == "h":
             print_help()
@@ -63,3 +64,5 @@ if __name__ == "__main__":
             call_echo("git push -u origin master --force")
         elif ch == "p":
             call_echo("git push -u origin master --force")
+        elif ch == "r":
+            commit(dry_run=True)
