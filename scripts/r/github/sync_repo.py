@@ -2,7 +2,15 @@ from _shutil import *
 
 
 def print_help():
-    print2("[h] help\n" "[c] commit\n" "[a] amend\n" "[p] push\n")
+    print2(
+        "[h] help\n"
+        "[c] commit\n"
+        "[a] amend\n"
+        "[p] push\n"
+        "[A] amend & push\n"
+        "[C] commit & push\n"
+        "[s] git status\n"
+    )
 
 
 def commit(dry_run=False, amend=False):
@@ -11,7 +19,7 @@ def commit(dry_run=False, amend=False):
         if get_output("git status --short").strip():
             call_echo("git add -A --dry-run")
     else:
-        if not yes("Confirm?"):
+        if not yes("Confirm %s?" % ("amend" if amend else "commit")):
             sys.exit(1)
         call_echo("git add -A")
 
@@ -64,5 +72,5 @@ if __name__ == "__main__":
             call_echo("git push -u origin master --force")
         elif ch == "p":
             call_echo("git push -u origin master --force")
-        elif ch == "r":
+        elif ch == "s":
             commit(dry_run=True)

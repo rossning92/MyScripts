@@ -11,3 +11,6 @@ while True:
         sys.exit(0)
     elif ch == "d":
         call_echo("yarn add dat.gui")
+    elif ch == "p":
+        call_echo("yarn add p5")
+
