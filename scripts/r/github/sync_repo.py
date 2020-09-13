@@ -58,11 +58,11 @@ if __name__ == "__main__":
 
     commit(dry_run=True)
 
-    print_help()
     while True:
+        print_help()
         ch = getch()
         if ch == "h":
-            print_help()
+            pass
         elif ch == "c":
             commit()
         elif ch == "a":
