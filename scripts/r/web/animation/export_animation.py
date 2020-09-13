@@ -284,7 +284,7 @@ def record(f, t="a", postprocess=True, **kwargs):
     global _srt_index
     global _last_subtitle_index
 
-    if _add_subtitle:
+    if _add_subtitle and not _audio_only:
         if len(_subtitle) == 0:
             print("WARNING: no subtitle found")
 
@@ -430,6 +430,7 @@ def bgm(
     vol=0.15,
     track="bgm",
     norm=False,
+    loop=True,
     **kwargs,
 ):
     print("bgm: %s" % f)
@@ -446,7 +447,7 @@ def bgm(
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             audio_end(track=track, t=t, move_playhead=False)
 
-    audio(f, track=track, move_playhead=move_playhead, t=t, **kwargs)
+    audio(f, track=track, move_playhead=move_playhead, t=t, loop=loop, **kwargs)
 
     if crossfade > 0:
         _set_vol(vol, duration=crossfade, t=t, track=track)

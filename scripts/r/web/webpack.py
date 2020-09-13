@@ -21,7 +21,7 @@ module.exports = {
   },
   plugins: [new HtmlWebpackPlugin()],
   devServer: {
-    contentBase: path.join(__dirname, 'public')
+    contentBase: path.join(__dirname, 'dist')
   }
 };"""
         )
