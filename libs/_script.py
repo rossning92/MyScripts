@@ -288,7 +288,6 @@ class ScriptItem:
             root = get_script_root().replace("\\", "/")
             self.name = re.sub("^" + re.escape(root) + "/", "", self.name)
 
-        self.meta = get_script_meta(script_path)  # Load meta
         self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
         self.override_variables = None
         self.console_title = None
@@ -306,7 +305,14 @@ class ScriptItem:
             self.real_script_path = None
             self.real_ext = None
 
-        # XXX: Workaround for mac
+        # Load meta
+        self.meta = get_script_meta(
+            self.real_script_path
+            if self.real_script_path is not None
+            else self.script_path
+        )
+
+        # XXX: Workaround for Mac
         if sys.platform == "darwin":
             self.meta["newWindow"] = False
 
@@ -1044,4 +1050,3 @@ def load_scripts(script_list, modified_time, autorun=True):
             modified_time[file] = mtime
 
     return True
-

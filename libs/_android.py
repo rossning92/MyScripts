@@ -218,11 +218,14 @@ def screenshot(out_file=None):
 
 def get_active_pkg_and_activity():
     out = (
-        check_output(
-            "adb shell \"dumpsys activity activities | grep -E 'mFocusedActivity|mResumedActivity'\"",
-            shell=True,
+        subprocess.check_output(
+            [
+                "adb",
+                "shell",
+                "dumpsys activity activities | grep -E 'mFocusedActivity|mResumedActivity'",
+            ],
+            universal_newlines=True,
         )
-        .decode()
         .strip()
     )
     match = re.search(r"\{([^}]+)\}", out).group(1)

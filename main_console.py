@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import time
+import traceback
 
 SCRIPT_ROOT = os.path.realpath(os.path.dirname(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
@@ -393,5 +394,6 @@ if __name__ == "__main__":
     while True:
         try:
             main_loop()
-        except:
+        except Exception:
+            traceback.print_exc(file=sys.stdout)
             input("Press any key to retry...")
