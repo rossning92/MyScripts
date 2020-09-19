@@ -99,7 +99,7 @@ _pos_dict = {"a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
 _add_fadeout_to_last_clip = False
 
 _video_tracks = OrderedDict(
-    [("vid", []), ("hl", []), ("hl2", []), ("md", []), ("overlay", []), ("text", [])]
+    [("bg", []), ("vid", []), ("hl", []), ("hl2", []), ("md", []), ("overlay", []), ("text", [])]
 )
 _cur_vid_track_name = "vid"  # default video track
 
