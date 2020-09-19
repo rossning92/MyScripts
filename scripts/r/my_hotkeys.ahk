@@ -334,7 +334,10 @@ MouseIsOverAndActive(title) {
 }
 
 CenterActiveWindow(width:=1920, height:=1080) {
-    ResizeWindow2("A", (A_ScreenWidth/2)-(width/2), (A_ScreenHeight/2)-(height/2), width, height)
+    x := (A_ScreenWidth / 2) - (width / 2)
+    y := (A_ScreenHeight / 2) - (height / 2)
+    x := 0, y := 0
+    ResizeWindow2("A", x, y, width, height)
 }
 
 ToggleDesktopIcons(show:=True) {
