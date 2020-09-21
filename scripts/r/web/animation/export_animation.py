@@ -454,6 +454,7 @@ def audio_end(*, t=None, track=None, move_playhead=True):
     duration = t - clips[-1].start
     assert duration > 0
     clips[-1].duration = duration
+    print2("previous clip(file=%s) duration updated: %.2f" % (clips[-1].file, duration))
 
     if move_playhead:
         _pos_dict["a"] = t
@@ -1007,11 +1008,13 @@ def _export_video(resolution=(1920, 1080)):
             if clip_info.duration is not None:
                 # Unlink audio clip from video clip (adjust audio duration)
                 if clip_info.mpy_clip.audio is not None:
+                    duration = clip_info.duration
+                    if not clip_info.loop:
+                        duration = min(duration, clip_info.mpy_clip.audio.duration)
+
                     audio_clip = clip_info.mpy_clip.audio.set_start(
                         clip_info.start
-                    ).set_duration(
-                        min(clip_info.duration, clip_info.mpy_clip.audio.duration)
-                    )
+                    ).set_duration(duration)
                     audio_clips.append(audio_clip)
                     clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
 
@@ -1079,11 +1082,10 @@ def _export_video(resolution=(1920, 1080)):
 
             duration = clip_info.duration
             if duration is not None:
-                duration = min(duration, clip.duration)
                 if clip_info.loop:
                     clip = clip.fx(afx.audio_loop, duration=duration)
                 else:
-                    clip = clip.set_duration(duration)
+                    clip = clip.set_duration(min(duration, clip.duration))
 
             if clip_info.start is not None:
                 clip = clip.set_start(clip_info.start)

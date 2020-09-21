@@ -59,7 +59,6 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
 
         if debug:
             input("press any key to exit...")
-            sys.exit(0)
 
         # Screenshot DOM element only
         element = await page.querySelector("body")

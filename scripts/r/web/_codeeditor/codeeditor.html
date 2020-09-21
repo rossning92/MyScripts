@@ -62,7 +62,7 @@
   }
   .CodeMirror,
   .CodeMirror-scroll {
-    max-height: 800px;
+    max-height: 600px;
   }
 </style>
 
@@ -116,6 +116,13 @@ for i in fibonacci(10):
     };
     window.showLineNumbers = (b) => {
       window.editor.setOption("lineNumbers", b);
+    };
+    document.onkeyup = function (e) {
+      if (e.ctrlKey && e.which == 66) {
+        const from = editor.getCursor("start");
+        const to = editor.getCursor("end");
+        editor.markText(from, to, { className: "styled-background" });
+      }
     };
   </script>
 </article>

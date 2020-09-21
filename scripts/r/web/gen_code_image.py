@@ -2,17 +2,8 @@ from _shutil import *
 from r.web.webscreenshot import webscreenshot
 
 
-def code(file, line_no=True, mark=[], debug=False):
+def gen_code_image(s, out_file, line_no=True, mark=[], debug=False):
     from urllib.parse import quote
-
-    out_dir = os.path.join(os.path.dirname(file), "out")
-    mkdir(out_dir)
-    out_file = os.path.join(
-        out_dir, os.path.splitext(os.path.basename(file))[0] + ".png"
-    )
-
-    with open(file, encoding="utf-8") as f:
-        s = f.read()
 
     javascript = "setCode('%s'); " % quote(s)
 
@@ -35,4 +26,28 @@ def code(file, line_no=True, mark=[], debug=False):
 
 
 if __name__ == "__main__":
-    code(get_files()[0])
+    file = get_files()[0]
+
+    out_dir = os.path.join(os.path.dirname(file), "out")
+    mkdir(out_dir)
+
+    with open(file, encoding="utf-8", newline="\n") as f:
+        s = f.read()
+
+    if 1:
+        out_file = os.path.join(
+            out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
+        )
+        gen_code_image(s, out_file, debug=True)
+
+    else:
+        parts = s.split("\n\n")
+        for i in range(len(parts)):
+            s = "\n\n".join(parts[0 : i + 1])
+
+            out_file = os.path.join(
+                out_dir,
+                os.path.splitext(os.path.basename(file))[0] + ("-%02d.png" % (i + 1)),
+            )
+
+            gen_code_image(s, out_file)
