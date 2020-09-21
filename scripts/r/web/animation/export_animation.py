@@ -99,7 +99,15 @@ _pos_dict = {"a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
 _add_fadeout_to_last_clip = False
 
 _video_tracks = OrderedDict(
-    [("bg", []), ("vid", []), ("hl", []), ("hl2", []), ("md", []), ("overlay", []), ("text", [])]
+    [
+        ("bg", []),
+        ("vid", []),
+        ("hl", []),
+        ("hl2", []),
+        ("md", []),
+        ("overlay", []),
+        ("text", []),
+    ]
 )
 _cur_vid_track_name = "vid"  # default video track
 
@@ -405,7 +413,15 @@ def _add_audio_clip(
 
 
 def audio(
-    f, crossfade=0, t=None, in_duration=0, out_duration=0, vol=1, track=None, move_playhead=True, **kwargs
+    f,
+    crossfade=0,
+    t=None,
+    in_duration=0,
+    out_duration=0,
+    vol=1,
+    track=None,
+    move_playhead=True,
+    **kwargs,
 ):
     t = _get_pos(t)
 
@@ -742,7 +758,7 @@ def _add_clip(
     # Note that crossfade, fadein and fadeout can not be specified at the same time.
     if _crossfade:
         clip_info.crossfade = _crossfade
-    if (not fadein and not fadeout) and crossfade is not None:
+    if crossfade is not None:
         clip_info.crossfade = crossfade
 
     clip_info.fadein = fadein
@@ -1013,40 +1029,39 @@ def _export_video(resolution=(1920, 1080)):
                 assert duration > 0
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
 
-            if clip_info.crossfade:
+            # Deal with vedio fade in / out / crossfade
+            if clip_info.crossfade > 0:
                 video_clips.append(
                     clip_info.mpy_clip.set_duration(clip_info.crossfade)
                     .crossfadein(clip_info.crossfade)
                     .set_start(clip_info.start - 0.5 * clip_info.crossfade)
                 )
-                video_clips.append(
-                    clip_info.mpy_clip.subclip(clip_info.crossfade).set_start(
-                        clip_info.start + 0.5 * clip_info.crossfade
+
+                clip_info.mpy_clip = clip_info.mpy_clip.subclip(clip_info.crossfade)
+                clip_info.start += 0.5 * clip_info.crossfade
+
+            if clip_info.fadein:
+                # TODO: crossfadein and crossfadeout is very slow in moviepy
+                if track_name != "vid":
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
+                        VIDEO_CROSSFADE_DURATION
                     )
-                )
-            else:
-                if clip_info.fadein:
-                    # TODO: crossfadein and crossfadeout is very slow in moviepy
-                    if track_name != "vid":
-                        clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
-                            VIDEO_CROSSFADE_DURATION
-                        )
-                    else:
-                        clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                            vfx.fadein, VIDEO_CROSSFADE_DURATION
-                        )
+                else:
+                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                        vfx.fadein, VIDEO_CROSSFADE_DURATION
+                    )
 
-                if clip_info.fadeout:
-                    if track_name != "vid":
-                        clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
-                            VIDEO_CROSSFADE_DURATION
-                        )
-                    else:
-                        clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                            vfx.fadeout, VIDEO_CROSSFADE_DURATION
-                        )
+            if clip_info.fadeout:
+                if track_name != "vid":
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
+                        VIDEO_CROSSFADE_DURATION
+                    )
+                else:
+                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                        vfx.fadeout, VIDEO_CROSSFADE_DURATION
+                    )
 
-                video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
+            video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
 
     if len(video_clips) == 0:
         video_clips.append(ColorClip((200, 200), color=(0, 1, 0)).set_duration(2))
@@ -1189,7 +1204,7 @@ def final(b=True):
 
     if b:
         _add_subtitle = True
-        _crossfade = True
+        _crossfade = VIDEO_CROSSFADE_DURATION
         _scale = 1.0
 
 

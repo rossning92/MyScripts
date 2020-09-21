@@ -13,7 +13,7 @@
     background-color: #adb7c1;
     width: 1920px;
     height: 1080px;
-    font-size: 40px;
+    font-size: 30px;
 
     display: flex;
     flex-direction: column;
@@ -25,7 +25,7 @@
     border-radius: 0.14em;
     overflow: hidden;
     line-height: 0;
-    width: 80%;
+    width: 90%;
     margin: 0 auto 0 auto;
   }
   .page .titlebar {
@@ -59,6 +59,10 @@
   }
   .styled-background {
     background-color: #c72c41;
+  }
+  .CodeMirror,
+  .CodeMirror-scroll {
+    max-height: 800px;
   }
 </style>
 
@@ -99,7 +103,9 @@ for i in fibonacci(10):
     editor.setOption("theme", "vscode-dark");
 
     window.setCode = (s) => {
-      editor.setValue(s);
+      editor.setValue(decodeURIComponent(s));
+      const scrollInfo = editor.getScrollInfo();
+      editor.scrollTo(null, scrollInfo.height);
     };
     window.markText = (i0, j0, i1, j1) => {
       editor.markText(

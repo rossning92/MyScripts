@@ -1,3 +1,3 @@
 cd "${_CUR_DIR}"
 
-magick -delay 50 *.png 123.gif
+magick -delay {{_DELAY}} *.png out.gif
