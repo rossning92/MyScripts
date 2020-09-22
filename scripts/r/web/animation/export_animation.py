@@ -434,7 +434,7 @@ def audio(
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             audio_end(track=track, t=t, move_playhead=move_playhead)
 
-    _add_audio_clip(f, t=t, track=track, **kwargs)
+    _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
 
     # Fade in
     if crossfade > 0:
@@ -1009,8 +1009,7 @@ def _export_video(resolution=(1920, 1080)):
                 # Unlink audio clip from video clip (adjust audio duration)
                 if clip_info.mpy_clip.audio is not None:
                     duration = clip_info.duration
-                    if not clip_info.loop:
-                        duration = min(duration, clip_info.mpy_clip.audio.duration)
+                    duration = min(duration, clip_info.mpy_clip.audio.duration)
 
                     audio_clip = clip_info.mpy_clip.audio.set_start(
                         clip_info.start
