@@ -148,7 +148,7 @@ function getProjectDir() {
 }
 
 function getRelativePath(prefix, p) {
-  return p.replace(prefix + path.sep, "").replace(/\\/g, "/");
+  return path.relative(prefix, p).replace(/\\/g, "/");
 }
 
 function getFiles(dir, filter, files = [], dirs = []) {
@@ -167,8 +167,6 @@ function getFiles(dir, filter, files = [], dirs = []) {
       files.push(filePath);
     }
   });
-
-  return files;
 }
 
 function registerAutoComplete(context) {
@@ -187,7 +185,11 @@ function registerAutoComplete(context) {
         }
 
         let files = [];
-        getFiles(projectDir, (x) => /\.(png|jpg|mp4|gif|mp3)$/g.test(x), files);
+        const filter = (x) => /\.(png|jpg|mp4|gif|mp3)$/g.test(x);
+
+        getFiles(projectDir, filter, files);
+        getFiles(projectDir + "/../assets", filter, files);
+
         files = files.sort(function (a, b) {
           return -(
             fs.statSync(a).mtime.getTime() - fs.statSync(b).mtime.getTime()
