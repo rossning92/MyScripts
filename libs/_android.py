@@ -3,13 +3,22 @@ import datetime
 
 
 def start_app(pkg, use_monkey=True):
-    ret = 1
     if use_monkey:
-        args = "adb shell monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg
-        print("> " + args)
-        ret = subprocess.call(args, shell=True)
-
-    if ret > 0:
+        with open(os.devnull, "w") as fnull:
+            ret = subprocess.call(
+                [
+                    "adb",
+                    "shell",
+                    "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
+                ],
+                stdout=fnull,
+                stderr=fnull,
+            )
+        if ret != 0:
+            raise Exception(
+                'Launch package "%s" failed. Please check if it is installed.' % pkg
+            )
+    else:
         args = f'adb shell "dumpsys package | grep -i {pkg}/ | grep Activity"'
         out = subprocess.check_output(args, shell=True)
         out = out.decode().strip()
@@ -217,17 +226,14 @@ def screenshot(out_file=None):
 
 
 def get_active_pkg_and_activity():
-    out = (
-        subprocess.check_output(
-            [
-                "adb",
-                "shell",
-                "dumpsys activity activities | grep -E 'mFocusedActivity|mResumedActivity'",
-            ],
-            universal_newlines=True,
-        )
-        .strip()
-    )
+    out = subprocess.check_output(
+        [
+            "adb",
+            "shell",
+            "dumpsys activity activities | grep -E 'mFocusedActivity|mResumedActivity'",
+        ],
+        universal_newlines=True,
+    ).strip()
     match = re.search(r"\{([^}]+)\}", out).group(1)
     pkg_activity = match.split()[2]
     pkg, activity = pkg_activity.split("/")

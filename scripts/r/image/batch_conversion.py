@@ -86,7 +86,12 @@ for f in files:
         im = crop_border(im)
 
     if "{{_DRAW_LABEL}}":
-        draw_text(im, os.path.splitext(os.path.basename(f))[0])
+        s = os.path.splitext(os.path.basename(f))[0]
+        arr = s.replace("_", " ").split()
+        if arr[0].isdigit():
+            del arr[0]
+        s = " ".join(arr)
+        draw_text(im, s)
 
     w = None
     h = None
