@@ -7,20 +7,12 @@ const os = require("os");
 
 var child;
 
-function openFileUnderCursor() {
-  if (!isDocumentActive) {
-    return;
-  }
-
-  const editor = vscode.window.activeTextEditor;
-
-  if (editor.selection.isEmpty) {
-    const position = editor.selection.active;
-    const line = editor.document.lineAt(position).text;
-    const found = line.match(/'(.*?)'/);
-    if (found !== null) {
-      const filePath = path.join(getProjectDir(), found[1]);
-
+async function openFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    if (filePath.endsWith(".md")) {
+      const document = await vscode.workspace.openTextDocument(filePath);
+      await vscode.window.showTextDocument(document);
+    } else {
       // const args = [
       //   "-c",
       //   `from r.open_with.open_with_ import open_with; open_with(r'${filePath}', 0)`,
@@ -34,6 +26,25 @@ function openFileUnderCursor() {
         filePath,
       ];
       cp.spawnSync("python", args);
+    }
+  }
+}
+
+async function openFileUnderCursor() {
+  if (!isDocumentActive) {
+    return;
+  }
+
+  const editor = vscode.window.activeTextEditor;
+
+  if (editor.selection.isEmpty) {
+    const position = editor.selection.active;
+    const line = editor.document.lineAt(position).text;
+    const found = line.match(/'(.*?)'/);
+    if (found !== null) {
+      const filePath = path.resolve(path.join(getProjectDir(), found[1]));
+      vscode.window.showErrorMessage(`${filePath}`);
+      openFile(filePath);
     }
   }
 }
@@ -177,7 +188,7 @@ function registerAutoComplete(context) {
         }
 
         let files = [];
-        getFiles(projectDir, (x) => /\.(png|jpg|mp4)$/g.test(x), files);
+        getFiles(projectDir, (x) => /\.(png|jpg|mp4|gif|mp3)$/g.test(x), files);
         files = files.sort(function (a, b) {
           return -(
             fs.statSync(a).mtime.getTime() - fs.statSync(b).mtime.getTime()
@@ -237,7 +248,10 @@ function getRecorderProcess() {
         if (editor) {
           const selection = editor.selection;
           editor.edit((editBuilder) => {
-            editBuilder.replace(selection, `{{ record('record/${fileName}') }}`);
+            editBuilder.replace(
+              selection,
+              `{{ record('record/${fileName}') }}`
+            );
           });
         }
       }
