@@ -43,7 +43,6 @@ async function openFileUnderCursor() {
     const found = line.match(/'(.*?)'/);
     if (found !== null) {
       const filePath = path.resolve(path.join(getProjectDir(), found[1]));
-      vscode.window.showErrorMessage(`${filePath}`);
       openFile(filePath);
     }
   }
