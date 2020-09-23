@@ -22,5 +22,9 @@
   "crossfade": {
     "prefix": "crossfade",
     "body": ["{{ crossfade(True) }}"]
+  },
+  "comment": {
+    "prefix": "comment",
+    "body": ["{{ comment('', t='as') }}"]
   }
 }
