@@ -345,6 +345,9 @@ class TerminalRecorder:
             elif ch == "o":
                 start_process("explorer .")
 
+            elif ch == "q":
+                sys.exit(0)
+
 
 if __name__ == "__main__":
     if "RECORD_OUT_DIR" in os.environ:

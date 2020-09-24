@@ -5,7 +5,8 @@ const process = require("process");
 const fs = require("fs");
 const os = require("os");
 
-var child;
+var recorderProcess = null;
+var currentProjectDir = null;
 
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
@@ -220,12 +221,26 @@ function registerAutoComplete(context) {
 }
 
 function getRecorderProcess() {
-  if (child == null) {
+  const d = getProjectDir();
+  
+  // Check if project switches
+  if (d != currentProjectDir) {
+    currentProjectDir = d;
+    if (recorderProcess != null) {
+      recorderProcess.stdin.write("q");
+      recorderProcess = null;
+      vscode.window.showWarningMessage(
+        "Project switched. Restarting recorder..."
+      );
+    }
+  }
+
+  if (recorderProcess == null) {
     if (!isDocumentActive()) {
       return null;
     }
 
-    child = cp.spawn("python", ["-u", "-m", "r.audio.recorder"], {
+    recorderProcess = cp.spawn("python", ["-u", "-m", "r.audio.recorder"], {
       env: {
         ...process.env,
         RECORD_OUT_DIR: path.resolve(getProjectDir() + "/record"),
@@ -233,13 +248,13 @@ function getRecorderProcess() {
       },
     });
 
-    child.on("close", (code) => {
+    recorderProcess.on("close", (code) => {
       vscode.window.showInformationMessage(
         `recorder process exited with code ${code}`
       );
     });
 
-    child.stdout.on("data", (data) => {
+    recorderProcess.stdout.on("data", (data) => {
       vscode.window.showInformationMessage(`${data}`);
       const s = data.toString("utf8").trim();
       if (s.startsWith("stop recording:")) {
@@ -258,12 +273,12 @@ function getRecorderProcess() {
       }
     });
 
-    child.stderr.on("data", (data) => {
+    recorderProcess.stderr.on("data", (data) => {
       vscode.window.showInformationMessage(`${data}`);
     });
   }
 
-  return child;
+  return recorderProcess;
 }
 
 function getRandomString() {
