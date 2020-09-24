@@ -14,13 +14,13 @@ def play(file):
 
     if play.ps is not None:
         # play.ps.terminate()
-        # play.ps.send_signal(signal.SIGINT)
-        ctypes.windll.kernel32.GenerateConsoleCtrlEvent(0, play.ps.pid)
+        play.ps.send_signal(signal.CTRL_C_EVENT)
+        # ctypes.windll.kernel32.GenerateConsoleCtrlEvent(0, play.ps.pid)
         play.ps = None
 
     FNULL = fnull()
     play.ps = subprocess.Popen(
-        ["ffplay", "-nodisp", "-nodisp", file], stdout=FNULL, stderr=FNULL
+        ["ffplay", "-nodisp", file], stdout=FNULL, stderr=FNULL
     )
 
 
