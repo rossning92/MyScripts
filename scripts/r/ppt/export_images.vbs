@@ -27,6 +27,6 @@ For Each sld In app.ActivePresentation.Slides
 Next
 
 ' Open export directory in explorer
-objShell.Run("explorer.exe " & exportDir)
+' objShell.Run("explorer.exe " & exportDir)
 
 ' app.Quit

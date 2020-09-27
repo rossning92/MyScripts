@@ -1,4 +1,5 @@
 from _shutil import *
+import pathlib
 
 proj_dir = r"{{_PROJ_PATH}}"
 print(proj_dir)
@@ -28,6 +29,9 @@ module.exports = {
 
 os.environ["PATH"] += os.pathsep + os.path.join(proj_dir, "node_modules", ".bin")
 
+if not os.path.exists("src/index.js"):
+    os.makedirs("src", exist_ok=True)
+    pathlib.Path("src/index.js").touch()
 
 # call_echo("webpack --mode development")
 call_echo("webpack-dev-server --mode development --open")

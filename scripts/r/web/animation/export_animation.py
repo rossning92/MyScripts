@@ -865,17 +865,25 @@ def screencap(f, speed=None, track=None, **kwargs):
     )
 
 
-def md(s, track="md", fadein=True, fadeout=True, pos="center", name=None, **kwargs):
+def slide(
+    s,
+    template,
+    pos="center",
+    name=None,
+    **kwargs,
+):
     mkdir("tmp/md")
     # out_file = "tmp/slides/%s.png" % slugify(name if name else s)
     out_file = "tmp/md/%s.png" % get_hash(s)
 
     if not os.path.exists(out_file):
-        generate_slide(
-            s, template_file="markdown.html", out_file=out_file, gen_html=True
-        )
+        generate_slide(s, template_file=template, out_file=out_file, gen_html=True)
 
-    _add_clip(out_file, track=track, fadein=fadein, fadeout=fadeout, pos=pos, **kwargs)
+    _add_clip(out_file, pos=pos, **kwargs)
+
+
+def md(s, **kwargs):
+    slide(s, track="md", template="markdown.html", fadein=True, fadeout=True, **kwargs)
 
 
 def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
@@ -1255,6 +1263,7 @@ def _interface():
         "image_anim": lambda *_, **__: None,
         "image": lambda *_, **__: None,  # deprecated, use `clip` instead
         "md": lambda *_, **__: None,
+        "slide": lambda *_, **__: None,
         "overlay": lambda *_, **__: None,
         "pos": lambda *_, **__: None,
         "record": lambda *_, **__: None,
@@ -1289,6 +1298,7 @@ def _default_impl():
         "image_anim": image_anim,
         "image": image,  # deprecated, use `clip` instead
         "md": md,
+        "slide": slide,
         "overlay": overlay,
         "pos": pos,
         "record": record,
