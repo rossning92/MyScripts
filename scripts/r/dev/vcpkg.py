@@ -18,5 +18,5 @@ while True:
 
     elif ch == "i":
         pkg_name = input("install by package name: ")
-        call_echo(r".\vcpkg\vcpkg install %s" % pkg_name)
+        call_echo(r".\vcpkg\vcpkg install %s --recurse" % pkg_name)
 
