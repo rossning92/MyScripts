@@ -29,7 +29,7 @@ if 1:
 if 1:  # Import moviepy
     IMAGE_MAGICK = get_executable("magick")
     os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
-    from moviepy.config import change_settings
+
     from moviepy.editor import *
     import moviepy.video.fx.all as vfx
     import moviepy.audio.fx.all as afx
@@ -48,8 +48,10 @@ IMAGE_SEQUENCE_FPS = 25
 FPS = 25
 VIDEO_CROSSFADE_DURATION = FADE_DURATION
 
+if 0:
+    from moviepy.config import change_settings
 
-# change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
+    change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
 
 class _VideoClipInfo:
@@ -229,7 +231,7 @@ def _generate_text_image(
     stroke_color="#000000",
 ):
     # Escape `%` in ImageMagick
-    text = text.replace("%", "%%")
+    text = text.replace("\\*", "*").replace("%", "%%")
 
     # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
@@ -1036,15 +1038,6 @@ def _export_video(resolution=(1920, 1080)):
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
 
             # Deal with video fade in / out / crossfade
-            if clip_info.crossfade > 0:
-                video_clips.append(
-                    clip_info.mpy_clip.set_duration(clip_info.crossfade)
-                    .crossfadein(clip_info.crossfade)
-                    .set_start(clip_info.start - 0.5 * clip_info.crossfade)
-                )
-
-                clip_info.mpy_clip = clip_info.mpy_clip.subclip(clip_info.crossfade)
-                clip_info.start += 0.5 * clip_info.crossfade
 
             if clip_info.fadein:
                 # TODO: crossfadein and crossfadeout is very slow in moviepy
@@ -1056,6 +1049,18 @@ def _export_video(resolution=(1920, 1080)):
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
                         vfx.fadein, VIDEO_CROSSFADE_DURATION
                     )
+
+            elif (
+                clip_info.crossfade > 0
+            ):  # crossfade and fadein should not happen at the same time
+                video_clips.append(
+                    clip_info.mpy_clip.set_duration(clip_info.crossfade)
+                    .crossfadein(clip_info.crossfade)
+                    .set_start(clip_info.start - 0.5 * clip_info.crossfade)
+                )
+
+                clip_info.mpy_clip = clip_info.mpy_clip.subclip(clip_info.crossfade)
+                clip_info.start += 0.5 * clip_info.crossfade
 
             if clip_info.fadeout:
                 if track_name != "vid":
