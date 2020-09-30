@@ -391,7 +391,7 @@ def _add_audio_clip(
 
     if not os.path.exists(file):
         raise Exception("Please make sure `%s` exists." % file)
-    clip_info.file = file
+    clip_info.file = os.path.abspath(file)
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     clip_info.mpy_clip = AudioFileClip(file, buffersize=400000)
@@ -429,10 +429,10 @@ def audio(
     if len(_get_audio_track(track).clips) > 0:
         if crossfade > 0:
             _set_vol(0, duration=crossfade, t=t, track=track)
-            audio_end(track=track, t=t + crossfade, move_playhead=move_playhead)
+            audio_end(track=track, t=t + crossfade)
         else:
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
-            audio_end(track=track, t=t, move_playhead=move_playhead)
+            audio_end(track=track, t=t)
 
     _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
 
@@ -866,11 +866,7 @@ def screencap(f, speed=None, track=None, **kwargs):
 
 
 def slide(
-    s,
-    template,
-    pos="center",
-    name=None,
-    **kwargs,
+    s, template, pos="center", name=None, **kwargs,
 ):
     mkdir("tmp/md")
     # out_file = "tmp/slides/%s.png" % slugify(name if name else s)
@@ -1039,7 +1035,7 @@ def _export_video(resolution=(1920, 1080)):
                 assert duration > 0
                 clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
 
-            # Deal with vedio fade in / out / crossfade
+            # Deal with video fade in / out / crossfade
             if clip_info.crossfade > 0:
                 video_clips.append(
                     clip_info.mpy_clip.set_duration(clip_info.crossfade)
@@ -1082,7 +1078,15 @@ def _export_video(resolution=(1920, 1080)):
     for _, track in _audio_tracks.items():
         clips = []
         for clip_info in track.clips:
-            clip = clip_info.mpy_clip
+            if clip_info.loop:
+                # HACK: reload the clip.
+                #
+                # still don't know why using loaded mpy_clip directly will cause
+                # "IndexError: index -200001 is out of bounds for axis 0 with
+                # size 0"...
+                clip = AudioFileClip(clip_info.file, buffersize=400000)
+            else:
+                clip = clip_info.mpy_clip
 
             if clip_info.subclip is not None:
                 clip = clip.subclip(clip_info.subclip)
