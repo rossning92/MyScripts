@@ -1163,8 +1163,8 @@ def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
     print("vol_keypoints:", vol_keypoints)
     for (p, vol) in vol_keypoints:
         if isinstance(vol, (int, float)):
-            xp += p
-            fp += vol
+            xp.append(p)
+            fp.append(vol)
         else:
             raise Exception("unsupported bgm parameter type:" % type(vol))
 
