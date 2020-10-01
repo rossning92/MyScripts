@@ -47,6 +47,8 @@ AUTO_GENERATE_TTS = False
 IMAGE_SEQUENCE_FPS = 25
 FPS = 25
 VIDEO_CROSSFADE_DURATION = FADE_DURATION
+AUDIO_FADING_DURATION = 0.25
+
 
 if 0:
     from moviepy.config import change_settings
@@ -348,7 +350,7 @@ def audio_gap(duration):
     _pos_list.append(_pos_dict["a"])
 
 
-def _set_vol(vol, duration=0.25, track=None, t=None):
+def _set_vol(vol, duration=AUDIO_FADING_DURATION, track=None, t=None):
     if duration <= 0:
         return
 
@@ -467,8 +469,8 @@ def bgm(
     f,
     move_playhead=False,
     t="a",
-    in_duration=0.5,
-    out_duration=0.5,
+    in_duration=AUDIO_FADING_DURATION,
+    out_duration=AUDIO_FADING_DURATION,
     vol=0.15,
     track="bgm",
     norm=False,
