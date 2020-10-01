@@ -351,9 +351,6 @@ def audio_gap(duration):
 
 
 def _set_vol(vol, duration=AUDIO_FADING_DURATION, track=None, t=None):
-    if duration <= 0:
-        return
-
     t = _get_pos(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
@@ -363,7 +360,12 @@ def _set_vol(vol, duration=AUDIO_FADING_DURATION, track=None, t=None):
 
     t_in_clip = t - track_.clips[-1].start
     assert t_in_clip >= 0
-    track_.clips[-1].vol_keypoints.append((t_in_clip, vol, duration))
+
+    # Add keypoints
+    if len(track_.clips[-1].vol_keypoints) > 0:  # has previous keypoint
+        _, prev_vol = track_.clips[-1].vol_keypoints[-1]
+        track_.clips[-1].vol_keypoints.append((t_in_clip, prev_vol))
+    track_.clips[-1].vol_keypoints.append((t_in_clip + duration, vol))
 
 
 def vol(vol, **kwargs):
@@ -1157,14 +1159,12 @@ def _export_video(resolution=(1920, 1080)):
 def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
     xp = []
     fp = []
-    cur_vol = 0
 
-    for i, (start, vol, duration) in enumerate(vol_keypoints):
+    print("vol_keypoints:", vol_keypoints)
+    for (p, vol) in vol_keypoints:
         if isinstance(vol, (int, float)):
-            xp += [start, start + duration]
-            fp += [cur_vol, vol]
-            cur_vol = vol
-
+            xp += p
+            fp += vol
         else:
             raise Exception("unsupported bgm parameter type:" % type(vol))
 
