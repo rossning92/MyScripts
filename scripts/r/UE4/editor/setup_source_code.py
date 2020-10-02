@@ -2,7 +2,7 @@ from _shutil import *
 from _nvpack import *
 from _appmanager import choco_install
 
-# choco_install('directx')
+choco_install('directx')
 
 # TODO: install vs2017 C++ and C#
 

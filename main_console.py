@@ -101,12 +101,16 @@ def register_hotkeys(scripts):
 
 
 def save_variables(variables):
-    with open(get_variable_file(), "r") as f:
-        data = json.load(f)
+    config_file = get_variable_file()
+    if not os.path.exists(config_file):
+        data = {}
+    else:
+        with open(get_variable_file(), "r") as f:
+            data = json.load(f)
 
     data.update(variables)
 
-    with open(get_variable_file(), "w") as f:
+    with open(config_file, "w") as f:
         json.dump(data, f, indent=4)
 
 

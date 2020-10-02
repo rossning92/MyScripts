@@ -36,7 +36,7 @@ def build_uproject(project_dir, out_dir=None):
             "-cookflavor=ASTC",
             "-build",
             "-CrashReporter",
-            "-clientconfig=Shipping",
+            "-clientconfig=Development",
             "-utf8output",
             "-compile",
         ]

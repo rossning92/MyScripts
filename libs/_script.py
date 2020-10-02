@@ -120,7 +120,11 @@ def get_variable_file():
 
 
 def get_all_variables():
-    with open(get_variable_file(), "r") as f:
+    file = get_variable_file()
+    if not os.path.exists(file):
+        return {}
+
+    with open(file, "r") as f:
         variables = json.load(f)
         return variables
 
@@ -569,7 +573,15 @@ class ScriptItem:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = args_activate + [python_exec, run_py, python_file,] + args
+                args = (
+                    args_activate
+                    + [
+                        python_exec,
+                        run_py,
+                        python_file,
+                    ]
+                    + args
+                )
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
