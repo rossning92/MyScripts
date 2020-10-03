@@ -43,7 +43,7 @@ def edit_video(file):
 
             # Get file name
             global cut_video_index
-            name, ext = os.path.splitext(history_files[-1])
+            name, ext = os.path.splitext(history_files[0])
             out_file = "%s-%d%s" % (name, cut_video_index, ext)
             cut_video_index += 1
 
@@ -175,6 +175,11 @@ def edit_video(file):
     def set_speed_2x():
         mpv.command("show-text", "Setting speed to 2x...", "3000")
         create_filtered_video("setpts=PTS/2")
+
+    @mpv.on_key_press("a")
+    def set_speed_2x():
+        mpv.command("show-text", "To anamorphic...", "3000")
+        create_filtered_video("scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132")
 
 
 if __name__ == "__main__":
