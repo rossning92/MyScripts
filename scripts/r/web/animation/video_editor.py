@@ -5,6 +5,9 @@ from _shutil import *
 import threading
 
 
+cut_video_index = 1
+
+
 def edit_video(file):
     in_time = 0
     out_time = 0
@@ -22,23 +25,28 @@ def edit_video(file):
     def show_cut_info():
         mpv.command("show-text", "[%.3f, %.3f]" % (in_time, out_time), "3000")
 
-    @mpv.on_key_press("[")
+    @mpv.on_key_press("i")
     def set_in_time():
         nonlocal in_time
         in_time = mpv.playback_time
         show_cut_info()
 
-    @mpv.on_key_press("]")
+    @mpv.on_key_press("o")
     def set_out_time():
         nonlocal out_time
         out_time = mpv.playback_time
         show_cut_info()
 
-    @mpv.on_key_press("x")
-    def cut_video_file():
+    def cut_video_file(play=False):
         if in_time is not None and out_time is not None:
             mpv.command("show-text", "Cutting video...", "3000")
-            out_file = get_temp_file()
+
+            # Get file name
+            global cut_video_index
+            name, ext = os.path.splitext(history_files[-1])
+            out_file = "%s-%d%s" % (name, cut_video_index, ext)
+            cut_video_index += 1
+
             args = [
                 "ffmpeg",
                 "-y",
@@ -62,9 +70,18 @@ def edit_video(file):
                 out_file,
             ]
             subprocess.check_call(args)
-            history_files.append(out_file)
-            mpv.play(out_file)
+            if play:
+                history_files.append(out_file)
+                mpv.play(out_file)
             mpv.command("show-text", "Done.", "3000")
+
+    @mpv.on_key_press("x")
+    def cut_video_file_and_play():
+        cut_video_file(play=True)
+
+    @mpv.on_key_press("X")
+    def cut_video_file_and_save():
+        cut_video_file()
 
     @mpv.on_key_press("ctrl+s")
     def save():
