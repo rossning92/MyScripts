@@ -170,6 +170,14 @@ function getFiles(dir, filter, files = [], dirs = []) {
   });
 }
 
+function getCompletedExpression(file) {
+  if (file.endsWith(".md")) {
+    return ` include('${file}') `;
+  } else {
+    return ` clip('${file}') `;
+  }
+}
+
 function registerAutoComplete(context) {
   const provider = vscode.languages.registerCompletionItemProvider(
     { pattern: "**/index.md" },
@@ -186,7 +194,7 @@ function registerAutoComplete(context) {
         }
 
         let files = [];
-        const filter = (x) => /\.(png|jpg|mp4|gif|mp3)$/g.test(x);
+        const filter = (x) => /\.(png|jpg|mp4|gif|mp3|md)$/g.test(x);
 
         getFiles(projectDir, filter, files);
         getFiles(projectDir + "/../assets", filter, files);
@@ -202,7 +210,7 @@ function registerAutoComplete(context) {
 
         const completionItems = [];
         files.forEach((file, i) => {
-          const label = ` clip('${file}') `; // Auto closing single quote
+          const label = getCompletedExpression(file); // Auto closing single quote
           const item = new vscode.CompletionItem(
             label,
             vscode.CompletionItemKind.File
@@ -222,7 +230,7 @@ function registerAutoComplete(context) {
 
 function getRecorderProcess() {
   const d = getProjectDir();
-  
+
   // Check if project switches
   if (d != currentProjectDir) {
     currentProjectDir = d;

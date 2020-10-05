@@ -181,6 +181,11 @@ def edit_video(file):
         mpv.command("show-text", "To anamorphic...", "3000")
         create_filtered_video("scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132")
 
+    @mpv.on_key_press("0")
+    def crop_custom():
+        mpv.command("show-text", "Cropping vmware player...", "3000")
+        create_filtered_video("crop=2560:1294:0:85,scale=1920:-2")
+
 
 if __name__ == "__main__":
     f = get_files()[0]
