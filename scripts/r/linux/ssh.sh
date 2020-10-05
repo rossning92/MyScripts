@@ -3,6 +3,8 @@ if ! [ -x "$(command -v expect)" ]; then
     sudo apt-get install expect -y
 fi
 
+printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
+
 if [[ -z "{{_PWD}}" ]]; then
     ssh {{_USER}}@{{_HOST}}
 else
