@@ -4,13 +4,15 @@ import datetime
 
 def start_app(pkg, use_monkey=True):
     if use_monkey:
+        args = [
+            "adb",
+            "shell",
+            "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
+        ]
+        print("> " + " ".join(args))
         with open(os.devnull, "w") as fnull:
             ret = subprocess.call(
-                [
-                    "adb",
-                    "shell",
-                    "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
-                ],
+                args,
                 stdout=fnull,
                 stderr=fnull,
             )

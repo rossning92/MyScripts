@@ -3,9 +3,8 @@ import sys
 import subprocess
 
 PKGS = {
-    "other": [
+    "@other": [
         "miktex",
-        "unity --version 2018.2.0",
         "unity --version 2018.2.14",
         "sketchup",
         "blender",
@@ -33,7 +32,7 @@ PKGS = {
         "docker-desktop",
         "rufus",
     ],
-    "common": ["everything", "irfanview", "googlechrome"],
+    "@common": ["everything", "irfanview", "googlechrome"],
     "@ross": ["google-backup-and-sync"],
     "@dev": [
         "7zip",
@@ -56,10 +55,21 @@ PKGS = {
         "nodejs",
         "microsoft-windows-terminal",
         "vscode",
+        "ffmpeg",
+        "imagemagick.app",
     ],
-    "media": ["ffmpeg", "vlc", "imagemagick.app",],
-    "for_work": ["p4v", "selenium-chrome-driver",],
-    "ue4": ["directx",],
+    "@media": [
+        "ffmpeg",
+        "vlc",
+        "imagemagick.app",
+    ],
+    "@work": [
+        "p4v",
+        "selenium-chrome-driver",
+    ],
+    "@ue4": [
+        "directx",
+    ],
 }
 
 pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
