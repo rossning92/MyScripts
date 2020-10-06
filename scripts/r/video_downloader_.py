@@ -20,7 +20,9 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         url = sys.argv[1]
         cd("~/Desktop/Bilibili", auto_create_dir=True)
-        download_bili(url)
+        # download_bili(url)
+
+        call_echo("you-get --no-caption --playlist %s" % url)
     else:
         raise Exception("invalid parameter: url")
 
