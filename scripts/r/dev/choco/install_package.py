@@ -3,6 +3,49 @@ import sys
 import subprocess
 
 PKGS = {
+    "@common": [
+        "everything",
+        "irfanview",
+        "googlechrome",
+        "mpv",
+        "sumatrapdf",
+        "tightvnc",
+    ],
+    "@ross": ["google-backup-and-sync"],
+    "@dev": [
+        "7zip",
+        "conemu",
+        "atom",
+        "graphviz",
+        # "anaconda3",
+        # "miniconda3",
+        # "pycharm-community",
+        "cmake",
+        "cmake --version=3.10.2 --force",
+        "visualstudio2017community",
+        "androidstudio",
+        "android-sdk",
+        "llvm",
+        "ripgrep",
+        "vscode",
+        # "visualstudiocode-insiders --pre",
+        "nodejs",
+        "microsoft-windows-terminal",
+        "vscode",
+        "ffmpeg",
+        "imagemagick.app",
+    ],
+    "@media": [
+        "ffmpeg",
+        "imagemagick.app",
+    ],
+    "@work": [
+        "p4v",
+        "selenium-chrome-driver",
+    ],
+    "@ue4": [
+        "directx",
+    ],
     "@other": [
         "miktex",
         "unity --version 2018.2.14",
@@ -32,44 +75,6 @@ PKGS = {
         "docker-desktop",
         "rufus",
     ],
-    "@common": ["everything", "irfanview", "googlechrome"],
-    "@ross": ["google-backup-and-sync"],
-    "@dev": [
-        "7zip",
-        "conemu",
-        "atom",
-        "graphviz",
-        # "anaconda3",
-        # "miniconda3",
-        # 'pycharm-community',
-        "cmake",
-        "cmake --version=3.10.2 --force",
-        "visualstudio2017community",
-        "androidstudio",
-        "android-sdk",
-        "llvm",
-        "ripgrep",
-        "vscode",
-        # "visualstudiocode-insiders --pre",
-        "sumatrapdf",
-        "nodejs",
-        "microsoft-windows-terminal",
-        "vscode",
-        "ffmpeg",
-        "imagemagick.app",
-    ],
-    "@media": [
-        "ffmpeg",
-        "vlc",
-        "imagemagick.app",
-    ],
-    "@work": [
-        "p4v",
-        "selenium-chrome-driver",
-    ],
-    "@ue4": [
-        "directx",
-    ],
 }
 
 pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
@@ -83,11 +88,8 @@ subprocess.call(
     'choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"'
 )
 
-if pkg_list[idx] == "@for work":
-    for pkg in PKGS["for_work"] + PKGS["media"] + PKGS["dev"] + PKGS["common"]:
-        subprocess.call("choco install %s -y" % pkg)
 
-elif pkg_list[idx].startswith("@"):
+if pkg_list[idx].startswith("@"):
     for pkg in PKGS[pkg_list[idx]]:
         subprocess.call("choco install %s -y" % pkg)
 

@@ -68,3 +68,7 @@ adobereader:
 ffmpeg:
   executable:
     - C:\ProgramData\chocolatey\bin\ffmpeg.exe
+
+mpv:
+  executable:
+    - C:\ProgramData\chocolatey\lib\mpv.install\tools\mpv.exe
