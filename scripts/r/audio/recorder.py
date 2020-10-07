@@ -316,6 +316,7 @@ class TerminalRecorder:
                 self.delete_cur_file()
 
             elif ch == "n":
+                run_script("/r/audio/set_mic_volume.ps1")
                 self.create_noise_profile()
 
             elif ch == ",":
