@@ -473,7 +473,7 @@ def bgm(
     t="a",
     in_duration=AUDIO_FADING_DURATION,
     out_duration=AUDIO_FADING_DURATION,
-    vol=0.15,
+    vol=0.1,
     track="bgm",
     norm=False,
     loop=True,
@@ -1286,6 +1286,7 @@ def _interface():
         "video": lambda *_, **__: None,  # deprecated, use `clip` instead
         "vol": lambda *_, **__: None,
         "include": lambda *_, **__: None,
+        "parse_line": lambda *_, **__: None,
     }
 
 
@@ -1346,20 +1347,26 @@ def _default_impl():
 
 
 def _remove_unused_recordings(s):
-    recordings = set()
-    impl = {**_interface(), "record": (lambda f, **kargs: recordings.add(f))}
+    used_recordings = set()
+    impl = {**_interface(), "record": (lambda f, **kargs: used_recordings.add(f))}
     _parse_text(s, impl=impl)
 
-    file_to_delete = []
-    for f in os.listdir("record"):
-        if f not in recordings and f.endswith(".wav"):
-            file_to_delete.append(f)
+    unused_recordings = []
+    all_files = [x.replace("\\", "/") for x in glob.glob("record/*.wav")]
+    for f in all_files:
+        if f not in used_recordings and f.endswith(".wav"):
+            unused_recordings.append(f)
 
-    print("Used recordings: %d" % len(recordings))
-    print("Recordings to delete: %d" % len(file_to_delete))
+    print("Total: %d" % len(all_files))
+    print("Used recordings: %d" % len(used_recordings))
+    print("Recordings to delete: %d" % len(unused_recordings))
+    assert len(used_recordings) + len(unused_recordings) == len(all_files)
     if input("press y to confirm deletion: ") == "y":
-        for f in file_to_delete:
-            os.remove(os.path.join("record", f))
+        for f in unused_recordings:
+            try:
+                os.remove(f)
+            except:
+                print("WARNING: failed to remove: %f" % f)
 
 
 def _parse_text(text, impl, **kwargs):
