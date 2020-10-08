@@ -1,9 +1,11 @@
-from .python_mpv_jsonipc import MPV
 import sys
 import subprocess
 from _shutil import *
 import threading
 
+if 1:
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from python_mpv_jsonipc import MPV
 
 cut_video_index = 1
 

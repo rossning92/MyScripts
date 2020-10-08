@@ -1366,7 +1366,7 @@ def _remove_unused_recordings(s):
             try:
                 os.remove(f)
             except:
-                print("WARNING: failed to remove: %f" % f)
+                print("WARNING: failed to remove: %s" % f)
 
 
 def _parse_text(text, impl, **kwargs):
