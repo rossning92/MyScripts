@@ -540,11 +540,12 @@ def overlay(
     )
 
 
-def comment(text, pos=(960, 200), duration=4, **kwargs):
+def comment(text, pos=(960, 200), duration=4, track="overlay", **kwargs):
     md(
         '<span style="color:#f6e58d;font-size:0.8em">%s</span>' % text,
         pos=pos,
         duration=duration,
+        track=track,
         **kwargs,
     )
 
@@ -884,8 +885,8 @@ def slide(
     _add_clip(out_file, pos=pos, **kwargs)
 
 
-def md(s, **kwargs):
-    slide(s, track="md", template="markdown.html", fadein=True, fadeout=True, **kwargs)
+def md(s, track="md", **kwargs):
+    slide(s, track=track, template="markdown.html", fadein=True, fadeout=True, **kwargs)
 
 
 def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):

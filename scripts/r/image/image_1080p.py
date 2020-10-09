@@ -11,10 +11,11 @@ mkdir("out")
 for f in files:
     fg = Image.open(f).convert("RGBA")
 
-    if fg.width / fg.height > OUT_SIZE[0] / OUT_SIZE[1]:
-        fg = fg.resize([OUT_SIZE[1] * fg.width // fg.height, OUT_SIZE[1]])
-    else:
-        fg = fg.resize([OUT_SIZE[0], OUT_SIZE[0] * fg.height // fg.width])
+    if "{{RESIZE}}":
+        if fg.width / fg.height > OUT_SIZE[0] / OUT_SIZE[1]:
+            fg = fg.resize([OUT_SIZE[1] * fg.width // fg.height, OUT_SIZE[1]])
+        else:
+            fg = fg.resize([OUT_SIZE[0], OUT_SIZE[0] * fg.height // fg.width])
 
     bg = Image.new("RGB", (1920, 1080))
 
