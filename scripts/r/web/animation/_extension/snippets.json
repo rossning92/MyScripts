@@ -25,6 +25,10 @@
   },
   "comment": {
     "prefix": "comment",
-    "body": ["{{ comment('', t='as') }}"]
+    "body": ["{{ comment('$1', t='as') }}"]
+  },
+  "slide": {
+    "prefix": "slide",
+    "body": ["{{ slide('# $1\\n## $2', t='as', template='title.html') }}"]
   }
 }

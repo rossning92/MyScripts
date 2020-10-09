@@ -1,3 +1,5 @@
+set -e
+
 run_script /r/android/unlock.sh
 
 # Set display timeout to 1 minute.

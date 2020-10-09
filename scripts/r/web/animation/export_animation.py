@@ -891,8 +891,8 @@ def md(s, track="md", **kwargs):
 
 def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
     PRESETS = [
-        "../image/cursor.png",
-        "../animation/click.tar",
+        "../assets/image/cursor.png",
+        "../assets/animation/click.tar",
     ]
     if file is None and preset >= 0:
         file = PRESETS[preset]
