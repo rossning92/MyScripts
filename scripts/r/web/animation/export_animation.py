@@ -96,8 +96,7 @@ class _AnimationInfo:
 
 
 _audio_track_cur_pos = 0
-_pos_list = [0]
-_pos_dict = {"a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
+_pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
 
 
 _add_fadeout_to_last_clip = False
@@ -198,7 +197,7 @@ def _get_pos(p):
     PATT_NUMBER = r"[+-]?(?:[0-9]*[.])?[0-9]+"
 
     if p is None:
-        return _pos_list[-1]
+        return _pos_dict["c"]
 
     if type(p) == int or type(p) == float:
         return float(p)
@@ -219,7 +218,7 @@ def _get_pos(p):
 
 def _set_pos(t, tag=None):
     t = _get_pos(t)
-    _pos_list.append(t)
+    _pos_dict["c"] = t
 
     if tag is not None:
         _pos_dict[tag] = t
@@ -347,7 +346,8 @@ def record(f, t="a", postprocess=True, **kwargs):
 
 def audio_gap(duration):
     _pos_dict["a"] += duration
-    _pos_list.append(_pos_dict["a"])
+    _pos_dict["ae"] = _pos_dict["as"] = _pos_dict["a"]
+    _pos_dict["c"] = _pos_dict["a"]
 
 
 def _set_vol(vol, duration=AUDIO_FADING_DURATION, track=None, t=None):
@@ -391,7 +391,7 @@ def _add_audio_clip(
 
     if move_playhead:
         _pos_dict["as"] = t
-        _pos_list.append(_pos_dict["as"])
+        _pos_dict["c"] = _pos_dict["as"]
 
     clip_info = _AudioClipInfo()
 
@@ -463,8 +463,7 @@ def audio_end(*, t=None, track=None, move_playhead=True):
     print2("previous clip(file=%s) duration updated: %.2f" % (clips[-1].file, duration))
 
     if move_playhead:
-        _pos_dict["a"] = t
-        _pos_list.append(_pos_dict["a"])
+        _pos_dict["c"] = _pos_dict["a"] = t
 
 
 def bgm(
@@ -787,8 +786,7 @@ def _add_clip(
 
     if move_playhead:  # Advance the pos
         end = t + clip_info.mpy_clip.duration
-        _pos_list.append(end)
-        _pos_dict["ve"] = end
+        _pos_dict["c"] = _pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
         print("WARNING: clip `%s` has been removed" % track[-1].file)
