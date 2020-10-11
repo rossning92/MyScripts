@@ -33,7 +33,6 @@ DumpSelectedFilePath()
     
     ; Restore clipboard
     Clipboard := clipSaved
-    clipSaved =
     
     ; Check file existance
     if not FileExist(filePath)

@@ -10,7 +10,7 @@ ALWAYS_GENERATE = False
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
 
-COMPRESSOR_ATTACK = 0.0
+COMPRESSOR_ATTACK = 0.002
 COMPRESSOR_DECAY = 0.085
 COMPRESSOR_THRES_DB = -15
 COMPRESSOR_RATIO = 4
@@ -18,10 +18,6 @@ COMPRESSOR_RATIO = 4
 NOISE_GATE_DB = -999
 
 RECORD_MIN_VOLUME_TO_KEEP = 0.05
-
-BASS_FREQ_DB = -2
-MIDDLE_FREQ_DB = -4
-TREBLE_FREQ_DB = 1
 
 PADDING = 0.15
 
@@ -36,10 +32,10 @@ def _create_dir_if_not_exists(file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
 
-def create_normalized(name, in_file, mtime):
+def create_normalized(*, name, in_file, mtime, regenerate):
     out_file = f"tmp/{name}.final.wav"
     if (
-        ALWAYS_GENERATE
+        regenerate
         or not os.path.exists(out_file)
         or os.path.getmtime(out_file) != mtime
     ):
@@ -49,7 +45,7 @@ def create_normalized(name, in_file, mtime):
     return out_file
 
 
-def process_audio_file(f):
+def process_audio_file(f, regenerate=ALWAYS_GENERATE):
     name_no_ext = os.path.splitext(os.path.basename(f))[0]
     mtime = os.path.getmtime(f)
 
@@ -58,7 +54,7 @@ def process_audio_file(f):
     out_file = f"tmp/{f}.mono.wav"
     _create_dir_if_not_exists(out_file)
     if (
-        ALWAYS_GENERATE
+        regenerate
         or not os.path.exists(out_file)
         or os.path.getmtime(out_file) != mtime
     ):
@@ -70,7 +66,7 @@ def process_audio_file(f):
     in_file = out_file
     out_file = f"tmp/{f}.norm.wav"
     if (
-        ALWAYS_GENERATE
+        regenerate
         or not os.path.exists(out_file)
         or os.path.getmtime(out_file) != mtime
     ):
@@ -87,7 +83,7 @@ def process_audio_file(f):
     in_file = out_file
     filtered_voice_file = f"tmp/{f}.voice_only.wav"
     if (
-        ALWAYS_GENERATE
+        regenerate
         or not os.path.exists(filtered_voice_file)
         or os.path.getmtime(filtered_voice_file) != mtime
     ):
@@ -111,7 +107,7 @@ def process_audio_file(f):
     # Cut
     out_file = f"tmp/{f}.cut.wav"
     if (
-        ALWAYS_GENERATE
+        regenerate
         or not os.path.exists(out_file)
         or os.path.getmtime(out_file) != mtime
     ):
@@ -151,16 +147,22 @@ def process_audio_file(f):
     out_file = f"tmp/{f}.compressed.wav"
     _create_dir_if_not_exists(out_file)
     if (
-        ALWAYS_GENERATE
+        regenerate
         or not os.path.exists(out_file)
         or os.path.getmtime(out_file) != mtime
     ):
         print(out_file)
-        subprocess.check_call(
-            f"sox {in_file} {out_file}"
-            f" equalizer 800 400h {MIDDLE_FREQ_DB}"
-            f" bass {BASS_FREQ_DB} 100"
-            f" treble {TREBLE_FREQ_DB} 4k 1s"
+
+        args = f"sox {in_file} {out_file}"
+
+        # EQ
+        if 0:  # old
+            args += " bass -2.0 100" " equalizer 800 400h -4.0" " treble 1.0 4k 1s"
+        else:
+            args += " bass -18 30" " equalizer 315 100h -5.7" " equalizer 12105 10k 3.7"
+
+        # Compressor
+        args += (
             f" compand"
             f" {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}"  # attack1,decay1
             f" {NOISE_GATE_DB-1},-inf"
@@ -169,9 +171,13 @@ def process_audio_file(f):
             f",0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}"
             f" 0 -90"  # gain initial-volume-dB
         )
+
+        subprocess.check_call(args)
         os.utime(out_file, (mtime, mtime))
 
-    out_file = create_normalized(name=f, in_file=out_file, mtime=mtime)
+    out_file = create_normalized(
+        name=f, in_file=out_file, mtime=mtime, regenerate=regenerate
+    )
 
     return out_file
 
@@ -215,8 +221,13 @@ def dynamic_audio_normalize(f):
 
 
 if __name__ == "__main__":
-    folder = r"{{_AUDIO_DIR}}"
-    print("input audio folder: %s" % folder)
-    chdir(folder)
+    # folder = r"{{_AUDIO_DIR}}"
+    # print("input audio folder: %s" % folder)
+    # chdir(folder)
 
-    create_final_vocal()
+    # create_final_vocal()
+
+    f = get_files(cd=True)[0]
+    out = process_audio_file(f, regenerate=True)
+    subprocess.call(["ffplay", "-nodisp", out])
+
