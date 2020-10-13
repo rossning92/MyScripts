@@ -349,7 +349,10 @@ class MainWindow(SearchWindow):
                     for i, s in enumerate(str_list):
                         if height + i >= self.height:
                             break
-                        self.stdscr.addstr(height + i, 0, s)
+                        try:
+                            self.stdscr.addstr(height + i, 0, s)
+                        except:
+                            pass
 
         except FileNotFoundError:  # Scripts have been removed
             pass

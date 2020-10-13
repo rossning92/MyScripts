@@ -230,7 +230,8 @@ def call_echo(args, shell=True, check=True, **kwargs):
     else:
         s = args
     print2(s, color="cyan")
-    subprocess.run(args, shell=shell, check=check, **kwargs)
+    ret = subprocess.run(args, shell=shell, check=check, **kwargs)
+    return ret.returncode
 
 
 def start_in_new_terminal(args, title=None):
@@ -556,7 +557,7 @@ def fnull():
     return open(os.devnull, "w")
 
 
-def read_lines(args, echo=False, read_err=False, max_lines=None, check_returncode=True):
+def read_lines(args, echo=False, read_err=False, max_lines=None, check=False):
     ps = subprocess.Popen(
         args,
         stdout=subprocess.PIPE if (not read_err) else None,
@@ -571,10 +572,11 @@ def read_lines(args, echo=False, read_err=False, max_lines=None, check_returncod
         line = line.decode(errors="ignore")
         if echo:
             print(line)
-        yield line
 
+        cancel = yield line
         line_no += 1
-        if max_lines and line_no >= max_lines:
+
+        if cancel or (max_lines and line_no >= max_lines):
             if sys.platform == "win32":
                 FNULL = open(os.devnull, "w")
                 subprocess.call(
@@ -588,8 +590,9 @@ def read_lines(args, echo=False, read_err=False, max_lines=None, check_returncod
             break
 
     ps.wait()
-    if check_returncode and ps.returncode != 0:
+    if check and ps.returncode != 0:
         raise subprocess.CalledProcessError(ps.returncode, ps.args)
+    yield
 
 
 def check_output_echo(args):
