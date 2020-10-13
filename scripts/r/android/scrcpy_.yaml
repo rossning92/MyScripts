@@ -1,0 +1,15 @@
+anaconda: false
+autoRun: false
+background: false
+closeOnExit: true
+conda: null
+globalHotkey: Win+Alt+A
+hotkey: null
+newWindow: true
+packages: scrcpy
+restartInstance: true
+runAsAdmin: false
+template: true
+terminal: null
+venv: null
+wsl: false

@@ -47,6 +47,7 @@ PKGS = {
         "directx",
     ],
     "@other": [
+        "scrcpy",
         "miktex",
         "unity --version 2018.2.14",
         "sketchup",

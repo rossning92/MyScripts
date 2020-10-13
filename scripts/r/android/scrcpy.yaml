@@ -1,7 +1,0 @@
-anaconda: false
-autoRun: false
-globalHotkey: Win+Alt+A
-hotkey: null
-newWindow: true
-runAsAdmin: false
-wsl: false
