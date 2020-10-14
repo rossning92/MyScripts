@@ -58,11 +58,12 @@ if __name__ == "__main__":
 
     commit(dry_run=True)
 
+    print_help()
+
     while True:
-        print_help()
         ch = getch()
         if ch == "h":
-            pass
+            print_help()
         elif ch == "c":
             commit()
         elif ch == "a":
@@ -71,6 +72,9 @@ if __name__ == "__main__":
             commit(amend=True)
             call_echo("git push -u origin master --force")
         elif ch == "p":
-            call_echo("git push -u origin master --force")
+            call_echo("git push -u origin master")
         elif ch == "s":
             commit(dry_run=True)
+        elif ch == "l":
+            call_echo("git log --pretty=oneline --abbrev-commit")
+
