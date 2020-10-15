@@ -1,16 +1,34 @@
 from _shutil import *
 from _math import *
+import pandas as pd
+import matplotlib
+
+
+def plt_pause(interval):
+    """The function updates the canvas without activating the window."""
+
+    backend = plt.rcParams["backend"]
+    if backend in matplotlib.rcsetup.interactive_bk:
+        figManager = matplotlib._pylab_helpers.Gcf.get_active()
+        if figManager is not None:
+            canvas = figManager.canvas
+            if canvas.figure.stale:
+                canvas.draw()
+            canvas.start_event_loop(interval)
+            return
 
 
 core_names = []
 total_idle = []
-for i in range(10):
 
+ax = plt.subplot()
+plt.show(block=False)
+for i in range(999999):
     sample = subprocess.check_output(
-        'adb shell cat /proc/stat', universal_newlines=True)
-    # print(sample)
+        "adb shell cat /proc/stat", universal_newlines=True
+    )
 
-    matches = re.findall('^(cpu.*?) (.*)', sample, flags=re.MULTILINE)
+    matches = re.findall("^(cpu.*?) (.*)", sample, flags=re.MULTILINE)
 
     total_idle_per_sample = []
     core_names.clear()
@@ -33,19 +51,11 @@ for i in range(10):
         # cores = [4, 5, 6, 7]
         # total_idle_diff = total_idle_diff[:, cores, ]
 
-        cpu_util = np.apply_along_axis(
-            lambda x: 1 - x[1] / x[0], -1, total_idle_diff)
-
+        cpu_util = np.apply_along_axis(lambda x: 1 - x[1] / x[0], -1, total_idle_diff)
         df = pd.DataFrame(cpu_util, columns=core_names)
 
-        call2('cls')
-        print(df.mean())
+        ax.clear()
+        plt.ylim(0, 1)
 
-    time.sleep(1)
-
-
-df.plot(kind='line')
-plt.title('CPU Usage')
-plt.ylabel('CPU Utilization')
-plt.xlabel('Time Secs')
-save_fig(size_inch=(12, 6))
+        df.plot(ax=ax, kind="line")
+        plt_pause(0.5)
