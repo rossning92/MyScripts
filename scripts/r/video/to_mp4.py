@@ -85,7 +85,7 @@ for f in files:
         reencode=True,
         crf=int("{{_CRF}}") if "{{_CRF}}" else None,
         start_and_duration=start_and_duration,
-        nvenc=bool("{{_HW_ENC}}"),
+        nvenc=bool("{{_NVENC}}"),
         max_size_mb=float("{{_MAX_SIZE_MB}}") if "{{_MAX_SIZE_MB}}" else None,
         no_audio=bool("{{_NO_AUDIO}}"),
     )
