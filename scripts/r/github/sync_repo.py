@@ -24,7 +24,7 @@ def commit(dry_run=False, amend=False):
         call_echo("git add -A")
 
         if amend:
-            call_echo("git commit --amend --no-edit")
+            call_echo("git commit --amend --no-edit --quiet")
         else:
             call_echo('git commit -m "Initial commit"')
 
