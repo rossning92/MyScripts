@@ -33,6 +33,18 @@ def start_app(pkg, use_monkey=True):
         call2(args)
 
 
+def clear_logcat():
+    print("Clearing logcat...")
+
+    # Retry on error
+    while True:
+        try:
+            subprocess.check_call(["adb", "logcat", "-c"])
+            break
+        except subprocess.CalledProcessError:
+            print("WARNING: clear logcat failed. Retrying...")
+
+
 def kill_app(pkg):
     args = "adb shell am force-stop %s" % pkg
     call_echo(args)

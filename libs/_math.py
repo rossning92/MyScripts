@@ -2,7 +2,7 @@ from _shutil import try_import
 import os
 import glob
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
+import matplotlib
 
 # import pandas as pd
 import numpy as np
@@ -63,3 +63,17 @@ def save_animation_as_gif(animate):
 
     # save animation at 30 frames per second
     anim.save("myAnimation.gif", writer="imagemagick", fps=25)
+
+
+def plt_pause(interval):
+    """The function updates the canvas without activating the window."""
+
+    backend = plt.rcParams["backend"]
+    if backend in matplotlib.rcsetup.interactive_bk:
+        figManager = matplotlib._pylab_helpers.Gcf.get_active()
+        if figManager is not None:
+            canvas = figManager.canvas
+            if canvas.figure.stale:
+                canvas.draw()
+            canvas.start_event_loop(interval)
+            return

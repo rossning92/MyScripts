@@ -4,20 +4,6 @@ import pandas as pd
 import matplotlib
 
 
-def plt_pause(interval):
-    """The function updates the canvas without activating the window."""
-
-    backend = plt.rcParams["backend"]
-    if backend in matplotlib.rcsetup.interactive_bk:
-        figManager = matplotlib._pylab_helpers.Gcf.get_active()
-        if figManager is not None:
-            canvas = figManager.canvas
-            if canvas.figure.stale:
-                canvas.draw()
-            canvas.start_event_loop(interval)
-            return
-
-
 core_names = []
 total_idle = []
 
@@ -58,4 +44,4 @@ for i in range(999999):
         plt.ylim(0, 1)
 
         df.plot(ax=ax, kind="line")
-        plt_pause(0.5)
+        plt_pause(0.1)
