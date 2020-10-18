@@ -9,8 +9,18 @@ function set_clipboard(text) {
 
 function add_marker() {
   var timePos = mp.get_property_number("time-pos");
+
   var mousePos = mp.get_mouse_pos();
-  var s = "{{ hl(pos=(" + mousePos.x + ", " + mousePos.y + "), t='as') }}";
+  var osdSize = mp.get_osd_size();
+  var normalizedMouseX = mousePos.x / osdSize.width;
+  var normalizedMouseY = mousePos.y / osdSize.height;
+
+  var w = mp.get_property_number("width");
+  var h = mp.get_property_number("height");
+  var outX = Math.floor(normalizedMouseX * w);
+  var outY = Math.floor(normalizedMouseY * h);
+
+  var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
 
   mp.osd_message(s, 3);
   set_clipboard(s);
