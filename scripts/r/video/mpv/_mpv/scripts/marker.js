@@ -1,5 +1,5 @@
-var in_time = 0.0;
-var out_time = 0.0;
+var inTime = 0.0;
+var outTime = 0.0;
 
 function set_clipboard(text) {
   mp.utils.subprocess_detached({
@@ -8,45 +8,45 @@ function set_clipboard(text) {
 }
 
 function add_marker() {
-  var time_pos = mp.get_property_number("time-pos");
-  var mouse_pos = mp.get_mouse_pos();
-  var s = "{{ hl(pos=(" + mouse_pos.x + ", " + mouse_pos.y + "), t='as') }}";
+  var timePos = mp.get_property_number("time-pos");
+  var mousePos = mp.get_mouse_pos();
+  var s = "{{ hl(pos=(" + mousePos.x + ", " + mousePos.y + "), t='as') }}";
 
   mp.osd_message(s, 3);
   set_clipboard(s);
 }
 
 function set_in_time() {
-  in_time = mp.get_property_native("playback-time");
-  if (in_time == null || in_time == "none") {
-    in_time = 0;
+  inTime = mp.get_property_native("playback-time");
+  if (inTime == null || inTime == "none") {
+    inTime = 0;
   }
 
-  if (in_time > out_time) {
-    out_time = in_time;
+  if (inTime > outTime) {
+    outTime = inTime;
   }
 
-  show_cut_info();
+  showCutInfo();
 }
 
 function set_out_time() {
-  out_time = mp.get_property_native("playback-time");
-  if (out_time == null || out_time == "none") {
-    out_time = 0;
+  outTime = mp.get_property_native("playback-time");
+  if (outTime == null || outTime == "none") {
+    outTime = 0;
   }
 
-  if (out_time < in_time) {
-    in_time = out_time;
+  if (outTime < inTime) {
+    inTime = outTime;
   }
 
-  show_cut_info();
+  showCutInfo();
 }
 
-function show_cut_info() {
+function showCutInfo() {
   var message = "";
-  message += "begin=" + in_time.toFixed(3) + "s\n";
-  message += "end=" + out_time.toFixed(3) + "s\n";
-  message += "duration=" + (out_time - in_time).toFixed(3) + "s\n";
+  message += "begin=" + inTime.toFixed(3) + "s\n";
+  message += "end=" + outTime.toFixed(3) + "s\n";
+  message += "duration=" + (outTime - inTime).toFixed(3) + "s\n";
   mp.osd_message(message, 3);
 }
 
@@ -57,17 +57,17 @@ function cut_video() {
   var extLen = fileName.length - fileNameNoExt.length;
   var filePathNoExt = filePath.substring(0, filePath.length - extLen);
 
-  if (in_time == out_time) {
-    mp.osd_message("error: in_time == out_time", 3);
+  if (inTime == outTime) {
+    mp.osd_message("error: inTime == outTime", 3);
     return;
   }
 
   var outFile =
     filePathNoExt +
     "-cut-" +
-    in_time.toFixed(0) +
+    inTime.toFixed(0) +
     "-" +
-    out_time.toFixed(0) +
+    outTime.toFixed(0) +
     ".mp4";
 
   var p = {};
@@ -79,11 +79,11 @@ function cut_video() {
     "-i",
     filePath,
     "-ss",
-    in_time.toFixed(3),
+    inTime.toFixed(3),
     "-strict",
     "-2",
     "-t",
-    (out_time - in_time).toFixed(3),
+    (outTime - inTime).toFixed(3),
     "-codec:v",
     "libx264",
     "-crf",
@@ -98,11 +98,11 @@ function cut_video() {
   p["args"] = [
     "ffmpeg",
     "-ss",
-    in_time.toFixed(3),
+    inTime.toFixed(3),
     "-i",
     filePath,
     "-t",
-    (out_time - in_time).toFixed(3),
+    (outTime - inTime).toFixed(3),
     "-c",
     "copy",
     outFile,
