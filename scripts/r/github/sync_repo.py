@@ -16,12 +16,9 @@ def print_help():
 
 def commit(dry_run=False, amend=False):
     if dry_run:
-        print2("Git status:", color="green")
-        if get_output("git status --short").strip():
-            call_echo("git add -A --dry-run")
+        call_echo("git status --short")
+
     else:
-        if not yes("Confirm %s?" % ("amend" if amend else "commit")):
-            sys.exit(1)
         call_echo("git add -A")
 
         if amend:
@@ -73,12 +70,18 @@ if __name__ == "__main__":
         if ch == "h":
             print_help()
         elif ch == "c":
-            commit()
+            call_echo("git status --short")
+            if yes("Confirm commit?"):
+                commit()
         elif ch == "a":
-            commit(amend=True)
+            call_echo("git status --short")
+            if yes("Confirm amend?"):
+                commit(amend=True)
         elif ch == "A":
-            commit(amend=True)
-            call_echo("git push -u origin master --force")
+            call_echo("git status --short")
+            if yes("Confirm amend + push?"):
+                commit(amend=True)
+                call_echo("git push -u origin master --force")
         elif ch == "p":
             call_echo("git push -u origin master")
         elif ch == "s":
