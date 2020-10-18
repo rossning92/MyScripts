@@ -35,17 +35,9 @@ PKGS = {
         "ffmpeg",
         "imagemagick.app",
     ],
-    "@media": [
-        "ffmpeg",
-        "imagemagick.app",
-    ],
-    "@work": [
-        "p4v",
-        "selenium-chrome-driver",
-    ],
-    "@ue4": [
-        "directx",
-    ],
+    "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
+    "@work": ["p4v", "selenium-chrome-driver",],
+    "@ue4": ["directx",],
     "@other": [
         "scrcpy",
         "miktex",
