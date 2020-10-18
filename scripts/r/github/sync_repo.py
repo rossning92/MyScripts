@@ -10,12 +10,13 @@ def print_help():
         "[A] amend & push\n"
         "[C] commit & push\n"
         "[s] git status\n"
+        "[r] revert all changes\n"
     )
 
 
 def commit(dry_run=False, amend=False):
     if dry_run:
-        print("Git status:")
+        print2("Git status:", color="green")
         if get_output("git status --short").strip():
             call_echo("git add -A --dry-run")
     else:
@@ -27,6 +28,13 @@ def commit(dry_run=False, amend=False):
             call_echo("git commit --amend --no-edit --quiet")
         else:
             call_echo('git commit -m "Initial commit"')
+
+
+def revert():
+    call_echo("git status --short")
+    if not yes("Revert all files?"):
+        return
+    call_echo("git reset HEAD --hard")
 
 
 if __name__ == "__main__":
@@ -77,4 +85,5 @@ if __name__ == "__main__":
             commit(dry_run=True)
         elif ch == "l":
             call_echo("git log --pretty=oneline --abbrev-commit")
-
+        elif ch == "r":
+            revert()
