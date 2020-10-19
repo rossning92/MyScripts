@@ -15,6 +15,7 @@ if __name__ == "__main__":
 
     # Ctrl-C
     call_echo(["wsl", "screen", "-S", "ssh_session", "-X", "stuff", "^C"], shell=False)
+    call_echo(["wsl", "screen", "-S", "ssh_session", "-X", "msgwait", "0"], shell=False)
 
     # Write shell commands to paste buffer
     lines = [
