@@ -54,7 +54,6 @@ def vscode_set_include_path(include_path):
 
 def open_in_vscode(file, line_number=None):
     vscode = get_executable("vscode")
-    print(vscode)
     if type(file) == str:
         if line_number is None:
             args = [vscode, file]

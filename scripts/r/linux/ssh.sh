@@ -5,7 +5,7 @@ fi
 
 printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
 
-# sudo /etc/init.d/screen-cleanup start
+sudo /etc/init.d/screen-cleanup start
 screen -r ssh_session -X quit
 screen -dmS ssh_session bash
 

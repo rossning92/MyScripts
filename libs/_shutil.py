@@ -917,6 +917,15 @@ def wait_key(prompt=None, timeout=2):
     return ch
 
 
+def wait_until_file_modified(f):
+    last_mtime = os.path.getmtime(f)
+    while True:
+        time.sleep(0.2)
+        mtime = os.path.getmtime(f)
+        if mtime > last_mtime:
+            return
+
+
 def start_process(args, shell=True):
     FNULL = open(os.devnull, "w")
     subprocess.Popen(args, shell=shell, stdout=FNULL, stderr=FNULL)
