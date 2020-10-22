@@ -39,4 +39,5 @@ if __name__ == "__main__":
         shell=False,
     )
     exec_ahk("WinActivate r/linux/ssh")
+    exec_ahk("WinActivate r/linux/et")
     call_echo(["wsl", "screen", "-S", "ssh_session", "-X", "paste", "."], shell=False)
