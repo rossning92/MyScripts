@@ -339,6 +339,9 @@ def select_region(image_file):
 
 
 def to_ndarray(im):
+    if type(im) == str:
+        im = Image.open(im)
+
     if not isinstance(im, (np.ndarray)):
         im = np.array(im)
     return im

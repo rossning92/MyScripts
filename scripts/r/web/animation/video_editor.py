@@ -179,7 +179,7 @@ def edit_video(file):
         create_filtered_video("setpts=PTS/2")
 
     @mpv.on_key_press("a")
-    def set_speed_2x():
+    def to_anamorphic():
         mpv.command("show-text", "To anamorphic...", "3000")
         create_filtered_video("scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132")
 
@@ -187,6 +187,11 @@ def edit_video(file):
     def crop_custom():
         mpv.command("show-text", "Cropping vmware player...", "3000")
         create_filtered_video("crop=2560:1294:0:85,scale=1920:-2")
+
+
+    @mpv.on_key_press("u")
+    def test():
+        print(mpv.mouse_movements)
 
 
 if __name__ == "__main__":
