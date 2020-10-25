@@ -359,7 +359,7 @@ def select_roi(im):
 
         nonlocal roi
         roi = [min(x1, x2), min(y1, y2), np.abs(x1 - x2), np.abs(y1 - y2)]
-        roi = [round(x) for x in roi]
+        roi = [int(round(x)) for x in roi]
 
     _, ax = plt.subplots()
     rs = RectangleSelector(
