@@ -2,14 +2,15 @@ import subprocess
 import os
 import shlex
 import sys
+import glob
 
 
 def generate_video_matrix(
     vid_files, titles=None, out_file=None, columns=None, fps=None, crop_rect=None
 ):
-    os.environ[
-        "IMAGEMAGICK_BINARY"
-    ] = r"C:\Program Files\ImageMagick-7.0.9-Q16\magick.exe"
+    os.environ["IMAGEMAGICK_BINARY"] = glob.glob(
+        r"C:\Program Files\ImageMagick-*\magick.exe"
+    )[0]
     try:
         import moviepy
     except:
