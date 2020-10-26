@@ -54,6 +54,7 @@ reg add HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
 reg add HKCU\Console /v FaceName /t REG_SZ /d Consolas /f
 reg add HKCU\Console /v FontSize /t REG_DWORD /d 0x120000 /f
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f
+reg add HKCU\Console /v CtrlKeyShortcutsDisabled /t REG_DWORD /d 1 /f
 
 reg add HKCU\Console /v ColorTable00 /t REG_DWORD /d 0x000c0c0c /f
 reg add HKCU\Console /v ColorTable01 /t REG_DWORD /d 0x00da3700 /f

@@ -1,13 +1,13 @@
 from _shutil import *
-from _gui import *
 from _script import *
 from _android import *
+from _term import *
 
 s = check_output("adb shell pm list packages").decode()
 s = s.replace("package:", "")
 lines = s.splitlines()
 lines = sorted(lines)
-i = search(lines)
+i = SearchWindow(items=lines).get_selected_index()
 if i == -1:
     sys.exit(1)
 
@@ -20,7 +20,7 @@ opt = [
     "backup",
 ]
 
-i = search(opt)
+i = SearchWindow(items=opt).get_selected_index()
 if i == -1:
     sys.exit(1)
 
