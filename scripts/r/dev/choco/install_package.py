@@ -35,13 +35,20 @@ PKGS = {
         "ffmpeg",
         "imagemagick.app",
     ],
+    "@gamedev": [
+        "renderdoc",
+    ],
     "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
-    "@work": ["p4v", "selenium-chrome-driver",],
-    "@ue4": ["directx",],
+    "@work": [
+        "p4v",
+        "selenium-chrome-driver",
+    ],
+    "@ue4": [
+        "directx",
+    ],
     "@other": [
         "scrcpy",
         "miktex",
-        "unity --version 2018.2.14",
         "sketchup",
         "blender",
         "graphviz",

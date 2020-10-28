@@ -30,7 +30,7 @@ def grep(src_dir, exclude=[]):
     if text == "":
         sys.exit(0)
 
-    args = f'rg --line-number -F "{text}"'
+    args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % text
     if rel_path:
         args += " " + rel_path
 

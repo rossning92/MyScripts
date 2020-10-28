@@ -3,7 +3,7 @@ from _script import *
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
 
-def ssh_run_bash_script_plink(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
+def plink_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
     # plink is preferred (better automation)
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
