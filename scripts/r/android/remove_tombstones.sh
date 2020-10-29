@@ -1,2 +1,2 @@
 echo 'Remove tombstones.'
-rm -rf /data/tombstones/
+adb shell rm /data/tombstones/*
