@@ -28,4 +28,5 @@ if not exists("UE4.sln"):
 
     choco_install("netfx-4.6.2-devpack")
 
-    call_echo("GenerateProjectFiles.bat -2017")
+    # call_echo("GenerateProjectFiles.bat -2017")
+    call_echo("GenerateProjectFiles.bat")

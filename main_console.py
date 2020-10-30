@@ -17,6 +17,7 @@ GLOBAL_HOTKEY = os.path.join(tempfile.gettempdir(), "GlobalHotkey.ahk")
 
 
 def execute_script(script, close_on_exit=None):
+    refresh_env_vars()
     args = update_env_var_explorer()
     script.execute(args=args, close_on_exit=close_on_exit)
 
@@ -372,7 +373,7 @@ def init():
     )
     os.environ["PYTHONPATH"] = os.path.join(SCRIPT_ROOT, "libs")
 
-    refresh_env()
+    refresh_env_vars()
 
     setup_nodejs(install=False)
 

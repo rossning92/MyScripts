@@ -1030,7 +1030,7 @@ def write_text_file(content, file, overwrite=True):
     return True
 
 
-def refresh_env():
+def refresh_env_vars():
     if sys.platform == "win32":
         REG_PATH = [
             "HKLM\System\CurrentControlSet\Control\Session Manager\Environment",

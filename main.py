@@ -519,7 +519,7 @@ if __name__ == "__main__":
 
     t_start = time.time()
 
-    refresh_env()
+    refresh_env_vars()
 
     setup_nodejs(install=False)
 
