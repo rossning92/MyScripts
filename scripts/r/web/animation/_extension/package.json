@@ -30,39 +30,43 @@
     "commands": [
       {
         "command": "yo.runSelection",
-        "title": "AnimationToolKit: Run Selection"
+        "title": "VideoTool: Run Selection"
       },
       {
         "command": "yo.exportAudio",
-        "title": "AnimationToolKit: Export Audio Only"
+        "title": "VideoTool: Export Audio Only"
       },
       {
         "command": "yo.startRecording",
-        "title": "AnimationToolKit: Start Recording"
+        "title": "VideoTool: Start Recording"
       },
       {
         "command": "yo.stopRecording",
-        "title": "AnimationToolKit: Stop Recording"
+        "title": "VideoTool: Stop Recording"
       },
       {
         "command": "yo.collectNoiseProfile",
-        "title": "AnimationToolKit: Collect Noise Profile"
+        "title": "VideoTool: Collect Noise Profile"
       },
       {
         "command": "yo.openFileUnderCursor",
-        "title": "AnimationToolKit: Open File Under Cursor"
+        "title": "VideoTool: Open File Under Cursor"
       },
       {
 				"command": "yo.insertAllClipsInFolder",
-				"title": "AnimationToolKit: Insert All Clips In Folder"
+				"title": "VideoTool: Insert All Clips In Folder"
       },
       {
 				"command": "yo.removeUnusedRecordings",
-				"title": "AnimationToolKit: Remove Unused Recordings"
+				"title": "VideoTool: Remove Unused Recordings"
       },
       {
 				"command": "yo.showStats",
-				"title": "AnimationToolKit: Show Stats"
+				"title": "VideoTool: Show Stats"
+      },
+      {
+				"command": "yo.createSlide",
+				"title": "VideoTool: Create Slide"
 			}
     ],
     "keybindings": [

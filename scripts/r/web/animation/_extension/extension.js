@@ -228,6 +228,16 @@ function registerAutoComplete(context) {
   context.subscriptions.push(provider);
 }
 
+function insertText(text) {
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const selection = editor.selection;
+    editor.edit((editBuilder) => {
+      editBuilder.replace(selection, text);
+    });
+  }
+}
+
 function getRecorderProcess() {
   const d = getProjectDir();
 
@@ -267,17 +277,7 @@ function getRecorderProcess() {
       const s = data.toString("utf8").trim();
       if (s.startsWith("stop recording:")) {
         const fileName = s.split(":")[1].trim();
-
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-          const selection = editor.selection;
-          editor.edit((editBuilder) => {
-            editBuilder.replace(
-              selection,
-              `{{ record('record/${fileName}') }}`
-            );
-          });
-        }
+        insertText(`{{ record('record/${fileName}') }}`);
       }
     });
 
@@ -376,6 +376,28 @@ async function insertAllClipsInFolder() {
   });
 }
 
+async function createSlide() {
+  const fileName = await vscode.window.showInputBox({
+    placeHolder: "slide-file-name",
+  });
+  if (fileName === undefined) {
+    return;
+  }
+
+  const outFile = path.resolve(getProjectDir(), "slide", fileName + ".pptx");
+  const outDir = path.resolve(getProjectDir(), "slide");
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir);
+  }
+
+  cp.spawn("cscript", [
+    path.resolve(__dirname, "ppt", "potx2pptx.vbs"),
+    outFile,
+  ]);
+
+  insertText(`{{ clip('slide/${fileName}.pptx') }}`);
+}
+
 function activate(context) {
   const config = vscode.workspace.getConfiguration();
   config.update("[markdown]", { "editor.quickSuggestions": true });
@@ -424,6 +446,8 @@ function activate(context) {
       extraArgs: ["--show_stats"],
     });
   });
+
+  vscode.commands.registerCommand("yo.createSlide", createSlide);
 
   registerAutoComplete(context);
 
