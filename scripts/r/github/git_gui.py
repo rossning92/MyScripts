@@ -4,11 +4,9 @@ from _shutil import *
 def print_help():
     print2(
         "[h] help\n"
-        "[c] commit\n"
-        "[a] amend\n"
+        "[c] commit [C] commit & push\n"
+        "[a] amend  [A] amend & push\n"
         "[p] push\n"
-        "[A] amend & push\n"
-        "[C] commit & push\n"
         "[s] git status\n"
         "[r] revert all changes\n"
     )
@@ -32,6 +30,10 @@ def revert():
     if not yes("Revert all files?"):
         return
     call_echo("git reset HEAD --hard")
+
+
+def git_push():
+    call_echo("git push -u origin master")
 
 
 if __name__ == "__main__":
@@ -73,6 +75,11 @@ if __name__ == "__main__":
             call_echo("git status --short")
             if yes("Confirm commit?"):
                 commit()
+        elif ch == "C":
+            call_echo("git status --short")
+            if yes("Confirm commit?"):
+                commit()
+            git_push()
         elif ch == "a":
             call_echo("git status --short")
             if yes("Confirm amend?"):
@@ -83,7 +90,7 @@ if __name__ == "__main__":
                 commit(amend=True)
                 call_echo("git push -u origin master --force")
         elif ch == "p":
-            call_echo("git push -u origin master")
+            git_push()
         elif ch == "s":
             commit(dry_run=True)
         elif ch == "l":
