@@ -8,6 +8,7 @@ def print_help():
         "[a] amend  [A] amend & push\n"
         "[p] push\n"
         "[s] git status\n"
+        "[l] git log\n"
         "[r] revert all changes\n"
     )
 
