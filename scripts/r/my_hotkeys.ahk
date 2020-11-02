@@ -121,7 +121,7 @@ return
 
 #Right::
     UpdateWindowPosition("right")
-    SetTimer, AutoUpdateWindowPos, 500
+    ; SetTimer, AutoUpdateWindowPos, 500
 return
 
 #t::WinSet, AlwaysOnTop, Toggle, A
@@ -222,14 +222,14 @@ UpdateWindowPosition(pos) {
         WinSet, Style, +0x40000, ahk_id %hwnd%
         WinSet, Style, +Resize, ahk_id %hwnd%
         
-        ; if (pos = "right")
-        ; {
-        ;     WinSet, AlwaysOnTop, On, ahk_id %hwnd%
-        ; }
-        ; else
-        ; {
-        ;     WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
-        ; }
+        if (pos = "right")
+        {
+            WinSet, AlwaysOnTop, On, ahk_id %hwnd%
+        }
+        else
+        {
+            WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
+        }
         
         ResizeWindow2("ahk_id " hwnd, x, y, w, h)
         if (hwnd != curHwnd) {
