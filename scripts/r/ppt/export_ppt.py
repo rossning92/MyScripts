@@ -61,7 +61,7 @@ def export_video(file):
         ppt.CreateVideo(
             os.path.abspath(out_file),
             True,  # UseTimingsAndNarrations
-            4,  # DefaultSlideDuration
+            0,  # DefaultSlideDuration
             1080,  # VertResolution
             60,  # FramesPerSecond
             100,  # Quality
