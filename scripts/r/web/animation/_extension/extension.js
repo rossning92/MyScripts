@@ -391,7 +391,7 @@ async function createSlide() {
   }
 
   cp.spawn("cscript", [
-    path.resolve(__dirname, "ppt", "potx2pptx.vbs"),
+    path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
     outFile,
   ]);
 
