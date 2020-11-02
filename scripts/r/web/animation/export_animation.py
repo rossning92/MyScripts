@@ -504,16 +504,6 @@ def pos(p, tag=None):
     _set_pos(p, tag=tag)
 
 
-# Deprecated
-def image(f, pos="center", **kwargs):
-    clip(f, **kwargs)
-
-
-# Deprecated
-def video(f, **kwargs):
-    clip(f, **kwargs)
-
-
 def clip(f, **kwargs):
     print("clip: %s" % f)
     _add_clip(f, **kwargs)
@@ -645,6 +635,14 @@ def _load_and_expand_img(f):
     return np.array(bg)
 
 
+def _get_ppt_image(f, index):
+    from r.ppt.export_ppt import export_slides
+
+    indices = [0] if index is None else [index]
+    out_files = export_slides(f, indices=indices)
+    return out_files[0]
+
+
 def _create_mpy_clip(
     file=None,
     clip_operations=None,
@@ -657,7 +655,7 @@ def _create_mpy_clip(
     vol=None,
     transparent=True,
     subclip=None,
-    extract_frame=None,
+    frame=None,
     loop=False,
     expand=False,
     scale=1,
@@ -667,6 +665,10 @@ def _create_mpy_clip(
 
     elif file.endswith(".tar"):
         clip = create_image_seq_clip(file)
+
+    elif file.endswith(".pptx"):
+        file = _get_ppt_image(file, index=frame)
+        clip = ImageClip(file).set_duration(5)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
         if expand:
@@ -688,8 +690,8 @@ def _create_mpy_clip(
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
 
-    if extract_frame is not None:
-        clip = clip.to_ImageClip(extract_frame).set_duration(5)
+    if frame is not None:
+        clip = clip.to_ImageClip(frame).set_duration(5)
 
     if clip_operations is not None:
         clip = clip_operations(clip)
@@ -1307,7 +1309,7 @@ def _default_impl():
         "fps": fps,
         "hl": hl,
         "image_anim": image_anim,
-        "image": image,  # deprecated, use `clip` instead
+        "image": clip,  # deprecated
         "md": md,
         "slide": slide,
         "overlay": overlay,
@@ -1318,7 +1320,7 @@ def _default_impl():
         "title_anim": title_anim,
         "tts": tts,
         "video_end": video_end,
-        "video": video,  # deprecated, use `clip` instead
+        "video": clip,  # deprecated
         "vol": vol,
         "final": final,
         "parse_line": parse_line,
