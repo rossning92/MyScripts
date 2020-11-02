@@ -11,7 +11,7 @@ def _open_ppt(file):
     if app is None:
         app = win32com.client.Dispatch("PowerPoint.Application")
 
-    return app.Presentations.Open(file, True, False, False)
+    return app.Presentations.Open(os.path.abspath(file), True, False, False)
 
 
 def export_slides(file, indices):
@@ -59,7 +59,7 @@ def export_video(file):
         ppt = _open_ppt(file)
 
         ppt.CreateVideo(
-            out_file,
+            os.path.abspath(out_file),
             True,  # UseTimingsAndNarrations
             4,  # DefaultSlideDuration
             1080,  # VertResolution
@@ -70,6 +70,8 @@ def export_video(file):
         # Wait to be finished
         while ppt.CreateVideoStatus == 1:  # ppMediaTaskStatusInProgress
             time.sleep(0.1)
+
+    return out_file
 
 
 if __name__ == "__main__":

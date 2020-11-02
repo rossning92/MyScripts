@@ -667,8 +667,14 @@ def _create_mpy_clip(
         clip = create_image_seq_clip(file)
 
     elif file.endswith(".pptx"):
-        file = _get_ppt_image(file, index=frame)
-        clip = ImageClip(file).set_duration(5)
+        from r.ppt.export_ppt import export_slides, export_video
+
+        if frame is None:
+            file = export_video(file)
+            clip = VideoFileClip(file)
+        else:
+            file = export_slides(file, indices=[frame])[0]
+            clip = ImageClip(file).set_duration(5)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
         if expand:
