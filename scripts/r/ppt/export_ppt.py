@@ -1,14 +1,17 @@
 import win32com.client
 import os
+import time
 
 
-def _get_ppt(file=None):
-    app = win32com.client.Dispatch("PowerPoint.Application")
-    if file is None:
-        ppt = app.Presentations.Open(file, True, False, False)
-    else:
-        ppt = app.ActivePresentation
-    return ppt
+app = None
+
+
+def _open_ppt(file):
+    global app
+    if app is None:
+        app = win32com.client.Dispatch("PowerPoint.Application")
+
+    return app.Presentations.Open(file, True, False, False)
 
 
 def export_slides(file, indices):
@@ -31,7 +34,7 @@ def export_slides(file, indices):
             print("Exporting %s..." % out_file)
 
             if ppt is None:  # Lazy load
-                ppt = _get_ppt(file)
+                ppt = _open_ppt(file)
 
                 # Get slide size
                 w = ppt.PageSetup.SlideWidth
@@ -46,7 +49,30 @@ def export_slides(file, indices):
     return out_files
 
 
+def export_video(file):
+    mtime = os.path.getmtime(file)
+
+    out_file = "%s.mp4" % os.path.splitext(file)[0]
+    if (not os.path.exists(out_file)) or (os.path.getmtime(out_file) < mtime):
+        print("Exporting %s..." % out_file)
+
+        ppt = _open_ppt(file)
+
+        ppt.CreateVideo(
+            out_file,
+            True,  # UseTimingsAndNarrations
+            4,  # DefaultSlideDuration
+            1080,  # VertResolution
+            60,  # FramesPerSecond
+            100,  # Quality
+        )
+
+        # Wait to be finished
+        while ppt.CreateVideoStatus == 1:  # ppMediaTaskStatusInProgress
+            time.sleep(0.1)
+
+
 if __name__ == "__main__":
-    export_slides(
-        r"C:\Users\Ross\Google Drive\KidslogicVideo\ep27\slide\player-control.pptx", [0]
+    export_video(
+        r"C:\Users\Ross\Google Drive\KidslogicVideo\ep27\slide\player-control.pptx"
     )
