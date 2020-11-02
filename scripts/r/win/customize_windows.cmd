@@ -91,3 +91,5 @@ start explorer.exe
 :: Disable sleep
 powercfg /change standby-timeout-ac 0
 powercfg /change standby-timeout-dc 0
+
+run_script /r/win/disable_onedrive.cmd
