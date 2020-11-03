@@ -1,5 +1,6 @@
 var inTime = 0.0;
 var outTime = 0.0;
+var history_files = [];
 
 function set_clipboard(text) {
   mp.utils.subprocess_detached({
@@ -58,6 +59,71 @@ function showCutInfo() {
   message += "end=" + outTime.toFixed(3) + "s\n";
   message += "duration=" + (outTime - inTime).toFixed(3) + "s\n";
   mp.osd_message(message, 3);
+}
+
+function get_temp_file() {
+  function pad2(n) {
+    return n < 10 ? "0" + n : n;
+  }
+
+  var date = new Date();
+  var time_str =
+    date.getFullYear().toString() +
+    pad2(date.getMonth() + 1) +
+    pad2(date.getDate()) +
+    "_" +
+    pad2(date.getHours()) +
+    pad2(date.getMinutes()) +
+    pad2(date.getSeconds());
+
+  return time_str + ".mp4";
+}
+
+function create_filtered_video(videoFilter) {
+  var outFile = get_temp_file();
+  var currentFile = mp.get_property_native("filename");
+
+  var common_args = [
+    "-pix_fmt",
+    "yuv420p",
+    "-c:v",
+    "libx264",
+    "-crf",
+    "19",
+    "-preset",
+    "slow",
+    "-pix_fmt",
+    "yuv420p",
+    "-an",
+    "-y",
+  ];
+
+  common_args = [
+    "-pix_fmt",
+    "yuv420p",
+    "-c:v",
+    "h264_nvenc",
+    "-rc:v",
+    "vbr_hq",
+    "-cq:v",
+    "23",
+    "-preset",
+    "slow",
+  ];
+
+  var args = [].concat(
+    ["ffmpeg", "-i", currentFile, "-filter:v", videoFilter],
+    common_args,
+    [outFile]
+  );
+  mp.command_native_async({ name: "subprocess", args: args }, function (
+    success,
+    result,
+    error
+  ) {
+    history_files.push(currentFile);
+    mp.commandv("loadfile", outFile);
+  });
 }
 
 function cut_video() {
@@ -135,3 +201,9 @@ function cut_video() {
 // mp.add_forced_key_binding("o", "set_out_time", set_out_time);
 mp.add_forced_key_binding("m", "add_marker", add_marker);
 // mp.add_forced_key_binding("x", "cut_video", cut_video);
+
+// history_files.push(mp.get_property_native("filename"));
+
+mp.add_forced_key_binding("1", "yoyo", function () {
+  create_filtered_video("scale=-2:1080");
+});
