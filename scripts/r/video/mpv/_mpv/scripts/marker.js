@@ -202,8 +202,16 @@ function cut_video() {
 mp.add_forced_key_binding("m", "add_marker", add_marker);
 // mp.add_forced_key_binding("x", "cut_video", cut_video);
 
-// history_files.push(mp.get_property_native("filename"));
-
-mp.add_forced_key_binding("1", "yoyo", function () {
-  create_filtered_video("scale=-2:1080");
+mp.add_forced_key_binding("C", "crop_video", function () {
+  var vf = mp.get_property_native("vf");
+  if (vf) {
+    for (var i = 0, len = vf.length; i < len; ++i) {
+      if (vf[i].name == "crop") {
+        var p = vf[i].params;
+        create_filtered_video(
+          "crop=" + p.w + ":" + p.h + ":" + p.x + ":" + p.y
+        );
+      }
+    }
+  }
 });
