@@ -76,7 +76,7 @@ function getTimestamp() {
 
 function exportVideo(params) {
   if (isExporting) {
-    mp.osd_message("is exporting...");
+    mp.osd_message("<is exporting>");
     return;
   }
 
@@ -132,16 +132,28 @@ function exportVideo(params) {
   args.push(outFile);
 
   isExporting = true;
-  mp.command_native_async({ name: "subprocess", args: args }, function (
-    success,
-    result,
-    error
-  ) {
+  if (true) {
+    mp.command_native({ name: "subprocess", args: args });
     historyFiles.push(currentFile);
-    mp.commandv("loadfile", outFile);
     currentFile = outFile;
     isExporting = false;
-  });
+
+    // HACK: delay play exported file
+    setTimeout(function () {
+      mp.commandv("loadfile", outFile);
+    }, 1);
+  } else {
+    mp.command_native_async({ name: "subprocess", args: args }, function (
+      success,
+      result,
+      error
+    ) {
+      historyFiles.push(currentFile);
+      mp.commandv("loadfile", outFile);
+      currentFile = outFile;
+      isExporting = false;
+    });
+  }
 }
 
 function cut_video() {
@@ -233,10 +245,12 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
 });
 
 mp.add_forced_key_binding("1", "resize_1080p", function () {
+  mp.osd_message("resize to 1080p...");
   exportVideo({ vf: "scale=-2:1080" });
 });
 
 mp.add_forced_key_binding("7", "resize_720p", function () {
+  mp.osd_message("resize to 720p...");
   exportVideo({ vf: "scale=-2:720" });
 });
 
@@ -245,12 +259,14 @@ mp.add_forced_key_binding("2", "speed_up_2x", function () {
 });
 
 mp.add_forced_key_binding("a", "to_anamorphic", function () {
+  mp.osd_message("to anamorphic...");
   exportVideo({
     vf: "scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132",
   });
 });
 
 mp.add_forced_key_binding("C", "crop_video", function () {
+  mp.osd_message("crop video...");
   var vf = mp.get_property_native("vf");
   if (vf) {
     for (var i = 0, len = vf.length; i < len; ++i) {
@@ -265,7 +281,13 @@ mp.add_forced_key_binding("C", "crop_video", function () {
 });
 
 mp.add_forced_key_binding("ctrl+z", "undo", function () {
+  if (isExporting) {
+    return;
+  }
+
   if (historyFiles.length > 0) {
+    mp.osd_message("undo");
+
     var lastFile = historyFiles.pop();
     mp.commandv("loadfile", lastFile);
   }
