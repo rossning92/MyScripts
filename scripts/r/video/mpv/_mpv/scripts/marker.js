@@ -86,7 +86,11 @@ function getTempFile() {
   return getTimeStr() + ".mp4";
 }
 
-function create_filtered_video(videoFilter) {
+function getTimestamp() {
+  return Math.round(+new Date() / 1000);
+}
+
+function createFilteredVideo(videoFilter) {
   var currentFile = mp.get_property_native("path");
 
   var args = ["ffmpeg"];
@@ -130,7 +134,7 @@ function create_filtered_video(videoFilter) {
   args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
 
   // Output file
-  var outFile = getBaseName(currentFile) + "-" + getTimeStr() + ".mp4";
+  var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
   args.push(outFile);
 
   mp.command_native_async({ name: "subprocess", args: args }, function (
@@ -220,21 +224,19 @@ function cut_video() {
 mp.add_forced_key_binding("m", "add_marker", add_marker);
 
 mp.add_forced_key_binding("1", "resize_1080p", function () {
-  create_filtered_video("scale=-2:1080");
+  createFilteredVideo("scale=-2:1080");
 });
 
 mp.add_forced_key_binding("7", "resize_720p", function () {
-  create_filtered_video("scale=-2:720");
+  createFilteredVideo("scale=-2:720");
 });
 
 mp.add_forced_key_binding("2", "speed_up_2x", function () {
-  create_filtered_video("setpts=PTS/2");
+  createFilteredVideo("setpts=PTS/2");
 });
 
 mp.add_forced_key_binding("a", "to_anamorphic", function () {
-  create_filtered_video(
-    "scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132"
-  );
+  createFilteredVideo("scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132");
 });
 
 mp.add_forced_key_binding("C", "crop_video", function () {
@@ -243,9 +245,7 @@ mp.add_forced_key_binding("C", "crop_video", function () {
     for (var i = 0, len = vf.length; i < len; ++i) {
       if (vf[i].name == "crop") {
         var p = vf[i].params;
-        create_filtered_video(
-          "crop=" + p.w + ":" + p.h + ":" + p.x + ":" + p.y
-        );
+        createFilteredVideo("crop=" + p.w + ":" + p.h + ":" + p.x + ":" + p.y);
       }
     }
   }
