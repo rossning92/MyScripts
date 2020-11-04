@@ -12,25 +12,6 @@ function getBaseName(file) {
   return file.replace(/\.[^/.]+$/, "");
 }
 
-function add_marker() {
-  var timePos = mp.get_property_number("time-pos");
-
-  var mousePos = mp.get_mouse_pos();
-  var osdSize = mp.get_osd_size();
-  var normalizedMouseX = mousePos.x / osdSize.width;
-  var normalizedMouseY = mousePos.y / osdSize.height;
-
-  var w = mp.get_property_number("width");
-  var h = mp.get_property_number("height");
-  var outX = Math.floor(normalizedMouseX * w);
-  var outY = Math.floor(normalizedMouseY * h);
-
-  var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
-
-  mp.osd_message(s, 3);
-  setClip(s);
-}
-
 function set_in_time() {
   inTime = mp.get_property_native("playback-time");
   if (inTime == null || inTime == "none") {
@@ -218,10 +199,22 @@ function cut_video() {
   }
 }
 
-// mp.add_forced_key_binding("i", "set_in_time", set_in_time);
-// mp.add_forced_key_binding("o", "set_out_time", set_out_time);
-// mp.add_forced_key_binding("x", "cut_video", cut_video);
-mp.add_forced_key_binding("m", "add_marker", add_marker);
+mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
+  var mousePos = mp.get_mouse_pos();
+  var osdSize = mp.get_osd_size();
+  var normalizedMouseX = mousePos.x / osdSize.width;
+  var normalizedMouseY = mousePos.y / osdSize.height;
+
+  var w = mp.get_property_number("width");
+  var h = mp.get_property_number("height");
+  var outX = Math.floor(normalizedMouseX * w);
+  var outY = Math.floor(normalizedMouseY * h);
+
+  var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
+
+  mp.osd_message(s, 3);
+  setClip(s);
+});
 
 mp.add_forced_key_binding("1", "resize_1080p", function () {
   createFilteredVideo("scale=-2:1080");
@@ -257,3 +250,7 @@ mp.add_forced_key_binding("ctrl+z", "undo", function () {
     mp.commandv("loadfile", lastFile);
   }
 });
+
+// mp.add_forced_key_binding("i", "set_in_time", set_in_time);
+// mp.add_forced_key_binding("o", "set_out_time", set_out_time);
+// mp.add_forced_key_binding("x", "cut_video", cut_video);
