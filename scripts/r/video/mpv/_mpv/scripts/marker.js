@@ -216,11 +216,25 @@ function cut_video() {
 
 // mp.add_forced_key_binding("i", "set_in_time", set_in_time);
 // mp.add_forced_key_binding("o", "set_out_time", set_out_time);
-mp.add_forced_key_binding("m", "add_marker", add_marker);
 // mp.add_forced_key_binding("x", "cut_video", cut_video);
+mp.add_forced_key_binding("m", "add_marker", add_marker);
 
-mp.add_forced_key_binding("1", "scale_1080p", function () {
+mp.add_forced_key_binding("1", "resize_1080p", function () {
   create_filtered_video("scale=-2:1080");
+});
+
+mp.add_forced_key_binding("7", "resize_720p", function () {
+  create_filtered_video("scale=-2:720");
+});
+
+mp.add_forced_key_binding("2", "speed_up_2x", function () {
+  create_filtered_video("setpts=PTS/2");
+});
+
+mp.add_forced_key_binding("a", "to_anamorphic", function () {
+  create_filtered_video(
+    "scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132"
+  );
 });
 
 mp.add_forced_key_binding("C", "crop_video", function () {
@@ -234,5 +248,12 @@ mp.add_forced_key_binding("C", "crop_video", function () {
         );
       }
     }
+  }
+});
+
+mp.add_forced_key_binding("ctrl+z", "undo", function () {
+  if (history_files.length > 0) {
+    var lastFile = history_files.pop();
+    mp.commandv("loadfile", lastFile);
   }
 });
