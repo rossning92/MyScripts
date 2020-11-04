@@ -74,7 +74,7 @@ function getTimestamp() {
   return Math.round(+new Date() / 1000);
 }
 
-function createFilteredVideo(params) {
+function exportVideo(params) {
   if (isExporting) {
     mp.osd_message("is exporting...");
     return;
@@ -233,19 +233,19 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
 });
 
 mp.add_forced_key_binding("1", "resize_1080p", function () {
-  createFilteredVideo({ vf: "scale=-2:1080" });
+  exportVideo({ vf: "scale=-2:1080" });
 });
 
 mp.add_forced_key_binding("7", "resize_720p", function () {
-  createFilteredVideo({ vf: "scale=-2:720" });
+  exportVideo({ vf: "scale=-2:720" });
 });
 
 mp.add_forced_key_binding("2", "speed_up_2x", function () {
-  createFilteredVideo({ vf: "setpts=PTS/2" });
+  exportVideo({ vf: "setpts=PTS/2" });
 });
 
 mp.add_forced_key_binding("a", "to_anamorphic", function () {
-  createFilteredVideo({
+  exportVideo({
     vf: "scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132",
   });
 });
@@ -256,7 +256,7 @@ mp.add_forced_key_binding("C", "crop_video", function () {
     for (var i = 0, len = vf.length; i < len; ++i) {
       if (vf[i].name == "crop") {
         var p = vf[i].params;
-        createFilteredVideo({
+        exportVideo({
           vf: "crop=" + p.w + ":" + p.h + ":" + p.x + ":" + p.y,
         });
       }
