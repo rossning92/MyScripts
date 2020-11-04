@@ -3,7 +3,6 @@ var outTime = 0.0;
 var historyFiles = [];
 var baseName = null;
 var currentFile = null;
-var isExporting = false;
 
 function setClip(text) {
   mp.utils.subprocess_detached({
@@ -131,29 +130,14 @@ function exportVideo(params) {
   var outFile = baseName + "-" + getTimestamp() + ".mp4";
   args.push(outFile);
 
-  isExporting = true;
-  if (true) {
-    mp.command_native({ name: "subprocess", args: args });
-    historyFiles.push(currentFile);
-    currentFile = outFile;
-    isExporting = false;
+  mp.command_native({ name: "subprocess", args: args });
+  historyFiles.push(currentFile);
+  currentFile = outFile;
 
-    // HACK: delay play exported file
-    setTimeout(function () {
-      mp.commandv("loadfile", outFile);
-    }, 1);
-  } else {
-    mp.command_native_async({ name: "subprocess", args: args }, function (
-      success,
-      result,
-      error
-    ) {
-      historyFiles.push(currentFile);
-      mp.commandv("loadfile", outFile);
-      currentFile = outFile;
-      isExporting = false;
-    });
-  }
+  // HACK: delay play exported file
+  setTimeout(function () {
+    mp.commandv("loadfile", outFile);
+  }, 1);
 }
 
 function cut_video() {
@@ -281,10 +265,6 @@ mp.add_forced_key_binding("C", "crop_video", function () {
 });
 
 mp.add_forced_key_binding("ctrl+z", "undo", function () {
-  if (isExporting) {
-    return;
-  }
-
   if (historyFiles.length > 0) {
     mp.osd_message("undo");
 
