@@ -1,6 +1,7 @@
 var inTime = 0.0;
 var outTime = 0.0;
 var historyFiles = [];
+var baseName = null;
 
 function setClip(text) {
   mp.utils.subprocess_detached({
@@ -115,17 +116,24 @@ function createFilteredVideo(videoFilter) {
   args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
 
   // Output file
-  var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
+  if (baseName == null) baseName = getBaseName(currentFile);
+  var outFile = baseName + "-" + getTimestamp() + ".mp4";
   args.push(outFile);
 
-  mp.command_native_async({ name: "subprocess", args: args }, function (
-    success,
-    result,
-    error
-  ) {
+  if (true) {
+    mp.command_native({ name: "subprocess", args: args });
     historyFiles.push(currentFile);
     mp.commandv("loadfile", outFile);
-  });
+  } else {
+    mp.command_native_async({ name: "subprocess", args: args }, function (
+      success,
+      result,
+      error
+    ) {
+      historyFiles.push(currentFile);
+      mp.commandv("loadfile", outFile);
+    });
+  }
 }
 
 function cut_video() {
