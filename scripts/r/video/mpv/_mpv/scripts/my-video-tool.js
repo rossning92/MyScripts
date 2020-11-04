@@ -2,6 +2,8 @@ var inTime = 0.0;
 var outTime = 0.0;
 var historyFiles = [];
 var baseName = null;
+var currentFile = null;
+var isExporting = false;
 
 function setClip(text) {
   mp.utils.subprocess_detached({
@@ -73,7 +75,14 @@ function getTimestamp() {
 }
 
 function createFilteredVideo(videoFilter) {
-  var currentFile = mp.get_property_native("path");
+  if (isExporting) {
+    mp.osd_message("is exporting...");
+    return;
+  }
+
+  if (currentFile == null) {
+    currentFile = mp.get_property_native("path");
+  }
 
   var args = ["ffmpeg"];
 
@@ -120,20 +129,17 @@ function createFilteredVideo(videoFilter) {
   var outFile = baseName + "-" + getTimestamp() + ".mp4";
   args.push(outFile);
 
-  if (true) {
-    mp.command_native({ name: "subprocess", args: args });
+  isExporting = true;
+  mp.command_native_async({ name: "subprocess", args: args }, function (
+    success,
+    result,
+    error
+  ) {
     historyFiles.push(currentFile);
     mp.commandv("loadfile", outFile);
-  } else {
-    mp.command_native_async({ name: "subprocess", args: args }, function (
-      success,
-      result,
-      error
-    ) {
-      historyFiles.push(currentFile);
-      mp.commandv("loadfile", outFile);
-    });
-  }
+    currentFile = outFile;
+    isExporting = false;
+  });
 }
 
 function cut_video() {
