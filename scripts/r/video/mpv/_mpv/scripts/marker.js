@@ -80,42 +80,52 @@ function get_temp_file() {
 }
 
 function create_filtered_video(videoFilter) {
-  var outFile = get_temp_file();
   var currentFile = mp.get_property_native("filename");
 
-  var common_args = [
-    "-pix_fmt",
-    "yuv420p",
-    "-c:v",
-    "libx264",
-    "-crf",
-    "19",
-    "-preset",
-    "slow",
-    "-pix_fmt",
-    "yuv420p",
-    "-an",
-    "-y",
-  ];
+  var args = ["ffmpeg"];
 
-  common_args = [
-    "-pix_fmt",
-    "yuv420p",
-    "-c:v",
-    "h264_nvenc",
-    "-rc:v",
-    "vbr_hq",
-    "-cq:v",
-    "23",
-    "-preset",
-    "slow",
-  ];
+  // Input file
+  args = args.concat(["-i", currentFile]);
 
-  var args = [].concat(
-    ["ffmpeg", "-i", currentFile, "-filter:v", videoFilter],
-    common_args,
-    [outFile]
-  );
+  // Filters
+  args = args.concat(["-filter:v", videoFilter]);
+
+  // Pixel format
+  args = args.concat(["-pix_fmt", "yuv420p"]);
+
+  // video encoder
+  if (false) {
+    args = args.concat([
+      "-c:v",
+      "libx264",
+      "-crf",
+      "19",
+      "-preset",
+      "slow",
+      "-pix_fmt",
+      "yuv420p",
+      "-an",
+    ]);
+  } else {
+    args = args.concat([
+      "-c:v",
+      "h264_nvenc",
+      "-rc:v",
+      "vbr_hq",
+      "-cq:v",
+      "23",
+      "-preset",
+      "slow",
+    ]);
+  }
+
+  // Audio encoder
+  args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
+
+  // Output file
+  var outFile = get_temp_file();
+  args.push(outFile);
+
   mp.command_native_async({ name: "subprocess", args: args }, function (
     success,
     result,
@@ -201,6 +211,10 @@ function cut_video() {
 // mp.add_forced_key_binding("o", "set_out_time", set_out_time);
 mp.add_forced_key_binding("m", "add_marker", add_marker);
 // mp.add_forced_key_binding("x", "cut_video", cut_video);
+
+mp.add_forced_key_binding("1", "scale_1080p", function () {
+  create_filtered_video("scale=-2:1080");
+});
 
 mp.add_forced_key_binding("C", "crop_video", function () {
   var vf = mp.get_property_native("vf");
