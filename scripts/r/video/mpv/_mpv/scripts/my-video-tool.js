@@ -1,6 +1,6 @@
 var inTime = 0.0;
 var outTime = 0.0;
-var history_files = [];
+var historyFiles = [];
 
 function setClip(text) {
   mp.utils.subprocess_detached({
@@ -123,7 +123,7 @@ function createFilteredVideo(videoFilter) {
     result,
     error
   ) {
-    history_files.push(currentFile);
+    historyFiles.push(currentFile);
     mp.commandv("loadfile", outFile);
   });
 }
@@ -245,8 +245,8 @@ mp.add_forced_key_binding("C", "crop_video", function () {
 });
 
 mp.add_forced_key_binding("ctrl+z", "undo", function () {
-  if (history_files.length > 0) {
-    var lastFile = history_files.pop();
+  if (historyFiles.length > 0) {
+    var lastFile = historyFiles.pop();
     mp.commandv("loadfile", lastFile);
   }
 });
