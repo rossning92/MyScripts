@@ -2,10 +2,14 @@ var inTime = 0.0;
 var outTime = 0.0;
 var history_files = [];
 
-function set_clipboard(text) {
+function setClip(text) {
   mp.utils.subprocess_detached({
     args: ["powershell", "set-clipboard", '"' + text.replace("\n", "`n") + '"'],
   });
+}
+
+function getBaseName(file) {
+  return file.replace(/\.[^/.]+$/, "");
 }
 
 function add_marker() {
@@ -24,7 +28,7 @@ function add_marker() {
   var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
 
   mp.osd_message(s, 3);
-  set_clipboard(s);
+  setClip(s);
 }
 
 function set_in_time() {
@@ -61,13 +65,13 @@ function showCutInfo() {
   mp.osd_message(message, 3);
 }
 
-function get_temp_file() {
+function getTimeStr() {
   function pad2(n) {
     return n < 10 ? "0" + n : n;
   }
 
   var date = new Date();
-  var time_str =
+  timeStr =
     date.getFullYear().toString() +
     pad2(date.getMonth() + 1) +
     pad2(date.getDate()) +
@@ -75,12 +79,15 @@ function get_temp_file() {
     pad2(date.getHours()) +
     pad2(date.getMinutes()) +
     pad2(date.getSeconds());
+  return timeStr;
+}
 
-  return time_str + ".mp4";
+function getTempFile() {
+  return getTimeStr() + ".mp4";
 }
 
 function create_filtered_video(videoFilter) {
-  var currentFile = mp.get_property_native("filename");
+  var currentFile = mp.get_property_native("path");
 
   var args = ["ffmpeg"];
 
@@ -123,7 +130,7 @@ function create_filtered_video(videoFilter) {
   args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
 
   // Output file
-  var outFile = get_temp_file();
+  var outFile = getBaseName(currentFile) + "-" + getTimeStr() + ".mp4";
   args.push(outFile);
 
   mp.command_native_async({ name: "subprocess", args: args }, function (
