@@ -10,6 +10,7 @@ PKGS = {
         "mpv",
         "sumatrapdf",
         "tightvnc",
+        "git",
     ],
     "@ross": ["google-backup-and-sync"],
     "@dev": [

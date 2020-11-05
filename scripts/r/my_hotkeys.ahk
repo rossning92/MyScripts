@@ -287,6 +287,10 @@ UpdateActiveWindowPosition() {
 ActivateChrome(index=0)
 {
     CHROME_DIR := "C:\Program Files (x86)\Google\Chrome\Application"
+    if (not FileExist(CHROME_DIR))
+    {
+        CHROME_DIR := "C:\Program Files\Google\Chrome\Application"
+    }
     
     if (index = 0)
     {
