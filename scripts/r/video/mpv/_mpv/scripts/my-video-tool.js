@@ -108,7 +108,7 @@ function exportVideo(params) {
       "-rc:v",
       "vbr_hq",
       "-cq:v",
-      "23",
+      "19",
       "-preset",
       "slow",
     ]);
