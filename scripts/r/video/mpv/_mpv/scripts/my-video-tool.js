@@ -119,7 +119,7 @@ function exportVideo(params) {
 
   // Output file
   if (baseName == null) baseName = getBaseName(currentFile);
-  var outFile = baseName + "-" + getTimestamp() + ".mp4";
+  var outFile = "/tmp/" + getTimestamp() + ".mp4";
   args.push(outFile);
 
   if (params.background) {
@@ -127,14 +127,13 @@ function exportVideo(params) {
       args: args,
     });
   } else {
+    mp.set_property_native("pause", true);
+
     mp.command_native({ name: "subprocess", args: args });
     historyFiles.push(currentFile);
     currentFile = outFile;
 
-    // HACK: delay play exported file
-    setTimeout(function () {
-      mp.commandv("loadfile", outFile);
-    }, 1);
+    mp.commandv("loadfile", outFile);
   }
 }
 
@@ -166,6 +165,7 @@ mp.add_forced_key_binding("7", "resize_720p", function () {
 });
 
 mp.add_forced_key_binding("2", "speed_up_2x", function () {
+  mp.osd_message("speed up 2x...");
   exportVideo({ vf: "setpts=PTS/2" });
 });
 
@@ -217,4 +217,17 @@ mp.add_forced_key_binding("X", "cut_video_background", function () {
   exportVideo({ start: inTime, duration: outTime - inTime, background: true });
   inTime = 0;
   outTime = 0;
+});
+mp.add_forced_key_binding("ctrl+s", "overwrite_file", function () {
+  mp.command_native({
+    name: "subprocess",
+    args: [
+      "powershell",
+      "Copy-Item",
+      currentFile,
+      "-Destination",
+      historyFiles[0],
+    ],
+  });
+  mp.commandv("quit");
 });
