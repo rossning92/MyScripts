@@ -15,13 +15,13 @@ function getBaseName(file) {
   return file.replace(/\.[^/.]+$/, "");
 }
 
-function setCutTime(setInTime) {
+function setCutPoint(isInTime) {
   cur = mp.get_property_native("playback-time");
   if (!outTime) {
     outTime = mp.get_property_native("duration");
   }
 
-  if (setInTime) {
+  if (isInTime) {
     inTime = cur;
   } else {
     outTime = cur;
@@ -201,16 +201,20 @@ mp.add_forced_key_binding("ctrl+z", "undo", function () {
 });
 
 mp.add_forced_key_binding("[", "set_in_time", function () {
-  setCutTime(true);
+  setCutPoint(true);
 });
 mp.add_forced_key_binding("]", "set_out_time", function () {
-  setCutTime(false);
+  setCutPoint(false);
 });
 mp.add_forced_key_binding("x", "cut_video", function () {
   mp.osd_message("cut video...");
   exportVideo({ start: inTime, duration: outTime - inTime });
+  inTime = 0;
+  outTime = 0;
 });
 mp.add_forced_key_binding("X", "cut_video", function () {
   mp.osd_message("cut video (background)...");
   exportVideo({ start: inTime, duration: outTime - inTime, background: true });
+  inTime = 0;
+  outTime = 0;
 });
