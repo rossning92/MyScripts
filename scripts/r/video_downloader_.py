@@ -1,7 +1,7 @@
 from _shutil import *
 
 
-def download_bili(url):
+def download_bili_annie(url):
     retry = 3
     while retry > 0:
         try:
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         url = sys.argv[1]
         cd("~/Desktop/Bilibili", auto_create_dir=True)
-        download_bili(url)
+        download_bili_annie(url)
         # call_echo("you-get --no-caption --playlist %s" % url)
     else:
         raise Exception("invalid parameter: url")
