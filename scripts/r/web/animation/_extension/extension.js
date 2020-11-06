@@ -21,12 +21,14 @@ async function openFile(filePath) {
       // ];
       // cp.spawnSync("python", args);
 
-      const args = [
-        "-c",
-        `from r.web.animation.video_editor import edit_video; edit_video(r"${filePath}")`,
-        filePath,
-      ];
-      cp.spawnSync("python", args);
+      // const args = [
+      //   "-c",
+      //   `from r.web.animation.video_editor import edit_video; edit_video(r"${filePath}")`,
+      //   filePath,
+      // ];
+      // cp.spawnSync("python", args);
+
+      cp.spawn("mpv", [filePath]);
     }
   }
 }

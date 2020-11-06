@@ -45,7 +45,7 @@ function showCutInfo() {
   message += "begin=" + inTime.toFixed(3) + "s\n";
   message += "end=" + outTime.toFixed(3) + "s\n";
   message += "duration=" + (outTime - inTime).toFixed(3) + "s\n";
-  mp.osd_message(message, 3);
+  mp.osd_message(message);
 }
 
 function getTimeStr() {
@@ -74,11 +74,6 @@ function getTimestamp() {
 }
 
 function exportVideo(params) {
-  if (isExporting) {
-    mp.osd_message("<is exporting>");
-    return;
-  }
-
   if (currentFile == null) {
     currentFile = mp.get_property_native("path");
   }
@@ -148,7 +143,7 @@ function cut_video() {
   var filePathNoExt = filePath.substring(0, filePath.length - extLen);
 
   if (inTime == outTime) {
-    mp.osd_message("error: inTime == outTime", 3);
+    mp.osd_message("error: inTime == outTime");
     return;
   }
 
@@ -205,9 +200,9 @@ function cut_video() {
       message = message + ", error message: " + res["error"];
     }
     message = message + "\nstdout = " + res["stdout"];
-    mp.osd_message(message, 3);
+    mp.osd_message(message);
   } else {
-    mp.osd_message("Done.", 3);
+    mp.osd_message("Done.");
   }
 }
 
@@ -224,7 +219,7 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
 
   var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
 
-  mp.osd_message(s, 3);
+  mp.osd_message(s);
   setClip(s);
 });
 
