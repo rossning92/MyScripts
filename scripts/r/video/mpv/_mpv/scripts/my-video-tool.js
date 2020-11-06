@@ -136,7 +136,11 @@ function exportVideo(params) {
     historyFiles.push(currentFile);
     currentFile = outFile;
 
-    mp.commandv("loadfile", outFile);
+    // Avoid ffmpeg error caused by loading the file at the same time..
+    setTimeout(function () {
+      mp.commandv("loadfile", outFile);
+      mp.set_property_native("pause", false);
+    });
   }
 }
 
