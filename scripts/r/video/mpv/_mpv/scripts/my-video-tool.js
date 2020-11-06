@@ -119,15 +119,18 @@ function exportVideo(params) {
 
   // Output file
   if (baseName == null) baseName = getBaseName(currentFile);
-  var outFile = "/tmp/" + getTimestamp() + ".mp4";
-  args.push(outFile);
 
-  if (params.background) {
+  if (params.temp) {
+    var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
+    args.push(outFile);
     mp.utils.subprocess_detached({
       args: args,
     });
   } else {
     mp.set_property_native("pause", true);
+
+    var outFile = "/tmp/" + getTimestamp() + ".mp4";
+    args.push(outFile);
 
     mp.command_native({ name: "subprocess", args: args });
     historyFiles.push(currentFile);
@@ -213,8 +216,8 @@ mp.add_forced_key_binding("x", "cut_video", function () {
   outTime = 0;
 });
 mp.add_forced_key_binding("X", "cut_video_background", function () {
-  mp.osd_message("cut video (background)...");
-  exportVideo({ start: inTime, duration: outTime - inTime, background: true });
+  mp.osd_message("cut video (temp)...");
+  exportVideo({ start: inTime, duration: outTime - inTime, temp: true });
   inTime = 0;
   outTime = 0;
 });
