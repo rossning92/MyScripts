@@ -8,6 +8,7 @@ def download_bili(url):
             with open("/tmp/cookie.json") as f:
                 data = json.load(f)
 
+            # cd("~/Desktop")
             cookie = "; ".join(["%s=%s" % (x["name"], x["value"]) for x in data])
             call_echo(["annie", "-p", "-c", cookie, url], shell=False)
             return
@@ -20,9 +21,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         url = sys.argv[1]
         cd("~/Desktop/Bilibili", auto_create_dir=True)
-        # download_bili(url)
-
-        call_echo("you-get --no-caption --playlist %s" % url)
+        download_bili(url)
+        # call_echo("you-get --no-caption --playlist %s" % url)
     else:
         raise Exception("invalid parameter: url")
 
