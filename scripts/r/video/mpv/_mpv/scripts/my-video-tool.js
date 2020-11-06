@@ -64,7 +64,7 @@ function exportVideo(params) {
     currentFile = mp.get_property_native("path");
   }
 
-  var args = ["ffmpeg"];
+  var args = ["ffmpeg", "-hide_banner", "-loglevel", "panic"];
 
   // Input file
   args = args.concat(["-i", currentFile]);
@@ -212,7 +212,7 @@ mp.add_forced_key_binding("x", "cut_video", function () {
   inTime = 0;
   outTime = 0;
 });
-mp.add_forced_key_binding("X", "cut_video", function () {
+mp.add_forced_key_binding("X", "cut_video_background", function () {
   mp.osd_message("cut video (background)...");
   exportVideo({ start: inTime, duration: outTime - inTime, background: true });
   inTime = 0;
