@@ -1188,35 +1188,52 @@ def _export_srt():
         f.write("\n".join(_srt_lines))
 
 
+def _tts_to_wav_google(out_file, text):
+    tmp_file = "tmp/tts/%s_gtts.mp3" % hash
+    call2(["gtts-cli", text, "--lang", "zh-cn", "--nocheck", "--output", tmp_file])
+    call2(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "panic",
+            "-i",
+            tmp_file,
+            "-filter:a",
+            "atempo=1.75",
+            "-vn",
+            out_file,
+        ]
+    )
+    os.remove(tmp_file)
+
+
+def _tts_to_wav_microsoft(out_file, text):
+    subprocess.check_call(
+        [
+            "powershell",
+            "-ExecutionPolicy",
+            "unrestricted",
+            "-File",
+            os.path.join(SCRIPT_ROOT, "tts_to_wav.ps1"),
+            out_file,
+            text,
+        ]
+    )
+
+
 def _tts():
     text = _subtitle[-1]
     hash = get_hash(text)
 
     mkdir("tmp/tts")
-    file_name = "tmp/tts/%s.wav" % hash
-    if not os.path.exists(file_name):
-        print("generate tts file: %s" % file_name)
-        tmp_file = "tmp/tts/%s_gtts.mp3" % hash
-        call2(
-            ["gtts-cli", text, "--lang", "zh-cn", "--nocheck", "--output", tmp_file,]
-        )
-        call2(
-            [
-                "ffmpeg",
-                "-hide_banner",
-                "-loglevel",
-                "panic",
-                "-i",
-                tmp_file,
-                "-filter:a",
-                "atempo=1.75",
-                "-vn",
-                file_name,
-            ]
-        )
-        os.remove(tmp_file)
+    out_file = "tmp/tts/%s.wav" % hash
+    if not os.path.exists(out_file):
+        print("generate tts file: %s" % out_file)
 
-    record(file_name, postprocess=False)
+        _tts_to_wav_microsoft(out_file, text)
+
+    record(out_file, postprocess=False)
 
 
 def tts(enabled=True):

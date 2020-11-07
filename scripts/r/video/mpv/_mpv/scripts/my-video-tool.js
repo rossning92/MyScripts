@@ -212,6 +212,12 @@ mp.add_forced_key_binding("6", "_crop_right", function () {
   });
 });
 
+mp.add_forced_key_binding(">", "_crop_bottom_right", function () {
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.21*ih",
+  });
+});
+
 mp.add_forced_key_binding("C", "crop_video", function () {
   mp.osd_message("crop video...");
   var vf = mp.get_property_native("vf");
