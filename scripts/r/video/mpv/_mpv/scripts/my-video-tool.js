@@ -118,12 +118,14 @@ function exportVideo(params) {
     args = args.concat([
       "-c:v",
       "h264_nvenc",
+      "-preset",
+      "hq",
       "-rc:v",
       "vbr_hq",
-      "-cq:v",
-      "19",
-      "-preset",
-      "slow",
+      "-qmin",
+      "17",
+      "-qmax",
+      "21",
     ]);
   }
 
@@ -200,6 +202,13 @@ mp.add_forced_key_binding("5", "crop_out_taskbar", function () {
   mp.osd_message("Crop out taskbar...");
   exportVideo({
     vf: "crop=2560:1378:0:0,scale=1920:-2",
+  });
+});
+
+mp.add_forced_key_binding("6", "_crop_right", function () {
+  mp.osd_message("[tmp] crop right...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.125*ih",
   });
 });
 
