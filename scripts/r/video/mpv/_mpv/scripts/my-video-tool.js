@@ -11,6 +11,19 @@ function setClip(text) {
   });
 }
 
+function copyFile(src, dst) {
+  mp.command_native({
+    name: "subprocess",
+    args: [
+      "powershell",
+      "Copy-Item",
+      '"' + src + '"', // double quote
+      "-Destination",
+      '"' + dst + '"', // double quote
+    ],
+  });
+}
+
 function getBaseName(file) {
   return file.replace(/\.[^/.]+$/, "");
 }
@@ -183,6 +196,13 @@ mp.add_forced_key_binding("a", "to_anamorphic", function () {
   });
 });
 
+mp.add_forced_key_binding("5", "crop_out_taskbar", function () {
+  mp.osd_message("Crop out taskbar...");
+  exportVideo({
+    vf: "crop=2560:1378:0:0,scale=1920:-2",
+  });
+});
+
 mp.add_forced_key_binding("C", "crop_video", function () {
   mp.osd_message("crop video...");
   var vf = mp.get_property_native("vf");
@@ -210,31 +230,39 @@ mp.add_forced_key_binding("ctrl+z", "undo", function () {
 mp.add_forced_key_binding("[", "set_in_time", function () {
   setCutPoint(true);
 });
+
 mp.add_forced_key_binding("]", "set_out_time", function () {
   setCutPoint(false);
 });
+
 mp.add_forced_key_binding("x", "cut_video", function () {
   mp.osd_message("cut video...");
   exportVideo({ start: inTime, duration: outTime - inTime });
   inTime = 0;
   outTime = 0;
 });
+
 mp.add_forced_key_binding("X", "cut_video_background", function () {
   mp.osd_message("cut video (temp)...");
   exportVideo({ start: inTime, duration: outTime - inTime, temp: true });
   inTime = 0;
   outTime = 0;
 });
+
+mp.add_forced_key_binding("s", "save_file", function () {
+  var outFile = getBaseName(historyFiles[0]) + "-" + getTimestamp() + ".mp4";
+  mp.osd_message("saved as " + outFile);
+  copyFile(currentFile, outFile);
+});
+
 mp.add_forced_key_binding("ctrl+s", "overwrite_file", function () {
-  mp.command_native({
-    name: "subprocess",
-    args: [
-      "powershell",
-      "Copy-Item",
-      currentFile,
-      "-Destination",
-      historyFiles[0],
-    ],
-  });
+  copyFile(currentFile, historyFiles[0]);
   mp.commandv("quit");
+});
+
+mp.add_forced_key_binding("S", "screenshot", function () {
+  mp.osd_message("save screenshot...");
+  var currentFile = mp.get_property_native("path");
+  var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".png";
+  mp.commandv("screenshot-to-file", outFile);
 });
