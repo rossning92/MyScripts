@@ -1443,11 +1443,29 @@ def _show_stats(s):
     input()
 
 
+def load_config():
+    import yaml
+
+    CONFIG_FILE = "config.yaml"
+    DEFAULT_CONFIG = {"final": False, "tts": False}
+
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            config = yaml.load(f.read(), Loader=yaml.FullLoader)
+    else:
+        with open(CONFIG_FILE, "w", newline="\n") as f:
+            yaml.dump(DEFAULT_CONFIG, f, default_flow_style=False)
+        config = DEFAULT_CONFIG
+
+    final(config["final"])
+    tts(config["tts"])
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--stdin", default=False, action="store_true")
-    parser.add_argument("-i", "--input", type=str, default=None)
     parser.add_argument("--proj_dir", type=str, default=None)
+    parser.add_argument("-i", "--input", type=str, default=None)
     parser.add_argument("-a", "--audio_only", action="store_true", default=False)
     parser.add_argument(
         "--remove_unused_recordings", action="store_true", default=False
@@ -1456,14 +1474,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    if args.proj_dir is not None:
+        os.chdir(args.proj_dir)
+    elif args.input:
+        os.chdir(os.path.dirname(args.input))
+    print("Project dir: %s" % os.getcwd())
+
     # HACK
     if args.audio_only:
         _audio_only = True
         _add_subtitle = False
-
-    if args.proj_dir is not None:
-        os.chdir(args.proj_dir)
-    print("Project dir: %s" % os.getcwd())
 
     # Read text
     if args.stdin:
@@ -1474,25 +1494,9 @@ if __name__ == "__main__":
             s = f.read()
 
     else:
-        PROJ_DIR = r"{{VIDEO_PROJECT_DIR}}"
+        raise Exception("Either --stdin or --input should be specified.")
 
-        PARSE_LINE_RANGE = (
-            [int(x) for x in "{{_PARSE_LINE_RANGE}}".split()]
-            if "{{_PARSE_LINE_RANGE}}"
-            else None
-        )
-        _add_subtitle = bool("{{_ADD_SUBTITLE}}")
-
-        cd(PROJ_DIR)
-
-        with open("index.md", "r", encoding="utf-8", newline="\n") as f:
-            s = f.read()
-
-            # Filter lines
-            lines = s.splitlines()
-            if PARSE_LINE_RANGE is not None:
-                lines = lines[PARSE_LINE_RANGE[0] - 1 : PARSE_LINE_RANGE[1]]
-            s = "\n".join(lines)
+    load_config()
 
     if args.remove_unused_recordings:
         _remove_unused_recordings(s)
