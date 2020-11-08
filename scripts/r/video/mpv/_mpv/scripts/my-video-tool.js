@@ -237,8 +237,8 @@ mp.add_forced_key_binding("ctrl+z", "undo", function () {
   if (historyFiles.length > 0) {
     mp.osd_message("undo");
 
-    var lastFile = historyFiles.pop();
-    mp.commandv("loadfile", lastFile);
+    currentFile = historyFiles.pop();
+    mp.commandv("loadfile", currentFile);
   }
 });
 

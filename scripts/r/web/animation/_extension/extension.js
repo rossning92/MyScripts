@@ -196,7 +196,7 @@ function registerAutoComplete(context) {
         }
 
         let files = [];
-        const filter = (x) => /\.(png|jpg|mp4|gif|mp3|md)$/g.test(x);
+        const filter = (x) => /\.(png|jpg|mp4|gif|mp3|md|pptx)$/g.test(x);
 
         getFiles(projectDir, filter, files);
         getFiles(projectDir + "/../assets", filter, files);
