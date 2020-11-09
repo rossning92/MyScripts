@@ -286,7 +286,7 @@ def record(f, t="a", postprocess=True, **kwargs):
 
     # Post-process audio
     if postprocess:
-        f = process_audio_file(f)
+        f = process_audio_file(f, out_dir="tmp/record")
 
     audio(f, t=t, **kwargs)
 

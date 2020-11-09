@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from _audio import *
 
-ALWAYS_GENERATE = True
+ALWAYS_GENERATE = False
 
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
@@ -32,26 +32,24 @@ def _create_dir_if_not_exists(file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
 
-def create_normalized(*, name, in_file, mtime, regenerate):
-    out_file = f"tmp/{name}.final.wav"
+def create_normalized(*, out_file, in_file, mtime, regenerate):
     if (
         regenerate
         or not os.path.exists(out_file)
         or os.path.getmtime(out_file) != mtime
     ):
         print(out_file)
-        subprocess.check_call(f"sox {in_file} {out_file} norm -7.5")
+        subprocess.check_call(["sox", in_file, out_file, "norm", "-7.5"])
         os.utime(out_file, (mtime, mtime))
-    return out_file
 
 
-def process_audio_file(f, regenerate=ALWAYS_GENERATE):
+def process_audio_file(f, regenerate=ALWAYS_GENERATE, out_dir="tmp"):
     name_no_ext = os.path.splitext(os.path.basename(f))[0]
     mtime = os.path.getmtime(f)
 
     # Convert to mono
     in_file = f
-    out_file = f"tmp/{f}.mono.wav"
+    out_file = out_dir + "/" + name_no_ext + ".mono.wav"
     _create_dir_if_not_exists(out_file)
     if (
         regenerate
@@ -59,12 +57,12 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
         or os.path.getmtime(out_file) != mtime
     ):
         print(out_file)
-        call2("sox %s %s channels 1" % (in_file, out_file))
+        subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
         os.utime(out_file, (mtime, mtime))
 
     # Normalization
     in_file = out_file
-    out_file = f"tmp/{f}.norm.wav"
+    out_file = out_dir + "/" + name_no_ext + ".norm.wav"
     if (
         regenerate
         or not os.path.exists(out_file)
@@ -76,19 +74,19 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
         # to meet the target parameters. The sample file is only a second long,
         # which looks to be the reason for the anomalous normalization.
         subprocess.check_call(
-            f"ffmpeg -hide_banner -loglevel panic -i {in_file} -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 {out_file} -y"
+            f'ffmpeg -hide_banner -loglevel panic -i "{in_file}" -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 "{out_file}" -y'
         )
         os.utime(out_file, (mtime, mtime))
 
     in_file = out_file
-    filtered_voice_file = f"tmp/{f}.voice_only.wav"
+    filtered_voice_file = out_dir + "/" + name_no_ext + ".voice_only.wav"
     if (
         regenerate
         or not os.path.exists(filtered_voice_file)
         or os.path.getmtime(filtered_voice_file) != mtime
     ):
         print(filtered_voice_file)
-        call2(
+        subprocess.check_call(
             [
                 "ffmpeg",
                 "-hide_banner",
@@ -105,7 +103,7 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
         os.utime(filtered_voice_file, (mtime, mtime))
 
     # Cut
-    out_file = f"tmp/{f}.cut.wav"
+    out_file = out_dir + "/" + name_no_ext + ".cut.wav"
     if (
         regenerate
         or not os.path.exists(out_file)
@@ -144,7 +142,7 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
 
     # Compress
     in_file = out_file
-    out_file = f"tmp/{f}.compressed.wav"
+    out_file = out_dir + "/" + name_no_ext + ".compressed.wav"
     _create_dir_if_not_exists(out_file)
     if (
         regenerate
@@ -153,7 +151,7 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
     ):
         print(out_file)
 
-        args = f"sox {in_file} {out_file}"
+        args = f'sox "{in_file}" "{out_file}"'
 
         # EQ
         if 0:  # old
@@ -175,8 +173,11 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
         subprocess.check_call(args)
         os.utime(out_file, (mtime, mtime))
 
-    out_file = create_normalized(
-        name=f, in_file=out_file, mtime=mtime, regenerate=regenerate
+    # Normalize
+    in_file = out_file
+    out_file = out_dir + "/" + name_no_ext + ".final.wav"
+    create_normalized(
+        out_file=out_file, in_file=in_file, mtime=mtime, regenerate=regenerate
     )
 
     return out_file
@@ -197,7 +198,7 @@ def create_final_vocal(prefix="record_", file_list=[]):
         out_file_list.append(out_file)
 
     concat_audio(out_file_list, 0, out_file="out/concat.wav", channels=1)
-    call2("start out/concat.wav")
+    subprocess.check_call("start out/concat.wav")
 
     # subprocess.check_call(
     #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')

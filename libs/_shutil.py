@@ -1146,4 +1146,9 @@ def screen_record(out_file, rect=None, mouse_cursor=True):
     return stop
 
 
+def subprocess_kill(ps):
+    if sys.platform == "win32":
+        subprocess.call("taskkill /f /t /pid %d >nul" % ps.pid, shell=True)
+
+
 env = os.environ
