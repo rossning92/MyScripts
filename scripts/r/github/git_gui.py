@@ -98,3 +98,6 @@ if __name__ == "__main__":
             call_echo("git log --pretty=oneline --abbrev-commit")
         elif ch == "r":
             revert()
+        elif ch == "1":
+            call_echo("cmd")
+

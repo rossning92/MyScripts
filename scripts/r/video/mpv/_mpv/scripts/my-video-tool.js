@@ -205,16 +205,44 @@ mp.add_forced_key_binding("5", "crop_out_taskbar", function () {
   });
 });
 
-mp.add_forced_key_binding("6", "_crop_right", function () {
-  mp.osd_message("[tmp] crop right...");
+mp.add_forced_key_binding("K", "crop_center", function () {
+  mp.osd_message("crop center...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0.125*iw:0.125*ih",
+  });
+});
+
+mp.add_forced_key_binding("U", "crop_top_left", function () {
+  mp.osd_message("crop top left...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0:0",
+  });
+});
+
+mp.add_forced_key_binding("L", "crop_right", function () {
   exportVideo({
     vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.125*ih",
   });
 });
 
-mp.add_forced_key_binding(">", "_crop_bottom_right", function () {
+mp.add_forced_key_binding("O", "crop_top_right", function () {
+  mp.osd_message("crop top right...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0.25*iw:0",
+  });
+});
+
+mp.add_forced_key_binding(">", "crop_bottom_right", function () {
+  mp.osd_message("crop bottom right...");
   exportVideo({
     vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.21*ih",
+  });
+});
+
+mp.add_forced_key_binding("I", "crop_top", function () {
+  mp.osd_message("crop top...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0.125*iw:0",
   });
 });
 

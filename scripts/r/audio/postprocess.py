@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from _audio import *
 
-ALWAYS_GENERATE = False
+ALWAYS_GENERATE = True
 
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
@@ -159,7 +159,7 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE):
         if 0:  # old
             args += " bass -2.0 100" " equalizer 800 400h -4.0" " treble 1.0 4k 1s"
         else:
-            args += " bass -18 30" " equalizer 315 100h -5.7" " equalizer 12105 10k 3.7"
+            args += " bass -18 30" " equalizer 315 100h -3.7" " equalizer 12105 10k 3"
 
         # Compressor
         args += (
