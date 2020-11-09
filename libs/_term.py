@@ -98,7 +98,10 @@ class InputWidget:
         stdscr.attroff(curses.color_pair(1))
 
         if cursor:
-            stdscr.move(row, self.caret_pos + text_start)
+            try:
+                stdscr.move(row, self.caret_pos + text_start)
+            except:
+                pass
 
     def clear(self):
         self.text = ""

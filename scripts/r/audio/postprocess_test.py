@@ -4,7 +4,7 @@ from _shutil import *
 import importlib
 
 
-f = r"C:\Users\Ross\Google Drive\KidslogicVideo\ep27\record\record_081.wav"
+test_file = r"{{_TEST_FILE}}"
 ps = None
 last_mtime = 0
 
@@ -22,7 +22,7 @@ while True:
             print("reload module...")
             importlib.reload(postprocess)
 
-            out = postprocess.process_audio_file(f, regenerate=True)
+            out = postprocess.process_audio_file(test_file, regenerate=True)
             ps = subprocess.Popen(["ffplay", "-nodisp", "-loop", "0", out])
         except Exception as ex:
             print(ex)
