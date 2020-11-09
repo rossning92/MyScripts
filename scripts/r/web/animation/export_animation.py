@@ -440,13 +440,16 @@ def audio(
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             audio_end(track=track, t=t)
 
-    _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
+    clip = _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
 
-    # Fade in
-    if crossfade > 0:
-        _set_vol(vol, duration=crossfade, t=t, track=track)
+    if crossfade > 0:  # Crossfade in
+        clip.vol_keypoints.append((0, 0))
+        clip.vol_keypoints.append((crossfade, vol))
+    elif in_duration > 0:  # fade in
+        clip.vol_keypoints.append((0, 0))
+        clip.vol_keypoints.append((crossfade, vol))
     else:
-        _set_vol(vol, duration=in_duration, t=t, track=track)
+        clip.vol_keypoints.append((0, vol))
 
 
 def audio_end(*, t=None, track=None, move_playhead=True):

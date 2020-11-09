@@ -157,7 +157,7 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE, out_dir="tmp"):
         if 0:  # old
             args += " bass -2.0 100" " equalizer 800 400h -4.0" " treble 1.0 4k 1s"
         else:
-            args += " bass -18 30" " equalizer 315 100h -3.7" " equalizer 12105 10k 3"
+            args += " bass -10 30" " equalizer 315 100h -1" " equalizer 12105 10k 3"
 
         # Compressor
         args += (
