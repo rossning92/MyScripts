@@ -4,7 +4,7 @@ pdftk = r'C:\Program Files (x86)\PDFtk\bin\pdftk.exe'
 if not exists(pdftk):
     run_elevated('choco install pdftk -y')
 
-chdir(env['_CUR_DIR'])
+chdir(env['CUR_DIR_'])
 
 files = env['_FILES'].split('|')
 print('Files to combine:', files)

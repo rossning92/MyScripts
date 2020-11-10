@@ -625,6 +625,7 @@ def print2(msg, color="yellow", end="\n"):
         "blue": "\u001b[34;1m",
         "magenta": "\u001b[35;1m",
         "cyan": "\u001b[36;1m",
+        "black": "\u001b[30;1m",
         "YELLOW": "\u001b[43;1m",
         "RED": "\u001b[41;1m",
     }
@@ -761,7 +762,7 @@ def exec_bash(script, wsl=False, echo=False):
 
 
 def get_files(cd=False):
-    cur_folder = os.environ["_CUR_DIR"]
+    cur_folder = os.environ["CUR_DIR_"]
 
     if "_FILES" in os.environ:
         files = os.environ["_FILES"].split("|")
@@ -785,12 +786,12 @@ def get_selected_folder():
 
 
 def get_current_folder():
-    return os.environ["_CUR_DIR"]
+    return os.environ["CUR_DIR_"]
 
 
 def cd_current_dir():
-    if "_CUR_DIR" in os.environ:
-        os.chdir(os.environ["_CUR_DIR"])
+    if "CUR_DIR_" in os.environ:
+        os.chdir(os.environ["CUR_DIR_"])
     else:
         os.chdir(os.path.expanduser("~"))
 
@@ -832,7 +833,7 @@ def update_env_var_explorer():
             data = json.load(f)
 
         if data["current_folder"]:
-            os.environ["_CUR_DIR"] = data["current_folder"]
+            os.environ["CUR_DIR_"] = data["current_folder"]
 
         files = data["selected_files"]
         if not files:

@@ -432,8 +432,8 @@ class ScriptItem:
                 setup_nodejs(install=False)
 
         # HACK: pass current folder
-        if "_CUR_DIR" in os.environ:
-            env["_CUR_DIR"] = os.environ["_CUR_DIR"]
+        if "CUR_DIR_" in os.environ:
+            env["CUR_DIR_"] = os.environ["CUR_DIR_"]
 
         cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(script_path)))
 

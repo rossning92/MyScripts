@@ -14,7 +14,7 @@ def crop_image(im, rect):
     return im[rect[1]:rect[1] + rect[3], rect[0]:rect[0] + rect[2], :]
 
 
-cur_folder = os.environ['_CUR_DIR']
+cur_folder = os.environ['CUR_DIR_']
 cd(cur_folder)
 
 files = os.listdir('.')

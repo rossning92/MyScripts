@@ -12,7 +12,7 @@ project_name = "example"
 if r"{{_PROJ_DIR}}":
     project_dir = r"{{_PROJ_DIR}}"
 else:
-    project_dir = os.environ["_CUR_DIR"]
+    project_dir = os.environ["CUR_DIR_"]
 
 print2("Project dir: %s" % project_dir)
 

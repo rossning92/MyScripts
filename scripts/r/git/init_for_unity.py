@@ -4,7 +4,7 @@ from subprocess import call
 from _shutil import *
 from _script import *
 
-project_folder = os.environ['_CUR_DIR']
+project_folder = os.environ['CUR_DIR_']
 os.chdir(project_folder)
 
 urlretrieve('https://raw.githubusercontent.com/github/gitignore/master/Unity.gitignore', '.gitignore')
