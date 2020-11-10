@@ -433,10 +433,10 @@ def audio(
 
     # Fade out of previous audio clip
     if len(_get_audio_track(track).clips) > 0:
-        if crossfade > 0:
+        if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
             audio_end(track=track, t=t + crossfade)
-        else:
+        elif out_duration > 0:  # Fade out
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             audio_end(track=track, t=t)
 
