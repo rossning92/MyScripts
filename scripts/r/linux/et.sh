@@ -8,8 +8,10 @@ if ! [ -x "$(command -v expect)" ]; then
     sudo apt-get install expect -y
 fi
 
-sudo /etc/init.d/screen-cleanup start
-screen -r ssh_session -X quit
+pkill screen
+# sudo /etc/init.d/screen-cleanup start
+# screen -r ssh_session -X quit
+
 screen -dmS ssh_session bash
 
 # et -x -r 15037:5037 {{SSH_USER}}@{{SSH_HOST}}:8080
