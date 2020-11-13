@@ -1,6 +1,6 @@
 from _shutil import *
 
-files = os.environ['_FILES'].split('|')
+files = os.environ['FILES_'].split('|')
 print(files)
 
 for f in files:

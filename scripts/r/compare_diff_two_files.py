@@ -1,6 +1,6 @@
 from _shutil import *
 
-files = env['_FILES'].split('|')
+files = env['FILES_'].split('|')
 assert len(files) == 2
 
 vscode = r'C:\Program Files\Microsoft VS Code\Code.exe'

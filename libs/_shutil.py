@@ -764,8 +764,8 @@ def exec_bash(script, wsl=False, echo=False):
 def get_files(cd=False):
     cur_folder = os.environ["CUR_DIR_"]
 
-    if "_FILES" in os.environ:
-        files = os.environ["_FILES"].split("|")
+    if "FILES_" in os.environ:
+        files = os.environ["FILES_"].split("|")
     else:
         files = list(glob.glob(cur_folder + "/*.*"))
 
@@ -780,7 +780,7 @@ def get_files(cd=False):
 
 
 def get_selected_folder():
-    files = os.environ["_FILES"].split("|")
+    files = os.environ["FILES_"].split("|")
     folders = [x for x in files if os.path.isdir(x)]
     return folders[0]
 
@@ -843,7 +843,7 @@ def update_env_var_explorer():
             os.environ["_FILE"] = files[0]
 
         if len(files) >= 1:
-            os.environ["_FILES"] = "|".join(files)
+            os.environ["FILES_"] = "|".join(files)
 
         return files
 

@@ -6,7 +6,7 @@ if not exists(pdftk):
 
 chdir(env['CUR_DIR_'])
 
-files = env['_FILES'].split('|')
+files = env['FILES_'].split('|')
 print('Files to combine:', files)
 
 call([pdftk] + files + ['cat', 'output', 'Combined.pdf'])
