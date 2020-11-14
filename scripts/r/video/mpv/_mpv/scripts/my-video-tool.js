@@ -101,36 +101,40 @@ function exportVideo(params) {
   // Pixel format
   args = args.concat(["-pix_fmt", "yuv420p"]);
 
-  // video encoder
-  if (false) {
-    args = args.concat([
-      "-c:v",
-      "libx264",
-      "-crf",
-      "19",
-      "-preset",
-      "slow",
-      "-pix_fmt",
-      "yuv420p",
-      "-an",
-    ]);
-  } else {
-    args = args.concat([
-      "-c:v",
-      "h264_nvenc",
-      "-preset",
-      "hq",
-      "-rc:v",
-      "vbr_hq",
-      "-qmin",
-      "17",
-      "-qmax",
-      "21",
-    ]);
-  }
+  if (!args.removeAudio) {
+    // Video encoding
+    if (false) {
+      args = args.concat([
+        "-c:v",
+        "libx264",
+        "-crf",
+        "19",
+        "-preset",
+        "slow",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
+      ]);
+    } else {
+      args = args.concat([
+        "-c:v",
+        "h264_nvenc",
+        "-preset",
+        "hq",
+        "-rc:v",
+        "vbr_hq",
+        "-qmin",
+        "17",
+        "-qmax",
+        "21",
+      ]);
+    }
 
-  // Audio encoder
-  args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
+    // Audio encoding
+    args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
+  } else {
+    args = args.concat(["-c:v", "copy", "-an"]);
+  }
 
   // Output file
   if (baseName == null) baseName = getBaseName(currentFile);
@@ -283,6 +287,11 @@ mp.add_forced_key_binding("x", "cut_video", function () {
   exportVideo({ start: inTime, duration: outTime - inTime });
   inTime = 0;
   outTime = 0;
+});
+
+mp.add_forced_key_binding("A", "remove_audio", function () {
+  mp.osd_message("remove audio...");
+  exportVideo({ removeAudio: true });
 });
 
 mp.add_forced_key_binding("X", "cut_video_background", function () {
