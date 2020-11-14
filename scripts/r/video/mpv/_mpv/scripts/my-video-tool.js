@@ -1,3 +1,5 @@
+var nvenc = true;
+
 var historyFiles = [];
 var baseName = null;
 var currentFile = null;
@@ -103,19 +105,7 @@ function exportVideo(params) {
 
   if (!args.removeAudio) {
     // Video encoding
-    if (false) {
-      args = args.concat([
-        "-c:v",
-        "libx264",
-        "-crf",
-        "19",
-        "-preset",
-        "slow",
-        "-pix_fmt",
-        "yuv420p",
-        "-an",
-      ]);
-    } else {
+    if (nvenc) {
       args = args.concat([
         "-c:v",
         "h264_nvenc",
@@ -127,6 +117,18 @@ function exportVideo(params) {
         "17",
         "-qmax",
         "21",
+      ]);
+    } else {
+      args = args.concat([
+        "-c:v",
+        "libx264",
+        "-crf",
+        "19",
+        "-preset",
+        "slow",
+        "-pix_fmt",
+        "yuv420p",
+        "-an",
       ]);
     }
 
