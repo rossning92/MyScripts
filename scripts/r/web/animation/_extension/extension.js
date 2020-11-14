@@ -13,22 +13,10 @@ async function openFile(filePath) {
     if (filePath.endsWith(".md")) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
-    } else {
-      // const args = [
-      //   "-c",
-      //   `from r.open_with.open_with_ import open_with; open_with(r'${filePath}', 0)`,
-      //   filePath,
-      // ];
-      // cp.spawnSync("python", args);
-
-      // const args = [
-      //   "-c",
-      //   `from r.web.animation.video_editor import edit_video; edit_video(r"${filePath}")`,
-      //   filePath,
-      // ];
-      // cp.spawnSync("python", args);
-
+    } else if (/\.(png|jpg|mp4|wav|mp3)$/g.test(filePath)) {
       cp.spawn("mpv", [filePath]);
+    } else {
+      vscode.env.openExternal(vscode.Uri.file(filePath));
     }
   }
 }
