@@ -150,7 +150,10 @@ def _format_time(sec):
 
 def crossfade(v):
     global _crossfade
-    _crossfade = float(v)
+    if v == True:
+        _crossfade = VIDEO_CROSSFADE_DURATION
+    else:
+        _crossfade = float(v)
 
 
 def _get_track(tracks, name):

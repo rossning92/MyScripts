@@ -15,10 +15,13 @@ def install_sharex():
     setting_path = expandvars(r"%USERPROFILE%\Documents\ShareX")
     if not exists(setting_path):
         subprocess.Popen([exe_path, "-silent"], close_fds=True)
-        kill_proc()
+
+    kill_proc()
 
     config_file = os.path.join(setting_path, "ApplicationConfig.json")
-    config = json.load(open(config_file))
+    with open(config_file) as f:
+        config = json.load(f)
+
     config["DefaultTaskSettings"]["UploadSettings"][
         "NameFormatPattern"
     ] = "%yy%mo%d%h%mi%s_%ms"
@@ -28,17 +31,18 @@ def install_sharex():
     # config["DefaultTaskSettings"]["CaptureSettings"]["FFmpegOptions"]
     config["DefaultTaskSettings"]["CaptureSettings"]["ShowCursor"] = False
     config["AutoCheckUpdate"] = False
-    json.dump(config, open(config_file, "w"))
+
+    with open(config_file, "w") as f:
+        json.dump(config, f)
 
     # config_file = os.path.join(setting_path, "HotkeysConfig.json")
     # config = json.load(open(config_file))
     # config["Hotkeys"][0]["HotkeyInfo"]["Hotkey"] = "F1"
     # json.dump(config, open(config_file, "w"))
 
-    kill_proc()
     subprocess.Popen([exe_path, "-silent"], close_fds=True)
 
 
 if __name__ == "__main__":
-    if sys.platform() == "win32":
+    if sys.platform == "win32":
         install_sharex()
