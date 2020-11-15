@@ -12,13 +12,13 @@ def wait_until_file_modified(f):
             return
 
 
-os.chdir(os.environ["CUR_DIR_"])
-
-files = glob.glob("**/*", recursive=True)
+files = get_files(cd=True)
+files = sorted(files)
 files = [x for x in files if os.path.isfile(x)]
 
 tmp_file = write_temp_file("\n".join(files), ".txt")
 open_in_vscode(tmp_file)
+
 wait_until_file_modified(tmp_file)
 
 with open(tmp_file, "r", encoding="utf-8") as f:

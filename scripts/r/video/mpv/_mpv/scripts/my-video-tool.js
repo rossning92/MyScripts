@@ -173,8 +173,8 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
 
   var w = mp.get_property_number("width");
   var h = mp.get_property_number("height");
-  var outX = Math.floor(normalizedMouseX * w);
-  var outY = Math.floor(normalizedMouseY * h);
+  var outX = Math.floor(normalizedMouseX * 1920);
+  var outY = Math.floor(normalizedMouseY * 1080);
 
   var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
 
