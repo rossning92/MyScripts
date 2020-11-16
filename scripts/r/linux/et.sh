@@ -11,7 +11,8 @@ if ! [ -x "$(command -v expect)" ]; then
 fi
 
 pkill screen || true
-# sudo /etc/init.d/screen-cleanup start
+sudo /etc/init.d/screen-cleanup start
+
 # screen -r ssh_session -X quit
 
 screen -dmS ssh_session bash
