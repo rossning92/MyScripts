@@ -9,6 +9,7 @@ def print_help():
         "[p] push\n"
         "[s] git status\n"
         "[l] git log\n"
+        "[d] git diff\n"
         "[r] revert single file\n"
         "[R] revert all changes\n"
     )
@@ -105,3 +106,5 @@ if __name__ == "__main__":
             f = input("Input file to revert: ")
             if f:
                 call_echo("git checkout %s" % f)
+        elif ch == "d":
+            call_echo("git diff")

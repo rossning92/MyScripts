@@ -100,11 +100,14 @@ function exportVideo(params) {
     args = args.concat(["-filter:v", params.vf]);
   }
 
-  // Pixel format
-  args = args.concat(["-pix_fmt", "yuv420p"]);
-
-  if (!args.removeAudio) {
+  if (params.removeAudio) {
+    args = args.concat(["-c:v", "copy", "-an"]);
+  } else {
     // Video encoding
+
+    // Pixel format
+    args = args.concat(["-pix_fmt", "yuv420p"]);
+
     if (nvenc) {
       args = args.concat([
         "-c:v",
@@ -134,8 +137,6 @@ function exportVideo(params) {
 
     // Audio encoding
     args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
-  } else {
-    args = args.concat(["-c:v", "copy", "-an"]);
   }
 
   // Output file
@@ -184,7 +185,8 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
 
 mp.add_forced_key_binding("1", "resize_1080p", function () {
   mp.osd_message("resize to 1080p...");
-  exportVideo({ vf: "scale=-2:1080" });
+  // exportVideo({ vf: "scale=-2:1080" });
+  exportVideo({ vf: "scale=1920:-2" });
 });
 
 mp.add_forced_key_binding("7", "resize_720p", function () {
