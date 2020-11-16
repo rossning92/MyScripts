@@ -1,3 +1,5 @@
+set -e
+
 if ! [ -x "$(command -v et)" ]; then
     sudo add-apt-repository ppa:jgmath2000/et -y
     sudo apt-get update
@@ -8,7 +10,7 @@ if ! [ -x "$(command -v expect)" ]; then
     sudo apt-get install expect -y
 fi
 
-pkill screen
+pkill screen || true
 # sudo /etc/init.d/screen-cleanup start
 # screen -r ssh_session -X quit
 
