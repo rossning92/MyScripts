@@ -3,7 +3,7 @@ from _script import *
 if __name__ == "__main__":
     script_path = os.environ["_SCRIPT_PATH"]
 
-    script = ScriptItem(script_path)
+    script = Script(script_path)
     update_script_acesss_time(script)
 
     s = script.render() + "\n"

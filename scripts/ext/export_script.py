@@ -97,7 +97,7 @@ def export_script(script_path):
     out_file = "%s/%s" % (OUT_DIR, basename(script_path))
     print("Render: %s" % script_path)
     with open(out_file, "w") as f:
-        # _script.ScriptItem(script_path).render()
+        # _script.Script(script_path).render()
         f.write(content)
 
 

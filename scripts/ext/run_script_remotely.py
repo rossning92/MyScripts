@@ -49,7 +49,7 @@ if __name__ == "__main__":
         print("Parameter saved...")
         exit(0)
 
-    script = ScriptItem(script_path)
+    script = Script(script_path)
     # update_script_acesss_time(script)
     tmp_script_file = write_temp_file(script.render(), ".sh")
 

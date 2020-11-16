@@ -255,7 +255,7 @@ def wt_wrap_args(
     return ["wt", "-p", title] + args
 
 
-class ScriptItem:
+class Script:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
 
     def __str__(self):
@@ -347,9 +347,9 @@ class ScriptItem:
 
         with open(script_path, "r", encoding=encoding) as f:
             source = f.read()
-        template = ScriptItem.env.from_string(source)
+        template = Script.env.from_string(source)
         ctx = {
-            "include": ScriptItem.include.__get__(self, ScriptItem),
+            "include": Script.include.__get__(self, Script),
             **self.get_variables(),
         }
         return template.render(ctx)
@@ -747,7 +747,7 @@ class ScriptItem:
             return {}
 
         variables = set()
-        include_func = ScriptItem.include.__get__(self, ScriptItem)
+        include_func = Script.include.__get__(self, Script)
 
         class MyContext(jinja2.runtime.Context):
             def resolve(self, key):
@@ -755,9 +755,9 @@ class ScriptItem:
                     return include_func
                 variables.add(key)
 
-        ScriptItem.env.context_class = MyContext
+        Script.env.context_class = MyContext
         self.render()
-        ScriptItem.env.context_class = jinja2.runtime.Context
+        Script.env.context_class = jinja2.runtime.Context
 
         variables = list(variables)
 
@@ -772,7 +772,7 @@ class ScriptItem:
         if script_path is None:
             raise Exception("Cannot find script: %s" % script_name)
         # script_path = os.path.dirname(self.script_path) + '/' + script_path
-        return ScriptItem(script_path).render()
+        return Script(script_path).render()
 
 
 def get_script_root():
@@ -816,7 +816,7 @@ def run_script(
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
 
-    script = ScriptItem(script_path)
+    script = Script(script_path)
 
     if console_title:
         script.console_title = console_title
@@ -1046,7 +1046,7 @@ def load_scripts(script_list, modified_time, autorun=True):
             name = name.replace("\\", "/")
             name = _replace_prefix(name, "/", "")
 
-            script = ScriptItem(file, name=name)
+            script = Script(file, name=name)
 
             if file not in modified_time or mtime > modified_time[file]:
                 # Check if auto run script

@@ -3,7 +3,7 @@ from _script import *
 if __name__ == '__main__':
     script_path = os.environ['_SCRIPT_PATH']
 
-    script = ScriptItem(script_path)
+    script = Script(script_path)
     s = script.render() + '\n'
     tmp_script_file = write_temp_file(s, '.sh')
     tmp_script_file = convert_to_unix_path(tmp_script_file, wsl=True)
