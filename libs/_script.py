@@ -245,11 +245,12 @@ def wt_wrap_args(
         }
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)
-        else:
-            filtered[0].update(profile)
+        # else:
+        #     filtered[0].update(profile)
 
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+            # Only update when config file is changed
+            with open(CONFIG_FILE, "w") as f:
+                json.dump(data, f, indent=4)
 
     return ["wt", "-p", title] + args
 
