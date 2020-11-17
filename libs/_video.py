@@ -199,7 +199,18 @@ def ffmpeg(
             args += ["-c:v", "h264_nvenc"]
             if not bitrate and crf:
                 # https://superuser.com/questions/1236275/how-can-i-use-crf-encoding-with-nvenc-in-ffmpeg/1236387
-                args += ["-rc:v", "vbr_hq", "-cq:v", "%d" % crf]
+                # args += ["-rc:v", "vbr_hq", "-cq:v", "%d" % crf]
+
+                args += [
+                    "-preset",
+                    "hq",
+                    "-rc:v",
+                    "vbr_hq",
+                    "-qmin",
+                    "17",
+                    "-qmax",
+                    "21",
+                ]
         else:
             args += ["-c:v", "libx264"]
             if not bitrate and crf:
