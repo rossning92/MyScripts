@@ -243,11 +243,16 @@ def wt_wrap_args(
             "fontSize": font_size,
             # "icon": "C:\\tmp\\wsl.ico",
         }
+
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)
-        # else:
-        #     filtered[0].update(profile)
+            updated = True
+        else:
+            updated = profile != filtered[0]
+            if updated:
+                filtered[0].update(profile)
 
+        if updated:
             # Only update when config file is changed
             with open(CONFIG_FILE, "w") as f:
                 json.dump(data, f, indent=4)

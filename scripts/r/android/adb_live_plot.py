@@ -35,7 +35,7 @@ def plot_time_series(kw, show_recent=500):
     it = read_lines(["adb", "exec-out", "logcat | grep ROSS"])
     for line in it:
         if request_exit:
-            it.send("cancel")
+            it.close()
             break
 
         match = re.search(patt, line)

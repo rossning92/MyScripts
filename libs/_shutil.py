@@ -558,6 +558,19 @@ def fnull():
 
 
 def read_lines(args, echo=False, read_err=False, max_lines=None, check=False):
+    def terminate():
+        nonlocal ps
+        if sys.platform == "win32":
+            FNULL = open(os.devnull, "w")
+            subprocess.call(
+                ["taskkill", "/f", "/t", "/pid", "%d" % ps.pid],
+                stdout=FNULL,
+                stderr=FNULL,
+            )
+        else:
+            ps.send_signal(signal.SIGINT)
+            ps.kill()
+
     ps = subprocess.Popen(
         args,
         stdout=subprocess.PIPE if (not read_err) else None,
@@ -567,32 +580,27 @@ def read_lines(args, echo=False, read_err=False, max_lines=None, check=False):
 
     line_no = 0
     for line in ps.stderr if read_err else ps.stdout:
-        # process line here
-        line = line.strip()
-        line = line.decode(errors="ignore")
-        if echo:
-            print(line)
+        try:
+            # process line here
+            line = line.strip()
+            line = line.decode(errors="ignore")
+            if echo:
+                print(line)
 
-        cancel = yield line
-        line_no += 1
+            yield line
+            line_no += 1
 
-        if cancel or (max_lines and line_no >= max_lines):
-            if sys.platform == "win32":
-                FNULL = open(os.devnull, "w")
-                subprocess.call(
-                    ["taskkill", "/f", "/t", "/pid", "%d" % ps.pid],
-                    stdout=FNULL,
-                    stderr=FNULL,
-                )
-            else:
-                ps.send_signal(signal.SIGINT)
-                ps.kill()
-            break
+            if max_lines and line_no >= max_lines:
+                terminate()
+                break
+
+        except GeneratorExit:
+            terminate()
+            raise
 
     ps.wait()
     if check and ps.returncode != 0:
         raise subprocess.CalledProcessError(ps.returncode, ps.args)
-    yield
 
 
 def check_output_echo(args):
