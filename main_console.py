@@ -323,6 +323,9 @@ class MainWindow(SearchWindow):
                     self.run_selected_script()
                 return True
 
+        elif ch == ord("L"):
+            sys.exit(1)
+
         elif ch in state.hotkeys:
             script = self.get_selected_item()
             if script is not None:

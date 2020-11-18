@@ -21,4 +21,6 @@ pip install -r requirement.txt
 
 title my_scripts_console
 
+:main
 python main_console.py
+if errorlevel 1 goto main
