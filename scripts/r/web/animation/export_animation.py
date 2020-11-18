@@ -697,7 +697,12 @@ def _create_mpy_clip(
 
     # video clip operations / fx
     if subclip is not None:
-        clip = clip.subclip(subclip)
+        if isinstance(subclip, (int, float)):
+            clip = clip.subclip(subclip)
+        else:
+            c1 = clip.subclip(subclip[0], subclip[1])
+            c2 = clip.to_ImageClip(subclip[1]).set_duration(5)
+            clip = concatenate_videoclips([c1, c2])
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
