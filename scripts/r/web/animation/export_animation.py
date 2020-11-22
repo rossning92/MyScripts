@@ -371,6 +371,11 @@ def _set_vol(vol, duration=AUDIO_FADING_DURATION, track=None, t=None):
     track_.clips[-1].vol_keypoints.append((t_in_clip + duration, vol))
 
 
+def mark(name, t=None):
+    t = _get_pos(t)
+    _pos_dict[name] = t
+
+
 def vol(vol, **kwargs):
     _set_vol(vol, **kwargs)
 
@@ -438,10 +443,10 @@ def audio(
     if len(_get_audio_track(track).clips) > 0:
         if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
-            audio_end(track=track, t=t + crossfade)
+            audio_end(track=track, t=t + crossfade, move_playhead=move_playhead)
         elif out_duration > 0:  # Fade out
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
-            audio_end(track=track, t=t)
+            audio_end(track=track, t=t, move_playhead=move_playhead)
 
     clip = _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
 
@@ -506,8 +511,8 @@ def sfx(f, **kwargs):
     audio(f, track="sfx", move_playhead=False, **kwargs)
 
 
-def pos(p, tag=None):
-    _set_pos(p, tag=tag)
+def pos(t, tag=None):
+    _set_pos(t, tag=tag)
 
 
 def clip(f, **kwargs):
@@ -1312,6 +1317,7 @@ def _interface():
         "slide": lambda *_, **__: None,
         "overlay": lambda *_, **__: None,
         "pos": lambda *_, **__: None,
+        "mark": lambda *_, **__: None,
         "record": lambda *_, **__: None,
         "sfx": lambda *_, **__: None,
         "text": lambda *_, **__: None,
@@ -1348,6 +1354,7 @@ def _default_impl():
         "slide": slide,
         "overlay": overlay,
         "pos": pos,
+        "mark": mark,
         "record": record,
         "sfx": sfx,
         "text": text,
@@ -1475,7 +1482,7 @@ def load_config():
     import yaml
 
     CONFIG_FILE = "config.yaml"
-    DEFAULT_CONFIG = {"final": False, "tts": False}
+    DEFAULT_CONFIG = {"final": False, "tts": False, "fps": 25}
 
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r") as f:
@@ -1487,6 +1494,7 @@ def load_config():
 
     final(config["final"])
     tts(config["tts"])
+    fps(config["fps"])
 
 
 if __name__ == "__main__":

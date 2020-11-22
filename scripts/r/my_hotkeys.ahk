@@ -51,7 +51,6 @@ Sleep 500
 Send *n
 return
 #If
-    
 
 #If WinActive("ahk_exe ConEmu64.exe")
     Esc::
@@ -59,23 +58,23 @@ return
     ; KeyWait, Esc, D T.3
     ; If ErrorLevel
     ; 	return
-    
+
     WinClose ahk_exe ConEmu64.exe
 return
 #If
-    
 
 #If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
-    
+
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 #c::ActivateChrome(0)
 #!c::ActivateChrome(2)
 #!2::ActivateChrome(3)
+#m::ToggleMicrophone()
 
 ^q::
     ; If explorer is active, copy file path to clipboard
     UpdateExplorerInfo()
-    
+
     ; Activate script window
     if WinExist(CONSOLE_WINDOW) {
         WinActivate % CONSOLE_WINDOW
@@ -97,7 +96,7 @@ return
         this_id := winList%A_Index%
         WinClose, ahk_id %this_id%
     }
-    
+
     ; Close "(Finished)" windows
     WinGet, winList, List, (Finished)
     Loop, %winList%
@@ -130,14 +129,14 @@ return
     WinGet, curHwnd, ID, A
     WinMaximize, ahk_id %curHwnd%
     WinSet, AlwaysOnTop, Off, ahk_id %curHwnd%
-    
+
     for p, hwnd in WindowList {
         if (hwnd = curHwnd) {
             WindowList.Delete(p)
             break
         }
     }
-    
+
     SetTimer, AutoUpdateWindowPos, Off
 return
 
@@ -164,13 +163,13 @@ return
 return
 
 #If
-    
+
 #If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_exe vncviewer.exe")
 $XButton2::
 ToggleVNC()
 return
 #If
-    
+
 ArrayHasValue(array, needle) {
     if not IsObject(array) {
         return false
@@ -185,9 +184,9 @@ ArrayHasValue(array, needle) {
 
 UpdateWindowPosition(pos) {
     global WindowList
-    
+
     WinGet, curHwnd, ID, A
-    
+
     prevPos := ""
     for p, hwnd in WindowList {
         if (hwnd = curHwnd) {
@@ -195,16 +194,16 @@ UpdateWindowPosition(pos) {
             break
         }
     }
-    
+
     if (prevPos != "") {
         ; If current window already in WindowList
         WindowList[prevPos] := WindowList[pos]
     }
     WindowList[pos] := curHwnd
-    
+
     WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
     RATIO := 2 / 3
-    
+
     for pos, hwnd in WindowList {
         if (pos = "left") {
             x := 0
@@ -214,14 +213,14 @@ UpdateWindowPosition(pos) {
             x := Floor(A_ScreenWidth * RATIO)
             w := Floor(A_ScreenWidth * (1 - RATIO))
         }
-        
+
         y := 0
         h := A_ScreenHeight - th
-        
+
         WinRestore, ahk_id %hwnd%
         WinSet, Style, +0x40000, ahk_id %hwnd%
         WinSet, Style, +Resize, ahk_id %hwnd%
-        
+
         if (pos = "right")
         {
             WinSet, AlwaysOnTop, On, ahk_id %hwnd%
@@ -230,57 +229,57 @@ UpdateWindowPosition(pos) {
         {
             WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
         }
-        
+
         ResizeWindow2("ahk_id " hwnd, x, y, w, h)
         if (hwnd != curHwnd) {
             WinActivate, ahk_id %hwnd%
         }
     }
-    
+
     WinActivate, ahk_id %curHwnd%
 }
 
 UpdateActiveWindowPosition() {
     global WindowList
-    
+
     ; If right window was closed.
     if not WinExist("ahk_id " WindowList["right"]) {
         SetTimer, AutoUpdateWindowPos, Off
     }
-    
+
     WinGet, cur_hwnd, ID, A
-    
+
     ControlGet, HWND, hwnd,, SysListView321, ahk_class WorkerW
     if (hwnd = cur_hwnd) {
         return
     }
-    
+
     WinGetClass, win_class, ahk_id %hwnd%
     if (win_class = "Windows.UI.Core.CoreWindow") {
         return
     }
-    
+
     if (win_class = "Shell_TrayWnd") {
         return
     }
-    
+
     for pos, hwnd in WindowList {
         if (hwnd = cur_hwnd and pos = "right") {
             return
         }
     }
-    
+
     WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
     RATIO := 2 / 3
     w := Floor(A_ScreenWidth * RATIO)
     x := 0
     y := 0
     h := A_ScreenHeight - th
-    
+
     WinRestore, ahk_id %cur_hwnd%
     WinSet, Style, +0x40000, ahk_id %cur_hwnd%
     WinSet, Style, +Resize, ahk_id %cur_hwnd%
-    
+
     WinMove, ahk_id %cur_hwnd%, , %x%, %y%, %w%, %h%
 }
 
@@ -291,7 +290,7 @@ ActivateChrome(index=0)
     {
         CHROME_DIR := "C:\Program Files\Google\Chrome\Application"
     }
-    
+
     if (index = 0)
     {
         condition := "NOT CommandLine LIKE '%--user-data-dir=%' AND NOT CommandLine LIKE '%--type=%'"
@@ -300,14 +299,14 @@ ActivateChrome(index=0)
     {
         condition := "CommandLine LIKE '%ChromeData" index "%' AND NOT CommandLine LIKE '%--type=%'"
     }
-    
+
     pid =
     for process in ComObjGet("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name='chrome.exe' AND " condition)
     {
         pid := process.ProcessID
         break
     }
-    
+
     if ( pid != "" and WinExist("- Google Chrome ahk_pid " pid) )
     {
         WinActivate
@@ -329,7 +328,7 @@ MouseIsOverAndActive(title) {
     MouseGetPos,,, id
     if not WinActive("ahk_id " id)
         return false
-    
+
     WinGet, matched_win_id, ID, %title%
     if (id = matched_win_id)
         return true
@@ -347,7 +346,7 @@ CenterActiveWindow(width:=1920, height:=1080) {
 ToggleDesktopIcons(show:=True) {
     ; ahk_class WorkerW
     ControlGet, HWND, Hwnd,, SysListView321, ahk_class Progman
-    
+
     if ( not DllCall("IsWindowVisible", UInt, HWND) or show ) {
         WinShow, ahk_id %HWND%
     } else {
@@ -377,7 +376,7 @@ ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
 
 ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
     WinGet hwnd, ID, %wintitle% ; WinExist() sets the last found window
-    
+
     If ((X . Y . W . H) = "")
         Return False
     If !WinExist("ahk_id " . hwnd)
@@ -396,8 +395,7 @@ ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
     Y := Y <> "" ? Y : WY
     W := W <> "" ? W + BW + BW : WW
     H := H <> "" ? H + BH : WH
-    
-    
+
     DllCall("MoveWindow", "Ptr", hwnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
     WinRestore ahk_id %hwnd%
 }
@@ -420,6 +418,23 @@ CheckIfRShiftIsPressed()
     if (GetKeyState("RShift", "P"))
     {
         ToggleVNC()
+    }
+}
+
+ToggleMicrophone()
+{
+    global Muted
+    if (Muted)
+    {
+        ToolTip
+        Run powershell -NoProfile -ExecutionPolicy unrestricted audio/unmute_mic.ps1,, Hide
+        Muted := false
+    }
+    else
+    {
+        ToolTip, [MUTED], 0, 0
+        Run powershell -NoProfile -ExecutionPolicy unrestricted audio/mute_mic.ps1,, Hide
+        Muted := true
     }
 }
 

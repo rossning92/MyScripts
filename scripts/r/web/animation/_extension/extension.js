@@ -14,7 +14,7 @@ async function openFile(filePath) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
     } else if (/\.(png|jpg|mp4|wav|mp3)$/g.test(filePath)) {
-      cp.spawn("mpv", [filePath]);
+      cp.spawn("mpv", ["--force-window", filePath]);
     } else {
       vscode.env.openExternal(vscode.Uri.file(filePath));
     }
