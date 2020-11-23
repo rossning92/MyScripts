@@ -458,7 +458,7 @@ def audio(
         clip.vol_keypoints.append((crossfade, vol))
     elif in_duration > 0:  # fade in
         clip.vol_keypoints.append((0, 0))
-        clip.vol_keypoints.append((crossfade, vol))
+        clip.vol_keypoints.append((in_duration, vol))
     else:
         clip.vol_keypoints.append((0, vol))
 
