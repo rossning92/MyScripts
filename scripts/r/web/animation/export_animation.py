@@ -47,7 +47,7 @@ AUTO_GENERATE_TTS = False
 IMAGE_SEQUENCE_FPS = 25
 FPS = 25
 VIDEO_CROSSFADE_DURATION = FADE_DURATION
-AUDIO_FADING_DURATION = 0.25
+DEFAULT_AUDIO_FADING_DURATION = 0.25
 
 
 if 0:
@@ -353,7 +353,10 @@ def audio_gap(duration):
     _pos_dict["c"] = _pos_dict["a"]
 
 
-def _set_vol(vol, duration=AUDIO_FADING_DURATION, track=None, t=None):
+# Deprecated
+def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
+    assert duration > 0
+
     t = _get_pos(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
@@ -481,8 +484,6 @@ def bgm(
     f,
     move_playhead=False,
     t="a",
-    in_duration=AUDIO_FADING_DURATION,
-    out_duration=AUDIO_FADING_DURATION,
     vol=0.1,
     track="bgm",
     norm=False,
@@ -495,15 +496,7 @@ def bgm(
         f = dynamic_audio_normalize(f)
 
     audio(
-        f,
-        track=track,
-        move_playhead=move_playhead,
-        t=t,
-        loop=loop,
-        in_duration=in_duration,
-        out_duration=out_duration,
-        vol=vol,
-        **kwargs,
+        f, track=track, move_playhead=move_playhead, t=t, loop=loop, vol=vol, **kwargs,
     )
 
 
