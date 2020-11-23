@@ -1306,21 +1306,21 @@ def _interface():
         "hl": lambda *_, **__: None,
         "image_anim": lambda *_, **__: None,
         "image": lambda *_, **__: None,  # deprecated, use `clip` instead
-        "md": lambda *_, **__: None,
-        "slide": lambda *_, **__: None,
-        "overlay": lambda *_, **__: None,
-        "pos": lambda *_, **__: None,
+        "include": lambda *_, **__: None,
         "mark": lambda *_, **__: None,
+        "md": lambda *_, **__: None,
+        "overlay": lambda *_, **__: None,
+        "parse_line": lambda *_, **__: None,
+        "pos": lambda *_, **__: None,
         "record": lambda *_, **__: None,
         "sfx": lambda *_, **__: None,
+        "slide": lambda *_, **__: None,
         "text": lambda *_, **__: None,
         "title_anim": lambda *_, **__: None,
         "tts": lambda *_, **__: None,
         "video_end": lambda *_, **__: None,
         "video": lambda *_, **__: None,  # deprecated, use `clip` instead
         "vol": lambda *_, **__: None,
-        "include": lambda *_, **__: None,
-        "parse_line": lambda *_, **__: None,
     }
 
 
@@ -1339,25 +1339,25 @@ def _default_impl():
         "comment": comment,
         "crossfade": crossfade,
         "empty": empty,  # deprecated
+        "final": final,
         "fps": fps,
         "hl": hl,
         "image_anim": image_anim,
         "image": clip,  # deprecated
-        "md": md,
-        "slide": slide,
-        "overlay": overlay,
-        "pos": pos,
         "mark": mark,
+        "md": md,
+        "overlay": overlay,
+        "parse_line": parse_line,
+        "pos": pos,
         "record": record,
         "sfx": sfx,
+        "slide": slide,
         "text": text,
         "title_anim": title_anim,
         "tts": tts,
         "video_end": video_end,
         "video": clip,  # deprecated
         "vol": vol,
-        "final": final,
-        "parse_line": parse_line,
     }
 
     # Include function
