@@ -1094,6 +1094,9 @@ def _export_video(resolution=(1920, 1080)):
         # raise Exception("no video clips??")
     final_clip = CompositeVideoClip(video_clips, size=resolution)
 
+    # Resize here is too late, does not speed up the video encoding at all.
+    # final_clip = final_clip.resize(width=480)
+
     # Deal with audio clips
     for _, track in _audio_tracks.items():
         clips = []
