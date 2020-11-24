@@ -294,7 +294,8 @@ def record(f, t="a", postprocess=True, move_playhead=True, **kwargs):
     audio(f, t=t, move_playhead=move_playhead, **kwargs)
 
     if move_playhead:
-        _pos_dict["re"] = _pos_dict["c"] = _get_pos("ae")
+        _pos_dict["re"] = _get_pos("ae")
+        _pos_dict["c"] = _get_pos("as")
 
     END_CHARS = ["。", "，", "！", "、", "；", "？", "|"]
 
