@@ -198,7 +198,7 @@ def create_final_vocal(prefix="record_", file_list=[]):
         out_file_list.append(out_file)
 
     concat_audio(out_file_list, 0, out_file="out/concat.wav", channels=1)
-    run_in_background(["mpv", "out/concat.wav"])
+    run_in_background(["mpv", "--force-window", "out/concat.wav"])
 
     # subprocess.check_call(
     #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
