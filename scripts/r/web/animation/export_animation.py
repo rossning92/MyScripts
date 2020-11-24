@@ -282,7 +282,7 @@ def _add_subtitle_clip(start, end, text):
     _video_tracks["text"].append(ci)
 
 
-def record(f, t="a", postprocess=True, **kwargs):
+def record(f, t="a", postprocess=True, move_playhead=True, **kwargs):
     if not os.path.exists(f):
         f = "record/" + f
         assert os.path.exists(f)
@@ -291,9 +291,10 @@ def record(f, t="a", postprocess=True, **kwargs):
     if postprocess:
         f = process_audio_file(f, out_dir="tmp/record")
 
-    audio(f, t=t, **kwargs)
+    audio(f, t=t, move_playhead=move_playhead, **kwargs)
 
-    _pos_dict["re"] = _get_pos("ae")
+    if move_playhead:
+        _pos_dict["re"] = _pos_dict["c"] = _get_pos("ae")
 
     END_CHARS = ["。", "，", "！", "、", "；", "？", "|"]
 
@@ -308,43 +309,44 @@ def record(f, t="a", postprocess=True, **kwargs):
             idx = len(_subtitle) - 1
             if _last_subtitle_index == idx:
                 print2("WARNING: subtitle used twice: %s" % _subtitle[idx])
-            _last_subtitle_index = idx
+            else:
+                _last_subtitle_index = idx
 
-            start = end = _get_pos("as")
-            subtitle = _subtitle[idx].strip()
+                start = end = _get_pos("as")
+                subtitle = _subtitle[idx].strip()
 
-            if subtitle[-1] not in END_CHARS:
-                subtitle += END_CHARS[0]
+                if subtitle[-1] not in END_CHARS:
+                    subtitle += END_CHARS[0]
 
-            length = len(subtitle)
-            word_dura = (_get_pos("ae") - start) / length
+                length = len(subtitle)
+                word_dura = (_get_pos("ae") - start) / length
 
-            i = 0
-            MAX = 5
-            word = ""
+                i = 0
+                MAX = 5
+                word = ""
 
-            while i < length:
-                if subtitle[i] in END_CHARS and len(word) > MAX:
-                    _srt_lines.extend(
-                        [
-                            "%d" % _srt_index,
-                            "%s --> %s" % (_format_time(start), _format_time(end)),
-                            word,
-                            "",
-                        ]
-                    )
+                while i < length:
+                    if subtitle[i] in END_CHARS and len(word) > MAX:
+                        _srt_lines.extend(
+                            [
+                                "%d" % _srt_index,
+                                "%s --> %s" % (_format_time(start), _format_time(end)),
+                                word,
+                                "",
+                            ]
+                        )
 
-                    _add_subtitle_clip(start=start, end=end, text=word)
+                        _add_subtitle_clip(start=start, end=end, text=word)
 
-                    end += word_dura
-                    start = end
-                    word = ""
-                    _srt_index += 1
-                else:
-                    word += subtitle[i]
-                    end += word_dura
+                        end += word_dura
+                        start = end
+                        word = ""
+                        _srt_index += 1
+                    else:
+                        word += subtitle[i]
+                        end += word_dura
 
-                i += 1
+                    i += 1
 
 
 def audio_gap(duration):
@@ -402,7 +404,6 @@ def _add_audio_clip(
 
     if move_playhead:
         _pos_dict["as"] = t
-        _pos_dict["c"] = _pos_dict["as"]
 
     clip_info = _AudioClipInfo()
 
@@ -420,7 +421,7 @@ def _add_audio_clip(
 
     if move_playhead:
         # Forward audio track pos
-        _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + (
+        _pos_dict["c"] = _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + (
             clip_info.mpy_clip.duration if duration is None else duration
         )
 
@@ -481,14 +482,7 @@ def audio_end(*, t=None, track=None, move_playhead=True):
 
 
 def bgm(
-    f,
-    move_playhead=False,
-    t="a",
-    vol=0.1,
-    track="bgm",
-    norm=False,
-    loop=True,
-    **kwargs,
+    f, move_playhead=False, vol=0.1, track="bgm", norm=False, loop=True, **kwargs,
 ):
     print("bgm: %s" % f)
 
@@ -496,7 +490,7 @@ def bgm(
         f = dynamic_audio_normalize(f)
 
     audio(
-        f, track=track, move_playhead=move_playhead, t=t, loop=loop, vol=vol, **kwargs,
+        f, track=track, move_playhead=move_playhead, loop=loop, vol=vol, **kwargs,
     )
 
 
