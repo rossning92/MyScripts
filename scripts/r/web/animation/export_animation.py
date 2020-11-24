@@ -688,6 +688,7 @@ def _create_mpy_clip(
     def load_video_file_clip(f):
         nonlocal scale
 
+        # Have ffmpeg resize the frames before returning them - faster speed.
         if scale != 1.0:
             w, h = _get_video_resolution(f)
             target_resolution = [int(h * scale), int(w * scale)]
