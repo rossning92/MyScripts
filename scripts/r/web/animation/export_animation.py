@@ -642,6 +642,30 @@ def _get_ppt_image(f, index):
     return out_files[0]
 
 
+def _get_video_resolution(f):
+    resolution = (
+        subprocess.check_output(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=width,height",
+                "-of",
+                "csv=s=x:p=0",
+                f,
+            ]
+        )
+        .decode()
+        .strip()
+        .split("x")
+    )
+    resolution = [int(x) for x in resolution]
+    return resolution
+
+
 def _create_mpy_clip(
     file=None,
     clip_operations=None,
@@ -659,6 +683,20 @@ def _create_mpy_clip(
     expand=False,
     scale=1,
 ):
+    scale = scale * _scale
+
+    def load_video_file_clip(f):
+        nonlocal scale
+
+        if scale != 1.0:
+            w, h = _get_video_resolution(f)
+            target_resolution = [int(h * scale), int(w * scale)]
+            scale = 1.0
+        else:
+            target_resolution = None
+
+        return VideoFileClip(f, target_resolution=target_resolution)
+
     if file is None:
         clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
 
@@ -670,7 +708,7 @@ def _create_mpy_clip(
 
         if frame is None:
             file = export_video(file)
-            clip = VideoFileClip(file)
+            clip = load_video_file_clip(file)
         else:
             file = export_slides(file, indices=[frame])[0]
             clip = ImageClip(file).set_duration(5)
@@ -686,7 +724,7 @@ def _create_mpy_clip(
             clip = clip.set_mask(None)
 
     else:
-        clip = VideoFileClip(file)
+        clip = load_video_file_clip(file)
 
     # video clip operations / fx
     if subclip is not None:
@@ -733,7 +771,6 @@ def _create_mpy_clip(
         else:
             clip = clip.set_position(pos)
 
-    scale = scale * _scale
     if scale != 1.0:
         clip = clip.resize(scale)
 
