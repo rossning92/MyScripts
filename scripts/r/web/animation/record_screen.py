@@ -10,8 +10,9 @@ ps = subprocess.Popen(
     [
         "captura-cli",
         "start",
-        "--source",
-        "222,150,1920,1080",
+        "--cursor",
+        # "--source",
+        # "222,150,1920,1080",
         "-r",
         "60",
         "--vq",

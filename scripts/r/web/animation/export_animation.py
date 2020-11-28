@@ -235,7 +235,7 @@ def _generate_text_image(
     stroke_color="#000000",
 ):
     # Escape `%` in ImageMagick
-    text = text.replace("\\*", "*").replace("%", "%%")
+    text = text.replace("\\*", "*").replace("\\", "\\\\").replace("%", "%%")
 
     # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
@@ -768,7 +768,9 @@ def _create_mpy_clip(
             clip = clip.set_position(("center", "center"))
         elif isinstance(pos[0], (int, float)):
             half_size = [x // 2 for x in clip.size]
-            clip = clip.set_position((pos[0] - half_size[0], pos[1] - half_size[1]))
+            pos = [pos[0] - half_size[0], pos[1] - half_size[1]]
+            pos = [int(_scale * x) for x in pos]
+            clip = clip.set_position(pos)
         else:
             clip = clip.set_position(pos)
 
@@ -1320,8 +1322,11 @@ def _convert_to_readable_time(seconds):
 
 
 def _write_timestamp(t, section_name):
-    with open("timestamp.txt", "w", encoding="utf-8") as f:
-        f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
+    if not hasattr(_write_timestamp, "f"):
+        _write_timestamp.f = open("timestamp.txt", "w", encoding="utf-8")
+
+    _write_timestamp.f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
+    _write_timestamp.f.flush()
 
 
 def _interface():
