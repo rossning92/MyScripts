@@ -1424,19 +1424,22 @@ def _default_impl():
 
 def _remove_unused_recordings(s):
     used_recordings = set()
+    unused_recordings = []
+
     impl = {**_interface(), "record": (lambda f, **kargs: used_recordings.add(f))}
     _parse_text(s, impl=impl)
 
-    unused_recordings = []
-    all_files = [x.replace("\\", "/") for x in glob.glob("record/*.wav")]
-    for f in all_files:
-        if f not in used_recordings and f.endswith(".wav"):
+    files = [f for f in glob.glob("record/*") if os.path.isfile(f)]
+    files = [f.replace("\\", "/") for f in files]
+
+    for f in files:
+        if f not in used_recordings:
             unused_recordings.append(f)
 
-    print("Total: %d" % len(all_files))
+    print("Total: %d" % len(files))
     print("Used recordings: %d" % len(used_recordings))
     print("Recordings to delete: %d" % len(unused_recordings))
-    assert len(used_recordings) + len(unused_recordings) == len(all_files)
+    assert len(used_recordings) + len(unused_recordings) == len(files)
     if input("press y to confirm deletion: ") == "y":
         for f in unused_recordings:
             try:

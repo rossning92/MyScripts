@@ -300,18 +300,23 @@ function writeTempTextFile(text) {
   return file;
 }
 
-function export_animation({ extraArgs = null } = {}) {
+function export_animation({ extraArgs = null, selectedText = true } = {}) {
   let editor = vscode.window.activeTextEditor;
   if (editor) {
     let document = editor.document;
-    let selection = editor.selection;
-    let selectionText = document.getText(selection);
+
+    let text;
+    if (selectedText) {
+      text = document.getText(editor.selection);
+    } else {
+      text = document.getText();
+    }
 
     var activeFilePath = vscode.window.activeTextEditor.document.fileName;
     var activeDirectory = path.dirname(activeFilePath);
     // vscode.window.showInformationMessage(activeDirectory);
 
-    const textFile = writeTempTextFile(selectionText);
+    const textFile = writeTempTextFile(text);
     let shellArgs = [
       "/c",
       "run_script",
@@ -427,6 +432,7 @@ function activate(context) {
 
   vscode.commands.registerCommand("yo.removeUnusedRecordings", function () {
     export_animation({
+      selectedText: false,
       extraArgs: ["--audio_only", "--remove_unused_recordings"],
     });
   });
