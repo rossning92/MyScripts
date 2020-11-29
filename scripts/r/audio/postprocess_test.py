@@ -22,7 +22,7 @@ while True:
             print("reload module...")
             importlib.reload(postprocess)
 
-            out = postprocess.process_audio_file(test_file, regenerate=True)
+            out = postprocess._process_audio_file(test_file, out_dir="tmp")
             ps = subprocess.Popen(["ffplay", "-nodisp", "-loop", "0", out])
         except Exception as ex:
             print(ex)
