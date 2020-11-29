@@ -150,6 +150,20 @@ class WavePlayer:
             self.wavefile = None
 
 
+class SoxPlayer:
+    def __init__(self):
+        self.ps = None
+
+    def play(self, file):
+        if self.ps is None:
+            self.ps = subprocess.Popen(["play", "-q", file])
+
+    def stop(self):
+        if self.ps is not None:
+            send_ctrl_c(self.ps)
+            self.ps = None
+
+
 def get_audio_file_name(prefix=FILE_PREFIX, postfix=".wav"):
     return "%s_%s%s" % (prefix, get_time_str(), postfix)
 
@@ -162,7 +176,7 @@ class TerminalRecorder:
     def __init__(self, out_dir="", interactive=True):
         self.out_dir = out_dir
         self.recorder = WaveRecorder(channels=2)
-        self.playback = WavePlayer()
+        self.playback = SoxPlayer()
 
         self.cur_file_name = None
         self.new_file_name = None
