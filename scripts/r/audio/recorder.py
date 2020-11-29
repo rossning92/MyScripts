@@ -1,9 +1,8 @@
+from _audio import *
+from _gui import *
+from _script import *
 from _shutil import *
 from _term import *
-from _audio import *
-from _script import *
-from _gui import *
-
 import pyaudio
 import wave
 
