@@ -312,6 +312,7 @@ class TerminalRecorder:
         if self.cur_file_name:
             self.new_file_name = get_next_file_name(self.cur_file_name)
         else:
+            # First audio file
             self.new_file_name = os.path.join(
                 self.out_dir, FILE_PREFIX + "_001." + RECORD_FILE_TYPE
             )
