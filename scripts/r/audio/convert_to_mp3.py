@@ -7,16 +7,11 @@ for f in files:
         continue
 
     fn, ext = os.path.splitext(f)
-    out_file = '%s_out.mp3' % fn
+    os.makedirs("out", exist_ok=True)
+    out_file = "out/%s.mp3" % fn
 
-    args = [
-        'ffmpeg',
-        '-i', f]
-
-    args += [
-        '-codec:a', 'libmp3lame',
-        '-qscale:a', '2']
-
+    args = ["ffmpeg", "-i", f]
+    args += ["-codec:a", "libmp3lame", "-qscale:a", "2"]
     args += [out_file]
 
-    subprocess.call(args)
+    call_echo(args)
