@@ -95,13 +95,13 @@ class WaveRecorder(object):
 
         self.recording_file = None
 
-    def open(self, fname, mode="wb"):
+    def _open(self, file, mode="wb"):
         return RecordingFile(
-            fname, mode, self.channels, self.rate, self.frames_per_buffer
+            file, mode, self.channels, self.rate, self.frames_per_buffer
         )
 
     def record(self, file_name):
-        self.recording_file = self.open(file_name, "wb")
+        self.recording_file = self._open(file_name, "wb")
         self.recording_file.start_recording()
 
     def stop(self):
