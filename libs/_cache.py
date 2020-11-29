@@ -4,31 +4,40 @@ import json
 import os
 
 
-def file_cache(cache_file=None, check_modify=[]):
-    def decorator(func):
-        nonlocal cache_file
-        if cache_file is None:
-            os.makedirs("tmp", exist_ok=True)
-            cache_file = "tmp/cache_%s.json" % func.__name__
+def get_hash(o):
+    return hashlib.md5(repr(o).encode("utf-8")).hexdigest()
 
-        try:
-            cache = json.load(open(cache_file, "r"))
-            cache = {int(k): v for k, v in cache.items()}
-        except (IOError, ValueError):
-            cache = {}
 
-        atexit.register(lambda: json.dump(cache, open(cache_file, "w"), indent=2))
+def file_cache(func):
+    cache_file = "tmp/cache_%s.json" % func.__name__
+    cache = None
 
-        def memoized_func(*args):
-            h = hash(args)
-
-            if h in cache:
-                return cache[h]
+    def get_cache():
+        nonlocal cache
+        if cache is None:
+            if os.path.exists(cache_file):
+                cache = json.load(open(cache_file, "r"))
             else:
-                result = func(*args)
-                cache[h] = result
-                return result
+                cache = {}
 
-        return memoized_func
+        return cache
 
-    return decorator
+    def dump_cache():
+        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+        with open(cache_file, "w") as f:
+            json.dump(cache, f, indent=2)
+
+    def memoized_func(*args):
+        cache = get_cache()
+
+        h = get_hash(args)
+
+        if h in cache:
+            return cache[h]
+        else:
+            result = func(*args)
+            cache[h] = result
+            dump_cache()
+            return result
+
+    return memoized_func

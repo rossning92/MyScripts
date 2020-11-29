@@ -1,9 +1,9 @@
-from scipy.io import wavfile
-from _shutil import *
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import signal
 from _audio import *
+from _cache import *
+from _shutil import *
+from scipy.io import wavfile
+import matplotlib.pyplot as plt
+import numpy as np
 
 ALWAYS_GENERATE = False
 
@@ -43,6 +43,13 @@ def create_normalized(*, out_file, in_file, mtime, regenerate):
         os.utime(out_file, (mtime, mtime))
 
 
+@file_cache
+def to_mono(in_file, out_file, mtime):
+    _create_dir_if_not_exists(out_file)
+    print(out_file)
+    subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
+
+
 def process_audio_file(f, regenerate=ALWAYS_GENERATE, out_dir="tmp"):
     name_no_ext = os.path.splitext(os.path.basename(f))[0]
     mtime = os.path.getmtime(f)
@@ -50,15 +57,7 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE, out_dir="tmp"):
     # Convert to mono
     in_file = f
     out_file = out_dir + "/" + name_no_ext + ".mono.wav"
-    _create_dir_if_not_exists(out_file)
-    if (
-        regenerate
-        or not os.path.exists(out_file)
-        or os.path.getmtime(out_file) != mtime
-    ):
-        print(out_file)
-        subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
-        os.utime(out_file, (mtime, mtime))
+    to_mono(in_file, out_file, mtime)
 
     # Normalization
     in_file = out_file
