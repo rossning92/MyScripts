@@ -32,11 +32,6 @@ def _create_dir_if_not_exists(file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
 
-def create_normalized(*, in_file, out_file):
-    print(out_file)
-    subprocess.check_call(["sox", in_file, out_file, "norm", "-7.5"])
-
-
 def to_mono(in_file, out_file):
     _create_dir_if_not_exists(out_file)
     print(out_file)
@@ -149,11 +144,6 @@ def _process_audio_file(file, out_dir):
         f" 0 -90"  # gain initial-volume-dB
     )
     subprocess.check_call(args)
-
-    # Normalize
-    in_file = out_file
-    out_file = out_dir + "/" + name_no_ext + ".final.wav"
-    create_normalized(out_file=out_file, in_file=in_file)
 
     return out_file
 
