@@ -31,7 +31,7 @@ def denoise(in_file, out_file=None):
 def concat_audio(audio_files, silence_secs, out_file, channels=2):
     if silence_secs > 0:
         mkdir("tmp")
-        call2(f"sox -n -r 44100 -c {channels} tmp/silence.wav trim 0.0 {silence_secs}")
+        call2(f"sox -n -c {channels} tmp/silence.wav trim 0.0 {silence_secs}")
         audio_files = " tmp/silence.wav ".join(audio_files)
     else:
         audio_files = " ".join(audio_files)

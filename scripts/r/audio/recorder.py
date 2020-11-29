@@ -327,9 +327,21 @@ class TerminalRecorder:
             denoise(in_file=self.tmp_wav_file)
 
             if RECORD_FILE_TYPE == "wav":
-                subprocess.check_call(["sox", self.tmp_wav_file, self.cur_file_name])
-            else:
                 shutil.copyfile(self.tmp_wav_file, self.cur_file_name)
+            else:
+                subprocess.check_call(
+                    [
+                        "sox",
+                        self.tmp_wav_file,
+                        "--channel",
+                        "1",
+                        # Compression level (0-10). The higher number, the
+                        # better quality.
+                        "-C",
+                        "10",
+                        self.cur_file_name,
+                    ]
+                )
             os.remove(self.tmp_wav_file)
 
             self._play_cur_file()
