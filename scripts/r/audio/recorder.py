@@ -15,6 +15,7 @@ if 1:
 pa = pyaudio.PyAudio()
 
 FILE_PREFIX = "record"
+RECORD_FILE_TYPE = "ogg"
 
 
 class RecordingFile(object):
@@ -164,12 +165,28 @@ class SoxPlayer:
             self.ps = None
 
 
-def get_audio_file_name(prefix=FILE_PREFIX, postfix=".wav"):
-    return "%s_%s%s" % (prefix, get_time_str(), postfix)
+def get_audio_files(folder="."):
+    return list(glob.glob(os.path.join(folder, FILE_PREFIX + "_*." + RECORD_FILE_TYPE)))
 
 
-def get_audio_files(out_dir):
-    return list(glob.glob(os.path.join(out_dir, FILE_PREFIX + "_*.wav")))
+def create_final_vocal():
+    mkdir("tmp")
+    mkdir("out")
+
+    audio_files = get_audio_files()
+    if len(audio_files) == 0:
+        raise Exception("No audio files for concatenation.")
+
+    processed_files = []
+    for f in audio_files:
+        out_file = postprocess.process_audio_file(f)
+        processed_files.append(out_file)
+
+    concat_audio(processed_files, 0, out_file="out/concat.wav", channels=1)
+    run_in_background(["mpv", "--force-window", "out/concat.wav"])
+
+    # subprocess.check_call(
+    #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
 
 
 class TerminalRecorder:
@@ -181,6 +198,9 @@ class TerminalRecorder:
         self.cur_file_name = None
         self.new_file_name = None
         self.interactive = interactive
+
+        with tempfile.TemporaryFile(suffix=".wav") as f:
+            self.tmp_wav_file = f.name
 
         audio_files = get_audio_files(self.out_dir)
         if len(audio_files) > 0:
@@ -292,11 +312,13 @@ class TerminalRecorder:
         if self.cur_file_name:
             self.new_file_name = get_next_file_name(self.cur_file_name)
         else:
-            self.new_file_name = os.path.join(self.out_dir, FILE_PREFIX + "_001.wav")
+            self.new_file_name = os.path.join(
+                self.out_dir, FILE_PREFIX + "_001." + RECORD_FILE_TYPE
+            )
 
         self.cur_file_name = self.new_file_name
 
-        self.recorder.record(self.new_file_name)
+        self.recorder.record(self.tmp_wav_file)
         print("start recording: %s" % self.new_file_name)
 
     def stop_record(self):
@@ -304,7 +326,10 @@ class TerminalRecorder:
             self.recorder.stop()
             print("stop recording: %s" % self.new_file_name)
 
-            denoise(in_file=self.new_file_name)
+            denoise(in_file=self.tmp_wav_file)
+
+            subprocess.check_call(["sox", self.tmp_wav_file, self.new_file_name])
+            os.remove(self.tmp_wav_file)
 
             self._play_cur_file()
 
@@ -355,7 +380,7 @@ class TerminalRecorder:
 
             elif ch == "e":
                 self._stop_all()
-                postprocess.create_final_vocal()
+                create_final_vocal()
 
             elif ch == "o":
                 start_process("explorer .")

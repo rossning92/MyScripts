@@ -183,27 +183,6 @@ def process_audio_file(f, regenerate=ALWAYS_GENERATE, out_dir="tmp"):
     return out_file
 
 
-def create_final_vocal(prefix="record_", file_list=[]):
-    # Filter out voice
-    mkdir("tmp")
-    mkdir("out")
-    out_file_list = []
-
-    if not file_list:
-        file_list = sorted(glob.glob(prefix + "*.wav"))
-
-    for f in file_list:
-        out_file = process_audio_file(f)
-
-        out_file_list.append(out_file)
-
-    concat_audio(out_file_list, 0, out_file="out/concat.wav", channels=1)
-    run_in_background(["mpv", "--force-window", "out/concat.wav"])
-
-    # subprocess.check_call(
-    #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
-
-
 def dynamic_audio_normalize(f):
     name, ext = os.path.splitext(f)
     out_file = "%s-norm%s" % (name, ext)
@@ -225,8 +204,6 @@ if __name__ == "__main__":
     # folder = r"{{_AUDIO_DIR}}"
     # print("input audio folder: %s" % folder)
     # chdir(folder)
-
-    # create_final_vocal()
 
     f = get_files(cd=True)[0]
     out = process_audio_file(f, regenerate=True)

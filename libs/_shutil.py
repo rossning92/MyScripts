@@ -1157,12 +1157,12 @@ def screen_record(out_file, rect=None, mouse_cursor=True):
 
 def subprocess_kill(ps):
     if sys.platform == "win32":
-        subprocess.call("taskkill /f /t /pid %d >nul" % ps.pid, shell=True)
+        subprocess.call("TASKKILL /F /T /PID %d >NUL 2>NUL" % ps.pid, shell=True)
 
 
 def send_ctrl_c(ps):
     if sys.platform == "win32":
-        subprocess.call("taskkill /f /t /pid %d >nul" % ps.pid, shell=True)
+        subprocess.call("TASKKILL /F /T /PID %d >NUL 2>NUL" % ps.pid, shell=True)
         # ctypes.windll.kernel32.TerminateProcess(int(ps.pid), -1)
         # ctypes.windll.kernel32.GenerateConsoleCtrlEvent(0, ps.pid)
         # os.kill(ps.pid, signal.CTRL_C_EVENT)
