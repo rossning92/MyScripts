@@ -1,6 +1,6 @@
-export GDRIVE_ROOT={{GDRIVE_ROOT}}
+export GDRIVE_LOCAL_ROOT={{GDRIVE_LOCAL_ROOT}}
 
 source _gdrive.sh
 
 # drive ls
-drive push "{{GDRIVE_PATH}}"
+drive push "{{GDRIVE_REL_PATH_TO_SYNC}}"

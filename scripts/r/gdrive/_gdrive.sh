@@ -8,13 +8,13 @@ if ! [ -x "$(command -v drive)" ]; then
 fi
 
 
-if [[ -z "$GDRIVE_ROOT" ]]; then
+if [[ -z "$GDRIVE_LOCAL_ROOT" ]]; then
     cd ~
     cd /mnt/c  # If is in WSL mode
     mkdir -p gdrive
     cd gdrive
 else
-    cd "$GDRIVE_ROOT"
+    cd "$GDRIVE_LOCAL_ROOT"
 fi
 
 
