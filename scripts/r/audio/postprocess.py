@@ -167,10 +167,10 @@ def dynamic_audio_normalize(f):
 
 def process_audio_file(file, out_dir="tmp"):
     @file_cache
-    def cached(file, out_dir, mtime):
+    def process_audio_file(file, out_dir, mtime):
         return _process_audio_file(file, out_dir)
 
-    return cached(file, out_dir, os.path.getmtime(file))
+    return process_audio_file(file, out_dir, os.path.getmtime(file))
 
 
 if __name__ == "__main__":
