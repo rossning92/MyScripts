@@ -196,7 +196,6 @@ class TerminalRecorder:
         self.playback = SoxPlayer()
 
         self.cur_file_name = None
-        self.new_file_name = None
         self.interactive = interactive
 
         with tempfile.TemporaryFile(suffix=".wav") as f:
@@ -300,7 +299,7 @@ class TerminalRecorder:
             return None
         else:
             self.stop_record()
-            return self.new_file_name
+            return self.cur_file_name
 
     def start_record(self):
         if self.recorder.is_recording():
@@ -310,29 +309,27 @@ class TerminalRecorder:
         self.playback.stop()
 
         if self.cur_file_name:
-            self.new_file_name = get_next_file_name(self.cur_file_name)
+            self.cur_file_name = get_next_file_name(self.cur_file_name)
         else:
             # First audio file
-            self.new_file_name = os.path.join(
+            self.cur_file_name = os.path.join(
                 self.out_dir, FILE_PREFIX + "_001." + RECORD_FILE_TYPE
             )
 
-        self.cur_file_name = self.new_file_name
-
         self.recorder.record(self.tmp_wav_file)
-        print("start recording: %s" % self.new_file_name)
+        print("start recording: %s" % self.cur_file_name)
 
     def stop_record(self):
         if self.recorder.is_recording():
             self.recorder.stop()
-            print("stop recording: %s" % self.new_file_name)
+            print("stop recording: %s" % self.cur_file_name)
 
             denoise(in_file=self.tmp_wav_file)
 
             if RECORD_FILE_TYPE == "wav":
-                subprocess.check_call(["sox", self.tmp_wav_file, self.new_file_name])
+                subprocess.check_call(["sox", self.tmp_wav_file, self.cur_file_name])
             else:
-                shutil.copyfile(self.tmp_wav_file, self.new_file_name)
+                shutil.copyfile(self.tmp_wav_file, self.cur_file_name)
             os.remove(self.tmp_wav_file)
 
             self._play_cur_file()
