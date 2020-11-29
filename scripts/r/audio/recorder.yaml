@@ -6,7 +6,7 @@ conda: null
 globalHotkey: null
 hotkey: null
 newWindow: true
-packages: mpv
+packages: mpv sox
 restartInstance: true
 runAsAdmin: false
 template: true
