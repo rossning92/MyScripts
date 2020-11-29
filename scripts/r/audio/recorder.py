@@ -96,13 +96,13 @@ class WaveRecorder(object):
 
         self.recording_file = None
 
-    def _open(self, file, mode="wb"):
+    def open(self, file, mode="wb"):
         return RecordingFile(
             file, mode, self.channels, self.rate, self.frames_per_buffer
         )
 
     def record(self, file_name):
-        self.recording_file = self._open(file_name, "wb")
+        self.recording_file = self.open(file_name, "wb")
         self.recording_file.start_recording()
 
     def stop(self):
@@ -157,7 +157,7 @@ class SoxPlayer:
 
     def play(self, file):
         if self.ps is None:
-            self.ps = subprocess.Popen(["play", "-q", file])
+            self.ps = subprocess.Popen(["play", "-q", file], stdin=subprocess.PIPE)
 
     def stop(self):
         if self.ps is not None:
@@ -183,7 +183,7 @@ def create_final_vocal():
         processed_files.append(out_file)
 
     concat_audio(processed_files, 0, out_file="out/concat.wav", channels=1)
-    run_in_background(["mpv", "--force-window", "out/concat.wav"])
+    run_in_background(["mpv", "--force-window", "--really-quiet", "out/concat.wav"])
 
     # subprocess.check_call(
     #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
@@ -329,7 +329,10 @@ class TerminalRecorder:
 
             denoise(in_file=self.tmp_wav_file)
 
-            subprocess.check_call(["sox", self.tmp_wav_file, self.new_file_name])
+            if RECORD_FILE_TYPE == "wav":
+                subprocess.check_call(["sox", self.tmp_wav_file, self.new_file_name])
+            else:
+                shutil.copyfile(self.tmp_wav_file, self.new_file_name)
             os.remove(self.tmp_wav_file)
 
             self._play_cur_file()

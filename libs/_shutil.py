@@ -1161,16 +1161,19 @@ def subprocess_kill(ps):
 
 
 def send_ctrl_c(ps):
-    if sys.platform == "win32":
-        subprocess.call("TASKKILL /F /T /PID %d >NUL 2>NUL" % ps.pid, shell=True)
-        # ctypes.windll.kernel32.TerminateProcess(int(ps.pid), -1)
-        # ctypes.windll.kernel32.GenerateConsoleCtrlEvent(0, ps.pid)
-        # os.kill(ps.pid, signal.CTRL_C_EVENT)
-
-    else:
-        ps.send_signal(signal.CTRL_C_EVENT)
-
-    ps.wait()
+    if ps.poll() is None:
+        if sys.platform == "win32":
+            try:
+                ctypes.windll.kernel32.GenerateConsoleCtrlEvent(0, 0)
+                ps.wait()
+            except KeyboardInterrupt:
+                # It sends ctrl-c to all processes that share the console of the calling
+                # process but then ignores it in the python process with an exception
+                # handler.
+                pass
+        else:
+            ps.send_signal(signal.CTRL_C_EVENT)
+            ps.wait()
 
 
 env = os.environ
