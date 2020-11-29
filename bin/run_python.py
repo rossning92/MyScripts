@@ -6,33 +6,34 @@ from importlib.abc import MetaPathFinder
 
 
 PYTHON_MODULE_LIST = {
+    "cv2": "opencv-python",
+    "filelock": "filelock",  # a platform independent file lock.
+    "jieba": "jieba",
     "jinja2": "jinja2",
     "keyboard": "keyboard",
     "markdown2": "markdown2",
     "matplotlib": "matplotlib",
-    "scipy": "scipy",
+    "mss": "mss",
     "numpy": "numpy",
     "pandas": "pandas",
     "PIL": "pillow",
+    "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
+    "pyaudio": "pyaudio",
     "pyftpdlib": "pyftpdlib",
     "pyppeteer": "pyppeteer",
     "PyQt5": "PyQt5==5.10.1",
-    "yaml": "pyyaml",
+    "pyscreenshot": "pyscreenshot",
     "requests": "requests",
+    "scipy": "scipy",
+    "selenium": "selenium",
+    "skimage": "scikit-image",
     "slugify": "python-slugify",
+    "websockets": "websockets",
     "win32api": "pywin32",
     "win32con": "pywin32",
     "win32gui": "pywin32",
     "win32ui": "pywin32",
-    "websockets": "websockets",
-    "filelock": "filelock",  # a platform independent file lock.
-    "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
-    "pyscreenshot": "pyscreenshot",
-    "jieba": "jieba",
-    "pyaudio": "pyaudio",
-    "cv2": "opencv-python",
-    "mss": "mss",
-    "skimage": "scikit-image",
+    "yaml": "pyyaml",
 }
 
 
