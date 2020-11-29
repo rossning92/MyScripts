@@ -157,7 +157,7 @@ class SoxPlayer:
 
     def play(self, file):
         if self.ps is None:
-            self.ps = subprocess.Popen(["play", "-q", file], stdin=subprocess.PIPE)
+            self.ps = subprocess.Popen(["play", "-q", file])
 
     def stop(self):
         if self.ps is not None:
