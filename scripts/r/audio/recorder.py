@@ -160,7 +160,7 @@ class SoxPlayer:
 
     def stop(self):
         if self.ps is not None:
-            subprocess_kill(self.ps)
+            kill_proc(self.ps)
             self.ps = None
 
 

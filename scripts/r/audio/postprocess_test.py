@@ -16,7 +16,7 @@ while True:
     mtime = os.path.getmtime(postprocess.__file__)
     if mtime > last_mtime:
         if ps != None:
-            subprocess_kill(ps)
+            kill_proc(ps)
 
         try:
             print("reload module...")
