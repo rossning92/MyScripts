@@ -165,7 +165,9 @@ class SoxPlayer:
 
 
 def get_audio_files(folder="."):
-    return list(glob.glob(os.path.join(folder, FILE_PREFIX + "_*." + RECORD_FILE_TYPE)))
+    files = glob.glob(os.path.join(folder, FILE_PREFIX + "_*." + RECORD_FILE_TYPE))
+    files.sort(key=os.path.getmtime)
+    return files
 
 
 def create_final_vocal():
@@ -307,13 +309,23 @@ class TerminalRecorder:
         self.recorder.stop()
         self.playback.stop()
 
-        if self.cur_file_name:
-            self.cur_file_name = get_next_file_name(self.cur_file_name)
-        else:
-            # First audio file
-            self.cur_file_name = os.path.join(
-                self.out_dir, FILE_PREFIX + "_001." + RECORD_FILE_TYPE
-            )
+        # if self.cur_file_name:
+        #     self.cur_file_name = get_next_file_name(self.cur_file_name)
+        # else:
+        #     # First audio file
+        #     self.cur_file_name = os.path.join(
+        #         self.out_dir, FILE_PREFIX + "_001." + RECORD_FILE_TYPE
+        #     )
+
+        self.cur_file_name = os.path.join(
+            self.out_dir,
+            "%s_%s.%s"
+            % (
+                FILE_PREFIX,
+                get_hash(repr(datetime.datetime.now()), digit=8),
+                RECORD_FILE_TYPE,
+            ),
+        )
 
         self.recorder.record(self.tmp_wav_file)
         print("start recording: %s" % self.cur_file_name)

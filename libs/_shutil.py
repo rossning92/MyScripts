@@ -26,11 +26,11 @@ def get_script_root():
     return os.path.abspath(os.path.dirname(__file__))
 
 
-def get_hash(text):
+def get_hash(text, digit=16):
     import hashlib
 
     hash_object = hashlib.md5(text.encode())
-    hash = hash_object.hexdigest()[0:16]
+    hash = hash_object.hexdigest()[0:digit]
     return hash
 
 
