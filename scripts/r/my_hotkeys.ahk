@@ -13,7 +13,7 @@ CONSOLE_WINDOW = my_scripts_console
 
 SetTitleMatchMode, 2
 
-AddChromeHotkey("#!.", "- To Do", "https://to-do.microsoft.com/tasks")
+AddChromeHotkey("#!.", "- To Do", "https://to-do.live.com/tasks/")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 SetTimer, CheckIfRShiftIsPressed, 1000
