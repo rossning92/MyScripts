@@ -205,7 +205,7 @@ assoc = {
     ".obj": ["vscode", "notepad++"],
     ".ods": ["LibreOfficeWriter"],
     ".odt": ["LibreOfficeWriter"],
-    ".ogg": ["mpv", "VLC"],
+    ".ogg": ["mpv", "Audacity"],
     ".ogm": ["mpv", "VLC"],
     ".ogv": ["mpv", "VLC"],
     ".org": ["vscode", "notepad++"],

@@ -12,8 +12,11 @@ LOUDNESS_DB = -14
 
 COMPRESSOR_ATTACK = 0.002
 COMPRESSOR_DECAY = 0.085
-COMPRESSOR_THRES_DB = -15
+COMPRESSOR_THRES_DB = -30
 COMPRESSOR_RATIO = 4
+COMPRESSOR_GAIN_DB = 0
+
+NORMALIZE_DB = -7.5
 
 NOISE_GATE_DB = -999
 
@@ -38,8 +41,7 @@ def to_mono(in_file, out_file):
     subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
 
 
-def normalize(in_file, out_file):
-    print(out_file)
+def normalize_lufs(in_file, out_file):
     # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
     # to calculate short-term loudness in the source and adjust the destination
     # to meet the target parameters. The sample file is only a second long,
@@ -47,6 +49,10 @@ def normalize(in_file, out_file):
     subprocess.check_call(
         f'ffmpeg -hide_banner -loglevel panic -i "{in_file}" -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 "{out_file}" -y'
     )
+
+
+def normalize(in_file, out_file):
+    subprocess.check_call(["sox", in_file, out_file, "norm", "%g" % NORMALIZE_DB])
 
 
 def filter_human_voice(in_file, out_file):
@@ -76,9 +82,9 @@ def _process_audio_file(file, out_dir):
     to_mono(in_file, out_file)
 
     # Normalization
-    in_file = out_file
-    out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-    normalize(in_file, out_file)
+    # in_file = out_file
+    # out_file = out_dir + "/" + name_no_ext + ".norm.wav"
+    # normalize_lufs(in_file, out_file)
 
     # Filter human voice
     in_file = out_file
@@ -128,10 +134,7 @@ def _process_audio_file(file, out_dir):
     args = f'sox "{in_file}" "{out_file}"'
 
     # EQ
-    if 0:  # old
-        args += " bass -2.0 100" " equalizer 800 400h -4.0" " treble 1.0 4k 1s"
-    else:
-        args += " bass -10 30" " equalizer 315 100h -1" " equalizer 12105 10k 3"
+    args += " bass -0 30" " equalizer 315 100h -1" " equalizer 12105 10k 3"
 
     # Compressor
     args += (
@@ -144,6 +147,10 @@ def _process_audio_file(file, out_dir):
         f" 0 -90"  # gain initial-volume-dB
     )
     subprocess.check_call(args)
+
+    in_file = out_file
+    out_file = out_dir + "/" + name_no_ext + ".norm.wav"
+    normalize(in_file, out_file)
 
     return out_file
 
