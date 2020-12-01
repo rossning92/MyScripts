@@ -10,11 +10,12 @@ ALWAYS_GENERATE = False
 BORDER_IGNORE = 0.1
 LOUDNESS_DB = -14
 
+EQ_PARAMS = "bass -5 30 equalizer 315 100h -1 equalizer 12105 10k 3.7"
+
 COMPRESSOR_ATTACK = 0.002
-COMPRESSOR_DECAY = 0.085
-COMPRESSOR_THRES_DB = -30
-COMPRESSOR_RATIO = 4
-COMPRESSOR_GAIN_DB = 0
+COMPRESSOR_DECAY = 0.2
+COMPRESSOR_THRES_DB = -25
+COMPRESSOR_RATIO = 10
 
 NORMALIZE_DB = -7.5
 
@@ -41,7 +42,7 @@ def to_mono(in_file, out_file):
     subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
 
 
-def normalize_lufs(in_file, out_file):
+def loudnorm(in_file, out_file):
     # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
     # to calculate short-term loudness in the source and adjust the destination
     # to meet the target parameters. The sample file is only a second long,
@@ -84,7 +85,7 @@ def _process_audio_file(file, out_dir):
     # Normalization
     # in_file = out_file
     # out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-    # normalize_lufs(in_file, out_file)
+    # loudnorm(in_file, out_file)
 
     # Filter human voice
     in_file = out_file
@@ -125,28 +126,29 @@ def _process_audio_file(file, out_dir):
     wavfile.write(out_file, rate, data2)
 
     # Compress
-    in_file = out_file
-    out_file = out_dir + "/" + name_no_ext + ".compressed.wav"
-    _create_dir_if_not_exists(out_file)
+    if 1:
+        in_file = out_file
+        out_file = out_dir + "/" + name_no_ext + ".compressed.wav"
+        _create_dir_if_not_exists(out_file)
 
-    print(out_file)
+        print(out_file)
 
-    args = f'sox "{in_file}" "{out_file}"'
+        args = f'sox "{in_file}" "{out_file}"'
 
-    # EQ
-    args += " bass -0 30" " equalizer 315 100h -1" " equalizer 12105 10k 3"
+        # EQ
+        args += " " + EQ_PARAMS
 
-    # Compressor
-    args += (
-        f" compand"
-        f" {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}"  # attack1,decay1
-        f" {NOISE_GATE_DB-1},-inf"
-        f",{NOISE_GATE_DB},{NOISE_GATE_DB}"
-        f",{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB}"
-        f",0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}"
-        f" 0 -90"  # gain initial-volume-dB
-    )
-    subprocess.check_call(args)
+        # Compressor
+        args += (
+            f" compand"
+            f" {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}"  # attack1,decay1
+            f" {NOISE_GATE_DB-1},-inf"
+            f",{NOISE_GATE_DB},{NOISE_GATE_DB}"
+            f",{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB}"
+            f",0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}"
+            f" 0 -90"  # gain initial-volume-dB
+        )
+        subprocess.check_call(args)
 
     in_file = out_file
     out_file = out_dir + "/" + name_no_ext + ".norm.wav"
