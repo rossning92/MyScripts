@@ -8,14 +8,17 @@ import numpy as np
 ALWAYS_GENERATE = False
 
 BORDER_IGNORE = 0.1
-LOUDNESS_DB = -14
+LOUDNORM_DB = -14
 
-EQ_PARAMS = "bass -5 30 equalizer 315 100h -1 equalizer 12105 10k 3.7"
 
 COMPRESSOR_ATTACK = 0.002
-COMPRESSOR_DECAY = 0.2
-COMPRESSOR_THRES_DB = -25
-COMPRESSOR_RATIO = 10
+COMPRESSOR_DECAY = 0.085
+COMPRESSOR_THRES_DB = -20
+COMPRESSOR_RATIO = 4
+COMPRESSOR_GAIN = 0
+
+EQ_PARAMS = "bass -0 30 equalizer 315 100h -1 equalizer 12105 10k 1"
+EQ_PARAMS = ""
 
 NORMALIZE_DB = -7.5
 
@@ -42,18 +45,18 @@ def to_mono(in_file, out_file):
     subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
 
 
-def loudnorm(in_file, out_file):
+def loudnorm(in_file, out_file, loudnorm_db):
     # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
     # to calculate short-term loudness in the source and adjust the destination
     # to meet the target parameters. The sample file is only a second long,
     # which looks to be the reason for the anomalous normalization.
     subprocess.check_call(
-        f'ffmpeg -hide_banner -loglevel panic -i "{in_file}" -c:v copy -af apad=pad_len=80000,loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 "{out_file}" -y'
+        f'ffmpeg -hide_banner -loglevel panic -i "{in_file}" -c:v copy -af apad=pad_len=80000,loudnorm=I={loudnorm_db}:LRA=1 -ar 44100 "{out_file}" -y'
     )
 
 
-def normalize(in_file, out_file):
-    subprocess.check_call(["sox", in_file, out_file, "norm", "%g" % NORMALIZE_DB])
+def normalize(in_file, out_file, normalize_db):
+    subprocess.check_call(["sox", in_file, out_file, "norm", "%g" % normalize_db])
 
 
 def filter_human_voice(in_file, out_file):
@@ -82,10 +85,11 @@ def _process_audio_file(file, out_dir):
     out_file = out_dir + "/" + name_no_ext + ".mono.wav"
     to_mono(in_file, out_file)
 
-    # Normalization
-    # in_file = out_file
-    # out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-    # loudnorm(in_file, out_file)
+    if LOUDNORM_DB != 0:
+        # Loudnorm
+        in_file = out_file
+        out_file = out_dir + "/" + name_no_ext + ".norm.wav"
+        loudnorm(in_file, out_file, LOUDNORM_DB)
 
     # Filter human voice
     in_file = out_file
@@ -135,9 +139,6 @@ def _process_audio_file(file, out_dir):
 
         args = f'sox "{in_file}" "{out_file}"'
 
-        # EQ
-        args += " " + EQ_PARAMS
-
         # Compressor
         args += (
             f" compand"
@@ -146,13 +147,17 @@ def _process_audio_file(file, out_dir):
             f",{NOISE_GATE_DB},{NOISE_GATE_DB}"
             f",{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB}"
             f",0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}"
-            f" 0 -90"  # gain initial-volume-dB
+            f" {COMPRESSOR_GAIN} -90"  # gain initial-volume-dB
         )
+
+        # EQ
+        args += " " + EQ_PARAMS
+
         subprocess.check_call(args)
 
-    in_file = out_file
-    out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-    normalize(in_file, out_file)
+    # in_file = out_file
+    # out_file = out_dir + "/" + name_no_ext + ".norm.wav"
+    # normalize(in_file, out_file)
 
     return out_file
 
