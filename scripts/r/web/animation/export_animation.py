@@ -549,16 +549,6 @@ def text(text, track="text", font_size=100, pos="center", **kwargs):
     _add_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
-def code_carbon(s, track="vid", line_no=True, **kwargs):
-    from r.web.carbon_gen_code_image import gen_code_image
-
-    mkdir("tmp/codeimg")
-    tmp_file = "tmp/codeimg/%s.png" % get_hash(s)
-    if not os.path.exists(tmp_file):
-        gen_code_image(s, out_file=tmp_file, line_no=line_no)
-    _add_clip(tmp_file, track=track, **kwargs)
-
-
 def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     from r.web.webscreenshot import webscreenshot
 
@@ -581,6 +571,17 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
         )
 
     _add_clip(tmp_file, track=track, transparent=False, **kwargs)
+
+
+def codef(file, track="vid", **kwargs):
+    from r.web.gen_code_image import gen_code_image_from_file
+
+    out_file = os.path.splitext(file)[0] + ".png"
+    gen_code_image_from_file(file, out_file, mtime=os.path.getmtime(file))
+
+    _add_clip(out_file, track=track, transparent=False, **kwargs)
+
+    return out_file
 
 
 def _add_fadeout(track):
@@ -1338,8 +1339,8 @@ def _interface():
         "bgm_vol": lambda *_, **__: None,
         "bgm": lambda *_, **__: None,
         "clip": lambda *_, **__: None,
-        "code_carbon": lambda *_, **__: None,  # deprecated, use `code` instead
         "code": lambda *_, **__: None,
+        "codef": lambda *_, **__: None,
         "comment": lambda *_, **__: None,
         "crossfade": lambda *_, **__: None,
         "empty": lambda *_, **__: None,  # deprecated
@@ -1375,8 +1376,8 @@ def _default_impl():
         "bgm_vol": bgm_vol,
         "bgm": bgm,
         "clip": clip,
-        "code_carbon": code_carbon,  # deprecated, use `code` instead
         "code": code,
+        "codef": codef,
         "comment": comment,
         "crossfade": crossfade,
         "empty": empty,  # deprecated

@@ -10,7 +10,7 @@ var currentProjectDir = null;
 
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
-    if (filePath.endsWith(".md")) {
+    if (/\.(md|c|cpp|py|txt)$/g.test(filePath)) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
     } else if (/\.(png|jpg|mp4|wav|mp3|ogg)$/g.test(filePath)) {

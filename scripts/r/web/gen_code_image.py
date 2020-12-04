@@ -1,5 +1,13 @@
+from _cache import *
 from _shutil import *
 from r.web.webscreenshot import webscreenshot
+
+
+@file_cache
+def gen_code_image_from_file(file, out_file, mtime=None):
+    with open(file, "r", encoding="utf-8") as f:
+        s = f.read()
+        gen_code_image(s, out_file)
 
 
 def gen_code_image(s, out_file, line_no=True, debug=False):

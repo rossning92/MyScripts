@@ -27,15 +27,15 @@ def file_cache(func):
         with open(cache_file, "w") as f:
             json.dump(cache, f, indent=2)
 
-    def memoized_func(*args):
+    def memoized_func(*args, **kwargs):
         cache = get_cache()
 
-        h = get_hash(args)
+        h = get_hash((args, kwargs))
 
         if h in cache:
             return cache[h]
         else:
-            result = func(*args)
+            result = func(*args, **kwargs)
             cache[h] = result
             dump_cache()
             return result
