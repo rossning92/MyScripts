@@ -769,7 +769,7 @@ def exec_bash(script, wsl=False, echo=False):
         raise Exception("Bash returned non-zero value.")
 
 
-def get_files(cd=False):
+def get_files(cd=False, ignore_dirs=True):
     cur_folder = os.environ["CUR_DIR_"]
 
     if "FILES_" in os.environ:
@@ -783,7 +783,8 @@ def get_files(cd=False):
             f.replace(cur_folder + os.path.sep, "") for f in files
         ]  # Relative path
 
-    files = [x for x in files if os.path.isfile(x)]
+    if ignore_dirs:
+        files = [x for x in files if os.path.isfile(x)]
     return files
 
 
@@ -1174,6 +1175,11 @@ def send_ctrl_c(ps):
         else:
             ps.send_signal(signal.CTRL_C_EVENT)
             ps.wait()
+
+
+def get_temp_file_name(suffix=None):
+    with tempfile.TemporaryFile(suffix=suffix) as f:
+        return f.name
 
 
 env = os.environ

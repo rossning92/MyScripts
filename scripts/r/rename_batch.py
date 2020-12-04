@@ -12,9 +12,8 @@ def wait_until_file_modified(f):
             return
 
 
-files = get_files(cd=True)
+files = get_files(cd=True, ignore_dirs=False)
 files = sorted(files)
-files = [x for x in files if os.path.isfile(x)]
 
 tmp_file = write_temp_file("\n".join(files), ".txt")
 open_in_vscode(tmp_file)
