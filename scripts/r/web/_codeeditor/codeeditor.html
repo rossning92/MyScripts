@@ -59,8 +59,9 @@
       .page .spacer {
         height: 400px;
       }
-      .styled-background {
-        background-color: #c72c41;
+      .highlight {
+        background-color: #fdcb6e;
+        color: #000000 !important;
       }
       .CodeMirror {
         height: 1080px;
@@ -104,6 +105,7 @@ for i in fibonacci(10):
         matchBrackets: true,
         lineWrapping: true,
       });
+      window.editor = editor;
       editor.setOption("theme", "vscode-dark");
 
       window.setCode = (s) => {
@@ -115,7 +117,7 @@ for i in fibonacci(10):
         editor.markText(
           { line: i0, ch: j0 },
           { line: i1, ch: j1 },
-          { className: "styled-background" }
+          { className: "highlight" }
         );
       };
       window.showLineNumbers = (b) => {
@@ -125,7 +127,7 @@ for i in fibonacci(10):
         if (e.ctrlKey && e.which == 66) {
           const from = editor.getCursor("start");
           const to = editor.getCursor("end");
-          editor.markText(from, to, { className: "styled-background" });
+          editor.markText(from, to, { className: "highlight" });
         }
       };
     </script>

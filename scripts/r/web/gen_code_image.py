@@ -2,14 +2,19 @@ from _shutil import *
 from r.web.webscreenshot import webscreenshot
 
 
-def gen_code_image(s, out_file, line_no=True, mark=[], debug=False):
+def gen_code_image(s, out_file, line_no=True, debug=False):
     from urllib.parse import quote
+
+    ranges = [[m.start(), m.end()] for m in re.finditer("`.*?`", s)]
+    s = s.replace("`", "")
 
     javascript = "setCode('%s'); " % quote(s)
 
-    mark_group = list(zip(*(iter(mark),) * 4))
-    for x in mark_group:
-        javascript += "markText(%d, %d, %d, %d); " % (x[0], x[1], x[2], x[3],)
+    for i in range(len(ranges)):
+        javascript += (
+            'editor.markText(editor.posFromIndex(%d), editor.posFromIndex(%d), {className: "highlight"});'
+            % (ranges[i][0] - i * 2, ranges[i][1] - i * 2 - 2)
+        )
 
     javascript += "showLineNumbers(%s); " % ("true" if line_no else "false")
 
@@ -34,20 +39,20 @@ if __name__ == "__main__":
     with open(file, encoding="utf-8", newline="\n") as f:
         s = f.read()
 
-    if 0: # Debug
+    if 1:  # Debug
         out_file = os.path.join(
             out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
         )
         gen_code_image(s, out_file, debug=True)
 
     else:
-        parts = s.split("\n\n")
-        for i in range(len(parts)):
-            s = "\n\n".join(parts[0 : i + 1])
+        out_file = os.path.join(
+            out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
+        )
 
-            out_file = os.path.join(
-                out_dir,
-                os.path.splitext(os.path.basename(file))[0] + ("-%02d.png" % (i + 1)),
-            )
+        gen_code_image(s, out_file)
 
-            gen_code_image(s, out_file)
+        # parts = s.split("\n\n")
+        # for i in range(len(parts)):
+        #     s = "\n\n".join(parts[0 : i + 1])
+
