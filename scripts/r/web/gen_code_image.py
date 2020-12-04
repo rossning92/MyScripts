@@ -34,7 +34,7 @@ if __name__ == "__main__":
     with open(file, encoding="utf-8", newline="\n") as f:
         s = f.read()
 
-    if 1:
+    if 0: # Debug
         out_file = os.path.join(
             out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
         )

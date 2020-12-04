@@ -1,80 +1,84 @@
 <!DOCTYPE html>
-<meta charset="utf-8" />
-<link rel="stylesheet" href="node_modules/codemirror/doc/docs.css" />
-<link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css" />
-<!-- <link rel="stylesheet" href="node_modules/codemirror/theme/monokai.css" /> -->
-<link rel="stylesheet" href="vscode-dark.css" />
-<script src="node_modules/codemirror/lib/codemirror.js"></script>
-<script src="node_modules/codemirror/mode/python/python.js"></script>
-<script src="node_modules/codemirror/addon/selection/active-line.js"></script>
-<script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
-<style>
-  body {
-    background-color: #adb7c1;
-    width: 1920px;
-    height: 1080px;
-    font-size: 30px;
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="node_modules/codemirror/doc/docs.css" />
+    <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css" />
+    <!-- <link rel="stylesheet" href="node_modules/codemirror/theme/monokai.css" /> -->
+    <link rel="stylesheet" href="vscode-dark.css" />
+    <script src="node_modules/codemirror/lib/codemirror.js"></script>
+    <script src="node_modules/codemirror/mode/python/python.js"></script>
+    <script src="node_modules/codemirror/addon/selection/active-line.js"></script>
+    <script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
+    <style>
+      body {
+        background-color: #1e1e1e;
+        width: 1920px;
+        height: 1080px;
+        font-size: 30px;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .page {
-    box-shadow: 0 0 0.22em 0 rgba(0, 0, 0, 0.3);
-    border-radius: 0.14em;
-    overflow: hidden;
-    line-height: 0;
-    width: 90%;
-    margin: 0 auto 0 auto;
-  }
-  .page .titlebar {
-    background-color: #202124;
-    border-top-left-radius: 0.14em;
-    border-top-right-radius: 0.14em;
-    padding: 0.8em;
-    box-sizing: border-box;
-  }
-  .page .titlebar .dot {
-    width: 0.6em;
-    height: 0.6em;
-    background-color: #ccc;
-    display: inline-block;
-    border-radius: 50%;
-  }
-  .page .titlebar .dot.close {
-    background-color: #ff6159;
-  }
-  .page .titlebar .dot.minimise {
-    background-color: #ffbf2f;
-  }
-  .page .titlebar .dot.maximise {
-    background-color: #29cf42;
-  }
-  .page .titlebar .dot + .dot {
-    margin-left: 0.2em;
-  }
-  .page .spacer {
-    height: 400px;
-  }
-  .styled-background {
-    background-color: #c72c41;
-  }
-  .CodeMirror,
-  .CodeMirror-scroll {
-    max-height: 600px;
-  }
-</style>
-
-<article>
-  <div class="page">
-    <div class="titlebar">
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .page {
+        box-shadow: 0 0 0.22em 0 rgba(0, 0, 0, 0.3);
+        border-radius: 0.14em;
+        overflow: hidden;
+        line-height: 0;
+        width: 90%;
+        margin: 0 auto 0 auto;
+      }
+      .page .titlebar {
+        background-color: #202124;
+        border-top-left-radius: 0.14em;
+        border-top-right-radius: 0.14em;
+        padding: 0.8em;
+        box-sizing: border-box;
+      }
+      .page .titlebar .dot {
+        width: 0.6em;
+        height: 0.6em;
+        background-color: #ccc;
+        display: inline-block;
+        border-radius: 50%;
+      }
+      .page .titlebar .dot.close {
+        background-color: #ff6159;
+      }
+      .page .titlebar .dot.minimise {
+        background-color: #ffbf2f;
+      }
+      .page .titlebar .dot.maximise {
+        background-color: #29cf42;
+      }
+      .page .titlebar .dot + .dot {
+        margin-left: 0.2em;
+      }
+      .page .spacer {
+        height: 400px;
+      }
+      .styled-background {
+        background-color: #c72c41;
+      }
+      .CodeMirror {
+        height: 1080px;
+      }
+      .CodeMirror-lines {
+        padding-top: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page2">
+      <!-- <div class="titlebar">
       <div class="dot close"></div>
       <div class="dot minimise"></div>
       <div class="dot maximise"></div>
-    </div>
-    <form>
-      <textarea id="code" name="code">
+    </div> -->
+      <form>
+        <textarea id="code" name="code">
 def fibonacci(n):
     a = 0
     b = 1
@@ -88,41 +92,42 @@ def fibonacci(n):
 for i in fibonacci(10):
     print(i)
 </textarea
-      >
-    </form>
-  </div>
+        >
+      </form>
+    </div>
 
-  <script>
-    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-      mode: { name: "python", version: 3, singleLineStringErrors: false },
-      lineNumbers: true,
-      styleActiveLine: true,
-      matchBrackets: true,
-      lineWrapping: true,
-    });
-    editor.setOption("theme", "vscode-dark");
+    <script>
+      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: { name: "python", version: 3, singleLineStringErrors: false },
+        lineNumbers: true,
+        styleActiveLine: true,
+        matchBrackets: true,
+        lineWrapping: true,
+      });
+      editor.setOption("theme", "vscode-dark");
 
-    window.setCode = (s) => {
-      editor.setValue(decodeURIComponent(s));
-      const scrollInfo = editor.getScrollInfo();
-      editor.scrollTo(null, scrollInfo.height);
-    };
-    window.markText = (i0, j0, i1, j1) => {
-      editor.markText(
-        { line: i0, ch: j0 },
-        { line: i1, ch: j1 },
-        { className: "styled-background" }
-      );
-    };
-    window.showLineNumbers = (b) => {
-      window.editor.setOption("lineNumbers", b);
-    };
-    document.onkeyup = function (e) {
-      if (e.ctrlKey && e.which == 66) {
-        const from = editor.getCursor("start");
-        const to = editor.getCursor("end");
-        editor.markText(from, to, { className: "styled-background" });
-      }
-    };
-  </script>
-</article>
+      window.setCode = (s) => {
+        editor.setValue(decodeURIComponent(s));
+        const scrollInfo = editor.getScrollInfo();
+        editor.scrollTo(null, scrollInfo.height);
+      };
+      window.markText = (i0, j0, i1, j1) => {
+        editor.markText(
+          { line: i0, ch: j0 },
+          { line: i1, ch: j1 },
+          { className: "styled-background" }
+        );
+      };
+      window.showLineNumbers = (b) => {
+        window.editor.setOption("lineNumbers", b);
+      };
+      document.onkeyup = function (e) {
+        if (e.ctrlKey && e.which == 66) {
+          const from = editor.getCursor("start");
+          const to = editor.getCursor("end");
+          editor.markText(from, to, { className: "styled-background" });
+        }
+      };
+    </script>
+  </body>
+</html>
