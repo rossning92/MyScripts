@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="vscode-dark.css" />
     <script src="node_modules/codemirror/lib/codemirror.js"></script>
     <script src="node_modules/codemirror/mode/python/python.js"></script>
+    <script src="node_modules/codemirror/mode/clike/clike.js"></script>
     <script src="node_modules/codemirror/addon/selection/active-line.js"></script>
     <script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
     <style>
@@ -99,7 +100,8 @@ for i in fibonacci(10):
 
     <script>
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-        mode: { name: "python", version: 3, singleLineStringErrors: false },
+        // mode: { name: "python", version: 3, singleLineStringErrors: false },
+        mode: "text/x-c++src",
         lineNumbers: true,
         styleActiveLine: true,
         matchBrackets: true,
