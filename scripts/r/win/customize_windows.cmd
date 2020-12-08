@@ -37,6 +37,9 @@ rd /s /q "%APPDATA%\Microsoft\Windows\Recent"
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v GameDVR_Enabled /t REG_DWORD /d 0 /f
 
+:: Disable shake to minimize 
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v DisallowShaking /t REG_DWORD /d 1 /f
+
 :: Turn off hibernation
 powercfg.exe /hibernate off
 
