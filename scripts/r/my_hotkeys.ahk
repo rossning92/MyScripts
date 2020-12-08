@@ -140,12 +140,9 @@ return
     SetTimer, AutoUpdateWindowPos, Off
 return
 
-#1::
-    CenterActiveWindow()
-return
-
-#2::
-    CenterActiveWindow(width:=1440, height:=810)
+#1::SetWindowPosF("A", 0, 0, 32/43, 1)
+#2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
+; CenterActiveWindow(width:=1440, height:=810)
 return
 
 #3::
@@ -340,7 +337,21 @@ CenterActiveWindow(width:=1920, height:=1080) {
     x := (A_ScreenWidth / 2) - (width / 2)
     y := (A_ScreenHeight / 2) - (height / 2)
     ; x := 0, y := 0
-    ResizeWindow2("A", x, y, width, height)
+
+    w := A_ScreenHeight * 16 / 9
+    h := A_ScreenHeight
+    x := (A_ScreenWidth - w) / 2
+    y := 0
+    ResizeWindow2("A", x, y, w, h)
+}
+
+SetWindowPosF(winTitle, x, y, w, h) {
+    x := round(A_ScreenWidth * x)
+    y := round(A_ScreenHeight * y)
+    w := round(A_ScreenWidth * w)
+    h := round(A_ScreenHeight * h)
+
+    ResizeWindow2(winTitle, x, y, w, h)
 }
 
 ToggleDesktopIcons(show:=True) {
@@ -402,14 +413,19 @@ ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
 
 ToggleVNC()
 {
+    VNC_VIEWER := "ahk_exe vncviewer.exe"
+
     if WinActive("ahk_exe tvnviewer.exe") {
         WinMinimize, ahk_exe tvnviewer.exe
-    } else if WinActive("ahk_exe vncviewer.exe") {
-        WinMinimize, ahk_exe vncviewer.exe
+    } else if WinActive(VNC_VIEWER) {
+        WinMinimize, %VNC_VIEWER%
+        WinSet, AlwaysOnTop, Off, %VNC_VIEWER%
     } else if WinExist("ahk_exe tvnviewer.exe") {
         WinActivate, ahk_exe tvnviewer.exe
-    } else if WinExist("ahk_exe vncviewer.exe") {
-        WinActivate, ahk_exe vncviewer.exe
+    } else if WinExist(VNC_VIEWER) {
+        WinActivate, %VNC_VIEWER%
+        SetWindowPosF(VNC_VIEWER, 0, 0, 32/43, 1)
+        WinSet, AlwaysOnTop, On, %VNC_VIEWER%
     }
 }
 

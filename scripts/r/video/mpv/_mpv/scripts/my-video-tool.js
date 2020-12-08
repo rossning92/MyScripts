@@ -228,6 +228,12 @@ mp.add_forced_key_binding("U", "crop_top_left", function () {
   });
 });
 
+mp.add_forced_key_binding("J", "crop_left", function () {
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0:0.125*ih",
+  });
+});
+
 mp.add_forced_key_binding("L", "crop_right", function () {
   exportVideo({
     vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.125*ih",
