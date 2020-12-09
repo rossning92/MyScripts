@@ -140,8 +140,8 @@ return
     SetTimer, AutoUpdateWindowPos, Off
 return
 
-#1::SetWindowPosF("A", 0, 0, 32/43, 1)
-#2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
+!1::SetWindowPosF("A", 0, 0, 32/43, 1)
+!2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
 ; CenterActiveWindow(width:=1440, height:=810)
 return
 
@@ -346,10 +346,14 @@ CenterActiveWindow(width:=1920, height:=1080) {
 }
 
 SetWindowPosF(winTitle, x, y, w, h) {
-    x := round(A_ScreenWidth * x)
-    y := round(A_ScreenHeight * y)
-    w := round(A_ScreenWidth * w)
-    h := round(A_ScreenHeight * h)
+    SysGet, WorkArea, MonitorWorkArea
+
+    WorkAreaWidth := WorkAreaRight - WorkAreaLeft
+    WorkAreaHeight := WorkAreaBottom - WorkAreaTop
+    x := round(WorkAreaWidth * x)
+    y := round(WorkAreaHeight * y)
+    w := round(WorkAreaWidth * w)
+    h := round(WorkAreaHeight * h)
 
     ResizeWindow2(winTitle, x, y, w, h)
 }
