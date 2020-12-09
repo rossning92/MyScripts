@@ -345,15 +345,21 @@ CenterActiveWindow(width:=1920, height:=1080) {
     ResizeWindow2("A", x, y, w, h)
 }
 
-SetWindowPosF(winTitle, x, y, w, h) {
-    SysGet, WorkArea, MonitorWorkArea
+SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False) {
+    SysGet, wa, MonitorWorkArea
 
-    WorkAreaWidth := WorkAreaRight - WorkAreaLeft
-    WorkAreaHeight := WorkAreaBottom - WorkAreaTop
-    x := round(WorkAreaWidth * x)
-    y := round(WorkAreaHeight * y)
-    w := round(WorkAreaWidth * w)
-    h := round(WorkAreaHeight * h)
+    width := waRight - waLeft
+    height := waBottom - waTop
+
+    if (fullScreen) {
+        width := A_ScreenWidth
+        height := A_ScreenHeight
+    }
+
+    x := round(width * x)
+    y := round(height * y)
+    w := round(width * w)
+    h := round(height * h)
 
     ResizeWindow2(winTitle, x, y, w, h)
 }
@@ -449,7 +455,7 @@ ToggleVNC()
         WinActivate, ahk_exe tvnviewer.exe
     } else if WinExist(VNC_VIEWER) {
         WinActivate, %VNC_VIEWER%
-        SetWindowPosF(VNC_VIEWER, 0, 0, 32/43, 1)
+        SetWindowPosF(VNC_VIEWER, 0, 0, 32/43, 1, true)
         WinSet, AlwaysOnTop, On, %VNC_VIEWER%
     }
 }
