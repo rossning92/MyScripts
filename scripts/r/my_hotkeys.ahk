@@ -140,13 +140,13 @@ return
     SetTimer, AutoUpdateWindowPos, Off
 return
 
-!1::SetWindowPosF("A", 0, 0, 32/43, 1)
-!2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
+$!1::SetWindowPosF("A", 0, 0, 32/43, 1)
+$!2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
 ; CenterActiveWindow(width:=1440, height:=810)
 return
 
 #3::
-    ResizeWindow2("A", 0, 0, 1632, 918)
+    ResizeWindow("A", 0, 0, 1632, 918)
 return
 
 #0::
@@ -227,7 +227,7 @@ UpdateWindowPosition(pos) {
             WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
         }
 
-        ResizeWindow2("ahk_id " hwnd, x, y, w, h)
+        ResizeWindow("ahk_id " hwnd, x, y, w, h)
         if (hwnd != curHwnd) {
             WinActivate, ahk_id %hwnd%
         }
@@ -342,10 +342,10 @@ CenterActiveWindow(width:=1920, height:=1080) {
     h := A_ScreenHeight
     x := (A_ScreenWidth - w) / 2
     y := 0
-    ResizeWindow2("A", x, y, w, h)
+    ResizeWindow("A", x, y, w, h)
 }
 
-SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False) {
+SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False, forceResize:=False) {
     SysGet, wa, MonitorWorkArea
 
     width := waRight - waLeft
@@ -361,7 +361,7 @@ SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False) {
     w := round(width * w)
     h := round(height * h)
 
-    ResizeWindow2(winTitle, x, y, w, h)
+    ResizeWindow(winTitle, x, y, w, h, forceResize)
 }
 
 ToggleDesktopIcons(show:=True) {
@@ -375,7 +375,7 @@ ToggleDesktopIcons(show:=True) {
     }
 }
 
-ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
+ResizeWindow(WinTitle, X := "", Y := "", W := "", H := "", forceResize := False) {
     If ((X . Y . W . H) = "") ;
         Return False
     WinGet, hWnd, ID, %WinTitle% ; taken from Coco's version
@@ -407,7 +407,7 @@ ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
 
     WS_SIZEBOX = 0x40000
     WinGet, Style, Style, A
-    if (Style & WS_SIZEBOX) {
+    if (forceResize or (Style & WS_SIZEBOX)) {
         Return DllCall("MoveWindow", "Ptr", hWnd, "Int", X, "Int", Y, "Int", W, "Int", H, "UInt", 1)
     } else {
         X := X + (W - (winRight - winLeft)) / 2
@@ -416,7 +416,7 @@ ResizeWindow2(WinTitle, X := "", Y := "", W := "", H := "") {
     }
 }
 
-ResizeWindow(wintitle, X := "", Y := "", W := "", H := "") {
+ResizeWindow3(wintitle, X := "", Y := "", W := "", H := "") {
     WinGet hwnd, ID, %wintitle% ; WinExist() sets the last found window
 
     If ((X . Y . W . H) = "")
@@ -455,7 +455,7 @@ ToggleVNC()
         WinActivate, ahk_exe tvnviewer.exe
     } else if WinExist(VNC_VIEWER) {
         WinActivate, %VNC_VIEWER%
-        SetWindowPosF(VNC_VIEWER, 0, 0, 32/43, 1, true)
+        SetWindowPosF(VNC_VIEWER, 0, 0, 32/43, 1, true, true)
         WinSet, AlwaysOnTop, On, %VNC_VIEWER%
     }
 }
