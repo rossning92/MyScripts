@@ -20,7 +20,6 @@ $^F6::
 return
 
 $F6::
-    ; ToggleRecording(False)
     RunScript(SCRIPT_DIR . "\record_screen.py")
 return
 
