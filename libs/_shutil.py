@@ -775,13 +775,13 @@ def get_files(cd=False, ignore_dirs=True):
     if "FILES_" in os.environ:
         files = os.environ["FILES_"].split("|")
     else:
-        files = list(glob.glob(cur_folder + "/*.*"))
+        files = list(glob.glob(os.path.join(cur_folder + "*.*")))
 
     if cd:
         os.chdir(cur_folder)
-        files = [
-            f.replace(cur_folder + os.path.sep, "") for f in files
-        ]  # Relative path
+        files = [f.replace(cur_folder, "") for f in files]  # Relative path
+        files = [x.lstrip(os.path.sep) for x in files]
+        print(files)
 
     if ignore_dirs:
         files = [x for x in files if os.path.isfile(x)]
@@ -1180,6 +1180,10 @@ def send_ctrl_c(ps):
 def get_temp_file_name(suffix=None):
     with tempfile.TemporaryFile(suffix=suffix) as f:
         return f.name
+
+
+def find_file(wildcard):
+    return glob.glob(wildcard)[0]
 
 
 env = os.environ

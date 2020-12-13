@@ -1,11 +1,14 @@
+import subprocess
+
+
 def get_conda_path():
     from os import pathsep
     from os.path import expanduser, exists, join
 
     SEARCH_PATH = [
-        '~/Anaconda3',
-        r'C:\tools\miniconda3',
-        r'C:\tools\anaconda3',
+        "~/Anaconda3",
+        r"C:\tools\miniconda3",
+        r"C:\tools\anaconda3",
     ]
 
     for p in SEARCH_PATH:
@@ -23,5 +26,12 @@ def setup_env():
 
     conda_path = get_conda_path()
     assert conda_path is not None
-    conda_path = [conda_path, join(conda_path, 'Scripts')]
-    env['PATH'] = pathsep.join(conda_path) + pathsep + env['PATH']
+    conda_path = [conda_path, join(conda_path, "Scripts")]
+    env["PATH"] = pathsep.join(conda_path) + pathsep + env["PATH"]
+
+
+def conda_shell_exec(args):
+    conda_path = get_conda_path()
+    activate_script = conda_path + "\\Scripts\\activate.bat"
+    args = f"cmd /c call {activate_script} & " + args
+    subprocess.check_call(args)

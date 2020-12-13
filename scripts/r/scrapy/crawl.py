@@ -1,10 +1,12 @@
 from _shutil import *
-import _conda; _conda.setup_env()
+import _conda
 
-chdir('~/Projects/scrapy/{{SCRAPY_PROJECT}}')
+_conda.setup_env()
 
-remove('output.json')
-call('scrapy crawl example -o output.json', highlight={
-    '\(200\)': 'green',
-    '^\w+?Error:': 'RED', 'ERROR': 'RED',
-})
+chdir("~/Projects/scrapy/{{SCRAPY_PROJECT}}")
+remove("output.json")
+call(
+    "scrapy crawl example -o output.json",
+    highlight={"\(200\)": "green", "^\w+?Error:": "RED", "ERROR": "RED",},
+)
+

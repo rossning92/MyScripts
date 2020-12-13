@@ -22,7 +22,16 @@ ps = subprocess.Popen(
         "-y",
     ],
     stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
 )
+
+while True:
+    line = ps.stdout.readline().decode()
+    print(line)
+    if "Press p" in line:
+        print("Recording started.")
+        minimize_cur_terminal()
+        break
 
 keyboard.wait("f6", suppress=True)
 ps.stdin.write(b"q")

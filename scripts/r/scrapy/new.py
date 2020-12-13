@@ -1,28 +1,39 @@
+from _conda import *
+from _editor import *
 from _shutil import *
-import _conda; _conda.setup_env()
-from _pycharm import pycharm
+import shutil
 import webbrowser
 
-PROJECT_NAME = '{{SCRAPY_PROJECT}}'
+PROJECT_NAME = "{{SCRAPY_PROJECT}}"
 
-if call('python -c "import scrapy"') != 0:
-    call('conda install scrapy -y')
+
+if not shutil.which("scrapy"):
+    # https://docs.scrapy.org/en/latest/intro/install.html
+    conda_shell_exec("conda install scrapy -y")
 else:
-    print('Scrapy installed already.')
+    print("Scrapy installed already.")
 
-mkdir('~/Projects/scrapy')
-chdir('~/Projects/scrapy')
+
+cd("~/Projects/scrapy")
 
 if not exists(PROJECT_NAME):
-    call('scrapy startproject %s' % PROJECT_NAME)
-    chdir(PROJECT_NAME)
-    call('scrapy genspider example example.com')
+    conda_shell_exec("scrapy startproject %s" % PROJECT_NAME)
+    cd(PROJECT_NAME)
+    conda_shell_exec("scrapy genspider example example.com")
 else:
-    chdir(PROJECT_NAME)
+    cd(PROJECT_NAME)
 
-replace(f'{PROJECT_NAME}/settings.py', 'ROBOTSTXT_OBEY = True', 'ROBOTSTXT_OBEY = False')
-append_line(f'{PROJECT_NAME}/settings.py', "FEED_EXPORT_ENCODING = 'utf-8'")
+replace(
+    f"{PROJECT_NAME}/settings.py", "ROBOTSTXT_OBEY = True", "ROBOTSTXT_OBEY = False"
+)
+append_line(f"{PROJECT_NAME}/settings.py", "FEED_EXPORT_ENCODING = 'utf-8'")
 
-call('start .')
-call([pycharm, getcwd()])
-webbrowser.open('https://docs.scrapy.org/en/latest/')
+
+# open_in_vscode(".")
+# webbrowser.open("https://docs.scrapy.org/en/latest/")
+
+
+while True:
+    ch = getch()
+    if ch == "c":
+        conda_shell_exec("scrapy crawl example -o output.json")

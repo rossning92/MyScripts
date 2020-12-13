@@ -7,6 +7,7 @@ for f in files:
         continue
 
     fn, ext = os.path.splitext(f)
+    print(f)
     os.makedirs("out", exist_ok=True)
     out_file = "out/%s.mp3" % fn
 

@@ -21,7 +21,7 @@ return
 
 $F6::
     ; ToggleRecording(False)
-    RunScript(SCRIPT_DIR . "\record_screen.py", min:=True)
+    RunScript(SCRIPT_DIR . "\record_screen.py")
 return
 
 ToggleRecording(enable_carnac:=True)
@@ -65,6 +65,10 @@ RunScript(file, min:=False) {
         minParam =
     }
 
-    Run, cmd /c set "VIDEO_PROJECT_DIR=%VIDEO_PROJECT_DIR%" && %SCRIPT_DIR%\..\..\..\..\bin\run_script.exe "%file%" || pause, , %minParam%, pid
+    args := "cmd /c set ""VIDEO_PROJECT_DIR=" VIDEO_PROJECT_DIR """"
+    args .= " && " SCRIPT_DIR "\..\..\..\..\bin\run_script.exe """ file """"
+    args .= " || pause"
+
+    Run, %args%, , %minParam%, pid
 return pid
 }

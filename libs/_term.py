@@ -16,6 +16,14 @@ def activate_cur_terminal():
         ctypes.windll.user32.SetForegroundWindow(hwnd)
 
 
+def minimize_cur_terminal():
+    if sys.platform == "win32":
+        import ctypes
+
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        ctypes.windll.user32.ShowWindow(hwnd, 6)
+
+
 def search(options):
     matched_indices = []
 
