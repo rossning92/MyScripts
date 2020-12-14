@@ -142,11 +142,14 @@ return
 
 $!1::SetWindowPosF("A", 0, 0, 32/43, 1)
 $!2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
+
+$!3::SetWindowPos("A", 0, 0, 1920, 1080)
+
 ; CenterActiveWindow(width:=1440, height:=810)
 return
 
 #3::
-    ResizeWindow("A", 0, 0, 1632, 918)
+    SetWindowPos("A", 0, 0, 1632, 918)
 return
 
 #0::
@@ -227,7 +230,7 @@ UpdateWindowPosition(pos) {
             WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
         }
 
-        ResizeWindow("ahk_id " hwnd, x, y, w, h)
+        SetWindowPos("ahk_id " hwnd, x, y, w, h)
         if (hwnd != curHwnd) {
             WinActivate, ahk_id %hwnd%
         }
@@ -342,7 +345,7 @@ CenterActiveWindow(width:=1920, height:=1080) {
     h := A_ScreenHeight
     x := (A_ScreenWidth - w) / 2
     y := 0
-    ResizeWindow("A", x, y, w, h)
+    SetWindowPos("A", x, y, w, h)
 }
 
 SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False, forceResize:=False) {
@@ -361,7 +364,7 @@ SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False, forceResize:=False) {
     w := round(width * w)
     h := round(height * h)
 
-    ResizeWindow(winTitle, x, y, w, h, forceResize)
+    SetWindowPos(winTitle, x, y, w, h, forceResize)
 }
 
 ToggleDesktopIcons(show:=True) {
@@ -375,7 +378,7 @@ ToggleDesktopIcons(show:=True) {
     }
 }
 
-ResizeWindow(WinTitle, X := "", Y := "", W := "", H := "", forceResize := False) {
+SetWindowPos(WinTitle, X := "", Y := "", W := "", H := "", forceResize := False) {
     If ((X . Y . W . H) = "") ;
         Return False
     WinGet, hWnd, ID, %WinTitle% ; taken from Coco's version
@@ -416,7 +419,7 @@ ResizeWindow(WinTitle, X := "", Y := "", W := "", H := "", forceResize := False)
     }
 }
 
-ResizeWindow3(wintitle, X := "", Y := "", W := "", H := "") {
+SetWindowPos3(wintitle, X := "", Y := "", W := "", H := "") {
     WinGet hwnd, ID, %wintitle% ; WinExist() sets the last found window
 
     If ((X . Y . W . H) = "")

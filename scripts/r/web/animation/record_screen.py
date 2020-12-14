@@ -2,55 +2,100 @@ from _shutil import *
 from _term import *
 import keyboard
 
-out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
-# out_dir = "/tmp"
+TEMP_FILE = os.path.join(gettempdir(), "screen-record.mp4")
 
-tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
-ps = subprocess.Popen(
-    [
+__ps_recorder = None
+
+
+region = None
+
+
+def set_region(rect):
+    global region
+    region = rect
+
+
+def start_record():
+    global __ps_recorder
+    if __ps_recorder is not None:
+        return
+
+    args = [
         "captura-cli",
         "start",
         "--cursor",
-        # "--source",
-        # "222,150,1920,1080",
         "-r",
         "60",
         "--vq",
         "100",
         "-f",
-        tmp_file,
+        TEMP_FILE,
         "-y",
-    ],
-    stdin=subprocess.PIPE,
-    stdout=subprocess.PIPE,
-)
+    ]
 
-while True:
-    line = ps.stdout.readline().decode()
-    print(line)
-    if "Press p" in line:
-        print("Recording started.")
-        minimize_cur_terminal()
-        break
+    if region is not None:
+        args += [
+            "--source",
+            ",".join(["%d" % x for x in region]),
+        ]
 
-keyboard.wait("f6", suppress=True)
-ps.stdin.write(b"q")
-ps.stdin.close()
+    __ps_recorder = subprocess.Popen(
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+    )
 
-activate_cur_terminal()
+    while True:
+        line = __ps_recorder.stdout.readline().decode()
+        print(line)
+        if "Press p" in line:
+            print("Recording started.")
+            minimize_cur_terminal()
+            break
 
-# Save file
-name = input("input file name (no ext): ")
-if not name:
-    print2("Discard %s." % tmp_file, color="red")
-    os.remove(tmp_file)
 
-else:
-    dst_file = os.path.join(out_dir, "%d-%s.mp4" % (int(time.time()), slugify(name)))
+def stop_record():
+    global __ps_recorder
+    if __ps_recorder is None:
+        return
+
+    __ps_recorder.stdin.write(b"q")
+    __ps_recorder.stdin.close()
+    __ps_recorder.wait()
+    __ps_recorder = None
+
+
+def save_record(file):
+    assert os.path.exists(TEMP_FILE)
     os.makedirs(out_dir, exist_ok=True)
-    os.rename(tmp_file, dst_file)
-    print2("File saved: %s" % dst_file, color="green")
+    os.rename(TEMP_FILE, file)
 
-    call_echo(["mpv", dst_file])
 
-sleep(1)
+def play_record():
+    call_echo(["mpv", TEMP_FILE])
+
+
+if __name__ == "__main__":
+    out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
+
+    start_record()
+
+    keyboard.wait("f6", suppress=True)
+    stop_record()
+
+    activate_cur_terminal()
+
+    # Save file
+    name = input("input file name (no ext): ")
+    if not name:
+        print2("Discard %s." % TEMP_FILE, color="red")
+        os.remove(TEMP_FILE)
+
+    else:
+        dst_file = os.path.join(
+            out_dir, "%d-%s.mp4" % (int(time.time()), slugify(name))
+        )
+        save_record(dst_file)
+        print2("File saved: %s" % dst_file, color="green")
+
+        call_echo(["mpv", dst_file])
+
+    sleep(1)
