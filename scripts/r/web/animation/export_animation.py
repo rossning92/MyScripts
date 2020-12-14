@@ -505,7 +505,7 @@ def pos(t, tag=None):
 
 def clip(f, **kwargs):
     print("clip: %s" % f)
-    _add_clip(f, **kwargs)
+    _add_video_clip(f, **kwargs)
 
 
 def fps(v):
@@ -517,7 +517,7 @@ def overlay(
     f, pos="center", duration=3, fadein=True, fadeout=True, track="overlay", **kwargs
 ):
     print("image: %s" % f)
-    _add_clip(
+    _add_video_clip(
         f,
         pos=pos,
         duration=duration,
@@ -546,7 +546,7 @@ def text(text, track="text", font_size=100, pos="center", **kwargs):
         color="#ffd700",
         stroke_color="#6900ff",
     )
-    _add_clip(temp_file, track=track, pos=pos, **kwargs)
+    _add_video_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
 def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
@@ -570,7 +570,7 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
             debug=debug,
         )
 
-    _add_clip(tmp_file, track=track, transparent=False, **kwargs)
+    _add_video_clip(tmp_file, track=track, transparent=False, **kwargs)
 
 
 def codef(file, track="vid", **kwargs):
@@ -579,7 +579,7 @@ def codef(file, track="vid", **kwargs):
     out_file = os.path.splitext(file)[0] + ".png"
     gen_code_image_from_file(file, out_file, mtime=os.path.getmtime(file))
 
-    _add_clip(out_file, track=track, transparent=False, **kwargs)
+    _add_video_clip(out_file, track=track, transparent=False, **kwargs)
 
     return out_file
 
@@ -676,6 +676,7 @@ def _create_mpy_clip(
     no_audio=False,
     na=False,
     duration=None,
+    norm=False,
     vol=None,
     transparent=True,
     subclip=None,
@@ -749,11 +750,15 @@ def _create_mpy_clip(
     if no_audio or na:
         clip = clip.set_audio(None)
 
-    if clip.audio is not None and vol:
-        if isinstance(vol, (int, float)):
-            clip.audio = clip.audio.fx(afx.volumex, vol)
-        else:
-            clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
+    if clip.audio is not None:
+        if norm:
+            clip.audio = clip.audio.fx(afx.audio_normalize)
+
+        if vol is not None:
+            if isinstance(vol, (int, float)):
+                clip.audio = clip.audio.fx(afx.volumex, vol)
+            else:
+                clip.audio = _adjust_mpy_audio_clip_volume(clip.audio, vol)
 
     # Loop or change duration
     if loop:
@@ -781,7 +786,7 @@ def _create_mpy_clip(
     return clip
 
 
-def _add_clip(
+def _add_video_clip(
     file=None,
     clip_operations=None,
     speed=None,
@@ -859,7 +864,7 @@ def _animation(in_file, name, track=None, params={}, calc_length=True, **kwargs)
     anim.overlay = overlay
     anim.calc_length = calc_length and not overlay
 
-    anim.clip_info_list.append(_add_clip(track=track, **kwargs))
+    anim.clip_info_list.append(_add_video_clip(track=track, **kwargs))
 
 
 def anim(s, **kwargs):
@@ -907,12 +912,12 @@ def video_end(track=None, t=None):
 
 
 def empty(**kwargs):
-    _add_clip(None, **kwargs)
+    _add_video_clip(None, **kwargs)
 
 
 def screencap(f, speed=None, track=None, **kwargs):
     print("screencap: %s" % f)
-    _add_clip(
+    _add_video_clip(
         "screencap/" + f,
         clip_operations=lambda x: x.crop(x1=0, y1=0, x2=2560, y2=1380)
         .resize(0.75)
@@ -933,7 +938,7 @@ def slide(
     if not os.path.exists(out_file):
         generate_slide(s, template_file=template, out_file=out_file, gen_html=True)
 
-    _add_clip(out_file, pos=pos, **kwargs)
+    _add_video_clip(out_file, pos=pos, **kwargs)
 
 
 def md(s, track="md", **kwargs):
@@ -1009,7 +1014,7 @@ def _export_video(resolution=(1920, 1080)):
                         out_file=overlay_file,
                     )
                 assert clip_info.duration is not None
-                _add_clip(
+                _add_video_clip(
                     overlay_file,
                     t=clip_info.start,
                     duration=clip_info.duration,

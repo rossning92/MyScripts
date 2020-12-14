@@ -23,6 +23,7 @@ def start_record():
     args = [
         "captura-cli",
         "start",
+        "--speaker=4",
         "--cursor",
         "-r",
         "60",
@@ -45,9 +46,9 @@ def start_record():
 
     while True:
         line = __ps_recorder.stdout.readline().decode()
-        print(line)
+        # print(line)
         if "Press p" in line:
-            print("Recording started.")
+            print2("Recording started.", color="green")
             minimize_cur_terminal()
             break
 
@@ -60,12 +61,18 @@ def stop_record():
     __ps_recorder.stdin.write(b"q")
     __ps_recorder.stdin.close()
     __ps_recorder.wait()
+    print2("Recording stopped.", color="green")
     __ps_recorder = None
 
 
-def save_record(file):
+def save_record(file, overwrite=False):
+    file = os.path.realpath(file)
     assert os.path.exists(TEMP_FILE)
-    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+
+    if overwrite and os.path.exists(file):
+        os.remove(file)
+
     os.rename(TEMP_FILE, file)
 
 
