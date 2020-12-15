@@ -733,10 +733,16 @@ def _create_mpy_clip(
     if subclip is not None:
         if isinstance(subclip, (int, float)):
             clip = clip.subclip(subclip)
+
         else:
             c1 = clip.subclip(subclip[0], subclip[1])
             c2 = clip.to_ImageClip(subclip[1]).set_duration(5)
             clip = concatenate_videoclips([c1, c2])
+            # clip = c1
+
+            # HACK: workaround for a bug: 'CompositeAudioClip' object has no attribute 'fps'
+            if clip.audio is not None:
+                clip = clip.set_audio(clip.audio.set_fps(44100)).set_duration(20)
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
