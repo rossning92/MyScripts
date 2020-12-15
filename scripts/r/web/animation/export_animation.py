@@ -669,7 +669,6 @@ def _get_video_resolution(f):
 
 def _create_mpy_clip(
     file=None,
-    clip_operations=None,
     speed=None,
     pos=None,
     text_overlay=None,
@@ -750,9 +749,6 @@ def _create_mpy_clip(
     if frame is not None:
         clip = clip.to_ImageClip(frame).set_duration(5)
 
-    if clip_operations is not None:
-        clip = clip_operations(clip)
-
     if no_audio or na:
         clip = clip.set_audio(None)
 
@@ -794,7 +790,6 @@ def _create_mpy_clip(
 
 def _add_video_clip(
     file=None,
-    clip_operations=None,
     speed=None,
     pos="center",
     track=None,
@@ -840,7 +835,6 @@ def _add_video_clip(
 
     clip_info.mpy_clip = _create_mpy_clip(
         file=file,
-        clip_operations=clip_operations,
         speed=speed,
         pos=pos,
         duration=duration,
@@ -919,19 +913,6 @@ def video_end(track=None, t=None):
 
 def empty(**kwargs):
     _add_video_clip(None, **kwargs)
-
-
-def screencap(f, speed=None, track=None, **kwargs):
-    print("screencap: %s" % f)
-    _add_video_clip(
-        "screencap/" + f,
-        clip_operations=lambda x: x.crop(x1=0, y1=0, x2=2560, y2=1380)
-        .resize(0.75)
-        .set_position((0, 22)),
-        speed=speed,
-        track=track,
-        **kwargs,
-    )
 
 
 def slide(
