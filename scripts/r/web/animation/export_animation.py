@@ -58,16 +58,26 @@ if 0:
 
 class _VideoClipInfo:
     def __init__(self):
-        self.file: str = None
-        self.start: float = 0
-        self.duration: float = None
-        self.mpy_clip: Any = None
-        self.speed: float = 1
+        self.file = None
+        self.start = 0
+        self.duration = None
+        self.mpy_clip = None
+        self.speed = 1
         self.pos = None
-        self.fadein: bool = False
-        self.fadeout: bool = False
-        self.crossfade: bool = False
-        self.text_overlay: str = None
+        self.fadein = False
+        self.fadeout = False
+        self.crossfade = False
+        self.text_overlay = None
+
+        self.no_audio = False
+        self.norm = False
+        self.vol = None
+        self.transparent = True
+        self.subclip = None
+        self.frame = None
+        self.loop = False
+        self.expand = False
+        self.scale = 1
 
 
 class _AudioClipInfo:
@@ -667,22 +677,8 @@ def _get_video_resolution(f):
     return resolution
 
 
-def _create_mpy_clip(
-    file=None,
-    speed=None,
-    pos=None,
-    text_overlay=None,
-    no_audio=False,
-    na=False,
-    duration=None,
-    norm=False,
-    vol=None,
-    transparent=True,
-    subclip=None,
-    frame=None,
-    loop=False,
-    expand=False,
-    scale=1,
+def _preload_mpy_clip(
+    file, scale=1, frame=None, expand=False, transparent=True, **kwargs
 ):
     scale = scale * _scale
 
@@ -728,6 +724,26 @@ def _create_mpy_clip(
     else:
         clip = load_video_file_clip(file)
 
+    return clip
+
+
+def _update_mpy_clip(
+    clip,
+    subclip,
+    speed,
+    frame,
+    no_audio,
+    norm,
+    loop,
+    duration,
+    pos,
+    scale,
+    vol,
+    **kwargs,
+):
+    assert duration is not None
+    scale = scale * _scale
+
     # video clip operations / fx
     if subclip is not None:
         if isinstance(subclip, (int, float)):
@@ -749,7 +765,7 @@ def _create_mpy_clip(
     if frame is not None:
         clip = clip.to_ImageClip(frame).set_duration(5)
 
-    if no_audio or na:
+    if no_audio:
         clip = clip.set_audio(None)
 
     if clip.audio is not None:
@@ -766,7 +782,7 @@ def _create_mpy_clip(
     if loop:
         clip = clip.fx(vfx.loop).set_duration(clip.duration)
 
-    if duration is not None:
+    if duration < clip.duration:
         clip = clip.set_duration(duration)
 
     if pos is not None:
@@ -801,7 +817,15 @@ def _add_video_clip(
     text_overlay=None,
     transparent=True,
     move_playhead=True,
-    **kwargs,
+    no_audio=False,
+    na=False,
+    norm=False,
+    vol=None,
+    subclip=None,
+    frame=None,
+    loop=False,
+    expand=False,
+    scale=1,
 ):
     if (track is None and _cur_vid_track_name == "vid") or (track == "vid"):
         transparent = False
@@ -833,17 +857,24 @@ def _add_video_clip(
     clip_info.text_overlay = text_overlay
     clip_info.duration = duration
 
-    clip_info.mpy_clip = _create_mpy_clip(
-        file=file,
-        speed=speed,
-        pos=pos,
-        duration=duration,
-        transparent=transparent,
-        **kwargs,
-    )
+    clip_info.no_audio = no_audio or na
+    clip_info.norm = norm
+    clip_info.vol = vol
+    clip_info.transparent = transparent
+    clip_info.subclip = subclip
+    clip_info.frame = frame
+    clip_info.loop = loop
+    clip_info.expand = expand
+    clip_info.scale = scale
+
+    clip_info.mpy_clip = _preload_mpy_clip(**vars(clip_info))
 
     if move_playhead:  # Advance the pos
-        end = t + clip_info.mpy_clip.duration
+        end = t + (
+            clip_info.duration
+            if clip_info.duration is not None
+            else clip_info.mpy_clip.duration
+        )
         _pos_dict["c"] = _pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
@@ -1040,15 +1071,7 @@ def _export_video(resolution=(1920, 1080)):
                     )
 
             for i, clip_info in enumerate(animation_info.clip_info_list):
-                clip_info.mpy_clip = _create_mpy_clip(
-                    # file=(
-                    #     out_file
-                    #     if i == 0
-                    #     else "tmp/animation/%s.%d.%s" % (name, i, anim_ext)
-                    # )
-                    # HACK:
-                    file=out_file
-                )
+                clip_info.mpy_clip = _preload_mpy_clip(file=out_file)
                 if animation_info.overlay:
                     clip_info.duration = clip_info.mpy_clip.duration
 
@@ -1058,6 +1081,8 @@ def _export_video(resolution=(1920, 1080)):
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
             assert clip_info.duration is not None
+
+            clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
 
             if clip_info.duration is not None:
                 # Unlink audio clip from video clip (adjust audio duration)
