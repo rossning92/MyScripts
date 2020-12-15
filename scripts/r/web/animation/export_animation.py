@@ -680,8 +680,6 @@ def _get_video_resolution(f):
 def _preload_mpy_clip(
     file, scale=1, frame=None, expand=False, transparent=True, **kwargs
 ):
-    scale = scale * _scale
-
     def load_video_file_clip(f):
         nonlocal scale
 
@@ -689,7 +687,6 @@ def _preload_mpy_clip(
         if scale != 1.0:
             w, h = _get_video_resolution(f)
             target_resolution = [int(h * scale), int(w * scale)]
-            scale = 1.0
         else:
             target_resolution = None
 
@@ -742,28 +739,30 @@ def _update_mpy_clip(
     **kwargs,
 ):
     assert duration is not None
-    scale = scale * _scale
 
     # video clip operations / fx
     if subclip is not None:
         if isinstance(subclip, (int, float)):
-            clip = clip.subclip(subclip)
+            clip = clip.subclip(subclip).set_duration(duration)
 
         else:
-            c1 = clip.subclip(subclip[0], subclip[1])
-            c2 = clip.to_ImageClip(subclip[1]).set_duration(5)
-            clip = concatenate_videoclips([c1, c2])
-            # clip = c1
+            subclip_duration = subclip[1] - subclip[0]
+            if duration > subclip_duration:
+                c1 = clip.subclip(subclip[0], subclip[1])
+                c2 = clip.to_ImageClip(subclip[1]).set_duration(subclip_duration)
+                clip = concatenate_videoclips([c1, c2])
 
-            # HACK: workaround for a bug: 'CompositeAudioClip' object has no attribute 'fps'
-            if clip.audio is not None:
-                clip = clip.set_audio(clip.audio.set_fps(44100)).set_duration(20)
+                # HACK: workaround for a bug: 'CompositeAudioClip' object has no attribute 'fps'
+                if clip.audio is not None:
+                    clip = clip.set_audio(clip.audio.set_fps(44100))
+            else:
+                clip = clip.subclip(subclip[0], subclip[1]).set_duration(duration)
 
     if speed is not None:
         clip = clip.fx(vfx.speedx, speed)
 
     if frame is not None:
-        clip = clip.to_ImageClip(frame).set_duration(5)
+        clip = clip.to_ImageClip(frame).set_duration(duration)
 
     if no_audio:
         clip = clip.set_audio(None)
@@ -780,9 +779,9 @@ def _update_mpy_clip(
 
     # Loop or change duration
     if loop:
-        clip = clip.fx(vfx.loop).set_duration(clip.duration)
+        clip = clip.fx(vfx.loop)
 
-    if duration < clip.duration:
+    if subclip is None:
         clip = clip.set_duration(duration)
 
     if pos is not None:
@@ -865,16 +864,23 @@ def _add_video_clip(
     clip_info.frame = frame
     clip_info.loop = loop
     clip_info.expand = expand
-    clip_info.scale = scale
+    clip_info.scale = scale * _scale
 
     clip_info.mpy_clip = _preload_mpy_clip(**vars(clip_info))
+    if type(clip_info.mpy_clip) == VideoFileClip:
+        clip_info.scale = scale  # HACK
 
     if move_playhead:  # Advance the pos
-        end = t + (
+        dura = (
             clip_info.duration
             if clip_info.duration is not None
             else clip_info.mpy_clip.duration
         )
+
+        if clip_info.subclip is not None:
+            dura = clip_info.subclip[1] - clip_info.subclip[0]
+
+        end = t + dura
         _pos_dict["c"] = _pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
@@ -1082,36 +1088,27 @@ def _export_video(resolution=(1920, 1080)):
             assert clip_info.mpy_clip is not None
             assert clip_info.duration is not None
 
+            # Increase duration for crossfade?
+            EPSILON = 0.1  # To avoid float point error
+            if i + 1 < len(track):
+                fade_duration = track[i + 1].crossfade
+                if fade_duration:
+                    clip_info.duration += fade_duration * 0.5 + EPSILON
+
             clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
 
-            if clip_info.duration is not None:
-                # Unlink audio clip from video clip (adjust audio duration)
-                if clip_info.mpy_clip.audio is not None:
-                    duration = clip_info.duration
-                    duration = min(duration, clip_info.mpy_clip.audio.duration)
-
-                    audio_clip = clip_info.mpy_clip.audio.set_start(
-                        clip_info.start
-                    ).set_duration(duration)
-                    audio_clips.append(audio_clip)
-                    clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
-
-                # Use duration to extend / hold the last frame instead of creating new clips.
+            # Unlink audio clip from video clip (adjust audio duration)
+            if clip_info.mpy_clip.audio is not None:
                 duration = clip_info.duration
-                assert duration > 0
+                duration = min(duration, clip_info.mpy_clip.audio.duration)
 
-                # Crossfade?
-                EPSILON = 0.1  # To avoid float point error
-                if i + 1 < len(track):
-                    fade_duration = track[i + 1].crossfade
-                    if fade_duration:
-                        duration += fade_duration * 0.5 + EPSILON
-
-                assert duration > 0
-                clip_info.mpy_clip = clip_info.mpy_clip.set_duration(duration)
+                audio_clip = clip_info.mpy_clip.audio.set_start(
+                    clip_info.start
+                ).set_duration(duration)
+                audio_clips.append(audio_clip)
+                clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
 
             # Deal with video fade in / out / crossfade
-
             if clip_info.fadein:
                 # TODO: crossfadein and crossfadeout is very slow in moviepy
                 if track_name != "vid":
