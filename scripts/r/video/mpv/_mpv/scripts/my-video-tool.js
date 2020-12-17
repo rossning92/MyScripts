@@ -207,6 +207,13 @@ mp.add_forced_key_binding("a", "to_anamorphic", function () {
   });
 });
 
+mp.add_forced_key_binding("8", "crop_top_left_1080p", function () {
+  mp.osd_message("crop top left 1080p...");
+  exportVideo({
+    vf: "crop=1920:1080:0:0",
+  });
+});
+
 mp.add_forced_key_binding("5", "crop_out_taskbar", function () {
   mp.osd_message("Crop out taskbar...");
   exportVideo({

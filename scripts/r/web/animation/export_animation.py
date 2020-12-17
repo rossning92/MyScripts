@@ -1075,12 +1075,14 @@ def _export_video(resolution=(1920, 1080)):
                 # TODO: audio subclip
                 if clip_info.subclip is not None:
                     duration = clip_info.subclip[1] - clip_info.subclip[0]
+                    audio_clip = audio_clip.subclip(clip_info.subclip[0], clip_info.subclip[1])
                 else:
                     duration = clip_info.duration
-                duration = min(duration, audio_clip.duration)
-                audio_clip = audio_clip.set_start(clip_info.start).set_duration(
-                    duration
-                )
+                    duration = min(duration, audio_clip.duration)
+                    audio_clip = audio_clip.set_duration(
+                        duration
+                    )
+                audio_clip = audio_clip.set_start(clip_info.start)
 
                 # Adjust volume
                 if clip_info.norm:
