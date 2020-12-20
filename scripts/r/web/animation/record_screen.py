@@ -3,116 +3,107 @@ from _term import *
 import keyboard
 import pyautogui
 
-TEMP_FILE = os.path.join(gettempdir(), "screen-record.mp4")
 
-__ps_recorder = None
+class CapturaScreenRecorder:
+    def __init__(self):
+        self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
+        self.captura_ps = None
+        self.region = None
 
+    def set_region(self, region):
+        self.region = region
 
-region = None
+    def start_record(self):
+        if self.captura_ps is not None:
+            return
 
-
-def set_region(rect):
-    global region
-    region = rect
-
-
-def start_record():
-    global __ps_recorder
-    if __ps_recorder is not None:
-        return
-
-    args = [
-        "captura-cli",
-        "start",
-        "--speaker=4",
-        "--cursor",
-        "-r",
-        "60",
-        "--vq",
-        "100",
-        "-f",
-        TEMP_FILE,
-        "-y",
-    ]
-
-    if region is not None:
-        args += [
-            "--source",
-            ",".join(["%d" % x for x in region]),
+        args = [
+            "captura-cli",
+            "start",
+            "--speaker=4",
+            "--cursor",
+            "-r",
+            "60",
+            "--vq",
+            "100",
+            "-f",
+            self.tmp_file,
+            "-y",
         ]
 
-    __ps_recorder = subprocess.Popen(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-    )
+        if self.region is not None:
+            args += [
+                "--source",
+                ",".join(["%d" % x for x in self.region]),
+            ]
 
-    while True:
-        line = __ps_recorder.stdout.readline().decode()
-        # print(line)
-        if "Press p" in line:
-            print2("Recording started.", color="green")
-            minimize_cur_terminal()
-            break
+        self.captura_ps = subprocess.Popen(
+            args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        )
 
+        while True:
+            line = self.captura_ps.stdout.readline().decode()
+            # print(line)
+            if "Press p" in line:
+                print2("Recording started.", color="green")
+                minimize_cur_terminal()
+                break
 
-def stop_record():
-    global __ps_recorder
-    if __ps_recorder is None:
-        return
+    def stop_record(self):
+        self.captura_ps
+        if self.captura_ps is None:
+            return
 
-    __ps_recorder.stdin.write(b"q")
-    __ps_recorder.stdin.close()
-    __ps_recorder.wait()
-    print2("Recording stopped.", color="green")
-    __ps_recorder = None
+        self.captura_ps.stdin.write(b"q")
+        self.captura_ps.stdin.close()
+        self.captura_ps.wait()
+        print2("Recording stopped.", color="green")
+        self.captura_ps = None
 
+    def save_record(self, file, overwrite=False):
+        file = os.path.realpath(file)
+        assert os.path.exists(self.tmp_file)
+        os.makedirs(os.path.dirname(file), exist_ok=True)
 
-def save_record(file, overwrite=False):
-    file = os.path.realpath(file)
-    assert os.path.exists(TEMP_FILE)
-    os.makedirs(os.path.dirname(file), exist_ok=True)
+        if overwrite and os.path.exists(file):
+            os.remove(file)
 
-    if overwrite and os.path.exists(file):
-        os.remove(file)
+        os.rename(self.tmp_file, file)
 
-    os.rename(TEMP_FILE, file)
-
-
-def play_record():
-    call_echo(["mpv", TEMP_FILE])
+    def play_record(self):
+        call_echo(["mpv", self.tmp_file])
 
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
 
+    sr = CapturaScreenRecorder()
+
     ch = getch()
     if ch == "1":
-        set_region([0, 0, 1920, 1080])
+        sr.set_region([0, 0, 1920, 1080])
     elif ch == "2":
         screen_resolution = pyautogui.size()
         x = (screen_resolution[0] - 1920) // 2
         y = (screen_resolution[1] - 1080) // 2
-        set_region([x, y, 1920, 1080])
+        sr.set_region([x, y, 1920, 1080])
     if ch == "3":
-        set_region([1, 120, 2532, 1260])
+        sr.set_region([1, 120, 2532, 1260])
 
-    start_record()
+    sr.start_record()
 
     keyboard.wait("f6", suppress=True)
-    stop_record()
+    sr.stop_record()
 
     activate_cur_terminal()
 
     # Save file
     name = input("input file name (no ext): ")
-    if not name:
-        print2("Discard %s." % TEMP_FILE, color="red")
-        os.remove(TEMP_FILE)
-
-    else:
+    if name:
         dst_file = os.path.join(
             out_dir, "%d-%s.mp4" % (int(time.time()), slugify(name))
         )
-        save_record(dst_file)
+        sr.save_record(dst_file)
         print2("File saved: %s" % dst_file, color="green")
 
         call_echo(["mpv", dst_file])
