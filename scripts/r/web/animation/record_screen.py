@@ -4,17 +4,6 @@ import keyboard
 import pyautogui
 
 
-def move_file(src, dst, overwrite=False):
-    dst = os.path.realpath(dst)
-    assert os.path.exists(src)
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-    if overwrite and os.path.exists(dst):
-        os.remove(dst)
-
-    os.rename(src, dst)
-
-
 class CapturaScreenRecorder:
     def __init__(self):
         self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")

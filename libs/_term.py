@@ -115,7 +115,7 @@ class InputWidget:
         self.text = ""
         self.caret_pos = 0
 
-    def on_getch(self, ch):
+    def on_char(self, ch):
         if ch == curses.ERR:
             pass
         elif ch == curses.KEY_LEFT:
@@ -184,7 +184,7 @@ class SearchWindow:
             if ch == -1:  # getch() timeout
                 pass
 
-            elif self.on_getch(ch):
+            elif self.on_char(ch):
                 pass
 
             elif ch == ord("\n"):
@@ -204,7 +204,7 @@ class SearchWindow:
                 return
 
             elif ch != 0:
-                self.input_.on_getch(ch)
+                self.input_.on_char(ch)
 
             if self.closed:
                 return
@@ -247,7 +247,7 @@ class SearchWindow:
         else:
             return None
 
-    def on_getch(self, ch):
+    def on_char(self, ch):
         return False
 
     def on_enter_pressed(self):

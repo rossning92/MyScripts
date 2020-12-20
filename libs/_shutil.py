@@ -1186,4 +1186,15 @@ def find_file(wildcard):
     return glob.glob(wildcard)[0]
 
 
+def move_file(src, dst, overwrite=False):
+    dst = os.path.realpath(dst)
+    assert os.path.exists(src)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+    if overwrite and os.path.exists(dst):
+        os.remove(dst)
+
+    os.rename(src, dst)
+
+
 env = os.environ

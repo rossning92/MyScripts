@@ -155,7 +155,7 @@ def ffmpeg(
     reencode=False,
     nvenc=True,
     extra_args=None,
-    no_output=False,
+    quiet=False,
     crf=None,
     preset="slow",
     bitrate=None,
@@ -178,7 +178,7 @@ def ffmpeg(
 
     args += ["-i", in_file]
 
-    if no_output:
+    if quiet:
         args += ["-hide_banner", "-loglevel", "panic"]
 
     if start_and_duration:

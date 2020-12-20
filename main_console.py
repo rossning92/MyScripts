@@ -142,7 +142,7 @@ class VariableEditWindow(SearchWindow):
         self.save_variable_val(self.get_text())
         self.close()
 
-    def on_getch(self, ch):
+    def on_char(self, ch):
         if ch == ord("\t"):
             val = self.get_selected_item()
             if val is not None:
@@ -181,7 +181,7 @@ class VariableSearchWindow(SearchWindow):
         self.enter_pressed = True
         self.close()
 
-    def on_getch(self, ch):
+    def on_char(self, ch):
         if ch == ord("\t"):
             self.edit_variable()
             return True
@@ -303,7 +303,7 @@ class MainWindow(SearchWindow):
             )
             self.close()
 
-    def on_getch(self, ch):
+    def on_char(self, ch):
         if ch == ch == curses.ascii.ESC:
             return True
 
