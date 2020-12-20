@@ -292,7 +292,9 @@ def _add_subtitle_clip(start, end, text):
     _video_tracks["text"].append(ci)
 
 
-def record(f, t="a", postprocess=True, move_playhead=True, **kwargs):
+def record(
+    f, t="a", postprocess=True, move_playhead=True, subtitle_duration=None, **kwargs
+):
     if not os.path.exists(f):
         f = "record/" + f
         assert os.path.exists(f)
@@ -330,7 +332,10 @@ def record(f, t="a", postprocess=True, move_playhead=True, **kwargs):
                     subtitle += END_CHARS[0]
 
                 length = len(subtitle)
-                word_dura = (_get_pos("ae") - start) / length
+                if subtitle_duration is not None:
+                    word_dura = subtitle_duration / length
+                else:
+                    word_dura = (_get_pos("ae") - start) / length
 
                 i = 0
                 MAX = 5
@@ -425,15 +430,22 @@ def _add_audio_clip(
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
     clip_info.mpy_clip = AudioFileClip(file, buffersize=400000)
 
-    clip_info.duration = duration
-    clip_info.subclip = subclip
+    if subclip is not None:
+        clip_info.duration = subclip[1] - subclip[0]
+        clip_info.subclip = subclip
+    else:
+        clip_info.duration = duration
+        clip_info.subclip = None
+
     clip_info.start = t
     clip_info.loop = loop
 
     if move_playhead:
         # Forward audio track pos
         _pos_dict["c"] = _pos_dict["a"] = _pos_dict["ae"] = _pos_dict["as"] + (
-            clip_info.mpy_clip.duration if duration is None else duration
+            clip_info.mpy_clip.duration
+            if clip_info.duration is None
+            else clip_info.duration
         )
 
     clips.append(clip_info)
@@ -1075,13 +1087,13 @@ def _export_video(resolution=(1920, 1080)):
                 # TODO: audio subclip
                 if clip_info.subclip is not None:
                     duration = clip_info.subclip[1] - clip_info.subclip[0]
-                    audio_clip = audio_clip.subclip(clip_info.subclip[0], clip_info.subclip[1])
+                    audio_clip = audio_clip.subclip(
+                        clip_info.subclip[0], clip_info.subclip[1]
+                    )
                 else:
                     duration = clip_info.duration
                     duration = min(duration, audio_clip.duration)
-                    audio_clip = audio_clip.set_duration(
-                        duration
-                    )
+                    audio_clip = audio_clip.set_duration(duration)
                 audio_clip = audio_clip.set_start(clip_info.start)
 
                 # Adjust volume
@@ -1165,7 +1177,7 @@ def _export_video(resolution=(1920, 1080)):
                 clip = clip_info.mpy_clip
 
             if clip_info.subclip is not None:
-                clip = clip.subclip(clip_info.subclip)
+                clip = clip.subclip(clip_info.subclip[0], clip_info.subclip[1])
 
             duration = clip_info.duration
             if duration is not None:

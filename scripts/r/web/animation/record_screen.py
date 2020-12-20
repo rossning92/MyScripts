@@ -1,6 +1,7 @@
 from _shutil import *
 from _term import *
 import keyboard
+import pyautogui
 
 TEMP_FILE = os.path.join(gettempdir(), "screen-record.mp4")
 
@@ -82,6 +83,17 @@ def play_record():
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
+
+    ch = getch()
+    if ch == "1":
+        set_region([0, 0, 1920, 1080])
+    elif ch == "2":
+        screen_resolution = pyautogui.size()
+        x = (screen_resolution[0] - 1920) // 2
+        y = (screen_resolution[1] - 1080) // 2
+        set_region([x, y, 1920, 1080])
+    if ch == "3":
+        set_region([1, 120, 2532, 1260])
 
     start_record()
 
