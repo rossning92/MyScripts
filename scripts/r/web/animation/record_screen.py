@@ -4,6 +4,17 @@ import keyboard
 import pyautogui
 
 
+def move_file(src, dst, overwrite=False):
+    dst = os.path.realpath(dst)
+    assert os.path.exists(src)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+    if overwrite and os.path.exists(dst):
+        os.remove(dst)
+
+    os.rename(src, dst)
+
+
 class CapturaScreenRecorder:
     def __init__(self):
         self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
@@ -46,7 +57,6 @@ class CapturaScreenRecorder:
             # print(line)
             if "Press p" in line:
                 print2("Recording started.", color="green")
-                minimize_cur_terminal()
                 break
 
     def stop_record(self):
@@ -61,23 +71,36 @@ class CapturaScreenRecorder:
         self.captura_ps = None
 
     def save_record(self, file, overwrite=False):
-        file = os.path.realpath(file)
-        assert os.path.exists(self.tmp_file)
-        os.makedirs(os.path.dirname(file), exist_ok=True)
+        move_file(self.tmp_file, file)
 
-        if overwrite and os.path.exists(file):
-            os.remove(file)
 
-        os.rename(self.tmp_file, file)
+class ShadowPlayScreenRecorder:
+    def __init__(self):
+        pass
 
-    def play_record(self):
-        call_echo(["mpv", self.tmp_file])
+    def set_region(self, region):
+        pass
+
+    def start_record(self):
+        pyautogui.hotkey("alt", "f9")
+
+    def stop_record(self):
+        pyautogui.hotkey("alt", "f9")
+
+    def save_record(self, file, overwrite=False):
+        files = glob.glob(
+            os.path.expandvars("%USERPROFILE%\\Videos\\Desktop\\**\\*.mp4"),
+            recursive=True,
+        )
+        files = sorted(list(files), key=os.path.getmtime, reverse=True)
+        recent_file = files[0]
+        move_file(recent_file, file)
 
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
 
-    sr = CapturaScreenRecorder()
+    sr = ShadowPlayScreenRecorder()
 
     ch = getch()
     if ch == "1":
@@ -91,10 +114,10 @@ if __name__ == "__main__":
         sr.set_region([1, 120, 2532, 1260])
 
     sr.start_record()
+    minimize_cur_terminal()
 
     keyboard.wait("f6", suppress=True)
     sr.stop_record()
-
     activate_cur_terminal()
 
     # Save file
