@@ -102,16 +102,16 @@ if __name__ == "__main__":
 
     sr = ShadowPlayScreenRecorder()
 
-    ch = getch()
-    if ch == "1":
-        sr.set_region([0, 0, 1920, 1080])
-    elif ch == "2":
-        screen_resolution = pyautogui.size()
-        x = (screen_resolution[0] - 1920) // 2
-        y = (screen_resolution[1] - 1080) // 2
-        sr.set_region([x, y, 1920, 1080])
-    if ch == "3":
-        sr.set_region([1, 120, 2532, 1260])
+    # ch = getch()
+    # if ch == "1":
+    #     sr.set_region([0, 0, 1920, 1080])
+    # elif ch == "2":
+    #     screen_resolution = pyautogui.size()
+    #     x = (screen_resolution[0] - 1920) // 2
+    #     y = (screen_resolution[1] - 1080) // 2
+    #     sr.set_region([x, y, 1920, 1080])
+    # if ch == "3":
+    #     sr.set_region([1, 120, 2532, 1260])
 
     sr.start_record()
     minimize_cur_terminal()
