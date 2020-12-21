@@ -207,10 +207,17 @@ mp.add_forced_key_binding("a", "to_anamorphic", function () {
   });
 });
 
-mp.add_forced_key_binding("8", "crop_top_left_1080p", function () {
-  mp.osd_message("crop top left 1080p...");
+mp.add_forced_key_binding("8", "crop_1920_1080", function () {
+  mp.osd_message("crop 1920x1080...");
   exportVideo({
     vf: "crop=1920:1080:0:0",
+  });
+});
+
+mp.add_forced_key_binding("4", "crop_1440_810", function () {
+  mp.osd_message("crop 1440x810...");
+  exportVideo({
+    vf: "crop=1440:810:0:0",
   });
 });
 

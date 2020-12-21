@@ -144,8 +144,8 @@ $!1::SetWindowPosF("A", 0, 0, 32/43, 1)
 $!2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
 
 $!3::SetWindowPos("A", 0, 0, 1920, 1080)
+$!4::SetWindowPos("A", 0, 0, 1440, 810)
 
-; CenterActiveWindow(width:=1440, height:=810)
 return
 
 #3::

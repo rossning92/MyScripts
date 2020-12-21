@@ -16,19 +16,22 @@ def edit_video(file):
                 sys.exit(0)
 
     while True:
-        opt = VideoEditorMenu(items=["crop (0,0,1920,1080)"]).get_selected_index()
+        i = VideoEditorMenu(
+            items=["crop 1920x1080", "crop 1440x810",]
+        ).get_selected_index()
 
-        if opt == 0:
+        if i in [0, 1]:
             file_history.append(get_temp_file_name(".mp4"))
+            crop_params = {0: "crop=1920:1080:0:0", 1: "crop=1440:810:0:0"}
 
             ffmpeg(
                 file_history[-2],
                 out_file=file_history[-1],
-                extra_args=["-filter:v", "crop=1920:1080:0:0"],
+                extra_args=["-filter:v", crop_params[i]],
                 quiet=True,
             )
             subprocess.call(["mpv", file_history[-1]])
-
+        elif 
 
 if __name__ == "__main__":
     f = get_files()[0]
