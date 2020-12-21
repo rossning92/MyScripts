@@ -45,11 +45,11 @@ def play(file):
         )
 
 
-class AudioPlayerWindow(SearchWindow):
+class AudioFileMenu(Menu):
     def on_item_selected(self):
         i = self.get_selected_index()
         f = os.path.join(folder, files[i])
         play(f)
 
 
-w = AudioPlayerWindow(items=files)
+w = AudioFileMenu(items=files)

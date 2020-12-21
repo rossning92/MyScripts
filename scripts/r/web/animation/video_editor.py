@@ -3,13 +3,13 @@ import subprocess
 import threading
 from _shutil import get_temp_file_name, getch, get_files, move_file
 from _video import ffmpeg
-from _term import SearchWindow
+from _term import Menu
 
 
 def edit_video(file):
     file_history = [file]
 
-    class VideoEditorMenu(SearchWindow):
+    class VideoEditorMenu(Menu):
         def on_char(self, ch):
             if ch == ord("S"):
                 move_file(file_history[-1], file_history[0], overwrite=True)

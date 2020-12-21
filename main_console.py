@@ -115,7 +115,7 @@ def save_variables(variables):
         json.dump(data, f, indent=4)
 
 
-class VariableEditWindow(SearchWindow):
+class VariableEditWindow(Menu):
     def __init__(self, stdscr, vars, var_name):
         self.vars = vars
         self.var_name = var_name
@@ -163,7 +163,7 @@ def get_variable_str_list(vars, var_names):
     return result
 
 
-class VariableSearchWindow(SearchWindow):
+class VariableEditingMenu(Menu):
     def __init__(self, stdscr, script):
         self.vars = get_all_variables()
         self.var_names = sorted(script.get_variable_names())
@@ -276,7 +276,7 @@ else
         add_keyboard_hooks(keyboard_hooks)
 
 
-class MainWindow(SearchWindow):
+class MainWindow(Menu):
     def __init__(self, stdscr):
         super().__init__(stdscr, items=state.scripts)
 
@@ -318,7 +318,7 @@ class MainWindow(SearchWindow):
         elif ch == ord("\t"):
             script = self.get_selected_item()
             if script is not None:
-                w = VariableSearchWindow(self.stdscr, script)
+                w = VariableEditingMenu(self.stdscr, script)
                 if w.enter_pressed:
                     self.run_selected_script()
                 return True

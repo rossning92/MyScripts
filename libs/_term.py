@@ -136,7 +136,7 @@ class InputWidget:
             self.caret_pos += 1
 
 
-class SearchWindow:
+class Menu:
     def __init__(self, stdscr=None, items=[], label=">", text=""):
         self.input_ = InputWidget(label=label, text=text)
         self.items = items

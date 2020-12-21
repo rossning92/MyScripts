@@ -11,7 +11,7 @@ lines = [x for x in lines if x.strip() != ""]
 keywords = [x.split("|")[0] for x in lines]
 completion = [x.split("|")[-1] for x in lines]
 
-w = SearchWindow(items=keywords)
+w = Menu(items=keywords)
 if w.get_selected_index() < -1:
     sys.exit(0)
 
