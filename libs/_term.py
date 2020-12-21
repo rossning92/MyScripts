@@ -147,17 +147,20 @@ class SearchWindow:
         self.height = -1
         self.stdscr = stdscr
 
-        if stdscr is None:
+        self.exec()
+
+    def exec(self):
+        if self.stdscr is None:
             curses.wrapper(self.main_loop_wrapped)
         else:
-            self.main_loop()
+            self.exec_()
 
     def main_loop_wrapped(self, stdscr):
         self.stdscr = stdscr
         init_curses(stdscr)
-        self.main_loop()
+        self.exec_()
 
-    def main_loop(self):
+    def exec_(self):
         self.on_main_loop()
         last_input = None
         while True:
