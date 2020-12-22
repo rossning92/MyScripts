@@ -2,7 +2,7 @@ from _shutil import *
 from _term import *
 import keyboard
 import pyautogui
-from video_editor import edit_video
+from .video_editor import edit_video
 
 
 class CapturaScreenRecorder:
