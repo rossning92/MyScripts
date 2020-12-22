@@ -2,6 +2,7 @@ from _shutil import *
 from _term import *
 import keyboard
 import pyautogui
+from video_editor import edit_video
 
 
 class CapturaScreenRecorder:
@@ -112,12 +113,11 @@ if __name__ == "__main__":
     # Save file
     name = input("input file name (no ext): ")
     if name:
-        dst_file = os.path.join(
-            out_dir, "%d-%s.mp4" % (int(time.time()), slugify(name))
-        )
+        dst_file = os.path.join(out_dir, "%s.mp4" % slugify(name))
         sr.save_record(dst_file)
         print2("File saved: %s" % dst_file, color="green")
 
-        call_echo(["mpv", dst_file])
+        # call_echo(["mpv", dst_file])
+        edit_video(dst_file)
 
     sleep(1)

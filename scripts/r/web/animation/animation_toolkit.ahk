@@ -1,3 +1,5 @@
+#include ../../../../libs/ahk/Window.ahk
+
 Menu, Tray, Icon, animation_toolkit.ico
 #SingleInstance, Force
 
@@ -20,6 +22,11 @@ $^F6::
 return
 
 $F6::
+    if WinActive("ahk_exe chrome.exe") {
+        SetWindowPos("A", 0, 0, 2300, 1400)
+        Sleep 500
+    }
+
     RunScript(SCRIPT_DIR . "\record_screen.py")
 return
 
