@@ -13,7 +13,7 @@ SetWorkingDir, %VIDEO_PROJECT_DIR%
 return
 
 $F10::
-    RunScript(SCRIPT_DIR . "\screenshot_.py", min:=True)
+    RunScript(SCRIPT_DIR . "\screenshot_.py")
 return
 
 ; Screencap (full screen)
@@ -22,12 +22,22 @@ $^F6::
 return
 
 $F6::
-    if WinActive("ahk_exe chrome.exe") {
+    if (WinActive("ahk_exe chrome.exe")) {
         SetWindowPos("A", 0, 0, 2300, 1400)
         Sleep 500
+        RunScript("/r/web/animation/record_screen.py", "--rect 0 64 2272 1278")
+    } else if (WinActive("ahk_exe Code.exe")) {
+        SetWindowPos("A", 0, 0, 1920, 1080)
+        sleep 500
+        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
+    } else if (WinActive("ahk_exe WindowsTerminal.exe")) {
+        SetWindowPos("A", 0, 0, 1440, 810)
+        sleep 500
+        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1440 810")
+    } else {
+        RunScript("/r/web/animation/record_screen.py")
     }
 
-    RunScript(SCRIPT_DIR . "\record_screen.py")
 return
 
 ToggleRecording(enable_carnac:=True)
@@ -61,20 +71,14 @@ ToggleRecording(enable_carnac:=True)
     is_recording := not is_recording
 }
 
-RunScript(file, min:=False) {
+RunScript(file, args="") {
     global SCRIPT_DIR
     global VIDEO_PROJECT_DIR
 
-    if (min) {
-        minParam = Min
-    } else {
-        minParam =
-    }
+    commandLine := "cmd /c set ""VIDEO_PROJECT_DIR=" VIDEO_PROJECT_DIR """"
+    commandLine .= " && " SCRIPT_DIR "\..\..\..\..\bin\run_script.exe """ file """ -- " args
+    commandLine .= " || pause"
 
-    args := "cmd /c set ""VIDEO_PROJECT_DIR=" VIDEO_PROJECT_DIR """"
-    args .= " && " SCRIPT_DIR "\..\..\..\..\bin\run_script.exe """ file """"
-    args .= " || pause"
-
-    Run, %args%, , %minParam%, pid
+    Run, %commandLine%, , , pid
 return pid
 }

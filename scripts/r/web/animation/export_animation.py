@@ -750,7 +750,9 @@ def _update_mpy_clip(
             subclip_duration = subclip[1] - subclip[0]
             if duration > subclip_duration:
                 c1 = clip.subclip(subclip[0], subclip[1])
-                c2 = clip.to_ImageClip(subclip[1]).set_duration(subclip_duration)
+                c2 = clip.to_ImageClip(subclip[1]).set_duration(
+                    duration - subclip_duration
+                )
                 clip = concatenate_videoclips([c1, c2])
 
                 # HACK: workaround for a bug: 'CompositeAudioClip' object has no attribute 'fps'

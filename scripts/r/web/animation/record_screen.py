@@ -1,8 +1,12 @@
 from _shutil import *
 from _term import *
+from _video import ffmpeg
 import keyboard
 import pyautogui
-from .video_editor import edit_video
+import argparse
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from video_editor import edit_video
 
 
 class CapturaScreenRecorder:
@@ -66,10 +70,10 @@ class CapturaScreenRecorder:
 
 class ShadowPlayScreenRecorder:
     def __init__(self):
-        pass
+        self.region = None
 
     def set_region(self, region):
-        pass
+        self.region = region
 
     def start_record(self):
         pyautogui.hotkey("alt", "f9")
@@ -78,30 +82,42 @@ class ShadowPlayScreenRecorder:
         pyautogui.hotkey("alt", "f9")
 
     def save_record(self, file, overwrite=False):
+        # Get recorded video file
         files = glob.glob(
             os.path.expandvars("%USERPROFILE%\\Videos\\Desktop\\**\\*.mp4"),
             recursive=True,
         )
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
-        recent_file = files[0]
-        move_file(recent_file, file)
+        src_file = files[0]
+
+        if self.region is not None:
+            tmp_file = get_temp_file_name(".mp4")
+            ffmpeg(
+                src_file,
+                out_file=tmp_file,
+                extra_args=[
+                    "-filter:v",
+                    "crop=%d:%d:%d:%d"
+                    % (self.region[2], self.region[3], self.region[0], self.region[1]),
+                ],
+                quiet=True,
+            )
+            os.remove(src_file)
+            src_file = tmp_file
+
+        move_file(src_file, file)
 
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--rect", type=int, nargs="+", default=None)
+
+    args = parser.parse_args()
 
     sr = ShadowPlayScreenRecorder()
-
-    # ch = getch()
-    # if ch == "1":
-    #     sr.set_region([0, 0, 1920, 1080])
-    # elif ch == "2":
-    #     screen_resolution = pyautogui.size()
-    #     x = (screen_resolution[0] - 1920) // 2
-    #     y = (screen_resolution[1] - 1080) // 2
-    #     sr.set_region([x, y, 1920, 1080])
-    # if ch == "3":
-    #     sr.set_region([1, 120, 2532, 1260])
+    if args.rect is not None:
+        sr.set_region(args.rect)
 
     sr.start_record()
     minimize_cur_terminal()
@@ -117,7 +133,7 @@ if __name__ == "__main__":
         sr.save_record(dst_file)
         print2("File saved: %s" % dst_file, color="green")
 
-        # call_echo(["mpv", dst_file])
-        edit_video(dst_file)
+        call_echo(["mpv", dst_file])
+        # edit_video(dst_file)
 
     sleep(1)

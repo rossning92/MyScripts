@@ -32,7 +32,6 @@ def edit_video(file):
                 "topLeft 1920x1080",
                 "topLeft 1440x810",
                 "bottomLeft 1920x1080",
-                "crop chrome",
                 "crop left 1920x1080",
                 "scale 1.5x",
             ]
@@ -45,10 +44,8 @@ def edit_video(file):
         elif i == 2:
             vfilter("crop=1920:1080:0:ih-1080")
         elif i == 3:
-            vfilter("crop=2272:1278:0:64,scale=1920:1080")
-        elif i == 4:
             vfilter("crop=1920:1080:0:(ih-1080)/2")
-        elif i == 5:
+        elif i == 4:
             vfilter("scale=iw*1.5:ih*1.5")
 
 
