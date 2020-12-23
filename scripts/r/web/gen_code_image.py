@@ -1,6 +1,7 @@
 from _cache import *
 from _shutil import *
 from r.web.webscreenshot import webscreenshot
+import argparse
 
 
 @file_cache
@@ -39,7 +40,11 @@ def gen_code_image(s, out_file, line_no=True, debug=False):
 
 
 if __name__ == "__main__":
-    file = get_files()[0]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", type=str, help="input source file")
+    args = parser.parse_args()
+
+    file = args.file
 
     out_dir = os.path.join(os.path.dirname(file), "out")
     mkdir(out_dir)
@@ -47,7 +52,7 @@ if __name__ == "__main__":
     with open(file, encoding="utf-8", newline="\n") as f:
         s = f.read()
 
-    if 1:  # Debug
+    if 0:  # Debug
         out_file = os.path.join(
             out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
         )

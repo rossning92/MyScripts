@@ -84,7 +84,7 @@ class ShadowPlayScreenRecorder:
     def save_record(self, file, overwrite=False):
         # Get recorded video file
         files = glob.glob(
-            os.path.expandvars("%USERPROFILE%\\Videos\\Desktop\\**\\*.mp4"),
+            os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"),
             recursive=True,
         )
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
