@@ -533,7 +533,7 @@ class Script:
             python_path = get_python_path(script_path)
 
             env["PYTHONPATH"] = os.pathsep.join(python_path)
-            env["PYTHONDONTWRITEBYTECODE"] = "1"
+            # env["PYTHONDONTWRITEBYTECODE"] = "1"
 
             # Conda / venv support
             args_activate = []

@@ -293,7 +293,13 @@ def _add_subtitle_clip(start, end, text):
 
 
 def record(
-    f, t="a", postprocess=True, move_playhead=True, subtitle_duration=None, **kwargs
+    f,
+    t="a",
+    postprocess=True,
+    move_playhead=True,
+    subtitle=True,
+    subtitle_duration=None,
+    **kwargs,
 ):
     if not os.path.exists(f):
         f = "record/" + f
@@ -314,7 +320,7 @@ def record(
     global _srt_index
     global _last_subtitle_index
 
-    if _add_subtitle and not _audio_only:
+    if _add_subtitle and subtitle and not _audio_only:
         if len(_subtitle) == 0:
             print("WARNING: no subtitle found")
 
