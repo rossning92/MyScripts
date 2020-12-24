@@ -1113,10 +1113,9 @@ def _export_video(resolution=(1920, 1080)):
 
             # Increase duration for crossfade?
             EPSILON = 0.1  # To avoid float point error
-            if i + 1 < len(track):
-                fade_duration = track[i + 1].crossfade
-                if fade_duration:
-                    clip_info.duration += fade_duration * 0.5 + EPSILON
+            fade_duration = track[i].crossfade
+            if fade_duration:
+                clip_info.duration += fade_duration * 0.5 + EPSILON
 
             clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
 

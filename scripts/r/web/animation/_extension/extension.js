@@ -165,6 +165,8 @@ function getCompletedExpression(file) {
     return ` include('${file}') `;
   } else if (/\.(c|cpp|py|text)$/g.test(file)) {
     return ` codef('${file}') `;
+  } else if (/overlay\//g.test(file)) {
+    return ` overlay('${file}', t='as') `;
   } else {
     return ` clip('${file}') `;
   }
