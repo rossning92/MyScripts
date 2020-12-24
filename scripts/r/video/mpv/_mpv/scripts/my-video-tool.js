@@ -200,6 +200,11 @@ mp.add_forced_key_binding("2", "speed_up_2x", function () {
   exportVideo({ vf: "setpts=PTS/2" });
 });
 
+mp.add_forced_key_binding("5", "speed_up_1.5x", function () {
+  mp.osd_message("speed up 1.5x...");
+  exportVideo({ vf: "setpts=PTS/1.5" });
+});
+
 mp.add_forced_key_binding("a", "to_anamorphic", function () {
   mp.osd_message("to anamorphic...");
   exportVideo({
@@ -221,13 +226,6 @@ mp.add_forced_key_binding("4", "crop_1440_810", function () {
   });
 });
 
-mp.add_forced_key_binding("5", "crop_out_taskbar", function () {
-  mp.osd_message("Crop out taskbar...");
-  exportVideo({
-    vf: "crop=2560:1378:0:0,scale=1920:-2",
-  });
-});
-
 mp.add_forced_key_binding("K", "crop_center", function () {
   mp.osd_message("crop center...");
   exportVideo({
@@ -239,6 +237,20 @@ mp.add_forced_key_binding("U", "crop_top_left", function () {
   mp.osd_message("crop top left...");
   exportVideo({
     vf: "crop=0.75*iw:0.75*ih:0:0",
+  });
+});
+
+mp.add_forced_key_binding("R", "reverse", function () {
+  mp.osd_message("reverse...");
+  exportVideo({
+    vf: "reverse",
+  });
+});
+
+mp.add_forced_key_binding("T", "simulate_typing", function () {
+  mp.osd_message("simulate typing...");
+  exportVideo({
+    vf: "mpdecimate,setpts=N/FRAME_RATE/TB,setpts=2.0*PTS*(1+random(0)*0.02)",
   });
 });
 

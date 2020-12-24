@@ -152,7 +152,7 @@ def ffmpeg(
     in_file,
     out_file=None,
     start_and_duration=None,
-    reencode=False,
+    reencode=True,
     nvenc=True,
     extra_args=None,
     quiet=False,

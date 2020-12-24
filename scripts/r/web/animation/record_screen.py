@@ -80,12 +80,12 @@ class ShadowPlayScreenRecorder:
 
     def stop_record(self):
         pyautogui.hotkey("alt", "f9")
+        time.sleep(0.5)
 
     def save_record(self, file, overwrite=False):
         # Get recorded video file
         files = glob.glob(
-            os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"),
-            recursive=True,
+            os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"), recursive=True,
         )
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
         src_file = files[0]
@@ -101,6 +101,8 @@ class ShadowPlayScreenRecorder:
                     % (self.region[2], self.region[3], self.region[0], self.region[1]),
                 ],
                 quiet=True,
+                no_audio=True,
+                nvenc=True,
             )
             os.remove(src_file)
             src_file = tmp_file
