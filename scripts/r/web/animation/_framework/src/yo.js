@@ -99,6 +99,16 @@ gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
+var lastPromise = new Promise(function (resolve, reject) {
+  resolve();
+});
+
+function runNextAsyncFunc(func) {
+  lastPromise.then(() => {
+    return func();
+  });
+}
+
 function startCapture({ resetTiming = true, name = "animation" } = {}) {
   outFileName = name;
 
@@ -1756,37 +1766,42 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
 }
 
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
-  const tl = gsap.timeline();
+  lastPromise = lastPromise.then(() => {
+    console.log(object3D);
+    object3D = object3D.val;
 
-  // Animation
-  const stagger = duration / object3D.children.length / 2;
-  object3D.children.forEach((obj, i) => {
-    const vals = {
-      position: -object3D.size * 2,
-      rotation: -Math.PI / 2,
-    };
-    tl.to(
-      vals,
-      duration,
-      {
-        position: 0,
-        rotation: 0,
+    const tl = gsap.timeline();
 
-        ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
-        onUpdate: () => {
-          obj.position.y = vals.position;
-          obj.position.z = vals.position * 2;
-          obj.rotation.x = vals.rotation;
+    // Animation
+    const stagger = duration / object3D.children.length / 2;
+    object3D.children.forEach((obj, i) => {
+      const vals = {
+        position: -object3D.size * 2,
+        rotation: -Math.PI / 2,
+      };
+      tl.to(
+        vals,
+        duration,
+        {
+          position: 0,
+          rotation: 0,
+
+          ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
+          onUpdate: () => {
+            obj.position.y = vals.position;
+            obj.position.z = vals.position * 2;
+            obj.rotation.x = vals.rotation;
+          },
         },
-      },
-      `-=${duration - stagger}`
-    );
+        `-=${duration - stagger}`
+      );
 
-    fadeIn(obj, { duration, t: "<", timeline: tl });
+      fadeIn(obj, { duration, t: "<", timeline: tl });
+    });
+
+    mainTimeline.add(tl, t);
+    // return tl;
   });
-
-  mainTimeline.add(tl, t);
-  return tl;
 }
 
 const metaData = {
@@ -2138,22 +2153,12 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
   return verts;
 }
 
-var lastPromise = null;
-
-function runNextAsyncFunc(func) {
-  if (lastPromise != null) {
-    lastPromise.then(() => {
-      lastPromise = func();
-    });
-  } else {
-    lastPromise = func();
-  }
-}
-
 function add(obj, params) {
-  runNextAsyncFunc(async () => {
-    return await addAsync(obj, params);
+  const ret = {};
+  lastPromise = lastPromise.then(async () => {
+    ret.val = await addAsync(obj, params);
   });
+  return ret;
 }
 
 async function addAsync(

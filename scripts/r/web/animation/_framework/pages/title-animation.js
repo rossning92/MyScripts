@@ -8,7 +8,7 @@ yo.newScene(async () => {
 
   let h1_text = yo.getQueryString().h1;
   if (!h1_text) h1_text = "标题动画测试";
-  yo.add(h1_text, {
+  window.yoyo = yo.add(h1_text, {
     y: 1,
     animation: "fadeIn|growX2",
     letterSpacing: 0.2,
@@ -17,7 +17,7 @@ yo.newScene(async () => {
 
   let h2_text = yo.getQueryString().h2;
   if (!h2_text) h2_text = "Title Animation Test";
-  yo.add(h2_text, {
+  const h2 = yo.add(h2_text, {
     fontSize: 0.6,
     color: yo.palette[3],
     animation: null,
@@ -25,7 +25,7 @@ yo.newScene(async () => {
     y: -1,
   });
 
-  // yo.groupFlyIn(h2, { beginDegrees: 90, beginScale: 10, t: "0.2" });
+  yo.groupFlyIn(h2, { beginDegrees: 90, beginScale: 10, t: "0.2" });
 
   // const bb = yo.getBoundingBox(group);
   // const center = bb.getCenter(new THREE.Vector3());
