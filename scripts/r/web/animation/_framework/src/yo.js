@@ -91,6 +91,7 @@ let options = {
 
 let subClipDurations = [];
 let currentCutPoint = 0;
+let groups = {};
 
 var gui = new dat.gui.GUI();
 gui.add(options, "format", ["gif", "webm-mediarecorder", "webm", "png"]);
@@ -2137,6 +2138,24 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
   return verts;
 }
 
+var lastPromise = null;
+
+function runNextAsyncFunc(func) {
+  if (lastPromise != null) {
+    lastPromise.then(() => {
+      lastPromise = func();
+    });
+  } else {
+    lastPromise = func();
+  }
+}
+
+function add(obj, params) {
+  runNextAsyncFunc(async () => {
+    return await addAsync(obj, params);
+  });
+}
+
 async function addAsync(
   obj,
   {
@@ -2317,7 +2336,12 @@ async function addAsync(
   addAnimation(mesh, animation, { aniPos: t !== null ? t : aniPos });
 
   if (parent != null) {
-    parent.add(mesh);
+    if (typeof parent === "string") {
+      // HACK
+      groups[parent].add(mesh);
+    } else {
+      parent.add(mesh);
+    }
   } else {
     scene.add(mesh);
   }
@@ -2325,8 +2349,13 @@ async function addAsync(
   return mesh;
 }
 
-function addGroup() {
+function addGroup(name, { x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1 } = {}) {
   const group = new THREE.Group();
+  group.position.x = x;
+  group.position.y = y;
+  group.position.z = z;
+
+  groups[name] = group;
   scene.add(group);
   return group;
 }
@@ -2601,6 +2630,8 @@ export default {
   generateRandomString,
   setGlitch,
   setViewportSize,
+  runNextAsyncFunc,
+  add,
 };
 
 export { THREE, gsap };
