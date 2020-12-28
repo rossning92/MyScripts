@@ -437,10 +437,10 @@ def _add_audio_clip(
     clip_info.mpy_clip = AudioFileClip(file, buffersize=400000)
 
     if subclip is not None:
-        clip_info.duration = subclip[1] - subclip[0]
+        clip_info.duration = None
         clip_info.subclip = subclip
     else:
-        clip_info.duration = duration
+        clip_info.duration = None
         clip_info.subclip = None
 
     clip_info.start = t
@@ -472,14 +472,13 @@ def audio(
 ):
     t = _get_pos(t)
 
-    # Fade out of previous audio clip
-    if len(_get_audio_track(track).clips) > 0:
-        if crossfade > 0:  # Crossfade out
-            _set_vol(0, duration=crossfade, t=t, track=track)
-            audio_end(track=track, t=t + crossfade, move_playhead=move_playhead)
-        elif out_duration > 0:  # Fade out
-            _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
-            audio_end(track=track, t=t, move_playhead=move_playhead)
+    audio_end(
+        track=track,
+        t=t + crossfade,
+        move_playhead=move_playhead,
+        out_duration=out_duration,
+        crossfade=crossfade,
+    )
 
     clip = _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
 
@@ -493,7 +492,7 @@ def audio(
         clip.vol_keypoints.append((0, vol))
 
 
-def audio_end(*, t=None, track=None, move_playhead=True):
+def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
     t = _get_pos(t)
 
     clips = _get_audio_track(track).clips
@@ -501,10 +500,20 @@ def audio_end(*, t=None, track=None, move_playhead=True):
         print2("WARNING: no previous audio clip to set the end point.")
         return
 
+    # Fade out of previous audio clip
+    if len(_get_audio_track(track).clips) > 0:
+        if crossfade > 0:  # Crossfade out
+            _set_vol(0, duration=crossfade, t=t, track=track)
+            duration = (t - crossfade) - clips[-1].start
+        elif out_duration > 0:  # Fade out
+            _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
+            duration = t - clips[-1].start
+
     duration = t - clips[-1].start
     assert duration > 0
-    clips[-1].duration = duration
-    print2("previous clip(file=%s) duration updated: %.2f" % (clips[-1].file, duration))
+    if clips[-1].duration is None:
+        clips[-1].duration = duration
+        print2("previous clip(%s) duration updated: %.2f" % (clips[-1].file, duration))
 
     if move_playhead:
         _pos_dict["c"] = _pos_dict["a"] = t
@@ -932,7 +941,7 @@ def _clip_extend_prev_clip(track=None, t=None):
     if clip_info.duration is None:
         clip_info.duration = _get_pos(t) - clip_info.start
         print(
-            "previous clip (start, duration) updated: (%.2f, %.2f)"
+            "previous clip updated: start=%.2f duration=%.2f"
             % (clip_info.start, clip_info.duration)
         )
 
@@ -1191,7 +1200,12 @@ def _export_video(resolution=(1920, 1080)):
                 if clip_info.loop:
                     clip = clip.fx(afx.audio_loop, duration=duration)
                 else:
-                    clip = clip.set_duration(min(duration, clip.duration))
+                    duration = min(duration, clip.duration)
+                    if clip_info.subclip:
+                        duration = min(
+                            duration, clip_info.subclip[1] - clip_info.subclip[0]
+                        )
+                    clip = clip.set_duration(duration)
 
             if clip_info.start is not None:
                 clip = clip.set_start(clip_info.start)

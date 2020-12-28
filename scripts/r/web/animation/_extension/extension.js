@@ -13,8 +13,10 @@ async function openFile(filePath) {
     if (/\.(md|c|cpp|py|txt)$/g.test(filePath)) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
-    } else if (/\.(png|jpg|mp4|wav|mp3|ogg)$/g.test(filePath)) {
+    } else if (/\.(png|jpg|mp4)$/g.test(filePath)) {
       cp.spawn("mpv", ["--force-window", filePath]);
+    } else if (/\.(wav|mp3|ogg)$/g.test(filePath)) {
+      cp.spawn("ocenaudio", [filePath]);
     } else {
       vscode.env.openExternal(vscode.Uri.file(filePath));
     }
