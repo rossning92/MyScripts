@@ -141,8 +141,8 @@ return
     SetTimer, AutoUpdateWindowPos, Off
 return
 
-$!1::SetWindowPosF("A", 0, 0, 32/43, 1)
-$!2::SetWindowPosF("A", 32/43, 0, 1-32/43, 1)
+$!1::SetWindowPosF("A", 0, 0, 2/3, 1)
+$!2::SetWindowPosF("A", 2/3, 0, 1-2/3, 1)
 
 $!3::SetWindowPos("A", 0, 0, 1920, 1080)
 $!4::SetWindowPos("A", 0, 0, 1440, 810)
