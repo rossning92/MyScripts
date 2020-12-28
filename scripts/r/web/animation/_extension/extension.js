@@ -45,42 +45,44 @@ function initializeDecorations(context) {
   let timeout = undefined;
 
   const decorationType = vscode.window.createTextEditorDecorationType({
-    cursor: "crosshair",
-    // use a themable color. See package.json for the declaration and default values.
-    backgroundColor: { id: "myextension.largeNumberBackground" },
+    // cursor: "crosshair",
+    color: "#ff0000",
   });
   let activeEditor = vscode.window.activeTextEditor;
+
   function updateDecorations() {
     if (!activeEditor) {
       return;
     }
-    const regEx = /\d+/g;
-    const text = activeEditor.document.getText();
-    const smallNumbers = [];
-    const largeNumbers = [];
-    let match;
-    const myContent = new vscode.MarkdownString(
-      "*yoyo* [link](command:yo.hello)"
-    );
-    myContent.isTrusted = true;
 
+    if (!isDocumentActive()) {
+      return;
+    }
+
+    const regEx = /\brecord(?=\()/g;
+    const text = activeEditor.document.getText();
+    const recordStrings = [];
+
+    let match;
     while ((match = regEx.exec(text))) {
       const startPos = activeEditor.document.positionAt(match.index);
       const endPos = activeEditor.document.positionAt(
         match.index + match[0].length
       );
+
+      // const myContent = new vscode.MarkdownString(
+      //   "*yoyo* [link](command:yo.hello)"
+      // );
+      // myContent.isTrusted = true;
       const decoration = {
         range: new vscode.Range(startPos, endPos),
-        hoverMessage: myContent,
+        // hoverMessage: myContent,
       };
-      if (match[0].length < 3) {
-        smallNumbers.push(decoration);
-      } else {
-        largeNumbers.push(decoration);
-      }
+
+      recordStrings.push(decoration);
     }
 
-    activeEditor.setDecorations(decorationType, largeNumbers);
+    activeEditor.setDecorations(decorationType, recordStrings);
   }
 
   function triggerUpdateDecorations() {
@@ -454,7 +456,7 @@ function activate(context) {
 
   registerAutoComplete(context);
 
-  // initializeDecorations(context);
+  initializeDecorations(context);
 }
 
 exports.activate = activate;
