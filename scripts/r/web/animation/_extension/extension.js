@@ -46,7 +46,7 @@ function initializeDecorations(context) {
 
   const decorationType = vscode.window.createTextEditorDecorationType({
     // cursor: "crosshair",
-    color: "#ff0000",
+    color: "#c0392b",
   });
   let activeEditor = vscode.window.activeTextEditor;
 
@@ -59,7 +59,7 @@ function initializeDecorations(context) {
       return;
     }
 
-    const regEx = /\brecord(?=\()/g;
+    const regEx = /{{\s*record\(.*?\)\s*}}/g;
     const text = activeEditor.document.getText();
     const recordStrings = [];
 
