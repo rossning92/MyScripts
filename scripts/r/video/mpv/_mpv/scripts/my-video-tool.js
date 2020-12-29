@@ -81,14 +81,16 @@ function exportVideo(params) {
 
   var args = ["ffmpeg", "-hide_banner", "-loglevel", "panic"];
 
-  if (params.start != null && params.fastSeek) {
-    args = args.concat(["-ss", params.start.toString()]);
+  if (params.start != null) {
+    var fastSeekPos = Math.max(0, params.start - 10);
+    params.start = params.start - fastSeekPos;
+    args = args.concat(["-ss", fastSeekPos]);
   }
 
   // Input file
   args = args.concat(["-i", currentFile]);
 
-  if (params.start != null && !params.fastSeek) {
+  if (params.start != null) {
     args = args.concat(["-ss", params.start.toString(), "-strict", "-2"]);
   }
 
@@ -334,18 +336,6 @@ mp.add_forced_key_binding("A", "remove_audio", function () {
 mp.add_forced_key_binding("X", "cut_video_background", function () {
   mp.osd_message("cut video (temp)...");
   exportVideo({ start: inTime, duration: outTime - inTime, temp: true });
-  inTime = 0;
-  outTime = 0;
-});
-
-mp.add_forced_key_binding("Z", "cut_video_fastseek", function () {
-  mp.osd_message("cut video (fast seek)...");
-  exportVideo({
-    start: inTime,
-    duration: outTime - inTime,
-    temp: true,
-    fastSeek: true,
-  });
   inTime = 0;
   outTime = 0;
 });
