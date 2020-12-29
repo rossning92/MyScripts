@@ -83,8 +83,10 @@ function exportVideo(params) {
 
   if (params.start != null) {
     var fastSeekPos = Math.max(0, params.start - 10);
-    params.start = params.start - fastSeekPos;
-    args = args.concat(["-ss", fastSeekPos]);
+    if (fastSeekPos > 0) {
+      params.start = params.start - fastSeekPos;
+      args = args.concat(["-ss", fastSeekPos]);
+    }
   }
 
   // Input file
