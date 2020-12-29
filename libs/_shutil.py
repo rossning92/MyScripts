@@ -781,7 +781,6 @@ def get_files(cd=False, ignore_dirs=True):
         os.chdir(cur_folder)
         files = [f.replace(cur_folder, "") for f in files]  # Relative path
         files = [x.lstrip(os.path.sep) for x in files]
-        print(files)
 
     if ignore_dirs:
         files = [x for x in files if os.path.isfile(x)]
