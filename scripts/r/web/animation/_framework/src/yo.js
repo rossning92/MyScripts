@@ -98,7 +98,7 @@ gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
-const threeJsSceneObjects = {};
+const sceneObjects = {};
 
 function startCapture({ resetTiming = true, name = "animation" } = {}) {
   outFileName = name;
@@ -1824,15 +1824,15 @@ function newScene(initFunction = null) {
       if (cmd.type == "add") {
         const mesh = await addAsync(cmd.obj, cmd.params);
 
-        threeJsSceneObjects[cmd.id] = mesh;
+        sceneObjects[cmd.id] = mesh;
       } else if (cmd.type == "addAnimation") {
         groupFlyIn(
-          threeJsSceneObjects[cmd.obj], // object GUID
+          sceneObjects[cmd.obj], // object GUID
           cmd.params
         );
       } else if (cmd.type == "addGroup") {
         const group = addThreeJsGroup();
-        threeJsSceneObjects[cmd.id] = group;
+        sceneObjects[cmd.id] = group;
       } else {
         throw `invalid command type: ${cmd.type}`;
       }
@@ -2360,7 +2360,7 @@ async function addAsync(
 
   if (parent != null) {
     if (typeof parent === "string") {
-      threeJsSceneObjects[parent].add(mesh);
+      sceneObjects[parent].add(mesh);
     } else {
       parent.add(mesh);
     }
