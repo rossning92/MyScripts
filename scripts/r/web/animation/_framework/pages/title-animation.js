@@ -2,21 +2,22 @@ import yo, { gsap, THREE } from "yo";
 import { Vector3 } from "three";
 
 yo.newScene(async () => {
+  let h1_text = yo.getQueryString().h1;
+  if (!h1_text) h1_text = "标题动画测试";
+  let h2_text = yo.getQueryString().h2;
+  if (!h2_text) h2_text = "Title Animation Test";
+
   yo.scene.background = 0;
 
   yo.addGroup("parent");
 
-  let h1_text = yo.getQueryString().h1;
-  if (!h1_text) h1_text = "标题动画测试";
-  window.yoyo = yo.add(h1_text, {
+  yo.add(h1_text, {
     y: 1,
     animation: "fadeIn|growX2",
     letterSpacing: 0.2,
     parent: "parent",
   });
 
-  let h2_text = yo.getQueryString().h2;
-  if (!h2_text) h2_text = "Title Animation Test";
   const h2 = yo.add(h2_text, {
     fontSize: 0.6,
     color: yo.palette[3],
@@ -25,7 +26,7 @@ yo.newScene(async () => {
     y: -1,
   });
 
-  yo.groupFlyIn(h2, { beginDegrees: 90, beginScale: 10, t: "0.2" });
+  yo.addFlyInAnimation(h2, { beginDegrees: 90, beginScale: 10, t: "0.2" });
 
   // const bb = yo.getBoundingBox(group);
   // const center = bb.getCenter(new THREE.Vector3());

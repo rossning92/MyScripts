@@ -99,15 +99,7 @@ gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
-var lastPromise = new Promise(function (resolve, reject) {
-  resolve();
-});
-
-function runNextAsyncFunc(func) {
-  lastPromise.then(() => {
-    return func();
-  });
-}
+const sceneObjects = {};
 
 function startCapture({ resetTiming = true, name = "animation" } = {}) {
   outFileName = name;
@@ -1765,43 +1757,42 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   return tl;
 }
 
+function addFlyInAnimation(obj, params) {
+  commandList.push({ type: "animation", obj, params });
+}
+
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
-  lastPromise = lastPromise.then(() => {
-    console.log(object3D);
-    object3D = object3D.val;
+  const tl = gsap.timeline();
 
-    const tl = gsap.timeline();
+  // Animation
+  const stagger = duration / object3D.children.length / 2;
+  for (const obj of object3D.children) {
+    const vals = {
+      position: -object3D.size * 2,
+      rotation: -Math.PI / 2,
+    };
+    tl.to(
+      vals,
+      duration,
+      {
+        position: 0,
+        rotation: 0,
 
-    // Animation
-    const stagger = duration / object3D.children.length / 2;
-    object3D.children.forEach((obj, i) => {
-      const vals = {
-        position: -object3D.size * 2,
-        rotation: -Math.PI / 2,
-      };
-      tl.to(
-        vals,
-        duration,
-        {
-          position: 0,
-          rotation: 0,
-
-          ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
-          onUpdate: () => {
-            obj.position.y = vals.position;
-            obj.position.z = vals.position * 2;
-            obj.rotation.x = vals.rotation;
-          },
+        ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
+        onUpdate: () => {
+          obj.position.y = vals.position;
+          obj.position.z = vals.position * 2;
+          obj.rotation.x = vals.rotation;
         },
-        `-=${duration - stagger}`
-      );
+      },
+      `-=${duration - stagger}`
+    );
 
-      fadeIn(obj, { duration, t: "<", timeline: tl });
-    });
+    fadeIn(obj, { duration, t: "<", timeline: tl });
+  }
 
-    mainTimeline.add(tl, t);
-    // return tl;
-  });
+  mainTimeline.add(tl, t);
+  // return tl;
 }
 
 const metaData = {
@@ -1827,6 +1818,23 @@ function newScene(initFunction) {
     setupScene({ width: WIDTH, height: HEIGHT });
 
     await initFunction();
+
+    for (const cmd of commandList) {
+      if (cmd.type == "add") {
+        const mesh = await addAsync(cmd.obj, cmd.params);
+
+        sceneObjects[cmd.id] = {
+          _threeJsMesh: mesh,
+        };
+      } else if (cmd.type == "animation") {
+        groupFlyIn(
+          sceneObjects[cmd.obj]._threeJsMesh, // object GUID
+          cmd.params
+        );
+      } else {
+        throw `invalid command type: ${cmd.type}`;
+      }
+    }
 
     _addMarkerToTimeline();
 
@@ -2153,12 +2161,20 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
   return verts;
 }
 
-function add(obj, params) {
-  const ret = {};
-  lastPromise = lastPromise.then(async () => {
-    ret.val = await addAsync(obj, params);
+var commandList = [];
+
+function uuidv4() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
   });
-  return ret;
+}
+
+function add(obj, params) {
+  const guid = uuidv4();
+  commandList.push({ type: "add", obj, params, id: guid });
+  return guid;
 }
 
 async function addAsync(
@@ -2618,6 +2634,7 @@ export default {
   createExplosionAnimation,
   createGroupFlyInAnimation,
   groupFlyIn,
+  addFlyInAnimation,
   setSeed,
   getGridLayoutPositions,
   random,
@@ -2635,7 +2652,6 @@ export default {
   generateRandomString,
   setGlitch,
   setViewportSize,
-  runNextAsyncFunc,
   add,
 };
 
