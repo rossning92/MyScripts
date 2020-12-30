@@ -91,7 +91,6 @@ let options = {
 
 let subClipDurations = [];
 let currentCutPoint = 0;
-let groups = {};
 
 var gui = new dat.gui.GUI();
 gui.add(options, "format", ["gif", "webm-mediarecorder", "webm", "png"]);
@@ -99,7 +98,7 @@ gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
-const sceneObjects = {};
+const threeJsSceneObjects = {};
 
 function startCapture({ resetTiming = true, name = "animation" } = {}) {
   outFileName = name;
@@ -1344,7 +1343,7 @@ function addFlash(object3d, { speed = 4 } = {}) {
 
 function addDefaultLights() {
   if (lightGroup == null) {
-    const lightGroup = addGroup();
+    const lightGroup = addThreeJsGroup();
 
     const light0 = new THREE.PointLight(0xffffff, 1, 0);
     light0.position.set(0, 200, 0);
@@ -1823,14 +1822,15 @@ function newScene(initFunction) {
       if (cmd.type == "add") {
         const mesh = await addAsync(cmd.obj, cmd.params);
 
-        sceneObjects[cmd.id] = {
-          _threeJsMesh: mesh,
-        };
+        threeJsSceneObjects[cmd.id] = mesh;
       } else if (cmd.type == "animation") {
         groupFlyIn(
-          sceneObjects[cmd.obj]._threeJsMesh, // object GUID
+          threeJsSceneObjects[cmd.obj], // object GUID
           cmd.params
         );
+      } else if (cmd.type == "addGroup") {
+        const group = addThreeJsGroup();
+        threeJsSceneObjects[cmd.id] = group;
       } else {
         throw `invalid command type: ${cmd.type}`;
       }
@@ -2358,8 +2358,7 @@ async function addAsync(
 
   if (parent != null) {
     if (typeof parent === "string") {
-      // HACK
-      groups[parent].add(mesh);
+      threeJsSceneObjects[parent].add(mesh);
     } else {
       parent.add(mesh);
     }
@@ -2370,13 +2369,21 @@ async function addAsync(
   return mesh;
 }
 
-function addGroup(name, { x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1 } = {}) {
+function addGroup(params) {
+  const id = uuidv4();
+  commandList.push({ type: "addGroup", id, params });
+  return id;
+}
+
+function addThreeJsGroup(
+  name,
+  { x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1 } = {}
+) {
   const group = new THREE.Group();
   group.position.x = x;
   group.position.y = y;
   group.position.z = z;
 
-  groups[name] = group;
   scene.add(group);
   return group;
 }

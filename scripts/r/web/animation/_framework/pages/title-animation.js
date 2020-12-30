@@ -9,20 +9,20 @@ yo.newScene(async () => {
 
   yo.scene.background = 0;
 
-  yo.addGroup("parent");
+  const g = yo.addGroup();
 
   yo.add(h1_text, {
     y: 1,
     animation: "fadeIn|growX2",
     letterSpacing: 0.2,
-    parent: "parent",
+    parent: g,
   });
 
   const h2 = yo.add(h2_text, {
     fontSize: 0.6,
     color: yo.palette[3],
     animation: null,
-    parent: "parent",
+    parent: g,
     y: -1,
   });
 
