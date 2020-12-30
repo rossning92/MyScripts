@@ -504,7 +504,7 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
     if len(_get_audio_track(track).clips) > 0:
         if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
-            duration = (t - crossfade) - clips[-1].start
+            duration = (t + crossfade) - clips[-1].start  # extend prev clip
         elif out_duration > 0:  # Fade out
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             duration = t - clips[-1].start
