@@ -1757,7 +1757,7 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
 }
 
 function addFlyInAnimation(obj, params) {
-  commandList.push({ type: "animation", obj, params });
+  commandList.push({ type: "addAnimation", obj, params });
 }
 
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
@@ -1823,7 +1823,7 @@ function newScene(initFunction) {
         const mesh = await addAsync(cmd.obj, cmd.params);
 
         threeJsSceneObjects[cmd.id] = mesh;
-      } else if (cmd.type == "animation") {
+      } else if (cmd.type == "addAnimation") {
         groupFlyIn(
           threeJsSceneObjects[cmd.obj], // object GUID
           cmd.params
