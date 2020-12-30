@@ -1,4 +1,4 @@
-import yo, { gsap, THREE } from "yo";
+import yo from "yo";
 
 let h1_text = yo.getQueryString().h1;
 if (!h1_text) h1_text = "标题动画测试";
@@ -24,33 +24,35 @@ const h2 = yo.add(h2_text, {
 
 yo.addFlyInAnimation(h2, { beginDegrees: 90, beginScale: 10, t: "0.2" });
 
-yo.newScene(async () => {
-  yo.scene.background = 0;
+yo.run();
 
-  // const bb = yo.getBoundingBox(group);
-  // const center = bb.getCenter(new THREE.Vector3());
-  // const size = bb.getSize(new THREE.Vector3());
+// yo.newScene(async () => {
+//   yo.scene.background = 0;
 
-  // const MARGIN = 2;
-  // for (let i = 0; i < 2; i++) {
-  //   const t = i == 0 ? -1 : 1;
+//   // const bb = yo.getBoundingBox(group);
+//   // const center = bb.getCenter(new THREE.Vector3());
+//   // const size = bb.getSize(new THREE.Vector3());
 
-  //   const bracket = await yo.addAsync(i == 0 ? "{" : "}", {
-  //     x: center.x + t * size.x * 0.5,
-  //     y: 0.25,
-  //     fontSize: 1.2,
-  //     color: yo.palette[1],
-  //     animation: null,
-  //     parent: group,
-  //   });
+//   // const MARGIN = 2;
+//   // for (let i = 0; i < 2; i++) {
+//   //   const t = i == 0 ? -1 : 1;
 
-  //   yo.moveTo(bracket, {
-  //     x: center.x + t * (size.x * 0.5 + MARGIN),
-  //     duration: 2,
-  //     t: "<",
-  //   });
-  //   yo.addAnimation(bracket, "grow", { aniPos: "<" });
-  // }
+//   //   const bracket = await yo.addAsync(i == 0 ? "{" : "}", {
+//   //     x: center.x + t * size.x * 0.5,
+//   //     y: 0.25,
+//   //     fontSize: 1.2,
+//   //     color: yo.palette[1],
+//   //     animation: null,
+//   //     parent: group,
+//   //   });
 
-  // yo.moveTo(group, { scale: 1.25, t: "0.8" });
-});
+//   //   yo.moveTo(bracket, {
+//   //     x: center.x + t * (size.x * 0.5 + MARGIN),
+//   //     duration: 2,
+//   //     t: "<",
+//   //   });
+//   //   yo.addAnimation(bracket, "grow", { aniPos: "<" });
+//   // }
+
+//   // yo.moveTo(group, { scale: 1.25, t: "0.8" });
+// });

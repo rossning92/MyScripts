@@ -1805,7 +1805,7 @@ function setBloom(enabled) {
   }
 }
 
-function newScene(initFunction) {
+function newScene(initFunction = null) {
   (async () => {
     {
       let cut = getQueryString().cut;
@@ -1816,7 +1816,9 @@ function newScene(initFunction) {
 
     setupScene({ width: WIDTH, height: HEIGHT });
 
-    await initFunction();
+    if (initFunction !== null) {
+      await initFunction();
+    }
 
     for (const cmd of commandList) {
       if (cmd.type == "add") {
@@ -2622,6 +2624,7 @@ export default {
   moveCameraTo,
   createMoveToAnimation,
   newScene,
+  run: newScene,
   palette,
   randomInt,
   scene,
