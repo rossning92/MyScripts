@@ -81,7 +81,7 @@ var animationCallbacks = [];
 
 let options = {
   /* Recording options */
-  format: "png",
+  format: "webm",
   framerate: "25FPS",
   start: function () {
     startCapture();
@@ -102,7 +102,10 @@ gui.add(options, "stop");
 
 const sceneObjects = {};
 
-function startCapture({ resetTiming = true, name = "animation" } = {}) {
+function startCapture({ resetTiming = true, name = null } = {}) {
+  if (name === null) {
+    name = document.title;
+  }
   outFileName = name;
 
   if (gridHelper != null) {
