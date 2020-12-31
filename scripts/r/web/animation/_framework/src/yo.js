@@ -1835,7 +1835,7 @@ function newScene(initFunction = null) {
       });
     }
 
-    {
+    if (0) {
       // Grid helper
       const size = 20;
       const divisions = 20;

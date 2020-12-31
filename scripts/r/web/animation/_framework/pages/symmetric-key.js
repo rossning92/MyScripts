@@ -27,6 +27,7 @@ for (let i = 0; i < n; i++) {
       start: positions[i],
       end: positions[j],
       lineWidth: 0.05,
+      color: "gray",
     });
     yo.fadeIn(l, { t: 0 });
   }
