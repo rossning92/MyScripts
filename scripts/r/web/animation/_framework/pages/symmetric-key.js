@@ -1,11 +1,13 @@
 import yo from "yo";
 
-const n = 5;
+const n = 2;
 const d = 6;
 
 const positions = [];
+
+const beginAngle = Math.PI / n - Math.PI / 2;
 for (let i = 0; i < n; i++) {
-  const angle = (i / n) * Math.PI * 2;
+  const angle = (i / n) * Math.PI * 2 + beginAngle;
 
   positions.push({ x: Math.cos(angle) * d, y: Math.sin(angle) * d, z: -0.01 });
 }
