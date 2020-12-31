@@ -82,7 +82,7 @@ var animationCallbacks = [];
 let options = {
   /* Recording options */
   format: "webm",
-  framerate: "25FPS",
+  framerate: 25,
   start: function () {
     startCapture();
   },
@@ -95,8 +95,8 @@ let subClipDurations = [];
 let currentCutPoint = 0;
 
 var gui = new dat.gui.GUI();
-gui.add(options, "format", ["gif", "webm-mediarecorder", "webm", "png"]);
-gui.add(options, "framerate", ["10FPS", "25FPS", "30FPS", "60FPS", "120FPS"]);
+gui.add(options, "format", ["webm", "png"]);
+gui.add(options, "framerate", [10, 25, 30, 60, 120]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
@@ -122,7 +122,7 @@ function startCapture({ resetTiming = true, name = null } = {}) {
   capturer = new CCapture({
     verbose: true,
     display: false,
-    framerate: parseInt(options.framerate),
+    framerate: options.framerate,
     motionBlurFrames: MOTION_BLUR_SAMPLES,
     quality: 100,
     format: options.format,
