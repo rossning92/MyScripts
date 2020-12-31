@@ -201,8 +201,9 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   scene.background = 0;
 
   if (camera == null) {
-    camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 5000);
-    camera.position.set(0, 0, 10);
+    // This will ensure the size of 10 in the vertical direction.
+    camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000);
+    camera.position.set(0, 0, 8.66);
     camera.lookAt(new Vector3(0, 0, 0));
   }
 
