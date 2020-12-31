@@ -1253,8 +1253,9 @@ def _export_video(resolution=(1920, 1080)):
             ffmpeg_params=["-crf", "19"],
         )
 
-        run_in_background(
-            ["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"]
+        subprocess.Popen(
+            ["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"],
+            close_fds=True,
         )
 
 
