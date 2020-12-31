@@ -1731,6 +1731,10 @@ function addAnimation(obj, animationType, params) {
   commandList.push({ type: "addAnimation", animationType, obj, params });
 }
 
+function addEmptyAnimation(t) {
+  commandList.push({ type: "addAnimation", animationType: "empty", t });
+}
+
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
   const tl = gsap.timeline();
 
@@ -1799,6 +1803,8 @@ function newScene(initFunction = null) {
       } else if (cmd.type == "addAnimation") {
         if (cmd.animationType == "moveTo") {
           moveTo(sceneObjects[cmd.obj], cmd.params);
+        } else if (cmd.animationType == "empty") {
+          mainTimeline.set({}, {}, cmd.t);
         } else {
           gsapAddAnimation(
             sceneObjects[cmd.obj], // object GUID
@@ -2680,6 +2686,9 @@ export default {
   fadeIn: (obj, params) => {
     addAnimation(obj, "fadeIn", params);
   },
+  fadeOut: (obj, params) => {
+    addAnimation(obj, "fadeOut", params);
+  },
   flyIn: (obj, params) => {
     addAnimation(obj, "flyIn", params);
   },
@@ -2689,6 +2698,7 @@ export default {
   moveTo: (obj, params) => {
     addAnimation(obj, "moveTo", params);
   },
+  addEmptyAnimation,
 };
 
 export { THREE, gsap };
