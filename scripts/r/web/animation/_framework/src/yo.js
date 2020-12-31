@@ -1070,8 +1070,9 @@ function getAllMaterials(object3d) {
 // TODO: Deprecated
 function addFadeIn(
   object3d,
-  { duration = 0.5, ease = "power1.out", opacity = 1.0 } = {}
+  { duration = 0.25, ease = "linear", opacity = 1.0 } = {}
 ) {
+  console.log(duration);
   const tl = gsap.timeline({ defaults: { duration, ease } });
 
   const materials = getAllMaterials(object3d);
@@ -1756,8 +1757,8 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   return tl;
 }
 
-function addFlyInAnimation(obj, params) {
-  commandList.push({ type: "addAnimation", obj, params });
+function addAnimation(obj, animationType, params) {
+  commandList.push({ type: "addAnimation", animationType, obj, params });
 }
 
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
@@ -1826,8 +1827,9 @@ function newScene(initFunction = null) {
 
         sceneObjects[cmd.id] = mesh;
       } else if (cmd.type == "addAnimation") {
-        groupFlyIn(
+        gsapAddAnimation(
           sceneObjects[cmd.obj], // object GUID
+          cmd.animationType,
           cmd.params
         );
       } else if (cmd.type == "addGroup") {
@@ -2008,7 +2010,7 @@ function addText(
   });
   mesh.position.set(x, y, z);
 
-  addAnimation(mesh, { aniEnter, aniExit });
+  gsapAddAnimation(mesh, { aniEnter, aniExit });
 
   scene.add(mesh);
 
@@ -2023,10 +2025,10 @@ async function loadTexture(url) {
   });
 }
 
-function addAnimation(
+function gsapAddAnimation(
   object3d,
   animation = "fadeIn",
-  { aniPos = "+=0", aniHold = 1 } = {}
+  { t = "+=0", aniHold = 1, duration = null } = {}
 ) {
   const tl = gsap.timeline();
 
@@ -2036,7 +2038,8 @@ function addAnimation(
     // Enter animation
     animationList.forEach((animation) => {
       if (animation == "fadeIn") {
-        tl.add(addFadeIn(object3d), "<");
+        console.log(duration);
+        tl.add(addFadeIn(object3d, { duration }), "<");
       } else if (animation == "jumpIn") {
         tl.add(addJumpIn(object3d), "<");
       } else if (animation == "spinIn") {
@@ -2145,7 +2148,7 @@ function addAnimation(
   }
 
   if (tl.duration() > 0) {
-    mainTimeline.add(tl, aniPos);
+    mainTimeline.add(tl, t);
   }
 }
 
@@ -2179,6 +2182,14 @@ function add(obj, params) {
   return guid;
 }
 
+function toVector3(v) {
+  return new THREE.Vector3(
+    v.x === undefined ? 0 : v.x,
+    v.y === undefined ? 0 : v.y,
+    v.z === undefined ? 0 : v.z
+  );
+}
+
 async function addAsync(
   obj,
   {
@@ -2189,7 +2200,7 @@ async function addAsync(
     rotY = null,
     rotZ = null,
     position = null,
-    animation = "fadeIn",
+    animation = null,
     color = null,
     opacity = 1.0,
     sx = null,
@@ -2211,6 +2222,8 @@ async function addAsync(
     fontSize = 1.0,
     arrowFrom = new THREE.Vector3(0, 0, 0),
     arrowTo = new THREE.Vector3(0, 1, 0),
+    start = { x: 0, y: 0 },
+    end = { x: 0, y: 1 },
     lineWidth = 0.1,
     gridSize = 10,
     centralAngle = Math.PI * 2,
@@ -2306,8 +2319,17 @@ async function addAsync(
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "arrow") {
     mesh = createArrow({
-      from: arrowFrom,
-      to: arrowTo,
+      from: toVector3(arrowFrom),
+      to: toVector3(arrowTo),
+      color: color != null ? color : 0xffffff,
+      lineWidth,
+    });
+  } else if (obj == "line") {
+    mesh = createArrow({
+      from: toVector3(start),
+      to: toVector3(end),
+      arrowStart: false,
+      arrowEnd: false,
       color: color != null ? color : 0xffffff,
       lineWidth,
     });
@@ -2356,7 +2378,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  addAnimation(mesh, animation, { aniPos: t !== null ? t : aniPos });
+  gsapAddAnimation(mesh, animation, { aniPos: t !== null ? t : aniPos });
 
   if (parent != null) {
     if (typeof parent === "string") {
@@ -2638,13 +2660,11 @@ export default {
   getBoundingBox,
   addFlash,
   getQueryString,
-  addAnimation,
   createTriangleVertices,
   pause,
   createExplosionAnimation,
   createGroupFlyInAnimation,
   groupFlyIn,
-  addFlyInAnimation,
   setSeed,
   getGridLayoutPositions,
   random,
@@ -2663,6 +2683,20 @@ export default {
   setGlitch,
   setViewportSize,
   add,
+  rainbowPalette: [
+    "#9C4F96",
+    "#FF6355",
+    "#FBA949",
+    "#FAE442",
+    "#8BD448",
+    "#2AA8F2",
+  ],
+  fadeIn: (obj, params) => {
+    addAnimation(obj, "fadeIn", params);
+  },
+  flyIn: (obj) => {
+    addAnimation(obj, "flyIn", params);
+  },
 };
 
 export { THREE, gsap };
