@@ -474,7 +474,7 @@ def audio(
 
     audio_end(
         track=track,
-        t=t + crossfade,
+        t=t,
         move_playhead=move_playhead,
         out_duration=out_duration,
         crossfade=crossfade,
@@ -501,6 +501,7 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
         return
 
     # Fade out of previous audio clip
+    duration = None
     if len(_get_audio_track(track).clips) > 0:
         if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
@@ -509,9 +510,8 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             duration = t - clips[-1].start
 
-    duration = t - clips[-1].start
-    assert duration > 0
-    if clips[-1].duration is None:
+    if duration is not None and clips[-1].duration is None:
+        assert duration > 0
         clips[-1].duration = duration
         print2("previous clip(%s) duration updated: %.2f" % (clips[-1].file, duration))
 
@@ -1253,7 +1253,9 @@ def _export_video(resolution=(1920, 1080)):
             ffmpeg_params=["-crf", "19"],
         )
 
-        run_in_background(["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"])
+        run_in_background(
+            ["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"]
+        )
 
 
 def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
