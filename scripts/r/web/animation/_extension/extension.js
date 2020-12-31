@@ -13,7 +13,7 @@ async function openFile(filePath) {
     if (/\.(md|c|cpp|py|txt)$/g.test(filePath)) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
-    } else if (/\.(png|jpg|mp4)$/g.test(filePath)) {
+    } else if (/\.(png|jpg|mp4|webm)$/g.test(filePath)) {
       cp.spawn("mpv", ["--force-window", filePath]);
     } else if (/\.(wav|mp3|ogg)$/g.test(filePath)) {
       cp.spawn("ocenaudio", [filePath]);
@@ -193,7 +193,7 @@ function registerAutoComplete(context) {
 
         let files = [];
         const filter = (x) =>
-          /\.(png|jpg|mp4|gif|mp3|md|pptx|cpp|c|py)$/g.test(x);
+          /\.(png|jpg|mp4|webm|gif|mp3|md|pptx|cpp|c|py)$/g.test(x);
 
         getFiles(projectDir, filter, files);
         getFiles(projectDir + "/../assets", filter, files);

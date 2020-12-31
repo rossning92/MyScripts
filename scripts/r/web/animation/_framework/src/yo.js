@@ -31,6 +31,8 @@ let ENABLE_MOTION_BLUR_PASS = false;
 let MOTION_BLUR_SAMPLES = 1;
 let BLOOM_ENABLED = false;
 
+let defaultAnimation = null;
+
 var outFileName = null;
 var captureStatus;
 var globalTimeline = gsap.timeline({ onComplete: stopCapture });
@@ -1071,9 +1073,12 @@ function getAllMaterials(object3d) {
 // TODO: Deprecated
 function addFadeIn(
   object3d,
-  { duration = 0.25, ease = "linear", opacity = 1.0 } = {}
+  { duration = null, ease = "linear", opacity = 1.0 } = {}
 ) {
-  console.log(duration);
+  if (duration === null) {
+    duration = 0.25;
+  }
+
   const tl = gsap.timeline({ defaults: { duration, ease } });
 
   const materials = getAllMaterials(object3d);
@@ -1792,11 +1797,15 @@ function newScene(initFunction = null) {
 
         sceneObjects[cmd.id] = mesh;
       } else if (cmd.type == "addAnimation") {
-        gsapAddAnimation(
-          sceneObjects[cmd.obj], // object GUID
-          cmd.animationType,
-          cmd.params
-        );
+        if (cmd.animationType == "moveTo") {
+          moveTo(sceneObjects[cmd.obj], cmd.params);
+        } else {
+          gsapAddAnimation(
+            sceneObjects[cmd.obj], // object GUID
+            cmd.animationType,
+            cmd.params
+          );
+        }
       } else if (cmd.type == "addGroup") {
         const group = addThreeJsGroup();
         sceneObjects[cmd.id] = group;
@@ -2002,8 +2011,20 @@ function gsapAddAnimation(
 
     // Enter animation
     animationList.forEach((animation) => {
-      if (animation == "fadeIn") {
-        console.log(duration);
+      if (animation == "show") {
+        tl.fromTo(
+          object3d,
+          {
+            visible: false,
+          },
+          {
+            visible: true,
+            ease: "steps(1)",
+            duration: 0.01,
+          },
+          "<"
+        );
+      } else if (animation == "fadeIn") {
         tl.add(addFadeIn(object3d, { duration }), "<");
       } else if (animation == "jumpIn") {
         tl.add(addJumpIn(object3d), "<");
@@ -2185,8 +2206,6 @@ async function addAsync(
     ccw = true,
     font = null,
     fontSize = 1.0,
-    arrowFrom = new THREE.Vector3(0, 0, 0),
-    arrowTo = new THREE.Vector3(0, 1, 0),
     start = { x: 0, y: 0 },
     end = { x: 0, y: 1 },
     lineWidth = 0.1,
@@ -2195,6 +2214,10 @@ async function addAsync(
     letterSpacing = 0.05,
   } = {}
 ) {
+  if (animation === null && defaultAnimation !== null) {
+    animation = defaultAnimation;
+  }
+
   let material;
 
   if (lighting) {
@@ -2284,8 +2307,8 @@ async function addAsync(
     mesh = new THREE.Mesh(geometry, material);
   } else if (obj == "arrow") {
     mesh = createArrow({
-      from: toVector3(arrowFrom),
-      to: toVector3(arrowTo),
+      from: toVector3(start),
+      to: toVector3(end),
       color: color != null ? color : 0xffffff,
       lineWidth,
     });
@@ -2343,7 +2366,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  gsapAddAnimation(mesh, animation, { aniPos: t !== null ? t : aniPos });
+  gsapAddAnimation(mesh, animation, { t: t !== null ? t : aniPos });
 
   if (parent != null) {
     if (typeof parent === "string") {
@@ -2568,7 +2591,7 @@ function setBackgroundAlpha(alpha) {
   backgroundAlpha = alpha;
 }
 
-function setMotionBlur(v) {
+function enableMotionBlur(v = true) {
   if (v === true) {
     MOTION_BLUR_SAMPLES = 16;
   } else {
@@ -2640,7 +2663,7 @@ export default {
   addCustomAnimation,
   add2DSpinning,
   setBackgroundAlpha,
-  setMotionBlur,
+  enableMotionBlur,
   setBloom,
   generateRandomString,
   setGlitch,
@@ -2657,8 +2680,14 @@ export default {
   fadeIn: (obj, params) => {
     addAnimation(obj, "fadeIn", params);
   },
-  flyIn: (obj) => {
+  flyIn: (obj, params) => {
     addAnimation(obj, "flyIn", params);
+  },
+  setDefaultAnimation: (name) => {
+    defaultAnimation = name;
+  },
+  moveTo: (obj, params) => {
+    addAnimation(obj, "moveTo", params);
   },
 };
 

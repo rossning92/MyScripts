@@ -1253,7 +1253,7 @@ def _export_video(resolution=(1920, 1080)):
             ffmpeg_params=["-crf", "19"],
         )
 
-        open_with(f"{out_filename}.mp4")
+        run_in_background(["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"])
 
 
 def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
