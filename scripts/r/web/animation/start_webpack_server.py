@@ -24,14 +24,14 @@ def start_server(file=None, content_base=None):
     # sample_project_path = os.path.abspath("./_sample_project")
     # copy(sample_project_path + '/', project_path + '/')
 
-    env = os.environ.copy()
-    if file is not None:
-        env["ENTRY"] = file
-    if content_base is not None:
-        env["CONTENT_BASE"] = content_base
+    # env = os.environ.copy()
+    # if file is not None:
+    #     env["ENTRY"] = file
+    # if content_base is not None:
+    #     env["CONTENT_BASE"] = content_base
 
-    script = os.path.join(ANIME_ROOT, "bin", "start-app.js")
-    ps = subprocess.Popen(["node", script], env=env)
+    launch_script = os.path.join(ANIME_ROOT, "bin", "start-app.js")
+    ps = subprocess.Popen(["node", launch_script, file])
     return ps
 
 
