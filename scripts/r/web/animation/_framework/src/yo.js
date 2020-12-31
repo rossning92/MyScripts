@@ -1109,42 +1109,6 @@ function addFadeIn(
   return tl;
 }
 
-function fadeIn(
-  object3d,
-  {
-    duration = 0.5,
-    ease = "power1.out",
-    opacity = 1.0,
-    t = "+=0",
-    timeline = null,
-  } = {}
-) {
-  const tl = gsap.timeline({ defaults: { duration, ease } });
-
-  const materials = getAllMaterials(object3d);
-
-  materials.forEach((material) => {
-    material.transparent = true;
-    tl.fromTo(
-      material,
-      {
-        opacity: 0,
-      },
-      {
-        opacity,
-        duration,
-      },
-      "<"
-    );
-  });
-
-  if (timeline != null) {
-    timeline.add(tl, t);
-  } else {
-    mainTimeline.add(tl, t);
-  }
-}
-
 function setOpacity(object3d, opacity = 1.0) {
   if (object3d.material != null) {
     object3d.material.transparent = true;
@@ -1788,7 +1752,7 @@ function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
       `-=${duration - stagger}`
     );
 
-    fadeIn(obj, { duration, t: "<", timeline: tl });
+    tl.add(addFadeIn(obj, { duration }), "<");
   }
 
   mainTimeline.add(tl, t);
@@ -2625,8 +2589,6 @@ function setViewportSize(w, h) {
 export default {
   addCollapseAnimation,
   addExplosionAnimation,
-  addFadeIn,
-  fadeIn,
   addFadeOut,
   addGlitch,
   addJumpIn,
