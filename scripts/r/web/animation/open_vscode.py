@@ -13,15 +13,39 @@ subprocess.call(
     shell=True,
 )
 
-os.makedirs(os.path.join(proj_dir, "animation"), exist_ok=True)
-os.makedirs(os.path.join(proj_dir, "record"), exist_ok=True)
-os.makedirs(os.path.join(proj_dir, "tmp"), exist_ok=True)
-os.makedirs(os.path.join(proj_dir, "video"), exist_ok=True)
-os.makedirs(os.path.join(proj_dir, "screencap"), exist_ok=True)
-os.makedirs(os.path.join(proj_dir, "screenshot"), exist_ok=True)
-os.makedirs(os.path.join(proj_dir, "overlay"), exist_ok=True)
+
+for d in [
+    "animation",
+    "image",
+    "overlay",
+    "record",
+    "screencap",
+    "screenshot",
+    "tmp",
+    "video",
+]:
+    os.makedirs(os.path.join(proj_dir, d), exist_ok=True)
+
 
 # HACK:
 prepend_to_path(os.path.expandvars("%LOCALAPPDATA%\\ocenaudio"))
+
+jsconfig = os.path.join(proj_dir, "jsconfig.json")
+if not os.path.exists(""):
+    with open(jsconfig, "w") as f:
+        json.dump(
+            {
+                "compilerOptions": {
+                    "module": "commonjs",
+                    "target": "es2016",
+                    "jsx": "preserve",
+                    "baseUrl": os.path.abspath("_framework/src").replace("\\", "/"),
+                },
+                "exclude": ["node_modules", "**/node_modules/*"],
+            },
+            f,
+            indent=4,
+        )
+
 
 open_in_vscode([proj_dir, os.path.join(proj_dir, "index.md")])
