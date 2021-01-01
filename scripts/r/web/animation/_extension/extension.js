@@ -58,27 +58,20 @@ function initializeDecorations(context) {
     function highlightText(regex, color) {
       const text = activeEditor.document.getText();
 
-      let match;
       const decorations = [];
+      let match;
       while ((match = regex.exec(text))) {
         const startPos = activeEditor.document.positionAt(match.index);
         const endPos = activeEditor.document.positionAt(
           match.index + match[0].length
         );
 
-        // const myContent = new vscode.MarkdownString(
-        //   "*yoyo* [link](command:yo.hello)"
-        // );
-        // myContent.isTrusted = true;
-
         decorations.push({
           range: new vscode.Range(startPos, endPos),
-          // hoverMessage: myContent,
         });
       }
       activeEditor.setDecorations(
         vscode.window.createTextEditorDecorationType({
-          // cursor: "crosshair",
           color,
         }),
         decorations
