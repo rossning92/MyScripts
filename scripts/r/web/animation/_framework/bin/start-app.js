@@ -17,6 +17,7 @@ const server = new WebpackDevServer(compiler, {
   contentBase: process.env.CONTENT_BASE
     ? process.env.CONTENT_BASE
     : path.dirname(animationScript),
+  stats: "minimal",
 });
 
 server.listen(8080, "localhost", () => {

@@ -65,5 +65,6 @@ module.exports = (env) => {
         "node_modules",
       ],
     },
+    stats: "errors-only",
   };
 };
