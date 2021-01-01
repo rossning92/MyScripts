@@ -8,18 +8,18 @@ def start_server(file=None, content_base=None):
         call_echo("yarn install", cwd=ANIME_ROOT)
         call_echo("yarn link", cwd=ANIME_ROOT)
 
-    if 0:  # To enable code suggestions and completion in vscode
-        if not os.path.exists("package.json"):
-            with open("package.json", "w") as f:
-                f.write(
-                    "{\n"
-                    '"name": "animation"\n'
-                    '"version": "1.0.0"\n'
-                    '"main": "index.js"\n'
-                    '"license": "MIT"\n'
-                    "}\n"
-                )
-            call_echo("yarn link yo")
+    # if 0:  # To enable code suggestions and completion in vscode
+    #     if not os.path.exists("package.json"):
+    #         with open("package.json", "w") as f:
+    #             f.write(
+    #                 "{\n"
+    #                 '"name": "animation"\n'
+    #                 '"version": "1.0.0"\n'
+    #                 '"main": "index.js"\n'
+    #                 '"license": "MIT"\n'
+    #                 "}\n"
+    #             )
+    #         call_echo("yarn link yo")
 
     # sample_project_path = os.path.abspath("./_sample_project")
     # copy(sample_project_path + '/', project_path + '/')
