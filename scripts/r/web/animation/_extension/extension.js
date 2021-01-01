@@ -44,10 +44,6 @@ async function openFileUnderCursor() {
 function initializeDecorations(context) {
   let timeout = undefined;
 
-  const decorationType = vscode.window.createTextEditorDecorationType({
-    // cursor: "crosshair",
-    color: "#c0392b",
-  });
   let activeEditor = vscode.window.activeTextEditor;
 
   function updateDecorations() {
@@ -59,30 +55,38 @@ function initializeDecorations(context) {
       return;
     }
 
-    const regEx = /{{\s*record\(.*?\)\s*}}/g;
-    const text = activeEditor.document.getText();
-    const recordStrings = [];
+    function highlightText(regex, color) {
+      const text = activeEditor.document.getText();
 
-    let match;
-    while ((match = regEx.exec(text))) {
-      const startPos = activeEditor.document.positionAt(match.index);
-      const endPos = activeEditor.document.positionAt(
-        match.index + match[0].length
+      let match;
+      const decorations = [];
+      while ((match = regex.exec(text))) {
+        const startPos = activeEditor.document.positionAt(match.index);
+        const endPos = activeEditor.document.positionAt(
+          match.index + match[0].length
+        );
+
+        // const myContent = new vscode.MarkdownString(
+        //   "*yoyo* [link](command:yo.hello)"
+        // );
+        // myContent.isTrusted = true;
+
+        decorations.push({
+          range: new vscode.Range(startPos, endPos),
+          // hoverMessage: myContent,
+        });
+      }
+      activeEditor.setDecorations(
+        vscode.window.createTextEditorDecorationType({
+          // cursor: "crosshair",
+          color,
+        }),
+        decorations
       );
-
-      // const myContent = new vscode.MarkdownString(
-      //   "*yoyo* [link](command:yo.hello)"
-      // );
-      // myContent.isTrusted = true;
-      const decoration = {
-        range: new vscode.Range(startPos, endPos),
-        // hoverMessage: myContent,
-      };
-
-      recordStrings.push(decoration);
     }
 
-    activeEditor.setDecorations(decorationType, recordStrings);
+    highlightText(/{{\s*record\(.*?\)\s*}}/g, "#c0392b");
+    highlightText(/{{\s*clip\(.*?\)\s*}}/g, "#0000ff");
   }
 
   function triggerUpdateDecorations() {
