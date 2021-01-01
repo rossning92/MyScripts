@@ -2,11 +2,13 @@ from _shutil import *
 
 
 def start_server(file=None, content_base=None):
-    ANIME_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "_framework")
+    FRAMEWORK_ROOT = os.path.join(
+        os.path.realpath(os.path.dirname(__file__)), "_framework"
+    )
 
-    if not os.path.exists(os.path.join(ANIME_ROOT, "node_modules")):
-        call_echo("yarn install", cwd=ANIME_ROOT)
-        call_echo("yarn link", cwd=ANIME_ROOT)
+    if not os.path.exists(os.path.join(FRAMEWORK_ROOT, "node_modules")):
+        call_echo("yarn install", cwd=FRAMEWORK_ROOT)
+        call_echo("yarn link", cwd=FRAMEWORK_ROOT)
 
     # if 0:  # To enable code suggestions and completion in vscode
     #     if not os.path.exists("package.json"):
@@ -30,7 +32,7 @@ def start_server(file=None, content_base=None):
     # if content_base is not None:
     #     env["CONTENT_BASE"] = content_base
 
-    launch_script = os.path.join(ANIME_ROOT, "bin", "start-app.js")
+    launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "start-app.js")
     ps = subprocess.Popen(["node", launch_script, file])
     return ps
 
