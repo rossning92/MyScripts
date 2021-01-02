@@ -85,7 +85,7 @@ function exportVideo(params) {
     var fastSeekPos = Math.max(0, params.start - 10);
     if (fastSeekPos > 0) {
       params.start = params.start - fastSeekPos;
-      args = args.concat(["-ss", fastSeekPos]);
+      args = args.concat(["-ss", fastSeekPos.toString()]);
     }
   }
 
