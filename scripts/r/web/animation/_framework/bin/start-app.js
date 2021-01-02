@@ -13,26 +13,12 @@ const config = require("../webpack.config.js")({
 const compiler = webpack(config);
 
 const server = new WebpackDevServer(compiler, {
-  open: false,
   contentBase: process.env.CONTENT_BASE
     ? process.env.CONTENT_BASE
     : path.dirname(animationScript),
   stats: "minimal",
+  open: true,
+  openPage: path.basename(animationScript, ".js") + ".html",
 });
 
-server.listen(8080, "localhost", () => {
-  if (animationScript) {
-    const url =
-      "http://localhost:8080/" +
-      path.basename(animationScript, ".js") +
-      ".html";
-
-    // const start =
-    //   process.platform == "darwin"
-    //     ? "open"
-    //     : process.platform == "win32"
-    //     ? "start"
-    //     : "xdg-open";
-    // require("child_process").exec(start + " " + url);
-  }
-});
+server.listen();

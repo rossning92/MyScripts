@@ -42,21 +42,21 @@
         "title": "VideoTool: Open File Under Cursor"
       },
       {
-				"command": "yo.insertAllClipsInFolder",
-				"title": "VideoTool: Insert All Clips In Folder"
+        "command": "yo.insertAllClipsInFolder",
+        "title": "VideoTool: Insert All Clips In Folder"
       },
       {
-				"command": "yo.removeUnusedRecordings",
-				"title": "VideoTool: Remove Unused Recordings"
+        "command": "yo.removeUnusedRecordings",
+        "title": "VideoTool: Remove Unused Recordings"
       },
       {
-				"command": "yo.showStats",
-				"title": "VideoTool: Show Stats"
+        "command": "yo.showStats",
+        "title": "VideoTool: Show Stats"
       },
       {
-				"command": "yo.createSlide",
-				"title": "VideoTool: Create Slide"
-			}
+        "command": "yo.createSlide",
+        "title": "VideoTool: Create Slide"
+      }
     ],
     "keybindings": [
       {

@@ -1,4 +1,5 @@
 from _shutil import *
+import argparse
 
 
 def start_server(file=None, content_base=None):
@@ -38,11 +39,21 @@ def start_server(file=None, content_base=None):
 
 
 if __name__ == "__main__":
-    f = get_files()[0]
-    ps = start_server(f)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "file", type=str, help="animation js file", nargs="?", default=None
+    )
 
-    url = "http://localhost:8080/%s.html" % os.path.splitext(os.path.basename(f))[0]
-    shell_open(url)
+    args = parser.parse_args()
+    if args.file is not None:
+        file = args.file
+    else:
+        file = get_files()[0]
+
+    ps = start_server(file)
+
+    # url = "http://localhost:8080/%s.html" % os.path.splitext(os.path.basename(file))[0]
+    # shell_open(url)
 
     try:
         ps.wait()

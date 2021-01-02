@@ -24,19 +24,21 @@ async function openFile(filePath) {
 }
 
 async function openFileUnderCursor() {
-  if (!isDocumentActive) {
-    return;
-  }
-
   const editor = vscode.window.activeTextEditor;
+  if (editor == null) return;
 
-  if (editor.selection.isEmpty) {
-    const position = editor.selection.active;
-    const line = editor.document.lineAt(position).text;
-    const found = line.match(/'(.*?)'/);
-    if (found !== null) {
-      const filePath = path.resolve(path.join(getProjectDir(), found[1]));
-      openFile(filePath);
+  const activeFile = vscode.window.activeTextEditor.document.fileName;
+  if (/animation[\\\/][a-zA-Z-_]+\.js$/.test(activeFile)) {
+    startAnimationServer(activeFile);
+  } else if (isDocumentActive()) {
+    if (editor.selection.isEmpty) {
+      const position = editor.selection.active;
+      const line = editor.document.lineAt(position).text;
+      const found = line.match(/'(.*?)'/);
+      if (found !== null) {
+        const filePath = path.resolve(path.join(getProjectDir(), found[1]));
+        openFile(filePath);
+      }
     }
   }
 }
@@ -304,6 +306,24 @@ function writeTempTextFile(text) {
   });
 
   return file;
+}
+
+function startAnimationServer(activeFile) {
+  const shellArgs = [
+    "/c",
+    "run_script",
+    "/r/web/animation/start_animation_server",
+    "--",
+    activeFile,
+    "||",
+    "pause",
+  ];
+  const terminal = vscode.window.createTerminal({
+    name: "AnimationServer",
+    shellPath: "cmd.exe",
+    shellArgs,
+  });
+  terminal.show();
 }
 
 function export_animation({ extraArgs = null, selectedText = true } = {}) {
