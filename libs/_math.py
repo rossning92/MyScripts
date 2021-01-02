@@ -28,12 +28,19 @@ def save_fig(out_file="figure.png", open_file=True, size_inch=None, dpi=300):
         os.system('start "" "%s"' % out_file)
 
 
-def setup_plt_style():
-    plt.style.use("fivethirtyeight")
+def setup_plt_style(dark=False, cn=False, size_inch=None):
+    if dark:
+        plt.style.use("dark_background")
+    else:
+        plt.style.use("fivethirtyeight")
 
+    if cn:
+        matplotlib.rcParams["font.family"] = "Microsoft YaHei"
+        matplotlib.rcParams["font.sans-serif"] = ["Microsoft YaHei"]  # 更新字体格式
 
-def use_dark_theme():
-    plt.style.use("dark_background")
+    if size_inch:
+        plt.gcf().set_size_inches(size_inch[0], size_inch[1])
+        # plt.gcf().tight_layout()
 
 
 def read_csv(csv_files):
