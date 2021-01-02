@@ -509,6 +509,8 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
         elif out_duration > 0:  # Fade out
             _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
             duration = t - clips[-1].start
+        else:
+            duration = t - clips[-1].start
 
     if duration is not None and clips[-1].duration is None:
         assert duration > 0

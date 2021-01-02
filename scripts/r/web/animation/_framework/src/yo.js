@@ -1129,8 +1129,29 @@ function setOpacity(object3d, opacity = 1.0) {
   });
 }
 
-function addFadeOut(object3d) {
-  return addFadeIn(object3d).reverse();
+function createFadeOutAnimation(
+  obj,
+  { duration = null, ease = "linear" } = {}
+) {
+  if (duration === null) {
+    duration = 0.25;
+  }
+
+  const tl = gsap.timeline({ defaults: { duration, ease } });
+
+  const materials = getAllMaterials(obj);
+  materials.forEach((material) => {
+    material.transparent = true;
+    tl.to(
+      material,
+      {
+        opacity: 0,
+      },
+      "<"
+    );
+  });
+
+  return tl;
 }
 
 function addJumpIn(object3d, { ease = "elastic.out(1, 0.2)" } = {}) {
@@ -1808,6 +1829,14 @@ function newScene(initFunction = null) {
           moveTo(sceneObjects[cmd.obj], cmd.params);
         } else if (cmd.animationType == "empty") {
           mainTimeline.set({}, {}, cmd.t);
+        } else if (cmd.animationType == "pause") {
+          mainTimeline.set({}, {}, "+=" + cmd.duration.toString());
+        } else if (cmd.animationType == "fadeOutAll") {
+          const tl = gsap.timeline();
+          for (const [_, obj] of Object.entries(sceneObjects)) {
+            tl.add(createFadeOutAnimation(obj), "<");
+          }
+          mainTimeline.add(tl, cmd.t);
         } else {
           gsapAddAnimation(
             sceneObjects[cmd.obj], // object GUID
@@ -2069,8 +2098,8 @@ function gsapAddAnimation(
         tl.from(object3d.scale, { x: 0.01, ease: "back.out" }, "<");
       } else if (animation == "growY3") {
         tl.from(object3d.scale, { y: 0.01, ease: "back.out" }, "<");
-      } else if (animation == "type" || animation == "fastType") {
-        const speed = animation == "fastType" ? 0.005 : 0.01;
+      } else if (animation == "type" || animation == "type2") {
+        const speed = animation == "type2" ? 0.005 : 0.01;
         object3d.children.forEach((x, i) => {
           tl.fromTo(
             x,
@@ -2221,6 +2250,7 @@ async function addAsync(
     gridSize = 10,
     centralAngle = Math.PI * 2,
     letterSpacing = 0.05,
+    duration = null,
   } = {}
 ) {
   if (animation === null && defaultAnimation !== null) {
@@ -2375,7 +2405,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  gsapAddAnimation(mesh, animation, { t: t !== null ? t : aniPos });
+  gsapAddAnimation(mesh, animation, { t, duration });
 
   if (parent != null) {
     if (typeof parent === "string") {
@@ -2478,8 +2508,12 @@ function getQueryString(url) {
   return obj;
 }
 
-function pause(t) {
-  mainTimeline.set({}, {}, "+=" + t.toString());
+function pause(duration) {
+  commandList.push({
+    type: "addAnimation",
+    animationType: "pause",
+    duration,
+  });
 }
 
 var seedrandom = require("seedrandom");
@@ -2622,7 +2656,7 @@ function setViewportSize(w, h) {
 export default {
   addCollapseAnimation,
   addExplosionAnimation,
-  addFadeOut,
+  createFadeOutAnimation,
   addGlitch,
   addJumpIn,
   addLights: addDefaultLights,
@@ -2702,6 +2736,9 @@ export default {
     addAnimation(obj, "moveTo", params);
   },
   addEmptyAnimation,
+  fadeOutAll: (params) => {
+    addAnimation(null, "fadeOutAll", params);
+  },
 };
 
 export { THREE, gsap };
