@@ -2251,6 +2251,7 @@ async function addAsync(
     centralAngle = Math.PI * 2,
     letterSpacing = 0.05,
     duration = null,
+    type = null,
   } = {}
 ) {
   if (animation === null && defaultAnimation !== null) {
@@ -2278,7 +2279,21 @@ async function addAsync(
   }
 
   let mesh;
-  if (obj.endsWith(".svg")) {
+  if (type == "tex") {
+    const canvas = await tex2canvas(obj);
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+      transparent: true,
+    });
+
+    const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
+    mesh = new THREE.Mesh(geometry, material);
+
+    mesh.scale.x = texture.image.width / 120;
+    mesh.scale.y = texture.image.height / 120;
+  } else if (obj.endsWith(".svg")) {
     mesh = await loadSVG(obj, { isCCW: ccw, color });
     scene.add(mesh);
   } else if (obj.endsWith(".png") || obj.endsWith(".jpg")) {
@@ -2742,3 +2757,33 @@ export default {
 };
 
 export { THREE, gsap };
+
+// TODO: update to MathJax3
+async function tex2canvas(formula) {
+  formula = "\\(\\color{white}{" + formula + "}\\)";
+  return new Promise((resolve, reject) => {
+    MathJax.Hub.Queue(function () {
+      var wrapper = MathJax.HTML.Element("span", {}, formula);
+      MathJax.Hub.Typeset(wrapper, function () {
+        console.log(wrapper);
+        var svg = wrapper.getElementsByTagName("svg")[0];
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        var image = new Image();
+        image.src =
+          "data:image/svg+xml;base64," +
+          window.btoa(unescape(encodeURIComponent(svg.outerHTML)));
+        image.onload = function () {
+          var canvas = document.createElement("canvas");
+
+          // HACK: scale
+          canvas.width = image.width * 10;
+          canvas.height = image.height * 10;
+          var context = canvas.getContext("2d");
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          // var img = '<img src="' + canvas.toDataURL("image/png") + '"/>';
+          resolve(canvas);
+        };
+      });
+    });
+  });
+}

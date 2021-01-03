@@ -1,25 +1,40 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title><%= htmlWebpackPlugin.options.title %></title>
     <style>
-      body {
-        /* padding: 0; */
-        /* margin: 0; */
-        height: 95vh;
+        body {
+          /* padding: 0; */
+          /* margin: 0; */
+          height: 95vh;
+        }
+        canvas {
+          display: block;
+          width: auto !important;
+          height: auto !important;
+          max-width: 95%;
+          max-height: 95%;
+          margin-left: auto;
+          margin-right: auto;
+        }
       }
-			canvas {
-        display: block;
-        width: auto !important; 
-        height: auto !important;
-        max-width: 95%;
-        max-height: 95%;
-        margin-left: auto;
-        margin-right: auto;
-      }
-		</style>
+    </style>
+  </head>
   <body>
-  <script src="https://cdn.rawgit.com/spite/ccapture.js/0bb38d6f/build/CCapture.all.min.js"></script>
+    <script src="https://cdn.rawgit.com/spite/ccapture.js/0bb38d6f/build/CCapture.all.min.js"></script>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
+    <script>
+      window.MathJax = {
+        jax: ["input/TeX", "output/SVG"],
+        extensions: ["tex2jax.js"],
+        SVG: {
+          useGlobalCache: false,
+          // scale: 120,
+        },
+        loader: { load: ["[tex]/color"] },
+        tex: { packages: { "[+]": ["color"] } },
+      };
+    </script>
   </body>
 </html>
