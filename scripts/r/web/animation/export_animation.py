@@ -846,7 +846,7 @@ def _add_video_clip(
         _pos_dict["vs"] = t
 
     clip_info = _VideoClipInfo()
-    clip_info.file = file
+    clip_info.file = os.path.abspath(file)
     clip_info.start = t
     clip_info.pos = pos
     clip_info.speed = speed

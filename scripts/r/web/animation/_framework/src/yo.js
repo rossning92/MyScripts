@@ -147,14 +147,14 @@ function stopCapture() {
     capturer = null;
     captureStatus.innerText = "stopped";
 
-    var FileSaver = require("file-saver");
-    var blob = new Blob([JSON.stringify(metaData)], {
-      type: "text/plain;charset=utf-8",
-    });
-    FileSaver.saveAs(
-      blob,
-      outFileName != null ? outFileName + ".json" : "animation-meta-file.json"
-    );
+    // var FileSaver = require("file-saver");
+    // var blob = new Blob([JSON.stringify(metaData)], {
+    //   type: "text/plain;charset=utf-8",
+    // });
+    // FileSaver.saveAs(
+    //   blob,
+    //   outFileName != null ? outFileName + ".json" : "animation-meta-file.json"
+    // );
   }
 }
 
