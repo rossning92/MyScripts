@@ -8,6 +8,7 @@ from importlib.abc import MetaPathFinder
 PYTHON_MODULE_LIST = {
     "cv2": "opencv-python",
     "filelock": "filelock",  # a platform independent file lock.
+    "Flask": "Flask",
     "jieba": "jieba",
     "jinja2": "jinja2",
     "keyboard": "keyboard",
@@ -25,8 +26,8 @@ PYTHON_MODULE_LIST = {
     "pyscreenshot": "pyscreenshot",
     "requests": "requests",
     "scipy": "scipy",
-    "selenium": "selenium",
     "scrapy": "Scrapy",
+    "selenium": "selenium",
     "skimage": "scikit-image",
     "slugify": "python-slugify,",
     "websockets": "websockets",
