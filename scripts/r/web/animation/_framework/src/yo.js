@@ -1836,7 +1836,7 @@ function newScene(initFunction = null) {
           for (const [_, obj] of Object.entries(sceneObjects)) {
             tl.add(createFadeOutAnimation(obj), "<");
           }
-          mainTimeline.add(tl, cmd.t);
+          mainTimeline.add(tl, cmd.params ? cmd.params.t : null);
         } else {
           gsapAddAnimation(
             sceneObjects[cmd.obj], // object GUID

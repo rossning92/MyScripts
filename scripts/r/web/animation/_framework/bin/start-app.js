@@ -13,9 +13,12 @@ const config = require("../webpack.config.js")({
 const compiler = webpack(config);
 
 const server = new WebpackDevServer(compiler, {
-  contentBase: process.env.CONTENT_BASE
-    ? process.env.CONTENT_BASE
-    : path.dirname(animationScript),
+  contentBase: [
+    process.env.CONTENT_BASE
+      ? process.env.CONTENT_BASE
+      : path.dirname(animationScript),
+    path.resolve(__dirname, "../node_modules/ccapture.js/build"),
+  ],
   stats: "minimal",
   open: true,
   openPage: path.basename(animationScript, ".js") + ".html",

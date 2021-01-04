@@ -1,13 +1,8 @@
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const fs = require("fs");
 
-const plugins = [
-  new MiniCssExtractPlugin({
-    filename: "style.css",
-  }),
-];
+const plugins = [];
 
 // Setup HtmlWebpackPlugin for all found entries. Automatically search all
 // files under `./src/pages` folder and added as webpack entries.
@@ -49,14 +44,6 @@ module.exports = (env) => {
   return {
     entry: entries,
     plugins: plugins,
-    module: {
-      rules: [
-        {
-          test: /\.css$/i,
-          use: [MiniCssExtractPlugin.loader, "css-loader"],
-        },
-      ],
-    },
     mode: "development",
     resolve: {
       modules: [
@@ -65,6 +52,5 @@ module.exports = (env) => {
         "node_modules",
       ],
     },
-    stats: "errors-only",
   };
 };
