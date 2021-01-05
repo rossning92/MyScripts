@@ -288,3 +288,27 @@ def extract_imgs(f, fps=1, out_folder="out"):
             os.path.join(out_folder, "%04d.jpg"),
         ]
     )
+
+
+def generate_video_preview(in_file, out_file):
+    print(out_file)
+    subprocess.check_call(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "panic",
+            "-ss",
+            "10",
+            "-i",
+            in_file,
+            "-vf",
+            "scale=w=960:h=540:force_original_aspect_ratio=1,pad=960:540:(ow-iw)/2:(oh-ih)/2",
+            # "scale=-2:480",
+            "-vframes",
+            "1",
+            out_file,
+        ]
+    )
+    return out_file
+

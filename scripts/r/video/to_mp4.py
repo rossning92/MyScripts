@@ -2,7 +2,9 @@ from _shutil import *
 from _video import *
 from r.open_with.open_with_ import open_with
 
-crop_rect = [int(x) for x in "{{_CROP_RECT}}".split()[0:4]] if "{{_CROP_RECT}}" else None
+crop_rect = (
+    [int(x) for x in "{{_CROP_RECT}}".split()[0:4]] if "{{_CROP_RECT}}" else None
+)
 files = get_files(cd=True)
 
 for f in files:
@@ -10,7 +12,7 @@ for f in files:
         continue
 
     mkdir("out")
-    out_file = "out/%s" % os.path.basename(f)
+    out_file = "out/%s.mp4" % os.path.basename(os.path.splitext(f)[0])
 
     extra_args = []
 
@@ -31,9 +33,9 @@ for f in files:
 
     elif "{{_CROP_TO_1080P}}":
         filter_v.append("scale=1920:-2,pad=1920:1080:0:0")
-    
+
     elif "{{_PAD_TO_1080P}}":
-         filter_v.append("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:white")
+        filter_v.append("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:white")
 
     if "{{_ROTATE_CW}}":
         filter_v.append("transpose=1")
