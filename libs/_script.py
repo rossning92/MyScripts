@@ -673,6 +673,7 @@ class Script:
                                 cwd=cwd,
                                 title=self.get_console_title(),
                                 wsl=self.meta["wsl"],
+                                always_on_top=True,
                             )
                         else:
                             raise Exception(

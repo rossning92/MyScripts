@@ -51,6 +51,7 @@ PKGS = {
         "audacity",
         "autohotkey",
         "blender",
+        "bulkrenameutility",
         "carnac",
         "docker-desktop",
         "epicgameslauncher",

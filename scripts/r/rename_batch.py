@@ -15,6 +15,15 @@ def wait_until_file_modified(f):
 files = get_files(cd=True, ignore_dirs=False)
 files = sorted(files)
 
+# sub_files = []
+# for f in files:
+#     if os.path.isdir(f):
+#         sub_files.extend(glob.glob(os.path.join(f, "*")))
+
+# print(sub_files)
+# files = sub_files
+
+
 tmp_file = write_temp_file("\n".join(files), ".txt")
 open_in_vscode(tmp_file)
 
