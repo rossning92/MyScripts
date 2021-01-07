@@ -1755,10 +1755,6 @@ function addAnimation(obj, animationType, params) {
   commandList.push({ type: "addAnimation", animationType, obj, params });
 }
 
-function addEmptyAnimation(t) {
-  commandList.push({ type: "addAnimation", animationType: "empty", t });
-}
-
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
   const tl = gsap.timeline();
 
@@ -1820,30 +1816,11 @@ function newScene(initFunction = null) {
     }
 
     for (const cmd of commandList) {
-      if (cmd.type == "add") {
+      if (typeof cmd === "function") {
+        cmd();
+      } else if (cmd.type == "add") {
         const mesh = await addAsync(cmd.obj, cmd.params);
-
         sceneObjects[cmd.id] = mesh;
-      } else if (cmd.type == "addAnimation") {
-        if (cmd.animationType == "moveTo") {
-          moveTo(sceneObjects[cmd.obj], cmd.params);
-        } else if (cmd.animationType == "empty") {
-          mainTimeline.set({}, {}, cmd.t);
-        } else if (cmd.animationType == "pause") {
-          mainTimeline.set({}, {}, "+=" + cmd.duration.toString());
-        } else if (cmd.animationType == "fadeOutAll") {
-          const tl = gsap.timeline();
-          for (const [_, obj] of Object.entries(sceneObjects)) {
-            tl.add(createFadeOutAnimation(obj), "<");
-          }
-          mainTimeline.add(tl, cmd.params ? cmd.params.t : null);
-        } else {
-          gsapAddAnimation(
-            sceneObjects[cmd.obj], // object GUID
-            cmd.animationType,
-            cmd.params
-          );
-        }
       } else if (cmd.type == "addGroup") {
         const group = addThreeJsGroup();
         sceneObjects[cmd.id] = group;
@@ -2523,14 +2500,6 @@ function getQueryString(url) {
   return obj;
 }
 
-function pause(duration) {
-  commandList.push({
-    type: "addAnimation",
-    animationType: "pause",
-    duration,
-  });
-}
-
 var seedrandom = require("seedrandom");
 var rng = seedrandom("hello.");
 
@@ -2705,7 +2674,6 @@ export default {
   addFlash,
   getQueryString,
   createTriangleVertices,
-  pause,
   createExplosionAnimation,
   createGroupFlyInAnimation,
   groupFlyIn,
@@ -2735,24 +2703,47 @@ export default {
     "#8BD448",
     "#2AA8F2",
   ],
+  pause: (duration) => {
+    commandList.push(() => {
+      mainTimeline.set({}, {}, "+=" + duration.toString());
+    });
+  },
   fadeIn: (obj, params) => {
-    addAnimation(obj, "fadeIn", params);
+    commandList.push(() => {
+      gsapAddAnimation(sceneObjects[obj], "fadeIn", params);
+    });
   },
   fadeOut: (obj, params) => {
-    addAnimation(obj, "fadeOut", params);
+    commandList.push(() => {
+      gsapAddAnimation(sceneObjects[obj], "fadeOut", params);
+    });
   },
   flyIn: (obj, params) => {
-    addAnimation(obj, "flyIn", params);
+    commandList.push(() => {
+      gsapAddAnimation(sceneObjects[obj], "flyIn", params);
+    });
   },
   setDefaultAnimation: (name) => {
     defaultAnimation = name;
   },
   moveTo: (obj, params) => {
-    addAnimation(obj, "moveTo", params);
+    commandList.push(() => {
+      moveTo(sceneObjects[obj], params);
+    });
   },
-  addEmptyAnimation,
-  fadeOutAll: (params) => {
-    addAnimation(null, "fadeOutAll", params);
+  addEmptyAnimation: (t) => {
+    commandList.push(() => {
+      mainTimeline.set({}, {}, t);
+    });
+  },
+  fadeOutAll: ({ t = null } = {}) => {
+    commandList.push(() => {
+      const tl = gsap.timeline();
+      for (const [_, obj] of Object.entries(sceneObjects)) {
+        tl.add(createFadeOutAnimation(obj), "<");
+      }
+      mainTimeline.add(tl, t);
+    });
   },
 };
 
