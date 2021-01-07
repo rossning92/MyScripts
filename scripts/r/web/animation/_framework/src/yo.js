@@ -1751,10 +1751,6 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
   return tl;
 }
 
-function addAnimation(obj, animationType, params) {
-  commandList.push({ type: "addAnimation", animationType, obj, params });
-}
-
 function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
   const tl = gsap.timeline();
 
@@ -1999,7 +1995,7 @@ function addText(
   });
   mesh.position.set(x, y, z);
 
-  gsapAddAnimation(mesh, { aniEnter, aniExit });
+  addAnimation(mesh, { aniEnter, aniExit });
 
   scene.add(mesh);
 
@@ -2014,7 +2010,7 @@ async function loadTexture(url) {
   });
 }
 
-function gsapAddAnimation(
+function addAnimation(
   object3d,
   animation = "fadeIn",
   { t = "+=0", aniHold = 1, duration = null } = {}
@@ -2397,7 +2393,7 @@ async function addAsync(
   if (rotY != null) mesh.rotation.y = rotY;
   if (rotZ != null) mesh.rotation.z = rotZ;
 
-  gsapAddAnimation(mesh, animation, { t, duration });
+  addAnimation(mesh, animation, { t, duration });
 
   if (parent != null) {
     if (typeof parent === "string") {
@@ -2710,17 +2706,17 @@ export default {
   },
   fadeIn: (obj, params) => {
     commandList.push(() => {
-      gsapAddAnimation(sceneObjects[obj], "fadeIn", params);
+      addAnimation(sceneObjects[obj], "fadeIn", params);
     });
   },
   fadeOut: (obj, params) => {
     commandList.push(() => {
-      gsapAddAnimation(sceneObjects[obj], "fadeOut", params);
+      addAnimation(sceneObjects[obj], "fadeOut", params);
     });
   },
   flyIn: (obj, params) => {
     commandList.push(() => {
-      gsapAddAnimation(sceneObjects[obj], "flyIn", params);
+      addAnimation(sceneObjects[obj], "flyIn", params);
     });
   },
   setDefaultAnimation: (name) => {
