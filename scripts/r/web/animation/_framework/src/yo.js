@@ -2664,7 +2664,6 @@ export default {
   tl: globalTimeline,
   createArrow,
   addText,
-  addAsync,
   addGroup,
   getBoundingBox,
   addFlash,
