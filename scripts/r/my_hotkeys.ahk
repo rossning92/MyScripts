@@ -9,6 +9,7 @@ SetCapsLockState, AlwaysOff
 
 WindowList := {}
 CurrentDesktop := 0
+WindowDividor := 2/3
 
 CONSOLE_WINDOW = my_scripts_console
 
@@ -141,8 +142,17 @@ return
     SetTimer, AutoUpdateWindowPos, Off
 return
 
-$!1::SetWindowPosF("A", 0, 0, 2/3, 1)
-$!2::SetWindowPosF("A", 2/3, 0, 1-2/3, 1)
+$!`::
+    if (WindowDividor = 2/3) {
+        WindowDividor := 1/2
+
+    } else {
+        WindowDividor := 2/3
+    }
+return
+
+$!1::SetWindowPosF("A", 0, 0, WindowDividor, 1)
+$!2::SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
 
 $!3::SetWindowPos("A", 0, 0, 1920, 1080)
 $!4::SetWindowPos("A", 0, 0, 1440, 810)
