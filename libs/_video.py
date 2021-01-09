@@ -3,6 +3,7 @@ import os
 import shlex
 import sys
 import glob
+from _shutil import get_temp_file_name
 
 
 def generate_video_matrix(
@@ -312,3 +313,24 @@ def generate_video_preview(in_file, out_file):
     )
     return out_file
 
+
+def remove_audio(in_file, out_file=None):
+    if out_file is None:
+        _, ext = os.path.splitext(in_file)
+        out_file = get_temp_file_name(ext)
+
+    subprocess.check_call(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "panic",
+            "-i",
+            in_file,
+            "-c:v",
+            "copy",
+            "-an",
+            out_file,
+        ]
+    )
+    return out_file

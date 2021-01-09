@@ -1,6 +1,6 @@
 from _shutil import *
 from _term import *
-from _video import ffmpeg
+from _video import ffmpeg, remove_audio
 import keyboard
 import pyautogui
 import argparse
@@ -131,10 +131,14 @@ if __name__ == "__main__":
     # Save file
     name = input("input file name (no ext): ")
     if name:
-        dst_file = os.path.join(out_dir, "%s.mp4" % slugify(name))
+        dst_file = get_temp_file_name(".mp4")
         sr.save_record(dst_file)
-        print2("File saved: %s" % dst_file, color="green")
 
+        src_file = dst_file
+        dst_file = os.path.join(out_dir, "%s.mp4" % slugify(name))
+        remove_audio(src_file, dst_file)
+
+        print2("File saved: %s" % dst_file, color="green")
         call_echo(["mpv", dst_file])
         # edit_video(dst_file)
 
