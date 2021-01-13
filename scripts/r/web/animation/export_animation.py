@@ -1132,10 +1132,12 @@ def _export_video(resolution=(1920, 1080)):
                 audio_clips.append(audio_clip)
 
             # Increase duration for crossfade?
-            EPSILON = 0  # To avoid float point error
             fade_duration = track[i + 1].crossfade if (i < len(track) - 1) else 0
             if fade_duration:
-                clip_info.duration += fade_duration + EPSILON
+                clip_info.duration += fade_duration
+
+            EPSILON = 0.1  # HACK: to avoid float point error
+            clip_info.duration += EPSILON
 
             clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
 
