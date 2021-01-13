@@ -49,6 +49,10 @@ Audacity:
   executable:
     - C:\Program Files (x86)\Audacity\audacity.exe
 
+ocenaudio:
+  executable:
+    - "%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"
+
 sox:
   choco: sox.portable
 
