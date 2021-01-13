@@ -818,6 +818,7 @@ def _add_video_clip(
     fadein=False,
     fadeout=False,
     crossfade=None,
+    cf=None,
     t=None,
     duration=None,
     text_overlay=None,
@@ -856,6 +857,8 @@ def _add_video_clip(
         clip_info.crossfade = _crossfade
     if crossfade is not None:
         clip_info.crossfade = crossfade
+    elif cf is not None:
+        clip_info.crossfade = cf
 
     clip_info.fadein = fadein
     clip_info.fadeout = fadeout
@@ -1129,10 +1132,10 @@ def _export_video(resolution=(1920, 1080)):
                 audio_clips.append(audio_clip)
 
             # Increase duration for crossfade?
-            EPSILON = 0.1  # To avoid float point error
-            fade_duration = track[i].crossfade
+            EPSILON = 0  # To avoid float point error
+            fade_duration = track[i + 1].crossfade if (i < len(track) - 1) else 0
             if fade_duration:
-                clip_info.duration += fade_duration * 0.5 + EPSILON
+                clip_info.duration += fade_duration + EPSILON
 
             clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
 

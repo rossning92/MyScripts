@@ -1,7 +1,7 @@
 {
   "md": {
     "prefix": "md",
-    "body": ["{{ md('# $1\\n## $2', t='as', duration=3) }}"]
+    "body": ["{{ md('## $1', t='as', duration=3) }}"]
   },
   "title_anim": {
     "prefix": "title_anim",
