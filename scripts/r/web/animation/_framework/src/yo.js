@@ -1184,7 +1184,7 @@ function jumpTo(object3d, { x = 0, y = 0 }) {
   return tl;
 }
 
-function createMoveToAnimation(
+function createMotionTimeline(
   object3d,
   {
     position = null,
@@ -2591,16 +2591,16 @@ function addCut() {
   });
 }
 
-function moveTo(object3d, { t = "+=0", ...options } = {}) {
+function move(object3d, { t = "+=0", ...options } = {}) {
   if (object3d instanceof Array) {
     for (let i = 0; i < object3d.length; i++) {
       mainTimeline.add(
-        createMoveToAnimation(object3d[i], options),
+        createMotionTimeline(object3d[i], options),
         i == 0 ? t : "<"
       );
     }
   } else {
-    mainTimeline.add(createMoveToAnimation(object3d, options), t);
+    mainTimeline.add(createMotionTimeline(object3d, options), t);
   }
 }
 
@@ -2659,7 +2659,7 @@ export default {
   addGroup,
   getQueryString,
   random,
-  moveTo,
+  move: move,
   enableMotionBlur,
   generateRandomString,
   add,
@@ -2704,9 +2704,9 @@ export default {
   setDefaultAnimation: (name) => {
     defaultAnimation = name;
   },
-  moveTo: (obj, params) => {
+  move: (obj, params) => {
     commandList.push(() => {
-      moveTo(sceneObjects[obj], params);
+      move(sceneObjects[obj], params);
     });
   },
   addEmptyAnimation: (t) => {
