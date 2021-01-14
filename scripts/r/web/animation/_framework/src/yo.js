@@ -158,17 +158,13 @@ function stopCapture() {
   }
 }
 
-function render() {
-  composer.render();
-}
-
 function resize(width, height) {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
 }
 
-function setupOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
+function createOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
   const aspect = WIDTH / HEIGHT;
   const frustumSize = 16;
   camera = new THREE.OrthographicCamera(
@@ -330,7 +326,7 @@ function animate(
     callback(delta, animTimeElapsed);
   });
 
-  render();
+  composer.render();
 
   stats.update();
 
@@ -352,11 +348,6 @@ function moveCameraTo({ x = 0, y = 0, z = 10 }) {
 
 scene = new THREE.Scene();
 
-// createText({ text: '3 minute' });
-// createText({ text: '\nprogramming' });
-// createLine();
-// createAnimatedLines();
-
 function generateRandomString(length) {
   var result = "";
   var characters =
@@ -367,8 +358,6 @@ function generateRandomString(length) {
   }
   return result;
 }
-
-// requestAnimationFrame(animate);
 
 function randomInt(min, max) {
   return Math.floor(random() * (max - min + 1)) + min;
@@ -2634,61 +2623,15 @@ function setViewportSize(w, h) {
 }
 
 export default {
-  addCollapseAnimation,
-  addExplosionAnimation,
-  createFadeOutAnimation,
-  addGlitch,
-  addJumpIn,
-  addLights: addDefaultLights,
-  addShake2D,
-  addTextFlyInAnimation,
-  addWipeAnimation: createWipeAnimation,
-  camera,
-  canvasDrawTriangle,
-  createObject,
-  createRect,
-  createTriangle,
-  flyIn,
-  globalTimeline,
-  jumpTo,
-  loadSVG,
-  moveCameraTo,
-  createMoveToAnimation,
-  newScene,
   run: newScene,
   palette,
   randomInt,
-  scene,
-  setOpacity,
-  TextMesh,
-  tl: globalTimeline,
-  createArrow,
-  addText,
   addGroup,
-  getBoundingBox,
-  addFlash,
   getQueryString,
-  createTriangleVertices,
-  createExplosionAnimation,
-  createGroupFlyInAnimation,
-  groupFlyIn,
-  setSeed,
-  getGridLayoutPositions,
   random,
-  mainTimeline,
-  addCut,
   moveTo,
-  add3DSpinning,
-  addPulse,
-  setupOrthoCamera,
-  addCustomAnimation,
-  add2DSpinning,
-  setBackgroundAlpha,
   enableMotionBlur,
-  setBloom,
   generateRandomString,
-  setGlitch,
-  setViewportSize,
   add,
   rainbowPalette: [
     "#9C4F96",
@@ -2741,8 +2684,6 @@ export default {
     });
   },
 };
-
-export { THREE, gsap };
 
 // TODO: update to MathJax3
 async function tex2canvas(formula) {
