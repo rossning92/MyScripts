@@ -64,9 +64,9 @@ class _VideoClipInfo:
         self.mpy_clip = None
         self.speed = 1
         self.pos = None
-        self.fadein = False
-        self.fadeout = False
-        self.crossfade = False
+        self.fadein = 0
+        self.fadeout = 0
+        self.crossfade = 0
         self.text_overlay = None
 
         self.no_audio = False
@@ -553,7 +553,13 @@ def fps(v):
 
 
 def overlay(
-    f, pos="center", duration=3, fadein=True, fadeout=True, track="overlay", **kwargs
+    f,
+    pos="center",
+    duration=3,
+    fadein=VIDEO_CROSSFADE_DURATION,
+    fadeout=VIDEO_CROSSFADE_DURATION,
+    track="overlay",
+    **kwargs,
 ):
     print("image: %s" % f)
     _add_video_clip(
@@ -815,8 +821,8 @@ def _add_video_clip(
     speed=None,
     pos="center",
     track=None,
-    fadein=False,
-    fadeout=False,
+    fadein=0,
+    fadeout=0,
     crossfade=None,
     cf=None,
     t=None,
@@ -975,7 +981,14 @@ def slide(
 
 
 def md(s, track="md", **kwargs):
-    slide(s, track=track, template="markdown.html", fadein=True, fadeout=True, **kwargs)
+    slide(
+        s,
+        track=track,
+        template="markdown.html",
+        fadein=VIDEO_CROSSFADE_DURATION,
+        fadeout=VIDEO_CROSSFADE_DURATION,
+        **kwargs,
+    )
 
 
 def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
@@ -990,8 +1003,8 @@ def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
         file,
         pos=pos,
         track=track,
-        fadein=True,
-        fadeout=True,
+        fadein=VIDEO_CROSSFADE_DURATION,
+        fadeout=VIDEO_CROSSFADE_DURATION,
         duration=duration,
         move_playhead=False,
         **kwargs,
@@ -1136,21 +1149,19 @@ def _export_video(resolution=(1920, 1080)):
             if fade_duration:
                 clip_info.duration += fade_duration
 
-            EPSILON = 0.1  # HACK: to avoid float point error
-            clip_info.duration += EPSILON
-
             clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
 
             # Deal with video fade in / out / crossfade
             if clip_info.fadein:
+                assert isinstance(clip_info.fadein, (int, float))
                 # TODO: crossfadein and crossfadeout is very slow in moviepy
                 if track_name != "vid":
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
-                        VIDEO_CROSSFADE_DURATION
+                        clip_info.fadein
                     )
                 else:
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadein, VIDEO_CROSSFADE_DURATION
+                        vfx.fadein, clip_info.fadein
                     )
 
             elif (
@@ -1159,20 +1170,21 @@ def _export_video(resolution=(1920, 1080)):
                 video_clips.append(
                     clip_info.mpy_clip.set_duration(clip_info.crossfade)
                     .crossfadein(clip_info.crossfade)
-                    .set_start(clip_info.start - 0.5 * clip_info.crossfade)
+                    .set_start(clip_info.start)
                 )
 
                 clip_info.mpy_clip = clip_info.mpy_clip.subclip(clip_info.crossfade)
-                clip_info.start += 0.5 * clip_info.crossfade
+                clip_info.start += clip_info.crossfade
 
             if clip_info.fadeout:
+                assert isinstance(clip_info.fadeout, (int, float))
                 if track_name != "vid":
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
-                        VIDEO_CROSSFADE_DURATION
+                        clip_info.fadeout
                     )
                 else:
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadeout, VIDEO_CROSSFADE_DURATION
+                        vfx.fadeout, clip_info.fadeout
                     )
 
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
