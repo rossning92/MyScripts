@@ -5,11 +5,11 @@ UpdateExplorerInfo()
     selectedFiles := Explorer_GetSelected()
     data := { "current_folder" : Explorer_GetPath(), "selected_files" : selectedFiles }
     str := JSON.Dump(data, "", 4)
-    
+
     INFO_FILE := A_Temp "\ow_explorer_info.json"
     FileDelete, %INFO_FILE%
     FileAppend, %str%, %INFO_FILE%
-    
+
     if (selectedFiles.Length() = 0) {
         DumpSelectedFilePath()
     }
@@ -19,25 +19,28 @@ DumpSelectedFilePath()
 {
     if not WinActive("ahk_exe everything.exe") and not WinActive("ahk_exe explorer.exe")
         return
-    
+
     ; Save clipboard
     clipSaved := ClipboardAll
-    
+
     ; Get file path
     Clipboard =
     Send ^c
     ClipWait, 0.2
-    if ErrorLevel
+    if ErrorLevel {
+        Clipboard := clipSaved
         return
+    }
+
     filePath = %clipboard%
-    
+
     ; Restore clipboard
     Clipboard := clipSaved
-    
+
     ; Check file existance
     if not FileExist(filePath)
         return
-    
+
     ; Check if selected file is a shortcut
     SplitPath filePath, , , ext
     StringLower ext, ext
@@ -46,7 +49,7 @@ DumpSelectedFilePath()
         ; get target file path
         FileGetShortcut %filePath%, filePath
     }
-    
+
     data := { "current_folder": "", "selected_files" : [filePath] }
     str := JSON.Dump(data, "", 4)
     INFO_FILE := A_Temp "\ow_explorer_info.json"
@@ -64,7 +67,7 @@ Explorer_GetPath(hwnd="")
     path := RegExReplace(path, "ftp://.*@","ftp://")
     StringReplace, path, path, file:///
     StringReplace, path, path, /, \, All 
-    
+
     ; thanks to polyethene
     Loop
         If RegExMatch(path, "i)(?<=%)[\da-f]{1,2}", hex)
@@ -88,7 +91,7 @@ Explorer_GetWindow(hwnd="")
     ; thanks to jethrow for some pointers here
     WinGet, process, processName, % "ahk_id" hwnd := hwnd? hwnd:WinExist("A")
     WinGetClass class, ahk_id %hwnd%
-    
+
     if (process!="explorer.exe")
         return
     if (class ~= "(Cabinet|Explore)WClass")
@@ -104,10 +107,10 @@ Explorer_GetWindow(hwnd="")
 Explorer_Get(hwnd="",selection=false)
 {
     ret := []
-    
+
     if !(window := Explorer_GetWindow(hwnd))
         return []
-    
+
     if (window="desktop")
     {
         ControlGet, hwWindow, HWND,, SysListView321, ahk_class Progman
@@ -131,6 +134,6 @@ Explorer_Get(hwnd="",selection=false)
         for item in collection
             ret.Push(item.path)
     }
-    
+
     return ret
 }
