@@ -1370,42 +1370,45 @@ function createTriangle({
 }
 
 function addShake2D(
-  object3d,
-  { shakes = 20, duration = 0.01, strength = 0.5 } = {}
+  obj,
+  { shakes = 20, duration = 0.01, strength = 0.5, t = null } = {}
 ) {
   function R(max, min) {
     return Math.random() * (max - min) + min;
   }
 
-  var tl = new gsap.timeline({ defaults: { ease: "none" } });
-  tl.set(object3d, { x: "+=0" }); // this creates a full _gsTransform on object3d
-  var transforms = object3d._gsTransform;
+  commandList.push(() => {
+    const object3d = sceneObjects[obj];
 
-  //store the transform values that exist before the shake so we can return to them later
-  var initProps = {
-    x: object3d.position.x,
-    y: object3d.position.y,
-    rotation: object3d.position.z,
-  };
+    var tl = new gsap.timeline({ defaults: { ease: "none" } });
+    tl.set(object3d, { x: "+=0" }); // this creates a full _gsTransform on object3d
 
-  //shake a bunch of times
-  for (var i = 0; i < shakes; i++) {
-    const offset = R(-strength, strength);
+    //store the transform values that exist before the shake so we can return to them later
+    var initProps = {
+      x: object3d.position.x,
+      y: object3d.position.y,
+      rotation: object3d.position.z,
+    };
+
+    //shake a bunch of times
+    for (var i = 0; i < shakes; i++) {
+      const offset = R(-strength, strength);
+      tl.to(object3d.position, duration, {
+        x: initProps.x + offset,
+        y: initProps.y - offset,
+        // rotation: initProps.rotation + R(-5, 5)
+      });
+    }
+    //return to pre-shake values
     tl.to(object3d.position, duration, {
-      x: initProps.x + offset,
-      y: initProps.y - offset,
-      // rotation: initProps.rotation + R(-5, 5)
+      x: initProps.x,
+      y: initProps.y,
+      // scale: initProps.scale,
+      // rotation: initProps.rotation
     });
-  }
-  //return to pre-shake values
-  tl.to(object3d.position, duration, {
-    x: initProps.x,
-    y: initProps.y,
-    // scale: initProps.scale,
-    // rotation: initProps.rotation
-  });
 
-  return tl;
+    mainTimeline.add(tl, t);
+  });
 }
 
 function createTriangleOutline({ color = "0xffffff" } = {}) {
@@ -2723,6 +2726,7 @@ export default {
       mainTimeline.add(tl, t);
     });
   },
+  addShake2D,
 };
 
 // TODO: update to MathJax3
