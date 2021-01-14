@@ -1,11 +1,13 @@
+from collections import OrderedDict, defaultdict
+from typing import Any, NamedTuple
 import argparse
 import hashlib
+import os
 import re
+import sys
 import tarfile
 import urllib
 import webbrowser
-from collections import OrderedDict, defaultdict
-from typing import Any, NamedTuple
 
 import numpy as np
 from PIL import Image
@@ -20,10 +22,7 @@ from slide.generate import generate_slide
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 if 1:
-    import os
-    import sys
-
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(SCRIPT_ROOT)
 
 
 if 1:  # Import moviepy
