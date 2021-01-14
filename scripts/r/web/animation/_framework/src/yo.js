@@ -1260,6 +1260,7 @@ function createMoveToAnimation(
   return tl;
 }
 
+// TODO: remove
 function flyIn(
   object3d,
   {
@@ -2032,6 +2033,23 @@ function addAnimation(
         tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
       } else if (animation == "rotateIn") {
         tl.from(object3d.rotation, { z: -Math.PI * 2 }, "<");
+      } else if (animation == "rotateIn2") {
+        tl.from(
+          object3d.rotation,
+          { z: Math.PI * 4, ease: "power.in", duration: 0.5 },
+          "<"
+        );
+        tl.from(
+          object3d.scale,
+          {
+            x: Number.EPSILON,
+            y: Number.EPSILON,
+            z: Number.EPSILON,
+            ease: "power.in",
+            duration: 0.5,
+          },
+          "<"
+        );
       } else if (animation == "grow") {
         tl.from(
           object3d.scale,
@@ -2397,9 +2415,21 @@ async function addAsync(
   return mesh;
 }
 
-function addGroup(params) {
+function addGroup({ x = 0, y = 0, z = 0, scale = 1 } = {}) {
   const id = uuidv4();
-  commandList.push({ type: "addGroup", id, params });
+
+  commandList.push(() => {
+    const group = new THREE.Group();
+
+    group.position.x = x;
+    group.position.y = y;
+    group.position.z = z;
+    group.scale.setScalar(scale);
+
+    scene.add(group);
+    sceneObjects[id] = group;
+  });
+
   return id;
 }
 
@@ -2659,6 +2689,16 @@ export default {
   flyIn: (obj, params) => {
     commandList.push(() => {
       addAnimation(sceneObjects[obj], "flyIn", params);
+    });
+  },
+  rotateIn: (obj, params) => {
+    commandList.push(() => {
+      addAnimation(sceneObjects[obj], "rotateIn", params);
+    });
+  },
+  rotateIn2: (obj, params) => {
+    commandList.push(() => {
+      addAnimation(sceneObjects[obj], "rotateIn2", params);
     });
   },
   setDefaultAnimation: (name) => {
