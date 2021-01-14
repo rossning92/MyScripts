@@ -14,7 +14,7 @@ import capture_animation
 from _appmanager import get_executable
 from _shutil import *
 from r.audio.postprocess import process_audio_file, dynamic_audio_normalize
-from r.open_with.open_with_ import open_with
+from r.open_with.open_with import open_with
 from slide.generate import generate_slide
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
