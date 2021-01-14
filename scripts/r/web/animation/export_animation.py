@@ -1241,8 +1241,8 @@ def _export_video(resolution=(1920, 1080)):
 
     # final_clip.show(10.5, interactive=True)
 
-    os.makedirs("out", exist_ok=True)
-    out_filename = "out/" + get_time_str()
+    os.makedirs("tmp/out", exist_ok=True)
+    out_filename = "tmp/out/" + get_time_str()
 
     if _audio_only:
         final_audio_clip.fps = 44100
