@@ -1491,6 +1491,8 @@ function createExplosionTimeline(
     maxRotation = 2 * Math.PI,
     minRadius = 1,
     maxRadius = 4,
+    minScale = 1,
+    maxScale = 1,
     stagger = 0.03,
   } = {}
 ) {
@@ -1514,7 +1516,9 @@ function createExplosionTimeline(
     const rotation = minRotation + rng() * (maxRotation - minRotation);
     tl.fromTo(child.rotation, { z: 0 }, { z: rotation }, delay);
 
-    const targetScale = child.scale.clone().multiplyScalar(rng() * 0.5 + 0.5);
+    const targetScale = child.scale.setScalar(
+      minScale + (maxScale - minScale) * rng()
+    );
     tl.fromTo(
       child.scale,
       { x: 0.001, y: 0.001, z: 0.001 },
@@ -2665,9 +2669,33 @@ function setBackgroundColor(color) {
   });
 }
 
-function explode(group, { t = null } = {}) {
+function explode(
+  group,
+  {
+    t = null,
+    ease = "expo.out",
+    duration = 2,
+    minRotation = -2 * Math.PI,
+    maxRotation = 2 * Math.PI,
+    minRadius = 1,
+    maxRadius = 4,
+    minScale = 1,
+    maxScale = 1,
+    stagger = 0.03,
+  } = {}
+) {
   commandList.push(() => {
-    const tl = createExplosionTimeline(sceneObjects[group]);
+    const tl = createExplosionTimeline(sceneObjects[group], {
+      ease,
+      duration,
+      minRotation,
+      maxRotation,
+      minRadius,
+      maxRadius,
+      minScale,
+      maxScale,
+      stagger,
+    });
     mainTimeline.add(tl, t);
   });
 }
