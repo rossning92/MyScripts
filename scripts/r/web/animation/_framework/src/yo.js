@@ -2210,16 +2210,16 @@ async function addAsync(
     x = null,
     y = null,
     z = null,
-    rotX = null,
-    rotY = null,
-    rotZ = null,
+    rx = null,
+    ry = null,
+    rz = null,
+    sx = null,
+    sy = null,
+    sz = null,
     position = null,
     animation = null,
     color = null,
     opacity = 1.0,
-    sx = null,
-    sy = null,
-    sz = null,
     scale = null,
     vertices = [],
     wireframe = false,
@@ -2227,11 +2227,10 @@ async function addAsync(
     outlineWidth = 0.1,
     width = 1,
     height = 1,
-    aniPos = "+=0",
     t = null,
     parent = null,
     lighting = false,
-    ccw = true,
+    ccw = false,
     font = null,
     fontSize = 1.0,
     start = { x: 0, y: 0 },
@@ -2406,9 +2405,9 @@ async function addAsync(
   }
 
   // Rotation
-  if (rotX != null) mesh.rotation.x = rotX;
-  if (rotY != null) mesh.rotation.y = rotY;
-  if (rotZ != null) mesh.rotation.z = rotZ;
+  if (rx != null) mesh.rotation.x = rx;
+  if (ry != null) mesh.rotation.y = ry;
+  if (rz != null) mesh.rotation.z = rz;
 
   addAnimation(mesh, animation, { t, duration });
 
