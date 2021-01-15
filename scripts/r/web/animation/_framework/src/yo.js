@@ -333,16 +333,19 @@ function animate(
   if (capturer) capturer.capture(renderer.domElement);
 }
 
-function moveCameraTo({ x = 0, y = 0, z = 10 }) {
-  return gsap.to(camera.position, {
-    x,
-    y,
-    z,
-    onUpdate: () => {
-      camera.lookAt(new Vector3(0, 0, 0));
-    },
-    duration: 0.5,
-    ease: "expo.out",
+function moveCamera({ x = 0, y = 0, z = 10, t = null } = {}) {
+  commandList.push(() => {
+    const tl = gsap.to(camera.position, {
+      x,
+      y,
+      z,
+      onUpdate: () => {
+        camera.lookAt(new Vector3(0, 0, 0));
+      },
+      duration: 0.5,
+      ease: "expo.out",
+    });
+    mainTimeline.add(tl, t);
   });
 }
 
@@ -2418,7 +2421,7 @@ async function addAsync(
   return mesh;
 }
 
-function addGroup({ x = 0, y = 0, z = 0, scale = 1 } = {}) {
+function addGroup({ x = 0, y = 0, z = 0, scale = 1, parent = null } = {}) {
   const id = uuidv4();
 
   commandList.push(() => {
@@ -2429,7 +2432,12 @@ function addGroup({ x = 0, y = 0, z = 0, scale = 1 } = {}) {
     group.position.z = z;
     group.scale.setScalar(scale);
 
-    scene.add(group);
+    if (parent === null) {
+      scene.add(group);
+    } else {
+      sceneObjects[parent].add(group);
+    }
+
     sceneObjects[id] = group;
   });
 
@@ -2636,12 +2644,8 @@ function setBackgroundAlpha(alpha) {
   backgroundAlpha = alpha;
 }
 
-function enableMotionBlur(v = true) {
-  if (v === true) {
-    MOTION_BLUR_SAMPLES = 16;
-  } else {
-    MOTION_BLUR_SAMPLES = v;
-  }
+function enableMotionBlur(motionBlurSamples = 16) {
+  MOTION_BLUR_SAMPLES = motionBlurSamples;
   AA_METHOD = "fxaa";
 }
 
@@ -2655,6 +2659,12 @@ function setViewportSize(w, h) {
   HEIGHT = h;
 }
 
+function setBackgroundColor(color) {
+  commandList.push(() => {
+    scene.background = new THREE.Color(color);
+  });
+}
+
 export default {
   run: newScene,
   palette,
@@ -2662,7 +2672,8 @@ export default {
   addGroup,
   getQueryString,
   random,
-  move: move,
+  move,
+  moveCamera,
   enableMotionBlur,
   generateRandomString,
   add,
@@ -2727,6 +2738,7 @@ export default {
     });
   },
   addShake2D,
+  setBackgroundColor,
 };
 
 // TODO: update to MathJax3
