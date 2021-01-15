@@ -1562,7 +1562,7 @@ function createGroupFlyInAnimation(
   return tl;
 }
 
-function addCollapseAnimation(objectGroup, { duration = 0.5 } = {}) {
+function createImplodeTimeline(objectGroup, { duration = 0.5 } = {}) {
   const tl = gsap.timeline({
     defaults: {
       duration,
@@ -2700,6 +2700,13 @@ function explode(
   });
 }
 
+function implode(group, { t = null, duration = 0.5 } = {}) {
+  commandList.push(() => {
+    const tl = createImplodeTimeline(sceneObjects[group], { duration });
+    mainTimeline.add(tl, t);
+  });
+}
+
 export default {
   run: newScene,
   palette,
@@ -2775,6 +2782,7 @@ export default {
   shake2D,
   setBackgroundColor,
   explode,
+  implode,
 };
 
 // TODO: update to MathJax3
