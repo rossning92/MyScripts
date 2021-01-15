@@ -1482,16 +1482,16 @@ function halton(index, base) {
   return result;
 }
 
-function createExplosionAnimation(
+function createExplosionTimeline(
   objectGroup,
   {
     ease = "expo.out",
-    duration = 1.5,
-    rotationMin = 0,
-    rotationMax = Math.PI * 8,
-    radiusMin = 1,
-    radiusMax = 8,
-    stagger = 0,
+    duration = 2,
+    minRotation = -2 * Math.PI,
+    maxRotation = 2 * Math.PI,
+    minRadius = 1,
+    maxRadius = 4,
+    stagger = 0.03,
   } = {}
 ) {
   const tl = gsap.timeline({
@@ -1503,7 +1503,7 @@ function createExplosionAnimation(
 
   let delay = 0;
   objectGroup.children.forEach((child, i) => {
-    const r = radiusMin + (radiusMax - radiusMin) * rng();
+    const r = minRadius + (maxRadius - minRadius) * rng();
     const theta = rng() * 2 * Math.PI;
     const x = r * 2.0 * Math.cos(theta);
     const y = r * Math.sin(theta);
@@ -1511,7 +1511,7 @@ function createExplosionAnimation(
 
     tl.fromTo(child.position, { x: 0, y: 0 }, { x, y }, delay);
 
-    const rotation = rotationMin + rng() * (rotationMax - rotationMin);
+    const rotation = minRotation + rng() * (maxRotation - minRotation);
     tl.fromTo(child.rotation, { z: 0 }, { z: rotation }, delay);
 
     const targetScale = child.scale.clone().multiplyScalar(rng() * 0.5 + 0.5);
@@ -2665,6 +2665,13 @@ function setBackgroundColor(color) {
   });
 }
 
+function explode(group, { t = null } = {}) {
+  commandList.push(() => {
+    const tl = createExplosionTimeline(sceneObjects[group]);
+    mainTimeline.add(tl, t);
+  });
+}
+
 export default {
   run: newScene,
   palette,
@@ -2739,6 +2746,7 @@ export default {
   },
   shake2D,
   setBackgroundColor,
+  explode,
 };
 
 // TODO: update to MathJax3
