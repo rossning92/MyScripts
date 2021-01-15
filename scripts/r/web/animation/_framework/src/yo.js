@@ -1372,7 +1372,7 @@ function createTriangle({
   return mesh;
 }
 
-function addShake2D(
+function shake2D(
   obj,
   { shakes = 20, duration = 0.01, strength = 0.5, t = null } = {}
 ) {
@@ -2737,7 +2737,7 @@ export default {
       mainTimeline.add(tl, t);
     });
   },
-  addShake2D,
+  shake2D,
   setBackgroundColor,
 };
 
