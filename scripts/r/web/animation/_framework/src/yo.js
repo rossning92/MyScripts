@@ -773,27 +773,45 @@ function createLine3D({ color = 0xffffff, points = [], lineWidth = 0.1 } = {}) {
   return mesh;
 }
 
-function createWipeAnimation(
-  object3d,
-  { direction3d = new THREE.Vector3(-1, 0, 0) } = {}
-) {
-  let localPlane = new THREE.Plane(direction3d, 0);
-  const boundingBox = getBoundingBox(object3d);
+function reveal(obj, { dir = "up", t = null } = {}) {
+  commandList.push(() => {
+    const object3d = sceneObjects[obj];
 
-  object3d.material.clippingPlanes = [localPlane];
+    let localPlane;
+    let x = 0;
+    let y = 0;
+    let z = 0;
 
-  const tween = gsap.fromTo(
-    localPlane,
-    { constant: boundingBox.min.x * 1.1 },
-    {
-      constant: boundingBox.max.x * 1.1,
+    const boundingBox = getBoundingBox(object3d);
+    if (dir === "right") {
+    } else if (dir === "left") {
+    } else if (dir === "up") {
+      localPlane = new THREE.Plane(
+        new THREE.Vector3(0, 1, 0),
+        -boundingBox.min.y
+      );
+      y = object3d.position.y - (boundingBox.max.y - boundingBox.min.y);
+    } else if (dir === "down") {
+      localPlane = new THREE.Plane(
+        new THREE.Vector3(0, -1, 0),
+        boundingBox.max.y
+      );
+      y = object3d.position.y + (boundingBox.max.y - boundingBox.min.y);
+    }
+
+    const materials = getAllMaterials(object3d);
+    for (const material of materials) {
+      material.clippingPlanes = [localPlane];
+    }
+
+    const tl = gsap.from(object3d.position, {
+      y,
       duration: 0.6,
       ease: "expo.out",
-    }
-  );
+    });
 
-  // object3d.material.clippingPlanes[0] = new THREE.Plane(new THREE.Vector3(-5, 0, 0), 0.8);
-  return tween;
+    mainTimeline.add(tl, t);
+  });
 }
 
 function createCircle2D() {
@@ -1054,7 +1072,7 @@ function createGrid({
 function getAllMaterials(object3d) {
   const materials = new Set();
   const getMaterialsRecursive = (object3d) => {
-    if (object3d.material !== null) {
+    if (object3d.material) {
       materials.add(object3d.material);
     }
     object3d.children.forEach((child) => {
@@ -1065,10 +1083,9 @@ function getAllMaterials(object3d) {
   return materials;
 }
 
-// TODO: Deprecated
-function addFadeIn(
+function createFadeInAnimation(
   object3d,
-  { duration = null, ease = "linear", opacity = 1.0 } = {}
+  { duration = null, ease = "linear" } = {}
 ) {
   if (duration === null) {
     duration = 0.25;
@@ -1077,35 +1094,18 @@ function addFadeIn(
   const tl = gsap.timeline({ defaults: { duration, ease } });
 
   const materials = getAllMaterials(object3d);
-
   // console.log(materials);
-  materials.forEach((material) => {
+  for (const material of materials) {
     material.transparent = true;
-
-    // tl.fromTo(
-    //   material,
-    //   {
-    //     transparent: false,
-    //   },
-    //   {
-    //     transparent: true,
-    //     duration: 0,
-    //   },
-    //   "<"
-    // );
-
-    tl.fromTo(
+    tl.from(
       material,
       {
         opacity: 0,
-      },
-      {
-        opacity,
         duration,
       },
       "<"
     );
-  });
+  }
 
   return tl;
 }
@@ -1157,7 +1157,7 @@ function addJumpIn(object3d, { ease = "elastic.out(1, 0.2)" } = {}) {
   });
 
   tl.add(
-    addFadeIn(object3d, {
+    createFadeInAnimation(object3d, {
       duration,
     }),
     "<"
@@ -1187,7 +1187,7 @@ function jumpTo(object3d, { x = 0, y = 0 }) {
   return tl;
 }
 
-function createMotionTimeline(
+function createMotionAnimation(
   object3d,
   {
     position = null,
@@ -1308,7 +1308,7 @@ function flyIn(
     );
   }
 
-  tl.add(addFadeIn(object3d), "<");
+  tl.add(createFadeInAnimation(object3d), "<");
 
   mainTimeline.add(tl, t);
 
@@ -1482,7 +1482,7 @@ function halton(index, base) {
   return result;
 }
 
-function createExplosionTimeline(
+function createExplosionAnimation(
   objectGroup,
   {
     ease = "expo.out",
@@ -1562,7 +1562,7 @@ function createGroupFlyInAnimation(
   return tl;
 }
 
-function createImplodeTimeline(objectGroup, { duration = 0.5 } = {}) {
+function createImplodeAnimation(objectGroup, { duration = 0.5 } = {}) {
   const tl = gsap.timeline({
     defaults: {
       duration,
@@ -1745,7 +1745,7 @@ function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
       `-=${duration - 0.03}`
     );
 
-    tl.add(addFadeIn(letter, { duration }), "<");
+    tl.add(createFadeInAnimation(letter, { duration }), "<");
   });
 
   return tl;
@@ -1778,7 +1778,7 @@ function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
       `-=${duration - stagger}`
     );
 
-    tl.add(addFadeIn(obj, { duration }), "<");
+    tl.add(createFadeInAnimation(obj, { duration }), "<");
   }
 
   mainTimeline.add(tl, t);
@@ -2036,7 +2036,7 @@ function addAnimation(
           "<"
         );
       } else if (animation == "fadeIn") {
-        tl.add(addFadeIn(object3d, { duration }), "<");
+        tl.add(createFadeInAnimation(object3d, { duration }), "<");
       } else if (animation == "jumpIn") {
         tl.add(addJumpIn(object3d), "<");
       } else if (animation == "spinIn") {
@@ -2118,8 +2118,6 @@ function addAnimation(
           );
         });
         // tl.set({}, {}, ">+0.5");
-      } else if (animation == "wipe") {
-        tl.add(createWipeAnimation(object3d, "<"));
       } else if (animation == "flyIn") {
         const duration = 0.5;
         const ease = "elastic.out";
@@ -2130,7 +2128,7 @@ function addAnimation(
         });
 
         tl.add(
-          addFadeIn(object3d, {
+          createFadeInAnimation(object3d, {
             duration,
           }),
           "<"
@@ -2158,7 +2156,7 @@ function addAnimation(
     animationList.forEach((animation) => {
       if (animation == "fadeOut") {
         tlExitAnimation.add(
-          addFadeIn(object3d, { ease: "power1.in" }).reverse(),
+          createFadeInAnimation(object3d, { ease: "power1.in" }).reverse(),
           "<"
         );
       }
@@ -2637,7 +2635,7 @@ function addCut() {
 }
 
 function move(object3d, { t = "+=0", ...options } = {}) {
-  mainTimeline.add(createMotionTimeline(object3d, options), t);
+  mainTimeline.add(createMotionAnimation(object3d, options), t);
 }
 
 function addCustomAnimation(
@@ -2706,7 +2704,7 @@ function explode(
   } = {}
 ) {
   commandList.push(() => {
-    const tl = createExplosionTimeline(sceneObjects[group], {
+    const tl = createExplosionAnimation(sceneObjects[group], {
       ease,
       duration,
       minRotation,
@@ -2723,7 +2721,7 @@ function explode(
 
 function implode(group, { t = null, duration = 0.5 } = {}) {
   commandList.push(() => {
-    const tl = createImplodeTimeline(sceneObjects[group], { duration });
+    const tl = createImplodeAnimation(sceneObjects[group], { duration });
     mainTimeline.add(tl, t);
   });
 }
@@ -2851,6 +2849,7 @@ export default {
     bloomEnabled = enabled;
   },
   flying,
+  reveal,
 };
 
 // TODO: update to MathJax3
