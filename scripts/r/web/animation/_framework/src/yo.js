@@ -108,7 +108,7 @@ function startCapture({ resetTiming = true, name = null } = {}) {
   }
   outFileName = name;
 
-  if (gridHelper != null) {
+  if (gridHelper !== null) {
     gridHelper.visible = false;
   }
 
@@ -153,7 +153,7 @@ function stopCapture() {
     // });
     // FileSaver.saveAs(
     //   blob,
-    //   outFileName != null ? outFileName + ".json" : "animation-meta-file.json"
+    //   outFileName !==null ? outFileName + ".json" : "animation-meta-file.json"
     // );
   }
 }
@@ -1054,7 +1054,7 @@ function createGrid({
 function getAllMaterials(object3d) {
   const materials = new Set();
   const getMaterialsRecursive = (object3d) => {
-    if (object3d.material != null) {
+    if (object3d.material !== null) {
       materials.add(object3d.material);
     }
     object3d.children.forEach((child) => {
@@ -1111,7 +1111,7 @@ function addFadeIn(
 }
 
 function setOpacity(object3d, opacity = 1.0) {
-  if (object3d.material != null) {
+  if (object3d.material !== null) {
     object3d.material.transparent = true;
     object3d.material.opacity = opacity;
   }
@@ -1194,22 +1194,22 @@ function createMotionTimeline(
     x = null,
     y = null,
     z = null,
-    scale = null,
-    dx = null,
-    dy = null,
-    rotX = null,
-    rotY = null,
-    rotZ = null,
+    rx = null,
+    ry = null,
+    rz = null,
     sx = null,
     sy = null,
     sz = null,
+    scale = null,
+    dx = null,
+    dy = null,
     duration = 0.5,
     ease = "power2.out",
     multiplyScale = null,
   } = {}
 ) {
-  if (dx != null) x = object3d.position.x + dx;
-  if (dy != null) y = object3d.position.y + dy;
+  if (dx !== null) x = object3d.position.x + dx;
+  if (dy !== null) y = object3d.position.y + dy;
 
   let tl = gsap.timeline({
     defaults: {
@@ -1218,23 +1218,23 @@ function createMotionTimeline(
     },
   });
 
-  if (position != null) {
+  if (position !== null) {
     tl.to(
       object3d.position,
-      { x: position.x, y: position.y, z: position.z },
+      { x: position[0], y: position[1], z: position[2] },
       "<"
     );
   } else {
-    if (x != null) tl.to(object3d.position, { x }, "<");
-    if (y != null) tl.to(object3d.position, { y }, "<");
-    if (z != null) tl.to(object3d.position, { z }, "<");
+    if (x !== null) tl.to(object3d.position, { x }, "<");
+    if (y !== null) tl.to(object3d.position, { y }, "<");
+    if (z !== null) tl.to(object3d.position, { z }, "<");
   }
 
-  if (rotX != null) tl.to(object3d.rotation, { x: rotX }, "<");
-  if (rotY != null) tl.to(object3d.rotation, { y: rotY }, "<");
-  if (rotZ != null) tl.to(object3d.rotation, { z: rotZ }, "<");
+  if (rx !== null) tl.to(object3d.rotation, { x: rx }, "<");
+  if (ry !== null) tl.to(object3d.rotation, { y: ry }, "<");
+  if (rz !== null) tl.to(object3d.rotation, { z: rz }, "<");
 
-  if (scale != null) {
+  if (scale !== null) {
     tl.to(
       object3d.scale,
       {
@@ -1244,7 +1244,7 @@ function createMotionTimeline(
       },
       "<"
     );
-  } else if (multiplyScale != null) {
+  } else if (multiplyScale !== null) {
     tl.to(
       object3d.scale,
       {
@@ -1255,9 +1255,9 @@ function createMotionTimeline(
       "<"
     );
   } else {
-    if (sx != null) tl.to(object3d.scale, { x: sx }, "<");
-    if (sy != null) tl.to(object3d.scale, { y: sy }, "<");
-    if (sz != null) tl.to(object3d.scale, { z: sz }, "<");
+    if (sx !== null) tl.to(object3d.scale, { x: sx }, "<");
+    if (sy !== null) tl.to(object3d.scale, { y: sy }, "<");
+    if (sz !== null) tl.to(object3d.scale, { z: sz }, "<");
   }
 
   return tl;
@@ -1296,7 +1296,7 @@ function flyIn(
     "<"
   );
 
-  if (beginScale != null) {
+  if (beginScale !== null) {
     tl.from(
       object3d.scale,
       {
@@ -1707,7 +1707,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
 }
 
 function addGlitch({ duration = 0.2 } = {}) {
-  if (glitchPass != null) {
+  if (glitchPass !== null) {
     const tl = gsap.timeline();
     tl.set(glitchPass, { factor: 1 });
     tl.set(glitchPass, { factor: 0 }, `<${duration}`);
@@ -2017,7 +2017,7 @@ function addAnimation(
 ) {
   const tl = gsap.timeline();
 
-  if (animation != null) {
+  if (animation !== null) {
     const animationList = animation.split("|");
 
     // Enter animation
@@ -2070,6 +2070,18 @@ function addAnimation(
         tl.from(
           object3d.scale,
           { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out(1, 0.75)" },
+          "<"
+        );
+      } else if (animation == "grow3") {
+        tl.from(
+          object3d.scale,
+          {
+            x: 0.01,
+            y: 0.01,
+            z: 0.01,
+            ease: "elastic.out(1, 0.2)",
+            duration: 1,
+          },
           "<"
         );
       } else if (animation == "growX") {
@@ -2252,7 +2264,7 @@ async function addAsync(
   if (lighting) {
     addDefaultLights();
     material = new THREE.MeshPhongMaterial({
-      color: color != null ? color : 0xffffff,
+      color: color !== null ? color : 0xffffff,
       // emissive: 0x072534,
       // side: THREE.DoubleSide,
       flatShading: true,
@@ -2260,7 +2272,7 @@ async function addAsync(
   } else {
     material = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
-      color: color != null ? color : 0xffffff,
+      color: color !== null ? color : 0xffffff,
       transparent: opacity < 1.0 ? true : false,
       opacity,
       wireframe,
@@ -2312,7 +2324,7 @@ async function addAsync(
       mesh = createLine3D({
         points: vertices.concat(vertices[0]),
         lineWidth: outlineWidth,
-        color: color != null ? color : 0xffffff,
+        color: color !== null ? color : 0xffffff,
       });
     } else {
       const geometry = new THREE.Geometry();
@@ -2352,7 +2364,7 @@ async function addAsync(
     mesh = createArrow({
       from: toVector3(start),
       to: toVector3(end),
-      color: color != null ? color : 0xffffff,
+      color: color !== null ? color : 0xffffff,
       lineWidth,
     });
   } else if (obj == "line") {
@@ -2361,7 +2373,7 @@ async function addAsync(
       to: toVector3(end),
       arrowStart: false,
       arrowEnd: false,
-      color: color != null ? color : 0xffffff,
+      color: color !== null ? color : 0xffffff,
       lineWidth,
     });
   } else if (obj == "grid") {
@@ -2375,43 +2387,47 @@ async function addAsync(
       text: obj,
       font,
       size: 0.5,
-      color: color != null ? color : 0xffffff,
+      color: color !== null ? color : 0xffffff,
       size: fontSize,
       letterSpacing,
     });
   }
 
-  if (scale != null) {
+  if (scale !== null) {
     mesh.scale.multiplyScalar(scale);
   } else {
-    if (sx != null) {
+    if (sx !== null) {
       mesh.scale.x *= sx;
     }
-    if (sy != null) {
+    if (sy !== null) {
       mesh.scale.y *= sy;
     }
-    if (sz != null) {
+    if (sz !== null) {
       mesh.scale.z *= sz;
     }
   }
 
   // Position
-  if (position != null) {
-    mesh.position.set(position.x, position.y, position.z);
+  if (position !== null) {
+    if (Array.isArray(position)) {
+      mesh.position.set(position[0], position[1], position[2]);
+    } else {
+      mesh.position.set(position.x, position.y, position.z);
+    }
   } else {
-    if (x != null) mesh.position.x = x;
-    if (y != null) mesh.position.y = y;
-    if (z != null) mesh.position.z = z;
+    if (x !== null) mesh.position.x = x;
+    if (y !== null) mesh.position.y = y;
+    if (z !== null) mesh.position.z = z;
   }
 
   // Rotation
-  if (rx != null) mesh.rotation.x = rx;
-  if (ry != null) mesh.rotation.y = ry;
-  if (rz != null) mesh.rotation.z = rz;
+  if (rx !== null) mesh.rotation.x = rx;
+  if (ry !== null) mesh.rotation.y = ry;
+  if (rz !== null) mesh.rotation.z = rz;
 
   addAnimation(mesh, animation, { t, duration });
 
-  if (parent != null) {
+  if (parent !== null) {
     if (typeof parent === "string") {
       sceneObjects[parent].add(mesh);
     } else {
@@ -2424,15 +2440,27 @@ async function addAsync(
   return mesh;
 }
 
-function addGroup({ x = 0, y = 0, z = 0, scale = 1, parent = null } = {}) {
+function addGroup({
+  x = 0,
+  y = 0,
+  z = 0,
+  position = null,
+  scale = 1,
+  parent = null,
+} = {}) {
   const id = uuidv4();
 
   commandList.push(() => {
     const group = new THREE.Group();
 
-    group.position.x = x;
-    group.position.y = y;
-    group.position.z = z;
+    if (position !== null) {
+      group.position.set(position[0], position[1], position[2]);
+    } else {
+      if (x !== null) group.position.x = x;
+      if (y !== null) group.position.y = y;
+      if (z !== null) group.position.z = z;
+    }
+
     group.scale.setScalar(scale);
 
     if (parent === null) {
@@ -2606,16 +2634,7 @@ function addCut() {
 }
 
 function move(object3d, { t = "+=0", ...options } = {}) {
-  if (object3d instanceof Array) {
-    for (let i = 0; i < object3d.length; i++) {
-      mainTimeline.add(
-        createMotionTimeline(object3d[i], options),
-        i == 0 ? t : "<"
-      );
-    }
-  } else {
-    mainTimeline.add(createMotionTimeline(object3d, options), t);
-  }
+  mainTimeline.add(createMotionTimeline(object3d, options), t);
 }
 
 function addCustomAnimation(
@@ -2782,6 +2801,21 @@ export default {
   setBackgroundColor,
   explode,
   implode,
+  grow: (obj, params) => {
+    commandList.push(() => {
+      addAnimation(sceneObjects[obj], "grow", params);
+    });
+  },
+  grow2: (obj, params) => {
+    commandList.push(() => {
+      addAnimation(sceneObjects[obj], "grow2", params);
+    });
+  },
+  grow3: (obj, params) => {
+    commandList.push(() => {
+      addAnimation(sceneObjects[obj], "grow3", params);
+    });
+  },
 };
 
 // TODO: update to MathJax3
