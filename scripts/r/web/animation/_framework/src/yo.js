@@ -40,14 +40,14 @@ var globalTimeline = gsap.timeline({ onComplete: stopCapture });
 const mainTimeline = gsap.timeline();
 globalTimeline.add(mainTimeline, "0");
 
-let stats;
+let stats = null;
 let capturer = null;
-let renderer;
-let composer;
-let scene;
-let camera;
-let lightGroup;
-let cameraControls;
+let renderer = null;
+let composer = null;
+let scene = null;
+let camera = null;
+let lightGroup = null;
+let cameraControls = null;
 let palette = [
   // '#1abc9c',
   // '#2ecc71',
@@ -201,7 +201,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   renderer.setClearColor(0x000000, backgroundAlpha);
   scene.background = 0;
 
-  if (camera == null) {
+  if (camera === null) {
     // This will ensure the size of 10 in the vertical direction.
     camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000);
     camera.position.set(0, 0, 8.66);
@@ -304,7 +304,7 @@ function animate(
   let delta;
   {
     // Compute `timeElapsed`. This works for both animation preview and capture.
-    if (lastTs == null) {
+    if (lastTs === null) {
       delta = 0.000001;
       lastTs = nowInSecs;
       globalTimeline.seek(0, false);
@@ -1330,7 +1330,7 @@ function addFlash(object3d, { speed = 4 } = {}) {
 }
 
 function addDefaultLights() {
-  if (lightGroup == null) {
+  if (lightGroup === null) {
     const lightGroup = addThreeJsGroup();
 
     const light0 = new THREE.PointLight(0xffffff, 1, 0);
@@ -1636,7 +1636,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
           let material = new THREE.MeshBasicMaterial({
             color: color !== null ? color : path.color,
             side: THREE.DoubleSide,
-            depthWrite: false,
+            // depthWrite: false,
           });
 
           const shapes = path.toShapes(isCCW);
@@ -2260,6 +2260,7 @@ async function addAsync(
   }
 
   let material;
+  const transparent = opacity < 1.0 ? true : false;
 
   if (lighting) {
     addDefaultLights();
@@ -2273,7 +2274,7 @@ async function addAsync(
     material = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
       color: color !== null ? color : 0xffffff,
-      transparent: opacity < 1.0 ? true : false,
+      transparent,
       opacity,
       wireframe,
     });
@@ -2304,9 +2305,11 @@ async function addAsync(
       map: texture,
       side: THREE.DoubleSide,
       transparent: true,
+      opacity,
+      wireframe,
     });
 
-    const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
+    const geometry = new THREE.PlaneBufferGeometry(1, 1);
     mesh = new THREE.Mesh(geometry, material);
 
     const ratio = texture.image.width / texture.image.height;
@@ -2725,6 +2728,34 @@ function implode(group, { t = null, duration = 0.5 } = {}) {
   });
 }
 
+function flying(group, { t = null, duration = 5 } = {}) {
+  const WIDTH = 30;
+  const HEIGHT = 15;
+
+  commandList.push(() => {
+    const tl = gsap.timeline();
+
+    sceneObjects[group].children.forEach((x) => {
+      tl.fromTo(
+        x.position,
+        {
+          x: rng() * WIDTH - WIDTH / 2,
+          y: rng() * HEIGHT - HEIGHT / 2,
+        },
+        {
+          x: rng() * WIDTH - WIDTH / 2,
+          y: rng() * HEIGHT - HEIGHT / 2,
+          duration,
+          ease: "none",
+        },
+        0
+      );
+    });
+
+    mainTimeline.add(tl, t);
+  });
+}
+
 export default {
   run: newScene,
   palette,
@@ -2819,6 +2850,7 @@ export default {
   enableBloom: (enabled = true) => {
     bloomEnabled = enabled;
   },
+  flying,
 };
 
 // TODO: update to MathJax3
