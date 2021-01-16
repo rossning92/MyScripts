@@ -51,6 +51,16 @@ module.exports = (env) => {
         path.resolve(__dirname, "node_modules"),
         "node_modules",
       ],
+      extensions: [".js", ".ts", ".json"],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.tsx?$/,
+          use: "ts-loader",
+          exclude: /node_modules/,
+        },
+      ],
     },
   };
 };

@@ -1,0 +1,495 @@
+import LineGenerator from "./objects/LineGenerator";
+import getRandomFloat from "./utils/getRandomFloat";
+import getRandomItem from "./utils/getRandomItem";
+
+function createAnimatedLines() {
+  /**
+   * * *******************
+   * * LIGNES
+   * * *******************
+   */
+  const COLORS = [
+    "#FDFFFC",
+    "#FDFFFC",
+    "#FDFFFC",
+    "#FDFFFC",
+    "#EA526F",
+    "#71b9f2",
+  ].map((col) => new THREE.Color(col));
+  const STATIC_PROPS = {
+    nbrOfPoints: 4,
+    speed: 0.03,
+    turbulence: new THREE.Vector3(1, 0.8, 1),
+    orientation: new THREE.Vector3(1, 0, 0),
+    transformLineMethod: (p) => {
+      const a = (0.5 - Math.abs(0.5 - p)) * 3;
+      return a;
+    },
+  };
+
+  const POSITION_X = -3.2;
+  const LENGTH_MIN = 5;
+  const LENGTH_MAX = 7;
+  class CustomLineGenerator extends LineGenerator {
+    start() {
+      const currentFreq = this.frequency;
+      this.frequency = 1;
+      setTimeout(() => {
+        this.frequency = currentFreq;
+      }, 500);
+      super.start();
+    }
+
+    addLine() {
+      const line = super.addLine({
+        width: getRandomFloat(0.1, 0.3),
+        length: getRandomFloat(LENGTH_MIN, LENGTH_MAX),
+        visibleLength: getRandomFloat(0.05, 0.8),
+        position: new THREE.Vector3(POSITION_X, 0.3, getRandomFloat(-1, 1)),
+        color: getRandomItem(COLORS),
+      });
+      line.rotation.x = getRandomFloat(0, Math.PI * 2);
+
+      if (Math.random() > 0.1) {
+        const line = super.addLine({
+          width: getRandomFloat(0.05, 0.1),
+          length: getRandomFloat(5, 10),
+          visibleLength: getRandomFloat(0.05, 0.5),
+          speed: 0.05,
+          position: new THREE.Vector3(
+            getRandomFloat(-9, 5),
+            getRandomFloat(-5, 5),
+            getRandomFloat(-10, 6)
+          ),
+          color: getRandomItem(COLORS),
+        });
+        line.rotation.x = getRandomFloat(0, Math.PI * 2);
+      }
+    }
+  }
+  var lineGenerator = new CustomLineGenerator(
+    {
+      frequency: 0.1,
+    },
+    STATIC_PROPS
+  );
+  scene.add(lineGenerator);
+
+  /**
+   * * *******************
+   * * START
+   * * *******************
+   */
+  // Show
+  // const tlShow = new TimelineLite({ delay: 0.2 });
+  // tlShow.to('.overlay', 0.6, { autoAlpha: 0 });
+  // // tlShow.fromTo(engine.lookAt, 3, { y: -4 }, { y: 0, ease: Power3.easeOut }, 0);
+  // tlShow.add(lineGenerator.start, '-=2.5');
+  // // tlShow.add(() => {
+  // //   scene.add(text);
+  // //   text.show();
+  // // }, '-=1.6');
+
+  lineGenerator.start();
+}
+
+
+
+function createTextParticles(text = "Hello Codepen ♥") {
+  // Inspared by https://codepen.io/rachsmith/pen/LpZbmZ
+
+  // Lab Raycaster 2.0
+  // https://codepen.io/vcomics/pen/OZPayy
+
+  if (1) {
+    // Create lights
+    let shadowLight = new THREE.DirectionalLight(0xffffff, 2);
+    shadowLight.position.set(20, 0, 10);
+    shadowLight.castShadow = true;
+    shadowLight.shadowDarkness = 0.01;
+    scene.add(shadowLight);
+
+    let light = new THREE.DirectionalLight(0xffffff, 0.5);
+    light.position.set(-20, 0, 20);
+    scene.add(light);
+
+    let backLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    backLight.position.set(0, 0, -20);
+    scene.add(backLight);
+  }
+
+  if (0) {
+    var light = new THREE.SpotLight(0xffffff, 3);
+    light.position.set(5, 5, 2);
+    light.castShadow = true;
+    light.shadow.mapSize.width = 10000;
+    light.shadow.mapSize.height = light.shadow.mapSize.width;
+    light.penumbra = 0.5;
+
+    var lightBack = new THREE.PointLight(0x0fffff, 1);
+    lightBack.position.set(0, -3, -1);
+
+    scene.add(light);
+    scene.add(lightBack);
+
+    var rectSize = 2;
+    var intensity = 100;
+    var rectLight = new THREE.RectAreaLight(
+      0x0fffff,
+      intensity,
+      rectSize,
+      rectSize
+    );
+    rectLight.position.set(0, 0, 1);
+    rectLight.lookAt(0, 0, 0);
+    scene.add(rectLight);
+  }
+
+  let canvas = document.createElement("canvas");
+  let ww = (canvas.width = 160);
+  let wh = (canvas.height = 40);
+
+  let ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.font = "bold " + ww / 10 + "px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(text, ww / 2, wh / 2);
+
+  let data = ctx.getImageData(0, 0, ww, wh).data;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = "screen";
+
+  let n = 0;
+  for (let i = 0; i < ww; i += 1) {
+    for (let j = 0; j < wh; j += 1) {
+      if (data[(i + j * ww) * 4 + 3] > 150) {
+        {
+          // let geometry = new THREE.BoxGeometry();
+          // for (let i = 0; i < geometry.vertices.length; i++) {
+          //   geometry.vertices[i].x += (-1 + Math.random() * 0.5) * 0.2;
+          //   geometry.vertices[i].y += (-1 + Math.random() * 0.5) * 0.2;
+          //   geometry.vertices[i].z += (-1 + Math.random() * 0.5) * 0.2;
+          // }
+
+          // let material = new THREE.MeshLambertMaterial({
+          //   color: pallete[i % pallete.length],
+          //   shading: THREE.FlatShading
+          // });
+
+          // let material = new THREE.MeshPhysicalMaterial({color:0xFFFFFF, side:THREE.DoubleSide});
+          // let geometry = new THREE.CircleGeometry(1, 5);
+
+          var material = new THREE.MeshStandardMaterial({
+            shading: THREE.FlatShading,
+            color: palette[n % palette.length],
+            transparent: false,
+            opacity: 1,
+            wireframe: false,
+          });
+          var geometry = new THREE.IcosahedronGeometry(1);
+
+          let mesh = new THREE.Mesh(geometry, material);
+          const S = 5;
+          mesh.position.set(i / S, -j / S, 0);
+          mesh.scale.set(0.5 / S, 0.5 / S, 0.5 / S);
+          scene.add(mesh);
+
+          let clock = new THREE.Clock();
+          const vx = Math.random();
+          const vy = Math.random();
+          mesh.onBeforeRender = () => {
+            let delta = clock.getDelta();
+            mesh.rotation.x += vx * delta;
+            mesh.rotation.y += vy * delta;
+          };
+
+          if (1) {
+            mesh.scale.set(0, 0, 0);
+            const params = {
+              scale: 0,
+            };
+            gsap.to(params, {
+              scale: (0.5 + (Math.random() - 0.5) * 0.5) / S,
+              duration: 5,
+              ease: "elastic.out(1, 0.1)",
+              onUpdate: () => {
+                mesh.scale.set(params.scale, params.scale, params.scale);
+              },
+              delay: 2 + Math.random(),
+            });
+          }
+
+          n++;
+        }
+      }
+    }
+  }
+}
+
+// createTextParticles();
+
+function createRingAnimation() {
+  const SEGMENT = 100;
+  const RADIUS = 1;
+
+  let geometry = new THREE.Geometry();
+  for (let j = 0; j < 2 * Math.PI; j += (2 * Math.PI) / SEGMENT) {
+    let v = new THREE.Vector3(Math.sin(j) * RADIUS, Math.cos(j) * RADIUS, 0);
+    geometry.vertices.push(v);
+  }
+
+  let line = new MeshLine();
+
+  line.setGeometry(geometry);
+
+  const material = new MeshLineMaterial({
+    lineWidth: 0.3,
+
+    dashArray: 1,
+    dashOffset: 0,
+    dashRatio: 0.8, // The ratio between that is visible or not for each dash
+
+    opacity: 1,
+    transparent: true,
+    color: "#ffffff",
+    // TODO: don't hard code value here.
+    resolution: new THREE.Vector2(WIDTH, HEIGHT),
+    sizeAttenuation: !false, // Line width constant regardless distance
+  });
+
+  let mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
+  scene.add(mesh);
+
+  mesh.position.z = -1;
+
+  mesh.scale.set(4, 4, 4);
+
+  // Animation
+  if (1) {
+    let vals = {
+      start: 0,
+      end: 0,
+    };
+    let tl = gsap.timeline({
+      defaults: { duration: 1, ease: "power3.out" },
+      onUpdate: () => {
+        material.uniforms.dashOffset.value = vals.start;
+        material.uniforms.dashRatio.value = 1 - (vals.end - vals.start);
+      },
+    });
+    tl.to(vals, {
+      end: 1,
+      duration: 2,
+    }).to(
+      vals,
+      {
+        start: 1,
+        duration: 2,
+      },
+      "<0.5"
+    );
+  }
+}
+
+
+function canvasDrawTriangle() {
+  let canvas = createCanvas();
+  var ctx = canvas.getContext("2d");
+
+  // Filled triangle
+  ctx.beginPath();
+  ctx.moveTo(10, 25);
+  ctx.lineTo(50, 60);
+  ctx.lineTo(45, 5);
+  ctx.fill();
+
+  let data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  return data;
+}
+
+
+function createRect({ color = 0xffff00 } = {}) {
+  var geometry = new THREE.PlaneGeometry(1, 1);
+  var material = new THREE.MeshBasicMaterial({
+    color: color,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 1.0,
+  });
+  var plane = new THREE.Mesh(geometry, material);
+  // scene.add(plane);
+  return plane;
+}
+
+
+//// GLOW MESH
+
+const dilateGeometry = function (geometry, length) {
+  // gather vertexNormals from geometry.faces
+  var vertexNormals = new Array(geometry.vertices.length);
+  geometry.faces.forEach(function (face) {
+    if (face instanceof THREE.Face4) {
+      vertexNormals[face.a] = face.vertexNormals[0];
+      vertexNormals[face.b] = face.vertexNormals[1];
+      vertexNormals[face.c] = face.vertexNormals[2];
+      vertexNormals[face.d] = face.vertexNormals[3];
+    } else if (face instanceof THREE.Face3) {
+      vertexNormals[face.a] = face.vertexNormals[0];
+      vertexNormals[face.b] = face.vertexNormals[1];
+      vertexNormals[face.c] = face.vertexNormals[2];
+    } else console.assert(false);
+  });
+  // modify the vertices according to vertextNormal
+  geometry.vertices.forEach(function (vertex, idx) {
+    var vertexNormal = vertexNormals[idx];
+    vertex.x += vertexNormal.x * length;
+    vertex.y += vertexNormal.y * length;
+    vertex.z += vertexNormal.z * length;
+  });
+};
+
+const createAtmosphereMaterial = function () {
+  var vertexShader = [
+    "varying vec3	vVertexWorldPosition;",
+    "varying vec3	vVertexNormal;",
+
+    "varying vec4	vFragColor;",
+
+    "void main(){",
+    "	vVertexNormal	= normalize(normalMatrix * normal);",
+
+    "	vVertexWorldPosition	= (modelMatrix * vec4(position, 1.0)).xyz;",
+
+    "	// set gl_Position",
+    "	gl_Position	= projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
+    "}",
+  ].join("\n");
+  var fragmentShader = [
+    "uniform vec3	glowColor;",
+    "uniform float	coeficient;",
+    "uniform float	power;",
+
+    "varying vec3	vVertexNormal;",
+    "varying vec3	vVertexWorldPosition;",
+
+    "varying vec4	vFragColor;",
+
+    "void main(){",
+    "	vec3 worldCameraToVertex= vVertexWorldPosition - cameraPosition;",
+    "	vec3 viewCameraToVertex	= (viewMatrix * vec4(worldCameraToVertex, 0.0)).xyz;",
+    "	viewCameraToVertex	= normalize(viewCameraToVertex);",
+    "	float intensity		= pow(coeficient + dot(vVertexNormal, viewCameraToVertex), power);",
+    "	gl_FragColor		= vec4(glowColor, intensity);",
+    "}",
+  ].join("\n");
+
+  // create custom material from the shader code above
+  //   that is within specially labeled script tags
+  var material = new THREE.ShaderMaterial({
+    uniforms: {
+      coeficient: {
+        type: "f",
+        value: 1.0,
+      },
+      power: {
+        type: "f",
+        value: 2,
+      },
+      glowColor: {
+        type: "c",
+        value: new THREE.Color("pink"),
+      },
+    },
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    //blending	: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+  });
+  return material;
+};
+
+const GeometricGlowMesh = function (mesh, { color = "cyan" } = {}) {
+  var object3d = new THREE.Object3D();
+
+  var geometry = mesh.geometry.clone();
+  dilateGeometry(geometry, 0.01);
+  var material = createAtmosphereMaterial();
+  material.uniforms.glowColor.value = new THREE.Color(color);
+  material.uniforms.coeficient.value = 1.1;
+  material.uniforms.power.value = 1.4;
+  var insideMesh = new THREE.Mesh(geometry, material);
+  object3d.add(insideMesh);
+
+  var geometry = mesh.geometry.clone();
+  dilateGeometry(geometry, 0.2);
+  var material = createAtmosphereMaterial();
+  material.uniforms.glowColor.value = new THREE.Color(color);
+  material.uniforms.coeficient.value = 0.1;
+  material.uniforms.power.value = 1.2;
+  material.side = THREE.BackSide;
+  var outsideMesh = new THREE.Mesh(geometry, material);
+  object3d.add(outsideMesh);
+
+  // expose a few variable
+  this.object3d = object3d;
+  this.insideMesh = insideMesh;
+  this.outsideMesh = outsideMesh;
+};
+
+function addGlow(object3d) {
+  object3d.add(new GeometricGlowMesh(circle).object3d);
+}
+
+///
+
+
+
+// TODO: update to MathJax3
+async function tex2canvas(formula) {
+  formula = "\\(\\color{white}{" + formula + "}\\)";
+  return new Promise((resolve, reject) => {
+    MathJax.Hub.Queue(function () {
+      var wrapper = MathJax.HTML.Element("span", {}, formula);
+      MathJax.Hub.Typeset(wrapper, function () {
+        console.log(wrapper);
+        var svg = wrapper.getElementsByTagName("svg")[0];
+        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        var image = new Image();
+        image.src =
+          "data:image/svg+xml;base64," +
+          window.btoa(unescape(encodeURIComponent(svg.outerHTML)));
+        image.onload = function () {
+          var canvas = document.createElement("canvas");
+
+          // HACK: scale
+          canvas.width = image.width * 10;
+          canvas.height = image.height * 10;
+          var context = canvas.getContext("2d");
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          // var img = '<img src="' + canvas.toDataURL("image/png") + '"/>';
+          resolve(canvas);
+        };
+      });
+    });
+  });
+}
+
+
+
+if (type == "tex") {
+    const canvas = await tex2canvas(obj);
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+      transparent: true,
+    });
+
+    const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
+    mesh = new THREE.Mesh(geometry, material);
+
+    mesh.scale.x = texture.image.width / 120;
+    mesh.scale.y = texture.image.height / 120;
+  }

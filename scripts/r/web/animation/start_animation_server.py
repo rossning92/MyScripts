@@ -34,7 +34,7 @@ def start_server(file=None, content_base=None):
     #     env["CONTENT_BASE"] = content_base
 
     launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "start-app.js")
-    ps = subprocess.Popen(["node", launch_script, file])
+    ps = subprocess.Popen(["node", launch_script, file], cwd=FRAMEWORK_ROOT)
     return ps
 
 

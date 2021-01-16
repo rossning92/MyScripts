@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "module": "es6",
+    "allowJs": true,
+    "moduleResolution": "node"
+  }
+}
