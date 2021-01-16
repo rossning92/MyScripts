@@ -23,13 +23,13 @@ import Stats from "three/examples/jsm/libs/stats.module.js";
 gsap.ticker.remove(gsap.updateRoot);
 
 let ENABLE_GLITCH_PASS = false;
-let RENDER_TARGET_SCALE = 1;
-let WIDTH = 1920 * RENDER_TARGET_SCALE;
-let HEIGHT = 1080 * RENDER_TARGET_SCALE;
+let WIDTH = 1920;
+let HEIGHT = 1080;
 let AA_METHOD = "msaa";
 let ENABLE_MOTION_BLUR_PASS = false;
 let MOTION_BLUR_SAMPLES = 1;
-let BLOOM_ENABLED = false;
+
+let bloomEnabled = false;
 
 let defaultAnimation = null;
 
@@ -247,7 +247,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     // motionPass.renderToScreen = true;
   }
 
-  if (BLOOM_ENABLED) {
+  if (bloomEnabled) {
     // Bloom pass
     let bloomPass = new UnrealBloomPass(
       new THREE.Vector2(WIDTH, HEIGHT),
@@ -1791,7 +1791,7 @@ const metaData = {
 
 function setBloom(enabled) {
   if (enabled) {
-    BLOOM_ENABLED = true;
+    bloomEnabled = true;
     AA_METHOD = "fxaa";
   }
 }
@@ -2815,6 +2815,9 @@ export default {
     commandList.push(() => {
       addAnimation(sceneObjects[obj], "grow3", params);
     });
+  },
+  enableBloom: (enabled = true) => {
+    bloomEnabled = enabled;
   },
 };
 
