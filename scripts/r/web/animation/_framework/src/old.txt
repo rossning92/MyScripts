@@ -479,17 +479,31 @@ async function tex2canvas(formula) {
 
 
 if (type == "tex") {
-    const canvas = await tex2canvas(obj);
-    const texture = new THREE.CanvasTexture(canvas);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-      transparent: true,
-    });
-
-    const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
-    mesh = new THREE.Mesh(geometry, material);
-
-    mesh.scale.x = texture.image.width / 120;
-    mesh.scale.y = texture.image.height / 120;
+  const canvas = await tex2canvas(obj);
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    transparent: true,
+  });
+  const geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
+  mesh = new THREE.Mesh(geometry, material);
+  mesh.scale.x = texture.image.width / 120;
+  mesh.scale.y = texture.image.height / 120;
+}
+  
+function createLine() {
+  var geometry = new THREE.Geometry();
+  for (var j = 0; j < Math.PI; j += (2 * Math.PI) / 100) {
+    var v = new THREE.Vector3(j / 5, Math.sin(j) / 5, 0);
+    geometry.vertices.push(v);
   }
+  var line = new MeshLine();
+  line.setGeometry(geometry, () => {
+    return 0.02;
+  });
+
+  var material = new MeshLineMaterial();
+  var mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
+  scene.add(mesh);
+}

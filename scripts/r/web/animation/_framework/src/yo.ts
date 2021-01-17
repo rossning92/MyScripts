@@ -1,8 +1,6 @@
 import * as dat from "dat.gui";
 import * as THREE from "three";
-import { MeshLine, MeshLineMaterial } from "three.meshline";
 import TextMesh from "./objects/TextMesh";
-import Stars from "./objects/Stars";
 
 import gsap from "gsap";
 
@@ -345,22 +343,6 @@ function randomInt(min, max) {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
-function createLine() {
-  var geometry = new THREE.Geometry();
-  for (var j = 0; j < Math.PI; j += (2 * Math.PI) / 100) {
-    var v = new THREE.Vector3(j / 5, Math.sin(j) / 5, 0);
-    geometry.vertices.push(v);
-  }
-  var line = new MeshLine();
-  line.setGeometry(geometry, () => {
-    return 0.02;
-  });
-
-  var material = new MeshLineMaterial();
-  var mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
-  scene.add(mesh);
-}
-
 function generateLinearGradientTexture() {
   var size = 512;
 
@@ -644,7 +626,6 @@ function createFadeInAnimation(
   const tl = gsap.timeline({ defaults: { duration, ease } });
 
   const materials = getAllMaterials(object3d);
-  // console.log(materials);
   for (const material of materials) {
     material.transparent = true;
     tl.from(
@@ -1986,8 +1967,6 @@ function addGroup({
     group.scale.setScalar(scale);
 
     if (parent) {
-      console.log(sceneObjects);
-      console.log(parent);
       sceneObjects[parent].add(group);
     } else {
       scene.add(group);
