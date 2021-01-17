@@ -1332,11 +1332,8 @@ function newScene(initFunction = undefined) {
         if (ret instanceof Promise) {
           await ret;
         }
-      } else if (cmd.type === "addGroup") {
-        const group = addThreeJsGroup();
-        sceneObjects[cmd.id] = group;
       } else {
-        throw `invalid command type: ${cmd.type}`;
+        throw `invalid command`;
       }
     }
 
