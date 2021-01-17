@@ -48,7 +48,6 @@ let scene = undefined;
 let camera = undefined;
 let lightGroup = undefined;
 let cameraControls = undefined;
-let palette = ["#1a535c", "#4ecdc4", "#ff6b6b", "#ffe66d", "#f7fff7"];
 
 var glitchPass;
 var gridHelper;
@@ -1319,22 +1318,8 @@ const metaData = {
   cutPoints: [],
 };
 
-function setBloom(enabled) {
-  if (enabled) {
-    bloomEnabled = true;
-    AA_METHOD = "fxaa";
-  }
-}
-
 function newScene(initFunction = undefined) {
   (async () => {
-    // {
-    //   let cut = getQueryString().cut;
-    //   if (cut) {
-    //     subClipDurations = cut.split("|").map((x) => parseFloat(x));
-    //   }
-    // }
-
     setupScene({ width: WIDTH, height: HEIGHT });
 
     if (initFunction !== undefined) {
@@ -2167,12 +2152,12 @@ function setBackgroundAlpha(alpha) {
   backgroundAlpha = alpha;
 }
 
-function enableMotionBlur(motionBlurSamples = 16) {
+function enableMotionBlur({ motionBlurSamples = 16 } = {}) {
   MOTION_BLUR_SAMPLES = motionBlurSamples;
   AA_METHOD = "fxaa";
 }
 
-function setViewportSize(w, h) {
+function setResolution(w, h) {
   WIDTH = w;
   HEIGHT = h;
 }
@@ -2251,7 +2236,6 @@ function flying(group, { t = undefined, duration = 5 } = {}) {
 
 export default {
   run: newScene,
-  palette,
   randomInt,
   addGroup,
   getQueryString,
@@ -2339,10 +2323,12 @@ export default {
       addAnimation(sceneObjects[obj], "grow3", params);
     });
   },
-  enableBloom: (enabled = true) => {
-    bloomEnabled = enabled;
+  enableBloom: () => {
+    bloomEnabled = true;
+    AA_METHOD = "fxaa";
   },
   flying,
   reveal,
   addGlitch,
+  setResolution,
 };
