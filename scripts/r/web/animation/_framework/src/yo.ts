@@ -1328,10 +1328,10 @@ function newScene(initFunction = undefined) {
 
     for (const cmd of commandQueue) {
       if (typeof cmd === "function") {
-        cmd();
-      } else if (cmd.type === "add") {
-        const mesh = await addObject(cmd.obj, cmd.params);
-        sceneObjects[cmd.id] = mesh;
+        const ret = cmd();
+        if (ret instanceof Promise) {
+          await ret;
+        }
       } else if (cmd.type === "addGroup") {
         const group = addThreeJsGroup();
         sceneObjects[cmd.id] = group;
@@ -1677,9 +1677,12 @@ function uuidv4() {
 }
 
 function add(obj, params: AddObjectParameters) {
-  const guid = uuidv4();
-  commandQueue.push({ type: "add", obj, params, id: guid });
-  return guid;
+  const id = uuidv4();
+  commandQueue.push(async () => {
+    await addObject(obj, id, params);
+  });
+
+  return id;
 }
 
 function toVector3(v) {
@@ -1782,7 +1785,7 @@ function updateTransform(mesh: THREE.Object3D, transform: Transform) {
   if (transform.rz !== undefined) mesh.rotation.z = transform.rz;
 }
 
-async function addObject(obj, params: AddObjectParameters) {
+async function addObject(obj, id: string, params: AddObjectParameters) {
   let {
     animation,
     color,
@@ -1939,7 +1942,7 @@ async function addObject(obj, params: AddObjectParameters) {
     scene.add(mesh);
   }
 
-  return mesh;
+  sceneObjects[id] = mesh;
 }
 
 function addGroup({
