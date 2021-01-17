@@ -33,30 +33,24 @@ let MOTION_BLUR_SAMPLES = 1;
 
 let bloomEnabled = false;
 
-let defaultAnimation = null;
+let defaultAnimation = undefined;
 
-var outFileName = null;
+var outFileName = undefined;
 var captureStatus;
 var globalTimeline = gsap.timeline({ onComplete: stopCapture });
 
 const mainTimeline = gsap.timeline();
 globalTimeline.add(mainTimeline, "0");
 
-let stats = null;
-let capturer = null;
-let renderer = null;
-let composer = null;
-let scene = null;
-let camera = null;
-let lightGroup = null;
-let cameraControls = null;
-let palette = [
-  "#1a535c",
-  "#4ecdc4",
-  "#ff6b6b",
-  "#ffe66d",
-  "#f7fff7",
-];
+let stats = undefined;
+let capturer = undefined;
+let renderer = undefined;
+let composer = undefined;
+let scene = undefined;
+let camera = undefined;
+let lightGroup = undefined;
+let cameraControls = undefined;
+let palette = ["#1a535c", "#4ecdc4", "#ff6b6b", "#ffe66d", "#f7fff7"];
 
 var glitchPass;
 var gridHelper;
@@ -88,13 +82,13 @@ gui.add(options, "stop");
 
 const sceneObjects = {};
 
-function startCapture({ resetTiming = true, name = null } = {}) {
-  if (name === null) {
+function startCapture({ resetTiming = true, name = undefined } = {}) {
+  if (name === undefined) {
     name = document.title;
   }
   outFileName = name;
 
-  if (gridHelper !== null) {
+  if (gridHelper !== undefined) {
     gridHelper.visible = false;
   }
 
@@ -102,7 +96,7 @@ function startCapture({ resetTiming = true, name = null } = {}) {
     // Reset gsap
     gsap.ticker.remove(gsap.updateRoot);
 
-    lastTs = null;
+    lastTs = undefined;
   }
 
   capturer = new CCapture({
@@ -132,10 +126,10 @@ declare global {
 window.startCapture = window.startCapture || {};
 
 function stopCapture() {
-  if (capturer !== null) {
+  if (capturer !== undefined) {
     capturer.stop();
     capturer.save();
-    capturer = null;
+    capturer = undefined;
     captureStatus.innerText = "stopped";
 
     // var FileSaver = require("file-saver");
@@ -171,7 +165,7 @@ function createOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
 function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   renderer = new THREE.WebGLRenderer({
     alpha: true,
-    antialias: AA_METHOD == "msaa",
+    antialias: AA_METHOD === "msaa",
   });
   renderer.localClippingEnabled = true;
 
@@ -187,7 +181,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   renderer.setClearColor(0x000000, backgroundAlpha);
   scene.background = 0;
 
-  if (camera === null) {
+  if (camera === undefined) {
     // This will ensure the size of 10 in the vertical direction.
     camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000);
     camera.position.set(0, 0, 8.66);
@@ -252,17 +246,17 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     // alert();
   }
 
-  if (AA_METHOD == "fxaa") {
+  if (AA_METHOD === "fxaa") {
     composer.addPass(createFxaaPass(renderer));
-  } else if (AA_METHOD == "ssaa") {
+  } else if (AA_METHOD === "ssaa") {
     let ssaaRenderPass = new SSAARenderPass(scene, camera, 0, 0);
     ssaaRenderPass.unbiased = true;
     composer.addPass(ssaaRenderPass);
-  } else if (AA_METHOD == "smaa") {
+  } else if (AA_METHOD === "smaa") {
     let pixelRatio = renderer.getPixelRatio();
     let smaaPass = new SMAAPass(WIDTH * pixelRatio, HEIGHT * pixelRatio);
     composer.addPass(smaaPass);
-  } else if (AA_METHOD == "taa") {
+  } else if (AA_METHOD === "taa") {
     let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
     taaRenderPass.unbiased = false;
     taaRenderPass.sampleLevel = 4;
@@ -275,7 +269,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   }
 }
 
-var lastTs = null;
+var lastTs = undefined;
 var timeElapsed = 0;
 var animTimeElapsed = 0;
 
@@ -289,7 +283,7 @@ function animate(
   let delta;
   {
     // Compute `timeElapsed`. This works for both animation preview and capture.
-    if (lastTs === null) {
+    if (lastTs === undefined) {
       delta = 0.000001;
       lastTs = nowInSecs;
       globalTimeline.seek(0, false);
@@ -318,7 +312,7 @@ function animate(
   if (capturer) capturer.capture(renderer.domElement);
 }
 
-function moveCamera({ x = 0, y = 0, z = 10, t = null } = {}) {
+function moveCamera({ x = 0, y = 0, z = 10, t = undefined } = {}) {
   commandList.push(() => {
     const tl = gsap.to(camera.position, {
       x,
@@ -422,7 +416,7 @@ function createLine3D({
   points = [],
   lineWidth = 0.1,
 } = {}) {
-  if (points.length == 0) {
+  if (points.length === 0) {
     points.push(new THREE.Vector3(-1.73, -1, 0));
     points.push(new THREE.Vector3(1.73, -1, 0));
     points.push(new THREE.Vector3(0, 2, 0));
@@ -450,7 +444,7 @@ function createLine3D({
   return mesh;
 }
 
-function reveal(obj, { dir = "up", t = null } = {}) {
+function reveal(obj, { dir = "up", t = undefined } = {}) {
   commandList.push(() => {
     const object3d = sceneObjects[obj];
 
@@ -512,20 +506,20 @@ function createObject({
   color = 0xffffff,
 } = {}) {
   let geometry;
-  if (type == "sphere") {
+  if (type === "sphere") {
     geometry = new THREE.SphereGeometry(0.5, segments, segments);
-  } else if (type == "circle") {
+  } else if (type === "circle") {
     geometry = new THREE.CircleGeometry(0.5, segments);
-  } else if (type == "cone") {
+  } else if (type === "cone") {
     geometry = new THREE.ConeGeometry(0.5, 1.0, segments, segments);
   }
 
   let material;
-  if (materialType == "phong") {
+  if (materialType === "phong") {
     material = new THREE.MeshPhongMaterial({
       color,
     });
-  } else if (materialType == "physical") {
+  } else if (materialType === "physical") {
     material = new THREE.MeshPhysicalMaterial({
       clearcoat: 1.0,
       clearcoatRoughness: 0.1,
@@ -641,9 +635,9 @@ function getAllMaterials(object3d): THREE.Material[] {
 
 function createFadeInAnimation(
   object3d,
-  { duration = null, ease = "linear" } = {}
+  { duration = undefined, ease = "linear" } = {}
 ) {
-  if (duration === null) {
+  if (duration === undefined) {
     duration = 0.25;
   }
 
@@ -667,7 +661,7 @@ function createFadeInAnimation(
 }
 
 function setOpacity(object3d, opacity = 1.0) {
-  if (object3d.material !== null) {
+  if (object3d.material !== undefined) {
     object3d.material.transparent = true;
     object3d.material.opacity = opacity;
   }
@@ -679,9 +673,9 @@ function setOpacity(object3d, opacity = 1.0) {
 
 function createFadeOutAnimation(
   obj,
-  { duration = null, ease = "linear" } = {}
+  { duration = undefined, ease = "linear" } = {}
 ) {
-  if (duration === null) {
+  if (duration === undefined) {
     duration = 0.25;
   }
 
@@ -746,26 +740,26 @@ function jumpTo(object3d, { x = 0, y = 0 }) {
 function createMotionAnimation(
   object3d,
   {
-    position = null,
-    x = null,
-    y = null,
-    z = null,
-    rx = null,
-    ry = null,
-    rz = null,
-    sx = null,
-    sy = null,
-    sz = null,
-    scale = null,
-    dx = null,
-    dy = null,
+    position = undefined,
+    x = undefined,
+    y = undefined,
+    z = undefined,
+    rx = undefined,
+    ry = undefined,
+    rz = undefined,
+    sx = undefined,
+    sy = undefined,
+    sz = undefined,
+    scale = undefined,
+    dx = undefined,
+    dy = undefined,
     duration = 0.5,
     ease = "power2.out",
-    multiplyScale = null,
+    multiplyScale = undefined,
   } = {}
 ) {
-  if (dx !== null) x = object3d.position.x + dx;
-  if (dy !== null) y = object3d.position.y + dy;
+  if (dx !== undefined) x = object3d.position.x + dx;
+  if (dy !== undefined) y = object3d.position.y + dy;
 
   let tl = gsap.timeline({
     defaults: {
@@ -774,23 +768,23 @@ function createMotionAnimation(
     },
   });
 
-  if (position !== null) {
+  if (position !== undefined) {
     tl.to(
       object3d.position,
       { x: position[0], y: position[1], z: position[2] },
       "<"
     );
   } else {
-    if (x !== null) tl.to(object3d.position, { x }, "<");
-    if (y !== null) tl.to(object3d.position, { y }, "<");
-    if (z !== null) tl.to(object3d.position, { z }, "<");
+    if (x !== undefined) tl.to(object3d.position, { x }, "<");
+    if (y !== undefined) tl.to(object3d.position, { y }, "<");
+    if (z !== undefined) tl.to(object3d.position, { z }, "<");
   }
 
-  if (rx !== null) tl.to(object3d.rotation, { x: rx }, "<");
-  if (ry !== null) tl.to(object3d.rotation, { y: ry }, "<");
-  if (rz !== null) tl.to(object3d.rotation, { z: rz }, "<");
+  if (rx !== undefined) tl.to(object3d.rotation, { x: rx }, "<");
+  if (ry !== undefined) tl.to(object3d.rotation, { y: ry }, "<");
+  if (rz !== undefined) tl.to(object3d.rotation, { z: rz }, "<");
 
-  if (scale !== null) {
+  if (scale !== undefined) {
     tl.to(
       object3d.scale,
       {
@@ -800,7 +794,7 @@ function createMotionAnimation(
       },
       "<"
     );
-  } else if (multiplyScale !== null) {
+  } else if (multiplyScale !== undefined) {
     tl.to(
       object3d.scale,
       {
@@ -811,9 +805,9 @@ function createMotionAnimation(
       "<"
     );
   } else {
-    if (sx !== null) tl.to(object3d.scale, { x: sx }, "<");
-    if (sy !== null) tl.to(object3d.scale, { y: sy }, "<");
-    if (sz !== null) tl.to(object3d.scale, { z: sz }, "<");
+    if (sx !== undefined) tl.to(object3d.scale, { x: sx }, "<");
+    if (sy !== undefined) tl.to(object3d.scale, { y: sy }, "<");
+    if (sz !== undefined) tl.to(object3d.scale, { z: sz }, "<");
   }
 
   return tl;
@@ -852,7 +846,7 @@ function flyIn(
     "<"
   );
 
-  if (beginScale !== null) {
+  if (beginScale !== undefined) {
     tl.from(
       object3d.scale,
       {
@@ -886,7 +880,7 @@ function addFlash(object3d, { speed = 4 } = {}) {
 }
 
 function addDefaultLights() {
-  if (lightGroup === null) {
+  if (lightGroup === undefined) {
     const lightGroup = addThreeJsGroup();
 
     const light0 = new THREE.PointLight(0xffffff, 1, 0);
@@ -930,7 +924,7 @@ function createTriangle({
 
 function shake2D(
   obj,
-  { shakes = 20, duration = 0.01, strength = 0.5, t = null } = {}
+  { shakes = 20, duration = 0.01, strength = 0.5, t = undefined } = {}
 ) {
   function R(max, min) {
     return Math.random() * (max - min) + min;
@@ -1141,12 +1135,12 @@ function createImplodeAnimation(objectGroup, { duration = 0.5 } = {}) {
 }
 
 function getCompoundBoundingBox(object3D) {
-  var box = null;
+  var box = undefined;
   object3D.traverse(function (obj3D) {
     var geometry = obj3D.geometry;
     if (geometry === undefined) return;
     geometry.computeBoundingBox();
-    if (box === null) {
+    if (box === undefined) {
       box = geometry.boundingBox;
     } else {
       box.union(geometry.boundingBox);
@@ -1164,7 +1158,7 @@ function _getNodeName(node) {
   }
 }
 
-async function loadSVG(url, { color = null, isCCW = true } = {}) {
+async function loadSVG(url, { color = undefined, isCCW = true } = {}) {
   return new Promise((resolve, reject) => {
     // instantiate a loader
     let loader = new SVGLoader();
@@ -1186,7 +1180,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
           let path = paths[i];
 
           let material = new THREE.MeshBasicMaterial({
-            color: color !== null ? color : (path as any).color,
+            color: color !== undefined ? color : (path as any).color,
             side: THREE.DoubleSide,
             // depthWrite: false,
           });
@@ -1200,7 +1194,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
           const name = _getNodeName((path as any).userData.node);
 
           if (name) {
-            let group = parentGroup.children.filter((x) => x.name == name)[0];
+            let group = parentGroup.children.filter((x) => x.name === name)[0];
             if (!group) {
               group = new THREE.Group();
               group.name = name;
@@ -1261,7 +1255,7 @@ async function loadSVG(url, { color = null, isCCW = true } = {}) {
 }
 
 function addGlitch({ duration = 0.2 } = {}) {
-  if (glitchPass !== null) {
+  if (glitchPass !== undefined) {
     const tl = gsap.timeline();
     tl.set(glitchPass, { factor: 1 });
     tl.set(glitchPass, { factor: 0 }, `<${duration}`);
@@ -1350,7 +1344,7 @@ function setBloom(enabled) {
   }
 }
 
-function newScene(initFunction = null) {
+function newScene(initFunction = undefined) {
   (async () => {
     // {
     //   let cut = getQueryString().cut;
@@ -1361,17 +1355,17 @@ function newScene(initFunction = null) {
 
     setupScene({ width: WIDTH, height: HEIGHT });
 
-    if (initFunction !== null) {
+    if (initFunction !== undefined) {
       await initFunction();
     }
 
     for (const cmd of commandList) {
       if (typeof cmd === "function") {
         cmd();
-      } else if (cmd.type == "add") {
+      } else if (cmd.type === "add") {
         const mesh = await addAsync(cmd.obj, cmd.params);
         sceneObjects[cmd.id] = mesh;
-      } else if (cmd.type == "addGroup") {
+      } else if (cmd.type === "addGroup") {
         const group = addThreeJsGroup();
         sceneObjects[cmd.id] = group;
       } else {
@@ -1490,8 +1484,8 @@ function createArrow({
   }
 
   for (let i = 0; i < 2; i++) {
-    if (i == 0 && !arrowStart) continue;
-    if (i == 1 && !arrowEnd) continue;
+    if (i === 0 && !arrowStart) continue;
+    if (i === 1 && !arrowEnd) continue;
 
     const geometry = new THREE.Geometry();
     geometry.vertices = [
@@ -1504,7 +1498,7 @@ function createArrow({
     const mesh = new THREE.Mesh(geometry, material);
     group.add(mesh);
 
-    if (i == 0) {
+    if (i === 0) {
       mesh.rotation.z = Math.PI;
     } else {
       mesh.translateY(halfLength * 2);
@@ -1527,17 +1521,17 @@ async function loadTexture(url): Promise<THREE.Texture> {
 
 function addAnimation(
   object3d,
-  animation = "fadeIn",
-  { t = "+=0", aniHold = 1, duration = null } = {}
+  animation,
+  { t = undefined, aniHold = 1, duration = undefined } = {}
 ) {
   const tl = gsap.timeline();
 
-  if (animation !== null) {
+  if (animation !== undefined) {
     const animationList = animation.split("|");
 
     // Enter animation
     animationList.forEach((animation) => {
-      if (animation == "show") {
+      if (animation === "show") {
         tl.fromTo(
           object3d,
           {
@@ -1550,15 +1544,15 @@ function addAnimation(
           },
           "<"
         );
-      } else if (animation == "fadeIn") {
+      } else if (animation === "fadeIn") {
         tl.add(createFadeInAnimation(object3d, { duration }), "<");
-      } else if (animation == "jumpIn") {
+      } else if (animation === "jumpIn") {
         tl.add(addJumpIn(object3d), "<");
-      } else if (animation == "spinIn") {
+      } else if (animation === "spinIn") {
         tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
-      } else if (animation == "rotateIn") {
+      } else if (animation === "rotateIn") {
         tl.from(object3d.rotation, { z: -Math.PI * 2 }, "<");
-      } else if (animation == "rotateIn2") {
+      } else if (animation === "rotateIn2") {
         tl.from(
           object3d.rotation,
           { z: Math.PI * 4, ease: "power.in", duration: 0.5 },
@@ -1575,19 +1569,19 @@ function addAnimation(
           },
           "<"
         );
-      } else if (animation == "grow") {
+      } else if (animation === "grow") {
         tl.from(
           object3d.scale,
           { x: 0.01, y: 0.01, z: 0.01, ease: "expo.out" },
           "<"
         );
-      } else if (animation == "grow2") {
+      } else if (animation === "grow2") {
         tl.from(
           object3d.scale,
           { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out(1, 0.75)" },
           "<"
         );
-      } else if (animation == "grow3") {
+      } else if (animation === "grow3") {
         tl.from(
           object3d.scale,
           {
@@ -1599,24 +1593,24 @@ function addAnimation(
           },
           "<"
         );
-      } else if (animation == "growX") {
+      } else if (animation === "growX") {
         tl.from(object3d.scale, { x: 0.01, ease: "expo.out" }, "<");
-      } else if (animation == "growY") {
+      } else if (animation === "growY") {
         tl.from(object3d.scale, { y: 0.01, ease: "expo.out" }, "<");
-      } else if (animation == "growX2") {
+      } else if (animation === "growX2") {
         tl.from(
           object3d.scale,
           { x: 0.01, ease: "elastic.out(1, 0.75)", duration: 1 },
           "<"
         );
-      } else if (animation == "growY2") {
+      } else if (animation === "growY2") {
         tl.from(object3d.scale, { y: 0.01, ease: "elastic.out(1, 0.75)" }, "<");
-      } else if (animation == "growX3") {
+      } else if (animation === "growX3") {
         tl.from(object3d.scale, { x: 0.01, ease: "back.out" }, "<");
-      } else if (animation == "growY3") {
+      } else if (animation === "growY3") {
         tl.from(object3d.scale, { y: 0.01, ease: "back.out" }, "<");
-      } else if (animation == "type" || animation == "type2") {
-        const speed = animation == "type2" ? 0.005 : 0.01;
+      } else if (animation === "type" || animation === "type2") {
+        const speed = animation === "type2" ? 0.005 : 0.01;
         object3d.children.forEach((x, i) => {
           tl.fromTo(
             x,
@@ -1633,7 +1627,7 @@ function addAnimation(
           );
         });
         // tl.set({}, {}, ">+0.5");
-      } else if (animation == "flyIn") {
+      } else if (animation === "flyIn") {
         const duration = 0.5;
         const ease = "elastic.out";
         tl.from(object3d.position, {
@@ -1653,7 +1647,7 @@ function addAnimation(
 
     // Animation
     animationList.forEach((animation) => {
-      if (animation == "rotation") {
+      if (animation === "rotation") {
         tl.to(
           object3d.rotation,
           {
@@ -1669,7 +1663,7 @@ function addAnimation(
     // Exit animation
     const tlExitAnimation = gsap.timeline();
     animationList.forEach((animation) => {
-      if (animation == "fadeOut") {
+      if (animation === "fadeOut") {
         tlExitAnimation.add(
           createFadeInAnimation(object3d, { ease: "power1.in" }).reverse(),
           "<"
@@ -1710,7 +1704,7 @@ var commandList = [];
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,
-      v = c == "x" ? r : (r & 0x3) | 0x8;
+      v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -1729,34 +1723,74 @@ function toVector3(v) {
   );
 }
 
+interface Transform {
+  x?: number;
+  y?: number;
+  z?: number;
+  rx?: number;
+  ry?: number;
+  rz?: number;
+  sx?: number;
+  sy?: number;
+  sz?: number;
+  position?: number[];
+  scale: number;
+}
+
+interface AddObjectParameters extends Transform {
+  animation: any;
+  color: any;
+  opacity: any;
+  vertices: any;
+  wireframe: any;
+  outline: any;
+  outlineWidth: any;
+  width: any;
+  height: any;
+  t?: number | string;
+  parent: any;
+  lighting: any;
+  ccw: any;
+  font: any;
+  fontSize: any;
+  start: any;
+  end: any;
+  lineWidth: any;
+  gridSize: any;
+  centralAngle: any;
+  letterSpacing: any;
+  duration: any;
+  type: any;
+}
+
 async function addAsync(
   obj,
   {
-    x = null,
-    y = null,
-    z = null,
-    rx = null,
-    ry = null,
-    rz = null,
-    sx = null,
-    sy = null,
-    sz = null,
-    position = null,
-    animation = null,
-    color = null,
+    x,
+    y,
+    z,
+    rx,
+    ry,
+    rz,
+    sx,
+    sy,
+    sz,
+    position,
+    scale,
+    animation = undefined,
+    color = undefined,
     opacity = 1.0,
-    scale = null,
     vertices = [],
     wireframe = false,
     outline = false,
     outlineWidth = 0.1,
     width = 1,
     height = 1,
-    t = null,
-    parent = null,
+    t = undefined,
+    parent = undefined,
     lighting = false,
     ccw = false,
-    font = null,
+    font = undefined,
     fontSize = 1.0,
     start = { x: 0, y: 0 },
     end = { x: 0, y: 1 },
@@ -1764,21 +1798,16 @@ async function addAsync(
     gridSize = 10,
     centralAngle = Math.PI * 2,
     letterSpacing = 0.05,
-    duration = null,
-    type = null,
-  } = {}
+    duration = undefined,
+  }: AddObjectParameters
 ) {
-  if (animation === null && defaultAnimation !== null) {
-    animation = defaultAnimation;
-  }
-
   let material;
   const transparent = opacity < 1.0 ? true : false;
 
   if (lighting) {
     addDefaultLights();
     material = new THREE.MeshPhongMaterial({
-      color: color !== null ? color : 0xffffff,
+      color: color !== undefined ? color : 0xffffff,
       // emissive: 0x072534,
       // side: THREE.DoubleSide,
       flatShading: true,
@@ -1786,7 +1815,7 @@ async function addAsync(
   } else {
     material = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
-      color: color !== null ? color : 0xffffff,
+      color: color !== undefined ? color : 0xffffff,
       transparent,
       opacity,
       wireframe,
@@ -1817,8 +1846,8 @@ async function addAsync(
     } else {
       mesh.scale.x *= ratio;
     }
-  } else if (obj == "triangle") {
-    if (vertices.length == 0) {
+  } else if (obj === "triangle") {
+    if (vertices.length === 0) {
       vertices = createTriangleVertices();
     }
 
@@ -1826,7 +1855,7 @@ async function addAsync(
       mesh = createLine3D({
         points: vertices.concat(vertices[0]),
         lineWidth: outlineWidth,
-        color: color !== null ? color : 0xffffff,
+        color: color !== undefined ? color : 0xffffff,
       });
     } else {
       const geometry = new THREE.Geometry();
@@ -1835,8 +1864,8 @@ async function addAsync(
 
       mesh = new THREE.Mesh(geometry, material);
     }
-  } else if (obj == "triangleOutline") {
-    if (vertices.length == 0) {
+  } else if (obj === "triangleOutline") {
+    if (vertices.length === 0) {
       vertices = createTriangleVertices();
     }
 
@@ -1847,93 +1876,85 @@ async function addAsync(
     });
     // triangleStroke.scale.set(0.2, 0.2, 0.2);
     // scene.add(triangleStroke);
-  } else if (obj == "rect" || obj == "rectangle") {
+  } else if (obj === "rect" || obj === "rectangle") {
     const geometry = new THREE.PlaneGeometry(width, height);
     mesh = new THREE.Mesh(geometry, material);
-  } else if (obj == "circle") {
+  } else if (obj === "circle") {
     const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
     mesh = new THREE.Mesh(geometry, material);
-  } else if (obj == "ring") {
+  } else if (obj === "ring") {
     const geometry = new THREE.RingGeometry(0.85, 1, 64);
     mesh = new THREE.Mesh(geometry, material);
-  } else if (obj == "sphere") {
+  } else if (obj === "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
     mesh = new THREE.Mesh(geometry, material);
-  } else if (obj == "pyramid") {
+  } else if (obj === "pyramid") {
     const geometry = new THREE.ConeGeometry(0.5, 1.0, 4, 32);
     mesh = new THREE.Mesh(geometry, material);
-  } else if (obj == "arrow") {
+  } else if (obj === "arrow") {
     mesh = createArrow({
       from: toVector3(start),
       to: toVector3(end),
-      color: color !== null ? color : 0xffffff,
+      color: color !== undefined ? color : 0xffffff,
       lineWidth,
     });
-  } else if (obj == "line") {
+  } else if (obj === "line") {
     mesh = createArrow({
       from: toVector3(start),
       to: toVector3(end),
       arrowStart: false,
       arrowEnd: false,
-      color: color !== null ? color : 0xffffff,
+      color: color !== undefined ? color : 0xffffff,
       lineWidth,
     });
-  } else if (obj == "grid") {
+  } else if (obj === "grid") {
     const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
     gridHelper.rotation.x = Math.PI / 2;
     gridHelper.position.z = 0.01;
 
     mesh = gridHelper;
-  } else if (typeof obj == "string") {
+  } else if (typeof obj === "string") {
     mesh = new TextMesh({
       text: obj,
       font,
-      color: color !== null ? color : 0xffffff,
+      color: color !== undefined ? color : 0xffffff,
       size: fontSize,
       letterSpacing,
     });
   }
 
-  if (scale !== null) {
+  if (scale !== undefined) {
     mesh.scale.multiplyScalar(scale);
   } else {
-    if (sx !== null) {
+    if (sx !== undefined) {
       mesh.scale.x *= sx;
     }
-    if (sy !== null) {
+    if (sy !== undefined) {
       mesh.scale.y *= sy;
     }
-    if (sz !== null) {
+    if (sz !== undefined) {
       mesh.scale.z *= sz;
     }
   }
 
   // Position
-  if (position !== null) {
-    if (Array.isArray(position)) {
-      mesh.position.set(position[0], position[1], position[2]);
-    } else {
-      mesh.position.set(position.x, position.y, position.z);
-    }
+  if (position !== undefined) {
+    mesh.position.set(position[0], position[1], position[2]);
   } else {
-    if (x !== null) mesh.position.x = x;
-    if (y !== null) mesh.position.y = y;
-    if (z !== null) mesh.position.z = z;
+    if (x !== undefined) mesh.position.x = x;
+    if (y !== undefined) mesh.position.y = y;
+    if (z !== undefined) mesh.position.z = z;
   }
 
   // Rotation
-  if (rx !== null) mesh.rotation.x = rx;
-  if (ry !== null) mesh.rotation.y = ry;
-  if (rz !== null) mesh.rotation.z = rz;
+  if (rx !== undefined) mesh.rotation.x = rx;
+  if (ry !== undefined) mesh.rotation.y = ry;
+  if (rz !== undefined) mesh.rotation.z = rz;
 
   addAnimation(mesh, animation, { t, duration });
 
-  if (parent !== null) {
-    if (typeof parent === "string") {
-      sceneObjects[parent].add(mesh);
-    } else {
-      parent.add(mesh);
-    }
+  if (parent !== undefined) {
+    sceneObjects[parent].add(mesh);
   } else {
     scene.add(mesh);
   }
@@ -1945,29 +1966,31 @@ function addGroup({
   x = 0,
   y = 0,
   z = 0,
-  position = null,
+  position = undefined,
   scale = 1,
-  parent = null,
+  parent = undefined,
 } = {}) {
   const id = uuidv4();
 
   commandList.push(() => {
     const group = new THREE.Group();
 
-    if (position !== null) {
+    if (position !== undefined) {
       group.position.set(position[0], position[1], position[2]);
     } else {
-      if (x !== null) group.position.x = x;
-      if (y !== null) group.position.y = y;
-      if (z !== null) group.position.z = z;
+      if (x !== undefined) group.position.x = x;
+      if (y !== undefined) group.position.y = y;
+      if (z !== undefined) group.position.z = z;
     }
 
     group.scale.setScalar(scale);
 
-    if (parent === null) {
-      scene.add(group);
-    } else {
+    if (parent) {
+      console.log(sceneObjects);
+      console.log(parent);
       sceneObjects[parent].add(group);
+    } else {
+      scene.add(group);
     }
 
     sceneObjects[id] = group;
@@ -1990,7 +2013,7 @@ function getBoundingBox(object3D) {
   return new THREE.Box3().setFromObject(object3D);
 }
 
-function getQueryString(url = null) {
+function getQueryString(url = undefined) {
   // get query string from url (optional) or window
   var queryString = url ? url.split("?")[1] : window.location.search.slice(1);
 
@@ -2124,14 +2147,14 @@ function addCut() {
   _addMarkerToTimeline();
 
   mainTimeline.call(() => {
-    if (capturer !== null) {
+    if (capturer !== undefined) {
       console.log("CutPoint: " + globalTimeline.time().toString());
       metaData["cutPoints"].push(globalTimeline.time());
     }
   });
 }
 
-function move(object3d, { t = "+=0", ...options } = {}) {
+function move(object3d, { t = undefined, ...options } = {}) {
   mainTimeline.add(createMotionAnimation(object3d, options), t);
 }
 
@@ -2188,7 +2211,7 @@ function setBackgroundColor(color) {
 function explode(
   group,
   {
-    t = null,
+    t = undefined,
     ease = "expo.out",
     duration = 2,
     minRotation = -2 * Math.PI,
@@ -2216,14 +2239,14 @@ function explode(
   });
 }
 
-function implode(group, { t = null, duration = 0.5 } = {}) {
+function implode(group, { t = undefined, duration = 0.5 } = {}) {
   commandList.push(() => {
     const tl = createImplodeAnimation(sceneObjects[group], { duration });
     mainTimeline.add(tl, t);
   });
 }
 
-function flying(group, { t = null, duration = 5 } = {}) {
+function flying(group, { t = undefined, duration = 5 } = {}) {
   const WIDTH = 30;
   const HEIGHT = 15;
 
@@ -2313,7 +2336,7 @@ export default {
       mainTimeline.set({}, {}, t);
     });
   },
-  fadeOutAll: ({ t = null } = {}) => {
+  fadeOutAll: ({ t = undefined } = {}) => {
     commandList.push(() => {
       const tl = gsap.timeline();
       for (const [_, obj] of Object.entries(sceneObjects)) {
