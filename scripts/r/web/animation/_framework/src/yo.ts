@@ -311,7 +311,7 @@ function animate(
 }
 
 function moveCamera({ x = 0, y = 0, z = 10, t = undefined } = {}) {
-  commandList.push(() => {
+  commandQueue.push(() => {
     const tl = gsap.to(camera.position, {
       x,
       y,
@@ -427,7 +427,7 @@ function createLine3D({
 }
 
 function reveal(obj, { dir = "up", t = undefined } = {}) {
-  commandList.push(() => {
+  commandQueue.push(() => {
     const object3d = sceneObjects[obj];
 
     let localPlane;
@@ -911,7 +911,7 @@ function shake2D(
     return Math.random() * (max - min) + min;
   }
 
-  commandList.push(() => {
+  commandQueue.push(() => {
     const object3d = sceneObjects[obj];
 
     var tl = gsap.timeline({ defaults: { ease: "none" } });
@@ -1235,15 +1235,16 @@ async function loadSVG(url, { color = undefined, isCCW = true } = {}) {
   });
 }
 
-function addGlitch({ duration = 0.2 } = {}) {
-  if (glitchPass !== undefined) {
+function addGlitch({ duration = 0.2, t = undefined } = {}) {
+  ENABLE_GLITCH_PASS = true;
+  AA_METHOD = "fxaa";
+
+  commandQueue.push(() => {
     const tl = gsap.timeline();
     tl.set(glitchPass, { factor: 1 });
     tl.set(glitchPass, { factor: 0 }, `<${duration}`);
-    return tl;
-  } else {
-    return gsap.timeline();
-  }
+    mainTimeline.add(tl, t);
+  });
 }
 
 // TODO: this is just creating a timeline object but not adding to the main
@@ -1340,7 +1341,7 @@ function newScene(initFunction = undefined) {
       await initFunction();
     }
 
-    for (const cmd of commandList) {
+    for (const cmd of commandQueue) {
       if (typeof cmd === "function") {
         cmd();
       } else if (cmd.type === "add") {
@@ -1680,7 +1681,7 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
   return verts;
 }
 
-var commandList = [];
+var commandQueue = [];
 
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
@@ -1692,7 +1693,7 @@ function uuidv4() {
 
 function add(obj, params: AddObjectParameters) {
   const guid = uuidv4();
-  commandList.push({ type: "add", obj, params, id: guid });
+  commandQueue.push({ type: "add", obj, params, id: guid });
   return guid;
 }
 
@@ -1953,7 +1954,7 @@ function addGroup({
 } = {}) {
   const id = uuidv4();
 
-  commandList.push(() => {
+  commandQueue.push(() => {
     const group = new THREE.Group();
 
     if (position !== undefined) {
@@ -2171,18 +2172,13 @@ function enableMotionBlur(motionBlurSamples = 16) {
   AA_METHOD = "fxaa";
 }
 
-function setGlitch(enabled) {
-  ENABLE_GLITCH_PASS = true;
-  AA_METHOD = "fxaa";
-}
-
 function setViewportSize(w, h) {
   WIDTH = w;
   HEIGHT = h;
 }
 
 function setBackgroundColor(color) {
-  commandList.push(() => {
+  commandQueue.push(() => {
     scene.background = new THREE.Color(color);
   });
 }
@@ -2202,7 +2198,7 @@ function explode(
     stagger = 0.03,
   } = {}
 ) {
-  commandList.push(() => {
+  commandQueue.push(() => {
     const tl = createExplosionAnimation(sceneObjects[group], {
       ease,
       duration,
@@ -2219,7 +2215,7 @@ function explode(
 }
 
 function implode(group, { t = undefined, duration = 0.5 } = {}) {
-  commandList.push(() => {
+  commandQueue.push(() => {
     const tl = createImplodeAnimation(sceneObjects[group], { duration });
     mainTimeline.add(tl, t);
   });
@@ -2229,7 +2225,7 @@ function flying(group, { t = undefined, duration = 5 } = {}) {
   const WIDTH = 30;
   const HEIGHT = 15;
 
-  commandList.push(() => {
+  commandQueue.push(() => {
     const tl = gsap.timeline();
 
     sceneObjects[group].children.forEach((x) => {
@@ -2273,32 +2269,32 @@ export default {
     "#2AA8F2",
   ],
   pause: (duration) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       mainTimeline.set({}, {}, "+=" + duration.toString());
     });
   },
   fadeIn: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "fadeIn", params);
     });
   },
   fadeOut: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "fadeOut", params);
     });
   },
   flyIn: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "flyIn", params);
     });
   },
   rotateIn: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "rotateIn", params);
     });
   },
   rotateIn2: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "rotateIn2", params);
     });
   },
@@ -2306,17 +2302,17 @@ export default {
     defaultAnimation = name;
   },
   move: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       move(sceneObjects[obj], params);
     });
   },
   addEmptyAnimation: (t) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       mainTimeline.set({}, {}, t);
     });
   },
   fadeOutAll: ({ t = undefined } = {}) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       const tl = gsap.timeline();
       for (const [_, obj] of Object.entries(sceneObjects)) {
         tl.add(createFadeOutAnimation(obj), "<");
@@ -2329,17 +2325,17 @@ export default {
   explode,
   implode,
   grow: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "grow", params);
     });
   },
   grow2: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "grow2", params);
     });
   },
   grow3: (obj, params) => {
-    commandList.push(() => {
+    commandQueue.push(() => {
       addAnimation(sceneObjects[obj], "grow3", params);
     });
   },
@@ -2348,4 +2344,5 @@ export default {
   },
   flying,
   reveal,
+  addGlitch,
 };
