@@ -507,3 +507,34 @@ function createLine() {
   var mesh = new THREE.Mesh(line.geometry, material); // this syntax could definitely be improved!
   scene.add(mesh);
 }
+
+function generateLinearGradientTexture() {
+  var size = 512;
+
+  // create canvas
+  var canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  // get context
+  var context = canvas.getContext("2d");
+
+  // draw gradient
+  context.rect(0, 0, size, size);
+  var gradient = context.createLinearGradient(0, 0, size, size);
+  gradient.addColorStop(0, "#ff0000"); // light blue
+  gradient.addColorStop(1, "#00ff00"); // dark blue
+  context.fillStyle = gradient;
+  context.fill();
+
+  var texture = new THREE.Texture(canvas);
+  texture.needsUpdate = true; // important!
+  return texture;
+}
+
+function createCanvas({ width = 64, height = 64 } = {}) {
+  let canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}

@@ -189,18 +189,6 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
 
   scene.add(new THREE.AmbientLight(0x000000));
 
-  // Torus
-  if (0) {
-    let geometry = new THREE.TorusKnotBufferGeometry(2.5, 1, 150, 40);
-    let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    let mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
-    mesh.onBeforeRender = () => {
-      mesh.rotation.y += 0.05;
-    };
-  }
-
   let renderScene = new RenderPass(scene, camera);
 
   composer = new EffectComposer(renderer);
@@ -342,30 +330,6 @@ function randomInt(min, max) {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
-function generateLinearGradientTexture() {
-  var size = 512;
-
-  // create canvas
-  var canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-
-  // get context
-  var context = canvas.getContext("2d");
-
-  // draw gradient
-  context.rect(0, 0, size, size);
-  var gradient = context.createLinearGradient(0, 0, size, size);
-  gradient.addColorStop(0, "#ff0000"); // light blue
-  gradient.addColorStop(1, "#00ff00"); // dark blue
-  context.fillStyle = gradient;
-  context.fill();
-
-  var texture = new THREE.Texture(canvas);
-  texture.needsUpdate = true; // important!
-  return texture;
-}
-
 import { Vector3, Material, Color } from "three";
 
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
@@ -375,20 +339,11 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
 function createFxaaPass(renderer) {
   let fxaaPass = new ShaderPass(FXAAShader);
 
-  // let pixelRatio = renderer.getPixelRatio();
-  // fxaaPass.material.uniforms["resolution"].value.x = 1 / (WIDTH * pixelRatio);
-  // fxaaPass.material.uniforms["resolution"].value.y = 1 / (HEIGHT * pixelRatio);
+  let pixelRatio = renderer.getPixelRatio();
+  fxaaPass.uniforms["resolution"].value.x = 1 / (WIDTH * pixelRatio);
+  fxaaPass.uniforms["resolution"].value.y = 1 / (HEIGHT * pixelRatio);
 
   return fxaaPass;
-}
-
-// createRingAnimation();
-
-function createCanvas({ width = 64, height = 64 } = {}) {
-  let canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  return canvas;
 }
 
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
