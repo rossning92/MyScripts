@@ -1709,7 +1709,7 @@ function uuidv4() {
   });
 }
 
-function add(obj, params) {
+function add(obj, params: AddObjectParameters) {
   const guid = uuidv4();
   commandList.push({ type: "add", obj, params, id: guid });
   return guid;
