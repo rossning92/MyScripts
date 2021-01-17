@@ -1701,7 +1701,7 @@ interface Transform {
   sy?: number;
   sz?: number;
   position?: number[];
-  scale: number;
+  scale?: number;
 }
 
 interface AddObjectParameters extends Transform, BasicMaterial {
@@ -1942,31 +1942,20 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
   sceneObjects[id] = mesh;
 }
 
-function addGroup({
-  x = 0,
-  y = 0,
-  z = 0,
-  position = undefined,
-  scale = 1,
-  parent = undefined,
-} = {}) {
+interface AddGroupParameters extends Transform {
+  parent?: string;
+}
+
+function addGroup(params: AddGroupParameters = {}) {
   const id = uuidv4();
 
   commandQueue.push(() => {
     const group = new THREE.Group();
 
-    if (position !== undefined) {
-      group.position.set(position[0], position[1], position[2]);
-    } else {
-      if (x !== undefined) group.position.x = x;
-      if (y !== undefined) group.position.y = y;
-      if (z !== undefined) group.position.z = z;
-    }
+    updateTransform(group, params);
 
-    group.scale.setScalar(scale);
-
-    if (parent) {
-      sceneObjects[parent].add(group);
+    if (params.parent) {
+      sceneObjects[params.parent].add(group);
     } else {
       scene.add(group);
     }
