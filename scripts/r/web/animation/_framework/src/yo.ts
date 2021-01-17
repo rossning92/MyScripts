@@ -366,7 +366,7 @@ function generateLinearGradientTexture() {
   return texture;
 }
 
-import { Vector3, Material } from "three";
+import { Vector3, Material, Color } from "three";
 
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
@@ -393,7 +393,7 @@ function createCanvas({ width = 64, height = 64 } = {}) {
 
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
 function createLine3D({
-  color = "0xffffff",
+  color = new THREE.Color(0xffffff),
   points = [],
   lineWidth = 0.1,
 } = {}) {
@@ -548,7 +548,7 @@ function createRectMeshLine({ lineWidth = 0.1, color = "0x00ff00" } = {}) {
       new THREE.Vector3(-0.5, -0.5, 0),
     ],
     lineWidth,
-    color,
+    color: new THREE.Color(color),
   });
   return mesh;
 }
@@ -954,7 +954,7 @@ function createTriangleOutline({ color = "0xffffff" } = {}) {
   const triangleStroke = createLine3D({
     points: VERTICES.concat(VERTICES[0]),
     lineWidth: 0.3,
-    color,
+    color: new THREE.Color(0xffffff),
   });
   triangleStroke.position.set(-6.4, -6.4, 0.02);
   // triangleStroke.scale.set(0.2, 0.2, 0.2);
@@ -1330,7 +1330,7 @@ function newScene(initFunction = undefined) {
       if (typeof cmd === "function") {
         cmd();
       } else if (cmd.type === "add") {
-        const mesh = await addAsync(cmd.obj, cmd.params);
+        const mesh = await addObject(cmd.obj, cmd.params);
         sceneObjects[cmd.id] = mesh;
       } else if (cmd.type === "addGroup") {
         const group = addThreeJsGroup();
@@ -1405,7 +1405,7 @@ function createArrow({
   lineWidth = 0.1,
   arrowEnd = true,
   arrowStart = false,
-  color = 0xffff00,
+  color = new THREE.Color(0xffffff),
 } = {}) {
   const direction = new THREE.Vector3();
   direction.subVectors(to, from);
@@ -1704,10 +1704,8 @@ interface Transform {
   scale: number;
 }
 
-interface AddObjectParameters extends Transform {
+interface AddObjectParameters extends Transform, BasicMaterial {
   animation?: any;
-  color?: any;
-  opacity?: any;
   vertices?: any;
   wireframe?: any;
   outline?: any;
@@ -1730,26 +1728,67 @@ interface AddObjectParameters extends Transform {
   type?: any;
 }
 
-async function addAsync(
-  obj,
-  {
-    x,
-    y,
-    z,
-    rx,
-    ry,
-    rz,
-    sx,
-    sy,
-    sz,
-    position,
-    scale,
+interface BasicMaterial {
+  color?: string | number;
+  opacity?: number;
+}
+
+function createBasicMaterial(basicMaterial: BasicMaterial) {
+  const opacity =
+    basicMaterial.opacity === undefined ? 1.0 : basicMaterial.opacity;
+
+  return new THREE.MeshBasicMaterial({
+    side: THREE.DoubleSide,
+    color: new THREE.Color(
+      basicMaterial.color === undefined ? 0xffffff : basicMaterial.color
+    ),
+    transparent: opacity < 1.0 ? true : false,
+    opacity,
+  });
+}
+
+function updateTransform(mesh: THREE.Object3D, transform: Transform) {
+  // Scale
+  if (transform.scale !== undefined) {
+    mesh.scale.setScalar(transform.scale);
+  } else {
+    if (transform.sx !== undefined) {
+      mesh.scale.x = transform.sx;
+    }
+    if (transform.sy !== undefined) {
+      mesh.scale.y = transform.sy;
+    }
+    if (transform.sz !== undefined) {
+      mesh.scale.z = transform.sz;
+    }
+  }
+
+  // Position
+  if (transform.position !== undefined) {
+    mesh.position.set(
+      transform.position[0],
+      transform.position[1],
+      transform.position[2]
+    );
+  } else {
+    if (transform.x !== undefined) mesh.position.x = transform.x;
+    if (transform.y !== undefined) mesh.position.y = transform.y;
+    if (transform.z !== undefined) mesh.position.z = transform.z;
+  }
+
+  // Rotation
+  if (transform.rx !== undefined) mesh.rotation.x = transform.rx;
+  if (transform.ry !== undefined) mesh.rotation.y = transform.ry;
+  if (transform.rz !== undefined) mesh.rotation.z = transform.rz;
+}
+
+async function addObject(obj, params: AddObjectParameters) {
+  let {
     animation,
     color,
     opacity = 1.0,
     vertices = [],
     wireframe = false,
-    outline = false,
     outlineWidth = 0.1,
     width = 1,
     height = 1,
@@ -1766,28 +1805,28 @@ async function addAsync(
     centralAngle = Math.PI * 2,
     letterSpacing = 0.05,
     duration,
-  }: AddObjectParameters
-) {
-  let material;
+  } = params;
+
+  // let material;
   const transparent = opacity < 1.0 ? true : false;
 
-  if (lighting) {
-    addDefaultLights();
-    material = new THREE.MeshPhongMaterial({
-      color: color !== undefined ? color : 0xffffff,
-      // emissive: 0x072534,
-      // side: THREE.DoubleSide,
-      flatShading: true,
-    });
-  } else {
-    material = new THREE.MeshBasicMaterial({
-      side: THREE.DoubleSide,
-      color: color !== undefined ? color : 0xffffff,
-      transparent,
-      opacity,
-      wireframe,
-    });
-  }
+  // if (lighting) {
+  //   addDefaultLights();
+  //   material = new THREE.MeshPhongMaterial({
+  //     color: color !== undefined ? color : 0xffffff,
+  //     // emissive: 0x072534,
+  //     // side: THREE.DoubleSide,
+  //     flatShading: true,
+  //   });
+  // } else {
+  //   material = new THREE.MeshBasicMaterial({
+  //     side: THREE.DoubleSide,
+  //     color: color !== undefined ? color : 0xffffff,
+  //     transparent,
+  //     opacity,
+  //     wireframe,
+  //   });
+  // }
 
   let mesh;
   if (obj.endsWith(".svg")) {
@@ -1818,19 +1857,11 @@ async function addAsync(
       vertices = createTriangleVertices();
     }
 
-    if (outline) {
-      mesh = createLine3D({
-        points: vertices.concat(vertices[0]),
-        lineWidth: outlineWidth,
-        color: color !== undefined ? color : 0xffffff,
-      });
-    } else {
-      const geometry = new THREE.Geometry();
-      geometry.vertices.push(vertices[0], vertices[1], vertices[2]);
-      geometry.faces.push(new THREE.Face3(0, 1, 2));
+    const geometry = new THREE.Geometry();
+    geometry.vertices.push(vertices[0], vertices[1], vertices[2]);
+    geometry.faces.push(new THREE.Face3(0, 1, 2));
 
-      mesh = new THREE.Mesh(geometry, material);
-    }
+    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
   } else if (obj === "triangleOutline") {
     if (vertices.length === 0) {
       vertices = createTriangleVertices();
@@ -1839,30 +1870,34 @@ async function addAsync(
     mesh = createLine3D({
       points: vertices.concat(vertices[0]),
       lineWidth,
-      color,
+      color:
+        color !== undefined
+          ? new THREE.Color(color)
+          : new THREE.Color(0xffffff),
     });
-    // triangleStroke.scale.set(0.2, 0.2, 0.2);
-    // scene.add(triangleStroke);
   } else if (obj === "rect" || obj === "rectangle") {
     const geometry = new THREE.PlaneGeometry(width, height);
-    mesh = new THREE.Mesh(geometry, material);
+    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
   } else if (obj === "circle") {
     const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
-    mesh = new THREE.Mesh(geometry, material);
+    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
   } else if (obj === "ring") {
     const geometry = new THREE.RingGeometry(0.85, 1, 64);
-    mesh = new THREE.Mesh(geometry, material);
+    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
   } else if (obj === "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-    mesh = new THREE.Mesh(geometry, material);
+    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
   } else if (obj === "pyramid") {
     const geometry = new THREE.ConeGeometry(0.5, 1.0, 4, 32);
-    mesh = new THREE.Mesh(geometry, material);
+    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
   } else if (obj === "arrow") {
     mesh = createArrow({
       from: toVector3(start),
       to: toVector3(end),
-      color: color !== undefined ? color : 0xffffff,
+      color:
+        color !== undefined
+          ? new THREE.Color(color)
+          : new THREE.Color(0xffffff),
       lineWidth,
     });
   } else if (obj === "line") {
@@ -1871,7 +1906,10 @@ async function addAsync(
       to: toVector3(end),
       arrowStart: false,
       arrowEnd: false,
-      color: color !== undefined ? color : 0xffffff,
+      color:
+        color !== undefined
+          ? new THREE.Color(color)
+          : new THREE.Color(0xffffff),
       lineWidth,
     });
   } else if (obj === "grid") {
@@ -1884,39 +1922,16 @@ async function addAsync(
     mesh = new TextMesh({
       text: obj,
       font,
-      color: color !== undefined ? color : 0xffffff,
+      color:
+        color !== undefined
+          ? new THREE.Color(color)
+          : new THREE.Color(0xffffff),
       size: fontSize,
       letterSpacing,
     });
   }
 
-  if (scale !== undefined) {
-    mesh.scale.multiplyScalar(scale);
-  } else {
-    if (sx !== undefined) {
-      mesh.scale.x *= sx;
-    }
-    if (sy !== undefined) {
-      mesh.scale.y *= sy;
-    }
-    if (sz !== undefined) {
-      mesh.scale.z *= sz;
-    }
-  }
-
-  // Position
-  if (position !== undefined) {
-    mesh.position.set(position[0], position[1], position[2]);
-  } else {
-    if (x !== undefined) mesh.position.x = x;
-    if (y !== undefined) mesh.position.y = y;
-    if (z !== undefined) mesh.position.z = z;
-  }
-
-  // Rotation
-  if (rx !== undefined) mesh.rotation.x = rx;
-  if (ry !== undefined) mesh.rotation.y = ry;
-  if (rz !== undefined) mesh.rotation.z = rz;
+  updateTransform(mesh, params);
 
   addAnimation(mesh, animation, { t, duration });
 

@@ -70,7 +70,7 @@ export default class TextMesh extends Object3D {
     text = "",
     size = 1.0,
     letterSpacing = 0.05,
-    color = "#ffffff",
+    color = new THREE.Color(0xffffff),
     opacity = 1,
     wireframe = false,
     font = null,
