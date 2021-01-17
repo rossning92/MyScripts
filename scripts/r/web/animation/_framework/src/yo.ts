@@ -1738,29 +1738,29 @@ interface Transform {
 }
 
 interface AddObjectParameters extends Transform {
-  animation: any;
-  color: any;
-  opacity: any;
-  vertices: any;
-  wireframe: any;
-  outline: any;
-  outlineWidth: any;
-  width: any;
-  height: any;
+  animation?: any;
+  color?: any;
+  opacity?: any;
+  vertices?: any;
+  wireframe?: any;
+  outline?: any;
+  outlineWidth?: any;
+  width?: any;
+  height?: any;
   t?: number | string;
-  parent: any;
-  lighting: any;
-  ccw: any;
-  font: any;
-  fontSize: any;
-  start: any;
-  end: any;
-  lineWidth: any;
-  gridSize: any;
-  centralAngle: any;
-  letterSpacing: any;
-  duration: any;
-  type: any;
+  parent?: any;
+  lighting?: any;
+  ccw?: any;
+  font?: any;
+  fontSize?: any;
+  start?: any;
+  end?: any;
+  lineWidth?: any;
+  gridSize?: any;
+  centralAngle?: any;
+  letterSpacing?: any;
+  duration?: any;
+  type?: any;
 }
 
 async function addAsync(
@@ -1777,8 +1777,8 @@ async function addAsync(
     sz,
     position,
     scale,
-    animation = undefined,
-    color = undefined,
+    animation,
+    color,
     opacity = 1.0,
     vertices = [],
     wireframe = false,
@@ -1786,11 +1786,11 @@ async function addAsync(
     outlineWidth = 0.1,
     width = 1,
     height = 1,
-    t = undefined,
-    parent = undefined,
+    t,
+    parent,
     lighting = false,
     ccw = false,
-    font = undefined,
+    font,
     fontSize = 1.0,
     start = { x: 0, y: 0 },
     end = { x: 0, y: 1 },
@@ -1798,7 +1798,7 @@ async function addAsync(
     gridSize = 10,
     centralAngle = Math.PI * 2,
     letterSpacing = 0.05,
-    duration = undefined,
+    duration,
   }: AddObjectParameters
 ) {
   let material;
