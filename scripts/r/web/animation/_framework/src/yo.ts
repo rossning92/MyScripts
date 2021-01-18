@@ -697,48 +697,6 @@ function addDefaultLights() {
   }
 }
 
-function shake2D(
-  obj: SceneObject,
-  { shakes = 20, duration = 0.01, strength = 0.5, t = undefined } = {}
-) {
-  function R(max, min) {
-    return Math.random() * (max - min) + min;
-  }
-
-  commandQueue.push(() => {
-    const object3d = obj._threeObject3d;
-
-    var tl = gsap.timeline({ defaults: { ease: "none" } });
-    tl.set(object3d, { x: "+=0" }); // this creates a full _gsTransform on object3d
-
-    //store the transform values that exist before the shake so we can return to them later
-    var initProps = {
-      x: object3d.position.x,
-      y: object3d.position.y,
-      rotation: object3d.position.z,
-    };
-
-    //shake a bunch of times
-    for (var i = 0; i < shakes; i++) {
-      const offset = R(-strength, strength);
-      tl.to(object3d.position, duration, {
-        x: initProps.x + offset,
-        y: initProps.y - offset,
-        // rotation: initProps.rotation + R(-5, 5)
-      });
-    }
-    //return to pre-shake values
-    tl.to(object3d.position, duration, {
-      x: initProps.x,
-      y: initProps.y,
-      // scale: initProps.scale,
-      // rotation: initProps.rotation
-    });
-
-    mainTimeline.add(tl, t);
-  });
-}
-
 function createExplosionAnimation(
   objectGroup,
   {
@@ -1539,6 +1497,87 @@ class SceneObject {
       mainTimeline.add(tl, t);
     });
   }
+
+  shake2D({
+    shakes = 20,
+    duration = 0.01,
+    strength = 0.5,
+    t = undefined,
+  } = {}) {
+    function R(max, min) {
+      return Math.random() * (max - min) + min;
+    }
+
+    commandQueue.push(() => {
+      const object3d = this._threeObject3d;
+
+      var tl = gsap.timeline({ defaults: { ease: "none" } });
+      tl.set(object3d, { x: "+=0" }); // this creates a full _gsTransform on object3d
+
+      //store the transform values that exist before the shake so we can return to them later
+      var initProps = {
+        x: object3d.position.x,
+        y: object3d.position.y,
+        rotation: object3d.position.z,
+      };
+
+      //shake a bunch of times
+      for (var i = 0; i < shakes; i++) {
+        const offset = R(-strength, strength);
+        tl.to(object3d.position, duration, {
+          x: initProps.x + offset,
+          y: initProps.y - offset,
+          // rotation: initProps.rotation + R(-5, 5)
+        });
+      }
+      //return to pre-shake values
+      tl.to(object3d.position, duration, {
+        x: initProps.x,
+        y: initProps.y,
+        // scale: initProps.scale,
+        // rotation: initProps.rotation
+      });
+
+      mainTimeline.add(tl, t);
+    });
+  }
+}
+
+class GroupObject extends SceneObject {
+  explode({
+    t = undefined,
+    ease = "expo.out",
+    duration = 2,
+    minRotation = -2 * Math.PI,
+    maxRotation = 2 * Math.PI,
+    minRadius = 1,
+    maxRadius = 4,
+    minScale = 1,
+    maxScale = 1,
+    stagger = 0.03,
+  } = {}) {
+    commandQueue.push(() => {
+      const tl = createExplosionAnimation(this._threeObject3d, {
+        ease,
+        duration,
+        minRotation,
+        maxRotation,
+        minRadius,
+        maxRadius,
+        minScale,
+        maxScale,
+        stagger,
+      });
+      mainTimeline.add(tl, t);
+    });
+  }
+
+  implode({ t = undefined, duration = 0.5 } = {}) {
+    commandQueue.push(() => {
+      const tl = createImplodeAnimation(this._threeObject3d, { duration });
+      mainTimeline.add(tl, t);
+    });
+  }
 }
 
 function add(val: string, params: AddObjectParameters): SceneObject {
@@ -1803,7 +1842,7 @@ interface AddGroupParameters extends Transform {
 }
 
 function addGroup(params: AddGroupParameters = {}) {
-  const groupObject = new SceneObject();
+  const groupObject = new GroupObject();
 
   commandQueue.push(() => {
     groupObject._threeObject3d = new THREE.Group();
@@ -1946,44 +1985,6 @@ function setBackgroundColor(color) {
   });
 }
 
-function explode(
-  group,
-  {
-    t = undefined,
-    ease = "expo.out",
-    duration = 2,
-    minRotation = -2 * Math.PI,
-    maxRotation = 2 * Math.PI,
-    minRadius = 1,
-    maxRadius = 4,
-    minScale = 1,
-    maxScale = 1,
-    stagger = 0.03,
-  } = {}
-) {
-  commandQueue.push(() => {
-    const tl = createExplosionAnimation(group._threeObject3d, {
-      ease,
-      duration,
-      minRotation,
-      maxRotation,
-      minRadius,
-      maxRadius,
-      minScale,
-      maxScale,
-      stagger,
-    });
-    mainTimeline.add(tl, t);
-  });
-}
-
-function implode(group, { t = undefined, duration = 0.5 } = {}) {
-  commandQueue.push(() => {
-    const tl = createImplodeAnimation(group._threeObject3d, { duration });
-    mainTimeline.add(tl, t);
-  });
-}
-
 function fadeOutAll({ t = undefined } = {}) {
   commandQueue.push(() => {
     const tl = gsap.timeline();
@@ -2027,10 +2028,7 @@ export default {
     });
   },
   fadeOutAll,
-  shake2D,
   setBackgroundColor,
-  explode,
-  implode,
   enableBloom: () => {
     bloomEnabled = true;
     AA_METHOD = "fxaa";
