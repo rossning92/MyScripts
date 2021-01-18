@@ -868,3 +868,26 @@ function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
   mainTimeline.add(tl, t);
   // return tl;
 }
+
+// var FileSaver = require("file-saver");
+// var blob = new Blob([JSON.stringify(metaData)], {
+//   type: "text/plain;charset=utf-8",
+// });
+// FileSaver.saveAs(
+//   blob,
+//   outFileName !==null ? outFileName + ".json" : "animation-meta-file.json"
+// );
+
+if (ENABLE_MOTION_BLUR_PASS) {
+  let options = {
+    samples: 50,
+    expandGeometry: 1,
+    interpolateGeometry: 1,
+    smearIntensity: 1,
+    blurTransparent: true,
+    renderCameraBlur: true,
+  };
+  let motionPass = new MotionBlurPass(scene, camera, options);
+  composer.addPass(motionPass);
+  motionPass.debug.display = 0;
+}

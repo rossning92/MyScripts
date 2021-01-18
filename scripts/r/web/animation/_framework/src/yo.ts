@@ -7,7 +7,6 @@ import gsap from "gsap";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { GlitchPass } from "./utils/GlitchPass";
-import { MotionBlurPass } from "./utils/MotionBlurPass";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { SSAARenderPass } from "three/examples/jsm/postprocessing/SSAARenderPass.js";
 import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.js";
@@ -23,15 +22,12 @@ declare class CCapture {
 gsap.ticker.remove(gsap.updateRoot);
 
 let ENABLE_GLITCH_PASS = false;
-let WIDTH = 1920;
-let HEIGHT = 1080;
+let screenWidth = 1920;
+let screenHeight = 1080;
 let AA_METHOD = "msaa";
-let ENABLE_MOTION_BLUR_PASS = false;
 let MOTION_BLUR_SAMPLES = 1;
 
 let bloomEnabled = false;
-
-let defaultAnimation = undefined;
 
 var captureStatus: HTMLDivElement;
 var globalTimeline = gsap.timeline({ onComplete: stopCapture });
@@ -120,39 +116,46 @@ function stopCapture() {
     (capturer as any).save();
     capturer = undefined;
     captureStatus.innerText = "stopped";
-
-    // var FileSaver = require("file-saver");
-    // var blob = new Blob([JSON.stringify(metaData)], {
-    //   type: "text/plain;charset=utf-8",
-    // });
-    // FileSaver.saveAs(
-    //   blob,
-    //   outFileName !==null ? outFileName + ".json" : "animation-meta-file.json"
-    // );
   }
 }
 
-function setupOrthoCamera({ width = WIDTH, height = HEIGHT } = {}) {
-  const aspect = WIDTH / HEIGHT;
-  const frustumSize = 16;
-  camera = new THREE.OrthographicCamera(
-    (frustumSize * aspect) / -2,
-    (frustumSize * aspect) / 2,
-    frustumSize / 2,
-    frustumSize / -2,
-    -1000,
-    1000
-  );
+function setupOrthoCamera() {
+  if (camera === undefined) {
+    const aspect = screenWidth / screenHeight;
+    const frustumSize = 16;
+    camera = new THREE.OrthographicCamera(
+      (frustumSize * aspect) / -2,
+      (frustumSize * aspect) / 2,
+      frustumSize / 2,
+      frustumSize / -2,
+      -1000,
+      1000
+    );
+  }
 }
 
-function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
+function setupPespectiveCamera() {
+  if (camera === undefined) {
+    // This will ensure the size of 10 in the vertical direction.
+    camera = new THREE.PerspectiveCamera(
+      60,
+      screenWidth / screenHeight,
+      0.1,
+      5000
+    );
+    camera.position.set(0, 0, 8.66);
+    camera.lookAt(new Vector3(0, 0, 0));
+  }
+}
+
+function setupScene() {
   renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: AA_METHOD === "msaa",
   });
   renderer.localClippingEnabled = true;
 
-  renderer.setSize(width, height);
+  renderer.setSize(screenWidth, screenHeight);
   document.body.appendChild(renderer.domElement);
 
   {
@@ -164,12 +167,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   renderer.setClearColor(0x000000, backgroundAlpha);
   scene.background = new THREE.Color(0);
 
-  if (camera === undefined) {
-    // This will ensure the size of 10 in the vertical direction.
-    camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000);
-    camera.position.set(0, 0, 8.66);
-    camera.lookAt(new Vector3(0, 0, 0));
-  }
+  setupPespectiveCamera();
 
   cameraControls = new OrbitControls(camera, renderer.domElement);
 
@@ -178,28 +176,13 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   let renderScene = new RenderPass(scene, camera);
 
   composer = new EffectComposer(renderer);
-  composer.setSize(WIDTH, HEIGHT);
+  composer.setSize(screenWidth, screenHeight);
   composer.addPass(renderScene);
-
-  if (ENABLE_MOTION_BLUR_PASS) {
-    // Motion blur pass
-    // let options = {
-    //   samples: 50,
-    //   expandGeometry: 1,
-    //   interpolateGeometry: 1,
-    //   smearIntensity: 1,
-    //   blurTransparent: true,
-    //   renderCameraBlur: true,
-    // };
-    // let motionPass = new MotionBlurPass(scene, camera, options);
-    // composer.addPass(motionPass);
-    // motionPass.debug.display = 0;
-  }
 
   if (bloomEnabled) {
     // Bloom pass
     let bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(WIDTH, HEIGHT),
+      new THREE.Vector2(screenWidth, screenHeight),
       0.5, // Strength
       0.4, // radius
       0.85 // threshold
@@ -218,9 +201,10 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     const fxaaPass = new ShaderPass(FXAAShader);
 
     let pixelRatio = renderer.getPixelRatio();
-    (fxaaPass as any).uniforms["resolution"].value.x = 1 / (WIDTH * pixelRatio);
+    (fxaaPass as any).uniforms["resolution"].value.x =
+      1 / (screenWidth * pixelRatio);
     (fxaaPass as any).uniforms["resolution"].value.y =
-      1 / (HEIGHT * pixelRatio);
+      1 / (screenHeight * pixelRatio);
 
     composer.addPass(fxaaPass);
   } else if (AA_METHOD === "ssaa") {
@@ -229,7 +213,10 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
     composer.addPass(ssaaRenderPass);
   } else if (AA_METHOD === "smaa") {
     let pixelRatio = renderer.getPixelRatio();
-    let smaaPass = new SMAAPass(WIDTH * pixelRatio, HEIGHT * pixelRatio);
+    let smaaPass = new SMAAPass(
+      screenWidth * pixelRatio,
+      screenHeight * pixelRatio
+    );
     composer.addPass(smaaPass);
   } else if (AA_METHOD === "taa") {
     let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
@@ -885,7 +872,7 @@ function addGlitch({ duration = 0.2, t }: AnimationParameters = {}) {
 
 function newScene() {
   (async () => {
-    setupScene({ width: WIDTH, height: HEIGHT });
+    setupScene();
 
     for (const cmd of commandQueue) {
       if (typeof cmd === "function") {
@@ -1325,7 +1312,7 @@ class SceneObject {
             y: rng() * HEIGHT - HEIGHT / 2,
           },
           {
-            x: rng() * WIDTH - WIDTH / 2,
+            x: rng() * screenWidth - screenWidth / 2,
             y: rng() * HEIGHT - HEIGHT / 2,
             duration,
             ease: "none",
@@ -1863,8 +1850,8 @@ function enableMotionBlur({ motionBlurSamples = 16 } = {}) {
 }
 
 function setResolution(w: number, h: number) {
-  WIDTH = w;
-  HEIGHT = h;
+  screenWidth = w;
+  screenHeight = h;
 }
 
 function setBackgroundColor(color: number | string) {
