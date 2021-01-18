@@ -678,7 +678,10 @@ function addFlash(object3d, { speed = 4 } = {}) {
 
 function addDefaultLights() {
   if (lightGroup === undefined) {
-    const lightGroup = addThreeJsGroup();
+    const group = new THREE.Group();
+
+    const lightGroup = new THREE.Group();
+    scene.add(group);
 
     const light0 = new THREE.PointLight(0xffffff, 1, 0);
     light0.position.set(0, 200, 0);
@@ -1270,21 +1273,6 @@ function addAnimation(
           );
         });
         // tl.set({}, {}, ">+0.5");
-      } else if (animation === "flyIn") {
-        const duration = 0.5;
-        const ease = "elastic.out";
-        tl.from(object3d.position, {
-          x: object3d.position.x + 20,
-          duration,
-          ease,
-        });
-
-        tl.add(
-          createFadeInAnimation(object3d, {
-            duration,
-          }),
-          "<"
-        );
       }
     });
   }
@@ -1433,12 +1421,6 @@ class SceneObject {
       }
 
       mainTimeline.add(tl, t);
-    });
-  }
-
-  flyIn(params) {
-    commandQueue.push(() => {
-      addAnimation(this._threeObject3d, "flyIn", params);
     });
   }
 
@@ -1719,8 +1701,6 @@ function add(val: string, params: AddObjectParameters): SceneObject {
 
     updateTransform(mesh, params);
 
-    // addAnimation(mesh, animation, { t, duration });
-
     if (parent !== undefined) {
       parent._threeObject3d.add(mesh);
     } else {
@@ -1852,16 +1832,6 @@ function addGroup(params: AddGroupParameters = {}) {
   });
 
   return groupObject;
-}
-
-function addThreeJsGroup({ x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1 } = {}) {
-  const group = new THREE.Group();
-  group.position.x = x;
-  group.position.y = y;
-  group.position.z = z;
-
-  scene.add(group);
-  return group;
 }
 
 function getBoundingBox(object3D) {
