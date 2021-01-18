@@ -2118,12 +2118,10 @@ export default {
   setBackgroundColor,
   explode,
   implode,
-
   enableBloom: () => {
     bloomEnabled = true;
     AA_METHOD = "fxaa";
   },
-
   addGlitch,
   setResolution,
 };

@@ -72,7 +72,6 @@ export default class TextMesh extends Object3D {
     letterSpacing = 0.05,
     color = new THREE.Color(0xffffff),
     opacity = 1,
-    wireframe = false,
     font = null,
     material = null,
   } = {}) {
@@ -204,7 +203,6 @@ export default class TextMesh extends Object3D {
           geom.computeBoundingBox();
           const mat = new MeshBasicMaterial({
             color: this.color,
-            // wireframe,
           });
           const mesh = new Mesh(geom, mat);
 
