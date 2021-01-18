@@ -1389,7 +1389,7 @@ function toThreeColor(color: string | number): THREE.Color {
     : new THREE.Color(color);
 }
 
-function add(val: string, params: AddObjectParameters): SceneObject {
+function add(val: string, params: AddObjectParameters = {}): SceneObject {
   const obj = new SceneObject();
 
   commandQueue.push(async () => {
@@ -1521,10 +1521,7 @@ function add(val: string, params: AddObjectParameters): SceneObject {
       mesh = new TextMesh({
         text: val,
         font,
-        color:
-          color !== undefined
-            ? new THREE.Color(color)
-            : new THREE.Color(0xffffff),
+        color: toThreeColor(color),
         size: fontSize,
         letterSpacing,
       });

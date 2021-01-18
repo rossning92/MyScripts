@@ -26,8 +26,8 @@ const ENGLISH_LETTER_PATT = /^[A-Za-z0-9]*$/;
 
 const fontMap = {};
 
-function loadFont(fontName = null, letter = null) {
-  if (fontName === null && letter !== null) {
+function loadFont(fontName = undefined, letter = undefined) {
+  if (fontName === undefined && letter !== undefined) {
     fontName = ENGLISH_LETTER_PATT.test(letter) ? "en" : "zh";
   }
 
@@ -72,8 +72,8 @@ export default class TextMesh extends Object3D {
     letterSpacing = 0.05,
     color = new THREE.Color(0xffffff),
     opacity = 1,
-    font = null,
-    material = null,
+    font = undefined,
+    material = undefined,
   } = {}) {
     super();
 
@@ -87,7 +87,7 @@ export default class TextMesh extends Object3D {
     if (material) {
       this.material = material;
     } else {
-      this.material = null;
+      this.material = undefined;
     }
 
     this.text = text;

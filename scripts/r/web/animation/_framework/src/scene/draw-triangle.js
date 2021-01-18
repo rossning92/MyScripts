@@ -2,8 +2,6 @@ import yo from "yo";
 
 const GRID_SIZE = 24;
 
-const texels = generateTriangleTexture();
-
 const group = yo.addGroup({ scale: 9 / GRID_SIZE });
 
 const grid = yo.addGrid({
@@ -14,6 +12,7 @@ const grid = yo.addGrid({
 grid.wipe();
 
 let t = 0.5;
+const texels = generateTriangleTexture();
 for (let i = GRID_SIZE - 1; i >= 0; i--) {
   for (let j = 0; j < GRID_SIZE; j++) {
     if (texels[(i * GRID_SIZE + j) * 4 + 3] > 150) {

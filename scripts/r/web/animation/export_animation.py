@@ -18,6 +18,7 @@ from _shutil import *
 from r.audio.postprocess import process_audio_file, dynamic_audio_normalize
 from r.open_with.open_with import open_with
 from slide.generate import generate_slide
+from render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -26,9 +27,6 @@ if 1:
 
 
 if 1:  # Import moviepy
-    IMAGE_MAGICK = get_executable("magick")
-    os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
-
     from moviepy.editor import *
     import moviepy.video.fx.all as vfx
     import moviepy.audio.fx.all as afx
@@ -236,51 +234,8 @@ def _set_pos(t, tag=None):
         _pos_dict[tag] = t
 
 
-def _generate_text_image(
-    text,
-    font="Source-Han-Sans-CN-Medium",
-    font_size=45,
-    color="#ffffff",
-    stroke_color="#000000",
-):
-    # Escape `%` in ImageMagick
-    text = text.replace("\\*", "*").replace("\\", "\\\\").replace("%", "%%")
-
-    # Generate subtitle png image using magick
-    tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
-    os.close(tempfile_fd)
-    cmd = [
-        IMAGE_MAGICK,
-        "-background",
-        "transparent",
-        "-font",
-        r"C:/Windows/Fonts/SourceHanSansSC-Bold.otf",
-        "-pointsize",
-        "%d" % font_size,
-        "-stroke",
-        stroke_color,
-        "-strokewidth",
-        "4",
-        "-kerning",
-        "%d" % int(font_size * 0.05),
-        "-gravity",
-        "center",
-        "label:%s" % text,
-        "-stroke",
-        "None",
-        "-fill",
-        color,
-        "label:%s" % text,
-        "-layers",
-        "merge",
-        "PNG32:%s" % tempfilename,
-    ]
-    subprocess.check_call(cmd)
-    return tempfilename
-
-
 def _add_subtitle_clip(start, end, text):
-    tempfilename = _generate_text_image(text)
+    tempfilename = render_text(text)
 
     ci = _VideoClipInfo()
     ci.mpy_clip = (
@@ -935,7 +890,9 @@ def image_anim(file, duration=5, **kwargs):
 
 def title_anim(h1, h2, **kwargs):
     _animation(
-        in_file=os.path.abspath(SCRIPT_ROOT + "/_framework/src/scene/title-animation.js"),
+        in_file=os.path.abspath(
+            SCRIPT_ROOT + "/_framework/src/scene/title-animation.js"
+        ),
         name=slugify("title-%s-%s" % (h1, h2)),
         params={"h1": h1, "h2": h2},
         **kwargs,
