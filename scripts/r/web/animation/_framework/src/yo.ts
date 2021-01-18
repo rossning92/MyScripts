@@ -1203,7 +1203,7 @@ class SceneObject {
     });
   }
 
-  reveal({ dir = "up", t }: { dir?: string; t?: number | string }) {
+  reveal({ dir = "up", t }: { dir?: string; t?: number | string } = {}) {
     commandQueue.push(() => {
       const object3d = this._threeObject3d;
 
@@ -1239,6 +1239,53 @@ class SceneObject {
         duration: 0.6,
         ease: "expo.out",
       });
+
+      mainTimeline.add(tl, t);
+    });
+  }
+
+  wipe({ dir = "right", t }: { dir?: string; t?: number | string } = {}) {
+    commandQueue.push(() => {
+      const boundingBox = getBoundingBox(this._threeObject3d);
+
+      const tl = gsap.timeline({
+        defaults: { duration: 0.5, ease: "power.out" },
+      });
+      let clipPlane;
+      if (dir === "right") {
+        clipPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0));
+        tl.fromTo(
+          clipPlane,
+          { constant: boundingBox.min.x },
+          { constant: boundingBox.max.x }
+        );
+      } else if (dir === "left") {
+        clipPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0));
+        tl.fromTo(
+          clipPlane,
+          { constant: boundingBox.min.x },
+          { constant: boundingBox.max.x }
+        );
+      } else if (dir === "up") {
+        clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0));
+        tl.fromTo(
+          clipPlane,
+          { constant: boundingBox.min.y },
+          { constant: boundingBox.max.y }
+        );
+      } else if (dir === "down") {
+        clipPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0));
+        tl.fromTo(
+          clipPlane,
+          { constant: boundingBox.min.y },
+          { constant: boundingBox.max.y }
+        );
+      }
+
+      const materials = getAllMaterials(this._threeObject3d);
+      for (const material of materials) {
+        material.clippingPlanes = [clipPlane];
+      }
 
       mainTimeline.add(tl, t);
     });
@@ -1470,12 +1517,6 @@ function add(val: string, params: AddObjectParameters): SceneObject {
             : new THREE.Color(0xffffff),
         lineWidth,
       });
-    } else if (val === "grid") {
-      const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
-      gridHelper.rotation.x = Math.PI / 2;
-      gridHelper.position.z = 0.01;
-
-      mesh = gridHelper;
     } else if (typeof val === "string") {
       mesh = new TextMesh({
         text: val,
@@ -1503,6 +1544,30 @@ function add(val: string, params: AddObjectParameters): SceneObject {
   return obj;
 }
 
+interface AddGridParameters extends Transform, BasicMaterial {
+  gridSize?: number;
+}
+function addGrid(params: AddGridParameters): SceneObject {
+  const { gridSize = 10, color = 0xc0c0c0 } = params;
+
+  const obj = new SceneObject();
+
+  commandQueue.push(async () => {
+    obj._threeObject3d = new THREE.GridHelper(
+      gridSize,
+      gridSize,
+      0x00ff00,
+      new THREE.Color(color)
+    );
+    obj._threeObject3d.rotation.x = Math.PI / 2;
+
+    updateTransform(obj._threeObject3d, params);
+    addObjectToScene(obj, params);
+  });
+
+  return obj;
+}
+
 function toThreeVector3(v: any) {
   return new THREE.Vector3(
     v.x === undefined ? 0 : v.x,
@@ -1523,6 +1588,7 @@ interface Transform {
   sz?: number;
   position?: number[];
   scale?: number;
+  parent?: SceneObject;
 }
 
 interface AddObjectParameters extends Transform, BasicMaterial {
@@ -1602,30 +1668,34 @@ function updateTransform(mesh: THREE.Object3D, transform: Transform) {
   if (transform.rz !== undefined) mesh.rotation.z = transform.rz;
 }
 
-interface AddGroupParameters extends Transform {
-  parent?: SceneObject;
+function addObjectToScene(obj: SceneObject, transform: Transform) {
+  if (transform.parent !== undefined) {
+    transform.parent._threeObject3d.add(obj._threeObject3d);
+  } else {
+    scene.add(obj._threeObject3d);
+  }
 }
 
+interface AddGroupParameters extends Transform {}
 function addGroup(params: AddGroupParameters = {}) {
-  const groupObject = new GroupObject();
+  const obj = new GroupObject();
 
   commandQueue.push(() => {
-    groupObject._threeObject3d = new THREE.Group();
+    obj._threeObject3d = new THREE.Group();
 
-    updateTransform(groupObject._threeObject3d, params);
+    updateTransform(obj._threeObject3d, params);
 
-    if (params.parent) {
-      params.parent._threeObject3d.add(groupObject._threeObject3d);
-    } else {
-      scene.add(groupObject._threeObject3d);
-    }
+    addObjectToScene(obj, params);
   });
 
-  return groupObject;
+  return obj;
 }
 
 function getBoundingBox(object3D: THREE.Object3D): THREE.Box3 {
-  return new THREE.Box3().setFromObject(object3D);
+  // Force update the world matrix so that we get the correct scale.
+  object3D.updateWorldMatrix(true, true);
+  const aabb = new THREE.Box3().expandByObject(object3D);
+  return aabb;
 }
 
 function getQueryString(url: string = undefined) {
@@ -1752,6 +1822,7 @@ export default {
   run,
   randomInt,
   addGroup,
+  addGrid,
   getQueryString,
   random,
   moveCamera,

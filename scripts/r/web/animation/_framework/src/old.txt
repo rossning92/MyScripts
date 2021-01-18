@@ -292,23 +292,6 @@ function createRingAnimation() {
   }
 }
 
-
-function canvasDrawTriangle() {
-  let canvas = createCanvas();
-  var ctx = canvas.getContext("2d");
-
-  // Filled triangle
-  ctx.beginPath();
-  ctx.moveTo(10, 25);
-  ctx.lineTo(50, 60);
-  ctx.lineTo(45, 5);
-  ctx.fill();
-
-  let data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  return data;
-}
-
-
 function createRect({ color = 0xffff00 } = {}) {
   var geometry = new THREE.PlaneGeometry(1, 1);
   var material = new THREE.MeshBasicMaterial({

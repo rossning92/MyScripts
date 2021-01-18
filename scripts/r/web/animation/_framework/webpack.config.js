@@ -5,7 +5,7 @@ const fs = require("fs");
 const plugins = [];
 
 // Setup HtmlWebpackPlugin for all found entries. Automatically search all
-// files under `./src/pages` folder and added as webpack entries.
+// files under `./src/scene` folder and add them as webpack entries.
 const entries = {};
 
 function addEntry(file) {
@@ -28,7 +28,7 @@ module.exports = (env) => {
   } else {
     // The folder that contains source code and resource files (images, videos,
     // etc.)
-    const entryFolders = [path.resolve(__dirname, "pages")];
+    const entryFolders = [path.resolve(__dirname, "src", "scene")];
     entryFolders.forEach((dir) => {
       fs.readdirSync(dir).forEach((file) => {
         if (path.extname(file).toLowerCase() !== ".js") {

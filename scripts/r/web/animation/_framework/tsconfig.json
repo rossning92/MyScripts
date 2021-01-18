@@ -4,6 +4,7 @@
     "module": "es6",
     "noImplicitAny": true,
     "allowJs": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "baseUrl": "src"
   }
 }

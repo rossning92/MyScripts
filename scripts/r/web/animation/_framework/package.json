@@ -23,7 +23,7 @@
   },
   "scripts": {
     "dev": "webpack --mode development",
-    "start": "webpack-dev-server --env.entryFolder=./pages --open --watch"
+    "start": "webpack-dev-server --env.entryFolder=./scene/src --open --watch"
   },
   "bin": {
     "start-app": "bin/start-app.js"
