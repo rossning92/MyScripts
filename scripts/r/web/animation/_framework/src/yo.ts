@@ -1,19 +1,20 @@
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+import { GlitchPass } from "./utils/GlitchPass";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
+import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
+import { SSAARenderPass } from "three/examples/jsm/postprocessing/SSAARenderPass.js";
+import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
+import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { WaterPass } from "./utils/WaterPass";
 import * as dat from "dat.gui";
 import * as THREE from "three";
-import TextMesh from "./objects/TextMesh";
-
 import gsap from "gsap";
-
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { GlitchPass } from "./utils/GlitchPass";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { SSAARenderPass } from "three/examples/jsm/postprocessing/SSAARenderPass.js";
-import { TAARenderPass } from "three/examples/jsm/postprocessing/TAARenderPass.js";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { WaterPass } from "./utils/WaterPass";
-
 import Stats from "three/examples/jsm/libs/stats.module.js";
+import TextMesh from "./objects/TextMesh";
 
 declare class CCapture {
   constructor(params: any);
@@ -21,20 +22,15 @@ declare class CCapture {
 
 gsap.ticker.remove(gsap.updateRoot);
 
-let ENABLE_GLITCH_PASS = false;
+let glitchPassEnabled = false;
 let screenWidth = 1920;
 let screenHeight = 1080;
-let AA_METHOD = "msaa";
-let MOTION_BLUR_SAMPLES = 1;
-
+let antiAliasMethod = "msaa";
+let motionBlurSamples = 1;
 let bloomEnabled = false;
-
-var captureStatus: HTMLDivElement;
-var globalTimeline = gsap.timeline({ onComplete: stopCapture });
-
+let captureStatus: HTMLDivElement;
+let globalTimeline = gsap.timeline({ onComplete: stopCapture });
 const mainTimeline = gsap.timeline();
-globalTimeline.add(mainTimeline, "0");
-
 let stats: Stats = undefined;
 let capturer: CCapture = undefined;
 let renderer: THREE.WebGLRenderer = undefined;
@@ -43,12 +39,16 @@ let scene: THREE.Scene = undefined;
 let camera: THREE.Camera = undefined;
 let lightGroup: THREE.Group = undefined;
 let cameraControls: OrbitControls = undefined;
-
-var glitchPass: any;
-var gridHelper: THREE.GridHelper;
+let glitchPass: any;
+let gridHelper: THREE.GridHelper;
 let backgroundAlpha = 1.0;
-
 var animationCallbacks: Function[] = [];
+
+var lastTimestamp: number = undefined;
+var timeElapsed = 0;
+var animTimeElapsed = 0;
+
+globalTimeline.add(mainTimeline, "0");
 
 let options = {
   /* Recording options */
@@ -62,9 +62,6 @@ let options = {
   },
   timeline: 0,
 };
-
-let subClipDurations = [];
-let currentCutPoint = 0;
 
 var gui = new dat.GUI();
 gui.add(options, "format", ["webm", "png"]);
@@ -81,14 +78,14 @@ function startCapture({ resetTiming = true, name = document.title } = {}) {
     // Reset gsap
     gsap.ticker.remove(gsap.updateRoot);
 
-    lastTs = undefined;
+    lastTimestamp = undefined;
   }
 
   capturer = new CCapture({
     verbose: true,
     display: false,
     framerate: options.framerate,
-    motionBlurFrames: MOTION_BLUR_SAMPLES,
+    motionBlurFrames: motionBlurSamples,
     quality: 100,
     format: options.format,
     workersPath: "dist/src/",
@@ -102,13 +99,6 @@ function startCapture({ resetTiming = true, name = document.title } = {}) {
 
   captureStatus.innerText = "capturing";
 }
-
-// declare global {
-//   interface Window {
-//     startCapture;
-//   }
-// }
-// window.startCapture = window.startCapture || {};
 
 function stopCapture() {
   if (capturer !== undefined) {
@@ -144,14 +134,14 @@ function setupPespectiveCamera() {
       5000
     );
     camera.position.set(0, 0, 8.66);
-    camera.lookAt(new Vector3(0, 0, 0));
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
   }
 }
 
 function setupScene() {
   renderer = new THREE.WebGLRenderer({
     alpha: true,
-    antialias: AA_METHOD === "msaa",
+    antialias: antiAliasMethod === "msaa",
   });
   renderer.localClippingEnabled = true;
 
@@ -197,7 +187,7 @@ function setupScene() {
   //   composer.addPass(waterPass);
   // }
 
-  if (AA_METHOD === "fxaa") {
+  if (antiAliasMethod === "fxaa") {
     const fxaaPass = new ShaderPass(FXAAShader);
 
     let pixelRatio = renderer.getPixelRatio();
@@ -207,33 +197,29 @@ function setupScene() {
       1 / (screenHeight * pixelRatio);
 
     composer.addPass(fxaaPass);
-  } else if (AA_METHOD === "ssaa") {
+  } else if (antiAliasMethod === "ssaa") {
     let ssaaRenderPass = new SSAARenderPass(scene, camera, 0, 0);
     ssaaRenderPass.unbiased = true;
     composer.addPass(ssaaRenderPass);
-  } else if (AA_METHOD === "smaa") {
+  } else if (antiAliasMethod === "smaa") {
     let pixelRatio = renderer.getPixelRatio();
     let smaaPass = new SMAAPass(
       screenWidth * pixelRatio,
       screenHeight * pixelRatio
     );
     composer.addPass(smaaPass);
-  } else if (AA_METHOD === "taa") {
+  } else if (antiAliasMethod === "taa") {
     let taaRenderPass = new TAARenderPass(scene, camera, 0, 0);
     taaRenderPass.unbiased = false;
     taaRenderPass.sampleLevel = 4;
     composer.addPass(taaRenderPass);
   }
 
-  if (ENABLE_GLITCH_PASS) {
+  if (glitchPassEnabled) {
     glitchPass = new GlitchPass();
     composer.addPass(glitchPass);
   }
 }
-
-var lastTs: number = undefined;
-var timeElapsed = 0;
-var animTimeElapsed = 0;
 
 function animate() {
   // time /* `time` parameter is buggy in `ccapture`. Do not use! */
@@ -244,14 +230,14 @@ function animate() {
   let delta: number;
   {
     // Compute `timeElapsed`. This works for both animation preview and capture.
-    if (lastTs === undefined) {
+    if (lastTimestamp === undefined) {
       delta = 0.000001;
-      lastTs = nowInSecs;
+      lastTimestamp = nowInSecs;
       globalTimeline.seek(0, false);
       animTimeElapsed = 0;
     } else {
-      delta = nowInSecs - lastTs;
-      lastTs = nowInSecs;
+      delta = nowInSecs - lastTimestamp;
+      lastTimestamp = nowInSecs;
     }
 
     timeElapsed += delta;
@@ -281,7 +267,7 @@ function moveCamera({ x = 0, y = 0, z = 10, t }: MoveCameraParameters = {}) {
       y,
       z,
       onUpdate: () => {
-        camera.lookAt(new Vector3(0, 0, 0));
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
       },
       duration: 0.5,
       ease: "expo.out",
@@ -307,13 +293,6 @@ function randomInt(min: number, max: number) {
   return Math.floor(random() * (max - min + 1)) + min;
 }
 
-import { Vector3, Material, Color, Object3D } from "three";
-
-import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
-import { SMAAPass } from "three/examples/jsm/postprocessing/SMAAPass.js";
-import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
-
-import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
 function createLine3D({
   color = new THREE.Color(0xffffff),
   points = [],
@@ -438,35 +417,6 @@ function createRectLine({ color = "0x00ff00" } = {}) {
 
   var line = new THREE.Line(geometry, material);
   return line;
-}
-
-function createGrid({
-  rows = 10,
-  cols = 10,
-  lineWidth = 0.05,
-  useMeshLine = false,
-  color = "0x00ff00",
-} = {}) {
-  const group = new THREE.Group();
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      let cellObject;
-      if (useMeshLine) {
-        cellObject = createRectMeshLine({
-          lineWidth,
-          color,
-        });
-      } else {
-        cellObject = createRectLine({
-          color,
-        });
-      }
-
-      cellObject.position.set(-0.5 * cols + j, -0.5 * rows + i, 0);
-      group.add(cellObject);
-    }
-  }
-  return group;
 }
 
 function getAllMaterials(object3d: THREE.Object3D): THREE.Material[] {
@@ -859,8 +809,8 @@ async function loadSVG(
 }
 
 function addGlitch({ duration = 0.2, t }: AnimationParameters = {}) {
-  ENABLE_GLITCH_PASS = true;
-  AA_METHOD = "fxaa";
+  glitchPassEnabled = true;
+  antiAliasMethod = "fxaa";
 
   commandQueue.push(() => {
     const tl = gsap.timeline();
@@ -1029,78 +979,6 @@ async function loadTexture(url: string): Promise<THREE.Texture> {
       resolve(texture);
     });
   });
-}
-
-function addAnimation(
-  object3d: THREE.Object3D,
-  animation: string,
-  { t }: AnimationParameters = {}
-) {
-  const tl = gsap.timeline();
-
-  if (animation !== undefined) {
-    const animationList = animation.split("|");
-
-    // Enter animation
-    animationList.forEach((animation) => {
-      if (animation === "show") {
-        tl.fromTo(
-          object3d,
-          {
-            visible: false,
-          },
-          {
-            visible: true,
-            ease: "steps(1)",
-            duration: 0.01,
-          },
-          "<"
-        );
-      } else if (animation === "jumpIn") {
-        tl.add(createJumpInAnimation(object3d), "<");
-      } else if (animation === "spinIn") {
-        tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
-      } else if (animation === "growX") {
-        tl.from(object3d.scale, { x: 0.01, ease: "expo.out" }, "<");
-      } else if (animation === "growY") {
-        tl.from(object3d.scale, { y: 0.01, ease: "expo.out" }, "<");
-      } else if (animation === "growX2") {
-        tl.from(
-          object3d.scale,
-          { x: 0.01, ease: "elastic.out(1, 0.75)", duration: 1 },
-          "<"
-        );
-      } else if (animation === "growY2") {
-        tl.from(object3d.scale, { y: 0.01, ease: "elastic.out(1, 0.75)" }, "<");
-      } else if (animation === "growX3") {
-        tl.from(object3d.scale, { x: 0.01, ease: "back.out" }, "<");
-      } else if (animation === "growY3") {
-        tl.from(object3d.scale, { y: 0.01, ease: "back.out" }, "<");
-      } else if (animation === "type" || animation === "type2") {
-        const speed = animation === "type2" ? 0.005 : 0.01;
-        object3d.children.forEach((x, i) => {
-          tl.fromTo(
-            x,
-            {
-              visible: false,
-            },
-            {
-              visible: true,
-              ease: "steps(1)",
-              duration: speed,
-              delay: i * speed,
-            },
-            "<"
-          );
-        });
-        // tl.set({}, {}, ">+0.5");
-      }
-    });
-  }
-
-  if (tl.duration() > 0) {
-    mainTimeline.add(tl, t);
-  }
 }
 
 function createTriangleVertices({ radius = 0.5 } = {}) {
@@ -1845,8 +1723,8 @@ function getGridPosition({ rows = 1, cols = 1, width = 25, height = 14 } = {}) {
 }
 
 function enableMotionBlur({ motionBlurSamples = 16 } = {}) {
-  MOTION_BLUR_SAMPLES = motionBlurSamples;
-  AA_METHOD = "fxaa";
+  motionBlurSamples = motionBlurSamples;
+  antiAliasMethod = "fxaa";
 }
 
 function setResolution(w: number, h: number) {
@@ -1902,7 +1780,7 @@ export default {
   setBackgroundColor,
   enableBloom: () => {
     bloomEnabled = true;
-    AA_METHOD = "fxaa";
+    antiAliasMethod = "fxaa";
   },
   addGlitch,
   setResolution,

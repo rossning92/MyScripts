@@ -891,3 +891,112 @@ if (ENABLE_MOTION_BLUR_PASS) {
   composer.addPass(motionPass);
   motionPass.debug.display = 0;
 }
+
+// declare global {
+//   interface Window {
+//     startCapture;
+//   }
+// }
+// window.startCapture = window.startCapture || {};
+
+
+function addAnimation(
+  object3d: THREE.Object3D,
+  animation: string,
+  { t }: AnimationParameters = {}
+) {
+  const tl = gsap.timeline();
+
+  if (animation !== undefined) {
+    const animationList = animation.split("|");
+
+    // Enter animation
+    animationList.forEach((animation) => {
+      if (animation === "show") {
+        tl.fromTo(
+          object3d,
+          {
+            visible: false,
+          },
+          {
+            visible: true,
+            ease: "steps(1)",
+            duration: 0.01,
+          },
+          "<"
+        );
+      } else if (animation === "jumpIn") {
+        tl.add(createJumpInAnimation(object3d), "<");
+      } else if (animation === "spinIn") {
+        tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
+      } else if (animation === "growX") {
+        tl.from(object3d.scale, { x: 0.01, ease: "expo.out" }, "<");
+      } else if (animation === "growY") {
+        tl.from(object3d.scale, { y: 0.01, ease: "expo.out" }, "<");
+      } else if (animation === "growX2") {
+        tl.from(
+          object3d.scale,
+          { x: 0.01, ease: "elastic.out(1, 0.75)", duration: 1 },
+          "<"
+        );
+      } else if (animation === "growY2") {
+        tl.from(object3d.scale, { y: 0.01, ease: "elastic.out(1, 0.75)" }, "<");
+      } else if (animation === "growX3") {
+        tl.from(object3d.scale, { x: 0.01, ease: "back.out" }, "<");
+      } else if (animation === "growY3") {
+        tl.from(object3d.scale, { y: 0.01, ease: "back.out" }, "<");
+      } else if (animation === "type" || animation === "type2") {
+        const speed = animation === "type2" ? 0.005 : 0.01;
+        object3d.children.forEach((x, i) => {
+          tl.fromTo(
+            x,
+            {
+              visible: false,
+            },
+            {
+              visible: true,
+              ease: "steps(1)",
+              duration: speed,
+              delay: i * speed,
+            },
+            "<"
+          );
+        });
+        // tl.set({}, {}, ">+0.5");
+      }
+    });
+  }
+
+  if (tl.duration() > 0) {
+    mainTimeline.add(tl, t);
+  }
+}
+
+function createGrid({
+  rows = 10,
+  cols = 10,
+  lineWidth = 0.05,
+  useMeshLine = false,
+  color = "0x00ff00",
+} = {}) {
+  const group = new THREE.Group();
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      let cellObject;
+      if (useMeshLine) {
+        cellObject = createRectMeshLine({
+          lineWidth,
+          color,
+        });
+      } else {
+        cellObject = createRectLine({
+          color,
+        });
+      }
+
+      cellObject.position.set(-0.5 * cols + j, -0.5 * rows + i, 0);
+      group.add(cellObject);
+    }
+  }
+  return group;
+}
