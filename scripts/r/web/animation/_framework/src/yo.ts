@@ -77,7 +77,6 @@ gui.add(options, "framerate", [10, 25, 30, 60, 120]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
-const sceneObjects = {};
 
 function startCapture({ resetTiming = true, name = undefined } = {}) {
   if (name === undefined) {
@@ -382,7 +381,7 @@ function createLine3D({
 
 function reveal(obj, { dir = "up", t = undefined } = {}) {
   commandQueue.push(() => {
-    const object3d = obj.__threeObject3d;
+    const object3d = obj._threeObject3d;
 
     let localPlane;
     let x = 0;
@@ -858,7 +857,7 @@ function createTriangle({
 }
 
 function shake2D(
-  obj,
+  obj: Object3D,
   { shakes = 20, duration = 0.01, strength = 0.5, t = undefined } = {}
 ) {
   function R(max, min) {
@@ -866,7 +865,7 @@ function shake2D(
   }
 
   commandQueue.push(() => {
-    const object3d = obj.__threeObject3d;
+    const object3d = obj._threeObject3d;
 
     var tl = gsap.timeline({ defaults: { ease: "none" } });
     tl.set(object3d, { x: "+=0" }); // this creates a full _gsTransform on object3d
@@ -1629,7 +1628,7 @@ function uuidv4() {
 }
 
 class Object3D {
-  __threeObject3d: THREE.Object3D;
+  _threeObject3d: THREE.Object3D;
 }
 
 function add(val: string, params: AddObjectParameters): Object3D {
@@ -1895,12 +1894,12 @@ async function addObject(val, obj: Object3D, params: AddObjectParameters) {
   addAnimation(mesh, animation, { t, duration });
 
   if (parent !== undefined) {
-    parent.__threeObject3d.add(mesh);
+    parent._threeObject3d.add(mesh);
   } else {
     scene.add(mesh);
   }
 
-  obj.__threeObject3d = mesh;
+  obj._threeObject3d = mesh;
 }
 
 interface AddGroupParameters extends Transform {
@@ -1911,14 +1910,14 @@ function addGroup(params: AddGroupParameters = {}) {
   const groupObject = new Object3D();
 
   commandQueue.push(() => {
-    groupObject.__threeObject3d = new THREE.Group();
+    groupObject._threeObject3d = new THREE.Group();
 
-    updateTransform(groupObject.__threeObject3d, params);
+    updateTransform(groupObject._threeObject3d, params);
 
     if (params.parent) {
-      params.parent.__threeObject3d.add(groupObject.__threeObject3d);
+      params.parent._threeObject3d.add(groupObject._threeObject3d);
     } else {
-      scene.add(groupObject.__threeObject3d);
+      scene.add(groupObject._threeObject3d);
     }
   });
 
@@ -2145,7 +2144,7 @@ function explode(
   } = {}
 ) {
   commandQueue.push(() => {
-    const tl = createExplosionAnimation(group.__threeObject3d, {
+    const tl = createExplosionAnimation(group._threeObject3d, {
       ease,
       duration,
       minRotation,
@@ -2162,7 +2161,7 @@ function explode(
 
 function implode(group, { t = undefined, duration = 0.5 } = {}) {
   commandQueue.push(() => {
-    const tl = createImplodeAnimation(group.__threeObject3d, { duration });
+    const tl = createImplodeAnimation(group._threeObject3d, { duration });
     mainTimeline.add(tl, t);
   });
 }
@@ -2174,7 +2173,7 @@ function flying(group, { t = undefined, duration = 5 } = {}) {
   commandQueue.push(() => {
     const tl = gsap.timeline();
 
-    group.__threeObject3d.children.forEach((x) => {
+    group._threeObject3d.children.forEach((x) => {
       tl.fromTo(
         x.position,
         {
@@ -2220,27 +2219,27 @@ export default {
   },
   fadeIn: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "fadeIn", params);
+      addAnimation(obj._threeObject3d, "fadeIn", params);
     });
   },
   fadeOut: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "fadeOut", params);
+      addAnimation(obj._threeObject3d, "fadeOut", params);
     });
   },
   flyIn: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "flyIn", params);
+      addAnimation(obj._threeObject3d, "flyIn", params);
     });
   },
   rotateIn: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "rotateIn", params);
+      addAnimation(obj._threeObject3d, "rotateIn", params);
     });
   },
   rotateIn2: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "rotateIn2", params);
+      addAnimation(obj._threeObject3d, "rotateIn2", params);
     });
   },
   setDefaultAnimation: (name) => {
@@ -2248,7 +2247,7 @@ export default {
   },
   move: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      move(obj.__threeObject3d, params);
+      move(obj._threeObject3d, params);
     });
   },
   addEmptyAnimation: (t) => {
@@ -2259,8 +2258,8 @@ export default {
   fadeOutAll: ({ t = undefined } = {}) => {
     commandQueue.push(() => {
       const tl = gsap.timeline();
-      for (const [_, obj] of Object.entries(sceneObjects)) {
-        tl.add(createFadeOutAnimation(obj), "<");
+      for (const object3d in scene.children) {
+        tl.add(createFadeOutAnimation(object3d), "<");
       }
       mainTimeline.add(tl, t);
     });
@@ -2271,17 +2270,17 @@ export default {
   implode,
   grow: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "grow", params);
+      addAnimation(obj._threeObject3d, "grow", params);
     });
   },
   grow2: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "grow2", params);
+      addAnimation(obj._threeObject3d, "grow2", params);
     });
   },
   grow3: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(obj.__threeObject3d, "grow3", params);
+      addAnimation(obj._threeObject3d, "grow3", params);
     });
   },
   enableBloom: () => {
