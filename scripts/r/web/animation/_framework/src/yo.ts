@@ -649,103 +649,6 @@ function addJumpIn(object3d, { ease = "elastic.out(1, 0.2)" } = {}) {
   return tl;
 }
 
-function jumpTo(object3d, { x = 0, y = 0 }) {
-  let tl = gsap.timeline();
-  tl.to(object3d.position, {
-    x,
-    y,
-    ease: "elastic.out(1, 0.2)",
-    duration: 0.5,
-  });
-
-  tl.from(
-    object3d.material,
-    {
-      opacity: 0,
-      duration: 0.5,
-    },
-    "<"
-  );
-
-  return tl;
-}
-
-function createMotionAnimation(
-  object3d,
-  {
-    position = undefined,
-    x = undefined,
-    y = undefined,
-    z = undefined,
-    rx = undefined,
-    ry = undefined,
-    rz = undefined,
-    sx = undefined,
-    sy = undefined,
-    sz = undefined,
-    scale = undefined,
-    dx = undefined,
-    dy = undefined,
-    duration = 0.5,
-    ease = "power2.out",
-    multiplyScale = undefined,
-  } = {}
-) {
-  if (dx !== undefined) x = object3d.position.x + dx;
-  if (dy !== undefined) y = object3d.position.y + dy;
-
-  let tl = gsap.timeline({
-    defaults: {
-      duration,
-      ease,
-    },
-  });
-
-  if (position !== undefined) {
-    tl.to(
-      object3d.position,
-      { x: position[0], y: position[1], z: position[2] },
-      "<"
-    );
-  } else {
-    if (x !== undefined) tl.to(object3d.position, { x }, "<");
-    if (y !== undefined) tl.to(object3d.position, { y }, "<");
-    if (z !== undefined) tl.to(object3d.position, { z }, "<");
-  }
-
-  if (rx !== undefined) tl.to(object3d.rotation, { x: rx }, "<");
-  if (ry !== undefined) tl.to(object3d.rotation, { y: ry }, "<");
-  if (rz !== undefined) tl.to(object3d.rotation, { z: rz }, "<");
-
-  if (scale !== undefined) {
-    tl.to(
-      object3d.scale,
-      {
-        x: scale,
-        y: scale,
-        z: scale,
-      },
-      "<"
-    );
-  } else if (multiplyScale !== undefined) {
-    tl.to(
-      object3d.scale,
-      {
-        x: object3d.scale.x * multiplyScale,
-        y: object3d.scale.y * multiplyScale,
-        z: object3d.scale.z * multiplyScale,
-      },
-      "<"
-    );
-  } else {
-    if (sx !== undefined) tl.to(object3d.scale, { x: sx }, "<");
-    if (sy !== undefined) tl.to(object3d.scale, { y: sy }, "<");
-    if (sz !== undefined) tl.to(object3d.scale, { z: sz }, "<");
-  }
-
-  return tl;
-}
-
 // TODO: remove
 function flyIn(
   object3d,
@@ -830,33 +733,8 @@ function addDefaultLights() {
   }
 }
 
-function createTriangle({
-  vertices = [
-    new THREE.Vector3(-1.732, -1, 0),
-    new THREE.Vector3(1.732, -1, 0),
-    new THREE.Vector3(0, 2, 0),
-  ],
-  color = 0xffffff,
-  opacity = 1.0,
-} = {}) {
-  let geometry = new THREE.Geometry();
-
-  geometry.vertices.push(vertices[0], vertices[1], vertices[2]);
-
-  geometry.faces.push(new THREE.Face3(0, 1, 2));
-
-  let material = new THREE.MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity,
-  });
-
-  let mesh = new THREE.Mesh(geometry, material);
-  return mesh;
-}
-
 function shake2D(
-  obj: Object3D,
+  obj: SceneObject,
   { shakes = 20, duration = 0.01, strength = 0.5, t = undefined } = {}
 ) {
   function R(max, min) {
@@ -895,74 +773,6 @@ function shake2D(
 
     mainTimeline.add(tl, t);
   });
-}
-
-function createTriangleOutline({ color = "0xffffff" } = {}) {
-  const VERTICES = [
-    new THREE.Vector3(-1.732, -1, 0),
-    new THREE.Vector3(1.732, -1, 0),
-    new THREE.Vector3(0, 2, 0),
-  ];
-
-  const triangleStroke = createLine3D({
-    points: VERTICES.concat(VERTICES[0]),
-    lineWidth: 0.3,
-    color: new THREE.Color(0xffffff),
-  });
-  triangleStroke.position.set(-6.4, -6.4, 0.02);
-  // triangleStroke.scale.set(0.2, 0.2, 0.2);
-  // scene.add(triangleStroke);
-  return triangleStroke;
-}
-
-// TODO: Deprecated.
-// function addExplosionAnimation(
-//   objectGroup,
-//   { ease = "expo.out", duration = 1.5 } = {}
-// ) {
-//   const tl = gsap.timeline({
-//     defaults: {
-//       duration,
-//       ease: ease,
-//     },
-//   });
-
-//   tl.from(
-//     objectGroup.children.map((x) => x.position),
-//     {
-//       x: 0,
-//       y: 0,
-//     },
-//     0
-//   );
-//   tl.from(
-//     objectGroup.children.map((x) => x.scale),
-//     {
-//       x: 0.001,
-//       y: 0.001,
-//     },
-//     0
-//   );
-//   tl.from(
-//     objectGroup.children.map((x) => x.rotation),
-//     {
-//       z: 0,
-//     },
-//     0
-//   );
-//   return tl;
-// }
-
-function halton(index, base) {
-  var result = 0;
-  var f = 1 / base;
-  var i = index;
-  while (i > 0) {
-    result = result + f * (i % base);
-    i = Math.floor(i / base);
-    f = f / base;
-  }
-  return result;
 }
 
 function createExplosionAnimation(
@@ -1618,12 +1428,12 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
 
 var commandQueue = [];
 
-class Object3D {
+class SceneObject {
   _threeObject3d: THREE.Object3D;
 }
 
-function add(val: string, params: AddObjectParameters): Object3D {
-  const obj = new Object3D();
+function add(val: string, params: AddObjectParameters): SceneObject {
+  const obj = new SceneObject();
 
   commandQueue.push(async () => {
     let {
@@ -1816,7 +1626,7 @@ interface AddObjectParameters extends Transform, BasicMaterial {
   width?: any;
   height?: any;
   t?: number | string;
-  parent?: Object3D;
+  parent?: SceneObject;
   lighting?: any;
   ccw?: any;
   font?: any;
@@ -1886,11 +1696,11 @@ function updateTransform(mesh: THREE.Object3D, transform: Transform) {
 }
 
 interface AddGroupParameters extends Transform {
-  parent?: Object3D;
+  parent?: SceneObject;
 }
 
 function addGroup(params: AddGroupParameters = {}) {
-  const groupObject = new Object3D();
+  const groupObject = new SceneObject();
 
   commandQueue.push(() => {
     groupObject._threeObject3d = new THREE.Group();
@@ -2051,48 +1861,83 @@ function _addMarkerToTimeline() {
   }
 }
 
-function addCut() {
-  _addMarkerToTimeline();
-
-  mainTimeline.call(() => {
-    if (capturer !== undefined) {
-      console.log("CutPoint: " + globalTimeline.time().toString());
-      metaData["cutPoints"].push(globalTimeline.time());
-    }
-  });
-}
-
-function move(object3d, { t = undefined, ...options } = {}) {
-  mainTimeline.add(createMotionAnimation(object3d, options), t);
-}
-
-function addCustomAnimation(
-  callback,
+function move(
+  obj: SceneObject,
   {
-    startVal = 0,
-    endVal = 1,
-    aniPos = "+=0",
-    ease = "expo.out",
+    t = undefined,
+    position = undefined,
+    x = undefined,
+    y = undefined,
+    z = undefined,
+    rx = undefined,
+    ry = undefined,
+    rz = undefined,
+    sx = undefined,
+    sy = undefined,
+    sz = undefined,
+    scale = undefined,
+    dx = undefined,
+    dy = undefined,
     duration = 0.5,
+    ease = "power2.out",
+    multiplyScale = undefined,
   } = {}
 ) {
-  const data = { val: startVal };
-  mainTimeline.to(
-    data,
-    {
-      val: endVal,
-      onUpdate: () => {
-        callback(data.val);
-      },
-      ease,
-      duration,
-    },
-    aniPos
-  );
-}
+  commandQueue.push(() => {
+    if (dx !== undefined) x = obj._threeObject3d.position.x + dx;
+    if (dy !== undefined) y = obj._threeObject3d.position.y + dy;
 
-function setBackgroundAlpha(alpha) {
-  backgroundAlpha = alpha;
+    let tl = gsap.timeline({
+      defaults: {
+        duration,
+        ease,
+      },
+    });
+
+    if (position !== undefined) {
+      tl.to(
+        obj._threeObject3d.position,
+        { x: position[0], y: position[1], z: position[2] },
+        "<"
+      );
+    } else {
+      if (x !== undefined) tl.to(obj._threeObject3d.position, { x }, "<");
+      if (y !== undefined) tl.to(obj._threeObject3d.position, { y }, "<");
+      if (z !== undefined) tl.to(obj._threeObject3d.position, { z }, "<");
+    }
+
+    if (rx !== undefined) tl.to(obj._threeObject3d.rotation, { x: rx }, "<");
+    if (ry !== undefined) tl.to(obj._threeObject3d.rotation, { y: ry }, "<");
+    if (rz !== undefined) tl.to(obj._threeObject3d.rotation, { z: rz }, "<");
+
+    if (scale !== undefined) {
+      tl.to(
+        obj._threeObject3d.scale,
+        {
+          x: scale,
+          y: scale,
+          z: scale,
+        },
+        "<"
+      );
+    } else if (multiplyScale !== undefined) {
+      tl.to(
+        obj._threeObject3d.scale,
+        {
+          x: obj._threeObject3d.scale.x * multiplyScale,
+          y: obj._threeObject3d.scale.y * multiplyScale,
+          z: obj._threeObject3d.scale.z * multiplyScale,
+        },
+        "<"
+      );
+    } else {
+      if (sx !== undefined) tl.to(obj._threeObject3d.scale, { x: sx }, "<");
+      if (sy !== undefined) tl.to(obj._threeObject3d.scale, { y: sy }, "<");
+      if (sz !== undefined) tl.to(obj._threeObject3d.scale, { z: sz }, "<");
+    }
+
+    mainTimeline.add(tl, t);
+  });
 }
 
 function enableMotionBlur({ motionBlurSamples = 16 } = {}) {
@@ -2100,7 +1945,7 @@ function enableMotionBlur({ motionBlurSamples = 16 } = {}) {
   AA_METHOD = "fxaa";
 }
 
-function setResolution(w, h) {
+function setResolution(w: number, h: number) {
   WIDTH = w;
   HEIGHT = h;
 }
@@ -2200,27 +2045,27 @@ export default {
       mainTimeline.set({}, {}, "+=" + duration.toString());
     });
   },
-  fadeIn: (obj: Object3D, params) => {
+  fadeIn: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "fadeIn", params);
     });
   },
-  fadeOut: (obj: Object3D, params) => {
+  fadeOut: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "fadeOut", params);
     });
   },
-  flyIn: (obj: Object3D, params) => {
+  flyIn: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "flyIn", params);
     });
   },
-  rotateIn: (obj: Object3D, params) => {
+  rotateIn: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "rotateIn", params);
     });
   },
-  rotateIn2: (obj: Object3D, params) => {
+  rotateIn2: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "rotateIn2", params);
     });
@@ -2228,11 +2073,7 @@ export default {
   setDefaultAnimation: (name) => {
     defaultAnimation = name;
   },
-  move: (obj: Object3D, params) => {
-    commandQueue.push(() => {
-      move(obj._threeObject3d, params);
-    });
-  },
+  move,
   addEmptyAnimation: (t) => {
     commandQueue.push(() => {
       mainTimeline.set({}, {}, t);
@@ -2251,17 +2092,17 @@ export default {
   setBackgroundColor,
   explode,
   implode,
-  grow: (obj: Object3D, params) => {
+  grow: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "grow", params);
     });
   },
-  grow2: (obj: Object3D, params) => {
+  grow2: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "grow2", params);
     });
   },
-  grow3: (obj: Object3D, params) => {
+  grow3: (obj: SceneObject, params) => {
     commandQueue.push(() => {
       addAnimation(obj._threeObject3d, "grow3", params);
     });

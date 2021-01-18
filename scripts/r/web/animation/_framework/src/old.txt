@@ -552,3 +552,158 @@ function createCanvas({ width = 64, height = 64 } = {}) {
     tex: { packages: { "[+]": ["color"] } },
   };
 </script>
+
+function addCut() {
+  _addMarkerToTimeline();
+
+  mainTimeline.call(() => {
+    if (capturer !== undefined) {
+      console.log("CutPoint: " + globalTimeline.time().toString());
+      metaData["cutPoints"].push(globalTimeline.time());
+    }
+  });
+}
+
+function addCustomAnimation(
+  callback,
+  {
+    startVal = 0,
+    endVal = 1,
+    aniPos = "+=0",
+    ease = "expo.out",
+    duration = 0.5,
+  } = {}
+) {
+  const data = { val: startVal };
+  mainTimeline.to(
+    data,
+    {
+      val: endVal,
+      onUpdate: () => {
+        callback(data.val);
+      },
+      ease,
+      duration,
+    },
+    aniPos
+  );
+}
+
+function setBackgroundAlpha(alpha) {
+  backgroundAlpha = alpha;
+}
+
+function jumpTo(object3d, { x = 0, y = 0 }) {
+  let tl = gsap.timeline();
+  tl.to(object3d.position, {
+    x,
+    y,
+    ease: "elastic.out(1, 0.2)",
+    duration: 0.5,
+  });
+
+  tl.from(
+    object3d.material,
+    {
+      opacity: 0,
+      duration: 0.5,
+    },
+    "<"
+  );
+
+  return tl;
+}
+
+function createTriangle({
+  vertices = [
+    new THREE.Vector3(-1.732, -1, 0),
+    new THREE.Vector3(1.732, -1, 0),
+    new THREE.Vector3(0, 2, 0),
+  ],
+  color = 0xffffff,
+  opacity = 1.0,
+} = {}) {
+  let geometry = new THREE.Geometry();
+
+  geometry.vertices.push(vertices[0], vertices[1], vertices[2]);
+
+  geometry.faces.push(new THREE.Face3(0, 1, 2));
+
+  let material = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+  });
+
+  let mesh = new THREE.Mesh(geometry, material);
+  return mesh;
+}
+
+
+function createTriangleOutline({ color = "0xffffff" } = {}) {
+  const VERTICES = [
+    new THREE.Vector3(-1.732, -1, 0),
+    new THREE.Vector3(1.732, -1, 0),
+    new THREE.Vector3(0, 2, 0),
+  ];
+
+  const triangleStroke = createLine3D({
+    points: VERTICES.concat(VERTICES[0]),
+    lineWidth: 0.3,
+    color: new THREE.Color(0xffffff),
+  });
+  triangleStroke.position.set(-6.4, -6.4, 0.02);
+  // triangleStroke.scale.set(0.2, 0.2, 0.2);
+  // scene.add(triangleStroke);
+  return triangleStroke;
+}
+
+// TODO: Deprecated.
+// function addExplosionAnimation(
+//   objectGroup,
+//   { ease = "expo.out", duration = 1.5 } = {}
+// ) {
+//   const tl = gsap.timeline({
+//     defaults: {
+//       duration,
+//       ease: ease,
+//     },
+//   });
+
+//   tl.from(
+//     objectGroup.children.map((x) => x.position),
+//     {
+//       x: 0,
+//       y: 0,
+//     },
+//     0
+//   );
+//   tl.from(
+//     objectGroup.children.map((x) => x.scale),
+//     {
+//       x: 0.001,
+//       y: 0.001,
+//     },
+//     0
+//   );
+//   tl.from(
+//     objectGroup.children.map((x) => x.rotation),
+//     {
+//       z: 0,
+//     },
+//     0
+//   );
+//   return tl;
+// }
+
+function halton(index, base) {
+  var result = 0;
+  var f = 1 / base;
+  var i = index;
+  while (i > 0) {
+    result = result + f * (i % base);
+    i = Math.floor(i / base);
+    f = f / base;
+  }
+  return result;
+}
