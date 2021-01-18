@@ -1287,21 +1287,6 @@ function addAnimation(
         );
       }
     });
-
-    // Animation
-    animationList.forEach((animation) => {
-      if (animation === "rotation") {
-        tl.to(
-          object3d.rotation,
-          {
-            y: object3d.rotation.y + Math.PI * 2 * 4,
-            duration: 2,
-            ease: "none",
-          },
-          ">"
-        );
-      }
-    });
   }
 
   if (tl.duration() > 0) {
@@ -1593,14 +1578,12 @@ function add(val: string, params: AddObjectParameters): SceneObject {
 
   commandQueue.push(async () => {
     let {
-      animation,
       color,
       opacity = 1.0,
       vertices = [],
       wireframe = false,
       width = 1,
       height = 1,
-      t,
       parent,
       ccw = false,
       font,
@@ -1611,7 +1594,6 @@ function add(val: string, params: AddObjectParameters): SceneObject {
       gridSize = 10,
       centralAngle = Math.PI * 2,
       letterSpacing = 0.05,
-      duration,
     } = params;
 
     // if (lighting) {
@@ -1737,7 +1719,7 @@ function add(val: string, params: AddObjectParameters): SceneObject {
 
     updateTransform(mesh, params);
 
-    addAnimation(mesh, animation, { t, duration });
+    // addAnimation(mesh, animation, { t, duration });
 
     if (parent !== undefined) {
       parent._threeObject3d.add(mesh);
@@ -1774,7 +1756,6 @@ interface Transform {
 }
 
 interface AddObjectParameters extends Transform, BasicMaterial {
-  animation?: any;
   vertices?: any;
   wireframe?: any;
   outline?: any;
