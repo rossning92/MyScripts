@@ -44,7 +44,7 @@ let stats = undefined;
 let capturer = undefined;
 let renderer = undefined;
 let composer = undefined;
-let scene = undefined;
+let scene: THREE.Scene = undefined;
 let camera = undefined;
 let lightGroup = undefined;
 let cameraControls = undefined;
@@ -176,7 +176,7 @@ function setupScene({ width = WIDTH, height = HEIGHT } = {}) {
   }
 
   renderer.setClearColor(0x000000, backgroundAlpha);
-  scene.background = 0;
+  scene.background = new THREE.Color(0);
 
   if (camera === undefined) {
     // This will ensure the size of 10 in the vertical direction.
@@ -382,7 +382,7 @@ function createLine3D({
 
 function reveal(obj, { dir = "up", t = undefined } = {}) {
   commandQueue.push(() => {
-    const object3d = sceneObjects[obj];
+    const object3d = obj.__threeObject3d;
 
     let localPlane;
     let x = 0;
@@ -866,7 +866,7 @@ function shake2D(
   }
 
   commandQueue.push(() => {
-    const object3d = sceneObjects[obj];
+    const object3d = obj.__threeObject3d;
 
     var tl = gsap.timeline({ defaults: { ease: "none" } });
     tl.set(object3d, { x: "+=0" }); // this creates a full _gsTransform on object3d
@@ -1628,13 +1628,19 @@ function uuidv4() {
   });
 }
 
-function add(obj, params: AddObjectParameters) {
+class Object3D {
+  __threeObject3d: THREE.Object3D;
+}
+
+function add(val: string, params: AddObjectParameters): Object3D {
   const id = uuidv4();
+  const obj = new Object3D();
+
   commandQueue.push(async () => {
-    await addObject(obj, id, params);
+    await addObject(val, obj, params);
   });
 
-  return id;
+  return obj;
 }
 
 function toVector3(v) {
@@ -1668,7 +1674,7 @@ interface AddObjectParameters extends Transform, BasicMaterial {
   width?: any;
   height?: any;
   t?: number | string;
-  parent?: any;
+  parent?: Object3D;
   lighting?: any;
   ccw?: any;
   font?: any;
@@ -1737,7 +1743,7 @@ function updateTransform(mesh: THREE.Object3D, transform: Transform) {
   if (transform.rz !== undefined) mesh.rotation.z = transform.rz;
 }
 
-async function addObject(obj, id: string, params: AddObjectParameters) {
+async function addObject(val, obj: Object3D, params: AddObjectParameters) {
   let {
     animation,
     color,
@@ -1782,11 +1788,11 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
   // }
 
   let mesh;
-  if (obj.endsWith(".svg")) {
-    mesh = await loadSVG(obj, { isCCW: ccw, color });
+  if (val.endsWith(".svg")) {
+    mesh = await loadSVG(val, { isCCW: ccw, color });
     scene.add(mesh);
-  } else if (obj.endsWith(".png") || obj.endsWith(".jpg")) {
-    const texture = await loadTexture(obj);
+  } else if (val.endsWith(".png") || val.endsWith(".jpg")) {
+    const texture = await loadTexture(val);
     texture.anisotropy = 16; // renderer.getMaxAnisotropy(); TODO: do not hardcode
     const material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -1805,7 +1811,7 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
     } else {
       mesh.scale.x *= ratio;
     }
-  } else if (obj === "triangle") {
+  } else if (val === "triangle") {
     if (vertices.length === 0) {
       vertices = createTriangleVertices();
     }
@@ -1815,7 +1821,7 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
     geometry.faces.push(new THREE.Face3(0, 1, 2));
 
     mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (obj === "triangleOutline") {
+  } else if (val === "triangleOutline") {
     if (vertices.length === 0) {
       vertices = createTriangleVertices();
     }
@@ -1828,22 +1834,22 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
           ? new THREE.Color(color)
           : new THREE.Color(0xffffff),
     });
-  } else if (obj === "rect" || obj === "rectangle") {
+  } else if (val === "rect" || val === "rectangle") {
     const geometry = new THREE.PlaneGeometry(width, height);
     mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (obj === "circle") {
+  } else if (val === "circle") {
     const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
     mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (obj === "ring") {
+  } else if (val === "ring") {
     const geometry = new THREE.RingGeometry(0.85, 1, 64);
     mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (obj === "sphere") {
+  } else if (val === "sphere") {
     const geometry = new THREE.SphereGeometry(0.5, 32, 32);
     mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (obj === "pyramid") {
+  } else if (val === "pyramid") {
     const geometry = new THREE.ConeGeometry(0.5, 1.0, 4, 32);
     mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (obj === "arrow") {
+  } else if (val === "arrow") {
     mesh = createArrow({
       from: toVector3(start),
       to: toVector3(end),
@@ -1853,7 +1859,7 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
           : new THREE.Color(0xffffff),
       lineWidth,
     });
-  } else if (obj === "line") {
+  } else if (val === "line") {
     mesh = createArrow({
       from: toVector3(start),
       to: toVector3(end),
@@ -1865,15 +1871,15 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
           : new THREE.Color(0xffffff),
       lineWidth,
     });
-  } else if (obj === "grid") {
+  } else if (val === "grid") {
     const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
     gridHelper.rotation.x = Math.PI / 2;
     gridHelper.position.z = 0.01;
 
     mesh = gridHelper;
-  } else if (typeof obj === "string") {
+  } else if (typeof val === "string") {
     mesh = new TextMesh({
-      text: obj,
+      text: val,
       font,
       color:
         color !== undefined
@@ -1889,36 +1895,34 @@ async function addObject(obj, id: string, params: AddObjectParameters) {
   addAnimation(mesh, animation, { t, duration });
 
   if (parent !== undefined) {
-    sceneObjects[parent].add(mesh);
+    parent.__threeObject3d.add(mesh);
   } else {
     scene.add(mesh);
   }
 
-  sceneObjects[id] = mesh;
+  obj.__threeObject3d = mesh;
 }
 
 interface AddGroupParameters extends Transform {
-  parent?: string;
+  parent?: Object3D;
 }
 
 function addGroup(params: AddGroupParameters = {}) {
-  const id = uuidv4();
+  const groupObject = new Object3D();
 
   commandQueue.push(() => {
-    const group = new THREE.Group();
+    groupObject.__threeObject3d = new THREE.Group();
 
-    updateTransform(group, params);
+    updateTransform(groupObject.__threeObject3d, params);
 
     if (params.parent) {
-      sceneObjects[params.parent].add(group);
+      params.parent.__threeObject3d.add(groupObject.__threeObject3d);
     } else {
-      scene.add(group);
+      scene.add(groupObject.__threeObject3d);
     }
-
-    sceneObjects[id] = group;
   });
 
-  return id;
+  return groupObject;
 }
 
 function addThreeJsGroup({ x = 0, y = 0, z = 0, sx = 1, sy = 1, sz = 1 } = {}) {
@@ -2141,7 +2145,7 @@ function explode(
   } = {}
 ) {
   commandQueue.push(() => {
-    const tl = createExplosionAnimation(sceneObjects[group], {
+    const tl = createExplosionAnimation(group.__threeObject3d, {
       ease,
       duration,
       minRotation,
@@ -2158,7 +2162,7 @@ function explode(
 
 function implode(group, { t = undefined, duration = 0.5 } = {}) {
   commandQueue.push(() => {
-    const tl = createImplodeAnimation(sceneObjects[group], { duration });
+    const tl = createImplodeAnimation(group.__threeObject3d, { duration });
     mainTimeline.add(tl, t);
   });
 }
@@ -2170,7 +2174,7 @@ function flying(group, { t = undefined, duration = 5 } = {}) {
   commandQueue.push(() => {
     const tl = gsap.timeline();
 
-    sceneObjects[group].children.forEach((x) => {
+    group.__threeObject3d.children.forEach((x) => {
       tl.fromTo(
         x.position,
         {
@@ -2214,37 +2218,37 @@ export default {
       mainTimeline.set({}, {}, "+=" + duration.toString());
     });
   },
-  fadeIn: (obj, params) => {
+  fadeIn: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "fadeIn", params);
+      addAnimation(obj.__threeObject3d, "fadeIn", params);
     });
   },
-  fadeOut: (obj, params) => {
+  fadeOut: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "fadeOut", params);
+      addAnimation(obj.__threeObject3d, "fadeOut", params);
     });
   },
-  flyIn: (obj, params) => {
+  flyIn: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "flyIn", params);
+      addAnimation(obj.__threeObject3d, "flyIn", params);
     });
   },
-  rotateIn: (obj, params) => {
+  rotateIn: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "rotateIn", params);
+      addAnimation(obj.__threeObject3d, "rotateIn", params);
     });
   },
-  rotateIn2: (obj, params) => {
+  rotateIn2: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "rotateIn2", params);
+      addAnimation(obj.__threeObject3d, "rotateIn2", params);
     });
   },
   setDefaultAnimation: (name) => {
     defaultAnimation = name;
   },
-  move: (obj, params) => {
+  move: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      move(sceneObjects[obj], params);
+      move(obj.__threeObject3d, params);
     });
   },
   addEmptyAnimation: (t) => {
@@ -2265,19 +2269,19 @@ export default {
   setBackgroundColor,
   explode,
   implode,
-  grow: (obj, params) => {
+  grow: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "grow", params);
+      addAnimation(obj.__threeObject3d, "grow", params);
     });
   },
-  grow2: (obj, params) => {
+  grow2: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "grow2", params);
+      addAnimation(obj.__threeObject3d, "grow2", params);
     });
   },
-  grow3: (obj, params) => {
+  grow3: (obj: Object3D, params) => {
     commandQueue.push(() => {
-      addAnimation(sceneObjects[obj], "grow3", params);
+      addAnimation(obj.__threeObject3d, "grow3", params);
     });
   },
   enableBloom: () => {
