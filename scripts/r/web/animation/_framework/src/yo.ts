@@ -1939,12 +1939,7 @@ function random() {
   return rng();
 }
 
-function getGridPosition({
-  rows = 1,
-  cols = 1,
-  width = 25,
-  height = 14,
-} = {}) {
+function getGridPosition({ rows = 1, cols = 1, width = 25, height = 14 } = {}) {
   const gapX = width / cols;
   const gapY = height / rows;
 
@@ -2013,7 +2008,7 @@ export default {
     "#8BD448",
     "#2AA8F2",
   ],
-  pause: (duration) => {
+  pause: (duration: number) => {
     commandQueue.push(() => {
       mainTimeline.set({}, {}, "+=" + duration.toString());
     });
