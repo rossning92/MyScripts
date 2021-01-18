@@ -1304,32 +1304,28 @@ interface AnimationParameters {
   ease?: string;
 }
 
+interface MoveObjectParameters extends Transform, AnimationParameters {}
+
 class SceneObject {
   _threeObject3d: THREE.Object3D;
 
   move({
-    t = undefined,
-    position = undefined,
-    x = undefined,
-    y = undefined,
-    z = undefined,
-    rx = undefined,
-    ry = undefined,
-    rz = undefined,
-    sx = undefined,
-    sy = undefined,
-    sz = undefined,
-    scale = undefined,
-    dx = undefined,
-    dy = undefined,
+    t,
+    position,
+    x,
+    y,
+    z,
+    rx,
+    ry,
+    rz,
+    sx,
+    sy,
+    sz,
+    scale,
     duration = 0.5,
     ease = "power2.out",
-    multiplyScale = undefined,
-  } = {}) {
+  }: MoveObjectParameters = {}) {
     commandQueue.push(() => {
-      if (dx !== undefined) x = this._threeObject3d.position.x + dx;
-      if (dy !== undefined) y = this._threeObject3d.position.y + dy;
-
       let tl = gsap.timeline({
         defaults: {
           duration,
@@ -1360,16 +1356,6 @@ class SceneObject {
             x: scale,
             y: scale,
             z: scale,
-          },
-          "<"
-        );
-      } else if (multiplyScale !== undefined) {
-        tl.to(
-          this._threeObject3d.scale,
-          {
-            x: this._threeObject3d.scale.x * multiplyScale,
-            y: this._threeObject3d.scale.y * multiplyScale,
-            z: this._threeObject3d.scale.z * multiplyScale,
           },
           "<"
         );
@@ -1935,30 +1921,6 @@ function getGridLayoutPositions({
     }
   }
   return results;
-}
-
-function add3DSpinning(object3d) {
-  animationCallbacks.push((delta, elapsed) => {
-    object3d.rotation.y += delta;
-    object3d.rotation.x = Math.sin(elapsed) * 0.5;
-  });
-}
-
-function addPulse(object3d) {
-  const scaleCopy = object3d.scale.clone();
-  animationCallbacks.push((delta, elapsed) => {
-    const s = 1 + Math.sin(elapsed * 50) * 0.01;
-
-    object3d.scale.x = scaleCopy.x * s;
-    object3d.scale.y = scaleCopy.y * s;
-    object3d.scale.z = scaleCopy.z * s;
-  });
-}
-
-function add2DSpinning(object3d, { speed = 1.0 } = {}) {
-  animationCallbacks.push((delta, elapsed) => {
-    object3d.rotation.z -= delta * speed;
-  });
 }
 
 function _addMarkerToTimeline() {

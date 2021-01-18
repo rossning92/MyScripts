@@ -721,3 +721,28 @@ flyIn({ duration = 0.25, ease = "linear", t = undefined }) {
     mainTimeline.add(tl, t);
   });
 }
+
+
+function add3DSpinning(object3d) {
+  animationCallbacks.push((delta, elapsed) => {
+    object3d.rotation.y += delta;
+    object3d.rotation.x = Math.sin(elapsed) * 0.5;
+  });
+}
+
+function addPulse(object3d) {
+  const scaleCopy = object3d.scale.clone();
+  animationCallbacks.push((delta, elapsed) => {
+    const s = 1 + Math.sin(elapsed * 50) * 0.01;
+
+    object3d.scale.x = scaleCopy.x * s;
+    object3d.scale.y = scaleCopy.y * s;
+    object3d.scale.z = scaleCopy.z * s;
+  });
+}
+
+function add2DSpinning(object3d, { speed = 1.0 } = {}) {
+  animationCallbacks.push((delta, elapsed) => {
+    object3d.rotation.z -= delta * speed;
+  });
+}
