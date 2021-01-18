@@ -538,3 +538,17 @@ function createCanvas({ width = 64, height = 64 } = {}) {
   canvas.height = height;
   return canvas;
 }
+
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
+<script>
+  window.MathJax = {
+    jax: ["input/TeX", "output/SVG"],
+    extensions: ["tex2jax.js"],
+    SVG: {
+      useGlobalCache: false,
+      // scale: 120,
+    },
+    loader: { load: ["[tex]/color"] },
+    tex: { packages: { "[+]": ["color"] } },
+  };
+</script>
