@@ -1,6 +1,6 @@
 import yo from "yo";
 
-const GRID_SIZE = 48;
+const GRID_SIZE = 24;
 
 const texels = generateTriangleTexture();
 
@@ -23,7 +23,7 @@ for (let i = GRID_SIZE - 1; i >= 0; i--) {
         parent: group,
       });
       pixel.fadeIn({ t });
-      t += 0.004;
+      t += 0.01;
     }
   }
 }
@@ -36,7 +36,7 @@ function generateTriangleTexture() {
   canvas.height = GRID_SIZE;
   const ctx = canvas.getContext("2d");
 
-  // Filled triangle
+  // Draw filled triangle on canvas
   ctx.beginPath();
   ctx.moveTo(Math.floor(0.2 * GRID_SIZE), Math.floor(0.4 * GRID_SIZE));
   ctx.lineTo(Math.floor(0.8 * GRID_SIZE), Math.floor(0.95 * GRID_SIZE));
