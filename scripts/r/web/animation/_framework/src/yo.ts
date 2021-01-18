@@ -1939,7 +1939,7 @@ function random() {
   return rng();
 }
 
-function getGridLayoutPositions({
+function getGridPosition({
   rows = 1,
   cols = 1,
   width = 25,
