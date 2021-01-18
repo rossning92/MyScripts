@@ -378,47 +378,6 @@ function createLine3D({
   return mesh;
 }
 
-function reveal(obj, { dir = "up", t = undefined } = {}) {
-  commandQueue.push(() => {
-    const object3d = obj._threeObject3d;
-
-    let localPlane;
-    let x = 0;
-    let y = 0;
-    let z = 0;
-
-    const boundingBox = getBoundingBox(object3d);
-    if (dir === "right") {
-    } else if (dir === "left") {
-    } else if (dir === "up") {
-      localPlane = new THREE.Plane(
-        new THREE.Vector3(0, 1, 0),
-        -boundingBox.min.y
-      );
-      y = object3d.position.y - (boundingBox.max.y - boundingBox.min.y);
-    } else if (dir === "down") {
-      localPlane = new THREE.Plane(
-        new THREE.Vector3(0, -1, 0),
-        boundingBox.max.y
-      );
-      y = object3d.position.y + (boundingBox.max.y - boundingBox.min.y);
-    }
-
-    const materials = getAllMaterials(object3d);
-    for (const material of materials) {
-      material.clippingPlanes = [localPlane];
-    }
-
-    const tl = gsap.from(object3d.position, {
-      y,
-      duration: 0.6,
-      ease: "expo.out",
-    });
-
-    mainTimeline.add(tl, t);
-  });
-}
-
 function createCircle2D() {
   let geometry = new THREE.CircleGeometry(0.5, 32);
 
@@ -559,9 +518,11 @@ function getAllMaterials(object3d: THREE.Object3D): THREE.Material[] {
     if (object3d.material) {
       materials.add(object3d.material);
     }
-    object3d.children.forEach((child) => {
-      getMaterialsRecursive(child);
-    });
+    if (object3d.children) {
+      object3d.children.forEach((child) => {
+        getMaterialsRecursive(child);
+      });
+    }
   };
   getMaterialsRecursive(object3d);
   return Array.from(materials);
@@ -605,7 +566,7 @@ function setOpacity(object3d, opacity = 1.0) {
 }
 
 function createFadeOutAnimation(
-  obj,
+  obj: THREE.Object3D,
   { duration = undefined, ease = "linear" } = {}
 ) {
   if (duration === undefined) {
@@ -1275,30 +1236,6 @@ function addAnimation(
         tl.add(addJumpIn(object3d), "<");
       } else if (animation === "spinIn") {
         tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
-      } else if (animation === "grow") {
-        tl.from(
-          object3d.scale,
-          { x: 0.01, y: 0.01, z: 0.01, ease: "expo.out" },
-          "<"
-        );
-      } else if (animation === "grow2") {
-        tl.from(
-          object3d.scale,
-          { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out(1, 0.75)" },
-          "<"
-        );
-      } else if (animation === "grow3") {
-        tl.from(
-          object3d.scale,
-          {
-            x: 0.01,
-            y: 0.01,
-            z: 0.01,
-            ease: "elastic.out(1, 0.2)",
-            duration: 1,
-          },
-          "<"
-        );
       } else if (animation === "growX") {
         tl.from(object3d.scale, { x: 0.01, ease: "expo.out" }, "<");
       } else if (animation === "growY") {
@@ -1387,6 +1324,12 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
 }
 
 var commandQueue = [];
+
+interface AnimationParameters {
+  t?: number | string;
+  duration?: number;
+  ease?: string;
+}
 
 class SceneObject {
   _threeObject3d: THREE.Object3D;
@@ -1534,6 +1477,111 @@ class SceneObject {
         },
         "<"
       );
+
+      mainTimeline.add(tl, t);
+    });
+  }
+
+  grow({ t }: AnimationParameters = {}) {
+    commandQueue.push(() => {
+      mainTimeline.from(
+        this._threeObject3d.scale,
+        { x: 0.01, y: 0.01, z: 0.01, ease: "expo.out" },
+        t
+      );
+    });
+  }
+
+  grow2({ t }: AnimationParameters = {}) {
+    commandQueue.push(() => {
+      mainTimeline.from(
+        this._threeObject3d.scale,
+        { x: 0.01, y: 0.01, z: 0.01, ease: "elastic.out(1, 0.75)" },
+        t
+      );
+    });
+  }
+
+  grow3({ t }: AnimationParameters = {}) {
+    commandQueue.push(() => {
+      mainTimeline.from(
+        this._threeObject3d.scale,
+        {
+          x: 0.01,
+          y: 0.01,
+          z: 0.01,
+          ease: "elastic.out(1, 0.2)",
+          duration: 1.0,
+        },
+        t
+      );
+    });
+  }
+
+  flying({ t = undefined, duration = 5 }: AnimationParameters = {}) {
+    const WIDTH = 30;
+    const HEIGHT = 15;
+
+    commandQueue.push(() => {
+      const tl = gsap.timeline();
+
+      this._threeObject3d.children.forEach((x) => {
+        tl.fromTo(
+          x.position,
+          {
+            x: rng() * WIDTH - WIDTH / 2,
+            y: rng() * HEIGHT - HEIGHT / 2,
+          },
+          {
+            x: rng() * WIDTH - WIDTH / 2,
+            y: rng() * HEIGHT - HEIGHT / 2,
+            duration,
+            ease: "none",
+          },
+          0
+        );
+      });
+
+      mainTimeline.add(tl, t);
+    });
+  }
+
+  reveal({ dir = "up", t = undefined } = {}) {
+    commandQueue.push(() => {
+      const object3d = this._threeObject3d;
+
+      let localPlane;
+      let x = 0;
+      let y = 0;
+      let z = 0;
+
+      const boundingBox = getBoundingBox(object3d);
+      if (dir === "right") {
+      } else if (dir === "left") {
+      } else if (dir === "up") {
+        localPlane = new THREE.Plane(
+          new THREE.Vector3(0, 1, 0),
+          -boundingBox.min.y
+        );
+        y = object3d.position.y - (boundingBox.max.y - boundingBox.min.y);
+      } else if (dir === "down") {
+        localPlane = new THREE.Plane(
+          new THREE.Vector3(0, -1, 0),
+          boundingBox.max.y
+        );
+        y = object3d.position.y + (boundingBox.max.y - boundingBox.min.y);
+      }
+
+      const materials = getAllMaterials(object3d);
+      for (const material of materials) {
+        material.clippingPlanes = [localPlane];
+      }
+
+      const tl = gsap.from(object3d.position, {
+        y,
+        duration: 0.6,
+        ease: "expo.out",
+      });
 
       mainTimeline.add(tl, t);
     });
@@ -2023,30 +2071,12 @@ function implode(group, { t = undefined, duration = 0.5 } = {}) {
   });
 }
 
-function flying(group, { t = undefined, duration = 5 } = {}) {
-  const WIDTH = 30;
-  const HEIGHT = 15;
-
+function fadeOutAll({ t = undefined } = {}) {
   commandQueue.push(() => {
     const tl = gsap.timeline();
-
-    group._threeObject3d.children.forEach((x) => {
-      tl.fromTo(
-        x.position,
-        {
-          x: rng() * WIDTH - WIDTH / 2,
-          y: rng() * HEIGHT - HEIGHT / 2,
-        },
-        {
-          x: rng() * WIDTH - WIDTH / 2,
-          y: rng() * HEIGHT - HEIGHT / 2,
-          duration,
-          ease: "none",
-        },
-        0
-      );
-    });
-
+    for (const object3d of scene.children) {
+      tl.add(createFadeOutAnimation(object3d), "<");
+    }
     mainTimeline.add(tl, t);
   });
 }
@@ -2083,40 +2113,17 @@ export default {
       mainTimeline.set({}, {}, t);
     });
   },
-  fadeOutAll: ({ t = undefined } = {}) => {
-    commandQueue.push(() => {
-      const tl = gsap.timeline();
-      for (const object3d in scene.children) {
-        tl.add(createFadeOutAnimation(object3d), "<");
-      }
-      mainTimeline.add(tl, t);
-    });
-  },
+  fadeOutAll,
   shake2D,
   setBackgroundColor,
   explode,
   implode,
-  grow: (obj: SceneObject, params) => {
-    commandQueue.push(() => {
-      addAnimation(obj._threeObject3d, "grow", params);
-    });
-  },
-  grow2: (obj: SceneObject, params) => {
-    commandQueue.push(() => {
-      addAnimation(obj._threeObject3d, "grow2", params);
-    });
-  },
-  grow3: (obj: SceneObject, params) => {
-    commandQueue.push(() => {
-      addAnimation(obj._threeObject3d, "grow3", params);
-    });
-  },
+
   enableBloom: () => {
     bloomEnabled = true;
     AA_METHOD = "fxaa";
   },
-  flying,
-  reveal,
+
   addGlitch,
   setResolution,
 };
