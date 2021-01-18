@@ -77,7 +77,6 @@ gui.add(options, "framerate", [10, 25, 30, 60, 120]);
 gui.add(options, "start");
 gui.add(options, "stop");
 
-
 function startCapture({ resetTiming = true, name = undefined } = {}) {
   if (name === undefined) {
     name = document.title;
@@ -1619,24 +1618,168 @@ function createTriangleVertices({ radius = 0.5 } = {}) {
 
 var commandQueue = [];
 
-function uuidv4() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    var r = (Math.random() * 16) | 0,
-      v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 class Object3D {
   _threeObject3d: THREE.Object3D;
 }
 
 function add(val: string, params: AddObjectParameters): Object3D {
-  const id = uuidv4();
   const obj = new Object3D();
 
   commandQueue.push(async () => {
-    await addObject(val, obj, params);
+    let {
+      animation,
+      color,
+      opacity = 1.0,
+      vertices = [],
+      wireframe = false,
+      width = 1,
+      height = 1,
+      t,
+      parent,
+      ccw = false,
+      font,
+      fontSize = 1.0,
+      start = { x: 0, y: 0 },
+      end = { x: 0, y: 1 },
+      lineWidth = 0.1,
+      gridSize = 10,
+      centralAngle = Math.PI * 2,
+      letterSpacing = 0.05,
+      duration,
+    } = params;
+
+    // if (lighting) {
+    //   addDefaultLights();
+    //   material = new THREE.MeshPhongMaterial({
+    //     color: color !== undefined ? color : 0xffffff,
+    //     // emissive: 0x072534,
+    //     // side: THREE.DoubleSide,
+    //     flatShading: true,
+    //   });
+    // } else {
+    //   material = new THREE.MeshBasicMaterial({
+    //     side: THREE.DoubleSide,
+    //     color: color !== undefined ? color : 0xffffff,
+    //     transparent,
+    //     opacity,
+    //     wireframe,
+    //   });
+    // }
+
+    let mesh;
+    if (val.endsWith(".svg")) {
+      mesh = await loadSVG(val, { isCCW: ccw, color });
+      scene.add(mesh);
+    } else if (val.endsWith(".png") || val.endsWith(".jpg")) {
+      const texture = await loadTexture(val);
+      texture.anisotropy = 16; // renderer.getMaxAnisotropy(); TODO: do not hardcode
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity,
+        wireframe,
+      });
+
+      const geometry = new THREE.PlaneBufferGeometry(1, 1);
+      mesh = new THREE.Mesh(geometry, material);
+
+      const ratio = texture.image.width / texture.image.height;
+      if (ratio > 1) {
+        mesh.scale.y /= ratio;
+      } else {
+        mesh.scale.x *= ratio;
+      }
+    } else if (val === "triangle") {
+      if (vertices.length === 0) {
+        vertices = createTriangleVertices();
+      }
+
+      const geometry = new THREE.Geometry();
+      geometry.vertices.push(vertices[0], vertices[1], vertices[2]);
+      geometry.faces.push(new THREE.Face3(0, 1, 2));
+
+      mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
+    } else if (val === "triangleOutline") {
+      if (vertices.length === 0) {
+        vertices = createTriangleVertices();
+      }
+
+      mesh = createLine3D({
+        points: vertices.concat(vertices[0]),
+        lineWidth,
+        color:
+          color !== undefined
+            ? new THREE.Color(color)
+            : new THREE.Color(0xffffff),
+      });
+    } else if (val === "rect" || val === "rectangle") {
+      const geometry = new THREE.PlaneGeometry(width, height);
+      mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
+    } else if (val === "circle") {
+      const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
+      mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
+    } else if (val === "ring") {
+      const geometry = new THREE.RingGeometry(0.85, 1, 64);
+      mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
+    } else if (val === "sphere") {
+      const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+      mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
+    } else if (val === "pyramid") {
+      const geometry = new THREE.ConeGeometry(0.5, 1.0, 4, 32);
+      mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
+    } else if (val === "arrow") {
+      mesh = createArrow({
+        from: toVector3(start),
+        to: toVector3(end),
+        color:
+          color !== undefined
+            ? new THREE.Color(color)
+            : new THREE.Color(0xffffff),
+        lineWidth,
+      });
+    } else if (val === "line") {
+      mesh = createArrow({
+        from: toVector3(start),
+        to: toVector3(end),
+        arrowStart: false,
+        arrowEnd: false,
+        color:
+          color !== undefined
+            ? new THREE.Color(color)
+            : new THREE.Color(0xffffff),
+        lineWidth,
+      });
+    } else if (val === "grid") {
+      const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
+      gridHelper.rotation.x = Math.PI / 2;
+      gridHelper.position.z = 0.01;
+
+      mesh = gridHelper;
+    } else if (typeof val === "string") {
+      mesh = new TextMesh({
+        text: val,
+        font,
+        color:
+          color !== undefined
+            ? new THREE.Color(color)
+            : new THREE.Color(0xffffff),
+        size: fontSize,
+        letterSpacing,
+      });
+    }
+
+    updateTransform(mesh, params);
+
+    addAnimation(mesh, animation, { t, duration });
+
+    if (parent !== undefined) {
+      parent._threeObject3d.add(mesh);
+    } else {
+      scene.add(mesh);
+    }
+
+    obj._threeObject3d = mesh;
   });
 
   return obj;
@@ -1740,166 +1883,6 @@ function updateTransform(mesh: THREE.Object3D, transform: Transform) {
   if (transform.rx !== undefined) mesh.rotation.x = transform.rx;
   if (transform.ry !== undefined) mesh.rotation.y = transform.ry;
   if (transform.rz !== undefined) mesh.rotation.z = transform.rz;
-}
-
-async function addObject(val, obj: Object3D, params: AddObjectParameters) {
-  let {
-    animation,
-    color,
-    opacity = 1.0,
-    vertices = [],
-    wireframe = false,
-    width = 1,
-    height = 1,
-    t,
-    parent,
-    ccw = false,
-    font,
-    fontSize = 1.0,
-    start = { x: 0, y: 0 },
-    end = { x: 0, y: 1 },
-    lineWidth = 0.1,
-    gridSize = 10,
-    centralAngle = Math.PI * 2,
-    letterSpacing = 0.05,
-    duration,
-  } = params;
-
-  // let material;
-  const transparent = opacity < 1.0 ? true : false;
-
-  // if (lighting) {
-  //   addDefaultLights();
-  //   material = new THREE.MeshPhongMaterial({
-  //     color: color !== undefined ? color : 0xffffff,
-  //     // emissive: 0x072534,
-  //     // side: THREE.DoubleSide,
-  //     flatShading: true,
-  //   });
-  // } else {
-  //   material = new THREE.MeshBasicMaterial({
-  //     side: THREE.DoubleSide,
-  //     color: color !== undefined ? color : 0xffffff,
-  //     transparent,
-  //     opacity,
-  //     wireframe,
-  //   });
-  // }
-
-  let mesh;
-  if (val.endsWith(".svg")) {
-    mesh = await loadSVG(val, { isCCW: ccw, color });
-    scene.add(mesh);
-  } else if (val.endsWith(".png") || val.endsWith(".jpg")) {
-    const texture = await loadTexture(val);
-    texture.anisotropy = 16; // renderer.getMaxAnisotropy(); TODO: do not hardcode
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity,
-      wireframe,
-    });
-
-    const geometry = new THREE.PlaneBufferGeometry(1, 1);
-    mesh = new THREE.Mesh(geometry, material);
-
-    const ratio = texture.image.width / texture.image.height;
-    if (ratio > 1) {
-      mesh.scale.y /= ratio;
-    } else {
-      mesh.scale.x *= ratio;
-    }
-  } else if (val === "triangle") {
-    if (vertices.length === 0) {
-      vertices = createTriangleVertices();
-    }
-
-    const geometry = new THREE.Geometry();
-    geometry.vertices.push(vertices[0], vertices[1], vertices[2]);
-    geometry.faces.push(new THREE.Face3(0, 1, 2));
-
-    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (val === "triangleOutline") {
-    if (vertices.length === 0) {
-      vertices = createTriangleVertices();
-    }
-
-    mesh = createLine3D({
-      points: vertices.concat(vertices[0]),
-      lineWidth,
-      color:
-        color !== undefined
-          ? new THREE.Color(color)
-          : new THREE.Color(0xffffff),
-    });
-  } else if (val === "rect" || val === "rectangle") {
-    const geometry = new THREE.PlaneGeometry(width, height);
-    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (val === "circle") {
-    const geometry = new THREE.CircleGeometry(0.5, 32, 0, centralAngle);
-    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (val === "ring") {
-    const geometry = new THREE.RingGeometry(0.85, 1, 64);
-    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (val === "sphere") {
-    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (val === "pyramid") {
-    const geometry = new THREE.ConeGeometry(0.5, 1.0, 4, 32);
-    mesh = new THREE.Mesh(geometry, createBasicMaterial(params));
-  } else if (val === "arrow") {
-    mesh = createArrow({
-      from: toVector3(start),
-      to: toVector3(end),
-      color:
-        color !== undefined
-          ? new THREE.Color(color)
-          : new THREE.Color(0xffffff),
-      lineWidth,
-    });
-  } else if (val === "line") {
-    mesh = createArrow({
-      from: toVector3(start),
-      to: toVector3(end),
-      arrowStart: false,
-      arrowEnd: false,
-      color:
-        color !== undefined
-          ? new THREE.Color(color)
-          : new THREE.Color(0xffffff),
-      lineWidth,
-    });
-  } else if (val === "grid") {
-    const gridHelper = new THREE.GridHelper(1, gridSize, 0x00ff00, 0xc0c0c0);
-    gridHelper.rotation.x = Math.PI / 2;
-    gridHelper.position.z = 0.01;
-
-    mesh = gridHelper;
-  } else if (typeof val === "string") {
-    mesh = new TextMesh({
-      text: val,
-      font,
-      color:
-        color !== undefined
-          ? new THREE.Color(color)
-          : new THREE.Color(0xffffff),
-      size: fontSize,
-      letterSpacing,
-    });
-  }
-
-  updateTransform(mesh, params);
-
-  addAnimation(mesh, animation, { t, duration });
-
-  if (parent !== undefined) {
-    parent._threeObject3d.add(mesh);
-  } else {
-    scene.add(mesh);
-  }
-
-  obj._threeObject3d = mesh;
 }
 
 interface AddGroupParameters extends Transform {
