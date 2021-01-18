@@ -39,7 +39,7 @@ if not os.path.exists(""):
                     "module": "commonjs",
                     "target": "es2016",
                     "jsx": "preserve",
-                    "baseUrl": os.path.abspath("_framework/src").replace("\\", "/"),
+                    "baseUrl": os.path.abspath("yo.js/src").replace("\\", "/"),
                 },
                 "exclude": ["node_modules", "**/node_modules/*"],
             },

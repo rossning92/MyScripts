@@ -579,15 +579,7 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = (
-                    args_activate
-                    + [
-                        python_exec,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+                args = args_activate + [python_exec, run_py, python_file,] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -991,7 +983,15 @@ def _replace_prefix(text, prefix, repl=""):
 
 def get_scripts_recursive(directory):
     for root, dirs, files in os.walk(directory, topdown=True):
-        dirs[:] = [d for d in dirs if not d.startswith("_")]
+        dirs[:] = [
+            d
+            for d in dirs
+            if not d.startswith("_")  # Ignore folder if startswith `_`
+            and not os.path.exists(
+                os.path.join(root, d + ".ignore")
+            )  # Ignore folder if `<folder>.ignore` exists
+        ]
+
         for f in files:
             ext = os.path.splitext(f)[1].lower()
 

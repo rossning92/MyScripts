@@ -4,7 +4,7 @@ import argparse
 
 def start_server(file=None, content_base=None):
     FRAMEWORK_ROOT = os.path.join(
-        os.path.realpath(os.path.dirname(__file__)), "_framework"
+        os.path.realpath(os.path.dirname(__file__)), "yo.js"
     )
 
     if not os.path.exists(os.path.join(FRAMEWORK_ROOT, "node_modules")):
