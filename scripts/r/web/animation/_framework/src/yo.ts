@@ -820,7 +820,7 @@ function addGlitch({ duration = 0.2, t }: AnimationParameters = {}) {
   });
 }
 
-function newScene() {
+function run() {
   (async () => {
     setupScene();
 
@@ -1749,7 +1749,7 @@ function fadeOutAll({ t }: AnimationParameters = {}) {
 }
 
 export default {
-  run: newScene,
+  run,
   randomInt,
   addGroup,
   getQueryString,
