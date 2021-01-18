@@ -1509,23 +1509,21 @@ class SceneObject {
 
   fadeOut({ duration = 0.25, ease = "linear", t = undefined }) {
     commandQueue.push(() => {
-      commandQueue.push(() => {
-        const tl = gsap.timeline({ defaults: { duration, ease } });
+      const tl = gsap.timeline({ defaults: { duration, ease } });
 
-        const materials = getAllMaterials(this._threeObject3d);
-        for (const material of materials) {
-          material.transparent = true;
-          tl.to(
-            material,
-            {
-              opacity: 0,
-            },
-            "<"
-          );
-        }
+      const materials = getAllMaterials(this._threeObject3d);
+      for (const material of materials) {
+        material.transparent = true;
+        tl.to(
+          material,
+          {
+            opacity: 0,
+          },
+          "<"
+        );
+      }
 
-        mainTimeline.add(tl, t);
-      });
+      mainTimeline.add(tl, t);
     });
   }
 
