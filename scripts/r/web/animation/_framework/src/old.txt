@@ -746,3 +746,125 @@ function add2DSpinning(object3d, { speed = 1.0 } = {}) {
     object3d.rotation.z -= delta * speed;
   });
 }
+
+function _addMarkerToTimeline() {
+  if (subClipDurations.length > 0) {
+    currentCutPoint += subClipDurations.shift();
+    mainTimeline.set({}, {}, `${currentCutPoint}`);
+  }
+}
+
+function resize(width, height) {
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+
+function addPulseAnimation(object3d) {
+  let tl = gsap.timeline();
+  tl.fromTo(
+    object3d.material,
+    0.8,
+    { opacity: 1 },
+    {
+      opacity: 0.3,
+      yoyo: true,
+      repeat: 5,
+      ease: "power2.in",
+      // repeatDelay: 0.4,
+    }
+  );
+}
+
+function setOpacity(object3d, opacity = 1.0) {
+  if (object3d.material !== undefined) {
+    object3d.material.transparent = true;
+    object3d.material.opacity = opacity;
+  }
+
+  object3d.children.forEach((x) => {
+    setOpacity(x, opacity);
+  });
+}
+
+function addFlash(object3d, { speed = 4 } = {}) {
+  const materials = getAllMaterials(object3d);
+
+  materials.forEach((material) => {
+    material.transparent = true;
+  });
+
+  animationCallbacks.push((delta, elapsed) => {
+    materials.forEach((material) => {
+      material.opacity = Math.max(0, Math.sin(elapsed * speed));
+    });
+  });
+}
+
+// TODO: this is just creating a timeline object but not adding to the main
+// timeline.
+function addTextFlyInAnimation(textMesh, { duration = 0.5 } = {}) {
+  const tl = gsap.timeline();
+
+  // Animation
+  textMesh.children.forEach((letter, i) => {
+    const vals = {
+      position: -textMesh.size * 2,
+      rotation: -Math.PI / 2,
+    };
+    tl.to(
+      vals,
+      duration,
+      {
+        position: 0,
+        rotation: 0,
+
+        ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
+        onUpdate: () => {
+          letter.position.y = vals.position;
+          letter.position.z = vals.position * 2;
+          letter.rotation.x = vals.rotation;
+        },
+      },
+      `-=${duration - 0.03}`
+    );
+
+    tl.add(createFadeInAnimation(letter, { duration }), "<");
+  });
+
+  return tl;
+}
+
+function groupFlyIn(object3D, { duration = 0.5, t = "+=0" } = {}) {
+  const tl = gsap.timeline();
+
+  // Animation
+  const stagger = duration / object3D.children.length / 2;
+  for (const obj of object3D.children) {
+    const vals = {
+      position: -object3D.size * 2,
+      rotation: -Math.PI / 2,
+    };
+    tl.to(
+      vals,
+      duration,
+      {
+        position: 0,
+        rotation: 0,
+
+        ease: "back.out(1)", // https://greensock.com/docs/v3/Eases
+        onUpdate: () => {
+          obj.position.y = vals.position;
+          obj.position.z = vals.position * 2;
+          obj.rotation.x = vals.rotation;
+        },
+      },
+      `-=${duration - stagger}`
+    );
+
+    tl.add(createFadeInAnimation(obj, { duration }), "<");
+  }
+
+  mainTimeline.add(tl, t);
+  // return tl;
+}
