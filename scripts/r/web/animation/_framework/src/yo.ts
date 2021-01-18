@@ -1275,25 +1275,6 @@ function addAnimation(
         tl.add(addJumpIn(object3d), "<");
       } else if (animation === "spinIn") {
         tl.from(object3d.rotation, { y: Math.PI * 4, ease: "expo.out" }, "<");
-      } else if (animation === "rotateIn") {
-        tl.from(object3d.rotation, { z: -Math.PI * 2 }, "<");
-      } else if (animation === "rotateIn2") {
-        tl.from(
-          object3d.rotation,
-          { z: Math.PI * 4, ease: "power.in", duration: 0.5 },
-          "<"
-        );
-        tl.from(
-          object3d.scale,
-          {
-            x: Number.EPSILON,
-            y: Number.EPSILON,
-            z: Number.EPSILON,
-            ease: "power.in",
-            duration: 0.5,
-          },
-          "<"
-        );
       } else if (animation === "grow") {
         tl.from(
           object3d.scale,
@@ -1533,15 +1514,28 @@ class SceneObject {
     });
   }
 
-  rotateIn(params) {
+  rotateIn({ t = undefined } = {}) {
     commandQueue.push(() => {
-      addAnimation(this._threeObject3d, "rotateIn", params);
-    });
-  }
+      const tl = gsap.timeline({ defaults: { duration: 0.5 } });
 
-  rotateIn2(params) {
-    commandQueue.push(() => {
-      addAnimation(this._threeObject3d, "rotateIn2", params);
+      tl.from(
+        this._threeObject3d.rotation,
+        { z: Math.PI * 4, ease: "power.in", duration: 0.5 },
+        "<"
+      );
+      tl.from(
+        this._threeObject3d.scale,
+        {
+          x: Number.EPSILON,
+          y: Number.EPSILON,
+          z: Number.EPSILON,
+          ease: "power.in",
+          duration: 0.5,
+        },
+        "<"
+      );
+
+      mainTimeline.add(tl, t);
     });
   }
 }
