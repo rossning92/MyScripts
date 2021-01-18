@@ -13,7 +13,7 @@ const grid = yo.addGrid({
 });
 grid.wipe();
 
-let t = 0;
+let t = 0.5;
 for (let i = GRID_SIZE - 1; i >= 0; i--) {
   for (let j = 0; j < GRID_SIZE; j++) {
     if (texels[(i * GRID_SIZE + j) * 4 + 3] > 150) {
@@ -23,7 +23,7 @@ for (let i = GRID_SIZE - 1; i >= 0; i--) {
         parent: group,
       });
       pixel.fadeIn({ t });
-      t += 0.002;
+      t += 0.004;
     }
   }
 }
