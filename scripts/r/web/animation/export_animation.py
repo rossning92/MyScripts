@@ -695,7 +695,7 @@ def _preload_mpy_clip(
             clip = load_video_file_clip(file)
         else:
             file = export_slides(file, indices=[frame])[0]
-            clip = ImageClip(file).set_duration(5)
+            clip = ImageClip(file).set_duration(5).set_mask(None)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
         if expand:
@@ -890,9 +890,7 @@ def image_anim(file, duration=5, **kwargs):
 
 def title_anim(h1, h2, **kwargs):
     _animation(
-        in_file=os.path.abspath(
-            SCRIPT_ROOT + "/movy/examples/title-animation.js"
-        ),
+        in_file=os.path.abspath(SCRIPT_ROOT + "/movy/examples/title-animation.js"),
         name=slugify("title-%s-%s" % (h1, h2)),
         params={"h1": h1, "h2": h2},
         **kwargs,
