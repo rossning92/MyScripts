@@ -881,7 +881,7 @@ def anim(s, **kwargs):
 
 def image_anim(file, duration=5, **kwargs):
     _animation(
-        in_file=os.path.abspath(SCRIPT_ROOT + "/yo.js/src/scene/image.js"),
+        in_file=os.path.abspath(SCRIPT_ROOT + "/movy/examples/image.js"),
         name=os.path.splitext(file)[0],
         params={"t": "%d" % duration, "src": file},
         **kwargs,
@@ -891,7 +891,7 @@ def image_anim(file, duration=5, **kwargs):
 def title_anim(h1, h2, **kwargs):
     _animation(
         in_file=os.path.abspath(
-            SCRIPT_ROOT + "/yo.js/src/scene/title-animation.js"
+            SCRIPT_ROOT + "/movy/examples/title-animation.js"
         ),
         name=slugify("title-%s-%s" % (h1, h2)),
         params={"h1": h1, "h2": h2},
