@@ -25,5 +25,5 @@ if [[ ! -z "$status" ]]; then
     fi
 fi
 
-git pull --rebase
+git pull --rebase --recurse-submodules
 git push
