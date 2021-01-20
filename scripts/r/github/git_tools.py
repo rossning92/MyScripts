@@ -74,23 +74,14 @@ if __name__ == "__main__":
         if ch == "h":
             print_help()
         elif ch == "c":
-            call_echo("git status --short")
-            if yes("Confirm commit?"):
-                commit()
+            commit()
         elif ch == "C":
-            call_echo("git status --short")
-            if yes("Confirm commit?"):
-                commit()
+            commit()
             git_push()
         elif ch == "a":
-            call_echo("git status --short")
-            if yes("Confirm amend?"):
-                commit(amend=True)
+            commit(amend=True)
         elif ch == "A":
-            call_echo("git status --short")
-            if yes("Confirm amend + push?"):
-                commit(amend=True)
-                call_echo("git push -u origin master --force")
+            call_echo("git push -u origin master --force")
         elif ch == "p":
             git_push()
         elif ch == "s":
