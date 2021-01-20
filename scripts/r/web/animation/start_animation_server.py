@@ -3,9 +3,7 @@ import argparse
 
 
 def start_server(file=None, content_base=None):
-    FRAMEWORK_ROOT = os.path.join(
-        os.path.realpath(os.path.dirname(__file__)), "movy"
-    )
+    FRAMEWORK_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "movy")
 
     if not os.path.exists(os.path.join(FRAMEWORK_ROOT, "node_modules")):
         call_echo("yarn install", cwd=FRAMEWORK_ROOT)
@@ -33,7 +31,7 @@ def start_server(file=None, content_base=None):
     # if content_base is not None:
     #     env["CONTENT_BASE"] = content_base
 
-    launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "start-app.js")
+    launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "start-movy.js")
     ps = subprocess.Popen(["node", launch_script, file], cwd=FRAMEWORK_ROOT)
     return ps
 
