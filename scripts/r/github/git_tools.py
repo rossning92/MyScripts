@@ -43,18 +43,18 @@ if __name__ == "__main__":
     repo_dir = r"{{GIT_REPO}}"
     repo_name = os.path.basename(repo_dir)
 
-    cd(repo_dir)
-
     FNULL = fnull()
     ret = subprocess.call(
         "gh repo view rossning92/%s" % repo_name, shell=True, stdout=FNULL
     )
     if ret == 1:
+        cd(os.path.dirname(repo_dir))
         if not yes('Create "%s" on GitHub?' % repo_name):
             sys.exit(1)
         call_echo("gh repo create %s" % repo_name)
 
     # Init repo
+    cd(repo_dir)
     if not os.path.exists(".git"):
         call_echo("git init")
         call_echo(
