@@ -7,8 +7,7 @@ def print_help():
         "[c] commit [C] commit & push\n"
         "[a] amend  [A] amend & push\n"
         "[p] push\n"
-        "[s] git status\n"
-        "[l] git log\n"
+        "[s] git status & log\n"
         "[d] git diff\n"
         "[r] revert single file\n"
         "[R] revert all changes\n"
@@ -96,7 +95,6 @@ if __name__ == "__main__":
             git_push()
         elif ch == "s":
             commit(dry_run=True)
-        elif ch == "l":
             call_echo("git log --pretty=oneline --abbrev-commit")
         elif ch == "R":
             revert()
