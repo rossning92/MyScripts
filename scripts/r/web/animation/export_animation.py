@@ -756,10 +756,13 @@ def _update_mpy_clip(
         # left corner.
         if pos == "center":
             clip = clip.set_position(("center", "center"))
-        elif isinstance(pos[0], (int, float)):
+        elif isinstance(pos, (list, tuple)):
+            pos = list(pos)
             half_size = [x // 2 for x in clip.size]
-            pos = [pos[0] - half_size[0], pos[1] - half_size[1]]
-            pos = [int(_scale * x) for x in pos]
+            for i in range(2):
+                if isinstance(pos[i], (int, float)):
+                    pos[i] = pos[i] - half_size[i]
+                    pos[i] = int(_scale * pos[i])
             clip = clip.set_position(pos)
         else:
             clip = clip.set_position(pos)

@@ -21,7 +21,7 @@
   },
   "crossfade": {
     "prefix": "crossfade",
-    "body": ["{{ crossfade(True) }}"]
+    "body": ["{{ crossfade(0.2) }}"]
   },
   "comment": {
     "prefix": "comment",
