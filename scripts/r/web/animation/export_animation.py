@@ -815,15 +815,17 @@ def _add_video_clip(
     clip_info.pos = pos
     clip_info.speed = speed
 
-    # Note that crossfade, fadein and fadeout can not be specified at the same time.
-    if _crossfade:
-        clip_info.crossfade = _crossfade
-    if crossfade is not None:
-        clip_info.crossfade = crossfade
-    elif cf is not None:
-        clip_info.crossfade = cf
+    # Note that crossfade and fadein can not be specified at the same time.
+    if fadein:
+        clip_info.fadein = fadein
+    else:
+        if crossfade is not None:
+            clip_info.crossfade = crossfade
+        elif cf is not None:
+            clip_info.crossfade = cf
+        elif _crossfade:
+            clip_info.crossfade = _crossfade
 
-    clip_info.fadein = fadein
     clip_info.fadeout = fadeout
 
     clip_info.text_overlay = text_overlay
