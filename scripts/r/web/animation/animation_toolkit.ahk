@@ -23,7 +23,7 @@ return
 
 $F6::
     SetTitleMatchMode, 2
-    if (WinExist("- movy")) {
+    if (WinActive("- movy")) {
         SetWindowPos("ahk_exe Code.exe", 0, 0, 960, 1080)
         SetWindowPos("ahk_exe chrome.exe", 960, 0, 960, 1080)
         sleep 500
