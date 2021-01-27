@@ -340,7 +340,8 @@ def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
     track_ = _get_audio_track(track)
     if len(track_.clips) == 0:
-        raise Exception("No audio clip to set volume in track: %s" % track)
+        print2("WARNING: No audio clip to set volume in track: %s" % track)
+        return
 
     t_in_clip = t - track_.clips[-1].start
     assert t_in_clip >= 0
