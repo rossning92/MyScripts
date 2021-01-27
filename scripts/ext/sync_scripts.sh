@@ -1,3 +1,5 @@
+set -e
+
 cd ../..
 
 git config --global user.email "rossning92@github.com"
