@@ -271,6 +271,7 @@ def combine_images(
                 imgs[0].width * cols + spacing * (cols - 1),
                 imgs[0].height * rows + spacing * (rows - 1),
             ),
+            "white"
         )
 
         for c in range(len(imgs)):

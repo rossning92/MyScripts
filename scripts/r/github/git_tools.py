@@ -9,6 +9,7 @@ def print_help():
         "[p] push\n"
         "[s] git status & log\n"
         "[d] git diff\n"
+        "[1] run command\n"
         "[r] revert single file\n"
         "[R] revert all changes\n"
     )
@@ -92,11 +93,12 @@ if __name__ == "__main__":
             call_echo("git log --pretty=oneline --abbrev-commit")
         elif ch == "R":
             revert()
-        elif ch == "1":
-            call_echo("cmd")
         elif ch == "r":
             f = input("Input file to revert: ")
             if f:
                 call_echo("git checkout %s" % f)
         elif ch == "d":
             call_echo("git diff")
+        elif ch == "1":
+            cmd = input(">")
+            call2(cmd)
