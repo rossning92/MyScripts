@@ -31,7 +31,7 @@ def start_server(file=None, content_base=None):
     # if content_base is not None:
     #     env["CONTENT_BASE"] = content_base
 
-    launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "start-movy.js")
+    launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "movy.js")
     ps = subprocess.Popen(["node", launch_script, file], cwd=FRAMEWORK_ROOT)
     return ps
 
