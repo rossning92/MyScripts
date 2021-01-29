@@ -25,7 +25,7 @@ def generate_slide(
     text, template_file, out_file=None, gen_html=False, im_size=(1920, 1080)
 ):
     if out_file is None:
-        out_file = slugify(text) + ".png"
+        out_file = get_hash(text) + ".png"
 
     text = markdown2.markdown(text, extras=["break-on-newline", "fenced-code-blocks"])
     print(text)
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     slides = [x.strip() for x in slides]
 
     for text in slides:
-        out_file = os.path.join(out_folder, slugify(text) + ".png")
+        out_file = os.path.join(out_folder, get_hash(text) + ".png")
         if REGENERATE or (not os.path.exists(out_file)):
             print2("Generate %s ..." % out_file)
 

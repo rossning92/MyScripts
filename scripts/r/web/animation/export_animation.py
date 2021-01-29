@@ -538,6 +538,16 @@ def comment(text, pos=(960, 200), duration=4, track="overlay", **kwargs):
     )
 
 
+def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
+    md(
+        '<span style="font-size:0.6em">%s</span>' % text,
+        pos=pos,
+        duration=duration,
+        track=track,
+        **kwargs,
+    )
+
+
 def text(text, track="text", font_size=100, pos="center", **kwargs):
     temp_file = _generate_text_image(
         text,
@@ -1316,12 +1326,12 @@ def tts(enabled=True):
     AUTO_GENERATE_TTS = enabled
 
 
-def final(b=True):
+def final(is_final=True):
     global _add_subtitle
     global _scale
     global _crossfade
 
-    if b:
+    if is_final:
         _add_subtitle = True
         _crossfade = VIDEO_CROSSFADE_DURATION
         _scale = 1.0
@@ -1369,6 +1379,7 @@ def _interface():
         "code": lambda *_, **__: None,
         "codef": lambda *_, **__: None,
         "comment": lambda *_, **__: None,
+        "credit": lambda *_, **__: None,
         "crossfade": lambda *_, **__: None,
         "empty": lambda *_, **__: None,  # deprecated
         "fps": lambda *_, **__: None,
@@ -1406,6 +1417,7 @@ def _default_impl():
         "code": code,
         "codef": codef,
         "comment": comment,
+        "credit": credit,
         "crossfade": crossfade,
         "empty": empty,  # deprecated
         "final": final,
