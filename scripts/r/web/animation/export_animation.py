@@ -1480,7 +1480,8 @@ def _remove_unused_recordings(s):
     print("Used recordings: %d" % len(used_recordings))
     print("Recordings to delete: %d" % len(unused_recordings))
     assert len(used_recordings) + len(unused_recordings) == len(files)
-    if input("press y to confirm deletion: ") == "y":
+    print2("press y to confirm deletion: ", end="")
+    if getch() == "y":
         for f in unused_recordings:
             try:
                 os.remove(f)
@@ -1506,26 +1507,33 @@ def _parse_text(text, impl, **kwargs):
             p = end + 2
 
             exec(python_code, impl)
+            continue
 
-        elif text[p : p + 1] == "#":
+        if text[p : p + 1] == "#":
             end = find_next(text, "\n", p)
 
             line = text[p:end].strip()
             _write_timestamp(_pos_dict["a"], line)
 
             p = end + 1
+            continue
 
-        elif text[p : p + 3] == "---":
-            audio_gap(0.2)
-            p = find_next(text, "\n", p) + 1
+        match = re.match("---((?:[0-9]*[.])?[0-9]+)?\n", text[p:])
+        if match is not None:
+            if match.group(1) is not None:
+                audio_gap(float(match.group(1)))
+            else:
+                audio_gap(0.2)
+            p += match.end(0) + 1
+            continue
 
-        else:
-            end = find_next(text, "\n", p)
-            line = text[p:end].strip()
-            p = end + 1
+        # Parse regular text
+        end = find_next(text, "\n", p)
+        line = text[p:end].strip()
+        p = end + 1
 
-            if line != "":
-                impl["parse_line"](line)
+        if line != "":
+            impl["parse_line"](line)
 
             # _export_srt()
         # sys.exit(0)
