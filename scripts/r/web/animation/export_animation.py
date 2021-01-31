@@ -1500,15 +1500,8 @@ def _parse_text(text, impl, **kwargs):
 
     p = 0  # Current position
     while p < len(text):
-        if text[p : p + 2] == "! ":
-            end = find_next(text, "\n", p)
-            python_code = text[p + 2 : end].strip()
-            p = end + 1
-
-            exec(python_code, impl)
-
-        elif text[p : p + 2] == "{" + "{":
-            end = find_next(text, "}" + "}", p)
+        if text[p : p + 2] == "{{":
+            end = find_next(text, "}}", p)
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
