@@ -358,8 +358,10 @@ def open_with(files, program_id=0):
         raise Exception("%s is not defined" % ext)
 
     program = assoc[ext][program_id]
+    executable = _appmanager.get_executable(program)
+    assert executable is not None
 
-    args = [_appmanager.get_executable(program)] + files
+    args = [executable] + files
     subprocess.Popen(args, close_fds=True)
 
 

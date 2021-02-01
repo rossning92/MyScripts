@@ -58,6 +58,7 @@ def get_executable(app_name):
     # Install app if not exists
     executable = find_executable()
     if executable is None:
+        print("WARN: %s not found, installing..." % app_name)
         if sys.platform == "win32":
             pkg_name = app_name
             if "choco" in app:
