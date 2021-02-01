@@ -6,7 +6,8 @@ def print_help():
         "[h] help\n"
         "[c] commit [C] commit & push\n"
         "[a] amend  [A] amend & push\n"
-        "[p] push\n"
+        "[u] push\n"
+        "[p] pull\n"
         "[s] git status & log\n"
         "[d] git diff\n"
         "[1] run command\n"
@@ -84,10 +85,12 @@ if __name__ == "__main__":
         elif ch == "A":
             commit(amend=True)
             call_echo("git push -u origin master --force")
-        elif ch == "p":
+        elif ch == "u":
             git_push()
-        elif ch == "P":
+        elif ch == "U":
             call_echo("git push -u origin master --force")
+        elif ch == "p":
+            call_echo("git pull")
         elif ch == "s":
             commit(dry_run=True)
             call_echo("git log --pretty=oneline --abbrev-commit")
