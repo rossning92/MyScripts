@@ -1,17 +1,24 @@
 from _shutil import *
 from _nvpack import *
 from _appmanager import choco_install
+from _android import setup_android_env
 
-choco_install('directx')
+choco_install("directx")
+
+setup_android_env()
 
 # TODO: install vs2017 C++ and C#
 
-try:
-    setup_nvpack(r"{{NVPACK_ROOT}}")
-except:
-    print2("WARNING: NVPACK not found.")
-
 cd(r"{{UE_SOURCE}}")
+
+if False:  # NVPACK is deprecated for 5.25+
+    try:
+        setup_nvpack(r"{{NVPACK_ROOT}}")
+    except:
+        print2("WARNING: NVPACK not found.")
+else:
+    os.system(r"Engine\Extras\Android\SetupAndroid.bat")
+
 
 if not exists("UE4.sln"):
     if exists("Setup.bat"):
