@@ -76,7 +76,7 @@ def git_push():
 
 
 def show_git_log():
-    call_echo("git log --pretty=oneline --abbrev-commit")
+    call_echo("git log --pretty=oneline --decorate --graph --abbrev-commit")
 
 
 def print_status():
