@@ -37,7 +37,7 @@ def print_help():
         "[h] help\n"
         "[c] commit [C] commit & push\n"
         "[a] amend  [A] amend & push\n"
-        "[u] push\n"
+        "[P] push\n"
         "[p] pull\n"
         "[s] git status & log\n"
         "[d] git diff\n"
@@ -140,10 +140,8 @@ if __name__ == "__main__":
         elif ch == "A":
             commit(amend=True)
             call_echo("git push -u origin master --force")
-        elif ch == "u":
+        elif ch == "P":
             git_push()
-        elif ch == "U":
-            call_echo("git push -u origin master --force")
         elif ch == "p":
             call_echo("git pull")
         elif ch == "R":
