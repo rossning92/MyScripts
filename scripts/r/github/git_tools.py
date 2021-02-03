@@ -1,7 +1,38 @@
 from _shutil import *
 
 
+repo_dir = r"{{GIT_REPO}}"
+bundle_file = os.path.join(
+    r"{{GIT_REPO_BACKUP_DIR}}", os.path.basename(repo_dir) + ".bundle"
+)
+print("Bundle file path: %s" % bundle_file)
+
+
+def call_echo(args, shell=True, check=True, **kwargs):
+    import shlex
+
+    print(">>> ", end="")
+    if type(args) == list:
+        s = " ".join([shlex.quote(x) for x in args])
+    else:
+        s = args
+    print2(s, color="cyan")
+    ret = subprocess.run(args, shell=shell, check=check, **kwargs)
+    return ret.returncode
+
+
 def print_help():
+    print2(
+        """
+  _   _ _____ _     ____  
+ | | | | ____| |   |  _ \ 
+ | |_| |  _| | |   | |_) |
+ |  _  | |___| |___|  __/ 
+ |_| |_|_____|_____|_|    
+""",
+        color="magenta",
+    )
+
     print2(
         "[h] help\n"
         "[c] commit [C] commit & push\n"
@@ -26,7 +57,11 @@ def commit(dry_run=False, amend=False):
         if amend:
             call_echo("git commit --amend --no-edit --quiet")
         else:
-            call_echo('git commit -m "Initial commit"')
+            message = input("commit message: ")
+            if not message:
+                raise Exception("Commit message is required.")
+
+            call_echo(["git", "commit", "-m", message])
 
 
 def revert():
@@ -38,6 +73,27 @@ def revert():
 
 def git_push():
     call_echo("git push -u origin master")
+
+
+def show_git_log():
+    call_echo("git log --pretty=oneline --abbrev-commit")
+
+
+def print_status():
+
+    print2(
+        """
+   ____ ___ _____   _____ ___   ___  _     ____  
+  / ___|_ _|_   _| |_   _/ _ \ / _ \| |   / ___| 
+ | |  _ | |  | |     | || | | | | | | |   \___ \ 
+ | |_| || |  | |     | || |_| | |_| | |___ ___) |
+  \____|___| |_|     |_| \___/ \___/|_____|____/ 
+""",
+        color="magenta",
+    )
+
+    commit(dry_run=True)
+    show_git_log()
 
 
 if __name__ == "__main__":
@@ -67,14 +123,13 @@ if __name__ == "__main__":
         with open(".gitignore", "w") as f:
             f.writelines(["/build"])
 
-    commit(dry_run=True)
-
-    print_help()
+    print_status()
 
     while True:
         ch = getch()
         if ch == "h":
             print_help()
+            continue
         elif ch == "c":
             commit()
         elif ch == "C":
@@ -91,9 +146,6 @@ if __name__ == "__main__":
             call_echo("git push -u origin master --force")
         elif ch == "p":
             call_echo("git pull")
-        elif ch == "s":
-            commit(dry_run=True)
-            call_echo("git log --pretty=oneline --abbrev-commit")
         elif ch == "R":
             revert()
         elif ch == "r":
@@ -103,5 +155,14 @@ if __name__ == "__main__":
         elif ch == "d":
             call_echo("git diff")
         elif ch == "1":
-            cmd = input(">")
+            cmd = input("cmd> ")
             call2(cmd)
+        elif ch == "b":
+            print2("Create bundle: %s" % bundle_file)
+            call_echo(["git", "bundle", "create", bundle_file, "master"])
+            continue
+        elif ch == "B":
+            print2("Restoring from: %s" % bundle_file)
+            call_echo(["git", "pull", bundle_file, "master:master"])
+
+        print_status()
