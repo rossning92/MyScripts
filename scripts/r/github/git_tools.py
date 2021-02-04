@@ -64,7 +64,17 @@ def git_push():
 
 
 def show_git_log():
-    call_echo("git log --pretty=oneline --decorate --graph --abbrev-commit")
+    call_echo(
+        [
+            "git",
+            "log",
+            "--date=relative",
+            '--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s',
+            "--decorate",
+            "--graph",
+            "--abbrev-commit",
+        ]
+    )
 
 
 def print_status():
