@@ -233,7 +233,7 @@ def call_echo(args, shell=True, check=True, **kwargs):
         s = " ".join([shlex.quote(x) for x in args])
     else:
         s = args
-    print2(s, color="cyan")
+    print2(s, color="black")
     ret = subprocess.run(args, shell=shell, check=check, **kwargs)
     return ret.returncode
 

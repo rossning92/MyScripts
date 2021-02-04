@@ -9,19 +9,6 @@ if backup_dir is not None:
     print("Bundle file path: %s" % bundle_file)
 
 
-def call_echo(args, shell=True, check=True, **kwargs):
-    import shlex
-
-    print(">>> ", end="")
-    if type(args) == list:
-        s = " ".join([shlex.quote(x) for x in args])
-    else:
-        s = args
-    print2(s, color="cyan")
-    ret = subprocess.run(args, shell=shell, check=check, **kwargs)
-    return ret.returncode
-
-
 def print_help():
     print2(
         """
