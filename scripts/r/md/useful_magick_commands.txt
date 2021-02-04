@@ -1,0 +1,8 @@
+magick -size 1024x1024 xc:lightblue -gravity center -pointsize 128 -fill black -annotate +0+0 "Left" -depth 24 PNG24:left.png
+magick -size 1024x1024 xc:lightpink -gravity center -pointsize 128 -fill black -annotate +0+0 "Right" -depth 24 PNG24:right.png
+magick -size 1024x1024 xc:lightyellow -gravity center -pointsize 128 -fill black -annotate +0+0 "Top" -depth 24 PNG24:top.png
+magick -size 1024x1024 xc:lightcyan -gravity center -pointsize 128 -fill black -annotate +0+0 "Bottom" -depth 24 PNG24:bottom.png
+magick -size 1024x1024 xc:LightSalmon -gravity center -pointsize 128 -fill black -annotate +0+0 "Front" -depth 24 PNG24:front.png
+magick -size 1024x1024 xc:lightgray -gravity center -pointsize 128 -fill black -annotate +0+0 "Back" -depth 24 PNG24:back.png
+
+magick mogrify -channel RGB -negate -transparent black *.png
