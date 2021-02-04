@@ -72,7 +72,6 @@ def show_git_log():
             '--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s',
             "--decorate",
             "--graph",
-            "--abbrev-commit",
         ]
     )
 
