@@ -1,4 +1,7 @@
-from _shutil import *
+import os
+import subprocess
+
+from _shutil import call2, call_echo, cd, fnull, getch, print2, yes
 
 backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
 repo_dir = r"{{GIT_REPO}}"
