@@ -156,7 +156,7 @@ function getFiles(dir, filter, files = [], dirs = []) {
       dirs.push(filePath);
 
       // If not in excluded folders
-      if (!/(tmp|out)$/g.test(file)) {
+      if (!/(tmp)$/g.test(file)) {
         getFiles(filePath, filter, files, dirs);
       }
     } else if (filter(filePath)) {
