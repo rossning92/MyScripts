@@ -226,10 +226,13 @@ def call2(args, check=True, shell=True, **kwargs):
 
 
 def call_echo(args, shell=True, check=True, **kwargs):
-    import shlex
+    def quote(s):
+        if " " in s:
+            s = '"%s"' % s
+        return s
 
     if type(args) == list:
-        s = " ".join([shlex.quote(x) for x in args])
+        s = " ".join([quote(x) for x in args])
     else:
         s = args
     print2("> " + s, color="black")
