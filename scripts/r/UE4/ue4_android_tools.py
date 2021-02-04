@@ -16,12 +16,13 @@ commands = {
 # Engine\Build\Android\Java\src\com\epicgames\ue4\ConsoleCmdReceiver.java
 while True:
     for k, v in commands.items():
-        print("%s - %s" % (k, v))
+        print("[%s] %s" % (k, v))
+    print("[`] enter console command")
 
     s = getch()
-    if s == "\r":
+    if s == "`":
         print2("Console command: ", end="")
-        cmd = input()
+        cmd = input("console> ")
     elif s in commands:
         cmd = commands[s]
     else:
