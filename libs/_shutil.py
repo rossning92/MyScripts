@@ -1200,6 +1200,3 @@ def move_file(src, dst, overwrite=False):
         os.remove(dst)
 
     os.rename(src, dst)
-
-
-env = os.environ
