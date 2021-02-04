@@ -25,7 +25,7 @@ async function openFile(filePath) {
 
 async function openFileUnderCursor() {
   const editor = vscode.window.activeTextEditor;
-  if (editor == null) return;
+  if (!editor) return;
 
   const activeFile = vscode.window.activeTextEditor.document.fileName;
   if (/animation[\\\/][a-zA-Z-_]+\.js$/.test(activeFile)) {
@@ -118,13 +118,17 @@ function initializeDecorations(context) {
   );
 }
 
-function isDocumentActive() {
+function getActiveFile() {
   const editor = vscode.window.activeTextEditor;
-  if (editor == null) {
-    return false;
-  }
+  if (!editor) return undefined;
 
-  const fileName = editor.document.fileName;
+  return path.resolve(editor.document.fileName);
+}
+
+function isDocumentActive() {
+  const fileName = getActiveFile();
+  if (!fileName) return false;
+
   if (path.basename(fileName) != "index.md") {
     return false;
   }
@@ -133,12 +137,10 @@ function isDocumentActive() {
 }
 
 function getProjectDir() {
-  const editor = vscode.window.activeTextEditor;
-  if (editor == null) {
-    return null;
-  }
+  const file = getActiveFile();
+  if (!file) return undefined;
 
-  return path.dirname(editor.document.fileName);
+  return path.dirname(file);
 }
 
 function getRelativePath(prefix, p) {
@@ -181,7 +183,7 @@ function registerAutoComplete(context) {
     {
       provideCompletionItems(document, position) {
         const projectDir = getProjectDir();
-        if (projectDir == null) return undefined;
+        if (!projectDir) return undefined;
 
         if (
           position.character < 2 ||
@@ -190,10 +192,17 @@ function registerAutoComplete(context) {
           return undefined;
         }
 
-        let files = [];
-        const filter = (x) =>
-          /\.(png|jpg|mp4|webm|gif|mp3|md|pptx|cpp|c|py)$/g.test(x);
+        const activeFile = getActiveFile();
+        const filter = (x) => {
+          if (activeFile === x) {
+            // Ignore current file
+            return false;
+          } else {
+            return /\.(png|jpg|mp4|webm|gif|mp3|md|pptx|cpp|c|py)$/g.test(x);
+          }
+        };
 
+        let files = [];
         getFiles(projectDir, filter, files);
         getFiles(projectDir + "/../assets", filter, files);
 
@@ -371,10 +380,10 @@ function export_animation({ extraArgs = null, selectedText = true } = {}) {
 
 async function insertAllClipsInFolder() {
   const editor = vscode.window.activeTextEditor;
-  if (editor == null) return undefined;
+  if (!editor) return undefined;
 
   const projectDir = getProjectDir();
-  if (projectDir == null) return undefined;
+  if (!projectDir) return undefined;
 
   let dirs = [];
   getFiles(projectDir, (x) => x, [], dirs);
