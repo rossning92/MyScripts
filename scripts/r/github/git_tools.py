@@ -22,13 +22,12 @@ def print_help():
     )
 
     print2(
-        "[h] help\n"
-        "[c] commit       [C] commit & push\n"
-        "[a] amend        [A] amend & push\n"
-        "[p] pull         [P] push\n"
-        "[s] status & log [d] git diff\n"
-        "[1] run command\n"
-        "[r] revert file  [R] revert all changes\n"
+        "[h] help          [1] run command\n"
+        "[c] commit        [C] commit & push\n"
+        "[a] amend         [A] amend & push\n"
+        "[p] pull          [P] push\n"
+        "[s] status & log  [d] git diff\n"
+        "[r] revert file   [R] revert all changes\n"
         "[Z] undo"
     )
 
