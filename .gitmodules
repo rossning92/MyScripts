@@ -1,3 +1,4 @@
 [submodule "scripts/r/web/animation/movy"]
 	path = scripts/r/web/animation/movy
 	url = https://github.com/rossning92/movy
+	ignore = all
