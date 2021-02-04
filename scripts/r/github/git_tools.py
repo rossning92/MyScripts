@@ -1,11 +1,12 @@
 from _shutil import *
 
-
+backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
 repo_dir = r"{{GIT_REPO}}"
-bundle_file = os.path.join(
-    r"{{GIT_REPO_BACKUP_DIR}}", os.path.basename(repo_dir) + ".bundle"
-)
-print("Bundle file path: %s" % bundle_file)
+
+bundle_file = None
+if backup_dir is not None:
+    bundle_file = os.path.join(backup_dir, os.path.basename(repo_dir) + ".bundle")
+    print("Bundle file path: %s" % bundle_file)
 
 
 def call_echo(args, shell=True, check=True, **kwargs):
@@ -96,6 +97,12 @@ def print_status():
     show_git_log()
 
 
+def create_bundle():
+    if bundle_file is not None:
+        print2("Create bundle: %s" % bundle_file)
+        call_echo(["git", "bundle", "create", bundle_file, "master"])
+
+
 if __name__ == "__main__":
     repo_dir = r"{{GIT_REPO}}"
     repo_name = os.path.basename(repo_dir)
@@ -137,6 +144,7 @@ if __name__ == "__main__":
             git_push()
         elif ch == "a":
             commit(amend=True)
+            create_bundle()
         elif ch == "A":
             commit(amend=True)
             call_echo("git push -u origin master --force")
@@ -156,8 +164,7 @@ if __name__ == "__main__":
             cmd = input("cmd> ")
             call2(cmd)
         elif ch == "b":
-            print2("Create bundle: %s" % bundle_file)
-            call_echo(["git", "bundle", "create", bundle_file, "master"])
+            create_bundle()
             continue
         elif ch == "B":
             print2("Restoring from: %s" % bundle_file)
