@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 from _shutil import call2, call_echo, cd, fnull, getch, print2, yes
 
@@ -14,7 +15,7 @@ if backup_dir is not None:
 
 def print_help():
     print2(
-        """
+        r"""
   _   _ _____ _     ____  
  | | | | ____| |   |  _ \ 
  | |_| |  _| | |   | |_) |
@@ -79,7 +80,7 @@ def show_git_log():
 def print_status():
 
     print2(
-        """
+        r"""
    ____ ___ _____   _____ ___   ___  _     ____  
   / ___|_ _|_   _| |_   _/ _ \ / _ \| |   / ___| 
  | |  _ | |  | |     | || | | | | | | |   \___ \ 
