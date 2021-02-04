@@ -23,15 +23,14 @@ def print_help():
 
     print2(
         "[h] help\n"
-        "[c] commit [C] commit & push\n"
-        "[a] amend  [A] amend & push\n"
-        "[P] push\n"
-        "[p] pull\n"
-        "[s] git status & log\n"
+        "[c] commit       [C] commit & push\n"
+        "[a] amend        [A] amend & push\n"
+        "[p] pull         [P] push\n"
+        "[s] status & log\n"
         "[d] git diff\n"
         "[1] run command\n"
-        "[r] revert single file\n"
-        "[R] revert all changes\n"
+        "[r] revert file  [R] revert all changes\n"
+        "[Z] undo"
     )
 
 
@@ -69,9 +68,9 @@ def show_git_log():
             "git",
             "log",
             "--date=relative",
-            '--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s',
-            "--decorate",
+            "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
             "--graph",
+            "-10",
         ]
     )
 
@@ -165,5 +164,7 @@ if __name__ == "__main__":
         elif ch == "B":
             print2("Restoring from: %s" % bundle_file)
             call_echo(["git", "pull", bundle_file, "master:master"])
+        elif ch == "Z":
+            call_echo("git reset HEAD@{1}")
 
         print_status()
