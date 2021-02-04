@@ -22,10 +22,6 @@ import time
 import json
 
 
-def get_script_root():
-    return os.path.abspath(os.path.dirname(__file__))
-
-
 def get_hash(text, digit=16):
     import hashlib
 
