@@ -4,6 +4,9 @@ from _editor import *
 
 
 def grep(src_dir, exclude=[]):
+    if os.path.exists(src_dir):
+        raise Exception("Path does not exist: %s" % src_dir)
+
     repo_root = None
     rel_path = None
 

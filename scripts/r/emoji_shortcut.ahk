@@ -2,8 +2,7 @@
 
 $>!h::Send 😃
 $>!s::Send 😞
-$>!w::Send 😉
-$>!k::Send 😏
+$>!k::Send 😉
 $>!y::Send 👍
 $>!t::Send 😛
 $>!m::Send 🙂
