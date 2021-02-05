@@ -1,10 +1,10 @@
-from _term import *
+from _term import Menu
 from _shutil import *
 from _editor import *
 
 
 def grep(src_dir, exclude=[]):
-    if os.path.exists(src_dir):
+    if not os.path.exists(src_dir):
         raise Exception("Path does not exist: %s" % src_dir)
 
     repo_root = None
@@ -29,11 +29,16 @@ def grep(src_dir, exclude=[]):
         chdir(src_dir)
     print2("Source Dir: %s" % src_dir)
 
-    text = input("KEYWORD> ")
-    if text == "":
+    history = load_config("grep_code", default=[])
+    input_ = Menu(items=history).get_text()
+    if not input_:
         sys.exit(0)
 
-    args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % text
+    history.insert(0, input_)
+    history = history[:20]
+    save_config("grep_code", history)
+
+    args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % input_
     if rel_path:
         args += " " + rel_path
 

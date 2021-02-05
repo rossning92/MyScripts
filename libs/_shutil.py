@@ -1107,12 +1107,15 @@ def get_script_root():
     return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
 
 
-def load_data(name):
-    with open(name + ".json", "r") as f:
-        return json.load(f)
+def load_config(name, default=None):
+    try:
+        with open(name + ".json", "r") as f:
+            return json.load(f)
+    except Exception:
+        return default
 
 
-def save_data(data, name):
+def save_config(name, data):
     with open(name + ".json", "w") as f:
         json.dump(data, f, indent=4)
 
