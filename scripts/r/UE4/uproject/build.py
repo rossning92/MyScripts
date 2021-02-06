@@ -19,7 +19,7 @@ def build_uproject(project_dir, out_dir=None):
         out_dir = OUT_DIR + "/%s" % project_name
 
     mkdir(out_dir)
-    call_echo(
+    call_highlight(
         [
             r"%s\Engine\Build\BatchFiles\RunUAT.bat" % get_variable("UE_SOURCE"),
             "BuildCookRun",
@@ -42,7 +42,8 @@ def build_uproject(project_dir, out_dir=None):
             "-clientconfig=Development",
             "-utf8output",
             "-compile",
-        ]
+        ],
+        highlight={r"\bwarning:": "yellow", r"\berror:": "RED"},
     )
     return out_dir
 

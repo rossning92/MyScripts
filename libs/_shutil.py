@@ -491,75 +491,11 @@ def set_clip(s):
     pyperclip.copy(s)
 
 
-def check_output2(args, shell=None, cwd=None, env=None):
-    class MyProcess:
-        def __init__(self, ps):
-            self.ps = ps
-            self.que = queue.Queue()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stdout,)).start()
-            threading.Thread(target=self._read_pipe, args=(self.ps.stderr,)).start()
-
-        def _read_pipe(self, pipe):
-            while True:
-                if ps.poll() is not None:
-                    self.que.put(b"")
-                    break
-
-                data = pipe.readline()
-                if data == b"":  # Terminated
-                    self.que.put(b"")
-                    break
-                self.que.put(data)
-
-        def readlines(self, block=True, timeout=None):
-            import keyboard
-
-            terminated = 0
-            while True:
-                # HACK
-                if keyboard.is_pressed("r"):
-                    with self.que.mutex:
-                        self.que.queue.clear()
-                try:
-                    line = self.que.get(block=block, timeout=timeout)
-                    if line == b"":
-                        terminated += 1
-                        if terminated == 2:
-                            break
-
-                    yield line
-                except queue.Empty:
-                    yield None
-
-        def readline(self, block=True):
-            line = self.que.get(block=block)
-            return line
-
-        def kill(self):
-            if platform.system() == "Windows":  # HACK on windows
-                subprocess.call("taskkill /f /t /pid %d" % self.ps.pid)
-            else:
-                self.ps.kill()
-
-        def return_code(self):
-            return self.ps.wait()
-
-    ps = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=shell,
-        cwd=cwd,
-        env=env,
-    )
-    return MyProcess(ps)
-
-
 def fnull():
     return open(os.devnull, "w")
 
 
-def read_lines(args, echo=False, read_err=False, max_lines=None, check=False):
+def read_lines(args, echo=False, read_err=False, max_lines=None, check=True, **kwargs):
     def terminate():
         nonlocal ps
         if sys.platform == "win32":
@@ -578,6 +514,7 @@ def read_lines(args, echo=False, read_err=False, max_lines=None, check=False):
         stdout=subprocess.PIPE if (not read_err) else None,
         stderr=subprocess.PIPE if read_err else None,
         bufsize=1,
+        **kwargs
     )
 
     line_no = 0
@@ -658,9 +595,7 @@ def print2(msg, color="yellow", end="\n"):
     print(COLOR_MAP[color] + msg + RESET, end=end, flush=True)
 
 
-def call_highlight(
-    args, shell=False, cwd=None, env=None, highlight=None, filter_line=None
-):
+def call_highlight(args, highlight=None, filter_line=None, **kwargs):
     from colorama import init, Fore, Back, Style
 
     COLOR_MAP = {
@@ -687,8 +622,7 @@ def call_highlight(
     if highlight is None:
         highlight = {}
 
-    ps = check_output2(args, shell=shell, cwd=cwd, env=env)
-    for line in ps.readlines():
+    for line in read_lines(args, **kwargs):
         # Filter line by pre-defined functions
         if filter_line:
             line = filter_line(line)
@@ -701,13 +635,13 @@ def call_highlight(
             if color in COLOR_MAP:
                 color = COLOR_MAP[color]
 
-            for match in re.finditer(patt.encode(), line):
-                index_color_list.append((match.start(), color.encode()))
+            for match in re.finditer(patt, line):
+                index_color_list.append((match.start(), color))
                 index_color_list.append((match.end(), None))
         index_color_list = sorted(index_color_list, key=lambda x: x[0])
 
         if len(index_color_list) > 0:
-            color_stack = [Style.RESET_ALL.encode()]
+            color_stack = [Style.RESET_ALL]
             indices, colors = zip(*index_color_list)
             parts = [line[i:j] for i, j in zip(indices, indices[1:] + (None,))]
 
@@ -721,13 +655,7 @@ def call_highlight(
                     line += color_stack[-1]
                 line += parts[i]
 
-        print(line.decode(locale.getpreferredencoding(), errors="ignore"), end="")
-
-    ret = ps.return_code()
-    if ret != 0:
-        raise Exception("Process returned non zero")
-
-    return ret
+        print(line)
 
 
 def prepend_to_path(path):
