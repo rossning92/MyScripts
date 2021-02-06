@@ -2,7 +2,7 @@ from _shutil import *
 import datetime
 
 
-def start_app(pkg, use_monkey=True):
+def start_app(pkg, use_monkey=False):
     if use_monkey:
         args = [
             "adb",
@@ -397,7 +397,7 @@ def pm_list_packages():
 
 
 def adb_install(file):
-    print("Install apk...")
+    print("Installing %s" % file)
     try:
         subprocess.check_output(
             [

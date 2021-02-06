@@ -1187,7 +1187,7 @@ def get_temp_file_name(suffix=None):
 
 
 def find_file(wildcard):
-    return glob.glob(wildcard)[0]
+    return os.path.abspath(glob.glob(wildcard, recursive=True)[0])
 
 
 def move_file(src, dst, overwrite=False):

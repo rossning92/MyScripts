@@ -5,6 +5,9 @@ from _script import get_variable
 setup_android_env()
 
 
+OUT_DIR = "/tmp"
+
+
 def build_uproject(project_dir, out_dir=None):
     cd(project_dir)
 
@@ -13,7 +16,7 @@ def build_uproject(project_dir, out_dir=None):
 
     if out_dir is None:
         project_name = os.path.splitext(os.path.basename(project_dir))[0]
-        out_dir = "/tmp/%s" % project_name
+        out_dir = OUT_DIR + "/%s" % project_name
 
     mkdir(out_dir)
     call_echo(
@@ -41,7 +44,15 @@ def build_uproject(project_dir, out_dir=None):
             "-compile",
         ]
     )
+    return out_dir
 
 
 if __name__ == "__main__":
-    build_uproject(project_dir=r"{{UE4_PROJECT_DIR}}")
+    out_dir = build_uproject(project_dir=r"{{UE4_PROJECT_DIR}}")
+
+    apk = find_file(out_dir + "/**/*.apk")
+    adb_install(apk)
+
+    pkg = get_pkg_name_apk(apk)
+    start_app(pkg)
+    logcat(pkg)
