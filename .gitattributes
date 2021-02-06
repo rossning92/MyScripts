@@ -5,6 +5,4 @@
 # to native line endings on checkout.
 *.ahk text eol=crlf
 *.bat text eol=crlf
-*.bat text eol=lf
-*.py text eol=lf
-*.sh text eol=lf
+*.cmd text eol=crlf
