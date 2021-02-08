@@ -243,7 +243,7 @@ class Menu:
 
         self.input_.on_update_screen(self.stdscr, 0, cursor=True)
 
-    def get_selected_item(self):
+    def get_selected_text(self):
         if len(self.matched_item_indices) > 0:
             item_index = self.matched_item_indices[self.selected_row]
             return self.items[item_index]
@@ -251,6 +251,11 @@ class Menu:
             return None
 
     def on_char(self, ch):
+        if ch == ord("\t"):
+            val = self.get_selected_text()
+            if val is not None:
+                self.input_.set_text(val)
+            return True
         return False
 
     def on_enter_pressed(self):

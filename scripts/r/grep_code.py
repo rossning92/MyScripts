@@ -43,7 +43,7 @@ def grep(src_dir, exclude=[]):
         args += " " + rel_path
 
     if not exists(".gitignore"):
-        args += ' -g "!intermediates/" -g "!build/" -g "!Build/"'
+        args += ' -g "!intermediates/" -g "!build/" -g "!Build/" -g "!ThirdParty/"'
     for x in exclude:
         args += ' -g "!%s"' % x
 

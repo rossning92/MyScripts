@@ -144,7 +144,7 @@ class VariableEditWindow(Menu):
 
     def on_char(self, ch):
         if ch == ord("\t"):
-            val = self.get_selected_item()
+            val = self.get_selected_text()
             if val is not None:
                 self.input_.set_text(val)
             return True
@@ -316,7 +316,7 @@ class MainWindow(Menu):
             return True
 
         elif ch == ord("\t"):
-            script = self.get_selected_item()
+            script = self.get_selected_text()
             if script is not None:
                 w = VariableEditingMenu(self.stdscr, script)
                 if w.enter_pressed:
@@ -327,7 +327,7 @@ class MainWindow(Menu):
             sys.exit(1)
 
         elif ch in state.hotkeys:
-            script = self.get_selected_item()
+            script = self.get_selected_text()
             if script is not None:
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT_PATH"] = script_abs_path
@@ -342,7 +342,7 @@ class MainWindow(Menu):
         height = self.height
 
         try:
-            script = self.get_selected_item()
+            script = self.get_selected_text()
             if script is not None:
                 vars = get_script_variables(script)
                 if len(vars):

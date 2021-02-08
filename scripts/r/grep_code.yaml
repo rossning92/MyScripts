@@ -2,7 +2,7 @@ autoRun: false
 background: false
 closeOnExit: true
 conda: null
-globalHotkey: Win+Alt+G
+globalHotkey: Ctrl+Win+G
 hotkey: null
 newWindow: true
 packages: peco
