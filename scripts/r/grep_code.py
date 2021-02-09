@@ -31,15 +31,15 @@ def grep(src_dir, exclude=[]):
 
     while True:
         history = load_config("grep_code", default=[])
-        input_ = Menu(items=history).get_text()
-        if not input_:
+        input_str = Menu(items=history).get_text()
+        if not input_str:
             continue
 
-        history = [x for x in history if x != input_]
-        history.insert(0, input_)
+        history = [x for x in history if x != input_str]
+        history.insert(0, input_str)
         save_config("grep_code", history)
 
-        args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % input_
+        args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % input_str
         if rel_path:
             args += " " + rel_path
 
