@@ -29,33 +29,34 @@ def grep(src_dir, exclude=[]):
         chdir(src_dir)
     print2("Source Dir: %s" % src_dir)
 
-    history = load_config("grep_code", default=[])
-    input_ = Menu(items=history).get_text()
-    if not input_:
-        sys.exit(0)
+    while True:
+        history = load_config("grep_code", default=[])
+        input_ = Menu(items=history).get_text()
+        if not input_:
+            continue
 
-    history.insert(0, input_)
-    history = history[:20]
-    save_config("grep_code", history)
+        history = [x for x in history if x != input_]
+        history.insert(0, input_)
+        save_config("grep_code", history)
 
-    args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % input_
-    if rel_path:
-        args += " " + rel_path
+        args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % input_
+        if rel_path:
+            args += " " + rel_path
 
-    if not exists(".gitignore"):
-        args += ' -g "!intermediates/" -g "!build/" -g "!Build/" -g "!ThirdParty/"'
-    for x in exclude:
-        args += ' -g "!%s"' % x
+        if not exists(".gitignore"):
+            args += ' -g "!intermediates/" -g "!build/" -g "!Build/" -g "!ThirdParty/"'
+        for x in exclude:
+            args += ' -g "!%s"' % x
 
-    args += " | peco"
-    print2(args, color="cyan")
+        args += " | peco"
+        print2(args, color="cyan")
 
-    out = get_output(args)
-
-    file, line_number, *_ = out.split(":")
-    line_number = int(line_number)
-    print("Goto: %s: %d" % (file, line_number))
-    open_in_vscode(file, line_number)
+        out = get_output(args).strip()
+        if out:
+            file, line_number, *_ = out.split(":")
+            line_number = int(line_number)
+            print("Goto: %s: %d" % (file, line_number))
+            open_in_vscode(file, line_number, vscode_executable=r"{{VSCODE}}")
 
 
 if __name__ == "__main__":

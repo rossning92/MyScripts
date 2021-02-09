@@ -18,6 +18,23 @@ def build_uproject(project_dir, out_dir=None):
         project_name = os.path.splitext(os.path.basename(project_dir))[0]
         out_dir = OUT_DIR + "/%s" % project_name
 
+    # Build module?
+    if False:
+        call_echo(
+            [
+                r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe"
+                % get_variable("UE_SOURCE"),
+                "Development",
+                "Win64",
+                "-Project=%s" % project_file,
+                "-TargetType=Editor",
+                "-Progress",
+                "-NoEngineChanges",
+                "-NoHotReloadFromIDE",
+            ]
+        )
+
+    # UE4 Automation Tool
     mkdir(out_dir)
     call_highlight(
         [
@@ -43,7 +60,7 @@ def build_uproject(project_dir, out_dir=None):
             "-utf8output",
             "-compile",
         ],
-        highlight={r"\bwarning:": "yellow", r"\berror:": "RED"},
+        highlight={r"\b(warning|WARNING):": "yellow", r"\b(error|ERROR):": "RED"},
     )
     return out_dir
 

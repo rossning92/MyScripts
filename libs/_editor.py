@@ -52,8 +52,12 @@ def vscode_set_include_path(include_path):
         json.dump(data, f, indent=4)
 
 
-def open_in_vscode(file, line_number=None):
-    vscode = get_executable("vscode")
+def open_in_vscode(file, line_number=None, vscode_executable=None):
+    if vscode_executable:
+        vscode = vscode_executable
+    else:
+        vscode = get_executable("vscode")
+
     if type(file) == str:
         if line_number is None:
             args = [vscode, file]
