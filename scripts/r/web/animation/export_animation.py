@@ -37,6 +37,7 @@ _add_subtitle = False
 _scale = 0.25
 _audio_only = False
 _impl = None
+_apis = {}
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
@@ -145,6 +146,11 @@ _bgm_vol = []
 _crossfade = 0
 
 
+def api(f):
+    _apis[f.__name__] = f
+    return f
+
+
 def _format_time(sec):
     td = datetime.timedelta(seconds=sec)
     return "%02d:%02d:%02d,%03d" % (
@@ -246,6 +252,7 @@ def _add_subtitle_clip(start, end, text):
     _video_tracks["text"].append(ci)
 
 
+@api
 def record(
     f,
     t="a",
@@ -325,6 +332,7 @@ def record(
                     i += 1
 
 
+@api
 def audio_gap(duration):
     _pos_dict["a"] += duration
     _pos_dict["ae"] = _pos_dict["as"] = _pos_dict["a"]
@@ -353,15 +361,18 @@ def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
     track_.clips[-1].vol_keypoints.append((t_in_clip + duration, vol))
 
 
+@api
 def mark(name, t=None):
     t = _get_pos(t)
     _pos_dict[name] = t
 
 
+@api
 def vol(vol, **kwargs):
     _set_vol(vol, **kwargs)
 
 
+@api
 def bgm_vol(v, **kwawgs):
     vol(v, track="bgm", **kwawgs)
 
@@ -414,6 +425,7 @@ def _add_audio_clip(
     return clip_info
 
 
+@api
 def audio(
     f,
     crossfade=0,
@@ -447,6 +459,7 @@ def audio(
         clip.vol_keypoints.append((0, vol))
 
 
+@api
 def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
     t = _get_pos(t)
 
@@ -476,6 +489,7 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
         _pos_dict["c"] = _pos_dict["a"] = t
 
 
+@api
 def bgm(
     f, move_playhead=False, vol=0.1, track="bgm", norm=False, loop=True, **kwargs,
 ):
@@ -489,24 +503,29 @@ def bgm(
     )
 
 
+@api
 def sfx(f, **kwargs):
     audio(f, track="sfx", move_playhead=False, **kwargs)
 
 
+@api
 def pos(t, tag=None):
     _set_pos(t, tag=tag)
 
 
+@api
 def clip(f, **kwargs):
     print("clip: %s" % f)
     _add_video_clip(f, **kwargs)
 
 
+@api
 def fps(v):
     global FPS
     FPS = v
 
 
+@api
 def overlay(
     f,
     pos="center",
@@ -528,6 +547,7 @@ def overlay(
     )
 
 
+@api
 def comment(text, pos=(960, 200), duration=4, track="overlay", **kwargs):
     md(
         '<span style="color:#f6e58d;font-size:0.8em">%s</span>' % text,
@@ -538,6 +558,7 @@ def comment(text, pos=(960, 200), duration=4, track="overlay", **kwargs):
     )
 
 
+@api
 def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
     md(
         '<span style="font-size:0.6em">%s</span>' % text,
@@ -559,6 +580,7 @@ def text(text, track="text", font_size=100, pos="center", **kwargs):
     _add_video_clip(temp_file, track=track, pos=pos, **kwargs)
 
 
+@api
 def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     from r.web.webscreenshot import webscreenshot
 
@@ -583,6 +605,7 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     _add_video_clip(tmp_file, track=track, transparent=False, **kwargs)
 
 
+@api
 def codef(file, track="vid", **kwargs):
     from r.web.gen_code_image import gen_code_image_from_file
 
@@ -606,7 +629,7 @@ def _add_fadeout(track):
             _add_fadeout_to_last_clip = False
 
 
-def create_image_seq_clip(tar_file):
+def _create_image_seq_clip(tar_file):
     print("Load animation clip from %s" % tar_file)
     image_files = []
     t = tarfile.open(tar_file, "r")
@@ -696,7 +719,7 @@ def _preload_mpy_clip(
         clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
 
     elif file.endswith(".tar"):
-        clip = create_image_seq_clip(file)
+        clip = _create_image_seq_clip(file)
 
     elif file.endswith(".pptx"):
         from r.ppt.export_ppt import export_slides, export_video
@@ -889,12 +912,14 @@ def _animation(in_file, name, track=None, params={}, calc_length=True, **kwargs)
     anim.clip_info_list.append(_add_video_clip(track=track, **kwargs))
 
 
+@api
 def anim(s, **kwargs):
     _animation(
         in_file=os.path.abspath("animation/%s.js" % s), name=slugify(s), **kwargs
     )
 
 
+@api
 def image_anim(file, duration=5, **kwargs):
     _animation(
         in_file=os.path.abspath(SCRIPT_ROOT + "/movy/examples/image.js"),
@@ -904,6 +929,7 @@ def image_anim(file, duration=5, **kwargs):
     )
 
 
+@api
 def title_anim(h1, h2, **kwargs):
     _animation(
         in_file=os.path.abspath(SCRIPT_ROOT + "/movy/examples/title-animation.js"),
@@ -927,16 +953,19 @@ def _clip_extend_prev_clip(track=None, t=None):
         )
 
 
+@api
 def video_end(track=None, t=None):
     print("video_end: track=%s" % track)
     track = _get_vid_track(track)
     _clip_extend_prev_clip(track, t=t)
 
 
+@api
 def empty(**kwargs):
     _add_video_clip(None, **kwargs)
 
 
+@api
 def slide(
     s, template, pos="center", name=None, **kwargs,
 ):
@@ -950,6 +979,7 @@ def slide(
     _add_video_clip(out_file, pos=pos, **kwargs)
 
 
+@api
 def md(s, track="md", **kwargs):
     slide(
         s,
@@ -961,6 +991,7 @@ def md(s, track="md", **kwargs):
     )
 
 
+@api
 def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
     PRESETS = [
         "../assets/image/cursor.png",
@@ -1321,11 +1352,13 @@ def _tts():
     record(out_file, postprocess=False)
 
 
+@api
 def tts(enabled=True):
     global AUTO_GENERATE_TTS
     AUTO_GENERATE_TTS = enabled
 
 
+@api
 def final(is_final=True):
     global _add_subtitle
     global _scale
@@ -1337,6 +1370,7 @@ def final(is_final=True):
         _scale = 1.0
 
 
+@api
 def parse_line(line):
     print2(line, color="green")
     _subtitle.append(line)
@@ -1367,107 +1401,33 @@ def _write_timestamp(t, section_name):
     _write_timestamp.f.flush()
 
 
-def _interface():
-    return {
-        "anim": lambda *_, **__: None,
-        "audio_end": lambda *_, **__: None,
-        "audio_gap": lambda *_, **__: None,
-        "audio": lambda *_, **__: None,
-        "bgm_vol": lambda *_, **__: None,
-        "bgm": lambda *_, **__: None,
-        "clip": lambda *_, **__: None,
-        "code": lambda *_, **__: None,
-        "codef": lambda *_, **__: None,
-        "comment": lambda *_, **__: None,
-        "credit": lambda *_, **__: None,
-        "crossfade": lambda *_, **__: None,
-        "empty": lambda *_, **__: None,  # deprecated
-        "fps": lambda *_, **__: None,
-        "hl": lambda *_, **__: None,
-        "image_anim": lambda *_, **__: None,
-        "image": lambda *_, **__: None,  # deprecated, use `clip` instead
-        "include": lambda *_, **__: None,
-        "mark": lambda *_, **__: None,
-        "md": lambda *_, **__: None,
-        "overlay": lambda *_, **__: None,
-        "parse_line": lambda *_, **__: None,
-        "pos": lambda *_, **__: None,
-        "record": lambda *_, **__: None,
-        "sfx": lambda *_, **__: None,
-        "slide": lambda *_, **__: None,
-        "text": lambda *_, **__: None,
-        "title_anim": lambda *_, **__: None,
-        "tts": lambda *_, **__: None,
-        "video_end": lambda *_, **__: None,
-        "video": lambda *_, **__: None,  # deprecated, use `clip` instead
-        "vol": lambda *_, **__: None,
-    }
+@api
+def include(file):
+    with open(file, "r", encoding="utf-8") as f:
+        s = f.read()
+
+    cwd = os.getcwd()
+    os.chdir(os.path.dirname(os.path.abspath(file)))
+    _parse_text(s, apis)
+    os.chdir(cwd)
 
 
 def _default_impl():
-    impl = {
-        **_interface(),
-        "anim": anim,
-        "audio_end": audio_end,
-        "audio_gap": audio_gap,
-        "audio": audio,
-        "bgm_vol": bgm_vol,
-        "bgm": bgm,
-        "clip": clip,
-        "code": code,
-        "codef": codef,
-        "comment": comment,
-        "credit": credit,
-        "crossfade": crossfade,
-        "empty": empty,  # deprecated
-        "final": final,
-        "fps": fps,
-        "hl": hl,
-        "image_anim": image_anim,
-        "image": clip,  # deprecated
-        "mark": mark,
-        "md": md,
-        "overlay": overlay,
-        "parse_line": parse_line,
-        "pos": pos,
-        "record": record,
-        "sfx": sfx,
-        "slide": slide,
-        "text": text,
-        "title_anim": title_anim,
-        "tts": tts,
-        "video_end": video_end,
-        "video": clip,  # deprecated
-        "vol": vol,
-    }
-
-    # Include function
-    def include(file):
-        with open(file, "r", encoding="utf-8") as f:
-            s = f.read()
-
-        cwd = os.getcwd()
-        os.chdir(os.path.dirname(os.path.abspath(file)))
-        _parse_text(s, impl)
-        os.chdir(cwd)
-
-    impl["include"] = include
-
     # Import `index.py` if exists
     MODULE = "index.py"
     if os.path.exists(MODULE):
         sys.path.append(os.getcwd())
-        exec(open(MODULE, "r", encoding="utf-8").read(), impl)
+        exec(open(MODULE, "r", encoding="utf-8").read(), _apis)
 
-    return impl
+    return _apis
 
 
 def _remove_unused_recordings(s):
     used_recordings = set()
     unused_recordings = []
 
-    impl = {**_interface(), "record": (lambda f, **kargs: used_recordings.add(f))}
-    _parse_text(s, impl=impl)
+    apis = {"record": (lambda f, **kargs: used_recordings.add(f))}
+    _parse_text(s, apis=apis)
 
     files = [f for f in glob.glob("record/*") if os.path.isfile(f)]
     files = [f.replace("\\", "/") for f in files]
@@ -1489,7 +1449,7 @@ def _remove_unused_recordings(s):
                 print("WARNING: failed to remove: %s" % f)
 
 
-def _parse_text(text, impl, **kwargs):
+def _parse_text(text, apis, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1506,7 +1466,7 @@ def _parse_text(text, impl, **kwargs):
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
-            exec(python_code, impl)
+            exec(python_code, apis)
             continue
 
         if text[p : p + 1] == "#":
@@ -1533,7 +1493,7 @@ def _parse_text(text, impl, **kwargs):
         p = end + 1
 
         if line != "":
-            impl["parse_line"](line)
+            apis["parse_line"](line)
 
             # _export_srt()
         # sys.exit(0)
@@ -1548,7 +1508,7 @@ def _show_stats(s):
         nonlocal total
         total += len(line)
 
-    _parse_text(s, impl={**_interface(), "parse_line": parse_line})
+    _parse_text(s, apis={"parse_line": parse_line})
 
     total_secs = TIME_PER_CHAR * total
     print("Estimated Time: %s" % _format_time(total_secs))
@@ -1617,5 +1577,5 @@ if __name__ == "__main__":
     elif args.show_stats:
         _show_stats(s)
     else:
-        _parse_text(s, impl=_default_impl())
+        _parse_text(s, apis=_apis)
         _export_video()
