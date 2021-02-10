@@ -1466,7 +1466,11 @@ def _parse_text(text, apis, **kwargs):
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
-            exec(python_code, apis)
+            try:
+                exec(python_code, apis)
+            except NameError:  # API is not defined
+                pass  # simply ignore
+
             continue
 
         if text[p : p + 1] == "#":
@@ -1492,7 +1496,7 @@ def _parse_text(text, apis, **kwargs):
         line = text[p:end].strip()
         p = end + 1
 
-        if line != "":
+        if line != "" and "parse_line" in apis:
             apis["parse_line"](line)
 
             # _export_srt()
