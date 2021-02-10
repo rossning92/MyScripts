@@ -1040,7 +1040,10 @@ def load_config(name, default=None):
         with open(name + ".json", "r") as f:
             return json.load(f)
     except Exception:
-        return default
+        if default is not None:
+            return default
+        else:
+            raise Exception("Default value is not specified.")
 
 
 def save_config(name, data):
