@@ -5,10 +5,11 @@ import pyautogui
 import random
 from r.web.animation.record_screen import CapturaScreenRecorder
 
+
 pyautogui.PAUSE = 0
 
 
-def start_modify(file1, file2):
+def modify_code(file1, file2):
     if file1 is None:
         s1 = " "
     else:
@@ -26,7 +27,7 @@ def start_modify(file1, file2):
     Send ^v
     Send ^a
     Send {Left}
-    Sleep 1000
+    Sleep 500
     """
     )
 
@@ -34,20 +35,25 @@ def start_modify(file1, file2):
         set_clip("\n")
         pyautogui.hotkey("ctrl", "v")
 
-    last_mode = None
-    line_mode = True
-
     def simulate_char(ch):
         if ch == "\n":
             send_enter()
-            time.sleep(0.2)
+            time.sleep(0.1)
         elif ch == " ":
             pyautogui.write(" ")
         else:
-            time.sleep(random.uniform(0.05, 0.1))
+            time.sleep(random.uniform(0.02, 0.05) + 0.1)
             pyautogui.write(ch)
 
-    if line_mode:
+    def send_line(line):
+        set_clip(line)
+        pyautogui.hotkey("ctrl", "v")
+        time.sleep(0.5)
+
+    last_mode = None
+    line_diff_mode = True
+
+    if line_diff_mode:
         s1 = [x + "\n" for x in s1.splitlines()]
         s2 = [x + "\n" for x in s2.splitlines()]
 
@@ -66,13 +72,16 @@ def start_modify(file1, file2):
             # for _ in range(len(line)):
             #     pyautogui.press("right")
             pyautogui.hotkey("down")
-            time.sleep(0.3)
+            time.sleep(0.1)
         elif mode == "-":
             pyautogui.hotkey("ctrl", "x")
-            time.sleep(0.3)
+            time.sleep(0.1)
         elif mode == "+":
-            for ch in line:
-                simulate_char(ch)
+            if 1:
+                send_line(line)
+            else:
+                for ch in line:
+                    simulate_char(ch)
 
         last_mode = mode
 
@@ -101,7 +110,7 @@ if __name__ == "__main__":
             if 1:
                 # Record coding
                 recorder.start_record()
-                start_modify(files[i - 1] if i > 0 else None, files[i])
+                modify_code(files[i - 1] if i > 0 else None, files[i])
                 time.sleep(2)
                 recorder.stop_record()
                 recorder.save_record(
