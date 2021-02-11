@@ -5,6 +5,6 @@ $>!s::Send 😞
 $>!k::Send 😉
 $>!y::Send 👍
 $>!t::Send 😛
-$>!m::Send 🙂
 $>!u::Send ☂️
 $>!o::Send 😲
+$>!m::Send 🤔
