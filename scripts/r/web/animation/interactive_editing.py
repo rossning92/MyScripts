@@ -6,8 +6,8 @@ import random
 from r.web.animation.record_screen import CapturaScreenRecorder
 
 
-NEXT_FILE_INTERVAL = 1
-NEW_LINE_INTERVAL = 0.1
+INTERVAL_NEW_FILE = 1
+INTERVAL_NEW_LINE = 0.1
 
 pyautogui.PAUSE = 0
 
@@ -23,7 +23,6 @@ def modify_code(*files):
     Send ^v
     Send ^a
     Send {Left}
-    Sleep 500
     """
     )
 
@@ -44,15 +43,16 @@ def modify_code(*files):
     def send_line(line):
         set_clip(line)
         pyautogui.hotkey("ctrl", "v")
-        time.sleep(NEW_LINE_INTERVAL)
+        time.sleep(INTERVAL_NEW_LINE)
 
     last_mode = None
     last_pos = 0
     pos = 0
     prev_content = [x + "\n" for x in s.splitlines()]
+    seek = True
 
     for file in files[1:]:
-        time.sleep(NEXT_FILE_INTERVAL)
+        time.sleep(INTERVAL_NEW_FILE)
         pos = 0
 
         with open(file, "r", encoding="utf-8", newline="\n") as f:
@@ -69,8 +69,17 @@ def modify_code(*files):
                         pyautogui.hotkey("down")
                     else:
                         pyautogui.hotkey("up")
-                    time.sleep(0.1)
+
+                    if seek:
+                        time.sleep(0.02)
+                    else:
+                        time.sleep(0.1)
+
                 last_pos = pos
+
+                if seek:
+                    time.sleep(1)
+                    seek = False
 
             # HACK: always put add an empty line after
             # if last_mode == "+" and mode != "+":
