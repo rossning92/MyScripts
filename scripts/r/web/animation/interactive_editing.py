@@ -6,21 +6,17 @@ import random
 from r.web.animation.record_screen import CapturaScreenRecorder
 
 
+NEXT_FILE_INTERVAL = 1
+NEW_LINE_INTERVAL = 0.1
+
 pyautogui.PAUSE = 0
 
 
-def modify_code(file1, file2):
-    if file1 is None:
-        s1 = " "
-    else:
-        with open(file1, "r", encoding="utf-8", newline="\n") as f:
-            s1 = f.read()
-
-    with open(file2, "r", encoding="utf-8", newline="\n") as f:
-        s2 = f.read()
-
-    set_clip(s1)
-
+def modify_code(*files):
+    # Initialize with first file content
+    with open(files[0], "r", encoding="utf-8", newline="\n") as f:
+        s = f.read()
+    set_clip(s)
     exec_ahk(
         """
     Send ^a
@@ -48,42 +44,61 @@ def modify_code(file1, file2):
     def send_line(line):
         set_clip(line)
         pyautogui.hotkey("ctrl", "v")
-        time.sleep(0.5)
+        time.sleep(NEW_LINE_INTERVAL)
 
     last_mode = None
-    line_diff_mode = True
+    last_pos = 0
+    pos = 0
+    prev_content = [x + "\n" for x in s.splitlines()]
 
-    if line_diff_mode:
-        s1 = [x + "\n" for x in s1.splitlines()]
-        s2 = [x + "\n" for x in s2.splitlines()]
+    for file in files[1:]:
+        time.sleep(NEXT_FILE_INTERVAL)
+        pos = 0
 
-    for i, s in enumerate(difflib.ndiff(s1, s2)):
-        line = s[2:]
-        mode = s[0]
+        with open(file, "r", encoding="utf-8", newline="\n") as f:
+            content = [x + "\n" for x in f.read().splitlines()]
 
-        # HACK: new line
-        if last_mode == "+" and mode != "+":
-            pyautogui.press("delete")
-        elif mode == "+" and last_mode != "+":
-            send_enter()
-            pyautogui.press("left")
+        for _, s in enumerate(difflib.ndiff(prev_content, content)):
+            line = s[2:]
+            mode = s[0]
 
-        if mode == " ":
-            # for _ in range(len(line)):
-            #     pyautogui.press("right")
-            pyautogui.hotkey("down")
-            time.sleep(0.1)
-        elif mode == "-":
-            pyautogui.hotkey("ctrl", "x")
-            time.sleep(0.1)
-        elif mode == "+":
-            if 1:
-                send_line(line)
-            else:
-                for ch in line:
-                    simulate_char(ch)
+            if mode != " " and pos != last_pos:
+                print("move_to=%d  offset=%d" % (pos, pos - last_pos))
+                for _ in range(abs(pos - last_pos)):
+                    if pos > last_pos:
+                        pyautogui.hotkey("down")
+                    else:
+                        pyautogui.hotkey("up")
+                    time.sleep(0.1)
+                last_pos = pos
 
-        last_mode = mode
+            # HACK: always put add an empty line after
+            # if last_mode == "+" and mode != "+":
+            #     pyautogui.press("delete")
+            # elif mode == "+" and last_mode != "+":
+            #     send_enter()
+            #     pyautogui.press("left")
+
+            if mode == " ":
+                pos += 1
+                print("-", pos)
+            elif mode == "-":
+                pyautogui.hotkey("ctrl", "x")
+                time.sleep(0.1)
+                print(s.rstrip(), pos)
+            elif mode == "+":
+                if 1:
+                    send_line(line)
+                else:
+                    for ch in line:
+                        simulate_char(ch)
+                pos += 1
+                last_pos = pos
+                print(s.rstrip(), pos)
+
+            last_mode = mode
+
+        prev_content = content
 
 
 if __name__ == "__main__":
