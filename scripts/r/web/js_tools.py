@@ -14,16 +14,14 @@ print("Project dir: %s" % project_dir)
 @menu_item(key="w")
 def add_webpack(index_js="src/index.js"):
     call_echo(
-        "yarn add webpack webpack-cli webpack-dev-server html-webpack-plugin --dev"
+        "yarn add --dev webpack webpack-cli webpack-dev-server html-webpack-plugin"
     )
 
     webpack_config = "webpack.config.js"
-    if os.path.exists(webpack_config) and OVERWRITE:
-        return
-
-    with open(webpack_config, "w") as f:
-        f.write(
-            """var HtmlWebpackPlugin = require('html-webpack-plugin');
+    if OVERWRITE:
+        with open(webpack_config, "w") as f:
+            f.write(
+                """var HtmlWebpackPlugin = require('html-webpack-plugin');
 var path = require('path');
 
 module.exports = {
@@ -35,7 +33,11 @@ module.exports = {
   plugins: [new HtmlWebpackPlugin()],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
-    open: true
+    open: true,
+    port: 3000,
+    proxy: {
+      "/api": "http://localhost:8080"
+    },
   },
   module: {
     rules: [
@@ -46,9 +48,10 @@ module.exports = {
       }
     ]
   }
-};"""
-            % (index_js)
-        )
+};
+"""
+                % (index_js)
+            )
 
     if not os.path.exists(index_js):
         os.makedirs(os.path.dirname(index_js), exist_ok=True)
@@ -102,7 +105,7 @@ def add_react():
     # # https://create-react-app.dev/docs/getting-started/
     # call_echo("yarn create react-app client")
 
-    call_echo("yarn add react react-dom --dev")
+    call_echo("yarn add --dev react react-dom")
 
     # Babel: transcompile jsx
     call_echo(
@@ -113,7 +116,8 @@ def add_react():
         f.write(
             """{
   "presets": ["@babel/preset-env", "@babel/preset-react"]
-}"""
+}
+"""
         )
 
     mkdir(os.path.dirname(REACT_INDEX_JS))
@@ -121,21 +125,43 @@ def add_react():
         f.write(
             """import { render } from 'react-dom';
 
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 
-class App extends Component {
-  render() {
-    return (<h1>Hello!</h1>); 
-  } 
-} 
-render(<App />, document.body);"""
+function App() {
+  const [username, setUsername] = useState('loading...');
+
+  useEffect(() => {
+    fetch('/api/getUsername')
+      .then(res => res.json())
+      .then(data => setUsername(data.username));
+  });
+
+  return (
+      <button>username: {username}</button>
+  );
+}
+
+const root = document.createElement('div');
+document.body.appendChild(root);
+render(<App />, root);
+"""
         )
 
     add_script_to_package(
         "client", "webpack serve --mode development --devtool inline-source-map --hot",
     )
 
-    call_echo("npm run client")
+
+@menu_item(key="1")
+def add_react_and_express():
+    add_react()
+    add_express()
+
+    add_script_to_package("dev", 'concurrently "npm run server" "npm run client"')
+
+    # add "dev" to run server and client concurrently
+    call_echo("yarn add --dev concurrently")
+    call_echo("npm run dev")
 
 
 @menu_item(key="d")
@@ -158,7 +184,7 @@ def add_express():
     SERVER_MAIN = "src/server/index.js"
 
     call_echo("yarn add express")
-    call_echo("yarn add nodemon --dev")
+    call_echo("yarn add --dev nodemon")
 
     # Package.json
     with open("package.json", "r") as f:
@@ -172,7 +198,7 @@ def add_express():
     with open("package.json", "w") as f:
         json.dump(data, f, indent=2)
 
-    if not os.path.exists(SERVER_MAIN) or True:
+    if not os.path.exists(SERVER_MAIN) or OVERWRITE:
         mkdir(os.path.dirname(SERVER_MAIN))
         with open(SERVER_MAIN, "w") as f:
             f.write(
@@ -182,11 +208,13 @@ const os = require('os');
 const app = express();
 
 app.use(express.static('dist'));
-app.get('/', (req, res) => {
-res.send('Hello World!')
-})
 
-app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));"""
+app.get("/api/getUsername", (req, res) =>
+  res.send({ username: os.userInfo().username })
+);
+
+app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
+"""
             )
 
 
