@@ -107,16 +107,16 @@ def add_express():
         with open(SERVER_MAIN, "w") as f:
             f.write(
                 """const express = require('express');
-    const os = require('os');
+const os = require('os');
 
-    const app = express();
+const app = express();
 
-    app.use(express.static('dist'));
-    app.get('/', (req, res) => {
-    res.send('Hello World!')
-    })
+app.use(express.static('dist'));
+app.get('/', (req, res) => {
+res.send('Hello World!')
+})
 
-    app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));"""
+app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));"""
             )
 
 
