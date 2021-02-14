@@ -1149,6 +1149,8 @@ def menu_item(*, key, name=None):
 
         _menu_items[key] = MenuItem(name=name, key=key, func=func)
 
+        return func
+
     return decorator
 
 

@@ -59,9 +59,13 @@ class Template:
     __call__ = render
 
 
-def render_template(template_file, output_file, context=None):
+def render_template_file(template_file, output_file, context=None):
     with open(template_file, "r", encoding="utf-8") as f:
         s = Template(f.read()).render(context)
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(s)
+
+
+def render_template(template, context=None):
+    return Template(template).render(context)
