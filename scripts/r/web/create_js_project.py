@@ -7,7 +7,8 @@ cd(project_dir)
 print("Project dir: %s" % project_dir)
 
 
-def add_webpack(project_dir):
+@menu_item(key="w")
+def add_webpack():
     call_echo(
         "yarn add webpack webpack-cli webpack-dev-server html-webpack-plugin --dev"
     )
@@ -47,7 +48,8 @@ def webpack_start():
     ).start()
 
 
-def create_react():
+@menu_item(key="r")
+def add_react():
     if os.path.exists("package.json"):
         with open("package.json", "r") as f:
             s = f.read()
@@ -67,36 +69,24 @@ def create_react():
     call_echo("yarn create react-app .")
 
 
-def print_help():
-    print2(
-        "[d] dat.gui\n"
-        "[p] p5\n"
-        "[w] webpack\n"
-        "[b] bootstrap\n"
-        "[r] react\n"
-        "[h] help\n"
-        "[x] exit\n"
-    )
+@menu_item(key="d")
+def add_dat_gui():
+    call_echo("yarn add dat.gui")
+
+
+@menu_item(key="p")
+def add_p5():
+    call_echo("yarn add p5")
+
+
+@menu_item(key="b")
+def add_bootstrap():
+    call_echo("yarn add react-bootstrap bootstrap")
 
 
 if __name__ == "__main__":
     if not exists("package.json"):
         call_echo("yarn init")
 
-    while True:
-        print_help()
-        ch = getch()
-        if ch == "x":
-            sys.exit(0)
-        elif ch == "d":
-            call_echo("yarn add dat.gui")
-        elif ch == "p":
-            call_echo("yarn add p5")
-        elif ch == "h":
-            print_help()
-        elif ch == "w":
-            add_webpack(project_dir)
-        elif ch == "b":
-            call_echo("yarn add react-bootstrap bootstrap")
-        elif ch == "r":
-            create_react()
+    menu_loop()
+

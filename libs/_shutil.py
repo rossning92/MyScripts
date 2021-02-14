@@ -1130,3 +1130,53 @@ def move_file(src, dst, overwrite=False):
         os.remove(dst)
 
     os.rename(src, dst)
+
+
+from collections import namedtuple
+
+_menu_items = {}
+MenuItem = namedtuple("MenuItem", "name key func")
+
+
+def menu_item(*, key, name=None):
+    def decorator(func):
+        nonlocal name
+        if name is None:
+            name = func.__name__
+
+        _menu_items[key] = MenuItem(name=name, key=key, func=func)
+
+    return decorator
+
+
+def menu_loop():
+    def print_help():
+        print2(
+            (
+                " _   _ _____ _     ____\n"
+                "| | | | ____| |   |  _ \\\n"
+                "| |_| |  _| | |   | |_) |\n"
+                "|  _  | |___| |___|  __/\n"
+                "|_| |_|_____|_____|_|\n"
+            ),
+            color="magenta",
+        )
+
+        for menu_item in _menu_items.values():
+            print2("[%s] %s" % (menu_item.key, menu_item.name))
+        print2("[h] help")
+        print2("[q] quit")
+        print()
+
+    print_help()
+    while True:
+        ch = getch()
+
+        if ch == "h":
+            print_help()
+        elif ch == "q":
+            break
+        elif ch in _menu_items:
+            _menu_items[ch].func()
+        else:
+            print2("Invalid key: %s" % ch, color="red")
