@@ -66,7 +66,7 @@ def add_react():
             os.remove("package.json")
 
     # https://create-react-app.dev/docs/getting-started/
-    call_echo("yarn create react-app .")
+    call_echo("yarn create react-app client")
 
 
 @menu_item(key="d")
@@ -84,9 +84,44 @@ def add_bootstrap():
     call_echo("yarn add react-bootstrap bootstrap")
 
 
+@menu_item(key="e")
+def add_express():
+    SERVER_MAIN = "src/server/index.js"
+
+    call_echo("yarn add express")
+    call_echo("yarn add nodemon --dev")
+
+    with open("package.json", "r") as f:
+        data = json.load(f)
+
+    if "scripts" not in data.keys():
+        data["scripts"] = {}
+
+    data["scripts"]["server"] = "nodemon src/server/index.js"
+
+    with open("package.json", "w") as f:
+        json.dump(data, f, indent=2)
+
+    if not os.path.exists(SERVER_MAIN) or True:
+        mkdir(os.path.dirname(SERVER_MAIN))
+        with open(SERVER_MAIN, "w") as f:
+            f.write(
+                """const express = require('express');
+    const os = require('os');
+
+    const app = express();
+
+    app.use(express.static('dist'));
+    app.get('/', (req, res) => {
+    res.send('Hello World!')
+    })
+
+    app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));"""
+            )
+
+
 if __name__ == "__main__":
     if not exists("package.json"):
         call_echo("yarn init")
 
     menu_loop()
-

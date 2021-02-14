@@ -1144,6 +1144,9 @@ def menu_item(*, key, name=None):
         if name is None:
             name = func.__name__
 
+        if key in _menu_items:
+            raise Exception("key '%s' is already used: %s" % (key, _menu_items.name))
+
         _menu_items[key] = MenuItem(name=name, key=key, func=func)
 
     return decorator
