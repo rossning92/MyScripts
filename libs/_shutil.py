@@ -431,45 +431,6 @@ def remove(files):
                 print("Deleted: %s" % match)
 
 
-def replace(file, patt, repl, debug_output=False):
-    with open(file, "r") as f:
-        s = f.read()
-
-    if debug_output:
-        for x in re.findall(patt, s):
-            print('In file "%s":\n  %s => %s' % (file, x, repl))
-
-    s = re.sub(patt, repl, s)
-
-    with open(file, "w") as f:
-        f.write(s)
-
-
-def append_line(file_path, s):
-    with open(file_path, "r") as f:
-        text = f.read()
-
-    if s not in text:
-        text += "\n" + s
-        with open(file_path, "w") as f:
-            f.write(text)
-    else:
-        print("[WARNING] Content exists:" + s)
-
-
-def append_file(file, s):
-    if os.path.exists(file):
-        with open(file, "r", encoding="utf-8") as f:
-            text = f.read()
-    else:
-        text = ""
-
-    text += "\n" + s
-
-    with open(file, "w", encoding="utf-8") as f:
-        f.write(text)
-
-
 def get_clip():
     import win32clipboard
 

@@ -36,17 +36,10 @@ PKGS = {
         "ffmpeg",
         "imagemagick.app",
     ],
-    "@gamedev": [
-        "renderdoc",
-    ],
+    "@gamedev": ["renderdoc",],
     "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
-    "@work": [
-        "p4v",
-        "selenium-chrome-driver",
-    ],
-    "@ue4": [
-        "directx",
-    ],
+    "@work": ["p4v", "selenium-chrome-driver",],
+    "@ue4": ["directx",],
     "@other": [
         "audacity",
         "autohotkey",
@@ -77,6 +70,7 @@ PKGS = {
         "unity-hub",
         "vmware-workstation-player",
         "win32diskimager",
+        "mongodb",
     ],
 }
 

@@ -1,9 +1,12 @@
 from _shutil import *
 import pathlib
-
+from _code import prepend_line, patch_code
 
 OVERWRITE = bool("{{_OVERWRITE}}")
 
+REACT_INDEX_JS = "src/client/index.js"
+SERVER_INDEX_JS = "src/server/index.js"
+MODEL_DIR = "src/server/models"
 
 cd("~")
 project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
@@ -105,8 +108,6 @@ def add_script_to_package(name, script):
 
 @menu_item(key="r")
 def add_react():
-    REACT_INDEX_JS = "src/client/index.js"
-
     add_webpack(index_js=REACT_INDEX_JS)
 
     # if os.path.exists("package.json"):
@@ -139,7 +140,7 @@ def add_react():
             "@babel/core",
             "@babel/preset-env",
             "@babel/preset-react",
-            "babel-plugin-react-html-attrs@2",  # transform class → className
+            "babel-plugin-react-html-attrs",  # transform class → className
         ],
         dev=True,
     )
@@ -187,9 +188,10 @@ render(<App />, root);
 
 
 @menu_item(key="1")
-def add_react_and_express():
+def add_MERN_stack():
     add_react()
     add_express()
+    add_mongodb()
 
     add_script_to_package("dev", 'concurrently "npm run server" "npm run client"')
 
@@ -212,11 +214,12 @@ def add_p5():
 def add_bootstrap():
     add_packages(["react-bootstrap", "bootstrap"])
 
+    # https://react-bootstrap.netlify.app/getting-started/introduction/
+    prepend_line(REACT_INDEX_JS, "import 'bootstrap/dist/css/bootstrap.min.css';")
+
 
 @menu_item(key="e")
 def add_express():
-    SERVER_INDEX_JS = "src/server/index.js"
-
     add_packages(["express"])
     add_packages(["nodemon"], dev=True)  # Monitor js changes and and hot reload
 
@@ -242,6 +245,47 @@ app.get("/api/getUsername", (req, res) =>
 app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
 """
             )
+
+
+@menu_item(key="m")
+def add_mongodb():
+    add_packages(["mongoose"])
+
+    mkdir(MODEL_DIR)
+    with open(MODEL_DIR + "/contact.js", "w") as f:
+        f.write(
+            """const mongoose = require("mongoose");
+
+module.exports.Contact = mongoose.model(
+  "contact",
+  mongoose.Schema({
+    name: {
+      type: String,
+      required: true,
+    },
+    phone: String,
+    createDate: {
+      type: Date,
+      default: Date.now,
+    },
+  })
+);
+"""
+        )
+
+    patch_code(
+        SERVER_INDEX_JS,
+        "^",
+        """const mongoose = require("mongoose");
+mongoose
+  .connect("mongodb://localhost/test_db", { useNewUrlParser: true })
+  .then(() => {
+    console.log("Database connected.");
+  })
+  .catch((err) => console.log(err));
+""",
+        count=1,
+    )
 
 
 if __name__ == "__main__":
