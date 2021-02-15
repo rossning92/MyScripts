@@ -2,7 +2,7 @@ from _shutil import *
 import pathlib
 
 
-OVERWRITE = True
+OVERWRITE = bool("{{_OVERWRITE}}")
 
 
 cd("~")
@@ -13,13 +13,14 @@ print("Project dir: %s" % project_dir)
 
 @menu_item(key="w")
 def add_webpack(index_js="src/index.js"):
+    WEBPACK_CONFIG = "webpack.config.js"
+
     call_echo(
         "yarn add --dev webpack webpack-cli webpack-dev-server html-webpack-plugin"
     )
 
-    webpack_config = "webpack.config.js"
-    if OVERWRITE:
-        with open(webpack_config, "w") as f:
+    if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
+        with open(WEBPACK_CONFIG, "w") as f:
             f.write(
                 """var HtmlWebpackPlugin = require('html-webpack-plugin');
 var path = require('path');
@@ -121,9 +122,10 @@ def add_react():
         )
 
     mkdir(os.path.dirname(REACT_INDEX_JS))
-    with open(REACT_INDEX_JS, "w") as f:
-        f.write(
-            """import { render } from 'react-dom';
+    if not os.path.exists(REACT_INDEX_JS) or OVERWRITE:
+        with open(REACT_INDEX_JS, "w") as f:
+            f.write(
+                """import { render } from 'react-dom';
 
 import React, { useState, useEffect } from 'react';
 
@@ -145,7 +147,7 @@ const root = document.createElement('div');
 document.body.appendChild(root);
 render(<App />, root);
 """
-        )
+            )
 
     add_script_to_package(
         "client", "webpack serve --mode development --devtool inline-source-map --hot",
@@ -181,26 +183,18 @@ def add_bootstrap():
 
 @menu_item(key="e")
 def add_express():
-    SERVER_MAIN = "src/server/index.js"
+    SERVER_INDEX_JS = "src/server/index.js"
 
     call_echo("yarn add express")
     call_echo("yarn add --dev nodemon")
 
     # Package.json
-    with open("package.json", "r") as f:
-        data = json.load(f)
+    add_script_to_package("server", "nodemon src/server/index.js")
 
-    if "scripts" not in data.keys():
-        data["scripts"] = {}
-
-    data["scripts"]["server"] = "nodemon src/server/index.js"
-
-    with open("package.json", "w") as f:
-        json.dump(data, f, indent=2)
-
-    if not os.path.exists(SERVER_MAIN) or OVERWRITE:
-        mkdir(os.path.dirname(SERVER_MAIN))
-        with open(SERVER_MAIN, "w") as f:
+    # Server index.js
+    if not os.path.exists(SERVER_INDEX_JS) or OVERWRITE:
+        mkdir(os.path.dirname(SERVER_INDEX_JS))
+        with open(SERVER_INDEX_JS, "w") as f:
             f.write(
                 """const express = require('express');
 const os = require('os');
