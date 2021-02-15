@@ -63,7 +63,11 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: 'babel-loader'
-      }
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"]
+      },
     ]
   }
 };
@@ -124,6 +128,9 @@ def add_react():
     # call_echo("yarn create react-app client")
 
     add_packages(["react", "react-dom"])
+
+    # CSS loader
+    add_packages(["style-loader", "css-loader"])
 
     # Babel: transcompile jsx
     add_packages(
