@@ -11,12 +11,29 @@ cd(project_dir)
 print("Project dir: %s" % project_dir)
 
 
+def add_packages(packages, dev=False):
+    with open("package.json", "r") as f:
+        data = json.load(f)
+
+    existing_packages = (
+        data["devDependencies"].keys() if dev else data["dependencies"].keys()
+    )
+
+    for pkg in packages:
+        if pkg not in existing_packages:
+            if dev:
+                call_echo(["yarn", "add", "--dev", pkg])
+            else:
+                call_echo(["yarn", "add", pkg])
+
+
 @menu_item(key="w")
 def add_webpack(index_js="src/index.js"):
     WEBPACK_CONFIG = "webpack.config.js"
 
-    call_echo(
-        "yarn add --dev webpack webpack-cli webpack-dev-server html-webpack-plugin"
+    add_packages(
+        ["webpack", "webpack-cli", "webpack-dev-server", "html-webpack-plugin"],
+        dev=True,
     )
 
     if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
@@ -106,11 +123,12 @@ def add_react():
     # # https://create-react-app.dev/docs/getting-started/
     # call_echo("yarn create react-app client")
 
-    call_echo("yarn add --dev react react-dom")
+    add_packages(["react", "react-dom"])
 
     # Babel: transcompile jsx
-    call_echo(
-        "yarn add --dev babel-loader @babel/core @babel/preset-env @babel/preset-react"
+    add_packages(
+        ["babel-loader", "@babel/core", "@babel/preset-env", "@babel/preset-react"],
+        dev=True,
     )
 
     with open(".babelrc", "w") as f:
@@ -162,31 +180,31 @@ def add_react_and_express():
     add_script_to_package("dev", 'concurrently "npm run server" "npm run client"')
 
     # add "dev" to run server and client concurrently
-    call_echo("yarn add --dev concurrently")
+    add_packages(["concurrently"], dev=True)
     call_echo("npm run dev")
 
 
 @menu_item(key="d")
 def add_dat_gui():
-    call_echo("yarn add dat.gui")
+    add_packages(["dat.gui"])
 
 
 @menu_item(key="p")
 def add_p5():
-    call_echo("yarn add p5")
+    add_packages(["p5"])
 
 
 @menu_item(key="b")
 def add_bootstrap():
-    call_echo("yarn add react-bootstrap bootstrap")
+    add_packages(["react-bootstrap", "bootstrap"])
 
 
 @menu_item(key="e")
 def add_express():
     SERVER_INDEX_JS = "src/server/index.js"
 
-    call_echo("yarn add express")
-    call_echo("yarn add --dev nodemon")
+    add_packages(["express"])
+    add_packages(["nodemon"], dev=True)  # Monitor js changes and and hot reload
 
     # Package.json
     add_script_to_package("server", "nodemon src/server/index.js")
