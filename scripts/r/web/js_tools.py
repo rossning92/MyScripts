@@ -127,14 +127,21 @@ def add_react():
 
     # Babel: transcompile jsx
     add_packages(
-        ["babel-loader", "@babel/core", "@babel/preset-env", "@babel/preset-react"],
+        [
+            "babel-loader",
+            "@babel/core",
+            "@babel/preset-env",
+            "@babel/preset-react",
+            "babel-plugin-react-html-attrs@2",  # transform class → className
+        ],
         dev=True,
     )
 
     with open(".babelrc", "w") as f:
         f.write(
             """{
-  "presets": ["@babel/preset-env", "@babel/preset-react"]
+  "presets": ["@babel/preset-env", "@babel/preset-react"],
+  "plugins": ["react-html-attrs"]
 }
 """
         )
