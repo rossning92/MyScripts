@@ -10,10 +10,14 @@ pkgs = load_config("user_apps")
 total = len(pkgs)
 for i in range(total):
     pkg = pkgs[i]
-    print2("(%d / %d) Backup %s ..." % (i + 1, total, pkg))
 
     # Skip existing apk
-    if os.path.exists("%s.apk" % pkg):
+    if os.path.exists(os.path.join("apk", "%s.apk" % pkg)):
         continue
 
-    backup_pkg(pkg)
+    print2("(%d / %d) Backup %s ..." % (i + 1, total, pkg))
+    backup_pkg(pkg, out_dir="apk")
+
+
+backup_directory("/sdcard/data/com.teslacoilsw.launcher/backup", "nova_backup.tar")
+

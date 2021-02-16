@@ -198,10 +198,14 @@ def logcat(
 
 
 def backup_pkg(pkg, out_dir=None, backup_user_data=False):
+    if out_dir is not None:
+        os.makedirs(out_dir, exist_ok=True)
+
     # Get apk path
     # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
     out = subprocess.check_output("adb shell pm path %s" % pkg)
-    apk_path = out.decode().strip().replace("package:", "")
+    apk_path = out.decode().splitlines()[0]
+    apk_path = apk_path.replace("package:", "")
 
     # Pull apk
     subprocess.call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
@@ -222,6 +226,15 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
 
         print2("Backup obb...")
         subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
+
+
+def backup_directory(d, out_tar):
+    temp_tar = "/data/local/tmp/backup.tar"
+    subprocess.call(
+        ["adb", "exec-out", f"tar -cf {temp_tar} {d}",]
+    )
+    subprocess.call(["adb", "pull", temp_tar, out_tar])
+    subprocess.call(["adb", "shell", f"rm {temp_tar}"])
 
 
 def screenshot(out_file=None):
