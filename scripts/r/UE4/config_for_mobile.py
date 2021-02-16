@@ -88,4 +88,4 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
 
 
 if __name__ == "__main__":
-    config_uproject(r"{{UE4_PROJECT_DIR}}", vulkan=bool("{{_VULKAN}}"))
+    config_uproject(r"{{UE4_PROJECT_DIR}}", vulkan=bool("{{_VULKAN}}"), multiview=bool("{{_MULTIVIEW}}"))

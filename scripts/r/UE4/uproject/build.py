@@ -9,10 +9,13 @@ OUT_DIR = "/tmp"
 
 
 def build_uproject(project_dir, out_dir=None):
+    engine_source = get_variable("UE_SOURCE")
+    print2("Engine: %s" % engine_source)
+
     cd(project_dir)
 
     project_file = glob.glob(os.path.join(project_dir, "*.uproject"))[0]
-    print(project_file)
+    print2("Project File: %s" % project_file)
 
     if out_dir is None:
         project_name = os.path.splitext(os.path.basename(project_dir))[0]
@@ -22,8 +25,7 @@ def build_uproject(project_dir, out_dir=None):
     if False:
         call_echo(
             [
-                r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe"
-                % get_variable("UE_SOURCE"),
+                r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe" % engine_source,
                 "Development",
                 "Win64",
                 "-Project=%s" % project_file,
