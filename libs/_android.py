@@ -11,11 +11,7 @@ def start_app(pkg, use_monkey=False):
         ]
         print("> " + " ".join(args))
         with open(os.devnull, "w") as fnull:
-            ret = subprocess.call(
-                args,
-                stdout=fnull,
-                stderr=fnull,
-            )
+            ret = subprocess.call(args, stdout=fnull, stderr=fnull,)
         if ret != 0:
             raise Exception(
                 'Launch package "%s" failed. Please check if it is installed.' % pkg
@@ -201,7 +197,7 @@ def logcat(
             print(e)
 
 
-def backup_pkg(pkg, out_dir=None):
+def backup_pkg(pkg, out_dir=None, backup_user_data=False):
     # Get apk path
     # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
     out = subprocess.check_output("adb shell pm path %s" % pkg)
@@ -216,15 +212,16 @@ def backup_pkg(pkg, out_dir=None):
     else:
         su = ""
 
-    print2("Backup app data...")
-    subprocess.call(
-        f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}"
-    )
-    subprocess.call(f"adb pull /sdcard/{pkg}.tar", cwd=out_dir)
-    subprocess.call(f"adb shell rm /sdcard/{pkg}.tar")
+    if backup_user_data:
+        print2("Backup app data...")
+        subprocess.call(
+            f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}"
+        )
+        subprocess.call(f"adb pull /sdcard/{pkg}.tar", cwd=out_dir)
+        subprocess.call(f"adb shell rm /sdcard/{pkg}.tar")
 
-    print2("Backup obb...")
-    subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
+        print2("Backup obb...")
+        subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
 
 
 def screenshot(out_file=None):

@@ -20,6 +20,7 @@ import signal
 import ctypes
 import time
 import json
+from pprint import pprint
 
 
 def get_hash(text, digit=16):
