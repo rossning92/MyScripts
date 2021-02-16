@@ -228,13 +228,18 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
         subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
 
 
-def backup_directory(d, out_tar):
+def adb_tar(d, out_tar):
     temp_tar = "/data/local/tmp/backup.tar"
     subprocess.call(
         ["adb", "exec-out", f"tar -cf {temp_tar} {d}",]
     )
     subprocess.call(["adb", "pull", temp_tar, out_tar])
     subprocess.call(["adb", "shell", f"rm {temp_tar}"])
+
+
+def adb_untar(tar_file):
+    call(["adb", "push", tar_file, "/data/local/tmp/"])
+    adb_shell(f"tar -xf /data/local/tmp/{tar_file}")
 
 
 def screenshot(out_file=None):
