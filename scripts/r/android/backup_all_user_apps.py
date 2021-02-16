@@ -19,5 +19,4 @@ for i in range(total):
     backup_pkg(pkg, out_dir="apk")
 
 
-backup_directory("/sdcard/data/com.teslacoilsw.launcher/backup", "nova_backup.tar")
-
+adb_tar("/sdcard/data/com.teslacoilsw.launcher/backup", "nova_backup.tar")
