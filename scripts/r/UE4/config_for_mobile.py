@@ -12,6 +12,9 @@ def _add_value(ini_file, section, kvps):
 
     lines = [line.rstrip() for line in lines]
 
+    # Only updated modified kvps
+    kvps = [x for x in kvps if x not in lines]
+
     # Remove existing value
     for kvp in kvps:
         if not kvp:
@@ -52,13 +55,12 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
         "Config/DefaultEngine.ini",
         "[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]",
         [
-            "+PackageForOculusMobile=Quest",
+            "+PackageForOculusMobile=Quest2",
             "bSupportsVulkan=%s" % str(vulkan),
             "+bSupportsVulkan=%s" % str(vulkan),
             "bBuildForES2=False",
             "bBuildForES31=%s" % str(not vulkan),
             "bPackageDataInsideApk=True",
-            "bPackageForGearVR=True",  # for mobile device
             "MinSDKVersion=25",
             "TargetSDKVersion=25",
             "bFullScreen=True",
@@ -83,9 +85,15 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
     _add_value(
         "Saved/Config/Windows/Game.ini",
         "[/Script/UnrealEd.ProjectPackagingSettings]",
-        ["BuildConfiguration=PPBC_Shipping",],
+        [
+            "BuildConfiguration=PPBC_Shipping",
+        ],
     )
 
 
 if __name__ == "__main__":
-    config_uproject(r"{{UE4_PROJECT_DIR}}", vulkan=bool("{{_VULKAN}}"), multiview=bool("{{_MULTIVIEW}}"))
+    config_uproject(
+        r"{{UE4_PROJECT_DIR}}",
+        vulkan=bool("{{_VULKAN}}"),
+        multiview=bool("{{_MULTIVIEW}}"),
+    )
