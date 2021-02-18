@@ -579,7 +579,15 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = args_activate + [python_exec, run_py, python_file,] + args
+                args = (
+                    args_activate
+                    + [
+                        python_exec,
+                        run_py,
+                        python_file,
+                    ]
+                    + args
+                )
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
