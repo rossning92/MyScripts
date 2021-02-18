@@ -1,4 +1,5 @@
 from _script import *
+from _shutil import print2
 
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
@@ -12,7 +13,10 @@ def plink_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=No
         args += " -pw %s" % ssh_pwd
     if ssh_port:
         args += " -P %d" % ssh_port
-    call_echo(args)
+    try:
+        call_echo(args)
+    except subprocess.CalledProcessError:
+        print2("Remote shell ret code != 0.", color="red")
 
 
 def ssh_exec_command(user_host, command):
