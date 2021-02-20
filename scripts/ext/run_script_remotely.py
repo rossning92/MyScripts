@@ -16,7 +16,7 @@ def plink_run_bash_script(bash_script_file, user_host, ssh_port=None, ssh_pwd=No
     try:
         call_echo(args)
     except subprocess.CalledProcessError:
-        print2("Remote shell ret code != 0.", color="red")
+        raise Exception("Remote shell returns non zero.")
 
 
 def ssh_exec_command(user_host, command):
