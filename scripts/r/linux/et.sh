@@ -10,10 +10,12 @@ if ! [ -x "$(command -v expect)" ]; then
     sudo apt-get install expect -y
 fi
 
-pkill screen || true
-sudo /etc/init.d/screen-cleanup start
+export SCREENDIR="$HOME/.screen"
 
-# screen -r ssh_session -X quit
+# pkill screen || true
+# sudo /etc/init.d/screen-cleanup start
+
+screen -r ssh_session -X quit || true
 
 screen -dmS ssh_session bash
 
