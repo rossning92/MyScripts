@@ -151,6 +151,7 @@ def _format_time(sec):
     )
 
 
+@api
 def crossfade(v):
     global _crossfade
     if v == True:
