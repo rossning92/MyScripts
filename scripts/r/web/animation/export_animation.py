@@ -12,7 +12,7 @@ import webbrowser
 import numpy as np
 from PIL import Image
 
-import capture_animation
+import render_animation
 from _appmanager import get_executable
 from _shutil import *
 from r.audio.postprocess import process_audio_file, dynamic_audio_normalize
@@ -94,15 +94,6 @@ class _AudioTrack:
         self.clips = []
 
 
-class _AnimationInfo:
-    def __init__(self):
-        self.clip_info_list = []
-        self.in_file = None
-        self.calc_length = True
-        self.url_params = {}
-        self.overlay = False
-
-
 _audio_track_cur_pos = 0
 _pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
 
@@ -132,7 +123,6 @@ _audio_tracks = OrderedDict(
 )
 _cur_audio_track_name = "record"
 
-_animations = defaultdict(_AnimationInfo)
 
 _subtitle = []
 _srt_lines = []
@@ -900,43 +890,12 @@ def _add_video_clip(
     return clip_info
 
 
-def _animation(in_file, name, track=None, params={}, calc_length=True, **kwargs):
-    anim = _animations[name]
-    anim.in_file = in_file
-    anim.url_params = params
-
-    overlay = True if (_get_vid_track_name(track) != "vid") else False
-    anim.overlay = overlay
-    anim.calc_length = calc_length and not overlay
-
-    anim.clip_info_list.append(_add_video_clip(track=track, **kwargs))
-
-
 @api
-def anim(s, **kwargs):
-    _animation(
-        in_file=os.path.abspath("animation/%s.js" % s), name=slugify(s), **kwargs
-    )
-
-
-@api
-def image_anim(file, duration=5, **kwargs):
-    _animation(
-        in_file=os.path.abspath(SCRIPT_ROOT + "/movy/examples/image.js"),
-        name=os.path.splitext(file)[0],
-        params={"t": "%d" % duration, "src": file},
-        **kwargs,
-    )
-
-
-@api
-def title_anim(h1, h2, **kwargs):
-    _animation(
-        in_file=os.path.abspath(SCRIPT_ROOT + "/movy/examples/title-animation.js"),
-        name=slugify("title-%s-%s" % (h1, h2)),
-        params={"h1": h1, "h2": h2},
-        **kwargs,
-    )
+def anim(file, **kwargs):
+    video_file = os.path.splitext(file)[0] + ".webm"
+    if not os.path.exists(video_file):
+        render_animation.render_animation(os.path.abspath(file))
+    _add_video_clip(video_file, **kwargs)
 
 
 def _clip_extend_prev_clip(track=None, t=None):
@@ -1067,42 +1026,6 @@ def _export_video(resolution=(1920, 1080)):
                     duration=clip_info.duration,
                     track="overlay",
                 )
-
-    # Generate animation clips
-    if not _audio_only:
-        for name, animation_info in _animations.items():
-            if animation_info.overlay:
-                anim_ext = "tar"
-            else:
-                anim_ext = "mp4"
-
-            out_file = "tmp/animation/%s.%s" % (name, anim_ext)
-            os.makedirs("tmp/animation", exist_ok=True)
-
-            if 1:  # generate animation video file
-
-                if not os.path.exists(out_file):
-                    params = {**animation_info.url_params}
-
-                    if animation_info.calc_length:
-                        subclip_dura_list = "|".join(
-                            ["%g" % x.duration for x in animation_info.clip_info_list]
-                        )
-                        print(subclip_dura_list)
-
-                        params.update({"t": subclip_dura_list})
-
-                    capture_animation.capture_js_animation(
-                        in_file=animation_info.in_file,
-                        out_file=out_file,
-                        params=params,
-                        content_base=os.getcwd(),
-                    )
-
-            for i, clip_info in enumerate(animation_info.clip_info_list):
-                clip_info.mpy_clip = _preload_mpy_clip(file=out_file)
-                if animation_info.overlay:
-                    clip_info.duration = clip_info.mpy_clip.duration
 
     # Update MoviePy clip object in each track.
     video_clips = []

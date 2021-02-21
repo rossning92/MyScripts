@@ -19,43 +19,47 @@
     "commands": [
       {
         "command": "yo.runSelection",
-        "title": "VideoTool: Run Selection"
+        "title": "VideoEdit: Run Selection"
       },
       {
         "command": "yo.exportAudio",
-        "title": "VideoTool: Export Audio Only"
+        "title": "VideoEdit: Export Audio Only"
       },
       {
         "command": "yo.startRecording",
-        "title": "VideoTool: Start Recording"
+        "title": "VideoEdit: Start Recording"
       },
       {
         "command": "yo.stopRecording",
-        "title": "VideoTool: Stop Recording"
+        "title": "VideoEdit: Stop Recording"
       },
       {
         "command": "yo.collectNoiseProfile",
-        "title": "VideoTool: Collect Noise Profile"
+        "title": "VideoEdit: Collect Noise Profile"
       },
       {
         "command": "yo.openFileUnderCursor",
-        "title": "VideoTool: Open File Under Cursor"
+        "title": "VideoEdit: Open File Under Cursor"
       },
       {
         "command": "yo.insertAllClipsInFolder",
-        "title": "VideoTool: Insert All Clips In Folder"
+        "title": "VideoEdit: Insert All Clips In Folder"
       },
       {
         "command": "yo.removeUnusedRecordings",
-        "title": "VideoTool: Remove Unused Recordings"
+        "title": "VideoEdit: Remove Unused Recordings"
       },
       {
         "command": "yo.showStats",
-        "title": "VideoTool: Show Stats"
+        "title": "VideoEdit: Show Stats"
       },
       {
         "command": "yo.createSlide",
-        "title": "VideoTool: Create Slide"
+        "title": "VideoEdit: Create Slide"
+      },
+      {
+        "command": "yo.createMovyAnimation",
+        "title": "VideoEdit: Create Movy Animation"
       }
     ],
     "keybindings": [

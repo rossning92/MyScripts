@@ -406,26 +406,55 @@ async function insertAllClipsInFolder() {
   });
 }
 
-async function createSlide() {
-  const fileName = await vscode.window.showInputBox({
-    placeHolder: "slide-file-name",
+function registerCreateSlideCommand() {
+  vscode.commands.registerCommand("yo.createSlide", async () => {
+    const fileName = await vscode.window.showInputBox({
+      placeHolder: "slide-file-name",
+    });
+    if (!fileName) {
+      return;
+    }
+
+    const outFile = path.resolve(getProjectDir(), "slide", fileName + ".pptx");
+    const outDir = path.resolve(getProjectDir(), "slide");
+    if (!fs.existsSync(outDir)) {
+      fs.mkdirSync(outDir);
+    }
+
+    cp.spawn("cscript", [
+      path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
+      outFile,
+    ]);
+
+    insertText(`{{ clip('slide/${fileName}.pptx') }}`);
   });
-  if (fileName === undefined) {
-    return;
-  }
+}
 
-  const outFile = path.resolve(getProjectDir(), "slide", fileName + ".pptx");
-  const outDir = path.resolve(getProjectDir(), "slide");
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir);
-  }
+function registerCreateMovyCommand() {
+  vscode.commands.registerCommand("yo.createMovyAnimation", async () => {
+    const animationDir = path.resolve(getProjectDir(), "animation");
 
-  cp.spawn("cscript", [
-    path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
-    outFile,
-  ]);
+    // Create animation dir
+    if (!fs.existsSync(animationDir)) {
+      fs.mkdirSync(animationDir);
+    }
 
-  insertText(`{{ clip('slide/${fileName}.pptx') }}`);
+    // Input file name
+    const fileName = await vscode.window.showInputBox({
+      placeHolder: "movy-animation-name",
+    });
+    if (!fileName) {
+      return;
+    }
+
+    const filePath = path.resolve(animationDir, fileName + ".js");
+    fs.writeFileSync(filePath, 'import * as mo from "movy";\n\nmo.run();');
+
+    insertText(`{{ anim('animation/${fileName}.js') }}`);
+
+    const document = await vscode.workspace.openTextDocument(filePath);
+    await vscode.window.showTextDocument(document);
+  });
 }
 
 function activate(context) {
@@ -478,7 +507,9 @@ function activate(context) {
     });
   });
 
-  vscode.commands.registerCommand("yo.createSlide", createSlide);
+  registerCreateSlideCommand();
+
+  registerCreateMovyCommand();
 
   registerAutoComplete(context);
 

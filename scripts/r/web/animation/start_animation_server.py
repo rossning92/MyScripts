@@ -3,36 +3,15 @@ import argparse
 
 
 def start_server(file=None, content_base=None):
-    FRAMEWORK_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "movy")
+    MOVY_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "movy")
 
-    if not os.path.exists(os.path.join(FRAMEWORK_ROOT, "node_modules")):
-        call_echo("yarn install", cwd=FRAMEWORK_ROOT)
-        call_echo("yarn link", cwd=FRAMEWORK_ROOT)
+    if not os.path.exists(os.path.join(MOVY_ROOT, "node_modules")):
+        call_echo(["yarn"], cwd=MOVY_ROOT)
 
-    # if 0:  # To enable code suggestions and completion in vscode
-    #     if not os.path.exists("package.json"):
-    #         with open("package.json", "w") as f:
-    #             f.write(
-    #                 "{\n"
-    #                 '"name": "animation"\n'
-    #                 '"version": "1.0.0"\n'
-    #                 '"main": "index.js"\n'
-    #                 '"license": "MIT"\n'
-    #                 "}\n"
-    #             )
-    #         call_echo("yarn link yo")
-
-    # sample_project_path = os.path.abspath("./_sample_project")
-    # copy(sample_project_path + '/', project_path + '/')
-
-    # env = os.environ.copy()
-    # if file is not None:
-    #     env["ENTRY"] = file
-    # if content_base is not None:
-    #     env["CONTENT_BASE"] = content_base
-
-    launch_script = os.path.join(FRAMEWORK_ROOT, "bin", "movy.js")
-    ps = subprocess.Popen(["node", launch_script, file], cwd=FRAMEWORK_ROOT)
+    launch_script = os.path.join(MOVY_ROOT, "bin", "movy.js")
+    ps = subprocess.Popen(
+        ["node", launch_script, "--port", "5555", "--no-open", file], cwd=MOVY_ROOT
+    )
     return ps
 
 
