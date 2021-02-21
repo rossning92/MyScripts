@@ -11,18 +11,17 @@ def gen_code_image_from_file(file, out_file, mtime=None):
         gen_code_image(s, out_file)
 
 
-def gen_code_image(s, out_file, line_no=True, debug=False):
+def gen_code_image(s, out_file, line_no=True, debug=False, lang=None):
     from urllib.parse import quote
 
     s = s.replace("\\`", "\u2022")
-
     ranges = [[m.start(), m.end()] for m in re.finditer("`.*?`", s)]
     s = s.replace("`", "")
-
     s = s.replace("\u2022", "`")
 
-    javascript = "setCode('%s'); " % quote(s)
+    javascript = "setCode('%s', '%s'); " % (quote(s), lang)
 
+    # Highlight code
     for i in range(len(ranges)):
         javascript += (
             'editor.markText(editor.posFromIndex(%d), editor.posFromIndex(%d), {className: "highlight"});'
@@ -44,32 +43,24 @@ def gen_code_image(s, out_file, line_no=True, debug=False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("file", type=str, help="input source file")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("file", type=str, help="input source file")
+    # args = parser.parse_args()
+    # file = args.file
 
-    file = args.file
+    files = get_files(cd=True)
 
-    out_dir = os.path.join(os.path.dirname(file), "out")
-    mkdir(out_dir)
+    for file in files:
+        out_dir = os.path.join(os.path.dirname(file), "out")
+        mkdir(out_dir)
 
-    with open(file, encoding="utf-8", newline="\n") as f:
-        s = f.read().replace("\r", "")
+        _, ext = os.path.splitext(file)
+        with open(file, encoding="utf-8", newline="\n") as f:
+            s = f.read().replace("\r", "")
 
-    if 0:  # Debug
-        out_file = os.path.join(
-            out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
-        )
-        gen_code_image(s, out_file, debug=True)
-
-    else:
         out_file = os.path.join(
             out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
         )
 
-        gen_code_image(s, out_file)
-
-        # parts = s.split("\n\n")
-        # for i in range(len(parts)):
-        #     s = "\n\n".join(parts[0 : i + 1])
+        gen_code_image(s, out_file, lang=ext.lstrip("."))
 

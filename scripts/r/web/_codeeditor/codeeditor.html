@@ -9,6 +9,8 @@
     <script src="node_modules/codemirror/lib/codemirror.js"></script>
     <script src="node_modules/codemirror/mode/python/python.js"></script>
     <script src="node_modules/codemirror/mode/clike/clike.js"></script>
+    <script src="node_modules/codemirror/mode/clike/clike.js"></script>
+    <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
     <script src="node_modules/codemirror/addon/selection/active-line.js"></script>
     <script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
     <style>
@@ -105,7 +107,6 @@
 
     <script>
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-        // mode: { name: "python", version: 3, singleLineStringErrors: false },
         mode: "text/x-c++src",
         lineNumbers: true,
         styleActiveLine: true,
@@ -115,10 +116,18 @@
       window.editor = editor;
       editor.setOption("theme", "vscode-dark");
 
-      window.setCode = (s) => {
+      window.setCode = (s, lang) => {
         editor.setValue(decodeURIComponent(s));
         const scrollInfo = editor.getScrollInfo();
         editor.scrollTo(null, scrollInfo.height);
+
+        if (lang === "js") {
+          editor.setOption("mode", "text/javascript");
+        } else if (lang == "c++") {
+          editor.setOption("mode", "text/x-c++src");
+        } else if (lang == "py") {
+          editor.setOption("mode", "python");
+        }
       };
       window.markText = (i0, j0, i1, j1) => {
         editor.markText(
