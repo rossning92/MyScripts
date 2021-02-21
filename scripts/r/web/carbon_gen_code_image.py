@@ -4,7 +4,7 @@ IMG_SIZE = (1920, 1080)
 BORDER = 2
 
 
-def gen_code_image(code, out_file, line_no=True):
+def gen_code_image(file, out_file, line_no=True):
     with open(expanduser("~/.carbon-now.json"), "w") as f:
         json.dump(
             {
@@ -32,34 +32,7 @@ def gen_code_image(code, out_file, line_no=True):
             f,
         )
 
-    # HACK: add space before each line
-    code = "\n".join(["  %s" % x for x in code.splitlines()])
-
-    tmp_file = write_temp_file(code, ".py")
-
-    call2(f"carbon-now {tmp_file} -t {os.path.splitext(out_file)[0]}")
-
-    from PIL import Image, ImageDraw
-
-    im2 = Image.open(out_file)
-    im2 = im2.crop((BORDER, BORDER, im2.width - 2 * BORDER, im2.height - 2 * BORDER))
-
-    top_left = (
-        (IMG_SIZE[0] - im2.width) // 2 + BORDER,
-        (IMG_SIZE[1] - im2.height) // 2 + BORDER,
-    )
-    print(top_left)
-
-    im = Image.new("RGB", IMG_SIZE)
-
-    draw = ImageDraw.Draw(im)
-    draw.rectangle((0, 0, IMG_SIZE[0], IMG_SIZE[1]), fill=0xC1B7AD)
-    del draw
-
-    im.paste(im2, top_left)
-
-    # write to stdout
-    im.save(out_file)
+    call2(f"carbon-now {file} -t {os.path.splitext(out_file)[0]}")
 
 
 setup_nodejs(install=True)
@@ -71,8 +44,8 @@ except:
 
 if __name__ == "__main__":
     file = get_files(cd=True)[0]
-    s = open(file, encoding="utf-8").read()
-
     out_file = os.path.splitext(file)[0] + ".png"
-    gen_code_image(s, out_file)
-    call2(f"start {out_file}")
+
+    gen_code_image(file, out_file)
+
+    # call2(f"start {out_file}")
