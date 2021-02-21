@@ -28,7 +28,7 @@ async function openFileUnderCursor() {
   if (!editor) return;
 
   const activeFile = vscode.window.activeTextEditor.document.fileName;
-  if (/animation[\\\/][a-zA-Z-_]+\.js$/.test(activeFile)) {
+  if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
     startAnimationServer(activeFile);
   } else if (isDocumentActive()) {
     if (editor.selection.isEmpty) {
