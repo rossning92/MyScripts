@@ -6,7 +6,7 @@ import argparse
 
 @file_cache
 def gen_code_image_from_file(file, out_file, mtime=None):
-    with open(file, "r", encoding="utf-8") as f:
+    with open(file, "r", encoding="utf-8", newline="\n") as f:
         s = f.read()
         gen_code_image(s, out_file)
 
@@ -14,8 +14,12 @@ def gen_code_image_from_file(file, out_file, mtime=None):
 def gen_code_image(s, out_file, line_no=True, debug=False):
     from urllib.parse import quote
 
+    s = s.replace("\\`", "\u2022")
+
     ranges = [[m.start(), m.end()] for m in re.finditer("`.*?`", s)]
     s = s.replace("`", "")
+
+    s = s.replace("\u2022", "`")
 
     javascript = "setCode('%s'); " % quote(s)
 
@@ -50,7 +54,7 @@ if __name__ == "__main__":
     mkdir(out_dir)
 
     with open(file, encoding="utf-8", newline="\n") as f:
-        s = f.read()
+        s = f.read().replace("\r", "")
 
     if 0:  # Debug
         out_file = os.path.join(

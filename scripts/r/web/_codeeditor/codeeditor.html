@@ -13,16 +13,18 @@
     <script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
     <style>
       body {
-        background-color: #1e1e1e;
-        width: 1920px;
-        height: 1080px;
+        /* width: 1920px;
+        height: 1080px; */
         font-size: 30px;
 
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        overflow: hidden;
+        display: table;
+        /* flex-direction: column;
+        justify-content: center; */
+        /* overflow: hidden; */
+        margin: 0;
       }
+
+      /* window frames
       .page {
         box-shadow: 0 0 0.22em 0 rgba(0, 0, 0, 0.3);
         border-radius: 0.14em;
@@ -59,30 +61,47 @@
       }
       .page .spacer {
         height: 400px;
-      }
+      } */
+
       .highlight {
         background-color: #fdcb6e;
         color: #000000 !important;
       }
+
       .CodeMirror {
-        height: 1080px;
+        /* max-width: 1000px; */
+        height: auto;
+        font-family: Consolas, "microsoft yahei", monospace;
       }
       .CodeMirror-lines {
-        padding-top: 40px;
+        padding: 1em 1em 1em 0;
       }
+      .CodeMirror-gutters {
+        border-right: 0 !important;
+        background-color: transparent !important;
+      }
+      .CodeMirror-linenumber {
+        color: #858585 !important;
+      }
+      /* .CodeMirror-scroll {
+        height: auto;
+        overflow-y: hidden;
+        overflow-x: auto;
+      } */
     </style>
   </head>
   <body>
-    <div class="page2">
-      <!-- <div class="titlebar">
-      <div class="dot close"></div>
-      <div class="dot minimise"></div>
-      <div class="dot maximise"></div>
+    <!-- <div class="page2">
+      <div class="titlebar">
+        <div class="dot close"></div>
+        <div class="dot minimise"></div>
+        <div class="dot maximise"></div>
+      </div>
     </div> -->
-      <form>
-        <textarea id="code" name="code">please input code here</textarea>
-      </form>
-    </div>
+
+    <form>
+      <textarea id="code" name="code">please input code here</textarea>
+    </form>
 
     <script>
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
