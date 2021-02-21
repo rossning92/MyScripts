@@ -157,7 +157,7 @@ def ffmpeg(
     nvenc=True,
     extra_args=None,
     quiet=False,
-    crf=None,
+    crf=19,
     preset="slow",
     bitrate=None,
     max_size_mb=None,

@@ -538,13 +538,9 @@ def overlay(
 
 
 @api
-def comment(text, pos=(960, 200), duration=4, track="overlay", **kwargs):
+def comment(text, pos=(960, 100), duration=4, track="overlay", **kwargs):
     md(
-        '<span style="color:#f6e58d;font-size:0.8em">%s</span>' % text,
-        pos=pos,
-        duration=duration,
-        track=track,
-        **kwargs,
+        text, pos=pos, duration=duration, track=track, **kwargs,
     )
 
 
