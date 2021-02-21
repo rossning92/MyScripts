@@ -10,17 +10,19 @@ import urllib
 # Fix for `callFunctionOn: Target closed.`
 # pip3 install websockets==6.0 --force-reinstall
 
+PORT = 5555
+
 
 def render_animation(file, content_base=None):
     print("Render animation: %s..." % file)
 
     assert file.lower().endswith(".js")
 
-    ps = start_server(file, content_base=content_base)
+    ps = start_server(file, content_base=content_base, port=PORT)
 
     name = os.path.basename(os.path.splitext(file)[0])
 
-    url = "http://localhost:5555/%s.html" % name
+    url = "http://localhost:%d/%s.html" % (PORT, name)
 
     async def main():
         browser = await launch(
@@ -47,6 +49,9 @@ def render_animation(file, content_base=None):
 
         while await page.evaluate("() => window.movy.isRendering"):
             time.sleep(0.5)
+
+        # Make sure the video file is saved
+        time.sleep(1)
 
         await browser.close()
 

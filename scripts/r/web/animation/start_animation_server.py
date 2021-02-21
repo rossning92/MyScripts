@@ -2,16 +2,20 @@ from _shutil import *
 import argparse
 
 
-def start_server(file=None, content_base=None):
+def start_server(file=None, content_base=None, port=None):
     MOVY_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "movy")
 
     if not os.path.exists(os.path.join(MOVY_ROOT, "node_modules")):
         call_echo(["yarn"], cwd=MOVY_ROOT)
 
     launch_script = os.path.join(MOVY_ROOT, "bin", "movy.js")
-    ps = subprocess.Popen(
-        ["node", launch_script, "--port", "5555", "--no-open", file], cwd=MOVY_ROOT
-    )
+
+    args = ["node", launch_script]
+    if port is not None:
+        args += ["--port", "%d" % port, "--no-open"]
+    args += [file]
+
+    ps = subprocess.Popen(args, cwd=MOVY_ROOT)
     return ps
 
 

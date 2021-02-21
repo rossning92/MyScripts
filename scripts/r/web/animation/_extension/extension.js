@@ -168,6 +168,8 @@ function getFiles(dir, filter, files = [], dirs = []) {
 function getCompletedExpression(file) {
   if (file.endsWith(".md")) {
     return ` include('${file}') `;
+  } else if (file.endsWith(".js")) {
+    return ` anim('${file}') `;
   } else if (/\.(c|cpp|py|text)$/g.test(file)) {
     return ` codef('${file}') `;
   } else if (/overlay\//g.test(file)) {
@@ -198,7 +200,7 @@ function registerAutoComplete(context) {
             // Ignore current file
             return false;
           } else {
-            return /\.(png|jpg|mp4|webm|gif|mp3|md|pptx|cpp|c|py)$/g.test(x);
+            return /\.(png|jpg|mp4|webm|gif|mp3|md|pptx|cpp|c|py|js)$/g.test(x);
           }
         };
 
