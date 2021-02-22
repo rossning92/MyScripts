@@ -35,6 +35,16 @@ SCRIPT_EXTENSIONS = {
 }
 
 
+def get_data_dir():
+    app_dir = os.path.abspath(os.path.dirname(__file__) + "/../")
+    folder = os.path.join(app_dir, "data", platform.node())
+    os.makedirs(folder, exist_ok=True)
+    return folder
+
+
+SETTING_LAST_SCRIPT = os.path.join(os.path.join(get_data_dir(), "last_script.json"))
+
+
 def set_console_title(title):
     if platform.system() == "Windows":
         old = get_console_title()
@@ -107,15 +117,8 @@ def _args_to_str(args):
     return " ".join(args)
 
 
-def get_data_folder():
-    app_dir = os.path.abspath(os.path.dirname(__file__) + "/../")
-    folder = os.path.join(app_dir, "data", platform.node())
-    os.makedirs(folder, exist_ok=True)
-    return folder
-
-
 def get_variable_file():
-    variable_file = os.path.join(get_data_folder(), "variables.json")
+    variable_file = os.path.join(get_data_dir(), "variables.json")
     return variable_file
 
 
@@ -410,6 +413,10 @@ class Script:
         )
         ext = self.real_ext if self.real_ext else self.ext
 
+        # Save last executed script
+        with open(SETTING_LAST_SCRIPT, "w") as f:
+            json.dump({"file": script_path}, f)
+
         if ext == ".md":
             # with open(script_path, "r", encoding="utf-8") as f:
             #     set_clip(f.read())
@@ -579,15 +586,7 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = (
-                    args_activate
-                    + [
-                        python_exec,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+                args = args_activate + [python_exec, run_py, python_file,] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -809,7 +808,7 @@ def find_script(script_name, search_dir=None):
 
 
 def run_script(
-    script_name,
+    file=None,
     variables=None,
     new_window=False,
     console_title=None,
@@ -817,10 +816,18 @@ def run_script(
     overwrite_meta=None,
     args=None,
 ):
-    print2("RunScript: %s: %s" % (script_name, str(args)), color="green")
-    script_path = find_script(script_name)
+    if file is None:
+        if os.path.exists(SETTING_LAST_SCRIPT):
+            with open(SETTING_LAST_SCRIPT, "r") as f:
+                data = json.load(f)
+                file = data["file"]
+        else:
+            raise ValueError("file cannot be None.")
+
+    print2("RunScript: %s: %s" % (file, str(args)), color="green")
+    script_path = find_script(file)
     if script_path is None:
-        raise Exception('[ERROR] Cannot find script: "%s"' % script_name)
+        raise Exception('[ERROR] Cannot find script: "%s"' % file)
 
     script = Script(script_path)
 
@@ -845,7 +852,7 @@ def run_script(
 
     script.execute(restart_instance=restart_instance, new_window=new_window, args=args)
     if script.return_code != 0:
-        raise Exception("[ERROR] %s returns %d" % (script_name, script.return_code))
+        raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
 
     # Restore title
     if console_title and platform.system() == "Windows":

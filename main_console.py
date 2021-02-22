@@ -256,6 +256,12 @@ else
 }
 }
 
+#!r::Run cmd /c """
+                + sys.executable
+                + ' "'
+                + os.path.realpath("bin/run_script.py")
+                + """" --new_window=None --console_title "%name%" --restart_instance 0 || pause
+
 #If not WinActive("ahk_exe vncviewer.exe")
 """
                 + htk_definitions
