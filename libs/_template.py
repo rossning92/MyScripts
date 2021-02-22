@@ -17,13 +17,7 @@ class Template:
                     tokens.append((False, token))
             else:
                 # code block
-                # find out the indentation
-                lines = token.splitlines()
-                indent = min([len(l) - len(l.lstrip()) for l in lines if l.strip()])
-                realigned = "\n".join(l[indent:] for l in lines)
-                tokens.append(
-                    (True, compile(realigned, "<template> %s" % realigned[:20], "exec"))
-                )
+                tokens.append((True, token))
         return tokens
 
     def render(self, context=None, **kwargs):
@@ -50,7 +44,9 @@ class Template:
         result = []
         for is_code, token in self.tokens:
             if is_code:
-                exec(token, global_context)
+                ret = eval(token, global_context)
+                if ret is not None:
+                    result.append(ret)
             else:
                 result.append(token)
         return "".join(result)

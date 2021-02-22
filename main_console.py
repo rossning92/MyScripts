@@ -11,6 +11,7 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 import run_python
 from _script import *
 from _term import *
+from _template import render_template_file
 
 
 GLOBAL_HOTKEY = os.path.join(tempfile.gettempdir(), "GlobalHotkey.ahk")
@@ -230,44 +231,15 @@ def register_global_hotkeys(scripts):
                         f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
                     )
 
-            # TODO: use templates
-            f.write(
-                """#SingleInstance, Force
-#include libs/ahk/ExplorerHelper.ahk
-; SetTitleMatchMode, 2
-RunScript(name, path)
-{
-if WinExist(name)
-{
-    WinActivate % name
-}
-else if WinExist("Administrator:  " name)
-{
-    WinActivate % "Administrator:  " name
-}
-else
-{
-    UpdateExplorerInfo()
-    Run cmd /c """
-                + sys.executable
-                + ' "'
-                + os.path.realpath("bin/run_script.py")
-                + """" --new_window=None --console_title "%name%" --restart_instance 0 "%path%" || pause
-}
-}
+            run_script = 'cmd /c %s "%s"' % (
+                sys.executable,
+                os.path.realpath("bin/run_script.py"),
+            )
 
-#!r::Run cmd /c """
-                + sys.executable
-                + ' "'
-                + os.path.realpath("bin/run_script.py")
-                + """" --new_window=None --console_title "%name%" --restart_instance 0 || pause
-
-#If not WinActive("ahk_exe vncviewer.exe")
-"""
-                + htk_definitions
-                + """
-#If
-"""
+            render_template_file(
+                "GlobalHotkey.ahk",
+                GLOBAL_HOTKEY,
+                context={"run_script": run_script, "htk_definitions": htk_definitions},
             )
 
         subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
