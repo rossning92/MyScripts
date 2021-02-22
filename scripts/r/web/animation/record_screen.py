@@ -77,6 +77,7 @@ class ShadowPlayScreenRecorder:
 
     def start_record(self):
         pyautogui.hotkey("alt", "f9")
+        time.sleep(1)
 
     def stop_record(self):
         pyautogui.hotkey("alt", "f9")
@@ -109,6 +110,8 @@ class ShadowPlayScreenRecorder:
 
         move_file(src_file, file)
 
+
+recorder = ShadowPlayScreenRecorder()
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")

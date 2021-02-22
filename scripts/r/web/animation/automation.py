@@ -12,6 +12,23 @@ INTERVAL_NEW_LINE = 0.1
 pyautogui.PAUSE = 0
 
 
+def set_window_pos(x, y, w, h):
+    exec_ahk('#include <Window>\nSetWindowPos("A", %d, %d, %d, %d)\n' % (x, y, w, h))
+
+
+def type_text(text):
+    for ch in text:
+        if ch == "\n":
+            sleep(0.2)
+            pyautogui.write("\n")
+            time.sleep(0.1)
+        elif ch == " ":
+            pyautogui.write(" ")
+        else:
+            time.sleep(random.uniform(0.05, 0.01))
+            pyautogui.write(ch)
+
+
 def modify_code(*files):
     # Initialize with first file content
     with open(files[0], "r", encoding="utf-8", newline="\n") as f:
