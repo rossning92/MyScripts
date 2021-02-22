@@ -14,6 +14,7 @@ pyautogui.PAUSE = 0
 
 def set_window_pos(x, y, w, h):
     exec_ahk('#include <Window>\nSetWindowPos("A", %d, %d, %d, %d)\n' % (x, y, w, h))
+    sleep(0.5)
 
 
 def type_text(text):
