@@ -91,6 +91,9 @@ class ShadowPlayScreenRecorder:
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
         src_file = files[0]
 
+        if overwrite and os.path.exists(file):
+            os.remove(file)
+
         if self.region is not None:
             tmp_file = get_temp_file_name(".mp4")
             ffmpeg(
