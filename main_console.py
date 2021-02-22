@@ -14,7 +14,7 @@ from _term import *
 from _template import render_template_file
 
 
-GLOBAL_HOTKEY = os.path.join(tempfile.gettempdir(), "GlobalHotkey.ahk")
+GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 
 
 def execute_script(script, close_on_exit=None):
