@@ -1,6 +1,6 @@
 from _shutil import *
 import re
-from _setup_android_env import *
+from _android import setup_android_env
 from _android import *
 
 file = os.environ['_FILE']

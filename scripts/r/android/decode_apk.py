@@ -1,6 +1,6 @@
-from _setup_android_env import *
+from _android import setup_android_env
 from _shutil import *
 
 f = get_files(cd=True)[0]
 setup_android_env()
-call(['apktool', 'decode', f])
+call_echo(["apktool", "decode", f])
