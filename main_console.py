@@ -217,30 +217,30 @@ def add_keyboard_hooks(keyboard_hooks):
 def register_global_hotkeys(scripts):
     if platform.system() == "Windows":
         htk_definitions = ""
-        with open(GLOBAL_HOTKEY, "w") as f:
-            for item in scripts:
-                hotkey = item.meta["globalHotkey"]
-                if hotkey is not None:
-                    print("Global Hotkey: %s: %s" % (hotkey, item.name))
-                    hotkey = hotkey.replace("Ctrl+", "^")
-                    hotkey = hotkey.replace("Alt+", "!")
-                    hotkey = hotkey.replace("Shift+", "+")
-                    hotkey = hotkey.replace("Win+", "#")
 
-                    htk_definitions += (
-                        f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
-                    )
+        for item in scripts:
+            hotkey = item.meta["globalHotkey"]
+            if hotkey is not None:
+                print("Global Hotkey: %s: %s" % (hotkey, item.name))
+                hotkey = hotkey.replace("Ctrl+", "^")
+                hotkey = hotkey.replace("Alt+", "!")
+                hotkey = hotkey.replace("Shift+", "+")
+                hotkey = hotkey.replace("Win+", "#")
 
-            run_script = 'cmd /c %s "%s"' % (
-                sys.executable,
-                os.path.realpath("bin/run_script.py"),
-            )
+                htk_definitions += (
+                    f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
+                )
 
-            render_template_file(
-                "GlobalHotkey.ahk",
-                GLOBAL_HOTKEY,
-                context={"run_script": run_script, "htk_definitions": htk_definitions},
-            )
+        run_script = 'cmd /c %s "%s"' % (
+            sys.executable,
+            os.path.realpath("bin/run_script.py"),
+        )
+
+        render_template_file(
+            "GlobalHotkey.ahk",
+            GLOBAL_HOTKEY,
+            context={"run_script": run_script, "htk_definitions": htk_definitions},
+        )
 
         subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
 
