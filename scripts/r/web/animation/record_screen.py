@@ -76,10 +76,12 @@ class ShadowPlayScreenRecorder:
         self.region = region
 
     def start_record(self):
+        print2("Start record...")
         pyautogui.hotkey("alt", "f9")
         time.sleep(1)
 
     def stop_record(self):
+        print2("Stop record...")
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)
 

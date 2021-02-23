@@ -3,7 +3,7 @@ import keyboard
 from _shutil import *
 import pyautogui
 import random
-from r.web.animation.record_screen import CapturaScreenRecorder
+from r.web.animation.record_screen import recorder
 
 
 INTERVAL_NEW_FILE = 1
@@ -15,6 +15,10 @@ pyautogui.PAUSE = 0
 def set_window_pos(x, y, w, h):
     exec_ahk('#include <Window>\nSetWindowPos("A", %d, %d, %d, %d)\n' % (x, y, w, h))
     sleep(0.5)
+
+
+def send_hotkey(modifier, key):
+    pyautogui.hotkey(modifier, key)
 
 
 def type_text(text):
@@ -30,7 +34,7 @@ def type_text(text):
             pyautogui.write(ch)
 
 
-def modify_code(*files):
+def modify_code(*files, on_line_end=None, on_load=None):
     # Initialize with first file content
     with open(files[0], "r", encoding="utf-8", newline="\n") as f:
         s = f.read()
@@ -61,6 +65,8 @@ def modify_code(*files):
     def send_line(line):
         set_clip(line)
         pyautogui.hotkey("ctrl", "v")
+        if on_line_end:
+            on_line_end()
         time.sleep(INTERVAL_NEW_LINE)
 
     last_mode = None
@@ -96,8 +102,13 @@ def modify_code(*files):
                 last_pos = pos
 
                 if seek:
-                    time.sleep(1)
+                    print("Seek finished...")
                     seek = False
+
+                    if on_load:
+                        on_load()
+
+                    time.sleep(0.5)
 
             # HACK: always put add an empty line after
             # if last_mode == "+" and mode != "+":
@@ -130,8 +141,6 @@ def modify_code(*files):
 
 if __name__ == "__main__":
     cd(r"C:\Users\Ross\Google Drive\KidslogicVideo\ep30\sonic-pi")
-
-    recorder = CapturaScreenRecorder()
 
     while True:
         ch = getch()
