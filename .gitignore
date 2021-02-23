@@ -13,3 +13,4 @@ build/
 *.pyc
 /.vscode
 node_modules/
+*.log
