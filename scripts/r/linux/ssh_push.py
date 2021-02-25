@@ -1,9 +1,9 @@
 from _shutil import *
 
-if '{{_DST_DIR}}':
-    dst = '{{_DST_DIR}}'
+if "{{_DST_DIR}}":
+    dst = "{{_DST_DIR}}"
 else:
-    dst = '/home/{{SSH_USER}}'
+    dst = "/home/{{SSH_USER}}"
 
 call_echo(
     [
@@ -14,4 +14,3 @@ call_echo(
         "{{SSH_USER}}@{{SSH_HOST}}:" + dst,
     ]
 )
-
