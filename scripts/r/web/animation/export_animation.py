@@ -936,13 +936,14 @@ def slide(
 
 
 @api
-def md(s, track="md", **kwargs):
+def md(s, track="md", move_playhead=False, **kwargs):
     slide(
         s,
         track=track,
         template="markdown.html",
         fadein=VIDEO_CROSSFADE_DURATION,
         fadeout=VIDEO_CROSSFADE_DURATION,
+        move_playhead=move_playhead,
         **kwargs,
     )
 

@@ -7,7 +7,7 @@ from r.web.animation.record_screen import recorder
 
 
 INTERVAL_NEW_FILE = 1
-INTERVAL_NEW_LINE = 0.1
+
 
 pyautogui.PAUSE = 0
 
@@ -34,7 +34,9 @@ def type_text(text):
             pyautogui.write(ch)
 
 
-def modify_code(*files, on_line_end=None, on_load=None):
+def modify_code(
+    *files, on_new_line=None, on_load=None, on_complete=None, interval_new_line=0.1
+):
     # Initialize with first file content
     with open(files[0], "r", encoding="utf-8", newline="\n") as f:
         s = f.read()
@@ -65,9 +67,9 @@ def modify_code(*files, on_line_end=None, on_load=None):
     def send_line(line):
         set_clip(line)
         pyautogui.hotkey("ctrl", "v")
-        if on_line_end:
-            on_line_end()
-        time.sleep(INTERVAL_NEW_LINE)
+        if on_new_line:
+            on_new_line()
+        time.sleep(interval_new_line)
 
     last_mode = None
     last_pos = 0
@@ -94,10 +96,7 @@ def modify_code(*files, on_line_end=None, on_load=None):
                     else:
                         pyautogui.hotkey("up")
 
-                    if seek:
-                        time.sleep(0.02)
-                    else:
-                        time.sleep(0.1)
+                    time.sleep(0.02)
 
                 last_pos = pos
 
@@ -137,6 +136,9 @@ def modify_code(*files, on_line_end=None, on_load=None):
             last_mode = mode
 
         prev_content = content
+
+    if on_complete is not None:
+        on_complete()
 
 
 if __name__ == "__main__":
