@@ -69,6 +69,7 @@ SetWindowPos(WinTitle, X := "", Y := "", W := "", H := "", forceResize := False)
         Return False
     WinGet, hWnd, ID, %WinTitle% ; taken from Coco's version
     WinRestore, ahk_id %hWnd%
+    WinActivate, ahk_id %hWnd%
     If !(hWnd)
         Return False
     deltaLeft := deltaTop := deltaRight := deltaBottom := 0

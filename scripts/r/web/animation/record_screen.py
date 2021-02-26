@@ -85,22 +85,22 @@ class ShadowPlayScreenRecorder:
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)
 
-    def save_record(self, file, overwrite=False):
+    def save_record(self, file, overwrite=False, no_audio=False):
         # Get recorded video file
         files = glob.glob(
             os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"), recursive=True,
         )
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
-        src_file = files[0]
+        in_file = files[0]
 
         if overwrite and os.path.exists(file):
             os.remove(file)
 
         if self.region is not None:
-            tmp_file = get_temp_file_name(".mp4")
+            out_file = get_temp_file_name(".mp4")
             ffmpeg(
-                src_file,
-                out_file=tmp_file,
+                in_file,
+                out_file=out_file,
                 extra_args=[
                     "-filter:v",
                     "crop=%d:%d:%d:%d"
@@ -110,10 +110,16 @@ class ShadowPlayScreenRecorder:
                 no_audio=True,
                 nvenc=True,
             )
-            os.remove(src_file)
-            src_file = tmp_file
+            os.remove(in_file)
+            in_file = out_file
 
-        move_file(src_file, file)
+        if no_audio:
+            out_file = get_temp_file_name(".mp4")
+            remove_audio(in_file, out_file)
+            os.remove(in_file)
+            in_file = out_file
+
+        move_file(in_file, file)
 
 
 recorder = ShadowPlayScreenRecorder()
@@ -139,15 +145,11 @@ if __name__ == "__main__":
     # Save file
     name = input("input file name (no ext): ")
     if name:
-        dst_file = get_temp_file_name(".mp4")
-        sr.save_record(dst_file)
+        out_file = os.path.join(out_dir, "%s.mp4" % slugify(name))
+        sr.save_record(out_file, no_audio=True)
 
-        src_file = dst_file
-        dst_file = os.path.join(out_dir, "%s.mp4" % slugify(name))
-        remove_audio(src_file, dst_file)
-
-        print2("File saved: %s" % dst_file, color="green")
-        call_echo(["mpv", dst_file])
+        print2("File saved: %s" % out_file, color="green")
+        call_echo(["mpv", out_file])
         # edit_video(dst_file)
 
     sleep(1)

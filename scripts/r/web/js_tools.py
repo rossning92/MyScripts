@@ -1,6 +1,7 @@
 from _shutil import *
 import pathlib
 from _code import prepend_line, patch_code
+from _editor import open_in_vscode
 
 OVERWRITE = bool("{{_OVERWRITE}}")
 
@@ -18,9 +19,12 @@ def add_packages(packages, dev=False):
     with open("package.json", "r") as f:
         data = json.load(f)
 
-    existing_packages = (
-        data["devDependencies"].keys() if dev else data["dependencies"].keys()
-    )
+    try:
+        existing_packages = (
+            data["devDependencies"].keys() if dev else data["dependencies"].keys()
+        )
+    except KeyError:
+        existing_packages = []
 
     for pkg in packages:
         if pkg not in existing_packages:
@@ -80,7 +84,7 @@ module.exports = {
 
     if not os.path.exists(index_js):
         os.makedirs(os.path.dirname(index_js), exist_ok=True)
-        pathlib.Path(index_js).touch()
+        # pathlib.Path(index_js).touch()
 
     # webpack_start()
 
@@ -107,23 +111,8 @@ def add_script_to_package(name, script):
 
 
 @menu_item(key="r")
-def add_react():
+def add_react(index_js=REACT_INDEX_JS):
     add_webpack(index_js=REACT_INDEX_JS)
-
-    # if os.path.exists("package.json"):
-    #     with open("package.json", "r") as f:
-    #         s = f.read()
-
-    #     if "react-scripts start" in s:
-    #         call_echo("yarn start")
-    #         return
-
-    #     else:
-    #         print2("package.json will be removed (y/n)", color="green")
-    #         ch = getch()
-    #         if ch != "y":
-    #             return
-    #         os.remove("package.json")
 
     # # https://create-react-app.dev/docs/getting-started/
     # call_echo("yarn create react-app client")
@@ -286,6 +275,11 @@ mongoose
 """,
         count=1,
     )
+
+
+@menu_item(key="v")
+def open_vscode():
+    open_in_vscode(os.getcwd())
 
 
 if __name__ == "__main__":

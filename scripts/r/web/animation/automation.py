@@ -54,17 +54,19 @@ def modify_code(
         set_clip("\n")
         pyautogui.hotkey("ctrl", "v")
 
-    def simulate_char(ch):
+    def send_char(ch):
         if ch == "\n":
             send_enter()
             time.sleep(0.1)
         elif ch == " ":
             pyautogui.write(" ")
         else:
-            time.sleep(random.uniform(0.02, 0.05) + 0.1)
+            time.sleep(random.uniform(0.02, 0.05))
             pyautogui.write(ch)
 
     def send_line(line):
+        # for ch in line:
+        #     send_char(ch)
         set_clip(line)
         pyautogui.hotkey("ctrl", "v")
         if on_new_line:
@@ -96,7 +98,11 @@ def modify_code(
                     else:
                         pyautogui.hotkey("up")
 
-                    time.sleep(0.02)
+                    time.sleep(0.01)
+
+                for _ in range(15):
+                    pyautogui.hotkey("ctrl", "down")
+                    time.sleep(0.01)
 
                 last_pos = pos
 
@@ -124,11 +130,7 @@ def modify_code(
                 time.sleep(0.1)
                 print(s.rstrip(), pos)
             elif mode == "+":
-                if 1:
-                    send_line(line)
-                else:
-                    for ch in line:
-                        simulate_char(ch)
+                send_line(line)
                 pos += 1
                 last_pos = pos
                 print(s.rstrip(), pos)
