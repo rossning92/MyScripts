@@ -869,7 +869,11 @@ def _add_video_clip(
     if move_playhead:  # Advance the pos
         if clip_info.duration is None:
             if clip_info.subclip:
-                dura = clip_info.subclip[1] - clip_info.subclip[0]
+                if isinstance(subclip, (int, float)):
+                    dura = clip_info.mpy_clip.duration - subclip
+                else:
+                    dura = clip_info.subclip[1] - clip_info.subclip[0]
+
             else:
                 dura = clip_info.mpy_clip.duration
         else:
