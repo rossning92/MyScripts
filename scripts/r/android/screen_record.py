@@ -8,6 +8,8 @@ def screen_record(out_file=None, max_secs=10, bit_rate="40M"):
     adb shell screenrecord /sdcard/screen_record.mp4 --time-limit 5 --bit-rate 40M
     """
 
+    TMP_RECORD_FILE = "/data/local/tmp/screen_record.mp4"
+
     print("Press Ctrl-C to stop recording...")
 
     signal.signal(signal.SIGINT, lambda a, b: None)
@@ -15,14 +17,11 @@ def screen_record(out_file=None, max_secs=10, bit_rate="40M"):
     if out_file is None:
         out_file = "Recording_%s.mp4" % get_cur_time_str()
 
-    extra_args = f"--time-limit {max_secs} --bit-rate {bit_rate}"
+    args = ["adb", "shell", "screenrecord", TMP_RECORD_FILE]
+    args += ["--time-limit", "{}".format(max_secs), "--bit-rate", "{}".format(bit_rate)]
+    subprocess.check_call(args)
 
-    call(
-        f"adb shell screenrecord /sdcard/screen_record.mp4 {extra_args}",
-        check_call=False,
-    )
-
-    call(f"adb pull /sdcard/screen_record.mp4 {out_file}")
+    subprocess.check_call(["adb", "pull", TMP_RECORD_FILE, out_file])
 
     return out_file
 
