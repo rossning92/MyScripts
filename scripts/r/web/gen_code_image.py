@@ -35,7 +35,7 @@ def gen_code_image(s, out_file, line_no=True, debug=False, lang=None):
         call_echo("yarn")
 
     webscreenshot(
-        html_file=root + "/codeeditor.html",
+        html_file=root + "/code_editor.html",
         out_file=out_file,
         javascript=javascript,
         debug=debug,

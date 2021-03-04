@@ -583,7 +583,7 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
         javascript += "showLineNumbers(%s); " % ("true" if line_no else "false")
 
         webscreenshot(
-            html_file=get_script_root() + "/r/web/_codeeditor/codeeditor.html",
+            html_file=get_script_root() + "/r/web/_codeeditor/code_editor.html",
             out_file=tmp_file,
             javascript=javascript,
             debug=debug,
