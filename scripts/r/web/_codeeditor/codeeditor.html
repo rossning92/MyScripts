@@ -9,8 +9,8 @@
     <script src="node_modules/codemirror/lib/codemirror.js"></script>
     <script src="node_modules/codemirror/mode/python/python.js"></script>
     <script src="node_modules/codemirror/mode/clike/clike.js"></script>
-    <script src="node_modules/codemirror/mode/clike/clike.js"></script>
     <script src="node_modules/codemirror/mode/javascript/javascript.js"></script>
+    <script src="node_modules/codemirror/mode/sql/sql.js"></script>
     <script src="node_modules/codemirror/addon/selection/active-line.js"></script>
     <script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
     <style>
@@ -127,6 +127,8 @@
           editor.setOption("mode", "text/x-c++src");
         } else if (lang == "py") {
           editor.setOption("mode", "python");
+        } else if (lang == "sql") {
+          editor.setOption("mode", "text/x-sql");
         }
       };
       window.markText = (i0, j0, i1, j1) => {
