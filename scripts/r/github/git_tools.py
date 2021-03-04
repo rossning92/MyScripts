@@ -75,7 +75,8 @@ def show_git_log():
             "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
             "--graph",
             "-10",
-        ]
+        ],
+        check=False,
     )
 
 
@@ -129,6 +130,11 @@ if __name__ == "__main__":
     if not os.path.exists(".gitignore"):
         with open(".gitignore", "w") as f:
             f.writelines(["/build"])
+
+    # .gitattribute
+    if not os.path.exists(".gitattributes"):
+        with open(".gitattributes", "w") as f:
+            f.writelines(["* text eol=lf"])
 
     print_status()
 

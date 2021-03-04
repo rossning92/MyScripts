@@ -55,18 +55,18 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
         "Config/DefaultEngine.ini",
         "[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]",
         [
+            "+PackageForOculusMobile=Quest",
             "+PackageForOculusMobile=Quest2",
             "bSupportsVulkan=%s" % str(vulkan),
-            "+bSupportsVulkan=%s" % str(vulkan),
             "bBuildForES2=False",
             "bBuildForES31=%s" % str(not vulkan),
             "bPackageDataInsideApk=True",
-            "MinSDKVersion=25",
+            "MinSDKVersion=23",
             "TargetSDKVersion=25",
             "bFullScreen=True",
             "bRemoveOSIG=True",
-            "+bBuildForArmV7=False",
-            "+bBuildForArm64=True",
+            "bBuildForArmV7=False",
+            "bBuildForArm64=True",
         ],
     )
 
@@ -82,18 +82,18 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
         ],
     )
 
-    _add_value(
-        "Saved/Config/Windows/Game.ini",
-        "[/Script/UnrealEd.ProjectPackagingSettings]",
-        [
-            "BuildConfiguration=PPBC_Shipping",
-        ],
-    )
+    # _add_value(
+    #     "Saved/Config/Windows/Game.ini",
+    #     "[/Script/UnrealEd.ProjectPackagingSettings]",
+    #     [
+    #         "BuildConfiguration=PPBC_Shipping",
+    #     ],
+    # )
 
 
 if __name__ == "__main__":
     config_uproject(
         r"{{UE4_PROJECT_DIR}}",
-        vulkan=bool("{{_VULKAN}}"),
-        multiview=bool("{{_MULTIVIEW}}"),
+        vulkan=not bool("{{_GL}}"),
+        multiview=not bool("{{_NO_MULTIVIEW}}"),
     )
