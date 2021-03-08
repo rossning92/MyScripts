@@ -1,7 +1,7 @@
 from _term import Menu
 import sys
 import subprocess
-from _shutil import read_lines
+from _shutil import read_lines, call_echo
 
 PKGS = {
     "@common": [
@@ -75,17 +75,6 @@ PKGS = {
     ],
 }
 
-pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
-    set([app for cate in PKGS.values() for app in cate])
-)
-idx = Menu(items=pkg_list).get_selected_index()
-if idx < 0:
-    sys.exit(1)
-
-subprocess.call(
-    'choco source add --name=chocolatey --priority=-1 -s="https://chocolatey.org/api/v2/"'
-)
-
 
 def install_package(name):
     # choco list -lo
@@ -94,16 +83,34 @@ def install_package(name):
 
     if len(lines) > 0:
         print("Upgrade `%s`..." % name)
-        subprocess.check_call(["choco", "upgrade", name, "-y"])
+        call_echo(["choco", "upgrade", name, "-y"])
     else:
         print("Install `%s`..." % name)
-        subprocess.check_call(["choco", "install", name, "-y"])
+        call_echo(["choco", "install", name, "-y"])
 
 
-if pkg_list[idx].startswith("@"):
-    for pkg in PKGS[pkg_list[idx]]:
-        install_package(pkg)
+if __name__ == "__main__":
+    pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
+        set([app for cate in PKGS.values() for app in cate])
+    )
+    idx = Menu(items=pkg_list).get_selected_index()
+    if idx < 0:
+        sys.exit(1)
 
+    call_echo(
+        [
+            "choco",
+            "source",
+            "add",
+            "--name=chocolatey",
+            "--priority=-1",
+            '-s="https://chocolatey.org/api/v2/"',
+        ]
+    )
 
-else:
-    install_package(pkg_list[idx])
+    if pkg_list[idx].startswith("@"):
+        for pkg in PKGS[pkg_list[idx]]:
+            install_package(pkg)
+
+    else:
+        install_package(pkg_list[idx])
