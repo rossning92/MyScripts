@@ -1,6 +1,7 @@
 from _term import Menu
 import sys
 import subprocess
+from _shutil import read_lines
 
 PKGS = {
     "@common": [
@@ -86,9 +87,23 @@ subprocess.call(
 )
 
 
+def install_package(name):
+    # choco list -lo
+    lines = read_lines(["choco", "list", "-lo"])
+    lines = [x for x in lines if x.startswith(name)]
+
+    if len(lines) > 0:
+        print("Upgrade `%s`..." % name)
+        subprocess.check_call(["choco", "upgrade", name, "-y"])
+    else:
+        print("Install `%s`..." % name)
+        subprocess.check_call(["choco", "install", name, "-y"])
+
+
 if pkg_list[idx].startswith("@"):
     for pkg in PKGS[pkg_list[idx]]:
-        subprocess.call("choco install %s -y" % pkg)
+        install_package(pkg)
+
 
 else:
-    subprocess.call("choco install %s -y" % pkg_list[idx])
+    install_package(pkg_list[idx])
