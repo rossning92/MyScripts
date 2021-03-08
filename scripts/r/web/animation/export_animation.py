@@ -33,8 +33,8 @@ if 1:  # Import moviepy
     from moviepy.video.tools.subtitles import SubtitlesClip
 
 
-_add_subtitle = False
-_scale = 0.25
+_add_subtitle = True
+_scale = 1
 _audio_only = False
 _impl = None
 _apis = {}
@@ -1284,18 +1284,6 @@ def tts(enabled=True):
 
 
 @api
-def final(is_final=True):
-    global _add_subtitle
-    global _scale
-    global _crossfade
-
-    if is_final:
-        _add_subtitle = True
-        _crossfade = VIDEO_CROSSFADE_DURATION
-        _scale = 1.0
-
-
-@api
 def parse_line(line):
     print2(line, color="green")
     _subtitle.append(line)
@@ -1333,7 +1321,7 @@ def include(file):
 
     cwd = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(file)))
-    _parse_text(s, apis)
+    _parse_text(s)
     os.chdir(cwd)
 
 
@@ -1374,7 +1362,7 @@ def _remove_unused_recordings(s):
                 print("WARNING: failed to remove: %s" % f)
 
 
-def _parse_text(text, apis, **kwargs):
+def _parse_text(text, apis=_apis, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1449,7 +1437,7 @@ def load_config():
     import yaml
 
     CONFIG_FILE = "config.yaml"
-    DEFAULT_CONFIG = {"final": False, "tts": False, "fps": 25}
+    DEFAULT_CONFIG = {"preview": 1, "tts": 0, "fps": 30}
 
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r") as f:
@@ -1459,9 +1447,15 @@ def load_config():
             yaml.dump(DEFAULT_CONFIG, f, default_flow_style=False)
         config = DEFAULT_CONFIG
 
-    final(config["final"])
     tts(config["tts"])
     fps(config["fps"])
+
+    global _add_subtitle
+    global _scale
+
+    if config["preview"]:
+        _add_subtitle = False
+        _scale = 0.25
 
 
 if __name__ == "__main__":
