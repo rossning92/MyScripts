@@ -47,6 +47,7 @@ FPS = 25
 VIDEO_CROSSFADE_DURATION = FADE_DURATION
 DEFAULT_AUDIO_FADING_DURATION = 0.25
 
+ignore_undefined = False
 
 if 0:
     from moviepy.config import change_settings
@@ -1380,10 +1381,13 @@ def _parse_text(text, apis=_apis, **kwargs):
             python_code = text[p + 2 : end].strip()
             p = end + 2
 
-            try:
+            if ignore_undefined:
+                try:
+                    exec(python_code, apis)
+                except NameError:  # API is not defined
+                    pass  # simply ignore
+            else:
                 exec(python_code, apis)
-            except NameError:  # API is not defined
-                pass  # simply ignore
 
             continue
 
@@ -1426,7 +1430,7 @@ def _show_stats(s):
         nonlocal total
         total += len(line)
 
-    _parse_text(s, apis={"parse_line": parse_line})
+    _parse_text(s, apis={"parse_line": parse_line}, ignore_undefined=True)
 
     total_secs = TIME_PER_CHAR * total
     print("Estimated Time: %s" % _format_time(total_secs))
@@ -1499,8 +1503,10 @@ if __name__ == "__main__":
     load_config()
 
     if args.remove_unused_recordings:
+        ignore_undefined = True
         _remove_unused_recordings(s)
     elif args.show_stats:
+        ignore_undefined = True
         _show_stats(s)
     else:
         _parse_text(s, apis=_apis)
