@@ -7,6 +7,7 @@ const os = require("os");
 
 var recorderProcess = null;
 var currentProjectDir = null;
+// let output = vscode.window.createOutputChannel("VideoEdit");
 
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
@@ -156,7 +157,7 @@ function getFiles(dir, filter, files = [], dirs = []) {
       dirs.push(filePath);
 
       // If not in excluded folders
-      if (!/(tmp)$/g.test(file)) {
+      if (!/tmp$/g.test(file)) {
         getFiles(filePath, filter, files, dirs);
       }
     } else if (filter(filePath)) {
