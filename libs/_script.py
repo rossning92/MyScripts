@@ -82,7 +82,7 @@ def wrap_wsl(commands):
     # commands = commands.replace("$", r"\$")
     # return ["bash.exe", "-c", commands]
 
-    return ["bash", tmp_sh_file]
+    return ["bash", "-c", tmp_sh_file]
 
 
 def wrap_bash_commands(commands, wsl=False, env=None):
