@@ -1180,7 +1180,6 @@ def _export_video(resolution=(1920, 1080)):
     # final_clip.show(10.5, interactive=True)
 
     os.makedirs("tmp/out", exist_ok=True)
-    out_filename = "tmp/out/" + get_time_str()
 
     if _audio_only:
         final_audio_clip.fps = 44100
@@ -1307,8 +1306,10 @@ def _convert_to_readable_time(seconds):
 
 
 def _write_timestamp(t, section_name):
+    os.makedirs(os.path.dirname(out_filename), exist_ok=True)
+
     if not hasattr(_write_timestamp, "f"):
-        _write_timestamp.f = open("timestamp.txt", "w", encoding="utf-8")
+        _write_timestamp.f = open("%s.txt" % out_filename, "w", encoding="utf-8")
 
     _write_timestamp.f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
     _write_timestamp.f.flush()
@@ -1459,6 +1460,8 @@ def load_config():
 
 
 if __name__ == "__main__":
+    out_filename = "tmp/out/" + get_time_str()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--stdin", default=False, action="store_true")
     parser.add_argument("--proj_dir", type=str, default=None)
