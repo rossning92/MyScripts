@@ -468,27 +468,27 @@ function activate(context) {
     vscode.window.onDidChangeActiveTextEditor((status) => {})
   );
 
-  vscode.commands.registerCommand("yo.runSelection", function () {
+  vscode.commands.registerCommand("yo.runSelection", () => {
     export_animation();
   });
 
-  vscode.commands.registerCommand("yo.exportAudio", function () {
+  vscode.commands.registerCommand("yo.exportAudio", () => {
     export_animation({ extraArgs: ["--audio_only"] });
   });
 
-  vscode.commands.registerCommand("yo.startRecording", function () {
+  vscode.commands.registerCommand("yo.startRecording", () => {
     getRecorderProcess().stdin.write("r\n");
   });
 
-  vscode.commands.registerCommand("yo.stopRecording", function () {
+  vscode.commands.registerCommand("yo.stopRecording", () => {
     getRecorderProcess().stdin.write("s\n");
   });
 
-  vscode.commands.registerCommand("yo.collectNoiseProfile", function () {
+  vscode.commands.registerCommand("yo.collectNoiseProfile", () => {
     getRecorderProcess().stdin.write("n\n");
   });
 
-  vscode.commands.registerCommand("yo.openFileUnderCursor", function () {
+  vscode.commands.registerCommand("yo.openFileUnderCursor", () => {
     openFileUnderCursor();
   });
 
@@ -497,14 +497,14 @@ function activate(context) {
     insertAllClipsInFolder
   );
 
-  vscode.commands.registerCommand("yo.removeUnusedRecordings", function () {
+  vscode.commands.registerCommand("yo.removeUnusedRecordings", () => {
     export_animation({
       selectedText: false,
       extraArgs: ["--audio_only", "--remove_unused_recordings"],
     });
   });
 
-  vscode.commands.registerCommand("yo.showStats", function () {
+  vscode.commands.registerCommand("yo.showStats", () => {
     export_animation({
       extraArgs: ["--show_stats"],
     });
