@@ -81,8 +81,8 @@ function initializeDecorations(context) {
       );
     }
 
-    highlightText(/{{\s*record\(.*?\)\s*}}/g, "#c0392b");
-    highlightText(/{{\s*clip\(.*?\)\s*}}/g, "#0000ff");
+    highlightText(/{{\s*(record|bgm|sfx)\(.*?\)\s*}}/g, "#c0392b");
+    highlightText(/{{\s*(clip|overlay|md|slide)\(.*?\)\s*}}/g, "#0000ff");
   }
 
   function triggerUpdateDecorations() {

@@ -68,8 +68,9 @@ if __name__ == "__main__":
             "stkb.rewrap",
             "streetsidesoftware.code-spell-checker",
             # Markdown
-            "shd101wyy.markdown-preview-enhanced",
-            "mdickin.markdown-shortcuts",
+            # "shd101wyy.markdown-preview-enhanced",
+            # "mdickin.markdown-shortcuts",
+            "yzhang.markdown-all-in-one",
             # JS
             "esbenp.prettier-vscode",
             # Shell script
