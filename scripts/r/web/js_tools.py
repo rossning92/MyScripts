@@ -2,17 +2,15 @@ from _shutil import *
 import pathlib
 from _code import prepend_line, patch_code
 from _editor import open_in_vscode
+from _template import render_template_file
 
 OVERWRITE = bool("{{_OVERWRITE}}")
 
 REACT_INDEX_JS = "src/client/index.js"
 SERVER_INDEX_JS = "src/server/index.js"
 MODEL_DIR = "src/server/models"
-
-cd("~")
-project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
-cd(project_dir)
-print("Project dir: %s" % project_dir)
+INDEX_JS = "src/index.js"
+SCRIPT_ROOT = os.getcwd()
 
 
 def add_packages(packages, dev=False):
@@ -85,6 +83,10 @@ module.exports = {
     if not os.path.exists(index_js):
         os.makedirs(os.path.dirname(index_js), exist_ok=True)
         # pathlib.Path(index_js).touch()
+
+    add_script_to_package(
+        "start", "webpack serve --mode development --devtool inline-source-map --hot",
+    )
 
     # webpack_start()
 
@@ -277,12 +279,26 @@ mongoose
     )
 
 
+@menu_item(key="3")
+def add_threejs():
+    add_packages(["three"])
+
+    os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
+    if os.path.exists(INDEX_JS) and yes("overwrite %s" % INDEX_JS):
+        render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
+
+
 @menu_item(key="v")
 def open_vscode():
     open_in_vscode(os.getcwd())
 
 
 if __name__ == "__main__":
+    cd("~")
+    project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
+    cd(project_dir)
+    print("Project dir: %s" % project_dir)
+
     if not exists("package.json"):
         call_echo("yarn init -y")
 
