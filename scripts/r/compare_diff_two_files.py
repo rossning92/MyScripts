@@ -1,7 +1,7 @@
 from _shutil import *
 
-files = env['FILES_'].split('|')
+files = get_files()
 assert len(files) == 2
 
-vscode = r'C:\Program Files\Microsoft VS Code\Code.exe'
-call([vscode, '--diff', files[0], files[1]])
+vscode = r"C:\Program Files\Microsoft VS Code\Code.exe"
+call([vscode, "--diff", files[0], files[1]])
