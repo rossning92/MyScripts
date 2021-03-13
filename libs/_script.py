@@ -17,7 +17,7 @@ from _editor import open_in_vscode
 # TODO: move to configuration file
 SCRIPT_PATH_LIST = [
     ["", os.path.abspath(os.path.dirname(__file__) + "/../scripts")],
-    ["gdrive", expandvars(r"%USERPROFILE%\Google Drive\Scripts")],
+    ["gd", expandvars(r"%USERPROFILE%\Google Drive\Scripts")],
 ]
 
 SCRIPT_EXTENSIONS = {
