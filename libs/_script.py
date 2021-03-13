@@ -176,25 +176,22 @@ def set_variable(name, val):
 def get_python_path(script_path):
     python_path = []
 
-    if True:  # Add path directories to python path
-        script_root_path = os.path.dirname(__file__) + "/../scripts"
-        script_root_path = os.path.abspath(script_root_path)
-        script_full_path = os.path.join(os.getcwd(), script_path)
-        parent_dir = os.path.dirname(script_full_path)
+    script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+    python_path.append(script_root)
+
+    parent_dir = os.path.dirname(os.path.join(os.getcwd(), script_path))
+    python_path.append(parent_dir)
+    while parent_dir.startswith(script_root):
         python_path.append(parent_dir)
-        while True:
-            parent_dir = os.path.abspath(parent_dir + "/../")
-            if parent_dir.startswith(script_root_path):
-                python_path.append(parent_dir)
-            else:
-                break
+        parent_dir = os.path.abspath(parent_dir + "/../")
 
     python_path.append(os.path.dirname(__file__))
+
     return python_path
 
 
 def wt_wrap_args(
-    args, wsl=False, title=None, close_on_exit=True, cwd=None, font_size=10
+    args, wsl=False, title=None, close_on_exit=True, cwd=None, font_size=10, icon=None
 ):
     THEME = {
         "name": "Dracula",
@@ -244,8 +241,10 @@ def wt_wrap_args(
             "closeOnExit": "graceful" if close_on_exit else "never",
             "suppressApplicationTitle": True,
             "fontSize": font_size,
-            # "icon": "C:\\tmp\\wsl.ico",
         }
+
+        if icon is not None:
+            profile["icon"] = icon
 
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)
@@ -538,6 +537,7 @@ class Script:
                 python_exec = "python3"
 
             python_path = get_python_path(script_path)
+            print(python_path)
 
             env["PYTHONPATH"] = os.pathsep.join(python_path)
             # env["PYTHONDONTWRITEBYTECODE"] = "1"

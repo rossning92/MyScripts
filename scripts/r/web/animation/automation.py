@@ -4,7 +4,7 @@ from _shutil import *
 import pyautogui
 import random
 from r.web.animation.record_screen import recorder
-
+from _script import wt_wrap_args
 
 INTERVAL_NEW_FILE = 1
 
@@ -143,9 +143,31 @@ def modify_code(
         on_complete()
 
 
-if __name__ == "__main__":
-    cd(r"C:\Users\Ross\Google Drive\KidslogicVideo\ep30\sonic-pi")
+def simulate_typing(s):
+    for ch in s:
+        if ch in ["\n", " ", "\t"]:
+            pyautogui.write(ch)
+            time.sleep(0.1)
+        elif ch == " ":
+            pyautogui.write(" ")
+        else:
+            time.sleep(random.uniform(0.02, 0.05))
+            pyautogui.write(ch)
 
+
+def open_wt_ipython():
+    args = wt_wrap_args(
+        ["ipython"],
+        title="Command Prompt - IPython",
+        font_size=14,
+        icon=(os.path.dirname(os.path.abspath(__file__)) + "/python.ico").replace(
+            "\\", "/"
+        ),
+    )
+    call_echo(args)
+
+
+if __name__ == "__main__":
     while True:
         ch = getch()
         if ch == "d":
