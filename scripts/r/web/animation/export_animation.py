@@ -1,24 +1,26 @@
-from collections import OrderedDict, defaultdict
-from typing import Any, NamedTuple
 import argparse
 import hashlib
+import importlib
+import inspect
 import os
 import re
 import sys
 import tarfile
 import urllib
 import webbrowser
+from collections import OrderedDict, defaultdict
+from typing import Any, NamedTuple
 
 import numpy as np
-from PIL import Image
-
-import render_animation
 from _appmanager import get_executable
 from _shutil import *
-from r.audio.postprocess import process_audio_file, dynamic_audio_normalize
+from PIL import Image
+from r.audio.postprocess import dynamic_audio_normalize, process_audio_file
 from r.open_with.open_with import open_with
-from slide.generate import generate_slide
+
+import render_animation
 from render_text import render_text
+from slide.generate import generate_slide
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,9 +29,9 @@ if 1:
 
 
 if 1:  # Import moviepy
-    from moviepy.editor import *
-    import moviepy.video.fx.all as vfx
     import moviepy.audio.fx.all as afx
+    import moviepy.video.fx.all as vfx
+    from moviepy.editor import *
     from moviepy.video.tools.subtitles import SubtitlesClip
 
 
@@ -1327,16 +1329,6 @@ def include(file):
     os.chdir(cwd)
 
 
-def _default_impl():
-    # Import `index.py` if exists
-    MODULE = "index.py"
-    if os.path.exists(MODULE):
-        sys.path.append(os.getcwd())
-        exec(open(MODULE, "r", encoding="utf-8").read(), _apis)
-
-    return _apis
-
-
 def _remove_unused_recordings(s):
     used_recordings = set()
     unused_recordings = []
@@ -1483,6 +1475,13 @@ if __name__ == "__main__":
     elif args.input:
         os.chdir(os.path.dirname(args.input))
     print("Project dir: %s" % os.getcwd())
+
+    # Load custom APIs (api.py) if exists
+    if os.path.exists("api.py"):
+        sys.path.append(os.getcwd())
+        mymodule = importlib.import_module("api")
+        global_functions = inspect.getmembers(mymodule, inspect.isfunction)
+        _apis.update({k: v for k, v in global_functions})
 
     # HACK
     if args.audio_only:
