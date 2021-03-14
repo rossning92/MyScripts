@@ -271,7 +271,7 @@ def combine_images(
                 imgs[0].width * cols + spacing * (cols - 1),
                 imgs[0].height * rows + spacing * (rows - 1),
             ),
-            "black"
+            "black",
         )
 
         for c in range(len(imgs)):
@@ -328,14 +328,16 @@ def parse_file_name(s):
     return s
 
 
-def select_region(image_file):
+def select_roi2(image_file):
     import cv2
 
     im = cv2.imread(image_file)
 
     # Select ROI
-    cv2.namedWindow("Image", 2)
-    box = cv2.selectROI("Image", im, False, False)
+    cv2.namedWindow("Select ROI", cv2.WINDOW_KEEPRATIO)
+    box = cv2.selectROI("Select ROI", im, True, False)
+    cv2.destroyAllWindows()
+
     return box
 
 

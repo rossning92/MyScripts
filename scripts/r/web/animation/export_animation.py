@@ -36,7 +36,7 @@ if 1:  # Import moviepy
 
 
 _add_subtitle = True
-_scale = 1
+_global_scale = 1
 _audio_only = False
 _impl = None
 _apis = {}
@@ -78,7 +78,7 @@ class _VideoClipInfo:
         self.frame = None
         self.loop = False
         self.expand = False
-        self.scale = 1
+        self.scale = (1.0, 1.0)
 
 
 class _AudioClipInfo:
@@ -691,15 +691,15 @@ def _get_video_resolution(f):
 
 
 def _preload_mpy_clip(
-    file, scale=1, frame=None, expand=False, transparent=True, **kwargs
+    file, scale=(1.0, 1.0), frame=None, expand=False, transparent=True, **kwargs
 ):
     def load_video_file_clip(f):
         nonlocal scale
 
         # Have ffmpeg resize the frames before returning them - faster speed.
-        if scale != 1.0:
+        if scale[0] != 1.0 or scale[1] != 1.0:
             w, h = _get_video_resolution(f)
-            target_resolution = [int(h * scale), int(w * scale)]
+            target_resolution = [int(h * scale[0]), int(w * scale[1])]
         else:
             target_resolution = None
 
@@ -786,13 +786,13 @@ def _update_mpy_clip(
             for i in range(2):
                 if isinstance(pos[i], (int, float)):
                     pos[i] = pos[i] - half_size[i]
-                    pos[i] = int(_scale * pos[i])
+                    pos[i] = int(_global_scale * pos[i])
             clip = clip.set_position(pos)
         else:
             clip = clip.set_position(pos)
 
-    if scale != 1.0:
-        clip = clip.resize(scale)
+    if scale[0] != 1.0 or scale[1] != 1.0:
+        clip = clip.resize((int(clip.w * scale[0]), int(clip.h * scale[1])))
 
     return clip
 
@@ -819,8 +819,11 @@ def _add_video_clip(
     frame=None,
     loop=False,
     expand=False,
-    scale=1,
+    scale=(1.0, 1.0),
 ):
+    if isinstance(scale, (int, float)):
+        scale = (scale, scale)
+
     if (track is None and _cur_vid_track_name == "vid") or (track == "vid"):
         transparent = False
 
@@ -863,7 +866,7 @@ def _add_video_clip(
     clip_info.frame = frame
     clip_info.loop = loop
     clip_info.expand = expand
-    clip_info.scale = scale * _scale
+    clip_info.scale = (scale[0] * _global_scale, scale[1] * _global_scale)
 
     clip_info.mpy_clip = _preload_mpy_clip(**vars(clip_info))
     if type(clip_info.mpy_clip) == VideoFileClip:
@@ -956,24 +959,29 @@ def md(s, track="md", move_playhead=False, **kwargs):
 
 
 @api
-def hl(pos, track="hl", duration=2, file=None, preset=0, **kwargs):
-    PRESETS = [
-        "../assets/image/cursor.png",
-        "../assets/animation/click.tar",
-    ]
-    if file is None and preset >= 0:
-        file = PRESETS[preset]
+def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
+    # "../assets/animation/click.tar",
 
-    clip(
-        file,
-        pos=pos,
-        track=track,
-        fadein=VIDEO_CROSSFADE_DURATION,
-        fadeout=VIDEO_CROSSFADE_DURATION,
-        duration=duration,
-        move_playhead=False,
+    extra_args = {
+        "track": track,
+        "fadein": VIDEO_CROSSFADE_DURATION,
+        "fadeout": VIDEO_CROSSFADE_DURATION,
+        "duration": duration,
+        "move_playhead": False,
         **kwargs,
-    )
+    }
+
+    if pos is not None:
+        if file is None:
+            file = SCRIPT_ROOT + "/assets/mouse-cursor.png"
+        _add_video_clip(file=file, pos=pos, **extra_args)
+    elif rect is not None:
+        _add_video_clip(
+            file=SCRIPT_ROOT + "/assets/highlight-yellow.png",
+            pos=(rect[0] + 50, rect[1] + 50),
+            scale=(rect[2] / 100, rect[3] / 100),
+            **extra_args,
+        )
 
 
 def track(name="vid"):
@@ -1002,7 +1010,7 @@ def _update_clip_duration(track):
 
 
 def _export_video(resolution=(1920, 1080)):
-    resolution = [int(x * _scale) for x in resolution]
+    resolution = [int(x * _global_scale) for x in resolution]
 
     audio_clips = []
 
@@ -1448,11 +1456,11 @@ def load_config():
     fps(config["fps"])
 
     global _add_subtitle
-    global _scale
+    global _global_scale
 
     if config["preview"]:
         _add_subtitle = False
-        _scale = 0.25
+        _global_scale = 0.25
 
 
 if __name__ == "__main__":

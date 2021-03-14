@@ -49,7 +49,7 @@ for f in files:
     im = Image.open(f)
 
     if "{{_SELECT_CROP_RECT}}" and not crop:
-        box = select_region(f)
+        box = select_roi2(f)
         rect = box
         rect_normalized = None
         crop = True

@@ -171,6 +171,8 @@ function exportVideo(params) {
   }
 }
 
+var rect = [];
+
 mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
   var mousePos = mp.get_mouse_pos();
   var osdSize = mp.get_osd_size();
@@ -182,10 +184,26 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
   var outX = Math.floor(normalizedMouseX * 1920);
   var outY = Math.floor(normalizedMouseY * 1080);
 
-  var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
-
-  mp.osd_message(s);
-  setClip(s);
+  if (rect.length == 0) {
+    var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
+    mp.osd_message(s);
+    setClip(s);
+    rect.push(outX, outY);
+  } else {
+    var s =
+      "{{ hl(rect=(" +
+      rect[0] +
+      ", " +
+      rect[1] +
+      ", " +
+      (outX - rect[0]) +
+      ", " +
+      (outY - rect[1]) +
+      "), t='as') }}";
+    mp.osd_message(s);
+    setClip(s);
+    rect.length = 0;
+  }
 });
 
 mp.add_forced_key_binding("1", "resize_1080p", function () {
@@ -351,11 +369,4 @@ mp.add_forced_key_binding("s", "save_file", function () {
 mp.add_forced_key_binding("ctrl+s", "overwrite_file", function () {
   copyFile(currentFile, historyFiles[0]);
   mp.commandv("quit");
-});
-
-mp.add_forced_key_binding("S", "screenshot", function () {
-  mp.osd_message("save screenshot...");
-  var currentFile = mp.get_property_native("path");
-  var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".png";
-  mp.commandv("screenshot-to-file", outFile);
 });
