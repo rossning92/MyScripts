@@ -144,7 +144,7 @@ def modify_code(
         on_complete()
 
 
-def simulate_typing(s):
+def typing(s):
     for ch in s:
         if ch in ["\n", " ", "\t"]:
             pyautogui.write(ch)

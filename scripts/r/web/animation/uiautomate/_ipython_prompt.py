@@ -6,7 +6,7 @@ import os
 class MyPrompts(Prompts):
     def in_prompt_tokens(self, cli=None):
         return [
-            (Token.Prompt, u">>> "),
+            (Token.Other, u">>> "),
         ]
 
     def out_prompt_tokens(self):
@@ -16,8 +16,11 @@ class MyPrompts(Prompts):
 
 
 ip = get_ipython()
-# if getattr(ip, 'pt_cli', None):
 ip.prompts = MyPrompts(ip)
+
+from IPython.terminal import interactiveshell
+from pygments.token import Token
+
 
 import numpy as np
 

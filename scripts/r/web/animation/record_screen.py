@@ -14,11 +14,14 @@ class CapturaScreenRecorder:
         self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
         self.captura_ps = None
         self.region = None
+        self.file = None
 
     def set_region(self, region):
         self.region = region
 
-    def start_record(self):
+    def start_record(self, file):
+        self.file = file
+
         if self.captura_ps is not None:
             return
 
@@ -54,6 +57,8 @@ class CapturaScreenRecorder:
                 break
 
     def stop_record(self):
+        assert self.file is not None
+
         self.captura_ps
         if self.captura_ps is None:
             return
@@ -64,11 +69,11 @@ class CapturaScreenRecorder:
         print2("Recording stopped.", color="green")
         self.captura_ps = None
 
-    def save_record(self, file, overwrite=False):
-        if os.path.exists(file):
-            os.remove(file)
+        # Save file
+        if os.path.exists(self.file):
+            os.remove(self.file)
 
-        move_file(self.tmp_file, file)
+        move_file(self.tmp_file, self.file)
 
 
 class ShadowPlayScreenRecorder:
