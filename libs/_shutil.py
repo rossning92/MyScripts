@@ -84,6 +84,22 @@ def write_temp_file(text, file_path):
             return full_path
 
 
+def run_ahk(file, wait=False):
+    args = [get_ahk_exe(), file]
+
+    with open(os.devnull, "w") as fnull:
+        kwargs = {
+            "shell": True,  # shell is required for starting UIA process
+            "stdin": fnull,
+            "stdout": fnull,
+            "stderr": fnull,
+        }
+        if wait:
+            subprocess.call(args, **kwargs)
+        else:
+            return subprocess.Popen(args, **kwargs)
+
+
 def exec_ahk(script, tmp_script_path=None, wait=True):
     assert os.name == "nt"
     if not tmp_script_path:
@@ -92,19 +108,7 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
         with open(tmp_script_path, "w", encoding="utf-8") as f:
             f.write("\ufeff")  # BOM utf-8
             f.write(script)
-    args = [get_ahk_exe(), tmp_script_path]
-    if wait:
-        with open(os.devnull, "w") as FNULL:
-            subprocess.call(
-                args,
-                shell=True,  # shell is required for starting UIA process
-                stdin=FNULL,
-                stdout=FNULL,
-                stderr=FNULL,
-            )
-    else:
-        subprocess.Popen(args)
-        return args
+    run_ahk(tmp_script_path, wait=wait)
 
 
 def conemu_wrap_args(args, title=None, cwd=None, wsl=False, always_on_top=False):

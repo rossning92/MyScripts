@@ -191,7 +191,14 @@ def get_python_path(script_path):
 
 
 def wt_wrap_args(
-    args, wsl=False, title=None, close_on_exit=True, cwd=None, font_size=10, icon=None
+    args,
+    wsl=False,
+    title=None,
+    close_on_exit=True,
+    cwd=None,
+    font_size=10,
+    icon=None,
+    opacity=1.0,
 ):
     THEME = {
         "name": "Dracula",
@@ -232,6 +239,7 @@ def wt_wrap_args(
     data["profiles"]["defaults"]["fontSize"] = 10
     data["schemes"] = [THEME]
 
+    updated = True
     if title:
         filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
         profile = {
@@ -243,16 +251,19 @@ def wt_wrap_args(
             "fontSize": font_size,
         }
 
+        if opacity < 1:
+            profile["useAcrylic"] = True
+            profile["acrylicOpacity"] = opacity
+
         if icon is not None:
             profile["icon"] = icon
 
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)
             updated = True
-        else:
-            updated = profile != filtered[0]
-            if updated:
-                filtered[0].update(profile)
+        elif profile != filtered[0]:
+            filtered[0].update(profile)
+            updated = True
 
         if updated:
             # Only update when config file is changed

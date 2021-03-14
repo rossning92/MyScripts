@@ -8,6 +8,7 @@ from _script import wt_wrap_args
 
 INTERVAL_NEW_FILE = 1
 
+root = os.path.dirname(os.path.abspath(__file__))
 
 pyautogui.PAUSE = 0
 
@@ -154,17 +155,6 @@ def simulate_typing(s):
             time.sleep(random.uniform(0.02, 0.05))
             pyautogui.write(ch)
 
-
-def open_wt_ipython():
-    args = wt_wrap_args(
-        ["ipython"],
-        title="Command Prompt - IPython",
-        font_size=14,
-        icon=(os.path.dirname(os.path.abspath(__file__)) + "/python.ico").replace(
-            "\\", "/"
-        ),
-    )
-    call_echo(args)
 
 
 if __name__ == "__main__":

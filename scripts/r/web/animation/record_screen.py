@@ -65,6 +65,9 @@ class CapturaScreenRecorder:
         self.captura_ps = None
 
     def save_record(self, file, overwrite=False):
+        if os.path.exists(file):
+            os.remove(file)
+
         move_file(self.tmp_file, file)
 
 
@@ -122,7 +125,7 @@ class ShadowPlayScreenRecorder:
         move_file(in_file, file)
 
 
-recorder = ShadowPlayScreenRecorder()
+recorder = CapturaScreenRecorder()
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
