@@ -1,6 +1,7 @@
 ﻿Add-Type -AssemblyName System.speech
-$speech = New-Object System.Speech.Synthesis.SpeechSynthesizer
-$speech.SelectVoice("Microsoft Huihui Desktop");
-$speech.Rate = 3
-$speech.SetOutputToWaveFile($args[0])
-$speech.Speak($args[1])
+$synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$synth.SelectVoice("Microsoft Huihui Desktop");
+$synth.Rate = 3
+$synth.Volume = 100;  
+$synth.SetOutputToWaveFile($args[0])
+$synth.Speak($args[1])

@@ -1276,7 +1276,7 @@ def _tts():
 
         _tts_to_wav_microsoft(out_file, text)
 
-    record(out_file, postprocess=False)
+    record(out_file, postprocess=False, vol=2)
 
 
 @api

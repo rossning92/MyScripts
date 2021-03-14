@@ -21,6 +21,8 @@ def record_ipython(file, func):
     if os.path.exists(file):
         return file
 
+    call_echo(["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"])
+
     run_ahk(os.path.join(root, "show_overlay.ahk"))
     time.sleep(2)
 
@@ -47,6 +49,10 @@ def record_ipython(file, func):
 
     send_hotkey("alt", "f4")
     exec_ahk("WinClose, show_overlay.ahk")
+
+    call_echo(
+        ["powershell", "-command", "Set-WinUserLanguageList -Force 'zh-CN', 'en-US'"]
+    )
 
     return file
 

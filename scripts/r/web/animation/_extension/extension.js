@@ -35,7 +35,7 @@ async function openFileUnderCursor() {
     if (editor.selection.isEmpty) {
       const position = editor.selection.active;
       const line = editor.document.lineAt(position).text;
-      const found = line.match(/'(.*?)'/);
+      const found = line.match(/['"](.*?)['"]/);
       if (found !== null) {
         const filePath = path.resolve(path.join(getProjectDir(), found[1]));
         openFile(filePath);
