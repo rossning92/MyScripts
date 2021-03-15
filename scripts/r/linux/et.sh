@@ -16,7 +16,7 @@ export SCREENDIR="$HOME/.screen"
     cat <<EOF
 
 set timeout -1
-spawn et -x -r 5037:5037 -t 1234:22 {{SSH_USER}}@{{SSH_HOST}}:8080
+spawn et -x -r 5037:5037 -t 1234:22 {{SSH_USER}}@{{SSH_HOST}}:{{_PORT}}
 expect "password:"
 send "{{SSH_PWD}}\r"
 expect "Passcode or option"

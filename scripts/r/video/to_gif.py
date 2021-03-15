@@ -17,7 +17,19 @@ for f in get_files(cd=True):
     # Convert video to gif
     # fps=25,scale=w=-1:h=480
     out_gif = os.path.join("out", os.path.splitext(file_name)[0] + ".gif")
-    args = [f"ffmpeg", "-i", file_name, "-filter_complex"]
+    args = [f"ffmpeg", "-i", file_name]
+
+    # start
+    if "{{_START_AND_DURATION}}":
+        start, duration = "{{_START_AND_DURATION}}".split()
+        args += [
+            "-ss",
+            str(start),
+            "-strict",
+            "-2",
+            "-t",
+            str(duration),
+        ]
 
     # Filter complex
     filter = f"[0:v] fps={fps}"
@@ -30,7 +42,7 @@ for f in get_files(cd=True):
     else:
         filter += "[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1"
 
-    args.append(filter)
+    args += ["-filter_complex", filter]
 
     args += [out_gif, "-y"]
 
