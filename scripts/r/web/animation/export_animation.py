@@ -574,17 +574,6 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
     )
 
 
-def text(text, track="text", font_size=100, pos="center", **kwargs):
-    temp_file = _generate_text_image(
-        text,
-        font="zcool-gdh",
-        font_size=font_size,
-        color="#ffd700",
-        stroke_color="#6900ff",
-    )
-    _add_video_clip(temp_file, track=track, pos=pos, **kwargs)
-
-
 @api
 def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
     from r.web.webscreenshot import webscreenshot
