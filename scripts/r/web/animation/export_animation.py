@@ -40,6 +40,7 @@ _global_scale = 1
 _audio_only = False
 _impl = None
 _apis = {}
+_cached_line_to_tts = None
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
@@ -139,9 +140,23 @@ _bgm_vol = []
 _crossfade = 0
 
 
+def _pre_api_call(func_name):
+    print("%s()" % func_name)
+
+    if func_name != "record":
+        _try_generate_tts()
+    else:
+        global _cached_line_to_tts
+        _cached_line_to_tts = None
+
+
 def api(f):
-    _apis[f.__name__] = f
-    return f
+    def api_wrapper(*args, **kwargs):
+        _pre_api_call(f.__name__)
+        f(*args, **kwargs)
+
+    _apis[f.__name__] = api_wrapper
+    return api_wrapper
 
 
 def _format_time(sec):
@@ -1273,16 +1288,18 @@ def _tts_to_wav_microsoft(out_file, text):
     )
 
 
-def _tts():
-    text = _subtitle[-1]
-    hash = get_hash(text)
+def _try_generate_tts():
+    if _cached_line_to_tts is None:
+        return
+
+    hash = get_hash(_cached_line_to_tts)
 
     mkdir("tmp/tts")
     out_file = "tmp/tts/%s.wav" % hash
     if not os.path.exists(out_file):
         print("generate tts file: %s" % out_file)
 
-        _tts_to_wav_microsoft(out_file, text)
+        _tts_to_wav_microsoft(out_file, _cached_line_to_tts)
 
     record(out_file, postprocess=False, vol=2)
 
@@ -1299,7 +1316,8 @@ def parse_line(line):
     _subtitle.append(line)
 
     if AUTO_GENERATE_TTS:
-        _tts()
+        global _cached_line_to_tts
+        _cached_line_to_tts = line
 
 
 def _convert_to_readable_time(seconds):
