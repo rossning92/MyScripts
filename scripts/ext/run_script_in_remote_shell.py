@@ -13,9 +13,28 @@ if __name__ == "__main__":
         print("Script type is not supported: %s" % script.ext)
         exit(0)
 
+    exec_ahk("WinActivate r/linux/ssh")
+    exec_ahk("WinActivate r/linux/et")
+
     # Ctrl-C
-    call_echo(["wsl", "screen", "-S", "ssh_session", "-X", "stuff", "^C"], shell=False)
-    call_echo(["wsl", "screen", "-S", "ssh_session", "-X", "msgwait", "0"], shell=False)
+    call_echo(
+        [
+            "wsl",
+            "bash",
+            "-c",
+            "SCREENDIR=$HOME/.screen screen -S ssh_session -X stuff ^C",
+        ],
+        shell=False,
+    )
+    call_echo(
+        [
+            "wsl",
+            "bash",
+            "-c",
+            "SCREENDIR=$HOME/.screen screen -S ssh_session -X msgwait 0",
+        ],
+        shell=False,
+    )
 
     # Write shell commands to paste buffer
     lines = [
@@ -29,15 +48,19 @@ if __name__ == "__main__":
     call_echo(
         [
             "wsl",
-            "screen",
-            "-S",
-            "ssh_session",
-            "-X",
-            "readbuf",
-            convert_to_unix_path(tmp_file, wsl=True),
+            "bash",
+            "-c",
+            "SCREENDIR=$HOME/.screen screen -S ssh_session -X readbuf %s"
+            % convert_to_unix_path(tmp_file, wsl=True),
         ],
         shell=False,
     )
-    exec_ahk("WinActivate r/linux/ssh")
-    exec_ahk("WinActivate r/linux/et")
-    call_echo(["wsl", "screen", "-S", "ssh_session", "-X", "paste", "."], shell=False)
+    call_echo(
+        [
+            "wsl",
+            "bash",
+            "-c",
+            "SCREENDIR=$HOME/.screen screen -S ssh_session -X paste .",
+        ],
+        shell=False,
+    )

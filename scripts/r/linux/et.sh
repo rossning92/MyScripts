@@ -12,9 +12,12 @@ fi
 
 export SCREENDIR="$HOME/.screen"
 
-/usr/bin/expect <(
-    cat <<EOF
+# /usr/bin/expect <(
+#     cat <<EOF
+# EOF
+# )
 
+cat >/tmp/et.sh <<EOF
 set timeout -1
 spawn et -x -r 5037:5037 -t 1234:22 {{SSH_USER}}@{{SSH_HOST}}:{{_PORT}}
 expect "password:"
@@ -22,15 +25,15 @@ send "{{SSH_PWD}}\r"
 expect "Passcode or option"
 send "push\r"
 interact
-
 EOF
-)
 
-# pkill screen || true
+# mkdir ~/.screen || chmod 700 ~/.screen || true
 # sudo /etc/init.d/screen-cleanup start
 
-# screen -r ssh_session -X quit || true
-# screen -dmS ssh_session bash
-# screen -r ssh_session -X stuff "./et.sh
-# "
-# screen -r ssh_session
+mkdir -p ~/.screen
+export SCREENDIR=$HOME/.screen
+
+screen -r ssh_session -X quit || true
+screen -dmS ssh_session bash
+screen -r ssh_session -X stuff "expect /tmp/et.sh\n"
+screen -r ssh_session
