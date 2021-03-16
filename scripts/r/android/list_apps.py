@@ -36,4 +36,4 @@ elif opt[i] == "backup":
     backup_pkg(pkg, out_dir=out_dir)
 
 elif opt[i] == "uninstall":
-    call(f"adb uninstall {pkg}")
+    call_echo(f"adb uninstall {pkg}")
