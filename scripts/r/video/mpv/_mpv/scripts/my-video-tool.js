@@ -370,3 +370,10 @@ mp.add_forced_key_binding("ctrl+s", "overwrite_file", function () {
   copyFile(currentFile, historyFiles[0]);
   mp.commandv("quit");
 });
+
+mp.add_forced_key_binding("S", "screenshot", function () {
+  var outFile =
+    getBaseName(mp.get_property_native("path")) + "-" + getTimestamp() + ".png";
+  mp.commandv("screenshot-to-file", outFile);
+  mp.osd_message("Screenshot saved.");
+});
