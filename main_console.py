@@ -282,7 +282,8 @@ class MainWindow(Menu):
             self.close()
 
     def on_char(self, ch):
-        if ch == ch == curses.ascii.ESC:
+        if ch == curses.ascii.ESC:
+            self.input_.clear()
             return True
 
         elif ch == ord("\n"):
