@@ -6,6 +6,7 @@ import random
 from r.web.animation.record_screen import recorder
 from _script import wt_wrap_args
 
+
 INTERVAL_NEW_FILE = 1
 
 root = os.path.dirname(os.path.abspath(__file__))
@@ -156,7 +157,6 @@ def typing(s):
             pyautogui.write(ch)
 
 
-
 if __name__ == "__main__":
     while True:
         ch = getch()
@@ -209,3 +209,7 @@ if __name__ == "__main__":
             f = input("file name (no ext) :")
             recorder.save_record("screencap/" + f + ".mp4", overwrite=True)
             print("Done.")
+
+
+def sleep(secs):
+    time.sleep(secs)
