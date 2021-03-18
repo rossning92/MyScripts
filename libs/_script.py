@@ -239,7 +239,7 @@ def wt_wrap_args(
     data["profiles"]["defaults"]["fontSize"] = 10
     data["schemes"] = [THEME]
 
-    updated = True
+    updated = False
     if title:
         filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
         profile = {
