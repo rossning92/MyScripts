@@ -23,6 +23,10 @@ def send_hotkey(modifier, key):
     pyautogui.hotkey(modifier, key)
 
 
+def press(keys):
+    pyautogui.press(keys)
+
+
 def type_text(text):
     for ch in text:
         if ch == "\n":
