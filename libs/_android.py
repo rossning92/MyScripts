@@ -11,7 +11,11 @@ def start_app(pkg, use_monkey=False):
         ]
         print("> " + " ".join(args))
         with open(os.devnull, "w") as fnull:
-            ret = subprocess.call(args, stdout=fnull, stderr=fnull,)
+            ret = subprocess.call(
+                args,
+                stdout=fnull,
+                stderr=fnull,
+            )
         if ret != 0:
             raise Exception(
                 'Launch package "%s" failed. Please check if it is installed.' % pkg
@@ -231,7 +235,11 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
 def adb_tar(d, out_tar):
     temp_tar = "/data/local/tmp/backup.tar"
     subprocess.call(
-        ["adb", "exec-out", f"tar -cf {temp_tar} {d}",]
+        [
+            "adb",
+            "exec-out",
+            f"tar -cf {temp_tar} {d}",
+        ]
     )
     subprocess.call(["adb", "pull", temp_tar, out_tar])
     subprocess.call(["adb", "shell", f"rm {temp_tar}"])
@@ -300,6 +308,12 @@ def get_adk_path():
             return p
 
     return None
+
+
+def get_prop(name):
+    return subprocess.check_output(
+        ["adb", "shell", "getprop %s" % name]
+    ).decode().strip()
 
 
 def setup_android_env(ndk_version=None):

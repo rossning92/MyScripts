@@ -780,6 +780,12 @@ def get_ip_addr():
     return []
 
 
+def check_output(args):
+    out = subprocess.check_output(args)
+    out = out.decode()
+    return out
+
+
 def convert_to_unix_path(path, wsl=False):
     path = path.replace("\\", "/")
     PATT = r'^[a-zA-Z]:/(((?![<>:"//|?*]).)+((?<![ .])/)?)*$'
