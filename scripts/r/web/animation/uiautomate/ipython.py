@@ -28,11 +28,14 @@ def open_wt_ipython(startup=None):
 
 
 def record_ipython(file, func, startup=None):
-    if file.endswith("!"):
-        file = file.rstrip("!")
-    elif os.path.exists(file):
+    if os.path.exists(file):
         return file
 
+    else:
+        return record_ipython2(file, func, startup=startup)
+
+
+def record_ipython2(file, func, startup=None):
     call_echo(["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"])
 
     run_ahk(os.path.join(root, "show_overlay.ahk"))
