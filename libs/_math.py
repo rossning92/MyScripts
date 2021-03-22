@@ -15,13 +15,13 @@ def mat_inv(m):
     return inv(m)
 
 
-def save_fig(out_file="figure.png", open_file=True, size_inch=None, dpi=300):
+def save_fig(out_file="figure.png", open_file=False, size_inch=None, dpi=300):
     out_file = os.path.realpath(out_file)
 
     if size_inch:
         plt.gcf().set_size_inches(size_inch[0], size_inch[1])
 
-    plt.gcf().tight_layout()
+    # plt.gcf().tight_layout()
 
     plt.savefig(out_file, dpi=dpi)
     if open_file:
