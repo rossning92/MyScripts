@@ -176,9 +176,9 @@ function getCompletedExpression(file) {
   } else if (/overlay\//g.test(file)) {
     return ` overlay('${file}', t='as') `;
   } else if (/bgm\//g.test(file)) {
-    return ` bgm('${file}', norm=True) `;
+    return ` bgm('${file}', norm=True); pos('c+0.5', tag='a') `;
   } else if (/sfx\//g.test(file)) {
-    return ` sfx('${file}', norm=True) `;
+    return ` sfx('${file}', norm=True); pos('c+0.5', tag='a') `;
   } else {
     return ` clip('${file}') `;
   }
