@@ -175,6 +175,10 @@ function getCompletedExpression(file) {
     return ` codef('${file}') `;
   } else if (/overlay\//g.test(file)) {
     return ` overlay('${file}', t='as') `;
+  } else if (/bgm\//g.test(file)) {
+    return ` bgm('${file}', norm=True) `;
+  } else if (/sfx\//g.test(file)) {
+    return ` sfx('${file}', norm=True) `;
   } else {
     return ` clip('${file}') `;
   }

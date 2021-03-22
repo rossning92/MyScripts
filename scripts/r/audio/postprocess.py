@@ -162,15 +162,17 @@ def _process_audio_file(file, out_dir):
     return out_file
 
 
-def dynamic_audio_normalize(f):
-    name, ext = os.path.splitext(f)
-    out_file = "%s-norm%s" % (name, ext)
+def dynamic_audio_normalize(file):
+    tmp_dir = os.path.join(os.path.dirname(file), "tmp")
+    os.makedirs(tmp_dir, exist_ok=True)
+
+    out_file = os.path.join(tmp_dir, os.path.basename(file))
     if not os.path.exists(out_file):
         call_echo(
             [
                 "ffmpeg",
                 "-i",
-                f,
+                file,
                 "-af",
                 "dynaudnorm=p=1/sqrt(2):m=100:s=12:g=15",
                 out_file,
