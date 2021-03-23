@@ -211,7 +211,16 @@ function registerAutoComplete(context) {
 
         let files = [];
         getFiles(projectDir, filter, files);
-        getFiles(projectDir + "/../assets", filter, files);
+
+        // Recursively search parent `assets` folder
+        let parentDir = projectDir;
+        do {
+          parentDir = path.dirname(parentDir);
+          const assetFolder = path.resolve(parentDir, "assets");
+          if (fs.existsSync(assetFolder)) {
+            getFiles(assetFolder, filter, files);
+          }
+        } while (path.dirname(parentDir) != parentDir);
 
         files = files.sort(function (a, b) {
           return -(
