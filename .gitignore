@@ -7,7 +7,7 @@ __pycache__/
 /variables.json
 /variables.*
 build/
-/tmp/
+tmp/
 .ipynb_checkpoints
 *.pyc
 /.vscode
