@@ -43,7 +43,8 @@ def get_data_dir():
     return data_dir
 
 
-SETTING_LAST_SCRIPT = os.path.join(os.path.join(get_data_dir(), "last_script.json"))
+def _get_script_history_file():
+    return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
 
 
 def set_console_title(title):
@@ -425,7 +426,7 @@ class Script:
         ext = self.real_ext if self.real_ext else self.ext
 
         # Save last executed script
-        with open(SETTING_LAST_SCRIPT, "w") as f:
+        with open(_get_script_history_file(), "w") as f:
             json.dump({"file": script_path}, f)
 
         if ext == ".md":
@@ -598,15 +599,7 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = (
-                    args_activate
-                    + [
-                        python_exec,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+                args = args_activate + [python_exec, run_py, python_file,] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -837,8 +830,8 @@ def run_script(
     args=None,
 ):
     if file is None:
-        if os.path.exists(SETTING_LAST_SCRIPT):
-            with open(SETTING_LAST_SCRIPT, "r") as f:
+        if os.path.exists(_get_script_history_file()):
+            with open(_get_script_history_file(), "r") as f:
                 data = json.load(f)
                 file = data["file"]
         else:
@@ -969,10 +962,7 @@ def is_instance_running():
 
 
 def _get_script_access_time_file():
-    data_path = os.path.abspath(
-        os.path.dirname(__file__) + "/../data/" + platform.node()
-    )
-    config_file = os.path.join(data_path, "script_access_time.json")
+    config_file = os.path.join(get_data_dir(), "script_access_time.json")
     return config_file
 
 
