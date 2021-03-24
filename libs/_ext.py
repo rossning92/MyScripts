@@ -1,6 +1,7 @@
 import os
 from _appmanager import get_executable
 from _shutil import *
+from _editor import open_in_vscode
 
 
 def get_selected_script_dir_rel():
@@ -16,9 +17,7 @@ def edit_myscript_script(file):
         file = open(file, "r", encoding="utf-8").read().strip()
 
     project_folder = os.path.realpath(os.path.dirname(__file__) + "/../")
-    os.chdir(project_folder)
-    vscode = get_executable("vscode")
-    start_process([vscode, project_folder, file])
+    open_in_vscode([project_folder, file])
 
 
 def get_my_script_root():
