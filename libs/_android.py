@@ -311,9 +311,9 @@ def get_adk_path():
 
 
 def get_prop(name):
-    return subprocess.check_output(
-        ["adb", "shell", "getprop %s" % name]
-    ).decode().strip()
+    return (
+        subprocess.check_output(["adb", "shell", "getprop %s" % name]).decode().strip()
+    )
 
 
 def setup_android_env(ndk_version=None):
