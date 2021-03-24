@@ -33,7 +33,7 @@ if __name__ == "__main__":
                 },
                 {"key": "shift+alt+r", "command": "revealFileInOS",},
                 {"key": "shift+alt+c", "command": "copyFilePath"},
-                {"key": "ctrl+alt+enter", "command": "editor.action.openLink"},
+                {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
             ],
             f,
             indent=4,
