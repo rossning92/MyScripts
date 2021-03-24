@@ -6,7 +6,6 @@ __pycache__/
 !/scripts/r
 /variables.json
 /variables.*
-/data
 build/
 /tmp/
 .ipynb_checkpoints

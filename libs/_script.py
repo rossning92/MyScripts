@@ -36,10 +36,11 @@ SCRIPT_EXTENSIONS = {
 
 
 def get_data_dir():
-    app_dir = os.path.abspath(os.path.dirname(__file__) + "/../")
-    folder = os.path.join(app_dir, "data", platform.node())
-    os.makedirs(folder, exist_ok=True)
-    return folder
+    data_dir = os.path.abspath(
+        "{}/../tmp/data/{}".format(os.path.dirname(__file__), platform.node())
+    )
+    os.makedirs(data_dir, exist_ok=True)
+    return data_dir
 
 
 SETTING_LAST_SCRIPT = os.path.join(os.path.join(get_data_dir(), "last_script.json"))
@@ -597,7 +598,15 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = args_activate + [python_exec, run_py, python_file,] + args
+                args = (
+                    args_activate
+                    + [
+                        python_exec,
+                        run_py,
+                        python_file,
+                    ]
+                    + args
+                )
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
