@@ -817,7 +817,8 @@ def add_to_path(path):
             new_paths.append(path)
             print("Added to PATH: %s" % path)
 
-        call_echo('reg add HKCU\Environment /v PATH /d "%s" /f' % ";".join(new_paths))
+        subprocess.call(["setx", "PATH", ";".join(new_paths)])
+        # call_echo('reg add HKCU\Environment /v PATH /d "%s" /f' % ";".join(new_paths))
 
 
 def wait_key(prompt=None, timeout=2):
