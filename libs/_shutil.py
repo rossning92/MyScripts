@@ -1,5 +1,5 @@
 import subprocess
-from subprocess import check_output, Popen
+from subprocess import Popen
 import os
 from os import getcwd
 from os.path import exists, expanduser, expandvars, dirname
@@ -274,12 +274,7 @@ def call(args, cwd=None, env=None, shell=True, highlight=None, check_call=True):
 
 def run_in_background(cmd):
     # ANSI escape codes for colors
-    GREEN = "\u001b[32;1m"
     YELLOW = "\u001b[33;1m"
-    RED = "\u001b[31;1m"
-    BLUE = "\u001b[34;1m"
-    MAGENTA = "\u001b[35;1m"
-    CYAN = "\u001b[36;1m"
     RESET = "\033[0m"
 
     # Enable ANSI escape sequence processing for the console window by calling
