@@ -140,7 +140,7 @@ _bgm_vol = []
 _crossfade = 0
 
 
-def _pre_api_call(func_name):
+def _on_begin_api(func_name):
     print("%s()" % func_name)
 
     if func_name != "record":
@@ -152,7 +152,7 @@ def _pre_api_call(func_name):
 
 def api(f):
     def api_wrapper(*args, **kwargs):
-        _pre_api_call(f.__name__)
+        _on_begin_api(f.__name__)
         f(*args, **kwargs)
 
     _apis[f.__name__] = api_wrapper
@@ -1424,8 +1424,8 @@ def _parse_text(text, apis=_apis, **kwargs):
         if line != "" and "parse_line" in apis:
             apis["parse_line"](line)
 
-            # _export_srt()
-        # sys.exit(0)
+    # Call it at the end
+    _on_begin_api(None)
 
 
 def _show_stats(s):
@@ -1449,7 +1449,7 @@ def load_config():
     import yaml
 
     CONFIG_FILE = "config.yaml"
-    DEFAULT_CONFIG = {"preview": 1, "tts": 0, "fps": 30}
+    DEFAULT_CONFIG = {"preview": 1, "tts": 1, "fps": 30}
 
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r") as f:
