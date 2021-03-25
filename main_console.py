@@ -350,9 +350,11 @@ def curse_main(stdscr):
 
 
 def init():
-    os.environ["PATH"] = os.pathsep.join(
-        [os.path.join(SCRIPT_ROOT, "bin"), os.environ["PATH"]]
-    )
+    # Add bin folder to PATH
+    bin_dir = os.path.join(SCRIPT_ROOT, "bin")
+    add_to_path(bin_dir)
+    os.environ["PATH"] = os.pathsep.join([bin_dir, os.environ["PATH"]])
+
     os.environ["PYTHONPATH"] = os.path.join(SCRIPT_ROOT, "libs")
 
     refresh_env_vars()

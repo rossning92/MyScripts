@@ -385,7 +385,7 @@ function export_animation({ extraArgs = null, selectedText = true } = {}) {
     shellArgs.push("||", "pause");
 
     const terminal = vscode.window.createTerminal({
-      name: "yoyo",
+      name: "VideoEdit",
       cwd: activeDirectory,
       shellPath: "cmd.exe",
       shellArgs: shellArgs,
