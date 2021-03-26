@@ -7,7 +7,7 @@ const os = require("os");
 
 var recorderProcess = null;
 var currentProjectDir = null;
-// let output = vscode.window.createOutputChannel("VideoEdit");
+let output = vscode.window.createOutputChannel("VideoEdit");
 
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
@@ -17,6 +17,7 @@ async function openFile(filePath) {
     } else if (/\.(png|jpg|mp4|webm)$/g.test(filePath)) {
       cp.spawn("mpv", ["--force-window", filePath]);
     } else if (/\.(wav|mp3|ogg)$/g.test(filePath)) {
+      output.appendLine(`Open with ocenaudio: ${filePath}`);
       cp.spawn("ocenaudio", [filePath]);
     } else {
       vscode.env.openExternal(vscode.Uri.file(filePath));
@@ -281,7 +282,7 @@ function getRecorderProcess() {
       return null;
     }
 
-    recorderProcess = cp.spawn("python", ["-u", "-m", "r.audio.recorder"], {
+    recorderProcess = cp.spawn("run_script", ["/r/audio/recorder"], {
       env: {
         ...process.env,
         RECORD_OUT_DIR: path.resolve(getProjectDir() + "/record"),
@@ -296,11 +297,14 @@ function getRecorderProcess() {
     });
 
     recorderProcess.stdout.on("data", (data) => {
-      vscode.window.showInformationMessage(`${data}`);
-      const s = data.toString("utf8").trim();
-      if (s.startsWith("stop recording:")) {
-        const fileName = s.split(":")[1].trim();
-        insertText(`{{ record('record/${fileName}') }}`);
+      const lines = data.toString("utf8").split(/(\r?\n)/g);
+      for (const line of lines) {
+        vscode.window.showInformationMessage(`${line}`);
+        const s = line.trim();
+        if (s.startsWith("stop recording:")) {
+          const fileName = s.split(":")[1].trim();
+          insertText(`{{ record('record/${fileName}') }}`);
+        }
       }
     });
 
