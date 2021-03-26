@@ -39,19 +39,22 @@ def search_code(text, search_path, extra_params=None):
     return result
 
 
-def search_code_and_goto(text, path_list):
-    assert type(path_list) == list  # `path` must be a list
-    print2(str(path_list))
+def search_code_and_goto(text, path):
+    print2(str(path))
+
     result = []
-    for path in path_list:
-        if os.path.isdir(path):  # directory
-            result += search_code(text=text, search_path=path)
-        else:  # file or glob
-            if "/**/" in path:
-                dir_path, file_name = path.split("/**/")
-                result += search_code(
-                    text=text, search_path=dir_path, extra_params=["-g", file_name]
-                )
+    if os.path.isdir(path):  # directory
+        result += search_code(text=text, search_path=path)
+    else:  # file or glob
+        if "/**/" in path:
+            dir_path, file_name = path.split("/**/")
+        else:
+            dir_path = os.path.dirname(path)
+            file_name = os.path.basename(path)
+
+        result += search_code(
+            text=text, search_path=dir_path, extra_params=["-g", file_name]
+        )
 
     if len(result) == 1:
         open_in_vscode(result[0][0], line_number=result[0][1])
@@ -70,10 +73,6 @@ def show_bookmarks(bookmarks):
     bookmark = bookmarks[idx]
 
     if "kw" in bookmark:
-        search_code_and_goto(bookmark["kw"], path_list=bookmark["path"])
+        search_code_and_goto(bookmark["kw"], path=bookmark["path"])
     else:
         open_in_vscode(bookmark["path"])
-
-
-if __name__ == "__main__":
-    open_in_vscode(sys.argv[1])
