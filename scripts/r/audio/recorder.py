@@ -333,7 +333,7 @@ class TerminalRecorder:
     def stop_record(self):
         if self.recorder.is_recording():
             self.recorder.stop()
-            print("stop recording: %s" % self.cur_file_name)
+            print("stop recording: %s" % self.cur_file_name, flush=True)
 
             denoise(in_file=self.tmp_wav_file)
 
