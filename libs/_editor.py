@@ -62,7 +62,7 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
         if line_number is None:
             args = [vscode, file]
         else:
-            args = [vscode, "-g", f"%s:%d" % (file, line_number)]
+            args = [vscode, "-g", "{}:{}".format(file, line_number)]
     else:
         args = [vscode] + file
 

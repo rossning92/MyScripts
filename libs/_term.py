@@ -25,29 +25,7 @@ def minimize_cur_terminal():
 
 
 def search(options):
-    matched_indices = []
-
-    while True:
-        print2("> ", end="", color="green")
-        kw = input()
-
-        if kw.isdigit():
-            try:
-                idx = int(kw)
-                return matched_indices[idx]
-            except:
-                print2("ERROR: invalid input.", color="red")
-
-        else:
-            matched_indices.clear()
-
-            tokens = kw.split(" ")
-            for i, s in enumerate(options):
-                if all([(token in s) for token in tokens]):
-                    matched_indices.append(i)
-
-            for i, idx in enumerate(matched_indices):
-                print("[%d] %s" % (i, options[idx]))
+    return Menu(items=options).get_selected_index()
 
 
 def _prompt(options, message=None):
