@@ -9,7 +9,7 @@ if __name__ == "__main__":
     vars = {k: v[0] for k, v in vars.items()}
 
     bookmarks = []
-    for bm in ["../../../data/grep/*.yml", "bookmarks.yml"]:
+    for bm in ["tmp/*.yml", "bookmarks.yml"]:
         for file in glob.glob(bm):
             file = os.path.abspath(file)
 
