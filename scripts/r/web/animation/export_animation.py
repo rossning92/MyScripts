@@ -500,7 +500,7 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
 
 @api
 def bgm(
-    f, move_playhead=False, vol=0.1, track="bgm", norm=False, loop=True, **kwargs,
+    f, move_playhead=False, vol=0.1, track="bgm", norm=True, loop=True, **kwargs,
 ):
     print("bgm: %s" % f)
 
