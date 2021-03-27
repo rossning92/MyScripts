@@ -131,6 +131,8 @@ class ShadowPlayScreenRecorder:
 
 
 recorder = CapturaScreenRecorder()
+# recorder = ShadowPlayScreenRecorder()
+
 
 if __name__ == "__main__":
     out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
@@ -139,25 +141,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    sr = ShadowPlayScreenRecorder()
     if args.rect is not None:
-        sr.set_region(args.rect)
+        recorder.set_region(args.rect)
 
-    sr.start_record()
+    name = input("input file name (no ext): ")
+    if not name:
+        sys.exit(0)
+
+    file = os.path.join(out_dir, "%s.mp4" % slugify(name))
+    recorder.start_record(file)
     minimize_cur_terminal()
 
     keyboard.wait("f6", suppress=True)
-    sr.stop_record()
+    recorder.stop_record()
     activate_cur_terminal()
 
     # Save file
-    name = input("input file name (no ext): ")
-    if name:
-        out_file = os.path.join(out_dir, "%s.mp4" % slugify(name))
-        sr.save_record(out_file, no_audio=True)
-
-        print2("File saved: %s" % out_file, color="green")
-        call_echo(["mpv", out_file])
-        # edit_video(dst_file)
+    call_echo(["mpv", file])
+    # edit_video(dst_file)
 
     sleep(1)

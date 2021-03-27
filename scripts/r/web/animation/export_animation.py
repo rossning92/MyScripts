@@ -937,7 +937,7 @@ def empty(**kwargs):
 
 @api
 def slide(
-    s, template, pos="center", name=None, **kwargs,
+    s, template, pos="center", name=None, cf=0.2, **kwargs,
 ):
     mkdir("tmp/md")
     # out_file = "tmp/slides/%s.png" % slugify(name if name else s)
@@ -946,7 +946,7 @@ def slide(
     if not os.path.exists(out_file):
         generate_slide(s, template_file=template, out_file=out_file, gen_html=True)
 
-    _add_video_clip(out_file, pos=pos, **kwargs)
+    _add_video_clip(out_file, pos=pos, cf=cf, **kwargs)
 
 
 @api
