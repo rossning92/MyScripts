@@ -85,8 +85,11 @@ def logcat(
     level=None,
     exclude=None,
     exclude_proc=None,
+    ignore_duplicates=False,
 ):
     call2("adb wait-for-device")
+
+    printed_messages = set()
 
     if level:
         level = re.compile(level)
@@ -183,20 +186,28 @@ def logcat(
                 if "ROSS" in message:
                     show_line = True
 
-                if show_line:
-                    # Output process name
-                    if last_proc != proc:
-                        print2("%s (%d)" % (proc, pid))
-                        last_proc = proc
+                if not show_line:
+                    continue
 
-                    lvl_text = " %s " % lvl
-                    if lvl == "W":
-                        print2(lvl_text, color="YELLOW", end="")
-                    elif lvl == "E" or lvl == "F":
-                        print2(lvl_text, color="RED", end="")
-                    else:
-                        print(lvl_text, end="")
-                    print(": " + tag + ": " + message)
+                if ignore_duplicates and message[:10] in printed_messages:
+                    continue
+
+                # Output process name
+                if last_proc != proc:
+                    print2("%s (%d)" % (proc, pid))
+                    last_proc = proc
+
+                lvl_text = " %s " % lvl
+                if lvl == "W":
+                    print2(lvl_text, color="YELLOW", end="")
+                elif lvl == "E" or lvl == "F":
+                    print2(lvl_text, color="RED", end="")
+                else:
+                    print(lvl_text, end="")
+                print(": " + tag + ": " + message)
+
+                printed_messages.add(message[:10])
+
         except Exception as e:
             print(e)
 

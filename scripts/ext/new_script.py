@@ -3,7 +3,10 @@ from _ext import *
 
 
 os.chdir("../")
+
 rel_path = get_selected_script_dir_rel()
+print(rel_path)
+
 
 script_path = input("script name: ")
 if script_path:
