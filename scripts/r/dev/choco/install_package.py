@@ -72,6 +72,7 @@ PKGS = {
         "vmware-workstation-player",
         "win32diskimager",
         "mongodb",
+        "golang",
     ],
 }
 

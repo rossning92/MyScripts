@@ -183,7 +183,7 @@ return
 $!1::SetWindowPosF("A", 0, 0, WindowDividor, 1)
 $!2::SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
 
-$!3::SetWindowPos("A", 0, 0, 1920, 1080)
+$!3::SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
 $!4::SetWindowPos("A", 0, 0, 1440, 810)
 
 return
