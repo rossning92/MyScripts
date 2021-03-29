@@ -3,7 +3,7 @@ from _script import *
 from _android import *
 from _term import *
 
-s = check_output("adb shell pm list packages").decode()
+s = subprocess.check_output("adb shell pm list packages").decode()
 s = s.replace("package:", "")
 lines = s.splitlines()
 lines = sorted(lines)
