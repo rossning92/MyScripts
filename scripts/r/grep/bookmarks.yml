@@ -2,7 +2,7 @@
   kw: View.TemporalJitterPixels.X = SampleX
   path: "{UE_SOURCE}/**/SceneVisibility.cpp"
 
-- name: GetProjectionData(
+- name: "UE4: compute projection matrix"
   kw: ::GetProjectionData(
   path: "{UE_SOURCE}/**/LocalPlayer.cpp"
 
