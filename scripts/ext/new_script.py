@@ -1,6 +1,6 @@
 from _editor import *
 from _ext import *
-
+import click
 
 os.chdir("../")
 
@@ -8,7 +8,8 @@ rel_path = get_selected_script_dir_rel()
 print(rel_path)
 
 
-script_path = input("script name: ")
+script_path = input("script name [%s]: " % rel_path)
+
 if script_path:
     dir_name = os.path.dirname(script_path)
     if dir_name != "":
