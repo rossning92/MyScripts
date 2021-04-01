@@ -11,11 +11,7 @@ def start_app(pkg, use_monkey=False):
         ]
         print("> " + " ".join(args))
         with open(os.devnull, "w") as fnull:
-            ret = subprocess.call(
-                args,
-                stdout=fnull,
-                stderr=fnull,
-            )
+            ret = subprocess.call(args, stdout=fnull, stderr=fnull,)
         if ret != 0:
             raise Exception(
                 'Launch package "%s" failed. Please check if it is installed.' % pkg
@@ -246,11 +242,7 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
 def adb_tar(d, out_tar):
     temp_tar = "/data/local/tmp/backup.tar"
     subprocess.call(
-        [
-            "adb",
-            "exec-out",
-            f"tar -cf {temp_tar} {d}",
-        ]
+        ["adb", "exec-out", f"tar -cf {temp_tar} {d}",]
     )
     subprocess.call(["adb", "pull", temp_tar, out_tar])
     subprocess.call(["adb", "shell", f"rm {temp_tar}"])
@@ -389,9 +381,15 @@ def setup_android_env(ndk_version=None):
     prepend_to_path(path)
 
 
-def adb_shell(command, check=True, **kwargs):
+def adb_shell(command, check=True, check_output=False, **kwargs):
     print('EXEC: adb shell "%s"' % command)
-    subprocess.run(["adb", "shell", command], check=check, **kwargs)
+
+    if check_output:
+        return subprocess.check_output(
+            ["adb", "shell", command], universal_newlines=True
+        )
+    else:
+        return subprocess.run(["adb", "shell", command], check=check, **kwargs)
 
 
 def wait_until_boot_complete():
@@ -546,3 +544,11 @@ def unlock_device(pin):
         # Type pin
         adb_shell("input text %s" % pin)
         adb_shell("input keyevent KEYCODE_ENTER")
+
+
+def is_locked():
+    patt = re.compile("(?:mShowingLockscreen|isStatusBarKeyguard|showing)=(true|false)")
+    m = patt.search(adb_shell("dumpsys window policy", check_output=True))
+    if not m:
+        raise Exception("Couldn't determine screen lock state")
+    return m.group(1) == "true"

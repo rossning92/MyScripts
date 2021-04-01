@@ -20,7 +20,7 @@ RunScript(name, path)
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
-#!r::Run {{run_script}} --new_window=None --console_title "%name%" || pause
+f12::Run {{run_script}} --new_window=None --console_title "%name%" || pause
 {{htk_definitions}}
 
 #If

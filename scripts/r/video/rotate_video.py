@@ -20,7 +20,7 @@ for f in files:
             "-c",
             "copy",
             "-metadata:s:v:0",
-            "rotate=-90",
+            "rotate={{_ANGLE}}",
             out_file,
         ]
     )
