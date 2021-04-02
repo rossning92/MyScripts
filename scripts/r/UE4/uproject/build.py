@@ -75,4 +75,4 @@ if __name__ == "__main__":
 
     pkg = get_pkg_name_apk(apk)
     start_app(pkg)
-    logcat(pkg)
+    # logcat(pkg)
