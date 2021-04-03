@@ -371,7 +371,7 @@ def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
 
 
 @api
-def mark(name, t=None):
+def setp(name, t=None):
     t = _get_pos(t)
     _pos_dict[name] = t
 

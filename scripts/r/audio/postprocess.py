@@ -89,7 +89,8 @@ def _process_audio_file(file, out_dir):
         # Loudnorm
         in_file = out_file
         out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-        loudnorm(in_file, out_file, LOUDNORM_DB)
+        # loudnorm(in_file, out_file, LOUDNORM_DB)
+        normalize(in_file, out_file, -1)
 
     # Filter human voice
     in_file = out_file
