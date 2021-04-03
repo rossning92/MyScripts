@@ -175,6 +175,16 @@ def set_variable(name, val):
         json.dump(variables, f, indent=4)
 
 
+def input2(message, name):
+    val = get_variable(name)
+    user_input = input("%s (default: %s): " % (message, val))
+    if not user_input and val:
+        return val
+
+    set_variable(name, val)
+    return user_input
+
+
 def get_python_path(script_path):
     python_path = []
 

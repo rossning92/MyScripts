@@ -2,7 +2,7 @@ autoRun: false
 background: false
 closeOnExit: true
 conda: null
-globalHotkey: null
+globalHotkey: F11
 hotkey: null
 newWindow: false
 packages: null

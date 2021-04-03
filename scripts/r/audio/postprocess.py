@@ -45,7 +45,7 @@ def to_mono(in_file, out_file):
     subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
 
 
-def loudnorm(in_file, out_file, loudnorm_db):
+def loudnorm(in_file, out_file, loudnorm_db=LOUDNORM_DB):
     # The loudnorm filter uses (overlapping) windows of 3 seconds of audio
     # to calculate short-term loudness in the source and adjust the destination
     # to meet the target parameters. The sample file is only a second long,

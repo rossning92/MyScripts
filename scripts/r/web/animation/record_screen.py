@@ -4,6 +4,7 @@ from _video import ffmpeg, remove_audio
 import keyboard
 import pyautogui
 import argparse
+from r.audio.postprocess import loudnorm
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from video_editor import edit_video
@@ -15,6 +16,7 @@ class CapturaScreenRecorder:
         self.captura_ps = None
         self.region = None
         self.file = None
+        self.loudnorm = False
 
     def set_region(self, region):
         self.region = region
@@ -72,6 +74,11 @@ class CapturaScreenRecorder:
         # Save file
         if os.path.exists(self.file):
             os.remove(self.file)
+
+        if self.loudnorm:
+            tmp_file = get_temp_file_name(".mp4")
+            loudnorm(self.tmp_file, tmp_file)
+            self.tmp_file = tmp_file
 
         move_file(self.tmp_file, self.file)
 

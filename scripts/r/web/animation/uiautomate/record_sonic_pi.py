@@ -1,6 +1,6 @@
 import os
 
-from _script import wt_wrap_args, get_variable
+from _script import wt_wrap_args, input2, get_variable
 from _shutil import *
 from r.web.animation.record_screen import recorder
 from uiautomate import *
@@ -8,7 +8,11 @@ from uiautomate import *
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def record_sonic_pi():
+def record_sonic_pi(file=None):
+    if file is None:
+        file = input2("Name without ext", "SONIC_PI_LAST_RECORD")
+        file += ".mp4"
+
     exec_ahk(
         """
         #include <Window>
@@ -18,11 +22,12 @@ def record_sonic_pi():
     )
     sleep(0.5)
 
+    recorder.loudnorm = True
     recorder.set_region([0, 0, 1920, 1080])
-    recorder.start_record("yoyo.mp4")
+    recorder.start_record(file)
 
     pyautogui.hotkey("alt", "r")
-    sleep(5)
+    sleep(10)
 
     pyautogui.hotkey("alt", "s")
     sleep(1)
