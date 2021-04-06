@@ -2,7 +2,7 @@ import subprocess
 import sys
 import os
 
-script_path = os.environ['_SCRIPT_PATH']
+script_path = os.environ['_SCRIPT']
 script_dir = os.path.dirname(script_path)
 os.chdir(script_dir)
 print('Open Folder: ' + os.getcwd())

@@ -1,7 +1,7 @@
 from _script import *
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT_PATH"]
+    script_path = os.environ["_SCRIPT"]
 
     script = Script(script_path)
     update_script_acesss_time(script)

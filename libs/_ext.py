@@ -5,7 +5,7 @@ from _editor import open_in_vscode
 
 
 def get_selected_script_dir_rel():
-    rel_path = os.getenv("_SCRIPT_PATH").replace(os.getcwd() + os.path.sep, "")
+    rel_path = os.getenv("_SCRIPT").replace(os.getcwd() + os.path.sep, "")
     rel_path = os.path.dirname(rel_path)
     rel_path = rel_path.replace("\\", "/")
     rel_path += "/"
