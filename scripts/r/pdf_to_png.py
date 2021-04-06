@@ -1,15 +1,26 @@
 from _shutil import *
 from _appmanager import *
 
-magick = get_executable('magick')
-get_executable('ghostscript')
-print(magick)
+get_executable("ghostscript")
 
 
-f = get_files()[0]
-assert f.endswith('.pdf')
+pdf_file = get_files()[0]
+assert pdf_file.endswith(".pdf")
 
-out_dir = os.path.splitext(f)[0]
+out_dir = os.path.splitext(pdf_file)[0]
 mkdir(out_dir)
 
-call2(['magick', '-density', '300', f, os.path.join(out_dir, '%03d.png')])
+gswin64 = find_file(r"C:\Program Files\gs\*\bin\gswin64c.exe")
+out_file = os.path.join(out_dir, "%03d.png")
+call_echo(
+    [
+        gswin64,
+        "-dBATCH",
+        "-dNOPAUSE",
+        "-sDEVICE=pnggray",
+        "-r300",
+        "-dUseCropBox",
+        "-sOutputFile=%s" % out_file,
+        pdf_file,
+    ]
+)
