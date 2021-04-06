@@ -609,7 +609,15 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = args_activate + [python_exec, run_py, python_file,] + args
+                args = (
+                    args_activate
+                    + [
+                        python_exec,
+                        run_py,
+                        python_file,
+                    ]
+                    + args
+                )
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -803,31 +811,31 @@ class Script:
         return Script(script_path).render()
 
 
-def get_script_root():
-    return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
-
-
 def find_script(script_name, search_dir=None):
     if script_name.startswith("/"):
-        script_path = os.path.abspath(
-            os.path.dirname(__file__) + "/../scripts" + script_name
-        )
+        path = os.path.abspath(os.path.dirname(__file__) + "/../scripts" + script_name)
     elif search_dir:
-        script_path = os.path.join(search_dir, script_name)
+        path = os.path.join(search_dir, script_name)
     else:
-        script_path = os.path.abspath(script_name)
+        path = os.path.abspath(script_name)
 
-    if os.path.exists(script_path):
-        return script_path
+    if os.path.exists(path):
+        return path
 
-    for f in glob.glob(script_path + "*"):
-        if os.path.isdir(f):
-            continue
-        if os.path.splitext(f)[1] == ".yaml":
-            continue
-        return f
+    # Fuzzy search
+    path = os.path.abspath(
+        os.path.dirname(__file__)
+        + "/../scripts/**/"
+        + os.path.basename(script_name)
+        + "*"
+    )
 
-    return None
+    found = glob.glob(path, recursive=True)
+    found = [f for f in found if not os.path.isdir(f) and not f.endswith(".yaml")]
+    if len(found) > 1:
+        raise Exception("Found multiple scripts: %s" % str(found))
+
+    return found[0]
 
 
 def run_script(
