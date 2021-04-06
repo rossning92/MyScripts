@@ -30,7 +30,7 @@ class CapturaScreenRecorder:
         args = [
             "captura-cli",
             "start",
-            "--speaker=3",
+            "--speaker=4",
             "--cursor",
             "-r",
             "60",

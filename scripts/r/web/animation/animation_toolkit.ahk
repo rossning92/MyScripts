@@ -36,7 +36,7 @@ $F6::
         sleep 500
         RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1440 810")
     } else {
-        RunScript("/r/web/animation/record_screen.py")
+        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
     }
 
 return

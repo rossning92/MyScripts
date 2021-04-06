@@ -27,8 +27,8 @@ def record_sonic_pi(file=None):
     recorder.start_record(file)
 
     pyautogui.hotkey("alt", "r")
-    sleep(10)
-
+    
+    keyboard.wait("f6", suppress=True)
     pyautogui.hotkey("alt", "s")
     sleep(1)
 
