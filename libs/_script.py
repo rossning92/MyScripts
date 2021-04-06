@@ -146,6 +146,36 @@ def get_script_variables(script):
     return vars
 
 
+def read_setting(setting, name, val):
+    file = os.path.join(get_data_dir(), "%s.json" % setting)
+
+    try:
+        with open(file, "r") as f:
+            data = json.load(f)
+    except IOError:
+        return None
+
+    if name not in data:
+        return None
+
+    return data[name]
+
+
+def write_setting(setting, name, val):
+    file = os.path.join(get_data_dir(), "%s.json" % setting)
+
+    try:
+        with open(file, "r") as f:
+            data = json.load(f)
+    except IOError:
+        data = {}
+
+    data[name] = val
+
+    with open(file, "w") as f:
+        json.dump(data, f, indent=2)
+
+
 def get_variable(name):
     with open(get_variable_file(), "r") as f:
         variables = json.load(f)
@@ -172,7 +202,7 @@ def set_variable(name, val):
     vals.insert(0, val)
 
     with open(file, "w") as f:
-        json.dump(variables, f, indent=4)
+        json.dump(variables, f, indent=2)
 
 
 def input2(message, name):
@@ -430,6 +460,8 @@ class Script:
     def execute(
         self, args=None, new_window=None, restart_instance=None, close_on_exit=None
     ):
+        begin_time = datetime.datetime.now()
+
         script_path = (
             self.real_script_path if self.real_script_path else self.script_path
         )
