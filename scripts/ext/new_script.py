@@ -8,9 +8,10 @@ rel_path = get_selected_script_dir_rel()
 print(rel_path)
 
 
-script_path = input("script name [%s]: " % rel_path)
+s = input("New script name: %s" % rel_path)
+if s:
+    script_path = rel_path + s
 
-if script_path:
     dir_name = os.path.dirname(script_path)
     if dir_name != "":
         os.makedirs(dir_name, exist_ok=True)
