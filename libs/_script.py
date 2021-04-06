@@ -460,8 +460,6 @@ class Script:
     def execute(
         self, args=None, new_window=None, restart_instance=None, close_on_exit=None
     ):
-        begin_time = datetime.datetime.now()
-
         script_path = (
             self.real_script_path if self.real_script_path else self.script_path
         )
