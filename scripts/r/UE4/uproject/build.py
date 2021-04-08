@@ -70,9 +70,10 @@ def build_uproject(project_dir, out_dir=None):
 if __name__ == "__main__":
     out_dir = build_uproject(project_dir=r"{{UE4_PROJECT_DIR}}")
 
-    apk = find_file(out_dir + "/**/*.apk")
-    adb_install(apk)
+    if "{{_INSTALL}}":
+        apk = find_file(out_dir + "/**/*.apk")
+        adb_install(apk)
 
-    pkg = get_pkg_name_apk(apk)
-    start_app(pkg)
-    # logcat(pkg)
+        pkg = get_pkg_name_apk(apk)
+        start_app(pkg)
+        # logcat(pkg)

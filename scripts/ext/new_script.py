@@ -4,7 +4,7 @@ import click
 
 os.chdir("../")
 
-rel_path = get_selected_script_dir_rel()
+rel_path = get_selected_script_dir_rel().lstrip("/")
 print(rel_path)
 
 
