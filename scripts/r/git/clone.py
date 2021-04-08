@@ -1,6 +1,6 @@
 from _shutil import *
 from _script import *
-
+from _editor import open_in_vscode
 
 mkdir("~/Projects")
 chdir("~/Projects")
@@ -13,4 +13,4 @@ if not exists(folder):
 
 set_variable("GIT_REPO", os.path.realpath(folder))
 
-shell_open(folder)
+open_in_vscode(folder)
