@@ -21,14 +21,15 @@ while True:
 
     s = getch()
     if s == "`":
-        print2("Console command: ", end="")
-        cmd = input("console> ")
+        while True:
+            print2("console> ", end="", color="green")
+            cmd = input()
+            if not cmd:
+                break
+
+            ue4_command(cmd)
+
     elif s in commands:
         cmd = commands[s]
-    else:
-        cmd = s
-
-    print(cmd)
-
-    # print2('Run Command: %s' % cmd)
-    ue4_command(cmd)
+        print(cmd)
+        ue4_command(cmd)
