@@ -835,8 +835,8 @@ def wait_until_file_modified(f):
 
 
 def start_process(args, shell=True):
-    FNULL = open(os.devnull, "w")
-    subprocess.Popen(args, shell=shell, stdout=FNULL, stderr=FNULL)
+    with open(os.devnull, "w") as fnull:
+        subprocess.Popen(args, shell=shell, stdout=fnull, stderr=fnull)
 
 
 def setup_nodejs(install=True):

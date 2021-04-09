@@ -2,6 +2,8 @@ from _shutil import *
 from _nvpack import *
 from _android import *
 
+uproject_dir = r"{{UE4_PROJECT_DIR}}"
+
 try:
     setup_nvpack(r"{{NVPACK_ROOT}}")
 except:
@@ -19,4 +21,12 @@ try:
 except:
     pass
 
-call_echo("start UE4Editor.exe")
+print2("Starting UE4Editor...")
+
+args = ["UE4Editor.exe"]
+if uproject_dir:
+    args.append(find_file(os.path.join(uproject_dir, "*.uproject")))
+
+
+start_process(args)
+sleep(2)
