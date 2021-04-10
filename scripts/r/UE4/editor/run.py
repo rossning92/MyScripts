@@ -4,11 +4,13 @@ from _android import *
 
 uproject_dir = r"{{UE4_PROJECT_DIR}}"
 
-try:
-    setup_nvpack(r"{{NVPACK_ROOT}}")
-except:
-    print2("WARNING: NVPACK not found.")
-    setup_android_env()
+# No need for NVPACK in UE4.25+
+# try:
+#     setup_nvpack(r"{NVPACK_ROOT}")
+# except:
+#     print2("WARNING: NVPACK not found.")
+
+setup_android_env()
 
 os.environ["DATA_CACHE_DIR"] = r"C:\UE4-DataCache"
 
