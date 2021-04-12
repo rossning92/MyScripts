@@ -4,11 +4,11 @@ closeOnExit: true
 conda: null
 globalHotkey: Win+Enter
 hotkey: null
-newWindow: true
+newWindow: false
 packages: null
 restartInstance: true
 runAsAdmin: false
-template: true
+template: false
 terminal: null
 venv: null
 wsl: false

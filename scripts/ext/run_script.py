@@ -1,11 +1,22 @@
 from _script import *
 
-script_file = get_files()[0]
-create_script_link(script_file)
 
-meta_file = os.path.abspath(os.path.splitext(script_file)[0] + '.yaml')
-meta = get_script_meta(meta_file)
-meta['template'] = False
-save_meta_file(meta, meta_file)
+def create_link(script):
+    d = os.path.realpath(os.path.dirname(__file__) + "/../link")
+    os.makedirs(d, exist_ok=True)
 
-run_script(script_file)
+    if sys.platform == "win32":
+        file = os.path.join(d, os.path.splitext(os.path.basename(script))[0] + ".cmd")
+        with open(file, "w", encoding="utf-8") as f:
+            f.write("\n".join(["@echo off", "run_script %s" % script]))
+    else:
+        raise Exception("Unsupported platform: %s" % sys.platform)
+
+    print("Link created: %s" % file)
+    return file
+
+
+if __name__ == "__main__":
+    script = get_files()[0]
+    file = create_link(script)
+    run_script(file, new_window=True)
