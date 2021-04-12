@@ -14,13 +14,13 @@ RunScript(name, path)
     else
     {
         UpdateExplorerInfo()
-        Run {{run_script}} --new_window=None --console_title "%name%" --restart_instance 0 "%path%" || pause
+        Run {{run_script}} @console_title=%name%:restart_instance=0 "%path%" || pause
     }
 }
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
-f12::Run {{run_script}} --new_window=None --console_title "%name%" || pause
+f12::Run {{run_script}} @console_title=%name% || pause
 {{htk_definitions}}
 
 #If

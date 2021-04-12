@@ -1,42 +1,32 @@
-import argparse
+import json
 import os
 import sys
-import json
 
 sys.path.insert(0, os.path.realpath(os.path.dirname(__file__) + "/../libs"))
-from _script import run_script, update_env_var_explorer, set_variable
+from _script import run_script, set_variable, update_env_var_explorer
 
 
-def to_bool(s):
-    if s == "None":
-        return None
+def try_parse():
+    kwargs = {}
+    if sys.argv[1].startswith("@"):
+        for kvp in sys.argv[1][1:].split(":"):
+            k, v = kvp.split("=")
+            if v == "1":
+                v = True
+            elif v == "0":
+                v = False
+            kwargs[k] = v
 
-    return bool(int(s))
+        return kwargs, sys.argv[2], sys.argv[3:]
+    else:
+        return {}, sys.argv[1], sys.argv[2:]
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--console_title", default=None)
-parser.add_argument("--restart_instance", type=to_bool, default=None)
-parser.add_argument("--new_window", type=to_bool, default=False)
-parser.add_argument("file", nargs="?", type=str, default=None)
+kwargs, file, rest_args = try_parse()
 
-
-try:
-    delim_pos = sys.argv.index("--")
-    main_args = sys.argv[1:delim_pos]
-    rest_args = sys.argv[delim_pos + 1 :]
-except ValueError:
-    main_args = sys.argv[1:]
-    rest_args = None
-
-args = parser.parse_args(args=main_args)
 
 update_env_var_explorer()
 
 run_script(
-    file=args.file,
-    console_title=args.console_title,
-    restart_instance=args.restart_instance,
-    new_window=args.new_window,
-    args=rest_args,
+    file=file, args=rest_args, **kwargs,
 )
