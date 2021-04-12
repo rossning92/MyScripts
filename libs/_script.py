@@ -1,18 +1,20 @@
-import os
-import sys
-import subprocess
-import json
-import jinja2
-import re
-import yaml
-import platform
 import ctypes
-from _shutil import *
-import shlex
 import glob
+import json
 import locale
+import os
+import platform
+import re
+import shlex
+import subprocess
+import sys
+
+import jinja2
+import yaml
+
 from _appmanager import get_executable
 from _editor import open_in_vscode
+from _shutil import *
 
 # TODO: move to configuration file
 SCRIPT_PATH_LIST = [
@@ -639,15 +641,7 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = (
-                    args_activate
-                    + [
-                        python_exec,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+                args = args_activate + [python_exec, run_py, python_file,] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -861,7 +855,11 @@ def find_script(script_name, search_dir=None):
     )
 
     found = glob.glob(path, recursive=True)
-    found = [f for f in found if not os.path.isdir(f) and not f.endswith(".yaml")]
+    found = [
+        f
+        for f in found
+        if not os.path.isdir(f) and os.path.splitext(f)[1] in SCRIPT_EXTENSIONS
+    ]
     if len(found) > 1:
         raise Exception("Found multiple scripts: %s" % str(found))
 

@@ -131,7 +131,7 @@ function isDocumentActive() {
   const fileName = getActiveFile();
   if (!fileName) return false;
 
-  if (path.basename(fileName) != "index.md") {
+  if (!path.basename(fileName).endsWith(".md")) {
     return false;
   }
 
@@ -187,7 +187,7 @@ function getCompletedExpression(file) {
 
 function registerAutoComplete(context) {
   const provider = vscode.languages.registerCompletionItemProvider(
-    { pattern: "**/index.md" },
+    { pattern: "**/vprojects/**/*.md" },
     {
       provideCompletionItems(document, position) {
         const projectDir = getProjectDir();

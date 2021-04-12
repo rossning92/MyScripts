@@ -65,27 +65,33 @@
     "keybindings": [
       {
         "command": "yo.runSelection",
-        "key": "alt+enter"
+        "key": "alt+enter",
+        "when": "resourcePath =~ /vprojects/"
       },
       {
         "command": "yo.exportAudio",
-        "key": "ctrl+alt+enter"
+        "key": "ctrl+alt+enter",
+        "when": "resourcePath =~ /vprojects/"
       },
       {
         "command": "yo.startRecording",
-        "key": "f7"
+        "key": "f7",
+        "when": "resourcePath =~ /vprojects/"
       },
       {
         "command": "yo.stopRecording",
-        "key": "f8"
+        "key": "f8",
+        "when": "resourcePath =~ /vprojects/"
       },
       {
         "command": "yo.collectNoiseProfile",
-        "key": "f9"
+        "key": "f9",
+        "when": "resourcePath =~ /vprojects/"
       },
       {
         "command": "yo.openFileUnderCursor",
-        "key": "f4"
+        "key": "f4",
+        "when": "resourcePath =~ /vprojects/"
       }
     ],
     "snippets": [
