@@ -8,7 +8,7 @@ def create_link(script):
     if sys.platform == "win32":
         file = os.path.join(d, os.path.splitext(os.path.basename(script))[0] + ".cmd")
         with open(file, "w", encoding="utf-8") as f:
-            f.write("\n".join(["@echo off", "run_script %s" % script]))
+            f.write("\n".join(["@echo off", 'run_script "%s"' % script]))
     else:
         raise Exception("Unsupported platform: %s" % sys.platform)
 
