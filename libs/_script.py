@@ -1106,8 +1106,6 @@ def load_scripts(script_list, modified_time, autorun=True):
     for prefix, script_path in SCRIPT_PATH_LIST:
         files = get_scripts_recursive(script_path)
         for file in files:
-            ext = os.path.splitext(file)[1].lower()
-
             # File has been removed during iteration
             if not os.path.exists(file):
                 continue
