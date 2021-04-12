@@ -889,7 +889,7 @@ def run_script(
         return s
 
     print2(
-        "run_script: %s" % (" ".join([quote(x) for x in [file] + args])), color="green"
+        "run_script: %s" % (" ".join([quote(x) for x in [file] + args])), color="black"
     )
 
     script_path = find_script(file)
