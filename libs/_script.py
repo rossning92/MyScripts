@@ -592,7 +592,6 @@ class Script:
                 python_exec = "python3"
 
             python_path = get_python_path(script_path)
-            print(python_path)
 
             env["PYTHONPATH"] = os.pathsep.join(python_path)
             # env["PYTHONDONTWRITEBYTECODE"] = "1"
@@ -873,7 +872,7 @@ def run_script(
     console_title=None,
     restart_instance=False,
     overwrite_meta=None,
-    args=None,
+    args=[],
 ):
     if file is None:
         if os.path.exists(_get_script_history_file()):
@@ -883,7 +882,16 @@ def run_script(
         else:
             raise ValueError("file cannot be None.")
 
-    print2("RunScript: %s: %s" % (file, str(args)), color="green")
+    # Print command line arguments
+    def quote(s):
+        if " " in s:
+            s = '"%s"' % s
+        return s
+
+    print2(
+        "run_script: %s" % (" ".join([quote(x) for x in [file] + args])), color="green"
+    )
+
     script_path = find_script(file)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % file)
