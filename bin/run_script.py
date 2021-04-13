@@ -17,9 +17,17 @@ def try_parse():
                 v = False
             kwargs[k] = v
 
-        return kwargs, sys.argv[2], sys.argv[3:]
+        rest_args = sys.argv[2:]
     else:
-        return {}, sys.argv[1], sys.argv[2:]
+        rest_args = sys.argv[1:]
+
+    if len(rest_args) >= 1:
+        file = rest_args[0]
+        rest_args = rest_args[1:]
+    else:
+        file = None
+
+    return kwargs, file, rest_args
 
 
 kwargs, file, rest_args = try_parse()
