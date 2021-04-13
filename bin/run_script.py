@@ -28,5 +28,5 @@ kwargs, file, rest_args = try_parse()
 update_env_var_explorer()
 
 run_script(
-    file=file, args=rest_args, new_window=None, **kwargs,
+    file=file, args=rest_args, new_window=False, **kwargs,
 )
