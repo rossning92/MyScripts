@@ -868,7 +868,7 @@ def find_script(script_name, search_dir=None):
 def run_script(
     file=None,
     variables=None,
-    new_window=None,
+    new_window=False,  # should not start a new window by default
     console_title=None,
     restart_instance=False,
     overwrite_meta=None,
