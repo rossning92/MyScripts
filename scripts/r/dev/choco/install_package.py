@@ -73,6 +73,7 @@ PKGS = {
         "win32diskimager",
         "mongodb",
         "golang",
+        "ontopreplica",
     ],
 }
 
