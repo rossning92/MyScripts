@@ -262,3 +262,10 @@ def init_curses(stdscr):
     stdscr.keypad(1)
     stdscr.nodelay(False)
     stdscr.timeout(1000)
+
+
+def clear_terminal():
+    if sys.platform == "win32":
+        os.system("cls")
+    else:
+        os.system("clear")
