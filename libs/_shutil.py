@@ -456,7 +456,7 @@ def fnull():
     return open(os.devnull, "w")
 
 
-def read_lines(args, echo=False, read_err=False, max_lines=None, check=True, **kwargs):
+def proc_lines(args, echo=False, read_err=False, max_lines=None, check=True, **kwargs):
     def terminate():
         nonlocal ps
         if sys.platform == "win32":
@@ -583,7 +583,7 @@ def call_highlight(args, highlight=None, filter_line=None, **kwargs):
     if highlight is None:
         highlight = {}
 
-    for line in read_lines(args, **kwargs):
+    for line in proc_lines(args, **kwargs):
         # Filter line by pre-defined functions
         if filter_line:
             line = filter_line(line)

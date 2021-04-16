@@ -121,7 +121,7 @@ def logcat(
     LOGCAT_PATTERN = re.compile(r"^([A-Z])/([^\(]+)\(\s*(\d+)\):(.*)$")
     while True:
         try:
-            for line in read_lines(args):
+            for line in proc_lines(args):
                 match = re.match(LOGCAT_PATTERN, line)
                 if match is None:
                     print(line)

@@ -1,7 +1,7 @@
 from _term import Menu
 import sys
 import subprocess
-from _shutil import read_lines, call_echo
+from _shutil import proc_lines, call_echo
 
 PKGS = {
     "@common": [
@@ -80,7 +80,7 @@ PKGS = {
 
 def install_package(name):
     # choco list -lo
-    lines = read_lines(["choco", "list", "-lo"])
+    lines = proc_lines(["choco", "list", "-lo"])
     lines = [x for x in lines if x.startswith(name)]
 
     if len(lines) > 0:

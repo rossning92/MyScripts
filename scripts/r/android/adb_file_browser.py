@@ -7,7 +7,7 @@ cur = '/sdcard'
 save_path = os.path.expanduser(os.path.join('~', 'Desktop'))
 
 while True:
-    files = list(read_lines('adb shell "ls \'%s\'"' % cur))
+    files = list(proc_lines('adb shell "ls \'%s\'"' % cur))
     print('\n'.join(['@%d %s' % (i, x) for i, x in enumerate(files)]))
 
     input = prompt('%s > ' % cur, completer=FuzzyWordCompleter(files))

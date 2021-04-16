@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from _android import clear_logcat
 from _math import plt_pause
-from _shutil import read_lines
+from _shutil import proc_lines
 import pandas as pd
 
 
 def get_logcat_data():
-    it = read_lines(["adb", "exec-out", "logcat | grep 'ROSS:'"])
+    it = proc_lines(["adb", "exec-out", "logcat | grep 'ROSS:'"])
     for line in it:
         kvps = re.search("ROSS:(.*)", line).group(1).split()
         kvps = [x.split("=") for x in kvps]

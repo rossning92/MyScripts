@@ -1,4 +1,8 @@
 from _shutil import *
 
-# -m 384
-call_echo("scrcpy --always-on-top --window-x 20 --window-y 20")
+
+args = ["scrcpy", "--always-on-top", "--window-x", "20", "--window-y", "20"]
+if "{{_SIZE}}":
+    args += ["--max-size", "{{_SIZE}}"]
+
+call_echo(args)

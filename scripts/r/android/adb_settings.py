@@ -6,7 +6,7 @@ last_result = None
 while True:
     lines = ['<refresh>']
     for ns in ['system', 'secure', 'global']:
-        lines += ['system ' + x for x in read_lines('adb shell settings list ' + ns)]
+        lines += ['system ' + x for x in proc_lines('adb shell settings list ' + ns)]
     lines = [x.replace('=', ' ') for x in lines]
 
     if last_result is not None:

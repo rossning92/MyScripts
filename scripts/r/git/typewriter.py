@@ -70,7 +70,7 @@ SendLevel 0
 cd(proj_dir)
 
 
-lines = list(read_lines('git log --pretty="format:%h %s" master'))
+lines = list(proc_lines('git log --pretty="format:%h %s" master'))
 i = 2
 i = prompt_list(lines)
 

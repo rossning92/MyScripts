@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from _android import clear_logcat
 from _math import plt_pause
-from _shutil import read_lines
+from _shutil import proc_lines
 
 
 def plot_time_series(kw, show_recent=500):
@@ -32,7 +32,7 @@ def plot_time_series(kw, show_recent=500):
 
     # Read all lines with camera phase sync timestamps
     patt = re.compile("(" + kw + ")" + "=([+-]?([0-9]*[.])?[0-9]+)")
-    it = read_lines(["adb", "exec-out", "logcat | grep ROSS"])
+    it = proc_lines(["adb", "exec-out", "logcat | grep ROSS"])
     for line in it:
         if request_exit:
             it.close()
