@@ -77,7 +77,7 @@ reg add HKCU\Console /v ColorTable14 /t REG_DWORD /d 0x00a5f1f9 /f
 reg add HKCU\Console /v ColorTable15 /t REG_DWORD /d 0x00f2f2f2 /f
 
 :: Notification duration
-reg add "HKCU\Control Panel\Accessibility" /v MessageDuration /t REG_DWORD /d 60 /f
+reg add "HKCU\Control Panel\Accessibility" /v MessageDuration /t REG_DWORD /d 10 /f
 
 :: Change wallpaper
 reg add "HKCU\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "" /f
@@ -95,4 +95,4 @@ start explorer.exe
 powercfg /change standby-timeout-ac 0
 powercfg /change standby-timeout-dc 0
 
-run_script /r/win/disable_onedrive.cmd
+run_script disable_onedrive
