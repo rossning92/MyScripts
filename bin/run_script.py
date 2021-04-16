@@ -15,6 +15,8 @@ def try_parse():
                 v = True
             elif v == "0":
                 v = False
+            elif v == "auto":
+                v = None
             kwargs[k] = v
 
         rest_args = sys.argv[2:]
@@ -36,5 +38,7 @@ kwargs, file, rest_args = try_parse()
 update_env_var_explorer()
 
 run_script(
-    file=file, args=rest_args, **kwargs,
+    file=file,
+    args=rest_args,
+    **kwargs,
 )

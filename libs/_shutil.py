@@ -456,6 +456,16 @@ def fnull():
     return open(os.devnull, "w")
 
 
+def read_lines(file):
+    with open(file) as f:
+        return f.read().splitlines()
+
+
+def write_lines(file, lines):
+    with open(file, newline="\n") as f:
+        f.write("\n".join(lines))
+
+
 def proc_lines(args, echo=False, read_err=False, max_lines=None, check=True, **kwargs):
     def terminate():
         nonlocal ps
