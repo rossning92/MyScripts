@@ -17,14 +17,16 @@ fi
 # Check if file is modified
 git status --short
 status=$(git status --short)
-[[ -z "$status" ]] && exit 0
-
-echo "Press y to commit..."
-read -n1 ans
-[[ "$ans" != "y" ]] && exit 0
-
-git add -A
-git commit -m 'commit with no message.'
+if [[ ! -z "$status" ]]; then
+    echo "Press y to commit..."
+    read -n1 ans
+    if [[ "$ans" == "y" ]]; then
+        git add -A
+        git commit -m 'commit with no message.'
+    else
+        exit 0
+    fi
+fi
 
 git pull --rebase
 # git submodule update --recursive --remote
