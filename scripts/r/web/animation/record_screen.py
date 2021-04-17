@@ -10,23 +10,26 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from video_editor import edit_video
 
 
-class CapturaScreenRecorder:
+class ScreenRecorder:
     def __init__(self):
+        self.rect = None
+        self.file = None
+
+
+class CapturaScreenRecorder(ScreenRecorder):
+    def __init__(self):
+        super().__init__()
+
         self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
         self.captura_ps = None
-        self.region = None
         self.file = None
         self.loudnorm = False
 
-    def set_region(self, region):
-        self.region = region
-
-    def start_record(self, file):
-        self.file = file
-
+    def start_record(self):
         if self.captura_ps is not None:
             return
 
+        # https://github.com/MathewSachin/Captura/tree/master/docs/Cmdline
         args = [
             "captura-cli",
             "start",
@@ -41,25 +44,18 @@ class CapturaScreenRecorder:
             "-y",
         ]
 
-        if self.region is not None:
+        if self.rect is not None:
             args += [
                 "--source",
-                ",".join(["%d" % x for x in self.region]),
+                ",".join(["%d" % x for x in self.rect]),
             ]
 
         self.captura_ps = subprocess.Popen(
             args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         )
 
-        while True:
-            line = self.captura_ps.stdout.readline().decode()
-            # print(line)
-            if "Press p" in line:
-                print2("Recording started.", color="green")
-                break
-
     def stop_record(self):
-        assert self.file is not None
+        assert self.file
 
         self.captura_ps
         if self.captura_ps is None:
@@ -83,35 +79,29 @@ class CapturaScreenRecorder:
         move_file(self.tmp_file, self.file)
 
 
-class ShadowPlayScreenRecorder:
+class ShadowPlayScreenRecorder(ScreenRecorder):
     def __init__(self):
-        self.region = None
-
-    def set_region(self, region):
-        self.region = region
+        super().__init__()
 
     def start_record(self):
-        print2("Start record...")
         pyautogui.hotkey("alt", "f9")
-        time.sleep(1)
+        time.sleep(0.5)  # purely estimated warm-up time
 
     def stop_record(self):
-        print2("Stop record...")
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)
 
-    def save_record(self, file, overwrite=False, no_audio=False):
-        # Get recorded video file
+        # Get recorded video files
         files = glob.glob(
             os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"), recursive=True,
         )
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
         in_file = files[0]
 
-        if overwrite and os.path.exists(file):
-            os.remove(file)
+        if os.path.exists(self.file):
+            os.remove(self.file)
 
-        if self.region is not None:
+        if self.rect is not None:
             out_file = get_temp_file_name(".mp4")
             ffmpeg(
                 in_file,
@@ -119,7 +109,7 @@ class ShadowPlayScreenRecorder:
                 extra_args=[
                     "-filter:v",
                     "crop=%d:%d:%d:%d"
-                    % (self.region[2], self.region[3], self.region[0], self.region[1]),
+                    % (self.rect[2], self.rect[3], self.rect[0], self.rect[1]),
                 ],
                 quiet=True,
                 no_audio=True,
@@ -128,17 +118,17 @@ class ShadowPlayScreenRecorder:
             os.remove(in_file)
             in_file = out_file
 
-        if no_audio:
-            out_file = get_temp_file_name(".mp4")
-            remove_audio(in_file, out_file)
-            os.remove(in_file)
-            in_file = out_file
+        # if no_audio:
+        #     out_file = get_temp_file_name(".mp4")
+        #     remove_audio(in_file, out_file)
+        #     os.remove(in_file)
+        #     in_file = out_file
 
-        move_file(in_file, file)
+        move_file(in_file, self.file)
 
 
 recorder = CapturaScreenRecorder()
-# recorder = ShadowPlayScreenRecorder()
+recorder = ShadowPlayScreenRecorder()
 
 
 if __name__ == "__main__":
@@ -149,14 +139,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.rect is not None:
-        recorder.set_region(args.rect)
+        recorder.rect = args.rect
 
     name = input("input file name (no ext): ")
     if not name:
         sys.exit(0)
 
-    file = os.path.join(out_dir, "%s.mp4" % slugify(name))
-    recorder.start_record(file)
+    recorder.file = os.path.join(out_dir, "%s.mp4" % slugify(name))
+    recorder.start_record()
     minimize_cur_terminal()
 
     keyboard.wait("f6", suppress=True)
@@ -164,7 +154,7 @@ if __name__ == "__main__":
     activate_cur_terminal()
 
     # Save file
-    call_echo(["mpv", file])
+    call_echo(["mpv", recorder.file])
     # edit_video(dst_file)
 
     sleep(1)

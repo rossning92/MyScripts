@@ -24,6 +24,12 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
+def set_term_title(title):
+    if sys.platform == "win32":
+        title = title.encode(locale.getpreferredencoding())
+        ctypes.windll.kernel32.SetConsoleTitleA(title)
+
+
 def search(options):
     return Menu(items=options).get_selected_index()
 

@@ -380,7 +380,6 @@ function export_animation({ extraArgs = null, selectedText = true } = {}) {
       "/c",
       "run_script",
       "/r/web/animation/export_animation",
-
       "-i",
       textFile,
       "--proj_dir",

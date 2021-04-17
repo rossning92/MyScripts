@@ -38,17 +38,13 @@ $F6::
     } else {
         RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
     }
-
 return
 
 RunScript(file, args="") {
     global SCRIPT_DIR
     global VIDEO_PROJECT_DIR
 
-    commandLine := "cmd /c set ""VIDEO_PROJECT_DIR=" VIDEO_PROJECT_DIR """"
-    commandLine .= " && " SCRIPT_DIR "\..\..\..\..\bin\run_script.exe """ file """ -- " args
-    commandLine .= " || pause"
-
+    commandLine = cmd /c set "VIDEO_PROJECT_DIR=%VIDEO_PROJECT_DIR%" && run_script "%file%" %args% || pause
     Run, %commandLine%, , , pid
 return pid
 }
