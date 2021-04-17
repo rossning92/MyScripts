@@ -53,6 +53,7 @@ class CapturaScreenRecorder(ScreenRecorder):
         self.captura_ps = subprocess.Popen(
             args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         )
+        print2("Recording started.", color="green")
 
     def stop_record(self):
         assert self.file

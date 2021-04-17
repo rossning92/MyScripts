@@ -58,6 +58,12 @@ if __name__ == "__main__":
 
     data["glsllint.glslangValidatorPath"] = install_glslang()
 
+    # Workaround for "has no member" issues
+    data["python.linting.pylintArgs"] = [
+        "--errors-only",
+        "--generated-members=numpy.* ,torch.* ,cv2.* , cv.*",
+    ]
+
     json.dump(data, open(f, "w"), indent=4)
 
     if not "{{SKIP_EXTENSIONS}}":
