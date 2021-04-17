@@ -299,11 +299,16 @@ function getRecorderProcess() {
     recorderProcess.stdout.on("data", (data) => {
       const lines = data.toString("utf8").split(/(\r?\n)/g);
       for (const line of lines) {
-        vscode.window.showInformationMessage(`${line}`);
-        const s = line.trim();
-        if (s.startsWith("stop recording:")) {
-          const fileName = s.split(":")[1].trim();
-          insertText(`{{ record('record/${fileName}') }}`);
+        let s = line.trim();
+        if (s.startsWith("LOG: ")) {
+          s = s.substr(5);
+          vscode.window.showInformationMessage(s);
+
+          const match = /^stop recording: (.*)/.exec(s);
+          if (match) {
+            const fileName = match[1];
+            insertText(`{{ record('record/${fileName}') }}`);
+          }
         }
       }
     });

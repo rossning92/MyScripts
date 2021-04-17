@@ -215,7 +215,6 @@ class TerminalRecorder:
     def print_help(self):
         if self.interactive:
             print2(
-                "SPACE - Start / stop recording\n"
                 "R     - Start recording\n"
                 "S     - Stop recording\n"
                 "D     - Delete current\n"
@@ -272,14 +271,14 @@ class TerminalRecorder:
 
         if os.path.exists(file_name):
             os.remove(file_name)
-            print("delete file: %s" % file_name)
+            print("LOG: file deleted: %s" % file_name, flush=True)
 
     def create_noise_profile(self):
         self._stop_all()
 
-        print("please be quiet")
+        print("LOG: please be quiet", flush=True)
         sleep(1)
-        print("start collecting noise profile")
+        print("LOG: start collecting noise profile", flush=True)
 
         os.makedirs("tmp", exist_ok=True)
         with self.recorder.open("tmp/noise.wav", "wb") as r:
@@ -288,19 +287,7 @@ class TerminalRecorder:
             r.stop_recording()
 
         create_noise_profile("tmp/noise.wav")
-        print("stop collection noise profile")
-
-    def start_stop_record(self):
-        """
-        :return: new recorded file name when recording finishes otherwise None
-        """
-
-        if not self.recorder.is_recording():
-            self.start_record()
-            return None
-        else:
-            self.stop_record()
-            return self.cur_file_name
+        print("LOG: stop collection noise profile", flush=True)
 
     def start_record(self):
         if self.recorder.is_recording():
@@ -308,14 +295,6 @@ class TerminalRecorder:
 
         self.recorder.stop()
         self.playback.stop()
-
-        # if self.cur_file_name:
-        #     self.cur_file_name = get_next_file_name(self.cur_file_name)
-        # else:
-        #     # First audio file
-        #     self.cur_file_name = os.path.join(
-        #         self.out_dir, FILE_PREFIX + "_001." + RECORD_FILE_TYPE
-        #     )
 
         self.cur_file_name = os.path.join(
             self.out_dir,
@@ -328,12 +307,14 @@ class TerminalRecorder:
         )
 
         self.recorder.record(self.tmp_wav_file)
-        print("start recording: %s" % self.cur_file_name)
+        print("LOG: start recording: %s" % self.cur_file_name, flush=True)
 
     def stop_record(self):
+        self.playback.stop()
+
         if self.recorder.is_recording():
             self.recorder.stop()
-            print("stop recording: %s" % self.cur_file_name, flush=True)
+            print("LOG: stop recording: %s" % self.cur_file_name, flush=True)
 
             denoise(in_file=self.tmp_wav_file)
 
@@ -365,9 +346,6 @@ class TerminalRecorder:
 
             if ch == "h":
                 self.print_help()
-
-            elif ch == " ":
-                self.start_stop_record()
 
             elif ch == "r":
                 self.start_record()
