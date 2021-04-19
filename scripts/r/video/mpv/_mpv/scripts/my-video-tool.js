@@ -272,7 +272,10 @@ mp.add_forced_key_binding("R", "reverse", function () {
 mp.add_forced_key_binding("T", "simulate_typing", function () {
   mp.osd_message("simulate typing...");
   exportVideo({
-    vf: "mpdecimate,setpts=N/FRAME_RATE/TB,setpts=2.0*PTS*(1+random(0)*0.02)",
+    vf:
+      "mpdecimate" +
+      ",tpad=stop_mode=clone:stop_duration=2" +
+      ",setpts=N/FRAME_RATE/TB,setpts=2.0*PTS*(1+random(0)*0.02)",
   });
 });
 
