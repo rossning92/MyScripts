@@ -3,7 +3,7 @@ from urllib.request import urlretrieve
 from subprocess import call
 from _script import *
 
-proj_path = os.path.realpath(os.environ['CUR_DIR_'])
+proj_path = os.path.realpath(os.environ['_CUR_DIR'])
 
 os.chdir(proj_path)
 

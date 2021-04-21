@@ -6,7 +6,7 @@ if __name__ == "__main__":
     files = get_files()
 
     file_list = write_temp_file("\n".join(["file '%s'" % f for f in files]), ".txt")
-    cd(os.environ["CUR_DIR_"])
+    cd(os.environ["_CUR_DIR"])
     call_echo(
         [
             "ffmpeg",

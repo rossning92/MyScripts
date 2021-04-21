@@ -1,6 +1,6 @@
 from _audio import *
 
-chdir(os.environ['CUR_DIR_'])
+chdir(os.environ['_CUR_DIR'])
 
 for f in glob.glob('*.wav'):
     denoise(f)

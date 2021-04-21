@@ -11,6 +11,6 @@ call_echo(
         "-pw",
         "{{SSH_PWD}}",
         "{{SSH_USER}}@{{SSH_HOST}}:" + src,
-        os.environ['CUR_DIR_'],
+        os.environ['_CUR_DIR'],
     ]
 )

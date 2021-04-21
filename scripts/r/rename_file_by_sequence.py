@@ -5,7 +5,7 @@ from _term import *
 wildcard = '{{_WILDCARD}}' if '{{_WILDCARD}}' else '*'
 prefix = '{{_PREFIX}}'
 
-os.chdir(os.environ['CUR_DIR_'])
+os.chdir(os.environ['_CUR_DIR'])
 
 new_file_names = {}
 i = 1

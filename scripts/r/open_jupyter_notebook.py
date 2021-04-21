@@ -1,7 +1,7 @@
 from _shutil import *
 import os
 
-cd(os.environ['CUR_DIR_'])
+cd(os.environ['_CUR_DIR'])
 
 args = 'jupyter notebook'
 if '_FILE' in os.environ:

@@ -4,7 +4,7 @@ from _shutil import *
 
 fps = "{{_FPS}}" if "{{_FPS}}" else "60"
 
-cd(os.environ["CUR_DIR_"])
+cd(os.environ["_CUR_DIR"])
 
 input_file = "input.txt"
 files = sorted(glob.glob("*.png"))

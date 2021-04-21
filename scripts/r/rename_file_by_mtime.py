@@ -2,7 +2,7 @@ from _shutil import *
 import datetime
 from _term import *
 
-os.chdir(os.environ["CUR_DIR_"])
+os.chdir(os.environ["_CUR_DIR"])
 
 new_file_names = {}
 files = list(glob.glob("*"))
