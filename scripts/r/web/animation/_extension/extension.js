@@ -360,22 +360,57 @@ function startAnimationServer(activeFile) {
 }
 
 function export_animation({ extraArgs = null, selectedText = true } = {}) {
-  let editor = vscode.window.activeTextEditor;
-  if (editor) {
-    let document = editor.document;
+  let activeEditor = vscode.window.activeTextEditor;
+  if (activeEditor) {
+    let document = activeEditor.document;
 
-    let text;
+    let textIn = "";
     if (selectedText) {
-      text = document.getText(editor.selection);
+      textIn = document.getText(activeEditor.selection);
+      if (!textIn) {
+        let currentLine = activeEditor.selection.active.line;
+
+        let headerLevel = 0;
+        let beginLine = 0;
+        let endLine = activeEditor.document.lineCount - 1;
+        for (let i = currentLine; i >= 0; i--) {
+          const { text } = activeEditor.document.lineAt(i);
+          const match = text.match(/^(#+) /);
+          if (match) {
+            headerLevel = match[1].length;
+            beginLine = i;
+            break;
+          }
+        }
+
+        if (beginLine >= 0) {
+          for (
+            let i = currentLine + 1;
+            i < activeEditor.document.lineCount;
+            i++
+          ) {
+            const { text } = activeEditor.document.lineAt(i);
+            const match = text.match(/^(#+) /);
+            if (match && match[1].length <= headerLevel) {
+              endLine = i - 1;
+              break;
+            }
+          }
+        }
+
+        for (let i = beginLine; i <= endLine; i++) {
+          const { text } = activeEditor.document.lineAt(i);
+          textIn += text + "\n";
+        }
+      }
     } else {
-      text = document.getText();
+      textIn = document.getText();
     }
 
     var activeFilePath = vscode.window.activeTextEditor.document.fileName;
     var activeDirectory = path.dirname(activeFilePath);
-    // vscode.window.showInformationMessage(activeDirectory);
 
-    const textFile = writeTempTextFile(text);
+    const textFile = writeTempTextFile(textIn);
     let shellArgs = [
       "/c",
       "run_script",
