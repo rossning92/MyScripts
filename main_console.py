@@ -222,10 +222,11 @@ def register_global_hotkeys(scripts):
             hotkey = item.meta["globalHotkey"]
             if hotkey is not None:
                 print("Global Hotkey: %s: %s" % (hotkey, item.name))
-                hotkey = hotkey.replace("Ctrl+", "^")
-                hotkey = hotkey.replace("Alt+", "!")
-                hotkey = hotkey.replace("Shift+", "+")
-                hotkey = hotkey.replace("Win+", "#")
+                hotkey = hotkey.lower()
+                hotkey = hotkey.replace("ctrl+", "^")
+                hotkey = hotkey.replace("alt+", "!")
+                hotkey = hotkey.replace("shift+", "+")
+                hotkey = hotkey.replace("win+", "#")
 
                 htk_definitions += (
                     f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
