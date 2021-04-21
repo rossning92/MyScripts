@@ -243,7 +243,9 @@ def _get_pos(p):
 
 def _set_pos(t, tag=None):
     t = _get_pos(t)
-    _pos_dict["c"] = t
+
+    if t != "c":
+        _pos_dict["c"] = t
 
     if tag is not None:
         _pos_dict[tag] = t
@@ -518,7 +520,7 @@ def sfx(f, **kwargs):
 
 
 @api
-def pos(t, tag=None):
+def pos(t="c", tag=None):
     _set_pos(t, tag=tag)
 
 
