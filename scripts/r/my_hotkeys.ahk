@@ -183,16 +183,24 @@ $!`::
     }
 return
 
-$!1::SetWindowPosF("A", 0, 0, WindowDividor, 1)
-$!2::SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-
-$!3::SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
-$!4::SetWindowPos("A", 0, 0, 1440, 810)
-
+$!1::
+    SetWindowPosF("A", 0, 0, WindowDividor, 1)
+    WinSet, AlwaysOnTop, Off, A
 return
 
-#3::
-    SetWindowPos("A", 0, 0, 1632, 918)
+$!2::
+    SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
+    WinSet, AlwaysOnTop, On, A
+return
+
+$!3::
+    SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
+    WinSet, AlwaysOnTop, Off, A
+return
+
+$!4::
+    SetWindowPos("A", 0, 0, 1440, 810)
+    WinSet, AlwaysOnTop, Off, A
 return
 
 #0::
