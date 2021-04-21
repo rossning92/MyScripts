@@ -57,4 +57,4 @@ if __name__ == "__main__":
         for act in action_list:
             act()
 
-    _record_ipython(out_file, run_actions)
+    _record_ipython(out_file, run_actions, startup="import torch")
