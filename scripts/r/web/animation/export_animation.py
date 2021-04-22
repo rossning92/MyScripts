@@ -1360,11 +1360,10 @@ def _remove_unused_recordings(s):
         if f not in used_recordings:
             unused_recordings.append(f)
 
-    print("Total: %d" % len(files))
-    print("Used recordings: %d" % len(used_recordings))
-    print("Recordings to delete: %d" % len(unused_recordings))
+    print2("Used   : %d" % len(used_recordings), color="green")
+    print2("Unused : %d" % len(unused_recordings), color="red")
     assert len(used_recordings) + len(unused_recordings) == len(files)
-    print2("press y to confirm deletion: ", end="")
+    print("Press y to clean up: ", end="", flush=True)
     if getch() == "y":
         for f in unused_recordings:
             try:
