@@ -272,14 +272,7 @@ UpdateWindowPosition(pos) {
         WinSet, Style, +0x40000, ahk_id %hwnd%
         WinSet, Style, +Resize, ahk_id %hwnd%
 
-        if (pos = "right")
-        {
-            WinSet, AlwaysOnTop, On, ahk_id %hwnd%
-        }
-        else
-        {
-            WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
-        }
+        WinSet, AlwaysOnTop, Off, ahk_id %hwnd%
 
         SetWindowPos("ahk_id " hwnd, x, y, w, h)
         if (hwnd != curHwnd) {
