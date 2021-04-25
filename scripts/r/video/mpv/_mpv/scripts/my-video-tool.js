@@ -298,6 +298,13 @@ mp.add_forced_key_binding("O", "crop_top_right", function () {
   });
 });
 
+mp.add_forced_key_binding("<", "crop_bottom", function () {
+  mp.osd_message("crop bottom...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0.125*iw:0.25*ih",
+  });
+});
+
 mp.add_forced_key_binding(">", "crop_bottom_right", function () {
   mp.osd_message("crop bottom right...");
   exportVideo({

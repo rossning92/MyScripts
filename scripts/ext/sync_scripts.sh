@@ -2,7 +2,7 @@ set -e
 
 cd ../..
 
-git config --global user.email "rossning92@github.com"
+git config --global user.email "rossning92@gmail.com"
 git config --global user.name "rossning92"
 git config credential.helper store
 

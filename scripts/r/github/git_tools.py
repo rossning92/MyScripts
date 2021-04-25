@@ -10,7 +10,7 @@ sync_github = bool("{{SYNC_GITHUB}}")
 
 
 bundle_file = None
-if backup_dir is not None:
+if backup_dir:
     bundle_file = os.path.join(backup_dir, os.path.basename(repo_dir) + ".bundle")
     print("Bundle file path: %s" % bundle_file)
 
@@ -43,7 +43,7 @@ def commit(dry_run=False, amend=False):
         call_echo("git status --short")
 
     else:
-        call_echo("git add -A")
+        # call_echo("git add -A")
 
         if amend:
             call_echo("git commit --amend --no-edit --quiet")
