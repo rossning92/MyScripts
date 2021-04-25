@@ -28,7 +28,7 @@ def print_help():
     )
 
     print2(
-        "[h] help          [1] run command\n"
+        "[h] help          [`] run command\n"
         "[c] commit        [C] commit & push\n"
         "[a] amend         [A] amend & push\n"
         "[p] pull          [P] push\n"
@@ -63,7 +63,7 @@ def revert():
 
 
 def git_push():
-    call_echo("git push -u origin master")
+    call_echo("git push -u origin master --force")
 
 
 def show_git_log():
@@ -166,9 +166,9 @@ if __name__ == "__main__":
                 call_echo("git checkout %s" % f)
         elif ch == "d":
             call_echo("git diff")
-        elif ch == "1":
+        elif ch == "`":
             cmd = input("cmd> ")
-            call2(cmd)
+            subprocess.call(cmd, shell=True)
         elif ch == "b":
             create_bundle()
             continue
