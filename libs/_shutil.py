@@ -871,7 +871,7 @@ def setup_nodejs(install=True):
 
         node_path = [os.path.abspath(os.path.dirname(__file__) + "/../jslib")]
 
-        npm_modules = os.path.expandvars("%APPDATA%/npm/node_modules")
+        npm_modules = os.path.expandvars(r"%APPDATA%\npm\node_modules")
         if os.path.exists(npm_modules):
             node_path.append(npm_modules)
 
