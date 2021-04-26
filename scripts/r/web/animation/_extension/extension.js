@@ -464,8 +464,8 @@ async function insertAllClipsInFolder() {
   });
 }
 
-function registerCreateSlideCommand() {
-  vscode.commands.registerCommand("yo.createSlide", async () => {
+function registerCreatePptCommand() {
+  vscode.commands.registerCommand("yo.createPpt", async () => {
     const fileName = await vscode.window.showInputBox({
       placeHolder: "slide-file-name",
     });
@@ -565,7 +565,7 @@ function activate(context) {
     });
   });
 
-  registerCreateSlideCommand();
+  registerCreatePptCommand();
 
   registerCreateMovyCommand();
 
