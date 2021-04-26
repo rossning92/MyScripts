@@ -875,6 +875,10 @@ def setup_nodejs(install=True):
         if os.path.exists(npm_modules):
             node_path.append(npm_modules)
 
+        yarn_modules = os.path.expandvars(r"%LOCALAPPDATA%\Yarn\Data\global\node_modules")
+        if os.path.exists(yarn_modules):
+            node_path.append(yarn_modules)
+
         node_path = os.path.pathsep.join(node_path)
         os.environ["NODE_PATH"] = node_path
         print2("NODE_PATH: %s" % node_path)
