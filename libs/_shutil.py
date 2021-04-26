@@ -869,10 +869,15 @@ def setup_nodejs(install=True):
                 ]
             )
 
-        global_modules = os.path.expandvars("%APPDATA%/npm/node_modules")
-        if os.path.exists(global_modules):
-            os.environ["NODE_PATH"] = global_modules
-            print2("NODE_PATH: %s" % global_modules)
+        node_path = [os.path.abspath(os.path.dirname(__file__) + "/../jslib")]
+
+        npm_modules = os.path.expandvars("%APPDATA%/npm/node_modules")
+        if os.path.exists(npm_modules):
+            node_path.append(npm_modules)
+
+        node_path = os.path.pathsep.join(node_path)
+        os.environ["NODE_PATH"] = node_path
+        print2("NODE_PATH: %s" % node_path)
 
     else:
         print("setup_nodejs() not supported for current OS. Ignored.")
