@@ -69,7 +69,6 @@ class _VideoClipInfo:
         self.fadein = 0
         self.fadeout = 0
         self.crossfade = 0
-        self.text_overlay = None
 
         self.no_audio = False
         self.norm = False
@@ -814,7 +813,6 @@ def _add_video_clip(
     cf=None,
     t=None,
     duration=None,
-    text_overlay=None,
     transparent=True,
     move_playhead=True,
     no_audio=False,
@@ -861,7 +859,6 @@ def _add_video_clip(
 
     clip_info.fadeout = fadeout
 
-    clip_info.text_overlay = text_overlay
     clip_info.duration = duration
 
     clip_info.no_audio = no_audio or na
@@ -1024,27 +1021,7 @@ def _export_video(resolution=(1920, 1080)):
     for track in _video_tracks.values():
         _update_clip_duration(track)
 
-    # Add text overlay clip
-    for track in _video_tracks.values():
-        for clip_info in track:
-            if clip_info.text_overlay is not None:
-                mkdir("tmp/text_overlay")
-                overlay_file = "tmp/text_overlay/%s.png" % slugify(
-                    clip_info.text_overlay
-                )
-                if not os.path.exists(overlay_file):
-                    generate_slide(
-                        clip_info.text_overlay,
-                        template_file="source.html",
-                        out_file=overlay_file,
-                    )
-                assert clip_info.duration is not None
-                _add_video_clip(
-                    overlay_file,
-                    t=clip_info.start,
-                    duration=clip_info.duration,
-                    track="overlay",
-                )
+    # TODO: post-process video track clips
 
     # Update MoviePy clip object in each track.
     video_clips = []
