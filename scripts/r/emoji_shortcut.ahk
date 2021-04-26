@@ -1,7 +1,7 @@
 ﻿#SingleInstance Force
 
 $>!h::Send 😃
-$>!s::Send 😞
+$>!s::Send 😢
 $>!k::Send 😉
 $>!y::Send 👍
 $>!t::Send 😛
