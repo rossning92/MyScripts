@@ -1,16 +1,19 @@
 from _editor import *
 from _ext import *
 import click
+from _shutil import getch, print2
 
 os.chdir("../")
 
-rel_path = get_selected_script_dir_rel().lstrip("/")
-print(rel_path)
+script_dir = get_selected_script_dir_rel().lstrip("/")
+print(script_dir)
+print2("Enter %s (y/n)?" % script_dir)
+if getch() != "y":
+    script_dir = ""
 
-
-s = input("New script name: %s" % rel_path)
+s = input("New script name: %s" % script_dir)
 if s:
-    script_path = rel_path + s
+    script_path = script_dir + s
 
     dir_name = os.path.dirname(script_path)
     if dir_name != "":
