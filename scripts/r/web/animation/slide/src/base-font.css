@@ -1,0 +1,11 @@
+body {
+  font-family: "Roboto", "Noto Sans SC", sans-serif;
+  /* font-size: 5vh; */
+  font-size: 50px;
+  -webkit-font-smoothing: subpixel-antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+code {
+  font-family: "Source Code Pro";
+}

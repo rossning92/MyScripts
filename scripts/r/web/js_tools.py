@@ -41,11 +41,15 @@ def add_webpack(index_js="src/index.js"):
         dev=True,
     )
 
+    # CSS loader
+    add_packages(["style-loader", "css-loader", "mini-css-extract-plugin"], dev=True)
+
     if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
         with open(WEBPACK_CONFIG, "w") as f:
             f.write(
-                """var HtmlWebpackPlugin = require('html-webpack-plugin');
-var path = require('path');
+                """const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const path = require('path');
 
 module.exports = {
   entry: './%s',
@@ -53,7 +57,10 @@ module.exports = {
     path: path.resolve(__dirname, './dist'),
     filename: 'index_bundle.js'
   },
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [
+    new HtmlWebpackPlugin(),
+    new MiniCssExtractPlugin(),
+  ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     open: true,
@@ -61,17 +68,22 @@ module.exports = {
     proxy: {
       "/api": "http://localhost:8080"
     },
+    watchContentBase: true,
+    hot: true,
   },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: 'babel-loader'
-      },
+      // {
+      //   test: /\.js$/,
+      //   exclude: /node_modules/,
+      //   use: 'babel-loader'
+      // },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"]
+        use: [
+          MiniCssExtractPlugin.loader, // instead of style-loader
+          "css-loader",
+        ],
       },
     ]
   }

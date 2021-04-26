@@ -1,0 +1,142 @@
+@import url("https://fonts.googleapis.com/css2?family=Muli&family=Source+Code+Pro&family=Noto+Sans+SC&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Lato&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+
+html {
+  margin: auto;
+}
+
+body {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 0.5em;
+  perspective: 1000px;
+  color: white;
+
+  /* https://owumaro.github.io/text-stroke-generator/ */
+  /* text-shadow: rgb(0, 0, 0) 1px 0px 0px, rgb(0, 0, 0) 0.540302px 0.841471px 0px, rgb(0, 0, 0) -0.416147px 0.909297px 0px, rgb(0, 0, 0) -0.989992px 0.14112px 0px, rgb(0, 0, 0) -0.653644px -0.756802px 0px, rgb(0, 0, 0) 0.283662px -0.958924px 0px, rgb(0, 0, 0) 0.96017px -0.279416px 0px; */
+  /* text-shadow: rgb(0, 0, 0) 2px 0px 0px, rgb(0, 0, 0) 1.75517px 0.958851px 0px, rgb(0, 0, 0) 1.0806px 1.68294px 0px, rgb(0, 0, 0) 0.141474px 1.99499px 0px, rgb(0, 0, 0) -0.832294px 1.81859px 0px, rgb(0, 0, 0) -1.60229px 1.19694px 0px, rgb(0, 0, 0) -1.97998px 0.28224px 0px, rgb(0, 0, 0) -1.87291px -0.701566px 0px, rgb(0, 0, 0) -1.30729px -1.5136px 0px, rgb(0, 0, 0) -0.421592px -1.95506px 0px, rgb(0, 0, 0) 0.567324px -1.91785px 0px, rgb(0, 0, 0) 1.41734px -1.41108px 0px, rgb(0, 0, 0) 1.92034px -0.558831px 0px; */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  display: table;
+  text-align: center;
+  margin: 0 auto -0.02em auto;
+  font-weight: normal;
+  font-size: 1em;
+  letter-spacing: 0.2rem;
+  font-weight: bolder;
+  padding: 0 2em 0 2em;
+  line-height: 1em;
+  /* transform: skew(-2deg, -2deg); */
+  transform: rotateY(5deg);
+}
+
+h1 {
+  white-space: nowrap;
+  font-size: 1.2em;
+  /* position: relative;
+  left: -2.5%; */
+}
+
+h1:after,
+h2:after {
+  content: "";
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  /* -webkit-transform: skew(-20deg);
+        -moz-transform: skew(-20deg);
+        -o-transform: skew(-20deg);
+        transform: skew(-20deg); */
+  transform: rotateY(15deg);
+  z-index: -10;
+}
+
+h2 {
+  white-space: nowrap;
+  font-size: 1em;
+  color: black;
+  position: relative;
+  /* left: 2.5%; */
+}
+
+h2 > strong {
+  color: #f36b1c;
+}
+
+h2 > code {
+  color: #f36b1c;
+}
+
+h2:after {
+  background: rgba(126, 214, 223, 0.8);
+}
+
+pre {
+  display: inline-block;
+  background-color: #09343f;
+  border-radius: 0.2em;
+  font-size: 0.8em;
+  margin: 0;
+  text-align: left;
+  padding: 0.4em;
+}
+
+blockquote {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 0.2em 2em;
+  border-radius: 0.2em;
+  color: "#ffffff";
+  font-size: 0.8em;
+}
+
+p {
+  margin: 0;
+  display: table;
+  text-align: center;
+}
+
+code {
+  color: #ffe66d;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
+.grid-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  font-size: 30px;
+  text-align: center;
+}
+
+ul > li {
+  text-align: left;
+}
+
+b,
+strong {
+  color: #ffe66d;
+}
+
+table {
+  background-color: rgba(47, 54, 64, 0.8);
+  border-radius: 0.3em;
+  font-size: 70%;
+  padding: 0.2em;
+}
+th,
+td {
+  padding: 0.2em;
+}
