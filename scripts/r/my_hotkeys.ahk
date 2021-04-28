@@ -351,9 +351,10 @@ ActivateChrome(index=0)
         break
     }
 
-    if ( pid != "" and WinExist("- Google Chrome ahk_pid " pid) )
+    title := "- Google Chrome ahk_pid " pid
+    if ( pid != "" and WinExist(title) )
     {
-        WinActivate
+        ActivateWindowByTitle(title)
     }
     else
     {
