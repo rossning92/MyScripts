@@ -22,35 +22,6 @@ SetTimer, CheckIfRShiftIsPressed, 1000
 
 return
 
-ActivateWindowByTitle(title)
-{
-    WinGet, hwnds, List, %title%
-
-    Loop % hwnds
-    {
-        hwnd := hwnds%A_Index%
-
-        WinGet, style, Style, ahk_id %hwnd%
-
-        ; Skip unimportant window
-        if (style & WS_DISABLED) 
-            continue
-
-        ; Skip window with no title
-        WinGetTitle, title, ahk_id %hwnd%
-        if not title
-            continue
-
-        ; Skip active window
-        if WinActive("ahk_id " hwnd)
-            continue
-
-        WinActivate ahk_id %hwnd%
-
-        return
-    }
-}
-
 AutoUpdateWindowPos()
 {
     ; UpdateWindowPosition("left")
