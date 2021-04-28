@@ -22,13 +22,6 @@ SetTimer, CheckIfRShiftIsPressed, 1000
 
 return
 
-AutoUpdateWindowPos()
-{
-    ; UpdateWindowPosition("left")
-    ; UpdateWindowPosition("left")
-    UpdateActiveWindowPosition()
-}
-
 *CapsLock::Send {LWin Down}{LCtrl Down}
 *CapsLock Up::Send {LWin Up}{LCtrl Up}
 
@@ -122,7 +115,6 @@ return
 
 #Right::
     UpdateWindowPosition("right")
-    ; SetTimer, AutoUpdateWindowPos, 500
 return
 
 #t::
@@ -141,8 +133,6 @@ Return
             break
         }
     }
-
-    SetTimer, AutoUpdateWindowPos, Off
 return
 
 $!`::
@@ -256,11 +246,6 @@ UpdateWindowPosition(pos) {
 
 UpdateActiveWindowPosition() {
     global WindowList
-
-    ; If right window was closed.
-    if not WinExist("ahk_id " WindowList["right"]) {
-        SetTimer, AutoUpdateWindowPos, Off
-    }
 
     WinGet, cur_hwnd, ID, A
 
