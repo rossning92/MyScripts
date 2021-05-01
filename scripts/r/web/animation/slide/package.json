@@ -10,12 +10,12 @@
     "style-loader": "^2.0.0",
     "webpack": "^5.35.1",
     "webpack-cli": "^4.6.0",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^3.11.2",
+    "marked": "^2.0.3",
+    "raw-loader": "^4.0.2"
   },
   "scripts": {
     "start": "webpack serve --mode development --devtool inline-source-map --hot"
   },
-  "dependencies": {
-    "raw-loader": "^4.0.2"
-  }
+  "dependencies": {}
 }

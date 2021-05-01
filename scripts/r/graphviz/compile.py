@@ -27,7 +27,7 @@ src_file = files[0]
 
 src_file = convert(src_file)
 
-formats = ["png"]
+formats = ["png", "svg"]
 for fmt in formats:
     dst_file = os.path.splitext(src_file)[0] + f".{fmt}"
 
