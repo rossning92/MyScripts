@@ -1,6 +1,7 @@
-var HtmlWebpackPlugin = require("html-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-var path = require("path");
+const path = require("path");
+const webpack = require("webpack");
 
 module.exports = {
   entry: "./src/index.js",
@@ -11,24 +12,18 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({ template: "src/markdown.html" }),
     new MiniCssExtractPlugin(),
+    new webpack.DefinePlugin({
+      MARKDOWN: JSON.stringify("# 你好"),
+    }),
   ],
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     open: true,
-    // port: 3000,
-    // proxy: {
-    //   "/api": "http://localhost:8080",
-    // },
     watchContentBase: true,
     hot: true,
   },
   module: {
     rules: [
-      // {
-      //   test: /\.js$/,
-      //   exclude: /node_modules/,
-      //   use: "babel-loader",
-      // },
       {
         test: /\.css$/,
         use: [

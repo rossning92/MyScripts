@@ -1,8 +1,8 @@
 require("./markdown.html");
 require("./base-font.css");
 require("./markdown.css");
-const marked = require("marked");
 
 import example from "./example.md";
+import marked from "marked";
 
-document.body.innerHTML = marked(example);
+document.body.innerHTML = marked(MARKDOWN ? MARKDOWN : example);
