@@ -3,7 +3,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 const webpack = require("webpack");
 
-module.exports = ({ template = "markdown", markdown }) => {
+module.exports = ({ template = "title", markdown }) => {
   return {
     mode: "development",
     entry: `./src/${template}.js`,

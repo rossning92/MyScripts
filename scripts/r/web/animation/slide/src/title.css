@@ -3,19 +3,23 @@
   src: local("站酷高端黑");
 }
 
-html {
+/* html {
   display: table;
-  margin: auto;
-}
+} */
 
 body {
+  margin: 0;
+}
+
+#content {
   background-color: #1f1f1f;
   color: white;
   display: table-cell;
   font-family: "zcool-gdh";
-  width: 1920px;
   text-align: center;
   vertical-align: middle;
+  min-width: 1920px;
+  width: 1920px;
   height: 1080px;
 }
 

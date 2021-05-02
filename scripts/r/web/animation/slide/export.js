@@ -29,7 +29,7 @@ const server = new WebpackDevServer(compiler, webpackConfig.devServer);
 
     const browser = await puppeteer.launch({
       // headless: false,
-      defaultViewport: { width: 1920, height: 1080 },
+      // defaultViewport: { width: 1920, height: 1080 },
       args: [
         // "--no-sandbox",
         // "--disable-setuid-sandbox",
@@ -42,7 +42,7 @@ const server = new WebpackDevServer(compiler, webpackConfig.devServer);
     await page.goto("http://localhost:8181", { waitUntil: "networkidle0" });
 
     // Screenshot DOM element only
-    const element = await page.$("body");
+    const element = await page.$("#content");
     await element.screenshot({ path: outFile, omitBackground: true });
 
     await browser.close();
