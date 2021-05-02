@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "webpack serve --mode development --devtool inline-source-map --hot"
+    "start": "webpack serve --mode development --devtool inline-source-map --hot --open"
   },
   "dependencies": {
     "minimist": "^1.2.5",

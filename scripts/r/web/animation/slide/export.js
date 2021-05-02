@@ -13,9 +13,11 @@ const markdown = argv["i"]
   ? fs.readFileSync(argv["i"], { encoding: "utf8", flag: "r" })
   : undefined;
 const outFile = path.resolve(argv["o"]);
+const template = argv["t"];
 
 const webpackConfig = require("./webpack.config.js")({
   markdown,
+  template,
 });
 const compiler = webpack(webpackConfig);
 
@@ -27,7 +29,7 @@ const server = new WebpackDevServer(compiler, webpackConfig.devServer);
 
     const browser = await puppeteer.launch({
       // headless: false,
-      defaultViewport: null,
+      defaultViewport: { width: 1920, height: 1080 },
       args: [
         // "--no-sandbox",
         // "--disable-setuid-sandbox",

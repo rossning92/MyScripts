@@ -934,7 +934,7 @@ def empty(**kwargs):
     _add_video_clip(None, **kwargs)
 
 
-def generate_slide(in_file, template_file, out_file=None):
+def generate_slide(in_file, template, out_file=None):
     call_echo(
         [
             "run_script",
@@ -943,6 +943,8 @@ def generate_slide(in_file, template_file, out_file=None):
             os.path.realpath(in_file),
             "-o",
             os.path.realpath(out_file),
+            "-t",
+            template,
         ]
     )
 
@@ -960,7 +962,7 @@ def slide(
         with open(in_file, "w", encoding="utf-8") as f:
             f.write(s)
 
-        generate_slide(in_file, template_file=template, out_file=out_file)
+        generate_slide(in_file, template=template, out_file=out_file)
 
     _add_video_clip(out_file, pos=pos, cf=cf, **kwargs)
 
@@ -970,7 +972,7 @@ def md(s, track="md", move_playhead=False, **kwargs):
     slide(
         s,
         track=track,
-        template="markdown.html",
+        template="markdown",
         fadein=VIDEO_CROSSFADE_DURATION,
         fadeout=VIDEO_CROSSFADE_DURATION,
         move_playhead=move_playhead,

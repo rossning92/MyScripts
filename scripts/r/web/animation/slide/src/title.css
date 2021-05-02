@@ -1,0 +1,41 @@
+@font-face {
+  font-family: "zcool-gdh";
+  src: local("站酷高端黑");
+}
+
+html {
+  display: table;
+  margin: auto;
+}
+
+body {
+  background-color: #1f1f1f;
+  color: white;
+  display: table-cell;
+  font-family: "zcool-gdh";
+  width: 1920px;
+  text-align: center;
+  vertical-align: middle;
+  height: 1080px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: normal;
+  margin: 0;
+  line-height: 85%;
+}
+
+h1 {
+  /* text-transform: uppercase; */
+  white-space: nowrap;
+  font-size: 150px;
+  color: yellow;
+}
+
+h2 {
+  white-space: nowrap;
+  font-size: 75px;
+}
