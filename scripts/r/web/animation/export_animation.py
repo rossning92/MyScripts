@@ -20,7 +20,7 @@ from r.open_with.open_with import open_with
 
 import render_animation
 from render_text import render_text
-from slide.generate import generate_slide
+
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -934,16 +934,33 @@ def empty(**kwargs):
     _add_video_clip(None, **kwargs)
 
 
+def generate_slide(in_file, template_file, out_file=None):
+    call_echo(
+        [
+            "run_script",
+            "/r/web/animation/slide/export.js",
+            "-i",
+            os.path.realpath(in_file),
+            "-o",
+            os.path.realpath(out_file),
+        ]
+    )
+
+
 @api
 def slide(
     s, template, pos="center", name=None, cf=0.2, **kwargs,
 ):
     mkdir("tmp/md")
-    # out_file = "tmp/slides/%s.png" % slugify(name if name else s)
-    out_file = "tmp/md/%s.png" % get_hash(s)
+    hash = get_hash(s)
+    in_file = "tmp/md/%s.md" % hash
+    out_file = "tmp/md/%s.png" % hash
 
     if not os.path.exists(out_file):
-        generate_slide(s, template_file=template, out_file=out_file, gen_html=True)
+        with open(in_file, "w", encoding="utf-8") as f:
+            f.write(s)
+
+        generate_slide(in_file, template_file=template, out_file=out_file)
 
     _add_video_clip(out_file, pos=pos, cf=cf, **kwargs)
 

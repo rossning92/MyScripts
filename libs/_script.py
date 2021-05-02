@@ -460,7 +460,12 @@ class Script:
         }
 
     def execute(
-        self, args=None, new_window=None, restart_instance=None, close_on_exit=None
+        self,
+        args=None,
+        new_window=None,
+        restart_instance=None,
+        close_on_exit=None,
+        change_work_dir=True,
     ):
         script_path = (
             self.real_script_path if self.real_script_path else self.script_path
@@ -502,7 +507,12 @@ class Script:
         if "_CUR_DIR" in os.environ:
             env["_CUR_DIR"] = os.environ["_CUR_DIR"]
 
-        cwd = os.path.abspath(os.path.join(os.getcwd(), os.path.dirname(script_path)))
+        if change_work_dir:
+            cwd = os.path.abspath(
+                os.path.join(os.getcwd(), os.path.dirname(script_path))
+            )
+        else:
+            cwd = None
 
         if ext == ".ps1":
             if os.name == "nt":
@@ -567,7 +577,7 @@ class Script:
         elif ext == ".js":
             # TODO: if self.meta['template']:
             setup_nodejs()
-            args = ["node", os.path.basename(script_path)] + args
+            args = ["node", script_path] + args
 
         elif ext == ".sh":
             if self.meta["template"]:
@@ -873,6 +883,7 @@ def run_script(
     restart_instance=False,
     overwrite_meta=None,
     args=[],
+    change_work_dir=True,
 ):
     if file is None:
         if os.path.exists(_get_script_history_file()):
@@ -917,7 +928,12 @@ def run_script(
     if variables:
         script.set_override_variables(variables)
 
-    script.execute(restart_instance=restart_instance, new_window=new_window, args=args)
+    script.execute(
+        restart_instance=restart_instance,
+        new_window=new_window,
+        args=args,
+        change_work_dir=change_work_dir,
+    )
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
 

@@ -23,6 +23,7 @@ module.exports = ({ markdown }) => {
       // open: true,
       watchContentBase: true,
       hot: true,
+      stats: "minimal",
     },
     module: {
       rules: [
@@ -38,6 +39,11 @@ module.exports = ({ markdown }) => {
           loader: "raw-loader",
         },
       ],
+    },
+    optimization: {
+      removeAvailableModules: false,
+      removeEmptyChunks: false,
+      splitChunks: false,
     },
   };
 };

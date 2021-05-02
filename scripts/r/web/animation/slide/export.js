@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
-const WebpackDevServer = require("webpack-dev-server");
-const webpack = require("webpack");
+const fs = require("fs");
+const path = require("path");
 const process = require("process");
+
 const argv = require("minimist")(process.argv.slice(2));
 const puppeteer = require("puppeteer");
-const path = require("path");
+const webpack = require("webpack");
+const WebpackDevServer = require("webpack-dev-server");
 
 const markdown = argv["i"]
   ? fs.readFileSync(argv["i"], { encoding: "utf8", flag: "r" })
@@ -24,7 +26,7 @@ const server = new WebpackDevServer(compiler, webpackConfig.devServer);
     if (err) return;
 
     const browser = await puppeteer.launch({
-      headless: false,
+      // headless: false,
       defaultViewport: null,
       args: [
         // "--no-sandbox",
