@@ -1,4 +1,4 @@
-require("./markdown.css");
+require(`./${TEMPLATE}.css`);
 const markdown = require(MD_FILE).default;
 const marked = require("marked");
 
