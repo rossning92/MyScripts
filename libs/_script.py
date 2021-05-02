@@ -567,7 +567,7 @@ class Script:
         elif ext == ".js":
             # TODO: if self.meta['template']:
             setup_nodejs()
-            args = ["node", os.path.basename(script_path)]
+            args = ["node", os.path.basename(script_path)] + args
 
         elif ext == ".sh":
             if self.meta["template"]:

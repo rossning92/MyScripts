@@ -20,7 +20,7 @@ module.exports = ({ markdown }) => {
     ],
     devServer: {
       contentBase: path.join(__dirname, "dist"),
-      open: true,
+      // open: true,
       watchContentBase: true,
       hot: true,
     },
