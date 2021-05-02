@@ -9,14 +9,12 @@ const puppeteer = require("puppeteer");
 const webpack = require("webpack");
 const WebpackDevServer = require("webpack-dev-server");
 
-const markdown = argv["i"]
-  ? fs.readFileSync(argv["i"], { encoding: "utf8", flag: "r" })
-  : undefined;
+const mdFile = argv["i"] ? path.resolve(argv["i"]) : undefined;
 const outFile = path.resolve(argv["o"]);
 const template = argv["t"];
 
 const webpackConfig = require("./webpack.config.js")({
-  markdown,
+  mdFile,
   template,
 });
 const compiler = webpack(webpackConfig);

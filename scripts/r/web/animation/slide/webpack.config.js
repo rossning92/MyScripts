@@ -3,10 +3,10 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 const webpack = require("webpack");
 
-module.exports = ({ template = "markdown", markdown }) => {
+module.exports = ({ template = "markdown", mdFile = "./example.md" }) => {
   return {
     mode: "development",
-    entry: `./src/${template}.js`,
+    entry: `./src/index.js`,
     output: {
       path: path.resolve(__dirname, "./dist"),
       filename: "index_bundle.js",
@@ -15,7 +15,8 @@ module.exports = ({ template = "markdown", markdown }) => {
       new HtmlWebpackPlugin({ template: "src/index.html" }),
       new MiniCssExtractPlugin(),
       new webpack.DefinePlugin({
-        MARKDOWN: JSON.stringify(markdown),
+        TEMPLATE: JSON.stringify(template),
+        MD_FILE: JSON.stringify(mdFile),
       }),
     ],
     devServer: {
