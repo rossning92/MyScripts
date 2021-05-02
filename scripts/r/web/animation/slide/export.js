@@ -10,8 +10,8 @@ const webpack = require("webpack");
 const WebpackDevServer = require("webpack-dev-server");
 
 const mdFile = argv["i"] ? path.resolve(argv["i"]) : undefined;
-const outFile = path.resolve(argv["o"]);
 const template = argv["t"];
+const dev = argv["d"];
 
 const webpackConfig = require("./webpack.config.js")({
   mdFile,
@@ -19,34 +19,46 @@ const webpackConfig = require("./webpack.config.js")({
 });
 const compiler = webpack(webpackConfig);
 
+if (dev) {
+  webpackConfig.devServer.open = true;
+}
+
 const server = new WebpackDevServer(compiler, webpackConfig.devServer);
+
+async function captureImage() {
+  const outFile = path.resolve(argv["o"]);
+
+  const browser = await puppeteer.launch({
+    // headless: false,
+    // defaultViewport: { width: 1920, height: 1080 },
+    args: [
+      // "--no-sandbox",
+      // "--disable-setuid-sandbox",
+      "--enable-font-antialiasing",
+      "--font-render-hinting=max",
+      "--force-device-scale-factor=1",
+    ],
+  });
+  const page = await browser.newPage();
+  await page.goto("http://localhost:8181", { waitUntil: "networkidle0" });
+
+  // Screenshot DOM element only
+  const element = await page.$("#content");
+  await element.screenshot({ path: outFile, omitBackground: true });
+
+  await browser.close();
+
+  server.close();
+
+  process.exit();
+}
 
 (async () => {
   server.listen(8181, "localhost", async (err) => {
     if (err) return;
 
-    const browser = await puppeteer.launch({
-      // headless: false,
-      // defaultViewport: { width: 1920, height: 1080 },
-      args: [
-        // "--no-sandbox",
-        // "--disable-setuid-sandbox",
-        "--enable-font-antialiasing",
-        "--font-render-hinting=max",
-        "--force-device-scale-factor=1",
-      ],
-    });
-    const page = await browser.newPage();
-    await page.goto("http://localhost:8181", { waitUntil: "networkidle0" });
-
-    // Screenshot DOM element only
-    const element = await page.$("#content");
-    await element.screenshot({ path: outFile, omitBackground: true });
-
-    await browser.close();
-
-    server.close();
-
-    process.exit();
+    if (!dev) {
+      captureImage();
+    }
   });
 })();
