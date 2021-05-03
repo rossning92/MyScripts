@@ -25,7 +25,7 @@ if (dev) {
 
 const server = new WebpackDevServer(compiler, webpackConfig.devServer);
 
-async function captureImage() {
+async function captureImage(port) {
   const outFile = path.resolve(argv["o"]);
 
   const browser = await puppeteer.launch({
@@ -40,7 +40,7 @@ async function captureImage() {
     ],
   });
   const page = await browser.newPage();
-  await page.goto("http://localhost:8181", { waitUntil: "networkidle0" });
+  await page.goto(`http://localhost:${port}`, { waitUntil: "networkidle0" });
 
   // Screenshot DOM element only
   const element = await page.$("#content");
@@ -54,11 +54,12 @@ async function captureImage() {
 }
 
 (async () => {
-  server.listen(8181, "localhost", async (err) => {
+  server.listen(undefined, "localhost", async (err) => {
     if (err) return;
 
     if (!dev) {
-      captureImage();
+      const port = server.listeningApp.address().port;
+      captureImage(port);
     }
   });
 })();
