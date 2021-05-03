@@ -31,7 +31,10 @@ if __name__ == "__main__":
                     "command": "markdown-preview-enhanced.openPreviewToTheSide",
                     "when": "editorLangId == 'markdown'",
                 },
-                {"key": "shift+alt+r", "command": "revealFileInOS",},
+                {
+                    "key": "shift+alt+r",
+                    "command": "revealFileInOS",
+                },
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
             ],
@@ -52,6 +55,7 @@ if __name__ == "__main__":
     data["search.exclude"] = {"**/build": True}
     data["pasteImage.path"] = "${currentFileNameWithoutExt}"
     data["workbench.editor.enablePreviewFromQuickOpen"] = False
+    data["grammarly.autoActivate"] = False
 
     call_echo([sys.executable, "-m", "pip", "install", "black"])
     data["python.formatting.provider"] = "black"
