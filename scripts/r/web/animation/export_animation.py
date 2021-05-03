@@ -821,10 +821,17 @@ def _add_video_clip(
     vol=None,
     subclip=None,
     frame=None,
+    n=None,
     loop=False,
     expand=False,
     scale=(1.0, 1.0),
 ):
+    # alias
+    if n is not None:
+        frame = n
+    if cf is not None:
+        crossfade = cf
+
     if isinstance(scale, (int, float)):
         scale = (scale, scale)
 
@@ -852,15 +859,11 @@ def _add_video_clip(
     else:
         if crossfade is not None:
             clip_info.crossfade = crossfade
-        elif cf is not None:
-            clip_info.crossfade = cf
         elif _crossfade:
             clip_info.crossfade = _crossfade
 
     clip_info.fadeout = fadeout
-
     clip_info.duration = duration
-
     clip_info.no_audio = no_audio or na
     clip_info.norm = norm
     clip_info.vol = vol
