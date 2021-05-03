@@ -875,7 +875,9 @@ def setup_nodejs(install=True):
         if os.path.exists(npm_modules):
             node_path.append(npm_modules)
 
-        yarn_modules = os.path.expandvars(r"%LOCALAPPDATA%\Yarn\Data\global\node_modules")
+        yarn_modules = os.path.expandvars(
+            r"%LOCALAPPDATA%\Yarn\Data\global\node_modules"
+        )
         if os.path.exists(yarn_modules):
             node_path.append(yarn_modules)
 
@@ -1173,3 +1175,10 @@ def menu_loop():
             _menu_items[ch].func()
         else:
             print2("Invalid key: %s" % ch, color="red")
+
+
+def file_is_old(in_file, out_file):
+    return not os.path.exists(out_file) or os.path.getmtime(in_file) > os.path.getmtime(
+        out_file
+    )
+

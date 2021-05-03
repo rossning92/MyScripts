@@ -173,7 +173,7 @@ function getCompletedExpression(file) {
   } else if (file.endsWith(".js")) {
     return ` anim('${file}') `;
   } else if (/\.(c|cpp|py|text)$/g.test(file)) {
-    return ` codef('${file}') `;
+    return ` codef('${file}', size=(1664, 824)) `;
   } else if (/overlay\//g.test(file)) {
     return ` overlay('${file}', t='as') `;
   } else if (/bgm\//g.test(file)) {

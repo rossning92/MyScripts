@@ -4,14 +4,16 @@ from r.web.webscreenshot import webscreenshot
 import argparse
 
 
-@file_cache
-def gen_code_image_from_file(file, out_file, mtime=None):
+def gen_code_image_from_file(file, out_file, **kwargs):
+    if not file_is_old(file, out_file):
+        return out_file
+
     with open(file, "r", encoding="utf-8", newline="\n") as f:
-        s = f.read()
-        gen_code_image(s, out_file)
+        s = f.read().replace("\r", "")
+        gen_code_image(s, out_file, **kwargs)
 
 
-def gen_code_image(s, out_file, line_no=True, debug=False, lang=None):
+def gen_code_image(s, out_file, line_no=True, debug=False, lang=None, size=None):
     from urllib.parse import quote
 
     s = s.replace("\\`", "\u2022")
@@ -19,7 +21,7 @@ def gen_code_image(s, out_file, line_no=True, debug=False, lang=None):
     s = s.replace("`", "")
     s = s.replace("\u2022", "`")
 
-    javascript = "setCode('%s', '%s'); " % (quote(s), lang)
+    javascript = "setCode('%s', '%s');" % (quote(s), lang)
 
     # Highlight code
     for i in range(len(ranges)):
@@ -28,7 +30,10 @@ def gen_code_image(s, out_file, line_no=True, debug=False, lang=None):
             % (ranges[i][0] - i * 2, ranges[i][1] - i * 2 - 2)
         )
 
-    javascript += "showLineNumbers(%s); " % ("true" if line_no else "false")
+    javascript += "showLineNumbers(%s);" % ("true" if line_no else "false")
+
+    if size is not None:
+        javascript += "editor.setSize(%d, %d);" % (size[0], size[1])
 
     root = get_script_root() + "/r/web/_codeeditor"
     if not os.path.join(root, "node_modules"):

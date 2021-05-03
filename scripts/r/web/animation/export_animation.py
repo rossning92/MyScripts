@@ -602,11 +602,11 @@ def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
 
 
 @api
-def codef(file, track="vid", **kwargs):
+def codef(file, track="vid", size=None, **kwargs):
     from r.web.gen_code_image import gen_code_image_from_file
 
     out_file = os.path.splitext(file)[0] + ".png"
-    gen_code_image_from_file(file, out_file, mtime=os.path.getmtime(file))
+    gen_code_image_from_file(file, out_file, size=size)
 
     _add_video_clip(out_file, track=track, transparent=False, **kwargs)
 
