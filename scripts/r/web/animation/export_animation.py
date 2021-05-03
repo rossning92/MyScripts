@@ -41,6 +41,7 @@ _audio_only = False
 _impl = None
 _apis = {}
 _cached_line_to_tts = None
+_last_frame_indices = {}
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
@@ -826,11 +827,22 @@ def _add_video_clip(
     expand=False,
     scale=(1.0, 1.0),
 ):
+    clip_info = _VideoClipInfo()
+
     # alias
     if n is not None:
         frame = n
     if cf is not None:
         crossfade = cf
+
+    # Extract only one frame
+    if frame is not None:
+        if frame == "next":
+            frame = _last_frame_indices[file] + 1
+        if type(frame) != int:
+            raise Exception("Invalid frame val.")
+        _last_frame_indices[file] = frame
+    clip_info.frame = frame
 
     if isinstance(scale, (int, float)):
         scale = (scale, scale)
@@ -847,7 +859,6 @@ def _add_video_clip(
     if move_playhead:
         _pos_dict["vs"] = t
 
-    clip_info = _VideoClipInfo()
     clip_info.file = os.path.abspath(file)
     clip_info.start = t
     clip_info.pos = pos
@@ -869,7 +880,6 @@ def _add_video_clip(
     clip_info.vol = vol
     clip_info.transparent = transparent
     clip_info.subclip = subclip
-    clip_info.frame = frame
     clip_info.loop = loop
     clip_info.expand = expand
     clip_info.scale = (scale[0] * _global_scale, scale[1] * _global_scale)

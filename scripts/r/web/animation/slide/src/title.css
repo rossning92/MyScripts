@@ -1,21 +1,15 @@
-@font-face {
-  font-family: "zcool-gdh";
-  src: local("站酷高端黑");
-}
-
-/* html {
-  display: table;
-} */
+@import "./base_font.css";
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300&family=Open+Sans:wght@300&display=swap");
 
 body {
   margin: 0;
 }
 
 #content {
-  background-color: #1f1f1f;
+  background-color: black;
   color: white;
   display: table-cell;
-  font-family: "zcool-gdh";
+  /* font-family: "zcool-gdh"; */
   text-align: center;
   vertical-align: middle;
   min-width: 1920px;
@@ -23,23 +17,16 @@ body {
   height: 1080px;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  font-weight: normal;
+:is(h1, h2, h3, h4, h5, h6) {
   margin: 0;
-  line-height: 85%;
+  font-family: "Open Sans", "Noto Sans SC", sans-serif;
+  font-weight: 300;
 }
 
 h1 {
-  /* text-transform: uppercase; */
-  white-space: nowrap;
-  font-size: 150px;
-  color: yellow;
+  font-size: 115px;
 }
 
 h2 {
-  white-space: nowrap;
-  font-size: 75px;
+  font-size: 65px;
 }

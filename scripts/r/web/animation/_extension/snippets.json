@@ -29,6 +29,6 @@
   },
   "slide": {
     "prefix": "slide",
-    "body": ["{{ slide('# $1\\n## $2', t='as', template='title.html') }}"]
+    "body": ["{{ slide('# $1\\n## $2', t='as', template='title') }}"]
   }
 }
