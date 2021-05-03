@@ -28,8 +28,8 @@ if __name__ == "__main__":
             [
                 {
                     "key": "ctrl+shift+v",
-                    "command": "markdown-preview-enhanced.openPreviewToTheSide",
-                    "when": "editorLangId == 'markdown'",
+                    "command": "markdown.showPreviewToSide",
+                    "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
                 {
                     "key": "shift+alt+r",
