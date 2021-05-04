@@ -175,6 +175,8 @@ def chdir(path, expand=True):
 
 
 def getch(timeout=-1):
+    """Returns None when getch is timeout."""
+
     if platform.system() == "Windows":
         import msvcrt
         import sys
@@ -184,7 +186,7 @@ def getch(timeout=-1):
             while not msvcrt.kbhit() and time_elapsed < timeout:
                 sleep(0.5)
                 time_elapsed += 0.5
-                print(".", end="", flush=True)
+                # print(".", end="", flush=True)
             return (
                 msvcrt.getch().decode(errors="replace")
                 if time_elapsed < timeout
@@ -1144,7 +1146,7 @@ def menu_item(*, key, name=None):
     return decorator
 
 
-def menu_loop():
+def menu_loop(run_periotic=None, interval=-1):
     def print_help():
         print2(
             (
@@ -1165,7 +1167,15 @@ def menu_loop():
 
     print_help()
     while True:
-        ch = getch()
+        if run_periotic is not None and interval > 0:
+            while True:
+                ch = getch(timeout=interval)
+                if ch != None:
+                    break
+                else:
+                    run_periotic()
+        else:
+            ch = getch()
 
         if ch == "h":
             print_help()
@@ -1181,4 +1191,3 @@ def file_is_old(in_file, out_file):
     return not os.path.exists(out_file) or os.path.getmtime(in_file) > os.path.getmtime(
         out_file
     )
-
