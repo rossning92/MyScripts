@@ -1,17 +1,21 @@
+Set objShell = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set app = CreateObject("PowerPoint.Application")
 
 Function PadDigits(val, digits)
     PadDigits = Right(String(digits,"0") & val, digits)
 End Function
 
-Set objShell = CreateObject("WScript.Shell")
-Set fso = CreateObject("Scripting.FileSystemObject")
-Set app = CreateObject("PowerPoint.Application")
+' Parse arguments
+ExportShapes = WScript.Arguments.Named.Exists("shape")
 
-' Load presentation file or choose active presentation
-If (Wscript.Arguments.Length = 1) Then
-    Wscript.Echo Wscript.Arguments(0)
-    Set ppt = app.Presentations.Open(Wscript.Arguments(0), True, , False)
+If (Wscript.Arguments.Unnamed.Count = 1) Then
+    ' Load presentation file
+    fileName = Wscript.Arguments.Unnamed.Item(0)
+    Wscript.Echo fileName
+    Set ppt = app.Presentations.Open(fileName, True, , False)
 Else
+    ' Active presentation
     Set ppt = app.ActivePresentation
 End If
 
@@ -21,19 +25,40 @@ If NOT (fso.FolderExists(exportDir)) Then
     fso.CreateFolder(exportDir)
 End If
 
-' Get slide parameters
-w = ppt.PageSetup.SlideWidth
-h = ppt.PageSetup.SlideHeight
-w = Int(w / h * 1080)
-h = 1080
+If ExportShapes Then
+    ' Export all shapes as PNG
+    ppShapeFormatPNG = 2
+    ppRelativeToSlide = 1
+    ppClipRelativeToSlide = 2
+    ppScaleToFit = 3
+    ppScaleXY = 4
+    For Each sld In ppt.Slides
+        app.ActiveWindow.View.GotoSlide (sld.SlideIndex)
+        sld.Shapes.SelectAll
+        Set shGroup = app.ActiveWindow.Selection.ShapeRange
 
-' Export all slides
-i = 1
-For Each sld In ppt.Slides
-    fileName = exportDir & "\\" & PadDigits(i, 4) & ".png"
-    sld.Export fileName, "PNG", w, h
-    i = i + 1
-Next
+        shGroup.Export exportDir & "\\" & PadDigits(sld.SlideIndex, 3) & ".png", _
+                       ppShapeFormatPNG, _
+                       1440, _
+                       810, _
+                       ppRelativeToSlide
+        
+        app.ActiveWindow.Selection.Unselect
+    Next
+Else
+    ' Get slide parameters
+    w = ppt.PageSetup.SlideWidth
+    h = ppt.PageSetup.SlideHeight
+    w = Int(w / h * 1080)
+    h = 1080
+
+    ' Export all slides
+    For Each sld In ppt.Slides
+        fileName = exportDir & "\\" & PadDigits(sld.SlideIndex, 3) & ".png"
+        sld.Export fileName, "PNG", w, h
+    Next
+End If
+
 
 ' Open export directory in explorer
 ' objShell.Run("explorer.exe " & exportDir)
