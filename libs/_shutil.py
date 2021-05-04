@@ -184,9 +184,8 @@ def getch(timeout=-1):
         time_elapsed = 0
         if timeout > 0:
             while not msvcrt.kbhit() and time_elapsed < timeout:
-                sleep(0.5)
-                time_elapsed += 0.5
-                # print(".", end="", flush=True)
+                sleep(0.1)
+                time_elapsed += 0.1
             return (
                 msvcrt.getch().decode(errors="replace")
                 if time_elapsed < timeout
