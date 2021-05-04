@@ -42,7 +42,7 @@ If ExportShapes Then
                        1440, _
                        810, _
                        ppRelativeToSlide
-        
+
         app.ActiveWindow.Selection.Unselect
     Next
 Else
