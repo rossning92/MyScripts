@@ -8,8 +8,9 @@ End Function
 
 ' Parse arguments
 ExportShapes = WScript.Arguments.Named.Exists("shape")
+LoadFromFile = (Wscript.Arguments.Unnamed.Count = 1)
 
-If (Wscript.Arguments.Unnamed.Count = 1) Then
+If LoadFromFile Then
     ' Load presentation file
     fileName = Wscript.Arguments.Unnamed.Item(0)
     Wscript.Echo fileName
@@ -59,6 +60,9 @@ Else
     Next
 End If
 
+If LoadFromFile Then
+    ppt.Close
+End If
 
 ' Open export directory in explorer
 ' objShell.Run("explorer.exe " & exportDir)
