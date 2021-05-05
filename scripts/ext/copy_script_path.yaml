@@ -1,3 +1,14 @@
-hotkey: Alt+C
+autoRun: false
+background: false
+closeOnExit: true
+conda: null
+globalHotkey: null
+hotkey: Shift+C
 newWindow: false
+packages: null
+restartInstance: true
+runAsAdmin: false
 template: false
+terminal: null
+venv: null
+wsl: false
