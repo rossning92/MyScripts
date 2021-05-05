@@ -19,7 +19,7 @@ cd(r"{{UE_SOURCE}}\Engine\Binaries\Win64")
 # set UE-SharedDataCachePath=%DATA_CACHE_DIR%
 # start UE4Editor.exe -ddc=noshared
 try:
-    call_echo("taskkill /f /im UE4Editor.exe")
+    call_echo("taskkill /im UE4Editor.exe")
 except:
     pass
 
