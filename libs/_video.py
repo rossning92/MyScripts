@@ -163,6 +163,13 @@ def ffmpeg(
     max_size_mb=None,
     no_audio=False,
 ):
+    if in_file == out_file:
+        overwrite = True
+        name, ext = os.path.splitext(in_file)
+        out_file = name + ".tmp" + ext
+    else:
+        overwrite = False
+
     if out_file is None:
         os.makedirs("out", exist_ok=True)
         out_file = os.path.join(
@@ -261,6 +268,11 @@ def ffmpeg(
 
     print("> " + " ".join(args))
     subprocess.check_call(args)
+
+    if overwrite:
+        os.remove(in_file)
+        os.rename(out_file, in_file)
+        out_file = in_file
 
     return out_file
 

@@ -37,6 +37,6 @@ if __name__ == "__main__":
     if "{{_RESIZE_H}}":
         extra_args = ["-r", "60"]
         extra_args += ["-vf", "scale=-2:{{_RESIZE_H}}"]
-        out_file = ffmpeg(out_file, extra_args=extra_args)
+        out_file = ffmpeg(out_file, out_file=out_file, extra_args=extra_args)
 
         shell_open(out_file)
