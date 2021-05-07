@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import tarfile
+import math
 import urllib
 import webbrowser
 from collections import OrderedDict, defaultdict
@@ -541,7 +542,7 @@ def overlay(
     f,
     pos="center",
     duration=3,
-    fadein=VIDEO_CROSSFADE_DURATION,
+    crossfade=VIDEO_CROSSFADE_DURATION,
     fadeout=VIDEO_CROSSFADE_DURATION,
     track="overlay",
     **kwargs,
@@ -551,7 +552,7 @@ def overlay(
         f,
         pos=pos,
         duration=duration,
-        fadein=fadein,
+        crossfade=crossfade,
         fadeout=fadeout,
         track=track,
         **kwargs,
@@ -1027,9 +1028,22 @@ def track(name="vid"):
 def _update_clip_duration(track):
     prev_clip_info = None
     for clip_info in track:
-        if (prev_clip_info is not None) and (prev_clip_info.duration is None):
-            prev_clip_info.duration = clip_info.start - prev_clip_info.start
-            assert prev_clip_info.duration > 0
+        if prev_clip_info is not None:
+            if prev_clip_info.duration is None:
+                prev_clip_info.duration = clip_info.start - prev_clip_info.start
+                assert prev_clip_info.duration > 0
+
+            # Deal with when fadeout and crossfade are overlapping
+            if (
+                prev_clip_info.fadeout > 0
+                and clip_info.crossfade > 0
+                and math.isclose(
+                    prev_clip_info.start + prev_clip_info.duration,
+                    clip_info.start,
+                    rel_tol=1e-3,
+                )
+            ):
+                prev_clip_info.fadeout = 0
 
         prev_clip_info = clip_info
 
