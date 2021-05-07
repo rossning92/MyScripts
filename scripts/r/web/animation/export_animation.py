@@ -540,7 +540,6 @@ def fps(v):
 @api
 def overlay(
     f,
-    pos="center",
     duration=3,
     crossfade=VIDEO_CROSSFADE_DURATION,
     fadeout=VIDEO_CROSSFADE_DURATION,
@@ -550,7 +549,6 @@ def overlay(
     print("image: %s" % f)
     _add_video_clip(
         f,
-        pos=pos,
         duration=duration,
         crossfade=crossfade,
         fadeout=fadeout,
