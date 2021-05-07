@@ -576,31 +576,6 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
 
 
 @api
-def code(s, track="vid", line_no=True, mark=[], debug=False, **kwargs):
-    from r.web.webscreenshot import webscreenshot
-
-    mkdir("tmp/codeimg")
-    tmp_file = "tmp/codeimg/%s.png" % get_hash(s + str(mark))
-    if not os.path.exists(tmp_file):
-        javascript = "setCode('%s'); " % s.replace("'", "\\'").replace("\n", "\\n")
-
-        mark_group = list(zip(*(iter(mark),) * 4))
-        for x in mark_group:
-            javascript += "markText(%d, %d, %d, %d); " % (x[0], x[1], x[2], x[3],)
-
-        javascript += "showLineNumbers(%s); " % ("true" if line_no else "false")
-
-        webscreenshot(
-            html_file=get_script_root() + "/r/web/_codeeditor/code_editor.html",
-            out_file=tmp_file,
-            javascript=javascript,
-            debug=debug,
-        )
-
-    _add_video_clip(tmp_file, track=track, transparent=False, **kwargs)
-
-
-@api
 def codef(file, track="vid", size=None, **kwargs):
     from r.web.gen_code_image import gen_code_image_from_file
 
