@@ -2,11 +2,11 @@ import argparse
 import hashlib
 import importlib
 import inspect
+import math
 import os
 import re
 import sys
 import tarfile
-import math
 import urllib
 import webbrowser
 from collections import OrderedDict, defaultdict
@@ -21,7 +21,6 @@ from r.open_with.open_with import open_with
 
 import render_animation
 from render_text import render_text
-
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
