@@ -47,7 +47,6 @@ async function openFileUnderCursor() {
 
 function initializeDecorations(context) {
   let timeout = undefined;
-
   let activeEditor = vscode.window.activeTextEditor;
 
   function updateDecorations() {
@@ -90,6 +89,7 @@ function initializeDecorations(context) {
     );
   }
 
+  // Reference: https://github.com/microsoft/vscode-extension-samples/blob/main/decorator-sample/src/extension.ts
   function triggerUpdateDecorations() {
     if (timeout) {
       clearTimeout(timeout);
