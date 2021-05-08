@@ -5,8 +5,8 @@ const process = require("process");
 const fs = require("fs");
 const os = require("os");
 
-var recorderProcess = null;
-var currentProjectDir = null;
+let recorderProcess = null;
+let currentProjectDir = null;
 let output = vscode.window.createOutputChannel("VideoEdit");
 
 async function openFile(filePath) {
@@ -38,7 +38,7 @@ async function openFileUnderCursor() {
       const line = editor.document.lineAt(position).text;
       const found = line.match(/['"](.*?)['"]/);
       if (found !== null) {
-        const filePath = path.resolve(path.join(getProjectDir(), found[1]));
+        const filePath = path.resolve(path.join(getActiveDir(), found[1]));
         openFile(filePath);
       }
     }
@@ -124,13 +124,6 @@ function initializeDecorations(context) {
   );
 }
 
-function getActiveFile() {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return undefined;
-
-  return path.resolve(editor.document.fileName);
-}
-
 function isDocumentActive() {
   const fileName = getActiveFile();
   if (!fileName) return false;
@@ -142,7 +135,14 @@ function isDocumentActive() {
   return true;
 }
 
-function getProjectDir() {
+function getActiveFile() {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return undefined;
+
+  return path.resolve(editor.document.fileName);
+}
+
+function getActiveDir() {
   const file = getActiveFile();
   if (!file) return undefined;
 
@@ -194,7 +194,7 @@ function registerAutoComplete(context) {
     { pattern: "**/vprojects/**/*.md" },
     {
       provideCompletionItems(document, position) {
-        const projectDir = getProjectDir();
+        const projectDir = getActiveDir();
         if (!projectDir) return undefined;
 
         if (
@@ -267,7 +267,7 @@ function insertText(text) {
 }
 
 function getRecorderProcess() {
-  const d = getProjectDir();
+  const d = getActiveDir();
 
   // Check if project switches
   if (d != currentProjectDir) {
@@ -289,7 +289,7 @@ function getRecorderProcess() {
     recorderProcess = cp.spawn("run_script", ["/r/audio/recorder"], {
       env: {
         ...process.env,
-        RECORD_OUT_DIR: path.resolve(getProjectDir() + "/record"),
+        RECORD_OUT_DIR: path.resolve(getActiveDir() + "/record"),
         RECODER_INTERACTIVE: "0",
       },
     });
@@ -411,8 +411,8 @@ function export_animation({ extraArgs = null, selectedText = true } = {}) {
       textIn = document.getText();
     }
 
-    var activeFilePath = vscode.window.activeTextEditor.document.fileName;
-    var activeDirectory = path.dirname(activeFilePath);
+    let activeFilePath = vscode.window.activeTextEditor.document.fileName;
+    let activeDirectory = path.dirname(activeFilePath);
 
     const textFile = writeTempTextFile(textIn);
     let shellArgs = [
@@ -422,7 +422,7 @@ function export_animation({ extraArgs = null, selectedText = true } = {}) {
       "-i",
       textFile,
       "--proj_dir",
-      getProjectDir(),
+      getActiveDir(),
     ];
     if (extraArgs !== null) {
       shellArgs = shellArgs.concat(extraArgs);
@@ -444,7 +444,7 @@ async function insertAllClipsInFolder() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return undefined;
 
-  const projectDir = getProjectDir();
+  const projectDir = getActiveDir();
   if (!projectDir) return undefined;
 
   let dirs = [];
@@ -477,8 +477,8 @@ function registerCreatePowerPointCommand() {
       return;
     }
 
-    const outFile = path.resolve(getProjectDir(), "slide", fileName + ".pptx");
-    const outDir = path.resolve(getProjectDir(), "slide");
+    const outFile = path.resolve(getActiveDir(), "slide", fileName + ".pptx");
+    const outDir = path.resolve(getActiveDir(), "slide");
     if (!fs.existsSync(outDir)) {
       fs.mkdirSync(outDir);
     }
@@ -494,7 +494,7 @@ function registerCreatePowerPointCommand() {
 
 function registerCreateMovyCommand() {
   vscode.commands.registerCommand("yo.createMovyAnimation", async () => {
-    const animationDir = path.resolve(getProjectDir(), "animation");
+    const animationDir = path.resolve(getActiveDir(), "animation");
 
     // Create animation dir
     if (!fs.existsSync(animationDir)) {
