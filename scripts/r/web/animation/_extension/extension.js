@@ -77,13 +77,17 @@ function initializeDecorations(context) {
       activeEditor.setDecorations(
         vscode.window.createTextEditorDecorationType({
           color,
+          fontWeight: "700",
         }),
         decorations
       );
     }
 
-    highlightText(/{{\s*(record|bgm|sfx)\(.*?\)\s*}}/g, "#c0392b");
-    highlightText(/{{\s*(clip|overlay|md|slide)\(.*?\)\s*}}/g, "#0000ff");
+    highlightText(/\b(record|bgm|sfx|audio_end)(?=\()/g, "#c0392b");
+    highlightText(
+      /\b(clip|overlay|md|slide|codef|hl|video_end)(?=\()/g,
+      "#0000ff"
+    );
   }
 
   function triggerUpdateDecorations() {
