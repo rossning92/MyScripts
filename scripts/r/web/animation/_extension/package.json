@@ -54,8 +54,8 @@
         "title": "VideoEdit: Show Stats"
       },
       {
-        "command": "yo.createPpt",
-        "title": "VideoEdit: Create PPT"
+        "command": "yo.createPowerPoint",
+        "title": "VideoEdit: Create PowerPoint"
       },
       {
         "command": "yo.createMovyAnimation",
