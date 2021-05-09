@@ -84,6 +84,8 @@ class _VideoClipInfo:
         self.width = None
         self.height = None
 
+        self.auto_extend = True
+
 
 class _AudioClipInfo:
     def __init__(self):
@@ -423,12 +425,11 @@ def _add_audio_clip(
     clip_info.mpy_clip = AudioFileClip(file, buffersize=400000)
 
     if subclip is not None:
-        clip_info.duration = None
         clip_info.subclip = subclip
     else:
-        clip_info.duration = None
         clip_info.subclip = None
 
+    clip_info.duration = None
     clip_info.start = t
     clip_info.loop = loop
 
@@ -625,12 +626,6 @@ def _create_image_seq_clip(tar_file):
 
     clip = ImageSequenceClip(image_files, fps=IMAGE_SEQUENCE_FPS)
     return clip
-
-
-def _update_prev_clip(track):
-    _clip_extend_prev_clip(track)
-
-    # _add_fadeout(track)
 
 
 def _load_and_expand_img(f):
@@ -848,8 +843,6 @@ def _add_video_clip(
 
     track = _get_vid_track(track)
 
-    # _update_prev_clip(track)
-
     t = _get_time(t)
 
     if move_playhead:
@@ -887,19 +880,19 @@ def _add_video_clip(
         clip_info.scale = scale  # HACK
 
     if move_playhead:  # Advance the pos
-        if clip_info.duration is None:
+        if duration is None:
             if clip_info.subclip:
                 if isinstance(subclip, (int, float)):
-                    dura = clip_info.mpy_clip.duration - subclip
+                    clip_info.duration = clip_info.mpy_clip.duration - subclip
                 else:
-                    dura = clip_info.subclip[1] - clip_info.subclip[0]
+                    clip_info.duration = clip_info.subclip[1] - clip_info.subclip[0]
 
             else:
-                dura = clip_info.mpy_clip.duration
+                clip_info.duration = clip_info.mpy_clip.duration
         else:
-            dura = clip_info.duration
+            clip_info.duration = clip_info.duration
 
-        end = t + dura
+        end = t + clip_info.duration
         _pos_dict["c"] = _pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
@@ -919,14 +912,15 @@ def anim(file, **kwargs):
     _add_video_clip(video_file, **kwargs)
 
 
-def _clip_extend_prev_clip(track=None, t=None):
+def _extend_prev_clip(track=None, t=None):
     if len(track) == 0:
         return
 
     clip_info = track[-1]
 
-    if clip_info.duration is None:
+    if clip_info.auto_extend:
         clip_info.duration = _get_time(t) - clip_info.start
+        clip_info.auto_extend = False
         print(
             "previous clip updated: start=%.2f duration=%.2f"
             % (clip_info.start, clip_info.duration)
@@ -937,7 +931,7 @@ def _clip_extend_prev_clip(track=None, t=None):
 def video_end(track=None, t=None):
     print("video_end: track=%s" % track)
     track = _get_vid_track(track)
-    _clip_extend_prev_clip(track, t=t)
+    _extend_prev_clip(track, t=t)
 
 
 @api
@@ -1026,8 +1020,9 @@ def _update_clip_duration(track):
     prev_clip_info = None
     for clip_info in track:
         if prev_clip_info is not None:
-            if prev_clip_info.duration is None:
+            if prev_clip_info.auto_extend:
                 prev_clip_info.duration = clip_info.start - prev_clip_info.start
+                prev_clip_info.auto_extend = False
                 assert prev_clip_info.duration > 0
 
             # Deal with when fadeout and crossfade are overlapping
@@ -1045,14 +1040,15 @@ def _update_clip_duration(track):
         prev_clip_info = clip_info
 
     # update last clip duration
-    if len(track) > 0 and track[-1].duration is None:
-        duration = track[-1].mpy_clip.duration
+    if len(track) > 0 and track[-1].auto_extend:
+        duration = track[-1].duration
 
         # Extend the last video clip to match the voice track
         if "re" in _pos_dict:
             duration = max(duration, _pos_dict["re"] - clip_info.start)
 
         track[-1].duration = duration
+        track[-1].auto_extend = False
 
 
 def _export_video(resolution=(1920, 1080)):
