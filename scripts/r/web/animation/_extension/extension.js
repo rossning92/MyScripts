@@ -213,7 +213,7 @@ function registerAutoComplete(context) {
             // Ignore current file
             return false;
           } else {
-            return /\.(png|jpg|mp4|webm|gif|mp3|md|pptx|cpp|c|py|js)$/g.test(x);
+            return /\.(png|jpg|mp4|webm|gif|mp3|wav|md|pptx|cpp|c|py|js)$/g.test(x);
           }
         };
 
