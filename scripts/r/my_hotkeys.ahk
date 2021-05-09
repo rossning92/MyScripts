@@ -117,10 +117,11 @@ return
     UpdateWindowPosition("right")
 return
 
-#t::
-    WinGet, hwnd, ID, A
-    Run "C:\Users\%A_UserName%\AppData\Local\OnTopReplica\OnTopReplica.exe" -windowId=%hwnd%
-Return
+#t::WinSet, AlwaysOnTop, Toggle, A
+; #t::
+;     WinGet, hwnd, ID, A
+;     Run "C:\Users\%A_UserName%\AppData\Local\OnTopReplica\OnTopReplica.exe" -windowId=%hwnd%
+; Return
 
 #Up::
     WinGet, curHwnd, ID, A
