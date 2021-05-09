@@ -6,7 +6,6 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 
 def export_slide(file, index):
-    ppt = None
     mtime = os.path.getmtime(file)
 
     # Create output folder
