@@ -218,7 +218,7 @@ def _get_markers(file):
         return None
 
 
-def _get_pos(p):
+def _get_time(p):
     if isinstance(p, (int, float)):
         return p
 
@@ -245,7 +245,7 @@ def _get_pos(p):
 
 
 def _set_pos(t, tag=None):
-    t = _get_pos(t)
+    t = _get_time(t)
 
     if t != "c":
         _pos_dict["c"] = t
@@ -287,8 +287,8 @@ def record(
     audio(f, t=t, move_playhead=move_playhead, **kwargs)
 
     if move_playhead:
-        _pos_dict["re"] = _get_pos("ae")
-        _pos_dict["c"] = _get_pos("as")
+        _pos_dict["re"] = _get_time("ae")
+        _pos_dict["c"] = _get_time("as")
 
     END_CHARS = ["。", "，", "！", "、", "；", "？", "|"]
 
@@ -306,7 +306,7 @@ def record(
             else:
                 _last_subtitle_index = idx
 
-                start = end = _get_pos("as")
+                start = end = _get_time("as")
                 subtitle = _subtitle[idx].strip()
 
                 if subtitle[-1] not in END_CHARS:
@@ -316,7 +316,7 @@ def record(
                 if subtitle_duration is not None:
                     word_dura = subtitle_duration / length
                 else:
-                    word_dura = (_get_pos("ae") - start) / length
+                    word_dura = (_get_time("ae") - start) / length
 
                 i = 0
                 MAX = 5
@@ -353,11 +353,12 @@ def audio_gap(duration):
     _pos_dict["c"] = _pos_dict["a"]
 
 
-# Deprecated
 def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
-    assert duration > 0
+    """Set volume of a specific track at a given time. Returns previous volume."""
 
-    t = _get_pos(t)
+    assert duration >= 0
+
+    t = _get_time(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
     track_ = _get_audio_track(track)
@@ -372,12 +373,17 @@ def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
     if len(track_.clips[-1].vol_keypoints) > 0:  # has previous keypoint
         _, prev_vol = track_.clips[-1].vol_keypoints[-1]
         track_.clips[-1].vol_keypoints.append((t_in_clip, prev_vol))
+    else:
+        prev_vol = vol
+
     track_.clips[-1].vol_keypoints.append((t_in_clip + duration, vol))
+
+    return prev_vol
 
 
 @api
 def setp(name, t=None):
-    t = _get_pos(t)
+    t = _get_time(t)
     _pos_dict[name] = t
 
 
@@ -402,7 +408,7 @@ def _add_audio_clip(
 ):
     clips = _get_audio_track(track).clips
 
-    t = _get_pos(t)
+    t = _get_time(t)
 
     if move_playhead:
         _pos_dict["as"] = t
@@ -442,22 +448,26 @@ def _add_audio_clip(
 @api
 def audio(
     f,
-    crossfade=0,
     t=None,
-    in_duration=0,
-    out_duration=0,
+    crossfade=0,
+    fadein=0,
+    fadeout=0,
     vol=1,
     track=None,
     move_playhead=True,
+    solo=False,
     **kwargs,
 ):
-    t = _get_pos(t)
+    t = _get_time(t)
+
+    if solo:
+        prev_vol = _set_vol(0, 0, track="bgm", t=t)
 
     audio_end(
         track=track,
         t=t,
         move_playhead=move_playhead,
-        out_duration=out_duration,
+        fadeout=fadeout,
         crossfade=crossfade,
     )
 
@@ -466,16 +476,19 @@ def audio(
     if crossfade > 0:  # Crossfade in
         clip.vol_keypoints.append((0, 0))
         clip.vol_keypoints.append((crossfade, vol))
-    elif in_duration > 0:  # fade in
+    elif fadein > 0:  # fade in
         clip.vol_keypoints.append((0, 0))
-        clip.vol_keypoints.append((in_duration, vol))
+        clip.vol_keypoints.append((fadein, vol))
     else:
         clip.vol_keypoints.append((0, vol))
 
+    if solo:
+        _set_vol(prev_vol, 0, track="bgm", t=clip.start + clip.mpy_clip.duration)
+
 
 @api
-def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
-    t = _get_pos(t)
+def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
+    t = _get_time(t)
 
     clips = _get_audio_track(track).clips
     if len(clips) == 0:
@@ -488,8 +501,8 @@ def audio_end(track, t=None, move_playhead=True, out_duration=0, crossfade=0):
         if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
             duration = (t + crossfade) - clips[-1].start  # extend prev clip
-        elif out_duration > 0:  # Fade out
-            _set_vol(0, duration=out_duration, t=t - out_duration, track=track)
+        elif fadeout > 0:  # Fade out
+            _set_vol(0, duration=fadeout, t=t - fadeout, track=track)
             duration = t - clips[-1].start
         else:
             duration = t - clips[-1].start
@@ -837,7 +850,7 @@ def _add_video_clip(
 
     # _update_prev_clip(track)
 
-    t = _get_pos(t)
+    t = _get_time(t)
 
     if move_playhead:
         _pos_dict["vs"] = t
@@ -913,7 +926,7 @@ def _clip_extend_prev_clip(track=None, t=None):
     clip_info = track[-1]
 
     if clip_info.duration is None:
-        clip_info.duration = _get_pos(t) - clip_info.start
+        clip_info.duration = _get_time(t) - clip_info.start
         print(
             "previous clip updated: start=%.2f duration=%.2f"
             % (clip_info.start, clip_info.duration)
