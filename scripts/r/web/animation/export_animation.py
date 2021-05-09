@@ -863,7 +863,11 @@ def _add_video_clip(
             clip_info.crossfade = _crossfade
 
     clip_info.fadeout = fadeout
+
     clip_info.duration = duration
+    if duration is not None:
+        clip_info.auto_extend = False
+
     clip_info.no_audio = no_audio or na
     clip_info.norm = norm
     clip_info.vol = vol
