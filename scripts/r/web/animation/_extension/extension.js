@@ -46,10 +46,14 @@ async function openFileUnderCursor() {
 }
 
 function initializeDecorations(context) {
+  const decorationTypes = [];
   let timeout = undefined;
   let activeEditor = vscode.window.activeTextEditor;
 
   function updateDecorations() {
+    for (const dt of decorationTypes) dt.dispose();
+    decorationTypes.length = 0;
+
     if (!activeEditor) {
       return;
     }
@@ -73,13 +77,12 @@ function initializeDecorations(context) {
           range: new vscode.Range(startPos, endPos),
         });
       }
-      activeEditor.setDecorations(
-        vscode.window.createTextEditorDecorationType({
-          color,
-          fontWeight: "700",
-        }),
-        decorations
-      );
+      const decorationType = vscode.window.createTextEditorDecorationType({
+        color,
+        fontWeight: "700",
+      });
+      decorationTypes.push(decorationType);
+      activeEditor.setDecorations(decorationType, decorations);
     }
 
     highlightText(/\b(record|bgm|sfx|audio_end)(?=\()/g, "#c0392b");
