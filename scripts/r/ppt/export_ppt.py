@@ -5,7 +5,7 @@ import subprocess
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def export_slide(file, index):
+def export_slide(file, index, export_shapes=False):
     mtime = os.path.getmtime(file)
 
     # Create output folder
@@ -15,9 +15,15 @@ def export_slide(file, index):
 
     out_file = "%s/%03d.png" % (out_folder, index)
     if (not os.path.exists(out_file)) or (os.path.getmtime(out_file) < mtime):
-        subprocess.check_call(
-            ["cscript", os.path.join(root, "export_slides.vbs"), file, "/i:%d" % index]
-        )
+        args = [
+            "cscript",
+            os.path.join(root, "export_slides.vbs"),
+            file,
+            "/i:%d" % index,
+        ]
+        if export_shapes:
+            args.append("/s")
+        subprocess.check_call(args)
 
     return out_file
 

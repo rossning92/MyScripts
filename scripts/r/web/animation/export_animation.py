@@ -637,14 +637,6 @@ def _load_and_expand_img(f):
     return np.array(bg)
 
 
-def _get_ppt_image(f, index):
-    from r.ppt.export_ppt import export_slides
-
-    indices = [0] if index is None else [index]
-    out_files = export_slides(f, indices=indices)
-    return out_files[0]
-
-
 def _get_video_resolution(f):
     resolution = (
         subprocess.check_output(
@@ -697,9 +689,8 @@ def _preload_mpy_clip(
             file = export_video(file)
             clip = load_video_file_clip(file)
         else:
-            if re.search(r"\boverlay/", file):
-                pass
-            file = export_slide(file, index=frame + 1)
+            export_shapes = bool(re.search(r"\boverlay[\\/]", file))
+            file = export_slide(file, index=frame + 1, export_shapes=export_shapes)
             clip = ImageClip(file).set_duration(5).set_mask(None)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
