@@ -13,7 +13,7 @@ def export_slide(file, index):
     if not os.path.exists(out_folder):
         os.makedirs(out_folder, exist_ok=True)
 
-    out_file = "%s/%03d.png" % (out_folder, index + 1)
+    out_file = "%s/%03d.png" % (out_folder, index)
     if (not os.path.exists(out_file)) or (os.path.getmtime(out_file) < mtime):
         subprocess.check_call(
             ["cscript", os.path.join(root, "export_slides.vbs"), file, "/i:%d" % index]

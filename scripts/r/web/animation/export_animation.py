@@ -697,9 +697,9 @@ def _preload_mpy_clip(
             file = export_video(file)
             clip = load_video_file_clip(file)
         else:
-            if re.search(r'\boverlay/', file):
+            if re.search(r"\boverlay/", file):
                 pass
-            file = export_slide(file, index=frame)
+            file = export_slide(file, index=frame + 1)
             clip = ImageClip(file).set_duration(5).set_mask(None)
 
     elif file.endswith(".png") or file.endswith(".jpg"):

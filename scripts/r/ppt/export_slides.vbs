@@ -63,7 +63,7 @@ End If
 
 If ExportShapes Then
     If sldIndex <> "" Then ' Export single slide
-        ExportAsPNG app, ppt, ppt.Slides(CInt(sldIndex) + 1)
+        ExportAsPNG app, ppt, ppt.Slides(CInt(sldIndex))
     Else ' Export all slides
         For Each sld In ppt.Slides
             ExportAsPNG app, ppt, sld
@@ -71,7 +71,7 @@ If ExportShapes Then
     End If  
 Else
     If sldIndex <> "" Then ' Export single slide
-        ExportSlide ppt, ppt.Slides(CInt(sldIndex) + 1)
+        ExportSlide ppt, ppt.Slides(CInt(sldIndex))
     Else ' Export all slides
         For Each sld In ppt.Slides
             ExportSlide ppt, sld
