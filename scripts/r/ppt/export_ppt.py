@@ -37,9 +37,3 @@ def export_video(file):
         subprocess.check_call(["cscript", os.path.join(root, "export_video.vbs"), file])
 
     return out_file
-
-
-if __name__ == "__main__":
-    export_video(
-        r"C:\Users\Ross\Google Drive\KidslogicVideo\ep27\slide\player-control.pptx"
-    )
