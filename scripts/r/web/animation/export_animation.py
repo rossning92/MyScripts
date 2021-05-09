@@ -916,23 +916,17 @@ def anim(file, **kwargs):
     _add_video_clip(video_file, **kwargs)
 
 
-def _extend_prev_clip(track=None, t=None):
-    if len(track) == 0:
-        return
-
-    clip = track[-1]
-    clip.duration = _get_time(t) - clip.start
-    clip.auto_extend = False
-    print(
-        "previous clip updated: start=%.2f duration=%.2f" % (clip.start, clip.duration)
-    )
-
-
 @api
 def video_end(track=None, t=None):
     print("video_end: track=%s" % track)
     track = _get_vid_track(track)
-    _extend_prev_clip(track, t=t)
+
+    assert len(track) > 0
+
+    clip = track[-1]
+    clip.duration = _get_time(t) - clip.start
+    clip.auto_extend = False
+    print("clip updated: start=%.2f duration=%.2f" % (clip.start, clip.duration))
 
 
 @api
