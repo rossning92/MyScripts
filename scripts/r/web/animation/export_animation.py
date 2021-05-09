@@ -691,13 +691,15 @@ def _preload_mpy_clip(
         clip = _create_image_seq_clip(file)
 
     elif file.endswith(".pptx"):
-        from r.ppt.export_ppt import export_slides, export_video
+        from r.ppt.export_ppt import export_slide, export_video
 
         if frame is None:
             file = export_video(file)
             clip = load_video_file_clip(file)
         else:
-            file = export_slides(file, indices=[frame])[0]
+            if re.search(r'\boverlay/', file):
+                pass
+            file = export_slide(file, index=frame)
             clip = ImageClip(file).set_duration(5).set_mask(None)
 
     elif file.endswith(".png") or file.endswith(".jpg"):

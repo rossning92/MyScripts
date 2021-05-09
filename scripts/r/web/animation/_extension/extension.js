@@ -178,7 +178,7 @@ function getCompletedExpression(file) {
     return ` anim('${file}') `;
   } else if (/\.(c|cpp|py|text)$/g.test(file)) {
     return ` codef('${file}', size=(1664, 824)) `;
-  } else if (/overlay\//g.test(file)) {
+  } else if (/\boverlay\//g.test(file)) {
     return ` overlay('${file}', t='as') `;
   } else if (/bgm\//g.test(file)) {
     return ` bgm('${file}', norm=True); pos('c+0.5', tag='a') `;

@@ -2,9 +2,20 @@ Set wshShell = CreateObject( "WScript.Shell" )
 Set app = CreateObject("PowerPoint.Application")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
-' USERPROFILE = wshShell.ExpandEnvironmentStrings( "%USERPROFILE%" )
+' Parse arguments
+LoadFromFile = (Wscript.Arguments.Unnamed.Count = 1)
 
-outFile = app.ActivePresentation.Path & "\" & fso.GetBaseName(fso.GetFile(app.ActivePresentation.FullName)) & ".mp4"
+If LoadFromFile Then
+    ' Load presentation file
+    fileName = Wscript.Arguments.Unnamed.Item(0)
+    Wscript.Echo fileName
+    Set ppt = app.Presentations.Open(fileName, True, , False)
+Else
+    ' Active presentation
+    Set ppt = app.ActivePresentation
+End If
+
+outFile = ppt.Path & "\" & fso.GetBaseName(fso.GetFile(ppt.FullName)) & ".mp4"
 
 UseTimingsAndNarrations = True
 VertResolution          = 1080
@@ -13,7 +24,7 @@ Quality                 = 100
 FileName                = outFile
 DefaultSlideDuration    = 4
 
-app.ActivePresentation.CreateVideo _
+ppt.CreateVideo _
     FileName, _
     UseTimingsAndNarrations, _
     DefaultSlideDuration, _
@@ -21,4 +32,11 @@ app.ActivePresentation.CreateVideo _
     FramesPerSecond, _
     Quality
 
-' app.Quit
+' Wait to be finished
+Do While ppt.CreateVideoStatus = 1 'ppMediaTaskStatusInProgress
+    WScript.Sleep 100
+Loop
+
+If LoadFromFile Then
+    ppt.Close
+End If
