@@ -8,7 +8,6 @@ ppScaleToFit = 3
 ppScaleXY = 4
 ppViewNormal = 9
 
-Set objShell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set app = CreateObject("PowerPoint.Application")
 
@@ -90,9 +89,3 @@ End If
 If loadFromFile Then
     ppt.Close
 End If
-
-
-' Open export directory in explorer
-' objShell.Run("explorer.exe " & exportDir)
-
-' app.Quit
