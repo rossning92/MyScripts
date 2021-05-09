@@ -98,7 +98,7 @@ function initializeDecorations(context) {
       clearTimeout(timeout);
       timeout = undefined;
     }
-    timeout = setTimeout(updateDecorations, 500);
+    timeout = setTimeout(updateDecorations, 1000);
   }
 
   if (activeEditor) {
