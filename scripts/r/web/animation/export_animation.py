@@ -79,7 +79,10 @@ class _VideoClipInfo:
         self.frame = None
         self.loop = False
         self.expand = False
+
         self.scale = (1.0, 1.0)
+        self.width = None
+        self.height = None
 
 
 class _AudioClipInfo:
@@ -648,15 +651,35 @@ def _get_video_resolution(f):
     return resolution
 
 
-def _preload_mpy_clip(
-    file, scale=(1.0, 1.0), frame=None, expand=False, transparent=True, **kwargs
+def _load_mpy_clip(
+    file,
+    scale=(1.0, 1.0),
+    frame=None,
+    transparent=True,
+    width=None,
+    height=None,
+    **kwargs,
 ):
+    def compute_size(w, h):
+        aspect = w / h
+        if not width and height:
+            h = height
+            w = height * aspect
+        elif width and not height:
+            w = width
+            h = width / aspect
+        elif width and height:
+            w = width
+            h = height
+        return (w, h)
+
     def load_video_file_clip(f):
         nonlocal scale
 
         # Have ffmpeg resize the frames before returning them - faster speed.
         if scale[0] != 1.0 or scale[1] != 1.0:
             w, h = _get_video_resolution(f)
+            w, h = compute_size(w, h)
             target_resolution = [int(h * scale[0]), int(w * scale[1])]
         else:
             target_resolution = None
@@ -679,12 +702,11 @@ def _preload_mpy_clip(
             export_shapes = bool(re.search(r"\boverlay[\\/]", file))
             file = export_slide(file, index=frame + 1, export_shapes=export_shapes)
             clip = ImageClip(file).set_duration(5).set_mask(None)
+            clip = clip.resize(width=width, height=height)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
-        if expand:
-            clip = ImageClip(_load_and_expand_img(file))
-        else:
-            clip = ImageClip(file)
+        clip = ImageClip(file)
+        clip = clip.resize(width=width, height=height)
 
         clip = clip.set_duration(5)
         if not transparent:
@@ -779,6 +801,8 @@ def _add_video_clip(
     loop=False,
     expand=False,
     scale=(1.0, 1.0),
+    width=None,
+    height=None,
 ):
     clip_info = _VideoClipInfo()
 
@@ -836,8 +860,10 @@ def _add_video_clip(
     clip_info.loop = loop
     clip_info.expand = expand
     clip_info.scale = (scale[0] * _global_scale, scale[1] * _global_scale)
+    clip_info.width = width
+    clip_info.height = height
 
-    clip_info.mpy_clip = _preload_mpy_clip(**vars(clip_info))
+    clip_info.mpy_clip = _load_mpy_clip(**vars(clip_info))
     if type(clip_info.mpy_clip) == VideoFileClip:
         clip_info.scale = scale  # HACK
 
