@@ -43,7 +43,7 @@ def get_ahk_exe(uia=True):
         os.makedirs(os.path.expanduser("~\\Documents\\AutoHotkey"), exist_ok=True)
         run_elevated(
             r'cmd /c MKLINK /D "%USERPROFILE%\Documents\AutoHotkey\Lib" "{}"'.format(
-                os.path.realpath(os.path.dirname(__file__) + "/../libs/ahk")
+                os.path.realpath(os.path.dirname(__file__) + "/../ahk")
             )
         )
         get_ahk_exe.init = True

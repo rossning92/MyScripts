@@ -1,10 +1,10 @@
 #SingleInstance, Force
 #InstallKeybdHook
-#include ../../libs/ahk/ExplorerHelper.ahk
-#include ../../libs/ahk/ChromeHotkey.ahk
-#include ../../libs/ahk/VirtualDesktop.ahk
-#include ../../libs/ahk/Window.ahk
-#include ../../libs/ahk/WinDrag.ahk
+#include ../../ahk/ExplorerHelper.ahk
+#include ../../ahk/ChromeHotkey.ahk
+#include ../../ahk/VirtualDesktop.ahk
+#include ../../ahk/Window.ahk
+#include ../../ahk/WinDrag.ahk
 
 SetCapsLockState, AlwaysOff
 

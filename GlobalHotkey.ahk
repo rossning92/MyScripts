@@ -1,5 +1,5 @@
 #SingleInstance, Force
-#include libs/ahk/ExplorerHelper.ahk
+#include ahk/ExplorerHelper.ahk
 
 RunScript(name, path)
 {

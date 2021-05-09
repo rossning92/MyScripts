@@ -1,4 +1,4 @@
-#include ../../libs/ahk/ScreenRecord.ahk
+#include ../../ahk/ScreenRecord.ahk
 
 g_isRecording := False
 

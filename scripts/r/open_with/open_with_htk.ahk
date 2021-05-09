@@ -1,7 +1,7 @@
 #SingleInstance, Force
 #InstallKeybdHook
 
-#include ../../../libs/ahk/ExplorerHelper.ahk
+#include ../../../ahk/ExplorerHelper.ahk
 
 SetWorkingDir %A_ScriptDir%
 
