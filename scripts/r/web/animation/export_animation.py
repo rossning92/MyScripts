@@ -353,7 +353,7 @@ def audio_gap(duration):
     _pos_dict["c"] = _pos_dict["a"]
 
 
-def _set_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, track=None, t=None):
+def _set_vol(vol, duration=0, track=None, t=None):
     """Set volume of a specific track at a given time. Returns previous volume."""
 
     assert duration >= 0
@@ -388,13 +388,13 @@ def setp(name, t=None):
 
 
 @api
-def vol(vol, **kwargs):
-    _set_vol(vol, **kwargs)
+def vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwargs):
+    return _set_vol(vol, duration=duration, **kwargs)
 
 
 @api
-def bgm_vol(v, **kwawgs):
-    vol(v, track="bgm", **kwawgs)
+def bgm_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwawgs):
+    _set_vol(vol, duration=duration, track="bgm", **kwawgs)
 
 
 def _add_audio_clip(
@@ -461,7 +461,7 @@ def audio(
     t = _get_time(t)
 
     if solo:
-        prev_vol = _set_vol(0, 0, track="bgm", t=t)
+        prev_vol = _set_vol(0, track="bgm", t=t)
 
     audio_end(
         track=track,
@@ -483,7 +483,7 @@ def audio(
         clip.vol_keypoints.append((0, vol))
 
     if solo:
-        _set_vol(prev_vol, 0, track="bgm", t=clip.start + clip.mpy_clip.duration)
+        _set_vol(prev_vol, track="bgm", t=clip.start + clip.mpy_clip.duration)
 
 
 @api
