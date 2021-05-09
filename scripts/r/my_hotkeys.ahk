@@ -4,6 +4,7 @@
 #include ../../libs/ahk/ChromeHotkey.ahk
 #include ../../libs/ahk/VirtualDesktop.ahk
 #include ../../libs/ahk/Window.ahk
+#include ../../libs/ahk/WinDrag.ahk
 
 SetCapsLockState, AlwaysOff
 
@@ -59,6 +60,8 @@ return
 #If
 
 #If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
+
+#LButton::WindowMouseDragMove()
 
 !a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 #c::ActivateChrome(0)
