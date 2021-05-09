@@ -660,6 +660,12 @@ def _load_mpy_clip(
     height=None,
     **kwargs,
 ):
+    def update_clip_size(clip):
+        if not width and not height:
+            return clip
+        else:
+            return clip.resize(width=width, height=height)
+
     def compute_size(w, h):
         aspect = w / h
         if not width and height:
@@ -702,11 +708,11 @@ def _load_mpy_clip(
             export_shapes = bool(re.search(r"\boverlay[\\/]", file))
             file = export_slide(file, index=frame + 1, export_shapes=export_shapes)
             clip = ImageClip(file).set_duration(5).set_mask(None)
-            clip = clip.resize(width=width, height=height)
+            clip = update_clip_size(clip)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
         clip = ImageClip(file)
-        clip = clip.resize(width=width, height=height)
+        clip = update_clip_size(clip)
 
         clip = clip.set_duration(5)
         if not transparent:
