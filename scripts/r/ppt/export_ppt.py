@@ -16,7 +16,7 @@ def export_slide(file, index):
     out_file = "%s/%03d.png" % (out_folder, index + 1)
     if (not os.path.exists(out_file)) or (os.path.getmtime(out_file) < mtime):
         subprocess.check_call(
-            ["cscript", os.path.join(root, "export_images.vbs"), file, "/i:%d" % index]
+            ["cscript", os.path.join(root, "export_slides.vbs"), file, "/i:%d" % index]
         )
 
     return out_file

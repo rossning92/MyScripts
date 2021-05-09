@@ -1,1 +1,1 @@
-@cscript export_images.vbs /shape
+@cscript export_slides.vbs /shape
