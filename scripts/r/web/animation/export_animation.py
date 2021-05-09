@@ -607,19 +607,6 @@ def _create_image_seq_clip(tar_file):
             im = Image.open(fp)
             image_files.append(np.array(im))
 
-    # tmp_folder = os.path.join(
-    #     tempfile.gettempdir(),
-    #     "animation",
-    #     os.path.splitext(os.path.basename(tar_file))[0],
-    # )
-
-    # # Unzip
-    # print2("Unzip to %s" % tmp_folder)
-    # shutil.unpack_archive(tar_file, tmp_folder)
-
-    # # Get all image files
-    # image_files = sorted(glob.glob((os.path.join(tmp_folder, "*.png"))))
-
     clip = ImageSequenceClip(image_files, fps=IMAGE_SEQUENCE_FPS)
     return clip
 
