@@ -920,15 +920,12 @@ def _extend_prev_clip(track=None, t=None):
     if len(track) == 0:
         return
 
-    clip_info = track[-1]
-
-    if clip_info.auto_extend:
-        clip_info.duration = _get_time(t) - clip_info.start
-        clip_info.auto_extend = False
-        print(
-            "previous clip updated: start=%.2f duration=%.2f"
-            % (clip_info.start, clip_info.duration)
-        )
+    clip = track[-1]
+    clip.duration = _get_time(t) - clip.start
+    clip.auto_extend = False
+    print(
+        "previous clip updated: start=%.2f duration=%.2f" % (clip.start, clip.duration)
+    )
 
 
 @api
