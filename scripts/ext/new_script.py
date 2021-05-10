@@ -5,30 +5,22 @@ from _shutil import getch, print2
 
 os.chdir("../")
 
-script_dir = get_selected_script_dir_rel().lstrip("/")
-print(script_dir)
-print2("Enter %s (y/n)?" % script_dir)
-if getch() != "y":
-    script_dir = ""
+script_path = enter_script_path()
 
-s = input("New script name: %s" % script_dir)
-if s:
-    script_path = script_dir + s
+dir_name = os.path.dirname(script_path)
+if dir_name != "":
+    os.makedirs(dir_name, exist_ok=True)
 
-    dir_name = os.path.dirname(script_path)
-    if dir_name != "":
-        os.makedirs(dir_name, exist_ok=True)
+name, ext = os.path.splitext(script_path)
+if not ext:
+    print("Please specify script extension")
+    exit(0)
 
-    name, ext = os.path.splitext(script_path)
-    if not ext:
-        print("Please specify script extension")
-        exit(0)
+if ext == ".py":
+    shutil.copyfile(get_my_script_root() + "/templates/python.py", script_path)
+else:
+    # Create empty file
+    with open(script_path, "w") as f:
+        pass
 
-    if ext == ".py":
-        shutil.copyfile(get_my_script_root() + "/templates/python.py", script_path)
-    else:
-        # Create empty file
-        with open(script_path, "w") as f:
-            pass
-
-    edit_myscript_script(os.path.realpath(script_path))
+edit_myscript_script(os.path.realpath(script_path))

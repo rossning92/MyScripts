@@ -22,3 +22,12 @@ def edit_myscript_script(file):
 
 def get_my_script_root():
     return os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + "/../")
+
+
+def enter_script_path():
+    script_dir = get_selected_script_dir_rel().lstrip("/")
+    script_path = input("Script path (%s [Enter]): " % script_dir)
+    if not script_path:
+        script_path = script_dir + input("Script path %s" % script_dir)
+
+    return script_path
