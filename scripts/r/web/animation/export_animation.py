@@ -917,7 +917,7 @@ def anim(file, **kwargs):
 
 
 @api
-def video_end(track=None, t=None):
+def video_end(track=None, t=None, fadeout=None):
     print("video_end: track=%s" % track)
     track = _get_vid_track(track)
 
@@ -926,6 +926,10 @@ def video_end(track=None, t=None):
     clip = track[-1]
     clip.duration = _get_time(t) - clip.start
     clip.auto_extend = False
+
+    if fadeout is not None:
+        clip.fadeout = fadeout
+
     print("clip updated: start=%.2f duration=%.2f" % (clip.start, clip.duration))
 
 
