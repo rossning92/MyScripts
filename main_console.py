@@ -375,7 +375,7 @@ def main_loop():
             state.execute_script = None
 
             # HACK: workaround: key bindings will not work on windows.
-            time.sleep(1)
+            # time.sleep(1)
         else:
             break
 
