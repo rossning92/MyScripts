@@ -8,3 +8,5 @@ print(f)
 
 setup_android_env()
 call_echo(["aapt", "dump", "badging", f])
+
+call_echo(["apksigner", "verify", "--print-certs", f])

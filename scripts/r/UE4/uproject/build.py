@@ -18,7 +18,7 @@ def build_uproject(project_dir, out_dir=None):
     print2("Project File: %s" % project_file)
 
     if out_dir is None:
-        project_name = os.path.splitext(os.path.basename(project_dir))[0]
+        project_name = os.path.splitext(os.path.basename(project_file))[0]
         out_dir = OUT_DIR + "/%s" % project_name
 
     # Build module?
