@@ -5,15 +5,14 @@ from _ext import *
 
 os.chdir("../")
 
-rel_path = get_selected_script_dir_rel()
-file_path = input("script name [%s]: " % rel_path)
+script_path = enter_script_path()
 
-if file_path:
-    dir_name = os.path.dirname(file_path)
+if script_path:
+    dir_name = os.path.dirname(script_path)
     if dir_name:
         os.makedirs(dir_name, exist_ok=True)
 
     src_script = os.getenv("_SCRIPT")
-    copy(src_script, file_path)
+    copy(src_script, script_path)
 
-    edit_myscript_script(os.path.realpath(file_path))
+    edit_myscript_script(os.path.realpath(script_path))
