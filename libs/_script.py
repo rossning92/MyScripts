@@ -98,9 +98,23 @@ def wrap_bash_commands(commands, wsl=False, env=None):
     elif os.name == "nt":
         if env is not None:
             env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
+            env["CHERE_INVOKING"] = "1"  # stay in the current working directory
 
         tmp_sh_file = write_temp_file(commands, ".sh")
-        return [r"C:\Program Files\Git\bin\bash.exe", "--login", "-i", tmp_sh_file]
+
+        mingw_bash = [
+            r"C:\msys64\usr\bin\bash.exe",
+            r"C:\Program Files\Git\bin\bash.exe",
+        ]
+
+        bash_exe = None
+        for f in mingw_bash:
+            if os.path.exists(f):
+                bash_exe = f
+
+        if bash_exe is None:
+            raise Exception("Cannot find MinGW bash.exe")
+        return [bash_exe, "--login", "-i", tmp_sh_file]
 
     else:  # Linux
         return ["bash", "-c", commands]

@@ -2,6 +2,8 @@ set -e
 
 cd ../..
 
+echo "Script dir: $(pwd)"
+
 git config --global user.email "rossning92@gmail.com"
 git config --global user.name "rossning92"
 git config credential.helper store
