@@ -140,6 +140,11 @@ ActivateWindowByTitle(title)
         if WinActive("ahk_id " hwnd)
             continue
 
+        ; Skip top most window
+        WinGet, style, ExStyle, ahk_id %hwnd%
+        if (style & 0x8)
+            continue
+
         WinActivate ahk_id %hwnd%
 
         return
