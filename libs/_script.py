@@ -111,6 +111,7 @@ def wrap_bash_commands(commands, wsl=False, env=None):
         for f in msys2_bash_search_list:
             if os.path.exists(f):
                 bash = f
+                break
 
         if bash is None:
             raise Exception("Cannot find MinGW bash.exe")
