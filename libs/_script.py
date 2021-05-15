@@ -102,19 +102,19 @@ def wrap_bash_commands(commands, wsl=False, env=None):
 
         tmp_sh_file = write_temp_file(commands, ".sh")
 
-        mingw_bash = [
+        msys2_bash_search_list = [
             r"C:\msys64\usr\bin\bash.exe",
             r"C:\Program Files\Git\bin\bash.exe",
         ]
 
-        bash_exe = None
-        for f in mingw_bash:
+        bash = None
+        for f in msys2_bash_search_list:
             if os.path.exists(f):
-                bash_exe = f
+                bash = f
 
-        if bash_exe is None:
+        if bash is None:
             raise Exception("Cannot find MinGW bash.exe")
-        return [bash_exe, "--login", "-i", tmp_sh_file]
+        return [bash, "--login", "-i", tmp_sh_file]
 
     else:  # Linux
         return ["bash", "-c", commands]
