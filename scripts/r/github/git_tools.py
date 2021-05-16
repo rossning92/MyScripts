@@ -34,6 +34,7 @@ def print_help():
         "[c] commit        [C] commit & push\n"
         "[a] amend         [A] amend & push\n"
         "[p] pull          [P] push\n"
+        "[b] switch branch\n"
         "[s] status & log  [d] git diff\n"
         "[r] revert file   [R] revert all changes\n"
         "[Z] undo"
@@ -125,6 +126,13 @@ def add_gitignore():
             f.writelines(["/build"])
 
 
+def switch_branch():
+    name = input("Switch to branch [master]: ")
+    if not name:
+        name = "master"
+    call_echo(["git", "checkout", "-B", name])
+
+
 if __name__ == "__main__":
     repo_dir = r"{{GIT_REPO}}"
     repo_name = os.path.basename(repo_dir)
@@ -189,13 +197,15 @@ if __name__ == "__main__":
         elif ch == "`":
             cmd = input("cmd> ")
             subprocess.call(cmd, shell=True)
-        elif ch == "b":
-            create_bundle()
-            continue
+        # elif ch == "b":
+        #     create_bundle()
+        #     continue
         elif ch == "B":
             print2("Restoring from: %s" % bundle_file)
             call_echo(["git", "pull", bundle_file, "master:master"])
         elif ch == "Z":
             call_echo("git reset HEAD@{1}")
+        elif ch == "b":
+            switch_branch()
 
         print_status()
