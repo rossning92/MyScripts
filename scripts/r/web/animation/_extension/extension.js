@@ -5,13 +5,15 @@ const process = require("process");
 const fs = require("fs");
 const os = require("os");
 
+const SOURCE_FILE_EXT = "c|cpp|py|txt|html";
+
 let recorderProcess = null;
 let currentProjectDir = null;
 let output = vscode.window.createOutputChannel("VideoEdit");
 
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
-    if (/\.(md|c|cpp|py|txt)$/g.test(filePath)) {
+    if (new RegExp(".(md|" + SOURCE_FILE_EXT + ")$", "g").test(filePath)) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
     } else if (/\.(png|jpg|mp4|webm)$/g.test(filePath)) {
@@ -179,7 +181,7 @@ function getCompletedExpression(file) {
     return ` include('${file}') `;
   } else if (file.endsWith(".js")) {
     return ` anim('${file}') `;
-  } else if (/\.(c|cpp|py|text)$/g.test(file)) {
+  } else if (new RegExp(".(" + SOURCE_FILE_EXT + ")$", "g").test(file)) {
     return ` codef('${file}', size=(1664, 824)) `;
   } else if (/\boverlay\//g.test(file)) {
     return ` overlay('${file}', t='as') `;
@@ -213,7 +215,12 @@ function registerAutoComplete(context) {
             // Ignore current file
             return false;
           } else {
-            return /\.(png|jpg|mp4|webm|gif|mp3|wav|md|pptx|cpp|c|py|js)$/g.test(x);
+            return new RegExp(
+              ".(png|jpg|mp4|webm|gif|mp3|wav|md|pptx|" +
+                SOURCE_FILE_EXT +
+                ")$",
+              "g"
+            ).test(x);
           }
         };
 

@@ -530,8 +530,12 @@ def check_output_echo(args):
 
 
 def get_output(args, shell=True, **kwargs):
-    return subprocess.check_output(args, shell=shell, **kwargs).decode(
-        "utf-8", errors="ignore"
+    return (
+        subprocess.Popen(
+            args, shell=shell, universal_newlines=True, stdout=subprocess.PIPE, **kwargs
+        )
+        .stdout.read()
+        .strip()
     )
 
 

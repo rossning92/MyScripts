@@ -1,8 +1,10 @@
 import os
 import subprocess
 import sys
+from urllib.request import urlretrieve
 
-from _shutil import call2, call_echo, cd, fnull, getch, print2, yes
+
+from _shutil import call_echo, cd, fnull, getch, print2, yes, get_output, get_time_str
 
 backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
 repo_dir = r"{{GIT_REPO}}"
@@ -43,14 +45,15 @@ def commit(dry_run=False, amend=False):
         call_echo("git status --short")
 
     else:
-        # call_echo("git add -A")
+        if not get_output("git diff --shortstat"):
+            call_echo("git add -A")
 
         if amend:
             call_echo("git commit --amend --no-edit --quiet")
         else:
             message = input("commit message: ")
             if not message:
-                raise Exception("Commit message is required.")
+                message = "Temporary commit @ %s" % get_time_str()
 
             call_echo(["git", "commit", "-m", message])
 
@@ -103,6 +106,25 @@ def create_bundle():
         call_echo(["git", "bundle", "create", bundle_file, "master"])
 
 
+def add_gitignore_node():
+    urlretrieve(
+        "https://raw.githubusercontent.com/github/gitignore/master/Node.gitignore",
+        ".gitignore",
+    )
+
+
+def add_gitignore():
+    if os.path.exists(".gitignore"):
+        return
+
+    if os.path.exists("package.json"):
+        add_gitignore_node()
+
+    else:  # unknown project
+        with open(".gitignore", "w") as f:
+            f.writelines(["/build"])
+
+
 if __name__ == "__main__":
     repo_dir = r"{{GIT_REPO}}"
     repo_name = os.path.basename(repo_dir)
@@ -127,14 +149,12 @@ if __name__ == "__main__":
         )
 
     # Add .gitignore
-    if not os.path.exists(".gitignore"):
-        with open(".gitignore", "w") as f:
-            f.writelines(["/build"])
+    add_gitignore()
 
     # .gitattribute
     if not os.path.exists(".gitattributes"):
         with open(".gitattributes", "w") as f:
-            f.writelines(["* text eol=lf"])
+            f.writelines(["* text=auto eol=lf"])
 
     print_status()
 
