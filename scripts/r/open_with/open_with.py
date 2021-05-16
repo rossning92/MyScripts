@@ -355,7 +355,7 @@ def open_with(files, program_id=0):
         return
 
     if ext not in assoc:
-        raise Exception("%s is not defined" % ext)
+        raise Exception('Extension "%s" is not supported.' % ext)
 
     program = assoc[ext][program_id]
     executable = _appmanager.get_executable(program)
@@ -379,6 +379,7 @@ if __name__ == "__main__":
 
         open_with(files, program_id)
     except Exception as e:
-        traceback.print_exc(file=sys.stdout)
+        # traceback.print_exc(file=sys.stdout)
         print(e)
-        input()
+        input("Press enter to exit...")
+
