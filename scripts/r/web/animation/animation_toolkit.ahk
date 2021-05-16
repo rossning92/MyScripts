@@ -31,11 +31,14 @@ $F6::
         SetWindowPos("A", 0, 0, 1920, 1080)
         sleep 500
         RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
-    } else if (WinActive("ahk_exe WindowsTerminal.exe") or WinActive("ahk_class CabinetWClass")) {
+    } else if (WinActive("ahk_exe WindowsTerminal.exe")) {
         ; SetWindowPos("A", 0, 0, 1440, 810)
         ; sleep 500
         ; RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1440 810")
         RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
+    } else if (WinActive("ahk_class CabinetWClass")) {
+        SetWindowPos("A", 0, 0, 1440, 810)
+        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1440 810")
     } else {
         RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
     }
