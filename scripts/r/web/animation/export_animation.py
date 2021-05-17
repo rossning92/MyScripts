@@ -7,8 +7,6 @@ import os
 import re
 import sys
 import tarfile
-import urllib
-import webbrowser
 from collections import OrderedDict, defaultdict
 from typing import Any, NamedTuple
 
@@ -38,7 +36,6 @@ if 1:  # Import moviepy
 _add_subtitle = True
 _global_scale = 1
 _audio_only = False
-_impl = None
 _apis = {}
 _cached_line_to_tts = None
 _last_frame_indices = {}
@@ -50,6 +47,7 @@ IMAGE_SEQUENCE_FPS = 25
 FPS = 25
 VIDEO_CROSSFADE_DURATION = FADE_DURATION
 DEFAULT_AUDIO_FADING_DURATION = 0.25
+DEFAULT_IMAGE_CLIP_DURATION = 2
 
 ignore_undefined = False
 
@@ -592,11 +590,16 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
 
 
 @api
-def codef(file, track="vid", size=None, **kwargs):
+def codef(file, track="vid", size=None, line=None, fontsize=None, **kwargs):
     from r.web.gen_code_image import gen_code_image_from_file
 
-    out_file = os.path.splitext(file)[0] + ".png"
-    gen_code_image_from_file(file, out_file, size=size)
+    mkdir("tmp/code")
+    hash = get_hash(str((file, os.path.getmtime(file), size, line, fontsize)))
+    out_file = "tmp/code/%s.png" % hash
+    if not os.path.exists(out_file):
+        gen_code_image_from_file(
+            file, out_file, size=size, line=line, fontsize=fontsize
+        )
 
     _add_video_clip(out_file, track=track, transparent=False, **kwargs)
 
@@ -715,14 +718,16 @@ def _load_mpy_clip(
         else:
             export_shapes = bool(re.search(r"\boverlay[\\/]", file))
             file = export_slide(file, index=frame + 1, export_shapes=export_shapes)
-            clip = ImageClip(file).set_duration(5).set_mask(None)
+            clip = (
+                ImageClip(file).set_duration(DEFAULT_IMAGE_CLIP_DURATION).set_mask(None)
+            )
             clip = update_clip_size(clip)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
         clip = ImageClip(file)
         clip = update_clip_size(clip)
 
-        clip = clip.set_duration(5)
+        clip = clip.set_duration(DEFAULT_IMAGE_CLIP_DURATION)
         if not transparent:
             clip = clip.set_mask(None)
 

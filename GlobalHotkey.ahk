@@ -7,9 +7,9 @@ RunScript(name, path)
     {
         WinActivate % name
     }
-    else if WinExist("Administrator: " name)
+    else if WinExist("Administrator:  " name)
     {
-        WinActivate % "Administrator: " name
+        WinActivate % "Administrator:  " name
     }
     else
     {

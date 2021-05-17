@@ -100,6 +100,7 @@ def wrap_bash_commands(commands, wsl=False, env=None):
             env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
             env["CHERE_INVOKING"] = "1"  # stay in the current working directory
             env["MSYSTEM"] = "MINGW64"
+            env["MSYS2_PATH_TYPE"] = "inherit"
 
         tmp_sh_file = write_temp_file(commands, ".sh")
 

@@ -5,7 +5,9 @@
     <link rel="stylesheet" href="node_modules/codemirror/doc/docs.css" />
     <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css" />
     <!-- <link rel="stylesheet" href="node_modules/codemirror/theme/monokai.css" /> -->
-    <link rel="stylesheet" href="vscode-dark.css" />
+    <link rel="stylesheet" href="themes/vscode-dark.css" />
+    <link rel="stylesheet" href="themes/github.css" />
+    <link rel="stylesheet" href="themes/light.css" />
     <script src="node_modules/codemirror/lib/codemirror.js"></script>
     <script src="node_modules/codemirror/mode/python/python.js"></script>
     <script src="node_modules/codemirror/mode/clike/clike.js"></script>
@@ -16,7 +18,6 @@
     <script src="node_modules/codemirror/addon/edit/matchbrackets.js"></script>
     <style>
       body {
-        font-size: 30px;
         display: table;
         /* flex-direction: column;
         justify-content: center; */
@@ -72,6 +73,7 @@
         /* max-width: 1000px; */
         height: auto;
         font-family: Consolas, "microsoft yahei", monospace;
+        font-size: 22pt;
       }
       .CodeMirror-lines {
         padding: 1em 1em 1em 0;
@@ -100,19 +102,73 @@
     </div> -->
 
     <form>
-      <textarea id="code" name="code">please input code here</textarea>
+      <textarea id="code" name="code">
+var alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
+
+        var svg = d3.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height"),
+            g = svg.append("g").attr("transform", "translate(32," + (height / 2) + ")");
+        
+        function update(data) {
+        
+          // DATA JOIN
+          // Join new data with old elements, if any.
+          var text = g.selectAll("text")
+            .data(data);
+        
+          // UPDATE
+          // Update old elements as needed.
+          text.attr("class", "update");
+        
+          // ENTER
+          // Create new elements as needed.
+          //
+          // ENTER + UPDATE
+          // After merging the entered elements with the update selection,
+          // apply operations to both.
+          text.enter().append("text")
+              .attr("class", "enter")
+              .attr("x", function(d, i) { return i * 32; })
+              .attr("dy", ".35em")
+            .merge(text)
+              .text(function(d) { return d; });
+        
+          // EXIT
+          // Remove old elements as needed.
+          text.exit().remove();
+        }
+        
+        // The initial display.
+        update(alphabet);
+        
+        // Grab a random sample of letters from the alphabet, in alphabetical order.
+        d3.interval(function() {
+          update(d3.shuffle(alphabet)
+              .slice(0, Math.floor(Math.random() * 26))
+              .sort());
+        }, 1500);</textarea
+      >
     </form>
 
     <script>
-      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-        mode: "text/x-c++src",
+      const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: "text/javascript",
         lineNumbers: true,
         styleActiveLine: true,
         matchBrackets: true,
         lineWrapping: true,
       });
       window.editor = editor;
-      editor.setOption("theme", "vscode-dark");
+      editor.setOption("theme", "light");
+
+      document.onkeyup = function (e) {
+        if (e.ctrlKey && e.which == 66) {
+          const from = editor.getCursor("start");
+          const to = editor.getCursor("end");
+          editor.markText(from, to, { className: "highlight" });
+        }
+      };
 
       window.setCode = (s, lang) => {
         editor.setValue(decodeURIComponent(s));
@@ -141,12 +197,20 @@
       window.showLineNumbers = (b) => {
         window.editor.setOption("lineNumbers", b);
       };
-      document.onkeyup = function (e) {
-        if (e.ctrlKey && e.which == 66) {
-          const from = editor.getCursor("start");
-          const to = editor.getCursor("end");
-          editor.markText(from, to, { className: "highlight" });
-        }
+      window.jumpToLine = (i) => {
+        const t = editor.charCoords({ line: i - 1, ch: 0 }, "local").top;
+        // const middleHeight = editor.getScrollerElement().offsetHeight / 2;
+        editor.scrollTo(null, t - editor.defaultTextHeight() / 2);
+      };
+      window.setSize = (w, h) => {
+        const element = document.querySelector(".CodeMirror-lines");
+        element.style.paddingBottom = h + "px";
+
+        editor.setSize(w, h);
+      };
+      window.setFontSize = (fontSize) => {
+        const element = document.querySelector(".CodeMirror");
+        element.style.fontSize = fontSize + "pt";
       };
     </script>
   </body>

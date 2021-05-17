@@ -5,15 +5,21 @@ import argparse
 
 
 def gen_code_image_from_file(file, out_file, **kwargs):
-    if not file_is_old(file, out_file):
-        return out_file
-
     with open(file, "r", encoding="utf-8", newline="\n") as f:
         s = f.read().replace("\r", "")
         gen_code_image(s, out_file, **kwargs)
 
 
-def gen_code_image(s, out_file, line_no=True, debug=False, lang=None, size=None):
+def gen_code_image(
+    s,
+    out_file,
+    line_no=True,
+    debug=False,
+    lang=None,
+    size=None,
+    line=None,
+    fontsize=None,
+):
     from urllib.parse import quote
 
     s = s.replace("\\`", "\u2022")
@@ -21,6 +27,7 @@ def gen_code_image(s, out_file, line_no=True, debug=False, lang=None, size=None)
     s = s.replace("`", "")
     s = s.replace("\u2022", "`")
 
+    # Source code content
     javascript = "setCode('%s', '%s');" % (quote(s), lang)
 
     # Highlight code
@@ -30,10 +37,20 @@ def gen_code_image(s, out_file, line_no=True, debug=False, lang=None, size=None)
             % (ranges[i][0] - i * 2, ranges[i][1] - i * 2 - 2)
         )
 
+    # Line numbers
     javascript += "showLineNumbers(%s);" % ("true" if line_no else "false")
 
+    # Font size
+    if fontsize is not None:
+        javascript += "setFontSize(%g);" % fontsize
+
+    # Size
     if size is not None:
-        javascript += "editor.setSize(%d, %d);" % (size[0], size[1])
+        javascript += "setSize(%d, %d);" % (size[0], size[1])
+
+    # Jump to line
+    if line is not None:
+        javascript += "jumpToLine(%d);" % line
 
     root = get_script_root() + "/r/web/_codeeditor"
     if not os.path.join(root, "node_modules"):
