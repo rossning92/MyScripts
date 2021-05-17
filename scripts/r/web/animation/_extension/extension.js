@@ -5,7 +5,7 @@ const process = require("process");
 const fs = require("fs");
 const os = require("os");
 
-const SOURCE_FILE_EXT = "c|cpp|py|txt|html";
+const SOURCE_FILE_EXT = "c|cpp|py|js|txt|html";
 
 let recorderProcess = null;
 let currentProjectDir = null;
@@ -181,7 +181,7 @@ function getCompletedExpression(file) {
     return ` include('${file}') `;
   } else if (file.endsWith(".js")) {
     return ` anim('${file}') `;
-  } else if (new RegExp(".(" + SOURCE_FILE_EXT + ")$", "g").test(file)) {
+  } else if (/\bsrc\//g.test(file)) {
     return ` codef('${file}', size=(1664, 824)) `;
   } else if (/\boverlay\//g.test(file)) {
     return ` overlay('${file}', t='as') `;
