@@ -87,9 +87,9 @@ function initializeDecorations(context) {
       activeEditor.setDecorations(decorationType, decorations);
     }
 
-    highlightText(/\b(record|bgm|sfx|audio_end)(?=\()/g, "#c0392b");
+    highlightText(/\b(audio_end|bgm|record|sfx)(?=\()/g, "#c0392b");
     highlightText(
-      /\b(clip|overlay|md|slide|codef|hl|video_end)(?=\()/g,
+      /\b(anim|clip|codef|hl|md|overlay|slide|video_end)(?=\()/g,
       "#0000ff"
     );
   }
