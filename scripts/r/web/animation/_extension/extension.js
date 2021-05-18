@@ -365,6 +365,15 @@ function startAnimationServer(activeFile) {
     "||",
     "pause",
   ];
+
+  // Close existing Animation Server terminal.
+  for (const term of vscode.window.terminals) {
+    if (term.name == "AnimationServer") {
+      term.dispose();
+    }
+  }
+
+  // Create a new terminal.
   const terminal = vscode.window.createTerminal({
     name: "AnimationServer",
     shellPath: "cmd.exe",
