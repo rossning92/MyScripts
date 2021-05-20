@@ -60,6 +60,10 @@
       {
         "command": "yo.createMovyAnimation",
         "title": "VideoEdit: Create Movy Animation"
+      },
+      {
+        "command": "yo.createCode",
+        "title": "VideoEdit: Create Code"
       }
     ],
     "keybindings": [

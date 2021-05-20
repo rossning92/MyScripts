@@ -511,31 +511,35 @@ function registerCreateSlideCommand() {
   });
 }
 
-function registerCreateMovyCommand() {
-  vscode.commands.registerCommand("yo.createMovyAnimation", async () => {
-    const animationDir = path.resolve(getActiveDir(), "animation");
+async function createNewDocument({
+  dir,
+  func,
+  fileNamePlaceHolder,
+  initContent = "",
+  extension = "",
+} = {}) {
+  const animationDir = path.resolve(getActiveDir(), dir);
 
-    // Create animation dir
-    if (!fs.existsSync(animationDir)) {
-      fs.mkdirSync(animationDir);
-    }
+  // Create animation dir
+  if (!fs.existsSync(animationDir)) {
+    fs.mkdirSync(animationDir);
+  }
 
-    // Input file name
-    const fileName = await vscode.window.showInputBox({
-      placeHolder: "movy-animation-name",
-    });
-    if (!fileName) {
-      return;
-    }
-
-    const filePath = path.resolve(animationDir, fileName + ".js");
-    fs.writeFileSync(filePath, 'import * as mo from "movy";\n\nmo.run();');
-
-    insertText(`{{ anim('animation/${fileName}.js') }}`);
-
-    const document = await vscode.workspace.openTextDocument(filePath);
-    await vscode.window.showTextDocument(document);
+  // Input file name
+  const fileName = await vscode.window.showInputBox({
+    placeHolder: fileNamePlaceHolder,
   });
+  if (!fileName) {
+    return;
+  }
+
+  const filePath = path.resolve(animationDir, fileName + extension);
+  fs.writeFileSync(filePath, initContent);
+
+  insertText(`{{ ${func}('${dir}/${fileName}${extension}') }}`);
+
+  const document = await vscode.workspace.openTextDocument(filePath);
+  await vscode.window.showTextDocument(document);
 }
 
 function activate(context) {
@@ -590,11 +594,29 @@ function activate(context) {
 
   registerCreateSlideCommand();
 
-  registerCreateMovyCommand();
-
   registerAutoComplete(context);
 
   initializeDecorations(context);
+
+  // Create movy document
+  vscode.commands.registerCommand("yo.createMovyAnimation", async () => {
+    createNewDocument({
+      dir: "animation",
+      func: "anim",
+      fileNamePlaceHolder: "movy-animation-name",
+      initContent: 'import * as mo from "movy";\n\nmo.run();',
+      extension: ".js",
+    });
+  });
+
+  // Create source code document
+  vscode.commands.registerCommand("yo.createCode", async () => {
+    createNewDocument({
+      dir: "src",
+      func: "codef",
+      fileNamePlaceHolder: "source-code-name.ext",
+    });
+  });
 }
 
 exports.activate = activate;
