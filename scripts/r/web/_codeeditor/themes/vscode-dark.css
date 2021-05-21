@@ -103,20 +103,3 @@
   background-color: #494d4e !important;
   color: #9c9e9e !important;
 }
-
-/* Added by Ross */
-.CodeMirror-line {
-  padding-left: 1em !important;
-}
-.CodeMirror {
-  line-height: 133%;
-  height: auto;
-}
-.CodeMirror-activeline-background {
-  background: rgba(0, 0, 0, 0) !important;
-}
-.CodeMirror-linenumber {
-  padding-right: 1em;
-  padding-left: 0.5em;
-  opacity: 50%;
-}

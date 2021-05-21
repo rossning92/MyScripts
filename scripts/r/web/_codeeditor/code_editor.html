@@ -25,51 +25,11 @@
         margin: 0;
       }
 
-      /* window frames
-      .page {
-        box-shadow: 0 0 0.22em 0 rgba(0, 0, 0, 0.3);
-        border-radius: 0.14em;
-        overflow: hidden;
-        line-height: 0;
-        width: 90%;
-        margin: 0 auto 0 auto;
-      }
-      .page .titlebar {
-        background-color: #202124;
-        border-top-left-radius: 0.14em;
-        border-top-right-radius: 0.14em;
-        padding: 0.8em;
-        box-sizing: border-box;
-      }
-      .page .titlebar .dot {
-        width: 0.6em;
-        height: 0.6em;
-        background-color: #ccc;
-        display: inline-block;
-        border-radius: 50%;
-      }
-      .page .titlebar .dot.close {
-        background-color: #ff6159;
-      }
-      .page .titlebar .dot.minimise {
-        background-color: #ffbf2f;
-      }
-      .page .titlebar .dot.maximise {
-        background-color: #29cf42;
-      }
-      .page .titlebar .dot + .dot {
-        margin-left: 0.2em;
-      }
-      .page .spacer {
-        height: 400px;
-      } */
-
-      .highlight {
+      .mark {
         background-color: #e74c3c;
         color: #ffffff !important;
       }
-
-      .highlight-line {
+      .mark-line {
         background-color: #4a4c13;
       }
 
@@ -78,16 +38,29 @@
         height: auto;
         font-family: Consolas, "microsoft yahei", monospace;
         font-size: 22pt;
+        line-height: 133%;
       }
       .CodeMirror-lines {
-        padding: 1em 1em 1em 0;
+        padding: 1em 1em 1em 0; /* TRBL */
       }
       .CodeMirror-gutters {
         border-right: 0 !important;
         background-color: transparent !important;
       }
+      .CodeMirror-linenumbers {
+        min-width: 3em !important;
+      }
+      .CodeMirror-line {
+        padding-left: 1em !important;
+      }
+      .CodeMirror-activeline-background {
+        background: rgba(0, 0, 0, 0) !important;
+      }
       .CodeMirror-linenumber {
-        color: #858585 !important;
+        padding-right: 1em;
+        padding-left: 0.5em;
+        opacity: 50%;
+        color: #858585;
       }
       /* .CodeMirror-scroll {
         height: auto;
@@ -170,7 +143,7 @@ var alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
         if (e.ctrlKey && e.which == 66) {
           const from = editor.getCursor("start");
           const to = editor.getCursor("end");
-          editor.markText(from, to, { className: "highlight" });
+          editor.markText(from, to, { className: "mark" });
         }
       };
 
@@ -195,7 +168,7 @@ var alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
         editor.markText(
           { line: i0, ch: j0 },
           { line: i1, ch: j1 },
-          { className: "highlight" }
+          { className: "mark" }
         );
       };
       window.showLineNumbers = (b) => {
@@ -217,7 +190,7 @@ var alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
         element.style.fontSize = fontSize + "pt";
       };
       window.markLine = (i) => {
-        editor.addLineClass(i - 1, "wrap", "highlight-line");
+        editor.addLineClass(i - 1, "wrap", "mark-line");
       };
     </script>
   </body>
