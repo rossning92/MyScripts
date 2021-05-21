@@ -130,7 +130,7 @@ def switch_branch():
     name = input("Switch to branch [master]: ")
     if not name:
         name = "master"
-    call_echo(["git", "checkout", "-B", name])
+    call_echo(["git", "checkout", name])
 
 
 if __name__ == "__main__":
