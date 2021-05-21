@@ -590,15 +590,24 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
 
 
 @api
-def codef(file, track="vid", size=None, line=None, fontsize=None, **kwargs):
+def codef(
+    file, track="vid", size=None, line=None, fontsize=None, mark_line=None, **kwargs
+):
     from r.web.gen_code_image import gen_code_image_from_file
 
     mkdir("tmp/code")
-    hash = get_hash(str((file, os.path.getmtime(file), size, line, fontsize)))
+    hash = get_hash(
+        str((file, os.path.getmtime(file), size, line, fontsize, mark_line))
+    )
     out_file = "tmp/code/%s.png" % hash
     if not os.path.exists(out_file):
         gen_code_image_from_file(
-            file, out_file, size=size, line=line, fontsize=fontsize
+            file,
+            out_file,
+            size=size,
+            line=line,
+            fontsize=fontsize,
+            mark_line=mark_line,
         )
 
     _add_video_clip(out_file, track=track, transparent=False, **kwargs)

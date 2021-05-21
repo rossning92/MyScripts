@@ -69,6 +69,10 @@
         color: #ffffff !important;
       }
 
+      .highlight-line {
+        background-color: #4a4c13;
+      }
+
       .CodeMirror {
         /* max-width: 1000px; */
         height: auto;
@@ -211,6 +215,9 @@ var alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
       window.setFontSize = (fontSize) => {
         const element = document.querySelector(".CodeMirror");
         element.style.fontSize = fontSize + "pt";
+      };
+      window.markLine = (i) => {
+        editor.addLineClass(i - 1, "wrap", "highlight-line");
       };
     </script>
   </body>

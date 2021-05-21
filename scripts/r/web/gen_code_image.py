@@ -19,6 +19,7 @@ def gen_code_image(
     size=None,
     line=None,
     fontsize=None,
+    mark_line=None,
 ):
     from urllib.parse import quote
 
@@ -51,6 +52,13 @@ def gen_code_image(
     # Jump to line
     if line is not None:
         javascript += "jumpToLine(%d);" % line
+
+    # Mark line
+    if mark_line:
+        if isinstance(mark_line, (int, float)):
+            mark_line = [mark_line]
+        for i in mark_line:
+            javascript += "markLine(%d);" % i
 
     root = get_script_root() + "/r/web/_codeeditor"
     if not os.path.join(root, "node_modules"):
