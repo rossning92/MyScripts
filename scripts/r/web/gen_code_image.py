@@ -17,7 +17,7 @@ def gen_code_image(
     debug=False,
     lang=None,
     size=None,
-    line=None,
+    jump_line=None,
     fontsize=None,
     mark_line=None,
 ):
@@ -50,8 +50,8 @@ def gen_code_image(
         javascript += "setSize(%d, %d);" % (size[0], size[1])
 
     # Jump to line
-    if line is not None:
-        javascript += "jumpToLine(%d);" % line
+    if jump_line is not None:
+        javascript += "jumpToLine(%d);" % jump_line
 
     # Mark line
     if mark_line:
