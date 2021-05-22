@@ -1,8 +1,9 @@
 from _shutil import *
 import argparse
+from pathlib import Path
 
 
-def start_server(file=None, content_base=None, port=None):
+def start_server(file=None, port=None):
     MOVY_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "movy")
 
     if not os.path.exists(os.path.join(MOVY_ROOT, "node_modules")):
@@ -31,10 +32,15 @@ if __name__ == "__main__":
     else:
         file = get_files()[0]
 
-    ps = start_server(file)
+    ps = start_server(file, port=5278)
 
-    # url = "http://localhost:8080/%s.html" % os.path.splitext(os.path.basename(file))[0]
-    # shell_open(url)
+    subprocess.call(
+        [
+            "C:\Program Files (x86)\Chromium\Application\chrome.exe",
+            "--user-data-dir=%s" % os.path.join(Path.home(), "movy-chrome-profile"),
+            "http://localhost:5278",
+        ]
+    )
 
     try:
         ps.wait()
