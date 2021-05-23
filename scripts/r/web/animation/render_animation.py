@@ -13,16 +13,14 @@ import urllib
 PORT = 5555
 
 
-def render_animation(file, content_base=None):
+def render_animation(file):
     print("Render animation: %s..." % file)
 
     assert file.lower().endswith(".js")
 
-    ps = start_server(file, content_base=content_base, port=PORT)
+    ps = start_server(file, port=PORT)
 
-    name = os.path.basename(os.path.splitext(file)[0])
-
-    url = "http://localhost:%d/%s.html" % (PORT, name)
+    url = "http://localhost:%d" % PORT
 
     async def main():
         browser = await launch(

@@ -931,7 +931,9 @@ def _add_video_clip(
 @api
 def anim(file, **kwargs):
     video_file = os.path.splitext(file)[0] + ".webm"
-    if not os.path.exists(video_file):
+    if file_is_old(file, video_file):
+        if os.path.exists(video_file):
+            os.remove(video_file)
         render_animation.render_animation(os.path.abspath(file))
     _add_video_clip(video_file, **kwargs)
 
