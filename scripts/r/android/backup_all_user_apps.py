@@ -4,7 +4,7 @@ from _shutil import *
 out_dir = os.path.realpath(os.path.expanduser("~/Desktop/android_backup"))
 cd(out_dir)
 
-pkgs = load_config("user_apps")
+pkgs = load_json("user_apps.json")
 
 # For each package
 total = len(pkgs)

@@ -30,14 +30,14 @@ def grep(src_dir, exclude=[]):
     print2("Source Dir: %s" % src_dir)
 
     while True:
-        history = load_config("grep_code", default=[])
+        history = load_json("grep_code.json", default=[])
         input_str = Menu(items=history).get_text()
         if not input_str:
             continue
 
         history = [x for x in history if x != input_str]
         history.insert(0, input_str)
-        save_config("grep_code", history)
+        save_json("grep_code.json", history)
 
         args = 'rg -g "*.{c,h,cpp}" --line-number -F "%s"' % input_str
         if rel_path:

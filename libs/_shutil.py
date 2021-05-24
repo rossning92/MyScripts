@@ -1030,9 +1030,9 @@ def get_script_root():
     return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
 
 
-def load_config(name, default=None):
+def load_json(file, default=None):
     try:
-        with open(name + ".json", "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         if default is not None:
@@ -1041,9 +1041,9 @@ def load_config(name, default=None):
             raise Exception("Default value is not specified.")
 
 
-def save_config(name, data):
-    with open(name + ".json", "w") as f:
-        json.dump(data, f, indent=4)
+def save_json(file, data):
+    with open(file, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def screen_record(out_file, rect=None, mouse_cursor=True):
