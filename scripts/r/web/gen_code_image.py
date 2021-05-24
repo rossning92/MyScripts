@@ -33,9 +33,9 @@ def gen_code_image(
 
     # Highlight code
     for i in range(len(ranges)):
-        javascript += (
-            'editor.markText(editor.posFromIndex(%d), editor.posFromIndex(%d), {className: "highlight"});'
-            % (ranges[i][0] - i * 2, ranges[i][1] - i * 2 - 2)
+        javascript += "markText(%d, %d);" % (
+            ranges[i][0] - i * 2,
+            ranges[i][1] - i * 2 - 2,
         )
 
     # Line numbers

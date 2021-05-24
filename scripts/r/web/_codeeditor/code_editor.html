@@ -156,12 +156,10 @@ var alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
           editor.setOption("mode", "text/html");
         }
       };
-      window.markText = (i0, j0, i1, j1) => {
-        editor.markText(
-          { line: i0, ch: j0 },
-          { line: i1, ch: j1 },
-          { className: "mark" }
-        );
+      window.markText = (from, to) => {
+        editor.markText(editor.posFromIndex(from), editor.posFromIndex(to), {
+          className: "mark",
+        });
       };
       window.showLineNumbers = (b) => {
         window.editor.setOption("lineNumbers", b);

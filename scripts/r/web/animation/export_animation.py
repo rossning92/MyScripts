@@ -110,7 +110,10 @@ _add_fadeout_to_last_clip = False
 _video_tracks = OrderedDict(
     [
         ("bg", []),
+        ("bg2", []),
         ("vid", []),
+        ("vid2", []),
+        ("vid3", []),
         ("hl", []),
         ("hl2", []),
         ("md", []),
@@ -1124,9 +1127,10 @@ def _export_video(resolution=(1920, 1080)):
 
                 audio_clips.append(audio_clip)
 
-            # Increase duration for crossfade?
+            # Increase clip duration if crossfade is enabled
             fade_duration = track[i + 1].crossfade if (i < len(track) - 1) else 0
             if fade_duration:
+                clip_info.fadeout = fade_duration  # Fadeout current clip
                 clip_info.duration += fade_duration
 
             clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
