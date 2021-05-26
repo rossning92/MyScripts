@@ -20,7 +20,7 @@ module.exports = ({ template = "markdown", mdFile = "./example.md" }) => {
       }),
     ],
     devServer: {
-      contentBase: path.join(__dirname, "dist"),
+      contentBase: path.join(__dirname, "public"),
       // open: true,
       watchContentBase: true,
       hot: true,
@@ -38,6 +38,10 @@ module.exports = ({ template = "markdown", mdFile = "./example.md" }) => {
         {
           test: /\.(html|md)$/,
           loader: "raw-loader",
+        },
+        {
+          test: /\.(png|svg|jpg|jpeg|gif)$/i,
+          type: "asset/resource",
         },
       ],
     },
