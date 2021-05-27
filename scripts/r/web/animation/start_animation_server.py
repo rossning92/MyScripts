@@ -1,6 +1,7 @@
 from _shutil import *
 import argparse
 from pathlib import Path
+import signal
 
 
 def start_server(file=None, port=None):
@@ -16,7 +17,12 @@ def start_server(file=None, port=None):
         args += ["--port", "%d" % port, "--no-open"]
     args += [file]
 
-    ps = subprocess.Popen(args, cwd=MOVY_ROOT)
+    ps = subprocess.Popen(
+        args,
+        cwd=MOVY_ROOT,
+        # CTRL+C signals will be disabled in current process
+        creationflags=0x00000200,
+    )
     return ps
 
 
