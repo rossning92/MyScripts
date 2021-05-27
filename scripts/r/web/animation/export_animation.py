@@ -1161,7 +1161,6 @@ def _export_video(resolution=(1920, 1080)):
                 clip_info.start += clip_info.crossfade
 
             if clip_info.fadeout:
-                input(str(clip_info.fadeout))
                 assert isinstance(clip_info.fadeout, (int, float))
                 if track_name != "vid":
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
