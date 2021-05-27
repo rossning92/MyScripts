@@ -40,8 +40,9 @@ $F6::
 return
 
 $^F6::
-    SetWindowPos("ahk_exe Code.exe", 0, 0, 960, 1080)
-    SetWindowPos("ahk_exe chrome.exe", 960, 0, 960, 1080)
+    w := 1170
+    SetWindowPos("ahk_exe Code.exe", 0, 0, w, 1080)
+    SetWindowPos("ahk_exe chrome.exe", w, 0, 1920 - w, 1080)
     sleep 500
     RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
 return
