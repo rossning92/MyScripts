@@ -1,17 +1,28 @@
 import argparse
+import datetime
+import glob
 import importlib
 import inspect
 import math
 import os
 import re
+import subprocess
 import sys
 import tarfile
 from collections import OrderedDict
-from typing import Any, NamedTuple
+from typing import Any, Dict, List
 
 import numpy as np
 from _appmanager import get_executable
-from _shutil import *
+from _shutil import (
+    call2,
+    file_is_old,
+    get_hash,
+    get_time_str,
+    getch,
+    mkdir,
+    print2,
+)
 from PIL import Image
 from r.audio.postprocess import dynamic_audio_normalize, process_audio_file
 from r.open_with.open_with import open_with
@@ -37,7 +48,7 @@ _global_scale = 1
 _audio_only = False
 _apis = {}
 _cached_line_to_tts = None
-_last_frame_indices = {}
+_last_frame_indices: Dict[str, int] = {}
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
@@ -106,7 +117,7 @@ _pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
 
 _add_fadeout_to_last_clip = False
 
-_video_tracks = OrderedDict(
+_video_tracks: Dict[str, List] = OrderedDict(
     [
         ("bg", []),
         ("bg2", []),
@@ -133,14 +144,11 @@ _audio_tracks = OrderedDict(
 _cur_audio_track_name = "record"
 
 
-_subtitle = []
+_subtitle: List[str] = []
 _srt_lines = []
 _srt_index = 1
 _last_subtitle_index = -1
 
-_bgm_clip = None
-_bgm = {}
-_bgm_vol = []
 
 _crossfade = 0
 
@@ -966,7 +974,7 @@ def empty(**kwargs):
 
 
 def generate_slide(in_file, template, out_file=None):
-    call_echo(
+    call2(
         [
             "run_script",
             "/r/web/animation/slide/export.js",
