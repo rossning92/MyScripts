@@ -11,6 +11,7 @@ from collections import OrderedDict, defaultdict
 from typing import Any, NamedTuple
 
 import numpy as np
+from numpy.core.numeric import cross
 from _appmanager import get_executable
 from _shutil import *
 from PIL import Image
@@ -258,16 +259,18 @@ def _set_pos(t, tag=None):
 
 
 def _add_subtitle_clip(start, end, text):
-    tempfilename = render_text(text)
-
-    ci = _VideoClipInfo()
-    ci.mpy_clip = (
-        ImageClip(tempfilename).set_duration(end - start).set_pos(("center", 910))
+    temp_file = render_text(text)
+    _add_video_clip(
+        temp_file,
+        t=start,
+        duration=end - start,
+        pos=("center", 910),
+        track="text",
+        crossfade=0,
+        fadein=0,
+        fadeout=0,
+        move_playhead=False,
     )
-    ci.start = start
-    ci.duration = end - start
-    ci.auto_extend = False
-    _video_tracks["text"].append(ci)
 
 
 @api
