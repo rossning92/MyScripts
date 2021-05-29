@@ -42,13 +42,12 @@ def add_webpack(index_js="src/index.js"):
     )
 
     # CSS loader
-    add_packages(["style-loader", "css-loader", "mini-css-extract-plugin"], dev=True)
+    add_packages(["style-loader", "css-loader", "file-loader"], dev=True)
 
     if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
         with open(WEBPACK_CONFIG, "w") as f:
             f.write(
                 """const HtmlWebpackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require('path');
 
 module.exports = {
@@ -59,7 +58,6 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin(),
-    new MiniCssExtractPlugin(),
   ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
@@ -80,10 +78,11 @@ module.exports = {
       // },
       {
         test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader, // instead of style-loader
-          "css-loader",
-        ],
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.(woff|woff2|ttf|eot)$/,
+        use: "file-loader?name=fonts/[name].[ext]!static",
       },
     ]
   }
