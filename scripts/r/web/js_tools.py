@@ -125,7 +125,7 @@ def add_script_to_package(name, script):
 
 @menu_item(key="r")
 def add_react(index_js=REACT_INDEX_JS):
-    add_webpack(index_js=REACT_INDEX_JS)
+    add_webpack(index_js=index_js)
 
     # # https://create-react-app.dev/docs/getting-started/
     # call_echo("yarn create react-app client")
@@ -156,9 +156,9 @@ def add_react(index_js=REACT_INDEX_JS):
 """
         )
 
-    mkdir(os.path.dirname(REACT_INDEX_JS))
-    if not os.path.exists(REACT_INDEX_JS) or OVERWRITE:
-        with open(REACT_INDEX_JS, "w") as f:
+    mkdir(os.path.dirname(index_js))
+    if not os.path.exists(index_js) or OVERWRITE:
+        with open(index_js, "w") as f:
             f.write(
                 """import { render } from 'react-dom';
 
