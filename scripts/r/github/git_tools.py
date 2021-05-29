@@ -127,6 +127,7 @@ def add_gitignore():
 
 
 def switch_branch():
+    call_echo(["git", "branch"])
     name = input("Switch to branch [master]: ")
     if not name:
         name = "master"
@@ -181,7 +182,8 @@ if __name__ == "__main__":
             create_bundle()
         elif ch == "A":
             commit(amend=True)
-            call_echo("git push -u origin master --force")
+            git_push()
+            # call_echo("git push -u origin master --force")
         elif ch == "P":
             git_push()
         elif ch == "p":
@@ -207,5 +209,7 @@ if __name__ == "__main__":
             call_echo("git reset HEAD@{1}")
         elif ch == "b":
             switch_branch()
+        elif ch == "q":
+            sys.exit(0)
 
         print_status()

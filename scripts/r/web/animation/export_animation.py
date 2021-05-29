@@ -266,6 +266,7 @@ def _add_subtitle_clip(start, end, text):
     )
     ci.start = start
     ci.duration = end - start
+    ci.auto_extend = False
     _video_tracks["text"].append(ci)
 
 
