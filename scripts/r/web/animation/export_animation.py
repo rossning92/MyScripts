@@ -845,7 +845,7 @@ def _add_video_clip(
 ):
     clip_info = _VideoClipInfo()
 
-    # alias
+    # Alias
     if n is not None:
         frame = n
     if cf is not None:
@@ -867,7 +867,6 @@ def _add_video_clip(
         transparent = False
 
     track = _get_vid_track(track)
-
     t = _get_time(t)
 
     if move_playhead:
@@ -878,6 +877,7 @@ def _add_video_clip(
     clip_info.pos = pos
     clip_info.speed = speed
 
+    # Crossfade / fadein / fadeout
     # Note that crossfade and fadein can not be specified at the same time.
     if fadein:
         clip_info.fadein = fadein
@@ -886,10 +886,8 @@ def _add_video_clip(
             clip_info.crossfade = crossfade
         elif _crossfade:
             clip_info.crossfade = _crossfade
-
     clip_info.fadeout = fadeout
 
-    clip_info.duration = duration
     if duration is not None:
         clip_info.auto_extend = False
 
@@ -904,24 +902,26 @@ def _add_video_clip(
     clip_info.width = width
     clip_info.height = height
 
+    # Load mpy clip
     clip_info.mpy_clip = _load_mpy_clip(**vars(clip_info))
     if type(clip_info.mpy_clip) == VideoFileClip:
         clip_info.scale = scale  # HACK
 
-    if move_playhead:  # Advance the pos
-        if duration is None:
-            if clip_info.subclip:
-                if isinstance(subclip, (int, float)):
-                    clip_info.duration = clip_info.mpy_clip.duration - subclip
-                else:
-                    clip_info.duration = clip_info.subclip[1] - clip_info.subclip[0]
-
+    # Duration
+    if duration is None:
+        if subclip:
+            if isinstance(subclip, (int, float)):
+                duration = clip_info.mpy_clip.duration - subclip
             else:
-                clip_info.duration = clip_info.mpy_clip.duration
+                duration = subclip[1] - subclip[0]
         else:
-            clip_info.duration = clip_info.duration
+            duration = clip_info.mpy_clip.duration
+    else:
+        duration = duration
+    clip_info.duration = duration
 
-        end = t + clip_info.duration
+    if move_playhead:  # Advance the pos
+        end = t + duration
         _pos_dict["c"] = _pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
@@ -1057,7 +1057,9 @@ def _update_clip_duration(track):
 
             # Apply fadeout to previous clip if it's not connected with
             # current clip.
-            if prev_clip_info.crossfade > 0 and not is_connected(prev_clip_info, clip_info):
+            if prev_clip_info.crossfade > 0 and not is_connected(
+                prev_clip_info, clip_info
+            ):
                 prev_clip_info.fadeout = prev_clip_info.crossfade
 
         prev_clip_info = clip_info
