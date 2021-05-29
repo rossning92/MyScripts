@@ -1,17 +1,14 @@
 import argparse
-import hashlib
 import importlib
 import inspect
-import math
 import os
 import re
 import sys
 import tarfile
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from typing import Any, NamedTuple
 
 import numpy as np
-from numpy.core.numeric import cross
 from _appmanager import get_executable
 from _shutil import *
 from PIL import Image
@@ -984,7 +981,7 @@ def generate_slide(in_file, template, out_file=None):
 
 @api
 def slide(
-    s, template, pos="center", name=None, cf=0.2, **kwargs,
+    s, template, pos="center", name=None, **kwargs,
 ):
     mkdir("tmp/md")
     hash = get_hash(s)
@@ -997,7 +994,7 @@ def slide(
 
         generate_slide(in_file, template=template, out_file=out_file)
 
-    _add_video_clip(out_file, pos=pos, cf=cf, **kwargs)
+    _add_video_clip(out_file, pos=pos, **kwargs)
 
 
 @api
@@ -1006,8 +1003,7 @@ def md(s, track="md", move_playhead=False, **kwargs):
         s,
         track=track,
         template="markdown",
-        fadein=VIDEO_CROSSFADE_DURATION,
-        fadeout=VIDEO_CROSSFADE_DURATION,
+        crossfade=VIDEO_CROSSFADE_DURATION,
         move_playhead=move_playhead,
         **kwargs,
     )
@@ -1052,31 +1048,30 @@ def _update_clip_duration(track):
                 prev_clip_info.duration = clip_info.start - prev_clip_info.start
                 prev_clip_info.auto_extend = False
                 assert prev_clip_info.duration > 0
-
-            # Deal with when fadeout and crossfade are overlapping
-            if (
-                prev_clip_info.fadeout > 0
-                and clip_info.crossfade > 0
-                and math.isclose(
-                    prev_clip_info.start + prev_clip_info.duration,
-                    clip_info.start,
-                    rel_tol=1e-3,
-                )
-            ):
-                prev_clip_info.fadeout = 0
+            else:
+                # Apply fadeout to previous clip if it's not connected with
+                # current clip.
+                if prev_clip_info.crossfade > 0:
+                    prev_clip_info.fadeout = prev_clip_info.crossfade
 
         prev_clip_info = clip_info
 
-    # update last clip duration
-    if len(track) > 0 and track[-1].auto_extend:
-        duration = track[-1].duration
+    # Update last clip duration
+    if prev_clip_info is not None:
+        if prev_clip_info.auto_extend:
+            duration = prev_clip_info.duration
 
-        # Extend the last video clip to match the voice track
-        if "re" in _pos_dict:
-            duration = max(duration, _pos_dict["re"] - clip_info.start)
+            # Extend the last video clip to match the voice track
+            if "re" in _pos_dict:
+                duration = max(duration, _pos_dict["re"] - clip_info.start)
 
-        track[-1].duration = duration
-        track[-1].auto_extend = False
+            prev_clip_info.duration = duration
+            prev_clip_info.auto_extend = False
+
+        # Apply fadeout to previous clip if it's not connected with
+        # current clip.
+        if prev_clip_info.crossfade > 0:
+            prev_clip_info.fadeout = prev_clip_info.crossfade
 
 
 def _export_video(resolution=(1920, 1080)):
