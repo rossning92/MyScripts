@@ -1,6 +1,7 @@
 import argparse
 import importlib
 import inspect
+import math
 import os
 import re
 import sys
@@ -1041,6 +1042,11 @@ def track(name="vid"):
 
 
 def _update_clip_duration(track):
+    def is_connected(prev_clip, cur_clip):
+        return math.isclose(
+            prev_clip.start + prev_clip.duration, cur_clip.start, rel_tol=1e-3,
+        )
+
     prev_clip_info = None
     for clip_info in track:
         if prev_clip_info is not None:
@@ -1048,11 +1054,11 @@ def _update_clip_duration(track):
                 prev_clip_info.duration = clip_info.start - prev_clip_info.start
                 prev_clip_info.auto_extend = False
                 assert prev_clip_info.duration > 0
-            else:
-                # Apply fadeout to previous clip if it's not connected with
-                # current clip.
-                if prev_clip_info.crossfade > 0:
-                    prev_clip_info.fadeout = prev_clip_info.crossfade
+
+            # Apply fadeout to previous clip if it's not connected with
+            # current clip.
+            if prev_clip_info.crossfade > 0 and not is_connected(prev_clip_info, clip_info):
+                prev_clip_info.fadeout = prev_clip_info.crossfade
 
         prev_clip_info = clip_info
 
@@ -1068,8 +1074,6 @@ def _update_clip_duration(track):
             prev_clip_info.duration = duration
             prev_clip_info.auto_extend = False
 
-        # Apply fadeout to previous clip if it's not connected with
-        # current clip.
         if prev_clip_info.crossfade > 0:
             prev_clip_info.fadeout = prev_clip_info.crossfade
 
