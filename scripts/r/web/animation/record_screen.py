@@ -4,7 +4,7 @@ from _video import ffmpeg, remove_audio
 import keyboard
 import pyautogui
 import argparse
-from r.audio.postprocess import loudnorm
+from audio.postprocess import loudnorm
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from video_editor import edit_video

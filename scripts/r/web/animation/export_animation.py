@@ -24,8 +24,8 @@ from _shutil import (
     print2,
 )
 from PIL import Image
-from r.audio.postprocess import dynamic_audio_normalize, process_audio_file
-from r.open_with.open_with import open_with
+from audio.postprocess import dynamic_audio_normalize, process_audio_file
+from open_with.open_with import open_with
 
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -611,7 +611,7 @@ def codef(
     mark_line=None,
     **kwargs,
 ):
-    from r.web.gen_code_image import gen_code_image_from_file
+    from web.gen_code_image import gen_code_image_from_file
 
     mkdir("tmp/code")
     hash = get_hash(
@@ -737,7 +737,7 @@ def _load_mpy_clip(
         clip = _create_image_seq_clip(file)
 
     elif file.endswith(".pptx"):
-        from r.ppt.export_ppt import export_slide, export_video
+        from ppt.export_ppt import export_slide, export_video
 
         if frame is None:
             file = export_video(file)

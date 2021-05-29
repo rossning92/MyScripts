@@ -1,5 +1,5 @@
 from _shutil import *
-from r.open_with.open_with import open_with
+from open_with.open_with import open_with
 
 setup_nodejs()
 

@@ -1,6 +1,6 @@
 from _cache import *
 from _shutil import *
-from r.web.webscreenshot import webscreenshot
+from web.webscreenshot import webscreenshot
 import argparse
 
 

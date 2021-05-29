@@ -1,5 +1,5 @@
-from r.web.webscreenshot import webscreenshot
-from r.md_to_html import convert_md_to_html
+from web.webscreenshot import webscreenshot
+from md_to_html import convert_md_to_html
 from _shutil import get_files, shell_open
 
 f = get_files()[0]

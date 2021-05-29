@@ -1,6 +1,6 @@
 from _shutil import *
 from _video import *
-from r.open_with.open_with import open_with
+from open_with.open_with import open_with
 
 crop_rect = (
     [int(x) for x in "{{_CROP_RECT}}".split()[0:4]] if "{{_CROP_RECT}}" else None

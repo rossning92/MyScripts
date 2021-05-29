@@ -237,7 +237,7 @@ def input2(message, name):
 def get_python_path(script_path):
     python_path = []
 
-    script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+    script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts/r")
     python_path.append(script_root)
 
     parent_dir = os.path.dirname(os.path.join(os.getcwd(), script_path))
