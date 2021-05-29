@@ -27,13 +27,12 @@ from PIL import Image
 from r.audio.postprocess import dynamic_audio_normalize, process_audio_file
 from r.open_with.open_with import open_with
 
-import render_animation
-from render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(SCRIPT_ROOT)
 
-if 1:
-    sys.path.append(SCRIPT_ROOT)
+import render_animation
+from render_text import render_text
 
 
 if 1:  # Import moviepy
