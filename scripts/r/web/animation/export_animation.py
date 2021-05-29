@@ -14,32 +14,21 @@ from typing import Any, Dict, List
 
 import numpy as np
 from _appmanager import get_executable
-from _shutil import (
-    call2,
-    file_is_old,
-    get_hash,
-    get_time_str,
-    getch,
-    mkdir,
-    print2,
-)
-from PIL import Image
+from _shutil import call2, file_is_old, get_hash, get_time_str, getch, mkdir, print2
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
 from open_with.open_with import open_with
-
+from PIL import Image
+from web.animation.render_animation import render_animation
+from web.animation.render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(SCRIPT_ROOT)
-
-import render_animation
-from render_text import render_text
 
 
 if 1:  # Import moviepy
     import moviepy.audio.fx.all as afx
     import moviepy.video.fx.all as vfx
     from moviepy.editor import *
-    from moviepy.video.tools.subtitles import SubtitlesClip
 
 
 _add_subtitle = True
@@ -946,7 +935,7 @@ def anim(file, **kwargs):
     if file_is_old(file, video_file):
         if os.path.exists(video_file):
             os.remove(video_file)
-        render_animation.render_animation(os.path.abspath(file))
+        render_animation(os.path.abspath(file))
     _add_video_clip(video_file, **kwargs)
 
 
