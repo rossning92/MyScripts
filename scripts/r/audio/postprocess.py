@@ -77,30 +77,31 @@ def filter_human_voice(in_file, out_file):
     )
 
 
-def _process_audio_file(file, out_dir):
+def _process_audio_file(file, out_file):
     name_no_ext = os.path.splitext(os.path.basename(file))[0]
+    out_dir = os.path.dirname(out_file)
 
     # Convert to mono
     in_file = file
-    out_file = out_dir + "/" + name_no_ext + ".mono.wav"
-    to_mono(in_file, out_file)
+    out_file2 = out_dir + "/" + name_no_ext + ".mono.wav"
+    to_mono(in_file, out_file2)
 
     if LOUDNORM_DB != 0:
         # Loudnorm
-        in_file = out_file
-        out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-        # loudnorm(in_file, out_file, LOUDNORM_DB)
-        normalize(in_file, out_file, -1)
+        in_file = out_file2
+        out_file2 = out_dir + "/" + name_no_ext + ".norm.wav"
+        # loudnorm(in_file, out_file2, LOUDNORM_DB)
+        normalize(in_file, out_file2, -1)
 
     # Filter human voice
-    in_file = out_file
+    in_file = out_file2
     filtered_voice_file = out_dir + "/" + name_no_ext + ".voice_only.wav"
     filter_human_voice(in_file, filtered_voice_file)
 
     # Cut only human voice part
-    out_file = out_dir + "/" + name_no_ext + ".cut.wav"
+    out_file2 = out_dir + "/" + name_no_ext + ".cut.wav"
 
-    print(out_file)
+    print(out_file2)
     rate, data2 = wavfile.read(in_file)
     border_samples = int(BORDER_IGNORE * rate)
     data2 = data2[border_samples:-border_samples]
@@ -128,17 +129,18 @@ def _process_audio_file(file, out_dir):
         plt.plot(data_vis)
         plt.show()
 
-    wavfile.write(out_file, rate, data2)
+    wavfile.write(out_file2, rate, data2)
 
     # Compress
     if 1:
-        in_file = out_file
-        out_file = out_dir + "/" + name_no_ext + ".compressed.wav"
-        _create_dir_if_not_exists(out_file)
+        in_file = out_file2
+        # out_file2 = out_dir + "/" + name_no_ext + ".compressed.wav"
+        out_file2 = out_file
+        _create_dir_if_not_exists(out_file2)
 
-        print(out_file)
+        print(out_file2)
 
-        args = f'sox "{in_file}" "{out_file}"'
+        args = f'sox "{in_file}" "{out_file2}"'
 
         # Compressor
         args += (
@@ -156,11 +158,11 @@ def _process_audio_file(file, out_dir):
 
         subprocess.check_call(args)
 
-    # in_file = out_file
-    # out_file = out_dir + "/" + name_no_ext + ".norm.wav"
-    # normalize(in_file, out_file)
+    # in_file = out_file2
+    # out_file2 = out_dir + "/" + name_no_ext + ".norm.wav"
+    # normalize(in_file, out_file2)
 
-    return out_file
+    return out_file2
 
 
 def dynamic_audio_normalize(file):
@@ -183,11 +185,13 @@ def dynamic_audio_normalize(file):
 
 
 def process_audio_file(file, out_dir="tmp"):
-    @file_cache
-    def process_audio_file(file, out_dir, mtime):
-        return _process_audio_file(file, out_dir)
+    name_no_ext = os.path.splitext(os.path.basename(file))[0]
+    out_file = out_dir + "/" + name_no_ext + ".wav"
 
-    return process_audio_file(file, out_dir, os.path.getmtime(file))
+    if file_is_old(file, out_file):
+        _process_audio_file(file, out_file)
+
+    return out_file
 
 
 if __name__ == "__main__":
