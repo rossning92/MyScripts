@@ -18,8 +18,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "yo.runSelection",
-        "title": "VideoEdit: Run Selection"
+        "command": "yo.exportVideoPreview",
+        "title": "VideoEdit: Export Video (Preview)"
+      },
+      {
+        "command": "yo.exportVideo",
+        "title": "VideoEdit: Export Video"
       },
       {
         "command": "yo.exportAudio",
@@ -68,8 +72,13 @@
     ],
     "keybindings": [
       {
-        "command": "yo.runSelection",
+        "command": "yo.exportVideoPreview",
         "key": "alt+enter",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "yo.exportVideo",
+        "key": "ctrl+alt+shift+enter",
         "when": "resourcePath =~ /vprojects/"
       },
       {

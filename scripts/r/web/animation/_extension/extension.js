@@ -382,7 +382,11 @@ function startAnimationServer(activeFile) {
   terminal.show();
 }
 
-function export_animation({ extraArgs = null, selectedText = true } = {}) {
+function exportVideo({
+  extraArgs = null,
+  selectedText = true,
+  preview = false,
+} = {}) {
   let activeEditor = vscode.window.activeTextEditor;
   if (activeEditor) {
     let document = activeEditor.document;
@@ -443,6 +447,10 @@ function export_animation({ extraArgs = null, selectedText = true } = {}) {
       "--proj_dir",
       getActiveDir(),
     ];
+    if (preview) {
+      shellArgs.push("--preview");
+    }
+
     if (extraArgs !== null) {
       shellArgs = shellArgs.concat(extraArgs);
     }
@@ -550,12 +558,16 @@ function activate(context) {
     vscode.window.onDidChangeActiveTextEditor((status) => {})
   );
 
-  vscode.commands.registerCommand("yo.runSelection", () => {
-    export_animation();
+  vscode.commands.registerCommand("yo.exportVideo", () => {
+    exportVideo({ selectedText: false });
+  });
+
+  vscode.commands.registerCommand("yo.exportVideoPreview", () => {
+    exportVideo({ preview: true });
   });
 
   vscode.commands.registerCommand("yo.exportAudio", () => {
-    export_animation({ extraArgs: ["--audio_only"] });
+    exportVideo({ preview: true, extraArgs: ["--audio_only"] });
   });
 
   vscode.commands.registerCommand("yo.startRecording", () => {
@@ -580,14 +592,14 @@ function activate(context) {
   );
 
   vscode.commands.registerCommand("yo.removeUnusedRecordings", () => {
-    export_animation({
+    exportVideo({
       selectedText: false,
       extraArgs: ["--audio_only", "--remove_unused_recordings"],
     });
   });
 
   vscode.commands.registerCommand("yo.showStats", () => {
-    export_animation({
+    exportVideo({
       extraArgs: ["--show_stats"],
     });
   });

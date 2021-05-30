@@ -1492,7 +1492,7 @@ def load_config():
     import yaml
 
     CONFIG_FILE = "config.yaml"
-    DEFAULT_CONFIG = {"preview": 1, "tts": 1, "fps": 30}
+    DEFAULT_CONFIG = {"fps": 30}
 
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r") as f:
@@ -1502,15 +1502,7 @@ def load_config():
             yaml.dump(DEFAULT_CONFIG, f, default_flow_style=False)
         config = DEFAULT_CONFIG
 
-    tts(config["tts"])
     fps(config["fps"])
-
-    global _add_subtitle
-    global _global_scale
-
-    if config["preview"]:
-        _add_subtitle = False
-        _global_scale = 0.25
 
 
 if __name__ == "__main__":
@@ -1525,6 +1517,7 @@ if __name__ == "__main__":
         "--remove_unused_recordings", action="store_true", default=False
     )
     parser.add_argument("--show_stats", action="store_true", default=False)
+    parser.add_argument("--preview", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -1558,6 +1551,11 @@ if __name__ == "__main__":
         raise Exception("Either --stdin or --input should be specified.")
 
     load_config()
+
+    if args.preview:
+        _add_subtitle = False
+        _global_scale = 0.25
+        tts(True)
 
     if args.remove_unused_recordings:
         ignore_undefined = True
