@@ -1,0 +1,129 @@
+{
+  "name": "my-animation-extension",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.32.0"
+  },
+  "repository": {
+    "url": "https://github.com/Microsoft/vscode-extension-samples"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "videoEdit.exportVideoPreview",
+        "title": "VideoEdit: Export Video (Preview)"
+      },
+      {
+        "command": "videoEdit.exportVideo",
+        "title": "VideoEdit: Export Video"
+      },
+      {
+        "command": "videoEdit.exportAudio",
+        "title": "VideoEdit: Export Audio Only"
+      },
+      {
+        "command": "videoEdit.startRecording",
+        "title": "VideoEdit: Start Recording"
+      },
+      {
+        "command": "videoEdit.stopRecording",
+        "title": "VideoEdit: Stop Recording"
+      },
+      {
+        "command": "videoEdit.collectNoiseProfile",
+        "title": "VideoEdit: Collect Noise Profile"
+      },
+      {
+        "command": "videoEdit.openFileUnderCursor",
+        "title": "VideoEdit: Open File Under Cursor"
+      },
+      {
+        "command": "videoEdit.insertAllClipsInFolder",
+        "title": "VideoEdit: Insert All Clips In Folder"
+      },
+      {
+        "command": "videoEdit.removeUnusedRecordings",
+        "title": "VideoEdit: Remove Unused Recordings"
+      },
+      {
+        "command": "videoEdit.showStats",
+        "title": "VideoEdit: Show Stats"
+      },
+      {
+        "command": "videoEdit.createSlide",
+        "title": "VideoEdit: Create Slide"
+      },
+      {
+        "command": "videoEdit.createMovyAnimation",
+        "title": "VideoEdit: Create Movy Animation"
+      },
+      {
+        "command": "videoEdit.createCode",
+        "title": "VideoEdit: Create Code"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "videoEdit.exportVideoPreview",
+        "key": "alt+enter",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.exportVideo",
+        "key": "ctrl+alt+shift+enter",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.exportAudio",
+        "key": "ctrl+alt+enter",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.startRecording",
+        "key": "f7",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.stopRecording",
+        "key": "f8",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.collectNoiseProfile",
+        "key": "f9",
+        "when": "resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.openFileUnderCursor",
+        "key": "f4",
+        "when": "resourcePath =~ /vprojects/"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "markdown",
+        "path": "./snippets.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "lint": "tslint -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.0",
+    "tslint": "^5.19.0",
+    "typescript": "^3.8.3",
+    "@types/vscode": "^1.32.0"
+  }
+}

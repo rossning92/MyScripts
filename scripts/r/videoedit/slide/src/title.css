@@ -1,0 +1,35 @@
+@import "./base_font.css";
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;900&display=swap");
+
+body {
+  margin: 0;
+}
+
+#content {
+  background-color: black;
+  color: white;
+  display: table-cell;
+  font-family: "Noto Serif SC", serif;
+  text-align: center;
+  vertical-align: middle;
+  min-width: 1920px;
+  width: 1920px;
+  height: 1080px;
+  background-image: url("./bg-math.png");
+  background-size: cover;
+}
+
+:is(h1, h2, h3, h4, h5, h6) {
+  margin: 0;
+  font-weight: 500;
+}
+
+h1 {
+  font-size: 128px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+h2 {
+  font-size: 64px;
+}

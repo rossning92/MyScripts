@@ -1,0 +1,56 @@
+{
+  "md": {
+    "prefix": "md",
+    "body": [
+      "{{ md('## $1', t='as', duration=3) }}"
+    ]
+  },
+  "title_anim": {
+    "prefix": "title_anim",
+    "body": [
+      "{{ title_anim('$1', '$2') }}"
+    ]
+  },
+  "audio_gap": {
+    "prefix": "audio_gap",
+    "body": [
+      "{{ audio_gap($1) }}"
+    ]
+  },
+  "tts": {
+    "prefix": "tts",
+    "body": [
+      "{{ tts(True) }}"
+    ]
+  },
+  "bgm": {
+    "prefix": "bgm",
+    "body": [
+      "{{ bgm('$1', norm=True) }}"
+    ]
+  },
+  "crossfade": {
+    "prefix": "crossfade",
+    "body": [
+      "{{ crossfade(0.2) }}"
+    ]
+  },
+  "comment": {
+    "prefix": "comment",
+    "body": [
+      "{{ comment('$1', t='as') }}"
+    ]
+  },
+  "slide": {
+    "prefix": "slide",
+    "body": [
+      "{{ slide('# $1\\n## $2', t='as', template='title') }}"
+    ]
+  },
+  "video_end": {
+    "prefix": "video_end",
+    "body": [
+      "{{ video_end(track='overlay', t='ae') }}"
+    ]
+  }
+}

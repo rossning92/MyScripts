@@ -1,6 +1,0 @@
-pyppeteer
-moviepy
-markdown2
-scipy
-matplotlib
-numpy

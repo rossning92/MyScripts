@@ -336,7 +336,7 @@ def open_with_hook(files, program_id):
         return True
 
     if program_id == 1 and ext in [".mp4", ".webm"]:
-        from web.animation.video_editor import edit_video
+        from videoedit.video_editor import edit_video
 
         edit_video(files[0])
 
