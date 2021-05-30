@@ -9,30 +9,27 @@ import re
 import subprocess
 import sys
 import tarfile
-from collections import OrderedDict
-from typing import Any, Dict, List
+from typing import Dict, List
 
+import moviepy.audio.fx.all as afx
+import moviepy.video.fx.all as vfx
 import numpy as np
 from _appmanager import get_executable
 from _shutil import call2, file_is_old, get_hash, get_time_str, getch, mkdir, print2
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
+from moviepy.config import change_settings
+from moviepy.editor import *
 from open_with.open_with import open_with
 from PIL import Image
-from web.animation.render_animation import render_animation
-from web.animation.render_text import render_text
+
+import datastruct
+from render_animation import render_animation
+from render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(SCRIPT_ROOT)
-
-
-if 1:  # Import moviepy
-    import moviepy.audio.fx.all as afx
-    import moviepy.video.fx.all as vfx
-    from moviepy.editor import *
-
 
 _add_subtitle = True
-_global_scale = 1
+_global_scale = 1.0
 _audio_only = False
 _apis = {}
 _cached_line_to_tts = None
@@ -50,94 +47,15 @@ DEFAULT_IMAGE_CLIP_DURATION = 2
 ignore_undefined = False
 
 if 0:
-    from moviepy.config import change_settings
-
     change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
 
-class _VideoClipInfo:
-    def __init__(self):
-        self.file = None
-        self.start = 0
-        self.duration = None
-        self.mpy_clip = None
-        self.speed = 1
-        self.pos = None
-        self.fadein = 0
-        self.fadeout = 0
-        self.crossfade = 0
-
-        self.no_audio = False
-        self.norm = False
-        self.vol = None
-        self.transparent = True
-        self.subclip = None
-        self.frame = None
-        self.loop = False
-        self.expand = False
-
-        self.scale = (1.0, 1.0)
-        self.width = None
-        self.height = None
-
-        self.auto_extend = True
-
-
-class _AudioClipInfo:
-    def __init__(self):
-        self.file: str = None
-        self.mpy_clip: Any = None
-        self.speed: float = 1
-        self.start: float = None
-        self.subclip: float = None
-        self.vol_keypoints = []
-        self.loop = False
-
-
-class _AudioTrack:
-    def __init__(self):
-        self.clips = []
-
-
-_audio_track_cur_pos = 0
 _pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
-
-
 _add_fadeout_to_last_clip = False
-
-_video_tracks: Dict[str, List] = OrderedDict(
-    [
-        ("bg", []),
-        ("bg2", []),
-        ("vid", []),
-        ("vid2", []),
-        ("vid3", []),
-        ("hl", []),
-        ("hl2", []),
-        ("md", []),
-        ("overlay", []),
-        ("text", []),
-    ]
-)
-_cur_vid_track_name = "vid"  # default video track
-
-_audio_tracks = OrderedDict(
-    [
-        ("bgm", _AudioTrack()),
-        ("bgm2", _AudioTrack()),
-        ("record", _AudioTrack()),
-        ("sfx", _AudioTrack()),
-    ]
-)
-_cur_audio_track_name = "record"
-
-
 _subtitle: List[str] = []
 _srt_lines = []
 _srt_index = 1
 _last_subtitle_index = -1
-
-
 _crossfade = 0
 
 
@@ -177,33 +95,6 @@ def crossfade(v):
         _crossfade = VIDEO_CROSSFADE_DURATION
     else:
         _crossfade = float(v)
-
-
-def _get_track(tracks, name):
-    print("  track=%s" % name)
-
-    if name not in tracks:
-        raise Exception("track is not defined: %s" % name)
-    track = tracks[name]
-
-    return track
-
-
-def _get_vid_track_name(name):
-    if name is None:
-        name = _cur_vid_track_name
-    return name
-
-
-def _get_vid_track(name=None):
-    name = _get_vid_track_name(name)
-    return _get_track(_video_tracks, name)
-
-
-def _get_audio_track(name=None):
-    if name is None:
-        name = _cur_audio_track_name
-    return _get_track(_audio_tracks, name)
 
 
 def _get_markers(file):
@@ -362,7 +253,7 @@ def _set_vol(vol, duration=0, track=None, t=None):
     t = _get_time(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
-    track_ = _get_audio_track(track)
+    track_ = datastruct.get_audio_track(track)
     if len(track_.clips) == 0:
         print2("WARNING: No audio clip to set volume in track: %s" % track)
         return
@@ -407,14 +298,14 @@ def _add_audio_clip(
     move_playhead=True,
     loop=False,
 ):
-    clips = _get_audio_track(track).clips
+    clips = datastruct.get_audio_track(track).clips
 
     t = _get_time(t)
 
     if move_playhead:
         _pos_dict["as"] = t
 
-    clip_info = _AudioClipInfo()
+    clip_info = datastruct.AudioClip()
 
     if not os.path.exists(file):
         raise Exception("Please make sure `%s` exists." % file)
@@ -490,14 +381,14 @@ def audio(
 def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
     t = _get_time(t)
 
-    clips = _get_audio_track(track).clips
+    clips = datastruct.get_audio_track(track).clips
     if len(clips) == 0:
         print2("WARNING: no previous audio clip to set the end point.")
         return
 
     # Fade out of previous audio clip
     duration = None
-    if len(_get_audio_track(track).clips) > 0:
+    if len(datastruct.get_audio_track(track).clips) > 0:
         if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
             duration = (t + crossfade) - clips[-1].start  # extend prev clip
@@ -629,7 +520,11 @@ def _add_fadeout(track):
         clip_info = track[-1]
 
         if clip_info.mpy_clip is not None:
-            clip_info.mpy_clip = clip_info.mpy_clip.fx(vfx.fadeout, FADE_DURATION)
+            clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                # pylint: disable=maybe-no-member
+                vfx.fadeout,
+                FADE_DURATION,
+            )
 
             _add_fadeout_to_last_clip = False
 
@@ -779,14 +674,21 @@ def _update_mpy_clip(
                 clip = clip.subclip(subclip[0], subclip[1]).set_duration(duration)
 
     if speed is not None:
-        clip = clip.fx(vfx.speedx, speed)
+        clip = clip.fx(
+            # pylint: disable=maybe-no-member
+            vfx.speedx,
+            speed,
+        )
 
     if frame is not None:
         clip = clip.to_ImageClip(frame).set_duration(duration)
 
     # Loop or change duration
     if loop:
-        clip = clip.fx(vfx.loop)
+        clip = clip.fx(
+            # pylint: disable=maybe-no-member
+            vfx.loop
+        )
 
     if subclip is None:
         clip = clip.set_duration(duration)
@@ -839,7 +741,7 @@ def _add_video_clip(
     width=None,
     height=None,
 ):
-    clip_info = _VideoClipInfo()
+    clip_info = datastruct.VideoClip()
 
     # Alias
     if n is not None:
@@ -859,10 +761,11 @@ def _add_video_clip(
     if isinstance(scale, (int, float)):
         scale = (scale, scale)
 
-    if (track is None and _cur_vid_track_name == "vid") or (track == "vid"):
+    # TODO:
+    if track is None or track == "vid":
         transparent = False
 
-    track = _get_vid_track(track)
+    track = datastruct.get_vid_track(track)
     t = _get_time(t)
 
     if move_playhead:
@@ -942,7 +845,7 @@ def anim(file, **kwargs):
 @api
 def video_end(track=None, t=None, fadeout=None):
     print("video_end: track=%s" % track)
-    track = _get_vid_track(track)
+    track = datastruct.get_vid_track(track)
 
     assert len(track) > 0
 
@@ -965,7 +868,7 @@ def generate_slide(in_file, template, out_file=None):
     call2(
         [
             "run_script",
-            "/r/web/animation/slide/export.js",
+            "/r/videoedit/slide/export.js",
             "-i",
             os.path.realpath(in_file),
             "-o",
@@ -1032,11 +935,6 @@ def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
         )
 
 
-def track(name="vid"):
-    global _cur_vid_track_name
-    _cur_vid_track_name = name
-
-
 def _update_clip_duration(track):
     def is_connected(prev_clip, cur_clip):
         return math.isclose(
@@ -1082,14 +980,14 @@ def _export_video(resolution=(1920, 1080)):
     audio_clips = []
 
     # Update clip duration for each track
-    for track in _video_tracks.values():
+    for track in datastruct.video_tracks.values():
         _update_clip_duration(track)
 
     # TODO: post-process video track clips
 
     # Update MoviePy clip object in each track.
     video_clips = []
-    for track_name, track in _video_tracks.items():
+    for track_name, track in datastruct.video_tracks.items():
         for i, clip_info in enumerate(track):
             assert clip_info.mpy_clip is not None
             assert clip_info.duration is not None
@@ -1117,10 +1015,17 @@ def _export_video(resolution=(1920, 1080)):
 
                 # Adjust volume
                 if clip_info.norm:
-                    audio_clip = audio_clip.fx(afx.audio_normalize)
+                    audio_clip = audio_clip.fx(
+                        # pylint: disable=maybe-no-member
+                        afx.audio_normalize
+                    )
                 if clip_info.vol is not None:
                     if isinstance(clip_info.vol, (int, float)):
-                        audio_clip = audio_clip.fx(afx.volumex, clip_info.vol)
+                        audio_clip = audio_clip.fx(
+                            # pylint: disable=maybe-no-member
+                            afx.volumex,
+                            clip_info.vol,
+                        )
                     else:
                         audio_clip = _adjust_mpy_audio_clip_volume(
                             audio_clip, clip_info.vol
@@ -1146,7 +1051,9 @@ def _export_video(resolution=(1920, 1080)):
                     )
                 else:
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadein, clip_info.fadein
+                        # pylint: disable=maybe-no-member
+                        vfx.fadein,
+                        clip_info.fadein,
                     )
 
             elif (
@@ -1164,12 +1071,16 @@ def _export_video(resolution=(1920, 1080)):
             if clip_info.fadeout:
                 assert isinstance(clip_info.fadeout, (int, float))
                 if track_name != "vid":
+                    # pylint: disable=maybe-no-member
                     clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
                         clip_info.fadeout
                     )
                 else:
+
                     clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                        vfx.fadeout, clip_info.fadeout
+                        # pylint: disable=maybe-no-member
+                        vfx.fadeout,
+                        clip_info.fadeout,
                     )
 
             video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
@@ -1183,7 +1094,7 @@ def _export_video(resolution=(1920, 1080)):
     # final_clip = final_clip.resize(width=480)
 
     # Deal with audio clips
-    for _, track in _audio_tracks.items():
+    for _, track in datastruct.audio_tracks.items():
         clips = []
         for clip_info in track.clips:
             if clip_info.loop:
@@ -1202,6 +1113,7 @@ def _export_video(resolution=(1920, 1080)):
             duration = clip_info.duration
             if duration is not None:
                 if clip_info.loop:
+                    # pylint: disable=maybe-no-member
                     clip = clip.fx(afx.audio_loop, duration=duration)
                 else:
                     duration = min(duration, clip.duration)

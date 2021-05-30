@@ -1,7 +1,7 @@
 from _shutil import *
 from pyppeteer import launch
 from video.ccapture_to_mov import convert_to_mov
-from web.animation.start_animation_server import start_server
+from videoedit.start_animation_server import start_server
 import asyncio
 import sys
 import time

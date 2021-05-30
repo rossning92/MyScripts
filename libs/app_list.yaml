@@ -29,6 +29,7 @@ SumatraPDF:
 
 vscode:
   executable:
+    - "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe"
     - C:\Program Files\Microsoft VS Code\Code.exe
     - code
   linux_install: /r/install_vscode_linux

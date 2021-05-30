@@ -1,4 +1,4 @@
-[submodule "scripts/r/web/animation/movy"]
-	path = scripts/r/web/animation/movy
+[submodule "scripts/r/videoedit/movy"]
+	path = scripts/r/videoedit/movy
 	url = https://github.com/rossning92/movy
 	ignore = all

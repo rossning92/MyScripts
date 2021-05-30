@@ -3,7 +3,7 @@ import keyboard
 from _shutil import *
 import pyautogui
 import random
-from web.animation.record_screen import recorder
+from videoedit.record_screen import recorder
 from _script import wt_wrap_args
 
 

@@ -360,7 +360,7 @@ function startAnimationServer(activeFile) {
   const shellArgs = [
     "/c",
     "run_script",
-    "/r/web/animation/start_animation_server",
+    "/r/videoedit/start_animation_server",
     activeFile,
     "||",
     "pause",
@@ -441,7 +441,7 @@ function exportVideo({
     let shellArgs = [
       "/c",
       "run_script",
-      "/r/web/animation/export_animation",
+      "/r/videoedit/export_animation",
       "-i",
       textFile,
       "--proj_dir",

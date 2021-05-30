@@ -1,5 +1,8 @@
-from _shutil import *
 import json
+import os
+import sys
+
+from _shutil import call_echo, cd, download, gettempdir, prepend_to_path, print2, unzip
 
 DATA_DIR = "%APPDATA%/Code"
 if r"{{DATA_DIR}}":
@@ -9,7 +12,7 @@ if r"{{DATA_DIR}}":
 def install_glslang():
     assert sys.platform == "win32"
     path = os.path.abspath("/tools/glslang")
-    if not exists(path):
+    if not os.path.exists(path):
         cd(gettempdir())
         f = download(
             "https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip"
@@ -23,7 +26,7 @@ if __name__ == "__main__":
     call_echo([sys.executable, "-m", "pip", "install", "autopep8"])
 
     print2("Update key bindings...")
-    with open(expandvars(DATA_DIR + "/User/keybindings.json"), "w") as f:
+    with open(os.path.expandvars(DATA_DIR + "/User/keybindings.json"), "w") as f:
         json.dump(
             [
                 {
@@ -31,10 +34,7 @@ if __name__ == "__main__":
                     "command": "markdown.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
-                {
-                    "key": "shift+alt+r",
-                    "command": "revealFileInOS",
-                },
+                {"key": "shift+alt+r", "command": "revealFileInOS",},
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
             ],
@@ -43,32 +43,42 @@ if __name__ == "__main__":
         )
 
     print2("Update settings...")
-    f = expandvars(DATA_DIR + "/User/settings.json")
+    SETTING_CONFIG = os.path.expandvars(DATA_DIR + "/User/settings.json")
     try:
-        data = json.load(open(f))
+        with open(SETTING_CONFIG) as f:
+            data = json.load(f)
     except FileNotFoundError:
         data = {}
 
     data["workbench.colorTheme"] = "Visual Studio Light"
-    data["python.pythonPath"] = sys.executable.replace("\\", "/")
+
     data["cSpell.enabledLanguageIds"] = ["markdown", "text"]
     data["search.exclude"] = {"**/build": True}
     data["pasteImage.path"] = "${currentFileNameWithoutExt}"
     data["workbench.editor.enablePreviewFromQuickOpen"] = False
     data["grammarly.autoActivate"] = False
 
+    # Python
     call_echo([sys.executable, "-m", "pip", "install", "black"])
+    data["python.pythonPath"] = sys.executable.replace("\\", "/")
     data["python.formatting.provider"] = "black"
-
-    data["glsllint.glslangValidatorPath"] = install_glslang()
-
     # Workaround for "has no member" issues
     data["python.linting.pylintArgs"] = [
         "--errors-only",
         "--generated-members=numpy.* ,torch.* ,cv2.* , cv.*",
     ]
+    data["python.linting.mypyEnabled"] = True
+    data["python.linting.enabled"] = True
+    data["python.linting.pylintEnabled"] = False
+    data["python.languageServer"] = "Pylance"
 
-    json.dump(data, open(f, "w"), indent=4)
+    data["glsllint.glslangValidatorPath"] = install_glslang()
+
+    # Markdown
+    data["[markdown]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"}
+
+    with open(SETTING_CONFIG, "w") as f:
+        json.dump(data, f, indent=4)
 
     if not "{{SKIP_EXTENSIONS}}":
         print2("Install extensions...")
@@ -89,6 +99,7 @@ if __name__ == "__main__":
             # Python
             "njpwerner.autodocstring",
             # "ms-vscode-remote.vscode-remote-extensionpack",
+            "ms-toolsai.jupyter",
             # Ahk
             "cweijan.vscode-autohotkey-plus",
             # Shader
@@ -99,4 +110,4 @@ if __name__ == "__main__":
 
         prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
         for ext in extensions:
-            call_echo("code --install-extension %s" % ext)
+            call_echo(["code", "--install-extension", "%s" % ext])

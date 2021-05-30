@@ -1,5 +1,9 @@
-from _shutil import *
-from _editor import *
+import json
+import os
+import subprocess
+
+from _editor import open_in_vscode
+from _shutil import prepend_to_path
 
 proj_dir = r"{{VIDEO_PROJECT_DIR}}"
 
@@ -7,7 +11,7 @@ if not proj_dir:
     raise Exception("Invalid project dir.")
 
 subprocess.call(
-    'MKLINK /J "%USERPROFILE%\\.vscode\\extensions\\my-animation-extension" "{}"'.format(
+    'MKLINK /J "%USERPROFILE%\\.vscode\\extensions\\videoedit" "{}"'.format(
         os.path.join(os.getcwd(), "_extension")
     ),
     shell=True,
@@ -31,7 +35,7 @@ for d in [
 prepend_to_path(os.path.expandvars("%LOCALAPPDATA%\\ocenaudio"))
 
 jsconfig = os.path.join(proj_dir, "jsconfig.json")
-if not os.path.exists(""):
+if not os.path.exists(jsconfig):
     with open(jsconfig, "w") as f:
         json.dump(
             {

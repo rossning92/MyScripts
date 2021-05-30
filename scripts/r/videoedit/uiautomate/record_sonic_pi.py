@@ -2,7 +2,7 @@ import os
 
 from _script import wt_wrap_args, input2, get_variable
 from _shutil import *
-from web.animation.record_screen import recorder
+from videoedit.record_screen import recorder
 from uiautomate import *
 
 root = os.path.dirname(os.path.abspath(__file__))

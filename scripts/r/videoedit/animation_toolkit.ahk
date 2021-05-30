@@ -21,21 +21,21 @@ $F6::
     if (WinActive("ahk_exe chrome.exe")) {
         SetWindowPos("A", 0, 0, 1950, 1250)
         Sleep 500
-        RunScript("/r/web/animation/record_screen.py", "--rect 1 120 1920 1080")
+        RunScript("/r/videoedit/record_screen.py", "--rect 1 120 1920 1080")
     } else if (WinActive("ahk_exe Code.exe") or WinActive("ahk_exe texworks.exe") or WinActive("OverlayWindow")) {
         SetWindowPos("A", 0, 0, 1920, 1080)
         sleep 500
-        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
+        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
     } else if (WinActive("ahk_exe WindowsTerminal.exe")) {
         ; SetWindowPos("A", 0, 0, 1440, 810)
         ; sleep 500
-        ; RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1440 810")
-        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
+        ; RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1440 810")
+        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
     } else if (WinActive("ahk_class CabinetWClass")) {
         SetWindowPos("A", 0, 0, 1440, 810)
-        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1440 810")
+        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1440 810")
     } else {
-        RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
+        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
     }
 return
 
@@ -44,7 +44,7 @@ $^F6::
     SetWindowPos("ahk_exe Code.exe", 0, 0, w, 1080)
     SetWindowPos("ahk_exe chrome.exe", w, 0, 1920 - w, 1080)
     sleep 500
-    RunScript("/r/web/animation/record_screen.py", "--rect 0 0 1920 1080")
+    RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
 return
 
 RunScript(file, args="") {
