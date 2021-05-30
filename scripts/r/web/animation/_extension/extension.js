@@ -496,7 +496,7 @@ async function insertAllClipsInFolder() {
 }
 
 function registerCreateSlideCommand() {
-  vscode.commands.registerCommand("yo.createSlide", async () => {
+  vscode.commands.registerCommand("videoEdit.createSlide", async () => {
     const fileName = await vscode.window.showInputBox({
       placeHolder: "slide-file-name",
     });
@@ -558,47 +558,47 @@ function activate(context) {
     vscode.window.onDidChangeActiveTextEditor((status) => {})
   );
 
-  vscode.commands.registerCommand("yo.exportVideo", () => {
+  vscode.commands.registerCommand("videoEdit.exportVideo", () => {
     exportVideo({ selectedText: false });
   });
 
-  vscode.commands.registerCommand("yo.exportVideoPreview", () => {
+  vscode.commands.registerCommand("videoEdit.exportVideoPreview", () => {
     exportVideo({ preview: true });
   });
 
-  vscode.commands.registerCommand("yo.exportAudio", () => {
+  vscode.commands.registerCommand("videoEdit.exportAudio", () => {
     exportVideo({ preview: true, extraArgs: ["--audio_only"] });
   });
 
-  vscode.commands.registerCommand("yo.startRecording", () => {
+  vscode.commands.registerCommand("videoEdit.startRecording", () => {
     getRecorderProcess().stdin.write("r\n");
   });
 
-  vscode.commands.registerCommand("yo.stopRecording", () => {
+  vscode.commands.registerCommand("videoEdit.stopRecording", () => {
     getRecorderProcess().stdin.write("s\n");
   });
 
-  vscode.commands.registerCommand("yo.collectNoiseProfile", () => {
+  vscode.commands.registerCommand("videoEdit.collectNoiseProfile", () => {
     getRecorderProcess().stdin.write("n\n");
   });
 
-  vscode.commands.registerCommand("yo.openFileUnderCursor", () => {
+  vscode.commands.registerCommand("videoEdit.openFileUnderCursor", () => {
     openFileUnderCursor();
   });
 
   vscode.commands.registerCommand(
-    "yo.insertAllClipsInFolder",
+    "videoEdit.insertAllClipsInFolder",
     insertAllClipsInFolder
   );
 
-  vscode.commands.registerCommand("yo.removeUnusedRecordings", () => {
+  vscode.commands.registerCommand("videoEdit.removeUnusedRecordings", () => {
     exportVideo({
       selectedText: false,
       extraArgs: ["--audio_only", "--remove_unused_recordings"],
     });
   });
 
-  vscode.commands.registerCommand("yo.showStats", () => {
+  vscode.commands.registerCommand("videoEdit.showStats", () => {
     exportVideo({
       extraArgs: ["--show_stats"],
     });
@@ -611,7 +611,7 @@ function activate(context) {
   initializeDecorations(context);
 
   // Create movy document
-  vscode.commands.registerCommand("yo.createMovyAnimation", async () => {
+  vscode.commands.registerCommand("videoEdit.createMovyAnimation", async () => {
     createNewDocument({
       dir: "animation",
       func: "anim",
@@ -622,7 +622,7 @@ function activate(context) {
   });
 
   // Create source code document
-  vscode.commands.registerCommand("yo.createCode", async () => {
+  vscode.commands.registerCommand("videoEdit.createCode", async () => {
     createNewDocument({
       dir: "src",
       func: "codef",

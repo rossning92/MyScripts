@@ -18,91 +18,91 @@
   "contributes": {
     "commands": [
       {
-        "command": "yo.exportVideoPreview",
+        "command": "videoEdit.exportVideoPreview",
         "title": "VideoEdit: Export Video (Preview)"
       },
       {
-        "command": "yo.exportVideo",
+        "command": "videoEdit.exportVideo",
         "title": "VideoEdit: Export Video"
       },
       {
-        "command": "yo.exportAudio",
+        "command": "videoEdit.exportAudio",
         "title": "VideoEdit: Export Audio Only"
       },
       {
-        "command": "yo.startRecording",
+        "command": "videoEdit.startRecording",
         "title": "VideoEdit: Start Recording"
       },
       {
-        "command": "yo.stopRecording",
+        "command": "videoEdit.stopRecording",
         "title": "VideoEdit: Stop Recording"
       },
       {
-        "command": "yo.collectNoiseProfile",
+        "command": "videoEdit.collectNoiseProfile",
         "title": "VideoEdit: Collect Noise Profile"
       },
       {
-        "command": "yo.openFileUnderCursor",
+        "command": "videoEdit.openFileUnderCursor",
         "title": "VideoEdit: Open File Under Cursor"
       },
       {
-        "command": "yo.insertAllClipsInFolder",
+        "command": "videoEdit.insertAllClipsInFolder",
         "title": "VideoEdit: Insert All Clips In Folder"
       },
       {
-        "command": "yo.removeUnusedRecordings",
+        "command": "videoEdit.removeUnusedRecordings",
         "title": "VideoEdit: Remove Unused Recordings"
       },
       {
-        "command": "yo.showStats",
+        "command": "videoEdit.showStats",
         "title": "VideoEdit: Show Stats"
       },
       {
-        "command": "yo.createSlide",
+        "command": "videoEdit.createSlide",
         "title": "VideoEdit: Create Slide"
       },
       {
-        "command": "yo.createMovyAnimation",
+        "command": "videoEdit.createMovyAnimation",
         "title": "VideoEdit: Create Movy Animation"
       },
       {
-        "command": "yo.createCode",
+        "command": "videoEdit.createCode",
         "title": "VideoEdit: Create Code"
       }
     ],
     "keybindings": [
       {
-        "command": "yo.exportVideoPreview",
+        "command": "videoEdit.exportVideoPreview",
         "key": "alt+enter",
         "when": "resourcePath =~ /vprojects/"
       },
       {
-        "command": "yo.exportVideo",
+        "command": "videoEdit.exportVideo",
         "key": "ctrl+alt+shift+enter",
         "when": "resourcePath =~ /vprojects/"
       },
       {
-        "command": "yo.exportAudio",
+        "command": "videoEdit.exportAudio",
         "key": "ctrl+alt+enter",
         "when": "resourcePath =~ /vprojects/"
       },
       {
-        "command": "yo.startRecording",
+        "command": "videoEdit.startRecording",
         "key": "f7",
         "when": "resourcePath =~ /vprojects/"
       },
       {
-        "command": "yo.stopRecording",
+        "command": "videoEdit.stopRecording",
         "key": "f8",
         "when": "resourcePath =~ /vprojects/"
       },
       {
-        "command": "yo.collectNoiseProfile",
+        "command": "videoEdit.collectNoiseProfile",
         "key": "f9",
         "when": "resourcePath =~ /vprojects/"
       },
       {
-        "command": "yo.openFileUnderCursor",
+        "command": "videoEdit.openFileUnderCursor",
         "key": "f4",
         "when": "resourcePath =~ /vprojects/"
       }
