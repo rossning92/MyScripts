@@ -51,7 +51,6 @@ if 0:
 
 
 _pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
-_add_fadeout_to_last_clip = False
 _subtitle: List[str] = []
 _srt_lines = []
 _srt_index = 1
@@ -511,22 +510,6 @@ def codef(
     _add_video_clip(out_file, track=track, transparent=False, **kwargs)
 
     return out_file
-
-
-def _add_fadeout(track):
-    global _add_fadeout_to_last_clip
-
-    if _add_fadeout_to_last_clip:
-        clip_info = track[-1]
-
-        if clip_info.mpy_clip is not None:
-            clip_info.mpy_clip = clip_info.mpy_clip.fx(
-                # pylint: disable=maybe-no-member
-                vfx.fadeout,
-                FADE_DURATION,
-            )
-
-            _add_fadeout_to_last_clip = False
 
 
 def _create_image_seq_clip(tar_file):
