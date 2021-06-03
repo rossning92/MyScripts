@@ -611,7 +611,7 @@ def _load_mpy_clip(
             clip = load_video_file_clip(file)
         else:
             export_shapes = bool(re.search(r"\boverlay[\\/]", file))
-            file = export_slide(file, index=frame + 1, export_shapes=export_shapes)
+            file = export_slide(file, index=frame, export_shapes=export_shapes)
             clip = (
                 ImageClip(file).set_duration(DEFAULT_IMAGE_CLIP_DURATION).set_mask(None)
             )
