@@ -61,8 +61,8 @@ def gen_code_image(
             javascript += "markLine(%d);" % i
 
     root = get_script_root() + "/r/web/_codeeditor"
-    if not os.path.join(root, "node_modules"):
-        call_echo("yarn")
+    if not os.path.exists(os.path.join(root, "node_modules")):
+        call_echo("yarn", cwd=root)
 
     webscreenshot(
         html_file=root + "/code_editor.html",
