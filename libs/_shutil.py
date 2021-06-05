@@ -1200,3 +1200,13 @@ def file_is_old(in_file, out_file):
     return not os.path.exists(out_file) or os.path.getmtime(in_file) > os.path.getmtime(
         out_file
     )
+
+
+def format_time(sec):
+    td = datetime.timedelta(seconds=sec)
+    return "%02d:%02d:%02d,%03d" % (
+        td.seconds // 3600,
+        td.seconds // 60,
+        td.seconds % 60,
+        td.microseconds // 1000,
+    )

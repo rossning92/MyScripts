@@ -15,7 +15,16 @@ import moviepy.audio.fx.all as afx
 import moviepy.video.fx.all as vfx
 import numpy as np
 from _appmanager import get_executable
-from _shutil import call2, file_is_old, get_hash, get_time_str, getch, mkdir, print2
+from _shutil import (
+    call2,
+    file_is_old,
+    get_hash,
+    get_time_str,
+    getch,
+    mkdir,
+    print2,
+    format_time,
+)
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
 from moviepy.config import change_settings
 from moviepy.editor import *
@@ -68,16 +77,6 @@ def on_api_(func_name):
     else:
         global _cached_line_to_tts
         _cached_line_to_tts = None
-
-
-def _format_time(sec):
-    td = datetime.timedelta(seconds=sec)
-    return "%02d:%02d:%02d,%03d" % (
-        td.seconds // 3600,
-        td.seconds // 60,
-        td.seconds % 60,
-        td.microseconds // 1000,
-    )
 
 
 @core.api
@@ -211,7 +210,7 @@ def record(
                         _srt_lines.extend(
                             [
                                 "%d" % _srt_index,
-                                "%s --> %s" % (_format_time(start), _format_time(end)),
+                                "%s --> %s" % (format_time(start), format_time(end)),
                                 word,
                                 "",
                             ]
@@ -1371,7 +1370,7 @@ def _show_stats(s):
     _parse_text(s, apis={"parse_line": parse_line}, ignore_undefined=True)
 
     total_secs = TIME_PER_CHAR * total
-    print("Estimated Time: %s" % _format_time(total_secs))
+    print("Estimated Time: %s" % format_time(total_secs))
 
     input()
 
