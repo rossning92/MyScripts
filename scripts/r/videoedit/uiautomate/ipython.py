@@ -24,7 +24,7 @@ def open_wt_ipython(startup=None):
         args,
         title="ross@ross-desktop2: IPython",
         font_size=14,
-        icon=(root + "/python.ico").replace("\\", "/"),
+        icon=(root + "/icons/python.ico").replace("\\", "/"),
         opacity=0.9,
     )
     call_echo(args)

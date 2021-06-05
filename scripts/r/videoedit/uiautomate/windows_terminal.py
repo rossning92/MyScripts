@@ -9,7 +9,7 @@ import time
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def open_wt(args=["cmd"], icon=root + "/cmd.png", title="Command Prompt"):
+def open_wt(args=["cmd"], icon=root + "/icons/cmd.png", title="Command Prompt"):
     args = wt_wrap_args(
         args, title=title, font_size=14, icon=icon.replace("\\", "/"), opacity=0.9,
     )
