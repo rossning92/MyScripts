@@ -58,23 +58,33 @@ _last_subtitle_index = -1
 _crossfade = 0
 
 
-def _on_begin_api(func_name):
+_on_api = None
+
+
+def on_api(func):
+    global _on_api
+    _on_api = func
+
+
+def api(f):
+    def api_wrapper(*args, **kwargs):
+        _on_api(f.__name__)
+        f(*args, **kwargs)
+
+    _apis[f.__name__] = api_wrapper
+    return api_wrapper
+
+
+@on_api
+def on_api_(func_name):
     print("%s()" % func_name)
+    input("yoyo")
 
     if func_name != "record":
         _try_generate_tts()
     else:
         global _cached_line_to_tts
         _cached_line_to_tts = None
-
-
-def api(f):
-    def api_wrapper(*args, **kwargs):
-        _on_begin_api(f.__name__)
-        f(*args, **kwargs)
-
-    _apis[f.__name__] = api_wrapper
-    return api_wrapper
 
 
 def _format_time(sec):
@@ -1363,7 +1373,7 @@ def _parse_text(text, apis=_apis, **kwargs):
             apis["parse_line"](line)
 
     # Call it at the end
-    _on_begin_api(None)
+    _on_api(None)
 
 
 def _show_stats(s):
