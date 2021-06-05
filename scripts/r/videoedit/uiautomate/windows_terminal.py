@@ -9,18 +9,21 @@ import time
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def open_wt(args=["cmd"], icon=root + "/icons/cmd.png", title="Command Prompt"):
-    args = wt_wrap_args(
-        args, title=title, font_size=14, icon=icon.replace("\\", "/"), opacity=0.9,
-    )
-    call_echo(args, cwd=os.path.expanduser("~"))
+def open_wt(args=["cmd"], **kwargs):
+    args = wt_wrap_args(args, font_size=14, **kwargs)
+    call_echo(args)
 
 
 def open_wt_with_bg():
     run_ahk(os.path.join(root, "show_overlay.ahk"))
     time.sleep(2)
 
-    open_wt()
+    open_wt(
+        icon=root + "/icons/cmd.png",
+        title="Command Prompt",
+        opacity=0.9,
+        cwd=os.path.expanduser("~"),
+    )
     time.sleep(2)
 
     exec_ahk(
@@ -34,7 +37,12 @@ def open_wt_with_bg():
 
 
 def open_wt_bash():
-    open_wt(args=["bash"], icon=root+"/icons/linux.ico", title="ross@ross-desktop2")
+    open_wt(
+        args=["bash"],
+        icon=root + "/icons/linux.ico",
+        title="ross@ross-desktop2",
+        opacity=1,
+    )
 
 
 if __name__ == "__main__":

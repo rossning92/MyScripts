@@ -317,7 +317,7 @@ def wt_wrap_args(
             profile["acrylicOpacity"] = opacity
 
         if icon is not None:
-            profile["icon"] = icon
+            profile["icon"] = icon.replace("\\", "/")
 
         if len(filtered) == 0:
             data["profiles"]["list"].append(profile)

@@ -1,4 +1,4 @@
-#include ../../../../ahk/Window.ahk
+#include ../../../ahk/Window.ahk
 
 Menu, Tray, Icon, animation_toolkit.ico
 #SingleInstance, Force
