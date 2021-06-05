@@ -22,6 +22,7 @@ from moviepy.editor import *
 from open_with.open_with import open_with
 from PIL import Image
 
+import core
 import datastruct
 from render_animation import render_animation
 from render_text import render_text
@@ -31,7 +32,7 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 _add_subtitle = True
 _global_scale = 1.0
 _audio_only = False
-_apis = {}
+
 _cached_line_to_tts = None
 _last_frame_indices: Dict[str, int] = {}
 
@@ -58,27 +59,9 @@ _last_subtitle_index = -1
 _crossfade = 0
 
 
-_on_api = None
-
-
-def on_api(func):
-    global _on_api
-    _on_api = func
-
-
-def api(f):
-    def api_wrapper(*args, **kwargs):
-        _on_api(f.__name__)
-        f(*args, **kwargs)
-
-    _apis[f.__name__] = api_wrapper
-    return api_wrapper
-
-
-@on_api
+@core.on_api
 def on_api_(func_name):
     print("%s()" % func_name)
-    input("yoyo")
 
     if func_name != "record":
         _try_generate_tts()
@@ -97,7 +80,7 @@ def _format_time(sec):
     )
 
 
-@api
+@core.api
 def crossfade(v):
     global _crossfade
     if v == True:
@@ -167,7 +150,7 @@ def _add_subtitle_clip(start, end, text):
     )
 
 
-@api
+@core.api
 def record(
     f,
     t="a",
@@ -247,7 +230,7 @@ def record(
                     i += 1
 
 
-@api
+@core.api
 def audio_gap(duration):
     _pos_dict["a"] += duration
     _pos_dict["ae"] = _pos_dict["as"] = _pos_dict["a"]
@@ -282,18 +265,18 @@ def _set_vol(vol, duration=0, track=None, t=None):
     return prev_vol
 
 
-@api
+@core.api
 def setp(name, t=None):
     t = _get_time(t)
     _pos_dict[name] = t
 
 
-@api
+@core.api
 def vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwargs):
     return _set_vol(vol, duration=duration, **kwargs)
 
 
-@api
+@core.api
 def bgm_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwawgs):
     _set_vol(vol, duration=duration, track="bgm", **kwawgs)
 
@@ -345,7 +328,7 @@ def _add_audio_clip(
     return clip_info
 
 
-@api
+@core.api
 def audio(
     f,
     t=None,
@@ -386,7 +369,7 @@ def audio(
         _set_vol(prev_vol, track="bgm", t=clip.start + clip.mpy_clip.duration)
 
 
-@api
+@core.api
 def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
     t = _get_time(t)
 
@@ -416,7 +399,7 @@ def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
         _pos_dict["c"] = _pos_dict["a"] = t
 
 
-@api
+@core.api
 def bgm(
     f, move_playhead=False, vol=0.1, track="bgm", norm=True, loop=True, **kwargs,
 ):
@@ -430,29 +413,29 @@ def bgm(
     )
 
 
-@api
+@core.api
 def sfx(f, **kwargs):
     audio(f, track="sfx", move_playhead=False, **kwargs)
 
 
-@api
+@core.api
 def pos(t="c", tag=None):
     _set_pos(t, tag=tag)
 
 
-@api
+@core.api
 def clip(f, **kwargs):
     print("clip: %s" % f)
     _add_video_clip(f, **kwargs)
 
 
-@api
+@core.api
 def fps(v):
     global FPS
     FPS = v
 
 
-@api
+@core.api
 def overlay(
     f,
     duration=3,
@@ -472,14 +455,14 @@ def overlay(
     )
 
 
-@api
+@core.api
 def comment(text, pos=(960, 100), duration=4, track="overlay", **kwargs):
     md(
         text, pos=pos, duration=duration, track=track, **kwargs,
     )
 
 
-@api
+@core.api
 def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
     md(
         '<span style="font-size:0.6em">%s</span>' % text,
@@ -490,7 +473,7 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
     )
 
 
-@api
+@core.api
 def codef(
     file,
     track="vid",
@@ -825,7 +808,7 @@ def _add_video_clip(
     return clip_info
 
 
-@api
+@core.api
 def anim(file, **kwargs):
     video_file = os.path.splitext(file)[0] + ".webm"
     if file_is_old(file, video_file):
@@ -835,7 +818,7 @@ def anim(file, **kwargs):
     _add_video_clip(video_file, **kwargs)
 
 
-@api
+@core.api
 def video_end(track=None, t=None, fadeout=None):
     print("video_end: track=%s" % track)
     track = datastruct.get_vid_track(track)
@@ -852,7 +835,7 @@ def video_end(track=None, t=None, fadeout=None):
     print("clip updated: start=%.2f duration=%.2f" % (clip.start, clip.duration))
 
 
-@api
+@core.api
 def empty(**kwargs):
     _add_video_clip(None, **kwargs)
 
@@ -872,7 +855,7 @@ def generate_slide(in_file, template, out_file=None):
     )
 
 
-@api
+@core.api
 def slide(
     s, template, pos="center", name=None, **kwargs,
 ):
@@ -890,7 +873,7 @@ def slide(
     _add_video_clip(out_file, pos=pos, **kwargs)
 
 
-@api
+@core.api
 def md(s, track="md", move_playhead=False, **kwargs):
     slide(
         s,
@@ -902,7 +885,7 @@ def md(s, track="md", move_playhead=False, **kwargs):
     )
 
 
-@api
+@core.api
 def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
     # "../assets/animation/click.tar",
 
@@ -1242,13 +1225,13 @@ def _try_generate_tts():
     record(out_file, postprocess=False, vol=2)
 
 
-@api
+@core.api
 def tts(enabled=True):
     global AUTO_GENERATE_TTS
     AUTO_GENERATE_TTS = enabled
 
 
-@api
+@core.api
 def parse_line(line):
     print2(line, color="green")
     _subtitle.append(line)
@@ -1282,7 +1265,7 @@ def _write_timestamp(t, section_name):
     _write_timestamp.f.flush()
 
 
-@api
+@core.api
 def include(file):
     with open(file, "r", encoding="utf-8") as f:
         s = f.read()
@@ -1319,7 +1302,7 @@ def _remove_unused_recordings(s):
                 print("WARNING: failed to remove: %s" % f)
 
 
-def _parse_text(text, apis=_apis, **kwargs):
+def _parse_text(text, apis=core.apis, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -1373,7 +1356,7 @@ def _parse_text(text, apis=_apis, **kwargs):
             apis["parse_line"](line)
 
     # Call it at the end
-    _on_api(None)
+    core.on_api_func(None)
 
 
 def _show_stats(s):
@@ -1437,7 +1420,7 @@ if __name__ == "__main__":
         sys.path.append(os.getcwd())
         mymodule = importlib.import_module("api")
         global_functions = inspect.getmembers(mymodule, inspect.isfunction)
-        _apis.update({k: v for k, v in global_functions})
+        core.apis.update({k: v for k, v in global_functions})
 
     # HACK
     if args.audio_only:
@@ -1469,5 +1452,5 @@ if __name__ == "__main__":
         ignore_undefined = True
         _show_stats(s)
     else:
-        _parse_text(s, apis=_apis)
+        _parse_text(s, apis=core.apis)
         _export_video()
