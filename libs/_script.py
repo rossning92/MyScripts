@@ -331,7 +331,9 @@ def wt_wrap_args(
             with open(CONFIG_FILE, "w") as f:
                 json.dump(data, f, indent=4)
 
-    return ["wt", "-p", title] + args
+        return ["wt", "-p", title] + args
+    else:
+        return ["wt"] + args
 
 
 class Script:
