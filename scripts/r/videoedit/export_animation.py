@@ -25,7 +25,7 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 ignore_undefined = False
 
-if 0:
+if 1:
     change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
 

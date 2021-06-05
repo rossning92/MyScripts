@@ -5,7 +5,7 @@ import tarfile
 from typing import Dict, List
 
 import numpy as np
-from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2
+from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2, timing
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
 from moviepy.editor import *
 from PIL import Image
@@ -292,6 +292,10 @@ def bgm_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwawgs):
     _set_vol(vol, duration=duration, track="bgm", **kwawgs)
 
 
+def _create_audio_file_clip(file):
+    return AudioFileClip(file, buffersize=400000)
+
+
 def _add_audio_clip(
     file,
     track=None,
@@ -315,7 +319,7 @@ def _add_audio_clip(
     clip_info.file = os.path.abspath(file)
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
-    clip_info.mpy_clip = AudioFileClip(file, buffersize=400000)
+    clip_info.mpy_clip = _create_audio_file_clip(file)
 
     if subclip is not None:
         clip_info.subclip = subclip
