@@ -89,14 +89,14 @@ def crossfade(v):
         _crossfade = float(v)
 
 
-def _get_markers(file):
-    marker_file = file + ".marker.txt"
-    if os.path.exists(marker_file):
-        with open(marker_file, "r") as f:
-            s = f.read()
-            return [float(x) for x in s.split()]
-    else:
-        return None
+# def _get_markers(file):
+#     marker_file = file + ".marker.txt"
+#     if os.path.exists(marker_file):
+#         with open(marker_file, "r") as f:
+#             s = f.read()
+#             return [float(x) for x in s.split()]
+#     else:
+#         return None
 
 
 def _get_time(p):
@@ -840,7 +840,7 @@ def empty(**kwargs):
     _add_video_clip(None, **kwargs)
 
 
-def generate_slide(in_file, template, out_file=None):
+def _generate_slide(in_file, template, out_file=None):
     call2(
         [
             "run_script",
@@ -868,7 +868,7 @@ def slide(
         with open(in_file, "w", encoding="utf-8") as f:
             f.write(s)
 
-        generate_slide(in_file, template=template, out_file=out_file)
+        _generate_slide(in_file, template=template, out_file=out_file)
 
     _add_video_clip(out_file, pos=pos, **kwargs)
 
