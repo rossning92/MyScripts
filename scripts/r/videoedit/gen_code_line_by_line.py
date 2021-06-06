@@ -10,9 +10,9 @@ with open(f, "r", encoding="utf-8") as f:
     lines = f.read().splitlines()
 
 
-for i in range(1, len(lines)):
-    s = "\n".join(lines[0:i])
+for i in range(0, len(lines)):
+    s = "\n".join(lines[0:i+1])
 
-    out_file = out_dir + "/%03d%s" % (i, ext)
+    out_file = out_dir + "/%03d%s" % (i+1, ext)
     with open(out_file, "w") as f:
         f.write(s)
