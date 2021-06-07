@@ -9,7 +9,7 @@ def download_bilibili(url, out_dir=None):
         try:
             # Cookie
             root = os.path.dirname(os.path.abspath(__file__))
-            with open(root + "/tmp/cookie.json") as f:
+            with open("/tmp/cookie.json") as f:
                 data = json.load(f)
             cookie = "; ".join(["%s=%s" % (x["name"], x["value"]) for x in data])
 
