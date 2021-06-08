@@ -496,13 +496,14 @@ def codef(
     jump_line=None,
     fontsize=None,
     mark_line=None,
+    bg=None,
     **kwargs,
 ):
     from web.gen_code_image import gen_code_image_from_file
 
     mkdir("tmp/code")
     hash = get_hash(
-        str((file, os.path.getmtime(file), size, jump_line, fontsize, mark_line))
+        str((file, os.path.getmtime(file), size, jump_line, fontsize, mark_line, bg))
     )
     out_file = "tmp/code/%s.png" % hash
     if not os.path.exists(out_file):
@@ -513,6 +514,7 @@ def codef(
             jump_line=jump_line,
             fontsize=fontsize,
             mark_line=mark_line,
+            bg=bg,
         )
 
     _add_video_clip(out_file, track=track, transparent=False, **kwargs)

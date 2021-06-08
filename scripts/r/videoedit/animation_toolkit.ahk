@@ -39,8 +39,6 @@ $^F6::
     w := 1170
     SetWindowPos("ahk_exe Code.exe", 0, 0, w, 1080)
     SetWindowPos("ahk_exe chrome.exe", w, 0, 1920 - w, 1080)
-    sleep 500
-    RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
 return
 
 RunScript(file, args="") {

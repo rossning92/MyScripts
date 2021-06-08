@@ -20,6 +20,7 @@ def gen_code_image(
     jump_line=None,
     fontsize=None,
     mark_line=None,
+    bg=None,
 ):
     from urllib.parse import quote
 
@@ -69,6 +70,17 @@ def gen_code_image(
         javascript=javascript,
         debug=debug,
     )
+
+    if bg is not None:
+        from PIL import Image
+
+        img = Image.open(out_file, "r")
+        img_w, img_h = img.size
+        background = Image.open(bg, "r")
+        bg_w, bg_h = background.size
+        offset = ((bg_w - img_w) // 2, (bg_h - img_h) // 2)
+        background.paste(img, offset)
+        background.save(out_file)
 
 
 if __name__ == "__main__":
