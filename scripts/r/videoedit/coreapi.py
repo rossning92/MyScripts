@@ -148,7 +148,7 @@ def _set_pos(t, tag=None):
 
 def _add_subtitle_clip(start, end, text):
     temp_file = render_text(text)
-    _add_video_clip(
+    add_video_clip(
         temp_file,
         t=start,
         duration=end - start,
@@ -441,7 +441,7 @@ def pos(t="c", tag=None):
 @core.api
 def clip(f, **kwargs):
     print("clip: %s" % f)
-    _add_video_clip(f, **kwargs)
+    add_video_clip(f, **kwargs)
 
 
 @core.api
@@ -460,7 +460,7 @@ def overlay(
     **kwargs,
 ):
     print("image: %s" % f)
-    _add_video_clip(
+    add_video_clip(
         f,
         duration=duration,
         crossfade=crossfade,
@@ -486,40 +486,6 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
         track=track,
         **kwargs,
     )
-
-
-@core.api
-def codef(
-    file,
-    track="vid",
-    size=None,
-    jump_line=None,
-    fontsize=None,
-    mark_line=None,
-    bg=None,
-    **kwargs,
-):
-    from web.gen_code_image import gen_code_image_from_file
-
-    mkdir("tmp/code")
-    hash = get_hash(
-        str((file, os.path.getmtime(file), size, jump_line, fontsize, mark_line, bg))
-    )
-    out_file = "tmp/code/%s.png" % hash
-    if not os.path.exists(out_file):
-        gen_code_image_from_file(
-            file,
-            out_file,
-            size=size,
-            jump_line=jump_line,
-            fontsize=fontsize,
-            mark_line=mark_line,
-            bg=bg,
-        )
-
-    _add_video_clip(out_file, track=track, transparent=False, **kwargs)
-
-    return out_file
 
 
 def _get_video_resolution(f):
@@ -634,7 +600,7 @@ def _load_mpy_clip(
     return clip
 
 
-def _add_video_clip(
+def add_video_clip(
     file=None,
     speed=None,
     pos="center",
@@ -758,7 +724,7 @@ def anim(file, **kwargs):
         if os.path.exists(video_file):
             os.remove(video_file)
         render_animation(os.path.abspath(file))
-    _add_video_clip(video_file, **kwargs)
+    add_video_clip(video_file, **kwargs)
 
 
 @core.api
@@ -780,7 +746,7 @@ def video_end(track=None, t=None, fadeout=None):
 
 @core.api
 def empty(**kwargs):
-    _add_video_clip(None, **kwargs)
+    add_video_clip(None, **kwargs)
 
 
 def _generate_slide(in_file, template, out_file=None):
@@ -813,7 +779,7 @@ def slide(
 
         _generate_slide(in_file, template=template, out_file=out_file)
 
-    _add_video_clip(out_file, pos=pos, **kwargs)
+    add_video_clip(out_file, pos=pos, **kwargs)
 
 
 @core.api
@@ -844,9 +810,9 @@ def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
     if pos is not None:
         if file is None:
             file = SCRIPT_ROOT + "/assets/mouse-cursor.png"
-        _add_video_clip(file=file, pos=pos, **extra_args)
+        add_video_clip(file=file, pos=pos, **extra_args)
     elif rect is not None:
-        _add_video_clip(
+        add_video_clip(
             file=SCRIPT_ROOT + "/assets/highlight-yellow.png",
             pos=(rect[0] + 50, rect[1] + 50),
             scale=(rect[2] / 100, rect[3] / 100),

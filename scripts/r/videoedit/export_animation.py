@@ -17,6 +17,7 @@ from moviepy.config import change_settings
 from moviepy.editor import *
 from open_with.open_with import open_with
 
+import codeapi
 import core
 import coreapi
 import datastruct
