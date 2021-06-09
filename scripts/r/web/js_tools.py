@@ -1,7 +1,10 @@
-from _shutil import *
-import pathlib
-from _code import prepend_line, patch_code
+import json
+import os
+import threading
+
+from _code import patch_code, prepend_line
 from _editor import open_in_vscode
+from _shutil import call_echo, cd, exists, menu_item, menu_loop, mkdir, yes
 from _template import render_template_file
 
 OVERWRITE = bool("{{_OVERWRITE}}")
@@ -208,8 +211,33 @@ def add_dat_gui():
 
 
 @menu_item(key="p")
-def add_p5():
+def add_p5(index_js="src/index.js"):
     add_packages(["p5"])
+
+    s = """import p5 from "p5";
+
+const sketch = (p) => {
+  let x = 100;
+  let y = 100;
+
+  p.setup = function () {
+    p.createCanvas(700, 410);
+  };
+
+  p.draw = function () {
+    p.background(0);
+    p.fill(255);
+    p.rect(x, y, 50, 50);
+  };
+};
+
+new p5(sketch);
+"""
+
+    if not os.path.exists(index_js) or OVERWRITE:
+        mkdir(os.path.dirname(index_js))
+        with open(index_js, "w") as f:
+            f.write(index_js)
 
 
 @menu_item(key="b")
