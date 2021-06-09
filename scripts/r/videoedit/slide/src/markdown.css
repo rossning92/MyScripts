@@ -23,11 +23,11 @@ body {
   font-size: 1em;
   letter-spacing: 0.2rem;
   font-weight: bolder;
-  padding: 0 2em 0 2em;
+  padding: 0.1em 2em 0.1em 2em;
   line-height: 1em;
-  background: rgba(0, 0, 0, 0.8);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.9);
   white-space: nowrap;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
 h1 {
@@ -39,7 +39,7 @@ h2 {
   font-size: 1em;
   color: black;
   position: relative;
-  background: rgba(126, 214, 223, 0.8);
+  background: rgba(126, 214, 223, 0.9);
 }
 
 strong {
