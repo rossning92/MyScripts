@@ -19,17 +19,11 @@ const webpackConfig = require("./webpack.config.js")({
 });
 const compiler = webpack(webpackConfig);
 
-if (dev) {
-  webpackConfig.devServer.open = true;
-}
-
 const server = new WebpackDevServer(compiler, webpackConfig.devServer);
 
 async function captureImage(port) {
-  const outFile = path.resolve(argv["o"]);
-
   const browser = await puppeteer.launch({
-    // headless: false,
+    headless: !dev,
     defaultViewport: { width: 1920, height: 1080 },
     args: [
       // "--no-sandbox",
@@ -42,24 +36,24 @@ async function captureImage(port) {
   const page = await browser.newPage();
   await page.goto(`http://localhost:${port}`, { waitUntil: "networkidle0" });
 
-  // Screenshot DOM element only
-  const element = await page.$("#content");
-  await element.screenshot({ path: outFile, omitBackground: true });
+  if (!dev) {
+    // Screenshot DOM element only
+    const element = await page.$("#content");
 
-  await browser.close();
+    const outFile = path.resolve(argv["o"]);
+    await element.screenshot({ path: outFile, omitBackground: true });
 
-  server.close();
-
-  process.exit();
+    await browser.close();
+    server.close();
+    process.exit();
+  }
 }
 
 (async () => {
   server.listen(undefined, "localhost", async (err) => {
     if (err) return;
 
-    if (!dev) {
-      const port = server.listeningApp.address().port;
-      captureImage(port);
-    }
+    const port = server.listeningApp.address().port;
+    captureImage(port);
   });
 })();

@@ -1,3 +1,1 @@
-cd slide/src
-
-run_script slide/export.js -d -t {{_TEMPLATE}} -i {{_MD_FILE}}
+run_script slide/export.js -d -t {{_TEMPLATE}} -i examples/{{_MD_FILE}}.md
