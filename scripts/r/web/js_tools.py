@@ -16,6 +16,13 @@ INDEX_JS = "src/index.js"
 SCRIPT_ROOT = os.getcwd()
 
 
+def write_file(file, content, overwrite=False):
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+    if not os.path.exists(file) or overwrite:
+        with open(file, "w") as f:
+            f.write(content)
+
+
 def add_packages(packages, dev=False):
     with open("package.json", "r") as f:
         data = json.load(f)
@@ -325,6 +332,44 @@ def add_threejs():
     os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
     if os.path.exists(INDEX_JS) and yes("overwrite %s" % INDEX_JS):
         render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
+
+
+@menu_item(key="M")
+def add_matterjs(index_js="src/index.js"):
+    add_packages(["matter-js"])
+
+    write_file(
+        index_js,
+        """import * as Matter from "matter-js";
+
+var Engine = Matter.Engine,
+    Render = Matter.Render,
+    Runner = Matter.Runner,
+    Bodies = Matter.Bodies,
+    Composite = Matter.Composite;
+
+var engine = Engine.create();
+
+var render = Render.create({
+    element: document.body,
+    engine: engine
+});
+
+var boxA = Bodies.rectangle(400, 200, 80, 80);
+var boxB = Bodies.rectangle(450, 50, 80, 80);
+var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
+
+Composite.add(engine.world, [boxA, boxB, ground]);
+
+Render.run(render);
+
+// create runner
+var runner = Runner.create();
+
+// run the engine
+Runner.run(runner, engine);
+""",
+    )
 
 
 @menu_item(key="v")
