@@ -4,7 +4,7 @@ closeOnExit: true
 conda: null
 globalHotkey: null
 hotkey: null
-newWindow: true
+newWindow: false
 packages: null
 restartInstance: true
 runAsAdmin: false

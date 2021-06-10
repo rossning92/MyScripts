@@ -1,9 +1,22 @@
-from _shutil import *
-from _term import *
-from _video import ffmpeg, remove_audio
+import argparse
+import glob
+import os
+import subprocess
+import sys
+import time
+
 import keyboard
 import pyautogui
-import argparse
+from _shutil import (
+    call_echo,
+    get_temp_file_name,
+    gettempdir,
+    move_file,
+    print2,
+    slugify,
+)
+from _term import activate_cur_terminal, minimize_cur_terminal
+from _video import ffmpeg
 from audio.postprocess import loudnorm
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
@@ -14,6 +27,7 @@ class ScreenRecorder:
     def __init__(self):
         self.rect = None
         self.file = None
+        self.no_audio = False
 
 
 class CapturaScreenRecorder(ScreenRecorder):
@@ -113,17 +127,11 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
                     % (self.rect[2], self.rect[3], self.rect[0], self.rect[1]),
                 ],
                 quiet=True,
-                no_audio=True,
+                no_audio=self.no_audio,
                 nvenc=True,
             )
             os.remove(in_file)
             in_file = out_file
-
-        # if no_audio:
-        #     out_file = get_temp_file_name(".mp4")
-        #     remove_audio(in_file, out_file)
-        #     os.remove(in_file)
-        #     in_file = out_file
 
         move_file(in_file, self.file)
 
@@ -133,14 +141,22 @@ recorder = ShadowPlayScreenRecorder()
 
 
 if __name__ == "__main__":
-    out_dir = os.path.join(os.environ["VIDEO_PROJECT_DIR"], "screencap")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rect", type=int, nargs="+", default=None)
+    parser.add_argument("--rect", type=int, nargs="+", default=(0, 0, 1920, 1080))
+    parser.add_argument("--no_audio", default=False, action="store_true")
+    parser.add_argument("--out_dir", type=str, default=None)
 
     args = parser.parse_args()
 
+    recorder.no_audio = args.no_audio
+
     if args.rect is not None:
         recorder.rect = args.rect
+
+    if args.out_dir is None:
+        out_dir = os.path.expanduser("~/Desktop")
+    else:
+        out_dir = args.out_dir
 
     name = input("input file name (no ext): ")
     if not name:
@@ -154,8 +170,8 @@ if __name__ == "__main__":
     recorder.stop_record()
     activate_cur_terminal()
 
-    # Save file
+    # Open file
     call_echo(["mpv", recorder.file])
     # edit_video(dst_file)
 
-    sleep(1)
+    time.sleep(1)

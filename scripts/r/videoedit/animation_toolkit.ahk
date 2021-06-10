@@ -7,6 +7,7 @@ SCRIPT_DIR := A_WorkingDir
 VIDEO_PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
 
 is_recording := False
+ExtraArgs := "--out_dir=""" VIDEO_PROJECT_DIR "\screencap"" --no_audio"
 
 SetWorkingDir, %VIDEO_PROJECT_DIR%
 
@@ -21,17 +22,12 @@ $F6::
     if (WinActive("ahk_exe chrome.exe")) {
         SetWindowPos("A", 0, 0, 1950, 1250)
         Sleep 500
-        RunScript("/r/videoedit/record_screen.py", "--rect 1 120 1920 1080")
-    } else if (WinActive("ahk_exe WindowsTerminal.exe")) {
-        ; SetWindowPos("A", 0, 0, 1440, 810)
-        ; sleep 500
-        ; RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1440 810")
-        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
+        RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 1 120 1920 1080")
     } else if (WinActive("ahk_class CabinetWClass")) {
         SetWindowPos("A", 0, 0, 1440, 810)
-        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1440 810")
+        RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 0 0 1440 810")
     } else {
-        RunScript("/r/videoedit/record_screen.py", "--rect 0 0 1920 1080")
+        RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 0 0 1920 1080")
     }
 return
 
