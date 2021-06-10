@@ -6,7 +6,7 @@ Menu, Tray, Icon, animation_toolkit.ico
 SCRIPT_DIR := A_WorkingDir
 VIDEO_PROJECT_DIR = {{VIDEO_PROJECT_DIR}}
 
-ExtraArgs := "--out_dir=""" VIDEO_PROJECT_DIR "\screencap"" --no_audio"
+ExtraArgs = --out_dir="%VIDEO_PROJECT_DIR%\screencap" --no_audio
 
 SetWorkingDir, %VIDEO_PROJECT_DIR%
 
