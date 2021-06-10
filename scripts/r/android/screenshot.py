@@ -11,7 +11,7 @@ else:
 os.chdir(os.path.expanduser("~/Desktop"))
 
 
-# screencap -p /sdcard/screencap.png
+# adb shell screencap -p /sdcard/screencap.png
 # adb pull /sdcard/screencap.png
 
 for i in range(n):
