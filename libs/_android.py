@@ -381,8 +381,9 @@ def setup_android_env(ndk_version=None):
     prepend_to_path(path)
 
 
-def adb_shell(command, check=True, check_output=False, **kwargs):
-    print('EXEC: adb shell "%s"' % command)
+def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):
+    if echo:
+        print('EXEC: adb shell "%s"' % command)
 
     if check_output:
         return subprocess.check_output(
