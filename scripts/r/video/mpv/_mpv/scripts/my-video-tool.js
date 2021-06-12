@@ -74,6 +74,39 @@ function getTimestamp() {
   return Math.round(+new Date() / 1000);
 }
 
+function getNewAvailableFile(file) {
+  var PAD_SIZE = 1;
+
+  function pad(num) {
+    var s = num + "";
+    while (s.length < PAD_SIZE) s = "0" + s;
+    return s;
+  }
+
+  var patt = /(.*?)(?:-(\d{1,2}))?\.mp4/g;
+  var match = patt.exec(file);
+  var prefix = match[1];
+  var ix = match[2];
+
+  // Find new unused file name.
+  var newFile;
+  if (ix) {
+    ix = parseInt(ix) + 1;
+    while (true) {
+      var newFile = prefix + "-" + pad(ix.toString()) + ".mp4";
+      if (mp.utils.file_info(newFile)) {
+        ix++;
+      } else {
+        break;
+      }
+    }
+  } else {
+    newFile = prefix + "-02.mp4";
+  }
+
+  return newFile;
+}
+
 function exportVideo(params) {
   if (currentFile == null) {
     currentFile = mp.get_property_native("path");
@@ -144,11 +177,9 @@ function exportVideo(params) {
     args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
   }
 
-  // Output file
-  if (baseName == null) baseName = getBaseName(currentFile);
-
   if (params.temp) {
-    var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
+    // var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
+    var outFile = getNewAvailableFile(currentFile);
     args.push(outFile);
     mp.utils.subprocess_detached({
       args: args,
@@ -371,7 +402,8 @@ mp.add_forced_key_binding("X", "cut_video_background", function () {
 });
 
 mp.add_forced_key_binding("s", "save_file", function () {
-  var outFile = getBaseName(historyFiles[0]) + "-" + getTimestamp() + ".mp4";
+  // var outFile = getBaseName(historyFiles[0]) + "-" + getTimestamp() + ".mp4";
+  var outFile = getNewAvailableFile(historyFiles[0]);
   mp.osd_message("saved as " + outFile);
   copyFile(currentFile, outFile);
 });
