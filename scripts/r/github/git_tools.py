@@ -46,7 +46,7 @@ def commit(dry_run=False, amend=False):
         call_echo("git status --short")
 
     else:
-        if get_output("git diff --shortstat"):
+        if not get_output("git diff --shortstat"):
             call_echo("git add -A")
 
         if amend:
