@@ -323,6 +323,7 @@ assoc = {
     ".zxp": ["vscode", "notepad++"],
     ".gz": ["7zFM"],
     ".usf": ["vscode", "notepad++"],
+    ".ush": ["vscode", "notepad++"],
     ".tar": ["7zFM"],
 }
 
