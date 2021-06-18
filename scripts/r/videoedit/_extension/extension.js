@@ -27,6 +27,24 @@ async function openFile(filePath) {
   }
 }
 
+function getFileUnderCursor() {
+  if (!isDocumentActive()) return;
+
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return;
+  if (!editor.selection.isEmpty) return;
+
+  const position = editor.selection.active;
+  const line = editor.document.lineAt(position).text;
+  const found = line.match(/['"](.*?)['"]/);
+  if (!found) return;
+
+  const filePath = path.resolve(path.join(getActiveDir(), found[1]));
+  if (!fs.existsSync(filePath)) return;
+
+  return filePath;
+}
+
 async function openFileUnderCursor() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
@@ -34,15 +52,10 @@ async function openFileUnderCursor() {
   const activeFile = vscode.window.activeTextEditor.document.fileName;
   if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
     startAnimationServer(activeFile);
-  } else if (isDocumentActive()) {
-    if (editor.selection.isEmpty) {
-      const position = editor.selection.active;
-      const line = editor.document.lineAt(position).text;
-      const found = line.match(/['"](.*?)['"]/);
-      if (found !== null) {
-        const filePath = path.resolve(path.join(getActiveDir(), found[1]));
-        openFile(filePath);
-      }
+  } else {
+    const file = getFileUnderCursor();
+    if (file) {
+      openFile(file);
     }
   }
 }
@@ -519,6 +532,20 @@ function registerCreateSlideCommand() {
   });
 }
 
+function registerRenameFileCommand() {
+  vscode.commands.registerCommand("videoEdit.renameFile", async () => {
+    const file = getFileUnderCursor();
+    if (!file) return;
+
+    const newFile = await vscode.window.showInputBox({
+      value: file,
+    });
+    if (!newFile) return;
+
+    fs.renameSync(file, newFile);
+  });
+}
+
 async function createNewDocument({
   dir,
   func,
@@ -605,7 +632,7 @@ function activate(context) {
   });
 
   registerCreateSlideCommand();
-
+  registerRenameFileCommand();
   registerAutoComplete(context);
 
   initializeDecorations(context);

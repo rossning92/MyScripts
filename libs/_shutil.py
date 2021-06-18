@@ -683,6 +683,8 @@ def get_files(cd=False, ignore_dirs=True):
     else:
         files = list(glob.glob(os.path.join(cur_folder + "*.*")))
 
+    files = sorted(files)
+
     if cd:
         os.chdir(cur_folder)
         files = [f.replace(cur_folder, "") for f in files]  # Relative path
