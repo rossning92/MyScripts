@@ -4,7 +4,7 @@ import threading
 
 from _code import patch_code, prepend_line
 from _editor import open_in_vscode
-from _shutil import call_echo, cd, exists, menu_item, menu_loop, mkdir, yes
+from _shutil import call_echo, cd, exists, menu_item, menu_loop, mkdir, yes, save_json
 from _template import render_template_file
 
 OVERWRITE = bool("{{_OVERWRITE}}")
@@ -220,6 +220,7 @@ def add_dat_gui():
 @menu_item(key="p")
 def add_p5(index_js="src/index.js"):
     add_packages(["p5"])
+    add_packages(["@types/matter-js"], dev=True)
 
     s = """import p5 from "p5";
 
@@ -334,9 +335,31 @@ def add_threejs():
         render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
 
 
+@menu_item(key="t")
+def add_typescript():
+    add_packages(["typescript", "ts-loader"], dev=True)
+
+    if not os.path.exists("tsconfig.json"):
+        save_json(
+            "tsconfig.json",
+            {
+                "compilerOptions": {
+                    "outDir": "./dist/",
+                    "noImplicitAny": True,
+                    "module": "es6",
+                    "target": "es5",
+                    "jsx": "react",
+                    "allowJs": True,
+                    "moduleResolution": "node",
+                }
+            },
+        )
+
+
 @menu_item(key="M")
 def add_matterjs(index_js="src/index.js"):
     add_packages(["matter-js"])
+    add_packages(["@types/matter-js"])
 
     write_file(
         index_js,

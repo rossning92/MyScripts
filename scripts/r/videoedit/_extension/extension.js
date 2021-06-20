@@ -21,6 +21,11 @@ async function openFile(filePath) {
     } else if (/\.(wav|mp3|ogg)$/g.test(filePath)) {
       output.appendLine(`Open with ocenaudio: ${filePath}`);
       cp.spawn("ocenaudio", [filePath]);
+    } else if (/\.(ppt|pptx)$/g.test(filePath)) {
+      cp.spawn(
+        "C:/Program Files (x86)/Microsoft Office/root/Office16/POWERPNT.EXE",
+        [filePath]
+      );
     } else {
       vscode.env.openExternal(vscode.Uri.file(filePath));
     }
