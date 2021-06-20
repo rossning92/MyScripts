@@ -48,7 +48,17 @@ if 1:
 
 
 def _update_mpy_clip(
-    clip, subclip, speed, frame, norm, loop, duration, pos, scale, vol, **kwargs,
+    clip,
+    subclip,
+    speed,
+    frame,
+    norm,
+    loop,
+    duration,
+    pos,
+    scale,
+    vol,
+    **kwargs,
 ):
     assert duration is not None
 
@@ -117,7 +127,9 @@ def _update_mpy_clip(
 def _update_clip_duration(track):
     def is_connected(prev_clip, cur_clip):
         return math.isclose(
-            prev_clip.start + prev_clip.duration, cur_clip.start, rel_tol=1e-3,
+            prev_clip.start + prev_clip.duration,
+            cur_clip.start,
+            rel_tol=1e-3,
         )
 
     prev_clip_info = None
