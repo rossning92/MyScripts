@@ -35,7 +35,7 @@ for f in files:
         filter_v.append("scale=1920:-2,pad=1920:1080:0:0")
 
     elif "{{_PAD_TO_1080P}}":
-        filter_v.append("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:white")
+        filter_v.append("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black")
 
     if "{{_ROTATE_CW}}":
         filter_v.append("transpose=1")
