@@ -120,11 +120,20 @@ return
     UpdateWindowPosition("right")
 return
 
-#t::WinSet, AlwaysOnTop, Toggle, A
-; #t::
-;     WinGet, hwnd, ID, A
-;     Run "C:\Users\%A_UserName%\AppData\Local\OnTopReplica\OnTopReplica.exe" -windowId=%hwnd%
-; Return
+#t::
+    WinSet, AlwaysOnTop, Toggle, A
+    WinGet, ExStyle, ExStyle, A
+    If (ExStyle & 0x8) {
+        ToolTip, AlwaysOnTop=1, 0, 0
+    } else {
+        ToolTip, AlwaysOnTop=0, 0, 0
+    }
+    SetTimer, RemoveToolTip, -2000
+return
+
+RemoveToolTip:
+    ToolTip
+return
 
 #Up::
     WinGet, curHwnd, ID, A
