@@ -90,19 +90,21 @@ function getNewAvailableFile(file) {
 
   // Find new unused file name.
   var newFile;
-  if (ix) {
-    ix = parseInt(ix) + 1;
-    while (true) {
-      var newFile = prefix + "-" + pad(ix.toString()) + ".mp4";
-      if (mp.utils.file_info(newFile)) {
-        ix++;
-      } else {
-        break;
-      }
-    }
+  if (!ix) {
+    ix = 2;
   } else {
-    newFile = prefix + "-02.mp4";
+    ix = parseInt(ix) + 1;
   }
+
+  while (true) {
+    newFile = prefix + "-" + pad(ix.toString()) + ".mp4";
+    if (mp.utils.file_info(newFile)) {
+      ix++;
+    } else {
+      break;
+    }
+  }
+  mp.msg.warn(ix.toString());
 
   return newFile;
 }
