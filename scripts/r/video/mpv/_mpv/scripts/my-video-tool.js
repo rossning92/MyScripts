@@ -85,17 +85,12 @@ function getNewAvailableFile(file) {
 
   var patt = /(.*?)(?:-(\d{1,2}))?\.mp4/g;
   var match = patt.exec(file);
+
   var prefix = match[1];
-  var ix = match[2];
+  var ix = match[2] ? parseInt(match[2]) + 1 : 2;
 
   // Find new unused file name.
   var newFile;
-  if (!ix) {
-    ix = 2;
-  } else {
-    ix = parseInt(ix) + 1;
-  }
-
   while (true) {
     newFile = prefix + "-" + pad(ix.toString()) + ".mp4";
     if (mp.utils.file_info(newFile)) {
