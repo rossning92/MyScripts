@@ -102,6 +102,9 @@ for f in files:
     if w is not None or h is not None:
         im = resize(im, w=w, h=h)
 
+    if "{{_TO_BINARY}}":
+        im = im.convert("1").convert("RGBA")
+
     name, ext = os.path.splitext(f)
     if "{{_OUT_FORMAT}}":
         ext = "." + "{{_OUT_FORMAT}}"

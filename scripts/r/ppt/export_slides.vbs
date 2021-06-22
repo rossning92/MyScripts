@@ -42,7 +42,7 @@ Function ExportSlide(sld)
 End Function
 
 ' Parse arguments
-shouldExportShapes = WScript.Arguments.Named.Exists("s")
+shouldExportShapes = WScript.Arguments.Named.Exists("shape")
 loadFromFile = (Wscript.Arguments.Unnamed.Count = 1)
 sldIndex = WScript.Arguments.Named("i")
 
@@ -69,6 +69,7 @@ If NOT (fso.FolderExists(exportDir)) Then
 End If
 
 If shouldExportShapes Then
+    msgbox "yyo"
     If sldIndex <> "" Then ' Export single slide
         ExportShapes ppt.Slides(CInt(sldIndex))
     Else ' Export all slides
