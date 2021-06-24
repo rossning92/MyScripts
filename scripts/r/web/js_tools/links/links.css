@@ -1,0 +1,19 @@
+#links {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: black;
+  font-family: Monospace;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+#links a {
+  color: black;
+  text-decoration: none;
+}
+
+#links a:hover {
+  color: black;
+}
