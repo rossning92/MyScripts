@@ -161,6 +161,16 @@ def _add_subtitle_clip(start, end, text):
     )
 
 
+def _process_audio_file(file, out_dir="tmp/record"):
+    name_no_ext = os.path.splitext(os.path.basename(file))[0]
+    out_file = out_dir + "/" + name_no_ext + ".wav"
+
+    if file_is_old(file, out_file):
+        process_audio_file(file, out_file)
+
+    return out_file
+
+
 @core.api
 def record(
     f,
@@ -177,7 +187,7 @@ def record(
 
     # Post-process audio
     if postprocess:
-        f = process_audio_file(f, out_dir="tmp/record")
+        f = _process_audio_file(f)
 
     audio(f, t=t, move_playhead=move_playhead, **kwargs)
 
@@ -242,10 +252,16 @@ def record(
 
 
 @core.api
-def audio_gap(duration):
+def audio_gap(duration, bgm_vol=None):
+    if bgm_vol is not None:
+        globals()["bgm_vol"](bgm_vol, t="ae", duration=0.5)
+
     pos_dict["a"] += duration
     pos_dict["ae"] = pos_dict["as"] = pos_dict["a"]
     pos_dict["c"] = pos_dict["a"]
+
+    if bgm_vol is not None:
+        globals()["bgm_vol"](0.05, t="a-0.5", duration=0.5)
 
 
 def _set_vol(vol, duration=0, track=None, t=None):

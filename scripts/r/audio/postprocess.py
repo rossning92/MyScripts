@@ -39,10 +39,21 @@ def _create_dir_if_not_exists(file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
 
-def to_mono(in_file, out_file):
+def to_padded_mono(in_file, out_file, pad_secs=0.3):
     _create_dir_if_not_exists(out_file)
     print(out_file)
-    subprocess.check_call(["sox", in_file, out_file, "channels", "1"])
+    subprocess.check_call(
+        [
+            "sox",
+            in_file,
+            out_file,
+            "channels",
+            "1",
+            "pad",
+            "%g" % pad_secs,
+            "%g" % pad_secs,
+        ]
+    )
 
 
 def loudnorm(in_file, out_file, loudnorm_db=LOUDNORM_DB):
@@ -77,14 +88,14 @@ def filter_human_voice(in_file, out_file):
     )
 
 
-def _process_audio_file(file, out_file):
+def process_audio_file(file, out_file):
     name_no_ext = os.path.splitext(os.path.basename(file))[0]
     out_dir = os.path.dirname(out_file)
 
     # Convert to mono
     in_file = file
     out_file2 = out_dir + "/" + name_no_ext + ".mono.wav"
-    to_mono(in_file, out_file2)
+    to_padded_mono(in_file, out_file2)
 
     if LOUDNORM_DB != 0:
         # Loudnorm
@@ -182,24 +193,4 @@ def dynamic_audio_normalize(file):
             ]
         )
     return out_file
-
-
-def process_audio_file(file, out_dir="tmp"):
-    name_no_ext = os.path.splitext(os.path.basename(file))[0]
-    out_file = out_dir + "/" + name_no_ext + ".wav"
-
-    if file_is_old(file, out_file):
-        _process_audio_file(file, out_file)
-
-    return out_file
-
-
-if __name__ == "__main__":
-    # folder = r"{{_AUDIO_DIR}}"
-    # print("input audio folder: %s" % folder)
-    # chdir(folder)
-
-    f = get_files(cd=True)[0]
-    out = process_audio_file(f)
-    subprocess.call(["ffplay", "-nodisp", out])
 

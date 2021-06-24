@@ -108,6 +108,7 @@ module.exports = {
     add_script_to_package(
         "start", "webpack serve --mode development --devtool inline-source-map --hot",
     )
+    add_script_to_package("build", "webpack")
 
     # webpack_start()
 
