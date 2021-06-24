@@ -12,9 +12,7 @@ test_file = r"{{_TEST_FILE}}"
 ps = None
 last_mtime = 0.0
 
-tmp_dir = os.path.join(tempfile.gettempdir(), "post_process_test")
-os.makedirs(tmp_dir, exist_ok=True)
-os.chdir(tmp_dir)
+os.chdir(os.path.dirname(test_file))
 
 while True:
     mtime = os.path.getmtime(postprocess.__file__)
@@ -26,7 +24,7 @@ while True:
             print("reload module...")
             importlib.reload(postprocess)
 
-            out = postprocess.process_audio_file(test_file, test_file + ".out.wav")
+            out = postprocess.process_audio_file(test_file, "tmp/test.wav")
             ps = subprocess.Popen(["ffplay", "-nodisp", "-loop", "0", out])
         except Exception as ex:
             print(ex)
