@@ -69,7 +69,6 @@ If NOT (fso.FolderExists(exportDir)) Then
 End If
 
 If shouldExportShapes Then
-    msgbox "yyo"
     If sldIndex <> "" Then ' Export single slide
         ExportShapes ppt.Slides(CInt(sldIndex))
     Else ' Export all slides
