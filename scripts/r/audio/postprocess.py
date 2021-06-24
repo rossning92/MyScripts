@@ -8,6 +8,7 @@ import numpy as np
 ALWAYS_GENERATE = False
 
 BORDER_IGNORE = 0.1
+PADDING_SECS = 0.3
 LOUDNORM_DB = -14
 
 
@@ -25,8 +26,7 @@ NORMALIZE_DB = -7.5
 NOISE_GATE_DB = -999
 
 RECORD_MIN_VOLUME_TO_KEEP = 0.05
-
-PADDING = 0.15
+PADDING_SECS = 0.15
 
 
 def rolling_window(a, window):
@@ -39,7 +39,7 @@ def _create_dir_if_not_exists(file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
 
 
-def to_padded_mono(in_file, out_file, pad_secs=0.3):
+def to_padded_mono(in_file, out_file, pad_secs=PADDING_SECS):
     _create_dir_if_not_exists(out_file)
     print(out_file)
     subprocess.check_call(
@@ -115,22 +115,22 @@ def process_audio_file(file, out_file):
     print(out_file2)
     rate, data2 = wavfile.read(in_file)
     border_samples = int(BORDER_IGNORE * rate)
-    data2 = data2[border_samples:-border_samples]
+    # data2 = data2[border_samples:-border_samples]
 
     rate, data = wavfile.read(filtered_voice_file)
-    data = data[border_samples:-border_samples]
+    # data = data[border_samples:-border_samples]
     thres = np.max(np.abs(data)) * RECORD_MIN_VOLUME_TO_KEEP
 
     data0 = data
     keep = np.abs(data0) > thres
 
     keep_indices = np.argwhere(keep == True).flatten()
-    start = max(keep_indices[0] - int(rate * PADDING), 0)
-    end = min(keep_indices[-1] + int(rate * PADDING), data.shape[0])
+    start = max(keep_indices[0] - int(rate * PADDING_SECS), 0)
+    end = min(keep_indices[-1] + int(rate * PADDING_SECS), data.shape[0])
 
     data2 = data2[start:end]
 
-    zeros = np.zeros([int(rate * PADDING)], dtype=data2.dtype)
+    zeros = np.zeros([int(rate * PADDING_SECS)], dtype=data2.dtype)
     data2 = np.concatenate((data2, zeros))
 
     # For visualization
