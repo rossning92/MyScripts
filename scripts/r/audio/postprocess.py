@@ -8,9 +8,10 @@ import numpy as np
 ALWAYS_GENERATE = False
 
 BORDER_IGNORE = 0.1
-PADDING_SECS = 0.3
-LOUDNORM_DB = -14
+PADDING_SECS = 0.15
+MIN_VOLUME_TO_KEEP = 0.05
 
+LOUDNORM_DB = -14
 
 COMPRESSOR_ATTACK = 0.002
 COMPRESSOR_DECAY = 0.085
@@ -21,12 +22,7 @@ COMPRESSOR_GAIN = 5
 EQ_PARAMS = "bass -0 30 equalizer 315 100h -1 equalizer 12105 10k 1"
 EQ_PARAMS = ""
 
-NORMALIZE_DB = -7.5
-
 NOISE_GATE_DB = -999
-
-RECORD_MIN_VOLUME_TO_KEEP = 0.05
-PADDING_SECS = 0.15
 
 
 def rolling_window(a, window):
@@ -119,7 +115,7 @@ def process_audio_file(file, out_file):
 
     rate, data = wavfile.read(filtered_voice_file)
     # data = data[border_samples:-border_samples]
-    thres = np.max(np.abs(data)) * RECORD_MIN_VOLUME_TO_KEEP
+    thres = np.max(np.abs(data)) * MIN_VOLUME_TO_KEEP
 
     data0 = data
     keep = np.abs(data0) > thres
