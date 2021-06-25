@@ -3,7 +3,6 @@ import os
 import subprocess
 import sys
 import traceback
-from unittest import expectedFailure
 
 import _appmanager
 from _shutil import run_elevated
@@ -320,7 +319,7 @@ assoc = {
     ".yaml": ["vscode", "notepad++"],
     ".yml": ["vscode", "notepad++"],
     ".zim": ["vscode", "notepad++"],
-    ".zip": [["run_script", "/r/unzip.py"], "7zFM"],
+    ".zip": ["7zFM"],
     ".zxp": ["vscode", "notepad++"],
     ".gz": ["7zFM"],
     ".usf": ["vscode", "notepad++"],
@@ -360,18 +359,10 @@ def open_with(files, program_id=0):
         raise Exception('Extension "%s" is not supported.' % ext)
 
     program = assoc[ext][program_id]
+    executable = _appmanager.get_executable(program)
+    assert executable is not None
 
-    if type(program) == str:
-        executable = _appmanager.get_executable(program)
-        assert executable is not None
-        args = [executable] + files
-
-    elif type(program) == list:
-        args = program + files
-
-    else:
-        raise Exception("Unsupported program definition.")
-
+    args = [executable] + files
     subprocess.Popen(args, close_fds=True)
 
 
@@ -389,6 +380,7 @@ if __name__ == "__main__":
 
         open_with(files, program_id)
     except Exception as e:
-        traceback.print_exc(file=sys.stdout)
+        # traceback.print_exc(file=sys.stdout)
         print(e)
         input("Press enter to exit...")
+

@@ -106,7 +106,8 @@ module.exports = {
         # pathlib.Path(index_js).touch()
 
     add_script_to_package(
-        "start", "webpack serve --mode development --devtool inline-source-map --hot",
+        "start",
+        "webpack serve --mode development --devtool inline-source-map --hot",
     )
     add_script_to_package("build", "webpack")
 
@@ -196,7 +197,8 @@ render(<App />, root);
             )
 
     add_script_to_package(
-        "client", "webpack serve --mode development --devtool inline-source-map --hot",
+        "client",
+        "webpack serve --mode development --devtool inline-source-map --hot",
     )
 
 
