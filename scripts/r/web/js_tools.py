@@ -401,6 +401,14 @@ def open_vscode():
     open_in_vscode(os.getcwd())
 
 
+@menu_item(key="f")
+def add_fontawesome():
+    add_packages(["@fortawesome/fontawesome-free"])
+    print(
+        "See also: https://fontawesome.com/v5.15/how-to-use/javascript-api/setup/library"
+    )
+
+
 if __name__ == "__main__":
     cd("~")
     project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
