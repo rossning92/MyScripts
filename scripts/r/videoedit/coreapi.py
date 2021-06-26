@@ -254,6 +254,7 @@ def record(
 @core.api
 def audio_gap(duration, bgm_vol=None):
     if bgm_vol is not None:
+        _, prev_vol = get_last_audio_clip(track="bgm").vol_keypoints[-1]
         globals()["bgm_vol"](bgm_vol, t="ae", duration=0.5)
 
     pos_dict["a"] += duration
@@ -261,7 +262,16 @@ def audio_gap(duration, bgm_vol=None):
     pos_dict["c"] = pos_dict["a"]
 
     if bgm_vol is not None:
-        globals()["bgm_vol"](0.05, t="a-0.5", duration=0.5)
+        globals()["bgm_vol"](prev_vol, t="a-0.5", duration=0.5)
+
+
+def get_last_audio_clip(track=None):
+    track_ = datastruct.get_audio_track(track)
+    if len(track_.clips) == 0:
+        print2("WARNING: No audio clip to set volume in track: %s" % track)
+        return
+
+    return track_.clips[-1]
 
 
 def _set_vol(vol, duration=0, track=None, t=None):
@@ -272,22 +282,19 @@ def _set_vol(vol, duration=0, track=None, t=None):
     t = _get_time(t)
 
     print("change vol=%.2f  at=%.2f  duration=%.2f" % (vol, t, duration))
-    track_ = datastruct.get_audio_track(track)
-    if len(track_.clips) == 0:
-        print2("WARNING: No audio clip to set volume in track: %s" % track)
-        return
+    last_audio_clip = get_last_audio_clip(track)
 
-    t_in_clip = t - track_.clips[-1].start
+    t_in_clip = t - last_audio_clip.start
     assert t_in_clip >= 0
 
     # Add keypoints
-    if len(track_.clips[-1].vol_keypoints) > 0:  # has previous keypoint
-        _, prev_vol = track_.clips[-1].vol_keypoints[-1]
-        track_.clips[-1].vol_keypoints.append((t_in_clip, prev_vol))
+    if len(last_audio_clip.vol_keypoints) > 0:  # has previous keypoint
+        _, prev_vol = last_audio_clip.vol_keypoints[-1]
+        last_audio_clip.vol_keypoints.append((t_in_clip, prev_vol))
     else:
         prev_vol = vol
 
-    track_.clips[-1].vol_keypoints.append((t_in_clip + duration, vol))
+    last_audio_clip.vol_keypoints.append((t_in_clip + duration, vol))
 
     return prev_vol
 
