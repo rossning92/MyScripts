@@ -158,7 +158,11 @@ $!`::
 return
 
 $!1::
-    SetWindowPosF("A", 0, 0, WindowDividor, 1)
+    if WinActive("ahk_exe FL64.exe") {
+        SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
+    } else {
+        SetWindowPosF("A", 0, 0, WindowDividor, 1)
+    }
     WinSet, AlwaysOnTop, Off, A
 return
 

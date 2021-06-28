@@ -67,7 +67,8 @@ def revert():
 
 
 def git_push():
-    call_echo("git push -u origin master --force")
+    # --force
+    call_echo("git push -u origin master")
 
 
 def show_git_log():

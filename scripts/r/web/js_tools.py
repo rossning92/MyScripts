@@ -418,6 +418,8 @@ if __name__ == "__main__":
     print("Project dir: %s" % project_dir)
 
     if not exists("package.json"):
+        call_echo("yarn config set init-author-name Ross Ning")
+        call_echo("yarn config set init-author-email rossning92@gmail.com")
         call_echo("yarn init -y")
 
     menu_loop()
