@@ -74,6 +74,7 @@ PKGS = {
         "mongodb",
         "golang",
         "ontopreplica",
+        "docker-desktop",
     ],
 }
 
