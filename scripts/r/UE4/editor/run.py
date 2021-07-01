@@ -18,17 +18,19 @@ cd(r"{{UE_SOURCE}}\Engine\Binaries\Win64")
 
 # set UE-SharedDataCachePath=%DATA_CACHE_DIR%
 # start UE4Editor.exe -ddc=noshared
-try:
-    call_echo("taskkill /im UE4Editor.exe")
-except:
-    pass
 
-print2("Starting UE4Editor...")
 
-args = ["UE4Editor.exe"]
+if os.path.exists("UnrealEditor.exe"):  # UE5
+    call_echo("taskkill /im UnrealEditor.exe", check=False)
+    args = ["UnrealEditor.exe"]
+else:
+    call_echo("taskkill /im UE4Editor.exe", check=False)
+    args = ["UE4Editor.exe"]
+
+
 if uproject_dir:
     args.append(find_file(os.path.join(uproject_dir, "*.uproject")))
 
-
+print2("Starting UE4Editor...")
 start_process(args)
 sleep(2)

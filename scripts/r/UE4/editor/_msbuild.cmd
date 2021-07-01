@@ -21,5 +21,4 @@ exit /b 1
 REM start "msbuild low pri" /low /wait %MSBUILD% %*
 %MSBUILD% %*
 if not %errorlevel%==0 exit /b 1
-
 exit /b 0
