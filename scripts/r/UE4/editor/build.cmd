@@ -1,7 +1,7 @@
 @echo off
 
 if not exist "{{UE_SOURCE}}\UE4.sln" (
-    run_script setup
+    run_script setup.py
 )
 
 taskkill /f /im UE4Editor.exe 2>nul
