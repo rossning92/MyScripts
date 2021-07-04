@@ -11,12 +11,12 @@ EnvSet, PYTHONPATH, %A_ScriptDir%\..\..\..\libs`;%A_ScriptDir%\..\..\..\scripts
     
 F3::
     UpdateExplorerInfo()
-    Run ..\..\..\bin\python36.cmd open_with.py 0
+    Run run_script open_with.py 0
 return
 
 F4::
     UpdateExplorerInfo()
-    Run ..\..\..\bin\python36.cmd open_with.py 1
+    Run run_script open_with.py 1
 return
 
 #if

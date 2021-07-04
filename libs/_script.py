@@ -240,16 +240,21 @@ def get_python_path(script_path):
     script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts/r")
     python_path.append(script_root)
 
-    parent_dir = os.path.dirname(os.path.join(os.getcwd(), script_path))
-    python_path.append(parent_dir)
-    while parent_dir.startswith(script_root):
+    if script_path is not None:
+        parent_dir = os.path.dirname(os.path.join(os.getcwd(), script_path))
         python_path.append(parent_dir)
-        parent_dir = os.path.abspath(parent_dir + "/../")
+        while parent_dir.startswith(script_root):
+            python_path.append(parent_dir)
+            parent_dir = os.path.abspath(parent_dir + "/../")
 
     python_path.append(os.path.dirname(__file__))
 
     return python_path
 
+
+def setup_python_path(script_path=None):
+    python_path = get_python_path(script_path)
+    os.environ["PYTHONPATH"] = os.pathsep.join(python_path)
 
 def wt_wrap_args(
     args,
@@ -620,9 +625,7 @@ class Script:
                 python_file = convert_to_unix_path(python_file, wsl=self.meta["wsl"])
                 python_exec = "python3"
 
-            python_path = get_python_path(script_path)
-
-            env["PYTHONPATH"] = os.pathsep.join(python_path)
+            setup_python_path(script_path)
             # env["PYTHONDONTWRITEBYTECODE"] = "1"
 
             # Conda / venv support
