@@ -126,7 +126,7 @@ function exportVideo(params) {
     args = args.concat(["-ss", params.start.toString(), "-strict", "-2"]);
   }
 
-  if (params.start != null) {
+  if (params.duration != null) {
     args = args.concat(["-t", params.duration.toString()]);
   }
 
@@ -178,9 +178,10 @@ function exportVideo(params) {
     // var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
     var outFile = getNewAvailableFile(currentFile);
     args.push(outFile);
-    mp.utils.subprocess_detached({
-      args: args,
-    });
+    // mp.utils.subprocess_detached({
+    //   args: args,
+    // });
+    mp.command_native({ name: "subprocess", args: args });
   } else {
     mp.set_property_native("pause", true);
 
@@ -415,4 +416,25 @@ mp.add_forced_key_binding("S", "screenshot", function () {
     getBaseName(mp.get_property_native("path")) + "-" + getTimestamp() + ".png";
   mp.commandv("screenshot-to-file", outFile);
   mp.osd_message("Screenshot saved.");
+});
+
+// ---
+
+var cutPoints = [];
+
+mp.add_forced_key_binding("t", "add_cut_point", function () {
+  var t = mp.get_property_native("playback-time");
+  cutPoints.push(t);
+
+  mp.osd_message("CutPoint: " + t.toFixed(3));
+});
+
+mp.add_forced_key_binding("alt+c", "export", function () {
+  var prev = 0;
+  for (var i = 0; i < cutPoints.length; i++) {
+    cur = cutPoints[i];
+    exportVideo({ start: prev, duration: cur - prev, temp: true });
+    prev = cur;
+  }
+  exportVideo({ start: prev, temp: true });
 });

@@ -15,6 +15,7 @@ from _shutil import (
     print2,
     slugify,
 )
+from _script import get_variable, set_variable
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
@@ -158,9 +159,11 @@ if __name__ == "__main__":
     else:
         out_dir = args.out_dir
 
-    name = input("input file name (no ext): ")
+    last_name = get_variable("LAST_SCREENCAP_FILE_NAME")
+    name = input("input file name [%s]: " % str(last_name))
     if not name:
-        sys.exit(0)
+        name = last_name
+    set_variable("LAST_SCREENCAP_FILE_NAME", name)
 
     recorder.file = os.path.join(out_dir, "%s.mp4" % slugify(name))
     recorder.start_record()
