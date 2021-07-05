@@ -22,7 +22,7 @@ def export_slide(file, index, export_shapes=False):
             "/i:%d" % index,
         ]
         if export_shapes:
-            args.append("/s")
+            args.append("/shape")
         subprocess.check_call(args)
 
     return out_file

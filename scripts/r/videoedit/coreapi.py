@@ -604,9 +604,9 @@ def _load_mpy_clip(
         else:
             export_shapes = bool(re.search(r"\boverlay[\\/]", file))
             file = export_slide(file, index=frame, export_shapes=export_shapes)
-            clip = (
-                ImageClip(file).set_duration(DEFAULT_IMAGE_CLIP_DURATION).set_mask(None)
-            )
+            clip = ImageClip(file).set_duration(DEFAULT_IMAGE_CLIP_DURATION)
+            if not export_shapes:
+                clip = clip.set_mask(None)
             clip = update_clip_size(clip)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
