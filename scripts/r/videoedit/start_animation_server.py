@@ -1,7 +1,11 @@
-from _shutil import *
 import argparse
-from pathlib import Path
+import os
+import random
 import signal
+import subprocess
+from pathlib import Path
+
+from _shutil import call_echo, get_files
 
 
 def start_server(file=None, port=None):
@@ -38,13 +42,15 @@ if __name__ == "__main__":
     else:
         file = get_files()[0]
 
-    ps = start_server(file, port=5278)
+    port = random.randint(10000, 20000)
+
+    ps = start_server(file, port=port)
 
     subprocess.call(
         [
             "C:\Program Files (x86)\Chromium\Application\chrome.exe",
             "--user-data-dir=%s" % os.path.join(Path.home(), "movy-chrome-profile"),
-            "http://localhost:5278",
+            "http://localhost:%d" % port,
         ]
     )
 

@@ -181,6 +181,11 @@ $!4::
     WinSet, AlwaysOnTop, Off, A
 return
 
+$!5::
+    SetWindowPos("A", 240, 135, 1440, 810)
+    WinSet, AlwaysOnTop, Off, A
+return
+
 #0::
     CurrentDesktop := 1 - CurrentDesktop
     SwitchDesktopByNumber(CurrentDesktop + 1)
