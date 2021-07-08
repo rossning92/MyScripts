@@ -791,16 +791,22 @@ def _generate_slide(in_file, template, out_file=None):
 def slide(
     s, template, pos="center", name=None, **kwargs,
 ):
-    mkdir("tmp/md")
-    hash = get_hash(s)
-    in_file = "tmp/md/%s.md" % hash
-    out_file = "tmp/md/%s.png" % hash
+    if os.path.exists(s):
+        out_file = "tmp/md/%s.png" % get_hash(s)
+        if file_is_old(s, out_file):
+            _generate_slide(s, template=template, out_file=out_file)
 
-    if not os.path.exists(out_file):
-        with open(in_file, "w", encoding="utf-8") as f:
-            f.write(s)
+    else:
+        mkdir("tmp/md")
+        hash = get_hash(s)
+        in_file = "tmp/md/%s.md" % hash
+        out_file = "tmp/md/%s.png" % hash
 
-        _generate_slide(in_file, template=template, out_file=out_file)
+        if not os.path.exists(out_file):
+            with open(in_file, "w", encoding="utf-8") as f:
+                f.write(s)
+
+            _generate_slide(in_file, template=template, out_file=out_file)
 
     add_video_clip(out_file, pos=pos, **kwargs)
 

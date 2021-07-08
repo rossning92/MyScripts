@@ -1,22 +1,10 @@
-@import "./base_font.css";
+@import "./base.css";
 @import url("https://fonts.googleapis.com/css2?family=Muli&family=Source+Code+Pro&family=Noto+Sans+SC&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Lato&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
 
-body {
-  margin: 0;
-}
-
-#content {
-  display: table-cell;
-  vertical-align: middle;
-  padding: 0.5em;
-  perspective: 1000px;
-  color: white;
-}
-
 :is(h1, h2, h3, h4, h5, h6) {
-  display: table;
+  /* display: table; */
   text-align: center;
   margin: 0 auto -0.02em auto;
   font-weight: normal;
@@ -40,65 +28,4 @@ h2 {
   color: black;
   position: relative;
   background: rgba(126, 214, 223, 0.9);
-}
-
-strong {
-  text-decoration: underline;
-}
-
-pre {
-  display: inline-block;
-  background-color: #09343f;
-  border-radius: 0.2em;
-  font-size: 0.8em;
-  margin: 0;
-  text-align: left;
-  padding: 0.4em;
-}
-
-blockquote {
-  background-color: rgba(0, 0, 0, 0.9);
-  padding: 0.2em 2em;
-  border-radius: 0.2em;
-  color: "#ffffff";
-  font-size: 0.8em;
-}
-
-p {
-  margin: 0;
-  display: table;
-  text-align: center;
-}
-
-.grid-container {
-  display: grid;
-  grid-template-columns: auto auto;
-}
-
-.grid-item {
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.8);
-  padding: 20px;
-  font-size: 30px;
-  text-align: center;
-}
-
-ul > li {
-  text-align: left;
-}
-
-table {
-  background-color: rgba(47, 54, 64, 0.8);
-  border-radius: 0.3em;
-  font-size: 70%;
-  padding: 0.2em;
-}
-th,
-td {
-  padding: 0.2em;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
 }

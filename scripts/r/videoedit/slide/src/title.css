@@ -1,35 +1,61 @@
 @import "./base_font.css";
-@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
 
 body {
   margin: 0;
 }
 
-#content {
+.outer {
   background-color: black;
   color: white;
-  display: table-cell;
-  font-family: "Noto Serif SC", serif;
+  /* display: table-cell; */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* align-items: center; */
+  align-items: center;
+  /* align-items: flex-start; */
+  text-align: center;
+
+  font-family: "Bebas Neue", "Noto Serif SC", serif;
   text-align: center;
   vertical-align: middle;
   min-width: 1920px;
   width: 1920px;
   height: 1080px;
-  background-image: url("./bg-math.png");
+  /* background-image: url("./bg-math.png"); */
   background-size: cover;
 }
 
+.inner {
+  max-width: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 :is(h1, h2, h3, h4, h5, h6) {
-  margin: 0;
-  font-weight: 500;
+  /* margin: 0; */
+  /* font-weight: 500; */
+  /* margin: 0 auto; */
+  margin-top: 0;
+  margin-bottom: 0;
+  text-shadow: 2px 2px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
-  font-size: 128px;
+  background-color: #fc7281;
+  font-size: 2em;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  padding: 0 0.5em;
+  /* border-left: 32px solid #e63946; */
+  /* text-shadow: 2px 2px gray; */
 }
 
 h2 {
-  font-size: 64px;
+  font-weight: 500;
+  font-size: 1.25em;
+  background-color: #457b9d;
+  padding: 0 0.5em;
 }

@@ -50,6 +50,36 @@ function getFileUnderCursor() {
   return filePath;
 }
 
+function startSlideServer(file) {
+  const shellArgs = [
+    "/c",
+    "run_script",
+    "slide/export.js",
+    "-d",
+    "-t",
+    "slide",
+    "-i",
+    file,
+    "||",
+    "pause",
+  ];
+
+  // Close existing terminal.
+  for (const term of vscode.window.terminals) {
+    if (term.name == "SlideServer") {
+      term.dispose();
+    }
+  }
+
+  // Create a new terminal.
+  const terminal = vscode.window.createTerminal({
+    name: "SlideServer",
+    shellPath: "cmd.exe",
+    shellArgs,
+  });
+  terminal.show();
+}
+
 async function openFileUnderCursor() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
@@ -57,6 +87,8 @@ async function openFileUnderCursor() {
   const activeFile = vscode.window.activeTextEditor.document.fileName;
   if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
     startAnimationServer(activeFile);
+  } else if (/slide[\\\/][a-zA-Z0-9-_]+\.md$/.test(activeFile)) {
+    startSlideServer(activeFile);
   } else {
     const file = getFileUnderCursor();
     if (file) {

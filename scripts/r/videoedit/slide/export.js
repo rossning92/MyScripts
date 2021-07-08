@@ -38,7 +38,7 @@ async function captureImage(port) {
 
   if (!dev) {
     // Screenshot DOM element only
-    const element = await page.$("#content");
+    const element = await page.$(".outer");
 
     const outFile = path.resolve(argv["o"]);
     await element.screenshot({ path: outFile, omitBackground: true });
