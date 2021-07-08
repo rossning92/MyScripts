@@ -64,20 +64,7 @@ function startSlideServer(file) {
     "pause",
   ];
 
-  // Close existing terminal.
-  for (const term of vscode.window.terminals) {
-    if (term.name == "SlideServer") {
-      term.dispose();
-    }
-  }
-
-  // Create a new terminal.
-  const terminal = vscode.window.createTerminal({
-    name: "SlideServer",
-    shellPath: "cmd.exe",
-    shellArgs,
-  });
-  terminal.show();
+  runInTerminal("SlideServer", shellArgs);
 }
 
 async function openFileUnderCursor() {
@@ -406,6 +393,23 @@ function writeTempTextFile(text) {
   return file;
 }
 
+function runInTerminal(name, shellArgs) {
+  // Close existing Animation Server terminal.
+  for (const term of vscode.window.terminals) {
+    if (term.name == name) {
+      term.dispose();
+    }
+  }
+
+  // Create a new terminal.
+  const terminal = vscode.window.createTerminal({
+    name,
+    shellPath: "cmd.exe",
+    shellArgs,
+  });
+  terminal.show();
+}
+
 function startAnimationServer(activeFile) {
   const shellArgs = [
     "/c",
@@ -416,20 +420,7 @@ function startAnimationServer(activeFile) {
     "pause",
   ];
 
-  // Close existing Animation Server terminal.
-  for (const term of vscode.window.terminals) {
-    if (term.name == "AnimationServer") {
-      term.dispose();
-    }
-  }
-
-  // Create a new terminal.
-  const terminal = vscode.window.createTerminal({
-    name: "AnimationServer",
-    shellPath: "cmd.exe",
-    shellArgs,
-  });
-  terminal.show();
+  runInTerminal("AnimationServer", shellArgs);
 }
 
 function exportVideo({
