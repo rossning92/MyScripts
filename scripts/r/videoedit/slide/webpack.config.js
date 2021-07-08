@@ -4,6 +4,10 @@ const path = require("path");
 const webpack = require("webpack");
 
 module.exports = ({ template = "markdown", mdFile = "./example.md" }) => {
+  const mdFileDir = path.dirname(path.resolve(mdFile));
+
+  const contentBase = [path.resolve(__dirname, "public"), mdFileDir];
+
   return {
     mode: "development",
     entry: `./src/index.js`,
@@ -20,7 +24,7 @@ module.exports = ({ template = "markdown", mdFile = "./example.md" }) => {
       }),
     ],
     devServer: {
-      contentBase: path.join(__dirname, "public"),
+      contentBase,
       // open: true,
       watchContentBase: true,
       hot: true,

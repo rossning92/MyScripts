@@ -20,9 +20,10 @@ body {
   color: white;
 }
 
+/* 
 strong {
   text-decoration: underline;
-}
+} */
 
 pre {
   display: inline-block;
