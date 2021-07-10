@@ -11,7 +11,11 @@ def start_app(pkg, use_monkey=False):
         ]
         print("> " + " ".join(args))
         with open(os.devnull, "w") as fnull:
-            ret = subprocess.call(args, stdout=fnull, stderr=fnull,)
+            ret = subprocess.call(
+                args,
+                stdout=fnull,
+                stderr=fnull,
+            )
         if ret != 0:
             raise Exception(
                 'Launch package "%s" failed. Please check if it is installed.' % pkg
@@ -242,7 +246,11 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
 def adb_tar(d, out_tar):
     temp_tar = "/data/local/tmp/backup.tar"
     subprocess.call(
-        ["adb", "exec-out", f"tar -cf {temp_tar} {d}",]
+        [
+            "adb",
+            "exec-out",
+            f"tar -cf {temp_tar} {d}",
+        ]
     )
     subprocess.call(["adb", "pull", temp_tar, out_tar])
     subprocess.call(["adb", "shell", f"rm {temp_tar}"])
@@ -321,6 +329,7 @@ def get_prop(name):
 
 def setup_android_env(ndk_version=None):
     env = os.environ
+    path = []
 
     # ANDROID_HOME
     android_home = get_adk_path()
@@ -328,6 +337,12 @@ def setup_android_env(ndk_version=None):
         raise Exception("Cannot find ANDROID_HOME")
     print2("ANDROID_HOME: %s" % android_home)
     env["ANDROID_HOME"] = android_home
+    path += [
+        env["ANDROID_HOME"] + "/platform-tools",
+        env["ANDROID_HOME"] + "/tools",
+        env["ANDROID_HOME"] + "/tools/bin",
+        env["ANDROID_HOME"] + "/ndk-bundle",
+    ]
 
     # NDK
     ndk_path = None
@@ -355,14 +370,7 @@ def setup_android_env(ndk_version=None):
         env["NDK_ROOT"] = ndk_path
 
         print(open(ndk_path + "/source.properties").read())
-
-    # Setup PATH
-    path = [
-        env["ANDROID_HOME"] + "/platform-tools",
-        env["ANDROID_HOME"] + "/tools",
-        env["ANDROID_HOME"] + "/tools/bin",
-        env["ANDROID_HOME"] + "/ndk-bundle",
-    ]
+        path.append(ndk_path)
 
     # JDK
     jdk_list = sorted(glob.glob(r"C:\Program Files\Java\jdk*"))
