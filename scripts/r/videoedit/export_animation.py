@@ -531,8 +531,6 @@ def load_config():
 
 
 if __name__ == "__main__":
-    out_filename = "tmp/out/" + get_time_str()
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--stdin", default=False, action="store_true")
     parser.add_argument("--proj_dir", type=str, default=None)
@@ -545,6 +543,11 @@ if __name__ == "__main__":
     parser.add_argument("--preview", action="store_true", default=False)
 
     args = parser.parse_args()
+
+    if args.preview:
+        out_filename = "tmp/out/" + get_time_str()
+    else:
+        out_filename = "export/" + get_time_str()
 
     if args.proj_dir is not None:
         os.chdir(args.proj_dir)
