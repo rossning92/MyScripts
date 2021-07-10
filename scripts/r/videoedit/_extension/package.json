@@ -58,6 +58,10 @@
         "title": "VideoEdit: Show Stats"
       },
       {
+        "command": "videoEdit.createPowerpoint",
+        "title": "VideoEdit: Create Powerpoint"
+      },
+      {
         "command": "videoEdit.createSlide",
         "title": "VideoEdit: Create Slide"
       },

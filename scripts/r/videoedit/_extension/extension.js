@@ -536,27 +536,44 @@ async function insertAllClipsInFolder() {
   });
 }
 
-function registerCreateSlideCommand() {
-  vscode.commands.registerCommand("videoEdit.createSlide", async () => {
-    const fileName = await vscode.window.showInputBox({
-      placeHolder: "slide-file-name",
-    });
-    if (!fileName) {
-      return;
-    }
-
-    const outFile = path.resolve(getActiveDir(), "slide", fileName + ".pptx");
-    const outDir = path.resolve(getActiveDir(), "slide");
-    if (!fs.existsSync(outDir)) {
-      fs.mkdirSync(outDir);
-    }
+function registerCreatePowerpointCommand() {
+  vscode.commands.registerCommand("videoEdit.createPowerpoint", async () => {
+    const filePath = await promptFileName({ ext: ".pptx", subdir: "slide" });
 
     cp.spawn("cscript", [
       path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
-      outFile,
+      path.resolve(getActiveDir(), filePath),
     ]);
 
-    insertText(`{{ clip('slide/${fileName}.pptx') }}`);
+    insertText(`{{ clip('${filePath}') }}`);
+  });
+}
+
+async function promptFileName({ ext, subdir }) {
+  const fileName = await vscode.window.showInputBox({
+    placeHolder: "file-name",
+  });
+  if (!fileName) {
+    return;
+  }
+
+  const outDir = path.resolve(getActiveDir(), subdir);
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir);
+  }
+
+  const outFile = `${subdir}/${fileName + ext}`;
+  return outFile;
+}
+
+function registerCreateSlideCommand() {
+  vscode.commands.registerCommand("videoEdit.createSlide", async () => {
+    createNewDocument({
+      dir: "slide",
+      func: "slide",
+      extension: ".md",
+      extraParams: ", t='as', template='slide'",
+    });
   });
 }
 
@@ -577,9 +594,10 @@ function registerRenameFileCommand() {
 async function createNewDocument({
   dir,
   func,
-  fileNamePlaceHolder,
+  fileNamePlaceHolder = "file-name",
   initContent = "",
   extension = "",
+  extraParams = "",
 } = {}) {
   const animationDir = path.resolve(getActiveDir(), dir);
 
@@ -599,7 +617,7 @@ async function createNewDocument({
   const filePath = path.resolve(animationDir, fileName + extension);
   fs.writeFileSync(filePath, initContent);
 
-  insertText(`{{ ${func}('${dir}/${fileName}${extension}') }}`);
+  insertText(`{{ ${func}('${dir}/${fileName}${extension}'${extraParams}) }}`);
 
   const document = await vscode.workspace.openTextDocument(filePath);
   await vscode.window.showTextDocument(document);
@@ -659,6 +677,7 @@ function activate(context) {
     });
   });
 
+  registerCreatePowerpointCommand();
   registerCreateSlideCommand();
   registerRenameFileCommand();
   registerAutoComplete(context);
