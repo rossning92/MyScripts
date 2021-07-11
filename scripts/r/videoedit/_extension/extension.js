@@ -568,12 +568,14 @@ async function promptFileName({ ext, subdir }) {
 
 function registerCreateSlideCommand() {
   vscode.commands.registerCommand("videoEdit.createSlide", async () => {
-    createNewDocument({
+    const file = await createNewDocument({
       dir: "slide",
       func: "slide",
       extension: ".md",
       extraParams: ", t='as', template='slide'",
     });
+
+    startSlideServer(file);
   });
 }
 
@@ -621,6 +623,8 @@ async function createNewDocument({
 
   const document = await vscode.workspace.openTextDocument(filePath);
   await vscode.window.showTextDocument(document);
+
+  return filePath;
 }
 
 function activate(context) {
