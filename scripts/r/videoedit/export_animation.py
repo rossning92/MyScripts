@@ -502,6 +502,7 @@ def _show_stats(s):
     total = 0
 
     def parse_line(line):
+        print(line)
         nonlocal total
         total += len(line)
 
@@ -539,7 +540,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--remove_unused_recordings", action="store_true", default=False
     )
-    parser.add_argument("--show_stats", action="store_true", default=False)
+    parser.add_argument("--stat", action="store_true", default=False)
     parser.add_argument("--preview", action="store_true", default=False)
 
     args = parser.parse_args()
@@ -585,7 +586,7 @@ if __name__ == "__main__":
     if args.remove_unused_recordings:
         ignore_undefined = True
         _remove_unused_recordings(s)
-    elif args.show_stats:
+    elif args.stat:
         ignore_undefined = True
         _show_stats(s)
     else:

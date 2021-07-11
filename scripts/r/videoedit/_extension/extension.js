@@ -664,7 +664,7 @@ function activate(context) {
     insertAllClipsInFolder
   );
 
-  vscode.commands.registerCommand("videoEdit.removeUnusedRecordings", () => {
+  vscode.commands.registerCommand("videoEdit.purgeFiles", () => {
     exportVideo({
       selectedText: false,
       extraArgs: ["--audio_only", "--remove_unused_recordings"],
@@ -673,7 +673,7 @@ function activate(context) {
 
   vscode.commands.registerCommand("videoEdit.showStats", () => {
     exportVideo({
-      extraArgs: ["--show_stats"],
+      extraArgs: ["--stat"],
     });
   });
 

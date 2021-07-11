@@ -1,5 +1,7 @@
-from _appmanager import *
-from _shutil import *
+import os
+
+from _appmanager import get_executable
+from _shutil import call2, get_files, mkdir, shell_open
 
 files = get_files(cd=True)
 

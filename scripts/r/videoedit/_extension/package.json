@@ -50,8 +50,8 @@
         "title": "VideoEdit: Insert All Clips In Folder"
       },
       {
-        "command": "videoEdit.removeUnusedRecordings",
-        "title": "VideoEdit: Remove Unused Recordings"
+        "command": "videoEdit.purgeFiles",
+        "title": "VideoEdit: Purge Files"
       },
       {
         "command": "videoEdit.showStats",

@@ -92,8 +92,6 @@ def _try_generate_tts():
 
 @core.on_api
 def on_api_(func_name):
-    print("%s()" % func_name)
-
     if func_name != "record":
         _try_generate_tts()
     else:
