@@ -109,7 +109,12 @@ $F1::
 return
 
 #v::
-    ActivateWindowByTitle("ahk_exe code.exe")
+    if not WinExist("ahk_exe code.exe") {
+        EnvGet, LocalAppData, LocalAppData
+        Run %LocalAppData%\Programs\Microsoft VS Code\Code.exe
+    } else {
+        ActivateWindowByTitle("ahk_exe code.exe")
+    }
 return
 
 #Left::

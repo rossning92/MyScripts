@@ -349,6 +349,7 @@ def add_typescript():
                 "compilerOptions": {
                     "outDir": "./dist/",
                     "noImplicitAny": True,
+                    "removeComments": True,
                     "module": "es6",
                     "target": "es5",
                     "jsx": "react",
