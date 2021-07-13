@@ -160,6 +160,9 @@ def draw_text(
     elif align == "topLeft":
         x = box[0] + PADDING
         y = box[1] + PADDING
+    elif align == "bottom":
+        x = box[0] + (box[2] - w) / 2
+        y = box[1] + box[3] - h * 1.2
     else:  # center
         x = box[0] + (box[2] - w) / 2
         y = box[1] + (box[3] - h) / 2
@@ -172,6 +175,15 @@ def draw_text(
     draw.multiline_text((x, y), text, font=font, fill=font_color, align="center")
 
     del draw
+
+
+def add_margin(im, top=0, right=0, bottom=0, left=0, color="black"):
+    width, height = im.size
+    new_width = width + right + left
+    new_height = height + top + bottom
+    result = Image.new(im.mode, (new_width, new_height), color)
+    result.paste(im, (left, top))
+    return result
 
 
 def combine_images(
@@ -223,6 +235,10 @@ def combine_images(
 
     else:
         raise Exception("`image_files` and `images` cannot be None at the same time.")
+
+    # Add margins
+    if draw_label:
+        imgs = [add_margin(im, bottom=30) for im in imgs]
 
     if not cols:
         cols = math.ceil(math.sqrt(len(imgs)))
