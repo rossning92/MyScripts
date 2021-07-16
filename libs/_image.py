@@ -198,6 +198,7 @@ def combine_images(
     gif_duration=500,
     generate_atlas=True,
     generate_gif=True,
+    generate_vid=True,
     draw_label=True,
     labels=None,
     label_align="top",
@@ -208,6 +209,7 @@ def combine_images(
     col_major_order=False,
     font_scale=1.0,
 ):
+
     file_list = None
     if image_files:
         if type(image_files) == list:
@@ -332,9 +334,18 @@ def combine_images(
                 loop=0,
             )  # Repeat forever
 
-    import numpy
+        if generate_vid:
+            from _video import make_video
 
-    return numpy.array(im_combined)
+            imgs = [np.array(x.convert("RGB")) for x in imgs]
+            make_video(
+                imgs,
+                fps=1000 / gif_duration,
+                out_file=out_file + ".mp4",
+                format="rgb24",
+            )
+
+    return np.array(im_combined)
 
 
 def parse_file_name(s):

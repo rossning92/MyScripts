@@ -34,9 +34,17 @@ if __name__ == "__main__":
                     "command": "markdown.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
-                {"key": "shift+alt+r", "command": "revealFileInOS",},
+                {
+                    "key": "shift+alt+r",
+                    "command": "revealFileInOS",
+                },
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
+                {
+                    "key": "alt+l",
+                    "command": "markdown.extension.editing.toggleList",
+                    "when": "editorTextFocus && !editorReadonly && editorLangId == 'markdown'",
+                },
             ],
             f,
             indent=4,

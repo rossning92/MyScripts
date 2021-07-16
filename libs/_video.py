@@ -4,6 +4,7 @@ import shlex
 import sys
 import glob
 from _shutil import get_temp_file_name
+import numpy as np
 
 
 def generate_video_matrix(
