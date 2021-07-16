@@ -2,7 +2,7 @@ import json
 import os
 import threading
 
-from _code import patch_code, prepend_line
+from _code import patch_code, prepend_line, append_code, prepend_code
 from _editor import open_in_vscode
 from _shutil import call_echo, cd, exists, menu_item, menu_loop, mkdir, yes, save_json
 from _template import render_template_file
@@ -43,7 +43,7 @@ def add_packages(packages, dev=False):
 
 
 @menu_item(key="w")
-def add_webpack(index_js="src/index.js"):
+def add_webpack(index_js="src/index.js", build_dir="docs"):
     WEBPACK_CONFIG = "webpack.config.js"
 
     add_packages(
@@ -63,14 +63,14 @@ const path = require('path');
 module.exports = {
   entry: './%s',
   output: {
-    path: path.resolve(__dirname, './dist'),
+    path: path.resolve(__dirname, './%s'),
     filename: 'index_bundle.js'
   },
   plugins: [
     new HtmlWebpackPlugin(),
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'dist'),
+    contentBase: path.join(__dirname, '%s'),
     open: true,
     port: 3000,
     proxy: {
@@ -98,7 +98,7 @@ module.exports = {
   }
 };
 """
-                % (index_js)
+                % (index_js, build_dir, build_dir)
             )
 
     if not os.path.exists(index_js):
@@ -106,8 +106,7 @@ module.exports = {
         # pathlib.Path(index_js).touch()
 
     add_script_to_package(
-        "start",
-        "webpack serve --mode development --devtool inline-source-map --hot",
+        "start", "webpack serve --mode development --devtool inline-source-map --hot",
     )
     add_script_to_package("build", "webpack")
 
@@ -197,8 +196,7 @@ render(<App />, root);
             )
 
     add_script_to_package(
-        "client",
-        "webpack serve --mode development --devtool inline-source-map --hot",
+        "client", "webpack serve --mode development --devtool inline-source-map --hot",
     )
 
 
@@ -331,11 +329,16 @@ mongoose
 
 @menu_item(key="3")
 def add_threejs():
-    add_packages(["three"])
+    add_packages(["three", "@types/three"])
 
     os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
     if os.path.exists(INDEX_JS) and yes("overwrite %s" % INDEX_JS):
         render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
+
+
+@menu_item(key="T")
+def add_tweakpane():
+    add_packages(["tweakpane"])
 
 
 @menu_item(key="t")
@@ -358,6 +361,24 @@ def add_typescript():
                 }
             },
         )
+
+    append_code(
+        "webpack.config.js",
+        "rules: [",
+        """{
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        },""",
+    )
+
+    prepend_code(
+        "webpack.config.js",
+        "output: {",
+        """resolve: {
+          extensions: ['.tsx', '.ts', '.js'],
+        },""",
+    )
 
 
 @menu_item(key="M")
@@ -412,6 +433,18 @@ def add_fontawesome():
     )
 
 
+@menu_item(key="F")
+def add_face_landmark_detection():
+    add_packages(
+        [
+            "@tensorflow-models/face-landmarks-detection",
+            "@tensorflow/tfjs-backend-webgl",
+            "@tensorflow/tfjs-converter",
+            "@tensorflow/tfjs-core",
+        ]
+    )
+
+
 if __name__ == "__main__":
     cd("~")
     project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
@@ -419,7 +452,7 @@ if __name__ == "__main__":
     print("Project dir: %s" % project_dir)
 
     if not exists("package.json"):
-        call_echo("yarn config set init-author-name Ross Ning")
+        call_echo('yarn config set init-author-name "Ross Ning"')
         call_echo("yarn config set init-author-email rossning92@gmail.com")
         call_echo("yarn init -y")
 

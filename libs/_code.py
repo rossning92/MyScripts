@@ -9,7 +9,7 @@ def _revert_file(file):
 
 
 def patch_code(
-    file, patt, code, mode="replace", use_regex=True, revert_file=False, count=0
+    file, patt, code, mode="replace", use_regex=False, revert_file=False, count=0
 ):
     file = os.path.realpath(file)
 
@@ -54,18 +54,16 @@ def patch_code(
     open(file, "w", newline="\n").write(s)
 
 
-def append_code(file, patt, code, revert_file=True):
-    patch_code(file, patt, code, mode="after", revert_file=revert_file)
+def append_code(file, patt, code, **kwargs):
+    patch_code(file, patt, code, mode="after", **kwargs)
 
 
-def prepend_code(file, patt, code):
-    patch_code(file, patt, code, mode="before")
+def prepend_code(file, patt, code, **kwargs):
+    patch_code(file, patt, code, mode="before", **kwargs)
 
 
-def replace_code(file, patt, code, revert_file=True, use_regex=False):
-    patch_code(
-        file, patt, code, mode="replace", revert_file=revert_file, use_regex=use_regex
-    )
+def replace_code(file, patt, code, **kwargs):
+    patch_code(file, patt, code, mode="replace", **kwargs)
 
 
 def read_source(f):
