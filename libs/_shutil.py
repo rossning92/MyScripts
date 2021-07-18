@@ -361,7 +361,7 @@ def download(url, filename=None, redownload=False):
     return filename
 
 
-def copy(src, dst):
+def copy(src, dst, overwrite=False):
     # Create dirs if not exists
     dir_name = os.path.dirname(dst)
     if dir_name and not exists(dir_name):
@@ -374,8 +374,9 @@ def copy(src, dst):
             print("%s => %s" % (src, dst))
 
     elif os.path.isfile(src):
-        shutil.copy2(src, dst)
-        print("%s => %s" % (src, dst))
+        if overwrite or not os.path.exists(dst):
+            shutil.copy2(src, dst)
+            print("%s => %s" % (src, dst))
 
     else:
         file_list = glob.glob(src)

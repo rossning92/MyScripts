@@ -5,7 +5,7 @@ from distutils.dir_util import copy_tree
 
 from _code import patch_code, prepend_line, append_code, prepend_code
 from _editor import open_in_vscode
-from _shutil import call_echo, cd, exists, mkdir, yes, save_json
+from _shutil import call_echo, cd, exists, mkdir, yes, save_json, copy
 from _template import render_template_file
 from _term import Menu
 
@@ -295,13 +295,22 @@ mongoose
 
 @menu.item()
 def add_threejs():
-    INDEX_JS = "src/hello-threejs.js"
+    INDEX_JS = "src/hello-three.js"
 
     add_packages(["three", "@types/three"])
 
     os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
     if not os.path.exists(INDEX_JS):
         render_template_file(SCRIPT_ROOT + "/js_tools/hello-three.js", INDEX_JS)
+
+    add_links()
+    copy(SCRIPT_ROOT + "/js_tools/main.css", "src/main.css", overwrite=False)
+    write_file(
+        "src/index.js",
+        """import "./hello-three";
+import "./links/links";
+import "./main.css";""",
+    )
 
 
 @menu.item()
