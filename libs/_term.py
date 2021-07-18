@@ -132,8 +132,6 @@ class Menu:
         self.height = -1
         self.stdscr = stdscr
 
-        # self.exec()
-
     def item(self, name=None):
         def decorator(func):
             nonlocal name
@@ -158,6 +156,7 @@ class Menu:
         self.stdscr = stdscr
         init_curses(stdscr)
         self.exec_()
+        self.stdscr = None
 
     def exec_(self):
         self.on_main_loop()
@@ -258,9 +257,6 @@ class Menu:
         return False
 
     def on_enter_pressed(self):
-        idx = self.get_selected_index()
-        if idx >= 0 and idx < len(self.on_items):
-            self.on_items[idx]()
         self.close()
 
     def on_tab_pressed(self):
@@ -277,9 +273,15 @@ class Menu:
 
     def loop(self):
         while True:
+            self.closed = False
             self.exec()
-            if self.get_selected_index() < 0:
+
+            idx = self.get_selected_index()
+            if idx < 0:
                 break
+
+            if idx >= 0 and idx < len(self.on_items):
+                self.on_items[idx]()
 
             time.sleep(1)
 
