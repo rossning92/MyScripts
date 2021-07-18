@@ -343,7 +343,10 @@ def _add_audio_clip(
     clip_info.mpy_clip = _create_audio_file_clip(file)
 
     if subclip is not None:
-        clip_info.subclip = subclip
+        if isinstance(subclip, (int, float)):
+            clip_info.subclip = (subclip, clip_info.mpy_clip.duration)
+        else:
+            clip_info.subclip = subclip
     else:
         clip_info.subclip = None
 
