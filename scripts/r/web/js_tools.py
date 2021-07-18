@@ -1,6 +1,7 @@
 import json
 import os
 import threading
+from distutils.dir_util import copy_tree
 
 from _code import patch_code, prepend_line, append_code, prepend_code
 from _editor import open_in_vscode
@@ -60,51 +61,11 @@ def add_webpack(index_js="src/index.js", build_dir="docs"):
     add_packages(["style-loader", "css-loader", "file-loader"], dev=True)
 
     if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
-        with open(WEBPACK_CONFIG, "w") as f:
-            f.write(
-                """const HtmlWebpackPlugin = require('html-webpack-plugin');
-const path = require('path');
-
-module.exports = {
-  entry: './%s',
-  output: {
-    path: path.resolve(__dirname, './%s'),
-    filename: 'index_bundle.js'
-  },
-  plugins: [
-    new HtmlWebpackPlugin(),
-  ],
-  devServer: {
-    contentBase: path.join(__dirname, '%s'),
-    open: true,
-    port: 3000,
-    proxy: {
-      "/api": "http://localhost:8080"
-    },
-    watchContentBase: true,
-    hot: true,
-  },
-  module: {
-    rules: [
-      // {
-      //   test: /\.js$/,
-      //   exclude: /node_modules/,
-      //   use: 'babel-loader'
-      // },
-      {
-        test: /\.css$/,
-        use: ["style-loader", "css-loader"],
-      },
-      {
-        test: /\.(woff|woff2|ttf|eot)$/,
-        use: "file-loader?name=fonts/[name].[ext]!static",
-      },
-    ]
-  }
-};
-"""
-                % (index_js, build_dir, build_dir)
-            )
+        render_template_file(
+            SCRIPT_ROOT + "/js_tools/webpack.config.js",
+            WEBPACK_CONFIG,
+            context={"index_js": index_js, "build_dir": build_dir},
+        )
 
     if not os.path.exists(index_js):
         os.makedirs(os.path.dirname(index_js), exist_ok=True)
@@ -340,7 +301,7 @@ def add_threejs():
 
     os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
     if not os.path.exists(INDEX_JS):
-        render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
+        render_template_file(SCRIPT_ROOT + "/js_tools/hello-three.js", INDEX_JS)
 
 
 @menu.item()
@@ -452,6 +413,11 @@ def add_face_landmark_detection():
             "@tensorflow/tfjs-core",
         ]
     )
+
+
+@menu.item()
+def add_links():
+    copy_tree(SCRIPT_ROOT + "/js_tools/links", "src/links")
 
 
 if __name__ == "__main__":
