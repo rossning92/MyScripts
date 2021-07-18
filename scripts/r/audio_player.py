@@ -53,3 +53,4 @@ class AudioFileMenu(Menu):
 
 
 w = AudioFileMenu(items=files)
+w.exec()

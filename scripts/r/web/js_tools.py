@@ -4,8 +4,10 @@ import threading
 
 from _code import patch_code, prepend_line, append_code, prepend_code
 from _editor import open_in_vscode
-from _shutil import call_echo, cd, exists, menu_item, menu_loop, mkdir, yes, save_json
+from _shutil import call_echo, cd, exists, mkdir, yes, save_json
 from _template import render_template_file
+from _term import Menu
+
 
 OVERWRITE = bool("{{_OVERWRITE}}")
 
@@ -14,6 +16,9 @@ SERVER_INDEX_JS = "src/server/index.js"
 MODEL_DIR = "src/server/models"
 INDEX_JS = "src/index.js"
 SCRIPT_ROOT = os.getcwd()
+
+
+menu = Menu()
 
 
 def write_file(file, content, overwrite=False):
@@ -42,7 +47,7 @@ def add_packages(packages, dev=False):
                 call_echo(["yarn", "add", pkg])
 
 
-@menu_item(key="w")
+@menu.item()
 def add_webpack(index_js="src/index.js", build_dir="docs"):
     WEBPACK_CONFIG = "webpack.config.js"
 
@@ -134,7 +139,7 @@ def add_script_to_package(name, script):
         json.dump(data, f, indent=2)
 
 
-@menu_item(key="r")
+@menu.item()
 def add_react(index_js=REACT_INDEX_JS):
     add_webpack(index_js=index_js)
 
@@ -200,7 +205,7 @@ render(<App />, root);
     )
 
 
-@menu_item(key="1")
+@menu.item()
 def add_MERN_stack():
     add_react()
     add_express()
@@ -213,12 +218,12 @@ def add_MERN_stack():
     call_echo("npm run dev")
 
 
-@menu_item(key="d")
+@menu.item()
 def add_dat_gui():
     add_packages(["dat.gui"])
 
 
-@menu_item(key="p")
+@menu.item()
 def add_p5(index_js="src/index.js"):
     add_packages(["p5"])
     add_packages(["@types/matter-js"], dev=True)
@@ -249,7 +254,7 @@ new p5(sketch);
             f.write(index_js)
 
 
-@menu_item(key="b")
+@menu.item()
 def add_bootstrap():
     add_packages(["react-bootstrap", "bootstrap"])
 
@@ -257,7 +262,7 @@ def add_bootstrap():
     prepend_line(REACT_INDEX_JS, "import 'bootstrap/dist/css/bootstrap.min.css';")
 
 
-@menu_item(key="e")
+@menu.item()
 def add_express():
     add_packages(["express"])
     add_packages(["nodemon"], dev=True)  # Monitor js changes and and hot reload
@@ -286,7 +291,7 @@ app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${proc
             )
 
 
-@menu_item(key="m")
+@menu.item()
 def add_mongodb():
     add_packages(["mongoose"])
 
@@ -327,7 +332,7 @@ mongoose
     )
 
 
-@menu_item(key="3")
+@menu.item()
 def add_threejs():
     add_packages(["three", "@types/three"])
 
@@ -336,12 +341,12 @@ def add_threejs():
         render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
 
 
-@menu_item(key="T")
+@menu.item()
 def add_tweakpane():
     add_packages(["tweakpane"])
 
 
-@menu_item(key="t")
+@menu.item()
 def add_typescript():
     add_packages(["typescript", "ts-loader"], dev=True)
 
@@ -381,7 +386,7 @@ def add_typescript():
     )
 
 
-@menu_item(key="M")
+@menu.item()
 def add_matterjs(index_js="src/index.js"):
     add_packages(["matter-js"])
     add_packages(["@types/matter-js"])
@@ -420,20 +425,22 @@ Runner.run(runner, engine);
     )
 
 
-@menu_item(key="v")
+@menu.item()
 def open_vscode():
     open_in_vscode(os.getcwd())
 
 
-@menu_item(key="f")
+@menu.item()
 def add_fontawesome():
-    add_packages(["@fortawesome/fontawesome-free"])
+    add_packages(
+        ["@fortawesome/fontawesome-svg-core", "@fortawesome/free-brands-svg-icons",]
+    )
     print(
         "See also: https://fontawesome.com/v5.15/how-to-use/javascript-api/setup/library"
     )
 
 
-@menu_item(key="F")
+@menu.item()
 def add_face_landmark_detection():
     add_packages(
         [
@@ -456,4 +463,4 @@ if __name__ == "__main__":
         call_echo("yarn config set init-author-email rossning92@gmail.com")
         call_echo("yarn init -y")
 
-    menu_loop()
+    menu.loop()

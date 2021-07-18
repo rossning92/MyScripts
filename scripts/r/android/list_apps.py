@@ -7,7 +7,7 @@ s = subprocess.check_output("adb shell pm list packages").decode()
 s = s.replace("package:", "")
 lines = s.splitlines()
 lines = sorted(lines)
-i = Menu(items=lines).get_selected_index()
+i = Menu(items=lines).exec()
 if i == -1:
     sys.exit(1)
 
@@ -20,7 +20,7 @@ opt = [
     "backup",
 ]
 
-i = Menu(items=opt).get_selected_index()
+i = Menu(items=opt).exec()
 if i == -1:
     sys.exit(1)
 

@@ -1,9 +1,9 @@
-import sys
 import subprocess
-import threading
-from _shutil import get_temp_file_name, getch, get_files, move_file
-from _video import ffmpeg
+import sys
+
+from _shutil import get_files, get_temp_file_name, move_file
 from _term import Menu
+from _video import ffmpeg
 
 
 def edit_video(file):
@@ -35,7 +35,7 @@ def edit_video(file):
                 "crop left 1920x1080",
                 "scale 1.5x",
             ]
-        ).get_selected_index()
+        ).exec()
 
         if i == 0:
             vfilter("crop=1920:1080:0:0")

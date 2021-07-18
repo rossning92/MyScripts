@@ -12,7 +12,7 @@ keywords = [x.split("|")[0] for x in lines]
 completion = [x.split("|")[-1] for x in lines]
 
 w = Menu(items=keywords)
-if w.get_selected_index() < -1:
+if w.exec() < -1:
     sys.exit(0)
 
 set_clip(completion[w.get_selected_index()])

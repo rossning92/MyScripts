@@ -96,7 +96,7 @@ if __name__ == "__main__":
     pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
         set([app for cate in PKGS.values() for app in cate])
     )
-    idx = Menu(items=pkg_list).get_selected_index()
+    idx = Menu(items=pkg_list).exec()
     if idx < 0:
         sys.exit(1)
 

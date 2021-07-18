@@ -31,7 +31,9 @@ def grep(src_dir, exclude=[]):
 
     while True:
         history = load_json("grep_code.json", default=[])
-        input_str = Menu(items=history).get_text()
+        w = Menu(items=history)
+        w.exec()
+        input_str = w.get_text()
         if not input_str:
             continue
 

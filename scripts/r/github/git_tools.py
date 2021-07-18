@@ -66,9 +66,11 @@ def revert():
     call_echo("git reset HEAD --hard")
 
 
-def git_push():
-    # --force
-    call_echo("git push -u origin master")
+def git_push(force=False):
+    args = "git push -u origin master"
+    if force:
+        args += " --force"
+    call_echo(args)
 
 
 def show_git_log():
@@ -183,18 +185,21 @@ if __name__ == "__main__":
             create_bundle()
         elif ch == "A":
             commit(amend=True)
-            git_push()
-            # call_echo("git push -u origin master --force")
+            git_push(force=True)
         elif ch == "P":
-            git_push()
+            try:
+                git_push()
+            except subprocess.CalledProcessError:
+                if yes("Force push?"):
+                    git_push(force=True)
         elif ch == "p":
             call_echo("git pull")
         elif ch == "R":
             revert()
         elif ch == "r":
-            f = input("Input file to revert: ")
-            if f:
-                call_echo("git checkout %s" % f)
+            file = input("Input file to revert: ")
+            if file:
+                call_echo("git checkout %s" % file)
         elif ch == "d":
             call_echo("git diff")
         elif ch == "`":

@@ -1,6 +1,5 @@
-import sys
 import os
-import re
+import sys
 import time
 import traceback
 
@@ -8,11 +7,31 @@ SCRIPT_ROOT = os.path.realpath(os.path.dirname(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
-import run_python
-from _script import *
-from _term import *
-from _template import render_template_file
+import curses
+import json
+import platform
+import subprocess
 
+import run_python
+from _script import (
+    get_all_script_access_time,
+    get_all_variables,
+    get_data_dir,
+    get_script_variables,
+    get_variable_file,
+    is_instance_running,
+    load_scripts,
+    update_script_acesss_time,
+)
+from _shutil import (
+    add_to_path,
+    get_ahk_exe,
+    refresh_env_vars,
+    setup_nodejs,
+    update_env_var_explorer,
+)
+from _template import render_template_file
+from _term import Menu, init_curses
 
 GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 
@@ -164,7 +183,7 @@ def get_variable_str_list(vars, var_names):
     return result
 
 
-class VariableEditingMenu(Menu):
+class VariableWindow(Menu):
     def __init__(self, stdscr, script):
         self.vars = get_all_variables()
         self.var_names = sorted(script.get_variable_names())
@@ -191,7 +210,7 @@ class VariableEditingMenu(Menu):
     def edit_variable(self):
         index = self.get_selected_index()
         var_name = self.var_names[index]
-        VariableEditWindow(self.stdscr, self.vars, var_name)
+        VariableEditWindow(self.stdscr, self.vars, var_name).exec()
         self.update_items()
         self.input_.clear()
 
@@ -298,7 +317,7 @@ class MainWindow(Menu):
         elif ch == ord("\t"):
             script = self.get_selected_text()
             if script is not None:
-                w = VariableEditingMenu(self.stdscr, script)
+                w = VariableWindow(self.stdscr, script).exec()
                 if w.enter_pressed:
                     self.run_selected_script()
                 return True
@@ -347,7 +366,7 @@ class MainWindow(Menu):
 
 def curse_main(stdscr):
     init_curses(stdscr)
-    MainWindow(stdscr)
+    MainWindow(stdscr).exec()
 
 
 def init():

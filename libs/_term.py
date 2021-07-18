@@ -124,6 +124,7 @@ class Menu:
     def __init__(self, stdscr=None, items=[], label=">", text=""):
         self.input_ = InputWidget(label=label, text=text)
         self.items = items
+        self.on_items = []
         self.closed = False
         self.matched_item_indices = []
         self.selected_row = 0
@@ -131,13 +132,27 @@ class Menu:
         self.height = -1
         self.stdscr = stdscr
 
-        self.exec()
+        # self.exec()
+
+    def item(self, name=None):
+        def decorator(func):
+            nonlocal name
+            if name is None:
+                name = func.__name__
+
+            self.items.append(name)
+            self.on_items.append(func)
+
+            return func
+
+        return decorator
 
     def exec(self):
         if self.stdscr is None:
             curses.wrapper(self.main_loop_wrapped)
         else:
             self.exec_()
+        return self.get_selected_index()
 
     def main_loop_wrapped(self, stdscr):
         self.stdscr = stdscr
@@ -243,6 +258,9 @@ class Menu:
         return False
 
     def on_enter_pressed(self):
+        idx = self.get_selected_index()
+        if idx >= 0 and idx < len(self.on_items):
+            self.on_items[idx]()
         self.close()
 
     def on_tab_pressed(self):
@@ -256,6 +274,14 @@ class Menu:
 
     def on_item_selected(self):
         pass
+
+    def loop(self):
+        while True:
+            self.exec()
+            if self.get_selected_index() < 0:
+                break
+
+            time.sleep(1)
 
 
 def init_curses(stdscr):
