@@ -105,8 +105,8 @@ def wrap_bash_commands(commands, wsl=False, env=None):
         tmp_sh_file = write_temp_file(commands, ".sh")
 
         msys2_bash_search_list = [
-            r"C:\msys64\usr\bin\bash.exe",
             r"C:\Program Files\Git\bin\bash.exe",
+            r"C:\msys64\usr\bin\bash.exe",
         ]
 
         bash = None
