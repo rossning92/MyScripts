@@ -334,10 +334,12 @@ mongoose
 
 @menu.item()
 def add_threejs():
+    INDEX_JS = "src/hello-threejs.js"
+
     add_packages(["three", "@types/three"])
 
     os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
-    if os.path.exists(INDEX_JS) and yes("overwrite %s" % INDEX_JS):
+    if not os.path.exists(INDEX_JS):
         render_template_file(SCRIPT_ROOT + "/template/hello-three.js", INDEX_JS)
 
 

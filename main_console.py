@@ -317,7 +317,8 @@ class MainWindow(Menu):
         elif ch == ord("\t"):
             script = self.get_selected_text()
             if script is not None:
-                w = VariableWindow(self.stdscr, script).exec()
+                w = VariableWindow(self.stdscr, script)
+                w.exec()
                 if w.enter_pressed:
                     self.run_selected_script()
                 return True
