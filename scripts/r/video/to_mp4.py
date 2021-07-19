@@ -1,5 +1,7 @@
-from _shutil import *
-from _video import *
+import os
+
+from _shutil import get_files, mkdir
+from _video import ffmpeg
 from open_with.open_with import open_with
 
 crop_rect = (
@@ -85,7 +87,7 @@ for f in files:
         out_file=out_file,
         extra_args=extra_args,
         reencode=True,
-        crf=int("{{_CRF}}") if "{{_CRF}}" else None,
+        crf=int("{{_CRF}}") if "{{_CRF}}" else 19,
         start_and_duration=start_and_duration,
         nvenc=bool("{{_NVENC}}"),
         max_size_mb=float("{{_MAX_SIZE_MB}}") if "{{_MAX_SIZE_MB}}" else None,

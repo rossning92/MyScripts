@@ -158,7 +158,7 @@ def ffmpeg(
     nvenc=True,
     extra_args=None,
     quiet=False,
-    crf=19,
+    crf=19,  # visually identical to 0
     preset="slow",
     bitrate=None,
     max_size_mb=None,
@@ -204,28 +204,29 @@ def ffmpeg(
         args += extra_args
 
     if reencode:
+        args += ["-preset", preset]
+
         if nvenc:
             args += ["-c:v", "h264_nvenc"]
-            if not bitrate and crf:
-                # https://superuser.com/questions/1236275/how-can-i-use-crf-encoding-with-nvenc-in-ffmpeg/1236387
-                # args += ["-rc:v", "vbr_hq", "-cq:v", "%d" % crf]
 
-                args += [
-                    "-preset",
-                    "hq",
-                    "-rc:v",
-                    "vbr_hq",
-                    "-qmin",
-                    "17",
-                    "-qmax",
-                    "21",
-                ]
+            # https://superuser.com/questions/1236275/how-can-i-use-crf-encoding-with-nvenc-in-ffmpeg/1236387
+            # https://gist.github.com/rlan/cc954c891b19c919c939c9b0d2096d35
+
+            args += [
+                # "-preset:v",
+                # "p7",
+                "-rc:v",
+                "vbr_hq",
+                "-cq:v",  # 'Constant Quality' mode equivalent to CRF
+                "%d" % crf,
+                "-b:v",
+                "0",
+                "-profile:v",
+                "high",
+            ]
         else:
             args += ["-c:v", "libx264"]
-            if not bitrate and crf:
-                args += ["-crf", "%d" % crf]
-
-        args += ["-preset", preset]
+            args += ["-crf", "%d" % crf]
 
         args += ["-pix_fmt", "yuv420p"]  # Wide used pixel format
 
