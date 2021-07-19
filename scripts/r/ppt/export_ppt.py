@@ -17,6 +17,7 @@ def export_slide(file, index, export_shapes=False):
     if (not os.path.exists(out_file)) or (os.path.getmtime(out_file) < mtime):
         args = [
             "cscript",
+            "//NoLogo",
             os.path.join(root, "export_slides.vbs"),
             file,
             "/i:%d" % index,

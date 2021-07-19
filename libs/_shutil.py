@@ -1,26 +1,28 @@
-import subprocess
-from subprocess import Popen
-import os
-from os import getcwd
-from os.path import exists, expanduser, expandvars, dirname
-import sys
-import shutil
-import platform
-from time import sleep
-import glob
-import re
-from distutils.dir_util import copy_tree
-import threading
-import queue
-import locale
-import tempfile
-from tempfile import gettempdir
-import datetime
-import signal
 import ctypes
-import time
+import datetime
+import glob
 import json
+import locale
+import os
+import platform
+import queue
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from distutils.dir_util import copy_tree
+from os import getcwd
+from os.path import dirname, exists, expanduser, expandvars
 from pprint import pprint
+from subprocess import Popen
+from tempfile import gettempdir
+from time import sleep
+
+import yaml
 
 
 def get_hash(text, digit=16):
@@ -196,8 +198,8 @@ def getch(timeout=-1):
 
     else:
         import sys
-        import tty
         import termios
+        import tty
 
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
@@ -389,13 +391,14 @@ def copy(src, dst, overwrite=False):
 
 def run_elevated(args, wait=True):
     if platform.system() == "Windows":
+        import shlex
+
         import win32api
         import win32con
         import win32event
         import win32process
-        from win32com.shell.shell import ShellExecuteEx
         from win32com.shell import shellcon
-        import shlex
+        from win32com.shell.shell import ShellExecuteEx
 
         if type(args) == str:
             args = shlex.split(args)
@@ -573,7 +576,7 @@ def print2(msg, color="yellow", end="\n"):
 
 
 def call_highlight(args, highlight=None, filter_line=None, **kwargs):
-    from colorama import init, Fore, Back, Style
+    from colorama import Back, Fore, Style, init
 
     COLOR_MAP = {
         "black": Fore.LIGHTBLACK_EX,
@@ -1227,3 +1230,14 @@ def timing(f):
         return ret
 
     return wrap
+
+
+def load_yaml(file):
+    return yaml.load(open(file, "r", encoding="utf-8").read(), Loader=yaml.FullLoader)
+
+
+def save_yaml(data, file):
+    yaml.dump(
+        data, open(file, "w", encoding="utf-8", newline="\n"), default_flow_style=False
+    )
+
