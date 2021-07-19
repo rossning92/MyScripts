@@ -16,7 +16,7 @@ REACT_INDEX_JS = "src/client/index.js"
 SERVER_INDEX_JS = "src/server/index.js"
 MODEL_DIR = "src/server/models"
 INDEX_JS = "src/index.js"
-SCRIPT_ROOT = os.getcwd()
+TEMPLATE_DIR = os.getcwd() + "/js_tools"
 
 
 menu = Menu()
@@ -62,7 +62,7 @@ def add_webpack(index_js="src/index.js", build_dir="docs"):
 
     if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
         render_template_file(
-            SCRIPT_ROOT + "/js_tools/webpack.config.js",
+            TEMPLATE_DIR + "/webpack.config.js",
             WEBPACK_CONFIG,
             context={"index_js": index_js, "build_dir": build_dir},
         )
@@ -301,10 +301,10 @@ def add_threejs():
 
     os.makedirs(os.path.dirname(INDEX_JS), exist_ok=True)
     if not os.path.exists(INDEX_JS):
-        render_template_file(SCRIPT_ROOT + "/js_tools/hello-three.js", INDEX_JS)
+        render_template_file(TEMPLATE_DIR + "/hello-three.js", INDEX_JS)
 
     add_links()
-    copy(SCRIPT_ROOT + "/js_tools/main.css", "src/main.css", overwrite=False)
+    copy(TEMPLATE_DIR + "/main.css", "src/main.css", overwrite=False)
     write_file(
         "src/index.js",
         """import "./hello-three";
@@ -426,7 +426,7 @@ def add_face_landmark_detection():
 
 @menu.item()
 def add_links():
-    copy_tree(SCRIPT_ROOT + "/js_tools/links", "src/links")
+    copy_tree(TEMPLATE_DIR + "/links", "src/links")
 
 
 if __name__ == "__main__":
@@ -439,5 +439,7 @@ if __name__ == "__main__":
         call_echo('yarn config set init-author-name "Ross Ning"')
         call_echo("yarn config set init-author-email rossning92@gmail.com")
         call_echo("yarn init -y")
+
+    copy(TEMPLATE_DIR + "/LICENSE", "LICENSE", overwrite=False)
 
     menu.loop()
