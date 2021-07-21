@@ -1,8 +1,10 @@
+import mermaid from "mermaid";
+
 require(`./${TEMPLATE}.css`);
-const markdown = require(MD_FILE).default;
+const markdown = require(MD_FILE).default.replace(/\r\n/g, "\n");
 const marked = require("marked");
 
-const SEP = "---\r";
+const SEP = "\n---\n";
 
 let innerHtml;
 
@@ -19,3 +21,9 @@ if (markdown.includes(SEP)) {
 }
 
 document.body.innerHTML = innerHtml;
+mermaid.initialize({
+  startOnLoad: true,
+  theme: "dark",
+  fontFamily: '"Roboto", "Noto Sans SC", sans-serif',
+  flowchart: {},
+});
