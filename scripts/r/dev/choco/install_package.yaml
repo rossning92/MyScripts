@@ -9,7 +9,7 @@ newWindow: true
 packages: null
 restartInstance: true
 runAsAdmin: true
-template: true
+template: false
 terminal: null
 venv: null
 wsl: false

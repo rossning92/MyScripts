@@ -9,8 +9,14 @@ files = get_files()
 
 for f in files:
     folder, basename = os.path.dirname(f), os.path.basename(f)
+    name, ext = os.path.splitext(basename)
+    if "{{_EXT}}":
+        ext = "{{_EXT}}"
 
     args = [magick, f]
+
+    if "{{_FLIP}}":
+        args += ["-flip"]
 
     if "{{_TRANSPARENT_COLOR}}":
         args += ["-transparent", "{{_TRANSPARENT_COLOR}}"]
@@ -21,9 +27,9 @@ for f in files:
     if "{{_RESIZE}}":
         args += ["-resize", "{{_RESIZE}}"]
 
-    out_file = os.path.join(folder, "out", basename)
+    out_file = os.path.join(folder, "out", "%s%s" % (name, ext))
     mkdir(os.path.join(folder, "out"))
 
-    args += ["PNG24:" + out_file]
+    args += [f"{'PNG24:' if ext.lower()=='.png' else ''}" + out_file]
 
     call_echo(args, shell=False)

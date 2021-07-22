@@ -256,6 +256,7 @@ def setup_python_path(script_path=None):
     python_path = get_python_path(script_path)
     os.environ["PYTHONPATH"] = os.pathsep.join(python_path)
 
+
 def wt_wrap_args(
     args,
     wsl=False,
@@ -672,7 +673,15 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = args_activate + [python_exec, run_py, python_file,] + args
+                args = (
+                    args_activate
+                    + [
+                        python_exec,
+                        run_py,
+                        python_file,
+                    ]
+                    + args
+                )
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -800,7 +809,14 @@ class Script:
                         else []
                     )
                     + ["cd", "/d", cwd, "&"]
-                    + ["set", "PATH=" + bin_path + ";%PATH%", "&"]
+                    + [
+                        "set",
+                        "PATH=" + bin_path + ";%PATH%",
+                        "&",
+                        "set",
+                        "PYTHONPATH=" + os.pathsep.join(get_python_path(script_path)),
+                        "&",
+                    ]
                     + set_env_var
                     + args
                 )
