@@ -401,6 +401,10 @@ def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):
         return subprocess.run(["adb", "shell", command], check=check, **kwargs)
 
 
+def wait_for_device():
+    call_echo("adb wait-for-device")
+
+
 def wait_until_boot_complete():
     call_echo("adb wait-for-device")
     while True:
