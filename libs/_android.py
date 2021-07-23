@@ -136,6 +136,9 @@ def logcat(
                 pid = int(match.group(3))
                 message = match.group(4)
 
+                if pid <= 0:
+                    continue
+
                 # # Filter by time
                 # if show_log_after_secs is not None:
                 #     try:
