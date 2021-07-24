@@ -83,7 +83,7 @@ function getNewAvailableFile(file) {
     return s;
   }
 
-  var patt = /(.*?)(?:-(\d{1,2}))?\.mp4/g;
+  var patt = /(.*?)(?:-(\d{1,2}))?\.\w+/g;
   var match = patt.exec(file);
 
   var prefix = match[1];
@@ -112,17 +112,21 @@ function exportVideo(params) {
   var args = ["ffmpeg", "-hide_banner", "-loglevel", "panic"];
 
   if (params.start != null) {
-    var fastSeekPos = Math.max(0, params.start - 10);
-    if (fastSeekPos > 0) {
-      params.start = params.start - fastSeekPos;
-      args = args.concat(["-ss", fastSeekPos.toString()]);
+    if (params.noEncode) {
+      args = args.concat(["-ss", params.start.toString()]);
+    } else {
+      var fastSeekPos = Math.max(0, params.start - 10);
+      if (fastSeekPos > 0) {
+        params.start = params.start - fastSeekPos;
+        args = args.concat(["-ss", fastSeekPos.toString()]);
+      }
     }
   }
 
   // Input file
   args = args.concat(["-i", currentFile]);
 
-  if (params.start != null) {
+  if (params.start != null && !params.noEncode) {
     args = args.concat(["-ss", params.start.toString(), "-strict", "-2"]);
   }
 
@@ -143,31 +147,35 @@ function exportVideo(params) {
     // Pixel format
     args = args.concat(["-pix_fmt", "yuv420p"]);
 
-    if (nvenc) {
-      args = args.concat([
-        "-c:v",
-        "h264_nvenc",
-        "-preset",
-        "hq",
-        "-rc:v",
-        "vbr_hq",
-        "-qmin",
-        "17",
-        "-qmax",
-        "21",
-      ]);
+    if (params.noEncode) {
+      args = args.concat(["-vcodec", "copy", "-acodec", "copy"]);
     } else {
-      args = args.concat([
-        "-c:v",
-        "libx264",
-        "-crf",
-        "19",
-        "-preset",
-        "slow",
-        "-pix_fmt",
-        "yuv420p",
-        "-an",
-      ]);
+      if (nvenc) {
+        args = args.concat([
+          "-c:v",
+          "h264_nvenc",
+          "-preset",
+          "hq",
+          "-rc:v",
+          "vbr_hq",
+          "-qmin",
+          "17",
+          "-qmax",
+          "21",
+        ]);
+      } else {
+        args = args.concat([
+          "-c:v",
+          "libx264",
+          "-crf",
+          "19",
+          "-preset",
+          "slow",
+          "-pix_fmt",
+          "yuv420p",
+          "-an",
+        ]);
+      }
     }
 
     // Audio encoding
@@ -210,24 +218,29 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
 
   var w = mp.get_property_number("width");
   var h = mp.get_property_number("height");
-  var outX = Math.floor(normalizedMouseX * 1920);
-  var outY = Math.floor(normalizedMouseY * 1080);
+  var outX = normalizedMouseX * 1920;
+  var outY = normalizedMouseY * 1080;
 
   if (rect.length == 0) {
-    var s = "{{ hl(pos=(" + outX + ", " + outY + "), t='as') }}";
+    var s =
+      "{{ hl(pos=(" +
+      Math.round(outX) +
+      ", " +
+      Math.round(outY) +
+      "), t='as') }}";
     mp.osd_message(s);
     setClip(s);
     rect.push(outX, outY);
   } else {
     var s =
       "{{ hl(rect=(" +
-      rect[0] +
+      Math.round(rect[0]) +
       ", " +
-      rect[1] +
+      Math.round(rect[1]) +
       ", " +
-      (outX - rect[0]) +
+      Math.round(outX - rect[0]) +
       ", " +
-      (outY - rect[1]) +
+      Math.round(outY - rect[1]) +
       "), t='as') }}";
     mp.osd_message(s);
     setClip(s);
@@ -337,7 +350,7 @@ mp.add_forced_key_binding("<", "crop_bottom", function () {
 mp.add_forced_key_binding(">", "crop_bottom_right", function () {
   mp.osd_message("crop bottom right...");
   exportVideo({
-    vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.21*ih",
+    vf: "crop=0.75*iw:0.75*ih:0.25*iw:0.25*ih",
   });
 });
 
@@ -395,6 +408,18 @@ mp.add_forced_key_binding("A", "remove_audio", function () {
 mp.add_forced_key_binding("X", "cut_video_background", function () {
   mp.osd_message("cut video (temp)...");
   exportVideo({ start: inTime, duration: outTime - inTime, temp: true });
+  inTime = 0;
+  outTime = 0;
+});
+
+mp.add_forced_key_binding("ctrl+x", "cut_video_no_encode", function () {
+  mp.osd_message("cut video (no encode)...");
+  exportVideo({
+    start: inTime,
+    duration: outTime - inTime,
+    temp: true,
+    noEncode: true,
+  });
   inTime = 0;
   outTime = 0;
 });

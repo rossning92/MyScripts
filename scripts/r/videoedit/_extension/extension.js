@@ -32,6 +32,10 @@ async function openFile(filePath) {
   }
 }
 
+function getAbsPath(file) {
+  return path.resolve(path.join(getActiveDir(), file));
+}
+
 function getFileUnderCursor() {
   if (!isDocumentActive()) return;
 
@@ -42,12 +46,21 @@ function getFileUnderCursor() {
   const position = editor.selection.active;
   const line = editor.document.lineAt(position).text;
   const found = line.match(/['"](.*?)['"]/);
-  if (!found) return;
+  if (!found) {
+    vscode.window.showErrorMessage(
+      "No file path is found in the current line."
+    );
+    return;
+  }
 
-  const filePath = path.resolve(path.join(getActiveDir(), found[1]));
-  if (!fs.existsSync(filePath)) return;
+  const file = found[1];
+  const absPath = getAbsPath(file);
+  if (!fs.existsSync(absPath)) {
+    vscode.window.showErrorMessage(`File does not exist: ${file}`);
+    return;
+  }
 
-  return filePath;
+  return file;
 }
 
 function startSlideServer(file) {
@@ -79,7 +92,8 @@ async function openFileUnderCursor() {
   } else {
     const file = getFileUnderCursor();
     if (file) {
-      openFile(file);
+      const absPath = getAbsPath(file);
+      openFile(absPath);
     }
   }
 }
@@ -579,6 +593,23 @@ function registerCreateSlideCommand() {
   });
 }
 
+function replaceCurrentLine(oldText, newText) {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return;
+
+  if (editor) {
+    const currentLine = editor.selection.active.line;
+    const currentLineText = editor.document.lineAt(currentLine).text;
+    const newLineText = currentLineText.replace(oldText, newText);
+    editor.edit((editBuilder) => {
+      editBuilder.replace(
+        new vscode.Selection(currentLine, 0, currentLine, newLineText.length),
+        newLineText
+      );
+    });
+  }
+}
+
 function registerRenameFileCommand() {
   vscode.commands.registerCommand("videoEdit.renameFile", async () => {
     const file = getFileUnderCursor();
@@ -589,7 +620,22 @@ function registerRenameFileCommand() {
     });
     if (!newFile) return;
 
-    fs.renameSync(file, newFile);
+    const absFile = getAbsPath(file);
+    const newAbsFile = getAbsPath(newFile);
+
+    if (fs.existsSync(newAbsFile)) {
+      vscode.window.showErrorMessage("New file already exists.");
+      return;
+    }
+
+    try {
+      fs.renameSync(absFile, newAbsFile);
+    } catch (e) {
+      vscode.window.showErrorMessage("Renaming failed.");
+      return;
+    }
+
+    replaceCurrentLine(file, newFile);
   });
 }
 
