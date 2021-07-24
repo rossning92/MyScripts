@@ -7,6 +7,7 @@ import time
 
 import keyboard
 import pyautogui
+from _script import get_variable, set_variable
 from _shutil import (
     call_echo,
     get_temp_file_name,
@@ -15,20 +16,31 @@ from _shutil import (
     print2,
     slugify,
 )
-from _script import get_variable, set_variable
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from video_editor import edit_video
+import threading
+from functools import partial
 
 
 class ScreenRecorder:
     def __init__(self):
         self.rect = None
-        self.file = None
         self.no_audio = False
+
+    def start_record(self):
+        raise NotImplementedError
+
+    def stop_record(self):
+        raise NotImplementedError
+
+    def cancel_record(self):
+        raise NotImplementedError
+
+    def save_record(self):
+        raise NotImplementedError
 
 
 class CapturaScreenRecorder(ScreenRecorder):
@@ -37,7 +49,6 @@ class CapturaScreenRecorder(ScreenRecorder):
 
         self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
         self.captura_ps = None
-        self.file = None
         self.loudnorm = False
 
     def start_record(self):
@@ -71,9 +82,6 @@ class CapturaScreenRecorder(ScreenRecorder):
         print2("Recording started.", color="green")
 
     def stop_record(self):
-        assert self.file
-
-        self.captura_ps
         if self.captura_ps is None:
             return
 
@@ -83,16 +91,17 @@ class CapturaScreenRecorder(ScreenRecorder):
         print2("Recording stopped.", color="green")
         self.captura_ps = None
 
+    def save_record(self, file):
         # Save file
-        if os.path.exists(self.file):
-            os.remove(self.file)
+        if os.path.exists(file):
+            os.remove(file)
 
         if self.loudnorm:
             tmp_file = get_temp_file_name(".mp4")
             loudnorm(self.tmp_file, tmp_file)
             self.tmp_file = tmp_file
 
-        move_file(self.tmp_file, self.file)
+        move_file(self.tmp_file, file)
 
 
 class ShadowPlayScreenRecorder(ScreenRecorder):
@@ -103,10 +112,15 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)  # purely estimated warm-up time
 
+    def cancel_record(self):
+        pyautogui.hotkey("alt", "f9")
+        time.sleep(0.5)
+
     def stop_record(self):
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)
 
+    def save_record(self, file):
         # Get recorded video files
         files = glob.glob(
             os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"), recursive=True,
@@ -114,8 +128,8 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
         in_file = files[0]
 
-        if os.path.exists(self.file):
-            os.remove(self.file)
+        if os.path.exists(file):
+            os.remove(file)
 
         if self.rect is not None:
             out_file = get_temp_file_name(".mp4")
@@ -134,11 +148,44 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
             os.remove(in_file)
             in_file = out_file
 
-        move_file(in_file, self.file)
+        move_file(in_file, file)
 
 
-recorder = CapturaScreenRecorder()
+# recorder = CapturaScreenRecorder()
 recorder = ShadowPlayScreenRecorder()
+
+
+def wait_multiple_keys(keys):
+    lock = threading.Event()
+    handlers = []
+
+    pressed = None
+
+    def key_pressed(key):
+        nonlocal pressed
+        pressed = key
+        lock.set()
+
+    for key in keys:
+        handler = keyboard.add_hotkey(key, partial(key_pressed, key), suppress=True)
+        handlers.append(handler)
+
+    lock.wait()
+
+    for handler in handlers:
+        keyboard.remove_hotkey(handler)
+
+    return pressed
+
+
+def prompt_record_file_name():
+    last_name = get_variable("LAST_SCREENCAP_FILE_NAME")
+    name = input("input file name [%s]: " % str(last_name))
+    if not name:
+        name = last_name
+    set_variable("LAST_SCREENCAP_FILE_NAME", name)
+    file = os.path.join(out_dir, "%s.mp4" % slugify(name))
+    return file
 
 
 if __name__ == "__main__":
@@ -159,22 +206,25 @@ if __name__ == "__main__":
     else:
         out_dir = args.out_dir
 
-    last_name = get_variable("LAST_SCREENCAP_FILE_NAME")
-    name = input("input file name [%s]: " % str(last_name))
-    if not name:
-        name = last_name
-    set_variable("LAST_SCREENCAP_FILE_NAME", name)
-
-    recorder.file = os.path.join(out_dir, "%s.mp4" % slugify(name))
-    recorder.start_record()
     minimize_cur_terminal()
 
-    keyboard.wait("f6", suppress=True)
-    recorder.stop_record()
+    while True:
+        recorder.start_record()
+
+        pressed = wait_multiple_keys(["f6", "f7"])
+        if pressed == "f6":
+            recorder.cancel_record()
+            continue
+
+        elif pressed == "f7":
+            recorder.stop_record()
+            break
+
     activate_cur_terminal()
+    file = prompt_record_file_name()
+    recorder.save_record(file)
 
     # Open file
-    call_echo(["mpv", recorder.file])
-    # edit_video(dst_file)
+    call_echo(["mpv", file])
 
     time.sleep(1)
