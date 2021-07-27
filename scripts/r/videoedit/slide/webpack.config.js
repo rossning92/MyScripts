@@ -3,10 +3,17 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const path = require("path");
 const webpack = require("webpack");
 
-module.exports = ({ template = "markdown", mdFile = "./example.md" }) => {
+module.exports = ({
+  template = "markdown",
+  mdFile = "./example.md",
+  public = undefined,
+}) => {
   const mdFileDir = path.dirname(path.resolve(mdFile));
 
   const contentBase = [path.resolve(__dirname, "public"), mdFileDir];
+  if (public !== undefined) {
+    contentBase.push(public);
+  }
 
   return {
     mode: "development",

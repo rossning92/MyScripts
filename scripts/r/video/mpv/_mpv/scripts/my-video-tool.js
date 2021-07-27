@@ -83,16 +83,17 @@ function getNewAvailableFile(file) {
     return s;
   }
 
-  var patt = /(.*?)(?:-(\d{1,2}))?\.\w+/g;
+  var patt = /(.*?)(?:-(\d{1,2}))?\.(\w+)/g;
   var match = patt.exec(file);
 
   var prefix = match[1];
+  var ext = match[3];
   var ix = match[2] ? parseInt(match[2]) + 1 : 2;
 
   // Find new unused file name.
   var newFile;
   while (true) {
-    newFile = prefix + "-" + pad(ix.toString()) + ".mp4";
+    newFile = prefix + "-" + pad(ix.toString()) + "." + ext;
     if (mp.utils.file_info(newFile)) {
       ix++;
     } else {
@@ -189,6 +190,7 @@ function exportVideo(params) {
     // mp.utils.subprocess_detached({
     //   args: args,
     // });
+    mp.msg.warn(args.toString());
     mp.command_native({ name: "subprocess", args: args });
   } else {
     mp.set_property_native("pause", true);

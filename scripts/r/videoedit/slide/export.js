@@ -10,12 +10,16 @@ const webpack = require("webpack");
 const WebpackDevServer = require("webpack-dev-server");
 
 const mdFile = argv["i"] ? path.resolve(argv["i"]) : undefined;
-const template = argv["t"];
+const template = argv["t"]; // template file
+const public = argv["public"]; // public content base dir
 const dev = argv["d"];
+
+process.chdir(__dirname);
 
 const webpackConfig = require("./webpack.config.js")({
   mdFile,
   template,
+  public,
 });
 const compiler = webpack(webpackConfig);
 

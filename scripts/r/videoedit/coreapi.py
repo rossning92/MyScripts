@@ -773,19 +773,21 @@ def empty(**kwargs):
     add_video_clip(None, **kwargs)
 
 
-def _generate_slide(in_file, template, out_file=None):
-    call2(
-        [
-            "run_script",
-            "/r/videoedit/slide/export.js",
-            "-i",
-            os.path.realpath(in_file),
-            "-o",
-            os.path.realpath(out_file),
-            "-t",
-            template,
-        ]
-    )
+def _generate_slide(in_file, template, out_file=None, public=None):
+    args = [
+        "run_script",
+        "/r/videoedit/slide/export.js",
+        "-i",
+        os.path.realpath(in_file),
+        "-o",
+        os.path.realpath(out_file),
+        "-t",
+        template,
+    ]
+
+    if public:
+        args += ["--public", public]
+    call2(args)
 
 
 @core.api
@@ -807,7 +809,9 @@ def slide(
             with open(in_file, "w", encoding="utf-8") as f:
                 f.write(s)
 
-            _generate_slide(in_file, template=template, out_file=out_file)
+            _generate_slide(
+                in_file, template=template, out_file=out_file, public=os.getcwd()
+            )
 
     add_video_clip(out_file, pos=pos, **kwargs)
 
