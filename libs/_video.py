@@ -163,6 +163,7 @@ def ffmpeg(
     bitrate=None,
     max_size_mb=None,
     no_audio=False,
+    loop=None,
 ):
     if in_file == out_file:
         overwrite = True
@@ -184,6 +185,9 @@ def ffmpeg(
         bitrate = "%.0fk" % (max_size_mb * 8192 / _get_media_duration(in_file))
 
     args = ["ffmpeg"]
+
+    if loop is not None:
+        args += ["-stream_loop", "%d" % loop]
 
     args += ["-i", in_file]
 

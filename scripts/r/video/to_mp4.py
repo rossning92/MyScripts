@@ -92,6 +92,7 @@ for f in files:
         nvenc=bool("{{_NVENC}}"),
         max_size_mb=float("{{_MAX_SIZE_MB}}") if "{{_MAX_SIZE_MB}}" else None,
         no_audio=bool("{{_NO_AUDIO}}"),
+        loop=float("{{_LOOP}}") if "{{_LOOP}}" else None,
     )
 
     if len(files) == 1:

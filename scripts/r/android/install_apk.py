@@ -1,7 +1,7 @@
-from _shutil import *
-import re
-from _android import *
+import os
 
+from _android import adb_install2, get_pkg_name_apk, logcat, start_app
+from _shutil import get_files, print2
 
 files = get_files()
 
