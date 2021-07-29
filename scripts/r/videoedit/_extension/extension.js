@@ -457,7 +457,7 @@ function exportVideo({
         let endLine = activeEditor.document.lineCount - 1;
         for (let i = currentLine; i >= 0; i--) {
           const { text } = activeEditor.document.lineAt(i);
-          const match = text.match(/^(#+) /);
+          const match = text.match(/^(#+)/);
           if (match) {
             headerLevel = match[1].length;
             beginLine = i;
@@ -472,7 +472,7 @@ function exportVideo({
             i++
           ) {
             const { text } = activeEditor.document.lineAt(i);
-            const match = text.match(/^(#+) /);
+            const match = text.match(/^(#+)/);
             if (match && match[1].length <= headerLevel) {
               endLine = i - 1;
               break;
