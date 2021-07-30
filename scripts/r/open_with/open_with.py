@@ -9,6 +9,7 @@ import _appmanager
 from _shutil import run_elevated
 
 assoc = {
+    ".apk": [["run_script", "/r/android/install_apk.py"]],
     ".3g2": ["mpv", "VLC"],
     ".3gp": ["mpv", "VLC"],
     ".3gp2": ["mpv", "VLC"],
