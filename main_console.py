@@ -405,8 +405,8 @@ if __name__ == "__main__":
     init()
     state = State()
     while True:
-        if sys.platform == "win32":
-            os.system("mode con cols=80 lines=20")
+        # if sys.platform == "win32":
+        #     os.system("mode con cols=80 lines=20")
 
         try:
             main_loop()

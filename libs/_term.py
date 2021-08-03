@@ -31,7 +31,8 @@ def set_term_title(title):
 
 
 def search(options):
-    return Menu(items=options).get_selected_index()
+    w = Menu(items=options)
+    return w.exec()
 
 
 def _prompt(options, message=None):

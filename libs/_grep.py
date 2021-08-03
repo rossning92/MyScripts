@@ -5,6 +5,7 @@ from _term import search
 
 
 def search_code(text, search_path, extra_params=None):
+    print("Search code in dir: %s" % search_path)
     args = [
         "rg",
         "-g",
@@ -40,8 +41,6 @@ def search_code(text, search_path, extra_params=None):
 
 
 def search_code_and_goto(text, path):
-    print2(str(path))
-
     result = []
     if os.path.isdir(path):  # directory
         result += search_code(text=text, search_path=path)

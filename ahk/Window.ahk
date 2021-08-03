@@ -150,3 +150,18 @@ ActivateWindowByTitle(title)
         return
     }
 }
+
+SetAlwaysOnTop(windowTitle, onTop:=True)
+{
+    if (onTop)
+    {
+        WinSet, AlwaysOnTop, Off, %windowTitle%
+        ; WS_MAXIMIZEBOX 0x10000 + WS_MINIMIZEBOX 0x20000
+        WinSet, Style, +0x30000, A
+    }
+    else
+    {
+        WinSet, AlwaysOnTop, On, %windowTitle%
+        WinSet, Style, -0x30000, A
+    }
+}

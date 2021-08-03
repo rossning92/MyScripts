@@ -100,7 +100,7 @@ def wrap_bash_commands(commands, wsl=False, env=None):
             env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
             env["CHERE_INVOKING"] = "1"  # stay in the current working directory
             env["MSYSTEM"] = "MINGW64"
-            env["MSYS2_PATH_TYPE"] = "inherit"
+            # env["MSYS2_PATH_TYPE"] = "inherit"
 
         tmp_sh_file = write_temp_file(commands, ".sh")
 
@@ -255,6 +255,42 @@ def get_python_path(script_path):
 def setup_python_path(script_path=None):
     python_path = get_python_path(script_path)
     os.environ["PYTHONPATH"] = os.pathsep.join(python_path)
+
+
+def wrap_args_cmd(args, title=None, cwd=None, script_path=None, env=None):
+    bin_path = os.path.abspath(os.path.dirname(__file__) + "/../bin")
+
+    args2 = ["cmd", "/c"]
+
+    if title:
+        args2 += ["title", title, "&"]
+
+    if cwd:
+        args2 += ["cd", "/d", cwd, "&"]
+
+    args2 += [
+        "set",
+        "PATH=" + bin_path + ";%PATH%",
+        "&",
+    ]
+
+    if script_path:
+        args2 += [
+            "set",
+            "PYTHONPATH=" + os.pathsep.join(get_python_path(script_path)),
+            "&",
+        ]
+
+    if env:
+        for k, v in env.items():
+            args2 += ["set", "%s=%s" % (k, v), "&"]
+
+    args2 += args
+
+    # Pause on error
+    args2 += ["||", "pause"]
+
+    return args2
 
 
 def wt_wrap_args(
@@ -724,8 +760,8 @@ class Script:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
                 if sys.platform == "win32" and (not self.meta["runAsAdmin"]):
-                    # TODO:
-                    if not self.meta["wsl"] and False:
+                    # TODO: clean up this hack
+                    if False and not self.meta["wsl"]:
                         args = [
                             sys.executable,
                             "-c",
@@ -747,41 +783,57 @@ class Script:
                             ),
                         ]
 
-                    # Create new terminal using Windows Terminal
-                    try:
-                        if self.meta["terminal"] is None:
-                            args = wt_wrap_args(
-                                args,
-                                cwd=cwd,
-                                title=self.get_console_title(),
-                                wsl=self.meta["wsl"],
-                                close_on_exit=(
-                                    close_on_exit
-                                    if close_on_exit is not None
-                                    else self.meta["closeOnExit"]
-                                ),
-                            )
-                        elif self.meta["terminal"] == "conemu":
-                            args = conemu_wrap_args(
-                                args,
-                                cwd=cwd,
-                                title=self.get_console_title(),
-                                wsl=self.meta["wsl"],
-                                always_on_top=True,
-                            )
-                        else:
-                            raise Exception(
-                                "Non-supported terminal: %s" % self.meta["terminal"]
-                            )
-                    except Exception as e:
-                        print("Error on Windows Terminal:", e)
+                    if self.meta["terminal"] is None:
+                        args = wrap_args_cmd(
+                            args,
+                            cwd=cwd,
+                            title=self.get_console_title(),
+                            script_path=script_path,
+                            env=env,
+                        )
+                        creationflags = subprocess.CREATE_NEW_CONSOLE
+                    else:
+                        # Create new terminal using Windows Terminal
+                        try:
+                            if self.meta["terminal"] in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]:
+                                args = wt_wrap_args(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    wsl=self.meta["wsl"],
+                                    close_on_exit=(
+                                        close_on_exit
+                                        if close_on_exit is not None
+                                        else self.meta["closeOnExit"]
+                                    ),
+                                )
+                            elif self.meta["terminal"] == "conemu":
+                                args = conemu_wrap_args(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    wsl=self.meta["wsl"],
+                                    always_on_top=True,
+                                )
+                            else:
+                                raise Exception(
+                                    "Non-supported terminal: %s" % self.meta["terminal"]
+                                )
+                        except Exception as e:
+                            print("Error on Windows Terminal:", e)
 
-                        if os.path.exists(r"C:\Program Files\Git\usr\bin\mintty.exe"):
-                            args = [
-                                r"C:\Program Files\Git\usr\bin\mintty.exe",
-                                "--hold",
-                                "always",
-                            ] + args
+                            if os.path.exists(
+                                r"C:\Program Files\Git\usr\bin\mintty.exe"
+                            ):
+                                args = [
+                                    r"C:\Program Files\Git\usr\bin\mintty.exe",
+                                    "--hold",
+                                    "always",
+                                ] + args
 
                 elif sys.platform == "linux":
                     args = ["tmux", "split-window"] + args
@@ -836,7 +888,7 @@ class Script:
                             startupinfo.wShowWindow = SW_HIDE
                             creationflags = subprocess.CREATE_NEW_CONSOLE
 
-                    print(args)
+                    print(_args_to_str(args))
                     subprocess.Popen(
                         args,
                         env={**os.environ, **env},

@@ -1,10 +1,15 @@
-from _grep import show_bookmarks
+import glob
+import os
+
 import yaml
-import json
-from _script import *
+from _grep import show_bookmarks
+from _script import get_all_variables
 
 
 if __name__ == "__main__":
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(script_path)
+
     vars = get_all_variables()
     vars = {k: v[0] for k, v in vars.items()}
 

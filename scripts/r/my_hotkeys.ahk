@@ -1,10 +1,10 @@
 #SingleInstance, Force
 #InstallKeybdHook
-#include ../../ahk/ExplorerHelper.ahk
-#include ../../ahk/ChromeHotkey.ahk
-#include ../../ahk/VirtualDesktop.ahk
-#include ../../ahk/Window.ahk
-#include ../../ahk/WinDrag.ahk
+#include %A_ScriptDir%\..\..\ahk\ExplorerHelper.ahk
+#include %A_ScriptDir%\..\..\ahk\ChromeHotkey.ahk
+#include %A_ScriptDir%\..\..\ahk\VirtualDesktop.ahk
+#include %A_ScriptDir%\..\..\ahk\Window.ahk
+#include %A_ScriptDir%\..\..\ahk\WinDrag.ahk
 
 SetCapsLockState, AlwaysOff
 
@@ -130,8 +130,10 @@ return
     WinGet, ExStyle, ExStyle, A
     If (ExStyle & 0x8) {
         ToolTip, AlwaysOnTop=1, 0, 0
+        WinSet, Style, -0x30000, A ; WS_MAXIMIZEBOX 0x10000 + WS_MINIMIZEBOX 0x20000
     } else {
         ToolTip, AlwaysOnTop=0, 0, 0
+        WinSet, Style, +0x30000, A
     }
     SetTimer, RemoveToolTip, -2000
 return

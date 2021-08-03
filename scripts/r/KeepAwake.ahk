@@ -1,7 +1,7 @@
 #SingleInstance, force
 #Persistent
 
-Menu, Tray, Icon, keep_awake.ico
+Menu, Tray, Icon, %A_ScriptDir%\KeepAwake.ico
 CoordMode, ToolTip, Screen
 SetTimer, NoSleep, 30000
 Return
