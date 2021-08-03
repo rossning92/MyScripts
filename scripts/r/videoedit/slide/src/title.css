@@ -13,9 +13,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* align-items: center; */
   align-items: center;
-  /* align-items: flex-start; */
   text-align: center;
 
   font-family: "Bebas Neue", "Noto Serif SC", serif;

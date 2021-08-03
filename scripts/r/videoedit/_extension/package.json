@@ -62,6 +62,10 @@
         "title": "VideoEdit: Create Powerpoint"
       },
       {
+        "command": "videoEdit.createPowerpointOverlay",
+        "title": "VideoEdit: Create Powerpoint (Overlay)"
+      },
+      {
         "command": "videoEdit.createSlide",
         "title": "VideoEdit: Create Slide"
       },

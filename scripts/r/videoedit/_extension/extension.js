@@ -561,6 +561,23 @@ function registerCreatePowerpointCommand() {
 
     insertText(`{{ clip('${filePath}') }}`);
   });
+
+  vscode.commands.registerCommand(
+    "videoEdit.createPowerpointOverlay",
+    async () => {
+      const filePath = await promptFileName({
+        ext: ".pptx",
+        subdir: "overlay",
+      });
+
+      cp.spawn("cscript", [
+        path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
+        path.resolve(getActiveDir(), filePath),
+      ]);
+
+      insertText(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);
+    }
+  );
 }
 
 async function promptFileName({ ext, subdir }) {

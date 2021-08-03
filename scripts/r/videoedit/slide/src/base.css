@@ -35,15 +35,6 @@ pre {
   padding: 0.4em;
 }
 
-blockquote {
-  background-color: rgba(0, 0, 0, 0.9);
-  padding: 0.2em 2em;
-  border-radius: 0.2em;
-  color: "#ffffff";
-  font-size: 0.8em;
-  margin: 0 auto -0.02em auto;
-}
-
 p {
   margin: 0;
   text-align: center;

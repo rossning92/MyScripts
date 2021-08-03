@@ -19,7 +19,7 @@ return
 $F6::
     SetTitleMatchMode, 2
     if (WinActive("ahk_exe chrome.exe")) {
-        SetWindowPos("A", 0, 0, 1950, 1250)
+        SetWindowPos("A", 0, 0, 1950, 1200)
         Sleep 500
         RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 1 120 1920 1080")
     } else if (WinActive("ahk_class CabinetWClass")) {

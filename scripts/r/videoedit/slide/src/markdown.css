@@ -29,3 +29,12 @@ h2 {
   position: relative;
   background: rgba(126, 214, 223, 0.9);
 }
+
+blockquote {
+  background-color: rgba(0, 0, 0, 0.9);
+  padding: 0.1em 1em;
+  border-radius: 0.2em;
+  color: "#ffffff";
+  font-size: 0.8em;
+  margin: 0 auto;
+}
