@@ -193,7 +193,7 @@ def record(
         pos_dict["re"] = _get_time("ae")
         pos_dict["c"] = _get_time("as")
 
-    END_CHARS = ["。", "，", "！", "、", "；", "？", "|"]
+    END_CHARS = ["。", "，", "！", "；", "？", "|"]
 
     global _srt_index
     global _last_subtitle_index

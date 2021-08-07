@@ -271,6 +271,11 @@ mp.add_forced_key_binding("5", "speed_up_1.5x", function () {
   exportVideo({ vf: "setpts=PTS/1.5" });
 });
 
+mp.add_forced_key_binding("h", "speed_up_0.5x", function () {
+  mp.osd_message("set speed to 0.5x...");
+  exportVideo({ vf: "setpts=PTS/0.5" });
+});
+
 mp.add_forced_key_binding("a", "to_anamorphic", function () {
   mp.osd_message("to anamorphic...");
   exportVideo({
