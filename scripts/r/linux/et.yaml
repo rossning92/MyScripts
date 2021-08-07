@@ -9,6 +9,6 @@ packages: null
 restartInstance: true
 runAsAdmin: false
 template: true
-terminal: null
+terminal: wt
 venv: null
 wsl: true

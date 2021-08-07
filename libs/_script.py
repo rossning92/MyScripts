@@ -257,7 +257,9 @@ def setup_python_path(script_path=None):
     os.environ["PYTHONPATH"] = os.pathsep.join(python_path)
 
 
-def wrap_args_cmd(args, title=None, cwd=None, script_path=None, env=None):
+def wrap_args_cmd(
+    args, title=None, cwd=None, script_path=None, env=None, close_on_exit=True
+):
     bin_path = os.path.abspath(os.path.dirname(__file__) + "/../bin")
 
     args2 = ["cmd", "/c"]
@@ -288,7 +290,10 @@ def wrap_args_cmd(args, title=None, cwd=None, script_path=None, env=None):
     args2 += args
 
     # Pause on error
-    args2 += ["||", "pause"]
+    if close_on_exit:
+        args2 += ["||", "pause"]
+    else:
+        args2 += ["&", "pause"]
 
     return args2
 
@@ -528,6 +533,10 @@ class Script:
         close_on_exit=None,
         change_work_dir=True,
     ):
+        close_on_exit = (
+            close_on_exit if close_on_exit is not None else self.meta["closeOnExit"]
+        )
+
         script_path = (
             self.real_script_path if self.real_script_path else self.script_path
         )
@@ -790,6 +799,7 @@ class Script:
                             title=self.get_console_title(),
                             script_path=script_path,
                             env=env,
+                            close_on_exit=close_on_exit,
                         )
                         creationflags = subprocess.CREATE_NEW_CONSOLE
                     else:
@@ -805,11 +815,7 @@ class Script:
                                     cwd=cwd,
                                     title=self.get_console_title(),
                                     wsl=self.meta["wsl"],
-                                    close_on_exit=(
-                                        close_on_exit
-                                        if close_on_exit is not None
-                                        else self.meta["closeOnExit"]
-                                    ),
+                                    close_on_exit=close_on_exit,
                                 )
                             elif self.meta["terminal"] == "conemu":
                                 args = conemu_wrap_args(
@@ -847,30 +853,13 @@ class Script:
 
             # Check if run as admin
             if platform.system() == "Windows" and self.meta["runAsAdmin"]:
-                # Set environment variables through command lines
-                bin_path = os.path.abspath(os.path.dirname(__file__) + "/../bin")
-                set_env_var = []
-                for k, v in env.items():
-                    set_env_var += ["set", "%s=%s" % (k, v), "&"]
-
-                args = (
-                    ["cmd", "/c"]
-                    + (
-                        ["title", self.get_console_title(), "&"]
-                        if ext != ".ahk"
-                        else []
-                    )
-                    + ["cd", "/d", cwd, "&"]
-                    + [
-                        "set",
-                        "PATH=" + bin_path + ";%PATH%",
-                        "&",
-                        "set",
-                        "PYTHONPATH=" + os.pathsep.join(get_python_path(script_path)),
-                        "&",
-                    ]
-                    + set_env_var
-                    + args
+                args = wrap_args_cmd(
+                    args,
+                    cwd=cwd,
+                    title=self.get_console_title(),
+                    script_path=script_path,
+                    env=env,
+                    close_on_exit=close_on_exit,
                 )
 
                 print2("Run elevated:")

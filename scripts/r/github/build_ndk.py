@@ -12,7 +12,7 @@ setup_android_env()
 
 git_clone("https://github.com/googlesamples/android-ndk")
 
-cd("gles3jni")
+cd("{{_SAMPLE_DIR}}")
 
 call2("gradlew installDebug")
 

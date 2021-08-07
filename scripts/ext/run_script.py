@@ -1,4 +1,7 @@
-from _script import *
+import os
+import sys
+
+from _script import get_files, run_script
 
 
 def create_link(script):

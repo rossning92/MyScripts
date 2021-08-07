@@ -7,13 +7,15 @@ from _git import git_clone
 from _shutil import call2, cd, run_elevated
 
 # run_elevated("choco install ninja -y")
-# setup_cmake(version="3.10.2")
+setup_cmake()
 setup_android_env()
 
-git_clone("https://github.com/googlesamples/android-ndk")
+git_clone("https://github.com/KhronosGroup/Vulkan-Samples")
 
-cd("gles3jni")
+call2("bldsys\\scripts\\generate_android_gradle.bat")
 
-call2("gradlew installDebug")
+cd("build/android_gradle")
 
-open_in_vscode(os.getcwd())
+call2("gradle installDebug")
+
+# open_in_vscode(os.getcwd())
