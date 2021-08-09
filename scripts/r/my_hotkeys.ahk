@@ -189,7 +189,8 @@ $!4::
 return
 
 $!5::
-    SetWindowPos("A", 240, 135, 1440, 810)
+    WinGetPos, , , w, h, A
+    SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
     WinSet, AlwaysOnTop, Off, A
 return
 

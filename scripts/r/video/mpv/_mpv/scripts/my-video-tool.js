@@ -354,6 +354,12 @@ mp.add_forced_key_binding("<", "crop_bottom", function () {
   });
 });
 
+mp.add_forced_key_binding("M", "crop_bottom_left", function () {
+  mp.osd_message("crop bottom left...");
+  exportVideo({
+    vf: "crop=0.75*iw:0.75*ih:0:0.25*ih",
+  });
+});
 mp.add_forced_key_binding(">", "crop_bottom_right", function () {
   mp.osd_message("crop bottom right...");
   exportVideo({

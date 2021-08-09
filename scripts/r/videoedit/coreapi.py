@@ -713,7 +713,7 @@ def add_video_clip(
     # Load mpy clip
     clip_info.mpy_clip = _load_mpy_clip(**vars(clip_info))
     if type(clip_info.mpy_clip) == VideoFileClip:
-        clip_info.scale = scale  # HACK
+        clip_info.scale = (1.0, 1.0)  # HACK: video file clip are pre-scaled
 
     # Duration
     if duration is None:
@@ -848,7 +848,7 @@ def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
     elif rect is not None:
         add_video_clip(
             file=SCRIPT_ROOT + "/assets/highlight-yellow.png",
-            pos=(rect[0] + 50, rect[1] + 50),
+            pos=(rect[0] + rect[2] * 0.5, rect[1] + rect[3] * 0.5),
             scale=(rect[2] / 100, rect[3] / 100),
             **extra_args,
         )

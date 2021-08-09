@@ -92,6 +92,11 @@ def _update_mpy_clip(
     if subclip is None:
         clip = clip.set_duration(duration)
 
+    # Scale should be done before translation
+    if scale[0] != 1.0 or scale[1] != 1.0:
+        # input(str(clip.size))
+        clip = clip.resize((int(clip.w * scale[0]), int(clip.h * scale[1])))
+
     if pos is not None:
         # (x, y) marks the center location of the of the clip instead of the top
         # left corner.
@@ -102,14 +107,11 @@ def _update_mpy_clip(
             half_size = [x // 2 for x in clip.size]
             for i in range(2):
                 if isinstance(pos[i], (int, float)):
-                    pos[i] = pos[i] - half_size[i]
                     pos[i] = int(coreapi.global_scale * pos[i])
+                    pos[i] = pos[i] - half_size[i]
             clip = clip.set_position(pos)
         else:
             clip = clip.set_position(pos)
-
-    if scale[0] != 1.0 or scale[1] != 1.0:
-        clip = clip.resize((int(clip.w * scale[0]), int(clip.h * scale[1])))
 
     return clip
 
@@ -545,9 +547,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # args.preview = False
     if args.preview:
+        os.makedirs("tmp/out", exist_ok=True)
         out_filename = "tmp/out/" + get_time_str()
     else:
+        os.makedirs("export", exist_ok=True)
         out_filename = "export/" + get_time_str()
 
     if args.proj_dir is not None:

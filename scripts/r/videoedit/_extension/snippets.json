@@ -44,7 +44,7 @@
   "slide": {
     "prefix": "slide",
     "body": [
-      "{{ slide('# $1\\n## $2', template='title') }}"
+      "{{ slide('# $1\\n## $2', template='title', cf=0.2) }}"
     ]
   },
   "video_end": {

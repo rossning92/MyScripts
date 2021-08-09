@@ -11,6 +11,24 @@ let recorderProcess = null;
 let currentProjectDir = null;
 let output = vscode.window.createOutputChannel("VideoEdit");
 
+// Helper functions for String.
+String.prototype.replaceAll = function (find, replace) {
+  const str = this;
+  return str.replace(
+    new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g"),
+    replace
+  );
+};
+
+String.prototype.count = function (substr) {
+  const str = this;
+  return (
+    str.match(
+      new RegExp(substr.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g")
+    ) || []
+  ).length;
+};
+
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
     if (new RegExp(".(md|" + SOURCE_FILE_EXT + ")$", "g").test(filePath)) {
@@ -627,13 +645,40 @@ function replaceCurrentLine(oldText, newText) {
   }
 }
 
+function replaceWholeDocument(oldText, newText) {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return;
+
+  const text = editor.document.getText();
+
+  const occurrences = text.count(oldText);
+  vscode.window.showInformationMessage(
+    `${occurrences} occurrences have been replaced.`
+  );
+
+  // Replace all oldText with newText
+  editor.edit((editBuilder) => {
+    editBuilder.replace(
+      new vscode.Range(0, 0, editor.document.lineCount, 0),
+      text.replaceAll(oldText, newText)
+    );
+  });
+}
+
 function registerRenameFileCommand() {
   vscode.commands.registerCommand("videoEdit.renameFile", async () => {
     const file = getFileUnderCursor();
     if (!file) return;
 
+    // Get the range of file base name without extension.
+    const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
+    const valueSelection = match
+      ? [match.index, match.index + match[0].length]
+      : undefined;
+
     const newFile = await vscode.window.showInputBox({
       value: file,
+      valueSelection,
     });
     if (!newFile) return;
 
@@ -652,7 +697,7 @@ function registerRenameFileCommand() {
       return;
     }
 
-    replaceCurrentLine(file, newFile);
+    replaceWholeDocument(file, newFile);
   });
 }
 
