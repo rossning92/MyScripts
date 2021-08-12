@@ -1,4 +1,4 @@
-@import "./base_font.css";
+@import "./base-font.css";
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
 
 body {
@@ -39,7 +39,7 @@ body {
   /* margin: 0 auto; */
   margin-top: 0;
   margin-bottom: 0;
-  text-shadow: 2px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
