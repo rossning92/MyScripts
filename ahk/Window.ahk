@@ -155,13 +155,13 @@ SetAlwaysOnTop(windowTitle, onTop:=True)
 {
     if (onTop)
     {
-        WinSet, AlwaysOnTop, Off, %windowTitle%
+        WinSet, AlwaysOnTop, On, %windowTitle%
         ; WS_MAXIMIZEBOX 0x10000 + WS_MINIMIZEBOX 0x20000
-        WinSet, Style, +0x30000, A
+        WinSet, Style, -0x30000, A
     }
     else
     {
-        WinSet, AlwaysOnTop, On, %windowTitle%
-        WinSet, Style, -0x30000, A
+        WinSet, AlwaysOnTop, Off, %windowTitle%
+        WinSet, Style, +0x30000, A
     }
 }

@@ -14,8 +14,10 @@ git_clone("https://github.com/googlesamples/android-vulkan-tutorials")
 
 cd("tutorial05_triangle")
 
+open_in_vscode(os.getcwd())
+
 call_echo("gradlew installDebug")
 
-call_echo("adb shell am start -n com.google.vulkan.tutorials.five/android.app.NativeActivity")
-
-open_in_vscode(os.getcwd())
+call_echo(
+    "adb shell am start -n com.google.vulkan.tutorials.five/android.app.NativeActivity"
+)

@@ -126,14 +126,13 @@ return
 return
 
 #t::
-    WinSet, AlwaysOnTop, Toggle, A
     WinGet, ExStyle, ExStyle, A
     If (ExStyle & 0x8) {
-        ToolTip, AlwaysOnTop=1, 0, 0
-        WinSet, Style, -0x30000, A ; WS_MAXIMIZEBOX 0x10000 + WS_MINIMIZEBOX 0x20000
-    } else {
+        SetAlwaysOnTop("A", False)
         ToolTip, AlwaysOnTop=0, 0, 0
-        WinSet, Style, +0x30000, A
+    } else {
+        SetAlwaysOnTop("A", True)
+        ToolTip, AlwaysOnTop=1, 0, 0
     }
     SetTimer, RemoveToolTip, -2000
 return
@@ -170,28 +169,28 @@ $!1::
     } else {
         SetWindowPosF("A", 0, 0, WindowDividor, 1)
     }
-    WinSet, AlwaysOnTop, Off, A
+    SetAlwaysOnTop("A", False)
 return
 
 $!2::
     SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-    WinSet, AlwaysOnTop, On, A
+    SetAlwaysOnTop("A", True)
 return
 
 $!3::
     SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
-    WinSet, AlwaysOnTop, Off, A
+    SetAlwaysOnTop("A", False)
 return
 
 $!4::
     SetWindowPos("A", 0, 0, 1440, 810)
-    WinSet, AlwaysOnTop, Off, A
+    SetAlwaysOnTop("A", False)
 return
 
 $!5::
     WinGetPos, , , w, h, A
     SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
-    WinSet, AlwaysOnTop, Off, A
+    SetAlwaysOnTop("A", False)
 return
 
 #0::

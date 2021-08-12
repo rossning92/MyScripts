@@ -15,7 +15,7 @@ os.chdir(os.path.expanduser("~/Desktop"))
 # adb pull /sdcard/screencap.png
 
 for i in range(n):
-    print("Taking screenshot ...")
+    print("Taking screenshot...")
     file_name = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
     check_call(["adb", "shell", "screencap -p /sdcard/%s" % file_name])
     check_call(["adb", "pull", "-a", "/sdcard/%s" % file_name])
