@@ -1,4 +1,6 @@
-from _shutil import *
+import os
+
+from _shutil import call_echo, get_files
 
 files = get_files(cd=True)
 
@@ -6,10 +8,12 @@ for f in files:
     if not os.path.isfile(f):
         continue
 
-    fn, ext = os.path.splitext(f)
     print(f)
+
+    name_no_ext, ext = os.path.splitext(f)
+
     os.makedirs("out", exist_ok=True)
-    out_file = "out/%s.mp3" % fn
+    out_file = "out/%s.mp3" % name_no_ext
 
     args = ["ffmpeg", "-i", f]
     args += ["-codec:a", "libmp3lame", "-qscale:a", "2"]

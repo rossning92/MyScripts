@@ -285,7 +285,7 @@ def wrap_args_cmd(
 
     if env:
         for k, v in env.items():
-            args2 += ["set", "%s=%s" % (k, v), "&"]
+            args2 += ["set", '"%s=%s"' % (k, v), "&"]
 
     args2 += args
 

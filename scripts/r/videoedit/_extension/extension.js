@@ -285,7 +285,7 @@ function registerAutoComplete(context) {
             return false;
           } else {
             return new RegExp(
-              ".(png|jpg|mp4|webm|gif|mp3|wav|md|pptx|" +
+              ".(png|jpg|mp4|webm|gif|mp3|wav|ogg|md|pptx|" +
                 SOURCE_FILE_EXT +
                 ")$",
               "g"

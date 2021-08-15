@@ -250,17 +250,19 @@ def record(
 
 
 @core.api
-def audio_gap(duration, bgm_vol=None):
+def audio_gap(duration, bgm_vol=None, fade_duration=0.5):
     if bgm_vol is not None:
-        _, prev_vol = get_last_audio_clip(track="bgm").vol_keypoints[-1]
-        globals()["bgm_vol"](bgm_vol, t="ae", duration=0.5)
+        last_bgm_clip = get_last_audio_clip(track="bgm")
+        if last_bgm_clip is not None:
+            _, prev_vol = last_bgm_clip.vol_keypoints[-1]
+            globals()["bgm_vol"](bgm_vol, t="ae", duration=fade_duration)
 
     pos_dict["a"] += duration
     pos_dict["ae"] = pos_dict["as"] = pos_dict["a"]
     pos_dict["c"] = pos_dict["a"]
 
-    if bgm_vol is not None:
-        globals()["bgm_vol"](prev_vol, t="a-0.5", duration=0.5)
+    if bgm_vol is not None and last_bgm_clip is not None:
+        globals()["bgm_vol"](prev_vol, t="a-%g" % fade_duration, duration=fade_duration)
 
 
 def get_last_audio_clip(track=None):
