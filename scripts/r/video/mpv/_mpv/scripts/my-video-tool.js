@@ -26,6 +26,45 @@ function copyFile(src, dst) {
   });
 }
 
+function deleteFile(file) {
+  mp.command_native({
+    name: "subprocess",
+    args: [
+      "cmd",
+      "/c",
+      "del",
+      '"' + file + '"', // double quote
+    ],
+  });
+}
+
+function createDirectory(dir) {
+  mp.command_native({
+    name: "subprocess",
+    args: [
+      "powershell",
+      "New-Item",
+      "-ItemType",
+      "Directory",
+      "-Force",
+      "-Name",
+      '"' + dir + '"', // double quote
+      "|",
+      "Out-Null",
+    ],
+  });
+}
+
+var tempDir = undefined;
+function getTempDir() {
+  if (tempDir === undefined) {
+    tempDir =
+      mp.get_property_native("path").replace(/[^\\/]+$/, "") + "mpv-tmp";
+    createDirectory(tempDir);
+  }
+  return tempDir;
+}
+
 function getBaseName(file) {
   return file.replace(/\.[^/.]+$/, "");
 }
@@ -47,27 +86,6 @@ function setCutPoint(isInTime) {
   }
 
   mp.osd_message("[" + inTime.toFixed(3) + ", " + outTime.toFixed(3) + "]");
-}
-
-function getTimeStr() {
-  function pad2(n) {
-    return n < 10 ? "0" + n : n;
-  }
-
-  var date = new Date();
-  timeStr =
-    date.getFullYear().toString() +
-    pad2(date.getMonth() + 1) +
-    pad2(date.getDate()) +
-    "_" +
-    pad2(date.getHours()) +
-    pad2(date.getMinutes()) +
-    pad2(date.getSeconds());
-  return timeStr;
-}
-
-function getTempFile() {
-  return getTimeStr() + ".mp4";
 }
 
 function getTimestamp() {
@@ -184,25 +202,21 @@ function exportVideo(params) {
   }
 
   if (params.temp) {
-    // var outFile = getBaseName(currentFile) + "-" + getTimestamp() + ".mp4";
     var outFile = getNewAvailableFile(currentFile);
     args.push(outFile);
-    // mp.utils.subprocess_detached({
-    //   args: args,
-    // });
     mp.msg.warn(args.toString());
     mp.command_native({ name: "subprocess", args: args });
   } else {
     mp.set_property_native("pause", true);
 
-    var outFile = "/tmp/" + getTimestamp() + ".mp4";
+    var outFile = getTempDir() + "/" + getTimestamp() + ".mp4";
     args.push(outFile);
 
     mp.command_native({ name: "subprocess", args: args });
     historyFiles.push(currentFile);
     currentFile = outFile;
 
-    // Avoid ffmpeg error caused by loading the file at the same time..
+    // Avoid ffmpeg error caused by loading the file at the same time.
     setTimeout(function () {
       mp.commandv("loadfile", outFile);
       mp.set_property_native("pause", false);
@@ -438,7 +452,6 @@ mp.add_forced_key_binding("ctrl+x", "cut_video_no_encode", function () {
 });
 
 mp.add_forced_key_binding("s", "save_file", function () {
-  // var outFile = getBaseName(historyFiles[0]) + "-" + getTimestamp() + ".mp4";
   var outFile = getNewAvailableFile(historyFiles[0]);
   mp.osd_message("saved as " + outFile);
   copyFile(currentFile, outFile);

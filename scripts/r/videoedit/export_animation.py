@@ -432,8 +432,8 @@ def _remove_unused_recordings(s):
     print2("Used   : %d" % len(used_recordings), color="green")
     print2("Unused : %d" % len(unused_recordings), color="red")
     assert len(used_recordings) + len(unused_recordings) == len(files)
-    print("Press y to clean up: ", end="", flush=True)
-    if getch() == "y":
+    s = input("Press enter to confirm: ")
+    if s == "":
         for f in unused_recordings:
             try:
                 os.remove(f)
