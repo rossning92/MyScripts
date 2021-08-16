@@ -1,24 +1,84 @@
+import math
 import os
 import re
 import subprocess
 import tarfile
 from typing import Dict, List
 
+import moviepy.audio.fx.all as afx
+import moviepy.video.fx.all as vfx
 import numpy as np
-from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2, timing
+from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
-from moviepy.editor import *
+from moviepy.editor import (
+    AudioFileClip,
+    ColorClip,
+    CompositeAudioClip,
+    CompositeVideoClip,
+    ImageClip,
+    ImageSequenceClip,
+    VideoFileClip,
+    concatenate_videoclips,
+)
+from open_with.open_with import open_with
 from PIL import Image
 
 import core
-import datastruct
 from render_animation import render_animation
 from render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-global_scale = 1.0
-pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
+from collections import OrderedDict
+from typing import Any, Dict, List
+
+default_video_track_name = "vid"
+default_audio_track_name = "record"
+
+
+class VideoClip:
+    def __init__(self):
+        self.file = None
+        self.start = 0
+        self.duration = None
+        self.mpy_clip = None
+        self.speed = 1
+        self.pos = None
+        self.fadein = 0
+        self.fadeout = 0
+        self.crossfade = 0
+
+        self.no_audio = False
+        self.norm = False
+        self.vol = None
+        self.transparent = True
+        self.subclip = None
+        self.frame = None
+        self.loop = False
+        self.expand = False
+
+        self.scale = (1.0, 1.0)
+        self.width = None
+        self.height = None
+
+        self.auto_extend = True
+
+
+class AudioClip:
+    def __init__(self):
+        self.file: str = None
+        self.mpy_clip: Any = None
+        self.speed: float = 1
+        self.start: float = None
+        self.subclip: float = None
+        self.vol_keypoints = []
+        self.loop = False
+
+
+class AudioTrack:
+    def __init__(self):
+        self.clips = []
+
 
 VOLUME_DIM = 0.15
 FADE_DURATION = 0.2
@@ -28,16 +88,77 @@ IMAGE_SEQUENCE_FPS = FPS
 DEFAULT_AUDIO_FADING_DURATION = 0.25
 DEFAULT_IMAGE_CLIP_DURATION = 2
 
-_enable_subtitle = True
-_audio_only = False
-_cached_line_to_tts = None
-_last_frame_indices: Dict[str, int] = {}
-_enable_tts = False
-_subtitle: List[str] = []
-_srt_lines = []
-_srt_index = 1
-_last_subtitle_index = -1
-_crossfade = 0
+
+class State:
+    def __init__(self):
+        self.global_scale = 1.0
+        self.pos_dict = {"c": 0, "a": 0, "as": 0, "ae": 0, "vs": 0, "ve": 0}
+        self.enable_subtitle = True
+        self.audio_only = False
+        self.cached_line_to_tts = None
+        self.last_frame_indices: Dict[str, int] = {}
+        self.enable_tts = False
+        self.subtitle: List[str] = []
+        self.srt_lines = []
+        self.srt_index = 1
+        self.last_subtitle_index = -1
+        self.crossfade = 0
+
+        self.video_tracks: Dict[str, List[VideoClip]] = OrderedDict(
+            [
+                ("bg", []),
+                ("bg2", []),
+                ("vid", []),
+                ("vid2", []),
+                ("vid3", []),
+                ("hl", []),
+                ("hl2", []),
+                ("md", []),
+                ("overlay", []),
+                ("text", []),
+            ]
+        )
+
+        self.audio_tracks: Dict[str, AudioTrack] = OrderedDict(
+            [
+                ("bgm", AudioTrack()),
+                ("bgm2", AudioTrack()),
+                ("record", AudioTrack()),
+                ("sfx", AudioTrack()),
+            ]
+        )
+
+
+_state = State()
+
+
+def reset():
+    global _state
+    _state = State()
+
+
+def _get_track(tracks, name):
+    if name not in tracks:
+        raise Exception("Track is not defined: %s" % name)
+    track = tracks[name]
+
+    return track
+
+
+def get_vid_track(name=None):
+    if name is None:
+        name = default_video_track_name
+    return _get_track(_state.video_tracks, name)
+
+
+def get_audio_track(name=None):
+    if name is None:
+        name = default_audio_track_name
+    return _get_track(_state.audio_tracks, name)
+
+
+def get_current_audio_pos():
+    return _state.pos_dict["a"]
 
 
 def _tts_to_wav_google(out_file, text):
@@ -75,17 +196,17 @@ def _tts_to_wav_microsoft(out_file, text):
 
 
 def _try_generate_tts():
-    if _cached_line_to_tts is None:
+    if _state.cached_line_to_tts is None:
         return
 
-    hash = get_hash(_cached_line_to_tts)
+    hash = get_hash(_state.cached_line_to_tts)
 
     mkdir("tmp/tts")
     out_file = "tmp/tts/%s.wav" % hash
     if not os.path.exists(out_file):
         print("generate tts file: %s" % out_file)
 
-        _tts_to_wav_microsoft(out_file, _cached_line_to_tts)
+        _tts_to_wav_microsoft(out_file, _state.cached_line_to_tts)
 
     record(out_file, postprocess=False, vol=2)
 
@@ -95,17 +216,15 @@ def on_api_(func_name):
     if func_name != "record":
         _try_generate_tts()
     else:
-        global _cached_line_to_tts
-        _cached_line_to_tts = None
+        _state.cached_line_to_tts = None
 
 
 @core.api
 def crossfade(v):
-    global _crossfade
     if v == True:
-        _crossfade = VIDEO_CROSSFADE_DURATION
+        _state.crossfade = VIDEO_CROSSFADE_DURATION
     else:
-        _crossfade = float(v)
+        _state.crossfade = float(v)
 
 
 def _get_time(p):
@@ -115,21 +234,21 @@ def _get_time(p):
     PATT_NUMBER = r"[+-]?(?:[0-9]*[.])?[0-9]+"
 
     if p is None:
-        return pos_dict["c"]
+        return _state.pos_dict["c"]
 
     if type(p) == int or type(p) == float:
         return float(p)
 
     if type(p) == str:
-        if p in pos_dict:
-            return pos_dict[p]
+        if p in _state.pos_dict:
+            return _state.pos_dict[p]
 
         match = re.match(r"^([a-z_]+)(" + PATT_NUMBER + ")$", p)
         if match:
             tag = match.group(1)
             assert match.group(2)
             delta = float(match.group(2))
-            return pos_dict[tag] + delta
+            return _state.pos_dict[tag] + delta
 
     raise Exception("Invalid pos='%s'" % p)
 
@@ -138,10 +257,10 @@ def _set_pos(t, tag=None):
     t = _get_time(t)
 
     if t != "c":
-        pos_dict["c"] = t
+        _state.pos_dict["c"] = t
 
     if tag is not None:
-        pos_dict[tag] = t
+        _state.pos_dict[tag] = t
 
 
 def _add_subtitle_clip(start, end, text):
@@ -190,27 +309,24 @@ def record(
     audio(f, t=t, move_playhead=move_playhead, **kwargs)
 
     if move_playhead:
-        pos_dict["re"] = _get_time("ae")
-        pos_dict["c"] = _get_time("as")
+        _state.pos_dict["re"] = _get_time("ae")
+        _state.pos_dict["c"] = _get_time("as")
 
     END_CHARS = ["。", "，", "！", "；", "？", "|"]
 
-    global _srt_index
-    global _last_subtitle_index
-
-    if _enable_subtitle and subtitle and not _audio_only:
-        if len(_subtitle) == 0:
+    if _state.enable_subtitle and subtitle and not _state.audio_only:
+        if len(_state.subtitle) == 0:
             print("WARNING: no subtitle found")
 
         else:
-            idx = len(_subtitle) - 1
-            if _last_subtitle_index == idx:
-                print2("WARNING: subtitle used twice: %s" % _subtitle[idx])
+            idx = len(_state.subtitle) - 1
+            if _state.last_subtitle_index == idx:
+                print2("WARNING: subtitle used twice: %s" % _state.subtitle[idx])
             else:
-                _last_subtitle_index = idx
+                _state.last_subtitle_index = idx
 
                 start = end = _get_time("as")
-                subtitle = _subtitle[idx].strip()
+                subtitle = _state.subtitle[idx].strip()
 
                 if subtitle[-1] not in END_CHARS:
                     subtitle += END_CHARS[0]
@@ -227,9 +343,9 @@ def record(
 
                 while i < length:
                     if subtitle[i] in END_CHARS and len(word) > MAX:
-                        _srt_lines.extend(
+                        _state.srt_lines.extend(
                             [
-                                "%d" % _srt_index,
+                                "%d" % _state.srt_index,
                                 "%s --> %s" % (format_time(start), format_time(end)),
                                 word,
                                 "",
@@ -241,7 +357,7 @@ def record(
                         end += word_dura
                         start = end
                         word = ""
-                        _srt_index += 1
+                        _state.srt_index += 1
                     else:
                         word += subtitle[i]
                         end += word_dura
@@ -257,16 +373,16 @@ def audio_gap(duration, bgm_vol=None, fade_duration=0.5):
             _, prev_vol = last_bgm_clip.vol_keypoints[-1]
             globals()["bgm_vol"](bgm_vol, t="ae", duration=fade_duration)
 
-    pos_dict["a"] += duration
-    pos_dict["ae"] = pos_dict["as"] = pos_dict["a"]
-    pos_dict["c"] = pos_dict["a"]
+    _state.pos_dict["a"] += duration
+    _state.pos_dict["ae"] = _state.pos_dict["as"] = _state.pos_dict["a"]
+    _state.pos_dict["c"] = _state.pos_dict["a"]
 
     if bgm_vol is not None and last_bgm_clip is not None:
         globals()["bgm_vol"](prev_vol, t="a-%g" % fade_duration, duration=fade_duration)
 
 
 def get_last_audio_clip(track=None):
-    track_ = datastruct.get_audio_track(track)
+    track_ = get_audio_track(track)
     if len(track_.clips) == 0:
         print2("WARNING: No audio clip to set volume in track: %s" % track)
         return
@@ -302,7 +418,7 @@ def _set_vol(vol, duration=0, track=None, t=None):
 @core.api
 def setp(name, t=None):
     t = _get_time(t)
-    pos_dict[name] = t
+    _state.pos_dict[name] = t
 
 
 @core.api
@@ -328,14 +444,14 @@ def _add_audio_clip(
     move_playhead=True,
     loop=False,
 ):
-    clips = datastruct.get_audio_track(track).clips
+    clips = get_audio_track(track).clips
 
     t = _get_time(t)
 
     if move_playhead:
-        pos_dict["as"] = t
+        _state.pos_dict["as"] = t
 
-    clip_info = datastruct.AudioClip()
+    clip_info = AudioClip()
 
     if not os.path.exists(file):
         raise Exception("Please make sure `%s` exists." % file)
@@ -358,7 +474,9 @@ def _add_audio_clip(
 
     if move_playhead:
         # Forward audio track pos
-        pos_dict["c"] = pos_dict["a"] = pos_dict["ae"] = pos_dict["as"] + (
+        _state.pos_dict["c"] = _state.pos_dict["a"] = _state.pos_dict[
+            "ae"
+        ] = _state.pos_dict["as"] + (
             clip_info.mpy_clip.duration
             if clip_info.duration is None
             else clip_info.duration
@@ -414,14 +532,14 @@ def audio(
 def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
     t = _get_time(t)
 
-    clips = datastruct.get_audio_track(track).clips
+    clips = get_audio_track(track).clips
     if len(clips) == 0:
         print2("WARNING: no previous audio clip to set the end point.")
         return
 
     # Fade out of previous audio clip
     duration = None
-    if len(datastruct.get_audio_track(track).clips) > 0:
+    if len(get_audio_track(track).clips) > 0:
         if crossfade > 0:  # Crossfade out
             _set_vol(0, duration=crossfade, t=t, track=track)
             duration = (t + crossfade) - clips[-1].start  # extend prev clip
@@ -437,7 +555,7 @@ def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
         print2("previous clip(%s) duration updated: %.2f" % (clips[-1].file, duration))
 
     if move_playhead:
-        pos_dict["c"] = pos_dict["a"] = t
+        _state.pos_dict["c"] = _state.pos_dict["a"] = t
 
 
 @core.api
@@ -652,7 +770,7 @@ def add_video_clip(
     width=None,
     height=None,
 ):
-    clip_info = datastruct.VideoClip()
+    clip_info = VideoClip()
 
     # Alias
     if n is not None:
@@ -663,10 +781,10 @@ def add_video_clip(
     # Extract only one frame
     if frame is not None:
         if frame == "next":
-            frame = _last_frame_indices[file] + 1
+            frame = _state.last_frame_indices[file] + 1
         if type(frame) != int:
             raise Exception("Invalid frame val.")
-        _last_frame_indices[file] = frame
+        _state.last_frame_indices[file] = frame
     clip_info.frame = frame
 
     if isinstance(scale, (int, float)):
@@ -676,11 +794,11 @@ def add_video_clip(
     if track is None or track == "vid":
         transparent = False
 
-    track = datastruct.get_vid_track(track)
+    track = get_vid_track(track)
     t = _get_time(t)
 
     if move_playhead:
-        pos_dict["vs"] = t
+        _state.pos_dict["vs"] = t
 
     clip_info.file = os.path.abspath(file)
     clip_info.start = t
@@ -694,8 +812,8 @@ def add_video_clip(
     else:
         if crossfade is not None:
             clip_info.crossfade = crossfade
-        elif _crossfade:
-            clip_info.crossfade = _crossfade
+        elif _state.crossfade:
+            clip_info.crossfade = _state.crossfade
     clip_info.fadeout = fadeout
 
     if duration is not None:
@@ -708,7 +826,7 @@ def add_video_clip(
     clip_info.subclip = subclip
     clip_info.loop = loop
     clip_info.expand = expand
-    clip_info.scale = (scale[0] * global_scale, scale[1] * global_scale)
+    clip_info.scale = (scale[0] * _state.global_scale, scale[1] * _state.global_scale)
     clip_info.width = width
     clip_info.height = height
 
@@ -732,7 +850,7 @@ def add_video_clip(
 
     if move_playhead:  # Advance the pos
         end = t + duration
-        pos_dict["c"] = pos_dict["ve"] = end
+        _state.pos_dict["c"] = _state.pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
         print("WARNING: clip `%s` has been removed" % track[-1].file)
@@ -756,7 +874,7 @@ def anim(file, **kwargs):
 @core.api
 def video_end(track=None, t=None, fadeout=None):
     print("video_end: track=%s" % track)
-    track = datastruct.get_vid_track(track)
+    track = get_vid_track(track)
 
     assert len(track) > 0
 
@@ -858,35 +976,360 @@ def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
 
 @core.api
 def tts(enabled=True):
-    global _enable_tts
-    _enable_tts = enabled
+    _state.enable_tts = enabled
 
 
 @core.api
 def parse_line(line):
     print2(line, color="green")
-    _subtitle.append(line)
+    _state.subtitle.append(line)
 
-    if _enable_tts:
-        global _cached_line_to_tts
-        _cached_line_to_tts = line
+    if _state.enable_tts:
+        _state.cached_line_to_tts = line
 
 
 @core.api
 def audio_only():
-    global _audio_only
-    global _enable_subtitle
-
-    _audio_only = True
-    _enable_subtitle = False
+    _state.audio_only = True
+    _state.enable_subtitle = False
 
 
 @core.api
 def preview():
-    global _enable_subtitle
-    global global_scale
-
-    _enable_subtitle = False
-    global_scale = 0.25
+    _state.enable_subtitle = False
+    _state.global_scale = 0.25
     tts(True)
+
+
+def _update_mpy_clip(
+    clip, subclip, speed, frame, norm, loop, duration, pos, scale, vol, **kwargs,
+):
+    assert duration is not None
+
+    # video clip operations / fx
+    if subclip is not None:
+        if isinstance(subclip, (int, float)):
+            clip = clip.subclip(subclip).set_duration(duration)
+
+        else:
+            subclip_duration = subclip[1] - subclip[0]
+            if duration > subclip_duration:
+                c1 = clip.subclip(subclip[0], subclip[1])
+                c2 = clip.to_ImageClip(subclip[1]).set_duration(
+                    duration - subclip_duration
+                )
+                clip = concatenate_videoclips([c1, c2])
+
+                # HACK: workaround for a bug: 'CompositeAudioClip' object has no attribute 'fps'
+                if clip.audio is not None:
+                    clip = clip.set_audio(clip.audio.set_fps(44100))
+            else:
+                clip = clip.subclip(subclip[0], subclip[1]).set_duration(duration)
+
+    if speed is not None:
+        clip = clip.fx(
+            # pylint: disable=maybe-no-member
+            vfx.speedx,
+            speed,
+        )
+
+    if frame is not None:
+        clip = clip.to_ImageClip(frame).set_duration(duration)
+
+    # Loop or change duration
+    if loop:
+        clip = clip.fx(
+            # pylint: disable=maybe-no-member
+            vfx.loop
+        )
+
+    if subclip is None:
+        clip = clip.set_duration(duration)
+
+    # Scale should be done before translation
+    if scale[0] != 1.0 or scale[1] != 1.0:
+        # input(str(clip.size))
+        clip = clip.resize((int(clip.w * scale[0]), int(clip.h * scale[1])))
+
+    if pos is not None:
+        # (x, y) marks the center location of the of the clip instead of the top
+        # left corner.
+        if pos == "center":
+            clip = clip.set_position(("center", "center"))
+        elif isinstance(pos, (list, tuple)):
+            pos = list(pos)
+            half_size = [x // 2 for x in clip.size]
+            for i in range(2):
+                if isinstance(pos[i], (int, float)):
+                    pos[i] = int(_state.global_scale * pos[i])
+                    pos[i] = pos[i] - half_size[i]
+            clip = clip.set_position(pos)
+        else:
+            clip = clip.set_position(pos)
+
+    return clip
+
+
+def _update_clip_duration(track):
+    def is_connected(prev_clip, cur_clip):
+        return math.isclose(
+            prev_clip.start + prev_clip.duration, cur_clip.start, rel_tol=1e-3,
+        )
+
+    prev_clip_info = None
+    for clip_info in track:
+        if prev_clip_info is not None:
+            if prev_clip_info.auto_extend:
+                prev_clip_info.duration = clip_info.start - prev_clip_info.start
+                prev_clip_info.auto_extend = False
+                assert prev_clip_info.duration > 0
+
+            # Apply fadeout to previous clip if it's not connected with
+            # current clip.
+            if prev_clip_info.crossfade > 0 and not is_connected(
+                prev_clip_info, clip_info
+            ):
+                prev_clip_info.fadeout = prev_clip_info.crossfade
+
+        prev_clip_info = clip_info
+
+    # Update last clip duration
+    if prev_clip_info is not None:
+        if prev_clip_info.auto_extend:
+            duration = prev_clip_info.duration
+
+            # Extend the last video clip to match the voice track
+            if "re" in _state.pos_dict:
+                duration = max(duration, _state.pos_dict["re"] - clip_info.start)
+
+            prev_clip_info.duration = duration
+            prev_clip_info.auto_extend = False
+
+        if prev_clip_info.crossfade > 0:
+            prev_clip_info.fadeout = prev_clip_info.crossfade
+
+
+def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
+    xp = []
+    fp = []
+
+    print("vol_keypoints:", vol_keypoints)
+    for (p, vol) in vol_keypoints:
+        if isinstance(vol, (int, float)):
+            xp.append(p)
+            fp.append(vol)
+        else:
+            raise Exception("unsupported bgm parameter type:" % type(vol))
+
+    def volume_adjust(gf, t):
+        factor = np.interp(t, xp, fp)
+        factor = np.vstack([factor, factor]).T
+        return factor * gf(t)
+
+    return clip.fl(volume_adjust)
+
+
+def export_video(*, out_filename, resolution, audio_only):
+    resolution = [int(x * _state.global_scale) for x in resolution]
+
+    audio_clips = []
+
+    # Update clip duration for each track
+    for track in _state.video_tracks.values():
+        _update_clip_duration(track)
+
+    # TODO: post-process video track clips
+
+    # Update MoviePy clip object in each track.
+    video_clips = []
+    for track_name, track in _state.video_tracks.items():
+        for i, clip_info in enumerate(track):
+            assert clip_info.mpy_clip is not None
+            assert clip_info.duration is not None
+
+            # Unlink audio clip from video clip (adjust audio duration)
+            if clip_info.no_audio:
+                clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
+
+            elif clip_info.mpy_clip.audio is not None:
+                audio_clip = clip_info.mpy_clip.audio
+                clip_info.mpy_clip = clip_info.mpy_clip.set_audio(None)
+
+                # Audio timing
+                # TODO: audio subclip
+                if clip_info.subclip is not None:
+                    duration = clip_info.subclip[1] - clip_info.subclip[0]
+                    audio_clip = audio_clip.subclip(
+                        clip_info.subclip[0], clip_info.subclip[1]
+                    )
+                else:
+                    duration = clip_info.duration
+                    duration = min(duration, audio_clip.duration)
+                    audio_clip = audio_clip.set_duration(duration)
+                audio_clip = audio_clip.set_start(clip_info.start)
+
+                # Adjust volume
+                if clip_info.norm:
+                    audio_clip = audio_clip.fx(
+                        # pylint: disable=maybe-no-member
+                        afx.audio_normalize
+                    )
+                if clip_info.vol is not None:
+                    if isinstance(clip_info.vol, (int, float)):
+                        audio_clip = audio_clip.fx(
+                            # pylint: disable=maybe-no-member
+                            afx.volumex,
+                            clip_info.vol,
+                        )
+                    else:
+                        audio_clip = _adjust_mpy_audio_clip_volume(
+                            audio_clip, clip_info.vol
+                        )
+
+                audio_clips.append(audio_clip)
+
+            # If the next clip has crossfade enabled
+            crossfade_duration = track[i + 1].crossfade if (i < len(track) - 1) else 0
+            if crossfade_duration:
+                # clip_info.fadeout = crossfade_duration  # Fadeout current clip
+                clip_info.duration += crossfade_duration
+
+            clip_info.mpy_clip = _update_mpy_clip(clip_info.mpy_clip, **vars(clip_info))
+
+            # Deal with video fade in / out / crossfade
+            if clip_info.fadein:
+                assert isinstance(clip_info.fadein, (int, float))
+                # TODO: crossfadein and crossfadeout is very slow in moviepy
+                if track_name != "vid":
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadein(
+                        clip_info.fadein
+                    )
+                else:
+                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                        # pylint: disable=maybe-no-member
+                        vfx.fadein,
+                        clip_info.fadein,
+                    )
+
+            elif (
+                clip_info.crossfade > 0
+            ):  # crossfade and fadein should not happen at the same time
+                video_clips.append(
+                    clip_info.mpy_clip.set_duration(clip_info.crossfade)
+                    .crossfadein(clip_info.crossfade)
+                    .set_start(clip_info.start)
+                )
+
+                clip_info.mpy_clip = clip_info.mpy_clip.subclip(clip_info.crossfade)
+                clip_info.start += clip_info.crossfade
+
+            if clip_info.fadeout:
+                assert isinstance(clip_info.fadeout, (int, float))
+                if track_name != "vid":
+                    # pylint: disable=maybe-no-member
+                    clip_info.mpy_clip = clip_info.mpy_clip.crossfadeout(
+                        clip_info.fadeout
+                    )
+                else:
+
+                    clip_info.mpy_clip = clip_info.mpy_clip.fx(
+                        # pylint: disable=maybe-no-member
+                        vfx.fadeout,
+                        clip_info.fadeout,
+                    )
+
+            video_clips.append(clip_info.mpy_clip.set_start(clip_info.start))
+
+    if len(video_clips) == 0:
+        video_clips.append(ColorClip((200, 200), color=(0, 1, 0)).set_duration(2))
+        # raise Exception("no video clips??")
+    final_clip = CompositeVideoClip(video_clips, size=resolution)
+
+    # Resize here is too late, does not speed up the video encoding at all.
+    # final_clip = final_clip.resize(width=480)
+
+    # Deal with audio clips
+    for _, track in _state.audio_tracks.items():
+        clips = []
+        for clip_info in track.clips:
+            if clip_info.loop:
+                # HACK: reload the clip.
+                #
+                # still don't know why using loaded mpy_clip directly will cause
+                # "IndexError: index -200001 is out of bounds for axis 0 with
+                # size 0"...
+                clip = AudioFileClip(clip_info.file, buffersize=400000)
+            else:
+                clip = clip_info.mpy_clip
+
+            if clip_info.subclip is not None:
+                clip = clip.subclip(clip_info.subclip[0], clip_info.subclip[1])
+
+            duration = clip_info.duration
+            if duration is not None:
+                if clip_info.loop:
+                    # pylint: disable=maybe-no-member
+                    clip = clip.fx(afx.audio_loop, duration=duration)
+                else:
+                    duration = min(duration, clip.duration)
+                    if clip_info.subclip:
+                        duration = min(
+                            duration, clip_info.subclip[1] - clip_info.subclip[0]
+                        )
+                    clip = clip.set_duration(duration)
+
+            if clip_info.start is not None:
+                clip = clip.set_start(clip_info.start)
+
+            # Adjust volume by keypoints
+            if len(clip_info.vol_keypoints) > 0:
+                clip = _adjust_mpy_audio_clip_volume(clip, clip_info.vol_keypoints)
+
+            clips.append(clip)
+
+        if len(clips) > 0:
+            clip = CompositeAudioClip(clips)
+            audio_clips.append(clip)
+
+    if final_clip.audio:
+        audio_clips.append(final_clip.audio)
+
+    if len(audio_clips) > 0:
+        final_audio_clip = CompositeAudioClip(audio_clips)
+
+        # XXX: Workaround for exception: 'CompositeAudioClip' object has no attribute 'fps'.
+        # See: https://github.com/Zulko/moviepy/issues/863
+        # final_audio_clip.fps = 44100
+
+        final_clip = final_clip.set_audio(final_audio_clip)
+
+    # final_clip.show(10.5, interactive=True)
+
+    os.makedirs("tmp/out", exist_ok=True)
+
+    if audio_only:
+        final_audio_clip.fps = 44100
+        final_audio_clip.write_audiofile("%s.mp3" % out_filename)
+        open_with("%s.mp3" % out_filename, program_id=0)
+
+    else:
+        final_clip.write_videofile(
+            "%s.mp4" % out_filename,
+            temp_audiofile="%s.mp3" % out_filename,
+            remove_temp=False,
+            codec="libx264",
+            threads=8,
+            fps=FPS,
+            ffmpeg_params=["-crf", "19"],
+        )
+
+        subprocess.Popen(
+            ["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"],
+            close_fds=True,
+        )
+
+
+# def _export_srt():
+#     with open("out.srt", "w", encoding="utf-8") as f:
+#         f.write("\n".join(_state.srt_lines))
 
