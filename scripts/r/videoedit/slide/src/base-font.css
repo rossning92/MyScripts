@@ -3,7 +3,7 @@
 body {
   font-family: "Roboto", "Noto Sans SC", sans-serif;
   /* font-size: 5vh; */
-  font-size: 50px;
+  font-size: 40px;
   -webkit-font-smoothing: subpixel-antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
 }

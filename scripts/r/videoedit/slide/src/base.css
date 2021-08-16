@@ -17,19 +17,14 @@ body {
   color: white;
 }
 
-/* 
-strong {
-  text-decoration: underline;
-} */
-
 pre {
-  display: inline-block;
   background-color: #09343f;
   border-radius: 0.2em;
-  font-size: 0.8em;
-  margin: 0;
+  display: inline-block;
+  margin: 0 auto;
+  padding: 0.4em 1em;
   text-align: left;
-  padding: 0.4em;
+  font-size: 0.8em;
 }
 
 p {
@@ -68,4 +63,9 @@ td {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+blockquote {
+  border-radius: 0.2em;
+  padding: 0.1em 1em;
 }

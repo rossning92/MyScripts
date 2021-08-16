@@ -3,8 +3,8 @@ import os
 import random
 import signal
 import subprocess
-from pathlib import Path
 
+from _browser import open_page
 from _shutil import call_echo, get_files
 
 
@@ -46,13 +46,7 @@ if __name__ == "__main__":
 
     ps = start_server(file, port=port)
 
-    subprocess.call(
-        [
-            "C:\Program Files (x86)\Chromium\Application\chrome.exe",
-            "--user-data-dir=%s" % os.path.join(Path.home(), "movy-chrome-profile"),
-            "http://localhost:%d" % port,
-        ]
-    )
+    open_page("http://localhost:%d" % port)
 
     try:
         ps.wait()

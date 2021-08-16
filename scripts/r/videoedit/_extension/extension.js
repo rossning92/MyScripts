@@ -447,7 +447,7 @@ function startAnimationServer(activeFile) {
   const shellArgs = [
     "/c",
     "run_script",
-    "/r/videoedit/start_animation_server",
+    "/r/videoedit/start_movy_server",
     activeFile,
     "||",
     "pause",

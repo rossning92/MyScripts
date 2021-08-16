@@ -3,38 +3,26 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
 
-:is(h1, h2, h3, h4, h5, h6) {
-  /* display: table; */
-  text-align: center;
-  margin: 0 auto -0.02em auto;
-  font-weight: normal;
-  font-size: 1em;
-  letter-spacing: 0.2rem;
-  font-weight: bolder;
-  padding: 0.1em 2em 0.1em 2em;
-  line-height: 1em;
+:is(h1, h2, h3, h4, h5, h6, blockquote) {
+  /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); */
   background: rgba(0, 0, 0, 0.9);
+  font-size: 1em;
+  font-weight: normal;
+  letter-spacing: 0.2rem;
+  line-height: 1em;
+  margin: 0 auto -0.02em auto;
+  padding: 0.1em 2em;
+  text-align: center;
+  vertical-align: middle;
   white-space: nowrap;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
 h1 {
-  font-size: 1.2em;
+  font-size: 1.5em;
 }
 
 h2 {
-  white-space: nowrap;
-  font-size: 1em;
   color: black;
-  position: relative;
+  font-size: 1.25em;
   background: rgba(126, 214, 223, 0.9);
-}
-
-blockquote {
-  background-color: rgba(0, 0, 0, 0.9);
-  padding: 0.1em 1em;
-  border-radius: 0.2em;
-  color: "#ffffff";
-  font-size: 0.8em;
-  margin: 0 auto;
 }

@@ -27,33 +27,30 @@ body {
 }
 
 .inner {
-  max-width: fit-content;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  max-width: fit-content;
 }
 
 :is(h1, h2, h3, h4, h5, h6) {
-  /* margin: 0; */
-  /* font-weight: 500; */
-  /* margin: 0 auto; */
-  margin-top: 0;
   margin-bottom: 0;
+  margin-top: 0;
   text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
   background-color: #fc7281;
+  border-left: 32px solid #ca5b67;
   font-size: 2em;
   font-weight: 900;
   padding: 0 0.5em;
-  /* border-left: 32px solid #e63946; */
-  /* text-shadow: 2px 2px gray; */
 }
 
 h2 {
-  font-weight: 500;
-  font-size: 1.25em;
   background-color: #457b9d;
+  border-left: 32px solid #37627e;
+  font-size: 1.25em;
+  font-weight: 500;
   padding: 0 0.5em;
 }
