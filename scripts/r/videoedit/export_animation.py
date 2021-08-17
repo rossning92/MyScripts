@@ -19,25 +19,7 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 ignore_undefined = False
 
-if 1:
-    change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
-
-
-# def _get_markers(file):
-#     marker_file = file + ".marker.txt"
-#     if os.path.exists(marker_file):
-#         with open(marker_file, "r") as f:
-#             s = f.read()
-#             return [float(x) for x in s.split()]
-#     else:
-#         return None
-
-
-# def _load_and_expand_img(f):
-#     fg = Image.open(f).convert("RGBA")
-#     bg = Image.new("RGB", (1920, 1080))
-#     bg.paste(fg, ((bg.width - fg.width) // 2, (bg.height - fg.height) // 2), fg)
-#     return np.array(bg)
+change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 
 
 @core.api
@@ -195,7 +177,6 @@ def load_config():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stdin", default=False, action="store_true")
     parser.add_argument("--proj_dir", type=str, default=None)
     parser.add_argument("-i", "--input", type=str, default=None)
     parser.add_argument("-a", "--audio_only", action="store_true", default=False)
@@ -228,25 +209,14 @@ if __name__ == "__main__":
         global_functions = inspect.getmembers(mymodule, inspect.isfunction)
         core.apis.update({k: v for k, v in global_functions})
 
-    # HACK
-    if args.audio_only:
-        coreapi.audio_only()
-
-    # Read text
-    if args.stdin:
-        s = sys.stdin.read()
-
-    elif args.input:
+    # Read input scripts
+    if args.input:
         with open(args.input, "r", encoding="utf-8") as f:
             s = f.read()
-
     else:
-        raise Exception("Either --stdin or --input should be specified.")
+        raise Exception("--input must be specified.")
 
     load_config()
-
-    if args.preview:
-        coreapi.preview()
 
     if args.remove_unused_recordings:
         ignore_undefined = True
@@ -255,10 +225,16 @@ if __name__ == "__main__":
         ignore_undefined = True
         _show_stats(s)
     else:
-        coreapi.reset()
-        _parse_text(s, apis=core.apis)
-        coreapi.export_video(
-            out_filename=out_filename,
-            resolution=(1920, 1080),
-            audio_only=args.audio_only,
-        )
+        if True:
+            coreapi.reset()
+
+            if args.preview:
+                coreapi.enable_preview()
+
+            _parse_text(s, apis=core.apis)
+
+            coreapi.export_video(
+                out_filename=out_filename,
+                resolution=(1920, 1080),
+                audio_only=args.audio_only,
+            )

@@ -1,3 +1,4 @@
+import functools
 import math
 import os
 import re
@@ -431,7 +432,8 @@ def bgm_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwawgs):
     _set_vol(vol, duration=duration, track="bgm", **kwawgs)
 
 
-def _create_audio_file_clip(file):
+@functools.lru_cache(maxsize=None)
+def _load_audio_clip(file):
     return AudioFileClip(file, buffersize=400000)
 
 
@@ -458,7 +460,7 @@ def _add_audio_clip(
     clip_info.file = os.path.abspath(file)
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
-    clip_info.mpy_clip = _create_audio_file_clip(file)
+    clip_info.mpy_clip = _load_audio_clip(file)
 
     if subclip is not None:
         if isinstance(subclip, (int, float)):
@@ -669,6 +671,7 @@ def _create_image_seq_clip(tar_file):
     return clip
 
 
+@functools.lru_cache(maxsize=None)
 def _load_mpy_clip(
     file,
     scale=(1.0, 1.0),
@@ -988,14 +991,7 @@ def parse_line(line):
         _state.cached_line_to_tts = line
 
 
-@core.api
-def audio_only():
-    _state.audio_only = True
-    _state.enable_subtitle = False
-
-
-@core.api
-def preview():
+def enable_preview():
     _state.enable_subtitle = False
     _state.global_scale = 0.25
     tts(True)
@@ -1129,7 +1125,7 @@ def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
     return clip.fl(volume_adjust)
 
 
-def export_video(*, out_filename, resolution, audio_only):
+def export_video(*, out_filename, resolution, audio_only, preview=False):
     resolution = [int(x * _state.global_scale) for x in resolution]
 
     audio_clips = []
@@ -1299,7 +1295,7 @@ def export_video(*, out_filename, resolution, audio_only):
 
         # XXX: Workaround for exception: 'CompositeAudioClip' object has no attribute 'fps'.
         # See: https://github.com/Zulko/moviepy/issues/863
-        # final_audio_clip.fps = 44100
+        final_audio_clip.fps = 44100
 
         final_clip = final_clip.set_audio(final_audio_clip)
 
@@ -1313,20 +1309,31 @@ def export_video(*, out_filename, resolution, audio_only):
         open_with("%s.mp3" % out_filename, program_id=0)
 
     else:
-        final_clip.write_videofile(
-            "%s.mp4" % out_filename,
-            temp_audiofile="%s.mp3" % out_filename,
-            remove_temp=False,
-            codec="libx264",
-            threads=8,
-            fps=FPS,
-            ffmpeg_params=["-crf", "19"],
-        )
+        if preview:
+            final_clip.preview(fps=15)
+            import pygame
 
-        subprocess.Popen(
-            ["mpv", "--force-window", "--geometry=1920x1080", f"{out_filename}.mp4"],
-            close_fds=True,
-        )
+            pygame.quit()
+        else:
+            final_clip.write_videofile(
+                "%s.mp4" % out_filename,
+                temp_audiofile="%s.mp3" % out_filename,
+                remove_temp=False,
+                codec="libx264",
+                threads=8,
+                fps=FPS,
+                ffmpeg_params=["-crf", "19"],
+            )
+
+            subprocess.Popen(
+                [
+                    "mpv",
+                    "--force-window",
+                    "--geometry=1920x1080",
+                    f"{out_filename}.mp4",
+                ],
+                close_fds=True,
+            )
 
 
 # def _export_srt():
