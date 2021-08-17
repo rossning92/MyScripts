@@ -75,6 +75,7 @@ PKGS = {
         "golang",
         "ontopreplica",
         "docker-desktop",
+        "gimp",
     ],
 }
 
