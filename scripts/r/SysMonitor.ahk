@@ -4,16 +4,16 @@ WinClose system_stats_
 
 ; MsgBox % ComObjCreate("WScript.Shell").Exec("cmd.exe /q /c dir").StdOut.ReadAll()
 
-width := 220
+width := 200
 row := 3
 
 CustomColor = 0 ; Can be any RGB color.
 Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20
 Gui, Margin, 4, 4
 Gui, Color, %CustomColor%
-Gui, Font, q3 cffffff s12 w700, Courier
+Gui, Font, q3 cffffff w700 s9, Courier
 Gui, Add, Text, vMyText w%width% r%row%
-WinSet, TransColor, 1 192 ; Make color invisible
+WinSet, TransColor, 1 176 ; Make color invisible
 
 x := A_ScreenWidth - width
 y := 0
