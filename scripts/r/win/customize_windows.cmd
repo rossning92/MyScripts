@@ -54,8 +54,9 @@ reg add "HKCU\Control Panel\Desktop" /v UserPreferencesMask /t REG_BINARY /d 901
 reg add HKCU\Console\%SystemRoot^%_system32_cmd.exe /v CodePage /t REG_DWORD /d 65001 /f
 
 reg add HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
-reg add HKCU\Console /v FaceName /t REG_SZ /d Consolas /f
-reg add HKCU\Console /v FontSize /t REG_DWORD /d 0x120000 /f
+reg add HKCU\Console /v FaceName /t REG_SZ /d Terminal /f
+reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x30 /f
+reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xc0008 /f
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f
 reg add HKCU\Console /v CtrlKeyShortcutsDisabled /t REG_DWORD /d 1 /f
 
@@ -95,4 +96,4 @@ start explorer.exe
 powercfg /change standby-timeout-ac 0
 powercfg /change standby-timeout-dc 0
 
-run_script disable_onedrive
+@REM run_script disable_onedrive

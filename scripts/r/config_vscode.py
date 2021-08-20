@@ -100,6 +100,7 @@ if __name__ == "__main__":
             # "shd101wyy.markdown-preview-enhanced",
             # "mdickin.markdown-shortcuts",
             "yzhang.markdown-all-in-one",
+            "mushan.vscode-paste-image",
             # JS
             "esbenp.prettier-vscode",
             # Shell script

@@ -103,7 +103,7 @@ def show_im(
         imgs = [imgs[0][:, :, i] for i in range(imgs[0].shape[-1])]
         print(imgs)
 
-    plt.style.use("dark_background")
+    # plt.style.use("dark_background")
 
     fig = plt.figure(figsize=(len(imgs) * 4, 1 * 4))
     for i, im in enumerate(imgs):

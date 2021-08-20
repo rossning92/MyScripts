@@ -48,10 +48,10 @@ for f in files:
         filter_v.append("setpts=PTS/%.2f" % float("{{_SPEED}}"))
 
     # Scale (-2 indicates divisible by 2)
-    if "{{_RESIZE_H}}":
-        filter_v.append("scale=-2:{{_RESIZE_H}}")
-    elif "{{_RESIZE_W}}":
-        filter_v.append("scale={{_RESIZE_W}}:-2")
+    if "{{_RESIZE_HEIGHT}}":
+        filter_v.append("scale=-2:{{_RESIZE_HEIGHT}}")
+    elif "{{_RESIZE_WIDTH}}":
+        filter_v.append("scale={{_RESIZE_WIDTH}}:-2")
 
     if "{{_TEXT_OVERLAY}}":
         filter_v.append(
