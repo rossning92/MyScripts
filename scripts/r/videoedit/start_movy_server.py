@@ -4,7 +4,6 @@ import random
 import signal
 import subprocess
 
-from _browser import open_page
 from _shutil import call_echo, get_files
 
 
@@ -32,6 +31,7 @@ def start_server(file=None, port=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--port", type=int, default=None)
     parser.add_argument(
         "file", type=str, help="animation js file", nargs="?", default=None
     )
@@ -42,11 +42,7 @@ if __name__ == "__main__":
     else:
         file = get_files()[0]
 
-    port = random.randint(10000, 20000)
-
-    ps = start_server(file, port=port)
-
-    open_page("http://localhost:%d" % port)
+    ps = start_server(file, port=args.port)
 
     try:
         ps.wait()

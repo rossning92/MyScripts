@@ -29,6 +29,13 @@ String.prototype.count = function (substr) {
   ).length;
 };
 
+function openInBrowser(url) {
+  cp.spawn("C:/Program Files (x86)/Chromium/Application/chrome.exe", [
+    "--user-data-dir=" + path.join(os.homedir(), "ChromeDataForDev"),
+    url,
+  ]);
+}
+
 async function openFile(filePath) {
   if (fs.existsSync(filePath)) {
     if (new RegExp(".(md|" + SOURCE_FILE_EXT + ")$", "g").test(filePath)) {
@@ -82,11 +89,16 @@ function getFileUnderCursor() {
 }
 
 function startSlideServer(file) {
+  // Return random port number between 10000 and 20000
+  let port = Math.floor(Math.random() * 10000) + 10000;
+
   const shellArgs = [
     "/c",
     "run_script",
     "slide/export.js",
     "-d",
+    "-p",
+    port.toString(),
     "-t",
     "slide",
     "-i",
@@ -96,6 +108,8 @@ function startSlideServer(file) {
   ];
 
   runInTerminal("SlideServer", shellArgs);
+
+  openInBrowser(`http://localhost:${port}`);
 }
 
 async function openFileUnderCursor() {
@@ -104,7 +118,7 @@ async function openFileUnderCursor() {
 
   const activeFile = vscode.window.activeTextEditor.document.fileName;
   if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
-    startAnimationServer(activeFile);
+    startMovyServer(activeFile);
   } else if (/slide[\\\/].+?\.md$/.test(activeFile)) {
     startSlideServer(activeFile);
   } else {
@@ -443,17 +457,24 @@ function runInTerminal(name, shellArgs) {
   terminal.show();
 }
 
-function startAnimationServer(activeFile) {
+function startMovyServer(activeFile) {
+  // Return random port number between 10000 and 20000
+  let port = Math.floor(Math.random() * 10000) + 10000;
+
   const shellArgs = [
     "/c",
     "run_script",
     "/r/videoedit/start_movy_server",
+    "-p",
+    port.toString(),
     activeFile,
     "||",
     "pause",
   ];
 
-  runInTerminal("AnimationServer", shellArgs);
+  runInTerminal("MovyServer", shellArgs);
+
+  openInBrowser(`http://localhost:${port}`);
 }
 
 function exportVideo({
@@ -808,7 +829,7 @@ function activate(context) {
     });
 
     if (file) {
-      startAnimationServer(file);
+      startMovyServer(file);
     }
   });
 
