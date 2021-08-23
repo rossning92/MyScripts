@@ -80,6 +80,7 @@ class CapturaScreenRecorder(ScreenRecorder):
             args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         )
         print2("Recording started.", color="green")
+        time.sleep(1)
 
     def stop_record(self):
         if self.captura_ps is None:

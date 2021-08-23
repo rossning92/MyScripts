@@ -105,7 +105,7 @@ async function openFileUnderCursor() {
   const activeFile = vscode.window.activeTextEditor.document.fileName;
   if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
     startAnimationServer(activeFile);
-  } else if (/slide[\\\/][a-zA-Z0-9-_]+\.md$/.test(activeFile)) {
+  } else if (/slide[\\\/].+?\.md$/.test(activeFile)) {
     startSlideServer(activeFile);
   } else {
     const file = getFileUnderCursor();
@@ -799,13 +799,17 @@ function activate(context) {
 
   // Create movy document
   vscode.commands.registerCommand("videoEdit.createMovyAnimation", async () => {
-    createNewDocument({
+    const file = await createNewDocument({
       dir: "animation",
       func: "anim",
       fileNamePlaceHolder: "movy-animation-name",
       initContent: 'import * as mo from "movy";\n\nmo.run();',
       extension: ".js",
     });
+
+    if (file) {
+      startAnimationServer(file);
+    }
   });
 
   // Create source code document

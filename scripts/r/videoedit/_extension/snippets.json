@@ -1,56 +1,42 @@
 {
   "md": {
     "prefix": "md",
-    "body": [
-      "{{ md('## $1', t='as', duration=3) }}"
-    ]
+    "body": ["{{ md('## $1', t='as', duration=3) }}"]
   },
   "title_anim": {
     "prefix": "title_anim",
-    "body": [
-      "{{ title_anim('$1', '$2') }}"
-    ]
+    "body": ["{{ title_anim('$1', '$2') }}"]
   },
   "audio_gap": {
     "prefix": "audio_gap",
-    "body": [
-      "{{ audio_gap($1) }}"
-    ]
+    "body": ["{{ audio_gap($1) }}"]
   },
   "tts": {
     "prefix": "tts",
-    "body": [
-      "{{ tts(True) }}"
-    ]
+    "body": ["{{ tts(True) }}"]
   },
   "bgm": {
     "prefix": "bgm",
-    "body": [
-      "{{ bgm('$1', norm=True) }}"
-    ]
+    "body": ["{{ bgm('$1', norm=True) }}"]
   },
   "crossfade": {
     "prefix": "crossfade",
-    "body": [
-      "{{ crossfade(0.2) }}"
-    ]
+    "body": ["{{ crossfade(0.2) }}"]
   },
   "comment": {
     "prefix": "comment",
-    "body": [
-      "{{ comment('$1', t='as') }}"
-    ]
+    "body": ["{{ comment('$1', t='as') }}"]
+  },
+  "title": {
+    "prefix": "title",
+    "body": ["{{ slide('# $1\\n## $2', template='title', cf=0.2) }}"]
   },
   "slide": {
     "prefix": "slide",
-    "body": [
-      "{{ slide('# $1\\n## $2', template='title', cf=0.2) }}"
-    ]
+    "body": ["{{ slide('$1', template='slide') }}"]
   },
   "video_end": {
     "prefix": "video_end",
-    "body": [
-      "{{ video_end(track='overlay', t='ae') }}"
-    ]
+    "body": ["{{ video_end(track='overlay', t='ae') }}"]
   }
 }

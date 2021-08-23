@@ -47,7 +47,7 @@ function createDirectory(dir) {
       "-ItemType",
       "Directory",
       "-Force",
-      "-Name",
+      "-Path",
       '"' + dir + '"', // double quote
       "|",
       "Out-Null",
@@ -59,7 +59,7 @@ var tempDir = undefined;
 function getTempDir() {
   if (tempDir === undefined) {
     tempDir =
-      mp.get_property_native("path").replace(/[^\\/]+$/, "") + "mpv-tmp";
+      mp.get_property_native("path").replace(/[^\\/]+$/, "") + "tmp";
     createDirectory(tempDir);
   }
   return tempDir;
@@ -118,7 +118,6 @@ function getNewAvailableFile(file) {
       break;
     }
   }
-  mp.msg.warn(ix.toString());
 
   return newFile;
 }

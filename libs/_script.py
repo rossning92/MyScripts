@@ -310,9 +310,18 @@ def wt_wrap_args(
 ):
     THEME = {
         "name": "Dracula",
+        "cursorColor": "#F8F8F2",
+        "selectionBackground": "#44475A",
         "background": "#282A36",
+        "foreground": "#F8F8F2",
         "black": "#21222C",
         "blue": "#BD93F9",
+        "cyan": "#8BE9FD",
+        "green": "#50FA7B",
+        "purple": "#FF79C6",
+        "red": "#FF5555",
+        "white": "#F8F8F2",
+        "yellow": "#F1FA8C",
         "brightBlack": "#6272A4",
         "brightBlue": "#D6ACFF",
         "brightCyan": "#A4FFFF",
@@ -321,13 +330,6 @@ def wt_wrap_args(
         "brightRed": "#FF6E6E",
         "brightWhite": "#FFFFFF",
         "brightYellow": "#FFFFA5",
-        "cyan": "#8BE9FD",
-        "foreground": "#F8F8F2",
-        "green": "#50FA7B",
-        "purple": "#FF79C6",
-        "red": "#FF5555",
-        "white": "#F8F8F2",
-        "yellow": "#F1FA8C",
     }
 
     if sys.platform != "win32":
@@ -718,15 +720,7 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = (
-                    args_activate
-                    + [
-                        python_exec,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+                args = args_activate + [python_exec, run_py, python_file,] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 

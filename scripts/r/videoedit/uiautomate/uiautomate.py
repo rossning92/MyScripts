@@ -1,11 +1,14 @@
 import difflib
-import keyboard
-from _shutil import *
-import pyautogui
+import glob
+import os
 import random
-from videoedit.record_screen import recorder
-from _script import wt_wrap_args
+import time
 
+import keyboard
+import pyautogui
+from _script import wt_wrap_args
+from _shutil import exec_ahk, getch, set_clip
+from videoedit.record_screen import CapturaScreenRecorder
 
 INTERVAL_NEW_FILE = 1
 
@@ -13,10 +16,12 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 pyautogui.PAUSE = 0
 
+recorder = CapturaScreenRecorder()
+
 
 def set_window_pos(x, y, w, h):
     exec_ahk('#include <Window>\nSetWindowPos("A", %d, %d, %d, %d)\n' % (x, y, w, h))
-    sleep(0.5)
+    time.sleep(0.5)
 
 
 def send_hotkey(modifier, key):
@@ -25,19 +30,6 @@ def send_hotkey(modifier, key):
 
 def press(keys):
     pyautogui.press(keys)
-
-
-def type_text(text):
-    for ch in text:
-        if ch == "\n":
-            sleep(0.2)
-            pyautogui.write("\n")
-            time.sleep(0.1)
-        elif ch == " ":
-            pyautogui.write(" ")
-        else:
-            time.sleep(random.uniform(0.05, 0.01))
-            pyautogui.write(ch)
 
 
 def modify_code(
@@ -169,8 +161,7 @@ if __name__ == "__main__":
             for i, f in enumerate(files):
                 print("[%d] %s" % (i, f))
 
-            i = input("index: ")
-            i = int(i)
+            i = int(input("index: "))
 
             exec_ahk("WinActivate, ahk_exe sonic-pi.exe")
 
@@ -191,9 +182,9 @@ if __name__ == "__main__":
             # Record playback
             recorder.start_record()
             pyautogui.hotkey("alt", "r")
-            sleep(10)
+            time.sleep(10)
             pyautogui.hotkey("alt", "s")
-            sleep(1)
+            time.sleep(1)
             recorder.stop_record()
             recorder.save_record(
                 "screencap/" + name_no_ext + "-playback.mp4", overwrite=True
@@ -206,9 +197,9 @@ if __name__ == "__main__":
             # Record playback
             recorder.start_record()
             pyautogui.hotkey("alt", "r")
-            sleep(30)
+            time.sleep(30)
             pyautogui.hotkey("alt", "s")
-            sleep(1)
+            time.sleep(1)
             recorder.stop_record()
             f = input("file name (no ext) :")
             recorder.save_record("screencap/" + f + ".mp4", overwrite=True)
@@ -217,3 +208,15 @@ if __name__ == "__main__":
 
 def sleep(secs):
     time.sleep(secs)
+
+
+def run_commands(cmds):
+    if type(cmds) != str:
+        raise TypeError("cmds must be str")
+
+    for cmd in cmds.splitlines():
+        if cmd.startswith("!sleep"):
+            secs = float(cmd.split(" ")[1])
+            time.sleep(secs)
+        else:
+            typing(cmd + "\n")

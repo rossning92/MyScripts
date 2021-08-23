@@ -1,9 +1,8 @@
 import os
 
 from _script import wt_wrap_args
-from _shutil import run_ahk, call_echo
-from videoedit.record_screen import recorder
-from uiautomate import run_ahk, exec_ahk
+from _shutil import run_ahk, call_echo, run_ahk, exec_ahk
+from uiautomate import *
 import time
 
 root = os.path.dirname(os.path.abspath(__file__))

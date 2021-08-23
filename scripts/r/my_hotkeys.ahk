@@ -154,7 +154,7 @@ return
     }
 return
 
-$!`::
+$!\::
     if (WindowDividor = 2/3) {
         WindowDividor := 1/2
 
