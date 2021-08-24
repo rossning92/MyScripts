@@ -19,7 +19,7 @@ def screen_record(out_file=None, max_secs=10, bit_rate="40M"):
 
     args = ["adb", "shell", "screenrecord", TMP_RECORD_FILE]
     args += ["--time-limit", "{}".format(max_secs), "--bit-rate", "{}".format(bit_rate)]
-    subprocess.check_call(args)
+    subprocess.call(args, shell=True)
 
     subprocess.check_call(["adb", "pull", TMP_RECORD_FILE, out_file])
 

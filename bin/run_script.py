@@ -36,8 +36,8 @@ kwargs, file, rest_args = try_parse()
 
 update_env_var_explorer()
 
-if "change_work_dir" not in kwargs:
-    kwargs["change_work_dir"] = False
+if "cd" not in kwargs:
+    kwargs["cd"] = False
 
 run_script(
     file=file,

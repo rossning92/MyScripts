@@ -533,7 +533,7 @@ class Script:
         new_window=None,
         restart_instance=None,
         close_on_exit=None,
-        change_work_dir=True,
+        cd=True,
     ):
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.meta["closeOnExit"]
@@ -579,7 +579,7 @@ class Script:
         if "_CUR_DIR" in os.environ:
             env["_CUR_DIR"] = os.environ["_CUR_DIR"]
 
-        if change_work_dir:
+        if cd:
             cwd = os.path.abspath(
                 os.path.join(os.getcwd(), os.path.dirname(script_path))
             )
@@ -956,7 +956,7 @@ def run_script(
     restart_instance=False,
     overwrite_meta=None,
     args=[],
-    change_work_dir=True,
+    cd=True,
 ):
     if file is None:
         if os.path.exists(_get_script_history_file()):
@@ -1005,7 +1005,7 @@ def run_script(
         restart_instance=restart_instance,
         new_window=new_window,
         args=args,
-        change_work_dir=change_work_dir,
+        cd=cd,
     )
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
