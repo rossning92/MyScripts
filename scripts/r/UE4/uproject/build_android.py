@@ -1,6 +1,9 @@
-from _shutil import *
-from _android import *
+import glob
+import os
+
+from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import get_variable
+from _shutil import call_echo, call_highlight, cd, find_file, mkdir, print2
 
 setup_android_env()
 
@@ -8,7 +11,7 @@ setup_android_env()
 OUT_DIR = "/tmp"
 
 
-def build_uproject(project_dir, out_dir=None):
+def build_uproject(project_dir, out_dir=None, compile_cpp=False):
     engine_source = get_variable("UE_SOURCE")
     print2("Engine: %s" % engine_source)
 
@@ -21,8 +24,8 @@ def build_uproject(project_dir, out_dir=None):
         project_name = os.path.splitext(os.path.basename(project_file))[0]
         out_dir = OUT_DIR + "/%s" % project_name
 
-    # Build module?
-    if False:
+    # Build C++ module?
+    if compile_cpp:
         call_echo(
             [
                 r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe" % engine_source,
@@ -31,8 +34,8 @@ def build_uproject(project_dir, out_dir=None):
                 "-Project=%s" % project_file,
                 "-TargetType=Editor",
                 "-Progress",
-                "-NoEngineChanges",
-                "-NoHotReloadFromIDE",
+                # "-NoEngineChanges",
+                # "-NoHotReloadFromIDE",
             ]
         )
 
@@ -68,7 +71,9 @@ def build_uproject(project_dir, out_dir=None):
 
 
 if __name__ == "__main__":
-    out_dir = build_uproject(project_dir=r"{{UE4_PROJECT_DIR}}")
+    out_dir = build_uproject(
+        project_dir=r"{{UE4_PROJECT_DIR}}", compile_cpp=bool("{{_COMPILE_CPP}}")
+    )
 
     if "{{_INSTALL}}":
         apk = find_file(out_dir + "/**/*.apk")

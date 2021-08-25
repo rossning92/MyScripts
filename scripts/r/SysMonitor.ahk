@@ -5,7 +5,7 @@ WinClose system_stats_
 ; MsgBox % ComObjCreate("WScript.Shell").Exec("cmd.exe /q /c dir").StdOut.ReadAll()
 
 width := 200
-row := 3
+row := 4
 
 CustomColor = 0 ; Can be any RGB color.
 Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20
@@ -65,9 +65,10 @@ CPULoad()
     Return ( ( SystemTime - IdleTime ) * 100 ) // SystemTime
 } 
 
-GetMemory(byref total, byref free) {
+GetMemory(byref percent, byref total, byref free) {
     VarSetCapacity( memorystatus, 100 )
     DllCall("kernel32.dll\GlobalMemoryStatus", "uint",&memorystatus)
+    percent := NumGet(memorystatus, 4, "UInt")
     total := NumGet(memorystatus, 8, "Int64")
     free := NumGet(memorystatus, 16, "Int64")
 }
@@ -75,9 +76,12 @@ GetMemory(byref total, byref free) {
 OnTimer() {
     cpu := CPULoad()
 
-    GetMemory(total, free)
+    GetMemory(percent, total, free)
+    used := total - free
+    
     total := Format("{:.1f}", total / 1024 / 1024 / 1024)
     free := Format("{:.1f}", free / 1024 / 1024 / 1024)
+    used := Format("{:.1f}", used / 1024 / 1024 / 1024)
 
     try {
         ping := IPHelper.Ping("8.8.8.8") "ms"
@@ -87,7 +91,8 @@ OnTimer() {
     msg = 
     ( LTrim
     CPU : %cpu%`%
-    Mem : %free%/%total%G
+    Mem`%: %percent%`%
+    Mem : %used%/%total%G
     Ping: %ping%
     )
     GuiControl,, MyText, %msg%
