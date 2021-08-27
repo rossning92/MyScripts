@@ -1,4 +1,3 @@
-from _shutil import call_echo
 from _android import wait_until_boot_complete
 import subprocess
 
@@ -18,4 +17,8 @@ while True:
 
     ps = subprocess.Popen(args, stdin=subprocess.PIPE)
     ps.stdin.close()
-    ps.wait()
+
+    try:
+        ps.wait()
+    except KeyboardInterrupt:
+        print("Exiting...")

@@ -125,14 +125,17 @@ return
     UpdateWindowPosition("right")
 return
 
-#t::
-    WinGet, ExStyle, ExStyle, A
+#MButton::
+    MouseGetPos,,, hwndUnderCursor
+    WinGetPos, winX, winY, , , ahk_id %hwndUnderCursor%
+    WinGet, ExStyle, ExStyle, ahk_id %hwndUnderCursor%
+    CoordMode, ToolTip, Screen
     If (ExStyle & 0x8) {
-        SetAlwaysOnTop("A", False)
-        ToolTip, AlwaysOnTop=0, 0, 0
+        SetAlwaysOnTop("ahk_id " hwndUnderCursor, False)
+        ToolTip, AlwaysOnTop=0, %winX%, %winY%
     } else {
-        SetAlwaysOnTop("A", True)
-        ToolTip, AlwaysOnTop=1, 0, 0
+        SetAlwaysOnTop("ahk_id " hwndUnderCursor, True)
+        ToolTip, AlwaysOnTop=1, %winX%, %winY%
     }
     SetTimer, RemoveToolTip, -2000
 return
