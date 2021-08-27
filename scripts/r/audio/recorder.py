@@ -336,7 +336,8 @@ class TerminalRecorder:
                 )
             os.remove(self.tmp_wav_file)
 
-            self._play_cur_file()
+            # Don't play what's recorded.
+            # self._play_cur_file()
 
     def main_loop(self):
         self.print_help()

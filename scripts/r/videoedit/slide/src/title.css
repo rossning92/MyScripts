@@ -8,7 +8,6 @@ body {
 .outer {
   background-color: black;
   color: white;
-  /* display: table-cell; */
 
   display: flex;
   flex-direction: column;
@@ -22,7 +21,6 @@ body {
   min-width: 1920px;
   width: 1920px;
   height: 1080px;
-  /* background-image: url("./bg-math.png"); */
   background-size: cover;
 }
 

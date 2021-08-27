@@ -7,6 +7,7 @@
     "start": "webpack serve --mode development --devtool inline-source-map --hot --open"
   },
   "dependencies": {
+    "codemirror": "^5.62.3",
     "css-loader": "^5.2.4",
     "html-webpack-plugin": "^5.3.1",
     "marked": "^2.0.3",

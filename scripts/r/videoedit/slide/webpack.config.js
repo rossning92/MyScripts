@@ -10,7 +10,11 @@ module.exports = ({
 }) => {
   const mdFileDir = path.dirname(path.resolve(mdFile));
 
-  const contentBase = [path.resolve(__dirname, "public"), mdFileDir];
+  const contentBase = [
+    path.resolve(__dirname, "public"),
+    path.resolve(__dirname, "node_modules"),
+    mdFileDir,
+  ];
   if (public !== undefined) {
     contentBase.push(public);
   }
@@ -33,7 +37,7 @@ module.exports = ({
     devServer: {
       contentBase,
       // open: true,
-      watchContentBase: true,
+      // watchContentBase: true,
       hot: true,
       stats: "minimal",
     },

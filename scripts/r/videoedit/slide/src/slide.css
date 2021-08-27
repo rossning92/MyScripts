@@ -9,7 +9,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  /* text-align: center; */
 
   min-width: 1920px;
   width: 1920px;
@@ -26,7 +26,7 @@
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
-  text-align: center;
+  /* text-align: center; */
   width: 100%;
 }
 
@@ -35,27 +35,25 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  /* text-align: center; */
 }
 
-:is(h1, h2, h3, h4, h5, h6) {
+:is(h3, h4, h5) {
   margin: 0;
-  font-weight: 500;
-}
-
-/* h1 {
-  font-size: 2em;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-}
-
-h2 {
-  font-size: 1.5em;
+  font-weight: normal;
 }
 
 h3 {
+  font-size: 2em;
+}
+
+h4 {
+  font-size: 1.5em;
+}
+
+h5 {
   font-size: 1.25em;
-} */
+}
 
 /* img {
   display: block;
@@ -98,3 +96,5 @@ ul > li:before {
 /* .mermaid .label {
   color: white !important;
 } */
+
+@import "./stylized-title.css";

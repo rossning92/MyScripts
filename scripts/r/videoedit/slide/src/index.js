@@ -1,5 +1,7 @@
-import mermaid from "mermaid";
+import { updateCodeBlocks } from "./utils/code";
+import { updateMermaid } from "./utils/diagram";
 
+require(`./codemirror.css`);
 require(`./${TEMPLATE}.css`);
 const markdown = require(MD_FILE).default.replace(/\r\n/g, "\n");
 const marked = require("marked");
@@ -21,9 +23,6 @@ if (markdown.includes(SEP)) {
 }
 
 document.body.innerHTML = innerHtml;
-mermaid.initialize({
-  startOnLoad: true,
-  theme: "dark",
-  fontFamily: '"Roboto", "Noto Sans SC", sans-serif',
-  flowchart: {},
-});
+
+updateMermaid();
+updateCodeBlocks();
