@@ -86,42 +86,42 @@
       {
         "command": "videoEdit.exportVideoPreview",
         "key": "alt+enter",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.exportVideo",
         "key": "ctrl+alt+shift+enter",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.exportAudio",
         "key": "ctrl+alt+enter",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.startRecording",
         "key": "f7",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.stopRecording",
         "key": "f8",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.collectNoiseProfile",
         "key": "f9",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.openFileUnderCursor",
         "key": "f4",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       },
       {
         "command": "videoEdit.renameFile",
         "key": "f2",
-        "when": "resourcePath =~ /vprojects/"
+        "when": "videoEdit.isProjectFileActive"
       }
     ],
     "snippets": [

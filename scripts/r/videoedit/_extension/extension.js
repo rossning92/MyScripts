@@ -62,7 +62,7 @@ function getAbsPath(file) {
 }
 
 function getFileUnderCursor() {
-  if (!isDocumentActive()) return;
+  if (!isProjectFileActive()) return;
 
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
@@ -130,7 +130,7 @@ async function openFileUnderCursor() {
   }
 }
 
-function initializeDecorations(context) {
+function setupDecorations(context) {
   const decorationTypes = [];
   let timeout = undefined;
   let activeEditor = vscode.window.activeTextEditor;
@@ -143,7 +143,7 @@ function initializeDecorations(context) {
       return;
     }
 
-    if (!isDocumentActive()) {
+    if (!isProjectFileActive()) {
       return;
     }
 
@@ -213,9 +213,11 @@ function initializeDecorations(context) {
   );
 }
 
-function isDocumentActive() {
+function isProjectFileActive() {
   const fileName = getActiveFile();
   if (!fileName) return false;
+
+  if (!fileName.includes("/vprojects/")) return false;
 
   if (!path.basename(fileName).endsWith(".md")) {
     return false;
@@ -228,7 +230,7 @@ function getActiveFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return undefined;
 
-  return path.resolve(editor.document.fileName);
+  return path.resolve(editor.document.fileName).replaceAll("\\", "/");
 }
 
 function getActiveDir() {
@@ -278,7 +280,7 @@ function getCompletedExpression(file) {
   }
 }
 
-function registerAutoComplete(context) {
+function setupAutoComplete(context) {
   const provider = vscode.languages.registerCompletionItemProvider(
     { pattern: "**/vprojects/**/*.md" },
     {
@@ -376,7 +378,7 @@ function getRecorderProcess() {
   }
 
   if (recorderProcess == null) {
-    if (!isDocumentActive()) {
+    if (!isProjectFileActive()) {
       return null;
     }
 
@@ -590,33 +592,37 @@ async function insertAllClipsInFolder() {
   });
 }
 
-function registerCreatePowerpointCommand() {
-  vscode.commands.registerCommand("videoEdit.createPowerpoint", async () => {
-    const filePath = await promptFileName({ ext: ".pptx", subdir: "slide" });
-
-    cp.spawn("cscript", [
-      path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
-      path.resolve(getActiveDir(), filePath),
-    ]);
-
-    insertText(`{{ clip('${filePath}') }}`);
-  });
-
-  vscode.commands.registerCommand(
-    "videoEdit.createPowerpointOverlay",
-    async () => {
-      const filePath = await promptFileName({
-        ext: ".pptx",
-        subdir: "overlay",
-      });
+function registerCreatePowerpointCommand(context) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.createPowerpoint", async () => {
+      const filePath = await promptFileName({ ext: ".pptx", subdir: "slide" });
 
       cp.spawn("cscript", [
         path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
         path.resolve(getActiveDir(), filePath),
       ]);
 
-      insertText(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);
-    }
+      insertText(`{{ clip('${filePath}') }}`);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "videoEdit.createPowerpointOverlay",
+      async () => {
+        const filePath = await promptFileName({
+          ext: ".pptx",
+          subdir: "overlay",
+        });
+
+        cp.spawn("cscript", [
+          path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
+          path.resolve(getActiveDir(), filePath),
+        ]);
+
+        insertText(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);
+      }
+    )
   );
 }
 
@@ -637,17 +643,19 @@ async function promptFileName({ ext, subdir }) {
   return outFile;
 }
 
-function registerCreateSlideCommand() {
-  vscode.commands.registerCommand("videoEdit.createSlide", async () => {
-    const file = await createNewDocument({
-      dir: "slide",
-      func: "slide",
-      extension: ".md",
-      extraParams: ", t='as', template='slide'",
-    });
+function registerCreateSlideCommand(context) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.createSlide", async () => {
+      const file = await createNewDocument({
+        dir: "slide",
+        func: "slide",
+        extension: ".md",
+        extraParams: ", t='as', template='slide'",
+      });
 
-    startSlideServer(file);
-  });
+      startSlideServer(file);
+    })
+  );
 }
 
 function replaceCurrentLine(oldText, newText) {
@@ -687,40 +695,42 @@ function replaceWholeDocument(oldText, newText) {
   });
 }
 
-function registerRenameFileCommand() {
-  vscode.commands.registerCommand("videoEdit.renameFile", async () => {
-    const file = getFileUnderCursor();
-    if (!file) return;
+function registerRenameFileCommand(context) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.renameFile", async () => {
+      const file = getFileUnderCursor();
+      if (!file) return;
 
-    // Get the range of file base name without extension.
-    const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
-    const valueSelection = match
-      ? [match.index, match.index + match[0].length]
-      : undefined;
+      // Get the range of file base name without extension.
+      const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
+      const valueSelection = match
+        ? [match.index, match.index + match[0].length]
+        : undefined;
 
-    const newFile = await vscode.window.showInputBox({
-      value: file,
-      valueSelection,
-    });
-    if (!newFile) return;
+      const newFile = await vscode.window.showInputBox({
+        value: file,
+        valueSelection,
+      });
+      if (!newFile) return;
 
-    const absFile = getAbsPath(file);
-    const newAbsFile = getAbsPath(newFile);
+      const absFile = getAbsPath(file);
+      const newAbsFile = getAbsPath(newFile);
 
-    if (fs.existsSync(newAbsFile)) {
-      vscode.window.showErrorMessage("New file already exists.");
-      return;
-    }
+      if (fs.existsSync(newAbsFile)) {
+        vscode.window.showErrorMessage("New file already exists.");
+        return;
+      }
 
-    try {
-      fs.renameSync(absFile, newAbsFile);
-    } catch (e) {
-      vscode.window.showErrorMessage("Renaming failed.");
-      return;
-    }
+      try {
+        fs.renameSync(absFile, newAbsFile);
+      } catch (e) {
+        vscode.window.showErrorMessage("Renaming failed.");
+        return;
+      }
 
-    replaceWholeDocument(file, newFile);
-  });
+      replaceWholeDocument(file, newFile);
+    })
+  );
 }
 
 async function createNewDocument({
@@ -757,90 +767,137 @@ async function createNewDocument({
   return filePath;
 }
 
+function updateWhenClauseContext() {
+  vscode.commands.executeCommand(
+    "setContext",
+    "videoEdit.isProjectFileActive",
+    isProjectFileActive()
+  );
+}
+
+function registerCommands(context) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.exportVideo", () => {
+      exportVideo({ selectedText: false });
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.exportVideoPreview", () => {
+      exportVideo({ preview: true });
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.exportAudio", () => {
+      exportVideo({ preview: true, extraArgs: ["--audio_only"] });
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.startRecording", () => {
+      getRecorderProcess().stdin.write("r\n");
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.stopRecording", () => {
+      getRecorderProcess().stdin.write("s\n");
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.collectNoiseProfile", () => {
+      getRecorderProcess().stdin.write("n\n");
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.openFileUnderCursor", () => {
+      openFileUnderCursor();
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "videoEdit.insertAllClipsInFolder",
+      insertAllClipsInFolder
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.purgeFiles", () => {
+      exportVideo({
+        selectedText: false,
+        extraArgs: ["--audio_only", "--remove_unused_recordings"],
+      });
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.showStats", () => {
+      exportVideo({
+        extraArgs: ["--stat"],
+      });
+    })
+  );
+
+  // Create movy document
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "videoEdit.createMovyAnimation",
+      async () => {
+        const file = await createNewDocument({
+          dir: "animation",
+          func: "anim",
+          fileNamePlaceHolder: "movy-animation-name",
+          initContent: 'import * as mo from "movy";\n\n',
+          extension: ".js",
+        });
+
+        if (file) {
+          startMovyServer(file);
+        }
+      }
+    )
+  );
+
+  // Create source code document
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.createCode", async () => {
+      createNewDocument({
+        dir: "src",
+        func: "codef",
+        fileNamePlaceHolder: "source-code-name.ext",
+      });
+    })
+  );
+
+  registerCreatePowerpointCommand(context);
+  registerCreateSlideCommand(context);
+  registerRenameFileCommand(context);
+}
+
+function setupWhenClause(context) {
+  vscode.window.onDidChangeActiveTextEditor(
+    (_) => {
+      updateWhenClauseContext();
+    },
+    null,
+    context.subscriptions
+  );
+  updateWhenClauseContext();
+}
+
 function activate(context) {
   const config = vscode.workspace.getConfiguration();
   config.update("[markdown]", { "editor.quickSuggestions": true });
 
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((status) => {})
-  );
+  registerCommands(context);
 
-  vscode.commands.registerCommand("videoEdit.exportVideo", () => {
-    exportVideo({ selectedText: false });
-  });
-
-  vscode.commands.registerCommand("videoEdit.exportVideoPreview", () => {
-    exportVideo({ preview: true });
-  });
-
-  vscode.commands.registerCommand("videoEdit.exportAudio", () => {
-    exportVideo({ preview: true, extraArgs: ["--audio_only"] });
-  });
-
-  vscode.commands.registerCommand("videoEdit.startRecording", () => {
-    getRecorderProcess().stdin.write("r\n");
-  });
-
-  vscode.commands.registerCommand("videoEdit.stopRecording", () => {
-    getRecorderProcess().stdin.write("s\n");
-  });
-
-  vscode.commands.registerCommand("videoEdit.collectNoiseProfile", () => {
-    getRecorderProcess().stdin.write("n\n");
-  });
-
-  vscode.commands.registerCommand("videoEdit.openFileUnderCursor", () => {
-    openFileUnderCursor();
-  });
-
-  vscode.commands.registerCommand(
-    "videoEdit.insertAllClipsInFolder",
-    insertAllClipsInFolder
-  );
-
-  vscode.commands.registerCommand("videoEdit.purgeFiles", () => {
-    exportVideo({
-      selectedText: false,
-      extraArgs: ["--audio_only", "--remove_unused_recordings"],
-    });
-  });
-
-  vscode.commands.registerCommand("videoEdit.showStats", () => {
-    exportVideo({
-      extraArgs: ["--stat"],
-    });
-  });
-
-  registerCreatePowerpointCommand();
-  registerCreateSlideCommand();
-  registerRenameFileCommand();
-  registerAutoComplete(context);
-
-  initializeDecorations(context);
-
-  // Create movy document
-  vscode.commands.registerCommand("videoEdit.createMovyAnimation", async () => {
-    const file = await createNewDocument({
-      dir: "animation",
-      func: "anim",
-      fileNamePlaceHolder: "movy-animation-name",
-      initContent: 'import * as mo from "movy";\n\nmo.run();',
-      extension: ".js",
-    });
-
-    if (file) {
-      startMovyServer(file);
-    }
-  });
-
-  // Create source code document
-  vscode.commands.registerCommand("videoEdit.createCode", async () => {
-    createNewDocument({
-      dir: "src",
-      func: "codef",
-      fileNamePlaceHolder: "source-code-name.ext",
-    });
-  });
+  setupAutoComplete(context);
+  setupDecorations(context);
+  setupWhenClause(context);
 }
 
 exports.activate = activate;
