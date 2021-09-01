@@ -1,3 +1,3 @@
-from _android import *
+from _android import logcat
 
-logcat(level='F')
+logcat(regex=" F libc |Abort message: ")

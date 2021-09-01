@@ -79,7 +79,7 @@ def restart_current_app():
 def logcat(
     proc_name=None,
     highlight=None,
-    filter_str=None,
+    regex=None,
     clear=False,
     show_log_after_secs=-2,
     level=None,
@@ -95,8 +95,8 @@ def logcat(
         level = re.compile(level)
     if exclude:
         exclude = re.compile(exclude)
-    if filter_str:
-        filter_str = re.compile(filter_str)
+    if regex:
+        regex = re.compile(regex)
     if exclude_proc:
         exclude_proc = re.compile(exclude_proc)
     if type(proc_name) == str:
@@ -155,7 +155,7 @@ def logcat(
                     show_line = False
 
                 # Filter by tag or message
-                if filter_str and not re.search(filter_str, message):
+                if regex and not re.search(regex, message):
                     show_line = False
 
                 # Exclude by tag or message
