@@ -263,7 +263,9 @@ function getFiles(dir, filter, files = [], dirs = []) {
 }
 
 function getCompletedExpression(file) {
-  if (file.endsWith(".md")) {
+  if (/slide[\\\/].+?\.md$/.test(file)) {
+    return ` slide('${file}', template='slide') `;
+  } else if (file.endsWith(".md")) {
     return ` include('${file}') `;
   } else if (file.endsWith(".js")) {
     return ` anim('${file}') `;

@@ -4,16 +4,10 @@ body {
   margin: 0;
 }
 
-.outer {
-  display: inline-flex;
-}
-
-.inner {
+.container {
   display: inline-flex;
   flex-direction: column;
   vertical-align: middle;
-  padding: 0.5em;
-  perspective: 1000px;
   color: white;
 }
 
@@ -32,32 +26,8 @@ p {
   text-align: center;
 }
 
-.grid-container {
-  display: grid;
-  grid-template-columns: auto auto;
-}
-
-.grid-item {
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.8);
-  padding: 20px;
-  font-size: 30px;
-  text-align: center;
-}
-
 ul > li {
   text-align: left;
-}
-
-table {
-  background-color: rgba(47, 54, 64, 0.8);
-  border-radius: 0.3em;
-  font-size: 70%;
-  padding: 0.2em;
-}
-th,
-td {
-  padding: 0.2em;
 }
 
 a {
@@ -66,6 +36,42 @@ a {
 }
 
 blockquote {
+  background: rgba(0, 0, 0, 0.9);
   border-radius: 0.2em;
-  padding: 0.1em 1em;
+  line-height: 1.15em;
+  margin: 0 auto -0.02em auto;
+  padding: 0.1em 2em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+table {
+  line-height: 1.5;
+  text-align: left;
+  box-sizing: border-box;
+  border-collapse: collapse;
+  /* width: 100%; */
+  max-width: 100%;
+  margin-bottom: 1rem;
+  color: #fff;
+  background-color: #212529;
+}
+
+tr {
+  line-height: 1.5;
+  border-collapse: collapse;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+td {
+  line-height: 1.5;
+  border-collapse: collapse;
+  color: #fff;
+  box-sizing: border-box;
+  padding: 0.75em;
+  vertical-align: top;
+  border-top: 1px solid #dee2e6;
+  border-color: #32383e;
+  vertical-align: middle;
 }

@@ -42,7 +42,7 @@ async function captureImageAndExit(port) {
   await page.goto(`http://localhost:${port}`, { waitUntil: "networkidle0" });
 
   // Screenshot DOM element only
-  const element = await page.$(".outer");
+  const element = await page.$(".container");
 
   const outFile = path.resolve(argv["o"]);
   await element.screenshot({ path: outFile, omitBackground: true });

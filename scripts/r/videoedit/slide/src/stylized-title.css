@@ -1,22 +1,23 @@
 @import "./base-font.css";
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap");
 
 :is(h1, h2) {
   margin-bottom: 0;
   margin-top: 0;
-  /* text-shadow: 1px 1px rgba(0, 0, 0, 0.5); */
-  font-family: "Bebas Neue", "Noto Sans SC";
+  font-family: "Roboto Condensed", "Noto Sans SC";
   font-weight: 500;
-  padding: 0.1em 0.5em 0em 0.5em;
-  line-height: 1.2em;
+  padding: 0 0.5em 0 0.5em;
+  line-height: 1.4em;
   color: black;
-  background-color: #fc7281;
+  text-align: center;
 }
 
 h1 {
   font-size: 2.6667em;
+  background-color: #fc7281;
 }
 
 h2 {
   font-size: 2em;
+  background-color: #ffffff;
 }

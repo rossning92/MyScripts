@@ -1,28 +1,7 @@
 @import "./base.css";
-@import url("https://fonts.googleapis.com/css2?family=Muli&family=Source+Code+Pro&family=Noto+Sans+SC&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Lato&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
 
-:is(h1, h2, h3, h4, h5, h6, blockquote) {
-  /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); */
-  background: rgba(0, 0, 0, 0.9);
-  font-size: 1em;
-  font-weight: normal;
-  letter-spacing: 0.2rem;
-  line-height: 1em;
-  margin: 0 auto -0.02em auto;
-  padding: 0.1em 2em;
-  text-align: center;
-  vertical-align: middle;
-  white-space: nowrap;
-}
+@import "./stylized-title.css";
 
-h1 {
-  font-size: 1.5em;
-}
-
-h2 {
-  color: black;
-  font-size: 1.25em;
-  background: rgba(126, 214, 223, 0.9);
+.container {
+  padding: 0.5em;
 }

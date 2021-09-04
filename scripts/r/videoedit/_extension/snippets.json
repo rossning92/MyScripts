@@ -17,7 +17,7 @@
   },
   "bgm": {
     "prefix": "bgm",
-    "body": ["{{ bgm('$1', norm=True) }}"]
+    "body": ["{{ bgm('$1') }}"]
   },
   "crossfade": {
     "prefix": "crossfade",

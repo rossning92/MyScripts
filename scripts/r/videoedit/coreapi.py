@@ -562,7 +562,7 @@ def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
 
 @core.api
 def bgm(
-    f, move_playhead=False, vol=0.1, track="bgm", norm=True, loop=True, **kwargs,
+    f, move_playhead=False, vol=0.08, track="bgm", norm=True, loop=True, **kwargs,
 ):
     print("bgm: %s" % f)
 
@@ -827,7 +827,12 @@ def add_video_clip(
     clip_info.vol = vol
     clip_info.transparent = transparent
     clip_info.subclip = subclip
-    clip_info.loop = loop
+
+    if file.endswith(".gif"):
+        clip_info.loop = True
+    else:
+        clip_info.loop = loop
+
     clip_info.expand = expand
     clip_info.scale = (scale[0] * _state.global_scale, scale[1] * _state.global_scale)
     clip_info.width = width

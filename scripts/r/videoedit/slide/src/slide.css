@@ -1,7 +1,7 @@
 @import "./base.css";
 @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;900&display=swap");
 
-.inner {
+.container {
   background-color: black;
   color: white;
 
@@ -9,9 +9,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* text-align: center; */
 
-  min-width: 1920px;
+  min-width: 1720px;
   width: 1920px;
   height: 1080px;
 }
@@ -26,7 +25,6 @@
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
-  /* text-align: center; */
   width: 100%;
 }
 
@@ -35,7 +33,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* text-align: center; */
 }
 
 :is(h3, h4, h5) {
@@ -89,9 +86,12 @@ ul > li:before {
   padding-right: 0.8em;
 }
 
-.mermaid > svg {
-  zoom: 2;
+table {
+  max-width: 1664px;
 }
+/* .mermaid > svg {
+  zoom: 2;
+} */
 
 /* .mermaid .label {
   color: white !important;
