@@ -1,3 +1,4 @@
+import os
 import runpy
 import sys
 import subprocess
@@ -64,4 +65,22 @@ sys.meta_path.append(MyMetaPathFinder)
 
 if __name__ == "__main__":
     del sys.argv[0]
-    runpy.run_path(sys.argv[0], run_name="__main__")
+
+    module_file = sys.argv[0]
+    module_dir = os.path.dirname(os.path.abspath(module_file))
+    if os.path.exists(os.path.join(module_dir, "__init__.py")):
+        # Goto parent folder
+        os.chdir(os.path.dirname(module_dir))
+
+        # Module name
+        module_name = (
+            os.path.basename(module_dir)
+            + "."
+            + os.path.basename(module_file).rstrip(".py")
+        )
+
+        # Run module
+        subprocess.check_call([sys.executable, "-m", module_name])
+
+    else:
+        runpy.run_path(module_file, run_name="__main__")

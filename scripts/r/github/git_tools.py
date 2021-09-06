@@ -3,8 +3,17 @@ import subprocess
 import sys
 from urllib.request import urlretrieve
 
-
-from _shutil import call_echo, cd, fnull, getch, print2, yes, get_output, get_time_str
+from _shutil import (
+    call_echo,
+    cd,
+    fnull,
+    get_output,
+    get_time_str,
+    getch,
+    print2,
+    shell_open,
+    yes,
+)
 
 backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
 repo_dir = r"{{GIT_REPO}}"
@@ -37,7 +46,7 @@ def print_help():
         "[b] switch branch\n"
         "[s] status & log  [d] git diff\n"
         "[r] revert file   [R] revert all changes\n"
-        "[Z] undo"
+        "[Z] undo          [O] open folder\n"
     )
 
 
@@ -67,7 +76,7 @@ def revert():
 
 
 def git_push(force=False):
-    args = "git push -u origin master"
+    args = "git push"
     if force:
         args += " --force"
     call_echo(args)
@@ -150,7 +159,7 @@ if __name__ == "__main__":
             cd(os.path.dirname(repo_dir))
             if not yes('Create "%s" on GitHub?' % repo_name):
                 sys.exit(1)
-            call_echo("gh repo create %s" % repo_name)
+            call_echo("gh repo create --private %s" % repo_name)
 
     # Init repo
     cd(repo_dir)
@@ -217,5 +226,7 @@ if __name__ == "__main__":
             switch_branch()
         elif ch == "q":
             sys.exit(0)
+        elif ch == "O":
+            shell_open(os.getcwd())
 
         print_status()

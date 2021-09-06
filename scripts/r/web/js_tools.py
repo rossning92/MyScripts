@@ -3,12 +3,12 @@ import os
 import threading
 from distutils.dir_util import copy_tree
 
-from _code import patch_code, prepend_line, append_code, prepend_code
+from _browser import open_page
+from _code import append_code, patch_code, prepend_code, prepend_line
 from _editor import open_in_vscode
-from _shutil import call_echo, cd, exists, mkdir, yes, save_json, copy
+from _shutil import call_echo, cd, copy, exists, mkdir, save_json, yes
 from _template import render_template_file
 from _term import Menu
-
 
 OVERWRITE = bool("{{_OVERWRITE}}")
 
@@ -30,6 +30,8 @@ def write_file(file, content, overwrite=False):
 
 
 def add_packages(packages, dev=False):
+    yarn_init()
+
     with open("package.json", "r") as f:
         data = json.load(f)
 
@@ -217,7 +219,7 @@ new p5(sketch);
 
 @menu.item()
 def add_bootstrap():
-    add_packages(["react-bootstrap", "bootstrap"])
+    add_packages(["react-bootstrap@next", "bootstrap@5.1.0"])
 
     # https://react-bootstrap.netlify.app/getting-started/introduction/
     prepend_line(REACT_INDEX_JS, "import 'bootstrap/dist/css/bootstrap.min.css';")
@@ -429,16 +431,30 @@ def add_links():
     copy_tree(TEMPLATE_DIR + "/links", "src/links")
 
 
+@menu.item()
+def nextjs_create_app():
+    call_echo(["yarn", "create", "next-app", os.getcwd()])
+
+
+@menu.item()
+def nextjs_start_dev_server():
+    open_page("http://localhost:3000/")
+    call_echo(["yarn", "dev"])
+
+
+@menu.item()
+def yarn_init():
+    if not exists("package.json"):
+        call_echo('yarn config set init-author-name "Ross Ning"')
+        call_echo("yarn config set init-author-email rossning92@gmail.com")
+        call_echo("yarn init -y")
+
+
 if __name__ == "__main__":
     cd("~")
     project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
     cd(project_dir)
     print("Project dir: %s" % project_dir)
-
-    if not exists("package.json"):
-        call_echo('yarn config set init-author-name "Ross Ning"')
-        call_echo("yarn config set init-author-email rossning92@gmail.com")
-        call_echo("yarn init -y")
 
     copy(TEMPLATE_DIR + "/LICENSE", "LICENSE", overwrite=False)
 

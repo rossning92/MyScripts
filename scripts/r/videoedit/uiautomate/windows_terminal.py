@@ -1,9 +1,10 @@
 import os
+import time
 
 from _script import wt_wrap_args
-from _shutil import run_ahk, call_echo, run_ahk, exec_ahk
-from uiautomate import *
-import time
+from _shutil import call_echo, exec_ahk, run_ahk
+
+from .uiautomate import recorder, run_commands, send_hotkey
 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,15 +36,35 @@ def open_wt_with_bg():
     time.sleep(0.5)
 
 
-def open_wt_bash():
-    open_wt(
-        args=["bash"],
-        icon=root + "/icons/linux.ico",
-        title="ross@ross-desktop2",
-        opacity=1,
+def record_windows_terminal(file, args, cmds, font_size=14, **kwargs):
+    call_echo(["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"])
+
+    open_wt(args, **kwargs)
+
+    exec_ahk(
+        """
+        #include <Window>
+        WinWaitActive, ahk_exe WindowsTerminal.exe
+        SetWindowPos("A", -1, -1, 1442, 812)
+        """
+    )
+    time.sleep(1)
+
+    recorder.rect = (0, 0, 1440, 810)
+
+    recorder.start_record()
+
+    run_commands(cmds)
+
+    time.sleep(2)
+    recorder.stop_record()
+    recorder.save_record(file)
+
+    send_hotkey("alt", "f4")
+    time.sleep(1)
+
+    call_echo(
+        ["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US', 'zh-CN'"]
     )
 
-
-if __name__ == "__main__":
-    # open_wt_with_bg()
-    open_wt_bash()
+    return file

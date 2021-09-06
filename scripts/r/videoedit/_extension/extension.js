@@ -217,7 +217,7 @@ function isProjectFileActive() {
   const fileName = getActiveFile();
   if (!fileName) return false;
 
-  if (!fileName.includes("/vprojects/")) return false;
+  if (!/vprojects[\\\/]/.test(fileName)) return false;
 
   if (!path.basename(fileName).endsWith(".md")) {
     return false;
@@ -230,7 +230,7 @@ function getActiveFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return undefined;
 
-  return path.resolve(editor.document.fileName).replaceAll("\\", "/");
+  return path.resolve(editor.document.fileName);
 }
 
 function getActiveDir() {
@@ -264,21 +264,21 @@ function getFiles(dir, filter, files = [], dirs = []) {
 
 function getCompletedExpression(file) {
   if (/slide[\\\/].+?\.md$/.test(file)) {
-    return ` slide('${file}', template='slide') `;
+    return `{{ slide('${file}', template='slide') }}`;
   } else if (file.endsWith(".md")) {
-    return ` include('${file}') `;
+    return `{{ include('${file}') }}`;
   } else if (file.endsWith(".js")) {
-    return ` anim('${file}') `;
+    return `{{ anim('${file}') }}`;
   } else if (/\bsrc\//g.test(file)) {
-    return ` codef('${file}', size=(1664, 824)) `;
+    return `{{ codef('${file}', size=(1664, 824)) }}`;
   } else if (/\boverlay\//g.test(file)) {
-    return ` overlay('${file}', t='as') `;
+    return `{{ overlay('${file}', t='as') }}`;
   } else if (/bgm\//g.test(file)) {
-    return ` bgm('${file}', norm=True); pos('c+0.5', tag='a') `;
+    return `{{ bgm('${file}', norm=True); pos('c+0.5', tag='a') }}`;
   } else if (/sfx\//g.test(file)) {
-    return ` sfx('${file}', norm=True); pos('c+0.5', tag='a') `;
+    return `{{ sfx('${file}', norm=True); pos('c+0.5', tag='a') }}`;
   } else {
-    return ` clip('${file}') `;
+    return `{{ clip('${file}') }}`;
   }
 }
 
@@ -290,12 +290,8 @@ function setupAutoComplete(context) {
         const projectDir = getActiveDir();
         if (!projectDir) return undefined;
 
-        if (
-          position.character < 2 ||
-          document.lineAt(position).text[position.character - 2] !== "{"
-        ) {
-          return undefined;
-        }
+        // If not the beginning of the line
+        if (position.character > 0) return undefined;
 
         const activeFile = getActiveFile();
         const filter = (x) => {
@@ -347,8 +343,7 @@ function setupAutoComplete(context) {
 
         return completionItems;
       },
-    },
-    "{" // trigger key
+    }
   );
 
   context.subscriptions.push(provider);
