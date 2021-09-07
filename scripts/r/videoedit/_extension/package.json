@@ -80,6 +80,10 @@
       {
         "command": "videoEdit.renameFile",
         "title": "VideoEdit: Rename File"
+      },
+      {
+        "command": "videoEdit.startMovyServer",
+        "title": "VideoEdit: Start Movy Server"
       }
     ],
     "keybindings": [

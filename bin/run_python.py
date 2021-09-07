@@ -80,7 +80,7 @@ if __name__ == "__main__":
         )
 
         # Run module
-        subprocess.check_call([sys.executable, "-m", module_name])
-
+        # subprocess.check_call([sys.executable, "-m", module_name])
+        runpy.run_module(module_name, run_name="__main__")
     else:
         runpy.run_path(module_file, run_name="__main__")

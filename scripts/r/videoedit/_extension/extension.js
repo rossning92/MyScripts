@@ -117,6 +117,7 @@ async function openFileUnderCursor() {
   if (!editor) return;
 
   const activeFile = vscode.window.activeTextEditor.document.fileName;
+  output.appendLine(`openFileUnderCursor(): ${activeFile}`);
   if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
     startMovyServer(activeFile);
   } else if (/slide[\\\/].+?\.md$/.test(activeFile)) {
@@ -219,7 +220,7 @@ function isProjectFileActive() {
 
   if (!/vprojects[\\\/]/.test(fileName)) return false;
 
-  if (!path.basename(fileName).endsWith(".md")) {
+  if (!fileName.endsWith(".md")) {
     return false;
   }
 
@@ -873,6 +874,19 @@ function registerCommands(context) {
   registerCreatePowerpointCommand(context);
   registerCreateSlideCommand(context);
   registerRenameFileCommand(context);
+
+  // Start movy server
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.startMovyServer", async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
+
+      const activeFile = editor.document.fileName;
+      if (activeFile.endsWith(".js")) {
+        startMovyServer(activeFile);
+      }
+    })
+  );
 }
 
 function setupWhenClause(context) {
