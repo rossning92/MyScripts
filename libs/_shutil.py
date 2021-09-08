@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import time
+from collections import namedtuple
 from distutils.dir_util import copy_tree
 from os import getcwd
 from os.path import dirname, exists, expanduser, expandvars
@@ -21,6 +22,7 @@ from pprint import pprint
 from subprocess import Popen
 from tempfile import gettempdir
 from time import sleep
+from typing import Dict
 
 import yaml
 
@@ -1139,10 +1141,8 @@ def move_file(src, dst, overwrite=False):
     os.rename(src, dst)
 
 
-from collections import namedtuple
-
-_menu_items = {}
 MenuItem = namedtuple("MenuItem", "name key func")
+_menu_items: Dict[str, MenuItem] = {}
 
 
 def menu_item(*, key, name=None):

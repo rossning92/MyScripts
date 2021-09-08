@@ -3,24 +3,23 @@ import glob
 import json
 import locale
 import os
+import pathlib
 import platform
 import re
 import shlex
 import subprocess
 import sys
+import tempfile
+import time
 
 import jinja2
 import yaml
 
 from _appmanager import get_executable
 from _editor import open_in_vscode
-from _shutil import *
-
-# TODO: move to configuration file
-SCRIPT_PATH_LIST = [
-    ["", os.path.abspath(os.path.dirname(__file__) + "/../scripts")],
-    ["gd", expandvars(r"%USERPROFILE%\Google Drive\Scripts")],
-]
+from _shutil import (call_echo, conemu_wrap_args, convert_to_unix_path,
+                     exec_ahk, get_ahk_exe, get_script_root, print2,
+                     run_elevated, setup_nodejs, write_temp_file)
 
 SCRIPT_EXTENSIONS = {
     ".sh",
@@ -43,6 +42,28 @@ def get_data_dir():
     )
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
+
+
+def get_script_directories():
+    directories = []
+    directories.append(("", os.path.abspath(os.path.dirname(__file__) + "/../scripts")))
+
+    config_file = os.path.join(get_data_dir(), "script_directories.txt")
+    if not os.path.exists(config_file):
+        pathlib.Path(config_file).touch()
+
+    with open(config_file) as f:
+        for line in f.read().splitlines():
+            if line:
+                cols = line.split("|")
+                if len(cols) == 1:
+                    directories.append([os.path.basename(cols[0]), cols[0]])
+                elif len(cols) == 2:
+                    directories.append([cols[0], cols[1]])
+                else:
+                    raise Exception("Invalid line in {}: {}".format(config_file, line))
+
+    return directories
 
 
 def _get_script_history_file():
@@ -687,7 +708,7 @@ class Script:
 
                 activate = conda_path + "\\Scripts\\activate.bat"
 
-                if env_name != "base" and not exists(
+                if env_name != "base" and not os.path.exists(
                     conda_path + "\\envs\\" + env_name
                 ):
                     call_echo(
@@ -700,7 +721,7 @@ class Script:
             elif self.meta["venv"]:
                 assert sys.platform == "win32"
                 venv_path = os.path.expanduser("~\\venv\\%s" % self.meta["venv"])
-                if not exists(venv_path):
+                if not os.path.exists(venv_path):
                     call_echo(["python", "-m", "venv", venv_path])
 
                 args_activate = [
@@ -1002,10 +1023,7 @@ def run_script(
         script.set_override_variables(variables)
 
     script.execute(
-        restart_instance=restart_instance,
-        new_window=new_window,
-        args=args,
-        cd=cd,
+        restart_instance=restart_instance, new_window=new_window, args=args, cd=cd,
     )
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
@@ -1175,7 +1193,7 @@ def script_updated():
 
     mtime = 0
     file_list = []
-    for _, d in SCRIPT_PATH_LIST:
+    for _, d in get_script_directories():
         for f in get_scripts_recursive(d):
             mtime = max(mtime, os.path.getmtime(f))
             script_config_file = get_script_config_file(f)
@@ -1200,7 +1218,7 @@ def load_scripts(script_list, modified_time, autorun=True):
     # TODO: only update modified scripts
     script_list.clear()
 
-    for prefix, script_path in SCRIPT_PATH_LIST:
+    for prefix, script_path in get_script_directories():
         files = get_scripts_recursive(script_path)
         for file in files:
             # File has been removed during iteration
