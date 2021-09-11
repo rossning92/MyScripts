@@ -159,7 +159,7 @@ if __name__ == "__main__":
             cd(os.path.dirname(repo_dir))
             if not yes('Create "%s" on GitHub?' % repo_name):
                 sys.exit(1)
-            call_echo("gh repo create --private %s" % repo_name)
+            call_echo("gh repo create --private -y %s" % repo_name)
 
     # Init repo
     cd(repo_dir)

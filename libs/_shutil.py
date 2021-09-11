@@ -1138,7 +1138,7 @@ def move_file(src, dst, overwrite=False):
     if overwrite and os.path.exists(dst):
         os.remove(dst)
 
-    os.rename(src, dst)
+    shutil.move(src, dst)
 
 
 MenuItem = namedtuple("MenuItem", "name key func")
