@@ -26,7 +26,7 @@ def start_app(pkg, use_monkey=False):
         out = out.decode().strip()
         lines = out.splitlines()
         line = lines[0].strip()
-        id, pkg_activity = line.split()
+        _, pkg_activity = line.split()
         print("> ActivityName: " + pkg_activity)
         args = "adb shell am start -n %s" % pkg_activity
         print("> " + args)
@@ -568,3 +568,50 @@ def is_locked():
     if not m:
         raise Exception("Couldn't determine screen lock state")
     return m.group(1) == "true"
+
+
+def logcat_bg(patt):
+    """Show filtered logcat in a background thread."""
+
+    if type(patt) != str:
+        raise Exception("patt must be a string")
+
+    patt = re.compile(patt)
+
+    def logcat_thread():
+        while True:
+            print("logcat begin.", end="\r\n")
+
+            for line in proc_lines(
+                [
+                    "adb",
+                    "logcat",
+                ]
+            ):
+                if re.search(patt, line):
+                    print2(line, end="\r\n", color="black")
+
+            print("logcat end.", end="\r\n")
+            time.sleep(1)
+
+    threading.Thread(
+        target=logcat_thread,
+        daemon=True,  # daemon threads will terminate as main thread exits
+    ).start()
+
+
+def toggle_prop(name, values=("0", "1")):
+    cur_val = subprocess.check_output(
+        ["adb", "shell", "getprop %s" % name], universal_newlines=True
+    ).strip()
+
+    # Find next value
+    try:
+        i = values.index(cur_val)
+    except ValueError:
+        i = 0
+    new_val = values[(i + 1) % len(values)]
+
+    command = "setprop %s %s" % (name, new_val)
+    print(command)
+    subprocess.check_call(["adb", "shell", command])
