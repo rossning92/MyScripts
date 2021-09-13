@@ -120,7 +120,7 @@
       {
         "command": "videoEdit.openFileUnderCursor",
         "key": "f4",
-        "when": "videoEdit.isProjectFileActive"
+        "when": "resourcePath =~ /vprojects/"
       },
       {
         "command": "videoEdit.renameFile",

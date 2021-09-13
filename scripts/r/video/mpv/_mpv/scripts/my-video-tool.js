@@ -94,6 +94,7 @@ function getTimestamp() {
 
 function getNewAvailableFile(file) {
   var PAD_SIZE = 1;
+  var START_INDEX = 1;
 
   function pad(num) {
     var s = num + "";
@@ -106,7 +107,7 @@ function getNewAvailableFile(file) {
 
   var prefix = match[1];
   var ext = match[3];
-  var ix = match[2] ? parseInt(match[2]) + 1 : 2;
+  var ix = match[2] ? parseInt(match[2]) + 1 : START_INDEX;
 
   // Find new unused file name.
   var newFile;

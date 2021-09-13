@@ -1,15 +1,22 @@
-import { updateCodeBlocks } from "./utils/code-editor";
+import { updateCodeBlocks } from "./utils/codemirror";
 import { updateMermaid } from "./utils/diagram";
+const marked = require("marked");
 
 require(`./codemirror.css`);
 require(`./${TEMPLATE}.css`);
-const markdown = require(MD_FILE).default.replace(/\r\n/g, "\n");
-const marked = require("marked");
+
+// Parse Yaml front matter
+const { markdown, matter } = parseYamlFrontMatter(
+  require(MD_FILE).default.replace(/\r\n/g, "\n")
+);
 
 handleSeparator();
-
 updateMermaid();
-updateCodeBlocks();
+updateCodeBlocks({
+  fontSize: matter.fontSize,
+  scrollToLine: matter.scrollToLine,
+  width: matter.width,
+});
 
 function handleSeparator() {
   const SEP = "\n---\n";
@@ -25,4 +32,28 @@ function handleSeparator() {
     innerHtml = `<div class="container">${marked(markdown)}</div>`;
   }
   document.body.innerHTML = innerHtml;
+}
+
+function parseYamlFrontMatter(markdown) {
+  const yamlFrontMatter = /^---\n([\s\S]*?)\n---\n/;
+  const yamlFrontMatterMatch = markdown.match(yamlFrontMatter);
+  const matter = new Object();
+  if (yamlFrontMatterMatch) {
+    const yamlString = yamlFrontMatterMatch[1];
+
+    const yamlLines = yamlString.split("\n");
+    for (const line of yamlLines) {
+      const keyValue = line.split(":");
+      if (keyValue.length === 2) {
+        const key = keyValue[0].trim();
+        const value = keyValue[1].trim();
+        matter[key] = value;
+      }
+    }
+  }
+
+  return {
+    markdown: markdown.replace(yamlFrontMatter, ""),
+    matter,
+  };
 }

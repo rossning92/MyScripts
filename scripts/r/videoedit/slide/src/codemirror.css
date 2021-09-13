@@ -1,50 +1,46 @@
-body {
-    display: table;
-    /* flex-direction: column;
-    justify-content: center; */
-    /* overflow: hidden; */
-    margin: 0;
-  }
+.mark {
+  background-color: #ffe826;
+  color: black !important;
+  /* border-radius: 0.25em; */
+}
+.mark-line {
+  background-color: #4a4c13;
+}
 
-  .mark {
-    background-color: #e74c3c;
-    color: #ffffff !important;
-  }
-  .mark-line {
-    background-color: #4a4c13;
-  }
+.CodeMirror {
+  height: auto;
+  font-family: Consolas, "microsoft yahei", monospace;
+  /* font-size: 22pt; */
+  /* line-height: 133%; */
+}
 
-  .CodeMirror {
-    /* max-width: 1000px; */
-    height: auto;
-    font-family: Consolas, "microsoft yahei", monospace;
-    /* font-size: 22pt; */
-    /* line-height: 133%; */
-  }
-  .CodeMirror-lines {
-    padding: 1em 1em 1em 0; /* TRBL */
-  }
-  .CodeMirror-gutters {
-    border-right: 0 !important;
-    background-color: transparent !important;
-  }
-  .CodeMirror-linenumbers {
-    min-width: 3em !important;
-  }
-  .CodeMirror-line {
-    padding-left: 1em !important;
-  }
-  .CodeMirror-activeline-background {
-    background: rgba(0, 0, 0, 0) !important;
-  }
-  .CodeMirror-linenumber {
-    padding-right: 1em;
-    padding-left: 0.5em;
-    opacity: 50%;
-    color: #858585;
-  }
-  /* .CodeMirror-scroll {
-    height: auto;
-    overflow-y: hidden;
-    overflow-x: auto;
-  } */
+.CodeMirror-lines {
+  padding: 1em 1em 1em 0; /* TRBL */
+}
+
+.CodeMirror-gutters {
+  border-right: 0 !important;
+  background-color: transparent !important;
+}
+.CodeMirror-linenumbers {
+  min-width: 3em !important;
+}
+
+.CodeMirror-line {
+  padding-left: 1em !important;
+}
+
+.CodeMirror-activeline-background {
+  background: rgba(0, 0, 0, 0) !important;
+}
+
+.CodeMirror-linenumber {
+  padding-right: 1em;
+  padding-left: 0.5em;
+  opacity: 50%;
+  color: #858585;
+}
+
+.CodeMirror-code {
+  padding-bottom: 1080px;
+}

@@ -1,4 +1,4 @@
-export function updateCodeBlocks() {
+export function updateCodeBlocks({ fontSize, scrollToLine, width } = {}) {
   const codeElement = document.querySelector("pre > code");
   if (!codeElement) {
     return;
@@ -42,6 +42,7 @@ export function updateCodeBlocks() {
     matchBrackets: true,
     lineWrapping: true,
     readOnly: "nocursor",
+    scrollbarStyle: "null",
   });
   window.editor = editor;
   editor.setOption("theme", "one-dark");
@@ -59,6 +60,25 @@ export function updateCodeBlocks() {
   markRanges.forEach(([from, to]) => {
     markText(editor, from, to);
   });
+
+  if (fontSize !== undefined) {
+    const style = document.createElement("style");
+    style.innerHTML = `.CodeMirror { font-size: ${fontSize}; }`;
+    document.getElementsByTagName("head")[0].appendChild(style);
+  }
+
+  if (width !== undefined) {
+    const style = document.createElement("style");
+    style.innerHTML = `.CodeMirror { min-width: ${width}; }`;
+    document.getElementsByTagName("head")[0].appendChild(style);
+  }
+
+  if (scrollToLine) {
+    editor.scrollTo(
+      null,
+      editor.defaultTextHeight() * (parseInt(scrollToLine) - 0.5)
+    );
+  }
 }
 
 function setLanguageMode(lang, editor) {

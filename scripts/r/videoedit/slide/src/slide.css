@@ -97,4 +97,8 @@ table {
   color: white !important;
 } */
 
+.container > .CodeMirror {
+  max-height: 85%;
+}
+
 @import "./stylized-title.css";
