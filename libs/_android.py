@@ -1,5 +1,21 @@
-from _shutil import *
 import datetime
+import logging
+import subprocess
+import threading
+import time
+import glob
+import os
+import re
+
+
+from _shutil import (
+    call2,
+    call_echo,
+    check_output,
+    prepend_to_path,
+    print2,
+    proc_lines,
+)
 
 
 def start_app(pkg, use_monkey=False):
@@ -226,7 +242,7 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
     apk_path = apk_path.replace("package:", "")
 
     # Pull apk
-    subprocess.call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
+    subprocess.check_call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
 
     # Check root permission
     if subprocess.call("adb shell type su") == 0:
@@ -248,19 +264,19 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
 
 def adb_tar(d, out_tar):
     temp_tar = "/data/local/tmp/backup.tar"
-    subprocess.call(
+    subprocess.check_call(
         [
             "adb",
             "exec-out",
             f"tar -cf {temp_tar} {d}",
         ]
     )
-    subprocess.call(["adb", "pull", temp_tar, out_tar])
-    subprocess.call(["adb", "shell", f"rm {temp_tar}"])
+    subprocess.check_call(["adb", "pull", temp_tar, out_tar])
+    subprocess.check_call(["adb", "shell", f"rm {temp_tar}"])
 
 
 def adb_untar(tar_file):
-    call(["adb", "push", tar_file, "/data/local/tmp/"])
+    subprocess.check_call(["adb", "push", tar_file, "/data/local/tmp/"])
     adb_shell(f"tar -xf /data/local/tmp/{tar_file}")
 
 
@@ -356,7 +372,7 @@ def setup_android_env(ndk_version=None):
 
     if (android_home is not None) and (ndk_path is None):
         p = os.path.join(android_home, "ndk-bundle")
-        if exists(p):
+        if os.path.exists(p):
             ndk_path = p
 
     if (android_home is not None) and (ndk_path is None):
@@ -393,6 +409,8 @@ def setup_android_env(ndk_version=None):
 
 
 def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):
+    logging.info('EXEC: adb shell "%s"' % command)
+
     if echo:
         print('EXEC: adb shell "%s"' % command)
 
@@ -469,7 +487,7 @@ def adb_install(file):
         if match is not None:
             pkg = match.group(1)
             print("[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s..." % pkg)
-            subprocess.call(["adb", "uninstall", pkg])
+            subprocess.check_call(["adb", "uninstall", pkg])
             subprocess.check_call(["adb", "install", "-r", file])
 
 
@@ -482,9 +500,9 @@ def adb_install2(file):
     # Push data
     tar_file = os.path.splitext(file)[0] + ".tar"
     pkg = os.path.splitext(os.path.basename(file))[0]
-    if exists(tar_file):
+    if os.path.exists(tar_file):
         print("Restore data...")
-        call(f'adb push "{tar_file}" /data/local/tmp/')
+        subprocess.check_call(["adb", "push", "tar_file}", "/data/local/tmp/"])
         adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
 
         out = check_output(f"adb shell dumpsys package {pkg} | grep userId")
@@ -551,11 +569,11 @@ def unlock_device(pin):
 
     if "Dozing" in out:
         adb_shell("input keyevent 82")
-        sleep(1)
+        time.sleep(1)
 
         # Swipe up
         adb_shell("input touchscreen swipe 930 880 930 380")
-        sleep(1)
+        time.sleep(1)
 
         # Type pin
         adb_shell("input text %s" % pin)

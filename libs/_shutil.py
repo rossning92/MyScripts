@@ -3,9 +3,9 @@ import datetime
 import glob
 import json
 import locale
+import logging
 import os
 import platform
-import queue
 import re
 import shutil
 import signal
@@ -16,11 +16,6 @@ import threading
 import time
 from collections import namedtuple
 from distutils.dir_util import copy_tree
-from os import getcwd
-from os.path import dirname, exists, expanduser, expandvars
-from pprint import pprint
-from subprocess import Popen
-from tempfile import gettempdir
 from time import sleep
 from typing import Dict
 
@@ -174,7 +169,7 @@ def conemu_wrap_args(args, title=None, cwd=None, wsl=False, always_on_top=False)
 
 def chdir(path, expand=True):
     if expand:
-        path = expanduser(path)
+        path = os.path.expanduser(path)
     os.chdir(path)
 
 
@@ -228,6 +223,17 @@ def cd(path, expand=True, auto_create_dir=False):
 
 
 def call2(args, check=True, shell=True, **kwargs):
+    def quote(s):
+        if " " in s:
+            s = '"%s"' % s
+        return s
+
+    if type(args) == list:
+        s = " ".join([quote(x) for x in args])
+    else:
+        s = args
+
+    logging.info("EXEC: %s" % s)
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
@@ -241,6 +247,8 @@ def call_echo(args, shell=True, check=True, **kwargs):
         s = " ".join([quote(x) for x in args])
     else:
         s = args
+
+    logging.log("EXEC: %d" % s)
     print2("> " + s, color="black")
     ret = subprocess.run(args, shell=shell, check=check, **kwargs)
     return ret.returncode
@@ -309,7 +317,7 @@ def run_in_background(cmd):
 
 def mkdir(path, expand=True):
     if expand:
-        path = expanduser(path)
+        path = os.path.expanduser(path)
     os.makedirs(path, exist_ok=True)
 
 
@@ -339,7 +347,7 @@ def download(url, filename=None, redownload=False):
     if filename is None:
         filename = os.path.basename(url)
 
-    if exists(filename) and not redownload:
+    if os.path.exists(filename) and not redownload:
         print("File already exists: %s" % filename)
         return filename
 
@@ -368,7 +376,7 @@ def download(url, filename=None, redownload=False):
 def copy(src, dst, overwrite=False):
     # Create dirs if not exists
     dir_name = os.path.dirname(dst)
-    if dir_name and not exists(dir_name):
+    if dir_name and not os.path.exists(dir_name):
         os.makedirs(dir_name, exist_ok=True)
 
     if os.path.isdir(src):
@@ -868,7 +876,7 @@ def setup_nodejs(install=True):
         if install and not os.path.exists(NODE_JS_PATH):
             run_elevated("choco install nodejs -y")
 
-        if exists(NODE_JS_PATH):
+        if os.path.exists(NODE_JS_PATH):
             print2("Node.js: %s" % NODE_JS_PATH)
 
             prepend_to_path(
@@ -1241,3 +1249,16 @@ def save_yaml(data, file):
         data, open(file, "w", encoding="utf-8", newline="\n"), default_flow_style=False
     )
 
+
+def setup_logger(level=logging.DEBUG, log_file=None):
+    logger = logging.getLogger()
+    logger.setLevel(level)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(levelname)-6s : %(message)s"))
+    logger.addHandler(handler)
+
+    if log_file:
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(level)
+        logger.addHandler(file_handler)

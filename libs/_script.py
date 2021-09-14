@@ -756,7 +756,7 @@ class Script:
             assert os.name == "nt"
 
             script_abs_path = os.path.join(os.getcwd(), script_path)
-            args = ["cscript", "//nologo", script_abs_path]
+            args = ["cscript", "//nologo", script_abs_path] + args
 
         else:
             print("Not supported script:", ext)
