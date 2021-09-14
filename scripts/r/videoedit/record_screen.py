@@ -4,18 +4,12 @@ import os
 import subprocess
 import sys
 import time
+from tempfile import gettempdir
 
 import keyboard
 import pyautogui
 from _script import get_variable, set_variable
-from _shutil import (
-    call_echo,
-    get_temp_file_name,
-    gettempdir,
-    move_file,
-    print2,
-    slugify,
-)
+from _shutil import call_echo, get_temp_file_name, move_file, print2, slugify
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
@@ -79,8 +73,13 @@ class CapturaScreenRecorder(ScreenRecorder):
         self.captura_ps = subprocess.Popen(
             args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         )
-        print2("Recording started.", color="green")
-        time.sleep(1)
+        for line in self.captura_ps.stdout:
+            line = line.decode(errors="ignore")
+            if "Press p to pause or resume" in line:
+                print2("Recording started.", color="green")
+                break
+
+        time.sleep(0.2)
 
     def stop_record(self):
         if self.captura_ps is None:

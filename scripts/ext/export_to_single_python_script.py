@@ -9,7 +9,7 @@ from collections import defaultdict
 try:
     import astunparse
 except:
-    subprocess.call([sys.executable, '-m', 'pip', 'install', 'astunparse'])
+    subprocess.call([sys.executable, "-m", "pip", "install", "astunparse"])
     import astunparse
 
 
@@ -27,12 +27,14 @@ def find_used_function_names(tree):
 
 
 def find_all_imports(python_file):
-    with open(python_file, "r", encoding='utf-8') as f:
-        return re.findall('^import [a-z_.]+(?: as [a-z_]+)?$', f.read(), flags=re.MULTILINE)
+    with open(python_file, "r", encoding="utf-8") as f:
+        return re.findall(
+            "^import [a-z_.]+(?: as [a-z_]+)?$", f.read(), flags=re.MULTILINE
+        )
 
 
 def parse_ast(f):
-    with open(f, "r", encoding='utf-8') as source:
+    with open(f, "r", encoding="utf-8") as source:
         tree = ast.parse(source.read())
         return tree
 
@@ -64,7 +66,7 @@ def transform_python_script(src_file):
     # Get all imports and function_def
     function_def = {}
     imports = set()
-    for py_module in glob.glob('../../libs/_*.py'):
+    for py_module in glob.glob("../../libs/_*.py"):
         function_def.update(find_all_function_def(py_module))
         imports = imports.union(find_all_imports(py_module))
 
@@ -79,49 +81,30 @@ def transform_python_script(src_file):
 
     # Sort function by dependency
     used_functions = sorted(scores.keys(), key=lambda k: scores[k], reverse=True)
-    print('Used functions: ' + str(used_functions))
+    print("Used functions: " + str(used_functions))
+
+    s = "\n".join(imports)
+
+    s += "\n\n"
+    for func_name in set(used_functions):
+        if func_name in function_def:
+            s += astunparse.unparse(function_def[func_name])
 
     # Read python file
-    with open(src_file, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+    with open(src_file, "r", encoding="utf-8") as f:
+        s += f.read()
 
-    out_lines = []
-    first_import = True
-    for line in lines:
-        line = line.rstrip()
-
-        match = re.match('from (.+) import *', line)
-        if match is not None:
-            # module_name = match.group(1)
-            # function_def.update(get_all_function_def(f'../../libs/{module_name}.py'))
-
-            if first_import:
-                s = '\n'.join(imports)
-
-                s += '\n\n'
-                for func_name in set(used_functions):
-                    if func_name in function_def:
-                        s += astunparse.unparse(function_def[func_name])
-
-                out_lines.append(s)
-                first_import = False
-
-        else:
-            out_lines.append(line)
-
-    return '\n'.join(out_lines)
+    return s
 
 
 if __name__ == "__main__":
-    os.system('cls')
-
-    out_dir = os.path.expanduser('~/Desktop/ScriptExport')
-    script_path = os.getenv('_SCRIPT')
-    out_script = out_dir + os.path.sep + os.path.basename(script_path)
+    out_dir = os.path.expanduser("~/Desktop/ScriptExport")
+    script_path = os.getenv("_SCRIPT")
+    out_script = os.path.join(out_dir, os.path.basename(script_path))
 
     s = transform_python_script(script_path)
     print('Write to "%s"...' % out_script)
 
     os.makedirs(out_dir, exist_ok=True)
-    with open(out_script, 'w', encoding='utf-8') as f:
+    with open(out_script, "w", encoding="utf-8") as f:
         f.write(s)

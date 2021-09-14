@@ -3,8 +3,7 @@ import glob
 import os
 import random
 import time
-
-import keyboard
+import re
 import pyautogui
 from _script import wt_wrap_args
 from _shutil import exec_ahk, getch, set_clip
@@ -214,9 +213,11 @@ def run_commands(cmds):
     if type(cmds) != str:
         raise TypeError("cmds must be str")
 
-    for cmd in cmds.splitlines():
-        if cmd.startswith("!sleep"):
-            secs = float(cmd.split(" ")[1])
-            time.sleep(secs)
+    for cmd in re.split(r"(\{.*?\})", cmds):
+        if cmd.startswith("{"):
+            cmd = cmd[1:-1]
+            if cmd.startswith("sleep"):
+                secs = float(cmd.split(" ")[1])
+                time.sleep(secs)
         else:
-            typing(cmd + "\n")
+            typing(cmd)

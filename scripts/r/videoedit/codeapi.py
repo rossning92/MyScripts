@@ -5,6 +5,7 @@ from _shutil import get_hash
 import core
 import coreapi
 from videoedit.uiautomate.ipython import record_ipython
+from videoedit.uiautomate.wt_cmd import record_wt_cmd
 
 
 @core.api
@@ -46,4 +47,12 @@ def ipython(s, startup=None, font_size=14, **kwargs):
     out_file = "ipython/%s.mp4" % get_hash(s)
     if not os.path.exists(out_file):
         record_ipython(out_file, s, startup=startup, font_size=font_size)
+    return coreapi.clip(out_file, **kwargs)
+
+
+@core.api
+def cmd(s, startup=None, font_size=14, **kwargs):
+    out_file = "wt_cmd/%s.mp4" % get_hash(s)
+    if not os.path.exists(out_file):
+        record_wt_cmd(out_file, s, font_size=font_size)
     return coreapi.clip(out_file, **kwargs)

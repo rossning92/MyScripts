@@ -11,6 +11,14 @@ const { markdown, matter } = parseYamlFrontMatter(
 );
 
 handleSeparator();
+
+// HACK
+if (TEMPLATE == "title") {
+  document.body.innerHTML = `<div class="container"><div class="inner">${marked(
+    markdown
+  )}</div></div>`;
+}
+
 updateMermaid();
 updateCodeBlocks({
   fontSize: matter.fontSize,
@@ -21,17 +29,17 @@ updateCodeBlocks({
 function handleSeparator() {
   const SEP = "\n---\n";
 
-  let innerHtml;
+  let innerHTML;
   if (markdown.includes(SEP)) {
     let columnHtml = "";
     for (const col of markdown.split(SEP)) {
       columnHtml += `<div class="col">${marked(col)}</div>`;
     }
-    innerHtml = `<div class="container"><div class="cols">${columnHtml}</div></div>`;
+    innerHTML = `<div class="container"><div class="cols">${columnHtml}</div></div>`;
   } else {
-    innerHtml = `<div class="container">${marked(markdown)}</div>`;
+    innerHTML = `<div class="container">${marked(markdown)}</div>`;
   }
-  document.body.innerHTML = innerHtml;
+  document.body.innerHTML = innerHTML;
 }
 
 function parseYamlFrontMatter(markdown) {

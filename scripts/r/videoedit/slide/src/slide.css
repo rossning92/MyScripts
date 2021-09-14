@@ -35,20 +35,20 @@
   align-items: center;
 }
 
-:is(h3, h4, h5) {
+:is(h4, h5, h6) {
   margin: 0;
   font-weight: normal;
 }
 
-h3 {
+h4 {
   font-size: 2em;
 }
 
-h4 {
+h5 {
   font-size: 1.5em;
 }
 
-h5 {
+h6 {
   font-size: 1.25em;
 }
 

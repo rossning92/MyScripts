@@ -1,54 +1,18 @@
 @import "./base-font.css";
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+@import "./stylized-title.css";
 
 body {
   margin: 0;
 }
 
 .container {
-  background-color: black;
-  color: white;
-
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-
-  font-family: "Bebas Neue", "Noto Serif SC", serif;
-  text-align: center;
-  vertical-align: middle;
-  min-width: 1920px;
   width: 1920px;
   height: 1080px;
-  background-size: cover;
+  background-color: #000;
 }
 
 .inner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-width: fit-content;
-}
-
-:is(h1, h2, h3, h4, h5, h6) {
-  margin-bottom: 0;
-  margin-top: 0;
-  text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-h1 {
-  background-color: #fc7281;
-  border-left: 32px solid #ca5b67;
-  font-size: 2em;
-  font-weight: 900;
-  padding: 0 0.5em;
-}
-
-h2 {
-  background-color: #457b9d;
-  border-left: 32px solid #37627e;
-  font-size: 1.25em;
-  font-weight: 500;
-  padding: 0 0.5em;
+  margin: auto;
 }

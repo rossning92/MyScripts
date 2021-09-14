@@ -248,7 +248,7 @@ def call_echo(args, shell=True, check=True, **kwargs):
     else:
         s = args
 
-    logging.log("EXEC: %d" % s)
+    logging.info("EXEC: %s" % s)
     print2("> " + s, color="black")
     ret = subprocess.run(args, shell=shell, check=check, **kwargs)
     return ret.returncode
