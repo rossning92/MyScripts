@@ -10,7 +10,7 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 
 def open_wt(args=["cmd"], **kwargs):
-    args = wt_wrap_args(args, font_size=14, **kwargs)
+    args = wt_wrap_args(args, **kwargs)
     call_echo(args)
 
 
@@ -22,7 +22,6 @@ def open_wt_with_bg():
         icon=root + "/icons/cmd.png",
         title="Command Prompt",
         opacity=0.9,
-        cwd=os.path.expanduser("~"),
     )
     time.sleep(2)
 
@@ -36,7 +35,7 @@ def open_wt_with_bg():
     time.sleep(0.5)
 
 
-def record_windows_terminal(file, args, cmds, font_size=14, **kwargs):
+def record_windows_terminal(file, args, cmds, **kwargs):
     call_echo(["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"])
 
     open_wt(args, **kwargs)

@@ -17,9 +17,18 @@ import yaml
 
 from _appmanager import get_executable
 from _editor import open_in_vscode
-from _shutil import (call_echo, conemu_wrap_args, convert_to_unix_path,
-                     exec_ahk, get_ahk_exe, get_script_root, print2,
-                     run_elevated, setup_nodejs, write_temp_file)
+from _shutil import (
+    call_echo,
+    conemu_wrap_args,
+    convert_to_unix_path,
+    exec_ahk,
+    get_ahk_exe,
+    get_script_root,
+    print2,
+    run_elevated,
+    setup_nodejs,
+    write_temp_file,
+)
 
 SCRIPT_EXTENSIONS = {
     ".sh",
@@ -355,6 +364,9 @@ def wt_wrap_args(
 
     if sys.platform != "win32":
         raise Exception("the function can only be called on windows platform.")
+
+    # Escape simicolons used in wt command.
+    args = [x.replace(";", r"\;") for x in args]
 
     CONFIG_FILE = os.path.expandvars(
         r"%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"

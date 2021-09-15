@@ -51,8 +51,8 @@ def ipython(s, startup=None, font_size=14, **kwargs):
 
 
 @core.api
-def cmd(s, startup=None, font_size=14, **kwargs):
+def cmd(s, font_size=14, cwd=None, force=False, **kwargs):
     out_file = "wt_cmd/%s.mp4" % get_hash(s)
-    if not os.path.exists(out_file):
-        record_wt_cmd(out_file, s, font_size=font_size)
+    if not os.path.exists(out_file) or force:
+        record_wt_cmd(out_file, s, font_size=font_size, cwd=cwd)
     return coreapi.clip(out_file, **kwargs)

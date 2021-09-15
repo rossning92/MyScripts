@@ -38,5 +38,9 @@
   "video_end": {
     "prefix": "video_end",
     "body": ["{{ video_end(track='overlay', t='ae') }}"]
+  },
+  "cmd": {
+    "prefix": "cmd",
+    "body": ["{{ cmd('kubectl apply -f deployment.yaml\n', font_size=18) }}"]
   }
 }
