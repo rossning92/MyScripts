@@ -1,4 +1,9 @@
-from _shutil import *
+import json
+import os
+import subprocess
+import sys
+
+from _shutil import call_echo, print2, cd
 
 root = os.path.dirname(os.path.realpath(__file__))
 
@@ -9,7 +14,7 @@ def download_bilibili(url, out_dir=None):
         try:
             # Cookie
             root = os.path.dirname(os.path.abspath(__file__))
-            with open("/tmp/cookie.json") as f:
+            with open(os.path.expanduser("~/bilibili-cookie.json")) as f:
                 data = json.load(f)
             cookie = "; ".join(["%s=%s" % (x["name"], x["value"]) for x in data])
 

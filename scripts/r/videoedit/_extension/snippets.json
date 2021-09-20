@@ -3,13 +3,9 @@
     "prefix": "md",
     "body": ["{{ md('## $1', t='as', duration=3) }}"]
   },
-  "title_anim": {
-    "prefix": "title_anim",
-    "body": ["{{ title_anim('$1', '$2') }}"]
-  },
   "audio_gap": {
     "prefix": "audio_gap",
-    "body": ["{{ audio_gap($1) }}"]
+    "body": ["{{ audio_gap(2, bgm_vol=0.5, fade_duration=0.25) }}"]
   },
   "tts": {
     "prefix": "tts",
@@ -41,6 +37,6 @@
   },
   "cmd": {
     "prefix": "cmd",
-    "body": ["{{ cmd('kubectl apply -f deployment.yaml\n', font_size=18) }}"]
+    "body": ["{{ cmd('$1{sleep 1.5}\n', font_size=18) }}"]
   }
 }

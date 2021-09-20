@@ -173,7 +173,7 @@ function setupDecorations(context) {
 
     highlightText(/\b(audio_end|bgm|record|sfx)(?=\()/g, "#c0392b");
     highlightText(
-      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end)(?=\()/g,
+      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd)(?=\()/g,
       "#0000ff"
     );
     highlightText(/\b(include|crossfade)(?=\()/g, "#008000");
