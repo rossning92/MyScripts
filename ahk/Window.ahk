@@ -1,12 +1,53 @@
-LayoutWindows(title)
+SortArray(Array, Order="A") {
+    ;Order A: Ascending, D: Descending, R: Reverse
+    MaxIndex := ObjMaxIndex(Array)
+    If (Order = "R") {
+        count := 0
+        Loop, % MaxIndex
+            ObjInsert(Array, ObjRemove(Array, MaxIndex - count++))
+        Return
+    }
+    Partitions := "|" ObjMinIndex(Array) "," MaxIndex
+    Loop {
+        comma := InStr(this_partition := SubStr(Partitions, InStr(Partitions, "|", False, 0)+1), ",")
+        spos := pivot := SubStr(this_partition, 1, comma-1) , epos := SubStr(this_partition, comma+1) 
+        if (Order = "A") { 
+            Loop, % epos - spos {
+                if (Array[pivot] > Array[A_Index+spos])
+                    ObjInsert(Array, pivot++, ObjRemove(Array, A_Index+spos)) 
+            }
+        } else {
+            Loop, % epos - spos {
+                if (Array[pivot] < Array[A_Index+spos])
+                    ObjInsert(Array, pivot++, ObjRemove(Array, A_Index+spos)) 
+            }
+        }
+        Partitions := SubStr(Partitions, 1, InStr(Partitions, "|", False, 0)-1)
+        if (pivot - spos) > 1 ;if more than one elements
+            Partitions .= "|" spos "," pivot-1 ;the left partition
+        if (epos - pivot) > 1 ;if more than one elements
+            Partitions .= "|" pivot+1 "," epos ;the right partition
+    } Until !Partitions
+}
+
+LayoutWindows(title, x="", y="", w="", h="", rows="")
 {
-    WinGet, winList, List, %title%
-    n := winList
+    WinGet, id, List, %title%
 
-    rows := Floor(Sqrt(n))
-    cols := n // rows
+    ; Convert peudo-array to array: hwnds.
+    hwnds := []
+    Loop, %id%
+    {
+        hwnds.Push(id%A_Index%)
+    }
+    SortArray(hwnds, "A")
 
-    if ( mod(n, rows) > 0 )
+    if (rows = "") {
+        rows := Floor(Sqrt(hwnds.Length()))
+    }
+    cols := hwnds.Length() // rows
+
+    if ( mod(hwnds.Length(), rows) > 0 )
         cols := cols + 1
 
     t := rows
@@ -14,24 +55,29 @@ LayoutWindows(title)
     cols := t
 
     SysGet, workArea, MonitorWorkArea
-    width := (workAreaRight - workAreaLeft) // cols
-    height := (workAreaBottom - workAreaTop) // rows
+    if (x = "") {
+        x := workAreaLeft
+    }
+    if (y = "") {
+        y := workAreaTop
+    }
+    if (w = "") {
+        w := workAreaRight - workAreaLeft
+    }
+    if (h = "") {
+        h := workAreaBottom - workAreaTop
+    }
 
-    Loop, %winList%
+    winWidth := w // cols
+    winHeight := h // rows
+
+    for index, hwnd in hwnds
     {
-        this_id := winList%A_Index%
-
         i := (A_Index - 1) // cols
         j := mod(A_Index - 1, cols)
-
-        x := workAreaLeft + j * width
-        y := workAreaTop + i * height
-
-        ; Msgbox %x%|%y%|%width%|%height%
-
-        WinRestore, ahk_id %this_id%
-        WinActivate, ahk_id %this_id%
-        WinMove ahk_id %this_id%,, %x%, %y%, %width%, %height%
+        winX := x + j * winWidth
+        winY := y + i * winHeight
+        SetWindowPos("ahk_id " hwnd, winX, winY, winWidth, winHeight)
     }
 }
 
@@ -64,7 +110,7 @@ SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False, forceResize:=False) {
     SetWindowPos(winTitle, x, y, w, h, forceResize)
 }
 
-SetWindowPos(WinTitle, X := "", Y := "", W := "", H := "", forceResize := False) {
+SetWindowPos(WinTitle, X:="", Y:="", W:="", H:="", forceResize:=False) {
     If ((X . Y . W . H) = "") ;
         Return False
     WinGet, hWnd, ID, %WinTitle% ; taken from Coco's version

@@ -1,5 +1,5 @@
 {
-  ".apk": [["run_script", "/r/android/install_apk.py"]],
+  ".apk": [["run_script", "/r/android/install_apk.py"], ["run_script", "/r/android/install_apk.py", "-r"]],
   ".3g2": ["mpv", "VLC"],
   ".3gp": ["mpv", "VLC"],
   ".3gp2": ["mpv", "VLC"],

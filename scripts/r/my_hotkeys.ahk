@@ -133,9 +133,11 @@ return
     If (ExStyle & 0x8) {
         SetAlwaysOnTop("ahk_id " hwndUnderCursor, False)
         ToolTip, AlwaysOnTop=0, %winX%, %winY%
+        ; WinSet, Transparent, Off, ahk_id %hwndUnderCursor%
     } else {
         SetAlwaysOnTop("ahk_id " hwndUnderCursor, True)
         ToolTip, AlwaysOnTop=1, %winX%, %winY%
+        ; WinSet, Transparent, 150, ahk_id %hwndUnderCursor%
     }
     SetTimer, RemoveToolTip, -2000
 return
