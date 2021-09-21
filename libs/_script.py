@@ -753,7 +753,15 @@ class Script:
                 if sys.platform == "win32" and self.meta["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
 
-                args = args_activate + [python_exec, run_py, python_file,] + args
+                args = (
+                    args_activate
+                    + [
+                        python_exec,
+                        run_py,
+                        python_file,
+                    ]
+                    + args
+                )
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -962,11 +970,15 @@ def find_script(script_name, search_dir=None):
         return path
 
     # Fuzzy search
+    name_no_ext, _ = os.path.splitext(os.path.basename(script_name))
     path = os.path.abspath(
-        os.path.dirname(__file__)
-        + "/../scripts/**/"
-        + os.path.basename(script_name)
-        + "*"
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "scripts",
+            "**",
+            name_no_ext + ".*",
+        )
     )
 
     found = glob.glob(path, recursive=True)
@@ -1035,7 +1047,10 @@ def run_script(
         script.set_override_variables(variables)
 
     script.execute(
-        restart_instance=restart_instance, new_window=new_window, args=args, cd=cd,
+        restart_instance=restart_instance,
+        new_window=new_window,
+        args=args,
+        cd=cd,
     )
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
