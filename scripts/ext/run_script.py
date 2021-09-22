@@ -1,7 +1,8 @@
 import os
 import sys
 
-from _script import get_files, run_script
+from _script import run_script
+from _shutil import get_files
 
 
 def create_link(script):

@@ -28,12 +28,13 @@ class Template:
         if kwargs:
             global_context.update(kwargs)
 
-        # add function for output
-        def echo(*args):
-            result.extend([str(arg) for arg in args])
+        # Assignment function
+        def set(name, value):
+            global_context[name] = value
 
-        global_context["echo"] = echo
+        global_context["set"] = set
 
+        # Include function
         def include(file):
             with open(file, "r", encoding="utf-8") as f:
                 result.append(f.read())
@@ -49,6 +50,7 @@ class Template:
                     result.append(ret)
             else:
                 result.append(token)
+        result = [str(x) for x in result]
         return "".join(result)
 
     # make instance callable
