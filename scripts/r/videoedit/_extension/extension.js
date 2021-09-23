@@ -171,12 +171,17 @@ function setupDecorations(context) {
       activeEditor.setDecorations(decorationType, decorations);
     }
 
+    // Highlight audio functions.
     highlightText(/\b(audio_end|bgm|record|sfx)(?=\()/g, "#c0392b");
+
+    // Highlight video functions.
     highlightText(
-      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd)(?=\()/g,
+      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|ipython)(?=\()/g,
       "#0000ff"
     );
-    highlightText(/\b(include|crossfade)(?=\()/g, "#008000");
+
+    // Highlight auxiliary functions.
+    highlightText(/\b(include|crossfade|audio_gap)(?=\()/g, "#008000");
   }
 
   // Reference: https://github.com/microsoft/vscode-extension-samples/blob/main/decorator-sample/src/extension.ts
@@ -656,6 +661,41 @@ function registerCreateSlideCommand(context) {
   );
 }
 
+function toggleParameter(param, defaultValue) {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) return;
+
+  const currentLine = editor.selection.active.line;
+  const currentLineText = editor.document.lineAt(currentLine).text;
+
+  const patt = new RegExp(", " + param + "=.+?(?=[,)])", "g");
+
+  let newLineText;
+  if (patt.test(currentLineText)) {
+    newLineText = currentLineText.replace(patt, "");
+  } else {
+    newLineText = currentLineText.replace(
+      /(?=\))/g,
+      `, ${param}=${defaultValue}`
+    );
+  }
+
+  editor.edit((editBuilder) => {
+    editBuilder.replace(
+      new vscode.Selection(currentLine, 0, currentLine, currentLineText.length),
+      newLineText
+    );
+  });
+}
+
+function registerToggleCrossfadeCommand(context) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.toggleCrossfade", () => {
+      toggleParameter("cf", "0.2");
+    })
+  );
+}
+
 function replaceCurrentLine(oldText, newText) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
@@ -874,6 +914,7 @@ function registerCommands(context) {
   registerCreatePowerpointCommand(context);
   registerCreateSlideCommand(context);
   registerRenameFileCommand(context);
+  registerToggleCrossfadeCommand(context);
 
   // Start movy server
   context.subscriptions.push(

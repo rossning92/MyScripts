@@ -1262,3 +1262,10 @@ def setup_logger(level=logging.DEBUG, log_file=None):
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
+
+
+def create_symlink(src, dst):
+    assert os.path.isdir(src)
+    subprocess.check_call(
+        ["MKLINK", "/J", dst, src], shell=True,
+    )

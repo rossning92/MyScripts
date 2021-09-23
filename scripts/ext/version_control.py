@@ -1,5 +1,6 @@
-from _shutil import *
-from _editor import *
+import os
 
-root_folder = os.path.realpath('../../')
+from _editor import open_in_vscode
+
+root_folder = os.path.realpath("../../")
 open_in_vscode(root_folder)

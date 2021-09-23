@@ -34,10 +34,7 @@ if __name__ == "__main__":
                     "command": "markdown.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
-                {
-                    "key": "shift+alt+r",
-                    "command": "revealFileInOS",
-                },
+                {"key": "shift+alt+r", "command": "revealFileInOS",},
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
                 {
@@ -45,6 +42,8 @@ if __name__ == "__main__":
                     "command": "markdown.extension.editing.toggleList",
                     "when": "editorTextFocus && !editorReadonly && editorLangId == 'markdown'",
                 },
+                {"key": "ctrl+shift+r", "command": "workbench.action.reloadWindow"},
+                {"key": "ctrl+shift+alt+enter", "command": "-jupyter.runAndDebugCell"},
             ],
             f,
             indent=4,

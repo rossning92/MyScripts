@@ -1,6 +1,5 @@
 import argparse
 import os
-import random
 import signal
 import subprocess
 
@@ -8,12 +7,13 @@ from _shutil import call_echo, get_files
 
 
 def start_server(file=None, port=None):
-    MOVY_ROOT = os.path.join(os.path.realpath(os.path.dirname(__file__)), "movy")
+    script_root = os.path.realpath(os.path.dirname(__file__))
+    movy_root = os.path.join(script_root, "movy")
 
-    if not os.path.exists(os.path.join(MOVY_ROOT, "node_modules")):
-        call_echo(["yarn"], cwd=MOVY_ROOT)
+    if not os.path.exists(os.path.join(movy_root, "node_modules")):
+        call_echo(["yarn"], cwd=movy_root)
 
-    launch_script = os.path.join(MOVY_ROOT, "bin", "movy.js")
+    launch_script = os.path.join(movy_root, "bin", "movy.js")
 
     args = ["node", launch_script]
     if port is not None:
@@ -22,7 +22,7 @@ def start_server(file=None, port=None):
 
     ps = subprocess.Popen(
         args,
-        cwd=MOVY_ROOT,
+        cwd=movy_root,
         # CTRL+C signals will be disabled in current process
         creationflags=0x00000200,
     )

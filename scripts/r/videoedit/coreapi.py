@@ -254,16 +254,6 @@ def _get_time(p):
     raise Exception("Invalid pos='%s'" % p)
 
 
-def _set_pos(t, tag=None):
-    t = _get_time(t)
-
-    if t != "c":
-        _state.pos_dict["c"] = t
-
-    if tag is not None:
-        _state.pos_dict[tag] = t
-
-
 def _add_subtitle_clip(start, end, text):
     temp_file = render_text(text)
     add_video_clip(
@@ -580,8 +570,12 @@ def sfx(f, **kwargs):
 
 
 @core.api
-def pos(t="c", tag=None):
-    _set_pos(t, tag=tag)
+def pos(t, tag=None):
+    t = _get_time(t)
+    if tag is not None:
+        _state.pos_dict[tag] = t
+    else:
+        _state.pos_dict = {k: t for k in _state.pos_dict.keys()}
 
 
 @core.api

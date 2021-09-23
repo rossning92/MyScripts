@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 
 from _editor import open_in_vscode
@@ -24,12 +25,14 @@ for d in [
     "overlay",
     "record",
     "screencap",
-    "screenshot",
-    "tmp",
     "video",
 ]:
     os.makedirs(os.path.join(proj_dir, d), exist_ok=True)
 
+src = os.path.abspath(os.path.join("movy_utils", "utils.js"))
+dst = os.path.join(proj_dir, "animation", "utils.js")
+if not os.path.exists(dst):
+    shutil.copy(src, dst)
 
 # HACK:
 prepend_to_path(os.path.expandvars("%LOCALAPPDATA%\\ocenaudio"))

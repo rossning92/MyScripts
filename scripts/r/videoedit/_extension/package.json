@@ -84,6 +84,10 @@
       {
         "command": "videoEdit.startMovyServer",
         "title": "VideoEdit: Start Movy Server"
+      },
+      {
+        "command": "videoEdit.toggleCrossfade",
+        "title": "VideoEdit: Toggle Crossfade"
       }
     ],
     "keybindings": [
@@ -125,6 +129,11 @@
       {
         "command": "videoEdit.renameFile",
         "key": "f2",
+        "when": "videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.toggleCrossfade",
+        "key": "alt+f",
         "when": "videoEdit.isProjectFileActive"
       }
     ],
