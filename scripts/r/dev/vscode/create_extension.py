@@ -1,9 +1,9 @@
-from _shutil import *
+from _shutil import call_echo, cd, setup_nodejs
 
 setup_nodejs()
 
 
-cd('~/.vscode/extensions')
+cd("~/.vscode/extensions")
 
-call2('yarn add global yo generator-code')
-call2('yo code')
+call_echo("npm install -g yo generator-code")
+call_echo("yo code")

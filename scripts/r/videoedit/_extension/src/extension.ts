@@ -1,18 +1,25 @@
-const vscode = require("vscode");
-const cp = require("child_process");
-const path = require("path");
-const process = require("process");
-const fs = require("fs");
-const os = require("os");
+import * as vscode from "vscode";
+import cp = require("child_process");
+import path = require("path");
+import process = require("process");
+import fs = require("fs");
+import os = require("os");
 
 const SOURCE_FILE_EXT = "c|cpp|py|js|txt|html";
 
-let recorderProcess = null;
-let currentProjectDir = null;
+let recorderProcess: cp.ChildProcessWithoutNullStreams | undefined;
+let currentProjectDir: string | undefined;
 let output = vscode.window.createOutputChannel("VideoEdit");
 
+declare global {
+  interface String {
+    replaceAll: (find: string, replace: string) => string;
+    count: (substr: string) => number;
+  }
+}
+
 // Helper functions for String.
-String.prototype.replaceAll = function (find, replace) {
+String.prototype.replaceAll = function (find: string, replace: string) {
   const str = this;
   return str.replace(
     new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g"),
@@ -20,7 +27,7 @@ String.prototype.replaceAll = function (find, replace) {
   );
 };
 
-String.prototype.count = function (substr) {
+String.prototype.count = function (substr: string) {
   const str = this;
   return (
     str.match(
@@ -29,14 +36,14 @@ String.prototype.count = function (substr) {
   ).length;
 };
 
-function openInBrowser(url) {
+function openInBrowser(url: string) {
   cp.spawn("C:/Program Files (x86)/Chromium/Application/chrome.exe", [
     "--user-data-dir=" + path.join(os.homedir(), "ChromeDataForDev"),
     url,
   ]);
 }
 
-async function openFile(filePath) {
+async function openFile(filePath: string) {
   if (fs.existsSync(filePath)) {
     if (new RegExp(".(md|" + SOURCE_FILE_EXT + ")$", "g").test(filePath)) {
       const document = await vscode.workspace.openTextDocument(filePath);
@@ -57,8 +64,10 @@ async function openFile(filePath) {
   }
 }
 
-function getAbsPath(file) {
-  return path.resolve(path.join(getActiveDir(), file));
+function getAbsPath(file: string) {
+  const activeDir = getActiveDir();
+  if (!activeDir) return undefined;
+  return path.resolve(path.join(activeDir, file));
 }
 
 function getFileUnderCursor() {
@@ -80,6 +89,7 @@ function getFileUnderCursor() {
 
   const file = found[1];
   const absPath = getAbsPath(file);
+  if (!absPath) return;
   if (!fs.existsSync(absPath)) {
     vscode.window.showErrorMessage(`File does not exist: ${file}`);
     return;
@@ -88,7 +98,7 @@ function getFileUnderCursor() {
   return file;
 }
 
-function startSlideServer(file) {
+function startSlideServer(file: string) {
   // Return random port number between 10000 and 20000
   let port = Math.floor(Math.random() * 10000) + 10000;
 
@@ -116,7 +126,7 @@ async function openFileUnderCursor() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
-  const activeFile = vscode.window.activeTextEditor.document.fileName;
+  const activeFile = editor.document.fileName;
   output.appendLine(`openFileUnderCursor(): ${activeFile}`);
   if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
     startMovyServer(activeFile);
@@ -126,21 +136,21 @@ async function openFileUnderCursor() {
     const file = getFileUnderCursor();
     if (file) {
       const absPath = getAbsPath(file);
-      openFile(absPath);
+      if (absPath) openFile(absPath);
     }
   }
 }
 
-function setupDecorations(context) {
-  const decorationTypes = [];
-  let timeout = undefined;
-  let activeEditor = vscode.window.activeTextEditor;
+function setupDecorations(context: vscode.ExtensionContext) {
+  const decorationTypes: vscode.TextEditorDecorationType[] = [];
+  let timeout: NodeJS.Timeout | undefined;
+  let editor = vscode.window.activeTextEditor;
 
   function updateDecorations() {
     for (const dt of decorationTypes) dt.dispose();
     decorationTypes.length = 0;
 
-    if (!activeEditor) {
+    if (!editor) {
       return;
     }
 
@@ -148,14 +158,15 @@ function setupDecorations(context) {
       return;
     }
 
-    function highlightText(regex, color) {
-      const text = activeEditor.document.getText();
+    function highlightText(regex: RegExp, color: string) {
+      if (!editor) return;
+      const text = editor.document.getText();
 
       const decorations = [];
       let match;
       while ((match = regex.exec(text))) {
-        const startPos = activeEditor.document.positionAt(match.index);
-        const endPos = activeEditor.document.positionAt(
+        const startPos = editor.document.positionAt(match.index);
+        const endPos = editor.document.positionAt(
           match.index + match[0].length
         );
 
@@ -168,7 +179,7 @@ function setupDecorations(context) {
         fontWeight: "700",
       });
       decorationTypes.push(decorationType);
-      activeEditor.setDecorations(decorationType, decorations);
+      editor.setDecorations(decorationType, decorations);
     }
 
     // Highlight audio functions.
@@ -193,13 +204,13 @@ function setupDecorations(context) {
     timeout = setTimeout(updateDecorations, 500);
   }
 
-  if (activeEditor) {
+  if (editor) {
     triggerUpdateDecorations();
   }
 
   vscode.window.onDidChangeActiveTextEditor(
-    (editor) => {
-      activeEditor = editor;
+    (editor_) => {
+      editor = editor_;
       if (editor) {
         triggerUpdateDecorations();
       }
@@ -210,7 +221,7 @@ function setupDecorations(context) {
 
   vscode.workspace.onDidChangeTextDocument(
     (event) => {
-      if (activeEditor && event.document === activeEditor.document) {
+      if (editor && event.document === editor.document) {
         triggerUpdateDecorations();
       }
     },
@@ -246,11 +257,16 @@ function getActiveDir() {
   return path.dirname(file);
 }
 
-function getRelativePath(prefix, p) {
+function getRelativePath(prefix: string, p: string) {
   return path.relative(prefix, p).replace(/\\/g, "/");
 }
 
-function getFiles(dir, filter, files = [], dirs = []) {
+function getFiles(
+  dir: string,
+  filter: ((x: string) => boolean) | undefined,
+  files: string[] = [],
+  dirs: string[] = []
+) {
   fs.readdirSync(dir).forEach((file) => {
     const filePath = path.join(dir, file);
     const fileStat = fs.lstatSync(filePath);
@@ -262,13 +278,13 @@ function getFiles(dir, filter, files = [], dirs = []) {
       if (!/tmp$/g.test(file)) {
         getFiles(filePath, filter, files, dirs);
       }
-    } else if (filter(filePath)) {
+    } else if (filter && filter(filePath)) {
       files.push(filePath);
     }
   });
 }
 
-function getCompletedExpression(file) {
+function getCompletedExpression(file: string) {
   if (/slide[\\\/].+?\.md$/.test(file)) {
     return `{{ slide('${file}', template='slide') }}`;
   } else if (file.endsWith(".md")) {
@@ -288,7 +304,7 @@ function getCompletedExpression(file) {
   }
 }
 
-function setupAutoComplete(context) {
+function setupAutoComplete(context: vscode.ExtensionContext) {
   const provider = vscode.languages.registerCompletionItemProvider(
     { pattern: "**/vprojects/**/*.md" },
     {
@@ -300,7 +316,7 @@ function setupAutoComplete(context) {
         if (position.character > 0) return undefined;
 
         const activeFile = getActiveFile();
-        const filter = (x) => {
+        const filter = (x: string) => {
           if (activeFile === x) {
             // Ignore current file
             return false;
@@ -314,7 +330,7 @@ function setupAutoComplete(context) {
           }
         };
 
-        let files = [];
+        let files: string[] = [];
         getFiles(projectDir, filter, files);
 
         // Recursively search parent `assets` folder
@@ -336,7 +352,7 @@ function setupAutoComplete(context) {
         // Convert to relative path
         files = files.map((x) => getRelativePath(projectDir, x));
 
-        const completionItems = [];
+        const completionItems: vscode.CompletionItem[] = [];
         files.forEach((file, i) => {
           const label = getCompletedExpression(file); // Auto closing single quote
           const item = new vscode.CompletionItem(
@@ -355,7 +371,7 @@ function setupAutoComplete(context) {
   context.subscriptions.push(provider);
 }
 
-function insertText(text) {
+function insertText(text: string) {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
     const selection = editor.selection;
@@ -371,18 +387,18 @@ function getRecorderProcess() {
   // Check if project switches
   if (d != currentProjectDir) {
     currentProjectDir = d;
-    if (recorderProcess != null) {
+    if (recorderProcess) {
       recorderProcess.stdin.write("q");
-      recorderProcess = null;
+      recorderProcess = undefined;
       vscode.window.showWarningMessage(
         "Project switched. Restarting recorder..."
       );
     }
   }
 
-  if (recorderProcess == null) {
+  if (recorderProcess === undefined) {
     if (!isProjectFileActive()) {
-      return null;
+      return undefined;
     }
 
     recorderProcess = cp.spawn("run_script", ["/r/audio/recorder"], {
@@ -431,7 +447,7 @@ function getRandomString() {
   );
 }
 
-function writeTempTextFile(text) {
+function writeTempTextFile(text: string) {
   const fs = require("fs");
 
   const file = path.join(
@@ -445,7 +461,7 @@ function writeTempTextFile(text) {
   return file;
 }
 
-function runInTerminal(name, shellArgs) {
+function runInTerminal(name: string, shellArgs: string[]) {
   // Close existing Animation Server terminal.
   for (const term of vscode.window.terminals) {
     if (term.name == name) {
@@ -462,7 +478,7 @@ function runInTerminal(name, shellArgs) {
   terminal.show();
 }
 
-function startMovyServer(activeFile) {
+function startMovyServer(file: string) {
   // Return random port number between 10000 and 20000
   let port = Math.floor(Math.random() * 10000) + 10000;
 
@@ -472,7 +488,7 @@ function startMovyServer(activeFile) {
     "/r/videoedit/start_movy_server",
     "-p",
     port.toString(),
-    activeFile,
+    file,
     "||",
     "pause",
   ];
@@ -483,25 +499,28 @@ function startMovyServer(activeFile) {
 }
 
 function exportVideo({
-  extraArgs = null,
+  extraArgs,
   selectedText = true,
   preview = false,
-} = {}) {
-  let activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor) {
-    let document = activeEditor.document;
+}: { extraArgs?: string[]; selectedText?: boolean; preview?: boolean } = {}) {
+  const activeDir = getActiveDir();
+  if (!activeDir) return;
+
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    let document = editor.document;
 
     let textIn = "";
     if (selectedText) {
-      textIn = document.getText(activeEditor.selection);
+      textIn = document.getText(editor.selection);
       if (!textIn) {
-        let currentLine = activeEditor.selection.active.line;
+        let currentLine = editor.selection.active.line;
 
         let headerLevel = 0;
         let beginLine = 0;
-        let endLine = activeEditor.document.lineCount - 1;
+        let endLine = editor.document.lineCount - 1;
         for (let i = currentLine; i >= 0; i--) {
-          const { text } = activeEditor.document.lineAt(i);
+          const { text } = editor.document.lineAt(i);
           const match = text.match(/^(#+)/);
           if (match) {
             headerLevel = match[1].length;
@@ -511,12 +530,8 @@ function exportVideo({
         }
 
         if (beginLine >= 0) {
-          for (
-            let i = currentLine + 1;
-            i < activeEditor.document.lineCount;
-            i++
-          ) {
-            const { text } = activeEditor.document.lineAt(i);
+          for (let i = currentLine + 1; i < editor.document.lineCount; i++) {
+            const { text } = editor.document.lineAt(i);
             const match = text.match(/^(#+)/);
             if (match && match[1].length <= headerLevel) {
               endLine = i - 1;
@@ -526,7 +541,7 @@ function exportVideo({
         }
 
         for (let i = beginLine; i <= endLine; i++) {
-          const { text } = activeEditor.document.lineAt(i);
+          const { text } = editor.document.lineAt(i);
           textIn += text + "\n";
         }
       }
@@ -534,24 +549,24 @@ function exportVideo({
       textIn = document.getText();
     }
 
-    let activeFilePath = vscode.window.activeTextEditor.document.fileName;
+    let activeFilePath = editor.document.fileName;
     let activeDirectory = path.dirname(activeFilePath);
 
     const textFile = writeTempTextFile(textIn);
-    let shellArgs = [
+    let shellArgs: string[] = [
       "/c",
       "run_script",
       "/r/videoedit/export_animation",
       "-i",
       textFile,
       "--proj_dir",
-      getActiveDir(),
+      activeDir,
     ];
     if (preview) {
       shellArgs.push("--preview");
     }
 
-    if (extraArgs !== null) {
+    if (extraArgs) {
       shellArgs = shellArgs.concat(extraArgs);
     }
 
@@ -574,15 +589,16 @@ async function insertAllClipsInFolder() {
   const projectDir = getActiveDir();
   if (!projectDir) return undefined;
 
-  let dirs = [];
-  getFiles(projectDir, (x) => x, [], dirs);
+  let dirs: string[] = [];
+  getFiles(projectDir, undefined, [], dirs);
   // dirs = dirs.map((x) => getRelativePath(projectDir, x));
 
   const selectedDir = await vscode.window.showQuickPick(dirs, {
     placeHolder: "from which folder you'd like to insert all clips",
   });
+  if (!selectedDir) return undefined;
 
-  const files = [];
+  const files: string[] = [];
   getFiles(selectedDir, (x) => /\.mp4$/g.test(x), files);
 
   const linesToInsert = files.map(
@@ -595,14 +611,18 @@ async function insertAllClipsInFolder() {
   });
 }
 
-function registerCreatePowerpointCommand(context) {
+function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.createPowerpoint", async () => {
+      const activeDir = getActiveDir();
+      if (!activeDir) return;
+
       const filePath = await promptFileName({ ext: ".pptx", subdir: "slide" });
+      if (!filePath) return;
 
       cp.spawn("cscript", [
         path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
-        path.resolve(getActiveDir(), filePath),
+        path.resolve(activeDir, filePath),
       ]);
 
       insertText(`{{ clip('${filePath}') }}`);
@@ -613,14 +633,18 @@ function registerCreatePowerpointCommand(context) {
     vscode.commands.registerCommand(
       "videoEdit.createPowerpointOverlay",
       async () => {
+        const activeDir = getActiveDir();
+        if (!activeDir) return;
+
         const filePath = await promptFileName({
           ext: ".pptx",
           subdir: "overlay",
         });
+        if (!filePath) return;
 
         cp.spawn("cscript", [
           path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
-          path.resolve(getActiveDir(), filePath),
+          path.resolve(activeDir, filePath),
         ]);
 
         insertText(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);
@@ -629,7 +653,16 @@ function registerCreatePowerpointCommand(context) {
   );
 }
 
-async function promptFileName({ ext, subdir }) {
+async function promptFileName({
+  ext,
+  subdir,
+}: {
+  ext: string;
+  subdir: string;
+}) {
+  const activeDir = getActiveDir();
+  if (!activeDir) return;
+
   const fileName = await vscode.window.showInputBox({
     placeHolder: "file-name",
   });
@@ -637,7 +670,7 @@ async function promptFileName({ ext, subdir }) {
     return;
   }
 
-  const outDir = path.resolve(getActiveDir(), subdir);
+  const outDir = path.resolve(activeDir, subdir);
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir);
   }
@@ -646,7 +679,7 @@ async function promptFileName({ ext, subdir }) {
   return outFile;
 }
 
-function registerCreateSlideCommand(context) {
+function registerCreateSlideCommand(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.createSlide", async () => {
       const file = await createNewDocument({
@@ -655,13 +688,14 @@ function registerCreateSlideCommand(context) {
         extension: ".md",
         extraParams: ", t='as', template='slide'",
       });
+      if (!file) return;
 
       startSlideServer(file);
     })
   );
 }
 
-function toggleParameter(param, defaultValue) {
+function toggleParameter(param: string, defaultValue: string) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
@@ -670,7 +704,7 @@ function toggleParameter(param, defaultValue) {
 
   const patt = new RegExp(", " + param + "=(.+?)(?=[,)])", "g");
 
-  let newLineText;
+  let newLineText: string;
   if (patt.test(currentLineText)) {
     newLineText = currentLineText.replace(patt, "");
   } else {
@@ -701,7 +735,7 @@ function toggleParameter(param, defaultValue) {
   }
 }
 
-function registerToggleCrossfadeCommand(context) {
+function registerToggleCrossfadeCommand(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.toggleCrossfade", () => {
       toggleParameter("cf", "0.2");
@@ -709,7 +743,7 @@ function registerToggleCrossfadeCommand(context) {
   );
 }
 
-function replaceCurrentLine(oldText, newText) {
+function replaceCurrentLine(oldText: string, newText: string) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
@@ -726,7 +760,7 @@ function replaceCurrentLine(oldText, newText) {
   }
 }
 
-function replaceWholeDocument(oldText, newText) {
+function replaceWholeDocument(oldText: string, newText: string) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
@@ -746,7 +780,7 @@ function replaceWholeDocument(oldText, newText) {
   });
 }
 
-function registerRenameFileCommand(context) {
+function registerRenameFileCommand(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.renameFile", async () => {
       const file = getFileUnderCursor();
@@ -754,7 +788,7 @@ function registerRenameFileCommand(context) {
 
       // Get the range of file base name without extension.
       const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
-      const valueSelection = match
+      const valueSelection: [number, number] | undefined = match
         ? [match.index, match.index + match[0].length]
         : undefined;
 
@@ -765,7 +799,10 @@ function registerRenameFileCommand(context) {
       if (!newFile) return;
 
       const absFile = getAbsPath(file);
+      if (!absFile) return;
+
       const newAbsFile = getAbsPath(newFile);
+      if (!newAbsFile) return;
 
       if (fs.existsSync(newAbsFile)) {
         vscode.window.showErrorMessage("New file already exists.");
@@ -791,8 +828,18 @@ async function createNewDocument({
   initContent = "",
   extension = "",
   extraParams = "",
-} = {}) {
-  const animationDir = path.resolve(getActiveDir(), dir);
+}: {
+  dir: string;
+  func: string;
+  fileNamePlaceHolder?: string;
+  initContent?: string;
+  extension?: string;
+  extraParams?: string;
+}) {
+  const activeDir = getActiveDir();
+  if (!activeDir) return;
+
+  const animationDir = path.resolve(activeDir, dir);
 
   // Create animation dir
   if (!fs.existsSync(animationDir)) {
@@ -826,7 +873,7 @@ function updateWhenClauseContext() {
   );
 }
 
-function registerCommands(context) {
+function registerCommands(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.exportVideo", () => {
       exportVideo({ selectedText: false });
@@ -847,19 +894,19 @@ function registerCommands(context) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.startRecording", () => {
-      getRecorderProcess().stdin.write("r\n");
+      getRecorderProcess()?.stdin.write("r\n");
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.stopRecording", () => {
-      getRecorderProcess().stdin.write("s\n");
+      getRecorderProcess()?.stdin.write("s\n");
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.collectNoiseProfile", () => {
-      getRecorderProcess().stdin.write("n\n");
+      getRecorderProcess()?.stdin.write("n\n");
     })
   );
 
@@ -943,7 +990,7 @@ function registerCommands(context) {
   );
 }
 
-function setupWhenClause(context) {
+function setupWhenClause(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeActiveTextEditor(
     (_) => {
       updateWhenClauseContext();
@@ -954,7 +1001,7 @@ function setupWhenClause(context) {
   updateWhenClauseContext();
 }
 
-function activate(context) {
+function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration();
   config.update("[markdown]", { "editor.quickSuggestions": true });
 
