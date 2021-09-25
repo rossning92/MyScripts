@@ -668,7 +668,7 @@ function toggleParameter(param, defaultValue) {
   const currentLine = editor.selection.active.line;
   const currentLineText = editor.document.lineAt(currentLine).text;
 
-  const patt = new RegExp(", " + param + "=.+?(?=[,)])", "g");
+  const patt = new RegExp(", " + param + "=(.+?)(?=[,)])", "g");
 
   let newLineText;
   if (patt.test(currentLineText)) {
@@ -686,6 +686,19 @@ function toggleParameter(param, defaultValue) {
       newLineText
     );
   });
+
+  // Change selection to 1st matched group of patt.
+  const result = patt.exec(newLineText);
+  if (result) {
+    const paramLength = result[1].length;
+    const paramStartIndex = result.index + paramLength + 2;
+    editor.selection = new vscode.Selection(
+      currentLine,
+      paramStartIndex,
+      currentLine,
+      paramStartIndex + paramLength
+    );
+  }
 }
 
 function registerToggleCrossfadeCommand(context) {
