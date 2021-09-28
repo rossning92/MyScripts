@@ -1,12 +1,11 @@
 import glob
 import os
-from colorama import Fore
 import sys
 
-os.chdir('..')
+from colorama import Fore
 
-kw = r'{{STR_TO_FIND}}'
-replacement = r'{{STR_TO_REPLACE}}'
+kw = r"{{STR_TO_FIND}}"
+replacement = r"{{STR_TO_REPLACE}}"
 
 
 def print_highlight(s, str_highlight):
@@ -15,52 +14,57 @@ def print_highlight(s, str_highlight):
 
 
 def get_all_scripts():
-    for file_path in glob.glob('**/*', recursive=True):
+    for file_path in glob.glob("**/*", recursive=True):
         if not os.path.isfile(file_path):
             continue
 
         yield file_path
 
 
-# Print all matched file names
-matched_file_paths = set()
-for file_path in get_all_scripts():
-    if kw in file_path:
-        matched_file_paths.add(file_path)
-        print_highlight(file_path, kw)
+if __name__ == "__main__":
+    os.chdir("..")
 
-# Print all occurrence
-matched_files = set()
-for file_path in get_all_scripts():
-    try:
-        with open(file_path, 'r') as f:
-            lines = f.readlines()
-    except:
-        print(Fore.RED + '[Warning] failed to read file: %s' % file_path + Fore.RESET)
-        continue
+    # Print all matched file names
+    matched_file_paths = set()
+    for file_path in get_all_scripts():
+        if kw in file_path:
+            matched_file_paths.add(file_path)
+            print_highlight(file_path, kw)
 
-    line_no = 0
-    for l in lines:
-        line_no += 1
-        if kw in l:
-            print_highlight("%s:%d: %s" % (file_path, line_no, l.rstrip()), kw)
-            matched_files.add(file_path)
+    # Print all occurrence
+    matched_files = set()
+    for file_path in get_all_scripts():
+        try:
+            with open(file_path, "r") as f:
+                lines = f.readlines()
+        except:
+            print(
+                Fore.RED + "[Warning] failed to read file: %s" % file_path + Fore.RESET
+            )
+            continue
 
-answer = input('Enter Y to replace "%s" with "%s": ' % (kw, replacement))
-if not answer.lower() == 'y':
-    sys.exit(1)
+        line_no = 0
+        for l in lines:
+            line_no += 1
+            if kw in l:
+                print_highlight("%s:%d: %s" % (file_path, line_no, l.rstrip()), kw)
+                matched_files.add(file_path)
 
-# Replace all occurrence
-for file_path in matched_files:
-    with open(file_path, 'r') as f:
-        s = f.read()
+    answer = input('Enter Y to replace "%s" with "%s": ' % (kw, replacement))
+    if not answer.lower() == "y":
+        sys.exit(1)
 
-    s = s.replace(kw, replacement)
+    # Replace all occurrence
+    for file_path in matched_files:
+        with open(file_path, "r") as f:
+            s = f.read()
 
-    with open(file_path, 'w') as f:
-        f.write(s)
+        s = s.replace(kw, replacement)
 
-# rename file names
-for file_path in matched_file_paths:
-    new_file_path = file_path.replace(kw, replacement)
-    os.rename(file_path, new_file_path)
+        with open(file_path, "w") as f:
+            f.write(s)
+
+    # rename file names
+    for file_path in matched_file_paths:
+        new_file_path = file_path.replace(kw, replacement)
+        os.rename(file_path, new_file_path)

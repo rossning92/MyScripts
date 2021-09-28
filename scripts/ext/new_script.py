@@ -1,26 +1,27 @@
-from _editor import *
-from _ext import *
-import click
-from _shutil import getch, print2
+import os
+import shutil
 
-os.chdir("../")
+from _ext import edit_myscript_script, enter_script_path, get_my_script_root
 
-script_path = enter_script_path()
+if __name__ == "__main__":
+    os.chdir("../")
 
-dir_name = os.path.dirname(script_path)
-if dir_name != "":
-    os.makedirs(dir_name, exist_ok=True)
+    script_path = enter_script_path()
 
-name, ext = os.path.splitext(script_path)
-if not ext:
-    print("Please specify script extension")
-    exit(0)
+    dir_name = os.path.dirname(script_path)
+    if dir_name != "":
+        os.makedirs(dir_name, exist_ok=True)
 
-if ext == ".py":
-    shutil.copyfile(get_my_script_root() + "/templates/python.py", script_path)
-else:
-    # Create empty file
-    with open(script_path, "w") as f:
-        pass
+    name, ext = os.path.splitext(script_path)
+    if not ext:
+        print("Please specify script extension")
+        exit(0)
 
-edit_myscript_script(os.path.realpath(script_path))
+    if ext == ".py":
+        shutil.copyfile(get_my_script_root() + "/templates/python.py", script_path)
+    else:
+        # Create empty file
+        with open(script_path, "w") as f:
+            pass
+
+    edit_myscript_script(os.path.realpath(script_path))

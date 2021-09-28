@@ -1,5 +1,8 @@
-from _script import *
-from _shutil import print2
+import os
+import subprocess
+
+from _script import Script
+from _shutil import call_echo, convert_to_unix_path, print2, wait_key, write_temp_file
 
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
@@ -61,6 +64,8 @@ if __name__ == "__main__":
         if "{{VAGRANT_ID}}":
             run_bash_script_vagrant(tmp_script_file, "{{VAGRANT_ID}}")
         else:
+            ssh_port = None
+            ssh_pwd = None
             try:
                 ssh_host = os.environ["_SSH_HOST_"]
                 ssh_port = int(os.environ["_SSH_PORT_"])

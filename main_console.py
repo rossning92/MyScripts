@@ -103,7 +103,7 @@ def on_hotkey():
 def register_hotkeys(scripts):
     hotkeys = {}
     for script in scripts:
-        hotkey = script.meta["hotkey"]
+        hotkey = script.cfg["hotkey"]
         if hotkey is not None:
             print("Hotkey: %s: %s" % (hotkey, script.name))
 
@@ -238,7 +238,7 @@ def register_global_hotkeys(scripts):
         htk_definitions = ""
 
         for item in scripts:
-            hotkey = item.meta["globalHotkey"]
+            hotkey = item.cfg["globalHotkey"]
             if hotkey is not None:
                 print("Global Hotkey: %s: %s" % (hotkey, item.name))
                 hotkey = hotkey.lower()
@@ -267,7 +267,7 @@ def register_global_hotkeys(scripts):
     else:
         keyboard_hooks = {}
         for script in scripts:
-            hotkey = script.meta["globalHotkey"]
+            hotkey = script.cfg["globalHotkey"]
             if hotkey is not None:
                 print("Global Hotkey: %s: %s" % (hotkey, script.name))
                 keyboard_hooks[hotkey] = lambda script=script: execute_script(script)

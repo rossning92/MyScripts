@@ -1,0 +1,4 @@
+autoRun: true
+newWindow: false
+restartInstance: false
+template: false

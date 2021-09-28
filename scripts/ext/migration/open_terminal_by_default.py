@@ -9,10 +9,10 @@ for f in glob.glob('**/*.yaml', recursive=True):
     if f.startswith('ext/'):
         continue
 
-    data = load_meta_file(f)
+    data = load_script_config(f)
     if 'newWindow' in data:
         print(f)
 
     data['newWindow'] = True
 
-    save_meta_file(data, f)
+    save_script_config(data, f)

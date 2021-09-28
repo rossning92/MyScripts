@@ -1,6 +1,6 @@
-from _shutil import *
-from _editor import *
-from _script import *
+from _editor import open_in_vscode
+from _script import get_variable_file
 
-f = get_variable_file()
-open_in_vscode(f)
+if __name__ == "__main__":
+    f = get_variable_file()
+    open_in_vscode(f)

@@ -1,0 +1,2 @@
+conda: tf1
+restartInstance: false

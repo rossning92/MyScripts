@@ -428,13 +428,13 @@ class Script:
             result += " [lnk]"
 
         # Name: show shortcut
-        if self.meta["hotkey"]:
-            result += "  (%s)" % self.meta["hotkey"].lower().replace(
+        if self.cfg["hotkey"]:
+            result += "  (%s)" % self.cfg["hotkey"].lower().replace(
                 "win+", "#"
             ).replace("ctrl+", "^").replace("alt+", "!").replace("shift+", "+")
 
-        if self.meta["globalHotkey"]:
-            result += "  (%s)" % self.meta["globalHotkey"].lower().replace(
+        if self.cfg["globalHotkey"]:
+            result += "  (%s)" % self.cfg["globalHotkey"].lower().replace(
                 "win+", "#"
             ).replace("ctrl+", "^").replace("alt+", "!").replace("shift+", "+")
 
@@ -473,8 +473,8 @@ class Script:
             self.real_script_path = None
             self.real_ext = None
 
-        # Load meta
-        self.meta = get_script_meta(
+        # Load cfg
+        self.cfg = get_script_config(
             self.real_script_path
             if self.real_script_path is not None
             else self.script_path
@@ -482,7 +482,7 @@ class Script:
 
         # XXX: Workaround for Mac
         if sys.platform == "darwin":
-            self.meta["newWindow"] = False
+            self.cfg["newWindow"] = False
 
     def check_link_existence(self):
         if self.real_script_path is not None:
@@ -545,7 +545,7 @@ class Script:
         # Convert to unix path if on Windows
         if sys.platform == "win32" and self.ext == ".sh":
             variables = {
-                k: convert_to_unix_path(v, wsl=self.meta["wsl"])
+                k: convert_to_unix_path(v, wsl=self.cfg["wsl"])
                 for k, v in variables.items()
             }
 
@@ -569,7 +569,7 @@ class Script:
         cd=True,
     ):
         close_on_exit = (
-            close_on_exit if close_on_exit is not None else self.meta["closeOnExit"]
+            close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )
 
         script_path = (
@@ -599,8 +599,8 @@ class Script:
         shell = False
 
         # Install packages
-        if self.meta["packages"] is not None:
-            packages = self.meta["packages"].split()
+        if self.cfg["packages"] is not None:
+            packages = self.cfg["packages"].split()
             for pkg in packages:
                 get_executable(pkg)
 
@@ -621,7 +621,7 @@ class Script:
 
         if ext == ".ps1":
             if os.name == "nt":
-                if self.meta["template"]:
+                if self.cfg["template"]:
                     ps_path = write_temp_file(self.render(), ".ps1")
                 else:
                     ps_path = os.path.realpath(script_path)
@@ -639,7 +639,7 @@ class Script:
                 # HACK: add python path to env var
                 env["PYTHONPATH"] = os.path.dirname(__file__)
 
-                if self.meta["template"]:
+                if self.cfg["template"]:
                     script_path = write_temp_file(
                         self.render(),
                         os.path.join(
@@ -651,20 +651,20 @@ class Script:
 
                 args = [get_ahk_exe(), script_path]
 
-                self.meta["background"] = True
+                self.cfg["background"] = True
 
-                if self.meta["runAsAdmin"]:
+                if self.cfg["runAsAdmin"]:
                     args = ["start"] + args
 
                 # Disable console window for ahk
-                self.meta["newWindow"] = False
+                self.cfg["newWindow"] = False
 
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
 
         elif ext == ".cmd" or ext == ".bat":
             if os.name == "nt":
-                if self.meta["template"]:
+                if self.cfg["template"]:
                     batch_file = write_temp_file(self.render(), ".cmd")
                 else:
                     batch_file = os.path.realpath(script_path)
@@ -672,7 +672,7 @@ class Script:
                 args = ["cmd.exe", "/c", batch_file] + args
 
                 # # HACK: change working directory
-                # if platform.system() == 'Windows' and self.meta['runAsAdmin']:
+                # if platform.system() == 'Windows' and self.cfg['runAsAdmin']:
                 #     args = ['cmd', '/c',
                 #             'cd', '/d', cwd, '&'] + args
             else:
@@ -680,30 +680,30 @@ class Script:
                 return
 
         elif ext == ".js":
-            # TODO: if self.meta['template']:
+            # TODO: if self.cfg['template']:
             setup_nodejs()
             args = ["node", script_path] + args
 
         elif ext == ".sh":
-            if self.meta["template"]:
+            if self.cfg["template"]:
                 bash_cmd = self.render()
             else:
                 bash_cmd = _args_to_str(
-                    [convert_to_unix_path(script_path, wsl=self.meta["wsl"])] + args
+                    [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args
                 )
 
-            args = wrap_bash_commands(bash_cmd, wsl=self.meta["wsl"], env=env)
+            args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)
 
         elif ext == ".py" or ext == ".ipynb":
             python_exec = sys.executable
 
-            if self.meta["template"] and ext == ".py":
+            if self.cfg["template"] and ext == ".py":
                 python_file = write_temp_file(self.render(), ".py")
             else:
                 python_file = os.path.realpath(script_path)
 
-            if sys.platform == "win32" and self.meta["wsl"]:
-                python_file = convert_to_unix_path(python_file, wsl=self.meta["wsl"])
+            if sys.platform == "win32" and self.cfg["wsl"]:
+                python_file = convert_to_unix_path(python_file, wsl=self.cfg["wsl"])
                 python_exec = "python3"
 
             setup_python_path(script_path)
@@ -711,11 +711,11 @@ class Script:
 
             # Conda / venv support
             args_activate = []
-            if self.meta["conda"] is not None:
+            if self.cfg["conda"] is not None:
                 assert sys.platform == "win32"
                 import _conda
 
-                env_name = self.meta["conda"]
+                env_name = self.cfg["conda"]
                 conda_path = _conda.get_conda_path()
 
                 activate = conda_path + "\\Scripts\\activate.bat"
@@ -730,9 +730,9 @@ class Script:
 
                 args_activate = ["cmd", "/c", "call", activate, env_name, "&"]
 
-            elif self.meta["venv"]:
+            elif self.cfg["venv"]:
                 assert sys.platform == "win32"
-                venv_path = os.path.expanduser("~\\venv\\%s" % self.meta["venv"])
+                venv_path = os.path.expanduser("~\\venv\\%s" % self.cfg["venv"])
                 if not os.path.exists(venv_path):
                     call_echo(["python", "-m", "venv", venv_path])
 
@@ -750,8 +750,8 @@ class Script:
                 )
 
                 # TODO: make it more general
-                if sys.platform == "win32" and self.meta["wsl"]:
-                    run_py = convert_to_unix_path(run_py, wsl=self.meta["wsl"])
+                if sys.platform == "win32" and self.cfg["wsl"]:
+                    run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
 
                 args = (
                     args_activate
@@ -766,11 +766,11 @@ class Script:
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
                 # HACK: always use new window for jupyter notebook
-                self.meta["newWindow"] = True
+                self.cfg["newWindow"] = True
             else:
                 assert False
 
-            if self.meta["wsl"]:
+            if self.cfg["wsl"]:
                 args = wrap_wsl(args)
         elif ext == ".vbs":
             assert os.name == "nt"
@@ -785,10 +785,10 @@ class Script:
         if args is not None and len(args) > 0:
             # Check if new window is needed
             if new_window is None:
-                new_window = self.meta["newWindow"]
+                new_window = self.cfg["newWindow"]
 
             if restart_instance is None:
-                restart_instance = self.meta["restartInstance"]
+                restart_instance = self.cfg["restartInstance"]
 
             if restart_instance and new_window:
                 # Only works on windows for now
@@ -803,9 +803,9 @@ class Script:
             if new_window:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
-                if sys.platform == "win32" and (not self.meta["runAsAdmin"]):
+                if sys.platform == "win32" and (not self.cfg["runAsAdmin"]):
                     # TODO: clean up this hack
-                    if False and not self.meta["wsl"]:
+                    if False and not self.cfg["wsl"]:
                         args = [
                             sys.executable,
                             "-c",
@@ -827,7 +827,7 @@ class Script:
                             ),
                         ]
 
-                    if self.meta["terminal"] is None:
+                    if self.cfg["terminal"] is None:
                         args = wrap_args_cmd(
                             args,
                             cwd=cwd,
@@ -840,7 +840,7 @@ class Script:
                     else:
                         # Create new terminal using Windows Terminal
                         try:
-                            if self.meta["terminal"] in [
+                            if self.cfg["terminal"] in [
                                 "wt",
                                 "wsl",
                                 "windowsTerminal",
@@ -849,20 +849,20 @@ class Script:
                                     args,
                                     cwd=cwd,
                                     title=self.get_console_title(),
-                                    wsl=self.meta["wsl"],
+                                    wsl=self.cfg["wsl"],
                                     close_on_exit=close_on_exit,
                                 )
-                            elif self.meta["terminal"] == "conemu":
+                            elif self.cfg["terminal"] == "conemu":
                                 args = conemu_wrap_args(
                                     args,
                                     cwd=cwd,
                                     title=self.get_console_title(),
-                                    wsl=self.meta["wsl"],
+                                    wsl=self.cfg["wsl"],
                                     always_on_top=True,
                                 )
                             else:
                                 raise Exception(
-                                    "Non-supported terminal: %s" % self.meta["terminal"]
+                                    "Non-supported terminal: %s" % self.cfg["terminal"]
                                 )
                         except Exception as e:
                             print("Error on Windows Terminal:", e)
@@ -887,7 +887,7 @@ class Script:
                     # )
 
             # Check if run as admin
-            if platform.system() == "Windows" and self.meta["runAsAdmin"]:
+            if platform.system() == "Windows" and self.cfg["runAsAdmin"]:
                 args = wrap_args_cmd(
                     args,
                     cwd=cwd,
@@ -901,10 +901,10 @@ class Script:
                 print2(_args_to_str(args), color="cyan")
                 run_elevated(args, wait=(not new_window))
             else:
-                if new_window or self.meta["background"]:
+                if new_window or self.cfg["background"]:
                     # Check whether or not hide window
                     startupinfo = None
-                    if self.meta["background"]:
+                    if self.cfg["background"]:
                         if platform.system() == "Windows":
                             SW_HIDE = 0
                             startupinfo = subprocess.STARTUPINFO()
@@ -926,7 +926,7 @@ class Script:
                     subprocess.check_call(args, env={**os.environ, **env}, cwd=cwd)
 
     def get_variable_names(self):
-        if not self.meta["template"]:
+        if not self.cfg["template"]:
             return {}
 
         variables = set()
@@ -1032,7 +1032,7 @@ def run_script(
 
     if overwrite_meta:
         for k, v in overwrite_meta.items():
-            script.meta[k] = v
+            script.cfg[k] = v
 
     # Set console window title (for windows only)
     if console_title and platform.system() == "Windows":
@@ -1060,7 +1060,7 @@ def run_script(
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
 
-def get_default_meta():
+def get_script_default_config():
     return {
         "template": True,
         "hotkey": None,
@@ -1079,38 +1079,45 @@ def get_default_meta():
     }
 
 
-def load_meta_file(meta_file):
-    return yaml.load(open(meta_file, "r").read(), Loader=yaml.FullLoader)
+def load_script_config(script_config_file):
+    return yaml.load(open(script_config_file, "r").read(), Loader=yaml.FullLoader)
 
 
-def save_meta_file(data, meta_file):
-    yaml.dump(data, open(meta_file, "w", newline="\n"), default_flow_style=False)
+def save_script_config(data, script_config_file):
+    yaml.dump(data, open(script_config_file, "w", newline="\n"), default_flow_style=False)
+
+
+def get_default_script_config_file(script_path):
+    return os.path.splitext(script_path)[0] + ".config.yaml"
 
 
 def get_script_config_file(script_path):
-    script_meta_file = os.path.splitext(script_path)[0] + ".yaml"
-    return script_meta_file if os.path.exists(script_meta_file) else None
+    f = get_default_script_config_file(script_path)
+    if os.path.exists(f):
+        return f
+
+    f = os.path.join(os.path.dirname(script_path), "default.yaml")
+    if os.path.exists(f):
+        return f
+
+    return None
 
 
-def get_script_meta(script_path):
-    script_meta_file = os.path.splitext(script_path)[0] + ".yaml"
-    default_meta_file = os.path.join(os.path.dirname(script_path), "default.yaml")
+def get_script_config(script_path):
+    script_meta_file = get_script_config_file(script_path)
+    if script_meta_file:
+        data = load_script_config(script_meta_file)
+    else:
+        data = None
 
-    meta = get_default_meta()
-
-    data = None
-    if os.path.exists(script_meta_file):
-        data = load_meta_file(script_meta_file)
-
-    elif os.path.exists(default_meta_file):
-        data = load_meta_file(default_meta_file)
+    config = get_script_default_config()
 
     # override default config
     if data is not None:
         for k, v in data.items():
-            meta[k] = v
+            config[k] = v
 
-    return meta
+    return config
 
 
 def create_script_link(script_file):
@@ -1267,7 +1274,7 @@ def load_scripts(script_list, modified_time, autorun=True):
 
             if file not in modified_time or mtime > modified_time[file]:
                 # Check if auto run script
-                if script.meta["autoRun"] and autorun:
+                if script.cfg["autoRun"] and autorun:
                     print2("AUTORUN: ", end="", color="cyan")
                     print(file)
                     script.execute(new_window=False)

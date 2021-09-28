@@ -1,4 +1,7 @@
-from _script import *
+import os
+
+from _script import Script, update_script_acesss_time
+from _shutil import call_echo, convert_to_unix_path, exec_ahk, write_temp_file
 
 if __name__ == "__main__":
     script_path = os.environ["_SCRIPT"]
