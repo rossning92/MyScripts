@@ -8,7 +8,7 @@ from _shutil import *
 fps = "{{_FPS}}" if "{{_FPS}}" else 15
 
 cur_folder = get_current_folder()
-input("(%s)" % cur_folder)
+print("Current folder: %s" % cur_folder)
 mkdir(os.path.join(cur_folder, "out"))
 cd(cur_folder)
 

@@ -58,15 +58,15 @@ def generate_video_matrix(
             text, font="Verdana", fontsize=max_h / 20, color="white"
         ).set_duration(dura)
 
-    if titles is None:
-        titles = [os.path.splitext(os.path.basename(x))[0] for x in vid_files]
-    text_clips = [create_text_clip(x, min_duration) for x in titles]
+    if titles:
+        text_clips = [create_text_clip(x, min_duration) for x in titles]
 
     arr = []
     if columns is not None:
         for i in range(0, len(vid_clips), columns):
             arr.append(vid_clips[i : i + columns])
-            arr.append(text_clips[i : i + columns])
+            if titles:
+                arr.append(text_clips[i : i + columns])
 
         remainder = len(vid_clips) % columns
         if remainder != 0:
@@ -77,7 +77,8 @@ def generate_video_matrix(
 
     else:
         arr.append(vid_clips)
-        arr.append(text_clips)
+        if titles:
+            arr.append(text_clips)
 
     final = clips_array(arr)
 
