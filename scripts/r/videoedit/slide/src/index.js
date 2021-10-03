@@ -24,6 +24,7 @@ updateCodeBlocks({
   fontSize: matter.fontSize,
   scrollToLine: matter.scrollToLine,
   width: matter.width,
+  height: matter.height,
 });
 
 function handleSeparator() {

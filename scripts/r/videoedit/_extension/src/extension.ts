@@ -268,6 +268,9 @@ function getFiles(
   dirs: string[] = []
 ) {
   fs.readdirSync(dir).forEach((file) => {
+    // Skip files starting with "_"
+    if (file.startsWith("_")) return;
+
     const filePath = path.join(dir, file);
     const fileStat = fs.lstatSync(filePath);
 
@@ -621,7 +624,7 @@ function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
       if (!filePath) return;
 
       cp.spawn("cscript", [
-        path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
+        path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
         path.resolve(activeDir, filePath),
       ]);
 
@@ -643,7 +646,7 @@ function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
         if (!filePath) return;
 
         cp.spawn("cscript", [
-          path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
+          path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
           path.resolve(activeDir, filePath),
         ]);
 

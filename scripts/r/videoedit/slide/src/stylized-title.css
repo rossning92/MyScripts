@@ -8,21 +8,23 @@
   font-weight: 500;
   padding: 0 0.5em 0 0.5em;
   line-height: 1.4em;
-  color: black;
   text-align: center;
 }
 
 h1 {
   font-size: 2.6667em;
+  color: black;
   background-color: #fc7281;
 }
 
 h2 {
   font-size: 2em;
-  background-color: #ffffff;
+  color: black;
+  background-color: white;
 }
 
 h3 {
   font-size: 1.5em;
-  background-color: #ffffff;
+  color: black;
+  background-color: white;
 }

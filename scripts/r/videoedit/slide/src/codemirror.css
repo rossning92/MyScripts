@@ -28,6 +28,7 @@
 
 .CodeMirror-line {
   padding-left: 1em !important;
+  line-height: 1em !important;
 }
 
 .CodeMirror-activeline-background {

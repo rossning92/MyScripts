@@ -210,6 +210,9 @@ function getRelativePath(prefix, p) {
 }
 function getFiles(dir, filter, files = [], dirs = []) {
     fs.readdirSync(dir).forEach((file) => {
+        // Skip files starting with "_"
+        if (file.startsWith("_"))
+            return;
         const filePath = path.join(dir, file);
         const fileStat = fs.lstatSync(filePath);
         if (fileStat.isDirectory()) {
@@ -500,7 +503,7 @@ function registerCreatePowerpointCommand(context) {
         if (!filePath)
             return;
         cp.spawn("cscript", [
-            path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
+            path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
             path.resolve(activeDir, filePath),
         ]);
         insertText(`{{ clip('${filePath}') }}`);
@@ -516,7 +519,7 @@ function registerCreatePowerpointCommand(context) {
         if (!filePath)
             return;
         cp.spawn("cscript", [
-            path.resolve(__dirname, "../../ppt/potx2pptx.vbs"),
+            path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
             path.resolve(activeDir, filePath),
         ]);
         insertText(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);

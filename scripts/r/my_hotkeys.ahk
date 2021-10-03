@@ -111,7 +111,7 @@ return
 #v::
     if not WinExist("ahk_exe code.exe") {
         EnvGet, LocalAppData, LocalAppData
-        Run %LocalAppData%\Programs\Microsoft VS Code\Code.exe
+        Run run_script r/version_control
     } else {
         ActivateWindowByTitle("ahk_exe code.exe")
     }
@@ -193,6 +193,11 @@ $!4::
 return
 
 $!5::
+    SetWindowPos("A", 0, 0, 960, 540)
+    SetAlwaysOnTop("A", False)
+return
+
+$!6::
     WinGetPos, , , w, h, A
     SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
     SetAlwaysOnTop("A", False)
