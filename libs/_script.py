@@ -1065,6 +1065,7 @@ def get_script_default_config():
         "template": True,
         "hotkey": None,
         "globalHotkey": None,
+        "alias": None,
         "newWindow": True,
         "runAsAdmin": False,
         "autoRun": False,

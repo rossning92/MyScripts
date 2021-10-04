@@ -10,9 +10,9 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 import curses
 import json
 import platform
+import re
 import subprocess
 
-import run_python
 from _script import (
     get_all_script_access_time,
     get_all_variables,
@@ -235,7 +235,9 @@ def add_keyboard_hooks(keyboard_hooks):
 
 def register_global_hotkeys(scripts):
     if platform.system() == "Windows":
-        htk_definitions = ""
+        hotkey_def = ""
+        hotkeys = ""
+        hotkey_seq_def = ""
 
         for item in scripts:
             hotkey = item.cfg["globalHotkey"]
@@ -247,9 +249,20 @@ def register_global_hotkeys(scripts):
                 hotkey = hotkey.replace("shift+", "+")
                 hotkey = hotkey.replace("win+", "#")
 
-                htk_definitions += (
-                    f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
+                func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
+
+                hotkey_def += (
+                    f"{func_name}() {{\n"
+                    f'    RunScript("{item.name}", "{item.script_path}")\n'
+                    "}\n"
                 )
+                hotkeys += f"{hotkey}::{func_name}()\n"
+
+            alias = item.cfg["alias"]
+            if alias:
+                hotkey_seq_def += f'{alias}: "{func_name}", '
+
+        hotkey_seq_def = hotkey_seq_def.rstrip(", ")
 
         run_script = 'cmd /c %s "%s"' % (
             sys.executable,
@@ -259,7 +272,12 @@ def register_global_hotkeys(scripts):
         render_template_file(
             "GlobalHotkey.ahk",
             GLOBAL_HOTKEY,
-            context={"run_script": run_script, "htk_definitions": htk_definitions},
+            context={
+                "run_script": run_script,
+                "hotkey_def": hotkey_def,
+                "hotkeys": hotkeys,
+                "hotkey_seq_def": hotkey_seq_def,
+            },
         )
 
         subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
