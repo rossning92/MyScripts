@@ -20,6 +20,8 @@ def start_server(file=None, port=None):
         args += ["--port", "%d" % port, "--no-open"]
     args += [file]
 
+    args += ["--module-dir", script_root]
+
     ps = subprocess.Popen(
         args,
         cwd=movy_root,

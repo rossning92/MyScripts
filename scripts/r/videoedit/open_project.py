@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 
 from _editor import open_in_vscode

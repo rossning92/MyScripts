@@ -753,15 +753,7 @@ class Script:
                 if sys.platform == "win32" and self.cfg["wsl"]:
                     run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
 
-                args = (
-                    args_activate
-                    + [
-                        python_exec,
-                        run_py,
-                        python_file,
-                    ]
-                    + args
-                )
+                args = args_activate + [python_exec, run_py, python_file] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -970,16 +962,13 @@ def find_script(script_name, search_dir=None):
         return path
 
     # Fuzzy search
-    name_no_ext, _ = os.path.splitext(script_name)
-    path = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "scripts",
-            "**",
-            name_no_ext + ".*",
-        )
-    )
+    name_no_ext, _ = os.path.splitext(script_name.lstrip("/"))
+    path = (
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        + "/**/"
+        + name_no_ext
+        + ".*"
+    ).replace("\\", "/")
 
     found = glob.glob(path, recursive=True)
     found = [
@@ -1047,10 +1036,7 @@ def run_script(
         script.set_override_variables(variables)
 
     script.execute(
-        restart_instance=restart_instance,
-        new_window=new_window,
-        args=args,
-        cd=cd,
+        restart_instance=restart_instance, new_window=new_window, args=args, cd=cd
     )
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
@@ -1085,7 +1071,9 @@ def load_script_config(script_config_file):
 
 
 def save_script_config(data, script_config_file):
-    yaml.dump(data, open(script_config_file, "w", newline="\n"), default_flow_style=False)
+    yaml.dump(
+        data, open(script_config_file, "w", newline="\n"), default_flow_style=False
+    )
 
 
 def get_default_script_config_file(script_path):
