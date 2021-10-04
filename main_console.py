@@ -241,14 +241,8 @@ def register_global_hotkeys(scripts):
 
         for item in scripts:
             hotkey = item.cfg["globalHotkey"]
-            if hotkey is not None:
-                print("Global Hotkey: %s: %s" % (hotkey, item.name))
-                hotkey = hotkey.lower()
-                hotkey = hotkey.replace("ctrl+", "^")
-                hotkey = hotkey.replace("alt+", "!")
-                hotkey = hotkey.replace("shift+", "+")
-                hotkey = hotkey.replace("win+", "#")
-
+            alias = item.cfg["alias"]
+            if hotkey is not None or alias is not None:
                 func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
 
                 hotkey_def += (
@@ -256,11 +250,18 @@ def register_global_hotkeys(scripts):
                     f'    RunScript("{item.name}", "{item.script_path}")\n'
                     "}\n"
                 )
-                hotkeys += f"{hotkey}::{func_name}()\n"
 
-            alias = item.cfg["alias"]
-            if alias:
-                hotkey_seq_def += f'{alias}: "{func_name}", '
+                if hotkey is not None:
+                    print("Global Hotkey: %s: %s" % (hotkey, item.name))
+                    hotkey = hotkey.lower()
+                    hotkey = hotkey.replace("ctrl+", "^")
+                    hotkey = hotkey.replace("alt+", "!")
+                    hotkey = hotkey.replace("shift+", "+")
+                    hotkey = hotkey.replace("win+", "#")
+                    hotkeys += f"{hotkey}::{func_name}()\n"
+
+                if alias is not None:
+                    hotkey_seq_def += f'{alias}: "{func_name}", '
 
         hotkey_seq_def = hotkey_seq_def.rstrip(", ")
 

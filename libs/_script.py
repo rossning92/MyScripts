@@ -970,7 +970,7 @@ def find_script(script_name, search_dir=None):
         return path
 
     # Fuzzy search
-    name_no_ext, _ = os.path.splitext(os.path.basename(script_name))
+    name_no_ext, _ = os.path.splitext(script_name)
     path = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
