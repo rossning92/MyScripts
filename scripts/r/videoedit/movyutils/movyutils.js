@@ -95,3 +95,16 @@ export function addFileIcon(icon, name) {
     y: -0.5 - fontSize,
   }).reveal({ direction: "down", t: "<0.05" });
 }
+
+export function addTitle(title, { font = "condensed", t, textSize = 1 } = {}) {
+  const g = mo.addGroup();
+  g.scale(1.1, { duration: 5, ease: "linear", t });
+  g.addRect({ width: 8, height: textSize * 1.8, color: "#F3CF01" }).reveal({
+    t: "<",
+  });
+  g.addText(title, { font, color: "black", scale: textSize }).reveal({
+    direction: "right",
+    t: "<0.1",
+  });
+  return g;
+}
