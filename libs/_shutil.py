@@ -995,6 +995,7 @@ def refresh_env_vars():
 
         origin_path = os.environ["PATH"].split(";")
 
+        # TODO: refresh other env variables
         for reg_path in REG_PATH:
             out = subprocess.check_output(
                 'reg query "%s"' % reg_path, universal_newlines=True
@@ -1267,5 +1268,6 @@ def setup_logger(level=logging.DEBUG, log_file=None):
 def create_symlink(src, dst):
     assert os.path.isdir(src)
     subprocess.check_call(
-        ["MKLINK", "/J", dst, src], shell=True,
+        ["MKLINK", "/J", dst, src],
+        shell=True,
     )

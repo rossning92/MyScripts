@@ -17,6 +17,7 @@ import yaml
 
 from _appmanager import get_executable
 from _editor import open_in_vscode
+from _filelock import FileLock
 from _shutil import (
     call_echo,
     conemu_wrap_args,
@@ -29,6 +30,7 @@ from _shutil import (
     setup_nodejs,
     write_temp_file,
 )
+
 
 SCRIPT_EXTENSIONS = {
     ".sh",
@@ -175,12 +177,14 @@ def get_variable_file():
 
 def get_all_variables():
     file = get_variable_file()
-    if not os.path.exists(file):
-        return {}
 
-    with open(file, "r") as f:
-        variables = json.load(f)
-        return variables
+    with FileLock("access_variable"):
+        if not os.path.exists(file):
+            return {}
+
+        with open(file, "r") as f:
+            variables = json.load(f)
+            return variables
 
 
 def get_script_variables(script):
@@ -226,32 +230,34 @@ def write_setting(setting, name, val):
 
 
 def get_variable(name):
-    with open(get_variable_file(), "r") as f:
-        variables = json.load(f)
+    with FileLock("access_variable"):
+        with open(get_variable_file(), "r") as f:
+            variables = json.load(f)
 
-    if name not in variables:
-        return None
+        if name not in variables:
+            return None
 
-    return variables[name][0]
+        return variables[name][0]
 
 
 def set_variable(name, val):
-    file = get_variable_file()
-    with open(file, "r") as f:
-        variables = json.load(f)
+    with FileLock("access_variable"):
+        file = get_variable_file()
+        with open(file, "r") as f:
+            variables = json.load(f)
 
-    if name not in variables:
-        variables[name] = []
-    vals = variables[name]
+        if name not in variables:
+            variables[name] = []
+        vals = variables[name]
 
-    try:
-        vals.remove(val)
-    except ValueError:
-        pass
-    vals.insert(0, val)
+        try:
+            vals.remove(val)
+        except ValueError:
+            pass
+        vals.insert(0, val)
 
-    with open(file, "w") as f:
-        json.dump(variables, f, indent=2)
+        with open(file, "w") as f:
+            json.dump(variables, f, indent=2)
 
 
 def input2(message, name):
@@ -521,12 +527,7 @@ class Script:
         self.override_variables = variables
 
     def get_variables(self):
-        if not os.path.isfile(get_variable_file()):
-            return {}
-
-        variables = {}
-        with open(get_variable_file(), "r") as f:
-            variables = json.load(f)
+        variables = get_all_variables()
 
         # Get only last modified value
         variables = {k: (v[0] if len(v) > 0 else "") for k, v in variables.items()}
