@@ -1,2 +1,5 @@
 cd movy
-node bin/movy.js
+
+yarn
+
+node bin/movy.js {{_FILE}}

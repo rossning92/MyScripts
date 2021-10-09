@@ -18,9 +18,9 @@ from _script import (
     get_all_variables,
     get_data_dir,
     get_script_variables,
-    get_variable_file,
     is_instance_running,
     load_scripts,
+    save_variables,
     update_script_acesss_time,
 )
 from _shutil import (
@@ -119,20 +119,6 @@ def register_hotkeys(scripts):
                 hotkeys[ch] = script
 
     return hotkeys
-
-
-def save_variables(variables):
-    config_file = get_variable_file()
-    if not os.path.exists(config_file):
-        data = {}
-    else:
-        with open(get_variable_file(), "r") as f:
-            data = json.load(f)
-
-    data.update(variables)
-
-    with open(config_file, "w") as f:
-        json.dump(data, f, indent=4)
 
 
 class VariableEditWindow(Menu):

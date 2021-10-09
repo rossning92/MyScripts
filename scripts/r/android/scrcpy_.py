@@ -1,5 +1,15 @@
-from _android import wait_until_boot_complete
+import ctypes
 import subprocess
+
+from _android import wait_until_boot_complete
+
+
+def get_screen_size():
+    user32 = ctypes.windll.user32
+    return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+
+win_pos = [int(x) for x in "{{_POS}}".split()]
 
 while True:
     wait_until_boot_complete()
@@ -7,16 +17,22 @@ while True:
     args = [
         "scrcpy",
         "--always-on-top",
-        "--window-x",
-        "20",
-        "--window-y",
-        "20",
     ]
+
+    if win_pos:
+        args += [
+            "--window-x",
+            "%s" % win_pos[0],
+            "--window-y",
+            "%s" % win_pos[1],
+        ]
+
     if "{{_SIZE}}":
         args += ["--max-size", "{{_SIZE}}"]
 
     ps = subprocess.Popen(args, stdin=subprocess.PIPE)
-    ps.stdin.close()
+    if ps.stdin:
+        ps.stdin.close()
 
     try:
         ps.wait()

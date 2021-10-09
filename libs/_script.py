@@ -199,36 +199,6 @@ def get_script_variables(script):
     return vars
 
 
-def read_setting(setting, name, val):
-    file = os.path.join(get_data_dir(), "%s.json" % setting)
-
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-    except IOError:
-        return None
-
-    if name not in data:
-        return None
-
-    return data[name]
-
-
-def write_setting(setting, name, val):
-    file = os.path.join(get_data_dir(), "%s.json" % setting)
-
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-    except IOError:
-        data = {}
-
-    data[name] = val
-
-    with open(file, "w") as f:
-        json.dump(data, f, indent=2)
-
-
 def get_variable(name):
     with FileLock("access_variable"):
         with open(get_variable_file(), "r") as f:
@@ -258,6 +228,51 @@ def set_variable(name, val):
 
         with open(file, "w") as f:
             json.dump(variables, f, indent=2)
+
+
+def save_variables(variables):
+    config_file = get_variable_file()
+    with FileLock("access_variable"):
+        if not os.path.exists(config_file):
+            data = {}
+        else:
+            with open(get_variable_file(), "r") as f:
+                data = json.load(f)
+
+        data.update(variables)
+
+        with open(config_file, "w") as f:
+            json.dump(data, f, indent=4)
+
+
+def read_setting(setting, name, val):
+    file = os.path.join(get_data_dir(), "%s.json" % setting)
+
+    try:
+        with open(file, "r") as f:
+            data = json.load(f)
+    except IOError:
+        return None
+
+    if name not in data:
+        return None
+
+    return data[name]
+
+
+def write_setting(setting, name, val):
+    file = os.path.join(get_data_dir(), "%s.json" % setting)
+
+    try:
+        with open(file, "r") as f:
+            data = json.load(f)
+    except IOError:
+        data = {}
+
+    data[name] = val
+
+    with open(file, "w") as f:
+        json.dump(data, f, indent=2)
 
 
 def input2(message, name):
@@ -612,6 +627,11 @@ class Script:
         # HACK: pass current folder
         if "_CUR_DIR" in os.environ:
             env["_CUR_DIR"] = os.environ["_CUR_DIR"]
+
+        # Default android device
+        android_serial = get_variable("ANDROID_SERIAL")
+        if android_serial:
+            env["ANDROID_SERIAL"] = android_serial
 
         if cd:
             cwd = os.path.abspath(

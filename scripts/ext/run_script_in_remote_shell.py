@@ -1,6 +1,6 @@
 import os
 
-from _script import Script, update_script_acesss_time
+from _script import Script, update_script_acesss_time, get_variable
 from _shutil import call_echo, convert_to_unix_path, exec_ahk, write_temp_file
 
 if __name__ == "__main__":
@@ -9,7 +9,16 @@ if __name__ == "__main__":
     script = Script(script_path)
     update_script_acesss_time(script)
 
-    s = script.render() + "\n"
+    s = ""
+
+    # Default android device
+    android_serial = get_variable("ANDROID_SERIAL")
+    if android_serial:
+        s += "export ANDROID_SERIAL=%s\n" % android_serial
+
+    s += script.render()
+    s += "\n"
+
     tmp_script_file = write_temp_file(s, ".sh")
 
     if script.ext != ".sh":
