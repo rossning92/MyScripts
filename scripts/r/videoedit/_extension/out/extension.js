@@ -155,7 +155,7 @@ function setupDecorations(context) {
         // Highlight audio functions.
         highlightText(/\b(audio_end|bgm|record|sfx)(?=\()/g, "#c0392b");
         // Highlight video functions.
-        highlightText(/\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|ipython)(?=\()/g, "#0000ff");
+        highlightText(/\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|ipython|node)(?=\()/g, "#0000ff");
         // Highlight auxiliary functions.
         highlightText(/\b(include|crossfade|audio_gap)(?=\()/g, "#008000");
     }

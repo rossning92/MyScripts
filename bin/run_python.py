@@ -21,6 +21,7 @@ PYTHON_MODULE_LIST = {
     "PIL": "pillow",
     "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
     "pyaudio": "pyaudio",
+    "simpleaudio": "simpleaudio",
     "pyftpdlib": "pyftpdlib",
     "pyppeteer": "pyppeteer",
     "PyQt5": "PyQt5==5.10.1",

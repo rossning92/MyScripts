@@ -611,7 +611,6 @@ class Script:
             args = []
 
         env = {}
-        creationflags = 0
         shell = False
 
         # Install packages
@@ -796,6 +795,8 @@ class Script:
 
         # Run commands
         if args is not None and len(args) > 0:
+            creationflags = 0
+
             # Check if new window is needed
             if new_window is None:
                 new_window = self.cfg["newWindow"]
@@ -914,29 +915,46 @@ class Script:
                 print2(_args_to_str(args), color="cyan")
                 run_elevated(args, wait=(not new_window))
             else:
-                if new_window or self.cfg["background"]:
-                    # Check whether or not hide window
-                    startupinfo = None
-                    if self.cfg["background"]:
-                        if platform.system() == "Windows":
-                            SW_HIDE = 0
-                            startupinfo = subprocess.STARTUPINFO()
-                            startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                            startupinfo.wShowWindow = SW_HIDE
-                            creationflags = subprocess.CREATE_NEW_CONSOLE
+                popen_args = {
+                    "args": args,
+                    "env": {**os.environ, **env},
+                    "cwd": cwd,
+                    "shell": shell,
+                }
 
+                if self.cfg["background"] and platform.system() == "Windows":
+                    SW_HIDE = 0
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                    startupinfo.wShowWindow = SW_HIDE
+
+                    subprocess.Popen(
+                        **popen_args,
+                        startupinfo=startupinfo,
+                        creationflags=subprocess.CREATE_NEW_CONSOLE,
+                        close_fds=True,
+                    )
+
+                elif self.cfg["minimized"] and platform.system() == "Windows":
+                    SW_MINIMIZE = 6
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                    startupinfo.wShowWindow = SW_MINIMIZE
+                    subprocess.Popen(
+                        **popen_args,
+                        startupinfo=startupinfo,
+                        creationflags=subprocess.CREATE_NEW_CONSOLE,
+                        close_fds=True,
+                    )
+
+                elif new_window:
                     print(_args_to_str(args))
                     subprocess.Popen(
-                        args,
-                        env={**os.environ, **env},
-                        cwd=cwd,
-                        startupinfo=startupinfo,
-                        creationflags=creationflags,
-                        close_fds=True,
-                        shell=shell,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
+
                 else:
-                    subprocess.check_call(args, env={**os.environ, **env}, cwd=cwd)
+                    subprocess.check_call(**popen_args)
 
     def get_variable_names(self):
         if not self.cfg["template"]:
@@ -1080,6 +1098,7 @@ def get_script_default_config():
         "conda": None,
         "restartInstance": True,
         "background": False,
+        "minimized": False,
         "venv": None,
         "closeOnExit": True,
         "terminal": None,

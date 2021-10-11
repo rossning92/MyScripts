@@ -83,26 +83,40 @@ export function addIcons_Grid(
   }
 }
 
-export function addFileIcon(icon, name) {
+export function addFileIcon(icon, name, { scale = 3, x, y, t, font } = {}) {
   const fontSize = 0.12;
-  const g = mo.addGroup({ scale: 3 });
-  g.addImage("_utils/file.png", { y: fontSize / 2 });
+  const g = mo.addGroup({ scale, x, y });
+  g.addImage("file.png", { y: fontSize / 2 });
   g.addImage(icon, { scale: 0.6, y: fontSize / 2 });
-  g.grow2();
+  g.grow2({ t });
 
   g.addText(name, {
     scale: fontSize,
     y: -0.5 - fontSize,
+    font,
   }).reveal({ direction: "down", t: "<0.05" });
 }
 
-export function addTitle(title, { font = "condensed", t, textSize = 1 } = {}) {
+export function addTitle(
+  title,
+  {
+    font = "condensed",
+    t,
+    textSize = 1,
+    backgroundColor = "white",
+    color = "black",
+  } = {}
+) {
   const g = mo.addGroup();
   g.scale(1.1, { duration: 5, ease: "linear", t });
-  g.addRect({ width: 8, height: textSize * 1.8, color: "#F3CF01" }).reveal({
+  g.addRect({
+    width: 8,
+    height: textSize * 1.8,
+    color: backgroundColor,
+  }).reveal({
     t: "<",
   });
-  g.addText(title, { font, color: "black", scale: textSize }).reveal({
+  g.addText(title, { font, color, scale: textSize }).reveal({
     direction: "right",
     t: "<0.1",
   });

@@ -187,7 +187,7 @@ function setupDecorations(context: vscode.ExtensionContext) {
 
     // Highlight video functions.
     highlightText(
-      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|ipython)(?=\()/g,
+      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|ipython|node)(?=\()/g,
       "#0000ff"
     );
 

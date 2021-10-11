@@ -28,5 +28,5 @@ def record_ipython(file, cmds, startup=None, font_size=14):
 
 if __name__ == "__main__":
     file = os.path.expanduser("~/Desktop/test.mp4")
-    record_ipython(file, "1+1\n!sleep 1\n2+2")
+    record_ipython(file, "1 + 1{sleep 1}\n2 + 2")
     shell_open(file)

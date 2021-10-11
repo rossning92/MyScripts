@@ -6,6 +6,7 @@ import core
 import coreapi
 from videoedit.uiautomate.ipython import record_ipython
 from videoedit.uiautomate.wt_cmd import record_wt_cmd
+from videoedit.uiautomate.wt_node import record_wt_node
 
 
 @core.api
@@ -56,4 +57,13 @@ def cmd(s, font_size=14, cwd=None, force=False, file=None, **kwargs):
         file = "wt_cmd/%s.mp4" % get_hash(s)
     if not os.path.exists(file) or force:
         record_wt_cmd(file, s, font_size=font_size, cwd=cwd)
+    return coreapi.clip(file, **kwargs)
+
+
+@core.api
+def node(s, font_size=14, force=False, file=None, sound=False, **kwargs):
+    if file is None:
+        file = "wt_node/%s.mp4" % get_hash(s)
+    if not os.path.exists(file) or force:
+        record_wt_node(file, s, font_size=font_size, sound=sound)
     return coreapi.clip(file, **kwargs)

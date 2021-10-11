@@ -140,84 +140,54 @@ def modify_code(
         on_complete()
 
 
-def typing(s):
+class TypingSound:
+    def __init__(self) -> None:
+        import simpleaudio as sa
+
+        self.cur = 0
+        self.waves = []
+
+        for f in glob.glob(os.path.join(root, "typing_sound", "*.wav")):
+            self.waves.append(sa.WaveObject.from_wave_file(f))
+
+    def play(self):
+        self.waves[self.cur].play()
+        self.cur = (self.cur + 1) % len(self.waves)
+
+
+_sound = TypingSound()
+
+
+def typing(s, sound=False):
     for ch in s:
         if ch in ["\n", " ", "\t"]:
+            if sound:
+                _sound.play()
             pyautogui.write(ch)
             time.sleep(0.1)
         elif ch == " ":
             pyautogui.write(" ")
         else:
             time.sleep(random.uniform(0.02, 0.05))
+            if sound:
+                _sound.play()
             pyautogui.write(ch)
-
-
-if __name__ == "__main__":
-    while True:
-        ch = getch()
-        if ch == "d":
-            files = sorted(glob.glob("**/*.rb", recursive=True))
-            for i, f in enumerate(files):
-                print("[%d] %s" % (i, f))
-
-            i = int(input("index: "))
-
-            exec_ahk("WinActivate, ahk_exe sonic-pi.exe")
-
-            recorder.set_region([0, 0, 1920, 1080])
-
-            name_no_ext = os.path.splitext(files[i])[0]
-
-            if 1:
-                # Record coding
-                recorder.start_record()
-                modify_code(files[i - 1] if i > 0 else None, files[i])
-                time.sleep(2)
-                recorder.stop_record()
-                recorder.save_record(
-                    "screencap/" + name_no_ext + "-code.mp4", overwrite=True
-                )
-
-            # Record playback
-            recorder.start_record()
-            pyautogui.hotkey("alt", "r")
-            time.sleep(10)
-            pyautogui.hotkey("alt", "s")
-            time.sleep(1)
-            recorder.stop_record()
-            recorder.save_record(
-                "screencap/" + name_no_ext + "-playback.mp4", overwrite=True
-            )
-            print("Done.")
-
-        elif ch == "r":
-            exec_ahk("WinActivate, ahk_exe sonic-pi.exe")
-
-            # Record playback
-            recorder.start_record()
-            pyautogui.hotkey("alt", "r")
-            time.sleep(30)
-            pyautogui.hotkey("alt", "s")
-            time.sleep(1)
-            recorder.stop_record()
-            f = input("file name (no ext) :")
-            recorder.save_record("screencap/" + f + ".mp4", overwrite=True)
-            print("Done.")
 
 
 def sleep(secs):
     time.sleep(secs)
 
 
-def run_commands(cmds):
+def run_commands(cmds, sound=False):
     if type(cmds) != str:
         raise TypeError("cmds must be str")
 
-    for cmd in re.split(r"(\{.*?\})", cmds):
+    for cmd in re.split(r"((?<!\\)\{.*?(?<!\\)\})", cmds):
         if cmd.startswith("{"):
             cmd = cmd[1:-1]
             if cmd.startswith("sleep"):
                 secs = float(cmd.split(" ")[1])
                 time.sleep(secs)
         else:
-            typing(cmd)
+            cmd = cmd.replace("\\{", "{").replace("\\}", "}")
+            typing(cmd, sound=sound)

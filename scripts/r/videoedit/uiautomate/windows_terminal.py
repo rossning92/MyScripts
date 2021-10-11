@@ -19,9 +19,7 @@ def open_wt_with_bg():
     time.sleep(2)
 
     open_wt(
-        icon=root + "/icons/cmd.png",
-        title="Command Prompt",
-        opacity=0.9,
+        icon=root + "/icons/cmd.png", title="Command Prompt", opacity=0.9,
     )
     time.sleep(2)
 
@@ -35,7 +33,7 @@ def open_wt_with_bg():
     time.sleep(0.5)
 
 
-def record_windows_terminal(file, args, cmds, **kwargs):
+def record_windows_terminal(file, args, cmds, sound=False, **kwargs):
     call_echo(["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"])
 
     open_wt(args, **kwargs)
@@ -53,7 +51,7 @@ def record_windows_terminal(file, args, cmds, **kwargs):
 
     recorder.start_record()
 
-    run_commands(cmds)
+    run_commands(cmds, sound=sound)
 
     time.sleep(2)
     recorder.stop_record()

@@ -1,0 +1,51 @@
+if __name__ == "__main__":
+    while True:
+        ch = getch()
+        if ch == "d":
+            files = sorted(glob.glob("**/*.rb", recursive=True))
+            for i, f in enumerate(files):
+                print("[%d] %s" % (i, f))
+
+            i = int(input("index: "))
+
+            exec_ahk("WinActivate, ahk_exe sonic-pi.exe")
+
+            recorder.set_region([0, 0, 1920, 1080])
+
+            name_no_ext = os.path.splitext(files[i])[0]
+
+            if 1:
+                # Record coding
+                recorder.start_record()
+                modify_code(files[i - 1] if i > 0 else None, files[i])
+                time.sleep(2)
+                recorder.stop_record()
+                recorder.save_record(
+                    "screencap/" + name_no_ext + "-code.mp4", overwrite=True
+                )
+
+            # Record playback
+            recorder.start_record()
+            pyautogui.hotkey("alt", "r")
+            time.sleep(10)
+            pyautogui.hotkey("alt", "s")
+            time.sleep(1)
+            recorder.stop_record()
+            recorder.save_record(
+                "screencap/" + name_no_ext + "-playback.mp4", overwrite=True
+            )
+            print("Done.")
+
+        elif ch == "r":
+            exec_ahk("WinActivate, ahk_exe sonic-pi.exe")
+
+            # Record playback
+            recorder.start_record()
+            pyautogui.hotkey("alt", "r")
+            time.sleep(30)
+            pyautogui.hotkey("alt", "s")
+            time.sleep(1)
+            recorder.stop_record()
+            f = input("file name (no ext) :")
+            recorder.save_record("screencap/" + f + ".mp4", overwrite=True)
+            print("Done.")
