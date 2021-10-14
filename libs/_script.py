@@ -950,7 +950,9 @@ class Script:
                 elif new_window:
                     print(_args_to_str(args))
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:
@@ -1030,6 +1032,7 @@ def run_script(
     overwrite_meta=None,
     args=[],
     cd=True,
+    template=None,
 ):
     if file is None:
         if os.path.exists(_get_script_history_file()):
@@ -1057,6 +1060,9 @@ def run_script(
 
     if console_title:
         script.console_title = console_title
+
+    if template is not None:
+        script.cfg["template"] = template
 
     if overwrite_meta:
         for k, v in overwrite_meta.items():

@@ -3,7 +3,7 @@ import os
 
 from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import get_variable
-from _shutil import call_echo, call_highlight, cd, find_file, mkdir, print2
+from _shutil import call_echo, call_highlight, cd, find_newest_file, mkdir, print2
 
 setup_android_env()
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     )
 
     if "{{_INSTALL}}":
-        apk = find_file(out_dir + "/**/*.apk")
+        apk = find_newest_file(out_dir + "/**/*.apk")
         adb_install(apk)
 
         pkg = get_pkg_name_apk(apk)

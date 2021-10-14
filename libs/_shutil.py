@@ -499,7 +499,7 @@ def proc_lines(args, echo=False, read_err=False, max_lines=None, check=True, **k
         args,
         stdout=subprocess.PIPE if (not read_err) else None,
         stderr=subprocess.PIPE if read_err else None,
-        bufsize=1,
+        # bufsize=1,
         **kwargs
     )
 
@@ -1135,8 +1135,10 @@ def get_temp_file_name(suffix=None):
         return f.name
 
 
-def find_file(wildcard):
-    return os.path.abspath(glob.glob(wildcard, recursive=True)[0])
+def find_newest_file(wildcard):
+    files = list(glob.glob(wildcard, recursive=True))
+    files.sort(key=os.path.getmtime)
+    return files[-1]
 
 
 def move_file(src, dst, overwrite=False):

@@ -276,6 +276,9 @@ def combine_images(
                 )
 
     if generate_atlas:
+        width = max([im.width for im in imgs])
+        height = max([im.height for im in imgs])
+
         num_imgs = len(imgs)
         rows = int(math.ceil(num_imgs / cols))
         if col_major_order:  # Swap rows and cols
@@ -286,8 +289,8 @@ def combine_images(
         im_combined = Image.new(
             "RGB",
             (
-                imgs[0].width * cols + spacing * (cols - 1),
-                imgs[0].height * rows + spacing * (rows - 1),
+                width * cols + spacing * (cols - 1),
+                height * rows + spacing * (rows - 1),
             ),
             "black",
         )
@@ -300,8 +303,8 @@ def combine_images(
                 j = c // rows
                 i = c % rows
 
-            x = j * imgs[0].width + j * spacing
-            y = i * imgs[0].height + i * spacing
+            x = j * width + j * spacing
+            y = i * height + i * spacing
             im_combined.paste(imgs[c], (x, y))
             c += 1
 
