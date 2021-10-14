@@ -111,7 +111,7 @@ return
 #v::
     if not WinExist("ahk_exe code.exe") {
         EnvGet, LocalAppData, LocalAppData
-        Run run_script r/version_control
+        Run run_script ext/version_control
     } else {
         ActivateWindowByTitle("ahk_exe code.exe")
     }

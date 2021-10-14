@@ -122,3 +122,63 @@ export function addTitle(
   });
   return g;
 }
+
+export function addTitle2(
+  text1,
+  text2,
+  { font, t, textHeight1 = 1.4, textHeight2 = 1.4 * 0.75, width = 11 } = {}
+) {
+  const halfTotalHeight = (textHeight1 + textHeight2) * 0.5;
+
+  mo.cameraMoveTo({ zoom: 1.05, duration: 5, ease: "power1.out", t: 0 });
+
+  const y1 = halfTotalHeight - textHeight1 * 0.5;
+  const g = mo.addGroup();
+  //   g.scale(1.1, { duration: 5, ease: "linear", t });
+  g.addRect({
+    width,
+    height: textHeight1,
+    color: "#fd807f",
+    z: -0.01,
+    y: y1,
+  }).reveal({
+    t: "<",
+  });
+  g.addText(text1, {
+    font,
+    color: "black",
+    scale: textHeight1 * 0.5,
+    y: y1,
+  }).reveal({
+    direction: "right",
+    t: "<0.15",
+  });
+
+  const y2 = -(halfTotalHeight - textHeight2 * 0.5);
+  g.addRect({
+    width,
+    height: textHeight2,
+    color: "#ffffff",
+    z: -0.01,
+    y: y2,
+  }).reveal({
+    direction: "down",
+    t: "<0.15",
+  });
+  g.addText(text2, {
+    font,
+    color: "black",
+    scale: textHeight2 * 0.5,
+    y: y2,
+    font: "condensed",
+  }).reveal({
+    direction: "left",
+    t: "<0.15",
+  });
+
+  return g;
+}
+
+export function cameraZoom() {
+  mo.cameraMoveTo({ zoom: 1.05, duration: 5, ease: "power1.out", t: 0 });
+}

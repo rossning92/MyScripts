@@ -30,6 +30,6 @@ if [[ ! -z "$status" ]]; then
     fi
 fi
 
-git pull --rebase --recurse-submodules
+git pull --rebase --recurse-submodules || true
 # git submodule update --recursive --remote
 git push
