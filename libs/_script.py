@@ -211,6 +211,8 @@ def get_variable(name):
 
 
 def set_variable(name, val):
+    assert val is not None
+
     with FileLock("access_variable"):
         file = get_variable_file()
         with open(file, "r") as f:
@@ -224,6 +226,7 @@ def set_variable(name, val):
             vals.remove(val)
         except ValueError:
             pass
+
         vals.insert(0, val)
 
         with open(file, "w") as f:

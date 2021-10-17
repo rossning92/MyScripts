@@ -38,6 +38,9 @@ if __name__ == "__main__":
                 % (len(serial_list), serial, product, battery_level)
             )
 
+    serial_list.append("")
+    print("[%d] clear ANDROID_SERIAL" % len(serial_list))
+
     ch = getch()
     index = ord(ch) - ord("1")
     if index >= 0 and index < len(serial_list):
