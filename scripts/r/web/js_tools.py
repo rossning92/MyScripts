@@ -6,7 +6,7 @@ from distutils.dir_util import copy_tree
 from _browser import open_page
 from _code import append_code, patch_code, prepend_code, prepend_line
 from _editor import open_in_vscode
-from _shutil import call_echo, cd, copy, exists, mkdir, save_json, yes
+from _shutil import call_echo, cd, copy, mkdir, save_json
 from _template import render_template_file
 from _term import Menu
 
@@ -166,6 +166,12 @@ render(<App />, root);
     add_script_to_package(
         "client", "webpack serve --mode development --devtool inline-source-map --hot",
     )
+
+
+@menu.item()
+def add_react_starter():
+    # https://github.com/react-boilerplate/react-boilerplate-cra-template
+    call_echo(["npx", "create-react-app", "--template", "cra-template-rb", "my-app"])
 
 
 @menu.item()
@@ -444,7 +450,7 @@ def nextjs_start_dev_server():
 
 @menu.item()
 def yarn_init():
-    if not exists("package.json"):
+    if not os.path.exists("package.json"):
         call_echo('yarn config set init-author-name "Ross Ning"')
         call_echo("yarn config set init-author-email rossning92@gmail.com")
         call_echo("yarn init -y")

@@ -9,7 +9,14 @@ from tempfile import gettempdir
 import keyboard
 import pyautogui
 from _script import get_variable, set_variable
-from _shutil import call_echo, get_temp_file_name, move_file, print2, slugify
+from _shutil import (
+    call_echo,
+    get_temp_file_name,
+    move_file,
+    print2,
+    slugify,
+    get_next_file_name,
+)
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
@@ -179,10 +186,11 @@ def wait_multiple_keys(keys):
 
 
 def prompt_record_file_name():
-    last_name = get_variable("LAST_SCREENCAP_FILE_NAME")
-    name = input("input file name [%s]: " % str(last_name))
+    last_file_name = get_variable("LAST_SCREENCAP_FILE_NAME")
+    default_file_name = get_next_file_name(last_file_name)
+    name = input("input file name [%s]: " % str(default_file_name))
     if not name:
-        name = last_name
+        name = default_file_name
     set_variable("LAST_SCREENCAP_FILE_NAME", name)
     file = os.path.join(out_dir, "%s.mp4" % slugify(name))
     return file

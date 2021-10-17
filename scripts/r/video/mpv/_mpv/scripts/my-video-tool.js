@@ -58,8 +58,7 @@ function createDirectory(dir) {
 var tempDir = undefined;
 function getTempDir() {
   if (tempDir === undefined) {
-    tempDir =
-      mp.get_property_native("path").replace(/[^\\/]+$/, "") + "tmp";
+    tempDir = mp.get_property_native("path").replace(/[^\\/]+$/, "") + "tmp";
     createDirectory(tempDir);
   }
   return tempDir;
@@ -337,7 +336,7 @@ mp.add_forced_key_binding("T", "simulate_typing", function () {
   exportVideo({
     vf:
       "mpdecimate" +
-      ",tpad=stop_mode=clone:stop_duration=2" +
+      ",tpad=stop_mode=clone:stop_duration=0.1" +
       ",setpts=N/FRAME_RATE/TB,setpts=2.0*PTS*(1+random(0)*0.1)",
   });
 });
@@ -412,11 +411,11 @@ mp.add_forced_key_binding("ctrl+z", "undo", function () {
   }
 });
 
-mp.add_forced_key_binding("[", "set_in_time", function () {
+mp.add_forced_key_binding("{", "set_in_time", function () {
   setCutPoint(true);
 });
 
-mp.add_forced_key_binding("]", "set_out_time", function () {
+mp.add_forced_key_binding("}", "set_out_time", function () {
   setCutPoint(false);
 });
 

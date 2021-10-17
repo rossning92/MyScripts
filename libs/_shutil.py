@@ -917,7 +917,7 @@ def npm_install(path="."):
 
 
 def get_next_file_name(file):
-    POSTFIX_START = "_001"
+    POSTFIX_START = "-02"
 
     name, ext = os.path.splitext(file)
     basename = os.path.basename(name)
@@ -1270,6 +1270,5 @@ def setup_logger(level=logging.DEBUG, log_file=None):
 def create_symlink(src, dst):
     assert os.path.isdir(src)
     subprocess.check_call(
-        ["MKLINK", "/J", dst, src],
-        shell=True,
+        ["MKLINK", "/J", dst, src], shell=True,
     )

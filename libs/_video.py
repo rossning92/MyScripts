@@ -1,10 +1,9 @@
-import subprocess
-import os
-import shlex
-import sys
 import glob
+import os
+import subprocess
+import sys
+
 from _shutil import get_temp_file_name
-import numpy as np
 
 
 def generate_video_matrix(
@@ -18,8 +17,8 @@ def generate_video_matrix(
     except:
         subprocess.call("pip install moviepy")
 
-    from moviepy.editor import VideoFileClip, TextClip, ColorClip, clips_array, vfx
     import numpy as np
+    from moviepy.editor import ColorClip, TextClip, VideoFileClip, clips_array, vfx
     from moviepy.video.fx.all import crop
 
     if out_file is None:
@@ -218,8 +217,6 @@ def ffmpeg(
             # https://gist.github.com/rlan/cc954c891b19c919c939c9b0d2096d35
 
             args += [
-                # "-preset:v",
-                # "p7",
                 "-rc:v",
                 "vbr_hq",
                 "-cq:v",  # 'Constant Quality' mode equivalent to CRF
@@ -227,7 +224,7 @@ def ffmpeg(
                 "-b:v",
                 "0",
                 "-profile:v",
-                "high",
+                "main",
             ]
         else:
             args += ["-c:v", "libx264"]

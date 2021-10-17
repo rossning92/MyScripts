@@ -253,43 +253,45 @@ function getCompletedExpression(file) {
         return `{{ clip('${file}') }}`;
     }
 }
+function getAllFiles() {
+    const projectDir = getActiveDir();
+    if (!projectDir)
+        return [];
+    const activeFile = getActiveFile();
+    const filter = (x) => {
+        if (activeFile === x) {
+            // Ignore current file
+            return false;
+        }
+        else {
+            return new RegExp(".(png|jpg|mp4|webm|gif|mp3|wav|ogg|md|pptx|" + SOURCE_FILE_EXT + ")$", "g").test(x);
+        }
+    };
+    let files = [];
+    getFiles(projectDir, filter, files);
+    // Recursively search parent `assets` folder
+    let parentDir = projectDir;
+    do {
+        parentDir = path.dirname(parentDir);
+        const assetFolder = path.resolve(parentDir, "assets");
+        if (fs.existsSync(assetFolder)) {
+            getFiles(assetFolder, filter, files);
+        }
+    } while (path.dirname(parentDir) != parentDir);
+    files = files.sort((a, b) => {
+        return fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime();
+    });
+    // Convert to relative path
+    files = files.map((x) => getRelativePath(projectDir, x));
+    return files;
+}
 function setupAutoComplete(context) {
     const provider = vscode.languages.registerCompletionItemProvider({ pattern: "**/vprojects/**/*.md" }, {
         provideCompletionItems(document, position) {
-            const projectDir = getActiveDir();
-            if (!projectDir)
-                return undefined;
-            // If not the beginning of the line
+            // If not at the beginning of the line.
             if (position.character > 0)
                 return undefined;
-            const activeFile = getActiveFile();
-            const filter = (x) => {
-                if (activeFile === x) {
-                    // Ignore current file
-                    return false;
-                }
-                else {
-                    return new RegExp(".(png|jpg|mp4|webm|gif|mp3|wav|ogg|md|pptx|" +
-                        SOURCE_FILE_EXT +
-                        ")$", "g").test(x);
-                }
-            };
-            let files = [];
-            getFiles(projectDir, filter, files);
-            // Recursively search parent `assets` folder
-            let parentDir = projectDir;
-            do {
-                parentDir = path.dirname(parentDir);
-                const assetFolder = path.resolve(parentDir, "assets");
-                if (fs.existsSync(assetFolder)) {
-                    getFiles(assetFolder, filter, files);
-                }
-            } while (path.dirname(parentDir) != parentDir);
-            files = files.sort(function (a, b) {
-                return -(fs.statSync(a).mtime.getTime() - fs.statSync(b).mtime.getTime());
-            });
-            // Convert to relative path
-            files = files.map((x) => getRelativePath(projectDir, x));
+            const files = getAllFiles();
             const completionItems = [];
             files.forEach((file, i) => {
                 const label = getCompletedExpression(file); // Auto closing single quote
@@ -302,7 +304,7 @@ function setupAutoComplete(context) {
     });
     context.subscriptions.push(provider);
 }
-function insertText(text) {
+function insertTextAtCursor(text) {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
         const selection = editor.selection;
@@ -346,7 +348,7 @@ function getRecorderProcess() {
                     const match = /^stop recording: (.*)/.exec(s);
                     if (match) {
                         const fileName = match[1];
-                        insertText(`{{ record('record/${fileName}') }}`);
+                        insertTextAtCursor(`{{ record('record/${fileName}') }}`);
                     }
                 }
             }
@@ -506,7 +508,7 @@ function registerCreatePowerpointCommand(context) {
             path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
             path.resolve(activeDir, filePath),
         ]);
-        insertText(`{{ clip('${filePath}') }}`);
+        insertTextAtCursor(`{{ clip('${filePath}') }}`);
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.createPowerpointOverlay", async () => {
         const activeDir = getActiveDir();
@@ -522,7 +524,7 @@ function registerCreatePowerpointCommand(context) {
             path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
             path.resolve(activeDir, filePath),
         ]);
-        insertText(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);
+        insertTextAtCursor(`{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`);
     }));
 }
 async function promptFileName({ ext, subdir, }) {
@@ -664,7 +666,7 @@ async function createNewDocument({ dir, func, fileNamePlaceHolder = "file-name",
     }
     const filePath = path.resolve(animationDir, fileName + extension);
     fs.writeFileSync(filePath, initContent);
-    insertText(`{{ ${func}('${dir}/${fileName}${extension}'${extraParams}) }}`);
+    insertTextAtCursor(`{{ ${func}('${dir}/${fileName}${extension}'${extraParams}) }}`);
     const document = await vscode.workspace.openTextDocument(filePath);
     await vscode.window.showTextDocument(document);
     return filePath;
@@ -740,6 +742,13 @@ function registerCommands(context) {
         if (activeFile.endsWith(".js")) {
             startMovyServer(activeFile);
         }
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("videoEdit.insertMostRecentFile", () => {
+        const files = getAllFiles();
+        if (files.length === 0)
+            return;
+        const expr = getCompletedExpression(files[0]);
+        insertTextAtCursor(expr);
     }));
 }
 function setupWhenClause(context) {

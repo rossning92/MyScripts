@@ -126,8 +126,15 @@ export function addTitle(
 export function addTitle2(
   text1,
   text2,
-  { font, t, textHeight1 = 1.4, textHeight2 = 1.4 * 0.75, width = 11 } = {}
+  { font, t, textHeight1 = 1.4, textHeight2 = 1.4 * 0.75, width } = {}
 ) {
+  if (width === undefined) {
+    width =
+      [...text1]
+        .map((x) => (/[a-zA-Z ]/.test(x) ? 0.5 : 1))
+        .reduce((a, b) => a + b) + 3;
+  }
+
   const halfTotalHeight = (textHeight1 + textHeight2) * 0.5;
 
   mo.cameraMoveTo({ zoom: 1.05, duration: 5, ease: "power1.out", t: 0 });
