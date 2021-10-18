@@ -14,7 +14,7 @@ import sys
 import tempfile
 import threading
 import time
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
 from distutils.dir_util import copy_tree
 from time import sleep
 from typing import Dict
@@ -1244,13 +1244,15 @@ def timing(f):
 
 
 def load_yaml(file):
-    return yaml.load(open(file, "r", encoding="utf-8").read(), Loader=yaml.FullLoader)
+    with open(file, "r", encoding="utf-8") as f:
+        return yaml.load(f.read(), Loader=yaml.FullLoader)
 
 
 def save_yaml(data, file):
-    yaml.dump(
-        data, open(file, "w", encoding="utf-8", newline="\n"), default_flow_style=False
-    )
+    with open(file, "w", encoding="utf-8", newline="\n") as f:
+        yaml.dump(
+            data, f, default_flow_style=False, allow_unicode=True,
+        )
 
 
 def setup_logger(level=logging.DEBUG, log_file=None):
@@ -1272,3 +1274,23 @@ def create_symlink(src, dst):
     subprocess.check_call(
         ["MKLINK", "/J", dst, src], shell=True,
     )
+
+
+def to_valid_file_name(value):
+    string_map = OrderedDict()
+    string_map["<="] = "≤"
+    string_map[">="] = "≥"
+    string_map["<"] = "＜"
+    string_map[">"] = "＞"
+    string_map[":"] = "："
+    string_map["\\"] = "＼"
+    string_map["/"] = "／"
+    string_map["*"] = "＊"
+    string_map["|"] = "｜"
+    string_map["?"] = "？"
+    string_map['"'] = "”"
+
+    for k, v in string_map.items():
+        value = value.replace(k, v)
+
+    return value

@@ -122,7 +122,7 @@ class InputWidget:
 
 
 class Menu:
-    def __init__(self, stdscr=None, items=[], label=">", text=""):
+    def __init__(self, items=[], stdscr=None, label=">", text=""):
         self.input_ = InputWidget(label=label, text=text)
         self.items = items
         self.on_items = []
@@ -146,7 +146,7 @@ class Menu:
 
         return decorator
 
-    def exec(self):
+    def exec(self) -> int:
         if self.stdscr is None:
             curses.wrapper(self.main_loop_wrapped)
         else:

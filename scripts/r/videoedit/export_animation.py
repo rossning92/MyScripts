@@ -6,9 +6,9 @@ import os
 import re
 import sys
 
-import numpy as np
+import yaml
 from _appmanager import get_executable
-from _shutil import format_time, get_time_str, getch, print2
+from _shutil import format_time, get_time_str, print2, to_valid_file_name
 from moviepy.config import change_settings
 
 import codeapi
@@ -20,6 +20,8 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 ignore_undefined = False
 
 change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
+
+config = None
 
 
 @core.api
@@ -158,21 +160,32 @@ def _show_stats(s):
     input()
 
 
-def load_config():
-    import yaml
+def save_config(config, config_file=None):
+    if config_file is None:
+        config_file = "config.yaml"
 
-    CONFIG_FILE = "config.yaml"
-    DEFAULT_CONFIG = {"fps": 30}
+    # Always update the config file.
+    with open(config_file, "w", newline="\n", encoding="utf-8") as f:
+        yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
 
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, "r") as f:
+
+def load_config(config_file=None):
+    DEFAULT_CONFIG = {"fps": 30, "title": "unnamed"}
+
+    if config_file is None:
+        config_file = "config.yaml"
+
+    if os.path.exists(config_file):
+        with open(config_file, "r", encoding="utf-8") as f:
             config = yaml.load(f.read(), Loader=yaml.FullLoader)
+            config = {**DEFAULT_CONFIG, **config}
     else:
-        with open(CONFIG_FILE, "w", newline="\n") as f:
-            yaml.dump(DEFAULT_CONFIG, f, default_flow_style=False)
         config = DEFAULT_CONFIG
 
-    coreapi.fps(config["fps"])
+    # Always update the config file.
+    save_config(config, config_file=config_file)
+
+    return config
 
 
 if __name__ == "__main__":
@@ -188,19 +201,24 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # args.preview = False
-    if args.preview:
-        os.makedirs("tmp/out", exist_ok=True)
-        out_filename = "tmp/out/" + get_time_str()
-    else:
-        os.makedirs("export", exist_ok=True)
-        out_filename = "export/" + get_time_str()
-
+    # Change working directory to project directory.
     if args.proj_dir is not None:
         os.chdir(args.proj_dir)
     elif args.input:
         os.chdir(os.path.dirname(args.input))
     print("Project dir: %s" % os.getcwd())
+
+    # Load config
+    config = load_config()
+    coreapi.fps(config["fps"])
+
+    # Check if it's in preview mode.
+    if args.preview:
+        os.makedirs("tmp/out", exist_ok=True)
+        out_filename = "tmp/out/" + get_time_str()
+    else:
+        os.makedirs("export", exist_ok=True)
+        out_filename = "export/" + to_valid_file_name(config["title"])
 
     # Load custom APIs (api.py) if exists
     if os.path.exists("api.py"):
@@ -215,8 +233,6 @@ if __name__ == "__main__":
             s = f.read()
     else:
         raise Exception("--input must be specified.")
-
-    load_config()
 
     if args.remove_unused_recordings:
         ignore_undefined = True
