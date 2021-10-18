@@ -127,8 +127,8 @@ class VariableEditWindow(Menu):
         self.var_name = var_name
 
         super().__init__(
-            stdscr,
-            self.vars[var_name] if var_name in self.vars else [],
+            items=self.vars[var_name] if var_name in self.vars else [],
+            stdscr=stdscr,
             label=var_name + " :",
             text="",
         )
@@ -178,7 +178,9 @@ class VariableWindow(Menu):
 
         if len(self.var_names) > 0:
             self.update_items()
-            super().__init__(stdscr, self.items, label="%s >" % (script.name))
+            super().__init__(
+                items=self.items, stdscr=stdscr, label="%s >" % (script.name)
+            )
 
     def update_items(self):
         self.items[:] = get_variable_str_list(self.vars, self.var_names)
@@ -281,7 +283,7 @@ def register_global_hotkeys(scripts):
 
 class MainWindow(Menu):
     def __init__(self, stdscr):
-        super().__init__(stdscr, items=state.scripts)
+        super().__init__(items=state.scripts, stdscr=stdscr)
 
     def on_main_loop(self):
         # Reload scripts
