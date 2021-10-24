@@ -1,12 +1,12 @@
-from _shutil import try_import, get_temp_file_name
-import os
 import glob
-import matplotlib.pyplot as plt
-import matplotlib
+import os
 
-# import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
-import math
+import pandas as pd
+
+from _shutil import get_temp_file_name
 
 
 def mat_inv(m):
@@ -37,7 +37,7 @@ def setup_plt_style(dark=False, cn=False, size_inch=None):
 
     if cn:
         matplotlib.rcParams["font.family"] = "Microsoft YaHei"
-        matplotlib.rcParams["font.sans-serif"] = ["Microsoft YaHei"]  # 更新字体格式
+        matplotlib.rcParams["font.sans-serif"] = ["Microsoft YaHei"]
 
     if size_inch:
         plt.gcf().set_size_inches(size_inch[0], size_inch[1])
