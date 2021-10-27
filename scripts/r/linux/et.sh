@@ -17,13 +17,13 @@ export SCREENDIR="$HOME/.screen"
 # EOF
 # )
 
+# send "push\r"
 cat >/tmp/et.sh <<EOF
 set timeout -1
 spawn et -x -r 5037:5037 -t 1234:22 {{SSH_USER}}@{{SSH_HOST}}:{{_PORT}}
 expect "password:"
 send "{{SSH_PWD}}\r"
 expect "Passcode or option"
-send "push\r"
 interact
 EOF
 

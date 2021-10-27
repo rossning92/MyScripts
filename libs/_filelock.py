@@ -23,6 +23,8 @@ class FileLock:
                         time.sleep(0.1)
                     else:
                         raise
+                except FileExistsError:
+                    time.sleep(0.1)
             else:
                 import fcntl
 
