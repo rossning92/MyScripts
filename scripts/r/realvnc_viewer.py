@@ -1,8 +1,14 @@
-from _shutil import *
+from _shutil import start_process
 
-VNC_VIEWER = r"C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe"
+if __name__ == "__main__":
+    VNC_VIEWER = r"C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe"
+    start_process(
+        [
+            VNC_VIEWER,
+            "{{VNC_SERVER}}",
+            "-WarnUnencrypted=0",
+            "-PasswordStoreOffer=1",
+            "-FullScreen=1",
+        ]
+    )
 
-if not exists(VNC_VIEWER):
-    run_elevated('choco install vnc-viewer -y')
-
-start_process(VNC_VIEWER)

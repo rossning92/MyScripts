@@ -1,7 +1,7 @@
 import glob
 import os
 
-from _shutil import getch, print2
+from _shutil import getch, print2, call_echo
 
 from cmake_build import cmake_build
 from lint import lint
@@ -21,3 +21,9 @@ if __name__ == "__main__":
         if getch() == "y":
             cmake_build(project_dir)
 
+    elif os.path.exists("gradlew") or os.path.exists("gradlew.bat"):
+        print2("Building using gradle...", color="green")
+        call_echo("gradlew assembleDebug")
+        apk_files = glob.glob(os.path.join(".", "**", "*.apk"), recursive=True)
+        for i, f in enumerate(apk_files):
+            print("[%d] %s" % (i + 1, f))

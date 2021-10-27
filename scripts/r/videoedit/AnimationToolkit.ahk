@@ -1,6 +1,6 @@
 #include ../../../ahk/Window.ahk
 
-Menu, Tray, Icon, animation_toolkit.ico
+Menu, Tray, Icon, AnimationToolkit.ico
 #SingleInstance, Force
 
 SCRIPT_DIR := A_WorkingDir
@@ -26,15 +26,19 @@ $F6::
         SetWindowPos("A", 0, 0)
         RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 1 96 1920 1080")
     } else {
-        RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 0 0 1920 1080")
+        WinGetPos x, y, w, h, A
+        RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect " x " " y " " w " " h)
     }
 return
 
 $^F6::
-    w := 1170
-    SetWindowPos("ahk_exe Code.exe", 0, 0, w, 1080)
-    SetWindowPos("ahk_exe chrome.exe", w, 0, 1920 - w, 1080)
+    RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 0 0 1920 1080")
 return
+
+; Move vscode to the left side and browser to the right side of the screen.
+; w := 1170
+; SetWindowPos("ahk_exe Code.exe", 0, 0, w, 1080)
+; SetWindowPos("ahk_exe chrome.exe", w, 0, 1920 - w, 1080)
 
 RunScript(file, args="") {
     global SCRIPT_DIR
