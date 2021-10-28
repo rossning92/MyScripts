@@ -201,8 +201,8 @@ def logcat(
                     if exclude_proc and re.search(exclude_proc, proc):
                         show_line = False
 
-                # HACK
-                if "ROSS" in message:
+                # Always show lines if following conditions are met.
+                if "ROSS" in message or lvl == "F":
                     show_line = True
 
                 if not show_line:

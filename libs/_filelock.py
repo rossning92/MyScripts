@@ -15,16 +15,22 @@ class FileLock:
             if sys.platform == "win32":
                 try:
                     if os.path.exists(lock_file):
-                        os.unlink(lock_file)
-                    self.fh = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+                        os.remove(lock_file)
+                    self.fh = os.open(
+                        lock_file,
+                        os.O_CREAT  # create file if not exists
+                        | os.O_EXCL
+                        | os.O_RDWR,  # open for read and write
+                    )
                     break
+                except FileExistsError:
+                    time.sleep(0.1)
                 except EnvironmentError as err:
                     if err.errno == 13:
                         time.sleep(0.1)
                     else:
                         raise
-                except FileExistsError:
-                    time.sleep(0.1)
+
             else:
                 import fcntl
 

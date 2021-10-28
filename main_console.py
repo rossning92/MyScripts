@@ -171,16 +171,13 @@ def get_variable_str_list(vars, var_names):
 
 class VariableWindow(Menu):
     def __init__(self, stdscr, script):
+        super().__init__(stdscr=stdscr, label="%s >" % (script.name))
         self.vars = get_all_variables()
         self.var_names = sorted(script.get_variable_names())
-        self.items = []
         self.enter_pressed = False
 
         if len(self.var_names) > 0:
             self.update_items()
-            super().__init__(
-                items=self.items, stdscr=stdscr, label="%s >" % (script.name)
-            )
 
     def update_items(self):
         self.items[:] = get_variable_str_list(self.vars, self.var_names)
