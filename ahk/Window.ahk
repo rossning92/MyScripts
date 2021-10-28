@@ -10,16 +10,16 @@ SortArray(Array, Order="A") {
     Partitions := "|" ObjMinIndex(Array) "," MaxIndex
     Loop {
         comma := InStr(this_partition := SubStr(Partitions, InStr(Partitions, "|", False, 0)+1), ",")
-        spos := pivot := SubStr(this_partition, 1, comma-1) , epos := SubStr(this_partition, comma+1) 
-        if (Order = "A") { 
+        spos := pivot := SubStr(this_partition, 1, comma-1) , epos := SubStr(this_partition, comma+1)
+        if (Order = "A") {
             Loop, % epos - spos {
                 if (Array[pivot] > Array[A_Index+spos])
-                    ObjInsert(Array, pivot++, ObjRemove(Array, A_Index+spos)) 
+                    ObjInsert(Array, pivot++, ObjRemove(Array, A_Index+spos))
             }
         } else {
             Loop, % epos - spos {
                 if (Array[pivot] < Array[A_Index+spos])
-                    ObjInsert(Array, pivot++, ObjRemove(Array, A_Index+spos)) 
+                    ObjInsert(Array, pivot++, ObjRemove(Array, A_Index+spos))
             }
         }
         Partitions := SubStr(Partitions, 1, InStr(Partitions, "|", False, 0)-1)
@@ -110,6 +110,36 @@ SetWindowPosF(winTitle, x, y, w, h, fullScreen:=False, forceResize:=False) {
     SetWindowPos(winTitle, x, y, w, h, forceResize)
 }
 
+GetWindowPos(winTitle, ByRef x, ByRef y, ByRef w, ByRef h) {
+    WinGet, hWnd, ID, %winTitle%
+    WinGetPos, x, y, w, h, %winTitle%
+    If !(hWnd)
+        return
+
+    deltaLeft := deltaTop := deltaRight := deltaBottom := 0
+    VarSetCapacity(rect, 16, 0)
+    DllCall("GetWindowRect", "Ptr", hWnd, "Ptr", &rect)
+    winLeft := NumGet(rect, 0, "Int")
+    winTop := NumGet(rect, 4, "Int")
+    winRight := NumGet(rect, 8, "Int")
+    winBottom := NumGet(rect, 12, "Int")
+    If (DllCall("Dwmapi.dll\DwmGetWindowAttribute", "Ptr", hWnd, "UInt", 9, "Ptr", &rect, "UInt", 16) = 0) { ; S_OK = 0
+        frameLeft := NumGet(rect, 0, "Int")
+        frameTop := NumGet(rect, 4, "Int")
+        frameRight := NumGet(rect, 8, "Int")
+        frameBottom := NumGet(rect, 12, "Int")
+
+        deltaLeft := winLeft - frameLeft
+        deltaTop := winTop - frameTop
+        deltaRight := winRight - frameRight
+        deltaBottom := winBottom - frameBottom
+    }
+    x := x <> "" ? x - deltaLeft : winLeft
+    y := y <> "" ? y - deltaTop : winTop
+    w := w <> "" ? w + deltaLeft - deltaRight : winRight - winLeft
+    h := h <> "" ? h + deltaTop - deltaBottom : winBottom - winTop
+}
+
 SetWindowPos(WinTitle, X:="", Y:="", W:="", H:="", forceResize:=False) {
     If ((X . Y . W . H) = "") ;
         Return False
@@ -118,6 +148,7 @@ SetWindowPos(WinTitle, X:="", Y:="", W:="", H:="", forceResize:=False) {
     WinActivate, ahk_id %hWnd%
     If !(hWnd)
         Return False
+
     deltaLeft := deltaTop := deltaRight := deltaBottom := 0
     VarSetCapacity(rect, 16, 0)
     DllCall("GetWindowRect", "Ptr", hWnd, "Ptr", &rect)
@@ -174,7 +205,7 @@ ActivateWindowByTitle(title)
         WinGet, style, Style, ahk_id %hwnd%
 
         ; Skip unimportant window
-        if (style & WS_DISABLED) 
+        if (style & WS_DISABLED)
             continue
 
         ; Skip window with no title

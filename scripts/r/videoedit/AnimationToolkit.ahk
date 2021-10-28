@@ -26,7 +26,7 @@ $F6::
         SetWindowPos("A", 0, 0)
         RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 1 96 1920 1080")
     } else {
-        WinGetPos x, y, w, h, A
+        GetWindowPos("A", x, y, w, h)
         RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect " x " " y " " w " " h)
     }
 return
