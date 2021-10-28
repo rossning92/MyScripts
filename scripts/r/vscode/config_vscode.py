@@ -87,7 +87,10 @@ def config_vscode(data_dir, compact=False):
                     "command": "markdowdata_dir=DATA_DIRn.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
-                {"key": "shift+alt+r", "command": "revealFileInOS",},
+                {
+                    "key": "shift+alt+r",
+                    "command": "revealFileInOS",
+                },
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
                 {
@@ -132,7 +135,8 @@ def config_vscode(data_dir, compact=False):
     data["python.linting.pylintEnabled"] = False
     data["python.languageServer"] = "Pylance"
 
-    data["glsllint.glslangValidatorPath"] = install_glslang()
+    if os.system() == "win32":
+        data["glsllint.glslangValidatorPath"] = install_glslang()
 
     data.update(
         {

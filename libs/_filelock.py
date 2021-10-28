@@ -47,4 +47,7 @@ class FileLock:
         return self.fh
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        os.close(self.fh)
+        if sys.platform == "win32":
+            os.close(self.fh)
+        else:
+            self.fh.close()

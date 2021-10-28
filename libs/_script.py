@@ -152,7 +152,8 @@ def wrap_bash_commands(commands, wsl=False, env=None):
         return [bash, "--login", "-i", tmp_sh_file]
 
     else:  # Linux
-        return ["bash", "-c", commands]
+        tmp_sh_file = write_temp_file(commands, ".sh")
+        return ["bash", "-i", tmp_sh_file]
 
 
 def exec_cmd(cmd):
@@ -201,6 +202,10 @@ def get_script_variables(script):
 
 def get_variable(name):
     with FileLock("access_variable"):
+        f = get_variable_file()
+        if not os.path.exists(f):
+            return None
+
         with open(get_variable_file(), "r") as f:
             variables = json.load(f)
 
@@ -711,7 +716,7 @@ class Script:
             if self.cfg["template"]:
                 bash_cmd = self.render()
             else:
-                bash_cmd = _args_to_str(
+                bash_cmd = "bash " + _args_to_str(
                     [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args
                 )
 
@@ -894,8 +899,9 @@ class Script:
                                 ] + args
 
                 elif sys.platform == "linux":
-                    args = ["tmux", "split-window"] + args
+                    # args = ["tmux", "split-window"] + args
                     # args = ["x-terminal-emulator", "-e"] + args
+                    pass
 
                 else:
                     creationflags = subprocess.CREATE_NEW_CONSOLE
@@ -904,6 +910,7 @@ class Script:
                     # )
 
             # Check if run as admin
+            print2(_args_to_str(args), color="cyan")
             if platform.system() == "Windows" and self.cfg["runAsAdmin"]:
                 args = wrap_args_cmd(
                     args,
@@ -915,7 +922,6 @@ class Script:
                 )
 
                 print2("Run elevated:")
-                print2(_args_to_str(args), color="cyan")
                 run_elevated(args, wait=(not new_window))
             else:
                 popen_args = {
@@ -951,7 +957,6 @@ class Script:
                     )
 
                 elif new_window:
-                    print(_args_to_str(args))
                     subprocess.Popen(
                         **popen_args,
                         creationflags=creationflags,
