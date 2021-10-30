@@ -56,18 +56,19 @@ if __name__ == "__main__":
         if "{{_SIZE}}":
             args += ["--max-size", "{{_SIZE}}"]
 
-        try:
-            ps = subprocess.Popen(args, stdin=subprocess.PIPE)
-            ps.stdin.close()  # to avoid stuck in "press any key..."
+        ps = subprocess.Popen(args, stdin=subprocess.PIPE)
+        ps.stdin.close()  # to avoid stuck in "press any key..."
 
-            while not update_android_serial() and (
+        try:
+            while (not update_android_serial()) and (
                 # Process is still alive
                 ps.poll()
                 is None
             ):
                 time.sleep(3)
 
-            kill_proc(ps)
         except Exception as ex:
             pass
             print("on error retry...")
+
+        kill_proc(ps)
