@@ -1,10 +1,11 @@
-if ! [ -x "$(command -v expect)" ]; then
-    sudo apt-get update -y
-    sudo apt-get install expect -y
-fi
+# if ! [ -x "$(command -v expect)" ]; then
+#     sudo apt-get update -y
+#     sudo apt-get install expect -y
+# fi
 
-printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
+# printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
 
+# TERM=dumb plink -ssh -t {{_USER}}@{{_HOST}} -pw {{_PWD}} -no-antispoof
 ssh -o "StrictHostKeyChecking no" {{_USER}}@{{_HOST}}
 
 # sudo /etc/init.d/screen-cleanup start
