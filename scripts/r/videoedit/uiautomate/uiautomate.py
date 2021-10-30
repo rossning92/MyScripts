@@ -5,7 +5,7 @@ import random
 import time
 import re
 import pyautogui
-from _script import wt_wrap_args
+from _script import wrap_args_wt
 from _shutil import exec_ahk, getch, set_clip
 from videoedit.record_screen import CapturaScreenRecorder
 

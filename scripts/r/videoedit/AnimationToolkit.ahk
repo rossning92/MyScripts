@@ -23,7 +23,7 @@ $F6::
         Sleep 500
         RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 1 120 1920 1080")
     } else if (WinActive("ahk_class VMPlayerFrame")) {
-        SetWindowPos("A", 0, 0)
+        SetWindowPos("A", 0, 0, 1922, 1080 + 97)
         RunScript("/r/videoedit/record_screen.py", ExtraArgs " --rect 1 96 1920 1080")
     } else {
         GetWindowPos("A", x, y, w, h)

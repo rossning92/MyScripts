@@ -1,7 +1,7 @@
 import os
 import time
 
-from _script import wt_wrap_args
+from _script import wrap_args_wt
 from _shutil import call_echo, exec_ahk, run_ahk
 
 from .uiautomate import recorder, run_commands, send_hotkey
@@ -10,7 +10,7 @@ root = os.path.dirname(os.path.abspath(__file__))
 
 
 def open_wt(args=["cmd"], **kwargs):
-    args = wt_wrap_args(args, **kwargs)
+    args = wrap_args_wt(args, **kwargs)
     call_echo(args)
 
 

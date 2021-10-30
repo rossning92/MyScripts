@@ -137,7 +137,7 @@ export function addTitle2(
 
   const halfTotalHeight = (textHeight1 + textHeight2) * 0.5;
 
-  mo.cameraMoveTo({ zoom: 1.05, duration: 5, ease: "power1.out", t: 0 });
+  cameraZoom();
 
   const y1 = halfTotalHeight - textHeight1 * 0.5;
   const g = mo.addGroup();
@@ -145,7 +145,7 @@ export function addTitle2(
   g.addRect({
     width,
     height: textHeight1,
-    color: "#fd807f",
+    color: "#fc7281",
     z: -0.01,
     y: y1,
   }).reveal({

@@ -11,11 +11,11 @@ import pyautogui
 from _script import get_variable, set_variable
 from _shutil import (
     call_echo,
+    get_next_file_name,
     get_temp_file_name,
     move_file,
     print2,
     slugify,
-    get_next_file_name,
 )
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
@@ -37,9 +37,6 @@ class ScreenRecorder:
     def stop_record(self):
         raise NotImplementedError
 
-    def cancel_record(self):
-        raise NotImplementedError
-
     def save_record(self):
         raise NotImplementedError
 
@@ -55,6 +52,12 @@ class CapturaScreenRecorder(ScreenRecorder):
     def start_record(self):
         if self.captura_ps is not None:
             return
+
+        subprocess.call(
+            "taskkill /f /im captura-cli.exe",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
         # https://github.com/MathewSachin/Captura/tree/master/docs/Cmdline
         args = [
@@ -86,7 +89,7 @@ class CapturaScreenRecorder(ScreenRecorder):
                 print2("Recording started.", color="green")
                 break
 
-        time.sleep(0.2)
+        time.sleep(0.5)
 
     def stop_record(self):
         if self.captura_ps is None:
@@ -118,10 +121,6 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
     def start_record(self):
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)  # purely estimated warm-up time
-
-    def cancel_record(self):
-        pyautogui.hotkey("alt", "f9")
-        time.sleep(0.5)
 
     def stop_record(self):
         pyautogui.hotkey("alt", "f9")
@@ -158,8 +157,8 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
         move_file(in_file, file)
 
 
-# recorder = CapturaScreenRecorder()
-recorder = ShadowPlayScreenRecorder()
+recorder = CapturaScreenRecorder()
+# recorder = ShadowPlayScreenRecorder()
 
 
 def wait_multiple_keys(keys):
@@ -221,10 +220,12 @@ if __name__ == "__main__":
 
         pressed = wait_multiple_keys(["f6", "f7"])
         if pressed == "f6":
-            recorder.cancel_record()
+            print2("Canceling record...")
+            recorder.stop_record()
             continue
 
         elif pressed == "f7":
+            print2("Stoping record...")
             recorder.stop_record()
             break
 

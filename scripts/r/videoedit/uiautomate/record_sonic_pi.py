@@ -1,6 +1,6 @@
 import os
 
-from _script import wt_wrap_args, input2, get_variable
+from _script import wrap_args_wt, input2, get_variable
 from _shutil import *
 from videoedit.record_screen import recorder
 from uiautomate import *

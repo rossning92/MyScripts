@@ -357,13 +357,13 @@ def wrap_args_cmd(
     return args2
 
 
-def wt_wrap_args(
+def wrap_args_wt(
     args,
     wsl=False,
     title=None,
     close_on_exit=True,
     cwd=None,
-    font_size=10,
+    font_size=None,
     icon=None,
     opacity=1.0,
 ):
@@ -407,11 +407,15 @@ def wt_wrap_args(
     lines = [x for x in lines if not x.lstrip().startswith("//")]
     data = json.loads("\n".join(lines))
 
-    data["profiles"]["defaults"]["colorScheme"] = "Dracula"
-    data["profiles"]["defaults"]["fontSize"] = 10
     data["schemes"] = [THEME]
 
     updated = False
+
+    defaults = {"colorScheme": "Dracula", "font": {"face": "Cascadia Mono", "size": 10}}
+    if defaults != data["profiles"]["defaults"]:
+        data["profiles"]["defaults"] = defaults
+        updated = True
+
     if title:
         filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
         profile = {
@@ -420,8 +424,9 @@ def wt_wrap_args(
             "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
             "closeOnExit": "graceful" if close_on_exit else "never",
             "suppressApplicationTitle": True,
-            "fontSize": font_size,
         }
+        if font_size is not None:
+            profile["fontSize"] = font_size
 
         if opacity < 1:
             profile["useAcrylic"] = True
@@ -867,7 +872,7 @@ class Script:
                                 "wsl",
                                 "windowsTerminal",
                             ]:
-                                args = wt_wrap_args(
+                                args = wrap_args_wt(
                                     args,
                                     cwd=cwd,
                                     title=self.get_console_title(),
@@ -958,9 +963,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:
