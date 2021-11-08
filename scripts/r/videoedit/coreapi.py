@@ -580,6 +580,9 @@ def pos(t, tag=None):
 
 @core.api
 def clip(f, **kwargs):
+    if _state.audio_only:
+        return
+
     print("clip: %s" % f)
     add_video_clip(f, **kwargs)
 
@@ -599,6 +602,9 @@ def overlay(
     track="overlay",
     **kwargs,
 ):
+    if _state.audio_only:
+        return
+
     print("image: %s" % f)
     add_video_clip(
         f,
@@ -766,6 +772,7 @@ def add_video_clip(
     scale=(1.0, 1.0),
     width=None,
     height=None,
+    **kwargs,
 ):
     clip_info = VideoClip()
 
@@ -865,6 +872,9 @@ def add_video_clip(
 
 @core.api
 def anim(file, **kwargs):
+    if _state.audio_only:
+        return
+
     video_file = os.path.splitext(file)[0] + ".webm"
     if file_is_old(file, video_file):
         if os.path.exists(video_file):
@@ -875,6 +885,9 @@ def anim(file, **kwargs):
 
 @core.api
 def video_end(track=None, t=None, fadeout=None):
+    if _state.audio_only:
+        return
+
     print("video_end: track=%s" % track)
     track = get_vid_track(track)
 
@@ -892,6 +905,9 @@ def video_end(track=None, t=None, fadeout=None):
 
 @core.api
 def empty(**kwargs):
+    if _state.audio_only:
+        return
+
     add_video_clip(None, **kwargs)
 
 
@@ -952,6 +968,9 @@ def md(s, track="md", move_playhead=False, **kwargs):
 
 @core.api
 def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
+    if _state.audio_only:
+        return
+
     # "../assets/animation/click.tar",
 
     extra_args = {
@@ -1043,7 +1062,6 @@ def _update_mpy_clip(
 
     # Scale should be done before translation
     if scale[0] != 1.0 or scale[1] != 1.0:
-        # input(str(clip.size))
         clip = clip.resize((int(clip.w * scale[0]), int(clip.h * scale[1])))
 
     if pos is not None:
@@ -1124,7 +1142,13 @@ def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
     return clip.fl(volume_adjust)
 
 
-def export_video(*, out_filename, resolution, audio_only, preview=False):
+def set_audio_only(audio_only=True):
+    _state.audio_only = audio_only
+    if _state.audio_only:
+        print("Audio only enabled.")
+
+
+def export_video(*, out_filename, resolution, preview=False):
     resolution = [int(x * _state.global_scale) for x in resolution]
 
     audio_clips = []
@@ -1302,7 +1326,7 @@ def export_video(*, out_filename, resolution, audio_only, preview=False):
 
     os.makedirs("tmp/out", exist_ok=True)
 
-    if audio_only:
+    if _state.audio_only:
         final_audio_clip.fps = 44100
         final_audio_clip.write_audiofile("%s.mp3" % out_filename)
         open_with("%s.mp3" % out_filename, program_id=0)

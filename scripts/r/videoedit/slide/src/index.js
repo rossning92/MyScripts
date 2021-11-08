@@ -25,6 +25,10 @@ updateCodeBlocks({
   scrollToLine: matter.scrollToLine,
   width: matter.width,
   height: matter.height,
+  lineNumbers:
+    matter.lineNumbers !== undefined
+      ? matter.lineNumbers === "true"
+      : undefined,
 });
 
 function handleSeparator() {

@@ -1,11 +1,12 @@
-from _shutil import *
-from pyppeteer import launch
-from video.ccapture_to_mov import convert_to_mov
-from videoedit.start_movy_server import start_server
 import asyncio
-import sys
+from genericpath import exists
+import os
 import time
-import urllib
+
+from _shutil import cd, get_files
+from pyppeteer import launch
+
+from videoedit.start_movy_server import start_server
 
 # Fix for `callFunctionOn: Target closed.`
 # pip3 install websockets==6.0 --force-reinstall
@@ -22,13 +23,19 @@ def render_animation(file):
 
     url = "http://localhost:%d" % PORT
 
+    out_file = None
+
     async def main():
+        nonlocal out_file
+
         browser = await launch(
             headless=False,
             args=["--disable-dev-shm-usage"],
             executablePath=r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
         )
         page = await browser.newPage()
+        download_dir = os.path.abspath(os.path.dirname(file))
+        out_file = os.path.join(download_dir, os.path.splitext(file)[0] + ".webm")
 
         await page._client.send(
             "Page.setDownloadBehavior",
@@ -49,7 +56,8 @@ def render_animation(file):
             time.sleep(0.5)
 
         # Make sure the video file is saved
-        time.sleep(1)
+        while not exists(out_file):
+            time.sleep(0.5)
 
         await browser.close()
 
@@ -57,11 +65,11 @@ def render_animation(file):
 
     ps.kill()
 
-    return os.path.splitext(file)[0] + ".mov"
+    return out_file
 
 
 if __name__ == "__main__":
-    cd(expanduser("~/Downloads"))
+    cd(os.path.expanduser("~/Downloads"))
 
     if "{{_FORMAT}}":
         format = "{{_FORMAT}}"

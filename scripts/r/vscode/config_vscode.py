@@ -135,7 +135,7 @@ def config_vscode(data_dir, compact=False):
     data["python.linting.pylintEnabled"] = False
     data["python.languageServer"] = "Pylance"
 
-    if os.system() == "win32":
+    if sys.platform == "win32":
         data["glsllint.glslangValidatorPath"] = install_glslang()
 
     data.update(

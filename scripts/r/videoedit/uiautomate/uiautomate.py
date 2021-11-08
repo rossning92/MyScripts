@@ -166,9 +166,10 @@ def typing(s, sound=False):
             pyautogui.write(ch)
             time.sleep(0.1)
         elif ch == " ":
+            time.sleep(random.uniform(0.05, 0.1))
             pyautogui.write(" ")
         else:
-            time.sleep(random.uniform(0.02, 0.05))
+            time.sleep(random.uniform(0.02, 0.04))
             if sound:
                 _sound.play()
             pyautogui.write(ch)
@@ -188,6 +189,9 @@ def run_commands(cmds, sound=False):
             if cmd.startswith("sleep"):
                 secs = float(cmd.split(" ")[1])
                 time.sleep(secs)
+            elif cmd.startswith("text"):
+                text = cmd.lstrip("text ")
+                pyautogui.write(text, interval=0)
         else:
             cmd = cmd.replace("\\{", "{").replace("\\}", "}")
             typing(cmd, sound=sound)

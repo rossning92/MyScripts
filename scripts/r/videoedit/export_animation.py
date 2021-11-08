@@ -241,16 +241,16 @@ if __name__ == "__main__":
         ignore_undefined = True
         _show_stats(s)
     else:
-        if True:
-            coreapi.reset()
+        coreapi.reset()
 
-            if args.preview:
-                coreapi.enable_preview()
+        if args.preview:
+            coreapi.enable_preview()
 
-            _parse_text(s, apis=core.apis)
+        if args.audio_only:
+            coreapi.set_audio_only()
 
-            coreapi.export_video(
-                out_filename=out_filename,
-                resolution=(1920, 1080),
-                audio_only=args.audio_only,
-            )
+        _parse_text(s, apis=core.apis)
+        coreapi.export_video(
+            out_filename=out_filename,
+            resolution=(1920, 1080),
+        )

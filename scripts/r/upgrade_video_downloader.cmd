@@ -1,4 +1,5 @@
 @echo off
 
-pip install youtube-dl --upgrade
-pip install you-get --upgrade
+@REM pip install youtube-dl --upgrade
+pip install --upgrade yt-dlp
+pip install --upgrade you-get

@@ -296,6 +296,8 @@ function getCompletedExpression(file: string) {
     return `{{ anim('${file}') }}`;
   } else if (/\bsrc\//g.test(file)) {
     return `{{ codef('${file}', size=(1664, 824)) }}`;
+  } else if (/overlay[\\\/].+?\.pptx$/.test(file)) {
+    return `{{ overlay('${file}', n=1, t='as') }}`;
   } else if (/\boverlay\//g.test(file)) {
     return `{{ overlay('${file}', t='as') }}`;
   } else if (/bgm\//g.test(file)) {
@@ -702,14 +704,14 @@ function registerCreateSlideCommand(context: vscode.ExtensionContext) {
   );
 }
 
-function toggleParameter(param: string, defaultValue: string) {
+function toggleParameter(name: string, defaultValue: string) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
 
   const currentLine = editor.selection.active.line;
   const currentLineText = editor.document.lineAt(currentLine).text;
 
-  const patt = new RegExp(", " + param + "=(.+?)(?=[,)])", "g");
+  const patt = new RegExp(", " + name + "=(.+?)(?=[,)])", "g");
 
   let newLineText: string;
   if (patt.test(currentLineText)) {
@@ -717,7 +719,7 @@ function toggleParameter(param: string, defaultValue: string) {
   } else {
     newLineText = currentLineText.replace(
       /(?=\))/g,
-      `, ${param}=${defaultValue}`
+      `, ${name}=${defaultValue}`
     );
   }
 
@@ -731,13 +733,13 @@ function toggleParameter(param: string, defaultValue: string) {
   // Change selection to 1st matched group of patt.
   const result = patt.exec(newLineText);
   if (result) {
-    const paramLength = result[1].length;
-    const paramStartIndex = result.index + paramLength + 2;
+    const valueLength = result[1].length;
+    const paramStartIndex = result.index + name.length + 3;
     editor.selection = new vscode.Selection(
       currentLine,
       paramStartIndex,
       currentLine,
-      paramStartIndex + paramLength
+      paramStartIndex + valueLength
     );
   }
 }
@@ -746,6 +748,14 @@ function registerToggleCrossfadeCommand(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.toggleCrossfade", () => {
       toggleParameter("cf", "0.2");
+    })
+  );
+}
+
+function registerToggleDurationCommand(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.toggleDuration", () => {
+      toggleParameter("duration", "2");
     })
   );
 }
@@ -984,6 +994,7 @@ function registerCommands(context: vscode.ExtensionContext) {
   registerCreateSlideCommand(context);
   registerRenameFileCommand(context);
   registerToggleCrossfadeCommand(context);
+  registerToggleDurationCommand(context);
 
   // Start movy server
   context.subscriptions.push(

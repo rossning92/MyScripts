@@ -240,6 +240,9 @@ function getCompletedExpression(file) {
     else if (/\bsrc\//g.test(file)) {
         return `{{ codef('${file}', size=(1664, 824)) }}`;
     }
+    else if (/overlay[\\\/].+?\.pptx$/.test(file)) {
+        return `{{ overlay('${file}', n=1, t='as') }}`;
+    }
     else if (/\boverlay\//g.test(file)) {
         return `{{ overlay('${file}', t='as') }}`;
     }
@@ -557,19 +560,19 @@ function registerCreateSlideCommand(context) {
         startSlideServer(file);
     }));
 }
-function toggleParameter(param, defaultValue) {
+function toggleParameter(name, defaultValue) {
     const editor = vscode.window.activeTextEditor;
     if (!editor)
         return;
     const currentLine = editor.selection.active.line;
     const currentLineText = editor.document.lineAt(currentLine).text;
-    const patt = new RegExp(", " + param + "=(.+?)(?=[,)])", "g");
+    const patt = new RegExp(", " + name + "=(.+?)(?=[,)])", "g");
     let newLineText;
     if (patt.test(currentLineText)) {
         newLineText = currentLineText.replace(patt, "");
     }
     else {
-        newLineText = currentLineText.replace(/(?=\))/g, `, ${param}=${defaultValue}`);
+        newLineText = currentLineText.replace(/(?=\))/g, `, ${name}=${defaultValue}`);
     }
     editor.edit((editBuilder) => {
         editBuilder.replace(new vscode.Selection(currentLine, 0, currentLine, currentLineText.length), newLineText);
@@ -577,14 +580,19 @@ function toggleParameter(param, defaultValue) {
     // Change selection to 1st matched group of patt.
     const result = patt.exec(newLineText);
     if (result) {
-        const paramLength = result[1].length;
-        const paramStartIndex = result.index + paramLength + 2;
-        editor.selection = new vscode.Selection(currentLine, paramStartIndex, currentLine, paramStartIndex + paramLength);
+        const valueLength = result[1].length;
+        const paramStartIndex = result.index + name.length + 3;
+        editor.selection = new vscode.Selection(currentLine, paramStartIndex, currentLine, paramStartIndex + valueLength);
     }
 }
 function registerToggleCrossfadeCommand(context) {
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.toggleCrossfade", () => {
         toggleParameter("cf", "0.2");
+    }));
+}
+function registerToggleDurationCommand(context) {
+    context.subscriptions.push(vscode.commands.registerCommand("videoEdit.toggleDuration", () => {
+        toggleParameter("duration", "2");
     }));
 }
 function replaceCurrentLine(oldText, newText) {
@@ -733,6 +741,7 @@ function registerCommands(context) {
     registerCreateSlideCommand(context);
     registerRenameFileCommand(context);
     registerToggleCrossfadeCommand(context);
+    registerToggleDurationCommand(context);
     // Start movy server
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.startMovyServer", async () => {
         const editor = vscode.window.activeTextEditor;

@@ -87,6 +87,10 @@
         "title": "VideoEdit: Toggle Crossfade"
       },
       {
+        "command": "videoEdit.toggleDuration",
+        "title": "VideoEdit: Toggle Duration"
+      },
+      {
         "command": "videoEdit.insertMostRecentFile",
         "title": "VideoEdit: Insert Most Recent File"
       }
@@ -135,6 +139,11 @@
       {
         "command": "videoEdit.toggleCrossfade",
         "key": "alt+f",
+        "when": "videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.toggleDuration",
+        "key": "alt+d",
         "when": "videoEdit.isProjectFileActive"
       },
       {

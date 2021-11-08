@@ -3,11 +3,37 @@ export function updateCodeBlocks({
   scrollToLine,
   width,
   height,
+  lineNumbers = true,
 } = {}) {
   const codeElements = document.querySelectorAll("pre > code");
   for (const codeElement of codeElements) {
     if (!codeElement) {
       return;
+    }
+
+    if (fontSize !== undefined) {
+      const style = document.createElement("style");
+      style.innerHTML = `.CodeMirror { font-size: ${fontSize}; }`;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    if (width !== undefined) {
+      const style = document.createElement("style");
+      style.innerHTML = `.CodeMirror { min-width: ${width}; }`;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    if (height !== undefined) {
+      const style = document.createElement("style");
+      style.innerHTML = `.CodeMirror { min-height: ${height}; }`;
+      document.getElementsByTagName("head")[0].appendChild(style);
+    }
+
+    // XXX: workaround: seems like a CodeMirror bug, line won't break if lineNumbers is false.
+    if (!lineNumbers) {
+      const style = document.createElement("style");
+      style.innerHTML = `.CodeMirror-line { display: block; height: 1.2em; }`;
+      document.getElementsByTagName("head")[0].appendChild(style);
     }
 
     let source = codeElement.innerText;
@@ -47,7 +73,7 @@ export function updateCodeBlocks({
 
     const editor = CodeMirror.fromTextArea(newItem, {
       mode: "text/javascript",
-      lineNumbers: true,
+      lineNumbers,
       styleActiveLine: true,
       matchBrackets: true,
       lineWrapping: true,
@@ -70,24 +96,6 @@ export function updateCodeBlocks({
     markRanges.forEach(([from, to]) => {
       markText(editor, from, to);
     });
-
-    if (fontSize !== undefined) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror { font-size: ${fontSize}; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    if (width !== undefined) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror { min-width: ${width}; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    if (height !== undefined) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror { min-height: ${height}; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
 
     if (scrollToLine) {
       editor.scrollTo(

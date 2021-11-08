@@ -362,10 +362,10 @@ def wrap_args_wt(
     wsl=False,
     title=None,
     close_on_exit=True,
-    cwd=None,
     font_size=None,
     icon=None,
     opacity=1.0,
+    **kwargs,
 ):
     THEME = {
         "name": "Dracula",

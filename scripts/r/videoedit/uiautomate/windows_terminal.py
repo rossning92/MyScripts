@@ -33,7 +33,7 @@ def open_wt_with_bg():
     time.sleep(0.5)
 
 
-def record_windows_terminal(file, args, cmds, sound=False, **kwargs):
+def record_windows_terminal(file, args, cmds, sound=False, size=(1440, 810), **kwargs):
     call_echo(["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"])
 
     open_wt(args, **kwargs)
@@ -42,12 +42,13 @@ def record_windows_terminal(file, args, cmds, sound=False, **kwargs):
         """
         #include <Window>
         WinWaitActive, ahk_exe WindowsTerminal.exe
-        SetWindowPos("A", -1, -1, 1442, 812)
+        SetWindowPos("A", -1, -1, %d, %d)
         """
+        % (size[0] + 2, size[1] + 2)
     )
     time.sleep(1)
 
-    recorder.rect = (0, 0, 1440, 810)
+    recorder.rect = (0, 0, size[0], size[1])
 
     recorder.start_record()
 

@@ -13,12 +13,14 @@ def record_wt_cmd(
     icon=root + "/icons/cmd.png",
     title="Command Prompt",
     cwd=None,
+    startup=None,
     **kwargs,
 ):
     args = [
         "cmd",
         "/k",
-        (f"cd {cwd} && " if cwd else "")
+        (f"{startup} && " if startup else "")
+        + (f"cd {cwd} && " if cwd else "")
         + r"set PROMPT=$E[1;30m$P$G $E[1;37m&& echo.",
     ]
 

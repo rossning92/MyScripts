@@ -17,7 +17,7 @@ from _shutil import (
     print2,
     slugify,
 )
-from _term import activate_cur_terminal, minimize_cur_terminal
+from _term import activate_cur_terminal, minimize_cur_terminal, set_term_title
 from _video import ffmpeg
 from audio.postprocess import loudnorm
 
@@ -89,7 +89,7 @@ class CapturaScreenRecorder(ScreenRecorder):
                 print2("Recording started.", color="green")
                 break
 
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     def stop_record(self):
         if self.captura_ps is None:
@@ -217,6 +217,7 @@ if __name__ == "__main__":
 
     while True:
         recorder.start_record()
+        set_term_title("[REC]")
 
         pressed = wait_multiple_keys(["f6", "f7"])
         if pressed == "f6":

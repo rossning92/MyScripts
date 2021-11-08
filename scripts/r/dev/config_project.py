@@ -10,7 +10,8 @@ if __name__ == "__main__":
     project_dir = r"{{PROJECT_DIR}}"
     os.chdir(project_dir)
 
-    lint(project_dir)
+    if "{{_LINT}}":
+        lint(project_dir)
 
     if os.path.exists("CMakeLists.txt"):
         print2("Building using cmake...", color="green")
