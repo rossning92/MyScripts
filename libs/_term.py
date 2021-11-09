@@ -1,10 +1,11 @@
 import curses
 import curses.ascii
-import threading
 import time
 import re
-import signal
-from _shutil import *
+import sys
+import ctypes
+import locale
+import os
 
 
 def activate_cur_terminal():
@@ -202,6 +203,19 @@ class Menu:
                 )
                 self.on_item_selected()
 
+            elif ch == curses.KEY_PPAGE:
+                self.selected_row = max(
+                    self.selected_row - self.get_items_per_page(), 0
+                )
+                self.on_item_selected()
+
+            elif ch == curses.KEY_NPAGE:
+                self.selected_row = min(
+                    self.selected_row + self.get_items_per_page(),
+                    len(self.matched_item_indices) - 1,
+                )
+                self.on_item_selected()
+
             elif ch == curses.ascii.ESC:
                 return
 
@@ -222,18 +236,28 @@ class Menu:
     def get_text(self):
         return self.input_.text
 
+    def get_items_per_page(self):
+        return self.height - 2
+
     def on_update_screen(self):
         # Get matched scripts
         row = 2
-        for i, item_index in enumerate(self.matched_item_indices):
-            if self.selected_row == i:  # Hightlight on
+        items_per_page = self.get_items_per_page()
+
+        page = self.selected_row // items_per_page
+        selected_index_in_page = self.selected_row % items_per_page
+
+        for i, item_index in enumerate(
+            self.matched_item_indices[page * items_per_page :]
+        ):
+            if i == selected_index_in_page:  # Hightlight on
                 self.stdscr.attron(curses.color_pair(2))
             s = "%d. %s" % (item_index + 1, str(self.items[item_index]))
             try:
                 self.stdscr.addstr(row, 0, s)
             except curses.error:
                 pass
-            if self.selected_row == i:  # Highlight off
+            if i == selected_index_in_page:  # Highlight off
                 self.stdscr.attroff(curses.color_pair(2))
 
             row += 1

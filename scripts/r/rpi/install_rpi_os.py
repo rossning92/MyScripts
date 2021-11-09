@@ -2,8 +2,16 @@ import ctypes
 import os
 import tempfile
 
-from _shutil import (call_echo, download, find_newest_file, menu_item,
-                     menu_loop, print2, unzip, yes)
+from _shutil import (
+    call_echo,
+    download,
+    find_newest_file,
+    menu_item,
+    menu_loop,
+    print2,
+    unzip,
+    yes,
+)
 
 # https://www.raspberrypi.com/software/operating-systems/
 url = "https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-05-28/2021-05-07-raspios-buster-armhf-lite.zip"
@@ -19,19 +27,20 @@ def get_all_drives():
     return drives
 
 
-@menu_item(key=" ")
+@menu_item(key="s")
 def setup_rpi_headless():
     print("Configuring wifi...")
+    drive_found = False
     for drive in get_all_drives():
         if os.path.exists(os.path.join(drive, "bootcode.bin")):
             # https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-a-headless-raspberry-pi
             if yes("Setup raspi headless on drive %s" % drive):
                 wifi_ssid = r"{{WIFI_SSID}}"
                 wifi_pwd = r"{{WIFI_PWD}}"
-                print("Write wpa_supplicant.conf file...")
                 with open(
                     os.path.join(drive, "wpa_supplicant.conf"), "w", newline="\n"
                 ) as f:
+                    print("Write wpa_supplicant.conf file...")
                     content = (
                         "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\n"
                         "country=US\n"
@@ -50,11 +59,15 @@ def setup_rpi_headless():
                 with open(os.path.join(drive, "ssh"), "a") as f:
                     pass
 
+                drive_found = True
                 break
 
+    if not drive_found:
+        print2("ERROR: No drive found.", color="red")
 
-@menu_item(key="W")
-def write_raspi_os():
+
+@menu_item(key="f")
+def flash_raspi_os():
     os.chdir(tempfile.gettempdir())
 
     out = download(url)
@@ -85,4 +98,3 @@ def write_raspi_os():
 
 if __name__ == "__main__":
     menu_loop()
-

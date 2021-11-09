@@ -1,9 +1,13 @@
-from _shutil import *
-from _term import *
+import glob
+import os
+import signal
 import subprocess
+import sys
 
+from _shutil import fnull
+from _term import Menu
 
-EXTENSIONS = {".wav", ".mp3", ".mid"}
+EXTENSIONS = {".wav", ".mp3", ".mid", ".ogg"}
 
 folder = r"{{AUDIO_DIR}}"
 files = list(glob.glob(os.path.join(folder, "**", "*"), recursive=True))
@@ -38,7 +42,6 @@ def play(file):
             pygame.mixer.music.play()
 
     else:
-
         FNULL = fnull()
         play.ps = subprocess.Popen(
             ["ffplay", "-nodisp", file], stdout=FNULL, stderr=FNULL
