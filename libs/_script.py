@@ -411,7 +411,7 @@ def wrap_args_wt(
 
     updated = False
 
-    defaults = {"colorScheme": "Dracula", "font": {"face": "Cascadia Mono", "size": 10}}
+    defaults = {"colorScheme": "Dracula", "font": {"face": "Consolas", "size": 10}}
     if defaults != data["profiles"]["defaults"]:
         data["profiles"]["defaults"] = defaults
         updated = True

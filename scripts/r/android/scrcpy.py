@@ -68,7 +68,10 @@ if __name__ == "__main__":
                 time.sleep(3)
 
         except Exception as ex:
+            print("Retry on error:", ex)
             pass
-            print("on error retry...")
+        except KeyboardInterrupt:
+            print("Restarting...")
+            pass
 
         kill_proc(ps)

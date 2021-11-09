@@ -1,4 +1,4 @@
-﻿#SingleInstance Force
+﻿#SingleInstance, Force
 
 $>!h::Send 😃
 $>!s::Send 😢
@@ -8,3 +8,4 @@ $>!t::Send 😛
 $>!u::Send ☂️
 $>!o::Send 😲
 $>!/::Send 🤔
+$>!c::Send ✅
