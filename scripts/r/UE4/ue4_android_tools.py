@@ -1,6 +1,5 @@
-from _shutil import *
-from _term import *
-from _ue4 import *
+from _shutil import getch, print2
+from _ue4 import ue4_command
 
 commands = {
     "r": "vr.HeadTracking.Reset",
@@ -13,23 +12,23 @@ commands = {
     "4": "stat GPU",
 }
 
-# Engine\Build\Android\Java\src\com\epicgames\ue4\ConsoleCmdReceiver.java
-while True:
-    for k, v in commands.items():
-        print("[%s] %s" % (k, v))
-    print("[`] enter console command")
+if __name__ == "__main__":
+    while True:
+        for k, v in commands.items():
+            print("[%s] %s" % (k, v))
+        print("[`] enter console command")
 
-    s = getch()
-    if s == "`":
-        while True:
-            print2("console> ", end="", color="green")
-            cmd = input()
-            if not cmd:
-                break
+        s = getch()
+        if s == "`":
+            while True:
+                print2("console> ", end="", color="green")
+                cmd = input()
+                if not cmd:
+                    break
 
+                ue4_command(cmd)
+
+        elif s in commands:
+            cmd = commands[s]
+            print(cmd)
             ue4_command(cmd)
-
-    elif s in commands:
-        cmd = commands[s]
-        print(cmd)
-        ue4_command(cmd)

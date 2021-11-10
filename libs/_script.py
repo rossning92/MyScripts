@@ -296,7 +296,7 @@ def input2(message, name):
 def get_python_path(script_path):
     python_path = []
 
-    script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts/r")
+    script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
     python_path.append(script_root)
 
     if script_path is not None:
@@ -311,9 +311,9 @@ def get_python_path(script_path):
     return python_path
 
 
-def setup_python_path(script_path=None):
+def setup_python_path(env, script_path=None):
     python_path = get_python_path(script_path)
-    os.environ["PYTHONPATH"] = os.pathsep.join(python_path)
+    env["PYTHONPATH"] = os.pathsep.join(python_path)
 
 
 def wrap_args_cmd(
@@ -739,7 +739,7 @@ class Script:
                 python_file = convert_to_unix_path(python_file, wsl=self.cfg["wsl"])
                 python_exec = "python3"
 
-            setup_python_path(script_path)
+            setup_python_path(env, script_path)
             # env["PYTHONDONTWRITEBYTECODE"] = "1"
 
             # Conda / venv support
@@ -963,7 +963,9 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:
