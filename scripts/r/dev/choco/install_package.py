@@ -1,7 +1,7 @@
-from _term import Menu
 import sys
-import subprocess
-from _shutil import proc_lines, call_echo
+
+from _shutil import call_echo, proc_lines
+from _term import Menu
 
 PKGS = {
     "@common": [
@@ -16,26 +16,26 @@ PKGS = {
     "@ross": ["google-backup-and-sync"],
     "@dev": [
         "7zip",
-        "conemu",
+        "android-sdk",
+        "androidstudio",
         "atom",
+        "cmake --version=3.10.2 --force",
+        "cmake",
+        "conemu",
+        "ffmpeg",
         "graphviz",
+        "imagemagick.app",
+        "llvm",
+        "microsoft-windows-terminal",
+        "nodejs",
+        "ripgrep",
+        "visualstudio2017community",
+        "vscode",
+        "vscode",
         # "anaconda3",
         # "miniconda3",
         # "pycharm-community",
-        "cmake",
-        "cmake --version=3.10.2 --force",
-        "visualstudio2017community",
-        "androidstudio",
-        "android-sdk",
-        "llvm",
-        "ripgrep",
-        "vscode",
         # "visualstudiocode-insiders --pre",
-        "nodejs",
-        "microsoft-windows-terminal",
-        "vscode",
-        "ffmpeg",
-        "imagemagick.app",
     ],
     "@gamedev": ["renderdoc",],
     "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
@@ -76,6 +76,7 @@ PKGS = {
         "ontopreplica",
         "docker-desktop",
         "gimp",
+        "cura-new",
     ],
 }
 

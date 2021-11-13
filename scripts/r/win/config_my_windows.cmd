@@ -13,7 +13,7 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hi
 :: Show hidden files
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Hidden /t REG_DWORD /d 1 /f
 
-:: Disable explorer search history 
+:: Disable explorer search history
 reg add "HKCU\Software\Policies\Microsoft\Windows\Explorer" /v DisableSearchBoxSuggestions /t REG_DWORD /d 1 /f
 
 :: Hide Task View Icon
@@ -37,7 +37,7 @@ rd /s /q "%APPDATA%\Microsoft\Windows\Recent"
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v GameDVR_Enabled /t REG_DWORD /d 0 /f
 
-:: Disable shake to minimize 
+:: Disable shake to minimize
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v DisallowShaking /t REG_DWORD /d 1 /f
 
 :: Turn off hibernation
@@ -56,11 +56,16 @@ reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Streams /v Setti
 :: Customize console window
 reg add HKCU\Console\%SystemRoot^%_system32_cmd.exe /v CodePage /t REG_DWORD /d 65001 /f
 
-reg add HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
-reg add HKCU\Console /v FaceName /t REG_SZ /d Terminal /f
-reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x30 /f
-reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xc0008 /f
+@REM reg add HKCU\Console /v FaceName /t REG_SZ /d Terminal /f
+@REM reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x30 /f
+@REM reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xc0008 /f
+
+reg add HKCU\Console /v FaceName /t REG_SZ /d Consolas /f
+reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x36 /f
+reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xe0000 /f
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f
+
+reg add HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
 reg add HKCU\Console /v CtrlKeyShortcutsDisabled /t REG_DWORD /d 1 /f
 
 reg add HKCU\Console /v ColorTable00 /t REG_DWORD /d 0x000c0c0c /f
@@ -83,9 +88,12 @@ reg add HKCU\Console /v ColorTable15 /t REG_DWORD /d 0x00f2f2f2 /f
 :: Notification duration
 reg add "HKCU\Control Panel\Accessibility" /v MessageDuration /t REG_DWORD /d 10 /f
 
-:: Change wallpaper
+:: Set wallpaper to solid black
 reg add "HKCU\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "" /f
 reg add "HKCU\Control Panel\Colors" /v Background /t REG_SZ /d "0 0 0" /f
+
+:: Hide meet now icon
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /T REG_DWORD /V "HideSCAMeetNow" /D 1 /F
 
 reg add HKCU\Console\%%SystemRoot%%_SYSTEM32_cmd.exe /v CodePage /t REG_DWORD /d 65001 /f
 

@@ -7,7 +7,14 @@ from _shutil import call_echo, convert_to_unix_path, print2, wait_key, write_tem
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
 
 
-def run_bash_script_plink(bash_script_file, user_host, ssh_port=None, ssh_pwd=None):
+def run_bash_script_plink(
+    bash_script_file, user_host=None, ssh_port=None, ssh_pwd=None
+):
+    if ssh_pwd is None:
+        ssh_pwd = get_variable("SSH_PWD")
+    if user_host is None:
+        user_host = "%s@%s" % (get_variable("SSH_USER"), get_variable("SSH_HOST"))
+
     # plink is preferred for automation.
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
