@@ -33,5 +33,5 @@ if __name__ == "__main__":
         args.append(find_newest_file(os.path.join(uproject_dir, "*.uproject")))
 
     print2("Starting UE4Editor...")
-    start_process(args)
+    call_echo(args)
     time.sleep(2)

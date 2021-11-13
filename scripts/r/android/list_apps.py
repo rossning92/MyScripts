@@ -4,7 +4,8 @@ import sys
 
 from _android import backup_pkg
 from _script import run_script, set_variable
-from _term import Menu, call_echo, mkdir
+from _shutil import call_echo
+from _term import Menu
 
 if __name__ == "__main__":
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
 
     elif opt[i] == "backup":
         out_dir = os.path.expanduser("~/Desktop/android_backup")
-        mkdir(out_dir)
+        os.makedirs(out_dir, exist_ok=True)
         backup_pkg(pkg, out_dir=out_dir)
 
     elif opt[i] == "uninstall":

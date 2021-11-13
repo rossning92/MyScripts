@@ -1,39 +1,43 @@
-from _shutil import *
-from _nvpack import *
-from _appmanager import choco_install
+import os
+
 from _android import setup_android_env
+from _appmanager import choco_install
+from _shutil import call_echo, cd, print2
 
-choco_install("directx")
+from _nvpack import setup_nvpack
 
-setup_android_env()
+if __name__ == "__main__":
 
-# TODO: install vs2017 C++ and C#
+    choco_install("directx")
 
-cd(r"{{UE_SOURCE}}")
+    setup_android_env()
 
-if False:  # NVPACK is deprecated for 5.25+
-    try:
-        setup_nvpack(r"{{NVPACK_ROOT}}")
-    except:
-        print2("WARNING: NVPACK not found.")
-else:
-    os.system(r"Engine\Extras\Android\SetupAndroid.bat")
+    # TODO: install vs2017 C++ and C#
 
+    cd(r"{{UE_SOURCE}}")
 
-if not exists("UE4.sln"):
-    if exists("Setup.bat"):
+    if False:  # NVPACK is deprecated for 5.25+
+        try:
+            setup_nvpack(r"{{NVPACK_ROOT}}")
+        except:
+            print2("WARNING: NVPACK not found.")
+    else:
+        os.system(r"Engine\Extras\Android\SetupAndroid.bat")
 
-        # Remove UnrealVersionSelector
-        with open("Setup.bat") as f:
-            s = f.read().replace(
-                r".\Engine\Binaries\Win64\UnrealVersionSelector-Win64-Shipping.exe /register",
-                "",
-            )
-        with open("Setup2.bat", "w") as f:
-            f.write(s)
-        call_echo("Setup2.bat")
+    if not os.path.exists("UE4.sln"):
+        if os.path.exists("Setup.bat"):
 
-    choco_install("netfx-4.6.2-devpack")
+            # Remove UnrealVersionSelector
+            with open("Setup.bat") as f:
+                s = f.read().replace(
+                    r".\Engine\Binaries\Win64\UnrealVersionSelector-Win64-Shipping.exe /register",
+                    "",
+                )
+            with open("Setup2.bat", "w") as f:
+                f.write(s)
+            call_echo("Setup2.bat")
 
-    # call_echo("GenerateProjectFiles.bat -2017")
-    call_echo("GenerateProjectFiles.bat")
+        choco_install("netfx-4.6.2-devpack")
+
+        # call_echo("GenerateProjectFiles.bat -2017")
+        call_echo("GenerateProjectFiles.bat")
