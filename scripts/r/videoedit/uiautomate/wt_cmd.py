@@ -1,21 +1,15 @@
 import os
 
-from .windows_terminal import open_wt, record_windows_terminal
 from _shutil import shell_open
+
+from .common import run_commands
+from .record_screen import start_record, stop_record
+from .windows_terminal import close_wt, open_wt
 
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def record_wt_cmd(
-    file,
-    cmds,
-    font_size=14,
-    icon=root + "/icons/cmd.png",
-    title="Command Prompt",
-    cwd=None,
-    startup=None,
-    **kwargs,
-):
+def open_wt_cmd(startup=None, cwd=None, **kwargs):
     args = [
         "cmd",
         "/k",
@@ -24,15 +18,22 @@ def record_wt_cmd(
         + r"set PROMPT=$E[1;30m$P$G $E[1;37m&& echo.",
     ]
 
-    return record_windows_terminal(
-        file,
-        cmds=cmds,
-        font_size=font_size,
-        args=args,
-        icon=icon,
-        title=title,
-        **kwargs,
-    )
+    open_wt(args, icon=root + "/icons/cmd.png", title="Command Prompt", **kwargs)
+
+
+def record_wt_cmd(
+    file, cmds, size=(1440, 810), **kwargs,
+):
+    open_wt_cmd(size=size, **kwargs)
+
+    start_record(file, (0, 0, size[0], size[1]))
+
+    run_commands(cmds)
+
+    stop_record()
+
+    close_wt()
+    return file
 
 
 if __name__ == "__main__":

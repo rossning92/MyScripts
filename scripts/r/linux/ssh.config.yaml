@@ -1,3 +1,3 @@
 globalHotkey: Win+Alt+]
 # wsl: true
-# terminal: wt
+terminal: wt

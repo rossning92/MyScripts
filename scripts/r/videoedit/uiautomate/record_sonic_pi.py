@@ -1,9 +1,11 @@
 import os
 
-from _script import wrap_args_wt, input2, get_variable
-from _shutil import *
-from videoedit.record_screen import recorder
-from uiautomate import *
+import keyboard
+from _script import get_variable, input2
+from _shutil import cd
+
+from .common import *
+from .record_screen import recorder
 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,7 +29,7 @@ def record_sonic_pi(file=None):
     recorder.start_record(file)
 
     pyautogui.hotkey("alt", "r")
-    
+
     keyboard.wait("f6", suppress=True)
     pyautogui.hotkey("alt", "s")
     sleep(1)
@@ -35,5 +37,6 @@ def record_sonic_pi(file=None):
     recorder.stop_record()
 
 
-cd(get_variable("VIDEO_PROJECT_DIR") + "/screencap")
-record_sonic_pi()
+if __name__ == "__main__":
+    cd(get_variable("VIDEO_PROJECT_DIR") + "/screencap")
+    record_sonic_pi()

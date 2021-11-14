@@ -37,7 +37,7 @@
   },
   "cmd": {
     "prefix": "cmd",
-    "body": ["{{ cmd('echo hello{sleep 1.5}\\n', font_size=18) }}"]
+    "body": ["{{ cmd('''echo hello{sleep 1.5}\\n''', startup=r'cd %USERPROFILE%\\Projects', font_size=18, size=(1920, 1080), force=0) }}"]
   },
   "TODO: record": {
     "prefix": "todo_record",

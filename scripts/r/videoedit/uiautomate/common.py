@@ -2,20 +2,18 @@ import difflib
 import glob
 import os
 import random
-import time
 import re
+import time
+
 import pyautogui
 from _script import wrap_args_wt
 from _shutil import exec_ahk, getch, set_clip
-from videoedit.record_screen import CapturaScreenRecorder
 
 INTERVAL_NEW_FILE = 1
 
 root = os.path.dirname(os.path.abspath(__file__))
 
 pyautogui.PAUSE = 0
-
-recorder = CapturaScreenRecorder()
 
 
 def set_window_pos(x, y, w, h):

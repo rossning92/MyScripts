@@ -87,10 +87,7 @@ def config_vscode(data_dir, compact=False):
                     "command": "markdowdata_dir=DATA_DIRn.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
-                {
-                    "key": "shift+alt+r",
-                    "command": "revealFileInOS",
-                },
+                {"key": "shift+alt+r", "command": "revealFileInOS"},
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
                 {
@@ -166,6 +163,7 @@ def config_vscode(data_dir, compact=False):
                     "Command Prompt": {"path": "cmd", "args": ["/k"]}
                 },
                 "terminal.integrated.defaultProfile.windows": "Command Prompt",
+                "scm.diffDecorations": "none",
             }
         )
 

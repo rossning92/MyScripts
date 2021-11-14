@@ -122,6 +122,18 @@ function startSlideServer(file: string) {
   openInBrowser(`http://localhost:${port}`);
 }
 
+function runPython(file: string) {
+  const shellArgs = [
+    "/c",
+    "run_script",
+    "@cd=1:template=0",
+    file,
+    "||",
+    "pause",
+  ];
+  runInTerminal("Python", shellArgs);
+}
+
 async function openFileUnderCursor() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
@@ -132,6 +144,8 @@ async function openFileUnderCursor() {
     startMovyServer(activeFile);
   } else if (/slide[\\\/].+?\.md$/.test(activeFile)) {
     startSlideServer(activeFile);
+  } else if (/uiautomate[\\\/].+?\.py$/.test(activeFile)) {
+    runPython(activeFile);
   } else {
     const file = getFileUnderCursor();
     if (file) {

@@ -4,9 +4,7 @@ from _shutil import get_hash
 
 import core
 import coreapi
-from videoedit.uiautomate.ipython import record_ipython
-from videoedit.uiautomate.wt_cmd import record_wt_cmd
-from videoedit.uiautomate.wt_node import record_wt_node
+from videoedit.uiautomate import record_ipython, record_wt_cmd, record_wt_node
 
 
 @core.api

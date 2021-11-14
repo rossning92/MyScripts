@@ -298,6 +298,7 @@ def get_python_path(script_path):
 
     script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
     python_path.append(script_root)
+    python_path.append(os.path.join(script_root, "r"))
 
     if script_path is not None:
         parent_dir = os.path.dirname(os.path.join(os.getcwd(), script_path))
@@ -963,9 +964,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:

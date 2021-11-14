@@ -160,6 +160,22 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
 recorder = CapturaScreenRecorder()
 # recorder = ShadowPlayScreenRecorder()
 
+_cur_file = None
+
+
+def start_record(file, rect=(0, 0, 1920, 1080)):
+    global _cur_file
+
+    _cur_file = file
+    recorder.rect = rect
+    recorder.start_record()
+
+
+def stop_record():
+    time.sleep(2)
+    recorder.stop_record()
+    recorder.save_record(_cur_file)
+
 
 def wait_multiple_keys(keys):
     lock = threading.Event()
