@@ -1,6 +1,9 @@
-from _shutil import *
 import signal
-from _video import *
+import subprocess
+
+from _shutil import cd, get_cur_time_str, shell_open
+from _video import ffmpeg
+from r.video.to_gif import convert_to_gif
 
 
 def screen_record(out_file=None, max_secs=10, bit_rate="40M"):
@@ -27,7 +30,7 @@ def screen_record(out_file=None, max_secs=10, bit_rate="40M"):
 
 
 if __name__ == "__main__":
-    chdir("~/Desktop")
+    cd("~/Desktop")
 
     out_file = screen_record(
         max_secs=int("{{_MAX_SECS}}") if "{{_MAX_SECS}}" else 10,
@@ -39,4 +42,7 @@ if __name__ == "__main__":
         extra_args += ["-vf", "scale=-2:{{_RESIZE_H}}"]
         out_file = ffmpeg(out_file, out_file=out_file, extra_args=extra_args)
 
-        shell_open(out_file)
+    if "{{_TO_GIF}}":
+        convert_to_gif(out_file)
+
+    # shell_open(out_file)

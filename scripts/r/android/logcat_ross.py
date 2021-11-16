@@ -1,5 +1,5 @@
-from _android import *
+from _android import logcat
+from _shutil import call2
 
 call2("adb wait-for-device")
-# call2('adb root')
-logcat(regex="ROSS:")
+logcat(regex="ROSS:| F libc |Abort message: ")
