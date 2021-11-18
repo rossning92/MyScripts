@@ -1174,21 +1174,14 @@ def menu_item(*, key, name=None):
 
 def menu_loop(run_periotic=None, interval=-1):
     def print_help():
-        print2(
-            (
-                " _   _ _____ _     ____\n"
-                "| | | | ____| |   |  _ \\\n"
-                "| |_| |  _| | |   | |_) |\n"
-                "|  _  | |___| |___|  __/\n"
-                "|_| |_|_____|_____|_|\n"
-            ),
-            color="magenta",
-        )
+        print2("Help Menu")
+        print2("---------")
 
-        for menu_item in _menu_items.values():
-            print2("[%s] %s" % (menu_item.key, menu_item.name))
-        print2("[h] help")
-        print2("[q] quit")
+        for menu_item in sorted(_menu_items.values(), key=lambda x: x.name):
+            print("  [%s] %s" % (menu_item.key, menu_item.name))
+
+        print("  [h] help")
+        print("  [q] quit")
         print()
 
     print_help()

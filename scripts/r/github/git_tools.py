@@ -4,12 +4,14 @@ import sys
 from urllib.request import urlretrieve
 
 from _shutil import (
+    call2,
     call_echo,
     cd,
     fnull,
     get_output,
     get_time_str,
-    getch,
+    menu_item,
+    menu_loop,
     print2,
     shell_open,
     yes,
@@ -26,30 +28,7 @@ if backup_dir:
     print("Bundle file path: %s" % bundle_file)
 
 
-def print_help():
-    print2(
-        r"""
-  _   _ _____ _     ____  
- | | | | ____| |   |  _ \ 
- | |_| |  _| | |   | |_) |
- |  _  | |___| |___|  __/ 
- |_| |_|_____|_____|_|    
-""",
-        color="magenta",
-    )
-
-    print2(
-        "[h] help          [`] run command\n"
-        "[c] commit        [C] commit & push\n"
-        "[a] amend         [A] amend & push\n"
-        "[p] pull          [P] push\n"
-        "[b] switch branch\n"
-        "[s] status & log  [d] git diff\n"
-        "[r] revert file   [R] revert all changes\n"
-        "[Z] undo          [O] open folder\n"
-    )
-
-
+@menu_item(key="c")
 def commit(dry_run=False, amend=False):
     if dry_run:
         call_echo("git status --short")
@@ -68,6 +47,13 @@ def commit(dry_run=False, amend=False):
             call_echo(["git", "commit", "-m", message])
 
 
+@menu_item(key="C")
+def commit_and_push():
+    commit()
+    git_push()
+
+
+@menu_item(key="R")
 def revert():
     call_echo("git status --short")
     if not yes("Revert all files?"):
@@ -75,6 +61,7 @@ def revert():
     call_echo("git reset HEAD --hard")
 
 
+@menu_item(key="P")
 def git_push(force=False):
     args = "git push"
     if force:
@@ -96,8 +83,8 @@ def show_git_log():
     )
 
 
+@menu_item(key="s")
 def print_status():
-
     print2(
         "\nrepo_dir: %s" % repo_dir, color="magenta",
     )
@@ -131,6 +118,7 @@ def add_gitignore():
             f.writelines(["/build"])
 
 
+@menu_item(key="b")
 def switch_branch():
     call_echo(["git", "branch"])
     name = input("Switch to branch [master]: ")
@@ -139,10 +127,88 @@ def switch_branch():
     call_echo(["git", "checkout", name])
 
 
-if __name__ == "__main__":
-    repo_dir = r"{{GIT_REPO}}"
-    repo_name = os.path.basename(repo_dir)
+@menu_item(key="H")
+def amend_history_commit():
+    commit_id = input("History commit ID: ")
 
+    call_echo(["git", "tag", "history-rewrite", commit_id])
+    call2(["git", "config", "--global", "advice.detachedHead", "false"])
+    call_echo(["git", "checkout", commit_id])
+
+    input("Press enter to rebase children comments...")
+    call_echo(
+        [
+            "git",
+            "rebase",
+            "--onto",
+            "HEAD",
+            # from commit id <==> master
+            "tags/history-rewrite",
+            "master",
+        ]
+    )
+    call_echo(["git", "tag", "-d", "history-rewrite"])
+
+
+@menu_item(key="a")
+def amend():
+    commit(amend=True)
+
+
+@menu_item(key="A")
+def amend_and_push():
+    commit(amend=True)
+    git_push(force=True)
+
+
+@menu_item(key="p")
+def pull():
+    call_echo(["git", "pull"])
+
+
+@menu_item(key="r")
+def revert_file():
+    file = input("Input file to revert: ")
+    if file:
+        call_echo("git checkout %s" % file)
+
+
+@menu_item(key="d")
+def diff():
+    call_echo("git diff")
+
+
+@menu_item(key="`")
+def command():
+    cmd = input("cmd> ")
+    subprocess.call(cmd, shell=True)
+
+
+@menu_item(key="B")
+def unbundle():
+    print2("Restoring from: %s" % bundle_file)
+    call_echo(["git", "pull", bundle_file, "master:master"])
+
+
+@menu_item(key="Z")
+def undo():
+    call_echo("git reset HEAD@{1}")
+
+
+@menu_item(key="O")
+def open_folder():
+    shell_open(os.getcwd())
+
+
+@menu_item(key="f")
+def fixup_commit():
+    commit_id = input("Fixup commit (hash): ")
+    call_echo(["git", "commit", "--amend", "--fixup", commit_id])
+    call_echo(["git", "rebase", commit_id, "-i", "--autosquash"])
+
+
+@menu_item(key="S")
+def setup_project():
     if sync_github:
         FNULL = fnull()
         ret = subprocess.call(
@@ -170,56 +236,17 @@ if __name__ == "__main__":
         with open(".gitattributes", "w") as f:
             f.writelines(["* text=auto eol=lf"])
 
-    print_status()
+
+if __name__ == "__main__":
+    repo_dir = r"{{GIT_REPO}}"
+    repo_name = os.path.basename(repo_dir)
+
+    setup_project()
 
     while True:
-        ch = getch()
-        if ch == "h":
-            print_help()
-            continue
-        elif ch == "c":
-            commit()
-        elif ch == "C":
-            commit()
-            git_push()
-        elif ch == "a":
-            commit(amend=True)
-            create_bundle()
-        elif ch == "A":
-            commit(amend=True)
-            git_push(force=True)
-        elif ch == "P":
-            try:
-                git_push()
-            except subprocess.CalledProcessError:
-                if yes("Force push?"):
-                    git_push(force=True)
-        elif ch == "p":
-            call_echo("git pull")
-        elif ch == "R":
-            revert()
-        elif ch == "r":
-            file = input("Input file to revert: ")
-            if file:
-                call_echo("git checkout %s" % file)
-        elif ch == "d":
-            call_echo("git diff")
-        elif ch == "`":
-            cmd = input("cmd> ")
-            subprocess.call(cmd, shell=True)
-        # elif ch == "b":
-        #     create_bundle()
-        #     continue
-        elif ch == "B":
-            print2("Restoring from: %s" % bundle_file)
-            call_echo(["git", "pull", bundle_file, "master:master"])
-        elif ch == "Z":
-            call_echo("git reset HEAD@{1}")
-        elif ch == "b":
-            switch_branch()
-        elif ch == "q":
-            sys.exit(0)
-        elif ch == "O":
-            shell_open(os.getcwd())
-
-        print_status()
+        try:
+            menu_loop()
+        except KeyboardInterrupt:
+            print2("Command cancelled.", color="red")
+        except Exception as e:
+            print2("ERROR: %s" % e, color="red")
