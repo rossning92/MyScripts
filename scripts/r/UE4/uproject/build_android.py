@@ -3,7 +3,9 @@ import os
 
 from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import get_variable
-from _shutil import call_echo, call_highlight, cd, find_newest_file, mkdir, print2
+from _shutil import call_highlight, cd, find_newest_file, mkdir, print2
+
+from build_cpp_modules import build_cpp_modules
 
 setup_android_env()
 
@@ -26,18 +28,7 @@ def build_uproject(project_dir, out_dir=None, compile_cpp=False):
 
     # Build C++ module?
     if compile_cpp:
-        call_echo(
-            [
-                r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe" % engine_source,
-                "Development",
-                "Win64",
-                "-Project=%s" % project_file,
-                "-TargetType=Editor",
-                "-Progress",
-                # "-NoEngineChanges",
-                # "-NoHotReloadFromIDE",
-            ]
-        )
+        build_cpp_modules(project_dir)
 
     # UE4 Automation Tool
     mkdir(out_dir)
