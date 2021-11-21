@@ -203,8 +203,8 @@ def open_folder():
 @menu_item(key="f")
 def fixup_commit():
     commit_id = input("Fixup commit (hash): ")
-    call_echo(["git", "commit", "--amend", "--fixup", commit_id])
-    call_echo(["git", "rebase", commit_id, "-i", "--autosquash"])
+    call_echo(["git", "commit", "--fixup", commit_id])
+    call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"], shell=False)
 
 
 @menu_item(key="S")

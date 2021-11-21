@@ -269,35 +269,30 @@ def _add_subtitle_clip(start, end, text):
     )
 
 
-def _process_audio_file(file, out_dir="tmp/record"):
-    name_no_ext = os.path.splitext(os.path.basename(file))[0]
-    out_file = out_dir + "/" + name_no_ext + ".wav"
-
-    if file_is_old(file, out_file):
-        process_audio_file(file, out_file)
-
-    return out_file
-
-
 @core.api
 def record(
-    f,
+    file,
     t="a",
     postprocess=True,
     move_playhead=True,
     subtitle=True,
     subtitle_duration=None,
+    cut_voice=True,
     **kwargs,
 ):
-    if not os.path.exists(f):
-        f = "record/" + f
-        assert os.path.exists(f)
+    if not os.path.exists(file):
+        file = "record/" + file
+        assert os.path.exists(file)
 
     # Post-process audio
     if postprocess:
-        f = _process_audio_file(f)
+        name_no_ext = os.path.splitext(os.path.basename(file))[0]
+        out_file = "tmp/record/" + name_no_ext + ".wav"
+        if file_is_old(file, out_file):
+            process_audio_file(file, out_file, cut_voice=cut_voice)
+        file = out_file
 
-    audio(f, t=t, move_playhead=move_playhead, **kwargs)
+    audio(file, t=t, move_playhead=move_playhead, **kwargs)
 
     if move_playhead:
         _state.pos_dict["re"] = _get_time("ae")

@@ -27,12 +27,20 @@ def install_x86_windows():
     install_packages(x64=False)
 
 
+@menu_item(key="`")
+def command_line():
+    call_echo("cmd")
+
+
 if __name__ == "__main__":
     if not os.path.exists(VCPKG_ROOT):
+        os.makedirs(VCPKG_ROOT, exist_ok=True)
+        os.chdir(VCPKG_ROOT)
         call_echo(
-            "git clone https://github.com/microsoft/vcpkg", os.path.dirname(VCPKG_ROOT)
+            "git clone https://github.com/microsoft/vcpkg .",
+            os.path.dirname(VCPKG_ROOT),
         )
-        call_echo(r".\vcpkg\bootstrap-vcpkg.bat", os.path.dirname(VCPKG_ROOT))
+        call_echo("bootstrap-vcpkg.bat")
 
     os.chdir(VCPKG_ROOT)
 

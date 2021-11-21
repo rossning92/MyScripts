@@ -84,7 +84,7 @@ def filter_human_voice(in_file, out_file):
     )
 
 
-def process_audio_file(file, out_file):
+def process_audio_file(file, out_file, cut_voice=True):
     name_no_ext = os.path.splitext(os.path.basename(file))[0]
     out_dir = os.path.dirname(out_file)
 
@@ -99,48 +99,49 @@ def process_audio_file(file, out_file):
         out_file2 = out_dir + "/" + name_no_ext + ".norm.wav"
         # loudnorm(in_file, out_file2, LOUDNORM_DB)
         normalize(in_file, out_file2, -1)
+        in_file = out_file2
 
-    # Filter human voice
-    in_file = out_file2
-    filtered_voice_file = out_dir + "/" + name_no_ext + ".voice_only.wav"
-    filter_human_voice(in_file, filtered_voice_file)
+    if cut_voice:
+        # Filter human voice
+        filtered_voice_file = out_dir + "/" + name_no_ext + ".voice_only.wav"
+        filter_human_voice(in_file, filtered_voice_file)
 
-    # Cut only human voice part
-    out_file2 = out_dir + "/" + name_no_ext + ".cut.wav"
+        # Cut only human voice part
+        out_file2 = out_dir + "/" + name_no_ext + ".cut.wav"
 
-    print(out_file2)
-    rate, data2 = wavfile.read(in_file)
-    border_samples = int(BORDER_IGNORE * rate)
-    # data2 = data2[border_samples:-border_samples]
+        print(out_file2)
+        rate, data2 = wavfile.read(in_file)
+        border_samples = int(BORDER_IGNORE * rate)
+        # data2 = data2[border_samples:-border_samples]
 
-    rate, data = wavfile.read(filtered_voice_file)
-    # data = data[border_samples:-border_samples]
-    thres = np.max(np.abs(data)) * MIN_VOLUME_TO_KEEP
+        rate, data = wavfile.read(filtered_voice_file)
+        # data = data[border_samples:-border_samples]
+        thres = np.max(np.abs(data)) * MIN_VOLUME_TO_KEEP
 
-    data0 = data
-    keep = np.abs(data0) > thres
+        data0 = data
+        keep = np.abs(data0) > thres
 
-    keep_indices = np.argwhere(keep == True).flatten()
-    start = max(keep_indices[0] - int(rate * PADDING_SECS), 0)
-    end = min(keep_indices[-1] + int(rate * PADDING_SECS), data.shape[0])
+        keep_indices = np.argwhere(keep == True).flatten()
+        start = max(keep_indices[0] - int(rate * PADDING_SECS), 0)
+        end = min(keep_indices[-1] + int(rate * PADDING_SECS), data.shape[0])
 
-    data2 = data2[start:end]
+        data2 = data2[start:end]
 
-    zeros = np.zeros([int(rate * PADDING_SECS)], dtype=data2.dtype)
-    data2 = np.concatenate((data2, zeros))
+        zeros = np.zeros([int(rate * PADDING_SECS)], dtype=data2.dtype)
+        data2 = np.concatenate((data2, zeros))
 
-    # For visualization
-    if False:
-        indices = np.linspace(0, data.shape[0] - 1, 5000, dtype=int)
-        data_vis = np.take(data, indices, axis=0)
-        plt.plot(data_vis)
-        plt.show()
+        # For visualization
+        if False:
+            indices = np.linspace(0, data.shape[0] - 1, 5000, dtype=int)
+            data_vis = np.take(data, indices, axis=0)
+            plt.plot(data_vis)
+            plt.show()
 
-    wavfile.write(out_file2, rate, data2)
+        wavfile.write(out_file2, rate, data2)
+        in_file = out_file2
 
     # Compress
     if 1:
-        in_file = out_file2
         # out_file2 = out_dir + "/" + name_no_ext + ".compressed.wav"
         out_file2 = out_file
         _create_dir_if_not_exists(out_file2)
