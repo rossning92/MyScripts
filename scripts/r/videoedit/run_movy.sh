@@ -1,5 +1,5 @@
 cd movy
 
-yarn
+npm install
 
 node bin/movy.js {{_FILE}}

@@ -12,7 +12,7 @@ from _term import Menu
 
 OVERWRITE = bool("{{_OVERWRITE}}")
 
-REACT_INDEX_JS = "src/client/index.js"
+REACT_INDEX_JS = "src/hello-react.jsx"
 SERVER_INDEX_JS = "src/server/index.js"
 MODEL_DIR = "src/server/models"
 INDEX_JS = "src/index.js"
@@ -29,7 +29,7 @@ def write_file(file, content, overwrite=False):
             f.write(content)
 
 
-def add_packages(packages, dev=False):
+def add_packages(packages, dev=False, use_yarn=False):
     yarn_init()
 
     with open("package.json", "r") as f:
@@ -45,9 +45,30 @@ def add_packages(packages, dev=False):
     for pkg in packages:
         if pkg not in existing_packages:
             if dev:
-                call_echo(["yarn", "add", "--dev", pkg])
+                if use_yarn:
+                    call_echo(["yarn", "add", "--dev", pkg])
+                else:
+                    call_echo(["npm", "install", "--save-dev", pkg])
             else:
-                call_echo(["yarn", "add", pkg])
+                if use_yarn:
+                    call_echo(["yarn", "add", pkg])
+                else:
+                    call_echo(["npm", "install", pkg])
+
+
+@menu.item()
+def add_css_loader():
+    add_packages(["style-loader", "css-loader"], dev=True)
+
+    # Add babel-loader to webpack config
+    append_code(
+        "webpack.config.js",
+        "rules: [",
+        """{
+          test: /\.css$/i,
+          use: ["style-loader", "css-loader"],
+        },""",
+    )
 
 
 @menu.item()
@@ -135,33 +156,22 @@ def add_react(index_js=REACT_INDEX_JS):
 """
         )
 
+    # Add babel-loader to webpack config
+    append_code(
+        "webpack.config.js",
+        "rules: [",
+        """{
+          test: /\.jsx?$/,
+          exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+          },
+        },""",
+    )
+
     mkdir(os.path.dirname(index_js))
     if not os.path.exists(index_js) or OVERWRITE:
-        with open(index_js, "w") as f:
-            f.write(
-                """import { render } from 'react-dom';
-
-import React, { useState, useEffect } from 'react';
-
-function App() {
-  const [username, setUsername] = useState('loading...');
-
-  useEffect(() => {
-    fetch('/api/getUsername')
-      .then(res => res.json())
-      .then(data => setUsername(data.username));
-  });
-
-  return (
-      <button>username: {username}</button>
-  );
-}
-
-const root = document.createElement('div');
-document.body.appendChild(root);
-render(<App />, root);
-"""
-            )
+        render_template_file(TEMPLATE_DIR + "/hello-react.jsx", index_js)
 
     add_script_to_package(
         "client", "webpack serve --mode development --devtool inline-source-map --hot",

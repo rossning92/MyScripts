@@ -1021,8 +1021,10 @@ def _update_mpy_clip(
             clip = clip.subclip(subclip).set_duration(duration)
 
         else:
-            subclip_duration = subclip[1] - subclip[0]
-            if duration > subclip_duration:
+            subclip_duration = subclip[1] - subclip[0] 
+            if loop:
+                clip = clip.subclip(subclip[0], subclip[1]).set_duration(subclip_duration)
+            elif duration > subclip_duration:
                 c1 = clip.subclip(subclip[0], subclip[1])
                 c2 = clip.to_ImageClip(subclip[1]).set_duration(
                     duration - subclip_duration
@@ -1049,7 +1051,8 @@ def _update_mpy_clip(
     if loop:
         clip = clip.fx(
             # pylint: disable=maybe-no-member
-            vfx.loop
+            vfx.loop,
+            duration=duration,
         )
 
     if subclip is None:
