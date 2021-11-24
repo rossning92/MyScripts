@@ -515,6 +515,9 @@ class Script:
             else self.script_path
         )
 
+        if self.ext == ".md":
+            self.cfg["template"] = False
+
         # XXX: Workaround for Mac
         if sys.platform == "darwin":
             self.cfg["newWindow"] = False
@@ -612,8 +615,6 @@ class Script:
             json.dump({"file": script_path}, f)
 
         if ext == ".md":
-            # with open(script_path, "r", encoding="utf-8") as f:
-            #     set_clip(f.read())
             open_in_vscode(script_path)
             return
 
@@ -1292,7 +1293,7 @@ def script_updated():
         return False
 
 
-def load_scripts(script_list, modified_time, autorun=True):
+def reload_scripts(script_list, modified_time, autorun=True):
     if not script_updated():
         return False
 
@@ -1319,18 +1320,21 @@ def load_scripts(script_list, modified_time, autorun=True):
 
             script = Script(file, name=name)
 
-            if file not in modified_time or mtime > modified_time[file]:
+            if (
+                script.script_path not in modified_time
+                or mtime > modified_time[script.script_path]
+            ):
                 # Check if auto run script
                 if script.cfg["autoRun"] and autorun:
                     print2("AUTORUN: ", end="", color="cyan")
-                    print(file)
+                    print(script.script_path)
                     script.execute(new_window=False)
 
             # Hide files starting with '_'
-            base_name = os.path.basename(file)
+            base_name = os.path.basename(script.script_path)
             if not base_name.startswith("_"):
                 script_list.append(script)
 
-            modified_time[file] = mtime
+            modified_time[script.script_path] = mtime
 
     return True

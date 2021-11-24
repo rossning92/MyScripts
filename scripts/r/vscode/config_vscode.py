@@ -152,7 +152,7 @@ def config_vscode(data_dir, compact=False):
                 "explorer.openEditors.visible": 0,
                 "workbench.activityBar.visible": False,
                 "workbench.statusBar.visible": False,
-                "window.zoomLevel": 2,
+                "window.zoomLevel": 0,
                 "window.menuBarVisibility": "compact",
                 "extensions.ignoreRecommendations": True,
                 "liveServer.settings.AdvanceCustomBrowserCmdLine": "chrome --new-window",

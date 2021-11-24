@@ -8,7 +8,6 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
 import curses
-import json
 import platform
 import re
 import subprocess
@@ -19,7 +18,7 @@ from _script import (
     get_data_dir,
     get_script_variables,
     is_instance_running,
-    load_scripts,
+    reload_scripts,
     save_variables,
     update_script_acesss_time,
 )
@@ -33,6 +32,7 @@ from _shutil import (
 from _template import render_template_file
 from _term import Menu, init_curses
 
+REFRESH_INTERVAL_SECS = 60
 GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 
 
@@ -74,30 +74,6 @@ def setup_console_font():
     ctypes.windll.kernel32.SetCurrentConsoleFontEx(
         handle, ctypes.c_long(False), ctypes.pointer(font)
     )
-
-
-def sort_scripts(scripts):
-    while True:
-        try:
-            script_access_time, _ = get_all_script_access_time()
-
-            def key(script):
-                if script.script_path in script_access_time:
-                    return max(
-                        script_access_time[script.script_path],
-                        os.path.getmtime(script.script_path),
-                    )
-                else:
-                    return os.path.getmtime(script.script_path)
-
-            return sorted(scripts, key=key, reverse=True)
-
-        except FileNotFoundError:
-            pass
-
-
-def on_hotkey():
-    pass
 
 
 def register_hotkeys(scripts):
@@ -200,13 +176,34 @@ class VariableWindow(Menu):
         self.input_.clear()
 
 
-class State:
+class ScriptManager:
     def __init__(self):
         self.scripts = []
         self.modified_time = {}
-        self.last_ts = 0
+        self.last_refresh_time = 0
         self.hotkeys = {}
         self.execute_script = None
+
+    def update_access_time(self):
+        access_time, _ = get_all_script_access_time()
+        for script in self.scripts:
+            if script.script_path in access_time:
+                self.modified_time[script.script_path] = access_time[script.script_path]
+
+    def sort_scripts(self):
+        self.update_access_time()
+        self.scripts[:] = sorted(
+            self.scripts,
+            key=lambda script: self.modified_time[script.script_path],
+            reverse=True,
+        )
+
+    def refresh_all_scripts(self):
+        if reload_scripts(self.scripts, self.modified_time, autorun=True):
+            self.hotkeys = register_hotkeys(self.scripts)
+            register_global_hotkeys(self.scripts)
+        self.sort_scripts()
+        self.last_refresh_time = time.time()
 
 
 def add_keyboard_hooks(keyboard_hooks):
@@ -280,18 +277,12 @@ def register_global_hotkeys(scripts):
 
 class MainWindow(Menu):
     def __init__(self, stdscr):
-        super().__init__(items=state.scripts, stdscr=stdscr)
+        super().__init__(items=script_manager.scripts, stdscr=stdscr)
 
     def on_main_loop(self):
         # Reload scripts
-        now = time.time()
-        if now - state.last_ts > 2.0:
-            if load_scripts(state.scripts, state.modified_time, autorun=True):
-                state.hotkeys = register_hotkeys(state.scripts)
-                register_global_hotkeys(state.scripts)
-            state.scripts[:] = sort_scripts(state.scripts)
-
-            state.last_ts = now
+        if time.time() - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS:
+            script_manager.refresh_all_scripts()
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
@@ -300,14 +291,18 @@ class MainWindow(Menu):
 
             update_script_acesss_time(script)
 
-            state.execute_script = lambda: execute_script(
+            script_manager.execute_script = lambda: execute_script(
                 script, close_on_exit=close_on_exit
             )
+
+            script_manager.sort_scripts()
+
             self.close()
 
     def on_char(self, ch):
-        if ch == curses.ascii.ESC:
+        if ch == curses.ascii.ctrl(ord("r")):
             self.input_.clear()
+            script_manager.refresh_all_scripts()
             return True
 
         elif ch == ord("\n"):
@@ -330,13 +325,15 @@ class MainWindow(Menu):
         elif ch == ord("L"):
             sys.exit(1)
 
-        elif ch in state.hotkeys:
+        elif ch in script_manager.hotkeys:
             script = self.get_selected_text()
             if script is not None:
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT"] = script_abs_path
 
-                state.execute_script = lambda: execute_script(state.hotkeys[ch])
+                script_manager.execute_script = lambda: execute_script(
+                    script_manager.hotkeys[ch]
+                )
                 self.close()
                 return True
 
@@ -394,9 +391,9 @@ def init():
 def main_loop():
     while True:
         curses.wrapper(curse_main)
-        if state.execute_script is not None:
-            state.execute_script()
-            state.execute_script = None
+        if script_manager.execute_script is not None:
+            script_manager.execute_script()
+            script_manager.execute_script = None
 
             # HACK: workaround: key bindings will not work on windows.
             # time.sleep(1)
@@ -407,7 +404,7 @@ def main_loop():
 if __name__ == "__main__":
     # setup_console_font()
     init()
-    state = State()
+    script_manager = ScriptManager()
     while True:
         # if sys.platform == "win32":
         #     os.system("mode con cols=80 lines=20")

@@ -27,11 +27,10 @@ export function addIcons_Circular(icons) {
   });
 }
 
-export function addIcons_List(icons, labels) {
-  const dist = 6;
-  const scale = 3;
-  const fontSize = 0.5;
-
+export function addIcons_List(
+  icons,
+  { labels, dist = 6, scale = 3, fontSize = 0.5 } = {}
+) {
   icons.forEach((icon, i) => {
     const x = (i - icons.length * 0.5 + 0.5) * dist;
     mo.addImage(icon, {
