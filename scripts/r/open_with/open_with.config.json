@@ -55,7 +55,7 @@
   ".cs": ["vscode", "notepad++"],
   ".cson": ["vscode", "notepad++"],
   ".css": ["vscode", "notepad++"],
-  ".csv": ["notepad++", "tad"],
+  ".csv": ["vscode", "tad"],
   ".cu": ["vscode", "notepad++"],
   ".cue": ["mpv", "VLC"],
   ".cxx": ["vscode", "notepad++"],

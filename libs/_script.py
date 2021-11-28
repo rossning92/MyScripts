@@ -12,7 +12,6 @@ import sys
 import tempfile
 import time
 
-import jinja2
 import yaml
 
 from _appmanager import get_executable
@@ -30,6 +29,7 @@ from _shutil import (
     setup_nodejs,
     write_temp_file,
 )
+from _template import render_template
 
 
 SCRIPT_EXTENSIONS = {
@@ -454,8 +454,6 @@ def wrap_args_wt(
 
 
 class Script:
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchpath="./"))
-
     def __str__(self):
         result = self.name
 
@@ -548,21 +546,30 @@ class Script:
 
         with open(script_path, "r", encoding=encoding) as f:
             source = f.read()
-        template = Script.env.from_string(source)
-        ctx = {
-            "include": Script.include.__get__(self, Script),
-            **self.get_variables(),
-        }
-        return template.render(ctx)
+        # template = Script.env.from_string(source)
+        # ctx = {
+        #     **self.get_variables(),
+        # }
+        # return template.render(ctx)
+
+        return render_template(source, self.get_variables())
 
     def set_override_variables(self, variables):
         self.override_variables = variables
 
     def get_variables(self):
-        variables = get_all_variables()
-
-        # Get only last modified value
-        variables = {k: (v[0] if len(v) > 0 else "") for k, v in variables.items()}
+        vnames = self.get_variable_names()
+        all_variables = get_all_variables()
+        variables = {}
+        for vname in vnames:
+            if vname in all_variables:
+                # Get only last modified value
+                latest_val = (
+                    all_variables[vname][0] if len(all_variables[vname]) > 0 else ""
+                )
+                variables[vname] = latest_val
+            else:
+                variables[vname] = ""
 
         # Override variables
         if self.override_variables:
@@ -973,35 +980,20 @@ class Script:
 
     def get_variable_names(self):
         if not self.cfg["template"]:
-            return {}
+            return []
 
-        variables = set()
-        include_func = Script.include.__get__(self, Script)
+        with open(self.script_path, "r", encoding="utf-8") as f:
+            s = f.read()
+            variables = re.findall(r"\{\{([A-Z0-9_]+)\}\}", s)
 
-        class MyContext(jinja2.runtime.Context):
-            def resolve(self, key):
-                if key == "include":
-                    return include_func
-                variables.add(key)
-
-        Script.env.context_class = MyContext
-        self.render()
-        Script.env.context_class = jinja2.runtime.Context
-
-        variables = list(variables)
+        # Remove duplicates
+        variables = list(set(variables))
 
         # Convert private variable to global namespace
         prefix = self.get_public_variable_prefix()
         variables = [prefix + v if v.startswith("_") else v for v in variables]
 
         return variables
-
-    def include(self, script_name):
-        script_path = find_script(script_name, os.path.dirname(self.script_path))
-        if script_path is None:
-            raise Exception("Cannot find script: %s" % script_name)
-        # script_path = os.path.dirname(self.script_path) + '/' + script_path
-        return Script(script_path).render()
 
 
 def find_script(script_name, search_dir=None):
