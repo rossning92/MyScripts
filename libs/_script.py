@@ -31,7 +31,6 @@ from _shutil import (
 )
 from _template import render_template
 
-
 SCRIPT_EXTENSIONS = {
     ".sh",
     ".js",
@@ -546,11 +545,6 @@ class Script:
 
         with open(script_path, "r", encoding=encoding) as f:
             source = f.read()
-        # template = Script.env.from_string(source)
-        # ctx = {
-        #     **self.get_variables(),
-        # }
-        # return template.render(ctx)
 
         return render_template(source, self.get_variables())
 
@@ -787,15 +781,16 @@ class Script:
                 ]
 
             if ext == ".py":
-                run_py = os.path.abspath(
-                    os.path.dirname(__file__) + "/../bin/run_python.py"
-                )
-
-                # TODO: make it more general
-                if sys.platform == "win32" and self.cfg["wsl"]:
-                    run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
-
-                args = args_activate + [python_exec, run_py, python_file] + args
+                if self.cfg["runpy"]:
+                    run_py = os.path.abspath(
+                        os.path.dirname(__file__) + "/../bin/run_python.py"
+                    )
+                    # TODO: make it more general
+                    if sys.platform == "win32" and self.cfg["wsl"]:
+                        run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
+                    args = args_activate + [python_exec, run_py, python_file] + args
+                else:
+                    args = args_activate + [python_exec, python_file] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 
@@ -1114,6 +1109,7 @@ def get_script_default_config():
         "closeOnExit": True,
         "terminal": None,
         "packages": None,
+        "runpy": True,
     }
 
 

@@ -866,8 +866,16 @@ def wait_until_file_modified(f):
 
 
 def start_process(args, shell=True):
+    creationflags = 0
+    if sys.platform == "win32":
+        CREATE_NEW_PROCESS_GROUP = 0x00000200
+        DETACHED_PROCESS = 0x00000008
+        creationflags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+
     with open(os.devnull, "w") as fnull:
-        subprocess.Popen(args, shell=shell, stdout=fnull, stderr=fnull)
+        subprocess.Popen(
+            args, shell=shell, stdout=fnull, stderr=fnull, creationflags=creationflags
+        )
 
 
 def setup_nodejs(install=True):
