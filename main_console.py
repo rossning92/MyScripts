@@ -282,7 +282,9 @@ class MainWindow(Menu):
     def on_main_loop(self):
         # Reload scripts
         if time.time() - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS:
+            self.set_message("Reloading scripts...")
             script_manager.refresh_all_scripts()
+            self.set_message(None)
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
@@ -301,8 +303,9 @@ class MainWindow(Menu):
 
     def on_char(self, ch):
         if ch == curses.ascii.ctrl(ord("r")):
-            self.input_.clear()
+            self.set_message("Reloading scripts...")
             script_manager.refresh_all_scripts()
+            self.set_message(None)
             return True
 
         elif ch == ord("\n"):

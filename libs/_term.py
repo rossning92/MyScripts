@@ -133,6 +133,7 @@ class Menu:
         self.width = -1
         self.height = -1
         self.stdscr = stdscr
+        self.message = None
 
     def item(self, name=None):
         def decorator(func):
@@ -160,12 +161,18 @@ class Menu:
         self.exec_()
         self.stdscr = None
 
+    def update_screen(self):
+        self.height, self.width = self.stdscr.getmaxyx()
+
+        # Sreen update
+        self.stdscr.clear()
+        self.on_update_screen()
+        self.stdscr.refresh()
+
     def exec_(self):
         self.on_main_loop()
         last_input = None
         while True:
-            self.height, self.width = self.stdscr.getmaxyx()
-
             if last_input != self.get_text():
                 last_input = self.get_text()
 
@@ -176,10 +183,7 @@ class Menu:
 
                 self.selected_row = 0
 
-            # Sreen update
-            self.stdscr.clear()
-            self.on_update_screen()
-            self.stdscr.refresh()
+            self.update_screen()
 
             # Keyboard event
             ch = self.stdscr.getch()
@@ -266,6 +270,11 @@ class Menu:
 
         self.input_.on_update_screen(self.stdscr, 0, cursor=True)
 
+        if self.message is not None:
+            self.stdscr.attron(curses.color_pair(3))
+            self.stdscr.addstr(0, 0, self.message)
+            self.stdscr.attroff(curses.color_pair(3))
+
     def get_selected_text(self):
         if len(self.matched_item_indices) > 0:
             item_index = self.matched_item_indices[self.selected_row]
@@ -310,6 +319,10 @@ class Menu:
 
             time.sleep(1)
 
+    def set_message(self, message):
+        self.message = message
+        self.update_screen()
+
 
 def init_curses(stdscr):
     curses.noecho()
@@ -317,7 +330,7 @@ def init_curses(stdscr):
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
     stdscr.keypad(1)
     stdscr.nodelay(False)
     stdscr.timeout(1000)
