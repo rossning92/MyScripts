@@ -1197,7 +1197,7 @@ def _get_script_access_time_file():
     return config_file
 
 
-def update_script_acesss_time(script):
+def update_script_access_time(script):
     config_file = _get_script_access_time_file()
     if os.path.exists(config_file):
         with open(config_file, "r") as f:

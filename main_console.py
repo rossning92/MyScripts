@@ -20,7 +20,7 @@ from _script import (
     is_instance_running,
     reload_scripts,
     save_variables,
-    update_script_acesss_time,
+    update_script_access_time,
 )
 from _shutil import (
     add_to_path,
@@ -188,7 +188,10 @@ class ScriptManager:
         access_time, _ = get_all_script_access_time()
         for script in self.scripts:
             if script.script_path in access_time:
-                self.modified_time[script.script_path] = access_time[script.script_path]
+                self.modified_time[script.script_path] = max(
+                    self.modified_time[script.script_path],
+                    access_time[script.script_path],
+                )
 
     def sort_scripts(self):
         self.update_access_time()
@@ -291,7 +294,7 @@ class MainWindow(Menu):
         if index >= 0:
             script = self.items[index]
 
-            update_script_acesss_time(script)
+            update_script_access_time(script)
 
             script_manager.execute_script = lambda: execute_script(
                 script, close_on_exit=close_on_exit

@@ -60,7 +60,6 @@ if __name__ == "__main__":
     script_file = os.environ["_SCRIPT"]
 
     script = Script(script_file)
-    # update_script_acesss_time(script)
     tmp_script_file = write_temp_file(script.render(), ".sh")
 
     if script.ext == ".sh":
