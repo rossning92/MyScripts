@@ -27,6 +27,11 @@ for f in files:
     if "{{_RESIZE}}":
         args += ["-resize", "{{_RESIZE}}"]
 
+    if "{{_AUTO_PAD}}":
+        args += ["-gravity", "center", "-background", "black", "-extent", "{{_RESIZE}}"]
+    elif "{{_AUTO_CROP}}":
+        args += ["-gravity", "center", "-crop", "{{_RESIZE}}"]
+
     out_file = os.path.join(folder, "out", "%s%s" % (name, ext))
     mkdir(os.path.join(folder, "out"))
 

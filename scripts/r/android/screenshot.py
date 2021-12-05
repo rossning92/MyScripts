@@ -8,7 +8,7 @@ from _shutil import shell_open
 # adb pull /sdcard/screencap.png
 
 if __name__ == "__main__":
-    n = int("{{SCREENSHOT_COUNT}}") if r"{{SCREENSHOT_COUNT}}" else 1
+    n = int("{{_COUNT}}") if r"{{_COUNT}}" else 1
 
     os.chdir(os.path.expanduser("~/Desktop"))
 
