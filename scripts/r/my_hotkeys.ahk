@@ -157,6 +157,7 @@ return
             break
         }
     }
+    g_numTwoPressed = 0
 return
 
 $!\::
@@ -175,32 +176,42 @@ $!1::
         SetWindowPosF("A", 0, 0, WindowDividor, 1)
     }
     SetAlwaysOnTop("A", False)
+    g_numTwoPressed = 0
 return
 
 $!2::
     SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-    SetAlwaysOnTop("A", True)
+    g_numTwoPressed += 1
+    if (g_numTwoPressed >= 2) {
+        ToolTip, AlwaysOnTop=1
+        SetTimer, RemoveToolTip, -2000
+        SetAlwaysOnTop("A", True)
+    }
 return
 
 $!3::
     SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
     SetAlwaysOnTop("A", False)
+    g_numTwoPressed = 0
 return
 
 $!4::
     SetWindowPos("A", 0, 0, 1440, 810)
     SetAlwaysOnTop("A", False)
+    g_numTwoPressed = 0
 return
 
 $!5::
     SetWindowPos("A", 0, 0, 960, 540)
     SetAlwaysOnTop("A", False)
+    g_numTwoPressed = 0
 return
 
 $!6::
     WinGetPos, , , w, h, A
     SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
     SetAlwaysOnTop("A", False)
+    g_numTwoPressed = 0
 return
 
 #0::
