@@ -18,6 +18,23 @@ from _shutil import (
 )
 
 
+def reset_debug_sysprops():
+    try:
+        lines = list(
+            proc_lines(["adb", "shell", "getprop -Z | grep :debug_oculus_prop:"])
+        )
+
+        for line in lines:
+            line = line.strip()
+            matches = re.findall(r"^\[(.*?)\]", line)
+            prop_name = matches[0]
+
+            print("Reset %s" % prop_name)
+            adb_shell("setprop %s ''" % prop_name)
+    except Exception as e:
+        print2("ERROR: %s" % e, color='red')
+
+
 def start_app(pkg, use_monkey=False):
     if use_monkey:
         args = [
