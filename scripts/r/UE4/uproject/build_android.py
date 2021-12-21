@@ -3,21 +3,31 @@ import os
 
 from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import get_variable
-from _shutil import call_highlight, cd, find_newest_file, mkdir, print2
+from _shutil import call_highlight, cd, find_newest_file, mkdir, print2, yes
+import shutil
 
 from build_cpp_modules import build_cpp_modules
 
-setup_android_env()
+# TODO: no need this after UE5?
+# setup_android_env()
 
 
 OUT_DIR = "/tmp"
 
 
-def build_uproject(project_dir, out_dir=None, compile_cpp=False):
-    engine_source = get_variable("UE_SOURCE")
-    print2("Engine: %s" % engine_source)
+def build_uproject(
+    ue_source, project_dir, out_dir=None, compile_cpp=False, clean=False
+):
+    print2("Engine: %s" % ue_source)
 
     cd(project_dir)
+
+    if clean and yes("Clean project?"):
+        shutil.rmtree("Binaries")
+        shutil.rmtree("Build")
+        shutil.rmtree("Intermediate")
+        shutil.rmtree("DerivedDataCache")
+        shutil.rmtree("Saved")
 
     project_file = glob.glob(os.path.join(project_dir, "*.uproject"))[0]
     print2("Project File: %s" % project_file)
@@ -34,7 +44,7 @@ def build_uproject(project_dir, out_dir=None, compile_cpp=False):
     mkdir(out_dir)
     call_highlight(
         [
-            r"%s\Engine\Build\BatchFiles\RunUAT.bat" % get_variable("UE_SOURCE"),
+            r"%s\Engine\Build\BatchFiles\RunUAT.bat" % ue_source,
             "BuildCookRun",
             "-nocompileeditor",
             "-nop4",
@@ -63,7 +73,10 @@ def build_uproject(project_dir, out_dir=None, compile_cpp=False):
 
 if __name__ == "__main__":
     out_dir = build_uproject(
-        project_dir=r"{{UE4_PROJECT_DIR}}", compile_cpp=bool("{{_COMPILE_CPP}}")
+        ue_source=r"{{UE_SOURCE}}",
+        project_dir=r"{{UE4_PROJECT_DIR}}",
+        compile_cpp=bool("{{_COMPILE_CPP}}"),
+        clean=bool("{{_CLEAN}}"),
     )
 
     if "{{_INSTALL}}":

@@ -1,6 +1,5 @@
 import re
 from collections import defaultdict
-from queue import Queue
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,41 +22,38 @@ def plot_time_series(kw, show_recent=500):
     fig.canvas.mpl_connect("key_press_event", key_pressed)
     plt.show(block=False)
 
-    # xs = []
     data = defaultdict(list)
-    # ys = []
     frame_index = 0
 
     clear_logcat()
 
     # Read all lines with camera phase sync timestamps
-    patt = re.compile("(" + kw + ")" + "=([+-]?([0-9]*[.])?[0-9]+)")
-    it = proc_lines(["adb", "exec-out", "logcat | grep ROSS"])
+    patt = re.compile("(" + kw + ")=([+-]?([0-9]*[.])?[0-9]+)")
+    it = proc_lines(["adb", "exec-out", f"logcat | grep -E '({kw})='"])
     for line in it:
         if request_exit:
             it.close()
             break
 
-        match = re.search(patt, line)
-        if match is not None:
-            # xs.append(frame_index)
-            data[match.group(1)].append(float(match.group(2)))
-            if frame_index % 50 == 0:
-                plt.cla()
+        matches = re.findall(patt, line)
+        print(matches)
+        for match in matches:
+            data[match[0]].append(float(match[1]))
+            plt.cla()
 
-                for name, ys in data.items():
-                    maxsize = min(len(ys), show_recent)
+            for name, ys in data.items():
+                maxsize = min(len(ys), show_recent)
 
-                    plt.plot(
-                        np.arange(frame_index, frame_index + maxsize),
-                        ys[-show_recent:],
-                        label=name,
-                    )
+                plt.plot(
+                    np.arange(frame_index, frame_index + maxsize),
+                    ys[-show_recent:],
+                    label=name,
+                )
 
-                plt.legend()
-                plt.ylim(bottom=0)
-                plt_pause(0.00001)
-
+        if matches:
+            plt.legend()
+            plt.ylim(bottom=0)
+            plt_pause(0.01)
             frame_index += 1
 
     plt.close()

@@ -10,19 +10,22 @@ if __name__ == "__main__":
 
     choco_install("directx")
 
-    setup_android_env()
+    # TODO: No need this after UE5.25?
+    # setup_android_env()
 
     # TODO: install vs2017 C++ and C#
 
     cd(r"{{UE_SOURCE}}")
 
-    if False:  # NVPACK is deprecated for 5.25+
+    if os.path.exists(
+        r"Engine\Extras\Android\SetupAndroid.bat"
+    ):  # NVPACK is deprecated for 5.25+
+        os.system(r"Engine\Extras\Android\SetupAndroid.bat")
+    else:
         try:
             setup_nvpack(r"{{NVPACK_ROOT}}")
         except:
             print2("WARNING: NVPACK not found.")
-    else:
-        os.system(r"Engine\Extras\Android\SetupAndroid.bat")
 
     if not os.path.exists("UE4.sln"):
         if os.path.exists("Setup.bat"):
@@ -33,9 +36,9 @@ if __name__ == "__main__":
                     r".\Engine\Binaries\Win64\UnrealVersionSelector-Win64-Shipping.exe /register",
                     "",
                 )
-            with open("Setup2.bat", "w") as f:
+            with open("Setup.NoVersionSelector.bat", "w") as f:
                 f.write(s)
-            call_echo("Setup2.bat")
+            call_echo("Setup.NoVersionSelector.bat")
 
         choco_install("netfx-4.6.2-devpack")
 

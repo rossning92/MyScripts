@@ -14,10 +14,20 @@ def build_cpp_modules(project_dir):
     project_file = glob.glob(os.path.join(project_dir, "*.uproject"))[0]
     print2("Project File: %s" % project_file)
 
+    unreal_build_tools = (
+        r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe" % engine_source
+    )
+    if not os.path.exists(unreal_build_tools):
+        # Path changes in UE5
+        unreal_build_tools = (
+            r"%s\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe"
+            % engine_source
+        )
+
     # Build C++ modules
     call_echo(
         [
-            r"%s\Engine\Binaries\DotNET\UnrealBuildTool.exe" % engine_source,
+            unreal_build_tools,
             "Development",
             "Win64",
             "-Project=%s" % project_file,

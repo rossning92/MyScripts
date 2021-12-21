@@ -1,10 +1,12 @@
-from _shutil import *
 import re
+import subprocess
 import time
+
+from _shutil import call_echo
 
 
 def wait_for_disconnect():
-    print("Please disconnect the device via USB...")
+    print("Please disconnect the device from USB...")
     while True:
         try:
             subprocess.check_output("adb wait-for-device", stderr=subprocess.STDOUT)
@@ -18,10 +20,11 @@ def wait_for_disconnect():
 
 
 def connect_device_over_wifi():
-    call2("adb disconnect")
+    call_echo("adb root")
+    call_echo("adb disconnect")
 
-    print("Please connect the device via USB...")
-    call2("adb wait-for-device")
+    print("Please connect the device to USB...")
+    call_echo("adb wait-for-device")
 
     print("Get IP address of wlan0...")
     s = subprocess.check_output('adb -d shell "ifconfig wlan0"').decode()
@@ -31,8 +34,8 @@ def connect_device_over_wifi():
     ip = match.group(1)
 
     print("Start adb server in tcp mode...")
-    call2("adb -d tcpip 5555")
-    call2("adb wait-for-device")
+    call_echo("adb -d tcpip 5555")
+    call_echo("adb wait-for-device")
 
     print("Connect to device over wifi...")
     out = (
