@@ -18,6 +18,7 @@ from collections import OrderedDict, namedtuple
 from distutils.dir_util import copy_tree
 from time import sleep
 from typing import Dict
+import socket
 
 import yaml
 
@@ -796,14 +797,12 @@ def try_import(module_name, pkg_name=None):
         try_import(module_name)
 
 
-def get_ip_addr():
-    if sys.platform == "win32":
-        command = 'powershell -Command "Get-NetIPAddress -AddressFamily IPv4 | foreach { $_.IPAddress }"'
-        out = subprocess.check_output(command)
-        out = out.decode()
-        return out.splitlines()
-
-    return []
+def get_ip_addresses():
+    return [
+        info[4][0]
+        for info in socket.getaddrinfo(socket.gethostname(), None)
+        if info[0] == socket.AddressFamily.AF_INET
+    ]
 
 
 def check_output(args):

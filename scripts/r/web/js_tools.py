@@ -466,9 +466,13 @@ def yarn_init():
         call_echo("yarn init -y")
 
 
+@menu.item()
+def add_puppeteer():
+    add_packages(["puppeteer"])
+
+
 if __name__ == "__main__":
-    cd("~")
-    project_dir = os.path.realpath(r"{{JS_PROJECT_DIR}}")
+    project_dir = os.path.expanduser(r"{{JS_PROJECT_DIR}}")
     cd(project_dir)
     print("Project dir: %s" % project_dir)
 

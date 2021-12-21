@@ -19,7 +19,6 @@ from _shutil import (
 
 backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
 repo_dir = r"{{GIT_REPO}}"
-sync_github = bool("{{SYNC_GITHUB}}")
 
 
 bundle_file = None
@@ -207,19 +206,23 @@ def fixup_commit():
     call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"], shell=False)
 
 
+@menu_item(key="G")
+def sync_github():
+    FNULL = fnull()
+    ret = subprocess.call(
+        "gh repo view rossning92/%s" % repo_name, shell=True, stdout=FNULL
+    )
+    if ret == 1:
+        cd(os.path.dirname(repo_dir))
+        if not yes('Create "%s" on GitHub?' % repo_name):
+            sys.exit(1)
+        call_echo("gh repo create --private -y %s" % repo_name)
+    else:
+        print('GitHub repo already exists: "%s"' % repo_name)
+
+
 @menu_item(key="S")
 def setup_project():
-    if sync_github:
-        FNULL = fnull()
-        ret = subprocess.call(
-            "gh repo view rossning92/%s" % repo_name, shell=True, stdout=FNULL
-        )
-        if ret == 1:
-            cd(os.path.dirname(repo_dir))
-            if not yes('Create "%s" on GitHub?' % repo_name):
-                sys.exit(1)
-            call_echo("gh repo create --private -y %s" % repo_name)
-
     # Init repo
     cd(repo_dir)
     if not os.path.exists(".git"):
