@@ -12,7 +12,7 @@ if [ ! -d ".git" ]; then
 fi
 
 git config --global user.email "rossning92@gmail.com"
-git config --global user.name "rossning92"
+git config --global user.name "Ross Ning"
 git config credential.helper store
 
 # Check if file is modified
@@ -29,6 +29,7 @@ if [[ ! -z "$status" ]]; then
     fi
 fi
 
-git pull --rebase --recurse-submodules || true
+git pull --rebase
+git pull --recurse-submodules || true
 # git submodule update --recursive --remote
 git push

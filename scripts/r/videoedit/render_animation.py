@@ -47,7 +47,9 @@ def render_animation(file):
 
         await page.goto(url)
 
-        time.sleep(1)
+        await page.waitForFunction(
+            'document.querySelector("body").innerText.includes("render")'
+        )
 
         print("Start capture.")
         await page.evaluate("() => { window.movy.startRender(); }")

@@ -1,4 +1,9 @@
-from _shutil import *
+import os
+import re
+import subprocess
+import tempfile
+
+from _shutil import cd, get_files, get_hash, shell_open
 
 HEADER = os.path.realpath("_header.tex")
 
@@ -43,7 +48,7 @@ def generate_diagram(match):
             2
         )
 
-        tmpfile = os.path.join(gettempdir(), get_hash(s) + ".png")
+        tmpfile = os.path.join(tempfile.gettempdir(), get_hash(s) + ".png")
 
         print("Generating %s" % tmpfile)
         p = subprocess.Popen(["dot", "-Tpng", "-o", tmpfile], stdin=subprocess.PIPE)
@@ -67,39 +72,42 @@ def eval_python_code(match):
         return ""
 
 
-s = re.sub(r"```(\w+)\n([\d\D]*?)```", generate_diagram, s)
-s = re.sub(r"\{\{([\d\D]*?)\}\}", eval_python_code, s)
+if __name__ == "__main__":
+    s = re.sub(r"```(\w+)\n([\d\D]*?)```", generate_diagram, s)
+    s = re.sub(r"\{\{([\d\D]*?)\}\}", eval_python_code, s)
 
-print("Generating pdf...")
-p = subprocess.Popen(
-    [
-        "pandoc",
-        "--pdf-engine=xelatex",
-        "-o",
-        outfile,
-        "--wrap=preserve",
-        "-f",
-        "gfm+hard_line_breaks",
-        "-H",
-        HEADER,
-        "-V",
-        "documentclass=extarticle",
-        "-V",
-        "fontsize=14pt",
-        "-V",
-        "CJKmainfont=Source Han Serif CN",
-        "-V",
-        "geometry=margin=1in",
-        "--dpi=300",
-        "-V",
-        "papersize:a4",
-    ],
-    stdin=subprocess.PIPE,
-)
-p.stdin.write(s.encode("utf-8"))
-p.stdin.close()
-ret = p.wait()
-if ret != 0:
-    raise Exception("pandoc returns non zero")
+    print("Generating pdf...")
+    p = subprocess.Popen(
+        [
+            "pandoc",
+            "--pdf-engine=xelatex",
+            "-o",
+            outfile,
+            "--wrap=preserve",
+            "-f",
+            "gfm+hard_line_breaks",
+            "-H",
+            HEADER,
+            "-V",
+            "documentclass=extarticle",
+            "-V",
+            "fontsize=14pt",
+            "-V",
+            "CJKmainfont=Source Han Serif CN",
+            "-V",
+            "geometry=margin=1in",
+            "--dpi=300",
+            "-V",
+            "papersize:a4",
+        ],
+        stdin=subprocess.PIPE,
+    )
 
-shell_open(outfile)
+    if p.stdin is not None:
+        p.stdin.write(s.encode("utf-8"))
+        p.stdin.close()
+    ret = p.wait()
+    if ret != 0:
+        raise Exception("pandoc returns non zero")
+
+    shell_open(outfile)
