@@ -8,15 +8,17 @@ import tempfile
 from _shutil import call_echo, cd, download, prepend_to_path, print2, unzip
 
 
-def get_vscode_cmdline(data_dir):
-    extensions_dir = os.path.join(data_dir, "extensions")
-    return [
-        "code",
-        "--user-data-dir",
-        data_dir,
-        "--extensions-dir",
-        extensions_dir,
-    ]
+def get_vscode_cmdline(data_dir=None):
+    args = ["code"]
+    if data_dir is not None:
+        extensions_dir = os.path.join(data_dir, "extensions")
+        args += [
+            "--user-data-dir",
+            data_dir,
+            "--extensions-dir",
+            extensions_dir,
+        ]
+    return args
 
 
 def install_glslang():
@@ -31,7 +33,7 @@ def install_glslang():
     return os.path.abspath("/tools/glslang/bin/glslangValidator.exe")
 
 
-def install_extensions(data_dir):
+def install_extensions(data_dir=None):
     print2("Install extensions...")
     extensions = [
         # "donjayamanne.githistory",
@@ -62,21 +64,21 @@ def install_extensions(data_dir):
 
     prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
     for extension in extensions:
-        if not glob.glob(os.path.join(data_dir, "extensions", extension + "*")):
-            call_echo(
-                get_vscode_cmdline(data_dir=data_dir)
-                + ["--install-extension", "%s" % extension]
-            )
+        call_echo(
+            get_vscode_cmdline(data_dir=data_dir)
+            + ["--install-extension", "%s" % extension]
+        )
 
 
-def config_vscode(data_dir, compact=False):
-    if data_dir is None:
-        data_dir = os.path.expandvars("%APPDATA%/Code")
-
+def config_vscode(data_dir=None, compact=False):
     # call_echo([sys.executable, "-m", "pip", "install", "pylint"])
     # call_echo([sys.executable, "-m", "pip", "install", "autopep8"])
+    call_echo([sys.executable, "-m", "pip", "install", "-U", "mypy"])
 
-    install_extensions(data_dir)
+    install_extensions(data_dir=data_dir)
+
+    if data_dir is None:
+        data_dir = os.path.expandvars("%APPDATA%/Code")
 
     print2("Update key bindings...")
     with open(os.path.abspath(data_dir + "/User/keybindings.json"), "w") as f:
@@ -84,7 +86,7 @@ def config_vscode(data_dir, compact=False):
             [
                 {
                     "key": "ctrl+shift+v",
-                    "command": "markdowdata_dir=DATA_DIRn.showPreviewToSide",
+                    "command": "markdown.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
                 },
                 {"key": "shift+alt+r", "command": "revealFileInOS"},
@@ -110,7 +112,7 @@ def config_vscode(data_dir, compact=False):
     except FileNotFoundError:
         data = {}
 
-    data["workbench.colorTheme"] = "Visual Studio Light"
+    data["workbench.colorTheme"] = "Default Light+"
 
     data["cSpell.enabledLanguageIds"] = ["markdown", "text"]
     data["search.exclude"] = {"**/build": True}

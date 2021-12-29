@@ -8,6 +8,7 @@ chcp 65001
 call install\find_python.cmd
 if not %errorlevel%==0 (
 	call install\install_all_elevated.cmd
+	call install\find_python.cmd
 )
 
 :: Install python modules

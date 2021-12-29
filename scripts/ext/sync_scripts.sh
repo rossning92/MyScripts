@@ -1,12 +1,7 @@
 set -e
 
 cd ../..
-
 echo "Script dir: $(pwd)"
-
-git config --global user.email "rossning92@gmail.com"
-git config --global user.name "rossning92"
-git config credential.helper store
 
 if [ ! -d ".git" ]; then
     git init
@@ -15,6 +10,10 @@ if [ ! -d ".git" ]; then
     git reset --hard origin/master
     git branch --set-upstream-to=origin/master master
 fi
+
+git config --global user.email "rossning92@gmail.com"
+git config --global user.name "rossning92"
+git config credential.helper store
 
 # Check if file is modified
 git status --short
