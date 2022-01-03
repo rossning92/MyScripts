@@ -586,7 +586,7 @@ function toggleParameter(name, defaultValue) {
         newLineText = currentLineText.replace(patt, "");
     }
     else {
-        newLineText = currentLineText.replace(/(?=\))/g, `, ${name}=${defaultValue}`);
+        newLineText = currentLineText.replace(/(?=\) \}\})/g, `, ${name}=${defaultValue}`);
     }
     editor.edit((editBuilder) => {
         editBuilder.replace(new vscode.Selection(currentLine, 0, currentLine, currentLineText.length), newLineText);

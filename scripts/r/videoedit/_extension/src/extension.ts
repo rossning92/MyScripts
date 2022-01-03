@@ -732,7 +732,7 @@ function toggleParameter(name: string, defaultValue: string) {
     newLineText = currentLineText.replace(patt, "");
   } else {
     newLineText = currentLineText.replace(
-      /(?=\))/g,
+      /(?=\) \}\})/g,
       `, ${name}=${defaultValue}`
     );
   }

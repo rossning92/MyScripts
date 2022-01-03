@@ -857,7 +857,7 @@ def add_video_clip(
         _state.pos_dict["c"] = _state.pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
-        print("WARNING: clip `%s` has been removed" % track[-1].file)
+        print("WARNING: clip(file=%s, t=%d) has been removed" % (track[-1].file, clip_info.start))
         track.pop()
 
     track.append(clip_info)
