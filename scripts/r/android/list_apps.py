@@ -4,12 +4,13 @@ import sys
 
 from _android import backup_pkg
 from _script import run_script, set_variable
-from _shutil import call_echo
+from _shutil import call_echo, shell_open
 from _term import Menu
 
 if __name__ == "__main__":
-
-    s = subprocess.check_output("adb shell pm list packages").decode()
+    s = subprocess.check_output(
+        ["adb", "shell", "pm list packages"], universal_newlines=True
+    )
     s = s.replace("package:", "")
     lines = s.splitlines()
     lines = sorted(lines)
@@ -18,14 +19,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     pkg = lines[i]
-    print("Selected: " + pkg)
 
     opt = [
         "start",
         "uninstall",
         "backup",
     ]
-
     i = Menu(items=opt).exec()
     if i == -1:
         sys.exit(1)
@@ -40,6 +39,7 @@ if __name__ == "__main__":
         out_dir = os.path.expanduser("~/Desktop/android_backup")
         os.makedirs(out_dir, exist_ok=True)
         backup_pkg(pkg, out_dir=out_dir)
+        shell_open(out_dir)
 
     elif opt[i] == "uninstall":
         call_echo(["adb", "uninstall", pkg])

@@ -1,5 +1,6 @@
-from _shutil import getch, print2
+from _shutil import getch, print2, menu_item, menu_loop
 from _ue4 import ue4_command
+from _android import restart_current_app
 
 commands = {
     "r": "vr.HeadTracking.Reset",
@@ -12,23 +13,44 @@ commands = {
     "4": "stat GPU",
 }
 
-if __name__ == "__main__":
+
+@menu_item(key="`")
+def console_command():
     while True:
-        for k, v in commands.items():
-            print("[%s] %s" % (k, v))
-        print("[`] enter console command")
+        print2("console> ", end="", color="green")
+        cmd = input()
+        if not cmd:
+            break
 
-        s = getch()
-        if s == "`":
-            while True:
-                print2("console> ", end="", color="green")
-                cmd = input()
-                if not cmd:
-                    break
+        ue4_command(cmd)
 
-                ue4_command(cmd)
 
-        elif s in commands:
-            cmd = commands[s]
-            print(cmd)
-            ue4_command(cmd)
+msaa_levels = [1, 2, 4]
+cur_msaa_index = 0
+
+
+@menu_item(key="m")
+def toggle_msaa():
+    global cur_msaa_index
+    ue4_command("r.MobileMSAA %d" % msaa_levels[cur_msaa_index])
+    cur_msaa_index = (cur_msaa_index + 1) % len(msaa_levels)
+
+
+pixel_densities = [1, 1.5, 2]
+current_pd_index = 0
+
+@menu_item(key="p")
+def toggle_pixel_density():
+    global current_pd_index
+    ue4_command("vr.PixelDensity %g" % pixel_densities[current_pd_index])
+    current_pd_index = (current_pd_index + 1) % len(pixel_densities)
+
+
+@menu_item(key="R")
+def restart_cur_app():
+    global cur_msaa_index
+    restart_current_app()
+
+
+if __name__ == "__main__":
+    menu_loop()

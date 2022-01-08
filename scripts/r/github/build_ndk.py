@@ -7,7 +7,7 @@ from _git import git_clone
 from _shutil import call2, cd, run_elevated
 
 # run_elevated("choco install ninja -y")
-# setup_cmake(version="3.10.2")
+# setup_cmake(cmake_version="3.10.2")
 setup_android_env()
 
 git_clone("https://github.com/googlesamples/android-ndk")

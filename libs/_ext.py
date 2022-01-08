@@ -28,6 +28,10 @@ def enter_script_path():
     script_dir = get_selected_script_dir_rel().lstrip("/")
     script_path = input("Script path (%s [Enter]): " % script_dir)
     if not script_path:
-        script_path = script_dir + input("Script path %s" % script_dir)
+        script_name = input("Script path %s" % script_dir)
+        if not script_name:
+            return ""
+
+        script_path = script_dir + script_name
 
     return script_path

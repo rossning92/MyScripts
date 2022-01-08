@@ -7,6 +7,9 @@ if __name__ == "__main__":
     os.chdir("../")
 
     script_path = enter_script_path()
+    if not script_path:
+        print("Canceled")
+        exit(0)
 
     dir_name = os.path.dirname(script_path)
     if dir_name != "":
