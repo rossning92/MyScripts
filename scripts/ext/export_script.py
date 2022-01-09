@@ -3,8 +3,8 @@ import re
 import shutil
 import time
 
-from _script import get_python_path
-
+from _script import get_python_path, Script
+from _shutil import shell_open
 
 exported_python_modules = set()
 exported_scripts = set()
@@ -18,7 +18,7 @@ def find_module(python_path, module):
     return None
 
 
-def export_python(script_path):
+def export_python(script_path, out_dir):
     with open(script_path, "rb") as f:
         content = f.read()
 
@@ -38,15 +38,15 @@ def export_python(script_path):
             exported_python_modules.add(python_module)
 
             print("Copy: %s" % python_module)
-            shutil.copy(python_module, OUT_DIR)
+            shutil.copy(python_module, out_dir)
 
             # Find dependencies recursively
-            export_python(python_module)
+            export_python(python_module, out_dir)
 
 
-def export_script(script_path):
-    with open(script_path, "r") as f:
-        content = f.read()
+def export_script(script_path, out_dir):
+    script = Script(script_path)
+    content = script.render()
 
     # Find dependencies to other scripts
     old_new_path_map = {}
@@ -61,17 +61,17 @@ def export_script(script_path):
             exported_scripts.add(script_abs_path)
             file_name = os.path.basename(script_abs_path)
             if os.path.exists(script_abs_path):
-                shutil.copy(script_abs_path, "%s/%s" % (OUT_DIR, file_name))
+                shutil.copy(script_abs_path, "%s/%s" % (out_dir, file_name))
                 old_new_path_map[s] = file_name
                 print("Copy: %s" % script_abs_path)
-                export_script(script_abs_path)  # Recurse
+                export_script(script_abs_path, out_dir)  # Recurse
 
     if os.path.splitext(script_path)[1] == ".py":
         export_python(script_path)
 
-        launcher = f"{OUT_DIR}{os.path.sep}{os.path.splitext(os.path.basename(script_path))[0]}.cmd"
+        launcher = f"{out_dir}{os.path.sep}{os.path.splitext(os.path.basename(script_path))[0]}.cmd"
         shutil.copy(
-            "../../install/find_python.cmd", f"{OUT_DIR}{os.path.sep}_find_python.cmd"
+            "../../install/find_python.cmd", f"{out_dir}{os.path.sep}_find_python.cmd"
         )
         with open(launcher, "w") as f:
             f.write(
@@ -88,19 +88,21 @@ def export_script(script_path):
         content = content.replace(k, v)
 
     # Render scripts
-    out_file = "%s/%s" % (OUT_DIR, os.path.basename(script_path))
+    out_file = "%s/%s" % (out_dir, os.path.basename(script_path))
     print("Render: %s" % script_path)
     with open(out_file, "w") as f:
         f.write(content)
 
 
 if __name__ == "__main__":
-    OUT_DIR = os.path.abspath(os.path.expanduser("~/Desktop/script_export"))
-    if os.path.isdir(OUT_DIR):
-        shutil.rmtree(OUT_DIR)
+    out_dir = os.path.abspath(os.path.expanduser("~/Desktop/script_export"))
+    if os.path.isdir(out_dir):
+        shutil.rmtree(out_dir)
         time.sleep(1)
-    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(out_dir, exist_ok=True)
 
     script_path = os.getenv("_SCRIPT")
 
-    export_script(script_path)
+    export_script(script_path, out_dir)
+
+    shell_open(out_dir)

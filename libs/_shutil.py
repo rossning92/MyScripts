@@ -111,7 +111,7 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
     run_ahk(tmp_script_path, wait=wait)
 
 
-def conemu_wrap_args(args, title=None, cwd=None, wsl=False, always_on_top=False):
+def wrap_args_conemu(args, title=None, cwd=None, wsl=False, always_on_top=False):
     assert sys.platform == "win32"
 
     CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
@@ -1251,7 +1251,10 @@ def load_yaml(file):
 def save_yaml(data, file):
     with open(file, "w", encoding="utf-8", newline="\n") as f:
         yaml.dump(
-            data, f, default_flow_style=False, allow_unicode=True,
+            data,
+            f,
+            default_flow_style=False,
+            allow_unicode=True,
         )
 
 
@@ -1272,7 +1275,8 @@ def setup_logger(level=logging.DEBUG, log_file=None):
 def create_symlink(src, dst):
     assert os.path.isdir(src)
     subprocess.check_call(
-        ["MKLINK", "/J", dst, src], shell=True,
+        ["MKLINK", "/J", dst, src],
+        shell=True,
     )
 
 

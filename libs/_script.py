@@ -19,7 +19,7 @@ from _editor import open_in_vscode
 from _filelock import FileLock
 from _shutil import (
     call_echo,
-    conemu_wrap_args,
+    wrap_args_conemu,
     convert_to_unix_path,
     exec_ahk,
     get_ahk_exe,
@@ -363,34 +363,11 @@ def wrap_args_wt(
     title=None,
     close_on_exit=True,
     font_size=None,
+    default_font_size=9,
     icon=None,
     opacity=1.0,
     **kwargs,
 ):
-    THEME = {
-        "name": "Dracula",
-        "cursorColor": "#F8F8F2",
-        "selectionBackground": "#44475A",
-        "background": "#282A36",
-        "foreground": "#F8F8F2",
-        "black": "#21222C",
-        "blue": "#BD93F9",
-        "cyan": "#8BE9FD",
-        "green": "#50FA7B",
-        "purple": "#FF79C6",
-        "red": "#FF5555",
-        "white": "#F8F8F2",
-        "yellow": "#F1FA8C",
-        "brightBlack": "#6272A4",
-        "brightBlue": "#D6ACFF",
-        "brightCyan": "#A4FFFF",
-        "brightGreen": "#69FF94",
-        "brightPurple": "#FF92DF",
-        "brightRed": "#FF6E6E",
-        "brightWhite": "#FFFFFF",
-        "brightYellow": "#FFFFA5",
-    }
-
     if sys.platform != "win32":
         raise Exception("the function can only be called on windows platform.")
 
@@ -407,13 +384,23 @@ def wrap_args_wt(
     lines = [x for x in lines if not x.lstrip().startswith("//")]
     data = json.loads("\n".join(lines))
 
-    data["schemes"] = [THEME]
-
     updated = False
 
-    defaults = {"colorScheme": "Dracula", "font": {"face": "Consolas", "size": 10}}
-    if defaults != data["profiles"]["defaults"]:
-        data["profiles"]["defaults"] = defaults
+    settings = {
+        "initialCols": 140,
+        "initialRows": 40,
+    }
+    for k, v in settings.items():
+        if k not in data or data[k] != v:
+            data[k] = v
+            updated = True
+
+    profiles_defaults = {
+        "colorScheme": "Dracula",
+        "font": {"face": "Consolas", "size": default_font_size},
+    }
+    if profiles_defaults != data["profiles"]["defaults"]:
+        data["profiles"]["defaults"] = profiles_defaults
         updated = True
 
     if title:
@@ -546,7 +533,13 @@ class Script:
         with open(script_path, "r", encoding=encoding) as f:
             source = f.read()
 
-        return render_template(source, self.get_variables())
+        cwd = os.getcwd()
+        os.chdir(os.path.dirname(script_path))
+
+        result = render_template(source, self.get_variables())
+
+        os.chdir(cwd)
+        return result
 
     def set_override_variables(self, variables):
         self.override_variables = variables
@@ -884,7 +877,7 @@ class Script:
                                     close_on_exit=close_on_exit,
                                 )
                             elif self.cfg["terminal"] == "conemu":
-                                args = conemu_wrap_args(
+                                args = wrap_args_conemu(
                                     args,
                                     cwd=cwd,
                                     title=self.get_console_title(),
@@ -967,7 +960,9 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:
