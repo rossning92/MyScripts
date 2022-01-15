@@ -10,7 +10,7 @@
     "codemirror": "^5.62.3",
     "css-loader": "^5.2.4",
     "html-webpack-plugin": "^5.3.1",
-    "marked": "^2.0.3",
+    "marked": "^4.0.10",
     "mermaid": "^8.11.0",
     "mini-css-extract-plugin": "^1.5.0",
     "minimist": "^1.2.5",
