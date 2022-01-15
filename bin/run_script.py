@@ -1,9 +1,9 @@
-import json
 import os
 import sys
 
 sys.path.insert(0, os.path.realpath(os.path.dirname(__file__) + "/../libs"))
-from _script import run_script, set_variable
+
+from _script import run_script
 from _shutil import update_env_var_explorer
 
 
@@ -41,5 +41,7 @@ if "cd" not in kwargs:
     kwargs["cd"] = False
 
 run_script(
-    file=file, args=rest_args, **kwargs,
+    file=file,
+    args=rest_args,
+    **kwargs,
 )

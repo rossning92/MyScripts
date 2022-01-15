@@ -5,5 +5,5 @@
 
 run_script @cd=1 /r/UE4/editor/build.cmd
 run_script @cd=1 /r/UE4/uproject/build_cpp_modules.py
-run_script @cd=1 /r/UE4/editor/run.py
 run_script @cd=1 /r/UE4/uproject/build_android.py
+run_script @cd=1 /r/UE4/editor/run.py

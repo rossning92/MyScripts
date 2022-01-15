@@ -19,14 +19,15 @@ from _editor import open_in_vscode
 from _filelock import FileLock
 from _shutil import (
     call_echo,
-    wrap_args_conemu,
     convert_to_unix_path,
     exec_ahk,
+    format_time,
     get_ahk_exe,
     get_script_root,
     print2,
     run_elevated,
     setup_nodejs,
+    wrap_args_conemu,
     write_temp_file,
 )
 from _template import render_template
@@ -1029,6 +1030,7 @@ def run_script(
     cd=True,
     template=None,
 ):
+    start_time = time.time()
     if file is None:
         if os.path.exists(_get_script_history_file()):
             with open(_get_script_history_file(), "r") as f:
@@ -1084,6 +1086,12 @@ def run_script(
     # Restore title
     if console_title and platform.system() == "Windows":
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
+
+    end_time = time.time()
+    print2(
+        "run_script: %s finished in %s" % (file, format_time(end_time - start_time)),
+        color="black",
+    )
 
 
 def get_script_default_config():
