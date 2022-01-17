@@ -846,7 +846,7 @@ def add_to_path(path):
         # call_echo('reg add HKCU\Environment /v PATH /d "%s" /f' % ";".join(new_paths))
 
 
-def wait_key(prompt=None, timeout=2):
+def wait_key(prompt=None, timeout=5):
     if prompt is None:
         prompt = "Press enter to skip"
     print2(prompt, color="green", end="")

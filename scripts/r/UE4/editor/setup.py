@@ -2,7 +2,7 @@ import os
 
 from _android import setup_android_env
 from _appmanager import choco_install
-from _shutil import call_echo, cd, print2
+from _shutil import call_echo, cd, print2, wait_key
 
 from _nvpack import setup_nvpack
 
@@ -20,12 +20,18 @@ if __name__ == "__main__":
     if os.path.exists(
         r"Engine\Extras\Android\SetupAndroid.bat"
     ):  # NVPACK is deprecated for 5.25+
-        os.system(r"Engine\Extras\Android\SetupAndroid.bat")
+        call_echo(r"Engine\Extras\Android\SetupAndroid.bat")
     else:
         try:
             setup_nvpack(r"{{NVPACK_ROOT}}")
         except:
             print2("WARNING: NVPACK not found.")
+
+    if os.path.exists(r"Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe"):
+        if wait_key("press y to install UE4PrereqSetup_x64.exe") != "y":
+            call_echo(
+                r"cmd /c start /wait Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe /quiet"
+            )
 
     if not os.path.exists("UE4.sln"):
         if os.path.exists("Setup.bat"):
