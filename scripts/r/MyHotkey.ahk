@@ -224,6 +224,10 @@ return
     ToggleDesktopIcons()
 return
 
+^!+v::
+    Send %Clipboard%
+return
+
 #If
 
 #If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_exe vncviewer.exe")

@@ -1,21 +1,13 @@
 import datetime
+import glob
 import logging
+import os
+import re
 import subprocess
 import threading
 import time
-import glob
-import os
-import re
 
-
-from _shutil import (
-    call2,
-    call_echo,
-    check_output,
-    prepend_to_path,
-    print2,
-    proc_lines,
-)
+from _shutil import call2, call_echo, check_output, prepend_to_path, print2, proc_lines
 
 
 def reset_debug_sysprops():
@@ -299,14 +291,28 @@ def adb_untar(tar_file):
 
 def screenshot(out_file=None):
     if out_file is None:
-        src_file = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
+        out_file = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
+        src_file = os.path.basename(out_file)
     else:
         src_file = os.path.basename(out_file)
 
-    print("Taking screenshot...")
-    subprocess.check_call(["adb", "shell", "screencap -p /sdcard/%s" % src_file])
-    subprocess.check_call(["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file])
-    subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % src_file])
+    while True:
+        try:
+            print("Taking screenshot...")
+            subprocess.check_call(
+                ["adb", "shell", "screencap -p /sdcard/%s" % src_file]
+            )
+            print(["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file])
+            subprocess.check_call(
+                ["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file]
+            )
+            subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % src_file])
+            break
+        except subprocess.CalledProcessError:
+            print("Retry after 1 second...")
+            time.sleep(1)
+
+    return out_file
 
 
 def get_active_pkg_and_activity():
@@ -330,16 +336,6 @@ def get_device_name():
     ).decode()
     model = out.split("/")[1]
     return model
-
-
-def take_screenshot(file_name=None):
-    if not file_name:
-        file_name = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
-
-    print("Taking screenshot ...")
-    subprocess.check_call(["adb", "shell", "screencap -p /sdcard/%s" % file_name])
-    subprocess.check_call(["adb", "pull", "-a", "/sdcard/%s" % file_name])
-    subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % file_name])
 
 
 def get_adk_path():
@@ -614,6 +610,17 @@ def is_locked():
     if not m:
         raise Exception("Couldn't determine screen lock state")
     return m.group(1) == "true"
+
+
+def app_is_installed(pkg_name):
+    try:
+        subprocess.check_output(
+            ["adb", "shell", "pm", "path", pkg_name],
+            universal_newlines=True,
+        )
+    except Exception:
+        return False
+    return True
 
 
 def logcat_bg(patt):

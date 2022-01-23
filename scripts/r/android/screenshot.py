@@ -1,7 +1,6 @@
-import datetime
 import os
-import subprocess
 
+from _android import screenshot
 from _shutil import shell_open
 
 # adb shell screencap -p /sdcard/screencap.png
@@ -13,11 +12,7 @@ if __name__ == "__main__":
     os.chdir(os.path.expanduser("~/Desktop"))
 
     for i in range(n):
-        print("Taking screenshot...")
-        file_name = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
-        subprocess.check_call(["adb", "shell", "screencap -p /sdcard/%s" % file_name])
-        subprocess.check_call(["adb", "pull", "-a", "/sdcard/%s" % file_name])
-        subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % file_name])
+        file_name = screenshot()
 
     if n == 1:
         shell_open(file_name)

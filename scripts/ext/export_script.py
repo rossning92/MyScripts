@@ -5,6 +5,7 @@ import time
 
 from _script import get_python_path, Script
 from _shutil import shell_open
+from _editor import open_in_vscode
 
 exported_python_modules = set()
 exported_scripts = set()
@@ -93,6 +94,8 @@ def export_script(script_path, out_dir):
     with open(out_file, "w") as f:
         f.write(content)
 
+    return out_file
+
 
 if __name__ == "__main__":
     out_dir = os.path.abspath(os.path.expanduser("~/Desktop/script_export"))
@@ -103,6 +106,6 @@ if __name__ == "__main__":
 
     script_path = os.getenv("_SCRIPT")
 
-    export_script(script_path, out_dir)
-
-    shell_open(out_dir)
+    out_file = export_script(script_path, out_dir)
+    open_in_vscode(out_file)
+    # shell_open(out_dir)

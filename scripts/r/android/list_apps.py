@@ -24,6 +24,7 @@ if __name__ == "__main__":
         "start",
         "uninstall",
         "backup",
+        "dumpsys",
     ]
     i = Menu(items=opt).exec()
     if i == -1:
@@ -43,3 +44,7 @@ if __name__ == "__main__":
 
     elif opt[i] == "uninstall":
         call_echo(["adb", "uninstall", pkg])
+
+    elif opt[i] == "dumpsys":
+        call_echo(["adb", "shell", "dumpsys", "package", pkg])
+        input("Press enter to continue...")
