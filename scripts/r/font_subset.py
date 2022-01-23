@@ -6,7 +6,7 @@ from _shutil import call_echo, get_files
 
 if __name__ == "__main__":
     # Simplify / create font subset by specify characters to include.
-    # https://raw.githubusercontent.com/DavidSheh/CommonChineseCharacter/master/3500%E5%B8%B8%E7%94%A8%E5%AD%97.txt
+    # https://github.com/kaienfr/Font/blob/master/learnfiles/%E5%B8%B8%E7%94%A8%E6%B1%89%E5%AD%97%E5%BA%93%203500.txt
     common_zh_chars_file = os.path.join(
         os.path.realpath(os.path.dirname(__file__)), "common_zh_chars.txt"
     )

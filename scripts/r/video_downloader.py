@@ -13,10 +13,17 @@ def download_bilibili(url, out_dir=None):
     while retry > 0:
         try:
             # Cookie
-            root = os.path.dirname(os.path.abspath(__file__))
-            with open(os.path.expanduser("~/bilibili-cookie.json")) as f:
-                data = json.load(f)
-            cookie = "; ".join(["%s=%s" % (x["name"], x["value"]) for x in data])
+            kvp = []
+            with open(os.path.expanduser("~/bilibili-cookie.txt")) as f:
+                lines = f.read().splitlines()
+                for line in lines:
+                    if line.startswith("#"):
+                        continue
+                    if line.strip() == "":
+                        continue
+                    cols = line.split("\t")
+                    kvp.append(cols[-2] + "=" + cols[-1])
+            cookie = "; ".join(kvp)
 
             call_echo(["annie", "-p", "-c", cookie, url], shell=False, cwd=out_dir)
             return
