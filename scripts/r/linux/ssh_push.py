@@ -9,7 +9,7 @@ def push_file(file, dst=None):
     ssh_pwd = get_variable("SSH_PWD")
     user_host = "%s@%s" % (get_variable("SSH_USER"), get_variable("SSH_HOST"))
 
-    call_echo(["pscp", "-pw", ssh_pwd, file, f"{user_host}:{dst}"])
+    call_echo(["scp", file, f"{user_host}:{dst}"])
 
     return dst
 

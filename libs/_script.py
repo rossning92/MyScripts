@@ -663,7 +663,7 @@ class Script:
                     "-ExecutionPolicy",
                     "unrestricted",
                     ps_path,
-                ]
+                ] + args
 
         elif ext == ".ahk":
             if os.name == "nt":
@@ -963,9 +963,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:

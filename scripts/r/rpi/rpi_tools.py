@@ -28,13 +28,13 @@ def get_all_drives():
 
 
 @menu_item(key="s")
-def setup_rpi_headless():
+def setup_wifi_and_ssh():
     print("Configuring wifi...")
     drive_found = False
     for drive in get_all_drives():
         if os.path.exists(os.path.join(drive, "bootcode.bin")):
             # https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-a-headless-raspberry-pi
-            if yes("Setup raspi headless on drive %s" % drive):
+            if yes("Found raspi boot partition at: %s" % drive):
                 wifi_ssid = r"{{WIFI_SSID}}"
                 wifi_pwd = r"{{WIFI_PWD}}"
                 with open(
@@ -64,6 +64,7 @@ def setup_rpi_headless():
 
     if not drive_found:
         print2("ERROR: No drive found.", color="red")
+    print("Done.")
 
 
 @menu_item(key="f")
