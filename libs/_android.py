@@ -11,20 +11,22 @@ from _shutil import call2, call_echo, check_output, prepend_to_path, print2, pro
 
 
 def reset_debug_sysprops():
+    subprocess.check_call(["adb", "root"])
     try:
-        lines = list(
-            proc_lines(["adb", "shell", "getprop -Z | grep :debug_oculus_prop:"])
-        )
+        lines = subprocess.check_output(
+            ["adb", "shell", "getprop -Z | grep :debug_oculus_prop:"],
+            universal_newlines=True,
+        ).splitlines()
 
         for line in lines:
             line = line.strip()
             matches = re.findall(r"^\[(.*?)\]", line)
             prop_name = matches[0]
 
-            print("Reset %s" % prop_name)
+            logging.info("Reset %s" % prop_name)
             adb_shell("setprop %s ''" % prop_name)
-    except Exception as e:
-        print2("ERROR: %s" % e, color="red")
+    except Exception as ex:
+        print2("ERROR: %s" % ex, color="red")
 
 
 def start_app(pkg, use_monkey=False):
@@ -34,7 +36,7 @@ def start_app(pkg, use_monkey=False):
             "shell",
             "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
         ]
-        print("> " + " ".join(args))
+        logging.info("> " + " ".join(args))
         with open(os.devnull, "w") as fnull:
             ret = subprocess.call(
                 args,
@@ -52,14 +54,14 @@ def start_app(pkg, use_monkey=False):
         lines = out.splitlines()
         line = lines[0].strip()
         _, pkg_activity = line.split()
-        print("> ActivityName: " + pkg_activity)
+        logging.info("> ActivityName: " + pkg_activity)
         args = "adb shell am start -n %s" % pkg_activity
-        print("> " + args)
+        logging.info("> " + args)
         call2(args)
 
 
 def clear_logcat():
-    print("Clearing logcat...")
+    logging.info("Clearing logcat...")
 
     # Retry on error
     while True:
@@ -67,7 +69,7 @@ def clear_logcat():
             subprocess.check_call(["adb", "logcat", "-c"])
             break
         except subprocess.CalledProcessError:
-            print("WARNING: clear logcat failed. Retrying...")
+            logging.info("WARNING: clear logcat failed. Retrying...")
 
 
 def kill_app(pkg):
@@ -76,9 +78,9 @@ def kill_app(pkg):
 
 
 def restart_app(pkg, use_monkey=True):
-    print("Stop app: " + pkg)
+    logging.info("Stop app: " + pkg)
     args = "adb shell am force-stop %s" % pkg
-    print("> " + args)
+    logging.info("> " + args)
     call2(args)
 
     start_app(pkg, use_monkey=use_monkey)
@@ -95,7 +97,7 @@ def restart_current_app():
     )
     match = re.search(r"\{([^}]+)\}", out).group(1)
     pkg_activity = match.split()[2]
-    pkg, activity = pkg_activity.split("/")
+    pkg, _ = pkg_activity.split("/")
 
     call2("adb shell am force-stop %s" % pkg)
     call2("adb shell am start -n %s" % pkg_activity)
@@ -110,11 +112,14 @@ def logcat(
     level=None,
     exclude=None,
     exclude_proc=None,
-    ignore_duplicates=False,
+    ignore_duplicates=True,
 ):
+    LOGCAT_PATTERN = re.compile(r"^([A-Z])/(.+?)\(\s*(\d+)\):\s?(.*)$")
+
     call2("adb wait-for-device")
 
-    printed_messages = set()
+    last_message = None
+    dulicated_messages = 0
 
     if level:
         level = re.compile(level)
@@ -147,13 +152,12 @@ def logcat(
     pid_map = {}
     last_proc = None
 
-    LOGCAT_PATTERN = re.compile(r"^([A-Z])/([^\(]+)\(\s*(\d+)\):(.*)$")
     while True:
         try:
             for line in proc_lines(args):
                 match = re.match(LOGCAT_PATTERN, line)
                 if match is None:
-                    print(line)
+                    logging.info(line)
                     continue
 
                 lvl = match.group(1)
@@ -217,7 +221,9 @@ def logcat(
                 if not show_line:
                     continue
 
-                if ignore_duplicates and message[:10] in printed_messages:
+                if ignore_duplicates and message == last_message:
+                    dulicated_messages += 1
+                    print("\r(%d) " % dulicated_messages, end="")
                     continue
 
                 # Output process name
@@ -234,21 +240,29 @@ def logcat(
                     print(lvl_text, end="")
                 print(": " + tag + ": " + message)
 
-                printed_messages.add(message[:10])
+                last_message = message
+                dulicated_messages = 0
 
-        except Exception as e:
-            print(e)
+        except Exception as ex:
+            print2(ex)
 
 
-def backup_pkg(pkg, out_dir=None, backup_user_data=False):
+def get_apk_path(pkg):
+    out = subprocess.check_output(
+        ["adb", "shell", "pm path %s" % pkg], universal_newlines=True
+    )
+    apk_path = out.splitlines()[0]
+    apk_path = apk_path.replace("package:", "")
+    return apk_path
+
+
+def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
     if out_dir is not None:
         os.makedirs(out_dir, exist_ok=True)
 
     # Get apk path
     # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
-    out = subprocess.check_output("adb shell pm path %s" % pkg)
-    apk_path = out.decode().splitlines()[0]
-    apk_path = apk_path.replace("package:", "")
+    apk_path = get_apk_path(pkg)
 
     # Pull apk
     subprocess.check_call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
@@ -267,6 +281,7 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False):
         subprocess.call(f"adb pull /sdcard/{pkg}.tar", cwd=out_dir)
         subprocess.call(f"adb shell rm /sdcard/{pkg}.tar")
 
+    if backup_obb:
         print2("Backup obb...")
         subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
 
@@ -298,18 +313,18 @@ def screenshot(out_file=None):
 
     while True:
         try:
-            print("Taking screenshot...")
+            logging.info("Taking screenshot...")
             subprocess.check_call(
                 ["adb", "shell", "screencap -p /sdcard/%s" % src_file]
             )
-            print(["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file])
+            logging.info(["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file])
             subprocess.check_call(
                 ["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file]
             )
             subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % src_file])
             break
         except subprocess.CalledProcessError:
-            print("Retry after 1 second...")
+            logging.info("Retry after 1 second...")
             time.sleep(1)
 
     return out_file
@@ -418,7 +433,7 @@ def setup_android_env(ndk_version=None, jdk_version=None):
         env["NDKROOT"] = ndk_path
         env["NDK_ROOT"] = ndk_path
 
-        print(open(ndk_path + "/source.properties").read())
+        logging.info(open(ndk_path + "/source.properties").read())
         path.append(ndk_path)
 
     setup_jdk(jdk_version=jdk_version)
@@ -436,7 +451,7 @@ def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):
     logging.info('EXEC: adb shell "%s"' % command)
 
     if echo:
-        print('EXEC: adb shell "%s"' % command)
+        logging.info('EXEC: adb shell "%s"' % command)
 
     if check_output:
         return subprocess.check_output(
@@ -463,11 +478,11 @@ def wait_until_boot_complete():
             ):
                 break
 
-            print(".", end="", flush=True)
+            logging.info(".", end="", flush=True)
             time.sleep(2)
 
-        except Exception as e:
-            print(e)
+        except Exception as ex:
+            logging.info(ex)
             time.sleep(2)
 
 
@@ -493,7 +508,7 @@ def pm_list_packages():
 
 
 def adb_install(file):
-    print("Installing %s" % file)
+    logging.info("Installing %s" % file)
     try:
         subprocess.check_output(
             [
@@ -505,12 +520,14 @@ def adb_install(file):
             ],
             stderr=subprocess.STDOUT,
         )
-    except subprocess.CalledProcessError as e:
-        msg = e.output.decode()
+    except subprocess.CalledProcessError as ex:
+        msg = ex.output.decode()
         match = re.search("INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)", msg)
         if match is not None:
             pkg = match.group(1)
-            print("[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s..." % pkg)
+            logging.info(
+                "[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s..." % pkg
+            )
             subprocess.check_call(["adb", "uninstall", pkg])
             subprocess.check_call(["adb", "install", "-r", file])
 
@@ -525,7 +542,7 @@ def adb_install2(file):
     tar_file = os.path.splitext(file)[0] + ".tar"
     pkg = os.path.splitext(os.path.basename(file))[0]
     if os.path.exists(tar_file):
-        print("Restore data...")
+        logging.info("Restoring app data...")
         subprocess.check_call(["adb", "push", "tar_file}", "/data/local/tmp/"])
         adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
 
@@ -533,16 +550,16 @@ def adb_install2(file):
         out = out.decode().strip()
 
         userId = re.findall(r"userId=(\d+)", out)[0]
-        print(f"Change owner of {pkg} => {userId}")
+        logging.info(f"Changing owner of {pkg} => {userId}")
         adb_shell2(f"chown -R {userId}:{userId} /data/data/{pkg}", root=True)
 
-        print("Reset SELinux perms")
+        logging.info("Resetting SELinux permisions...")
         adb_shell2(f"restorecon -R /data/data/{pkg}", root=True)
 
     # Push obb file
     obb_folder = os.path.splitext(file)[0]
     if os.path.isdir(obb_folder):
-        print("Push obb...")
+        logging.info("Pushing obb...")
         call2(f'adb push "{obb_folder}" /sdcard/android/obb')
 
 
@@ -567,22 +584,13 @@ def sample_proc_stat():
 
 def get_pkg_name_apk(file):
     setup_android_env()
-    print("Start the app...")
+    logging.info("Starting the app...")
     out = subprocess.check_output(["aapt", "dump", "badging", file]).decode()
     package_name = re.search("package: name='(.*?)'", out).group(1)
-    print("PackageName: %s" % package_name)
+    logging.info("PackageName: %s" % package_name)
     # activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
-    # print('LaunchableActivity: %s' % activity_name)
+    # logging.info('LaunchableActivity: %s' % activity_name)
     return package_name
-
-
-def run_apk(file):
-    try:
-        pkg = get_pkg_name_apk(file)
-        start_app(pkg)
-        return pkg
-    except:
-        print("Cannot launch the app")
 
 
 def unlock_device(pin):
@@ -666,5 +674,44 @@ def toggle_prop(name, values=("0", "1")):
     new_val = values[(i + 1) % len(values)]
 
     command = "setprop %s %s" % (name, new_val)
-    print(command)
+    logging.info(command)
     subprocess.check_call(["adb", "shell", command])
+
+
+def run_apk(apk):
+    out = subprocess.check_output(
+        ["aapt", "dump", "badging", apk], universal_newlines=True
+    )
+    match = re.search(r"package: name='(.+?)'", out)
+    pkg_name = match.group(1)
+    logging.info("Found package name: %s" % pkg_name)
+
+    should_install = False
+    if not app_is_installed(pkg_name):
+        logging.info("App does not exist on device, installing...")
+        should_install = True
+
+    if not should_install:
+        # Get local apk size in bytes
+        local_file_size = os.path.getsize(apk)
+
+        # Get file size in bytes
+        apk_path_device = get_apk_path(pkg_name)
+        file_size = int(
+            subprocess.check_output(
+                ["adb", "shell", "wc -c %s | awk '{print $1}'" % apk_path_device],
+                universal_newlines=True,
+            )
+        )
+
+        if local_file_size != file_size:
+            logging.info(
+                "Installed APK size does not match with local file %d != %d, reinstalling..."
+                % (file_size, local_file_size)
+            )
+            should_install = True
+
+    if should_install:
+        adb_install(apk)
+
+    restart_app(pkg_name)

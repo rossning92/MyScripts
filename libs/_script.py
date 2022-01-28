@@ -163,11 +163,11 @@ def exec_cmd(cmd):
     subprocess.check_call(args)
 
 
-def _args_to_str(args):
-    if platform.system() == "Windows":
-        args = ['"%s"' % a if " " in a else a for a in args]
-    else:
+def _args_to_str(args, single_quote=False):
+    if single_quote:
         args = [shlex.quote(x) for x in args]
+    else:
+        args = ['"%s"' % x if " " in x else x for x in args]
     return " ".join(args)
 
 
@@ -720,7 +720,8 @@ class Script:
                 bash_cmd = self.render()
             else:
                 bash_cmd = "bash " + _args_to_str(
-                    [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args
+                    [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args,
+                    single_quote=True,
                 )
 
             args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)

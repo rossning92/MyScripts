@@ -182,7 +182,7 @@ return
 $!2::
     SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
     g_numTwoPressed += 1
-    if (g_numTwoPressed >= 2) {
+    if (g_numTwoPressed >= 1) {
         ToolTip, AlwaysOnTop=1
         SetTimer, RemoveToolTip, -2000
         SetAlwaysOnTop("A", True)

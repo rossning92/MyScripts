@@ -37,7 +37,7 @@ if __name__ == "__main__":
         run_script("restart_app", variables={"PKG_NAME": pkg}, new_window=True)
 
     elif opt[i] == "backup":
-        out_dir = os.path.expanduser("~/Desktop/android_backup")
+        out_dir = os.path.abspath("/tmp/android_backup")
         os.makedirs(out_dir, exist_ok=True)
         backup_pkg(pkg, out_dir=out_dir)
         shell_open(out_dir)

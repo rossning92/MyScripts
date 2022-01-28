@@ -196,9 +196,9 @@ def combine_images(
     scale=1.0,
     text_outline=2,
     gif_duration=500,
-    generate_atlas=True,
-    generate_gif=True,
-    generate_vid=True,
+    generate_atlas=False,
+    generate_gif=False,
+    generate_vid=False,
     draw_label=True,
     labels=None,
     label_align="top",
@@ -348,7 +348,10 @@ def combine_images(
                 format="rgb24",
             )
 
-    return np.array(im_combined)
+    if generate_atlas:
+        return np.array(im_combined)
+    else:
+        return None
 
 
 def parse_file_name(s):

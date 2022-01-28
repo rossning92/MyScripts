@@ -1,6 +1,6 @@
-from _shutil import getch, print2, menu_item, menu_loop
-from _ue4 import ue4_command
 from _android import restart_current_app
+from _shutil import getch, menu_item, menu_loop, print2
+from _ue4 import ue4_command
 
 commands = {
     "r": "vr.HeadTracking.Reset",
@@ -39,11 +39,22 @@ def toggle_msaa():
 pixel_densities = [1, 1.5, 2]
 current_pd_index = 0
 
+
 @menu_item(key="p")
 def toggle_pixel_density():
     global current_pd_index
     ue4_command("vr.PixelDensity %g" % pixel_densities[current_pd_index])
     current_pd_index = (current_pd_index + 1) % len(pixel_densities)
+
+
+headlock = 0
+
+
+@menu_item(key="l")
+def toggle_headlock():
+    global headlock
+    headlock = 1 - headlock
+    ue4_command("ovr.HeadLock %d" % headlock)
 
 
 @menu_item(key="R")
