@@ -11,7 +11,7 @@ template_file = os.path.join(
 )
 
 
-def cmake_build(project_dir, project_name=None):
+def cmake_build(project_dir, project_name=None, use_vcpkg=False):
     print2("Project dir: %s" % project_dir)
 
     if project_name is None:
@@ -30,8 +30,8 @@ def cmake_build(project_dir, project_name=None):
     # shutil.rmtree("build")
 
     # Config the project
-    args = ["cmake"]
-    if os.path.exists(vcpkg.VCPKG_ROOT):
+    args = ["cmake", "-DCMAKE_BUILD_TYPE=Release"]
+    if use_vcpkg and os.path.exists(vcpkg.VCPKG_ROOT):
         toolchain_file = (
             "%s/scripts/buildsystems/vcpkg.cmake" % vcpkg.VCPKG_ROOT.replace("\\", "/")
         )
@@ -62,20 +62,6 @@ def cmake_build(project_dir, project_name=None):
     )
 
 
-# Run the executable
-# call_echo(".\\build\\Release\\main.exe")
-# shell_open("build\\thread.sln")
+if __name__ == "__main__":
+    cmake_build(r"{{PROJECT_DIR}}", use_vcpkg="{{_USE_VCPKG}}")
 
-# if __name__ == "__main__":
-#     if r"{{CMAKE_PROJECT_DIR}}":
-#         project_dir = r"{{CMAKE_PROJECT_DIR}}"
-#     else:
-#         project_dir = os.environ["_CUR_DIR"]
-#         set_variable("CMAKE_PROJECT_DIR", project_dir)
-
-#     # Remove cmake cache
-#     # if "{{CMAKE_REMOVE_CACHE}}" == "Y":
-#     #     if os.path.exists("CMakeCache.txt"):
-#     #         os.remove("CMakeCache.txt")
-
-#     cmake_build(project_dir=project_dir)

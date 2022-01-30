@@ -1,7 +1,8 @@
+set -e
+
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
-
 
 magick -size 32x32 xc:black empty.png
 adb push empty.png /sdcard/empty.png
@@ -15,4 +16,3 @@ adb shell settings put system status_bar_show_battery_percent 1
 adb shell settings put system prox_wake_enabled 1
 adb shell settings put system doze_enabled 1
 adb shell settings put system aod_clock_style 1
-
