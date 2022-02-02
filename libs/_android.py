@@ -7,6 +7,7 @@ import subprocess
 import threading
 import time
 
+from _image import scale_image
 from _shutil import call2, call_echo, check_output, prepend_to_path, print2, proc_lines
 
 
@@ -36,7 +37,7 @@ def start_app(pkg, use_monkey=False):
             "shell",
             "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
         ]
-        logging.info("> " + " ".join(args))
+        logging.info("exec: " + " ".join(args))
         with open(os.devnull, "w") as fnull:
             ret = subprocess.call(
                 args,
@@ -56,7 +57,7 @@ def start_app(pkg, use_monkey=False):
         _, pkg_activity = line.split()
         logging.info("> ActivityName: " + pkg_activity)
         args = "adb shell am start -n %s" % pkg_activity
-        logging.info("> " + args)
+        logging.info("exec: " + args)
         call2(args)
 
 
@@ -80,7 +81,7 @@ def kill_app(pkg):
 def restart_app(pkg, use_monkey=True):
     logging.info("Stop app: " + pkg)
     args = "adb shell am force-stop %s" % pkg
-    logging.info("> " + args)
+    logging.info("exec: " + args)
     call2(args)
 
     start_app(pkg, use_monkey=use_monkey)
@@ -304,7 +305,7 @@ def adb_untar(tar_file):
     adb_shell(f"tar -xf /data/local/tmp/{tar_file}")
 
 
-def screenshot(out_file=None):
+def screenshot(out_file=None, scale=None):
     if out_file is None:
         out_file = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
         src_file = os.path.basename(out_file)
@@ -322,11 +323,14 @@ def screenshot(out_file=None):
                 ["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file]
             )
             subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % src_file])
+
             break
         except subprocess.CalledProcessError:
             logging.info("Retry after 1 second...")
             time.sleep(1)
 
+    if scale is not None:
+        scale_image(out_file, scale, scale)
     return out_file
 
 
@@ -448,10 +452,10 @@ def setup_android_env(ndk_version=None, jdk_version=None):
 
 
 def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):
-    logging.info('EXEC: adb shell "%s"' % command)
+    logging.info('exec: adb shell "%s"' % command)
 
     if echo:
-        logging.info('EXEC: adb shell "%s"' % command)
+        logging.info('exec: adb shell "%s"' % command)
 
     if check_output:
         return subprocess.check_output(
@@ -507,29 +511,68 @@ def pm_list_packages():
     return lines
 
 
-def adb_install(file):
-    logging.info("Installing %s" % file)
-    try:
-        subprocess.check_output(
-            [
-                "adb",
-                "install",
-                "-r",  # Replace existing apps without clearing data
-                "-d",  # Allow downgrade
-                file,
-            ],
-            stderr=subprocess.STDOUT,
+def adb_install(apk, force=False):
+    if not force:
+        # Get package name
+        out = subprocess.check_output(
+            ["aapt", "dump", "badging", apk], universal_newlines=True
         )
-    except subprocess.CalledProcessError as ex:
-        msg = ex.output.decode()
-        match = re.search("INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)", msg)
-        if match is not None:
-            pkg = match.group(1)
-            logging.info(
-                "[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s..." % pkg
+        match = re.search(r"package: name='(.+?)'", out)
+        pkg_name = match.group(1)
+        logging.info("Found package name: %s" % pkg_name)
+
+        should_install = False
+        if not app_is_installed(pkg_name):
+            logging.info("App does not exist on device, installing...")
+            should_install = True
+
+        if not should_install:
+            # Get local apk size in bytes
+            local_file_size = os.path.getsize(apk)
+
+            # Get file size in bytes
+            apk_path_device = get_apk_path(pkg_name)
+            file_size = int(
+                subprocess.check_output(
+                    ["adb", "shell", "wc -c %s | awk '{print $1}'" % apk_path_device],
+                    universal_newlines=True,
+                )
             )
-            subprocess.check_call(["adb", "uninstall", pkg])
-            subprocess.check_call(["adb", "install", "-r", file])
+
+            if local_file_size != file_size:
+                logging.info(
+                    "Installed APK size does not match with local file %d != %d, reinstalling..."
+                    % (file_size, local_file_size)
+                )
+                should_install = True
+
+    if force or should_install:
+        logging.info("Installing %s" % apk)
+        try:
+            subprocess.check_output(
+                [
+                    "adb",
+                    "install",
+                    "-r",  # Replace existing apps without clearing data
+                    "-d",  # Allow downgrade
+                    apk,
+                ],
+                stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as ex:
+            msg = ex.output.decode()
+            match = re.search(
+                "INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)", msg
+            )
+            if match is not None:
+                pkg = match.group(1)
+                logging.info(
+                    "[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s..." % pkg
+                )
+                subprocess.check_call(["adb", "uninstall", pkg])
+                subprocess.check_call(["adb", "install", "-r", apk])
+    else:
+        logging.info("App already installed, skipping...")
 
 
 def adb_install2(file):
@@ -679,39 +722,7 @@ def toggle_prop(name, values=("0", "1")):
 
 
 def run_apk(apk):
-    out = subprocess.check_output(
-        ["aapt", "dump", "badging", apk], universal_newlines=True
-    )
-    match = re.search(r"package: name='(.+?)'", out)
-    pkg_name = match.group(1)
-    logging.info("Found package name: %s" % pkg_name)
 
-    should_install = False
-    if not app_is_installed(pkg_name):
-        logging.info("App does not exist on device, installing...")
-        should_install = True
-
-    if not should_install:
-        # Get local apk size in bytes
-        local_file_size = os.path.getsize(apk)
-
-        # Get file size in bytes
-        apk_path_device = get_apk_path(pkg_name)
-        file_size = int(
-            subprocess.check_output(
-                ["adb", "shell", "wc -c %s | awk '{print $1}'" % apk_path_device],
-                universal_newlines=True,
-            )
-        )
-
-        if local_file_size != file_size:
-            logging.info(
-                "Installed APK size does not match with local file %d != %d, reinstalling..."
-                % (file_size, local_file_size)
-            )
-            should_install = True
-
-    if should_install:
-        adb_install(apk)
+    adb_install(apk)
 
     restart_app(pkg_name)

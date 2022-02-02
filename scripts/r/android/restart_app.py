@@ -1,7 +1,10 @@
-from _android import restart_app, logcat
 import argparse
 
+from _android import logcat, restart_app
+from _shutil import setup_logger
+
 if __name__ == "__main__":
+    setup_logger()
     # Run app using monkey:
     # adb shell monkey -p your.app.package.name -c android.intent.category.LAUNCHER 1
 

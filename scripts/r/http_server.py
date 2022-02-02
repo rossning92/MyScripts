@@ -3,9 +3,13 @@ import os
 import re
 import socketserver
 
-os.chdir(r"{{_DIR}}" if r"{{_DIR}}" else os.environ["_CUR_DIR"])
+from _shutil import get_ip_addresses
 
 PORT = 8000
+os.chdir(r"{{_DIR}}" if r"{{_DIR}}" else os.environ["_CUR_DIR"])
+
+
+print(get_ip_addresses())
 
 
 # Copied from https://github.com/danvk/RangeHTTPServer/tree/ff4277417c6c8ea2435399659c25a172dbdfd24f

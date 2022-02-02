@@ -12,7 +12,7 @@ if __name__ == "__main__":
     os.chdir(os.path.expanduser("~/Desktop"))
 
     for i in range(n):
-        file_name = screenshot()
+        file_name = screenshot(scale=0.5)
 
     if n == 1:
         shell_open(file_name)

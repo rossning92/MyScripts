@@ -15,6 +15,9 @@ for f in files:
 
     args = [magick, f]
 
+    if "{{_NEAREST}}":
+        args += ["-filter", "point"]
+
     if "{{_FLIP}}":
         args += ["-flip"]
 

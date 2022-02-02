@@ -1,13 +1,21 @@
 import argparse
 import os
 
-from _android import adb_install2, get_pkg_name_apk, logcat, start_app
+from _android import (
+    adb_install2,
+    get_pkg_name_apk,
+    logcat,
+    start_app,
+    setup_android_env,
+)
 from _shutil import get_files, print2
 
 if __name__ == "__main__":
+    setup_android_env()
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("file", nargs="?", default=None)
-    parser.add_argument("-r", "--run", default=bool, action="store_true")
+    parser.add_argument("-r", "--run", default=False, action="store_true")
 
     args = parser.parse_args()
 
