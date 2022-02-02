@@ -717,12 +717,12 @@ class Script:
 
         elif ext == ".sh":
             if self.cfg["template"]:
-                bash_cmd = self.render()
-            else:
-                bash_cmd = "bash " + _args_to_str(
-                    [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args,
-                    single_quote=True,
-                )
+                script_path = write_temp_file(self.render(), ".sh")
+
+            bash_cmd = "bash " + _args_to_str(
+                [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args,
+                single_quote=True,
+            )
 
             args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)
 

@@ -14,7 +14,7 @@ def find_cmake_path(cmake_version):
         return None
 
 
-def setup_cmake(cmake_version="3.21.1", install=True):
+def setup_cmake(cmake_version=None, install=True):
     if sys.platform == "win32":
         if cmake_version:
             cmake_path = find_cmake_path(cmake_version=cmake_version)

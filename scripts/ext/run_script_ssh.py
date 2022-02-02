@@ -18,7 +18,7 @@ def run_bash_script_plink(
     # plink is preferred for automation.
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
-    args = f"plink -ssh -t {user_host} -m {bash_script_file}"
+    args = f"plink -ssh -t -no-antispoof {user_host} -m {bash_script_file}"
     if ssh_pwd:
         args += " -pw %s" % ssh_pwd
     if ssh_port:

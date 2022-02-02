@@ -1,20 +1,19 @@
-import json
 import os
 import subprocess
 import sys
 
-from _shutil import call_echo, print2, cd
+from _shutil import call_echo, cd, print2
 
 root = os.path.dirname(os.path.realpath(__file__))
 
 
-def download_bilibili(url, out_dir=None):
+def download_bilibili(url, download_dir=None):
     retry = 3
     while retry > 0:
         try:
             # Cookie
             kvp = []
-            with open(os.path.expanduser("~/bilibili-cookie.txt")) as f:
+            with open(os.path.expanduser("~/bilibili-cookies.txt")) as f:
                 lines = f.read().splitlines()
                 for line in lines:
                     if line.startswith("#"):
@@ -25,7 +24,7 @@ def download_bilibili(url, out_dir=None):
                     kvp.append(cols[-2] + "=" + cols[-1])
             cookie = "; ".join(kvp)
 
-            call_echo(["annie", "-p", "-c", cookie, url], shell=False, cwd=out_dir)
+            call_echo(["annie", "-p", "-c", cookie, url], shell=False, cwd=download_dir)
             return
         except subprocess.CalledProcessError:
             print2("on error, retrying...")
