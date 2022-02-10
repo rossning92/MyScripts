@@ -1,6 +1,8 @@
+import os
+
+from _editor import open_in_vscode
+from _shutil import chdir, get_output, load_json, print2, save_json
 from _term import Menu
-from _shutil import *
-from _editor import *
 
 
 def grep(src_dir, exclude=[]):
@@ -14,7 +16,7 @@ def grep(src_dir, exclude=[]):
         tmp_path = ""
         for comp in src_dir.split("\\"):
             tmp_path += comp + "\\"
-            if exists(tmp_path + ".gitignore"):
+            if os.path.exists(tmp_path + ".gitignore"):
                 print("REPO ROOT: " + tmp_path)
                 repo_root = tmp_path
                 rel_path = src_dir.replace(repo_root, "")
@@ -45,7 +47,7 @@ def grep(src_dir, exclude=[]):
         if rel_path:
             args += " " + rel_path
 
-        if not exists(".gitignore"):
+        if not os.path.exists(".gitignore"):
             args += ' -g "!intermediates/" -g "!build/" -g "!Build/" -g "!ThirdParty/"'
         for x in exclude:
             args += ' -g "!%s"' % x

@@ -2,6 +2,7 @@ import sys
 
 from _shutil import call_echo, proc_lines
 from _term import Menu
+from _script import run_script
 
 PKGS = {
     "@common": [
@@ -37,10 +38,17 @@ PKGS = {
         # "pycharm-community",
         # "visualstudiocode-insiders --pre",
     ],
-    "@gamedev": ["renderdoc",],
+    "@gamedev": [
+        "renderdoc",
+    ],
     "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
-    "@work": ["p4v", "selenium-chrome-driver",],
-    "@ue4": ["directx",],
+    "@work": [
+        "p4v",
+        "selenium-chrome-driver",
+    ],
+    "@ue4": [
+        "directx",
+    ],
     "@other": [
         "audacity",
         "autohotkey",
@@ -95,6 +103,8 @@ def install_package(name):
 
 
 if __name__ == "__main__":
+    run_script("add_default_source")
+
     pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
         set([app for cate in PKGS.values() for app in cate])
     )

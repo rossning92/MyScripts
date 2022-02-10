@@ -1,7 +1,7 @@
 {
   ".apk": [
     ["run_script", "/r/android/install_apk.py"],
-    ["run_script", "/r/android/show_apk_info.py", "-r"]
+    ["run_script", "/r/android/install_apk.py", "-r"]
   ],
   ".3g2": ["mpv", "VLC"],
   ".3gp": ["mpv", "VLC"],
@@ -146,7 +146,7 @@
   ".list": ["vscode", "notepad++"],
   ".lmp4": ["mpv", "VLC"],
   ".lnk": ["HxD"],
-  ".log": ["vscode", "notepad++"],
+  ".log": ["vscode", "klogg"],
   ".lrc": ["vscode", "notepad++"],
   ".lyx": ["vscode", "notepad++"],
   ".lua": ["vscode", "notepad++"],

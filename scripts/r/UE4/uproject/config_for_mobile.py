@@ -3,7 +3,7 @@ import os
 from _ue4 import update_config
 
 
-def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
+def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=False):
     os.chdir(project_dir)
 
     update_config(
@@ -37,13 +37,12 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4):
         ],
     )
 
-    # update_config(
-    #     "Saved/Config/Windows/Game.ini",
-    #     "[/Script/UnrealEd.ProjectPackagingSettings]",
-    #     [
-    #         "BuildConfiguration=PPBC_Shipping",
-    #     ],
-    # )
+    if openxr:
+        update_config(
+            "Config/DefaultEngine.ini",
+            "[/Script/OculusHMD.OculusHMDRuntimeSettings]",
+            ["XrApi=OVRPluginOpenXR"],
+        )
 
 
 if __name__ == "__main__":

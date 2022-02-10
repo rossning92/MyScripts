@@ -1,3 +1,4 @@
+import os
 import signal
 import subprocess
 
@@ -43,6 +44,7 @@ if __name__ == "__main__":
         out_file = ffmpeg(out_file, out_file=out_file, extra_args=extra_args)
 
     if "{{_TO_GIF}}":
-        convert_to_gif(out_file)
+        convert_to_gif(out_file, out_file=os.path.splitext(out_file)[0] + ".gif")
+        os.remove(out_file)
 
     # shell_open(out_file)

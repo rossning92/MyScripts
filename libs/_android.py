@@ -574,6 +574,8 @@ def adb_install(apk, force=False):
     else:
         logging.info("App already installed, skipping...")
 
+    return pkg_name
+
 
 def adb_install2(file):
     """
@@ -722,7 +724,5 @@ def toggle_prop(name, values=("0", "1")):
 
 
 def run_apk(apk):
-
-    adb_install(apk)
-
+    pkg_name = adb_install(apk)
     restart_app(pkg_name)
