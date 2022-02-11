@@ -17,6 +17,6 @@ if __name__ == "__main__":
     else:
         pkg = r"{{PKG_NAME}}"
 
-    restart_app(pkg, use_monkey=False)
+    restart_app(pkg, use_monkey="{{USE_MONKEY}}")
     if "{{_SHOW_LOGCAT}}":
         logcat(proc_name=pkg)

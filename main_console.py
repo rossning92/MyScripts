@@ -323,10 +323,11 @@ class MainWindow(Menu):
             script = self.get_selected_text()
             if script is not None:
                 w = VariableWindow(self.stdscr, script)
-                w.exec()
-                if w.enter_pressed:
-                    self.run_selected_script()
-                return True
+                if w.var_names:
+                    w.exec()
+                    if w.enter_pressed:
+                        self.run_selected_script()
+            return True
 
         elif ch == ord("L"):
             sys.exit(1)

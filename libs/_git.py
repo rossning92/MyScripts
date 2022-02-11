@@ -11,4 +11,6 @@ def git_clone(url):
         subprocess.check_call(["git", "clone", "--recurse-submodules", url])
     else:
         print2("%s already exists. Don't clone" % folder_name)
-    os.chdir(folder_name)
+    path = os.path.abspath(folder_name)
+    os.chdir(path)
+    return path

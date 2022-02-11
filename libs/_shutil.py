@@ -9,6 +9,7 @@ import platform
 import re
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -18,9 +19,10 @@ from collections import OrderedDict, namedtuple
 from distutils.dir_util import copy_tree
 from time import sleep
 from typing import Dict
-import socket
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def get_hash(text, digit=16):
@@ -234,7 +236,7 @@ def call2(args, check=True, shell=True, **kwargs):
     else:
         s = args
 
-    logging.info("EXEC: %s" % s)
+    logger.debug("shell_cmd: %s" % s)
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
@@ -249,7 +251,7 @@ def call_echo(args, shell=True, check=True, **kwargs):
     else:
         s = args
 
-    logging.info("EXEC: %s" % s)
+    logger.debug("shell_cmd: %s" % s)
     print2("> " + s, color="black")
     ret = subprocess.run(args, shell=shell, check=check, **kwargs)
     return ret.returncode
@@ -1208,9 +1210,12 @@ def menu_loop(run_periotic=None, interval=-1):
         elif ch == "q":
             break
         elif ch in _menu_items:
-            _menu_items[ch].func()
+            try:
+                _menu_items[ch].func()
+            except Exception as ex:
+                print2("Error: %s" % ex, color="red")
         else:
-            print2("Invalid key: %s" % ch, color="red")
+            print2("Invalid key: %s" % ch, color="yellow")
 
 
 def file_is_old(in_file, out_file):
@@ -1263,7 +1268,7 @@ def setup_logger(level=logging.DEBUG, log_file=None):
     logger.setLevel(level)
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(levelname)-6s : %(message)s"))
+    handler.setFormatter(logging.Formatter("%(name)s: %(levelname)s: %(message)s"))
     logger.addHandler(handler)
 
     if log_file:
