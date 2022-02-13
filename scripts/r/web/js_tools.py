@@ -234,8 +234,8 @@ new p5(sketch);
 
 
 @menu.item()
-def add_bootstrap():
-    add_packages(["react-bootstrap@next", "bootstrap@5.1.0"])
+def add_react_bootstrap():
+    add_packages(["bootstrap", "react-bootstrap", "react-bootstrap-icons"])
 
     # https://react-bootstrap.netlify.app/getting-started/introduction/
     prepend_line(REACT_INDEX_JS, "import 'bootstrap/dist/css/bootstrap.min.css';")
