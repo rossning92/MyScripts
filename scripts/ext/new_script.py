@@ -15,9 +15,10 @@ if __name__ == "__main__":
     if dir_name != "":
         os.makedirs(dir_name, exist_ok=True)
 
+    # Check script extensions
     name, ext = os.path.splitext(script_path)
     if not ext:
-        print("Please specify script extension")
+        print("Please specify a script extension.")
         exit(0)
 
     if ext == ".py":

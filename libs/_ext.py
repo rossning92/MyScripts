@@ -1,7 +1,7 @@
 import os
-from _appmanager import get_executable
-from _shutil import *
+
 from _editor import open_in_vscode
+from _script import get_script_directories
 
 
 def get_selected_script_dir_rel():
@@ -33,5 +33,14 @@ def enter_script_path():
             return ""
 
         script_path = script_dir + script_name
+
+    # Check if new script should be saved in script directories
+    script_dirs = get_script_directories()
+    arr = script_path.split("/")
+    if arr:
+        matched_script_dir = next(filter(lambda x: x[0] == arr[0], script_dirs), None)
+        if matched_script_dir:
+            arr[0] = matched_script_dir[1]
+    script_path = "/".join(arr)
 
     return script_path
