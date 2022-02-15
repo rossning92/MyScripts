@@ -397,8 +397,10 @@ def setup_jdk(jdk_version=None):
     prepend_to_path(jdk_bin)
 
 
-def setup_android_env(ndk_version=None, jdk_version=None):
-    env = os.environ
+def setup_android_env(env=None, ndk_version=None, jdk_version=None):
+    if env is None:
+        env = os.environ
+
     path = []
 
     # ANDROID_HOME
@@ -413,6 +415,11 @@ def setup_android_env(ndk_version=None, jdk_version=None):
         env["ANDROID_HOME"] + "/tools/bin",
         env["ANDROID_HOME"] + "/ndk-bundle",
     ]
+
+    # build-tools
+    build_tools_dir = sorted(glob.glob(env["ANDROID_HOME"] + "/build-tools/*"))
+    if len(build_tools_dir) > 0:
+        path.append(build_tools_dir[-1])
 
     # NDK
     ndk_path = None
@@ -450,7 +457,7 @@ def setup_android_env(ndk_version=None, jdk_version=None):
         print2("Android SDK: build-tools: " + path_list[-1])
         path.append(path_list[-1])
 
-    prepend_to_path(path)
+    prepend_to_path(path, env=env)
 
 
 def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):

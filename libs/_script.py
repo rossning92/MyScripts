@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import logging
 
 import yaml
 
@@ -31,6 +32,7 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
+from _android import setup_android_env
 
 SCRIPT_EXTENSIONS = {
     ".sh",
@@ -163,12 +165,19 @@ def exec_cmd(cmd):
     subprocess.check_call(args)
 
 
-def _args_to_str(args, single_quote=False):
-    if single_quote:
-        args = [shlex.quote(x) for x in args]
+def _auto_quote(s, single_quote=False):
+    if " " in s:
+        if single_quote:
+            return "'" + s + "'"
+        else:
+            return '"' + s + '"'
     else:
-        args = ['"%s"' % x if " " in x else x for x in args]
-    return " ".join(args)
+        return s
+
+
+def _args_to_str(args, single_quote=False):
+    assert type(args) in [list, tuple]
+    return " ".join([_auto_quote(x, single_quote=single_quote) for x in args])
 
 
 def get_variable_file():
@@ -320,42 +329,43 @@ def setup_python_path(env, script_path=None):
 def wrap_args_cmd(
     args, title=None, cwd=None, script_path=None, env=None, close_on_exit=True
 ):
-    bin_path = os.path.abspath(os.path.dirname(__file__) + "/../bin")
+    assert type(args) is list
 
-    args2 = ["cmd", "/c"]
+    cmd_args = "cmd /c "
 
     if title:
-        args2 += ["title", title, "&"]
+        cmd_args += "title %s&" % _auto_quote(title)
 
     if cwd:
-        args2 += ["cd", "/d", cwd, "&"]
+        cmd_args += "cd /d %s&" % _auto_quote(cwd)
 
-    args2 += [
-        "set",
-        "PATH=" + bin_path + ";%PATH%",
-        "&",
-    ]
+    # bin_path = os.path.abspath(os.path.dirname(__file__) + "/../bin")
+    # cmd_args += [
+    #     "set",
+    #     "PATH=" + bin_path + ";%PATH%",
+    #     "&",
+    # ]
 
-    if script_path:
-        args2 += [
-            "set",
-            "PYTHONPATH=" + os.pathsep.join(get_python_path(script_path)),
-            "&",
-        ]
+    # if script_path:
+    #     cmd_args += [
+    #         "set",
+    #         "PYTHONPATH=" + os.pathsep.join(get_python_path(script_path)),
+    #         "&",
+    #     ]
 
     if env:
         for k, v in env.items():
-            args2 += ["set", '"%s=%s"' % (k, v), "&"]
-
-    args2 += args
+            cmd_args += "&".join(['set "%s=%s"' % (k, v)]) + "&"
+    print(args)
+    cmd_args += _args_to_str(args)
 
     # Pause on error
     if close_on_exit:
-        args2 += ["||", "pause"]
+        cmd_args += "||pause"
     else:
-        args2 += ["&", "pause"]
+        cmd_args += "&pause"
 
-    return args2
+    return cmd_args
 
 
 def wrap_args_wt(
@@ -597,6 +607,7 @@ class Script:
         close_on_exit=None,
         cd=True,
     ):
+        logging.debug("execute(args=%s)" % args)
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )
@@ -623,6 +634,9 @@ class Script:
 
         env = {}
         shell = False
+
+        if self.cfg["adk"]:
+            setup_android_env(env=env)
 
         # Install packages
         if self.cfg["packages"] is not None:
@@ -892,7 +906,7 @@ class Script:
                                     "Non-supported terminal: %s" % self.cfg["terminal"]
                                 )
                         except Exception as e:
-                            print("Error on Windows Terminal:", e)
+                            logging.error("Error on Windows Terminal: %s" % e)
 
                             if os.path.exists(
                                 r"C:\Program Files\Git\usr\bin\mintty.exe"
@@ -915,7 +929,7 @@ class Script:
                     # )
 
             # Check if run as admin
-            print2(_args_to_str(args), color="cyan")
+            logging.debug("args: %s" % args)
             if platform.system() == "Windows" and self.cfg["runAsAdmin"]:
                 args = wrap_args_cmd(
                     args,
@@ -926,7 +940,7 @@ class Script:
                     close_on_exit=close_on_exit,
                 )
 
-                print2("Run elevated:")
+                logging.info("Run elevated:")
                 run_elevated(args, wait=(not new_window))
             else:
                 popen_args = {
@@ -963,7 +977,9 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:
@@ -1113,6 +1129,7 @@ def get_script_default_config():
         "terminal": None,
         "packages": None,
         "runpy": True,
+        "adk": False,
     }
 
 
@@ -1165,7 +1182,7 @@ def create_script_link(script_file):
     link_file = os.path.join(script_dir, link_file)
     with open(link_file, "w", encoding="utf-8") as f:
         f.write(script_file)
-    print("Link created: %s" % link_file)
+    logging.info("Link created: %s" % link_file)
 
 
 def is_instance_running():
@@ -1317,8 +1334,7 @@ def reload_scripts(script_list, modified_time, autorun=True):
             ):
                 # Check if auto run script
                 if script.cfg["autoRun"] and autorun:
-                    print2("AUTORUN: ", end="", color="cyan")
-                    print(script.script_path)
+                    logging.info("AUTORUN: %s" % script.script_path)
                     script.execute(new_window=False)
 
             # Hide files starting with '_'

@@ -5,30 +5,32 @@ from _android import (
     adb_install2,
     get_pkg_name_apk,
     logcat,
-    start_app,
     setup_android_env,
+    start_app,
 )
-from _shutil import get_files, print2
+from _shutil import get_files, print2, setup_logger
 
 if __name__ == "__main__":
+    setup_logger()
     setup_android_env()
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("file", nargs="?", default=None)
+    parser.add_argument("files", metavar="N", type=str, nargs="+")
     parser.add_argument("-r", "--run", default=False, action="store_true")
 
     args = parser.parse_args()
 
-    if args.file:
-        adb_install2(args.file)
+    if args.files:
+        for file in args.files:
+            adb_install2(file)
 
-        if args.run:
-            pkg = get_pkg_name_apk(args.file)
-            try:
-                start_app(pkg)
-            except:
-                print2("ERROR: start app failed.", color="red")
-            logcat(pkg)
+            if len(args.files) > 1 and args.run:
+                pkg = get_pkg_name_apk(file)
+                try:
+                    start_app(pkg)
+                except:
+                    print2("ERROR: start app failed.", color="red")
+                logcat(pkg)
 
     else:
         files = get_files()

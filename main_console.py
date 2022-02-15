@@ -26,6 +26,7 @@ from _shutil import (
     add_to_path,
     get_ahk_exe,
     refresh_env_vars,
+    setup_logger,
     setup_nodejs,
     update_env_var_explorer,
 )
@@ -379,6 +380,8 @@ def curse_main(stdscr):
 
 
 def init():
+    setup_logger(log_file=os.path.join(get_data_dir(), "MyScript.log"))
+
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")
     add_to_path(bin_dir)

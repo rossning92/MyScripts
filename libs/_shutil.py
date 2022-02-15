@@ -651,7 +651,10 @@ def call_highlight(args, highlight=None, filter_line=None, **kwargs):
         print(line)
 
 
-def prepend_to_path(path):
+def prepend_to_path(path, env=None):
+    if env is None:
+        env = os.environ
+
     if type(path) == list:
         path = [x for x in path if os.path.exists(x)]
         s = os.pathsep.join(path)
@@ -660,7 +663,7 @@ def prepend_to_path(path):
     else:
         raise ValueError()
 
-    os.environ["PATH"] = s + os.pathsep + os.environ["PATH"]
+    env["PATH"] = s + (os.pathsep + env["PATH"] if "PATH" in env else "")
 
 
 def get_cur_time_str():
