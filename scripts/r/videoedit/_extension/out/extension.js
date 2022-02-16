@@ -781,8 +781,8 @@ function setupWhenClause(context) {
     updateWhenClauseContext();
 }
 function activate(context) {
-    const config = vscode.workspace.getConfiguration();
-    config.update("[markdown]", { "editor.quickSuggestions": true });
+    // const config = vscode.workspace.getConfiguration();
+    // config.update("[markdown]", { "editor.quickSuggestions": true });
     registerCommands(context);
     setupAutoComplete(context);
     setupDecorations(context);

@@ -1046,8 +1046,8 @@ function setupWhenClause(context: vscode.ExtensionContext) {
 }
 
 function activate(context: vscode.ExtensionContext) {
-  const config = vscode.workspace.getConfiguration();
-  config.update("[markdown]", { "editor.quickSuggestions": true });
+  // const config = vscode.workspace.getConfiguration();
+  // config.update("[markdown]", { "editor.quickSuggestions": true });
 
   registerCommands(context);
 
