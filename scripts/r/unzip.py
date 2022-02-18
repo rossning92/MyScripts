@@ -3,25 +3,35 @@ import os
 from _appmanager import get_executable
 from _shutil import call2, get_files, mkdir, shell_open
 
-files = get_files(cd=True)
 
-for file in files:
-    if file.endswith(".tar.gz") or file.endswith(".tgz"):
-        out_dir = file.rstrip(".tar.gz")
-        mkdir(out_dir)
-        call2('tar xzvf "%s" -C "%s"' % (file, out_dir))
+def unzip(files):
+    extracted = False
+    for file in files:
+        gzip_extension = [".tar.gz", ".tgz", ".gz"]
+        for ext in gzip_extension:
+            if file.endswith(ext):
+                out_dir = file.rstrip(ext)
+                mkdir(out_dir)
+                call2('tar xzvf "%s" -C "%s"' % (file, out_dir))
+                extracted = True
+                break
 
-    else:
-        _7z = get_executable("7z")
+        if not extracted:
+            _7z = get_executable("7z")
+            out_dir = os.path.splitext(file)[0]
+            args = [
+                _7z,
+                "x",  # Extract
+                "-aoa",  # Overwrite all existing files
+                "-o" + out_dir,  # Out folder
+                file,
+            ]
+            call2(args)
 
-        out_dir = os.path.splitext(file)[0]
-        args = [
-            _7z,
-            "x",  # Extract
-            "-aoa",  # Overwrite all existing files
-            "-o" + out_dir,  # Out folder
-            file,
-        ]
-        call2(args)
+    if len(files) == 1:
+        shell_open(out_dir)
 
-shell_open(out_dir)
+
+if __name__ == "__main__":
+    files = get_files(cd=True)
+    unzip(files)

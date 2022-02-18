@@ -10,6 +10,12 @@ module.exports.openPage = async (url) => {
     browser = await puppeteer.launch({
       headless: false,
       userDataDir: "/tmp/chrome-data-puppeteer",
+      executablePath:
+        "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      defaultViewport: {
+        width: 1280,
+        height: 800,
+      },
     });
 
     let page = await browser.newPage();

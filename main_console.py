@@ -8,6 +8,7 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
 import curses
+import logging
 import platform
 import re
 import subprocess
@@ -82,7 +83,7 @@ def register_hotkeys(scripts):
     for script in scripts:
         hotkey = script.cfg["hotkey"]
         if hotkey is not None:
-            print("Hotkey: %s: %s" % (hotkey, script.name))
+            logging.info("Hotkey: %s: %s" % (hotkey, script.name))
 
             hotkey = hotkey.lower()
             key = hotkey[-1].lower()
@@ -238,7 +239,7 @@ def register_global_hotkeys(scripts):
                 )
 
                 if hotkey is not None:
-                    print("Global Hotkey: %s: %s" % (hotkey, item.name))
+                    logging.info("GlobalHotkey: %s: %s" % (hotkey, item.name))
                     hotkey = hotkey.lower()
                     hotkey = hotkey.replace("ctrl+", "^")
                     hotkey = hotkey.replace("alt+", "!")
@@ -274,7 +275,7 @@ def register_global_hotkeys(scripts):
         for script in scripts:
             hotkey = script.cfg["globalHotkey"]
             if hotkey is not None:
-                print("Global Hotkey: %s: %s" % (hotkey, script.name))
+                logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
                 keyboard_hooks[hotkey] = lambda script=script: execute_script(script)
         add_keyboard_hooks(keyboard_hooks)
 
@@ -380,7 +381,7 @@ def curse_main(stdscr):
 
 
 def init():
-    setup_logger(log_file=os.path.join(get_data_dir(), "MyScript.log"))
+    setup_logger(log_file=os.path.join(get_data_dir(), "MyScripts.log"))
 
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")
@@ -394,7 +395,7 @@ def init():
     setup_nodejs(install=False)
 
     if is_instance_running():
-        print("An instance is running. Exited.")
+        logging.info("An instance is running. Exited.")
         sys.exit(0)
 
 

@@ -29,7 +29,7 @@ def reset_debug_sysprops():
             logger.debug("Reset %s" % prop_name)
             adb_shell("setprop %s ''" % prop_name)
     except Exception as ex:
-        print2("ERROR: %s" % ex, color="red")
+        logging.error(ex)
 
 
 def start_app(pkg, use_monkey=False):
@@ -277,7 +277,7 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
         su = ""
 
     if backup_user_data:
-        print2("Backup app data...")
+        logging.info("Backup app data...")
         subprocess.call(
             f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}"
         )
@@ -285,7 +285,7 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
         subprocess.call(f"adb shell rm /sdcard/{pkg}.tar")
 
     if backup_obb:
-        print2("Backup obb...")
+        logging.info("Backup obb...")
         subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
 
 
@@ -391,7 +391,7 @@ def setup_jdk(jdk_version=None):
         java_home = jdk_list[-1]  # Choose latest JDK
 
     os.environ["JAVA_HOME"] = java_home
-    print2("JAVA_HOME: %s" % java_home)
+    logging.debug("JAVA_HOME: %s" % java_home)
 
     jdk_bin = java_home + "\\bin"
     prepend_to_path(jdk_bin)
@@ -407,7 +407,7 @@ def setup_android_env(env=None, ndk_version=None, jdk_version=None):
     android_home = get_adk_path()
     if android_home is None:
         raise Exception("Cannot find ANDROID_HOME")
-    print2("ANDROID_HOME: %s" % android_home)
+    logging.info("ANDROID_HOME: %s" % android_home)
     env["ANDROID_HOME"] = android_home
     path += [
         env["ANDROID_HOME"] + "/platform-tools",
@@ -439,14 +439,12 @@ def setup_android_env(env=None, ndk_version=None, jdk_version=None):
             ndk_path = found[-1]
 
     if ndk_path:
-        print2("ANDROID_NDK_ROOT: %s" % ndk_path)
+        logging.info("ANDROID_NDK_ROOT: %s" % ndk_path)
         env["ANDROID_NDK_ROOT"] = ndk_path
         env["ANDROID_NDK_HOME"] = ndk_path
         env["ANDROID_NDK"] = ndk_path
         env["NDKROOT"] = ndk_path
         env["NDK_ROOT"] = ndk_path
-
-        logger.debug(open(ndk_path + "/source.properties").read())
         path.append(ndk_path)
 
     setup_jdk(jdk_version=jdk_version)
@@ -454,7 +452,7 @@ def setup_android_env(env=None, ndk_version=None, jdk_version=None):
     # Android build tools (latest)
     path_list = sorted(glob.glob(env["ANDROID_HOME"] + "\\build-tools\\*"))
     if len(path_list) > 0:
-        print2("Android SDK: build-tools: " + path_list[-1])
+        logging.info("Android SDK: build-tools: " + path_list[-1])
         path.append(path_list[-1])
 
     prepend_to_path(path, env=env)

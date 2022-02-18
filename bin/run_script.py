@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.realpath(os.path.dirname(__file__) + "/../libs"))
 
 from _script import run_script
-from _shutil import update_env_var_explorer
+from _shutil import update_env_var_explorer, setup_logger
 
 
 def try_parse():
@@ -39,6 +39,8 @@ update_env_var_explorer()
 
 if "cd" not in kwargs:
     kwargs["cd"] = False
+
+setup_logger()
 
 run_script(
     file=file,

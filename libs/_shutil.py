@@ -1275,7 +1275,10 @@ def setup_logger(level=logging.DEBUG, log_file=None):
     logger.addHandler(handler)
 
     if log_file:
-        file_handler = logging.FileHandler(log_file)
+        file_handler = logging.FileHandler(
+            log_file,
+            "w+",  # overwrite the file
+        )
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
 

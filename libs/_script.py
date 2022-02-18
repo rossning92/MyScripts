@@ -166,7 +166,7 @@ def exec_cmd(cmd):
 
 
 def _auto_quote(s, single_quote=False):
-    if " " in s:
+    if " " in s or "\\" in s:
         if single_quote:
             return "'" + s + "'"
         else:
@@ -737,6 +737,7 @@ class Script:
                 [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args,
                 single_quote=True,
             )
+            logging.debug("bash_cmd: %s" % bash_cmd)
 
             args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)
 
@@ -929,7 +930,6 @@ class Script:
                     # )
 
             # Check if run as admin
-            logging.debug("args: %s" % args)
             if platform.system() == "Windows" and self.cfg["runAsAdmin"]:
                 args = wrap_args_cmd(
                     args,
@@ -940,9 +940,10 @@ class Script:
                     close_on_exit=close_on_exit,
                 )
 
-                logging.info("Run elevated:")
+                logging.debug("run_elevated(%s)" % args)
                 run_elevated(args, wait=(not new_window))
             else:
+                logging.debug("subprocess.Popen(): args: %s" % args)
                 popen_args = {
                     "args": args,
                     "env": {**os.environ, **env},
@@ -1334,7 +1335,7 @@ def reload_scripts(script_list, modified_time, autorun=True):
             ):
                 # Check if auto run script
                 if script.cfg["autoRun"] and autorun:
-                    logging.info("AUTORUN: %s" % script.script_path)
+                    logging.info("AutoRun: %s" % script.name)
                     script.execute(new_window=False)
 
             # Hide files starting with '_'
