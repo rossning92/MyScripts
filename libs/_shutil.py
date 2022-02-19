@@ -404,8 +404,6 @@ def copy(src, dst, overwrite=False):
 
 def run_elevated(args, wait=True):
     if platform.system() == "Windows":
-        import shlex
-
         import win32api
         import win32con
         import win32event
@@ -414,15 +412,17 @@ def run_elevated(args, wait=True):
         from win32com.shell.shell import ShellExecuteEx
 
         if type(args) == str:
-            args = shlex.split(args)
+            lpFile, lpParameters = args.split(" ", 1)
+        else:
+            lpFile = args[0]
+            lpParameters = subprocess.list2cmdline(args[1:])
 
-        quoted_args = subprocess.list2cmdline(args[1:])
         process_info = ShellExecuteEx(
             nShow=win32con.SW_SHOW,
             fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
             lpVerb="runas",
-            lpFile=args[0],
-            lpParameters=quoted_args,
+            lpFile=lpFile,
+            lpParameters=lpParameters,
         )
         if wait:
             win32event.WaitForSingleObject(process_info["hProcess"], 600000)
