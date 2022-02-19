@@ -211,7 +211,7 @@ def ffmpeg(
         args += ["-preset", preset]
 
         if nvenc:
-            args += ["-c:v", "h264_nvenc"]
+            args += ["-c:v", "h264_nvenc", "-preset", "slow"]
 
             # https://superuser.com/questions/1236275/how-can-i-use-crf-encoding-with-nvenc-in-ffmpeg/1236387
             # https://gist.github.com/rlan/cc954c891b19c919c939c9b0d2096d35

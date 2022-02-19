@@ -9,7 +9,8 @@ PORT = 8000
 os.chdir(r"{{_DIR}}" if r"{{_DIR}}" else os.environ["_CUR_DIR"])
 
 
-print(get_ip_addresses())
+for ip in get_ip_addresses():
+    print("http://%s:%i" % (ip, PORT))
 
 
 # Copied from https://github.com/danvk/RangeHTTPServer/tree/ff4277417c6c8ea2435399659c25a172dbdfd24f
