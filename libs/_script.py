@@ -6,7 +6,6 @@ import os
 import pathlib
 import platform
 import re
-import shlex
 import subprocess
 import sys
 import tempfile
@@ -733,8 +732,10 @@ class Script:
             if self.cfg["template"]:
                 script_path = write_temp_file(self.render(), ".sh")
 
+            args = [script_path] + args
+            args = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in args]
             bash_cmd = "bash " + _args_to_str(
-                [convert_to_unix_path(script_path, wsl=self.cfg["wsl"])] + args,
+                args,
                 single_quote=True,
             )
             logging.debug("bash_cmd: %s" % bash_cmd)
@@ -1038,12 +1039,12 @@ def find_script(script_name, search_dir=None):
 
 def run_script(
     file=None,
+    args=[],
     variables=None,
     new_window=False,  # should not start a new window by default
     console_title=None,
     restart_instance=False,
     overwrite_meta=None,
-    args=[],
     cd=True,
     template=None,
 ):

@@ -24,7 +24,7 @@ if __name__ == "__main__":
         for file in args.files:
             adb_install2(file)
 
-            if len(args.files) > 1 and args.run:
+            if len(args.files) == 1 and args.run:
                 pkg = get_pkg_name_apk(file)
                 try:
                     start_app(pkg)

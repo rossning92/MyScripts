@@ -20,7 +20,7 @@ def setup_cmake(cmake_version=None, install=True):
             cmake_path = find_cmake_path(cmake_version=cmake_version)
             if cmake_path:
                 prepend_to_path(cmake_path + os.path.sep + "bin")
-                return
+                return True
 
             elif install:
                 zip_file = os.path.join(
@@ -36,10 +36,20 @@ def setup_cmake(cmake_version=None, install=True):
                 cmake_path = find_cmake_path(cmake_version=cmake_version)
                 assert cmake_path is not None
                 prepend_to_path(cmake_path + os.path.sep + "bin")
-                return
+                return True
 
-        cmake_path = r"C:\Program Files\CMake\bin"
-        if os.path.exists(cmake_path):
+    def find_cmake(cmake_path):
+        match = glob.glob(cmake_path)
+        if match:
+            cmake_path = sorted(match)[-1]
             print("CMake Path: %s" % cmake_path)
-            prepend_to_path(cmake_path)
-            return
+            prepend_to_path(cmake_path + os.path.sep + "bin")
+            return True
+
+    if find_cmake(r"C:\Program Files\CMake\bin"):
+        return True
+
+    if find_cmake(r"C:\tools\cmake-*"):
+        return True
+
+    return False

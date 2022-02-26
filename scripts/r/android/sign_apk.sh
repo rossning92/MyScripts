@@ -14,4 +14,6 @@ set -e
 # keytool -printcert -jarfile mykey123.apk
 
 # zipalign -v -p 4 hoge.apk hoge_aligned.apk
-'C:\Android\android-sdk\build-tools\30.0.2\apksigner.bat' sign --ks 'C:\Users\rossning92\my-release-key.keystore' -v --v2-signing-enabled true --ks-pass pass:123123 "$1"
+export apk=$(echo "$1" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')
+echo "Signing $apk..."
+'C:\Android\android-sdk\build-tools\30.0.2\apksigner.bat' sign --ks 'C:\Users\rossning92\my-release-key.keystore' -v --v2-signing-enabled true --ks-pass pass:123123 "$apk"

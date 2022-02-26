@@ -732,6 +732,10 @@ def cd_current_dir():
         os.chdir(os.path.expanduser("~"))
 
 
+def zip_file(path, out_file):
+    shutil.make_archive(out_file.rstrip(".zip"), "zip", path)
+
+
 def unzip(file, to=None):
     print('Unzip "%s"...' % file)
     import zipfile

@@ -556,14 +556,16 @@ def adb_install(apk, force=False):
     if force or should_install:
         logger.info("Installing %s" % apk)
         try:
+            args = [
+                "adb",
+                "install",
+                "-r",  # Replace existing apps without clearing data
+                "-d",  # Allow downgrade
+                apk,
+            ]
+            logging.debug("%s" % args)
             subprocess.check_output(
-                [
-                    "adb",
-                    "install",
-                    "-r",  # Replace existing apps without clearing data
-                    "-d",  # Allow downgrade
-                    apk,
-                ],
+                args,
                 stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as ex:
@@ -578,6 +580,8 @@ def adb_install(apk, force=False):
                 )
                 subprocess.check_call(["adb", "uninstall", pkg])
                 subprocess.check_call(["adb", "install", "-r", apk])
+            else:
+                raise ex
     else:
         logger.info("App already installed, skipping...")
 
@@ -756,3 +760,14 @@ def set_android_serial_by_product_name(product):
             return True
 
     raise Exception("Couldn't find device with product name %s" % product)
+
+
+def setprop(prop):
+    """Set all system properities in a single shell command."""
+
+    shell = ""
+    for k, v in prop.items():
+        if not v:
+            v = "''"
+        shell += "setprop {} {};".format(k, v)
+    adb_shell(shell)

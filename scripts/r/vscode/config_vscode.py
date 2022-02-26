@@ -177,4 +177,4 @@ def config_vscode(data_dir=None, compact=False):
 
 if __name__ == "__main__":
     data_dir = r"{{_DATA_DIR}}" if r"{{_DATA_DIR}}" else None
-    config_vscode(data_dir=data_dir, compact=True)
+    config_vscode(data_dir=data_dir, compact=False)

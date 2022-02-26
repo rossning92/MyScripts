@@ -1,18 +1,22 @@
-import os
 import subprocess
-from _cmake import setup_cmake
-from _shutil import *
+
 from _android import setup_android_env
+from _cmake import setup_cmake
+from _shutil import cd_current_dir, print2, setup_logger, setup_nodejs
 
-try:
-    setup_android_env()
-except Exception as e:
-    print2("ERROR: " + str(e), color="red")
 
-cd_current_dir()
+if __name__ == "__main__":
+    setup_logger()
 
-setup_cmake(install=False)
+    try:
+        setup_android_env()
+    except Exception as e:
+        print2("ERROR: " + str(e), color="red")
 
-setup_nodejs(install=False)
+    cd_current_dir()
 
-subprocess.call(["cmd"])
+    setup_cmake(install=False)
+
+    setup_nodejs(install=False)
+
+    subprocess.call(["cmd"])
