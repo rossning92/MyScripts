@@ -516,7 +516,7 @@ function startMovyServer(file: string) {
 
   runInTerminal("MovyServer", shellArgs);
 
-  openInBrowser(`http://localhost:${port}`);
+  openInBrowser(`http://localhost:${port}/?file=${path.basename(file)}`);
 }
 
 function exportVideo({

@@ -1,5 +1,4 @@
 import asyncio
-from genericpath import exists
 import os
 import time
 
@@ -14,14 +13,14 @@ from videoedit.start_movy_server import start_server
 PORT = 5555
 
 
-def render_animation(file):
+def export_movy_animation(file):
     print("Render animation: %s..." % file)
 
     assert file.lower().endswith(".js")
 
     ps = start_server(file, port=PORT)
 
-    url = "http://localhost:%d" % PORT
+    url = "http://localhost:%d/?file=%s" % (PORT, os.path.basename(file))
 
     out_file = None
 
@@ -48,18 +47,19 @@ def render_animation(file):
         await page.goto(url)
 
         await page.waitForFunction(
-            'document.querySelector("body").innerText.includes("render")'
+            'document.querySelector("body").innerText.includes("EXPORT")'
         )
+        time.sleep(1)
 
         print("Start capture.")
-        await page.evaluate("() => { window.movy.startRender(); }")
-
-        while await page.evaluate("() => window.movy.isRendering"):
-            time.sleep(0.5)
+        await page.keyboard.down("Control")
+        await page.keyboard.press("KeyM")
+        await page.keyboard.up("Control")
 
         # Make sure the video file is saved
-        while not exists(out_file):
-            time.sleep(0.5)
+        while not os.path.exists(out_file):
+            print("Waiting for %s..." % out_file)
+            time.sleep(1)
 
         await browser.close()
 
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     file = get_files()[0]
     assert file.endswith(".js")
 
-    render_animation(file)
+    export_movy_animation(file)
 

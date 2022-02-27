@@ -25,7 +25,7 @@ from open_with.open_with import open_with
 from PIL import Image
 
 import core
-from render_animation import render_animation
+from export_movy_animation import export_movy_animation
 from render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -874,7 +874,7 @@ def anim(file, **kwargs):
     if file_is_old(file, video_file):
         if os.path.exists(video_file):
             os.remove(video_file)
-        render_animation(os.path.abspath(file))
+        export_movy_animation(os.path.abspath(file))
     add_video_clip(video_file, **kwargs)
 
 

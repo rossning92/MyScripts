@@ -35,12 +35,17 @@ def add_packages(packages, dev=False, use_yarn=False):
     with open("package.json", "r") as f:
         data = json.load(f)
 
+    existing_packages = []
+
     try:
-        existing_packages = (
-            data["devDependencies"].keys() if dev else data["dependencies"].keys()
-        )
+        existing_packages += data["dependencies"].keys()
     except KeyError:
-        existing_packages = []
+        pass
+
+    try:
+        existing_packages += data["devDependencies"].keys()
+    except KeyError:
+        pass
 
     for pkg in packages:
         if pkg not in existing_packages:
