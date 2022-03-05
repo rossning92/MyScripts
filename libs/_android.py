@@ -526,7 +526,7 @@ def adb_install(apk, force=False):
         )
         match = re.search(r"package: name='(.+?)'", out)
         pkg_name = match.group(1)
-        logger.info("Found package name: %s" % pkg_name)
+        logger.debug("apk package name: %s" % pkg_name)
 
         should_install = False
         if not app_is_installed(pkg_name):

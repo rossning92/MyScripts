@@ -31,7 +31,7 @@ PYTHON_MODULE_LIST = {
     "scrapy": "Scrapy",
     "selenium": "selenium",
     "skimage": "scikit-image",
-    "slugify": "python-slugify,",
+    "slugify": "python-slugify",
     "websockets": "websockets",
     "win32api": "pywin32",
     "win32con": "pywin32",

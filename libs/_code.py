@@ -19,8 +19,8 @@ def patch_code(
 
     s = open(file, "rU").read()
 
-    if code in s:
-        print2("WARN: code already exists, skip.")
+    if code and code in s:
+        print2("= %s" % code, color="yellow")
         return
 
     if not use_regex:

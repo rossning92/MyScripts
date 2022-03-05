@@ -239,7 +239,7 @@ def combine_images(
         raise Exception("`image_files` and `images` cannot be None at the same time.")
 
     # Add margins
-    if draw_label:
+    if draw_label and label_align == "bottom":
         imgs = [add_margin(im, bottom=30) for im in imgs]
 
     if not cols:

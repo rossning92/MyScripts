@@ -671,6 +671,7 @@ def get_cur_time_str():
 
 
 def exec_bash(script, wsl=False, echo=False):
+    logging.debug("exec_bash: bash commands: %s" % script)
     args = None
     if os.name == "nt":
         if wsl:  # WSL (Windows Subsystem for Linux)
@@ -1313,3 +1314,17 @@ def to_valid_file_name(value):
         value = value.replace(k, v)
 
     return value
+
+
+def input_with_default(message, default):
+    print2(
+        "%s (e.g. %s): " % (message, default),
+        color="green",
+        end="",
+    )
+    s = input()
+    return s if s else default
+
+
+def pause():
+    input("press [enter] to continue...")
