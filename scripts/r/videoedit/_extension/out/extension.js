@@ -670,22 +670,25 @@ function registerRenameFileCommand(context) {
         replaceWholeDocument(file, newFile);
     }));
 }
-async function createNewDocument({ dir, func, fileNamePlaceHolder = "file-name", initContent = "", extension = "", extraParams = "", }) {
+async function createNewDocument({ dir, func, fileNamePlaceHolder = "a space separated name", initContent = "", extension = "", extraParams = "", }) {
     const activeDir = getActiveDir();
-    if (!activeDir)
+    if (!activeDir) {
         return;
+    }
     const animationDir = path.resolve(activeDir, dir);
     // Create animation dir
     if (!fs.existsSync(animationDir)) {
         fs.mkdirSync(animationDir);
     }
     // Input file name
-    const fileName = await vscode.window.showInputBox({
+    let fileName = await vscode.window.showInputBox({
         placeHolder: fileNamePlaceHolder,
     });
     if (!fileName) {
         return;
     }
+    // Replace all spaces with dash "-".
+    fileName = fileName.replace(/\s+/g, "-");
     const filePath = path.resolve(animationDir, fileName + extension);
     fs.writeFileSync(filePath, initContent);
     insertTextAtCursor(`{{ ${func}('${dir}/${fileName}${extension}'${extraParams}) }}`);
@@ -735,7 +738,7 @@ function registerCommands(context) {
         const file = await createNewDocument({
             dir: "animation",
             func: "anim",
-            fileNamePlaceHolder: "movy-animation-name",
+            fileNamePlaceHolder: "animation name",
             initContent: 'import * as mo from "movy";\n\n',
             extension: ".js",
         });

@@ -18,7 +18,7 @@ def export_movy_animation(file):
 
     assert file.lower().endswith(".js")
 
-    ps = start_server(file, port=PORT)
+    ps = start_server(file, port=PORT, dev=False)
 
     url = "http://localhost:%d/?file=%s" % (PORT, os.path.basename(file))
 
@@ -48,18 +48,21 @@ def export_movy_animation(file):
 
         await page.waitForFunction(
             'document.querySelector("body").innerText.includes("EXPORT")'
+            '&& !document.querySelector("body").innerText.includes("LOADING")'
         )
-        time.sleep(1)
+        time.sleep(0.5)
 
         print("Start capture.")
         await page.keyboard.down("Control")
         await page.keyboard.press("KeyM")
         await page.keyboard.up("Control")
 
-        # Make sure the video file is saved
+        # Waiting until the video file is saved.
+        print("Rendering to %s" % out_file, end="")
         while not os.path.exists(out_file):
-            print("Waiting for %s..." % out_file)
+            print(".", end="")
             time.sleep(1)
+        print()
 
         await browser.close()
 

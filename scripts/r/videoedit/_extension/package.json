@@ -150,6 +150,11 @@
         "command": "videoEdit.insertMostRecentFile",
         "key": "alt+i",
         "when": "videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.createMovyAnimation",
+        "key": "alt+m",
+        "when": "videoEdit.isProjectFileActive"
       }
     ],
     "snippets": [
