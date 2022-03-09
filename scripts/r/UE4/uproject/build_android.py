@@ -1,10 +1,18 @@
 import glob
 import os
+import shutil
 
 from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import get_variable
-from _shutil import call_highlight, cd, find_newest_file, mkdir, print2, yes
-import shutil
+from _shutil import (
+    call_highlight,
+    cd,
+    find_newest_file,
+    mkdir,
+    print2,
+    setup_logger,
+    yes,
+)
 
 from build_cpp_modules import build_cpp_modules
 
@@ -72,6 +80,9 @@ def build_uproject(
 
 
 if __name__ == "__main__":
+    setup_logger()
+    setup_android_env()
+
     out_dir = build_uproject(
         ue_source=r"{{UE_SOURCE}}",
         project_dir=r"{{UE4_PROJECT_DIR}}",

@@ -1347,3 +1347,8 @@ def reload_scripts(script_list, modified_time, autorun=True):
             modified_time[script.script_path] = mtime
 
     return True
+
+
+def render_script(script_path):
+    script = Script(script_path)
+    return script.render()

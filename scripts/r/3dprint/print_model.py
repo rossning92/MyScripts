@@ -2,7 +2,7 @@ import os
 import sys
 
 from _shutil import write_temp_file
-from ext.run_script_ssh import run_bash_script_plink
+from ext.run_script_remotely import run_bash_script_plink
 from r.linux.ssh_push import push_file
 
 if __name__ == "__main__":

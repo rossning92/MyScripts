@@ -1,10 +1,25 @@
 import os
 import subprocess
+import sys
 
 from _script import Script, get_variable
 from _shutil import call_echo, convert_to_unix_path, print2, wait_key, write_temp_file
 
 TEMP_SHELL_SCRIPT_PATH = "/tmp/tmp_script.sh"
+
+
+def transfer_file_plink(local, remote, user_host=None, ssh_port=None, ssh_pwd=None):
+    args = ["pscp"]
+    if ssh_pwd:
+        args += ["-pw", ssh_pwd]
+    if ssh_port:
+        args += ["-P", "%d" % ssh_port]
+    args += [local, f"{user_host}:{remote}"]
+
+    try:
+        call_echo(args)
+    except subprocess.CalledProcessError:
+        raise Exception("pscp fails.")
 
 
 def run_bash_script_plink(
@@ -26,7 +41,8 @@ def run_bash_script_plink(
     try:
         call_echo(args)
     except subprocess.CalledProcessError:
-        raise Exception("Remote shell returns non zero.")
+        print2("ERROR: plink returns non zero.", color="red")
+        sys.exit(1)
 
 
 def run_bash_script_ssh(
