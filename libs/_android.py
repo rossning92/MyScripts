@@ -7,7 +7,6 @@ import subprocess
 import threading
 import time
 
-from _image import scale_image
 from _shutil import call2, call_echo, check_output, prepend_to_path, print2, proc_lines
 
 logger = logging.getLogger(__name__)
@@ -308,6 +307,8 @@ def adb_untar(tar_file):
 
 
 def screenshot(out_file=None, scale=None):
+    from _image import scale_image
+
     if out_file is None:
         out_file = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
         src_file = os.path.basename(out_file)
