@@ -733,11 +733,9 @@ class Script:
                 script_path = write_temp_file(self.render(), ".sh")
 
             args = [script_path] + args
-            args = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in args]
-            bash_cmd = "bash " + _args_to_str(
-                args,
-                single_quote=True,
-            )
+            if self.cfg["wsl"]:
+                args = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in args]
+            bash_cmd = "bash " + _args_to_str(args, single_quote=True)
             logging.debug("bash_cmd: %s" % bash_cmd)
 
             args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)
@@ -979,9 +977,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:

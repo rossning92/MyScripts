@@ -46,7 +46,12 @@ ClipChanged(Type) {
 
 GetDownloadDir(dir)
 {
-    dir := A_Desktop "\" dir
+    if ("{{VIDEO_DOWNLOAD_DIR}}" = "")
+    {
+        dir := A_Desktop "\" dir
+    } else {
+        dir := "{{VIDEO_DOWNLOAD_DIR}}\" dir
+    }
     FileCreateDir %dir%
     return dir
 }
