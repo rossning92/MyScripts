@@ -188,13 +188,12 @@ def getch(timeout=-1):
             while not msvcrt.kbhit() and time_elapsed < timeout:
                 sleep(0.1)
                 time_elapsed += 0.1
-            return (
-                msvcrt.getch().decode(errors="replace")
-                if time_elapsed < timeout
-                else None
-            )
+            if time_elapsed < timeout:
+                ch = msvcrt.getch().decode(errors="replace")
+            else:
+                ch = None
         else:
-            return msvcrt.getch().decode(errors="replace")
+            ch = msvcrt.getch().decode(errors="replace")
 
     else:
         import sys
@@ -208,7 +207,10 @@ def getch(timeout=-1):
             ch = sys.stdin.read(1)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
+
+    if ord(ch) == 3:
+        raise KeyboardInterrupt
+    return ch
 
 
 def cd(path, expand=True, auto_create_dir=False):
@@ -385,6 +387,9 @@ def copy(src, dst, overwrite=False):
     if os.path.isdir(src):
         if dst.endswith("/"):
             dst = os.path.realpath(dst + os.path.basename(src))
+            copy_tree(src, dst)
+            print("%s => %s" % (src, dst))
+        else:
             copy_tree(src, dst)
             print("%s => %s" % (src, dst))
 

@@ -9,7 +9,14 @@ def _revert_file(file):
 
 
 def patch_code(
-    file, patt, code, mode="replace", use_regex=False, revert_file=False, count=0
+    file,
+    patt,
+    code,
+    mode="replace",
+    use_regex=False,
+    revert_file=False,
+    count=0,
+    must_match=True,
 ):
     file = os.path.realpath(file)
 
@@ -19,7 +26,7 @@ def patch_code(
 
     s = open(file, "rU").read()
 
-    if code and code in s:
+    if mode != "replace" and (code and code in s):
         print2("= %s" % code, color="yellow")
         return
 
@@ -28,8 +35,11 @@ def patch_code(
 
     matches = re.findall(patt, s)
     if not matches:
-        print2("ERROR: fail to locate code:\n%s" % patt, color="red")
-        sys.exit(1)
+        if must_match:
+            print2("ERROR: fail to locate code:\n%s" % patt, color="red")
+            sys.exit(1)
+        else:
+            return
 
     print("## Patching: %s:" % file)
     for match in matches:

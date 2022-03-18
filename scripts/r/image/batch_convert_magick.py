@@ -15,6 +15,10 @@ for f in files:
 
     args = [magick, f]
 
+    if "{{_CROP}}":
+        x, y, w, h = "{{_CROP}}".split()
+        args += ["-crop", f"{w}x{h}+{x}+{y}"]
+
     if "{{_NEAREST}}":
         args += ["-filter", "point"]
 
