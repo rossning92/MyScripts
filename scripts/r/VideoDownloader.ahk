@@ -7,53 +7,24 @@ return
 
 ClipChanged(Type) {
     global g_lastUrl
-    
+
     ;  Contains something that can be expressed as text
     if (type = 1) {
-        
+
         if ( g_lastUrl <> Clipboard)
         {
-            if ( InStr(Clipboard, "https://www.youtube.com/watch") = 1 )
-            {
-                g_lastUrl := Clipboard
-                url := SubStr(g_lastUrl, 1, 43)
-                
-                key := WaitKey()
-                if ( key = " " )
-                {
-                    dir := GetDownloadDir("Youtube")
-                    Run, cmd /c yt-dlp -f bestvideo+bestaudio %url% --no-mtime & timeout 5, % dir, Min
-                }
-                else if ( key = "v" )
-                {
-                    dir := GetDownloadDir("Youtube")
-                    Run, cmd /c yt-dlp -f bestvideo[ext=mp4] %url% --no-mtime & timeout 5, % dir, Min
-                }
-            }
-            else if ( RegExMatch(Clipboard, "https://(www\.)?bilibili\.com/video/") )
+            if ( RegExMatch(Clipboard, "https?://((www\.)?bilibili\.com/video/)|(www.youtube.com/watch)") )
             {
                 g_lastUrl := Clipboard
                 key := WaitKey()
                 if ( key = " " )
                 {
-                    Run, cmd /c %A_ScriptDir%\..\..\bin\run_script.exe /r/video_downloader "%g_lastUrl%" & timeout 5, % dir, Min
+                    Run, cmd /c %A_ScriptDir%\..\..\bin\run_script.exe /r/download_video "%g_lastUrl%" & timeout 5, % dir, Min
                 }
             }
         }
-        
-    }
-}
 
-GetDownloadDir(dir)
-{
-    if ("{{VIDEO_DOWNLOAD_DIR}}" = "")
-    {
-        dir := A_Desktop "\" dir
-    } else {
-        dir := "{{VIDEO_DOWNLOAD_DIR}}\" dir
     }
-    FileCreateDir %dir%
-    return dir
 }
 
 WaitKey() {
