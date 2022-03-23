@@ -1,24 +1,15 @@
 import os
-import subprocess
 import sys
 
-from _android import backup_pkg
+from _android import backup_pkg, select_app_pkg
 from _script import run_script, set_variable
 from _shutil import call_echo, shell_open
 from _term import Menu
 
 if __name__ == "__main__":
-    s = subprocess.check_output(
-        ["adb", "shell", "pm list packages"], universal_newlines=True
-    )
-    s = s.replace("package:", "")
-    lines = s.splitlines()
-    lines = sorted(lines)
-    i = Menu(items=lines).exec()
-    if i == -1:
+    pkg = select_app_pkg()
+    if not pkg:
         sys.exit(1)
-
-    pkg = lines[i]
 
     opt = [
         "start",

@@ -1,10 +1,14 @@
-from _shutil import *
+import os
+import subprocess
+import tempfile
+
+from _shutil import call2, call_echo, print2
 
 
 def ue4_command(cmd):
     # Engine/Build/Android/Java/src/com/epicgames/ue4/ConsoleCmdReceiver.java
     args = "adb shell \"am broadcast -a android.intent.action.RUN -e cmd '%s'\"" % cmd
-    call_echo(args)
+    call_echo(args, no_output=True)
 
 
 def ue4_recenter():

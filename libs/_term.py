@@ -221,6 +221,7 @@ class Menu:
                 self.on_item_selected()
 
             elif ch == curses.ascii.ESC:
+                self.matched_item_indices.clear()
                 return
 
             elif ch != 0:

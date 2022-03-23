@@ -773,3 +773,19 @@ def setprop(prop):
             v = "''"
         shell += "setprop {} {};".format(k, v)
     adb_shell(shell)
+
+
+def select_app_pkg():
+    from _term import Menu
+
+    s = subprocess.check_output(
+        ["adb", "shell", "pm list packages"], universal_newlines=True
+    )
+    s = s.replace("package:", "")
+    lines = s.splitlines()
+    lines = sorted(lines)
+    i = Menu(items=lines).exec()
+    if i == -1:
+        return None
+    else:
+        return lines[i]
