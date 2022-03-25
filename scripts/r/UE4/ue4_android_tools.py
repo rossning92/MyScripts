@@ -36,7 +36,7 @@ def toggle_msaa():
     cur_msaa_index = (cur_msaa_index + 1) % len(msaa_levels)
 
 
-pixel_densities = [1, 1.2, 1.5, 1.8]
+pixel_densities = [0.5, 0.75, 1, 1.25, 1.5, 2]
 current_pd_index = 0
 
 

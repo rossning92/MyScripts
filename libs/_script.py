@@ -2,6 +2,7 @@ import ctypes
 import glob
 import json
 import locale
+import logging
 import os
 import pathlib
 import platform
@@ -10,10 +11,10 @@ import subprocess
 import sys
 import tempfile
 import time
-import logging
 
 import yaml
 
+from _android import setup_android_env
 from _appmanager import get_executable
 from _editor import open_in_vscode
 from _filelock import FileLock
@@ -31,7 +32,6 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
-from _android import setup_android_env
 
 SCRIPT_EXTENSIONS = {
     ".sh",
@@ -164,7 +164,9 @@ def exec_cmd(cmd):
     subprocess.check_call(args)
 
 
-def _auto_quote(s, single_quote=False):
+def _auto_quote(s, single_quote=False, powershell=False):
+    if powershell:
+        s = s.replace("(", r"`(").replace(")", r"`)")
     if " " in s or "\\" in s:
         if single_quote:
             return "'" + s + "'"
@@ -174,9 +176,19 @@ def _auto_quote(s, single_quote=False):
         return s
 
 
-def _args_to_str(args, single_quote=False):
+def _args_to_str(args, single_quote=False, powershell=False):
     assert type(args) in [list, tuple]
-    return " ".join([_auto_quote(x, single_quote=single_quote) for x in args])
+    if powershell:
+        return " ".join(
+            [x.replace(" ", "` ").replace("(", "`(").replace(")", "`)") for x in args]
+        )
+    else:
+        return " ".join(
+            [
+                _auto_quote(x, single_quote=single_quote, powershell=powershell)
+                for x in args
+            ]
+        )
 
 
 def get_variable_file():
@@ -323,6 +335,16 @@ def get_python_path(script_path):
 def setup_python_path(env, script_path=None):
     python_path = get_python_path(script_path)
     env["PYTHONPATH"] = os.pathsep.join(python_path)
+
+
+def wrap_args_tee(args, out_file):
+    assert type(args) is list
+    return [
+        "powershell",
+        "-command",
+        _args_to_str(args, powershell=True)
+        + r' | Tee-Object -FilePath "%s"' % out_file,
+    ]
 
 
 def wrap_args_cmd(
@@ -841,6 +863,16 @@ class Script:
                         wait=True,
                     )
 
+            if self.cfg["tee"]:
+                args = wrap_args_tee(
+                    args,
+                    out_file=os.path.expanduser(
+                        "~/Desktop/{}_{}.log".format(
+                            self.name.split("/")[-1], int(time.time())
+                        ),
+                    ),
+                )
+
             if new_window:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
@@ -868,7 +900,39 @@ class Script:
                             ),
                         ]
 
-                    if self.cfg["terminal"] is None:
+                    # Open in specified terminal (e.g. Windows Terminal)
+                    try:
+                        if self.cfg["terminal"] is None:
+                            raise Exception(
+                                "No terminal specified, fallback to default."
+                            )
+
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ]:
+                            args = wrap_args_wt(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.cfg["wsl"],
+                                close_on_exit=close_on_exit,
+                            )
+                        elif self.cfg["terminal"] == "conemu":
+                            args = wrap_args_conemu(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.cfg["wsl"],
+                                always_on_top=True,
+                            )
+                        else:
+                            raise Exception(
+                                "Non-supported terminal: %s" % self.cfg["terminal"]
+                            )
+
+                    except Exception as ex:
                         args = wrap_args_cmd(
                             args,
                             cwd=cwd,
@@ -878,44 +942,17 @@ class Script:
                             close_on_exit=close_on_exit,
                         )
                         creationflags = subprocess.CREATE_NEW_CONSOLE
-                    else:
-                        # Create new terminal using Windows Terminal
-                        try:
-                            if self.cfg["terminal"] in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]:
-                                args = wrap_args_wt(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    wsl=self.cfg["wsl"],
-                                    close_on_exit=close_on_exit,
-                                )
-                            elif self.cfg["terminal"] == "conemu":
-                                args = wrap_args_conemu(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    wsl=self.cfg["wsl"],
-                                    always_on_top=True,
-                                )
-                            else:
-                                raise Exception(
-                                    "Non-supported terminal: %s" % self.cfg["terminal"]
-                                )
-                        except Exception as e:
-                            logging.error("Error on Windows Terminal: %s" % e)
 
-                            if os.path.exists(
-                                r"C:\Program Files\Git\usr\bin\mintty.exe"
-                            ):
-                                args = [
-                                    r"C:\Program Files\Git\usr\bin\mintty.exe",
-                                    "--hold",
-                                    "always",
-                                ] + args
+                        # logging.error("Error on Windows Terminal: %s" % e)
+
+                        # if os.path.exists(
+                        #     r"C:\Program Files\Git\usr\bin\mintty.exe"
+                        # ):
+                        #     args = [
+                        #         r"C:\Program Files\Git\usr\bin\mintty.exe",
+                        #         "--hold",
+                        #         "always",
+                        #     ] + args
 
                 elif sys.platform == "linux":
                     # args = ["tmux", "split-window"] + args
@@ -977,7 +1014,9 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:
@@ -1124,10 +1163,11 @@ def get_script_default_config():
         "minimized": False,
         "venv": None,
         "closeOnExit": True,
-        "terminal": None,
+        "terminal": "wt",
         "packages": None,
         "runpy": True,
         "adk": False,
+        "tee": False,
     }
 
 

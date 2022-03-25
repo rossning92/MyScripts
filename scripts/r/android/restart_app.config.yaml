@@ -1,1 +1,2 @@
 terminal: wt
+tee: true

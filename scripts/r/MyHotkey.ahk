@@ -8,7 +8,6 @@
 
 SetCapsLockState, AlwaysOff
 
-WindowList := {}
 CurrentDesktop := 0
 WindowDividor := 2/3
 
@@ -147,16 +146,9 @@ RemoveToolTip:
 return
 
 #Up::
-    WinGet, curHwnd, ID, A
-    WinMaximize, ahk_id %curHwnd%
-    WinSet, AlwaysOnTop, Off, ahk_id %curHwnd%
-
-    for p, hwnd in WindowList {
-        if (hwnd = curHwnd) {
-            WindowList.Delete(p)
-            break
-        }
-    }
+    WinMaximize, A
+    WinSet, AlwaysOnTop, Off, A
+    SetAlwaysOnTop("A", False)
     g_numTwoPressed = 0
 return
 
@@ -296,45 +288,6 @@ UpdateWindowPosition(pos) {
     }
 
     WinActivate, ahk_id %curHwnd%
-}
-
-UpdateActiveWindowPosition() {
-    global WindowList
-
-    WinGet, cur_hwnd, ID, A
-
-    ControlGet, HWND, hwnd,, SysListView321, ahk_class WorkerW
-    if (hwnd = cur_hwnd) {
-        return
-    }
-
-    WinGetClass, win_class, ahk_id %hwnd%
-    if (win_class = "Windows.UI.Core.CoreWindow") {
-        return
-    }
-
-    if (win_class = "Shell_TrayWnd") {
-        return
-    }
-
-    for pos, hwnd in WindowList {
-        if (hwnd = cur_hwnd and pos = "right") {
-            return
-        }
-    }
-
-    WinGetPos,tx,ty,tw,th,ahk_class Shell_TrayWnd,,,
-    RATIO := 2 / 3
-    w := Floor(A_ScreenWidth * RATIO)
-    x := 0
-    y := 0
-    h := A_ScreenHeight - th
-
-    WinRestore, ahk_id %cur_hwnd%
-    WinSet, Style, +0x40000, ahk_id %cur_hwnd%
-    WinSet, Style, +Resize, ahk_id %cur_hwnd%
-
-    WinMove, ahk_id %cur_hwnd%, , %x%, %y%, %w%, %h%
 }
 
 ActivateChrome(index=0)
