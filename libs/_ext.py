@@ -16,6 +16,12 @@ def edit_myscript_script(file):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
+    script_dirs = get_script_directories()
+    for _, d in script_dirs:
+        if d in file:
+            open_in_vscode([d, file])
+            return
+
     project_folder = os.path.realpath(os.path.dirname(__file__) + "/../")
     open_in_vscode([project_folder, file])
 

@@ -35,8 +35,10 @@ def download_bilibili(url, download_dir=None):
     call_echo(["annie", "-p", "-c", cookie, url], shell=False, cwd=download_dir)
 
 
-def download_youtube(url):
-    call_echo(["yt-dlp", "-f", "bestvideo+bestaudio", "--no-mtime", url])
+def download_youtube(url, download_dir=None):
+    call_echo(
+        ["yt-dlp", "-f", "bestvideo+bestaudio", "--no-mtime", url], cwd=download_dir
+    )
 
 
 def download_video(url):

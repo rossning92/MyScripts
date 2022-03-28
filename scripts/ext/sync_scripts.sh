@@ -23,6 +23,7 @@ if [[ ! -z "$status" ]]; then
     read -n1 ans
     if [[ "$ans" == "y" ]]; then
         git add -A
+        git restore --staged scripts/r/videoedit/movy
         git commit -m 'commit with no message.'
     else
         exit 0
@@ -31,5 +32,6 @@ fi
 
 git pull --rebase
 # git pull --recurse-submodules || true
-# git submodule update --recursive --remote
+git submodule update --recursive --remote || true
+
 git push
