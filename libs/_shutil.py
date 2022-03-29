@@ -663,15 +663,41 @@ def call_highlight(args, highlight=None, filter_line=None, **kwargs):
         print(line)
 
 
-def prepend_to_path(path, env=None):
+def _get_short_path_name(long_name):
+    import ctypes
+    from ctypes import wintypes
+
+    _GetShortPathNameW = ctypes.windll.kernel32.GetShortPathNameW
+    _GetShortPathNameW.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+    ]
+    _GetShortPathNameW.restype = wintypes.DWORD
+
+    output_buf_size = 0
+    while True:
+        output_buf = ctypes.create_unicode_buffer(output_buf_size)
+        needed = _GetShortPathNameW(long_name, output_buf, output_buf_size)
+        if output_buf_size >= needed:
+            return output_buf.value
+        else:
+            output_buf_size = needed
+
+
+def prepend_to_path(paths, env=None):
     if env is None:
         env = os.environ
 
-    if type(path) == list:
-        path = [x for x in path if os.path.exists(x)]
-        s = os.pathsep.join(path)
-    elif type(path) == str:
-        s = path
+    if type(paths) == list:
+        paths = [p for p in paths if os.path.exists(p)]
+
+        if sys.platform == "win32":
+            paths = [_get_short_path_name(p) for p in paths if " " in p]
+
+        s = os.pathsep.join(paths)
+    elif type(paths) == str:
+        s = paths
     else:
         raise ValueError()
 
@@ -850,6 +876,9 @@ def convert_to_unix_path(path, wsl=False):
 
 def add_to_path(path):
     if sys.platform == "win32":
+        if " " in path:
+            path = _get_short_path_name(path)
+
         s = get_output(r"reg query HKCU\Environment /v PATH")
         s = re.search(r"PATH\s+(?:REG_SZ|REG_EXPAND_SZ)\s+(.*)", s).group(1).strip()
         paths = s.split(";")

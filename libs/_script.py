@@ -395,7 +395,7 @@ def wrap_args_wt(
     title=None,
     close_on_exit=True,
     font_size=None,
-    default_font_size=9,
+    default_font_size=8,
     icon=None,
     opacity=1.0,
     **kwargs,
@@ -419,8 +419,8 @@ def wrap_args_wt(
     updated = False
 
     settings = {
-        "initialCols": 140,
-        "initialRows": 40,
+        # "initialCols": 140,
+        # "initialRows": 40,
     }
     for k, v in settings.items():
         if k not in data or data[k] != v:

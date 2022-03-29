@@ -39,6 +39,8 @@ def ue4_write_console_variables(ue4_project, pairs):
 
 def update_config(ini_file, section, kvps):
     print("== " + ini_file + " ==")
+    print(section)
+
     if os.path.exists(ini_file):
         with open(ini_file) as f:
             lines = f.readlines()
@@ -48,14 +50,20 @@ def update_config(ini_file, section, kvps):
     lines = [line.rstrip() for line in lines]
 
     # Only updated modified kvps
-    kvps = [x for x in kvps if x not in lines]
+    updated_kvps = []
+    for kvp in kvps:
+        if kvp in lines:
+            print2("= %s" % kvp, color="black")
+        else:
+            updated_kvps.append(kvp)
+            print2("+ %s" % kvp, color="green")
 
     # Remove existing value
-    for kvp in kvps:
+    for kvp in updated_kvps:
         if not kvp:
             continue
 
-        k, v = kvp.split("=")
+        k, _ = kvp.split("=")
         indices = [i for i in range(len(lines)) if lines[i].startswith(k + "=")]
         lines = [lines[i] for i in range(len(lines)) if i not in indices]
 
@@ -70,9 +78,7 @@ def update_config(ini_file, section, kvps):
         i = len(lines)
 
     # Add value
-    lines[i:i] = kvps
-    print(section)
-    print2("\n".join(kvps), color="green")
+    lines[i:i] = updated_kvps
 
     # Save to file
     call2('attrib -r "%s"' % ini_file)

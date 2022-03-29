@@ -58,7 +58,7 @@ def install_extensions(data_dir=None):
         "cweijan.vscode-autohotkey-plus",
         # Shader
         "slevesque.shader",
-        "cadenas.vscode-glsllint",
+        # "cadenas.vscode-glsllint",
         "xaver.clang-format",
     ]
 
@@ -70,10 +70,10 @@ def install_extensions(data_dir=None):
         )
 
 
-def config_vscode(data_dir=None, compact=False):
+def config_vscode(data_dir=None, compact=False, glslang=False):
     # call_echo([sys.executable, "-m", "pip", "install", "pylint"])
     # call_echo([sys.executable, "-m", "pip", "install", "autopep8"])
-    call_echo([sys.executable, "-m", "pip", "install", "-U", "mypy"])
+    call_echo([sys.executable, "-m", "pip", "install", "mypy"])
 
     install_extensions(data_dir=data_dir)
 
@@ -135,7 +135,7 @@ def config_vscode(data_dir=None, compact=False):
     data["python.languageServer"] = "Pylance"
     data["window.title"] = "${rootName}${separator}${activeEditorShort}"
 
-    if sys.platform == "win32":
+    if glslang and sys.platform == "win32":
         data["glsllint.glslangValidatorPath"] = install_glslang()
 
     data.update(

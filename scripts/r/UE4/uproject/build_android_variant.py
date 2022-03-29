@@ -1,6 +1,6 @@
 import os
 
-from UE4.config_for_mobile import config_uproject
+from UE4.uproject.config_uproject_for_mobile import config_uproject
 from UE4.uproject.build_android import build_uproject
 
 project_dir = r"{{UE4_PROJECT_DIR}}"

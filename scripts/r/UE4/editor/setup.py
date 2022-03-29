@@ -7,7 +7,6 @@ from _shutil import call_echo, cd, print2, wait_key
 from _nvpack import setup_nvpack
 
 if __name__ == "__main__":
-
     choco_install("directx")
 
     # TODO: No need this after UE5.25?

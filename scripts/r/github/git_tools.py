@@ -85,7 +85,8 @@ def show_git_log():
 @menu_item(key="s")
 def print_status():
     print2(
-        "\nrepo_dir: %s" % repo_dir, color="magenta",
+        "\nrepo_dir: %s" % repo_dir,
+        color="magenta",
     )
 
     commit(dry_run=True)
@@ -238,6 +239,24 @@ def setup_project():
     if not os.path.exists(".gitattributes"):
         with open(".gitattributes", "w") as f:
             f.writelines(["* text=auto eol=lf"])
+
+
+@menu_item(key="X")
+def clean_untracked_ignored():
+    for dry_run in [True, False]:
+        if not dry_run:
+            if not yes("Clean untracked files?"):
+                return
+
+        call_echo(
+            [
+                "git",
+                "clean",
+                "-n" if dry_run else "-f",
+                "-X",  # remove ignored files
+                "-d",  # remove directories
+            ]
+        )
 
 
 if __name__ == "__main__":
