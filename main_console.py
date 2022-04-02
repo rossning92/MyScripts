@@ -82,7 +82,7 @@ def register_hotkeys(scripts):
     hotkeys = {}
     for script in scripts:
         hotkey = script.cfg["hotkey"]
-        if hotkey is not None:
+        if hotkey:
             logging.info("Hotkey: %s: %s" % (hotkey, script.name))
 
             hotkey = hotkey.lower()
@@ -229,7 +229,7 @@ def register_global_hotkeys(scripts):
         for item in scripts:
             hotkey = item.cfg["globalHotkey"]
             alias = item.cfg["alias"]
-            if hotkey is not None or alias is not None:
+            if hotkey or alias:
                 func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
 
                 hotkey_def += (
@@ -238,7 +238,7 @@ def register_global_hotkeys(scripts):
                     "}\n"
                 )
 
-                if hotkey is not None:
+                if hotkey:
                     logging.info("GlobalHotkey: %s: %s" % (hotkey, item.name))
                     hotkey = hotkey.lower()
                     hotkey = hotkey.replace("ctrl+", "^")
@@ -247,7 +247,7 @@ def register_global_hotkeys(scripts):
                     hotkey = hotkey.replace("win+", "#")
                     hotkeys += f"{hotkey}::{func_name}()\n"
 
-                if alias is not None:
+                if alias:
                     hotkey_seq_def += f'{alias}: "{func_name}", '
 
         hotkey_seq_def = hotkey_seq_def.rstrip(", ")
@@ -274,7 +274,7 @@ def register_global_hotkeys(scripts):
         keyboard_hooks = {}
         for script in scripts:
             hotkey = script.cfg["globalHotkey"]
-            if hotkey is not None:
+            if hotkey:
                 logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
                 keyboard_hooks[hotkey] = lambda script=script: execute_script(script)
         add_keyboard_hooks(keyboard_hooks)

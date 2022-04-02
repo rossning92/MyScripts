@@ -660,7 +660,7 @@ class Script:
             setup_android_env(env=env)
 
         # Install packages
-        if self.cfg["packages"] is not None:
+        if self.cfg["packages"]:
             packages = self.cfg["packages"].split()
             for pkg in packages:
                 get_executable(pkg)
@@ -779,7 +779,7 @@ class Script:
 
             # Conda / venv support
             args_activate = []
-            if self.cfg["conda"] is not None:
+            if self.cfg["conda"]:
                 assert sys.platform == "win32"
                 import _conda
 
@@ -1150,21 +1150,21 @@ def run_script(
 def get_script_default_config():
     return {
         "template": True,
-        "hotkey": None,
-        "globalHotkey": None,
-        "alias": None,
+        "hotkey": "",
+        "globalHotkey": "",
+        "alias": "",
         "newWindow": True,
         "runAsAdmin": False,
         "autoRun": False,
         "wsl": False,
-        "conda": None,
+        "conda": "",
         "restartInstance": True,
         "background": False,
         "minimized": False,
-        "venv": None,
+        "venv": "",
         "closeOnExit": True,
         "terminal": "wt",
-        "packages": None,
+        "packages": "",
         "runpy": True,
         "adk": False,
         "tee": False,

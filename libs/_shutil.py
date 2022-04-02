@@ -693,7 +693,7 @@ def prepend_to_path(paths, env=None):
         paths = [p for p in paths if os.path.exists(p)]
 
         if sys.platform == "win32":
-            paths = [_get_short_path_name(p) for p in paths if " " in p]
+            paths = [_get_short_path_name(p) if " " in p else p for p in paths]
 
         s = os.pathsep.join(paths)
     elif type(paths) == str:
