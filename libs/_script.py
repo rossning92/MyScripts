@@ -673,10 +673,11 @@ class Script:
         if "_CUR_DIR" in os.environ:
             env["_CUR_DIR"] = os.environ["_CUR_DIR"]
 
-        # Default android device
-        android_serial = get_variable("ANDROID_SERIAL")
-        if android_serial:
-            env["ANDROID_SERIAL"] = android_serial
+        # Override ANDROID_SERIAL
+        if "ANDROID_SERIAL" not in os.environ:
+            android_serial = get_variable("ANDROID_SERIAL")
+            if android_serial:
+                env["ANDROID_SERIAL"] = android_serial
 
         if cd:
             cwd = os.path.abspath(
@@ -1014,9 +1015,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:
@@ -1076,12 +1075,12 @@ def run_script(
     file=None,
     args=[],
     variables=None,
-    new_window=False,  # should not start a new window by default
     console_title=None,
-    restart_instance=False,
     overwrite_meta=None,
-    cd=True,
     template=None,
+    new_window=False,  # should not start a new window by default
+    restart_instance=False,
+    cd=True,
 ):
     start_time = time.time()
     if file is None:

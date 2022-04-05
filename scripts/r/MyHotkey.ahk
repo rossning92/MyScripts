@@ -393,10 +393,12 @@ ToggleVNC()
         WinSet, AlwaysOnTop, Off, %VNC_VIEWER%
     } else if WinExist("ahk_exe tvnviewer.exe") {
         WinActivate, ahk_exe tvnviewer.exe
+        SetWindowPos("A", 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
+        WinSet, AlwaysOnTop, On, A
     } else if WinExist(VNC_VIEWER) {
         WinActivate, %VNC_VIEWER%
-        SetWindowPos(VNC_VIEWER, 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
-        WinSet, AlwaysOnTop, On, %VNC_VIEWER%
+        SetWindowPos("A", 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
+        WinSet, AlwaysOnTop, On, A
     }
 }
 
