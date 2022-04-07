@@ -461,6 +461,16 @@ def remove(files):
                 print("Deleted: %s" % match)
 
 
+def rename(src, dst, dry_run=False):
+    if src == dst:
+        print('Skip: "%s" and "%s" are the same file' % (src, dst))
+        return
+
+    print("Rename: %s => %s" % (src, dst))
+    if not dry_run:
+        os.rename(src, dst)
+
+
 def get_clip():
     import win32clipboard
 
@@ -1305,10 +1315,7 @@ def load_yaml(file):
 def save_yaml(data, file):
     with open(file, "w", encoding="utf-8", newline="\n") as f:
         yaml.dump(
-            data,
-            f,
-            default_flow_style=False,
-            allow_unicode=True,
+            data, f, default_flow_style=False, allow_unicode=True,
         )
 
 
@@ -1321,10 +1328,7 @@ def setup_logger(level=logging.DEBUG, log_file=None):
     logger.addHandler(handler)
 
     if log_file:
-        file_handler = logging.FileHandler(
-            log_file,
-            "w+",  # overwrite the file
-        )
+        file_handler = logging.FileHandler(log_file, "w+",)  # overwrite the file
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
 
@@ -1332,8 +1336,7 @@ def setup_logger(level=logging.DEBUG, log_file=None):
 def create_symlink(src, dst):
     assert os.path.isdir(src)
     subprocess.check_call(
-        ["MKLINK", "/J", dst, src],
-        shell=True,
+        ["MKLINK", "/J", dst, src], shell=True,
     )
 
 
@@ -1359,9 +1362,7 @@ def to_valid_file_name(value):
 
 def input_with_default(message, default):
     print2(
-        "%s (e.g. %s): " % (message, default),
-        color="green",
-        end="",
+        "%s (e.g. %s): " % (message, default), color="green", end="",
     )
     s = input()
     return s if s else default

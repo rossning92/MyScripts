@@ -16,7 +16,9 @@ def patch_code(
     use_regex=False,
     revert_file=False,
     count=0,
-    must_match=True,
+    can_skip=False,
+    dry_run=False,
+    encoding="utf-8",
 ):
     file = os.path.realpath(file)
 
@@ -24,7 +26,8 @@ def patch_code(
         _revert_file(file)
         modified_sources.add(file)
 
-    s = open(file, "rU").read()
+    with open(file, "rU", encoding=encoding) as f:
+        original = s = f.read()
 
     if mode != "replace" and (code and code in s):
         print2("= %s" % code, color="yellow")
@@ -35,7 +38,7 @@ def patch_code(
 
     matches = re.findall(patt, s)
     if not matches:
-        if must_match:
+        if not can_skip:
             print2("ERROR: fail to locate code:\n%s" % patt, color="red")
             sys.exit(1)
         else:
@@ -61,7 +64,9 @@ def patch_code(
         else:
             raise Exception("wrong value in mode param")
 
-    open(file, "w", newline="\n").write(s)
+    if not dry_run and s != original:
+        with open(file, "w", newline="\n", encoding="utf-8") as f:
+            f.write(s)
 
 
 def append_code(file, patt, code, **kwargs):
