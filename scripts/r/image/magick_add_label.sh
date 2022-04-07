@@ -9,6 +9,5 @@ for file in "$@"; do
     name="${file%.*}"
     name="${name//_/ }"
 
-    # magick "$file" -pointsize 48 -background black -fill white label:"$name" -gravity Center -append "$out"
-    magick "$file" -pointsize 36 -gravity North -fill red -annotate 0 "$name" "$out"
+    magick "$file" -pointsize {{_FONT_SIZE_PT}} -gravity North -fill red -annotate 0 "$name" "$out"
 done

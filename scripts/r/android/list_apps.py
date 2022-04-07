@@ -16,6 +16,7 @@ if __name__ == "__main__":
         "uninstall",
         "backup",
         "dumpsys",
+        "permissions",
     ]
     i = Menu(items=opt).exec()
     if i == -1:
@@ -38,4 +39,8 @@ if __name__ == "__main__":
 
     elif opt[i] == "dumpsys":
         call_echo(["adb", "shell", "dumpsys", "package", pkg])
+        input("Press enter to continue...")
+
+    elif opt[i] == "permissions":
+        call_echo(["adb", "shell", "dumpsys package %s | grep permission" % pkg])
         input("Press enter to continue...")

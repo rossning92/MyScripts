@@ -43,6 +43,9 @@ class DictValueEditWindow(Menu):
 
         self.dict_[self.name] = val
 
+        data = {k: v for k, v in self.dict_.items() if default_config[k] != v}
+        save_yaml(data, script_config_file)
+
         self.close()
 
     def on_char(self, ch):
@@ -110,7 +113,3 @@ if __name__ == "__main__":
 
     if ret == -1:
         sys.exit(0)
-
-    data = {k: v for k, v in data.items() if default_config[k] != v}
-
-    save_yaml(data, script_config_file)

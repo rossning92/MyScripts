@@ -103,16 +103,25 @@ def get_console_title():
     return None
 
 
-def wrap_wsl(commands):
+def wrap_wsl(commands, env=None):
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
 
+    bash = ""
+
+    if env is not None:
+        for k, v in env.items():
+            bash += "export {}='{}'\n".format(k, v)
+
     if type(commands) in [list, tuple]:
-        commands = _args_to_str(commands)
+        bash += _args_to_str(commands)
+    else:
+        bash += commands
 
     # To create a temp sh files to invoke commands to avoid command being parsed
     # by current shell
-    tmp_sh_file = write_temp_file(commands, ".sh")
+    logging.debug("WSL commands: {}".format(bash))
+    tmp_sh_file = write_temp_file(bash, ".sh")
     tmp_sh_file = convert_to_unix_path(tmp_sh_file, wsl=True)
 
     # # Escape dollar sign? Why?
@@ -332,9 +341,13 @@ def get_python_path(script_path):
     return python_path
 
 
-def setup_python_path(env, script_path=None):
+def setup_python_path(env, script_path=None, wsl=False):
     python_path = get_python_path(script_path)
-    env["PYTHONPATH"] = os.pathsep.join(python_path)
+    if wsl:
+        python_path = [convert_to_unix_path(x, wsl=True) for x in python_path]
+        env["PYTHONPATH"] = ":".join(python_path)
+    else:
+        env["PYTHONPATH"] = os.pathsep.join(python_path)
 
 
 def wrap_args_tee(args, out_file):
@@ -775,7 +788,7 @@ class Script:
                 python_file = convert_to_unix_path(python_file, wsl=self.cfg["wsl"])
                 python_exec = "python3"
 
-            setup_python_path(env, script_path)
+            setup_python_path(env, script_path, wsl=self.cfg["wsl"])
             # env["PYTHONDONTWRITEBYTECODE"] = "1"
 
             # Conda / venv support
@@ -833,7 +846,7 @@ class Script:
                 assert False
 
             if self.cfg["wsl"]:
-                args = wrap_wsl(args)
+                args = wrap_wsl(args, env=env)
         elif ext == ".vbs":
             assert os.name == "nt"
 
