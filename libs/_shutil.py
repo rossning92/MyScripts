@@ -18,7 +18,7 @@ import time
 from collections import OrderedDict, namedtuple
 from distutils.dir_util import copy_tree
 from time import sleep
-from typing import Dict
+from typing import List
 
 import yaml
 
@@ -1220,8 +1220,10 @@ def move_file(src, dst, overwrite=False):
     shutil.move(src, dst)
 
 
-MenuItem = namedtuple("MenuItem", "name key func")
-_menu_items: Dict[str, MenuItem] = {}
+MenuItem = namedtuple("MenuItem", "name caller key func")
+_menu_items: List[MenuItem] = []
+
+import inspect
 
 
 def menu_item(*, key, name=None):
@@ -1230,10 +1232,8 @@ def menu_item(*, key, name=None):
         if name is None:
             name = func.__name__
 
-        if key in _menu_items:
-            raise Exception("key '%s' is already used: %s" % (key, _menu_items.name))
-
-        _menu_items[key] = MenuItem(name=name, key=key, func=func)
+        caller = inspect.stack()[1].filename
+        _menu_items.append(MenuItem(name=name, key=key, func=func, caller=caller))
 
         return func
 
@@ -1241,12 +1241,25 @@ def menu_item(*, key, name=None):
 
 
 def menu_loop(run_periotic=None, interval=-1):
+    caller = inspect.stack()[1].filename
+    menu_items = filter(lambda x: x.caller == caller, _menu_items)
+    menu_items = sorted(menu_items, key=lambda x: x.name)
+
+    # Check if there is any key conflict
+    used_keys = set()
+    for item in menu_items:
+        if item.key in used_keys:
+            raise Exception("Key conflict: %s" % item.key)
+        used_keys.add(item.key)
+
     def print_help():
+        print()
         print2("Help Menu")
         print2("---------")
 
-        for menu_item in sorted(_menu_items.values(), key=lambda x: x.name):
-            print("  [%s] %s" % (menu_item.key, menu_item.name))
+        for menu_item in sorted(menu_items, key=lambda x: x.name):
+            if menu_item.caller == caller:
+                print("  [%s] %s" % (menu_item.key, menu_item.name))
 
         print("  [h] help")
         print("  [q] quit")
@@ -1268,13 +1281,22 @@ def menu_loop(run_periotic=None, interval=-1):
             print_help()
         elif ch == "q":
             break
-        elif ch in _menu_items:
-            try:
-                _menu_items[ch].func()
-            except Exception as ex:
-                print2("Error: %s" % ex, color="red")
         else:
-            print2("Invalid key: %s" % ch, color="yellow")
+            match = list(filter(lambda x: x.key == ch, menu_items))
+            if len(match) == 0:
+                print2("Invalid key: %s" % ch, color="yellow")
+            elif len(match) == 1:
+                start_time = time.time()
+                try:
+                    match[0].func()
+                except Exception as ex:
+                    print2("Error: %s" % ex, color="red")
+                end_time = time.time()
+                if end_time - start_time > 1:
+                    print2(
+                        "(finished in %.2f secs)" % (end_time - start_time),
+                        color="black",
+                    )
 
 
 def file_is_old(in_file, out_file):
@@ -1315,7 +1337,10 @@ def load_yaml(file):
 def save_yaml(data, file):
     with open(file, "w", encoding="utf-8", newline="\n") as f:
         yaml.dump(
-            data, f, default_flow_style=False, allow_unicode=True,
+            data,
+            f,
+            default_flow_style=False,
+            allow_unicode=True,
         )
 
 
@@ -1328,7 +1353,10 @@ def setup_logger(level=logging.DEBUG, log_file=None):
     logger.addHandler(handler)
 
     if log_file:
-        file_handler = logging.FileHandler(log_file, "w+",)  # overwrite the file
+        file_handler = logging.FileHandler(
+            log_file,
+            "w+",
+        )  # overwrite the file
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
 
@@ -1336,7 +1364,8 @@ def setup_logger(level=logging.DEBUG, log_file=None):
 def create_symlink(src, dst):
     assert os.path.isdir(src)
     subprocess.check_call(
-        ["MKLINK", "/J", dst, src], shell=True,
+        ["MKLINK", "/J", dst, src],
+        shell=True,
     )
 
 
@@ -1362,7 +1391,9 @@ def to_valid_file_name(value):
 
 def input_with_default(message, default):
     print2(
-        "%s (e.g. %s): " % (message, default), color="green", end="",
+        "%s (e.g. %s): " % (message, default),
+        color="green",
+        end="",
     )
     s = input()
     return s if s else default

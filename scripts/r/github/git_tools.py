@@ -24,17 +24,17 @@ repo_dir = r"{{GIT_REPO}}"
 bundle_file = None
 if backup_dir:
     bundle_file = os.path.join(backup_dir, os.path.basename(repo_dir) + ".bundle")
-    print("Bundle file path: %s" % bundle_file)
 
 
 @menu_item(key="c")
 def commit(dry_run=False, amend=False):
-    if dry_run:
-        call_echo("git status --short")
+    if is_working_tree_clean():
+        print2("(working directory clean.)", color="black")
+        return
 
-    else:
-        if not get_output("git diff --cached --quiet"):
-            call_echo("git add -A")
+    call_echo("git status --short")
+    if not dry_run and yes("Commit all changes?"):
+        call_echo("git add -A")
 
         if amend:
             call_echo("git commit --amend --no-edit --quiet")
@@ -79,13 +79,14 @@ def show_git_log():
             "-10",
         ],
         check=False,
+        shell=False,
     )
 
 
 @menu_item(key="s")
 def print_status():
     print2(
-        "\nrepo_dir: %s" % repo_dir,
+        "\nrepo_dir: %s" % os.getcwd(),
         color="magenta",
     )
 
@@ -173,9 +174,16 @@ def revert_file():
         call_echo("git checkout %s" % file)
 
 
+def is_working_tree_clean():
+    return subprocess.call(["git", "diff", "--quiet"]) == 0
+
+
 @menu_item(key="d")
 def diff():
-    call_echo("git diff")
+    if not is_working_tree_clean():
+        call_echo("git diff")
+    else:
+        call_echo("git diff HEAD^ HEAD")
 
 
 @menu_item(key="`")
