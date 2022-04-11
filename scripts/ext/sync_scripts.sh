@@ -31,7 +31,14 @@ if [[ ! -z "$status" ]]; then
 fi
 
 git pull --rebase
+
+# Update submodules
 # git pull --recurse-submodules || true
-git submodule update --recursive --remote || true
+if (cd scripts/r/videoedit/movy && git diff --quiet); then
+    echo "Update submodule movy..."
+    git submodule update --recursive --remote || true
+else
+    echo "(Skip updating submodule movy - working tree is dirty.)"
+fi
 
 git push

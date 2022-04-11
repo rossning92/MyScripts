@@ -6,7 +6,7 @@ from pprint import pprint
 from _editor import open_in_vscode
 from _shutil import getch, load_yaml, save_yaml, to_valid_file_name
 
-from export_animation import load_config
+from export_video import load_config
 
 if __name__ == "__main__":
     vproject_root = r"{{VPROJECT_ROOT}}"

@@ -3,7 +3,29 @@ import os
 import subprocess
 import sys
 
-from _shutil import get_temp_file_name
+from _shutil import get_temp_file_name, call_echo
+
+
+def hstack_videos(files, out_file=None):
+    if out_file is None:
+        out_file = "output.mp4"
+
+    args = ["ffmpeg"]
+    for f in files:
+        args += ["-i", f]
+    args += [
+        "-c:v",
+        "libx264",
+        "-crf",
+        "0",
+        "-filter_complex",
+        "hstack=inputs={}".format(len(files)),
+        out_file,
+        "-y",
+    ]
+
+    call_echo(args)
+    return out_file
 
 
 def generate_video_matrix(
@@ -164,6 +186,20 @@ def ffmpeg(
     max_size_mb=None,
     no_audio=False,
     loop=None,
+    crop_rect=None,
+    to_anamorphic=False,
+    crop_to_1080p=False,
+    pad_to_1080p=False,
+    rotate_cw=False,
+    rotate_ccw=False,
+    speed=None,
+    height=None,
+    width=None,
+    title=None,
+    reverse=False,
+    remove_duplicated_frames=False,
+    test=False,
+    fps=None,
 ):
     if in_file == out_file:
         overwrite = True
@@ -203,6 +239,64 @@ def ffmpeg(
             "-t",
             str(start_and_duration[1]),
         ]
+
+    # FPS
+    if fps:
+        extra_args += ["-r", "%d" % fps]
+
+    # Video filters
+    filter_v = []
+
+    # Crop video
+    if crop_rect:
+        filter_v.append(
+            f"crop={crop_rect[2]}:{crop_rect[3]}:{crop_rect[0]}:{crop_rect[1]}"
+        )
+
+    if to_anamorphic:
+        filter_v.append("scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132")
+
+    elif crop_to_1080p:
+        filter_v.append("scale=1920:-2,pad=1920:1080:0:0")
+
+    elif pad_to_1080p:
+        filter_v.append("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black")
+
+    if rotate_cw:
+        filter_v.append("transpose=1")
+    elif rotate_ccw:
+        filter_v.append("transpose=2")
+
+    if speed:
+        filter_v.append("setpts=PTS/%.2f" % float(speed))
+
+    # Scale (-2 indicates divisible by 2)
+    if height:
+        filter_v.append(f"scale=-2:{height}")
+    elif width:
+        filter_v.append(f"scale={width}:-2")
+
+    if title:
+        filter_v.append(
+            f"drawtext=text='{title}'"
+            ":fontfile=/Windows/Fonts/arial.ttf"
+            ":fontcolor=white"
+            ":fontsize=18"
+            ":x=(w-text_w)/2"
+            ":y=(h-text_h)/2"
+        )
+
+    if reverse:
+        filter_v.append("reverse")
+
+    if remove_duplicated_frames:
+        filter_v.append("mpdecimate,setpts=N/FRAME_RATE/TB")
+
+    if test:
+        filter_v.append("setpts=2.0*PTS*(1+random(0)*0.02)")
+
+    if filter_v:
+        args += ["-filter:v", ",".join(filter_v)]
 
     if extra_args:
         args += extra_args

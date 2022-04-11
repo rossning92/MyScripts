@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 import tarfile
-from typing import Dict, List
+from typing import Dict, List, Optional, Sequence, Union
 
 import moviepy.audio.fx.all as afx
 import moviepy.video.fx.all as vfx
@@ -759,7 +759,7 @@ def add_video_clip(
     na=False,
     norm=False,
     vol=None,
-    subclip=None,
+    subclip: Union[Optional[Sequence[float]], float] = None,
     frame=None,
     n=None,
     loop=False,
@@ -769,6 +769,9 @@ def add_video_clip(
     height=None,
     **kwargs,
 ):
+    if isinstance(subclip, (int, float)):
+        subclip = (subclip,)
+
     clip_info = VideoClip()
 
     # Alias
@@ -842,8 +845,8 @@ def add_video_clip(
     # Duration
     if duration is None:
         if subclip:
-            if isinstance(subclip, (int, float)):
-                duration = clip_info.mpy_clip.duration - subclip
+            if len(subclip) == 1:
+                duration = clip_info.mpy_clip.duration - subclip[0]
             else:
                 duration = subclip[1] - subclip[0]
         else:
@@ -857,7 +860,10 @@ def add_video_clip(
         _state.pos_dict["c"] = _state.pos_dict["ve"] = end
 
     while len(track) > 0 and clip_info.start < track[-1].start:
-        print("WARNING: clip(file=%s, t=%d) has been removed" % (track[-1].file, clip_info.start))
+        print(
+            "WARNING: clip(file=%s, t=%d) has been removed"
+            % (track[-1].file, clip_info.start)
+        )
         track.pop()
 
     track.append(clip_info)
@@ -865,17 +871,37 @@ def add_video_clip(
     return clip_info
 
 
+prev_anim_clip: Optional[VideoClip] = None
+
+
 @core.api
-def anim(file, **kwargs):
+def anim(file, subclip=None, **kwargs):
+    global prev_anim_clip
+
     if _state.audio_only:
         return
 
-    video_file = os.path.splitext(file)[0] + ".webm"
-    if file_is_old(file, video_file):
-        if os.path.exists(video_file):
-            os.remove(video_file)
+    # Generate video file from .js file
+    vid_file = os.path.splitext(file)[0] + ".webm"
+    if file_is_old(file, vid_file):
+        if os.path.exists(vid_file):
+            os.remove(vid_file)
         export_movy_animation(os.path.abspath(file))
-    add_video_clip(video_file, **kwargs)
+    file = vid_file
+
+    if subclip is not None:
+        assert isinstance(subclip, (tuple, list))
+        if prev_anim_clip:
+            if prev_anim_clip.file == os.path.abspath(file):
+                if (
+                    prev_anim_clip.subclip is not None
+                    and len(prev_anim_clip.subclip) == 1
+                ):
+                    prev_anim_clip.subclip = (prev_anim_clip.subclip[0], subclip[0])
+                    print("Update prev anim clip subclip:", prev_anim_clip.subclip)
+
+    clip_info = add_video_clip(file, subclip=subclip, **kwargs)
+    prev_anim_clip = clip_info
 
 
 @core.api
@@ -1017,13 +1043,17 @@ def _update_mpy_clip(
 
     # video clip operations / fx
     if subclip is not None:
-        if isinstance(subclip, (int, float)):
-            clip = clip.subclip(subclip).set_duration(duration)
+        assert isinstance(subclip, (tuple, list))
+        assert len(subclip) == 1 or len(subclip) == 2
+        if len(subclip) == 1:
+            clip = clip.subclip(subclip[0]).set_duration(duration)
 
         else:
-            subclip_duration = subclip[1] - subclip[0] 
+            subclip_duration = subclip[1] - subclip[0]
             if loop:
-                clip = clip.subclip(subclip[0], subclip[1]).set_duration(subclip_duration)
+                clip = clip.subclip(subclip[0], subclip[1]).set_duration(
+                    subclip_duration
+                )
             elif duration > subclip_duration:
                 c1 = clip.subclip(subclip[0], subclip[1])
                 c2 = clip.to_ImageClip(subclip[1]).set_duration(

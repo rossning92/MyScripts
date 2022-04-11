@@ -577,7 +577,7 @@ function exportVideo({
     let shellArgs: string[] = [
       "/c",
       "run_script",
-      "/r/videoedit/export_animation",
+      "/r/videoedit/export_video",
       "-i",
       textFile,
       "--proj_dir",

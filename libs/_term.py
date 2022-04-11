@@ -115,7 +115,7 @@ class InputWidget:
             self.clear()
         elif ch == ord("\n"):
             pass
-        elif re.match("[\x00-\x7F]", chr(ch)):
+        else:
             self.text = (
                 self.text[: self.caret_pos] + chr(ch) + self.text[self.caret_pos :]
             )
@@ -164,8 +164,8 @@ class Menu:
     def update_screen(self):
         self.height, self.width = self.stdscr.getmaxyx()
 
-        # Sreen update
-        self.stdscr.clear()
+        # Use erase instead of clear to prevent flickering
+        self.stdscr.erase()
         self.on_update_screen()
         self.stdscr.refresh()
 

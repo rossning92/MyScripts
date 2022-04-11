@@ -212,7 +212,7 @@ def get_all_variables():
         if not os.path.exists(file):
             return {}
 
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             variables = json.load(f)
             return variables
 
@@ -249,7 +249,7 @@ def set_variable(name, val):
 
     with FileLock("access_variable"):
         file = get_variable_file()
-        with open(file, "r") as f:
+        with open(file, "r", encoding="utf-8") as f:
             variables = json.load(f)
 
         if name not in variables:
@@ -263,7 +263,7 @@ def set_variable(name, val):
 
         vals.insert(0, val)
 
-        with open(file, "w") as f:
+        with open(file, "w", encoding="utf-8") as f:
             json.dump(variables, f, indent=2)
 
 
@@ -360,9 +360,7 @@ def wrap_args_tee(args, out_file):
     ]
 
 
-def wrap_args_cmd(
-    args, title=None, cwd=None, script_path=None, env=None, close_on_exit=True
-):
+def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=True):
     assert type(args) is list
 
     cmd_args = "cmd /c "
@@ -372,20 +370,6 @@ def wrap_args_cmd(
 
     if cwd:
         cmd_args += "cd /d %s&" % _auto_quote(cwd)
-
-    # bin_path = os.path.abspath(os.path.dirname(__file__) + "/../bin")
-    # cmd_args += [
-    #     "set",
-    #     "PATH=" + bin_path + ";%PATH%",
-    #     "&",
-    # ]
-
-    # if script_path:
-    #     cmd_args += [
-    #         "set",
-    #         "PYTHONPATH=" + os.pathsep.join(get_python_path(script_path)),
-    #         "&",
-    #     ]
 
     if env:
         for k, v in env.items():
@@ -440,6 +424,7 @@ def wrap_args_wt(
             data[k] = v
             updated = True
 
+    # Default font size and color scheme
     profiles_defaults = {
         "colorScheme": "Dracula",
         "font": {"face": "Consolas", "size": default_font_size},
@@ -447,6 +432,12 @@ def wrap_args_wt(
     if profiles_defaults != data["profiles"]["defaults"]:
         data["profiles"]["defaults"] = profiles_defaults
         updated = True
+
+    # Customize selection color
+    for scheme in filter(lambda x: x["name"] == "Dracula", data["schemes"]):
+        if scheme["selectionBackground"] != "#ffff00":
+            scheme["selectionBackground"] = "#ffff00"
+            updated = True
 
     if title:
         filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
@@ -891,29 +882,6 @@ class Script:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
                 if sys.platform == "win32" and (not self.cfg["runAsAdmin"]):
-                    # TODO: clean up this hack
-                    if False and not self.cfg["wsl"]:
-                        args = [
-                            sys.executable,
-                            "-c",
-                            (
-                                "import subprocess;"
-                                "import ctypes;"
-                                'import sys;sys.path.append(r"'
-                                + os.path.dirname(__file__)
-                                + '");'
-                                "import _script as s;"
-                                's.set_console_title(r"'
-                                + self.get_console_title()
-                                + '");'
-                                "ret = subprocess.call(" + args + ");"
-                                "hwnd = ctypes.windll.kernel32.GetConsoleWindow();"
-                                "ctypes.windll.user32.SetForegroundWindow(hwnd);"
-                                's.set_console_title(s.get_console_title() + " (Finished)");'
-                                "sys.exit(ret)"
-                            ),
-                        ]
-
                     # Open in specified terminal (e.g. Windows Terminal)
                     try:
                         if self.cfg["terminal"] is None:
@@ -951,7 +919,6 @@ class Script:
                             args,
                             cwd=cwd,
                             title=self.get_console_title(),
-                            script_path=script_path,
                             env=env,
                             close_on_exit=close_on_exit,
                         )
@@ -985,7 +952,6 @@ class Script:
                     args,
                     cwd=cwd,
                     title=self.get_console_title(),
-                    script_path=script_path,
                     env=env,
                     close_on_exit=close_on_exit,
                 )
@@ -1026,10 +992,10 @@ class Script:
                         close_fds=True,
                     )
 
-                elif new_window:
-                    subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
-                    )
+                # elif new_window and platform.system() == "Windows":
+                #     subprocess.Popen(
+                #         **popen_args, creationflags=creationflags, close_fds=True,
+                #     )
 
                 else:
                     subprocess.check_call(**popen_args)

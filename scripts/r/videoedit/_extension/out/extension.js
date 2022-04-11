@@ -468,7 +468,7 @@ function exportVideo({ extraArgs, selectedText = true, preview = false, } = {}) 
         let shellArgs = [
             "/c",
             "run_script",
-            "/r/videoedit/export_animation",
+            "/r/videoedit/export_video",
             "-i",
             textFile,
             "--proj_dir",

@@ -381,7 +381,7 @@ def curse_main(stdscr):
 
 
 def init():
-    setup_logger(log_file=os.path.join(get_data_dir(), "MyScripts.log"))
+    setup_logger(log_file=os.path.join(get_data_dir(), "MyScripts.log"), stdout=False)
 
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")

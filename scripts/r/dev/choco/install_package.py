@@ -85,6 +85,7 @@ PKGS = {
         "docker-desktop",
         "gimp",
         "cura-new",
+        "treesizefree",
     ],
 }
 

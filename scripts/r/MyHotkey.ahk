@@ -152,14 +152,14 @@ return
     g_lastKey := "Up"
 return
 
-$!\::
+ToggleWindowDivider() {
+    global WindowDividor
     if (WindowDividor = 2/3) {
         WindowDividor := 1/2
-
     } else {
         WindowDividor := 2/3
     }
-return
+}
 
 $!1::
     if WinActive("ahk_exe FL64.exe") {
@@ -167,22 +167,23 @@ $!1::
         return
     } 
 
-    if (g_lastKey <> "1") {
-        SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
-    } else {
-        SetWindowPosF("A", 0, 0, 0.5, 1)
-    }
+    if (g_lastKey = "1") {
+        ToggleWindowDivider()
+    } 
 
+    SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
     SetAlwaysOnTop("A", False)
+
     g_lastKey := "1"
 return
 
 $!2::
-    if (g_lastKey <> "2") {
-        SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-    } else {
-        SetWindowPosF("A", 0.5, 0, 0.5, 1)
+    if (g_lastKey = "2") {
+        ToggleWindowDivider()
     }
+
+    SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
+    SetAlwaysOnTop("A", True)
 
     g_lastKey := "2"
 return

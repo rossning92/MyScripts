@@ -315,6 +315,7 @@
   ".yml": ["vscode", "notepad++"],
   ".zim": ["vscode", "notepad++"],
   ".zip": [["run_script", "/r/unzip.py"], "7zFM"],
+  ".rar": [["run_script", "/r/unzip.py"], "7zFM"],
   ".zxp": ["vscode", "notepad++"],
   ".gz": [["run_script", "/r/unzip.py"], "7zFM"],
   ".usf": ["vscode", "notepad++"],
