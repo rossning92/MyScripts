@@ -3,8 +3,10 @@
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
-!`::Run {{run_script}} @console_title=%name%:new_window=auto:cd=1 || pause
+;!`::Run {{run_script}} @console_title=%name%:new_window=auto:cd=1 || pause
+
 {{hotkeys}}
+
 ; !q::HotkeySeq({ {{hotkey_seq_def}} })
 
 #If

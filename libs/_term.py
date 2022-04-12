@@ -75,9 +75,10 @@ def search_items(items, kw):
 
 
 class InputWidget:
-    def __init__(self, label="", text=""):
+    def __init__(self, label="", text="", ascii_only=False):
         self.label = label
         self.set_text(text)
+        self.ascii_only = ascii_only
 
     def set_text(self, text):
         self.text = text
@@ -116,15 +117,18 @@ class InputWidget:
         elif ch == ord("\n"):
             pass
         else:
-            self.text = (
-                self.text[: self.caret_pos] + chr(ch) + self.text[self.caret_pos :]
-            )
-            self.caret_pos += 1
+            if not self.ascii_only or (
+                self.ascii_only and re.match("[\x00-\x7F]", chr(ch))
+            ):
+                self.text = (
+                    self.text[: self.caret_pos] + chr(ch) + self.text[self.caret_pos :]
+                )
+                self.caret_pos += 1
 
 
 class Menu:
-    def __init__(self, items=[], stdscr=None, label=">", text=""):
-        self.input_ = InputWidget(label=label, text=text)
+    def __init__(self, items=[], stdscr=None, label=">", text="", ascii_only=False):
+        self.input_ = InputWidget(label=label, text=text, ascii_only=ascii_only)
         self.items = items
         self.on_items = []
         self.closed = False
@@ -164,8 +168,11 @@ class Menu:
     def update_screen(self):
         self.height, self.width = self.stdscr.getmaxyx()
 
-        # Use erase instead of clear to prevent flickering
-        self.stdscr.erase()
+        if sys.platform == "win32":
+            self.stdscr.clear()
+        else:
+            # Use erase instead of clear to prevent flickering
+            self.stdscr.erase()
         self.on_update_screen()
         self.stdscr.refresh()
 

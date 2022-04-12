@@ -30,6 +30,8 @@ if backup_dir:
 def commit(dry_run=False, amend=False):
     if is_working_tree_clean():
         print2("(working directory clean.)", color="black")
+        print2("Changed files in HEAD:", color="black")
+        subprocess.call(["git", "diff", "--name-only", "HEAD", "HEAD~1"], shell=False)
         return
 
     call_echo("git status --short")

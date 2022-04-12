@@ -124,6 +124,19 @@ return
     UpdateWindowPosition("right")
 return
 
+!`::
+    CoordMode, ToolTip, Window
+    WinGet, ExStyle, ExStyle, A
+    If (ExStyle & 0x8) {
+        SetAlwaysOnTop("A", False)
+        ToolTip, AlwaysOnTop=0, 0, 0
+    } else {
+        SetAlwaysOnTop("A", True)
+        ToolTip, AlwaysOnTop=1, 0, 0
+    }
+    SetTimer, RemoveToolTip, -2000
+return
+
 #MButton::
     MouseGetPos,,, hwndUnderCursor
     WinGetPos, winX, winY, , , ahk_id %hwndUnderCursor%
@@ -165,11 +178,11 @@ $!1::
     if WinActive("ahk_exe FL64.exe") {
         SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
         return
-    } 
+    }
 
     if (g_lastKey = "1") {
         ToggleWindowDivider()
-    } 
+    }
 
     SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
     SetAlwaysOnTop("A", False)
@@ -183,7 +196,7 @@ $!2::
     }
 
     SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-    SetAlwaysOnTop("A", True)
+    SetAlwaysOnTop("A", False)
 
     g_lastKey := "2"
 return

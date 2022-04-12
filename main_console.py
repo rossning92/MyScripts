@@ -282,7 +282,7 @@ def register_global_hotkeys(scripts):
 
 class MainWindow(Menu):
     def __init__(self, stdscr):
-        super().__init__(items=script_manager.scripts, stdscr=stdscr)
+        super().__init__(items=script_manager.scripts, stdscr=stdscr, ascii_only=True)
 
     def on_main_loop(self):
         # Reload scripts
