@@ -106,7 +106,7 @@ def restart_current_app():
 
 
 def logcat(
-    proc_name=None,
+    pkg=None,
     highlight=None,
     regex=None,
     clear=False,
@@ -131,8 +131,8 @@ def logcat(
         regex = re.compile(regex)
     if exclude_proc:
         exclude_proc = re.compile(exclude_proc)
-    if type(proc_name) == str:
-        proc_name = re.compile(re.escape(proc_name))
+    if type(pkg) == str:
+        pkg = re.compile(re.escape(pkg))
 
     args = ["adb", "logcat", "-v", "brief"]
 
@@ -209,7 +209,7 @@ def logcat(
 
                 if proc is not None:
                     # Filter by process name (include)
-                    if proc_name and not re.search(proc_name, proc):
+                    if pkg and not re.search(pkg, proc):
                         show_line = False
 
                     # Exclude by process name (exclude)

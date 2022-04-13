@@ -938,7 +938,7 @@ class Script:
                 elif sys.platform == "linux":
                     # args = ["tmux", "split-window"] + args
                     # args = ["x-terminal-emulator", "-e"] + args
-                    pass
+                    new_window = False
 
                 else:
                     creationflags = subprocess.CREATE_NEW_CONSOLE
@@ -992,10 +992,12 @@ class Script:
                         close_fds=True,
                     )
 
-                # elif new_window and platform.system() == "Windows":
-                #     subprocess.Popen(
-                #         **popen_args, creationflags=creationflags, close_fds=True,
-                #     )
+                elif new_window:
+                    subprocess.Popen(
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
+                    )
 
                 else:
                     subprocess.check_call(**popen_args)

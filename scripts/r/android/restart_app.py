@@ -19,4 +19,4 @@ if __name__ == "__main__":
 
     restart_app(pkg, use_monkey="{{USE_MONKEY}}")
     if "{{_SHOW_LOGCAT}}":
-        logcat(proc_name=pkg)
+        logcat(pkg=pkg)

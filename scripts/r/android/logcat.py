@@ -5,4 +5,4 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--pkg", default=None)
 args = parser.parse_args()
 
-logcat(proc_name=args.pkg)
+logcat(pkg=args.pkg)
