@@ -994,9 +994,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:
@@ -1032,24 +1030,22 @@ def find_script(script_name, search_dir=None):
         return path
 
     # Fuzzy search
-    name_no_ext, _ = os.path.splitext(script_name.lstrip("/"))
-    path = (
-        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
-        + "/**/"
-        + name_no_ext
-        + ".*"
-    ).replace("\\", "/")
+    for _, script_root_dir in get_script_directories():
+        name_no_ext, _ = os.path.splitext(script_name.lstrip("/"))
+        path = (script_root_dir + "/**/" + name_no_ext + ".*").replace("\\", "/")
 
-    found = glob.glob(path, recursive=True)
-    found = [
-        f
-        for f in found
-        if not os.path.isdir(f) and os.path.splitext(f)[1] in SCRIPT_EXTENSIONS
-    ]
-    if len(found) > 1:
-        raise Exception("Found multiple scripts: %s" % str(found))
+        match = glob.glob(path, recursive=True)
+        match = [
+            f
+            for f in match
+            if not os.path.isdir(f) and os.path.splitext(f)[1] in SCRIPT_EXTENSIONS
+        ]
+        if len(match) == 1:
+            return match[0]
+        elif len(match) > 1:
+            raise Exception("Found multiple scripts: %s" % str(match))
 
-    return found[0]
+    return None
 
 
 def run_script(

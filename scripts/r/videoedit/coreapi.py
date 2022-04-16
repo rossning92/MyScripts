@@ -1,10 +1,11 @@
 import functools
+import json
 import math
 import os
 import re
 import subprocess
 import tarfile
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import moviepy.audio.fx.all as afx
 import moviepy.video.fx.all as vfx
@@ -53,7 +54,7 @@ class VideoClip:
         self.norm = False
         self.vol = None
         self.transparent = True
-        self.subclip = None
+        self.subclip: Optional[Tuple[float, ...]] = None
         self.frame = None
         self.loop = False
         self.expand = False
@@ -759,7 +760,7 @@ def add_video_clip(
     na=False,
     norm=False,
     vol=None,
-    subclip: Union[Optional[Sequence[float]], float] = None,
+    subclip: Optional[Union[Sequence[Union[float, str]], Union[float, str]]] = None,
     frame=None,
     n=None,
     loop=False,
@@ -769,8 +770,28 @@ def add_video_clip(
     height=None,
     **kwargs,
 ):
-    if isinstance(subclip, (int, float)):
-        subclip = (subclip,)
+    subclip2: Optional[Tuple[float, ...]] = None
+    if subclip is not None:
+        if isinstance(subclip, (int, float, str)):
+            subclip = (subclip,)
+
+        metadata_file = os.path.splitext(file)[0] + ".json"
+        if os.path.exists(metadata_file):
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                medadata = json.load(f)
+
+                def get_time_by_marker(name: str) -> float:
+                    for marker in medadata["markers"]:
+                        if marker["name"] == name:
+                            return marker["time"]
+                    raise Exception('Marker "%s" not found' % name)
+
+                # replace marker with time
+                subclip2 = tuple(
+                    [get_time_by_marker(x) for x in subclip if isinstance(x, str)]
+                )
+        else:
+            subclip2 = tuple((float(x) for x in subclip))
 
     clip_info = VideoClip()
 
@@ -825,7 +846,7 @@ def add_video_clip(
     clip_info.norm = norm
     clip_info.vol = vol
     clip_info.transparent = transparent
-    clip_info.subclip = subclip
+    clip_info.subclip = subclip2
 
     if file.endswith(".gif"):
         clip_info.loop = True
@@ -844,11 +865,11 @@ def add_video_clip(
 
     # Duration
     if duration is None:
-        if subclip:
-            if len(subclip) == 1:
-                duration = clip_info.mpy_clip.duration - subclip[0]
+        if subclip2 is not None:
+            if len(subclip2) == 1:
+                duration = clip_info.mpy_clip.duration - subclip2[0]
             else:
-                duration = subclip[1] - subclip[0]
+                duration = subclip2[1] - subclip2[0]
         else:
             duration = clip_info.mpy_clip.duration
     else:
@@ -875,7 +896,7 @@ prev_anim_clip: Optional[VideoClip] = None
 
 
 @core.api
-def anim(file, subclip=None, **kwargs):
+def anim(file, **kwargs):
     global prev_anim_clip
 
     if _state.audio_only:
@@ -884,23 +905,34 @@ def anim(file, subclip=None, **kwargs):
     # Generate video file from .js file
     vid_file = os.path.splitext(file)[0] + ".webm"
     if file_is_old(file, vid_file):
+        # Remove old video file
         if os.path.exists(vid_file):
             os.remove(vid_file)
+
+        # Remove old metadata file
+        metadata_file = os.path.splitext(file)[0] + ".json"
+        if os.path.exists(metadata_file):
+            os.remove(metadata_file)
+
         export_movy_animation(os.path.abspath(file))
     file = vid_file
 
-    if subclip is not None:
-        assert isinstance(subclip, (tuple, list))
+    clip_info = add_video_clip(file, **kwargs)
+
+    if clip_info.subclip is not None:
+        assert type(clip_info.subclip) == tuple
         if prev_anim_clip:
             if prev_anim_clip.file == os.path.abspath(file):
                 if (
                     prev_anim_clip.subclip is not None
                     and len(prev_anim_clip.subclip) == 1
                 ):
-                    prev_anim_clip.subclip = (prev_anim_clip.subclip[0], subclip[0])
+                    prev_anim_clip.subclip = (
+                        prev_anim_clip.subclip[0],
+                        clip_info.subclip[0],
+                    )
                     print("Update prev anim clip subclip:", prev_anim_clip.subclip)
 
-    clip_info = add_video_clip(file, subclip=subclip, **kwargs)
     prev_anim_clip = clip_info
 
 

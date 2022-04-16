@@ -15,6 +15,7 @@ from _shutil import (
     print2,
     shell_open,
     yes,
+    get_output,
 )
 
 backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
@@ -29,9 +30,11 @@ if backup_dir:
 @menu_item(key="c")
 def commit(dry_run=False, amend=False):
     if is_working_tree_clean():
-        print2("(working directory clean.)", color="black")
-        print2("Changed files in HEAD:", color="black")
-        subprocess.call(["git", "diff", "--name-only", "HEAD", "HEAD~1"], shell=False)
+        print2("(Working directory clean) Changed files in HEAD:", color="black")
+        for line in get_output(
+            ["git", "--no-pager", "diff", "--name-only", "HEAD", "HEAD~1"], shell=False
+        ).splitlines():
+            print2("  " + line, color="black")
         return
 
     call_echo("git status --short")
@@ -88,8 +91,7 @@ def show_git_log():
 @menu_item(key="s")
 def print_status():
     print2(
-        "\nrepo_dir: %s" % os.getcwd(),
-        color="magenta",
+        "\nrepo_dir: %s" % os.getcwd(), color="magenta",
     )
 
     commit(dry_run=True)
