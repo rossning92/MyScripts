@@ -297,12 +297,11 @@ class MainWindow(Menu):
             script = self.items[index]
 
             update_script_access_time(script)
+            script_manager.sort_scripts()
 
             script_manager.execute_script = lambda: execute_script(
                 script, close_on_exit=close_on_exit
             )
-
-            script_manager.sort_scripts()
 
             self.close()
 
@@ -340,8 +339,11 @@ class MainWindow(Menu):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["_SCRIPT"] = script_abs_path
 
-                script_manager.execute_script = lambda: execute_script(
-                    script_manager.hotkeys[ch]
+                script_manager.execute_script = lambda: (
+                    execute_script(script_manager.hotkeys[ch]),
+                    # Other script may update the script access time
+                    # Hence, we need to sort the script list
+                    script_manager.sort_scripts(),
                 )
                 self.close()
                 return True

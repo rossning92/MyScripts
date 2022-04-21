@@ -179,7 +179,12 @@ def revert_file():
 
 
 def is_working_tree_clean():
-    return subprocess.call(["git", "diff", "--quiet"]) == 0
+    return (
+        subprocess.check_output(
+            ["git", "status", "--short"], universal_newlines=True
+        ).strip()
+        == ""
+    )
 
 
 @menu_item(key="d")

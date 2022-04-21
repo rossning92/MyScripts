@@ -5,4 +5,4 @@ adb logcat -c
 
 echo press ctrl-c to stop
 filename="logcat_$(date +%Y%m%d_%H%M%S).log"
-adb logcat >$filename
+adb logcat | tee $filename
