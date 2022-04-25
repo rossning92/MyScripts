@@ -63,6 +63,7 @@ def export_movy_animation(file):
             print(".", end="")
             time.sleep(1)
         print()
+        time.sleep(1)
 
         await browser.close()
 

@@ -48,18 +48,22 @@ async function openFile(filePath) {
 }
 function getAbsPath(file) {
     const activeDir = getActiveDir();
-    if (!activeDir)
+    if (!activeDir) {
         return undefined;
+    }
     return path.resolve(path.join(activeDir, file));
 }
 function getFileUnderCursor() {
-    if (!isProjectFileActive())
+    if (!isProjectFileActive()) {
         return;
+    }
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return;
-    if (!editor.selection.isEmpty)
+    }
+    if (!editor.selection.isEmpty) {
         return;
+    }
     const position = editor.selection.active;
     const line = editor.document.lineAt(position).text;
     const found = line.match(/['"](.*?)['"]/);
@@ -69,8 +73,9 @@ function getFileUnderCursor() {
     }
     const file = found[1];
     const absPath = getAbsPath(file);
-    if (!absPath)
+    if (!absPath) {
         return;
+    }
     if (!fs.existsSync(absPath)) {
         vscode.window.showErrorMessage(`File does not exist: ${file}`);
         return;
@@ -94,7 +99,7 @@ function startSlideServer(file) {
         "||",
         "pause",
     ];
-    runInTerminal("SlideServer", shellArgs);
+    runInTerminal({ name: "SlideServer", shellArgs });
     openInBrowser(`http://localhost:${port}`);
 }
 function runPython(file) {
@@ -106,12 +111,13 @@ function runPython(file) {
         "||",
         "pause",
     ];
-    runInTerminal("Python", shellArgs);
+    runInTerminal({ name: "Python", shellArgs });
 }
 async function openFileUnderCursor() {
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return;
+    }
     const activeFile = editor.document.fileName;
     output.appendLine(`openFileUnderCursor(): ${activeFile}`);
     if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
@@ -127,8 +133,9 @@ async function openFileUnderCursor() {
         const file = getFileUnderCursor();
         if (file) {
             const absPath = getAbsPath(file);
-            if (absPath)
+            if (absPath) {
                 openFile(absPath);
+            }
         }
     }
 }
@@ -137,8 +144,9 @@ function setupDecorations(context) {
     let timeout;
     let editor = vscode.window.activeTextEditor;
     function updateDecorations() {
-        for (const dt of decorationTypes)
+        for (const dt of decorationTypes) {
             dt.dispose();
+        }
         decorationTypes.length = 0;
         if (!editor) {
             return;
@@ -147,8 +155,9 @@ function setupDecorations(context) {
             return;
         }
         function highlightText(regex, color) {
-            if (!editor)
+            if (!editor) {
                 return;
+            }
             const text = editor.document.getText();
             const decorations = [];
             let match;
@@ -198,10 +207,12 @@ function setupDecorations(context) {
 }
 function isProjectFileActive() {
     const fileName = getActiveFile();
-    if (!fileName)
+    if (!fileName) {
         return false;
-    if (!/vprojects[\\\/]/.test(fileName))
+    }
+    if (!/vprojects[\\\/]/.test(fileName)) {
         return false;
+    }
     if (!fileName.endsWith(".md")) {
         return false;
     }
@@ -209,14 +220,16 @@ function isProjectFileActive() {
 }
 function getActiveFile() {
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return undefined;
+    }
     return path.resolve(editor.document.fileName);
 }
 function getActiveDir() {
     const file = getActiveFile();
-    if (!file)
+    if (!file) {
         return undefined;
+    }
     return path.dirname(file);
 }
 function getRelativePath(prefix, p) {
@@ -225,8 +238,9 @@ function getRelativePath(prefix, p) {
 function getFiles(dir, filter, files = [], dirs = []) {
     fs.readdirSync(dir).forEach((file) => {
         // Skip files starting with "_"
-        if (file.startsWith("_"))
+        if (file.startsWith("_")) {
             return;
+        }
         const filePath = path.join(dir, file);
         const fileStat = fs.lstatSync(filePath);
         if (fileStat.isDirectory()) {
@@ -272,8 +286,9 @@ function getCompletedExpression(file) {
 }
 function getAllFiles() {
     const projectDir = getActiveDir();
-    if (!projectDir)
+    if (!projectDir) {
         return [];
+    }
     const activeFile = getActiveFile();
     const filter = (x) => {
         if (activeFile === x) {
@@ -294,7 +309,7 @@ function getAllFiles() {
         if (fs.existsSync(assetFolder)) {
             getFiles(assetFolder, filter, files);
         }
-    } while (path.dirname(parentDir) != parentDir);
+    } while (path.dirname(parentDir) !== parentDir);
     files = files.sort((a, b) => {
         return fs.statSync(b).mtime.getTime() - fs.statSync(a).mtime.getTime();
     });
@@ -306,8 +321,9 @@ function setupAutoComplete(context) {
     const provider = vscode.languages.registerCompletionItemProvider({ pattern: "**/vprojects/**/*.md" }, {
         provideCompletionItems(document, position) {
             // If not at the beginning of the line.
-            if (position.character > 0)
+            if (position.character > 0) {
                 return undefined;
+            }
             const files = getAllFiles();
             const completionItems = [];
             files.forEach((file, i) => {
@@ -333,7 +349,7 @@ function insertTextAtCursor(text) {
 function getRecorderProcess() {
     const d = getActiveDir();
     // Check if project switches
-    if (d != currentProjectDir) {
+    if (d !== currentProjectDir) {
         currentProjectDir = d;
         if (recorderProcess) {
             recorderProcess.stdin.write("q");
@@ -349,7 +365,7 @@ function getRecorderProcess() {
             env: {
                 ...process.env,
                 RECORD_OUT_DIR: path.resolve(getActiveDir() + "/record"),
-                RECODER_INTERACTIVE: "0",
+                RECORDER_INTERACTIVE: "0",
             },
         });
         recorderProcess.on("close", (code) => {
@@ -388,11 +404,13 @@ function writeTempTextFile(text) {
     });
     return file;
 }
-function runInTerminal(name, shellArgs) {
-    // Close existing Animation Server terminal.
-    for (const term of vscode.window.terminals) {
-        if (term.name == name) {
-            term.dispose();
+function runInTerminal({ name, shellArgs, singleInstance = true, cwd, }) {
+    if (singleInstance) {
+        // Close existing Animation Server terminal.
+        for (const term of vscode.window.terminals) {
+            if (term.name === name) {
+                term.dispose();
+            }
         }
     }
     // Create a new terminal.
@@ -400,6 +418,7 @@ function runInTerminal(name, shellArgs) {
         name,
         shellPath: "cmd.exe",
         shellArgs,
+        cwd,
     });
     terminal.show();
 }
@@ -416,13 +435,14 @@ function startMovyServer(file) {
         "||",
         "pause",
     ];
-    runInTerminal("MovyServer", shellArgs);
+    runInTerminal({ name: "MovyServer", shellArgs });
     openInBrowser(`http://localhost:${port}/?file=${path.basename(file)}`);
 }
 function exportVideo({ extraArgs, selectedText = true, preview = false, } = {}) {
     const activeDir = getActiveDir();
-    if (!activeDir)
+    if (!activeDir) {
         return;
+    }
     const editor = vscode.window.activeTextEditor;
     if (editor) {
         let document = editor.document;
@@ -481,30 +501,31 @@ function exportVideo({ extraArgs, selectedText = true, preview = false, } = {}) 
             shellArgs = shellArgs.concat(extraArgs);
         }
         shellArgs.push("||", "pause");
-        const terminal = vscode.window.createTerminal({
-            name: "VideoEdit",
+        runInTerminal({
+            name: "ExportVideoDraft",
             cwd: activeDirectory,
-            shellPath: "cmd.exe",
             shellArgs: shellArgs,
         });
-        terminal.show();
     }
 }
 async function insertAllClipsInFolder() {
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return undefined;
+    }
     const projectDir = getActiveDir();
-    if (!projectDir)
+    if (!projectDir) {
         return undefined;
+    }
     let dirs = [];
     getFiles(projectDir, undefined, [], dirs);
     // dirs = dirs.map((x) => getRelativePath(projectDir, x));
     const selectedDir = await vscode.window.showQuickPick(dirs, {
         placeHolder: "from which folder you'd like to insert all clips",
     });
-    if (!selectedDir)
+    if (!selectedDir) {
         return undefined;
+    }
     const files = [];
     getFiles(selectedDir, (x) => /\.mp4$/g.test(x), files);
     const linesToInsert = files.map((x) => `{{ clip('${getRelativePath(projectDir, x)}') }}`);
@@ -516,11 +537,13 @@ async function insertAllClipsInFolder() {
 function registerCreatePowerpointCommand(context) {
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.createPowerpoint", async () => {
         const activeDir = getActiveDir();
-        if (!activeDir)
+        if (!activeDir) {
             return;
+        }
         const filePath = await promptFileName({ ext: ".pptx", subdir: "slide" });
-        if (!filePath)
+        if (!filePath) {
             return;
+        }
         cp.spawn("cscript", [
             path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
             path.resolve(activeDir, filePath),
@@ -529,14 +552,16 @@ function registerCreatePowerpointCommand(context) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.createPowerpointOverlay", async () => {
         const activeDir = getActiveDir();
-        if (!activeDir)
+        if (!activeDir) {
             return;
+        }
         const filePath = await promptFileName({
             ext: ".pptx",
             subdir: "overlay",
         });
-        if (!filePath)
+        if (!filePath) {
             return;
+        }
         cp.spawn("cscript", [
             path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
             path.resolve(activeDir, filePath),
@@ -546,8 +571,9 @@ function registerCreatePowerpointCommand(context) {
 }
 async function promptFileName({ ext, subdir, }) {
     const activeDir = getActiveDir();
-    if (!activeDir)
+    if (!activeDir) {
         return;
+    }
     const fileName = await vscode.window.showInputBox({
         placeHolder: "file-name",
     });
@@ -569,15 +595,17 @@ function registerCreateSlideCommand(context) {
             extension: ".md",
             extraParams: ", t='as', template='slide'",
         });
-        if (!file)
+        if (!file) {
             return;
+        }
         startSlideServer(file);
     }));
 }
 function toggleParameter(name, defaultValue) {
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return;
+    }
     const currentLine = editor.selection.active.line;
     const currentLineText = editor.document.lineAt(currentLine).text;
     const patt = new RegExp(", " + name + "=(.+?)(?=[,)])", "g");
@@ -611,8 +639,9 @@ function registerToggleDurationCommand(context) {
 }
 function replaceCurrentLine(oldText, newText) {
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return;
+    }
     if (editor) {
         const currentLine = editor.selection.active.line;
         const currentLineText = editor.document.lineAt(currentLine).text;
@@ -624,8 +653,9 @@ function replaceCurrentLine(oldText, newText) {
 }
 function replaceWholeDocument(oldText, newText) {
     const editor = vscode.window.activeTextEditor;
-    if (!editor)
+    if (!editor) {
         return;
+    }
     const text = editor.document.getText();
     const occurrences = text.count(oldText);
     vscode.window.showInformationMessage(`${occurrences} occurrences have been replaced.`);
@@ -637,8 +667,9 @@ function replaceWholeDocument(oldText, newText) {
 function registerRenameFileCommand(context) {
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.renameFile", async () => {
         const file = getFileUnderCursor();
-        if (!file)
+        if (!file) {
             return;
+        }
         // Get the range of file base name without extension.
         const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
         const valueSelection = match
@@ -648,14 +679,17 @@ function registerRenameFileCommand(context) {
             value: file,
             valueSelection,
         });
-        if (!newFile)
+        if (!newFile) {
             return;
+        }
         const absFile = getAbsPath(file);
-        if (!absFile)
+        if (!absFile) {
             return;
+        }
         const newAbsFile = getAbsPath(newFile);
-        if (!newAbsFile)
+        if (!newAbsFile) {
             return;
+        }
         if (fs.existsSync(newAbsFile)) {
             vscode.window.showErrorMessage("New file already exists.");
             return;
@@ -762,8 +796,9 @@ function registerCommands(context) {
     // Start movy server
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.startMovyServer", async () => {
         const editor = vscode.window.activeTextEditor;
-        if (!editor)
+        if (!editor) {
             return;
+        }
         const activeFile = editor.document.fileName;
         if (activeFile.endsWith(".js")) {
             startMovyServer(activeFile);
@@ -771,8 +806,9 @@ function registerCommands(context) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.insertMostRecentFile", () => {
         const files = getAllFiles();
-        if (files.length === 0)
+        if (files.length === 0) {
             return;
+        }
         const expr = getCompletedExpression(files[0]);
         insertTextAtCursor(expr);
     }));

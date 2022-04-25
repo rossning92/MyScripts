@@ -788,7 +788,10 @@ def add_video_clip(
 
                 # replace marker with time
                 subclip2 = tuple(
-                    [get_time_by_marker(x) for x in subclip if isinstance(x, str)]
+                    [
+                        get_time_by_marker(x) if isinstance(x, str) else x
+                        for x in subclip
+                    ]
                 )
         else:
             subclip2 = tuple((float(x) for x in subclip))

@@ -1,10 +1,26 @@
-from _audio import *
-from _gui import *
-from _script import *
-from _shutil import *
-from _term import *
-import pyaudio
+import datetime
+import glob
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
 import wave
+
+import pyaudio
+from _audio import concat_audio, create_noise_profile, denoise
+from _script import run_script
+from _shutil import (
+    cd,
+    get_hash,
+    getch,
+    kill_proc,
+    mkdir,
+    print2,
+    run_in_background,
+    sleep,
+    start_process,
+)
 
 if 1:
     sys.path.append(os.path.abspath(os.path.dirname(__file__)))
@@ -396,13 +412,13 @@ if __name__ == "__main__":
     if "RECORD_OUT_DIR" in os.environ:
         out_dir = os.path.abspath(os.environ["RECORD_OUT_DIR"])
     else:
-        out_dir = expanduser(r"{{_OUT_FOLDER}}")
+        out_dir = r"{{_OUT_FOLDER}}"
 
     print("record out dir: %s" % out_dir)
-    make_and_change_dir(out_dir)
+    cd(out_dir)
 
-    non_interactive = ("RECODER_INTERACTIVE" in os.environ) and (
-        os.environ["RECODER_INTERACTIVE"] == "0"
+    non_interactive = ("RECORDER_INTERACTIVE" in os.environ) and (
+        os.environ["RECORDER_INTERACTIVE"] == "0"
     )
 
     run_script("/r/audio/set_mic_volume.ps1")

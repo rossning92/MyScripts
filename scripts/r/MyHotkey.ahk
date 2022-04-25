@@ -18,7 +18,7 @@ SetTitleMatchMode, 2
 AddChromeHotkey("#!.", "- To Do", "https://to-do.live.com/tasks/")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
-SetTimer, CheckIfRShiftIsPressed, 1000
+SetTimer, CheckIfRShiftIsPressed, 100
 
 return
 
@@ -424,9 +424,15 @@ ToggleVNC()
 
 CheckIfRShiftIsPressed()
 {
+    global IsRShiftKeyHold
     if (GetKeyState("RShift", "P"))
     {
-        ToggleVNC()
+        if (not IsRShiftKeyHold) {
+            ToggleVNC()
+        }
+        IsRShiftKeyHold := true
+    } else {
+        IsRShiftKeyHold := false
     }
 }
 
