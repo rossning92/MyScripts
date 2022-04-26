@@ -32,7 +32,7 @@ def download_bilibili(url, download_dir=None):
             kvp.append(cols[-2] + "=" + cols[-1])
     cookie = "; ".join(kvp)
 
-    call_echo(["annie", "-p", "-c", cookie, url], shell=False, cwd=download_dir)
+    call_echo(["lux", "-p", "-c", cookie, url], shell=False, cwd=download_dir)
 
 
 def download_youtube(url, download_dir=None):

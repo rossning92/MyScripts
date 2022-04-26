@@ -508,8 +508,11 @@ class Script:
             self.name = script_path
 
             # Absolute path -> relative path
-            root = get_script_root().replace("\\", "/")
-            self.name = re.sub("^" + re.escape(root) + "/", "", self.name)
+            for name, d in get_script_directories():
+                prefix = d.replace("\\", "/") + "/"
+                if self.name.startswith(prefix):
+                    self.name = (name + "/" if name else "") + self.name[len(prefix) :]
+                    break
 
         self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
         self.override_variables = None
@@ -1121,6 +1124,17 @@ def run_script(
         "run_script: %s finished in %s" % (file, format_time(end_time - start_time)),
         color="black",
     )
+
+
+def start_script(file):
+    script_path = find_script(file)
+    if script_path is None:
+        raise Exception('[ERROR] Cannot find script: "%s"' % file)
+
+    script = Script(script_path)
+    script.execute()
+    if script.return_code != 0:
+        raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
 
 
 def get_script_default_config():
