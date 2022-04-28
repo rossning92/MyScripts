@@ -242,7 +242,7 @@ def call2(args, check=True, shell=True, **kwargs):
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
-def call_echo(args, shell=True, check=True, no_output=False, **kwargs):
+def call_echo(args, shell=None, check=True, no_output=False, **kwargs):
     def quote(s):
         if " " in s:
             s = '"%s"' % s
@@ -255,6 +255,9 @@ def call_echo(args, shell=True, check=True, no_output=False, **kwargs):
 
     logger.debug("shell_cmd: %s" % s)
     print2("> " + s, color="black")
+
+    if shell is None:
+        shell = True if type(args) == str else False
 
     if no_output:
         with fnull() as null:
@@ -1337,7 +1340,10 @@ def load_yaml(file):
 def save_yaml(data, file):
     with open(file, "w", encoding="utf-8", newline="\n") as f:
         yaml.dump(
-            data, f, default_flow_style=False, allow_unicode=True,
+            data,
+            f,
+            default_flow_style=False,
+            allow_unicode=True,
         )
 
 
@@ -1351,7 +1357,10 @@ def setup_logger(level=logging.DEBUG, stdout=True, log_file=None):
         logger.addHandler(handler)
 
     if log_file:
-        file_handler = logging.FileHandler(log_file, "w+",)  # overwrite the file
+        file_handler = logging.FileHandler(
+            log_file,
+            "w+",
+        )  # overwrite the file
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
 
@@ -1389,3 +1398,9 @@ def input_with_default(message, default):
 
 def pause():
     input("press [enter] to continue...")
+
+
+def open_url(url):
+    import webbrowser
+
+    webbrowser.open(url)

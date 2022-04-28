@@ -1,2 +1,2 @@
 adb root
-adb shell ls /data/tombstones/*
+adb shell cat /data/tombstones/* | grep ">>>"

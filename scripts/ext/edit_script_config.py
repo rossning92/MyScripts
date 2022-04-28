@@ -59,9 +59,10 @@ class DictValueEditWindow(Menu):
 
 
 class DictEditWindow(Menu):
-    def __init__(self, dict_):
+    def __init__(self, dict_, default_dict=None):
         super().__init__()
         self.dict_ = dict_
+        self.default_dict = default_dict
         self.enter_pressed = False
         self.update_items()
 
@@ -71,7 +72,11 @@ class DictEditWindow(Menu):
         keys = list(self.dict_.keys())
         max_width = max([len(x) for x in keys]) + 1
         for key in keys:
-            self.items.append("{}: {}".format(key.ljust(max_width), self.dict_[key]))
+            s = "{}: {}".format(key.ljust(max_width), self.dict_[key])
+            if self.default_dict is not None:
+                if self.dict_[key] != self.default_dict[key]:
+                    s += " (modified)"
+            self.items.append(s)
 
     def on_enter_pressed(self):
         self.enter_pressed = True
@@ -108,7 +113,7 @@ if __name__ == "__main__":
 
     data = {**default_config, **data}
 
-    w = DictEditWindow(data)
+    w = DictEditWindow(data, default_dict=default_config)
     ret = w.exec()
 
     if ret == -1:

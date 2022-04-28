@@ -6,6 +6,7 @@ import sys
 import ctypes
 import locale
 import os
+from _shutil import load_json, save_json
 
 
 def activate_cur_terminal():
@@ -31,9 +32,31 @@ def set_term_title(title):
         ctypes.windll.kernel32.SetConsoleTitleA(title)
 
 
-def search(options):
+def search(options, save_history=False):
+    if save_history:
+        history = load_json("search_history.json", [])
+        sort_key = {x: i for i, x in enumerate(history)}
+        options, indices = zip(
+            *sorted(
+                zip(options, list(range(len(options)))),
+                key=lambda x: sort_key[x[0]] if x[0] in sort_key else sys.maxsize,
+            )
+        )
+
     w = Menu(items=options)
-    return w.exec()
+    idx = w.exec()
+
+    if save_history:
+        if idx >= 0:
+            try:
+                history.remove(options[idx])
+            except ValueError:
+                pass
+            history.insert(0, options[idx])
+            save_json("search_history.json", history)
+        idx = indices[idx]
+
+    return idx
 
 
 def _prompt(options, message=None):

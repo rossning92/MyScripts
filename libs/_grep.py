@@ -1,6 +1,12 @@
-from _appmanager import get_executable
+import glob
+import os
+import subprocess
+import sys
+
+import yaml
+
 from _editor import open_in_vscode
-from _shutil import *
+from _script import get_all_variables
 from _term import search
 
 
@@ -40,38 +46,73 @@ def search_code(text, search_path, extra_params=None):
     return result
 
 
-def search_code_and_goto(text, path):
-    result = []
-    if os.path.isdir(path):  # directory
-        result += search_code(text=text, search_path=path)
-    else:  # file or glob
-        if "/**/" in path:
-            dir_path, file_name = path.split("/**/")
+def _open_bookmark(*, kw=None, path=None):
+    if kw is None and path is not None:
+        open_in_vscode(path)
+    else:
+        result = []
+        if os.path.isdir(path):  # directory
+            result += search_code(text=kw, search_path=path)
+        else:  # file or glob
+            if "/**/" in path:
+                dir_path, file_name = path.split("/**/")
+            else:
+                dir_path = os.path.dirname(path)
+                file_name = os.path.basename(path)
+
+            result += search_code(
+                text=kw, search_path=dir_path, extra_params=["-g", file_name]
+            )
+
+        if len(result) == 1:
+            open_in_vscode(result[0][0], line_number=result[0][1])
+        elif len(result) > 1:
+            indices = search([f"{x[0]}:{x[1]}" for x in result])
+            i = indices[0]
+            open_in_vscode(result[i][0], line_number=result[i][1])
+
+
+def show_bookmarks(open_bookmark_func=None):
+    variables = get_all_variables()
+    variables = {k: v[0] for k, v in variables.items()}
+
+    def traverse_bookmark(bookmark, defaults={}):
+        bookmark = {**defaults, **bookmark}
+        if "path" in bookmark:
+            bookmark["path"] = bookmark["path"].format(**variables)
+        return [bookmark]
+
+    def traverse_item(item):
+        bookmarks = []
+        defaults = {}
+        if "bookmarks" in item:
+            for k, v in item.items():
+                if k != "bookmarks":
+                    defaults[k] = v
+            for bookmark in item["bookmarks"]:
+                bookmarks += traverse_bookmark(bookmark, defaults=defaults)
         else:
-            dir_path = os.path.dirname(path)
-            file_name = os.path.basename(path)
+            bookmarks += traverse_bookmark(item, defaults=defaults)
+        return bookmarks
 
-        result += search_code(
-            text=text, search_path=dir_path, extra_params=["-g", file_name]
-        )
+    bookmarks = []
+    for wildcard in ["bookmarks*.yml"]:
+        for file in glob.glob(wildcard):
+            file = os.path.abspath(file)
 
-    if len(result) == 1:
-        open_in_vscode(result[0][0], line_number=result[0][1])
-    elif len(result) > 1:
-        indices = search([f"{x[0]}:{x[1]}" for x in result])
-        i = indices[0]
-        open_in_vscode(result[i][0], line_number=result[i][1])
+            with open(file, "r") as f:
+                lst = yaml.load(f.read(), Loader=yaml.FullLoader)
 
+            for item in lst:
+                bookmarks += traverse_item(item)
 
-def show_bookmarks(bookmarks):
     names = [x["name"] for x in bookmarks]
-    idx = search(names)
+    idx = search(names, save_history=True)
     if idx == -1:
         sys.exit(0)
 
     bookmark = bookmarks[idx]
-
-    if "kw" in bookmark:
-        search_code_and_goto(bookmark["kw"], path=bookmark["path"])
+    if open_bookmark_func is None:
+        _open_bookmark(**bookmark)
     else:
-        open_in_vscode(bookmark["path"])
+        open_bookmark_func(**bookmark)

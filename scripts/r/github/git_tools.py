@@ -58,7 +58,7 @@ def commit_and_push():
 
 
 @menu_item(key="R")
-def revert():
+def revert_all():
     call_echo("git status --short")
     if not yes("Revert all files?"):
         return
@@ -91,7 +91,8 @@ def show_git_log():
 @menu_item(key="s")
 def print_status():
     print2(
-        "\nrepo_dir: %s" % os.getcwd(), color="magenta",
+        "\nrepo_dir: %s" % os.getcwd(),
+        color="magenta",
     )
 
     commit(dry_run=True)
@@ -221,7 +222,7 @@ def open_folder():
 def fixup_commit():
     commit_id = input("Fixup commit (hash): ")
     call_echo(["git", "commit", "--fixup", commit_id])
-    call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"], shell=False)
+    call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"])
 
 
 @menu_item(key="G")
