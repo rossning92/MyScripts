@@ -3,7 +3,7 @@ import os
 import signal
 import subprocess
 
-from _shutil import call_echo, get_files
+from _shutil import call_echo, get_files, start_process
 
 
 def start_server(file=None, port=None, dev=True):
@@ -15,18 +15,23 @@ def start_server(file=None, port=None, dev=True):
 
     shell = False
     env = os.environ.copy()
+
+    launch_script = os.path.join(movy_root, "bin", "movy.js")
+    args = ["node", launch_script, "--no-open"]
+    if port is not None:
+        args += ["--port", "%d" % port]
+
     if dev:
-        args = ["npm", "run", "dev"]
-        env["FILE"] = file
-        if port is not None:
-            env["PORT"] = "%d" % port
-        shell = True
+        start_process(
+            [
+                "C:\Program Files\Chromium\Application\chrome.exe",
+                "http://localhost:%d/?file=%s" % (port, os.path.basename(file)),
+            ]
+        )
     else:
-        launch_script = os.path.join(movy_root, "bin", "movy.js")
-        args = ["node", launch_script]
-        if port is not None:
-            args += ["--port", "%d" % port, "--no-open"]
-        args += [file]
+        args += ["--no-hot"]
+
+    args += [file]
 
     ps = subprocess.Popen(
         args,

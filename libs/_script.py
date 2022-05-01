@@ -705,6 +705,7 @@ class Script:
                     "-NoProfile",
                     "-ExecutionPolicy",
                     "unrestricted",
+                    "-file",
                     ps_path,
                 ] + args
 

@@ -20,6 +20,7 @@ PKGS = {
         "android-sdk",
         "androidstudio",
         "atom",
+        "chromium",
         "cmake --version=3.10.2 --force",
         "cmake",
         "conemu",
@@ -38,17 +39,10 @@ PKGS = {
         # "pycharm-community",
         # "visualstudiocode-insiders --pre",
     ],
-    "@gamedev": [
-        "renderdoc",
-    ],
+    "@gamedev": ["renderdoc",],
     "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
-    "@work": [
-        "p4v",
-        "selenium-chrome-driver",
-    ],
-    "@ue4": [
-        "directx",
-    ],
+    "@work": ["p4v", "selenium-chrome-driver",],
+    "@ue4": ["directx",],
     "@other": [
         "audacity",
         "autohotkey",

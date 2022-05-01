@@ -30,7 +30,7 @@ def export_movy_animation(file):
         browser = await launch(
             headless=False,
             args=["--disable-dev-shm-usage"],
-            executablePath=r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
+            executablePath=r"C:\Program Files\Chromium\Application\chrome.exe",
         )
         page = await browser.newPage()
         download_dir = os.path.abspath(os.path.dirname(file))

@@ -10,6 +10,7 @@ SetCapsLockState, AlwaysOff
 
 CurrentDesktop := 0
 WindowDividor := 2/3
+LastKeyPressTime := 0
 
 CONSOLE_WINDOW = my_scripts_console
 
@@ -162,7 +163,6 @@ return
     WinMaximize, A
     WinSet, AlwaysOnTop, Off, A
     SetAlwaysOnTop("A", False)
-    g_lastKey := "Up"
 return
 
 ToggleWindowDivider() {
@@ -174,56 +174,58 @@ ToggleWindowDivider() {
     }
 }
 
+GetLastKeyPressTimeDelta() {
+    global LastKeyPressTime
+
+    time := (A_Hour*3600 + A_Min*60 + A_Sec)*1000 + A_MSec
+    delta := time - LastKeyPressTime
+    LastKeyPressTime := time
+return delta
+}
+
 $!1::
     if WinActive("ahk_exe FL64.exe") {
         SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
         return
     }
 
-    if (g_lastKey = "1") {
-        ToggleWindowDivider()
-    }
-
     SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
     SetAlwaysOnTop("A", False)
-
-    g_lastKey := "1"
 return
 
 $!2::
-    if (g_lastKey = "2") {
-        ToggleWindowDivider()
-    }
-
     SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-    SetAlwaysOnTop("A", False)
 
-    g_lastKey := "2"
+    delta := GetLastKeyPressTimeDelta()
+    if (delta < 1000) {
+        SetAlwaysOnTop("A", True)
+        ToolTip, AlwaysOnTop=1, 0, 0
+    } else {
+        SetAlwaysOnTop("A", False)
+        ToolTip, AlwaysOnTop=0, 0, 0
+    }
+    SetTimer, RemoveToolTip, -2000
 return
 
 $!3::
     SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
     SetAlwaysOnTop("A", False)
-    g_lastKey := "3"
 return
 
 $!4::
     SetWindowPos("A", 0, 0, 1440, 810)
     SetAlwaysOnTop("A", False)
-    g_lastKey := "4"
 return
 
 $!5::
     SetWindowPos("A", 0, 0, 960, 540)
     SetAlwaysOnTop("A", False)
-    g_lastKey := "5"
 return
 
 $!6::
     WinGetPos, , , w, h, A
     SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
     SetAlwaysOnTop("A", False)
-    g_lastKey = "6"
 return
 
 #0::

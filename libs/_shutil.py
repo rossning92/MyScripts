@@ -720,6 +720,9 @@ def prepend_to_path(paths, env=None):
 def get_cur_time_str():
     return datetime.datetime.now().strftime("%y%m%d%H%M%S")
 
+def get_date_str():
+    return datetime.datetime.now().strftime("%Y%m%d")
+
 
 def exec_bash(script, wsl=False, echo=False):
     logging.debug("exec_bash: bash commands: %s" % script)
