@@ -277,6 +277,10 @@ def clean_untracked_ignored():
         )
 
 
+def checkout_branch(branch):
+    call_echo(["git", "checkout", branch])
+
+
 if __name__ == "__main__":
     repo_dir = r"{{GIT_REPO}}"
     repo_name = os.path.basename(repo_dir)

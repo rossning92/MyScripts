@@ -1246,10 +1246,11 @@ def menu_item(*, key, name=None):
     return decorator
 
 
-def menu_loop(run_periotic=None, interval=-1):
+def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
     caller = inspect.stack()[1].filename
-    menu_items = filter(lambda x: x.caller == caller, _menu_items)
-    menu_items = sorted(menu_items, key=lambda x: x.name)
+    menu_items = list(filter(lambda x: x.caller == caller, _menu_items))
+    if sort_by_name:
+        menu_items = sorted(menu_items, key=lambda x: x.name)
 
     # Check if there is any key conflict
     used_keys = set()
@@ -1263,7 +1264,7 @@ def menu_loop(run_periotic=None, interval=-1):
         print2("Help Menu")
         print2("---------")
 
-        for menu_item in sorted(menu_items, key=lambda x: x.name):
+        for menu_item in menu_items:
             if menu_item.caller == caller:
                 print("  [%s] %s" % (menu_item.key, menu_item.name))
 
