@@ -10,9 +10,16 @@ if __name__ == "__main__":
         type=str,
     )
 
+    parser.add_argument(
+        "-E",
+        "--regex",
+        default=None,
+        type=str,
+    )
+
     args = parser.parse_args()
 
     call2("adb wait-for-device")
-    logcat(
-        regex=r"{{_REGEX}}" if r"{{_REGEX}}" else r"ROSS:| F libc |Abort message:",
-    )
+
+    regex = args.regex if args.regex else r"{{_REGEX}}"
+    logcat(regex=regex)

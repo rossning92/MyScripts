@@ -44,3 +44,7 @@ if __name__ == "__main__":
     elif opt[i] == "permissions":
         call_echo(["adb", "shell", "dumpsys package %s | grep permission" % pkg])
         input("Press enter to continue...")
+
+    elif opt[i] == "activities":
+        call_echo(["adb", "shell", f"dumpsys package {pkg} | grep Activities" % pkg])
+        input("Press enter to continue...")

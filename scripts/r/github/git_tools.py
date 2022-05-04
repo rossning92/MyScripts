@@ -133,6 +133,12 @@ def switch_branch():
     call_echo(["git", "checkout", name])
 
 
+def get_current_branch():
+    return subprocess.check_output(
+        ["git", "branch", "--show-current"], universal_newlines=True
+    ).strip()
+
+
 @menu_item(key="H")
 def amend_history_commit():
     commit_id = input("History commit ID: ")
@@ -278,7 +284,26 @@ def clean_untracked_ignored():
 
 
 def checkout_branch(branch):
+    if (
+        subprocess.check_output(
+            ["git", "branch", "--list", branch], universal_newlines=True
+        ).strip()
+        == ""
+    ):
+        if yes("Create branch %s?" % branch):
+            call_echo(["git", "checkout", "-b", branch])
+        else:
+            raise Exception('branch does not exist: "%s"' % branch)
+
     call_echo(["git", "checkout", branch])
+
+
+@menu_item(key="E")
+def amend_commit_message(message=None):
+    args = ["git", "commit", "--amend"]
+    if message:
+        args += ["-m", message]
+    call_echo(args)
 
 
 if __name__ == "__main__":
