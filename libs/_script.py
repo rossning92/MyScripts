@@ -998,7 +998,9 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:
@@ -1023,15 +1025,15 @@ class Script:
 
 
 def find_script(script_name, search_dir=None):
+    if os.path.exists(script_name):
+        return script_name
+
     if script_name.startswith("/"):
         path = os.path.abspath(os.path.dirname(__file__) + "/../scripts" + script_name)
     elif search_dir:
         path = os.path.join(search_dir, script_name)
     else:
         path = os.path.abspath(script_name)
-
-    if os.path.exists(path):
-        return path
 
     # Fuzzy search
     for _, script_root_dir in get_script_directories():
@@ -1084,7 +1086,7 @@ def run_script(
 
     script_path = find_script(file)
     if script_path is None:
-        raise Exception('[ERROR] Cannot find script: "%s"' % file)
+        raise Exception('Cannot find script: "%s"' % file)
 
     script = Script(script_path)
 

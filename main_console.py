@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import time
@@ -9,7 +10,6 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
 import curses
 import logging
-import platform
 import re
 import subprocess
 
@@ -36,6 +36,7 @@ from _term import Menu, init_curses
 
 REFRESH_INTERVAL_SECS = 60
 GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
+script_root = os.path.dirname(os.path.abspath(__file__))
 
 
 def execute_script(script, close_on_exit=None):
@@ -220,64 +221,101 @@ def add_keyboard_hooks(keyboard_hooks):
             keyboard.add_hotkey(hotkey, func)
 
 
-def register_global_hotkeys(scripts):
-    if platform.system() == "Windows":
-        hotkey_def = ""
-        hotkeys = ""
-        hotkey_seq_def = ""
+def register_global_hotkeys_linux(scripts):
+    s = (
+        f'"gnome-terminal -- python3 {script_root}/main_console.py -q"\n'
+        "  control+q\n\n"
+    )
 
-        for item in scripts:
-            hotkey = item.cfg["globalHotkey"]
-            alias = item.cfg["alias"]
-            if hotkey or alias:
-                func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
+    for item in scripts:
+        hotkey = item.cfg["globalHotkey"]
 
-                hotkey_def += (
-                    f"{func_name}() {{\n"
-                    f'    RunScript("{item.name}", "{item.script_path}")\n'
-                    "}\n"
-                )
+        if hotkey:
+            hotkey = (
+                hotkey.lower()
+                .replace("ctrl+", "Control+")
+                .replace("alt+", "Alt+")
+                .replace("shift+", "Shift+")
+                .replace("win+", "Mod4+")
+                .replace("[", "bracketleft")
+                .replace("]", "bracketright")
+            )
+            s += f"\"gnome-terminal -- bash -c 'python3 {script_root}/bin/run_script.py {item.script_path} || read line'\"\n"
+            s += "  {}\n\n".format(hotkey)
 
-                if hotkey:
-                    logging.info("GlobalHotkey: %s: %s" % (hotkey, item.name))
-                    hotkey = hotkey.lower()
-                    hotkey = hotkey.replace("ctrl+", "^")
-                    hotkey = hotkey.replace("alt+", "!")
-                    hotkey = hotkey.replace("shift+", "+")
-                    hotkey = hotkey.replace("win+", "#")
-                    hotkeys += f"{hotkey}::{func_name}()\n"
+    with open(os.path.expanduser("~/.xbindkeysrc"), "w") as f:
+        f.write(s)
+    subprocess.call(["killall", "-s1", "xbindkeys"])
+    subprocess.check_call(["xbindkeys", "-f", os.path.expanduser("~/.xbindkeysrc")])
 
-                if alias:
-                    hotkey_seq_def += f'{alias}: "{func_name}", '
 
-        hotkey_seq_def = hotkey_seq_def.rstrip(", ")
+def register_global_hotkeys_win(scripts):
+    hotkey_def = ""
+    hotkeys = ""
+    hotkey_seq_def = ""
 
-        run_script = 'cmd /c %s "%s"' % (
-            sys.executable,
-            os.path.realpath("bin/run_script.py"),
-        )
+    for item in scripts:
+        hotkey = item.cfg["globalHotkey"]
+        alias = item.cfg["alias"]
+        if hotkey or alias:
+            func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
 
-        render_template_file(
-            "GlobalHotkey.ahk",
-            GLOBAL_HOTKEY,
-            context={
-                "run_script": run_script,
-                "hotkey_def": hotkey_def,
-                "hotkeys": hotkeys,
-                "hotkey_seq_def": hotkey_seq_def,
-            },
-        )
+            hotkey_def += (
+                f"{func_name}() {{\n"
+                f'    RunScript("{item.name}", "{item.script_path}")\n'
+                "}\n"
+            )
 
-        subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
-
-    else:
-        keyboard_hooks = {}
-        for script in scripts:
-            hotkey = script.cfg["globalHotkey"]
             if hotkey:
-                logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
-                keyboard_hooks[hotkey] = lambda script=script: execute_script(script)
-        add_keyboard_hooks(keyboard_hooks)
+                logging.info("GlobalHotkey: %s: %s" % (hotkey, item.name))
+                hotkey = hotkey.lower()
+                hotkey = hotkey.replace("ctrl+", "^")
+                hotkey = hotkey.replace("alt+", "!")
+                hotkey = hotkey.replace("shift+", "+")
+                hotkey = hotkey.replace("win+", "#")
+                hotkeys += f"{hotkey}::{func_name}()\n"
+
+            if alias:
+                hotkey_seq_def += f'{alias}: "{func_name}", '
+
+    hotkey_seq_def = hotkey_seq_def.rstrip(", ")
+
+    run_script = 'cmd /c %s "%s"' % (
+        sys.executable,
+        os.path.realpath("bin/run_script.py"),
+    )
+
+    render_template_file(
+        "GlobalHotkey.ahk",
+        GLOBAL_HOTKEY,
+        context={
+            "run_script": run_script,
+            "hotkey_def": hotkey_def,
+            "hotkeys": hotkeys,
+            "hotkey_seq_def": hotkey_seq_def,
+        },
+    )
+
+    subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
+
+
+def register_global_hotkeys_mac(scripts):
+    keyboard_hooks = {}
+    for script in scripts:
+        hotkey = script.cfg["globalHotkey"]
+        if hotkey:
+            logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
+            keyboard_hooks[hotkey] = lambda script=script: execute_script(script)
+    add_keyboard_hooks(keyboard_hooks)
+
+
+def register_global_hotkeys(scripts):
+    if sys.platform == "win32":
+        register_global_hotkeys_win(scripts)
+    elif sys.platform == "linux":
+        register_global_hotkeys_linux(scripts)
+    elif sys.platform == "darwin":
+        register_global_hotkeys_mac(scripts)
 
 
 class MainWindow(Menu):
@@ -401,29 +439,38 @@ def init():
         sys.exit(0)
 
 
-def main_loop():
+def main_loop(quit=False):
     while True:
-        curses.wrapper(curse_main)
-        if script_manager.execute_script is not None:
-            script_manager.execute_script()
-            script_manager.execute_script = None
-
-            # HACK: workaround: key bindings will not work on windows.
-            # time.sleep(1)
-        else:
-            break
-
-
-if __name__ == "__main__":
-    # setup_console_font()
-    init()
-    script_manager = ScriptManager()
-    while True:
-        # if sys.platform == "win32":
-        #     os.system("mode con cols=80 lines=20")
-
         try:
-            main_loop()
+            curses.wrapper(curse_main)
+            if script_manager.execute_script is not None:
+                script_manager.execute_script()
+                script_manager.execute_script = None
+
+                if quit:
+                    break
+
+                # HACK: workaround: key bindings will not work on windows.
+                # time.sleep(1)
+            else:
+                break
+
         except Exception:
             traceback.print_exc(file=sys.stdout)
             input("Press any key to retry...")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-q",
+        "--quit",
+        action="store_true",
+        help="quit after running a script",
+    )
+    args = parser.parse_args()
+
+    # setup_console_font()
+    init()
+    script_manager = ScriptManager()
+    main_loop(quit=args.quit)

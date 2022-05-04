@@ -1,10 +1,11 @@
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.realpath(os.path.dirname(__file__) + "/../libs"))
 
 from _script import run_script
-from _shutil import update_env_var_explorer, setup_logger
+from _shutil import setup_logger, update_env_var_explorer
 
 
 def try_parse():
@@ -42,8 +43,12 @@ if "cd" not in kwargs:
 
 setup_logger()
 
-run_script(
-    file=file,
-    args=rest_args,
-    **kwargs,
-)
+try:
+    run_script(
+        file=file,
+        args=rest_args,
+        **kwargs,
+    )
+except subprocess.CalledProcessError as ex:
+    print(ex)
+    sys.exit(1)

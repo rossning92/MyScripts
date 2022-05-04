@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 import threading
 import time
 
@@ -362,16 +363,19 @@ def get_device_name():
 
 
 def get_adk_path():
-    ADK_SEARCH_PATH = [
-        # Installed by choco
-        r"C:\Android\android-sdk",
-        # Default SDK path installed by Android Studio
-        os.path.abspath(os.getenv("LOCALAPPDATA") + "/Android/Sdk"),
-    ]
+    if sys.platform == "win32":
+        ADK_SEARCH_PATH = [
+            # Installed by choco
+            r"C:\Android\android-sdk",
+            # Default SDK path installed by Android Studio
+            os.path.abspath(os.getenv("LOCALAPPDATA") + "/Android/Sdk"),
+        ]
 
-    for p in ADK_SEARCH_PATH:
-        if os.path.exists(p):
-            return p
+        for p in ADK_SEARCH_PATH:
+            if os.path.exists(p):
+                return p
+    else:
+        pass
 
     return None
 
