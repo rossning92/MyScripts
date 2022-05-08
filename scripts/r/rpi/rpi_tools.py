@@ -34,7 +34,7 @@ def setup_wifi_and_ssh():
     for drive in get_all_drives():
         if os.path.exists(os.path.join(drive, "bootcode.bin")):
             # https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-a-headless-raspberry-pi
-            if yes("Found raspi boot partition at: %s" % drive):
+            if confirm("Found raspi boot partition at: %s" % drive):
                 wifi_ssid = r"{{WIFI_SSID}}"
                 wifi_pwd = r"{{WIFI_PWD}}"
                 with open(

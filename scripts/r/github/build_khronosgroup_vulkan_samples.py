@@ -22,7 +22,7 @@ cd("build/android_gradle")
 try:
     call_echo("gradle installDebug")
 except Exception:
-    if yes("Re-run with more info?"):
+    if confirm("Re-run with more info?"):
         call_echo("gradle installDebug --info")
 
 # open_in_vscode(os.getcwd())

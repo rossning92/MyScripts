@@ -217,9 +217,9 @@ def logcat(
                     if exclude_proc and re.search(exclude_proc, proc):
                         show_line = False
 
-                # Always show lines if following conditions are met.
-                if "ROSS:" in message:
-                    show_line = True
+                # # Always show lines if following conditions are met.
+                # if "ROSS:" in message:
+                #     show_line = True
 
                 if not show_line:
                     continue

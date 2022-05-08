@@ -22,4 +22,5 @@ if __name__ == "__main__":
     call2("adb wait-for-device")
 
     regex = args.regex if args.regex else r"{{_REGEX}}"
-    logcat(regex=regex)
+    pkg = args.pkg if args.pkg else r"{{_PKG}}"
+    logcat(regex=regex, ignore_duplicates=False, pkg=pkg)

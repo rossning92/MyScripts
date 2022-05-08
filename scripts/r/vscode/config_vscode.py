@@ -134,6 +134,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     data["python.linting.pylintEnabled"] = False
     data["python.languageServer"] = "Pylance"
     data["window.title"] = "${rootName}${separator}${activeEditorShort}"
+    data["editor.minimap.enabled"] = False
 
     if glslang and sys.platform == "win32":
         data["glsllint.glslangValidatorPath"] = install_glslang()
@@ -151,7 +152,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             {
                 "workbench.colorTheme": "One Dark Pro Flat",
                 "workbench.startupEditor": "newUntitledFile",
-                "editor.minimap.enabled": False,
                 "explorer.openEditors.visible": 0,
                 "workbench.activityBar.visible": False,
                 "workbench.statusBar.visible": False,

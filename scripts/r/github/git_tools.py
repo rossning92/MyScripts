@@ -38,7 +38,7 @@ def commit(dry_run=False, amend=False):
         return
 
     call_echo("git status --short")
-    if not dry_run and yes("Commit all changes?"):
+    if not dry_run and confirm("Commit all changes?"):
         call_echo("git add -A")
 
         if amend:
@@ -60,7 +60,7 @@ def commit_and_push():
 @menu_item(key="R")
 def revert_all():
     call_echo("git status --short")
-    if not yes("Revert all files?"):
+    if not confirm("Revert all files?"):
         return
     call_echo("git reset HEAD --hard")
 
@@ -239,7 +239,7 @@ def sync_github():
     )
     if ret == 1:
         cd(os.path.dirname(repo_dir))
-        if not yes('Create "%s" on GitHub?' % repo_name):
+        if not confirm('Create "%s" on GitHub?' % repo_name):
             sys.exit(1)
         call_echo("gh repo create --private -y %s" % repo_name)
     else:
@@ -269,7 +269,7 @@ def setup_project():
 def clean_untracked_ignored():
     for dry_run in [True, False]:
         if not dry_run:
-            if not yes("Clean untracked files?"):
+            if not confirm("Clean untracked files?"):
                 return
 
         call_echo(
@@ -290,7 +290,7 @@ def checkout_branch(branch):
         ).strip()
         == ""
     ):
-        if yes("Create branch %s?" % branch):
+        if confirm("Create branch %s?" % branch):
             call_echo(["git", "checkout", "-b", branch])
         else:
             raise Exception('branch does not exist: "%s"' % branch)

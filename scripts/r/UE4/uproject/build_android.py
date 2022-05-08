@@ -30,7 +30,7 @@ def build_uproject(
 
     cd(project_dir)
 
-    if clean and yes("Clean project?"):
+    if clean and confirm("Clean project?"):
         shutil.rmtree("Binaries")
         shutil.rmtree("Build")
         shutil.rmtree("Intermediate")

@@ -39,8 +39,7 @@ def patch_code(
     matches = re.findall(patt, s)
     if not matches:
         if not can_skip:
-            print2("ERROR: fail to locate code:\n%s" % patt, color="red")
-            sys.exit(1)
+            raise Exception("fail to locate code: %s" % patt)
         else:
             return
 

@@ -2,5 +2,8 @@
     "[markdown]": {
         "editor.quickSuggestions": true
     },
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "search.exclude": {
+        "**/tmp": true
+    }
 }

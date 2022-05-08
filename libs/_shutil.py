@@ -221,7 +221,7 @@ def cd(path, expand=True, auto_create_dir=False):
     path = os.path.realpath(path)
 
     if not os.path.exists(path):
-        if auto_create_dir or yes('"%s" not exist, create?' % path):
+        if auto_create_dir or confirm('"%s" not exist, create?' % path):
             os.makedirs(path)
 
     os.chdir(path)
@@ -1017,7 +1017,7 @@ def get_next_file_name(file):
     return new_file
 
 
-def yes(msg=""):
+def confirm(msg=""):
     msg += " (y/n): "
     print2(msg, end="", color="green")
     ch = getch()
