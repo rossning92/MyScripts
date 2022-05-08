@@ -1,13 +1,13 @@
 import os
 import sys
 
-from _shutil import call_echo
+from _shutil import call2
 
 if __name__ == "__main__":
     if sys.platform == "win32":
         path = os.path.realpath("../../run.cmd")
 
-        call_echo(
+        call2(
             [
                 "reg",
                 "add",

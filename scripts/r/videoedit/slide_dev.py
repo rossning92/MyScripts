@@ -1,12 +1,13 @@
 import os
-from _script import run_script
-from _browser import open_page
 import threading
+
+from _script import run_script
+from _shutil import open_url
 
 os.chdir("slide")
 
 
-threading.Thread(target=lambda: open_page("http://localhost:1244")).start()
+threading.Thread(target=lambda: open_url("http://localhost:1244")).start()
 
 run_script(
     "export.js",

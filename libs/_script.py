@@ -24,10 +24,10 @@ from _shutil import (
     exec_ahk,
     format_time,
     get_ahk_exe,
-    get_script_root,
     print2,
     run_elevated,
     setup_nodejs,
+    slugify,
     wrap_args_conemu,
     write_temp_file,
 )
@@ -696,7 +696,9 @@ class Script:
         if ext == ".ps1":
             if os.name == "nt":
                 if self.cfg["template"]:
-                    ps_path = write_temp_file(self.render(), ".ps1")
+                    ps_path = write_temp_file(
+                        self.render(), slugify(self.name) + ".ps1"
+                    )
                 else:
                     ps_path = os.path.realpath(script_path)
 
@@ -740,16 +742,13 @@ class Script:
         elif ext == ".cmd" or ext == ".bat":
             if os.name == "nt":
                 if self.cfg["template"]:
-                    batch_file = write_temp_file(self.render(), ".cmd")
+                    batch_file = write_temp_file(
+                        self.render(), slugify(self.name) + ".cmd"
+                    )
                 else:
                     batch_file = os.path.realpath(script_path)
 
                 args = ["cmd.exe", "/c", batch_file] + args
-
-                # # HACK: change working directory
-                # if platform.system() == 'Windows' and self.cfg['runAsAdmin']:
-                #     args = ['cmd', '/c',
-                #             'cd', '/d', cwd, '&'] + args
             else:
                 print("OS does not support script: %s" % script_path)
                 return
@@ -761,7 +760,7 @@ class Script:
 
         elif ext == ".sh":
             if self.cfg["template"]:
-                script_path = write_temp_file(self.render(), ".sh")
+                script_path = write_temp_file(self.render(), slugify(self.name) + ".sh")
 
             args = [script_path] + args
             if self.cfg["wsl"]:
@@ -775,7 +774,7 @@ class Script:
             python_exec = sys.executable
 
             if self.cfg["template"] and ext == ".py":
-                python_file = write_temp_file(self.render(), ".py")
+                python_file = write_temp_file(self.render(), slugify(self.name) + ".py")
             else:
                 python_file = os.path.realpath(script_path)
 
@@ -998,9 +997,7 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
+                        **popen_args, creationflags=creationflags, close_fds=True,
                     )
 
                 else:

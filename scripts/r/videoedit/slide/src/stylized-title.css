@@ -2,12 +2,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap");
 
 :is(h1, h2, h3, h4, h5, h6) {
-  margin-bottom: 1px;
-  margin-top: 1px;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 :is(h1, h2, h3) {
-
   font-family: "Roboto Condensed", "Noto Sans SC";
   font-weight: 500;
   padding: 0 0.5em 0 0.5em;
@@ -18,17 +17,17 @@
 h1 {
   font-size: 2.6667em;
   color: black;
-  background-color: rgba(252, 114, 129, 0.85);
+  background-color: rgba(252, 114, 129, 0.8);
 }
 
 h2 {
   font-size: 2em;
   color: black;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 h3 {
   font-size: 1.5em;
-  color: black;
-  background-color: rgba(255, 255, 255, 0.85);
+  color: white;
+  background-color: rgba(0, 0, 0, 0.8);
 }
