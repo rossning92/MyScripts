@@ -96,7 +96,7 @@ export function addFileIcon(icon, name, { scale = 3, x, y, t, font } = {}) {
   }).reveal({ direction: "down", t: "<0.05" });
 }
 
-export function addTitle(
+export function addTitle3(
   title,
   {
     font = "condensed",
@@ -187,4 +187,56 @@ export function addTitle2(
 
 export function cameraZoom() {
   mo.cameraMoveTo({ zoom: 1.05, duration: 5, ease: "power1.out", t: 0 });
+}
+
+export function addTitle(
+  text,
+  { sup, x, y, z = 0.01, t, scale, color = "white" } = {}
+) {
+  const g = mo.addGroup({ x, y, z, scale });
+  g.addText(text, {
+    font: "gdh",
+    y: sup ? 0.45 : 0,
+    z: 0.01,
+    color,
+  }).wipeIn({
+    t,
+    direction: "right",
+  });
+  if (sup) {
+    g.addText(sup, {
+      font: "arcade",
+      scale: 0.3,
+      z: 0.01,
+      y: sup ? -0.45 : 0,
+      color,
+    }).revealD({ t: "<0.2" });
+  }
+
+  return g;
+}
+
+export function addTitleAnimation(title, title2) {
+  mo.usePerspectiveCamera();
+  mo.setDefaultEase("power.inOut");
+  mo.setDefaultDuration(1);
+
+  const fontScale = 1.25;
+
+  mo.addText3D(title, {
+    scale: fontScale,
+    font: "gdh",
+    // wireframe: true,
+    z: 0.1,
+    y: fontScale * 0.3,
+  }).flyIn({ t: 0 });
+
+  mo.addGlitch({ t: 1 });
+  mo.addText3D(title2, {
+    y: -fontScale * 0.6,
+    scale: fontScale * 0.25,
+    font: "arcade",
+  }).typeText({ duration: 0.6, t: 1 });
+
+  mo.cameraMoveTo({ zoom: 1.3, t: 0, duration: 5, ease: "power2.out" });
 }

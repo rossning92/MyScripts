@@ -17,9 +17,17 @@ def start_server(file=None, port=None, dev=True):
     env = os.environ.copy()
 
     launch_script = os.path.join(movy_root, "bin", "movy.js")
-    args = ["node", launch_script, "--no-open"]
-    if port is not None:
-        args += ["--port", "%d" % port]
+    args = [
+        "node",
+        launch_script,
+        "--no-open",
+        "--content",
+        os.path.join(script_root, "movyutils"),
+    ]
+
+    if port is None:
+        port = 5555
+    args += ["--port", "%d" % port]
 
     if dev:
         start_process(
