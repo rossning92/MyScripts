@@ -11,7 +11,7 @@ from _shutil import (
     mkdir,
     print2,
     setup_logger,
-    yes,
+    confirm,
 )
 
 from build_cpp_modules import build_cpp_modules

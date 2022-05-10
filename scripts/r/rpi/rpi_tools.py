@@ -10,7 +10,7 @@ from _shutil import (
     menu_loop,
     print2,
     unzip,
-    yes,
+    confirm,
 )
 
 # https://www.raspberrypi.com/software/operating-systems/

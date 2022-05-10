@@ -14,7 +14,7 @@ from _shutil import (
     menu_loop,
     print2,
     shell_open,
-    yes,
+    confirm,
     get_output,
 )
 

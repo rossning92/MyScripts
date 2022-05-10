@@ -4,7 +4,7 @@ from _android import setup_android_env
 from _cmake import setup_cmake
 from _editor import open_in_vscode
 from _git import git_clone
-from _shutil import call_echo, cd, yes, run_elevated
+from _shutil import call_echo, cd, confirm, run_elevated
 
 # Ninja is required
 # run_elevated("choco install ninja -y")
