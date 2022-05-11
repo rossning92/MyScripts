@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import tarfile
+from pprint import pprint
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import moviepy.audio.fx.all as afx
@@ -40,30 +41,38 @@ default_audio_track_name = "record"
 
 class VideoClip:
     def __init__(self):
+        # Timing
         self.file = None
         self.start = 0
         self.duration = None
-        self.mpy_clip = None
-        self.speed = 1
+        self.subclip: Optional[Tuple[float, ...]] = None
+        self.frame = None
+        self.loop = False
+
+        # Transform
+        self.scale = (1.0, 1.0)
+        self.width = None
+        self.height = None
         self.pos = None
+        self.transparent = True  # TODO: remove
+        self.auto_extend = True
+
+        # Vfx
+        self.speed = 1
         self.fadein = 0
         self.fadeout = 0
         self.crossfade = 0
 
+        # Audio
         self.no_audio = False
         self.norm = False
         self.vol = None
-        self.transparent = True
-        self.subclip: Optional[Tuple[float, ...]] = None
-        self.frame = None
-        self.loop = False
-        self.expand = False
 
-        self.scale = (1.0, 1.0)
-        self.width = None
-        self.height = None
+        # Metadata
+        self.mpy_clip = None
 
-        self.auto_extend = True
+    def __repr__(self):
+        return f"VideoClip({os.path.basename(self.file)}, t={self.start:.1f}, d={self.duration:.1f})"
 
 
 class AudioClip:
@@ -257,7 +266,7 @@ def _get_time(p):
 
 def _add_subtitle_clip(start, end, text):
     temp_file = render_text(text)
-    add_video_clip(
+    _add_video_clip(
         temp_file,
         t=start,
         duration=end - start,
@@ -580,7 +589,7 @@ def clip(f, **kwargs):
         return
 
     print("clip: %s" % f)
-    add_video_clip(f, **kwargs)
+    _add_video_clip(f, **kwargs)
 
 
 @core.api
@@ -602,7 +611,7 @@ def overlay(
         return
 
     print("image: %s" % f)
-    add_video_clip(
+    _add_video_clip(
         f,
         duration=duration,
         crossfade=crossfade,
@@ -669,13 +678,7 @@ def _create_image_seq_clip(tar_file):
 
 @functools.lru_cache(maxsize=None)
 def _load_mpy_clip(
-    file,
-    scale=(1.0, 1.0),
-    frame=None,
-    transparent=True,
-    width=None,
-    height=None,
-    **kwargs,
+    file, scale=(1.0, 1.0), frame=None, transparent=True, width=None, height=None
 ):
     def update_clip_size(clip):
         if not width and not height:
@@ -743,7 +746,7 @@ def _load_mpy_clip(
     return clip
 
 
-def add_video_clip(
+def _add_video_clip(
     file=None,
     speed=None,
     pos="center",
@@ -764,11 +767,9 @@ def add_video_clip(
     frame=None,
     n=None,
     loop=False,
-    expand=False,
     scale=(1.0, 1.0),
     width=None,
     height=None,
-    **kwargs,
 ):
     subclip2: Optional[Tuple[float, ...]] = None
     if subclip is not None:
@@ -850,19 +851,20 @@ def add_video_clip(
     clip_info.vol = vol
     clip_info.transparent = transparent
     clip_info.subclip = subclip2
-
-    if file.endswith(".gif"):
-        clip_info.loop = True
-    else:
-        clip_info.loop = loop
-
-    clip_info.expand = expand
+    clip_info.loop = True if file.endswith(".gif") else loop
     clip_info.scale = (scale[0] * _state.global_scale, scale[1] * _state.global_scale)
     clip_info.width = width
     clip_info.height = height
 
     # Load mpy clip
-    clip_info.mpy_clip = _load_mpy_clip(**vars(clip_info))
+    clip_info.mpy_clip = _load_mpy_clip(
+        file=clip_info.file,
+        scale=clip_info.scale,
+        frame=clip_info.frame,
+        transparent=clip_info.transparent,
+        width=clip_info.width,
+        height=clip_info.height,
+    )
     if type(clip_info.mpy_clip) == VideoFileClip:
         clip_info.scale = (1.0, 1.0)  # HACK: video file clip are pre-scaled
 
@@ -920,7 +922,7 @@ def anim(file, **kwargs):
         export_movy_animation(os.path.abspath(file))
     file = vid_file
 
-    clip_info = add_video_clip(file, **kwargs)
+    clip_info = _add_video_clip(file, **kwargs)
 
     if clip_info.subclip is not None:
         assert type(clip_info.subclip) == tuple
@@ -964,7 +966,7 @@ def empty(**kwargs):
     if _state.audio_only:
         return
 
-    add_video_clip(None, **kwargs)
+    _add_video_clip(None, **kwargs)
 
 
 def _generate_slide(in_file, template, out_file=None, public=None):
@@ -1007,7 +1009,7 @@ def slide(
                 in_file, template=template, out_file=out_file, public=os.getcwd()
             )
 
-    add_video_clip(out_file, pos=pos, **kwargs)
+    _add_video_clip(out_file, pos=pos, **kwargs)
 
 
 @core.api
@@ -1041,9 +1043,9 @@ def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
     if pos is not None:
         if file is None:
             file = SCRIPT_ROOT + "/assets/mouse-cursor.png"
-        add_video_clip(file=file, pos=pos, **extra_args)
+        _add_video_clip(file=file, pos=pos, **extra_args)
     elif rect is not None:
-        add_video_clip(
+        _add_video_clip(
             file=SCRIPT_ROOT + "/assets/highlight-yellow.png",
             pos=(rect[0] + rect[2] * 0.5, rect[1] + rect[3] * 0.5),
             scale=(rect[2] / 100, rect[3] / 100),
@@ -1221,6 +1223,11 @@ def export_video(*, out_filename, resolution, preview=False):
         _update_clip_duration(track)
 
     # TODO: post-process video track clips
+
+    # Output
+    for track_name, track in _state.video_tracks.items():
+        if len(track) > 0:
+            pprint({track_name: track})
 
     # Update MoviePy clip object in each track.
     video_clips = []

@@ -4,6 +4,7 @@
     },
     "python.formatting.provider": "black",
     "search.exclude": {
-        "**/tmp": true
+        "**/tmp": true,
+        "**/.mypy_cache": true,
     }
 }
