@@ -4,7 +4,7 @@ import sys
 from _android import backup_pkg, select_app_pkg
 from _script import run_script, set_variable
 from _shutil import call_echo, shell_open
-from _term import Menu
+from _term import select_option
 
 if __name__ == "__main__":
     pkg = select_app_pkg()
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         "dumpsys",
         "permissions",
     ]
-    i = Menu(items=opt).exec()
+    i = select_option(opt)
     if i == -1:
         sys.exit(1)
 

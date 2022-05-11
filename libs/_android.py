@@ -570,20 +570,23 @@ def adb_install(apk, force=False):
                 apk,
             ]
             logging.debug("%s" % args)
-            subprocess.check_output(
+            out = subprocess.check_output(
                 args,
                 stderr=subprocess.STDOUT,
             )
+            logging.debug(out.decode())
         except subprocess.CalledProcessError as ex:
             msg = ex.output.decode()
-            match = re.search(
-                "INSTALL_FAILED_UPDATE_INCOMPATIBLE: Package ([^ ]+)", msg
-            )
-            if match is not None:
-                pkg = match.group(1)
-                logging.warn(
-                    "[INSTALL_FAILED_UPDATE_INCOMPATIBLE] Uninstalling %s..." % pkg
-                )
+            logging.warn(msg)
+
+            if "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in msg:
+                pkg = re.findall("Package ([a-z0-9A-Z.]+)", msg)[0]
+                logging.warn("Uninstalling %s..." % pkg)
+                subprocess.check_call(["adb", "uninstall", pkg])
+                subprocess.check_call(["adb", "install", "-r", apk])
+            elif "INSTALL_FAILED_CONFLICTING_PROVIDE" in msg:
+                pkg = re.findall("already used by ([a-z0-9A-Z.]+)", msg)[0]
+                logging.warn("Uninstalling %s..." % pkg)
                 subprocess.check_call(["adb", "uninstall", pkg])
                 subprocess.check_call(["adb", "install", "-r", apk])
             else:
@@ -780,7 +783,7 @@ def setprop(prop):
 
 
 def select_app_pkg():
-    from _term import Menu
+    from _term import select_option
 
     s = subprocess.check_output(
         ["adb", "shell", "pm list packages"], universal_newlines=True
@@ -788,7 +791,7 @@ def select_app_pkg():
     s = s.replace("package:", "")
     lines = s.splitlines()
     lines = sorted(lines)
-    i = Menu(items=lines).exec()
+    i = select_option(lines)
     if i == -1:
         return None
     else:

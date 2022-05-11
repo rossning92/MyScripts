@@ -1,11 +1,12 @@
+import ctypes
 import curses
 import curses.ascii
-import time
-import re
-import sys
-import ctypes
 import locale
 import os
+import re
+import sys
+import time
+
 from _shutil import load_json, save_json
 
 
@@ -32,7 +33,7 @@ def set_term_title(title):
         ctypes.windll.kernel32.SetConsoleTitleA(title)
 
 
-def search(options, save_history=False):
+def _select_options_ncurse(options, save_history=False):
     if save_history:
         history = load_json("search_history.json", [])
         sort_key = {x: i for i, x in enumerate(history)}
@@ -59,6 +60,10 @@ def search(options, save_history=False):
     return idx
 
 
+def select_option(options, save_history=False):
+    return _select_options_ncurse(options, save_history=save_history)
+
+
 def _prompt(options, message=None):
     for i, option in enumerate(options):
         print("%d. %s" % (i + 1, option))
@@ -72,7 +77,7 @@ def _prompt(options, message=None):
     return selections
 
 
-def prompt_checkbox(options, message=None):
+def select_options(options, message=None):
     return _prompt(options=options, message=message)
 
 
@@ -86,14 +91,13 @@ def prompt_list(options, message=None):
         raise Exception("Please only select 1 item.")
 
 
-def search_items(items, kw):
+def _fuzzy_search_func(items, kw):
     if not kw:
         for i, s in enumerate(items):
             yield i
     else:
-        tokens = kw.split(" ")
         for i, item in enumerate(items):
-            if all([(x in str(item).lower()) for x in tokens]):
+            if all([(x in str(item).lower()) for x in kw.split(" ")]):
                 yield i
 
 
@@ -208,7 +212,7 @@ class Menu:
 
                 # Search scripts
                 self.matched_item_indices = list(
-                    search_items(self.items, self.get_text())
+                    _fuzzy_search_func(self.items, self.get_text())
                 )
 
                 self.selected_row = 0
@@ -281,13 +285,11 @@ class Menu:
 
         page = self.selected_row // items_per_page
         selected_index_in_page = self.selected_row % items_per_page
-
-        for i, item_index in enumerate(
-            self.matched_item_indices[page * items_per_page :]
-        ):
+        indices_in_page = self.matched_item_indices[page * items_per_page :]
+        for i, item_index in enumerate(indices_in_page):
             if i == selected_index_in_page:  # Hightlight on
                 self.stdscr.attron(curses.color_pair(2))
-            s = "%d. %s" % (item_index + 1, str(self.items[item_index]))
+            s = "{}  {}".format(item_index + 1, self.items[item_index])
             try:
                 self.stdscr.addstr(row, 0, s)
             except curses.error:

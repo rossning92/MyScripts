@@ -7,7 +7,7 @@ import yaml
 
 from _editor import open_in_vscode
 from _script import get_all_variables
-from _term import search
+from _term import select_option
 
 
 def search_code(text, search_path, extra_params=None):
@@ -67,7 +67,7 @@ def _open_bookmark(*, kw=None, path=None):
         if len(result) == 1:
             open_in_vscode(result[0][0], line_number=result[0][1])
         elif len(result) > 1:
-            indices = search([f"{x[0]}:{x[1]}" for x in result])
+            indices = select_option([f"{x[0]}:{x[1]}" for x in result])
             i = indices[0]
             open_in_vscode(result[i][0], line_number=result[i][1])
 
@@ -107,7 +107,7 @@ def show_bookmarks(open_bookmark_func=None):
                 bookmarks += traverse_item(item)
 
     names = [x["name"] for x in bookmarks]
-    idx = search(names, save_history=True)
+    idx = select_option(names, save_history=True)
     if idx == -1:
         sys.exit(0)
 
