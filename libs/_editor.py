@@ -66,8 +66,7 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
     else:
         args = [vscode] + file
 
-    FNULL = open(os.devnull, "w")
-    subprocess.Popen(args, stdout=FNULL, stderr=FNULL)
+    start_process(args)
 
 
 def open_in_text_editor(path, line_number=None):

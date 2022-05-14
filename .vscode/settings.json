@@ -6,5 +6,6 @@
     "search.exclude": {
         "**/tmp": true,
         "**/.mypy_cache": true,
-    }
+    },
+    "editor.formatOnSave": true
 }

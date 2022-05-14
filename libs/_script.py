@@ -83,7 +83,7 @@ def _get_script_history_file():
 
 
 def set_console_title(title):
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         old = get_console_title()
         win_title = title.encode(locale.getpreferredencoding())
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
@@ -93,7 +93,7 @@ def set_console_title(title):
 
 
 def get_console_title():
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         MAX_BUFFER = 260
         saved_title = (ctypes.c_char * MAX_BUFFER)()
         ret = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
@@ -854,7 +854,6 @@ class Script:
 
         # Run commands
         if args is not None and len(args) > 0:
-            creationflags = 0
 
             # Check if new window is needed
             if new_window is None:
@@ -865,7 +864,7 @@ class Script:
 
             if restart_instance and new_window:
                 # Only works on windows for now
-                if platform.system() == "Windows":
+                if sys.platform == "win32":
                     exec_ahk(
                         "SetTitleMatchMode RegEx\nWinClose, ^"
                         + re.escape(self.get_console_title())
@@ -883,129 +882,159 @@ class Script:
                     ),
                 )
 
+            # Check if run as admin
+            if self.cfg["runAsAdmin"]:
+                if sys.platform == "win32":
+                    args = wrap_args_cmd(
+                        args,
+                        cwd=cwd,
+                        title=self.get_console_title(),
+                        env=env,
+                        close_on_exit=close_on_exit,
+                    )
+
+                    logging.debug("run_elevated(%s)" % args)
+                    run_elevated(args, wait=(not new_window))
+                    return
+
+            no_wait = False
+            popen_extra_args = {}
+
             if new_window:
                 # HACK: python wrapper: activate console window once finished
                 # TODO: extra console window will be created when runAsAdmin & newWindow
-                if sys.platform == "win32" and (not self.cfg["runAsAdmin"]):
-                    # Open in specified terminal (e.g. Windows Terminal)
-                    try:
-                        if self.cfg["terminal"] is None:
-                            raise Exception(
-                                "No terminal specified, fallback to default."
-                            )
+                if sys.platform == "win32":
+                    if not self.cfg["runAsAdmin"]:
+                        try:
+                            # Open in specified terminal (e.g. Windows Terminal)
+                            if self.cfg["terminal"] is None:
+                                raise Exception(
+                                    "No terminal specified, fallback to default."
+                                )
 
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ]:
-                            args = wrap_args_wt(
+                            if self.cfg["terminal"] in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]:
+                                args = wrap_args_wt(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    wsl=self.cfg["wsl"],
+                                    close_on_exit=close_on_exit,
+                                )
+                            elif self.cfg["terminal"] == "conemu":
+                                args = wrap_args_conemu(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    wsl=self.cfg["wsl"],
+                                    always_on_top=True,
+                                )
+                            else:
+                                raise Exception(
+                                    "Unsupported terminal: %s" % self.cfg["terminal"]
+                                )
+
+                        except Exception as ex:
+                            logging.warn("Failed to open in terminal: %s" % ex)
+                            args = wrap_args_cmd(
                                 args,
                                 cwd=cwd,
                                 title=self.get_console_title(),
-                                wsl=self.cfg["wsl"],
+                                env=env,
                                 close_on_exit=close_on_exit,
                             )
-                        elif self.cfg["terminal"] == "conemu":
-                            args = wrap_args_conemu(
-                                args,
-                                cwd=cwd,
-                                title=self.get_console_title(),
-                                wsl=self.cfg["wsl"],
-                                always_on_top=True,
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NEW_CONSOLE
+                                | subprocess.CREATE_NEW_PROCESS_GROUP
                             )
-                        else:
-                            raise Exception(
-                                "Non-supported terminal: %s" % self.cfg["terminal"]
-                            )
-
-                    except Exception as ex:
-                        args = wrap_args_cmd(
-                            args,
-                            cwd=cwd,
-                            title=self.get_console_title(),
-                            env=env,
-                            close_on_exit=close_on_exit,
-                        )
-                        creationflags = subprocess.CREATE_NEW_CONSOLE
-
-                        # logging.error("Error on Windows Terminal: %s" % e)
-
-                        # if os.path.exists(
-                        #     r"C:\Program Files\Git\usr\bin\mintty.exe"
-                        # ):
-                        #     args = [
-                        #         r"C:\Program Files\Git\usr\bin\mintty.exe",
-                        #         "--hold",
-                        #         "always",
-                        #     ] + args
 
                 elif sys.platform == "linux":
                     # args = ["tmux", "split-window"] + args
-                    # args = ["x-terminal-emulator", "-e"] + args
-                    new_window = False
+
+                    TERM_TYPE = 0
+                    if TERM_TYPE == 0:
+                        args = ["gnome-terminal", "--"] + args
+
+                    elif TERM_TYPE == 1:
+                        args = [
+                            "xterm",
+                            "-xrm",
+                            "XTerm.vt100.allowTitleOps: false",
+                            "-T",
+                            self.get_console_title(),
+                            "-e",
+                            _args_to_str(args),
+                        ]
+
+                    elif TERM_TYPE == 2:
+                        args = [
+                            "xfce4-terminal",
+                            "-T",
+                            self.get_console_title(),
+                            "-e",
+                            _args_to_str(args),
+                            "--hold",
+                        ]
 
                 else:
-                    creationflags = subprocess.CREATE_NEW_CONSOLE
-                    # raise Exception(
-                    #     "newWindow flag is not supported on target platform."
-                    # )
+                    logging.warn(
+                        '"new_window" is not supported on platform "%s"' % sys.platform
+                    )
 
-            # Check if run as admin
-            if platform.system() == "Windows" and self.cfg["runAsAdmin"]:
-                args = wrap_args_cmd(
-                    args,
-                    cwd=cwd,
-                    title=self.get_console_title(),
-                    env=env,
-                    close_on_exit=close_on_exit,
-                )
-
-                logging.debug("run_elevated(%s)" % args)
-                run_elevated(args, wait=(not new_window))
-            else:
-                logging.debug("subprocess.Popen(): args: %s" % args)
-                popen_args = {
-                    "args": args,
-                    "env": {**os.environ, **env},
-                    "cwd": cwd,
-                    "shell": shell,
-                }
-
-                if self.cfg["background"] and platform.system() == "Windows":
+            elif self.cfg["background"]:
+                if sys.platform == "win32":
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
                     SW_HIDE = 0
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
                     startupinfo.wShowWindow = SW_HIDE
+                    popen_extra_args["startupinfo"] = startupinfo
 
-                    subprocess.Popen(
-                        **popen_args,
-                        startupinfo=startupinfo,
-                        creationflags=subprocess.CREATE_NEW_CONSOLE,
-                        close_fds=True,
+                    DETACHED_PROCESS = 0x00000008
+                    popen_extra_args["creationflags"] = (
+                        subprocess.CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS
                     )
 
-                elif self.cfg["minimized"] and platform.system() == "Windows":
-                    SW_MINIMIZE = 6
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                    startupinfo.wShowWindow = SW_MINIMIZE
-                    subprocess.Popen(
-                        **popen_args,
-                        startupinfo=startupinfo,
-                        creationflags=subprocess.CREATE_NEW_CONSOLE,
-                        close_fds=True,
-                    )
-
-                elif new_window:
-                    subprocess.Popen(
-                        **popen_args,
-                        creationflags=creationflags,
-                        close_fds=True,
-                    )
+                    popen_extra_args["close_fds"] = True
+                    no_wait = True
 
                 else:
-                    subprocess.check_call(**popen_args)
+                    logging.warn(
+                        '"background" is not supported on platform %s' % sys.platform
+                    )
+
+            elif self.cfg["minimized"]:
+                if sys.platform == "win32":
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                    SW_MINIMIZE = 6
+                    startupinfo.wShowWindow = SW_MINIMIZE
+                    popen_extra_args["startupinfo"] = startupinfo
+
+                    popen_extra_args["creationflags"] = (
+                        subprocess.CREATE_NEW_CONSOLE
+                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                    )
+                    popen_extra_args["close_fds"] = True
+                    no_wait = True
+
+                else:
+                    logging.warn(
+                        '"minimized" is not supported on platform %s' % sys.platform
+                    )
+
+            logging.debug("subprocess.Popen(): args=%s" % args)
+            ps = subprocess.Popen(
+                args=args,
+                env={**os.environ, **env},
+                cwd=cwd,
+                shell=shell,
+                **popen_extra_args,
+            )
+            if not no_wait:
+                ps.wait()
 
     def get_variable_names(self):
         if not self.cfg["template"]:
@@ -1102,7 +1131,7 @@ def run_script(
             script.cfg[k] = v
 
     # Set console window title (for windows only)
-    if console_title and platform.system() == "Windows":
+    if console_title and sys.platform == "win32":
         # Save previous title
         MAX_BUFFER = 260
         saved_title = (ctypes.c_char * MAX_BUFFER)()
@@ -1120,7 +1149,7 @@ def run_script(
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
 
     # Restore title
-    if console_title and platform.system() == "Windows":
+    if console_title and sys.platform == "win32":
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
     end_time = time.time()

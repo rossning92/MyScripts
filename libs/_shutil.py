@@ -5,7 +5,6 @@ import json
 import locale
 import logging
 import os
-import platform
 import re
 import shutil
 import signal
@@ -19,6 +18,7 @@ from collections import OrderedDict, namedtuple
 from distutils.dir_util import copy_tree
 from time import sleep
 from typing import List
+import unicodedata
 
 import yaml
 
@@ -179,9 +179,8 @@ def chdir(path, expand=True):
 def getch(timeout=-1):
     """Returns None when getch is timeout."""
 
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         import msvcrt
-        import sys
 
         time_elapsed = 0
         if timeout > 0:
@@ -196,7 +195,6 @@ def getch(timeout=-1):
             ch = msvcrt.getch().decode(errors="replace")
 
     else:
-        import sys
         import termios
         import tty
 
@@ -276,13 +274,13 @@ def start_in_new_terminal(args, title=None):
     if type(args) == list:
         args = [shlex.quote(x) for x in args]
 
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         args = args.replace("|", "^|")  # Escape '|'
         title_arg = ('"' + title + '"') if title else ""
         args = 'start %s cmd /S /C "%s"' % (title_arg, args)
         subprocess.call(args, shell=True)
 
-    elif platform.system() == "Darwin":
+    elif sys.platform == "darwin":
         args = args.replace("'", "'\"'\"'")
         args = args.replace('"', '\\"')
         args = """osascript -e 'tell application "Terminal" to do script "%s"'""" % args
@@ -308,7 +306,7 @@ def run_in_background(cmd):
     # Enable ANSI escape sequence processing for the console window by calling
     # the SetConsoleMode Windows API with the ENABLE_VIRTUAL_TERMINAL_PROCESSING
     # flag set.
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
@@ -418,7 +416,7 @@ def copy(src, dst, overwrite=False):
 
 
 def run_elevated(args, wait=True):
-    if platform.system() == "Windows":
+    if sys.platform == "win32":
         import win32api
         import win32con
         import win32event
@@ -604,7 +602,7 @@ def print2(msg, color="yellow", end="\n"):
     # Enable ANSI escape sequence processing for the console window by calling
     # the SetConsoleMode Windows API with the ENABLE_VIRTUAL_TERMINAL_PROCESSING
     # flag set.
-    if not print2.initialized and platform.system() == "Windows":
+    if not print2.initialized and sys.platform == "win32":
         kernel32 = ctypes.windll.kernel32
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
@@ -932,17 +930,24 @@ def wait_until_file_modified(f):
             return
 
 
-def start_process(args, shell=True):
+def start_process(args, shell=False):
     creationflags = 0
     if sys.platform == "win32":
         CREATE_NEW_PROCESS_GROUP = 0x00000200
         DETACHED_PROCESS = 0x00000008
         creationflags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
 
-    with open(os.devnull, "w") as fnull:
-        subprocess.Popen(
-            args, shell=shell, stdout=fnull, stderr=fnull, creationflags=creationflags
-        )
+    start_new_session = False
+    if sys.platform == "linux":
+        start_new_session = True
+
+    subprocess.Popen(
+        args,
+        shell=shell,
+        close_fds=True,
+        creationflags=creationflags,
+        start_new_session=start_new_session,
+    )
 
 
 def setup_nodejs(install=True):
@@ -1118,10 +1123,25 @@ def wait_for_new_file(file_pattern, allow_exists=False):
                         time.sleep(0.1)
 
 
-def slugify(s):
-    import slugify as slug
-
-    return slug.slugify(s)
+def slugify(value, allow_unicode=False):
+    """
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores.
+    """
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize("NFKC", value)
+    else:
+        value = (
+            unicodedata.normalize("NFKD", value)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    return re.sub(r"[-\s]+", "-", value).strip("-_")
 
 
 def get_script_root():
