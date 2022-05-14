@@ -720,6 +720,7 @@ def prepend_to_path(paths, env=None):
 def get_cur_time_str():
     return datetime.datetime.now().strftime("%y%m%d%H%M%S")
 
+
 def get_date_str():
     return datetime.datetime.now().strftime("%Y%m%d")
 
@@ -1226,7 +1227,17 @@ def move_file(src, dst, overwrite=False):
     shutil.move(src, dst)
 
 
-MenuItem = namedtuple("MenuItem", "name caller key func")
+class MenuItem:
+    def __init__(self, name, key, func, caller) -> None:
+        self.name = name
+        self.caller = caller
+        self.key = key
+        self.func = func
+
+    def __str__(self) -> str:
+        return self.name
+
+
 _menu_items: List[MenuItem] = []
 
 import inspect
@@ -1288,6 +1299,13 @@ def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
             print_help()
         elif ch == "q":
             break
+        elif ch == "\t":
+            from _term import select_option
+
+            index = select_option(menu_items)
+            if index >= 0:
+                menu_items[index].func()
+
         else:
             match = list(filter(lambda x: x.key == ch, menu_items))
             if len(match) == 0:

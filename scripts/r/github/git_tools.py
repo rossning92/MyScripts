@@ -73,16 +73,19 @@ def git_push(force=False):
     call_echo(args)
 
 
-def show_git_log():
+@menu_item(key="l")
+def show_git_log(show_all=True):
+    args = [
+        "git",
+        "log",
+        "--date=relative",
+        "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
+        "--graph",
+    ]
+    if not show_all:
+        args.append("-10")
     call_echo(
-        [
-            "git",
-            "log",
-            "--date=relative",
-            "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
-            "--graph",
-            "-10",
-        ],
+        args,
         check=False,
         shell=False,
     )
@@ -96,7 +99,7 @@ def print_status():
     )
 
     commit(dry_run=True)
-    show_git_log()
+    show_git_log(show_all=False)
 
 
 def create_bundle():

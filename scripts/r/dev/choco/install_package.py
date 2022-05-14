@@ -39,10 +39,17 @@ PKGS = {
         # "pycharm-community",
         # "visualstudiocode-insiders --pre",
     ],
-    "@gamedev": ["renderdoc",],
+    "@gamedev": [
+        "renderdoc",
+    ],
     "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
-    "@work": ["p4v", "selenium-chrome-driver",],
-    "@ue4": ["directx",],
+    "@work": [
+        "p4v",
+        "selenium-chrome-driver",
+    ],
+    "@ue4": [
+        "directx",
+    ],
     "@other": [
         "audacity",
         "autohotkey",
@@ -91,14 +98,20 @@ def install_package(name):
 
     if len(lines) > 0:
         print("Upgrade `%s`..." % name)
-        call_echo(["choco", "upgrade", name, "-y"])
+        call_echo(
+            ["choco", "upgrade", name, "-y", "-s", "https://chocolatey.org/api/v2/"],
+            check=False,
+        )
     else:
         print("Install `%s`..." % name)
-        call_echo(["choco", "install", name, "-y"])
+        call_echo(
+            ["choco", "install", name, "-y", "-s", "https://chocolatey.org/api/v2/"],
+            check=False,
+        )
 
 
 if __name__ == "__main__":
-    run_script("add_default_source")
+    # run_script("add_default_source")
 
     pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
         set([app for cate in PKGS.values() for app in cate])
@@ -106,17 +119,6 @@ if __name__ == "__main__":
     idx = Menu(items=pkg_list).exec()
     if idx < 0:
         sys.exit(1)
-
-    call_echo(
-        [
-            "choco",
-            "source",
-            "add",
-            "--name=chocolatey",
-            "--priority=-1",
-            '-s="https://chocolatey.org/api/v2/"',
-        ]
-    )
 
     if pkg_list[idx].startswith("@"):
         for pkg in PKGS[pkg_list[idx]]:

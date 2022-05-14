@@ -13,18 +13,18 @@ def get_screen_size():
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 
-last_serial = None
+serial = get_variable("ANDROID_SERIAL")
 
 
 def update_android_serial():
-    global last_serial
-    serial = get_variable("ANDROID_SERIAL")
+    global serial
+    s = get_variable("ANDROID_SERIAL")
 
-    if serial != last_serial:
-        last_serial = serial
+    if s != serial:
+        serial = s
 
-        if serial:
-            os.environ["ANDROID_SERIAL"] = serial
+        if s:
+            os.environ["ANDROID_SERIAL"] = s
         else:
             if "ANDROID_SERIAL" in os.environ:
                 del os.environ["ANDROID_SERIAL"]
@@ -52,6 +52,9 @@ if __name__ == "__main__":
                 "--window-y",
                 "%s" % win_pos[1],
             ]
+
+        if serial:
+            args += ["--serial", serial]
 
         if "{{_SIZE}}":
             args += ["--max-size", "{{_SIZE}}"]

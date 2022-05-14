@@ -573,7 +573,9 @@ class Script:
             source = f.read()
 
         cwd = os.getcwd()
-        os.chdir(os.path.dirname(script_path))
+        script_dir = os.path.dirname(script_path)
+        if script_dir:
+            os.chdir(script_dir)
 
         result = render_template(source, self.get_variables())
 
@@ -997,7 +999,9 @@ class Script:
 
                 elif new_window:
                     subprocess.Popen(
-                        **popen_args, creationflags=creationflags, close_fds=True,
+                        **popen_args,
+                        creationflags=creationflags,
+                        close_fds=True,
                     )
 
                 else:

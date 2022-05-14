@@ -1,13 +1,16 @@
-from _shutil import *
-from _math import *
-import pandas as pd
-import matplotlib
+import re
+import subprocess
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from _math import plt_pause
+from _shutil import *
+import time
 
 core_names = []
-total_idle = []
+last_total_idle = None
 
-ax = plt.subplot()
 plt.show(block=False)
 for i in range(999999):
     sample = subprocess.check_output(
@@ -28,20 +31,18 @@ for i in range(999999):
         total_idle_per_sample.append(total_idle_per_core)
         core_names.append(core_name)
 
-    total_idle.append(total_idle_per_sample)
+    if i == 0:
+        for x in core_names:
+            print(f"{x}\t", end="")
+        print()
 
-    if i > 0:
-        total_idle_diff = np.diff(np.array(total_idle), axis=0)
+    if last_total_idle is not None:
+        diff = np.array(total_idle_per_sample) - np.array(last_total_idle)
+        cpu_util = np.apply_along_axis(lambda x: 1 - x[1] / x[0], -1, diff)
+        for x in cpu_util:
+            print(f"{x*100:.0f}%\t", end="")
+        print()
 
-        # select gold core only
-        # cores = [4, 5, 6, 7]
-        # total_idle_diff = total_idle_diff[:, cores, ]
+    last_total_idle = total_idle_per_sample
 
-        cpu_util = np.apply_along_axis(lambda x: 1 - x[1] / x[0], -1, total_idle_diff)
-        df = pd.DataFrame(cpu_util, columns=core_names)
-
-        ax.clear()
-        plt.ylim(0, 1)
-
-        df.plot(ax=ax, kind="line")
-        plt_pause(0.1)
+    time.sleep(2)
