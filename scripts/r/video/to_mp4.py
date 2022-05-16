@@ -9,11 +9,15 @@ if __name__ == "__main__":
     files = get_files(cd=True)
 
     crop_rect = (
-        [int(x) for x in "{{_CROP_RECT}}".split()[0:4]] if "{{_CROP_RECT}}" else None
+        [int(x) for x in os.environ["_CROP_RECT"].split()[0:4]]
+        if "_CROP_RECT" in os.environ
+        else None
     )
 
     start_and_duration = (
-        "{{_START_AND_DURATION}}".split() if "{{_START_AND_DURATION}}" else None
+        os.environ["_START_AND_DURATION"].split()
+        if "_START_AND_DURATION" in os.environ
+        else None
     )
 
     for f in files:
@@ -26,11 +30,11 @@ if __name__ == "__main__":
 
         extra_args = []
 
-        if "{{_SPEED}}":
-            filter_a = "atempo={{_SPEED}}"
+        if "_SPEED" in os.environ:
+            filter_a = "atempo=" + os.environ["_SPEED"]
             extra_args += ["-filter:a", filter_a]
 
-        if "{{_FIND_BEST_CRF}}":
+        if "_FIND_BEST_CRF" in os.environ:
             out_files = []
             for crf in [22, 26, 30, 34, 38]:
                 extra_args += ["-crf", str(crf)]
@@ -55,28 +59,31 @@ if __name__ == "__main__":
                 out_file=out_file,
                 extra_args=extra_args,
                 reencode=True,
-                crf=int("{{_CRF}}") if "{{_CRF}}" else 19,
+                crf=int(os.environ.get("_CRF", 19)),
                 start_and_duration=start_and_duration,
-                nvenc=bool("{{_NVENC}}"),
-                max_size_mb=float("{{_MAX_SIZE_MB}}") if "{{_MAX_SIZE_MB}}" else None,
-                no_audio=bool("{{_NO_AUDIO}}"),
-                loop=float("{{_LOOP}}") if "{{_LOOP}}" else None,
+                nvenc=bool(os.environ.get("_NVENC")),
+                max_size_mb=(
+                    float(os.environ["_MAX_SIZE_MB"])
+                    if "_MAX_SIZE_MB" in os.environ
+                    else None
+                ),
+                no_audio=bool(os.environ.get("_NO_AUDIO")),
+                loop=int(os.environ.get("_LOOP", 0)),
                 crop_rect=crop_rect,
-                to_anamorphic=True if "{{_TO_ANAMORPHIC}}" else False,
-                crop_to_1080p=True if "{{_CROP_TO_1080P}}" else False,
-                pad_to_1080p=True if "{{_PAD_TO_1080P}}" else False,
-                rotate_cw=True if "{{_ROTATE_CW}}" else False,
-                rotate_ccw=True if "{{_ROTATE_CCW}}" else False,
-                speed=float("{{_SPEED}}") if "{{_SPEED}}" else None,
-                height=int("{{_HEIGHT}}") if "{{_HEIGHT}}" else None,
-                width=int("{{_WIDTH}}") if "{{_WIDTH}}" else None,
-                title="{{_TITLE}}",
-                reverse=True if "{{_REVERSE}}" else False,
-                remove_duplicated_frames=True
-                if "{{_REMOVE_DUPLICATED_FRAMES}}"
-                else False,
-                test=True if "{{_TEST}}" else False,
-                fps=int("{{_FPS}}") if "{{_FPS}}" else None,
+                to_anamorphic=bool(os.environ.get("_TO_ANAMORPHIC")),
+                crop_to_1080p=bool(os.environ.get("_CROP_TO_1080P")),
+                pad_to_1080p=bool(os.environ.get("_PAD_TO_1080P")),
+                rotate_cw=bool(os.environ.get("_ROTATE_CW")),
+                rotate_ccw=bool(os.environ.get("_ROTATE_CCW")),
+                speed=float(os.environ.get("_SPEED", 1.0)),
+                height=int(os.environ["_HEIGHT"]) if "_HEIGHT" in os.environ else None,
+                width=int(os.environ["_WIDTH"]) if "_WIDTH" in os.environ else None,
+                title=os.environ.get("_TITLE"),
+                reverse=bool(os.environ.get("_REVERSE")),
+                remove_duplicated_frames=bool(
+                    os.environ.get("_REMOVE_DUPLICATED_FRAMES")
+                ),
+                fps=int(os.environ["_FPS"]) if "_FPS" in os.environ else None,
             )
 
         if len(files) == 1:

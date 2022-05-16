@@ -556,7 +556,10 @@ class Script:
     def get_console_title(self):
         return self.console_title if self.console_title else self.name
 
-    def render(self):
+    def render(self, variables=None):
+        if variables is None:
+            variables = self.get_variables()
+
         script_path = (
             self.real_script_path if self.real_script_path else self.script_path
         )
@@ -577,7 +580,7 @@ class Script:
         if script_dir:
             os.chdir(script_dir)
 
-        result = render_template(source, self.get_variables())
+        result = render_template(source, variables)
 
         os.chdir(cwd)
         return result
@@ -591,13 +594,10 @@ class Script:
         variables = {}
         for vname in vnames:
             if vname in all_variables:
-                # Get only last modified value
-                latest_val = (
-                    all_variables[vname][0] if len(all_variables[vname]) > 0 else ""
-                )
-                variables[vname] = latest_val
-            else:
-                variables[vname] = ""
+                if len(all_variables[vname]) > 0:
+                    last_modified_value = all_variables[vname][0]
+                    if last_modified_value:
+                        variables[vname] = last_modified_value
 
         # Override variables
         if self.override_variables:
@@ -637,6 +637,8 @@ class Script:
         close_on_exit=None,
         cd=True,
     ):
+        variables = self.get_variables()
+
         logging.debug("execute(args=%s)" % args)
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
@@ -663,6 +665,7 @@ class Script:
             args = []
 
         env = {}
+
         shell = False
 
         if self.cfg["adk"]:
@@ -1028,7 +1031,7 @@ class Script:
             logging.debug("subprocess.Popen(): args=%s" % args)
             ps = subprocess.Popen(
                 args=args,
-                env={**os.environ, **env},
+                env={**variables, **os.environ, **env},
                 cwd=cwd,
                 shell=shell,
                 **popen_extra_args,
@@ -1037,12 +1040,9 @@ class Script:
                 ps.wait()
 
     def get_variable_names(self):
-        if not self.cfg["template"]:
-            return []
-
         with open(self.script_path, "r", encoding="utf-8") as f:
             s = f.read()
-            variables = re.findall(r"\{\{([A-Z0-9_]+)\}\}", s)
+            variables = re.findall(r"\b([A-Z0-9]*_[A-Z0-9_]+)\b", s)
 
         # Remove duplicates
         variables = list(set(variables))

@@ -185,14 +185,14 @@ def ffmpeg(
     bitrate=None,
     max_size_mb=None,
     no_audio=False,
-    loop=None,
+    loop=0,
     crop_rect=None,
     to_anamorphic=False,
     crop_to_1080p=False,
     pad_to_1080p=False,
     rotate_cw=False,
     rotate_ccw=False,
-    speed=None,
+    speed=1.0,
     height=None,
     width=None,
     title=None,
@@ -222,7 +222,7 @@ def ffmpeg(
 
     args = ["ffmpeg"]
 
-    if loop is not None:
+    if loop > 0:
         args += ["-stream_loop", "%d" % loop]
 
     args += ["-i", in_file]
@@ -267,7 +267,7 @@ def ffmpeg(
     elif rotate_ccw:
         filter_v.append("transpose=2")
 
-    if speed:
+    if speed != 1.0:
         filter_v.append("setpts=PTS/%.2f" % float(speed))
 
     # Scale (-2 indicates divisible by 2)
