@@ -1,4 +1,4 @@
-import argparse
+import os
 
 from _android import logcat, restart_app
 from _shutil import setup_logger
@@ -8,15 +8,8 @@ if __name__ == "__main__":
     # Run app using monkey:
     # adb shell monkey -p your.app.package.name -c android.intent.category.LAUNCHER 1
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--pkg", default=None)
-    args = parser.parse_args()
+    pkg = os.environ.get("PKG_NAME")
 
-    if args.pkg is not None:
-        pkg = args.pkg
-    else:
-        pkg = r"{{PKG_NAME}}"
-
-    restart_app(pkg, use_monkey="{{USE_MONKEY}}")
-    if "{{_SHOW_LOGCAT}}":
+    restart_app(pkg, use_monkey=bool(os.environ.get("USE_MONKEY")))
+    if os.environ.get("_SHOW_LOGCAT"):
         logcat(pkg=pkg)

@@ -46,9 +46,12 @@ class Template:
         result = []
         for is_code, token in self.tokens:
             if is_code:
-                ret = eval(token, global_context)
-                if ret is not None:
-                    result.append(ret)
+                try:
+                    ret = eval(token, global_context)
+                    if ret is not None:
+                        result.append(ret)
+                except NameError:
+                    pass
             else:
                 result.append(token)
         result = [str(x) for x in result]

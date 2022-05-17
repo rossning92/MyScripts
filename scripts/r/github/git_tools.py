@@ -205,6 +205,11 @@ def diff():
         call_echo("git diff HEAD^ HEAD")
 
 
+@menu_item(key="D")
+def diff_previous_commit():
+    call_echo("git diff HEAD^ HEAD")
+
+
 @menu_item(key="`")
 def command():
     cmd = input("cmd> ")
