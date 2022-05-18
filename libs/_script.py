@@ -959,7 +959,14 @@ class Script:
 
                     TERM_TYPE = 0
                     if TERM_TYPE == 0:
-                        args = ["gnome-terminal", "--"] + args
+                        args = [
+                            "gnome-terminal",
+                            "--",
+                            "bash",
+                            "-c",
+                            "%s || read -rsn1 -p 'Press any key to exit...'"
+                            % _args_to_str(args, single_quote=True),
+                        ]
 
                     elif TERM_TYPE == 1:
                         args = [

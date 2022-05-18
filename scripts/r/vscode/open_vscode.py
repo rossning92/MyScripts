@@ -1,6 +1,6 @@
-from _editor import *
-from _shutil import *
+from _shutil import start_process
+from _appmanager import get_executable
 
-proj_dir = get_current_folder()
-print('Project path: %s' % proj_dir)
-open_in_vscode(proj_dir)
+
+vscode = get_executable("vscode")
+start_process(vscode)

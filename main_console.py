@@ -240,12 +240,12 @@ def register_global_hotkeys_linux(scripts):
                 .replace("[", "bracketleft")
                 .replace("]", "bracketright")
             )
-            s += f"\"gnome-terminal -- bash -c 'python3 {script_root}/bin/run_script.py {item.script_path} || read line'\"\n"
+            s += f'"python3 {script_root}/bin/start_script.py {item.script_path}"\n'
             s += "  {}\n\n".format(hotkey)
 
     with open(os.path.expanduser("~/.xbindkeysrc"), "w") as f:
         f.write(s)
-    subprocess.call(["killall", "-s1", "xbindkeys"])
+    subprocess.call(["killall", "xbindkeys"])
     subprocess.check_call(["xbindkeys", "-f", os.path.expanduser("~/.xbindkeysrc")])
 
 
