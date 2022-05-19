@@ -154,7 +154,15 @@ class InputWidget:
 
 
 class Menu:
-    def __init__(self, items=[], stdscr=None, label=">", text="", ascii_only=False):
+    def __init__(
+        self,
+        items=[],
+        stdscr=None,
+        label=">",
+        text="",
+        ascii_only=False,
+        cancellable=True,
+    ):
         self.input_ = InputWidget(label=label, text=text, ascii_only=ascii_only)
         self.items = items
         self.on_items = []
@@ -165,6 +173,7 @@ class Menu:
         self.height = -1
         self.stdscr = stdscr
         self.message = None
+        self.cancellable = cancellable
 
     def item(self, name=None):
         def decorator(func):
@@ -255,8 +264,10 @@ class Menu:
                 self.on_item_selected()
 
             elif ch == curses.ascii.ESC:
-                self.matched_item_indices.clear()
-                return
+                self.input_.clear()
+                if self.cancellable:
+                    self.matched_item_indices.clear()
+                    return
 
             elif ch != 0:
                 self.input_.on_char(ch)

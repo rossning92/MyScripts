@@ -1049,7 +1049,7 @@ class Script:
     def get_variable_names(self):
         with open(self.script_path, "r", encoding="utf-8") as f:
             s = f.read()
-            variables = re.findall(r"\b([A-Z0-9]*_[A-Z0-9_]+)\b", s)
+            variables = re.findall(r"\b([A-Z_$][A-Z_$0-9]{3,})\b", s)
 
         # Remove duplicates
         variables = list(set(variables))
