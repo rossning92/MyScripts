@@ -4,12 +4,86 @@ import os
 from pprint import pprint
 
 from _editor import open_in_vscode
-from _shutil import getch, load_yaml, save_yaml, to_valid_file_name
+from _shutil import (
+    getch,
+    load_yaml,
+    save_yaml,
+    to_valid_file_name,
+    menu_item,
+    menu_loop,
+    update_yaml,
+)
+from _term import select_option
 
 from export_video import load_config
 
-if __name__ == "__main__":
-    vproject_root = r"{{VPROJECT_ROOT}}"
+
+vproject_root = r"{{VPROJECT_ROOT}}"
+
+
+def get_all_project_dirs():
+    files = glob.glob(os.path.join(vproject_root, "*", "config.yaml"))
+    files.sort(key=os.path.getmtime, reverse=True)
+    return [os.path.dirname(x) for x in files]
+
+
+all_projects = get_all_project_dirs()
+cur_index = 0
+
+
+@menu_item(key="l")
+def list_all_videos():
+    for i, f in enumerate(all_projects):
+        print_project_info(i)
+
+
+def print_project_info(i):
+    d = all_projects[i]
+
+    config = load_config(os.path.join(d, "config.yaml"))
+    name = os.path.basename(d)
+    print(f"{i+1}. {name}", end="")
+    if "title" in config:
+        print(" | " + config["title"], end="")
+
+    print()
+
+
+@menu_item(key="w")
+def prev():
+    global cur_index
+    cur_index = max(cur_index - 1, 0)
+    print_project_info(cur_index)
+
+
+@menu_item(key="s")
+def next():
+    global cur_index
+    cur_index = min(cur_index + 1, len(all_projects))
+    print_project_info(cur_index)
+
+
+@menu_item(key="\r")
+def search_project():
+    global cur_index
+    i = select_option(all_projects)
+    if i >= 0:
+        cur_index = i
+        print("Project set to:")
+        print_project_info(cur_index)
+
+
+@menu_item(key="t")
+def set_title():
+    global cur_index
+    title = input("new title: ")
+    if title:
+        update_yaml(
+            os.path.join(all_projects[cur_index], "config.yaml"), {"title": title}
+        )
+
+
+def bulk_edit():
     tmp_file = os.path.expanduser("~/Desktop/videos.yml")
 
     # Update existing configs
@@ -57,3 +131,7 @@ if __name__ == "__main__":
     save_yaml(videos, tmp_file)
 
     open_in_vscode(tmp_file)
+
+
+if __name__ == "__main__":
+    menu_loop()

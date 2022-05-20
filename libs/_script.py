@@ -1336,12 +1336,20 @@ def get_scripts_recursive(directory):
             )  # Ignore folder if `<folder>.ignore` exists
         ]
 
-        for f in files:
-            ext = os.path.splitext(f)[1].lower()
+        for file in files:
+            ext = os.path.splitext(file)[1].lower()
 
             # Filter by script extensions
-            if ext in SCRIPT_EXTENSIONS:
-                yield os.path.join(root, f)
+            if ext not in SCRIPT_EXTENSIONS:
+                continue
+            if ".win" in file and sys.platform != "win32":
+                continue
+            if ".linux" in file and sys.platform != "linux":
+                continue
+            if ".mac" in file and sys.platform != "darwin":
+                continue
+
+            yield os.path.join(root, file)
 
 
 def script_updated():

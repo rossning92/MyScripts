@@ -1297,7 +1297,13 @@ def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
 
         for menu_item in menu_items:
             if menu_item.caller == caller:
-                print("  [%s] %s" % (menu_item.key, menu_item.name))
+                print(
+                    "  [%s] %s"
+                    % (
+                        menu_item.key.replace("\t", "tab").replace("\r", "enter"),
+                        menu_item.name,
+                    )
+                )
 
         print("  [h] help")
         print("  [q] quit")
@@ -1381,12 +1387,13 @@ def load_yaml(file):
 
 def save_yaml(data, file):
     with open(file, "w", encoding="utf-8", newline="\n") as f:
-        yaml.dump(
-            data,
-            f,
-            default_flow_style=False,
-            allow_unicode=True,
-        )
+        yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+
+
+def update_yaml(file, dict_):
+    data = load_yaml(file)
+    data.update(dict_)
+    save_yaml(data, file)
 
 
 def setup_logger(level=logging.DEBUG, stdout=True, log_file=None):
@@ -1399,10 +1406,7 @@ def setup_logger(level=logging.DEBUG, stdout=True, log_file=None):
         logger.addHandler(handler)
 
     if log_file:
-        file_handler = logging.FileHandler(
-            log_file,
-            "w+",
-        )  # overwrite the file
+        file_handler = logging.FileHandler(log_file, "w+")  # overwrite the file
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
 
