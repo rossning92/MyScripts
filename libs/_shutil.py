@@ -25,6 +25,36 @@ import yaml
 logger = logging.getLogger(__name__)
 
 
+def activate_window_by_name(name):
+    if sys.platform == "win32":
+        from ctypes.wintypes import HWND, BOOL, LPARAM
+
+        user32 = ctypes.windll.user32
+
+        matched_hwnd = None
+
+        def callback(hwnd, lParam):
+            nonlocal matched_hwnd
+            length = user32.GetWindowTextLengthW(hwnd) + 1
+            buffer = ctypes.create_unicode_buffer(length)
+            user32.GetWindowTextW(hwnd, buffer, length)
+            if name in repr(buffer.value):
+                matched_hwnd = hwnd
+                return False  # early exit
+
+            return True
+
+        WNDENUMPROC = ctypes.WINFUNCTYPE(BOOL, HWND, LPARAM)
+        user32.EnumWindows(WNDENUMPROC(callback), 42)
+
+        if matched_hwnd:
+            user32.ShowWindow(matched_hwnd, 9)  # in case the window is minimized
+            user32.SetForegroundWindow(matched_hwnd)
+            return True
+
+    return False
+
+
 def get_hash(text, digit=16):
     import hashlib
 

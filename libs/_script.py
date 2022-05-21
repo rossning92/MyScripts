@@ -19,6 +19,7 @@ from _appmanager import get_executable
 from _editor import open_in_vscode
 from _filelock import FileLock
 from _shutil import (
+    activate_window_by_name,
     call_echo,
     convert_to_unix_path,
     exec_ahk,
@@ -637,6 +638,9 @@ class Script:
         close_on_exit=None,
         cd=True,
     ):
+        if activate_window_by_name(self.name):
+            return
+
         variables = self.get_variables()
 
         logging.debug("execute(args=%s)" % args)

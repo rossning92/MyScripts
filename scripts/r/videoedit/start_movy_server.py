@@ -3,7 +3,7 @@ import os
 import signal
 import subprocess
 
-from _shutil import call_echo, get_files, start_process
+from _shutil import call_echo, start_process
 
 
 def start_server(file=None, port=None, dev=True):
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     if args.file is not None:
         file = args.file
     else:
-        file = get_files()[0]
+        file = os.environ.get("MOVY_FILE")
 
     ps = start_server(file, port=args.port)
 

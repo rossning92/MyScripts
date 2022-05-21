@@ -280,16 +280,16 @@ def register_global_hotkeys_win(scripts):
 
     hotkey_seq_def = hotkey_seq_def.rstrip(", ")
 
-    run_script = 'cmd /c %s "%s"' % (
+    cmdline = '%s "%s"' % (
         sys.executable,
-        os.path.realpath("bin/run_script.py"),
+        os.path.realpath("bin/start_script.py"),
     )
 
     render_template_file(
         "GlobalHotkey.ahk",
         GLOBAL_HOTKEY,
         context={
-            "run_script": run_script,
+            "cmdline": cmdline,
             "hotkey_def": hotkey_def,
             "hotkeys": hotkeys,
             "hotkey_seq_def": hotkey_seq_def,
