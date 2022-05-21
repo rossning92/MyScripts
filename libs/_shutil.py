@@ -733,7 +733,7 @@ def prepend_to_path(paths, env=None):
     if type(paths) == list:
         paths = [p for p in paths if os.path.exists(p)]
 
-        if sys.platform == "win32":
+        if False and sys.platform == "win32":
             paths = [_get_short_path_name(p) if " " in p else p for p in paths]
 
         s = os.pathsep.join(paths)
@@ -921,7 +921,7 @@ def convert_to_unix_path(path, wsl=False):
 
 def add_to_path(path):
     if sys.platform == "win32":
-        if " " in path:
+        if False and " " in path:
             path = _get_short_path_name(path)
 
         s = get_output(r"reg query HKCU\Environment /v PATH")
@@ -932,14 +932,14 @@ def add_to_path(path):
             if os.path.isdir(p):
                 new_paths.append(p)
             else:
-                print("Removed from PATH: %s" % p)
+                logging.debug("Removed from PATH: %s" % p)
 
         if path not in new_paths:
             new_paths.append(path)
-            print("Added to PATH: %s" % path)
+            logging.debug("Added to PATH: %s" % path)
 
-        subprocess.call(["setx", "PATH", ";".join(new_paths)])
-        # call_echo('reg add HKCU\Environment /v PATH /d "%s" /f' % ";".join(new_paths))
+        with fnull() as nul:
+            subprocess.call(["setx", "PATH", ";".join(new_paths)], stdout=nul)
 
 
 def wait_key(prompt=None, timeout=5):

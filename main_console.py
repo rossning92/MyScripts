@@ -42,7 +42,7 @@ script_root = os.path.dirname(os.path.abspath(__file__))
 def execute_script(script, close_on_exit=None):
     refresh_env_vars()
     args = update_env_var_explorer()
-    script.execute(args=args, close_on_exit=close_on_exit)
+    script.execute(args=args, close_on_exit=close_on_exit, single_instance=False)
 
 
 def setup_console_font():

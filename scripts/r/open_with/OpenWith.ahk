@@ -8,7 +8,7 @@ SetWorkingDir %A_ScriptDir%
 EnvSet, PYTHONPATH, %A_ScriptDir%\..\..\..\libs`;%A_ScriptDir%\..\..\..\scripts
 
 #if WinActive("ahk_exe explorer.exe") or WinActive("ahk_exe everything.exe") or WinActive("ahk_exe Nomad.exe") or WinActive("ahk_exe FreeCommander.exe") or WinActive("ahk_exe doublecmd.exe")
-    
+
 F3::
     UpdateExplorerInfo()
     Run cmd /c run_script open_with.py 0 || pause

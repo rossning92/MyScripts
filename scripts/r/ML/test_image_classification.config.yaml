@@ -1,2 +1,1 @@
 conda: tf2
-restartInstance: false

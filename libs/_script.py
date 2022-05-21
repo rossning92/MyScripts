@@ -497,23 +497,28 @@ class Script:
         return result
 
     def __init__(self, script_path, name=None):
-        self.return_code = 0
+        if not os.path.isfile(script_path):
+            raise Exception("Script file does not exist.")
 
-        # TODO: jinja2 doesn't support '\' in path. Seems fixed?
-        script_path = script_path.replace(os.path.sep, "/")
+        script_path = os.path.abspath(script_path)
+
+        self.return_code = 0
 
         # Script display name
         if name:
             self.name = name
         else:
-            self.name = script_path
+            self.name = script_path.replace("\\", "/")
 
-            # Absolute path -> relative path
+            # Convert absolute path to relative path
             for name, d in get_script_directories():
                 prefix = d.replace("\\", "/") + "/"
                 if self.name.startswith(prefix):
                     self.name = (name + "/" if name else "") + self.name[len(prefix) :]
                     break
+
+            # Strip extension
+            self.name, _ = os.path.splitext(self.name)
 
         self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
         self.override_variables = None
@@ -634,11 +639,14 @@ class Script:
         self,
         args=None,
         new_window=None,
-        restart_instance=None,
+        single_instance=None,
         close_on_exit=None,
         cd=True,
     ):
-        if activate_window_by_name(self.name):
+        if single_instance is None:
+            single_instance = self.cfg["singleInstance"]
+
+        if single_instance and activate_window_by_name(self.name):
             return
 
         variables = self.get_variables()
@@ -866,10 +874,7 @@ class Script:
             if new_window is None:
                 new_window = self.cfg["newWindow"]
 
-            if restart_instance is None:
-                restart_instance = self.cfg["restartInstance"]
-
-            if restart_instance and new_window:
+            if not single_instance and new_window:
                 # Only works on windows for now
                 if sys.platform == "win32":
                     exec_ahk(
@@ -931,6 +936,7 @@ class Script:
                                     wsl=self.cfg["wsl"],
                                     close_on_exit=close_on_exit,
                                 )
+                                no_wait = True
                             elif self.cfg["terminal"] == "conemu":
                                 args = wrap_args_conemu(
                                     args,
@@ -939,6 +945,7 @@ class Script:
                                     wsl=self.cfg["wsl"],
                                     always_on_top=True,
                                 )
+                                no_wait = True
                             else:
                                 raise Exception(
                                     "Unsupported terminal: %s" % self.cfg["terminal"]
@@ -957,6 +964,7 @@ class Script:
                                 subprocess.CREATE_NEW_CONSOLE
                                 | subprocess.CREATE_NEW_PROCESS_GROUP
                             )
+                            no_wait = True
 
                 elif sys.platform == "linux":
                     # args = ["tmux", "split-window"] + args
@@ -982,6 +990,7 @@ class Script:
                             "-e",
                             _args_to_str(args),
                         ]
+                        no_wait = True
 
                     elif TERM_TYPE == 2:
                         args = [
@@ -992,6 +1001,7 @@ class Script:
                             _args_to_str(args),
                             "--hold",
                         ]
+                        no_wait = True
 
                 else:
                     logging.warn(
@@ -1065,21 +1075,24 @@ class Script:
         return variables
 
 
-def find_script(script_name, search_dir=None):
-    if os.path.exists(script_name):
-        return script_name
+def find_script(patt, search_dir=None):
+    if os.path.exists(patt):
+        return patt
 
-    if script_name.startswith("/"):
-        path = os.path.abspath(os.path.dirname(__file__) + "/../scripts" + script_name)
+    if patt.startswith("/"):
+        path = os.path.join(
+            os.path.dirname(__file__), "..", "scripts", patt.lstrip("/")
+        )
+
     elif search_dir:
-        path = os.path.join(search_dir, script_name)
+        path = os.path.join(search_dir, patt)
     else:
-        path = os.path.abspath(script_name)
+        path = os.path.abspath(patt)
 
     # Fuzzy search
     for _, script_root_dir in get_script_directories():
-        name_no_ext, _ = os.path.splitext(script_name.lstrip("/"))
-        path = (script_root_dir + "/**/" + name_no_ext + ".*").replace("\\", "/")
+        name_no_ext, _ = os.path.splitext(patt.lstrip("/"))
+        path = os.path.join(script_root_dir, "**", name_no_ext + ".*")
 
         match = glob.glob(path, recursive=True)
         match = [
@@ -1103,7 +1116,7 @@ def run_script(
     overwrite_meta=None,
     template=None,
     new_window=False,  # should not start a new window by default
-    restart_instance=False,
+    single_instance=True,
     cd=True,
 ):
     start_time = time.time()
@@ -1116,14 +1129,7 @@ def run_script(
             raise ValueError("file cannot be None.")
 
     # Print command line arguments
-    def quote(s):
-        if " " in s:
-            s = '"%s"' % s
-        return s
-
-    print2(
-        "run_script: %s" % (" ".join([quote(x) for x in [file] + args])), color="black"
-    )
+    print2("run_script: %s" % _args_to_str([file] + args), color="black")
 
     script_path = find_script(file)
     if script_path is None:
@@ -1154,7 +1160,7 @@ def run_script(
         script.set_override_variables(variables)
 
     script.execute(
-        restart_instance=restart_instance, new_window=new_window, args=args, cd=cd
+        single_instance=single_instance, new_window=new_window, args=args, cd=cd
     )
     if script.return_code != 0:
         raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
@@ -1192,7 +1198,7 @@ def get_script_default_config():
         "autoRun": False,
         "wsl": False,
         "conda": "",
-        "restartInstance": True,
+        "singleInstance": True,
         "background": False,
         "minimized": False,
         "venv": "",
