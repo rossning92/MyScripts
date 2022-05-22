@@ -6,7 +6,7 @@ set -e
 if [ "$(uname)" == "Linux" ]; then
     if ! type pip3 >/dev/null; then
         sudo apt-get update
-        sudo apt install python3-pip -y
+        sudo apt install python3-pip sxhkd kitty xdotool -y
     fi
 fi
 

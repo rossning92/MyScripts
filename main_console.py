@@ -30,6 +30,7 @@ from _shutil import (
     setup_logger,
     setup_nodejs,
     update_env_var_explorer,
+    start_process,
 )
 from _template import render_template_file
 from _term import Menu, init_curses
@@ -222,10 +223,7 @@ def add_keyboard_hooks(keyboard_hooks):
 
 
 def register_global_hotkeys_linux(scripts):
-    s = (
-        f'"gnome-terminal -- python3 {script_root}/main_console.py -q"\n'
-        "  control+q\n\n"
-    )
+    s = f"control+q\n  gnome-terminal -- python3 {script_root}/main_console.py -q\n\n"
 
     for item in scripts:
         hotkey = item.cfg["globalHotkey"]
@@ -233,20 +231,18 @@ def register_global_hotkeys_linux(scripts):
         if hotkey:
             hotkey = (
                 hotkey.lower()
-                .replace("ctrl+", "Control+")
-                .replace("alt+", "Alt+")
-                .replace("shift+", "Shift+")
-                .replace("win+", "Mod4+")
+                .replace("win+", "super+")
+                .replace("enter", "Return")
                 .replace("[", "bracketleft")
                 .replace("]", "bracketright")
             )
-            s += f'"python3 {script_root}/bin/start_script.py {item.script_path}"\n'
-            s += "  {}\n\n".format(hotkey)
+            s += "{}\n".format(hotkey)
+            s += f"  python3 {script_root}/bin/start_script.py {item.script_path}\n\n"
 
-    with open(os.path.expanduser("~/.xbindkeysrc"), "w") as f:
+    with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
-    subprocess.call(["killall", "xbindkeys"])
-    subprocess.check_call(["xbindkeys", "-f", os.path.expanduser("~/.xbindkeysrc")])
+    subprocess.call(["killall", "sxhkd"])
+    start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
 
 
 def register_global_hotkeys_win(scripts):

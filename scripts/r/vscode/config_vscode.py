@@ -1,4 +1,3 @@
-import glob
 import json
 import os
 import subprocess
@@ -78,7 +77,12 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     install_extensions(data_dir=data_dir)
 
     if data_dir is None:
-        data_dir = os.path.expandvars("%APPDATA%/Code")
+        if sys.platform == "win32":
+            data_dir = os.path.expandvars("%APPDATA%/Code")
+        elif sys.platform == "linux":
+            data_dir = os.path.expanduser("~/.config/Code")
+        else:
+            raise Exception("OS not supported: {}".format(sys.platform))
 
     print2("Update key bindings...")
     with open(os.path.abspath(data_dir + "/User/keybindings.json"), "w") as f:

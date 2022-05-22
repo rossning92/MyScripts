@@ -969,8 +969,8 @@ class Script:
                 elif sys.platform == "linux":
                     # args = ["tmux", "split-window"] + args
 
-                    TERM_TYPE = 0
-                    if TERM_TYPE == 0:
+                    TERM_TYPE = "kitty"
+                    if TERM_TYPE == "gnome":
                         args = [
                             "gnome-terminal",
                             "--",
@@ -980,7 +980,7 @@ class Script:
                             % _args_to_str(args, single_quote=True),
                         ]
 
-                    elif TERM_TYPE == 1:
+                    elif TERM_TYPE == "xterm":
                         args = [
                             "xterm",
                             "-xrm",
@@ -992,7 +992,7 @@ class Script:
                         ]
                         no_wait = True
 
-                    elif TERM_TYPE == 2:
+                    elif TERM_TYPE == "xfce":
                         args = [
                             "xfce4-terminal",
                             "-T",
@@ -1001,6 +1001,14 @@ class Script:
                             _args_to_str(args),
                             "--hold",
                         ]
+                        no_wait = True
+
+                    elif TERM_TYPE == "kitty":
+                        args = [
+                            "kitty",
+                            "--title",
+                            self.get_console_title(),
+                        ] + args
                         no_wait = True
 
                 else:
@@ -1050,6 +1058,8 @@ class Script:
                     )
 
             logging.debug("subprocess.Popen(): args=%s" % args)
+            if no_wait:
+                popen_extra_args["start_new_session"] = True
             ps = subprocess.Popen(
                 args=args,
                 env={**variables, **os.environ, **env},

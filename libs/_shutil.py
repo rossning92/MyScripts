@@ -52,6 +52,12 @@ def activate_window_by_name(name):
             user32.SetForegroundWindow(matched_hwnd)
             return True
 
+    elif sys.platform == "linux":
+        id = get_output(["xdotool", "search", "--name", name])
+        if id:
+            subprocess.call(["xdotool", "windowactivate", id])
+            return True
+
     return False
 
 
@@ -599,10 +605,10 @@ def check_output_echo(args):
     return out
 
 
-def get_output(args, shell=True, **kwargs):
+def get_output(args, **kwargs):
     return (
         subprocess.Popen(
-            args, shell=shell, universal_newlines=True, stdout=subprocess.PIPE, **kwargs
+            args, universal_newlines=True, stdout=subprocess.PIPE, **kwargs
         )
         .stdout.read()
         .strip()
@@ -898,10 +904,8 @@ def get_ip_addresses():
     ]
 
 
-def check_output(args):
-    out = subprocess.check_output(args)
-    out = out.decode()
-    return out
+def check_output(args, **kwargs):
+    return subprocess.check_output(args, universal_newlines=True, **kwargs)
 
 
 def convert_to_unix_path(path, wsl=False):
