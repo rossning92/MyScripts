@@ -3,103 +3,7 @@ import sys
 
 from _script import get_default_script_config_file, get_script_default_config
 from _shutil import load_yaml, save_yaml
-from _term import Menu
-
-
-class DictValueEditWindow(Menu):
-    def __init__(self, stdscr, dict_, name, type, default_vals=[]):
-        self.dict_ = dict_
-        self.name = name
-        self.type = type
-
-        super().__init__(
-            items=default_vals,
-            stdscr=stdscr,
-            label=name + ":",
-            text="",
-        )
-
-    def on_enter_pressed(self):
-        val = self.get_text()
-        if self.type == str:
-            val = val.strip()
-        elif self.type == int:
-            val = int(val)
-        elif self.type == float:
-            val = float(val)
-        elif self.type == bool:
-            if val == "true":
-                val = True
-            elif val == "false":
-                val = False
-            elif val == "1":
-                val = True
-            elif val == "0":
-                val = False
-            else:
-                raise Exception("Unknown bool value: {}".format(val))
-        else:
-            raise Exception("Unknown type: {}".format(self.type))
-
-        self.dict_[self.name] = val
-
-        data = {k: v for k, v in self.dict_.items() if default_config[k] != v}
-        save_yaml(data, script_config_file)
-
-        self.close()
-
-    def on_char(self, ch):
-        if ch == ord("\t"):
-            val = self.get_selected_text()
-            if val is not None:
-                self.input_.set_text(val)
-            return True
-
-        return False
-
-
-class DictEditWindow(Menu):
-    def __init__(self, dict_, default_dict=None):
-        super().__init__()
-        self.dict_ = dict_
-        self.default_dict = default_dict
-        self.enter_pressed = False
-        self.update_items()
-
-    def update_items(self):
-        self.items.clear()
-
-        keys = list(self.dict_.keys())
-        max_width = max([len(x) for x in keys]) + 1
-        for key in keys:
-            s = "{}: {}".format(key.ljust(max_width), self.dict_[key])
-            if self.default_dict is not None:
-                if self.dict_[key] != self.default_dict[key]:
-                    s += " (modified)"
-            self.items.append(s)
-
-    def on_enter_pressed(self):
-        self.enter_pressed = True
-        self.close()
-
-    def on_char(self, ch):
-        if ch == ord("\t"):
-            self.edit_dict_value()
-            return True
-        return False
-
-    def edit_dict_value(self):
-        index = self.get_selected_index()
-        name = list(self.dict_.keys())[index]
-        DictValueEditWindow(
-            self.stdscr,
-            self.dict_,
-            name,
-            type(self.dict_[name]),
-        ).exec()
-        self.update_items()
-        self.input_.clear()
-
+from _term import DictEditWindow
 
 if __name__ == "__main__":
     default_config = get_script_default_config()
@@ -113,7 +17,11 @@ if __name__ == "__main__":
 
     data = {**default_config, **data}
 
-    w = DictEditWindow(data, default_dict=default_config)
+    def on_dict_update(dict):
+        data = {k: v for k, v in dict.items() if default_config[k] != v}
+        save_yaml(data, script_config_file)
+
+    w = DictEditWindow(data, default_dict=default_config, on_dict_update=on_dict_update)
     ret = w.exec()
 
     if ret == -1:

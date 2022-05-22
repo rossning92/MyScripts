@@ -14,11 +14,11 @@ import sys
 import tempfile
 import threading
 import time
-from collections import OrderedDict, namedtuple
+import unicodedata
+from collections import OrderedDict
 from distutils.dir_util import copy_tree
 from time import sleep
 from typing import List
-import unicodedata
 
 import yaml
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def activate_window_by_name(name):
     if sys.platform == "win32":
-        from ctypes.wintypes import HWND, BOOL, LPARAM
+        from ctypes.wintypes import BOOL, HWND, LPARAM
 
         user32 = ctypes.windll.user32
 

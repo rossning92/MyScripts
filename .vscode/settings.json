@@ -1,11 +1,14 @@
 {
-    "[markdown]": {
-        "editor.quickSuggestions": true
-    },
-    "python.formatting.provider": "black",
-    "search.exclude": {
-        "**/tmp": true,
-        "**/.mypy_cache": true,
-    },
-    "editor.formatOnSave": true
+  "[markdown]": {
+    "editor.quickSuggestions": true
+  },
+  "python.formatting.provider": "black",
+  "search.exclude": {
+    "**/tmp": true,
+    "**/.mypy_cache": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  }
 }
