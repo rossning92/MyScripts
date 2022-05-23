@@ -10,8 +10,8 @@ from _script import get_all_variables
 from _term import select_option
 
 
-def search_code(text, search_path, extra_params=None):
-    print("Search code in dir: %s" % search_path)
+def search_code(text, root, extra_params=None):
+    print("Search code in dir: %s" % root)
     args = [
         "rg",
         "-g",
@@ -28,9 +28,8 @@ def search_code(text, search_path, extra_params=None):
         args += extra_params
     # print(args)
     out = subprocess.check_output(
-        args, shell=True, stderr=subprocess.PIPE, cwd=search_path
+        args, shell=True, stderr=subprocess.PIPE, cwd=root, universal_newlines=True
     )
-    out = out.decode()
     print(out)
 
     result = []
@@ -39,30 +38,30 @@ def search_code(text, search_path, extra_params=None):
         if line.strip() == "":
             continue
         arr = line.split(":")
-        file_path = os.path.join(search_path, arr[0])
+        file_path = os.path.join(root, arr[0])
         line_no = arr[1]
         result.append((file_path, line_no))
 
     return result
 
 
-def _open_bookmark(*, kw=None, path=None):
+def _open_bookmark(*, kw=None, path=None, repo=None, **kwargs):
     if kw is None and path is not None:
         open_in_vscode(path)
     else:
+        # Replace repo with repo absolute path
+        variables = get_all_variables()
+        variables = {k: v[0] for k, v in variables.items()}
+        if repo in variables:
+            repo = variables[repo]
+            if not os.path.isdir(repo):
+                raise Exception("Invalid repo path: %s" % repo)
+
         result = []
         if os.path.isdir(path):  # directory
-            result += search_code(text=kw, search_path=path)
+            result += search_code(text=kw, root=path)
         else:  # file or glob
-            if "/**/" in path:
-                dir_path, file_name = path.split("/**/")
-            else:
-                dir_path = os.path.dirname(path)
-                file_name = os.path.basename(path)
-
-            result += search_code(
-                text=kw, search_path=dir_path, extra_params=["-g", file_name]
-            )
+            result += search_code(text=kw, root=repo, extra_params=["-g", path])
 
         if len(result) == 1:
             open_in_vscode(result[0][0], line_number=result[0][1])
@@ -73,13 +72,10 @@ def _open_bookmark(*, kw=None, path=None):
 
 
 def show_bookmarks(open_bookmark_func=None):
-    variables = get_all_variables()
-    variables = {k: v[0] for k, v in variables.items()}
-
     def traverse_bookmark(bookmark, defaults={}):
         bookmark = {**defaults, **bookmark}
-        if "path" in bookmark:
-            bookmark["path"] = bookmark["path"].format(**variables)
+        # if "path" in bookmark:
+        #     bookmark["path"] = bookmark["path"].format(**variables)
         return [bookmark]
 
     def traverse_item(item):
@@ -90,6 +86,10 @@ def show_bookmarks(open_bookmark_func=None):
                 if k != "bookmarks":
                     defaults[k] = v
             for bookmark in item["bookmarks"]:
+                assert "name" in bookmark
+                bookmark["name"] = (
+                    item["name"] + ": " if "name" in item else ""
+                ) + bookmark["name"]
                 bookmarks += traverse_bookmark(bookmark, defaults=defaults)
         else:
             bookmarks += traverse_bookmark(item, defaults=defaults)

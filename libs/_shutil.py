@@ -562,7 +562,7 @@ def proc_lines(args, echo=False, read_err=False, max_lines=None, check=True, **k
         stdout=subprocess.PIPE if (not read_err) else None,
         stderr=subprocess.PIPE if read_err else None,
         # bufsize=1,
-        **kwargs
+        **kwargs,
     )
 
     line_no = 0
@@ -1289,7 +1289,10 @@ class MenuItem:
         self.func = func
 
     def __str__(self) -> str:
-        return self.name
+        return "[%s] %s" % (
+            self.key.replace("\t", "tab").replace("\r", "enter"),
+            self.name,
+        )
 
 
 _menu_items: List[MenuItem] = []
@@ -1331,13 +1334,7 @@ def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
 
         for menu_item in menu_items:
             if menu_item.caller == caller:
-                print(
-                    "  [%s] %s"
-                    % (
-                        menu_item.key.replace("\t", "tab").replace("\r", "enter"),
-                        menu_item.name,
-                    )
-                )
+                print(f"  {menu_item}")
 
         print("  [h] help")
         print("  [q] quit")

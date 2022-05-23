@@ -35,7 +35,8 @@ def set_term_title(title):
 
 def _select_options_ncurse(options, save_history=False):
     if save_history:
-        history = load_json("search_history.json", [])
+        os.makedirs("tmp", exist_ok=True)
+        history = load_json("tmp/search_history.json", [])
         sort_key = {x: i for i, x in enumerate(history)}
         options, indices = zip(
             *sorted(
@@ -54,7 +55,7 @@ def _select_options_ncurse(options, save_history=False):
             except ValueError:
                 pass
             history.insert(0, options[idx])
-            save_json("search_history.json", history)
+            save_json("tmp/search_history.json", history)
         idx = indices[idx]
 
     return idx
