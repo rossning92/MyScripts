@@ -105,13 +105,13 @@ function getNewAvailableFile(file) {
   var match = patt.exec(file);
 
   var prefix = match[1];
-  var ext = match[3];
+  // var ext = match[3];
   var ix = match[2] ? parseInt(match[2]) + 1 : START_INDEX;
 
   // Find new unused file name.
   var newFile;
   while (true) {
-    newFile = prefix + "-" + pad(ix.toString()) + "." + ext;
+    newFile = prefix + "-" + pad(ix.toString()) + ".mp4";
     if (mp.utils.file_info(newFile)) {
       ix++;
     } else {
@@ -160,14 +160,14 @@ function exportVideo(params) {
   if (params.removeAudio) {
     args = args.concat(["-c:v", "copy", "-an"]);
   } else {
-    // Video encoding
-
     // Pixel format
     args = args.concat(["-pix_fmt", "yuv420p"]);
 
     if (params.noEncode) {
+      // Copy instead of re-encoding
       args = args.concat(["-vcodec", "copy", "-acodec", "copy"]);
     } else {
+      // Video encoding
       if (nvenc) {
         args = args.concat([
           "-c:v",
