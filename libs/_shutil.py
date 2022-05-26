@@ -1473,8 +1473,8 @@ def input_with_default(message, default):
     return s if s else default
 
 
-def pause():
-    input("press [enter] to continue...")
+def pause(msg="continue"):
+    input(f"Press enter to {msg}...")
 
 
 def open_url(url):

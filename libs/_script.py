@@ -18,20 +18,9 @@ from _android import setup_android_env
 from _appmanager import get_executable
 from _editor import open_in_vscode
 from _filelock import FileLock
-from _shutil import (
-    activate_window_by_name,
-    call_echo,
-    convert_to_unix_path,
-    exec_ahk,
-    format_time,
-    get_ahk_exe,
-    print2,
-    run_elevated,
-    setup_nodejs,
-    slugify,
-    wrap_args_conemu,
-    write_temp_file,
-)
+from _shutil import (activate_window_by_name, call_echo, convert_to_unix_path,
+                     exec_ahk, format_time, get_ahk_exe, print2, run_elevated,
+                     setup_nodejs, slugify, wrap_args_conemu, write_temp_file)
 from _template import render_template
 
 SCRIPT_EXTENSIONS = {
@@ -502,8 +491,6 @@ class Script:
 
         script_path = os.path.abspath(script_path)
 
-        self.return_code = 0
-
         # Script display name
         if name:
             self.name = name
@@ -643,11 +630,12 @@ class Script:
         close_on_exit=None,
         cd=True,
     ):
+
         if single_instance is None:
             single_instance = self.cfg["singleInstance"]
 
         if single_instance and activate_window_by_name(self.name):
-            return
+            return True
 
         variables = self.get_variables()
 
@@ -667,7 +655,7 @@ class Script:
 
         if ext == ".md":
             open_in_vscode(script_path)
-            return
+            return True
 
         if type(args) == str:
             args = [args]
@@ -768,7 +756,7 @@ class Script:
                 args = ["cmd.exe", "/c", batch_file] + args
             else:
                 print("OS does not support script: %s" % script_path)
-                return
+                return False
 
         elif ext == ".js":
             # TODO: if self.cfg['template']:
@@ -907,7 +895,7 @@ class Script:
 
                     logging.debug("run_elevated(%s)" % args)
                     run_elevated(args, wait=(not new_window))
-                    return
+                    return True
 
             no_wait = False
             popen_extra_args = {}
@@ -1068,7 +1056,9 @@ class Script:
                 **popen_extra_args,
             )
             if not no_wait:
-                ps.wait()
+                return ps.wait() == 0
+
+            return True
 
     def get_variable_names(self):
         with open(self.script_path, "r", encoding="utf-8") as f:
@@ -1169,11 +1159,11 @@ def run_script(
     if variables:
         script.set_override_variables(variables)
 
-    script.execute(
+    ret = script.execute(
         single_instance=single_instance, new_window=new_window, args=args, cd=cd
     )
-    if script.return_code != 0:
-        raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
+    if not ret:
+        raise Exception("[ERROR] %s returns non zero" % file)
 
     # Restore title
     if console_title and sys.platform == "win32":
@@ -1192,9 +1182,8 @@ def start_script(file):
         raise Exception('[ERROR] Cannot find script: "%s"' % file)
 
     script = Script(script_path)
-    script.execute()
-    if script.return_code != 0:
-        raise Exception("[ERROR] %s returns %d" % (file, script.return_code))
+    if not script.execute():
+        raise Exception("[ERROR] %s returns non zero" % file)
 
 
 def get_script_default_config():
