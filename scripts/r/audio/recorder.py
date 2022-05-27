@@ -11,7 +11,6 @@ import pyaudio
 from _audio import concat_audio, create_noise_profile, denoise
 from _script import run_script
 from _shutil import (
-    cd,
     get_hash,
     getch,
     kill_proc,
@@ -22,9 +21,8 @@ from _shutil import (
     start_process,
 )
 
-if 1:
-    sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-    import postprocess
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+import postprocess
 
 # TODO: cleanup by pa.terminate()
 pa = pyaudio.PyAudio()
@@ -409,13 +407,14 @@ class TerminalRecorder:
 
 
 if __name__ == "__main__":
-    if "RECORD_OUT_DIR" in os.environ:
-        out_dir = os.path.abspath(os.environ["RECORD_OUT_DIR"])
-    else:
-        out_dir = r"{{_OUT_FOLDER}}"
+    out_dir = os.environ.get("RECORDER_OUT_DIR")
+    if not out_dir:
+        raise Exception("RECORDER_OUT_DIR is not set.")
 
+    out_dir = os.path.abspath(out_dir)
     print("record out dir: %s" % out_dir)
-    cd(out_dir)
+    os.makedirs(out_dir, exist_ok=True)
+    os.chdir(out_dir)
 
     non_interactive = ("RECORDER_INTERACTIVE" in os.environ) and (
         os.environ["RECORDER_INTERACTIVE"] == "0"

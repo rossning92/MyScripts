@@ -18,9 +18,20 @@ from _android import setup_android_env
 from _appmanager import get_executable
 from _editor import open_in_vscode
 from _filelock import FileLock
-from _shutil import (activate_window_by_name, call_echo, convert_to_unix_path,
-                     exec_ahk, format_time, get_ahk_exe, print2, run_elevated,
-                     setup_nodejs, slugify, wrap_args_conemu, write_temp_file)
+from _shutil import (
+    activate_window_by_name,
+    call_echo,
+    convert_to_unix_path,
+    exec_ahk,
+    format_time,
+    get_ahk_exe,
+    print2,
+    run_elevated,
+    setup_nodejs,
+    slugify,
+    wrap_args_conemu,
+    write_temp_file,
+)
 from _template import render_template
 
 SCRIPT_EXTENSIONS = {
@@ -78,8 +89,6 @@ def set_console_title(title):
         win_title = title.encode(locale.getpreferredencoding())
         ctypes.windll.kernel32.SetConsoleTitleA(win_title)
         return old
-
-    return None
 
 
 def get_console_title():
@@ -599,17 +608,13 @@ class Script:
         # Convert into private namespace (shorter variable name)
         prefix = self.get_public_variable_prefix()
         variables = {
-            re.sub("^" + re.escape(prefix) + "_", "_", k): v
-            for k, v in variables.items()
+            **variables,
+            **{
+                k[len(prefix) :]: v
+                for k, v in variables.items()
+                if k.startswith(prefix + "_")
+            },
         }
-
-        if 0:
-            # Convert to unix path if on Windows
-            if sys.platform == "win32" and self.ext == ".sh":
-                variables = {
-                    k: convert_to_unix_path(v, wsl=self.cfg["wsl"])
-                    for k, v in variables.items()
-                }
 
         return variables
 
@@ -992,11 +997,7 @@ class Script:
                         no_wait = True
 
                     elif TERM_TYPE == "kitty":
-                        args = [
-                            "kitty",
-                            "--title",
-                            self.get_console_title(),
-                        ] + args
+                        args = ["kitty", "--title", self.get_console_title(),] + args
                         no_wait = True
 
                 else:

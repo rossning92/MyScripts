@@ -364,7 +364,7 @@ function getRecorderProcess() {
         recorderProcess = cp.spawn("run_script", ["/r/audio/recorder"], {
             env: {
                 ...process.env,
-                RECORD_OUT_DIR: path.resolve(getActiveDir() + "/record"),
+                RECORDER_OUT_DIR: path.resolve(getActiveDir() + "/record"),
                 RECORDER_INTERACTIVE: "0",
             },
         });
