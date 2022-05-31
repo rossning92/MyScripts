@@ -1289,10 +1289,11 @@ class MenuItem:
         self.func = func
 
     def __str__(self) -> str:
-        return "[%s] %s" % (
-            self.key.replace("\t", "tab").replace("\r", "enter"),
-            self.name,
-        )
+        s = ""
+        if self.key:
+            s += "[%s] " % self.key.replace("\t", "tab").replace("\r", "enter")
+        s += self.name
+        return s
 
 
 _menu_items: List[MenuItem] = []
@@ -1300,7 +1301,7 @@ _menu_items: List[MenuItem] = []
 import inspect
 
 
-def menu_item(*, key, name=None):
+def menu_item(*, key=None, name=None):
     def decorator(func):
         nonlocal name
         if name is None:
