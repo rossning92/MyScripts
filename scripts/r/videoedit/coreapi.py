@@ -1082,9 +1082,8 @@ def _update_mpy_clip(
     if subclip is not None:
         assert isinstance(subclip, (tuple, list))
         assert len(subclip) == 1 or len(subclip) == 2
-        if len(subclip) == 1:
+        if len(subclip) == 1 or subclip[1] == -1:
             clip = clip.subclip(subclip[0]).set_duration(duration)
-
         else:
             subclip_duration = subclip[1] - subclip[0]
             if loop:
@@ -1247,6 +1246,7 @@ def export_video(*, out_filename, resolution, preview=False):
                 # Audio timing
                 # TODO: audio subclip
                 if clip_info.subclip is not None:
+                    assert len(clip_info.subclip) == 2 and clip_info.subclip[1] > 0
                     duration = clip_info.subclip[1] - clip_info.subclip[0]
                     audio_clip = audio_clip.subclip(
                         clip_info.subclip[0], clip_info.subclip[1]
