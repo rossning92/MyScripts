@@ -50,7 +50,7 @@ def toggle_pixel_density():
 headlock = 0
 
 
-@menu_item(key="l")
+@menu_item(key="H")
 def toggle_headlock():
     global headlock
     headlock = 1 - headlock

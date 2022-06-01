@@ -103,14 +103,21 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--command", help="command", type=str, default=None)
     args = parser.parse_args()
 
+    s = ""
+
+    # ANDROID_SERIAL
+    android_serial = get_variable("ANDROID_SERIAL")
+    if android_serial:
+        s += "export ANDROID_SERIAL=%s\n" % android_serial
+
     if args.command:
-        s = args.command
+        s += args.command
 
     else:
         script_file = os.environ["_SCRIPT"]
         assert script_file.endswith(".sh")
         script = Script(script_file)
-        s = script.render()
+        s += script.render()
 
     tmp_script_file = write_temp_file(s, ".sh")
 

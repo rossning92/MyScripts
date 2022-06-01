@@ -1,6 +1,7 @@
 import ctypes
 import datetime
 import glob
+import inspect
 import json
 import locale
 import logging
@@ -1298,8 +1299,6 @@ class MenuItem:
 
 _menu_items: List[MenuItem] = []
 
-import inspect
-
 
 def menu_item(*, key=None, name=None):
     def decorator(func):
@@ -1315,18 +1314,28 @@ def menu_item(*, key=None, name=None):
     return decorator
 
 
-def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
-    caller = inspect.stack()[1].filename
-    menu_items = list(filter(lambda x: x.caller == caller, _menu_items))
+def menu_loop(
+    run_periotic=None,
+    interval=-1,
+    sort_by_name=True,
+    unique_key=False,
+    all_modules=False,
+):
+    if all_modules:
+        menu_items = _menu_items
+    else:
+        caller = inspect.stack()[1].filename
+        menu_items = list(filter(lambda x: x.caller == caller, _menu_items))
+
     if sort_by_name:
         menu_items = sorted(menu_items, key=lambda x: x.name)
 
-    # Check if there is any key conflict
-    used_keys = set()
-    for item in menu_items:
-        if item.key in used_keys:
-            raise Exception("Key conflict: %s" % item.key)
-        used_keys.add(item.key)
+    if unique_key:
+        used_keys = set()
+        for item in menu_items:
+            if item.key in used_keys:
+                raise Exception("Key conflict: %s" % item.key)
+            used_keys.add(item.key)
 
     def print_help():
         print()
@@ -1334,8 +1343,7 @@ def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
         print2("---------")
 
         for menu_item in menu_items:
-            if menu_item.caller == caller:
-                print(f"  {menu_item}")
+            print(f"  {menu_item}")
 
         print("  [h] help")
         print("  [q] quit")
@@ -1368,10 +1376,25 @@ def menu_loop(run_periotic=None, interval=-1, sort_by_name=True):
             match = list(filter(lambda x: x.key == ch, menu_items))
             if len(match) == 0:
                 print2("Invalid key: %s" % ch, color="yellow")
-            elif len(match) == 1:
+            else:
+                if len(match) == 1:
+                    match = match[0]
+                else:
+                    for i, item in enumerate(match):
+                        print("  [%d] %s" % (i + 1, item.name))
+
+                    while True:
+                        ch = getch()
+                        index = ord(ch) - ord("1")
+                        if index >= 0 and index < len(match):
+                            match = match[index]
+                            break
+                        else:
+                            print2("(invalid key)")
+
                 start_time = time.time()
                 try:
-                    match[0].func()
+                    match.func()
                 except Exception as ex:
                     print2("Error: %s" % ex, color="red")
                 end_time = time.time()
