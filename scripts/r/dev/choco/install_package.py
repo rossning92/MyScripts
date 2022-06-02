@@ -2,7 +2,6 @@ import sys
 
 from _shutil import call_echo, proc_lines
 from _term import Menu
-from _script import run_script
 
 PKGS = {
     "@common": [
@@ -51,24 +50,31 @@ PKGS = {
         "directx",
     ],
     "@other": [
+        "alacritty",
         "audacity",
         "autohotkey",
         "blender",
-        "renamer",
         "carnac",
+        "cura-new",
+        "docker-desktop",
         "docker-desktop",
         "epicgameslauncher",
         "geforce-experience",
         "gifcam",
+        "gimp",
+        "golang",
         "golang",
         "graphviz",
         "inkscape",
         "miktex",
+        "mongodb",
         "mousewithoutborders",
         "nsis",
         "nvidia-display-driver",
+        "ontopreplica",
         "pandoc",
         "putty",
+        "renamer",
         "rufus",
         "scrcpy",
         "sharex",
@@ -77,16 +83,10 @@ PKGS = {
         "teamviewer",
         "thunderbird",
         "tightvnc",
+        "treesizefree",
         "unity-hub",
         "vmware-workstation-player",
         "win32diskimager",
-        "mongodb",
-        "golang",
-        "ontopreplica",
-        "docker-desktop",
-        "gimp",
-        "cura-new",
-        "treesizefree",
     ],
 }
 

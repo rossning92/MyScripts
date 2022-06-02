@@ -140,7 +140,7 @@ def run_ahk(file, wait=False):
 
 
 def exec_ahk(script, tmp_script_path=None, wait=True):
-    assert os.name == "nt"
+    assert sys.platform == "win32"
     if not tmp_script_path:
         tmp_script_path = write_temp_file(script, ".ahk")
     else:
@@ -711,7 +711,9 @@ def call_highlight(args, highlight=None, filter_line=None, **kwargs):
         print(line)
 
 
-def _get_short_path_name(long_name):
+def get_short_path_name(long_name):
+    assert sys.platform == "win32"
+
     import ctypes
     from ctypes import wintypes
 
@@ -741,7 +743,7 @@ def prepend_to_path(paths, env=None):
         paths = [p for p in paths if os.path.exists(p)]
 
         if False and sys.platform == "win32":
-            paths = [_get_short_path_name(p) if " " in p else p for p in paths]
+            paths = [get_short_path_name(p) if " " in p else p for p in paths]
 
         s = os.pathsep.join(paths)
     elif type(paths) == str:
@@ -763,7 +765,7 @@ def get_date_str():
 def exec_bash(script, wsl=False, echo=False):
     logging.debug("exec_bash: bash commands: %s" % script)
     args = None
-    if os.name == "nt":
+    if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
             if not os.path.exists(r"C:\Windows\System32\bash.exe"):
                 raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
@@ -927,7 +929,7 @@ def convert_to_unix_path(path, wsl=False):
 def add_to_path(path):
     if sys.platform == "win32":
         if False and " " in path:
-            path = _get_short_path_name(path)
+            path = get_short_path_name(path)
 
         s = get_output(r"reg query HKCU\Environment /v PATH")
         s = re.search(r"PATH\s+(?:REG_SZ|REG_EXPAND_SZ)\s+(.*)", s).group(1).strip()

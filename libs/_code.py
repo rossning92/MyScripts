@@ -29,7 +29,7 @@ def patch_code(
     with open(file, "rU", encoding=encoding) as f:
         original = s = f.read()
 
-    if mode != "replace" and (code and code in s):
+    if code and code in s:
         print2("= %s" % code, color="yellow")
         return
 

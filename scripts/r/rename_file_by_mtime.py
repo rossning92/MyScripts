@@ -1,29 +1,23 @@
-from _shutil import *
-import datetime
-from _term import *
+import os
+import time
 
-os.chdir(os.environ["_CUR_DIR"])
+from _shutil import confirm, get_files
 
-new_file_names = {}
-files = list(glob.glob("*"))
-files = sorted(files, key=lambda x: os.path.getmtime(x))
+if __name__ == "__main__":
+    new_file_names = {}
+    files = get_files()
+    files = sorted(files, key=lambda x: os.path.getmtime(x))
 
-i = 1
-for f in files:
-    time_str = time.strftime("%y%m%d%H%M%S", time.gmtime(os.path.getmtime(f)))
-    time_str = "%04d" % i
-    i += 1
+    for f in files:
+        time_str = time.strftime("%y%m%d%H%M%S", time.gmtime(os.path.getmtime(f)))
+        assert time_str not in new_file_names
+        ext = os.path.splitext(f)[1]
 
-    assert time_str not in new_file_names
+        new_file_names[f] = time_str + ext
 
-    ext = os.path.splitext(f)[1]
-
-    new_file_names[f] = time_str + ext
-
-for k, v in new_file_names.items():
-    print("%s => %s" % (k, v))
-
-print("Press Y to continue")
-if getch() == "y":
     for k, v in new_file_names.items():
-        os.rename(k, v)
+        print("%s => %s" % (k, v))
+
+    if confirm("rename"):
+        for k, v in new_file_names.items():
+            os.rename(k, v)

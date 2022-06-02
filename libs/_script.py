@@ -25,6 +25,7 @@ from _shutil import (
     exec_ahk,
     format_time,
     get_ahk_exe,
+    get_short_path_name,
     print2,
     run_elevated,
     setup_nodejs,
@@ -133,32 +134,33 @@ def wrap_wsl(commands, env=None):
 def wrap_bash_commands(commands, wsl=False, env=None):
     assert type(commands) == str
 
-    if os.name == "nt" and wsl:  # WSL (Windows Subsystem for Linux)
-        return wrap_wsl(commands)
+    if sys.platform == "win32":
+        if wsl:  # WSL (Windows Subsystem for Linux)
+            return wrap_wsl(commands)
 
-    elif os.name == "nt":
-        if env is not None:
-            env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
-            env["CHERE_INVOKING"] = "1"  # stay in the current working directory
-            env["MSYSTEM"] = "MINGW64"
-            # env["MSYS2_PATH_TYPE"] = "inherit"
+        else:
+            if env is not None:
+                env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
+                env["CHERE_INVOKING"] = "1"  # stay in the current working directory
+                env["MSYSTEM"] = "MINGW64"
+                # env["MSYS2_PATH_TYPE"] = "inherit"
 
-        tmp_sh_file = write_temp_file(commands, ".sh")
+            tmp_sh_file = write_temp_file(commands, ".sh")
 
-        msys2_bash_search_list = [
-            r"C:\Program Files\Git\bin\bash.exe",
-            r"C:\msys64\usr\bin\bash.exe",
-        ]
+            msys2_bash_search_list = [
+                r"C:\Program Files\Git\bin\bash.exe",
+                r"C:\msys64\usr\bin\bash.exe",
+            ]
 
-        bash = None
-        for f in msys2_bash_search_list:
-            if os.path.exists(f):
-                bash = f
-                break
+            bash = None
+            for f in msys2_bash_search_list:
+                if os.path.exists(f):
+                    bash = f
+                    break
 
-        if bash is None:
-            raise Exception("Cannot find MinGW bash.exe")
-        return [bash, "--login", "-i", tmp_sh_file]
+            if bash is None:
+                raise Exception("Cannot find MinGW bash.exe")
+            return [bash, "--login", "-i", tmp_sh_file]
 
     else:  # Linux
         tmp_sh_file = write_temp_file(commands, ".sh")
@@ -166,7 +168,7 @@ def wrap_bash_commands(commands, wsl=False, env=None):
 
 
 def exec_cmd(cmd):
-    assert os.name == "nt"
+    assert sys.platform == "win32"
     file_name = write_temp_file(cmd, ".cmd")
     args = ["cmd.exe", "/c", file_name]
     subprocess.check_call(args)
@@ -387,7 +389,6 @@ def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=True):
 
 def wrap_args_wt(
     args,
-    wsl=False,
     title=None,
     close_on_exit=True,
     font_size=None,
@@ -443,7 +444,6 @@ def wrap_args_wt(
         profile = {
             "name": title,
             "hidden": False,
-            "commandline": "wsl -d Ubuntu" if wsl else "cmd.exe",
             "closeOnExit": "graceful" if close_on_exit else "never",
             "suppressApplicationTitle": True,
         }
@@ -472,6 +472,28 @@ def wrap_args_wt(
         return ["wt", "-p", title] + args
     else:
         return ["wt"] + args
+
+
+def wrap_args_alacritty(
+    args,
+    title=None,
+):
+    if sys.platform == "win32":
+        out = [
+            r"C:\Program Files\Alacritty\alacritty.exe",
+            # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
+            "-o",
+            "font.size=8",
+            "window.dimensions.columns=120",
+            "window.dimensions.lines=40",
+        ]
+        if title:
+            out += ["--title", title]
+        out += ["-e"] + args
+        return out
+
+    else:
+        return args
 
 
 class Script:
@@ -704,7 +726,7 @@ class Script:
             cwd = None
 
         if ext == ".ps1":
-            if os.name == "nt":
+            if sys.platform == "win32":
                 if self.cfg["template"]:
                     ps_path = write_temp_file(
                         self.render(), slugify(self.name) + ".ps1"
@@ -722,7 +744,7 @@ class Script:
                 ] + args
 
         elif ext == ".ahk":
-            if os.name == "nt":
+            if sys.platform == "win32":
                 # HACK: add python path to env var
                 env["PYTHONPATH"] = os.path.dirname(__file__)
 
@@ -750,7 +772,7 @@ class Script:
                 shell = True
 
         elif ext == ".cmd" or ext == ".bat":
-            if os.name == "nt":
+            if sys.platform == "win32":
                 if self.cfg["template"]:
                     batch_file = write_temp_file(
                         self.render(), slugify(self.name) + ".cmd"
@@ -836,8 +858,13 @@ class Script:
                         os.path.dirname(__file__) + "/../bin/run_python.py"
                     )
                     # TODO: make it more general
-                    if sys.platform == "win32" and self.cfg["wsl"]:
-                        run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
+                    if sys.platform == "win32":
+                        if self.cfg["wsl"]:
+                            run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
+                        else:
+                            # HACK: alacritty does not support spaces between path
+                            run_py = get_short_path_name(run_py)
+
                     args = args_activate + [python_exec, run_py, python_file] + args
                 else:
                     args = args_activate + [python_exec, python_file] + args
@@ -852,7 +879,7 @@ class Script:
             if self.cfg["wsl"]:
                 args = wrap_wsl(args, env=env)
         elif ext == ".vbs":
-            assert os.name == "nt"
+            assert sys.platform == "win32"
 
             script_abs_path = os.path.join(os.getcwd(), script_path)
             args = ["cscript", "//nologo", script_abs_path] + args
@@ -917,7 +944,7 @@ class Script:
                                     "No terminal specified, fallback to default."
                                 )
 
-                            if self.cfg["terminal"] in [
+                            elif self.cfg["terminal"] in [
                                 "wt",
                                 "wsl",
                                 "windowsTerminal",
@@ -930,6 +957,13 @@ class Script:
                                     close_on_exit=close_on_exit,
                                 )
                                 no_wait = True
+
+                            elif self.cfg["terminal"] in ["alacritty"]:
+                                args = wrap_args_alacritty(
+                                    args, title=self.get_console_title()
+                                )
+                                no_wait = True
+
                             elif self.cfg["terminal"] == "conemu":
                                 args = wrap_args_conemu(
                                     args,
@@ -939,6 +973,7 @@ class Script:
                                     always_on_top=True,
                                 )
                                 no_wait = True
+
                             else:
                                 raise Exception(
                                     "Unsupported terminal: %s" % self.cfg["terminal"]
@@ -1207,7 +1242,7 @@ def get_script_default_config():
         "minimized": False,
         "venv": "",
         "closeOnExit": True,
-        "terminal": "wt",
+        "terminal": "alacritty",
         "packages": "",
         "runpy": True,
         "adk": False,

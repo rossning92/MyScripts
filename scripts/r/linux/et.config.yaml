@@ -1,4 +1,3 @@
 closeOnExit: false
 globalHotkey: Win+Alt+E
-terminal: wt
 wsl: true
