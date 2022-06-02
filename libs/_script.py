@@ -997,7 +997,11 @@ class Script:
                         no_wait = True
 
                     elif TERM_TYPE == "kitty":
-                        args = ["kitty", "--title", self.get_console_title(),] + args
+                        args = [
+                            "kitty",
+                            "--title",
+                            self.get_console_title(),
+                        ] + args
                         no_wait = True
 
                 else:
@@ -1117,7 +1121,7 @@ def run_script(
     overwrite_meta=None,
     template=None,
     new_window=False,  # should not start a new window by default
-    single_instance=True,
+    single_instance=False,
     cd=True,
 ):
     start_time = time.time()

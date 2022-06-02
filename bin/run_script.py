@@ -41,7 +41,7 @@ update_env_var_explorer()
 if "cd" not in kwargs:
     kwargs["cd"] = False
 
-setup_logger()
+# setup_logger()
 
 try:
     run_script(

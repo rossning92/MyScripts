@@ -1,6 +1,8 @@
+import argparse
+import os
+
 from _android import logcat
 from _shutil import call2
-import argparse
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -21,6 +23,11 @@ if __name__ == "__main__":
 
     call2("adb wait-for-device")
 
-    regex = args.regex if args.regex else r"{{_REGEX}}"
-    pkg = args.pkg if args.pkg else r"{{_PKG}}"
-    logcat(regex=regex, ignore_duplicates=False, pkg=pkg)
+    regex = args.regex if args.regex else os.environ.get("_REGEX")
+    pkg = args.pkg if args.pkg else os.environ.get("_PKG")
+
+    while True:
+        try:
+            logcat(regex=regex, ignore_duplicates=False, pkg=pkg)
+        except Exception:
+            pass
