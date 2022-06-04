@@ -42,26 +42,27 @@ def codef(
 
 
 @core.api
-def ipython(s, startup=None, font_size=14, **kwargs):
-    out_file = "ipython/%s.mp4" % get_hash(s)
-    if not os.path.exists(out_file):
-        record_ipython(out_file, s, startup=startup, font_size=font_size)
-    return coreapi.clip(out_file, **kwargs)
+def ipython(s, file=None, startup=None, font_size=14, force=False, **kwargs):
+    if file is None:
+        file = "screencap/ipython/%s.mp4" % get_hash(s)
+    if not os.path.exists(file) or force:
+        record_ipython(file, s, startup=startup, font_size=font_size)
+    return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def cmd(s, font_size=14, force=False, file=None, **kwargs):
+def cmd(s, font_size=14, file=None, force=False, **kwargs):
     if file is None:
-        file = "wt_cmd/%s.mp4" % get_hash(s)
+        file = "screencap/cmd/%s.mp4" % get_hash(s)
     if not os.path.exists(file) or force:
         record_wt_cmd(file, s, font_size=font_size, **kwargs)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def node(s, font_size=14, force=False, file=None, sound=False, **kwargs):
+def node(s, font_size=14, file=None, sound=False, force=False, **kwargs):
     if file is None:
-        file = "wt_node/%s.mp4" % get_hash(s)
+        file = "screencap/node/%s.mp4" % get_hash(s)
     if not os.path.exists(file) or force:
         record_wt_node(file, s, font_size=font_size, sound=sound)
     return coreapi.clip(file, **kwargs)

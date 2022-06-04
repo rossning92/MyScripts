@@ -8,7 +8,7 @@ import sys
 
 import yaml
 from _appmanager import get_executable
-from _shutil import format_time, get_time_str, print2, to_valid_file_name
+from _shutil import format_time, get_time_str, keep_awake, print2, to_valid_file_name
 from moviepy.config import change_settings
 
 import codeapi
@@ -242,6 +242,7 @@ if __name__ == "__main__":
         _show_stats(s)
     else:
         coreapi.reset()
+        keep_awake()
 
         if args.preview:
             coreapi.enable_preview()
@@ -250,7 +251,6 @@ if __name__ == "__main__":
             coreapi.set_audio_only()
 
         _parse_text(s, apis=core.apis)
-        coreapi.export_video(
-            out_filename=out_filename,
-            resolution=(1920, 1080),
-        )
+
+        coreapi.export_video(out_filename=out_filename, resolution=(1920, 1080))
+

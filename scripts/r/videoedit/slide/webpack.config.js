@@ -7,6 +7,7 @@ module.exports = ({
   template = "markdown",
   mdFile = "./example.md",
   public = undefined,
+  dev = false,
 }) => {
   const mdFileDir = path.dirname(path.resolve(mdFile));
 
@@ -30,8 +31,9 @@ module.exports = ({
       new HtmlWebpackPlugin({ template: "src/index.html" }),
       new MiniCssExtractPlugin(),
       new webpack.DefinePlugin({
-        TEMPLATE: JSON.stringify(template),
-        MD_FILE: JSON.stringify(mdFile),
+        template: JSON.stringify(template),
+        markdownFile: JSON.stringify(mdFile),
+        dev: JSON.stringify(dev),
       }),
     ],
     devServer: {

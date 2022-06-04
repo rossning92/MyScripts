@@ -21,6 +21,7 @@ const webpackConfig = require("./webpack.config.js")({
   mdFile,
   template,
   public,
+  dev,
 });
 const compiler = webpack(webpackConfig);
 

@@ -1505,4 +1505,25 @@ def pause(msg="continue"):
 def open_url(url):
     import webbrowser
 
-    webbrowser.open(url)
+    CHROME_PATH = [
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        "C:\Program Files\Chrome\Application\chrome.exe",
+    ]
+
+    if sys.platform == "win32":
+        for path in CHROME_PATH:
+            if os.path.isfile(path):
+                start_process([path, "--new-window", url])
+
+    webbrowser.open(url, new=1)
+
+
+def keep_awake():
+    if sys.platform == "win32":
+        ES_CONTINUOUS = 0x80000000
+        ES_SYSTEM_REQUIRED = 0x00000001
+        ES_DISPLAY_REQUIRED = 0x00000002
+        ctypes.windll.kernel32.SetThreadExecutionState(
+            ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
+        )
+

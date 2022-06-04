@@ -477,17 +477,20 @@ def wrap_args_wt(
 
 
 def wrap_args_alacritty(
-    args, title=None,
+    args, title=None, close_on_exit=False,
 ):
     if sys.platform == "win32":
+        # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
         out = [
             "alacritty",
-            # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
             "-o",
             "font.size=8",
             "window.dimensions.columns=120",
             "window.dimensions.lines=40",
         ]
+        if not close_on_exit:
+            out += ["--hold"]
+
         if title:
             out += ["--title", title]
         out += ["-e"] + args
@@ -957,7 +960,9 @@ class Script:
                             "alacritty"
                         ):
                             args = wrap_args_alacritty(
-                                args, title=self.get_console_title()
+                                args,
+                                title=self.get_console_title(),
+                                close_on_exit=close_on_exit,
                             )
                             no_wait = True
 
@@ -1104,19 +1109,15 @@ class Script:
         return variables
 
 
-def find_script(patt, search_dir=None):
+def find_script(patt):
     if os.path.exists(patt):
-        return patt
+        return os.path.abspath(patt)
 
-    if patt.startswith("/"):
-        path = os.path.join(
-            os.path.dirname(__file__), "..", "scripts", patt.lstrip("/")
-        )
-
-    elif search_dir:
-        path = os.path.join(search_dir, patt)
-    else:
-        path = os.path.abspath(patt)
+    script_path = os.path.abspath(
+        os.path.dirname(__file__) + "/../scripts/" + patt.lstrip("/")
+    )
+    if os.path.exists(script_path):
+        return script_path
 
     # Fuzzy search
     for _, script_root_dir in get_script_directories():

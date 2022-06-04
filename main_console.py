@@ -29,8 +29,8 @@ from _shutil import (
     refresh_env_vars,
     setup_logger,
     setup_nodejs,
-    update_env_var_explorer,
     start_process,
+    update_env_var_explorer,
 )
 from _template import render_template_file
 from _term import Menu, init_curses
@@ -276,10 +276,7 @@ def register_global_hotkeys_win(scripts):
 
     hotkey_seq_def = hotkey_seq_def.rstrip(", ")
 
-    cmdline = '%s "%s"' % (
-        sys.executable,
-        os.path.realpath("bin/start_script.py"),
-    )
+    cmdline = '%s "%s"' % (sys.executable, os.path.realpath("bin/start_script.py"),)
 
     render_template_file(
         "GlobalHotkey.ahk",
@@ -325,7 +322,12 @@ class MainWindow(Menu):
 
     def on_main_loop(self):
         # Reload scripts
-        if time.time() - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS:
+        now = time.time()
+        if (
+            now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
+            and now - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS
+        ):
+
             self.set_message("Reloading scripts...")
             script_manager.refresh_all_scripts()
             self.set_message(None)
@@ -464,10 +466,7 @@ def main_loop(quit=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-q",
-        "--quit",
-        action="store_true",
-        help="quit after running a script",
+        "-q", "--quit", action="store_true", help="quit after running a script",
     )
     args = parser.parse_args()
 

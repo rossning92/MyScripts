@@ -175,6 +175,7 @@ class Menu:
         self.stdscr = stdscr
         self.message = None
         self.cancellable = cancellable
+        self.last_key_pressed_timestamp = 0
 
     def item(self, name=None):
         def decorator(func):
@@ -232,46 +233,45 @@ class Menu:
             # Keyboard event
             ch = self.stdscr.getch()
 
-            if ch == -1:  # getch() timeout
-                pass
+            if ch != -1:  # getch() will return -1 when timeout
+                self.last_key_pressed_timestamp = time.time()
+                if self.on_char(ch):
+                    pass
 
-            elif self.on_char(ch):
-                pass
+                elif ch == ord("\n"):
+                    self.on_enter_pressed()
 
-            elif ch == ord("\n"):
-                self.on_enter_pressed()
+                elif ch == curses.KEY_UP:
+                    self.selected_row = max(self.selected_row - 1, 0)
+                    self.on_item_selected()
 
-            elif ch == curses.KEY_UP:
-                self.selected_row = max(self.selected_row - 1, 0)
-                self.on_item_selected()
+                elif ch == curses.KEY_DOWN:
+                    self.selected_row = min(
+                        self.selected_row + 1, len(self.matched_item_indices) - 1
+                    )
+                    self.on_item_selected()
 
-            elif ch == curses.KEY_DOWN:
-                self.selected_row = min(
-                    self.selected_row + 1, len(self.matched_item_indices) - 1
-                )
-                self.on_item_selected()
+                elif ch == curses.KEY_PPAGE:
+                    self.selected_row = max(
+                        self.selected_row - self.get_items_per_page(), 0
+                    )
+                    self.on_item_selected()
 
-            elif ch == curses.KEY_PPAGE:
-                self.selected_row = max(
-                    self.selected_row - self.get_items_per_page(), 0
-                )
-                self.on_item_selected()
+                elif ch == curses.KEY_NPAGE:
+                    self.selected_row = min(
+                        self.selected_row + self.get_items_per_page(),
+                        len(self.matched_item_indices) - 1,
+                    )
+                    self.on_item_selected()
 
-            elif ch == curses.KEY_NPAGE:
-                self.selected_row = min(
-                    self.selected_row + self.get_items_per_page(),
-                    len(self.matched_item_indices) - 1,
-                )
-                self.on_item_selected()
+                elif ch == curses.ascii.ESC:
+                    self.input_.clear()
+                    if self.cancellable:
+                        self.matched_item_indices.clear()
+                        return
 
-            elif ch == curses.ascii.ESC:
-                self.input_.clear()
-                if self.cancellable:
-                    self.matched_item_indices.clear()
-                    return
-
-            elif ch != 0:
-                self.input_.on_char(ch)
+                elif ch != 0:
+                    self.input_.on_char(ch)
 
             if self.closed:
                 return

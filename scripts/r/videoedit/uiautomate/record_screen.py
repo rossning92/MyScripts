@@ -37,7 +37,7 @@ class ScreenRecorder:
     def stop_record(self):
         raise NotImplementedError
 
-    def save_record(self):
+    def save(self, file):
         raise NotImplementedError
 
 
@@ -101,7 +101,7 @@ class CapturaScreenRecorder(ScreenRecorder):
         print2("Recording stopped.", color="green")
         self.captura_ps = None
 
-    def save_record(self, file):
+    def save(self, file):
         # Save file
         if os.path.exists(file):
             os.remove(file)
@@ -126,7 +126,7 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
         pyautogui.hotkey("alt", "f9")
         time.sleep(0.5)
 
-    def save_record(self, file):
+    def save(self, file):
         # Get recorded video files
         files = glob.glob(
             os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"), recursive=True,
@@ -157,8 +157,78 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
         move_file(in_file, file)
 
 
-recorder = CapturaScreenRecorder()
-# recorder = ShadowPlayScreenRecorder()
+class FfmpegScreenRecorder(ScreenRecorder):
+    def __init__(self):
+        super().__init__()
+
+        self.tmp_file = os.path.join(gettempdir(), "screen-record.mp4")
+        self.proc = None
+        self.loudnorm = False
+
+    def start_record(self):
+        if self.proc is not None:
+            return
+
+        args = [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "gdigrab",
+            "-framerate",
+            "60",
+        ]
+
+        if self.rect is not None:
+            args += [
+                "-offset_x",
+                f"{self.rect[0]}",
+                "-offset_y",
+                f"{self.rect[1]}",
+                "-video_size",
+                f"{self.rect[2]}x{self.rect[3]}",
+            ]
+
+        args += [
+            "-draw_mouse",
+            "1",
+            "-i",
+            "desktop",
+            "-c:v",
+            "libx264",
+            "-r",
+            "60",
+            "-preset",
+            "ultrafast",
+            "-pix_fmt",
+            "yuv420p",
+            "-y",
+            self.tmp_file,
+        ]
+
+        self.proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        print2("Recording started.", color="green")
+
+    def stop_record(self):
+        if self.proc is None:
+            return
+
+        self.proc.stdin.write(b"q")
+        self.proc.stdin.close()
+        self.proc.wait()
+        print2("Recording stopped.", color="green")
+        self.proc = None
+
+    def save(self, file):
+        # Save file
+        if os.path.exists(file):
+            os.remove(file)
+
+        move_file(self.tmp_file, file)
+
+
+recorder = FfmpegScreenRecorder()
 
 _cur_file = None
 
@@ -174,7 +244,7 @@ def start_record(file, rect=(0, 0, 1920, 1080)):
 def stop_record():
     time.sleep(2)
     recorder.stop_record()
-    recorder.save_record(_cur_file)
+    recorder.save(_cur_file)
 
 
 def wait_multiple_keys(keys):
@@ -201,12 +271,16 @@ def wait_multiple_keys(keys):
 
 
 def prompt_record_file_name():
-    last_file_name = get_variable("LAST_SCREENCAP_FILE_NAME")
-    default_file_name = get_next_file_name(last_file_name)
-    name = input("input file name [%s]: " % str(default_file_name))
+    last_file_name = get_variable("LAST_SCREEN_RECORD_FILE_NAME")
+    if last_file_name:
+        default_file_name = get_next_file_name(last_file_name)
+    else:
+        default_file_name = None
+
+    name = input("Input file name [%s]: " % str(default_file_name))
     if not name:
         name = default_file_name
-    set_variable("LAST_SCREENCAP_FILE_NAME", name)
+    set_variable("LAST_SCREEN_RECORD_FILE_NAME", name)
     file = os.path.join(out_dir, "%s.mp4" % slugify(name))
     return file
 
@@ -233,7 +307,6 @@ if __name__ == "__main__":
 
     while True:
         recorder.start_record()
-        set_term_title("[REC]")
 
         pressed = wait_multiple_keys(["f6", "f7"])
         if pressed == "f6":
@@ -248,7 +321,7 @@ if __name__ == "__main__":
 
     activate_cur_terminal()
     file = prompt_record_file_name()
-    recorder.save_record(file)
+    recorder.save(file)
 
     # Open file
     call_echo(["mpv", file])

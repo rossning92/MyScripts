@@ -13,16 +13,9 @@ import moviepy.video.fx.all as vfx
 import numpy as np
 from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
-from moviepy.editor import (
-    AudioFileClip,
-    ColorClip,
-    CompositeAudioClip,
-    CompositeVideoClip,
-    ImageClip,
-    ImageSequenceClip,
-    VideoFileClip,
-    concatenate_videoclips,
-)
+from moviepy.editor import (AudioFileClip, ColorClip, CompositeAudioClip,
+                            CompositeVideoClip, ImageClip, ImageSequenceClip,
+                            VideoFileClip, concatenate_videoclips)
 from open_with.open_with import open_with
 from PIL import Image
 
@@ -770,6 +763,7 @@ def _add_video_clip(
     scale=(1.0, 1.0),
     width=None,
     height=None,
+    **_,
 ):
     subclip2: Optional[Tuple[float, ...]] = None
     if subclip is not None:

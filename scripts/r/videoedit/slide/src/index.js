@@ -3,17 +3,17 @@ import { updateMermaid } from "./utils/diagram";
 const marked = require("marked");
 
 require(`./codemirror.css`);
-require(`./${TEMPLATE}.css`);
+require(`./${template}.css`);
 
 // Parse Yaml front matter
 const { markdown, matter } = parseYamlFrontMatter(
-  require(MD_FILE).default.replace(/\r\n/g, "\n")
+  require(markdownFile).default.replace(/\r\n/g, "\n")
 );
 
 handleSeparator();
 
 // HACK
-if (TEMPLATE == "title") {
+if (template == "title") {
   document.body.innerHTML = `<div class="container"><div class="inner">${marked(
     markdown
   )}</div></div>`;
@@ -69,4 +69,19 @@ function parseYamlFrontMatter(markdown) {
     markdown: markdown.replace(yamlFrontMatter, ""),
     matter,
   };
+}
+
+function scaleBasedOnWindow(elm) {
+  const scale =
+    1 /
+    Math.max(
+      elm.clientWidth / window.innerWidth,
+      elm.clientHeight / window.innerHeight
+    );
+  elm.style.transformOrigin = "0 0";
+  elm.style.transform = `scale(${scale})`;
+}
+
+if (dev) {
+  scaleBasedOnWindow(document.querySelector(".container"));
 }

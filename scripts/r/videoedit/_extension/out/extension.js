@@ -20,10 +20,7 @@ String.prototype.count = function (substr) {
     return (str.match(new RegExp(substr.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g")) || []).length;
 };
 function openInBrowser(url) {
-    cp.spawn("C:/Program Files (x86)/Chromium/Application/chrome.exe", [
-        "--user-data-dir=" + path.join(os.homedir(), "ChromeDataForDev"),
-        url,
-    ]);
+    cp.spawn("run_script", ["r/web/open_in_browser_dev.py", url]);
 }
 async function openFile(filePath) {
     if (fs.existsSync(filePath)) {
@@ -49,7 +46,7 @@ async function openFile(filePath) {
 function getAbsPath(file) {
     const activeDir = getActiveDir();
     if (!activeDir) {
-        return undefined;
+        throw new Error("No active directory");
     }
     return path.resolve(path.join(activeDir, file));
 }
@@ -73,9 +70,6 @@ function getFileUnderCursor() {
     }
     const file = found[1];
     const absPath = getAbsPath(file);
-    if (!absPath) {
-        return;
-    }
     if (!fs.existsSync(absPath)) {
         vscode.window.showErrorMessage(`File does not exist: ${file}`);
         return;
@@ -133,9 +127,7 @@ async function openFileUnderCursor() {
         const file = getFileUnderCursor();
         if (file) {
             const absPath = getAbsPath(file);
-            if (absPath) {
-                openFile(absPath);
-            }
+            openFile(absPath);
         }
     }
 }
@@ -664,45 +656,40 @@ function replaceWholeDocument(oldText, newText) {
         editBuilder.replace(new vscode.Range(0, 0, editor.document.lineCount, 0), text.replaceAll(oldText, newText));
     });
 }
+async function renameFile() {
+    const file = getFileUnderCursor();
+    if (!file) {
+        return;
+    }
+    // Get the range of file base name without extension.
+    const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
+    const valueSelection = match
+        ? [match.index, match.index + match[0].length]
+        : undefined;
+    const newFile = await vscode.window.showInputBox({
+        value: file,
+        valueSelection,
+    });
+    if (!newFile) {
+        return;
+    }
+    const absFile = getAbsPath(file);
+    const newAbsFile = getAbsPath(newFile);
+    if (fs.existsSync(newAbsFile)) {
+        vscode.window.showErrorMessage("New file already exists.");
+        return;
+    }
+    try {
+        fs.renameSync(absFile, newAbsFile);
+    }
+    catch (e) {
+        vscode.window.showErrorMessage("Renaming failed.");
+        return;
+    }
+    replaceWholeDocument(file, newFile);
+}
 function registerRenameFileCommand(context) {
-    context.subscriptions.push(vscode.commands.registerCommand("videoEdit.renameFile", async () => {
-        const file = getFileUnderCursor();
-        if (!file) {
-            return;
-        }
-        // Get the range of file base name without extension.
-        const match = /(?<=\/|^)[^./]+(?=\.[^./]+$)/g.exec(file);
-        const valueSelection = match
-            ? [match.index, match.index + match[0].length]
-            : undefined;
-        const newFile = await vscode.window.showInputBox({
-            value: file,
-            valueSelection,
-        });
-        if (!newFile) {
-            return;
-        }
-        const absFile = getAbsPath(file);
-        if (!absFile) {
-            return;
-        }
-        const newAbsFile = getAbsPath(newFile);
-        if (!newAbsFile) {
-            return;
-        }
-        if (fs.existsSync(newAbsFile)) {
-            vscode.window.showErrorMessage("New file already exists.");
-            return;
-        }
-        try {
-            fs.renameSync(absFile, newAbsFile);
-        }
-        catch (e) {
-            vscode.window.showErrorMessage("Renaming failed.");
-            return;
-        }
-        replaceWholeDocument(file, newFile);
-    }));
+    context.subscriptions.push(vscode.commands.registerCommand("videoEdit.renameFile", renameFile));
 }
 async function createNewDocument({ dir, func, fileNamePlaceHolder = "a space separated name", initContent = "", extension = "", extraParams = "", }) {
     const activeDir = getActiveDir();

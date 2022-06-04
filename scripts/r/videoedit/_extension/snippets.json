@@ -37,7 +37,24 @@
   },
   "cmd": {
     "prefix": "cmd",
-    "body": ["{{ cmd('''echo hello{sleep 1.5}\\n''', startup=r'cd %USERPROFILE%\\Projects', font_size=18, size=(1920, 1080), force=0) }}"]
+    "body": [
+      "{{ cmd('''echo hello",
+      "{sleep 1}echo world",
+      "{sleep 1}''', startup=r'cd %USERPROFILE%', font_size=18, size=(1920, 1080), force=0) }}"
+    ]
+  },
+  "ipython": {
+    "prefix": "ipython",
+    "body": ["{{ ipython('0.1 + 0.2', font_size=18) }}"]
+  },
+  "node": {
+    "prefix": "node",
+    "body": [
+      "{{ node('''Math.min()",
+      "{sleep 0.5}Math.max()",
+      "{sleep 0.5}Math.min() < Math.max()",
+      "{sleep 2}''', force=0, font_size=18) }}"
+    ]
   },
   "TODO: record": {
     "prefix": "todo_record",
