@@ -7,6 +7,7 @@ import os
 import pathlib
 import platform
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -19,6 +20,7 @@ from _appmanager import get_executable
 from _editor import open_in_vscode
 from _filelock import FileLock
 from _shutil import (
+    CONEMU_INSTALL_DIR,
     activate_window_by_name,
     call_echo,
     convert_to_unix_path,
@@ -398,7 +400,7 @@ def wrap_args_wt(
     **kwargs,
 ):
     if sys.platform != "win32":
-        raise Exception("the function can only be called on windows platform.")
+        raise Exception("OS not supported.")
 
     # Escape simicolons used in wt command.
     args = [x.replace(";", r"\;") for x in args]
@@ -475,12 +477,11 @@ def wrap_args_wt(
 
 
 def wrap_args_alacritty(
-    args,
-    title=None,
+    args, title=None,
 ):
     if sys.platform == "win32":
         out = [
-            r"C:\Program Files\Alacritty\alacritty.exe",
+            "alacritty",
             # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
             "-o",
             "font.size=8",
@@ -937,50 +938,42 @@ class Script:
                 # TODO: extra console window will be created when runAsAdmin & newWindow
                 if sys.platform == "win32":
                     if not self.cfg["runAsAdmin"]:
-                        try:
-                            # Open in specified terminal (e.g. Windows Terminal)
-                            if self.cfg["terminal"] is None:
-                                raise Exception(
-                                    "No terminal specified, fallback to default."
-                                )
+                        # Open in specified terminal (e.g. Windows Terminal)
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
+                            args = wrap_args_wt(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.cfg["wsl"],
+                                close_on_exit=close_on_exit,
+                            )
+                            no_wait = True
 
-                            elif self.cfg["terminal"] in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]:
-                                args = wrap_args_wt(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    wsl=self.cfg["wsl"],
-                                    close_on_exit=close_on_exit,
-                                )
-                                no_wait = True
+                        elif self.cfg["terminal"] in ["alacritty"] and shutil.which(
+                            "alacritty"
+                        ):
+                            args = wrap_args_alacritty(
+                                args, title=self.get_console_title()
+                            )
+                            no_wait = True
 
-                            elif self.cfg["terminal"] in ["alacritty"]:
-                                args = wrap_args_alacritty(
-                                    args, title=self.get_console_title()
-                                )
-                                no_wait = True
+                        elif self.cfg["terminal"] == "conemu" and os.path.isdir(
+                            CONEMU_INSTALL_DIR
+                        ):
+                            args = wrap_args_conemu(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.cfg["wsl"],
+                                always_on_top=True,
+                            )
+                            no_wait = True
 
-                            elif self.cfg["terminal"] == "conemu":
-                                args = wrap_args_conemu(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    wsl=self.cfg["wsl"],
-                                    always_on_top=True,
-                                )
-                                no_wait = True
-
-                            else:
-                                raise Exception(
-                                    "Unsupported terminal: %s" % self.cfg["terminal"]
-                                )
-
-                        except Exception as ex:
-                            logging.warn("Failed to open in terminal: %s" % ex)
+                        else:
                             args = wrap_args_cmd(
                                 args,
                                 cwd=cwd,
@@ -1032,11 +1025,7 @@ class Script:
                         no_wait = True
 
                     elif TERM_TYPE == "kitty":
-                        args = [
-                            "kitty",
-                            "--title",
-                            self.get_console_title(),
-                        ] + args
+                        args = ["kitty", "--title", self.get_console_title(),] + args
                         no_wait = True
 
                 else:

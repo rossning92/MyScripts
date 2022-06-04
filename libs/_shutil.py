@@ -24,6 +24,7 @@ from typing import List
 import yaml
 
 logger = logging.getLogger(__name__)
+CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 
 
 def activate_window_by_name(name):
@@ -152,8 +153,6 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
 
 def wrap_args_conemu(args, title=None, cwd=None, wsl=False, always_on_top=False):
     assert sys.platform == "win32"
-
-    CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 
     # Disable update check
     PREFIX = r"reg add HKCU\Software\ConEmu\.Vanilla"
