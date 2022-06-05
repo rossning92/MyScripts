@@ -1,12 +1,18 @@
-import yaml
+import glob
+import os
 import shutil
-from _shutil import run_elevated
 import subprocess
 import sys
-import os
-import glob
 
-# from _script import run_script
+import yaml
+
+from _shutil import call_echo, run_elevated
+
+
+def install_alacritty_linux():
+    call_echo("sudo add-apt-repository ppa:mmstick76/alacritty -y")
+    call_echo("sudo apt update")
+    call_echo("sudo apt install -y alacritty")
 
 
 def choco_install(name):
@@ -28,16 +34,16 @@ def choco_install(name):
         run_elevated(["choco", "install", "--source=chocolatey", name, "-y"])
 
 
-def get_executable(app_name):
+def get_executable(name):
     with open(os.path.join(os.path.dirname(__file__), "app_list.yaml"), "r") as f:
         app_list = yaml.load(f.read(), Loader=yaml.FullLoader)
 
-    matched_apps = [k for k, v in app_list.items() if app_name.lower() == k.lower()]
+    matched_apps = [k for k, v in app_list.items() if name.lower() == k.lower()]
 
     app = {}
     if len(matched_apps) > 0:
-        app_name = matched_apps[0]
-        app = app_list[app_name]
+        name = matched_apps[0]
+        app = app_list[name]
 
     def find_executable():
         if "executable" in app:
@@ -50,17 +56,17 @@ def get_executable(app_name):
                 if shutil.which(exec_path):
                     return exec_path
         else:
-            if shutil.which(app_name):
-                return app_name
+            if shutil.which(name):
+                return name
 
         return None
 
     # Install app if not exists
     executable = find_executable()
     if executable is None:
-        print("WARN: %s not found, installing..." % app_name)
+        print("WARN: %s not found, installing..." % name)
         if sys.platform == "win32":
-            pkg_name = app_name
+            pkg_name = name
             if "choco" in app:
                 pkg_name = app["choco"]
 
@@ -69,14 +75,7 @@ def get_executable(app_name):
             executable = find_executable()
 
         elif sys.platform == "linux":
-            # if "linux_install" in app:
-            #     run_script(app["linux_install"])
-            #     executable = find_executable()
-            pass
+            if "alacritty" == name:
+                install_alacritty_linux()
 
     return executable
-
-
-if __name__ == "__main__":
-    # For testing
-    get_executable("7z")

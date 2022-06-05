@@ -111,8 +111,6 @@ def install_package(name):
 
 
 if __name__ == "__main__":
-    # run_script("add_default_source")
-
     pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
         set([app for cate in PKGS.values() for app in cate])
     )

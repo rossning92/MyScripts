@@ -7,6 +7,7 @@ from _shutil import (
     call2,
     call_echo,
     cd,
+    confirm,
     fnull,
     get_output,
     get_time_str,
@@ -14,8 +15,6 @@ from _shutil import (
     menu_loop,
     print2,
     shell_open,
-    confirm,
-    get_output,
 )
 
 backup_dir = r"{{GIT_REPO_BACKUP_DIR}}"
@@ -30,11 +29,11 @@ if backup_dir:
 @menu_item(key="c")
 def commit(dry_run=False, amend=False):
     if is_working_tree_clean():
-        print2("(Working directory clean) Changed files in HEAD:", color="black")
+        print2("(Working directory clean) Changed files in HEAD:", color="blue")
         for line in get_output(
             ["git", "--no-pager", "diff", "--name-only", "HEAD", "HEAD~1"], shell=False
         ).splitlines():
-            print2("  " + line, color="black")
+            print2("  " + line, color="blue")
         return
 
     call_echo("git status --short")

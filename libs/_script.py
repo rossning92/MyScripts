@@ -477,27 +477,25 @@ def wrap_args_wt(
 
 
 def wrap_args_alacritty(
-    args, title=None, close_on_exit=False,
+    args,
+    title=None,
+    close_on_exit=False,
 ):
-    if sys.platform == "win32":
-        # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
-        out = [
-            "alacritty",
-            "-o",
-            "font.size=8",
-            "window.dimensions.columns=120",
-            "window.dimensions.lines=40",
-        ]
-        if not close_on_exit:
-            out += ["--hold"]
+    # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
+    out = [
+        "alacritty",
+        "-o",
+        "font.size=8",
+        "window.dimensions.columns=120",
+        "window.dimensions.lines=40",
+    ]
+    if not close_on_exit:
+        out += ["--hold"]
 
-        if title:
-            out += ["--title", title]
-        out += ["-e"] + args
-        return out
-
-    else:
-        return args
+    if title:
+        out += ["--title", title]
+    out += ["-e"] + args
+    return out
 
 
 class Script:
@@ -995,8 +993,8 @@ class Script:
                 elif sys.platform == "linux":
                     # args = ["tmux", "split-window"] + args
 
-                    TERM_TYPE = "kitty"
-                    if TERM_TYPE == "gnome":
+                    TERMINAL = "alacritty"
+                    if TERMINAL == "gnome":
                         args = [
                             "gnome-terminal",
                             "--",
@@ -1006,7 +1004,7 @@ class Script:
                             % _args_to_str(args, single_quote=True),
                         ]
 
-                    elif TERM_TYPE == "xterm":
+                    elif TERMINAL == "xterm":
                         args = [
                             "xterm",
                             "-xrm",
@@ -1018,7 +1016,7 @@ class Script:
                         ]
                         no_wait = True
 
-                    elif TERM_TYPE == "xfce":
+                    elif TERMINAL == "xfce":
                         args = [
                             "xfce4-terminal",
                             "-T",
@@ -1029,9 +1027,21 @@ class Script:
                         ]
                         no_wait = True
 
-                    elif TERM_TYPE == "kitty":
-                        args = ["kitty", "--title", self.get_console_title(),] + args
+                    elif TERMINAL == "kitty":
+                        args = [
+                            "kitty",
+                            "--title",
+                            self.get_console_title(),
+                        ] + args
                         no_wait = True
+
+                    elif TERMINAL == "alacritty":
+                        get_executable("alacritty")
+                        args = wrap_args_alacritty(
+                            args,
+                            title=self.get_console_title(),
+                            close_on_exit=close_on_exit,
+                        )
 
                 else:
                     logging.warn(

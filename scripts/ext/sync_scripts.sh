@@ -19,26 +19,38 @@ git config credential.helper store
 git status --short
 status=$(git status --short)
 if [[ ! -z "$status" ]]; then
-    echo "Press y to commit..."
+    if [[ -n "$AMEND" ]]; then
+        echo "Press y to amend (DANGEROUS!)"
+    else
+        echo "Press y to commit..."
+    fi
     read -n1 ans
     if [[ "$ans" == "y" ]]; then
         git add -A
         git restore --staged scripts/r/videoedit/movy
-        git commit -m 'commit with no message.'
+        if [[ -n "$AMEND" ]]; then
+            git commit --amend --no-edit
+        else
+            git commit -m 'commit with no message.'
+        fi
     else
         exit 0
     fi
 fi
 
-git pull --rebase
-
-# Update submodules
-# git pull --recurse-submodules || true
-if (cd scripts/r/videoedit/movy && git diff --quiet); then
-    echo "Update submodule movy..."
-    git submodule update --recursive --remote || true
+if [[ -n "$AMEND" ]]; then
+    git push --force
 else
-    echo "(Skip updating submodule movy - working tree is dirty.)"
-fi
+    git pull --rebase
 
-git push
+    # Update submodules
+    # git pull --recurse-submodules || true
+    if (cd scripts/r/videoedit/movy && git diff --quiet); then
+        echo "Update submodule movy..."
+        git submodule update --recursive --remote || true
+    else
+        echo "(Skip updating submodule movy - working tree is dirty.)"
+    fi
+
+    git push
+fi
