@@ -494,6 +494,14 @@ def wrap_args_alacritty(
 
     if title:
         out += ["--title", title]
+
+    # HACK: alacritty handles spaces in a weird way
+    if sys.platform == "win32":
+        args = [
+            get_short_path_name(x) if i == 0 else x.replace(" ", '" "')
+            for i, x in enumerate(args)
+        ]
+
     out += ["-e"] + args
     return out
 
@@ -863,9 +871,6 @@ class Script:
                     if sys.platform == "win32":
                         if self.cfg["wsl"]:
                             run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
-                        else:
-                            # HACK: alacritty does not support spaces between path
-                            run_py = get_short_path_name(run_py)
 
                     args = args_activate + [python_exec, run_py, python_file] + args
                 else:
@@ -954,7 +959,7 @@ class Script:
                             )
                             no_wait = True
 
-                        elif self.cfg["terminal"] in ["alacritty"] and shutil.which(
+                        elif self.cfg["terminal"] == "alacritty" and shutil.which(
                             "alacritty"
                         ):
                             args = wrap_args_alacritty(
