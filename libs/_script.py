@@ -497,11 +497,7 @@ def wrap_args_alacritty(
 
     # HACK: alacritty handles spaces in a weird way
     if sys.platform == "win32":
-        args = [
-            get_short_path_name(x) if i == 0 else x.replace(" ", '" "')
-            for i, x in enumerate(args)
-        ]
-
+        args = ['"' + x + '"' if " " in x else x for x in args]
     out += ["-e"] + args
     return out
 
