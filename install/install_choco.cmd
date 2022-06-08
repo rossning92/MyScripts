@@ -1,1 +1,3 @@
-@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+@echo off
+where choco >nul
+if %errorlevel% neq 0 powershell Start-Process powershell -verb runAs -wait -ArgumentList `-NoProfile,`-InputFormat,None,`-ExecutionPolicy,Bypass,`-Command,iex` `(`(New-Object` System.Net.WebClient`).DownloadString`(`'https://chocolatey.org/install.ps1`'`)`)

@@ -33,6 +33,7 @@ EOF
 mkdir -p ~/.screen
 export SCREENDIR=$HOME/.screen
 
+chmod 700 ~/.screen # workaround for WSL
 screen -r ssh_session -X quit || true
 screen -dmS ssh_session bash
 screen -r ssh_session -X stuff "expect /tmp/et.sh\n"

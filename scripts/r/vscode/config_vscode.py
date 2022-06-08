@@ -65,7 +65,7 @@ def install_extensions(data_dir=None):
     for extension in extensions:
         call_echo(
             get_vscode_cmdline(data_dir=data_dir)
-            + ["--install-extension", "%s" % extension]
+            + ["--install-extension", "%s" % extension], shell=True
         )
 
 
