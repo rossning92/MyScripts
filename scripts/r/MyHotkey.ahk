@@ -59,7 +59,7 @@ return
 return
 #If
 
-#If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_exe vncviewer.exe") and not WinActive("ahk_exe League of Legends.exe")
+#If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_class vwr::CDesktopWin") and not WinActive("ahk_exe League of Legends.exe")
 
 #LButton::WindowMouseDragMove()
 
@@ -244,7 +244,7 @@ return
 
 #If
 
-#If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_exe vncviewer.exe")
+#If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_class vwr::CDesktopWin")
 $XButton2::
 ToggleVNC()
 return
@@ -406,7 +406,7 @@ SetWindowPos3(wintitle, X := "", Y := "", W := "", H := "") {
 
 ToggleVNC()
 {
-    VNC_VIEWER := "ahk_exe vncviewer.exe"
+    VNC_VIEWER := "ahk_class vwr::CDesktopWin"
 
     if WinActive("ahk_exe tvnviewer.exe") {
         WinMinimize, ahk_exe tvnviewer.exe
