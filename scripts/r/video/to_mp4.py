@@ -4,7 +4,6 @@ from _shutil import get_files, mkdir
 from _video import ffmpeg, hstack_videos
 from open_with.open_with import open_with
 
-
 if __name__ == "__main__":
     files = get_files(cd=True)
 
@@ -86,5 +85,5 @@ if __name__ == "__main__":
                 fps=int(os.environ["_FPS"]) if "_FPS" in os.environ else None,
             )
 
-        if len(files) == 1:
+        if not os.environ.get("_NO_OPEN") and len(files) == 1:
             open_with(out_file)

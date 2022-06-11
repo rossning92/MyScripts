@@ -262,6 +262,12 @@ def get_apk_path(pkg):
 def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
     if out_dir is not None:
         os.makedirs(out_dir, exist_ok=True)
+    else:
+        out_dir = os.getcwd()
+
+    if backup_obb:
+        obb_dir = os.path.join(out_dir, "obb")
+        os.makedirs(obb_dir, exist_ok=True)
 
     # Get apk path
     # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
@@ -286,7 +292,7 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
 
     if backup_obb:
         logging.info("Backup obb...")
-        subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=out_dir)
+        subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=obb_dir)
 
 
 def adb_tar(d, out_tar):
@@ -622,10 +628,13 @@ def adb_install2(file):
         adb_shell2(f"restorecon -R /data/data/{pkg}", root=True)
 
     # Push obb file
-    obb_folder = os.path.splitext(file)[0]
-    if os.path.isdir(obb_folder):
+    file = os.path.abspath(file)
+    obb_dir = os.path.join(
+        os.path.dirname(file), "obb", os.path.splitext(os.path.basename(file))[0]
+    )
+    if os.path.isdir(obb_dir):
         logger.info("Pushing obb...")
-        call2(f'adb push "{obb_folder}" /sdcard/android/obb')
+        call2(["adb", "push", obb_dir, "/sdcard/android/obb"])
 
 
 def sample_proc_stat():
