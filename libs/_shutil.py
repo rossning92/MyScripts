@@ -977,13 +977,15 @@ def start_process(args, shell=False):
     if sys.platform == "linux":
         start_new_session = True
 
-    subprocess.Popen(
-        args,
-        shell=shell,
-        close_fds=True,
-        creationflags=creationflags,
-        start_new_session=start_new_session,
-    )
+    with open(os.devnull) as nul:
+        subprocess.Popen(
+            args,
+            shell=shell,
+            creationflags=creationflags,
+            start_new_session=start_new_session,
+            stderr=nul,
+            stdout=nul,
+        )
 
 
 def setup_nodejs(install=True):

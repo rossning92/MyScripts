@@ -25,5 +25,9 @@ if [ "$(uname)" == "Linux" ]; then
     fi
 fi
 
+touch ~/.sxhkdrc
+killall sxhkd >/dev/null 2>&1 || true
+setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
+
 pip3 install -r requirement.txt
 python3 main_console.py

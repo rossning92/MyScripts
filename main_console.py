@@ -241,8 +241,8 @@ def register_global_hotkeys_linux(scripts):
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
-    subprocess.call(["killall", "sxhkd"])
-    start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
+    subprocess.call(["pkill", "-USR1", "sxhkd"])
+    # start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
 
 
 def register_global_hotkeys_win(scripts):
@@ -276,7 +276,10 @@ def register_global_hotkeys_win(scripts):
 
     hotkey_seq_def = hotkey_seq_def.rstrip(", ")
 
-    cmdline = '%s "%s"' % (sys.executable, os.path.realpath("bin/start_script.py"),)
+    cmdline = '%s "%s"' % (
+        sys.executable,
+        os.path.realpath("bin/start_script.py"),
+    )
 
     render_template_file(
         "GlobalHotkey.ahk",
@@ -466,7 +469,10 @@ def main_loop(quit=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-q", "--quit", action="store_true", help="quit after running a script",
+        "-q",
+        "--quit",
+        action="store_true",
+        help="quit after running a script",
     )
     args = parser.parse_args()
 
