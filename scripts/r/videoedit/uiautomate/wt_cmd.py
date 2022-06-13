@@ -1,4 +1,5 @@
 import os
+import time
 
 from _shutil import shell_open
 
@@ -29,6 +30,7 @@ def record_wt_cmd(
     start_record(file, (0, 0, size[0], size[1]))
 
     run_commands(cmds)
+    time.sleep(5)
 
     stop_record()
 

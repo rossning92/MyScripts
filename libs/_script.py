@@ -477,18 +477,28 @@ def wrap_args_wt(
 
 
 def wrap_args_alacritty(
-    args,
-    title=None,
-    close_on_exit=False,
+    args, title=None, close_on_exit=False, font_size=8, font=None,
 ):
     # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
+    if sys.platform != "windows":
+        config_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
+    else:
+        config_path = os.path.expanduser(".config/alacritty/alacritty.yml")
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__), "..", "resources", "alacritty.yml"),
+        config_path,
+    )
+
     out = [
         "alacritty",
         "-o",
-        "font.size=8",
-        "window.dimensions.columns=120",
-        "window.dimensions.lines=40",
+        f"font.size={font_size}",
     ]
+
+    if font is not None:
+        out += [f"font.normal.family={font}"]
+
     if not close_on_exit:
         out += ["--hold"]
 
@@ -1029,11 +1039,7 @@ class Script:
                         no_wait = True
 
                     elif TERMINAL == "kitty":
-                        args = [
-                            "kitty",
-                            "--title",
-                            self.get_console_title(),
-                        ] + args
+                        args = ["kitty", "--title", self.get_console_title(),] + args
                         no_wait = True
 
                     elif TERMINAL == "alacritty":

@@ -164,10 +164,10 @@ def typing(s, sound=False):
             pyautogui.write(ch)
             time.sleep(0.1)
         elif ch == " ":
-            time.sleep(random.uniform(0.05, 0.1))
+            time.sleep(max(0, random.gauss(0.3, 0.15)))
             pyautogui.write(" ")
         else:
-            time.sleep(random.uniform(0.02, 0.04))
+            time.sleep(max(0, random.gauss(0.05, 0.05)))
             if sound:
                 _sound.play()
             pyautogui.write(ch)
