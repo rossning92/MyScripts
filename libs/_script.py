@@ -951,11 +951,15 @@ class Script:
                 if sys.platform == "win32":
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,

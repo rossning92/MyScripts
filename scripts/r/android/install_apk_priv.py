@@ -1,7 +1,7 @@
 import os
-from _shutil import call2, get_files
-import os
+
 from _android import adb_shell
+from _shutil import call2, get_files
 
 
 def adb_install_priv_app(apk):
