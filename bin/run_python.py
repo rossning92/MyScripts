@@ -1,10 +1,10 @@
 import os
+import re
 import runpy
-import sys
 import subprocess
+import sys
 from importlib import import_module
 from importlib.abc import MetaPathFinder
-
 
 PYTHON_MODULE_LIST = {
     "cv2": "opencv-python",
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         module_name = (
             os.path.basename(module_dir)
             + "."
-            + os.path.basename(module_file).rstrip(".py")
+            + re.sub("\\.py$", "", os.path.basename(module_file))
         )
 
         # Run module

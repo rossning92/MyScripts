@@ -1,12 +1,12 @@
 import argparse
 import glob
+import logging
 import os
 import subprocess
 import sys
 import time
 from tempfile import gettempdir
 
-import keyboard
 import pyautogui
 from _script import get_variable, set_variable
 from _shutil import (
@@ -14,16 +14,14 @@ from _shutil import (
     get_next_file_name,
     get_temp_file_name,
     move_file,
-    print2,
     slugify,
+    wait_for_key,
 )
-from _term import activate_cur_terminal, minimize_cur_terminal, set_term_title
+from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-import threading
-from functools import partial
 
 
 class ScreenRecorder:
@@ -86,7 +84,7 @@ class CapturaScreenRecorder(ScreenRecorder):
         for line in self.captura_ps.stdout:
             line = line.decode(errors="ignore")
             if "Press p to pause or resume" in line:
-                print2("Recording started.", color="green")
+                print("Recording started.")
                 break
 
         time.sleep(0.2)
@@ -98,7 +96,7 @@ class CapturaScreenRecorder(ScreenRecorder):
         self.captura_ps.stdin.write(b"q")
         self.captura_ps.stdin.close()
         self.captura_ps.wait()
-        print2("Recording stopped.", color="green")
+        print("Recording stopped.")
         self.captura_ps = None
 
     def save(self, file):
@@ -157,7 +155,7 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
         move_file(in_file, file)
 
 
-class FfmpegScreenRecorder(ScreenRecorder):
+class FFmpegScreenRecorder(ScreenRecorder):
     def __init__(self):
         super().__init__()
 
@@ -166,6 +164,8 @@ class FfmpegScreenRecorder(ScreenRecorder):
         self.loudnorm = False
 
     def start_record(self):
+        logging.debug("FFmpegScreenRecorder.start_record()")
+
         if self.proc is not None:
             return
 
@@ -208,16 +208,17 @@ class FfmpegScreenRecorder(ScreenRecorder):
         ]
 
         self.proc = subprocess.Popen(args, stdin=subprocess.PIPE)
-        print2("Recording started.", color="green")
+        print("Recording started.")
 
     def stop_record(self):
+        logging.debug("FFmpegScreenRecorder.stop_record()")
         if self.proc is None:
             return
 
         self.proc.stdin.write(b"q")
         self.proc.stdin.close()
         self.proc.wait()
-        print2("Recording stopped.", color="green")
+        print("Recording stopped.")
         self.proc = None
 
     def save(self, file):
@@ -228,7 +229,7 @@ class FfmpegScreenRecorder(ScreenRecorder):
         move_file(self.tmp_file, file)
 
 
-recorder = FfmpegScreenRecorder()
+recorder = FFmpegScreenRecorder()
 
 _cur_file = None
 
@@ -242,32 +243,8 @@ def start_record(file, rect=(0, 0, 1920, 1080)):
 
 
 def stop_record():
-    time.sleep(2)
     recorder.stop_record()
     recorder.save(_cur_file)
-
-
-def wait_multiple_keys(keys):
-    lock = threading.Event()
-    handlers = []
-
-    pressed = None
-
-    def key_pressed(key):
-        nonlocal pressed
-        pressed = key
-        lock.set()
-
-    for key in keys:
-        handler = keyboard.add_hotkey(key, partial(key_pressed, key), suppress=True)
-        handlers.append(handler)
-
-    lock.wait()
-
-    for handler in handlers:
-        keyboard.remove_hotkey(handler)
-
-    return pressed
 
 
 def prompt_record_file_name():
@@ -308,14 +285,14 @@ if __name__ == "__main__":
     while True:
         recorder.start_record()
 
-        pressed = wait_multiple_keys(["f6", "f7"])
+        pressed = wait_for_key(["f6", "f7"])
         if pressed == "f6":
-            print2("Canceling record...")
+            print("Canceling record...")
             recorder.stop_record()
             continue
 
         elif pressed == "f7":
-            print2("Stoping record...")
+            print("Stoping record...")
             recorder.stop_record()
             break
 

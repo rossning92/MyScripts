@@ -5,6 +5,7 @@ from _shutil import get_hash
 import core
 import coreapi
 from videoedit.uiautomate import record_ipython, record_wt_cmd, record_wt_node
+from videoedit.uiautomate.record_alacritty import record_alacritty
 
 
 @core.api
@@ -65,4 +66,13 @@ def node(s, font_size=14, file=None, sound=False, force=False, **kwargs):
         file = "screencap/node/%s.mp4" % get_hash(s)
     if not os.path.exists(file) or force:
         record_wt_node(file, s, font_size=font_size, sound=sound)
+    return coreapi.clip(file, **kwargs)
+
+
+@core.api
+def bash(s=None, file=None, force=False, **kwargs):
+    if file is None:
+        file = "screencap/bash/%s.mp4" % get_hash(s)
+    if not os.path.exists(file) or force:
+        record_alacritty(file=file, cmds=s, **kwargs)
     return coreapi.clip(file, **kwargs)

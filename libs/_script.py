@@ -477,8 +477,17 @@ def wrap_args_wt(
 
 
 def wrap_args_alacritty(
-    args, title=None, close_on_exit=False, font_size=8, font=None,
+    args,
+    title=None,
+    close_on_exit=False,
+    font_size=8,
+    font=None,
+    borderless=False,
+    position=None,
+    padding=None,
+    **kwargs,
 ):
+    assert isinstance(args, list)
     # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
     if sys.platform != "windows":
         config_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
@@ -498,10 +507,15 @@ def wrap_args_alacritty(
 
     if font is not None:
         out += [f"font.normal.family={font}"]
+    if borderless:
+        out += ["window.decorations=none"]
+    if position:
+        out += [f"window.position.x={position[0]}", f"window.position.y={position[1]}"]
+    if padding is not None:
+        out += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
 
     if not close_on_exit:
         out += ["--hold"]
-
     if title:
         out += ["--title", title]
 
@@ -951,15 +965,11 @@ class Script:
                 if sys.platform == "win32":
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1103,6 +1113,7 @@ class Script:
             logging.debug("subprocess.Popen(): args=%s" % args)
             if no_wait:
                 popen_extra_args["start_new_session"] = True
+
             ps = subprocess.Popen(
                 args=args,
                 env={**variables, **os.environ, **env},

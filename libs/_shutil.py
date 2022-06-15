@@ -957,6 +957,36 @@ def wait_key(prompt=None, timeout=5):
     return ch
 
 
+def wait_for_key(keys):
+    from functools import partial
+
+    import keyboard
+
+    if type(keys) is str:
+        keys = [keys]
+
+    lock = threading.Event()
+    handlers = []
+
+    pressed = None
+
+    def key_pressed(key):
+        nonlocal pressed
+        pressed = key
+        lock.set()
+
+    for key in keys:
+        handler = keyboard.add_hotkey(key, partial(key_pressed, key), suppress=True)
+        handlers.append(handler)
+
+    lock.wait()
+
+    for handler in handlers:
+        keyboard.remove_hotkey(handler)
+
+    return pressed
+
+
 def wait_until_file_modified(f):
     last_mtime = os.path.getmtime(f)
     while True:

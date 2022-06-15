@@ -13,7 +13,7 @@ body {
 
 pre {
   background-color: #09343f;
-  border-radius: 0.2em;
+  border-radius: 1em;
   display: inline-block;
   margin: 0 auto;
   padding: 0.4em 1em;
@@ -38,10 +38,10 @@ a {
 blockquote {
   color: black;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 0.2em;
+  border-radius: 1em;
   line-height: 1.15em;
   margin: 0 auto -0.02em auto;
-  padding: 0.1em 2em;
+  padding: 0.2em 2em;
   text-align: center;
   white-space: nowrap;
 }

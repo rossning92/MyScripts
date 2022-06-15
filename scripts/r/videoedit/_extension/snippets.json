@@ -56,6 +56,10 @@
       "{sleep 2}''', force=0, font_size=18) }}"
     ]
   },
+  "bash": {
+    "prefix": "bash",
+    "body": ["{{ bash('''echo hello\\n''', force=0, font_size=18) }}"]
+  },
   "TODO: record": {
     "prefix": "todo_record",
     "body": ["<!-- TODO: record: 1 -->"]

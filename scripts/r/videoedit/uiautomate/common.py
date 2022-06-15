@@ -156,18 +156,26 @@ class TypingSound:
 _sound = TypingSound()
 
 
+def sleep_random(secs, sigma=None):
+    if sigma is None:
+        sigma = secs
+    time.sleep(max(0, random.gauss(secs, sigma)))
+
+
 def typing(s, sound=False):
     for ch in s:
-        if ch in ["\n", " ", "\t"]:
+        if ch in [" ", "\t"]:
             if sound:
                 _sound.play()
+            sleep_random(0.1)
             pyautogui.write(ch)
-            time.sleep(0.1)
-        elif ch == " ":
-            time.sleep(max(0, random.gauss(0.3, 0.15)))
-            pyautogui.write(" ")
+            sleep_random(0.1)
+        elif ch == "\n":
+            sleep_random(0.3)
+            pyautogui.write(ch)
+            sleep_random(0.3)
         else:
-            time.sleep(max(0, random.gauss(0.05, 0.05)))
+            sleep_random(0.05)
             if sound:
                 _sound.play()
             pyautogui.write(ch)

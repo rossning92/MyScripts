@@ -15,7 +15,7 @@ if __name__ == "__main__":
         # Copy relative path
         script_root = os.path.realpath(os.path.realpath(__file__) + "/../../")
         script_path = re.sub("^" + re.escape(script_root), "", script_path)
-        script_path = script_path.replace("\\", "/")
+        script_path = script_path.replace("\\", "/").lstrip("/")
 
         set_clip(script_path)
         print("Script path copied: %s" % script_path)
