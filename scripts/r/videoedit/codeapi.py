@@ -2,10 +2,18 @@ import os
 
 from _shutil import get_hash
 
-import core
-import coreapi
 from videoedit.uiautomate import record_ipython, record_wt_cmd, record_wt_node
-from videoedit.uiautomate.record_alacritty import record_alacritty
+from videoedit.uiautomate.record_alacritty import open_alacritty, record_alacritty
+
+from . import core, coreapi
+
+_force = False
+
+
+@core.api
+def force():
+    global _force
+    _force = True
 
 
 @core.api
@@ -43,36 +51,39 @@ def codef(
 
 
 @core.api
-def ipython(s, file=None, startup=None, font_size=14, force=False, **kwargs):
+def ipython(s, file=None, startup=None, font_size=14, **kwargs):
     if file is None:
         file = "screencap/ipython/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or force:
+    if not os.path.exists(file) or _force:
         record_ipython(file, s, startup=startup, font_size=font_size)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def cmd(s, font_size=14, file=None, force=False, **kwargs):
+def cmd(s, font_size=14, file=None, **kwargs):
     if file is None:
         file = "screencap/cmd/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or force:
+    if not os.path.exists(file) or _force:
         record_wt_cmd(file, s, font_size=font_size, **kwargs)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def node(s, font_size=14, file=None, sound=False, force=False, **kwargs):
+def node(s, font_size=14, file=None, sound=False, **kwargs):
     if file is None:
         file = "screencap/node/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or force:
+    if not os.path.exists(file) or _force:
         record_wt_node(file, s, font_size=font_size, sound=sound)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def bash(s=None, file=None, force=False, **kwargs):
+def bash(s=None, file=None, **kwargs):
     if file is None:
         file = "screencap/bash/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or force:
+    if not os.path.exists(file) or _force:
         record_alacritty(file=file, cmds=s, **kwargs)
     return coreapi.clip(file, **kwargs)
+
+
+core.api(open_alacritty)

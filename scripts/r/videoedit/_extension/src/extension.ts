@@ -211,12 +211,12 @@ function setupDecorations(context: vscode.ExtensionContext) {
 
     // Highlight video functions.
     highlightText(
-      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|ipython|node)(?=\()/g,
+      /\b(anim|clip|codef|hl|md|comment|overlay|slide|video_end|cmd|bash|ipython|node)(?=\()/g,
       "#0000ff"
     );
 
     // Highlight auxiliary functions.
-    highlightText(/\b(include|crossfade|audio_gap)(?=\()/g, "#008000");
+    highlightText(/\b(include|crossfade|audio_gap|force)(?=\()/g, "#008000");
   }
 
   // Reference: https://github.com/microsoft/vscode-extension-samples/blob/main/decorator-sample/src/extension.ts
@@ -446,7 +446,7 @@ function getRecorderProcess() {
       return undefined;
     }
 
-    recorderProcess = cp.spawn("run_script", ["/r/audio/recorder"], {
+    recorderProcess = cp.spawn("run_script", ["r/audio/recorder.py"], {
       env: {
         ...process.env,
         RECORDER_OUT_DIR: path.resolve(getActiveDir() + "/record"),
@@ -544,7 +544,7 @@ function startMovyServer(file: string) {
   const shellArgs = [
     "/c",
     "run_script",
-    "/r/videoedit/start_movy_server",
+    "r/videoedit/start_movy_server.py",
     "-p",
     port.toString(),
     file,
@@ -617,7 +617,7 @@ function exportVideo({
     let shellArgs: string[] = [
       "/c",
       "run_script",
-      "/r/videoedit/export_video",
+      "r/videoedit/export_video.py",
       "-i",
       textFile,
       "--proj_dir",

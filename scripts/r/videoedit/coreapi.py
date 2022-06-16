@@ -19,9 +19,9 @@ from moviepy.editor import (AudioFileClip, ColorClip, CompositeAudioClip,
 from open_with.open_with import open_with
 from PIL import Image
 
-import core
-from export_movy_animation import export_movy_animation
-from render_text import render_text
+from . import core
+from .export_movy_animation import export_movy_animation
+from .render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 

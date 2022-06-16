@@ -185,6 +185,34 @@ def sleep(secs):
     time.sleep(secs)
 
 
+supported_keys = [
+    "del",
+    "down",
+    "esc",
+    "f1",
+    "f10",
+    "f11",
+    "f12",
+    "f2",
+    "f3",
+    "f4",
+    "f5",
+    "f6",
+    "f7",
+    "f8",
+    "f9",
+    "home",
+    "insert",
+    "left",
+    "right",
+    "up",
+    "down",
+    "pause",
+    "pgdn",
+    "pgup",
+]
+
+
 def run_commands(cmds, sound=False):
     if type(cmds) != str:
         raise TypeError("cmds must be str")
@@ -198,6 +226,17 @@ def run_commands(cmds, sound=False):
             elif cmd.startswith("text"):
                 text = cmd.lstrip("text ")
                 pyautogui.write(text, interval=0)
+            elif cmd in supported_keys:
+                pyautogui.press(cmd)
+                sleep_random(0.1)
+            elif re.match("^[!+^]+[0-9a-z]+$", cmd):
+                pyautogui.hotkey(
+                    *cmd.replace("+", "shift+")
+                    .replace("!", "alt+")
+                    .replace("^", "ctrl+")
+                    .split("+")
+                )
+                sleep_random(0.1)
         else:
             cmd = cmd.replace("\\{", "{").replace("\\}", "}")
             typing(cmd, sound=sound)

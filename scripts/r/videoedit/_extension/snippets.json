@@ -63,5 +63,9 @@
   "TODO: record": {
     "prefix": "todo_record",
     "body": ["<!-- TODO: record: 1 -->"]
+  },
+  "force": {
+    "prefix": "force",
+    "body": ["{{ force() }}"]
   }
 }

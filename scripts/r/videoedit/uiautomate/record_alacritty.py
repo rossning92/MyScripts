@@ -1,7 +1,10 @@
+import atexit
 import logging
 import os
+import subprocess
 import time
 
+import pywinauto
 from _script import wrap_args_alacritty
 from _shutil import print2, setup_logger, shell_open, start_process, wait_for_key
 from pywinauto.application import Application
@@ -14,25 +17,50 @@ root = os.path.dirname(os.path.abspath(__file__))
 app = Application()
 
 
-def open_alacritty(args, **kwargs):
+def open_alacritty(
+    args=["wsl", "-e", "sh", "-c", "cd $HOME; bash"],
+    restart=True,
+    font_size=14,
+    **kwargs
+):
+    subprocess.call(
+        ["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"]
+    )
+    atexit.register(
+        lambda: subprocess.call(
+            [
+                "powershell",
+                "-command",
+                "Set-WinUserLanguageList -Force 'en-US', 'zh-CN'",
+            ]
+        )
+    )
+
     title = "AlacrittyAutomation"
 
     logging.debug("find window by title: %s", title)
-    app.connect(title=title)
-    window = app.window(title=title)
-    if not window.exists():
+    try:
+        app.connect(title=title)
+        if restart:
+            app.kill(soft=True)
+    except pywinauto.findwindows.ElementNotFoundError:
+        restart = True
+
+    if restart:
         args = wrap_args_alacritty(
             args,
             title=title,
-            font_size=14,
+            font_size=font_size,
             borderless=True,
             padding=32,
             font="hack",
             **kwargs
         )
-        start_process(args)
+        start_process(["cmd", "/c", "start"] + args)
+        app.connect(title=title, timeout=5)
 
     logging.debug("wait for window...")
+    window = app.window(title=title)
     window.wait("exists")
 
     logging.debug("move window")
@@ -40,18 +68,9 @@ def open_alacritty(args, **kwargs):
     window.move_window(x=0, y=0, width=1920, height=1080)
 
 
-# def close_alacritty():
-#     send_hotkey("alt", "f4")
-#     time.sleep(1)
-
-#     call_echo(
-#         ["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US', 'zh-CN'"]
-#     )
-
-
 def record_alacritty(*, file, cmds=None, size=(1920, 1080), **kwargs):
     logging.info("record_alacritty: %s", file)
-    open_alacritty(args=["wsl", "-e", "sh", "-c", "cd $HOME; bash"], **kwargs)
+    open_alacritty(restart=False, **kwargs)
     time.sleep(0.2)
 
     if cmds is None:

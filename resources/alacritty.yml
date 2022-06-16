@@ -27,6 +27,14 @@ colors:
     cyan: "#9aedfe"
     white: "#e6e6e6"
 
+  search:
+    matches:
+      foreground: "#000000"
+      background: "#ffff00"
+    focused_match:
+      foreground: "#000000"
+      background: "#ff9632"
+
 window:
   dimensions:
     columns: 120
