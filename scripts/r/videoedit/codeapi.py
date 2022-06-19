@@ -3,7 +3,7 @@ import os
 from _shutil import get_hash
 
 from videoedit.uiautomate import record_ipython, record_wt_cmd, record_wt_node
-from videoedit.uiautomate.record_alacritty import open_alacritty, record_alacritty
+from videoedit.uiautomate.record_alacritty import open_alacritty as open_alacritty2, record_alacritty
 
 from . import core, coreapi
 
@@ -86,4 +86,9 @@ def bash(s=None, file=None, **kwargs):
     return coreapi.clip(file, **kwargs)
 
 
-core.api(open_alacritty)
+@core.api
+def open_alacritty(**kwargs):
+    if not _force:
+        return
+
+    open_alacritty2(**kwargs)

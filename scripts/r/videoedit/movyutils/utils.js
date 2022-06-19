@@ -144,8 +144,8 @@ export function addTitle4(title, { sup, scale = 0.8 } = {}) {
 
   if (sup) {
     mo.addText3D(sup, {
-      y: -fontScale * 0.6,
-      scale: fontScale * 0.25,
+      y: -scale * 0.6,
+      scale: scale * 0.25,
       font: "arcade",
     }).typeText({ duration: 0.6, t: 1 });
   }

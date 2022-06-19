@@ -168,7 +168,7 @@ def save_config(config, config_file=None):
 
 
 def load_config(config_file=None):
-    DEFAULT_CONFIG = {"fps": 30, "title": "unnamed"}
+    DEFAULT_CONFIG = {"fps": 30, "title": None}
 
     if config_file is None:
         config_file = "config.yaml"
@@ -215,6 +215,15 @@ if __name__ == "__main__":
         os.makedirs("tmp/out", exist_ok=True)
         out_filename = "tmp/out/" + get_time_str()
     else:
+        # Video title
+        if not config["title"]:
+            title = input("please enter video title (untitled): ")
+            if title:
+                config["title"] = title
+                save_config(config)
+            else:
+                config["title"] = "untitled"
+
         os.makedirs("export", exist_ok=True)
         out_filename = "export/" + to_valid_file_name(config["title"])
 
@@ -232,23 +241,28 @@ if __name__ == "__main__":
     else:
         raise Exception("--input must be specified.")
 
-    if args.remove_unused_recordings:
-        ignore_undefined = True
-        _remove_unused_recordings(s)
-    elif args.stat:
-        ignore_undefined = True
-        _show_stats(s)
-    else:
-        coreapi.reset()
-        keep_awake()
+    try:
+        if args.remove_unused_recordings:
+            ignore_undefined = True
+            _remove_unused_recordings(s)
+        elif args.stat:
+            ignore_undefined = True
+            _show_stats(s)
+        else:
+            coreapi.reset()
+            keep_awake()
 
-        if args.preview:
-            coreapi.enable_preview()
+            if args.preview:
+                coreapi.enable_preview()
 
-        if args.audio_only:
-            coreapi.set_audio_only()
+            if args.audio_only:
+                coreapi.set_audio_only()
 
-        _parse_text(s, apis=core.apis)
+            _parse_text(s, apis=core.apis)
 
-        coreapi.export_video(out_filename=out_filename, resolution=(1920, 1080))
+            coreapi.export_video(out_filename=out_filename, resolution=(1920, 1080))
+
+    except core.VideoEditException as ex:
+        print2("ERROR: %s" % ex, color="red")
+        sys.exit(1)
 

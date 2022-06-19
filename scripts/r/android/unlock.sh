@@ -12,5 +12,5 @@ if [[ "$out" == *"_LOCKED"* ]]; then
     adb shell input text {{ANDROID_PIN}}
     adb shell input keyevent KEYCODE_ENTER
 else
-    echo "Device is not locked."
+    echo "(skipped unlocking, device is not locked.)"
 fi

@@ -19,3 +19,6 @@ def api(f):
 def get_apis():
     return apis
 
+
+class VideoEditException(Exception):
+    pass

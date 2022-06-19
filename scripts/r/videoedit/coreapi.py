@@ -13,9 +13,16 @@ import moviepy.video.fx.all as vfx
 import numpy as np
 from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
-from moviepy.editor import (AudioFileClip, ColorClip, CompositeAudioClip,
-                            CompositeVideoClip, ImageClip, ImageSequenceClip,
-                            VideoFileClip, concatenate_videoclips)
+from moviepy.editor import (
+    AudioFileClip,
+    ColorClip,
+    CompositeAudioClip,
+    CompositeVideoClip,
+    ImageClip,
+    ImageSequenceClip,
+    VideoFileClip,
+    concatenate_videoclips,
+)
 from open_with.open_with import open_with
 from PIL import Image
 
@@ -143,7 +150,7 @@ def reset():
 
 def _get_track(tracks, name):
     if name not in tracks:
-        raise Exception("Track is not defined: %s" % name)
+        raise core.VideoEditException("Track is not defined: %s" % name)
     track = tracks[name]
 
     return track
@@ -254,7 +261,7 @@ def _get_time(p):
             delta = float(match.group(2))
             return _state.pos_dict[tag] + delta
 
-    raise Exception("Invalid pos='%s'" % p)
+    raise core.VideoEditException('Invalid pos="%s"' % p)
 
 
 def _add_subtitle_clip(start, end, text):
@@ -322,36 +329,34 @@ def record(
 
                 length = len(subtitle)
                 if subtitle_duration is not None:
-                    word_dura = subtitle_duration / length
+                    char_duration = subtitle_duration / length
                 else:
-                    word_dura = (_get_time("ae") - start) / length
+                    char_duration = (_get_time("ae") - start) / length
 
-                i = 0
-                MAX = 5
-                word = ""
-
-                while i < length:
-                    if subtitle[i] in END_CHARS and len(word) > MAX:
+                MIN_SENTENSE_LEN = 8
+                sentense = ""
+                for i, ch in enumerate(subtitle):
+                    if (
+                        ch in END_CHARS and len(sentense) >= MIN_SENTENSE_LEN
+                    ) or i == length - 1:
                         _state.srt_lines.extend(
                             [
                                 "%d" % _state.srt_index,
                                 "%s --> %s" % (format_time(start), format_time(end)),
-                                word,
+                                sentense,
                                 "",
                             ]
                         )
 
-                        _add_subtitle_clip(start=start, end=end, text=word)
+                        _add_subtitle_clip(start=start, end=end, text=sentense)
 
-                        end += word_dura
+                        end += char_duration
                         start = end
-                        word = ""
+                        sentense = ""
                         _state.srt_index += 1
                     else:
-                        word += subtitle[i]
-                        end += word_dura
-
-                    i += 1
+                        sentense += ch
+                        end += char_duration
 
 
 @core.api
@@ -444,7 +449,7 @@ def _add_audio_clip(
     clip_info = AudioClip()
 
     if not os.path.exists(file):
-        raise Exception("Please make sure `%s` exists." % file)
+        raise core.VideoEditException('Clip file "%s" does not exist.' % file)
     clip_info.file = os.path.abspath(file)
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
@@ -779,7 +784,7 @@ def _add_video_clip(
                     for marker in medadata["markers"]:
                         if marker["name"] == name:
                             return marker["time"]
-                    raise Exception('Marker "%s" not found' % name)
+                    raise core.VideoEditException('Marker "%s" not found' % name)
 
                 # replace marker with time
                 subclip2 = tuple(
@@ -804,7 +809,7 @@ def _add_video_clip(
         if frame == "next":
             frame = _state.last_frame_indices[file] + 1
         if type(frame) != int:
-            raise Exception("Invalid frame val.")
+            raise core.VideoEditException(f"Invalid frame param: {frame}")
         _state.last_frame_indices[file] = frame
     clip_info.frame = frame
 
@@ -940,10 +945,12 @@ def video_end(track=None, t=None, fadeout=None):
     if _state.audio_only:
         return
 
-    print("video_end: track=%s" % track)
+    track_name = track if track else default_video_track_name
+    print('video_end(track="%s")' % track_name)
     track = get_vid_track(track)
 
-    assert len(track) > 0
+    if len(track) == 0:
+        raise core.VideoEditException(f'track "{track_name}" has no clip yet')
 
     clip = track[-1]
     clip.duration = _get_time(t) - clip.start
@@ -1190,7 +1197,7 @@ def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
             xp.append(p)
             fp.append(vol)
         else:
-            raise Exception("unsupported bgm parameter type:" % type(vol))
+            raise core.VideoEditException("Unsupported bgm parameter type:" % type(vol))
 
     def volume_adjust(gf, t):
         factor = np.interp(t, xp, fp)
