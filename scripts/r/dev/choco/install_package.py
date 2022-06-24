@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 from _shutil import call_echo, proc_lines
@@ -8,13 +9,19 @@ PKGS = {
         "alacritty",
         "everything",
         "git",
+        "git-lfs",
         "googlechrome",
         "irfanview",
         "mpv",
+        "sharex",
         "sumatrapdf",
         "tightvnc",
+        "vnc-viewer",
     ],
-    "@ross": ["google-backup-and-sync"],
+    "@ross": [
+        "@common",
+        "@dev",
+    ],
     "@dev": [
         "7zip",
         "android-sdk",
@@ -22,6 +29,7 @@ PKGS = {
         "cmake",
         "conemu",
         "ffmpeg",
+        "hxd",
         "graphviz",
         "imagemagick.app",
         "llvm",
@@ -41,7 +49,6 @@ PKGS = {
     "@gamedev": [
         "renderdoc",
     ],
-    "@media": ["ffmpeg", "imagemagick.app", "shotcut"],
     "@work": [
         "p4v",
         "selenium-chrome-driver",
@@ -74,7 +81,7 @@ PKGS = {
         "renamer",
         "rufus",
         "scrcpy",
-        "sharex",
+        "shotcut",
         "sketchup",
         "spacesniffer",
         "teamviewer",
@@ -107,17 +114,29 @@ def install_package(name):
         )
 
 
-if __name__ == "__main__":
-    pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
-        set([app for cate in PKGS.values() for app in cate])
-    )
-    idx = Menu(items=pkg_list).exec()
-    if idx < 0:
-        sys.exit(1)
-
-    if pkg_list[idx].startswith("@"):
-        for pkg in PKGS[pkg_list[idx]]:
-            install_package(pkg)
+def install_recursive(name):
+    if name.startswith("@"):
+        for pkg in PKGS[name]:
+            install_recursive(pkg)
 
     else:
-        install_package(pkg_list[idx])
+        install_package(name)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("name", nargs="?", help="package name", type=str, default=None)
+    args = parser.parse_args()
+
+    if args.name:
+        install_recursive(args.name)
+
+    else:
+        pkg_list = [cate for cate in PKGS if cate.startswith("@")] + sorted(
+            set([app for cate in PKGS.values() for app in cate])
+        )
+        idx = Menu(items=pkg_list).exec()
+        if idx < 0:
+            sys.exit(1)
+
+        install_recursive(pkg_list[idx])

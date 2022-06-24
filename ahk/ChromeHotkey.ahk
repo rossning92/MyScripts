@@ -22,10 +22,19 @@ HotkeyPressed()
     ActivateChromeWindow(A_ThisHotkey)
 }
 
+GetChrome() {
+    chrome := "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+    if not FileExist(chrome)
+    {
+        chrome := "C:\Program Files\Google\Chrome\Application\chrome.exe"
+    }
+    return chrome
+}
+
 ActivateChromeWindow(key)
 {
     global hotkeyInfo
-    chrome = "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+    chrome := GetChrome()
 
     title := hotkeyInfo[key].title  ; Deprecated
 	url := hotkeyInfo[key].url

@@ -18,8 +18,8 @@ if __name__ == "__main__":
         "platforms;android-28",
         "build-tools;28.0.3",
         # "lldb;3.1",
-        "cmake;3.10.2.4988404",
-        "ndk;21.1.6352462",
+        # "cmake;3.10.2.4988404",
+        # "ndk;21.1.6352462",
     ]
 
     for pkg in packages:

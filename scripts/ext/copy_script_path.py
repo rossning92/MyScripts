@@ -17,5 +17,5 @@ if __name__ == "__main__":
         script_path = re.sub("^" + re.escape(script_root), "", script_path)
         script_path = script_path.replace("\\", "/").lstrip("/")
 
-        set_clip(script_path)
-        print("Script path copied: %s" % script_path)
+        set_clip(f"run_script {script_path}")
+        print("Copied to clipboard: %s" % script_path)

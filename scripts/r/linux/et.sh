@@ -19,7 +19,7 @@ export SCREENDIR="$HOME/.screen"
 
 # expect "Passcode"; send "push\r"
 cat >/tmp/et.sh <<EOF
-set timeout -1
+set timeout 10
 spawn et -x -r 5037:5037 -t 2222:22 {{ET_USER}}@{{ET_HOST}}:{{ET_PORT}}
 expect "password:"
 send "{{ET_PWD}}\r"

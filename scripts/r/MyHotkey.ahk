@@ -314,11 +314,7 @@ UpdateWindowPosition(pos) {
 
 ActivateChrome(index=0)
 {
-    CHROME_DIR := "C:\Program Files (x86)\Google\Chrome\Application"
-    if (not FileExist(CHROME_DIR))
-    {
-        CHROME_DIR := "C:\Program Files\Google\Chrome\Application"
-    }
+    chrome := GetChrome()
 
     if (index = 0)
     {
@@ -345,11 +341,11 @@ ActivateChrome(index=0)
     {
         if (index = 0)
         {
-            Run %CHROME_DIR%\chrome.exe, %CHROME_DIR%
+            Run %chrome%
         }
         else
         {
-            Run %CHROME_DIR%\chrome.exe --user-data-dir=%USERPROFILE%\ChromeData%index%, %CHROME_DIR%
+            Run %chrome% --user-data-dir=%USERPROFILE%\ChromeData%index%
         }
     }
 }

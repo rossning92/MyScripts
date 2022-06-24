@@ -1,5 +1,8 @@
 @echo off
 
+python --version >nul 2>&1
+IF %errorlevel%==0 exit /b 0
+
 :: Python36
 call :find_python %LOCALAPPDATA%\Programs\Python\Python36
 if %errorlevel%==0 exit /b 0
@@ -32,7 +35,7 @@ if %errorlevel%==0 (
 exit /b 1
 
 
-:find_python 
+:find_python
 if exist "%~1" (
 	echo Python found: %~1
 	set "PATH=%~1;%~1\Scripts;%PATH%"

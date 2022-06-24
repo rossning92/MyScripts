@@ -242,7 +242,7 @@ def getch(timeout=-1):
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-    if ord(ch) == 3:
+    if ch is not None and ord(ch) == 3:
         raise KeyboardInterrupt
     return ch
 

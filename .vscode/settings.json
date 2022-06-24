@@ -1,6 +1,10 @@
 {
   "[markdown]": {
-    "editor.quickSuggestions": true
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
+    }
   },
   "python.formatting.provider": "black",
   "search.exclude": {
