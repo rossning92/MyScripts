@@ -560,8 +560,7 @@ function startMovyServer(file: string) {
 function exportVideo({
   extraArgs,
   selectedText = true,
-  preview = false,
-}: { extraArgs?: string[]; selectedText?: boolean; preview?: boolean } = {}) {
+}: { extraArgs?: string[]; selectedText?: boolean } = {}) {
   const activeDir = getActiveDir();
   if (!activeDir) {
     return;
@@ -623,9 +622,6 @@ function exportVideo({
       "--proj_dir",
       activeDir,
     ];
-    if (preview) {
-      shellArgs.push("--preview");
-    }
 
     if (extraArgs) {
       shellArgs = shellArgs.concat(extraArgs);
@@ -984,13 +980,19 @@ function registerCommands(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.exportVideoPreview", () => {
-      exportVideo({ preview: true });
+      exportVideo({ extraArgs: ["--preview"] });
     })
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.exportAudio", () => {
-      exportVideo({ preview: true, extraArgs: ["--audio_only"] });
+      exportVideo({ extraArgs: ["--preview", "--audio_only"] });
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("videoEdit.exportVideoForce", () => {
+      exportVideo({ extraArgs: ["--preview", "--force"] });
     })
   );
 

@@ -108,7 +108,7 @@ powercfg /change standby-timeout-ac 0
 powercfg /change standby-timeout-dc 0
 
 :: Disable automatic windows updates
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoRebootWithLoggedOnUsers /t REG_DWORD /d 1 /f
+call disable_auto_updates.cmd
 
 run_script disable_onedrive
 

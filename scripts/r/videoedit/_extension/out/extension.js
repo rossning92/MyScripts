@@ -430,7 +430,7 @@ function startMovyServer(file) {
     runInTerminal({ name: "MovyServer", shellArgs });
     openInBrowser(`http://localhost:${port}/?file=${path.basename(file)}`);
 }
-function exportVideo({ extraArgs, selectedText = true, preview = false, } = {}) {
+function exportVideo({ extraArgs, selectedText = true, } = {}) {
     const activeDir = getActiveDir();
     if (!activeDir) {
         return;
@@ -486,9 +486,6 @@ function exportVideo({ extraArgs, selectedText = true, preview = false, } = {}) 
             "--proj_dir",
             activeDir,
         ];
-        if (preview) {
-            shellArgs.push("--preview");
-        }
         if (extraArgs) {
             shellArgs = shellArgs.concat(extraArgs);
         }
@@ -725,10 +722,13 @@ function registerCommands(context) {
         exportVideo({ selectedText: false });
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.exportVideoPreview", () => {
-        exportVideo({ preview: true });
+        exportVideo({ extraArgs: ["--preview"] });
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.exportAudio", () => {
-        exportVideo({ preview: true, extraArgs: ["--audio_only"] });
+        exportVideo({ extraArgs: ["--preview", "--audio_only"] });
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand("videoEdit.exportVideoForce", () => {
+        exportVideo({ extraArgs: ["--preview", "--force"] });
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.startRecording", () => {
         getRecorderProcess()?.stdin.write("r\n");

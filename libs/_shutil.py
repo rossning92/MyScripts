@@ -63,10 +63,14 @@ def activate_window_by_name(name):
     return False
 
 
-def get_hash(text, digit=16):
+def get_hash(obj, digit=16):
     import hashlib
 
-    hash_object = hashlib.md5(text.encode())
+    if isinstance(obj, str):
+        buff = obj.encode("utf-8")
+    else:
+        buff = repr(obj).encode("utf-8")
+    hash_object = hashlib.md5(buff)
     hash = hash_object.hexdigest()[0:digit]
     return hash
 
@@ -1156,17 +1160,17 @@ def confirm(msg=""):
     return ch == "y"
 
 
-def shell_open(d="."):
+def shell_open(file="."):
     if sys.platform == "win32":
-        os.startfile(d)
-        # subprocess.Popen(['start', d], shell= True)
+        os.startfile(file)
+        # subprocess.Popen(['start', file], shell= True)
 
     elif sys.platform == "darwin":
-        subprocess.Popen(["open", d])
+        subprocess.Popen(["open", file])
 
     else:
         try:
-            subprocess.Popen(["xdg-open", d])
+            subprocess.Popen(["xdg-open", file])
         except OSError:
             # er, think of something else to try
             # xdg-open *should* be supported by recent Gnome, KDE, Xfce

@@ -2,10 +2,11 @@ import os
 
 from _shutil import get_hash
 
-from videoedit.uiautomate import record_ipython, record_wt_cmd, record_wt_node
-from videoedit.uiautomate.record_alacritty import open_alacritty as open_alacritty2, record_alacritty
-
 from . import core, coreapi
+from .uiautomate import record_ipython, record_wt_cmd, record_wt_node
+from .uiautomate.record_alacritty import open_alacritty as open_alacritty2
+from .uiautomate.record_alacritty import record_alacritty
+from .uiautomate.record_screen import record_app
 
 _force = False
 
@@ -92,3 +93,12 @@ def open_alacritty(**kwargs):
         return
 
     open_alacritty2(**kwargs)
+
+
+@core.api
+def screencap(*, file, args, title, size=(1920, 1080), uia_callback=None, **kwargs):
+    if not os.path.exists(file) or _force:
+        record_app(
+            args=args, file=file, size=size, uia_callback=uia_callback, title=title
+        )
+    return coreapi.clip(file, **kwargs)

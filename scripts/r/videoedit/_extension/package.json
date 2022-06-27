@@ -19,6 +19,10 @@
         "title": "VideoEdit: Export Video (Preview)"
       },
       {
+        "command": "videoEdit.exportVideoForce",
+        "title": "VideoEdit: Export Video (Force)"
+      },
+      {
         "command": "videoEdit.exportVideo",
         "title": "VideoEdit: Export Video"
       },
@@ -99,6 +103,11 @@
       {
         "command": "videoEdit.exportVideoPreview",
         "key": "alt+enter",
+        "when": "videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.exportVideoForce",
+        "key": "alt+shift+enter",
         "when": "videoEdit.isProjectFileActive"
       },
       {

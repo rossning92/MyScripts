@@ -4,17 +4,13 @@ import os
 import subprocess
 import time
 
-import pywinauto
 from _script import wrap_args_alacritty
-from _shutil import print2, setup_logger, shell_open, start_process, wait_for_key
-from pywinauto.application import Application
+from _shutil import setup_logger, shell_open
 
 from .common import run_commands
-from .record_screen import start_record, stop_record, wait_for_key
+from .record_screen import record_screen, start_application
 
 root = os.path.dirname(os.path.abspath(__file__))
-
-app = Application()
 
 
 def open_alacritty(
@@ -37,35 +33,16 @@ def open_alacritty(
     )
 
     title = "AlacrittyAutomation"
-
-    logging.debug("find window by title: %s", title)
-    try:
-        app.connect(title=title)
-        if restart:
-            app.kill(soft=True)
-    except pywinauto.findwindows.ElementNotFoundError:
-        restart = True
-
-    if restart:
-        args = wrap_args_alacritty(
-            args,
-            title=title,
-            font_size=font_size,
-            borderless=True,
-            padding=32,
-            font="hack",
-            **kwargs
-        )
-        start_process(["cmd", "/c", "start"] + args)
-        app.connect(title=title, timeout=5)
-
-    logging.debug("wait for window...")
-    window = app.window(title=title)
-    window.wait("exists")
-
-    logging.debug("move window")
-    window.set_focus()
-    window.move_window(x=0, y=0, width=1920, height=1080)
+    args = wrap_args_alacritty(
+        args,
+        title=title,
+        font_size=font_size,
+        borderless=True,
+        padding=32,
+        font="hack",
+        **kwargs
+    )
+    start_application(args=args, title=title, restart=restart)
 
 
 def record_alacritty(*, file, cmds=None, size=(1920, 1080), **kwargs):
@@ -73,30 +50,20 @@ def record_alacritty(*, file, cmds=None, size=(1920, 1080), **kwargs):
     open_alacritty(restart=False, **kwargs)
     time.sleep(0.2)
 
-    if cmds is None:
-        print2('Press F1 to screencap to "%s"' % file)
-        wait_for_key("f1")
+    record_screen(
+        file,
+        uia_callback=(lambda: (run_commands(cmds), time.sleep(0.2)))
+        if cmds is not None
+        else None,
+        rect=(0, 0, size[0], size[1]),
+    )
 
-    start_record(file, (0, 0, size[0], size[1]))
-    time.sleep(0.2)
-
-    if cmds is not None:
-        run_commands(cmds)
-        time.sleep(0.2)
-
-    if cmds is None:
-        print2("Press F1 again to stop recording.")
-        wait_for_key("f1")
-
-    stop_record()
-
-    # close_alacritty()
     return file
 
 
 if __name__ == "__main__":
     setup_logger()
     file = os.path.expanduser("~/Desktop/test.mp4")
-    record_alacritty(file=file, cmds=None)
-    # record_alacritty(file=file, cmds="echo hello, world!\n")
+    # record_alacritty(file=file, cmds=None)
+    record_alacritty(file=file, cmds="echo hello, world!\n")
     shell_open(file)

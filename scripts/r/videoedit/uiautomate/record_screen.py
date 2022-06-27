@@ -1,4 +1,6 @@
 import argparse
+import ctypes
+import ctypes.wintypes
 import glob
 import logging
 import os
@@ -8,20 +10,51 @@ import time
 from tempfile import gettempdir
 
 import pyautogui
+import pywinauto
 from _script import get_variable, set_variable
 from _shutil import (
     call_echo,
     get_next_file_name,
     get_temp_file_name,
     move_file,
+    print2,
     slugify,
+    start_process,
     wait_for_key,
 )
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
+from pywinauto.application import Application
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+
+
+def set_active_window_pos(left, top, width, height):
+    ctypes.windll.user32.SetProcessDPIAware()
+
+    hwnd = ctypes.windll.user32.GetForegroundWindow()
+
+    arect = ctypes.wintypes.RECT()
+    DWMWA_EXTENDED_FRAME_BOUNDS = 9
+    ret = ctypes.windll.dwmapi.DwmGetWindowAttribute(
+        ctypes.wintypes.HWND(hwnd),
+        ctypes.wintypes.DWORD(DWMWA_EXTENDED_FRAME_BOUNDS),
+        ctypes.byref(arect),
+        ctypes.sizeof(arect),
+    )
+    if ret != 0:
+        raise Exception("DwmGetWindowAttribute failed")
+
+    rect = ctypes.wintypes.RECT()
+    ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+    dx = rect.left - arect.left
+    dy = rect.top - arect.top
+    dw = rect.right - arect.right - dx
+    dh = rect.bottom - arect.bottom - dy
+    ctypes.windll.user32.MoveWindow(
+        hwnd, left + dx, top + dy, width + dw, height + dh, True
+    )
 
 
 class ScreenRecorder:
@@ -208,6 +241,8 @@ class FFmpegScreenRecorder(ScreenRecorder):
         ]
 
         self.proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+        time.sleep(0.2)
+
         print("Recording started.")
 
     def stop_record(self):
@@ -245,6 +280,57 @@ def start_record(file, rect=(0, 0, 1920, 1080)):
 def stop_record():
     recorder.stop_record()
     recorder.save(_cur_file)
+
+
+def record_screen(file, uia_callback=None, rect=(0, 0, 1920, 1080)):
+    recorder.rect = rect
+
+    if uia_callback is None:
+        print2('Press F1 to screencap to "%s"' % file)
+        wait_for_key("f1")
+
+    recorder.start_record()
+
+    if uia_callback is None:
+        print2("Press F1 again to stop recording.")
+        wait_for_key("f1")
+
+    else:
+        uia_callback()
+
+    recorder.stop_record()
+    recorder.save(file)
+
+
+app = Application()
+
+
+def start_application(args, title, restart=False, size=(1920, 1080)):
+    logging.debug("find window by title: %s", title)
+    try:
+        app.connect(title=title)
+        if restart:
+            app.kill(soft=True)
+    except pywinauto.findwindows.ElementNotFoundError:
+        restart = True
+
+    if restart:
+        start_process(["cmd", "/c", "start"] + args)
+        app.connect(title=title, timeout=5)
+
+    logging.debug("wait for window...")
+    window = app.window(title=title)
+    window.wait("exists")
+
+    logging.debug("move window")
+    window.set_focus()
+    set_active_window_pos(0, 0, size[0], size[1])
+    # window.move_window(x=pos[0], y=pos[1], width=pos[2], height=pos[3])
+
+
+def record_app(*, file, args, title, uia_callback=None, size=(1920, 1080)):
+    start_application(args=args, title=title, size=size)
+    record_screen(file, uia_callback=uia_callback, rect=[0, 0, size[0], size[1]])
 
 
 def prompt_record_file_name():

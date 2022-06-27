@@ -196,6 +196,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--stat", action="store_true", default=False)
     parser.add_argument("--preview", action="store_true", default=False)
+    parser.add_argument("--force", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -254,6 +255,9 @@ if __name__ == "__main__":
 
             if args.preview:
                 coreapi.enable_preview()
+
+            if args.force:
+                codeapi.force()
 
             if args.audio_only:
                 coreapi.set_audio_only()
