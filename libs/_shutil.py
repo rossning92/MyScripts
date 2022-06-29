@@ -1595,7 +1595,7 @@ def pause(msg="continue"):
     input(f"Press enter to {msg}...")
 
 
-def open_url(url):
+def open_url(url, new_window=False):
     import webbrowser
 
     CHROME_PATH = [
@@ -1606,9 +1606,13 @@ def open_url(url):
     if sys.platform == "win32":
         for path in CHROME_PATH:
             if os.path.isfile(path):
-                start_process([path, "--new-window", url])
-
-    webbrowser.open(url, new=1)
+                args = [path]
+                if new_window:
+                    args.append("--new-window")
+                args.append(url)
+                start_process(args)
+    else:
+        webbrowser.open(url, new=1 if new_window else 0)
 
 
 def keep_awake():
