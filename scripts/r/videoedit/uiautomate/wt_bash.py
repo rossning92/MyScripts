@@ -15,8 +15,12 @@ args = {
 }
 
 
-def record_wt_bash(file, cmds):
-    return record_windows_terminal(file, cmds=cmds, **args,)
+def record_wt_bash(file, cmd):
+    return record_windows_terminal(
+        file,
+        cmd=cmd,
+        **args,
+    )
 
 
 if __name__ == "__main__":

@@ -547,7 +547,9 @@ def write_lines(file, lines):
         f.write("\n".join(lines))
 
 
-def proc_lines(args, echo=False, read_err=False, max_lines=None, check=True, **kwargs):
+def read_proc_lines(
+    args, echo=False, read_err=False, max_lines=None, check=True, **kwargs
+):
     def terminate():
         nonlocal ps
         if sys.platform == "win32":
@@ -678,7 +680,7 @@ def call_highlight(args, highlight=None, filter_line=None, **kwargs):
     if highlight is None:
         highlight = {}
 
-    for line in proc_lines(args, **kwargs):
+    for line in read_proc_lines(args, **kwargs):
         # Filter line by pre-defined functions
         if filter_line:
             line = filter_line(line)

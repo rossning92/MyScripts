@@ -1,20 +1,23 @@
 from _shutil import *
 from _term import *
 
-proj_dir = r'C:\Users\Ross\Projects\UnityToonShader'
+proj_dir = r"C:\Users\Ross\Projects\UnityToonShader"
 
-rev = '91d6155496d3d5fb0a476ecd8903e34c46cb5e92'
+rev = "91d6155496d3d5fb0a476ecd8903e34c46cb5e92"
 
 
 def insert_line(line_no, line):
     print(line_no, line)
 
-    exec_ahk('''
+    exec_ahk(
+        """
 WinActivate ahk_exe devenv.exe
 MouseClick, L, 500, 500
 
 Send ^g
-Send ''' + str(line_no) + '''
+Send """
+        + str(line_no)
+        + '''
 Send {Enter}
 
 SendLevel 1
@@ -26,7 +29,9 @@ Sleep 1000
 Send {Up}
 Send {End}
 
-s := "''' + line.replace('"', '""').replace('\n', '`n') + '''"
+s := "'''
+        + line.replace('"', '""').replace("\n", "`n")
+        + """"
 
 Loop, parse, s, `n, `r
 {
@@ -62,7 +67,8 @@ Sleep 2000
 SendLevel 1
 Send ^{F6}
 SendLevel 0
-    ''')
+    """
+    )
 
     time.sleep(2)
 
@@ -70,7 +76,7 @@ SendLevel 0
 cd(proj_dir)
 
 
-lines = list(proc_lines('git log --pretty="format:%h %s" master'))
+lines = list(read_proc_lines('git log --pretty="format:%h %s" master'))
 i = 2
 i = prompt_list(lines)
 
@@ -78,7 +84,7 @@ commit, message = lines[i].split(maxsplit=1)
 
 # call_echo(['git', 'checkout', commit + '^'], shell=False)
 
-args = f'git --no-pager diff {commit}^ {commit}'
+args = f"git --no-pager diff {commit}^ {commit}"
 s = get_output(args)
 lines = s.splitlines()
 
@@ -88,12 +94,12 @@ line_start = None
 content = []
 i = 0
 for line in lines:
-    m = re.match(r'@@ -(\d+),(\d+) \+(\d+),(\d+) @@', line)
+    m = re.match(r"@@ -(\d+),(\d+) \+(\d+),(\d+) @@", line)
     if m:
         line_no = int(m.group(3))
     else:
         if line_no is not None:
-            if line.startswith('+'):
+            if line.startswith("+"):
 
                 if line_start is None:
                     line_start = line_no
@@ -102,7 +108,7 @@ for line in lines:
 
             elif line_start is not None:
                 if i == 0:
-                    insert_line(line_start, '\n'.join(content))
+                    insert_line(line_start, "\n".join(content))
 
                 line_start = None
                 content.clear()

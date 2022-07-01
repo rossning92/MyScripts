@@ -241,11 +241,11 @@ class Menu:
                 elif ch == ord("\n"):
                     self.on_enter_pressed()
 
-                elif ch == curses.KEY_UP:
+                elif ch == curses.KEY_UP or ch == curses.KEY_A2:
                     self.selected_row = max(self.selected_row - 1, 0)
                     self.on_item_selected()
 
-                elif ch == curses.KEY_DOWN:
+                elif ch == curses.KEY_DOWN or ch == curses.KEY_C2:
                     self.selected_row = min(
                         self.selected_row + 1, len(self.matched_item_indices) - 1
                     )
@@ -376,7 +376,10 @@ class DictValueEditWindow(Menu):
         self.type = type
 
         super().__init__(
-            items=default_vals, stdscr=stdscr, label=name + ":", text="",
+            items=default_vals,
+            stdscr=stdscr,
+            label=name + ":",
+            text="",
         )
 
     def on_enter_pressed(self):
@@ -451,7 +454,10 @@ class DictEditWindow(Menu):
         index = self.get_selected_index()
         name = list(self.dict_.keys())[index]
         DictValueEditWindow(
-            self.stdscr, self.dict_, name, type(self.dict_[name]),
+            self.stdscr,
+            self.dict_,
+            name,
+            type(self.dict_[name]),
         ).exec()
 
         self.on_dict_update(self.dict_)

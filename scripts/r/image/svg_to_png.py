@@ -1,6 +1,6 @@
 import os
 
-from _appmanager import get_executable
+from _pkgmanager import get_executable
 from _shutil import call_echo, get_files
 
 magick = get_executable("magick")

@@ -213,30 +213,30 @@ supported_keys = [
 ]
 
 
-def run_commands(cmds, sound=False):
-    if type(cmds) != str:
-        raise TypeError("cmds must be str")
+def run_commands(cmd, sound=False):
+    if type(cmd) != str:
+        raise TypeError("cmd must be str")
 
-    for cmd in re.split(r"((?<!\\)\{.*?(?<!\\)\})", cmds):
-        if cmd.startswith("{"):
-            cmd = cmd[1:-1]
-            if cmd.startswith("sleep"):
-                secs = float(cmd.split(" ")[1])
+    for c in re.split(r"((?<!\\)\{.*?(?<!\\)\})", cmd):
+        if c.startswith("{"):
+            c = c[1:-1]
+            if c.startswith("sleep"):
+                secs = float(c.split(" ")[1])
                 time.sleep(secs)
-            elif cmd.startswith("text"):
-                text = cmd.lstrip("text ")
+            elif c.startswith("text"):
+                text = c.lstrip("text ")
                 pyautogui.write(text, interval=0)
-            elif cmd in supported_keys:
-                pyautogui.press(cmd)
+            elif c in supported_keys:
+                pyautogui.press(c)
                 sleep_random(0.1)
-            elif re.match("^[!+^]+[0-9a-z]+$", cmd):
+            elif re.match("^[!+^]+[0-9a-z]+$", c):
                 pyautogui.hotkey(
-                    *cmd.replace("+", "shift+")
+                    *c.replace("+", "shift+")
                     .replace("!", "alt+")
                     .replace("^", "ctrl+")
                     .split("+")
                 )
                 sleep_random(0.1)
         else:
-            cmd = cmd.replace("\\{", "{").replace("\\}", "}")
-            typing(cmd, sound=sound)
+            c = c.replace("\\{", "{").replace("\\}", "}")
+            typing(c, sound=sound)

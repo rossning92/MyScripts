@@ -1,6 +1,6 @@
 import os
 
-from _appmanager import get_executable
+from _pkgmanager import get_executable
 from _shutil import call2, get_files, mkdir, shell_open
 
 
@@ -21,9 +21,9 @@ def unzip(files):
             out_dir = os.path.splitext(file)[0]
             args = [
                 _7z,
-                "x",  # Extract
-                "-aoa",  # Overwrite all existing files
-                "-o" + out_dir,  # Out folder
+                "x",  # extract
+                "-aoa",  # overwrite all existing files
+                "-o" + out_dir,  # out folder
                 file,
             ]
             call2(args)

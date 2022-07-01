@@ -1,9 +1,10 @@
 import glob
-import subprocess
-import os
-from _shutil import exec_ahk, start_process
-from _appmanager import get_executable
 import json
+import os
+import subprocess
+
+from _pkgmanager import get_executable
+from _shutil import exec_ahk, start_process
 
 
 def get_pycharm_executable():
@@ -70,18 +71,4 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
 
 
 def open_in_text_editor(path, line_number=None):
-    if os.name == "posix":
-        subprocess.Popen(["code", path])
-    else:
-        if os.path.splitext(path)[1] == ".py":
-            open_in_pycharm(path)
-        elif os.path.splitext(path)[1] == ".js":
-            open_in_vscode(path)
-        else:
-            try:
-                args = ["notepad++", path]
-                if line_number is not None:
-                    args.append(f"-n{line_number}")
-                subprocess.Popen(args, close_fds=True)
-            except:
-                subprocess.Popen(["notepad", path], close_fds=True)
+    open_in_vscode(path, line_number=line_number)

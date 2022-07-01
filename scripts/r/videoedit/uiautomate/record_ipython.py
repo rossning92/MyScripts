@@ -9,6 +9,6 @@ if __name__ == "__main__":
     out_file = os.path.splitext(file)[0] + ".mp4"
 
     with open(file, encoding="utf-8") as f:
-        cmds = f.read()
+        cmd = f.read()
 
-    record_ipython(out_file, cmds, startup="import torch")
+    record_ipython(out_file, cmd=cmd, startup="import torch")

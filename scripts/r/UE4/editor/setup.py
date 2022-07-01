@@ -1,11 +1,10 @@
 import os
 
-from _appmanager import choco_install
+from _pkgmanager import install_package
 from _shutil import call_echo, cd
 
 if __name__ == "__main__":
-    choco_install("directx")
-
+    install_package("directx")
 
     # TODO: install vs2019 C++ and C#
 
@@ -29,7 +28,7 @@ if __name__ == "__main__":
                 f.write(s)
             call_echo("Setup.NoVersionSelector.bat")
 
-        # choco_install("netfx-4.6.2-devpack")
+        # install_package("netfx-4.6.2-devpack")
 
         # call_echo("GenerateProjectFiles.bat -2017")
         call_echo("GenerateProjectFiles.bat")

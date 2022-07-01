@@ -8,7 +8,14 @@ import sys
 import threading
 import time
 
-from _shutil import call2, call_echo, check_output, prepend_to_path, print2, proc_lines
+from _shutil import (
+    call2,
+    call_echo,
+    check_output,
+    prepend_to_path,
+    print2,
+    read_proc_lines,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +164,7 @@ def logcat(
 
     while True:
         try:
-            for line in proc_lines(args):
+            for line in read_proc_lines(args):
                 match = re.match(LOGCAT_PATTERN, line)
                 if match is None:
                     logger.debug(line)
@@ -717,7 +724,7 @@ def logcat_bg(patt):
         while True:
             print("logcat begin.", end="\r\n")
 
-            for line in proc_lines(
+            for line in read_proc_lines(
                 [
                     "adb",
                     "logcat",

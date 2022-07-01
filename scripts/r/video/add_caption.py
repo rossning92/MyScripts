@@ -1,13 +1,12 @@
 import os
 
-from _appmanager import get_executable
+from _pkgmanager import get_executable
+from _shutil import call2, call_echo, get_files
 
-if 1:
-    IMAGE_MAGICK = get_executable("magick")
-    os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
-    print(IMAGE_MAGICK)
+IMAGE_MAGICK = get_executable("magick")
+os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
 
-from _shutil import *
+
 from moviepy.editor import TextClip, VideoFileClip, clips_array
 
 
@@ -47,7 +46,7 @@ if __name__ == "__main__":
     name_no_ext, ext = os.path.splitext(f)
     text_file = name_no_ext + ".txt"
 
-    call(["notepad.exe", text_file])
+    call2(["notepad.exe", text_file])
     with open(text_file, "r") as fp:
         text = fp.read()
 

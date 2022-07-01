@@ -7,7 +7,7 @@ import re
 import sys
 
 import yaml
-from _appmanager import get_executable
+from _pkgmanager import get_executable
 from _shutil import format_time, get_time_str, keep_awake, print2, to_valid_file_name
 from moviepy.config import change_settings
 
@@ -257,7 +257,7 @@ if __name__ == "__main__":
                 coreapi.enable_preview()
 
             if args.force:
-                codeapi.force()
+                core.force = True
 
             if args.audio_only:
                 coreapi.set_audio_only()
@@ -269,4 +269,3 @@ if __name__ == "__main__":
     except core.VideoEditException as ex:
         print2("ERROR: %s" % ex, color="red")
         sys.exit(1)
-

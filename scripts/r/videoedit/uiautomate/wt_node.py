@@ -7,13 +7,13 @@ from .windows_terminal import record_windows_terminal
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def record_wt_node(file, cmds, font_size=14, sound=False):
+def record_wt_node(file, cmd, font_size=14, sound=False):
     args = ["node", os.path.join(root, "_node_repl.js")]
 
     return record_windows_terminal(
         file,
         args=args,
-        cmds=cmds,
+        cmd=cmd,
         title="ross@ross-desktop2: node",
         font_size=font_size,
         icon=(root + "/icons/node.ico").replace("\\", "/"),

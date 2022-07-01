@@ -1,34 +1,36 @@
-from _shutil import *
+import os
+import subprocess
+
+from _shutil import read_proc_lines
 from prompt_toolkit import prompt
-from prompt_toolkit.completion import *
+from prompt_toolkit.completion import FuzzyWordCompleter
 
-
-cur = '/sdcard'
-save_path = os.path.expanduser(os.path.join('~', 'Desktop'))
+cur = "/sdcard"
+save_path = os.path.expanduser(os.path.join("~", "Desktop"))
 
 while True:
-    files = list(proc_lines('adb shell "ls \'%s\'"' % cur))
-    print('\n'.join(['@%d %s' % (i, x) for i, x in enumerate(files)]))
+    files = list(read_proc_lines("adb shell \"ls '%s'\"" % cur))
+    print("\n".join(["@%d %s" % (i, x) for i, x in enumerate(files)]))
 
-    input = prompt('%s > ' % cur, completer=FuzzyWordCompleter(files))
-    if input == '':
+    input = prompt("%s > " % cur, completer=FuzzyWordCompleter(files))
+    if input == "":
         continue
 
-    elif input == '..':
+    elif input == "..":
         cur = os.path.dirname(cur)
         continue
 
-    elif input.startswith('@'):
+    elif input.startswith("@"):
         index = int(input[1:])
-        selected = cur + '/' + files[index]
+        selected = cur + "/" + files[index]
 
     else:
-        selected = cur + '/' + input
+        selected = cur + "/" + input
 
     # check if it is a file
-    if subprocess.call(['adb', 'shell', '[ -f "%s" ]' % selected]) == 0:
+    if subprocess.call(["adb", "shell", '[ -f "%s" ]' % selected]) == 0:
         print(selected)
-        print('Pulling file %s...' % selected)
-        subprocess.check_call(['adb', 'pull', selected, save_path])
+        print("Pulling file %s..." % selected)
+        subprocess.check_call(["adb", "pull", selected, save_path])
     else:
         cur = selected

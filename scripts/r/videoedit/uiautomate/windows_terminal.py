@@ -41,7 +41,9 @@ def open_wt_with_bg():
     time.sleep(2)
 
     open_wt(
-        icon=root + "/icons/cmd.png", title="Command Prompt", opacity=0.9,
+        icon=root + "/icons/cmd.png",
+        title="Command Prompt",
+        opacity=0.9,
     )
     time.sleep(2)
 
@@ -55,12 +57,12 @@ def open_wt_with_bg():
     time.sleep(0.5)
 
 
-def record_windows_terminal(file, args, cmds, sound=False, size=(1440, 810), **kwargs):
+def record_windows_terminal(file, args, cmd, sound=False, size=(1440, 810), **kwargs):
     open_wt(args, size=size, **kwargs)
 
     start_record(file, (0, 0, size[0], size[1]))
 
-    run_commands(cmds, sound=sound)
+    run_commands(cmd=cmd, sound=sound)
 
     stop_record()
 

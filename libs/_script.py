@@ -16,9 +16,9 @@ import time
 import yaml
 
 from _android import setup_android_env
-from _appmanager import get_executable
 from _editor import open_in_vscode
 from _filelock import FileLock
+from _pkgmanager import get_executable
 from _shutil import (
     CONEMU_INSTALL_DIR,
     activate_window_by_name,
@@ -965,15 +965,11 @@ class Script:
                 if sys.platform == "win32":
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,

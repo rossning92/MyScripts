@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from _shutil import call_echo, proc_lines
+from _pkgmanager import install_package
 from _term import Menu
 
 PKGS = {
@@ -93,25 +93,6 @@ PKGS = {
         "win32diskimager",
     ],
 }
-
-
-def install_package(name):
-    # choco list -lo
-    lines = proc_lines(["choco", "list", "-lo"])
-    lines = [x for x in lines if x.startswith(name)]
-
-    if len(lines) > 0:
-        print("Upgrade `%s`..." % name)
-        call_echo(
-            ["choco", "upgrade", name, "-y", "-s", "https://chocolatey.org/api/v2/"],
-            check=False,
-        )
-    else:
-        print("Install `%s`..." % name)
-        call_echo(
-            ["choco", "install", name, "-y", "-s", "https://chocolatey.org/api/v2/"],
-            check=False,
-        )
 
 
 def install_recursive(name):

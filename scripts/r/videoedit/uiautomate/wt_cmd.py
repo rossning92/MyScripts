@@ -23,13 +23,16 @@ def open_wt_cmd(startup=None, cwd=None, **kwargs):
 
 
 def record_wt_cmd(
-    file, cmds, size=(1440, 810), **kwargs,
+    file,
+    cmd,
+    size=(1440, 810),
+    **kwargs,
 ):
     open_wt_cmd(size=size, **kwargs)
 
     start_record(file, (0, 0, size[0], size[1]))
 
-    run_commands(cmds)
+    run_commands(cmd)
     time.sleep(5)
 
     stop_record()

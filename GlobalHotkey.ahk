@@ -1,4 +1,5 @@
 #SingleInstance, Force
+#InstallKeybdHook
 #include ahk/ExplorerHelper.ahk
 
 #If not WinActive("ahk_exe vncviewer.exe")

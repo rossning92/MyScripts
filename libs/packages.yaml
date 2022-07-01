@@ -1,57 +1,53 @@
 notepad++:
-  executable:
+  exec:
     - notepad++.exe
   choco: notepadplusplus
 
-VLC:
-  executable:
+vlc:
+  exec:
     - C:\Program Files\VideoLAN\VLC\vlc.exe
     - C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
 
-IrfanView:
-  executable:
+irfanview:
+  exec:
     - C:\Program Files\IrfanView\i_view64.exe
 
-SumatraPDF:
-  executable:
+sumatrapdf:
+  exec:
     - SumatraPDF.exe
     - "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
 
 7z:
-  executable:
+  exec:
     - C:\Program Files\7-Zip\7z.exe
   choco: 7zip
 
-7zFM:
-  executable:
+7zfm:
+  exec:
     - C:\Program Files\7-Zip\7zFM.exe
   choco: 7zip
 
 vscode:
-  executable:
+  exec:
     - "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe"
     - C:\Program Files\Microsoft VS Code\Code.exe
     - code
   linux_install: /r/install_vscode_linux
 
-PotPlayer:
-  executable:
-    - C:\Program Files\DAUM\PotPlayer\PotPlayerMini64.exe
-
 ripgrep:
-  executable:
+  exec:
     - C:\ProgramData\chocolatey\lib\ripgrep\tools\rg.exe
 
 veracrypt:
-  executable:
+  exec:
     - C:\Program Files\VeraCrypt\VeraCrypt.exe
 
-Audacity:
-  executable:
+audacity:
+  exec:
     - C:\Program Files (x86)\Audacity\audacity.exe
 
 ocenaudio:
-  executable:
+  exec:
     - "%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"
 
 sox:
@@ -59,25 +55,25 @@ sox:
 
 magick:
   choco: imagemagick
-  executable:
+  exec:
     - C:\Program Files\ImageMagick-*\magick.exe
 
 tad:
-  executable:
+  exec:
     - C:\Program Files\Tad\Tad.exe
 
 adobereader:
-  executable:
+  exec:
     - C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe
 
 ffmpeg:
-  executable:
+  exec:
     - C:\ProgramData\chocolatey\bin\ffmpeg.exe
 
 mpv:
-  executable:
+  exec:
     - C:\ProgramData\chocolatey\lib\mpv.install\tools\mpv.exe
 
 klogg:
-  executable:
+  exec:
     - C:\Program Files\klogg\klogg.exe

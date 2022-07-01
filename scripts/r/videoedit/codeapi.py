@@ -4,17 +4,13 @@ from _shutil import get_hash
 
 from . import core, coreapi
 from .uiautomate import record_ipython, record_wt_cmd, record_wt_node
-from .uiautomate.record_alacritty import open_alacritty as open_alacritty2
-from .uiautomate.record_alacritty import record_alacritty
+from .uiautomate.record_alacritty import (
+    open_alacritty,
+    open_bash,
+    open_cmd,
+    record_term,
+)
 from .uiautomate.record_screen import record_app
-
-_force = False
-
-
-@core.api
-def force():
-    global _force
-    _force = True
 
 
 @core.api
@@ -52,53 +48,55 @@ def codef(
 
 
 @core.api
-def ipython(s, file=None, startup=None, font_size=14, **kwargs):
+def ipython(cmd, file=None, startup=None, font_size=14, **kwargs):
     if file is None:
-        file = "screencap/ipython/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or _force:
-        record_ipython(file, s, startup=startup, font_size=font_size)
+        file = "screencap/ipython/%s.mp4" % get_hash(cmd)
+    if not os.path.exists(file) or core.force:
+        record_ipython(file, cmd, startup=startup, font_size=font_size)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def cmd(s, font_size=14, file=None, **kwargs):
+def cmd(cmd, font_size=14, file=None, **kwargs):
     if file is None:
-        file = "screencap/cmd/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or _force:
-        record_wt_cmd(file, s, font_size=font_size, **kwargs)
+        file = "screencap/cmd/%s.mp4" % get_hash(cmd)
+    if not os.path.exists(file) or core.force:
+        record_wt_cmd(file, cmd, font_size=font_size, **kwargs)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def node(s, font_size=14, file=None, sound=False, **kwargs):
+def node(cmd, font_size=14, file=None, sound=False, **kwargs):
     if file is None:
-        file = "screencap/node/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or _force:
-        record_wt_node(file, s, font_size=font_size, sound=sound)
+        file = "screencap/node/%s.mp4" % get_hash(cmd)
+    if not os.path.exists(file) or core.force:
+        record_wt_node(file, cmd, font_size=font_size, sound=sound)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def bash(s=None, file=None, **kwargs):
+def term(cmd=None, file=None, **kwargs):
     if file is None:
-        file = "screencap/bash/%s.mp4" % get_hash(s)
-    if not os.path.exists(file) or _force:
-        record_alacritty(file=file, cmds=s, **kwargs)
+        file = "screencap/term/%s.mp4" % get_hash(cmd)
+    if not os.path.exists(file) or core.force:
+        record_term(file=file, cmd=cmd, **kwargs)
     return coreapi.clip(file, **kwargs)
 
 
 @core.api
-def open_alacritty(**kwargs):
-    if not _force:
-        return
-
-    open_alacritty2(**kwargs)
+def bash(*args, **kwargs):
+    term(*args, **kwargs)
 
 
 @core.api
 def screencap(*, file, args, title, size=(1920, 1080), uia_callback=None, **kwargs):
-    if not os.path.exists(file) or _force:
+    if not os.path.exists(file) or core.force:
         record_app(
             args=args, file=file, size=size, uia_callback=uia_callback, title=title
         )
     return coreapi.clip(file, **kwargs)
+
+
+core.api(open_alacritty, optional=True)
+core.api(open_bash, optional=True)
+core.api(open_cmd, optional=True)

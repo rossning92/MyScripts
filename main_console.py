@@ -258,6 +258,7 @@ def register_global_hotkeys_win(scripts):
 
             hotkey_def += (
                 f"{func_name}() {{\n"
+                "    Send {Alt Up}{Ctrl Up}{Shift Up}\n"  # prevent wrong windows getting focus
                 f'    RunScript("{item.name}", "{item.script_path}")\n'
                 "}\n"
             )

@@ -15,6 +15,10 @@
     "prefix": "bgm",
     "body": ["{{ bgm('$1') }}"]
   },
+  "pos": {
+    "prefix": "pos",
+    "body": ["{{ pos('ve', tag='a') }}"]
+  },
   "crossfade": {
     "prefix": "crossfade",
     "body": ["{{ crossfade(0.2) }}"]

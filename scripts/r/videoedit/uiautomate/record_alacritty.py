@@ -5,7 +5,7 @@ import subprocess
 import time
 
 from _script import wrap_args_alacritty
-from _shutil import setup_logger, shell_open
+from _shutil import setup_logger, shell_open, write_temp_file
 
 from .common import run_commands
 from .record_screen import record_screen, start_application
@@ -17,7 +17,7 @@ def open_alacritty(
     args=["wsl", "-e", "sh", "-c", "cd $HOME; bash"],
     restart=True,
     font_size=14,
-    **kwargs
+    **kwargs,
 ):
     subprocess.call(
         ["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"]
@@ -40,20 +40,40 @@ def open_alacritty(
         borderless=True,
         padding=32,
         font="hack",
-        **kwargs
+        **kwargs,
     )
     start_application(args=args, title=title, restart=restart)
-
-
-def record_alacritty(*, file, cmds=None, size=(1920, 1080), **kwargs):
-    logging.info("record_alacritty: %s", file)
-    open_alacritty(restart=False, **kwargs)
     time.sleep(0.2)
+
+
+def open_cmd(cmd=None, **kwargs):
+    tmp_batch_file = write_temp_file(
+        (f"{cmd}&" if cmd else "") + r"set PROMPT=$e[0;37m$P$G$E[1;37m& echo.&cls",
+        ".cmd",
+    )
+    args = [
+        "cmd",
+        "/k",
+        f"call {tmp_batch_file}",
+    ]
+    open_alacritty(args=args, **kwargs)
+
+
+def open_bash(**kwargs):
+    args = ["wsl", "-e", "sh", "-c", "cd $HOME; bash"]
+    open_alacritty(args=args, **kwargs)
+
+
+def record_term(
+    *, file, cmd=None, size=(1920, 1080), open_term_func=open_bash, **kwargs
+):
+    logging.info("record_term: %s", file)
+    open_term_func(restart=False, **kwargs)
 
     record_screen(
         file,
-        uia_callback=(lambda: (run_commands(cmds), time.sleep(0.2)))
-        if cmds is not None
+        uia_callback=(lambda: (run_commands(cmd), time.sleep(0.2)))
+        if cmd is not None
         else None,
         rect=(0, 0, size[0], size[1]),
     )
@@ -64,6 +84,6 @@ def record_alacritty(*, file, cmds=None, size=(1920, 1080), **kwargs):
 if __name__ == "__main__":
     setup_logger()
     file = os.path.expanduser("~/Desktop/test.mp4")
-    # record_alacritty(file=file, cmds=None)
-    record_alacritty(file=file, cmds="echo hello, world!\n")
+    # record_term(file=file, cmd=None)
+    record_term(file=file, cmd="echo hello, world!\n")
     shell_open(file)
