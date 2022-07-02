@@ -1,6 +1,6 @@
+#!/bin/bash
 set -e
-
-cd ../..
+cd "$(dirname "$0")/../../"
 echo "Script dir: $(pwd)"
 
 if [ ! -d ".git" ]; then

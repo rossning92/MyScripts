@@ -112,7 +112,9 @@ class CapturaScreenRecorder(ScreenRecorder):
             ]
 
         self.captura_ps = subprocess.Popen(
-            args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
         )
         for line in self.captura_ps.stdout:
             line = line.decode(errors="ignore")
@@ -160,7 +162,8 @@ class ShadowPlayScreenRecorder(ScreenRecorder):
     def save(self, file):
         # Get recorded video files
         files = glob.glob(
-            os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"), recursive=True,
+            os.path.expandvars("%USERPROFILE%\\Videos\\**\\*.mp4"),
+            recursive=True,
         )
         files = sorted(list(files), key=os.path.getmtime, reverse=True)
         in_file = files[0]
@@ -286,13 +289,13 @@ def record_screen(file, uia_callback=None, rect=(0, 0, 1920, 1080)):
     recorder.rect = rect
 
     if uia_callback is None:
-        print2('Press F1 to screencap to "%s"' % file)
+        print2(f'Press F1 to screencap to "{file}"', color="green")
         wait_for_key("f1")
 
     recorder.start_record()
 
     if uia_callback is None:
-        print2("Press F1 again to stop recording.")
+        print2("Press F1 again to stop recording.", color="green")
         wait_for_key("f1")
 
     else:
@@ -305,22 +308,32 @@ def record_screen(file, uia_callback=None, rect=(0, 0, 1920, 1080)):
 app = Application()
 
 
-def start_application(args, title, restart=False, size=(1920, 1080)):
-    logging.debug("find window by title: %s", title)
-    try:
-        app.connect(title=title)
+def start_application(args, title=None, restart=False, size=(1920, 1080)):
+    if title:
+        logging.debug("find window by title: %s", title)
+        try:
+            app.connect(title=title)
+            if restart:
+                app.kill(soft=True)
+        except pywinauto.findwindows.ElementNotFoundError:
+            restart = True
+
         if restart:
-            app.kill(soft=True)
-    except pywinauto.findwindows.ElementNotFoundError:
-        restart = True
+            start_process(["cmd", "/c", "start"] + args)
+            app.connect(title=title, timeout=5)
 
-    if restart:
+        logging.debug("wait for window...")
+        window = app.window(title=title)
+        window.wait("exists")
+    else:
+        handle = old_handle = ctypes.windll.user32.GetForegroundWindow()
         start_process(["cmd", "/c", "start"] + args)
-        app.connect(title=title, timeout=5)
+        while handle == old_handle:
+            handle = ctypes.windll.user32.GetForegroundWindow()
+            time.sleep(0.1)
 
-    logging.debug("wait for window...")
-    window = app.window(title=title)
-    window.wait("exists")
+        app.connect(handle=handle, timeout=5)
+        window = app.window(handle=handle)
 
     logging.debug("move window")
     window.set_focus()
@@ -328,7 +341,7 @@ def start_application(args, title, restart=False, size=(1920, 1080)):
     # window.move_window(x=pos[0], y=pos[1], width=pos[2], height=pos[3])
 
 
-def record_app(*, file, args, title, uia_callback=None, size=(1920, 1080)):
+def record_app(*, file, args, title=None, uia_callback=None, size=(1920, 1080)):
     start_application(args=args, title=title, size=size)
     record_screen(file, uia_callback=uia_callback, rect=[0, 0, size[0], size[1]])
 

@@ -755,6 +755,9 @@ class Script:
         else:
             cwd = None
 
+        if "_CUR_DIR" in os.environ:
+            cwd = os.environ["_CUR_DIR"]
+
         if ext == ".ps1":
             if sys.platform == "win32":
                 if self.cfg["template"]:

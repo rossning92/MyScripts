@@ -162,20 +162,25 @@ def sleep_random(secs, sigma=None):
     time.sleep(max(0, random.gauss(secs, sigma)))
 
 
-def typing(s, sound=False):
+def typing(s, sound=False, no_sleep=False):
     for ch in s:
         if ch in [" ", "\t"]:
             if sound:
                 _sound.play()
-            sleep_random(0.1)
+            if not no_sleep:
+                sleep_random(0.1)
             pyautogui.write(ch)
-            sleep_random(0.1)
+            if not no_sleep:
+                sleep_random(0.1)
         elif ch == "\n":
-            sleep_random(0.3)
+            if not no_sleep:
+                sleep_random(0.3)
             pyautogui.write(ch)
-            sleep_random(0.3)
+            if not no_sleep:
+                sleep_random(0.3)
         else:
-            sleep_random(0.05)
+            if not no_sleep:
+                sleep_random(0.05)
             if sound:
                 _sound.play()
             pyautogui.write(ch)
@@ -210,10 +215,11 @@ supported_keys = [
     "pause",
     "pgdn",
     "pgup",
+    "backspace",
 ]
 
 
-def run_commands(cmd, sound=False):
+def run_commands(cmd, sound=False, no_sleep=False):
     if type(cmd) != str:
         raise TypeError("cmd must be str")
 
@@ -228,15 +234,26 @@ def run_commands(cmd, sound=False):
                 pyautogui.write(text, interval=0)
             elif c in supported_keys:
                 pyautogui.press(c)
-                sleep_random(0.1)
-            elif re.match("^[!+^]+[0-9a-z]+$", c):
-                pyautogui.hotkey(
-                    *c.replace("+", "shift+")
-                    .replace("!", "alt+")
-                    .replace("^", "ctrl+")
-                    .split("+")
-                )
-                sleep_random(0.1)
+                if not no_sleep:
+                    sleep_random(0.1)
+            elif re.match(r"^[!+^]*[0-9a-z]+(\*\d+)?$", c):
+                arr = c.split("*")
+                if len(arr) == 1:
+                    hotkey = arr[0]
+                    repeat = 1
+                else:
+                    hotkey = arr[0]
+                    repeat = int(arr[1])
+
+                for _ in range(repeat):
+                    pyautogui.hotkey(
+                        *hotkey.replace("+", "shift+")
+                        .replace("!", "alt+")
+                        .replace("^", "ctrl+")
+                        .split("+")
+                    )
+                if not no_sleep:
+                    sleep_random(0.1)
         else:
             c = c.replace("\\{", "{").replace("\\}", "}")
-            typing(c, sound=sound)
+            typing(c, sound=sound, no_sleep=no_sleep)

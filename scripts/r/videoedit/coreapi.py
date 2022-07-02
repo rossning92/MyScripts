@@ -555,7 +555,13 @@ def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
 
 @core.api
 def bgm(
-    f, move_playhead=False, vol=0.08, track="bgm", norm=True, loop=True, **kwargs,
+    f,
+    move_playhead=False,
+    vol=0.08,
+    track="bgm",
+    norm=True,
+    loop=True,
+    **kwargs,
 ):
     print("bgm: %s" % f)
 
@@ -563,7 +569,12 @@ def bgm(
         f = dynamic_audio_normalize(f)
 
     audio(
-        f, track=track, move_playhead=move_playhead, loop=loop, vol=vol, **kwargs,
+        f,
+        track=track,
+        move_playhead=move_playhead,
+        loop=loop,
+        vol=vol,
+        **kwargs,
     )
 
 
@@ -622,7 +633,11 @@ def overlay(
 @core.api
 def comment(text, pos=(960, 100), duration=4, track="overlay", **kwargs):
     md(
-        text, pos=pos, duration=duration, track=track, **kwargs,
+        text,
+        pos=pos,
+        duration=duration,
+        track=track,
+        **kwargs,
     )
 
 
@@ -989,12 +1004,17 @@ def _generate_slide(in_file, template, out_file=None, public=None):
 
 @core.api
 def slide(
-    s, template, pos="center", name=None, **kwargs,
+    s,
+    template,
+    pos="center",
+    name=None,
+    **kwargs,
 ):
     if os.path.exists(s):
+        mkdir("tmp/md")
         out_file = "tmp/md/%s.png" % get_hash(s)
         if file_is_old(s, out_file):
-            _generate_slide(s, template=template, out_file=out_file)
+            _generate_slide(s, template=template, out_file=out_file, public=os.getcwd())
 
     else:
         mkdir("tmp/md")
@@ -1075,7 +1095,17 @@ def enable_preview():
 
 
 def _update_mpy_clip(
-    clip, subclip, speed, frame, norm, loop, duration, pos, scale, vol, **kwargs,
+    clip,
+    subclip,
+    speed,
+    frame,
+    norm,
+    loop,
+    duration,
+    pos,
+    scale,
+    vol,
+    **kwargs,
 ):
     assert duration is not None
 
@@ -1151,7 +1181,9 @@ def _update_mpy_clip(
 def _update_clip_duration(track):
     def is_connected(prev_clip, cur_clip):
         return math.isclose(
-            prev_clip.start + prev_clip.duration, cur_clip.start, rel_tol=1e-3,
+            prev_clip.start + prev_clip.duration,
+            cur_clip.start,
+            rel_tol=1e-3,
         )
 
     prev_clip_info = None
@@ -1433,4 +1465,3 @@ def export_video(*, out_filename, resolution, preview=False):
 # def _export_srt():
 #     with open("out.srt", "w", encoding="utf-8") as f:
 #         f.write("\n".join(_state.srt_lines))
-

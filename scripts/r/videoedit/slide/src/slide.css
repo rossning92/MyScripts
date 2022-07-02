@@ -76,15 +76,6 @@ img[src$="#icon-larger"] {
   vertical-align: middle;
 }
 
-ul {
-  list-style-type: none;
-}
-ul > li:before {
-  content: "-";
-  font-weight: bold;
-  padding-right: 0.8em;
-}
-
 table {
   max-width: 1664px;
 }

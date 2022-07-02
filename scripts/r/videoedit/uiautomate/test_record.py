@@ -15,7 +15,6 @@ def record_explorer(file):
 
 def record_chrome(file):
     record_app(
-        title="Google - Google Chrome",
         args=["chrome", "--new-window", "www.google.com"],
         file=file,
     )

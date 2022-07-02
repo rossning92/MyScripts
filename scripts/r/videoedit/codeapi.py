@@ -1,6 +1,7 @@
 import os
 
 from _shutil import get_hash
+from click import option
 
 from . import core, coreapi
 from .uiautomate import record_ipython, record_wt_cmd, record_wt_node
@@ -76,11 +77,11 @@ def node(cmd, font_size=14, file=None, sound=False, **kwargs):
 
 @core.api
 def term(cmd=None, file=None, **kwargs):
-    if file is None:
-        file = "screencap/term/%s.mp4" % get_hash(cmd)
-    if not os.path.exists(file) or core.force:
-        record_term(file=file, cmd=cmd, **kwargs)
-    return coreapi.clip(file, **kwargs)
+    if core.force or (file is not None and not os.path.exists(file)):
+        record_term(file=file, cmd=cmd, dry_run=file is None, **kwargs)
+
+    if file is not None:
+        return coreapi.clip(file, **kwargs)
 
 
 @core.api
@@ -89,7 +90,9 @@ def bash(*args, **kwargs):
 
 
 @core.api
-def screencap(*, file, args, title, size=(1920, 1080), uia_callback=None, **kwargs):
+def screencap(
+    *, file, args, title=None, size=(1920, 1080), uia_callback=None, **kwargs
+):
     if not os.path.exists(file) or core.force:
         record_app(
             args=args, file=file, size=size, uia_callback=uia_callback, title=title

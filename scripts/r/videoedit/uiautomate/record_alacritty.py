@@ -65,18 +65,29 @@ def open_bash(**kwargs):
 
 
 def record_term(
-    *, file, cmd=None, size=(1920, 1080), open_term_func=open_bash, **kwargs
+    *,
+    file,
+    cmd=None,
+    size=(1920, 1080),
+    open_term_func=open_bash,
+    dry_run=False,
+    **kwargs,
 ):
     logging.info("record_term: %s", file)
     open_term_func(restart=False, **kwargs)
 
-    record_screen(
-        file,
-        uia_callback=(lambda: (run_commands(cmd), time.sleep(0.2)))
-        if cmd is not None
-        else None,
-        rect=(0, 0, size[0], size[1]),
-    )
+    if dry_run:
+        if cmd is not None:
+            run_commands(cmd, no_sleep=dry_run)
+
+    else:
+        record_screen(
+            file,
+            uia_callback=(lambda: (run_commands(cmd), time.sleep(0.2)))
+            if cmd is not None
+            else None,
+            rect=(0, 0, size[0], size[1]),
+        )
 
     return file
 

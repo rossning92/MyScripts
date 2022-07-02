@@ -35,12 +35,12 @@ def convert_to_gif(
     filter = f"[0:v] fps={fps}"
     if height is not None:
         filter += f",scale=-1:{height}"
-    filter += ",split [a][b];"
+    filter += ",split[a][b];"
 
     if single_pallete:
-        filter += "[a] palettegen [p];[b][p] paletteuse"
+        filter += "[a]palettegen[p];[b][p]paletteuse"
     else:
-        filter += "[a] palettegen=stats_mode=single [p];[b][p] paletteuse=new=1"
+        filter += "[a]palettegen=stats_mode=single[p];[b][p]paletteuse=new=1"
 
     args += ["-filter_complex", filter]
 

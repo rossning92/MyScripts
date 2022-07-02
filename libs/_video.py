@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 
-from _shutil import get_temp_file_name, call_echo
+from _shutil import call_echo, get_temp_file_name
 
 
 def hstack_videos(files, out_file=None):
@@ -40,7 +40,8 @@ def generate_video_matrix(
         subprocess.call("pip install moviepy")
 
     import numpy as np
-    from moviepy.editor import ColorClip, TextClip, VideoFileClip, clips_array, vfx
+    from moviepy.editor import (ColorClip, TextClip, VideoFileClip,
+                                clips_array, vfx)
     from moviepy.video.fx.all import crop
 
     if out_file is None:
@@ -296,7 +297,7 @@ def ffmpeg(
         filter_v.append("setpts=2.0*PTS*(1+random(0)*0.02)")
 
     if filter_v:
-        args += ["-filter:v", ",".join(filter_v)]
+        args += ["-vf", ",".join(filter_v)]
 
     if extra_args:
         args += extra_args
