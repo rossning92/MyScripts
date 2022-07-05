@@ -4,8 +4,8 @@ import sys
 
 from colorama import Fore
 
-kw = r"{{STR_TO_FIND}}"
-replacement = r"{{STR_TO_REPLACE}}"
+kw = os.environ["STR_TO_FIND"]
+replacement = os.environ["STR_TO_REPLACE"]
 
 
 def print_highlight(s, str_highlight):

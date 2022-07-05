@@ -9,7 +9,7 @@ from _term import Menu
 
 EXTENSIONS = {".wav", ".mp3", ".mid", ".ogg"}
 
-folder = r"{{AUDIO_DIR}}"
+folder = os.environ["AUDIO_DIR"]
 files = list(glob.glob(os.path.join(folder, "**", "*"), recursive=True))
 files = [x for x in files if os.path.isfile(x)]
 files = [x.replace(folder + os.path.sep, "").replace("\\", "/") for x in files]

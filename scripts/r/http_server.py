@@ -6,7 +6,7 @@ import socketserver
 from _shutil import get_ip_addresses
 
 PORT = 8000
-os.chdir(r"{{_DIR}}" if r"{{_DIR}}" else os.environ["_CUR_DIR"])
+os.chdir(os.environ["HTTP_ROOT_DIR"])
 
 
 for ip in get_ip_addresses():

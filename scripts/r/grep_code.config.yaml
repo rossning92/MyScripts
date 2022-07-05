@@ -1,2 +1,3 @@
 globalHotkey: Ctrl+Win+G
 packages: peco
+template: true

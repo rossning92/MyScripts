@@ -1,7 +1,7 @@
 import os
 import sys
 
-from _script import get_default_script_config_file, get_script_default_config
+from _script import get_script_config_file, get_script_default_config
 from _shutil import load_yaml, save_yaml
 from _term import DictEditWindow
 
@@ -9,7 +9,7 @@ if __name__ == "__main__":
     default_config = get_script_default_config()
 
     script_path = os.environ["_SCRIPT"]
-    script_config_file = get_default_script_config_file(script_path)
+    script_config_file = get_script_config_file(script_path)
     if not os.path.exists(script_config_file):
         data = {}
     else:

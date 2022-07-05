@@ -27,9 +27,10 @@ from _shutil import (
     exec_ahk,
     format_time,
     get_ahk_exe,
-    get_short_path_name,
+    load_yaml,
     print2,
     run_elevated,
+    save_yaml,
     setup_nodejs,
     slugify,
     wrap_args_conemu,
@@ -968,11 +969,15 @@ class Script:
                 if sys.platform == "win32":
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1257,7 +1262,7 @@ def start_script(file):
 
 def get_script_default_config():
     return {
-        "template": True,
+        "template": False,
         "hotkey": "",
         "globalHotkey": "",
         "alias": "",
@@ -1279,22 +1284,12 @@ def get_script_default_config():
     }
 
 
-def load_script_config(script_config_file):
-    return yaml.load(open(script_config_file, "r").read(), Loader=yaml.FullLoader)
-
-
-def save_script_config(data, script_config_file):
-    yaml.dump(
-        data, open(script_config_file, "w", newline="\n"), default_flow_style=False
-    )
-
-
-def get_default_script_config_file(script_path):
+def get_script_config_file(script_path):
     return os.path.splitext(script_path)[0] + ".config.yaml"
 
 
-def get_script_config_file(script_path):
-    f = get_default_script_config_file(script_path)
+def get_script_config_file2(script_path):
+    f = get_script_config_file(script_path)
     if os.path.exists(f):
         return f
 
@@ -1306,9 +1301,10 @@ def get_script_config_file(script_path):
 
 
 def get_script_config(script_path):
-    script_meta_file = get_script_config_file(script_path)
-    if script_meta_file:
-        data = load_script_config(script_meta_file)
+    script_config_file = get_script_config_file2(script_path)
+    if script_config_file:
+        with open(script_config_file, "r") as f:
+            data = yaml.load(f.read(), Loader=yaml.FullLoader)
     else:
         data = None
 
@@ -1320,6 +1316,21 @@ def get_script_config(script_path):
             config[k] = v
 
     return config
+
+
+def update_script_config(kvp, script_file):
+    default_config = get_script_default_config()
+    script_config_file = get_script_config_file(script_file)
+    if not os.path.exists(script_config_file):
+        data = {}
+    else:
+        data = load_yaml(script_config_file)
+        if data is None:
+            data = {}
+
+    data = {**default_config, **data, **kvp}
+    data = {k: v for k, v in data.items() if default_config[k] != v}
+    save_yaml(data, script_config_file)
 
 
 def create_script_link(script_file):
@@ -1440,7 +1451,7 @@ def script_updated():
     for _, d in get_script_directories():
         for f in get_scripts_recursive(d):
             mtime = max(mtime, os.path.getmtime(f))
-            script_config_file = get_script_config_file(f)
+            script_config_file = get_script_config_file2(f)
             file_list.append(f)
 
             # Check if config file is updated
@@ -1455,6 +1466,22 @@ def script_updated():
         return False
 
 
+def get_all_scripts():
+    for _, script_path in get_script_directories():
+        files = get_scripts_recursive(script_path)
+        for file in files:
+            # File has been removed during iteration
+            if not os.path.exists(file):
+                continue
+
+            # Hide files starting with '_'
+            base_name = os.path.basename(file)
+            if base_name.startswith("_"):
+                continue
+
+            yield file
+
+
 def reload_scripts(script_list, modified_time, autorun=True):
     if not script_updated():
         return False
@@ -1462,41 +1489,25 @@ def reload_scripts(script_list, modified_time, autorun=True):
     # TODO: only update modified scripts
     script_list.clear()
 
-    for prefix, script_path in get_script_directories():
-        files = get_scripts_recursive(script_path)
-        for file in files:
-            # File has been removed during iteration
-            if not os.path.exists(file):
-                continue
+    for file in get_all_scripts():
+        script = Script(file)
 
-            mtime = os.path.getmtime(file)
-            script_config_file = get_script_config_file(file)
-            if script_config_file:
-                mtime = max(mtime, os.path.getmtime(script_config_file))
+        mtime = os.path.getmtime(file)
+        script_config_file = get_script_config_file2(file)
+        if script_config_file:
+            mtime = max(mtime, os.path.getmtime(script_config_file))
+        if (
+            script.script_path not in modified_time
+            or mtime > modified_time[script.script_path]
+        ):
+            # Check if auto run script
+            if script.cfg["autoRun"] and autorun:
+                logging.info("AutoRun: %s" % script.name)
+                script.execute(new_window=False)
 
-            # Initialize script name
-            name = _replace_prefix(file, script_path, prefix)
-            name, ext = os.path.splitext(name)  # Remove ext
-            name = name.replace("\\", "/")
-            name = _replace_prefix(name, "/", "")
+        modified_time[script.script_path] = mtime
 
-            script = Script(file, name=name)
-
-            if (
-                script.script_path not in modified_time
-                or mtime > modified_time[script.script_path]
-            ):
-                # Check if auto run script
-                if script.cfg["autoRun"] and autorun:
-                    logging.info("AutoRun: %s" % script.name)
-                    script.execute(new_window=False)
-
-            # Hide files starting with '_'
-            base_name = os.path.basename(script.script_path)
-            if not base_name.startswith("_"):
-                script_list.append(script)
-
-            modified_time[script.script_path] = mtime
+        script_list.append(script)
 
     return True
 
