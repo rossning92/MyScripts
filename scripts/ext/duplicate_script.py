@@ -4,7 +4,8 @@ from _ext import edit_myscript_script, enter_script_path
 from _shutil import copy
 
 if __name__ == "__main__":
-    os.chdir("../")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(os.path.join(script_dir, ".."))
 
     script_path = enter_script_path()
 
