@@ -3,7 +3,8 @@ import os
 import signal
 import subprocess
 
-from _shutil import call_echo, start_process
+from _shutil import call_echo
+from web.open_in_browser_dev import open_new
 
 
 def start_server(file=None, port=None, dev=True):
@@ -12,9 +13,6 @@ def start_server(file=None, port=None, dev=True):
 
     if not os.path.exists(os.path.join(movy_root, "node_modules")):
         call_echo(["yarn"], cwd=movy_root)
-
-    shell = False
-    env = os.environ.copy()
 
     launch_script = os.path.join(movy_root, "bin", "movy.js")
     args = [
@@ -30,12 +28,7 @@ def start_server(file=None, port=None, dev=True):
     args += ["--port", "%d" % port]
 
     if dev:
-        start_process(
-            [
-                "C:\Program Files\Chromium\Application\chrome.exe",
-                "http://localhost:%d/?file=%s" % (port, os.path.basename(file)),
-            ]
-        )
+        open_new("http://localhost:%d/?file=%s" % (port, os.path.basename(file)))
     else:
         args += ["--no-hot"]
 
@@ -46,8 +39,6 @@ def start_server(file=None, port=None, dev=True):
         cwd=movy_root,
         # CTRL+C signals will be disabled in current process
         creationflags=0x00000200,
-        env=env,
-        shell=shell,
     )
     return ps
 

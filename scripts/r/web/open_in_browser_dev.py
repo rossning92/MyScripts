@@ -21,10 +21,11 @@ def open_new(url):
                         path,
                         r"--user-data-dir=%s"
                         % os.path.abspath("/tmp/chrome-dev-user-profile"),
-                        "--new-window",
+                        # "--new-window",
                         url,
                     ]
                 )
+                break
 
 
 if __name__ == "__main__":

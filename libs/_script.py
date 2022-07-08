@@ -330,7 +330,6 @@ def get_python_path(script_path):
     python_path = []
 
     script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
-    python_path.append(script_root)
     python_path.append(os.path.join(script_root, "r"))
 
     if script_path is not None:
@@ -342,7 +341,7 @@ def get_python_path(script_path):
 
     python_path.append(os.path.dirname(__file__))
 
-    return python_path
+    return list(set(python_path))
 
 
 def setup_python_path(env, script_path=None, wsl=False):
@@ -969,15 +968,11 @@ class Script:
                 if sys.platform == "win32":
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,

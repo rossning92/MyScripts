@@ -319,7 +319,7 @@ def start_application(args, title=None, restart=False, size=(1920, 1080)):
             restart = True
 
         if restart:
-            start_process(["cmd", "/c", "start"] + args)
+            start_process(["cmd", "/c", "start", ""] + args)
             app.connect(title=title, timeout=5)
 
         logging.debug("wait for window...")
@@ -327,7 +327,7 @@ def start_application(args, title=None, restart=False, size=(1920, 1080)):
         window.wait("exists")
     else:
         handle = old_handle = ctypes.windll.user32.GetForegroundWindow()
-        start_process(["cmd", "/c", "start"] + args)
+        start_process(["cmd", "/c", "start", ""] + args)
         while handle == old_handle:
             handle = ctypes.windll.user32.GetForegroundWindow()
             time.sleep(0.1)

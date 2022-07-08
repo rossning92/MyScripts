@@ -1254,7 +1254,7 @@ def wait_for_new_file(file_pattern, allow_exists=False):
                         time.sleep(0.1)
 
 
-def slugify(value, allow_unicode=False):
+def slugify(value, allow_unicode=True):
     """
     Taken from https://github.com/django/django/blob/master/django/utils/text.py
     Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
