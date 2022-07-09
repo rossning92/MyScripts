@@ -103,8 +103,6 @@ def get_console_title():
         assert ret > 0
         return saved_title.value.decode(locale.getpreferredencoding())
 
-    return None
-
 
 def wrap_wsl(commands, env=None):
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):

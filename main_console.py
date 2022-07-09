@@ -223,7 +223,11 @@ def add_keyboard_hooks(keyboard_hooks):
 
 
 def register_global_hotkeys_linux(scripts):
-    s = f"control+q\n  gnome-terminal -- python3 {script_root}/main_console.py -q\n\n"
+    s = (
+        f"control+q\n"
+        f"  gnome-terminal -- python3 {script_root}/main_console.py -q\n"
+        "\n"
+    )
 
     for item in scripts:
         hotkey = item.cfg["globalHotkey"]

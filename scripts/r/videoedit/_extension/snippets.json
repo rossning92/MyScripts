@@ -1,7 +1,7 @@
 {
   "md": {
     "prefix": "md",
-    "body": ["{{ md('## $1', t='as', duration=3) }}"]
+    "body": ["{{ md('### $1', t='as', duration=3) }}"]
   },
   "audio_gap": {
     "prefix": "audio_gap",

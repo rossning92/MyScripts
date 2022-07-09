@@ -794,16 +794,13 @@ def exec_bash(script, wsl=False, echo=False):
 
 
 def get_files(cd=False, ignore_dirs=True):
-    cur_folder = os.environ["_CUR_DIR"]
-
+    files = []
     if "_FILES" in os.environ:
         files = os.environ["_FILES"].split("|")
-    else:
-        files = list(glob.glob(os.path.join(cur_folder + "*.*")))
-
-    files = sorted(files)
+        files = sorted(files)
 
     if cd:
+        cur_folder = os.environ["_CUR_DIR"]
         os.chdir(cur_folder)
         files = [f.replace(cur_folder, "") for f in files]  # Relative path
         files = [x.lstrip(os.path.sep) for x in files]
@@ -863,31 +860,29 @@ def get_pretty_mtime(file):
 
 
 def update_env_var_explorer():
-    if sys.platform != "win32":
-        return
+    if sys.platform == "win32":
+        try:
+            with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
+                data = json.load(f)
 
-    try:
-        with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
-            data = json.load(f)
+            if data["current_folder"]:
+                os.environ["_CUR_DIR"] = data["current_folder"]
+            elif "_CUR_DIR" in os.environ:
+                del os.environ["_CUR_DIR"]
 
-        if data["current_folder"]:
-            os.environ["_CUR_DIR"] = data["current_folder"]
+            files = data["selected_files"]
+            if len(files) >= 1:
+                os.environ["_FILE"] = files[0]
+                os.environ["_FILES"] = "|".join(files)
+            else:
+                if "_FILE" in os.environ:
+                    del os.environ["_FILE"]
+                if "_FILES" in os.environ:
+                    del os.environ["_FILES"]
+            return files
 
-        files = data["selected_files"]
-        if not files:
-            return None
-
-        if len(files) == 1:
-            os.environ["_FILE"] = files[0]
-
-        if len(files) >= 1:
-            os.environ["_FILES"] = "|".join(files)
-
-        return files
-
-    except:
-        print("Unable to get explorer info.")
-        return None
+        except Exception:
+            print("Unable to get explorer info.")
 
 
 def try_import(module_name, pkg_name=None):

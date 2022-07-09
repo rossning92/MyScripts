@@ -48,7 +48,7 @@ def open_alacritty(
 
 def open_cmd(cmd=None, **kwargs):
     tmp_batch_file = write_temp_file(
-        (f"{cmd}&" if cmd else "") + r"set PROMPT=$e[0;37m$P$G$E[1;37m& echo.&cls",
+        (f"{cmd}&" if cmd else "") + r"set PROMPT=$e[1;30m$P$G $e[0;37m&echo.&cls",
         ".cmd",
     )
     args = [

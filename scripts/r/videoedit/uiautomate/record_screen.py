@@ -374,10 +374,12 @@ if __name__ == "__main__":
     if args.rect is not None:
         recorder.rect = args.rect
 
-    if args.out_dir is None:
-        out_dir = os.path.expanduser("~/Desktop")
-    else:
+    if args.out_dir:
         out_dir = args.out_dir
+    else:
+        out_dir = get_variable("SCREEN_RECORD_DIR")
+        if not out_dir:
+            out_dir = os.path.expanduser("~/Desktop")
 
     minimize_cur_terminal()
 

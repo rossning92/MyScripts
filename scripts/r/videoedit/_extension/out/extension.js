@@ -805,6 +805,19 @@ function setupWhenClause(context) {
     }, null, context.subscriptions);
     updateWhenClauseContext();
 }
+function autoUpdateScreenRecordDir(context) {
+    function updateScreenRecordDir() {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && isProjectFileActive()) {
+            const dir = path.join(path.dirname(editor.document.fileName), "screencap");
+            cp.spawn("run_script", ["ext/set_variable.py", "SCREEN_RECORD_DIR", dir]);
+        }
+    }
+    updateScreenRecordDir();
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => {
+        updateScreenRecordDir();
+    }));
+}
 function activate(context) {
     // const config = vscode.workspace.getConfiguration();
     // config.update("[markdown]", { "editor.quickSuggestions": true });
@@ -812,6 +825,7 @@ function activate(context) {
     setupAutoComplete(context);
     setupDecorations(context);
     setupWhenClause(context);
+    autoUpdateScreenRecordDir(context);
 }
 exports.activate = activate;
 //# sourceMappingURL=extension.js.map

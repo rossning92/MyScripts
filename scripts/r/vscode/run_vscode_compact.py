@@ -1,6 +1,6 @@
 import os
 
-from _shutil import add_to_path, start_process
+from _shutil import start_process
 
 from config_vscode import config_vscode
 
@@ -9,5 +9,10 @@ os.environ["PATH"] = (
 )
 
 config_vscode(data_dir=os.path.expanduser("~/VSCodeTempUserData"), compact=True)
-start_process(["code", "--user-data-dir", os.path.expanduser("~/VSCodeTempUserData")])
-
+start_process(
+    [
+        "code",
+        "--user-data-dir",
+        os.path.expanduser("~/VSCodeTempUserData"),
+    ]
+)

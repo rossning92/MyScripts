@@ -126,6 +126,7 @@ class State:
                 ("hl2", []),
                 ("md", []),
                 ("overlay", []),
+                ("overlay2", []),
                 ("text", []),
             ]
         )

@@ -6,6 +6,10 @@ file=$(basename "$1")
 cd "$folder"
 mkdir -p out
 
-text=$(<label.txt)
+# text=$(<label.txt)
 
-ffmpeg -i "$1" -filter_complex "[0:v]pad=iw:ih+50:0:50:color=white,drawtext=text='${text}':fix_bounds=true:fontfile=/Windows/Fonts/arial.ttf:fontsize=18:fontcolor=black:x=(w-tw)/2:y=(50-th)/2" "out/$file" -y
+text="${file}"
+text="${text%.*}"   # remove extension
+text="${text//_/ }" # replace underscore with space
+
+ffmpeg -i "$1" -filter_complex "[0:v]drawtext=text='${text}':bordercolor=black:borderw=4:fix_bounds=true:fontfile=/Windows/Fonts/arial.ttf:fontsize=48:fontcolor=white:x=48:y=48" "out/$file" -y
