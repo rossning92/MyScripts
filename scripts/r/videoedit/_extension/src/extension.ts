@@ -684,7 +684,7 @@ function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
       }
 
       cp.spawn("cscript", [
-        path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
+        path.resolve(__dirname, "../../../ppt/create_ppt_from_template.vbs"),
         path.resolve(activeDir, filePath),
       ]);
 
@@ -710,7 +710,7 @@ function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
         }
 
         cp.spawn("cscript", [
-          path.resolve(__dirname, "../../../ppt/potx2pptx.vbs"),
+          path.resolve(__dirname, "../../../ppt/create_ppt_from_template.vbs"),
           path.resolve(activeDir, filePath),
         ]);
 

@@ -235,13 +235,13 @@ def get_variable(name):
     with FileLock("access_variable"):
         f = get_variable_file()
         if not os.path.exists(f):
-            return None
+            return
 
         with open(get_variable_file(), "r") as f:
             variables = json.load(f)
 
         if name not in variables:
-            return None
+            return
 
         return variables[name][0]
 
@@ -291,10 +291,10 @@ def read_setting(setting, name, val):
         with open(file, "r") as f:
             data = json.load(f)
     except IOError:
-        return None
+        return
 
     if name not in data:
-        return None
+        return
 
     return data[name]
 
@@ -361,7 +361,7 @@ def wrap_args_tee(args, out_file):
     ]
 
 
-def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=True):
+def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None):
     assert type(args) is list
 
     cmd_args = "cmd /c "
@@ -375,7 +375,7 @@ def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=True):
     if env:
         for k, v in env.items():
             cmd_args += "&".join(['set "%s=%s"' % (k, v)]) + "&"
-    print(args)
+
     cmd_args += _args_to_str(args)
 
     # Pause on error
@@ -390,7 +390,6 @@ def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=True):
 def wrap_args_wt(
     args,
     title=None,
-    close_on_exit=True,
     font_size=None,
     default_font_size=8,
     icon=None,
@@ -444,7 +443,6 @@ def wrap_args_wt(
         profile = {
             "name": title,
             "hidden": False,
-            "closeOnExit": "graceful" if close_on_exit else "never",
             "suppressApplicationTitle": True,
         }
         if font_size is not None:
@@ -477,7 +475,6 @@ def wrap_args_wt(
 def wrap_args_alacritty(
     args,
     title=None,
-    close_on_exit=False,
     font_size=8,
     font=None,
     borderless=False,
@@ -512,8 +509,6 @@ def wrap_args_alacritty(
     if padding is not None:
         out += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
 
-    if not close_on_exit:
-        out += ["--hold"]
     if title:
         out += ["--title", title]
 
@@ -685,7 +680,7 @@ class Script:
         close_on_exit=None,
         cd=True,
     ):
-
+        new_window = self.cfg["newWindow"] if (new_window is None) else new_window
         if single_instance is None:
             single_instance = self.cfg["singleInstance"]
 
@@ -918,20 +913,6 @@ class Script:
         # Run commands
         if args is not None and len(args) > 0:
 
-            # Check if new window is needed
-            if new_window is None:
-                new_window = self.cfg["newWindow"]
-
-            if not single_instance and new_window:
-                # Only works on windows for now
-                if sys.platform == "win32":
-                    exec_ahk(
-                        "SetTitleMatchMode RegEx\nWinClose, ^"
-                        + re.escape(self.get_console_title())
-                        + ", , , .*?- Visual Studio Code",
-                        wait=True,
-                    )
-
             if self.cfg["tee"]:
                 args = wrap_args_tee(
                     args,
@@ -961,22 +942,38 @@ class Script:
             popen_extra_args = {}
 
             if new_window:
-                # HACK: python wrapper: activate console window once finished
-                # TODO: extra console window will be created when runAsAdmin & newWindow
+                if not single_instance:
+                    # Close exising instances
+                    if sys.platform == "win32":
+                        exec_ahk(
+                            "SetTitleMatchMode RegEx\nWinClose, ^"
+                            + re.escape(self.get_console_title())
+                            + ", , , .*?- Visual Studio Code",
+                            wait=True,
+                        )
+
                 if sys.platform == "win32":
+                    if close_on_exit:
+                        args = ["cmd", "/c", "pause_on_error.cmd"] + args
+                    else:
+                        args = ["cmd", "/c", "pause_on_exit.cmd"] + args
+
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
                                 title=self.get_console_title(),
                                 wsl=self.cfg["wsl"],
-                                close_on_exit=close_on_exit,
                             )
                             no_wait = True
 
@@ -986,7 +983,6 @@ class Script:
                             args = wrap_args_alacritty(
                                 args,
                                 title=self.get_console_title(),
-                                close_on_exit=close_on_exit,
                             )
                             no_wait = True
 
@@ -1008,7 +1004,6 @@ class Script:
                                 cwd=cwd,
                                 title=self.get_console_title(),
                                 env=env,
-                                close_on_exit=close_on_exit,
                             )
                             popen_extra_args["creationflags"] = (
                                 subprocess.CREATE_NEW_CONSOLE
@@ -1066,7 +1061,6 @@ class Script:
                         args = wrap_args_alacritty(
                             args,
                             title=self.get_console_title(),
-                            close_on_exit=close_on_exit,
                         )
 
                 else:
@@ -1171,8 +1165,6 @@ def find_script(patt):
             return match[0]
         elif len(match) > 1:
             raise Exception("Found multiple scripts: %s" % str(match))
-
-    return None
 
 
 def run_script(
@@ -1289,8 +1281,6 @@ def get_script_config_file2(script_path):
     f = os.path.join(os.path.dirname(script_path), "default.yaml")
     if os.path.exists(f):
         return f
-
-    return None
 
 
 def get_script_config(script_path):
