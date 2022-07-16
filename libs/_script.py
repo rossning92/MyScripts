@@ -61,9 +61,13 @@ def get_data_dir():
     return data_dir
 
 
+def get_script_root():
+    return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+
+
 def get_script_directories():
     directories = []
-    directories.append(("", os.path.abspath(os.path.dirname(__file__) + "/../scripts")))
+    directories.append(("", get_script_root()))
 
     config_file = os.path.join(get_data_dir(), "script_directories.txt")
     if not os.path.exists(config_file):
@@ -519,6 +523,29 @@ def wrap_args_alacritty(
     return out
 
 
+def get_relative_script_path(path):
+    path = path.replace("\\", "/")
+    for name, d in get_script_directories():
+        prefix = d.replace("\\", "/") + "/"
+        if path.startswith(prefix):
+            path = (name + "/" if name else "") + path[len(prefix) :]
+            break
+    return path
+
+
+def get_absolute_script_path(path):
+    script_dirs = get_script_directories()
+    arr = path.split("/")
+    if arr:
+        matched_script_dir = next(filter(lambda x: x[0] == arr[0], script_dirs), None)
+        if matched_script_dir:
+            arr[0] = matched_script_dir[1]
+        else:
+            arr = [get_script_root()] + arr
+    path = os.path.join(*arr)
+    return path
+
+
 class Script:
     def __str__(self):
         result = self.name
@@ -549,14 +576,10 @@ class Script:
         if name:
             self.name = name
         else:
-            self.name = script_path.replace("\\", "/")
+            self.name = script_path
 
             # Convert absolute path to relative path
-            for name, d in get_script_directories():
-                prefix = d.replace("\\", "/") + "/"
-                if self.name.startswith(prefix):
-                    self.name = (name + "/" if name else "") + self.name[len(prefix) :]
-                    break
+            self.name = get_relative_script_path(self.name)
 
             # Strip extension
             self.name, _ = os.path.splitext(self.name)

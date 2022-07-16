@@ -2,7 +2,7 @@ import argparse
 import os
 import subprocess
 
-from _script import Script, get_variable
+from _script import Script, find_script, get_variable
 from _shutil import call_echo, convert_to_unix_path, wait_key, write_temp_file
 
 
@@ -116,6 +116,8 @@ if __name__ == "__main__":
     else:
         script_file = os.environ["_SCRIPT"]
         assert script_file.endswith(".sh")
+        script_file = find_script(script_file)
+
         script = Script(script_file)
         s += script.render()
 
