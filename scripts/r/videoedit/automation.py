@@ -1,9 +1,8 @@
 import os
 
 from _shutil import get_hash
-from click import option
 
-from . import core, coreapi
+from . import common
 from .uiautomate import record_ipython, record_wt_cmd, record_wt_node
 from .uiautomate.record_alacritty import (
     open_alacritty,
@@ -12,9 +11,10 @@ from .uiautomate.record_alacritty import (
     record_term,
 )
 from .uiautomate.record_screen import record_app
+from . import editor
 
 
-@core.api
+@common.api
 def codef(
     file,
     track="vid",
@@ -43,63 +43,63 @@ def codef(
             bg=bg,
         )
 
-    coreapi.add_video_clip(out_file, track=track, transparent=False, **kwargs)
+    editor.add_video_clip(out_file, track=track, transparent=False, **kwargs)
 
     return out_file
 
 
-@core.api
+@common.api
 def ipython(cmd, file=None, startup=None, font_size=14, **kwargs):
     if file is None:
         file = "screencap/ipython/%s.mp4" % get_hash(cmd)
-    if not os.path.exists(file) or core.force:
+    if not os.path.exists(file) or common.force:
         record_ipython(file, cmd, startup=startup, font_size=font_size)
-    return coreapi.clip(file, **kwargs)
+    return editor.clip(file, **kwargs)
 
 
-@core.api
+@common.api
 def cmd(cmd, font_size=14, file=None, **kwargs):
     if file is None:
         file = "screencap/cmd/%s.mp4" % get_hash(cmd)
-    if not os.path.exists(file) or core.force:
+    if not os.path.exists(file) or common.force:
         record_wt_cmd(file, cmd, font_size=font_size, **kwargs)
-    return coreapi.clip(file, **kwargs)
+    return editor.clip(file, **kwargs)
 
 
-@core.api
+@common.api
 def node(cmd, font_size=14, file=None, sound=False, **kwargs):
     if file is None:
         file = "screencap/node/%s.mp4" % get_hash(cmd)
-    if not os.path.exists(file) or core.force:
+    if not os.path.exists(file) or common.force:
         record_wt_node(file, cmd, font_size=font_size, sound=sound)
-    return coreapi.clip(file, **kwargs)
+    return editor.clip(file, **kwargs)
 
 
-@core.api
+@common.api
 def term(cmd=None, file=None, **kwargs):
-    if core.force or (file is not None and not os.path.exists(file)):
+    if common.force or (file is not None and not os.path.exists(file)):
         record_term(file=file, cmd=cmd, dry_run=file is None, **kwargs)
 
     if file is not None:
-        return coreapi.clip(file, **kwargs)
+        return editor.clip(file, **kwargs)
 
 
-@core.api
+@common.api
 def bash(*args, **kwargs):
     term(*args, **kwargs)
 
 
-@core.api
+@common.api
 def screencap(
     *, file, args, title=None, size=(1920, 1080), uia_callback=None, **kwargs
 ):
-    if not os.path.exists(file) or core.force:
+    if not os.path.exists(file) or common.force:
         record_app(
             args=args, file=file, size=size, uia_callback=uia_callback, title=title
         )
-    return coreapi.clip(file, **kwargs)
+    return editor.clip(file, **kwargs)
 
 
-core.api(open_alacritty, optional=True)
-core.api(open_bash, optional=True)
-core.api(open_cmd, optional=True)
+common.api(open_alacritty, optional=True)
+common.api(open_bash, optional=True)
+common.api(open_cmd, optional=True)

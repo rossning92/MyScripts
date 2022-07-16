@@ -26,7 +26,7 @@ from moviepy.editor import (
 from open_with.open_with import open_with
 from PIL import Image
 
-from . import core
+from . import common
 from .export_movy_animation import export_movy_animation
 from .render_text import render_text
 
@@ -151,7 +151,7 @@ def reset():
 
 def _get_track(tracks, name):
     if name not in tracks:
-        raise core.VideoEditException("Track is not defined: %s" % name)
+        raise common.VideoEditException("Track is not defined: %s" % name)
     track = tracks[name]
 
     return track
@@ -223,7 +223,7 @@ def _try_generate_tts():
     record(out_file, postprocess=False, vol=2)
 
 
-@core.on_api
+@common.on_api
 def on_api_(func_name):
     if func_name != "record":
         _try_generate_tts()
@@ -231,7 +231,7 @@ def on_api_(func_name):
         _state.cached_line_to_tts = None
 
 
-@core.api
+@common.api
 def crossfade(v):
     if v == True:
         _state.crossfade = VIDEO_CROSSFADE_DURATION
@@ -262,7 +262,7 @@ def _get_time(p):
             delta = float(match.group(2))
             return _state.pos_dict[tag] + delta
 
-    raise core.VideoEditException('Invalid pos="%s"' % p)
+    raise common.VideoEditException('Invalid pos="%s"' % p)
 
 
 def _add_subtitle_clip(start, end, text):
@@ -280,7 +280,7 @@ def _add_subtitle_clip(start, end, text):
     )
 
 
-@core.api
+@common.api
 def record(
     file,
     t="a",
@@ -360,7 +360,7 @@ def record(
                         end += char_duration
 
 
-@core.api
+@common.api
 def audio_gap(duration, bgm_vol=None, fade_duration=0.5):
     if bgm_vol is not None:
         last_bgm_clip = get_last_audio_clip(track="bgm")
@@ -410,18 +410,18 @@ def _set_vol(vol, duration=0, track=None, t=None):
     return prev_vol
 
 
-@core.api
+@common.api
 def setp(name, t=None):
     t = _get_time(t)
     _state.pos_dict[name] = t
 
 
-@core.api
+@common.api
 def vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwargs):
     return _set_vol(vol, duration=duration, **kwargs)
 
 
-@core.api
+@common.api
 def bgm_vol(vol, duration=DEFAULT_AUDIO_FADING_DURATION, **kwawgs):
     _set_vol(vol, duration=duration, track="bgm", **kwawgs)
 
@@ -450,7 +450,7 @@ def _add_audio_clip(
     clip_info = AudioClip()
 
     if not os.path.exists(file):
-        raise core.VideoEditException('Clip file "%s" does not exist.' % file)
+        raise common.VideoEditException('Clip file "%s" does not exist.' % file)
     clip_info.file = os.path.abspath(file)
 
     # HACK: still don't know why changing buffersize would help reduce the noise at the end
@@ -483,7 +483,7 @@ def _add_audio_clip(
     return clip_info
 
 
-@core.api
+@common.api
 def audio(
     f,
     t=None,
@@ -524,7 +524,7 @@ def audio(
         _set_vol(prev_vol, track="bgm", t=clip.start + clip.mpy_clip.duration)
 
 
-@core.api
+@common.api
 def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
     t = _get_time(t)
 
@@ -554,7 +554,7 @@ def audio_end(track, t=None, move_playhead=True, fadeout=0, crossfade=0):
         _state.pos_dict["c"] = _state.pos_dict["a"] = t
 
 
-@core.api
+@common.api
 def bgm(
     f,
     move_playhead=False,
@@ -579,12 +579,12 @@ def bgm(
     )
 
 
-@core.api
+@common.api
 def sfx(f, **kwargs):
     audio(f, track="sfx", move_playhead=False, **kwargs)
 
 
-@core.api
+@common.api
 def pos(t, tag=None):
     t = _get_time(t)
     if tag is not None:
@@ -593,7 +593,7 @@ def pos(t, tag=None):
         _state.pos_dict = {k: t for k in _state.pos_dict.keys()}
 
 
-@core.api
+@common.api
 def clip(f, **kwargs):
     if _state.audio_only:
         return
@@ -602,13 +602,13 @@ def clip(f, **kwargs):
     _add_video_clip(f, **kwargs)
 
 
-@core.api
+@common.api
 def fps(v):
     global FPS
     FPS = v
 
 
-@core.api
+@common.api
 def overlay(
     f,
     duration=3,
@@ -631,7 +631,7 @@ def overlay(
     )
 
 
-@core.api
+@common.api
 def comment(text, pos=(960, 100), duration=4, track="overlay", **kwargs):
     md(
         text,
@@ -642,7 +642,7 @@ def comment(text, pos=(960, 100), duration=4, track="overlay", **kwargs):
     )
 
 
-@core.api
+@common.api
 def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
     md(
         '<span style="font-size:0.6em">%s</span>' % text,
@@ -800,7 +800,7 @@ def _add_video_clip(
                     for marker in medadata["markers"]:
                         if marker["name"] == name:
                             return marker["time"]
-                    raise core.VideoEditException('Marker "%s" not found' % name)
+                    raise common.VideoEditException('Marker "%s" not found' % name)
 
                 # replace marker with time
                 subclip2 = tuple(
@@ -825,7 +825,7 @@ def _add_video_clip(
         if frame == "next":
             frame = _state.last_frame_indices[file] + 1
         if type(frame) != int:
-            raise core.VideoEditException(f"Invalid frame param: {frame}")
+            raise common.VideoEditException(f"Invalid frame param: {frame}")
         _state.last_frame_indices[file] = frame
     clip_info.frame = frame
 
@@ -915,7 +915,7 @@ def _add_video_clip(
 prev_anim_clip: Optional[VideoClip] = None
 
 
-@core.api
+@common.api
 def anim(file, **kwargs):
     global prev_anim_clip
 
@@ -956,7 +956,7 @@ def anim(file, **kwargs):
     prev_anim_clip = clip_info
 
 
-@core.api
+@common.api
 def video_end(track=None, t=None, fadeout=None):
     if _state.audio_only:
         return
@@ -966,7 +966,7 @@ def video_end(track=None, t=None, fadeout=None):
     track = get_vid_track(track)
 
     if len(track) == 0:
-        raise core.VideoEditException(f'track "{track_name}" has no clip yet')
+        raise common.VideoEditException(f'track "{track_name}" has no clip yet')
 
     clip = track[-1]
     clip.duration = _get_time(t) - clip.start
@@ -978,7 +978,7 @@ def video_end(track=None, t=None, fadeout=None):
     print("clip updated: start=%.2f duration=%.2f" % (clip.start, clip.duration))
 
 
-@core.api
+@common.api
 def empty(**kwargs):
     if _state.audio_only:
         return
@@ -1003,7 +1003,7 @@ def _generate_slide(in_file, template, out_file=None, public=None):
     call2(args)
 
 
-@core.api
+@common.api
 def slide(
     s,
     template,
@@ -1034,7 +1034,7 @@ def slide(
     _add_video_clip(out_file, pos=pos, **kwargs)
 
 
-@core.api
+@common.api
 def md(s, track="md", move_playhead=False, **kwargs):
     slide(
         s,
@@ -1046,7 +1046,7 @@ def md(s, track="md", move_playhead=False, **kwargs):
     )
 
 
-@core.api
+@common.api
 def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
     if _state.audio_only:
         return
@@ -1075,12 +1075,12 @@ def hl(pos=None, rect=None, track="hl", duration=2, file=None, **kwargs):
         )
 
 
-@core.api
+@common.api
 def tts(enabled=True):
     _state.enable_tts = enabled
 
 
-@core.api
+@common.api
 def parse_line(line):
     print2(line, color="green")
     _state.subtitle.append(line)
@@ -1230,7 +1230,9 @@ def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
             xp.append(p)
             fp.append(vol)
         else:
-            raise core.VideoEditException("Unsupported bgm parameter type:" % type(vol))
+            raise common.VideoEditException(
+                "Unsupported bgm parameter type:" % type(vol)
+            )
 
     def volume_adjust(gf, t):
         factor = np.interp(t, xp, fp)

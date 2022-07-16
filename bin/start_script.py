@@ -4,5 +4,7 @@ import sys
 sys.path.insert(0, os.path.realpath(os.path.dirname(__file__) + "/../libs"))
 
 from _script import start_script
+from _shutil import update_env_var_explorer
 
+update_env_var_explorer()
 start_script(file=sys.argv[1])

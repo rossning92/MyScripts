@@ -13,8 +13,6 @@ if __name__ == "__main__":
     except Exception as ex:
         print2("WARN: %s" % ex)
 
-    cd_current_dir()
-
     setup_cmake(install=False)
 
     setup_nodejs(install=False)

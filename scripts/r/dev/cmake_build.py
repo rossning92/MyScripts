@@ -5,7 +5,6 @@ from _template import render_template_file
 
 import vcpkg
 
-# BUILD_LIB = "{{BUILD_LIB}}" == "Y"
 template_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "CMakeLists.template.txt"
 )
@@ -21,7 +20,9 @@ def cmake_build(project_dir, project_name=None, use_vcpkg=False):
     cmakelist_file = os.path.join(project_dir, "CMakeLists.txt")
     if not os.path.exists(cmakelist_file):
         render_template_file(
-            template_file, cmakelist_file, {"PROJECT_NAME": project_name},
+            template_file,
+            cmakelist_file,
+            {"PROJECT_NAME": project_name},
         )
 
     # Add cmake to PATH
@@ -45,9 +46,10 @@ def cmake_build(project_dir, project_name=None, use_vcpkg=False):
         "-B",
         "build",  # path-to-build (required)
         # "-G", "Visual Studio 16 2019",
-        # "-T", "host=x86",
-        # "-A", "win32"
     ]
+    if os.environ.get("_WIN32"):
+        args += ["-T", "host=x86", "-A", "win32"]
+
     call_echo(args, cwd=project_dir)
 
     # Build the project
@@ -63,5 +65,6 @@ def cmake_build(project_dir, project_name=None, use_vcpkg=False):
 
 
 if __name__ == "__main__":
-    cmake_build(r"{{PROJECT_DIR}}", use_vcpkg="{{_USE_VCPKG}}")
-
+    cmake_build(
+        os.environ["PROJECT_DIR"], use_vcpkg=os.environ.get("_USE_VCPKG", False)
+    )

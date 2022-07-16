@@ -815,7 +815,7 @@ class Script:
                     args = ["start"] + args
 
                 # Disable console window for ahk
-                self.cfg["newWindow"] = False
+                new_window = False
 
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
@@ -983,15 +983,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1007,6 +1003,18 @@ class Script:
                                 args,
                                 title=self.get_console_title(),
                             )
+
+                            # Workaround that prevents alacritty from being closed by parent terminal.
+                            # The "shell = True" below is very important!
+                            DETACHED_PROCESS = 0x00000008
+                            CREATE_BREAKAWAY_FROM_JOB = 0x01000000
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NEW_PROCESS_GROUP
+                                | DETACHED_PROCESS
+                                | CREATE_BREAKAWAY_FROM_JOB
+                            )
+                            popen_extra_args["close_fds"] = True
+                            shell = True
                             no_wait = True
 
                         elif self.cfg["terminal"] == "conemu" and os.path.isdir(
@@ -1134,7 +1142,8 @@ class Script:
 
             logging.debug("subprocess.Popen(): args=%s" % args)
             if no_wait:
-                popen_extra_args["start_new_session"] = True
+                if sys.platform == "linux":
+                    popen_extra_args["start_new_session"] = True
 
             ps = subprocess.Popen(
                 args=args,

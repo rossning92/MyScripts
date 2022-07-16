@@ -11,7 +11,8 @@ from _pkgmanager import get_executable
 from _shutil import format_time, get_time_str, keep_awake, print2, to_valid_file_name
 from moviepy.config import change_settings
 
-from . import codeapi, core, coreapi
+from . import common, editor
+from . import automation
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -22,7 +23,7 @@ change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
 config = None
 
 
-@core.api
+@common.api
 def include(file):
     with open(file, "r", encoding="utf-8") as f:
         s = f.read()
@@ -83,7 +84,7 @@ def _write_timestamp(t, section_name):
     _write_timestamp.f.flush()
 
 
-def _parse_text(text, apis=core.apis, **kwargs):
+def _parse_text(text, apis=common.apis, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -114,7 +115,7 @@ def _parse_text(text, apis=core.apis, **kwargs):
             end = find_next(text, "\n", p)
 
             line = text[p:end].strip()
-            _write_timestamp(coreapi.get_current_audio_pos(), line)
+            _write_timestamp(editor.get_current_audio_pos(), line)
 
             p = end + 1
             continue
@@ -122,9 +123,9 @@ def _parse_text(text, apis=core.apis, **kwargs):
         match = re.match("---((?:[0-9]*[.])?[0-9]+)?\n", text[p:])
         if match is not None:
             if match.group(1) is not None:
-                coreapi.audio_gap(float(match.group(1)))
+                editor.audio_gap(float(match.group(1)))
             else:
-                coreapi.audio_gap(0.2)
+                editor.audio_gap(0.2)
             p += match.end(0) + 1
             continue
 
@@ -137,7 +138,7 @@ def _parse_text(text, apis=core.apis, **kwargs):
             apis["parse_line"](line)
 
     # Call it at the end
-    core.on_api_func(None)
+    common.on_api_func(None)
 
 
 def _show_stats(s):
@@ -209,7 +210,7 @@ if __name__ == "__main__":
 
     # Load config
     config = load_config()
-    coreapi.fps(config["fps"])
+    editor.fps(config["fps"])
 
     # Check if it's in preview mode.
     if args.preview:
@@ -229,11 +230,26 @@ if __name__ == "__main__":
         out_filename = "export/" + to_valid_file_name(config["title"])
 
     # Load custom APIs (api.py) if exists
+    api_modules = []
+
+    vproject_root = common.find_vproject_root()
+    if vproject_root:
+        api_dir = os.path.join(vproject_root, "api")
+        if os.path.exists(api_dir):
+            sys.path.append(api_dir)
+            for module_file in glob.glob(os.path.join(api_dir, "*.py")):
+                module_name = os.path.splitext(os.path.basename(module_file))[0]
+                module = importlib.import_module(module_name)
+                api_modules.append(module)
+
     if os.path.exists("api.py"):
         sys.path.append(os.getcwd())
-        mymodule = importlib.import_module("api")
-        global_functions = inspect.getmembers(mymodule, inspect.isfunction)
-        core.apis.update({k: v for k, v in global_functions})
+        module = importlib.import_module("api")
+        api_modules.append(module)
+
+    for module in api_modules:
+        global_functions = inspect.getmembers(module, inspect.isfunction)
+        common.apis.update({k: v for k, v in global_functions})
 
     # Read input scripts
     if args.input:
@@ -250,22 +266,22 @@ if __name__ == "__main__":
             ignore_undefined = True
             _show_stats(s)
         else:
-            coreapi.reset()
+            editor.reset()
             keep_awake()
 
             if args.preview:
-                coreapi.enable_preview()
+                editor.enable_preview()
 
             if args.force:
-                core.force = True
+                common.force = True
 
             if args.audio_only:
-                coreapi.set_audio_only()
+                editor.set_audio_only()
 
-            _parse_text(s, apis=core.apis)
+            _parse_text(s, apis=common.apis)
 
-            coreapi.export_video(out_filename=out_filename, resolution=(1920, 1080))
+            editor.export_video(out_filename=out_filename, resolution=(1920, 1080))
 
-    except core.VideoEditException as ex:
+    except common.VideoEditException as ex:
         print2("ERROR: %s" % ex, color="red")
         sys.exit(1)

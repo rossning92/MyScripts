@@ -1,3 +1,5 @@
+import os
+
 apis = {}
 on_api_func = None
 force = False
@@ -20,6 +22,15 @@ def api(f, optional=False):
 
 def get_apis():
     return apis
+
+
+def find_vproject_root():
+    path = os.getcwd()
+
+    while os.path.dirname(path) != path:
+        path = os.path.abspath(path + "/../")  # parent path
+        if os.path.exists(os.path.join(path, ".vproject")):
+            return path
 
 
 class VideoEditException(Exception):
