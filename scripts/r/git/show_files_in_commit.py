@@ -1,6 +1,6 @@
 import os
 from subprocess import check_call
 
-os.chdir(os.environ['_CUR_DIR'])
+os.chdir(os.environ["CWD"])
 
-check_call('git log --name-only')
+check_call("git log --name-only")

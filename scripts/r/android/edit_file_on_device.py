@@ -5,7 +5,7 @@ from _editor import *
 call_echo(["adb", "root"])
 call_echo(["adb", "remount"])
 
-f = "{{_FILE}}"
+f = "{{FILE}}"
 file_name = os.path.basename(f)
 tmp_file = os.path.join(tempfile.gettempdir(), file_name)
 

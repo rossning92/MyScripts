@@ -4,7 +4,7 @@ from _script import Script, update_script_access_time, get_variable
 from _shutil import call_echo, convert_to_unix_path, exec_ahk, write_temp_file
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT"]
+    script_path = os.environ["SCRIPT"]
 
     script = Script(script_path)
     update_script_access_time(script)

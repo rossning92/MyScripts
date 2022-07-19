@@ -119,7 +119,7 @@ def export_script(script_path, out_dir, create_executable=False):
 
 if __name__ == "__main__":
     out_dir = os.path.abspath(os.path.expanduser("~/Desktop/script_export"))
-    script_path = os.getenv("_SCRIPT")
+    script_path = os.getenv("SCRIPT")
 
     out_file = export_script(script_path, out_dir, create_executable=True)
     open_in_vscode(out_file)

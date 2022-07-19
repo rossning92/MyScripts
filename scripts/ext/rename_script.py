@@ -27,7 +27,7 @@ def replace_script_str(old, new, dry_run=False):
 
 
 if __name__ == "__main__":
-    script_full_path = os.environ["_SCRIPT"]
+    script_full_path = os.environ["SCRIPT"]
     script_rel_path = get_relative_script_path(script_full_path)
 
     new_script_rel_path = input("Please enter new path for (%s): " % script_rel_path)

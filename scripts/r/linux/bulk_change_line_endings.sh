@@ -1,4 +1,4 @@
-cd "${_CUR_DIR}"
+cd "${CWD}"
 pwd
 read -p 'continue?'
 

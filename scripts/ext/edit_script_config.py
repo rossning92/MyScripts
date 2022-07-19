@@ -8,7 +8,7 @@ from _term import DictEditWindow
 if __name__ == "__main__":
     default_config = get_script_default_config()
 
-    script_path = os.environ["_SCRIPT"]
+    script_path = os.environ["SCRIPT"]
     script_config_file = get_script_config_file(script_path)
     if not os.path.exists(script_config_file):
         data = {}

@@ -99,7 +99,7 @@ def transform_python_script(src_file):
 
 if __name__ == "__main__":
     out_dir = os.path.expanduser("~/Desktop/ScriptExport")
-    script_path = os.getenv("_SCRIPT")
+    script_path = os.getenv("SCRIPT")
     out_script = os.path.join(out_dir, os.path.basename(script_path))
 
     s = transform_python_script(script_path)

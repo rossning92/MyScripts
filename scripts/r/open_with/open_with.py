@@ -77,7 +77,7 @@ if __name__ == "__main__":
             data = json.load(f)
 
         if data["current_folder"]:
-            os.environ["_CUR_DIR"] = data["current_folder"]
+            os.environ["CWD"] = data["current_folder"]
 
         files = data["selected_files"]
 

@@ -4,7 +4,7 @@ import re
 from _shutil import set_clip
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT"]
+    script_path = os.environ["SCRIPT"]
 
     if script_path.endswith(".md"):
         with open(script_path, "r", encoding="utf-8") as f:

@@ -114,7 +114,7 @@ if __name__ == "__main__":
         s += args.command
 
     else:
-        script_file = os.environ["_SCRIPT"]
+        script_file = os.environ["SCRIPT"]
         assert script_file.endswith(".sh")
         script_file = find_script(script_file)
 

@@ -4,7 +4,7 @@ from _script import Script
 from _shutil import convert_to_unix_path, exec_ahk, exec_bash, write_temp_file
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT"]
+    script_path = os.environ["SCRIPT"]
 
     script = Script(script_path)
     s = script.render() + "\n"

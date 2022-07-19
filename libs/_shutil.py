@@ -795,12 +795,12 @@ def exec_bash(script, wsl=False, echo=False):
 
 def get_files(cd=False, ignore_dirs=True):
     files = []
-    if "_FILES" in os.environ:
-        files = os.environ["_FILES"].split("|")
+    if "FILES" in os.environ:
+        files = os.environ["FILES"].split("|")
         files = sorted(files)
 
     if cd:
-        cur_folder = os.environ["_CUR_DIR"]
+        cur_folder = os.environ["CWD"]
         os.chdir(cur_folder)
         files = [f.replace(cur_folder, "") for f in files]  # Relative path
         files = [x.lstrip(os.path.sep) for x in files]
@@ -811,18 +811,18 @@ def get_files(cd=False, ignore_dirs=True):
 
 
 def get_selected_folder():
-    files = os.environ["_FILES"].split("|")
+    files = os.environ["FILES"].split("|")
     folders = [x for x in files if os.path.isdir(x)]
     return folders[0]
 
 
 def get_current_folder():
-    return os.environ["_CUR_DIR"]
+    return os.environ["CWD"]
 
 
 def cd_current_dir():
-    if "_CUR_DIR" in os.environ:
-        os.chdir(os.environ["_CUR_DIR"])
+    if "CWD" in os.environ:
+        os.chdir(os.environ["CWD"])
     else:
         os.chdir(os.path.expanduser("~"))
 
@@ -866,19 +866,19 @@ def update_env_var_explorer():
                 data = json.load(f)
 
             if data["current_folder"]:
-                os.environ["_CUR_DIR"] = data["current_folder"]
-            elif "_CUR_DIR" in os.environ:
-                del os.environ["_CUR_DIR"]
+                os.environ["CWD"] = data["current_folder"]
+            elif "CWD" in os.environ:
+                del os.environ["CWD"]
 
             files = data["selected_files"]
             if len(files) >= 1:
-                os.environ["_FILE"] = files[0]
-                os.environ["_FILES"] = "|".join(files)
+                os.environ["FILE"] = files[0]
+                os.environ["FILES"] = "|".join(files)
             else:
-                if "_FILE" in os.environ:
-                    del os.environ["_FILE"]
-                if "_FILES" in os.environ:
-                    del os.environ["_FILES"]
+                if "FILE" in os.environ:
+                    del os.environ["FILE"]
+                if "FILES" in os.environ:
+                    del os.environ["FILES"]
             return files
 
         except Exception:

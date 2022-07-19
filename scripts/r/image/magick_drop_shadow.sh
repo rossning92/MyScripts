@@ -1,7 +1,7 @@
-cd "${_CUR_DIR}"
+cd "${CWD}"
 
-magick "${_FILE}" \
-    \( "${_FILE}" -alpha extract \) \
+magick "${FILE}" \
+    \( "${FILE}" -alpha extract \) \
     -matte -bordercolor none -border 100x100 \
     -alpha off -compose copy_opacity -composite -compose over \
     \( -clone 0 -background white -shadow 400x20 \) \

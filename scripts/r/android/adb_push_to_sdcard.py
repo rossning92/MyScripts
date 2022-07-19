@@ -1,8 +1,8 @@
 from _shutil import *
 
-files = os.environ['_FILES'].split('|')
+files = os.environ["FILES"].split("|")
 print(files)
 
 for f in files:
-    args = ['adb', 'push', f, '/sdcard/']
+    args = ["adb", "push", f, "/sdcard/"]
     call(args)

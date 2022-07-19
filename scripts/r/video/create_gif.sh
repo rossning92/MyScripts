@@ -1,3 +1,3 @@
-cd "${_CUR_DIR}"
+cd "${CWD}"
 
 magick -delay {{_TICKS_PER_SEC}} *.png out.gif

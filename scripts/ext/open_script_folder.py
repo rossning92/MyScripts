@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 if __name__ == "__main__":
-    script_path = os.environ["_SCRIPT"]
+    script_path = os.environ["SCRIPT"]
     script_dir = os.path.dirname(script_path)
     os.chdir(script_dir)
     print("Open Folder: " + os.getcwd())

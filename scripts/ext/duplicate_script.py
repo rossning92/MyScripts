@@ -14,7 +14,7 @@ if __name__ == "__main__":
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
 
-        src_script = os.getenv("_SCRIPT")
+        src_script = os.getenv("SCRIPT")
         copy(src_script, script_path)
 
         edit_myscript_script(os.path.realpath(script_path))

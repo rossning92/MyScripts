@@ -4,7 +4,7 @@ from urllib.request import urlretrieve
 from _script import run_script, set_variable
 from _shutil import call_echo
 
-project_folder = os.environ["_CUR_DIR"]
+project_folder = os.environ["CWD"]
 os.chdir(project_folder)
 
 urlretrieve(

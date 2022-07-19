@@ -755,8 +755,8 @@ class Script:
                 setup_nodejs(install=False)
 
         # HACK: pass current folder
-        if "_CUR_DIR" in os.environ:
-            env["_CUR_DIR"] = os.environ["_CUR_DIR"]
+        if "CWD" in os.environ:
+            env["CWD"] = os.environ["CWD"]
 
         # Override ANDROID_SERIAL
         if "ANDROID_SERIAL" not in os.environ:
@@ -771,8 +771,8 @@ class Script:
         else:
             cwd = None
 
-        if "_CUR_DIR" in os.environ:
-            cwd = os.environ["_CUR_DIR"]
+        if "CWD" in os.environ:
+            cwd = os.environ["CWD"]
 
         if ext == ".ps1":
             if sys.platform == "win32":
@@ -983,11 +983,15 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,

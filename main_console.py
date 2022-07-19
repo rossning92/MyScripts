@@ -386,7 +386,7 @@ class MainWindow(Menu):
             script = self.get_selected_text()
             if script is not None:
                 script_abs_path = os.path.abspath(script.script_path)
-                os.environ["_SCRIPT"] = script_abs_path
+                os.environ["SCRIPT"] = script_abs_path
 
                 script_manager.execute_script = lambda: (
                     execute_script(script_manager.hotkeys[ch]),
