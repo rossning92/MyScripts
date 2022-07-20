@@ -1,20 +1,18 @@
 import os
-import sys
+import tempfile
+
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-from time import sleep
-import re
 
-chrome_profile = 'C:\\ChromeProfile'
+chrome_profile = os.path.join(tempfile.gettempdir(), "SeleniumWebAutomation")
 options = webdriver.ChromeOptions()
-options.add_argument('user-data-dir=%s' % chrome_profile)  # Path to your chrome profile
+options.add_argument("user-data-dir=%s" % chrome_profile)  # Path to your chrome profile
 driver = webdriver.Chrome(chrome_options=options)
 driver.implicitly_wait(10)
 
 
 def click(ele):
-    driver.execute_script('arguments[0].scrollIntoView();', ele)
+    driver.execute_script("arguments[0].scrollIntoView();", ele)
     ActionChains(driver).move_to_element(ele).click().perform()
 
 

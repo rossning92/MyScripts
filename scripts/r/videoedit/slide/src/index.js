@@ -1,13 +1,18 @@
 import { updateCodeBlocks } from "./utils/codemirror";
-import { updateMermaid } from "./utils/diagram";
+import { updateMermaid } from "./utils/mermaid";
 const marked = require("marked");
 
 require(`./codemirror.css`);
 require(`./${template}.css`);
 
 // Parse Yaml front matter
-const { markdown, matter } = parseYamlFrontMatter(
+let { markdown, matter } = parseYamlFrontMatter(
   require(markdownFile).default.replace(/\r\n/g, "\n")
+);
+
+markdown = markdown.replace(
+  /```mermaid\n([\d\D]*?)```/,
+  '<div class="mermaid">\n$1</div>'
 );
 
 handleSeparator();
@@ -71,7 +76,7 @@ function parseYamlFrontMatter(markdown) {
   };
 }
 
-function scaleBasedOnWindow(elm) {
+function autoFitContent(elm) {
   const scale =
     1 /
     Math.max(
@@ -79,9 +84,10 @@ function scaleBasedOnWindow(elm) {
       elm.clientHeight / window.innerHeight
     );
   elm.style.transformOrigin = "0 0";
-  elm.style.transform = `scale(${scale})`;
+  // elm.style.transform = `scale(${scale})`;
+  document.body.style.zoom = `${scale * 100}%`;
 }
 
 if (dev) {
-  scaleBasedOnWindow(document.querySelector(".container"));
+  autoFitContent(document.querySelector(".container"));
 }
