@@ -47,7 +47,7 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=Fal
 
 if __name__ == "__main__":
     config_uproject(
-        r"{{UE4_PROJECT_DIR}}",
+        r"{{UE_PROJECT_DIR}}",
         vulkan=not bool("{{_GL}}"),
         multiview=not bool("{{_NO_MULTIVIEW}}"),
     )

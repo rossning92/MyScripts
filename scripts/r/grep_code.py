@@ -54,8 +54,7 @@ def grep(src_dir, exclude=[]):
 
         args += " | peco"
         print2(args, color="cyan")
-
-        out = get_output(args).strip()
+        out = get_output(args, shell=True).strip()
         if out:
             file, line_number, *_ = out.split(":")
             line_number = int(line_number)

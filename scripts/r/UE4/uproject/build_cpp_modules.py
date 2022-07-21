@@ -40,4 +40,4 @@ def build_cpp_modules(project_dir):
 
 
 if __name__ == "__main__":
-    build_cpp_modules(project_dir=r"{{UE4_PROJECT_DIR}}")
+    build_cpp_modules(project_dir=r"{{UE_PROJECT_DIR}}")

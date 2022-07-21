@@ -3,7 +3,7 @@ import os
 from UE4.uproject.config_uproject_for_mobile import config_uproject
 from UE4.uproject.build_android import build_uproject
 
-project_dir = r"{{UE4_PROJECT_DIR}}"
+project_dir = r"{{UE_PROJECT_DIR}}"
 msaa_variant = [4]
 multiview_variant = [True]
 vulkan_variant = [False, True]

@@ -2,11 +2,17 @@ import glob
 import os
 import shutil
 
-from _android import (adb_install, get_pkg_name_apk, setup_android_env,
-                      start_app)
+from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import run_script
-from _shutil import (call_highlight, cd, confirm, find_newest_file, mkdir,
-                     print2, setup_logger)
+from _shutil import (
+    call_highlight,
+    cd,
+    confirm,
+    find_newest_file,
+    mkdir,
+    print2,
+    setup_logger,
+)
 
 from build_cpp_modules import build_cpp_modules
 
@@ -14,7 +20,7 @@ from build_cpp_modules import build_cpp_modules
 # setup_android_env()
 
 
-OUT_DIR = "/tmp"
+out_dir_root = os.environ.get("_OUT_DIR", "/tmp")
 
 
 def build_uproject(
@@ -36,7 +42,7 @@ def build_uproject(
 
     if out_dir is None:
         project_name = os.path.splitext(os.path.basename(project_file))[0]
-        out_dir = OUT_DIR + "/%s" % project_name
+        out_dir = out_dir_root + "/%s" % project_name
 
     # Build C++ module?
     if compile_cpp:
@@ -77,16 +83,16 @@ if __name__ == "__main__":
     setup_logger()
     setup_android_env()
 
-    run_script('r/UE4/editor/setup_android.cmd')
+    run_script("r/UE4/editor/setup_android.cmd")
 
     out_dir = build_uproject(
-        ue_source=r"{{UE_SOURCE}}",
-        project_dir=r"{{UE4_PROJECT_DIR}}",
-        compile_cpp=bool("{{_COMPILE_CPP}}"),
-        clean=bool("{{_CLEAN}}"),
+        ue_source=os.environ["UE_SOURCE"],
+        project_dir=os.environ["UE_PROJECT_DIR"],
+        compile_cpp=bool(os.environ.get("_COMPILE_CPP")),
+        clean=bool(os.environ.get("_CLEAN")),
     )
 
-    if "{{_INSTALL}}":
+    if os.environ.get("_INSTALL"):
         apk = find_newest_file(out_dir + "/**/*.apk")
         adb_install(apk)
 

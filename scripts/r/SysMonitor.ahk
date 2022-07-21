@@ -1,6 +1,7 @@
 #SingleInstance, Force
 
-WinClose system_stats_
+CoordMode, Mouse, Screen
+; WinClose system_stats_
 
 ; MsgBox % ComObjCreate("WScript.Shell").Exec("cmd.exe /q /c dir").StdOut.ReadAll()
 
@@ -8,17 +9,16 @@ width := 200
 row := 4
 
 CustomColor = 0 ; Can be any RGB color.
-Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20
+Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20 +HwndMyGuiHwnd
 Gui, Margin, 4, 4
 Gui, Color, %CustomColor%
 Gui, Font, q3 cffffff w700 s9, Courier
 Gui, Add, Text, vMyText w%width% r%row%
 WinSet, TransColor, 1 176 ; Make color invisible
 
-x := A_ScreenWidth - width
-y := 0
-
-Gui, Show, x%x% y%y% NoActivate 
+WinPosX := A_ScreenWidth - width
+WinPosY := 0
+Gui, Show, x%WinPosX% y%WinPosY% NoActivate
 
 SetTimer, OnTimer, 1000
 OnTimer()
@@ -45,25 +45,25 @@ ExitApp
 return
 
 CPULoad()
-{ 
+{
     ; By SKAN, CD:22-Apr-2014 / MD:05-May-2014. Thanks to ejor, Codeproject: http://goo.gl/epYnkO
     ; http://ahkscript.org/boards/viewtopic.php?p=17166#p17166
 
-    Static PIT, PKT, PUT 
+    Static PIT, PKT, PUT
     IfEqual, PIT,, Return 0, DllCall( "GetSystemTimes", "Int64P",PIT, "Int64P",PKT, "Int64P",PUT )
 
     DllCall( "GetSystemTimes", "Int64P",CIT, "Int64P",CKT, "Int64P",CUT )
     IdleTime := PIT - CIT
     KernelTime := PKT - CKT
     UserTime := PUT - CUT
-    SystemTime := KernelTime + UserTime 
+    SystemTime := KernelTime + UserTime
 
     PIT := CIT
     PKT := CKT
-    PUT := CUT 
+    PUT := CUT
 
     Return ( ( SystemTime - IdleTime ) * 100 ) // SystemTime
-} 
+}
 
 GetMemory(byref percent, byref total, byref free) {
     VarSetCapacity( memorystatus, 100 )
@@ -74,21 +74,30 @@ GetMemory(byref percent, byref total, byref free) {
 }
 
 OnTimer() {
-    cpu := CPULoad()
+    global MyGuiHwnd
 
+    MouseGetPos, mouseX, mouseY
+    WinGetPos, x, y, w, h, ahk_id %MyGuiHwnd%
+    if (mouseX >= x and mouseX < x + w and mouseY >= y and mouseY < y + h) {
+        WinSet, TransColor, 1 1, ahk_id %MyGuiHwnd%
+    } else {
+        WinSet, TransColor, 1 176, ahk_id %MyGuiHwnd% ; Make color invisible
+    }
+
+    cpu := CPULoad()
     GetMemory(percent, total, free)
     used := total - free
-    
+
     total := Format("{:.1f}", total / 1024 / 1024 / 1024)
     free := Format("{:.1f}", free / 1024 / 1024 / 1024)
     used := Format("{:.1f}", used / 1024 / 1024 / 1024)
 
     try {
         ping := IPHelper.Ping("8.8.8.8") "ms"
-    } catch { 
+    } catch {
         ping := "n/a"
     }
-    msg = 
+    msg =
     ( LTrim
     CPU : %cpu%`%
     Mem`%: %percent%`%

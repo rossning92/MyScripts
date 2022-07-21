@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     # TODO: install vs2019 C++ and C#
 
-    cd(r"{{UE_SOURCE}}")
+    cd(os.environ["UE_SOURCE"])
 
     if os.path.exists(r"Engine\Extras\Redist\en-us\UE4PrereqSetup_x64.exe"):
         call_echo(
