@@ -8,7 +8,7 @@ from _android import (
     setup_android_env,
     start_app,
 )
-from _shutil import get_files, print2, setup_logger
+from _shutil import call_echo, get_files, print2, setup_logger
 
 if __name__ == "__main__":
     setup_logger()
@@ -20,17 +20,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    pkg = None
     if args.files:
         for file in args.files:
             adb_install2(file)
 
             if len(args.files) == 1 and args.run:
                 pkg = get_pkg_name_apk(file)
-                try:
-                    start_app(pkg)
-                except:
-                    print2("ERROR: start app failed.", color="red")
-                logcat(pkg)
 
     else:
         files = get_files()
@@ -40,10 +36,17 @@ if __name__ == "__main__":
             adb_install2(file)
 
             if len(files) == 1:
-                # Run app
                 pkg = get_pkg_name_apk(file)
-                try:
-                    start_app(pkg)
-                except:
-                    print2("ERROR: start app failed.", color="red")
-                logcat(pkg)
+
+    if pkg is not None:
+        # Run app
+        call_echo(
+            "run_script r/android/restart_app.py",
+            env={**os.environ, "PKG_NAME": pkg},
+        )
+
+        # try:
+        #     start_app(pkg)
+        # except:
+        #     print2("ERROR: start app failed.", color="red")
+        # logcat(pkg)

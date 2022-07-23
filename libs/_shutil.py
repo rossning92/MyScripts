@@ -1546,15 +1546,24 @@ def setup_logger(level=logging.DEBUG, stdout=True, log_file=None):
     logger = logging.getLogger()
     logger.setLevel(level)
 
+    formatter = logging.Formatter(
+        "%(asctime)s %(levelname).1s: %(name)s: %(message)s",
+        "%H:%M:%S",
+    )
+
     if stdout:
         handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter("%(name)s: %(levelname)s: %(message)s"))
+        handler.setFormatter(formatter)
+        handler.setLevel(level)
         logger.addHandler(handler)
 
     if log_file:
         file_handler = logging.FileHandler(log_file, "w+")  # overwrite the file
+        file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
         logger.addHandler(file_handler)
+
+    return logger
 
 
 def create_symlink(src, dst):

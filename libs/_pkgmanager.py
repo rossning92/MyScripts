@@ -7,7 +7,12 @@ import yaml
 
 from _shutil import check_output, run_elevated
 
-with open(os.path.join(os.path.dirname(__file__), "packages.yaml"), "r") as f:
+with open(
+    os.path.abspath(
+        os.path.dirname(os.path.abspath(__file__)) + "/../settings/packages.yml"
+    ),
+    "r",
+) as f:
     packages = yaml.load(f.read(), Loader=yaml.FullLoader)
 
 

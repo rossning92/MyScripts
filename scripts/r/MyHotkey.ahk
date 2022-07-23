@@ -441,5 +441,3 @@ ToggleMicrophone()
         Muted := true
     }
 }
-
-#include win/change_screen_resolution.ahk

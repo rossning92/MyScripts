@@ -1,48 +1,37 @@
 #SingleInstance, Force
-
 CoordMode, Mouse, Screen
-; WinClose system_stats_
 
-; MsgBox % ComObjCreate("WScript.Shell").Exec("cmd.exe /q /c dir").StdOut.ReadAll()
-
-width := 200
-row := 4
+WIN_WIDTH := 200
+ROW := 4
 
 CustomColor = 0 ; Can be any RGB color.
 Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20 +HwndMyGuiHwnd
 Gui, Margin, 4, 4
 Gui, Color, %CustomColor%
 Gui, Font, q3 cffffff w700 s9, Courier
-Gui, Add, Text, vMyText w%width% r%row%
+Gui, Add, Text, vMyText w%WIN_WIDTH% r%ROW%
 WinSet, TransColor, 1 176 ; Make color invisible
-
-WinPosX := A_ScreenWidth - width
+WinPosX := A_ScreenWidth - WIN_WIDTH
 WinPosY := 0
 Gui, Show, x%WinPosX% y%WinPosY% NoActivate
 
-SetTimer, OnTimer, 1000
-OnTimer()
+SetTimer, UpdateStats, 1000
+UpdateStats()
 
+SetTimer, CheckMousePosition, 50
 return
 
-objExecObject := ComObjCreate("WScript.Shell").Exec("cmd /c title system_stats_ & python system_stats_.py")
-while not objExecObject.StdOut.AtEndOfStream
+CheckMousePosition()
 {
-    text = yoyo
-    while not objExecObject.StdOut.AtEndOfStream
-    {
-        line := objExecObject.StdOut.Readline()
-        if (line = "")
-            break
-
-        text := text . line . "`n"
+    global MyGuiHwnd
+    WinGetPos, WinX, WinY, WinW, WinH, ahk_id %MyGuiHwnd%
+    MouseGetPos, mouseX, mouseY
+    if (mouseX >= WinX and mouseX < WinX + WinW and mouseY >= WinY and mouseY < WinY + WinH) {
+        WinSet, TransColor, 1 1, ahk_id %MyGuiHwnd%
+    } else {
+        WinSet, TransColor, 1 176, ahk_id %MyGuiHwnd% ; Make color invisible
     }
-
-    GuiControl,, MyText, % text
 }
-
-ExitApp
-return
 
 CPULoad()
 {
@@ -73,17 +62,7 @@ GetMemory(byref percent, byref total, byref free) {
     free := NumGet(memorystatus, 16, "Int64")
 }
 
-OnTimer() {
-    global MyGuiHwnd
-
-    MouseGetPos, mouseX, mouseY
-    WinGetPos, x, y, w, h, ahk_id %MyGuiHwnd%
-    if (mouseX >= x and mouseX < x + w and mouseY >= y and mouseY < y + h) {
-        WinSet, TransColor, 1 1, ahk_id %MyGuiHwnd%
-    } else {
-        WinSet, TransColor, 1 176, ahk_id %MyGuiHwnd% ; Make color invisible
-    }
-
+UpdateStats() {
     cpu := CPULoad()
     GetMemory(percent, total, free)
     used := total - free
@@ -100,8 +79,8 @@ OnTimer() {
     msg =
     ( LTrim
     CPU : %cpu%`%
-    Mem`%: %percent%`%
     Mem : %used%/%total%G
+    Mem`%: %percent%`%
     Ping: %ping%
     )
     GuiControl,, MyText, %msg%

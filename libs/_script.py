@@ -489,14 +489,14 @@ def wrap_args_alacritty(
     assert isinstance(args, list)
     # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
     if sys.platform != "windows":
-        config_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
+        dest_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
     else:
-        config_path = os.path.expanduser(".config/alacritty/alacritty.yml")
-    os.makedirs(os.path.dirname(config_path), exist_ok=True)
-    shutil.copy(
-        os.path.join(os.path.dirname(__file__), "..", "resources", "alacritty.yml"),
-        config_path,
+        dest_path = os.path.expanduser(".config/alacritty/alacritty.yml")
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    src_path = os.path.abspath(
+        os.path.dirname(os.path.abspath(__file__)) + "/../settings/alacritty.yml"
     )
+    shutil.copy(src_path, dest_path)
 
     out = [
         "alacritty",
@@ -601,19 +601,14 @@ class Script:
             self.real_script_path = None
             self.real_ext = None
 
-        # Load cfg
-        self.cfg = get_script_config(
+        self.cfg = self.load_config()
+
+    def load_config(self):
+        return load_script_config(
             self.real_script_path
             if self.real_script_path is not None
             else self.script_path
         )
-
-        if self.ext == ".md":
-            self.cfg["template"] = False
-
-        # XXX: Workaround for Mac
-        if sys.platform == "darwin":
-            self.cfg["newWindow"] = False
 
     def check_link_existence(self):
         if self.real_script_path is not None:
@@ -704,12 +699,17 @@ class Script:
         cd=True,
     ):
         new_window = self.cfg["newWindow"] if (new_window is None) else new_window
+        # TODO: Mac does not support newWindow yet
+        if sys.platform == "darwin":
+            new_window = False
+
         if single_instance is None:
             single_instance = self.cfg["singleInstance"]
 
         if single_instance and activate_window_by_name(self.name):
             return True
 
+        self.cfg = self.load_config()
         variables = self.get_variables()
 
         logging.debug("execute(args=%s)" % args)
@@ -835,7 +835,7 @@ class Script:
                 return False
 
         elif ext == ".js":
-            # TODO: if self.cfg['template']:
+            # TODO: support template
             setup_nodejs()
             args = ["node", script_path] + args
 
@@ -983,15 +983,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1305,12 +1301,12 @@ def get_script_default_config():
     }
 
 
-def get_script_config_file(script_path):
+def load_script_config_file(script_path):
     return os.path.splitext(script_path)[0] + ".config.yaml"
 
 
-def get_script_config_file2(script_path):
-    f = get_script_config_file(script_path)
+def load_script_config_file2(script_path):
+    f = load_script_config_file(script_path)
     if os.path.exists(f):
         return f
 
@@ -1319,8 +1315,8 @@ def get_script_config_file2(script_path):
         return f
 
 
-def get_script_config(script_path):
-    script_config_file = get_script_config_file2(script_path)
+def load_script_config(script_path):
+    script_config_file = load_script_config_file2(script_path)
     if script_config_file:
         with open(script_config_file, "r") as f:
             data = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -1339,7 +1335,7 @@ def get_script_config(script_path):
 
 def update_script_config(kvp, script_file):
     default_config = get_script_default_config()
-    script_config_file = get_script_config_file(script_file)
+    script_config_file = load_script_config_file(script_file)
     if not os.path.exists(script_config_file):
         data = {}
     else:
@@ -1427,12 +1423,6 @@ def get_all_script_access_time():
     return self.cached_data, self.mtime
 
 
-def _replace_prefix(text, prefix, repl=""):
-    if text.startswith(prefix):
-        return repl + text[len(prefix) :]
-    return text  # or whatever
-
-
 def get_scripts_recursive(directory):
     for root, dirs, files in os.walk(directory, topdown=True):
         dirs[:] = [
@@ -1470,7 +1460,7 @@ def script_updated():
     for _, d in get_script_directories():
         for f in get_scripts_recursive(d):
             mtime = max(mtime, os.path.getmtime(f))
-            script_config_file = get_script_config_file2(f)
+            script_config_file = load_script_config_file2(f)
             file_list.append(f)
 
             # Check if config file is updated
@@ -1512,7 +1502,7 @@ def reload_scripts(script_list, modified_time, autorun=True):
         script = Script(file)
 
         mtime = os.path.getmtime(file)
-        script_config_file = get_script_config_file2(file)
+        script_config_file = load_script_config_file2(file)
         if script_config_file:
             mtime = max(mtime, os.path.getmtime(script_config_file))
         if (
