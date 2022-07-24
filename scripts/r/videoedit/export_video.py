@@ -11,8 +11,7 @@ from _pkgmanager import get_executable
 from _shutil import format_time, get_time_str, keep_awake, print2, to_valid_file_name
 from moviepy.config import change_settings
 
-from . import common, editor
-from . import automation
+from . import automation, common, editor
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -98,8 +97,15 @@ def _parse_text(text, apis=common.apis, **kwargs):
     while p < len(text):
         if text[p : p + 2] == "{{":
             end = find_next(text, "}}", p)
-            python_code = text[p + 2 : end].strip()
+            python_code = text[p + 2 : end]
             p = end + 2
+
+            # Dealing with indentation
+            lines = python_code.splitlines()
+            lines = [x for x in lines if x.strip()]  # remove empty lines
+            n_spaces = min([len(x) - len(x.lstrip()) for x in lines])
+            lines = [x[n_spaces:] for x in lines]
+            python_code = "\n".join(lines)
 
             if ignore_undefined:
                 try:

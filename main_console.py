@@ -437,6 +437,13 @@ def init():
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")
     add_to_path(bin_dir)
+
+    user_site = subprocess.check_output(
+        [sys.executable, "-m", "site", "--user-site"], universal_newlines=True
+    ).strip()
+    script_dir = os.path.abspath(os.path.join(user_site, "..", "Scripts"))
+    add_to_path(script_dir)
+
     os.environ["PATH"] = os.pathsep.join([bin_dir, os.environ["PATH"]])
 
     os.environ["PYTHONPATH"] = os.path.join(SCRIPT_ROOT, "libs")

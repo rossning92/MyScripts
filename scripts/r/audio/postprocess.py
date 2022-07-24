@@ -1,9 +1,8 @@
-from _audio import *
-from _cache import *
-from _shutil import *
-from scipy.io import wavfile
-import matplotlib.pyplot as plt
+import os
+import subprocess
+
 import numpy as np
+from _shutil import call_echo
 
 ALWAYS_GENERATE = False
 
@@ -85,6 +84,8 @@ def filter_human_voice(in_file, out_file):
 
 
 def process_audio_file(file, out_file, cut_voice=True):
+    from scipy.io import wavfile
+
     name_no_ext = os.path.splitext(os.path.basename(file))[0]
     out_dir = os.path.dirname(out_file)
 
@@ -129,13 +130,6 @@ def process_audio_file(file, out_file, cut_voice=True):
 
         zeros = np.zeros([int(rate * PADDING_SECS)], dtype=data2.dtype)
         data2 = np.concatenate((data2, zeros))
-
-        # For visualization
-        if False:
-            indices = np.linspace(0, data.shape[0] - 1, 5000, dtype=int)
-            data_vis = np.take(data, indices, axis=0)
-            plt.plot(data_vis)
-            plt.show()
 
         wavfile.write(out_file2, rate, data2)
         in_file = out_file2
@@ -190,4 +184,3 @@ def dynamic_audio_normalize(file):
             ]
         )
     return out_file
-

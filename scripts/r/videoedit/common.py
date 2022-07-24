@@ -1,4 +1,5 @@
 import os
+import time
 
 apis = {}
 on_api_func = None
@@ -10,14 +11,14 @@ def on_api(func):
     on_api_func = func
 
 
-def api(f, optional=False):
+def api(f, skip=False):
     def api_wrapper(*args, **kwargs):
-        if (optional and force) or (not optional):
+        if (skip and force) or (not skip):
             on_api_func(f.__name__)
             f(*args, **kwargs)
 
     apis[f.__name__] = api_wrapper
-    return api_wrapper
+    return f
 
 
 def get_apis():
@@ -31,6 +32,11 @@ def find_vproject_root():
         path = os.path.abspath(path + "/../")  # parent path
         if os.path.exists(os.path.join(path, ".vproject")):
             return path
+
+
+@api
+def sleep(secs):
+    time.sleep(secs)
 
 
 class VideoEditException(Exception):

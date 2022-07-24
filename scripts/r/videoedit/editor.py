@@ -222,6 +222,8 @@ def _try_generate_tts():
 
     record(out_file, postprocess=False, vol=2)
 
+    _state.cached_line_to_tts = None
+
 
 @common.on_api
 def on_api_(func_name):
@@ -594,12 +596,12 @@ def pos(t, tag=None):
 
 
 @common.api
-def clip(f, **kwargs):
+def clip(file, **kwargs):
     if _state.audio_only:
         return
 
-    print("clip: %s" % f)
-    _add_video_clip(f, **kwargs)
+    print("clip: %s" % file)
+    _add_video_clip(file, **kwargs)
 
 
 @common.api
@@ -610,7 +612,7 @@ def fps(v):
 
 @common.api
 def overlay(
-    f,
+    file,
     duration=3,
     crossfade=VIDEO_CROSSFADE_DURATION,
     fadeout=VIDEO_CROSSFADE_DURATION,
@@ -620,9 +622,9 @@ def overlay(
     if _state.audio_only:
         return
 
-    print("image: %s" % f)
+    print("image: %s" % file)
     _add_video_clip(
-        f,
+        file,
         duration=duration,
         crossfade=crossfade,
         fadeout=fadeout,
@@ -653,7 +655,7 @@ def credit(text, pos=(960, 40), duration=4, track="overlay", **kwargs):
     )
 
 
-def _get_video_resolution(f):
+def _get_video_resolution(file):
     resolution = (
         subprocess.check_output(
             [
@@ -666,7 +668,7 @@ def _get_video_resolution(f):
                 "stream=width,height",
                 "-of",
                 "csv=s=x:p=0",
-                f,
+                file,
             ]
         )
         .decode()
@@ -724,7 +726,9 @@ def _load_mpy_clip(
         else:
             target_resolution = None
 
-        return VideoFileClip(f, target_resolution=target_resolution)
+        return VideoFileClip(
+            f, target_resolution=target_resolution, has_mask=f.endswith(".gif")
+        )
 
     if file is None:
         clip = ColorClip((200, 200), color=(0, 0, 0)).set_duration(2)
@@ -832,10 +836,6 @@ def _add_video_clip(
     if isinstance(scale, (int, float)):
         scale = (scale, scale)
 
-    # TODO:
-    if track is None or track == "vid":
-        transparent = False
-
     track = get_vid_track(track)
     t = _get_time(t)
 
@@ -864,6 +864,9 @@ def _add_video_clip(
     clip_info.no_audio = no_audio or na
     clip_info.norm = norm
     clip_info.vol = vol
+
+    if track is None or track == "vid":
+        transparent = False
     clip_info.transparent = transparent
     clip_info.subclip = subclip2
     clip_info.loop = True if file.endswith(".gif") else loop

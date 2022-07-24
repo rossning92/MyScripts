@@ -12,7 +12,7 @@ if not %errorlevel%==0 (
 )
 
 :: Install python modules
-pip install -r requirement.txt
+python -m pip install --user -r requirement.txt
 
 title my_scripts_console
 

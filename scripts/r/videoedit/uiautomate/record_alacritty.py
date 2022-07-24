@@ -1,4 +1,5 @@
 import atexit
+import ctypes
 import logging
 import os
 import subprocess
@@ -8,13 +9,18 @@ from _script import wrap_args_alacritty
 from _shutil import setup_logger, shell_open, write_temp_file
 
 from .common import run_commands
-from .record_screen import record_screen, start_application
+from .record_screen import (
+    DEFAULT_WINDOW_SIZE,
+    record_screen,
+    set_window_pos,
+    start_application,
+)
 
 root = os.path.dirname(os.path.abspath(__file__))
 
 
 def open_alacritty(
-    args=["wsl", "-e", "sh", "-c", "cd $HOME; bash"],
+    args,
     restart=True,
     font_size=14,
     **kwargs,
@@ -59,31 +65,38 @@ def open_cmd(cmd=None, **kwargs):
     open_alacritty(args=args, **kwargs)
 
 
-def open_bash(**kwargs):
-    args = ["wsl", "-e", "sh", "-c", "cd $HOME; bash"]
+def open_bash(cwd="$HOME", **kwargs):
+    args = ["wsl", "-e", "sh", "-c", "cd %s; bash" % cwd]
     open_alacritty(args=args, **kwargs)
 
 
+def term(cmd):
+    hwnd = 0
+    while hwnd == 0:
+        hwnd = ctypes.windll.user32.FindWindowW(None, "AlacrittyAutomation")
+        time.sleep(0.1)
+    set_window_pos(0, 0, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1], hwnd=hwnd)
+    run_commands(cmd, no_sleep=True)
+
+
 def record_term(
-    *,
+    cmd,
     file,
-    cmd=None,
     size=(1920, 1080),
     open_term_func=open_bash,
-    dry_run=False,
     **kwargs,
 ):
     logging.info("record_term: %s", file)
     open_term_func(restart=False, **kwargs)
 
-    if dry_run:
+    if file is None:
         if cmd is not None:
-            run_commands(cmd, no_sleep=dry_run)
+            run_commands(cmd, no_sleep=(file is None))
 
     else:
         record_screen(
             file,
-            uia_callback=(lambda: (run_commands(cmd), time.sleep(0.2)))
+            callback=(lambda: (run_commands(cmd), time.sleep(0.2)))
             if cmd is not None
             else None,
             rect=(0, 0, size[0], size[1]),

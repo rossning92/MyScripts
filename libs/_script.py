@@ -744,6 +744,9 @@ class Script:
         if self.cfg["adk"]:
             setup_android_env(env=env)
 
+        # Setup PYTHONPATH globally (e.g. useful for vscode)
+        setup_python_path(env)
+
         # Install packages
         if self.cfg["packages"]:
             packages = self.cfg["packages"].split()

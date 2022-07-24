@@ -65,14 +65,15 @@ def install_extensions(data_dir=None):
     for extension in extensions:
         call_echo(
             get_vscode_cmdline(data_dir=data_dir)
-            + ["--install-extension", "%s" % extension], shell=True
+            + ["--install-extension", "%s" % extension],
+            shell=True,
         )
 
 
 def config_vscode(data_dir=None, compact=False, glslang=False):
-    # call_echo([sys.executable, "-m", "pip", "install", "pylint"])
-    # call_echo([sys.executable, "-m", "pip", "install", "autopep8"])
-    call_echo([sys.executable, "-m", "pip", "install", "mypy"])
+    # call_echo([sys.executable, "-m", "pip", "install", "--user", "pylint"])
+    # call_echo([sys.executable, "-m", "pip", "install", "--user", "autopep8"])
+    call_echo([sys.executable, "-m", "pip", "install", "--user", "mypy"])
 
     install_extensions(data_dir=data_dir)
 
@@ -125,7 +126,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     data["grammarly.autoActivate"] = False
 
     # Python
-    call_echo([sys.executable, "-m", "pip", "install", "black"])
+    call_echo([sys.executable, "-m", "pip", "install", "--user", "black"])
     data["python.pythonPath"] = sys.executable.replace("\\", "/")
     data["python.formatting.provider"] = "black"
     # Workaround for "has no member" issues

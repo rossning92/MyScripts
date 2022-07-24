@@ -15,12 +15,14 @@ PYTHON_MODULE_LIST = {
     "keyboard": "keyboard",
     "markdown2": "markdown2",
     "matplotlib": "matplotlib",
+    "moviepy": "moviepy",
     "mss": "mss",
     "numpy": "numpy",
     "pandas": "pandas",
     "PIL": "pillow",
     "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
     "pyaudio": "pyaudio",
+    "pyautogui": "pyautogui",
     "pyftpdlib": "pyftpdlib",
     "pyppeteer": "pyppeteer",
     "PyQt5": "PyQt5==5.10.1",
@@ -48,7 +50,7 @@ class MyMetaPathFinder(MetaPathFinder):
     """
 
     def find_spec(fullname, path, target=None):
-        if path == None:
+        if path is None:
             if fullname in PYTHON_MODULE_LIST:
                 installed = subprocess.call(
                     [
@@ -56,6 +58,7 @@ class MyMetaPathFinder(MetaPathFinder):
                         "-m",
                         "pip",
                         "install",
+                        "--user",
                         PYTHON_MODULE_LIST[fullname],
                     ]
                 )
@@ -63,7 +66,9 @@ class MyMetaPathFinder(MetaPathFinder):
                     return import_module(fullname)
 
 
+os.environ["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 sys.meta_path.append(MyMetaPathFinder)
+
 
 if __name__ == "__main__":
     del sys.argv[0]
@@ -82,7 +87,7 @@ if __name__ == "__main__":
         )
 
         # Run module
-        subprocess.check_call([sys.executable, "-m", module_name] + sys.argv[1:])
-        # runpy.run_module(module_name, run_name="__main__")
+        runpy.run_module(module_name, run_name="__main__")
+        # subprocess.check_call([sys.executable, "-m", module_name] + sys.argv[1:])
     else:
         runpy.run_path(module_file, run_name="__main__")
