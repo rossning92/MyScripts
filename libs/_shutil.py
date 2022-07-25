@@ -18,6 +18,7 @@ import time
 import unicodedata
 from collections import OrderedDict
 from distutils.dir_util import copy_tree
+from pathlib import Path
 from time import sleep
 from typing import List
 
@@ -93,6 +94,10 @@ def get_ahk_exe(uia=True):
         get_ahk_exe.init = True
 
     return ahk_exe
+
+
+def get_home_path():
+    return str(Path.home())
 
 
 def write_temp_file(text, file_path):
@@ -747,14 +752,16 @@ def prepend_to_path(paths, env=None):
     if type(paths) == list:
         paths = [p for p in paths if os.path.exists(p)]
 
-        if False and sys.platform == "win32":
-            paths = [get_short_path_name(p) if " " in p else p for p in paths]
+        # if sys.platform == "win32":
+        #     paths = [get_short_path_name(p) if " " in p else p for p in paths]
 
         s = os.pathsep.join(paths)
     elif type(paths) == str:
         s = paths
     else:
         raise ValueError()
+
+    logging.debug("prepend_to_path(): %s" % s)
 
     env["PATH"] = s + (os.pathsep + env["PATH"] if "PATH" in env else "")
 

@@ -27,6 +27,7 @@ from _shutil import (
     exec_ahk,
     format_time,
     get_ahk_exe,
+    get_home_path,
     load_yaml,
     print2,
     run_elevated,
@@ -357,12 +358,11 @@ def setup_python_path(env, script_path=None, wsl=False):
 
 def wrap_args_tee(args, out_file):
     assert type(args) is list
-    return [
-        "powershell",
-        "-command",
-        _args_to_str(args, powershell=True)
-        + r' | Tee-Object -FilePath "%s"' % out_file,
-    ]
+
+    s = _args_to_str(args, powershell=True) + r" | Tee-Object -FilePath %s" % out_file
+    tmp_file = write_temp_file(s, ".ps1")
+    logging.debug('wrap_args_tee(file="%s"): %s' % (tmp_file, s))
+    return ["powershell", tmp_file]
 
 
 def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None):
@@ -938,14 +938,13 @@ class Script:
 
         # Run commands
         if args is not None and len(args) > 0:
-
             if self.cfg["tee"]:
                 args = wrap_args_tee(
                     args,
-                    out_file=os.path.expanduser(
-                        "~/Desktop/{}_{}.log".format(
-                            self.name.split("/")[-1], int(time.time())
-                        ),
+                    out_file=os.path.join(
+                        get_home_path(),
+                        "Desktop",
+                        "{}_{}.log".format(self.name.split("/")[-1], int(time.time())),
                     ),
                 )
 
@@ -986,11 +985,15 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1304,12 +1307,12 @@ def get_script_default_config():
     }
 
 
-def load_script_config_file(script_path):
+def get_script_config_file(script_path):
     return os.path.splitext(script_path)[0] + ".config.yaml"
 
 
 def load_script_config_file2(script_path):
-    f = load_script_config_file(script_path)
+    f = get_script_config_file(script_path)
     if os.path.exists(f):
         return f
 
@@ -1338,7 +1341,7 @@ def load_script_config(script_path):
 
 def update_script_config(kvp, script_file):
     default_config = get_script_default_config()
-    script_config_file = load_script_config_file(script_file)
+    script_config_file = get_script_config_file(script_file)
     if not os.path.exists(script_config_file):
         data = {}
     else:

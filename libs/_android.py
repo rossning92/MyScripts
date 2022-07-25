@@ -122,7 +122,7 @@ def logcat(
     level=None,
     exclude=None,
     exclude_proc=None,
-    ignore_duplicates=True,
+    ignore_duplicates=False,
 ):
     LOGCAT_PATTERN = re.compile(r"^([A-Z])/(.+?)\(\s*(\d+)\):\s?(.*)$")
 

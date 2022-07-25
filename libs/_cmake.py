@@ -1,9 +1,10 @@
+import glob
+import logging
 import os
 import sys
 import tempfile
 
 from _shutil import download, prepend_to_path, unzip
-import glob
 
 
 def find_cmake_path(cmake_version):
@@ -19,7 +20,7 @@ def setup_cmake(cmake_version=None, install=True):
         if cmake_version:
             cmake_path = find_cmake_path(cmake_version=cmake_version)
             if cmake_path:
-                prepend_to_path(cmake_path + os.path.sep + "bin")
+                prepend_to_path(os.path.join(cmake_path, "bin"))
                 return True
 
             elif install:
@@ -35,21 +36,21 @@ def setup_cmake(cmake_version=None, install=True):
                 unzip(zip_file, "C:\\tools")
                 cmake_path = find_cmake_path(cmake_version=cmake_version)
                 assert cmake_path is not None
-                prepend_to_path(cmake_path + os.path.sep + "bin")
+                prepend_to_path(os.path.join(cmake_path, "bin"))
                 return True
 
-    def find_cmake(cmake_path):
-        match = glob.glob(cmake_path)
-        if match:
-            cmake_path = sorted(match)[-1]
-            print("CMake Path: %s" % cmake_path)
-            prepend_to_path(cmake_path + os.path.sep + "bin")
+        def find_cmake(cmake_path):
+            match = glob.glob(cmake_path)
+            if match:
+                cmake_path = sorted(match)[-1]
+                logging.info("CMake Path: %s" % cmake_path)
+                prepend_to_path(os.path.join(cmake_path, "bin"))
+                return True
+
+        if find_cmake(r"C:\Program Files\CMake"):
             return True
 
-    if find_cmake(r"C:\Program Files\CMake\bin"):
-        return True
+        if find_cmake(r"C:\tools\cmake-*"):
+            return True
 
-    if find_cmake(r"C:\tools\cmake-*"):
-        return True
-
-    return False
+        return False

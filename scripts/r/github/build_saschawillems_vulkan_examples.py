@@ -1,8 +1,9 @@
 from _android import setup_android_env
 from _cmake import setup_cmake
 from _git import git_clone
-from _shutil import call_echo, cd, shell_open
+from _shutil import call_echo, cd, setup_logger, shell_open
 
+setup_logger()
 # Ninja is required
 # run_elevated("choco install ninja -y")
 
