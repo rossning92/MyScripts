@@ -764,7 +764,7 @@ def run_apk(apk):
     restart_app(pkg_name)
 
 
-def set_android_serial_by_product_name(product):
+def find_device_by_product_name(product):
     lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
         "\n"
     )[1:]
@@ -772,17 +772,15 @@ def set_android_serial_by_product_name(product):
     for line in lines:
         if not line.strip():
             continue
-        serial = line.split("\t")[0]
 
-        product_ = subprocess.check_output(
+        serial = line.split("\t")[0]
+        prod = subprocess.check_output(
             ["adb", "-s", serial, "shell", "getprop", "ro.build.product"],
             universal_newlines=True,
         ).strip()
 
-        if product_ == product:
-            os.environ["ANDROID_SERIAL"] = serial
-            logging.info("Set ANDROID_SERIAL to %s" % serial)
-            return True
+        if prod == product:
+            return serial
 
     raise Exception("Couldn't find device with product name %s" % product)
 

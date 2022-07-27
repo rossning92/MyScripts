@@ -70,6 +70,7 @@ PKGS = {
         "golang",
         "graphviz",
         "inkscape",
+        "jcpicker",
         "miktex",
         "mongodb",
         "mousewithoutborders",

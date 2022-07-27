@@ -15,7 +15,7 @@ def api(f, skip=False):
     def api_wrapper(*args, **kwargs):
         if (skip and force) or (not skip):
             on_api_func(f.__name__)
-            f(*args, **kwargs)
+            return f(*args, **kwargs)
 
     apis[f.__name__] = api_wrapper
     return f
