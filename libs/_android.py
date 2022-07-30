@@ -443,19 +443,36 @@ def setup_android_env(env=None, ndk_version=None, jdk_version=None):
     # NDK
     ndk_path = None
     if (android_home is not None) and (ndk_path is None):
-        found = sorted(glob.glob(os.path.join(android_home, "ndk", "*")))
-        if found:
-            ndk_path = found[-1]
+        if ndk_path is None:
+            found = sorted(
+                glob.glob(
+                    os.path.join(
+                        android_home, "ndk", ndk_version + "*" if ndk_version else "*"
+                    )
+                )
+            )
+            if found:
+                ndk_path = found[-1]
 
-    if (android_home is not None) and (ndk_path is None):
-        p = os.path.join(android_home, "ndk-bundle")
-        if os.path.exists(p):
-            ndk_path = p
+        if ndk_path is None:
+            found = sorted(
+                list(
+                    glob.glob(
+                        os.path.join(
+                            android_home,
+                            "ndk",
+                            ndk_version + "*" if ndk_version else "*",
+                        )
+                    )
+                )
+            )
+            if found:
+                ndk_path = found[-1]
 
-    if (android_home is not None) and (ndk_path is None):
-        found = sorted(list(glob.glob(os.path.join(android_home, "ndk/*"))))
-        if found:
-            ndk_path = found[-1]
+        if ndk_path is None:
+            ndk_bundle = os.path.join(android_home, "ndk-bundle")
+            if os.path.exists(ndk_bundle):
+                ndk_path = ndk_bundle
 
     if ndk_path:
         logging.info("ANDROID_NDK_ROOT: %s" % ndk_path)

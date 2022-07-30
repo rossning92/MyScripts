@@ -81,9 +81,10 @@ def build_uproject(
 
 if __name__ == "__main__":
     setup_logger()
-    setup_android_env()
 
     run_script("r/UE4/editor/setup_android.cmd")
+
+    setup_android_env(ndk_version="21.1.6352462")
 
     out_dir = build_uproject(
         ue_source=os.environ["UE_SOURCE"],

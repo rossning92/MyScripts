@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 
-public class BuildScript
+public class AndroidBuildScript
 {
     public static void BuildAndroid()
     {

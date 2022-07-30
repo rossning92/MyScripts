@@ -1,10 +1,11 @@
 import os
 import subprocess
-from _shutil import make_and_change_dir, print2
+
+from _shutil import get_home_path, make_and_change_dir, print2
 
 
 def git_clone(url):
-    proj_path = os.path.expanduser("~/Projects")
+    proj_path = os.path.join(get_home_path(), "Projects")
     make_and_change_dir(proj_path)
     folder_name = url.split("/")[-1]
     if not os.path.exists(folder_name):
