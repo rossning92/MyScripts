@@ -4,11 +4,13 @@ import importlib
 import inspect
 import os
 import re
+import subprocess
 import sys
 
 import yaml
 from _pkgmanager import get_executable
-from _shutil import format_time, get_time_str, keep_awake, print2, to_valid_file_name
+from _shutil import (format_time, get_time_str, keep_awake, print2,
+                     to_valid_file_name)
 from moviepy.config import change_settings
 
 from . import automation, common, editor
@@ -287,6 +289,18 @@ if __name__ == "__main__":
             _parse_text(s, apis=common.apis)
 
             editor.export_video(out_filename=out_filename, resolution=(1920, 1080))
+
+            subprocess.call(
+                [
+                    "umpv",
+                    f"{out_filename}.mp4",
+                    "--force-window",
+                    "--geometry=33%-0%+0%",
+                    "--no-border",
+                    # "--ontop",
+                ],
+                shell=True,
+            )
 
     except common.VideoEditException as ex:
         print2("ERROR: %s" % ex, color="red")

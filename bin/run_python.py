@@ -9,7 +9,7 @@ from importlib.abc import MetaPathFinder
 PYTHON_MODULE_LIST = {
     "cv2": "opencv-python",
     "filelock": "filelock",  # a platform independent file lock.
-    "Flask": "Flask",
+    "flask": "Flask",
     "jieba": "jieba",
     "jinja2": "jinja2",
     "keyboard": "keyboard",

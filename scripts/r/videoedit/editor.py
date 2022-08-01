@@ -1456,16 +1456,7 @@ def export_video(*, out_filename, resolution, preview=False):
                 fps=FPS,
                 ffmpeg_params=["-crf", "19"],
             )
-
-            subprocess.Popen(
-                [
-                    "mpv",
-                    "--force-window",
-                    "--geometry=1920x1080",
-                    f"{out_filename}.mp4",
-                ],
-                close_fds=True,
-            )
+            return "%s.mp4" % out_filename
 
 
 # def _export_srt():

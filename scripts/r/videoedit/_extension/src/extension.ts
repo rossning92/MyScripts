@@ -121,7 +121,7 @@ function startSlideServer(file: string) {
     "pause",
   ];
 
-  runInTerminal({ name: "SlideServer", shellArgs });
+  openTerminal({ name: "SlideServer", shellArgs });
 
   openInBrowser(`http://localhost:${port}`);
 }
@@ -135,7 +135,7 @@ function runPython(file: string) {
     "||",
     "pause",
   ];
-  runInTerminal({ name: "Python", shellArgs });
+  openTerminal({ name: "Python", shellArgs });
 }
 
 async function openFileUnderCursor() {
@@ -506,7 +506,7 @@ function writeTempTextFile(text: string) {
   return file;
 }
 
-function runInTerminal({
+function openTerminal({
   name,
   shellArgs,
   singleInstance = true,
@@ -534,7 +534,9 @@ function runInTerminal({
     cwd,
   });
 
-  terminal.show();
+  terminal.show(
+    true // the terminal will not take focus.
+  );
 }
 
 function startMovyServer(file: string) {
@@ -552,7 +554,7 @@ function startMovyServer(file: string) {
     "pause",
   ];
 
-  runInTerminal({ name: "MovyServer", shellArgs });
+  openTerminal({ name: "MovyServer", shellArgs });
 }
 
 function exportVideo({
@@ -627,7 +629,7 @@ function exportVideo({
 
     shellArgs.push("||", "pause");
 
-    runInTerminal({
+    openTerminal({
       name: "ExportVideoDraft",
       cwd: activeDirectory,
       shellArgs: shellArgs,

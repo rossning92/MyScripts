@@ -109,5 +109,5 @@ powercfg /change standby-timeout-dc 0
 
 @REM run_script r/win/disable_onedrive.cmd
 run_script r/win/disable_auto_updates.cmd
-run_script r/win/setup_url_protocol.bat
+run_script r/win/register_mpv_url_protocal.bat
 run_script r/win/disable_windows_animation.ps1
