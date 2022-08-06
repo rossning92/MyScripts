@@ -9,8 +9,7 @@ import sys
 
 import yaml
 from _pkgmanager import get_executable
-from _shutil import (format_time, get_time_str, keep_awake, print2,
-                     to_valid_file_name)
+from _shutil import format_time, get_time_str, keep_awake, print2, to_valid_file_name
 from moviepy.config import change_settings
 
 from . import automation, common, editor
@@ -296,8 +295,7 @@ if __name__ == "__main__":
                     f"{out_filename}.mp4",
                     "--force-window",
                     "--geometry=33%-0%+0%",
-                    "--no-border",
-                    # "--ontop",
+                    "--ontop",
                 ],
                 shell=True,
             )

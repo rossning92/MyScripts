@@ -1195,8 +1195,8 @@ def _update_clip_duration(track):
         if prev_clip_info is not None:
             if prev_clip_info.auto_extend:
                 prev_clip_info.duration = clip_info.start - prev_clip_info.start
-                prev_clip_info.auto_extend = False
                 assert prev_clip_info.duration > 0
+                prev_clip_info.auto_extend = False
 
             # Apply fadeout to previous clip if it's not connected with
             # current clip.

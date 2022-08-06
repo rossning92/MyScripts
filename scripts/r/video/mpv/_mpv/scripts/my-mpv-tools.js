@@ -230,9 +230,6 @@ mp.add_forced_key_binding("m", "copy_mouse_to_clipboard", function () {
   var osdSize = mp.get_osd_size();
   var normalizedMouseX = mousePos.x / osdSize.width;
   var normalizedMouseY = mousePos.y / osdSize.height;
-
-  var w = mp.get_property_number("width");
-  var h = mp.get_property_number("height");
   var outX = normalizedMouseX * 1920;
   var outY = normalizedMouseY * 1080;
 
