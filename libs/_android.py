@@ -555,15 +555,15 @@ def pm_list_packages():
 
 
 def adb_install(apk, force=False):
-    if not force:
-        # Get package name
-        out = subprocess.check_output(
-            ["aapt", "dump", "badging", apk], universal_newlines=True
-        )
-        match = re.search(r"package: name='(.+?)'", out)
-        pkg_name = match.group(1)
-        logger.debug("apk package name: %s" % pkg_name)
+    # Get package name
+    out = subprocess.check_output(
+        ["aapt", "dump", "badging", apk], universal_newlines=True
+    )
+    match = re.search(r"package: name='(.+?)'", out)
+    pkg_name = match.group(1)
+    logger.debug("apk package name: %s" % pkg_name)
 
+    if not force:
         should_install = False
         if not app_is_installed(pkg_name):
             logger.info("App does not exist on device, installing...")
@@ -627,11 +627,11 @@ def adb_install(apk, force=False):
     return pkg_name
 
 
-def adb_install2(file):
+def adb_install2(file, force=False):
     """
     Install + restore app data.
     """
-    adb_install(file)
+    adb_install(file, force=force)
 
     # Push data
     tar_file = os.path.splitext(file)[0] + ".tar"

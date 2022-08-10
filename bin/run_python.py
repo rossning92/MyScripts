@@ -19,6 +19,7 @@ PYTHON_MODULE_LIST = {
     "mss": "mss",
     "numpy": "numpy",
     "pandas": "pandas",
+    "perfetto":"perfetto",
     "PIL": "pillow",
     "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
     "pyaudio": "pyaudio",

@@ -1,14 +1,8 @@
 import argparse
 import os
 
-from _android import (
-    adb_install2,
-    get_pkg_name_apk,
-    logcat,
-    setup_android_env,
-    start_app,
-)
-from _shutil import call_echo, get_files, print2, setup_logger
+from _android import adb_install2, get_pkg_name_apk, setup_android_env
+from _shutil import call_echo, get_files, setup_logger
 
 if __name__ == "__main__":
     setup_logger()
@@ -17,13 +11,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("files", metavar="N", type=str, nargs="+")
     parser.add_argument("-r", "--run", default=False, action="store_true")
+    parser.add_argument("-f", "--force", default=False, action="store_true")
 
     args = parser.parse_args()
 
     pkg = None
     if args.files:
         for file in args.files:
-            adb_install2(file)
+            adb_install2(file, force=args.force)
 
             if len(args.files) == 1 and args.run:
                 pkg = get_pkg_name_apk(file)
@@ -33,7 +28,7 @@ if __name__ == "__main__":
         for file in files:
             assert os.path.splitext(file)[1].lower() == ".apk"
 
-            adb_install2(file)
+            adb_install2(file, force=args.force)
 
             if len(files) == 1:
                 pkg = get_pkg_name_apk(file)

@@ -1,7 +1,7 @@
 import os
 from urllib.request import urlretrieve
 
-from _script import run_script, set_variable
+from _script import set_variable
 from _shutil import call_echo
 
 project_folder = os.environ["CWD"]
@@ -17,4 +17,3 @@ call_echo("git add -A")
 call_echo('git commit -m "Inital commit."')
 
 set_variable("GIT_REPO", project_folder)
-run_script("/r/git/cmd")
