@@ -209,7 +209,7 @@ $!3::
 return
 
 $!4::
-    SetWindowPos("A", 0, 0, 1440, 810)
+    SetWindowPos("A", 240, 135, 1440, 810)
     SetAlwaysOnTop("A", False)
 return
 

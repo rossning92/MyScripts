@@ -4,7 +4,7 @@ import sys
 import time
 import traceback
 
-SCRIPT_ROOT = os.path.realpath(os.path.dirname(__file__))
+SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
@@ -29,7 +29,6 @@ from _shutil import (
     refresh_env_vars,
     setup_logger,
     setup_nodejs,
-    start_process,
     update_env_var_explorer,
 )
 from _template import render_template_file
@@ -37,7 +36,6 @@ from _term import Menu, init_curses
 
 REFRESH_INTERVAL_SECS = 60
 GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
-script_root = os.path.dirname(os.path.abspath(__file__))
 
 
 def execute_script(script, close_on_exit=None):
@@ -225,7 +223,7 @@ def add_keyboard_hooks(keyboard_hooks):
 def register_global_hotkeys_linux(scripts):
     s = (
         f"control+q\n"
-        f"  gnome-terminal -- python3 {script_root}/main_console.py -q\n"
+        f"  gnome-terminal -- python3 {SCRIPT_ROOT}/main_console.py -q\n"
         "\n"
     )
 
@@ -241,7 +239,7 @@ def register_global_hotkeys_linux(scripts):
                 .replace("]", "bracketright")
             )
             s += "{}\n".format(hotkey)
-            s += f"  python3 {script_root}/bin/start_script.py {item.script_path}\n\n"
+            s += f"  python3 {SCRIPT_ROOT}/bin/start_script.py {item.script_path}\n\n"
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
@@ -283,7 +281,7 @@ def register_global_hotkeys_win(scripts):
 
     cmdline = '%s "%s"' % (
         sys.executable,
-        os.path.realpath("bin/start_script.py"),
+        os.path.abspath("bin/start_script.py"),
     )
 
     render_template_file(

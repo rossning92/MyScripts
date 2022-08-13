@@ -88,7 +88,7 @@ def get_ahk_exe(uia=True):
         os.makedirs(os.path.expanduser("~\\Documents\\AutoHotkey"), exist_ok=True)
         run_elevated(
             r'cmd /c MKLINK /D "%USERPROFILE%\Documents\AutoHotkey\Lib" "{}"'.format(
-                os.path.realpath(os.path.dirname(__file__) + "/../ahk")
+                os.path.abspath(os.path.dirname(__file__) + "/../ahk")
             )
         )
         get_ahk_exe.init = True
@@ -261,7 +261,7 @@ def cd(path, expand=True, auto_create_dir=False):
         path = os.path.expanduser(path)
         path = os.path.expandvars(path)
 
-    path = os.path.realpath(path)
+    path = os.path.abspath(path)
 
     if not os.path.exists(path):
         if auto_create_dir or confirm('"%s" not exist, create?' % path):
@@ -439,7 +439,7 @@ def copy(src, dst, overwrite=False):
 
     if os.path.isdir(src):
         if dst.endswith("/"):
-            dst = os.path.realpath(dst + os.path.basename(src))
+            dst = os.path.abspath(dst + os.path.basename(src))
             copy_tree(src, dst)
             print("%s => %s" % (src, dst))
         else:
@@ -1370,7 +1370,7 @@ def find_newest_file(wildcard):
 
 
 def move_file(src, dst, overwrite=False):
-    dst = os.path.realpath(dst)
+    dst = os.path.abspath(dst)
     assert os.path.exists(src)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
 

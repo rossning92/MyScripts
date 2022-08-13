@@ -1,7 +1,9 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.realpath(os.path.dirname(__file__) + "/../libs"))
+sys.path.insert(
+    0, os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../libs")
+)
 
 from _script import start_script
 from _shutil import update_env_var_explorer

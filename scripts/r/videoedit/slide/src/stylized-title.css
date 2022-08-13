@@ -7,12 +7,13 @@
 
 :is(h1, h2, h3) {
   font-family: "Roboto Condensed", "Noto Sans SC";
-  font-weight: 500;
-  padding: 0.2em 1.25em 0.2em 1.25em;
+  font-weight: 400;
+  padding: 0.25em 1em 0.25em 1em;
   line-height: 1em;
   text-align: center;
   background-color: #ffffff;
   color: black;
+  margin: 1px;
 }
 
 h1 {

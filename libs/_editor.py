@@ -35,7 +35,7 @@ def open_in_androidstudio(path, line=None):
 
 
 def vscode_set_include_path(include_path):
-    include_path = [os.path.realpath(x).replace("\\", "/") for x in include_path]
+    include_path = [os.path.abspath(x).replace("\\", "/") for x in include_path]
     include_path.insert(0, "${workspaceFolder}/**")
 
     # Default configuration file

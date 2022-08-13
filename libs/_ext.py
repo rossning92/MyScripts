@@ -3,6 +3,8 @@ import os
 from _editor import open_in_vscode
 from _script import get_script_directories
 
+SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 
 def get_selected_script_dir_rel():
     rel_path = os.getenv("SCRIPT").replace(os.getcwd() + os.path.sep, "")
@@ -16,7 +18,7 @@ def edit_myscript_script(file):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
-    project_folder = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
+    project_folder = os.path.abspath(os.path.join(SCRIPT_ROOT, ".."))
     if file.startswith(project_folder):
         open_in_vscode([project_folder, file])
         return
@@ -31,7 +33,7 @@ def edit_myscript_script(file):
 
 
 def get_my_script_root():
-    return os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + "/../")
+    return os.path.abspath(SCRIPT_ROOT + "/../")
 
 
 def enter_script_path():

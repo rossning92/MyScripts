@@ -40,8 +40,7 @@ def generate_video_matrix(
         subprocess.call("pip install moviepy")
 
     import numpy as np
-    from moviepy.editor import (ColorClip, TextClip, VideoFileClip,
-                                clips_array, vfx)
+    from moviepy.editor import ColorClip, TextClip, VideoFileClip, clips_array, vfx
     from moviepy.video.fx.all import crop
 
     if out_file is None:
@@ -193,6 +192,8 @@ def ffmpeg(
     pad_to_1080p=False,
     rotate_cw=False,
     rotate_ccw=False,
+    add_border=0,
+    add_border_color="white",
     speed=1.0,
     height=None,
     width=None,
@@ -285,6 +286,11 @@ def ffmpeg(
             ":fontsize=18"
             ":x=(w-text_w)/2"
             ":y=(h-text_h)/2"
+        )
+
+    if add_border > 0:
+        filter_v.append(
+            f"pad=w={add_border*2}+iw:h={add_border*2}+ih:x={add_border}:y={add_border}:color={add_border_color}"
         )
 
     if reverse:

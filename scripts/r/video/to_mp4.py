@@ -58,31 +58,32 @@ if __name__ == "__main__":
                 out_file=out_file,
                 extra_args=extra_args,
                 reencode=True,
-                crf=int(os.environ.get("_CRF", 19)),
-                start_and_duration=start_and_duration,
                 nvenc=bool(os.environ.get("_NVENC")),
+                crf=int(os.environ.get("_CRF", 19)),
                 max_size_mb=(
                     float(os.environ["_MAX_SIZE_MB"])
                     if "_MAX_SIZE_MB" in os.environ
                     else None
                 ),
+                start_and_duration=start_and_duration,
+                fps=int(os.environ["_FPS"]) if "_FPS" in os.environ else None,
+                width=int(os.environ["_WIDTH"]) if "_WIDTH" in os.environ else None,
+                height=int(os.environ["_HEIGHT"]) if "_HEIGHT" in os.environ else None,
                 no_audio=bool(os.environ.get("_NO_AUDIO")),
                 loop=int(os.environ.get("_LOOP", 0)),
                 crop_rect=crop_rect,
-                to_anamorphic=bool(os.environ.get("_TO_ANAMORPHIC")),
+                add_border=int(os.environ.get("_ADD_BORDER", 0)),
                 crop_to_1080p=bool(os.environ.get("_CROP_TO_1080P")),
                 pad_to_1080p=bool(os.environ.get("_PAD_TO_1080P")),
-                rotate_cw=bool(os.environ.get("_ROTATE_CW")),
                 rotate_ccw=bool(os.environ.get("_ROTATE_CCW")),
+                rotate_cw=bool(os.environ.get("_ROTATE_CW")),
                 speed=float(os.environ.get("_SPEED", 1.0)),
-                height=int(os.environ["_HEIGHT"]) if "_HEIGHT" in os.environ else None,
-                width=int(os.environ["_WIDTH"]) if "_WIDTH" in os.environ else None,
                 title=os.environ.get("_TITLE"),
-                reverse=bool(os.environ.get("_REVERSE")),
+                to_anamorphic=bool(os.environ.get("_TO_ANAMORPHIC")),
                 remove_duplicated_frames=bool(
                     os.environ.get("_REMOVE_DUPLICATED_FRAMES")
                 ),
-                fps=int(os.environ["_FPS"]) if "_FPS" in os.environ else None,
+                reverse=bool(os.environ.get("_REVERSE")),
             )
 
         if not os.environ.get("_NO_OPEN") and len(files) == 1:

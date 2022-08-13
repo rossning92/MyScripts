@@ -784,7 +784,7 @@ class Script:
                         self.render(), slugify(self.name) + ".ps1"
                     )
                 else:
-                    ps_path = os.path.realpath(script_path)
+                    ps_path = os.path.abspath(script_path)
 
                 args = [
                     "PowerShell.exe",
@@ -830,7 +830,7 @@ class Script:
                         self.render(), slugify(self.name) + ".cmd"
                     )
                 else:
-                    batch_file = os.path.realpath(script_path)
+                    batch_file = os.path.abspath(script_path)
 
                 args = ["cmd.exe", "/c", batch_file] + args
             else:
@@ -860,7 +860,7 @@ class Script:
             if self.cfg["template"] and ext == ".py":
                 python_file = write_temp_file(self.render(), slugify(self.name) + ".py")
             else:
-                python_file = os.path.realpath(script_path)
+                python_file = os.path.abspath(script_path)
 
             if sys.platform == "win32" and self.cfg["wsl"]:
                 python_file = convert_to_unix_path(python_file, wsl=self.cfg["wsl"])
@@ -985,15 +985,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1355,7 +1351,7 @@ def update_script_config(kvp, script_file):
 
 
 def create_script_link(script_file):
-    script_dir = os.path.realpath(os.path.dirname(__file__) + "/../scripts")
+    script_dir = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
     link_file = os.path.splitext(os.path.basename(script_file))[0] + ".link"
     link_file = os.path.join(script_dir, link_file)
     with open(link_file, "w", encoding="utf-8") as f:

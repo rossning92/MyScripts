@@ -20,7 +20,7 @@ def patch_code(
     dry_run=False,
     encoding="utf-8",
 ):
-    file = os.path.realpath(file)
+    file = os.path.abspath(file)
 
     if revert_file and file not in modified_sources:
         _revert_file(file)
