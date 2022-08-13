@@ -1226,7 +1226,7 @@ def run_script(
             raise ValueError("file cannot be None.")
 
     # Print command line arguments
-    print2("run_script: %s" % _args_to_str([file] + args), color="black")
+    logging.info("run_script: %s" % _args_to_str([file] + args), color="black")
 
     script_path = find_script(file)
     if script_path is None:
@@ -1267,7 +1267,7 @@ def run_script(
         ctypes.windll.kernel32.SetConsoleTitleA(saved_title)
 
     end_time = time.time()
-    print2(
+    logging.info(
         "run_script: %s finished in %s" % (file, format_time(end_time - start_time)),
         color="black",
     )
