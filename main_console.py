@@ -26,6 +26,7 @@ from _script import (
 from _shutil import (
     add_to_path,
     get_ahk_exe,
+    quote_arg,
     refresh_env_vars,
     setup_logger,
     setup_nodejs,
@@ -476,6 +477,25 @@ def main_loop(quit=False):
             input("Press any key to retry...")
 
 
+def run_at_startup():
+    if sys.platform == "win32":
+        cmdline = quote_arg(os.path.join(SCRIPT_ROOT, "run.cmd"))
+        subprocess.check_call(
+            [
+                "reg",
+                "add",
+                "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run",
+                "/v",
+                "MyScripts",
+                "/t",
+                "REG_SZ",
+                "/d",
+                cmdline,
+                "/f",
+            ]
+        )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -485,6 +505,8 @@ if __name__ == "__main__":
         help="quit after running a script",
     )
     args = parser.parse_args()
+
+    run_at_startup()
 
     # setup_console_font()
     init()

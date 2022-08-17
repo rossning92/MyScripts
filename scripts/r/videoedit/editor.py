@@ -125,6 +125,7 @@ class State:
                 ("hl", []),
                 ("hl2", []),
                 ("md", []),
+                ("md2", []),
                 ("overlay", []),
                 ("overlay2", []),
                 ("text", []),
@@ -727,7 +728,9 @@ def _load_mpy_clip(
             target_resolution = None
 
         return VideoFileClip(
-            f, target_resolution=target_resolution, has_mask=f.endswith(".gif")
+            f,
+            target_resolution=target_resolution,
+            # has_mask=transparent and f.endswith(".gif"),
         )
 
     if file is None:

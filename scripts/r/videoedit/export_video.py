@@ -9,8 +9,14 @@ import sys
 
 import yaml
 from _pkgmanager import get_executable
-from _shutil import (format_time, get_time_str, keep_awake, print2,
-                     to_valid_file_name)
+from _shutil import (
+    format_time,
+    get_time_str,
+    keep_awake,
+    print2,
+    start_process,
+    to_valid_file_name,
+)
 from moviepy.config import change_settings
 
 from . import automation, common, editor
@@ -292,7 +298,7 @@ if __name__ == "__main__":
 
             if sys.platform == "win32":
                 subprocess.call(["taskkill", "/f", "/im", "mpv.exe"], shell=True)
-            subprocess.call(
+            start_process(
                 [
                     "mpv",
                     f"{out_filename}.mp4",

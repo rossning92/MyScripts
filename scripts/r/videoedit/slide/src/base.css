@@ -45,7 +45,7 @@ a {
 
 blockquote {
   color: black;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 1);
   border-radius: 1em;
   line-height: 1.15em;
   margin: 0 auto -0.02em auto;
@@ -86,9 +86,9 @@ td {
 }
 
 card {
+  display: block;
   background: rgba(255, 255, 255, 1);
   color: black;
-  vertical-align: middle;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   padding: 0.5em 2em;
 }

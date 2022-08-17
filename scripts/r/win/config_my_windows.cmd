@@ -44,7 +44,7 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Di
 powercfg.exe /hibernate off
 
 @REM Disable UAC
-call disable_UAC.cmd
+call %~dp0disable_UAC.cmd
 
 @REM Turn off animation
 reg add "HKCU\Control Panel\Desktop\WindowMetrics" /v MinAnimate /t REG_DWORD /d 0 /f

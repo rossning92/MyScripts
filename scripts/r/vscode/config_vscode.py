@@ -178,6 +178,8 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     with open(SETTING_CONFIG, "w") as f:
         json.dump(data, f, indent=4)
 
+
+def open_vscode(data_dir):
     subprocess.Popen(get_vscode_cmdline(data_dir=data_dir), shell=True, close_fds=True)
 
 

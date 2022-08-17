@@ -1636,3 +1636,15 @@ def keep_awake():
         ctypes.windll.kernel32.SetThreadExecutionState(
             ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED
         )
+
+
+def quote_arg(s, single_quote=False, powershell=False):
+    if powershell:
+        s = s.replace("(", r"`(").replace(")", r"`)")
+    if " " in s or "\\" in s:
+        if single_quote:
+            return "'" + s + "'"
+        else:
+            return '"' + s + '"'
+    else:
+        return s

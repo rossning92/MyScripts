@@ -19,7 +19,7 @@ ClipChanged(Type) {
                 key := WaitKey()
                 if ( key = " " )
                 {
-                    Run, cmd /c %A_ScriptDir%\..\..\bin\run_script.exe /r/download_video "%g_lastUrl%" & timeout 5, % dir, Min
+                    Run, cmd /c %A_ScriptDir%\..\..\bin\run_script.exe r/download_video.py "%g_lastUrl%" & timeout 5, % dir, Min
                 }
             }
         }

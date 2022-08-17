@@ -30,6 +30,7 @@ from _shutil import (
     get_home_path,
     load_yaml,
     print2,
+    quote_arg,
     run_elevated,
     save_yaml,
     setup_nodejs,
@@ -38,6 +39,8 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
+
+SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 SCRIPT_EXTENSIONS = {
     ".sh",
@@ -55,15 +58,20 @@ SCRIPT_EXTENSIONS = {
 
 
 def get_data_dir():
-    data_dir = os.path.abspath(
-        "{}/../tmp/data/{}".format(os.path.dirname(__file__), platform.node())
+    data_dir_file = os.path.abspath(
+        os.path.join(SCRIPT_ROOT, "..", "config", "data_dir.txt")
     )
+    if os.path.exists(data_dir_file):
+        with open(data_dir_file, "r") as f:
+            data_dir = f.read().strip()
+    else:
+        data_dir = os.path.abspath("%s/../tmp/data/%s" % (SCRIPT_ROOT, platform.node()))
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
 
 
 def get_script_root():
-    return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+    return os.path.abspath(SCRIPT_ROOT + "/../scripts")
 
 
 def get_script_directories():
@@ -180,18 +188,6 @@ def exec_cmd(cmd):
     subprocess.check_call(args)
 
 
-def _auto_quote(s, single_quote=False, powershell=False):
-    if powershell:
-        s = s.replace("(", r"`(").replace(")", r"`)")
-    if " " in s or "\\" in s:
-        if single_quote:
-            return "'" + s + "'"
-        else:
-            return '"' + s + '"'
-    else:
-        return s
-
-
 def _args_to_str(args, single_quote=False, powershell=False):
     assert type(args) in [list, tuple]
     if powershell:
@@ -201,7 +197,7 @@ def _args_to_str(args, single_quote=False, powershell=False):
     else:
         return " ".join(
             [
-                _auto_quote(x, single_quote=single_quote, powershell=powershell)
+                quote_arg(x, single_quote=single_quote, powershell=powershell)
                 for x in args
             ]
         )
@@ -332,7 +328,7 @@ def input2(message, name):
 def get_python_path(script_path):
     python_path = []
 
-    script_root = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+    script_root = os.path.abspath(SCRIPT_ROOT + "/../scripts")
     python_path.append(os.path.join(script_root, "r"))
 
     if script_path is not None:
@@ -342,7 +338,7 @@ def get_python_path(script_path):
             python_path.append(parent_dir)
             parent_dir = os.path.abspath(parent_dir + "/../")
 
-    python_path.append(os.path.dirname(__file__))
+    python_path.append(SCRIPT_ROOT)
 
     return list(set(python_path))
 
@@ -371,10 +367,10 @@ def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None):
     cmd_args = "cmd /c "
 
     if title:
-        cmd_args += "title %s&" % _auto_quote(title)
+        cmd_args += "title %s&" % quote_arg(title)
 
     if cwd:
-        cmd_args += "cd /d %s&" % _auto_quote(cwd)
+        cmd_args += "cd /d %s&" % quote_arg(cwd)
 
     if env:
         for k, v in env.items():
@@ -493,9 +489,7 @@ def wrap_args_alacritty(
     else:
         dest_path = os.path.expanduser(".config/alacritty/alacritty.yml")
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    src_path = os.path.abspath(
-        os.path.dirname(os.path.abspath(__file__)) + "/../settings/alacritty.yml"
-    )
+    src_path = os.path.abspath(SCRIPT_ROOT + "/../settings/alacritty.yml")
     shutil.copy(src_path, dest_path)
 
     out = [
@@ -798,7 +792,7 @@ class Script:
         elif ext == ".ahk":
             if sys.platform == "win32":
                 # HACK: add python path to env var
-                env["PYTHONPATH"] = os.path.dirname(__file__)
+                env["PYTHONPATH"] = SCRIPT_ROOT
 
                 if self.cfg["template"]:
                     script_path = write_temp_file(
@@ -906,9 +900,7 @@ class Script:
 
             if ext == ".py":
                 if self.cfg["runpy"]:
-                    run_py = os.path.abspath(
-                        os.path.dirname(__file__) + "/../bin/run_python.py"
-                    )
+                    run_py = os.path.abspath(SCRIPT_ROOT + "/../bin/run_python.py")
                     # TODO: make it more general
                     if sys.platform == "win32":
                         if self.cfg["wsl"]:
@@ -1013,7 +1005,7 @@ class Script:
                             popen_extra_args["creationflags"] = (
                                 subprocess.CREATE_NEW_PROCESS_GROUP
                                 | DETACHED_PROCESS
-                                | CREATE_BREAKAWAY_FROM_JOB
+                                # | CREATE_BREAKAWAY_FROM_JOB
                             )
                             popen_extra_args["close_fds"] = True
                             shell = True
@@ -1178,9 +1170,7 @@ def find_script(patt):
     if os.path.exists(patt):
         return os.path.abspath(patt)
 
-    script_path = os.path.abspath(
-        os.path.dirname(__file__) + "/../scripts/" + patt.lstrip("/")
-    )
+    script_path = os.path.abspath(SCRIPT_ROOT + "/../scripts/" + patt.lstrip("/"))
     if os.path.exists(script_path):
         return script_path
 
@@ -1351,7 +1341,7 @@ def update_script_config(kvp, script_file):
 
 
 def create_script_link(script_file):
-    script_dir = os.path.abspath(os.path.dirname(__file__) + "/../scripts")
+    script_dir = os.path.abspath(SCRIPT_ROOT + "/../scripts")
     link_file = os.path.splitext(os.path.basename(script_file))[0] + ".link"
     link_file = os.path.join(script_dir, link_file)
     with open(link_file, "w", encoding="utf-8") as f:

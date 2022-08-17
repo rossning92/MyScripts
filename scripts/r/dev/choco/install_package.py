@@ -1,16 +1,19 @@
 import argparse
+import logging
 import sys
 
 from _pkgmanager import install_package
+from _shutil import setup_logger
 from _term import Menu
 
 PKGS = {
     "@common": [
         "alacritty",
         "everything",
-        "git",
         "git-lfs",
+        "git",
         "googlechrome",
+        "googledrive",
         "irfanview",
         "mpv",
         "sharex",
@@ -29,14 +32,14 @@ PKGS = {
         "cmake",
         "conemu",
         "ffmpeg",
-        "hxd",
         "graphviz",
+        "hxd",
         "imagemagick.app",
         "llvm",
-        "microsoft-windows-terminal",
         "nodejs",
         "ripgrep",
         "vscode",
+        "yarn",
         # "anaconda3",
         # "androidstudio",
         # "atom",
@@ -71,6 +74,7 @@ PKGS = {
         "graphviz",
         "inkscape",
         "jcpicker",
+        "microsoft-windows-terminal",
         "miktex",
         "mongodb",
         "mousewithoutborders",
@@ -97,6 +101,7 @@ PKGS = {
 
 
 def install_recursive(name):
+    logging.info('install_recursive(name="%s")' % name)
     if name.startswith("@"):
         for pkg in PKGS[name]:
             install_recursive(pkg)
@@ -106,6 +111,8 @@ def install_recursive(name):
 
 
 if __name__ == "__main__":
+    setup_logger()
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("name", nargs="?", help="package name", type=str, default=None)
     args = parser.parse_args()

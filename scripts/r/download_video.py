@@ -1,9 +1,10 @@
 import os
+import shutil
 import subprocess
 import sys
 
-from _shutil import call_echo, print2
 from _script import get_variable
+from _shutil import call_echo, print2
 
 root = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,6 +37,9 @@ def download_bilibili(url, download_dir=None):
 
 
 def download_youtube(url, download_dir=None):
+    if not shutil.which("yt-dlp"):
+        call_echo([sys.executable, "-m", "pip", "install", "-U", "yt-dlp", "--user"])
+
     call_echo(
         ["yt-dlp", "-f", "bestvideo+bestaudio", "--no-mtime", url], cwd=download_dir
     )
@@ -47,11 +51,13 @@ def download_video(url):
         try:
             if "bilibili" in url:
                 download_bilibili(
-                    url, download_dir=get_default_download_dir("Bilibili"),
+                    url,
+                    download_dir=get_default_download_dir("Bilibili"),
                 )
             elif "youtube" in url:
                 download_youtube(
-                    url, download_dir=get_default_download_dir("Youtube"),
+                    url,
+                    download_dir=get_default_download_dir("Youtube"),
                 )
             return
         except subprocess.CalledProcessError:
