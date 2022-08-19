@@ -80,6 +80,7 @@ PKGS = {
         "mousewithoutborders",
         "nsis",
         "nvidia-display-driver",
+        "ocenaudio",
         "ontopreplica",
         "pandoc",
         "putty",

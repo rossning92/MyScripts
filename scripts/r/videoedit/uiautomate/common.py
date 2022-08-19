@@ -153,7 +153,8 @@ class TypingSound:
         self.cur = (self.cur + 1) % len(self.waves)
 
 
-_sound = TypingSound()
+_sound = None
+# _sound = TypingSound()
 
 
 def sleep_random(secs, sigma=None):

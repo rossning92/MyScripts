@@ -9,6 +9,7 @@ if [ ! -d ".git" ]; then
     git fetch
     git reset --hard origin/master
     git branch --set-upstream-to=origin/master master
+    git submodule update --init --recursive
 fi
 
 git config --global user.email "rossning92@gmail.com"
@@ -20,14 +21,20 @@ git status --short
 status=$(git status --short)
 if [[ ! -z "$status" ]]; then
     if [[ -n "$AMEND" ]]; then
-        echo "Press y to amend (DANGEROUS!)"
+        echo "Confirm amend? (y/n)"
     else
-        echo "Press y to commit..."
+        echo "Confirm commit? (y/n)"
     fi
     read -n1 ans
     if [[ "$ans" == "y" ]]; then
         git add -A
-        git restore --staged scripts/r/videoedit/movy
+
+        # echo 'Submit submodule changes? (y/n)'
+        # read -n1 ans
+        # if [ "$ans" != "y" ]; then
+        #     git restore --staged scripts/r/videoedit/movy
+        # fi
+
         if [[ -n "$AMEND" ]]; then
             git commit --amend --no-edit
         else

@@ -1,6 +1,5 @@
 set -e
-echo "Opening $1..."
-
+cd "$(dirname "$0")"
 cd movy
 npm install
 npm run dev

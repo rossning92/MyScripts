@@ -1441,7 +1441,7 @@ def export_video(*, out_filename, resolution, preview=False):
     if _state.audio_only:
         final_audio_clip.fps = 44100
         final_audio_clip.write_audiofile("%s.mp3" % out_filename)
-        open_with("%s.mp3" % out_filename, program_id=0)
+        return "%s.mp3" % out_filename
 
     else:
         if preview:

@@ -294,14 +294,16 @@ if __name__ == "__main__":
 
             _parse_text(s, apis=common.apis)
 
-            editor.export_video(out_filename=out_filename, resolution=(1920, 1080))
+            out = editor.export_video(
+                out_filename=out_filename, resolution=(1920, 1080)
+            )
 
             if sys.platform == "win32":
                 subprocess.call(["taskkill", "/f", "/im", "mpv.exe"], shell=True)
             start_process(
                 [
                     "mpv",
-                    f"{out_filename}.mp4",
+                    out,
                     "--force-window",
                     "--geometry=33%-0%+0%",
                 ],

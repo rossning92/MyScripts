@@ -14,7 +14,17 @@
       "isBackground": true,
       "presentation": {
         "reveal": "never"
-      }
+      },
+      "dependsOn": "npm: install - scripts/r/videoedit/_extension",
+    },
+    {
+      "type": "npm",
+      "script": "install",
+      "path": "scripts/r/videoedit/_extension",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: install - scripts/r/videoedit/_extension",
+      "detail": "install dependencies from package"
     }
   ]
 }
