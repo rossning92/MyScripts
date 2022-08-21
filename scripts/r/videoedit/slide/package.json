@@ -13,7 +13,7 @@
     "marked": "^2.0.3",
     "mermaid": "^8.11.0",
     "mini-css-extract-plugin": "^1.5.0",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "puppeteer": "^16.2.0",
     "raw-loader": "^4.0.2",
     "style-loader": "^2.0.0",
