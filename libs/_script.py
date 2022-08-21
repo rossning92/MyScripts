@@ -29,6 +29,7 @@ from _shutil import (
     get_ahk_exe,
     get_home_path,
     load_yaml,
+    npm_install,
     print2,
     quote_arg,
     run_elevated,
@@ -834,6 +835,7 @@ class Script:
         elif ext == ".js":
             # TODO: support template
             setup_nodejs()
+            npm_install(cwd=os.path.dirname(script_path))
             args = ["node", script_path] + args
 
         elif ext == ".sh":

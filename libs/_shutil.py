@@ -1123,10 +1123,10 @@ def setup_nodejs(install=True):
         print("setup_nodejs() not supported for current OS. Ignored.")
 
 
-def npm_install(path="."):
-    path = os.path.abspath(path)
-    if not os.path.exists(os.path.join(path, "node_modules")):
-        call_echo("yarn", cwd=path)
+def npm_install(cwd="."):
+    cwd = os.path.abspath(cwd)
+    if not os.path.exists(os.path.join(cwd, "node_modules")):
+        call_echo("yarn", cwd=cwd)
 
 
 def get_next_file_name(file):

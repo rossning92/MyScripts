@@ -995,7 +995,7 @@ def empty(**kwargs):
 def _generate_slide(in_file, template, out_file=None, public=None):
     args = [
         "run_script",
-        "/r/videoedit/slide/export.js",
+        "r/videoedit/slide/export.js",
         "-i",
         os.path.realpath(in_file),
         "-o",

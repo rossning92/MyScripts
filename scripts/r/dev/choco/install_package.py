@@ -36,7 +36,7 @@ PKGS = {
         "hxd",
         "imagemagick.app",
         "llvm",
-        "nodejs",
+        "nodejs-lts",
         "ripgrep",
         "vscode",
         "yarn",
