@@ -1,0 +1,21 @@
+{
+  "[markdown]": {
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
+    }
+  },
+  "python.formatting.provider": "black",
+  "search.exclude": {
+    "**/tmp": true,
+    "**/.mypy_cache": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "files.associations": {
+    "limits": "cpp"
+  }
+}

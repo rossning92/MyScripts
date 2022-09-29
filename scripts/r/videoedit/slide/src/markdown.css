@@ -1,0 +1,10 @@
+@import "./base.css";
+@import "./stylized-title.css";
+
+.container {
+  padding: 0.5em;
+}
+
+body {
+  /* background-color: gray; */
+}

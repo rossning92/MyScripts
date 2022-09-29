@@ -1,0 +1,75 @@
+{
+  "md": {
+    "prefix": "md",
+    "body": ["{{ md('### $1', t='as', duration=3) }}"]
+  },
+  "audio_gap": {
+    "prefix": "audio_gap",
+    "body": ["{{ audio_gap(2, bgm_vol=0.5, fade_duration=0.25) }}"]
+  },
+  "tts": {
+    "prefix": "tts",
+    "body": ["{{ tts(True) }}"]
+  },
+  "bgm": {
+    "prefix": "bgm",
+    "body": ["{{ bgm('$1') }}"]
+  },
+  "pos": {
+    "prefix": "pos",
+    "body": ["{{ pos('ve', tag='a') }}"]
+  },
+  "crossfade": {
+    "prefix": "crossfade",
+    "body": ["{{ crossfade(0.2) }}"]
+  },
+  "comment": {
+    "prefix": "comment",
+    "body": ["{{ comment('$1', t='as') }}"]
+  },
+  "title": {
+    "prefix": "title",
+    "body": ["{{ slide('# $1\\n## $2', template='title', cf=0.2) }}"]
+  },
+  "slide": {
+    "prefix": "slide",
+    "body": ["{{ slide('$1', template='slide') }}"]
+  },
+  "video_end": {
+    "prefix": "video_end",
+    "body": ["{{ video_end(track='overlay', t='ae') }}"]
+  },
+  "cmd": {
+    "prefix": "cmd",
+    "body": [
+      "{{ cmd('''echo hello",
+      "{sleep 1}echo world",
+      "{sleep 1}''', startup=r'cd %USERPROFILE%', font_size=18, size=(1920, 1080), force=0) }}"
+    ]
+  },
+  "ipython": {
+    "prefix": "ipython",
+    "body": ["{{ ipython('0.1 + 0.2', font_size=18) }}"]
+  },
+  "node": {
+    "prefix": "node",
+    "body": [
+      "{{ node('''Math.min()",
+      "{sleep 0.5}Math.max()",
+      "{sleep 0.5}Math.min() < Math.max()",
+      "{sleep 2}''', force=0, font_size=18) }}"
+    ]
+  },
+  "bash": {
+    "prefix": "bash",
+    "body": ["{{ bash('''echo hello\\n''', force=0, font_size=18) }}"]
+  },
+  "TODO: record": {
+    "prefix": "todo_record",
+    "body": ["<!-- TODO: record: 1 -->"]
+  },
+  "force": {
+    "prefix": "force",
+    "body": ["{{ force() }}"]
+  }
+}

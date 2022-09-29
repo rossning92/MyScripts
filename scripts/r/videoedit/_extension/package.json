@@ -1,0 +1,197 @@
+{
+  "name": "videoedit",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "videoEdit.exportVideoPreview",
+        "title": "VideoEdit: Export Video (Preview)"
+      },
+      {
+        "command": "videoEdit.exportVideoForce",
+        "title": "VideoEdit: Export Video (Force)"
+      },
+      {
+        "command": "videoEdit.exportVideo",
+        "title": "VideoEdit: Export Video"
+      },
+      {
+        "command": "videoEdit.exportAudio",
+        "title": "VideoEdit: Export Audio Only"
+      },
+      {
+        "command": "videoEdit.startRecording",
+        "title": "VideoEdit: Start Recording"
+      },
+      {
+        "command": "videoEdit.stopRecording",
+        "title": "VideoEdit: Stop Recording"
+      },
+      {
+        "command": "videoEdit.collectNoiseProfile",
+        "title": "VideoEdit: Collect Noise Profile"
+      },
+      {
+        "command": "videoEdit.openFileUnderCursor",
+        "title": "VideoEdit: Open File Under Cursor"
+      },
+      {
+        "command": "videoEdit.insertAllClipsInFolder",
+        "title": "VideoEdit: Insert All Clips In Folder"
+      },
+      {
+        "command": "videoEdit.purgeFiles",
+        "title": "VideoEdit: Purge Files"
+      },
+      {
+        "command": "videoEdit.showStats",
+        "title": "VideoEdit: Show Stats"
+      },
+      {
+        "command": "videoEdit.createPowerpoint",
+        "title": "VideoEdit: Create Powerpoint"
+      },
+      {
+        "command": "videoEdit.createPowerpointOverlay",
+        "title": "VideoEdit: Create Powerpoint (Overlay)"
+      },
+      {
+        "command": "videoEdit.createSlide",
+        "title": "VideoEdit: Create Slide"
+      },
+      {
+        "command": "videoEdit.createMovyAnimation",
+        "title": "VideoEdit: Create Movy Animation"
+      },
+      {
+        "command": "videoEdit.createCode",
+        "title": "VideoEdit: Create Code"
+      },
+      {
+        "command": "videoEdit.renameFile",
+        "title": "VideoEdit: Rename File"
+      },
+      {
+        "command": "videoEdit.startMovyServer",
+        "title": "VideoEdit: Start Movy Server"
+      },
+      {
+        "command": "videoEdit.toggleCrossfade",
+        "title": "VideoEdit: Toggle Crossfade"
+      },
+      {
+        "command": "videoEdit.toggleDuration",
+        "title": "VideoEdit: Toggle Duration"
+      },
+      {
+        "command": "videoEdit.insertMostRecentFile",
+        "title": "VideoEdit: Insert Most Recent File"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "videoEdit.exportVideoPreview",
+        "key": "alt+enter",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.exportVideoForce",
+        "key": "alt+shift+enter",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.exportVideo",
+        "key": "ctrl+alt+shift+enter",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.exportAudio",
+        "key": "ctrl+alt+enter",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.startRecording",
+        "key": "f7",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.stopRecording",
+        "key": "f8",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.collectNoiseProfile",
+        "key": "f9",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.openFileUnderCursor",
+        "key": "f4",
+        "when": "editorTextFocus && resourcePath =~ /vprojects/"
+      },
+      {
+        "command": "videoEdit.renameFile",
+        "key": "f2",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.toggleCrossfade",
+        "key": "alt+f",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.toggleDuration",
+        "key": "alt+d",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.insertMostRecentFile",
+        "key": "alt+i",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      },
+      {
+        "command": "videoEdit.createMovyAnimation",
+        "key": "alt+m",
+        "when": "editorTextFocus && videoEdit.isProjectFileActive"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "markdown",
+        "path": "./snippets.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.60.0",
+    "@types/glob": "^7.1.4",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "14.x",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "eslint": "^7.32.0",
+    "glob": "^7.1.7",
+    "mocha": "^9.1.1",
+    "typescript": "^4.4.3",
+    "@vscode/test-electron": "^1.6.2"
+  }
+}

@@ -1,0 +1,4 @@
+globalHotkey: Win+Alt+I
+hotkey: Ctrl+I
+runAsAdmin: true
+template: false

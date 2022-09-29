@@ -1,0 +1,18 @@
+@import "./font.css";
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+@import "./stylized-title.css";
+
+body {
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  width: 1920px;
+  height: 1080px;
+  background-color: #000;
+}
+
+.inner {
+  margin: auto;
+}

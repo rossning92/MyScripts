@@ -1,0 +1,28 @@
+@import "./font.css";
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap");
+
+:is(h1, h2, h3, h4, h5, h6) {
+  margin: 0;
+}
+
+:is(h1, h2, h3) {
+  font-family: "Roboto Condensed", "Noto Sans SC";
+  font-weight: 400;
+  padding: 0.25em 1em 0.25em 1em;
+  line-height: 1em;
+  text-align: center;
+  background-color: #ffffff;
+  color: black;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.25em;
+}

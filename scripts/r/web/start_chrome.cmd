@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Chromium\Application\chrome.exe" --high-dpi-support=1 --force-device-scale-factor=1 --app=http://localhost:3000 --force-device-scale-factor=1

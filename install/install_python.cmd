@@ -1,0 +1,1 @@
+@powershell Start-Process cmd -verb runAs -wait -ArgumentList /c,choco,install,python,--version,3.10.4,-y

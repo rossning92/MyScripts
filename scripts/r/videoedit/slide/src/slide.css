@@ -1,0 +1,94 @@
+@import "./base.css";
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;900&display=swap");
+
+.container {
+  background-color: black;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  min-width: 1720px;
+  width: 1920px;
+  height: 1080px;
+}
+
+.padded {
+  padding-left: 54px;
+  padding-right: 54px;
+}
+
+.cols {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  width: 100%;
+}
+
+.cols > .col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+:is(h4, h5, h6) {
+  margin: 0;
+  font-weight: normal;
+}
+
+h4 {
+  font-size: 2em;
+}
+
+h5 {
+  font-size: 1.5em;
+}
+
+h6 {
+  font-size: 1.25em;
+}
+
+/* img {
+  display: block;
+  max-width: 1024px;
+  max-height: 1024px;
+  width: auto;
+  height: auto;
+} */
+
+img[src$="#icon"] {
+  width: 256px;
+  height: 256px;
+}
+
+img[src$="#icon-small"] {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+img[src$="#icon-larger"] {
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: middle;
+}
+
+table {
+  max-width: 1664px;
+}
+/* .mermaid > svg {
+  zoom: 2;
+} */
+
+/* .mermaid .label {
+  color: white !important;
+} */
+
+.container > .CodeMirror {
+  max-height: 85%;
+}
+
+@import "./stylized-title.css";

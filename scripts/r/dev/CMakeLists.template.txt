@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.6)
+
+project({{PROJECT_NAME}})
+
+# find_package(XXX)
+
+include_directories(${PROJECT_SOURCE_DIR})
+
+file(GLOB SRC_FILES "${PROJECT_SOURCE_DIR}/*.h" "${PROJECT_SOURCE_DIR}/*.cpp"
+     "${PROJECT_SOURCE_DIR}/*.c")
+add_executable(${CMAKE_PROJECT_NAME} ${SRC_FILES})
+
+set(CMAKE_SUPPRESS_REGENERATION true)
+set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME})
+set_target_properties(
+  ${CMAKE_PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
+                                   "${CMAKE_SOURCE_DIR}")

@@ -1,0 +1,22 @@
+\setkeys{Gin}{width=\textwidth,height=0.4\textheight,keepaspectratio}
+
+% save the meaning of \includegraphics
+\LetLtxMacro\latexincludegraphics\includegraphics
+
+% pass the image to \shadowbox
+\renewcommand{\includegraphics}[2][]{
+  \begin{center}
+    \latexincludegraphics[#1]{#2}
+  \end{center}
+}
+
+% add line no to code block
+\usepackage[left]{lineno}
+\usepackage{etoolbox}
+\preto{\verbatim}{\linenumbers\footnotesize}
+
+% add watermark
+% \usepackage[printwatermark]{xwatermark}
+% \newwatermark[angle=0,scale=1,allpages]{
+%   \latexincludegraphics[width=\paperwidth,height=\paperheight]{watermark.jpg}
+% }

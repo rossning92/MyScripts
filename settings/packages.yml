@@ -1,0 +1,83 @@
+notepad++:
+  exec:
+    - notepad++.exe
+  choco: notepadplusplus
+
+vlc:
+  exec:
+    - C:\Program Files\VideoLAN\VLC\vlc.exe
+    - C:\Program Files (x86)\VideoLAN\VLC\vlc.exe
+
+irfanview:
+  exec:
+    - C:\Program Files\IrfanView\i_view64.exe
+
+sumatrapdf:
+  exec:
+    - SumatraPDF.exe
+    - "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
+
+7z:
+  exec:
+    - C:\Program Files\7-Zip\7z.exe
+  choco: 7zip
+
+7zfm:
+  exec:
+    - C:\Program Files\7-Zip\7zFM.exe
+  choco: 7zip
+
+vscode:
+  exec:
+    - "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe"
+    - C:\Program Files\Microsoft VS Code\Code.exe
+    - code
+  linux_install: /r/install_vscode_linux
+
+ripgrep:
+  exec:
+    - C:\ProgramData\chocolatey\lib\ripgrep\tools\rg.exe
+
+veracrypt:
+  exec:
+    - C:\Program Files\VeraCrypt\VeraCrypt.exe
+
+audacity:
+  exec:
+    - C:\Program Files (x86)\Audacity\audacity.exe
+
+ocenaudio:
+  exec:
+    - "%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"
+
+sox:
+  choco: sox.portable
+
+magick:
+  choco: imagemagick
+  exec:
+    - C:\Program Files\ImageMagick-*\magick.exe
+
+tad:
+  exec:
+    - C:\Program Files\Tad\Tad.exe
+
+adobereader:
+  exec:
+    - C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe
+
+ffmpeg:
+  exec:
+    - C:\ProgramData\chocolatey\bin\ffmpeg.exe
+
+mpv:
+  exec:
+    - C:\ProgramData\chocolatey\lib\mpv.install\tools\mpv.exe
+
+klogg:
+  exec:
+    - C:\Program Files\klogg\klogg.exe
+
+android-sdk:
+  exec:
+    - C:\Android\android-sdk\tools\bin\sdkmanager.bat

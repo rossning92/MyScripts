@@ -1,0 +1,17 @@
+__pycache__/
+.DS_Store
+.idea/
+/scripts/*
+!/scripts/ext
+!/scripts/r
+/variables.json
+/variables.*
+/config/
+build/
+tmp/
+.ipynb_checkpoints
+*.pyc
+node_modules/
+*.log
+*.exe
+!/bin/*.exe

@@ -1,0 +1,4 @@
+closeOnExit: false
+globalHotkey: Win+Alt+E
+template: true
+wsl: true

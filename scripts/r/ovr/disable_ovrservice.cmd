@@ -1,0 +1,1 @@
+sc config OVRService start= disabled

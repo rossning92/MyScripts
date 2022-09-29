@@ -1,0 +1,1 @@
+choco source add --name=chocolatey --priority=100 -s="https://chocolatey.org/api/v2/"

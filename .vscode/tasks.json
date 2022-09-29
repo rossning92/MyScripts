@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "watch",
+      "path": "scripts/r/videoedit/_extension/",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$tsc-watch",
+      "label": "npm: watch - scripts/r/videoedit/_extension",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never"
+      },
+      "dependsOn": "npm: install - scripts/r/videoedit/_extension",
+    },
+    {
+      "type": "npm",
+      "script": "install",
+      "path": "scripts/r/videoedit/_extension",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: install - scripts/r/videoedit/_extension",
+      "detail": "install dependencies from package"
+    }
+  ]
+}

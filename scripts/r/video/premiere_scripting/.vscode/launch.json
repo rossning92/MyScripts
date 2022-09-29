@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "extendscript-debug",
+            "request": "launch",
+            "name": "main",
+            "program": "${workspaceFolder}/main.jsx",
+            "stopOnEntry": false
+        }
+    ]
+}

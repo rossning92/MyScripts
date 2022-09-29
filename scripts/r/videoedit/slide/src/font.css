@@ -1,0 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto&family=Source+Code+Pro&family=Noto+Sans+SC&display=swap");
+
+body {
+  font-family: "Roboto", "Noto Sans SC", sans-serif;
+  font-size: 40px;
+  -webkit-font-smoothing: subpixel-antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+code {
+  font-family: "Source Code Pro";
+}

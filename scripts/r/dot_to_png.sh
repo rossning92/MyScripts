@@ -1,0 +1,1 @@
+dot -Tpng -o out.png $file
