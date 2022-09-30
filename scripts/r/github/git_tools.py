@@ -317,6 +317,14 @@ def amend_commit_message(message=None):
     call_echo(args)
 
 
+@menu_item(key="p")
+def create_patch():
+    hash = input("Enter commit hash: ")
+    if not hash:
+        return
+    call_echo(["git", "format-patch", "-1", hash])
+
+
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
     repo_dir = os.environ["GIT_REPO"]

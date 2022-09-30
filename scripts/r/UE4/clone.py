@@ -1,17 +1,21 @@
-from _shutil import *
-from _script import *
+import os
 
-VERSION = "{{UE4_BRANCH}}" if "{{UE4_BRANCH}}" else "4.25"
-proj_dir = os.path.realpath("/Projects/UE" + VERSION)
+from _script import set_variable
+from _shutil import call_echo, make_and_change_dir
 
-if "{{_OVR_BRANCH}}":
-    url = "https://github.com/Oculus-VR/UnrealEngine.git"
-    proj_dir += "-OVR"
-else:
-    url = "https://github.com/EpicGames/UnrealEngine.git"
+if __name__ == "__main__":
+    branch = "{{UE4_BRANCH}}" if "{{UE4_BRANCH}}" else "4.25"
+    proj_dir = os.path.realpath("/Projects/UE" + branch)
 
+    if "{{_OVR_BRANCH}}":
+        url = "https://github.com/Oculus-VR/UnrealEngine.git"
+        proj_dir += "-OVR"
+    else:
+        url = "https://github.com/EpicGames/UnrealEngine.git"
 
-set_variable("UE_SOURCE", proj_dir)
-make_and_change_dir(proj_dir)
+    set_variable("UE_SOURCE", proj_dir)
+    make_and_change_dir(proj_dir)
 
-call_echo(f"git clone -b {VERSION} --single-branch {url} --depth 1 .")
+    call_echo(
+        f"git clone -b {branch} --single-branch {url} --single-branch --filter=blob:none ."
+    )
