@@ -1,9 +1,9 @@
 import os
 
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import call_echo, get_files, mkdir
 
-magick = get_executable("magick")
+magick = require_package("magick")
 files = get_files()
 
 

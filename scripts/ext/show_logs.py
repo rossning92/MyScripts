@@ -1,6 +1,6 @@
 import os
 
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _script import get_data_dir, run_script
 from _shutil import setup_logger, start_process
 
@@ -14,4 +14,4 @@ if __name__ == "__main__":
     #         log_file,
     #     ],
     # )
-    start_process([get_executable("klogg"), "--follow", log_file])
+    start_process([require_package("klogg"), "--follow", log_file])

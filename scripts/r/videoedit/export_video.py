@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 import yaml
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import (
     format_time,
     get_time_str,
@@ -25,7 +25,7 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 ignore_undefined = False
 
-change_settings({"FFMPEG_BINARY": get_executable("ffmpeg")})
+change_settings({"FFMPEG_BINARY": require_package("ffmpeg")})
 
 config = None
 

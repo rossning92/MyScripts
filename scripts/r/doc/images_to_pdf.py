@@ -1,10 +1,10 @@
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import call_echo, get_files, setup_nodejs
 
 if __name__ == "__main__":
     setup_nodejs()
 
-    magick = get_executable("magick")
+    magick = require_package("magick")
 
     files = get_files(cd=True)
 

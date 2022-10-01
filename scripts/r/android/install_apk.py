@@ -4,10 +4,12 @@ import os
 
 from _android import adb_install2, get_pkg_name_apk, setup_android_env
 from _shutil import call_echo, get_files, setup_logger
+from _term import set_terminal_title
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)
     setup_android_env()
+    set_terminal_title("r/android/install_apk")
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("files", metavar="N", type=str, nargs="+")

@@ -3,7 +3,7 @@ import json
 import os
 import subprocess
 
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import exec_ahk, start_process
 
 
@@ -57,7 +57,7 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
     if vscode_executable:
         vscode = vscode_executable
     else:
-        vscode = get_executable("vscode")
+        vscode = require_package("vscode")
 
     if type(file) == str:
         if line_number is None:

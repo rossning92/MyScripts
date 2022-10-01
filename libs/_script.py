@@ -19,7 +19,7 @@ from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_vscode
 from _filelock import FileLock
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
     activate_window_by_name,
@@ -104,23 +104,6 @@ def get_script_directories():
 
 def _get_script_history_file():
     return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
-
-
-def set_console_title(title):
-    if sys.platform == "win32":
-        old = get_console_title()
-        win_title = title.encode(locale.getpreferredencoding())
-        ctypes.windll.kernel32.SetConsoleTitleA(win_title)
-        return old
-
-
-def get_console_title():
-    if sys.platform == "win32":
-        MAX_BUFFER = 260
-        saved_title = (ctypes.c_char * MAX_BUFFER)()
-        ret = ctypes.windll.kernel32.GetConsoleTitleA(saved_title, MAX_BUFFER)
-        assert ret > 0
-        return saved_title.value.decode(locale.getpreferredencoding())
 
 
 def wrap_wsl(commands, env=None):
@@ -756,7 +739,7 @@ class Script:
         if self.cfg["packages"]:
             packages = self.cfg["packages"].split()
             for pkg in packages:
-                get_executable(pkg)
+                require_package(pkg)
 
             if "node" in packages:
                 print("node package is required.")
@@ -1112,7 +1095,7 @@ class Script:
                         no_wait = True
 
                     elif TERMINAL == "alacritty":
-                        get_executable("alacritty")
+                        require_package("alacritty")
                         args = wrap_args_alacritty(
                             args,
                             title=self.get_console_title(),
@@ -1301,7 +1284,6 @@ def start_script(file):
 def get_script_default_config():
     return {
         "adk": False,
-        "alias": "",
         "autoRun": False,
         "background": False,
         "closeOnExit": True,
@@ -1540,7 +1522,7 @@ def reload_scripts(script_list, modified_time, autorun=True):
         ):
             # Check if auto run script
             if script.cfg["autoRun"] and autorun:
-                logging.info("AutoRun: %s" % script.name)
+                logging.info("autorun: %s" % script.name)
                 script.execute(new_window=False)
 
         modified_time[script.script_path] = mtime

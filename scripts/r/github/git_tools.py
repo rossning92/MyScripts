@@ -325,6 +325,13 @@ def create_patch():
     call_echo(["git", "format-patch", "-1", hash])
 
 
+@menu_item()
+def garbage_collector():
+    if confirm("Dangerous! this will expire all recent reflogs."):
+        call_echo(["git", "reflog", "expire", "--expire=now", "--all"])
+        call_echo(["git", "gc", "--prune=now", "--aggressive"])
+
+
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
     repo_dir = os.environ["GIT_REPO"]

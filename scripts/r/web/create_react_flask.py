@@ -1,51 +1,54 @@
-from _shutil import *
-from _pkgmanager import *
 import json
+import os
 
-setup_nodejs(install=True)
-get_executable("yarn")
+from _pkgmanager import require_package
+from _shutil import call2, cd, setup_nodejs
 
-cd(r"~/Projects")
+if __name__ == "__main__":
+    setup_nodejs(install=True)
+    require_package("yarn")
 
-# npx: execute a package which wasn't previously installed
-# https://reactjs.org/docs/create-a-new-react-app.html
-# https://create-react-app.dev/docs/getting-started/
+    cd(r"~/Projects")
 
-if not exists("{{_PROJECT_NAME}}"):
-    call2("yarn create react-app {{_PROJECT_NAME}}")
-    call2("yarn add axios")  # Promise based AJAX library
-cd("{{_PROJECT_NAME}}")
+    # npx: execute a package which wasn't previously installed
+    # https://reactjs.org/docs/create-a-new-react-app.html
+    # https://create-react-app.dev/docs/getting-started/
 
-with open("package.json", "r") as f:
-    data = json.load(f)
+    if not os.path.exists("{{_PROJECT_NAME}}"):
+        call2("yarn create react-app {{_PROJECT_NAME}}")
+        call2("yarn add axios")  # Promise based AJAX library
+    cd("{{_PROJECT_NAME}}")
 
-# Backend framework: Flask
-if "server" not in data["scripts"]:
-    data["proxy"] = "http://localhost:5000"
-    data["scripts"][
-        "server"
-    ] = "set FLASK_APP=server.py&set FLASK_ENV=development&python -m flask run"
+    with open("package.json", "r") as f:
+        data = json.load(f)
 
-    call2("yarn add concurrently")  # Promise based AJAX library
-    data["scripts"][
-        "dev"
-    ] = 'concurrently --kill-others-on-fail "yarn server" "yarn start"'
+    # Backend framework: Flask
+    if "server" not in data["scripts"]:
+        data["proxy"] = "http://localhost:5000"
+        data["scripts"][
+            "server"
+        ] = "set FLASK_APP=server.py&set FLASK_ENV=development&python -m flask run"
 
-    with open("package.json", "w") as f:
-        json.dump(data, f, indent=2)
+        call2("yarn add concurrently")  # Promise based AJAX library
+        data["scripts"][
+            "dev"
+        ] = 'concurrently --kill-others-on-fail "yarn server" "yarn start"'
 
-FLASK_APP = """
-from flask import Flask
-app = Flask(__name__)
+        with open("package.json", "w") as f:
+            json.dump(data, f, indent=2)
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
-"""
-if not os.path.exists("server.py"):
-    call2("pip install flask")
-    with open("server.py", "w", newline="\n") as f:
-        f.write(FLASK_APP)
+    FLASK_APP = """
+    from flask import Flask
+    app = Flask(__name__)
 
-# Start dev server
-call2("yarn dev")
+    @app.route('/')
+    def hello_world():
+        return 'Hello, World!'
+    """
+    if not os.path.exists("server.py"):
+        call2("pip install flask")
+        with open("server.py", "w", newline="\n") as f:
+            f.write(FLASK_APP)
+
+    # Start dev server
+    call2("yarn dev")

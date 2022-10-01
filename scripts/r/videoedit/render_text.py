@@ -2,10 +2,10 @@ import os
 import subprocess
 import tempfile
 
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import shell_open
 
-IMAGE_MAGICK = get_executable("magick")
+IMAGE_MAGICK = require_package("magick")
 os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
 
 

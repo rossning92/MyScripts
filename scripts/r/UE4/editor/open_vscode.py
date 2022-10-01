@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 
-vscode = get_executable("vscode")
+vscode = require_package("vscode")
 subprocess.Popen([vscode, os.path.realpath(r"{{UE_SOURCE}}")])

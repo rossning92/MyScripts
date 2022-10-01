@@ -1,9 +1,9 @@
 import os
 
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import call2, call_echo, get_files
 
-IMAGE_MAGICK = get_executable("magick")
+IMAGE_MAGICK = require_package("magick")
 os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
 
 
@@ -51,4 +51,4 @@ if __name__ == "__main__":
         text = fp.read()
 
     out_file = add_caption(f, text)
-    call_echo([get_executable("mpv"), out_file])
+    call_echo([require_package("mpv"), out_file])

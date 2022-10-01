@@ -43,7 +43,7 @@ def find_executable(pkg):
     return None
 
 
-def get_executable(pkg):
+def require_package(pkg):
     exec = find_executable(pkg)
     if exec is None:
         install_package(pkg)

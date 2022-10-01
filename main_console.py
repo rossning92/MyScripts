@@ -86,7 +86,7 @@ def register_hotkeys(scripts):
     for script in scripts:
         hotkey = script.cfg["hotkey"]
         if hotkey:
-            logging.info("Hotkey: %s: %s" % (hotkey, script.name))
+            logging.debug("Hotkey: %s: %s" % (hotkey, script.name))
 
             hotkey = hotkey.lower()
             key = hotkey[-1].lower()
@@ -218,7 +218,7 @@ class ScriptManager:
         self.sort_scripts()
         self.last_refresh_time = time.time()
 
-        logging.debug(
+        logging.info(
             "Script reloading takes %.1f secs." % (self.last_refresh_time - begin_time)
         )
 
@@ -262,12 +262,10 @@ def register_global_hotkeys_linux(scripts):
 def register_global_hotkeys_win(scripts):
     hotkey_def = ""
     hotkeys = ""
-    hotkey_seq_def = ""
 
     for item in scripts:
         hotkey = item.cfg["globalHotkey"]
-        alias = item.cfg["alias"]
-        if hotkey or alias:
+        if hotkey:
             func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
 
             hotkey_def += (
@@ -285,11 +283,6 @@ def register_global_hotkeys_win(scripts):
                 hotkey = hotkey.replace("win+", "#")
                 hotkeys += f"{hotkey}::{func_name}()\n"
 
-            if alias:
-                hotkey_seq_def += f'{alias}: "{func_name}", '
-
-    hotkey_seq_def = hotkey_seq_def.rstrip(", ")
-
     cmdline = '%s "%s"' % (
         sys.executable,
         os.path.abspath("bin/start_script.py"),
@@ -302,7 +295,6 @@ def register_global_hotkeys_win(scripts):
             "cmdline": cmdline,
             "hotkey_def": hotkey_def,
             "hotkeys": hotkeys,
-            "hotkey_seq_def": hotkey_seq_def,
         },
     )
 
@@ -384,7 +376,7 @@ class MainWindow(Menu):
             self.run_selected_script()
             return True
 
-        elif ch == ord("!"):
+        elif ch == 529:  # ctrl+enter on windows
             self.run_selected_script(close_on_exit=False)
             return True
 

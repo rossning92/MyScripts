@@ -27,12 +27,6 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
-def set_term_title(title):
-    if sys.platform == "win32":
-        title = title.encode(locale.getpreferredencoding())
-        ctypes.windll.kernel32.SetConsoleTitleA(title)
-
-
 def _select_options_ncurse(options, save_history=False):
     if save_history:
         os.makedirs("tmp", exist_ok=True)
@@ -299,14 +293,14 @@ class Menu:
         selected_index_in_page = self.selected_row % items_per_page
         indices_in_page = self.matched_item_indices[page * items_per_page :]
         for i, item_index in enumerate(indices_in_page):
-            if i == selected_index_in_page:  # Hightlight on
+            if i == selected_index_in_page:  # hightlight on
                 Menu.stdscr.attron(curses.color_pair(2))
-            s = "{}  {}".format(item_index + 1, self.items[item_index])
+            s = "{:>2}  {}".format(item_index + 1, self.items[item_index])
             try:
                 Menu.stdscr.addstr(row, 0, s)
             except curses.error:
                 pass
-            if i == selected_index_in_page:  # Highlight off
+            if i == selected_index_in_page:  # highlight off
                 Menu.stdscr.attroff(curses.color_pair(2))
 
             row += 1
@@ -481,3 +475,18 @@ def clear_terminal():
         os.system("cls")
     else:
         os.system("clear")
+
+
+def get_terminal_title():
+    if sys.platform == "win32":
+        MAX_BUFFER = 260
+        title_buff = (ctypes.c_char * MAX_BUFFER)()
+        ret = ctypes.windll.kernel32.GetConsoleTitleA(title_buff, MAX_BUFFER)
+        assert ret > 0
+        return title_buff.value.decode(locale.getpreferredencoding())
+
+
+def set_terminal_title(title):
+    if sys.platform == "win32":
+        win_title = title.encode(locale.getpreferredencoding())
+        ctypes.windll.kernel32.SetConsoleTitleA(win_title)

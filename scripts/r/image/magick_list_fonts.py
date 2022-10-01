@@ -1,5 +1,5 @@
-from _pkgmanager import get_executable
+from _pkgmanager import require_package
 from _shutil import call_echo
 
-magick = get_executable("magick")
+magick = require_package("magick")
 call_echo([magick, "-list", "font"])
