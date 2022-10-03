@@ -277,7 +277,7 @@ def setup_project():
 
 
 @menu_item(key="X")
-def clean_untracked_and_ignored():
+def clean_all():
     for dry_run in [True, False]:
         if not dry_run:
             if not confirm("Clean untracked files?"):
@@ -330,6 +330,25 @@ def garbage_collector():
     if confirm("Dangerous! this will expire all recent reflogs."):
         call_echo(["git", "reflog", "expire", "--expire=now", "--all"])
         call_echo(["git", "gc", "--prune=now", "--aggressive"])
+
+
+@menu_item()
+def checkout_remote_branch():
+    branch = input("Enter branch name: ")
+    if not branch:
+        return
+
+    call_echo(
+        [
+            "git",
+            "fetch",
+            "origin",
+            f"{branch}:refs/remotes/origin/{branch}",
+            "--filter=blob:none",
+        ]
+    )
+    call_echo(["git", "checkout", "-b", branch, f"origin/{branch}"])
+    # call_echo(["git", "reset", "--hard", f"origin/{branch}"])
 
 
 if __name__ == "__main__":
