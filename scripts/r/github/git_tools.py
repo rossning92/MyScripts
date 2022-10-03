@@ -230,7 +230,7 @@ def undo():
     call_echo("git reset HEAD@{1}")
 
 
-@menu_item(key="O")
+@menu_item(key="o")
 def open_folder():
     shell_open(os.getcwd())
 
