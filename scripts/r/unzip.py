@@ -12,7 +12,7 @@ def unzip(files):
             if file.endswith(ext):
                 out_dir = file.rstrip(ext)
                 mkdir(out_dir)
-                call2('tar xzvf "%s" -C "%s"' % (file, out_dir))
+                call2(["tar", "xzvf", file, "-C", out_dir])
                 extracted = True
                 break
 

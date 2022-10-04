@@ -351,6 +351,14 @@ def checkout_remote_branch():
     # call_echo(["git", "reset", "--hard", f"origin/{branch}"])
 
 
+@menu_item(key="p")
+def apply_patch():
+    file = input("Enter patch file path: ")
+    if not file:
+        return
+    call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
+
+
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
     repo_dir = os.environ["GIT_REPO"]

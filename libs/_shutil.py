@@ -1460,6 +1460,19 @@ def menu_loop(
         print("  [q] quit")
         print()
 
+    def func_wrapper(func):
+        start_time = time.time()
+        try:
+            func()
+        except Exception as ex:
+            print2("Error: %s" % ex, color="red")
+        end_time = time.time()
+        if end_time - start_time > 1:
+            print2(
+                "(finished in %.2f secs)" % (end_time - start_time),
+                color="black",
+            )
+
     print_help()
     while True:
         if run_periotic is not None and interval > 0:
@@ -1481,7 +1494,7 @@ def menu_loop(
 
             index = select_option(menu_items)
             if index >= 0:
-                menu_items[index].func()
+                func_wrapper(menu_items[index].func)
 
         else:
             match = list(filter(lambda x: x.key == ch, menu_items))
@@ -1503,17 +1516,7 @@ def menu_loop(
                         else:
                             print2("(invalid key)")
 
-                start_time = time.time()
-                try:
-                    match.func()
-                except Exception as ex:
-                    print2("Error: %s" % ex, color="red")
-                end_time = time.time()
-                if end_time - start_time > 1:
-                    print2(
-                        "(finished in %.2f secs)" % (end_time - start_time),
-                        color="black",
-                    )
+                func_wrapper(match.func)
 
 
 def file_is_old(in_file, out_file):
