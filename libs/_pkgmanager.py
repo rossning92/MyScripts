@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import shutil
+import subprocess
 
 import yaml
 
@@ -71,4 +72,9 @@ def _choco_install(pkg, upgrade=False):
 
 
 def install_package(pkg, upgrade=False):
+    if pkg == "lux":
+        require_package("golang")
+        subprocess.check_call(["go", "install", "github.com/iawia002/lux@latest"])
+        return
+
     _choco_install(pkg, upgrade=upgrade)
