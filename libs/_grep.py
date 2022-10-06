@@ -108,7 +108,7 @@ def show_bookmarks(open_bookmark_func=None):
 
     names = [x["name"] for x in bookmarks]
     idx = select_option(names, save_history=True)
-    if idx == -1:
+    if idx < 0:
         sys.exit(0)
 
     bookmark = bookmarks[idx]

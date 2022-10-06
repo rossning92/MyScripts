@@ -1566,6 +1566,9 @@ def update_yaml(file, dict_):
 
 
 def setup_logger(level=logging.INFO, stdout=True, log_file=None):
+    if os.environ.get("VERBOSE"):
+        level = logging.DEBUG
+
     logger = logging.getLogger()
     logger.setLevel(level)
 

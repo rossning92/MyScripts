@@ -23,8 +23,12 @@ if __name__ == "__main__":
 
     call2("adb wait-for-device")
 
-    regex = args.regex if args.regex else os.environ.get("_REGEX")
-    pkg = args.pkg if args.pkg else os.environ.get("_PKG")
+    if args.regex or args.pkg:
+        regex = args.regex
+        pkg = args.pkg
+    else:
+        regex = os.environ.get("_REGEX")
+        pkg = os.environ.get("_PKG")
 
     while True:
         try:
