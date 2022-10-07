@@ -1,7 +1,7 @@
 @echo off
 
 python --version >nul 2>&1
-IF %errorlevel%==0 exit /b 0
+if %errorlevel%==0 exit /b 0
 
 :: Python36
 call :find_python %LOCALAPPDATA%\Programs\Python\Python36

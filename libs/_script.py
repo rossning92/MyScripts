@@ -694,8 +694,9 @@ class Script:
         if restart_instance is None:
             restart_instance = self.cfg["restartInstance"]
 
-        if not restart_instance and activate_window_by_name(self.name):
-            return True
+        if not restart_instance and new_window:
+            if activate_window_by_name(self.name):
+                return True
 
         self.cfg = self.load_config()
         variables = self.get_variables()
