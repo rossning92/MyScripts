@@ -6,7 +6,8 @@ sys.path.insert(
 )
 
 from _script import start_script
-from _shutil import update_env_var_explorer
+from _shutil import get_env_bool, update_env_var_explorer
 
-update_env_var_explorer()
-start_script(file=sys.argv[1])
+if __name__ == "__main__":
+    update_env_var_explorer()
+    start_script(file=sys.argv[1], restart_instance=get_env_bool("RESTART_INSTANCE"))

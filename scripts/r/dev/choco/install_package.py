@@ -1,9 +1,10 @@
 import argparse
 import logging
+import subprocess
 import sys
 
 from _pkgmanager import install_package
-from _shutil import setup_logger
+from _shutil import call2, setup_logger
 from _term import Menu
 
 PKGS = {
@@ -66,6 +67,7 @@ PKGS = {
         "carnac",
         "cura-new",
         "docker-desktop",
+        "dupeguru",
         "epicgameslauncher",
         "geforce-experience",
         "gifcam",
@@ -123,7 +125,7 @@ if __name__ == "__main__":
 
     else:
         pkg_list = (
-            ["input package name"]
+            ["[ install custom package ]", "[ uninstall package ]"]
             + [cate for cate in PKGS if cate.startswith("@")]
             + sorted(set([app for cate in PKGS.values() for app in cate]))
         )
@@ -134,5 +136,22 @@ if __name__ == "__main__":
         if idx == 0:
             name = input("please input package name: ")
             install_package(name)
+        elif idx == 1:
+            lines = (
+                subprocess.check_output(
+                    ["choco", "list", "-localonly"], universal_newlines=True
+                )
+                .strip()
+                .splitlines()
+            )
+            lines = lines[1:-1]
+            apps = [x.split()[0] for x in lines]
+
+            idx = Menu(items=apps).exec()
+            if idx < 0:
+                sys.exit(0)
+
+            call2(["choco", "uninstall", apps[idx], "-y"])
+
         else:
             install_recursive(pkg_list[idx])

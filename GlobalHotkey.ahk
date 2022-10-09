@@ -2,18 +2,30 @@
 #InstallKeybdHook
 #include ahk/ExplorerHelper.ahk
 
+LastScriptName := ""
+LastScriptStartTime := 0
+
 #If not WinActive("ahk_exe vncviewer.exe")
 
-;!`::Run {{cmdline}} @console_title=%name%:new_window=auto:cd=1 || pause
-
-{{hotkeys}}
+{{HOTKEYS}}
 
 #If
 
-RunScript(name, path)
+RunScript(scriptName, scriptPath)
 {
-    UpdateExplorerInfo()
-Run {{cmdline}} "%path%",, Hide
-}
+    global LastScriptStartTime
+    global LastScriptName
 
-{{hotkey_def}}
+    UpdateExplorerInfo()
+    now := A_TickCount
+    if (scriptName = LastScriptName and now - LastScriptStartTime < 1000) {
+        EnvSet, RESTART_INSTANCE, 1
+        Send {Alt Up}{Ctrl Up}{Shift Up} ; prevent wrong windows getting focus
+    } else {
+        EnvSet, RESTART_INSTANCE, 0
+    }
+    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" "%scriptPath%",, Hide
+
+    LastScriptStartTime := now
+    LastScriptName := scriptName
+}

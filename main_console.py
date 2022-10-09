@@ -260,41 +260,26 @@ def register_global_hotkeys_linux(scripts):
 
 
 def register_global_hotkeys_win(scripts):
-    hotkey_def = ""
     hotkeys = ""
 
     for item in scripts:
         hotkey = item.cfg["globalHotkey"]
         if hotkey:
-            func_name = re.sub("[^0-9a-zA-Z]+", "_", item.name)
-
-            hotkey_def += (
-                f"{func_name}() {{\n"
-                "    Send {Alt Up}{Ctrl Up}{Shift Up}\n"  # prevent wrong windows getting focus
-                f'    RunScript("{item.name}", "{item.script_path}")\n'
-                "}\n"
-            )
-
             if hotkey:
                 hotkey = hotkey.lower()
                 hotkey = hotkey.replace("ctrl+", "^")
                 hotkey = hotkey.replace("alt+", "!")
                 hotkey = hotkey.replace("shift+", "+")
                 hotkey = hotkey.replace("win+", "#")
-                hotkeys += f"{hotkey}::{func_name}()\n"
-
-    cmdline = '%s "%s"' % (
-        sys.executable,
-        os.path.abspath("bin/start_script.py"),
-    )
+                hotkeys += f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
 
     render_template_file(
         "GlobalHotkey.ahk",
         GLOBAL_HOTKEY,
         context={
-            "cmdline": cmdline,
-            "hotkey_def": hotkey_def,
-            "hotkeys": hotkeys,
+            "PYTHON_EXEC": sys.executable,
+            "START_SCRIPT": os.path.abspath("bin/start_script.py"),
+            "HOTKEYS": hotkeys,
         },
     )
 

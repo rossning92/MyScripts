@@ -987,15 +987,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1272,13 +1268,13 @@ def run_script(
     )
 
 
-def start_script(file):
+def start_script(file, restart_instance=None):
     script_path = find_script(file)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % file)
 
     script = Script(script_path)
-    if not script.execute():
+    if not script.execute(restart_instance=restart_instance):
         raise Exception("[ERROR] %s returns non zero" % file)
 
 

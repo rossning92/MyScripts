@@ -1647,3 +1647,12 @@ def quote_arg(s, single_quote=False, powershell=False):
             return '"' + s + '"'
     else:
         return s
+
+
+def get_env_bool(name):
+    if name not in os.environ:
+        return None
+    elif os.environ[name].strip().isdigit():
+        return int(os.environ[name]) > 0
+    else:
+        raise Exception(f"Invalid value for env var {name}")
