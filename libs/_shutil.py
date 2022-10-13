@@ -1205,33 +1205,39 @@ def write_text_file(content, file, overwrite=True):
 
 def refresh_env_vars():
     if sys.platform == "win32":
-        REG_PATH = [
-            "HKLM\System\CurrentControlSet\Control\Session Manager\Environment",
-            "HKCU\Environment",
+        REG_KEYS = [
+            r"HKLM\System\CurrentControlSet\Control\Session Manager\Environment",
+            r"HKCU\Environment",
         ]
 
-        origin_path = os.environ["PATH"].split(";")
+        def strip_path(p):
+            return p.strip().rstrip(os.path.sep)
 
-        # TODO: refresh other env variables
-        for reg_path in REG_PATH:
+        paths = [strip_path(x) for x in os.environ["PATH"].split(os.pathsep)]
+
+        for reg_path in REG_KEYS:
             out = subprocess.check_output(
-                'reg query "%s"' % reg_path, universal_newlines=True
+                ["reg", "query", reg_path], universal_newlines=True
             )
             lines = out.splitlines()
             lines = [x.strip() for x in lines if x.strip()]
-            lines = lines[1:]  # Skip first line
+            lines = lines[1:]  # skip the first line
 
             for line in lines:
                 cols = line.split(maxsplit=2)
                 if cols[0].upper() == "PATH":
-                    path = cols[2]
-                    path = path.split(";")
+                    new_paths = cols[2]
+                    new_paths = new_paths.split(os.pathsep)
 
-                    for p in path:
+                    for p in new_paths:
+                        p = strip_path(p)
+
                         # Add to PATH if not exists
-                        if p not in origin_path:
-                            print("New PATH: %s" % p)
-                            origin_path.append(p)
+                        if p and p not in paths:
+                            logging.debug("Add to PATH: %s" % p)
+                            paths.append(p)
+
+        os.environ["PATH"] = os.pathsep.join(paths)
 
 
 def wait_for_new_file(file_pattern, allow_exists=False):

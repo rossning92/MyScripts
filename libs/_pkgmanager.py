@@ -6,7 +6,7 @@ import subprocess
 
 import yaml
 
-from _shutil import check_output, run_elevated
+from _shutil import check_output, refresh_env_vars, run_elevated
 
 with open(
     os.path.abspath(
@@ -51,7 +51,7 @@ def require_package(pkg):
     return find_executable(pkg)
 
 
-def _choco_install(pkg, upgrade=False):
+def choco_install(pkg, upgrade=False):
     if pkg in packages:
         if "choco" in packages[pkg]:
             pkg = packages[pkg]["choco"]
@@ -70,6 +70,8 @@ def _choco_install(pkg, upgrade=False):
             ["choco", "upgrade", pkg, "-y", "-s", "https://chocolatey.org/api/v2/"],
         )
 
+    refresh_env_vars()
+
 
 def install_package(pkg, upgrade=False):
     if pkg == "lux":
@@ -77,4 +79,4 @@ def install_package(pkg, upgrade=False):
         subprocess.check_call(["go", "install", "github.com/iawia002/lux@latest"])
         return
 
-    _choco_install(pkg, upgrade=upgrade)
+    choco_install(pkg, upgrade=upgrade)
