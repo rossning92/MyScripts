@@ -195,7 +195,7 @@ def logcat(
                     show_line = False
 
                 # Filter by tag or message
-                if regex and not re.search(regex, message):
+                if regex and not (re.search(regex, tag) or re.search(regex, message)):
                     show_line = False
 
                 # Exclude by tag or message
