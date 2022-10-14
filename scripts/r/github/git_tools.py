@@ -359,6 +359,11 @@ def apply_patch():
     call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
 
 
+@menu_item(key="s")
+def unstash():
+    call_echo(["git", "stash", "apply"])
+
+
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
     repo_dir = os.environ["GIT_REPO"]
