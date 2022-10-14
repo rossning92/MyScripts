@@ -1,15 +1,33 @@
 import os
+import subprocess
 import sys
 
-from _android import backup_pkg, select_app_pkg
+from _android import backup_pkg
 from _script import run_script, set_variable
 from _shutil import call_echo, shell_open
 from _term import select_option
 
+SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
+
+
+def select_app_pkg():
+    s = subprocess.check_output(
+        ["adb", "shell", "pm list packages"], universal_newlines=True
+    )
+    s = s.replace("package:", "")
+    lines = s.splitlines()
+    lines = sorted(lines)
+    i = select_option(lines, save_history=SCRIPT_NAME)
+    if i == -1:
+        return None
+    else:
+        return lines[i]
+
+
 if __name__ == "__main__":
     pkg = select_app_pkg()
     if not pkg:
-        sys.exit(1)
+        sys.exit(0)
 
     opt = [
         "start",
@@ -20,13 +38,12 @@ if __name__ == "__main__":
     ]
     i = select_option(opt)
     if i == -1:
-        sys.exit(1)
-
-    set_variable("PKG_NAME", pkg)
+        sys.exit(0)
 
     if opt[i] == "start":
         set_variable("PKG_NAME", pkg)
-        run_script("restart_app", variables={"PKG_NAME": pkg}, new_window=True)
+        os.environ["PKG_NAME"] = pkg
+        run_script("r/android/restart_app.py", new_window=True)
 
     elif opt[i] == "backup":
         out_dir = os.path.abspath("/tmp/android_backup")
@@ -42,9 +59,9 @@ if __name__ == "__main__":
         input("Press enter to continue...")
 
     elif opt[i] == "permissions":
-        call_echo(["adb", "shell", "dumpsys package %s | grep permission" % pkg])
+        call_echo(["adb", "shell", f"dumpsys package {pkg} | grep permission"])
         input("Press enter to continue...")
 
     elif opt[i] == "activities":
-        call_echo(["adb", "shell", f"dumpsys package {pkg} | grep Activities" % pkg])
+        call_echo(["adb", "shell", f"dumpsys package {pkg} | grep Activities"])
         input("Press enter to continue...")

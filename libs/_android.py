@@ -9,14 +9,8 @@ import threading
 import time
 from collections import namedtuple
 
-from _shutil import (
-    call2,
-    call_echo,
-    check_output,
-    prepend_to_path,
-    print2,
-    read_proc_lines,
-)
+from _shutil import (call2, call_echo, check_output, prepend_to_path, print2,
+                     read_proc_lines)
 
 logger = logging.getLogger(__name__)
 
@@ -844,17 +838,3 @@ def setprop(prop):
     adb_shell(shell)
 
 
-def select_app_pkg():
-    from _term import select_option
-
-    s = subprocess.check_output(
-        ["adb", "shell", "pm list packages"], universal_newlines=True
-    )
-    s = s.replace("package:", "")
-    lines = s.splitlines()
-    lines = sorted(lines)
-    i = select_option(lines)
-    if i == -1:
-        return None
-    else:
-        return lines[i]

@@ -288,7 +288,7 @@ def clean_all():
                 "git",
                 "clean",
                 "-n" if dry_run else "-f",
-                "-X",  # remove ignored files
+                "-x",  # remove ignored files
                 "-d",  # remove directories
             ]
         )

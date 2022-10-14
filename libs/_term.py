@@ -7,6 +7,7 @@ import re
 import sys
 import time
 
+from _script import get_data_dir
 from _shutil import load_json, save_json
 
 
@@ -27,10 +28,15 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
-def _select_options_ncurse(options, save_history=False):
+def _select_options_ncurse(options, save_history=""):
+    assert isinstance(save_history, str)
+
+    def get_history_file():
+        return os.path.join(get_data_dir(), "%s.json" % save_history)
+
     if save_history:
         os.makedirs("tmp", exist_ok=True)
-        history = load_json("tmp/search_history.json", [])
+        history = load_json(get_history_file(), [])
         sort_key = {x: i for i, x in enumerate(history)}
         options, indices = zip(
             *sorted(
@@ -42,20 +48,19 @@ def _select_options_ncurse(options, save_history=False):
     w = Menu(items=options)
     idx = w.exec()
 
-    if save_history:
-        if idx >= 0:
-            try:
-                history.remove(options[idx])
-            except ValueError:
-                pass
-            history.insert(0, options[idx])
-            save_json("tmp/search_history.json", history)
+    if save_history and idx >= 0:
+        try:
+            history.remove(options[idx])
+        except ValueError:
+            pass
+        history.insert(0, options[idx])
+        save_json(get_history_file(), history)
         idx = indices[idx]
 
     return idx
 
 
-def select_option(options, save_history=False):
+def select_option(options, save_history=""):
     return _select_options_ncurse(options, save_history=save_history)
 
 
@@ -227,6 +232,10 @@ class Menu:
             # Keyboard event
             ch = Menu.stdscr.getch()
 
+            # Workaround for arrow keys in Alacritty
+            ALACRITTY_UP = 450
+            ALACRITTY_DOWN = 456
+
             if ch != -1:  # getch() will return -1 when timeout
                 self.last_key_pressed_timestamp = time.time()
                 if self.on_char(ch):
@@ -235,11 +244,11 @@ class Menu:
                 elif ch == ord("\n"):
                     self.on_enter_pressed()
 
-                elif ch == curses.KEY_UP:
+                elif ch == curses.KEY_UP or ch == ALACRITTY_UP:
                     self.selected_row = max(self.selected_row - 1, 0)
                     self.on_item_selected()
 
-                elif ch == curses.KEY_DOWN:
+                elif ch == curses.KEY_DOWN or ch == ALACRITTY_DOWN:
                     self.selected_row = min(
                         self.selected_row + 1, len(self.matched_item_indices) - 1
                     )
