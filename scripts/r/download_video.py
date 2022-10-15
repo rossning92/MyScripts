@@ -35,7 +35,7 @@ def download_bilibili(url, download_dir=None):
                 continue
             cols = line.split("\t")
             kvp.append(cols[-2] + "=" + cols[-1])
-    cookie = "; ".join(kvp)
+    cookie = ";".join(kvp)
 
     call_echo(["lux", "-c", cookie, url], shell=False, cwd=download_dir)
 
