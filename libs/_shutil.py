@@ -1240,6 +1240,17 @@ def refresh_env_vars():
         os.environ["PATH"] = os.pathsep.join(paths)
 
 
+def get_newest_file(wildcard):
+    max_mtime = 0.0
+    newest_file = None
+    for f in glob.glob(wildcard):
+        mtime = os.path.getmtime(f)
+        if mtime > max_mtime:
+            newest_file = f
+            max_mtime = mtime
+    return newest_file
+
+
 def wait_for_new_file(file_pattern, allow_exists=False):
     max_mtime = 0.0
     newest_file = None

@@ -1,11 +1,12 @@
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
 
 from _script import get_variable
-from _shutil import call_echo, get_home_path, print2
+from _shutil import call_echo, get_home_path, get_newest_file, print2
 
 root = os.path.dirname(os.path.realpath(__file__))
 
@@ -59,15 +60,26 @@ def download_video(url, audio_only, download_dir=None):
     while retry > 0:
         try:
             if "bilibili" in url:
+                download_dir = get_download_dir("Bilibili", base=download_dir)
                 download_bilibili(
-                    url, download_dir=get_download_dir("Bilibili", base=download_dir)
+                    url,
+                    download_dir=download_dir,
                 )
             elif "youtube" in url:
+                download_dir = get_download_dir("Youtube", base=download_dir)
                 download_youtube(
                     url,
-                    download_dir=get_download_dir("Youtube", base=download_dir),
+                    download_dir=download_dir,
                     audio_only=audio_only,
                 )
+
+            # Save url
+            url = re.sub(r"\?.*?$", "", url)
+            url_file = get_newest_file(os.path.join(download_dir, "*.*")) + ".url.txt"
+            print("Save url to %s" % url_file)
+            with open(url_file, "w", encoding="utf-8") as f:
+                f.write(url)
+
             return
         except subprocess.CalledProcessError:
             print2("on error, retrying...")
