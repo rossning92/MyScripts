@@ -197,10 +197,12 @@ class Menu:
         return self.get_selected_index()
 
     def main_loop_wrapped(self, stdscr):
-        Menu.stdscr = stdscr
-        init_curses(stdscr)
-        self.exec_()
-        Menu.stdscr = None
+        try:
+            Menu.stdscr = stdscr
+            init_curses(stdscr)
+            self.exec_()
+        finally:
+            Menu.stdscr = None
 
     def update_screen(self):
         self.height, self.width = Menu.stdscr.getmaxyx()

@@ -1,2 +1,3 @@
 globalHotkey: Win+Alt+]
 template: true
+wsl: true

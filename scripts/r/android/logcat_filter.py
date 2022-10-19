@@ -19,6 +19,12 @@ if __name__ == "__main__":
         type=str,
     )
 
+    parser.add_argument(
+        "--exclude",
+        default=None,
+        type=str,
+    )
+
     args = parser.parse_args()
 
     call2("adb wait-for-device")
@@ -32,6 +38,6 @@ if __name__ == "__main__":
 
     while True:
         try:
-            logcat(regex=regex, ignore_duplicates=False, pkg=pkg)
+            logcat(regex=regex, ignore_duplicates=False, pkg=pkg, exclude=args.exclude)
         except Exception:
             pass

@@ -10,7 +10,6 @@ sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
 import curses
 import logging
-import re
 import subprocess
 
 from _ext import edit_script_config

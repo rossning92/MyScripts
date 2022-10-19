@@ -6,7 +6,7 @@
 # printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
 
 # TERM=dumb plink -ssh -t {{_USER}}@{{_HOST}} -pw {{_PWD}} -no-antispoof
-ssh -o "StrictHostKeyChecking no" {{_USER}}@{{_HOST}}
+cmd.exe /c ssh -o "StrictHostKeyChecking no" {{_USER}}@{{_HOST}} -R 5037:localhost:5037
 
 # sudo /etc/init.d/screen-cleanup start
 # screen -r ssh_session -X quit

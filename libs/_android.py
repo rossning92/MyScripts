@@ -9,8 +9,14 @@ import threading
 import time
 from collections import namedtuple
 
-from _shutil import (call2, call_echo, check_output, prepend_to_path, print2,
-                     read_proc_lines)
+from _shutil import (
+    call2,
+    call_echo,
+    check_output,
+    prepend_to_path,
+    print2,
+    read_proc_lines,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -338,8 +344,8 @@ def screenshot(out_file=None, scale=None):
             subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % src_file])
 
             break
-        except subprocess.CalledProcessError:
-            logger.debug("Retry after 1 second...")
+        except subprocess.CalledProcessError as ex:
+            logger.warn(ex)
             time.sleep(1)
 
     if scale is not None:
@@ -836,5 +842,3 @@ def setprop(prop):
             v = "''"
         shell += "setprop {} {};".format(k, v)
     adb_shell(shell)
-
-
