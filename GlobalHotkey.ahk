@@ -7,6 +7,7 @@ LastScriptStartTime := 0
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
+^+r::RunLastScript()
 {{HOTKEYS}}
 
 #If
@@ -28,4 +29,10 @@ RunScript(scriptName, scriptPath)
 
     LastScriptStartTime := now
     LastScriptName := scriptName
+}
+
+RunLastScript()
+{
+    EnvSet, RESTART_INSTANCE, 0
+    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}",, Hide
 }

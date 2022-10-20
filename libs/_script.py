@@ -106,6 +106,15 @@ def _get_script_history_file():
     return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
 
 
+def get_last_script():
+    if os.path.exists(_get_script_history_file()):
+        with open(_get_script_history_file(), "r") as f:
+            data = json.load(f)
+            return data["file"]
+    else:
+        raise ValueError("file cannot be None.")
+
+
 def wrap_wsl(commands, env=None):
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
@@ -685,6 +694,7 @@ class Script:
         restart_instance=None,
         close_on_exit=None,
         cd=True,
+        tee=None,
     ):
         new_window = self.cfg["newWindow"] if (new_window is None) else new_window
         # TODO: Mac does not support newWindow yet
@@ -940,7 +950,9 @@ class Script:
 
         # Run commands
         if args is not None and len(args) > 0:
-            if self.cfg["tee"]:
+            if tee is None:
+                tee = self.cfg["tee"]
+            if tee:
                 args = wrap_args_tee(
                     args,
                     out_file=os.path.join(
@@ -987,11 +999,15 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1211,15 +1227,11 @@ def run_script(
     new_window=False,  # should not start a new window by default
     restart_instance=False,
     cd=True,
+    tee=False,
 ):
     start_time = time.time()
     if file is None:
-        if os.path.exists(_get_script_history_file()):
-            with open(_get_script_history_file(), "r") as f:
-                data = json.load(f)
-                file = data["file"]
-        else:
-            raise ValueError("file cannot be None.")
+        file = get_last_script()
 
     # Print command line arguments
     logging.info("run_script: %s" % _args_to_str([file] + args))
@@ -1253,7 +1265,11 @@ def run_script(
         script.set_override_variables(variables)
 
     ret = script.execute(
-        restart_instance=restart_instance, new_window=new_window, args=args, cd=cd
+        restart_instance=restart_instance,
+        new_window=new_window,
+        args=args,
+        cd=cd,
+        tee=tee,
     )
     if not ret:
         raise Exception("[ERROR] %s returns non zero" % file)
@@ -1268,7 +1284,10 @@ def run_script(
     )
 
 
-def start_script(file, restart_instance=None):
+def start_script(file=None, restart_instance=None):
+    if file is None:
+        file = get_last_script()
+
     script_path = find_script(file)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % file)
