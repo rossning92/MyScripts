@@ -12,7 +12,7 @@ import curses
 import logging
 import subprocess
 
-from _ext import edit_script_config
+from _ext import copy_script_path_to_clipboard, edit_myscript_script, edit_script_config
 from _script import (
     Script,
     get_all_script_access_time,
@@ -319,7 +319,6 @@ class MainWindow(Menu):
             now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
             and now - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS
         ):
-
             self.set_message("Reloading scripts...")
             script_manager.refresh_all_scripts()
             self.set_message(None)
@@ -338,6 +337,11 @@ class MainWindow(Menu):
 
             self.close()
 
+    def get_selected_script_path(self):
+        index = self.get_selected_index()
+        if index >= 0:
+            return self.items[index].script_path
+
     def on_char(self, ch):
         self.last_refresh_time = time.time()
 
@@ -348,12 +352,25 @@ class MainWindow(Menu):
             return True
 
         elif ch == ord("M"):
-            index = self.get_selected_index()
-            if index >= 0:
-                script_path = self.items[index].script_path
+            script_path = self.get_selected_script_path()
+            if script_path:
                 edit_script_config(script_path)
                 # reload the current script
+                index = self.get_selected_index()
                 self.items[index] = Script(script_path)
+            return True
+
+        elif ch == ord("C"):
+            script_path = self.get_selected_script_path()
+            if script_path:
+                content = copy_script_path_to_clipboard(script_path)
+                self.set_message("Copied to clipboard: %s" % content)
+            return True
+
+        elif ch == curses.ascii.ctrl(ord("e")):
+            script_path = self.get_selected_script_path()
+            if script_path:
+                edit_myscript_script(script_path)
             return True
 
         elif ch == ord("\n"):
@@ -392,6 +409,7 @@ class MainWindow(Menu):
                 self.close()
                 return True
 
+        self.set_message(None)
         return False
 
     def on_update_screen(self):

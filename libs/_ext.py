@@ -1,4 +1,6 @@
+import logging
 import os
+import re
 
 from _editor import open_in_vscode
 from _script import (
@@ -6,7 +8,7 @@ from _script import (
     get_script_default_config,
     get_script_directories,
 )
-from _shutil import load_yaml, save_yaml
+from _shutil import load_yaml, save_yaml, set_clip
 from _term import DictEditWindow
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -85,3 +87,24 @@ def edit_script_config(script_path):
         return False
     else:
         return True
+
+
+def copy_script_path_to_clipboard(script_path):
+    if script_path.endswith(".md"):
+        with open(script_path, "r", encoding="utf-8") as f:
+            set_clip(f.read())
+        logging.info("Markdown content is copied to clipboard.")
+    else:
+        # Copy relative path
+        script_root = os.path.abspath(os.path.abspath(__file__) + "/../../")
+        script_path = re.sub("^" + re.escape(script_root), "", script_path)
+        script_path = script_path.replace("\\", "/").lstrip("/")
+
+        # Quote script path if it contains spaces
+        if " " in script_path:
+            script_path = '"' + script_path + '"'
+
+        content = f"run_script {script_path}"
+        set_clip(content)
+        logging.info("Copied to clipboard: %s" % content)
+        return content

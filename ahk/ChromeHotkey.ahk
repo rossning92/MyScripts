@@ -3,13 +3,14 @@
 
 SetTitleMatchMode, 2
 
-hotkeyInfo := {}
+HotkeyInfo := {}
+KeyWindowMap := {}
 
 AddChromeHotkey(hotkey, title, url, open:=False)
 {
-	global hotkeyInfo
-	hotkeyInfo[hotkey] := {"title": title, "url": url}
-	Hotkey, %hotkey%, HotkeyPressed
+    global HotkeyInfo
+    HotkeyInfo[hotkey] := {"title": title, "url": url}
+    Hotkey, %hotkey%, HotkeyPressed
 
     if (open)
     {
@@ -33,15 +34,17 @@ GetChrome() {
 
 ActivateChromeWindow(key)
 {
-    global hotkeyInfo
+    global HotkeyInfo
+    global KeyWindowMap
+
     chrome := GetChrome()
 
-    title := hotkeyInfo[key].title  ; Deprecated
-	url := hotkeyInfo[key].url
+    title := HotkeyInfo[key].title ; Deprecated
+    url := HotkeyInfo[key].url
 
-    RegRead, win_id, HKEY_CURRENT_USER\Software\ChromeHotkey, %key%
-    if WinExist("ahk_id" win_id)
+    if (KeyWindowMap.HasKey(key))
     {
+        win_id := KeyWindowMap[key]
         WinActivate ahk_id %win_id%
     }
     else
@@ -58,7 +61,7 @@ ActivateChromeWindow(key)
         }
 
         WinGet, win_id, ID
-        RegWrite, REG_SZ, HKEY_CURRENT_USER, Software\ChromeHotkey, %key%, %win_id%
+        KeyWindowMap[key] := win_id
         ToolTip, %key% => %win_id%, 0, 0
         SetTimer, RemoveToolTip, -2000
     }
