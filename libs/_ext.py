@@ -96,7 +96,9 @@ def copy_script_path_to_clipboard(script_path):
         logging.info("Markdown content is copied to clipboard.")
     else:
         # Copy relative path
-        script_root = os.path.abspath(os.path.abspath(__file__) + "/../../")
+        script_root = os.path.abspath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts")
+        )
         script_path = re.sub("^" + re.escape(script_root), "", script_path)
         script_path = script_path.replace("\\", "/").lstrip("/")
 

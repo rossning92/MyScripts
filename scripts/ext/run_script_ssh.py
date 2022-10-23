@@ -83,7 +83,7 @@ def run_bash_script_putty(bash_script_file):
     )
 
 
-def run_bash_script_ssh(bash_script_file, wsl=False):
+def run_bash_script_ssh(bash_script_file, wsl=True):
     args = []
     if wsl:
         args += ["wsl"]
@@ -95,7 +95,6 @@ def run_bash_script_ssh(bash_script_file, wsl=False):
         convert_to_unix_path(bash_script_file, wsl=True) if wsl else bash_script_file
     ]
     args += [_get_user_host() + ":/tmp/s.sh"]  # dest
-    port = _get_port()
     call_echo(args)
 
     # -t : interactive session
