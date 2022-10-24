@@ -359,7 +359,6 @@ def apply_patch():
     call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
 
 
-@menu_item(key="s")
 def unstash():
     call_echo(["git", "stash", "apply"])
 

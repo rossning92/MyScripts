@@ -55,7 +55,7 @@ def download_youtube(url, download_dir=None, audio_only=False, download_playlist
     call_echo(args, cwd=download_dir)
 
 
-def download_video(url, audio_only, download_dir=None):
+def download_video(url, audio_only, download_dir=None, save_url=True):
     retry = 3
     while retry > 0:
         try:
@@ -74,11 +74,12 @@ def download_video(url, audio_only, download_dir=None):
                 )
 
             # Save url
-            url = re.sub(r"\?.*?$", "", url)
-            url_file = get_newest_file(os.path.join(download_dir, "*.*")) + ".url.txt"
-            print("Save url to %s" % url_file)
-            with open(url_file, "w", encoding="utf-8") as f:
-                f.write(url)
+            if save_url:
+                url = re.sub(r"\?.*?$", "", url)
+                url_file = get_newest_file(os.path.join(download_dir, "*.*")) + ".url"
+                print("Save url to %s" % url_file)
+                with open(url_file, "w", encoding="utf-8") as f:
+                    f.write(url)
 
             return
         except subprocess.CalledProcessError:
