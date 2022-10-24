@@ -10,11 +10,6 @@ if ! [ -x "$(command -v expect)" ]; then
     sudo apt-get install expect -y
 fi
 
-# /usr/bin/expect <(
-#     cat <<EOF
-# EOF
-# )
-
 cat >/tmp/et.sh <<EOF
 set timeout 10
 spawn et -x -r 5037:5037 -t 2222:22 {{ET_EXTRA_ARGS}} {{ET_USER}}@{{ET_HOST}}:{{ET_PORT}}
