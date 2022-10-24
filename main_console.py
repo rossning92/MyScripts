@@ -29,6 +29,7 @@ from _shutil import (
     get_ahk_exe,
     quote_arg,
     refresh_env_vars,
+    run_at_startup,
     setup_logger,
     setup_nodejs,
     update_env_var_explorer,
@@ -440,7 +441,11 @@ class MainWindow(Menu):
 
 
 def init():
-    setup_logger(log_file=os.path.join(get_data_dir(), "MyScripts.log"), stdout=False)
+    setup_logger(
+        log_file=os.path.join(get_data_dir(), "MyScripts.log"),
+        stdout=False,
+        level=logging.DEBUG,
+    )
 
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")
@@ -486,25 +491,6 @@ def main_loop(quit=False):
             input("Press any key to retry...")
 
 
-def run_at_startup():
-    if sys.platform == "win32":
-        cmdline = quote_arg(os.path.join(SCRIPT_ROOT, "run.cmd"))
-        subprocess.check_call(
-            [
-                "reg",
-                "add",
-                "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run",
-                "/v",
-                "MyScripts",
-                "/t",
-                "REG_SZ",
-                "/d",
-                cmdline,
-                "/f",
-            ]
-        )
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -515,7 +501,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    run_at_startup()
+    run_at_startup(
+        name="MyScripts", cmdline=quote_arg(os.path.join(SCRIPT_ROOT, "run.cmd"))
+    )
 
     # setup_console_font()
     init()

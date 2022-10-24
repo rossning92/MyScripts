@@ -1673,3 +1673,21 @@ def get_env_bool(name):
         return int(os.environ[name]) > 0
     else:
         raise Exception(f"Invalid value for env var {name}")
+
+
+def run_at_startup(name, cmdline):
+    if sys.platform == "win32":
+        args = [
+            "reg",
+            "add",
+            "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run",
+            "/v",
+            name,
+            "/t",
+            "REG_SZ",
+            "/d",
+            cmdline,
+            "/f",
+        ]
+        subprocess.check_output(args)
+        logging.debug("run_at_startup(): %s" % args)

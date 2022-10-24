@@ -1,2 +1,6 @@
 @echo off
-MKLINK /J "%USERPROFILE%\.vscode\extensions\videoedit" %~dp0_extension
+set "DEST=%USERPROFILE%\.vscode\extensions\videoedit"
+if exist "%DEST%" (
+    rd "%DEST%"
+)
+MKLINK /J "%DEST%" %~dp0_extension

@@ -33,6 +33,7 @@ from _shutil import (
     npm_install,
     print2,
     quote_arg,
+    run_at_startup,
     run_elevated,
     save_yaml,
     setup_nodejs,
@@ -999,15 +1000,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and shutil.which("wt"):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1309,9 +1306,10 @@ def get_script_default_config():
         "minimized": False,
         "newWindow": True,
         "packages": "",
-        "runAsAdmin": False,
-        "runpy": True,
         "restartInstance": False,
+        "runAsAdmin": False,
+        "runAtStartup": False,
+        "runpy": True,
         "tee": False,
         "template": False,
         "terminal": "alacritty",
@@ -1540,6 +1538,13 @@ def reload_scripts(script_list, modified_time, autorun=True):
             if script.cfg["autoRun"] and autorun:
                 logging.info("autorun: %s" % script.name)
                 script.execute(new_window=False)
+
+            # Check if the script should run at startup
+            if script.cfg["runAtStartup"] and autorun:
+                logging.info("runAtStartup: %s" % script.name)
+                run_at_startup(
+                    name=script.name, cmdline='"start_script" "%s"' % script.script_path
+                )
 
         modified_time[script.script_path] = mtime
 
