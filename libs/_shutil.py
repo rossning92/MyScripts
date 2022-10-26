@@ -1595,7 +1595,7 @@ def setup_logger(level=logging.INFO, stdout=True, log_file=None):
     )
 
     if stdout:
-        handler = logging.StreamHandler(sys.stdout)
+        handler = logging.StreamHandler(sys.stderr)
         handler.setFormatter(formatter)
         handler.setLevel(level)
         logger.addHandler(handler)

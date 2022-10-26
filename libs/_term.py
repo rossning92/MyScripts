@@ -322,7 +322,7 @@ class Menu:
 
         if self.message is not None:
             Menu.stdscr.attron(curses.color_pair(3))
-            Menu.stdscr.addstr(0, 0, self.message)
+            Menu.stdscr.addstr(1, 0, self.message)
             Menu.stdscr.attroff(curses.color_pair(3))
 
     def get_selected_text(self):

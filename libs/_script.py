@@ -354,7 +354,10 @@ def setup_python_path(env, script_path=None, wsl=False):
 def wrap_args_tee(args, out_file):
     assert type(args) is list
 
-    s = _args_to_str(args, powershell=True) + r" | Tee-Object -FilePath %s" % out_file
+    s = (
+        _args_to_str(args, powershell=True)
+        + r" *>&1 | Tee-Object -FilePath %s" % out_file
+    )
     tmp_file = write_temp_file(s, ".ps1")
     logging.debug('wrap_args_tee(file="%s"): %s' % (tmp_file, s))
     return ["powershell", tmp_file]
@@ -1000,11 +1003,15 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and shutil.which("wt"):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and shutil.which("wt")
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,

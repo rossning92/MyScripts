@@ -365,7 +365,12 @@ class MainWindow(Menu):
             script_path = self.get_selected_script_path()
             if script_path:
                 content = copy_script_path_to_clipboard(script_path)
-                self.set_message("Copied to clipboard: %s" % content)
+                self.set_message(
+                    f"Copied to clipboard: {content}"
+                    if content
+                    else "Copied to clipboard."
+                )
+                self.input_.clear()
             return True
 
         elif ch == curses.ascii.ctrl(ord("e")):
