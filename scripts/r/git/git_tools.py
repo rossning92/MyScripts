@@ -3,6 +3,7 @@ import subprocess
 import sys
 from urllib.request import urlretrieve
 
+from _script import run_script
 from _shutil import (
     call2,
     call_echo,
@@ -260,7 +261,6 @@ def sync_github():
 
 @menu_item(key="S")
 def setup_project():
-
     if not os.path.exists(".git"):
         call_echo("git init")
         call_echo(
@@ -326,29 +326,14 @@ def create_patch():
 
 
 @menu_item()
-def garbage_collector():
+def garbage_collect():
     if confirm("Dangerous! this will expire all recent reflogs."):
-        call_echo(["git", "reflog", "expire", "--expire=now", "--all"])
-        call_echo(["git", "gc", "--prune=now", "--aggressive"])
+        run_script("r/git/garbage_collect.sh")
 
 
 @menu_item()
 def checkout_remote_branch():
-    branch = input("Enter branch name: ")
-    if not branch:
-        return
-
-    call_echo(
-        [
-            "git",
-            "fetch",
-            "origin",
-            f"{branch}:refs/remotes/origin/{branch}",
-            "--filter=blob:none",
-        ]
-    )
-    call_echo(["git", "checkout", "-b", branch, f"origin/{branch}"])
-    # call_echo(["git", "reset", "--hard", f"origin/{branch}"])
+    run_script("r/git/checkout_remote_branch.sh")
 
 
 @menu_item(key="p")
@@ -359,6 +344,7 @@ def apply_patch():
     call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
 
 
+@menu_item()
 def unstash():
     call_echo(["git", "stash", "apply"])
 
