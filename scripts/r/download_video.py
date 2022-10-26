@@ -55,7 +55,7 @@ def download_youtube(url, download_dir=None, audio_only=False, download_playlist
     call_echo(args, cwd=download_dir)
 
 
-def download_video(url, audio_only, download_dir=None, save_url=True):
+def download_video(url, audio_only=False, download_dir=None, save_url=True):
     retry = 3
     while retry > 0:
         try:
