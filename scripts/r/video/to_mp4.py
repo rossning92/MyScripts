@@ -1,10 +1,11 @@
 import os
 
-from _shutil import get_files, mkdir
+from _shutil import get_files, mkdir, setup_logger
 from _video import ffmpeg, hstack_videos
 from open_with.open_with import open_with
 
 if __name__ == "__main__":
+    setup_logger()
     files = get_files(cd=True)
 
     crop_rect = (
@@ -57,7 +58,6 @@ if __name__ == "__main__":
                 f,
                 out_file=out_file,
                 extra_args=extra_args,
-                reencode=True,
                 nvenc=bool(os.environ.get("_NVENC")),
                 crf=int(os.environ.get("_CRF", 19)),
                 max_size_mb=(
@@ -86,5 +86,5 @@ if __name__ == "__main__":
                 reverse=bool(os.environ.get("_REVERSE")),
             )
 
-        if not os.environ.get("_NO_OPEN") and len(files) == 1:
+        if os.environ.get("_OPEN") and len(files) == 1:
             open_with(out_file)

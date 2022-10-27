@@ -12,7 +12,12 @@ import curses
 import logging
 import subprocess
 
-from _ext import copy_script_path_to_clipboard, edit_myscript_script, edit_script_config
+from _ext import (
+    copy_script_path_to_clipboard,
+    create_new_script,
+    edit_myscript_script,
+    edit_script_config,
+)
 from _script import (
     Script,
     get_all_script_access_time,
@@ -371,6 +376,17 @@ class MainWindow(Menu):
                     else "Copied to clipboard."
                 )
                 self.input_.clear()
+            return True
+
+        elif ch == curses.ascii.ctrl(ord("n")):
+            ref_script_path = self.get_selected_script_path()
+            if ref_script_path:
+                script_path = create_new_script(ref_script_path=ref_script_path)
+                if script_path:
+                    script = Script(script_path)
+                    script_manager.scripts.insert(0, script)
+                    script_manager.modified_time[script.script_path] = time.time()
+            self.input_.clear()
             return True
 
         elif ch == curses.ascii.ctrl(ord("e")):

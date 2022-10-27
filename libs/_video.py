@@ -1,4 +1,5 @@
 import glob
+import logging
 import os
 import subprocess
 import sys
@@ -200,7 +201,6 @@ def ffmpeg(
     title=None,
     reverse=False,
     remove_duplicated_frames=False,
-    test=False,
     fps=None,
 ):
     if in_file == out_file:
@@ -299,9 +299,6 @@ def ffmpeg(
     if remove_duplicated_frames:
         filter_v.append("mpdecimate,setpts=N/FRAME_RATE/TB")
 
-    if test:
-        filter_v.append("setpts=2.0*PTS*(1+random(0)*0.02)")
-
     if filter_v:
         args += ["-vf", ",".join(filter_v)]
 
@@ -371,7 +368,7 @@ def ffmpeg(
 
     args += [out_file, "-y"]  # Override file
 
-    print("> " + " ".join(args))
+    logging.info("Run ffmpeg command: " + " ".join(args))
     subprocess.check_call(args)
 
     if overwrite:

@@ -1,21 +1,26 @@
 import logging
 import os
 import re
+import shutil
 
 from _editor import open_in_vscode
 from _script import (
     get_script_config_file,
     get_script_default_config,
     get_script_directories,
+    get_script_root,
 )
 from _shutil import load_yaml, save_yaml, set_clip
-from _term import DictEditWindow
+from _term import DictEditWindow, Menu
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_selected_script_dir_rel():
-    rel_path = os.getenv("SCRIPT").replace(os.getcwd() + os.path.sep, "")
+def get_selected_script_dir_rel(script_path=None):
+    if script_path is None:
+        script_path = os.getenv("SCRIPT")
+        assert script_path
+    rel_path = script_path.replace(get_script_root() + os.path.sep, "")
     rel_path = os.path.dirname(rel_path)
     rel_path = rel_path.replace("\\", "/")
     rel_path += "/"
@@ -110,3 +115,37 @@ def copy_script_path_to_clipboard(script_path):
         set_clip(content)
         logging.info("Copied to clipboard: %s" % content)
         return content
+
+
+def create_new_script(ref_script_path=None):
+    w = Menu(
+        label="new script:",
+        text=get_selected_script_dir_rel(script_path=ref_script_path).lstrip("/"),
+    )
+    w.exec()
+    script_path = w.get_text()
+    if not script_path:
+        return
+
+    # Convert to abspath
+    if not os.path.isabs(script_path):
+        script_path = os.path.join(get_script_root(), script_path)
+
+    dir_name = os.path.dirname(script_path)
+    if dir_name != "":
+        os.makedirs(dir_name, exist_ok=True)
+
+    # Check script extensions
+    _, ext = os.path.splitext(script_path)
+    if not ext:
+        logging.warn("Script extension is required.")
+
+    if ext == ".py":
+        shutil.copyfile(get_my_script_root() + "/templates/python.py", script_path)
+    else:
+        # Create empty file
+        with open(script_path, "w") as _:
+            pass
+
+    edit_myscript_script(os.path.realpath(script_path))
+    return script_path
