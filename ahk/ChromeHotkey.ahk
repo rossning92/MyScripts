@@ -42,9 +42,9 @@ ActivateChromeWindow(key)
     title := HotkeyInfo[key].title ; Deprecated
     url := HotkeyInfo[key].url
 
-    if (KeyWindowMap.HasKey(key))
+    win_id := KeyWindowMap[key]
+    if (win_id <> "" and WinExist("ahk_id " win_id))
     {
-        win_id := KeyWindowMap[key]
         WinActivate ahk_id %win_id%
     }
     else
