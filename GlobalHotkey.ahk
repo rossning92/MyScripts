@@ -7,7 +7,7 @@ LastScriptStartTime := 0
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
-^+r::RunLastScript()
+^#r::RunLastScript()
 {{HOTKEYS}}
 
 #If
