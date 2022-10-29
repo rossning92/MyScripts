@@ -63,6 +63,12 @@ SCRIPT_EXTENSIONS = {
     ".vbs",  # Windows specific,
 }
 
+DEFAULT_TERMINAL_FONT_SIZE = 8
+if sys.platform == "win32":
+    WINDOWS_TERMINAL_EXEC = (
+        os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
+    )
+
 
 def get_data_dir():
     data_dir_file = os.path.abspath(
@@ -393,7 +399,7 @@ def wrap_args_wt(
     args,
     title=None,
     font_size=None,
-    default_font_size=8,
+    default_font_size=DEFAULT_TERMINAL_FONT_SIZE,
     icon=None,
     opacity=1.0,
     **kwargs,
@@ -427,7 +433,7 @@ def wrap_args_wt(
 
     # Default font size and color scheme
     profiles_defaults = {
-        "colorScheme": "Dracula",
+        "colorScheme": "One Half Dark",
         "font": {"face": "Consolas", "size": default_font_size},
     }
     if profiles_defaults != data["profiles"]["defaults"]:
@@ -435,7 +441,7 @@ def wrap_args_wt(
         updated = True
 
     # Customize selection color
-    for scheme in filter(lambda x: x["name"] == "Dracula", data["schemes"]):
+    for scheme in filter(lambda x: x["name"] == "One Half Dark", data["schemes"]):
         if scheme["selectionBackground"] != "#ffff00":
             scheme["selectionBackground"] = "#ffff00"
             updated = True
@@ -469,15 +475,15 @@ def wrap_args_wt(
             with open(CONFIG_FILE, "w") as f:
                 json.dump(data, f, indent=4)
 
-        return ["wt", "-p", title] + args
+        return [WINDOWS_TERMINAL_EXEC, "-p", title] + args
     else:
-        return ["wt"] + args
+        return [WINDOWS_TERMINAL_EXEC] + args
 
 
 def wrap_args_alacritty(
     args,
     title=None,
-    font_size=8,
+    font_size=DEFAULT_TERMINAL_FONT_SIZE,
     font=None,
     borderless=False,
     position=None,
@@ -1003,15 +1009,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and shutil.which("wt")
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1319,7 +1321,7 @@ def get_script_default_config():
         "runpy": True,
         "tee": False,
         "template": False,
-        "terminal": "alacritty",
+        "terminal": "wt",
         "title": "",
         "venv": "",
         "wsl": False,
