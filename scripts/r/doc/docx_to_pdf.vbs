@@ -1,5 +1,4 @@
 Function DocToPdf( docInputFile, pdfOutputFile )
-
     Set fileSystemObject = CreateObject("Scripting.FileSystemObject")
     Set wordApplication = CreateObject("Word.Application")
     Set wordDocuments = wordApplication.Documents
@@ -30,8 +29,10 @@ Function DocToPdf( docInputFile, pdfOutputFile )
 
     Set wordApplication = Nothing
     Set fileSystemObject = Nothing
-
 End Function
 
-fileName = Wscript.Arguments.Unnamed(0)
-DocToPdf fileName, ""
+Set files = WScript.Arguments.Unnamed
+For i = 0 to files.count -1
+    wscript.Echo "Convert to pdf: " & files.Item(i)
+    DocToPdf files.Item(i), ""
+Next

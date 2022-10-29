@@ -180,7 +180,7 @@ def ffmpeg(
     reencode=True,
     nvenc=True,
     extra_args=None,
-    quiet=False,
+    quiet=True,
     crf=19,  # visually identical to 0
     preset="slow",
     bitrate=None,
@@ -230,7 +230,7 @@ def ffmpeg(
     args += ["-i", in_file]
 
     if quiet:
-        args += ["-hide_banner", "-loglevel", "panic"]
+        args += ["-hide_banner", "-loglevel", "panic", "-stats"]
 
     if start_and_duration:
         args += [
