@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from typing import List
 
 import yaml
 
@@ -571,6 +572,7 @@ class Script:
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
+        self.mtime = os.path.getmtime(script_path)
 
         # Deal with links
         if os.path.splitext(script_path)[1].lower() == ".link":
@@ -1525,12 +1527,14 @@ def get_all_scripts():
             yield file
 
 
-def reload_scripts(script_list, modified_time, autorun=True):
+def reload_scripts(script_list: List[Script], autorun=True):
     if not script_updated():
         return False
 
     # TODO: only update modified scripts
     script_list.clear()
+
+    script_paths = {x.script_path for x in script_list}
 
     for file in get_all_scripts():
         script = Script(file)
@@ -1539,10 +1543,7 @@ def reload_scripts(script_list, modified_time, autorun=True):
         script_config_file = load_script_config_file2(file)
         if script_config_file:
             mtime = max(mtime, os.path.getmtime(script_config_file))
-        if (
-            script.script_path not in modified_time
-            or mtime > modified_time[script.script_path]
-        ):
+        if script.script_path not in script_paths or mtime > script.mtime:
             # Check if auto run script
             if script.cfg["autoRun"] and autorun:
                 logging.info("autorun: %s" % script.name)
@@ -1554,8 +1555,6 @@ def reload_scripts(script_list, modified_time, autorun=True):
                 run_at_startup(
                     name=script.name, cmdline='"start_script" "%s"' % script.script_path
                 )
-
-        modified_time[script.script_path] = mtime
 
         script_list.append(script)
 

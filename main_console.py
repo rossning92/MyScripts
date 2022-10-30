@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import traceback
+from typing import List
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
@@ -191,8 +192,7 @@ class VariableWindow(Menu):
 
 class ScriptManager:
     def __init__(self):
-        self.scripts = []
-        self.modified_time = {}
+        self.scripts: List[Script] = []
         self.last_refresh_time = 0
         self.hotkeys = {}
         self.execute_script = None
@@ -201,8 +201,8 @@ class ScriptManager:
         access_time, _ = get_all_script_access_time()
         for script in self.scripts:
             if script.script_path in access_time:
-                self.modified_time[script.script_path] = max(
-                    self.modified_time[script.script_path],
+                script.mtime = max(
+                    script.mtime,
                     access_time[script.script_path],
                 )
 
@@ -210,14 +210,14 @@ class ScriptManager:
         self.update_access_time()
         self.scripts[:] = sorted(
             self.scripts,
-            key=lambda script: self.modified_time[script.script_path],
+            key=lambda script: script.mtime,
             reverse=True,
         )
 
     def refresh_all_scripts(self):
         begin_time = time.time()
 
-        if reload_scripts(self.scripts, self.modified_time, autorun=True):
+        if reload_scripts(self.scripts, autorun=True):
             self.hotkeys = register_hotkeys(self.scripts)
             register_global_hotkeys(self.scripts)
         self.sort_scripts()
@@ -385,7 +385,6 @@ class MainWindow(Menu):
                 if script_path:
                     script = Script(script_path)
                     script_manager.scripts.insert(0, script)
-                    script_manager.modified_time[script.script_path] = time.time()
             self.input_.clear()
             return True
 
