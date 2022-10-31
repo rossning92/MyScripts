@@ -362,8 +362,9 @@ def wrap_args_tee(args, out_file):
     assert type(args) is list
 
     s = (
-        _args_to_str(args, powershell=True)
-        + r" *>&1 | Tee-Object -FilePath %s" % out_file
+        "& "
+        + _args_to_str(args, powershell=True)
+        + r" | Tee-Object -FilePath %s" % out_file
     )
     tmp_file = write_temp_file(s, ".ps1")
     logging.debug('wrap_args_tee(file="%s"): %s' % (tmp_file, s))
@@ -424,8 +425,8 @@ def wrap_args_wt(
     updated = False
 
     settings = {
-        # "initialCols": 140,
-        # "initialRows": 40,
+        "initialCols": 120,
+        "initialRows": 40,
     }
     for k, v in settings.items():
         if k not in data or data[k] != v:
@@ -1011,11 +1012,15 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
+                        if (
+                            self.cfg["terminal"]
+                            in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ]
+                            and os.path.exists(WINDOWS_TERMINAL_EXEC)
+                        ):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,

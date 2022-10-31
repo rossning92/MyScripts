@@ -128,9 +128,11 @@ def logcat(
     LOGCAT_PATTERN = re.compile(r"^([A-Z])/(.+?)\(\s*(\d+)\):\s?(.*)$")
 
     wait_for_device()
+    fnull = open(os.devnull, "w")
 
-    last_message = None
-    dulicated_messages = 0
+    if ignore_duplicates:
+        last_message = None
+        dup_messages = 0
 
     if level:
         level = re.compile(level)
@@ -155,87 +157,84 @@ def logcat(
         args += ["-T", dt_start.strftime("%m-%d %H:%M:%S") + ".000"]
 
     if clear:
-        call2("adb logcat -c")
+        call2(["adb", "logcat", "-c"])
 
     if highlight is None:
         highlight = {}
 
-    pid_map = {}
+    pid_proc_map = {}
     last_proc = None
 
     while True:
         try:
             for line in read_proc_lines(args):
-                match = re.match(LOGCAT_PATTERN, line)
-                if match is None:
-                    logger.debug(line)
-                    continue
-
-                lvl = match.group(1)
-                tag = match.group(2)
-                pid = int(match.group(3))
-                message = match.group(4)
-
-                if pid <= 0:
-                    continue
-
-                # # Filter by time
+                # Filter by time
                 # if show_log_after_secs is not None:
                 #     try:
-                #         dt = datetime.datetime.strptime(line[:14].decode(), '%m-%d %H:%M:%S')
+                #         dt = datetime.datetime.strptime(
+                #             line[:14].decode(), "%m-%d %H:%M:%S"
+                #         )
                 #         if dt < dt_start:
                 #             return None
                 #     except:
                 #         pass
 
-                show_line = True
+                match = re.match(LOGCAT_PATTERN, line)
+                if match is None:
+                    logger.debug(line)
+                    continue
+
+                pid = int(match.group(3))
+                if pid <= 0:
+                    continue
+
+                # Get process name
+                if pid not in pid_proc_map:
+                    try:
+                        proc = subprocess.check_output(
+                            ["adb", "shell", f"cat /proc/{pid}/cmdline"],
+                            universal_newlines=True,
+                            stderr=fnull,
+                        ).strip()
+                    except subprocess.CalledProcessError:
+                        proc = None
+                    pid_proc_map[pid] = proc
+                else:
+                    proc = pid_proc_map[pid]
 
                 # Filter by level
+                lvl = match.group(1)
                 if level and not re.search(level, lvl):
-                    show_line = False
+                    continue
 
                 # Filter by tag or message
+                message = match.group(4)
+                tag = match.group(2)
                 if regex and not (re.search(regex, tag) or re.search(regex, message)):
-                    show_line = False
+                    continue
 
                 # Exclude by tag or message
                 if exclude and (re.search(exclude, tag) or re.search(exclude, message)):
-                    show_line = False
+                    continue
 
-                # Get process name
-                if pid not in pid_map:
-                    out = subprocess.check_output(
-                        "adb shell ps -p %d" % pid, universal_newlines=True
-                    )
-                    lines = out.splitlines()
-                    if len(lines) == 1:
-                        proc = None
+                # Filter by package
+                if pkg is not None:
+                    if proc is None:
+                        continue
                     else:
-                        proc = out.split()[-1]
-                    pid_map[pid] = proc
-                else:
-                    proc = pid_map[pid]
+                        # Filter by process name (include)
+                        if not re.search(pkg, proc):
+                            continue
 
-                if proc is not None:
-                    # Filter by process name (include)
-                    if pkg and not re.search(pkg, proc):
-                        show_line = False
+                        # Exclude by process name (exclude)
+                        if exclude_proc and re.search(exclude_proc, proc):
+                            continue
 
-                    # Exclude by process name (exclude)
-                    if exclude_proc and re.search(exclude_proc, proc):
-                        show_line = False
-
-                # # Always show lines if following conditions are met.
-                # if "ROSS:" in message:
-                #     show_line = True
-
-                if not show_line:
-                    continue
-
-                if ignore_duplicates and message == last_message:
-                    dulicated_messages += 1
-                    print("\r(%d) " % dulicated_messages, end="")
-                    continue
+                if ignore_duplicates:
+                    if message == last_message:
+                        dup_messages += 1
+                        print("\r(%d) " % dup_messages, end="")
+                        continue
 
                 # Output process name
                 if last_proc != proc:
@@ -249,10 +248,11 @@ def logcat(
                     print2(lvl_text, color="RED", end="")
                 else:
                     print(lvl_text, end="")
-                print(": " + tag + ": " + message)
+                print(f": {tag}: {message}")
 
-                last_message = message
-                dulicated_messages = 0
+                if ignore_duplicates:
+                    last_message = message
+                    dup_messages = 0
 
         except Exception as ex:
             print2(ex)

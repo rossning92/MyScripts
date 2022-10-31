@@ -29,7 +29,5 @@ def build_native_activity():
     start_app("com.example.native_activity", use_monkey=True)
 
 
-
-
 if __name__ == "__main__":
-    menu_loop()
+    build_gles3jni()
