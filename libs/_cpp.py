@@ -44,7 +44,7 @@ def setup_cmake(cmake_version=None, install=True):
             match = glob.glob(cmake_path)
             if match:
                 cmake_path = sorted(match)[-1]
-                logging.info("CMake Path: %s" % cmake_path)
+                logging.info("CMake: install path: %s" % cmake_path)
                 prepend_to_path(os.path.join(cmake_path, "bin"))
                 return True
 

@@ -19,6 +19,6 @@ if __name__ == "__main__":
     setup_nodejs(install=False)
 
     if sys.platform == "win32":
-        subprocess.call(["cmd"])
+        subprocess.call(["cmd", "/k", "echo."])
     else:
         subprocess.call(["bash"])
