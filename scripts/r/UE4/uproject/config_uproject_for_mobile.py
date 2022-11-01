@@ -3,7 +3,7 @@ import os
 from _ue4 import update_config
 
 
-def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=False):
+def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=True):
     os.chdir(project_dir)
 
     update_config(

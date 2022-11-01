@@ -25,6 +25,7 @@ from _shutil import (
     CONEMU_INSTALL_DIR,
     activate_window_by_name,
     call_echo,
+    clear_env_var_explorer,
     convert_to_unix_path,
     exec_ahk,
     format_time,
@@ -1328,7 +1329,7 @@ def get_script_default_config():
         "runpy": True,
         "tee": False,
         "template": False,
-        "terminal": "wt",
+        "terminal": "alacritty",
         "title": "",
         "venv": "",
         "wsl": False,
@@ -1540,6 +1541,8 @@ def reload_scripts(script_list: List[Script], autorun=True):
     script_list.clear()
 
     script_paths = {x.script_path for x in script_list}
+
+    clear_env_var_explorer()
 
     for file in get_all_scripts():
         script = Script(file)

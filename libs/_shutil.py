@@ -870,6 +870,12 @@ def get_pretty_mtime(file):
     return get_pretty_time_delta(seconds)
 
 
+def clear_env_var_explorer():
+    os.environ.pop("CWD", None)
+    os.environ.pop("FILE", None)
+    os.environ.pop("FILES", None)
+
+
 def update_env_var_explorer():
     if sys.platform == "win32":
         try:

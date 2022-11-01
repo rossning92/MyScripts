@@ -47,7 +47,7 @@ def start_app(pkg, use_monkey=False):
             "shell",
             "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
         ]
-        logger.debug("shell_cmd: %s" % " ".join(args))
+        logger.info("shell_cmd: %s" % " ".join(args))
         with open(os.devnull, "w") as fnull:
             ret = subprocess.call(
                 args,
@@ -65,9 +65,8 @@ def start_app(pkg, use_monkey=False):
         lines = out.splitlines()
         line = lines[0].strip()
         _, pkg_activity = line.split()
-        logger.debug("ActivityName=" + pkg_activity)
         args = ["adb", "shell", "am start -n %s" % pkg_activity]
-        logger.debug("shell_cmd: %s" % " ".join(args))
+        logger.info("shell_cmd: %s" % " ".join(args))
         out = subprocess.check_output(args, universal_newlines=True)
         logger.debug(out)
 
@@ -90,7 +89,7 @@ def kill_app(pkg):
 
 
 def restart_app(pkg, use_monkey=True):
-    logger.debug("Stop app: " + pkg)
+    logger.info("Stop app: " + pkg)
     args = "adb shell am force-stop %s" % pkg
     call2(args)
 
