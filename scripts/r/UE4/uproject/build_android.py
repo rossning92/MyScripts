@@ -84,6 +84,8 @@ if __name__ == "__main__":
 
     run_script("r/UE4/editor/setup_android.cmd")
 
+    run_script("r/UE4/kill_editor.cmd")
+
     setup_android_env(ndk_version="21.1.6352462")
 
     out_dir = build_uproject(
