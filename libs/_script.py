@@ -89,14 +89,18 @@ def get_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../scripts")
 
 
+def get_script_dirs_config_file():
+    config_file = os.path.join(get_data_dir(), "script_directories.txt")
+    if not os.path.exists(config_file):
+        pathlib.Path(config_file).touch()
+    return config_file
+
+
 def get_script_directories():
     directories = []
     directories.append(("", get_script_root()))
 
-    config_file = os.path.join(get_data_dir(), "script_directories.txt")
-    if not os.path.exists(config_file):
-        pathlib.Path(config_file).touch()
-
+    config_file = get_script_dirs_config_file()
     with open(config_file) as f:
         for line in f.read().splitlines():
             if line:
@@ -109,6 +113,18 @@ def get_script_directories():
                     raise Exception("Invalid line in {}: {}".format(config_file, line))
 
     return directories
+
+
+def add_script_dir(d):
+    config_file = get_script_dirs_config_file()
+    with open(config_file, "r", encoding="utf-8") as f:
+        lines = f.read().splitlines()
+
+    lines.append("link/%s|%s" % (os.path.basename(d), d))
+    lines = [x for x in lines if x.strip()]
+
+    with open(config_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 def _get_script_history_file():
@@ -574,7 +590,8 @@ class Script:
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
-        self.mtime = os.path.getmtime(script_path)
+        self.mtime = 0
+        self.update_script_mtime()
 
         # Deal with links
         if os.path.splitext(script_path)[1].lower() == ".link":
@@ -589,6 +606,21 @@ class Script:
             self.real_ext = None
 
         self.cfg = self.load_config()
+
+    def update_script_mtime(self):
+        assert self.script_path
+
+        mtime = os.path.getmtime(self.script_path)
+
+        script_config_file = load_script_config_file2(self.script_path)
+        if script_config_file:
+            mtime = max(mtime, os.path.getmtime(script_config_file))
+
+        if mtime > self.mtime:
+            self.mtime = mtime
+            return True
+        else:
+            return False
 
     def __str__(self):
         result = self.name
@@ -1537,21 +1569,19 @@ def reload_scripts(script_list: List[Script], autorun=True):
     if not script_updated():
         return False
 
-    # TODO: only update modified scripts
+    script_dict = {script.script_path: script for script in script_list}
     script_list.clear()
-
-    script_paths = {x.script_path for x in script_list}
-
     clear_env_var_explorer()
 
     for file in get_all_scripts():
-        script = Script(file)
+        if file in script_dict:
+            script = script_dict[file]
+            script_reloaded = script.update_script_mtime()
+        else:
+            script = Script(file)
+            script_reloaded = True
 
-        mtime = os.path.getmtime(file)
-        script_config_file = load_script_config_file2(file)
-        if script_config_file:
-            mtime = max(mtime, os.path.getmtime(script_config_file))
-        if script.script_path not in script_paths or mtime > script.mtime:
+        if script_reloaded:
             # Check if auto run script
             if script.cfg["autoRun"] and autorun:
                 logging.info("autorun: %s" % script.name)
