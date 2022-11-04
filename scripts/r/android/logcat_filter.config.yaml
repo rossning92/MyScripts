@@ -1,3 +1,2 @@
 globalHotkey: Win+Alt+L
 restartInstance: true
-terminal: conemu

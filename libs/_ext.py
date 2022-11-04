@@ -16,13 +16,18 @@ from _term import DictEditWindow, Menu
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_selected_script_dir_rel(script_path=None):
+def get_selected_script_path_rel(script_path=None):
     if script_path is None:
         script_path = os.getenv("SCRIPT")
         assert script_path
     rel_path = script_path.replace(get_script_root() + os.path.sep, "")
-    rel_path = os.path.dirname(rel_path)
     rel_path = rel_path.replace("\\", "/")
+    return rel_path
+
+
+def get_selected_script_dir_rel(script_path=None):
+    rel_path = get_selected_script_path_rel(script_path=script_path)
+    rel_path = os.path.dirname(rel_path)
     rel_path += "/"
     return rel_path
 
@@ -117,35 +122,46 @@ def copy_script_path_to_clipboard(script_path):
         return content
 
 
-def create_new_script(ref_script_path=None):
-    w = Menu(
-        label="new script:",
-        text=get_selected_script_dir_rel(script_path=ref_script_path).lstrip("/"),
-    )
+def create_new_script(ref_script_path=None, duplicate=False):
+    if duplicate:
+        text = get_selected_script_path_rel(script_path=ref_script_path)
+        label = "duplicate script:"
+    else:
+        text = get_selected_script_dir_rel(script_path=ref_script_path)
+        label = "new script:"
+    w = Menu(label=label, text=text)
     w.exec()
-    script_path = w.get_text()
-    if not script_path:
+    dest_script = w.get_text()
+    if not dest_script:
         return
 
     # Convert to abspath
-    if not os.path.isabs(script_path):
-        script_path = os.path.join(get_script_root(), script_path)
+    if not os.path.isabs(dest_script):
+        dest_script = os.path.join(get_script_root(), dest_script)
 
-    dir_name = os.path.dirname(script_path)
+    dir_name = os.path.dirname(dest_script)
     if dir_name != "":
         os.makedirs(dir_name, exist_ok=True)
 
     # Check script extensions
-    _, ext = os.path.splitext(script_path)
+    _, ext = os.path.splitext(dest_script)
     if not ext:
         logging.warn("Script extension is required.")
 
-    if ext == ".py":
-        shutil.copyfile(get_my_script_root() + "/templates/python.py", script_path)
-    else:
-        # Create empty file
-        with open(script_path, "w") as _:
-            pass
+    if duplicate:
+        if not os.path.isabs(ref_script_path):
+            src_script = os.path.join(get_script_root(), ref_script_path)
+        else:
+            src_script = ref_script_path
+        shutil.copyfile(src_script, dest_script)
 
-    edit_myscript_script(os.path.realpath(script_path))
-    return script_path
+    else:
+        if ext == ".py":
+            shutil.copyfile(get_my_script_root() + "/templates/python.py", dest_script)
+        else:
+            # Create empty file
+            with open(dest_script, "w") as _:
+                pass
+
+    edit_myscript_script(os.path.realpath(dest_script))
+    return dest_script

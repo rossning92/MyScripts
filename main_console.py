@@ -378,10 +378,13 @@ class MainWindow(Menu):
                 self.input_.clear()
             return True
 
-        elif ch == curses.ascii.ctrl(ord("n")):
+        elif ch == curses.ascii.ctrl(ord("n")) or ch == curses.ascii.ctrl(ord("d")):
             ref_script_path = self.get_selected_script_path()
             if ref_script_path:
-                script_path = create_new_script(ref_script_path=ref_script_path)
+                duplicate = ch == curses.ascii.ctrl(ord("d"))
+                script_path = create_new_script(
+                    ref_script_path=ref_script_path, duplicate=duplicate
+                )
                 if script_path:
                     script = Script(script_path)
                     script_manager.scripts.insert(0, script)
