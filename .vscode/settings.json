@@ -17,5 +17,6 @@
   },
   "files.associations": {
     "limits": "cpp"
-  }
+  },
+  "files.trimTrailingWhitespace": true,
 }

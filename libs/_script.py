@@ -59,6 +59,7 @@ SCRIPT_EXTENSIONS = {
     ".js",
     ".link",
     ".md",
+    ".mmd",  # mermaid source file
     ".ps1",
     ".py",
     ".sh",

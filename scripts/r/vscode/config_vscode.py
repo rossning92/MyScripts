@@ -5,6 +5,37 @@ import sys
 
 from _shutil import call_echo, download, prepend_to_path, print2, unzip
 
+EXTENSION_LIST = [
+    # "donjayamanne.githistory",
+    "ms-vscode.cpptools",
+    "stkb.rewrap",
+    "streetsidesoftware.code-spell-checker",
+    # markdown
+    "yzhang.markdown-all-in-one",
+    "mushan.vscode-paste-image",
+    # javascript
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    # bash
+    "foxundermoon.shell-format",
+    # python
+    "ms-python.python",
+    "njpwerner.autodocstring",
+    # "ms-vscode-remote.vscode-remote-extensionpack",
+    "ms-toolsai.jupyter",
+    # AHK
+    "cweijan.vscode-autohotkey-plus",
+    # shader
+    "circledev.glsl-canvas",  # shader preview
+    # "cadenas.vscode-glsllint",
+    "xaver.clang-format",
+    # powershell
+    "ms-vscode.powershell",
+    # mermaid
+    "bierner.markdown-mermaid",
+    "tomoyukim.vscode-mermaid-editor",
+]
+
 
 def install_glslangvalidator():
     if sys.platform == "win32":
@@ -31,36 +62,9 @@ def get_vscode_cmdline(data_dir=None):
 
 def install_extensions(data_dir=None):
     print2("Install extensions...")
-    extensions = [
-        # "donjayamanne.githistory",
-        "ms-vscode.cpptools",
-        "stkb.rewrap",
-        "streetsidesoftware.code-spell-checker",
-        # markdown
-        "yzhang.markdown-all-in-one",
-        "mushan.vscode-paste-image",
-        # javascript
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        # bash
-        "foxundermoon.shell-format",
-        # python
-        "ms-python.python",
-        "njpwerner.autodocstring",
-        # "ms-vscode-remote.vscode-remote-extensionpack",
-        "ms-toolsai.jupyter",
-        # AHK
-        "cweijan.vscode-autohotkey-plus",
-        # shader
-        "circledev.glsl-canvas",  # shader preview
-        # "cadenas.vscode-glsllint",
-        "xaver.clang-format",
-        # powershell
-        "ms-vscode.powershell",
-    ]
 
     prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
-    for extension in extensions:
+    for extension in EXTENSION_LIST:
         call_echo(
             get_vscode_cmdline(data_dir=data_dir)
             + ["--install-extension", "%s" % extension],
@@ -91,6 +95,11 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "key": "ctrl+shift+v",
                     "command": "markdown.showPreviewToSide",
                     "when": "!notebookEditorFocused && editorLangId == 'markdown'",
+                },
+                {
+                    "key": "ctrl+shift+v",
+                    "command": "mermaid-editor.preview",
+                    "when": "resourceExtname == '.mmd'",
                 },
                 {"key": "shift+alt+r", "command": "revealFileInOS"},
                 {"key": "shift+alt+c", "command": "copyFilePath"},

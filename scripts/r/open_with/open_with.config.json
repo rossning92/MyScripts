@@ -179,6 +179,7 @@
   ".mka": ["mpv", "vlc"],
   ".mkd": ["vscode", "notepad++"],
   ".mkv": ["mpv", "vlc"],
+  ".mmd": ["vscode", "notepad++"],
   ".mod": ["mpv", "vlc"],
   ".modules": ["vscode", "notepad++"],
   ".mov": ["mpv", "vlc"],
