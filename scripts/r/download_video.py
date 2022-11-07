@@ -75,7 +75,8 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
 
             # Save url
             if save_url:
-                url = re.sub(r"\?.*?$", "", url)
+                # Remove anything after "&": https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
+                url = re.sub(r"(\?(?!v)|&).*$", "", url)
                 url_file = get_newest_file(os.path.join(download_dir, "*.*")) + ".url"
                 print("Save url to %s" % url_file)
                 with open(url_file, "w", encoding="utf-8") as f:
