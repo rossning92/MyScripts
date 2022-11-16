@@ -6,7 +6,7 @@ from _shutil import print2, set_clip
 
 def replace_script_str(old, new, dry_run=False):
     if dry_run:
-        print("String to be replaced:")
+        print("To be replaced:")
 
     files = list(get_all_scripts())
     for file in files:
@@ -17,9 +17,13 @@ def replace_script_str(old, new, dry_run=False):
         for i, line in enumerate(lines):
             if old in line:
                 if dry_run:
-                    if not dirty:
-                        print2("%s:" % get_relative_script_path(file), color="black")
-                    print("%d: %s" % (i + 1, lines[i]))
+                    print2(
+                        "%s:%d:" % (get_relative_script_path(file), i + 1),
+                        color="blue",
+                        end="",
+                    )
+                    print(lines[i])
+
                     dirty = True
                 else:
                     lines[i] = line.replace(old, new)
@@ -38,11 +42,12 @@ if __name__ == "__main__":
     replace_script_str(script_rel_path, None, dry_run=True)
     set_clip(script_rel_path)
     new_script_rel_path = input(
-        'Please enter new path for "%s" (^v to paste): ' % script_rel_path
+        '\nEnter new path for "%s" (^v to paste): ' % script_rel_path
     )
     new_script_full_path = get_absolute_script_path(new_script_rel_path)
 
     input("(Press enter to rename...)")
+    os.makedirs(os.path.dirname(new_script_full_path), exist_ok=True)
     os.rename(script_full_path, new_script_full_path)
 
     # Rename config file if any
