@@ -266,6 +266,7 @@ def register_global_hotkeys_linux(scripts):
 
 def register_global_hotkeys_win(scripts):
     hotkeys = ""
+    match_clipboard = []
 
     for item in scripts:
         hotkey = item.cfg["globalHotkey"]
@@ -277,6 +278,9 @@ def register_global_hotkeys_win(scripts):
                 hotkey = hotkey.replace("shift+", "+")
                 hotkey = hotkey.replace("win+", "#")
                 hotkeys += f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
+        mc = item.cfg["matchClipboard"]
+        if mc:
+            match_clipboard.append([mc, item.name, item.script_path])
 
     render_template_file(
         "GlobalHotkey.ahk",
@@ -284,7 +288,11 @@ def register_global_hotkeys_win(scripts):
         context={
             "PYTHON_EXEC": sys.executable,
             "START_SCRIPT": os.path.abspath("bin/start_script.py"),
+            "RUN_SCRIPT": os.path.abspath("bin/run_script.py"),
             "HOTKEYS": hotkeys,
+            "MATCH_CLIPBOARD": str(match_clipboard)
+            .replace("\\\\", "\\")
+            .replace("'", '"'),
         },
     )
 

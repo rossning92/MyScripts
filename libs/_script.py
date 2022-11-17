@@ -1355,6 +1355,7 @@ def get_script_default_config():
         "hotkey": "",
         "minimized": False,
         "newWindow": True,
+        "matchClipboard": "",
         "packages": "",
         "restartInstance": False,
         "runAsAdmin": False,
