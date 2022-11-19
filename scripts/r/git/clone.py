@@ -3,18 +3,23 @@ import re
 
 from _editor import open_in_vscode
 from _script import set_variable
-from _shutil import call_echo, chdir, mkdir
+from _shutil import call_echo, get_home_path
 
 if __name__ == "__main__":
-    mkdir("~/Projects")
-    chdir("~/Projects")
+    project_root = os.path.join(get_home_path(), "Projects")
+    os.makedirs(project_root, exist_ok=True)
+    os.chdir(project_root)
 
-    folder = os.path.basename("{{GIT_URL}}")
-    folder = re.sub(".git$", "", folder)
+    project_dir = os.path.basename(os.environ["GIT_URL"])
+    project_dir = re.sub(".git$", "", project_dir)
 
-    if not os.path.exists(folder):
-        call_echo("git clone %s --depth=1" % "{{GIT_URL}}")
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+        os.chdir(project_dir)
+        call_echo(
+            "git clone %s --single-branch --filter=blob:none ." % os.environ["GIT_URL"]
+        )
 
-    set_variable("GIT_REPO", os.path.realpath(folder))
+    set_variable("GIT_REPO", os.path.realpath(project_dir))
 
-    open_in_vscode(folder)
+    open_in_vscode(project_dir)

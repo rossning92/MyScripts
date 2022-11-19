@@ -457,10 +457,12 @@ class DictEditWindow(Menu):
     def edit_dict_value(self):
         index = self.get_selected_index()
         name = list(self.dict_.keys())[index]
+        val = self.dict_[name]
         DictValueEditWindow(
             self.dict_,
             name,
-            type(self.dict_[name]),
+            type(val),
+            default_vals=[val],
         ).exec()
 
         self.on_dict_update(self.dict_)

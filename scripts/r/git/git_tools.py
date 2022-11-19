@@ -214,6 +214,12 @@ def diff_with_main_branch():
     call_echo("git diff origin/main...HEAD")
 
 
+@menu_item()
+def diff_commit():
+    commit = input("commit hash: ")
+    call_echo("git show %s" % commit)
+
+
 @menu_item(key="`")
 def command():
     cmd = input("cmd> ")
@@ -332,8 +338,15 @@ def garbage_collect():
 
 
 @menu_item()
+def checkout_remote_branch_partial():
+    run_script(
+        "r/git/checkout_remote_branch_partial.sh", variables={"GIT_REPO": repo_dir}
+    )
+
+
+@menu_item()
 def checkout_remote_branch():
-    run_script("r/git/checkout_remote_branch.sh")
+    run_script("r/git/checkout_remote_branch.sh", variables={"GIT_REPO": repo_dir})
 
 
 @menu_item(key="p")

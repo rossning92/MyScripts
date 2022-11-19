@@ -52,16 +52,26 @@ ClipChanged(type) {
 
     if (type = 1) { ; clipboard has text
         text := Clipboard
-        for index, item in MatchClipboard
+        matchedScript := []
+        message := ""
+
+        ; Find all matched scripts
+        for _index, script in MatchClipboard
         {
-            regex := item[1]
-            scriptName := item[2]
-            scriptPath := item[3]
+            regex := script[1]
+            scriptName := script[2]
             if (RegExMatch(text, regex)) {
-                key := WaitKey("[1] " scriptName)
-                if (key = "1") {
-                    Run, "{{PYTHON_EXEC}}" "{{RUN_SCRIPT}}" "%scriptPath%" "%text%"
-                }
+                message .= "[" (matchedScript.Length() + 1) "] " scriptName "`n"
+                matchedScript.Push(script)
+            }
+        }
+
+        if (matchedScript.Length() > 0) {
+            key := WaitKey(message)
+            if ( key <> "" and InStr("0123456789", key) ) {
+                index := Ord(key) - Ord("0")
+                scriptPath := matchedScript[index][3]
+                Run, "{{PYTHON_EXEC}}" "{{RUN_SCRIPT}}" "%scriptPath%" "%text%"
             }
         }
     }
