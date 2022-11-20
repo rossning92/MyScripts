@@ -149,7 +149,7 @@ def wrap_wsl(commands, env=None):
 
     if env is not None:
         for k, v in env.items():
-            bash += "export {}='{}'\n".format(k, v)
+            bash += "export {}='{}';".format(k, v)
 
     if type(commands) in [list, tuple]:
         bash += _args_to_str(commands)
@@ -174,7 +174,7 @@ def wrap_bash_commands(commands, wsl=False, env=None):
 
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
-            return wrap_wsl(commands)
+            return wrap_wsl(commands, env=env)
 
         else:
             if env is not None:
@@ -700,13 +700,15 @@ class Script:
     def get_variables(self):
         vnames = self.get_variable_names()
         all_variables = get_all_variables()
+
+        # Get all variables
         variables = {}
         for vname in vnames:
             if vname in all_variables:
                 if len(all_variables[vname]) > 0:
                     last_modified_value = all_variables[vname][0]
-                    if last_modified_value:
-                        variables[vname] = last_modified_value
+                    # Note that last_modified_value can be an empty string
+                    variables[vname] = last_modified_value
 
         # Override variables
         if self.override_variables:
@@ -756,7 +758,13 @@ class Script:
                 return True
 
         self.cfg = self.load_config()
+
+        # Get variable name value pairs
         variables = self.get_variables()
+        # Override variable from enviromental variables
+        for name in variables.keys():
+            if name in os.environ:
+                variables[name] = os.environ[name]
 
         logging.debug("execute(args=%s)" % args)
         close_on_exit = (
@@ -783,7 +791,7 @@ class Script:
         else:
             args = []
 
-        env = {}
+        env = {**variables}
 
         shell = False
 
@@ -1046,15 +1054,11 @@ class Script:
 
                     if not self.cfg["runAsAdmin"]:
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if (
-                            self.cfg["terminal"]
-                            in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ]
-                            and os.path.exists(WINDOWS_TERMINAL_EXEC)
-                        ):
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
@@ -1214,7 +1218,7 @@ class Script:
 
             ps = subprocess.Popen(
                 args=args,
-                env={**variables, **os.environ, **env},
+                env={**os.environ, **env},
                 cwd=cwd,
                 shell=shell,
                 **popen_extra_args,

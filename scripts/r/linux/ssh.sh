@@ -1,4 +1,7 @@
+#!/bin/bash
 set -e
+cd "$(dirname "$0")"
+
 source install_expect.sh
 
 # Config ControlMaster on the client side to share SSH connections (multiplexing)
@@ -8,9 +11,9 @@ printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket
 cat >/tmp/s.sh <<EOF
 set timeout 10
 
-spawn ssh -o "StrictHostKeyChecking no" {{_USER}}@{{_HOST}} -R 5037:localhost:5037
+spawn ssh -o "StrictHostKeyChecking no" ${SSH_USER}@${SSH_HOST} -R 5037:localhost:5037
 expect "password:"
-send "{{SSH_PWD}}\r"
+send "${SSH_PWD}\r"
 expect "Passcode or option"
 send "push\r"
 interact
