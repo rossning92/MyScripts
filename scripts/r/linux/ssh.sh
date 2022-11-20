@@ -2,6 +2,7 @@ set -e
 source install_expect.sh
 
 # Config ControlMaster on the client side to share SSH connections (multiplexing)
+mkdir -p ~/.ssh/
 printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
 
 cat >/tmp/s.sh <<EOF

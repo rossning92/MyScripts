@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 
 import yaml
 
@@ -79,4 +80,5 @@ def install_package(pkg, upgrade=False):
         subprocess.check_call(["go", "install", "github.com/iawia002/lux@latest"])
         return
 
-    choco_install(pkg, upgrade=upgrade)
+    if sys.platform == "win32":
+        choco_install(pkg, upgrade=upgrade)

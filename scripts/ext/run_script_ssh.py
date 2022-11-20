@@ -2,6 +2,7 @@ import argparse
 import os
 import subprocess
 
+from _pkgmanager import require_package
 from _script import Script, find_script, get_variable
 from _shutil import call_echo, convert_to_unix_path, write_temp_file
 
@@ -19,6 +20,8 @@ def _get_port():
 
 
 def _putty_wrapper(command, extra_args=[], **kwargs):
+    require_package("putty")
+
     args = [command]
     port = _get_port()
     if port:

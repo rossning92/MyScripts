@@ -1,3 +1,4 @@
 if ! [ -x "$(command -v expect)" ]; then
-    sudo apt-get install expect -y
+    sudo apt update
+    sudo apt install expect -y
 fi

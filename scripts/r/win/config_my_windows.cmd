@@ -19,11 +19,14 @@ reg add HKCU\Software\Policies\Microsoft\Windows\Explorer /v DisableSearchBoxSug
 @REM Hide Task View Icon
 reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v ShowTaskViewButton /t REG_DWORD /d 0 /f
 
-@REM Hide Task View Icon
+@REM Hide People Icon
 reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People /v PeopleBand /t REG_DWORD /d 0 /f
 
 @REM Set File Explorer to "Open to This PC"
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v LaunchTo /t REG_DWORD /d 1 /f
+
+@REM Disable adding frequent folders in Quick access
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer /v ShowFrequent /t REG_DWORD /d 0 /f
 
 @REM Remove pinned items from Taskbar
 reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f
