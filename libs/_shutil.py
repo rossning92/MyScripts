@@ -28,12 +28,16 @@ logger = logging.getLogger(__name__)
 CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 
 
-def activate_window_by_name(name):
+TITLE_MATCH_MODE_EXACT = 0
+TITLE_MATCH_MODE_PARTIAL = 1
+TITLE_MATCH_MODE_START_WITH = 2
+
+
+def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
     if sys.platform == "win32":
         from ctypes.wintypes import BOOL, HWND, LPARAM
 
         user32 = ctypes.windll.user32
-
         matched_hwnd = None
 
         def callback(hwnd, lParam):
@@ -41,7 +45,14 @@ def activate_window_by_name(name):
             length = user32.GetWindowTextLengthW(hwnd) + 1
             buffer = ctypes.create_unicode_buffer(length)
             user32.GetWindowTextW(hwnd, buffer, length)
-            if name in repr(buffer.value):
+            win_text_str = str(buffer.value)
+            if match_mode == TITLE_MATCH_MODE_EXACT and name == win_text_str:
+                matched_hwnd = hwnd
+                return False  # early exit
+            elif match_mode == TITLE_MATCH_MODE_PARTIAL and name in win_text_str:
+                matched_hwnd = hwnd
+                return False  # early exit
+            elif match_mode == TITLE_MATCH_MODE_START_WITH and win_text_str.startswith(name):
                 matched_hwnd = hwnd
                 return False  # early exit
 
