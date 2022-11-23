@@ -5,6 +5,7 @@ from _shutil import cd
 from ext.run_script_ssh import pull_file_putty
 
 if __name__ == "__main__":
+    # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD
     parser = argparse.ArgumentParser()
     parser.add_argument("src", type=str, nargs="?", default=None)
     args = parser.parse_args()

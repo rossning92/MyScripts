@@ -18,6 +18,7 @@ from _ext import (
     create_new_script,
     edit_myscript_script,
     edit_script_config,
+    rename_script,
 )
 from _script import (
     Script,
@@ -396,6 +397,14 @@ class MainWindow(Menu):
                 if script_path:
                     script = Script(script_path)
                     script_manager.scripts.insert(0, script)
+            self.input_.clear()
+            return True
+
+        elif ch == ord("N"):
+            script_path = self.get_selected_script_path()
+            if script_path:
+                if rename_script(script_path):
+                    script_manager.refresh_all_scripts()
             self.input_.clear()
             return True
 

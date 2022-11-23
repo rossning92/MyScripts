@@ -595,13 +595,13 @@ def adb_install(apk, force=False, grant_permissions=False):
     if force or should_install:
         logger.info("Installing %s" % apk)
         try:
-            args = [
+            adb_install_cmd = [
                 "adb",
                 "install",
                 "-r",  # Replace existing apps without clearing data
                 "-d",  # Allow downgrade
-                apk,
             ]
+            args = adb_install_cmd + [apk]
             logging.debug("%s" % args)
             out = subprocess.check_output(
                 args,
@@ -616,12 +616,12 @@ def adb_install(apk, force=False, grant_permissions=False):
                 pkg = re.findall("Package ([a-z0-9A-Z.]+)", msg)[0]
                 logging.warn("Uninstalling %s..." % pkg)
                 subprocess.check_call(["adb", "uninstall", pkg])
-                subprocess.check_call(["adb", "install", "-r", apk])
+                subprocess.check_call(adb_install_cmd + [apk])
             elif "INSTALL_FAILED_CONFLICTING_PROVIDE" in msg:
                 pkg = re.findall("already used by ([a-z0-9A-Z.]+)", msg)[0]
                 logging.warn("Uninstalling %s..." % pkg)
                 subprocess.check_call(["adb", "uninstall", pkg])
-                subprocess.check_call(["adb", "install", "-r", apk])
+                subprocess.check_call(adb_install_cmd + [apk])
             else:
                 raise ex
 

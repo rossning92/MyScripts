@@ -8,7 +8,7 @@ from _shutil import getch, print2
 DeviceInfo = namedtuple("DeviceInfo", ["serial", "product", "battery_level"])
 
 
-def select_default_android_device():
+def get_device_list():
     lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
         "\n"
     )
@@ -47,8 +47,13 @@ def select_default_android_device():
             device_list.append(DeviceInfo(serial, product, battery_level))
 
     print("[0] clear ANDROID_SERIAL")
+    print()
+    return device_list
 
+
+def select_default_android_device():
     while True:
+        device_list = get_device_list()
         ch = getch()
         for device in device_list:
             if ch == device.product[0]:
