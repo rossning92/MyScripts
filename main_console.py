@@ -334,7 +334,7 @@ class MainWindow(Menu):
             now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
             and now - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS
         ):
-            self.set_message("Reloading scripts...")
+            self.set_message("(reloading scripts...)")
             script_manager.refresh_all_scripts()
             self.set_message(None)
 
@@ -361,7 +361,7 @@ class MainWindow(Menu):
         self.last_refresh_time = time.time()
 
         if ch == curses.ascii.ctrl(ord("r")):
-            self.set_message("Reloading scripts...")
+            self.set_message("(reloading scripts...)")
             script_manager.refresh_all_scripts()
             self.set_message(None)
             return True
@@ -380,7 +380,7 @@ class MainWindow(Menu):
             if script_path:
                 content = copy_script_path_to_clipboard(script_path)
                 self.set_message(
-                    f"Copied to clipboard: {content}"
+                    f"(copied to clipboard: {content})"
                     if content
                     else "Copied to clipboard."
                 )
@@ -403,8 +403,11 @@ class MainWindow(Menu):
         elif ch == ord("N"):
             script_path = self.get_selected_script_path()
             if script_path:
+                self.set_message("(searching scripts to rename...)")
+                script_manager.refresh_all_scripts()
                 if rename_script(script_path):
                     script_manager.refresh_all_scripts()
+                self.set_message(None)
             self.input_.clear()
             return True
 

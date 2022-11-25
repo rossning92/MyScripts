@@ -27,7 +27,7 @@ def _putty_wrapper(command, extra_args=[], **kwargs):
     if port:
         args += ["-P", port]
 
-    pwd = get_variable("SSH_PWD")
+    pwd = os.environ.get("SSH_PWD", get_variable("SSH_PWD"))
     if pwd:
         args += ["-pw", pwd]
 

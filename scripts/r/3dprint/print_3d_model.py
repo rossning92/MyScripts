@@ -5,7 +5,7 @@ from _shutil import write_temp_file
 from ext.run_script_ssh import push_file_putty, run_bash_script_putty
 
 if __name__ == "__main__":
-    # require: SSH_PWD SSH_USER SSH_HOST to be set
+    # Prerequire: SSH_PWD, SSH_USER, SSH_HOST, SSH_PORT
 
     # if there is no arguments
     if len(sys.argv) == 1:

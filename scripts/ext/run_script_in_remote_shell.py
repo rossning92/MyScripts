@@ -32,11 +32,12 @@ if __name__ == "__main__":
 
     # Write shell commands to paste buffer
     lines = [
-        "cat > /tmp/script.sh <<'__EOF__'",
+        "",
+        "cat >~/s.sh <<'__EOF__'",
         *s.splitlines(),
         "__EOF__",
         "clear",
-        "bash /tmp/script.sh",
+        "bash ~/s.sh",
     ]
     tmp_file = write_temp_file("\n".join(lines) + "\n", "pastebuf.txt")
 
