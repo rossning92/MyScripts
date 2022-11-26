@@ -512,10 +512,10 @@ def wrap_args_alacritty(
 ):
     assert isinstance(args, list)
     # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
-    if sys.platform != "windows":
+    if sys.platform == "windows":
         dest_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
     else:
-        dest_path = os.path.expanduser(".config/alacritty/alacritty.yml")
+        dest_path = os.path.expanduser("~/.config/alacritty/alacritty.yml")
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     src_path = os.path.abspath(SCRIPT_ROOT + "/../settings/alacritty.yml")
     shutil.copy(src_path, dest_path)

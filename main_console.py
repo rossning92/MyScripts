@@ -40,6 +40,7 @@ from _shutil import (
     setup_logger,
     setup_nodejs,
     update_env_var_explorer,
+    start_process,
 )
 from _template import render_template_file
 from _term import Menu
@@ -241,7 +242,7 @@ def add_keyboard_hooks(keyboard_hooks):
 def register_global_hotkeys_linux(scripts):
     s = (
         f"control+q\n"
-        f"  gnome-terminal -- python3 {SCRIPT_ROOT}/main_console.py -q\n"
+        f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/main_console.py -q\n"
         "\n"
     )
 
@@ -262,7 +263,7 @@ def register_global_hotkeys_linux(scripts):
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
     subprocess.call(["pkill", "-USR1", "sxhkd"])
-    # start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
+    start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
 
 
 def register_global_hotkeys_win(scripts):

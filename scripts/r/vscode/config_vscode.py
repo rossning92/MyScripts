@@ -63,12 +63,12 @@ def get_vscode_cmdline(data_dir=None):
 def install_extensions(data_dir=None):
     print2("Install extensions...")
 
-    prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
+    if sys.platform == "win32":
+        prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
     for extension in EXTENSION_LIST:
         call_echo(
             get_vscode_cmdline(data_dir=data_dir)
             + ["--install-extension", "%s" % extension],
-            shell=True,
         )
 
 

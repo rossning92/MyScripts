@@ -3,8 +3,9 @@ cd "$(dirname "$0")"
 
 set -e
 
+# If Linux distro
 if [ "$(uname)" == "Linux" ]; then
-    if ! type pip3 >/dev/null; then
+    if ! type pip3 >/dev/null 2>&1; then
         sudo apt-get update
         sudo apt install python3-pip -y
     fi
@@ -23,11 +24,11 @@ if [ "$(uname)" == "Linux" ]; then
         sudo apt-get update
         sudo apt-get install xdotool -y
     fi
-fi
 
-touch ~/.sxhkdrc
-killall sxhkd >/dev/null 2>&1 || true
-setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
+    touch ~/.sxhkdrc
+    killall sxhkd >/dev/null 2>&1 || true
+    setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
+fi
 
 pip3 install -r requirement.txt
 python3 main_console.py
