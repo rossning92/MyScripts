@@ -3,7 +3,7 @@ import os
 import sys
 import time
 import traceback
-from typing import List
+from typing import Callable, Dict, List
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
@@ -39,8 +39,8 @@ from _shutil import (
     run_at_startup,
     setup_logger,
     setup_nodejs,
-    update_env_var_explorer,
     start_process,
+    update_env_var_explorer,
 )
 from _template import render_template_file
 from _term import Menu
@@ -89,23 +89,27 @@ def setup_console_font():
     )
 
 
-def register_hotkeys(scripts):
+def to_ascii_hotkey(hotkey: str):
+    hotkey = hotkey.lower()
+    key = hotkey[-1].lower()
+    if "ctrl+" in hotkey:
+        ch = curses.ascii.ctrl(ord(key))
+    elif "shift+" in hotkey or "alt+" in hotkey:
+        # HACK: use `shift+` in place of `alt+`
+        ch = ord(key.upper())
+    else:
+        ch = ord(key)
+    return ch
+
+
+def register_hotkeys(scripts) -> Dict[str, Script]:
     hotkeys = {}
     for script in scripts:
         hotkey = script.cfg["hotkey"]
         if hotkey:
             logging.debug("Hotkey: %s: %s" % (hotkey, script.name))
-
-            hotkey = hotkey.lower()
-            key = hotkey[-1].lower()
-
-            if "ctrl+" in hotkey:
-                ch = curses.ascii.ctrl(ord(key))
-                hotkeys[ch] = script
-            elif "shift+" in hotkey or "alt+" in hotkey:
-                # HACK: use `shift+` in place of `alt+`
-                ch = ord(key.upper())
-                hotkeys[ch] = script
+            ch = to_ascii_hotkey(hotkey)
+            hotkeys[ch] = script
 
     return hotkeys
 
@@ -320,6 +324,15 @@ def register_global_hotkeys(scripts):
         register_global_hotkeys_mac(scripts)
 
 
+class InternalHotkey:
+    def __init__(self, hotkey: str, func: Callable):
+        self.hotkey = hotkey
+        self.func = func
+
+    def __str__(self) -> str:
+        return "%s  (%s)" % (self.func.__name__, self.hotkey)
+
+
 class MainWindow(Menu):
     def __init__(self):
         super().__init__(
@@ -327,6 +340,20 @@ class MainWindow(Menu):
             ascii_only=True,
             cancellable=False,
         )
+
+        self.internal_hotkeys: Dict[str, InternalHotkey] = {}
+        self.add_internal_hotkey("ctrl+r", self._reload_script)
+        self.add_internal_hotkey("shift+m", self._edit_script_config)
+        self.add_internal_hotkey("shift+c", self._copy_to_clipboard)
+        self.add_internal_hotkey("ctrl+n", self._new_script)
+        self.add_internal_hotkey("ctrl+d", self._duplicate_script)
+        self.add_internal_hotkey("shift+n", self._rename_script)
+        self.add_internal_hotkey("ctrl+e", self._edit_script)
+        self.add_internal_hotkey("?", self._help)
+
+    def add_internal_hotkey(self, hotkey, func):
+        ch = to_ascii_hotkey(hotkey)
+        self.internal_hotkeys[ch] = InternalHotkey(hotkey=hotkey, func=func)
 
     def on_main_loop(self):
         # Reload scripts
@@ -358,64 +385,77 @@ class MainWindow(Menu):
         if index >= 0:
             return self.items[index].script_path
 
+    def _reload_script(self):
+        self.set_message("(reloading scripts...)")
+        script_manager.refresh_all_scripts()
+        self.set_message(None)
+        return True
+
+    def _edit_script_config(self):
+        script_path = self.get_selected_script_path()
+        if script_path:
+            edit_script_config(script_path)
+            # reload the current script
+            index = self.get_selected_index()
+            self.items[index] = Script(script_path)
+            self.input_.clear()
+
+    def _copy_to_clipboard(self):
+        script_path = self.get_selected_script_path()
+        if script_path:
+            content = copy_script_path_to_clipboard(script_path)
+            self.set_message(
+                f"(copied to clipboard: {content})"
+                if content
+                else "Copied to clipboard."
+            )
+            self.input_.clear()
+
+    def _new_script_or_duplicate_script(self, duplicate=False):
+        ref_script_path = self.get_selected_script_path()
+        if ref_script_path:
+            script_path = create_new_script(
+                ref_script_path=ref_script_path, duplicate=duplicate
+            )
+            if script_path:
+                script = Script(script_path)
+                script_manager.scripts.insert(0, script)
+        self.input_.clear()
+
+    def _new_script(self):
+        self._new_script_or_duplicate_script(duplicate=False)
+
+    def _duplicate_script(self):
+        self._new_script_or_duplicate_script(duplicate=True)
+
+    def _rename_script(self):
+        script_path = self.get_selected_script_path()
+        if script_path:
+            self.set_message("(searching scripts to rename...)")
+            script_manager.refresh_all_scripts()
+            if rename_script(script_path):
+                script_manager.refresh_all_scripts()
+            self.set_message(None)
+        self.input_.clear()
+
+    def _edit_script(self):
+        script_path = self.get_selected_script_path()
+        if script_path:
+            edit_myscript_script(script_path)
+            self.input_.clear()
+
+    def _help(self):
+        items = []
+        items.extend(self.internal_hotkeys.values())
+        items.extend(script_manager.hotkeys.values())
+        w = Menu(label="all hotkeys>", items=items)
+        w.exec()
+
     def on_char(self, ch):
         self.last_refresh_time = time.time()
 
-        if ch == curses.ascii.ctrl(ord("r")):
-            self.set_message("(reloading scripts...)")
-            script_manager.refresh_all_scripts()
-            self.set_message(None)
-            return True
-
-        elif ch == ord("M"):
-            script_path = self.get_selected_script_path()
-            if script_path:
-                edit_script_config(script_path)
-                # reload the current script
-                index = self.get_selected_index()
-                self.items[index] = Script(script_path)
-            return True
-
-        elif ch == ord("C"):
-            script_path = self.get_selected_script_path()
-            if script_path:
-                content = copy_script_path_to_clipboard(script_path)
-                self.set_message(
-                    f"(copied to clipboard: {content})"
-                    if content
-                    else "Copied to clipboard."
-                )
-                self.input_.clear()
-            return True
-
-        elif ch == curses.ascii.ctrl(ord("n")) or ch == curses.ascii.ctrl(ord("d")):
-            ref_script_path = self.get_selected_script_path()
-            if ref_script_path:
-                duplicate = ch == curses.ascii.ctrl(ord("d"))
-                script_path = create_new_script(
-                    ref_script_path=ref_script_path, duplicate=duplicate
-                )
-                if script_path:
-                    script = Script(script_path)
-                    script_manager.scripts.insert(0, script)
-            self.input_.clear()
-            return True
-
-        elif ch == ord("N"):
-            script_path = self.get_selected_script_path()
-            if script_path:
-                self.set_message("(searching scripts to rename...)")
-                script_manager.refresh_all_scripts()
-                if rename_script(script_path):
-                    script_manager.refresh_all_scripts()
-                self.set_message(None)
-            self.input_.clear()
-            return True
-
-        elif ch == curses.ascii.ctrl(ord("e")):
-            script_path = self.get_selected_script_path()
-            if script_path:
-                edit_myscript_script(script_path)
+        if ch in self.internal_hotkeys:
+            self.internal_hotkeys[ch].func()
             return True
 
         elif ch == ord("\n"):
