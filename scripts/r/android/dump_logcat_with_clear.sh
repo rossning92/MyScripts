@@ -1,6 +1,6 @@
 cd ~/Desktop/
 
 echo 'Clear logcat buffer.'
-adb logcat -c
+adb shell logcat -b all -c
 
 adb logcat

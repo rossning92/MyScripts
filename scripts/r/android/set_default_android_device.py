@@ -2,13 +2,16 @@ import re
 import subprocess
 from collections import namedtuple
 
-from _script import set_variable
+from _script import get_variable, set_variable
 from _shutil import getch, print2
 
 DeviceInfo = namedtuple("DeviceInfo", ["serial", "product", "battery_level"])
 
 
 def get_device_list():
+    cur_android_serial = get_variable("ANDROID_SERIAL")
+    print("Current ANDROID_SERIAL: %s" % cur_android_serial)
+
     lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
         "\n"
     )

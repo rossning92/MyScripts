@@ -329,5 +329,6 @@
   ".ush": ["vscode", "notepad++"],
   ".tar": [["run_script", "/r/unzip.py"], "7zfm"],
   ".tgz": [["run_script", "/r/unzip.py"], "7zfm"],
-  ".7z": [["run_script", "/r/unzip.py"], "7zfm"]
+  ".7z": [["run_script", "/r/unzip.py"], "7zfm"],
+  ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]]
 }
