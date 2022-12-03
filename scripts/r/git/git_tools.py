@@ -59,17 +59,32 @@ def revert_all():
 
 @menu_item(key="P")
 def git_push(force=False):
-    args = ["git", "push"]
+    # Push and auto track remote branch
+    subprocess.check_call(["git", "config", "--global", "push.default", "current"])
+    args = [
+        "git",
+        "push",
+        # will track remote branch of the same name:
+        "-u",
+    ]
     if force:
         args += ["--force"]
-    try:
-        subprocess.check_output(args, universal_newlines=True, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        if "no upstream branch" in e.output:
-            subprocess.check_call(["git", "push", "--set-upstream", "origin", "master"])
-            subprocess.check_call(args)
-        else:
-            raise
+    call_echo(args)
+
+    # try:
+    #     out = subprocess.check_output(
+    #         args, universal_newlines=True, stderr=subprocess.STDOUT
+    #     )
+    #     print(out)
+    # except subprocess.CalledProcessError as e:
+    #     cur_branch = get_current_branch()
+    #     if "no upstream branch" in e.output:
+    #         subprocess.check_call(
+    #             ["git", "push", "--set-upstream", "origin", cur_branch]
+    #         )
+    #         subprocess.check_call(args)
+    #     else:
+    #         raise
 
 
 @menu_item(key="l")
@@ -273,13 +288,13 @@ def setup_project():
             "git remote add origin https://github.com/rossning92/%s.git" % repo_name
         )
 
-    # Add .gitignore
-    add_gitignore()
+        # Add .gitignore
+        add_gitignore()
 
-    # .gitattribute
-    if not os.path.exists(".gitattributes"):
-        with open(".gitattributes", "w") as f:
-            f.writelines(["* text=auto eol=lf"])
+        # .gitattribute
+        if not os.path.exists(".gitattributes"):
+            with open(".gitattributes", "w") as f:
+                f.writelines(["* text=auto eol=lf"])
 
 
 @menu_item(key="X")

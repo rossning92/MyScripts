@@ -52,7 +52,9 @@ def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
             elif match_mode == TITLE_MATCH_MODE_PARTIAL and name in win_text_str:
                 matched_hwnd = hwnd
                 return False  # early exit
-            elif match_mode == TITLE_MATCH_MODE_START_WITH and win_text_str.startswith(name):
+            elif match_mode == TITLE_MATCH_MODE_START_WITH and win_text_str.startswith(
+                name
+            ):
                 matched_hwnd = hwnd
                 return False  # early exit
 
@@ -1187,6 +1189,7 @@ def confirm(msg=""):
 
 def shell_open(file="."):
     if sys.platform == "win32":
+        file = file.replace("/", os.path.sep)
         os.startfile(file)
         # subprocess.Popen(['start', file], shell= True)
 
