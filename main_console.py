@@ -30,10 +30,11 @@ from _script import (
     is_instance_running,
     reload_scripts,
     save_variables,
+    setup_env_var,
     update_script_access_time,
 )
 from _shutil import (
-    add_to_path,
+    append_to_path_global,
     get_ahk_exe,
     getch,
     quote_arg,
@@ -49,6 +50,7 @@ from _term import Menu
 
 REFRESH_INTERVAL_SECS = 60
 GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
+KEY_CODE_CTRL_ENTER_WIN = 529
 
 
 def execute_script(script, close_on_exit=None):
@@ -473,7 +475,7 @@ class MainWindow(Menu):
             self.run_selected_script()
             return True
 
-        elif ch == 529:  # ctrl+enter on windows
+        elif ch == KEY_CODE_CTRL_ENTER_WIN:
             self.run_selected_script(close_on_exit=False)
             return True
 
@@ -543,17 +545,15 @@ def init():
 
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")
-    add_to_path(bin_dir)
+    append_to_path_global(bin_dir)
 
     user_site = subprocess.check_output(
         [sys.executable, "-m", "site", "--user-site"], universal_newlines=True
     ).strip()
     script_dir = os.path.abspath(os.path.join(user_site, "..", "Scripts"))
-    add_to_path(script_dir)
+    append_to_path_global(script_dir)
 
-    os.environ["PATH"] = os.pathsep.join([bin_dir, os.environ["PATH"]])
-
-    os.environ["PYTHONPATH"] = os.path.join(SCRIPT_ROOT, "libs")
+    setup_env_var(os.environ)
 
     refresh_env_vars()
 

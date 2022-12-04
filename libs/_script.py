@@ -15,7 +15,6 @@ import time
 from typing import List
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_vscode
@@ -33,6 +32,7 @@ from _shutil import (
     get_home_path,
     load_yaml,
     npm_install,
+    prepend_to_path,
     print2,
     quote_arg,
     run_at_startup,
@@ -88,6 +88,19 @@ def get_data_dir():
 
 def get_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../scripts")
+
+
+def get_my_script_root():
+    return os.path.abspath(SCRIPT_ROOT + "/../")
+
+
+def setup_env_var(env):
+    root = get_my_script_root()
+
+    bin_dir = os.path.join(root, "bin")
+    prepend_to_path(bin_dir, env=env)
+
+    env["PYTHONPATH"] = os.path.join(root, "libs")
 
 
 def get_script_dirs_config_file():
@@ -802,6 +815,8 @@ class Script:
         if self.cfg["adk"]:
             setup_android_env(env=env)
 
+        setup_env_var(env)
+
         # Setup PYTHONPATH globally (e.g. useful for vscode)
         setup_python_path(env)
 
@@ -1232,10 +1247,15 @@ class Script:
                 shell=shell,
                 **popen_extra_args,
             )
+            success = True
             if not no_wait:
-                return ps.wait() == 0
+                success = ps.wait() == 0
 
-            return True
+            if not new_window and not close_on_exit:
+                print("(press enter to exit...)")
+                input()
+
+            return success
 
     def get_variable_names(self):
         with open(self.script_path, "r", encoding="utf-8") as f:

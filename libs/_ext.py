@@ -7,6 +7,7 @@ from _editor import open_in_vscode
 from _script import (
     get_absolute_script_path,
     get_all_scripts,
+    get_my_script_root,
     get_relative_script_path,
     get_script_config_file,
     get_script_default_config,
@@ -51,10 +52,6 @@ def edit_myscript_script(file):
             return
 
     open_in_vscode([file])
-
-
-def get_my_script_root():
-    return os.path.abspath(SCRIPT_ROOT + "/../")
 
 
 def enter_script_path():

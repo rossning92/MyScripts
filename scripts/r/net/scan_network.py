@@ -9,6 +9,7 @@ Host = namedtuple("Host", "ipv4 mac vendor")
 
 def scan_network(vendor=None):
     result = []
+
     out = subprocess.check_output(
         ["nmap", "-sn", "192.168.0.1/24", "-oX", "-"], universal_newlines=True
     )
@@ -21,23 +22,25 @@ def scan_network(vendor=None):
             continue
         ipv4 = ipv4_addr.attrib["addr"]
 
+        mac = None
+        vendor_ = None
+
         # Get MAC addr
         mac_addr = host.find("./address[@addrtype='mac']")
-        if mac_addr is None:
-            continue
-        mac = mac_addr.attrib["addr"]
+        if mac_addr is not None:
+            mac = mac_addr.attrib["addr"]
 
-        # Get vendor
-        if "vendor" in mac_addr.attrib:
-            vendor_ = mac_addr.attrib["vendor"]
-        else:
-            vendor_ = None
+            # Get vendor
+            if "vendor" in mac_addr.attrib:
+                vendor_ = mac_addr.attrib["vendor"]
+
         # Filter by vendor
         if vendor is not None:
             if vendor_ is None or vendor not in vendor_:
                 continue
 
         result.append(Host(ipv4, mac, vendor_))
+
     return result
 
 

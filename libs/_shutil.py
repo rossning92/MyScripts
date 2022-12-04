@@ -956,7 +956,7 @@ def convert_to_unix_path(path, wsl=False):
     return path
 
 
-def add_to_path(path):
+def append_to_path_global(path):
     if sys.platform == "win32":
         if False and " " in path:
             path = get_short_path_name(path)

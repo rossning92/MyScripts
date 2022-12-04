@@ -111,6 +111,16 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                 },
                 {"key": "ctrl+shift+r", "command": "workbench.action.reloadWindow"},
                 {"key": "ctrl+shift+alt+enter", "command": "-jupyter.runAndDebugCell"},
+                {
+                    "key": "alt+left",
+                    "command": "workbench.action.navigateBack",
+                    "when": "canNavigateBack",
+                },
+                {
+                    "key": "alt+right",
+                    "command": "workbench.action.navigateForward",
+                    "when": "canNavigateForward",
+                },
             ],
             f,
             indent=4,
