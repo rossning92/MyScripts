@@ -24,7 +24,7 @@ def grant_all_permissions(pkg):
                 stdout=fnull,
             )
             if ret_code != 0:
-                logger.warn("Failed to grant permission: %s" % permission)
+                logger.warning("Failed to grant permission: %s" % permission)
 
 
 logger = setup_logger()

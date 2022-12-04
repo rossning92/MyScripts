@@ -1143,7 +1143,7 @@ def setup_nodejs(install=True):
         logging.info("Node.js: NODE_PATH: %s" % node_path)
 
     else:
-        logging.warn("Node.js: not supported for current OS.")
+        logging.warning("Node.js: not supported for current OS.")
 
 
 def npm_install(cwd="."):
@@ -1512,15 +1512,18 @@ def menu_loop(
 
     print_help()
     while True:
-        if run_periotic is not None and interval > 0:
-            while True:
-                ch = getch(timeout=interval)
-                if ch != None:
-                    break
-                else:
-                    run_periotic()
-        else:
-            ch = getch()
+        try:
+            if run_periotic is not None and interval > 0:
+                while True:
+                    ch = getch(timeout=interval)
+                    if ch != None:
+                        break
+                    else:
+                        run_periotic()
+            else:
+                ch = getch()
+        except KeyboardInterrupt:
+            sys.exit(0)
 
         if ch == "h":
             print_help()

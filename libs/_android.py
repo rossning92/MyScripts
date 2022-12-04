@@ -344,7 +344,7 @@ def screenshot(out_file=None, scale=None):
 
             break
         except subprocess.CalledProcessError as ex:
-            logger.warn(ex)
+            logger.warning(ex)
             time.sleep(1)
 
     if scale is not None:
@@ -610,16 +610,16 @@ def adb_install(apk, force=False, grant_permissions=False):
             logging.debug(out.decode())
         except subprocess.CalledProcessError as ex:
             msg = ex.output.decode()
-            logging.warn(msg)
+            logging.warning(msg)
 
             if "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in msg:
                 pkg = re.findall("Package ([a-z0-9A-Z.]+)", msg)[0]
-                logging.warn("Uninstalling %s..." % pkg)
+                logging.warning("Uninstalling %s..." % pkg)
                 subprocess.check_call(["adb", "uninstall", pkg])
                 subprocess.check_call(adb_install_cmd + [apk])
             elif "INSTALL_FAILED_CONFLICTING_PROVIDE" in msg:
                 pkg = re.findall("already used by ([a-z0-9A-Z.]+)", msg)[0]
-                logging.warn("Uninstalling %s..." % pkg)
+                logging.warning("Uninstalling %s..." % pkg)
                 subprocess.check_call(["adb", "uninstall", pkg])
                 subprocess.check_call(adb_install_cmd + [apk])
             else:
@@ -639,7 +639,7 @@ def adb_install(apk, force=False, grant_permissions=False):
                         stdout=fnull,
                     )
                     if ret_code != 0:
-                        logger.warn("Failed to grant permission: %s" % permission)
+                        logger.warning("Failed to grant permission: %s" % permission)
 
     else:
         logger.info("App already installed, skipping...")

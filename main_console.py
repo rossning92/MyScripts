@@ -1,5 +1,9 @@
 import argparse
+import curses
+import logging
 import os
+import shutil
+import subprocess
 import sys
 import time
 import traceback
@@ -9,9 +13,6 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
 
-import curses
-import logging
-import subprocess
 
 from _ext import (
     copy_script_path_to_clipboard,
@@ -34,6 +35,7 @@ from _script import (
 from _shutil import (
     add_to_path,
     get_ahk_exe,
+    getch,
     quote_arg,
     refresh_env_vars,
     run_at_startup,
@@ -52,7 +54,12 @@ GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 def execute_script(script, close_on_exit=None):
     refresh_env_vars()
     args = update_env_var_explorer()
-    script.execute(args=args, close_on_exit=close_on_exit, restart_instance=True)
+    success = script.execute(
+        args=args, close_on_exit=close_on_exit, restart_instance=True
+    )
+    if not success:
+        print("(press any key to continue...)")
+        getch()
 
 
 def setup_console_font():
@@ -244,6 +251,10 @@ def add_keyboard_hooks(keyboard_hooks):
 
 
 def register_global_hotkeys_linux(scripts):
+    if not shutil.which("sxhkd"):
+        logging.warning("sxhkd is not installed, skip global hotkey registration.")
+        return
+
     s = (
         f"control+q\n"
         f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/main_console.py -q\n"
@@ -520,8 +531,7 @@ class MainWindow(Menu):
         except FileNotFoundError:  # Scripts have been removed
             pass
 
-        self.height = height
-        super().on_update_screen()
+        super().on_update_screen(max_height=height)
 
 
 def init():

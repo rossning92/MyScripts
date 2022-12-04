@@ -3,6 +3,7 @@ import subprocess
 import sys
 from urllib.request import urlretrieve
 
+from _ext import get_my_script_root
 from _script import run_script
 from _shutil import (
     call2,
@@ -379,7 +380,7 @@ def unstash():
 
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
-    repo_dir = os.environ["GIT_REPO"]
+    repo_dir = os.environ.get("GIT_REPO", get_my_script_root())
 
     bundle_file = None
     if backup_dir:
@@ -390,10 +391,4 @@ if __name__ == "__main__":
 
     setup_project()
 
-    while True:
-        try:
-            menu_loop()
-        except KeyboardInterrupt:
-            print2("Command cancelled.", color="red")
-        except Exception as e:
-            print2("ERROR: %s" % e, color="red")
+    menu_loop()

@@ -149,7 +149,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
     # Check script extensions
     _, ext = os.path.splitext(dest_script)
     if not ext:
-        logging.warn("Script extension is required.")
+        logging.warning("Script extension is required.")
 
     if duplicate:
         if not os.path.isabs(ref_script_path):

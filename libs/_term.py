@@ -232,7 +232,10 @@ class Menu:
             self.update_screen()
 
             # Keyboard event
-            ch = Menu.stdscr.getch()
+            try:
+                ch = Menu.stdscr.getch()
+            except KeyboardInterrupt:
+                sys.exit(0)
 
             # Workaround for arrow keys in Alacritty
             ALACRITTY_UP = 450
@@ -295,7 +298,10 @@ class Menu:
     def get_items_per_page(self):
         return self.height - 2
 
-    def on_update_screen(self):
+    def on_update_screen(self, max_height=-1):
+        if max_height < 0:
+            max_height = self.height
+
         # Get matched scripts
         row = 2
         items_per_page = self.get_items_per_page()
@@ -315,7 +321,7 @@ class Menu:
                 Menu.stdscr.attroff(curses.color_pair(2))
 
             row += 1
-            if row >= self.height:
+            if row >= max_height:
                 break
 
         self.input_.on_update_screen(Menu.stdscr, 0, cursor=True)

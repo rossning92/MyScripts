@@ -511,6 +511,10 @@ def wrap_args_alacritty(
     **kwargs,
 ):
     assert isinstance(args, list)
+
+    if not shutil.which("alacritty"):
+        raise FileNotFoundError("Alacritty is not installed.")
+
     # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
     if sys.platform == "windows":
         dest_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
@@ -1045,130 +1049,135 @@ class Script:
                             + ", , , .*?- Visual Studio Code",
                             wait=True,
                         )
+                try:
+                    if sys.platform == "win32":
+                        if close_on_exit:
+                            args = ["cmd", "/c", "pause_on_error.cmd"] + args
+                        else:
+                            args = ["cmd", "/c", "pause_on_exit.cmd"] + args
 
-                if sys.platform == "win32":
-                    if close_on_exit:
-                        args = ["cmd", "/c", "pause_on_error.cmd"] + args
-                    else:
-                        args = ["cmd", "/c", "pause_on_exit.cmd"] + args
+                        if not self.cfg["runAsAdmin"]:
+                            # Open in specified terminal (e.g. Windows Terminal)
+                            if self.cfg["terminal"] in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
+                                args = wrap_args_wt(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    wsl=self.cfg["wsl"],
+                                )
+                                no_wait = True
 
-                    if not self.cfg["runAsAdmin"]:
-                        # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
-                            "wt",
-                            "wsl",
-                            "windowsTerminal",
-                        ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
-                            args = wrap_args_wt(
-                                args,
-                                cwd=cwd,
-                                title=self.get_console_title(),
-                                wsl=self.cfg["wsl"],
-                            )
+                            elif self.cfg["terminal"] == "alacritty" and shutil.which(
+                                "alacritty"
+                            ):
+                                args = wrap_args_alacritty(
+                                    args,
+                                    title=self.get_console_title(),
+                                )
+
+                                # Workaround that prevents alacritty from being closed by parent terminal.
+                                # The "shell = True" below is very important!
+                                DETACHED_PROCESS = 0x00000008
+                                CREATE_BREAKAWAY_FROM_JOB = 0x01000000
+                                popen_extra_args["creationflags"] = (
+                                    subprocess.CREATE_NEW_PROCESS_GROUP
+                                    | DETACHED_PROCESS
+                                    # | CREATE_BREAKAWAY_FROM_JOB
+                                )
+                                popen_extra_args["close_fds"] = True
+                                shell = True
+                                no_wait = True
+
+                            elif self.cfg["terminal"] == "conemu" and os.path.isdir(
+                                CONEMU_INSTALL_DIR
+                            ):
+                                args = wrap_args_conemu(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    wsl=self.cfg["wsl"],
+                                    always_on_top=True,
+                                )
+                                no_wait = True
+
+                            else:
+                                args = wrap_args_cmd(
+                                    args,
+                                    cwd=cwd,
+                                    title=self.get_console_title(),
+                                    env=env,
+                                )
+                                popen_extra_args["creationflags"] = (
+                                    subprocess.CREATE_NEW_CONSOLE
+                                    | subprocess.CREATE_NEW_PROCESS_GROUP
+                                )
+                                no_wait = True
+
+                    elif sys.platform == "linux":
+                        # args = ["tmux", "split-window"] + args
+
+                        TERMINAL = "alacritty"
+                        if TERMINAL == "gnome":
+                            args = [
+                                "gnome-terminal",
+                                "--",
+                                "bash",
+                                "-c",
+                                "%s || read -rsn1 -p 'Press any key to exit...'"
+                                % _args_to_str(args, single_quote=True),
+                            ]
+
+                        elif TERMINAL == "xterm":
+                            args = [
+                                "xterm",
+                                "-xrm",
+                                "XTerm.vt100.allowTitleOps: false",
+                                "-T",
+                                self.get_console_title(),
+                                "-e",
+                                _args_to_str(args),
+                            ]
                             no_wait = True
 
-                        elif self.cfg["terminal"] == "alacritty" and shutil.which(
-                            "alacritty"
-                        ):
+                        elif TERMINAL == "xfce":
+                            args = [
+                                "xfce4-terminal",
+                                "-T",
+                                self.get_console_title(),
+                                "-e",
+                                _args_to_str(args),
+                                "--hold",
+                            ]
+                            no_wait = True
+
+                        elif TERMINAL == "kitty":
+                            args = [
+                                "kitty",
+                                "--title",
+                                self.get_console_title(),
+                            ] + args
+                            no_wait = True
+
+                        elif TERMINAL == "alacritty":
+                            require_package("alacritty")
                             args = wrap_args_alacritty(
                                 args,
                                 title=self.get_console_title(),
                             )
 
-                            # Workaround that prevents alacritty from being closed by parent terminal.
-                            # The "shell = True" below is very important!
-                            DETACHED_PROCESS = 0x00000008
-                            CREATE_BREAKAWAY_FROM_JOB = 0x01000000
-                            popen_extra_args["creationflags"] = (
-                                subprocess.CREATE_NEW_PROCESS_GROUP
-                                | DETACHED_PROCESS
-                                # | CREATE_BREAKAWAY_FROM_JOB
-                            )
-                            popen_extra_args["close_fds"] = True
-                            shell = True
-                            no_wait = True
-
-                        elif self.cfg["terminal"] == "conemu" and os.path.isdir(
-                            CONEMU_INSTALL_DIR
-                        ):
-                            args = wrap_args_conemu(
-                                args,
-                                cwd=cwd,
-                                title=self.get_console_title(),
-                                wsl=self.cfg["wsl"],
-                                always_on_top=True,
-                            )
-                            no_wait = True
-
-                        else:
-                            args = wrap_args_cmd(
-                                args,
-                                cwd=cwd,
-                                title=self.get_console_title(),
-                                env=env,
-                            )
-                            popen_extra_args["creationflags"] = (
-                                subprocess.CREATE_NEW_CONSOLE
-                                | subprocess.CREATE_NEW_PROCESS_GROUP
-                            )
-                            no_wait = True
-
-                elif sys.platform == "linux":
-                    # args = ["tmux", "split-window"] + args
-
-                    TERMINAL = "alacritty"
-                    if TERMINAL == "gnome":
-                        args = [
-                            "gnome-terminal",
-                            "--",
-                            "bash",
-                            "-c",
-                            "%s || read -rsn1 -p 'Press any key to exit...'"
-                            % _args_to_str(args, single_quote=True),
-                        ]
-
-                    elif TERMINAL == "xterm":
-                        args = [
-                            "xterm",
-                            "-xrm",
-                            "XTerm.vt100.allowTitleOps: false",
-                            "-T",
-                            self.get_console_title(),
-                            "-e",
-                            _args_to_str(args),
-                        ]
-                        no_wait = True
-
-                    elif TERMINAL == "xfce":
-                        args = [
-                            "xfce4-terminal",
-                            "-T",
-                            self.get_console_title(),
-                            "-e",
-                            _args_to_str(args),
-                            "--hold",
-                        ]
-                        no_wait = True
-
-                    elif TERMINAL == "kitty":
-                        args = [
-                            "kitty",
-                            "--title",
-                            self.get_console_title(),
-                        ] + args
-                        no_wait = True
-
-                    elif TERMINAL == "alacritty":
-                        require_package("alacritty")
-                        args = wrap_args_alacritty(
-                            args,
-                            title=self.get_console_title(),
+                    else:
+                        logging.warning(
+                            '"new_window" is not supported on platform "%s"'
+                            % sys.platform
                         )
-
-                else:
-                    logging.warn(
-                        '"new_window" is not supported on platform "%s"' % sys.platform
-                    )
+                except FileNotFoundError as ex:
+                    new_window = False
+                    no_wait = False
+                    logging.warning(ex)
 
             elif self.cfg["background"]:
                 if sys.platform == "win32":
@@ -1187,7 +1196,7 @@ class Script:
                     no_wait = True
 
                 else:
-                    logging.warn(
+                    logging.warning(
                         '"background" is not supported on platform %s' % sys.platform
                     )
 
@@ -1207,7 +1216,7 @@ class Script:
                     no_wait = True
 
                 else:
-                    logging.warn(
+                    logging.warning(
                         '"minimized" is not supported on platform %s' % sys.platform
                     )
 
