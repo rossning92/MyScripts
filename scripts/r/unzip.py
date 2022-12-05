@@ -1,10 +1,11 @@
 import os
+import sys
 
 from _pkgmanager import require_package
 from _shutil import call2, get_files, mkdir, shell_open
 
 
-def unzip(files):
+def unzip(files, open_out_dir=False):
     extracted = False
     for file in files:
         gzip_extension = [".tar.gz", ".tgz", ".gz"]
@@ -28,10 +29,14 @@ def unzip(files):
             ]
             call2(args)
 
-    if len(files) == 1:
+    if open_out_dir:
         shell_open(out_dir)
 
 
 if __name__ == "__main__":
-    files = get_files(cd=True)
-    unzip(files)
+    if len(sys.argv) == 2:
+        file = sys.argv[1]
+        unzip([file])
+    else:
+        files = get_files(cd=True)
+        unzip(files, open_out_dir=len(files) == 1)

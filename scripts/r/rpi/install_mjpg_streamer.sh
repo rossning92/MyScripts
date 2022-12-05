@@ -9,7 +9,8 @@ fi
 cd mjpg-streamer-master/mjpg-streamer-experimental
 
 if [ ! -f "input_uvc.so" ]; then
-    sudo apt-get install cmake libjpeg8-dev -y
+    sudo apt-get update
+    sudo apt-get install cmake libjpeg9-dev -y
     sudo apt-get install gcc g++ -y
     make
     sudo make install

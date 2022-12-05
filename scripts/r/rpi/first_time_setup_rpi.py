@@ -1,20 +1,10 @@
 import ctypes
 import os
-import tempfile
 
-from _shutil import (
-    call_echo,
-    download,
-    find_newest_file,
-    menu_item,
-    menu_loop,
-    print2,
-    unzip,
-    confirm,
-)
+from _shutil import confirm, print2
 
-# https://www.raspberrypi.com/software/operating-systems/
-url = "https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-05-28/2021-05-07-raspios-buster-armhf-lite.zip"
+wifi_ssid = os.environ["WIFI_SSID"]
+wifi_pwd = os.environ["WIFI_PWD"]
 
 
 def get_all_drives():
@@ -27,16 +17,14 @@ def get_all_drives():
     return drives
 
 
-@menu_item(key="s")
-def setup_wifi_and_ssh():
+if __name__ == "__main__":
     print("Configuring wifi...")
     drive_found = False
     for drive in get_all_drives():
         if os.path.exists(os.path.join(drive, "bootcode.bin")):
             # https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-a-headless-raspberry-pi
             if confirm("Found raspi boot partition at: %s" % drive):
-                wifi_ssid = r"{{WIFI_SSID}}"
-                wifi_pwd = r"{{WIFI_PWD}}"
+                # Auto connect to hotspot
                 with open(
                     os.path.join(drive, "wpa_supplicant.conf"), "w", newline="\n"
                 ) as f:
@@ -59,43 +47,14 @@ def setup_wifi_and_ssh():
                 with open(os.path.join(drive, "ssh"), "a") as f:
                     pass
 
+                # Enable default user
+                with open(os.path.join(drive, "userconf"), "w") as f:
+                    f.write(
+                        "pi:$6$I1eC.nSwKmfke5kE$0rGcIGs7JifCgWGS2u.B2Mfok8CXYYAvgIsulIAakWo/68bGXrj.fvV8Kd16/rQGcMTIyFVTC9tRy3GtToaJ20"
+                    )
+
                 drive_found = True
                 break
 
     if not drive_found:
         print2("ERROR: No drive found.", color="red")
-    print("Done.")
-
-
-@menu_item(key="f")
-def flash_raspi_os():
-    os.chdir(tempfile.gettempdir())
-
-    out = download(url)
-    if not os.path.exists("raspios"):
-        unzip(out, "raspios")
-
-    img_file = find_newest_file("raspios/**/*.img")
-    if img_file is None:
-        raise Exception("Cannot find image file to write.")
-
-    call_echo(
-        [
-            r"C:\Program Files (x86)\Raspberry Pi Imager\rpi-imager-cli.cmd",
-            img_file,
-            "(invalid)",
-        ]
-    )
-
-    print2("Please paste the volume here: ", end="")
-    s = input()
-    if not s:
-        return
-
-    call_echo(
-        [r"C:\Program Files (x86)\Raspberry Pi Imager\rpi-imager-cli.cmd", img_file, s]
-    )
-
-
-if __name__ == "__main__":
-    menu_loop()
