@@ -19,7 +19,8 @@ if __name__ == "__main__":
         "build-tools;28.0.3",
         # "lldb;3.1",
         # "cmake;3.10.2.4988404",
-        # "ndk;21.1.6352462",
+        # https://github.com/android/ndk/wiki/Unsupported-Downloads
+        "ndk;21.4.7075529",  # r21e
     ]
 
     for pkg in packages:

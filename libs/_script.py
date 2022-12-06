@@ -15,34 +15,18 @@ import time
 from typing import List
 
 import yaml
+
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_vscode
 from _filelock import FileLock
 from _pkgmanager import require_package
-from _shutil import (
-    CONEMU_INSTALL_DIR,
-    activate_window_by_name,
-    call_echo,
-    clear_env_var_explorer,
-    convert_to_unix_path,
-    exec_ahk,
-    format_time,
-    get_ahk_exe,
-    get_home_path,
-    load_yaml,
-    npm_install,
-    prepend_to_path,
-    print2,
-    quote_arg,
-    run_at_startup,
-    run_elevated,
-    save_yaml,
-    setup_nodejs,
-    slugify,
-    wrap_args_conemu,
-    write_temp_file,
-)
+from _shutil import (CONEMU_INSTALL_DIR, activate_window_by_name, call_echo,
+                     clear_env_var_explorer, convert_to_unix_path, exec_ahk,
+                     format_time, get_ahk_exe, get_home_path, load_yaml,
+                     npm_install, prepend_to_path, print2, quote_arg,
+                     run_at_startup, run_elevated, save_yaml, setup_nodejs,
+                     slugify, wrap_args_conemu, write_temp_file)
 from _template import render_template
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -101,6 +85,9 @@ def setup_env_var(env):
     prepend_to_path(bin_dir, env=env)
 
     env["PYTHONPATH"] = os.path.join(root, "libs")
+
+def get_bin_dir():
+    return os.path.abspath(SCRIPT_ROOT + "/../bin")
 
 
 def get_script_dirs_config_file():
@@ -1065,12 +1052,18 @@ class Script:
                             wait=True,
                         )
                 try:
-                    if sys.platform == "win32":
-                        if close_on_exit:
-                            args = ["cmd", "/c", "pause_on_error.cmd"] + args
-                        else:
-                            args = ["cmd", "/c", "pause_on_exit.cmd"] + args
+                    if close_on_exit:
+                        args = [
+                            sys.executable,
+                            os.path.join(get_bin_dir(), "pause_on_error.py"),
+                        ] + args
+                    else:
+                        args = [
+                            sys.executable,
+                            os.path.join(get_bin_dir(), "pause_on_exit.py"),
+                        ] + args
 
+                    if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:
                             # Open in specified terminal (e.g. Windows Terminal)
                             if self.cfg["terminal"] in [
