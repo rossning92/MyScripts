@@ -21,12 +21,29 @@ from _browser import open_url
 from _editor import open_in_vscode
 from _filelock import FileLock
 from _pkgmanager import require_package
-from _shutil import (CONEMU_INSTALL_DIR, activate_window_by_name, call_echo,
-                     clear_env_var_explorer, convert_to_unix_path, exec_ahk,
-                     format_time, get_ahk_exe, get_home_path, load_yaml,
-                     npm_install, prepend_to_path, print2, quote_arg,
-                     run_at_startup, run_elevated, save_yaml, setup_nodejs,
-                     slugify, wrap_args_conemu, write_temp_file)
+from _shutil import (
+    CONEMU_INSTALL_DIR,
+    activate_window_by_name,
+    call_echo,
+    clear_env_var_explorer,
+    convert_to_unix_path,
+    exec_ahk,
+    format_time,
+    get_ahk_exe,
+    get_home_path,
+    load_yaml,
+    npm_install,
+    prepend_to_path,
+    print2,
+    quote_arg,
+    run_at_startup,
+    run_elevated,
+    save_yaml,
+    setup_nodejs,
+    slugify,
+    wrap_args_conemu,
+    write_temp_file,
+)
 from _template import render_template
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -85,6 +102,7 @@ def setup_env_var(env):
     prepend_to_path(bin_dir, env=env)
 
     env["PYTHONPATH"] = os.path.join(root, "libs")
+
 
 def get_bin_dir():
     return os.path.abspath(SCRIPT_ROOT + "/../bin")
@@ -1066,11 +1084,15 @@ class Script:
                     if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:
                             # Open in specified terminal (e.g. Windows Terminal)
-                            if self.cfg["terminal"] in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
+                            if (
+                                self.cfg["terminal"]
+                                in [
+                                    "wt",
+                                    "wsl",
+                                    "windowsTerminal",
+                                ]
+                                and os.path.exists(WINDOWS_TERMINAL_EXEC)
+                            ):
                                 args = wrap_args_wt(
                                     args,
                                     cwd=cwd,
