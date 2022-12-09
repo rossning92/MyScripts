@@ -25,7 +25,8 @@ def commit(dry_run=False, amend=False):
     if is_working_tree_clean():
         print2("Working directory clean, changed files in HEAD:", color="black")
         for line in get_output(
-            ["git", "ls-tree", "--name-only", "-r", "HEAD"], shell=False
+            ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+            shell=False,
         ).splitlines():
             print2("  " + line, color="black")
         return

@@ -165,9 +165,13 @@ def wrap_wsl(commands, env=None):
 
     bash = ""
 
+    # Workaround: PATH environmental variable can't be shared between windows and linux (WSL)
+    if "PATH" in env:
+        del env["PATH"]
+
     if env is not None:
         for k, v in env.items():
-            bash += "export {}='{}';".format(k, v)
+            bash += "export {}='{}'\n".format(k, v)
 
     if type(commands) in [list, tuple]:
         bash += _args_to_str(commands)
@@ -1070,16 +1074,11 @@ class Script:
                             wait=True,
                         )
                 try:
-                    if close_on_exit:
-                        args = [
-                            sys.executable,
-                            os.path.join(get_bin_dir(), "pause_on_error.py"),
-                        ] + args
-                    else:
-                        args = [
-                            sys.executable,
-                            os.path.join(get_bin_dir(), "pause_on_exit.py"),
-                        ] + args
+                    env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
+                    args = [
+                        sys.executable,
+                        os.path.join(get_bin_dir(), "command_wrapper.py"),
+                    ] + args
 
                     if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:

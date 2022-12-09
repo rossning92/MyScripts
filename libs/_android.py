@@ -16,6 +16,7 @@ from _shutil import (
     prepend_to_path,
     print2,
     read_proc_lines,
+    supports_color,
 )
 
 logger = logging.getLogger(__name__)
@@ -201,53 +202,64 @@ def logcat(
                 else:
                     proc = pid_proc_map[pid]
 
-                # Filter by level
                 lvl = match.group(1)
-                if level and not re.search(level, lvl):
-                    continue
-
-                # Filter by tag or message
-                message = match.group(4)
-                tag = match.group(2)
-                if regex and not (re.search(regex, tag) or re.search(regex, message)):
-                    continue
-
-                # Exclude by tag or message
-                if exclude and (re.search(exclude, tag) or re.search(exclude, message)):
-                    continue
-
-                # Filter by package
-                if pkg is not None:
-                    if proc is None:
+                if lvl == "F":
+                    # always show fatal message
+                    pass
+                else:
+                    # Filter by level
+                    if level and not re.search(level, lvl):
                         continue
-                    else:
-                        # Filter by process name (include)
-                        if not re.search(pkg, proc):
-                            continue
 
-                        # Exclude by process name (exclude)
-                        if exclude_proc and re.search(exclude_proc, proc):
-                            continue
-
-                if ignore_duplicates:
-                    if message == last_message:
-                        dup_messages += 1
-                        print("\r(%d) " % dup_messages, end="")
+                    # Filter by tag or message
+                    message = match.group(4)
+                    tag = match.group(2)
+                    if regex and not (
+                        re.search(regex, tag) or re.search(regex, message)
+                    ):
                         continue
+
+                    # Exclude by tag or message
+                    if exclude and (
+                        re.search(exclude, tag) or re.search(exclude, message)
+                    ):
+                        continue
+
+                    # Filter by package
+                    if pkg is not None:
+                        if proc is None:
+                            continue
+                        else:
+                            # Filter by process name (include)
+                            if not re.search(pkg, proc):
+                                continue
+
+                            # Exclude by process name (exclude)
+                            if exclude_proc and re.search(exclude_proc, proc):
+                                continue
+
+                    if ignore_duplicates:
+                        if message == last_message:
+                            dup_messages += 1
+                            print("\r(%d) " % dup_messages, end="")
+                            continue
 
                 # Output process name
                 if last_proc != proc:
                     print2("%s (%d)" % (proc, pid))
                     last_proc = proc
 
-                lvl_text = " %s " % lvl
-                if lvl == "W":
-                    print2(lvl_text, color="YELLOW", end="")
-                elif lvl == "E" or lvl == "F":
-                    print2(lvl_text, color="RED", end="")
+                if 1:
+                    print(line)
                 else:
-                    print(lvl_text, end="")
-                print(f": {tag}: {message}")
+                    lvl_text = " %s " % lvl
+                    if lvl == "W":
+                        print2(lvl_text, color="YELLOW", end="")
+                    elif lvl == "E" or lvl == "F":
+                        print2(lvl_text, color="RED", end="")
+                    else:
+                        print(lvl_text, end="")
+                    print(f": {tag}: {message}")
 
                 if ignore_duplicates:
                     last_message = message

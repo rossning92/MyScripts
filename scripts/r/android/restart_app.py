@@ -2,7 +2,7 @@ import argparse
 import logging
 import os
 
-from _android import logcat, restart_app
+from _android import clear_logcat, logcat, restart_app
 from _shutil import setup_logger
 
 if __name__ == "__main__":
@@ -20,6 +20,7 @@ if __name__ == "__main__":
     else:
         pkg = os.environ.get("PKG_NAME")
 
+        clear_logcat()
         restart_app(pkg, use_monkey=bool(os.environ.get("USE_MONKEY")))
         if os.environ.get("_SHOW_LOGCAT"):
             logcat(pkg=pkg)
