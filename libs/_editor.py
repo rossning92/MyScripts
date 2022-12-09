@@ -3,7 +3,7 @@ import json
 import os
 import subprocess
 
-from _pkgmanager import require_package
+from _pkgmanager import find_executable, require_package
 from _shutil import exec_ahk, start_process
 
 
@@ -57,7 +57,8 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
     if vscode_executable:
         vscode = vscode_executable
     else:
-        vscode = require_package("vscode")
+        require_package("vscode")
+        vscode = find_executable("vscode")
 
     if type(file) == str:
         if line_number is None:
@@ -70,5 +71,14 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
     start_process(args)
 
 
-def open_in_text_editor(path, line_number=None):
-    open_in_vscode(path, line_number=line_number)
+def open_in_vim(file, line_number=None):
+    subprocess.call(["vi", file])
+
+
+def open_in_editor(path, line_number=None):
+    try:
+        open_in_vscode(path, line_number=line_number)
+    except FileNotFoundError:
+        open_in_vim(path if (type(path) == str) else path[-1], line_number=line_number)
+    except FileNotFoundError:
+        raise

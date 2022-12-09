@@ -1,5 +1,5 @@
 import sys
 
-from _editor import open_in_vscode
+from _editor import open_in_editor
 
-open_in_vscode(sys.argv[1])
+open_in_editor(sys.argv[1])

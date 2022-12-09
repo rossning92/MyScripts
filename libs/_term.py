@@ -136,7 +136,11 @@ class InputWidget:
             self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.KEY_RIGHT:
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
-        elif ch == curses.KEY_BACKSPACE or ch == ord("\b"):  # windows
+        elif ch in (
+            curses.KEY_BACKSPACE,
+            ord("\b"),  # for windows
+            0x7F,  # for mac
+        ):
             self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
             self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.ascii.ctrl(ord("a")):

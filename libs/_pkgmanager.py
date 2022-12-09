@@ -49,7 +49,9 @@ def require_package(pkg):
     exec = find_executable(pkg)
     if exec is None:
         install_package(pkg)
-    return find_executable(pkg)
+    executable = find_executable(pkg)
+    if executable is None:
+        raise FileNotFoundError("package %s not found" % pkg)
 
 
 def choco_install(pkg, upgrade=False):

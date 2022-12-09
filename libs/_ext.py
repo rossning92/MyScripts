@@ -3,7 +3,7 @@ import os
 import re
 import shutil
 
-from _editor import open_in_vscode
+from _editor import open_in_editor
 from _script import (
     get_absolute_script_path,
     get_all_scripts,
@@ -42,16 +42,16 @@ def edit_myscript_script(file):
 
     project_folder = os.path.abspath(os.path.join(SCRIPT_ROOT, ".."))
     if file.startswith(project_folder):
-        open_in_vscode([project_folder, file])
+        open_in_editor([project_folder, file])
         return
 
     script_dirs = get_script_directories()
     for _, d in script_dirs:
         if d in file:
-            open_in_vscode([d, file])
+            open_in_editor([d, file])
             return
 
-    open_in_vscode([file])
+    open_in_editor([file])
 
 
 def enter_script_path():

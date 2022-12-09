@@ -2,6 +2,7 @@ import argparse
 import curses
 import logging
 import os
+import queue
 import shutil
 import subprocess
 import sys
@@ -51,6 +52,9 @@ from _term import Menu
 REFRESH_INTERVAL_SECS = 60
 GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 KEY_CODE_CTRL_ENTER_WIN = 529
+
+
+callback_queue = []
 
 
 def execute_script(script, close_on_exit=None):
@@ -210,7 +214,6 @@ class ScriptManager:
         self.scripts: List[Script] = []
         self.last_refresh_time = 0
         self.hotkeys = {}
-        self.execute_script = None
 
     def update_access_time(self):
         access_time, _ = get_all_script_access_time()
@@ -346,6 +349,10 @@ class InternalHotkey:
         return "%s  (%s)" % (self.func.__name__, self.hotkey)
 
 
+def restart_program():
+    os.execv(sys.executable, ["python"] + sys.argv)
+
+
 class MainWindow(Menu):
     def __init__(self):
         super().__init__(
@@ -387,10 +394,9 @@ class MainWindow(Menu):
             update_script_access_time(script)
             script_manager.sort_scripts()
 
-            script_manager.execute_script = lambda: execute_script(
-                script, close_on_exit=close_on_exit
+            callback_queue.append(
+                lambda: execute_script(script, close_on_exit=close_on_exit)
             )
-
             self.close()
 
     def get_selected_script_path(self):
@@ -454,8 +460,8 @@ class MainWindow(Menu):
     def _edit_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            edit_myscript_script(script_path)
-            self.input_.clear()
+            callback_queue.append(lambda: edit_myscript_script(script_path))
+            self.close()
 
     def _help(self):
         items = []
@@ -490,7 +496,8 @@ class MainWindow(Menu):
             return True
 
         elif ch == ord("L"):
-            sys.exit(1)
+            callback_queue.append(lambda: restart_program())
+            self.close()
 
         elif ch in script_manager.hotkeys:
             script = self.get_selected_text()
@@ -498,12 +505,10 @@ class MainWindow(Menu):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["SCRIPT"] = script_abs_path
 
-                script_manager.execute_script = lambda: (
-                    execute_script(script_manager.hotkeys[ch]),
-                    # Other script may update the script access time
-                    # Hence, we need to sort the script list
-                    script_manager.sort_scripts(),
+                callback_queue.append(
+                    lambda: execute_script(script_manager.hotkeys[ch])
                 )
+                callback_queue.append(lambda: script_manager.sort_scripts())
                 self.close()
                 return True
 
@@ -568,17 +573,16 @@ def main_loop(quit=False):
     while True:
         try:
             MainWindow().exec()
-            if script_manager.execute_script is not None:
-                script_manager.execute_script()
-                script_manager.execute_script = None
 
-                if quit:
-                    break
+            while len(callback_queue) > 0:
+                callback = callback_queue.pop(0)
+                callback()
 
-                # HACK: workaround: key bindings will not work on windows.
-                # time.sleep(1)
-            else:
+            if quit:
                 break
+
+            # HACK: workaround: key bindings will not work on windows.
+            # time.sleep(1)
 
         except Exception:
             traceback.print_exc(file=sys.stdout)

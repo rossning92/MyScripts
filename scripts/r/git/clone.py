@@ -1,7 +1,7 @@
 import os
 import re
 
-from _editor import open_in_vscode
+from _editor import open_in_editor
 from _script import set_variable
 from _shutil import call_echo, get_home_path
 
@@ -22,4 +22,4 @@ if __name__ == "__main__":
 
     set_variable("GIT_REPO", os.path.realpath(project_dir))
 
-    open_in_vscode(project_dir)
+    open_in_editor(project_dir)

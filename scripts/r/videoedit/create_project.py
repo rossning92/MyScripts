@@ -2,7 +2,7 @@ import json
 import os
 import subprocess
 
-from _editor import open_in_vscode
+from _editor import open_in_editor
 from _shutil import prepend_to_path
 
 proj_dir = r"{{VIDEO_PROJECT_DIR}}"
@@ -49,4 +49,4 @@ if not os.path.exists(jsconfig):
         )
 
 
-open_in_vscode([proj_dir, os.path.join(proj_dir, "index.md")])
+open_in_editor([proj_dir, os.path.join(proj_dir, "index.md")])

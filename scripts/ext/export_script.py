@@ -3,7 +3,7 @@ import re
 import shutil
 
 from _script import get_python_path, render_script
-from _editor import open_in_vscode
+from _editor import open_in_editor
 
 _exported_python_modules = set()
 _exported_scripts = set()
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     script_path = os.getenv("SCRIPT")
 
     out_file = export_script(script_path, out_dir, create_executable=True)
-    open_in_vscode(out_file)
+    open_in_editor(out_file)
     # shell_open(out_dir)

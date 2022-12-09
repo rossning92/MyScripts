@@ -1,7 +1,7 @@
 from _git import git_clone
 from _shutil import shell_open
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # run_elevated('choco install ninja -y')
     # setup_cmake(cmake_version='3.10.2')
     # setup_android_env()
@@ -10,4 +10,4 @@ if __name__ == '__main__':
 
     shell_open(".")
 
-    # open_in_vscode(os.getcwd())
+    # open_in_editor(os.getcwd())

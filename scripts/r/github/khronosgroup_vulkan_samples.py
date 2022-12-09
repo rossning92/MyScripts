@@ -2,7 +2,7 @@ import os
 
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _editor import open_in_vscode
+from _editor import open_in_editor
 from _git import git_clone
 from _shutil import call_echo, cd, confirm, run_elevated
 
@@ -25,4 +25,4 @@ except Exception:
     if confirm("Re-run with more info?"):
         call_echo("gradle installDebug --info")
 
-# open_in_vscode(os.getcwd())
+# open_in_editor(os.getcwd())

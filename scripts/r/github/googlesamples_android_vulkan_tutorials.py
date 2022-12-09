@@ -2,7 +2,7 @@ import os
 
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _editor import open_in_vscode
+from _editor import open_in_editor
 from _git import git_clone
 from _shutil import call2, cd, run_elevated, call_echo
 
@@ -14,7 +14,7 @@ git_clone("https://github.com/googlesamples/android-vulkan-tutorials")
 
 cd("tutorial05_triangle")
 
-open_in_vscode(os.getcwd())
+open_in_editor(os.getcwd())
 
 call_echo("gradlew installDebug")
 

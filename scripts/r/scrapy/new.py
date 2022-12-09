@@ -29,7 +29,7 @@ replace(
 append_line(f"{PROJECT_NAME}/settings.py", "FEED_EXPORT_ENCODING = 'utf-8'")
 
 
-# open_in_vscode(".")
+# open_in_editor(".")
 # webbrowser.open("https://docs.scrapy.org/en/latest/")
 
 

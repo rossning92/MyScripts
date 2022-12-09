@@ -1,9 +1,9 @@
 from _shutil import *
 from _editor import *
 
-cd(r'{{GRAPHVIZ_SRC_FOLDER}}')
+cd(r"{{GRAPHVIZ_SRC_FOLDER}}")
 
-template = '''
+template = """
 digraph G {
     rankdir=LR;
     node [shape=record]
@@ -21,10 +21,10 @@ digraph G {
 
     a -> b -> c -> d
 }
-'''.strip()
+""".strip()
 
-fn = '%s.dot' % get_cur_time_str()
-with open(fn, 'w') as f:
+fn = "%s.dot" % get_cur_time_str()
+with open(fn, "w") as f:
     f.write(template)
 
-open_in_vscode(fn)
+open_in_editor(fn)

@@ -18,7 +18,7 @@ import yaml
 
 from _android import setup_android_env
 from _browser import open_url
-from _editor import open_in_vscode
+from _editor import open_in_editor
 from _filelock import FileLock
 from _pkgmanager import require_package
 from _shutil import (
@@ -807,7 +807,7 @@ class Script:
             json.dump({"file": script_path}, f)
 
         if ext == ".md":
-            open_in_vscode(script_path)
+            open_in_editor(script_path)
             return True
 
         if type(args) == str:
@@ -1083,15 +1083,11 @@ class Script:
                     if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:
                             # Open in specified terminal (e.g. Windows Terminal)
-                            if (
-                                self.cfg["terminal"]
-                                in [
-                                    "wt",
-                                    "wsl",
-                                    "windowsTerminal",
-                                ]
-                                and os.path.exists(WINDOWS_TERMINAL_EXEC)
-                            ):
+                            if self.cfg["terminal"] in [
+                                "wt",
+                                "wsl",
+                                "windowsTerminal",
+                            ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
                                 args = wrap_args_wt(
                                     args,
                                     cwd=cwd,
@@ -1265,9 +1261,9 @@ class Script:
             if not no_wait:
                 success = ps.wait() == 0
 
-            if not new_window and not close_on_exit:
-                print("(press enter to exit...)")
-                input()
+            # if not new_window and not close_on_exit:
+            #     print("(press enter to exit...)")
+            #     input()
 
             return success
 
@@ -1634,7 +1630,10 @@ def reload_scripts(script_list: List[Script], autorun=True):
             # Check if auto run script
             if script.cfg["autoRun"] and autorun:
                 logging.info("autorun: %s" % script.name)
-                script.execute(new_window=False)
+                try:
+                    script.execute(new_window=False)
+                except Exception as ex:
+                    logging.warn(ex)
 
             # Check if the script should run at startup
             if script.cfg["runAtStartup"] and autorun:

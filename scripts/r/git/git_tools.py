@@ -4,6 +4,7 @@ import sys
 from urllib.request import urlretrieve
 
 from _ext import get_my_script_root
+from _pkgmanager import require_package
 from _script import run_script
 from _shutil import (
     call2,
@@ -268,6 +269,7 @@ def fixup_commit():
 
 @menu_item(key="G")
 def sync_github():
+    require_package("gh")
     FNULL = fnull()
     ret = subprocess.call(
         "gh repo view rossning92/%s" % repo_name, shell=True, stdout=FNULL
