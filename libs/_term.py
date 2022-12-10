@@ -163,12 +163,12 @@ class Menu:
     def __init__(
         self,
         items=[],
-        label=">",
+        label="",
         text="",
         ascii_only=False,
         cancellable=True,
     ):
-        self.input_ = InputWidget(label=label, text=text, ascii_only=ascii_only)
+        self.input_ = InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
         self.items = items
         self.on_items = []
         self.closed = False
@@ -392,7 +392,7 @@ class DictValueEditWindow(Menu):
 
         super().__init__(
             items=default_vals,
-            label=name + ":",
+            label=name,
             text="",
         )
 
@@ -433,12 +433,13 @@ class DictValueEditWindow(Menu):
 
 
 class DictEditWindow(Menu):
-    def __init__(self, dict_, default_dict=None, on_dict_update=None):
-        super().__init__()
+    def __init__(self, dict_, default_dict=None, on_dict_update=None, label=""):
+        super().__init__(label=label)
         self.dict_ = dict_
         self.default_dict = default_dict
         self.enter_pressed = False
         self.on_dict_update = on_dict_update
+        self.label = label
 
         self.update_items()
 

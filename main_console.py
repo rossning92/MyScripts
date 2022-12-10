@@ -134,7 +134,7 @@ class VariableEditWindow(Menu):
 
         super().__init__(
             items=self.vars[var_name] if var_name in self.vars else [],
-            label=var_name + " :",
+            label=var_name,
             text="",
         )
 
@@ -180,7 +180,7 @@ def get_variable_str_list(vars, var_names):
 
 class VariableWindow(Menu):
     def __init__(self, script):
-        super().__init__(label="%s >" % (script.name))
+        super().__init__(label="edit params")
         self.vars = get_all_variables()
         self.var_names = sorted(script.get_variable_names())
         self.enter_pressed = False
@@ -467,7 +467,7 @@ class MainWindow(Menu):
         items = []
         items.extend(self.internal_hotkeys.values())
         items.extend(script_manager.hotkeys.values())
-        w = Menu(label="all hotkeys>", items=items)
+        w = Menu(label="all hotkeys", items=items)
         w.exec()
 
     def on_char(self, ch):

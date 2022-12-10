@@ -408,7 +408,7 @@ def get_pretty_time_delta(seconds):
         return "%02d sec%s" % (seconds, sign_string)
 
 
-def download(url, filename=None, redownload=False):
+def download(url, filename=None, redownload=False, save_to_tmp=False):
     try:
         import requests
     except:
@@ -417,6 +417,8 @@ def download(url, filename=None, redownload=False):
 
     if filename is None:
         filename = os.path.basename(url)
+        if save_to_tmp:
+            filename = os.path.join(tempfile.gettempdir(), filename)
 
     if os.path.exists(filename) and not redownload:
         print("File already exists: %s" % filename)
@@ -874,7 +876,7 @@ def unzip(file, to=None):
     import zipfile
 
     if to:
-        mkdir(to)
+        os.makedirs(to, exist_ok=True)
     else:
         to = "."
     with zipfile.ZipFile(file, "r") as zip:

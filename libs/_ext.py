@@ -91,7 +91,12 @@ def edit_script_config(script_path):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
         save_yaml(data, script_config_file)
 
-    w = DictEditWindow(data, default_dict=default_config, on_dict_update=on_dict_update)
+    w = DictEditWindow(
+        data,
+        default_dict=default_config,
+        on_dict_update=on_dict_update,
+        label="edit config",
+    )
     ret = w.exec()
     if ret == -1:
         return False
@@ -199,7 +204,7 @@ def rename_script(script_full_path):
     preview = replace_script_str(script_rel_path, dry_run=True)
     preview = [str(x) for x in preview]
 
-    w = Menu(label="new name>", text=script_rel_path, items=preview)
+    w = Menu(label="new name", text=script_rel_path, items=preview)
     w.exec()
     new_script_rel_path = w.get_text()
     if not new_script_rel_path:

@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -36,11 +37,15 @@ EXTENSION_LIST = [
     "tomoyukim.vscode-mermaid-editor",
 ]
 
+if sys.platform == "win32":
+    prepend_to_path([r"C:\Program Files\Microsoft VS Code\bin"])
+
 
 def install_glslangvalidator():
     if sys.platform == "win32":
         out = download(
             "https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip",
+            save_to_tmp=True,
         )
         unzip(out, r"C:\tools\glslang")
         os.remove(out)
@@ -48,7 +53,13 @@ def install_glslangvalidator():
 
 
 def get_vscode_cmdline(data_dir=None):
-    args = ["code"]
+    if not shutil.which("code"):
+        raise Exception("cannot locate vscode command: code")
+
+    if sys.platform == "win32":
+        args = ["cmd", "/c", "code"]  # code.cmd
+    else:
+        args = ["code"]
     if data_dir is not None:
         extensions_dir = os.path.join(data_dir, "extensions")
         args += [
@@ -63,8 +74,6 @@ def get_vscode_cmdline(data_dir=None):
 def install_extensions(data_dir=None):
     print2("Install extensions...")
 
-    if sys.platform == "win32":
-        prepend_to_path(r"C:\Program Files\Microsoft VS Code\bin")
     for extension in EXTENSION_LIST:
         call_echo(
             get_vscode_cmdline(data_dir=data_dir)
@@ -201,5 +210,5 @@ def open_vscode(data_dir):
 
 
 if __name__ == "__main__":
-    data_dir = r"{{_DATA_DIR}}" if r"{{_DATA_DIR}}" else None
+    data_dir = os.environ.get("_DATA_DIR")
     config_vscode(data_dir=data_dir, compact=False, glslang=True)

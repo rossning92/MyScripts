@@ -152,7 +152,7 @@
   ".list": ["vscode", "notepad++"],
   ".lmp4": ["mpv", "vlc"],
   ".lnk": ["HxD"],
-  ".log": ["vscode", "klogg"],
+  ".log": ["klogg", "vscode"],
   ".lrc": ["vscode", "notepad++"],
   ".lyx": ["vscode", "notepad++"],
   ".lua": ["vscode", "notepad++"],
