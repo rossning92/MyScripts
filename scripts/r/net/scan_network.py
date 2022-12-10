@@ -3,11 +3,12 @@ import subprocess
 import xml.etree.ElementTree as ET
 from collections import namedtuple
 from pprint import pprint
+from typing import List
 
 Host = namedtuple("Host", "ipv4 mac vendor")
 
 
-def scan_network(vendor=None):
+def scan_network(vendor=None) -> List[Host]:
     result = []
 
     out = subprocess.check_output(

@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from functools import cache
 from typing import List
 
 import yaml
@@ -74,6 +75,15 @@ if sys.platform == "win32":
     )
 
 
+def get_script_root():
+    return os.path.abspath(SCRIPT_ROOT + "/../scripts")
+
+
+def get_my_script_root():
+    return os.path.abspath(SCRIPT_ROOT + "/../")
+
+
+@cache
 def get_data_dir():
     data_dir_file = os.path.abspath(
         os.path.join(SCRIPT_ROOT, "..", "config", "data_dir.txt")
@@ -81,18 +91,16 @@ def get_data_dir():
     if os.path.exists(data_dir_file):
         with open(data_dir_file, "r") as f:
             data_dir = f.read().strip()
+            if not os.path.isabs(data_dir):
+                data_dir = os.path.join(
+                    get_my_script_root(), data_dir.replace("/", os.path.sep)
+                )
     else:
         data_dir = os.path.abspath("%s/../tmp/data/%s" % (SCRIPT_ROOT, platform.node()))
     os.makedirs(data_dir, exist_ok=True)
+
+    _data_dir_cached = data_dir
     return data_dir
-
-
-def get_script_root():
-    return os.path.abspath(SCRIPT_ROOT + "/../scripts")
-
-
-def get_my_script_root():
-    return os.path.abspath(SCRIPT_ROOT + "/../")
 
 
 def setup_env_var(env):
@@ -108,6 +116,7 @@ def get_bin_dir():
     return os.path.abspath(SCRIPT_ROOT + "/../bin")
 
 
+@cache
 def get_script_dirs_config_file():
     config_file = os.path.join(get_data_dir(), "script_directories.txt")
     if not os.path.exists(config_file):
@@ -115,6 +124,7 @@ def get_script_dirs_config_file():
     return config_file
 
 
+@cache
 def get_script_directories():
     directories = []
     directories.append(("", get_script_root()))
@@ -249,6 +259,7 @@ def _args_to_str(args, single_quote=False, powershell=False):
         )
 
 
+@cache
 def get_variable_file():
     variable_file = os.path.join(get_data_dir(), "variables.json")
     return variable_file
@@ -294,6 +305,7 @@ def get_variable(name):
 
 
 def set_variable(name, val):
+    logging.info("Set %s=%s" % (name, val))
     assert val is not None
 
     with FileLock("access_variable"):
@@ -371,14 +383,15 @@ def input2(message, name):
     return user_input
 
 
-def get_python_path(script_path):
+def get_python_path(script_path=None):
     python_path = []
 
-    script_root = os.path.abspath(SCRIPT_ROOT + "/../scripts")
+    script_root = get_script_root()
+    python_path.append(os.path.join(script_root))
     python_path.append(os.path.join(script_root, "r"))
 
     if script_path is not None:
-        parent_dir = os.path.dirname(os.path.join(os.getcwd(), script_path))
+        parent_dir = os.path.dirname(os.path.abspath(script_path))
         python_path.append(parent_dir)
         while parent_dir.startswith(script_root):
             python_path.append(parent_dir)
@@ -393,9 +406,12 @@ def setup_python_path(env, script_path=None, wsl=False):
     python_path = get_python_path(script_path)
     if wsl:
         python_path = [convert_to_unix_path(x, wsl=True) for x in python_path]
-        env["PYTHONPATH"] = ":".join(python_path)
+        python_path = ":".join(python_path)
     else:
-        env["PYTHONPATH"] = os.pathsep.join(python_path)
+        python_path = os.pathsep.join(python_path)
+
+    logging.debug("setup_python_path(): %s" % python_path)
+    env["PYTHONPATH"] = python_path
 
 
 def wrap_args_tee(args, out_file):
@@ -582,6 +598,10 @@ def get_relative_script_path(path):
 
 
 def get_absolute_script_path(path):
+    # If already absolute path
+    if os.path.isabs(path):
+        return path
+
     script_dirs = get_script_directories()
     arr = path.split("/")
     if arr:
@@ -1286,7 +1306,7 @@ def find_script(patt):
     if os.path.exists(patt):
         return os.path.abspath(patt)
 
-    script_path = os.path.abspath(SCRIPT_ROOT + "/../scripts/" + patt.lstrip("/"))
+    script_path = get_absolute_script_path(patt)
     if os.path.exists(script_path):
         return script_path
 

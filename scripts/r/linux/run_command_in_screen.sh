@@ -16,9 +16,11 @@ if [[ $out == *"screens on"* ]]; then
 elif [[ $out == *"a screen on"* ]]; then
     screen -d -r # reattach
 else
-    screen -dmS et bash
-    screen -r et -X stuff "$1\n"
-    screen -r et
+    screen -mS et bash -c "$1"
+
+    # screen -dmS et bash  # create screen named "et" and run "bash"
+    # screen -r et -X stuff "$1\n"  # send stuff
+    # screen -r et  # reattach
 fi
 
 # screen -r et -X quit || true

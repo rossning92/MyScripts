@@ -1622,7 +1622,7 @@ def update_yaml(file, dict_):
 
 
 def setup_logger(level=logging.INFO, stdout=True, log_file=None):
-    if os.environ.get("VERBOSE"):
+    if os.environ.get("LOGGING", "D"):
         level = logging.DEBUG
 
     logger = logging.getLogger()
@@ -1646,6 +1646,10 @@ def setup_logger(level=logging.INFO, stdout=True, log_file=None):
         logger.addHandler(file_handler)
 
     return logger
+
+
+if os.environ.get("LOGGING"):
+    setup_logger()
 
 
 def create_symlink(src, dst):

@@ -17,8 +17,7 @@ set timeout 10
 spawn ssh -o "StrictHostKeyChecking no" ${SSH_USER}@${SSH_HOST} -p ${SSH_PORT} -R 5037:localhost:5037
 expect "password:"
 send "${SSH_PWD}\r"
-expect "Passcode or option"
-send "push\r"
+${EXPECT_EXTRA_COMMANDS}
 interact
 EOF
 

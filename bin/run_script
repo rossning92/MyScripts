@@ -3,4 +3,9 @@ run_script_path="$(dirname "$0")/run_script.py"
 if [[ "$(uname -o)" == "Msys" ]]; then
     run_script_path="$(cygpath -w "${run_script_path}")"
 fi
-python3 "${run_script_path}" "$@"
+
+if [ -x "$(command -v python3)" ]; then
+    python3 "${run_script_path}" "$@"
+else
+    python "${run_script_path}" "$@"
+fi

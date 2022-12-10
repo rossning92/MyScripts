@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 import shutil
 
 from _editor import open_in_editor
@@ -111,11 +110,7 @@ def copy_script_path_to_clipboard(script_path):
         logging.info("Markdown content is copied to clipboard.")
     else:
         # Copy relative path
-        script_root = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts")
-        )
-        script_path = re.sub("^" + re.escape(script_root), "", script_path)
-        script_path = script_path.replace("\\", "/").lstrip("/")
+        script_path = get_relative_script_path(script_path)
 
         # Quote script path if it contains spaces
         if " " in script_path:
@@ -130,10 +125,10 @@ def copy_script_path_to_clipboard(script_path):
 def create_new_script(ref_script_path=None, duplicate=False):
     if duplicate:
         text = get_selected_script_path_rel(script_path=ref_script_path)
-        label = "duplicate script:"
+        label = "duplicate script"
     else:
         text = get_selected_script_dir_rel(script_path=ref_script_path)
-        label = "new script:"
+        label = "new script"
     w = Menu(label=label, text=text)
     w.exec()
     dest_script = w.get_text()
@@ -141,8 +136,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
         return
 
     # Convert to abspath
-    if not os.path.isabs(dest_script):
-        dest_script = os.path.join(get_script_root(), dest_script)
+    dest_script = get_absolute_script_path(dest_script)
 
     dir_name = os.path.dirname(dest_script)
     if dir_name != "":

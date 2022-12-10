@@ -25,6 +25,10 @@ def install_alacritty_linux():
 
 
 def find_executable(pkg):
+    # If pkg is an executable and exists
+    if shutil.which(pkg):
+        return pkg
+
     exec = []
     if pkg in packages:
         if "exec" in packages[pkg]:
@@ -39,19 +43,15 @@ def find_executable(pkg):
         if shutil.which(p):
             return p
 
-    if shutil.which(pkg):
-        return pkg
-
     return None
 
 
 def require_package(pkg):
+    # Check if pkg is an executable and exists already
     exec = find_executable(pkg)
+
     if exec is None:
         install_package(pkg)
-    executable = find_executable(pkg)
-    if executable is None:
-        raise FileNotFoundError("package %s not found" % pkg)
 
 
 def choco_install(pkg, upgrade=False):
