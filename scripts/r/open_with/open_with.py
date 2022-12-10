@@ -4,7 +4,7 @@ import subprocess
 import sys
 import traceback
 
-from _pkgmanager import require_package
+from _pkgmanager import find_executable, require_package
 from _shutil import run_elevated
 
 config = None
@@ -56,7 +56,8 @@ def open_with(files, program_id=0):
     program = config[ext][program_id]
 
     if type(program) == str:
-        executable = require_package(program)
+        require_package(program)
+        executable = find_executable(program)
         assert executable is not None
         args = [executable] + files
 

@@ -1,7 +1,7 @@
 import os
 import sys
 
-from _pkgmanager import require_package
+from _pkgmanager import find_executable, require_package
 from _shutil import call2, get_files, mkdir, shell_open
 
 
@@ -18,7 +18,8 @@ def unzip(files, open_out_dir=False):
                 break
 
         if not extracted:
-            _7z = require_package("7z")
+            require_package("7z")
+            _7z = find_executable("7z")
             out_dir = os.path.splitext(file)[0]
             args = [
                 _7z,

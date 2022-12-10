@@ -1,7 +1,9 @@
-from _pkgmanager import require_package
+from _pkgmanager import find_executable, require_package
 from _shutil import call_echo, get_files, mkdir
 
 if __name__ == "__main__":
     f = get_files(cd=True)[0]
     mkdir("out")
-    call_echo([require_package("magick"), f, "-coalesce", "out/%05d.png"])
+    require_package("magick")
+    magick = find_executable("magick")
+    call_echo([magick, f, "-coalesce", "out/%05d.png"])

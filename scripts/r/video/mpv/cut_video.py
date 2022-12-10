@@ -1,11 +1,12 @@
 import os
 import subprocess
 
-from _pkgmanager import require_package
-from _shutil import require_package, get_files
+from _pkgmanager import find_executable, require_package
+from _shutil import get_files
 
 if __name__ == "__main__":
-    mpv = require_package("mpv")
+    require_package("mpv")
+    mpv = find_executable("mpv")
     file = get_files(cd=True)[0]
 
     script = os.path.join(os.path.dirname(__file__), "excerpt.lua")
