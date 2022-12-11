@@ -17,5 +17,5 @@ python -m pip install --user -r requirement.txt
 title MyScripts - Console
 
 :main
-python main_console.py
+python main_console.py %*
 if errorlevel 1 goto main

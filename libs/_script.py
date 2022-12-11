@@ -37,7 +37,6 @@ from _shutil import (
     prepend_to_path,
     print2,
     quote_arg,
-    run_at_startup,
     run_elevated,
     save_yaml,
     setup_nodejs,
@@ -1630,7 +1629,7 @@ def get_all_scripts():
             yield file
 
 
-def reload_scripts(script_list: List[Script], autorun=True):
+def reload_scripts(script_list: List[Script], autorun=True, startup=False):
     if not script_updated():
         return False
 
@@ -1647,20 +1646,20 @@ def reload_scripts(script_list: List[Script], autorun=True):
             script_reloaded = True
 
         if script_reloaded:
-            # Check if auto run script
+            should_run_script = False
             if script.cfg["autoRun"] and autorun:
                 logging.info("autorun: %s" % script.name)
+                should_run_script = True
+            if script.cfg["runAtStartup"] and startup:
+                logging.info("runAtStartup: %s" % script.name)
+                should_run_script = True
+
+            # Check if auto run script
+            if should_run_script:
                 try:
                     script.execute(new_window=False)
                 except Exception as ex:
                     logging.warn(ex)
-
-            # Check if the script should run at startup
-            if script.cfg["runAtStartup"] and autorun:
-                logging.info("runAtStartup: %s" % script.name)
-                run_at_startup(
-                    name=script.name, cmdline='"start_script" "%s"' % script.script_path
-                )
 
         script_list.append(script)
 

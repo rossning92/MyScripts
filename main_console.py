@@ -2,7 +2,6 @@ import argparse
 import curses
 import logging
 import os
-import queue
 import shutil
 import subprocess
 import sys
@@ -235,7 +234,7 @@ class ScriptManager:
     def refresh_all_scripts(self):
         begin_time = time.time()
 
-        if reload_scripts(self.scripts, autorun=True):
+        if reload_scripts(self.scripts, autorun=True, startup=args.startup):
             self.hotkeys = register_hotkeys(self.scripts)
             register_global_hotkeys(self.scripts)
         self.sort_scripts()
@@ -597,10 +596,16 @@ if __name__ == "__main__":
         action="store_true",
         help="quit after running a script",
     )
+    parser.add_argument(
+        "--startup",
+        action="store_true",
+        help="will autorun all scripts with runAtStartup=True",
+    )
     args = parser.parse_args()
 
     run_at_startup(
-        name="MyScripts", cmdline=quote_arg(os.path.join(SCRIPT_ROOT, "run.cmd"))
+        name="MyScripts",
+        cmdline=quote_arg(os.path.join(SCRIPT_ROOT, "run.cmd")) + " --startup",
     )
 
     # setup_console_font()
