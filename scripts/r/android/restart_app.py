@@ -23,4 +23,7 @@ if __name__ == "__main__":
         clear_logcat()
         restart_app(pkg, use_monkey=bool(os.environ.get("USE_MONKEY")))
         if os.environ.get("_SHOW_LOGCAT"):
-            logcat(pkg=pkg)
+            logcat(
+                pkg=pkg,
+                show_fatal_error=bool(os.environ.get("LOGCAT_SHOW_FATAL_ERROR")),
+            )

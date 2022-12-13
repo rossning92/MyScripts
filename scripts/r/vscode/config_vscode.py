@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import sys
 
-from _shutil import call_echo, download, prepend_to_path, print2, unzip
+from _shutil import call_echo, download, get_home_path, prepend_to_path, print2, unzip
 
 EXTENSION_LIST = [
     # "donjayamanne.githistory",
@@ -14,6 +14,7 @@ EXTENSION_LIST = [
     # markdown
     "yzhang.markdown-all-in-one",
     "mushan.vscode-paste-image",
+    "kortina.vscode-markdown-notes",  # [[wiki-links]], backlinks, #tags and @bibtex-citations
     # javascript
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
@@ -47,9 +48,11 @@ def install_glslangvalidator():
             "https://github.com/KhronosGroup/glslang/releases/download/master-tot/glslang-master-windows-x64-Release.zip",
             save_to_tmp=True,
         )
-        unzip(out, r"C:\tools\glslang")
+        unzip(out, os.path.join(get_home_path(), "tools", "glslang"))
         os.remove(out)
-        return r"C:\tools\glslang\bin\glslangValidator.exe"
+        return os.path.join(
+            get_home_path(), "tools", "glslang", "bin", "glslangValidator.exe"
+        )
 
 
 def get_vscode_cmdline(data_dir=None):

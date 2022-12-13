@@ -1622,7 +1622,7 @@ def update_yaml(file, dict_):
 
 
 def setup_logger(level=logging.INFO, stdout=True, log_file=None):
-    if os.environ.get("LOGGING", "D"):
+    if os.environ.get("LOGGING", "") == "D":
         level = logging.DEBUG
 
     logger = logging.getLogger()

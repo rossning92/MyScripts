@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from functools import cache
+from functools import lru_cache
 from typing import List
 
 import yaml
@@ -82,7 +82,7 @@ def get_my_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../")
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_data_dir():
     data_dir_file = os.path.abspath(
         os.path.join(SCRIPT_ROOT, "..", "config", "data_dir.txt")
@@ -115,7 +115,7 @@ def get_bin_dir():
     return os.path.abspath(SCRIPT_ROOT + "/../bin")
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_script_dirs_config_file():
     config_file = os.path.join(get_data_dir(), "script_directories.txt")
     if not os.path.exists(config_file):
@@ -123,7 +123,7 @@ def get_script_dirs_config_file():
     return config_file
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_script_directories():
     directories = []
     directories.append(("", get_script_root()))
@@ -258,7 +258,7 @@ def _args_to_str(args, single_quote=False, powershell=False):
         )
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_variable_file():
     variable_file = os.path.join(get_data_dir(), "variables.json")
     return variable_file

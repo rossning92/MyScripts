@@ -16,7 +16,6 @@ from _shutil import (
     prepend_to_path,
     print2,
     read_proc_lines,
-    supports_color,
 )
 
 logger = logging.getLogger(__name__)
@@ -124,6 +123,7 @@ def logcat(
     exclude=None,
     exclude_proc=None,
     ignore_duplicates=False,
+    show_fatal_error=False,
 ):
     LOGCAT_PATTERN = re.compile(r"^([A-Z])/(.+?)\(\s*(\d+)\):\s?(.*)$")
 
@@ -203,7 +203,7 @@ def logcat(
                     proc = pid_proc_map[pid]
 
                 lvl = match.group(1)
-                if lvl == "F":
+                if show_fatal_error and lvl == "F":
                     # always show fatal message
                     pass
                 else:
