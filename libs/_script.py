@@ -1025,9 +1025,12 @@ class Script:
                         if self.cfg["wsl"]:
                             run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
 
-                    args = args_activate + [python_exec, run_py, python_file] + args
+                    # -u disables buffering so that we can get correct output during piping output
+                    args = (
+                        args_activate + [python_exec, "-u", run_py, python_file] + args
+                    )
                 else:
-                    args = args_activate + [python_exec, python_file] + args
+                    args = args_activate + [python_exec, "-u", python_file] + args
             elif ext == ".ipynb":
                 args = args_activate + ["jupyter", "notebook", python_file] + args
 

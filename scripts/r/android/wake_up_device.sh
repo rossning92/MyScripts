@@ -1,8 +1,7 @@
 # run_script r/android/keep_awake.sh
 
 adb shell input keyevent 224 # KEYCODE_WAKEUP
-
-while true; do
+for i in {1..3}; do
     adb shell dumpsys power | grep 'mWakefulness='
-    sleep 2
+    sleep 1
 done

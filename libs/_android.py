@@ -142,8 +142,6 @@ def logcat(
         regex = re.compile(regex)
     if exclude_proc:
         exclude_proc = re.compile(exclude_proc)
-    if type(pkg) == str:
-        pkg = re.compile(re.escape(pkg))
 
     args = ["adb", "logcat", "-v", "brief"]
 
@@ -166,6 +164,7 @@ def logcat(
     last_proc = None
 
     while True:
+        show_fatal_error_pid = None
         try:
             for line in read_proc_lines(args):
                 # Filter by time
@@ -204,16 +203,20 @@ def logcat(
 
                 lvl = match.group(1)
                 if show_fatal_error and lvl == "F":
-                    # always show fatal message
-                    pass
+                    if pkg is not None and pkg in line:
+                        show_fatal_error_pid = pid
+                    if show_fatal_error_pid == pid:
+                        pass
+                    else:
+                        continue
                 else:
                     # Filter by level
                     if level and not re.search(level, lvl):
                         continue
 
                     # Filter by tag or message
-                    message = match.group(4)
                     tag = match.group(2)
+                    message = match.group(4)
                     if regex and not (
                         re.search(regex, tag) or re.search(regex, message)
                     ):
@@ -231,7 +234,7 @@ def logcat(
                             continue
                         else:
                             # Filter by process name (include)
-                            if not re.search(pkg, proc):
+                            if pkg not in proc:
                                 continue
 
                             # Exclude by process name (exclude)
@@ -369,7 +372,9 @@ def get_active_pkg_and_activity():
         [
             "adb",
             "shell",
-            "dumpsys activity activities | grep -E 'mFocusedActivity|mResumedActivity'",
+            "dumpsys activity activities | grep -E 'mFocusedActivity"
+            "|mResumedActivity"
+            "|mCurrentFocus'",  # Android 12+
         ],
         universal_newlines=True,
     ).strip()
