@@ -349,7 +349,11 @@ class InternalHotkey:
 
 
 def restart_program():
-    os.execv(sys.executable, ["python"] + sys.argv)
+    os.execl(
+        sys.executable,
+        "python",
+        *(x for x in sys.argv if x != "--startup"),
+    )
 
 
 class MainWindow(Menu):

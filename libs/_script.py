@@ -21,7 +21,7 @@ from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
 from _filelock import FileLock
-from _pkgmanager import require_package
+from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
     activate_window_by_name,
@@ -790,6 +790,8 @@ class Script:
         cd=True,
         tee=None,
     ):
+        self.cfg = self.load_config()
+
         new_window = self.cfg["newWindow"] if (new_window is None) else new_window
         # TODO: Mac does not support newWindow yet
         if sys.platform == "darwin":
@@ -798,11 +800,12 @@ class Script:
         if restart_instance is None:
             restart_instance = self.cfg["restartInstance"]
 
+        if tee is None:
+            tee = self.cfg["tee"]
+
         if not restart_instance and new_window:
             if activate_window_by_name(self.name):
                 return True
-
-        self.cfg = self.load_config()
 
         # Get variable name value pairs
         variables = self.get_variables()
@@ -1055,17 +1058,17 @@ class Script:
 
         # Run commands
         if args is not None and len(args) > 0:
-            if tee is None:
-                tee = self.cfg["tee"]
             if tee:
+                log_file = os.path.join(
+                    get_home_path(),
+                    "Desktop",
+                    "{}_{}.log".format(self.name.split("/")[-1], int(time.time())),
+                )
                 args = wrap_args_tee(
                     args,
-                    out_file=os.path.join(
-                        get_home_path(),
-                        "Desktop",
-                        "{}_{}.log".format(self.name.split("/")[-1], int(time.time())),
-                    ),
+                    out_file=log_file,
                 )
+                open_log_file(log_file)
 
             # Check if run as admin
             if self.cfg["runAsAdmin"]:

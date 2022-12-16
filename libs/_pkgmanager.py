@@ -7,7 +7,7 @@ import sys
 
 import yaml
 
-from _shutil import check_output, refresh_env_vars, run_elevated
+from _shutil import check_output, refresh_env_vars, run_elevated, start_process
 
 with open(
     os.path.abspath(
@@ -84,3 +84,9 @@ def install_package(pkg, upgrade=False):
 
     if sys.platform == "win32":
         choco_install(pkg, upgrade=upgrade)
+
+
+def open_log_file(file):
+    klogg = find_executable("klogg")
+    if klogg:
+        start_process([klogg, "--follow", file])
