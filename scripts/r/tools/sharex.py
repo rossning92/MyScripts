@@ -1,4 +1,8 @@
-from _shutil import *
+import json
+import os
+import subprocess
+import sys
+import time
 
 
 def kill_proc():
@@ -7,14 +11,12 @@ def kill_proc():
         time.sleep(0.5)
 
 
-def install_sharex():
-    exe_path = r"C:\Program Files\ShareX\ShareX.exe"
-    if not exists(exe_path):
-        run_elevated("choco install sharex -y")
+def run_sharex():
+    sharex = r"C:\Program Files\ShareX\ShareX.exe"
 
-    setting_path = expandvars(r"%USERPROFILE%\Documents\ShareX")
-    if not exists(setting_path):
-        subprocess.Popen([exe_path, "-silent"], close_fds=True)
+    setting_path = os.path.expandvars(r"%USERPROFILE%\Documents\ShareX")
+    if not os.path.exists(setting_path):
+        subprocess.Popen([sharex, "-silent"], close_fds=True)
 
     kill_proc()
 
@@ -40,9 +42,9 @@ def install_sharex():
     # config["Hotkeys"][0]["HotkeyInfo"]["Hotkey"] = "F1"
     # json.dump(config, open(config_file, "w"))
 
-    subprocess.Popen([exe_path, "-silent"], close_fds=True)
+    subprocess.Popen([sharex, "-silent"], close_fds=True)
 
 
 if __name__ == "__main__":
     if sys.platform == "win32":
-        install_sharex()
+        run_sharex()
