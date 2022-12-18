@@ -5,10 +5,8 @@ from _shutil import write_temp_file
 from ext.run_script_ssh import push_file_putty, run_bash_script_putty
 
 if __name__ == "__main__":
-    # Prerequire: SSH_PWD, SSH_USER, SSH_HOST, SSH_PORT
-
     # if there is no arguments
-    if len(sys.argv) == 1:
+    if len(sys.argv) <= 1:
         file = "CCR10S_xyzCalibration_cube.gcode"
     else:
         file = sys.argv[1]
@@ -27,4 +25,9 @@ if __name__ == "__main__":
     )
     print(bash)
     bash_file = write_temp_file(bash, ".sh")
-    run_bash_script_putty(bash_file)
+    run_bash_script_putty(
+        bash_file,
+        host=os.environ["PRINTER_3D_HOST"],
+        user=os.environ["PRINTER_3D_USER"],
+        pwd=os.environ["PRINTER_3D_PWD"],
+    )

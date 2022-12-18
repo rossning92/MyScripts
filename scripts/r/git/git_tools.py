@@ -381,6 +381,13 @@ def unstash():
     call_echo(["git", "stash", "apply"])
 
 
+@menu_item()
+def create_new_branch_and_checkout():
+    branch = input("new branch name: ")
+    if branch:
+        call_echo(["git", "checkout", "-b", branch])
+
+
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
     repo_dir = os.environ.get("GIT_REPO", get_my_script_root())

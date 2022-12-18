@@ -59,6 +59,10 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
     else:
         require_package("vscode")
         vscode = find_executable("vscode")
+        if vscode is None:
+            raise FileNotFoundError(
+                "Cannot locate vscode executable, maybe not installed."
+            )
 
     if type(file) == str:
         if line_number is None:

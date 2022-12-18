@@ -7,23 +7,39 @@ from _script import Script, find_script, get_variable
 from _shutil import call_echo, convert_to_unix_path, write_temp_file
 
 
-def _get_user_host():
-    user_host = "%s@%s" % (
-        os.environ.get("SSH_USER", get_variable("SSH_USER")),
-        os.environ.get("SSH_HOST", get_variable("SSH_HOST")),
+def _get_user(user=None):
+    if user:
+        return user
+    else:
+        return os.environ.get("SSH_USER", get_variable("SSH_USER"))
+
+
+def _get_host(host=None):
+    if host:
+        return host
+    else:
+        return os.environ.get("SSH_HOST", get_variable("SSH_HOST"))
+
+
+def _get_user_host(user=None, host=None):
+    return "%s@%s" % (
+        _get_user(user),
+        _get_host(host),
     )
-    return user_host
 
 
-def _get_port():
-    return os.environ.get("SSH_PORT", get_variable("SSH_PORT"))
+def _get_port(port=None):
+    if port:
+        return port
+    else:
+        return os.environ.get("SSH_PORT", get_variable("SSH_PORT"))
 
 
-def _putty_wrapper(command, extra_args=[], **kwargs):
+def _putty_wrapper(command, extra_args=[], pwd=None, port=None):
     require_package("putty")
 
     args = [command]
-    port = _get_port()
+    port = _get_port(port=port)
     if port:
         args += ["-P", port]
 
@@ -34,9 +50,7 @@ def _putty_wrapper(command, extra_args=[], **kwargs):
     args += extra_args
 
     simulate_input = get_variable("SSH_INTERACTIVE_LOGIN")
-    ps = subprocess.Popen(
-        args, stdin=subprocess.PIPE if simulate_input else None, **kwargs
-    )
+    ps = subprocess.Popen(args, stdin=subprocess.PIPE if simulate_input else None)
     if simulate_input:
         ps.stdin.write(simulate_input.encode() + b"\n")
         ps.stdin.close()
@@ -69,7 +83,7 @@ def pull_file_putty(src, dest=None):
     _putty_wrapper("pscp", [_get_user_host() + ":" + src, dest])
 
 
-def run_bash_script_putty(bash_script_file):
+def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port=None):
     # plink is preferred for automation.
     # -t: switch to force a use of an interactive session
     # -no-antispoof: omit anti-spoofing prompt after authentication
@@ -79,10 +93,12 @@ def run_bash_script_putty(bash_script_file):
             "-ssh",
             "-t",
             "-no-antispoof",
-            _get_user_host(),
+            _get_user_host(user=user, host=host),
             "-m",
             bash_script_file,
         ],
+        pwd=pwd,
+        port=port,
     )
 
 
