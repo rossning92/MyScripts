@@ -420,7 +420,7 @@ def setup_jdk(jdk_version=None, env=None):
     if env is None:
         env = os.environ
 
-    def find_jdk(path):
+    def find_jdk(path, jdk_version=None):
         jdk_list = sorted(glob.glob(path))
         if len(jdk_list) == 0:
             return None
@@ -429,12 +429,7 @@ def setup_jdk(jdk_version=None, env=None):
         else:
             return jdk_list[-1]  # Choose latest JDK
 
-    java_home = None
-    if java_home is None:
-        java_home = find_jdk(r"C:\Program Files\Java\jdk-11.*")
-
-    if java_home is None:
-        java_home = find_jdk(r"C:\Program Files\Java\jdk1.*")
+    java_home = find_jdk(r"C:\Program Files\Java\jdk*", jdk_version=jdk_version)
 
     if java_home is None:
         raise Exception("Cannot find JDK")

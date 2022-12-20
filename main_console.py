@@ -551,6 +551,8 @@ def init():
         level=logging.DEBUG,
     )
 
+    logging.info("Python executable: %s" % sys.executable)
+
     # Add bin folder to PATH
     bin_dir = os.path.join(SCRIPT_ROOT, "bin")
     append_to_path_global(bin_dir)

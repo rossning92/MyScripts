@@ -217,9 +217,9 @@ def is_working_tree_clean():
 @menu_item(key="d")
 def diff():
     if not is_working_tree_clean():
-        call_echo("git diff")
+        call_echo(["git", "diff"])
     else:
-        call_echo("git diff HEAD^ HEAD")
+        call_echo(["git", "diff", "HEAD^", "HEAD"])
 
 
 @menu_item(key="D")
@@ -386,6 +386,13 @@ def create_new_branch_and_checkout():
     branch = input("new branch name: ")
     if branch:
         call_echo(["git", "checkout", "-b", branch])
+
+
+@menu_item()
+def cherry_pick():
+    commit = input("new commit hash: ")
+    if commit:
+        call_echo(["git", "cherry-pick", commit])
 
 
 if __name__ == "__main__":

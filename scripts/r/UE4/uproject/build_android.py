@@ -16,10 +16,6 @@ from _shutil import (
 
 from build_cpp_modules import build_cpp_modules
 
-# TODO: no need this after UE5?
-# setup_android_env()
-
-
 out_dir_root = os.environ.get("_OUT_DIR", "/tmp")
 
 
@@ -86,6 +82,7 @@ if __name__ == "__main__":
 
     run_script("r/UE4/kill_editor.cmd")
 
+    # TODO: no need this after UE5?
     setup_android_env(ndk_version="21.1.6352462")
 
     out_dir = build_uproject(
