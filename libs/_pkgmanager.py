@@ -26,8 +26,9 @@ def install_alacritty_linux():
 
 def find_executable(pkg):
     # If pkg is an executable and exists
-    if shutil.which(pkg):
-        return pkg
+    exe_path = shutil.which(pkg)
+    if exe_path:
+        return exe_path
 
     exec = []
     if pkg in packages:
@@ -40,8 +41,9 @@ def find_executable(pkg):
         if len(match) > 0:
             return match[0]
 
-        if shutil.which(p):
-            return p
+        exe_path = shutil.which(p)
+        if exe_path:
+            return exe_path
 
     return None
 

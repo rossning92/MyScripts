@@ -15,7 +15,6 @@
   ".3gpp": ["mpv", "vlc"],
   ".4-win-x64": ["PathAdd"],
   ".aac": ["mpv", "vlc"],
-  ".abnf": ["vscode", "notepad++"],
   ".ac3": ["mpv", "vlc"],
   ".aco": ["vscode", "notepad++"],
   ".ahk": ["vscode", "notepad++"],

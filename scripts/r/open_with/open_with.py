@@ -7,20 +7,17 @@ import traceback
 from _pkgmanager import find_executable, require_package
 from _shutil import run_elevated
 
-config = None
-
 
 def load_config():
-    global config
     with open(
         os.path.join(os.path.dirname(__file__), "open_with.config.json"),
         "r",
         encoding="utf-8",
     ) as f:
-        config = json.load(f)
+        return json.load(f)
 
 
-load_config()
+config = load_config()
 
 
 def open_with_hook(files, program_id):

@@ -190,6 +190,7 @@ def ffmpeg(
     crop_rect=None,
     to_anamorphic=False,
     crop_to_1080p=False,
+    crop_to_portrait=False,
     pad_to_1080p=False,
     rotate_cw=False,
     rotate_ccw=False,
@@ -246,8 +247,9 @@ def ffmpeg(
     if fps:
         extra_args += ["-r", "%d" % fps]
 
-    # Video filters
+    # Filters
     filter_v = []
+    filter_a = []
 
     # Crop video
     if crop_rect:
@@ -257,12 +259,12 @@ def ffmpeg(
 
     if to_anamorphic:
         filter_v.append("scale=1920:-2,crop=1920:816:0:132,pad=1920:1080:0:132")
-
     elif crop_to_1080p:
         filter_v.append("scale=1920:-2,pad=1920:1080:0:0")
-
     elif pad_to_1080p:
         filter_v.append("pad=1920:1080:(ow-iw)/2:(oh-ih)/2:black")
+    elif crop_to_portrait:
+        filter_v.append("crop=round(ih/a/2)*2:ih:round((iw-ih/a)/2):0")
 
     if rotate_cw:
         filter_v.append("transpose=1")
@@ -270,6 +272,7 @@ def ffmpeg(
         filter_v.append("transpose=2")
 
     if speed != 1.0:
+        filter_a.append("atempo=%.2f" % speed)
         filter_v.append("setpts=PTS/%.2f" % float(speed))
 
     # Scale (-2 indicates divisible by 2)
@@ -301,6 +304,9 @@ def ffmpeg(
 
     if filter_v:
         args += ["-vf", ",".join(filter_v)]
+
+    if filter_a:
+        args += ["-filter:a", ",".join(filter_a)]
 
     if extra_args:
         args += extra_args
