@@ -1,5 +1,6 @@
 import ctypes
 import os
+import sys
 
 from _shutil import confirm, print2
 
@@ -58,3 +59,4 @@ if __name__ == "__main__":
 
     if not drive_found:
         print2("ERROR: No drive found.", color="red")
+        sys.exit(1)

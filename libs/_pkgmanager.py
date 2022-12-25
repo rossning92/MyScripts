@@ -24,7 +24,7 @@ def install_alacritty_linux():
     run_elevated("sudo apt install -y alacritty")
 
 
-def find_executable(pkg):
+def find_executable(pkg, install=False):
     # If pkg is an executable and exists
     exe_path = shutil.which(pkg)
     if exe_path:
@@ -45,10 +45,15 @@ def find_executable(pkg):
         if exe_path:
             return exe_path
 
+    if install and exec is None:
+        install_package(pkg)
+        return find_executable(pkg)
+
     return None
 
 
 def require_package(pkg):
+    logging.info(f"{require_package.__name__}(): {pkg}")
     # Check if pkg is an executable and exists already
     exec = find_executable(pkg)
 

@@ -37,7 +37,4 @@ def unzip(files, open_out_dir=False):
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         file = sys.argv[1]
-        unzip([file])
-    else:
-        files = get_files(cd=True)
-        unzip(files, open_out_dir=len(files) == 1)
+        unzip([file], open_out_dir=True)

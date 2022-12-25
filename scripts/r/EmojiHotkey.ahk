@@ -1,4 +1,5 @@
 ﻿#SingleInstance, Force
+Menu, Tray, Icon, EmojiHotkey.ico
 
 $>!h::Send 😃
 $>!s::Send 😢

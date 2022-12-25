@@ -203,7 +203,6 @@ function exportVideo(params) {
   if (params.temp) {
     var outFile = getNewAvailableFile(currentFile);
     args.push(outFile);
-    mp.msg.warning(args.toString());
     mp.command_native({ name: "subprocess", args: args });
   } else {
     mp.set_property_native("pause", true);

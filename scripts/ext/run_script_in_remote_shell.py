@@ -8,9 +8,8 @@ from _shutil import (
     write_temp_file,
 )
 
-if __name__ == "__main__":
-    script_path = os.environ["SCRIPT"]
 
+def run_bash_script_in_remote_shell(script_path):
     script = Script(script_path)
     update_script_access_time(script)
 
@@ -23,12 +22,6 @@ if __name__ == "__main__":
 
     s += script.render()
     s += "\n"
-
-    tmp_script_file = write_temp_file(s, ".sh")
-
-    if script.ext != ".sh":
-        print("Script type is not supported: %s" % script.ext)
-        exit(0)
 
     # Write shell commands to paste buffer
     lines = [
@@ -57,3 +50,14 @@ if __name__ == "__main__":
     )
 
     activate_window_by_name("r/linux/remote_shell")
+
+
+if __name__ == "__main__":
+    script_path = os.environ["SCRIPT"]
+
+    ext = os.path.splitext(script_path)[1]
+    if ext != ".sh":
+        print("Script type is not supported: %s" % ext)
+        exit(0)
+
+    run_bash_script_in_remote_shell(script_path)

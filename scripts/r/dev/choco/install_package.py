@@ -65,6 +65,7 @@ PKGS = {
         "autohotkey",
         "blender",
         "carnac",
+        "crystaldiskinfo",
         "cura-new",
         "docker-desktop",
         "dupeguru",
