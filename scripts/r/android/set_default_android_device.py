@@ -41,7 +41,7 @@ def get_device_list():
             print(
                 "[%s] %s %s Battery=%s"
                 % (
-                    product[0],
+                    product[0].lower(),
                     serial,
                     product,
                     battery_level,
@@ -59,7 +59,7 @@ def select_default_android_device():
         device_list = get_device_list()
         ch = getch()
         for device in device_list:
-            if ch == device.product[0]:
+            if ch == device.product[0].lower():
                 set_variable("ANDROID_SERIAL", device.serial)
                 print2("Set default device to %s" % device.serial)
                 return
