@@ -261,7 +261,8 @@ def register_global_hotkeys_linux(scripts):
 
     s = (
         f"control+q\n"
-        f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/main_console.py -q\n"
+        # f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/main_console.py -q\n"
+        "  wmctrl -a MyScriptsTerminal\n"
         "\n"
     )
 
@@ -351,7 +352,7 @@ class InternalHotkey:
 def restart_program():
     os.execl(
         sys.executable,
-        "python",
+        sys.executable,
         *(x for x in sys.argv if x != "--startup"),
     )
 

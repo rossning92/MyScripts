@@ -5,4 +5,4 @@ if ! [ -x "$(command -v google-chrome)" ]; then
     rm google-chrome-stable_current_amd64.deb
 fi
 
-google-chrome
+wmctrl -a '- Google Chrome' || google-chrome

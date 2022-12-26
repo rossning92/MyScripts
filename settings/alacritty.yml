@@ -42,3 +42,7 @@ window:
   padding:
     x: 8
     y: 8
+
+env:
+  # Workaround for extra large font size in Linux Mint
+  WINIT_X11_SCALE_FACTOR: "1.0"

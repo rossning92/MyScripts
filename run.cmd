@@ -14,7 +14,7 @@ if not %errorlevel%==0 (
 :: Install python modules
 python -m pip install --user -r requirement.txt
 
-title MyScripts - Console
+title MyScriptsTerminal
 
 :main
 python main_console.py %*

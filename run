@@ -32,4 +32,19 @@ if [ -f "/etc/debian_version" ]; then
 fi
 
 pip3 install -r requirement.txt
+
+# Autostart on any Linux desktop
+mkdir -p ~/.config/autostart/
+cat >~/.config/autostart/myscripts.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=MyScripts
+Exec=x-terminal-emulator -e $HOME/MyScripts/run --startup
+StartupNotify=false
+Terminal=false
+EOF
+
+# Set terminal title
+echo -ne '\033]0;MyScriptsTerminal\007'
+
 python3 main_console.py "$@"

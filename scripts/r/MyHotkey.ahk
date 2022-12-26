@@ -12,7 +12,7 @@ CurrentDesktop := 0
 WindowDividor := 2/3
 LastKeyPressTime := 0
 
-CONSOLE_WINDOW = MyScripts - Console
+CONSOLE_WINDOW = MyScriptsTerminal
 
 SetTitleMatchMode, 2
 
@@ -112,7 +112,7 @@ return
     UpdateWindowPosition("left")
 return
 
-#Right:: 
+#Right::
     UpdateWindowPosition("right")
 return
 

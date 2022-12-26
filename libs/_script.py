@@ -16,7 +16,6 @@ from functools import lru_cache
 from typing import List
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -1218,6 +1217,7 @@ class Script:
                                 args,
                                 title=self.get_console_title(),
                             )
+                            no_wait = True
 
                     else:
                         logging.warning(
