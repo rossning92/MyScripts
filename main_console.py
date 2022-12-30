@@ -56,11 +56,14 @@ KEY_CODE_CTRL_ENTER_WIN = 529
 callback_queue = []
 
 
-def execute_script(script, close_on_exit=None):
+def execute_script(script: Script, close_on_exit=None, new_window=None):
     refresh_env_vars()
     args = update_env_var_explorer()
     success = script.execute(
-        args=args, close_on_exit=close_on_exit, restart_instance=True
+        args=args,
+        close_on_exit=close_on_exit,
+        restart_instance=True,
+        new_window=new_window,
     )
     if not success:
         print("(press any key to continue...)")
@@ -209,10 +212,11 @@ class VariableWindow(Menu):
 
 
 class ScriptManager:
-    def __init__(self):
+    def __init__(self, autorun=True):
         self.scripts: List[Script] = []
         self.last_refresh_time = 0
         self.hotkeys = {}
+        self.autorun = autorun
 
     def update_access_time(self):
         access_time, _ = get_all_script_access_time()
@@ -234,7 +238,7 @@ class ScriptManager:
     def refresh_all_scripts(self):
         begin_time = time.time()
 
-        if reload_scripts(self.scripts, autorun=True, startup=args.startup):
+        if reload_scripts(self.scripts, autorun=self.autorun, startup=args.startup):
             self.hotkeys = register_hotkeys(self.scripts)
             register_global_hotkeys(self.scripts)
         self.sort_scripts()
@@ -358,7 +362,9 @@ def restart_program():
 
 
 class MainWindow(Menu):
-    def __init__(self):
+    def __init__(self, new_window=None):
+        self.new_window = new_window
+
         super().__init__(
             items=script_manager.scripts,
             ascii_only=True,
@@ -399,7 +405,11 @@ class MainWindow(Menu):
             script_manager.sort_scripts()
 
             callback_queue.append(
-                lambda: execute_script(script, close_on_exit=close_on_exit)
+                lambda: execute_script(
+                    script,
+                    close_on_exit=close_on_exit,
+                    new_window=self.new_window,
+                )
             )
             self.close()
 
@@ -485,6 +495,9 @@ class MainWindow(Menu):
             self.run_selected_script()
             return True
 
+        elif ch == curses.ascii.ctrl(ord("c")):
+            sys.exit(0)
+
         elif ch == KEY_CODE_CTRL_ENTER_WIN:
             self.run_selected_script(close_on_exit=False)
             return True
@@ -545,11 +558,11 @@ class MainWindow(Menu):
         super().on_update_screen(max_height=height)
 
 
-def init():
+def init(autorun=True):
     setup_logger(
         log_file=os.path.join(get_data_dir(), "MyScripts.log"),
         stdout=False,
-        level=logging.DEBUG,
+        level=logging.INFO,
     )
 
     logging.info("Python executable: %s" % sys.executable)
@@ -570,15 +583,15 @@ def init():
 
     setup_nodejs(install=False)
 
-    if is_instance_running():
-        logging.info("An instance is running. Exited.")
+    if autorun and is_instance_running():
+        logging.info("An instance is already running, exiting.")
         sys.exit(0)
 
 
-def main_loop(quit=False):
+def main_loop(new_window=None, quit=False):
     while True:
         try:
-            MainWindow().exec()
+            MainWindow(new_window=new_window).exec()
 
             while len(callback_queue) > 0:
                 callback = callback_queue.pop(0)
@@ -604,6 +617,12 @@ if __name__ == "__main__":
         help="quit after running a script",
     )
     parser.add_argument(
+        "-n",
+        "--no-gui",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "--startup",
         action="store_true",
         help="will autorun all scripts with runAtStartup=True",
@@ -616,6 +635,6 @@ if __name__ == "__main__":
     )
 
     # setup_console_font()
-    init()
-    script_manager = ScriptManager()
-    main_loop(quit=args.quit)
+    init(autorun=not args.no_gui)
+    script_manager = ScriptManager(autorun=not args.no_gui)
+    main_loop(new_window=False if args.no_gui else None, quit=args.quit)

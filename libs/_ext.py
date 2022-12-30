@@ -78,7 +78,7 @@ def enter_script_path():
 def edit_script_config(script_path):
     default_config = get_script_default_config()
 
-    script_config_file = get_script_config_file(script_path)
+    script_config_file = get_script_config_file(script_path, auto_create=True)
     if not os.path.exists(script_config_file):
         data = {}
     else:
@@ -90,11 +90,12 @@ def edit_script_config(script_path):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
         save_yaml(data, script_config_file)
 
+    script_config_file_rel_path = get_relative_script_path(script_config_file)
     w = DictEditWindow(
         data,
         default_dict=default_config,
         on_dict_update=on_dict_update,
-        label="edit config",
+        label=f"edit {script_config_file_rel_path}",
     )
     ret = w.exec()
     if ret == -1:

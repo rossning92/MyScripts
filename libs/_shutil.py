@@ -17,7 +17,6 @@ import threading
 import time
 import unicodedata
 from collections import OrderedDict
-from distutils.dir_util import copy_tree
 from pathlib import Path
 from time import sleep
 from typing import List
@@ -447,6 +446,9 @@ def download(url, filename=None, redownload=False, save_to_tmp=False):
 
 
 def copy(src, dst, overwrite=False):
+    # Lazy import: distutils import is pretty slow
+    from distutils.dir_util import copy_tree
+
     # Create dirs if not exists
     dir_name = os.path.dirname(dst)
     if dir_name and not os.path.exists(dir_name):

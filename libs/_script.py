@@ -16,6 +16,7 @@ from functools import lru_cache
 from typing import List
 
 import yaml
+
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -657,7 +658,7 @@ class Script:
 
         mtime = os.path.getmtime(self.script_path)
 
-        script_config_file = load_script_config_file2(self.script_path)
+        script_config_file = get_script_config_file(self.script_path)
         if script_config_file:
             mtime = max(mtime, os.path.getmtime(script_config_file))
 
@@ -1438,22 +1439,21 @@ def get_script_default_config():
     }
 
 
-def get_script_config_file(script_path):
-    return os.path.splitext(script_path)[0] + ".config.yaml"
-
-
-def load_script_config_file2(script_path):
-    f = get_script_config_file(script_path)
+def get_script_config_file(script_path, auto_create=False):
+    f = os.path.splitext(script_path)[0] + ".config.yaml"
     if os.path.exists(f):
         return f
+    else:
+        f = os.path.join(os.path.dirname(script_path), "default.config.yaml")
+        if os.path.exists(f):
+            return f
 
-    f = os.path.join(os.path.dirname(script_path), "default.yaml")
-    if os.path.exists(f):
+    if auto_create:
         return f
 
 
 def load_script_config(script_path):
-    script_config_file = load_script_config_file2(script_path)
+    script_config_file = get_script_config_file(script_path)
     if script_config_file:
         with open(script_config_file, "r") as f:
             data = yaml.load(f.read(), Loader=yaml.FullLoader)
@@ -1604,7 +1604,7 @@ def script_updated():
     for _, d in get_script_directories():
         for f in get_scripts_recursive(d):
             mtime = max(mtime, os.path.getmtime(f))
-            script_config_file = load_script_config_file2(f)
+            script_config_file = get_script_config_file(f)
             file_list.append(f)
 
             # Check if config file is updated

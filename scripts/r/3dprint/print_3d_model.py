@@ -28,7 +28,7 @@ if __name__ == "__main__":
         f' -e "load {dst}"'
         " -e print"
         " -e monitor"
-        " -e exit"
+        # " -e exit"
     )
     print(bash)
     bash_file = write_temp_file(bash, ".sh")
