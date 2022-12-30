@@ -265,7 +265,7 @@ def register_global_hotkeys_linux(scripts):
 
     s = (
         f"control+q\n"
-        # f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/main_console.py -q\n"
+        # f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/run.py -q\n"
         "  wmctrl -a MyScriptsTerminal\n"
         "\n"
     )

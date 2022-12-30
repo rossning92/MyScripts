@@ -1216,7 +1216,7 @@ def shell_open(file="."):
 
     else:
         try:
-            subprocess.Popen(["xdg-open", file])
+            start_process(["xdg-open", file])
         except OSError:
             # er, think of something else to try
             # xdg-open *should* be supported by recent Gnome, KDE, Xfce

@@ -1,3 +1,5 @@
+run_script ext/install_pkg.py screen
+
 # mkdir ~/.screen || chmod 700 ~/.screen || true
 # sudo /etc/init.d/screen-cleanup start
 

@@ -1,7 +1,7 @@
 set -e
 
 source install_et.sh
-source install_expect.sh
+run_script ext/install_pkg.py expect
 
 if [[ -n "{{ET_PORT}}" ]]; then
     port="{{ET_PORT}}"

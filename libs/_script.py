@@ -16,7 +16,6 @@ from functools import lru_cache
 from typing import List
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -1442,14 +1441,11 @@ def get_script_default_config():
 
 def get_script_config_file(script_path, auto_create=False):
     f = os.path.splitext(script_path)[0] + ".config.yaml"
-    if os.path.exists(f):
+    if auto_create or os.path.exists(f):
         return f
-    else:
-        f = os.path.join(os.path.dirname(script_path), "default.config.yaml")
-        if os.path.exists(f):
-            return f
 
-    if auto_create:
+    f = os.path.join(os.path.dirname(script_path), "default.config.yaml")
+    if os.path.exists(f):
         return f
 
 

@@ -47,4 +47,4 @@ EOF
 # Set terminal title
 echo -ne '\033]0;MyScriptsTerminal\007'
 
-python3 main_console.py "$@"
+python3 run.py "$@"

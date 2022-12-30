@@ -167,7 +167,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     data["python.linting.enabled"] = True
     data["python.linting.pylintEnabled"] = False
     data["python.languageServer"] = "Pylance"
-    data["window.title"] = "${rootName}${separator}${activeEditorShort}"
+    data["window.title"] = "${rootName}${separator}${appName}"
     data["editor.minimap.enabled"] = False
 
     if glslang and sys.platform == "win32":

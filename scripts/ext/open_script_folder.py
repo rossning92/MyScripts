@@ -2,6 +2,8 @@ import os
 import subprocess
 import sys
 
+from _shutil import start_process
+
 if __name__ == "__main__":
     script_path = os.environ["SCRIPT"]
     script_dir = os.path.dirname(script_path)
@@ -13,4 +15,4 @@ if __name__ == "__main__":
     elif sys.platform == "win32":
         subprocess.call(["cmd", "/c", "start", "", os.getcwd()])
     elif sys.platform == "linux":
-        subprocess.call(["xdg-open", "."])
+        start_process(["xdg-open", "."])

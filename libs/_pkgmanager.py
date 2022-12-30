@@ -6,7 +6,6 @@ import subprocess
 import sys
 
 import yaml
-
 from _shutil import check_output, refresh_env_vars, run_elevated, start_process
 
 with open(
@@ -91,6 +90,10 @@ def install_package(pkg, upgrade=False):
 
     if sys.platform == "win32":
         choco_install(pkg, upgrade=upgrade)
+    if sys.platform == "linux":
+        if not shutil.which(pkg):
+            if shutil.which("apt"):
+                subprocess.check_call(["sudo", "apt", "install", pkg, "-y"])
 
 
 def open_log_file(file):
