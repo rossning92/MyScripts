@@ -540,7 +540,7 @@ def wrap_args_wt(
 def wrap_args_alacritty(
     args,
     title=None,
-    font_size=DEFAULT_TERMINAL_FONT_SIZE,
+    font_size=None,
     font=None,
     borderless=False,
     position=None,
@@ -561,11 +561,12 @@ def wrap_args_alacritty(
     src_path = os.path.abspath(SCRIPT_ROOT + "/../settings/alacritty.yml")
     shutil.copy(src_path, dest_path)
 
-    out = [
-        "alacritty",
-        "-o",
-        f"font.size={font_size}",
-    ]
+    out = ["alacritty"]
+    if font_size is not None:
+        out += [
+            "-o",
+            f"font.size={font_size}",
+        ]
 
     if font is not None:
         out += [f"font.normal.family={font}"]
