@@ -20,6 +20,7 @@ AddChromeHotkey("#!.", "- To Do", "https://to-do.live.com/tasks/")
 AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
 
 SetTimer, CheckIfRShiftIsPressed, 100
+SetTimer, AutoResizeVNC, 1000
 
 return
 
@@ -407,12 +408,8 @@ ToggleVNC()
         WinSet, AlwaysOnTop, Off, %VNC_VIEWER%
     } else if WinExist("ahk_exe tvnviewer.exe") {
         WinActivate, ahk_exe tvnviewer.exe
-        SetWindowPos("A", 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
-        WinSet, AlwaysOnTop, On, A
     } else if WinExist(VNC_VIEWER) {
         WinActivate, %VNC_VIEWER%
-        SetWindowPos("A", 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
-        WinSet, AlwaysOnTop, On, A
     }
 }
 
@@ -444,5 +441,13 @@ ToggleMicrophone()
         ToolTip, [MUTED], 0, 0
         Run powershell -NoProfile -ExecutionPolicy unrestricted audio/mute_mic.ps1,, Hide
         Muted := true
+    }
+}
+
+AutoResizeVNC() {
+    winTitle := "ahk_class vwr::CDesktopWin"
+    if WinActive(winTitle) {
+        SetWindowPos(winTitle, 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
+        WinSet, AlwaysOnTop, On, %winTitle%
     }
 }
