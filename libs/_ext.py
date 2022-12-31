@@ -31,7 +31,8 @@ def get_selected_script_path_rel(script_path=None):
 def get_selected_script_dir_rel(script_path=None):
     rel_path = get_selected_script_path_rel(script_path=script_path)
     rel_path = os.path.dirname(rel_path)
-    rel_path += "/"
+    if rel_path:
+        rel_path += "/"
     return rel_path
 
 

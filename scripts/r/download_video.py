@@ -1,19 +1,21 @@
 import argparse
+import logging
 import os
 import re
 import shutil
 import subprocess
 import sys
+import time
 
-from _script import get_variable
-from _shutil import call_echo, get_home_path, get_newest_file, print2
+import requests
+from _shutil import call_echo, get_home_path, get_newest_file, setup_logger
 
 root = os.path.dirname(os.path.realpath(__file__))
 
 
 def get_download_dir(name, base=None):
     if base is None:
-        d = get_variable("VIDEO_DOWNLOAD_DIR")
+        d = os.environ["VIDEO_DOWNLOAD_DIR"]
         if not d:
             d = os.path.join(os.path.expanduser("~"), "Desktop")
     else:
@@ -22,6 +24,10 @@ def get_download_dir(name, base=None):
     if not os.path.exists(d):
         os.makedirs(d)
     return d
+
+
+def get_redirected_url(url):
+    return requests.get(url).url
 
 
 def download_bilibili(url, download_dir=None):
@@ -59,13 +65,16 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
     retry = 3
     while retry > 0:
         try:
-            if "bilibili" in url:
+            url = get_redirected_url(url)
+
+            if "bilibili.com" in url:
+
                 download_dir = get_download_dir("Bilibili", base=download_dir)
                 download_bilibili(
                     url,
                     download_dir=download_dir,
                 )
-            elif "youtube" in url:
+            elif "youtube.com" in url:
                 download_dir = get_download_dir("Youtube", base=download_dir)
                 download_youtube(
                     url,
@@ -78,13 +87,15 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
                 # Remove anything after "&": https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
                 url = re.sub(r"(\?(?!v)|&).*$", "", url)
                 url_file = get_newest_file(os.path.join(download_dir, "*.*")) + ".url"
-                print("Save url to %s" % url_file)
+                logging.info("Save url to: %s" % url_file)
                 with open(url_file, "w", encoding="utf-8") as f:
                     f.write(url)
 
             return
-        except subprocess.CalledProcessError:
-            print2("on error, retrying...")
+        except subprocess.CalledProcessError as ex:
+            logging.warning(ex)
+            logging.warning("Retry in 1 sec.")
+            time.sleep(1)
             retry -= 1
 
 
@@ -92,9 +103,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--audio_only", default=False, action="store_true")
     parser.add_argument("--download_dir", default=None, type=str)
-    parser.add_argument("url", type=str)
+    parser.add_argument("url", type=str, nargs="?")
     args = parser.parse_args()
 
-    download_video(
-        url=args.url, audio_only=args.audio_only, download_dir=args.download_dir
-    )
+    setup_logger()
+
+    url = args.url
+    if not url:
+        url = input("input video url: ")
+
+    download_video(url=url, audio_only=args.audio_only, download_dir=args.download_dir)

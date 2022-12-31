@@ -16,7 +16,6 @@ from functools import lru_cache
 from typing import List
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -798,6 +797,8 @@ class Script:
         if sys.platform == "darwin":
             new_window = False
 
+        background = self.cfg["background"]
+
         if restart_instance is None:
             restart_instance = self.cfg["restartInstance"]
 
@@ -917,7 +918,7 @@ class Script:
 
                 args = [get_ahk_exe(), script_path]
 
-                self.cfg["background"] = True
+                background = True
 
                 if self.cfg["runAsAdmin"]:
                     args = ["start"] + args
@@ -1089,6 +1090,14 @@ class Script:
             no_wait = False
             popen_extra_args = {}
 
+            if not background and not self.cfg["minimized"]:
+                # Add command wrapper to pause on exit
+                env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
+                args = [
+                    sys.executable,
+                    os.path.join(get_bin_dir(), "command_wrapper.py"),
+                ] + args
+
             if new_window:
                 if restart_instance:
                     # Close exising instances
@@ -1100,12 +1109,6 @@ class Script:
                             wait=True,
                         )
                 try:
-                    env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
-                    args = [
-                        sys.executable,
-                        os.path.join(get_bin_dir(), "command_wrapper.py"),
-                    ] + args
-
                     if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:
                             # Open in specified terminal (e.g. Windows Terminal)
@@ -1231,7 +1234,7 @@ class Script:
                     no_wait = False
                     logging.warning(ex)
 
-            elif self.cfg["background"]:
+            elif background:
                 if sys.platform == "win32":
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW

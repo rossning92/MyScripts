@@ -56,13 +56,13 @@ ClipChanged(type) {
         message := ""
 
         ; Find all matched scripts
-        for _index, script in MatchClipboard
+        for _index, item in MatchClipboard
         {
-            regex := script[1]
-            scriptName := script[2]
+            regex := item[1]
+            scriptName := item[2]
             if (RegExMatch(text, regex)) {
                 message .= "[" (matchedScript.Length() + 1) "] " scriptName "`n"
-                matchedScript.Push(script)
+                matchedScript.Push(item)
             }
         }
 
