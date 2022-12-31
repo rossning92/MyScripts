@@ -562,7 +562,7 @@ def init(autorun=True):
     setup_logger(
         log_file=os.path.join(get_data_dir(), "MyScripts.log"),
         stdout=False,
-        level=logging.INFO,
+        level=logging.DEBUG,
     )
 
     logging.info("Python executable: %s" % sys.executable)

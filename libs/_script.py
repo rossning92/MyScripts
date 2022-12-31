@@ -16,6 +16,7 @@ from functools import lru_cache
 from typing import List
 
 import yaml
+
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -814,7 +815,7 @@ class Script:
             if name in os.environ:
                 variables[name] = os.environ[name]
 
-        logging.debug("execute(args=%s)" % args)
+        logging.info("execute script: %s: args=%s" % (self.name, args))
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )

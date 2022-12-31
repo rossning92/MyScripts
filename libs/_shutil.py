@@ -17,6 +17,7 @@ import threading
 import time
 import unicodedata
 from collections import OrderedDict
+from functools import lru_cache
 from pathlib import Path
 from time import sleep
 from typing import List
@@ -88,16 +89,19 @@ def get_hash(obj, digit=16):
     return hash
 
 
+@lru_cache(maxsize=None)
 def get_ahk_exe(uia=True):
-    if uia:
-        ahk_exe = os.path.expandvars(
-            "%ProgramFiles%\\AutoHotkey\\AutoHotkeyU64_UIA.exe"
-        )
+    if sys.platform != "win32":
+        raise Exception("unsupported platform: %s" % sys.platform)
+
+    is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    if not is_admin and uia:
+        ahk_exe = os.path.expandvars(r"%ProgramFiles%\AutoHotkey\AutoHotkeyU64_UIA.exe")
     else:
-        ahk_exe = "AutoHotkeyU64.exe"
+        ahk_exe = os.path.expandvars(r"%ProgramFiles%\AutoHotkey\AutoHotkeyU64.exe")
 
     if not hasattr(get_ahk_exe, "init"):
-        os.makedirs(os.path.expanduser("~\\Documents\\AutoHotkey"), exist_ok=True)
+        os.makedirs(os.path.expanduser(r"~\Documents\AutoHotkey"), exist_ok=True)
         run_elevated(
             r'cmd /c MKLINK /D "%USERPROFILE%\Documents\AutoHotkey\Lib" "{}"'.format(
                 os.path.abspath(os.path.dirname(__file__) + "/../ahk")
