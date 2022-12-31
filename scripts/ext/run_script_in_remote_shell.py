@@ -1,4 +1,5 @@
 import os
+import sys
 
 from _script import Script, get_variable, update_script_access_time
 from _shutil import (
@@ -35,17 +36,19 @@ def run_bash_script_in_remote_shell(script_path):
     tmp_file = write_temp_file("\n".join(lines) + "\n", "pastebuf.txt")
 
     # Ctrl-C
+    args = [
+        "bash",
+        "-c",
+        "export SCREENDIR=$HOME/.screen;"
+        "screen -d -X stuff ^C;"  # -d indicates attached screen sessions
+        "screen -d -X msgwait 0;"
+        "screen -d -X readbuf %s;"
+        "screen -d -X paste ." % convert_to_unix_path(tmp_file, wsl=True),
+    ]
+    if sys.platform == "win32":
+        args.insert(0, "wsl")
     call_echo(
-        [
-            "wsl",
-            "bash",
-            "-c",
-            "export SCREENDIR=$HOME/.screen;"
-            "screen -d -X stuff ^C;"  # -d indicates attached screen sessions
-            "screen -d -X msgwait 0;"
-            "screen -d -X readbuf %s;"
-            "screen -d -X paste ." % convert_to_unix_path(tmp_file, wsl=True),
-        ],
+        args,
         shell=False,
     )
 
