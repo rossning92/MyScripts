@@ -26,10 +26,16 @@ if __name__ == "__main__":
         " -e block_until_online"
         " -e gettemp"
         f' -e "load {dst}"'
+        ' -e "M140 S50"'
+        ' -e "M104 S200"'
         " -e print"
-        " -e monitor"
+        # " -e monitor"
         # " -e exit"
     )
+
+    if os.environ.get("_RUN_IN_SCREEN"):
+        bash = f"screen -S 3dprint -X quit; screen -mS 3dprint bash -c '{bash}'"
+
     print(bash)
     bash_file = write_temp_file(bash, ".sh")
     if os.environ.get("_RUN_IN_REMOTE_SHELL"):

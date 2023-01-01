@@ -17,5 +17,5 @@ python -m pip install --user -r requirement.txt
 title MyScriptsTerminal
 
 :main
-python run.py %*
+python myscripts.py %*
 if errorlevel 1 goto main

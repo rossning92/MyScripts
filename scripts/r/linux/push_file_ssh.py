@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from _shutil import get_files
 from ext.run_script_ssh import push_file_putty
@@ -17,4 +18,9 @@ if __name__ == "__main__":
     else:
         file = get_files()[0]
 
-    push_file_putty(file)
+    push_file_putty(
+        file,
+        host=os.environ.get("PRINTER_3D_HOST"),
+        user=os.environ.get("PRINTER_3D_USER"),
+        pwd=os.environ.get("PRINTER_3D_PWD"),
+    )

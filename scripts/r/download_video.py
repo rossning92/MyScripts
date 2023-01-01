@@ -10,6 +10,8 @@ import time
 import requests
 from _shutil import call_echo, get_home_path, get_newest_file, setup_logger
 
+URL_PATT = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+
 root = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -110,6 +112,8 @@ if __name__ == "__main__":
 
     url = args.url
     if not url:
-        url = input("input video url: ")
+        input_ = input("input video url: ")
+        first_match = next(re.finditer(URL_PATT, input_))
+        url = first_match.group()
 
     download_video(url=url, audio_only=args.audio_only, download_dir=args.download_dir)

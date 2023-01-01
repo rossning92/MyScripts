@@ -69,11 +69,15 @@ def push_file_ssh(file, dest=None):
     return dest
 
 
-def push_file_putty(src, dest=None):
+def push_file_putty(src, dest=None, user=None, host=None, pwd=None):
     if not dest:
-        dest = "/home/%s/%s" % (get_variable("SSH_USER"), os.path.basename(src))
+        dest = "/home/%s/%s" % (_get_user(user), os.path.basename(src))
 
-    _putty_wrapper("pscp", [src, "{}:{}".format(_get_user_host(), dest)])
+    _putty_wrapper(
+        "pscp",
+        [src, "{}:{}".format(_get_user_host(user=user, host=host), dest)],
+        pwd=pwd,
+    )
 
 
 def pull_file_putty(src, dest=None):
@@ -139,6 +143,7 @@ def run_bash_script_vagrant(bash_script_file, vagrant_id):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--command", help="command", type=str, default=None)
+    parser.add_argument("file", type=str, nargs="?", default=None)
     args = parser.parse_args()
 
     s = ""
@@ -152,14 +157,18 @@ if __name__ == "__main__":
         s += args.command
 
     else:
-        script_file = os.environ["SCRIPT"]
-        assert script_file.endswith(".sh")
-        script_file = find_script(script_file)
+        if args.file:
+            file = args.file
 
-        script = Script(script_file)
-        s += script.render()
+        else:
+            file = os.environ["SCRIPT"]
+            assert file.endswith(".sh")
+            file = find_script(file)
 
-    tmp_script_file = write_temp_file(s, ".sh")
+            script = Script(file)
+            s += script.render()
+
+            file = write_temp_file(s, ".sh")
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
-    run_bash_script_putty(tmp_script_file)
+    run_bash_script_putty(file)

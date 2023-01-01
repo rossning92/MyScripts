@@ -1,0 +1,1 @@
+Get-NetTCPConnection | Select-Object -Property LocalAddress, LocalPort, RemoteAddress, RemotePort, State, @{name = 'Process'; expression = { (Get-Process -Id $_.OwningProcess).Name } }, CreationTime |  Where-Object { $_.Process -eq "sshd" } | ft

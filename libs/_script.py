@@ -133,11 +133,15 @@ def get_script_directories():
             if line:
                 cols = line.split("|")
                 if len(cols) == 1:
-                    directories.append([os.path.basename(cols[0]), cols[0]])
+                    name = os.path.basename(cols[0])
+                    path = cols[0]
                 elif len(cols) == 2:
-                    directories.append([cols[0], cols[1]])
+                    name = cols[0]
+                    path = cols[1]
                 else:
                     raise Exception("Invalid line in {}: {}".format(config_file, line))
+                path = os.path.expanduser(path)
+                directories.append([name, path])
 
     return directories
 
@@ -188,7 +192,6 @@ def wrap_wsl(commands, env=None):
 
     # To create a temp sh files to invoke commands to avoid command being parsed
     # by current shell
-    logging.debug("WSL commands: {}".format(bash))
     tmp_sh_file = write_temp_file(bash, ".sh")
     tmp_sh_file = convert_to_unix_path(tmp_sh_file, wsl=True)
 
@@ -196,6 +199,7 @@ def wrap_wsl(commands, env=None):
     # commands = commands.replace("$", r"\$")
     # return ["bash.exe", "-c", commands]
 
+    logging.debug("wrap_wsl(): write temp shell script: %s" % tmp_sh_file)
     return ["bash", "-c", tmp_sh_file]
 
 
@@ -789,6 +793,7 @@ class Script:
         close_on_exit=None,
         cd=True,
         tee=None,
+        command_wrapper=True,
     ):
         self.cfg = self.load_config()
 
@@ -1090,7 +1095,7 @@ class Script:
             no_wait = False
             popen_extra_args = {}
 
-            if not background and not self.cfg["minimized"]:
+            if command_wrapper and not background and not self.cfg["minimized"]:
                 # Add command wrapper to pause on exit
                 env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
                 args = [
@@ -1664,7 +1669,7 @@ def reload_scripts(script_list: List[Script], autorun=True, startup=False):
             # Check if auto run script
             if should_run_script:
                 try:
-                    script.execute(new_window=False)
+                    script.execute(new_window=False, command_wrapper=False)
                 except Exception as ex:
                     logging.warn(ex)
 

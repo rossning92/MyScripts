@@ -18,7 +18,7 @@ if [[ $out == *"screens on"* ]]; then
 elif [[ $out == *"a screen on"* ]]; then
     screen -d -r # reattach
 else
-    screen -mS et bash -c "$1 || read -p '(press enter to continue...)'"
+    screen -mS et bash -c "$1"
 
     # screen -dmS et bash  # create screen named "et" and run "bash"
     # screen -r et -X stuff "$1\n"  # send stuff

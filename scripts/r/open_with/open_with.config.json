@@ -106,7 +106,7 @@
   ".flac": ["mpv", "vlc"],
   ".flv": ["mpv", "vlc"],
   ".frag": ["vscode", "notepad++"],
-  ".gcode": [["run_script", "r/3dprint/print_3d_model.py"]],
+  ".gcode": ["vscode", ["run_script", "r/3dprint/print_3d_model.py"]],
   ".gif": ["irfanview"],
   ".git-credentials": ["vscode", "notepad++"],
   ".gitconfig": ["vscode", "notepad++"],

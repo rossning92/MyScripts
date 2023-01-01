@@ -863,7 +863,13 @@ def get_selected_folder():
 
 
 def get_current_folder():
-    return os.environ["CWD"]
+    if "CWD" not in os.environ:
+        d = input("please input directory path: ")
+        if not d:
+            raise Exception("directory cannot be empty.")
+        return d
+    else:
+        return os.environ["CWD"]
 
 
 def cd_current_dir():

@@ -32,7 +32,7 @@ EXTENSION_LIST = [
     # "cadenas.vscode-glsllint",
     "xaver.clang-format",
     # powershell
-    "ms-vscode.powershell",
+    "ms-vscode.powershell-preview",
     # mermaid
     "bierner.markdown-mermaid",
     "tomoyukim.vscode-mermaid-editor",

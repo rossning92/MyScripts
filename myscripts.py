@@ -2,6 +2,7 @@ import argparse
 import curses
 import logging
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -266,7 +267,7 @@ def register_global_hotkeys_linux(scripts):
 
     s = (
         f"control+q\n"
-        # f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/run.py -q\n"
+        # f"  x-terminal-emulator -e python3 {SCRIPT_ROOT}/myscripts.py -q\n"
         "  wmctrl -a MyScriptsTerminal\n"
         "\n"
     )
@@ -370,6 +371,7 @@ class MainWindow(Menu):
             items=script_manager.scripts,
             ascii_only=True,
             cancellable=False,
+            label=platform.node(),
         )
 
         self.internal_hotkeys: Dict[str, InternalHotkey] = {}
@@ -632,7 +634,7 @@ if __name__ == "__main__":
 
     run_at_startup(
         name="MyScripts",
-        cmdline=quote_arg(os.path.join(SCRIPT_ROOT, "run.cmd")) + " --startup",
+        cmdline=quote_arg(os.path.join(SCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
 
     # setup_console_font()
