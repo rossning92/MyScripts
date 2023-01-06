@@ -57,14 +57,17 @@ KEY_CODE_CTRL_ENTER_WIN = 529
 callback_queue = []
 
 
-def execute_script(script: Script, close_on_exit=None, new_window=None):
+def execute_script(script: Script, close_on_exit=None, no_gui=False):
     refresh_env_vars()
-    args = update_env_var_explorer()
+    if no_gui:
+        args = None
+    else:
+        args = update_env_var_explorer()
     success = script.execute(
         args=args,
         close_on_exit=close_on_exit,
         restart_instance=True,
-        new_window=new_window,
+        new_window=False if no_gui else None,
     )
     if not success:
         print("(press any key to continue...)")
@@ -327,23 +330,25 @@ def register_global_hotkeys_win(scripts):
     subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
 
 
-def register_global_hotkeys_mac(scripts):
+def register_global_hotkeys_mac(scripts, no_gui=False):
     keyboard_hooks = {}
     for script in scripts:
         hotkey = script.cfg["globalHotkey"]
         if hotkey:
             logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
-            keyboard_hooks[hotkey] = lambda script=script: execute_script(script)
+            keyboard_hooks[hotkey] = lambda script=script: execute_script(
+                script, no_gui=no_gui
+            )
     add_keyboard_hooks(keyboard_hooks)
 
 
-def register_global_hotkeys(scripts):
+def register_global_hotkeys(scripts, no_gui=False):
     if sys.platform == "win32":
         register_global_hotkeys_win(scripts)
     elif sys.platform == "linux":
         register_global_hotkeys_linux(scripts)
     elif sys.platform == "darwin":
-        register_global_hotkeys_mac(scripts)
+        register_global_hotkeys_mac(scripts, no_gui=no_gui)
 
 
 class InternalHotkey:
@@ -364,8 +369,8 @@ def restart_program():
 
 
 class MainWindow(Menu):
-    def __init__(self, new_window=None):
-        self.new_window = new_window
+    def __init__(self, no_gui=None):
+        self.no_gui = no_gui
 
         super().__init__(
             items=script_manager.scripts,
@@ -411,7 +416,7 @@ class MainWindow(Menu):
                 lambda: execute_script(
                     script,
                     close_on_exit=close_on_exit,
-                    new_window=self.new_window,
+                    no_gui=self.no_gui,
                 )
             )
             self.close()
@@ -526,7 +531,9 @@ class MainWindow(Menu):
                 os.environ["SCRIPT"] = script_abs_path
 
                 callback_queue.append(
-                    lambda: execute_script(script_manager.hotkeys[ch])
+                    lambda: execute_script(
+                        script_manager.hotkeys[ch], no_gui=self.no_gui
+                    )
                 )
                 callback_queue.append(lambda: script_manager.sort_scripts())
                 self.close()
@@ -591,10 +598,10 @@ def init(no_gui=False):
         sys.exit(0)
 
 
-def main_loop(new_window=None, quit=False):
+def main_loop(no_gui=None, quit=False):
     while True:
         try:
-            MainWindow(new_window=new_window).exec()
+            MainWindow(no_gui=no_gui).exec()
 
             while len(callback_queue) > 0:
                 callback = callback_queue.pop(0)
@@ -640,4 +647,4 @@ if __name__ == "__main__":
     # setup_console_font()
     init(no_gui=args.no_gui)
     script_manager = ScriptManager(no_gui=args.no_gui)
-    main_loop(new_window=False if args.no_gui else None, quit=args.quit)
+    main_loop(no_gui=args.no_gui, quit=args.quit)
