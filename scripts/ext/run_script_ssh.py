@@ -131,8 +131,6 @@ def run_bash_script_ssh(bash_script_file, wsl=True):
         args += ["-p", port]
     args += ["bash /tmp/s.sh"]
     call_echo(args)
-    # if wait_key("press any key to pause...", timeout=5):
-    #     input("press any key to exit...")
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
@@ -142,33 +140,38 @@ def run_bash_script_vagrant(bash_script_file, vagrant_id):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--command", help="command", type=str, default=None)
+    parser.add_argument("-c", "--command", type=str, default=None)
+    parser.add_argument("--host", type=str, default=None)
+    parser.add_argument("--user", type=str, default=None)
+    parser.add_argument("--pwd", type=str, default=None)
     parser.add_argument("file", type=str, nargs="?", default=None)
+
     args = parser.parse_args()
 
-    s = ""
+    bash_commands = ""
 
     # ANDROID_SERIAL
     android_serial = get_variable("ANDROID_SERIAL")
     if android_serial:
-        s += "export ANDROID_SERIAL=%s\n" % android_serial
+        bash_commands += "export ANDROID_SERIAL=%s\n" % android_serial
 
     if args.command:
-        s += args.command
+        bash_commands += args.command
+
+    elif args.file:
+        file = args.file
+        with open(file, "r", encoding="utf-8") as f:
+            bash_commands += f.read() + "\n"
 
     else:
-        if args.file:
-            file = args.file
+        file = os.environ["SCRIPT"]
+        assert file.endswith(".sh")
+        file = find_script(file)
 
-        else:
-            file = os.environ["SCRIPT"]
-            assert file.endswith(".sh")
-            file = find_script(file)
+        script = Script(file)
+        bash_commands += script.render()
 
-            script = Script(file)
-            s += script.render()
-
-            file = write_temp_file(s, ".sh")
+    tmp_file = write_temp_file(bash_commands, ".sh")
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
-    run_bash_script_putty(file)
+    run_bash_script_putty(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
