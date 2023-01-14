@@ -1,6 +1,7 @@
 import argparse
 import os
 import subprocess
+import sys
 
 from _pkgmanager import require_package
 from _script import Script, find_script, get_variable
@@ -106,31 +107,31 @@ def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port
     )
 
 
-def run_bash_script_ssh(bash_script_file, wsl=True):
-    args = []
-    if wsl:
-        args += ["wsl"]
-    args += ["scp"]
-    port = _get_port()
-    if port:
-        args += ["-P", port]
-    args += [  # src file
-        convert_to_unix_path(bash_script_file, wsl=True) if wsl else bash_script_file
-    ]
-    args += [_get_user_host() + ":/tmp/s.sh"]  # dest
-    call_echo(args)
+def run_bash_script_ssh(
+    bash_script_file, wsl=True, user=None, host=None, pwd=None, port=None
+):
+    with open(bash_script_file, "r", encoding="utf-8") as f:
+        command = f.read()
 
-    # -t : interactive session
-    # source ~/.bash_profile ;
     args = []
-    if wsl:
+
+    # wsl
+    if wsl and sys.platform == "win32":
         args += ["wsl"]
-    args += ["ssh", "-t", _get_user_host()]
-    port = _get_port()
+
+    # pwd
+    if pwd:
+        args += ["sshpass", "-p", pwd]
+
+    # -t: interactive session
+    args += ["ssh", "-t", _get_user_host(user=user, host=host)]
+
+    port = _get_port(port=port)
     if port:
         args += ["-p", port]
-    args += ["bash /tmp/s.sh"]
-    call_echo(args)
+
+    args += [command]
+    subprocess.check_call(args)
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
@@ -174,4 +175,4 @@ if __name__ == "__main__":
     tmp_file = write_temp_file(bash_commands, ".sh")
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
-    run_bash_script_putty(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
+    run_bash_script_ssh(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
