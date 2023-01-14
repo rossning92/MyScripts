@@ -1,13 +1,5 @@
-cat >~/.pronsolerc <<EOF
-macro preheat
-    M140 S45
-    M104 S185
-
-macro stop
-    M106 S0 ; turn off cooling fan
-    M104 S0 ; turn off extruder
-    M140 S0 ; turn off bed
-    M84 ; disable motors
-EOF
-
-pronsole -e connect -e block_until_online
+run_script ext/run_script_ssh.py \
+    --host ${PRINTER_3D_HOST} \
+    --user ${PRINTER_3D_USER} \
+    --pwd ${PRINTER_3D_PWD} \
+    run_pronsole_local.sh

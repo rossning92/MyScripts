@@ -34,7 +34,7 @@ if __name__ == "__main__":
     )
 
     if os.environ.get("_RUN_IN_SCREEN"):
-        bash = f"screen -S 3dprint -X quit; screen -mS 3dprint bash -c '{bash}'"
+        bash = f"screen -S 3dp -X quit; screen -mS 3dp bash -c '{bash}'"
 
     print(bash)
     bash_file = write_temp_file(bash, ".sh")
