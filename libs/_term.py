@@ -101,6 +101,14 @@ def _fuzzy_search_func(items, kw):
                 yield i
 
 
+def _is_backspace_key(ch):
+    return ch in (
+        curses.KEY_BACKSPACE,
+        ord("\b"),  # for windows
+        0x7F,  # for mac
+    )
+
+
 class InputWidget:
     def __init__(self, label="", text="", ascii_only=False):
         self.label = label
@@ -136,12 +144,11 @@ class InputWidget:
             self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.KEY_RIGHT:
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
-        elif ch in (
-            curses.KEY_BACKSPACE,
-            ord("\b"),  # for windows
-            0x7F,  # for mac
-        ):
-            self.text = self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
+        elif _is_backspace_key(ch):
+            if self.caret_pos > 0:
+                self.text = (
+                    self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
+                )
             self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.ascii.ctrl(ord("a")):
             self.clear()
