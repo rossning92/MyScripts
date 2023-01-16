@@ -8,6 +8,11 @@ macro stop
     M104 S0 ; turn off extruder
     M140 S0 ; turn off bed
     M84 ; disable motors
+
+macro level
+    G28 ; home
+    G29 ; probe bed
+    M500 ; save the leveling data to EEPROM
 EOF
 
 if ! screen -list | grep -q "3dp"; then

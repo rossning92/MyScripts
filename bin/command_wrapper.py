@@ -18,5 +18,5 @@ if __name__ == "__main__":
     keep_terminal_on = not close_on_exit
     if has_error or keep_terminal_on:
         print("---")
-        print("(%s exit code %d. press enter to continue...)" % (str(args), code))
+        print("(exit code %d from %s)" % (code, str(args)))
         input()

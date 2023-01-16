@@ -3,3 +3,7 @@ echo "deb https://github.com/MisterTea/debian-et/raw/master/debian-source/ buste
 curl -sSL https://github.com/MisterTea/debian-et/raw/master/et.gpg | sudo tee /etc/apt/trusted.gpg.d/et.gpg >/dev/null
 sudo apt update
 sudo apt install et -y
+
+sudo ufw allow 2022
+
+sudo systemctl enable et.service

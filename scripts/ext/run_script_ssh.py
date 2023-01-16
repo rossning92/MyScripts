@@ -123,8 +123,13 @@ def run_bash_script_ssh(
     if pwd:
         args += ["sshpass", "-p", pwd]
 
-    # -t: interactive session
-    args += ["ssh", "-t", _get_user_host(user=user, host=host)]
+    args += [
+        "ssh",
+        "-o",
+        "StrictHostKeyChecking=no",  # disable host key checking
+        "-t",  # interactive session
+        _get_user_host(user=user, host=host),
+    ]
 
     port = _get_port(port=port)
     if port:
