@@ -1,15 +1,19 @@
 import os
 
-from _cpp import *
-from _git import *
-from _shutil import *
+from _cpp import setup_cmake
+from _editor import open_in_vscode
+from _git import git_clone
+from _shutil import call_echo
 
-git_clone("https://github.com/JoeyDeVries/LearnOpenGL")
+if __name__ == "__main__":
+    repo_dir = git_clone("https://github.com/JoeyDeVries/LearnOpenGL")
+    open_in_vscode(repo_dir)
 
-setup_cmake()
+    if os.environ.get("_BUILD"):
+        setup_cmake()
 
-mkdir("build")
-subprocess.check_call(
-    ["cmake", "-G" "Visual Studio 16 2019", ".."], cwd="build", shell=True
-)
-call2("build\\LearnOpenGL.sln", check=False)
+        os.makedirs("build", exist_ok=True)
+        call_echo(
+            ["cmake", "-G" "Visual Studio 16 2019", ".."], cwd="build", shell=True
+        )
+        call_echo("build\\LearnOpenGL.sln", check=False, shell=True)

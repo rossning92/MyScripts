@@ -9,7 +9,15 @@ def git_clone(url):
     make_and_change_dir(proj_path)
     folder_name = url.split("/")[-1]
     if not os.path.exists(folder_name):
-        subprocess.check_call(["git", "clone", "--recurse-submodules", url])
+        subprocess.check_call(
+            [
+                "git",
+                "clone",
+                "--single-branch",
+                "--filter=blob:none" "--recurse-submodules",
+                url,
+            ]
+        )
     else:
         print2("%s already exists. Don't clone" % folder_name)
     path = os.path.abspath(folder_name)
