@@ -88,7 +88,7 @@ def kill_app(pkg):
     call_echo(args)
 
 
-def restart_app(pkg, use_monkey=True):
+def restart_app(pkg, use_monkey=False):
     logger.info("Stop app: " + pkg)
     args = "adb shell am force-stop %s" % pkg
     call2(args)

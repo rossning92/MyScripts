@@ -2,11 +2,9 @@ import glob
 import os
 import subprocess
 
-from _shutil import download, remove, start_process, unzip
+from _shutil import download, start_process, unzip
 
-INSTALL_DIR = r"C:\Tools\RenderDoc"
-
-os.chdir(os.path.join(os.environ["USERPROFILE"], "Downloads"))
+INSTALL_DIR = os.path.expandvars("%APPDATA%\\RenderDoc")
 
 
 def install_renderdoc(version=None):
@@ -29,14 +27,13 @@ def install_renderdoc(version=None):
         node = r.html.xpath(".//a[contains(text(),'Stable ZIP')]")[0]
     url = node.attrs["href"]
 
-    f = download(url)
+    f = download(url, save_to_tmp=True)
     print(f)
 
-    # remove(INSTALL_DIR)
     unzip(f, INSTALL_DIR)
 
 
-def start_renderdoc(version=None):
+def find_renderdoc(version=None):
     match = glob.glob(
         os.path.join(
             INSTALL_DIR, "**" if version is None else f"*{version}*", "qrenderdoc.exe"
@@ -44,13 +41,22 @@ def start_renderdoc(version=None):
         recursive=True,
     )
     if not match:
-        return False
+        return None
+    else:
+        return match[0]
 
-    start_process(match[0])
+
+def start_renderdoc(version=None):
+    rdoc = find_renderdoc(version=version)
+    assert rdoc
+
+    start_process(rdoc)
 
     return True
 
 
 if __name__ == "__main__":
-    if not start_renderdoc("{{_VERSION}}"):
-        install_renderdoc("{{_VERSION}}")
+    version = os.environ.get("_VERSION")
+    if not find_renderdoc(version=version):
+        install_renderdoc(version=version)
+    start_renderdoc(version=version)

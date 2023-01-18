@@ -9,7 +9,8 @@
   "python.formatting.provider": "black",
   "search.exclude": {
     "**/tmp": true,
-    "**/.mypy_cache": true
+    "**/.mypy_cache": true,
+    "**/node_modules": true
   },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
@@ -19,4 +20,5 @@
     "limits": "cpp"
   },
   "files.trimTrailingWhitespace": true,
+  "search.useIgnoreFiles": false,
 }
