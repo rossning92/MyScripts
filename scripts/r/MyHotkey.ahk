@@ -445,9 +445,11 @@ ToggleMicrophone()
 }
 
 AutoResizeVNC() {
+    Critical, On
     winTitle := "ahk_class vwr::CDesktopWin"
     if WinActive(winTitle) {
         SetWindowPos(winTitle, 0, 0, A_ScreenHeight*16/9, A_ScreenHeight, true)
         WinSet, AlwaysOnTop, On, %winTitle%
     }
+    Critical, Off
 }
