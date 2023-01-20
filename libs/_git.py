@@ -14,7 +14,8 @@ def git_clone(url):
                 "git",
                 "clone",
                 "--single-branch",
-                "--filter=blob:none" "--recurse-submodules",
+                "--filter=blob:none",
+                "--recurse-submodules",
                 url,
             ]
         )

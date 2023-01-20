@@ -9,20 +9,23 @@ from _shutil import call_echo, cd, confirm, run_elevated
 # Ninja is required
 # run_elevated("choco install ninja -y")
 
-setup_cmake(cmake_version="3.19.3")
-setup_android_env(jdk_version="11.0")
 
 # https://github.com/KhronosGroup/Vulkan-Samples#setup
-git_clone("https://github.com/KhronosGroup/Vulkan-Samples")
 
-call_echo("bldsys\\scripts\\generate_android_gradle.bat")
+if __name__ == "__main__":
+    d = git_clone("https://github.com/KhronosGroup/Vulkan-Samples")
+    if os.environ.get("_BUILD"):
+        setup_cmake(cmake_version="3.19.3")
+        setup_android_env(jdk_version="11.0")
 
-cd("build/android_gradle")
+        call_echo("bldsys\\scripts\\generate_android_gradle.bat")
 
-try:
-    call_echo("gradle installDebug")
-except Exception:
-    if confirm("Re-run with more info?"):
-        call_echo("gradle installDebug --info")
+        cd("build/android_gradle")
 
-# open_in_editor(os.getcwd())
+        try:
+            call_echo("gradle installDebug")
+        except Exception:
+            if confirm("Re-run with more info?"):
+                call_echo("gradle installDebug --info")
+    else:
+        open_in_editor(d)
