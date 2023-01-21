@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import subprocess
 
 from _android import clear_logcat, logcat, restart_app
 from _shutil import call_echo, setup_logger
@@ -26,8 +27,8 @@ if __name__ == "__main__":
         clear_logcat()
         restart_app(pkg, use_monkey=bool(os.environ.get("USE_MONKEY")))
         if os.environ.get("_SHOW_LOGCAT"):
-            if os.environ.get("_SHOW_ALL_LOGCAT"):
-                logcat()
+            if os.environ.get("_SHOW_FULL_LOGCAT"):
+                subprocess.call(["adb", "logcat"])
             else:
                 logcat(
                     pkg=pkg,

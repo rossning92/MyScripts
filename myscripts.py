@@ -216,11 +216,12 @@ class VariableWindow(Menu):
 
 
 class ScriptManager:
-    def __init__(self, no_gui=False):
+    def __init__(self, no_gui=False, startup=False):
         self.scripts: List[Script] = []
         self.last_refresh_time = 0
         self.hotkeys = {}
         self.no_gui = no_gui
+        self.startup = startup
 
     def update_access_time(self):
         access_time, _ = get_all_script_access_time()
@@ -242,7 +243,7 @@ class ScriptManager:
     def refresh_all_scripts(self):
         begin_time = time.time()
 
-        if reload_scripts(self.scripts, autorun=not self.no_gui, startup=args.startup):
+        if reload_scripts(self.scripts, autorun=not self.no_gui, startup=self.startup):
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
@@ -252,6 +253,9 @@ class ScriptManager:
         logging.info(
             "Script reloading takes %.1f secs." % (self.last_refresh_time - begin_time)
         )
+
+        # Startup script should only be run once
+        self.startup = False
 
 
 def add_keyboard_hooks(keyboard_hooks):
@@ -646,5 +650,5 @@ if __name__ == "__main__":
 
     # setup_console_font()
     init(no_gui=args.no_gui)
-    script_manager = ScriptManager(no_gui=args.no_gui)
+    script_manager = ScriptManager(no_gui=args.no_gui, startup=args.startup)
     main_loop(no_gui=args.no_gui, quit=args.quit)

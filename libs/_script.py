@@ -16,6 +16,7 @@ from functools import lru_cache
 from typing import List
 
 import yaml
+
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -634,7 +635,7 @@ class Script:
             self.name = get_relative_script_path(self.name)
 
             # Strip extension
-            self.name, _ = os.path.splitext(self.name)
+            # self.name, _ = os.path.splitext(self.name)
 
         self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
         self.override_variables = None
