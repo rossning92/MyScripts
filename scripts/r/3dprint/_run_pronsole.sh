@@ -13,6 +13,9 @@ macro level
     G28 ; home
     G29 ; probe bed
     M500 ; save the leveling data to EEPROM
+
+macro fan
+    M106 S{0}
 EOF
 
 if ! screen -list | grep -q "3dp"; then

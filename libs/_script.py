@@ -16,7 +16,6 @@ from functools import lru_cache
 from typing import List
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -27,6 +26,7 @@ from _shutil import (
     activate_window_by_name,
     call_echo,
     clear_env_var_explorer,
+    close_window_by_name,
     convert_to_unix_path,
     exec_ahk,
     format_time,
@@ -1114,6 +1114,8 @@ class Script:
                             + ", , , .*?- Visual Studio Code",
                             wait=True,
                         )
+                    elif sys.platform == "linux":
+                        close_window_by_name(self.get_console_title())
                 try:
                     if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:

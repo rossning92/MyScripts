@@ -7,7 +7,7 @@ mkdir -p ~/Projects/MarlinFirmware
 cd ~/Projects/MarlinFirmware
 
 if [[ ! -d "Marlin" ]]; then
-    git clone --single-branch --filter=blob:none https://github.com/MarlinFirmware/Marlin
+    git clone --single-branch --filter=blob:none -b 2.1.2 https://github.com/MarlinFirmware/Marlin
 fi
 if [[ ! -d "MarlinFirmware-Configurations" ]]; then
     git clone -b cr10s-skr-mini-e3-v3-bl-touch --single-branch --filter=blob:none https://github.com/rossning92/MarlinFirmware-Configurations

@@ -33,7 +33,7 @@ TITLE_MATCH_MODE_PARTIAL = 1
 TITLE_MATCH_MODE_START_WITH = 2
 
 
-def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
+def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXACT):
     if sys.platform == "win32":
         from ctypes.wintypes import BOOL, HWND, LPARAM
 
@@ -64,17 +64,35 @@ def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
         user32.EnumWindows(WNDENUMPROC(callback), 42)
 
         if matched_hwnd:
-            user32.ShowWindow(matched_hwnd, 9)  # in case the window is minimized
-            user32.SetForegroundWindow(matched_hwnd)
-            return True
+            if cmd == "activate":
+                user32.ShowWindow(matched_hwnd, 9)  # in case the window is minimized
+                user32.SetForegroundWindow(matched_hwnd)
+                return True
+            elif cmd == "close":
+                raise NotImplementedError()
+            else:
+                raise Exception("Invalid cmd parameter: %s" % cmd)
 
     elif sys.platform == "linux":
-        id = get_output(["xdotool", "search", "--name", name])
-        if id:
-            subprocess.call(["xdotool", "windowactivate", id])
-            return True
-
+        ids = get_output(["xdotool", "search", "--name", name]).split()
+        if ids:
+            if cmd == "activate":
+                subprocess.call(["xdotool", "windowactivate", ids[0]])
+                return True
+            elif cmd == "close":
+                subprocess.call(["xdotool", "windowclose", ids[0]])
+                return True
+            else:
+                raise Exception("Invalid cmd parameter: %s" % cmd)
     return False
+
+
+def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
+    return control_window_by_name(name=name, cmd="activate", match_mode=match_mode)
+
+
+def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
+    return control_window_by_name(name=name, cmd="close", match_mode=match_mode)
 
 
 def get_hash(obj, digit=16):
