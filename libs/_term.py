@@ -186,6 +186,7 @@ class Menu:
         self.message = None
         self.cancellable = cancellable
         self.last_key_pressed_timestamp = 0
+        self.last_input = None
 
     def item(self, name=None):
         def decorator(func):
@@ -226,75 +227,84 @@ class Menu:
         self.on_update_screen()
         Menu.stdscr.refresh()
 
+    def process_events(self, blocking=True):
+        if blocking:
+            Menu.stdscr.timeout(1000)
+        else:
+            Menu.stdscr.timeout(0)
+
+        if not blocking or (self.last_input != self.get_text()):
+            self.last_input = self.get_text()
+
+            # Search scripts
+            self.matched_item_indices = list(
+                _fuzzy_search_func(self.items, self.get_text())
+            )
+
+            self.selected_row = 0
+
+        self.update_screen()
+
+        # Keyboard event
+        try:
+            ch = Menu.stdscr.getch()
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+        # Workaround for arrow keys in Alacritty
+        ALACRITTY_UP = 450
+        ALACRITTY_DOWN = 456
+
+        if ch != -1:  # getch() will return -1 when timeout
+            self.last_key_pressed_timestamp = time.time()
+            if self.on_char(ch):
+                pass
+
+            elif ch == ord("\n"):
+                self.on_enter_pressed()
+
+            elif ch == curses.KEY_UP or ch == ALACRITTY_UP:
+                self.selected_row = max(self.selected_row - 1, 0)
+                self.on_item_selected()
+
+            elif ch == curses.KEY_DOWN or ch == ALACRITTY_DOWN:
+                self.selected_row = min(
+                    self.selected_row + 1, len(self.matched_item_indices) - 1
+                )
+                self.on_item_selected()
+
+            elif ch == curses.KEY_PPAGE:
+                self.selected_row = max(
+                    self.selected_row - self.get_items_per_page(), 0
+                )
+                self.on_item_selected()
+
+            elif ch == curses.KEY_NPAGE:
+                self.selected_row = min(
+                    self.selected_row + self.get_items_per_page(),
+                    len(self.matched_item_indices) - 1,
+                )
+                self.on_item_selected()
+
+            elif ch == curses.ascii.ESC:
+                self.input_.clear()
+                if self.cancellable:
+                    self.matched_item_indices.clear()
+                    return True
+
+            elif ch != 0:
+                self.input_.on_char(ch)
+
+        if self.closed:
+            return True
+
+        return False
+
     def exec_(self):
         self.on_main_loop()
-        last_input = None
         while True:
-            if last_input != self.get_text():
-                last_input = self.get_text()
-
-                # Search scripts
-                self.matched_item_indices = list(
-                    _fuzzy_search_func(self.items, self.get_text())
-                )
-
-                self.selected_row = 0
-
-            self.update_screen()
-
-            # Keyboard event
-            try:
-                ch = Menu.stdscr.getch()
-            except KeyboardInterrupt:
-                sys.exit(0)
-
-            # Workaround for arrow keys in Alacritty
-            ALACRITTY_UP = 450
-            ALACRITTY_DOWN = 456
-
-            if ch != -1:  # getch() will return -1 when timeout
-                self.last_key_pressed_timestamp = time.time()
-                if self.on_char(ch):
-                    pass
-
-                elif ch == ord("\n"):
-                    self.on_enter_pressed()
-
-                elif ch == curses.KEY_UP or ch == ALACRITTY_UP:
-                    self.selected_row = max(self.selected_row - 1, 0)
-                    self.on_item_selected()
-
-                elif ch == curses.KEY_DOWN or ch == ALACRITTY_DOWN:
-                    self.selected_row = min(
-                        self.selected_row + 1, len(self.matched_item_indices) - 1
-                    )
-                    self.on_item_selected()
-
-                elif ch == curses.KEY_PPAGE:
-                    self.selected_row = max(
-                        self.selected_row - self.get_items_per_page(), 0
-                    )
-                    self.on_item_selected()
-
-                elif ch == curses.KEY_NPAGE:
-                    self.selected_row = min(
-                        self.selected_row + self.get_items_per_page(),
-                        len(self.matched_item_indices) - 1,
-                    )
-                    self.on_item_selected()
-
-                elif ch == curses.ascii.ESC:
-                    self.input_.clear()
-                    if self.cancellable:
-                        self.matched_item_indices.clear()
-                        return
-
-                elif ch != 0:
-                    self.input_.on_char(ch)
-
-            if self.closed:
+            if self.process_events():
                 return
-
             self.on_main_loop()
 
     def get_selected_index(self):

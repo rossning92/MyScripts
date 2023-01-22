@@ -21,4 +21,6 @@
   },
   "files.trimTrailingWhitespace": true,
   "search.useIgnoreFiles": false,
+  "python.linting.mypyEnabled": true,
+  "python.linting.enabled": true,
 }

@@ -13,7 +13,7 @@ import sys
 import tempfile
 import time
 from functools import lru_cache
-from typing import List
+from typing import Callable, List, Optional
 
 import yaml
 from _android import setup_android_env
@@ -1603,31 +1603,6 @@ def get_scripts_recursive(directory):
             yield os.path.join(root, file)
 
 
-def script_updated():
-    if not hasattr(script_updated, "last_mtime"):
-        script_updated.last_mtime = 0
-        script_updated.file_list = None
-
-    mtime = 0
-    file_list = []
-    for _, d in get_script_directories():
-        for f in get_scripts_recursive(d):
-            mtime = max(mtime, os.path.getmtime(f))
-            script_config_file = get_script_config_file(f)
-            file_list.append(f)
-
-            # Check if config file is updated
-            if script_config_file:
-                mtime = max(mtime, os.path.getmtime(script_config_file))
-
-    if (mtime > script_updated.last_mtime) or (file_list != script_updated.file_list):
-        script_updated.last_mtime = mtime
-        script_updated.file_list = file_list
-        return True
-    else:
-        return False
-
-
 def get_all_scripts():
     for _, script_path in get_script_directories():
         files = get_scripts_recursive(script_path)
@@ -1644,23 +1619,31 @@ def get_all_scripts():
             yield file
 
 
-def reload_scripts(script_list: List[Script], autorun=True, startup=False):
-    if not script_updated():
-        return False
-
+def reload_scripts(
+    script_list: List[Script],
+    autorun=True,
+    startup=False,
+    update_ui: Optional[Callable[[], None]] = None,
+):
     script_dict = {script.script_path: script for script in script_list}
     script_list.clear()
     clear_env_var_explorer()
 
-    for file in get_all_scripts():
+    any_script_reloaded = False
+    for i, file in enumerate(get_all_scripts()):
+        if i % 20 == 0:
+            if update_ui is not None:
+                update_ui()
+
         if file in script_dict:
             script = script_dict[file]
-            script_reloaded = script.update_script_mtime()
+            reloaded = script.update_script_mtime()
         else:
             script = Script(file)
-            script_reloaded = True
+            reloaded = True
 
-        if script_reloaded:
+        if reloaded:
+            any_script_reloaded = True
             should_run_script = False
             if script.cfg["autoRun"] and autorun:
                 logging.info("autorun: %s" % script.name)
@@ -1678,7 +1661,7 @@ def reload_scripts(script_list: List[Script], autorun=True, startup=False):
 
         script_list.append(script)
 
-    return True
+    return any_script_reloaded
 
 
 def render_script(script_path):

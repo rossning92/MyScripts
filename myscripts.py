@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 import traceback
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
@@ -240,10 +240,15 @@ class ScriptManager:
             reverse=True,
         )
 
-    def refresh_all_scripts(self):
+    def refresh_all_scripts(self, update_ui: Optional[Callable[[], None]] = None):
         begin_time = time.time()
 
-        if reload_scripts(self.scripts, autorun=not self.no_gui, startup=self.startup):
+        if reload_scripts(
+            self.scripts,
+            autorun=not self.no_gui,
+            startup=self.startup,
+            update_ui=update_ui,
+        ):
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
@@ -404,9 +409,7 @@ class MainWindow(Menu):
             now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
             and now - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS
         ):
-            self.set_message("(reloading scripts...)")
-            script_manager.refresh_all_scripts()
-            self.set_message(None)
+            self._reload_script()
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
@@ -432,7 +435,9 @@ class MainWindow(Menu):
 
     def _reload_script(self):
         self.set_message("(reloading scripts...)")
-        script_manager.refresh_all_scripts()
+        script_manager.refresh_all_scripts(
+            update_ui=lambda: self.process_events(blocking=False)
+        )
         self.set_message(None)
         return True
 
@@ -477,9 +482,8 @@ class MainWindow(Menu):
         script_path = self.get_selected_script_path()
         if script_path:
             self.set_message("(searching scripts to rename...)")
-            script_manager.refresh_all_scripts()
             if rename_script(script_path):
-                script_manager.refresh_all_scripts()
+                self._reload_script()
             self.set_message(None)
         self.input_.clear()
 
@@ -543,7 +547,6 @@ class MainWindow(Menu):
                 self.close()
                 return True
 
-        self.set_message(None)
         return False
 
     def on_update_screen(self):
