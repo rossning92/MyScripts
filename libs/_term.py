@@ -319,6 +319,25 @@ class Menu:
     def get_items_per_page(self):
         return self.height - 2
 
+    def print_str(self, row, col, s):
+        if row >= self.height:
+            return
+
+        for i, ch in enumerate(s):
+            if ch == "(":
+                Menu.stdscr.attron(curses.color_pair(1))
+
+            try:
+                Menu.stdscr.addstr(row, col + i, ch)
+            except curses.error:
+                # Tolerate "addwstr() returned ERR"
+                pass
+
+            if ch == ")":
+                Menu.stdscr.attroff(curses.color_pair(1))
+
+        Menu.stdscr.attroff(curses.color_pair(1))
+
     def on_update_screen(self, max_height=-1):
         if max_height < 0:
             max_height = self.height
@@ -334,10 +353,7 @@ class Menu:
             if i == selected_index_in_page:  # hightlight on
                 Menu.stdscr.attron(curses.color_pair(2))
             s = "{:>2}  {}".format(item_index + 1, self.items[item_index])
-            try:
-                Menu.stdscr.addstr(row, 0, s)
-            except curses.error:
-                pass
+            self.print_str(row, 0, s)
             if i == selected_index_in_page:  # highlight off
                 Menu.stdscr.attroff(curses.color_pair(2))
 
