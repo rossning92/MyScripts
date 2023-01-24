@@ -16,6 +16,7 @@ from functools import lru_cache
 from typing import Callable, List, Optional
 
 import yaml
+
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -1107,15 +1108,7 @@ class Script:
             if new_window:
                 if restart_instance:
                     # Close exising instances
-                    if sys.platform == "win32":
-                        exec_ahk(
-                            "SetTitleMatchMode RegEx\nWinClose, ^"
-                            + re.escape(self.get_console_title())
-                            + ", , , .*?- Visual Studio Code",
-                            wait=True,
-                        )
-                    elif sys.platform == "linux":
-                        close_window_by_name(self.get_console_title())
+                    close_window_by_name(self.get_console_title())
                 try:
                     if sys.platform == "win32":
                         if not self.cfg["runAsAdmin"]:

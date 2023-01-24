@@ -69,7 +69,8 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXA
                 user32.SetForegroundWindow(matched_hwnd)
                 return True
             elif cmd == "close":
-                raise NotImplementedError()
+                WM_CLOSE = 0x10
+                ctypes.windll.user32.PostMessageA(matched_hwnd, WM_CLOSE, 0, 0)
             else:
                 raise Exception("Invalid cmd parameter: %s" % cmd)
 
