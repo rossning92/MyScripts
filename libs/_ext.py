@@ -162,6 +162,11 @@ def create_new_script(ref_script_path=None, duplicate=False):
             shutil.copyfile(os.path.join(template_root, "python.py"), dest_script)
         elif ext == ".mmd":
             shutil.copyfile(os.path.join(template_root, "mermaid.mmd"), dest_script)
+        elif dest_script.endswith(".user.js"):
+            shutil.copyfile(
+                os.path.join(get_script_root(), "r", "hello_user_script.user.js"),
+                dest_script,
+            )
         else:
             # Create empty file
             with open(dest_script, "w") as _:

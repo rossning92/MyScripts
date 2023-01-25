@@ -16,7 +16,6 @@ from functools import lru_cache
 from typing import Callable, List, Optional
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -29,7 +28,6 @@ from _shutil import (
     clear_env_var_explorer,
     close_window_by_name,
     convert_to_unix_path,
-    exec_ahk,
     format_time,
     get_ahk_exe,
     get_home_path,
@@ -41,6 +39,7 @@ from _shutil import (
     run_elevated,
     save_yaml,
     setup_nodejs,
+    shell_open,
     slugify,
     wrap_args_conemu,
     write_temp_file,
@@ -65,6 +64,7 @@ SCRIPT_EXTENSIONS = {
     ".ps1",
     ".py",
     ".sh",
+    ".url",
     ".vbs",  # Windows specific,
 }
 
@@ -542,6 +542,14 @@ def wrap_args_wt(
         return [WINDOWS_TERMINAL_EXEC] + args
 
 
+def get_hotkey_abbr(hotkey):
+    hotkey = (
+        hotkey.lower().replace("win+", "#").replace("ctrl+", "^").replace("alt+", "!")
+    )
+    hotkey = re.sub(r"shift\+([a-z])", lambda m: m.group(1).upper(), hotkey)
+    return hotkey
+
+
 def wrap_args_alacritty(
     args,
     title=None,
@@ -678,18 +686,14 @@ class Script:
         result = self.name
 
         if self.ext == ".link":
-            result += " [lnk]"
+            result += "  (lnk)"
 
         # Name: show shortcut
         if self.cfg["hotkey"]:
-            result += "  (%s)" % self.cfg["hotkey"].lower().replace(
-                "win+", "#"
-            ).replace("ctrl+", "^").replace("alt+", "!").replace("shift+", "+")
+            result += "  (%s)" % get_hotkey_abbr(self.cfg["hotkey"])
 
         if self.cfg["globalHotkey"]:
-            result += "  (%s)" % self.cfg["globalHotkey"].lower().replace(
-                "win+", "#"
-            ).replace("ctrl+", "^").replace("alt+", "!").replace("shift+", "+")
+            result += "  (%s)" % get_hotkey_abbr(self.cfg["globalHotkey"])
 
         return result
 
@@ -1062,6 +1066,11 @@ class Script:
         elif ext == ".cpp" or ext == ".c" or ext == ".cc":
             args = ["run_script", "ext/build_and_run_cpp.py", script_path]
 
+        elif ext == ".url":
+            with open(self.script_path, "r", encoding="utf-8") as f:
+                url = f.read()
+                shell_open(url)
+
         else:
             print("Not supported script:", ext)
 
@@ -1297,6 +1306,9 @@ class Script:
             #     input()
 
             return success
+
+        else:
+            return True
 
     def get_variable_names(self):
         with open(self.script_path, "r", encoding="utf-8") as f:

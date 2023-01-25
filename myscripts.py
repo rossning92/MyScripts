@@ -27,6 +27,7 @@ from _script import (
     get_all_script_access_time,
     get_all_variables,
     get_data_dir,
+    get_hotkey_abbr,
     get_script_variables,
     is_instance_running,
     reload_scripts,
@@ -366,7 +367,7 @@ class InternalHotkey:
         self.func = func
 
     def __str__(self) -> str:
-        return "%s  (%s)" % (self.func.__name__, self.hotkey)
+        return "%s  (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
 
 
 def restart_program():
