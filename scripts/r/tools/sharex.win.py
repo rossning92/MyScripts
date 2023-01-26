@@ -6,9 +6,9 @@ import time
 
 
 def kill_proc():
-    while subprocess.call('tasklist | find "ShareX.exe"', shell=True) == 0:
-        subprocess.call("taskkill /im ShareX.exe")
-        time.sleep(0.5)
+    while subprocess.call('TASKLIST | FIND "ShareX.exe"', shell=True) == 0:
+        subprocess.call(["TASKKILL", "/IM", "ShareX.exe"])
+        time.sleep(1)
 
 
 def run_sharex():

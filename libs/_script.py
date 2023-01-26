@@ -1,3 +1,4 @@
+import bisect
 import ctypes
 import glob
 import json
@@ -16,6 +17,7 @@ from functools import lru_cache
 from typing import Callable, List, Optional
 
 import yaml
+
 from _android import setup_android_env
 from _browser import open_url
 from _editor import open_in_editor
@@ -666,6 +668,9 @@ class Script:
             self.real_ext = None
 
         self.cfg = self.load_config()
+
+    def __lt__(self, other):
+        return self.mtime > other.mtime  # sort by modified time decendently by default
 
     def update_script_mtime(self):
         assert self.script_path
@@ -1664,7 +1669,7 @@ def reload_scripts(
                 except Exception as ex:
                     logging.warn(ex)
 
-        script_list.append(script)
+        bisect.insort(script_list, script)
 
     return any_script_reloaded
 

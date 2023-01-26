@@ -187,6 +187,7 @@ class Menu:
         self.cancellable = cancellable
         self.last_key_pressed_timestamp = 0
         self.last_input = None
+        self.last_item_count = 0
 
     def item(self, name=None):
         def decorator(func):
@@ -227,21 +228,27 @@ class Menu:
         self.on_update_screen()
         Menu.stdscr.refresh()
 
+    def update_matched_items(self):
+        # Search scripts
+        self.matched_item_indices = list(
+            _fuzzy_search_func(self.items, self.get_text())
+        )
+
+        self.selected_row = 0
+
     def process_events(self, blocking=True):
         if blocking:
             Menu.stdscr.timeout(1000)
         else:
             Menu.stdscr.timeout(0)
 
-        if not blocking or (self.last_input != self.get_text()):
+        if not blocking or (
+            self.last_input != self.get_text()
+            or self.last_item_count != len(self.items)
+        ):
             self.last_input = self.get_text()
-
-            # Search scripts
-            self.matched_item_indices = list(
-                _fuzzy_search_func(self.items, self.get_text())
-            )
-
-            self.selected_row = 0
+            self.last_item_count = len(self.items)
+            self.update_matched_items()
 
         self.update_screen()
 

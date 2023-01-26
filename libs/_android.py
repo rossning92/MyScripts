@@ -40,7 +40,20 @@ def reset_debug_sysprops():
         logging.error(ex)
 
 
-def start_app(pkg, use_monkey=False):
+def wake_up_device():
+    out = subprocess.check_output(
+        ["adb", "shell", "dumpsys power | grep 'mWakefulness='"],
+        universal_newlines=True,
+    )
+    if "Asleep" in out:
+        logging.log("Device is asleep, wake up by press power button.")
+        subprocess.check_call(["adb", "shell", "input keyevent 26"])  # power key
+
+
+def start_app(pkg, use_monkey=False, wake_up=True):
+    if wake_up:
+        wake_up_device()
+
     if use_monkey:
         args = [
             "adb",
@@ -88,12 +101,12 @@ def kill_app(pkg):
     call_echo(args)
 
 
-def restart_app(pkg, use_monkey=False):
+def restart_app(pkg, use_monkey=False, wake_up=True):
     logger.info("Stop app: " + pkg)
     args = "adb shell am force-stop %s" % pkg
     call2(args)
 
-    start_app(pkg, use_monkey=use_monkey)
+    start_app(pkg, use_monkey=use_monkey, wake_up=wake_up)
 
 
 def restart_current_app():

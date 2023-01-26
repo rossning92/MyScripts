@@ -166,6 +166,11 @@ class VariableEditWindow(Menu):
             if val is not None:
                 self.input_.set_text(val)
             return True
+        elif ch == curses.KEY_DC:  # delete key on Windows
+            i = self.get_selected_index()
+            del self.vars[self.var_name][i]
+            save_variables(self.vars)
+            return True
 
         return False
 
