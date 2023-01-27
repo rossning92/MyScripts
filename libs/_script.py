@@ -433,7 +433,7 @@ def wrap_args_tee(args, out_file):
     return ["powershell", tmp_file]
 
 
-def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None):
+def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None) -> str:
     assert type(args) is list
 
     cmd_args = "cmd /c "
@@ -451,9 +451,9 @@ def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None):
     cmd_args += _args_to_str(args)
 
     # Pause on error
-    if close_on_exit:
+    if close_on_exit is True:
         cmd_args += "||pause"
-    else:
+    elif close_on_exit is False:
         cmd_args += "&pause"
 
     return cmd_args
@@ -670,7 +670,7 @@ class Script:
         self.cfg = self.load_config()
 
     def __lt__(self, other):
-        return self.mtime > other.mtime  # sort by modified time decendently by default
+        return self.mtime > other.mtime  # sort by modified time descendently by default
 
     def update_script_mtime(self):
         assert self.script_path
@@ -1093,21 +1093,6 @@ class Script:
                 )
                 open_log_file(log_file)
 
-            # Check if run as admin
-            if self.cfg["runAsAdmin"]:
-                if sys.platform == "win32":
-                    args = wrap_args_cmd(
-                        args,
-                        cwd=cwd,
-                        title=self.get_console_title(),
-                        env=env,
-                        close_on_exit=close_on_exit,
-                    )
-
-                    logging.debug("run_elevated(%s)" % args)
-                    run_elevated(args, wait=(not new_window))
-                    return True
-
             no_wait = False
             popen_extra_args = {}
 
@@ -1125,66 +1110,65 @@ class Script:
                     close_window_by_name(self.get_console_title())
                 try:
                     if sys.platform == "win32":
-                        if not self.cfg["runAsAdmin"]:
-                            # Open in specified terminal (e.g. Windows Terminal)
-                            if self.cfg["terminal"] in [
-                                "wt",
-                                "wsl",
-                                "windowsTerminal",
-                            ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
-                                args = wrap_args_wt(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    wsl=self.cfg["wsl"],
-                                )
-                                no_wait = True
+                        # Open in specified terminal (e.g. Windows Terminal)
+                        if self.cfg["terminal"] in [
+                            "wt",
+                            "wsl",
+                            "windowsTerminal",
+                        ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
+                            args = wrap_args_wt(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.cfg["wsl"],
+                            )
+                            no_wait = True
 
-                            elif self.cfg["terminal"] == "alacritty" and shutil.which(
-                                "alacritty"
-                            ):
-                                args = wrap_args_alacritty(
-                                    args,
-                                    title=self.get_console_title(),
-                                )
+                        elif self.cfg["terminal"] == "alacritty" and shutil.which(
+                            "alacritty"
+                        ):
+                            args = wrap_args_alacritty(
+                                args,
+                                title=self.get_console_title(),
+                            )
 
-                                # Workaround that prevents alacritty from being closed by parent terminal.
-                                # The "shell = True" below is very important!
-                                DETACHED_PROCESS = 0x00000008
-                                CREATE_BREAKAWAY_FROM_JOB = 0x01000000
-                                popen_extra_args["creationflags"] = (
-                                    subprocess.CREATE_NEW_PROCESS_GROUP
-                                    | DETACHED_PROCESS
-                                    # | CREATE_BREAKAWAY_FROM_JOB
-                                )
-                                popen_extra_args["close_fds"] = True
-                                shell = True
-                                no_wait = True
+                            # Workaround that prevents alacritty from being closed by parent terminal.
+                            # The "shell = True" below is very important!
+                            DETACHED_PROCESS = 0x00000008
+                            CREATE_BREAKAWAY_FROM_JOB = 0x01000000
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NEW_PROCESS_GROUP
+                                | DETACHED_PROCESS
+                                # | CREATE_BREAKAWAY_FROM_JOB
+                            )
+                            popen_extra_args["close_fds"] = True
+                            shell = True
+                            no_wait = True
 
-                            elif self.cfg["terminal"] == "conemu" and os.path.isdir(
-                                CONEMU_INSTALL_DIR
-                            ):
-                                args = wrap_args_conemu(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    wsl=self.cfg["wsl"],
-                                    always_on_top=True,
-                                )
-                                no_wait = True
+                        elif self.cfg["terminal"] == "conemu" and os.path.isdir(
+                            CONEMU_INSTALL_DIR
+                        ):
+                            args = wrap_args_conemu(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                wsl=self.cfg["wsl"],
+                                always_on_top=True,
+                            )
+                            no_wait = True
 
-                            else:
-                                args = wrap_args_cmd(
-                                    args,
-                                    cwd=cwd,
-                                    title=self.get_console_title(),
-                                    env=env,
-                                )
-                                popen_extra_args["creationflags"] = (
-                                    subprocess.CREATE_NEW_CONSOLE
-                                    | subprocess.CREATE_NEW_PROCESS_GROUP
-                                )
-                                no_wait = True
+                        else:
+                            args = wrap_args_cmd(
+                                args,
+                                cwd=cwd,
+                                title=self.get_console_title(),
+                                env=env,
+                            )
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NEW_CONSOLE
+                                | subprocess.CREATE_NEW_PROCESS_GROUP
+                            )
+                            no_wait = True
 
                     elif sys.platform == "linux":
                         # args = ["tmux", "split-window"] + args
@@ -1295,24 +1279,42 @@ class Script:
                 if sys.platform == "linux":
                     popen_extra_args["start_new_session"] = True
 
-            ps = subprocess.Popen(
-                args=args,
-                env={**os.environ, **env},
-                cwd=cwd,
-                shell=shell,
-                **popen_extra_args,
-            )
-            success = True
-            if not no_wait:
-                success = ps.wait() == 0
+            if self.cfg["runAsAdmin"]:
+                logging.debug("run_elevated(%s)" % args)
 
-            # if not new_window and not close_on_exit:
-            #     print("(press enter to exit...)")
-            #     input()
+                # Passing environmental variables
+                args = wrap_args_cmd(
+                    args,
+                    cwd=cwd,
+                    title=self.get_console_title(),
+                    env=env,
+                )
 
-            return success
+                return_code = run_elevated(args, wait=not no_wait)
+                if no_wait:
+                    return True
+                else:
+                    return return_code == 0
 
-        else:
+            else:
+                ps = subprocess.Popen(
+                    args=args,
+                    env={**os.environ, **env},
+                    cwd=cwd,
+                    shell=shell,
+                    **popen_extra_args,
+                )
+                success = True
+                if not no_wait:
+                    success = ps.wait() == 0
+
+                # if not new_window and not close_on_exit:
+                #     print("(press enter to exit...)")
+                #     input()
+
+                return success
+
+        else:  # no args
             return True
 
     def get_variable_names(self):

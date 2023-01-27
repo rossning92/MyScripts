@@ -328,6 +328,8 @@ def register_global_hotkeys_win(scripts):
         if mc:
             match_clipboard.append([mc, item.name, item.script_path])
 
+    match_clipboard = sorted(match_clipboard, key=lambda x: x[1])  # sort by name
+
     render_template_file(
         "GlobalHotkey.ahk",
         GLOBAL_HOTKEY,

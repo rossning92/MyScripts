@@ -1729,15 +1729,17 @@ def keep_awake():
 
 
 def quote_arg(s, single_quote=False, powershell=False):
-    if powershell:
-        s = s.replace("(", r"`(").replace(")", r"`)")
+    if sys.platform == "win32":
+        if powershell:
+            s = s.replace("(", r"`(").replace(")", r"`)")
+        else:
+            s = s.replace('"', '""')  # for cmd, we need to escape " with ""
     if " " in s or "\\" in s:
         if single_quote:
-            return "'" + s + "'"
+            s = "'" + s + "'"
         else:
-            return '"' + s + '"'
-    else:
-        return s
+            s = '"' + s + '"'
+    return s
 
 
 def get_env_bool(name):
