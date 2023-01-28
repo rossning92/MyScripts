@@ -20,7 +20,6 @@ import yaml
 
 from _android import setup_android_env
 from _browser import open_url
-from _editor import open_in_editor
 from _filelock import FileLock
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
@@ -40,6 +39,7 @@ from _shutil import (
     quote_arg,
     run_elevated,
     save_yaml,
+    set_clip,
     setup_nodejs,
     shell_open,
     slugify,
@@ -66,6 +66,7 @@ SCRIPT_EXTENSIONS = {
     ".ps1",
     ".py",
     ".sh",
+    ".txt",
     ".url",
     ".vbs",  # Windows specific,
 }
@@ -846,8 +847,10 @@ class Script:
         with open(_get_script_history_file(), "w") as f:
             json.dump({"file": script_path}, f)
 
-        if ext == ".md":
-            open_in_editor(script_path)
+        if ext == ".md" or ext == ".txt":
+            with open(script_path, "r", encoding="utf-8") as f:
+                s = f.read()
+            set_clip(s)
             return True
 
         if type(args) == str:
