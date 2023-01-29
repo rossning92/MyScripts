@@ -2,6 +2,7 @@ import ctypes
 import curses
 import curses.ascii
 import locale
+import logging
 import os
 import re
 import sys
@@ -202,20 +203,45 @@ class Menu:
 
         return decorator
 
+    def run_cmd(self, func):
+        Menu.destroy_curses()
+        func()
+        Menu.init_curses()
+
     def exec(self) -> int:
         if Menu.stdscr is None:
-            curses.wrapper(self.main_loop_wrapped)
+            try:
+                Menu.init_curses()
+                self.exec_()
+            finally:
+                Menu.destroy_curses()
         else:
             self.exec_()
+
         return self.get_selected_index()
 
-    def main_loop_wrapped(self, stdscr):
-        try:
-            Menu.stdscr = stdscr
-            init_curses(stdscr)
-            self.exec_()
-        finally:
-            Menu.stdscr = None
+    @staticmethod
+    def init_curses():
+        if Menu.stdscr is not None:
+            return
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        stdscr.keypad(1)
+        stdscr.nodelay(False)
+        stdscr.timeout(1000)
+        Menu.stdscr = stdscr
+
+    @staticmethod
+    def destroy_curses():
+        if Menu.stdscr is None:
+            return
+        curses.endwin()
+        Menu.stdscr = None
 
     def update_screen(self):
         self.height, self.width = Menu.stdscr.getmaxyx()
@@ -405,20 +431,6 @@ class Menu:
     def on_item_selected(self):
         pass
 
-    def loop(self):
-        while True:
-            self.closed = False
-            self.exec()
-
-            idx = self.get_selected_index()
-            if idx < 0:
-                break
-
-            if idx >= 0 and idx < len(self.on_items):
-                self.on_items[idx]()
-
-            time.sleep(1)
-
     def set_message(self, message):
         self.message = message
         self.update_screen()
@@ -520,18 +532,6 @@ class DictEditWindow(Menu):
 
         self.update_items()
         self.input_.clear()
-
-
-def init_curses(stdscr):
-    curses.noecho()
-    curses.cbreak()
-    curses.start_color()
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    stdscr.keypad(1)
-    stdscr.nodelay(False)
-    stdscr.timeout(1000)
 
 
 def clear_terminal():

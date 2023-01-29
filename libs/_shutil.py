@@ -75,6 +75,10 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXA
                 raise Exception("Invalid cmd parameter: %s" % cmd)
 
     elif sys.platform == "linux":
+        if not shutil.which("xdotool"):
+            logging.warning("Skip %s window, xdotool is not installed." % cmd)
+            return
+
         ids = get_output(["xdotool", "search", "--name", name]).split()
         if ids:
             if cmd == "activate":
@@ -500,12 +504,9 @@ def copy(src, dst, overwrite=False):
             copy(f, dst)
 
 
-def run_elevated(args, wait=True):
+def run_elevated(args, wait=True, show_terminal_window=True):
     if sys.platform == "win32":
-        import win32api
         import win32con
-        import win32event
-        import win32process
         from win32com.shell import shellcon
         from win32com.shell.shell import ShellExecuteEx
 
@@ -516,16 +517,25 @@ def run_elevated(args, wait=True):
             lpParameters = subprocess.list2cmdline(args[1:])
 
         process_info = ShellExecuteEx(
-            nShow=win32con.SW_SHOW,
+            nShow=win32con.SW_SHOW if show_terminal_window else win32con.SW_HIDE,
             fMask=shellcon.SEE_MASK_NOCLOSEPROCESS,
             lpVerb="runas",
             lpFile=lpFile,
             lpParameters=lpParameters,
         )
         if wait:
-            win32event.WaitForSingleObject(process_info["hProcess"], 600000)
-            ret = win32process.GetExitCodeProcess(process_info["hProcess"])
-            win32api.CloseHandle(process_info["hProcess"])
+            h = process_info["hProcess"].handle
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            if kernel32.WaitForSingleObject(h, 600000) == 0:  # WAIT_OBJECT_0
+                exit_code = ctypes.c_ulong()
+                if kernel32.GetExitCodeProcess(h, ctypes.byref(exit_code)):
+                    ret = exit_code.value
+                else:
+                    raise ctypes.WinError(ctypes.get_last_error())
+            else:
+                raise Exception("WaitForSingleObject failed")
+
+            kernel32.CloseHandle(h)
         else:
             ret = process_info
     else:
@@ -1728,14 +1738,14 @@ def keep_awake():
         )
 
 
-def quote_arg(s, single_quote=False, powershell=False):
-    if sys.platform == "win32":
-        if powershell:
-            s = s.replace("(", r"`(").replace(")", r"`)")
-        else:
-            s = s.replace('"', '""')  # for cmd, we need to escape " with ""
-    if " " in s or "\\" in s:
-        if single_quote:
+def quote_arg(s, shell_type="cmd"):
+    if shell_type == "powershell":
+        s = s.replace("(", r"`(").replace(")", r"`)")
+    elif shell_type == "cmd":
+        s = s.replace('"', '""')  # for cmd, we need to escape " with ""
+
+    if " " in s or (shell_type != "cmd" and "\\" in s):
+        if shell_type == "bash":
             s = "'" + s + "'"
         else:
             s = '"' + s + '"'

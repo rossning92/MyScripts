@@ -14,10 +14,9 @@ import sys
 import tempfile
 import time
 from functools import lru_cache
-from typing import Callable, List, Optional
+from typing import Callable, List, Literal, Optional
 
 import yaml
-
 from _android import setup_android_env
 from _browser import open_url
 from _filelock import FileLock
@@ -191,7 +190,7 @@ def wrap_wsl(commands, env=None):
             bash += "export {}='{}'\n".format(k, v)
 
     if type(commands) in [list, tuple]:
-        bash += _args_to_str(commands)
+        bash += _args_to_str(commands, shell_type="bash")
     else:
         bash += commands
 
@@ -251,19 +250,14 @@ def exec_cmd(cmd):
     subprocess.check_call(args)
 
 
-def _args_to_str(args, single_quote=False, powershell=False):
+def _args_to_str(args, shell_type: Literal["powershell", "cmd", "bash"]):
     assert type(args) in [list, tuple]
-    if powershell:
+    if shell_type == "powershell":
         return " ".join(
             [x.replace(" ", "` ").replace("(", "`(").replace(")", "`)") for x in args]
         )
     else:
-        return " ".join(
-            [
-                quote_arg(x, single_quote=single_quote, powershell=powershell)
-                for x in args
-            ]
-        )
+        return " ".join([quote_arg(x, shell_type=shell_type) for x in args])
 
 
 @lru_cache(maxsize=None)
@@ -426,7 +420,7 @@ def wrap_args_tee(args, out_file):
 
     s = (
         "& "
-        + _args_to_str(args, powershell=True)
+        + _args_to_str(args, shell_type="powershell")
         + r" | Tee-Object -FilePath %s" % out_file
     )
     tmp_file = write_temp_file(s, ".ps1")
@@ -449,7 +443,7 @@ def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None) -> s
         for k, v in env.items():
             cmd_args += "&".join(['set "%s=%s"' % (k, v)]) + "&"
 
-    cmd_args += _args_to_str(args)
+    cmd_args += _args_to_str(args, shell_type="cmd")
 
     # Pause on error
     if close_on_exit is True:
@@ -979,7 +973,7 @@ class Script:
             args = [script_path] + args
             if self.cfg["wsl"]:
                 args = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in args]
-            bash_cmd = "bash " + _args_to_str(args, single_quote=True)
+            bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
             logging.debug("bash_cmd: %s" % bash_cmd)
 
             args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)
@@ -1097,6 +1091,7 @@ class Script:
                 open_log_file(log_file)
 
             no_wait = False
+            open_in_terminal = False
             popen_extra_args = {}
 
             if command_wrapper and not background and not self.cfg["minimized"]:
@@ -1126,6 +1121,7 @@ class Script:
                                 wsl=self.cfg["wsl"],
                             )
                             no_wait = True
+                            open_in_terminal = True
 
                         elif self.cfg["terminal"] == "alacritty" and shutil.which(
                             "alacritty"
@@ -1147,6 +1143,7 @@ class Script:
                             popen_extra_args["close_fds"] = True
                             shell = True
                             no_wait = True
+                            open_in_terminal = True
 
                         elif self.cfg["terminal"] == "conemu" and os.path.isdir(
                             CONEMU_INSTALL_DIR
@@ -1159,6 +1156,7 @@ class Script:
                                 always_on_top=True,
                             )
                             no_wait = True
+                            open_in_terminal = True
 
                         else:
                             args = wrap_args_cmd(
@@ -1172,6 +1170,7 @@ class Script:
                                 | subprocess.CREATE_NEW_PROCESS_GROUP
                             )
                             no_wait = True
+                            open_in_terminal = True
 
                     elif sys.platform == "linux":
                         # args = ["tmux", "split-window"] + args
@@ -1184,7 +1183,7 @@ class Script:
                                 "bash",
                                 "-c",
                                 "%s || read -rsn1 -p 'Press any key to exit...'"
-                                % _args_to_str(args, single_quote=True),
+                                % _args_to_str(args, shell_type="bash"),
                             ]
 
                         elif TERMINAL == "xterm":
@@ -1195,9 +1194,10 @@ class Script:
                                 "-T",
                                 self.get_console_title(),
                                 "-e",
-                                _args_to_str(args),
+                                _args_to_str(args, shell_type="bash"),
                             ]
                             no_wait = True
+                            open_in_terminal = True
 
                         elif TERMINAL == "xfce":
                             args = [
@@ -1205,10 +1205,11 @@ class Script:
                                 "-T",
                                 self.get_console_title(),
                                 "-e",
-                                _args_to_str(args),
+                                _args_to_str(args, shell_type="bash"),
                                 "--hold",
                             ]
                             no_wait = True
+                            open_in_terminal = True
 
                         elif TERMINAL == "kitty":
                             args = [
@@ -1217,6 +1218,7 @@ class Script:
                                 self.get_console_title(),
                             ] + args
                             no_wait = True
+                            open_in_terminal = True
 
                         elif TERMINAL == "alacritty":
                             require_package("alacritty")
@@ -1225,6 +1227,7 @@ class Script:
                                 title=self.get_console_title(),
                             )
                             no_wait = True
+                            open_in_terminal = True
 
                     else:
                         logging.warning(
@@ -1277,14 +1280,11 @@ class Script:
                         '"minimized" is not supported on platform %s' % sys.platform
                     )
 
-            logging.debug("subprocess.Popen(): args=%s" % args)
             if no_wait:
                 if sys.platform == "linux":
                     popen_extra_args["start_new_session"] = True
 
             if self.cfg["runAsAdmin"]:
-                logging.debug("run_elevated(%s)" % args)
-
                 # Passing environmental variables
                 args = wrap_args_cmd(
                     args,
@@ -1293,13 +1293,17 @@ class Script:
                     env=env,
                 )
 
-                return_code = run_elevated(args, wait=not no_wait)
+                logging.debug("run_elevated(): args=%s" % args)
+                return_code = run_elevated(
+                    args, wait=not no_wait, show_terminal_window=not open_in_terminal
+                )
                 if no_wait:
                     return True
                 else:
                     return return_code == 0
 
             else:
+                logging.debug("subprocess.Popen(): args=%s" % args)
                 ps = subprocess.Popen(
                     args=args,
                     env={**os.environ, **env},
@@ -1377,7 +1381,12 @@ def run_script(
         file = get_last_script()
 
     # Print command line arguments
-    logging.info("run_script: %s" % _args_to_str([file] + args))
+    logging.info(
+        "run_script: %s"
+        % _args_to_str(
+            [file] + args, shell_type="cmd" if sys.platform == "win32" else "bash"
+        )
+    )
 
     script_path = find_script(file)
     if script_path is None:

@@ -55,9 +55,6 @@ GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 KEY_CODE_CTRL_ENTER_WIN = 529
 
 
-callback_queue = []
-
-
 def execute_script(script: Script, close_on_exit=None, no_gui=False):
     refresh_env_vars()
     if no_gui:
@@ -427,14 +424,13 @@ class MainWindow(Menu):
             update_script_access_time(script)
             script_manager.sort_scripts()
 
-            callback_queue.append(
+            self.run_cmd(
                 lambda: execute_script(
                     script,
                     close_on_exit=close_on_exit,
                     no_gui=self.no_gui,
                 )
             )
-            self.close()
 
     def get_selected_script_path(self):
         index = self.get_selected_index()
@@ -444,7 +440,12 @@ class MainWindow(Menu):
     def _reload_script(self):
         self.set_message("(reloading scripts...)")
         script_manager.refresh_all_scripts(
-            update_ui=lambda: self.process_events(blocking=False)
+            update_ui=lambda: (
+                self.process_events(blocking=False),
+                self.set_message(
+                    "(reloading scripts: %d)" % len(script_manager.scripts)
+                ),
+            )
         )
         self.set_message(None)
         return True
@@ -498,8 +499,7 @@ class MainWindow(Menu):
     def _edit_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            callback_queue.append(lambda: edit_myscript_script(script_path))
-            self.close()
+            self.run_cmd(lambda: edit_myscript_script(script_path))
 
     def _help(self):
         items = []
@@ -517,6 +517,7 @@ class MainWindow(Menu):
 
         elif ch == ord("\n"):
             self.run_selected_script()
+            self.input_.clear()
             return True
 
         elif ch == curses.ascii.ctrl(ord("c")):
@@ -537,8 +538,7 @@ class MainWindow(Menu):
             return True
 
         elif ch == ord("L"):
-            callback_queue.append(lambda: restart_program())
-            self.close()
+            self.run_cmd(lambda: restart_program())
 
         elif ch in script_manager.hotkeys:
             script = self.get_selected_text()
@@ -546,13 +546,12 @@ class MainWindow(Menu):
                 script_abs_path = os.path.abspath(script.script_path)
                 os.environ["SCRIPT"] = script_abs_path
 
-                callback_queue.append(
+                self.run_cmd(
                     lambda: execute_script(
                         script_manager.hotkeys[ch], no_gui=self.no_gui
                     )
                 )
-                callback_queue.append(lambda: script_manager.sort_scripts())
-                self.close()
+                self.run_cmd(lambda: script_manager.sort_scripts())
                 return True
 
         return False
@@ -617,10 +616,6 @@ def main_loop(no_gui=None, quit=False):
     while True:
         try:
             MainWindow(no_gui=no_gui).exec()
-
-            while len(callback_queue) > 0:
-                callback = callback_queue.pop(0)
-                callback()
 
             if quit:
                 break
