@@ -106,10 +106,11 @@ def edit_script_config(script_path):
 
 
 def copy_script_path_to_clipboard(script_path):
-    if script_path.endswith(".md"):
+    _, ext = os.path.splitext(script_path)
+    if ext == ".md" or ext == ".txt":
         with open(script_path, "r", encoding="utf-8") as f:
             set_clip(f.read())
-        logging.info("Markdown content is copied to clipboard.")
+        logging.info("Content is copied to clipboard.")
     else:
         # Copy relative path
         script_path = get_relative_script_path(script_path)

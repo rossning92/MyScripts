@@ -30,7 +30,9 @@ if __name__ == "__main__":
         if not pkg:
             sys.exit(0)
 
-    out_dir = os.path.abspath("/tmp/android_backup")
+    out_dir = os.environ.get(
+        "ANDROID_APP_BACKUP_DIR", os.path.expanduser("~/android_backup")
+    )
     os.makedirs(out_dir, exist_ok=True)
     backup_pkg(pkg, out_dir=out_dir)
     shell_open(out_dir)
