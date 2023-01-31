@@ -221,8 +221,7 @@ class VariableWindow(Menu):
 class ScriptManager:
     def __init__(self, no_gui=False, startup=False):
         self.scripts: List[Script] = []
-        self.last_refresh_time = 0
-        self.hotkeys = {}
+        self.hotkeys: Dict[str, Script] = {}
         self.no_gui = no_gui
         self.startup = startup
 
@@ -256,11 +255,8 @@ class ScriptManager:
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
         self.sort_scripts()
-        self.last_refresh_time = time.time()
 
-        logging.info(
-            "Script reloading takes %.1f secs." % (self.last_refresh_time - begin_time)
-        )
+        logging.info("Script reloading takes %.1f secs." % (time.time() - begin_time))
 
         # Startup script should only be run once
         self.startup = False
@@ -385,6 +381,7 @@ def restart_program():
 class MainWindow(Menu):
     def __init__(self, no_gui=None):
         self.no_gui = no_gui
+        self.last_refresh_time = 0
 
         super().__init__(
             items=script_manager.scripts,
@@ -412,7 +409,7 @@ class MainWindow(Menu):
         now = time.time()
         if (
             now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
-            and now - script_manager.last_refresh_time > REFRESH_INTERVAL_SECS
+            and now - self.last_refresh_time > REFRESH_INTERVAL_SECS
         ):
             self._reload_script()
 
@@ -448,6 +445,7 @@ class MainWindow(Menu):
             )
         )
         self.set_message(None)
+        self.update_last_refresh_time()
         return True
 
     def _edit_script_config(self):
@@ -508,53 +506,58 @@ class MainWindow(Menu):
         w = Menu(label="all hotkeys", items=items)
         w.exec()
 
-    def on_char(self, ch):
+    def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
 
-        if ch in self.internal_hotkeys:
-            self.internal_hotkeys[ch].func()
-            return True
-
-        elif ch == ord("\n"):
-            self.run_selected_script()
-            self.input_.clear()
-            return True
-
-        elif ch == curses.ascii.ctrl(ord("c")):
-            sys.exit(0)
-
-        elif ch == KEY_CODE_CTRL_ENTER_WIN:
-            self.run_selected_script(close_on_exit=False)
-            return True
-
-        elif ch == ord("\t"):
-            script = self.get_selected_text()
-            if script is not None:
-                w = VariableWindow(script)
-                if w.var_names:
-                    w.exec()
-                    if w.enter_pressed:
-                        self.run_selected_script()
-            return True
-
-        elif ch == ord("L"):
-            self.run_cmd(lambda: restart_program())
-
-        elif ch in script_manager.hotkeys:
-            script = self.get_selected_text()
-            if script is not None:
-                script_abs_path = os.path.abspath(script.script_path)
-                os.environ["SCRIPT"] = script_abs_path
-
-                self.run_cmd(
-                    lambda: execute_script(
-                        script_manager.hotkeys[ch], no_gui=self.no_gui
-                    )
-                )
-                self.run_cmd(lambda: script_manager.sort_scripts())
+    def on_char(self, ch):
+        try:
+            if ch in self.internal_hotkeys:
+                self.internal_hotkeys[ch].func()
                 return True
 
-        return False
+            elif ch == ord("\n"):
+                self.run_selected_script()
+                self.input_.clear()
+                return True
+
+            elif ch == curses.ascii.ctrl(ord("c")):
+                sys.exit(0)
+
+            elif ch == KEY_CODE_CTRL_ENTER_WIN:
+                self.run_selected_script(close_on_exit=False)
+                return True
+
+            elif ch == ord("\t"):
+                script = self.get_selected_text()
+                if script is not None:
+                    w = VariableWindow(script)
+                    if w.var_names:
+                        w.exec()
+                        if w.enter_pressed:
+                            self.run_selected_script()
+                return True
+
+            elif ch == ord("L"):
+                self.run_cmd(lambda: restart_program())
+
+            elif ch in script_manager.hotkeys:
+                script = self.get_selected_text()
+                if script is not None:
+                    script_abs_path = os.path.abspath(script.script_path)
+                    os.environ["SCRIPT"] = script_abs_path
+
+                    self.run_cmd(
+                        lambda: execute_script(
+                            script_manager.hotkeys[ch], no_gui=self.no_gui
+                        )
+                    )
+                    self.run_cmd(lambda: script_manager.sort_scripts())
+                    return True
+
+            return False
+        finally:
+            # Reset last refresh time when key press event is processed
+            self.update_last_refresh_time()
 
     def on_update_screen(self):
         height = self.height
