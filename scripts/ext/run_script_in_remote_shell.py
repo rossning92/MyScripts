@@ -6,6 +6,7 @@ from _shutil import (
     activate_window_by_name,
     call_echo,
     convert_to_unix_path,
+    quote_arg,
     write_temp_file,
 )
 
@@ -20,6 +21,11 @@ def run_bash_script_in_remote_shell(script_path):
     android_serial = get_variable("ANDROID_SERIAL")
     if android_serial:
         s += "export ANDROID_SERIAL=%s\n" % android_serial
+
+    # Passing variables through environmental variable
+    for k, v in script.get_variables().items():
+        s += "export %s=%s\n" % (k, quote_arg(v, shell_type="bash"))
+    s += "\n"
 
     s += script.render()
     s += "\n"

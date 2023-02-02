@@ -2,17 +2,20 @@ import os
 import sys
 
 from _pkgmanager import find_executable, require_package
-from _shutil import call2, get_files, mkdir, shell_open
+from _shutil import call2, mkdir, shell_open
 
 
-def unzip(files, open_out_dir=False):
+def unzip(src, dest=None, open_out_dir=False):
     extracted = False
-    for file in files:
+    for file in src:
         gzip_extension = [".tar.gz", ".tgz", ".gz"]
         for ext in gzip_extension:
             if file.endswith(ext):
-                out_dir = file.rstrip(ext)
-                mkdir(out_dir)
+                if dest:
+                    out_dir = dest
+                else:
+                    out_dir = file.rstrip(ext)
+                    mkdir(out_dir)
                 call2(["tar", "xzvf", file, "-C", out_dir])
                 extracted = True
                 break
@@ -20,7 +23,10 @@ def unzip(files, open_out_dir=False):
         if not extracted:
             require_package("7z")
             _7z = find_executable("7z")
-            out_dir = os.path.splitext(file)[0]
+            if dest:
+                out_dir = dest
+            else:
+                out_dir = os.path.splitext(file)[0]
             args = [
                 _7z,
                 "x",  # extract
@@ -37,4 +43,9 @@ def unzip(files, open_out_dir=False):
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         file = sys.argv[1]
-        unzip([file], open_out_dir=True)
+    elif len(sys.argv) == 3:
+        file = sys.argv[1]
+        out_dir = sys.argv[2]
+        unzip([file], out_dir)
+    else:
+        raise Exception("Invalid number arguments are specified.")
