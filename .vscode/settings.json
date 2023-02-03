@@ -23,4 +23,11 @@
   "search.useIgnoreFiles": false,
   "python.linting.mypyEnabled": true,
   "python.linting.enabled": true,
+  // "python.linting.mypyArgs": [
+  //   "--ignore-missing-imports",
+  //   "--follow-imports=silent",
+  //   "--show-column-numbers",
+  //   "--disallow-untyped-defs",
+  //   "--disallow-untyped-calls"
+  // ]
 }

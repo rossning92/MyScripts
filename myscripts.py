@@ -3,6 +3,7 @@ import curses
 import logging
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -159,7 +160,7 @@ class VariableEditWindow(Menu):
 
     def on_char(self, ch):
         if ch == ord("\t"):
-            val = self.get_selected_text()
+            val = self.get_selected_item()
             if val is not None:
                 self.input_.set_text(val)
             return True
@@ -172,33 +173,41 @@ class VariableEditWindow(Menu):
         return False
 
 
-def get_variable_str_list(vars, var_names):
+def format_variables(variables, variable_names, variable_prefix):
     result = []
-    var_name_length = [len(val_name) for val_name in var_names]
+    short_var_names = [
+        re.sub("^" + re.escape(variable_prefix), "", x) for x in variable_names
+    ]
+    var_name_length = [len(x) for x in short_var_names]
     if var_name_length:
         max_width = max(var_name_length) + 1
     else:
         max_width = 0
-    for var_name in var_names:
+    for i, name in enumerate(variable_names):
         var_val = (
-            vars[var_name][0] if (var_name in vars and len(vars[var_name]) > 0) else ""
+            variables[name][0]
+            if (name in variables and len(variables[name]) > 0)
+            else ""
         )
-        result.append(var_name.ljust(max_width) + ": " + var_val)
+        result.append(short_var_names[i].ljust(max_width) + ": " + var_val)
     return result
 
 
 class VariableWindow(Menu):
-    def __init__(self, script):
+    def __init__(self, script: Script):
         super().__init__(label="edit params")
-        self.vars = get_all_variables()
-        self.var_names = sorted(script.get_variable_names())
+        self.variables = get_all_variables()
+        self.variable_names = sorted(script.get_variable_names())
+        self.variable_prefix = script.get_public_variable_prefix()
         self.enter_pressed = False
 
-        if len(self.var_names) > 0:
+        if len(self.variable_names) > 0:
             self.update_items()
 
     def update_items(self):
-        self.items[:] = get_variable_str_list(self.vars, self.var_names)
+        self.items[:] = format_variables(
+            self.variables, self.variable_names, self.variable_prefix
+        )
 
     def on_enter_pressed(self):
         self.enter_pressed = True
@@ -212,8 +221,8 @@ class VariableWindow(Menu):
 
     def edit_variable(self):
         index = self.get_selected_index()
-        var_name = self.var_names[index]
-        VariableEditWindow(self.vars, var_name).exec()
+        var_name = self.variable_names[index]
+        VariableEditWindow(self.variables, var_name).exec()
         self.update_items()
         self.input_.clear()
 
@@ -256,7 +265,7 @@ class ScriptManager:
                 register_global_hotkeys(self.scripts)
         self.sort_scripts()
 
-        logging.info("Script reloading takes %.1f secs." % (time.time() - begin_time))
+        logging.info("Script refresh takes %.1f secs." % (time.time() - begin_time))
 
         # Startup script should only be run once
         self.startup = False
@@ -378,10 +387,11 @@ def restart_program():
     )
 
 
-class MainWindow(Menu):
+class MainWindow(Menu[Script]):
     def __init__(self, no_gui=None):
         self.no_gui = no_gui
         self.last_refresh_time = 0
+        self.is_refreshing = False
 
         super().__init__(
             items=script_manager.scripts,
@@ -435,17 +445,22 @@ class MainWindow(Menu):
             return self.items[index].script_path
 
     def _reload_script(self):
-        self.set_message("(reloading scripts...)")
+        if self.is_refreshing:
+            return
+
+        self.is_refreshing = True
+        self.set_message("(refreshing scripts...)")
         script_manager.refresh_all_scripts(
             update_ui=lambda: (
                 self.process_events(blocking=False),
                 self.set_message(
-                    "(reloading scripts: %d)" % len(script_manager.scripts)
+                    "(refreshing scripts: %d)" % len(script_manager.scripts)
                 ),
             )
         )
         self.set_message(None)
         self.update_last_refresh_time()
+        self.is_refreshing = False
         return True
 
     def _edit_script_config(self):
@@ -528,7 +543,7 @@ class MainWindow(Menu):
                 return True
 
             elif ch == ord("\t"):
-                script = self.get_selected_text()
+                script = self.get_selected_item()
                 if script is not None:
                     w = VariableWindow(script)
                     if w.var_names:
@@ -541,7 +556,7 @@ class MainWindow(Menu):
                 self.run_cmd(lambda: restart_program())
 
             elif ch in script_manager.hotkeys:
-                script = self.get_selected_text()
+                script = self.get_selected_item()
                 if script is not None:
                     script_abs_path = os.path.abspath(script.script_path)
                     os.environ["SCRIPT"] = script_abs_path
@@ -562,25 +577,31 @@ class MainWindow(Menu):
     def on_update_screen(self):
         height = self.height
 
-        try:
-            script = self.get_selected_text()
-            if script is not None:
-                vars = get_script_variables(script)
-                if len(vars):
-                    str_list = get_variable_str_list(
-                        vars, sorted(script.get_variable_names())
-                    )
-                    height = max(5, height - len(vars))
-                    for i, s in enumerate(str_list):
-                        if height + i >= self.height:
-                            break
-                        try:
-                            Menu.stdscr.addstr(height + i, 0, s)
-                        except:
-                            pass
+        if not self.is_refreshing:
+            try:
+                script = self.get_selected_item()
+                if script is not None:
+                    vars = get_script_variables(script)
+                    if len(vars):
+                        str_list = format_variables(
+                            vars,
+                            sorted(script.get_variable_names()),
+                            script.get_public_variable_prefix(),
+                        )
+                        height = max(5, height - len(vars))
+                        for i, s in enumerate(str_list):
+                            if height + i >= self.height:
+                                break
+                            try:
+                                Menu.stdscr.addstr(height + i, 0, s)
+                            except:
+                                pass
 
-        except FileNotFoundError:  # Scripts have been removed
-            pass
+            except FileNotFoundError:  # Scripts have been removed
+                logging.warn(
+                    "Error on reading variables from script, script does not exist: %s"
+                    % script.script_path
+                )
 
         super().on_update_screen(max_height=height)
 

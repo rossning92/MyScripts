@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import time
+from typing import Generic, List, TypeVar
 
 from _script import get_data_dir
 from _shutil import load_json, save_json
@@ -165,22 +166,24 @@ class InputWidget:
                 self.caret_pos += 1
 
 
-class Menu:
+T = TypeVar("T")
+
+
+class Menu(Generic[T]):
     stdscr = None
 
     def __init__(
         self,
-        items=[],
+        items: List[T] = [],
         label="",
         text="",
         ascii_only=False,
         cancellable=True,
     ):
         self.input_ = InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
-        self.items = items
-        self.on_items = []
+        self.items: List[T] = items
         self.closed = False
-        self.matched_item_indices = []
+        self.matched_item_indices: List[int] = []
         self.selected_row = 0
         self.width = -1
         self.height = -1
@@ -189,19 +192,6 @@ class Menu:
         self.last_key_pressed_timestamp = 0
         self.last_input = None
         self.last_item_count = 0
-
-    def item(self, name=None):
-        def decorator(func):
-            nonlocal name
-            if name is None:
-                name = func.__name__
-
-            self.items.append(name)
-            self.on_items.append(func)
-
-            return func
-
-        return decorator
 
     def run_cmd(self, func):
         Menu.destroy_curses()
@@ -401,7 +391,7 @@ class Menu:
             Menu.stdscr.addstr(1, 0, self.message)
             Menu.stdscr.attroff(curses.color_pair(3))
 
-    def get_selected_text(self):
+    def get_selected_item(self):
         if len(self.matched_item_indices) > 0:
             item_index = self.matched_item_indices[self.selected_row]
             return self.items[item_index]
@@ -410,7 +400,7 @@ class Menu:
 
     def on_char(self, ch):
         if ch == ord("\t"):
-            val = self.get_selected_text()
+            val = self.get_selected_item()
             if val is not None:
                 self.input_.set_text(val)
             return True
@@ -476,7 +466,7 @@ class DictValueEditWindow(Menu):
 
     def on_char(self, ch):
         if ch == ord("\t"):
-            val = self.get_selected_text()
+            val = self.get_selected_item()
             if val is not None:
                 self.input_.set_text(val)
             return True
