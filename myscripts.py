@@ -546,7 +546,7 @@ class MainWindow(Menu[Script]):
                 script = self.get_selected_item()
                 if script is not None:
                     w = VariableWindow(script)
-                    if w.var_names:
+                    if w.variable_names:
                         w.exec()
                         if w.enter_pressed:
                             self.run_selected_script()
