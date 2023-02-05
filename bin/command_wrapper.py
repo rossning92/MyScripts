@@ -18,5 +18,7 @@ if __name__ == "__main__":
     keep_terminal_on = not close_on_exit
     if has_error or keep_terminal_on:
         print("---")
-        print("(exit code %d from %s)" % (code, str(args)))
+        print("(exit code: %d)" % code)
+        print("(duration: %.2f seconds)" % duration)
+        print("(cmdline: %s)" % args)
         input()

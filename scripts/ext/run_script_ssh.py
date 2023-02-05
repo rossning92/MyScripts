@@ -111,7 +111,7 @@ def run_bash_script_ssh(
     bash_script_file, wsl=True, user=None, host=None, pwd=None, port=None
 ):
     with open(bash_script_file, "r", encoding="utf-8") as f:
-        command = f.read()
+        command: str = f.read()
 
     args = []
 
@@ -135,6 +135,8 @@ def run_bash_script_ssh(
     if port:
         args += ["-p", port]
 
+    if wsl:
+        command = command.replace("$", "\\$")  # avoid variable expansion
     args += [command]
     subprocess.check_call(args)
 

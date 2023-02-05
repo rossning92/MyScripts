@@ -1616,10 +1616,8 @@ def menu_loop(
                 func_wrapper(match.func)
 
 
-def file_is_old(in_file, out_file):
-    return not os.path.exists(out_file) or os.path.getmtime(in_file) > os.path.getmtime(
-        out_file
-    )
+def file_is_old(src, dest):
+    return not os.path.exists(dest) or os.path.getmtime(src) > os.path.getmtime(dest)
 
 
 def format_time(sec):

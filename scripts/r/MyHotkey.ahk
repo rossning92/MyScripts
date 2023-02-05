@@ -49,17 +49,6 @@ Send *n
 return
 #If
 
-#If WinActive("ahk_exe ConEmu64.exe")
-    Esc::
-    ; KeyWait, Esc, U
-    ; KeyWait, Esc, D T.3
-    ; If ErrorLevel
-    ; 	return
-
-    WinClose ahk_exe ConEmu64.exe
-return
-#If
-
 #If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_class vwr::CDesktopWin") and not WinActive("ahk_exe League of Legends.exe")
 
 #LButton::WindowMouseDragMove()

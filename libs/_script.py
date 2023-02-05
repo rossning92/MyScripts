@@ -29,6 +29,7 @@ from _shutil import (
     clear_env_var_explorer,
     close_window_by_name,
     convert_to_unix_path,
+    file_is_old,
     format_time,
     get_ahk_exe,
     get_home_path,
@@ -569,23 +570,31 @@ def wrap_args_alacritty(
         dest_path = os.path.expanduser("~/.config/alacritty/alacritty.yml")
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     src_path = os.path.abspath(SCRIPT_ROOT + "/../settings/alacritty.yml")
-    shutil.copy(src_path, dest_path)
+    if file_is_old(src_path, dest_path):
+        shutil.copy(src_path, dest_path)
 
     out = ["alacritty"]
+
+    # Override configuration file options
+    options = []
     if font_size is not None:
         out += [
-            "-o",
             f"font.size={font_size}",
         ]
-
     if font is not None:
-        out += [f"font.normal.family={font}"]
+        options += [f"font.normal.family={font}"]
     if borderless:
-        out += ["window.decorations=none"]
+        options += ["window.decorations=none"]
     if position:
-        out += [f"window.position.x={position[0]}", f"window.position.y={position[1]}"]
+        options += [
+            f"window.position.x={position[0]}",
+            f"window.position.y={position[1]}",
+        ]
     if padding is not None:
-        out += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
+        options += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
+
+    if len(options) > 0:
+        out += ["-o"] + options
 
     if title:
         out += ["--title", title]
@@ -817,7 +826,9 @@ class Script:
             tee = self.cfg["tee"]
 
         if not restart_instance and new_window:
-            if activate_window_by_name(self.name):
+            if activate_window_by_name(
+                self.cfg["matchTitle"] if self.cfg["matchTitle"] else self.name
+            ):
                 return True
 
         # Get variable name value pairs
@@ -1367,7 +1378,7 @@ def run_script(
     args=[],
     variables=None,
     console_title=None,
-    overwrite_meta=None,
+    config_override=None,
     template=None,
     new_window=False,  # should not start a new window by default
     restart_instance=False,
@@ -1398,8 +1409,8 @@ def run_script(
     if template is not None:
         script.cfg["template"] = template
 
-    if overwrite_meta:
-        for k, v in overwrite_meta.items():
+    if config_override:
+        for k, v in config_override.items():
             script.cfg[k] = v
 
     # Set console window title (for windows only)
@@ -1456,9 +1467,10 @@ def get_script_default_config():
         "conda": "",
         "globalHotkey": "",
         "hotkey": "",
+        "matchClipboard": "",
+        "matchTitle": "",
         "minimized": False,
         "newWindow": True,
-        "matchClipboard": "",
         "packages": "",
         "restartInstance": False,
         "runAsAdmin": False,
