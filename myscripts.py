@@ -43,6 +43,7 @@ from _shutil import (
     quote_arg,
     refresh_env_vars,
     run_at_startup,
+    set_clip,
     setup_logger,
     setup_nodejs,
     start_process,
@@ -216,6 +217,14 @@ class VariableWindow(Menu):
     def on_char(self, ch):
         if ch == ord("\t"):
             self.edit_variable()
+            return True
+        if ch == ord("C"):
+            index = self.get_selected_index()
+            name = self.variable_names[index]
+            if name in self.variables and len(self.variables[name]) > 0:
+                val = self.variables[name][0]
+                set_clip(val)
+                self.close()
             return True
         return False
 

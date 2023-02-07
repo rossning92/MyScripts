@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import shutil
 
 from _editor import open_in_editor
@@ -14,6 +15,7 @@ from _script import (
     get_script_root,
 )
 from _shutil import load_yaml, save_yaml, set_clip
+from _template import render_template_file
 from _term import DictEditWindow, Menu
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -164,9 +166,15 @@ def create_new_script(ref_script_path=None, duplicate=False):
         elif ext == ".mmd":
             shutil.copyfile(os.path.join(template_root, "mermaid.mmd"), dest_script)
         elif dest_script.endswith(".user.js"):
-            shutil.copyfile(
-                os.path.join(get_script_root(), "r", "hello_user_script.user.js"),
+            user_script_name = re.sub(r"\.user\.js$", "", os.path.basename(dest_script))
+            user_script_lib = get_my_script_root() + "/jslib/_userscript.js"
+            render_template_file(
+                os.path.join(get_my_script_root(), "templates", "user_script.user.js"),
                 dest_script,
+                context={
+                    "USER_SCRIPT_NAME": user_script_name,
+                    "USER_SCRIPT_LIB": "file://" + user_script_lib.replace("\\", "/"),
+                },
             )
         else:
             # Create empty file
