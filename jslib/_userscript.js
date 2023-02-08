@@ -77,7 +77,7 @@ function waitForElement(selector) {
   });
 }
 
-function download(data, filename, type = "text/plain") {
+function saveAsFile(data, filename, type = "text/plain") {
   var file = new Blob([data], { type: type });
   if (window.navigator.msSaveOrOpenBlob)
     // IE10+
@@ -95,4 +95,16 @@ function download(data, filename, type = "text/plain") {
       window.URL.revokeObjectURL(url);
     }, 0);
   }
+}
+
+function download(url, filename = undefined) {
+  fetch(url)
+    .then((response) => response.blob())
+    .then((blob) => {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename || url.split("/").pop().split("?")[0];
+      link.click();
+    })
+    .catch(console.error);
 }
