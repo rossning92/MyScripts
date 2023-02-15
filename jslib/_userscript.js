@@ -108,3 +108,7 @@ function download(url, filename = undefined) {
     })
     .catch(console.error);
 }
+
+function openInNewWindow(url) {
+  window.open(url, "_blank");
+}
