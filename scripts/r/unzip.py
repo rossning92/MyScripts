@@ -43,9 +43,11 @@ def unzip(src, dest=None, open_out_dir=False):
 if __name__ == "__main__":
     if len(sys.argv) == 2:
         file = sys.argv[1]
+        out_dir = None
     elif len(sys.argv) == 3:
         file = sys.argv[1]
         out_dir = sys.argv[2]
-        unzip([file], out_dir)
     else:
         raise Exception("Invalid number arguments are specified.")
+
+    unzip([file], out_dir)

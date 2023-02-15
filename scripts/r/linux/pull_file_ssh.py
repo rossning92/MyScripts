@@ -2,7 +2,7 @@ import argparse
 import os
 
 from _shutil import cd
-from ext.run_script_ssh import pull_file_putty
+from ext.run_script_ssh import pull_file_ssh
 
 if __name__ == "__main__":
     # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD
@@ -16,4 +16,4 @@ if __name__ == "__main__":
         src = os.environ["_SRC_FILE"]
 
     cd("~/Downloads")
-    pull_file_putty(src)
+    pull_file_ssh(src)

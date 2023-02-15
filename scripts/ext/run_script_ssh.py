@@ -88,6 +88,15 @@ def pull_file_putty(src, dest=None):
     _putty_wrapper("pscp", [_get_user_host() + ":" + src, dest])
 
 
+def pull_file_ssh(src, dest=None):
+    if dest is None:
+        dest = os.getcwd()
+
+    call_echo(["scp", "{}:{}".format(_get_user_host(), src), dest])
+
+    return dest
+
+
 def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port=None):
     # plink is preferred for automation.
     # -t: switch to force a use of an interactive session
