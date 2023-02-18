@@ -50,4 +50,4 @@ if __name__ == "__main__":
     else:
         raise Exception("Invalid number arguments are specified.")
 
-    unzip([file], out_dir)
+    unzip([file], out_dir, open_out_dir=True)

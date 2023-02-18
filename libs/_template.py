@@ -36,9 +36,11 @@ class Template:
         global_context["set"] = set
 
         # Include function
-        def include(file):
+        def include(file, context={}):
             with open(file, "r", encoding="utf-8") as f:
-                result.append(f.read())
+                s = f.read()
+            s = Template(s).render({**global_context, **context})
+            result.append(s)
 
         global_context["include"] = include
 

@@ -36,6 +36,8 @@ EXTENSION_LIST = [
     # mermaid
     "bierner.markdown-mermaid",
     "tomoyukim.vscode-mermaid-editor",
+    # csv
+    "janisdd.vscode-edit-csv",
 ]
 
 if sys.platform == "win32":

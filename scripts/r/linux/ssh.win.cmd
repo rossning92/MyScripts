@@ -1,2 +1,2 @@
 @echo off
-ssh -o "StrictHostKeyChecking no" %SSH_USER%@%SSH_HOST%
+ssh -t %SSH_USER%@%SSH_HOST% -o "StrictHostKeyChecking no"
