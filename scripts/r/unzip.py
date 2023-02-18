@@ -1,5 +1,5 @@
+import argparse
 import os
-import sys
 
 from _pkgmanager import find_executable, require_package
 from _shutil import call2, mkdir, shell_open
@@ -41,13 +41,10 @@ def unzip(src, dest=None, open_out_dir=False):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        file = sys.argv[1]
-        out_dir = None
-    elif len(sys.argv) == 3:
-        file = sys.argv[1]
-        out_dir = sys.argv[2]
-    else:
-        raise Exception("Invalid number arguments are specified.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("src", type=str)
+    parser.add_argument("dest", type=str, nargs="?")
+    parser.add_argument("--open", action="store_true")
+    args = parser.parse_args()
 
-    unzip([file], out_dir, open_out_dir=True)
+    unzip([args.src], args.dest, open_out_dir=args.open)
