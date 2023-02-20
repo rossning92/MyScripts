@@ -448,6 +448,11 @@ class MainWindow(Menu[Script]):
                 )
             )
 
+    def get_selected_script(self):
+        index = self.get_selected_index()
+        if index >= 0:
+            return self.items[index]
+
     def get_selected_script_path(self):
         index = self.get_selected_index()
         if index >= 0:
@@ -482,9 +487,9 @@ class MainWindow(Menu[Script]):
             self.input_.clear()
 
     def _copy_to_clipboard(self):
-        script_path = self.get_selected_script_path()
-        if script_path:
-            content = copy_script_path_to_clipboard(script_path)
+        script = self.get_selected_script()
+        if script:
+            content = copy_script_path_to_clipboard(script)
             self.set_message(
                 f"(copied to clipboard: {content})"
                 if content
@@ -546,6 +551,10 @@ class MainWindow(Menu[Script]):
 
             elif ch == curses.ascii.ctrl(ord("c")):
                 sys.exit(0)
+
+            elif ch == 27:  # Escape key
+                self.set_message()
+                return True
 
             elif ch == KEY_CODE_CTRL_ENTER_WIN:
                 self.run_selected_script(close_on_exit=False)

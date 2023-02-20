@@ -46,7 +46,7 @@ def wake_up_device():
         universal_newlines=True,
     )
     if "Asleep" in out:
-        logging.log("Device is asleep, wake up by press power button.")
+        logging.info("Device is asleep, wake up by press power button.")
         subprocess.check_call(["adb", "shell", "input keyevent 26"])  # power key
 
 
@@ -110,20 +110,10 @@ def restart_app(pkg, use_monkey=False, wake_up=True):
 
 
 def restart_current_app():
-    out = (
-        subprocess.check_output(
-            "adb shell \"dumpsys activity activities | grep -E 'mFocusedActivity|mResumedActivity'\"",
-            shell=True,
-        )
-        .decode()
-        .strip()
-    )
-    match = re.search(r"\{([^}]+)\}", out).group(1)
-    pkg_activity = match.split()[2]
-    pkg, _ = pkg_activity.split("/")
+    pkg, activity = get_active_pkg_and_activity()
 
     call2("adb shell am force-stop %s" % pkg)
-    call2("adb shell am start -n %s" % pkg_activity)
+    call2("adb shell am start -n %s/%s" % (pkg, activity))
 
 
 def logcat(

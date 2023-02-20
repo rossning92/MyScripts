@@ -1736,7 +1736,7 @@ def keep_awake():
         )
 
 
-def quote_arg(s, shell_type="cmd"):
+def quote_arg(s, shell_type: str = "cmd"):
     if shell_type == "powershell":
         s = s.replace("(", r"`(").replace(")", r"`)")
     elif shell_type == "cmd":

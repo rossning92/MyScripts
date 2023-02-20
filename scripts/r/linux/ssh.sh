@@ -8,19 +8,23 @@ run_script ext/install_pkg.py expect
 # mkdir -p ~/.ssh/
 # printf "Host *\nControlMaster auto\nControlPath ~/.ssh/master-%%r@%%h:%%p.socket\n" >~/.ssh/config
 
-# Port
-if [[ -z "${SSH_PORT}" ]]; then
-    export SSH_PORT=22
-fi
-
 # -t: interactive
-ssh_command="ssh -t ${SSH_USER}@${SSH_HOST} -o \"StrictHostKeyChecking no\" -p ${SSH_PORT}"
+ssh_command=""
+if [[ -n "${_WSL}" ]]; then
+    ssh_command+="cmd.exe /c "
+fi
+ssh_command+="ssh -t ${SSH_USER}@${SSH_HOST} -o \"StrictHostKeyChecking no\""
+if [ -n "${SSH_PORT}" ]; then
+    ssh_command+=" -p ${SSH_PORT}"
+fi
 if [ -n "${SSH_LOCAL_PORT_FORWARD}" ]; then
     ssh_command+=" -L ${SSH_LOCAL_PORT_FORWARD}:localhost:${SSH_LOCAL_PORT_FORWARD}"
 fi
-
-if [ -n "${SSH_EXEC_COMMANDS}" ]; then
-    ssh_command+=" ${SSH_EXEC_COMMANDS}"
+if [[ -n "${_ADB_FORWARD}" ]]; then
+    ssh_command+=" -R 15037:127.0.0.1:5037"
+fi
+if [ -n "${_EXEC_COMMANDS}" ]; then
+    ssh_command+=" ${_EXEC_COMMANDS}"
 fi
 
 # SSH login automation
@@ -32,9 +36,16 @@ send "${SSH_PWD}\r"
 ${EXPECT_EXTRA_COMMANDS}
 interact
 EOF
-
-if [ -n "${RUN_IN_SCREEN}" ]; then
-    ./run_command_in_screen.sh "expect ~/s.expect"
+if [ -n "${_AUTO_LOGIN}" ]; then
+    if [ -n "${_RUN_IN_SCREEN}" ]; then
+        ./run_command_in_screen.sh "expect ~/s.expect"
+    else
+        expect ~/s.expect
+    fi
 else
-    expect ~/s.expect
+    if [ -n "${_RUN_IN_SCREEN}" ]; then
+        ./run_command_in_screen.sh "${ssh_command}"
+    else
+        eval "${ssh_command}"
+    fi
 fi

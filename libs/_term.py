@@ -421,7 +421,7 @@ class Menu(Generic[T]):
     def on_item_selected(self):
         pass
 
-    def set_message(self, message):
+    def set_message(self, message=None):
         self.message = message
         self.update_screen()
 

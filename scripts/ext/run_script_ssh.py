@@ -5,7 +5,7 @@ import sys
 
 from _pkgmanager import require_package
 from _script import Script, find_script, get_variable
-from _shutil import call_echo, convert_to_unix_path, write_temp_file
+from _shutil import call_echo, write_temp_file
 
 
 def _get_user(user=None):
@@ -29,6 +29,13 @@ def _get_user_host(user=None, host=None):
     )
 
 
+def _get_pwd(pwd=None):
+    if pwd:
+        return pwd
+    else:
+        return os.environ.get("SSH_PWD", get_variable("SSH_PWD"))
+
+
 def _get_port(port=None):
     if port:
         return port
@@ -44,7 +51,7 @@ def _putty_wrapper(command, extra_args=[], pwd=None, port=None):
     if port:
         args += ["-P", port]
 
-    pwd = os.environ.get("SSH_PWD", get_variable("SSH_PWD"))
+    pwd = _get_pwd(pwd)
     if pwd:
         args += ["-pw", pwd]
 
@@ -106,7 +113,6 @@ def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port
         [
             "-ssh",
             "-t",
-            "-no-antispoof",
             _get_user_host(user=user, host=host),
             "-m",
             bash_script_file,
@@ -129,6 +135,7 @@ def run_bash_script_ssh(
         args += ["wsl"]
 
     # pwd
+    pwd = _get_pwd(pwd)
     if pwd:
         args += ["sshpass", "-p", pwd]
 
@@ -161,6 +168,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default=None)
     parser.add_argument("--user", type=str, default=None)
     parser.add_argument("--pwd", type=str, default=None)
+    parser.add_argument("--putty", action="store_true")
     parser.add_argument("file", type=str, nargs="?", default=None)
 
     args = parser.parse_args()
@@ -182,7 +190,9 @@ if __name__ == "__main__":
 
     else:
         file = os.environ["SCRIPT"]
-        assert file.endswith(".sh")
+        if not file.endswith(".sh"):
+            raise Exception("Unsuppported file extension to run via ssh.")
+
         file = find_script(file)
 
         script = Script(file)
@@ -191,4 +201,7 @@ if __name__ == "__main__":
     tmp_file = write_temp_file(bash_commands, ".sh")
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
-    run_bash_script_ssh(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
+    if args.putty:
+        run_bash_script_putty(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
+    else:
+        run_bash_script_ssh(tmp_file, user=args.user, host=args.host, pwd=args.pwd)

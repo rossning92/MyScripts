@@ -14,7 +14,7 @@ import sys
 import tempfile
 import time
 from functools import lru_cache
-from typing import Callable, List, Literal, Optional
+from typing import Callable, Dict, List, Optional
 
 import yaml
 from _android import setup_android_env
@@ -251,7 +251,7 @@ def exec_cmd(cmd):
     subprocess.check_call(args)
 
 
-def _args_to_str(args, shell_type: Literal["powershell", "cmd", "bash"]):
+def _args_to_str(args, shell_type):
     assert type(args) in [list, tuple]
     if shell_type == "powershell":
         return " ".join(
@@ -267,7 +267,7 @@ def get_variable_file():
     return variable_file
 
 
-def get_all_variables():
+def get_all_variables() -> Dict[str, List]:
     file = get_variable_file()
 
     with FileLock("access_variable"):
@@ -279,15 +279,14 @@ def get_all_variables():
             return variables
 
 
-def get_script_variables(script):
+def get_script_variables(script) -> Dict[str, List]:
     all_vars = get_all_variables()
-    vars = {}
+    vars: Dict[str, List] = {}
     for var_name in script.get_variable_names():
         if var_name in all_vars:
             vars[var_name] = all_vars[var_name]
         else:
             vars[var_name] = []
-
     return vars
 
 
@@ -761,7 +760,7 @@ class Script:
     def set_override_variables(self, variables):
         self.override_variables = variables
 
-    def get_variables(self):
+    def get_variables(self) -> Dict[str, str]:
         vnames = self.get_variable_names()
         all_variables = get_all_variables()
 

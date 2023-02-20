@@ -7,6 +7,7 @@ else
 fi
 
 cd ~
+rm connection.vnc || true
 cat >connection.vnc <<EOF
 ConnMethod=tcp
 FullScreen=${fullscreen}

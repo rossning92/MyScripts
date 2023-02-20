@@ -5,6 +5,7 @@ import shutil
 
 from _editor import open_in_editor
 from _script import (
+    Script,
     get_absolute_script_path,
     get_all_scripts,
     get_my_script_root,
@@ -14,7 +15,7 @@ from _script import (
     get_script_directories,
     get_script_root,
 )
-from _shutil import load_yaml, save_yaml, set_clip
+from _shutil import load_yaml, quote_arg, save_yaml, set_clip
 from _template import render_template_file
 from _term import DictEditWindow, Menu
 
@@ -107,21 +108,25 @@ def edit_script_config(script_path):
         return True
 
 
-def copy_script_path_to_clipboard(script_path):
+def copy_script_path_to_clipboard(script: Script):
+    script_path = script.script_path
     _, ext = os.path.splitext(script_path)
     if ext == ".md" or ext == ".txt":
         with open(script_path, "r", encoding="utf-8") as f:
             set_clip(f.read())
         logging.info("Content is copied to clipboard.")
     else:
-        # Copy relative path
-        script_path = get_relative_script_path(script_path)
+        content = ""
+        for k, v in script.get_variables().items():
+            if v:
+                content += "%s=%s " % (k, quote_arg(v, shell_type="bash"))
 
-        # Quote script path if it contains spaces
-        if " " in script_path:
+        # Convert to relative path
+        script_path = get_relative_script_path(script_path)
+        if " " in script_path:  # quote  path if it contains spaces
             script_path = '"' + script_path + '"'
 
-        content = f"run_script {script_path}"
+        content += f"run_script {script_path}"
         set_clip(content)
         logging.info("Copied to clipboard: %s" % content)
         return content
