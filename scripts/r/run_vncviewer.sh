@@ -1,6 +1,6 @@
 pwd=$(run_script r/linux/encrypt_vncpasswd.sh ${VNC_PASSWORD})
 
-if ${VNC_FULLSCEREN}; then
+if [[ -n "${VNC_FULLSCEREN}" ]]; then
     fullscreen=1
 else
     fullscreen=0

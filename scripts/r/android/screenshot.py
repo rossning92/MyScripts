@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from _android import screenshot
@@ -7,16 +8,23 @@ from _shutil import setup_logger, shell_open
 # adb pull /sdcard/screencap.png
 
 if __name__ == "__main__":
-    setup_logger()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-o",
+        "--out",
+    )
+    args = parser.parse_args()
 
-    n = int(os.environ.get("_COUNT", "1"))
+    setup_logger()
 
     os.chdir(os.path.expanduser("~/Desktop"))
 
+    n = int(os.environ.get("_COUNT", "1"))
     for i in range(n):
         file_name = screenshot(
-            scale=float(os.environ["_SCALE"]) if "_SCALE" in os.environ else None
+            out_file=args.out if args.out else None,
+            scale=float(os.environ["_SCALE"]) if "_SCALE" in os.environ else None,
         )
 
-    if n == 1:
+    if args.out is None and n == 1:
         shell_open(file_name)
