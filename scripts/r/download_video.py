@@ -68,7 +68,6 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
     while retry > 0:
         try:
             url = get_redirected_url(url)
-
             if "bilibili.com" in url:
 
                 download_dir = get_download_dir("Bilibili", base=download_dir)
@@ -96,6 +95,9 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
             return
         except subprocess.CalledProcessError as ex:
             logging.warning(ex)
+            logging.info("Try upgrading yt-dlp.")
+            call_echo(["pip", "install", "--upgrade", "--user", "yt-dlp"])
+
             logging.warning("Retry in 1 sec.")
             time.sleep(1)
             retry -= 1

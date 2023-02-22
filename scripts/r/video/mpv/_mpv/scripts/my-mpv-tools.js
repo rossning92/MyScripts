@@ -200,10 +200,13 @@ function exportVideo(params) {
     args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
   }
 
-  if (params.temp) {
+  if (params.background) {
     var outFile = getNewAvailableFile(currentFile);
     args.push(outFile);
-    mp.command_native({ name: "subprocess", args: args });
+    mp.command_native({
+      name: "subprocess",
+      args: ["cmd", "/c", "start"].concat(args),
+    });
   } else {
     mp.set_property_native("pause", true);
 
@@ -429,8 +432,8 @@ mp.add_forced_key_binding("A", "remove_audio", function () {
 });
 
 mp.add_forced_key_binding("X", "cut_video_background", function () {
-  mp.osd_message("cut video (temp)...");
-  exportVideo({ start: inTime, duration: outTime - inTime, temp: true });
+  mp.osd_message("cut video (background)...");
+  exportVideo({ start: inTime, duration: outTime - inTime, background: true });
   mp.osd_message("done.");
   inTime = 0;
   outTime = 0;
@@ -441,7 +444,7 @@ mp.add_forced_key_binding("ctrl+x", "cut_video_no_encode", function () {
   exportVideo({
     start: inTime,
     duration: outTime - inTime,
-    temp: true,
+    background: true,
     noEncode: true,
   });
   inTime = 0;
@@ -481,8 +484,8 @@ mp.add_forced_key_binding("alt+c", "export", function () {
   var prev = 0;
   for (var i = 0; i < cutPoints.length; i++) {
     cur = cutPoints[i];
-    exportVideo({ start: prev, duration: cur - prev, temp: true });
+    exportVideo({ start: prev, duration: cur - prev, background: true });
     prev = cur;
   }
-  exportVideo({ start: prev, temp: true });
+  exportVideo({ start: prev, background: true });
 });
