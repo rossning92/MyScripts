@@ -1,29 +1,28 @@
 #!/bin/bash
+set -e
 
-# CHANGE THESE FOR YOUR APP
-app_package=""
-dir_app_name=""
+pkg="${_PKG}"
+app_dir_name="${_APP_DIR_NAME}"
 
-ADB="adb" # how you execute adb
-ADB_SH="$ADB shell" # this script assumes using `adb root`. for `adb su` see `Caveats`
+adb root
+adb remount
 
-path_sysapp="/system/priv-app" # assuming the app is priviledged
-apk_host="bin_vrdriver.apk"
-apk_name=$dir_app_name".apk"
-apk_target_dir="$path_sysapp/$dir_app_name"
-apk_target_sys="$apk_target_dir/$apk_name"
+priv_app_path="/system/priv-app" # assuming the app is priviledged
+src_apk="${_APK}"
+apk_name=${app_dir_name}".apk"
+apk_target_dir="${priv_app_path}/${app_dir_name}"
+apk_target_sys="${apk_target_dir}/${apk_name}"
 
-# Install APK: using adb root
-$ADB root 2> /dev/null
-$ADB remount # mount system
-$ADB push $apk_host $apk_target_sys
+# Install APK
+adb shell mkdir -p "${apk_target_dir}"
+adb push "${src_apk}" "${apk_target_sys}"
 
-# Give permissions
-$ADB_SH "chmod 755 $apk_target_dir"
-$ADB_SH "chmod 644 $apk_target_sys"
+# Set permissions
+adb shell "chmod 755 ${apk_target_dir}"
+adb shell "chmod 644 ${apk_target_sys}"
 
-#Unmount system
-$ADB_SH "mount -o remount,ro /"
+# Unmount system
+# adb shell "mount -o remount,ro /"
 
 # Stop the app
-$ADB shell "am force-stop $app_package"
+adb shell "am force-stop $pkg"

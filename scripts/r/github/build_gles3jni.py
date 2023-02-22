@@ -8,7 +8,7 @@ from _shutil import call_echo, cd, menu_item, menu_loop, setup_logger
 setup_logger()
 # run_elevated("choco install ninja -y")
 # setup_cmake(cmake_version="3.10.2")
-setup_android_env()
+setup_android_env(jdk_version="11.")
 
 folder = git_clone("https://github.com/googlesamples/android-ndk")
 print(folder)
