@@ -3,7 +3,7 @@ import os
 from _android import setup_android_env, start_app
 from _editor import open_in_editor
 from _git import git_clone
-from _shutil import call_echo, cd, menu_item, menu_loop, setup_logger
+from _shutil import call_echo, cd, menu_item, setup_logger
 
 setup_logger()
 # run_elevated("choco install ninja -y")
@@ -29,5 +29,12 @@ def build_native_activity():
     start_app("com.example.native_activity", use_monkey=True)
 
 
+@menu_item(key="v")
+def build_hello_vulkan():
+    cd(os.path.join(folder, "hello-vulkan"))
+    call_echo("gradlew installDebug")
+
+
 if __name__ == "__main__":
     build_gles3jni()
+    # build_hello_vulkan()

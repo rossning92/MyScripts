@@ -10,7 +10,7 @@ return
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
-^#r::RunLastScript()
+#`::RunLastScript()
 {{HOTKEYS}}
 
 #If
@@ -36,7 +36,7 @@ RunScript(scriptName, scriptPath)
 
 RunLastScript()
 {
-    EnvSet, RESTART_INSTANCE, 0
+    EnvSet, RESTART_INSTANCE, 1
     Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}",, Hide
 }
 
