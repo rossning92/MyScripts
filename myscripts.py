@@ -233,7 +233,7 @@ class VariableWindow(Menu):
         var_name = self.variable_names[index]
         VariableEditWindow(self.variables, var_name).exec()
         self.update_items()
-        self.clear_input()
+        self.input_.clear()
 
 
 class ScriptManager:
@@ -472,7 +472,7 @@ class MainWindow(Menu[Script]):
                 ),
             )
         )
-        self.set_message(None)
+        self.set_message()
         self.update_last_refresh_time()
         self.is_refreshing = False
         return True
@@ -520,7 +520,7 @@ class MainWindow(Menu[Script]):
             self.set_message("(searching scripts to rename...)")
             if rename_script(script_path):
                 self._reload_script()
-            self.set_message(None)
+            self.set_message()
         self.clear_input()
 
     def _edit_script(self):
@@ -543,6 +543,8 @@ class MainWindow(Menu[Script]):
         self.reset_selection()
 
     def on_char(self, ch):
+        self.set_message(None)
+
         try:
             if ch in self.internal_hotkeys:
                 self.internal_hotkeys[ch].func()
@@ -557,7 +559,6 @@ class MainWindow(Menu[Script]):
                 sys.exit(0)
 
             elif ch == 27:  # Escape key
-                self.set_message()
                 return True
 
             elif ch == KEY_CODE_CTRL_ENTER_WIN:

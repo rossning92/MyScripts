@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -62,7 +63,14 @@ def run_bash_script_in_remote_shell(script_path):
 
 
 if __name__ == "__main__":
-    script_path = os.environ["SCRIPT"]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("file", type=str, nargs="?", default=None)
+    args = parser.parse_args()
+
+    if args.file:
+        script_path = args.file
+    else:
+        script_path = os.environ["SCRIPT"]
 
     ext = os.path.splitext(script_path)[1]
     if ext != ".sh":

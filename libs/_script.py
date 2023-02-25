@@ -813,6 +813,7 @@ class Script:
 
         cmdline = self.cfg["cmdline"]
         if cmdline:
+            cmdline = cmdline.format(SCRIPT=quote_arg(self.script_path))
             subprocess.call(cmdline, shell=True)
             return True
 
