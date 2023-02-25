@@ -808,10 +808,15 @@ class Script:
         cd=True,
         tee=None,
         command_wrapper=True,
-    ):
+    ) -> bool:
         self.cfg = self.load_config()
 
-        new_window = self.cfg["newWindow"] if (new_window is None) else new_window
+        cmdline = self.cfg["cmdline"]
+        if cmdline:
+            subprocess.call(cmdline, shell=True)
+            return True
+
+        new_window = self.cfg["newWindow"] if new_window is None else new_window
         # TODO: Mac does not support newWindow yet
         if sys.platform == "darwin":
             new_window = False
@@ -1463,6 +1468,7 @@ def get_script_default_config():
         "autoRun": False,
         "background": False,
         "closeOnExit": True,
+        "cmdline": "",
         "conda": "",
         "globalHotkey": "",
         "hotkey": "",

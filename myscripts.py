@@ -233,7 +233,7 @@ class VariableWindow(Menu):
         var_name = self.variable_names[index]
         VariableEditWindow(self.variables, var_name).exec()
         self.update_items()
-        self.input_.clear()
+        self.clear_input()
 
 
 class ScriptManager:
@@ -484,7 +484,7 @@ class MainWindow(Menu[Script]):
             # reload the current script
             index = self.get_selected_index()
             self.items[index] = Script(script_path)
-            self.input_.clear()
+            self.clear_input()
 
     def _copy_to_clipboard(self):
         script = self.get_selected_script()
@@ -495,7 +495,7 @@ class MainWindow(Menu[Script]):
                 if content
                 else "Copied to clipboard."
             )
-            self.input_.clear()
+            self.clear_input()
 
     def _new_script_or_duplicate_script(self, duplicate=False):
         ref_script_path = self.get_selected_script_path()
@@ -506,7 +506,7 @@ class MainWindow(Menu[Script]):
             if script_path:
                 script = Script(script_path)
                 script_manager.scripts.insert(0, script)
-        self.input_.clear()
+        self.clear_input()
 
     def _new_script(self):
         self._new_script_or_duplicate_script(duplicate=False)
@@ -521,7 +521,7 @@ class MainWindow(Menu[Script]):
             if rename_script(script_path):
                 self._reload_script()
             self.set_message(None)
-        self.input_.clear()
+        self.clear_input()
 
     def _edit_script(self):
         script_path = self.get_selected_script_path()
@@ -538,6 +538,10 @@ class MainWindow(Menu[Script]):
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
 
+    def clear_input(self):
+        self.input_.clear()
+        self.reset_selection()
+
     def on_char(self, ch):
         try:
             if ch in self.internal_hotkeys:
@@ -546,7 +550,7 @@ class MainWindow(Menu[Script]):
 
             elif ch == ord("\n"):
                 self.run_selected_script()
-                self.input_.clear()
+                self.clear_input()
                 return True
 
             elif ch == curses.ascii.ctrl(ord("c")):

@@ -249,7 +249,9 @@ class Menu(Generic[T]):
         self.matched_item_indices = list(
             _fuzzy_search_func(self.items, self.get_text())
         )
+        self.reset_selection()
 
+    def reset_selection(self):
         self.selected_row = 0
 
     def process_events(self, blocking=True):
