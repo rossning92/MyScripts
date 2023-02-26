@@ -1,4 +1,11 @@
-# sudo apt update
+set -e
+
+sudo apt-get update
+
+# KDE
+sudo apt install kde-plasma-desktop -y
+sudo apt install plasma-nm -y
+
 # sudo apt install xserver-xorg-input-synaptics -y
 
 # Disable all animations
@@ -12,3 +19,10 @@ kwriteconfig5 --file ~/.config/ksmserverrc --group General --key loginMode empty
 
 kquitapp5 plasmashell
 kstart5 plasmashell
+
+# Chrome
+run_script r/linux/install_google_chrome.sh
+
+# Github CLI
+sudo apt install gh -y
+[[ "$(gh auth status 2>&1)" =~ "not logged" ]] && gh login auth

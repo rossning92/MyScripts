@@ -1235,7 +1235,6 @@ class Script:
                             open_in_terminal = True
 
                         elif TERMINAL == "alacritty":
-                            require_package("alacritty")
                             args = wrap_args_alacritty(
                                 args,
                                 title=self.get_console_title(),
