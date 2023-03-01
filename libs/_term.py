@@ -2,12 +2,11 @@ import ctypes
 import curses
 import curses.ascii
 import locale
-import logging
 import os
 import re
 import sys
 import time
-from typing import Generic, List, TypeVar
+from typing import Any, Callable, Dict, Generic, List, TypeVar
 
 from _script import get_data_dir
 from _shutil import load_json, save_json
@@ -429,13 +428,21 @@ class Menu(Generic[T]):
 
 
 class DictValueEditWindow(Menu):
-    def __init__(self, dict_, name, type, default_vals=[]):
+    def __init__(
+        self,
+        dict_,
+        name,
+        type,
+        history: List,
+        items: List,
+    ):
         self.dict_ = dict_
+        self.history = history
         self.name = name
         self.type = type
 
         super().__init__(
-            items=default_vals,
+            items=items,
             label=name,
             text="",
         )
@@ -464,6 +471,11 @@ class DictValueEditWindow(Menu):
 
         self.dict_[self.name] = val
 
+        # Save edit history
+        if val in self.history:
+            self.history.remove(val)
+        self.history.insert(0, val)
+
         self.close()
 
     def on_char(self, ch):
@@ -477,13 +489,23 @@ class DictValueEditWindow(Menu):
 
 
 class DictEditWindow(Menu):
-    def __init__(self, dict_, default_dict=None, on_dict_update=None, label=""):
+    def __init__(
+        self,
+        dict_,
+        default_dict=None,
+        on_dict_update: Callable[[Dict], None] = None,
+        dict_history: Dict[str, List[Any]] = {},
+        on_dict_history_update: Callable[[Dict[str, List[Any]]], None] = None,
+        label="",
+    ):
         super().__init__(label=label)
         self.dict_ = dict_
         self.default_dict = default_dict
         self.enter_pressed = False
         self.on_dict_update = on_dict_update
         self.label = label
+        self.dict_history = dict_history
+        self.on_dict_history_update = on_dict_history_update
 
         self.update_items()
 
@@ -513,14 +535,23 @@ class DictEditWindow(Menu):
         index = self.get_selected_index()
         name = list(self.dict_.keys())[index]
         val = self.dict_[name]
+
+        if name not in self.dict_history:
+            history = self.dict_history[name] = []
+        else:
+            history = self.dict_history[name]
+
         DictValueEditWindow(
-            self.dict_,
-            name,
-            type(val),
-            default_vals=[val],
+            dict_=self.dict_,
+            name=name,
+            type=type(val),
+            items=[val] + history,
+            history=history,
         ).exec()
 
         self.on_dict_update(self.dict_)
+        if self.on_dict_history_update:
+            self.on_dict_history_update(self.dict_history)
 
         self.update_items()
         self.input_.clear()

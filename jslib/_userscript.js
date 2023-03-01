@@ -43,6 +43,7 @@ function addButton(name, onclick, hotkey = null) {
 
   let button = document.createElement("button");
   button.innerHTML = name;
+  button.style.display = "block";
   if (hotkey) {
     button.innerHTML += ` (${hotkey})`;
   }

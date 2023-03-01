@@ -1,13 +1,16 @@
+import json
 import logging
 import os
 import re
 import shutil
+from typing import Any, Dict, List
 
 from _editor import open_in_editor
 from _script import (
     Script,
     get_absolute_script_path,
     get_all_scripts,
+    get_data_dir,
     get_my_script_root,
     get_relative_script_path,
     get_script_config_file,
@@ -94,12 +97,25 @@ def edit_script_config(script_path):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
         save_yaml(data, script_config_file)
 
+    config_edit_history_file = os.path.join(get_data_dir(), "config_edit_history.json")
+    if os.path.exists(config_edit_history_file):
+        with open(config_edit_history_file, "r") as f:
+            config_edit_history = json.load(f)
+    else:
+        config_edit_history = {}
+
+    def on_dict_history_update(config_edit_history: Dict[str, List[Any]]):
+        with open(config_edit_history_file, "w", encoding="utf-8") as f:
+            json.dump(config_edit_history, f, indent=2)
+
     script_config_file_rel_path = get_relative_script_path(script_config_file)
     w = DictEditWindow(
         data,
         default_dict=default_config,
         on_dict_update=on_dict_update,
         label=f"edit {script_config_file_rel_path}",
+        on_dict_history_update=on_dict_history_update,
+        dict_history=config_edit_history,
     )
     ret = w.exec()
     if ret == -1:
