@@ -55,40 +55,57 @@ function addButton(name, onclick, hotkey = null) {
   }
 }
 
-function xpath(exp) {
-  const node = document.evaluate(
+function findElementByXPath(exp) {
+  const query = document.evaluate(
     exp,
     document,
     null,
     XPathResult.FIRST_ORDERED_NODE_TYPE,
     null
-  ).singleNodeValue;
-  console.log(node);
-  return node;
+  );
+  return query.singleNodeValue;
 }
 
 function findElementByText(text) {
-  return xpath(`//*[contains(text(),'${text}')]`);
+  return findElementByXPath(`//*[contains(text(),'${text}')]`);
 }
 
-function waitForSelector(selector) {
+function _waitFor(evaluate) {
+  const evaluateWrapper = () => {
+    const ele = evaluate();
+    if (ele) {
+      ele.scrollIntoView();
+      ele.style.backgroundColor = "#FDFF47";
+    }
+    return ele;
+  };
+
   return new Promise((resolve) => {
-    if (document.querySelector(selector)) {
-      return resolve(document.querySelector(selector));
+    const ele = evaluateWrapper();
+    if (ele) {
+      return resolve(ele);
     }
 
     const observer = new MutationObserver((mutations) => {
-      if (document.querySelector(selector)) {
-        resolve(document.querySelector(selector));
+      const ele = evaluateWrapper();
+      if (ele) {
+        resolve(ele);
         observer.disconnect();
       }
     });
-
     observer.observe(document.body, {
       childList: true,
       subtree: true,
     });
   });
+}
+
+function waitForSelector(selector) {
+  return _waitFor(() => document.querySelector(selector));
+}
+
+function waitForText(text) {
+  return _waitFor(() => findElementByText(text));
 }
 
 function saveAsFile(data, filename, type = "text/plain") {

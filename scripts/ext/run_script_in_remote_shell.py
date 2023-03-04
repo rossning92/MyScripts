@@ -24,8 +24,11 @@ def run_bash_script_in_remote_shell(script_path):
         s += "export ANDROID_SERIAL=%s\n" % android_serial
 
     # Passing variables through environmental variable
-    for k, v in script.get_variables().items():
-        s += "export %s=%s\n" % (k, quote_arg(v, shell_type="bash"))
+    for name, val in script.get_variables().items():
+        # Override with enviromental variables
+        if name in os.environ:
+            val = os.environ[name]
+        s += "export %s=%s\n" % (name, quote_arg(val, shell_type="bash"))
     s += "\n"
 
     s += script.render()

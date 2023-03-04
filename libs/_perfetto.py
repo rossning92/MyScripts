@@ -41,6 +41,7 @@ def open_trace_in_browser(path):
 
 
 def start_trace(config_str, open_trace=True, detached_mode=False):
+    subprocess.check_call(["adb", "root"])
     ps = subprocess.Popen(
         [
             r"protoc",

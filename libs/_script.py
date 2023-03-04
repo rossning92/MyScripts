@@ -842,6 +842,9 @@ class Script:
         for name in variables.keys():
             if name in os.environ:
                 variables[name] = os.environ[name]
+                logging.info(
+                    "Override by environment variable: %s=%s" % (name, os.environ[name])
+                )
 
         logging.info("execute script: %s: args=%s" % (self.name, args))
         close_on_exit = (
