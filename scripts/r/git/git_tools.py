@@ -3,9 +3,8 @@ import subprocess
 import sys
 from urllib.request import urlretrieve
 
-from _ext import get_my_script_root
 from _pkgmanager import require_package
-from _script import run_script
+from _script import get_my_script_root, run_script
 from _shutil import (
     call2,
     call_echo,
@@ -397,7 +396,9 @@ def cherry_pick():
 
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
-    repo_dir = os.environ.get("GIT_REPO", get_my_script_root())
+    repo_dir = os.environ.get("GIT_REPO")
+    if not repo_dir:
+        repo_dir = get_my_script_root()
 
     bundle_file = None
     if backup_dir:
