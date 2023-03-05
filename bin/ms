@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+set -e
+"$(readlink -f "$(dirname "$0")/../myscripts")" "$@"

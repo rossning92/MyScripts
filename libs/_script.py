@@ -86,6 +86,10 @@ def get_my_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../")
 
 
+def is_in_wsl() -> bool:
+    return "microsoft-standard" in platform.uname().release
+
+
 @lru_cache(maxsize=None)
 def get_data_dir():
     data_dir_file = os.path.abspath(
@@ -94,15 +98,18 @@ def get_data_dir():
     if os.path.exists(data_dir_file):
         with open(data_dir_file, "r") as f:
             data_dir = f.read().strip()
+
+            if is_in_wsl():
+                data_dir = convert_to_unix_path(data_dir, wsl=True)
+
             if not os.path.isabs(data_dir):
                 data_dir = os.path.join(
                     get_my_script_root(), data_dir.replace("/", os.path.sep)
                 )
+
     else:
         data_dir = os.path.abspath("%s/../tmp/data/%s" % (SCRIPT_ROOT, platform.node()))
     os.makedirs(data_dir, exist_ok=True)
-
-    _data_dir_cached = data_dir
     return data_dir
 
 
@@ -139,14 +146,21 @@ def get_script_directories():
                 cols = line.split("|")
                 if len(cols) == 1:
                     name = os.path.basename(cols[0])
-                    path = cols[0]
+                    directory = cols[0]
                 elif len(cols) == 2:
                     name = cols[0]
-                    path = cols[1]
+                    directory = cols[1]
                 else:
                     raise Exception("Invalid line in {}: {}".format(config_file, line))
-                path = os.path.expanduser(path)
-                directories.append([name, path])
+                if not os.path.isabs(directory):  # is relative path
+                    directory = os.path.abspath(
+                        os.path.join(
+                            # relative to "script_directories.txt"
+                            os.path.dirname(config_file),
+                            directory,
+                        )
+                    )
+                directories.append([name, directory])
 
     return directories
 

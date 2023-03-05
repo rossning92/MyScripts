@@ -45,7 +45,7 @@ Terminal=false
 EOF
 
 # Bash alias
-LINE='alias ms="$HOME/MyScripts/myscripts"'
+LINE="export PATH=\"$(pwd)/bin:\$PATH\""
 BASHRC="$HOME/.bashrc"
 touch "$BASHRC" && grep -qF -- "$LINE" "$BASHRC" || echo "$LINE" >>"$BASHRC" # append line if not exist
 
