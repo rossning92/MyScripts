@@ -759,16 +759,18 @@ class Script:
 
     def get_variables(self) -> Dict[str, str]:
         vnames = self.get_variable_names()
-        all_variables = get_all_variables()
+        saved_variables = get_all_variables()
 
         # Get all variables
         variables = {}
         for vname in vnames:
-            if vname in all_variables:
-                if len(all_variables[vname]) > 0:
-                    last_modified_value = all_variables[vname][0]
+            if vname in saved_variables:
+                if len(saved_variables[vname]) > 0:
+                    last_modified_value = saved_variables[vname][0]
                     # Note that last_modified_value can be an empty string
                     variables[vname] = last_modified_value
+            else:
+                variables[vname] = ""
 
         # Override variables
         if self.override_variables:
@@ -909,6 +911,7 @@ class Script:
 
         if "CWD" in os.environ:
             cwd = os.environ["CWD"]
+        logging.debug("Script.execute(): CWD: %s" % cwd)
 
         if ext == ".ps1":
             if sys.platform == "win32":

@@ -1,4 +1,4 @@
-#include %A_LineFile%\..\JSON.ahk 
+#include %A_LineFile%\..\JSON.ahk
 
 UpdateExplorerInfo()
 {
@@ -59,21 +59,32 @@ DumpSelectedFilePath()
 
 Explorer_GetPath(hwnd="")
 {
-    if !(window := Explorer_GetWindow(hwnd))
+    if !(window := Explorer_GetWindow(hwnd)) {
         return
-    if (window="desktop")
+    }
+    if (window="desktop") {
         return A_Desktop
+    }
     path := window.LocationURL
     path := RegExReplace(path, "ftp://.*@","ftp://")
     StringReplace, path, path, file:///
-    StringReplace, path, path, /, \, All 
+    StringReplace, path, path, /, \, All
 
     ; thanks to polyethene
-    Loop
-        If RegExMatch(path, "i)(?<=%)[\da-f]{1,2}", hex)
-        StringReplace, path, path, `%%hex%, % Chr("0x" . hex), All
-    Else Break
-        return path
+    Loop {
+        if RegExMatch(path, "i)(?<=%)[\da-f]{1,2}", hex) {
+            StringReplace, path, path, `%%hex%, % Chr("0x" . hex), All
+        } else {
+            break
+        }
+    }
+
+    ; Check if the path is a valid directory
+    if (!InStr(FileExist(path), "D")) {
+        return
+    }
+
+    return path
 }
 
 Explorer_GetAll(hwnd="")
@@ -100,7 +111,7 @@ Explorer_GetWindow(hwnd="")
             if (window.hwnd==hwnd)
             return window
     }
-    else if (class ~= "Progman|WorkerW") 
+    else if (class ~= "Progman|WorkerW")
         return "desktop" ; desktop found
 }
 

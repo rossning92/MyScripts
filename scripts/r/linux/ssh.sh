@@ -36,14 +36,15 @@ send "${SSH_PWD}\r"
 ${EXPECT_EXTRA_COMMANDS}
 interact
 EOF
-if [ -n "${_AUTO_LOGIN}" ]; then
-    if [ -n "${_RUN_IN_SCREEN}" ]; then
+
+if [[ -z "${_NO_AUTO_LOGIN}" ]]; then
+    if [[ -n "${_RUN_IN_SCREEN}" ]]; then
         ./run_command_in_screen.sh "expect ~/s.expect"
     else
         expect ~/s.expect
     fi
 else
-    if [ -n "${_RUN_IN_SCREEN}" ]; then
+    if [[ -n "${_RUN_IN_SCREEN}" ]]; then
         ./run_command_in_screen.sh "${ssh_command}"
     else
         eval "${ssh_command}"

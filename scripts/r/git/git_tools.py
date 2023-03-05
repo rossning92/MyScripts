@@ -400,11 +400,14 @@ if __name__ == "__main__":
     if not repo_dir:
         repo_dir = get_my_script_root()
 
+    repo_name = os.path.basename(repo_dir)
+    if repo_name is None:
+        raise Exception("Invalid repo name")
+
     bundle_file = None
     if backup_dir:
-        bundle_file = os.path.join(backup_dir, os.path.basename(repo_dir) + ".bundle")
+        bundle_file = os.path.join(backup_dir, repo_name + ".bundle")
 
-    repo_name = os.path.basename(repo_dir)
     cd(repo_dir)
 
     setup_project()
