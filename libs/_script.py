@@ -428,30 +428,27 @@ def wrap_args_tee(args, out_file):
     return ["powershell", tmp_file]
 
 
-def wrap_args_cmd(args, title=None, cwd=None, env=None, close_on_exit=None) -> str:
+def wrap_args_cmd(args, title=None, cwd=None, env=None) -> str:
     assert type(args) is list
 
-    cmd_args = "cmd /c "
-
-    if title:
-        cmd_args += "title %s&" % quote_arg(title)
-
-    if cwd:
-        cmd_args += "cd /d %s&" % quote_arg(cwd)
-
-    if env:
+    if sys.platform == "win32":
+        cmdline = "cmd /c "
+        if title:
+            cmdline += "title %s&" % quote_arg(title)
+        if cwd:
+            cmdline += "cd /d %s&" % quote_arg(cwd)
+        if env:
+            for k, v in env.items():
+                cmdline += "&".join(['set "%s=%s"' % (k, v)]) + "&"
+        cmdline += _args_to_str(args, shell_type="cmd")
+    else:
+        cmdline = ""
         for k, v in env.items():
-            cmd_args += "&".join(['set "%s=%s"' % (k, v)]) + "&"
+            if k != "PATH":
+                cmdline += "%s=%s" % (k, v) + " "
+        cmdline += _args_to_str(args, shell_type="bash")
 
-    cmd_args += _args_to_str(args, shell_type="cmd")
-
-    # Pause on error
-    if close_on_exit is True:
-        cmd_args += "||pause"
-    elif close_on_exit is False:
-        cmd_args += "&pause"
-
-    return cmd_args
+    return cmdline
 
 
 def wrap_args_wt(

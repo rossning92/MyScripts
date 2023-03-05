@@ -20,7 +20,7 @@ from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
 from time import sleep
-from typing import List
+from typing import List, Union
 
 import yaml
 
@@ -504,7 +504,7 @@ def copy(src, dst, overwrite=False):
             copy(f, dst)
 
 
-def run_elevated(args, wait=True, show_terminal_window=True):
+def run_elevated(args: Union[List, str], wait=True, show_terminal_window=True):
     if sys.platform == "win32":
         import win32con
         from win32com.shell import shellcon
@@ -539,7 +539,12 @@ def run_elevated(args, wait=True, show_terminal_window=True):
         else:
             ret = process_info
     else:
-        ret = subprocess.call(["sudo"] + args, shell=True)
+        if type(args) == str:
+            args = "sudo " + args
+        else:
+            args = ["sudo"] + args
+        logging.info("run_elevated(): %s" % args)
+        ret = subprocess.call(args, shell=True)
     return ret
 
 
