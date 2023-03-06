@@ -92,6 +92,7 @@ def install_package(pkg, upgrade=False):
         choco_install(pkg, upgrade=upgrade)
     if sys.platform == "linux":
         if not shutil.which(pkg):
+            logging.warning('Package "%s" cannot be found, installing...' % pkg)
             if shutil.which("apt"):
                 subprocess.check_call(["sudo", "apt", "install", pkg, "-y"])
 
