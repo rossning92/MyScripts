@@ -67,7 +67,7 @@ function findElementByXPath(exp) {
 }
 
 function findElementByText(text) {
-  return findElementByXPath(`//*[contains(text(),'${text}')]`);
+  return findElementByXPath(`//*[text() = '${text}']`);
 }
 
 function _waitFor(evaluate) {

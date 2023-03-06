@@ -609,9 +609,9 @@ def wrap_args_alacritty(
     if title:
         out += ["--title", title]
 
-    # HACK: alacritty handles spaces in a weird way
+    # HACK: Alacritty handles spaces in a weird way: if arg has space in it, must double quote it.
     if sys.platform == "win32":
-        args = ['"' + x + '"' if " " in x else x for x in args]
+        args = [f'"{x}"' if " " in x else x for x in args]
     out += ["-e"] + args
     return out
 
@@ -644,7 +644,7 @@ def get_absolute_script_path(path):
 
 
 class Script:
-    def __init__(self, script_path, name=None):
+    def __init__(self, script_path: str, name=None):
         if not os.path.isfile(script_path):
             raise Exception("Script file does not exist.")
 
@@ -739,26 +739,33 @@ class Script:
         else:
             return self.name
 
-    def render(self, variables=None):
-        if variables is None:
-            variables = self.get_variables()
+    def get_script_path(self) -> str:
+        return self.real_script_path if self.real_script_path else self.script_path
 
-        script_path = (
-            self.real_script_path if self.real_script_path else self.script_path
-        )
-
-        if not self.check_link_existence():
-            return
-
+    def get_script_source(self) -> str:
         if self.ext in [".bat", ".cmd"]:
             encoding = locale.getpreferredencoding()
         else:
             encoding = "utf-8"
 
+        script_path = self.get_script_path()
         with open(script_path, "r", encoding=encoding) as f:
             source = f.read()
 
+        return source
+
+    def render(self, source: Optional[str] = None, variables=None):
+        if variables is None:
+            variables = self.get_variables()
+
+        if not self.check_link_existence():
+            return
+
+        if source is None:
+            source = self.get_script_source()
+
         cwd = os.getcwd()
+        script_path = self.get_script_path()
         script_dir = os.path.dirname(script_path)
         if script_dir:
             os.chdir(script_dir)
@@ -864,9 +871,7 @@ class Script:
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )
 
-        script_path = (
-            self.real_script_path if self.real_script_path else self.script_path
-        )
+        script_path = self.get_script_path()
         ext = self.real_ext if self.real_ext else self.ext
 
         # Save last executed script
@@ -906,6 +911,14 @@ class Script:
                 print("node package is required.")
                 setup_nodejs(install=False)
 
+        # Check if template is enabled or not
+        if self.cfg["template"] is None:
+            source = self.get_script_source()
+            template = "{{" in source
+        else:
+            source = None
+            template = self.cfg["template"]
+
         # HACK: pass current folder
         if "CWD" in os.environ:
             env["CWD"] = os.environ["CWD"]
@@ -929,9 +942,9 @@ class Script:
 
         if ext == ".ps1":
             if sys.platform == "win32":
-                if self.cfg["template"]:
+                if template:
                     ps_path = write_temp_file(
-                        self.render(), slugify(self.name) + ".ps1"
+                        self.render(source=source), slugify(self.name) + ".ps1"
                     )
                 else:
                     ps_path = os.path.abspath(script_path)
@@ -950,9 +963,9 @@ class Script:
                 # HACK: add python path to env var
                 env["PYTHONPATH"] = SCRIPT_ROOT
 
-                if self.cfg["template"]:
+                if template:
                     script_path = write_temp_file(
-                        self.render(),
+                        self.render(source=source),
                         os.path.join(
                             "GeneratedAhkScript/", os.path.basename(self.script_path)
                         ),
@@ -975,9 +988,9 @@ class Script:
 
         elif ext == ".cmd" or ext == ".bat":
             if sys.platform == "win32":
-                if self.cfg["template"]:
+                if template:
                     batch_file = write_temp_file(
-                        self.render(), slugify(self.name) + ".cmd"
+                        self.render(source=source), slugify(self.name) + ".cmd"
                     )
                 else:
                     batch_file = os.path.abspath(script_path)
@@ -998,8 +1011,10 @@ class Script:
                 args = ["node", script_path] + args
 
         elif ext == ".sh":
-            if self.cfg["template"]:
-                script_path = write_temp_file(self.render(), slugify(self.name) + ".sh")
+            if template:
+                script_path = write_temp_file(
+                    self.render(source=source), slugify(self.name) + ".sh"
+                )
 
             args = [script_path] + args
             if self.cfg["wsl"]:
@@ -1019,8 +1034,10 @@ class Script:
         elif ext == ".py" or ext == ".ipynb":
             python_exec = sys.executable
 
-            if self.cfg["template"] and ext == ".py":
-                python_file = write_temp_file(self.render(), slugify(self.name) + ".py")
+            if template and ext == ".py":
+                python_file = write_temp_file(
+                    self.render(source=source), slugify(self.name) + ".py"
+                )
             else:
                 python_file = os.path.abspath(script_path)
 
@@ -1100,9 +1117,8 @@ class Script:
             args = ["run_script", "ext/build_and_run_cpp.py", script_path]
 
         elif ext == ".url":
-            with open(self.script_path, "r", encoding="utf-8") as f:
-                url = f.read()
-                shell_open(url)
+            url = self.get_script_source()
+            shell_open(url)
 
         else:
             print("Not supported script:", ext)
@@ -1499,7 +1515,7 @@ def get_script_default_config():
         "runAtStartup": False,
         "runpy": True,
         "tee": False,
-        "template": False,
+        "template": None,
         "terminal": "alacritty",
         "title": "",
         "venv": "",
