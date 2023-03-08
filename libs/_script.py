@@ -770,7 +770,7 @@ class Script:
         if script_dir:
             os.chdir(script_dir)
 
-        result = render_template(source, variables)
+        result = render_template(source, variables, file_locator=find_script)
 
         os.chdir(cwd)
         return result
@@ -1385,7 +1385,7 @@ class Script:
         return variables
 
 
-def find_script(patt):
+def find_script(patt: str) -> Optional[str]:
     if os.path.exists(patt):
         return os.path.abspath(patt)
 
@@ -1408,6 +1408,8 @@ def find_script(patt):
             return match[0]
         elif len(match) > 1:
             raise Exception("Found multiple scripts: %s" % str(match))
+
+    return None
 
 
 def run_script(

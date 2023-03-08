@@ -1,13 +1,14 @@
-import os
 import re
+from typing import Callable, Optional
 
 
 class Template:
     """Compile an text into a template function"""
 
-    def __init__(self, text):
+    def __init__(self, text, file_locator: Optional[Callable[[str], str]] = None):
         self.delimiter = re.compile(r"{{(.*?)}}", re.DOTALL)
         self.tokens = self.compile(text)
+        self.file_locator = file_locator
 
     def compile(self, text):
         tokens = []
@@ -37,6 +38,8 @@ class Template:
 
         # Include function
         def include(file, context={}):
+            if self.file_locator:
+                file = self.file_locator(file)
             with open(file, "r", encoding="utf-8") as f:
                 s = f.read()
             s = Template(s).render({**global_context, **context})
@@ -71,5 +74,7 @@ def render_template_file(template_file, output_file, context=None):
         f.write(s)
 
 
-def render_template(template, context=None):
-    return Template(template).render(context)
+def render_template(
+    template, context=None, file_locator: Optional[Callable[[str], str]] = None
+):
+    return Template(template, file_locator=file_locator).render(context)

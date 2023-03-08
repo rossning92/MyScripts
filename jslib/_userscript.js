@@ -108,6 +108,10 @@ function waitForText(text) {
   return _waitFor(() => findElementByText(text));
 }
 
+function waitForXPath(xpath) {
+  return _waitFor(() => findElementByXPath(xpath));
+}
+
 function saveAsFile(data, filename, type = "text/plain") {
   var file = new Blob([data], { type: type });
   if (window.navigator.msSaveOrOpenBlob)
