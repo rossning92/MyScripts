@@ -15,9 +15,9 @@ Host=${VNC_SERVER}
 Password=${pwd}
 EOF
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+if [[ "$(uname)" == "linux-gnu"* ]]; then
     vncviewer -config ~/connection.vnc &
-elif [[ "$OSTYPE" == "msys" ]]; then
+elif [[ "$(uname)" == "MINGW"* ]]; then
     "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" -config connection.vnc &
 else
     echo "Unsupported OS: ${OSTYPE}."

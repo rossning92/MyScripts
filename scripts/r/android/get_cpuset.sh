@@ -9,6 +9,7 @@ printf "\n"
 
 # adb shell "ls /dev/cpuset/${cpuset_file}"
 
+echo "adb shell \"cat /proc/$pid/status\" | grep Cpus_allowed"
 adb shell "cat /proc/$pid/status" | grep Cpus_allowed
 
 adb shell "taskset -p $pid"

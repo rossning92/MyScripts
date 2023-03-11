@@ -260,14 +260,14 @@ class ScriptManager:
             reverse=True,
         )
 
-    def refresh_all_scripts(self, update_ui: Optional[Callable[[], None]] = None):
+    def refresh_all_scripts(self, on_progress: Optional[Callable[[], None]] = None):
         begin_time = time.time()
 
         if reload_scripts(
             self.scripts,
             autorun=not self.no_gui,
             startup=self.startup,
-            update_ui=update_ui,
+            on_progress=on_progress,
         ):
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
@@ -465,7 +465,7 @@ class MainWindow(Menu[Script]):
         self.is_refreshing = True
         self.set_message("(refreshing scripts...)")
         script_manager.refresh_all_scripts(
-            update_ui=lambda: (
+            on_progress=lambda: (
                 self.process_events(blocking=False),
                 self.set_message(
                     "(refreshing scripts: %d)" % len(script_manager.scripts)
@@ -518,7 +518,13 @@ class MainWindow(Menu[Script]):
         script_path = self.get_selected_script_path()
         if script_path:
             self.set_message("(searching scripts to rename...)")
-            if rename_script(script_path):
+            if rename_script(
+                script_path,
+                on_progress=lambda msg: (
+                    self.process_events(blocking=False),
+                    self.set_message(msg),
+                ),
+            ):
                 self._reload_script()
             self.set_message()
         self.clear_input()

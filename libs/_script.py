@@ -1697,7 +1697,7 @@ def reload_scripts(
     script_list: List[Script],
     autorun=True,
     startup=False,
-    update_ui: Optional[Callable[[], None]] = None,
+    on_progress: Optional[Callable[[], None]] = None,
 ):
     script_dict = {script.script_path: script for script in script_list}
     script_list.clear()
@@ -1706,8 +1706,8 @@ def reload_scripts(
     any_script_reloaded = False
     for i, file in enumerate(get_all_scripts()):
         if i % 20 == 0:
-            if update_ui is not None:
-                update_ui()
+            if on_progress is not None:
+                on_progress()
 
         if file in script_dict:
             script = script_dict[file]

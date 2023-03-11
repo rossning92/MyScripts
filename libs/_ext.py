@@ -3,7 +3,7 @@ import logging
 import os
 import re
 import shutil
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from _editor import open_in_editor
 from _script import (
@@ -207,10 +207,25 @@ def create_new_script(ref_script_path=None, duplicate=False):
     return dest_script
 
 
-def replace_script_str(old, new=None, dry_run=False):
+def replace_script_str(
+    old,
+    new=None,
+    dry_run=False,
+    matched_files: Optional[List[str]] = None,
+    on_progress: Optional[Callable[[str], None]] = None,
+):
     preview = []
-    files = list(get_all_scripts())
-    for file in files:
+
+    if not dry_run and matched_files is not None:
+        files = matched_files
+    else:
+        files = list(get_all_scripts())
+
+    for i, file in enumerate(files):
+        if on_progress is not None:
+            if i % 20 == 0:
+                on_progress("searching (%d/%d)" % (i + 1, len(files)))
+
         with open(file, "r", encoding="utf-8") as f:
             lines = f.read().splitlines()
 
@@ -223,17 +238,29 @@ def replace_script_str(old, new=None, dry_run=False):
                     lines[i] = line.replace(old, new)
                 dirty = True
 
-        if dirty and not dry_run:
-            s = "\n".join(lines)
-            with open(file, "w", encoding="utf-8") as f:
-                f.write(s)
+        if dirty:
+            if matched_files is not None:
+                matched_files.append(file)
+            if not dry_run:
+                s = "\n".join(lines)
+                with open(file, "w", encoding="utf-8") as f:
+                    f.write(s)
 
     return preview
 
 
-def rename_script(script_full_path):
+def rename_script(
+    script_full_path,
+    on_progress: Optional[Callable[[str], None]] = None,
+):
     script_rel_path = get_relative_script_path(script_full_path)
-    preview = replace_script_str(script_rel_path, dry_run=True)
+    matched_files = []
+    preview = replace_script_str(
+        script_rel_path,
+        dry_run=True,
+        matched_files=matched_files,
+        on_progress=on_progress,
+    )
     preview = [str(x) for x in preview]
 
     w = Menu(label="new name", text=script_rel_path, items=preview)
@@ -254,5 +281,7 @@ def rename_script(script_full_path):
         os.rename(config_file, new_config_file)
 
     # Replace script string
-    replace_script_str(script_rel_path, new_script_rel_path)
+    replace_script_str(
+        script_rel_path, new_script_rel_path, matched_files=matched_files
+    )
     return True

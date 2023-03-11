@@ -7,13 +7,14 @@ from _shutil import setup_logger
 
 def grant_all_permissions(pkg):
     out = subprocess.check_output(
-        ["adb", "shell", "dumpsys package com.termux"], universal_newlines=True
+        ["adb", "shell", "dumpsys package %s" % pkg], universal_newlines=True
     )
     permissions = re.findall(r"(android\.permission\.[A-Z_]+)", out)
     permissions = set(permissions)
 
     with open(os.devnull, "w") as fnull:
         for permission in permissions:
+            print("Grant %s" % permission)
             ret_code = subprocess.call(
                 [
                     "adb",
