@@ -1,0 +1,1 @@
+Get-WmiObject Win32_USBControllerDevice | ForEach-Object { [wmi]($_.Dependent) } | Sort-Object Manufacturer, Description, DeviceID | Format-Table -GroupBy Manufacturer Description, Service, DeviceID
