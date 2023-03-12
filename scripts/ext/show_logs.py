@@ -9,16 +9,9 @@ from _shutil import setup_logger, start_process
 if __name__ == "__main__":
     setup_logger()
 
-    # run_script(
-    #     "/r/logviewer.sh",
-    #     args=[
-    #         log_file,
-    #     ],
-    # )
-
     log_file = os.path.join(get_data_dir(), "MyScripts.log")
     klogg = find_executable("klogg")
     if klogg is not None:
         start_process([klogg, "--follow", log_file])
     elif sys.platform == "linux":
-        subprocess.call(f"less -iNS +G '{log_file}'", shell=True)
+        subprocess.call(f"less -iNS +G +F '{log_file}'", shell=True)

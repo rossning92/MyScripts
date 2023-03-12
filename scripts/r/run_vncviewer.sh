@@ -15,10 +15,10 @@ Host=${VNC_SERVER}
 Password=${pwd}
 EOF
 
-if [[ "$(uname)" == "linux-gnu"* ]]; then
+if [[ "$(uname)" == "linux"* || "$(uname)" == "Linux"* ]]; then
     vncviewer -config ~/connection.vnc &
 elif [[ "$(uname)" == "MINGW"* ]]; then
     "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" -config connection.vnc &
 else
-    echo "Unsupported OS: ${OSTYPE}."
+    echo "Unsupported OS: $(uname)"
 fi

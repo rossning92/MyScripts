@@ -168,6 +168,9 @@ class InputWidget:
 T = TypeVar("T")
 
 
+import logging
+
+
 class Menu(Generic[T]):
     stdscr = None
 
@@ -191,6 +194,7 @@ class Menu(Generic[T]):
         self.last_key_pressed_timestamp = 0
         self.last_input = None
         self.last_item_count = 0
+        self.prev_key = -1
 
     def run_cmd(self, func):
         Menu.destroy_curses()
@@ -217,7 +221,8 @@ class Menu(Generic[T]):
         curses.noecho()
         curses.cbreak()
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.use_default_colors()  # The default color is assigned to the color number -1
+        curses.init_pair(1, curses.COLOR_GREEN, -1)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
         stdscr.keypad(1)
@@ -318,6 +323,8 @@ class Menu(Generic[T]):
 
             elif ch != 0:
                 self.input_.on_char(ch)
+
+            self.prev_key = ch
 
         if self.closed:
             return True

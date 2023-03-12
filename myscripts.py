@@ -549,11 +549,18 @@ class MainWindow(Menu[Script]):
         self.reset_selection()
 
     def on_char(self, ch):
+        ALT_KEY = 27
         self.set_message(None)
 
         try:
             if ch in self.internal_hotkeys:
                 self.internal_hotkeys[ch].func()
+                return True
+
+            elif ch == KEY_CODE_CTRL_ENTER_WIN or (
+                self.prev_key == ALT_KEY and ch == ord("\n")
+            ):
+                self.run_selected_script(close_on_exit=False)
                 return True
 
             elif ch == ord("\n"):
@@ -564,11 +571,7 @@ class MainWindow(Menu[Script]):
             elif ch == curses.ascii.ctrl(ord("c")):
                 sys.exit(0)
 
-            elif ch == 27:  # Escape key
-                return True
-
-            elif ch == KEY_CODE_CTRL_ENTER_WIN:
-                self.run_selected_script(close_on_exit=False)
+            elif ch == curses.ascii.ESC:
                 return True
 
             elif ch == ord("\t"):
