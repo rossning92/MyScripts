@@ -1,14 +1,15 @@
 import re
 import subprocess
 from collections import namedtuple
+from typing import List
 
 from _script import get_variable, set_variable
 from _shutil import getch, print2
 
-DeviceInfo = namedtuple("DeviceInfo", ["serial", "product", "battery_level"])
+DeviceInfo = namedtuple("DeviceInfo", ["serial", "product", "battery_level", "key"])
 
 
-def get_device_list():
+def get_device_list() -> List[DeviceInfo]:
     current_serial = get_variable("ANDROID_SERIAL")
     print("ANDROID_SERIAL = %s" % current_serial)
     print()
@@ -18,6 +19,7 @@ def get_device_list():
     )
     lines = lines[1:]
     device_list = []
+    used_key = set()
     for line in lines:
         if line.strip():
             serial, _ = line.split()
@@ -39,10 +41,17 @@ def get_device_list():
             else:
                 battery_level = None
 
+            # Find next unused key
+            for key in product:
+                key = key.lower()
+                if key not in used_key:
+                    used_key.add(key)
+                    break
+
             print(
                 "[%s] %s"
                 % (
-                    product[0].lower(),
+                    key,
                     serial,
                 ),
                 end="",
@@ -51,7 +60,7 @@ def get_device_list():
             print(" Battery=%s" % battery_level, end="")
             if current_serial == serial:
                 print2(" (current)", color="red", end="")
-            device_list.append(DeviceInfo(serial, product, battery_level))
+            device_list.append(DeviceInfo(serial, product, battery_level, key))
             print()
 
     print("[0] clear ANDROID_SERIAL")
@@ -64,7 +73,7 @@ def select_default_android_device():
         device_list = get_device_list()
         ch = getch()
         for device in device_list:
-            if ch == device.product[0].lower():
+            if ch == device.key:
                 set_variable("ANDROID_SERIAL", device.serial)
                 print2("Set default device to %s" % device.serial)
                 return

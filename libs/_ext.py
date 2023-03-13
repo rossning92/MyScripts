@@ -124,7 +124,9 @@ def edit_script_config(script_path):
         return True
 
 
-def copy_script_path_to_clipboard(script: Script, with_variables=False):
+def copy_script_path_to_clipboard(
+    script: Script, with_variables=False, format="cmdline"
+):
     script_path = script.script_path
     _, ext = os.path.splitext(script_path)
     if ext == ".md" or ext == ".txt":
@@ -132,20 +134,23 @@ def copy_script_path_to_clipboard(script: Script, with_variables=False):
             set_clip(f.read())
         logging.info("Content is copied to clipboard.")
     else:
-        content = ""
-        if with_variables:
-            for k, v in script.get_variables().items():
-                if v:
-                    content += "%s=%s " % (k, quote_arg(v, shell_type="bash"))
-
         # Convert to relative path
         script_path = get_relative_script_path(script_path)
         if " " in script_path:  # quote  path if it contains spaces
             script_path = '"' + script_path + '"'
 
-        content += f"run_script {script_path}"
+        if format == "cmdline":
+            content = ""
+            if with_variables:
+                for k, v in script.get_variables().items():
+                    if v:
+                        content += "%s=%s " % (k, quote_arg(v, shell_type="bash"))
+
+            content += f"run_script {script_path}"
+        elif format == "include":
+            content = "{{ include('%s', {}) }}" % script_path
+
         set_clip(content)
-        logging.info("Copied to clipboard: %s" % content)
         return content
 
 

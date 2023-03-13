@@ -4,13 +4,15 @@ import socketserver
 import subprocess
 import time
 import webbrowser
+from tempfile import gettempdir
 
-from _shutil import call_echo, setup_logger
+from _script import run_script
+from _shutil import call_echo, get_cur_time_str, get_home_path
 
 # https://cs.android.com/android/platform/superproject/+/master:external/perfetto/tools/record_android_trace
 
 
-setup_logger()
+IMPORT_PATH = os.path.join(get_home_path(), "perfetto")
 
 
 def open_trace_in_browser(path):
@@ -40,18 +42,31 @@ def open_trace_in_browser(path):
             httpd.handle_request()
 
 
-def start_trace(config_str, open_trace=True, detached_mode=False):
+def setup_perfetto():
+    run_script(
+        "r/git/clone_subdirectory.sh",
+        variables={
+            "GIT_URL": "https://github.com/google/perfetto",
+            "SUBDIR": "protos",
+            "GIT_REPO": IMPORT_PATH,
+        },
+    )
+
+
+def start_trace(config_str, open_trace=True, detached_mode=False, out_file=None):
+    setup_perfetto()
+
     subprocess.check_call(["adb", "root"])
     ps = subprocess.Popen(
         [
             r"protoc",
             "--encode=perfetto.protos.TraceConfig",
             "-I",
-            ".",
+            IMPORT_PATH,
             "protos/perfetto/config/perfetto_config.proto",
         ],
         stdin=subprocess.PIPE,
-        stdout=open("config.bin", "wb"),
+        stdout=open(os.path.join(gettempdir(), "config.bin"), "wb"),
     )
     ps.stdin.write(config_str.encode())
     ps.stdin.close()
@@ -59,7 +74,12 @@ def start_trace(config_str, open_trace=True, detached_mode=False):
 
     call_echo(["adb", "shell", "killall perfetto"], check=False)
     call_echo(
-        ["adb", "push", "config.bin", "/data/misc/perfetto-traces/config.bin"],
+        [
+            "adb",
+            "push",
+            os.path.join(gettempdir(), "config.bin"),
+            "/data/misc/perfetto-traces/config.bin",
+        ],
         check=True,
     )
 
@@ -96,7 +116,13 @@ def start_trace(config_str, open_trace=True, detached_mode=False):
             check=True,
         )
 
-    call_echo(["adb", "pull", "/data/misc/perfetto-traces/trace", "/tmp/trace"])
+    if out_file is None:
+        out_file = os.path.join(
+            get_home_path(), "Desktop", "trace-%s.perfetto-trace" % get_cur_time_str()
+        )
+    call_echo(["adb", "pull", "/data/misc/perfetto-traces/trace", out_file])
 
     if open_trace:
-        open_trace_in_browser("/tmp/trace")
+        open_trace_in_browser(out_file)
+
+    return out_file

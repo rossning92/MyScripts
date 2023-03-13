@@ -413,6 +413,7 @@ class MainWindow(Menu[Script]):
         self.add_internal_hotkey("ctrl+r", self._reload_script)
         self.add_internal_hotkey("shift+m", self._edit_script_config)
         self.add_internal_hotkey("shift+c", self._copy_to_clipboard)
+        self.add_internal_hotkey("shift+i", self._copy_to_clipboard_include_derivative)
         self.add_internal_hotkey("ctrl+n", self._new_script)
         self.add_internal_hotkey("ctrl+d", self._duplicate_script)
         self.add_internal_hotkey("shift+n", self._rename_script)
@@ -495,6 +496,13 @@ class MainWindow(Menu[Script]):
                 if content
                 else "Copied to clipboard."
             )
+            self.clear_input()
+
+    def _copy_to_clipboard_include_derivative(self):
+        script = self.get_selected_script()
+        if script:
+            content = copy_script_path_to_clipboard(script, format="include")
+            self.set_message(f"(copied to clipboard: {content})")
             self.clear_input()
 
     def _new_script_or_duplicate_script(self, duplicate=False):
