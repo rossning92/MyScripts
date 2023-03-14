@@ -824,6 +824,7 @@ def prepend_to_path(paths, env=None):
         paths = paths.split(os.pathsep)
     else:
         raise ValueError()
+    logging.debug("prepend_to_path(): %s" % os.pathsep.join(paths))
 
     if "PATH" in env:
         paths += env["PATH"].split(os.pathsep)
@@ -835,7 +836,6 @@ def prepend_to_path(paths, env=None):
     s = os.pathsep.join(paths)
 
     # Update PATH environmental variable
-    logging.debug("prepend_to_path(): %s" % s)
     env["PATH"] = s
 
 
@@ -1666,9 +1666,6 @@ def update_yaml(file, dict_):
 
 
 def setup_logger(level=logging.INFO, stdout=True, log_file=None):
-    if os.environ.get("LOGGING", "") == "D":
-        level = logging.DEBUG
-
     logger = logging.getLogger()
     logger.setLevel(level)
 
@@ -1692,8 +1689,10 @@ def setup_logger(level=logging.INFO, stdout=True, log_file=None):
     return logger
 
 
-if os.environ.get("LOGGING"):
+if os.environ.get("_LOG"):
     setup_logger()
+elif os.environ.get("_DEBUG"):
+    setup_logger(level=logging.DEBUG)
 
 
 def create_symlink(src, dst):

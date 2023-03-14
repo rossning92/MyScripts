@@ -77,6 +77,8 @@ if sys.platform == "win32":
         os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
     )
 
+RESERVED_VARIABLE_NAMES = {"HOME"}
+
 
 def get_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../scripts")
@@ -193,7 +195,10 @@ def get_last_script():
 def wrap_wsl(commands, env=None):
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
+    logging.debug("wrap_wsl(): cmd: %s" % commands)
 
+    # To create a temp bash script to invoke commands to avoid command being parsed
+    # by current shell
     bash = ""
 
     # Workaround: PATH environmental variable can't be shared between windows and linux (WSL)
@@ -209,8 +214,6 @@ def wrap_wsl(commands, env=None):
     else:
         bash += commands
 
-    # To create a temp sh files to invoke commands to avoid command being parsed
-    # by current shell
     tmp_sh_file = write_temp_file(bash, ".sh")
     tmp_sh_file = convert_to_unix_path(tmp_sh_file, wsl=True)
 
@@ -219,7 +222,7 @@ def wrap_wsl(commands, env=None):
     # return ["bash.exe", "-c", commands]
 
     logging.debug("wrap_wsl(): write temp shell script: %s" % tmp_sh_file)
-    return ["bash", "-c", tmp_sh_file]
+    return ["bash.exe", "-c", tmp_sh_file]
 
 
 def wrap_bash_commands(commands, wsl=False, env=None):
@@ -1349,7 +1352,7 @@ class Script:
                     return return_code == 0
 
             else:
-                logging.debug("subprocess.Popen(): args=%s" % args)
+                logging.debug("cmdline: " + " ".join([quote_arg(x) for x in args]))
                 ps = subprocess.Popen(
                     args=args,
                     env={**os.environ, **env},
@@ -1381,6 +1384,8 @@ class Script:
         # Convert private variable to global namespace
         prefix = self.get_public_variable_prefix()
         variables = [prefix + v if v.startswith("_") else v for v in variables]
+
+        variables = [x for x in variables if x not in RESERVED_VARIABLE_NAMES]
 
         return variables
 

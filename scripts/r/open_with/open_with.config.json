@@ -60,7 +60,7 @@
   ".crash": ["vscode", "notepad++"],
   ".crdownload": ["mpv", "vlc"],
   ".crt": ["vscode", "notepad++"],
-  ".cs": ["vscode", "notepad++"],
+  ".cs": ["vscode", ["run_script", "r/compile_cs.cmd"]],
   ".cson": ["vscode", "notepad++"],
   ".css": ["vscode", "notepad++"],
   ".csv": ["vscode", "tad"],
