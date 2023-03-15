@@ -32,25 +32,27 @@ DumpSelectedFilePath()
         return
     }
 
-    filePath = %clipboard%
+    filePaths := []
+    Loop, Parse, clipboard, `n, `r
+    {
+        path := A_LoopField
+        IfExist %path% ; ignore special icons like Computer (at least for now)
+            filePaths.Push(path)
+
+        ; Check if selected file is a shortcut
+        SplitPath path, , , ext
+        StringLower ext, ext
+        if (ext = "lnk")
+        {
+            ; get target file path
+            FileGetShortcut %path%, path
+        }
+    }
 
     ; Restore clipboard
     Clipboard := clipSaved
 
-    ; Check file existance
-    if not FileExist(filePath)
-        return
-
-    ; Check if selected file is a shortcut
-    SplitPath filePath, , , ext
-    StringLower ext, ext
-    if (ext = "lnk")
-    {
-        ; get target file path
-        FileGetShortcut %filePath%, filePath
-    }
-
-    data := { "current_folder": "", "selected_files" : [filePath] }
+    data := { "current_folder": "", "selected_files" : filePaths }
     str := JSON.Dump(data, "", 4)
     INFO_FILE := A_Temp "\ow_explorer_info.json"
     FileDelete, %INFO_FILE%

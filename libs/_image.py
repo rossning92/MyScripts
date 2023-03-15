@@ -1,9 +1,10 @@
-from PIL import Image, ImageDraw, ImageFont
 import glob
-import os
 import math
+import os
 import re
+
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 
 def crop_image_file(file_name, rect=None, rect_normalized=None):
@@ -128,6 +129,8 @@ def show_im(
 
         if text:
             ax.title.set_text(text[i])
+        else:
+            ax.title.set_text(format[i])
 
         # if norm:
         #     im = np.mean(im.astype(float), axis=2)
@@ -384,9 +387,9 @@ def to_ndarray(im):
 
 
 def select_roi(im):
-    from matplotlib.widgets import RectangleSelector
     import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib.widgets import RectangleSelector
 
     im = to_ndarray(im)
 
@@ -423,9 +426,9 @@ def select_roi(im):
 
 
 def screenshot_image():
+    import numpy as np
     from mss import mss
     from PIL import Image
-    import numpy as np
 
     with mss() as sct:
         sct_img = sct.grab(sct.monitors[1])

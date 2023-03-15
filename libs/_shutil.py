@@ -879,7 +879,7 @@ def get_files(cd=False, ignore_dirs=True):
         files = os.environ["FILES"].split("|")
         files = sorted(files)
 
-    if cd:
+    if "CWD" in os.environ and cd:
         cur_folder = os.environ["CWD"]
         os.chdir(cur_folder)
         files = [f.replace(cur_folder, "") for f in files]  # Relative path
