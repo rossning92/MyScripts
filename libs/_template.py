@@ -5,7 +5,9 @@ from typing import Callable, Optional
 class Template:
     """Compile an text into a template function"""
 
-    def __init__(self, text, file_locator: Optional[Callable[[str], str]] = None):
+    def __init__(
+        self, text, file_locator: Optional[Callable[[str], Optional[str]]] = None
+    ):
         self.delimiter = re.compile(r"{{(.*?)}}", re.DOTALL)
         self.tokens = self.compile(text)
         self.file_locator = file_locator
@@ -77,6 +79,8 @@ def render_template_file(template_file, output_file, context=None):
 
 
 def render_template(
-    template, context=None, file_locator: Optional[Callable[[str], str]] = None
+    template,
+    context=None,
+    file_locator: Optional[Callable[[str], Optional[str]]] = None,
 ):
     return Template(template, file_locator=file_locator).render(context)

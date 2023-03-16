@@ -14,4 +14,4 @@ if __name__ == "__main__":
     if klogg is not None:
         start_process([klogg, "--follow", log_file])
     elif sys.platform == "linux":
-        subprocess.call(f"less -iNS +G +F '{log_file}'", shell=True)
+        subprocess.call(f"tail -f '{log_file}'", shell=True)

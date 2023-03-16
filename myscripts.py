@@ -399,7 +399,7 @@ def restart_program():
 class MainWindow(Menu[Script]):
     def __init__(self, no_gui=None):
         self.no_gui = no_gui
-        self.last_refresh_time = 0
+        self.last_refresh_time = 0.0
         self.is_refreshing = False
 
         super().__init__(
@@ -465,14 +465,13 @@ class MainWindow(Menu[Script]):
 
         self.is_refreshing = True
         self.set_message("(refreshing scripts...)")
-        script_manager.refresh_all_scripts(
-            on_progress=lambda: (
-                self.process_events(blocking=False),
-                self.set_message(
-                    "(refreshing scripts: %d)" % len(script_manager.scripts)
-                ),
-            )
-        )
+
+        def on_process():
+            nonlocal self
+            self.process_events(blocking=False)
+            self.set_message("(refreshing scripts: %d)" % len(script_manager.scripts))
+
+        script_manager.refresh_all_scripts(on_progress=on_process)
         self.set_message()
         self.update_last_refresh_time()
         self.is_refreshing = False
@@ -543,7 +542,7 @@ class MainWindow(Menu[Script]):
             self.run_cmd(lambda: edit_myscript_script(script_path))
 
     def _help(self):
-        items = []
+        items: List[InternalHotkey] = []
         items.extend(self.internal_hotkeys.values())
         items.extend(script_manager.hotkeys.values())
         w = Menu(label="all hotkeys", items=items)

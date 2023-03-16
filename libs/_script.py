@@ -14,7 +14,7 @@ import sys
 import tempfile
 import time
 from functools import lru_cache
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 import yaml
 from _android import setup_android_env
@@ -137,7 +137,7 @@ def get_script_dirs_config_file():
 
 
 @lru_cache(maxsize=None)
-def get_script_directories():
+def get_script_directories() -> List[Tuple[str, str]]:
     directories = []
     directories.append(("", get_script_root()))
 
@@ -162,7 +162,7 @@ def get_script_directories():
                             directory,
                         )
                     )
-                directories.append([name, directory])
+                directories.append((name, directory))
 
     return directories
 
@@ -435,14 +435,17 @@ def setup_python_path(env, script_path=None, wsl=False):
 def wrap_args_tee(args, out_file):
     assert type(args) is list
 
-    s = (
-        "& "
-        + _args_to_str(args, shell_type="powershell")
-        + r" | Tee-Object -FilePath %s" % out_file
-    )
-    tmp_file = write_temp_file(s, ".ps1")
-    logging.debug('wrap_args_tee(file="%s"): %s' % (tmp_file, s))
-    return ["powershell", tmp_file]
+    if sys.platform == "win32":
+        s = (
+            "& "
+            + _args_to_str(args, shell_type="powershell")
+            + r" | Tee-Object -FilePath %s" % out_file
+        )
+        tmp_file = write_temp_file(s, ".ps1")
+        logging.debug('wrap_args_tee(file="%s"): %s' % (tmp_file, s))
+        return ["powershell", tmp_file]
+    else:
+        return args
 
 
 def wrap_args_cmd(args, title=None, cwd=None, env=None) -> str:
@@ -669,15 +672,17 @@ class Script:
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
-        self.mtime = 0
+        self.mtime = 0.0
         self.update_script_mtime()
 
         # Deal with links
         if os.path.splitext(script_path)[1].lower() == ".link":
-            self.real_script_path = (
+            self.real_script_path: Optional[str] = (
                 open(script_path, "r", encoding="utf-8").read().strip()
             )
-            self.real_ext = os.path.splitext(self.real_script_path)[1].lower()
+            self.real_ext: Optional[str] = os.path.splitext(self.real_script_path)[
+                1
+            ].lower()
 
             self.check_link_existence()
         else:
@@ -757,12 +762,12 @@ class Script:
 
         return source
 
-    def render(self, source: Optional[str] = None, variables=None):
+    def render(self, source: Optional[str] = None, variables=None) -> str:
         if variables is None:
             variables = self.get_variables()
 
         if not self.check_link_existence():
-            return
+            raise Exception("Link is invalid.")
 
         if source is None:
             source = self.get_script_source()
@@ -1142,7 +1147,7 @@ class Script:
 
             no_wait = False
             open_in_terminal = False
-            popen_extra_args = {}
+            popen_extra_args: Dict[str, Any] = {}
 
             if command_wrapper and not background and not self.cfg["minimized"]:
                 # Add command wrapper to pause on exit
@@ -1502,7 +1507,7 @@ def start_script(file=None, restart_instance=None):
         raise Exception("[ERROR] %s returns non zero" % file)
 
 
-def get_script_default_config():
+def get_script_default_config() -> Dict[str, Any]:
     return {
         "adk": False,
         "autoRun": False,
@@ -1530,7 +1535,7 @@ def get_script_default_config():
     }
 
 
-def get_script_config_file(script_path, auto_create=False):
+def get_script_config_file(script_path, auto_create=False) -> Optional[str]:
     f = os.path.splitext(script_path)[0] + ".config.yaml"
     if auto_create or os.path.exists(f):
         return f
@@ -1539,8 +1544,10 @@ def get_script_config_file(script_path, auto_create=False):
     if os.path.exists(f):
         return f
 
+    return None
 
-def load_script_config(script_path):
+
+def load_script_config(script_path) -> Dict[str, Any]:
     script_config_file = get_script_config_file(script_path)
     if script_config_file:
         with open(script_config_file, "r") as f:
@@ -1561,7 +1568,7 @@ def load_script_config(script_path):
 def update_script_config(kvp, script_file):
     default_config = get_script_default_config()
     script_config_file = get_script_config_file(script_file)
-    if not os.path.exists(script_config_file):
+    if script_config_file is not None and not os.path.exists(script_config_file):
         data = {}
     else:
         data = load_yaml(script_config_file)
@@ -1582,7 +1589,7 @@ def create_script_link(script_file):
     logging.info("Link created: %s" % link_file)
 
 
-def is_instance_running():
+def is_instance_running() -> bool:
     LOCK_PATH = os.path.join(tempfile.gettempdir(), "myscripts_lock")
     if sys.platform == "win32":
         try:
@@ -1609,7 +1616,7 @@ def is_instance_running():
     return False
 
 
-def _get_script_access_time_file():
+def _get_script_access_time_file() -> str:
     config_file = os.path.join(get_data_dir(), "script_access_time.json")
     return config_file
 
@@ -1628,27 +1635,28 @@ def update_script_access_time(script):
         json.dump(data, f, indent=4)
 
 
-def get_all_script_access_time():
-    self = get_all_script_access_time
+_script_access_time_file_mtime = 0.0
+_cached_script_access_time: Dict = {}
 
-    if not hasattr(self, "mtime"):
-        self.mtime = 0
+
+def get_all_script_access_time() -> Tuple[Dict, float]:
+    global _script_access_time_file_mtime
+    global _cached_script_access_time
 
     config_file = _get_script_access_time_file()
     if not os.path.exists(config_file):
         return {}, 0
 
     mtime = os.path.getmtime(config_file)
-    if mtime > self.mtime:
+    if mtime > _script_access_time_file_mtime:
+        _script_access_time_file_mtime = mtime
         with open(config_file, "r") as f:
-            self.cached_data = json.load(f)
+            _cached_script_access_time = json.load(f)
 
-        self.mtime = mtime
-
-    return self.cached_data, self.mtime
+    return _cached_script_access_time, _script_access_time_file_mtime
 
 
-def get_scripts_recursive(directory):
+def get_scripts_recursive(directory) -> Iterator[str]:
     def should_ignore(dir, file):
         if file == "tmp":
             return True
@@ -1682,7 +1690,7 @@ def get_scripts_recursive(directory):
             yield os.path.join(root, file)
 
 
-def get_all_scripts():
+def get_all_scripts() -> Iterator[str]:
     for _, script_path in get_script_directories():
         files = get_scripts_recursive(script_path)
         for file in files:
@@ -1703,7 +1711,7 @@ def reload_scripts(
     autorun=True,
     startup=False,
     on_progress: Optional[Callable[[], None]] = None,
-):
+) -> bool:
     script_dict = {script.script_path: script for script in script_list}
     script_list.clear()
     clear_env_var_explorer()
@@ -1743,6 +1751,6 @@ def reload_scripts(
     return any_script_reloaded
 
 
-def render_script(script_path):
+def render_script(script_path) -> str:
     script = Script(script_path)
     return script.render()
