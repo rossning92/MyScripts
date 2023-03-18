@@ -898,7 +898,7 @@ def get_selected_folder():
 
 def get_current_folder():
     if "CWD" not in os.environ:
-        d = input("please input directory path: ")
+        d = input("Enter directory path: ")
         if not d:
             raise Exception("directory cannot be empty.")
         return d

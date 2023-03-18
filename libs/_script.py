@@ -167,12 +167,14 @@ def get_script_directories() -> List[Tuple[str, str]]:
     return directories
 
 
-def add_script_dir(d):
+def add_script_dir(d, prefix=None):
     config_file = get_script_dirs_config_file()
     with open(config_file, "r", encoding="utf-8") as f:
         lines = f.read().splitlines()
 
-    lines.append("link/%s|%s" % (os.path.basename(d), d))
+    if prefix is None:
+        prefix = "link/" + os.path.basename(d)
+    lines.append("%s|%s" % (prefix, d))
     lines = [x for x in lines if x.strip()]
 
     with open(config_file, "w", encoding="utf-8") as f:
