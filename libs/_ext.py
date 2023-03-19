@@ -194,13 +194,15 @@ def create_new_script(ref_script_path=None, duplicate=False):
             shutil.copyfile(os.path.join(template_root, "mermaid.mmd"), dest_script)
         elif dest_script.endswith(".user.js"):
             user_script_name = re.sub(r"\.user\.js$", "", os.path.basename(dest_script))
-            user_script_lib = get_my_script_root() + "/jslib/_userscript.js"
+            user_script_lib = (
+                get_my_script_root() + "/js/userscriptlib/dist/userscriptlib.js"
+            )
             render_template_file(
                 os.path.join(get_my_script_root(), "templates", "user_script.user.js"),
                 dest_script,
                 context={
                     "USER_SCRIPT_NAME": user_script_name,
-                    "USER_SCRIPT_LIB": "file://" + user_script_lib.replace("\\", "/"),
+                    "USER_SCRIPT_LIB": user_script_lib.replace("\\", "/"),
                 },
             )
         else:

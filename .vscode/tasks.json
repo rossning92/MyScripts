@@ -15,7 +15,7 @@
       "presentation": {
         "reveal": "never"
       },
-      "dependsOn": "npm: install - scripts/r/videoedit/_extension",
+      "dependsOn": "npm: install - scripts/r/videoedit/_extension"
     },
     {
       "type": "npm",
@@ -25,6 +25,13 @@
       "problemMatcher": [],
       "label": "npm: install - scripts/r/videoedit/_extension",
       "detail": "install dependencies from package"
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "path": "js/userscriptlib",
+      "group": "build",
+      "label": "build userscriptlib",
     }
   ]
 }

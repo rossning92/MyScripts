@@ -2,6 +2,7 @@ import ctypes
 import curses
 import curses.ascii
 import locale
+import logging
 import os
 import re
 import sys
@@ -73,8 +74,8 @@ def _prompt(options, message=None):
         message = "selections"
 
     print("%s (indices, sep by space)> " % message, flush=True, end="")
-    selections = input()
-    selections = [int(x) - 1 for x in selections.split()]
+    input_ = input()
+    selections = [int(x) - 1 for x in input_.split()]
     return selections
 
 
@@ -168,7 +169,13 @@ class InputWidget:
 T = TypeVar("T")
 
 
-import logging
+class MenuItem:
+    def __init__(self, name: str, callback: Callable[[], None]) -> None:
+        self.name = name
+        self.callback = callback
+
+    def __str__(self):
+        return self.name
 
 
 class Menu(Generic[T]):
@@ -196,6 +203,16 @@ class Menu(Generic[T]):
         self.last_item_count = 0
         self.prev_key = -1
 
+    def item(self, name=None):
+        def decorator(func):
+            nonlocal name
+            if name is None:
+                name = func.__name__
+            self.items.append(MenuItem(name=name, callback=func))
+            return func
+
+        return decorator
+
     def run_cmd(self, func):
         Menu.destroy_curses()
         func()
@@ -205,11 +222,11 @@ class Menu(Generic[T]):
         if Menu.stdscr is None:
             try:
                 Menu.init_curses()
-                self.exec_()
+                self._exec()
             finally:
                 Menu.destroy_curses()
         else:
-            self.exec_()
+            self._exec()
 
         return self.get_selected_index()
 
@@ -331,7 +348,7 @@ class Menu(Generic[T]):
 
         return False
 
-    def exec_(self):
+    def _exec(self):
         self.on_main_loop()
         while True:
             if self.process_events():
@@ -408,14 +425,18 @@ class Menu(Generic[T]):
 
     def on_char(self, ch):
         if ch == ord("\t"):
-            val = self.get_selected_item()
-            if val is not None:
-                self.input_.set_text(val)
+            item = self.get_selected_item()
+            if item is not None:
+                self.input_.set_text("%s" % item)
             return True
         return False
 
     def on_enter_pressed(self):
-        self.close()
+        item = self.get_selected_item()
+        if item is not None and isinstance(item, MenuItem):
+            item.callback()
+        else:
+            self.close()
 
     def on_tab_pressed(self):
         pass

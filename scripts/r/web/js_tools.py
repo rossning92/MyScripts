@@ -557,4 +557,4 @@ if __name__ == "__main__":
 
     copy(TEMPLATE_DIR + "/LICENSE", "LICENSE", overwrite=False)
 
-    menu.loop()
+    menu.exec()
