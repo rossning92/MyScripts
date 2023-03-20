@@ -12,7 +12,7 @@ if not %errorlevel%==0 (
 )
 
 :: Install python modules
-python -m pip install --user -r requirement.txt
+python -m pip install --user -r requirements.txt
 
 title MyScriptsTerminal
 

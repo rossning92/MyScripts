@@ -1,5 +1,12 @@
 import { register } from "@violentmonkey/shortcut";
 
+declare global {
+  interface Navigator {
+    msSaveOrOpenBlob: any;
+  }
+  var GM_xmlhttpRequest: any;
+}
+
 let _container: HTMLElement | null;
 
 function getContainer() {
@@ -134,12 +141,6 @@ export function waitForXPath(xpath: string) {
   return waitFor(() => findElementByXPath(xpath));
 }
 
-declare global {
-  interface Navigator {
-    msSaveOrOpenBlob: any;
-  }
-}
-
 export function saveAsFile(
   data: string,
   filename: string,
@@ -174,6 +175,30 @@ export function download(url: string, filename?: string) {
       link.click();
     })
     .catch(console.error);
+}
+
+export function exec(args: string, callback?: (result: string) => void) {
+  if (!GM_xmlhttpRequest) {
+    alert(
+      'ERROR: please ensure "@grant GM_xmlhttpRequest" is added in user script.'
+    );
+    return;
+  }
+
+  GM_xmlhttpRequest({
+    method: "POST",
+    url: "http://127.0.0.1:4312/exec",
+    responseType: "text",
+    data: `args=${encodeURIComponent(args)}`,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    onload: (response: any) => {
+      if (callback) {
+        callback(response.responseText);
+      }
+    },
+  });
 }
 
 export function openInNewWindow(url: string) {

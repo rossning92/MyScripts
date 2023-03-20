@@ -31,7 +31,7 @@ if [ -f "/etc/debian_version" ]; then
     fi
 fi
 
-pip3 install -r requirement.txt
+pip3 install -r requirements.txt
 
 # Autostart on any Linux desktop
 mkdir -p ~/.config/autostart/
