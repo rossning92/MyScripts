@@ -1,11 +1,27 @@
 import { register } from "@violentmonkey/shortcut";
 
+export {};
+
 declare global {
   interface Navigator {
     msSaveOrOpenBlob: any;
   }
   var GM_xmlhttpRequest: any;
+
+  function addButton(name: string, onclick: () => void, hotkey?: string): void;
+  function addText(text: string, { color = "black" }: { color?: string }): void;
+  function findElementByXPath(exp: string): Node;
+  function findElementByText(text: string): Node;
+  function waitForSelector(selector: string): Promise<unknown>;
+  function waitForText(text: string): Promise<unknown>;
+  function waitForXPath(xpath: string): Promise<unknown>;
+  function saveAsFile(data: string, filename: string, type: string): void;
+  function download(url: string, filename?: string): void;
+  function exec(args: string, callback?: (result: string) => void): void;
+  function openInNewWindow(url: string): void;
 }
+
+const _global = window /* browser */ || global; /* node */
 
 let _container: HTMLElement | null;
 
@@ -54,51 +70,6 @@ function getContainer() {
   return _container;
 }
 
-export function addButton(name: string, onclick: () => void, hotkey?: string) {
-  const button = document.createElement("button");
-  button.style.backgroundColor = "#ccc";
-  button.style.border = "1px solid black";
-  button.style.color = "#000";
-  button.style.display = "inline-block";
-  button.style.padding = "2px 8px";
-  button.innerHTML = name;
-  if (hotkey) {
-    button.innerHTML += ` (${hotkey})`;
-  }
-  button.onclick = onclick;
-
-  getContainer().appendChild(button);
-
-  if (hotkey) {
-    register(hotkey, onclick);
-  }
-}
-
-export function addText(
-  text: string,
-  { color = "black" }: { color?: string } = {}
-) {
-  const div = document.createElement("div");
-  div.innerHTML = text;
-  div.style.color = color;
-  getContainer().appendChild(div);
-}
-
-export function findElementByXPath(exp: string) {
-  const query = document.evaluate(
-    exp,
-    document,
-    null,
-    XPathResult.FIRST_ORDERED_NODE_TYPE,
-    null
-  );
-  return query.singleNodeValue;
-}
-
-export function findElementByText(text: string) {
-  return findElementByXPath(`//*[text() = '${text}']`);
-}
-
 function waitFor(evaluate: () => Node | null) {
   const evaluateWrapper = () => {
     const ele = evaluate();
@@ -129,23 +100,61 @@ function waitFor(evaluate: () => Node | null) {
   });
 }
 
-export function waitForSelector(selector: string) {
+_global.addButton = (name, onclick, hotkey) => {
+  const button = document.createElement("button");
+  button.style.backgroundColor = "#ccc";
+  button.style.border = "1px solid black";
+  button.style.color = "#000";
+  button.style.display = "inline-block";
+  button.style.padding = "2px 8px";
+  button.innerHTML = name;
+  if (hotkey) {
+    button.innerHTML += ` (${hotkey})`;
+  }
+  button.onclick = onclick;
+
+  getContainer().appendChild(button);
+
+  if (hotkey) {
+    register(hotkey, onclick);
+  }
+};
+
+_global.addText = (text, { color = "black" }) => {
+  const div = document.createElement("div");
+  div.innerHTML = text;
+  div.style.color = color;
+  getContainer().appendChild(div);
+};
+
+_global.findElementByXPath = (exp) => {
+  const query = document.evaluate(
+    exp,
+    document,
+    null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null
+  );
+  return query.singleNodeValue;
+};
+
+_global.findElementByText = (text) => {
+  return findElementByXPath(`//*[text() = '${text}']`);
+};
+
+_global.waitForSelector = (selector) => {
   return waitFor(() => document.querySelector(selector));
-}
+};
 
-export function waitForText(text: string) {
+_global.waitForText = (text) => {
   return waitFor(() => findElementByText(text));
-}
+};
 
-export function waitForXPath(xpath: string) {
+_global.waitForXPath = (xpath) => {
   return waitFor(() => findElementByXPath(xpath));
-}
+};
 
-export function saveAsFile(
-  data: string,
-  filename: string,
-  type = "text/plain"
-) {
+_global.saveAsFile = (data, filename, type = "text/plain") => {
   var file = new Blob([data], { type: type });
   if (window.navigator.msSaveOrOpenBlob)
     // IE10+
@@ -163,9 +172,9 @@ export function saveAsFile(
       window.URL.revokeObjectURL(url);
     }, 0);
   }
-}
+};
 
-export function download(url: string, filename?: string) {
+_global.download = (url, filename) => {
   fetch(url)
     .then((response) => response.blob())
     .then((blob) => {
@@ -175,9 +184,9 @@ export function download(url: string, filename?: string) {
       link.click();
     })
     .catch(console.error);
-}
+};
 
-export function exec(args: string, callback?: (result: string) => void) {
+_global.exec = (args, callback) => {
   if (!GM_xmlhttpRequest) {
     alert(
       'ERROR: please ensure "@grant GM_xmlhttpRequest" is added in user script.'
@@ -199,8 +208,8 @@ export function exec(args: string, callback?: (result: string) => void) {
       }
     },
   });
-}
+};
 
-export function openInNewWindow(url: string) {
+_global.openInNewWindow = (url) => {
   window.open(url, "_blank");
-}
+};
