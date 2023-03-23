@@ -198,9 +198,9 @@ _global.exec = (args, callback) => {
     method: "POST",
     url: "http://127.0.0.1:4312/exec",
     responseType: "text",
-    data: `args=${encodeURIComponent(args)}`,
+    data: JSON.stringify({ args }),
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/json; charset=UTF-8",
     },
     onload: (response: any) => {
       if (callback) {

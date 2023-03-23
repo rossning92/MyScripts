@@ -1681,7 +1681,9 @@ def setup_logger(level=logging.INFO, stdout=True, log_file=None):
         logger.addHandler(handler)
 
     if log_file:
-        file_handler = logging.FileHandler(log_file, "w+")  # overwrite the file
+        file_handler = logging.FileHandler(
+            log_file, "w+", encoding="utf-8"
+        )  # overwrite the file
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
         logger.addHandler(file_handler)

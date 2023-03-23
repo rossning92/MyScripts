@@ -718,7 +718,7 @@ if __name__ == "__main__":
     )
 
     if not args.no_gui:
-        start_server(disable_logging=True, start_new_thread=True)
+        start_server(start_new_thread=True)
 
     # setup_console_font()
     init(no_gui=args.no_gui)
