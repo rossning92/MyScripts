@@ -32,6 +32,7 @@ def minimize_cur_terminal():
 
 def _select_options_ncurse(options, save_history=""):
     assert isinstance(save_history, str)
+    print(options)
 
     def get_history_file():
         return os.path.join(get_data_dir(), "%s.json" % save_history)

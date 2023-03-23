@@ -23,6 +23,9 @@ fi
 if [[ -n "${_ADB_FORWARD}" ]]; then
     ssh_command+=" -R 15037:127.0.0.1:5037"
 fi
+if [[ -n "${_EXTRA_ARGS}" ]]; then
+    ssh_command+=" ${_EXTRA_ARGS}"
+fi
 if [ -n "${_EXEC_COMMANDS}" ]; then
     ssh_command+=" ${_EXEC_COMMANDS}"
 fi
