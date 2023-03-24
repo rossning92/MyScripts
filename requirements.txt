@@ -1,5 +1,4 @@
 pyyaml
 pywin32; sys_platform == 'win32'
 requests
-keyboard
 windows-curses; sys_platform == 'win32'

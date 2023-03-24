@@ -10,20 +10,23 @@ PORT = 4312
 
 class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):
-        if self.path != "/exec":
-            return self.send_response(500)
+        try:
+            if self.path != "/exec":
+                return self.send_response(500)
 
-        data_string = self.rfile.read(int(self.headers["Content-Length"]))
-        data = json.loads(data_string.decode("utf-8"))
-        logging.info("/exec: %s" % data)
-        out = subprocess.check_output(
-            args=data["args"], universal_newlines=True, encoding="utf-8"
-        )
-        logging.info("/exec: output: %s" % out)
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain; charset=UTF-8")
-        self.end_headers()
-        self.wfile.write(out.encode("utf-8"))
+            data_string = self.rfile.read(int(self.headers["Content-Length"]))
+            data = json.loads(data_string.decode("utf-8"))
+            logging.info("/exec: %s" % data)
+            out = subprocess.check_output(
+                args=data["args"], universal_newlines=True, encoding="utf-8"
+            )
+            logging.info("/exec: output: %s" % out)
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain; charset=UTF-8")
+            self.end_headers()
+            self.wfile.write(out.encode("utf-8"))
+        except Exception:
+            logging.exception("")
 
     def log_message(self, format, *args):
         return

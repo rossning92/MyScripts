@@ -18,6 +18,7 @@ PYTHON_MODULE_LIST = {
     "moviepy": "moviepy",
     "mss": "mss",
     "numpy": "numpy",
+    "openai": "openai",
     "pandas": "pandas",
     "perfetto": "perfetto",
     "PIL": "pillow",

@@ -4,7 +4,8 @@ import shutil
 import subprocess
 import sys
 
-from _shutil import call_echo, download, get_home_path, prepend_to_path, print2, unzip
+from _shutil import (call_echo, download, get_home_path, prepend_to_path,
+                     print2, unzip)
 
 EXTENSION_LIST = [
     # "donjayamanne.githistory",
@@ -65,7 +66,7 @@ def get_vscode_cmdline(data_dir=None):
         args = ["cmd", "/c", "code"]  # code.cmd
     else:
         args = ["code"]
-    if data_dir is not None:
+    if data_dir:
         extensions_dir = os.path.join(data_dir, "extensions")
         args += [
             "--user-data-dir",
@@ -93,7 +94,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
 
     install_extensions(data_dir=data_dir)
 
-    if data_dir is None:
+    if not data_dir:
         if sys.platform == "win32":
             data_dir = os.path.expandvars("%APPDATA%/Code")
         elif sys.platform == "linux":
