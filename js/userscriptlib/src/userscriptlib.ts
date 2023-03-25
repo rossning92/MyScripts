@@ -17,8 +17,10 @@ declare global {
   function waitForXPath(xpath: string): Promise<unknown>;
   function saveAsFile(data: string, filename: string, type: string): void;
   function download(url: string, filename?: string): void;
-  function exec(args: string, callback?: (result: string) => void): void;
+  function exec(args: string | string[]): Promise<string>;
   function openInNewWindow(url: string): void;
+  function getSelectedText(): void;
+  function sendText(text: string): void;
 }
 
 const _global = window /* browser */ || global; /* node */
@@ -186,30 +188,71 @@ _global.download = (url, filename) => {
     .catch(console.error);
 };
 
-_global.exec = (args, callback) => {
+_global.exec = (args) => {
   if (!GM_xmlhttpRequest) {
-    alert(
-      'ERROR: please ensure "@grant GM_xmlhttpRequest" is added in user script.'
-    );
+    alert('ERROR: please make sure "@grant GM_xmlhttpRequest" is present.');
     return;
   }
 
-  GM_xmlhttpRequest({
-    method: "POST",
-    url: "http://127.0.0.1:4312/exec",
-    responseType: "text",
-    data: JSON.stringify({ args }),
-    headers: {
-      "Content-Type": "application/json; charset=UTF-8",
-    },
-    onload: (response: any) => {
-      if (callback) {
-        callback(response.responseText);
-      }
-    },
+  return new Promise((resolve) => {
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: "http://127.0.0.1:4312/exec",
+      responseType: "text",
+      data: JSON.stringify({ args }),
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      onload: (response: any) => {
+        resolve(response.responseText);
+      },
+    });
   });
 };
 
 _global.openInNewWindow = (url) => {
   window.open(url, "_blank");
+};
+
+_global.getSelectedText = () => {
+  return window.getSelection().toString().trim().replace(/ /g, "_");
+};
+
+function getActiveElement(doc: Document = window.document): Element | null {
+  // Check if the active element is in the main web or iframe
+  if (doc.body === doc.activeElement || doc.activeElement.tagName == "IFRAME") {
+    // Get iframes
+    var iframes = doc.getElementsByTagName("iframe");
+    for (var i = 0; i < iframes.length; i++) {
+      // Recall
+      var focused = getActiveElement(iframes[i].contentWindow.document);
+      if ((focused as any) !== null) {
+        return focused; // The focused
+      }
+    }
+  } else {
+    return doc.activeElement;
+  }
+
+  return null;
+}
+
+_global.sendText = (text) => {
+  const el = getActiveElement();
+  if (el) {
+    if (el instanceof HTMLInputElement) {
+      const [start, end] = [el.selectionStart, el.selectionEnd];
+      el.setRangeText(text, start, end, "end");
+    } else {
+      // simulate key press
+      for (let i = 0; i < text.length; i++) {
+        const event1 = new KeyboardEvent("keypress", {
+          bubbles: true,
+          cancelable: true,
+          keyCode: text.charCodeAt(i),
+        });
+        el.dispatchEvent(event1);
+      }
+    }
+  }
 };

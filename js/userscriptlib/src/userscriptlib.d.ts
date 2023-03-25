@@ -15,6 +15,8 @@ declare global {
     function waitForXPath(xpath: string): Promise<unknown>;
     function saveAsFile(data: string, filename: string, type: string): void;
     function download(url: string, filename?: string): void;
-    function exec(args: string, callback?: (result: string) => void): void;
+    function exec(args: string | string[]): Promise<string>;
     function openInNewWindow(url: string): void;
+    function getSelectedText(): void;
+    function sendText(text: string): void;
 }
