@@ -1,6 +1,15 @@
 import { register } from "@violentmonkey/shortcut";
+import * as Toastify from "toastify-js";
+import "toastify-js/src/toastify.css";
+import { Pane } from "tweakpane";
 
 export {};
+
+const pane = new Pane({
+  title: "-",
+  container: createContainer(),
+  expanded: false,
+});
 
 declare global {
   interface Navigator {
@@ -10,6 +19,7 @@ declare global {
 
   function addButton(name: string, onclick: () => void, hotkey?: string): void;
   function addText(text: string, { color = "black" }: { color?: string }): void;
+  function addTextarea(): void;
   function findElementByXPath(exp: string): Node;
   function findElementByText(text: string): Node;
   function waitForSelector(selector: string): Promise<unknown>;
@@ -19,57 +29,53 @@ declare global {
   function download(url: string, filename?: string): void;
   function exec(args: string | string[]): Promise<string>;
   function openInNewWindow(url: string): void;
-  function getSelectedText(): void;
+  function getSelectedText(): string | null;
   function sendText(text: string): void;
+  function showToast(text: string): void;
 }
 
 const _global = window /* browser */ || global; /* node */
 
-let _container: HTMLElement | null;
+function createContainer() {
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.top = "0";
+  container.style.left = "0";
+  container.style.zIndex = "9999";
+  document.body.appendChild(container);
 
-function getContainer() {
-  if (_container) {
-    return _container;
-  }
-
-  _container = document.createElement("div");
-  _container.style.position = "fixed";
-  _container.style.top = "0";
-  _container.style.left = "0";
-  _container.style.padding = "8px";
-  _container.style.zIndex = "9999";
-  _container.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
-  document.body.appendChild(_container);
-
-  _container.addEventListener("mousedown", (ev) => {
-    ev.preventDefault();
-
-    let x = ev.clientX;
-    let y = ev.clientY;
-
-    const onMouseMove = (ev: MouseEvent) => {
+  const moveable = false;
+  if (moveable) {
+    container.addEventListener("mousedown", (ev) => {
       ev.preventDefault();
 
-      const relX = x - ev.clientX;
-      const relY = y - ev.clientY;
+      let x = ev.clientX;
+      let y = ev.clientY;
 
-      x = ev.clientX;
-      y = ev.clientY;
+      const onMouseMove = (ev: MouseEvent) => {
+        ev.preventDefault();
 
-      _container.style.top = `${_container.offsetTop - relY}px`;
-      _container.style.left = `${_container.offsetLeft - relX}px`;
-    };
+        const relX = x - ev.clientX;
+        const relY = y - ev.clientY;
 
-    const onMouseUp = () => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onMouseMove);
-    };
+        x = ev.clientX;
+        y = ev.clientY;
 
-    document.addEventListener("mouseup", onMouseUp);
-    document.addEventListener("mousemove", onMouseMove);
-  });
+        container.style.top = `${container.offsetTop - relY}px`;
+        container.style.left = `${container.offsetLeft - relX}px`;
+      };
 
-  return _container;
+      const onMouseUp = () => {
+        document.removeEventListener("mouseup", onMouseUp);
+        document.removeEventListener("mousemove", onMouseMove);
+      };
+
+      document.addEventListener("mouseup", onMouseUp);
+      document.addEventListener("mousemove", onMouseMove);
+    });
+  }
+
+  return container;
 }
 
 function waitFor(evaluate: () => Node | null) {
@@ -103,30 +109,23 @@ function waitFor(evaluate: () => Node | null) {
 }
 
 _global.addButton = (name, onclick, hotkey) => {
-  const button = document.createElement("button");
-  button.style.backgroundColor = "#ccc";
-  button.style.border = "1px solid black";
-  button.style.color = "#000";
-  button.style.display = "inline-block";
-  button.style.padding = "2px 8px";
-  button.textContent = name;
   if (hotkey) {
-    button.textContent += ` (${hotkey})`;
-  }
-  button.onclick = onclick;
-
-  getContainer().appendChild(button);
-
-  if (hotkey) {
+    name += ` (${hotkey})`;
     register(hotkey, onclick);
   }
+  const button = pane.addButton({
+    title: name,
+  });
+  button.on("click", () => {
+    onclick();
+  });
 };
 
 _global.addText = (text, { color = "black" }) => {
   const div = document.createElement("div");
   div.textContent = text;
   div.style.color = color;
-  getContainer().appendChild(div);
+  createContainer().appendChild(div);
 };
 
 _global.findElementByXPath = (exp) => {
@@ -215,7 +214,12 @@ _global.openInNewWindow = (url) => {
 };
 
 _global.getSelectedText = () => {
-  return window.getSelection().toString().trim().replace(/ /g, "_");
+  let selected = window.getSelection().toString().trim();
+  if (selected) {
+    return selected;
+  } else {
+    return null;
+  }
 };
 
 function getActiveElement(doc: Document = window.document): Element | null {
@@ -255,4 +259,20 @@ _global.sendText = (text) => {
       }
     }
   }
+};
+
+_global.addTextarea = () => {
+  const params = {
+    text: "",
+  };
+  pane.addMonitor(params, "text", {
+    interval: 1000,
+    multiline: true,
+    lineCount: 5,
+  });
+  return params;
+};
+
+_global.showToast = (s) => {
+  Toastify({ text: s }).showToast();
 };

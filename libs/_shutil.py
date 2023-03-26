@@ -112,8 +112,12 @@ def get_hash(obj, digit=16):
     return hash
 
 
+_ahk_initialized = False
+
+
 @lru_cache(maxsize=None)
 def get_ahk_exe(uia=True):
+    global _ahk_initialized
     if sys.platform != "win32":
         raise Exception("unsupported platform: %s" % sys.platform)
 
@@ -123,14 +127,14 @@ def get_ahk_exe(uia=True):
     else:
         ahk_exe = os.path.expandvars(r"%ProgramFiles%\AutoHotkey\AutoHotkeyU64.exe")
 
-    if not hasattr(get_ahk_exe, "init"):
+    if not _ahk_initialized:
         os.makedirs(os.path.expanduser(r"~\Documents\AutoHotkey"), exist_ok=True)
         run_elevated(
             r'cmd /c MKLINK /D "%USERPROFILE%\Documents\AutoHotkey\Lib" "{}"'.format(
                 os.path.abspath(os.path.dirname(__file__) + "/../ahk")
             )
         )
-        get_ahk_exe.init = True
+        _ahk_initialized = True
 
     return ahk_exe
 
@@ -266,8 +270,8 @@ def getch(timeout=-1):
     if sys.platform == "win32":
         import msvcrt
 
-        time_elapsed = 0
-        if timeout > 0:
+        time_elapsed = 0.0
+        if timeout > 0.0:
             while not msvcrt.kbhit() and time_elapsed < timeout:
                 sleep(0.1)
                 time_elapsed += 0.1
@@ -610,6 +614,15 @@ def write_lines(file, lines):
 def read_proc_lines(
     args, echo=False, read_err=False, max_lines=None, check=True, **kwargs
 ):
+
+    ps = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE if (not read_err) else None,
+        stderr=subprocess.PIPE if read_err else None,
+        # bufsize=1,
+        **kwargs,
+    )
+
     def terminate():
         nonlocal ps
         if sys.platform == "win32":
@@ -622,14 +635,6 @@ def read_proc_lines(
         else:
             ps.send_signal(signal.SIGINT)
             ps.kill()
-
-    ps = subprocess.Popen(
-        args,
-        stdout=subprocess.PIPE if (not read_err) else None,
-        stderr=subprocess.PIPE if read_err else None,
-        # bufsize=1,
-        **kwargs,
-    )
 
     line_no = 0
     for line in ps.stderr if read_err else ps.stdout:
@@ -1221,9 +1226,9 @@ def get_next_file_name(file):
     basename = os.path.basename(name)
     folder = os.path.dirname(name)
     match = re.search("^(.*?)(\d*)$", basename)
-    prefix = match.group(1)
 
-    if match.group(2):
+    if match is not None and match.group(2):
+        prefix = match.group(1)
         digits = match.group(2)
         len_digits = len(digits)
         digits = int(digits)
@@ -1253,7 +1258,6 @@ def shell_open(file="."):
     if sys.platform == "win32":
         file = file.replace("/", os.path.sep)
         os.startfile(file)
-        # subprocess.Popen(['start', file], shell= True)
 
     elif sys.platform == "darwin":
         subprocess.Popen(["open", file])

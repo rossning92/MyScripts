@@ -1,3 +1,4 @@
+import "toastify-js/src/toastify.css";
 export {};
 declare global {
     interface Navigator {
@@ -8,6 +9,7 @@ declare global {
     function addText(text: string, { color }: {
         color?: string;
     }): void;
+    function addTextarea(): void;
     function findElementByXPath(exp: string): Node;
     function findElementByText(text: string): Node;
     function waitForSelector(selector: string): Promise<unknown>;
@@ -17,6 +19,7 @@ declare global {
     function download(url: string, filename?: string): void;
     function exec(args: string | string[]): Promise<string>;
     function openInNewWindow(url: string): void;
-    function getSelectedText(): void;
+    function getSelectedText(): string | null;
     function sendText(text: string): void;
+    function showToast(text: string): void;
 }

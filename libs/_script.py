@@ -17,7 +17,6 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 import yaml
 from _android import setup_android_env
-from _browser import open_url
 from _editor import open_in_editor
 from _filelock import FileLock
 from _pkgmanager import open_log_file, require_package
@@ -32,6 +31,7 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
+    getch,
     load_json,
     load_yaml,
     npm_install,
@@ -1035,8 +1035,10 @@ class Script:
         elif ext == ".js":
             # Userscript
             if script_path.endswith(".user.js"):
-                try:
-                    while True:
+                updated = True
+                print("(watching file change, press any key to cancel...)")
+                while True:
+                    if updated:
                         relpath = self.script_rel_path
                         if template:
                             relpath = os.path.dirname(relpath)
@@ -1056,13 +1058,16 @@ class Script:
                             ) as f:
                                 f.write(self.render(source=source))
 
-                        open_url("http://127.0.0.1:4312/scripts/" + relpath)
+                        shell_open("http://127.0.0.1:4312/scripts/" + relpath)
 
-                        print("(watch file change, Ctrl+C to cancel...)")
-                        while not self.update_script_mtime():
-                            time.sleep(1)
-                except KeyboardInterrupt:
-                    pass
+                    # Check if script is updated
+                    updated = self.update_script_mtime()
+                    if updated:
+                        source = self.get_script_source()
+
+                    # Press any key to cancel
+                    if getch(timeout=0.5) is not None:
+                        break
 
             else:
                 # TODO: support template

@@ -34,11 +34,14 @@ class MyServer(SimpleHTTPRequestHandler):
         except Exception:
             logging.exception("")
 
-    # def translate_path(self, path: str) -> str:
-    #     path = SimpleHTTPRequestHandler.translate_path(self, path)
-    #     relpath = os.path.relpath(path, os.getcwd())
-    #     fullpath = os.path.join(self.server.base_path, relpath)
-    #     return fullpath
+    def end_headers(self):
+        self.send_my_headers()
+        super().end_headers()
+
+    def send_my_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
 
     def log_message(self, format, *args):
         return
