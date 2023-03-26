@@ -637,7 +637,7 @@ class MainWindow(Menu[Script]):
                                 pass
 
             except FileNotFoundError:  # Scripts have been removed
-                logging.warn(
+                logging.warning(
                     "Error on reading variables from script, script does not exist: %s"
                     % script.script_path
                 )

@@ -1746,7 +1746,7 @@ def reload_scripts(
                 try:
                     script.execute(new_window=False, command_wrapper=False)
                 except Exception as ex:
-                    logging.warn(ex)
+                    logging.warning(ex)
 
         bisect.insort(script_list, script)
 

@@ -8,7 +8,6 @@
 // @description Description
 // @require     file://{{USER_SCRIPT_LIB}}
 // ==/UserScript==
-/// <reference path="{{USER_SCRIPT_LIB}}" />
 
 addButton(
   "Hello",
