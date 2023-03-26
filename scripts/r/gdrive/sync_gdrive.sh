@@ -18,9 +18,20 @@ sync_gdrive() {
 }
 
 if ! sync_gdrive; then
-    read -p "resync? (y/n)" ans
-    if [[ "$ans" == 'y' ]]; then
+    print "\n\n\n"
+    read -p "resync? (Y/n)" ans
+    if [[ -z "$ans" ]]; then
         sync_gdrive --resync
         sync_gdrive
     fi
+fi
+
+if [[ -n "${_PREFIX}" ]]; then
+    abspath="$HOME/gdrive/${GDRIVE_DIR}"
+    # Windows: convert UNIX to windows path
+    if ! [ -x "$(command -v labtest)" ]; then
+        abspath="$(cygpath -w "$abspath")"
+    fi
+
+    run_script ext/add_script_dir.py "${_PREFIX}" "$abspath"
 fi

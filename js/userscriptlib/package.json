@@ -9,7 +9,7 @@
     "webpack": "^5.76.2"
   },
   "scripts": {
-    "build": "webpack --mode development",
-    "watch": "webpack watch --mode development"
+    "build": "webpack --mode production",
+    "watch": "webpack watch --mode production"
   }
 }

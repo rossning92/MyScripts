@@ -7,5 +7,8 @@
     "allowJs": true,
     "moduleResolution": "node",
     "declaration": true,
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
 }

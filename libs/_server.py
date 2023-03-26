@@ -2,13 +2,19 @@ import json
 import logging
 import subprocess
 import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 HOST_NAME = "127.0.0.1"
 PORT = 4312
 
 
-class MyServer(BaseHTTPRequestHandler):
+_root = None
+
+
+class MyServer(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=_root, **kwargs)
+
     def do_POST(self):
         try:
             if self.path != "/exec":
@@ -28,6 +34,12 @@ class MyServer(BaseHTTPRequestHandler):
         except Exception:
             logging.exception("")
 
+    # def translate_path(self, path: str) -> str:
+    #     path = SimpleHTTPRequestHandler.translate_path(self, path)
+    #     relpath = os.path.relpath(path, os.getcwd())
+    #     fullpath = os.path.join(self.server.base_path, relpath)
+    #     return fullpath
+
     def log_message(self, format, *args):
         return
 
@@ -40,7 +52,10 @@ def server_thread():
     print("Script server stopped.")
 
 
-def start_server(start_new_thread=False):
+def start_server(start_new_thread=False, root=None):
+    global _root
+    _root = root
+
     if start_new_thread:
         threading.Thread(target=server_thread, daemon=True).start()
     else:

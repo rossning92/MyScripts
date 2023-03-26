@@ -109,9 +109,9 @@ _global.addButton = (name, onclick, hotkey) => {
   button.style.color = "#000";
   button.style.display = "inline-block";
   button.style.padding = "2px 8px";
-  button.innerHTML = name;
+  button.textContent = name;
   if (hotkey) {
-    button.innerHTML += ` (${hotkey})`;
+    button.textContent += ` (${hotkey})`;
   }
   button.onclick = onclick;
 
@@ -124,7 +124,7 @@ _global.addButton = (name, onclick, hotkey) => {
 
 _global.addText = (text, { color = "black" }) => {
   const div = document.createElement("div");
-  div.innerHTML = text;
+  div.textContent = text;
   div.style.color = color;
   getContainer().appendChild(div);
 };
@@ -240,7 +240,7 @@ function getActiveElement(doc: Document = window.document): Element | null {
 _global.sendText = (text) => {
   const el = getActiveElement();
   if (el) {
-    if (el instanceof HTMLInputElement) {
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
       const [start, end] = [el.selectionStart, el.selectionEnd];
       el.setRangeText(text, start, end, "end");
     } else {

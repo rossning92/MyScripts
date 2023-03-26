@@ -5,7 +5,6 @@ import json
 import locale
 import logging
 import os
-import pathlib
 import platform
 import re
 import shutil
@@ -33,12 +32,14 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
+    load_json,
     load_yaml,
     npm_install,
     prepend_to_path,
     print2,
     quote_arg,
     run_elevated,
+    save_json,
     save_yaml,
     setup_nodejs,
     shell_open,
@@ -130,10 +131,40 @@ def get_bin_dir():
 
 @lru_cache(maxsize=None)
 def get_script_dirs_config_file():
-    config_file = os.path.join(get_data_dir(), "script_directories.txt")
-    if not os.path.exists(config_file):
-        pathlib.Path(config_file).touch()
-    return config_file
+
+    # TODO: migrate to json file
+    config_txt_file_deprecated = os.path.join(get_data_dir(), "script_directories.txt")
+    config_json_file = os.path.join(get_data_dir(), "script_directories.json")
+    if os.path.exists(config_txt_file_deprecated):
+        if not os.path.exists(config_json_file):
+            with open(config_txt_file_deprecated) as f:
+                lines = f.read().splitlines()
+
+            directories = []
+            for line in lines:
+                line = line.strip()
+                if line:
+                    cols = line.split("|")
+                    if len(cols) == 1:
+                        name = os.path.basename(cols[0])
+                        directory = cols[0]
+                    elif len(cols) == 2:
+                        name = cols[0]
+                        directory = cols[1]
+                    else:
+                        raise Exception(
+                            "Invalid line in {}: {}".format(
+                                config_txt_file_deprecated, line
+                            )
+                        )
+                directories.append({"name": name, "directory": directory})
+            save_json(config_json_file, directories)
+            os.rename(config_txt_file_deprecated, config_txt_file_deprecated + ".bak")
+
+    if not os.path.exists(config_json_file):
+        save_json(config_json_file, [])
+
+    return config_json_file
 
 
 @lru_cache(maxsize=None)
@@ -142,43 +173,35 @@ def get_script_directories() -> List[Tuple[str, str]]:
     directories.append(("", get_script_root()))
 
     config_file = get_script_dirs_config_file()
-    with open(config_file) as f:
-        for line in f.read().splitlines():
-            if line:
-                cols = line.split("|")
-                if len(cols) == 1:
-                    name = os.path.basename(cols[0])
-                    directory = cols[0]
-                elif len(cols) == 2:
-                    name = cols[0]
-                    directory = cols[1]
-                else:
-                    raise Exception("Invalid line in {}: {}".format(config_file, line))
-                if not os.path.isabs(directory):  # is relative path
-                    directory = os.path.abspath(
-                        os.path.join(
-                            # relative to "script_directories.txt"
-                            os.path.dirname(config_file),
-                            directory,
-                        )
-                    )
-                directories.append((name, directory))
+    data = load_json(config_file)
+
+    for item in data:
+        name = item["name"]
+        directory = item["directory"]
+        if not os.path.isabs(directory):  # is relative path
+            directory = os.path.abspath(
+                os.path.join(
+                    # relative to "script_directories.txt"
+                    os.path.dirname(config_file),
+                    directory,
+                )
+            )
+        directories.append((name, directory))
 
     return directories
 
 
 def add_script_dir(d, prefix=None):
-    config_file = get_script_dirs_config_file()
-    with open(config_file, "r", encoding="utf-8") as f:
-        lines = f.read().splitlines()
-
     if prefix is None:
         prefix = "link/" + os.path.basename(d)
-    lines.append("%s|%s" % (prefix, d))
-    lines = [x for x in lines if x.strip()]
 
-    with open(config_file, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+    config_file = get_script_dirs_config_file()
+    data = load_json(config_file)
+    # Remove existing item given by name
+    data = [item for item in data if item["name"] != prefix]
+    # Add new item
+    data.append({"name": prefix, "directory": d})
+    save_json(config_file, data)
 
 
 def _get_script_history_file():
@@ -657,15 +680,13 @@ class Script:
             raise Exception("Script file does not exist.")
 
         script_path = os.path.abspath(script_path)
+        self.script_rel_path = get_relative_script_path(script_path)
 
         # Script display name
         if name:
             self.name = name
         else:
-            self.name = script_path
-
-            # Convert absolute path to relative path
-            self.name = get_relative_script_path(self.name)
+            self.name = self.script_rel_path
 
             # Strip extension
             # self.name, _ = os.path.splitext(self.name)
@@ -1012,8 +1033,37 @@ class Script:
                 return False
 
         elif ext == ".js":
-            if script_path.endswith(".user.js"):  # is user script
-                open_url("file://" + script_path.replace("\\", "/"))
+            # Userscript
+            if script_path.endswith(".user.js"):
+                try:
+                    while True:
+                        relpath = self.script_rel_path
+                        if template:
+                            relpath = os.path.dirname(relpath)
+                            if len(relpath) > 0:
+                                relpath += "/"
+                            relpath += "generated/" + os.path.basename(
+                                self.script_rel_path
+                            )
+                            d = os.path.join(
+                                os.path.dirname(self.script_path), "generated"
+                            )
+                            os.makedirs(d, exist_ok=True)
+                            with open(
+                                os.path.join(d, os.path.basename(self.script_path)),
+                                "w",
+                                encoding="utf-8",
+                            ) as f:
+                                f.write(self.render(source=source))
+
+                        open_url("http://127.0.0.1:4312/scripts/" + relpath)
+
+                        print("(watch file change, Ctrl+C to cancel...)")
+                        while not self.update_script_mtime():
+                            time.sleep(1)
+                except KeyboardInterrupt:
+                    pass
+
             else:
                 # TODO: support template
                 setup_nodejs()
@@ -1660,7 +1710,7 @@ def get_all_script_access_time() -> Tuple[Dict, float]:
 
 def get_scripts_recursive(directory) -> Iterator[str]:
     def should_ignore(dir, file):
-        if file == "tmp":
+        if file == "tmp" or file == "generated":
             return True
 
         # Ignore folder starting with `_`

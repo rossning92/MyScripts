@@ -202,7 +202,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
                 dest_script,
                 context={
                     "USER_SCRIPT_NAME": user_script_name,
-                    "USER_SCRIPT_LIB": user_script_lib.replace("\\", "/"),
+                    "USER_SCRIPT_LIB": "http://127.0.0.1:4312/js/userscriptlib/dist/userscriptlib.js",
                 },
             )
         else:

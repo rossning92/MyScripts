@@ -9,6 +9,7 @@ __pycache__/
 /config/
 build/
 tmp/
+generated/
 .ipynb_checkpoints
 *.pyc
 node_modules/
