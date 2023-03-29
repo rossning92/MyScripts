@@ -5,10 +5,7 @@
       "type": "npm",
       "script": "watch",
       "path": "scripts/r/videoedit/_extension/",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
+      "group": "build",
       "problemMatcher": "$tsc-watch",
       "label": "npm: watch - scripts/r/videoedit/_extension",
       "isBackground": true,

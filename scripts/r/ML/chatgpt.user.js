@@ -25,23 +25,6 @@ addButton(
   "c-i"
 );
 
-a = addTextarea();
-
-addButton(
-  "complete (prompt)",
-  () => {
-    const message = prompt();
-    if (message) {
-      getCompletion(message, {
-        onText: (s) => {
-          showToast(s);
-        },
-      });
-    }
-  },
-  "c-p"
-);
-
 async function getCompletion(content, { onText, onDeltaText }) {
   // https://platform.openai.com/docs/api-reference/making-requests
   const apiKey = "{{OPEN_AI_API_KEY}}";

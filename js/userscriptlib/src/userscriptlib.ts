@@ -1,15 +1,6 @@
 import { register } from "@violentmonkey/shortcut";
-import * as Toastify from "toastify-js";
-import "toastify-js/src/toastify.css";
-import { Pane } from "tweakpane";
 
 export {};
-
-const pane = new Pane({
-  title: "-",
-  container: createContainer(),
-  expanded: false,
-});
 
 declare global {
   interface Navigator {
@@ -19,7 +10,6 @@ declare global {
 
   function addButton(name: string, onclick: () => void, hotkey?: string): void;
   function addText(text: string, { color = "black" }: { color?: string }): void;
-  function addTextarea(): void;
   function findElementByXPath(exp: string): Node;
   function findElementByText(text: string): Node;
   function waitForSelector(selector: string): Promise<unknown>;
@@ -29,53 +19,64 @@ declare global {
   function download(url: string, filename?: string): void;
   function exec(args: string | string[]): Promise<string>;
   function openInNewWindow(url: string): void;
-  function getSelectedText(): string | null;
+  function getSelectedText(): void;
   function sendText(text: string): void;
-  function showToast(text: string): void;
 }
 
 const _global = window /* browser */ || global; /* node */
 
-function createContainer() {
-  const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.top = "0";
-  container.style.left = "0";
-  container.style.zIndex = "9999";
-  document.body.appendChild(container);
+let _container: HTMLElement | null;
 
-  const moveable = false;
-  if (moveable) {
-    container.addEventListener("mousedown", (ev) => {
-      ev.preventDefault();
-
-      let x = ev.clientX;
-      let y = ev.clientY;
-
-      const onMouseMove = (ev: MouseEvent) => {
-        ev.preventDefault();
-
-        const relX = x - ev.clientX;
-        const relY = y - ev.clientY;
-
-        x = ev.clientX;
-        y = ev.clientY;
-
-        container.style.top = `${container.offsetTop - relY}px`;
-        container.style.left = `${container.offsetLeft - relX}px`;
-      };
-
-      const onMouseUp = () => {
-        document.removeEventListener("mouseup", onMouseUp);
-        document.removeEventListener("mousemove", onMouseMove);
-      };
-
-      document.addEventListener("mouseup", onMouseUp);
-      document.addEventListener("mousemove", onMouseMove);
-    });
+function getContainer() {
+  if (_container) {
+    return _container;
   }
 
-  return container;
+  const panel = document.createElement("div");
+  panel.style.position = "fixed";
+  panel.style.top = "0";
+  panel.style.left = "0";
+  panel.style.zIndex = "9999";
+  panel.style.height = "14px";
+  document.body.appendChild(panel);
+
+  _container = document.createElement("div");
+  panel.appendChild(_container);
+
+  const handle = document.createElement("div");
+  handle.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+  handle.style.height = "8px";
+  panel.appendChild(handle);
+
+  handle.addEventListener("mousedown", (ev) => {
+    ev.preventDefault();
+
+    let x = ev.clientX;
+    let y = ev.clientY;
+
+    const onMouseMove = (ev: MouseEvent) => {
+      ev.preventDefault();
+
+      const relX = x - ev.clientX;
+      const relY = y - ev.clientY;
+
+      x = ev.clientX;
+      y = ev.clientY;
+
+      panel.style.top = `${panel.offsetTop - relY}px`;
+      panel.style.left = `${panel.offsetLeft - relX}px`;
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mousemove", onMouseMove);
+    };
+
+    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+  });
+
+  return _container;
 }
 
 function waitFor(evaluate: () => Node | null) {
@@ -109,23 +110,34 @@ function waitFor(evaluate: () => Node | null) {
 }
 
 _global.addButton = (name, onclick, hotkey) => {
+  const buttonContainer = document.createElement("div");
+  getContainer().appendChild(buttonContainer);
+
+  const button = document.createElement("button");
+  button.style.backgroundColor = "#ccc";
+  button.style.border = "1px solid #666";
+  button.style.color = "#000";
+  button.style.padding = "0px 10px";
+  button.style.margin = "0";
+  button.style.width = "100%";
+  button.style.fontSize = "11px";
+  button.textContent = name;
   if (hotkey) {
-    name += ` (${hotkey})`;
+    button.textContent += ` (${hotkey})`;
+  }
+  button.onclick = onclick;
+  buttonContainer.appendChild(button);
+
+  if (hotkey) {
     register(hotkey, onclick);
   }
-  const button = pane.addButton({
-    title: name,
-  });
-  button.on("click", () => {
-    onclick();
-  });
 };
 
 _global.addText = (text, { color = "black" }) => {
   const div = document.createElement("div");
   div.textContent = text;
   div.style.color = color;
-  createContainer().appendChild(div);
+  getContainer().appendChild(div);
 };
 
 _global.findElementByXPath = (exp) => {
@@ -214,12 +226,7 @@ _global.openInNewWindow = (url) => {
 };
 
 _global.getSelectedText = () => {
-  let selected = window.getSelection().toString().trim();
-  if (selected) {
-    return selected;
-  } else {
-    return null;
-  }
+  return window.getSelection().toString().trim().replace(/ /g, "_");
 };
 
 function getActiveElement(doc: Document = window.document): Element | null {
@@ -259,20 +266,4 @@ _global.sendText = (text) => {
       }
     }
   }
-};
-
-_global.addTextarea = () => {
-  const params = {
-    text: "",
-  };
-  pane.addMonitor(params, "text", {
-    interval: 1000,
-    multiline: true,
-    lineCount: 5,
-  });
-  return params;
-};
-
-_global.showToast = (s) => {
-  Toastify({ text: s }).showToast();
 };
