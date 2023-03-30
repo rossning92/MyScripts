@@ -1,14 +1,21 @@
 pkg="${_PROC}"
 
 pid=$(adb shell pidof "$pkg")
+adb shell cat /proc/$pid/status | grep 'VmRSS'
+adb shell dumpsys meminfo $pkg | grep -E 'TOTAL RSS|Graphics:'
+printf "\n\n\n"
+
 adb shell cat /proc/$pid/private_maps | head
 
 # https://poby.medium.com/linux-memory-demystified-eb33e81699b2
-echo -e "\n\n\n\nadb shell cat /proc/$pid/status"
-adb shell cat /proc/$pid/status | grep --color 'VmRSS\|$'
+echo -e "\n\n\n\n> adb shell cat /proc/$pid/status"
+adb shell cat /proc/$pid/status
 
-echo -e "\n\n\n\nadb shell dumpsys meminfo $pkg"
-adb shell dumpsys meminfo $pkg | grep --color 'RSS\|$'
+echo -e "\n\n\n\n> adb shell dumpsys meminfo $pkg"
+adb shell dumpsys meminfo $pkg
 
-# adb shell dumpsys gfxinfo $pkg
-# adb exec-out gpumeminfo -p $pid | grep "Total"
+echo -e "\n\n\n\n> adb shell dumpsys gfxinfo $pkg"
+adb shell dumpsys gfxinfo $pkg
+
+echo -e "\n\n\n\n> adb exec-out gpumeminfo -p $pid -o"
+adb exec-out "gpumeminfo -p $pid -o"
