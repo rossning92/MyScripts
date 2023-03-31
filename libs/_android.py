@@ -582,7 +582,13 @@ def pm_list_packages():
     return lines
 
 
-def adb_install(apk, force=False, grant_permissions=False):
+class AdbInstallResult:
+    def __init__(self, pkg: str, installed: bool):
+        self.pkg = pkg
+        self.installed = installed
+
+
+def adb_install(apk, force=False, grant_permissions=False) -> AdbInstallResult:
     # Get package name
     out = subprocess.check_output(
         ["aapt", "dump", "badging", apk], universal_newlines=True
@@ -669,41 +675,44 @@ def adb_install(apk, force=False, grant_permissions=False):
     else:
         logger.info("App already installed, skipping...")
 
-    return pkg_name
+    return AdbInstallResult(pkg=pkg_name, installed=should_install)
 
 
-def adb_install2(file, force=False, grant_permissions=False):
+def adb_install2(file, force=False, grant_permissions=False) -> AdbInstallResult:
     """
     Install + restore app data.
     """
-    adb_install(file, force=force, grant_permissions=grant_permissions)
+    result = adb_install(file, force=force, grant_permissions=grant_permissions)
 
-    # Push data
-    tar_file = os.path.splitext(file)[0] + ".tar"
-    pkg = os.path.splitext(os.path.basename(file))[0]
-    if os.path.exists(tar_file):
-        logger.info("Restoring app data...")
-        subprocess.check_call(["adb", "push", "tar_file}", "/data/local/tmp/"])
-        adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
+    if result.installed:
+        # Push data
+        tar_file = os.path.splitext(file)[0] + ".tar"
+        pkg = os.path.splitext(os.path.basename(file))[0]
+        if os.path.exists(tar_file):
+            logger.info("Restoring app data...")
+            subprocess.check_call(["adb", "push", "tar_file}", "/data/local/tmp/"])
+            adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
 
-        out = check_output(f"adb shell dumpsys package {pkg} | grep userId")
-        out = out.decode().strip()
+            out = check_output(f"adb shell dumpsys package {pkg} | grep userId")
+            out = out.decode().strip()
 
-        userId = re.findall(r"userId=(\d+)", out)[0]
-        logger.info(f"Changing owner of {pkg} => {userId}")
-        adb_shell2(f"chown -R {userId}:{userId} /data/data/{pkg}", root=True)
+            userId = re.findall(r"userId=(\d+)", out)[0]
+            logger.info(f"Changing owner of {pkg} => {userId}")
+            adb_shell2(f"chown -R {userId}:{userId} /data/data/{pkg}", root=True)
 
-        logger.info("Resetting SELinux permisions...")
-        adb_shell2(f"restorecon -R /data/data/{pkg}", root=True)
+            logger.info("Resetting SELinux permisions...")
+            adb_shell2(f"restorecon -R /data/data/{pkg}", root=True)
 
-    # Push obb file
-    file = os.path.abspath(file)
-    obb_dir = os.path.join(
-        os.path.dirname(file), "obb", os.path.splitext(os.path.basename(file))[0]
-    )
-    if os.path.isdir(obb_dir):
-        logger.info("Pushing obb...")
-        call2(["adb", "push", obb_dir, "/sdcard/android/obb"])
+        # Push obb file
+        file = os.path.abspath(file)
+        obb_dir = os.path.join(
+            os.path.dirname(file), "obb", os.path.splitext(os.path.basename(file))[0]
+        )
+        if os.path.isdir(obb_dir):
+            logger.info("Pushing obb...")
+            call2(["adb", "push", obb_dir, "/sdcard/android/obb"])
+
+    return result
 
 
 def sample_proc_stat():
@@ -832,8 +841,8 @@ def toggle_prop(name, values=("0", "1")):
 
 
 def run_apk(apk, grant_permissions=False):
-    pkg_name = adb_install(apk, grant_permissions=grant_permissions)
-    restart_app(pkg_name)
+    result = adb_install2(apk, grant_permissions=grant_permissions)
+    restart_app(result.pkg)
 
 
 def find_device_by_product_name(product):

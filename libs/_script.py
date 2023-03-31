@@ -131,7 +131,6 @@ def get_bin_dir():
 
 @lru_cache(maxsize=None)
 def get_script_dirs_config_file():
-
     # TODO: migrate to json file
     config_txt_file_deprecated = os.path.join(get_data_dir(), "script_directories.txt")
     config_json_file = os.path.join(get_data_dir(), "script_directories.json")
@@ -824,6 +823,13 @@ class Script:
             else:
                 variables[vname] = ""
 
+        # Override by environmental variables
+        for name in variables.keys():
+            if name in os.environ:
+                val = os.environ[name]
+                variables[name] = val
+                logging.debug("Override template variable: %s=%s" % (name, val))
+
         # Override variables
         if self.override_variables:
             variables = {**variables, **self.override_variables}
@@ -889,13 +895,6 @@ class Script:
 
         # Get variable name value pairs
         variables = self.get_variables()
-        # Override variable from enviromental variables
-        for name in variables.keys():
-            if name in os.environ:
-                variables[name] = os.environ[name]
-                logging.info(
-                    "Override by environment variable: %s=%s" % (name, os.environ[name])
-                )
 
         logging.info("execute script: %s: args=%s" % (self.name, args))
         close_on_exit = (

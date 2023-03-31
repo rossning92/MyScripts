@@ -330,5 +330,8 @@
   ".tar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
   ".tgz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
   ".7z": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-  ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]]
+  ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
+  ".perfetto-trace": [
+    ["run_script", "r/android/perfetto/open_perfetto_trace.py"]
+  ]
 }
