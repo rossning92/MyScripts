@@ -148,7 +148,13 @@ def copy_script_path_to_clipboard(
 
             content += f"run_script {script_path}"
         elif format == "include":
-            content = "{{ include('%s', {}) }}" % script_path
+            if with_variables:
+                content = "{{ include('%s', %s) }}" % (
+                    script_path,
+                    script.get_variables(),
+                )
+            else:
+                content = "{{ include('%s') }}" % script_path
 
         set_clip(content)
         return content

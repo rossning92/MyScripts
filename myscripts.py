@@ -500,7 +500,9 @@ class MainWindow(Menu[Script]):
     def _copy_to_clipboard_include_derivative(self):
         script = self.get_selected_script()
         if script:
-            content = copy_script_path_to_clipboard(script, format="include")
+            content = copy_script_path_to_clipboard(
+                script, format="include", with_variables=True
+            )
             self.set_message(f"(copied to clipboard: {content})")
             self.clear_input()
 

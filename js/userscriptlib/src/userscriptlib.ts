@@ -21,6 +21,7 @@ declare global {
   function openInNewWindow(url: string): void;
   function getSelectedText(): void;
   function sendText(text: string): void;
+  function click(el: HTMLElement): void;
 }
 
 const _global = window /* browser */ || global; /* node */
@@ -33,18 +34,19 @@ function getContainer() {
   }
 
   const panel = document.createElement("div");
+  panel.style.opacity = "0.8";
+  panel.style.height = "14px";
+  panel.style.left = "0";
   panel.style.position = "fixed";
   panel.style.top = "0";
-  panel.style.left = "0";
   panel.style.zIndex = "9999";
-  panel.style.height = "14px";
   document.body.appendChild(panel);
 
   _container = document.createElement("div");
   panel.appendChild(_container);
 
   const handle = document.createElement("div");
-  handle.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+  handle.style.backgroundColor = "lightgray";
   handle.style.height = "8px";
   panel.appendChild(handle);
 
@@ -114,13 +116,13 @@ _global.addButton = (name, onclick, hotkey) => {
   getContainer().appendChild(buttonContainer);
 
   const button = document.createElement("button");
-  button.style.backgroundColor = "#ccc";
-  button.style.border = "1px solid #666";
-  button.style.color = "#000";
+  button.style.backgroundColor = "white";
+  button.style.border = "1px solid lightgray";
+  button.style.color = "black";
   button.style.padding = "0px 10px";
   button.style.margin = "0";
   button.style.width = "100%";
-  button.style.fontSize = "11px";
+  button.style.fontSize = "14px";
   button.textContent = name;
   if (hotkey) {
     button.textContent += ` (${hotkey})`;
@@ -266,4 +268,32 @@ _global.sendText = (text) => {
       }
     }
   }
+};
+
+_global.click = (el) => {
+  const simulateMouseEvent = function (
+    element: HTMLElement,
+    eventName: string,
+    coordX: number,
+    coordY: number
+  ) {
+    element.dispatchEvent(
+      new MouseEvent(eventName, {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+        clientX: coordX,
+        clientY: coordY,
+        button: 0,
+      })
+    );
+  };
+
+  var box = el.getBoundingClientRect(),
+    coordX = box.left + (box.right - box.left) / 2,
+    coordY = box.top + (box.bottom - box.top) / 2;
+
+  simulateMouseEvent(el, "mousedown", coordX, coordY);
+  simulateMouseEvent(el, "mouseup", coordX, coordY);
+  simulateMouseEvent(el, "click", coordX, coordY);
 };

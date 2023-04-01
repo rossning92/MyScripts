@@ -10,18 +10,19 @@ from _script import run_script
 from _shutil import setup_logger, update_env_var_explorer
 
 
-def try_parse():
+def try_parse() -> tuple[dict, str | None, list[str]]:
     kwargs = {}
     if sys.argv[1].startswith("@"):
         for kvp in sys.argv[1][1:].split(":"):
             k, v = kvp.split("=")
+            value: bool | None
             if v == "1":
-                v = True
+                value = True
             elif v == "0":
-                v = False
+                value = False
             elif v == "auto":
-                v = None
-            kwargs[k] = v
+                value = None
+            kwargs[k] = value
 
         rest_args = sys.argv[2:]
     else:

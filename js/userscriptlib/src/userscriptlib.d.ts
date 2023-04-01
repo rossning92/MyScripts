@@ -19,4 +19,5 @@ declare global {
     function openInNewWindow(url: string): void;
     function getSelectedText(): void;
     function sendText(text: string): void;
+    function click(el: HTMLElement): void;
 }

@@ -21,12 +21,13 @@ if __name__ == "__main__":
     os.chdir(project_root)
     project_name = os.path.basename(url)
     project_name = re.sub(".git$", "", project_name)
+    project_dir = os.path.abspath(project_name)
 
-    if not os.path.exists(project_name):
-        os.makedirs(project_name)
-        os.chdir(project_name)
+    if not os.path.exists(project_dir):
+        os.makedirs(project_dir)
+        os.chdir(project_dir)
         call_echo("git clone %s --single-branch --filter=blob:none ." % url)
 
-    set_variable("GIT_REPO", os.path.realpath(project_name))
+    set_variable("GIT_REPO", project_dir)
 
-    open_in_editor(os.path.abspath(project_name))
+    open_in_editor(project_dir)
