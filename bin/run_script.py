@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(
     0, os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../libs")
@@ -10,7 +11,7 @@ from _script import run_script
 from _shutil import setup_logger, update_env_var_explorer
 
 
-def try_parse() -> tuple[dict, str | None, list[str]]:
+def try_parse() -> Tuple[Dict, Optional[str], List[str]]:
     kwargs = {}
     if sys.argv[1].startswith("@"):
         for kvp in sys.argv[1][1:].split(":"):

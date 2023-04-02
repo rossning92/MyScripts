@@ -648,12 +648,6 @@ class MainWindow(Menu[Script]):
 
 
 def init(no_gui=False):
-    setup_logger(
-        log_file=os.path.join(get_data_dir(), "MyScripts.log"),
-        stdout=False,
-        level=logging.DEBUG,
-    )
-
     logging.info("Python executable: %s" % sys.executable)
 
     # Add bin folder to PATH
@@ -694,6 +688,12 @@ def main_loop(no_gui=None, quit=False):
 
 
 if __name__ == "__main__":
+    setup_logger(
+        log_file=os.path.join(get_data_dir(), "MyScripts.log"),
+        log_to_stdout=False,
+        level=logging.DEBUG,
+    )
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "-q",

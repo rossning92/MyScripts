@@ -17,6 +17,7 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 import yaml
 from _android import setup_android_env
+from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
 from _pkgmanager import open_log_file, require_package
@@ -823,13 +824,6 @@ class Script:
             else:
                 variables[vname] = ""
 
-        # Override by environmental variables
-        for name in variables.keys():
-            if name in os.environ:
-                val = os.environ[name]
-                variables[name] = val
-                logging.debug("Override template variable: %s=%s" % (name, val))
-
         # Override variables
         if self.override_variables:
             variables = {**variables, **self.override_variables}
@@ -844,6 +838,13 @@ class Script:
                 if k.startswith(prefix + "_")
             },
         }
+
+        # Variables can be overridden by environmental variables
+        for name in variables.keys():
+            if name in os.environ:
+                val = os.environ[name]
+                variables[name] = val
+                logging.debug("Override variable by env var: %s=%s" % (name, val))
 
         return variables
 
@@ -925,6 +926,9 @@ class Script:
 
         if self.cfg["adk"]:
             setup_android_env(env=env)
+
+        if self.cfg["cmake"]:
+            setup_cmake(env=env)
 
         setup_env_var(env)
 
@@ -1569,6 +1573,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "autoRun": False,
         "background": False,
         "closeOnExit": True,
+        "cmake": "",
         "cmdline": "",
         "conda": "",
         "globalHotkey": "",

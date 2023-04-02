@@ -1669,7 +1669,7 @@ def update_yaml(file, dict_):
     save_yaml(data, file)
 
 
-def setup_logger(level=logging.INFO, stdout=True, log_file=None):
+def setup_logger(level=logging.INFO, log_to_stdout=True, log_file=None):
     logger = logging.getLogger()
     logger.setLevel(level)
 
@@ -1678,11 +1678,13 @@ def setup_logger(level=logging.INFO, stdout=True, log_file=None):
         "%H:%M:%S",
     )
 
-    if stdout:
-        handler = logging.StreamHandler(sys.stderr)
+    if log_to_stdout:
+        handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(formatter)
         handler.setLevel(level)
         logger.addHandler(handler)
+    else:
+        logger.propagate = False
 
     if log_file:
         file_handler = logging.FileHandler(

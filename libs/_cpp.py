@@ -16,12 +16,12 @@ def find_cmake_path(cmake_version):
         return None
 
 
-def setup_cmake(cmake_version=None, install=True):
+def setup_cmake(cmake_version=None, install=True, env=None):
     if sys.platform == "win32":
         if cmake_version:
             cmake_path = find_cmake_path(cmake_version=cmake_version)
             if cmake_path:
-                prepend_to_path(os.path.join(cmake_path, "bin"))
+                prepend_to_path(os.path.join(cmake_path, "bin"), env=env)
                 return True
 
             elif install:
@@ -37,7 +37,7 @@ def setup_cmake(cmake_version=None, install=True):
                 unzip(zip_file, "C:\\tools")
                 cmake_path = find_cmake_path(cmake_version=cmake_version)
                 assert cmake_path is not None
-                prepend_to_path(os.path.join(cmake_path, "bin"))
+                prepend_to_path(os.path.join(cmake_path, "bin"), env=env)
                 return True
 
         def find_cmake(cmake_path):
@@ -45,7 +45,7 @@ def setup_cmake(cmake_version=None, install=True):
             if match:
                 cmake_path = sorted(match)[-1]
                 logging.info("CMake: install path: %s" % cmake_path)
-                prepend_to_path(os.path.join(cmake_path, "bin"))
+                prepend_to_path(os.path.join(cmake_path, "bin"), env=env)
                 return True
 
         if find_cmake(r"C:\Program Files\CMake"):
