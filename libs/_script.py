@@ -7,13 +7,14 @@ import logging
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 from functools import lru_cache
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
 from _android import setup_android_env
@@ -250,7 +251,7 @@ def wrap_wsl(commands, env=None):
     return ["bash.exe", "-c", tmp_sh_file]
 
 
-def wrap_bash_commands(commands, wsl=False, env=None):
+def wrap_bash_commands(commands, wsl=False, env=None, msys2=False):
     assert type(commands) == str
 
     if sys.platform == "win32":
@@ -266,16 +267,21 @@ def wrap_bash_commands(commands, wsl=False, env=None):
 
             tmp_sh_file = write_temp_file(commands, ".sh")
 
-            msys2_bash_search_list = [
+            msys2_bash_search_list = []
+            if msys2:
+                msys2_bash_search_list += [
+                    r"C:\tools\msys64\usr\bin\bash.exe",
+                    r"C:\msys64\usr\bin\bash.exe",
+                ]
+            msys2_bash_search_list += [
                 r"C:\Program Files\Git\bin\bash.exe",
-                r"C:\msys64\usr\bin\bash.exe",
             ]
-
             bash = None
             for f in msys2_bash_search_list:
                 if os.path.exists(f):
                     bash = f
                     break
+            logging.debug("bash path: %s" % bash)
 
             if bash is None:
                 raise Exception("Cannot find MinGW bash.exe")
@@ -859,7 +865,7 @@ class Script:
 
     def execute(
         self,
-        args=None,
+        args: Optional[Union[str, List[str]]] = None,
         new_window=None,
         restart_instance=None,
         close_on_exit=None,
@@ -868,12 +874,6 @@ class Script:
         command_wrapper=True,
     ) -> bool:
         self.cfg = self.load_config()
-
-        cmdline = self.cfg["cmdline"]
-        if cmdline:
-            cmdline = cmdline.format(SCRIPT=quote_arg(self.script_path))
-            subprocess.call(cmdline, shell=True)
-            return True
 
         new_window = self.cfg["newWindow"] if new_window is None else new_window
         # TODO: Mac does not support newWindow yet
@@ -913,12 +913,13 @@ class Script:
             open_in_editor(script_path)
             return True
 
+        arg_list: List[str]
         if type(args) == str:
-            args = [args]
+            arg_list = [args]
         elif type(args) == list:
-            args = args
+            arg_list = args
         else:
-            args = []
+            arg_list = []
 
         env = {**variables}
 
@@ -974,7 +975,11 @@ class Script:
             cwd = os.environ["CWD"]
         logging.debug("Script.execute(): CWD: %s" % cwd)
 
-        if ext == ".ps1":
+        cmdline = self.cfg["cmdline"]
+        if cmdline:
+            arg_list = shlex.split(cmdline.format(SCRIPT=quote_arg(self.script_path)))
+
+        elif ext == ".ps1":
             if sys.platform == "win32":
                 if template:
                     ps_path = write_temp_file(
@@ -983,14 +988,14 @@ class Script:
                 else:
                     ps_path = os.path.abspath(script_path)
 
-                args = [
+                arg_list = [
                     "PowerShell.exe",
                     "-NoProfile",
                     "-ExecutionPolicy",
                     "unrestricted",
                     "-file",
                     ps_path,
-                ] + args
+                ] + arg_list
 
         elif ext == ".ahk":
             if sys.platform == "win32":
@@ -1007,12 +1012,12 @@ class Script:
                 else:
                     script_path = os.path.abspath(script_path)
 
-                args = [get_ahk_exe(), script_path]
+                arg_list = [get_ahk_exe(), script_path]
 
                 background = True
 
                 if self.cfg["runAsAdmin"]:
-                    args = ["start"] + args
+                    arg_list = ["start"] + arg_list
 
                 # Disable console window for ahk
                 new_window = False
@@ -1030,7 +1035,7 @@ class Script:
                     batch_file = os.path.abspath(script_path)
 
                 # "call" must be used if there are spaces in batch file name
-                args = ["cmd.exe", "/c", "call", batch_file] + args
+                arg_list = ["cmd.exe", "/c", "call", batch_file] + arg_list
             else:
                 print("OS does not support script: %s" % script_path)
                 return False
@@ -1076,7 +1081,7 @@ class Script:
                 # TODO: support template
                 setup_nodejs()
                 npm_install(cwd=os.path.dirname(script_path))
-                args = ["node", script_path] + args
+                arg_list = ["node", script_path] + arg_list
 
         elif ext == ".sh":
             if template:
@@ -1084,16 +1089,20 @@ class Script:
                     self.render(source=source), slugify(self.name) + ".sh"
                 )
 
-            args = [script_path] + args
+            arg_list = [script_path] + arg_list
             if self.cfg["wsl"]:
-                args = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in args]
-            bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
+                arg_list = [
+                    convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in arg_list
+                ]
+            bash_cmd = "bash " + _args_to_str(arg_list, shell_type="bash")
             logging.debug("bash_cmd: %s" % bash_cmd)
 
-            args = wrap_bash_commands(bash_cmd, wsl=self.cfg["wsl"], env=env)
+            arg_list = wrap_bash_commands(
+                bash_cmd, wsl=self.cfg["wsl"], env=env, msys2=self.cfg["msys2"]
+            )
 
         elif ext == ".expect":
-            args = wrap_bash_commands(
+            arg_list = wrap_bash_commands(
                 "expect '%s'" % convert_to_unix_path(script_path, wsl=True),
                 wsl=True,
                 env=env,
@@ -1160,13 +1169,19 @@ class Script:
                             run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
 
                     # -u disables buffering so that we can get correct output during piping output
-                    args = (
-                        args_activate + [python_exec, "-u", run_py, python_file] + args
+                    arg_list = (
+                        args_activate
+                        + [python_exec, "-u", run_py, python_file]
+                        + arg_list
                     )
                 else:
-                    args = args_activate + [python_exec, "-u", python_file] + args
+                    arg_list = (
+                        args_activate + [python_exec, "-u", python_file] + arg_list
+                    )
             elif ext == ".ipynb":
-                args = args_activate + ["jupyter", "notebook", python_file] + args
+                arg_list = (
+                    args_activate + ["jupyter", "notebook", python_file] + arg_list
+                )
 
                 # HACK: always use new window for jupyter notebook
                 self.cfg["newWindow"] = True
@@ -1174,15 +1189,15 @@ class Script:
                 assert False
 
             if self.cfg["wsl"]:
-                args = wrap_wsl(args, env=env)
+                arg_list = wrap_wsl(arg_list, env=env)
         elif ext == ".vbs":
             assert sys.platform == "win32"
 
             script_abs_path = os.path.join(os.getcwd(), script_path)
-            args = ["cscript", "//nologo", script_abs_path] + args
+            arg_list = ["cscript", "//nologo", script_abs_path] + arg_list
 
         elif ext == ".cpp" or ext == ".c" or ext == ".cc":
-            args = ["run_script", "ext/build_and_run_cpp.py", script_path]
+            arg_list = ["run_script", "ext/build_and_run_cpp.py", script_path]
 
         elif ext == ".url":
             url = self.get_script_source()
@@ -1192,7 +1207,8 @@ class Script:
             print("Not supported script:", ext)
 
         # Run commands
-        if args is not None and len(args) > 0:
+        if len(arg_list) > 0:
+            args = arg_list
             if tee:
                 log_file = os.path.join(
                     get_home_path(),
@@ -1581,6 +1597,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "matchClipboard": "",
         "matchTitle": "",
         "minimized": False,
+        "msys2": False,
         "newWindow": True,
         "packages": "",
         "restartInstance": False,
