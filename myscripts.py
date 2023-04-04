@@ -11,9 +11,9 @@ import time
 import traceback
 from typing import Callable, Dict, List, Optional
 
-SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(SCRIPT_ROOT, "libs"))
-sys.path.append(os.path.join(SCRIPT_ROOT, "bin"))
+MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
+sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
 
 
 from _ext import (
@@ -297,7 +297,7 @@ def register_global_hotkeys_linux(scripts):
 
     s = (
         f"control+q\n"
-        f'  wmctrl -a MyScriptsTerminal || x-terminal-emulator -e "{SCRIPT_ROOT}/myscripts" --startup\n'
+        f'  wmctrl -a MyScriptsTerminal || x-terminal-emulator -e "{MYSCRIPT_ROOT}/myscripts" --startup\n'
         "\n"
     )
 
@@ -313,7 +313,7 @@ def register_global_hotkeys_linux(scripts):
                 .replace("]", "bracketright")
             )
             s += "{}\n".format(hotkey)
-            s += f"  python3 {SCRIPT_ROOT}/bin/start_script.py {item.script_path}\n\n"
+            s += f"  python3 {MYSCRIPT_ROOT}/bin/start_script.py {item.script_path}\n\n"
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
@@ -342,7 +342,7 @@ def register_global_hotkeys_win(scripts):
     match_clipboard = sorted(match_clipboard, key=lambda x: x[1])  # sort by name
 
     render_template_file(
-        "GlobalHotkey.ahk",
+        os.path.join(MYSCRIPT_ROOT, "GlobalHotkey.ahk"),
         GLOBAL_HOTKEY,
         context={
             "PYTHON_EXEC": sys.executable,
@@ -651,7 +651,7 @@ def init(no_gui=False):
     logging.info("Python executable: %s" % sys.executable)
 
     # Add bin folder to PATH
-    bin_dir = os.path.join(SCRIPT_ROOT, "bin")
+    bin_dir = os.path.join(MYSCRIPT_ROOT, "bin")
     append_to_path_global(bin_dir)
 
     user_site = subprocess.check_output(
@@ -716,11 +716,11 @@ if __name__ == "__main__":
 
     run_at_startup(
         name="MyScripts",
-        cmdline=quote_arg(os.path.join(SCRIPT_ROOT, "myscripts.cmd")) + " --startup",
+        cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
 
     if not args.no_gui:
-        start_server(start_new_thread=True, root=SCRIPT_ROOT)
+        start_server(start_new_thread=True, root=MYSCRIPT_ROOT)
 
     # setup_console_font()
     init(no_gui=args.no_gui)

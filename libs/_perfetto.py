@@ -1,12 +1,8 @@
-import http.server
 import os
-import socketserver
 import subprocess
 import time
-import webbrowser
 from tempfile import gettempdir
 
-from _script import run_script
 from _shutil import call_echo, get_cur_time_str, get_home_path
 
 # https://cs.android.com/android/platform/superproject/+/master:external/perfetto/tools/record_android_trace
@@ -15,47 +11,7 @@ from _shutil import call_echo, get_cur_time_str, get_home_path
 IMPORT_PATH = os.path.join(get_home_path(), "perfetto")
 
 
-def open_trace_in_browser(path):
-    # HTTP Server used to open the trace in the browser.
-    class HttpHandler(http.server.SimpleHTTPRequestHandler):
-        def end_headers(self):
-            self.send_header("Access-Control-Allow-Origin", "*")
-            return super().end_headers()
-
-        def do_GET(self):
-            self.server.last_request = self.path
-            return super().do_GET()
-
-        def do_POST(self):
-            self.send_error(404, "File not found")
-
-    # We reuse the HTTP+RPC port because it's the only one allowed by the CSP.
-    PORT = 9001
-    os.chdir(os.path.dirname(path))
-    fname = os.path.basename(path)
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("127.0.0.1", PORT), HttpHandler) as httpd:
-        webbrowser.open_new_tab(
-            "https://ui.perfetto.dev/#!/?url=http://127.0.0.1:%d/%s" % (PORT, fname)
-        )
-        while httpd.__dict__.get("last_request") != "/" + fname:
-            httpd.handle_request()
-
-
-def setup_perfetto():
-    run_script(
-        "r/git/clone_subdirectory.sh",
-        variables={
-            "GIT_URL": "https://github.com/google/perfetto",
-            "SUBDIR": "protos",
-            "GIT_REPO": IMPORT_PATH,
-        },
-    )
-
-
 def start_trace(config_str, open_trace=True, detached_mode=False, out_file=None):
-    setup_perfetto()
-
     subprocess.check_call(["adb", "root"])
     ps = subprocess.Popen(
         [
@@ -123,6 +79,8 @@ def start_trace(config_str, open_trace=True, detached_mode=False, out_file=None)
     call_echo(["adb", "pull", "/data/misc/perfetto-traces/trace", out_file])
 
     if open_trace:
-        open_trace_in_browser(out_file)
+        subprocess.check_call(
+            ["run_script", "r/android/perfetto/open_perfetto_trace.py", out_file]
+        )
 
     return out_file
