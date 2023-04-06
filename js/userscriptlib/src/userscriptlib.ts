@@ -10,11 +10,11 @@ declare global {
 
   function addButton(name: string, onclick: () => void, hotkey?: string): void;
   function addText(text: string, { color = "black" }: { color?: string }): void;
-  function findElementByXPath(exp: string): Node;
-  function findElementByText(text: string): Node;
-  function waitForSelector(selector: string): Promise<unknown>;
-  function waitForText(text: string): Promise<unknown>;
-  function waitForXPath(xpath: string): Promise<unknown>;
+  function findElementByXPath(exp: string): Node | null;
+  function findElementByText(text: string): Node | null;
+  function waitForSelector(selector: string): Promise<Node | null>;
+  function waitForText(text: string): Promise<Node | null>;
+  function waitForXPath(xpath: string): Promise<Node | null>;
   function saveAsFile(data: string, filename: string, type: string): void;
   function download(url: string, filename?: string): void;
   function exec(args: string | string[]): Promise<string>;
@@ -81,7 +81,7 @@ function getContainer() {
   return _container;
 }
 
-function waitFor(evaluate: () => Node | null) {
+function waitFor(evaluate: () => Node | null): Promise<Node | null> {
   const evaluateWrapper = () => {
     const ele = evaluate();
     if (ele && ele instanceof HTMLElement) {

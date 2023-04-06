@@ -1,5 +1,6 @@
+import logging
 import re
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 
 class Template:
@@ -24,7 +25,9 @@ class Template:
                 tokens.append((True, token))
         return tokens
 
-    def render(self, context=None, **kwargs):
+    def render(
+        self, context=None, undefined_names: Optional[List[str]] = None, **kwargs
+    ):
         """Render the template according to the given context"""
         global_context = {}
         if context:
@@ -40,12 +43,16 @@ class Template:
 
         # Include function
         def include(file, context={}):
+            nonlocal undefined_names
+
             if self.file_locator:
                 file = self.file_locator(file)
             with open(file, "r", encoding="utf-8") as f:
                 s = f.read()
             s = Template(s, file_locator=self.file_locator).render(
-                {**global_context, **context}
+                context={**global_context, **context},
+                undefined_names=undefined_names,
+                **kwargs,
             )
             result.append(s)
 
@@ -59,8 +66,10 @@ class Template:
                     ret = eval(token, global_context)
                     if ret is not None:
                         result.append(ret)
-                except NameError:
-                    pass
+                except NameError as ex:
+                    if undefined_names is not None:
+                        logging.debug(f"Undefined name: {ex.name}")
+                        undefined_names.append(ex.name)
             else:
                 result.append(token)
         result = [str(x) for x in result]
@@ -70,9 +79,14 @@ class Template:
     __call__ = render
 
 
-def render_template_file(template_file, output_file, context=None):
+def render_template_file(
+    template_file,
+    output_file,
+    context=None,
+    undefined_names: Optional[List[str]] = None,
+):
     with open(template_file, "r", encoding="utf-8") as f:
-        s = Template(f.read()).render(context)
+        s = Template(f.read()).render(context, undefined_names=undefined_names)
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(s)
@@ -82,5 +96,8 @@ def render_template(
     template,
     context=None,
     file_locator: Optional[Callable[[str], Optional[str]]] = None,
+    undefined_names: Optional[List[str]] = None,
 ):
-    return Template(template, file_locator=file_locator).render(context)
+    return Template(template, file_locator=file_locator).render(
+        context, undefined_names=undefined_names
+    )

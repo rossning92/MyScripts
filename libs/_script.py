@@ -1433,7 +1433,7 @@ class Script:
                     return return_code == 0
 
             else:
-                logging.debug("cmdline: " + " ".join([quote_arg(x) for x in args]))
+                logging.debug("cmdline: %s" % args)
                 ps = subprocess.Popen(
                     args=args,
                     env={**os.environ, **env},

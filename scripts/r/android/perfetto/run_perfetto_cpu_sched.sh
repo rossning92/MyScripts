@@ -1,3 +1,5 @@
+# https://cs.android.com/android/platform/superproject/+/master:external/perfetto/tools/record_android_trace
+
 {{ include('r/android/perfetto/run_perfetto.sh', {'TRACE_CONFIG_STR': '''
 buffers: {
     size_kb: 63488

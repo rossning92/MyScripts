@@ -16,7 +16,7 @@ adb push config.bin /data/misc/perfetto-traces/config.bin
 
 adb shell perfetto -c /data/misc/perfetto-traces/config.bin -o /data/misc/perfetto-traces/trace
 
-out_file="trace-$(date +'%Y-%m-%d_%H-%M-%S').perfetto-trace"
+out_file="trace-$(date +'%Y%m%d%H%M%S').perfetto-trace"
 adb pull /data/misc/perfetto-traces/trace "$out_file"
 
 run_script r/android/perfetto/open_perfetto_trace.py "$out_file"

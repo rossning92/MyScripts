@@ -4,4 +4,4 @@
 set "PYTHONPATH=%USERPROFILE%\Projects\renderdoc\x64\Development\pymodules;%PYTHONPATH%"
 set "PATH=%USERPROFILE%\Projects\renderdoc\x64\Development;%PATH%"
 
-"%PYTHON36_DIR%\python.exe" "%SCRIPT%"
+"%PYTHON36_DIR%\python.exe" %*
