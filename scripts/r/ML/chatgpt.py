@@ -3,7 +3,7 @@ import os
 
 import openai
 from _script import get_data_dir
-from _shutil import confirm, load_json, set_clip
+from _shutil import load_json, set_clip
 from _term import select_option
 
 if __name__ == "__main__":
@@ -48,6 +48,4 @@ if __name__ == "__main__":
             print(chunk_message["content"], end="")
 
     if args.copy_to_clipboard:
-        print("\n")
-        if confirm("copy to clipboard?"):
-            set_clip(full_text)
+        set_clip(full_text)
