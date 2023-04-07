@@ -23,8 +23,7 @@ taskkill /f /im UE5Editor.exe 2>nul
 @REM "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community" --add "Microsoft.VisualStudio.Workload.ManagedDesktop" --focusedUI --force
 @REM https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022
 
-set "MSBUILD=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
-"%MSBUILD%" "UE5.sln" /t:Engine\UE5 /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
+run_script r/win/msbuild.cmd "UE5.sln" /t:Engine\UE5 /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 :: For build lighting

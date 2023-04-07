@@ -30,13 +30,13 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
-def _select_options_ncurse(options, save_history=""):
-    assert isinstance(save_history, str)
+def _select_options_ncurse(options, history_file_name=""):
+    assert isinstance(history_file_name, str)
 
     def get_history_file():
-        return os.path.join(get_data_dir(), "%s.json" % save_history)
+        return os.path.join(get_data_dir(), "%s.json" % history_file_name)
 
-    if save_history:
+    if history_file_name:
         os.makedirs("tmp", exist_ok=True)
         history = load_json(get_history_file(), [])
         sort_key = {x: i for i, x in enumerate(history)}
@@ -50,7 +50,7 @@ def _select_options_ncurse(options, save_history=""):
     w = Menu(items=options)
     idx = w.exec()
 
-    if save_history and idx >= 0:
+    if history_file_name and idx >= 0:
         try:
             history.remove(options[idx])
         except ValueError:
@@ -62,8 +62,8 @@ def _select_options_ncurse(options, save_history=""):
     return idx
 
 
-def select_option(options, save_history=""):
-    return _select_options_ncurse(options, save_history=save_history)
+def select_option(options, history_file_name=""):
+    return _select_options_ncurse(options, history_file_name=history_file_name)
 
 
 def _prompt(options, message=None):

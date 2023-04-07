@@ -1,15 +1,12 @@
 # https://github.com/baldurk/renderdoc/blob/v1.x/docs/CONTRIBUTING/Compiling.md
 
 set -e
-# run_script r/git/git_clone.py https://github.com/baldurk/renderdoc
-# cd ~/Projects/renderdoc/
+
 cd "C:\Users\rossning92\Projects\renderdoc"
 
 # pacman -S mingw-w64-x86_64-cmake
 # pacman -S mingw-w64-x86_64-make
 # pacman -S mingw-w64-x86_64-gcc
-
-# bash
 
 export JAVA_HOME="C:\Program Files\Java\jdk1.8.0_211"
 export PATH="C:\Program Files\Java\jdk1.8.0_211\bin:${PATH}"
