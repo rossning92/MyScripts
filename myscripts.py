@@ -570,6 +570,7 @@ class MainWindow(Menu[Script]):
                 self.prev_key == ALT_KEY and ch == ord("\n")
             ):
                 self.run_selected_script(close_on_exit=False)
+                self.clear_input()
                 return True
 
             elif ch == ord("\n"):

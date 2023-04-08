@@ -2,7 +2,7 @@
 Menu, Tray, Icon, EmojiHotkey.ico
 
 $>!h::Send 😃
-$>!s::Send 😞
+$>!s::Send 🙁
 $>!k::Send 😉
 $>!y::Send 👍
 $>!t::Send 😛

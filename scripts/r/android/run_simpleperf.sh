@@ -26,7 +26,7 @@ if [[ -n "${_NATIVE_PROGRAM}" ]]; then
 elif [[ -n "${_APP}" ]]; then
     args+="--app ${_APP}"
 else
-    args+="--app $(run_script r/android/get_active_package.py)"
+    args+="--app $(run_script r/android/get_active_package.sh)"
 fi
 
 python3 app_profiler.py $args -r "-e task-clock:u -f 1000 -g --duration ${duration}"
