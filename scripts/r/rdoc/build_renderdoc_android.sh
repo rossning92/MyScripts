@@ -2,11 +2,12 @@
 
 set -e
 
-cd "C:\Users\rossning92\Projects\renderdoc"
+# Prerequisite
+if ! pacman -Q mingw-w64-x86_64-cmake >/dev/null 2>&1; then
+    pacman -S mingw-w64-x86_64-cmake --noconfirm
+fi
 
-# pacman -S mingw-w64-x86_64-cmake
-# pacman -S mingw-w64-x86_64-make
-# pacman -S mingw-w64-x86_64-gcc
+cd ~/Projects/renderdoc
 
 export JAVA_HOME="C:\Program Files\Java\jdk1.8.0_211"
 export PATH="C:\Program Files\Java\jdk1.8.0_211\bin:${PATH}"
@@ -27,6 +28,6 @@ export PATH="C:\Program Files\Java\jdk1.8.0_211\bin:${PATH}"
     mingw32-make
 )
 
-mkdir -p plugins/android/
+mkdir -p x64/Development/plugins/android/
 cp build-android/bin/org.renderdoc.renderdoccmd.arm32.apk x64/Development/plugins/android/
 cp build-android64/bin/org.renderdoc.renderdoccmd.arm64.apk x64/Development/plugins/android/

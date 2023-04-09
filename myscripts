@@ -2,33 +2,23 @@
 set -e
 cd "$(dirname "$0")"
 
-# If Debian-based distro
-if [ -f "/etc/debian_version" ]; then
-    if [ "$(uname)" == "Linux" ]; then
-        if ! type pip3 >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt install python3-pip -y
-        fi
+# Check if Debian-based distro and Linux
+if [[ -f "/etc/debian_version" ]] && [[ "$(uname)" == "Linux" ]]; then
 
-        if ! [ -x "$(command -v sxhkd)" ]; then
-            sudo apt-get update
-            sudo apt-get install sxhkd -y
-        fi
+    # Install required packages
+    declare -a packages=("python3-pip" "sxhkd" "kitty" "xdotool")
 
-        if ! [ -x "$(command -v kitty)" ]; then
+    for package in "${packages[@]}"; do
+        dpkg -s "$package" >/dev/null 2>&1 || {
             sudo apt-get update
-            sudo apt-get install kitty -y
-        fi
+            sudo apt-get install -y "$package"
+        }
+    done
 
-        if ! [ -x "$(command -v xdotool)" ]; then
-            sudo apt-get update
-            sudo apt-get install xdotool -y
-        fi
-
-        touch ~/.sxhkdrc
-        killall sxhkd >/dev/null 2>&1 || true
-        setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
-    fi
+    # Start sxhkd
+    touch ~/.sxhkdrc
+    killall sxhkd >/dev/null 2>&1 || true
+    setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
 fi
 
 pip3 install -r requirements.txt
@@ -47,7 +37,10 @@ EOF
 # Bash alias
 LINE="export PATH=\"$(pwd)/bin:\$PATH\""
 BASHRC="$HOME/.bashrc"
-touch "$BASHRC" && grep -qF -- "$LINE" "$BASHRC" || echo "$LINE" >>"$BASHRC" # append line if not exist
+# Append a line to $BASHRC file if it doesn't already exist.
+if [ ! -f "$BASHRC" ] || ! grep -qF -- "$LINE" "$BASHRC"; then
+    echo "$LINE" >>"$BASHRC"
+fi
 
 # Set terminal title
 echo -ne '\033]0;MyScriptsTerminal\007'

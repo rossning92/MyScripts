@@ -251,41 +251,49 @@ def wrap_wsl(commands, env=None):
     return ["bash.exe", "-c", tmp_sh_file]
 
 
-def wrap_bash_commands(commands, wsl=False, env=None, msys2=False):
-    assert type(commands) == str
+def wrap_bash_msys2(commands: str, env: Optional[Dict[str, str]] = None, msys2=False):
+    if env is not None:
+        # https://www.msys2.org/wiki/MSYS2-introduction/#path
+        env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
+        env["CHERE_INVOKING"] = "1"  # stay in the current working directory
+        env["MSYSTEM"] = "MINGW64"
+        env["HOME"] = get_home_path()
+        # Export full PATH environment variable into MSYS2
+        env["MSYS2_PATH_TYPE"] = "inherit"
+
+    tmp_sh_file = write_temp_file(commands, ".sh")
+
+    msys2_bash_search_list = []
+    if msys2:
+        msys2_bash_search_list += [
+            r"C:\tools\msys64\usr\bin\bash.exe",
+            r"C:\msys64\usr\bin\bash.exe",
+        ]
+    msys2_bash_search_list += [
+        r"C:\Program Files\Git\bin\bash.exe",
+    ]
+    bash = None
+    for f in msys2_bash_search_list:
+        if os.path.exists(f):
+            bash = f
+            break
+    logging.debug("bash path: %s" % bash)
+
+    if bash is None:
+        raise Exception("Cannot find MinGW bash.exe")
+    return [bash, "--login", "-i", tmp_sh_file]
+
+
+def wrap_bash_commands(
+    commands: str, wsl=False, env: Optional[Dict[str, str]] = None, msys2=False
+):
 
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
             return wrap_wsl(commands, env=env)
 
         else:
-            if env is not None:
-                env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
-                env["CHERE_INVOKING"] = "1"  # stay in the current working directory
-                env["MSYSTEM"] = "MINGW64"
-                # env["MSYS2_PATH_TYPE"] = "inherit"
-
-            tmp_sh_file = write_temp_file(commands, ".sh")
-
-            msys2_bash_search_list = []
-            if msys2:
-                msys2_bash_search_list += [
-                    r"C:\tools\msys64\usr\bin\bash.exe",
-                    r"C:\msys64\usr\bin\bash.exe",
-                ]
-            msys2_bash_search_list += [
-                r"C:\Program Files\Git\bin\bash.exe",
-            ]
-            bash = None
-            for f in msys2_bash_search_list:
-                if os.path.exists(f):
-                    bash = f
-                    break
-            logging.debug("bash path: %s" % bash)
-
-            if bash is None:
-                raise Exception("Cannot find MinGW bash.exe")
-            return [bash, "--login", "-i", tmp_sh_file]
+            return wrap_bash_msys2(commands, env=env, msys2=msys2)
 
     else:  # Linux
         tmp_sh_file = write_temp_file(commands, ".sh")
