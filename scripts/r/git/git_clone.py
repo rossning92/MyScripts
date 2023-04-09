@@ -13,10 +13,9 @@ if __name__ == "__main__":
 
     if args.url:
         url = args.url
-        open_in_editor_ = False
+        set_variable('GIT_URL', url)
     else:
         url = os.environ["GIT_URL"]
-        open_in_editor_ = bool(os.environ.get("_OPEN_IN_EDITOR"))
 
     project_root = os.path.join(get_home_path(), "Projects")
     os.makedirs(project_root, exist_ok=True)
@@ -32,5 +31,5 @@ if __name__ == "__main__":
 
     set_variable("GIT_REPO", project_dir)
 
-    if open_in_editor_:
+    if bool(os.environ.get("_OPEN_IN_EDITOR")):
         open_in_editor(project_dir)

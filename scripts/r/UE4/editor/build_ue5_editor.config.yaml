@@ -1,0 +1,2 @@
+# Dependency for building UnrealBuildTool
+packages: dotnet-6.0-sdk dotnetcore-sdk

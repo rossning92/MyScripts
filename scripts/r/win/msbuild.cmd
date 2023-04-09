@@ -16,6 +16,6 @@ if not exist "!MSBUILD!" (
   )
 )
 
-"%MSBUILD%" "%*" /maxcpucount /nologo
+"%MSBUILD%" %* /maxcpucount /nologo
 if not %errorlevel%==0 exit /b 1
 exit /b 0

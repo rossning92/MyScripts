@@ -15,10 +15,6 @@ if not exist "Engine\Plugins\Runtime\OculusXR" (
 
 taskkill /f /im UE5Editor.exe 2>nul
 
-@REM for building UnrealBuildTool
-@REM choco install -y -s https://chocolatey.org/api/v2/ dotnet-6.0-sdk
-@REM choco install -y -s https://chocolatey.org/api/v2/ dotnetcore-sdk
-@REM
 @REM Alternative:
 @REM "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community" --add "Microsoft.VisualStudio.Workload.ManagedDesktop" --focusedUI --force
 @REM https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022
