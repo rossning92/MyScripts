@@ -377,7 +377,7 @@ def get_active_pkg_and_activity():
             "shell",
             "dumpsys activity activities | grep -E 'mFocusedActivity"
             "|mResumedActivity"
-            "|mCurrentFocus'",  # Android 12+
+            "|mFocusedApp'",  # Android 12+
         ],
         universal_newlines=True,
     ).strip()

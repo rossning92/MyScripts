@@ -29,7 +29,7 @@ EOF
 
 # Define the Application.mk file content
 cat >jni/Application.mk <<EOF
-APP_STL := c++_shared
+APP_STL := c++_static
 APP_ABI := armeabi-v7a arm64-v8a
 EOF
 

@@ -1,1 +1,1 @@
-@wsl -e sh -c "cd $HOME; bash"
+@wsl -e bash
