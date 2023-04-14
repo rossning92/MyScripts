@@ -1,3 +1,4 @@
 hotkey: Shift+S
 newWindow: false
+reloadScriptsAfterRun: true
 template: false

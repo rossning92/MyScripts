@@ -588,7 +588,9 @@ class AdbInstallResult:
         self.installed = installed
 
 
-def adb_install(apk, force=False, grant_permissions=False) -> AdbInstallResult:
+def adb_install(
+    apk, force_reinstall=False, grant_permissions=False
+) -> AdbInstallResult:
     # Get package name
     out = subprocess.check_output(
         ["aapt", "dump", "badging", apk], universal_newlines=True
@@ -597,7 +599,7 @@ def adb_install(apk, force=False, grant_permissions=False) -> AdbInstallResult:
     pkg_name = match.group(1)
     logger.debug("apk package name: %s" % pkg_name)
 
-    if not force:
+    if not force_reinstall:
         should_install = False
         if not app_is_installed(pkg_name):
             logger.info("App does not exist on device, installing...")
@@ -622,8 +624,10 @@ def adb_install(apk, force=False, grant_permissions=False) -> AdbInstallResult:
                     % (file_size, local_file_size)
                 )
                 should_install = True
+    else:
+        should_install = True
 
-    if force or should_install:
+    if force_reinstall or should_install:
         logger.info("Installing %s" % apk)
         try:
             adb_install_cmd = [
@@ -678,11 +682,15 @@ def adb_install(apk, force=False, grant_permissions=False) -> AdbInstallResult:
     return AdbInstallResult(pkg=pkg_name, installed=should_install)
 
 
-def adb_install2(file, force=False, grant_permissions=False) -> AdbInstallResult:
+def adb_install2(
+    file, force_reinstall=False, grant_permissions=False
+) -> AdbInstallResult:
     """
     Install + restore app data.
     """
-    result = adb_install(file, force=force, grant_permissions=grant_permissions)
+    result = adb_install(
+        file, force_reinstall=force_reinstall, grant_permissions=grant_permissions
+    )
 
     if result.installed:
         # Push data
@@ -840,8 +848,10 @@ def toggle_prop(name, values=("0", "1")):
     subprocess.check_call(["adb", "shell", command])
 
 
-def run_apk(apk, grant_permissions=False):
-    result = adb_install2(apk, grant_permissions=grant_permissions)
+def run_apk(apk, grant_permissions=False, force_reinstall=False):
+    result = adb_install2(
+        apk, grant_permissions=grant_permissions, force_reinstall=force_reinstall
+    )
     restart_app(result.pkg)
 
 

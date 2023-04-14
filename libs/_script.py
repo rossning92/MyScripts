@@ -287,7 +287,6 @@ def wrap_bash_msys2(commands: str, env: Optional[Dict[str, str]] = None, msys2=F
 def wrap_bash_commands(
     commands: str, wsl=False, env: Optional[Dict[str, str]] = None, msys2=False
 ):
-
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
             return wrap_wsl(commands, env=env)
@@ -1608,6 +1607,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "msys2": False,
         "newWindow": True,
         "packages": "",
+        "reloadScriptsAfterRun": False,
         "restartInstance": False,
         "runAsAdmin": False,
         "runAtStartup": False,

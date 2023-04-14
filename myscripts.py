@@ -410,7 +410,7 @@ class MainWindow(Menu[Script]):
         )
 
         self.internal_hotkeys: Dict[str, InternalHotkey] = {}
-        self.add_internal_hotkey("ctrl+r", self._reload_script)
+        self.add_internal_hotkey("ctrl+r", self._reload_scripts)
         self.add_internal_hotkey("shift+m", self._edit_script_config)
         self.add_internal_hotkey("shift+c", self._copy_to_clipboard)
         self.add_internal_hotkey("shift+i", self._copy_to_clipboard_include_derivative)
@@ -431,7 +431,7 @@ class MainWindow(Menu[Script]):
             now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
             and now - self.last_refresh_time > REFRESH_INTERVAL_SECS
         ):
-            self._reload_script()
+            self._reload_scripts()
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
@@ -448,6 +448,8 @@ class MainWindow(Menu[Script]):
                     no_gui=self.no_gui,
                 )
             )
+            if script.cfg["reloadScriptsAfterRun"]:
+                self._reload_scripts()
 
     def get_selected_script(self):
         index = self.get_selected_index()
@@ -459,7 +461,7 @@ class MainWindow(Menu[Script]):
         if index >= 0:
             return self.items[index].script_path
 
-    def _reload_script(self):
+    def _reload_scripts(self):
         if self.is_refreshing:
             return
 
@@ -534,7 +536,7 @@ class MainWindow(Menu[Script]):
                     self.set_message(msg),
                 ),
             ):
-                self._reload_script()
+                self._reload_scripts()
             self.set_message()
         self.clear_input()
 
@@ -608,7 +610,10 @@ class MainWindow(Menu[Script]):
                             script_manager.hotkeys[ch], no_gui=self.no_gui
                         )
                     )
-                    self.run_cmd(lambda: script_manager.sort_scripts())
+                    if script.cfg["reloadScriptsAfterRun"]:
+                        self._reload_scripts()
+                    else:
+                        script_manager.sort_scripts()
                     return True
 
             return False

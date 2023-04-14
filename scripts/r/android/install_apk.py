@@ -14,7 +14,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("files", metavar="N", type=str, nargs="+")
     parser.add_argument("-r", "--run", default=False, action="store_true")
-    parser.add_argument("-f", "--force", default=False, action="store_true")
+    parser.add_argument("-f", "--force_reinstall", default=False, action="store_true")
     parser.add_argument("-p", "--grant_permissions", default=False, action="store_true")
 
     args = parser.parse_args()
@@ -23,7 +23,9 @@ if __name__ == "__main__":
     if args.files:
         for file in args.files:
             adb_install2(
-                file, force=args.force, grant_permissions=args.grant_permissions
+                file,
+                force_reinstall=args.force_reinstall,
+                grant_permissions=args.grant_permissions,
             )
 
             if len(args.files) == 1 and args.run:
@@ -35,7 +37,9 @@ if __name__ == "__main__":
             assert os.path.splitext(file)[1].lower() == ".apk"
 
             adb_install2(
-                file, force=args.force, grant_permissions=args.grant_permissions
+                file,
+                force_reinstall=args.force_reinstall,
+                grant_permissions=args.grant_permissions,
             )
 
             if len(files) == 1:

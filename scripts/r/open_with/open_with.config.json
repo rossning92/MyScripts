@@ -6,7 +6,7 @@
       "r/android/install_apk.py",
       "--run",
       "--grant_permissions",
-      "--force"
+      "--force_reinstall"
     ]
   ],
   ".3g2": ["mpv", "vlc"],
