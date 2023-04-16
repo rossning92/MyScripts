@@ -500,7 +500,7 @@ class DictValueEditWindow(Menu):
         self.dict_[self.name] = val
 
         # Save edit history
-        if val in self.history:
+        if val in self.history:  # avoid duplicates
             self.history.remove(val)
         self.history.insert(0, val)
 
@@ -511,6 +511,10 @@ class DictValueEditWindow(Menu):
             val = self.get_selected_item()
             if val is not None:
                 self.input_.set_text(val)
+            return True
+        elif ch == curses.KEY_DC:  # delete key
+            i = self.get_selected_index()
+            del self.history[i]
             return True
 
         return False
@@ -573,7 +577,7 @@ class DictEditWindow(Menu):
             dict_=self.dict_,
             name=name,
             type=type(val),
-            items=[val] + history,
+            items=history,
             history=history,
         ).exec()
 
