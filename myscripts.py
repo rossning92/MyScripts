@@ -166,7 +166,7 @@ class VariableEditWindow(Menu):
             if val is not None:
                 self.input_.set_text(val)
             return True
-        elif ch == curses.KEY_DC:  # delete key on Windows
+        elif ch == curses.KEY_DC:  # delete key
             i = self.get_selected_index()
             del self.vars[self.var_name][i]
             save_variables(self.vars)
@@ -449,6 +449,7 @@ class MainWindow(Menu[Script]):
                 )
             )
             if script.cfg["reloadScriptsAfterRun"]:
+                logging.info("Reload scripts after running: %s" % script.name)
                 self._reload_scripts()
 
     def get_selected_script(self):
@@ -600,17 +601,14 @@ class MainWindow(Menu[Script]):
                 self.run_cmd(lambda: restart_program())
 
             elif ch in script_manager.hotkeys:
-                script = self.get_selected_item()
-                if script is not None:
-                    script_abs_path = os.path.abspath(script.script_path)
-                    os.environ["SCRIPT"] = script_abs_path
+                script = script_manager.hotkeys[ch]
+                selected_script = self.get_selected_item()
+                if selected_script is not None:
+                    os.environ["SCRIPT"] = os.path.abspath(selected_script.script_path)
 
-                    self.run_cmd(
-                        lambda: execute_script(
-                            script_manager.hotkeys[ch], no_gui=self.no_gui
-                        )
-                    )
+                    self.run_cmd(lambda: execute_script(script, no_gui=self.no_gui))
                     if script.cfg["reloadScriptsAfterRun"]:
+                        logging.info("Reload scripts after running: %s" % script.name)
                         self._reload_scripts()
                     else:
                         script_manager.sort_scripts()
