@@ -423,16 +423,23 @@ def setup_jdk(jdk_version=None, env=None):
     if env is None:
         env = os.environ
 
-    def find_jdk(path, jdk_version=None):
-        jdk_list = sorted(glob.glob(path))
-        if len(jdk_list) == 0:
-            return None
-        if jdk_version:
-            return [x for x in jdk_list if ("%s" % jdk_version) in x][-1]
-        else:
-            return jdk_list[-1]  # Choose latest JDK
+    def find_jdk(patterns, jdk_version=None):
+        jdk_paths = []
+        for pattern in patterns:
+            matched = glob.glob(pattern)
+            if len(matched) == 0:
+                continue
+            if jdk_version:
+                jdk_paths += [x for x in matched if ("%s" % jdk_version) in x]
+            else:
+                jdk_paths += matched
+        jdk_paths = sorted(jdk_paths)
+        return jdk_paths[-1]  # Choose latest JDK
 
-    java_home = find_jdk(r"C:\Program Files\Java\jdk*", jdk_version=jdk_version)
+    java_home = find_jdk(
+        [r"C:\Program Files\Java\jdk*", r"C:\Program Files\Eclipse Adoptium\jdk*"],
+        jdk_version=jdk_version,
+    )
 
     if java_home is None:
         raise Exception("Cannot find JDK")

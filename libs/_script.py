@@ -933,10 +933,10 @@ class Script:
         shell = False
 
         if self.cfg["adk"]:
-            setup_android_env(env=env)
+            setup_android_env(env=env, jdk_version=self.cfg["adk.jdk_version"])
 
         if self.cfg["cmake"]:
-            setup_cmake(env=env)
+            setup_cmake(env=env, cmake_version=self.cfg["cmake.version"])
 
         setup_env_var(env)
 
@@ -1593,10 +1593,12 @@ def start_script(file=None, restart_instance=None):
 def get_script_default_config() -> Dict[str, Any]:
     return {
         "adk": False,
+        "adk.jdk_version": "",
         "autoRun": False,
         "background": False,
         "closeOnExit": True,
-        "cmake": "",
+        "cmake": False,
+        "cmake.version": "",
         "cmdline": "",
         "conda": "",
         "globalHotkey": "",

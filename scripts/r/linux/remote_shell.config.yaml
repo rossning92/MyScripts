@@ -1,3 +1,4 @@
 closeOnExit: false
 globalHotkey: Win+Alt+E
+title: r/linux/remote_shell
 wsl: true
