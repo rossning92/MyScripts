@@ -62,7 +62,7 @@ def run_bash_script_in_remote_shell(script_path):
         shell=False,
     )
 
-    activate_window_by_name("r/linux/remote_shell.sh")
+    activate_window_by_name("remote_shell")
 
 
 if __name__ == "__main__":

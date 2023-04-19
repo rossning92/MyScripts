@@ -24,6 +24,7 @@ from _filelock import FileLock
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
+    IgnoreSigInt,
     activate_window_by_name,
     call_echo,
     clear_env_var_explorer,
@@ -775,7 +776,7 @@ class Script:
                 return False
         return True
 
-    def get_console_title(self):
+    def get_window_title(self):
         if self.console_title:
             return self.console_title
         elif self.cfg["title"]:
@@ -896,9 +897,7 @@ class Script:
             tee = self.cfg["tee"]
 
         if not restart_instance and new_window:
-            if activate_window_by_name(
-                self.cfg["matchTitle"] if self.cfg["matchTitle"] else self.name
-            ):
+            if activate_window_by_name(self.get_window_title()):
                 return True
 
         # Get variable name value pairs
@@ -1243,7 +1242,7 @@ class Script:
             if new_window:
                 if restart_instance:
                     # Close exising instances
-                    close_window_by_name(self.get_console_title())
+                    close_window_by_name(self.get_window_title())
                 try:
                     if sys.platform == "win32":
                         # Open in specified terminal (e.g. Windows Terminal)
@@ -1255,7 +1254,7 @@ class Script:
                             args = wrap_args_wt(
                                 args,
                                 cwd=cwd,
-                                title=self.get_console_title(),
+                                title=self.get_window_title(),
                                 wsl=self.cfg["wsl"],
                             )
                             no_wait = True
@@ -1266,7 +1265,7 @@ class Script:
                         ):
                             args = wrap_args_alacritty(
                                 args,
-                                title=self.get_console_title(),
+                                title=self.get_window_title(),
                             )
 
                             # Workaround that prevents alacritty from being closed by parent terminal.
@@ -1289,7 +1288,7 @@ class Script:
                             args = wrap_args_conemu(
                                 args,
                                 cwd=cwd,
-                                title=self.get_console_title(),
+                                title=self.get_window_title(),
                                 wsl=self.cfg["wsl"],
                                 always_on_top=True,
                             )
@@ -1300,7 +1299,7 @@ class Script:
                             args = wrap_args_cmd(
                                 args,
                                 cwd=cwd,
-                                title=self.get_console_title(),
+                                title=self.get_window_title(),
                                 env=env,
                             )
                             popen_extra_args["creationflags"] = (
@@ -1330,7 +1329,7 @@ class Script:
                                 "-xrm",
                                 "XTerm.vt100.allowTitleOps: false",
                                 "-T",
-                                self.get_console_title(),
+                                self.get_window_title(),
                                 "-e",
                                 _args_to_str(args, shell_type="bash"),
                             ]
@@ -1341,7 +1340,7 @@ class Script:
                             args = [
                                 "xfce4-terminal",
                                 "-T",
-                                self.get_console_title(),
+                                self.get_window_title(),
                                 "-e",
                                 _args_to_str(args, shell_type="bash"),
                                 "--hold",
@@ -1353,7 +1352,7 @@ class Script:
                             args = [
                                 "kitty",
                                 "--title",
-                                self.get_console_title(),
+                                self.get_window_title(),
                             ] + args
                             no_wait = True
                             open_in_terminal = True
@@ -1361,7 +1360,7 @@ class Script:
                         elif TERMINAL == "alacritty":
                             args = wrap_args_alacritty(
                                 args,
-                                title=self.get_console_title(),
+                                title=self.get_window_title(),
                             )
                             no_wait = True
                             open_in_terminal = True
@@ -1426,7 +1425,7 @@ class Script:
                 args = wrap_args_cmd(
                     args,
                     cwd=cwd,
-                    title=self.get_console_title(),
+                    title=self.get_window_title(),
                     env=env,
                 )
 
@@ -1450,7 +1449,8 @@ class Script:
                 )
                 success = True
                 if not no_wait:
-                    success = ps.wait() == 0
+                    with IgnoreSigInt():
+                        success = ps.wait() == 0
 
                 # if not new_window and not close_on_exit:
                 #     print("(press enter to exit...)")

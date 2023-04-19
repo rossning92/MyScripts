@@ -290,7 +290,7 @@ def add_keyboard_hooks(keyboard_hooks):
             keyboard.add_hotkey(hotkey, func)
 
 
-def register_global_hotkeys_linux(scripts):
+def register_global_hotkeys_linux(scripts: List[Script]):
     if not shutil.which("sxhkd"):
         logging.warning("sxhkd is not installed, skip global hotkey registration.")
         return
@@ -301,8 +301,8 @@ def register_global_hotkeys_linux(scripts):
         "\n"
     )
 
-    for item in scripts:
-        hotkey = item.cfg["globalHotkey"]
+    for script in scripts:
+        hotkey = script.cfg["globalHotkey"]
 
         if hotkey:
             hotkey = (
@@ -313,7 +313,7 @@ def register_global_hotkeys_linux(scripts):
                 .replace("]", "bracketright")
             )
             s += "{}\n".format(hotkey)
-            s += f"  python3 {MYSCRIPT_ROOT}/bin/start_script.py {item.script_path}\n\n"
+            s += f"  python3 {MYSCRIPT_ROOT}/bin/start_script.py {script.script_path}\n\n"
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
@@ -321,12 +321,12 @@ def register_global_hotkeys_linux(scripts):
     start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
 
 
-def register_global_hotkeys_win(scripts):
+def register_global_hotkeys_win(scripts: List[Script]):
     hotkeys = ""
     match_clipboard = []
 
-    for item in scripts:
-        hotkey = item.cfg["globalHotkey"]
+    for script in scripts:
+        hotkey = script.cfg["globalHotkey"]
         if hotkey:
             if hotkey:
                 hotkey = hotkey.lower()
@@ -334,10 +334,12 @@ def register_global_hotkeys_win(scripts):
                 hotkey = hotkey.replace("alt+", "!")
                 hotkey = hotkey.replace("shift+", "+")
                 hotkey = hotkey.replace("win+", "#")
-                hotkeys += f'{hotkey}::RunScript("{item.name}", "{item.script_path}")\n'
-        mc = item.cfg["matchClipboard"]
+                hotkeys += (
+                    f'{hotkey}::RunScript("{script.name}", "{script.script_path}")\n'
+                )
+        mc = script.cfg["matchClipboard"]
         if mc:
-            match_clipboard.append([mc, item.name, item.script_path])
+            match_clipboard.append([mc, script.name, script.script_path])
 
     match_clipboard = sorted(match_clipboard, key=lambda x: x[1])  # sort by name
 
@@ -358,7 +360,7 @@ def register_global_hotkeys_win(scripts):
     subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
 
 
-def register_global_hotkeys_mac(scripts, no_gui=False):
+def register_global_hotkeys_mac(scripts: List[Script], no_gui=False):
     keyboard_hooks = {}
     for script in scripts:
         hotkey = script.cfg["globalHotkey"]

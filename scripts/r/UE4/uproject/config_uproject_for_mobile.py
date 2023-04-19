@@ -48,6 +48,6 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=Tru
 if __name__ == "__main__":
     config_uproject(
         r"{{UE_PROJECT_DIR}}",
-        vulkan=not bool("{{_GL}}"),
+        vulkan=not bool("{{_USE_GL}}"),
         multiview=not bool("{{_NO_MULTIVIEW}}"),
     )

@@ -1,1 +1,1 @@
-@%~dp0..\myscripts.cmd %*
+@"%~dp0..\myscripts.cmd" %*

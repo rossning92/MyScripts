@@ -1,21 +1,23 @@
-@echo off
+@ECHO OFF
+
 cd /d "%~dp0"
 chcp 65001
 
-call install\install_choco.cmd
-call install\install_autohotkey.cmd
+CALL install\install_choco.cmd
+CALL install\install_autohotkey.cmd
 
-:: Find python executable
-call install\find_python.cmd
+@REM Find python executable
+CALL install\find_python.cmd
 if not %errorlevel%==0 (
-    call install\install_python.cmd
+    CALL install\install_python.cmd
 )
 
-:: Install python modules
+@REM Install python modules
 python -m pip install --user -r requirements.txt
 
-title MyScriptsTerminal
+TITLE MyScriptsTerminal
 
 :main
 python myscripts.py %*
-if errorlevel 1 goto main
+IF errorlevel 1 GOTO main
+

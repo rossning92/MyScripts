@@ -1787,3 +1787,16 @@ def run_at_startup(name, cmdline):
         ]
         subprocess.check_output(args)
         logging.debug("run_at_startup(): %s" % args)
+
+
+class IgnoreSigInt(object):
+    def __enter__(self):
+        self.original_handler = signal.getsignal(signal.SIGINT)
+        def handler(signum, frame):
+            pass
+
+        signal.signal(signal.SIGINT, handler)
+        return self
+
+    def __exit__(self, type, value, tb):
+        signal.signal(signal.SIGINT, self.original_handler)
