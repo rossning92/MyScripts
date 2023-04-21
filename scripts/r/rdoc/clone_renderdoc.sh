@@ -1,1 +1,1 @@
-run_script r/git/git_clone.py https://github.com/baldurk/renderdoc
+run_script r/git/git_clone.sh https://github.com/baldurk/renderdoc

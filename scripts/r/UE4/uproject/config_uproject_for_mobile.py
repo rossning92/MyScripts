@@ -10,8 +10,8 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=Tru
         "Config/DefaultEngine.ini",
         "[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]",
         [
-            "+PackageForOculusMobile=Quest",
             "+PackageForOculusMobile=Quest2",
+            "+PackageForOculusMobile=QuestPro",
             "bSupportsVulkan=%s" % str(vulkan),
             "bBuildForES2=False",
             "bBuildForES31=%s" % str(not vulkan),
@@ -30,8 +30,9 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=Tru
         "[/Script/Engine.RendererSettings]",
         [
             "r.MobileHDR=False",
-            "r.MobileMSAA=%d" % msaa,
-            "r.MSAA.CompositingSampleCount=%d" % msaa,
+            # "r.MSAA.CompositingSampleCount=%d" % msaa,
+            "r.MobileMSAA=%d" % msaa,  # UE4
+            "r.MSAACount=%d" % msaa,  # UE5
             "vr.MobileMultiView=%s" % str(multiview),
             "vr.MobileMultiView.Direct=%s" % str(multiview),
         ],
@@ -42,6 +43,15 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=Tru
             "Config/DefaultEngine.ini",
             "[/Script/OculusHMD.OculusHMDRuntimeSettings]",
             ["XrApi=OVRPluginOpenXR"],
+        )
+
+    console_variables = []
+    console_variables.append("r.Mobile.TonemapSubpass=1")
+    if console_variables:
+        update_config(
+            "Config/DefaultEngine.ini",
+            "[ConsoleVariables]",
+            console_variables,
         )
 
 

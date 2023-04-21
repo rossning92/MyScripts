@@ -3,7 +3,7 @@
 
 set -e
 
-run_script r/git/git_clone.py "https://github.com/KhronosGroup/Vulkan-Samples"
+run_script r/git/git_clone.sh "https://github.com/KhronosGroup/Vulkan-Samples"
 cd ~/Projects/Vulkan-Samples
 
 bldsys/scripts/generate_android_gradle.bat

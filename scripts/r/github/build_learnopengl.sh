@@ -1,4 +1,4 @@
-run_script r/git/git_clone.py https://github.com/JoeyDeVries/LearnOpenGL
+run_script r/git/git_clone.sh https://github.com/JoeyDeVries/LearnOpenGL
 cd ~/Projects/LearnOpenGL
 
 read -p "(press enter to generate visual studio project...)"

@@ -81,7 +81,7 @@ if sys.platform == "win32":
         os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
     )
 
-RESERVED_VARIABLE_NAMES = {"HOME"}
+RESERVED_VARIABLE_NAMES = {"HOME", "PATH"}
 
 
 def get_script_root():
