@@ -44,6 +44,8 @@ data_sources: {
             ftrace_events: "ftrace/print"
             atrace_categories: "gfx"
             atrace_apps: "*"
+            # ftrace_events: "raw_syscalls/sys_enter"
+            # ftrace_events: "raw_syscalls/sys_exit"
         }
     }
 }

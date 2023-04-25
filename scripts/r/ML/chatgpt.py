@@ -18,7 +18,12 @@ if __name__ == "__main__":
     parser.add_argument("--custom-prompts", action="store_true", default=False)
     args = parser.parse_args()
 
-    input_ = args.input
+    if os.path.isfile(args.input):
+        with open(args.input, "r", encoding="utf-8") as f:
+            input_ = f.read()
+    else:
+        input_ = args.input
+
     if args.custom_prompts:
         options = load_json(
             os.path.join(get_data_dir(), "custom_prompts.json"),

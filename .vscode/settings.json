@@ -6,7 +6,7 @@
       "other": "on"
     }
   },
-  "python.formatting.provider": "black",
+  "python.formatting.provider": "none",
   "search.exclude": {
     "**/tmp": true,
     "**/.mypy_cache": true,
@@ -26,4 +26,7 @@
   "task.allowAutomaticTasks": "on",
   "typescript.tsc.autoDetect": "off",
   "npm.autoDetect": "off",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
 }
