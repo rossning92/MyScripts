@@ -206,15 +206,15 @@ def add_script_dir(d, prefix=None):
     save_json(config_file, data)
 
 
-def _get_script_history_file():
+def get_script_history_file():
     return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
 
 
-def get_last_script():
-    if os.path.exists(_get_script_history_file()):
-        with open(_get_script_history_file(), "r") as f:
+def get_last_script_and_args() -> Tuple[str, Any]:
+    if os.path.exists(get_script_history_file()):
+        with open(get_script_history_file(), "r") as f:
             data = json.load(f)
-            return data["file"]
+            return data["file"], data["args"]
     else:
         raise ValueError("file cannot be None.")
 
@@ -911,10 +911,6 @@ class Script:
         script_path = self.get_script_path()
         ext = self.real_ext if self.real_ext else self.ext
 
-        # Save last executed script
-        with open(_get_script_history_file(), "w") as f:
-            json.dump({"file": script_path}, f)
-
         if ext == ".md" or ext == ".txt":
             open_in_editor(script_path)
             return True
@@ -1506,7 +1502,7 @@ def find_script(patt: str) -> Optional[str]:
 
 
 def run_script(
-    file=None,
+    file: str,
     args=[],
     variables=None,
     console_title=None,
@@ -1518,8 +1514,6 @@ def run_script(
     tee=False,
 ):
     start_time = time.time()
-    if file is None:
-        file = get_last_script()
 
     # Print command line arguments
     logging.info(
@@ -1577,16 +1571,18 @@ def run_script(
     )
 
 
-def start_script(file=None, restart_instance=None):
+def start_script(file: Optional[str] = None, restart_instance: Optional[bool] = None):
     if file is None:
-        file = get_last_script()
+        file, args = get_last_script_and_args()
+    else:
+        args = None
 
     script_path = find_script(file)
     if script_path is None:
         raise Exception('[ERROR] Cannot find script: "%s"' % file)
 
     script = Script(script_path)
-    if not script.execute(restart_instance=restart_instance):
+    if not script.execute(args=args, restart_instance=restart_instance):
         raise Exception("[ERROR] %s returns non zero" % file)
 
 

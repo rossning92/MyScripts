@@ -18,7 +18,7 @@ GetSelectedText() {
 
 !9::
     text := GetSelectedText()
-    temp_file = %A_Temp%\chatgpt_text_input.txt
-    FileDelete, %temp_file%
-    FileAppend, %text%, %temp_file%
-    Run, run_script r/ML/chatgpt.py --copy-to-clipboard --custom-prompts "%temp_file%"
+    tempFile = %A_Temp%\chatgpt_text_input.txt
+    FileDelete, %tempFile%
+    FileAppend, %text%, %tempFile%, UTF-8
+    Run, run_script r/ML/chatgpt.py --copy-to-clipboard --custom-prompts "%tempFile%"

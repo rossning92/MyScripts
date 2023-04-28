@@ -20,7 +20,7 @@ from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
 from time import sleep
-from typing import List, Union
+from typing import List, Optional, Union
 
 import yaml
 
@@ -1479,10 +1479,13 @@ def get_temp_file_name(suffix=None):
         return f.name
 
 
-def find_newest_file(wildcard):
+def find_newest_file(wildcard) -> Optional[str]:
     files = list(glob.glob(wildcard, recursive=True))
     files.sort(key=os.path.getmtime)
-    return files[-1]
+    if len(files) > 0:
+        return files[-1]
+    else:
+        return None
 
 
 def move_file(src, dst, overwrite=False):

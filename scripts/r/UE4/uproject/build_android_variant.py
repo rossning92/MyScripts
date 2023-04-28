@@ -1,31 +1,36 @@
 import os
 
-from UE4.uproject.config_uproject_for_mobile import config_uproject
+from _android import setup_android_env
+from _script import run_script
 from UE4.uproject.build_android import build_uproject
-
-project_dir = r"{{UE_PROJECT_DIR}}"
-msaa_variant = [4]
-multiview_variant = [True]
-vulkan_variant = [False, True]
-
+from UE4.uproject.config_uproject_for_mobile import config_uproject
 
 if __name__ == "__main__":
-    for multiview in multiview_variant:
-        for vulkan in vulkan_variant:
-            for msaa in msaa_variant:
-                out_dir = (
-                    "/tmp/"
-                    + os.path.basename(project_dir).lower()
-                    + ("-vk" if vulkan else "-gl")
-                    + ("-msaa%d" % msaa)
-                    + ("-multiview" if multiview else "-doublewide")
+    run_script("r/UE4/editor/setup_android.cmd")
+    setup_android_env(ndk_version="21.1.6352462")
+
+    project_dir = os.environ["UE_PROJECT_DIR"]
+
+    for multiview in os.environ["_MULTIVIEW_VARIANT"].split():
+        for vulkan in os.environ["_VULKAN_VARIANT"].split():
+            for msaa in os.environ["_MSAA_VARIANT"].split():
+                out_dir = os.path.join(
+                    os.environ["UE_BUILD_OUT_DIR"],
+                    os.path.basename(project_dir).lower()
+                    + ("-vk" if vulkan == "1" else "-gl")
+                    + ("-msaa%d" % int(msaa))
+                    + ("-multiview" if multiview == "1" else "-doublewide"),
                 )
 
                 config_uproject(
-                    project_dir, vulkan=vulkan, multiview=multiview, msaa=msaa
+                    project_dir,
+                    vulkan=vulkan == "1",
+                    multiview=multiview == "1",
+                    msaa=int(msaa),
                 )
                 build_uproject(
                     ue_source=r"{{UE_SOURCE}}",
                     project_dir=project_dir,
                     out_dir=out_dir,
+                    compile_cpp=True,
                 )

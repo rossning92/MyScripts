@@ -3,7 +3,9 @@ import os
 from _ue4 import update_config
 
 
-def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=True):
+def config_uproject(
+    project_dir, vulkan=True, multiview=True, msaa=4, openxr=True, tonemapsubpass=False
+):
     os.chdir(project_dir)
 
     update_config(
@@ -46,7 +48,8 @@ def config_uproject(project_dir, vulkan=True, multiview=True, msaa=4, openxr=Tru
         )
 
     console_variables = []
-    console_variables.append("r.Mobile.TonemapSubpass=1")
+    if tonemapsubpass:
+        console_variables.append("r.Mobile.TonemapSubpass=1")
     if console_variables:
         update_config(
             "Config/DefaultEngine.ini",

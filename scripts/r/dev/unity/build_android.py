@@ -7,9 +7,11 @@ from _shutil import call_echo, find_newest_file
 
 if __name__ == "__main__":
     unity = find_newest_file(r"C:\Program Files\Unity\Hub\Editor\**\Editor\Unity.exe")
+    if unity is None:
+        unity = find_newest_file(r"C:\Program Files\Unity*\Editor\Unity.exe")
 
-    if sys.platform == "win32":
-        subprocess.call(["taskkill", "/f", "/im", "Unity.exe"])
+    # if sys.platform == "win32":
+    #     subprocess.call(["taskkill", "/f", "/im", "Unity.exe"])
 
     project_dir = os.environ["UNITY_PROJECT_PATH"]
 

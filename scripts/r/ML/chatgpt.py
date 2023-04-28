@@ -36,12 +36,13 @@ if __name__ == "__main__":
     openai.api_key = os.environ["OPEN_AI_API_KEY"]
     model_engine = "gpt-3.5-turbo"
 
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": input_},
+    ]
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": input_},
-        ],
+        messages=messages,
         stream=True,
     )
 

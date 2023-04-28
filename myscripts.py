@@ -29,6 +29,7 @@ from _script import (
     get_all_variables,
     get_data_dir,
     get_hotkey_abbr,
+    get_script_history_file,
     get_script_variables,
     is_instance_running,
     reload_scripts,
@@ -44,6 +45,7 @@ from _shutil import (
     quote_arg,
     refresh_env_vars,
     run_at_startup,
+    save_json,
     set_clip,
     setup_logger,
     setup_nodejs,
@@ -64,6 +66,10 @@ def execute_script(script: Script, close_on_exit=None, no_gui=False):
         args = None
     else:
         args = update_env_var_explorer()
+
+    # Save last executed script
+    save_json(get_script_history_file(), {"file": script.script_path, "args": args})
+
     success = script.execute(
         args=args,
         close_on_exit=close_on_exit,

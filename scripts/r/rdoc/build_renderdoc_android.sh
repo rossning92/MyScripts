@@ -2,12 +2,15 @@
 
 set -e
 
-# Prerequisite
-if ! pacman -Q mingw-w64-x86_64-cmake >/dev/null 2>&1; then
-    pacman -S mingw-w64-x86_64-cmake --noconfirm
-fi
+# Install packages if not already installed
+packages=("mingw-w64-x86_64-cmake" "mingw-w64-x86_64-make" "mingw-w64-x86_64-gcc")
+for package in "${packages[@]}"; do
+    if ! pacman -Q $package >/dev/null 2>&1; then
+        pacman -S $package --noconfirm
+    fi
+done
 
-cd ~/Projects/renderdoc
+cd '{{RENDERDOC_SOURCE}}'
 
 export JAVA_HOME="C:\Program Files\Java\jdk1.8.0_211"
 export PATH="C:\Program Files\Java\jdk1.8.0_211\bin:${PATH}"

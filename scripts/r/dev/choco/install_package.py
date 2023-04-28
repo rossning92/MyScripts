@@ -99,6 +99,7 @@ PKGS = {
         "tightvnc",
         "treesizefree",
         "unity-hub",
+        "visualstudio2019community",
         "vmware-workstation-player",
         "win32diskimager",
     ],

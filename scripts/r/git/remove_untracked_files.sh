@@ -1,6 +1,8 @@
 set -e
-git clean -n
-read -p "confirm (y/n):" ans
-if [[ ans == 'y' ]]; then
-    git clean -f
+cd "${GIT_REPO}"
+
+git clean -n -x -d
+read -p "confirm (Y/n):" ans
+if [[ ans != 'n' ]]; then
+    git clean -f -x -d
 fi

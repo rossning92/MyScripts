@@ -4,8 +4,7 @@ import shutil
 import subprocess
 import sys
 
-from _shutil import (call_echo, download, get_home_path, prepend_to_path,
-                     print2, unzip)
+from _shutil import call_echo, download, get_home_path, prepend_to_path, print2, unzip
 
 EXTENSION_LIST = [
     # "donjayamanne.githistory",
@@ -23,6 +22,7 @@ EXTENSION_LIST = [
     "foxundermoon.shell-format",
     # python
     "ms-python.python",
+    "ms-python.black-formatter",
     "njpwerner.autodocstring",
     # "ms-vscode-remote.vscode-remote-extensionpack",
     "ms-toolsai.jupyter",
