@@ -1458,20 +1458,25 @@ class Script:
             return True
 
     def get_variable_names(self):
-        with open(self.script_path, "r", encoding="utf-8") as f:
-            s = f.read()
-            variables = re.findall(r"\b([A-Z_$][A-Z_$0-9]{3,})\b", s)
+        if self.cfg["variableNames"] == "auto":
+            with open(self.script_path, "r", encoding="utf-8") as f:
+                s = f.read()
+                variable_names = re.findall(r"\b([A-Z_$][A-Z_$0-9]{3,})\b", s)
+        else:
+            variable_names = self.cfg["variableNames"].split()
 
         # Remove duplicates
-        variables = list(set(variables))
+        variable_names = list(set(variable_names))
 
         # Convert private variable to global namespace
         prefix = self.get_public_variable_prefix()
-        variables = [prefix + v if v.startswith("_") else v for v in variables]
+        variable_names = [
+            prefix + v if v.startswith("_") else v for v in variable_names
+        ]
 
-        variables = [x for x in variables if x not in RESERVED_VARIABLE_NAMES]
+        variable_names = [x for x in variable_names if x not in RESERVED_VARIABLE_NAMES]
 
-        return variables
+        return variable_names
 
 
 def find_script(patt: str) -> Optional[str]:
@@ -1614,6 +1619,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "template": None,
         "terminal": "alacritty",
         "title": "",
+        "variableNames": "auto",
         "venv": "",
         "wsl": False,
     }
