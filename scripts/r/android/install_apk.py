@@ -8,7 +8,6 @@ from _term import set_terminal_title
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)
-    setup_android_env()
     set_terminal_title("r/android/install_apk")
 
     parser = argparse.ArgumentParser(description=__doc__)

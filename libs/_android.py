@@ -404,11 +404,17 @@ def get_adk_path():
             os.path.abspath(os.getenv("LOCALAPPDATA") + "/Android/Sdk"),
         ]
 
-        for p in ADK_SEARCH_PATH:
-            if os.path.exists(p):
-                return p
+    elif sys.platform == "linux":
+        ADK_SEARCH_PATH = [
+            os.path.expanduser("~/android-sdk"),
+        ]
+
     else:
-        pass
+        return None
+
+    for p in ADK_SEARCH_PATH:
+        if os.path.exists(p):
+            return p
 
     return None
 
@@ -436,10 +442,21 @@ def setup_jdk(jdk_version=None, env=None):
         jdk_paths = sorted(jdk_paths)
         return jdk_paths[-1]  # Choose latest JDK
 
-    java_home = find_jdk(
-        [r"C:\Program Files\Java\jdk*", r"C:\Program Files\Eclipse Adoptium\jdk*"],
-        jdk_version=jdk_version,
-    )
+    if sys.platform == "win32":
+        java_home = find_jdk(
+            [
+                r"C:\Program Files\Java\jdk*",
+                r"C:\Program Files\Eclipse Adoptium\jdk*",
+            ],
+            jdk_version=jdk_version,
+        )
+    elif sys.platform == "linux":
+        javac_path = os.popen("which javac").read().strip()
+        javac_abs_path = os.path.realpath(javac_path)
+        javac_dir = os.path.dirname(javac_abs_path)
+        java_home = os.path.dirname(javac_dir)
+    else:
+        raise Exception("Unsupported os: %s" % sys.platform)
 
     if java_home is None:
         raise Exception("Cannot find JDK")
