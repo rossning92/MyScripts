@@ -13,6 +13,7 @@ PYTHON_MODULE_LIST = {
     "jieba": "jieba",
     "jinja2": "jinja2",
     "keyboard": "keyboard",
+    "langchain": "langchain",
     "markdown2": "markdown2",
     "matplotlib": "matplotlib",
     "moviepy": "moviepy",

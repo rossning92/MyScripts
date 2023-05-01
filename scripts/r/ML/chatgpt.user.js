@@ -27,7 +27,7 @@ addButton(
 
 async function getCompletion(content, { onText, onDeltaText }) {
   // https://platform.openai.com/docs/api-reference/making-requests
-  const apiKey = "{{OPEN_AI_API_KEY}}";
+  const apiKey = "{{OPENAI_API_KEY}}";
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",

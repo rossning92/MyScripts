@@ -8,12 +8,7 @@ from _term import select_option
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "input",
-        type=str,
-        nargs="?",
-        default="What's 1+1? Answer in one english word.",
-    )
+    parser.add_argument("input", type=str)
     parser.add_argument("--copy-to-clipboard", action="store_true", default=False)
     parser.add_argument("--custom-prompts", action="store_true", default=False)
     args = parser.parse_args()
@@ -33,7 +28,7 @@ if __name__ == "__main__":
         input_ = prompt_text + "\n\n" + input_
 
     # https://platform.openai.com/account/api-keys
-    openai.api_key = os.environ["OPEN_AI_API_KEY"]
+    openai.api_key = os.environ["OPENAI_API_KEY"]
     model_engine = "gpt-3.5-turbo"
 
     messages = [
