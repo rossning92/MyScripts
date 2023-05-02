@@ -342,7 +342,7 @@ def screenshot(out_file=None, scale=None):
     from _image import scale_image
 
     if out_file is None:
-        out_file = datetime.datetime.now().strftime("Screenshot_%y%m%d%H%M%S.png")
+        out_file = datetime.datetime.now().strftime("screencap_%y%m%d%H%M%S.png")
         src_file = os.path.basename(out_file)
     else:
         os.makedirs(os.path.dirname(os.path.abspath(out_file)), exist_ok=True)
