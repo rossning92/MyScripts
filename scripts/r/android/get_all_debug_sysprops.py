@@ -7,7 +7,7 @@ if __name__ == "__main__":
     try:
         subprocess.check_call(["adb", "root"])
         lines = list(
-            read_proc_lines(["adb", "shell", "getprop -Z | grep :debug_oculus_prop:"])
+            read_proc_lines(["adb", "shell", "getprop -Z | grep :debug_prop:"])
         )
 
         for line in lines:

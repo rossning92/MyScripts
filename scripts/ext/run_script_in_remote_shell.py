@@ -14,7 +14,7 @@ from _shutil import (
 
 def run_bash_script_in_remote_shell(script_path):
     script = Script(script_path)
-    update_script_access_time(script)
+    # update_script_access_time(script)
 
     s = ""  # script to run in remote shell
 

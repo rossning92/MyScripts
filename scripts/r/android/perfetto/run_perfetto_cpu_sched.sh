@@ -54,6 +54,8 @@ data_sources: {
         name: "track_event"
         track_event_config {
             enabled_categories: "*"
+            # enabled_categories: "gpu_renderstage"
+            # enabled_categories: "gpu_surface_workload"
         }
     }
 }

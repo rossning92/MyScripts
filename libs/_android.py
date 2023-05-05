@@ -284,7 +284,9 @@ def get_apk_path(pkg):
     return apk_path
 
 
-def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
+def backup_pkg(
+    pkg, out_dir=None, backup_apk=True, backup_user_data=False, backup_obb=True
+):
     if out_dir is not None:
         os.makedirs(out_dir, exist_ok=True)
     else:
@@ -294,12 +296,13 @@ def backup_pkg(pkg, out_dir=None, backup_user_data=False, backup_obb=True):
         obb_dir = os.path.join(out_dir, "obb")
         os.makedirs(obb_dir, exist_ok=True)
 
-    # Get apk path
-    # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
-    apk_path = get_apk_path(pkg)
-
     # Pull apk
-    subprocess.check_call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
+    if backup_apk:
+        # Get apk path
+        # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
+        apk_path = get_apk_path(pkg)
+
+        subprocess.check_call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
 
     # Check root permission
     if subprocess.call("adb shell type su") == 0:
