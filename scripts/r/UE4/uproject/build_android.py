@@ -2,15 +2,21 @@ import glob
 import os
 import shutil
 
-from _android import (adb_install, get_pkg_name_apk, setup_android_env,
-                      start_app)
+from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
 from _script import run_script
-from _shutil import (call_highlight, cd, confirm, find_newest_file, mkdir,
-                     print2, setup_logger)
+from _shutil import (
+    call_highlight,
+    cd,
+    confirm,
+    find_newest_file,
+    mkdir,
+    print2,
+    setup_logger,
+)
 
 from build_cpp_modules import build_cpp_modules
 
-out_dir_root = os.environ.get("_OUT_DIR", "/tmp")
+out_dir_root = os.environ.get("UE_ANDROID_OUT_DIR", "/tmp")
 
 
 def build_uproject(

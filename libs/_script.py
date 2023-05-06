@@ -361,7 +361,7 @@ def get_variable(name):
         return variables[name][0]
 
 
-def set_variable(name, val):
+def set_variable(name, val, set_env_var=True):
     logging.info("Set %s=%s" % (name, val))
     assert val is not None
 
@@ -383,6 +383,9 @@ def set_variable(name, val):
 
         with open(file, "w", encoding="utf-8") as f:
             json.dump(variables, f, indent=2)
+
+    if set_env_var:
+        os.environ[name] = val
 
 
 def save_variables(variables):
@@ -476,7 +479,8 @@ def wrap_args_tee(args, out_file):
 
     if sys.platform == "win32":
         s = (
-            "& "
+            # Powershell uses UTF-16 as default encoding, make tee output UTF-8
+            "$PSDefaultParameterValues = @{'Out-File:Encoding' = 'utf8'}; & "
             + _args_to_str(args, shell_type="powershell")
             + r" | Tee-Object -FilePath %s" % out_file
         )
@@ -977,6 +981,10 @@ class Script:
             cwd = os.environ["CWD"]
         logging.debug("Script.execute(): CWD: %s" % cwd)
 
+        # Automatically convert path arguments to UNIX path if running in WSL
+        if sys.platform == "win32" and self.cfg["wsl"]:
+            arg_list = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in arg_list]
+
         cmdline = self.cfg["cmdline"]
         if cmdline:
             arg_list = shlex.split(cmdline.format(SCRIPT=quote_arg(self.script_path)))
@@ -1092,10 +1100,6 @@ class Script:
                 )
 
             arg_list = [script_path] + arg_list
-            if self.cfg["wsl"]:
-                arg_list = [
-                    convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in arg_list
-                ]
             bash_cmd = "bash " + _args_to_str(arg_list, shell_type="bash")
             logging.debug("bash_cmd: %s" % bash_cmd)
 

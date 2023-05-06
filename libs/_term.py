@@ -434,7 +434,7 @@ class Menu(Generic[T]):
     def on_enter_pressed(self):
         item = self.get_selected_item()
         if item is not None and isinstance(item, MenuItem):
-            item.callback()
+            self.run_cmd(lambda item=item: item.callback())
         else:
             self.close()
 

@@ -2,7 +2,13 @@
 
 set -e
 
-repo="$HOME/Projects/ue5-main"
+if [[ -n "${UE_SOURCE}" ]]; then
+    repo="${UE_SOURCE}"
+else
+    repo="$HOME/Projects/ue5"
+    run_script ext/set_variable.py UE_SOURCE "$repo"
+fi
+
 mkdir -p "$repo"
 cd "$repo"
 
