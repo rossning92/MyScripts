@@ -4,9 +4,15 @@
 
 cd /d "%UE_SOURCE%"
 
+run_script r/UE4/editor/SelectNoRegisterUEFileTypes.ahk
+
+if "%_CLEAN_BUILD%"=="1" (
+    git clean -f -x -d
+)
+
 if not exist "UE5.sln" (
-    Setup.bat
-    GenerateProjectFiles.bat
+    cmd /c Setup.bat
+    cmd /c GenerateProjectFiles.bat
 )
 
 if not exist "Engine\Plugins\Runtime\OculusXR" (

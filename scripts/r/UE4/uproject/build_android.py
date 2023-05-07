@@ -2,7 +2,13 @@ import glob
 import os
 import shutil
 
-from _android import adb_install, get_pkg_name_apk, setup_android_env, start_app
+from _android import (
+    adb_install,
+    get_pkg_name_apk,
+    setup_android_env,
+    start_app,
+    install_cmdline_tools,
+)
 from _script import run_script
 from _shutil import (
     call_highlight,
@@ -13,8 +19,9 @@ from _shutil import (
     print2,
     setup_logger,
 )
-
+import subprocess
 from build_cpp_modules import build_cpp_modules
+from _unrealcommon import get_unreal_source_version
 
 out_dir_root = os.environ.get("UE_ANDROID_OUT_DIR", "/tmp")
 
@@ -78,12 +85,33 @@ def build_uproject(
 if __name__ == "__main__":
     setup_logger()
 
-    run_script("r/UE4/editor/setup_android.cmd")
+    ue_version = get_unreal_source_version()
+    if ue_version[0] == "5":
+        install_cmdline_tools(version="8.0")
+        setup_android_env()
+        # subprocess.check_call(
+        #     rf"{os.environ['UE_SOURCE']}\Engine\Extras\Android\SetupAndroid.bat",
+        #     shell=True,
+        # )
+    elif ue_version == "4.27":
+        setup_android_env(ndk_version="21.1.6352462")
+        subprocess.check_call(
+            [
+                "sdkmanager",
+                "platform-tools",
+                "platforms;android-28",
+                "build-tools;28.0.3",
+                "cmake;3.10.2.4988404",
+                "ndk;21.1.6352462",
+            ],
+            shell=True,
+        )
+    else:
+        raise Exception(f"Unknown Unreal Engine version: {ue_version}")
 
     # run_script("r/UE4/kill_editor.cmd")
 
     # TODO: no need this after UE5?
-    setup_android_env(ndk_version="21.1.6352462")
 
     out_dir = build_uproject(
         ue_source=os.environ["UE_SOURCE"],

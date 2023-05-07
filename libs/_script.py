@@ -1024,13 +1024,12 @@ class Script:
 
                 arg_list = [get_ahk_exe(), script_path]
 
-                background = True
-
                 if self.cfg["runAsAdmin"]:
                     arg_list = ["start"] + arg_list
 
                 # Disable console window for ahk
                 new_window = False
+                background = True
 
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
@@ -1098,6 +1097,7 @@ class Script:
                 script_path = write_temp_file(
                     self.render(source=source), slugify(self.name) + ".sh"
                 )
+            script_path = convert_to_unix_path(script_path, wsl=self.cfg["wsl"])
 
             arg_list = [script_path] + arg_list
             bash_cmd = "bash " + _args_to_str(arg_list, shell_type="bash")
@@ -1376,6 +1376,7 @@ class Script:
                     logging.warning(ex)
 
             elif background:
+                logging.debug("background = true")
                 if sys.platform == "win32":
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
@@ -1383,9 +1384,12 @@ class Script:
                     startupinfo.wShowWindow = SW_HIDE
                     popen_extra_args["startupinfo"] = startupinfo
 
+                    CREATE_NO_WINDOW = 0x08000000
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
-                        subprocess.CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS
+                        subprocess.CREATE_NEW_PROCESS_GROUP
+                        | DETACHED_PROCESS
+                        | CREATE_NO_WINDOW
                     )
 
                     popen_extra_args["close_fds"] = True
@@ -1440,6 +1444,7 @@ class Script:
 
             else:
                 logging.debug("cmdline: %s" % args)
+                logging.debug("popen_extra_args: %s" % popen_extra_args)
                 ps = subprocess.Popen(
                     args=args,
                     env={**os.environ, **env},

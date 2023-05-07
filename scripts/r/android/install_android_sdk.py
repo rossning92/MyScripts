@@ -2,6 +2,7 @@ import subprocess
 
 from _android import setup_android_env
 
+
 if __name__ == "__main__":
     setup_android_env()
 

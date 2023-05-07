@@ -128,12 +128,14 @@ def get_ahk_exe(uia=True):
         ahk_exe = os.path.expandvars(r"%ProgramFiles%\AutoHotkey\AutoHotkeyU64.exe")
 
     if not _ahk_initialized:
-        os.makedirs(os.path.expanduser(r"~\Documents\AutoHotkey"), exist_ok=True)
-        run_elevated(
-            r'cmd /c MKLINK /D "%USERPROFILE%\Documents\AutoHotkey\Lib" "{}"'.format(
-                os.path.abspath(os.path.dirname(__file__) + "/../ahk")
+        ahk_lib_path = os.path.expandvars(r"%USERPROFILE%\Documents\AutoHotkey\Lib")
+        if not os.path.exists(ahk_lib_path):
+            os.makedirs(os.path.dirname(ahk_lib_path), exist_ok=True)
+            run_elevated(
+                r'cmd /c MKLINK /D "{}" "{}"'.format(
+                    ahk_lib_path, os.path.abspath(os.path.dirname(__file__) + "/../ahk")
+                )
             )
-        )
         _ahk_initialized = True
 
     return ahk_exe
@@ -614,7 +616,6 @@ def write_lines(file, lines):
 def read_proc_lines(
     args, echo=False, read_err=False, max_lines=None, check=True, **kwargs
 ):
-
     ps = subprocess.Popen(
         args,
         stdout=subprocess.PIPE if (not read_err) else None,
@@ -1795,6 +1796,7 @@ def run_at_startup(name, cmdline):
 class IgnoreSigInt(object):
     def __enter__(self):
         self.original_handler = signal.getsignal(signal.SIGINT)
+
         def handler(signum, frame):
             pass
 

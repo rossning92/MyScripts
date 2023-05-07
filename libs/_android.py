@@ -16,9 +16,16 @@ from _shutil import (
     prepend_to_path,
     print2,
     read_proc_lines,
+    download,
+    unzip,
 )
 
 logger = logging.getLogger(__name__)
+
+
+ANDROID_SDK_INSTALL_DIR = os.path.join(
+    os.path.expandvars("%LOCALAPPDATA%"), "Android", "Sdk"
+)
 
 
 def reset_debug_sysprops():
@@ -401,10 +408,12 @@ def get_device_name():
 def get_adk_path():
     if sys.platform == "win32":
         ADK_SEARCH_PATH = [
+            # Default Android SDK path installed by Android Studio
+            ANDROID_SDK_INSTALL_DIR,
             # Installed by choco
             r"C:\Android\android-sdk",
             # Default SDK path installed by Android Studio
-            os.path.abspath(os.getenv("LOCALAPPDATA") + "/Android/Sdk"),
+            os.path.abspath(os.environ["LOCALAPPDATA"] + "/Android/Sdk"),
         ]
 
     elif sys.platform == "linux":
@@ -912,3 +921,30 @@ def setprop(prop):
             v = "''"
         shell += "setprop {} {};".format(k, v)
     adb_shell(shell)
+
+
+def install_cmdline_tools(version="8.0"):
+    if version == "8.0":
+        # Download command line tools 8.0
+        cmdline_tools_path = os.path.join(
+            ANDROID_SDK_INSTALL_DIR, "cmdline-tools", "8.0"
+        )
+        if not os.path.exists(cmdline_tools_path):
+            os.makedirs(os.path.dirname(cmdline_tools_path), exist_ok=True)
+            cmdline_tools_zip = download(
+                "https://dl.google.com/android/repository/commandlinetools-win-9123335_latest.zip"
+            )
+            unzip(
+                cmdline_tools_zip,
+                os.path.join(ANDROID_SDK_INSTALL_DIR, "cmdline-tools"),
+            )
+            os.rename(
+                os.path.join(ANDROID_SDK_INSTALL_DIR, "cmdline-tools", "cmdline-tools"),
+                cmdline_tools_path,
+            )
+        else:
+            logging.info(
+                "Android Sdk: cmdline-tools version=8.0 already installed, skip."
+            )
+    else:
+        raise Exception(f"install_cmdline_tools(): invalid version: {version}")
