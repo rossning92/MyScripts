@@ -13,7 +13,6 @@ def config_uproject(
         "[/Script/AndroidRuntimeSettings.AndroidRuntimeSettings]",
         [
             "+PackageForOculusMobile=Quest2",
-            "+PackageForOculusMobile=QuestPro",
             "bSupportsVulkan=%s" % str(vulkan),
             "bBuildForES2=False",
             "bBuildForES31=%s" % str(not vulkan),
@@ -41,6 +40,7 @@ def config_uproject(
     )
 
     if openxr:
+        # UE5+
         update_config(
             "Config/DefaultEngine.ini",
             "[/Script/OculusHMD.OculusHMDRuntimeSettings]",

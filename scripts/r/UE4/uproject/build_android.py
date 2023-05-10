@@ -94,7 +94,7 @@ if __name__ == "__main__":
         #     shell=True,
         # )
     elif ue_version == "4.27":
-        setup_android_env(ndk_version="21.1.6352462")
+        setup_android_env(ndk_version="21.1.6352462", build_tools_version="28.0.3")
         subprocess.check_call(
             [
                 "sdkmanager",

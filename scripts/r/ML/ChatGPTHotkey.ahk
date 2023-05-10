@@ -34,3 +34,12 @@ return
     FileAppend, %text%, %tempFile%, UTF-8
     Run, run_script r/ML/langchain/summerize_doc.py "%tempFile%"
 return
+
+!7::
+    KeyWait, Alt, U
+    text := GetSelectedText()
+    tempFile = %A_Temp%\text_input.txt
+    FileDelete, %tempFile%
+    FileAppend, %text%, %tempFile%, UTF-8
+    Run, run_script r/ML/langchain/qa.py "%tempFile%"
+return

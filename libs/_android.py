@@ -13,10 +13,10 @@ from _shutil import (
     call2,
     call_echo,
     check_output,
+    download,
     prepend_to_path,
     print2,
     read_proc_lines,
-    download,
     unzip,
 )
 
@@ -135,7 +135,9 @@ def logcat(
     ignore_duplicates=False,
     show_fatal_error=False,
 ):
-    LOGCAT_PATTERN = re.compile(r"^([A-Z])/(.+?)\(\s*(\d+)\):\s?(.*)$")
+    LOGCAT_PATTERN = re.compile(
+        r"^(\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s+(\d+)\s+([A-Z])\s+(.*)$"
+    )
 
     wait_for_device()
     fnull = open(os.devnull, "w")
@@ -153,7 +155,7 @@ def logcat(
     if exclude_proc:
         exclude_proc = re.compile(exclude_proc)
 
-    args = ["adb", "logcat", "-v", "brief"]
+    args = ["adb", "logcat"]
 
     if show_log_after_secs is not None:
         out = subprocess.check_output(
@@ -177,23 +179,12 @@ def logcat(
         show_fatal_error_pid = None
         try:
             for line in read_proc_lines(args):
-                # Filter by time
-                # if show_log_after_secs is not None:
-                #     try:
-                #         dt = datetime.datetime.strptime(
-                #             line[:14].decode(), "%m-%d %H:%M:%S"
-                #         )
-                #         if dt < dt_start:
-                #             return None
-                #     except:
-                #         pass
-
                 match = re.match(LOGCAT_PATTERN, line)
                 if match is None:
                     logger.debug(line)
                     continue
 
-                pid = int(match.group(3))
+                pid = int(match.group(2))
                 if pid <= 0:
                     continue
 
@@ -211,7 +202,7 @@ def logcat(
                 else:
                     proc = pid_proc_map[pid]
 
-                lvl = match.group(1)
+                lvl = match.group(4)
                 if show_fatal_error and lvl == "F":
                     if pkg is not None and pkg in line:
                         show_fatal_error_pid = pid
@@ -225,17 +216,12 @@ def logcat(
                         continue
 
                     # Filter by tag or message
-                    tag = match.group(2)
-                    message = match.group(4)
-                    if regex and not (
-                        re.search(regex, tag) or re.search(regex, message)
-                    ):
+                    message = match.group(5)
+                    if regex and not re.search(regex, message):
                         continue
 
                     # Exclude by tag or message
-                    if exclude and (
-                        re.search(exclude, tag) or re.search(exclude, message)
-                    ):
+                    if exclude and re.search(exclude, message):
                         continue
 
                     # Filter by package
@@ -262,17 +248,7 @@ def logcat(
                     print2("%s (%d)" % (proc, pid))
                     last_proc = proc
 
-                if 1:
-                    print(line)
-                else:
-                    lvl_text = " %s " % lvl
-                    if lvl == "W":
-                        print2(lvl_text, color="YELLOW", end="")
-                    elif lvl == "E" or lvl == "F":
-                        print2(lvl_text, color="RED", end="")
-                    else:
-                        print(lvl_text, end="")
-                    print(f": {tag}: {message}")
+                print(line)
 
                 if ignore_duplicates:
                     last_message = message
@@ -480,7 +456,9 @@ def setup_jdk(jdk_version=None, env=None):
     prepend_to_path(jdk_bin, env=env)
 
 
-def setup_android_env(env=None, ndk_version=None, jdk_version=None):
+def setup_android_env(
+    env=None, ndk_version=None, jdk_version=None, build_tools_version=None
+):
     if env is None:
         env = os.environ
 
@@ -499,10 +477,18 @@ def setup_android_env(env=None, ndk_version=None, jdk_version=None):
         env["ANDROID_HOME"] + "/ndk-bundle",
     ]
 
-    # build-tools
-    build_tools_dir = sorted(glob.glob(env["ANDROID_HOME"] + "/build-tools/*"))
+    # # Android build tools (latest)
+    build_tools_search_pattern = os.path.join(env["ANDROID_HOME"], "build-tools")
+    if build_tools_version:
+        build_tools_search_pattern = os.path.join(
+            build_tools_search_pattern, build_tools_version
+        )
+    else:
+        build_tools_search_pattern = os.path.join(build_tools_search_pattern, "*")
+    build_tools_dir = sorted(glob.glob(build_tools_search_pattern))
     if len(build_tools_dir) > 0:
-        path.append(build_tools_dir[-1])
+        path.append(build_tools_dir[-1])  # choose the latest version
+        logging.info("Android SDK: build-tools: " + build_tools_dir[-1])
 
     # NDK
     ndk_path = None
@@ -548,12 +534,6 @@ def setup_android_env(env=None, ndk_version=None, jdk_version=None):
         path.append(ndk_path)
 
     setup_jdk(jdk_version=jdk_version, env=env)
-
-    # Android build tools (latest)
-    path_list = sorted(glob.glob(env["ANDROID_HOME"] + "\\build-tools\\*"))
-    if len(path_list) > 0:
-        logging.info("Android SDK: build-tools: " + path_list[-1])
-        path.append(path_list[-1])
 
     prepend_to_path(path, env=env)
 
@@ -932,7 +912,8 @@ def install_cmdline_tools(version="8.0"):
         if not os.path.exists(cmdline_tools_path):
             os.makedirs(os.path.dirname(cmdline_tools_path), exist_ok=True)
             cmdline_tools_zip = download(
-                "https://dl.google.com/android/repository/commandlinetools-win-9123335_latest.zip"
+                "https://dl.google.com/android/repository/commandlinetools-win-9123335_latest.zip",
+                save_to_tmp=True,
             )
             unzip(
                 cmdline_tools_zip,

@@ -17,16 +17,8 @@ if __name__ == "__main__":
 
     if not os.path.exists("UE4.sln"):
         if os.path.exists("Setup.bat"):
-
-            # Remove UnrealVersionSelector
-            with open("Setup.bat") as f:
-                s = f.read().replace(
-                    r".\Engine\Binaries\Win64\UnrealVersionSelector-Win64-Shipping.exe /register",
-                    "",
-                )
-            with open("Setup.NoVersionSelector.bat", "w") as f:
-                f.write(s)
-            call_echo("Setup.NoVersionSelector.bat")
+            call_echo("run_script r/UE4/editor/SelectNoRegisterUEFileTypes.ahk")
+            call_echo("Setup.bat")
 
         # install_package("netfx-4.6.2-devpack")
 
