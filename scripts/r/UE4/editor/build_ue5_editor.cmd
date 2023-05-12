@@ -6,11 +6,20 @@ cd /d "%UE_SOURCE%"
 
 run_script r/UE4/editor/SelectNoRegisterUEFileTypes.ahk
 
+echo Killing running instances...
+taskkill /t /f /im UE5Editor.exe
+taskkill /t /f /im MSBuild.exe
+taskkill /t /f /im FBuild.exe
+taskkill /f /im cl.exe
+taskkill /f /im Link.exe
+
 if "%_CLEAN_BUILD%"=="1" (
+    @REM del UE5.sln
     git clean -f -x -d
 )
 
 if not exist "UE5.sln" (
+    copy "C:\Users\rossning92\Downloads\Commit.gitdeps.xml" "C:\Projects\ue5-ovr-internal\Engine\Build\Commit.gitdeps.xml" /y
     cmd /c Setup.bat
     cmd /c GenerateProjectFiles.bat
 )

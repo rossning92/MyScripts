@@ -4,7 +4,7 @@ import subprocess
 
 from _shutil import download, start_process, unzip
 
-INSTALL_DIR = os.path.expandvars("%APPDATA%\\RenderDoc")
+RENDERDOC_INSTALL_DIR = os.path.expandvars("%APPDATA%\\RenderDoc")
 
 
 def install_renderdoc(version=None):
@@ -30,13 +30,15 @@ def install_renderdoc(version=None):
     f = download(url, save_to_tmp=True)
     print(f)
 
-    unzip(f, INSTALL_DIR)
+    unzip(f, RENDERDOC_INSTALL_DIR)
 
 
 def find_renderdoc(version=None):
     match = glob.glob(
         os.path.join(
-            INSTALL_DIR, "**" if version is None else f"*{version}*", "qrenderdoc.exe"
+            RENDERDOC_INSTALL_DIR,
+            "**" if version is None else f"*{version}*",
+            "qrenderdoc.exe",
         ),
         recursive=True,
     )

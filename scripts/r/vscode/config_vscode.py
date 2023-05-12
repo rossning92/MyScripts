@@ -7,34 +7,36 @@ import sys
 from _shutil import call_echo, download, get_home_path, prepend_to_path, print2, unzip
 
 EXTENSION_LIST = [
-    # "donjayamanne.githistory",
-    "ms-vscode.cpptools",
+    "mhutchie.git-graph",
     "stkb.rewrap",
     "streetsidesoftware.code-spell-checker",
-    # markdown
+    # C++
+    "ms-vscode.cpptools",
+    "ms-vscode.cpptools-extension-pack",
+    # Markdown
     "yzhang.markdown-all-in-one",
     "mushan.vscode-paste-image",
     "kortina.vscode-markdown-notes",  # [[wiki-links]], backlinks, #tags and @bibtex-citations
-    # javascript
+    # Javascript
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    # bash
+    # Bash
     "foxundermoon.shell-format",
-    # python
+    # Python
     "ms-python.python",
     "ms-python.black-formatter",
     "njpwerner.autodocstring",
     # "ms-vscode-remote.vscode-remote-extensionpack",
     "ms-toolsai.jupyter",
-    # AHK
+    # AutoHotkey
     "cweijan.vscode-autohotkey-plus",
-    # shader
+    # GLSL Shader
     "circledev.glsl-canvas",  # shader preview
     # "cadenas.vscode-glsllint",
     "xaver.clang-format",
-    # powershell
+    # Powershell
     "ms-vscode.powershell-preview",
-    # mermaid
+    # Mermaid Diagram
     "bierner.markdown-mermaid",
     "tomoyukim.vscode-mermaid-editor",
     # csv

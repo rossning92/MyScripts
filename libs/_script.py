@@ -1568,6 +1568,7 @@ def run_script(
     ret = script.execute(
         restart_instance=restart_instance,
         new_window=new_window,
+        close_on_exit=True,
         args=args,
         cd=cd,
         tee=tee,

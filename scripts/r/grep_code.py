@@ -59,8 +59,8 @@ def grep(src_dir, exclude=[]):
             file, line_number, *_ = out.split(":")
             line_number = int(line_number)
             print("Goto: %s: %d" % (file, line_number))
-            open_in_vscode(file, line_number, vscode_executable=r"{{VSCODE}}")
+            open_in_vscode(file, line_number, vscode_executable=os.environ.get['VSCODE_EXECUTABLE'])
 
 
 if __name__ == "__main__":
-    grep(src_dir=r"{{SOURCE_FOLDER}}", exclude="{{_EXCLUDE}}".split())
+    grep(src_dir=os.environ['GIT_REPO'], exclude=os.environ['_EXCLUDE'].split())
