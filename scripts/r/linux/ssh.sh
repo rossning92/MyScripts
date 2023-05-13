@@ -13,7 +13,10 @@ ssh_command=""
 if [[ -n "${_WSL}" ]]; then
     ssh_command+="cmd.exe /c "
 fi
-ssh_command+="ssh -t ${SSH_USER}@${SSH_HOST} -o \"StrictHostKeyChecking no\""
+ssh_command+="ssh -t ${SSH_USER}@${SSH_HOST}"
+ssh_command+=" -o \"StrictHostKeyChecking no\""
+ssh_command+=" -o \"UseRoaming yes\""
+ssh_command+=" -o \"ServerAliveInterval 60\""
 if [ -n "${SSH_PORT}" ]; then
     ssh_command+=" -p ${SSH_PORT}"
 fi
