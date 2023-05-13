@@ -35,6 +35,7 @@ from _script import (
     reload_scripts,
     save_variables,
     setup_env_var,
+    try_reload_scripts_autorun,
     update_script_access_time,
 )
 from _server import start_server
@@ -246,6 +247,7 @@ class VariableWindow(Menu):
 class ScriptManager:
     def __init__(self, no_gui=False, startup=False):
         self.scripts: List[Script] = []
+        self.scripts_autorun: List[Script] = []
         self.hotkeys: Dict[str, Script] = {}
         self.no_gui = no_gui
         self.startup = startup
@@ -275,6 +277,7 @@ class ScriptManager:
             autorun=not self.no_gui,
             startup=self.startup,
             on_progress=on_progress,
+            scripts_autorun=self.scripts_autorun,
         ):
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
@@ -626,6 +629,9 @@ class MainWindow(Menu[Script]):
         finally:
             # Reset last refresh time when key press event is processed
             self.update_last_refresh_time()
+
+    def on_idle(self):
+        try_reload_scripts_autorun(script_manager.scripts_autorun)
 
     def on_update_screen(self):
         height = self.height

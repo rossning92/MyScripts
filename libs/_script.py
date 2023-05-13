@@ -735,7 +735,7 @@ class Script:
     def __lt__(self, other):
         return self.mtime > other.mtime  # sort by modified time descendently by default
 
-    def update_script_mtime(self):
+    def update_script_mtime(self) -> bool:
         assert self.script_path
 
         mtime = os.path.getmtime(self.script_path)
@@ -1806,14 +1806,34 @@ def get_all_scripts() -> Iterator[str]:
             yield file
 
 
+def _execute_script_autorun(script: Script):
+    try:
+        assert script.cfg["autoRun"]
+        logging.info("autorun: %s" % script.name)
+        script.execute(new_window=False, command_wrapper=False)
+    except Exception as ex:
+        logging.warning(ex)
+
+
+def try_reload_scripts_autorun(scripts_autorun: List[Script]):
+    for script in scripts_autorun:
+        assert script.cfg["autoRun"]
+        reloaded = script.update_script_mtime()
+        if reloaded:
+            _execute_script_autorun(script)
+
+
 def reload_scripts(
     script_list: List[Script],
     autorun=True,
     startup=False,
     on_progress: Optional[Callable[[], None]] = None,
+    scripts_autorun: Optional[List[Script]] = None,
 ) -> bool:
     script_dict = {script.script_path: script for script in script_list}
     script_list.clear()
+    if scripts_autorun is not None:
+        scripts_autorun.clear()
     clear_env_var_explorer()
 
     any_script_reloaded = False
@@ -1832,19 +1852,19 @@ def reload_scripts(
         if reloaded:
             any_script_reloaded = True
             should_run_script = False
-            if script.cfg["autoRun"] and autorun:
-                logging.info("autorun: %s" % script.name)
-                should_run_script = True
+            if script.cfg["autoRun"]:
+                if autorun:
+                    should_run_script = True
+                if scripts_autorun is not None:
+                    scripts_autorun.append(script)
+
             if script.cfg["runAtStartup"] and startup:
                 logging.info("runAtStartup: %s" % script.name)
                 should_run_script = True
 
             # Check if auto run script
             if should_run_script:
-                try:
-                    script.execute(new_window=False, command_wrapper=False)
-                except Exception as ex:
-                    logging.warning(ex)
+                _execute_script_autorun(script)
 
         bisect.insort(script_list, script)
 

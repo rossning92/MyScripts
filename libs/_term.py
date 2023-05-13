@@ -343,10 +343,16 @@ class Menu(Generic[T]):
 
             self.prev_key = ch
 
+        if ch == -1 and blocking:  # getch() is timed-out
+            self.on_idle()
+
         if self.closed:
             return True
 
         return False
+
+    def on_idle(self):
+        pass
 
     def _exec(self):
         self.on_main_loop()
