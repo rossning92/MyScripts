@@ -1,9 +1,6 @@
 @echo off
 
 cd /d "%UE_SOURCE%"
-if not exist "UE4.sln" (
-    run_script r/UE4/editor/setup_env.py
-)
 
 echo "Killing running instances..."
 taskkill /t /f /im UE4Editor.exe
@@ -11,6 +8,14 @@ taskkill /t /f /im MSBuild.exe
 taskkill /t /f /im FBuild.exe
 taskkill /f /im cl.exe
 taskkill /f /im Link.exe
+
+if "%_CLEAN_BUILD%"=="1" (
+    git clean -f -x -d
+)
+
+if not exist "UE4.sln" (
+    run_script r/UE4/editor/setup_env.py
+)
 
 call "%~dp0_msbuild.cmd" "UE4.sln" /t:Engine\UE4 /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
 if %errorlevel% neq 0 exit /b %errorlevel%

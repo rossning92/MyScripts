@@ -14,7 +14,6 @@ taskkill /f /im cl.exe
 taskkill /f /im Link.exe
 
 if "%_CLEAN_BUILD%"=="1" (
-    @REM del UE5.sln
     git clean -f -x -d
 )
 

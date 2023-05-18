@@ -706,15 +706,10 @@ class Script:
         else:
             self.name = self.script_rel_path
 
-            # Strip extension
-            # self.name, _ = os.path.splitext(self.name)
-
         self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
-        self.mtime = 0.0
-        self.update_script_mtime()
 
         # Deal with links
         if os.path.splitext(script_path)[1].lower() == ".link":
@@ -730,12 +725,13 @@ class Script:
             self.real_script_path = None
             self.real_ext = None
 
-        self.cfg = self.load_config()
+        self.mtime = 0.0
+        self.refresh_script()
 
     def __lt__(self, other):
         return self.mtime > other.mtime  # sort by modified time descendently by default
 
-    def update_script_mtime(self) -> bool:
+    def refresh_script(self) -> bool:
         assert self.script_path
 
         mtime = os.path.getmtime(self.script_path)
@@ -746,6 +742,10 @@ class Script:
 
         if mtime > self.mtime:
             self.mtime = mtime
+
+            # Reload script config
+            self.cfg = self.load_config()
+
             return True
         else:
             return False
@@ -1078,7 +1078,7 @@ class Script:
                         shell_open("http://127.0.0.1:4312/scripts/" + relpath)
 
                     # Check if script is updated
-                    updated = self.update_script_mtime()
+                    updated = self.refresh_script()
                     if updated:
                         source = self.get_script_source()
 
@@ -1635,9 +1635,13 @@ def get_script_default_config() -> Dict[str, Any]:
     }
 
 
-def get_script_config_file(script_path, auto_create=False) -> Optional[str]:
-    f = os.path.splitext(script_path)[0] + ".config.yaml"
-    if auto_create or os.path.exists(f):
+def get_script_config_file_path(script_path: str) -> str:
+    return os.path.splitext(script_path)[0] + ".config.yaml"
+
+
+def get_script_config_file(script_path: str) -> Optional[str]:
+    f = get_script_config_file_path(script_path)
+    if os.path.exists(f):
         return f
 
     f = os.path.join(os.path.dirname(script_path), "default.config.yaml")
@@ -1818,7 +1822,7 @@ def _execute_script_autorun(script: Script):
 def try_reload_scripts_autorun(scripts_autorun: List[Script]):
     for script in scripts_autorun:
         assert script.cfg["autoRun"]
-        reloaded = script.update_script_mtime()
+        reloaded = script.refresh_script()
         if reloaded:
             _execute_script_autorun(script)
 
@@ -1844,7 +1848,7 @@ def reload_scripts(
 
         if file in script_dict:
             script = script_dict[file]
-            reloaded = script.update_script_mtime()
+            reloaded = script.refresh_script()
         else:
             script = Script(file)
             reloaded = True

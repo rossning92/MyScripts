@@ -3,7 +3,7 @@ import logging
 import os
 import re
 import shutil
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from _editor import open_in_editor
 from _script import (
@@ -14,6 +14,7 @@ from _script import (
     get_my_script_root,
     get_relative_script_path,
     get_script_config_file,
+    get_script_config_file_path,
     get_script_default_config,
     get_script_directories,
     get_script_root,
@@ -85,7 +86,7 @@ def enter_script_path():
 def edit_script_config(script_path):
     default_config = get_script_default_config()
 
-    script_config_file = get_script_config_file(script_path, auto_create=True)
+    script_config_file = get_script_config_file_path(script_path)
     if not os.path.exists(script_config_file):
         data = {}
     else:
@@ -161,13 +162,14 @@ def copy_script_path_to_clipboard(
 
 
 def create_new_script(ref_script_path=None, duplicate=False):
+    label: str
     if duplicate:
         text = get_selected_script_path_rel(script_path=ref_script_path)
         label = "duplicate script"
     else:
         text = get_selected_script_dir_rel(script_path=ref_script_path)
         label = "new script"
-    w = Menu(label=label, text=text)
+    w: Menu = Menu(label=label, text=text)
     w.exec()
     dest_script = w.get_text()
     if not dest_script:
@@ -175,6 +177,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
 
     # Convert to abspath
     dest_script = get_absolute_script_path(dest_script)
+    dest_script_config_file = get_script_config_file_path(dest_script)
 
     dir_name = os.path.dirname(dest_script)
     if dir_name != "":
@@ -191,6 +194,9 @@ def create_new_script(ref_script_path=None, duplicate=False):
         else:
             src_script = ref_script_path
         shutil.copyfile(src_script, dest_script)
+        src_script_config_file = get_script_config_file(src_script)
+        if src_script_config_file:
+            shutil.copyfile(src_script_config_file, dest_script_config_file)
 
     else:
         template_root = os.path.join(get_my_script_root(), "templates")
@@ -226,8 +232,8 @@ def replace_script_str(
     dry_run=False,
     matched_files: Optional[List[str]] = None,
     on_progress: Optional[Callable[[str], None]] = None,
-):
-    preview = []
+) -> List[Tuple[str, int, str]]:
+    modified_lines: List[Tuple[str, int, str]] = []
 
     if not dry_run and matched_files is not None:
         files = matched_files
@@ -246,7 +252,9 @@ def replace_script_str(
         for i, line in enumerate(lines):
             if old in line:
                 if dry_run:
-                    preview.append([get_relative_script_path(file), i + 1, lines[i]])
+                    modified_lines.append(
+                        (get_relative_script_path(file), i + 1, lines[i])
+                    )
                 else:
                     lines[i] = line.replace(old, new)
                 dirty = True
@@ -259,7 +267,7 @@ def replace_script_str(
                 with open(file, "w", encoding="utf-8") as f:
                     f.write(s)
 
-    return preview
+    return modified_lines
 
 
 def rename_script(
@@ -267,16 +275,16 @@ def rename_script(
     on_progress: Optional[Callable[[str], None]] = None,
 ):
     script_rel_path = get_relative_script_path(script_full_path)
-    matched_files = []
-    preview = replace_script_str(
+    matched_files: List[str] = []
+    modified_lines = replace_script_str(
         script_rel_path,
         dry_run=True,
         matched_files=matched_files,
         on_progress=on_progress,
     )
-    preview = [str(x) for x in preview]
 
-    w = Menu(label="new name", text=script_rel_path, items=preview)
+    items = [f"{x[0]}:{x[1]}:\t{x[2]}" for x in modified_lines]
+    w = Menu(label="new name", text=script_rel_path, items=items)
     w.exec()
     new_script_rel_path = w.get_text()
     if not new_script_rel_path:
@@ -288,8 +296,8 @@ def rename_script(
     os.rename(script_full_path, new_script_full_path)
 
     # Rename config file if any
-    config_file = os.path.splitext(script_full_path)[0] + ".config.yaml"
-    new_config_file = os.path.splitext(new_script_full_path)[0] + ".config.yaml"
+    config_file = get_script_config_file_path(script_full_path)
+    new_config_file = get_script_config_file_path(new_script_full_path)
     if os.path.exists(config_file):
         os.rename(config_file, new_config_file)
 
