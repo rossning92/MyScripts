@@ -7,7 +7,7 @@ import os
 import re
 import sys
 import time
-from typing import Any, Callable, Dict, Generic, List, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
 from _script import get_data_dir
 from _shutil import load_json, save_json
@@ -183,14 +183,15 @@ class Menu(Generic[T]):
 
     def __init__(
         self,
-        items: List[T] = [],
+        items: List[Union[T, MenuItem]] = [],
         label="",
         text="",
         ascii_only=False,
         cancellable=True,
+        close_on_selection=False,
     ):
         self.input_ = InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
-        self.items: List[T] = items
+        self.items = items
         self.closed = False
         self.matched_item_indices: List[int] = []
         self.selected_row = 0
@@ -198,10 +199,11 @@ class Menu(Generic[T]):
         self.height = -1
         self.message = None
         self.cancellable = cancellable
-        self.last_key_pressed_timestamp = 0
+        self.last_key_pressed_timestamp = 0.0
         self.last_input = None
         self.last_item_count = 0
         self.prev_key = -1
+        self.close_on_selection = close_on_selection
 
     def item(self, name=None):
         def decorator(func):
@@ -441,6 +443,8 @@ class Menu(Generic[T]):
         item = self.get_selected_item()
         if item is not None and isinstance(item, MenuItem):
             self.run_cmd(lambda item=item: item.callback())
+            if self.close_on_selection:
+                self.close()
         else:
             self.close()
 
@@ -531,9 +535,9 @@ class DictEditWindow(Menu):
         self,
         dict_,
         default_dict=None,
-        on_dict_update: Callable[[Dict], None] = None,
+        on_dict_update: Optional[Callable[[Dict], None]] = None,
         dict_history: Dict[str, List[Any]] = {},
-        on_dict_history_update: Callable[[Dict[str, List[Any]]], None] = None,
+        on_dict_history_update: Optional[Callable[[Dict[str, List[Any]]], None]] = None,
         label="",
     ):
         super().__init__(label=label)

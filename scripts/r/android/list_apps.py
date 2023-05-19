@@ -3,9 +3,9 @@ import subprocess
 import sys
 
 from _android import backup_pkg
-from _script import run_script, set_variable
+from _script import set_variable, start_script
 from _shutil import call_echo, shell_open
-from _term import select_option
+from _term import Menu, select_option
 
 SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -24,45 +24,50 @@ def select_app_pkg():
         return lines[i]
 
 
+menu = Menu(close_on_selection=True)
+
+
+@menu.item()
+def restart_app():
+    set_variable("PKG_NAME", pkg)
+    start_script("r/android/restart_app_logcat.py", restart_instance=True)
+
+
+@menu.item()
+def set_variable_package_name():
+    set_variable("PKG_NAME", pkg)
+
+
+@menu.item()
+def backup_app():
+    out_dir = os.environ.get("ANDROID_APP_BACKUP_DIR")
+    if not out_dir:
+        out_dir = os.path.expanduser("~/android_backup")
+    os.makedirs(out_dir, exist_ok=True)
+    backup_pkg(pkg, out_dir=out_dir)
+    shell_open(out_dir)
+
+
+@menu.item()
+def uninstall_app():
+    call_echo(["adb", "uninstall", pkg])
+
+
+@menu.item()
+def dumpsys_package():
+    call_echo(["adb", "shell", "dumpsys", "package", pkg])
+    input("(press enter to continue)")
+
+
+@menu.item()
+def dumpsys_package_permission():
+    call_echo(["adb", "shell", f"dumpsys package {pkg} | grep permission"])
+    input("(press enter to continue)")
+
+
 if __name__ == "__main__":
     pkg = select_app_pkg()
     if not pkg:
         sys.exit(0)
 
-    opt = [
-        "set PKG_NAME=%s" % pkg,
-        "restart app",
-        "uninstall app",
-        "backup app",
-        "dumpsys package",
-        "dumpsys package: permissions",
-    ]
-    i = select_option(opt)
-    if i == -1:
-        sys.exit(0)
-
-    if i == 0:
-        set_variable("PKG_NAME", pkg)
-
-    elif i == 1:
-        set_variable("PKG_NAME", pkg)
-        run_script("r/android/restart_app_logcat.py", new_window=True)
-
-    elif i == 3:
-        out_dir = os.environ.get("ANDROID_APP_BACKUP_DIR")
-        if not out_dir:
-            out_dir = os.path.expanduser("~/android_backup")
-        os.makedirs(out_dir, exist_ok=True)
-        backup_pkg(pkg, out_dir=out_dir)
-        shell_open(out_dir)
-
-    elif i == 2:
-        call_echo(["adb", "uninstall", pkg])
-
-    elif i == 4:
-        call_echo(["adb", "shell", "dumpsys", "package", pkg])
-        input("Press enter to continue...")
-
-    elif i == 5:
-        call_echo(["adb", "shell", f"dumpsys package {pkg} | grep permission"])
-        input("Press enter to continue...")
+    menu.exec()
