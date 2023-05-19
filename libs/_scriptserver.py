@@ -2,18 +2,15 @@ import json
 import logging
 import subprocess
 import threading
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HOST_NAME = "127.0.0.1"
-PORT = 4312
 
 
-_root = None
-
-
-class MyServer(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=_root, **kwargs)
+class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
+    def __init__(self, directory, *args, **kwargs):
+        super().__init__(*args, directory=directory, **kwargs)
 
     def do_POST(self):
         try:
@@ -35,38 +32,25 @@ class MyServer(SimpleHTTPRequestHandler):
             logging.exception("")
 
     def end_headers(self):
-        self.send_my_headers()
-        super().end_headers()
-
-    def send_my_headers(self):
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
 
     def log_message(self, format, *args):
         return
 
 
-def server_thread():
-    server = HTTPServer((HOST_NAME, PORT), MyServer)
-    logging.info("Script server started http://%s:%s" % (HOST_NAME, PORT))
+def _server_main(directory, port):
+    handler = partial(MyHTTPRequestHandler, directory)
+    server = ThreadingHTTPServer((HOST_NAME, port), handler)
+    logging.info("Script server started http://%s:%s" % (HOST_NAME, port))
     server.serve_forever()
     server.server_close()
     print("Script server stopped.")
 
 
-def start_server(start_new_thread=False, root=None):
-    global _root
-    _root = root
-
-    if start_new_thread:
-        threading.Thread(target=server_thread, daemon=True).start()
-    else:
-        server_thread()
-
-
-if __name__ == "__main__":
-    try:
-        server_thread()
-    except KeyboardInterrupt:
-        pass
+def start_server(directory=None, port=4312):
+    t = threading.Thread(target=_server_main, args=(directory, port), daemon=True)
+    t.start()
