@@ -18,7 +18,7 @@ sync_gdrive() {
 }
 
 if ! sync_gdrive; then
-    print "\n\n\n"
+    printf "\n\n\n"
     read -p "resync? (Y/n)" ans
     if [[ -z "$ans" ]]; then
         sync_gdrive --resync
@@ -29,7 +29,7 @@ fi
 if [[ -n "${_PREFIX}" ]]; then
     abspath="$HOME/gdrive/${GDRIVE_DIR}"
     # Windows: convert UNIX to windows path
-    if ! [ -x "$(command -v labtest)" ]; then
+    if command -v cygpath; then
         abspath="$(cygpath -w "$abspath")"
     fi
 

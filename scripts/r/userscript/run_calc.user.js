@@ -1,18 +1,14 @@
 // ==UserScript==
-// @name        {{USER_SCRIPT_NAME}}
+// @name        run_calc
 // @namespace   Violentmonkey Scripts
 // @match       *://*/*
 // @grant       GM_xmlhttpRequest
 // @version     1.0
 // @author      -
 // @description Description
-// @require     {{USER_SCRIPT_LIB}}
+// @require     file://C:/Users/rossning92/Dropbox (Meta)/oculus/MyScripts/js/userscriptlib/dist/userscriptlib.js
 // ==/UserScript==
 
-addButton(
-  "Hello",
-  () => {
-    alert("Hello, World!");
-  },
-  "c-i"
-);
+addButton("run calc", () => {
+  exec(["calc"]);
+});

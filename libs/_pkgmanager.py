@@ -6,7 +6,13 @@ import subprocess
 import sys
 
 import yaml
-from _shutil import check_output, refresh_env_vars, run_elevated, start_process
+from _shutil import (
+    check_output,
+    is_in_termux,
+    refresh_env_vars,
+    run_elevated,
+    start_process,
+)
 
 with open(
     os.path.abspath(
@@ -93,7 +99,9 @@ def install_package(pkg, upgrade=False):
     if sys.platform == "linux":
         if not shutil.which(pkg):
             logging.warning('Package "%s" cannot be found, installing...' % pkg)
-            if shutil.which("apt"):
+            if is_in_termux():
+                subprocess.check_call(["pkg", "install", pkg, "-y"])
+            elif shutil.which("apt"):
                 subprocess.check_call(["sudo", "apt", "install", pkg, "-y"])
 
 

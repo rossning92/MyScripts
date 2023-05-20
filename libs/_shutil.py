@@ -589,14 +589,24 @@ def get_clip():
     return text
 
 
-def set_clip(s):
-    try:
-        import pyperclip
-    except ImportError:
-        subprocess.call([sys.executable, "-m", "pip", "install", "pyperclip"])
-        import pyperclip
+@lru_cache(maxsize=None)
+def is_in_termux():
+    return shutil.which("termux-setup-storage") is not None
 
-    pyperclip.copy(s)
+
+def set_clip(s):
+    if is_in_termux():
+        if not shutil.which("termux-clipboard-set"):
+            subprocess.check_call(["pkg", "install", "termux-api"])
+        subprocess.check_call(["termux-clipboard-set", s])
+    else:
+        try:
+            import pyperclip
+        except ImportError:
+            subprocess.call([sys.executable, "-m", "pip", "install", "pyperclip"])
+            import pyperclip
+
+        pyperclip.copy(s)
 
 
 def fnull():
@@ -701,7 +711,11 @@ def supports_color():
     return supported_platform and is_a_tty
 
 
+_console_color_initialized = False
+
+
 def print2(msg, color="yellow", end="\n"):
+    # https://gist.github.com/dominikwilkowski/60eed2ea722183769d586c76f22098dd
     # ANSI escape codes for colors
     COLOR_MAP = {
         "green": "\u001b[32;1m",
@@ -716,17 +730,15 @@ def print2(msg, color="yellow", end="\n"):
     }
     RESET = "\033[0m"
 
-    try:
-        print2.initialized
-    except AttributeError:
-        print2.initialized = False
-
     # Enable ANSI escape sequence processing for the console window by calling
     # the SetConsoleMode Windows API with the ENABLE_VIRTUAL_TERMINAL_PROCESSING
     # flag set.
-    if not print2.initialized and sys.platform == "win32":
-        kernel32 = ctypes.windll.kernel32
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+    global _console_color_initialized
+    if not _console_color_initialized:
+        if sys.platform == "win32":
+            kernel32 = ctypes.windll.kernel32
+            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+        _console_color_initialized = True
 
     if type(msg) is not str:
         msg = str(msg)

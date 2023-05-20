@@ -10,7 +10,7 @@ return
 
 #If not WinActive("ahk_exe vncviewer.exe")
 
-#`::RunLastScript()
+^!r::RunLastScript()
 {{HOTKEYS}}
 
 #If

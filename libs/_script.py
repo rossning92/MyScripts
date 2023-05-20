@@ -22,13 +22,34 @@ from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
 from _pkgmanager import open_log_file, require_package
-from _shutil import (CONEMU_INSTALL_DIR, IgnoreSigInt, activate_window_by_name,
-                     call_echo, clear_env_var_explorer, close_window_by_name,
-                     convert_to_unix_path, file_is_old, format_time,
-                     get_ahk_exe, get_home_path, getch, load_json, load_yaml,
-                     npm_install, prepend_to_path, print2, quote_arg,
-                     run_elevated, save_json, save_yaml, setup_nodejs,
-                     shell_open, slugify, wrap_args_conemu, write_temp_file)
+from _shutil import (
+    CONEMU_INSTALL_DIR,
+    IgnoreSigInt,
+    activate_window_by_name,
+    call_echo,
+    clear_env_var_explorer,
+    close_window_by_name,
+    convert_to_unix_path,
+    file_is_old,
+    format_time,
+    get_ahk_exe,
+    get_home_path,
+    getch,
+    load_json,
+    load_yaml,
+    npm_install,
+    prepend_to_path,
+    print2,
+    quote_arg,
+    run_elevated,
+    save_json,
+    save_yaml,
+    setup_nodejs,
+    shell_open,
+    slugify,
+    wrap_args_conemu,
+    write_temp_file,
+)
 from _template import render_template
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -1031,41 +1052,24 @@ class Script:
         elif ext == ".js":
             # Userscript
             if script_path.endswith(".user.js"):
-                updated = True
-                print("(watching file change, press any key to cancel...)")
-                while True:
-                    if updated:
-                        relpath = self.script_rel_path
-                        if template:
-                            relpath = os.path.dirname(relpath)
-                            if len(relpath) > 0:
-                                relpath += "/"
-                            relpath += "generated/" + os.path.basename(
-                                self.script_rel_path
-                            )
-                            d = os.path.join(
-                                os.path.dirname(self.script_path), "generated"
-                            )
-                            os.makedirs(d, exist_ok=True)
-                            with open(
-                                os.path.join(d, os.path.basename(self.script_path)),
-                                "w",
-                                encoding="utf-8",
-                            ) as f:
-                                f.write(self.render(source=source))
+                relpath = self.script_rel_path
+                if template:
+                    relpath = os.path.dirname(relpath)
+                    if len(relpath) > 0:
+                        relpath += "/"
+                    relpath += "generated/" + os.path.basename(self.script_rel_path)
+                    d = os.path.join(os.path.dirname(self.script_path), "generated")
+                    os.makedirs(d, exist_ok=True)
+                    with open(
+                        os.path.join(d, os.path.basename(self.script_path)),
+                        "w",
+                        encoding="utf-8",
+                    ) as f:
+                        f.write(self.render(source=source))
 
-                        url = "http://127.0.0.1:4312/scripts/" + relpath
-                        print(f'Open in browser: {url}')
-                        shell_open(url)
-
-                    # Check if script is updated
-                    updated = self.refresh_script()
-                    if updated:
-                        source = self.get_script_source()
-
-                    # Press any key to cancel
-                    if getch(timeout=0.5) is not None:
-                        break
+                url = "http://127.0.0.1:4312/scripts/" + relpath
+                logging.info(f"Open user script in browser: {url}")
+                shell_open(url)
 
             else:
                 # TODO: support template

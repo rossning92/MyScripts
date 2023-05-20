@@ -2,12 +2,10 @@
 set -e
 cd "$(dirname "$0")"
 
-# Check if Debian-based distro and Linux
+# Check if Debian-based Linux distro
 if [[ -f "/etc/debian_version" ]] && [[ "$(uname)" == "Linux" ]]; then
-
     # Install required packages
     declare -a packages=("python3-pip" "sxhkd" "kitty" "xdotool")
-
     for package in "${packages[@]}"; do
         dpkg -s "$package" >/dev/null 2>&1 || {
             sudo apt-get update
@@ -19,6 +17,15 @@ if [[ -f "/etc/debian_version" ]] && [[ "$(uname)" == "Linux" ]]; then
     touch ~/.sxhkdrc
     killall sxhkd >/dev/null 2>&1 || true
     setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
+elif command -v termux-setup-storage; then # is running in termux
+    # Install required packages
+    declare -a packages=("python" "git" "gh" "termux-api")
+    for package in "${packages[@]}"; do
+        dpkg -s "$package" >/dev/null 2>&1 || {
+            pkg update
+            pkg install -y "$package"
+        }
+    done
 fi
 
 pip3 install -r requirements.txt

@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")"
 
-run_script ext/install_pkg.py expect
+run_script ext/install_pkg.py openssh expect
 
 # Config ControlMaster on the client side to share SSH connections (multiplexing)
 # mkdir -p ~/.ssh/

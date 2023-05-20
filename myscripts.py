@@ -509,7 +509,6 @@ class MainWindow(Menu[Script]):
                 if content
                 else "Copied to clipboard."
             )
-            self.clear_input()
 
     def _copy_to_clipboard_include_derivative(self):
         script = self.get_selected_script()
@@ -518,7 +517,6 @@ class MainWindow(Menu[Script]):
                 script, format="include", with_variables=True
             )
             self.set_message(f"(copied to clipboard: {content})")
-            self.clear_input()
 
     def _new_script_or_duplicate_script(self, duplicate=False):
         ref_script_path = self.get_selected_script_path()
