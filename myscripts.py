@@ -396,7 +396,7 @@ class InternalHotkey:
         self.func = func
 
     def __str__(self) -> str:
-        return "%s  (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
+        return "%s (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
 
 
 def restart_program():

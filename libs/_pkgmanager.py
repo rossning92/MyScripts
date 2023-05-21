@@ -97,7 +97,7 @@ def install_package(pkg, upgrade=False):
     if sys.platform == "win32":
         choco_install(pkg, upgrade=upgrade)
     if sys.platform == "linux":
-        if not shutil.which(pkg):
+        if subprocess.call(["dpkg", "-s", pkg]) != 0:
             logging.warning('Package "%s" cannot be found, installing...' % pkg)
             if is_in_termux():
                 subprocess.check_call(["pkg", "install", pkg, "-y"])

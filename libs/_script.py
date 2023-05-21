@@ -751,19 +751,22 @@ class Script:
             return False
 
     def __str__(self):
-        result = self.name
+        s = self.name
 
+        # Link
         if self.ext == ".link":
-            result += "  (lnk)"
+            s = "%s (lnk)"
 
         # Name: show shortcut
+        hotkey_abbr = []
         if self.cfg["hotkey"]:
-            result += "  (%s)" % get_hotkey_abbr(self.cfg["hotkey"])
-
+            hotkey_abbr.append(get_hotkey_abbr(self.cfg["hotkey"]))
         if self.cfg["globalHotkey"]:
-            result += "  (%s)" % get_hotkey_abbr(self.cfg["globalHotkey"])
+            hotkey_abbr.append(get_hotkey_abbr(self.cfg["globalHotkey"]))
+        if hotkey_abbr:
+            s = f"{s} ({','.join(hotkey_abbr)})"
 
-        return result
+        return s
 
     def load_config(self):
         return load_script_config(
@@ -1796,8 +1799,8 @@ def get_all_scripts() -> Iterator[str]:
 
 
 def _execute_script_autorun(script: Script):
+    assert script.cfg["autoRun"] or script.cfg["runAtStartup"]
     try:
-        assert script.cfg["autoRun"]
         logging.info("autorun: %s" % script.name)
         script.execute(new_window=False, command_wrapper=False)
     except Exception as ex:

@@ -2,7 +2,6 @@ import ctypes
 import curses
 import curses.ascii
 import locale
-import logging
 import os
 import re
 import sys
@@ -376,21 +375,31 @@ class Menu(Generic[T]):
         return self.height - 2
 
     def print_str(self, row, col, s):
+        TAB_SIZE = 8
         if row >= self.height:
             return
 
-        for i, ch in enumerate(s):
+        j = col
+        for ch in s:
             if ch == "(":
                 Menu.stdscr.attron(curses.color_pair(1))
 
+            if ch == "\t":
+                next_j = (j // TAB_SIZE + 1) * TAB_SIZE
+                ch = " " * (next_j - j)
+            else:
+                next_j = j + 1
+
             try:
-                Menu.stdscr.addstr(row, col + i, ch)
+                Menu.stdscr.addstr(row, j, ch)
             except curses.error:
                 # Tolerate "addwstr() returned ERR"
                 pass
 
             if ch == ")":
                 Menu.stdscr.attroff(curses.color_pair(1))
+
+            j = next_j
 
         Menu.stdscr.attroff(curses.color_pair(1))
 
@@ -406,12 +415,16 @@ class Menu(Generic[T]):
         selected_index_in_page = self.selected_row % items_per_page
         indices_in_page = self.matched_item_indices[page * items_per_page :]
         for i, item_index in enumerate(indices_in_page):
+            # Index
             if i == selected_index_in_page:  # hightlight on
                 Menu.stdscr.attron(curses.color_pair(2))
-            s = "{:>2}  {}".format(item_index + 1, self.items[item_index])
+            s = "{:>4}".format(item_index + 1)
             self.print_str(row, 0, s)
             if i == selected_index_in_page:  # highlight off
                 Menu.stdscr.attroff(curses.color_pair(2))
+
+            # Item name
+            self.print_str(row, 5, str(self.items[item_index]))
 
             row += 1
             if row >= max_height:
