@@ -57,13 +57,13 @@ def find_executable(pkg, install=False):
     return None
 
 
-def require_package(pkg):
+def require_package(pkg, wsl=False):
     logging.info(f"{require_package.__name__}(): {pkg}")
     # Check if pkg is an executable and exists already
     exec = find_executable(pkg)
 
     if exec is None:
-        install_package(pkg)
+        install_package(pkg, wsl=wsl)
 
 
 def choco_install(pkg, upgrade=False):
@@ -88,21 +88,34 @@ def choco_install(pkg, upgrade=False):
     refresh_env_vars()
 
 
-def install_package(pkg, upgrade=False):
+def install_package(pkg, upgrade=False, wsl=False):
     if pkg == "lux":
         require_package("golang")
         subprocess.check_call(["go", "install", "github.com/iawia002/lux@latest"])
         return
 
-    if sys.platform == "win32":
-        choco_install(pkg, upgrade=upgrade)
-    if sys.platform == "linux":
-        if subprocess.call(["dpkg", "-s", pkg]) != 0:
+    if wsl or sys.platform == "linux":
+        if (
+            subprocess.call(
+                (["wsl"] if wsl else []) + ["dpkg", "-s", pkg],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+            )
+            != 0
+        ):
             logging.warning('Package "%s" cannot be found, installing...' % pkg)
             if is_in_termux():
+                # Package name is different in termux
+                if pkg == "openssh-client":
+                    pkg = "openssh"
                 subprocess.check_call(["pkg", "install", pkg, "-y"])
             elif shutil.which("apt"):
-                subprocess.check_call(["sudo", "apt", "install", pkg, "-y"])
+                subprocess.check_call(
+                    (["wsl"] if wsl else []) + ["sudo", "apt", "install", pkg, "-y"]
+                )
+
+    elif sys.platform == "win32":
+        choco_install(pkg, upgrade=upgrade)
 
 
 def open_log_file(file):

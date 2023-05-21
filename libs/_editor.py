@@ -4,7 +4,7 @@ import os
 import subprocess
 
 from _pkgmanager import find_executable, require_package
-from _shutil import exec_ahk, start_process
+from _shutil import exec_ahk, is_in_termux, start_process
 
 
 def get_pycharm_executable():
@@ -80,9 +80,7 @@ def open_in_vim(file, line_number=None):
 
 
 def open_in_editor(path, line_number=None):
-    try:
-        open_in_vscode(path, line_number=line_number)
-    except FileNotFoundError:
+    if is_in_termux():
         open_in_vim(path if (type(path) == str) else path[-1], line_number=line_number)
-    except FileNotFoundError:
-        raise
+    else:
+        open_in_vscode(path, line_number=line_number)
