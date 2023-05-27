@@ -45,18 +45,21 @@ def run_bash_script_in_remote_shell(script_path):
     ]
     tmp_file = write_temp_file("\n".join(lines) + "\n", "pastebuf.txt")
 
-    # Ctrl-C
-    args = [
+    args = []
+    if sys.platform == "win32":
+        args.append("wsl")
+    args += [
         "bash",
         "-c",
-        "export SCREENDIR=$HOME/.screen;"
-        "screen -d -X stuff ^C;"  # -d indicates attached screen sessions
+    ]
+    args.append(
+        ("export SCREENDIR=$HOME/.screen;" if sys.platform == "win32" else "")
+        + "export;screen -d -X stuff ^C;"  # -d indicates attached screen sessions, send Ctrl-C
         "screen -d -X msgwait 0;"
         "screen -d -X readbuf %s;"
         "screen -d -X paste ." % convert_to_unix_path(tmp_file, wsl=True),
-    ]
-    if sys.platform == "win32":
-        args.insert(0, "wsl")
+    )
+
     call_echo(
         args,
         shell=False,

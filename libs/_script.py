@@ -949,7 +949,7 @@ class Script:
         if self.cfg["packages"]:
             packages = self.cfg["packages"].split()
             for pkg in packages:
-                require_package(pkg, wsl=self.cfg["wsl"])
+                require_package(pkg, wsl=sys.platform == "win32" and self.cfg["wsl"])
 
             if "node" in packages:
                 print("node package is required.")

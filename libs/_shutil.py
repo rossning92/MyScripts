@@ -330,7 +330,7 @@ def call2(args, check=True, shell=True, **kwargs):
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
 
-def call_echo(args, shell=None, check=True, no_output=False, **kwargs):
+def call_echo(args, shell=False, check=True, no_output=False, **kwargs):
     def quote(s):
         if " " in s:
             s = '"%s"' % s
@@ -344,8 +344,8 @@ def call_echo(args, shell=None, check=True, no_output=False, **kwargs):
     logger.debug("shell_cmd: %s" % s)
     print2("> " + s, color="black")
 
-    if shell is None:
-        shell = True if type(args) == str else False
+    if isinstance(args, str):
+        shell = True
 
     if no_output:
         with fnull() as null:
