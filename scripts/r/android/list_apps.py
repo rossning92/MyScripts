@@ -4,7 +4,7 @@ import sys
 
 from _android import backup_pkg
 from _script import set_variable, start_script
-from _shutil import call_echo, shell_open
+from _shutil import call_echo, set_clip, shell_open
 from _term import Menu, select_option
 
 SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
@@ -36,6 +36,11 @@ def restart_app():
 @menu.item()
 def set_variable_package_name():
     set_variable("PKG_NAME", pkg)
+
+
+@menu.item()
+def copy_package_name_to_clipboard():
+    set_clip(pkg)
 
 
 @menu.item()
