@@ -41,7 +41,7 @@ EOF
 
 # am start -n com.termux.boot/.BootActivity
 
-echo "please login $(whoami)@<ip_address>:8022 with password=123456"
+{{ include('r/android/termux/install_ssh_server.sh') }}
 _EOF_
 adb push setup_termux.sh /data/local/tmp/setup_termux.sh
 
