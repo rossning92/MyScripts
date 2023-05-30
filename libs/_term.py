@@ -93,6 +93,7 @@ def prompt_list(options, message=None):
 
 
 def _fuzzy_search_func(items, kw):
+    kw = kw.lower()
     if not kw:
         for i, s in enumerate(items):
             yield i
@@ -169,7 +170,7 @@ T = TypeVar("T")
 
 
 class MenuItem:
-    def __init__(self, name: str, callback: Callable[[], None]) -> None:
+    def __init__(self, name: str, callback: Callable[[], None] = None) -> None:
         self.name = name
         self.callback = callback
 
@@ -454,7 +455,7 @@ class Menu(Generic[T]):
 
     def on_enter_pressed(self):
         item = self.get_selected_item()
-        if item is not None and isinstance(item, MenuItem):
+        if item is not None and hasattr(item, "callback") and callable(item.callback):
             self.run_cmd(lambda item=item: item.callback())
             if self.close_on_selection:
                 self.close()

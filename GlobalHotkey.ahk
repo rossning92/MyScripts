@@ -41,6 +41,7 @@ RunLastScript()
 }
 
 WaitKey(prompt) {
+    CoordMode, ToolTip, Screen
     xpos := A_ScreenWidth // 2
     ypos := A_ScreenHeight // 2
     ToolTip, %prompt%, %xpos%, %ypos%
