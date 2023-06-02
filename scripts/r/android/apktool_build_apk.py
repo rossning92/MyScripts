@@ -9,4 +9,4 @@ if __name__ == "__main__":
     call_echo(["apktool", "b", project_dir, "-o", out_apk])
 
     # must sign the apk in order to install it
-    run_script("sign_apk", [out_apk])
+    run_script("r/android/sign_apk.sh", [out_apk])

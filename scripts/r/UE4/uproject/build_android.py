@@ -1,15 +1,15 @@
 import glob
 import os
 import shutil
+import subprocess
 
 from _android import (
     adb_install,
     get_pkg_name_apk,
+    install_cmdline_tools,
     setup_android_env,
     start_app,
-    install_cmdline_tools,
 )
-from _script import run_script
 from _shutil import (
     call_highlight,
     cd,
@@ -19,11 +19,10 @@ from _shutil import (
     print2,
     setup_logger,
 )
-import subprocess
-from build_cpp_modules import build_cpp_modules
 from _unrealcommon import get_unreal_source_version
+from build_cpp_modules import build_cpp_modules
 
-out_dir_root = os.environ.get("UE_ANDROID_OUT_DIR", "/tmp")
+out_dir_root = os.environ["UE_ANDROID_OUT_DIR"]
 
 
 def build_uproject(
@@ -41,10 +40,10 @@ def build_uproject(
         shutil.rmtree("Saved")
 
     project_file = glob.glob(os.path.join(project_dir, "*.uproject"))[0]
+    project_name = os.path.splitext(os.path.basename(project_file))[0]
     print2("Project File: %s" % project_file)
 
     if out_dir is None:
-        project_name = os.path.splitext(os.path.basename(project_file))[0]
         out_dir = out_dir_root + "/%s" % project_name
 
     # Build C++ module?
@@ -79,6 +78,10 @@ def build_uproject(
         ],
         highlight={r"\b(warning|WARNING):": "yellow", r"\b(error|ERROR):": "RED"},
     )
+
+    apk_file = list(glob.glob(os.path.join(out_dir, "**", "*.apk"), recursive=True))[0]
+    os.rename(apk_file, os.path.join(out_dir, os.path.basename(out_dir) + ".apk"))
+
     return out_dir
 
 
@@ -86,14 +89,14 @@ if __name__ == "__main__":
     setup_logger()
 
     ue_version = get_unreal_source_version()
-    if ue_version[0] == "5":
+    if ue_version.startswith("5"):
         install_cmdline_tools(version="8.0")
         setup_android_env()
         # subprocess.check_call(
         #     rf"{os.environ['UE_SOURCE']}\Engine\Extras\Android\SetupAndroid.bat",
         #     shell=True,
         # )
-    elif ue_version == "4.27":
+    elif ue_version.startswith("4.27"):
         setup_android_env(ndk_version="21.1.6352462", build_tools_version="28.0.3")
         subprocess.check_call(
             [

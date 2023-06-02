@@ -951,6 +951,10 @@ def get_time_str():
     return datetime.datetime.now().strftime("%y%m%d_%H%M%S")
 
 
+def get_date_str():
+    return datetime.datetime.now().strftime("%y%m%d")
+
+
 def make_and_change_dir(path):
     os.makedirs(path, exist_ok=True)
     os.chdir(path)

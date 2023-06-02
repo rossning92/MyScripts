@@ -1,4 +1,3 @@
-import sys
 import os
 import re
 
@@ -21,5 +20,5 @@ def get_unreal_source_version():
     match = re.findall(r"#define\s+ENGINE_(?:MAJOR|MINOR|PATCH)_VERSION\s+(\d+)", s)
     if not match:
         raise Exception("Cannot locate version in Version.h")
-    version_str = f"{match[0]}.{match[1]}"
+    version_str = f"{match[0]}.{match[1]}.{match[2]}"
     return version_str

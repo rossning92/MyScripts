@@ -57,6 +57,16 @@ def wake_up_device():
         subprocess.check_call(["adb", "shell", "input keyevent 26"])  # power key
 
 
+def get_main_activity(pkg):
+    args = f'adb shell "dumpsys package | grep -i {pkg}/ | grep Activity"'
+    out = subprocess.check_output(args, shell=True)
+    out = out.decode().strip()
+    lines = out.splitlines()
+    line = lines[0].strip()
+    _, pkg_activity = line.split()
+    return pkg_activity
+
+
 def start_app(pkg, use_monkey=False, wake_up=True):
     if wake_up:
         wake_up_device()
@@ -79,12 +89,7 @@ def start_app(pkg, use_monkey=False, wake_up=True):
                 'Launch package "%s" failed. Please check if it is installed.' % pkg
             )
     else:
-        args = f'adb shell "dumpsys package | grep -i {pkg}/ | grep Activity"'
-        out = subprocess.check_output(args, shell=True)
-        out = out.decode().strip()
-        lines = out.splitlines()
-        line = lines[0].strip()
-        _, pkg_activity = line.split()
+        pkg_activity = get_main_activity(pkg)
         args = ["adb", "shell", "am start -n %s" % pkg_activity]
         logger.info("shell_cmd: %s" % " ".join(args))
         out = subprocess.check_output(args, universal_newlines=True)
@@ -161,8 +166,8 @@ def logcat(
         out = subprocess.check_output(
             ["adb", "shell", "date '+%m-%d %H:%M:%S'"], shell=True
         )
-        out = out.decode().strip()
-        dt_start = datetime.datetime.strptime(out, "%m-%d %H:%M:%S")
+        out_str = out.decode().strip()
+        dt_start = datetime.datetime.strptime(out_str, "%m-%d %H:%M:%S")
         dt_start += datetime.timedelta(seconds=show_log_after_secs)
         args += ["-T", dt_start.strftime("%m-%d %H:%M:%S") + ".000"]
 
