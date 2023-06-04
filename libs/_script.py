@@ -1603,7 +1603,6 @@ def get_script_default_config() -> Dict[str, Any]:
         "globalHotkey": "",
         "hotkey": "",
         "matchClipboard": "",
-        "matchTitle": "",
         "minimized": False,
         "msys2": False,
         "newWindow": True,

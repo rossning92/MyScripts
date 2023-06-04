@@ -16,8 +16,7 @@ CONSOLE_WINDOW = MyScriptsTerminal
 
 SetTitleMatchMode, 2
 
-AddChromeHotkey("#!.", "- To Do", "https://to-do.live.com/tasks/")
-AddChromeHotkey("#!m", "- Gmail", "https://mail.google.com/mail/u/0/#inbox")
+; AddChromeHotkey("#!.", "- To Do", "https://to-do.live.com/tasks/")
 
 SetTimer, CheckIfRShiftIsPressed, 100
 SetTimer, AutoResizeVNC, 1000

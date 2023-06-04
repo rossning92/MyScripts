@@ -8,6 +8,7 @@ declare global {
     function addText(text: string, { color }: {
         color?: string;
     }): void;
+    function findElementBySelector(selector: string): Node | null;
     function findElementByXPath(exp: string): Node | null;
     function findElementByText(text: string): Node | null;
     function waitForSelector(selector: string): Promise<Node | null>;

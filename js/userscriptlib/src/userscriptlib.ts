@@ -10,6 +10,7 @@ declare global {
 
   function addButton(name: string, onclick: () => void, hotkey?: string): void;
   function addText(text: string, { color = "black" }: { color?: string }): void;
+  function findElementBySelector(selector: string): Node | null;
   function findElementByXPath(exp: string): Node | null;
   function findElementByText(text: string): Node | null;
   function waitForSelector(selector: string): Promise<Node | null>;
@@ -151,6 +152,10 @@ _global.findElementByXPath = (exp) => {
     null
   );
   return query.singleNodeValue;
+};
+
+_global.findElementBySelector = (selector) => {
+  return document.querySelector(selector);
 };
 
 _global.findElementByText = (text) => {
