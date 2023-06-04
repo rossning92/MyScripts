@@ -2,7 +2,14 @@ set -e
 
 sudo apt-get update
 
-# KDE
+# Install Github CLI
+sudo apt install gh -y
+[[ "$(gh auth status 2>&1)" =~ "not logged" ]] && gh login auth
+
+# Install Chrome
+run_script r/linux/install_google_chrome.sh
+
+# Install KDE
 sudo apt install kde-plasma-desktop -y
 sudo apt install plasma-nm -y
 
@@ -19,10 +26,3 @@ kwriteconfig5 --file ~/.config/ksmserverrc --group General --key loginMode empty
 
 kquitapp5 plasmashell
 kstart5 plasmashell
-
-# Chrome
-run_script r/linux/install_google_chrome.sh
-
-# Github CLI
-sudo apt install gh -y
-[[ "$(gh auth status 2>&1)" =~ "not logged" ]] && gh login auth
