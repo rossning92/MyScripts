@@ -1,4 +1,5 @@
-# https://developer.oculus.com/documentation/unity/ts-simpleperf/
+# https://android.googlesource.com/platform/system/extras/+/master/simpleperf/doc/README.md
+# https://perf.wiki.kernel.org/index.php/Main_Page
 
 set -e
 
