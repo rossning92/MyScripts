@@ -38,16 +38,6 @@ return
     SoundPlay *16
 return
 
-#If WinActive("- Gmail ahk_exe chrome.exe")
-!r::
-Send *a
-Sleep 500
-Send +i
-Sleep 500
-Send *n
-return
-#If
-
 #If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_class vwr::CDesktopWin") and not WinActive("ahk_exe League of Legends.exe")
 
 #LButton::WindowMouseDragMove()

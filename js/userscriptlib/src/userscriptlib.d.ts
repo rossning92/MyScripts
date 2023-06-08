@@ -21,4 +21,5 @@ declare global {
     function getSelectedText(): void;
     function sendText(text: string): void;
     function click(el: HTMLElement): void;
+    function sendKey(keyCode: number, type?: "up" | "press"): void;
 }

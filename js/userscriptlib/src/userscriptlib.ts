@@ -23,6 +23,7 @@ declare global {
   function getSelectedText(): void;
   function sendText(text: string): void;
   function click(el: HTMLElement): void;
+  function sendKey(keyCode: number, type?: "up" | "press"): void;
 }
 
 const _global = window /* browser */ || global; /* node */
@@ -284,7 +285,7 @@ _global.click = (el) => {
   ) {
     element.dispatchEvent(
       new MouseEvent(eventName, {
-        view: window,
+        // view: window,
         bubbles: true,
         cancelable: true,
         clientX: coordX,
@@ -301,4 +302,14 @@ _global.click = (el) => {
   simulateMouseEvent(el, "mousedown", coordX, coordY);
   simulateMouseEvent(el, "mouseup", coordX, coordY);
   simulateMouseEvent(el, "click", coordX, coordY);
+};
+
+_global.sendKey = (keyCode, type) => {
+  const evtName = typeof type === "string" ? "key" + type : "keydown";
+
+  const event: any = document.createEvent("HTMLEvents");
+  event.initEvent(evtName, true, false);
+  event.keyCode = keyCode;
+
+  document.dispatchEvent(event);
 };
