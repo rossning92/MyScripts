@@ -84,4 +84,5 @@ def select_default_android_device():
 
 
 if __name__ == "__main__":
-    select_default_android_device()
+    while True:
+        select_default_android_device()

@@ -2,7 +2,7 @@ import argparse
 import os
 
 from _android import screenshot
-from _shutil import setup_logger, shell_open
+from _shutil import get_home_path, setup_logger, shell_open
 
 # adb shell screencap -p /sdcard/screencap.png
 # adb pull /sdcard/screencap.png
@@ -12,12 +12,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "-o",
         "--out",
+        default=None,
+        type=str,
     )
     args = parser.parse_args()
 
     setup_logger()
 
-    os.chdir(os.path.expanduser("~/Desktop"))
+    if not args.out:
+        os.chdir(os.path.join(get_home_path(), "Desktop"))
 
     n = int(os.environ.get("_COUNT", "1"))
     for i in range(n):
