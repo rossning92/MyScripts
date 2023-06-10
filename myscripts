@@ -26,6 +26,10 @@ elif command -v termux-setup-storage; then # is running in termux
             pkg install -y "$package"
         }
     done
+
+    # Workaround for major performance degradation with most termux-api calls
+    # See https://github.com/termux/termux-api/issues/552
+    sed -i 's#^exec /system/bin/app_process /#exec /system/bin/app_process -Xnoimage-dex2oat /#' "$PREFIX/bin/am"
 fi
 
 pip3 install -r requirements.txt

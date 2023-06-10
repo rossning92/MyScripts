@@ -1775,10 +1775,7 @@ def quote_arg(s, shell_type: str = "cmd"):
         s = s.replace('"', '""')  # for cmd, we need to escape " with ""
 
     if " " in s or (shell_type != "cmd" and "\\" in s):
-        if shell_type == "bash":
-            s = "'" + s + "'"
-        else:
-            s = '"' + s + '"'
+        s = '"' + s + '"'
     return s
 
 

@@ -145,6 +145,7 @@ class VariableEditWindow(Menu):
     def __init__(self, vars, var_name):
         self.vars = vars
         self.var_name = var_name
+        self.enter_pressed = False
 
         super().__init__(
             items=self.vars[var_name] if var_name in self.vars else [],
@@ -165,6 +166,7 @@ class VariableEditWindow(Menu):
 
     def on_enter_pressed(self):
         self.save_variable_val(self.get_text())
+        self.enter_pressed = True
         self.close()
 
     def on_char(self, ch):
@@ -204,7 +206,7 @@ def format_variables(variables, variable_names, variable_prefix):
 
 class VariableWindow(Menu):
     def __init__(self, script: Script):
-        super().__init__(label="edit params")
+        super().__init__(label=f"{script.name}> vars")
         self.variables = get_all_variables()
         self.variable_names = sorted(script.get_variable_names())
         self.variable_prefix = script.get_public_variable_prefix()
@@ -239,9 +241,12 @@ class VariableWindow(Menu):
     def edit_variable(self):
         index = self.get_selected_index()
         var_name = self.variable_names[index]
-        VariableEditWindow(self.variables, var_name).exec()
-        self.update_items()
-        self.input_.clear()
+        w = VariableEditWindow(self.variables, var_name)
+        w.exec()
+        if w.enter_pressed:
+            self.close()
+        # self.update_items()
+        # self.input_.clear()
 
 
 class ScriptManager:
