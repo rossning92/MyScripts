@@ -95,6 +95,11 @@ def install_package(pkg, upgrade=False, wsl=False):
         return
 
     if wsl or sys.platform == "linux":
+        if is_in_termux():
+            # Package name is different in termux
+            if pkg == "openssh-client":
+                pkg = "openssh"
+
         if (
             subprocess.call(
                 (["wsl"] if wsl else []) + ["dpkg", "-s", pkg],
@@ -105,9 +110,6 @@ def install_package(pkg, upgrade=False, wsl=False):
         ):
             logging.warning('Package "%s" cannot be found, installing...' % pkg)
             if is_in_termux():
-                # Package name is different in termux
-                if pkg == "openssh-client":
-                    pkg = "openssh"
                 subprocess.check_call(["pkg", "install", pkg, "-y"])
             elif shutil.which("apt"):
                 subprocess.check_call(
