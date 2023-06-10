@@ -1673,12 +1673,12 @@ def timing(f):
     return wrap
 
 
-def load_yaml(file):
+def load_yaml(file: str):
     with open(file, "r", encoding="utf-8") as f:
         return yaml.load(f.read(), Loader=yaml.FullLoader)
 
 
-def save_yaml(data, file):
+def save_yaml(data, file: str):
     with open(file, "w", encoding="utf-8", newline="\n") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 

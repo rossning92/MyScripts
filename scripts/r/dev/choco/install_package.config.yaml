@@ -1,4 +1,4 @@
-globalHotkey: Win+Alt+I
-hotkey: Ctrl+I
+globalHotkey: win+alt+i
+hotkey: ctrl+i
 runAsAdmin: true
 template: false
