@@ -1055,12 +1055,14 @@ class Script:
         elif ext == ".js":
             # Userscript
             if script_path.endswith(".user.js"):
-                relpath = self.script_rel_path
+                user_script_path = self.script_path
                 if template:
-                    relpath = os.path.dirname(relpath)
-                    if len(relpath) > 0:
-                        relpath += "/"
-                    relpath += "generated/" + os.path.basename(self.script_rel_path)
+                    user_script_path = os.path.dirname(user_script_path)
+                    if len(user_script_path) > 0:
+                        user_script_path += "/"
+                    user_script_path += "generated/" + os.path.basename(
+                        self.script_rel_path
+                    )
                     d = os.path.join(os.path.dirname(self.script_path), "generated")
                     os.makedirs(d, exist_ok=True)
                     with open(
@@ -1070,7 +1072,9 @@ class Script:
                     ) as f:
                         f.write(self.render(source=source))
 
-                url = "http://127.0.0.1:4312/scripts/" + relpath
+                url = "http://127.0.0.1:4312/fs/" + user_script_path.replace(
+                    os.path.sep, "/"
+                )
                 logging.info(f"Open user script in browser: {url}")
                 shell_open(url)
 

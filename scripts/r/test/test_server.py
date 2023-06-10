@@ -1,6 +1,8 @@
-from _scriptserver import start_server
+from _scriptserver import ScriptServer
 from _shutil import setup_logger
 
 if __name__ == "__main__":
     setup_logger()
-    start_server(port=8888)
+    script_server = ScriptServer(port=8888)
+    script_server.start_server()
+    script_server.join_server_thread()

@@ -9,11 +9,9 @@ source clone_marlin_firmware_cr10s.sh
     sed -i 's/default_envs = mega2560/default_envs = STM32G0B1RE_btt/g' platformio.ini
     platformio run
 
-    if [[ -n "${_FIRMWARE_OUT_DIR}" ]]; then
-        cp ".pio/build/STM32G0B1RE_btt/firmware.bin" "${_FIRMWARE_OUT_DIR}/firmware.bin"
-    elif [[ -n "${_FLASH_MARLIN_BFT}" ]]; then
+    if [[ -n "${FLASH_MARLIN_BFT}" ]]; then
         run_script r/3dprint/flash_firmware_marlin_bft.sh ".pio/build/STM32G0B1RE_btt/firmware.bin"
     else
-        run_script ext/open.py .pio/build/STM32G0B1RE_btt
+        run_script ext/open.py ".pio/build/STM32G0B1RE_btt"
     fi
 )

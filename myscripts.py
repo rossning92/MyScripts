@@ -38,7 +38,7 @@ from _script import (
     try_reload_scripts_autorun,
     update_script_access_time,
 )
-from _scriptserver import start_server
+from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
     get_ahk_exe,
@@ -736,7 +736,8 @@ if __name__ == "__main__":
     )
 
     if not args.no_gui:
-        start_server(directory=MYSCRIPT_ROOT)
+        script_server = ScriptServer()
+        script_server.start_server()
 
     # setup_console_font()
     init(no_gui=args.no_gui)

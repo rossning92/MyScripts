@@ -73,20 +73,10 @@ def git_push(force=False):
         args += ["--force"]
     call_echo(args)
 
-    # try:
-    #     out = subprocess.check_output(
-    #         args, universal_newlines=True, stderr=subprocess.STDOUT
-    #     )
-    #     print(out)
-    # except subprocess.CalledProcessError as e:
-    #     cur_branch = get_current_branch()
-    #     if "no upstream branch" in e.output:
-    #         subprocess.check_call(
-    #             ["git", "push", "--set-upstream", "origin", cur_branch]
-    #         )
-    #         subprocess.check_call(args)
-    #     else:
-    #         raise
+
+@menu_item()
+def git_push_force():
+    git_push(force=True)
 
 
 @menu_item(key="l")
