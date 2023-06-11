@@ -1,4 +1,4 @@
 set -e
-cd ${GIT_REPO}
+cd "${GIT_REPO}"
 
 git stash apply

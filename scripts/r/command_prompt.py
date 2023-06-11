@@ -4,7 +4,7 @@ import sys
 
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _shutil import print2, setup_logger, setup_nodejs
+from _shutil import setup_logger, setup_nodejs
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     try:
         setup_android_env()
     except Exception as ex:
-        print2("WARN: %s" % ex)
+        logging.warn(ex)
 
     setup_cmake(install=False)
 

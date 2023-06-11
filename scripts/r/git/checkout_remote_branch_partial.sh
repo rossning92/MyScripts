@@ -1,5 +1,5 @@
 set -e
-cd ${GIT_REPO}
+cd "${GIT_REPO}"
 
 if [[ -n '{{BRANCH}}' ]]; then
     branch='{{BRANCH}}'
