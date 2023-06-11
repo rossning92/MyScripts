@@ -17,6 +17,14 @@ if [[ -f "/etc/debian_version" ]] && [[ "$(uname)" == "Linux" ]]; then
     touch ~/.sxhkdrc
     killall sxhkd >/dev/null 2>&1 || true
     setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
+
+    # Disable capslock key
+    setxkbmap -option ctrl:nocaps
+
+    # Enable touchpad tapping
+    touchpad="$(xinput list --name-only | grep -i touch)"
+    xinput set-prop "$touchpad" "libinput Tapping Enabled" 1
+
 elif command -v termux-setup-storage; then # is running in termux
     # Install required packages
     declare -a packages=("python" "git" "gh" "termux-api")
