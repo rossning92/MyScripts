@@ -12,7 +12,7 @@ if __name__ == "__main__":
     try:
         setup_android_env()
     except Exception as ex:
-        logging.warn(ex)
+        logging.warning(ex)
 
     setup_cmake(install=False)
 
