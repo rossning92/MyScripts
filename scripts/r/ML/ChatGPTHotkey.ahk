@@ -1,22 +1,10 @@
 #SingleInstance, Force
+#include <GetSelectedText>
+
 SendMode Input
 SetWorkingDir, %A_ScriptDir%
 
-GetSelectedText() {
-    clipSaved := ClipboardAll
-
-    Clipboard =
-    Send ^c
-    ClipWait, 1
-    if ErrorLevel {
-        Clipboard := clipSaved
-        return
-    } else {
-        text := Clipboard
-        Clipboard := clipSaved
-        return text
-    }
-}
+#If not WinActive("ahk_exe vncviewer.exe")
 
 !9::
     text := GetSelectedText()
@@ -43,3 +31,5 @@ return
     FileAppend, %text%, %tempFile%, UTF-8
     Run, run_script r/ML/langchain/qa.py "%tempFile%"
 return
+
+#If
