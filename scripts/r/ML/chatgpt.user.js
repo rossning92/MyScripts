@@ -10,7 +10,7 @@
 // ==/UserScript==
 
 addButton(
-  "complete",
+  "auto complete",
   () => {
     let message = getSelectedText();
     if (!message) {

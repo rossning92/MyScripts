@@ -28,59 +28,59 @@ declare global {
 
 const _global = window /* browser */ || global; /* node */
 
-let _container: HTMLElement | null;
-
 function getContainer() {
-  if (_container) {
-    return _container;
-  }
+  let container = document.getElementById("userscriptlib-container");
+  if (container) {
+    return container;
+  } else {
+    const panel = document.createElement("div");
+    panel.id = "userscriptlib-container";
+    panel.style.opacity = "0.8";
+    panel.style.height = "8pt";
+    panel.style.lineHeight = "8pt";
+    panel.style.left = "0";
+    panel.style.position = "fixed";
+    panel.style.top = "0";
+    panel.style.zIndex = "9999";
+    document.body.appendChild(panel);
 
-  const panel = document.createElement("div");
-  panel.style.opacity = "0.8";
-  panel.style.height = "14px";
-  panel.style.left = "0";
-  panel.style.position = "fixed";
-  panel.style.top = "0";
-  panel.style.zIndex = "9999";
-  document.body.appendChild(panel);
+    const handle = document.createElement("div");
+    handle.style.backgroundColor = "lightgray";
+    handle.style.height = "8px";
+    panel.appendChild(handle);
 
-  _container = document.createElement("div");
-  panel.appendChild(_container);
-
-  const handle = document.createElement("div");
-  handle.style.backgroundColor = "lightgray";
-  handle.style.height = "8px";
-  panel.appendChild(handle);
-
-  handle.addEventListener("mousedown", (ev) => {
-    ev.preventDefault();
-
-    let x = ev.clientX;
-    let y = ev.clientY;
-
-    const onMouseMove = (ev: MouseEvent) => {
+    handle.addEventListener("mousedown", (ev) => {
       ev.preventDefault();
 
-      const relX = x - ev.clientX;
-      const relY = y - ev.clientY;
+      let x = ev.clientX;
+      let y = ev.clientY;
 
-      x = ev.clientX;
-      y = ev.clientY;
+      const onMouseMove = (ev: MouseEvent) => {
+        ev.preventDefault();
 
-      panel.style.top = `${panel.offsetTop - relY}px`;
-      panel.style.left = `${panel.offsetLeft - relX}px`;
-    };
+        const relX = x - ev.clientX;
+        const relY = y - ev.clientY;
 
-    const onMouseUp = () => {
-      document.removeEventListener("mouseup", onMouseUp);
-      document.removeEventListener("mousemove", onMouseMove);
-    };
+        x = ev.clientX;
+        y = ev.clientY;
 
-    document.addEventListener("mouseup", onMouseUp);
-    document.addEventListener("mousemove", onMouseMove);
-  });
+        panel.style.top = `${panel.offsetTop - relY}px`;
+        panel.style.left = `${panel.offsetLeft - relX}px`;
+      };
 
-  return _container;
+      const onMouseUp = () => {
+        document.removeEventListener("mouseup", onMouseUp);
+        document.removeEventListener("mousemove", onMouseMove);
+      };
+
+      document.addEventListener("mouseup", onMouseUp);
+      document.addEventListener("mousemove", onMouseMove);
+    });
+
+    container = document.createElement("div");
+    panel.appendChild(container);
+    return container;
+  }
 }
 
 function waitFor(evaluate: () => Node | null): Promise<Node | null> {
@@ -124,7 +124,7 @@ _global.addButton = (name, onclick, hotkey) => {
   button.style.padding = "0px 10px";
   button.style.margin = "0";
   button.style.width = "100%";
-  button.style.fontSize = "14px";
+  button.style.fontSize = "8pt";
   button.textContent = name;
   if (hotkey) {
     button.textContent += ` (${hotkey})`;
