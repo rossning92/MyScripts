@@ -320,29 +320,32 @@ class MonitorClipboardThread(threading.Thread):
         if sys.platform == "linux":
             import pyperclip
 
-            while not self.stopped.is_set():
-                try:
-                    clip = pyperclip.waitForNewPaste(timeout=0.5)
+            try:
+                while not self.stopped.is_set():
+                    try:
+                        clip = pyperclip.waitForNewPaste(timeout=0.5)
 
-                    matched_script: Dict[str, str] = {}
-                    for patt, script_name, script_path in self.match_clipboard:
-                        if re.match(patt, clip):
-                            matched_script[script_name] = script_path
+                        matched_script: Dict[str, str] = {}
+                        for patt, script_name, script_path in self.match_clipboard:
+                            if re.match(patt, clip):
+                                matched_script[script_name] = script_path
 
-                    if matched_script:
-                        ps = subprocess.run(
-                            ["dmenu"],
-                            input="\n".join(matched_script.keys()),
-                            encoding="utf-8",
-                            stdout=subprocess.PIPE,
-                        )
-                        script_name = ps.stdout.strip()
-                        if script_name in matched_script:
-                            script_path = matched_script[script_name]
-                            run_script(script_path, args=[clip], new_window=None)
+                        if matched_script:
+                            ps = subprocess.run(
+                                ["dmenu"],
+                                input="\n".join(matched_script.keys()),
+                                encoding="utf-8",
+                                stdout=subprocess.PIPE,
+                            )
+                            script_name = ps.stdout.strip()
+                            if script_name in matched_script:
+                                script_path = matched_script[script_name]
+                                run_script(script_path, args=[clip], new_window=None)
 
-                except pyperclip.PyperclipTimeoutException:
-                    pass
+                    except pyperclip.PyperclipTimeoutException:
+                        pass
+            except Exception as ex:
+                logging.error("Error on monitoring clipboard: %s" % ex)
 
         logging.debug("MonitorClipboardThread stopped.")
 

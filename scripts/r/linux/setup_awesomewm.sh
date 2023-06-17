@@ -1,9 +1,13 @@
 set -e
 
-if [ ! -x "$(command -v awesome)" ]; then
-    sudo apt install awesome -y
-fi
+# Install required packages
+packages="awesome xbacklight alsa-utils"
+for package in $packages; do
+    dpkg -s "$package" >/dev/null 2>&1 || {
+        sudo apt-get update
+        sudo apt-get install -y "$package"
+    }
+done
 
 # Copy awesome config file
-mkdir -p "$HOME/.config/awesome/"
-ln -sf "$(dirname "$0")/../../../settings/awesome/rc.lua" $HOME/.config/awesome/rc.lua
+ln -sf "$(dirname "$0")/../../../settings/awesome" $HOME/.config/
