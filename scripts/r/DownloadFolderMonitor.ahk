@@ -2,17 +2,18 @@
 #SingleInstance, Force
 #include <WaitKey>
 
-SetTimer, CheckDownloads, 1000
-return
+LastModifiedTime := A_Now
 
 CheckDownloads() {
+    global LastModifiedTime
+
     DownloadPath = C:\Users\%A_UserName%\Downloads
     Loop, %DownloadPath%\*.*
     {
-        delta := A_Now
-        EnvSub, delta, %A_LoopFileTimeModified%, Seconds
-        if (delta < 2)
+        if (A_LoopFileTimeModified > LastModifiedTime)
         {
+            LastModifiedTime := A_LoopFileTimeModified
+
             if (A_LoopFileExt = "crdownload")
             {
                 continue
@@ -32,7 +33,11 @@ CheckDownloads() {
                     Run, cmd /c run_script r/android/install_apk.py --force_reinstall "%A_LoopFileFullPath%" & timeout 3
                 }
             }
-            break
         }
     }
+}
+
+loop {
+    CheckDownloads()
+    Sleep 1000
 }
