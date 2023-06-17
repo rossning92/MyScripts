@@ -69,17 +69,16 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
         try:
             url = get_redirected_url(url)
             if "bilibili.com" in url:
-
-                download_dir = get_download_dir("Bilibili", base=download_dir)
+                ddir = get_download_dir("Bilibili", base=download_dir)
                 download_bilibili(
                     url,
-                    download_dir=download_dir,
+                    download_dir=ddir,
                 )
             elif "youtube.com" in url:
-                download_dir = get_download_dir("Youtube", base=download_dir)
+                ddir = get_download_dir("Youtube", base=download_dir)
                 download_youtube(
                     url,
-                    download_dir=download_dir,
+                    download_dir=ddir,
                     audio_only=audio_only,
                 )
 

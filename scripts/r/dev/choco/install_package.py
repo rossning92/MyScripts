@@ -72,6 +72,7 @@ PKGS = {
         "dupeguru",
         "epicgameslauncher",
         "geforce-experience",
+        "ghostscript",
         "gifcam",
         "gimp",
         "golang",
