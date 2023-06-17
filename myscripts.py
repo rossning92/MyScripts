@@ -9,7 +9,8 @@ import subprocess
 import sys
 import time
 import traceback
-from typing import Callable, Dict, List, Optional
+import threading
+from typing import Callable, Dict, List, Optional, Tuple
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
@@ -37,6 +38,7 @@ from _script import (
     setup_env_var,
     try_reload_scripts_autorun,
     update_script_access_time,
+    run_script,
 )
 from _scriptserver import ScriptServer
 from _shutil import (
@@ -287,6 +289,8 @@ class ScriptManager:
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
+                monitor_clipboard(self.scripts)
+
         self.sort_scripts()
 
         logging.info("Script refresh takes %.1f secs." % (time.time() - begin_time))
@@ -302,6 +306,71 @@ def add_keyboard_hooks(keyboard_hooks):
         keyboard.unhook_all()
         for hotkey, func in keyboard_hooks.items():
             keyboard.add_hotkey(hotkey, func)
+
+
+class MonitorClipboardThread(threading.Thread):
+    def __init__(self, match_clipboard: List[Tuple[re.Pattern, str, str]]):
+        super().__init__(daemon=True)
+
+        self.match_clipboard = match_clipboard
+        self.stopped = threading.Event()
+
+    def run(self) -> None:
+        logging.debug("MonitorClipboardThread started.")
+        if sys.platform == "linux":
+            import pyperclip
+
+            while not self.stopped.is_set():
+                try:
+                    clip = pyperclip.waitForNewPaste(timeout=0.5)
+
+                    matched_script: Dict[str, str] = {}
+                    for patt, script_name, script_path in self.match_clipboard:
+                        if re.match(patt, clip):
+                            matched_script[script_name] = script_path
+
+                    if matched_script:
+                        ps = subprocess.run(
+                            ["dmenu"],
+                            input="\n".join(matched_script.keys()),
+                            encoding="utf-8",
+                            stdout=subprocess.PIPE,
+                        )
+                        script_name = ps.stdout.strip()
+                        if script_name in matched_script:
+                            script_path = matched_script[script_name]
+                            run_script(script_path, args=[clip], new_window=None)
+
+                except pyperclip.PyperclipTimeoutException:
+                    pass
+
+        logging.debug("MonitorClipboardThread stopped.")
+
+    def stop(self):
+        if self.stopped.is_set():
+            raise Exception("Must not call stop twice.")
+        self.stopped.set()
+        self.join()
+
+
+_monitor_clipboard_thread: Optional[MonitorClipboardThread] = None
+
+
+def monitor_clipboard(scripts: List[Script]):
+    match_clipboard: List[Tuple[re.Pattern, str, str]] = []
+    for script in scripts:
+        patt = script.cfg["matchClipboard"]
+        if patt:
+            match_clipboard.append((re.compile(patt), script.name, script.script_path))
+    match_clipboard = sorted(match_clipboard, key=lambda x: x[1])  # sort by name
+
+    # Start MonitorClipboardThread
+    global _monitor_clipboard_thread
+    if _monitor_clipboard_thread is not None:
+        _monitor_clipboard_thread.stop()
+
+    _monitor_clipboard_thread = MonitorClipboardThread(match_clipboard=match_clipboard)
+    _monitor_clipboard_thread.start()
 
 
 def register_global_hotkeys_linux(scripts: List[Script]):

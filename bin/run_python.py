@@ -27,6 +27,7 @@ PYTHON_MODULE_LIST = {
     "pyaudio": "pyaudio",
     "pyautogui": "pyautogui",
     "pyftpdlib": "pyftpdlib",
+    "pyperclip": "pyperclip",
     "pyppeteer": "pyppeteer",
     "PyQt5": "PyQt5",
     "pyscreenshot": "pyscreenshot",

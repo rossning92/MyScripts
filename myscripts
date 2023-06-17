@@ -3,9 +3,14 @@ set -e
 cd "$(dirname "$0")"
 
 # Check if Debian-based Linux distro
-if [[ -f "/etc/debian_version" ]] && [[ "$(uname)" == "Linux" ]]; then
+if [[ "$(uname)" == "Linux" ]] && [[ -f "/etc/debian_version" ]]; then
     # Install required packages
-    declare -a packages=("python3-pip" "sxhkd" "kitty" "xdotool")
+    declare -a packages=(
+        "python3-pip"
+        "sxhkd"
+        "xdotool"
+        "suckless-tools" # for dmenu
+    )
     for package in "${packages[@]}"; do
         dpkg -s "$package" >/dev/null 2>&1 || {
             sudo apt-get update
