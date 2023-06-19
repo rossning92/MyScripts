@@ -7,9 +7,9 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import traceback
-import threading
 from typing import Callable, Dict, List, Optional, Tuple
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -34,11 +34,11 @@ from _script import (
     get_script_variables,
     is_instance_running,
     reload_scripts,
+    run_script,
     save_variables,
     setup_env_var,
     try_reload_scripts_autorun,
     update_script_access_time,
-    run_script,
 )
 from _scriptserver import ScriptServer
 from _shutil import (
@@ -421,7 +421,7 @@ def register_global_hotkeys_win(scripts: List[Script]):
                 hotkey = hotkey.replace("shift+", "+")
                 hotkey = hotkey.replace("win+", "#")
                 hotkeys += (
-                    f'{hotkey}::RunScript("{script.name}", "{script.script_path}")\n'
+                    f'{hotkey}::StartScript("{script.name}", "{script.script_path}")\n'
                 )
         mc = script.cfg["matchClipboard"]
         if mc:

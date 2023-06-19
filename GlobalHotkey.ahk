@@ -16,7 +16,7 @@ return
 
 #If
 
-RunScript(scriptName, scriptPath)
+StartScript(scriptName, scriptPath)
 {
     global LastScriptStartTime
     global LastScriptName
@@ -65,7 +65,7 @@ ClipChanged(type) {
             if ( key <> "" and InStr("0123456789", key) ) {
                 index := Ord(key) - Ord("0")
                 scriptPath := matchedScript[index][3]
-                Run, "{{PYTHON_EXEC}}" "{{RUN_SCRIPT}}" "%scriptPath%" "%text%"
+                Run, "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" "%scriptPath%" "%text%"
             }
         }
     }

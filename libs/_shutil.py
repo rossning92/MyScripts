@@ -1780,12 +1780,10 @@ def quote_arg(s, shell_type: str = "cmd"):
 
 
 def get_env_bool(name):
-    if name not in os.environ:
-        return None
-    elif os.environ[name].strip().isdigit():
+    if name in os.environ and os.environ[name].strip().isdigit():
         return int(os.environ[name]) > 0
     else:
-        raise Exception(f"Invalid value for env var {name}")
+        return None
 
 
 def run_at_startup(name, cmdline):

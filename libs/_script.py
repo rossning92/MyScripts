@@ -1507,19 +1507,22 @@ def find_script(patt: str) -> Optional[str]:
     return None
 
 
-def run_script(
-    file: str,
+def start_script(
+    file: Optional[str] = None,
     args=[],
     variables=None,
     console_title=None,
     config_override=None,
     template=None,
-    new_window=False,  # should not start a new window by default
-    restart_instance=False,
-    cd=True,
-    tee=False,
+    new_window=None,
+    restart_instance=None,
+    cd=None,
+    tee=None,
 ):
     start_time = time.time()
+
+    if file is None:
+        file, args = get_last_script_and_args()
 
     # Print command line arguments
     logging.info(
@@ -1578,19 +1581,24 @@ def run_script(
     )
 
 
-def start_script(file: Optional[str] = None, restart_instance: Optional[bool] = None):
-    if file is None:
-        file, args = get_last_script_and_args()
-    else:
-        args = None
-
-    script_path = find_script(file)
-    if script_path is None:
-        raise Exception('[ERROR] Cannot find script: "%s"' % file)
-
-    script = Script(script_path)
-    if not script.execute(args=args, restart_instance=restart_instance):
-        raise Exception("[ERROR] %s returns non zero" % file)
+def run_script(
+    file: Optional[str] = None,
+    args=[],
+    new_window=False,  # should not start a new window by default
+    restart_instance=False,
+    cd=True,
+    tee=False,
+    **kwargs,
+):
+    start_script(
+        file,
+        args,
+        new_window=new_window,
+        restart_instance=restart_instance,
+        cd=cd,
+        tee=tee,
+        **kwargs,
+    )
 
 
 def get_script_default_config() -> Dict[str, Any]:
