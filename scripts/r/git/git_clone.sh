@@ -19,6 +19,7 @@ else
     if [[ -n "${branch}" ]]; then
         extra_args+="-b ${branch}"
     fi
+    echo "Cloning into $repo"
     git clone $1 --single-branch --filter=blob:none ${extra_args} .
 fi
 

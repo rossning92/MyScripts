@@ -1,8 +1,8 @@
 #SingleInstance, Force
 CoordMode, Mouse, Screen
 
-WIN_WIDTH := 200
-ROW := 4
+WIN_WIDTH := 208
+ROW := 3
 
 CustomColor = 0 ; Can be any RGB color.
 Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20 +HwndMyGuiHwnd
@@ -67,7 +67,7 @@ UpdateStats() {
     GetMemory(percent, total, free)
     used := total - free
 
-    total := Format("{:.1f}", total / 1024 / 1024 / 1024)
+    total := Format("{:.0f}", total / 1024 / 1024 / 1024)
     free := Format("{:.1f}", free / 1024 / 1024 / 1024)
     used := Format("{:.1f}", used / 1024 / 1024 / 1024)
 
@@ -79,8 +79,7 @@ UpdateStats() {
     msg =
     ( LTrim
     CPU : %cpu%`%
-    Mem : %used%/%total%G
-    Mem`%: %percent%`%
+    Mem : %percent%`% (%used%/%total%G)
     Ping: %ping%
     )
     GuiControl,, MyText, %msg%
