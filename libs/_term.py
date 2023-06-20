@@ -32,6 +32,9 @@ def minimize_cur_terminal():
 def _select_options_ncurse(options, history_file_name=""):
     assert isinstance(history_file_name, str)
 
+    if not options:
+        raise Exception("Options cannot be empty.")
+
     def get_history_file():
         return os.path.join(get_data_dir(), "%s.json" % history_file_name)
 

@@ -5,7 +5,7 @@ import sys
 
 import yaml
 from _editor import open_in_editor
-from _script import get_all_variables
+from _script import get_all_variables, get_data_dir
 from _term import select_option
 
 
@@ -95,15 +95,14 @@ def show_bookmarks(open_bookmark_func=None):
         return bookmarks
 
     bookmarks = []
-    for wildcard in ["bookmarks*.yml"]:
-        for file in glob.glob(wildcard):
-            file = os.path.abspath(file)
+    for file in glob.glob(os.path.join(get_data_dir(), "bookmarks*.yml")):
+        file = os.path.abspath(file)
 
-            with open(file, "r") as f:
-                lst = yaml.load(f.read(), Loader=yaml.FullLoader)
+        with open(file, "r") as f:
+            lst = yaml.load(f.read(), Loader=yaml.FullLoader)
 
-            for item in lst:
-                bookmarks += traverse_item(item)
+        for item in lst:
+            bookmarks += traverse_item(item)
 
     names = [x["name"] for x in bookmarks]
     idx = select_option(names, history_file_name="show_bookmarks")

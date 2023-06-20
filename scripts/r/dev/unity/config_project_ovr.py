@@ -2,10 +2,12 @@ import os
 
 from unityparser import UnityDocument
 
-d = r"C:\Users\rossning92\HelloUnity"
+d = os.environ["UNITY_PROJECT_PATH"]
 
 p = os.path.join(d, "ProjectSettings", "ProjectSettings.asset")
 doc = UnityDocument.load_yaml(p)
+
+# https://developer.oculus.com/documentation/unity/unity-conf-settings/#set-quality-options
 
 doc.entry.defaultScreenOrientation = 3
 doc.entry.m_StereoRenderingPath = 2
