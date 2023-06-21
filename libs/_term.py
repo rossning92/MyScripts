@@ -207,6 +207,7 @@ class Menu(Generic[T]):
         self.last_item_count = 0
         self.prev_key = -1
         self.close_on_selection = close_on_selection
+        self.invalidated = False  # only update screen when invalidated is True
 
     def item(self, name=None):
         def decorator(func):
@@ -294,7 +295,9 @@ class Menu(Generic[T]):
             self.last_item_count = len(self.items)
             self.update_matched_items()
 
-        self.update_screen()
+        if self.invalidated:
+            self.update_screen()
+            self.invalidated = False
 
         # Keyboard event
         try:
@@ -309,7 +312,7 @@ class Menu(Generic[T]):
         if ch != -1:  # getch() will return -1 when timeout
             self.last_key_pressed_timestamp = time.time()
             if self.on_char(ch):
-                pass
+                self.invalidated = True
 
             elif ch == ord("\n"):
                 self.on_enter_pressed()
@@ -339,12 +342,14 @@ class Menu(Generic[T]):
 
             elif ch == curses.ascii.ESC:
                 self.input_.clear()
+                self.invalidated = True
                 if self.cancellable:
                     self.matched_item_indices.clear()
                     return True
 
             elif ch != 0:
                 self.input_.on_char(ch)
+                self.invalidated = True
 
             self.prev_key = ch
 
@@ -456,7 +461,7 @@ class Menu(Generic[T]):
             return True
         return False
 
-    def on_enter_pressed(self):
+    def on_enter_pressed(self) -> bool:
         item = self.get_selected_item()
         if item is not None and hasattr(item, "callback") and callable(item.callback):
             self.run_cmd(lambda item=item: item.callback())
@@ -464,6 +469,7 @@ class Menu(Generic[T]):
                 self.close()
         else:
             self.close()
+        self.invalidated = True
 
     def on_tab_pressed(self):
         pass
@@ -475,11 +481,11 @@ class Menu(Generic[T]):
         self.closed = True
 
     def on_item_selected(self):
-        pass
+        self.invalidated = True
 
     def set_message(self, message=None):
         self.message = message
-        self.update_screen()
+        self.invalidated = True
 
 
 class DictValueEditWindow(Menu):
