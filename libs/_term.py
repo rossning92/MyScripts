@@ -207,7 +207,7 @@ class Menu(Generic[T]):
         self.last_item_count = 0
         self.prev_key = -1
         self.close_on_selection = close_on_selection
-        self.invalidated = False  # only update screen when invalidated is True
+        self.invalidated = True  # only update screen when invalidated is True. This is set to True to trigger the initial draw.
 
     def item(self, name=None):
         def decorator(func):
