@@ -1516,7 +1516,7 @@ def start_script(
     template=None,
     new_window=None,
     restart_instance=None,
-    cd=None,
+    cd=True,
     tee=None,
 ):
     start_time = time.time()
@@ -1670,8 +1670,8 @@ def load_script_config(script_path) -> Dict[str, Any]:
 
 def update_script_config(kvp, script_file):
     default_config = get_script_default_config()
-    script_config_file = get_script_config_file(script_file)
-    if script_config_file is not None and not os.path.exists(script_config_file):
+    script_config_file = get_script_config_file_path(script_file)
+    if not os.path.exists(script_config_file):
         data = {}
     else:
         data = load_yaml(script_config_file)
@@ -1707,14 +1707,12 @@ def is_instance_running() -> bool:
     else:
         import fcntl
 
+        fh = os.open(LOCK_PATH, os.O_WRONLY | os.O_CREAT)
         try:
-            fh = open(LOCK_PATH, "w")
             fcntl.lockf(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except EnvironmentError as err:
-            if fh is not None:
-                return True
-            else:
-                raise
+            return False
+        except IOError:
+            return True
 
     return False
 

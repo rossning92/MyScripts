@@ -741,6 +741,10 @@ class MainWindow(Menu[Script]):
 
 
 def init(no_gui=False):
+    if not no_gui and is_instance_running():
+        logging.warning("An instance is already running, exiting.")
+        sys.exit(0)
+
     logging.info("Python executable: %s" % sys.executable)
 
     # Add bin folder to PATH
@@ -759,9 +763,9 @@ def init(no_gui=False):
 
     setup_nodejs(install=False)
 
-    if not no_gui and is_instance_running():
-        logging.info("An instance is already running, exiting.")
-        sys.exit(0)
+    if not no_gui:
+        script_server = ScriptServer()
+        script_server.start_server()
 
 
 def main_loop(no_gui=None, quit=False):
@@ -811,10 +815,6 @@ if __name__ == "__main__":
         name="MyScripts",
         cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
-
-    if not args.no_gui:
-        script_server = ScriptServer()
-        script_server.start_server()
 
     # setup_console_font()
     init(no_gui=args.no_gui)

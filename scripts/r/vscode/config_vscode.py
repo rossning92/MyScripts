@@ -35,12 +35,14 @@ EXTENSION_LIST = [
     # "cadenas.vscode-glsllint",
     "xaver.clang-format",
     # Powershell
-    "ms-vscode.powershell-preview",
+    "ms-vscode.powershell",
     # Mermaid Diagram
     "bierner.markdown-mermaid",
     "tomoyukim.vscode-mermaid-editor",
     # csv
     "janisdd.vscode-edit-csv",
+    # Others
+    "genieai.chatgpt-vscode",
 ]
 
 if sys.platform == "win32":
