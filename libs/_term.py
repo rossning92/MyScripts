@@ -49,7 +49,7 @@ def _select_options_ncurse(options, history_file_name=""):
             )
         )
 
-    w = Menu(items=options)
+    w: Menu = Menu(items=options)
     idx = w.exec()
 
     if history_file_name and idx >= 0:
@@ -173,7 +173,9 @@ T = TypeVar("T")
 
 
 class MenuItem:
-    def __init__(self, name: str, callback: Callable[[], None] = None) -> None:
+    def __init__(
+        self, name: str, callback: Optional[Callable[[], None]] = None
+    ) -> None:
         self.name = name
         self.callback = callback
 
@@ -240,6 +242,11 @@ class Menu(Generic[T]):
     def init_curses():
         if Menu.stdscr is not None:
             return
+
+        # Remove escape key delay for Linux system
+        # See also: ESCDELAY in https://linux.die.net/man/3/ncurses
+        os.environ.setdefault("ESCDELAY", "25")
+
         stdscr = curses.initscr()
         curses.noecho()
         curses.cbreak()
@@ -248,7 +255,7 @@ class Menu(Generic[T]):
         curses.init_pair(1, curses.COLOR_GREEN, -1)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
-        stdscr.keypad(1)
+        stdscr.keypad(True)
         stdscr.nodelay(False)
         stdscr.timeout(1000)
         Menu.stdscr = stdscr
@@ -261,6 +268,8 @@ class Menu(Generic[T]):
         Menu.stdscr = None
 
     def update_screen(self):
+        assert Menu.stdscr is not None
+
         self.height, self.width = Menu.stdscr.getmaxyx()
 
         if sys.platform == "win32":
@@ -281,7 +290,10 @@ class Menu(Generic[T]):
     def reset_selection(self):
         self.selected_row = 0
 
-    def process_events(self, blocking=True):
+    # Returns false if we should exit main loop for the current window
+    def process_events(self, blocking=True) -> bool:
+        assert Menu.stdscr is not None
+
         if blocking:
             Menu.stdscr.timeout(1000)
         else:
@@ -345,7 +357,7 @@ class Menu(Generic[T]):
                 self.invalidated = True
                 if self.cancellable:
                     self.matched_item_indices.clear()
-                    return True
+                    return False
 
             elif ch != 0:
                 self.input_.on_char(ch)
@@ -357,18 +369,16 @@ class Menu(Generic[T]):
             self.on_idle()
 
         if self.closed:
-            return True
+            return False
 
-        return False
+        return True
 
     def on_idle(self):
         pass
 
     def _exec(self):
         self.on_main_loop()
-        while True:
-            if self.process_events():
-                return
+        while self.process_events():
             self.on_main_loop()
 
     def get_selected_index(self):
@@ -384,6 +394,8 @@ class Menu(Generic[T]):
         return self.height - 2
 
     def print_str(self, row, col, s):
+        assert Menu.stdscr is not None
+
         TAB_SIZE = 8
         if row >= self.height:
             return
@@ -413,6 +425,8 @@ class Menu(Generic[T]):
         Menu.stdscr.attroff(curses.color_pair(1))
 
     def on_update_screen(self, max_height=-1):
+        assert Menu.stdscr is not None
+
         if max_height < 0:
             max_height = self.height
 
@@ -461,7 +475,7 @@ class Menu(Generic[T]):
             return True
         return False
 
-    def on_enter_pressed(self) -> bool:
+    def on_enter_pressed(self):
         item = self.get_selected_item()
         if item is not None and hasattr(item, "callback") and callable(item.callback):
             self.run_cmd(lambda item=item: item.callback())
@@ -614,7 +628,8 @@ class DictEditWindow(Menu):
             history=history,
         ).exec()
 
-        self.on_dict_update(self.dict_)
+        if self.on_dict_update:
+            self.on_dict_update(self.dict_)
         if self.on_dict_history_update:
             self.on_dict_history_update(self.dict_history)
 

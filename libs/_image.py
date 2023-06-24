@@ -212,7 +212,6 @@ def combine_images(
     col_major_order=False,
     font_scale=1.0,
 ):
-
     file_list = None
     if image_files:
         if type(image_files) == list:

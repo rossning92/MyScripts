@@ -342,7 +342,7 @@ def call_echo(args, shell=False, check=True, no_output=False, **kwargs):
         s = args
 
     logger.debug("shell_cmd: %s" % s)
-    print2("> " + s, color="black")
+    print2("> " + s, color="blue")
 
     if isinstance(args, str):
         shell = True
@@ -718,15 +718,16 @@ def print2(msg, color="yellow", end="\n"):
     # https://gist.github.com/dominikwilkowski/60eed2ea722183769d586c76f22098dd
     # ANSI escape codes for colors
     COLOR_MAP = {
-        "green": "\u001b[32;1m",
-        "yellow": "\u001b[33;1m",
-        "red": "\u001b[31;1m",
-        "blue": "\u001b[34;1m",
-        "magenta": "\u001b[35;1m",
-        "cyan": "\u001b[36;1m",
         "black": "\u001b[30;1m",
-        "YELLOW": "\u001b[43;1m",
+        "blue": "\u001b[34;1m",
+        "cyan": "\u001b[36;1m",
+        "green": "\u001b[32;1m",
+        "magenta": "\u001b[35;1m",
+        "red": "\u001b[31;1m",
         "RED": "\u001b[41;1m",
+        "white": "\u001b[37;1m",
+        "yellow": "\u001b[33;1m",
+        "YELLOW": "\u001b[43;1m",
     }
     RESET = "\033[0m"
 
@@ -1593,7 +1594,7 @@ def menu_loop(
         if end_time - start_time > 1:
             print2(
                 "(finished in %.2f secs)" % (end_time - start_time),
-                color="black",
+                color="blue",
             )
 
     print_help()

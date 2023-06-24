@@ -1,1 +1,1 @@
-git commit --amend -m {{MESSAGE}}
+git commit --amend -m '{{MESSAGE}}'

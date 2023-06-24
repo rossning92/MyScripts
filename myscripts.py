@@ -245,10 +245,10 @@ class VariableWindow(Menu):
         var_name = self.variable_names[index]
         w = VariableEditWindow(self.variables, var_name)
         w.exec()
-        if w.enter_pressed:
-            self.close()
-        # self.update_items()
-        # self.input_.clear()
+        # if w.enter_pressed:
+        #     self.close()
+        self.update_items()
+        self.input_.clear()
 
 
 class ScriptManager:
@@ -669,9 +669,6 @@ class MainWindow(Menu[Script]):
 
             elif ch == curses.ascii.ctrl(ord("c")):
                 sys.exit(0)
-
-            elif ch == curses.ascii.ESC:
-                return True
 
             elif ch == ord("\t"):
                 script = self.get_selected_item()

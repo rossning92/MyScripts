@@ -23,12 +23,12 @@ from _shutil import (
 @menu_item(key="c")
 def commit(dry_run=False, amend=False):
     if is_working_tree_clean():
-        print2("Working directory clean, changed files in HEAD:", color="black")
+        print2("Working directory clean, changed files in HEAD:", color="blue")
         for line in get_output(
             ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
             shell=False,
         ).splitlines():
-            print2("  " + line, color="black")
+            print2("  " + line, color="blue")
         return
 
     call_echo("git status --short")
@@ -348,13 +348,13 @@ def garbage_collect():
 @menu_item()
 def checkout_remote_branch_partial():
     run_script(
-        "r/git/checkout_remote_branch_partial.sh", variables={"GIT_REPO": repo_dir}
+        "r/git/git_checkout_remote_branch_partial.sh", variables={"GIT_REPO": repo_dir}
     )
 
 
 @menu_item()
 def checkout_remote_branch():
-    run_script("r/git/checkout_remote_branch.sh", variables={"GIT_REPO": repo_dir})
+    run_script("r/git/git_checkout_remote_branch.sh", variables={"GIT_REPO": repo_dir})
 
 
 @menu_item(key="p")
