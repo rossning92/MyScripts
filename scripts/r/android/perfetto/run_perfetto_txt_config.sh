@@ -6,15 +6,13 @@ set -e
 cd $HOME/Desktop/
 adb root
 
-# Run protoc command to encode perfetto configurations into a binary file called "config.bin"
-protoc --encode=perfetto.protos.TraceConfig -I "{{PERFETTO_REPO}}" protos/perfetto/config/perfetto_config.proto >config.bin <<EOF
+adb shell perfetto \
+    -c - --txt \
+    -o /data/misc/perfetto-traces/trace \
+    <<EOF
 {{TRACE_CONFIG_STR}}
 duration_ms: {{PERFETTO_DURATION_MS}}
 EOF
-
-adb push config.bin /data/misc/perfetto-traces/config.bin
-
-adb shell perfetto -c /data/misc/perfetto-traces/config.bin -o /data/misc/perfetto-traces/trace
 
 device=$(adb shell getprop ro.product.device | tr -d '\r')
 out_file="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"

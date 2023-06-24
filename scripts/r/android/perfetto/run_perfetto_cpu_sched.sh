@@ -1,6 +1,4 @@
-# https://cs.android.com/android/platform/superproject/+/master:external/perfetto/tools/record_android_trace
-
-{{ include('r/android/perfetto/run_perfetto.sh', {'TRACE_CONFIG_STR': '''
+{{ include('r/android/perfetto/run_perfetto_txt_config.sh', {'TRACE_CONFIG_STR': '''
 buffers: {
     size_kb: 63488
     fill_policy: DISCARD
@@ -32,16 +30,16 @@ data_sources: {
     config {
         name: "linux.ftrace"
         ftrace_config {
-            ftrace_events: "sched/sched_switch"
+            ftrace_events: "ftrace/print"
             ftrace_events: "power/suspend_resume"
-            ftrace_events: "sched/sched_wakeup"
-            ftrace_events: "sched/sched_wakeup_new"
-            ftrace_events: "sched/sched_waking"
             ftrace_events: "sched/sched_process_exit"
             ftrace_events: "sched/sched_process_free"
+            ftrace_events: "sched/sched_switch"
+            ftrace_events: "sched/sched_wakeup_new"
+            ftrace_events: "sched/sched_wakeup"
+            ftrace_events: "sched/sched_waking"
             ftrace_events: "task/task_newtask"
             ftrace_events: "task/task_rename"
-            ftrace_events: "ftrace/print"
             atrace_categories: "gfx"
             atrace_apps: "*"
             # ftrace_events: "raw_syscalls/sys_enter"
