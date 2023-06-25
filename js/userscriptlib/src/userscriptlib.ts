@@ -1,5 +1,10 @@
 import { register } from "@violentmonkey/shortcut";
 
+const panelBorderStyle = "1px solid lightgray";
+const panelCollapsedByDefault = false;
+const panelFontSize = "8pt";
+const panelOpacity = "0.8";
+
 export {};
 
 declare global {
@@ -13,8 +18,10 @@ declare global {
   function findElementBySelector(selector: string): Node | null;
   function findElementByXPath(exp: string): Node | null;
   function findElementByText(text: string): Node | null;
+  function findElementByPartialText(text: string): Node | null;
   function waitForSelector(selector: string): Promise<Node | null>;
   function waitForText(text: string): Promise<Node | null>;
+  function waitForPartialText(text: string): Promise<Node | null>;
   function waitForXPath(xpath: string): Promise<Node | null>;
   function saveAsFile(data: string, filename: string, type: string): void;
   function download(url: string, filename?: string): void;
@@ -24,63 +31,140 @@ declare global {
   function sendText(text: string): void;
   function click(el: HTMLElement): void;
   function sendKey(keyCode: number, type?: "up" | "press"): void;
+  function sleep(callback: () => void, ms: number): void;
+  function logd(message: string): void;
 }
 
 const _global = window /* browser */ || global; /* node */
 
-function getContainer() {
-  let container = document.getElementById("userscriptlib-container");
-  if (container) {
-    return container;
+function createPanel() {
+  const panel = document.createElement("div");
+  panel.style.opacity = panelOpacity;
+  panel.style.left = "0";
+  panel.style.position = "fixed";
+  panel.style.top = "0";
+  panel.style.width = "150px";
+  panel.style.zIndex = "9999";
+  document.body.appendChild(panel);
+  return panel;
+}
+
+function getButtonContainer() {
+  let buttonContainer = document.getElementById("userscriptlib-container");
+  if (buttonContainer) {
+    return buttonContainer;
   } else {
-    const panel = document.createElement("div");
-    panel.id = "userscriptlib-container";
-    panel.style.opacity = "0.8";
-    panel.style.height = "8pt";
-    panel.style.lineHeight = "8pt";
-    panel.style.left = "0";
-    panel.style.position = "fixed";
-    panel.style.top = "0";
-    panel.style.zIndex = "9999";
-    document.body.appendChild(panel);
+    const panel = createPanel();
+    let collapsed = panelCollapsedByDefault;
 
-    const handle = document.createElement("div");
-    handle.style.backgroundColor = "lightgray";
-    handle.style.height = "8px";
-    panel.appendChild(handle);
+    function updateContainerStyle() {
+      container.style.display = collapsed ? "none" : "block";
+    }
 
-    handle.addEventListener("mousedown", (ev) => {
-      ev.preventDefault();
-
-      let x = ev.clientX;
-      let y = ev.clientY;
-
-      const onMouseMove = (ev: MouseEvent) => {
-        ev.preventDefault();
-
-        const relX = x - ev.clientX;
-        const relY = y - ev.clientY;
-
-        x = ev.clientX;
-        y = ev.clientY;
-
-        panel.style.top = `${panel.offsetTop - relY}px`;
-        panel.style.left = `${panel.offsetLeft - relX}px`;
-      };
-
-      const onMouseUp = () => {
-        document.removeEventListener("mouseup", onMouseUp);
-        document.removeEventListener("mousemove", onMouseMove);
-      };
-
-      document.addEventListener("mouseup", onMouseUp);
-      document.addEventListener("mousemove", onMouseMove);
+    createHandle({
+      panel,
+      onClick: () => {
+        collapsed = !collapsed;
+        updateContainerStyle();
+      },
     });
 
-    container = document.createElement("div");
+    const container = document.createElement("div");
     panel.appendChild(container);
-    return container;
+    updateContainerStyle();
+
+    buttonContainer = createButtonContainer(buttonContainer, container);
+    createLogPane(container);
+
+    return buttonContainer;
   }
+}
+
+function createButtonContainer(
+  buttonContainer: HTMLElement,
+  panel: HTMLDivElement
+) {
+  buttonContainer = document.createElement("div");
+  buttonContainer.id = "userscriptlib-container";
+  panel.appendChild(buttonContainer);
+  return buttonContainer;
+}
+
+function createLogPane(panel: HTMLDivElement) {
+  const textarea = document.createElement("textarea");
+  textarea.id = "userscriptlib-log-pane";
+  textarea.readOnly = true;
+  textarea.rows = 5;
+  textarea.style.all = "revert";
+  textarea.style.boxSizing = "border-box";
+  textarea.style.fontSize = panelFontSize;
+  textarea.style.resize = "none";
+  textarea.style.width = "100%";
+  textarea.style.border = panelBorderStyle;
+  panel.appendChild(textarea);
+}
+
+function logd(message: string) {
+  getButtonContainer();
+  const textarea = document.getElementById(
+    "userscriptlib-log-pane"
+  ) as HTMLTextAreaElement;
+  if (textarea.value !== "") {
+    textarea.value += "\n" + message;
+  } else {
+    textarea.value = message;
+  }
+  textarea.scrollTop = textarea.scrollHeight;
+}
+
+function createHandle({
+  panel,
+  onClick,
+}: {
+  panel: HTMLDivElement;
+  onClick?: () => void;
+}) {
+  const handle = document.createElement("div");
+  handle.style.backgroundColor = "lightgray";
+  handle.style.height = "12px";
+  panel.appendChild(handle);
+
+  handle.addEventListener("mousedown", (ev) => {
+    ev.preventDefault();
+
+    let lastX = ev.clientX;
+    let lastY = ev.clientY;
+    let mouseMoved = false;
+
+    const onMouseMove = (ev: MouseEvent) => {
+      ev.preventDefault();
+
+      const relX = lastX - ev.clientX;
+      const relY = lastY - ev.clientY;
+
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+
+      panel.style.top = `${panel.offsetTop - relY}px`;
+      panel.style.left = `${panel.offsetLeft - relX}px`;
+
+      mouseMoved = true;
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mousemove", onMouseMove);
+
+      if (!mouseMoved && onClick) {
+        onClick();
+      }
+    };
+
+    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+  });
+
+  return handle;
 }
 
 function waitFor(evaluate: () => Node | null): Promise<Node | null> {
@@ -114,23 +198,21 @@ function waitFor(evaluate: () => Node | null): Promise<Node | null> {
 }
 
 _global.addButton = (name, onclick, hotkey) => {
-  const buttonContainer = document.createElement("div");
-  getContainer().appendChild(buttonContainer);
-
   const button = document.createElement("button");
   button.style.backgroundColor = "white";
-  button.style.border = "1px solid lightgray";
+  button.style.border = panelBorderStyle;
   button.style.color = "black";
-  button.style.padding = "0px 10px";
+  button.style.display = "block";
+  button.style.fontSize = panelFontSize;
   button.style.margin = "0";
+  button.style.padding = "0px 10px";
   button.style.width = "100%";
-  button.style.fontSize = "8pt";
   button.textContent = name;
   if (hotkey) {
     button.textContent += ` (${hotkey})`;
   }
   button.onclick = onclick;
-  buttonContainer.appendChild(button);
+  getButtonContainer().appendChild(button);
 
   if (hotkey) {
     register(hotkey, onclick);
@@ -141,7 +223,7 @@ _global.addText = (text, { color = "black" }) => {
   const div = document.createElement("div");
   div.textContent = text;
   div.style.color = color;
-  getContainer().appendChild(div);
+  getButtonContainer().appendChild(div);
 };
 
 _global.findElementByXPath = (exp) => {
@@ -163,12 +245,20 @@ _global.findElementByText = (text) => {
   return findElementByXPath(`//*[text() = '${text}']`);
 };
 
+_global.findElementByPartialText = (text) => {
+  return findElementByXPath(`//*[contains(text(),'${text}')]`);
+};
+
 _global.waitForSelector = (selector) => {
   return waitFor(() => document.querySelector(selector));
 };
 
 _global.waitForText = (text) => {
   return waitFor(() => findElementByText(text));
+};
+
+_global.waitForPartialText = (text) => {
+  return waitFor(() => findElementByPartialText(text));
 };
 
 _global.waitForXPath = (xpath) => {
@@ -313,3 +403,30 @@ _global.sendKey = (keyCode, type) => {
 
   document.dispatchEvent(event);
 };
+
+_global.sleep = (callback, durationMs) => {
+  const start = Date.now();
+
+  function timer() {
+    const diff = durationMs / 1000 - (((Date.now() - start) / 1000) | 0);
+    const minutes = (diff / 60) | 0;
+    const seconds = diff % 60 | 0;
+    if (diff <= 0) {
+      clearInterval(intervalID);
+      callback();
+    } else {
+      logd(
+        `${minutes < 10 ? "0" + minutes : minutes}:${
+          seconds < 10 ? "0" + seconds : seconds
+        }`
+      );
+    }
+  }
+
+  // Start the timer immediately instead of waiting for 1 second
+  timer();
+
+  const intervalID = setInterval(timer, 1000);
+};
+
+_global.logd = logd;

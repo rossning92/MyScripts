@@ -1490,8 +1490,7 @@ def find_script(patt: str) -> Optional[str]:
 
     # Fuzzy search
     for _, script_root_dir in get_script_directories():
-        name_no_ext, _ = os.path.splitext(patt.lstrip("/"))
-        path = os.path.join(script_root_dir, "**", name_no_ext + ".*")
+        path = os.path.join(script_root_dir, "**", patt)
 
         match = glob.glob(path, recursive=True)
         match = [
