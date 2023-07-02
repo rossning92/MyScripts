@@ -1265,11 +1265,11 @@ def get_next_file_name(file):
 
 
 def confirm(msg=""):
-    msg += " (Y/n): "
+    msg += " (y/n): "
     print2(msg, end="", color="green")
     ch = getch()
     print()
-    return ch == "y" or ch == "\n" or ch == "\r"
+    return ch == "y"
 
 
 def shell_open(file="."):

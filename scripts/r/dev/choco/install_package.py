@@ -62,6 +62,7 @@ PKGS = {
         "directx",
     ],
     "@other": [
+        "androidstudio",
         "audacity",
         "autohotkey",
         "blender",

@@ -24,8 +24,8 @@ sync_gdrive() {
 
 if ! sync_gdrive; then
     printf "\n\n\n"
-    read -p "resync? (Y/n)" ans
-    if [[ -z "$ans" ]]; then
+    read -p "Resync (y/n): " ans
+    if [[ "$ans" == "y" ]]; then
         sync_gdrive --resync
         sync_gdrive
     fi

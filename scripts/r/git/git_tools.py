@@ -21,7 +21,7 @@ from _shutil import (
 
 
 @menu_item(key="c")
-def commit(dry_run=False, amend=False):
+def commit(dry_run=False, amend=False) -> bool:
     if is_working_tree_clean():
         print2("Working directory clean, changed files in HEAD:", color="blue")
         for line in get_output(
@@ -29,7 +29,7 @@ def commit(dry_run=False, amend=False):
             shell=False,
         ).splitlines():
             print2("  " + line, color="blue")
-        return
+        return False
 
     call_echo("git status --short")
     if not dry_run and confirm("Commit all changes?"):
@@ -43,11 +43,16 @@ def commit(dry_run=False, amend=False):
                 message = "Temporary commit @ %s" % get_time_str()
 
             call_echo(["git", "commit", "-m", message])
+        return True
+    else:
+        return False
 
 
 @menu_item(key="C")
 def commit_and_push():
-    commit()
+    if not commit():
+        return
+
     git_push()
 
 
