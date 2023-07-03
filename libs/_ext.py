@@ -94,11 +94,13 @@ def edit_script_config(script_path):
 
     data = {**default_config, **data}
 
+    script_config_file_path = get_script_config_file_path(script_path)
+
     def on_dict_update(dict):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
         save_yaml(
             data,
-            get_script_config_file_path(script_path),
+            script_config_file_path,
         )
 
     config_edit_history_file = os.path.join(get_data_dir(), "config_edit_history.json")
@@ -112,7 +114,7 @@ def edit_script_config(script_path):
         with open(config_edit_history_file, "w", encoding="utf-8") as f:
             json.dump(config_edit_history, f, indent=2)
 
-    script_config_file_rel_path = get_relative_script_path(script_config_file)
+    script_config_file_rel_path = get_relative_script_path(script_config_file_path)
     w = DictEditWindow(
         data,
         default_dict=default_config,
