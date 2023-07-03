@@ -86,8 +86,8 @@ def enter_script_path():
 def edit_script_config(script_path):
     default_config = get_script_default_config()
 
-    script_config_file = get_script_config_file_path(script_path)
-    if not os.path.exists(script_config_file):
+    script_config_file = get_script_config_file(script_path)
+    if script_config_file is None:
         data = {}
     else:
         data = load_yaml(script_config_file)
@@ -96,7 +96,10 @@ def edit_script_config(script_path):
 
     def on_dict_update(dict):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
-        save_yaml(data, script_config_file)
+        save_yaml(
+            data,
+            get_script_config_file_path(script_path),
+        )
 
     config_edit_history_file = os.path.join(get_data_dir(), "config_edit_history.json")
     if os.path.exists(config_edit_history_file):
@@ -177,7 +180,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
 
     # Convert to abspath
     dest_script = get_absolute_script_path(dest_script)
-    dest_script_config_file = get_script_config_file_path(dest_script)
+    dest_script_config_file = get_script_config_file(dest_script)
 
     dir_name = os.path.dirname(dest_script)
     if dir_name != "":
@@ -293,8 +296,8 @@ def rename_script(
     os.rename(script_full_path, new_script_full_path)
 
     # Rename config file if any
-    config_file = get_script_config_file_path(script_full_path)
-    new_config_file = get_script_config_file_path(new_script_full_path)
+    config_file = get_script_config_file(script_full_path)
+    new_config_file = get_script_config_file(new_script_full_path)
     if os.path.exists(config_file):
         os.rename(config_file, new_config_file)
 
