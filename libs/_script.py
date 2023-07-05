@@ -491,9 +491,7 @@ def wrap_args_tee(args, out_file):
         return args
 
 
-def wrap_args_cmd(args, title=None, cwd=None, env=None) -> str:
-    assert type(args) is list
-
+def wrap_args_cmd(args: List, title=None, cwd=None, env=None) -> str:
     if sys.platform == "win32":
         cmdline = "cmd /c "
         if title:
@@ -522,7 +520,7 @@ def wrap_args_wt(
     icon=None,
     opacity=1.0,
     **kwargs,
-):
+) -> List[str]:
     if sys.platform != "win32":
         raise Exception("OS not supported.")
 
@@ -933,6 +931,7 @@ class Script:
         env = {**variables}
 
         shell = False
+        use_shell_execute_win32 = False
 
         if self.cfg["adk"]:
             setup_android_env(env=env, jdk_version=self.cfg["adk.jdk_version"])
@@ -1036,6 +1035,7 @@ class Script:
 
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
+                use_shell_execute_win32 = True
 
         elif ext == ".cmd" or ext == ".bat":
             if sys.platform == "win32":
@@ -1206,15 +1206,14 @@ class Script:
 
         # Run commands
         if len(arg_list) > 0:
-            args = arg_list
             if tee:
                 log_file = os.path.join(
                     get_home_path(),
                     "Desktop",
                     "{}_{}.log".format(self.name.split("/")[-1], int(time.time())),
                 )
-                args = wrap_args_tee(
-                    args,
+                arg_list = wrap_args_tee(
+                    arg_list,
                     out_file=log_file,
                 )
                 open_log_file(log_file)
@@ -1226,11 +1225,12 @@ class Script:
             if command_wrapper and not background and not self.cfg["minimized"]:
                 # Add command wrapper to pause on exit
                 env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
-                args = [
+                arg_list = [
                     sys.executable,
                     os.path.join(get_bin_dir(), "command_wrapper.py"),
-                ] + args
+                ] + arg_list
 
+            # args2 = arg_list
             if new_window:
                 if restart_instance:
                     # Close exising instances
@@ -1243,8 +1243,8 @@ class Script:
                             "wsl",
                             "windowsTerminal",
                         ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
-                            args = wrap_args_wt(
-                                args,
+                            arg_list = wrap_args_wt(
+                                arg_list,
                                 cwd=cwd,
                                 title=self.get_window_title(),
                                 wsl=self.cfg["wsl"],
@@ -1255,8 +1255,8 @@ class Script:
                         elif self.cfg["terminal"] == "alacritty" and shutil.which(
                             "alacritty"
                         ):
-                            args = wrap_args_alacritty(
-                                args,
+                            arg_list = wrap_args_alacritty(
+                                arg_list,
                                 title=self.get_window_title(),
                             )
 
@@ -1277,8 +1277,8 @@ class Script:
                         elif self.cfg["terminal"] == "conemu" and os.path.isdir(
                             CONEMU_INSTALL_DIR
                         ):
-                            args = wrap_args_conemu(
-                                args,
+                            arg_list = wrap_args_conemu(
+                                arg_list,
                                 cwd=cwd,
                                 title=self.get_window_title(),
                                 wsl=self.cfg["wsl"],
@@ -1288,8 +1288,8 @@ class Script:
                             open_in_terminal = True
 
                         else:
-                            args = wrap_args_cmd(
-                                args,
+                            arg_list = wrap_args_cmd(
+                                arg_list,
                                 cwd=cwd,
                                 title=self.get_window_title(),
                                 env=env,
@@ -1302,56 +1302,56 @@ class Script:
                             open_in_terminal = True
 
                     elif sys.platform == "linux":
-                        # args = ["tmux", "split-window"] + args
+                        # arg_list = ["tmux", "split-window"] + arg_list
 
                         TERMINAL = "alacritty"
                         if TERMINAL == "gnome":
-                            args = [
+                            arg_list = [
                                 "gnome-terminal",
                                 "--",
                                 "bash",
                                 "-c",
                                 "%s || read -rsn1 -p 'Press any key to exit...'"
-                                % _args_to_str(args, shell_type="bash"),
+                                % _args_to_str(arg_list, shell_type="bash"),
                             ]
 
                         elif TERMINAL == "xterm":
-                            args = [
+                            arg_list = [
                                 "xterm",
                                 "-xrm",
                                 "XTerm.vt100.allowTitleOps: false",
                                 "-T",
                                 self.get_window_title(),
                                 "-e",
-                                _args_to_str(args, shell_type="bash"),
+                                _args_to_str(arg_list, shell_type="bash"),
                             ]
                             no_wait = True
                             open_in_terminal = True
 
                         elif TERMINAL == "xfce":
-                            args = [
+                            arg_list = [
                                 "xfce4-terminal",
                                 "-T",
                                 self.get_window_title(),
                                 "-e",
-                                _args_to_str(args, shell_type="bash"),
+                                _args_to_str(arg_list, shell_type="bash"),
                                 "--hold",
                             ]
                             no_wait = True
                             open_in_terminal = True
 
                         elif TERMINAL == "kitty":
-                            args = [
+                            arg_list = [
                                 "kitty",
                                 "--title",
                                 self.get_window_title(),
-                            ] + args
+                            ] + arg_list
                             no_wait = True
                             open_in_terminal = True
 
                         elif TERMINAL == "alacritty":
-                            args = wrap_args_alacritty(
-                                args,
+                            arg_list = wrap_args_alacritty(
+                                arg_list,
                                 title=self.get_window_title(),
                             )
                             no_wait = True
@@ -1412,22 +1412,33 @@ class Script:
                         '"minimized" is not supported on platform %s' % sys.platform
                     )
 
+            # Spawn a new process to run commands
             if no_wait:
                 if sys.platform == "linux":
                     popen_extra_args["start_new_session"] = True
 
-            if self.cfg["runAsAdmin"]:
+            if use_shell_execute_win32:
+                SW_SHOWNORMAL = 1
+                ctypes.windll.shell32.ShellExecuteW(
+                    None,  # hwnd
+                    "runas",
+                    arg_list[0],
+                    _args_to_str(arg_list[1:], shell_type="cmd"),
+                    cwd,
+                    SW_SHOWNORMAL,
+                )
+
+            elif self.cfg["runAsAdmin"]:
                 # Passing environmental variables
-                args = wrap_args_cmd(
-                    args,
+                args2 = wrap_args_cmd(
+                    arg_list,
                     cwd=cwd,
                     title=self.get_window_title(),
                     env=env,
                 )
-
-                logging.debug("run_elevated(): args=%s" % args)
+                logging.debug("run_elevated(): args=%s" % args2)
                 return_code = run_elevated(
-                    args, wait=not no_wait, show_terminal_window=not open_in_terminal
+                    args2, wait=not no_wait, show_terminal_window=not open_in_terminal
                 )
                 if no_wait:
                     return True
@@ -1435,10 +1446,10 @@ class Script:
                     return return_code == 0
 
             else:
-                logging.debug("cmdline: %s" % args)
+                logging.debug("cmdline: %s" % arg_list)
                 logging.debug("popen_extra_args: %s" % popen_extra_args)
                 ps = subprocess.Popen(
-                    args=args,
+                    args=arg_list,
                     env={**os.environ, **env},
                     cwd=cwd,
                     shell=shell,
@@ -1812,7 +1823,8 @@ def _execute_script_autorun(script: Script):
         logging.info("autorun: %s" % script.name)
         script.execute(new_window=False, command_wrapper=False)
     except Exception as ex:
-        logging.warning(ex)
+        logging.warning(f"Failed to autorun script: {script.script_path}")
+        logging.exception(ex)
 
 
 def try_reload_scripts_autorun(scripts_autorun: List[Script]):

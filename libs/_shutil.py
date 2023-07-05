@@ -205,7 +205,9 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
     run_ahk(tmp_script_path, wait=wait)
 
 
-def wrap_args_conemu(args, title=None, cwd=None, wsl=False, always_on_top=False):
+def wrap_args_conemu(
+    args: List[str], title=None, cwd=None, wsl=False, always_on_top=False
+) -> List[str]:
     assert sys.platform == "win32"
 
     # Disable update check
