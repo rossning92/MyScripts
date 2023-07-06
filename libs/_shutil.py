@@ -1275,6 +1275,7 @@ def confirm(msg=""):
 
 
 def shell_open(file="."):
+    logging.debug("shell_open(): %s" % file)
     if sys.platform == "win32":
         file = file.replace("/", os.path.sep)
         os.startfile(file)

@@ -617,6 +617,8 @@ def adb_install(
         ["aapt", "dump", "badging", apk], universal_newlines=True
     )
     match = re.search(r"package: name='(.+?)'", out)
+    if match is None:
+        raise Exception(f"Failed to find app package name from: {out}")
     pkg_name = match.group(1)
     logger.debug("apk package name: %s" % pkg_name)
 
@@ -649,7 +651,7 @@ def adb_install(
         should_install = True
 
     if force_reinstall or should_install:
-        logger.info("Installing %s" % apk)
+        logger.info("Install %s" % apk)
         try:
             adb_install_cmd = [
                 "adb",
@@ -660,10 +662,9 @@ def adb_install(
             args = adb_install_cmd + [apk]
             logging.debug("%s" % args)
             out = subprocess.check_output(
-                args,
-                stderr=subprocess.STDOUT,
+                args, stderr=subprocess.STDOUT, universal_newlines=True
             )
-            logging.debug(out.decode())
+            logging.debug(out)
         except subprocess.CalledProcessError as ex:
             msg = ex.output.decode()
             logging.warning(msg)
@@ -719,7 +720,7 @@ def adb_install2(
         pkg = os.path.splitext(os.path.basename(file))[0]
         if os.path.exists(tar_file):
             logger.info("Restoring app data...")
-            subprocess.check_call(["adb", "push", "tar_file}", "/data/local/tmp/"])
+            subprocess.check_call(["adb", "push", tar_file, "/data/local/tmp/"])
             adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
 
             out = check_output(f"adb shell dumpsys package {pkg} | grep userId")
@@ -738,8 +739,10 @@ def adb_install2(
             os.path.dirname(file), "obb", os.path.splitext(os.path.basename(file))[0]
         )
         if os.path.isdir(obb_dir):
-            logger.info("Pushing obb...")
-            call2(["adb", "push", obb_dir, "/sdcard/android/obb"])
+            logger.info(f"Push obb: {obb_dir} => /sdcard/android/obb/")
+            subprocess.check_call(
+                ["adb", "push", "-p", obb_dir, "/sdcard/android/obb/"]
+            )
 
     return result
 
@@ -767,7 +770,10 @@ def get_pkg_name_apk(file):
     setup_android_env()
     logger.info("Starting the app...")
     out = subprocess.check_output(["aapt", "dump", "badging", file]).decode()
-    package_name = re.search("package: name='(.*?)'", out).group(1)
+    match = re.search("package: name='(.*?)'", out)
+    if match is None:
+        raise Exception(f"Failed to find app package name from: {out}")
+    package_name = match.group(1)
     logger.debug("PackageName=%s" % package_name)
     # activity_name = re.search("launchable-activity: name='(.*?)'", out).group(1)
     # logger.debug('LaunchableActivity: %s' % activity_name)
@@ -779,7 +785,10 @@ ApkInfo = namedtuple("ApkInfo", "pkg_name permissions")
 
 def get_apk_info(file):
     out = subprocess.check_output(["aapt", "dump", "badging", file]).decode()
-    pkg_name = re.search("package: name='(.*?)'", out).group(1)
+    match = re.search("package: name='(.*?)'", out)
+    if match is None:
+        raise Exception(f"Failed to find app package name from: {out}")
+    pkg_name = match.group(1)
     permissions = re.findall("uses-permission: name='(.*?)'", out)
     return ApkInfo(pkg_name, permissions)
 

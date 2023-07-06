@@ -1421,7 +1421,7 @@ class Script:
                 SW_SHOWNORMAL = 1
                 ctypes.windll.shell32.ShellExecuteW(
                     None,  # hwnd
-                    "runas",
+                    None,  # lpOperation
                     arg_list[0],
                     _args_to_str(arg_list[1:], shell_type="cmd"),
                     cwd,
