@@ -1419,7 +1419,7 @@ class Script:
 
             if use_shell_execute_win32:
                 SW_SHOWNORMAL = 1
-                ctypes.windll.shell32.ShellExecuteW(
+                ret = ctypes.windll.shell32.ShellExecuteW(
                     None,  # hwnd
                     None,  # lpOperation
                     arg_list[0],
@@ -1427,6 +1427,8 @@ class Script:
                     cwd,
                     SW_SHOWNORMAL,
                 )
+                success = ret > 32
+                return success
 
             elif self.cfg["runAsAdmin"]:
                 # Passing environmental variables

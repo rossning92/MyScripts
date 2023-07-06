@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 
-from _script import Script, get_variable, update_script_access_time
+from _script import Script, get_variable
 from _shutil import (
     activate_window_by_name,
     call_echo,
@@ -19,7 +19,6 @@ def run_bash_script_in_remote_shell(script_path):
         exit(0)
 
     script = Script(script_path)
-    # update_script_access_time(script)
 
     # Default android device
     if ext == ".sh":
@@ -64,11 +63,17 @@ def run_bash_script_in_remote_shell(script_path):
     args.append(
         ("export SCREENDIR=$HOME/.screen;" if sys.platform == "win32" else "")
         + (
-            "screen -d -X stuff ^C;" if ext == ".sh" else ""
-        )  # -d indicates attached screen sessions, send Ctrl-C
-        + "screen -d -X msgwait 0;"
-        "screen -d -X readbuf %s;"
-        "screen -d -X paste ." % convert_to_unix_path(tmp_file, wsl=True),
+            # -d: indicates attached screen sessions
+            # ^C: send Ctrl-C
+            "screen -d -X stuff ^Z^Mbg^M;"
+            if ext == ".sh"
+            else ""
+        )
+        + (
+            "screen -d -X msgwait 0;"
+            "screen -d -X readbuf %s;"
+            "screen -d -X paste ." % convert_to_unix_path(tmp_file, wsl=True)
+        ),
     )
 
     call_echo(
