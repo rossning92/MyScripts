@@ -709,30 +709,37 @@ class MainWindow(Menu[Script]):
         height = self.height
 
         if not self.is_refreshing:
-            try:
-                script = self.get_selected_item()
-                if script is not None:
+            script = self.get_selected_item()
+            if script is not None:
+                preview = []
+
+                # Preview cmdline
+                cmdline = script.cfg["cmdline"]
+                if cmdline:
+                    preview.append("---")
+                    preview.append(cmdline)
+                    preview.append("---")
+
+                # Preview variables
+                try:
                     vars = get_script_variables(script)
-                    if len(vars):
-                        str_list = format_variables(
+                    if len(vars) > 0:
+                        preview += format_variables(
                             vars,
                             sorted(script.get_variable_names()),
                             script.get_public_variable_prefix(),
                         )
-                        height = max(5, height - len(vars))
-                        for i, s in enumerate(str_list):
-                            if height + i >= self.height:
-                                break
-                            try:
-                                Menu.stdscr.addstr(height + i, 0, s)
-                            except:
-                                pass
+                except FileNotFoundError:  # Scripts have been removed
+                    logging.warning(
+                        "Error on reading variables from script, script does not exist: %s"
+                        % script.script_path
+                    )
 
-            except FileNotFoundError:  # Scripts have been removed
-                logging.warning(
-                    "Error on reading variables from script, script does not exist: %s"
-                    % script.script_path
-                )
+                height = max(5, height - len(preview))
+                for i, s in enumerate(preview):
+                    if height + i >= self.height:
+                        break
+                    self.print_str(height + i, 0, s)
 
         super().on_update_screen(max_height=height)
 
