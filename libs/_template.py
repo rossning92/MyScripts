@@ -49,12 +49,11 @@ class Template:
                 file = self.file_locator(file)
             with open(file, "r", encoding="utf-8") as f:
                 s = f.read()
-            s = Template(s, file_locator=self.file_locator).render(
+            return Template(s, file_locator=self.file_locator).render(
                 context={**global_context, **context},
                 undefined_names=undefined_names,
                 **kwargs,
             )
-            result.append(s)
 
         global_context["include"] = include
 

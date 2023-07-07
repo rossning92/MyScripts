@@ -1,10 +1,9 @@
-{{ include('r/android/perfetto/run_perfetto_txt_config.sh', {'TRACE_CONFIG_STR': '''
 buffers: {
     size_kb: 63488
     fill_policy: DISCARD
 }
 buffers: {
-    size_kb: 4096
+    size_kb: 63488
     fill_policy: DISCARD
 }
 data_sources: {
@@ -30,6 +29,7 @@ data_sources: {
     config {
         name: "linux.ftrace"
         ftrace_config {
+            # CPU sched
             ftrace_events: "ftrace/print"
             ftrace_events: "power/suspend_resume"
             ftrace_events: "sched/sched_process_exit"
@@ -40,10 +40,10 @@ data_sources: {
             ftrace_events: "sched/sched_waking"
             ftrace_events: "task/task_newtask"
             ftrace_events: "task/task_rename"
+
+            # Atrace gfx category
             atrace_categories: "gfx"
             atrace_apps: "*"
-            # ftrace_events: "raw_syscalls/sys_enter"
-            # ftrace_events: "raw_syscalls/sys_exit"
         }
     }
 }
@@ -52,11 +52,7 @@ data_sources: {
         name: "track_event"
         track_event_config {
             enabled_categories: "*"
-            # enabled_categories: "gpu_renderstage"
-            # enabled_categories: "gpu_surface_workload"
         }
     }
 }
-'''}) }}
-
-# PERFETTO_DURATION_MS, PERFETTO_REPO
+{{DEFAULT_TRACE_CONFIG_APPEND}}

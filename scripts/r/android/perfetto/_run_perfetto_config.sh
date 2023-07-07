@@ -6,7 +6,7 @@ set -e
 cd $HOME/Desktop/
 adb root
 
-# Run protoc command to encode perfetto configurations into a binary file called "config.bin"
+# Encode perfetto configurations into a binary file called "config.bin"
 protoc --encode=perfetto.protos.TraceConfig -I "{{PERFETTO_REPO}}" protos/perfetto/config/perfetto_config.proto >config.bin <<EOF
 {{TRACE_CONFIG_STR}}
 duration_ms: {{PERFETTO_DURATION_MS}}
