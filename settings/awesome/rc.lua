@@ -24,10 +24,7 @@ local has_fdo, freedesktop = pcall(require, "freedesktop")
 
 local battery_widget = require("battery-widget")
 
-local volume_control = require("volume-control")
-volumecfg = volume_control({
-    device = "pulse"
-})
+local volume_widget = require('volume-widget.volume')
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -240,8 +237,12 @@ awful.screen.connect_for_each_screen(function(s)
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
             mykeyboardlayout,
-            battery_widget {},
-            volumecfg.widget,
+            battery_widget {
+                show_current_level = true
+            },
+            volume_widget {
+                widget_type = 'icon_and_text'
+            },
             wibox.widget.systray(),
             mytextclock,
             s.mylayoutbox
@@ -507,11 +508,11 @@ for i = 1, 9 do
         group = "tag"
     }), -- Volume control
     awful.key({}, "XF86AudioRaiseVolume", function()
-        volumecfg:up()
+        volume_widget:inc()
     end), awful.key({}, "XF86AudioLowerVolume", function()
-        volumecfg:down()
+        volume_widget:dec()
     end), awful.key({}, "XF86AudioMute", function()
-        volumecfg:toggle()
+        volume_widget:toggle()
     end))
 end
 
