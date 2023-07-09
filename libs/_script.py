@@ -929,6 +929,7 @@ class Script:
             arg_list = []
 
         env = {**variables}
+        env["MYSCRIPT_DATA_DIR"] = get_data_dir()
 
         shell = False
         use_shell_execute_win32 = False
