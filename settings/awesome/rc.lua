@@ -22,9 +22,10 @@ require("awful.hotkeys_popup.keys")
 local debian = require("debian.menu")
 local has_fdo, freedesktop = pcall(require, "freedesktop")
 
+--- Define custom widgets
 local battery_widget = require("battery-widget")
-
 local volume_widget = require('volume-widget.volume')
+local brightness_widget = require("brightness-widget.brightness")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -242,6 +243,11 @@ awful.screen.connect_for_each_screen(function(s)
             },
             volume_widget {
                 widget_type = 'icon_and_text'
+            },
+            brightness_widget {
+                type = 'icon_and_text',
+                program = 'light',
+                step = 2
             },
             wibox.widget.systray(),
             mytextclock,
@@ -513,7 +519,18 @@ for i = 1, 9 do
         volume_widget:dec()
     end), awful.key({}, "XF86AudioMute", function()
         volume_widget:toggle()
-    end))
+    end), -- Brightness control
+    awful.key({}, "XF86MonBrightnessUp", function()
+        brightness_widget:inc()
+    end, {
+        description = "increase brightness",
+        group = "custom"
+    }), awful.key({}, "XF86MonBrightnessDown", function()
+        brightness_widget:dec()
+    end, {
+        description = "decrease brightness",
+        group = "custom"
+    }))
 end
 
 clientbuttons = gears.table.join(awful.button({}, 1, function(c)
