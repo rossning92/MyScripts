@@ -188,7 +188,7 @@ class Menu(Generic[T]):
 
     def __init__(
         self,
-        items: List[Union[T, MenuItem]] = [],
+        items: Union[List[T], List[MenuItem]] = [],
         label="",
         text="",
         ascii_only=False,

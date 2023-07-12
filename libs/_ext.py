@@ -182,7 +182,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
 
     # Convert to abspath
     dest_script = get_absolute_script_path(dest_script)
-    dest_script_config_file = get_script_config_file(dest_script)
+    dest_script_config_file = get_script_config_file_path(dest_script)
 
     dir_name = os.path.dirname(dest_script)
     if dir_name != "":
@@ -200,7 +200,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
             src_script = ref_script_path
         shutil.copyfile(src_script, dest_script)
         src_script_config_file = get_script_config_file(src_script)
-        if src_script_config_file:
+        if src_script_config_file is not None:
             shutil.copyfile(src_script_config_file, dest_script_config_file)
 
     else:
@@ -298,8 +298,8 @@ def rename_script(
     os.rename(script_full_path, new_script_full_path)
 
     # Rename config file if any
-    config_file = get_script_config_file(script_full_path)
-    new_config_file = get_script_config_file(new_script_full_path)
+    config_file = get_script_config_file_path(script_full_path)
+    new_config_file = get_script_config_file_path(new_script_full_path)
     if os.path.exists(config_file):
         os.rename(config_file, new_config_file)
 

@@ -32,6 +32,7 @@ def open_trace_in_browser(path):
         )
         while httpd.__dict__.get("last_request") != "/" + fname:
             httpd.handle_request()
+            print("last_request:", httpd.__dict__.get("last_request"))
 
 
 if __name__ == "__main__":

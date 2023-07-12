@@ -55,4 +55,12 @@ data_sources: {
         }
     }
 }
+# Logcat
+data_sources: {
+    config {
+        name: "android.log"
+        android_log_config {
+        }
+    }
+}
 {{DEFAULT_TRACE_CONFIG_APPEND}}

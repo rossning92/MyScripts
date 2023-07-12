@@ -2,7 +2,7 @@ import os
 import sys
 
 from _shutil import write_temp_file
-from ext.run_script_in_remote_shell import run_bash_script_in_remote_shell
+from ext.run_script_remotely import run_bash_script_in_remote_shell
 from ext.run_script_ssh import push_file_putty, run_bash_script_putty
 
 if __name__ == "__main__":
