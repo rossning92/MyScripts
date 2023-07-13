@@ -3,7 +3,6 @@
 # https://cs.android.com/android/platform/superproject/+/master:external/perfetto/tools/record_android_trace
 
 set -e
-cd $HOME/Desktop/
 adb root
 
 adb shell perfetto \
@@ -14,8 +13,16 @@ adb shell perfetto \
 duration_ms: {{PERFETTO_DURATION_MS}}
 EOF
 
-device=$(adb shell getprop ro.product.device | tr -d '\r')
-out_file="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"
+if [[ -n "{{PERFETTO_OUT_FILE}}" ]]; then
+    out_file="{{PERFETTO_OUT_FILE}}"
+else
+    cd "$HOME/Desktop/"
+    device=$(adb shell getprop ro.product.device | tr -d '\r')
+    out_file="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"
+fi
+
 adb pull /data/misc/perfetto-traces/trace "$out_file"
 
-run_script r/android/perfetto/open_perfetto_trace.py "$out_file"
+if [[ -z "{{PERFETTO_OUT_FILE}}" ]]; then
+    run_script r/android/perfetto/open_perfetto_trace.py "$out_file"
+fi

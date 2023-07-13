@@ -1,11 +1,11 @@
 import glob
+import logging
 import os
 
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 from _shutil import get_temp_file_name
 
 
@@ -16,17 +16,21 @@ def mat_inv(m):
 
 
 def save_fig(out_file=None, open_file=False, size_inch=None, dpi=300):
+    logging.info("Generate %s" % out_file)
     if out_file is None:
         out_file = get_temp_file_name(".png")
 
     if size_inch:
         plt.gcf().set_size_inches(size_inch[0], size_inch[1])
 
+    plt.title(os.path.splitext(os.path.basename(out_file))[0])
     plt.gcf().tight_layout()
 
     plt.savefig(out_file, dpi=dpi)
     if open_file:
         os.system('start "" "%s"' % out_file)
+
+    plt.close()
 
 
 def setup_plt_style(dark=False, cn=False, size_inch=None):
