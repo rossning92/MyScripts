@@ -1,13 +1,10 @@
 set -e
 
 folder=$(dirname "$1")
-file=$(basename "$1")
-
 cd "$folder"
 mkdir -p out
 
-# text=$(<label.txt)
-
+file=$(basename "$1")
 text="${file}"
 text="${text%.*}"   # remove extension
 text="${text//_/ }" # replace underscore with space

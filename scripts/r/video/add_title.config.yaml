@@ -1,1 +1,3 @@
+args: file
+packages: ffmpeg
 template: false

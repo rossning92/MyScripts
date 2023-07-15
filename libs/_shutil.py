@@ -6,6 +6,7 @@ import json
 import locale
 import logging
 import os
+import platform
 import re
 import shutil
 import signal
@@ -594,6 +595,10 @@ def get_clip():
 @lru_cache(maxsize=None)
 def is_in_termux():
     return shutil.which("termux-setup-storage") is not None
+
+
+def is_in_wsl() -> bool:
+    return "microsoft-standard" in platform.uname().release
 
 
 def set_clip(s):

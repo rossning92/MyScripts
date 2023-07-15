@@ -22,6 +22,7 @@ from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
 from _pkgmanager import open_log_file, require_package
+from _select_file import select_file
 from _shutil import (
     CONEMU_INSTALL_DIR,
     IgnoreSigInt,
@@ -34,7 +35,7 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
-    getch,
+    is_in_wsl,
     load_json,
     load_yaml,
     npm_install,
@@ -90,10 +91,6 @@ def get_script_root():
 
 def get_my_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../")
-
-
-def is_in_wsl() -> bool:
-    return "microsoft-standard" in platform.uname().release
 
 
 @lru_cache(maxsize=None)
@@ -928,6 +925,13 @@ class Script:
         else:
             arg_list = []
 
+        if self.cfg["args"] == "file" and len(arg_list) == 0:
+            file = select_file()
+            if file is None:
+                return True
+            else:
+                arg_list = [file]
+
         env = {**variables}
         env["MYSCRIPT_DATA_DIR"] = get_data_dir()
 
@@ -1619,6 +1623,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "adk": False,
         "adk.jdk_version": "",
         "autoRun": False,
+        "args": "",
         "background": False,
         "closeOnExit": True,
         "cmake": False,

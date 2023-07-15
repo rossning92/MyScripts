@@ -8,7 +8,6 @@ import sys
 import time
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
 
-from _script import get_data_dir
 from _shutil import load_json, save_json
 
 
@@ -36,6 +35,8 @@ def _select_options_ncurse(options, history_file_name=""):
         raise Exception("Options cannot be empty.")
 
     def get_history_file():
+        from _script import get_data_dir
+
         return os.path.join(get_data_dir(), "%s.json" % history_file_name)
 
     if history_file_name:
