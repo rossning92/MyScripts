@@ -30,3 +30,16 @@ color14=#9aedfe
 color7=#bfbfbf
 color15=#e6e6e6
 EOF
+
+# Install required packages
+declare -a packages=("python" "git" "gh" "termux-api")
+for package in "${packages[@]}"; do
+    dpkg -s "$package" >/dev/null 2>&1 || {
+        pkg update
+        pkg install -y "$package"
+    }
+done
+
+# Workaround for major performance degradation with most termux-api calls
+# See https://github.com/termux/termux-api/issues/552
+sed -i 's#^exec /system/bin/app_process /#exec /system/bin/app_process -Xnoimage-dex2oat /#' "$PREFIX/bin/am"

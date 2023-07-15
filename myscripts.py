@@ -54,6 +54,7 @@ from _shutil import (
     setup_nodejs,
     start_process,
     update_env_var_explorer,
+    is_in_termux,
 )
 from _template import render_template_file
 from _term import Menu
@@ -317,7 +318,7 @@ class MonitorClipboardThread(threading.Thread):
 
     def run(self) -> None:
         logging.debug("MonitorClipboardThread started.")
-        if sys.platform == "linux":
+        if sys.platform == "linux" and not is_in_termux():
             import pyperclip
 
             try:

@@ -18,7 +18,7 @@ EOF
 
 if [[ "$(uname)" == "linux"* || "$(uname)" == "Linux"* ]]; then
     if ! command -v vncviewer &>/dev/null; then
-        echo 'Download and instal VNC Viewer...'
+        echo 'Download and install VNC Viewer...'
         url="https://downloads.realvnc.com/download/file/viewer.files/VNC-Viewer-7.5.1-Linux-x64.deb"
         deb_file="VNC-Viewer.deb"
         wget "$url" -O "$deb_file"

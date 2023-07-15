@@ -33,18 +33,7 @@ if [[ "$(uname)" == "Linux" ]] && [[ -f "/etc/debian_version" ]]; then
     xinput set-prop "$touchpad" "libinput Natural Scrolling Enabled" 1
 
 elif command -v termux-setup-storage; then # is running in termux
-    # Install required packages
-    declare -a packages=("python" "git" "gh" "termux-api")
-    for package in "${packages[@]}"; do
-        dpkg -s "$package" >/dev/null 2>&1 || {
-            pkg update
-            pkg install -y "$package"
-        }
-    done
-
-    # Workaround for major performance degradation with most termux-api calls
-    # See https://github.com/termux/termux-api/issues/552
-    sed -i 's#^exec /system/bin/app_process /#exec /system/bin/app_process -Xnoimage-dex2oat /#' "$PREFIX/bin/am"
+    source scripts/r/android/termux/setup_termux.sh
 fi
 
 pip3 install -r requirements.txt

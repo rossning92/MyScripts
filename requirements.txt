@@ -1,4 +1,5 @@
-pyyaml
+pyperclip; sys_platform == 'linux'
 pywin32; sys_platform == 'win32'
+pyyaml
 requests
 windows-curses; sys_platform == 'win32'
