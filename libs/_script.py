@@ -877,7 +877,7 @@ class Script:
         self,
         args: Optional[Union[str, List[str]]] = None,
         new_window=None,
-        restart_instance=None,
+        restart_instance=False,
         close_on_exit=None,
         cd=True,
         tee=None,
@@ -892,13 +892,12 @@ class Script:
 
         background = self.cfg["background"]
 
-        if restart_instance is None:
-            restart_instance = self.cfg["restartInstance"]
+        single_instance = self.cfg["singleInstance"]
 
         if tee is None:
             tee = self.cfg["tee"]
 
-        if not restart_instance and new_window:
+        if not restart_instance and new_window and single_instance:
             if activate_window_by_name(self.get_window_title()):
                 return True
 
@@ -1237,7 +1236,7 @@ class Script:
 
             # args2 = arg_list
             if new_window:
-                if restart_instance:
+                if restart_instance and single_instance:
                     # Close exising instances
                     close_window_by_name(self.get_window_title())
                 try:
@@ -1620,14 +1619,14 @@ def run_script(
 
 def get_script_default_config() -> Dict[str, Any]:
     return {
-        "adk": False,
         "adk.jdk_version": "",
-        "autoRun": False,
+        "adk": False,
         "args": "",
+        "autoRun": False,
         "background": False,
         "closeOnExit": True,
-        "cmake": False,
         "cmake.version": "",
+        "cmake": False,
         "cmdline": "",
         "conda": "",
         "globalHotkey": "",
@@ -1638,10 +1637,10 @@ def get_script_default_config() -> Dict[str, Any]:
         "newWindow": True,
         "packages": "",
         "reloadScriptsAfterRun": False,
-        "restartInstance": False,
         "runAsAdmin": False,
         "runAtStartup": False,
         "runpy": True,
+        "singleInstance": True,
         "tee": False,
         "template": None,
         "terminal": "alacritty",

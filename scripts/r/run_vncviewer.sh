@@ -11,7 +11,7 @@ rm connection.vnc || true
 cat >connection.vnc <<EOF
 ConnMethod=tcp
 FullScreen=${fullscreen}
-Quality=Low
+Quality=Medium
 Host=${VNC_SERVER}
 Password=${pwd}
 EOF
