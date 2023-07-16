@@ -916,7 +916,7 @@ class Script:
         # Get variable name value pairs
         variables = self.get_variables()
 
-        logging.info("execute script: %s: args=%s" % (self.name, args))
+        logging.info("Script.execute(): script=%s, args=%s" % (self.name, args))
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )
@@ -997,7 +997,7 @@ class Script:
 
         if "CWD" in os.environ:
             cwd = os.environ["CWD"]
-        logging.debug("Script.execute(): CWD: %s" % cwd)
+        logging.debug("CWD = %s" % cwd)
 
         # Automatically convert path arguments to UNIX path if running in WSL
         if sys.platform == "win32" and self.cfg["wsl"]:
@@ -1052,6 +1052,8 @@ class Script:
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
                 use_shell_execute_win32 = True
+            else:
+                logging.warning(f"{self.name} is not supported on {sys.platform }.")
 
         elif ext == ".cmd" or ext == ".bat":
             if sys.platform == "win32":
@@ -1602,7 +1604,7 @@ def start_script(
 
     end_time = time.time()
     logging.info(
-        "run_script: %s finished in %s" % (file, format_time(end_time - start_time)),
+        "%s finished in %s" % (file, format_time(end_time - start_time)),
     )
 
 
@@ -1836,7 +1838,7 @@ def get_all_scripts() -> Iterator[str]:
 def _execute_script_autorun(script: Script):
     assert script.cfg["autoRun"] or script.cfg["runAtStartup"]
     try:
-        logging.info("autorun: %s" % script.name)
+        logging.info("auto run script: %s" % script.name)
         script.execute(new_window=False, command_wrapper=False)
     except Exception as ex:
         logging.warning(f"Failed to autorun script: {script.script_path}")

@@ -53,7 +53,7 @@ def update_config(ini_file, section, kvps):
     updated_kvps = []
     for kvp in kvps:
         if kvp in lines:
-            print2("= %s" % kvp, color="blue")
+            print2("= %s" % kvp, color="black")
         else:
             updated_kvps.append(kvp)
             print2("+ %s" % kvp, color="green")

@@ -40,7 +40,7 @@ if __name__ == "__main__":
                         f'  psk="{wifi_pwd}"\n'
                         "}\n"
                     )
-                    print2(content, color="blue")
+                    print2(content, color="black")
                     f.write(content)
 
                 # Enable ssh

@@ -345,7 +345,7 @@ def call_echo(args, shell=False, check=True, no_output=False, **kwargs):
         s = args
 
     logger.debug("shell_cmd: %s" % s)
-    print2("> " + s, color="blue")
+    print2("> " + s, color="black")
 
     if isinstance(args, str):
         shell = True
@@ -1602,7 +1602,7 @@ def menu_loop(
         if end_time - start_time > 1:
             print2(
                 "(finished in %.2f secs)" % (end_time - start_time),
-                color="blue",
+                color="black",
             )
 
     print_help()
@@ -1716,8 +1716,7 @@ def setup_logger(level=logging.INFO, log_to_stdout=True, log_to_file=None):
     logger.setLevel(level)
 
     formatter = logging.Formatter(
-        "%(asctime)s %(levelname).1s: %(name)s: %(message)s",
-        "%H:%M:%S",
+        "%(levelname).1s: %(filename)10s: %(funcName)s(): %(message)s"
     )
 
     if log_to_stdout:

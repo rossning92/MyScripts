@@ -1,22 +1,21 @@
-import ctypes
-import sys
-import re
 import argparse
-
+import ctypes
+import re
+import sys
 
 # https://gist.github.com/dominikwilkowski/60eed2ea722183769d586c76f22098dd
 # ANSI escape codes for colors
 COLOR_MAP = {
-    "black": "\u001b[30;1m",
-    "blue": "\u001b[34;1m",
-    "cyan": "\u001b[36;1m",
-    "green": "\u001b[32;1m",
-    "magenta": "\u001b[35;1m",
-    "red": "\u001b[31;1m",
-    "RED": "\u001b[41;1m",
-    "white": "\u001b[37;1m",
-    "yellow": "\u001b[33;1m",
-    "YELLOW": "\u001b[43;1m",
+    "black": "\u001b[30m",
+    "blue": "\u001b[34m",
+    "cyan": "\u001b[36m",
+    "green": "\u001b[32m",
+    "magenta": "\u001b[35m",
+    "red": "\u001b[31m",
+    "RED": "\u001b[41m",
+    "white": "\u001b[37m",
+    "yellow": "\u001b[33m",
+    "YELLOW": "\u001b[43m",
 }
 RESET_ALL = "\033[0m"
 
