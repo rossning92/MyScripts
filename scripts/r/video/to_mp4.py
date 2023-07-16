@@ -1,12 +1,16 @@
+import argparse
 import os
 
-from _shutil import get_files, mkdir, setup_logger
+from _shutil import mkdir, setup_logger
 from _video import ffmpeg, hstack_videos
 from open_with.open_with import open_with
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", nargs="+")
+    args = parser.parse_args()
+
     setup_logger()
-    files = get_files(cd=True)
 
     crop_rect = (
         [int(x) for x in os.environ["_CROP_RECT"].split()[0:4]]
@@ -20,13 +24,14 @@ if __name__ == "__main__":
         else None
     )
 
-    for f in files:
-        if not os.path.isfile(f):
+    for file in args.file:
+        if not os.path.isfile(file):
             continue
 
-        mkdir("out")
-        name = os.path.basename(os.path.splitext(f)[0])
-        out_file = "out/%s.mp4" % name
+        out_dir = os.path.join(os.path.dirname(file), "out")
+        os.makedirs(out_dir, exist_ok=True)
+        name_no_ext = os.path.basename(os.path.splitext(file)[0])
+        out_file = os.path.join(out_dir, "%s.mp4" % name_no_ext)
 
         extra_args = []
 
@@ -36,8 +41,10 @@ if __name__ == "__main__":
                 extra_args += ["-crf", str(crf)]
                 out_files.append(
                     ffmpeg(
-                        f,
-                        out_file="out/{}_crf{}.mp4".format(name, crf),
+                        file,
+                        out_file=os.path.join(
+                            out_dir, "{}_crf{}.mp4".format(name_no_ext, crf)
+                        ),
                         start_and_duration=(
                             (0, 5) if start_and_duration is None else start_and_duration
                         ),
@@ -52,11 +59,11 @@ if __name__ == "__main__":
         else:
             env = os.environ
             ffmpeg(
-                f,
+                file,
                 out_file=out_file,
                 extra_args=extra_args,
                 nvenc=bool(env.get("_NVENC")),
-                crf=int(env.get("_CRF", 19)),
+                crf=int(env["_CRF"]) if env.get("_CRF") in env else 19,
                 max_size_mb=(
                     float(env["_MAX_SIZE_MB"]) if env.get("_MAX_SIZE_MB") else None
                 ),
@@ -80,5 +87,5 @@ if __name__ == "__main__":
                 reverse=bool(env.get("_REVERSE")),
             )
 
-        if env.get("_OPEN") and len(files) == 1:
+        if env.get("_OPEN") and len(args.file) == 1:
             open_with(out_file)

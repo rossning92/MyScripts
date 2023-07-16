@@ -47,7 +47,6 @@ PKGS = {
         # "atom",
         # "cmake --version=3.10.2 --force",
         # "miniconda3",
-        # "pycharm-community",
         # "visualstudio2017community",
         # "visualstudiocode-insiders --pre",
     ],

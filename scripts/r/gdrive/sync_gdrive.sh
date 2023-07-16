@@ -5,8 +5,12 @@ if [[ -z "${GDRIVE_DIR}" ]]; then
 fi
 
 if ! [ -x "$(command -v rclone)" ]; then
-    sudo -v
-    curl https://rclone.org/install.sh | sudo bash
+    if command -v termux-setup-storage; then # is running in termux
+        pkg install rclone -y
+    else
+        sudo -v
+        curl https://rclone.org/install.sh | sudo bash
+    fi
 fi
 
 if [[ $(rclone config file) =~ "doesn't exist" ]]; then

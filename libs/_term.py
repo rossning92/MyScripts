@@ -196,7 +196,7 @@ class Menu(Generic[T]):
         cancellable=True,
         close_on_selection=False,
     ):
-        self.input_ = InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
+        self._input = InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
         self.items = items
         self.closed = False
         self.matched_item_indices: List[int] = []
@@ -222,8 +222,14 @@ class Menu(Generic[T]):
 
         return decorator
 
+    def set_input(self, text: str):
+        self._input.set_text(text)
+
+    def set_prompt(self, prompt: str):
+        self._input.label = prompt
+
     def clear_input(self):
-        self.input_.clear()
+        self._input.clear()
         self.reset_selection()
         self.invalidated = True
 
@@ -359,14 +365,14 @@ class Menu(Generic[T]):
                 self.on_item_selected()
 
             elif ch == curses.ascii.ESC:
-                self.input_.clear()
+                self._input.clear()
                 self.invalidated = True
                 if self.cancellable:
                     self.matched_item_indices.clear()
                     return False
 
             elif ch != 0:
-                self.input_.on_char(ch)
+                self._input.on_char(ch)
                 self.invalidated = True
 
             self.prev_key = ch
@@ -394,7 +400,7 @@ class Menu(Generic[T]):
             return -1
 
     def get_text(self):
-        return self.input_.text
+        return self._input.text
 
     def get_items_per_page(self):
         return self.height - 2
@@ -459,7 +465,7 @@ class Menu(Generic[T]):
             if row >= max_height:
                 break
 
-        self.input_.on_update_screen(Menu.stdscr, 0, cursor=True)
+        self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
 
         if self.message is not None:
             Menu.stdscr.attron(curses.color_pair(3))
@@ -477,8 +483,12 @@ class Menu(Generic[T]):
         if ch == ord("\t"):
             item = self.get_selected_item()
             if item is not None:
-                self.input_.set_text("%s" % item)
+                self.set_input("%s" % item)
             return True
+
+        elif ch == curses.ascii.ctrl(ord("c")):
+            sys.exit(0)
+
         return False
 
     def on_enter_pressed(self):
@@ -563,7 +573,7 @@ class DictValueEditWindow(Menu):
         if ch == ord("\t"):
             val = self.get_selected_item()
             if val is not None:
-                self.input_.set_text(val)
+                self.set_input(val)
             return True
         elif ch == curses.KEY_DC:  # delete key
             i = self.get_selected_index()
@@ -640,7 +650,7 @@ class DictEditWindow(Menu):
             self.on_dict_history_update(self.dict_history)
 
         self.update_items()
-        self.input_.clear()
+        self._input.clear()
 
 
 def clear_terminal():

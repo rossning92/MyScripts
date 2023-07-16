@@ -124,6 +124,8 @@ def setup_env_var(env):
 
     env["PYTHONPATH"] = os.path.join(root, "libs")
 
+    env["MYSCRIPT_DATA_DIR"] = get_data_dir()
+
 
 def get_bin_dir():
     return os.path.abspath(SCRIPT_ROOT + "/../bin")
@@ -932,7 +934,6 @@ class Script:
                 arg_list = [file]
 
         env = {**variables}
-        env["MYSCRIPT_DATA_DIR"] = get_data_dir()
 
         shell = False
         use_shell_execute_win32 = False

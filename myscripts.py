@@ -176,7 +176,7 @@ class VariableEditWindow(Menu):
         if ch == ord("\t"):
             val = self.get_selected_item()
             if val is not None:
-                self.input_.set_text(val)
+                self.set_input(val)
             return True
         elif ch == curses.KEY_DC:  # delete key
             i = self.get_selected_index()
@@ -249,7 +249,7 @@ class VariableWindow(Menu):
         # if w.enter_pressed:
         #     self.close()
         self.update_items()
-        self.input_.clear()
+        self.clear_input()
 
 
 class ScriptManager:
@@ -663,9 +663,6 @@ class MainWindow(Menu[Script]):
                 self.run_selected_script()
                 self.clear_input()
                 return True
-
-            elif ch == curses.ascii.ctrl(ord("c")):
-                sys.exit(0)
 
             elif ch == ord("\t"):
                 script = self.get_selected_item()
