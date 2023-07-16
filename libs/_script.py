@@ -218,7 +218,7 @@ def get_last_script_and_args() -> Tuple[str, Any]:
         raise ValueError("file cannot be None.")
 
 
-def wrap_wsl(commands, env=None):
+def wrap_wsl(commands: Union[List[str], Tuple[str], str], env=None):
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
     logging.debug("wrap_wsl(): cmd: %s" % commands)
@@ -251,7 +251,9 @@ def wrap_wsl(commands, env=None):
     return ["bash.exe", "-c", tmp_sh_file]
 
 
-def wrap_bash_msys2(commands: str, env: Optional[Dict[str, str]] = None, msys2=False):
+def wrap_bash_windows(
+    args: List[str], env: Optional[Dict[str, str]] = None, msys2=False
+):
     if env is not None:
         # https://www.msys2.org/wiki/MSYS2-introduction/#path
         env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
@@ -260,8 +262,6 @@ def wrap_bash_msys2(commands: str, env: Optional[Dict[str, str]] = None, msys2=F
         env["HOME"] = get_home_path()
         # Export full PATH environment variable into MSYS2
         env["MSYS2_PATH_TYPE"] = "inherit"
-
-    tmp_sh_file = write_temp_file(commands, ".sh")
 
     msys2_bash_search_list = []
     if msys2:
@@ -272,31 +272,41 @@ def wrap_bash_msys2(commands: str, env: Optional[Dict[str, str]] = None, msys2=F
     msys2_bash_search_list += [
         r"C:\Program Files\Git\bin\bash.exe",
     ]
-    bash = None
+    bash_exec = None
     for f in msys2_bash_search_list:
         if os.path.exists(f):
-            bash = f
+            bash_exec = f
             break
-    logging.debug("bash path: %s" % bash)
+    logging.debug("bash_exec = %s" % bash_exec)
 
-    if bash is None:
+    if bash_exec is None:
         raise Exception("Cannot find MinGW bash.exe")
-    return [bash, "--login", "-i", tmp_sh_file]
+
+    if len(args) == 1 and args[0].endswith(".sh"):
+        return [bash_exec, "-i", args[0]]
+    else:
+        bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
+        logging.debug("bash_cmd = %s" % bash_cmd)
+        return [bash_exec, "-i", "-c", bash_cmd]
 
 
 def wrap_bash_commands(
-    commands: str, wsl=False, env: Optional[Dict[str, str]] = None, msys2=False
+    args: List[str], wsl=False, env: Optional[Dict[str, str]] = None, msys2=False
 ):
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
-            return wrap_wsl(commands, env=env)
+            return wrap_wsl(args, env=env)
 
         else:
-            return wrap_bash_msys2(commands, env=env, msys2=msys2)
+            return wrap_bash_windows(args, env=env, msys2=msys2)
 
     else:  # Linux
-        tmp_sh_file = write_temp_file(commands, ".sh")
-        return ["bash", "-i", tmp_sh_file]
+        if len(args) == 1 and args[0].endswith(".sh"):
+            return ["bash", "-i", args[0]]
+        else:
+            bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
+            logging.debug("bash_cmd = %s" % bash_cmd)
+            return ["bash", "-i", "-c", bash_cmd]
 
 
 def exec_cmd(cmd):
@@ -966,6 +976,7 @@ class Script:
         else:
             source = None
             template = self.cfg["template"]
+        logging.debug(f"template={template}")
 
         # HACK: pass current folder
         if "CWD" in os.environ:
@@ -1097,16 +1108,13 @@ class Script:
             script_path = convert_to_unix_path(script_path, wsl=self.cfg["wsl"])
 
             arg_list = [script_path] + arg_list
-            bash_cmd = "bash " + _args_to_str(arg_list, shell_type="bash")
-            logging.debug("bash_cmd: %s" % bash_cmd)
-
             arg_list = wrap_bash_commands(
-                bash_cmd, wsl=self.cfg["wsl"], env=env, msys2=self.cfg["msys2"]
+                arg_list, wsl=self.cfg["wsl"], env=env, msys2=self.cfg["msys2"]
             )
 
         elif ext == ".expect":
             arg_list = wrap_bash_commands(
-                "expect '%s'" % convert_to_unix_path(script_path, wsl=True),
+                ["expect", convert_to_unix_path(script_path, wsl=True)],
                 wsl=True,
                 env=env,
             )

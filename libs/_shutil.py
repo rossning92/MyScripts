@@ -146,7 +146,7 @@ def get_home_path():
     return str(Path.home())
 
 
-def write_temp_file(text, file_path):
+def write_temp_file(text: str, file_path: str):
     name, ext = os.path.splitext(file_path)
     if file_path.startswith("."):
         name = ""
@@ -1698,7 +1698,20 @@ def update_yaml(file, dict_):
     save_yaml(data, file)
 
 
-def setup_logger(level=logging.INFO, log_to_stdout=True, log_file=None):
+def setup_logger(level=logging.INFO, log_to_stdout=True, log_to_file=None):
+    class StreamToLogger:
+        def __init__(self, logger, level):
+            self.logger = logger
+            self.level = level
+            self.linebuf = ""
+
+        def write(self, buf):
+            for line in buf.rstrip().splitlines():
+                self.logger.log(self.level, line.rstrip())
+
+        def flush(self):
+            pass
+
     logger = logging.getLogger()
     logger.setLevel(level)
 
@@ -1708,16 +1721,21 @@ def setup_logger(level=logging.INFO, log_to_stdout=True, log_file=None):
     )
 
     if log_to_stdout:
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-        handler.setLevel(level)
-        logger.addHandler(handler)
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(formatter)
+        stream_handler.setLevel(level)
+        logger.addHandler(stream_handler)
     else:
         logger.propagate = False
 
-    if log_file:
+    if log_to_file:
+        # Redirect stdout and stderr to logger
+        sys.stdout = StreamToLogger(logger, logging.INFO)
+        sys.stderr = StreamToLogger(logger, logging.ERROR)
+
+        # Log to files
         file_handler = logging.FileHandler(
-            log_file, "w+", encoding="utf-8"
+            log_to_file, "w+", encoding="utf-8"
         )  # overwrite the file
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
