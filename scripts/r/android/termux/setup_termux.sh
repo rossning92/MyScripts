@@ -31,6 +31,10 @@ color7=#bfbfbf
 color15=#e6e6e6
 EOF
 
+cat >~/.termux/termux.properties <<EOF
+allow-external-apps = true
+EOF
+
 # Install required packages
 declare -a packages=("python" "git" "gh" "termux-api")
 for package in "${packages[@]}"; do

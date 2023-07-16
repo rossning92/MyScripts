@@ -3,9 +3,10 @@ import os
 import subprocess
 import sys
 import traceback
+from typing import List, Union
 
 from _pkgmanager import find_executable, require_package
-from _shutil import run_elevated
+from _shutil import is_in_termux, run_elevated, shell_open
 
 
 def load_config():
@@ -38,11 +39,15 @@ def open_with_hook(files, program_id):
     return False
 
 
-def open_with(files, program_id=0):
+def open_with(files: Union[str, List[str]], program_id=0):
     if type(files) == str:
         files = [files]
 
     ext = os.path.splitext(files[0])[1].lower()
+
+    if is_in_termux():
+        shell_open(files[0])
+        return
 
     if open_with_hook(files, program_id):
         return

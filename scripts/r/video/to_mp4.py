@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from _shutil import mkdir, setup_logger
+from _shutil import setup_logger
 from _video import ffmpeg, hstack_videos
 from open_with.open_with import open_with
 
