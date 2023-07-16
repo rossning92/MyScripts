@@ -222,6 +222,11 @@ class Menu(Generic[T]):
 
         return decorator
 
+    def clear_input(self):
+        self.input_.clear()
+        self.reset_selection()
+        self.invalidated = True
+
     def run_cmd(self, func):
         Menu.destroy_curses()
         func()

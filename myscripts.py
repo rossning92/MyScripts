@@ -45,6 +45,7 @@ from _shutil import (
     append_to_path_global,
     get_ahk_exe,
     getch,
+    is_in_termux,
     quote_arg,
     refresh_env_vars,
     run_at_startup,
@@ -54,7 +55,6 @@ from _shutil import (
     setup_nodejs,
     start_process,
     update_env_var_explorer,
-    is_in_termux,
 )
 from _template import render_template_file
 from _term import Menu
@@ -642,10 +642,6 @@ class MainWindow(Menu[Script]):
 
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
-
-    def clear_input(self):
-        self.input_.clear()
-        self.reset_selection()
 
     def on_char(self, ch):
         ALT_KEY = 27
