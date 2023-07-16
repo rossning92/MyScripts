@@ -1,1 +1,1 @@
-adb shell "getprop | grep 'ro.build.'"
+adb shell "getprop | grep 'ro.'"
