@@ -3,7 +3,6 @@
 # https://cs.android.com/android/platform/superproject/+/master:external/perfetto/tools/record_android_trace
 
 set -e
-cd $HOME/Desktop/
 adb root
 
 # Encode perfetto configurations into a binary file called "config.bin"
@@ -16,8 +15,10 @@ adb push config.bin /data/misc/perfetto-traces/config.bin
 
 adb shell perfetto -c /data/misc/perfetto-traces/config.bin -o /data/misc/perfetto-traces/trace
 
+{{ f'trace="{PERFETTO_OUT_FILE}"' if PERFETTO_OUT_FILE else r'''
+cd "$HOME/Desktop/"
 device=$(adb shell getprop ro.product.device | tr -d '\r')
-out_file="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"
-adb pull /data/misc/perfetto-traces/trace "$out_file"
+trace="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"''' }}
+adb pull /data/misc/perfetto-traces/trace "$trace"
 
-run_script r/android/perfetto/open_perfetto_trace.py "$out_file"
+{{ "" if PERFETTO_OUT_FILE else 'run_script r/android/perfetto/open_perfetto_trace.py "$trace"' }}

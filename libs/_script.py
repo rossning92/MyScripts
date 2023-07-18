@@ -988,7 +988,9 @@ class Script:
             if android_serial:
                 env["ANDROID_SERIAL"] = android_serial
 
-        if cd:
+        if self.cfg["workingDir"]:
+            cwd = self.cfg["workingDir"]
+        elif cd:
             cwd = os.path.abspath(
                 os.path.join(os.getcwd(), os.path.dirname(script_path))
             )
@@ -1658,6 +1660,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "title": "",
         "variableNames": "auto",
         "venv": "",
+        "workingDir": "",
         "wsl": False,
     }
 
