@@ -1,2 +1,3 @@
 globalHotkey: win+alt+g
 hotkey: shift+g
+variableNames: GIT_REPO

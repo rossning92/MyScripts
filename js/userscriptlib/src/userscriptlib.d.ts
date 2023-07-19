@@ -13,6 +13,7 @@ declare global {
     function findElementByText(text: string): Node | null;
     function findElementByPartialText(text: string): Node | null;
     function waitForSelector(selector: string): Promise<Node | null>;
+    function waitForSelectorAll(selector: string): Promise<NodeList | null>;
     function waitForText(text: string): Promise<Node | null>;
     function waitForPartialText(text: string): Promise<Node | null>;
     function waitForXPath(xpath: string): Promise<Node | null>;

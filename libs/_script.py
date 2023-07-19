@@ -665,9 +665,13 @@ def wrap_args_alacritty(
     if title:
         out += ["--title", title]
 
-    # HACK: Alacritty handles spaces in a weird way: if arg has space in it, must double quote it.
     if sys.platform == "win32":
+        # HACK: back slash will need to be replaced with three backslashes?
+        args = [x.replace("\\", "\\\\\\") for x in args]
+
+        # HACK: Alacritty handles spaces in a weird way: if arg has space in it, must double quote it.
         args = [f'"{x}"' if " " in x else x for x in args]
+
     out += ["-e"] + args
     return out
 

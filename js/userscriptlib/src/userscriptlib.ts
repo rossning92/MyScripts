@@ -20,6 +20,7 @@ declare global {
   function findElementByText(text: string): Node | null;
   function findElementByPartialText(text: string): Node | null;
   function waitForSelector(selector: string): Promise<Node | null>;
+  function waitForSelectorAll(selector: string): Promise<NodeList | null>;
   function waitForText(text: string): Promise<Node | null>;
   function waitForPartialText(text: string): Promise<Node | null>;
   function waitForXPath(xpath: string): Promise<Node | null>;
@@ -167,7 +168,7 @@ function createHandle({
   return handle;
 }
 
-function waitFor(evaluate: () => Node | null): Promise<Node | null> {
+function waitFor<Type>(evaluate: () => Type | null): Promise<Type | null> {
   const evaluateWrapper = () => {
     const ele = evaluate();
     if (ele && ele instanceof HTMLElement) {
@@ -179,9 +180,7 @@ function waitFor(evaluate: () => Node | null): Promise<Node | null> {
 
   return new Promise((resolve) => {
     const ele = evaluateWrapper();
-    if (ele) {
-      return resolve(ele);
-    }
+    resolve(ele);
 
     const observer = new MutationObserver((mutations) => {
       const ele = evaluateWrapper();
@@ -251,6 +250,10 @@ _global.findElementByPartialText = (text) => {
 
 _global.waitForSelector = (selector) => {
   return waitFor(() => document.querySelector(selector));
+};
+
+_global.waitForSelectorAll = (selector) => {
+  return waitFor(() => document.querySelectorAll(selector));
 };
 
 _global.waitForText = (text) => {
