@@ -285,7 +285,7 @@ def wrap_bash_windows(
     if len(args) == 1 and args[0].endswith(".sh"):
         return [bash_exec, "-i", args[0]]
     else:
-        bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
+        bash_cmd = _args_to_str(["bash"] + args, shell_type="bash")
         logging.debug("bash_cmd = %s" % bash_cmd)
         return [bash_exec, "-i", "-c", bash_cmd]
 
@@ -1436,11 +1436,15 @@ class Script:
 
             if use_shell_execute_win32:
                 SW_SHOWNORMAL = 1
+                lpParameters = _args_to_str(arg_list[1:], shell_type="cmd")
+                logging.debug(
+                    f"ShellExecuteW(): lpFile={arg_list[0]}  lpParameters={lpParameters}"
+                )
                 ret = ctypes.windll.shell32.ShellExecuteW(
                     None,  # hwnd
                     None,  # lpOperation
                     arg_list[0],
-                    _args_to_str(arg_list[1:], shell_type="cmd"),
+                    lpParameters,
                     cwd,
                     SW_SHOWNORMAL,
                 )

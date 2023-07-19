@@ -58,10 +58,11 @@ def wake_up_device():
 
 
 def get_main_activity(pkg):
-    args = f'adb shell "dumpsys package | grep -i {pkg}/ | grep Activity"'
-    out = subprocess.check_output(args, shell=True)
-    out = out.decode().strip()
-    lines = out.splitlines()
+    out = subprocess.check_output(
+        ["adb", "shell", f"dumpsys package | grep -i {pkg}/ | grep Activity"],
+        universal_newlines=True,
+    )
+    lines = out.strip().splitlines()
     line = lines[0].strip()
     _, pkg_activity = line.split()
     return pkg_activity
