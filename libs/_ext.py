@@ -135,10 +135,17 @@ def copy_script_path_to_clipboard(
 ):
     script_path = script.script_path
     _, ext = os.path.splitext(script_path)
-    if ext == ".md" or ext == ".txt":
+
+    if script_path.endswith(".user.js"):
+        url = script.get_userscript_url()
+        set_clip(url)
+        logging.info("Copied url: %s" % url)
+
+    elif ext == ".md" or ext == ".txt":
         with open(script_path, "r", encoding="utf-8") as f:
             set_clip(f.read())
         logging.info("Content is copied to clipboard.")
+
     else:
         # Convert to relative path
         script_path = get_relative_script_path(script_path)

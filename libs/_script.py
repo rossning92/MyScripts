@@ -889,6 +889,9 @@ class Script:
             (prefix + k if k.startswith("_") else k): v for k, v in variables.items()
         }
 
+    def get_userscript_url(self) -> str:
+        return "http://127.0.0.1:4312/fs/" + self.script_path.replace(os.path.sep, "/")
+
     def execute(
         self,
         args: Optional[Union[str, List[str]]] = None,
