@@ -667,7 +667,7 @@ def adb_install(
             )
             logging.debug(out)
         except subprocess.CalledProcessError as ex:
-            msg = ex.output.decode()
+            msg = ex.output
             logging.warning(msg)
 
             if "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in msg:
