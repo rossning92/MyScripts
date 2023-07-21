@@ -23,12 +23,12 @@ from _shutil import (
 @menu_item(key="c")
 def commit(dry_run=False, amend=False) -> bool:
     if is_working_tree_clean():
-        print2("Working directory clean, changed files in HEAD:", color="black")
+        print2("Working directory clean, changed files in HEAD:", color="gray")
         for line in get_output(
             ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
             shell=False,
         ).splitlines():
-            print2("  " + line, color="black")
+            print2("  " + line, color="gray")
         return False
 
     call_echo("git status --short")

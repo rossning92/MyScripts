@@ -345,7 +345,7 @@ def call_echo(args, shell=False, check=True, no_output=False, **kwargs):
         s = args
 
     logger.debug("shell_cmd: %s" % s)
-    print2("> " + s, color="black")
+    print2("> " + s, color="gray")
 
     if isinstance(args, str):
         shell = True
@@ -725,7 +725,7 @@ def print2(msg, color="yellow", end="\n"):
     # https://gist.github.com/dominikwilkowski/60eed2ea722183769d586c76f22098dd
     # ANSI escape codes for colors
     COLOR_MAP = {
-        "black": "\u001b[30;1m",
+        "gray": "\u001b[90;1m",
         "blue": "\u001b[34;1m",
         "cyan": "\u001b[36;1m",
         "green": "\u001b[32;1m",
@@ -1602,7 +1602,7 @@ def menu_loop(
         if end_time - start_time > 1:
             print2(
                 "(finished in %.2f secs)" % (end_time - start_time),
-                color="black",
+                color="gray",
             )
 
     print_help()

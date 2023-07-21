@@ -851,7 +851,7 @@ def logcat_bg(patt):
                 ]
             ):
                 if re.search(patt, line):
-                    print2(line, end="\r\n", color="black")
+                    print2(line, end="\r\n", color="gray")
 
             print("logcat end.", end="\r\n")
             time.sleep(1)

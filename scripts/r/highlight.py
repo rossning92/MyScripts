@@ -6,7 +6,7 @@ import sys
 # https://gist.github.com/dominikwilkowski/60eed2ea722183769d586c76f22098dd
 # ANSI escape codes for colors
 COLOR_MAP = {
-    "black": "\u001b[30m",
+    "gray": "\u001b[90m",
     "blue": "\u001b[34m",
     "cyan": "\u001b[36m",
     "green": "\u001b[32m",

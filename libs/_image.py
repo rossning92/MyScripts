@@ -180,7 +180,7 @@ def draw_text(
     del draw
 
 
-def add_margin(im, top=0, right=0, bottom=0, left=0, color="black"):
+def add_margin(im, top=0, right=0, bottom=0, left=0, color="gray"):
     width, height = im.size
     new_width = width + right + left
     new_height = height + top + bottom
