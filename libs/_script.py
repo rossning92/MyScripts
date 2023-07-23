@@ -124,7 +124,7 @@ def setup_env_var(env):
 
     env["PYTHONPATH"] = os.path.join(root, "libs")
 
-    env["MYSCRIPT_DATA_DIR"] = get_data_dir()
+    env["MY_DATA_DIR"] = get_data_dir()
 
 
 def get_bin_dir():

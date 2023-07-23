@@ -11,7 +11,7 @@ class Config:
         self.cur_dir = get_home_path()
         self.selected_file = ""
         self.config_file = os.path.join(
-            os.environ["MYSCRIPT_DATA_DIR"], "file_browser_config.json"
+            os.environ["MY_DATA_DIR"], "file_browser_config.json"
         )
 
     def load(self):

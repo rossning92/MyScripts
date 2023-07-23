@@ -1801,7 +1801,7 @@ def quote_arg(s, shell_type: str = "cmd"):
     elif shell_type == "cmd":
         s = s.replace('"', '""')  # for cmd, we need to escape " with ""
 
-    if " " in s:  # quote space
+    if " " in s or "\\" in s:  # quote space
         if shell_type == "cmd":
             s = '"' + s + '"'
         else:
