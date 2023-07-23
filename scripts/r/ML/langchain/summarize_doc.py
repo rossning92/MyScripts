@@ -1,5 +1,5 @@
-# https://python.langchain.com/en/latest/use_cases/question_answering.html
-# https://python.langchain.com/en/latest/modules/chains/index_examples/summarize.html
+# https://python.langchain.com/docs/use_cases/question_answering.html
+# https://python.langchain.com/docs/modules/chains/popular/summarize
 
 # OPENAI_API_KEY
 
@@ -16,10 +16,6 @@ from langchain.text_splitter import CharacterTextSplitter
 if __name__ == "__main__":
     setup_logger(level=logging.DEBUG)
 
-    llm = OpenAI(temperature=0)
-
-    text_splitter = CharacterTextSplitter()
-
     parser = argparse.ArgumentParser()
     parser.add_argument("file", help="Input file path")
     parser.add_argument(
@@ -27,6 +23,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    # Create language model
+    llm = OpenAI(temperature=0)
+
+    # Create text splitter
+    text_splitter = CharacterTextSplitter(separator="\n")
     with open(args.file, encoding="utf-8") as f:
         content = f.read()
     texts = text_splitter.split_text(content)

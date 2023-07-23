@@ -1,9 +1,8 @@
 #!/bin/bash
-mkdir -p out
 for file in "$@"; do
     echo "Rotate image: $file"
-    base=$(dirname "$file")
-    name=$(basename "$file")
-    mkdir -p "$base/out"
-    magick "$file" -rotate 90 "$base/out/$name"
+    if [[ -n "${BACKUP_IMAGE}" ]]; then
+        cp "$file" "$file.bak"
+    fi
+    magick "$file" -rotate 90 "$file"
 done
