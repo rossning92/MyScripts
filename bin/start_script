@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+start_script="$(dirname "$0")/start_script.py"
+if [[ "$(uname -o)" == "Msys" ]]; then
+    start_script="$(cygpath -w "${start_script}")"
+fi
+
+if [ -x "$(command -v python3)" ]; then
+    python3 "${start_script}" "$@"
+else
+    python "${start_script}" "$@"
+fi

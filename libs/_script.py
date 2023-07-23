@@ -895,7 +895,8 @@ class Script:
     def execute(
         self,
         args: Optional[Union[str, List[str]]] = None,
-        new_window=None,
+        new_window: Optional[bool] = None,
+        single_instance=None,
         restart_instance=False,
         close_on_exit=None,
         cd=True,
@@ -911,13 +912,16 @@ class Script:
 
         background = self.cfg["background"]
 
-        single_instance = self.cfg["singleInstance"]
+        if single_instance is None:
+            single_instance = self.cfg["singleInstance"]
 
         if tee is None:
             tee = self.cfg["tee"]
 
-        if not restart_instance and new_window and single_instance:
-            if activate_window_by_name(self.get_window_title()):
+        if not restart_instance and single_instance:
+            title = self.get_window_title()
+            if activate_window_by_name(title):
+                logging.info(f"Activated window by title: {title}")
                 return True
 
         # Get variable name value pairs
@@ -1550,14 +1554,15 @@ def find_script(patt: str) -> Optional[str]:
 def start_script(
     file: Optional[str] = None,
     args=[],
-    variables=None,
-    console_title=None,
+    cd=True,
     config_override=None,
-    template=None,
+    console_title=None,
     new_window=None,
     restart_instance=None,
-    cd=True,
+    single_instance=None,
     tee=None,
+    template=None,
+    variables=None,
 ):
     start_time = time.time()
 
@@ -1601,11 +1606,12 @@ def start_script(
         script.set_override_variables(variables)
 
     ret = script.execute(
-        restart_instance=restart_instance,
-        new_window=new_window,
-        close_on_exit=True,
         args=args,
         cd=cd,
+        close_on_exit=True,
+        new_window=new_window,
+        restart_instance=restart_instance,
+        single_instance=single_instance,
         tee=tee,
     )
     if not ret:
@@ -1626,6 +1632,7 @@ def run_script(
     args=[],
     new_window=False,  # should not start a new window by default
     restart_instance=False,
+    single_instance=False,
     cd=True,
     tee=False,
     **kwargs,
@@ -1635,6 +1642,7 @@ def run_script(
         args,
         new_window=new_window,
         restart_instance=restart_instance,
+        single_instance=single_instance,
         cd=cd,
         tee=tee,
         **kwargs,

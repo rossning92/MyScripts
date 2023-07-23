@@ -81,6 +81,7 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXA
             return
 
         ids = get_output(["xdotool", "search", "--name", name]).split()
+        logging.debug("---done---")
         if ids:
             if cmd == "activate":
                 subprocess.call(["xdotool", "windowactivate", ids[0]])
