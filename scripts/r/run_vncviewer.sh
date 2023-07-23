@@ -27,6 +27,7 @@ if [[ "$(uname)" == "linux"* || "$(uname)" == "Linux"* ]]; then
         echo 'VNC Viewer installed successfully.'
     fi
 
+    killall vncviewer
     vncviewer -config ~/connection.vnc &
 elif [[ "$(uname)" == "MINGW"* ]]; then
     "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" -config connection.vnc &
