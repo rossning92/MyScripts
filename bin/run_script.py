@@ -1,5 +1,4 @@
 import os
-import subprocess
 import sys
 from typing import Dict, List, Optional, Tuple
 
@@ -56,6 +55,6 @@ try:
         args=rest_args,
         **kwargs,
     )
-except subprocess.CalledProcessError as ex:
-    print(ex)
+except Exception as ex:
+    print("Error: %s" % ex)
     sys.exit(1)

@@ -302,11 +302,11 @@ def wrap_bash_commands(
 
     else:  # Linux
         if len(args) == 1 and args[0].endswith(".sh"):
-            return ["bash", "-i", args[0]]
+            return ["bash", args[0]]
         else:
             bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
             logging.debug("bash_cmd = %s" % bash_cmd)
-            return ["bash", "-i", "-c", bash_cmd]
+            return ["bash", "-c", bash_cmd]
 
 
 def exec_cmd(cmd):
@@ -1555,6 +1555,7 @@ def start_script(
     file: Optional[str] = None,
     args=[],
     cd=True,
+    command_wrapper=True,
     config_override=None,
     console_title=None,
     new_window=None,
@@ -1609,13 +1610,14 @@ def start_script(
         args=args,
         cd=cd,
         close_on_exit=True,
+        command_wrapper=command_wrapper,
         new_window=new_window,
         restart_instance=restart_instance,
         single_instance=single_instance,
         tee=tee,
     )
     if not ret:
-        raise Exception("[ERROR] %s returns non zero" % file)
+        raise Exception("%s returns non zero" % file)
 
     # Restore title
     if console_title and sys.platform == "win32":
@@ -1640,10 +1642,11 @@ def run_script(
     start_script(
         file,
         args,
+        cd=cd,
+        command_wrapper=False,
         new_window=new_window,
         restart_instance=restart_instance,
         single_instance=single_instance,
-        cd=cd,
         tee=tee,
         **kwargs,
     )

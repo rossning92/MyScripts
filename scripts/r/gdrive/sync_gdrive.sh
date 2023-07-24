@@ -4,20 +4,9 @@ if [[ -z "${GDRIVE_DIR}" ]]; then
     exit 1
 fi
 
-if ! [ -x "$(command -v rclone)" ]; then
-    if command -v termux-setup-storage; then # is running in termux
-        pkg install rclone -y
-    else
-        sudo -v
-        curl https://rclone.org/install.sh | sudo bash
-    fi
-fi
+source "$(dirname "$0")/_init_rclone.sh"
 
-if [[ $(rclone config file) =~ "doesn't exist" ]]; then
-    rclone config create drive drive
-fi
-
-cd ~
+cd "$HOME"
 
 # Create local directory if it does not exist
 mkdir -p "gdrive/${GDRIVE_DIR}"

@@ -76,21 +76,16 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXA
                 raise Exception("Invalid cmd parameter: %s" % cmd)
 
     elif sys.platform == "linux":
-        if not shutil.which("xdotool"):
-            logging.warning("Skip %s window, xdotool is not installed." % cmd)
+        if not shutil.which("wmctrl"):
+            logging.warning("Cannot %s window, wmctrl is not installed." % cmd)
             return
 
-        ids = get_output(["xdotool", "search", "--name", name]).split()
-        logging.debug("---done---")
-        if ids:
-            if cmd == "activate":
-                subprocess.call(["xdotool", "windowactivate", ids[0]])
-                return True
-            elif cmd == "close":
-                subprocess.call(["xdotool", "windowclose", ids[0]])
-                return True
-            else:
-                raise Exception("Invalid cmd parameter: %s" % cmd)
+        if cmd == "activate":
+            return subprocess.call(["wmctrl", "-a", name]) == 0
+        elif cmd == "close":
+            return subprocess.call(["wmctrl", "-c", name]) == 0
+        else:
+            raise Exception("Invalid cmd parameter: %s" % cmd)
     return False
 
 
