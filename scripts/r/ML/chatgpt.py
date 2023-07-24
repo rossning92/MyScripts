@@ -2,7 +2,6 @@ import argparse
 import os
 
 import openai
-from _script import get_data_dir
 from _shutil import load_json, set_clip
 from _term import select_option
 
@@ -21,7 +20,7 @@ if __name__ == "__main__":
 
     if args.custom_prompts:
         options = load_json(
-            os.path.join(get_data_dir(), "custom_prompts.json"),
+            os.path.join(os.environ["MY_DATA_DIR"], "custom_prompts.json"),
         )
         idx = select_option(options, history_file_name="custom_prompts")
         prompt_text = options[idx]
