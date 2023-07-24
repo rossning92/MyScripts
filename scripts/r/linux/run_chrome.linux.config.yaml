@@ -1,2 +1,3 @@
 globalHotkey: win+c
-title: Google Chrome
+newWindow: false
+title: '- Google Chrome'

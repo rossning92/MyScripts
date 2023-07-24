@@ -7,9 +7,9 @@ if [[ "$(uname)" == "Linux" ]] && [[ -f "/etc/debian_version" ]]; then
     # Install required packages
     declare -a packages=(
         "python3-pip"
-        "sxhkd"
-        "xdotool"
         "suckless-tools" # for dmenu
+        "sxhkd"
+        "wmctrl"
     )
     for package in "${packages[@]}"; do
         dpkg -s "$package" >/dev/null 2>&1 || {

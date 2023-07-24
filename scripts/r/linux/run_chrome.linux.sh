@@ -1,3 +1,2 @@
-set -e
-./install_google_chrome.sh
-wmctrl -a '- Google Chrome' || google-chrome &
+"$(dirname "$0")/install_google_chrome.sh"
+nohup google-chrome >/dev/null 2>&1 &
