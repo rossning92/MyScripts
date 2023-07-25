@@ -12,7 +12,7 @@ from _shutil import (
 )
 
 
-def run_bash_script_in_remote_shell(script_path):
+def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=False):
     ext = os.path.splitext(script_path)[1]
     if ext != ".sh" and ext != ".txt":
         print("Script type is not supported: %s" % ext)
@@ -66,6 +66,8 @@ def run_bash_script_in_remote_shell(script_path):
             # -d: indicates attached screen sessions
             # ^C: send Ctrl-C
             "screen -d -X stuff ^Z^Mbg^M;"
+            if send_prev_job_to_background
+            else "screen -d -X stuff ^C;"
             if ext == ".sh"
             else ""
         )
@@ -87,6 +89,9 @@ def run_bash_script_in_remote_shell(script_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("file", type=str, nargs="?", default=None)
+    parser.add_argument(
+        "-b", "--send-prev-job-to-background", default=False, action="store_true"
+    )
     args = parser.parse_args()
 
     if args.file:
@@ -94,4 +99,6 @@ if __name__ == "__main__":
     else:
         script_path = os.environ["SCRIPT"]
 
-    run_bash_script_in_remote_shell(script_path)
+    run_bash_script_in_remote_shell(
+        script_path, send_prev_job_to_background=args.send_prev_job_to_background
+    )

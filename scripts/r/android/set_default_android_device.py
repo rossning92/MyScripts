@@ -25,21 +25,24 @@ def get_device_list() -> List[DeviceInfo]:
             serial, _ = line.split()
 
             # Get product name
-            product = subprocess.check_output(
-                ["adb", "-s", serial, "shell", "getprop", "ro.build.product"],
-                universal_newlines=True,
-            ).strip()
+            try:
+                product = subprocess.check_output(
+                    ["adb", "-s", serial, "shell", "getprop", "ro.build.product"],
+                    universal_newlines=True,
+                ).strip()
 
-            # Get battery level
-            out = subprocess.check_output(
-                ["adb", "-s", serial, "shell", "dumpsys", "battery"],
-                universal_newlines=True,
-            )
-            match = re.findall("level: (\d+)", out)
-            if match:
-                battery_level = match[0]
-            else:
-                battery_level = None
+                # Get battery level
+                out = subprocess.check_output(
+                    ["adb", "-s", serial, "shell", "dumpsys", "battery"],
+                    universal_newlines=True,
+                )
+                match = re.findall("level: (\d+)", out)
+                if match:
+                    battery_level = match[0]
+                else:
+                    battery_level = None
+            except subprocess.CalledProcessError:
+                continue
 
             # Find next unused key
             for key in product:
