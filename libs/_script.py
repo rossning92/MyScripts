@@ -1481,7 +1481,7 @@ class Script:
             else:
                 logging.debug("cmdline: %s" % arg_list)
                 logging.debug("popen_extra_args: %s" % popen_extra_args)
-                logging.debug("env = %s" % env)
+                # logging.debug("env = %s" % env)
                 ps = subprocess.Popen(
                     args=arg_list,
                     env={**os.environ, **env},

@@ -14,6 +14,6 @@ if ! command -v yt-dlp &>/dev/null; then
 fi
 
 # https://github.com/yt-dlp/yt-dlp#format-selection
-yt-dlp -f "bestvideo[height=1080]+bestaudio" --no-mtime "$1" --no-playlist
+yt-dlp -S "res:1080" --no-mtime "$1" --no-playlist
 
 run_script r/save_video_url.py "$1"
