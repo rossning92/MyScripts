@@ -283,11 +283,12 @@ def wrap_bash_windows(
         raise Exception("Cannot find MinGW bash.exe")
 
     if len(args) == 1 and args[0].endswith(".sh"):
-        return [bash_exec, "-i", args[0]]
+        # -l: must start as a login shell otherwise the PATH environmental variable is not correctly set up.
+        return [bash_exec, "-l", args[0]]
     else:
         bash_cmd = _args_to_str(["bash"] + args, shell_type="bash")
         logging.debug("bash_cmd = %s" % bash_cmd)
-        return [bash_exec, "-i", "-c", bash_cmd]
+        return [bash_exec, "-l", "-c", bash_cmd]
 
 
 def wrap_bash_commands(
@@ -666,11 +667,9 @@ def wrap_args_alacritty(
         out += ["--title", title]
 
     if sys.platform == "win32":
-        # HACK: back slash will need to be replaced with three backslashes?
-        args = [x.replace("\\", "\\\\\\") for x in args]
-
         # HACK: Alacritty handles spaces in a weird way: if arg has space in it, must double quote it.
-        args = [f'"{x}"' if " " in x else x for x in args]
+        # Backslash will need to be replaced with three backslashes otherwise they'll disappear for some reason
+        args = ['"' + x.replace("\\", "\\\\\\") + '"' if " " in x else x for x in args]
 
     out += ["-e"] + args
     return out
@@ -1482,6 +1481,7 @@ class Script:
             else:
                 logging.debug("cmdline: %s" % arg_list)
                 logging.debug("popen_extra_args: %s" % popen_extra_args)
+                logging.debug("env = %s" % env)
                 ps = subprocess.Popen(
                     args=arg_list,
                     env={**os.environ, **env},

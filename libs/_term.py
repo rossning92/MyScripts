@@ -184,6 +184,10 @@ class MenuItem:
         return self.name
 
 
+def ceildiv(a, b):
+    return -(a // -b)
+
+
 class Menu(Generic[T]):
     stdscr = None
 
@@ -405,16 +409,20 @@ class Menu(Generic[T]):
     def get_items_per_page(self):
         return self.height - 2
 
-    def print_str(self, row, col, s):
+    def draw_text(self, row, col, s, highlight_parenthesis=False):
         assert Menu.stdscr is not None
 
         TAB_SIZE = 8
         if row >= self.height:
             return
 
+        if col < 0:
+            s = ".." + s[-col + 2 :]
+            col = 0
+
         j = col
         for ch in s:
-            if ch == "(":
+            if highlight_parenthesis and ch == "(":
                 Menu.stdscr.attron(curses.color_pair(1))
 
             if ch == "\t":
@@ -429,7 +437,7 @@ class Menu(Generic[T]):
                 # Tolerate "addwstr() returned ERR"
                 pass
 
-            if ch == ")":
+            if highlight_parenthesis and ch == ")":
                 Menu.stdscr.attroff(curses.color_pair(1))
 
             j = next_j
@@ -446,26 +454,37 @@ class Menu(Generic[T]):
         row = 2
         items_per_page = self.get_items_per_page()
 
-        page = self.selected_row // items_per_page
+        current_page_index = self.selected_row // items_per_page
+        total_pages = ceildiv(len(self.matched_item_indices), items_per_page)
         selected_index_in_page = self.selected_row % items_per_page
-        indices_in_page = self.matched_item_indices[page * items_per_page :]
+        indices_in_page = self.matched_item_indices[
+            current_page_index * items_per_page :
+        ]
         for i, item_index in enumerate(indices_in_page):
             # Index
             if i == selected_index_in_page:  # hightlight on
                 Menu.stdscr.attron(curses.color_pair(2))
             s = "{:>4}".format(item_index + 1)
-            self.print_str(row, 0, s)
+            self.draw_text(row, 0, s, highlight_parenthesis=True)
             if i == selected_index_in_page:  # highlight off
                 Menu.stdscr.attroff(curses.color_pair(2))
 
             # Item name
-            self.print_str(row, 5, str(self.items[item_index]))
+            self.draw_text(
+                row, 5, str(self.items[item_index]), highlight_parenthesis=True
+            )
 
             row += 1
             if row >= max_height:
                 break
 
         self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
+
+        matched_item_str = "(Pg: %d/%d)" % (
+            current_page_index + 1,
+            total_pages,
+        )
+        self.draw_text(0, self.width - len(matched_item_str), matched_item_str)
 
         if self.message is not None:
             Menu.stdscr.attron(curses.color_pair(3))

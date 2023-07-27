@@ -733,7 +733,7 @@ class MainWindow(Menu[Script]):
                 for i, s in enumerate(preview):
                     if height + i >= self.height:
                         break
-                    self.print_str(height + i, 0, s)
+                    self.draw_text(height + i, 0, s)
 
         super().on_update_screen(max_height=height)
 
