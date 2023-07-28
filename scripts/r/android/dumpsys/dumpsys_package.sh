@@ -1,1 +1,1 @@
-adb shell dumpsys package ${PKG_NAME}
+adb shell dumpsys package {{PKG_NAME}}

@@ -478,8 +478,6 @@ class Menu(Generic[T]):
             if row >= max_height:
                 break
 
-        self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
-
         matched_item_str = "(Pg: %d/%d)" % (
             current_page_index + 1,
             total_pages,
@@ -490,6 +488,9 @@ class Menu(Generic[T]):
             Menu.stdscr.attron(curses.color_pair(3))
             Menu.stdscr.addstr(1, 0, self.message)
             Menu.stdscr.attroff(curses.color_pair(3))
+
+        # Render input widget at the end, so the cursor will be move to the correct position
+        self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
 
     def get_selected_item(self):
         if len(self.matched_item_indices) > 0:
