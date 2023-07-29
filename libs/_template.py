@@ -57,6 +57,12 @@ class Template:
 
         global_context["include"] = include
 
+        def expect(exp, message):
+            if not exp:
+                raise Exception(message)
+
+        global_context["expect"] = expect
+
         # run the code
         result = []
         for is_code, token in self.tokens:

@@ -1680,6 +1680,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "template": None,
         "terminal": "alacritty",
         "title": "",
+        "updateSelectedScriptAccessTime": False,
         "variableNames": "auto",
         "venv": "",
         "workingDir": "",

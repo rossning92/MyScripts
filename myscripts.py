@@ -529,6 +529,7 @@ class MainWindow(Menu[Script]):
 
             update_script_access_time(script)
             script_manager.sort_scripts()
+            self.refresh()
 
             self.run_cmd(
                 lambda: execute_script(
@@ -688,7 +689,10 @@ class MainWindow(Menu[Script]):
                         logging.info("Reload scripts after running: %s" % script.name)
                         self._reload_scripts()
                     else:
+                        if script.cfg["updateSelectedScriptAccessTime"]:
+                            update_script_access_time(selected_script)
                         script_manager.sort_scripts()
+                        self.refresh()
                     return True
 
             return False

@@ -215,6 +215,7 @@ class Menu(Generic[T]):
         self.prev_key = -1
         self.close_on_selection = close_on_selection
         self.invalidated = True  # only update screen when invalidated is True. This is set to True to trigger the initial draw.
+        self.should_refresh = False
 
     def item(self, name=None):
         def decorator(func):
@@ -306,6 +307,9 @@ class Menu(Generic[T]):
     def reset_selection(self):
         self.selected_row = 0
 
+    def refresh(self):
+        self.should_refresh = True
+
     # Returns false if we should exit main loop for the current window
     def process_events(self, blocking=True) -> bool:
         assert Menu.stdscr is not None
@@ -315,13 +319,16 @@ class Menu(Generic[T]):
         else:
             Menu.stdscr.timeout(0)
 
-        if not blocking or (
-            self.last_input != self.get_text()
+        self.should_refresh = (
+            self.should_refresh
+            or self.last_input != self.get_text()
             or self.last_item_count != len(self.items)
-        ):
+        )
+        if not blocking or self.should_refresh:
             self.last_input = self.get_text()
             self.last_item_count = len(self.items)
             self.update_matched_items()
+            self.should_refresh = False
 
         if self.invalidated:
             self.update_screen()

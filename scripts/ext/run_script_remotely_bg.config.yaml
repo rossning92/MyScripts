@@ -1,4 +1,4 @@
-hotkey: ctrl+p
+hotkey: ctrl+[
 newWindow: false
 updateSelectedScriptAccessTime: true
 variableNames: ''
