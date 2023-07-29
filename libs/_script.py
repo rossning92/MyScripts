@@ -608,11 +608,13 @@ def wrap_args_wt(
 
 
 def get_hotkey_abbr(hotkey):
-    hotkey = (
-        hotkey.lower().replace("win+", "#").replace("ctrl+", "^").replace("alt+", "!")
+    return (
+        hotkey.lower()
+        .replace("win+", "#")
+        .replace("ctrl+", "^")
+        .replace("alt+", "!")
+        .replace("shift+", "+")
     )
-    hotkey = re.sub(r"shift\+([a-z])", lambda m: m.group(1).upper(), hotkey)
-    return hotkey
 
 
 def wrap_args_alacritty(
@@ -954,6 +956,14 @@ class Script:
                 arg_list = [file]
 
         env = {**variables}
+
+        # Set proxy settings
+        proxy_settings = load_json(
+            os.path.join(get_data_dir(), "proxy_settings.json"),
+            default={"http_proxy": ""},
+        )
+        if proxy_settings["http_proxy"]:
+            env["http_proxy"] = proxy_settings["http_proxy"]
 
         shell = False
         use_shell_execute_win32 = False
@@ -1481,7 +1491,7 @@ class Script:
             else:
                 logging.debug("cmdline: %s" % arg_list)
                 logging.debug("popen_extra_args: %s" % popen_extra_args)
-                # logging.debug("env = %s" % env)
+                logging.debug("env = %s" % env)
                 ps = subprocess.Popen(
                     args=arg_list,
                     env={**os.environ, **env},

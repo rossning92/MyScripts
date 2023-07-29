@@ -1413,7 +1413,10 @@ def get_script_root():
 def load_json(file, default=None):
     try:
         with open(file, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if default is not None:
+                data = {**default, **data}
+            return data
     except Exception:
         if default is not None:
             return default
@@ -1421,7 +1424,7 @@ def load_json(file, default=None):
             raise Exception("Default value is not specified.")
 
 
-def save_json(file, data):
+def save_json(file: str, data):
     with open(file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 

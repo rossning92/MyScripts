@@ -1,0 +1,28 @@
+import os
+
+from _shutil import load_json, save_json
+from _term import DictEditWindow
+
+
+class JsonEditWindow(DictEditWindow):
+    def __init__(self, json_file, *, default={}):
+        if not os.path.exists(json_file):
+            data = {}
+        else:
+            data = load_json(json_file)
+
+        data = {**default, **data}
+
+        def on_dict_update(dict):
+            data = {k: v for k, v in dict.items() if default[k] != v}
+            save_json(
+                json_file,
+                data,
+            )
+
+        super().__init__(
+            data,
+            default_dict=default,
+            on_dict_update=on_dict_update,
+            label=f"edit {json_file}",
+        )
