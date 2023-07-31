@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import threading
 from distutils.dir_util import copy_tree
 
@@ -480,10 +481,7 @@ def nextjs_start_dev_server():
 
 @menu.item()
 def yarn_init():
-    if not os.path.exists("package.json"):
-        call_echo('yarn config set init-author-name "Ross Ning"')
-        call_echo("yarn config set init-author-email rossning92@gmail.com")
-        call_echo("yarn init -y")
+    subprocess.check_call(["run_script", "r/web/init_yarn_package.sh"])
 
 
 @menu.item()

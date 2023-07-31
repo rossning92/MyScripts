@@ -277,22 +277,20 @@ def sync_github():
         print('GitHub repo already exists: "%s"' % repo_name)
     cd(repo_dir)
 
+    subprocess.check_call(
+        [
+            "git",
+            "remote",
+            "add",
+            "origin",
+            f"https://github.com/rossning92/{repo_name}.git",
+        ]
+    )
+
 
 @menu_item(key="S")
 def setup_project():
-    if not os.path.exists(".git"):
-        call_echo("git init")
-        call_echo(
-            "git remote add origin https://github.com/rossning92/%s.git" % repo_name
-        )
-
-        # Add .gitignore
-        add_gitignore()
-
-        # .gitattribute
-        if not os.path.exists(".gitattributes"):
-            with open(".gitattributes", "w") as f:
-                f.writelines(["* text=auto eol=lf"])
+    subprocess.check_call(["run_script", "r/git/git_init.sh"])
 
 
 @menu_item(key="X")
