@@ -20,7 +20,6 @@ if ! sync_gdrive; then
     read -p "Resync (Y/n): " ans
     if [[ "$ans" == "y" ]] || [[ -z "$ans" ]]; then
         sync_gdrive --resync
-        sync_gdrive
     fi
 fi
 
