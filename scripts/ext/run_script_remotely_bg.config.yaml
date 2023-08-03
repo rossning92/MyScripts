@@ -1,4 +1,4 @@
-hotkey: ctrl+[
+hotkey: shift+r
 newWindow: false
 updateSelectedScriptAccessTime: true
 variableNames: ''
