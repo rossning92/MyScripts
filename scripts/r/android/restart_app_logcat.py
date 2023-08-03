@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import subprocess
@@ -6,12 +7,19 @@ from _android import clear_logcat, logcat, restart_app
 from _shutil import call_echo, setup_logger
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("pkg", type=str, nargs="?", default=None)
+    args = parser.parse_args()
+
     setup_logger(level=logging.DEBUG)
 
     if os.environ.get("WAKE_UP_DEVICE"):
         call_echo(["run_script", "r/android/wake_up_device.sh"])
 
-    pkg = os.environ["PKG_NAME"]
+    if args.pkg:
+        pkg = args.pkg
+    else:
+        pkg = os.environ["PKG_NAME"]
 
     clear_logcat()
     restart_app(pkg, use_monkey=bool(os.environ.get("USE_MONKEY")))

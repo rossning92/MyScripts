@@ -43,6 +43,7 @@ data_sources: {
 
             # Atrace gfx category
             atrace_categories: "gfx"
+            atrace_categories: "binder_driver"
             atrace_apps: "*"
         }
     }
