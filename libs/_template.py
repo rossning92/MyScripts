@@ -1,5 +1,6 @@
 import logging
 import re
+import subprocess
 from typing import Callable, List, Optional
 
 
@@ -62,6 +63,11 @@ class Template:
                 raise Exception(message)
 
         global_context["expect"] = expect
+
+        def shell(args):
+            return subprocess.check_output(args, shell=True, universal_newlines=True)
+
+        global_context["shell"] = shell
 
         # run the code
         result = []

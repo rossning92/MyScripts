@@ -1,3 +1,2 @@
-pkg=com.oculus.sdk.vrcubeworldna
-out=$(adb shell dumpsys package | grep -i $pkg | grep Activity)
-pkg_activity=$(echo "$out" | awk '{print $2}')
+adb shell am force-stop {{PKG_NAME}}
+adb shell am start -n {{ shell(["adb", "shell", f"dumpsys package | grep -i {PKG_NAME} | grep Activity"]).split()[1] }}
