@@ -22,7 +22,7 @@ interact
 EOF
 
 if [[ -n "${_RUN_IN_SCREEN}" ]]; then
-    "$(dirname "$0")/run_command_in_screen.sh" et "expect ~/et.sh"
+    "$(dirname "$0")/screen/run_command_in_screen.sh" et "expect ~/et.sh"
 else
     expect ~/et.sh
 fi

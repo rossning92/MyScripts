@@ -43,13 +43,13 @@ EOF
 
 if [[ -z "${_NO_AUTO_LOGIN}" ]]; then
     if [[ -n "${_RUN_IN_SCREEN}" ]]; then
-        ./run_command_in_screen.sh et "expect ~/s.expect"
+        ./screen/run_command_in_screen.sh et "expect ~/s.expect"
     else
         expect ~/s.expect
     fi
 else
     if [[ -n "${_RUN_IN_SCREEN}" ]]; then
-        ./run_command_in_screen.sh et "${ssh_command}"
+        ./screen/run_command_in_screen.sh et "${ssh_command}"
     else
         eval "${ssh_command}"
     fi
