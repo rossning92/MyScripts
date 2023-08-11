@@ -1697,7 +1697,7 @@ def update_yaml(file, dict_):
     save_yaml(data, file)
 
 
-def setup_logger(level=logging.INFO, log_to_stdout=True, log_to_file=None):
+def setup_logger(level=logging.INFO, log_to_stderr=True, log_to_file=None):
     class StreamToLogger:
         def __init__(self, logger, level):
             self.logger = logger
@@ -1718,8 +1718,8 @@ def setup_logger(level=logging.INFO, log_to_stdout=True, log_to_file=None):
         "%(levelname).1s: %(filename)10s: %(funcName)s(): %(message)s"
     )
 
-    if log_to_stdout:
-        stream_handler = logging.StreamHandler(sys.stdout)
+    if log_to_stderr:
+        stream_handler = logging.StreamHandler(sys.stderr)
         stream_handler.setFormatter(formatter)
         stream_handler.setLevel(level)
         logger.addHandler(stream_handler)

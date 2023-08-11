@@ -789,7 +789,7 @@ def main_loop(no_gui=None, quit=False):
 if __name__ == "__main__":
     setup_logger(
         log_to_file=os.path.join(get_data_dir(), "MyScripts.log"),
-        log_to_stdout=False,
+        log_to_stderr=False,
         level=logging.DEBUG,
     )
 

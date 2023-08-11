@@ -879,11 +879,12 @@ def toggle_prop(name, values=("0", "1")):
     subprocess.check_call(["adb", "shell", command])
 
 
-def run_apk(apk, grant_permissions=False, force_reinstall=False):
+def run_apk(apk, grant_permissions=False, force_reinstall=False) -> AdbInstallResult:
     result = adb_install2(
         apk, grant_permissions=grant_permissions, force_reinstall=force_reinstall
     )
     restart_app(result.pkg)
+    return result
 
 
 def find_device_by_product_name(product):

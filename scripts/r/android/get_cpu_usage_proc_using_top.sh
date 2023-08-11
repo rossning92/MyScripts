@@ -1,1 +1,1 @@
-adb shell top -b | grep "${_PROC_NAME}"
+adb shell top -b | grep "{{_PROC_NAME}}"
