@@ -744,8 +744,14 @@ class MainWindow(Menu[Script]):
 
 def init(no_gui=False):
     if not no_gui and is_instance_running():
-        logging.warning("An instance is already running, exiting.")
+        print("An instance is already running, exiting.")
         sys.exit(0)
+
+    setup_logger(
+        log_to_file=os.path.join(get_data_dir(), "MyScripts.log"),
+        log_to_stderr=False,
+        level=logging.DEBUG,
+    )
 
     logging.info("Python executable: %s" % sys.executable)
 
@@ -787,12 +793,6 @@ def main_loop(no_gui=None, quit=False):
 
 
 if __name__ == "__main__":
-    setup_logger(
-        log_to_file=os.path.join(get_data_dir(), "MyScripts.log"),
-        log_to_stderr=False,
-        level=logging.DEBUG,
-    )
-
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "-q",

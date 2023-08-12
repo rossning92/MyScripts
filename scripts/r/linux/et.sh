@@ -1,7 +1,6 @@
 set -e
 
 run_script r/linux/install_et.sh
-run_script ext/install_pkg.py expect
 
 if [[ -n "${ET_PORT}" ]]; then
     port="${ET_PORT}"

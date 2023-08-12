@@ -1,12 +1,6 @@
 set -e
-run_script ext/install_pkg.py screen
 
-# HACK: for WSL
-if [[ $(grep Microsoft /proc/version) ]]; then
-    mkdir -p ~/.screen
-    chmod 700 ~/.screen
-    export SCREENDIR=$HOME/.screen
-fi
+source "$(dirname "$0")/screen/_wsl_screen_workaround.sh"
 
 # Clean-up dead sessions
 screen -wipe 2>&1 >/dev/null || true

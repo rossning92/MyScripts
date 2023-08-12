@@ -1,3 +1,4 @@
 globalHotkey: win+alt+e
 title: remote_shell
 wsl: true
+packages: screen

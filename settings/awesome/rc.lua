@@ -2,6 +2,8 @@
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
 
+local splitscreen = require("splitscreen")
+
 -- Standard awesome library
 local gears = require("gears")
 local awful = require("awful")
@@ -402,6 +404,11 @@ end, {
 end, {
     description = "lua execute prompt",
     group = "awesome"
+}), awful.key({modkey}, "b", function()
+    splitscreen:toggle_layout()
+end, {
+    description = "toggle fake screen layout",
+    group = "layouts"
 }), -- Menubar
 awful.key({modkey}, "p", function()
     menubar.show()

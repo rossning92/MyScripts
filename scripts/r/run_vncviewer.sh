@@ -28,7 +28,7 @@ if [[ "$(uname)" == "linux"* || "$(uname)" == "Linux"* ]]; then
     fi
 
     killall vncviewer
-    vncviewer -config ~/connection.vnc &
+    nohup vncviewer -config ~/connection.vnc &
 elif [[ "$(uname)" == "MINGW"* ]]; then
     "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" -config connection.vnc &
 else
