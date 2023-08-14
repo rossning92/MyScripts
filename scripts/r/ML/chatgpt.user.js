@@ -6,7 +6,7 @@
 // @version     1.0
 // @author      -
 // @description Description
-// @require     http://127.0.0.1:4312/userscriptlib.js
+// @require     /userscriptlib.js
 // ==/UserScript==
 
 addButton(

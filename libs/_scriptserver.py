@@ -7,7 +7,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
 from urllib.parse import unquote
 
-from _script import get_my_script_root
+from _script import get_data_dir, get_my_script_root
+from _shutil import load_json, save_json
 
 HOST_NAME = "127.0.0.1"
 
@@ -43,22 +44,46 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            if self.path != "/exec":
-                return self.send_response(500)
+            if self.path == "/system":
+                data = self.read_json()
+                out = subprocess.check_output(
+                    args=data["args"], universal_newlines=True, encoding="utf-8"
+                )
 
-            data_string = self.rfile.read(int(self.headers["Content-Length"]))
-            data = json.loads(data_string.decode("utf-8"))
-            logging.info("/exec: %s" % data)
-            out = subprocess.check_output(
-                args=data["args"], universal_newlines=True, encoding="utf-8"
-            )
-            logging.info("/exec: output: %s" % out)
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain; charset=UTF-8")
-            self.end_headers()
-            self.wfile.write(out.encode("utf-8"))
+                logging.info("/%s: response: %s" % (self.path, out))
+                self.send_response(200)
+                self.send_header("Content-type", "text/plain; charset=UTF-8")
+                self.end_headers()
+                self.wfile.write(out.encode("utf-8"))
+
+            elif self.path == "/load-data":
+                req = self.read_json()
+                data_file = os.path.join(get_data_dir(), f"{req['name']}.json")
+                data = load_json(data_file, {})
+                self.send_json({"success": True, "data": data})
+
+            elif self.path == "/save-data":
+                req = self.read_json()
+                data_file = os.path.join(get_data_dir(), f"{req['name']}.json")
+                save_json(data_file, req["data"])
+                self.send_json({"success": True})
+
+            else:
+                return self.send_response(500)
         except Exception:
             logging.exception("")
+
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header("Content-type", "application/json; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode("utf-8"))
+
+    def read_json(self):
+        data_string = self.rfile.read(int(self.headers["Content-Length"]))
+        data = json.loads(data_string.decode("utf-8"))
+        logging.info("%s: request: %s" % (self.path, data))
+        return data
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")

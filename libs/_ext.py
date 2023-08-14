@@ -223,7 +223,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
                 dest_script,
                 context={
                     "USERSCRIPT_NAME": userscript_name,
-                    "USERSCRIPT_LIB": "http://127.0.0.1:4312/userscriptlib.js",
+                    "USERSCRIPT_LIB": "/userscriptlib.js",
                 },
             )
         else:

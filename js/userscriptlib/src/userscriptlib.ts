@@ -19,21 +19,24 @@ declare global {
   function findElementByXPath(exp: string): Node | null;
   function findElementByText(text: string): Node | null;
   function findElementByPartialText(text: string): Node | null;
-  function waitForSelector(selector: string): Promise<Node | null>;
-  function waitForSelectorAll(selector: string): Promise<NodeList | null>;
-  function waitForText(text: string): Promise<Node | null>;
-  function waitForPartialText(text: string): Promise<Node | null>;
-  function waitForXPath(xpath: string): Promise<Node | null>;
-  function saveAsFile(data: string, filename: string, type: string): void;
+  function waitForSelector(selector: string): Promise<Node>;
+  function waitForSelectorAll(selector: string): Promise<NodeList>;
+  function waitForText(text: string): Promise<Node>;
+  function waitForPartialText(text: string): Promise<Node>;
+  function waitForXPath(xpath: string): Promise<Node>;
+  function saveAsFile(data: string, filename: string, type?: string): void;
   function download(url: string, filename?: string): void;
-  function exec(args: string | string[]): Promise<string>;
+  function system(args: string | string[]): Promise<string>;
   function openInNewWindow(url: string): void;
   function getSelectedText(): void;
   function sendText(text: string): void;
   function click(el: HTMLElement): void;
   function sendKey(keyCode: number, type?: "up" | "press"): void;
   function sleep(callback: () => void, ms: number): void;
+  function addNote(el: HTMLElement, text: string): void;
   function logd(message: string): void;
+  function loadData(name: string, defaultValue: object): Promise<object>;
+  function saveData(name: string, value: object): Promise<void>;
 }
 
 const _global = window /* browser */ || global; /* node */
@@ -168,8 +171,10 @@ function createHandle({
   return handle;
 }
 
-function waitFor<Type>(evaluate: () => Type | null): Promise<Type | null> {
-  const evaluateWrapper = () => {
+async function waitFor<Type>(
+  evaluate: () => Type | null
+): Promise<Type | null> {
+  const evaluateWrapper: () => Type | null = () => {
     const ele = evaluate();
     if (ele && ele instanceof HTMLElement) {
       ele.scrollIntoView();
@@ -178,9 +183,12 @@ function waitFor<Type>(evaluate: () => Type | null): Promise<Type | null> {
     return ele;
   };
 
-  return new Promise((resolve) => {
+  return new Promise<Type | null>((resolve) => {
     const ele = evaluateWrapper();
-    resolve(ele);
+    if (ele) {
+      resolve(ele);
+      return;
+    }
 
     const observer = new MutationObserver((mutations) => {
       const ele = evaluateWrapper();
@@ -300,16 +308,21 @@ _global.download = (url, filename) => {
     .catch(console.error);
 };
 
-_global.exec = (args) => {
+function checkXmlHttpRequest() {
   if (!GM_xmlhttpRequest) {
-    alert('ERROR: please make sure "@grant GM_xmlhttpRequest" is present.');
-    return;
+    throw new Error(
+      'ERROR: please make sure "@grant GM_xmlhttpRequest" is present.'
+    );
   }
+}
+
+_global.system = (args) => {
+  checkXmlHttpRequest();
 
   return new Promise((resolve) => {
     GM_xmlhttpRequest({
       method: "POST",
-      url: "http://127.0.0.1:4312/exec",
+      url: "http://127.0.0.1:4312/system",
       responseType: "text",
       data: JSON.stringify({ args }),
       headers: {
@@ -317,6 +330,44 @@ _global.exec = (args) => {
       },
       onload: (response: any) => {
         resolve(response.responseText);
+      },
+    });
+  });
+};
+
+_global.loadData = (name, defaultValue = {}) => {
+  checkXmlHttpRequest();
+
+  return new Promise((resolve) => {
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: "http://127.0.0.1:4312/load-data",
+      responseType: "json",
+      data: JSON.stringify({ name }),
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      onload: (resp: any) => {
+        resolve(resp.response.data);
+      },
+    });
+  });
+};
+
+_global.saveData = (name, data) => {
+  checkXmlHttpRequest();
+
+  return new Promise((resolve) => {
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: "http://127.0.0.1:4312/save-data",
+      responseType: "json",
+      data: JSON.stringify({ name, data }),
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      onload: (resp: any) => {
+        resolve(resp.response);
       },
     });
   });
@@ -430,6 +481,34 @@ _global.sleep = (callback, durationMs) => {
   timer();
 
   const intervalID = setInterval(timer, 1000);
+};
+
+_global.addNote = (ele, message) => {
+  const tooltip = document.createElement("div");
+
+  tooltip.style.position = "absolute";
+  tooltip.style.zIndex = "9999";
+  tooltip.style.backgroundColor = "rgba(255, 255, 0, 0.5)"; // semi-transparent
+  tooltip.style.color = "black";
+  tooltip.style.padding = "5px";
+  tooltip.style.fontSize = "0.5rem";
+  tooltip.style.pointerEvents = "none"; // So it doesn't interfere with any interactions
+
+  tooltip.innerText = message;
+
+  document.body.appendChild(tooltip);
+
+  function positionTooltip() {
+    const rect = ele.getBoundingClientRect();
+    const x = rect.left + window.pageXOffset;
+    const y = rect.bottom + window.pageYOffset;
+    tooltip.style.left = Math.max(0, x) + "px";
+    tooltip.style.top = Math.max(0, y) + "px";
+  }
+
+  // Call immediately and also on window resize
+  positionTooltip();
+  window.addEventListener("resize", positionTooltip);
 };
 
 _global.logd = logd;

@@ -13,7 +13,7 @@ ChangeResolution(Screen_Width := 1920, Screen_Height := 1080, Color_Depth := 32)
 }
 
 #F11::
-    ChangeResolution(2560, 1440)
+    ChangeResolution(1920, 1200)
 return
 
 #F12::

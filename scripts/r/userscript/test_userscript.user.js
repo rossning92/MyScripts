@@ -6,7 +6,7 @@
 // @version     1.0
 // @author      -
 // @description Description
-// @require     http://127.0.0.1:4312/userscriptlib.js
+// @require     /userscriptlib.js
 // ==/UserScript==
 
 addButton(
@@ -24,5 +24,17 @@ addButton("Sleep 3 Sec", () => {
 });
 
 addButton("Run Calc", () => {
-  exec(["calc"]);
+  system(["calc"]);
+});
+
+addButton("saveData()", () => {
+  saveData("test_data", { foo: "bar" }).then((data) => {
+    alert(JSON.stringify(data, null, 4));
+  });
+});
+
+addButton("loadData()", () => {
+  loadData("test_data", {}).then((data) => {
+    alert(JSON.stringify(data, null, 4));
+  });
 });

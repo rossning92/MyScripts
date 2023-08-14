@@ -1,7 +1,7 @@
 import http.server
 import os
 import re
-import socketserver
+from http.server import ThreadingHTTPServer
 
 from _shutil import get_ip_addresses
 
@@ -113,6 +113,6 @@ class RangeRequestHandler(http.server.SimpleHTTPRequestHandler):
 Handler = RangeRequestHandler
 Handler.extensions_map.update({".mkv": "video/webm"})
 
-with socketserver.TCPServer(("", PORT), Handler) as httpd:
+with ThreadingHTTPServer(("", PORT), Handler) as httpd:
     print("serving at port", PORT)
     httpd.serve_forever()
