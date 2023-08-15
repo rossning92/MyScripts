@@ -1,8 +1,13 @@
 import os
+import subprocess
 
 from _shutil import start_process
+from config_vscode import config_vscode, get_vscode_cmdline
 
-from config_vscode import config_vscode, open_vscode
+
+def open_vscode(data_dir):
+    subprocess.Popen(get_vscode_cmdline(data_dir=data_dir), shell=True, close_fds=True)
+
 
 if __name__ == "__main__":
     os.environ["PATH"] = (

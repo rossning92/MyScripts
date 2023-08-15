@@ -6,7 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from _shutil import get_temp_file_name
+from _shutil import get_temp_file_name, slugify
 
 
 def mat_inv(m):
@@ -15,10 +15,12 @@ def mat_inv(m):
     return inv(m)
 
 
-def save_fig(out_file=None, open_file=False, size_inch=None, dpi=300):
-    logging.info("Generate %s" % out_file)
-    if out_file is None:
+def save_fig(name=None, open_file=False, size_inch=None, dpi=300):
+    if name is None:
         out_file = get_temp_file_name(".png")
+    else:
+        out_file = slugify(name) + ".png"
+    logging.info("Generate %s" % out_file)
 
     if size_inch:
         plt.gcf().set_size_inches(size_inch[0], size_inch[1])

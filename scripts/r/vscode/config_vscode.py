@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-import subprocess
 import sys
 
 from _shutil import call_echo, download, get_home_path, prepend_to_path, print2, unzip
@@ -22,12 +21,6 @@ EXTENSION_LIST = [
     "esbenp.prettier-vscode",
     # Bash
     "foxundermoon.shell-format",
-    # Python
-    "ms-python.python",
-    "ms-python.black-formatter",
-    "njpwerner.autodocstring",
-    # "ms-vscode-remote.vscode-remote-extensionpack",
-    "ms-toolsai.jupyter",
     # AutoHotkey
     "cweijan.vscode-autohotkey-plus",
     # GLSL Shader
@@ -41,8 +34,6 @@ EXTENSION_LIST = [
     "tomoyukim.vscode-mermaid-editor",
     # csv
     "janisdd.vscode-edit-csv",
-    # Others
-    "genieai.chatgpt-vscode",
 ]
 
 if sys.platform == "win32":
@@ -81,23 +72,69 @@ def get_vscode_cmdline(data_dir=None):
     return args
 
 
-def install_extensions(data_dir=None):
+def install_extensions(extensions: list[str], data_dir=None):
     print2("Install extensions...")
 
-    for extension in EXTENSION_LIST:
+    for extension in extensions:
         call_echo(
             get_vscode_cmdline(data_dir=data_dir)
             + ["--install-extension", "%s" % extension],
         )
 
 
+def update_settings(settings, data_dir):
+    SETTING_CONFIG = os.path.abspath(data_dir + "/User/settings.json")
+    try:
+        with open(SETTING_CONFIG) as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
+
+    data.update(settings)
+
+    with open(SETTING_CONFIG, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+def pip_install(package: str):
+    call_echo([sys.executable, "-m", "pip", "install", "--user", package])
+
+
+def setup_python(data_dir: str):
+    pip_install("mypy")
+    pip_install("ruff")
+    pip_install("black")
+
+    install_extensions(
+        [
+            "charliermarsh.ruff",
+            "ms-python.black-formatter",
+            "ms-python.mypy-type-checker",
+            "ms-python.python",
+            "ms-toolsai.jupyter",
+            "njpwerner.autodocstring",
+        ],
+        data_dir=data_dir,
+    )
+
+    settings = {
+        "python.pythonPath": sys.executable.replace("\\", "/"),
+        "python.formatting.provider": "black",
+        "python.linting.mypyEnabled": True,
+        "python.linting.enabled": True,
+        "python.languageServer": "Pylance",
+    }
+    update_settings(settings, data_dir=data_dir)
+
+
+def setup_gpt(data_dir: str):
+    install_extensions(
+        ["genieai.chatgpt-vscode"],
+        data_dir=data_dir,
+    )
+
+
 def config_vscode(data_dir=None, compact=False, glslang=False):
-    # call_echo([sys.executable, "-m", "pip", "install", "--user", "pylint"])
-    # call_echo([sys.executable, "-m", "pip", "install", "--user", "autopep8"])
-    call_echo([sys.executable, "-m", "pip", "install", "--user", "mypy"])
-
-    install_extensions(data_dir=data_dir)
-
     if not data_dir:
         if sys.platform == "win32":
             data_dir = os.path.expandvars("%APPDATA%/Code")
@@ -105,6 +142,11 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             data_dir = os.path.expanduser("~/.config/Code")
         else:
             raise Exception("OS not supported: {}".format(sys.platform))
+
+    setup_python(data_dir=data_dir)
+    setup_gpt(data_dir=data_dir)
+
+    install_extensions(EXTENSION_LIST, data_dir=data_dir)
 
     print2("Update key bindings...")
     with open(os.path.abspath(data_dir + "/User/keybindings.json"), "w") as f:
@@ -140,47 +182,38 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "workbench.action.navigateForward",
                     "when": "canNavigateForward",
                 },
+                {
+                    "key": "ctrl+k a",
+                    "command": "chatgpt-vscode.adhoc",
+                    "when": "editorHasSelection",
+                },
+                {
+                    "key": "ctrl+k o",
+                    "command": "chatgpt-vscode.optimize",
+                    "when": "editorHasSelection",
+                },
             ],
             f,
             indent=4,
         )
 
     print2("Update settings...")
-    SETTING_CONFIG = os.path.abspath(data_dir + "/User/settings.json")
-    try:
-        with open(SETTING_CONFIG) as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {}
 
-    data["workbench.colorTheme"] = "Default Light+"
-
-    data["cSpell.enabledLanguageIds"] = ["markdown", "text"]
-    data["search.exclude"] = {"**/build": True}
-    data["pasteImage.path"] = "${currentFileNameWithoutExt}"
-    data["workbench.editor.enablePreviewFromQuickOpen"] = False
-    data["grammarly.autoActivate"] = False
-
-    # Python
-    call_echo([sys.executable, "-m", "pip", "install", "--user", "black"])
-    data["python.pythonPath"] = sys.executable.replace("\\", "/")
-    data["python.formatting.provider"] = "black"
-    # Workaround for "has no member" issues
-    data["python.linting.pylintArgs"] = [
-        "--errors-only",
-        "--generated-members=numpy.* ,torch.* ,cv2.* , cv.*",
-    ]
-    data["python.linting.mypyEnabled"] = True
-    data["python.linting.enabled"] = True
-    data["python.linting.pylintEnabled"] = False
-    data["python.languageServer"] = "Pylance"
-    data["window.title"] = "${rootName}${separator}${appName}"
-    data["editor.minimap.enabled"] = False
+    settings = {
+        "window.title": "${rootName}${separator}${appName}",
+        "editor.minimap.enabled": False,
+        "workbench.colorTheme": "Default Light+",
+        "cSpell.enabledLanguageIds": ["markdown", "text"],
+        "search.exclude": {"**/build": True},
+        "pasteImage.path": "${currentFileNameWithoutExt}",
+        "workbench.editor.enablePreviewFromQuickOpen": False,
+        "grammarly.autoActivate": False,
+    }
 
     if glslang and sys.platform == "win32":
-        data["glsllint.glslangValidatorPath"] = install_glslangvalidator()
+        settings["glsllint.glslangValidatorPath"] = install_glslangvalidator()
 
-    data.update(
+    settings.update(
         {
             "[markdown]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[html]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
@@ -189,7 +222,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     )
 
     if compact:
-        data.update(
+        settings.update(
             {
                 "workbench.colorTheme": "One Dark Pro Flat",
                 "workbench.startupEditor": "newUntitledFile",
@@ -211,12 +244,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             }
         )
 
-    with open(SETTING_CONFIG, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-def open_vscode(data_dir):
-    subprocess.Popen(get_vscode_cmdline(data_dir=data_dir), shell=True, close_fds=True)
+    update_settings(settings, data_dir=data_dir)
 
 
 if __name__ == "__main__":
