@@ -18,3 +18,13 @@ echo 'Configure thermald...'
 sudo cp "$(dirname "$0")/../../../settings/linux-surface/thermal-conf.xml" /etc/thermald/thermal-conf.xml
 sudo systemctl restart thermald.service
 sudo systemctl status thermald.service
+
+# Brightness control
+sudo apt install light -y
+sudo usermod -aG sudo $(whoami)
+sudo tee /etc/udev/rules.d/90-brightnessctl.rules <<-EOF
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"
+ACTION=="add", SUBSYSTEM=="leds", RUN+="/bin/chgrp input /sys/class/leds/%k/brightness"
+ACTION=="add", SUBSYSTEM=="leds", RUN+="/bin/chmod g+w /sys/class/leds/%k/brightness"
+EOF

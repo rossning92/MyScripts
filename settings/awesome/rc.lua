@@ -244,12 +244,13 @@ awful.screen.connect_for_each_screen(function(s)
                 show_current_level = true
             },
             volume_widget {
-                widget_type = 'icon_and_text'
+                widget_type = 'icon_and_text',
+                step = 1
             },
             brightness_widget {
                 type = 'icon_and_text',
                 program = 'light',
-                step = 2
+                step = 1
             },
             wibox.widget.systray(),
             mytextclock,
