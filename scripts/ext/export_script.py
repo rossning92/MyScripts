@@ -2,8 +2,8 @@ import os
 import re
 import shutil
 
-from _script import get_python_path, render_script
 from _editor import open_in_editor
+from _script import get_python_path, render_script
 
 _exported_python_modules = set()
 _exported_scripts = set()
@@ -47,7 +47,16 @@ def _export_script(script_path, out_dir, create_executable=False):
     ext = os.path.splitext(script_path)[1]
     script_name = os.path.splitext(os.path.basename(script_path))[0]
 
-    content = render_script(script_path)
+    content = ""
+    if ext == ".sh":
+        content += (
+            "export MSYS_NO_PATHCONV=1\n"
+            "export CHERE_INVOKING=1\n"
+            "export MSYSTEM=MINGW64\n"
+            "export MSYS2_PATH_TYPE=inherit\n"
+        )
+
+    content += render_script(script_path)
 
     # Find dependencies to other scripts
     old_new_path_map = {}

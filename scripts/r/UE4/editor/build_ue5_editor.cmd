@@ -18,8 +18,10 @@ if "%_CLEAN_BUILD%"=="1" (
 )
 
 if not exist "UE5.sln" (
-    copy "C:\Users\rossning92\Downloads\Commit.gitdeps.xml" "C:\Projects\ue5-ovr-internal\Engine\Build\Commit.gitdeps.xml" /y
+    echo Running Setup.bat
     cmd /c Setup.bat
+
+    echo Running GenerateProjectFiles.bat
     cmd /c GenerateProjectFiles.bat
 )
 
