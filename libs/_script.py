@@ -94,7 +94,7 @@ def get_my_script_root():
 
 
 @lru_cache(maxsize=None)
-def get_data_dir():
+def get_data_dir() -> str:
     data_dir_file = os.path.abspath(
         os.path.join(SCRIPT_ROOT, "..", "config", "data_dir.txt")
     )

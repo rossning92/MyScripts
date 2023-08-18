@@ -188,12 +188,12 @@ def ceildiv(a, b):
     return -(a // -b)
 
 
-class Menu(Generic[T]):
+class Menu:
     stdscr = None
 
     def __init__(
         self,
-        items: Union[List[T], List[MenuItem]] = [],
+        items: List = [],
         label="",
         text="",
         ascii_only=False,
@@ -462,7 +462,6 @@ class Menu(Generic[T]):
         items_per_page = self.get_items_per_page()
 
         current_page_index = self.selected_row // items_per_page
-        total_pages = ceildiv(len(self.matched_item_indices), items_per_page)
         selected_index_in_page = self.selected_row % items_per_page
         indices_in_page = self.matched_item_indices[
             current_page_index * items_per_page :
@@ -485,9 +484,9 @@ class Menu(Generic[T]):
             if row >= max_height:
                 break
 
-        matched_item_str = "(Pg: %d/%d)" % (
-            current_page_index + 1,
-            total_pages,
+        matched_item_str = "(%d/%d)" % (
+            self.selected_row + 1,
+            len(self.matched_item_indices),
         )
         self.draw_text(0, self.width - len(matched_item_str), matched_item_str)
 
