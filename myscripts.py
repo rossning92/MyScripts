@@ -485,7 +485,7 @@ def restart_program():
     )
 
 
-class MainWindow(Menu[Script]):
+class MainWindow(Menu):
     def __init__(self, no_gui=None):
         self.no_gui = no_gui
         self.last_refresh_time = 0.0
