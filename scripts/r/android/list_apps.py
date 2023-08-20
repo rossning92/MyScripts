@@ -29,7 +29,6 @@ menu = Menu(close_on_selection=True)
 
 @menu.item()
 def restart_app():
-    set_variable("PKG_NAME", pkg)
     start_script("r/android/restart_app_logcat.py", restart_instance=True)
 
 
@@ -70,9 +69,17 @@ def dumpsys_package_permission():
     input("(press enter to continue)")
 
 
+@menu.item()
+def get_app_version():
+    call_echo(["run_script", "r/android/get_app_version.sh"])
+    input("(press enter to continue)")
+
+
 if __name__ == "__main__":
     pkg = select_app_pkg()
     if not pkg:
         sys.exit(0)
+    else:
+        set_variable("PKG_NAME", pkg)
 
     menu.exec()
