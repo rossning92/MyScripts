@@ -109,12 +109,8 @@ def get_hash(obj, digit=16):
     return hash
 
 
-_ahk_initialized = False
-
-
 @lru_cache(maxsize=None)
-def get_ahk_exe(uia=True):
-    global _ahk_initialized
+def get_ahk_exe(uia=True) -> str:
     if sys.platform != "win32":
         raise Exception("unsupported platform: %s" % sys.platform)
 
@@ -124,16 +120,15 @@ def get_ahk_exe(uia=True):
     else:
         ahk_exe = os.path.expandvars(r"%ProgramFiles%\AutoHotkey\AutoHotkeyU64.exe")
 
-    if not _ahk_initialized:
-        ahk_lib_path = os.path.expandvars(r"%USERPROFILE%\Documents\AutoHotkey\Lib")
-        if not os.path.exists(ahk_lib_path):
-            os.makedirs(os.path.dirname(ahk_lib_path), exist_ok=True)
-            run_elevated(
-                r'cmd /c MKLINK /D "{}" "{}"'.format(
-                    ahk_lib_path, os.path.abspath(os.path.dirname(__file__) + "/../ahk")
-                )
+    ahk_lib_path = os.path.expandvars(r"%USERPROFILE%\Documents\AutoHotkey\Lib")
+    if not os.path.exists(ahk_lib_path):
+        os.makedirs(os.path.dirname(ahk_lib_path), exist_ok=True)
+        run_elevated(
+            r'cmd /c MKLINK /D "{}" "{}"'.format(
+                ahk_lib_path, os.path.abspath(os.path.dirname(__file__) + "/../ahk")
             )
-        _ahk_initialized = True
+        )
+    _ahk_initialized = True
 
     return ahk_exe
 

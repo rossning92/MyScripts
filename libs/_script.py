@@ -85,10 +85,12 @@ if sys.platform == "win32":
 RESERVED_VARIABLE_NAMES = {"HOME", "PATH"}
 
 
+@lru_cache(maxsize=None)
 def get_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../scripts")
 
 
+@lru_cache(maxsize=None)
 def get_my_script_root():
     return os.path.abspath(SCRIPT_ROOT + "/../")
 
@@ -1662,7 +1664,7 @@ def run_script(
     )
 
 
-def get_script_default_config() -> Dict[str, Any]:
+def get_default_script_config() -> Dict[str, Any]:
     return {
         "adk.jdk_version": "",
         "adk": False,
@@ -1678,6 +1680,7 @@ def get_script_default_config() -> Dict[str, Any]:
         "hotkey": "",
         "matchClipboard": "",
         "minimized": False,
+        "repeatEveryNSeconds": "",
         "msys2": False,
         "newWindow": True,
         "packages": "",
@@ -1722,7 +1725,7 @@ def load_script_config(script_path) -> Dict[str, Any]:
     else:
         data = None
 
-    config = get_script_default_config()
+    config = get_default_script_config()
 
     # override default config
     if data is not None:
@@ -1733,7 +1736,7 @@ def load_script_config(script_path) -> Dict[str, Any]:
 
 
 def update_script_config(kvp, script_file):
-    default_config = get_script_default_config()
+    default_config = get_default_script_config()
     script_config_file = get_script_config_file_path(script_file)
     if not os.path.exists(script_config_file):
         data = {}

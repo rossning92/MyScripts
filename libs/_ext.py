@@ -11,11 +11,11 @@ from _script import (
     get_absolute_script_path,
     get_all_scripts,
     get_data_dir,
+    get_default_script_config,
     get_my_script_root,
     get_relative_script_path,
     get_script_config_file,
     get_script_config_file_path,
-    get_script_default_config,
     get_script_directories,
     get_script_root,
 )
@@ -84,7 +84,7 @@ def enter_script_path():
 
 
 def edit_script_config(script_path):
-    default_config = get_script_default_config()
+    default_config = get_default_script_config()
 
     script_config_file = get_script_config_file(script_path)
     if script_config_file is None:
