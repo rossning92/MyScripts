@@ -11,6 +11,7 @@ import time
 import traceback
 from typing import Callable, Dict, List
 
+from _script import get_default_script_config
 from _scriptmanager import ScriptManager, execute_script, to_ascii_hotkey
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -127,6 +128,18 @@ class VariableEditWindow(Menu):
             return True
 
         return False
+
+
+def format_key_value_pairs(kvp):
+    result = []
+    key_length = [len(key) for key in kvp]
+    if key_length:
+        max_key_length = max(key_length) + 1
+    else:
+        max_key_length = 0
+    for key, value in kvp.items():
+        result.append(key.ljust(max_key_length) + ": " + value)
+    return result
 
 
 def format_variables(variables, variable_names, variable_prefix):
@@ -436,13 +449,14 @@ class MainWindow(Menu):
             script = self.get_selected_item()
             if script is not None:
                 preview = []
+                default_script_config = get_default_script_config()
 
-                # Preview cmdline
-                cmdline = script.cfg["cmdline"]
-                if cmdline:
-                    preview.append("---")
-                    preview.append(cmdline)
-                    preview.append("---")
+                # Preview script configs
+                config_preview = {}
+                for name, value in script.cfg.items():
+                    if value != default_script_config[name]:
+                        config_preview[f"[Cfg] {name}"] = str(value)
+                preview += format_key_value_pairs(config_preview)
 
                 # Preview variables
                 try:
