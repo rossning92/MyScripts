@@ -1710,7 +1710,7 @@ def setup_logger(level=logging.INFO, log_to_stderr=True, log_to_file=None):
     logger.setLevel(level)
 
     formatter = logging.Formatter(
-        "%(levelname).1s: %(filename)10s: %(funcName)s(): %(message)s"
+        "%(asctime)s %(levelname).1s %(filename)-10s: %(funcName)-10s: %(message)s"
     )
 
     if log_to_stderr:

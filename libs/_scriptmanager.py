@@ -341,14 +341,15 @@ class ScriptManager:
     def check_scheduled_scripts(self):
         now = time.time()
         for script in self.scripts_scheduled:
-            run_every_n_seconds = int(script.cfg["runEveryNSeconds"])
-            if now > script.last_scheduled_run_time + run_every_n_seconds:
-                logging.info(f"Run scheduled script: {script.name}")
-                script.execute(
-                    args=[],
-                    close_on_exit=True,
-                    restart_instance=False,
-                    new_window=False,
-                    background=True,
-                )
-                script.last_scheduled_run_time = now
+            run_every_n_seconds = script.cfg["runEveryNSeconds"]
+            if run_every_n_seconds:
+                if now > script.last_scheduled_run_time + int(run_every_n_seconds):
+                    logging.info(f"Run scheduled script: {script.name}")
+                    script.execute(
+                        args=[],
+                        close_on_exit=True,
+                        restart_instance=False,
+                        new_window=False,
+                        background=True,
+                    )
+                    script.last_scheduled_run_time = now

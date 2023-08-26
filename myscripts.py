@@ -11,9 +11,6 @@ import time
 import traceback
 from typing import Callable, Dict, List
 
-from _script import get_default_script_config
-from _scriptmanager import ScriptManager, execute_script, to_ascii_hotkey
-
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -30,6 +27,7 @@ from _script import (
     Script,
     get_all_variables,
     get_data_dir,
+    get_default_script_config,
     get_hotkey_abbr,
     get_script_variables,
     is_instance_running,
@@ -38,6 +36,7 @@ from _script import (
     try_reload_scripts_autorun,
     update_script_access_time,
 )
+from _scriptmanager import ScriptManager, execute_script, to_ascii_hotkey
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,

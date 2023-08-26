@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from functools import lru_cache
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
@@ -702,6 +703,31 @@ def get_absolute_script_path(path):
             arr = [get_script_root()] + arr
     path = os.path.join(*arr)
     return path
+
+
+class LogPipe(threading.Thread):
+    def __init__(self, level):
+        threading.Thread.__init__(self)
+        self.daemon = False
+        self.level = level
+        self.fd_read, self.fd_write = os.pipe()
+        self.pipe_reader = os.fdopen(self.fd_read)
+        self.start()
+
+    def fileno(self):
+        return self.fd_write
+
+    def log_pipe(self):
+        for line in iter(self.pipe_reader.readline, ""):
+            logging.log(self.level, line.strip("\n"))
+
+        self.pipe_reader.close()
+
+    def run(self):
+        self.log_pipe()
+
+    def close(self):
+        os.close(self.fd_write)
 
 
 class Script:
@@ -1426,7 +1452,9 @@ class Script:
                     )
                     popen_extra_args["creationflags"] = createflags
 
-                popen_extra_args["close_fds"] = True
+                popen_extra_args["stdin"] = subprocess.DEVNULL
+                popen_extra_args["stdout"] = LogPipe(logging.INFO)
+                popen_extra_args["stderr"] = LogPipe(logging.ERROR)
                 no_wait = True
 
             elif self.cfg["minimized"]:
@@ -1503,10 +1531,6 @@ class Script:
                 if not no_wait:
                     with IgnoreSigInt():
                         success = ps.wait() == 0
-
-                # if not new_window and not close_on_exit:
-                #     print("(press enter to exit...)")
-                #     input()
 
                 return success
 
