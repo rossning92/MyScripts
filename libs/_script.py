@@ -1,4 +1,3 @@
-import bisect
 import ctypes
 import glob
 import json
@@ -28,7 +27,6 @@ from _shutil import (
     IgnoreSigInt,
     activate_window_by_name,
     call_echo,
-    clear_env_var_explorer,
     close_window_by_name,
     convert_to_unix_path,
     file_is_old,
@@ -742,6 +740,8 @@ class Script:
         self.mtime = 0.0
         self.refresh_script()
 
+        self.last_scheduled_run_time = 0.0
+
     def __lt__(self, other):
         return self.mtime > other.mtime  # sort by modified time descendently by default
 
@@ -905,6 +905,7 @@ class Script:
         cd=True,
         tee=None,
         command_wrapper=True,
+        background=False,
     ) -> bool:
         self.cfg = self.load_config()
 
@@ -913,7 +914,7 @@ class Script:
         if sys.platform == "darwin":
             new_window = False
 
-        background = self.cfg["background"]
+        background = background or self.cfg["background"]
 
         if single_instance is None:
             single_instance = self.cfg["singleInstance"]
@@ -1408,6 +1409,7 @@ class Script:
 
             elif background:
                 logging.debug("background = true")
+
                 if sys.platform == "win32":
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
@@ -1417,19 +1419,15 @@ class Script:
 
                     CREATE_NO_WINDOW = 0x08000000
                     DETACHED_PROCESS = 0x00000008
-                    popen_extra_args["creationflags"] = (
-                        subprocess.CREATE_NEW_PROCESS_GROUP
-                        | DETACHED_PROCESS
+                    createflags = (
+                        DETACHED_PROCESS
                         | CREATE_NO_WINDOW
+                        | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
+                    popen_extra_args["creationflags"] = createflags
 
-                    popen_extra_args["close_fds"] = True
-                    no_wait = True
-
-                else:
-                    logging.warning(
-                        '"background" is not supported on platform %s' % sys.platform
-                    )
+                popen_extra_args["close_fds"] = True
+                no_wait = True
 
             elif self.cfg["minimized"]:
                 if sys.platform == "win32":
@@ -1680,7 +1678,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "hotkey": "",
         "matchClipboard": "",
         "minimized": False,
-        "repeatEveryNSeconds": "",
+        "runEveryNSeconds": "",
         "msys2": False,
         "newWindow": True,
         "packages": "",
@@ -1874,7 +1872,7 @@ def get_all_scripts() -> Iterator[str]:
             yield file
 
 
-def _execute_script_autorun(script: Script):
+def execute_script_autorun(script: Script):
     assert script.cfg["autoRun"] or script.cfg["runAtStartup"]
     try:
         logging.info("auto run script: %s" % script.name)
@@ -1889,55 +1887,7 @@ def try_reload_scripts_autorun(scripts_autorun: List[Script]):
         assert script.cfg["autoRun"]
         reloaded = script.refresh_script()
         if reloaded:
-            _execute_script_autorun(script)
-
-
-def reload_scripts(
-    script_list: List[Script],
-    autorun=True,
-    startup=False,
-    on_progress: Optional[Callable[[], None]] = None,
-    scripts_autorun: Optional[List[Script]] = None,
-) -> bool:
-    script_dict = {script.script_path: script for script in script_list}
-    script_list.clear()
-    if scripts_autorun is not None:
-        scripts_autorun.clear()
-    clear_env_var_explorer()
-
-    any_script_reloaded = False
-    for i, file in enumerate(get_all_scripts()):
-        if i % 20 == 0:
-            if on_progress is not None:
-                on_progress()
-
-        if file in script_dict:
-            script = script_dict[file]
-            reloaded = script.refresh_script()
-        else:
-            script = Script(file)
-            reloaded = True
-
-        if reloaded:
-            any_script_reloaded = True
-            should_run_script = False
-            if script.cfg["autoRun"]:
-                if autorun:
-                    should_run_script = True
-                if scripts_autorun is not None:
-                    scripts_autorun.append(script)
-
-            if script.cfg["runAtStartup"] and startup:
-                logging.info("runAtStartup: %s" % script.name)
-                should_run_script = True
-
-            # Check if auto run script
-            if should_run_script:
-                _execute_script_autorun(script)
-
-        bisect.insort(script_list, script)
-
-    return any_script_reloaded
+            execute_script_autorun(script)
 
 
 def render_script(script_path) -> str:

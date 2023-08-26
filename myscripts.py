@@ -261,6 +261,8 @@ class MainWindow(Menu):
         ):
             self._reload_scripts()
 
+        script_manager.check_scheduled_scripts()
+
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
         if index >= 0:

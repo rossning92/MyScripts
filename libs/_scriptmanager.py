@@ -1,3 +1,4 @@
+import bisect
 import curses
 import logging
 import os
@@ -11,14 +12,16 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from _script import (
     Script,
+    execute_script_autorun,
     get_all_script_access_time,
+    get_all_scripts,
     get_data_dir,
     get_my_script_root,
     get_script_history_file,
-    reload_scripts,
     run_script,
 )
 from _shutil import (
+    clear_env_var_explorer,
     get_ahk_exe,
     getch,
     is_in_termux,
@@ -250,6 +253,7 @@ class ScriptManager:
     def __init__(self, no_gui=False, startup=False):
         self.scripts: List[Script] = []
         self.scripts_autorun: List[Script] = []
+        self.scripts_scheduled: List[Script] = []
         self.hotkeys: Dict[str, Script] = {}
         self.no_gui = no_gui
         self.startup = startup
@@ -271,16 +275,57 @@ class ScriptManager:
             reverse=True,
         )
 
+    def reload_scripts(
+        self,
+        autorun=True,
+        on_progress: Optional[Callable[[], None]] = None,
+    ) -> bool:
+        script_dict = {script.script_path: script for script in self.scripts}
+        self.scripts.clear()
+        self.scripts_autorun.clear()
+        self.scripts_scheduled.clear()
+        clear_env_var_explorer()
+
+        any_script_reloaded = False
+        for i, file in enumerate(get_all_scripts()):
+            if i % 20 == 0:
+                if on_progress is not None:
+                    on_progress()
+
+            if file in script_dict:
+                script = script_dict[file]
+                reloaded = script.refresh_script()
+            else:
+                script = Script(file)
+                reloaded = True
+
+            if script.cfg["runEveryNSeconds"]:
+                self.scripts_scheduled.append(script)
+
+            if reloaded:
+                any_script_reloaded = True
+                should_run_script = False
+                if script.cfg["autoRun"]:
+                    self.scripts_autorun.append(script)
+                    if autorun:
+                        should_run_script = True
+
+                if script.cfg["runAtStartup"] and self.startup:
+                    logging.info("runAtStartup: %s" % script.name)
+                    should_run_script = True
+
+                # Check if auto run script
+                if should_run_script:
+                    execute_script_autorun(script)
+
+            bisect.insort(self.scripts, script)
+
+        return any_script_reloaded
+
     def refresh_all_scripts(self, on_progress: Optional[Callable[[], None]] = None):
         begin_time = time.time()
 
-        if reload_scripts(
-            self.scripts,
-            autorun=not self.no_gui,
-            startup=self.startup,
-            on_progress=on_progress,
-            scripts_autorun=self.scripts_autorun,
-        ):
+        if self.reload_scripts(autorun=not self.no_gui, on_progress=on_progress):
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
@@ -292,3 +337,18 @@ class ScriptManager:
 
         # Startup script should only be run once
         self.startup = False
+
+    def check_scheduled_scripts(self):
+        now = time.time()
+        for script in self.scripts_scheduled:
+            run_every_n_seconds = int(script.cfg["runEveryNSeconds"])
+            if now > script.last_scheduled_run_time + run_every_n_seconds:
+                logging.info(f"Run scheduled script: {script.name}")
+                script.execute(
+                    args=[],
+                    close_on_exit=True,
+                    restart_instance=False,
+                    new_window=False,
+                    background=True,
+                )
+                script.last_scheduled_run_time = now
