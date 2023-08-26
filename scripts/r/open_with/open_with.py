@@ -22,11 +22,19 @@ config = load_config()
 
 
 def open_with_hook(files, program_id):
+    file_name = os.path.basename(files[0])
     ext = os.path.splitext(files[0])[1].lower()
 
     # HACK: hijack extension handling
     if ext == ".vhd":
         run_elevated(["powershell", "-Command", "Mount-VHD -Path '%s'" % files])
+        return True
+
+    if file_name == "trace":
+        subprocess.check_call(
+            ["run_script", "r/android/perfetto/open_perfetto_trace.py", files[0]],
+            close_fds=True,
+        )
         return True
 
     if program_id == 1 and ext in [".mp4", ".webm"]:
