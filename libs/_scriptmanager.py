@@ -339,6 +339,9 @@ class ScriptManager:
         self.startup = False
 
     def check_scheduled_scripts(self):
+        if self.no_gui:
+            return
+
         now = time.time()
         for script in self.scripts_scheduled:
             run_every_n_seconds = script.cfg["runEveryNSeconds"]

@@ -706,28 +706,21 @@ def get_absolute_script_path(path):
 
 
 class LogPipe(threading.Thread):
-    def __init__(self, level):
+    def __init__(self, read_pipe, level):
         threading.Thread.__init__(self)
         self.daemon = False
         self.level = level
-        self.fd_read, self.fd_write = os.pipe()
-        self.pipe_reader = os.fdopen(self.fd_read)
+        self.read_pipe = read_pipe
         self.start()
 
-    def fileno(self):
-        return self.fd_write
-
     def log_pipe(self):
-        for line in iter(self.pipe_reader.readline, ""):
-            logging.log(self.level, line.strip("\n"))
+        for line in iter(self.read_pipe.readline, b""):
+            logging.log(self.level, line.strip(b"\n").decode())
 
-        self.pipe_reader.close()
+        self.read_pipe.close()
 
     def run(self):
         self.log_pipe()
-
-    def close(self):
-        os.close(self.fd_write)
 
 
 class Script:
@@ -1453,8 +1446,8 @@ class Script:
                     popen_extra_args["creationflags"] = createflags
 
                 popen_extra_args["stdin"] = subprocess.DEVNULL
-                popen_extra_args["stdout"] = LogPipe(logging.INFO)
-                popen_extra_args["stderr"] = LogPipe(logging.ERROR)
+                popen_extra_args["stdout"] = subprocess.PIPE
+                popen_extra_args["stderr"] = subprocess.PIPE
                 no_wait = True
 
             elif self.cfg["minimized"]:
@@ -1531,6 +1524,10 @@ class Script:
                 if not no_wait:
                     with IgnoreSigInt():
                         success = ps.wait() == 0
+
+                if background:
+                    LogPipe(ps.stdout, logging.INFO)
+                    LogPipe(ps.stderr, logging.ERROR)
 
                 return success
 
