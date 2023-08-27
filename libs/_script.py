@@ -741,6 +741,7 @@ class Script:
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
+        self.ps: Optional[subprocess.Popen] = None
 
         # Deal with links
         if os.path.splitext(script_path)[1].lower() == ".link":
@@ -760,6 +761,9 @@ class Script:
         self.refresh_script()
 
         self.last_scheduled_run_time = 0.0
+
+    def is_running(self) -> bool:
+        return self.ps is not None and self.ps.poll() is None
 
     def __lt__(self, other):
         return self.mtime > other.mtime  # sort by modified time descendently by default
@@ -1513,7 +1517,7 @@ class Script:
                 logging.debug("cmdline: %s" % arg_list)
                 logging.debug("popen_extra_args: %s" % popen_extra_args)
                 logging.debug("env = %s" % env)
-                ps = subprocess.Popen(
+                self.ps = subprocess.Popen(
                     args=arg_list,
                     env={**os.environ, **env},
                     cwd=cwd,
@@ -1523,11 +1527,11 @@ class Script:
                 success = True
                 if not no_wait:
                     with IgnoreSigInt():
-                        success = ps.wait() == 0
+                        success = self.ps.wait() == 0
 
                 if background:
-                    LogPipe(ps.stdout, logging.INFO)
-                    LogPipe(ps.stderr, logging.ERROR)
+                    LogPipe(self.ps.stdout, logging.INFO)
+                    LogPipe(self.ps.stderr, logging.ERROR)
 
                 return success
 
