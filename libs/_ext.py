@@ -5,7 +5,7 @@ import re
 import shutil
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from _editor import open_in_editor
+from _editor import is_vscode_installed, open_in_editor, open_in_vscode
 from _script import (
     Script,
     get_absolute_script_path,
@@ -18,6 +18,7 @@ from _script import (
     get_script_config_file_path,
     get_script_directories,
     get_script_root,
+    save_json,
 )
 from _shutil import load_yaml, quote_arg, save_yaml, set_clip
 from _template import render_template_file
@@ -47,18 +48,21 @@ def edit_myscript_script(file):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
-    project_folder = os.path.abspath(os.path.join(SCRIPT_ROOT, ".."))
-    if file.startswith(project_folder):
-        open_in_editor([project_folder, file])
-        return
-
-    script_dirs = get_script_directories()
-    for _, d in script_dirs:
-        if d in file:
-            open_in_editor([d, file])
-            return
-
-    open_in_editor([file])
+    if is_vscode_installed():
+        # Create a VSCode workspace to work with all scripts together.
+        folders = [
+            {"path": x[1].replace(os.path.sep, "/")} for x in get_script_directories()
+        ]
+        workspace_file = os.path.join(get_data_dir(), "MyScripts.code-workspace")
+        save_json(
+            workspace_file,
+            {
+                "folders": folders,
+            },
+        )
+        open_in_vscode([workspace_file, file])
+    else:
+        open_in_editor([file])
 
 
 def enter_script_path():
