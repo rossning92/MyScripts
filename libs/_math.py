@@ -39,7 +39,7 @@ def setup_plt_style(dark=False, cn=False, size_inch=None):
     if dark:
         plt.style.use("dark_background")
     else:
-        plt.style.use("fivethirtyeight")
+        plt.style.use("bmh")
 
     if cn:
         matplotlib.rcParams["font.family"] = "Microsoft YaHei"
