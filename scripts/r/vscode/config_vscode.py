@@ -62,13 +62,7 @@ def get_vscode_cmdline(data_dir=None):
     else:
         args = ["code"]
     if data_dir:
-        extensions_dir = os.path.join(data_dir, "extensions")
-        args += [
-            "--user-data-dir",
-            data_dir,
-            "--extensions-dir",
-            extensions_dir,
-        ]
+        args += ["--user-data-dir", data_dir]
     return args
 
 
@@ -97,7 +91,7 @@ def update_settings(settings, data_dir):
 
 
 def pip_install(package: str):
-    call_echo([sys.executable, "-m", "pip", "install", "--user", package])
+    call_echo([sys.executable, "-m", "pip", "install", package])
 
 
 def setup_python(data_dir: str):
