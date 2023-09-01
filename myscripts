@@ -36,28 +36,34 @@ elif command -v termux-setup-storage; then # is running in termux
     source scripts/r/android/termux/setup_termux.sh
 fi
 
-pip3 install -r requirements.txt
-
 # Autostart on any Linux desktop
-mkdir -p ~/.config/autostart/
-cat >~/.config/autostart/myscripts.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Name=MyScripts
-Exec=x-terminal-emulator -e $HOME/MyScripts/myscripts --startup
-StartupNotify=false
-Terminal=false
-EOF
+# mkdir -p ~/.config/autostart/
+# cat >~/.config/autostart/myscripts.desktop <<EOF
+# [Desktop Entry]
+# Type=Application
+# Name=MyScripts
+# Exec=alacritty -e $HOME/MyScripts/myscripts --startup
+# StartupNotify=false
+# Terminal=false
+# EOF
+
+line="alacritty -e $HOME/MyScripts/myscripts --startup &"
+if [[ ! -f ~/.xinitrc ]] || ! grep -qF -- "$line" ~/.xinitrc; then
+    printf '%s\n%s\n' "$line" "$(cat ~/.xinitrc)" >~/.xinitrc
+fi
 
 # Bash alias
-LINE="export PATH=\"$(pwd)/bin:\$PATH\""
+line="export PATH=\"$(pwd)/bin:\$PATH\""
 BASHRC="$HOME/.bashrc"
 # Append a line to $BASHRC file if it doesn't already exist.
-if [ ! -f "$BASHRC" ] || ! grep -qF -- "$LINE" "$BASHRC"; then
-    echo "$LINE" >>"$BASHRC"
+if [ ! -f "$BASHRC" ] || ! grep -qF -- "$line" "$BASHRC"; then
+    echo "$line" >>"$BASHRC"
 fi
 
 # Set terminal title
 echo -ne '\033]0;MyScriptsTerminal\007'
 
+[[ ! -d .venv ]] && python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
 python3 myscripts.py "$@"

@@ -50,9 +50,19 @@ def edit_myscript_script(file):
 
     if is_vscode_installed():
         # Create a VSCode workspace to work with all scripts together.
+        script_root = get_my_script_root()
         folders = [
-            {"path": x[1].replace(os.path.sep, "/")} for x in get_script_directories()
+            {
+                "path": script_root,
+            }
         ]
+        folders.extend(
+            [
+                {"path": x[1]}
+                for x in get_script_directories()
+                if script_root not in x[1]
+            ]
+        )
         workspace_file = os.path.join(get_data_dir(), "MyScripts.code-workspace")
         save_json(
             workspace_file,

@@ -14,7 +14,7 @@ import tempfile
 import threading
 import time
 from functools import lru_cache
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
 from _android import setup_android_env

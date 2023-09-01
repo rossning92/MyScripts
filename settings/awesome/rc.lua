@@ -20,10 +20,6 @@ local hotkeys_popup = require("awful.hotkeys_popup")
 -- when client with a matching name is opened:
 require("awful.hotkeys_popup.keys")
 
--- Load Debian menu entries
-local debian = require("debian.menu")
-local has_fdo, freedesktop = pcall(require, "freedesktop")
-
 --- Define custom widgets
 local battery_widget = require("battery-widget")
 local volume_widget = require('volume-widget.volume')
@@ -65,7 +61,7 @@ end
 beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "x-terminal-emulator"
+terminal = "alacritty"
 editor = os.getenv("EDITOR") or "editor"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -104,19 +100,9 @@ end}, {"manual", terminal .. " -e man awesome"}, {"edit config", editor_cmd .. "
     awesome.quit()
 end}}
 
-local menu_awesome = {"awesome", myawesomemenu, beautiful.awesome_icon}
-local menu_terminal = {"open terminal", terminal}
-
-if has_fdo then
-    mymainmenu = freedesktop.menu.build({
-        before = {menu_awesome},
-        after = {menu_terminal}
-    })
-else
-    mymainmenu = awful.menu({
-        items = {menu_awesome, {"Debian", debian.menu.Debian_menu.Debian}, menu_terminal}
-    })
-end
+mymainmenu = awful.menu({
+    items = {{"awesome", myawesomemenu, beautiful.awesome_icon}, {"open terminal", terminal}}
+})
 
 mylauncher = awful.widget.launcher({
     image = beautiful.awesome_icon,
@@ -683,4 +669,4 @@ end)
 -- }}}
 
 awful.util.spawn("nm-applet")
-awful.util.spawn_with_shell("x-terminal-emulator -e $HOME/MyScripts/myscripts --startup")
+awful.util.spawn_with_shell("alacritty -e $HOME/MyScripts/myscripts --startup")

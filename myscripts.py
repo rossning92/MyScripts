@@ -500,10 +500,8 @@ def init(no_gui=False):
     bin_dir = os.path.join(MYSCRIPT_ROOT, "bin")
     append_to_path_global(bin_dir)
 
-    user_site = subprocess.check_output(
-        [sys.executable, "-m", "site", "--user-site"], universal_newlines=True
-    ).strip()
-    script_dir = os.path.abspath(os.path.join(user_site, "..", "Scripts"))
+    # Add Python's "Scripts" dir to PATH
+    script_dir = os.path.abspath(os.path.join(sys.prefix, "Scripts"))
     append_to_path_global(script_dir)
 
     setup_env_var(os.environ)
