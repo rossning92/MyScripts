@@ -47,11 +47,6 @@ fi
 # Terminal=false
 # EOF
 
-line="alacritty -e $HOME/MyScripts/myscripts --startup &"
-if [[ ! -f ~/.xinitrc ]] || ! grep -qF -- "$line" ~/.xinitrc; then
-    printf '%s\n%s\n' "$line" "$(cat ~/.xinitrc)" >~/.xinitrc
-fi
-
 # Bash alias
 line="export PATH=\"$(pwd)/bin:\$PATH\""
 BASHRC="$HOME/.bashrc"

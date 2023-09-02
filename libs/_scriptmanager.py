@@ -144,14 +144,14 @@ def register_global_hotkeys_linux(scripts: List[Script]):
 
     s = (
         f"control+q\n"
-        f'  wmctrl -a MyScriptsTerminal || x-terminal-emulator -e "{get_my_script_root()}/myscripts" --startup\n'
+        f'  wmctrl -a MyScriptsTerminal || alacritty -e "{get_my_script_root()}/myscripts" --startup\n'
         "\n"
     )
 
     for script in scripts:
         hotkey = script.cfg["globalHotkey"]
 
-        if hotkey:
+        if hotkey and script.is_supported():
             hotkey = (
                 hotkey.lower()
                 .replace("win+", "super+")
@@ -175,7 +175,7 @@ def register_global_hotkeys_win(scripts: List[Script]):
     for script in scripts:
         hotkey = script.cfg["globalHotkey"]
         if hotkey:
-            if hotkey:
+            if hotkey and script.is_supported():
                 hotkey = hotkey.lower()
                 hotkey = hotkey.replace("ctrl+", "^")
                 hotkey = hotkey.replace("alt+", "!")
@@ -232,7 +232,7 @@ def register_global_hotkeys_mac(scripts: List[Script], no_gui=False):
     keyboard_hooks = {}
     for script in scripts:
         hotkey = script.cfg["globalHotkey"]
-        if hotkey:
+        if hotkey and script.is_supported():
             logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
             keyboard_hooks[hotkey] = lambda script=script: execute_script(
                 script, no_gui=no_gui
@@ -305,7 +305,7 @@ class ScriptManager:
             if reloaded:
                 any_script_reloaded = True
                 should_run_script = False
-                if script.cfg["autoRun"]:
+                if script.cfg["autoRun"] and script.is_supported():
                     self.scripts_autorun.append(script)
                     if autorun:
                         should_run_script = True

@@ -1723,8 +1723,8 @@ def setup_logger(level=logging.INFO, log_to_stderr=True, log_to_file=None):
 
     if log_to_file:
         # Redirect stdout and stderr to logger
-        sys.stdout = StreamToLogger(logger, logging.INFO)
-        sys.stderr = StreamToLogger(logger, logging.ERROR)
+        # sys.stdout = StreamToLogger(logger, logging.INFO)
+        # sys.stderr = StreamToLogger(logger, logging.ERROR)
 
         # Log to files
         file_handler = logging.FileHandler(

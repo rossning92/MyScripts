@@ -918,6 +918,17 @@ class Script:
     def get_userscript_url(self) -> str:
         return "http://127.0.0.1:4312/fs/" + self.script_path.replace(os.path.sep, "/")
 
+    def is_supported(self) -> bool:
+        if ".win" in self.script_path and sys.platform != "win32":
+            return False
+        if ".linux" in self.script_path and sys.platform != "linux":
+            return False
+        if ".mac" in self.script_path and sys.platform != "darwin":
+            return False
+        if self.ext == ".ahk" and sys.platform != "win32":
+            return False
+        return True
+
     def execute(
         self,
         args: Optional[Union[str, List[str]]] = None,
@@ -930,6 +941,10 @@ class Script:
         command_wrapper=True,
         background=False,
     ) -> bool:
+        if not self.is_supported():
+            logging.warning(f"{self.name} is not supported on {sys.platform }.")
+            return False
+
         self.cfg = self.load_config()
 
         new_window = self.cfg["newWindow"] if new_window is None else new_window
@@ -1100,8 +1115,6 @@ class Script:
                 # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
                 shell = True
                 use_shell_execute_win32 = True
-            else:
-                logging.warning(f"{self.name} is not supported on {sys.platform }.")
 
         elif ext == ".cmd" or ext == ".bat":
             if sys.platform == "win32":
@@ -1870,12 +1883,6 @@ def get_scripts_recursive(directory) -> Iterator[str]:
 
             # Filter by script extensions
             if ext not in SCRIPT_EXTENSIONS:
-                continue
-            if ".win" in file and sys.platform != "win32":
-                continue
-            if ".linux" in file and sys.platform != "linux":
-                continue
-            if ".mac" in file and sys.platform != "darwin":
                 continue
 
             yield os.path.join(root, file)

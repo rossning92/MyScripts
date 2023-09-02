@@ -182,7 +182,7 @@ local function worker(user_args)
     local widget_type = args.widget_type
     local refresh_rate = args.refresh_rate or 1
     local step = args.step or 5
-    local device = args.device or 'pulse'
+    local device = args.device or 'default'
 
     if widget_types[widget_type] == nil then
         volume.widget = widget_types['icon_and_text'].get_widget(args.icon_and_text_args)

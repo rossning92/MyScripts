@@ -8,9 +8,10 @@
   },
   "python.formatting.provider": "none",
   "search.exclude": {
-    "**/tmp": true,
     "**/.mypy_cache": true,
-    "**/node_modules": true
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/tmp": true
   },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
