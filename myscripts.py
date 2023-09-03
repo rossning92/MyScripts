@@ -25,10 +25,10 @@ from _ext import (
 from _script import (
     Script,
     get_all_variables,
-    get_data_dir,
     get_default_script_config,
     get_hotkey_abbr,
     get_script_variables,
+    get_temp_dir,
     is_instance_running,
     save_variables,
     setup_env_var,
@@ -488,7 +488,7 @@ def init(no_gui=False):
         sys.exit(0)
 
     setup_logger(
-        log_to_file=os.path.join(get_data_dir(), "MyScripts.log"),
+        log_to_file=os.path.join(get_temp_dir(), "MyScripts.log"),
         log_to_stderr=False,
         level=logging.DEBUG,
     )

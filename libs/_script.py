@@ -1925,3 +1925,10 @@ def try_reload_scripts_autorun(scripts_autorun: List[Script]):
 def render_script(script_path) -> str:
     script = Script(script_path)
     return script.render()
+
+
+@lru_cache(maxsize=None)
+def get_temp_dir() -> str:
+    temp_dir = os.path.join(tempfile.gettempdir(), "MyScripts")
+    os.makedirs(temp_dir, exist_ok=True)
+    return temp_dir

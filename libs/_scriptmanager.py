@@ -15,9 +15,9 @@ from _script import (
     execute_script_autorun,
     get_all_script_access_time,
     get_all_scripts,
-    get_data_dir,
     get_my_script_root,
     get_script_history_file,
+    get_temp_dir,
     run_script,
 )
 from _shutil import (
@@ -32,7 +32,7 @@ from _shutil import (
 )
 from _template import render_template_file
 
-GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
+MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_temp_dir(), "GlobalHotkey.ahk")
 
 
 def add_keyboard_hooks(keyboard_hooks):
@@ -192,7 +192,7 @@ def register_global_hotkeys_win(scripts: List[Script]):
 
     render_template_file(
         os.path.join(get_my_script_root(), "GlobalHotkey.ahk"),
-        GLOBAL_HOTKEY,
+        MYSCRIPT_GLOBAL_HOTKEY,
         context={
             "PYTHON_EXEC": sys.executable,
             "START_SCRIPT": os.path.abspath("bin/start_script.py"),
@@ -204,7 +204,9 @@ def register_global_hotkeys_win(scripts: List[Script]):
         },
     )
 
-    subprocess.Popen([get_ahk_exe(), GLOBAL_HOTKEY], close_fds=True, shell=True)
+    subprocess.Popen(
+        [get_ahk_exe(), MYSCRIPT_GLOBAL_HOTKEY], close_fds=True, shell=True
+    )
 
 
 def execute_script(script: Script, close_on_exit=None, no_gui=False):
