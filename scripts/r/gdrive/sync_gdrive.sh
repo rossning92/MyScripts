@@ -12,13 +12,13 @@ cd "$HOME"
 mkdir -p "gdrive/${GDRIVE_DIR}"
 
 sync_gdrive() {
-    rclone bisync "drive:${GDRIVE_DIR}" "gdrive/${GDRIVE_DIR}" --verbose "$@"
+    rclone bisync "drive:${GDRIVE_DIR}" "gdrive/${GDRIVE_DIR}" --progress "$@"
 }
 
 if ! sync_gdrive; then
     printf "\n\n\n"
-    read -p "Resync (Y/n): " ans
-    if [[ "$ans" == "y" ]] || [[ -z "$ans" ]]; then
+    read -p "Resync? (y/n): " ans
+    if [[ "$ans" == "y" ]]; then
         sync_gdrive --resync
     fi
 fi
@@ -29,4 +29,4 @@ if [ -x "$(command -v cygpath)" ]; then # For windows: convert from unix path to
     abspath="$(cygpath -w "$abspath")"
 fi
 
-run_script ext/add_script_dir.py gd "$abspath"
+[[ -n "$MYSCRIPT_DIR_PREFIX" ]] && run_script ext/add_script_dir.py "$MYSCRIPT_DIR_PREFIX" "$abspath"

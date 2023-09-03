@@ -1,6 +1,5 @@
 set -e
-mkdir -p ~/mongodb_backups/
-cd ~/mongodb_backups/
+cd "${MY_DATA_DIR}/mongodb_backup/"
 
-echo "Restore database {{MONGO_DB_NAME}} from {{MONGO_DB_NAME}}.gz"
-mongorestore --drop --gzip --archive={{MONGO_DB_NAME}}.gz
+echo "Restore database ${MONGO_DB_NAME} from ${MONGO_DB_NAME}.gz"
+mongorestore --drop --gzip --archive=${MONGO_DB_NAME}.gz

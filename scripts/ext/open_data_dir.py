@@ -1,5 +1,6 @@
-from _script import get_data_dir
+import os
+
 from _shutil import shell_open
 
 if __name__ == "__main__":
-    shell_open(get_data_dir())
+    shell_open(os.environ["MY_DATA_DIR"])

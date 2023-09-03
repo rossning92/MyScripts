@@ -1,6 +1,12 @@
+# https://joeprevite.com/ssh-termux-from-computer/
+
+set -e
+
 pkg install openssh -y
+
 ssh-keygen -A
 echo -e "123456\n123456" | passwd
+
 sshd
 
 # Check for SSH daemon logs
@@ -8,7 +14,7 @@ sleep 2
 logcat -s 'sshd:*' -d | tail -n 10
 
 # Run sshd at startup
-if [ ! -f ~/.bashrc ] || ! grep -qF -- "sshd" ~/.bashrc; then
+if [[ ! -f ~/.bashrc ]] || ! grep -qF -- "sshd" ~/.bashrc; then
     echo "sshd" >>~/.bashrc
 fi
 

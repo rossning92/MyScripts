@@ -2,46 +2,30 @@ set -e
 mkdir -p ~/Downloads
 cd ~/Downloads
 
-# Download and install termux apks
-declare -a apks=(
-    "https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_arm64-v8a.apk"
-    # "https://f-droid.org/repo/com.termux.boot_7.apk"
-)
-for apk in "${apks[@]}"; do
-    name="$(basename "$apk")"
-    if [ ! -f "$name" ]; then
-        echo "Downloading $apk"
-        curl -o "$name" -OL "$apk"
-    fi
-    run_script r/android/install_apk.py "$name"
-done
+# Download and install termux
+apk="https://github.com/termux/termux-app/releases/download/v0.118.0/termux-app_v0.118.0+github-debug_arm64-v8a.apk"
+name="$(basename "$apk")"
+if [[ ! -f "$name" ]]; then
+    echo "Download $apk..."
+    curl -o "$name" -OL "$apk"
+fi
+run_script r/android/install_apk.py "$name"
 
 cat >setup_termux.sh <<'_EOF_'
+set -e
+export DEFAULT_ALWAYS_YES=true
+export ASSUME_ALWAYS_YES=true
+
 pkg up -y
 
-# Install ssh server
-pkg install openssh -y
-ssh-keygen -A
-echo -e "123456\n123456" | passwd
-sshd
+# Install git
+pkg install git -y
 
 # Configure .bashrc
 cat >~/.bashrc <<EOF
 #!/data/data/com.termux/files/usr/bin/sh
 termux-wake-lock
-sshd
 EOF
-
-# Configure startup
-mkdir -p ~/.termux/boot/
-cat >~/.termux/boot/start-sshd <<EOF
-#!/data/data/com.termux/files/usr/bin/sh
-termux-wake-lock
-sshd -D
-chmod 755 ~/.termux/boot/start-sshd
-EOF
-
-# am start -n com.termux.boot/.BootActivity
 
 {{ include('r/android/termux/install_ssh_server.sh') }}
 _EOF_
