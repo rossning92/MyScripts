@@ -12,7 +12,7 @@ cd "$HOME"
 mkdir -p "gdrive/${GDRIVE_DIR}"
 
 sync_gdrive() {
-    rclone bisync "drive:${GDRIVE_DIR}" "gdrive/${GDRIVE_DIR}" --progress "$@"
+    rclone bisync "drive:${GDRIVE_DIR}" "gdrive/${GDRIVE_DIR}" --progress --exclude=.mypy_cache "$@"
 }
 
 if ! sync_gdrive; then

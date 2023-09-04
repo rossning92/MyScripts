@@ -5,37 +5,6 @@ import sys
 
 from _shutil import call_echo, download, get_home_path, prepend_to_path, print2, unzip
 
-EXTENSION_LIST = [
-    "mhutchie.git-graph",
-    "stkb.rewrap",
-    "streetsidesoftware.code-spell-checker",
-    # C++
-    "ms-vscode.cpptools",
-    "ms-vscode.cpptools-extension-pack",
-    # Markdown
-    "yzhang.markdown-all-in-one",
-    "mushan.vscode-paste-image",
-    "kortina.vscode-markdown-notes",  # [[wiki-links]], backlinks, #tags and @bibtex-citations
-    # Javascript
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    # Bash
-    "foxundermoon.shell-format",
-    # AutoHotkey
-    "cweijan.vscode-autohotkey-plus",
-    # GLSL Shader
-    "circledev.glsl-canvas",  # shader preview
-    # "cadenas.vscode-glsllint",
-    "xaver.clang-format",
-    # Powershell
-    "ms-vscode.powershell",
-    # Mermaid Diagram
-    "bierner.markdown-mermaid",
-    "tomoyukim.vscode-mermaid-editor",
-    # csv
-    "janisdd.vscode-edit-csv",
-]
-
 if sys.platform == "win32":
     prepend_to_path([r"C:\Program Files\Microsoft VS Code\bin"])
 
@@ -67,7 +36,7 @@ def get_vscode_cmdline(data_dir=None):
 
 
 def install_extensions(extensions: list[str], data_dir=None):
-    print2("Install extensions...")
+    print2("Install extensions: %s" % " ".join(extensions))
 
     for extension in extensions:
         call_echo(
@@ -77,16 +46,16 @@ def install_extensions(extensions: list[str], data_dir=None):
 
 
 def update_settings(settings, data_dir):
-    SETTING_CONFIG = os.path.abspath(data_dir + "/User/settings.json")
+    setting_config_file = os.path.abspath(data_dir + "/User/settings.json")
     try:
-        with open(SETTING_CONFIG) as f:
+        with open(setting_config_file) as f:
             data = json.load(f)
     except FileNotFoundError:
         data = {}
 
     data.update(settings)
 
-    with open(SETTING_CONFIG, "w") as f:
+    with open(setting_config_file, "w") as f:
         json.dump(data, f, indent=4)
 
 
@@ -128,6 +97,11 @@ def setup_gpt(data_dir: str):
     )
 
 
+def setup_color_theme(data_dir: str):
+    install_extensions(["dracula-theme.theme-dracula"], data_dir=data_dir)
+    update_settings({"workbench.colorTheme": "Dracula"}, data_dir=data_dir)
+
+
 def config_vscode(data_dir=None, compact=False, glslang=False):
     if not data_dir:
         if sys.platform == "win32":
@@ -139,8 +113,42 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
 
     setup_python(data_dir=data_dir)
     setup_gpt(data_dir=data_dir)
+    setup_color_theme(data_dir=data_dir)
 
-    install_extensions(EXTENSION_LIST, data_dir=data_dir)
+    install_extensions(
+        [
+            "mhutchie.git-graph",
+            "stkb.rewrap",
+            "streetsidesoftware.code-spell-checker",
+            # C++
+            "ms-vscode.cpptools",
+            "ms-vscode.cpptools-extension-pack",
+            # Markdown
+            "yzhang.markdown-all-in-one",
+            "mushan.vscode-paste-image",
+            # For [[wiki-links]], backlinks, #tags and @bibtex-citations
+            "kortina.vscode-markdown-notes",
+            # Javascript
+            "dbaeumer.vscode-eslint",
+            "esbenp.prettier-vscode",
+            # Bash
+            "foxundermoon.shell-format",
+            # AutoHotkey
+            "cweijan.vscode-autohotkey-plus",
+            # GLSL Shader
+            "circledev.glsl-canvas",  # shader preview
+            # "cadenas.vscode-glsllint",
+            "xaver.clang-format",
+            # Powershell
+            "ms-vscode.powershell",
+            # Mermaid Diagram
+            "bierner.markdown-mermaid",
+            "tomoyukim.vscode-mermaid-editor",
+            # csv
+            "janisdd.vscode-edit-csv",
+        ],
+        data_dir=data_dir,
+    )
 
     print2("Update key bindings...")
     with open(os.path.abspath(data_dir + "/User/keybindings.json"), "w") as f:
@@ -196,7 +204,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     settings = {
         "window.title": "${rootName}${separator}${appName}",
         "editor.minimap.enabled": False,
-        "workbench.colorTheme": "Default Light+",
         "cSpell.enabledLanguageIds": ["markdown", "text"],
         "search.exclude": {"**/build": True},
         "pasteImage.path": "${currentFileNameWithoutExt}",

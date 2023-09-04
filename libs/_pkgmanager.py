@@ -58,11 +58,12 @@ def find_executable(pkg, install=False):
 
 
 def require_package(pkg, wsl=False):
-    logging.info(f"{require_package.__name__}(): {pkg}")
+    logging.info(f"Check if package is installed: {pkg}")
     # Check if pkg is an executable and exists already
     exec = find_executable(pkg)
 
     if exec is None:
+        logging.warn(f"Package was not found, installing {pkg}...")
         install_package(pkg, wsl=wsl)
 
 
@@ -95,26 +96,34 @@ def install_package(pkg, upgrade=False, wsl=False):
         return
 
     if wsl or sys.platform == "linux":
-        if is_in_termux():
-            # Package name is different in termux
-            if pkg == "openssh-client":
-                pkg = "openssh"
-
-        if (
-            subprocess.call(
-                (["wsl"] if wsl else []) + ["dpkg", "-s", pkg],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.STDOUT,
-            )
-            != 0
-        ):
-            logging.warning('Package "%s" cannot be found, installing...' % pkg)
-            if is_in_termux():
-                subprocess.check_call(["pkg", "install", pkg, "-y"])
-            elif shutil.which("apt"):
-                subprocess.check_call(
-                    (["wsl"] if wsl else []) + ["sudo", "apt", "install", pkg, "-y"]
+        if os.path.isfile("/etc/arch-release"):
+            if (
+                subprocess.call(
+                    ["pacman", "-Q", pkg],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
                 )
+                != 0
+            ):
+                logging.warning('Package "%s" was not found, installing...' % pkg)
+                subprocess.check_call(["sudo", "pacman", "-Sy", "--noconfirm", pkg])
+
+        else:
+            if (
+                subprocess.call(
+                    (["wsl"] if wsl else []) + ["dpkg", "-s", pkg],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
+                )
+                != 0
+            ):
+                logging.warning('Package "%s" was not found, installing...' % pkg)
+                if is_in_termux():
+                    subprocess.check_call(["pkg", "install", pkg, "-y"])
+                elif shutil.which("apt"):
+                    subprocess.check_call(
+                        (["wsl"] if wsl else []) + ["sudo", "apt", "install", pkg, "-y"]
+                    )
 
     elif sys.platform == "win32":
         choco_install(pkg, upgrade=upgrade)

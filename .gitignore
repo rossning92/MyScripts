@@ -1,18 +1,23 @@
-__pycache__/
-!/bin/*.exe
+# Ignore script folder
+/scripts/*
 !/scripts/ext
 !/scripts/r
+
+# Ignore certain files
 .DS_Store
-.idea/
 .ipynb_checkpoints
 *.exe
+!/bin/*.exe
 *.log
 *.pyc
-/.venv
-/config/
-/scripts/*
 /variables.*
 /variables.json
+
+# Ignore directories
+__pycache__/
+.idea/
+/.venv/
+/config/
 build/
 generated/
 node_modules/

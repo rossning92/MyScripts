@@ -1,3 +1,3 @@
 globalHotkey: win+alt+]
-packages: openssh-client expect
+packages: openssh expect
 wsl: true

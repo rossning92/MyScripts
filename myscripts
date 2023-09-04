@@ -26,14 +26,11 @@ if [[ "$(uname)" == "Linux" ]] && [[ -f "/etc/debian_version" ]]; then
     # Disable capslock key
     setxkbmap -option ctrl:nocaps
 
-    # Enable touchpad tapping
-    touchpad="$(xinput list --name-only | grep -i touch)"
-    echo "Setup touchpad device: $touchpad"
-    xinput set-prop "$touchpad" "libinput Tapping Enabled" 1
-    xinput set-prop "$touchpad" "libinput Natural Scrolling Enabled" 1
-
 elif command -v termux-setup-storage; then # is running in termux
-    source scripts/r/android/termux/setup_termux.sh
+    if [[ ! -x "$(command -v python)" ]]; then
+        pkg update
+        pkg install -y python
+    fi
 fi
 
 # Autostart on any Linux desktop
