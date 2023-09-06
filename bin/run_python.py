@@ -62,7 +62,6 @@ class MyMetaPathFinder(MetaPathFinder):
                         "-m",
                         "pip",
                         "install",
-                        "--user",
                         PYTHON_MODULE_LIST[fullname],
                     ]
                 )

@@ -13,7 +13,7 @@ append_if_not_exist() {
 }
 
 # Install utilities
-sudo pacman -S --noconfirm unzip openssh network-manager-applet fzf
+sudo pacman -S --noconfirm unzip openssh network-manager-applet fzf xclip
 
 # Install GitHub CLI
 if [[ -f "/etc/debian_version" ]]; then
@@ -46,8 +46,8 @@ sudo pacman -S --noconfirm alsa-utils # for amixer CLI command
 # Setup input method
 sudo pacman -S --noconfirm fcitx fcitx-configtool fcitx-googlepinyin
 prepend_if_not_exist ~/.xinitrc "fcitx -d"
-sed -E -i 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config                                                             # set trigger key
-sed -E -i 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config # disable extra trigger key
+sed -iE 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config                                                             # set trigger key
+sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config # disable extra trigger key
 
 # Configure Touchpad:
 # https://wiki.archlinux.org/title/Touchpad_Synaptics

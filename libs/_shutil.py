@@ -504,13 +504,13 @@ def copy(src, dst, overwrite=False):
             copy(f, dst)
 
 
-def run_elevated(args: Union[List, str], wait=True, show_terminal_window=True):
+def run_elevated(args: Union[List[str], str], wait=True, show_terminal_window=True):
     if sys.platform == "win32":
         import win32con
         from win32com.shell import shellcon
         from win32com.shell.shell import ShellExecuteEx
 
-        if type(args) == str:
+        if isinstance(args, str):
             lpFile, lpParameters = args.split(" ", 1)
         else:
             lpFile = args[0]
@@ -539,7 +539,7 @@ def run_elevated(args: Union[List, str], wait=True, show_terminal_window=True):
         else:
             ret = process_info
     else:
-        if type(args) == str:
+        if isinstance(args, str):
             args = "sudo " + args
         else:
             args = ["sudo"] + args
@@ -548,8 +548,8 @@ def run_elevated(args: Union[List, str], wait=True, show_terminal_window=True):
     return ret
 
 
-def remove(files):
-    if type(files) == str:
+def remove(files: Union[str, List[str]]):
+    if isinstance(files, str):
         files = [files]
 
     for file in files:
@@ -562,7 +562,7 @@ def remove(files):
                 print("Deleted: %s" % match)
 
 
-def rename(src, dst, dry_run=False):
+def rename(src: str, dst: str, dry_run=False):
     if src == dst:
         print('Skip: "%s" and "%s" are the same file' % (src, dst))
         return
@@ -592,11 +592,21 @@ def is_in_wsl() -> bool:
     return "microsoft-standard" in platform.uname().release
 
 
-def set_clip(s):
-    if is_in_termux():
-        if not shutil.which("termux-clipboard-set"):
-            subprocess.check_call(["pkg", "install", "termux-api"])
-        subprocess.check_call(["termux-clipboard-set", s])
+def set_clip(text: str):
+    if sys.platform == "linux":
+        if is_in_termux():
+            if not shutil.which("termux-clipboard-set"):
+                subprocess.check_call(["pkg", "install", "termux-api"])
+            subprocess.check_call(["termux-clipboard-set", text])
+        else:
+            p = subprocess.Popen(
+                ["xclip", "-selection", "c"],
+                stdin=subprocess.PIPE,
+                close_fds=True,
+                # make sure that xclip is not killed so other apps can paste the content
+                start_new_session=True,
+            )
+            p.communicate(input=text.encode("utf-8"))
     else:
         try:
             import pyperclip
@@ -604,7 +614,7 @@ def set_clip(s):
             subprocess.call([sys.executable, "-m", "pip", "install", "pyperclip"])
             import pyperclip
 
-        pyperclip.copy(s)
+        pyperclip.copy(text)
 
 
 def fnull():

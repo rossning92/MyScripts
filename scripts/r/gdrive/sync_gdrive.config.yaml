@@ -1,4 +1,4 @@
 closeOnExit: false
 hotkey: shift+z
-runEveryNSeconds: '60'
+runEveryNSeconds: '300'
 variableNames: GDRIVE_DIR MYSCRIPT_DIR_PREFIX

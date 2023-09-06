@@ -124,8 +124,8 @@ def setup_env_var(env):
     prepend_to_path(bin_dir, env=env)
 
     env["PYTHONPATH"] = os.path.join(root, "libs")
-
     env["MY_DATA_DIR"] = get_data_dir()
+    env["MY_TEMP_DIR"] = get_temp_dir()
 
 
 def get_bin_dir():
