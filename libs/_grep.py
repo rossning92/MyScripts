@@ -105,7 +105,7 @@ def show_bookmarks(open_bookmark_func=None):
             bookmarks += traverse_item(item)
 
     names = [x["name"] for x in bookmarks]
-    idx = select_option(names, history_file_name="show_bookmarks")
+    idx = select_option(names, history="show_bookmarks")
     if idx < 0:
         sys.exit(0)
 

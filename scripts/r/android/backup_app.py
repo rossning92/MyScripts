@@ -16,7 +16,7 @@ def select_app_pkg():
     s = s.replace("package:", "")
     lines = s.splitlines()
     lines = sorted(lines)
-    i = select_option(lines, history_file_name="select_app_pkg")
+    i = select_option(lines, history="select_app_pkg")
     if i == -1:
         return None
     else:

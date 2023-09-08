@@ -29,4 +29,4 @@ if [ -x "$(command -v cygpath)" ]; then # For windows: convert from unix path to
     abspath="$(cygpath -w "$abspath")"
 fi
 
-[[ -n "$MYSCRIPT_DIR_PREFIX" ]] && run_script ext/add_script_dir.py "$MYSCRIPT_DIR_PREFIX" "$abspath"
+run_script ext/add_script_dir.py "$GDRIVE_DIR" "$abspath"

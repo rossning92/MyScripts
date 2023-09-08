@@ -6,9 +6,9 @@ import os
 import re
 import sys
 import time
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
-from _shutil import load_json, save_json
+from _shutil import load_json, save_json, slugify
 
 
 def activate_cur_terminal():
@@ -28,45 +28,14 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
-def _select_options_ncurse(options, history_file_name=""):
-    assert isinstance(history_file_name, str)
-
+def _select_options_ncurse(options, history=""):
     if not options:
         raise Exception("Options cannot be empty.")
-
-    def get_history_file():
-        from _script import get_data_dir
-
-        return os.path.join(get_data_dir(), "%s.json" % history_file_name)
-
-    if history_file_name:
-        os.makedirs("tmp", exist_ok=True)
-        history = load_json(get_history_file(), [])
-        sort_key = {x: i for i, x in enumerate(history)}
-        options, indices = zip(
-            *sorted(
-                zip(options, list(range(len(options)))),
-                key=lambda x: sort_key[x[0]] if x[0] in sort_key else sys.maxsize,
-            )
-        )
-
-    w: Menu = Menu(items=options)
-    idx = w.exec()
-
-    if history_file_name and idx >= 0:
-        try:
-            history.remove(options[idx])
-        except ValueError:
-            pass
-        history.insert(0, options[idx])
-        save_json(get_history_file(), history)
-        idx = indices[idx]
-
-    return idx
+    return Menu(items=options).exec()
 
 
-def select_option(options, history_file_name=""):
-    return _select_options_ncurse(options, history_file_name=history_file_name)
+def select_option(options, history=""):
+    return _select_options_ncurse(options, history=history)
 
 
 def _prompt(options, message=None):
@@ -199,6 +168,7 @@ class Menu:
         ascii_only=False,
         cancellable=True,
         close_on_selection=False,
+        history: Optional[str] = None,
     ):
         self._input = InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
         self.items = items
@@ -214,8 +184,27 @@ class Menu:
         self.last_item_count = 0
         self.prev_key = -1
         self.close_on_selection = close_on_selection
-        self.invalidated = True  # only update screen when invalidated is True. This is set to True to trigger the initial draw.
         self.should_refresh = False
+
+        # Only update screen when invalidated is True. This is set to True to
+        # trigger the initial draw.
+        self.invalidated = True
+
+        # History
+        self.history = history
+        if history:
+            self.history_values = load_json(self.get_history_file(), [])
+            sort_key = {val: i for i, val in enumerate(self.history_values)}
+            sorted_items = sorted(
+                zip(self.items, list(range(len(self.items)))),
+                key=lambda x: sort_key.get(str(x[0]), sys.maxsize),
+            )
+            self.items, self.indices = zip(*sorted_items)
+
+    def get_history_file(self):
+        from _script import get_data_dir
+
+        return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
 
     def item(self, name=None):
         def decorator(func):
@@ -253,7 +242,17 @@ class Menu:
         else:
             self._exec()
 
-        return self.get_selected_index()
+        idx = self.get_selected_index()
+        if self.history is not None and idx >= 0:
+            try:
+                self.history_values.remove(str(self.items[idx]))
+            except ValueError:
+                pass
+            self.history_values.insert(0, str(self.items[idx]))
+            save_json(self.get_history_file(), self.history_values)
+            idx = self.indices[idx]
+
+        return idx
 
     @staticmethod
     def init_curses():
@@ -550,11 +549,11 @@ class DictValueEditWindow(Menu):
         dict_,
         name,
         type,
-        history: List,
+        dict_history_values: List,
         items: List,
     ):
         self.dict_ = dict_
-        self.history = history
+        self.dict_history_values = dict_history_values
         self.name = name
         self.type = type
 
@@ -589,9 +588,9 @@ class DictValueEditWindow(Menu):
         self.dict_[self.name] = val
 
         # Save edit history
-        if val in self.history:  # avoid duplicates
-            self.history.remove(val)
-        self.history.insert(0, val)
+        if val in self.dict_history_values:  # avoid duplicates
+            self.dict_history_values.remove(val)
+        self.dict_history_values.insert(0, val)
 
         self.close()
 
@@ -603,7 +602,7 @@ class DictValueEditWindow(Menu):
             return True
         elif ch == curses.KEY_DC:  # delete key
             i = self.get_selected_index()
-            del self.history[i]
+            del self.dict_history_values[i]
             return True
 
         return False
@@ -658,16 +657,16 @@ class DictEditWindow(Menu):
         val = self.dict_[name]
 
         if name not in self.dict_history:
-            history = self.dict_history[name] = []
+            dict_history_values = self.dict_history[name] = []
         else:
-            history = self.dict_history[name]
+            dict_history_values = self.dict_history[name]
 
         DictValueEditWindow(
             dict_=self.dict_,
             name=name,
             type=type(val),
-            items=history,
-            history=history,
+            items=dict_history_values,
+            dict_history_values=dict_history_values,
         ).exec()
 
         if self.on_dict_update:

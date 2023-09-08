@@ -22,7 +22,7 @@ if __name__ == "__main__":
         options = load_json(
             os.path.join(os.environ["MY_DATA_DIR"], "custom_prompts.json"),
         )
-        idx = select_option(options, history_file_name="custom_prompts")
+        idx = select_option(options, history="custom_prompts")
         prompt_text = options[idx]
         input_ = prompt_text + "\n\n" + input_
 

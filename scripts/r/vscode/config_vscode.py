@@ -82,10 +82,9 @@ def setup_python(data_dir: str):
 
     settings = {
         "python.pythonPath": sys.executable.replace("\\", "/"),
-        "python.formatting.provider": "black",
-        "python.linting.mypyEnabled": True,
-        "python.linting.enabled": True,
         "python.languageServer": "Pylance",
+        "[python]": {"editor.defaultFormatter": "ms-python.black-formatter"},
+        "python.analysis.typeCheckingMode": "basic",
     }
     update_settings(settings, data_dir=data_dir)
 
@@ -208,7 +207,9 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
         "search.exclude": {"**/build": True},
         "pasteImage.path": "${currentFileNameWithoutExt}",
         "workbench.editor.enablePreviewFromQuickOpen": False,
-        "grammarly.autoActivate": False,
+        "editor.formatOnSave": True,
+        "editor.codeActionsOnSave": {"source.organizeImports": True},
+        "files.trimTrailingWhitespace": True,
     }
 
     if glslang and sys.platform == "win32":

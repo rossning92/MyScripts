@@ -1,5 +1,5 @@
-mkdir -p "${MY_DATA_DIR}/mongodb_backup/"
-cd "${MY_DATA_DIR}/mongodb_backup/"
+mkdir -p "${MONGODB_BACKUP_DIR}"
+cd "${MONGODB_BACKUP_DIR}"
 
-echo "Backup database \"${MONGO_DB_NAME}\"..."
-mongodump --gzip --db=${MONGO_DB_NAME} --archive=${MONGO_DB_NAME}.gz
+echo "Backup database \"${MONGODB_NAME}\"..."
+mongodump --gzip --db=${MONGODB_NAME} --archive=${MONGODB_NAME}.gz

@@ -1415,14 +1415,11 @@ def get_script_root():
     return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
 
 
-def load_json(file, default=None):
+def load_json(file: str, default=None):
     try:
         with open(file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if default is not None:
-                data = {**default, **data}
-            return data
-    except Exception:
+            return json.load(f)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
         if default is not None:
             return default
         else:
