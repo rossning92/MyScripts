@@ -335,7 +335,7 @@ class ScriptManager:
 
         self.sort_scripts()
 
-        logging.info("Script refresh takes %.1f secs." % (time.time() - begin_time))
+        logging.debug("Script refresh takes %.1f secs." % (time.time() - begin_time))
 
         # Startup script should only be run once
         self.startup = False
@@ -360,4 +360,4 @@ class ScriptManager:
                             new_window=False,
                             background=True,
                         )
-                        script.last_scheduled_run_time = now
+                        script.last_scheduled_run_time = time.time()

@@ -713,14 +713,14 @@ class LogPipe(threading.Thread):
         self.read_pipe = read_pipe
         self.start()
 
-    def log_pipe(self):
+    def log(self):
         for line in iter(self.read_pipe.readline, b""):
             logging.log(self.level, line.strip(b"\n").decode())
 
         self.read_pipe.close()
 
     def run(self):
-        self.log_pipe()
+        self.log()
 
 
 class Script:
@@ -1306,8 +1306,51 @@ class Script:
                     os.path.join(get_bin_dir(), "command_wrapper.py"),
                 ] + arg_list
 
-            # args2 = arg_list
-            if new_window:
+            if background:
+                logging.debug("background = true")
+
+                if sys.platform == "win32":
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                    SW_HIDE = 0
+                    startupinfo.wShowWindow = SW_HIDE
+                    popen_extra_args["startupinfo"] = startupinfo
+
+                    CREATE_NO_WINDOW = 0x08000000
+                    DETACHED_PROCESS = 0x00000008
+                    createflags = (
+                        DETACHED_PROCESS
+                        | CREATE_NO_WINDOW
+                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                    )
+                    popen_extra_args["creationflags"] = createflags
+
+                popen_extra_args["stdin"] = subprocess.DEVNULL
+                popen_extra_args["stdout"] = subprocess.PIPE
+                popen_extra_args["stderr"] = subprocess.PIPE
+                no_wait = True
+
+            elif self.cfg["minimized"]:
+                if sys.platform == "win32":
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                    SW_MINIMIZE = 6
+                    startupinfo.wShowWindow = SW_MINIMIZE
+                    popen_extra_args["startupinfo"] = startupinfo
+
+                    popen_extra_args["creationflags"] = (
+                        subprocess.CREATE_NEW_CONSOLE
+                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                    )
+                    popen_extra_args["close_fds"] = True
+                    no_wait = True
+
+                else:
+                    logging.warning(
+                        '"minimized" is not supported on platform %s' % sys.platform
+                    )
+
+            elif new_window:
                 if restart_instance and single_instance:
                     # Close exising instances
                     close_window_by_name(self.get_window_title())
@@ -1442,50 +1485,6 @@ class Script:
                     new_window = False
                     no_wait = False
                     logging.warning(ex)
-
-            elif background:
-                logging.debug("background = true")
-
-                if sys.platform == "win32":
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                    SW_HIDE = 0
-                    startupinfo.wShowWindow = SW_HIDE
-                    popen_extra_args["startupinfo"] = startupinfo
-
-                    CREATE_NO_WINDOW = 0x08000000
-                    DETACHED_PROCESS = 0x00000008
-                    createflags = (
-                        DETACHED_PROCESS
-                        | CREATE_NO_WINDOW
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
-                    )
-                    popen_extra_args["creationflags"] = createflags
-
-                popen_extra_args["stdin"] = subprocess.DEVNULL
-                popen_extra_args["stdout"] = subprocess.PIPE
-                popen_extra_args["stderr"] = subprocess.PIPE
-                no_wait = True
-
-            elif self.cfg["minimized"]:
-                if sys.platform == "win32":
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                    SW_MINIMIZE = 6
-                    startupinfo.wShowWindow = SW_MINIMIZE
-                    popen_extra_args["startupinfo"] = startupinfo
-
-                    popen_extra_args["creationflags"] = (
-                        subprocess.CREATE_NEW_CONSOLE
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
-                    )
-                    popen_extra_args["close_fds"] = True
-                    no_wait = True
-
-                else:
-                    logging.warning(
-                        '"minimized" is not supported on platform %s' % sys.platform
-                    )
 
             # Spawn a new process to run commands
             if no_wait:
