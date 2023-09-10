@@ -55,6 +55,9 @@ fi
 # Set terminal title
 echo -ne '\033]0;MyScriptsTerminal\007'
 
+# Default settings for FZF
+export FZF_DEFAULT_OPTS='--layout=reverse'
+
 [[ ! -d .venv ]] && python3 -m venv .venv
 source .venv/bin/activate
 pip3 install -r requirements.txt

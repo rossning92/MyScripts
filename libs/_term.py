@@ -571,7 +571,7 @@ class DictValueEditWindow(Menu):
             val = int(val)
         elif self.type == float:
             val = float(val)
-        elif self.type == bool:
+        elif self.type == bool or self.type == type(None):
             if val.lower() == "true":
                 val = True
             elif val.lower() == "false":
