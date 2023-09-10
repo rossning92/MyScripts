@@ -145,6 +145,8 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             "tomoyukim.vscode-mermaid-editor",
             # csv
             "janisdd.vscode-edit-csv",
+            # Lua
+            "sumneko.lua",
         ],
         data_dir=data_dir,
     )

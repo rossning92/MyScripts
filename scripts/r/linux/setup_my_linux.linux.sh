@@ -65,3 +65,7 @@ EOF
 append_if_not_exist \
     "$HOME/.bash_profile" \
     '[[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]] && startx'
+
+# Automatically mount USB devices
+sudo pacman -S --noconfirm udisks2 udiskie
+prepend_if_not_exist ~/.xinitrc "udiskie &"
