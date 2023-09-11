@@ -25,7 +25,7 @@ sed -i 's#^exec /system/bin/app_process /#exec /system/bin/app_process -Xnoimage
 # ==============================
 cat >~/.bashrc <<EOF
 #!/data/data/com.termux/files/usr/bin/sh
-termux-wake-lock
+# termux-wake-lock
 EOF
 
 # ==============================

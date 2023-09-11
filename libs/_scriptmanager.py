@@ -331,7 +331,7 @@ class ScriptManager:
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
-                monitor_clipboard(self.scripts)
+                # monitor_clipboard(self.scripts)
 
         self.sort_scripts()
 

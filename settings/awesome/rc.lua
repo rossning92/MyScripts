@@ -83,7 +83,8 @@ awful.layout.layouts = { -- awful.layout.suit.floating,
     -- awful.layout.suit.fair.horizontal,
     -- awful.layout.suit.spiral,
     -- awful.layout.suit.spiral.dwindle,
-    awful.layout.suit.max -- awful.layout.suit.max.fullscreen,
+    awful.layout.suit.max,
+    -- awful.layout.suit.max.fullscreen,
     -- awful.layout.suit.magnifier,
     -- awful.layout.suit.corner.nw,
     -- awful.layout.suit.corner.ne,
@@ -244,7 +245,7 @@ awful.screen.connect_for_each_screen(function(s)
             awful.widget.watch('bash -c "free -h | awk \'/^Mem/ {print $3}\'"', 30),
             wibox.widget.systray(),
             mytextclock,
-            s.mylayoutbox
+            -- s.mylayoutbox
         }
     }
 end)

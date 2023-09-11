@@ -81,7 +81,7 @@ if sys.platform == "win32":
         os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
     )
 
-RESERVED_VARIABLE_NAMES = {"HOME", "PATH"}
+VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
 
 @lru_cache(maxsize=None)
@@ -996,6 +996,7 @@ class Script:
             else:
                 arg_list = [file]
 
+        # Override environmental variables with `variables`
         env = {**variables}
 
         # Set proxy settings
@@ -1010,7 +1011,13 @@ class Script:
         use_shell_execute_win32 = False
 
         if self.cfg["adk"]:
-            setup_android_env(env=env, jdk_version=self.cfg["adk.jdk_version"])
+            setup_android_env(
+                env=env,
+                jdk_version=self.cfg["adk.jdk_version"],
+                android_home=variables["ANDROID_HOME"]
+                if "ANDROID_HOME" in variables
+                else None,
+            )
 
         if self.cfg["cmake"]:
             setup_cmake(env=env, cmake_version=self.cfg["cmake.version"])
@@ -1567,7 +1574,7 @@ class Script:
             prefix + v if v.startswith("_") else v for v in variable_names
         ]
 
-        variable_names = [x for x in variable_names if x not in RESERVED_VARIABLE_NAMES]
+        variable_names = [x for x in variable_names if x not in VARIABLE_NAME_EXCLUDE]
 
         return variable_names
 

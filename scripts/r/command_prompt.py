@@ -2,17 +2,11 @@ import logging
 import subprocess
 import sys
 
-from _android import setup_android_env
 from _cpp import setup_cmake
 from _shutil import setup_logger, setup_nodejs
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)
-
-    try:
-        setup_android_env()
-    except Exception as ex:
-        logging.warning(ex)
 
     setup_cmake(install=False)
 

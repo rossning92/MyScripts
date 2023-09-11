@@ -400,6 +400,7 @@ def get_adk_path():
 
     elif sys.platform == "linux":
         ADK_SEARCH_PATH = [
+            os.path.expanduser("~/Android/Sdk"),
             os.path.expanduser("~/android-sdk"),
         ]
 
@@ -463,7 +464,11 @@ def setup_jdk(jdk_version=None, env=None):
 
 
 def setup_android_env(
-    env=None, ndk_version=None, jdk_version=None, build_tools_version=None
+    env=None,
+    ndk_version=None,
+    jdk_version=None,
+    build_tools_version=None,
+    android_home=None,
 ):
     if env is None:
         env = os.environ
@@ -471,7 +476,8 @@ def setup_android_env(
     path = []
 
     # ANDROID_HOME
-    android_home = get_adk_path()
+    if android_home is None:
+        android_home = get_adk_path()
     if android_home is None:
         raise Exception("Cannot find ANDROID_HOME")
     logging.info("ANDROID_HOME: %s" % android_home)
