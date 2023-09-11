@@ -86,7 +86,7 @@ RESERVED_VARIABLE_NAMES = {"HOME", "PATH"}
 
 @lru_cache(maxsize=None)
 def get_script_root():
-    return os.path.abspath(SCRIPT_ROOT + "/../scripts")
+    return os.path.join(get_my_script_root(), "scripts")
 
 
 @lru_cache(maxsize=None)

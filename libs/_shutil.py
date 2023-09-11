@@ -81,7 +81,16 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXA
             return
 
         if cmd == "activate":
-            return subprocess.call(["wmctrl", "-a", name]) == 0
+            return 0 == subprocess.call(
+                [
+                    "bash",
+                    os.path.abspath(
+                        os.path.dirname(__file__)
+                        + "/../scripts/r/linux/activate_window_by_name.sh"
+                    ),
+                    name,
+                ]
+            )
         elif cmd == "close":
             return subprocess.call(["wmctrl", "-c", name]) == 0
         else:
@@ -1409,10 +1418,6 @@ def slugify(value, allow_unicode=True):
         )
     value = re.sub(r"[^\w\s-]", "", value.lower())
     return re.sub(r"[-\s]+", "-", value).strip("-_")
-
-
-def get_script_root():
-    return os.path.abspath(os.path.dirname(__file__) + "/../scripts")
 
 
 def load_json(file: str, default=None):
