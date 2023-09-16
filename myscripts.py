@@ -434,6 +434,9 @@ class MainWindow(Menu):
                         self.refresh()
                     return True
 
+            elif ch == ALT_KEY:
+                return True
+
             return False
         finally:
             # Reset last refresh time when key press event is processed
