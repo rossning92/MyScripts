@@ -26,19 +26,50 @@ class Config:
             json.dump(data, f, indent=4)
 
 
-class FileBrowser(Menu):
-    def __init__(self):
+class FileManager(Menu):
+    def __init__(self, goto=None):
         self.config = Config()
         if os.path.exists(self.config.config_file):
             self.config.load()
         self.files: List[str] = []
         self.selected_file_full_path = None
         super().__init__(items=self.files)
-        self.goto_directory(self.config.cur_dir, self.config.selected_file)
+        if goto is not None:
+            if os.path.isdir(goto):
+                self.goto_directory(goto)
+            else:
+                self.goto_directory(os.path.dirname(goto), os.path.basename(goto))
+        else:
+            self.goto_directory(self.config.cur_dir, self.config.selected_file)
+
+        self.add_hotkey("shift+h", self._goto_home)
+        self.add_hotkey("shift+n", self._rename_file)
+
+    def _goto_home(self):
+        self.goto_directory(get_home_path())
+
+    def _rename_file(self):
+        selected_file = self.get_selected_item()
+        if selected_file:
+            w = Menu(label="New name", text=selected_file)
+            w.exec()
+            new_name = w.get_input()
+            if not new_name:
+                return
+
+            src = os.path.abspath(os.path.join(self.config.cur_dir, selected_file))
+            dest = os.path.abspath(os.path.join(self.config.cur_dir, new_name))
+
+            os.rename(src, dest)
+
+            self.refresh()
 
     def select_file(self):
         self.exec()
         return self.selected_file_full_path
+
+    def refresh(self):
+        self.goto_directory(self.config.cur_dir)
 
     def goto_directory(self, d, file=""):
         self.config.cur_dir = d
@@ -67,4 +98,4 @@ class FileBrowser(Menu):
 
 
 def select_file() -> Optional[str]:
-    return FileBrowser().select_file()
+    return FileManager().select_file()

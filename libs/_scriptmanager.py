@@ -31,6 +31,7 @@ from _shutil import (
     update_env_var_explorer,
 )
 from _template import render_template_file
+from _term import to_ascii_hotkey
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_temp_dir(), "GlobalHotkey.ahk")
 
@@ -90,19 +91,6 @@ class MonitorClipboardThread(threading.Thread):
             raise Exception("Must not call stop twice.")
         self.stopped.set()
         self.join()
-
-
-def to_ascii_hotkey(hotkey: str):
-    hotkey = hotkey.lower()
-    key = hotkey[-1].lower()
-    if "ctrl+" in hotkey:
-        ch = curses.ascii.ctrl(ord(key))
-    elif "shift+" in hotkey or "alt+" in hotkey:
-        # HACK: use `shift+` in place of `alt+`
-        ch = ord(key.upper())
-    else:
-        ch = ord(key)
-    return ch
 
 
 def register_hotkeys(scripts) -> Dict[str, Script]:
@@ -360,4 +348,4 @@ class ScriptManager:
                             new_window=False,
                             background=True,
                         )
-                        script.last_scheduled_run_time = time.time()
+                    script.last_scheduled_run_time = time.time()

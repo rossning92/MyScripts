@@ -21,8 +21,8 @@ from _android import setup_android_env
 from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
+from _filemgr import select_file
 from _pkgmanager import open_log_file, require_package
-from _select_file import select_file
 from _shutil import (
     CONEMU_INSTALL_DIR,
     IgnoreSigInt,
@@ -51,6 +51,7 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
+from _term import get_hotkey_abbr
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -606,16 +607,6 @@ def wrap_args_wt(
         return [WINDOWS_TERMINAL_EXEC, "-p", title] + args
     else:
         return [WINDOWS_TERMINAL_EXEC] + args
-
-
-def get_hotkey_abbr(hotkey):
-    return (
-        hotkey.lower()
-        .replace("win+", "#")
-        .replace("ctrl+", "^")
-        .replace("alt+", "!")
-        .replace("shift+", "+")
-    )
 
 
 def wrap_args_alacritty(

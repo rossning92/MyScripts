@@ -26,7 +26,6 @@ from _script import (
     Script,
     get_all_variables,
     get_default_script_config,
-    get_hotkey_abbr,
     get_script_variables,
     get_temp_dir,
     is_instance_running,
@@ -35,7 +34,7 @@ from _script import (
     try_reload_scripts_autorun,
     update_script_access_time,
 )
-from _scriptmanager import ScriptManager, execute_script, to_ascii_hotkey
+from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
@@ -205,15 +204,6 @@ class VariableWindow(Menu):
         self.clear_input()
 
 
-class InternalHotkey:
-    def __init__(self, hotkey: str, func: Callable):
-        self.hotkey = hotkey
-        self.func = func
-
-    def __str__(self) -> str:
-        return "%s (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
-
-
 def restart_program():
     os.execl(
         sys.executable,
@@ -235,20 +225,15 @@ class MainWindow(Menu):
             label=platform.node(),
         )
 
-        self.internal_hotkeys: Dict[str, InternalHotkey] = {}
-        self.add_internal_hotkey("ctrl+r", self._reload_scripts)
-        self.add_internal_hotkey("shift+m", self._edit_script_config)
-        self.add_internal_hotkey("shift+c", self._copy_to_clipboard)
-        self.add_internal_hotkey("shift+i", self._copy_to_clipboard_include_derivative)
-        self.add_internal_hotkey("ctrl+n", self._new_script)
-        self.add_internal_hotkey("ctrl+d", self._duplicate_script)
-        self.add_internal_hotkey("shift+n", self._rename_script)
-        self.add_internal_hotkey("ctrl+e", self._edit_script)
-        self.add_internal_hotkey("?", self._help)
-
-    def add_internal_hotkey(self, hotkey, func):
-        ch = to_ascii_hotkey(hotkey)
-        self.internal_hotkeys[ch] = InternalHotkey(hotkey=hotkey, func=func)
+        self.add_hotkey("ctrl+r", self._reload_scripts)
+        self.add_hotkey("shift+m", self._edit_script_config)
+        self.add_hotkey("shift+c", self._copy_to_clipboard)
+        self.add_hotkey("shift+i", self._copy_to_clipboard_include_derivative)
+        self.add_hotkey("ctrl+n", self._new_script)
+        self.add_hotkey("ctrl+d", self._duplicate_script)
+        self.add_hotkey("shift+n", self._rename_script)
+        self.add_hotkey("ctrl+e", self._edit_script)
+        self.add_hotkey("?", self._help)
 
     def on_main_loop(self):
         # Reload scripts
@@ -374,7 +359,7 @@ class MainWindow(Menu):
             self.run_cmd(lambda: edit_myscript_script(script_path))
 
     def _help(self):
-        items: List[InternalHotkey] = []
+        items = []
         items.extend(self.internal_hotkeys.values())
         items.extend(script_manager.hotkeys.values())
         w = Menu(label="all hotkeys", items=items)
@@ -388,11 +373,7 @@ class MainWindow(Menu):
         self.set_message(None)
 
         try:
-            if ch in self.internal_hotkeys:
-                self.internal_hotkeys[ch].func()
-                return True
-
-            elif ch == KEY_CODE_CTRL_ENTER_WIN or (
+            if ch == KEY_CODE_CTRL_ENTER_WIN or (
                 self.prev_key == ALT_KEY and ch == ord("\n")
             ):
                 self.run_selected_script(close_on_exit=False)
@@ -437,7 +418,9 @@ class MainWindow(Menu):
             elif ch == ALT_KEY:
                 return True
 
-            return False
+            else:
+                return super().on_char(ch)
+
         finally:
             # Reset last refresh time when key press event is processed
             self.update_last_refresh_time()

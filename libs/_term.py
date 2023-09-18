@@ -157,6 +157,38 @@ def ceildiv(a, b):
     return -(a // -b)
 
 
+def get_hotkey_abbr(hotkey):
+    return (
+        hotkey.lower()
+        .replace("win+", "#")
+        .replace("ctrl+", "^")
+        .replace("alt+", "!")
+        .replace("shift+", "+")
+    )
+
+
+def to_ascii_hotkey(hotkey: str) -> int:
+    hotkey = hotkey.lower()
+    key = hotkey[-1].lower()
+    if "ctrl+" in hotkey:
+        ch = curses.ascii.ctrl(ord(key))
+    elif "shift+" in hotkey or "alt+" in hotkey:
+        # HACK: use `shift+` in place of `alt+`
+        ch = ord(key.upper())
+    else:
+        ch = ord(key)
+    return ch
+
+
+class InternalHotkey:
+    def __init__(self, hotkey: str, func: Callable):
+        self.hotkey = hotkey
+        self.func = func
+
+    def __str__(self) -> str:
+        return "%s (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
+
+
 class Menu:
     stdscr = None
 
@@ -201,6 +233,13 @@ class Menu:
             )
             self.items, self.indices = zip(*sorted_items)
 
+        # Hotkeys
+        self.internal_hotkeys: Dict[int, InternalHotkey] = {}
+
+    def add_hotkey(self, hotkey, func):
+        ch = to_ascii_hotkey(hotkey)
+        self.internal_hotkeys[ch] = InternalHotkey(hotkey=hotkey, func=func)
+
     def get_history_file(self):
         from _script import get_data_dir
 
@@ -218,6 +257,9 @@ class Menu:
 
     def set_input(self, text: str):
         self._input.set_text(text)
+
+    def get_input(self) -> str:
+        return self._input.text
 
     def set_prompt(self, prompt: str):
         self._input.label = prompt
@@ -514,7 +556,12 @@ class Menu:
         elif ch == curses.ascii.ctrl(ord("c")):
             sys.exit(0)
 
-        return False
+        elif ch in self.internal_hotkeys:
+            self.internal_hotkeys[ch].func()
+            return True
+
+        else:
+            return False
 
     def on_enter_pressed(self):
         item = self.get_selected_item()
