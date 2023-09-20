@@ -84,6 +84,8 @@ if sys.platform == "win32":
 
 VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
+LOG_PIPE_FOR_BACKGROUND_PROCESS = False
+
 
 @lru_cache(maxsize=None)
 def get_script_root():
@@ -1323,9 +1325,15 @@ class Script:
                     )
                     popen_extra_args["creationflags"] = createflags
 
-                popen_extra_args["stdin"] = subprocess.DEVNULL
-                popen_extra_args["stdout"] = subprocess.PIPE
-                popen_extra_args["stderr"] = subprocess.PIPE
+                if LOG_PIPE_FOR_BACKGROUND_PROCESS:
+                    popen_extra_args["stdin"] = subprocess.DEVNULL
+                    popen_extra_args["stdout"] = subprocess.PIPE
+                    popen_extra_args["stderr"] = subprocess.PIPE
+                else:
+                    popen_extra_args["stdin"] = subprocess.DEVNULL
+                    popen_extra_args["stdout"] = subprocess.DEVNULL
+                    popen_extra_args["stderr"] = subprocess.DEVNULL
+                    popen_extra_args["close_fds"] = True
                 no_wait = True
 
             elif self.cfg["minimized"]:
@@ -1539,7 +1547,7 @@ class Script:
                     with IgnoreSigInt():
                         success = self.ps.wait() == 0
 
-                if background:
+                if LOG_PIPE_FOR_BACKGROUND_PROCESS and background:
                     LogPipe(self.ps.stdout, logging.INFO)
                     LogPipe(self.ps.stderr, logging.ERROR)
 
