@@ -58,7 +58,7 @@ echo -ne '\033]0;MyScriptsTerminal\007'
 # Default settings for FZF
 export FZF_DEFAULT_OPTS='--layout=reverse'
 
-[[ ! -d .venv ]] && python3 -m venv .venv
+[[ ! -d .venv ]] && python3 -m venv .venv --system-site-packages
 source .venv/bin/activate
 pip3 install -r requirements.txt
 python3 myscripts.py "$@"
