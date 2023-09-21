@@ -1,6 +1,5 @@
 import argparse
 import os
-import subprocess
 
 import openai
 from _shutil import getch, load_json, set_clip
@@ -8,20 +7,15 @@ from _term import select_option
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=str, nargs="?", default="")
+    parser.add_argument("input", type=str)
     parser.add_argument("--copy-to-clipboard", action="store_true", default=False)
-    parser.add_argument("--custom-prompts", action="store_true", default=False)
     args = parser.parse_args()
 
     if os.path.isfile(args.input):
         with open(args.input, "r", encoding="utf-8") as f:
-            input_ = f.read()
-    elif args.input:
-        input_ = args.input
+            input_text = f.read()
     else:
-        input_ = subprocess.check_output(
-            ["xclip", "-out", "-selection", "primary"], universal_newlines=True
-        )
+        input_text = args.input
 
     # Load custom prompts
     prompt_file = os.path.join(os.environ["MY_DATA_DIR"], "custom_prompts.json")
@@ -29,7 +23,7 @@ if __name__ == "__main__":
         options = load_json(prompt_file)
         idx = select_option(options, history="custom_prompts")
         prompt_text = options[idx]
-        input_ = prompt_text + "\n\n" + input_
+        input_text = prompt_text + "\n\n" + input_text
 
     # https://platform.openai.com/account/api-keys
     openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -37,7 +31,7 @@ if __name__ == "__main__":
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": input_},
+        {"role": "user", "content": input_text},
     ]
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",

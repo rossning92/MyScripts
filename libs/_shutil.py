@@ -582,14 +582,34 @@ def rename(src: str, dst: str, dry_run=False):
 
 
 def get_clip():
-    import win32clipboard
+    if sys.platform == "win32":
+        import win32clipboard
 
-    win32clipboard.OpenClipboard()
-    try:
-        text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
-    finally:
-        win32clipboard.CloseClipboard()
-    return text
+        win32clipboard.OpenClipboard()
+        try:
+            text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
+        finally:
+            win32clipboard.CloseClipboard()
+        return text
+
+    elif sys.platform == "linux":
+        return subprocess.check_output(
+            ["xclip", "-out", "-selection", "clipboard"], universal_newlines=True
+        )
+
+
+def get_selection():
+    if is_in_termux():
+        return subprocess.check_output(
+            ["termux-clipboard-get"], universal_newlines=True
+        )
+
+    elif sys.platform == "linux":
+        return subprocess.check_output(
+            ["xclip", "-out", "-selection", "primary"], universal_newlines=True
+        )
+    else:
+        raise Exception(f"Unsupported OS: {sys.platform}")
 
 
 @lru_cache(maxsize=None)

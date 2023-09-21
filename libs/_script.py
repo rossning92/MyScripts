@@ -33,7 +33,9 @@ from _shutil import (
     file_is_old,
     format_time,
     get_ahk_exe,
+    get_clip,
     get_home_path,
+    get_selection,
     is_in_wsl,
     load_json,
     load_yaml,
@@ -210,7 +212,7 @@ def add_script_dir(d, prefix=None):
 
 
 def get_script_history_file():
-    return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
+    return os.path.join(os.path.join(get_temp_dir(), "last_script.json"))
 
 
 def get_last_script_and_args() -> Tuple[str, Any]:
@@ -975,9 +977,9 @@ class Script:
             return True
 
         arg_list: List[str]
-        if type(args) == str:
+        if isinstance(args, str):
             arg_list = [args]
-        elif type(args) == list:
+        elif isinstance(args, list):
             arg_list = args
         else:
             arg_list = []
@@ -987,7 +989,17 @@ class Script:
             if file is None:
                 return True
             else:
-                arg_list = [file]
+                arg_list.append(file)
+
+        elif self.cfg["args.passSelectionAsFile"]:
+            selection = get_selection()
+            temp_file = write_temp_file(selection, ".txt")
+            arg_list.append(temp_file)
+
+        elif self.cfg["args.passClipboardAsFile"]:
+            clipboard = get_clip()
+            temp_file = write_temp_file(clipboard, ".txt")
+            arg_list.append(temp_file)
 
         # Override environmental variables with `variables`
         env = {**variables}
@@ -1542,6 +1554,7 @@ class Script:
                     shell=shell,
                     **popen_extra_args,
                 )
+
                 success = True
                 if not no_wait:
                     with IgnoreSigInt():
@@ -1710,6 +1723,8 @@ def get_default_script_config() -> Dict[str, Any]:
         "adk.jdk_version": "",
         "adk": False,
         "args": "",
+        "args.passSelectionAsFile": False,
+        "args.passClipboardAsFile": False,
         "autoRun": False,
         "background": False,
         "closeOnExit": True,
@@ -1826,7 +1841,7 @@ def is_instance_running() -> bool:
 
 
 def _get_script_access_time_file() -> str:
-    config_file = os.path.join(get_data_dir(), "script_access_time.json")
+    config_file = os.path.join(get_temp_dir(), "script_access_time.json")
     return config_file
 
 
