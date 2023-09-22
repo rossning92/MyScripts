@@ -31,7 +31,7 @@ def minimize_cur_terminal():
 def _select_options_ncurse(options, history=""):
     if not options:
         raise Exception("Options cannot be empty.")
-    return Menu(items=options).exec()
+    return Menu(items=options, history=history).exec()
 
 
 def select_option(options, history=""):

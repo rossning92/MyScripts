@@ -1,14 +1,15 @@
 import argparse
 import os
+import sys
 
 import openai
-from _shutil import getch, load_json, set_clip
-from _term import select_option
+from _shutil import load_json, set_clip
+from _term import Menu
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str)
-    parser.add_argument("--copy-to-clipboard", action="store_true", default=False)
+    parser.add_argument("-c", "--copy-to-clipboard", action="store_true", default=False)
     args = parser.parse_args()
 
     if os.path.isfile(args.input):
@@ -21,7 +22,10 @@ if __name__ == "__main__":
     prompt_file = os.path.join(os.environ["MY_DATA_DIR"], "custom_prompts.json")
     if os.path.exists(prompt_file):
         options = load_json(prompt_file)
-        idx = select_option(options, history="custom_prompts")
+        idx = Menu(options, history="custom_prompts").exec()
+        if idx < 0:
+            sys.exit(0)
+
         prompt_text = options[idx]
         input_text = prompt_text + "\n\n" + input_text
 
@@ -47,8 +51,4 @@ if __name__ == "__main__":
             print(chunk_message["content"], end="")
 
     if args.copy_to_clipboard:
-        set_clip(full_text)
-    else:
-        print("\n\n(press any key to copy to clipboard...)")
-        getch()
         set_clip(full_text)

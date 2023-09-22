@@ -1,1 +1,1 @@
-args: file
+args.selectFile: true

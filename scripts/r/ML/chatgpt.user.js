@@ -22,7 +22,7 @@ addButton(
       },
     });
   },
-  "c-i"
+  "c-a-i"
 );
 
 async function getCompletion(content, { onText, onDeltaText }) {

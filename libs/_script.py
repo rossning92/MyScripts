@@ -984,22 +984,26 @@ class Script:
         else:
             arg_list = []
 
-        if self.cfg["args"] == "file" and len(arg_list) == 0:
-            file = select_file()
-            if file is None:
-                return True
-            else:
-                arg_list.append(file)
+        if len(arg_list) == 0:  # override command line arguments
+            if self.cfg["args"]:
+                arg_list += self.cfg["args"].split()
 
-        elif self.cfg["args.passSelectionAsFile"]:
-            selection = get_selection()
-            temp_file = write_temp_file(selection, ".txt")
-            arg_list.append(temp_file)
+            if self.cfg["args.passSelectionAsFile"]:
+                selection = get_selection()
+                temp_file = write_temp_file(selection, ".txt")
+                arg_list.append(temp_file)
 
-        elif self.cfg["args.passClipboardAsFile"]:
-            clipboard = get_clip()
-            temp_file = write_temp_file(clipboard, ".txt")
-            arg_list.append(temp_file)
+            elif self.cfg["args.passClipboardAsFile"]:
+                clipboard = get_clip()
+                temp_file = write_temp_file(clipboard, ".txt")
+                arg_list.append(temp_file)
+
+            elif self.cfg["args.selectFile"]:
+                file = select_file()
+                if file is None:
+                    raise Exception("You must select a file!")
+                else:
+                    arg_list.append(file)
 
         # Override environmental variables with `variables`
         env = {**variables}
@@ -1723,6 +1727,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "adk.jdk_version": "",
         "adk": False,
         "args": "",
+        "args.selectFile": False,
         "args.passSelectionAsFile": False,
         "args.passClipboardAsFile": False,
         "autoRun": False,

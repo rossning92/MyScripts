@@ -21,7 +21,7 @@ declare global {
     function download(url: string, filename?: string): void;
     function system(args: string | string[]): Promise<string>;
     function openInNewWindow(url: string): void;
-    function getSelectedText(): void;
+    function getSelectedText(): string;
     function sendText(text: string): void;
     function click(el: HTMLElement): void;
     function sendKey(keyCode: number, type?: "up" | "press"): void;

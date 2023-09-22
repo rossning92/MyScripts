@@ -1,2 +1,4 @@
+args: --copy-to-clipboard
 args.passSelectionAsFile: true
 globalHotkey: alt+9
+hotkey: shift+t
