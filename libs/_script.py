@@ -18,6 +18,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
 from _android import setup_android_env
+from _clip import get_clip, get_selection
 from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
@@ -33,9 +34,7 @@ from _shutil import (
     file_is_old,
     format_time,
     get_ahk_exe,
-    get_clip,
     get_home_path,
-    get_selection,
     is_in_wsl,
     load_json,
     load_yaml,

@@ -581,113 +581,6 @@ def rename(src: str, dst: str, dry_run=False):
         os.rename(src, dst)
 
 
-def get_clip():
-    if sys.platform == "win32":
-        import win32clipboard
-
-        win32clipboard.OpenClipboard()
-        try:
-            text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
-        finally:
-            win32clipboard.CloseClipboard()
-        return text
-
-    elif sys.platform == "linux":
-        return subprocess.check_output(
-            ["xclip", "-out", "-selection", "clipboard"], universal_newlines=True
-        )
-
-
-def get_selection_win() -> str:
-    import win32clipboard
-
-    LONG = ctypes.c_long
-    DWORD = ctypes.c_ulong
-    ULONG_PTR = ctypes.POINTER(DWORD)
-    WORD = ctypes.c_ushort
-
-    INPUT_KEYBOARD = 1
-    VK_CONTROL = 0x11
-    KEYEVENTF_KEYUP = 0x0002
-    KEY_C = 0x43
-
-    class MOUSEINPUT(ctypes.Structure):
-        _fields_ = (
-            ("dx", LONG),
-            ("dy", LONG),
-            ("mouseData", DWORD),
-            ("dwFlags", DWORD),
-            ("time", DWORD),
-            ("dwExtraInfo", ULONG_PTR),
-        )
-
-    class KEYBDINPUT(ctypes.Structure):
-        _fields_ = (
-            ("wVk", WORD),
-            ("wScan", WORD),
-            ("dwFlags", DWORD),
-            ("time", DWORD),
-            ("dwExtraInfo", ULONG_PTR),
-        )
-
-    class HARDWAREINPUT(ctypes.Structure):
-        _fields_ = (("uMsg", DWORD), ("wParamL", WORD), ("wParamH", WORD))
-
-    class _INPUTunion(ctypes.Union):
-        _fields_ = (("mi", MOUSEINPUT), ("ki", KEYBDINPUT), ("hi", HARDWAREINPUT))
-
-    class INPUT(ctypes.Structure):
-        _fields_ = (("type", DWORD), ("union", _INPUTunion))
-
-    def SendInput(*inputs):
-        nInputs = len(inputs)
-        LPINPUT = INPUT * nInputs
-        pInputs = LPINPUT(*inputs)
-        cbSize = ctypes.c_int(ctypes.sizeof(INPUT))
-        return ctypes.windll.user32.SendInput(nInputs, pInputs, cbSize)
-
-    def KeybdInput(code, flags=0):
-        return INPUT(
-            INPUT_KEYBOARD, _INPUTunion(ki=KEYBDINPUT(code, code, flags, 0, None))
-        )
-
-    def send_ctrl_c():
-        SendInput(KeybdInput(VK_CONTROL), KeybdInput(KEY_C))
-        time.sleep(0.1)
-        SendInput(
-            KeybdInput(VK_CONTROL, KEYEVENTF_KEYUP), KeybdInput(KEY_C, KEYEVENTF_KEYUP)
-        )
-        time.sleep(0.1)
-
-    send_ctrl_c()
-
-    win32clipboard.OpenClipboard()
-    try:
-        text = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
-    finally:
-        win32clipboard.CloseClipboard()
-
-    return text
-
-
-def get_selection() -> str:
-    if is_in_termux():
-        return subprocess.check_output(
-            ["termux-clipboard-get"], universal_newlines=True
-        )
-
-    elif sys.platform == "linux":
-        return subprocess.check_output(
-            ["xclip", "-out", "-selection", "primary"], universal_newlines=True
-        )
-
-    elif sys.platform == "win32":
-        return get_selection_win()
-
-    else:
-        raise Exception(f"Unsupported OS: {sys.platform}")
-
-
 @lru_cache(maxsize=None)
 def is_in_termux():
     return shutil.which("termux-setup-storage") is not None
@@ -1594,7 +1487,7 @@ def send_ctrl_c(ps):
                 # handler.
                 pass
         else:
-            ps.send_signal(signal.CTRL_C_EVENT) # type: ignore
+            ps.send_signal(signal.CTRL_C_EVENT)  # type: ignore
             ps.wait()
 
 

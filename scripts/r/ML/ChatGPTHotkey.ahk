@@ -11,7 +11,7 @@ SetWorkingDir, %A_ScriptDir%
     tempFile = %A_Temp%\text_input.txt
     FileDelete, %tempFile%
     FileAppend, %text%, %tempFile%, UTF-8
-    Run, run_script r/ML/chatgpt.py --copy-to-clipboard --custom-prompts "%tempFile%"
+    Run, run_script r/ML/chatgpt.py --copy-to-clipboard "%tempFile%"
 return
 
 !8::

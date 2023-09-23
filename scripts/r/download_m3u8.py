@@ -1,6 +1,7 @@
 import os
 
-from _shutil import call_echo, cd, get_clip, get_cur_time_str
+from _clip import get_clip
+from _shutil import call_echo, cd, get_cur_time_str
 
 if __name__ == "__main__":
     url = get_clip()
