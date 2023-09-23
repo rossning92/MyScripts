@@ -1,5 +1,4 @@
 import bisect
-import curses
 import logging
 import os
 import re
@@ -23,8 +22,8 @@ from _script import (
 from _shutil import (
     clear_env_var_explorer,
     get_ahk_exe,
-    getch,
     is_in_termux,
+    pause,
     refresh_env_vars,
     save_json,
     start_process,
@@ -137,17 +136,21 @@ def register_global_hotkeys_linux(scripts: List[Script]):
     )
 
     for script in scripts:
-        hotkey = script.cfg["globalHotkey"]
-
-        if hotkey and script.is_supported():
-            hotkey = (
-                hotkey.lower()
-                .replace("win+", "super+")
-                .replace("enter", "Return")
-                .replace("[", "bracketleft")
-                .replace("]", "bracketright")
+        hotkey_chain = script.cfg["globalHotkey"]
+        if hotkey_chain and script.is_supported():
+            hotkey_def = ";".join(
+                [
+                    (
+                        hotkey.lower()
+                        .replace("win+", "super+")
+                        .replace("enter", "Return")
+                        .replace("[", "bracketleft")
+                        .replace("]", "bracketright")
+                    )
+                    for hotkey in hotkey_chain.split()
+                ]
             )
-            s += "{}\n".format(hotkey)
+            s += "{}\n".format(hotkey_def)
             s += f"  python3 {get_my_script_root()}/bin/start_script.py {script.script_path}\n\n"
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
@@ -214,8 +217,7 @@ def execute_script(script: Script, close_on_exit=None, no_gui=False):
         new_window=False if no_gui else None,
     )
     if not success:
-        print("(press any key to continue...)")
-        getch()
+        pause()
 
 
 def register_global_hotkeys_mac(scripts: List[Script], no_gui=False):

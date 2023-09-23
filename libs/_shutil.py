@@ -1771,8 +1771,9 @@ def input_with_default(message, default):
     return s if s else default
 
 
-def pause(msg="continue"):
-    input(f"Press enter to {msg}...")
+def pause():
+    print("(press any key to continue...)")
+    getch()
 
 
 def keep_awake():

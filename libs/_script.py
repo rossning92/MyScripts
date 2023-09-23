@@ -936,7 +936,7 @@ class Script:
         background=False,
     ) -> bool:
         if not self.is_supported():
-            logging.warning(f"{self.name} is not supported on {sys.platform }.")
+            print(f"ERROR: {self.name} is not supported on {sys.platform}.")
             return False
 
         self.cfg = self.load_config()
@@ -1102,6 +1102,9 @@ class Script:
                     "-file",
                     ps_path,
                 ] + arg_list
+            else:
+                print("ERROR: OS does not support script: %s" % script_path)
+                return False
 
         elif ext == ".ahk":
             if sys.platform == "win32":
@@ -1127,7 +1130,8 @@ class Script:
                 new_window = False
                 background = True
 
-                # Avoid WinError 740: The requested operation requires elevation for AutoHotkeyU64_UIA.exe
+                # Avoid WinError 740: The requested operation requires elevation
+                # for AutoHotkeyU64_UIA.exe
                 shell = True
                 use_shell_execute_win32 = True
 
@@ -1143,7 +1147,7 @@ class Script:
                 # "call" must be used if there are spaces in batch file name
                 arg_list = ["cmd.exe", "/c", "call", batch_file] + arg_list
             else:
-                print("OS does not support script: %s" % script_path)
+                print("ERROR: OS does not support script: %s" % script_path)
                 return False
 
         elif ext == ".js":
@@ -1305,7 +1309,7 @@ class Script:
                 shell_open(url)
 
         else:
-            print("Not supported script:", ext)
+            print("ERROR: not supported script extension: %s" % ext)
 
         # Run commands
         if len(arg_list) > 0:
@@ -1412,10 +1416,11 @@ class Script:
                                 title=self.get_window_title(),
                             )
 
-                            # Workaround that prevents alacritty from being closed by parent terminal.
-                            # The "shell = True" below is very important!
+                            # Workaround that prevents alacritty from being
+                            # closed by parent terminal. The "shell = True"
+                            # below is very important!
                             DETACHED_PROCESS = 0x00000008
-                            CREATE_BREAKAWAY_FROM_JOB = 0x01000000
+                            # CREATE_BREAKAWAY_FROM_JOB = 0x01000000
                             popen_extra_args["creationflags"] = (
                                 subprocess.CREATE_NEW_PROCESS_GROUP
                                 | DETACHED_PROCESS

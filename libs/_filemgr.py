@@ -71,15 +71,15 @@ class FileManager(Menu):
     def refresh(self):
         self.goto_directory(self.config.cur_dir)
 
-    def goto_directory(self, d, file=""):
-        self.config.cur_dir = d
+    def goto_directory(self, directory, file=""):
+        if not os.path.isdir(directory):
+            directory = get_home_path()
+
+        self.config.cur_dir = directory
         self.config.save()
 
         self.files[:] = [".."] + os.listdir(self.config.cur_dir)
-        if file:
-            self.set_input(file)
-        else:
-            self.clear_input()
+        self.clear_input()
         self.set_prompt(self.config.cur_dir)
 
     def on_enter_pressed(self):

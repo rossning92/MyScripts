@@ -95,13 +95,16 @@ class InputWidget:
 
         text_start = len(self.label) + 1 if self.label else 0
         stdscr.attron(curses.color_pair(1))
-        stdscr.addstr(row, text_start, self.text)
+        try:
+            stdscr.addstr(row, text_start, self.text)
+        except curses.error:
+            pass
         stdscr.attroff(curses.color_pair(1))
 
         if cursor:
             try:
                 stdscr.move(row, self.caret_pos + text_start)
-            except:
+            except curses.error:
                 pass
 
     def clear(self):
@@ -453,10 +456,9 @@ class Menu:
     def get_items_per_page(self):
         return self.height - 2
 
-    def draw_text(self, row, col, s, highlight_parenthesis=False):
+    def draw_text(self, row, col, s):
         assert Menu.stdscr is not None
 
-        TAB_SIZE = 8
         if row >= self.height:
             return
 
@@ -464,29 +466,18 @@ class Menu:
             s = ".." + s[-col + 2 :]
             col = 0
 
+        i = row
         j = col
         for ch in s:
-            if highlight_parenthesis and ch == "(":
-                Menu.stdscr.attron(curses.color_pair(1))
-
-            if ch == "\t":
-                next_j = (j // TAB_SIZE + 1) * TAB_SIZE
-                ch = " " * (next_j - j)
-            else:
-                next_j = j + 1
-
+            if i > row:
+                Menu.stdscr.addstr(row, self.width - 1, ">")
+                break
             try:
                 Menu.stdscr.addstr(row, j, ch)
             except curses.error:
                 # Tolerate "addwstr() returned ERR"
                 pass
-
-            if highlight_parenthesis and ch == ")":
-                Menu.stdscr.attroff(curses.color_pair(1))
-
-            j = next_j
-
-        Menu.stdscr.attroff(curses.color_pair(1))
+            i, j = Menu.stdscr.getyx()  # type: ignore
 
     def on_update_screen(self, max_height=-1):
         assert Menu.stdscr is not None
@@ -508,14 +499,12 @@ class Menu:
             if i == selected_index_in_page:  # hightlight on
                 Menu.stdscr.attron(curses.color_pair(2))
             s = "{:>4}".format(item_index + 1)
-            self.draw_text(row, 0, s, highlight_parenthesis=True)
+            self.draw_text(row, 0, s)
             if i == selected_index_in_page:  # highlight off
                 Menu.stdscr.attroff(curses.color_pair(2))
 
             # Item name
-            self.draw_text(
-                row, 5, str(self.items[item_index]), highlight_parenthesis=True
-            )
+            self.draw_text(row, 5, str(self.items[item_index]))
 
             row += 1
             if row >= max_height:

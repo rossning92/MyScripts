@@ -38,6 +38,7 @@ from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
+    pause,
     quote_arg,
     refresh_env_vars,
     run_at_startup,
@@ -513,7 +514,7 @@ def main_loop(no_gui=False, quit=False):
 
         except Exception:
             traceback.print_exc(file=sys.stdout)
-            input("Press any key to retry...")
+            pause()
 
 
 if __name__ == "__main__":
