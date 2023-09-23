@@ -998,7 +998,7 @@ class Script:
                 temp_file = write_temp_file(clipboard, ".txt")
                 arg_list.append(temp_file)
 
-            elif self.cfg["args.selectFile"]:
+            elif self.cfg["args.passSelectedFile"]:
                 file = select_file()
                 if file is None:
                     raise Exception("You must select a file!")
@@ -1739,7 +1739,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "adk.jdk_version": "",
         "adk": False,
         "args": "",
-        "args.selectFile": False,
+        "args.passSelectedFile": False,
         "args.passSelectionAsFile": False,
         "args.passClipboardAsFile": False,
         "autoRun": False,

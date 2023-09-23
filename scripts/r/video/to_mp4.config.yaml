@@ -1,1 +1,1 @@
-args.selectFile: true
+args.passSelectedFile: true

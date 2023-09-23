@@ -13,8 +13,6 @@ from _shutil import load_json, save_json, slugify
 
 def activate_cur_terminal():
     if sys.platform == "win32":
-        import ctypes
-
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
         ctypes.windll.user32.SetForegroundWindow(hwnd)
@@ -22,8 +20,6 @@ def activate_cur_terminal():
 
 def minimize_cur_terminal():
     if sys.platform == "win32":
-        import ctypes
-
         hwnd = ctypes.windll.kernel32.GetConsoleWindow()
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 

@@ -324,7 +324,7 @@ def call2(args, check=True, shell=True, **kwargs):
             s = '"%s"' % s
         return s
 
-    if type(args) == list:
+    if isinstance(args, list):
         s = " ".join([quote(x) for x in args])
     else:
         s = args
@@ -339,7 +339,7 @@ def call_echo(args, shell=False, check=True, no_output=False, **kwargs):
             s = '"%s"' % s
         return s
 
-    if type(args) == list:
+    if isinstance(args, list):
         s = " ".join([quote(x) for x in args])
     else:
         s = args
@@ -364,7 +364,7 @@ def start_in_new_terminal(args, title=None):
     import shlex
 
     # Convert argument list to string
-    if type(args) == list:
+    if isinstance(args, list):
         args = [shlex.quote(x) for x in args]
 
     if sys.platform == "win32":
@@ -446,7 +446,7 @@ def get_pretty_time_delta(seconds):
 def download(url, filename=None, redownload=False, save_to_tmp=False):
     try:
         import requests
-    except:
+    except ImportError:
         subprocess.call([sys.executable, "-m", "pip", "install", "requests"])
         import requests
 
@@ -598,7 +598,7 @@ def get_clip():
         )
 
 
-def get_selection_win():
+def get_selection_win() -> str:
     import win32clipboard
 
     LONG = ctypes.c_long
@@ -670,7 +670,7 @@ def get_selection_win():
     return text
 
 
-def get_selection():
+def get_selection() -> str:
     if is_in_termux():
         return subprocess.check_output(
             ["termux-clipboard-get"], universal_newlines=True
@@ -854,7 +854,7 @@ def print2(msg, color="yellow", end="\n"):
             kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
         _console_color_initialized = True
 
-    if type(msg) is not str:
+    if not isinstance(msg, str):
         msg = str(msg)
     print(COLOR_MAP[color] + msg + RESET, end=end, flush=True)
 
@@ -950,9 +950,9 @@ def prepend_to_path(paths, env=None):
     if env is None:
         env = os.environ
 
-    if type(paths) == list:
+    if isinstance(paths, list):
         pass
-    elif type(paths) == str:
+    elif isinstance(paths, str):
         paths = paths.split(os.pathsep)
     else:
         raise ValueError()
@@ -973,10 +973,6 @@ def prepend_to_path(paths, env=None):
 
 def get_cur_time_str():
     return datetime.datetime.now().strftime("%y%m%d%H%M%S")
-
-
-def get_date_str():
-    return datetime.datetime.now().strftime("%Y%m%d")
 
 
 def exec_bash(script, wsl=False, echo=False):
@@ -1191,7 +1187,7 @@ def wait_for_key(keys):
 
     import keyboard
 
-    if type(keys) is str:
+    if isinstance(keys, str):
         keys = [keys]
 
     lock = threading.Event()
@@ -1356,7 +1352,7 @@ def get_next_file_name(file):
     name, ext = os.path.splitext(file)
     basename = os.path.basename(name)
     folder = os.path.dirname(name)
-    match = re.search("^(.*?)(\d*)$", basename)
+    match = re.search(r"^(.*?)(\d*)$", basename)
 
     if match is not None and match.group(2):
         prefix = match.group(1)
@@ -1598,7 +1594,7 @@ def send_ctrl_c(ps):
                 # handler.
                 pass
         else:
-            ps.send_signal(signal.CTRL_C_EVENT)
+            ps.send_signal(signal.CTRL_C_EVENT) # type: ignore
             ps.wait()
 
 
@@ -1713,7 +1709,7 @@ def menu_loop(
             if run_periotic is not None and interval > 0:
                 while True:
                     ch = getch(timeout=interval)
-                    if ch != None:
+                    if ch is not None:
                         break
                     else:
                         run_periotic()
@@ -1923,7 +1919,7 @@ def run_at_startup(name, cmdline):
         args = [
             "reg",
             "add",
-            "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run",
+            r"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run",
             "/v",
             name,
             "/t",
