@@ -1291,7 +1291,19 @@ class Script:
 
         elif ext == ".url":
             url = self.get_script_source()
-            shell_open(url)
+            fallback_to_shell_open = True
+            if self.cfg["webApp"]:
+                chrome_executables = ["google-chrome-stable", "google-chrome", "chrome"]
+                for chrome_exec in chrome_executables:
+                    if shutil.which(chrome_exec):
+                        subprocess.check_call(
+                            [chrome_exec, "--chrome-frame", "--app=" + url]
+                        )
+                        fallback_to_shell_open = False
+                        break
+
+            if fallback_to_shell_open:
+                shell_open(url)
 
         else:
             print("Not supported script:", ext)
@@ -1757,6 +1769,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "updateSelectedScriptAccessTime": False,
         "variableNames": "auto",
         "venv": "",
+        "webApp": False,
         "workingDir": "",
         "wsl": False,
     }
