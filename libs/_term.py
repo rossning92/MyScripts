@@ -6,7 +6,7 @@ import os
 import re
 import sys
 import time
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 from _shutil import load_json, save_json, slugify
 
@@ -188,12 +188,15 @@ class InternalHotkey:
         return "%s (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
 
 
-class Menu:
+T = TypeVar("T")
+
+
+class Menu(Generic[T]):
     stdscr = None
 
     def __init__(
         self,
-        items: List = [],
+        items: List[T] = [],
         label="",
         text="",
         ascii_only=False,
@@ -230,7 +233,8 @@ class Menu:
                 zip(self.items, list(range(len(self.items)))),
                 key=lambda x: sort_key.get(str(x[0]), sys.maxsize),
             )
-            self.items, self.indices = zip(*sorted_items)
+            self.items = [x[0] for x in sorted_items]
+            self.indices = [x[1] for x in sorted_items]
 
         # Hotkeys
         self.internal_hotkeys: Dict[int, InternalHotkey] = {}
@@ -524,7 +528,7 @@ class Menu:
         # Render input widget at the end, so the cursor will be move to the correct position
         self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
 
-    def get_selected_item(self):
+    def get_selected_item(self) -> Optional[T]:
         if len(self.matched_item_indices) > 0:
             item_index = self.matched_item_indices[self.selected_row]
             return self.items[item_index]
