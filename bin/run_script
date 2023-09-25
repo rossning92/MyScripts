@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-run_script="$(dirname "$0")/run_script.py"
+set -e
+
+script_dir="$(dirname "$0")"
+
+[[ -d "$script_dir/../.venv/bin" ]] && source "$script_dir/../.venv/bin/activate"
+[[ -d "$script_dir/../.venv/Scripts" ]] && source "$script_dir/../.venv/Scripts/activate"
+
+run_script="$script_dir/run_script.py"
 if [[ "$(uname -o)" == "Msys" ]]; then
     run_script="$(cygpath -w "${run_script}")"
 fi
 
-if [ -x "$(command -v python3)" ]; then
-    python3 "${run_script}" "$@"
-else
-    python "${run_script}" "$@"
-fi
+python "${run_script}" "$@"

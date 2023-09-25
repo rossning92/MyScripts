@@ -312,7 +312,7 @@ class Menu(Generic[T]):
         curses.noecho()
         curses.cbreak()
         curses.start_color()
-        curses.use_default_colors()  # The default color is assigned to the color number -1
+        curses.use_default_colors()  # The default color is assigned to -1
         curses.init_pair(1, curses.COLOR_GREEN, -1)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
@@ -331,7 +331,7 @@ class Menu(Generic[T]):
     def update_screen(self):
         assert Menu.stdscr is not None
 
-        self.height, self.width = Menu.stdscr.getmaxyx()
+        self.height, self.width = Menu.stdscr.getmaxyx()  # type: ignore
 
         if sys.platform == "win32":
             Menu.stdscr.clear()
@@ -474,7 +474,9 @@ class Menu(Generic[T]):
         j = col
         for ch in s:
             if i > row:
+                Menu.stdscr.attron(curses.color_pair(3))
                 Menu.stdscr.addstr(row, self.width - 1, ">")
+                Menu.stdscr.attroff(curses.color_pair(3))
                 break
             try:
                 Menu.stdscr.addstr(row, j, ch)
@@ -525,7 +527,8 @@ class Menu(Generic[T]):
             Menu.stdscr.addstr(1, 0, self.message)
             Menu.stdscr.attroff(curses.color_pair(3))
 
-        # Render input widget at the end, so the cursor will be move to the correct position
+        # Render input widget at the end, so the cursor will be move to the
+        # correct position.
         self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
 
     def get_selected_item(self) -> Optional[T]:

@@ -1,8 +1,8 @@
 set -e
 
-temp_file=$(mktemp)
+tmpfile=$(mktemp)
 input=$(<"$1")
-cat >"$temp_file" <<EOF
+cat >"$tmpfile" <<EOF
 Rephase the following, use proper english, don't use fancy word, simple and concise but still keep all meaning, don't replace the important keyword that may change the meaning. If i'm using markdown, keep the format don't change:
 
 ---
@@ -10,5 +10,6 @@ Rephase the following, use proper english, don't use fancy word, simple and conc
 $input
 EOF
 
-run_script r/ML/chatgpt.py "$temp_file"
+[[ "$(uname -o)" == "Msys" ]] && tmpfile="$(cygpath -w "${tmpfile}")"
+run_script r/ML/chatgpt.py "$tmpfile"
 read -p '(press enter to exit...)'

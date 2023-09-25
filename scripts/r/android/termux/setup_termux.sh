@@ -8,7 +8,22 @@ pkg up -y
 # ==============================
 # Install packages
 # ==============================
-declare -a packages=("python" "git" "gh" "termux-api")
+declare -a packages=(
+    "expect"
+    "fzf"
+    "gh"
+    "git"
+    "less"
+    "python-numpy"
+    "python"
+    "rclone"
+    "screen"
+    "sed"
+    "termux-api"
+    "unzip"
+    "vim"
+    "which"
+)
 for package in "${packages[@]}"; do
     dpkg -s "$package" >/dev/null 2>&1 || {
         pkg update
