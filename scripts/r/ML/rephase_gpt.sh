@@ -12,4 +12,3 @@ EOF
 
 [[ "$(uname -o)" == "Msys" ]] && tmpfile="$(cygpath -w "${tmpfile}")"
 run_script r/ML/chatgpt.py "$tmpfile"
-read -p '(press enter to exit...)'

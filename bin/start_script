@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
 set -e
-
+unset MSYS_NO_PATHCONV
 script_dir="$(dirname "$0")"
-
 [[ -d "$script_dir/../.venv/bin" ]] && source "$script_dir/../.venv/bin/activate"
 [[ -d "$script_dir/../.venv/Scripts" ]] && source "$script_dir/../.venv/Scripts/activate"
-
-start_script="$script_dir/start_script.py"
-if [[ "$(uname -o)" == "Msys" ]]; then
-    start_script="$(cygpath -w "${start_script}")"
-fi
-
-python "${start_script}" "$@"
+python "$script_dir/start_script.py" "$@"
