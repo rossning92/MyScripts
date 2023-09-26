@@ -361,7 +361,7 @@ class MainWindow(Menu):
 
     def _help(self):
         items = []
-        items.extend(self.internal_hotkeys.values())
+        items.extend(self._hotkeys.values())
         items.extend(script_manager.hotkeys.values())
         w = Menu(label="all hotkeys", items=items)
         w.exec()

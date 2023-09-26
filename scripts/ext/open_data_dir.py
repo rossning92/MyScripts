@@ -1,6 +1,6 @@
 import os
 
-from _shutil import shell_open
+from _filemgr import FileManager
 
 if __name__ == "__main__":
-    shell_open(os.environ["MY_DATA_DIR"])
+    FileManager(os.environ["MY_DATA_DIR"]).exec()

@@ -44,32 +44,38 @@ def get_selected_script_dir_rel(script_path=None):
     return rel_path
 
 
+def create_myscript_workspace() -> str:
+    # Create a VSCode workspace to work with all scripts together.
+    script_root = get_my_script_root()
+    folders = [
+        {
+            "path": script_root,
+        }
+    ]
+    folders.extend(
+        [{"path": x[1]} for x in get_script_directories() if script_root not in x[1]]
+    )
+    workspace_file = os.path.join(get_data_dir(), "MyScripts.code-workspace")
+    save_json(
+        workspace_file,
+        {
+            "folders": folders,
+        },
+    )
+    return workspace_file
+
+
+def open_myscript_workspace():
+    workspace_file = create_myscript_workspace()
+    open_in_vscode([workspace_file])
+
+
 def edit_myscript_script(file):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
     if is_vscode_installed():
-        # Create a VSCode workspace to work with all scripts together.
-        script_root = get_my_script_root()
-        folders = [
-            {
-                "path": script_root,
-            }
-        ]
-        folders.extend(
-            [
-                {"path": x[1]}
-                for x in get_script_directories()
-                if script_root not in x[1]
-            ]
-        )
-        workspace_file = os.path.join(get_data_dir(), "MyScripts.code-workspace")
-        save_json(
-            workspace_file,
-            {
-                "folders": folders,
-            },
-        )
+        workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])
     else:
         open_in_editor([file])

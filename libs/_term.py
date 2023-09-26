@@ -141,7 +141,7 @@ class InputWidget:
 T = TypeVar("T")
 
 
-class MenuItem:
+class _MenuItem:
     def __init__(
         self, name: str, callback: Optional[Callable[[], None]] = None
     ) -> None:
@@ -169,7 +169,11 @@ def get_hotkey_abbr(hotkey):
 def to_ascii_hotkey(hotkey: str) -> int:
     hotkey = hotkey.lower()
     key = hotkey[-1].lower()
-    if "ctrl+" in hotkey:
+    if hotkey == "left":
+        ch = curses.KEY_LEFT
+    elif hotkey == "right":
+        ch = curses.KEY_RIGHT
+    elif "ctrl+" in hotkey:
         ch = curses.ascii.ctrl(ord(key))
     elif "shift+" in hotkey or "alt+" in hotkey:
         # HACK: use `shift+` in place of `alt+`
@@ -179,7 +183,7 @@ def to_ascii_hotkey(hotkey: str) -> int:
     return ch
 
 
-class InternalHotkey:
+class _Hotkey:
     def __init__(self, hotkey: str, func: Callable):
         self.hotkey = hotkey
         self.func = func
@@ -208,21 +212,22 @@ class Menu(Generic[T]):
         self.items = items
         self.closed = False
         self.matched_item_indices: List[int] = []
-        self.selected_row = 0
-        self.width = -1
-        self.height = -1
-        self.message = None
+        self.selected_row: int = 0
+        self._requested_selected_row: int = -1
+        self.width: int = -1
+        self.height: int = -1
+        self.message: Optional[str] = None
         self.cancellable = cancellable
         self.last_key_pressed_timestamp = 0.0
         self.last_input = None
         self.last_item_count = 0
         self.prev_key = -1
         self.close_on_selection = close_on_selection
-        self.should_refresh = False
+        self._should_update_items = False
 
-        # Only update screen when invalidated is True. This is set to True to
+        # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
-        self.invalidated = True
+        self._should_update_screen = True
 
         # History
         self.history = history
@@ -237,23 +242,23 @@ class Menu(Generic[T]):
             self.indices = [x[1] for x in sorted_items]
 
         # Hotkeys
-        self.internal_hotkeys: Dict[int, InternalHotkey] = {}
+        self._hotkeys: Dict[int, _Hotkey] = {}
 
-    def add_hotkey(self, hotkey, func):
+    def add_hotkey(self, hotkey: str, func: Callable):
         ch = to_ascii_hotkey(hotkey)
-        self.internal_hotkeys[ch] = InternalHotkey(hotkey=hotkey, func=func)
+        self._hotkeys[ch] = _Hotkey(hotkey=hotkey, func=func)
 
     def get_history_file(self):
         from _script import get_data_dir
 
         return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
 
-    def item(self, name=None):
+    def item(self, name: Optional[str] = None):
         def decorator(func):
             nonlocal name
             if name is None:
                 name = func.__name__
-            self.items.append(MenuItem(name=name, callback=func))
+            self.items.append(_MenuItem(name=name, callback=func))
             return func
 
         return decorator
@@ -270,9 +275,9 @@ class Menu(Generic[T]):
     def clear_input(self):
         self._input.clear()
         self.reset_selection()
-        self.invalidated = True
+        self._should_update_screen = True
 
-    def run_cmd(self, func):
+    def run_cmd(self, func: Callable[[], None]):
         Menu.destroy_curses()
         func()
         Menu.init_curses()
@@ -351,8 +356,12 @@ class Menu(Generic[T]):
     def reset_selection(self):
         self.selected_row = 0
 
+    def set_selected_row(self, selected_row: int):
+        self._requested_selected_row = selected_row
+        self.on_item_selected()
+
     def refresh(self):
-        self.should_refresh = True
+        self._should_update_items = True
 
     # Returns false if we should exit main loop for the current window
     def process_events(self, blocking=True) -> bool:
@@ -363,20 +372,24 @@ class Menu(Generic[T]):
         else:
             Menu.stdscr.timeout(0)
 
-        self.should_refresh = (
-            self.should_refresh
+        self._should_update_items = (
+            self._should_update_items
             or self.last_input != self.get_text()
             or self.last_item_count != len(self.items)
         )
-        if not blocking or self.should_refresh:
+        if not blocking or self._should_update_items:
             self.last_input = self.get_text()
             self.last_item_count = len(self.items)
             self.update_matched_items()
-            self.should_refresh = False
+            self._should_update_items = False
 
-        if self.invalidated:
+        if self._requested_selected_row >= 0:
+            self.selected_row = self._requested_selected_row
+            self._requested_selected_row = -1
+
+        if self._should_update_screen:
             self.update_screen()
-            self.invalidated = False
+            self._should_update_screen = False
 
         # Keyboard event
         try:
@@ -391,7 +404,7 @@ class Menu(Generic[T]):
         if ch != -1:  # getch() will return -1 when timeout
             self.last_key_pressed_timestamp = time.time()
             if self.on_char(ch):
-                self.invalidated = True
+                self._should_update_screen = True
 
             elif ch == ord("\n"):
                 self.on_enter_pressed()
@@ -421,14 +434,14 @@ class Menu(Generic[T]):
 
             elif ch == curses.ascii.ESC:
                 self._input.clear()
-                self.invalidated = True
+                self._should_update_screen = True
                 if self.cancellable:
                     self.matched_item_indices.clear()
                     return False
 
             elif ch != 0:
                 self._input.on_char(ch)
-                self.invalidated = True
+                self._should_update_screen = True
 
             self.prev_key = ch
 
@@ -460,7 +473,7 @@ class Menu(Generic[T]):
     def get_items_per_page(self):
         return self.height - 2
 
-    def draw_text(self, row, col, s):
+    def draw_text(self, row: int, col: int, s: str):
         assert Menu.stdscr is not None
 
         if row >= self.height:
@@ -485,7 +498,7 @@ class Menu(Generic[T]):
                 pass
             i, j = Menu.stdscr.getyx()  # type: ignore
 
-    def on_update_screen(self, max_height=-1):
+    def on_update_screen(self, max_height: int = -1):
         assert Menu.stdscr is not None
 
         if max_height < 0:
@@ -538,7 +551,7 @@ class Menu(Generic[T]):
         else:
             return None
 
-    def on_char(self, ch):
+    def on_char(self, ch: int):
         if ch == ord("\t"):
             item = self.get_selected_item()
             if item is not None:
@@ -548,8 +561,8 @@ class Menu(Generic[T]):
         elif ch == curses.ascii.ctrl(ord("c")):
             sys.exit(0)
 
-        elif ch in self.internal_hotkeys:
-            self.internal_hotkeys[ch].func()
+        elif ch in self._hotkeys:
+            self._hotkeys[ch].func()
             return True
 
         else:
@@ -563,7 +576,7 @@ class Menu(Generic[T]):
                 self.close()
         else:
             self.close()
-        self.invalidated = True
+        self._should_update_screen = True
 
     def on_tab_pressed(self):
         pass
@@ -575,11 +588,11 @@ class Menu(Generic[T]):
         self.closed = True
 
     def on_item_selected(self):
-        self.invalidated = True
+        self._should_update_screen = True
 
-    def set_message(self, message=None):
+    def set_message(self, message: Optional[str] = None):
         self.message = message
-        self.invalidated = True
+        self._should_update_screen = True
 
 
 class DictValueEditWindow(Menu):

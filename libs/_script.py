@@ -22,7 +22,7 @@ from _clip import get_clip, get_selection
 from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
-from _filemgr import select_file
+from _filemgr import FileManager
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
@@ -936,7 +936,7 @@ class Script:
         background=False,
     ) -> bool:
         if not self.is_supported():
-            print(f"ERROR: {self.name} is not supported on {sys.platform}.")
+            logging.warning(f"{self.name} is not supported on {sys.platform}.")
             return False
 
         self.cfg = self.load_config()
@@ -998,9 +998,16 @@ class Script:
                 arg_list.append(temp_file)
 
             elif self.cfg["args.passSelectedFile"]:
-                file = select_file()
+                file = FileManager().select_file()
                 if file is None:
-                    raise Exception("You must select a file!")
+                    return True
+                else:
+                    arg_list.append(file)
+
+            elif self.cfg["args.passSelectedDir"]:
+                file = FileManager().select_directory()
+                if file is None:
+                    return True
                 else:
                     arg_list.append(file)
 
@@ -1743,6 +1750,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "adk.jdk_version": "",
         "adk": False,
         "args": "",
+        "args.passSelectedDir": False,
         "args.passSelectedFile": False,
         "args.passSelectionAsFile": False,
         "args.passClipboardAsFile": False,

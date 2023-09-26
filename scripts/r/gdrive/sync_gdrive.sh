@@ -13,7 +13,7 @@ sync_gdrive() {
 }
 
 for dir in $GDRIVE_DIR; do
-    echo "Sync dir: $dir"
+    echo "Bi-sync GDrive folder: $dir"
 
     # Create local directory if it does not exist
     mkdir -p "gdrive/${dir}"
