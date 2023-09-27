@@ -6,9 +6,21 @@ import os
 import re
 import sys
 import time
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 from _shutil import load_json, save_json, slugify
+
+DEBUG_KEY_PRESS = False
 
 
 def activate_cur_terminal():
@@ -72,11 +84,11 @@ def _fuzzy_search_func(items, kw):
                 yield i
 
 
-def _is_backspace_key(ch):
-    return ch in (
-        curses.KEY_BACKSPACE,
-        ord("\b"),  # for windows
-        0x7F,  # for mac
+def _is_backspace_key(ch: Union[int, str]):
+    return (
+        ch == curses.KEY_BACKSPACE
+        or ch == "\b"  # for windows
+        or ch == "\x7f"  # for mac and linux
     )
 
 
@@ -124,16 +136,14 @@ class InputWidget:
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
             self.caret_pos = max(self.caret_pos - 1, 0)
-        elif ch == curses.ascii.ctrl(ord("a")):
+        elif ch == curses.ascii.ctrl("a"):
             self.clear()
-        elif ch == ord("\n"):
+        elif ch == "\n":
             pass
-        else:
-            if not self.ascii_only or (
-                self.ascii_only and re.match("[\x00-\x7F]", chr(ch))
-            ):
+        elif isinstance(ch, str):
+            if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
                 self.text = (
-                    self.text[: self.caret_pos] + chr(ch) + self.text[self.caret_pos :]
+                    self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
                 )
                 self.caret_pos += 1
 
@@ -166,21 +176,22 @@ def get_hotkey_abbr(hotkey):
     )
 
 
-def to_ascii_hotkey(hotkey: str) -> int:
+def to_ascii_hotkey(hotkey: str) -> Iterator[Union[int, str]]:
     hotkey = hotkey.lower()
     key = hotkey[-1].lower()
     if hotkey == "left":
-        ch = curses.KEY_LEFT
+        yield curses.KEY_LEFT
+        yield 452  # curses.KEY_B1
     elif hotkey == "right":
-        ch = curses.KEY_RIGHT
+        yield curses.KEY_RIGHT
+        yield 454  # curses.KEY_B3
     elif "ctrl+" in hotkey:
-        ch = curses.ascii.ctrl(ord(key))
+        yield curses.ascii.ctrl(key)
     elif "shift+" in hotkey or "alt+" in hotkey:
         # HACK: use `shift+` in place of `alt+`
-        ch = ord(key.upper())
+        yield key.upper()
     else:
-        ch = ord(key)
-    return ch
+        yield key
 
 
 class _Hotkey:
@@ -242,11 +253,11 @@ class Menu(Generic[T]):
             self.indices = [x[1] for x in sorted_items]
 
         # Hotkeys
-        self._hotkeys: Dict[int, _Hotkey] = {}
+        self._hotkeys: Dict[Union[int, str], _Hotkey] = {}
 
     def add_hotkey(self, hotkey: str, func: Callable):
-        ch = to_ascii_hotkey(hotkey)
-        self._hotkeys[ch] = _Hotkey(hotkey=hotkey, func=func)
+        for ch in to_ascii_hotkey(hotkey):
+            self._hotkeys[ch] = _Hotkey(hotkey=hotkey, func=func)
 
     def get_history_file(self):
         from _script import get_data_dir
@@ -393,53 +404,54 @@ class Menu(Generic[T]):
 
         # Keyboard event
         try:
-            ch = Menu.stdscr.getch()
+            ch = Menu.stdscr.get_wch()
+        except curses.error:
+            ch = -1
         except KeyboardInterrupt:
             sys.exit(0)
 
-        # Workaround for arrow keys in Alacritty
-        ALACRITTY_UP = 450
-        ALACRITTY_DOWN = 456
-
         if ch != -1:  # getch() will return -1 when timeout
+            if DEBUG_KEY_PRESS:
+                self.set_message(f"key={repr(ch)} type={type(ch)}")
+
             self.last_key_pressed_timestamp = time.time()
             if self.on_char(ch):
                 self._should_update_screen = True
 
-            elif ch == ord("\n"):
+            elif ch == "\n":
                 self.on_enter_pressed()
 
-            elif ch == curses.KEY_UP or ch == ALACRITTY_UP:
+            elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
                 self.selected_row = max(self.selected_row - 1, 0)
                 self.on_item_selected()
 
-            elif ch == curses.KEY_DOWN or ch == ALACRITTY_DOWN:
+            elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
                 self.selected_row = min(
                     self.selected_row + 1, len(self.matched_item_indices) - 1
                 )
                 self.on_item_selected()
 
-            elif ch == curses.KEY_PPAGE:
+            elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
                 self.selected_row = max(
                     self.selected_row - self.get_items_per_page(), 0
                 )
                 self.on_item_selected()
 
-            elif ch == curses.KEY_NPAGE:
+            elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
                 self.selected_row = min(
                     self.selected_row + self.get_items_per_page(),
                     len(self.matched_item_indices) - 1,
                 )
                 self.on_item_selected()
 
-            elif ch == curses.ascii.ESC:
-                self._input.clear()
-                self._should_update_screen = True
+            elif ch == "\x1b":  # escape key
                 if self.cancellable:
-                    self.matched_item_indices.clear()
-                    return False
+                    self.closed = True
+                else:
+                    self._input.clear()
+                    self._should_update_screen = True
 
-            elif ch != 0:
+            elif ch != "\0":
                 self._input.on_char(ch)
                 self._should_update_screen = True
 
@@ -449,9 +461,13 @@ class Menu(Generic[T]):
             self.on_idle()
 
         if self.closed:
+            self.on_exit()
             return False
+        else:
+            return True
 
-        return True
+    def on_exit(self):
+        pass
 
     def on_idle(self):
         pass
@@ -552,13 +568,13 @@ class Menu(Generic[T]):
             return None
 
     def on_char(self, ch: int):
-        if ch == ord("\t"):
+        if ch == "\t":
             item = self.get_selected_item()
             if item is not None:
                 self.set_input("%s" % item)
             return True
 
-        elif ch == curses.ascii.ctrl(ord("c")):
+        elif ch == curses.ascii.ctrl("c"):
             sys.exit(0)
 
         elif ch in self._hotkeys:
@@ -647,7 +663,7 @@ class DictValueEditWindow(Menu):
         self.close()
 
     def on_char(self, ch):
-        if ch == ord("\t"):
+        if ch == "\t":
             val = self.get_selected_item()
             if val is not None:
                 self.set_input(val)
@@ -698,7 +714,7 @@ class DictEditWindow(Menu):
         self.close()
 
     def on_char(self, ch):
-        if ch == ord("\t"):
+        if ch == "\t":
             self.edit_dict_value()
             return True
         return False

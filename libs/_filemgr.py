@@ -196,6 +196,12 @@ class FileManager(Menu[_File]):
         except PermissionError:
             pass
 
+    def on_exit(self):
+        selected = self.get_selected_item()
+        if selected:
+            self._config.selected_file = selected.name
+            self._config.save()
+
     def on_enter_pressed(self):
         if self._select_mode == FileManager.SELECT_MODE_DIRECTORY:
             self._selected_full_path = self._config.cur_dir
@@ -213,8 +219,6 @@ class FileManager(Menu[_File]):
                     return True
                 elif os.path.isfile(full_path):
                     self._selected_full_path = full_path
-                    self._config.selected_file = selected.name
-                    self._config.save()
                     if self._select_mode == FileManager.SELECT_MODE_FILE:
                         return super().on_enter_pressed()
                     else:

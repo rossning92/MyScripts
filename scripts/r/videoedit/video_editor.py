@@ -15,14 +15,17 @@ def edit_video(file):
         ffmpeg(
             file_history[-2],
             out_file=file_history[-1],
-            extra_args=["-filter:v", params,],
+            extra_args=[
+                "-filter:v",
+                params,
+            ],
             quiet=True,
         )
         subprocess.call(["mpv", file_history[-1]])
 
     class VideoEditorMenu(Menu):
         def on_char(self, ch):
-            if ch == ord("S"):
+            if ch == "S":
                 move_file(file_history[-1], file_history[0], overwrite=True)
                 sys.exit(0)
 

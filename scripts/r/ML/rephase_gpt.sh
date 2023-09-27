@@ -11,4 +11,4 @@ $input
 EOF
 
 [[ "$(uname -o)" == "Msys" ]] && tmpfile="$(cygpath -w "${tmpfile}")"
-run_script r/ML/chatgpt.py "$tmpfile"
+run_script r/ML/chatgpt.py --copy-to-clipboard "$tmpfile"

@@ -98,8 +98,8 @@ def register_hotkeys(scripts) -> Dict[str, Script]:
         hotkey = script.cfg["hotkey"]
         if hotkey:
             logging.debug("Hotkey: %s: %s" % (hotkey, script.name))
-            ch = to_ascii_hotkey(hotkey)
-            hotkeys[ch] = script
+            for ch in to_ascii_hotkey(hotkey):
+                hotkeys[ch] = script
 
     return hotkeys
 

@@ -114,7 +114,7 @@ class VariableEditWindow(Menu):
         self.close()
 
     def on_char(self, ch):
-        if ch == ord("\t"):
+        if ch == "\t":
             val = self.get_selected_item()
             if val is not None:
                 self.set_input(val)
@@ -181,10 +181,10 @@ class VariableWindow(Menu):
         self.close()
 
     def on_char(self, ch):
-        if ch == ord("\t"):
+        if ch == "\t":
             self.edit_variable()
             return True
-        if ch == ord("C"):
+        if ch == "C":
             index = self.get_selected_index()
             name = self.variable_names[index]
             if name in self.variables and len(self.variables[name]) > 0:
@@ -370,23 +370,25 @@ class MainWindow(Menu):
         self.last_refresh_time = time.time()
 
     def on_char(self, ch):
-        ALT_KEY = 27
         self.set_message(None)
 
         try:
             if ch == KEY_CODE_CTRL_ENTER_WIN or (
-                self.prev_key == ALT_KEY and ch == ord("\n")
+                # Alt + Enter is pressed
+                # (note that "\x1b" is the ASCII “Escape” control character)
+                self.prev_key == "\x1b"
+                and ch == "\n"
             ):
                 self.run_selected_script(close_on_exit=False)
                 self.clear_input()
                 return True
 
-            elif ch == ord("\n"):
+            elif ch == "\n":
                 self.run_selected_script()
                 self.clear_input()
                 return True
 
-            elif ch == ord("\t"):
+            elif ch == "\t":
                 script = self.get_selected_item()
                 if script is not None:
                     w = VariableWindow(script)
@@ -396,7 +398,7 @@ class MainWindow(Menu):
                             self.run_selected_script()
                 return True
 
-            elif ch == ord("L"):
+            elif ch == "L":
                 self.run_cmd(lambda: restart_program())
 
             elif ch in script_manager.hotkeys:
@@ -416,7 +418,7 @@ class MainWindow(Menu):
                         self.refresh()
                     return True
 
-            elif ch == ALT_KEY:
+            elif ch == "\x1b":
                 return True
 
             else:
