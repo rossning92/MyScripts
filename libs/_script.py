@@ -23,6 +23,7 @@ from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
 from _filemgr import FileManager
+from _input import Input
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
@@ -52,7 +53,7 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
-from _term import get_hotkey_abbr
+from _term import clear_terminal, get_hotkey_abbr
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -232,7 +233,8 @@ def wrap_wsl(commands: Union[List[str], Tuple[str], str], env=None):
     # by current shell
     bash = ""
 
-    # Workaround: PATH environmental variable can't be shared between windows and linux (WSL)
+    # Workaround: PATH environmental variable can't be shared between windows
+    # and linux (WSL)
     if "PATH" in env:
         del env["PATH"]
 
@@ -288,7 +290,8 @@ def wrap_bash_windows(
         raise Exception("Cannot find MinGW bash.exe")
 
     if len(args) == 1 and args[0].endswith(".sh"):
-        # -l: must start as a login shell otherwise the PATH environmental variable is not correctly set up.
+        # -l: must start as a login shell otherwise the PATH environmental
+        # variable is not correctly set up.
         return [bash_exec, "-l", args[0]]
     else:
         bash_cmd = _args_to_str(["bash"] + args, shell_type="bash")
@@ -490,7 +493,7 @@ def setup_python_path(env, script_path=None, wsl=False):
 
 
 def wrap_args_tee(args, out_file):
-    assert type(args) is list
+    assert isinstance(args, list)
 
     if sys.platform == "win32":
         s = (
@@ -664,8 +667,9 @@ def wrap_args_alacritty(
         out += ["--title", title]
 
     if sys.platform == "win32":
-        # HACK: Alacritty handles spaces in a weird way: if arg has space in it, must double quote it.
-        # Backslash will need to be replaced with three backslashes otherwise they'll disappear for some reason
+        # HACK: Alacritty handles spaces in a weird way: if arg has space in it,
+        # must double quote it. Backslash will need to be replaced with three
+        # backslashes otherwise they'll disappear for some reason
         args = ['"' + x.replace("\\", "\\\\\\") + '"' if " " in x else x for x in args]
 
     out += ["-e"] + args
@@ -1268,7 +1272,8 @@ class Script:
                         if self.cfg["wsl"]:
                             run_py = convert_to_unix_path(run_py, wsl=self.cfg["wsl"])
 
-                    # -u disables buffering so that we can get correct output during piping output
+                    # -u disables buffering so that we can get correct output
+                    # during piping output
                     arg_list = (
                         args_activate
                         + [python_exec, "-u", run_py, python_file]
@@ -1301,6 +1306,12 @@ class Script:
 
         elif ext == ".url":
             url = self.get_script_source()
+            if "%s" in url:
+                keyword = Input().input()
+                if not keyword:
+                    return True
+                url = url.replace("%s", keyword)
+
             fallback_to_shell_open = True
             if self.cfg["webApp"]:
                 chrome_executables = ["google-chrome-stable", "google-chrome", "chrome"]
@@ -1523,10 +1534,11 @@ class Script:
 
                     else:
                         logging.warning(
-                            '"new_window" is not supported on platform "%s"'
+                            '"new_window" is not implemented on platform "%s"'
                             % sys.platform
                         )
                 except FileNotFoundError as ex:
+                    clear_terminal()
                     new_window = False
                     no_wait = False
                     logging.warning(ex)
@@ -1540,7 +1552,7 @@ class Script:
                 SW_SHOWNORMAL = 1
                 lpParameters = _args_to_str(arg_list[1:], shell_type="cmd")
                 logging.debug(
-                    f"ShellExecuteW(): lpFile={arg_list[0]}  lpParameters={lpParameters}"
+                    f"ShellExecuteW(): lpFile={arg_list[0]} lpParameters={lpParameters}"
                 )
                 ret = ctypes.windll.shell32.ShellExecuteW(
                     None,  # hwnd

@@ -235,6 +235,9 @@ class Menu(Generic[T]):
         self.prev_key = -1
         self.close_on_selection = close_on_selection
         self._should_update_items = False
+        self._should_slide_text = False
+        self._text_overflow = False
+        self._text_start_index = 0
 
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
@@ -363,6 +366,8 @@ class Menu(Generic[T]):
             _fuzzy_search_func(self.items, self.get_text())
         )
         self.reset_selection()
+        self._should_slide_text = False
+        self._text_start_index = 0
 
     def reset_selection(self):
         self.selected_row = 0
@@ -458,13 +463,22 @@ class Menu(Generic[T]):
             self.prev_key = ch
 
         if ch == -1 and blocking:  # getch() is timed-out
-            self.on_idle()
+            self.__on_idle()
 
         if self.closed:
             self.on_exit()
             return False
         else:
             return True
+
+    def __on_idle(self):
+        if self._should_slide_text:
+            if self._text_overflow:
+                self._text_start_index += 2
+            else:
+                self._text_start_index = 0
+            self._should_update_screen = True
+        self.on_idle()
 
     def on_exit(self):
         pass
@@ -489,7 +503,17 @@ class Menu(Generic[T]):
     def get_items_per_page(self):
         return self.height - 2
 
-    def draw_text(self, row: int, col: int, s: str):
+    def draw_text(self, row: int, col: int, s: str) -> int:
+        """_summary_
+
+        Args:
+            row (int): _description_
+            col (int): _description_
+            s (str): _description_
+
+        Returns:
+            bool: Text is cropped.
+        """
         assert Menu.stdscr is not None
 
         if row >= self.height:
@@ -501,11 +525,13 @@ class Menu(Generic[T]):
 
         i = row
         j = col
+        text_is_cropped = False
         for ch in s:
             if i > row:
                 Menu.stdscr.attron(curses.color_pair(3))
                 Menu.stdscr.addstr(row, self.width - 1, ">")
                 Menu.stdscr.attroff(curses.color_pair(3))
+                text_is_cropped = True
                 break
             try:
                 Menu.stdscr.addstr(row, j, ch)
@@ -513,6 +539,8 @@ class Menu(Generic[T]):
                 # Tolerate "addwstr() returned ERR"
                 pass
             i, j = Menu.stdscr.getyx()  # type: ignore
+
+        return text_is_cropped
 
     def on_update_screen(self, max_height: int = -1):
         assert Menu.stdscr is not None
@@ -529,6 +557,8 @@ class Menu(Generic[T]):
         indices_in_page = self.matched_item_indices[
             current_page_index * items_per_page :
         ]
+
+        self._text_overflow = False
         for i, item_index in enumerate(indices_in_page):
             # Index
             if i == selected_index_in_page:  # hightlight on
@@ -539,7 +569,11 @@ class Menu(Generic[T]):
                 Menu.stdscr.attroff(curses.color_pair(2))
 
             # Item name
-            self.draw_text(row, 5, str(self.items[item_index]))
+            if self.draw_text(
+                row, 5, str(self.items[item_index])[self._text_start_index :]
+            ):
+                self._text_overflow = True
+                self._should_slide_text = True
 
             row += 1
             if row >= max_height:

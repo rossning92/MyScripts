@@ -81,10 +81,13 @@ def setup_python(data_dir: str):
     )
 
     settings = {
-        "python.pythonPath": sys.executable.replace("\\", "/"),
-        "python.languageServer": "Pylance",
         "[python]": {"editor.defaultFormatter": "ms-python.black-formatter"},
+        "python.analysis.autoImportCompletions": True,
+        "python.analysis.persistAllIndices": True,
         "python.analysis.typeCheckingMode": "basic",
+        "python.experiments.enabled": False,
+        "python.languageServer": "Pylance",
+        "python.pythonPath": sys.executable.replace("\\", "/"),
     }
     update_settings(settings, data_dir=data_dir)
 
@@ -203,15 +206,15 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     print2("Update settings...")
 
     settings = {
-        "window.title": "${rootName}${separator}${appName}",
-        "editor.minimap.enabled": False,
         "cSpell.enabledLanguageIds": ["markdown", "text"],
-        "search.exclude": {"**/build": True},
-        "pasteImage.path": "${currentFileNameWithoutExt}",
-        "workbench.editor.enablePreviewFromQuickOpen": False,
-        "editor.formatOnSave": True,
         "editor.codeActionsOnSave": {"source.organizeImports": True},
+        "editor.formatOnSave": True,
+        "editor.minimap.enabled": False,
         "files.trimTrailingWhitespace": True,
+        "pasteImage.path": "${currentFileNameWithoutExt}",
+        "search.exclude": {"**/build": True},
+        "window.title": "${rootName}${separator}${appName}",
+        "workbench.editor.enablePreviewFromQuickOpen": False,
     }
 
     if glslang and sys.platform == "win32":
