@@ -1,8 +1,8 @@
 import subprocess
 import sys
 
+from _menu import Menu
 from _shutil import get_files, get_temp_file_name, move_file
-from _term import Menu
 from _video import ffmpeg
 
 

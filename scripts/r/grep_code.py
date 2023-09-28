@@ -1,8 +1,8 @@
 import os
 
 from _editor import open_in_vscode
+from _menu import Menu
 from _shutil import chdir, get_output, load_json, print2, save_json
-from _term import Menu
 
 
 def grep(src_dir, exclude=[]):

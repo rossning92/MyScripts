@@ -9,6 +9,7 @@ import threading
 import time
 from typing import Callable, Dict, List, Optional, Tuple
 
+from _menu import to_ascii_hotkey
 from _script import (
     Script,
     execute_script_autorun,
@@ -30,7 +31,6 @@ from _shutil import (
     update_env_var_explorer,
 )
 from _template import render_template_file
-from _term import to_ascii_hotkey
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_temp_dir(), "GlobalHotkey.ahk")
 
@@ -130,9 +130,9 @@ def register_global_hotkeys_linux(scripts: List[Script]):
         return
 
     s = (
-        f"control+q\n"
-        f'  wmctrl -a MyScriptsTerminal || alacritty -e "{get_my_script_root()}/myscripts" --startup\n'
-        "\n"
+        "control+q\n"
+        "  wmctrl -a MyScriptsTerminal"
+        f' || alacritty -e "{get_my_script_root()}/myscripts" --startup\n\n'
     )
 
     for script in scripts:
@@ -151,7 +151,11 @@ def register_global_hotkeys_linux(scripts: List[Script]):
                 ]
             )
             s += "{}\n".format(hotkey_def)
-            s += f"  python3 {get_my_script_root()}/bin/start_script.py {script.script_path}\n\n"
+            s += (
+                "  python3"
+                f" {get_my_script_root()}/bin/start_script.py"
+                f" {script.script_path}\n\n"
+            )
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)

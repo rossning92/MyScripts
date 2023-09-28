@@ -3,8 +3,8 @@ import json
 import os
 from typing import Dict, List, Optional
 
+from _menu import Menu
 from _shutil import get_home_path, shell_open
-from _term import Menu
 
 
 class _Config:

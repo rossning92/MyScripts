@@ -3,9 +3,9 @@ import subprocess
 import sys
 
 from _android import backup_pkg
+from _menu import Menu, select_option
 from _script import set_variable, start_script
 from _shutil import call_echo, set_clip, shell_open
-from _term import Menu, select_option
 
 SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
 

@@ -3,8 +3,8 @@ import os
 import sys
 
 import openai
+from _menu import Menu
 from _shutil import load_json, set_clip
-from _term import Menu
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

@@ -6,6 +6,7 @@ import shutil
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from _editor import is_vscode_installed, open_in_editor, open_in_vscode
+from _menu import Menu
 from _script import (
     Script,
     get_absolute_script_path,
@@ -22,7 +23,7 @@ from _script import (
 )
 from _shutil import load_yaml, quote_arg, save_yaml, set_clip
 from _template import render_template_file
-from _term import DictEditWindow, Menu
+from _term import DictEditWindow
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 

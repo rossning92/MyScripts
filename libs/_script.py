@@ -24,6 +24,7 @@ from _editor import open_in_editor
 from _filelock import FileLock
 from _filemgr import FileManager
 from _input import Input
+from _menu import get_hotkey_abbr
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
@@ -53,7 +54,7 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
-from _term import clear_terminal, get_hotkey_abbr
+from _term import clear_terminal
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 

@@ -22,6 +22,7 @@ from _ext import (
     edit_script_config,
     rename_script,
 )
+from _menu import Menu
 from _script import (
     Script,
     get_all_variables,
@@ -46,7 +47,6 @@ from _shutil import (
     setup_logger,
     setup_nodejs,
 )
-from _term import Menu
 
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
