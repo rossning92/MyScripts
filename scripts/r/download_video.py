@@ -8,7 +8,13 @@ import sys
 import time
 
 import requests
-from _shutil import call_echo, get_home_path, get_newest_file, setup_logger
+from _shutil import (
+    call_echo,
+    get_home_path,
+    get_newest_file,
+    prepend_to_path,
+    setup_logger,
+)
 
 URL_PATT = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
@@ -35,7 +41,7 @@ def get_redirected_url(url):
 def download_bilibili(url, download_dir=None):
     # Cookie
     kvp = []
-    with open(os.path.join(get_home_path(), "bilibili-cookies.txt")) as f:
+    with open(os.path.join(get_home_path(), ".bilibili-cookies.txt"), "r") as f:
         lines = f.read().splitlines()
         for line in lines:
             if line.startswith("#"):
@@ -46,6 +52,7 @@ def download_bilibili(url, download_dir=None):
             kvp.append(cols[-2] + "=" + cols[-1])
     cookie = ";".join(kvp)
 
+    prepend_to_path([os.path.join(get_home_path(), "go", "bin")])
     call_echo(["lux", "-c", cookie, url], shell=False, cwd=download_dir)
 
 
@@ -84,7 +91,8 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
 
             # Save url
             if save_url:
-                # Remove anything after "&": https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
+                # Remove anything after "&":
+                # https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
                 url = re.sub(r"(\?(?!v)|&).*$", "", url)
                 url_file = get_newest_file(os.path.join(ddir, "*.*")) + ".url"
                 logging.info("Save url to: %s" % url_file)

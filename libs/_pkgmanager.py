@@ -5,28 +5,21 @@ import shutil
 import subprocess
 import sys
 
-import yaml
 from _shutil import (
     check_output,
+    get_home_path,
     is_in_termux,
+    load_json,
     refresh_env_vars,
     run_elevated,
     start_process,
 )
 
-with open(
+packages = load_json(
     os.path.abspath(
-        os.path.dirname(os.path.abspath(__file__)) + "/../settings/packages.yml"
-    ),
-    "r",
-) as f:
-    packages = yaml.load(f.read(), Loader=yaml.FullLoader)
-
-
-def install_alacritty_linux():
-    run_elevated("sudo add-apt-repository ppa:mmstick76/alacritty -y")
-    run_elevated("sudo apt update")
-    run_elevated("sudo apt install -y alacritty")
+        os.path.dirname(os.path.abspath(__file__)) + "/../settings/packages.json"
+    )
+)
 
 
 def find_executable(pkg, install=False):
@@ -35,42 +28,120 @@ def find_executable(pkg, install=False):
     if exe_path:
         return exe_path
 
-    exec = []
+    executables = []
     if pkg in packages:
-        if "exec" in packages[pkg]:
-            exec = packages[pkg]["exec"]
+        if "executables" in packages[pkg]:
+            executables = packages[pkg]["executables"]
 
-    for p in exec:
-        p = os.path.expandvars(p)
-        match = list(glob.glob(p))
+    for executable in executables:
+        executable = os.path.expandvars(executable)
+        match = list(glob.glob(executable))
         if len(match) > 0:
             return match[0]
 
-        exe_path = shutil.which(p)
+        exe_path = shutil.which(executable)
         if exe_path:
             return exe_path
 
-    if install and exec is None:
-        install_package(pkg)
+    if install and executables is None:
+        require_package(pkg)
         return find_executable(pkg)
 
     return None
 
 
 def require_package(pkg, wsl=False):
-    logging.info(f"Check if package is installed: {pkg}")
-    # Check if pkg is an executable and exists already
-    exec = find_executable(pkg)
+    if "dependantPackages" in packages:
+        for pkg in packages["dependantPackages"]:
+            require_package(pkg)
 
-    if exec is None:
-        logging.warn(f"Package was not found, installing {pkg}...")
-        install_package(pkg, wsl=wsl)
-
-
-def choco_install(pkg, upgrade=False):
     if pkg in packages:
-        if "choco" in packages[pkg]:
-            pkg = packages[pkg]["choco"]
+        if "golang" in packages[pkg]:
+            require_package("golang")
+            if "packagePath" in packages[pkg]["golang"]:
+                go_pkg_path = packages[pkg]["golang"]["packagePath"]
+                if not _is_go_package_installed(go_pkg_path):
+                    logging.info(f"Installing go package: {go_pkg_path}...")
+                    subprocess.check_call(["go", "install", go_pkg_path])
+                return
+
+        elif "pacman" in packages[pkg] and shutil.which("pacman"):
+            pacmanPackage = packages[pkg]["pacman"]["packageName"]
+            if (
+                subprocess.call(
+                    ["pacman", "-Q", pacmanPackage],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
+                )
+                != 0
+            ):
+                logging.info(f"Installing package using pacman: {pkg}...")
+                print(["sudo", "pacman", "-S", pacmanPackage])
+                subprocess.check_call(
+                    ["sudo", "pacman", "-Sy", "--noconfirm", pacmanPackage]
+                )
+            return
+
+        elif "termux" in packages[pkg] and is_in_termux():
+            if (
+                subprocess.call(
+                    ["dpkg", "-s", pkg],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
+                )
+                != 0
+            ):
+                logging.warning(f'Package "{pkg}" was not found, installing...')
+                subprocess.check_call(["pkg", "install", pkg, "-y"])
+            return
+
+        elif wsl and sys.platform == "win32":
+            if (
+                subprocess.call(
+                    ["wsl", "dpkg", "-s", pkg],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
+                )
+                != 0
+            ):
+                logging.warning(f'Package "{pkg}" was not found, installing...')
+                subprocess.check_call(["wsl", "sudo", "apt", "install", pkg, "-y"])
+            return
+
+        elif "choco" in packages[pkg] and sys.platform == "win32":
+            _choco_install(pkg)
+            return
+
+    raise Exception(f"{pkg} cannot be found.")
+
+
+def install_package(pkg, wsl=False):
+    require_package(pkg, wsl=wsl)
+
+
+def _is_go_package_installed(go_pkg_path):
+    return (
+        subprocess.call(
+            [
+                "go",
+                "version",
+                "-m",
+                os.path.join(
+                    get_home_path(),
+                    "go",
+                    "bin",
+                    go_pkg_path.split("/")[-1].split("@")[0],
+                ),
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        == 0
+    )
+
+
+def _choco_install(pkg, upgrade=False):
+    pkg = packages[pkg]["choco"]["packageName"]
 
     out = check_output(["choco", "list", "--local", "--exact", pkg])
 
@@ -87,46 +158,6 @@ def choco_install(pkg, upgrade=False):
         )
 
     refresh_env_vars()
-
-
-def install_package(pkg, upgrade=False, wsl=False):
-    if pkg == "lux":
-        require_package("golang")
-        subprocess.check_call(["go", "install", "github.com/iawia002/lux@latest"])
-        return
-
-    if wsl or sys.platform == "linux":
-        if os.path.isfile("/etc/arch-release"):
-            if (
-                subprocess.call(
-                    ["pacman", "-Q", pkg],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
-                )
-                != 0
-            ):
-                logging.warning('Package "%s" was not found, installing...' % pkg)
-                subprocess.check_call(["sudo", "pacman", "-Sy", "--noconfirm", pkg])
-
-        else:
-            if (
-                subprocess.call(
-                    (["wsl"] if wsl else []) + ["dpkg", "-s", pkg],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
-                )
-                != 0
-            ):
-                logging.warning('Package "%s" was not found, installing...' % pkg)
-                if is_in_termux():
-                    subprocess.check_call(["pkg", "install", pkg, "-y"])
-                elif shutil.which("apt"):
-                    subprocess.check_call(
-                        (["wsl"] if wsl else []) + ["sudo", "apt", "install", pkg, "-y"]
-                    )
-
-    elif sys.platform == "win32":
-        choco_install(pkg, upgrade=upgrade)
 
 
 def open_log_file(file):

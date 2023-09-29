@@ -1213,8 +1213,11 @@ def setup_nodejs(install=True):
                 ]
             )
 
-        node_path = [os.path.abspath(os.path.dirname(__file__) + "/../jslib")]
+    node_path: List[str] = []
+    node_path.append(os.path.abspath(os.path.dirname(__file__) + "/../node_modules"))
+    node_path.append(os.path.abspath(os.path.dirname(__file__) + "/../jslib"))
 
+    if sys.platform == "win32":
         npm_modules = os.path.expandvars(r"%APPDATA%\npm\node_modules")
         if os.path.exists(npm_modules):
             node_path.append(npm_modules)
@@ -1225,12 +1228,8 @@ def setup_nodejs(install=True):
         if os.path.exists(yarn_modules):
             node_path.append(yarn_modules)
 
-        node_path = os.path.pathsep.join(node_path)
-        os.environ["NODE_PATH"] = node_path
-        logging.info("Node.js: NODE_PATH: %s" % node_path)
-
-    else:
-        logging.warning("Node.js: not supported for current OS.")
+    os.environ["NODE_PATH"] = os.path.pathsep.join(node_path)
+    logging.info("Node.js: NODE_PATH: %s" % node_path)
 
 
 def npm_install(cwd="."):

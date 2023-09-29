@@ -1,0 +1,333 @@
+{
+  "7z": {
+    "choco": {
+      "packageName": "7zip"
+    },
+    "executables": ["C:\\Program Files\\7-Zip\\7z.exe"]
+  },
+  "7zfm": {
+    "choco": {
+      "packageName": "7zip"
+    },
+    "executables": ["C:\\Program Files\\7-Zip\\7zFM.exe"]
+  },
+  "adobereader": {
+    "choco": {
+      "packageName": "adobereader"
+    },
+    "executables": [
+      "C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe"
+    ]
+  },
+  "android-sdk": {
+    "choco": {
+      "packageName": "android-sdk"
+    },
+    "executables": ["C:\\Android\\android-sdk\\tools\\bin\\sdkmanager.bat"]
+  },
+  "apktool": {
+    "choco": {
+      "packageName": "apktool"
+    }
+  },
+  "audacity": {
+    "choco": {
+      "packageName": "audacity"
+    },
+    "executables": ["C:\\Program Files (x86)\\Audacity\\audacity.exe"]
+  },
+  "autologon": {
+    "choco": {
+      "packageName": "autologon"
+    }
+  },
+  "carnac": {
+    "choco": {
+      "packageName": "carnac"
+    }
+  },
+  "cmake": {
+    "choco": {
+      "packageName": "cmake"
+    },
+    "pacman": {
+      "packageName": "cmake"
+    }
+  },
+  "dotnet-6.0-sdk": {
+    "choco": {
+      "packageName": "dotnet-6.0-sdk"
+    }
+  },
+  "dotnetcore-sdk": {
+    "choco": {
+      "packageName": "dotnetcore-sdk"
+    }
+  },
+  "expect": {
+    "choco": {
+      "packageName": "expect"
+    },
+    "pacman": {
+      "packageName": "expect"
+    },
+    "termux": {
+      "packageName": "expect"
+    }
+  },
+  "ffmpeg": {
+    "choco": {
+      "packageName": "ffmpeg"
+    },
+    "executables": ["C:\\ProgramData\\chocolatey\\bin\\ffmpeg.exe"],
+    "pacman": {
+      "packageName": "ffmpeg"
+    },
+    "termux": {
+      "packageName": "ffmpeg"
+    }
+  },
+  "fzf": {
+    "choco": {
+      "packageName": "fzf"
+    },
+    "pacman": {
+      "packageName": "fzf"
+    },
+    "termux": {
+      "packageName": "fzf"
+    }
+  },
+  "ghostscript": {
+    "choco": {
+      "packageName": "ghostscript"
+    }
+  },
+  "golang": {
+    "choco": {
+      "packageName": "golang"
+    },
+    "pacman": {
+      "packageName": "go"
+    },
+    "termux": {
+      "packageName": "golang"
+    }
+  },
+  "gradle": {
+    "choco": {
+      "packageName": "gradle"
+    },
+    "pacman": {
+      "packageName": "gradle"
+    }
+  },
+  "graphviz": {
+    "choco": {
+      "packageName": "graphviz"
+    },
+    "pacman": {
+      "packageName": "graphviz"
+    }
+  },
+  "irfanview": {
+    "choco": {
+      "packageName": "irfanview"
+    },
+    "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"]
+  },
+  "klogg": {
+    "executables": ["C:\\Program Files\\klogg\\klogg.exe"]
+  },
+  "lux": {
+    "executablePath": {
+      "linux": ["$HOME/go/bin/lux"]
+    },
+    "golang": {
+      "packagePath": "github.com/iawia002/lux@latest"
+    }
+  },
+  "magick": {
+    "choco": {
+      "packageName": "imagemagick"
+    },
+    "executables": ["C:\\Program Files\\ImageMagick-*\\magick.exe"],
+    "pacman": {
+      "packageName": "imagemagick"
+    }
+  },
+  "miniconda3": {
+    "choco": {
+      "packageName": "miniconda3"
+    }
+  },
+  "mpv": {
+    "choco": {
+      "packageName": "mpv"
+    },
+    "executables": [
+      "C:\\ProgramData\\chocolatey\\lib\\mpv.install\\tools\\mpv.exe"
+    ],
+    "pacman": {
+      "packageName": "mpv"
+    }
+  },
+  "nmap": {
+    "choco": {
+      "packageName": "nmap"
+    }
+  },
+  "node": {
+    "choco": {
+      "packageName": "node"
+    },
+    "pacman": {
+      "packageName": "nodejs"
+    }
+  },
+  "notepad++": {
+    "choco": {
+      "packageName": "notepadplusplus"
+    },
+    "executables": ["notepad++.exe"]
+  },
+  "ocenaudio": {
+    "choco": {
+      "packageName": "ocenaudio"
+    },
+    "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"]
+  },
+  "openssh": {
+    "choco": {
+      "packageName": "openssh"
+    },
+    "pacman": {
+      "packageName": "openssh"
+    },
+    "termux": {
+      "packageName": "openssh"
+    }
+  },
+  "pandoc": {
+    "choco": {
+      "packageName": "pandoc"
+    },
+    "pacman": {
+      "packageName": "pandoc-cli"
+    }
+  },
+  "pdftk": {
+    "choco": {
+      "packageName": "pdftk"
+    }
+  },
+  "protoc": {
+    "choco": {
+      "packageName": "protoc"
+    }
+  },
+  "prusaslicer": {
+    "choco": {
+      "packageName": "prusaslicer"
+    }
+  },
+  "ripgrep": {
+    "choco": {
+      "packageName": "ripgrep"
+    },
+    "executables": ["C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"]
+  },
+  "rpi-imager": {
+    "choco": {
+      "packageName": "rpi-imager"
+    }
+  },
+  "scrcpy": {
+    "choco": {
+      "packageName": "scrcpy"
+    }
+  },
+  "screen": {
+    "choco": {
+      "packageName": "screen"
+    },
+    "pacman": {
+      "packageName": "screen"
+    },
+    "termux": {
+      "packageName": "screen"
+    }
+  },
+  "sharex": {
+    "choco": {
+      "packageName": "sharex"
+    }
+  },
+  "sox": {
+    "choco": {
+      "packageName": "sox.portable"
+    }
+  },
+  "sumatrapdf": {
+    "choco": {
+      "packageName": "sumatrapdf"
+    },
+    "executables": [
+      "SumatraPDF.exe",
+      "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
+    ]
+  },
+  "tad": {
+    "choco": {
+      "packageName": "tad"
+    },
+    "executables": [
+      "%LOCALAPPDATA%\\Programs\\Tad\\Tad.exe",
+      "C:\\Program Files\\Tad\\Tad.exe"
+    ]
+  },
+  "veracrypt": {
+    "choco": {
+      "packageName": "veracrypt"
+    },
+    "executables": ["C:\\Program Files\\VeraCrypt\\VeraCrypt.exe"],
+    "pacman": {
+      "packageName": "veracrypt"
+    }
+  },
+  "visualcpp-build-tools": {
+    "choco": {
+      "packageName": "visualcpp-build-tools"
+    }
+  },
+  "visualstudio2019community": {
+    "choco": {
+      "packageName": "visualstudio2019community"
+    }
+  },
+  "vlc": {
+    "choco": {
+      "packageName": "vlc"
+    },
+    "executables": [
+      "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+      "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
+    ]
+  },
+  "vscode": {
+    "executables": [
+      "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
+      "C:\\Program Files\\Microsoft VS Code\\Code.exe",
+      "code"
+    ],
+    "linux_install": "/r/install_vscode_linux"
+  },
+  "yarn": {
+    "choco": {
+      "packageName": "yarn"
+    },
+    "pacman": {
+      "packageName": "yarn"
+    }
+  }
+}
