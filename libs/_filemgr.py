@@ -63,7 +63,9 @@ class FileManager(Menu[_File]):
         self._selected_file_dict: Dict[str, str] = {}
 
         if goto is not None:
-            if os.path.isdir(goto):
+            if goto == ".":
+                self.goto_directory(os.getcwd())
+            elif os.path.isdir(goto):
                 self.goto_directory(goto)
             else:
                 self.goto_directory(os.path.dirname(goto), os.path.basename(goto))

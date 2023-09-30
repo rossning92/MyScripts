@@ -235,12 +235,12 @@ awful.screen.connect_for_each_screen(function(s)
             },
             volume_widget {
                 widget_type = 'icon_and_text',
-                step = 1
+                step = 10
             },
             brightness_widget {
                 type = 'icon_and_text',
                 program = 'light',
-                step = 1
+                step = 10
             },
             awful.widget.watch('bash -c "free -h | awk \'/^Mem/ {print $3}\'"', 30),
             wibox.widget.systray(),
@@ -415,7 +415,30 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
     end, {
         description = "show the menubar",
         group = "launcher"
-    }))
+    }),
+
+    -- Volume control
+    awful.key({}, "XF86AudioRaiseVolume", function()
+        volume_widget:inc()
+    end), awful.key({}, "XF86AudioLowerVolume", function()
+        volume_widget:dec()
+    end), awful.key({}, "XF86AudioMute", function()
+        volume_widget:toggle()
+    end),
+
+    -- Brightness control
+    awful.key({}, "XF86MonBrightnessUp", function()
+        brightness_widget:inc()
+    end, {
+        description = "increase brightness",
+        group = "custom"
+    }), awful.key({}, "XF86MonBrightnessDown", function()
+        brightness_widget:dec()
+    end, {
+        description = "decrease brightness",
+        group = "custom"
+    })
+)
 
 clientkeys = gears.table.join(awful.key({ modkey }, "f", function(c)
     c.fullscreen = not c.fullscreen
@@ -525,27 +548,8 @@ for i = 1, 9 do
         end, {
             description = "toggle focused client on tag #" .. i,
             group = "tag"
-        }),
-
-        -- Volume control
-        awful.key({}, "XF86AudioRaiseVolume", function()
-            volume_widget:inc()
-        end), awful.key({}, "XF86AudioLowerVolume", function()
-            volume_widget:dec()
-        end), awful.key({}, "XF86AudioMute", function()
-            volume_widget:toggle()
-        end), -- Brightness control
-        awful.key({}, "XF86MonBrightnessUp", function()
-            brightness_widget:inc()
-        end, {
-            description = "increase brightness",
-            group = "custom"
-        }), awful.key({}, "XF86MonBrightnessDown", function()
-            brightness_widget:dec()
-        end, {
-            description = "decrease brightness",
-            group = "custom"
-        }))
+        })
+    )
 end
 
 clientbuttons = gears.table.join(awful.button({}, 1, function(c)
