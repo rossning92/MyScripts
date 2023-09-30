@@ -159,25 +159,26 @@ class Menu(Generic[T]):
         close_on_selection=False,
         history: Optional[str] = None,
     ):
-        self._input = _InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
         self.items = items
-        self.closed = False
-        self.matched_item_indices: List[int] = []
-        self.selected_row: int = 0
+        self.last_key_pressed_timestamp: float = 0.0
+        self.prev_key: Union[int, str] = -1
+
+        self._cancellable: bool = cancellable
+        self._close_on_selection: bool = close_on_selection
+        self._closed: bool = False
+        self._height: int = -1
+        self._input = _InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
+        self._last_input = None
+        self._last_item_count = 0
+        self._matched_item_indices: List[int] = []
+        self._message: Optional[str] = None
         self._requested_selected_row: int = -1
-        self.width: int = -1
-        self.height: int = -1
-        self.message: Optional[str] = None
-        self.cancellable = cancellable
-        self.last_key_pressed_timestamp = 0.0
-        self.last_input = None
-        self.last_item_count = 0
-        self.prev_key = -1
-        self.close_on_selection = close_on_selection
-        self._should_update_items = False
-        self._should_slide_text = False
-        self._text_overflow = False
-        self._text_start_index = 0
+        self._selected_row: int = 0
+        self._should_slide_text: bool = False
+        self._should_update_items: bool = False
+        self._text_overflow: bool = False
+        self._text_start_index: int = 0
+        self._width: int = -1
 
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
@@ -290,19 +291,19 @@ class Menu(Generic[T]):
     def update_screen(self):
         assert Menu.stdscr is not None
 
-        self.height, self.width = Menu.stdscr.getmaxyx()  # type: ignore
+        self._height, self._width = Menu.stdscr.getmaxyx()  # type: ignore
 
         if sys.platform == "win32":
             Menu.stdscr.clear()
         else:
             # Use erase instead of clear to prevent flickering
             Menu.stdscr.erase()
-        self.on_update_screen()
+        self.on_update_screen(height=self._height)
         Menu.stdscr.refresh()
 
     def update_matched_items(self):
         # Search scripts
-        self.matched_item_indices = list(
+        self._matched_item_indices = list(
             _fuzzy_search_func(self.items, self.get_text())
         )
         self.reset_selection()
@@ -310,7 +311,7 @@ class Menu(Generic[T]):
         self._text_start_index = 0
 
     def reset_selection(self):
-        self.selected_row = 0
+        self._selected_row = 0
 
     def set_selected_row(self, selected_row: int):
         self._requested_selected_row = selected_row
@@ -330,17 +331,17 @@ class Menu(Generic[T]):
 
         self._should_update_items = (
             self._should_update_items
-            or self.last_input != self.get_text()
-            or self.last_item_count != len(self.items)
+            or self._last_input != self.get_text()
+            or self._last_item_count != len(self.items)
         )
         if not blocking or self._should_update_items:
-            self.last_input = self.get_text()
-            self.last_item_count = len(self.items)
+            self._last_input = self.get_text()
+            self._last_item_count = len(self.items)
             self.update_matched_items()
             self._should_update_items = False
 
         if self._requested_selected_row >= 0:
-            self.selected_row = self._requested_selected_row
+            self._selected_row = self._requested_selected_row
             self._requested_selected_row = -1
 
         if self._should_update_screen:
@@ -367,31 +368,31 @@ class Menu(Generic[T]):
                 self.on_enter_pressed()
 
             elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
-                self.selected_row = max(self.selected_row - 1, 0)
+                self._selected_row = max(self._selected_row - 1, 0)
                 self.on_item_selected()
 
             elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
-                self.selected_row = min(
-                    self.selected_row + 1, len(self.matched_item_indices) - 1
+                self._selected_row = min(
+                    self._selected_row + 1, len(self._matched_item_indices) - 1
                 )
                 self.on_item_selected()
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
-                self.selected_row = max(
-                    self.selected_row - self.get_items_per_page(), 0
+                self._selected_row = max(
+                    self._selected_row - self.get_items_per_page(), 0
                 )
                 self.on_item_selected()
 
             elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
-                self.selected_row = min(
-                    self.selected_row + self.get_items_per_page(),
-                    len(self.matched_item_indices) - 1,
+                self._selected_row = min(
+                    self._selected_row + self.get_items_per_page(),
+                    len(self._matched_item_indices) - 1,
                 )
                 self.on_item_selected()
 
             elif ch == "\x1b":  # escape key
-                if self.cancellable:
-                    self.closed = True
+                if self._cancellable:
+                    self._closed = True
                 else:
                     self._input.clear()
                     self._should_update_screen = True
@@ -405,7 +406,7 @@ class Menu(Generic[T]):
         if ch == -1 and blocking:  # getch() is timed-out
             self.__on_idle()
 
-        if self.closed:
+        if self._closed:
             self.on_exit()
             return False
         else:
@@ -432,8 +433,8 @@ class Menu(Generic[T]):
             self.on_main_loop()
 
     def get_selected_index(self):
-        if len(self.matched_item_indices) > 0:
-            return self.matched_item_indices[self.selected_row]
+        if len(self._matched_item_indices) > 0:
+            return self._matched_item_indices[self._selected_row]
         else:
             return -1
 
@@ -441,9 +442,9 @@ class Menu(Generic[T]):
         return self._input.text
 
     def get_items_per_page(self):
-        return self.height - 2
+        return self._height - 2
 
-    def draw_text(self, row: int, col: int, s: str) -> bool:
+    def draw_text(self, row: int, col: int, s: str, color_pair=0) -> bool:
         """_summary_
 
         Args:
@@ -456,12 +457,15 @@ class Menu(Generic[T]):
         """
         assert Menu.stdscr is not None
 
-        if row >= self.height:
+        if row >= self._height:
             return False
 
         if col < 0:
             s = ".." + s[-col + 2 :]
             col = 0
+
+        if color_pair > 0:
+            Menu.stdscr.attron(curses.color_pair(color_pair))
 
         i = row
         j = col
@@ -469,7 +473,7 @@ class Menu(Generic[T]):
         for ch in s:
             if i > row:
                 Menu.stdscr.attron(curses.color_pair(3))
-                Menu.stdscr.addstr(row, self.width - 1, ">")
+                Menu.stdscr.addstr(row, self._width - 1, ">")
                 Menu.stdscr.attroff(curses.color_pair(3))
                 text_is_cropped = True
                 break
@@ -480,21 +484,27 @@ class Menu(Generic[T]):
                 pass
             i, j = Menu.stdscr.getyx()  # type: ignore
 
+        if color_pair > 0:
+            space_len = self._width - j
+            if space_len > 0:
+                Menu.stdscr.addstr(row, j, " " * space_len)
+            Menu.stdscr.attroff(curses.color_pair(color_pair))
+
         return text_is_cropped
 
-    def on_update_screen(self, max_height: int = -1):
+    def on_update_screen(self, height: int):
         assert Menu.stdscr is not None
 
-        if max_height < 0:
-            max_height = self.height
+        if height < 0:
+            height = self._height
 
         # Get matched scripts
         row = 2
         items_per_page = self.get_items_per_page()
 
-        current_page_index = self.selected_row // items_per_page
-        selected_index_in_page = self.selected_row % items_per_page
-        indices_in_page = self.matched_item_indices[
+        current_page_index = self._selected_row // items_per_page
+        selected_index_in_page = self._selected_row % items_per_page
+        indices_in_page = self._matched_item_indices[
             current_page_index * items_per_page :
         ]
 
@@ -516,27 +526,25 @@ class Menu(Generic[T]):
                 self._should_slide_text = True
 
             row += 1
-            if row >= max_height:
+            if row >= height:
                 break
 
         matched_item_str = "(%d/%d)" % (
-            self.selected_row + 1,
-            len(self.matched_item_indices),
+            self._selected_row + 1,
+            len(self._matched_item_indices),
         )
-        self.draw_text(0, self.width - len(matched_item_str), matched_item_str)
+        self.draw_text(0, self._width - len(matched_item_str), matched_item_str)
 
-        if self.message is not None:
-            Menu.stdscr.attron(curses.color_pair(3))
-            Menu.stdscr.addstr(1, 0, self.message)
-            Menu.stdscr.attroff(curses.color_pair(3))
+        if self._message is not None:
+            self.draw_text(1, 0, self._message, color_pair=3)
 
         # Render input widget at the end, so the cursor will be move to the
         # correct position.
         self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
 
     def get_selected_item(self) -> Optional[T]:
-        if len(self.matched_item_indices) > 0:
-            item_index = self.matched_item_indices[self.selected_row]
+        if len(self._matched_item_indices) > 0:
+            item_index = self._matched_item_indices[self._selected_row]
             return self.items[item_index]
         else:
             return None
@@ -562,7 +570,7 @@ class Menu(Generic[T]):
         item = self.get_selected_item()
         if item is not None and hasattr(item, "callback") and callable(item.callback):
             self.run_cmd(lambda item=item: item.callback())
-            if self.close_on_selection:
+            if self._close_on_selection:
                 self.close()
         else:
             self.close()
@@ -575,11 +583,11 @@ class Menu(Generic[T]):
         pass
 
     def close(self):
-        self.closed = True
+        self._closed = True
 
     def on_item_selected(self):
         self._should_update_screen = True
 
     def set_message(self, message: Optional[str] = None):
-        self.message = message
+        self._message = message
         self._should_update_screen = True

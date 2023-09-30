@@ -282,12 +282,12 @@ class MainWindow(Menu):
             return
 
         self.is_refreshing = True
-        self.set_message("(refreshing scripts...)")
+        self.set_message("refreshing scripts...")
 
         def on_process():
             nonlocal self
             self.process_events(blocking=False)
-            self.set_message("(refreshing scripts: %d)" % len(script_manager.scripts))
+            self.set_message("refreshing scripts: %d" % len(script_manager.scripts))
 
         script_manager.refresh_all_scripts(on_progress=on_process)
         self.set_message()
@@ -309,9 +309,7 @@ class MainWindow(Menu):
         if script:
             content = copy_script_path_to_clipboard(script)
             self.set_message(
-                f"(copied to clipboard: {content})"
-                if content
-                else "Copied to clipboard."
+                f"copied to clipboard: {content}" if content else "Copied to clipboard."
             )
 
     def _copy_to_clipboard_include_derivative(self):
@@ -320,7 +318,7 @@ class MainWindow(Menu):
             content = copy_script_path_to_clipboard(
                 script, format="include", with_variables=True
             )
-            self.set_message(f"(copied to clipboard: {content})")
+            self.set_message(f"copied to clipboard: {content}")
 
     def _new_script_or_duplicate_script(self, duplicate=False):
         ref_script_path = self.get_selected_script_path()
@@ -342,7 +340,7 @@ class MainWindow(Menu):
     def _rename_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            self.set_message("(searching scripts to rename...)")
+            self.set_message("searching scripts to rename...")
             if rename_script(
                 script_path,
                 on_progress=lambda msg: (
@@ -431,8 +429,8 @@ class MainWindow(Menu):
     def on_idle(self):
         try_reload_scripts_autorun(script_manager.scripts_autorun)
 
-    def on_update_screen(self):
-        height = self.height
+    def on_update_screen(self, height: int):
+        height = self._height
 
         if not self.is_refreshing:
             script = self.get_selected_item()
@@ -464,11 +462,11 @@ class MainWindow(Menu):
 
                 height = max(5, height - len(preview))
                 for i, s in enumerate(preview):
-                    if height + i >= self.height:
+                    if height + i >= self._height:
                         break
                     self.draw_text(height + i, 0, s)
 
-        super().on_update_screen(max_height=height)
+        super().on_update_screen(height=height)
 
 
 def init(no_gui=False):

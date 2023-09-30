@@ -83,6 +83,9 @@ cat >~/.termux/termux.properties <<EOF
 allow-external-apps = true
 EOF
 
+# Config vim
+ln -f -s $HOME/MyScripts/settings/vim/.vimrc $HOME/.vimrc
+
 # ==============================
 # Install SSH Server
 # ==============================

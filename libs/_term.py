@@ -28,13 +28,13 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
-def _select_options_ncurse(options, history=""):
+def _select_options_ncurse(options, history: Optional[str] = None):
     if not options:
         raise Exception("Options cannot be empty.")
     return Menu(items=options, history=history).exec()
 
 
-def select_option(options, history=""):
+def select_option(options, history: Optional[str] = None):
     return _select_options_ncurse(options, history=history)
 
 
