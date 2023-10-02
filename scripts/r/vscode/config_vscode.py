@@ -188,8 +188,9 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "workbench.action.navigateForward",
                     "when": "canNavigateForward",
                 },
+                # Genie:
                 {
-                    "key": "ctrl+k a",
+                    "key": "ctrl+k p",
                     "command": "chatgpt-vscode.adhoc",
                     "when": "editorHasSelection",
                 },
@@ -198,6 +199,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "chatgpt-vscode.optimize",
                     "when": "editorHasSelection",
                 },
+                {"key": "ctrl+k a", "command": "chatgpt-vscode.freeText"},
             ],
             f,
             indent=4,
