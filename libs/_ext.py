@@ -303,17 +303,22 @@ def replace_script_str(
 def rename_script(
     script_full_path,
     on_progress: Optional[Callable[[str], None]] = None,
+    replace_all_occurrence: bool = False,
 ):
     script_rel_path = get_relative_script_path(script_full_path)
-    matched_files: List[str] = []
-    modified_lines = replace_script_str(
-        script_rel_path,
-        dry_run=True,
-        matched_files=matched_files,
-        on_progress=on_progress,
-    )
 
-    items = [f"{x[0]}:{x[1]}:\t{x[2]}" for x in modified_lines]
+    matched_files: List[str] = []
+    if replace_all_occurrence:
+        modified_lines = replace_script_str(
+            script_rel_path,
+            dry_run=True,
+            matched_files=matched_files,
+            on_progress=on_progress,
+        )
+        items = [f"{x[0]}:{x[1]}:\t{x[2]}" for x in modified_lines]
+    else:
+        items = []
+
     w = Menu(label="new name", text=script_rel_path, items=items)
     w.exec()
     new_script_rel_path = w.get_text()
@@ -332,7 +337,8 @@ def rename_script(
         os.rename(config_file, new_config_file)
 
     # Replace script string
-    replace_script_str(
-        script_rel_path, new_script_rel_path, matched_files=matched_files
-    )
+    if replace_all_occurrence:
+        replace_script_str(
+            script_rel_path, new_script_rel_path, matched_files=matched_files
+        )
     return True

@@ -1,4 +1,4 @@
-set -
+set -e
 
 repo=$(gh repo list --json name --template '{{range .}}{{.name}}{{"\n"}}{{end}}' | fzf)
 
