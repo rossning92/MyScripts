@@ -1,0 +1,3 @@
+args.passSelectionAsFile: true
+globalHotkey: win+o a
+variableNames: OPENAI_API_KEY

@@ -338,15 +338,17 @@ class MainWindow(Menu):
         self._new_script_or_duplicate_script(duplicate=True)
 
     def _rename_script(self):
+        def on_progress(msg: str):
+            nonlocal self
+            self.process_events(blocking=False)
+            self.set_message(msg)
+
         script_path = self.get_selected_script_path()
         if script_path:
             self.set_message("searching scripts to rename...")
             if rename_script(
                 script_path,
-                on_progress=lambda msg: (
-                    self.process_events(blocking=False),
-                    self.set_message(msg),
-                ),
+                on_progress=on_progress,
             ):
                 self._reload_scripts()
             self.set_message()

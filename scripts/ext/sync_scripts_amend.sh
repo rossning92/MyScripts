@@ -1,6 +1,2 @@
 #!/bin/bash
-cd "$(dirname "$0")"
-set -e
-
-export AMEND=1
-source sync_scripts.sh
+AMEND=1 source "$(dirname "$0")/sync_scripts.sh"

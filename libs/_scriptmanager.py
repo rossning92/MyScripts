@@ -7,7 +7,7 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 from _menu import to_ascii_hotkey
 from _script import (
@@ -31,6 +31,7 @@ from _shutil import (
     update_env_var_explorer,
 )
 from _template import render_template_file
+from _term import clear_terminal
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_temp_dir(), "GlobalHotkey.ahk")
 
@@ -163,22 +164,45 @@ def register_global_hotkeys_linux(scripts: List[Script]):
     start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
 
 
+def _to_ahk_hotkey(hotkey: str):
+    return (
+        hotkey.lower()
+        .replace("ctrl+", "^")
+        .replace("alt+", "!")
+        .replace("shift+", "+")
+        .replace("win+", "#")
+    )
+
+
 def register_global_hotkeys_win(scripts: List[Script]):
     hotkeys = ""
     match_clipboard = []
+    first_hotkey_defined: Set[str] = set()
 
     for script in scripts:
-        hotkey = script.cfg["globalHotkey"]
-        if hotkey:
-            if hotkey and script.is_supported():
-                hotkey = hotkey.lower()
-                hotkey = hotkey.replace("ctrl+", "^")
-                hotkey = hotkey.replace("alt+", "!")
-                hotkey = hotkey.replace("shift+", "+")
-                hotkey = hotkey.replace("win+", "#")
+        function_def = f'StartScript("{script.name}", "{script.script_path}")'
+        hotkey_chain = script.cfg["globalHotkey"]
+        if hotkey_chain and script.is_supported():
+            hotkey_array = hotkey_chain.split()
+            if len(hotkey_array) == 1:
+                htk = _to_ahk_hotkey(hotkey_array[0])
+                hotkeys += f"{htk}::{function_def}\n"
+            elif len(hotkey_array) == 2:
+                # First hotkey in the key combination
+                hotkey1 = _to_ahk_hotkey(hotkey_array[0])
+                if hotkey1 not in first_hotkey_defined:
+                    hotkeys += f"{hotkey1}::return\n"
+                first_hotkey_defined.add(hotkey1)
+
+                # Second hotkey in the key combination
+                hotkey2 = _to_ahk_hotkey(hotkey_array[1])
+
                 hotkeys += (
-                    f'{hotkey}::StartScript("{script.name}", "{script.script_path}")\n'
+                    f'#If, A_PriorHotkey = "{hotkey1}"\n'
+                    f"    {hotkey2}::{function_def}\n"
+                    "#If\n"
                 )
+
         mc = script.cfg["matchClipboard"]
         if mc:
             match_clipboard.append([mc, script.name, script.script_path])
@@ -213,6 +237,8 @@ def execute_script(script: Script, close_on_exit=None, no_gui=False):
 
     # Save last executed script
     save_json(get_script_history_file(), {"file": script.script_path, "args": args})
+
+    clear_terminal()
 
     success = script.execute(
         args=args,

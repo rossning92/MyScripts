@@ -190,7 +190,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                 },
                 # Genie:
                 {
-                    "key": "ctrl+k p",
+                    "key": "ctrl+k a",
                     "command": "chatgpt-vscode.adhoc",
                     "when": "editorHasSelection",
                 },
@@ -199,7 +199,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "chatgpt-vscode.optimize",
                     "when": "editorHasSelection",
                 },
-                {"key": "ctrl+k a", "command": "chatgpt-vscode.freeText"},
             ],
             f,
             indent=4,

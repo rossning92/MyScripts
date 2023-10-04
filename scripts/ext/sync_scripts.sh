@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 cd "$(dirname "$0")/../../"
-echo "Script dir: $(pwd)"
+echo "Sync script repo: $(pwd)"
 
-if [ ! -d ".git" ]; then
+if [[ ! -d ".git" ]]; then
     git init
     git remote add origin https://github.com/rossning92/MyScripts
     git fetch

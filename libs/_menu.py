@@ -20,7 +20,7 @@ from _shutil import load_json, save_json, slugify
 DEBUG_KEY_PRESS = False
 
 
-def get_hotkey_abbr(hotkey):
+def get_hotkey_abbr(hotkey: str):
     return (
         hotkey.lower()
         .replace("win+", "#")
@@ -33,7 +33,9 @@ def get_hotkey_abbr(hotkey):
 def to_ascii_hotkey(hotkey: str) -> Iterator[Union[int, str]]:
     hotkey = hotkey.lower()
     key = hotkey[-1].lower()
-    if hotkey == "left":
+    if hotkey == "delete":
+        yield curses.KEY_DC  # 330
+    elif hotkey == "left":
         yield curses.KEY_LEFT
         yield 452  # curses.KEY_B1
     elif hotkey == "right":
@@ -162,12 +164,13 @@ class Menu(Generic[T]):
         self.items = items
         self.last_key_pressed_timestamp: float = 0.0
         self.prev_key: Union[int, str] = -1
+        self.is_cancelled: bool = False
 
         self._cancellable: bool = cancellable
         self._close_on_selection: bool = close_on_selection
         self._closed: bool = False
         self._height: int = -1
-        self._input = _InputWidget(label=label + ">", text=text, ascii_only=ascii_only)
+        self._input = _InputWidget(label=label, text=text, ascii_only=ascii_only)
         self._last_input = None
         self._last_item_count = 0
         self._matched_item_indices: List[int] = []
@@ -198,6 +201,7 @@ class Menu(Generic[T]):
 
         # Hotkeys
         self._hotkeys: Dict[Union[int, str], _Hotkey] = {}
+        self.add_hotkey("ctrl+p", self.__open_command_palette)
 
     def add_hotkey(self, hotkey: str, func: Callable):
         for ch in to_ascii_hotkey(hotkey):
@@ -392,6 +396,8 @@ class Menu(Generic[T]):
 
             elif ch == "\x1b":  # escape key
                 if self._cancellable:
+                    self.is_cancelled = True
+                    self._matched_item_indices.clear()  # clear selected items
                     self._closed = True
                 else:
                     self._input.clear()
@@ -453,7 +459,7 @@ class Menu(Generic[T]):
             s (str): _description_
 
         Returns:
-            bool: Text is cropped.
+            bool: Whether or not text is cropped.
         """
         assert Menu.stdscr is not None
 
@@ -586,8 +592,17 @@ class Menu(Generic[T]):
         self._closed = True
 
     def on_item_selected(self):
+        if self._should_slide_text:
+            self._text_start_index = 0
         self._should_update_screen = True
 
     def set_message(self, message: Optional[str] = None):
         self._message = message
         self._should_update_screen = True
+
+    def __open_command_palette(self):
+        w = Menu(label=": command palette", items=list(self._hotkeys.values()))
+        w.exec()
+        hotkey = w.get_selected_item()
+        if hotkey is not None:
+            hotkey.func()

@@ -54,7 +54,6 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
-from _term import clear_terminal
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -1539,7 +1538,6 @@ class Script:
                             % sys.platform
                         )
                 except FileNotFoundError as ex:
-                    clear_terminal()
                     new_window = False
                     no_wait = False
                     logging.warning(ex)
