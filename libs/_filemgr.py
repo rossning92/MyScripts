@@ -29,13 +29,16 @@ class _Config:
 
 
 class _File:
-    def __init__(self, name: str, is_dir: bool) -> None:
+    def __init__(self, name: str, is_dir: bool, relative_path=False) -> None:
         self.name = name
         self.is_dir = is_dir
+        self.relative_path = relative_path
 
     def __str__(self) -> str:
         if self.is_dir:
             return f"[ {self.name} ]"
+        elif self.relative_path:
+            return f"./{self.name}"
         else:
             return self.name
 
@@ -54,12 +57,11 @@ class FileManager(Menu[_File]):
         self.__selected_full_path: Optional[str] = None
         self.__message: Optional[str] = message
         self.__select_mode: int = FileManager.SELECT_MODE_NONE
-        self.__save_states: bool = save_states
+        self.__save_states: bool = save_states if goto is None else False
         self.__copy_to_path: Optional[str] = None
 
         super().__init__(items=self.__files)
 
-        self.add_hotkey("ctrl+h", self._goto_home)
         self.add_hotkey("shift+h", self._goto_home)
         self.add_hotkey("shift+n", self._rename_file)
         self.add_hotkey("ctrl+r", self._list_files_recursively)
@@ -225,7 +227,9 @@ class FileManager(Menu[_File]):
                     )
                     for file in files
                 ]
-                self.__files.extend([_File(file, is_dir=False) for file in files])
+                self.__files.extend(
+                    [_File(file, is_dir=False, relative_path=True) for file in files]
+                )
 
             else:
                 dirs = []
@@ -253,7 +257,7 @@ class FileManager(Menu[_File]):
             return None
 
     def on_exit(self):
-        selected = self.get_selected_item()
+        selected = self.get_selected_item(ignore_cancellation=True)
         if selected:
             selected_full_path = os.path.join(self.__config.cur_dir, selected.name)
             self.__config.cur_dir = os.path.dirname(selected_full_path)

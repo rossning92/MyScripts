@@ -177,10 +177,7 @@ class Menu(Generic[T]):
         self._message: Optional[str] = None
         self._requested_selected_row: int = -1
         self._selected_row: int = 0
-        self._should_slide_text: bool = False
         self._should_update_items: bool = False
-        self._text_overflow: bool = False
-        self._text_start_index: int = 0
         self._width: int = -1
 
         # Only update screen when _should_update_screen is True. This is set to True to
@@ -278,8 +275,8 @@ class Menu(Generic[T]):
         curses.start_color()
         curses.use_default_colors()  # The default color is assigned to -1
         curses.init_pair(1, curses.COLOR_GREEN, -1)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-        curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
         stdscr.keypad(True)
         stdscr.nodelay(False)
         stdscr.timeout(1000)
@@ -311,8 +308,6 @@ class Menu(Generic[T]):
             _fuzzy_search_func(self.items, self.get_text())
         )
         self.reset_selection()
-        self._should_slide_text = False
-        self._text_start_index = 0
 
     def reset_selection(self):
         self._selected_row = 0
@@ -397,7 +392,6 @@ class Menu(Generic[T]):
             elif ch == "\x1b":  # escape key
                 if self._cancellable:
                     self.is_cancelled = True
-                    self._matched_item_indices.clear()  # clear selected items
                     self._closed = True
                 else:
                     self._input.clear()
@@ -419,12 +413,6 @@ class Menu(Generic[T]):
             return True
 
     def __on_idle(self):
-        if self._should_slide_text:
-            if self._text_overflow:
-                self._text_start_index += 2
-            else:
-                self._text_start_index = 0
-            self._should_update_screen = True
         self.on_idle()
 
     def on_exit(self):
@@ -439,7 +427,9 @@ class Menu(Generic[T]):
             self.on_main_loop()
 
     def get_selected_index(self):
-        if len(self._matched_item_indices) > 0:
+        if self.is_cancelled:
+            return -1
+        elif len(self._matched_item_indices) > 0:
             return self._matched_item_indices[self._selected_row]
         else:
             return -1
@@ -450,7 +440,9 @@ class Menu(Generic[T]):
     def get_items_per_page(self):
         return self._height - 2
 
-    def draw_text(self, row: int, col: int, s: str, color_pair=0) -> bool:
+    def draw_text(
+        self, row: int, col: int, s: str, color_pair=0, wrap_text=False
+    ) -> int:
         """_summary_
 
         Args:
@@ -459,7 +451,7 @@ class Menu(Generic[T]):
             s (str): _description_
 
         Returns:
-            bool: Whether or not text is cropped.
+            int: The row number of the last line of text being drawn on the screen.
         """
         assert Menu.stdscr is not None
 
@@ -473,30 +465,48 @@ class Menu(Generic[T]):
         if color_pair > 0:
             Menu.stdscr.attron(curses.color_pair(color_pair))
 
-        i = row
-        j = col
-        text_is_cropped = False
-        for ch in s:
-            if i > row:
-                Menu.stdscr.attron(curses.color_pair(3))
-                Menu.stdscr.addstr(row, self._width - 1, ">")
-                Menu.stdscr.attroff(curses.color_pair(3))
-                text_is_cropped = True
-                break
+        y = row
+        x = col
+        last_row_index = row
+        for i, ch in enumerate(s):
             try:
-                Menu.stdscr.addstr(row, j, ch)
+                Menu.stdscr.addstr(y, x, ch)
             except curses.error:
                 # Tolerate "addwstr() returned ERR"
                 pass
-            i, j = Menu.stdscr.getyx()  # type: ignore
+
+            last_y = y
+            y, x = Menu.stdscr.getyx()  # type: ignore
+
+            if wrap_text:
+                if y >= self._height:
+                    last_row_index = self._height - 1
+                    break
+            else:
+                if y > last_y:
+                    if i < len(s) - 1:
+                        last_row_index = row
+                        Menu.stdscr.attron(curses.color_pair(2))
+                        Menu.stdscr.addstr(row, self._width - 1, ">")
+                        Menu.stdscr.attroff(curses.color_pair(2))
+                    break
+
+            last_row_index = y
 
         if color_pair > 0:
-            space_len = self._width - j
-            if space_len > 0:
-                Menu.stdscr.addstr(row, j, " " * space_len)
+            if y < self._height:
+                space_len = self._width - x
+                if space_len > 0:
+                    try:
+                        Menu.stdscr.addstr(y, x, " " * space_len)
+                    except curses.error:
+                        # addch() returns an error because it tries to wrap to
+                        # the next line after adding a character, but this
+                        # behavior is expected.
+                        pass
             Menu.stdscr.attroff(curses.color_pair(color_pair))
 
-        return text_is_cropped
+        return last_row_index
 
     def on_update_screen(self, height: int):
         assert Menu.stdscr is not None
@@ -515,21 +525,22 @@ class Menu(Generic[T]):
         ]
 
         self._text_overflow = False
+        next_i = 0
         for i, item_index in enumerate(indices_in_page):
-            # Index
-            if i == selected_index_in_page:  # hightlight on
-                Menu.stdscr.attron(curses.color_pair(2))
-            s = "{:>4}".format(item_index + 1)
-            self.draw_text(row, 0, s)
-            if i == selected_index_in_page:  # highlight off
-                Menu.stdscr.attroff(curses.color_pair(2))
+            if row >= next_i:
+                is_item_selected = i == selected_index_in_page
+                # Draw item index and text
+                s = "{:>4}".format(item_index + 1) + " " + str(self.items[item_index])
 
-            # Item name
-            if self.draw_text(
-                row, 5, str(self.items[item_index])[self._text_start_index :]
-            ):
-                self._text_overflow = True
-                self._should_slide_text = True
+                next_i = (
+                    self.draw_text(
+                        row,
+                        0,
+                        s,
+                        wrap_text=is_item_selected,
+                        color_pair=2 if is_item_selected else 0,
+                    )
+                ) + 1
 
             row += 1
             if row >= height:
@@ -542,14 +553,16 @@ class Menu(Generic[T]):
         self.draw_text(0, self._width - len(matched_item_str), matched_item_str)
 
         if self._message is not None:
-            self.draw_text(1, 0, self._message, color_pair=3)
+            self.draw_text(1, 0, self._message)
 
         # Render input widget at the end, so the cursor will be move to the
         # correct position.
         self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
 
-    def get_selected_item(self) -> Optional[T]:
-        if len(self._matched_item_indices) > 0:
+    def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
+        if not ignore_cancellation and self.is_cancelled:
+            return None
+        elif len(self._matched_item_indices) > 0:
             item_index = self._matched_item_indices[self._selected_row]
             return self.items[item_index]
         else:
@@ -592,8 +605,6 @@ class Menu(Generic[T]):
         self._closed = True
 
     def on_item_selected(self):
-        if self._should_slide_text:
-            self._text_start_index = 0
         self._should_update_screen = True
 
     def set_message(self, message: Optional[str] = None):

@@ -792,14 +792,11 @@ class Script:
         if self.ext == ".link":
             s = "%s (lnk)"
 
-        # Name: show shortcut
-        hotkey_abbr = []
+        # Show keyboard shortcut
         if self.cfg["hotkey"]:
-            hotkey_abbr.append(get_hotkey_abbr(self.cfg["hotkey"]))
+            s += " (%s)" % (get_hotkey_abbr(self.cfg["hotkey"]))
         if self.cfg["globalHotkey"]:
-            hotkey_abbr.append(get_hotkey_abbr(self.cfg["globalHotkey"]))
-        if hotkey_abbr:
-            s = f"{s} ({','.join(hotkey_abbr)})"
+            s += " {%s}" % (get_hotkey_abbr(self.cfg["globalHotkey"]))
 
         return s
 
