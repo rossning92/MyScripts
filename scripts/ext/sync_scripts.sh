@@ -45,6 +45,7 @@ if [[ ! -z "$status" ]]; then
     fi
 fi
 
+echo 'Sync changes with remote...'
 if [[ -n "$AMEND" ]]; then
     git push --force
 else

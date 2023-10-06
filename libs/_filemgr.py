@@ -48,14 +48,14 @@ class FileManager(Menu[_File]):
     SELECT_MODE_FILE = 1
     SELECT_MODE_DIRECTORY = 2
 
-    def __init__(self, goto=None, save_states=True, message=None):
+    def __init__(self, goto=None, save_states=True, prompt=None):
         self.__config = _Config()
         if os.path.exists(self.__config.config_file):
             self.__config.load()
 
         self.__files: List[_File] = []
         self.__selected_full_path: Optional[str] = None
-        self.__message: Optional[str] = message
+        self.__prompt: Optional[str] = prompt
         self.__select_mode: int = FileManager.SELECT_MODE_NONE
         self.__save_states: bool = save_states if goto is None else False
         self.__copy_to_path: Optional[str] = None
@@ -103,7 +103,7 @@ class FileManager(Menu[_File]):
             goto=self.__copy_to_path
             if self.__copy_to_path is not None
             else self.__config.cur_dir,
-            message=": Copy to",
+            prompt=": Copy to",
             save_states=False,
         )
         dest_dir = filemgr.select_directory()
@@ -191,8 +191,8 @@ class FileManager(Menu[_File]):
 
         # Clear input
         self.clear_input()
-        if self.__message:
-            self.set_prompt(f"{self.__message} {self.__config.cur_dir}")
+        if self.__prompt:
+            self.set_prompt(f"{self.__prompt} {self.__config.cur_dir}")
         else:
             self.set_prompt(self.__config.cur_dir)
 

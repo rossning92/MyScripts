@@ -50,10 +50,8 @@ def commit(dry_run=False, amend=False) -> bool:
 
 @menu_item(key="C")
 def commit_and_push():
-    if not commit():
-        return
-
-    git_push()
+    if commit():
+        git_push()
 
 
 @menu_item(key="R")
@@ -183,8 +181,8 @@ def amend():
 
 @menu_item(key="A")
 def amend_and_push():
-    commit(amend=True)
-    git_push(force=True)
+    if commit(amend=True):
+        git_push(force=True)
 
 
 @menu_item(key="p")
@@ -385,6 +383,11 @@ def cherry_pick():
     commit = input("new commit hash: ")
     if commit:
         call_echo(["git", "cherry-pick", commit])
+
+
+@menu_item()
+def commit_gpt():
+    call_echo(["run_script", "r/ML/gpt_commit.sh"])
 
 
 if __name__ == "__main__":

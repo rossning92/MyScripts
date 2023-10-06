@@ -10,6 +10,11 @@ if __name__ == "__main__":
         type=str,
         default=None,
     )
+    parser.add_argument(
+        "--prompt",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args()
 
-    FileManager(goto=args.goto).exec()
+    FileManager(goto=args.goto, prompt=args.prompt).exec()

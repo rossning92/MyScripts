@@ -47,7 +47,6 @@ function createPanel() {
   panel.style.left = "0";
   panel.style.position = "fixed";
   panel.style.top = "0";
-  panel.style.width = "150px";
   panel.style.zIndex = "9999";
   document.body.appendChild(panel);
   return panel;
@@ -100,6 +99,7 @@ function createLogPane(panel: HTMLDivElement) {
   textarea.readOnly = true;
   textarea.rows = 5;
   textarea.style.all = "revert";
+  textarea.style.display = "none";
   textarea.style.boxSizing = "border-box";
   textarea.style.fontSize = panelFontSize;
   textarea.style.resize = "none";
@@ -113,6 +113,7 @@ function logd(message: string) {
   const textarea = document.getElementById(
     "userscriptlib-log-pane"
   ) as HTMLTextAreaElement;
+  textarea.style.display = "block";
   if (textarea.value !== "") {
     textarea.value += "\n" + message;
   } else {
@@ -130,7 +131,7 @@ function createHandle({
 }) {
   const handle = document.createElement("div");
   handle.style.backgroundColor = "lightgray";
-  handle.style.height = "12px";
+  handle.style.height = "8px";
   panel.appendChild(handle);
 
   handle.addEventListener("mousedown", (ev) => {
@@ -212,7 +213,7 @@ _global.addButton = (name, onclick, hotkey) => {
   button.style.display = "block";
   button.style.fontSize = panelFontSize;
   button.style.margin = "0";
-  button.style.padding = "0px 10px";
+  button.style.padding = "0px 8px";
   button.style.width = "100%";
   button.textContent = name;
   if (hotkey) {

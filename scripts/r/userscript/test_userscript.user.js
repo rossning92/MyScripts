@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        test_userscript
 // @namespace   Violentmonkey Scripts
-// @match       https://www.google.com/
+// @match       *://*/*
 // @grant       GM_xmlhttpRequest
 // @version     1.0
 // @author      -
@@ -10,20 +10,20 @@
 // ==/UserScript==
 
 addButton(
-  "Say Hello",
+  "Say hello!",
   () => {
     alert("Hello, World!");
   },
   "c-i"
 );
 
-addButton("Sleep 3 Sec", () => {
+addButton("Sleep 3 secs", () => {
   sleep(() => {
     logd("Slept for 3 sec.");
   }, 3000);
 });
 
-addButton("Run Calc", () => {
+addButton("Run calculator", () => {
   system(["calc"]);
 });
 

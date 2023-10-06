@@ -11,9 +11,7 @@ class TextInput(Menu):
             self.__history_data = load_json(
                 self.__history_file, default={"adhocPromptHistory": []}
             )
-        super().__init__(
-            label="prompt>", items=self.__history_data["adhocPromptHistory"]
-        )
+        super().__init__(label=">", items=self.__history_data["adhocPromptHistory"])
 
     def request_input(self) -> Optional[str]:
         self.exec()
