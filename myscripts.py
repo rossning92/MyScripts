@@ -302,7 +302,7 @@ class MainWindow(Menu[Script]):
 
         def on_process():
             nonlocal self
-            self.process_events(blocking=False)
+            self.process_events()
             self.set_message("refreshing scripts: %d" % len(script_manager.scripts))
 
         script_manager.refresh_all_scripts(on_progress=on_process)
@@ -356,7 +356,7 @@ class MainWindow(Menu[Script]):
     def _rename_script(self):
         def on_progress(msg: str):
             nonlocal self
-            self.process_events(blocking=False)
+            self.process_events()
             self.set_message(msg)
 
         script_path = self.get_selected_script_path()

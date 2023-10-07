@@ -10,9 +10,12 @@ class TextInput(Menu):
         self.__history_file = history_file
         if self.__history_file:
             self.__history_data = load_json(
-                self.__history_file, default={"adhocPromptHistory": []}
+                self.__history_file, default={"history": []}
             )
-        super().__init__(label=">", items=self.__history_data["adhocPromptHistory"])
+        super().__init__(
+            label=">",
+            items=self.__history_data["history"] if self.__history_file else [],
+        )
 
     def request_input(self) -> Optional[str]:
         self.exec()
@@ -21,10 +24,10 @@ class TextInput(Menu):
         else:
             s = self.get_input()
             if s:
-                if s in self.__history_data["adhocPromptHistory"]:
-                    self.__history_data["adhocPromptHistory"].remove(s)
-                self.__history_data["adhocPromptHistory"].insert(0, s)
                 if self.__history_file:
+                    if s in self.__history_data["history"]:
+                        self.__history_data["history"].remove(s)
+                    self.__history_data["history"].insert(0, s)
                     save_json(self.__history_file, self.__history_data)
                 return s
             else:

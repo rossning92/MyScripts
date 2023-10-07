@@ -320,7 +320,7 @@ class Menu(Generic[T]):
         self._should_update_items = True
 
     # Returns false if we should exit main loop for the current window
-    def process_events(self, blocking=True) -> bool:
+    def process_events(self, blocking=False) -> bool:
         assert Menu.stdscr is not None
 
         if blocking:
@@ -338,6 +338,7 @@ class Menu(Generic[T]):
             self._last_item_count = len(self.items)
             self.update_matched_items()
             self._should_update_items = False
+            self._should_update_screen = True
 
         if self._requested_selected_row >= 0:
             self._selected_row = self._requested_selected_row
@@ -422,8 +423,9 @@ class Menu(Generic[T]):
         pass
 
     def _exec(self):
+        self.on_created()
         self.on_main_loop()
-        while self.process_events():
+        while self.process_events(blocking=True):
             self.on_main_loop()
 
     def get_selected_index(self):
@@ -599,6 +601,9 @@ class Menu(Generic[T]):
         pass
 
     def on_main_loop(self):
+        pass
+
+    def on_created(self):
         pass
 
     def close(self):

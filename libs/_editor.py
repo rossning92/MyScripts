@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+from typing import Optional
 
 from _pkgmanager import find_executable
 from _shutil import exec_ahk, is_in_termux, start_process
@@ -38,7 +39,11 @@ def is_vscode_installed() -> bool:
     return find_executable("vscode") is not None
 
 
-def open_in_vscode(file, line_number=None, vscode_executable=None):
+def open_in_vscode(
+    file: str,
+    line_number: Optional[int] = None,
+    vscode_executable: Optional[str] = None,
+):
     if vscode_executable:
         vscode = vscode_executable
     else:
@@ -59,11 +64,15 @@ def open_in_vscode(file, line_number=None, vscode_executable=None):
     start_process(args)
 
 
-def open_in_vim(file, line_number=None):
-    subprocess.call(["vi", file])
+def open_in_vim(file: str, line_number: Optional[int] = None):
+    args = ["vim"]
+    if line_number is not None:
+        args.append(f"+{line_number}")
+    args.append(file)
+    subprocess.call(args)
 
 
-def open_in_editor(path, line_number=None):
+def open_in_editor(path: str, line_number: Optional[int] = None):
     if is_in_termux():
         open_in_vim(
             path if (isinstance(path, str)) else path[-1], line_number=line_number
