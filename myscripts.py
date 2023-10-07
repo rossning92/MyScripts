@@ -8,7 +8,7 @@ import re
 import sys
 import time
 import traceback
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
@@ -213,7 +213,7 @@ def restart_program():
     )
 
 
-class MainWindow(Menu):
+class MainWindow(Menu[Script]):
     def __init__(self, no_gui=False):
         self.no_gui = no_gui
         self.last_refresh_time = 0.0
@@ -234,7 +234,11 @@ class MainWindow(Menu):
         self.add_hotkey("ctrl+d", self._duplicate_script)
         self.add_hotkey("shift+n", self._rename_script)
         self.add_hotkey("ctrl+e", self._edit_script)
+        self.add_hotkey("ctrl+k", self._delete_file)
         self.add_hotkey("?", self._help)
+
+    def _delete_file(self):
+        pass
 
     def on_main_loop(self):
         # Reload scripts
@@ -256,7 +260,7 @@ class MainWindow(Menu):
             script_manager.sort_scripts()
             self.refresh()
 
-            self.run_cmd(
+            self.call_func_without_curses(
                 lambda: execute_script(
                     script,
                     close_on_exit=close_on_exit,
@@ -267,10 +271,12 @@ class MainWindow(Menu):
                 logging.info("Reload scripts after running: %s" % script.name)
                 self._reload_scripts()
 
-    def get_selected_script(self):
+    def get_selected_script(self) -> Optional[Script]:
         index = self.get_selected_index()
         if index >= 0:
             return self.items[index]
+        else:
+            return None
 
     def get_selected_script_path(self):
         index = self.get_selected_index()
@@ -357,7 +363,7 @@ class MainWindow(Menu):
     def _edit_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            self.run_cmd(lambda: edit_myscript_script(script_path))
+            self.call_func_without_curses(lambda: edit_myscript_script(script_path))
 
     def _help(self):
         items = []
@@ -399,7 +405,7 @@ class MainWindow(Menu):
                 return True
 
             elif ch == "L":
-                self.run_cmd(lambda: restart_program())
+                self.call_func_without_curses(lambda: restart_program())
 
             elif ch in script_manager.hotkeys:
                 script = script_manager.hotkeys[ch]
@@ -407,7 +413,9 @@ class MainWindow(Menu):
                 if selected_script is not None:
                     os.environ["SCRIPT"] = os.path.abspath(selected_script.script_path)
 
-                    self.run_cmd(lambda: execute_script(script, no_gui=self.no_gui))
+                    self.call_func_without_curses(
+                        lambda: execute_script(script, no_gui=self.no_gui)
+                    )
                     if script.cfg["reloadScriptsAfterRun"]:
                         logging.info("Reload scripts after running: %s" % script.name)
                         self._reload_scripts()

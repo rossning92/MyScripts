@@ -4,8 +4,10 @@ import os
 import shutil
 from typing import Dict, List, Optional
 
+from _editor import open_in_editor
 from _menu import Menu
 from _shutil import get_home_path, shell_open
+from utils.menu.confirm import confirm
 
 
 class _Config:
@@ -62,14 +64,15 @@ class FileManager(Menu[_File]):
 
         super().__init__(items=self.__files)
 
-        self.add_hotkey("shift+h", self._goto_home)
-        self.add_hotkey("shift+n", self._rename_file)
+        self.add_hotkey("ctrl+e", self._edit_text_file)
+        self.add_hotkey("ctrl+k", self._delete_file)
         self.add_hotkey("ctrl+r", self._list_files_recursively)
+        self.add_hotkey("ctrl+y", self._copy_to)
+        self.add_hotkey("delete", self._delete_file)
         self.add_hotkey("left", self._goto_parent_directory)
         self.add_hotkey("right", self._goto_selected_directory)
-        self.add_hotkey("ctrl+y", self._copy_to)
-        self.add_hotkey("ctrl+k", self._delete_file)
-        self.add_hotkey("delete", self._delete_file)
+        self.add_hotkey("shift+h", self._goto_home)
+        self.add_hotkey("shift+n", self._rename_file)
         self.__selected_file_dict: Dict[str, str] = {}
 
         if goto is not None:
@@ -82,12 +85,15 @@ class FileManager(Menu[_File]):
         else:
             self.goto_directory(self.__config.cur_dir, self.__config.selected_file)
 
+    def _edit_text_file(self):
+        file_full_path = self.get_selected_file_full_path()
+        if file_full_path is not None:
+            self.call_func_without_curses(lambda: open_in_editor(file_full_path))
+
     def _delete_file(self):
         file_full_path = self.get_selected_file_full_path()
         if file_full_path is not None:
-            menu = Menu(label=f'Delete file "{file_full_path}"?', items=["yes", "no"])
-            menu.exec()
-            if menu.get_selected_item() == "yes":
+            if confirm(f'Delete "{file_full_path}"?'):
                 if os.path.isdir(file_full_path):
                     shutil.rmtree(file_full_path)
                 else:
@@ -126,9 +132,21 @@ class FileManager(Menu[_File]):
         selected = self.get_selected_item()
         if selected:
             full_path = os.path.join(self.__config.cur_dir, selected.name)
-            if os.path.isdir(full_path):
-                d = os.path.abspath(os.path.join(self.__config.cur_dir, selected.name))
-                self.goto_directory(d)
+            if selected.relative_path:
+                if os.path.isfile(full_path):
+                    self.goto_directory(
+                        os.path.dirname(full_path), os.path.basename(full_path)
+                    )
+                elif os.path.isdir(full_path):
+                    self.goto_directory(full_path)
+
+            else:
+                full_path = os.path.join(self.__config.cur_dir, selected.name)
+                if os.path.isdir(full_path):
+                    d = os.path.abspath(
+                        os.path.join(self.__config.cur_dir, selected.name)
+                    )
+                    self.goto_directory(d)
 
     def _list_files_recursively(self):
         self.set_message("Files listed recursively.")

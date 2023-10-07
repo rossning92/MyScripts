@@ -54,7 +54,11 @@ def create_myscript_workspace() -> str:
         }
     ]
     folders.extend(
-        [{"path": x[1]} for x in get_script_directories() if script_root not in x[1]]
+        [
+            {"path": d.path}
+            for d in get_script_directories()
+            if script_root not in d.path
+        ]
     )
     workspace_file = os.path.join(get_data_dir(), "MyScripts.code-workspace")
     save_json(
@@ -94,12 +98,14 @@ def enter_script_path():
 
     # Check if new script should be saved in script directories
     script_dirs = get_script_directories()
-    arr = script_path.split("/")
-    if arr:
-        matched_script_dir = next(filter(lambda x: x[0] == arr[0], script_dirs), None)
+    separated_path = script_path.split("/")
+    if separated_path:
+        matched_script_dir = next(
+            filter(lambda x: x.name == separated_path[0], script_dirs), None
+        )
         if matched_script_dir:
-            arr[0] = matched_script_dir[1]
-    script_path = "/".join(arr)
+            separated_path[0] = matched_script_dir.path
+    script_path = "/".join(separated_path)
 
     return script_path
 

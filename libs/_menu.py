@@ -233,7 +233,7 @@ class Menu(Generic[T]):
         self.reset_selection()
         self._should_update_screen = True
 
-    def run_cmd(self, func: Callable[[], None]):
+    def call_func_without_curses(self, func: Callable[[], None]):
         Menu.destroy_curses()
         func()
         Menu.init_curses()
@@ -588,7 +588,7 @@ class Menu(Generic[T]):
     def on_enter_pressed(self):
         item = self.get_selected_item()
         if item is not None and hasattr(item, "callback") and callable(item.callback):
-            self.run_cmd(lambda item=item: item.callback())
+            self.call_func_without_curses(lambda item=item: item.callback())
             if self._close_on_selection:
                 self.close()
         else:

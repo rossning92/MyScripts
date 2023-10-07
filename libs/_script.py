@@ -13,6 +13,7 @@ import sys
 import tempfile
 import threading
 import time
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
@@ -139,51 +140,32 @@ def get_bin_dir():
 
 @lru_cache(maxsize=None)
 def get_script_dirs_config_file():
-    # TODO: migrate to json file
-    config_txt_file_deprecated = os.path.join(get_data_dir(), "script_directories.txt")
     config_json_file = os.path.join(get_data_dir(), "script_directories.json")
-    if os.path.exists(config_txt_file_deprecated):
-        if not os.path.exists(config_json_file):
-            with open(config_txt_file_deprecated) as f:
-                lines = f.read().splitlines()
-
-            directories = []
-            for line in lines:
-                line = line.strip()
-                if line:
-                    cols = line.split("|")
-                    if len(cols) == 1:
-                        name = os.path.basename(cols[0])
-                        directory = cols[0]
-                    elif len(cols) == 2:
-                        name = cols[0]
-                        directory = cols[1]
-                    else:
-                        raise Exception(
-                            "Invalid line in {}: {}".format(
-                                config_txt_file_deprecated, line
-                            )
-                        )
-                directories.append({"name": name, "directory": directory})
-            save_json(config_json_file, directories)
-            os.rename(config_txt_file_deprecated, config_txt_file_deprecated + ".bak")
-
     if not os.path.exists(config_json_file):
         save_json(config_json_file, [])
-
     return config_json_file
 
 
+@dataclass
+class ScriptDirectory:
+    name: str
+    path: str
+    include_exts: List[str]
+
+
 @lru_cache(maxsize=None)
-def get_script_directories() -> List[Tuple[str, str]]:
-    directories = []
-    directories.append(("", get_script_root()))
+def get_script_directories() -> List[ScriptDirectory]:
+    directories: List[ScriptDirectory] = []
+    directories.append(
+        ScriptDirectory(name="", path=get_script_root(), include_exts=[])
+    )
 
     config_file = get_script_dirs_config_file()
     data = load_json(config_file)
 
     for item in data:
         name = item["name"]
+
         directory = item["directory"]
         if not os.path.isabs(directory):  # is relative path
             directory = os.path.abspath(
@@ -193,7 +175,11 @@ def get_script_directories() -> List[Tuple[str, str]]:
                     directory,
                 )
             )
-        directories.append((name, directory))
+
+        include_exts = item["includeExts"] if "includeExts" in item else []
+        directories.append(
+            ScriptDirectory(name=name, path=directory, include_exts=include_exts)
+        )
 
     return directories
 
@@ -678,10 +664,10 @@ def wrap_args_alacritty(
 
 def get_relative_script_path(path):
     path = path.replace("\\", "/")
-    for name, d in get_script_directories():
-        prefix = d.replace("\\", "/") + "/"
+    for d in get_script_directories():
+        prefix = d.path.replace("\\", "/") + "/"
         if path.startswith(prefix):
-            path = (name + "/" if name else "") + path[len(prefix) :]
+            path = (d.name + "/" if d.name else "") + path[len(prefix) :]
             break
     return path
 
@@ -692,14 +678,16 @@ def get_absolute_script_path(path):
         return path
 
     script_dirs = get_script_directories()
-    arr = path.split("/")
-    if arr:
-        matched_script_dir = next(filter(lambda x: x[0] == arr[0], script_dirs), None)
+    separated_path = path.split("/")
+    if separated_path:
+        matched_script_dir = next(
+            filter(lambda x: x.name == separated_path[0], script_dirs), None
+        )
         if matched_script_dir:
-            arr[0] = matched_script_dir[1]
+            separated_path[0] = matched_script_dir[1]
         else:
-            arr = [get_script_root()] + arr
-    path = os.path.join(*arr)
+            separated_path = [get_script_root()] + separated_path
+    path = os.path.join(*separated_path)
     return path
 
 
@@ -940,6 +928,14 @@ class Script:
             logging.warning(f"{self.name} is not supported on {sys.platform}.")
             return False
 
+        script_path = self.get_script_path()
+        ext = self.real_ext if self.real_ext else self.ext
+
+        # If this is not a text/script file
+        if self.ext not in SCRIPT_EXTENSIONS:
+            shell_open(self.get_script_path())
+            return True
+
         self.cfg = self.load_config()
 
         new_window = self.cfg["newWindow"] if new_window is None else new_window
@@ -968,9 +964,6 @@ class Script:
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )
-
-        script_path = self.get_script_path()
-        ext = self.real_ext if self.real_ext else self.ext
 
         if ext == ".md" or ext == ".txt":
             open_in_editor(script_path)
@@ -1185,7 +1178,7 @@ class Script:
                 shell_open(url)
 
             else:
-                # TODO: support template
+                # TODO: support template for js files
                 setup_nodejs()
                 npm_install(cwd=os.path.dirname(script_path))
                 arg_list = ["node", script_path] + arg_list
@@ -1604,11 +1597,14 @@ class Script:
         else:  # no args
             return True
 
-    def get_variable_names(self):
+    def get_variable_names(self) -> List[str]:
         if self.cfg["variableNames"] == "auto":
-            with open(self.script_path, "r", encoding="utf-8") as f:
-                s = f.read()
-                variable_names = re.findall(r"\b([A-Z_$][A-Z_$0-9]{3,})\b", s)
+            if self.ext in SCRIPT_EXTENSIONS:
+                with open(self.script_path, "r", encoding="utf-8") as f:
+                    s = f.read()
+                    variable_names = re.findall(r"\b([A-Z_$][A-Z_$0-9]{3,})\b", s)
+            else:
+                return []
         else:
             variable_names = self.cfg["variableNames"].split()
 
@@ -1635,8 +1631,8 @@ def find_script(patt: str) -> Optional[str]:
         return script_path
 
     # Fuzzy search
-    for _, script_root_dir in get_script_directories():
-        path = os.path.join(script_root_dir, "**", patt)
+    for d in get_script_directories():
+        path = os.path.join(d.path, "**", patt)
 
         match = glob.glob(path, recursive=True)
         match = [
@@ -1918,7 +1914,7 @@ def get_all_script_access_time() -> Tuple[Dict, float]:
     return _cached_script_access_time, _script_access_time_file_mtime
 
 
-def get_scripts_recursive(directory) -> Iterator[str]:
+def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
     def should_ignore(dir, file):
         if file == "tmp" or file == "generated":
             return True
@@ -1940,15 +1936,15 @@ def get_scripts_recursive(directory) -> Iterator[str]:
             ext = os.path.splitext(file)[1].lower()
 
             # Filter by script extensions
-            if ext not in SCRIPT_EXTENSIONS:
+            if ext not in SCRIPT_EXTENSIONS and ext not in include_exts:
                 continue
 
             yield os.path.join(root, file)
 
 
 def get_all_scripts() -> Iterator[str]:
-    for _, script_path in get_script_directories():
-        files = get_scripts_recursive(script_path)
+    for d in get_script_directories():
+        files = get_scripts_recursive(d.path, include_exts=d.include_exts)
         for file in files:
             # File has been removed during iteration
             if not os.path.exists(file):

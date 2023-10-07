@@ -1,4 +1,3 @@
 closeOnExit: false
 hotkey: shift+z
-runEveryNSeconds: '300'
 variableNames: GDRIVE_DIR
