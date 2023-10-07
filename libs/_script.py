@@ -24,8 +24,6 @@ from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
 from _filemgr import FileManager
-from _input import Input
-from _menu import get_hotkey_abbr
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
@@ -55,6 +53,8 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
+from utils.menu import get_hotkey_abbr
+from utils.menu.input import Input
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -684,7 +684,7 @@ def get_absolute_script_path(path):
             filter(lambda x: x.name == separated_path[0], script_dirs), None
         )
         if matched_script_dir:
-            separated_path[0] = matched_script_dir[1]
+            separated_path[0] = matched_script_dir.path
         else:
             separated_path = [get_script_root()] + separated_path
     path = os.path.join(*separated_path)

@@ -3,7 +3,7 @@ import subprocess
 import sys
 import time
 
-from _menu import Menu
+from utils.menu import Menu
 
 menu = Menu()
 

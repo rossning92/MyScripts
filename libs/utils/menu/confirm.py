@@ -1,4 +1,4 @@
-from _menu import Menu
+from ..menu import Menu
 
 
 def confirm(message: str):

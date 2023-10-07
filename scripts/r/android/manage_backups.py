@@ -5,7 +5,7 @@ import subprocess
 
 from _android import setup_android_env
 from _shutil import cd, print2, remove
-from _term import select_option
+from utils.menu.select import select_option
 
 setup_android_env()
 

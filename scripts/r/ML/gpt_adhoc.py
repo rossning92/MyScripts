@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from _textinput import TextInput
 from r.ML.chatgpt import complete_chat
+from utils.menu.textinput import TextInput
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

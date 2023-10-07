@@ -4,7 +4,7 @@ import sys
 
 from _android import backup_pkg
 from _shutil import shell_open
-from _term import select_option
+from utils.menu.select import select_option
 
 SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
 

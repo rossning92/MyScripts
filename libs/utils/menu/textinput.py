@@ -1,7 +1,8 @@
 from typing import Optional
 
-from _menu import Menu
 from _shutil import load_json, save_json
+
+from ..menu import Menu
 
 
 class TextInput(Menu):

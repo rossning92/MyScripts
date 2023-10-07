@@ -6,7 +6,7 @@ import sys
 import yaml
 from _editor import open_in_editor
 from _script import get_all_variables, get_data_dir
-from _term import select_option
+from utils.menu.select import select_option
 
 
 def search_code(text, root, extra_params=None):

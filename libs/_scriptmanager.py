@@ -9,7 +9,6 @@ import threading
 import time
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
-from _menu import to_ascii_hotkey
 from _script import (
     Script,
     execute_script_autorun,
@@ -32,6 +31,7 @@ from _shutil import (
 )
 from _template import render_template_file
 from _term import clear_terminal
+from utils.menu import to_ascii_hotkey
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_temp_dir(), "GlobalHotkey.ahk")
 

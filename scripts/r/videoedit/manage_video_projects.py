@@ -7,16 +7,14 @@ from _editor import open_in_editor
 from _shutil import (
     getch,
     load_yaml,
-    save_yaml,
-    to_valid_file_name,
     menu_item,
     menu_loop,
+    save_yaml,
+    to_valid_file_name,
     update_yaml,
 )
-from _term import select_option
-
 from export_video import load_config
-
+from utils.menu.select import select_option
 
 vproject_root = r"{{VPROJECT_ROOT}}"
 

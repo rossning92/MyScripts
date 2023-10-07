@@ -4,8 +4,8 @@ import sys
 from typing import Optional
 
 import openai
-from _menu import Menu
 from _shutil import load_json, pause, set_clip
+from utils.menu import Menu
 
 
 def complete_chat(

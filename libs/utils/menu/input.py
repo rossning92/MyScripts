@@ -1,5 +1,6 @@
 from _clip import get_clip
-from _menu import Menu
+
+from ..menu import Menu
 
 
 class Input(Menu):

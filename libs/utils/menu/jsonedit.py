@@ -1,10 +1,11 @@
 import os
 
 from _shutil import load_json, save_json
-from _term import DictEditWindow
+
+from .dictedit import DictEditMenu
 
 
-class JsonEditWindow(DictEditWindow):
+class JsonEditWindow(DictEditMenu):
     def __init__(self, json_file, *, default={}):
         if not os.path.exists(json_file):
             data = {}

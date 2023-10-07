@@ -4,8 +4,8 @@ import signal
 import subprocess
 import sys
 
-from _menu import Menu
 from _shutil import fnull
+from utils.menu import Menu
 
 EXTENSIONS = {".wav", ".mp3", ".mid", ".ogg"}
 

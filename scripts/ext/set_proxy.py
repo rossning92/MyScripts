@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-from _jsonedit import JsonEditWindow
+from utils.menu.jsonedit import JsonEditWindow
 
 if __name__ == "__main__":
     JsonEditWindow(

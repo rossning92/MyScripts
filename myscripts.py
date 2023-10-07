@@ -8,7 +8,7 @@ import re
 import sys
 import time
 import traceback
-from typing import Callable, Dict, List, Optional
+from typing import Optional
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
@@ -22,11 +22,11 @@ from _ext import (
     edit_script_config,
     rename_script,
 )
-from _menu import Menu
 from _script import (
     Script,
     get_all_variables,
     get_default_script_config,
+    get_script_config_file_path,
     get_script_variables,
     get_temp_dir,
     is_instance_running,
@@ -47,6 +47,8 @@ from _shutil import (
     setup_logger,
     setup_nodejs,
 )
+from utils.menu import Menu
+from utils.menu.confirm import confirm
 
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
@@ -238,7 +240,15 @@ class MainWindow(Menu[Script]):
         self.add_hotkey("?", self._help)
 
     def _delete_file(self):
-        pass
+        script_path = self.get_selected_script_path()
+        if script_path and confirm(f'Delete "{script_path}"?'):
+            os.remove(script_path)
+
+            script_config_path = get_script_config_file_path(script_path)
+            if os.path.exists(script_config_path):
+                os.remove(script_config_path)
+
+            self._reload_scripts()
 
     def on_main_loop(self):
         # Reload scripts
@@ -278,7 +288,7 @@ class MainWindow(Menu[Script]):
         else:
             return None
 
-    def get_selected_script_path(self):
+    def get_selected_script_path(self) -> str | None:
         index = self.get_selected_index()
         if index >= 0:
             return self.items[index].script_path

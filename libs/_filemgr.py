@@ -5,8 +5,8 @@ import shutil
 from typing import Dict, List, Optional
 
 from _editor import open_in_editor
-from _menu import Menu
 from _shutil import get_home_path, shell_open
+from utils.menu import Menu
 from utils.menu.confirm import confirm
 
 

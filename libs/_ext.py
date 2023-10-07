@@ -6,7 +6,6 @@ import shutil
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from _editor import is_vscode_installed, open_in_editor, open_in_vscode
-from _menu import Menu
 from _script import (
     Script,
     get_absolute_script_path,
@@ -23,7 +22,8 @@ from _script import (
 )
 from _shutil import load_yaml, quote_arg, save_yaml, set_clip
 from _template import render_template_file
-from _term import DictEditWindow
+from utils.menu import Menu
+from utils.menu.dictedit import DictEditMenu
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -142,7 +142,7 @@ def edit_script_config(script_path):
             json.dump(config_edit_history, f, indent=2)
 
     script_config_file_rel_path = get_relative_script_path(script_config_file_path)
-    w = DictEditWindow(
+    w = DictEditMenu(
         data,
         default_dict=default_config,
         on_dict_update=on_dict_update,
