@@ -238,7 +238,8 @@ def execute_script(script: Script, close_on_exit=None, no_gui=False):
     # Save last executed script
     save_json(get_script_history_file(), {"file": script.script_path, "args": args})
 
-    clear_terminal()
+    if not no_gui:
+        clear_terminal()
 
     success = script.execute(
         args=args,

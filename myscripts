@@ -60,5 +60,5 @@ export FZF_DEFAULT_OPTS='--layout=reverse'
 
 [[ ! -d .venv ]] && python3 -m venv .venv --system-site-packages
 source .venv/bin/activate
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt >/dev/null
 python3 myscripts.py "$@"

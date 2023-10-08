@@ -216,15 +216,16 @@ def restart_program():
 
 
 class MainWindow(Menu[Script]):
-    def __init__(self, no_gui=False):
+    def __init__(self, no_gui=False, run_script_and_quit=False):
         self.no_gui = no_gui
         self.last_refresh_time = 0.0
         self.is_refreshing = False
+        self.__run_script_and_quit = run_script_and_quit
 
         super().__init__(
             items=script_manager.scripts,
             ascii_only=True,
-            cancellable=False,
+            cancellable=run_script_and_quit,
             label=platform.node(),
         )
 
@@ -277,6 +278,11 @@ class MainWindow(Menu[Script]):
                     no_gui=self.no_gui,
                 )
             )
+
+            if self.__run_script_and_quit:
+                self.close()
+                return
+
             if script.cfg["reloadScriptsAfterRun"]:
                 logging.info("Reload scripts after running: %s" % script.name)
                 self._reload_scripts()
@@ -489,7 +495,7 @@ class MainWindow(Menu[Script]):
         super().on_update_screen(height=height)
 
 
-def init(no_gui=False):
+def _init(no_gui=False):
     if not no_gui and is_instance_running():
         print("An instance is already running, exiting.")
         sys.exit(0)
@@ -521,16 +527,13 @@ def init(no_gui=False):
         script_server.start_server()
 
 
-def main_loop(no_gui=False, quit=False):
-    while True:
+def _main_loop(no_gui=False, run_script_and_quit=False):
+    _init(no_gui=no_gui)
+    while True:  # repeat if MainWindow throws exceptions
         try:
-            MainWindow(no_gui=False).exec()
-
-            if quit:
+            MainWindow(no_gui=no_gui, run_script_and_quit=run_script_and_quit).exec()
+            if run_script_and_quit:
                 break
-
-            # HACK: workaround: key bindings will not work on windows.
-            # time.sleep(1)
 
         except Exception:
             traceback.print_exc(file=sys.stdout)
@@ -540,10 +543,9 @@ def main_loop(no_gui=False, quit=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-q",
-        "--quit",
-        action="store_true",
-        help="quit after running a script",
+        "cmd",
+        nargs="?",
+        help="The cmd can be `run` which executes a script and exit to the terminal.",
     )
     parser.add_argument(
         "-n",
@@ -564,6 +566,8 @@ if __name__ == "__main__":
     )
 
     # setup_console_font()
-    init(no_gui=args.no_gui)
     script_manager = ScriptManager(no_gui=args.no_gui, startup=args.startup)
-    main_loop(no_gui=args.no_gui, quit=args.quit)
+    if args.cmd == "r" or args.cmd == "run":
+        _main_loop(no_gui=True, run_script_and_quit=True)
+    else:
+        _main_loop(no_gui=args.no_gui)
