@@ -88,22 +88,38 @@ class _InputWidget:
         self.text = text
         self.caret_pos = len(text)
 
-    def on_update_screen(self, stdscr, row, cursor=False):
-        stdscr.addstr(row, 0, self.label)
+    def draw_input_widget(self, stdscr, row, move_cursor=False) -> int:
+        """_summary_
 
-        text_start = len(self.label) + 1 if self.label else 0
+        Args:
+            stdscr (_type_): _description_
+            row (_type_): _description_
+            move_cursor (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            int: The index of the last row of text being drawn on the screen.
+        """
+
+        # Draw label
         stdscr.attron(curses.color_pair(1))
-        try:
-            stdscr.addstr(row, text_start, self.text)
-        except curses.error:
-            pass
+        stdscr.addstr(row, 0, self.label)
         stdscr.attroff(curses.color_pair(1))
 
-        if cursor:
-            try:
-                stdscr.move(row, self.caret_pos + text_start)
-            except curses.error:
-                pass
+        y, x = Menu.stdscr.getyx()  # type: ignore
+        x += 1  # add a space between label and text input
+
+        try:
+            stdscr.addstr(y, x, self.text[: self.caret_pos])
+            cursor_y, cursor_x = Menu.stdscr.getyx()  # type: ignore
+            stdscr.addstr(cursor_y, cursor_x, self.text[self.caret_pos :])
+
+            if move_cursor:
+                try:
+                    stdscr.move(cursor_y, cursor_x)
+                except curses.error:
+                    pass
+        except curses.error:
+            pass
 
     def clear(self):
         self.text = ""
@@ -274,7 +290,7 @@ class Menu(Generic[T]):
         curses.cbreak()
         curses.start_color()
         curses.use_default_colors()  # The default color is assigned to -1
-        curses.init_pair(1, curses.COLOR_GREEN, -1)
+        curses.init_pair(1, curses.COLOR_BLUE, -1)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
         stdscr.keypad(True)
@@ -453,7 +469,7 @@ class Menu(Generic[T]):
             s (str): _description_
 
         Returns:
-            int: The row number of the last line of text being drawn on the screen.
+            int: The index of the last row of text being drawn on the screen.
         """
         assert Menu.stdscr is not None
 
@@ -559,7 +575,7 @@ class Menu(Generic[T]):
 
         # Render input widget at the end, so the cursor will be move to the
         # correct position.
-        self._input.on_update_screen(Menu.stdscr, 0, cursor=True)
+        self._input.draw_input_widget(Menu.stdscr, 0, move_cursor=True)
 
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
         if not ignore_cancellation and self.is_cancelled:

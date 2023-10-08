@@ -226,7 +226,7 @@ class MainWindow(Menu[Script]):
             items=script_manager.scripts,
             ascii_only=True,
             cancellable=run_script_and_quit,
-            label=platform.node(),
+            label=platform.node() + "$",
         )
 
         self.add_hotkey("ctrl+r", self._reload_scripts)
