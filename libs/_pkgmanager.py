@@ -120,6 +120,10 @@ def install_package(pkg, wsl=False):
 
 
 def _is_go_package_installed(go_pkg_path):
+    executable_path = go_pkg_path.split("/")[-1].split("@")[0]
+    if sys.platform == "win32":
+        executable_path += ".exe"
+
     return (
         subprocess.call(
             [
@@ -130,7 +134,7 @@ def _is_go_package_installed(go_pkg_path):
                     get_home_path(),
                     "go",
                     "bin",
-                    go_pkg_path.split("/")[-1].split("@")[0],
+                    executable_path,
                 ),
             ],
             stdout=subprocess.DEVNULL,

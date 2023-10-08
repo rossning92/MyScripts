@@ -288,7 +288,9 @@ def sync_github():
 
 @menu_item(key="S")
 def setup_project():
-    subprocess.check_call(["run_script", "r/git/git_init.sh"])
+    subprocess.check_call(
+        ["run_script", "r/git/git_init.sh"], shell=sys.platform == "win32"
+    )
 
 
 @menu_item(key="X")
@@ -387,7 +389,7 @@ def cherry_pick():
 
 @menu_item()
 def commit_gpt():
-    call_echo(["run_script", "r/ML/gpt_commit.sh"])
+    call_echo(["run_script", "r/ML/gpt_commit.sh"], shell=sys.platform == "win32")
 
 
 if __name__ == "__main__":
