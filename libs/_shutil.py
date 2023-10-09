@@ -1688,20 +1688,11 @@ def update_yaml(file, dict_):
     save_yaml(data, file)
 
 
-def setup_logger(level=logging.INFO, log_to_stderr=True, log_to_file=None):
-    class StreamToLogger:
-        def __init__(self, logger, level):
-            self.logger = logger
-            self.level = level
-            self.linebuf = ""
-
-        def write(self, buf):
-            for line in buf.rstrip().splitlines():
-                self.logger.log(self.level, line.rstrip())
-
-        def flush(self):
-            pass
-
+def setup_logger(
+    level: int = logging.INFO,
+    log_to_stderr: bool = True,
+    log_to_file: Optional[str] = None,
+):
     logger = logging.getLogger()
     logger.setLevel(level)
 
@@ -1715,14 +1706,10 @@ def setup_logger(level=logging.INFO, log_to_stderr=True, log_to_file=None):
         stream_handler.setLevel(level)
         logger.addHandler(stream_handler)
     else:
+        # Don't log to stdout
         logger.propagate = False
 
     if log_to_file:
-        # Redirect stdout and stderr to logger
-        # sys.stdout = StreamToLogger(logger, logging.INFO)
-        # sys.stderr = StreamToLogger(logger, logging.ERROR)
-
-        # Log to files
         file_handler = logging.FileHandler(
             log_to_file, "w+", encoding="utf-8"
         )  # overwrite the file

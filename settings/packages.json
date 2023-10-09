@@ -315,6 +315,9 @@
     ]
   },
   "vscode": {
+    "choco": {
+      "packageName": "vscode"
+    },
     "executables": [
       "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
       "C:\\Program Files\\Microsoft VS Code\\Code.exe",

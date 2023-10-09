@@ -109,6 +109,9 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
             time.sleep(1)
             retry -= 1
 
+    if retry == 0:
+        raise Exception(f"Max retries exceeded with url: {url}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

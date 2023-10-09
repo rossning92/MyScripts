@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -e
 unset MSYS_NO_PATHCONV
-script_dir="$(dirname "$0")"
-[[ -d "$script_dir/../.venv/bin" ]] && source "$script_dir/../.venv/bin/activate"
-[[ -d "$script_dir/../.venv/Scripts" ]] && source "$script_dir/../.venv/Scripts/activate"
-python "$script_dir/run_script.py" "$@"
+ROOT="$(dirname "$0")"
+PYTHON='python3'
+[[ -d "$ROOT/../.venv/bin" ]] && PYTHON="$ROOT/../.venv/bin/python"
+[[ -d "$ROOT/../.venv/Scripts" ]] && PYTHON="$ROOT/../.venv/Scripts/python.exe"
+"$PYTHON" "$ROOT/run_script.py" "$@"

@@ -224,7 +224,7 @@ class MainWindow(Menu[Script]):
 
         super().__init__(
             items=script_manager.scripts,
-            ascii_only=True,
+            ascii_only=False,
             cancellable=run_script_and_quit,
             label=platform.node() + "$",
         )

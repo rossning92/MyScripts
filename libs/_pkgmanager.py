@@ -124,23 +124,13 @@ def _is_go_package_installed(go_pkg_path):
     if sys.platform == "win32":
         executable_path += ".exe"
 
-    return (
-        subprocess.call(
-            [
-                "go",
-                "version",
-                "-m",
-                os.path.join(
-                    get_home_path(),
-                    "go",
-                    "bin",
-                    executable_path,
-                ),
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+    return os.path.exists(
+        os.path.join(
+            get_home_path(),
+            "go",
+            "bin",
+            executable_path,
         )
-        == 0
     )
 
 

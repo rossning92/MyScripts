@@ -1,3 +1,4 @@
 args.passSelectionAsFile: true
 closeOnExit: false
 globalHotkey: win+o r
+terminal: ''

@@ -4,20 +4,9 @@ import os
 import re
 import sys
 import time
-from typing import (
-    Callable,
-    Dict,
-    Generic,
-    Iterator,
-    List,
-    Optional,
-    TypeVar,
-    Union,
-)
+from typing import Callable, Dict, Generic, Iterator, List, Optional, TypeVar, Union
 
 from _shutil import load_json, save_json, slugify
-
-DEBUG_KEY_PRESS = False
 
 
 def get_hotkey_abbr(hotkey: str):
@@ -101,9 +90,7 @@ class _InputWidget:
         """
 
         # Draw label
-        stdscr.attron(curses.color_pair(1))
         stdscr.addstr(row, 0, self.label)
-        stdscr.attroff(curses.color_pair(1))
 
         y, x = Menu.stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
@@ -120,6 +107,8 @@ class _InputWidget:
                     pass
         except curses.error:
             pass
+
+        return y
 
     def clear(self):
         self.text = ""
@@ -169,13 +158,14 @@ class Menu(Generic[T]):
 
     def __init__(
         self,
-        items: List[T] = [],
-        label="",
-        text="",
         ascii_only=False,
         cancellable=True,
         close_on_selection=False,
+        debug=False,
         history: Optional[str] = None,
+        items: List[T] = [],
+        label="",
+        text="",
     ):
         self.items = items
         self.last_key_pressed_timestamp: float = 0.0
@@ -195,6 +185,7 @@ class Menu(Generic[T]):
         self._selected_row: int = 0
         self._should_update_items: bool = False
         self._width: int = -1
+        self.__debug = debug
 
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
@@ -373,7 +364,7 @@ class Menu(Generic[T]):
             sys.exit(0)
 
         if ch != -1:  # getch() will return -1 when timeout
-            if DEBUG_KEY_PRESS:
+            if self.__debug:
                 self.set_message(f"key={repr(ch)} type={type(ch)}")
 
             self.last_key_pressed_timestamp = time.time()

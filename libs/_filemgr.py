@@ -8,6 +8,7 @@ from _editor import open_in_editor
 from _shutil import get_home_path, shell_open
 from utils.menu import Menu
 from utils.menu.confirm import confirm
+from utils.menu.textinput import TextInput
 
 
 class _Config:
@@ -68,6 +69,7 @@ class FileManager(Menu[_File]):
         self.add_hotkey("ctrl+k", self._delete_file)
         self.add_hotkey("ctrl+r", self._list_files_recursively)
         self.add_hotkey("ctrl+y", self._copy_to)
+        self.add_hotkey("ctrl+g", self._goto)
         self.add_hotkey("delete", self._delete_file)
         self.add_hotkey("left", self._goto_parent_directory)
         self.add_hotkey("right", self._goto_selected_directory)
@@ -167,6 +169,11 @@ class FileManager(Menu[_File]):
             os.rename(src, dest)
 
             self.refresh()
+
+    def _goto(self):
+        path = TextInput().request_input()
+        if path is not None and os.path.isdir(path):
+            self.goto_directory(path)
 
     def select_file(self):
         self.__select_mode = FileManager.SELECT_MODE_FILE

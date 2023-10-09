@@ -631,7 +631,7 @@ def wrap_args_alacritty(
     # Override configuration file options
     options = []
     if font_size is not None:
-        out += [
+        options += [
             f"font.size={font_size}",
         ]
     if font is not None:
@@ -921,7 +921,7 @@ class Script:
         close_on_exit=None,
         cd=True,
         tee=None,
-        command_wrapper=True,
+        command_wrapper: Optional[bool] = True,
         background=False,
     ) -> bool:
         if not self.is_supported():
@@ -1337,6 +1337,9 @@ class Script:
             open_in_terminal = False
             popen_extra_args: Dict[str, Any] = {}
 
+            if command_wrapper is None:
+                command_wrapper = self.cfg["commandWrapper"]
+
             if command_wrapper and not background and not self.cfg["minimized"]:
                 # Add command wrapper to pause on exit
                 env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
@@ -1652,7 +1655,7 @@ def start_script(
     file: Optional[str] = None,
     args=[],
     cd=True,
-    command_wrapper=True,
+    command_wrapper: Optional[bool] = None,
     config_override=None,
     console_title=None,
     new_window=None,
@@ -1765,6 +1768,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "cmake": False,
         "cmdline": "",
         "conda": "",
+        "commandWrapper": True,
         "globalHotkey": "",
         "hotkey": "",
         "matchClipboard": "",

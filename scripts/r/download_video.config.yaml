@@ -1,3 +1,3 @@
-matchClipboard: https?://((www\.)?bilibili\.com/video/|(www\.)?youtube\.com/(watch|shorts)|b23\.tv/[a-zA-Z0-9]+|youtu\.be/[a-zA-Z0-9]+)
+matchClipboard: https?://((www\.)?bilibili\.com/video/[a-zA-Z0-9]+|(www\.)?youtube\.com/(watch|shorts)|b23\.tv/[a-zA-Z0-9]+|youtu\.be/[a-zA-Z0-9]+)
 packages: lux
 singleInstance: false
