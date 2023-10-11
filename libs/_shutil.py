@@ -119,6 +119,11 @@ def get_hash(obj, digit=16):
 
 
 @lru_cache(maxsize=None)
+def get_ahk_lib_path() -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ahk"))
+
+
+@lru_cache(maxsize=None)
 def get_ahk_exe(uia=True) -> str:
     if sys.platform != "win32":
         raise Exception("unsupported platform: %s" % sys.platform)
@@ -129,12 +134,13 @@ def get_ahk_exe(uia=True) -> str:
     else:
         ahk_exe = os.path.expandvars(r"%ProgramFiles%\AutoHotkey\AutoHotkeyU64.exe")
 
-    ahk_lib_path = os.path.expandvars(r"%USERPROFILE%\Documents\AutoHotkey\Lib")
-    if not os.path.exists(ahk_lib_path):
-        os.makedirs(os.path.dirname(ahk_lib_path), exist_ok=True)
+    ahk_lib_symlink = os.path.expandvars(r"%USERPROFILE%\Documents\AutoHotkey\Lib")
+    if not os.path.exists(ahk_lib_symlink):
+        os.makedirs(os.path.dirname(ahk_lib_symlink), exist_ok=True)
         run_elevated(
             r'cmd /c MKLINK /D "{}" "{}"'.format(
-                ahk_lib_path, os.path.abspath(os.path.dirname(__file__) + "/../ahk")
+                ahk_lib_symlink,
+                get_ahk_lib_path(),
             )
         )
     _ahk_initialized = True
@@ -587,7 +593,7 @@ def is_in_termux():
 
 
 def is_in_wsl() -> bool:
-    return "microsoft-standard" in platform.uname().release
+    return "microsoft" in platform.uname().release.lower()
 
 
 def set_clip(text: str):

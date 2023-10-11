@@ -4,7 +4,8 @@ import sys
 from typing import Dict, Iterator, List, Optional
 
 import openai
-from _shutil import load_json, pause, save_json, set_clip
+from _shutil import load_json, save_json, set_clip
+from _shutil import pause as _pause
 from utils.menu import Menu
 
 
@@ -29,22 +30,22 @@ class Chat:
 
         try:
             if self.stream_mode:
-                full_response = ""
+                s = ""
                 for chunk in response:
                     chunk_message = chunk["choices"][0]["delta"]  # type: ignore
                     if "content" in chunk_message:
                         content = chunk_message["content"]
-                        full_response += content
+                        s += content
                         yield content
 
             else:
-                full_response = response["choices"][0]["message"]["content"]  # type: ignore
-                yield full_response
+                s = response["choices"][0]["message"]["content"]  # type: ignore
+                yield s
 
             self.messages.append(
                 {
                     "role": "assistant",
-                    "content": full_response,
+                    "content": s,
                 }
             )
 
@@ -65,10 +66,10 @@ def complete_chat(
     input_text: str,
     prompt_text: Optional[str] = None,
     copy_to_clipboard: bool = False,
-    pause_after_completion: bool = False,
+    pause: bool = False,
 ):
     if prompt_text:
-        input_text = prompt_text + "\n\n" + input_text
+        input_text = prompt_text + "\n\n\n" + input_text
 
     full_response = ""
     chat = Chat()
@@ -79,9 +80,9 @@ def complete_chat(
     if copy_to_clipboard:
         set_clip(full_response)
 
-    if pause_after_completion:
-        print("\n\n")
-        pause()
+    if pause:
+        print("\n")
+        _pause()
 
     return full_response
 
@@ -91,22 +92,31 @@ def main():
     parser.add_argument("input", type=str, nargs="?", default=None)
     parser.add_argument("-c", "--copy-to-clipboard", action="store_true", default=False)
     parser.add_argument("-p", "--load-prompt-file", action="store_true", default=False)
+    parser.add_argument(
+        "--adhoc",
+        default=None,
+        help="Ad-hoc prompt text",
+        type=str,
+    )
+    parser.add_argument(
+        "--pause", help="Pause after completion.", action="store_true", default=False
+    )
     args = parser.parse_args()
 
-    if args.input and os.path.isfile(args.input):
-        with open(args.input, "r", encoding="utf-8") as f:
-            input_text = f.read()
+    # If input is provided
+    if args.input:
+        if os.path.isfile(args.input):
+            with open(args.input, "r", encoding="utf-8") as f:
+                input_text = f.read()
 
-        complete_chat(
-            input_text=input_text,
-            copy_to_clipboard=args.copy_to_clipboard,
-        )
+        else:
+            input_text = args.input
 
-    elif args.input:
-        input_text = args.input
+        # Specify custom ad-hoc prompt if any
+        if args.adhoc:
+            prompt_text = args.adhoc
 
-        # Load custom prompts
-        if args.load_prompt_file:
+        elif args.load_prompt_file:
             prompt_file = os.path.join(os.environ["MY_DATA_DIR"], "custom_prompts.json")
             if os.path.exists(prompt_file):
                 options = load_json(prompt_file)
@@ -123,6 +133,7 @@ def main():
             input_text=input_text,
             prompt_text=prompt_text,
             copy_to_clipboard=args.copy_to_clipboard,
+            pause=args.pause,
         )
 
     else:  # empty

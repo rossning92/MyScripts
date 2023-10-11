@@ -5,7 +5,7 @@ import subprocess
 import sys
 from typing import List
 
-from _shutil import download, get_home_path, prepend_to_path, print2, unzip
+from _shutil import download, get_home_path, prepend_to_path, unzip
 
 if sys.platform == "win32":
     prepend_to_path([r"C:\Program Files\Microsoft VS Code\bin"])
@@ -44,9 +44,8 @@ def get_vscode_cmdline(data_dir=None):
 
 
 def install_extensions(extensions: list[str], data_dir=None):
-    print2("Install extensions: %s" % " ".join(extensions))
-
     for extension in extensions:
+        print(f'Installing extension "{extension}"')
         run_command(
             get_vscode_cmdline(data_dir=data_dir)
             + ["--install-extension", "%s" % extension],
@@ -161,7 +160,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
         data_dir=data_dir,
     )
 
-    print2("Update key bindings...")
+    print("Update key bindings...")
     with open(os.path.abspath(data_dir + "/User/keybindings.json"), "w") as f:
         json.dump(
             [
@@ -215,7 +214,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             indent=4,
         )
 
-    print2("Update settings...")
+    print("Update settings...")
 
     settings = {
         "cSpell.enabledLanguageIds": ["markdown", "text"],

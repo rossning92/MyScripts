@@ -131,12 +131,20 @@ class _InputWidget:
             self.clear()
         elif ch == "\n":
             pass
+
+        # HACK: Workaround for single and double quote on Windows
+        elif ch == 530 and sys.platform == "win32":
+            self.__on_char("'")
+        elif ch == 460 and sys.platform == "win32":
+            self.__on_char('"')
+
         elif isinstance(ch, str):
-            if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
-                self.text = (
-                    self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
-                )
-                self.caret_pos += 1
+            self.__on_char(ch)
+
+    def __on_char(self, ch: str):
+        if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
+            self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
+            self.caret_pos += 1
 
 
 class _MenuItem:
@@ -562,7 +570,7 @@ class Menu(Generic[T]):
         self.draw_text(0, self._width - len(matched_item_str), matched_item_str)
 
         if self._message is not None:
-            self.draw_text(1, 0, self._message)
+            self.draw_text(1, 0, f"({self._message})")
 
         # Render input widget at the end, so the cursor will be move to the
         # correct position.

@@ -236,6 +236,9 @@ class MainWindow(Menu[Script]):
         self.add_hotkey("ctrl+n", self._new_script)
         self.add_hotkey("ctrl+d", self._duplicate_script)
         self.add_hotkey("shift+n", self._rename_script)
+        self.add_hotkey(
+            "shift+b", lambda: self._rename_script(replace_all_occurrence=True)
+        )
         self.add_hotkey("ctrl+e", self._edit_script)
         self.add_hotkey("ctrl+k", self._delete_file)
         self.add_hotkey("?", self._help)
@@ -359,7 +362,7 @@ class MainWindow(Menu[Script]):
     def _duplicate_script(self):
         self._new_script_or_duplicate_script(duplicate=True)
 
-    def _rename_script(self):
+    def _rename_script(self, replace_all_occurrence=False):
         def on_progress(msg: str):
             nonlocal self
             self.process_events()
@@ -371,6 +374,7 @@ class MainWindow(Menu[Script]):
             if rename_script(
                 script_path,
                 on_progress=on_progress,
+                replace_all_occurrence=replace_all_occurrence,
             ):
                 self._reload_scripts()
             self.set_message()

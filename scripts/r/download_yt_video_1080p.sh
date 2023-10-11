@@ -10,7 +10,7 @@ cd Youtube
 
 # https://github.com/yt-dlp/yt-dlp
 if ! command -v yt-dlp &>/dev/null; then
-    python3 -m pip install -U yt-dlp --user
+    python3 -m pip install -U yt-dlp
 fi
 
 # https://github.com/yt-dlp/yt-dlp#format-selection

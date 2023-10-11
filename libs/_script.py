@@ -36,7 +36,6 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
-    is_in_wsl,
     load_json,
     load_yaml,
     npm_install,
@@ -102,19 +101,17 @@ def get_my_script_root():
 
 @lru_cache(maxsize=None)
 def get_data_dir() -> str:
-    data_dir_file = os.path.abspath(
+    data_dir_config_file = os.path.abspath(
         os.path.join(SCRIPT_ROOT, "..", "config", "data_dir.txt")
     )
-    if os.path.exists(data_dir_file):
-        with open(data_dir_file, "r") as f:
+    if os.path.exists(data_dir_config_file):
+        with open(data_dir_config_file, "r") as f:
             data_dir = f.read().strip()
-
-            if is_in_wsl():
-                data_dir = convert_to_unix_path(data_dir, wsl=True)
-
-            if not os.path.isabs(data_dir):
-                data_dir = os.path.join(
-                    get_my_script_root(), data_dir.replace("/", os.path.sep)
+            if not os.path.isabs(data_dir):  # if relative path
+                data_dir = os.path.normpath(
+                    os.path.join(
+                        get_my_script_root(), data_dir.replace("/", os.path.sep)
+                    )
                 )
 
     else:
@@ -124,6 +121,10 @@ def get_data_dir() -> str:
 
 
 def setup_env_var(env):
+    # If Python is running in a virtual environment (venv), ensure that the
+    # shell executes the Python version located inside the venv.
+    prepend_to_path(os.path.dirname(sys.executable))
+
     root = get_my_script_root()
 
     bin_dir = os.path.join(root, "bin")
@@ -141,8 +142,6 @@ def get_bin_dir():
 @lru_cache(maxsize=None)
 def get_script_dirs_config_file():
     config_json_file = os.path.join(get_data_dir(), "script_directories.json")
-    if not os.path.exists(config_json_file):
-        save_json(config_json_file, [])
     return config_json_file
 
 
@@ -161,7 +160,7 @@ def get_script_directories() -> List[ScriptDirectory]:
     )
 
     config_file = get_script_dirs_config_file()
-    data = load_json(config_file)
+    data = load_json(config_file, default=[])
 
     for item in data:
         name = item["name"]
@@ -977,7 +976,9 @@ class Script:
         else:
             arg_list = []
 
-        if len(arg_list) == 0:  # override command line arguments
+        # If no arguments is provided to the script, try to provide the default
+        # values from the script config.
+        if len(arg_list) == 0:
             if self.cfg["args"]:
                 arg_list += self.cfg["args"].split()
 
@@ -1045,6 +1046,18 @@ class Script:
             if "node" in packages:
                 print("node package is required.")
                 setup_nodejs(install=False)
+
+        if self.cfg["packages.pip"]:
+            import importlib.util
+
+            pip_packages = self.cfg["packages.pip"].split()
+            for pkg in pip_packages:
+                # Check if pip package is installed
+                spec = importlib.util.find_spec(pkg)
+                if spec is None:
+                    print(f"{pkg} is not installed, installing...")
+
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
         # Check if template is enabled or not
         if self.cfg["template"] is None:
@@ -1777,6 +1790,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "msys2": False,
         "newWindow": True,
         "packages": "",
+        "packages.pip": "",
         "reloadScriptsAfterRun": False,
         "runAsAdmin": False,
         "runAtStartup": False,
@@ -1799,12 +1813,17 @@ def get_script_config_file_path(script_path: str) -> str:
     return os.path.splitext(script_path)[0] + ".config.yaml"
 
 
+def get_script_folder_level_config(script_path: str) -> Optional[Dict[str, Any]]:
+    config_file_path = os.path.join(os.path.dirname(script_path), "default.config.yaml")
+    if os.path.exists(config_file_path):
+        with open(config_file_path, "r") as f:
+            return yaml.load(f.read(), Loader=yaml.FullLoader)
+    else:
+        return None
+
+
 def get_script_config_file(script_path: str) -> Optional[str]:
     f = get_script_config_file_path(script_path)
-    if os.path.exists(f):
-        return f
-
-    f = os.path.join(os.path.dirname(script_path), "default.config.yaml")
     if os.path.exists(f):
         return f
 
@@ -1812,19 +1831,21 @@ def get_script_config_file(script_path: str) -> Optional[str]:
 
 
 def load_script_config(script_path) -> Dict[str, Any]:
+    # Load script default config.
+    config = get_default_script_config()
+
+    # Load script folder-level config.
+    folder_level_config = get_script_folder_level_config(script_path)
+    if folder_level_config is not None:
+        config.update(folder_level_config)
+
+    # Load the script-level config.
     script_config_file = get_script_config_file(script_path)
     if script_config_file:
         with open(script_config_file, "r") as f:
-            data = yaml.load(f.read(), Loader=yaml.FullLoader)
-    else:
-        data = None
-
-    config = get_default_script_config()
-
-    # override default config
-    if data is not None:
-        for k, v in data.items():
-            config[k] = v
+            script_level_config = yaml.load(f.read(), Loader=yaml.FullLoader)
+        if script_level_config is not None:
+            config.update(script_level_config)
 
     return config
 

@@ -57,9 +57,6 @@ def download_bilibili(url, download_dir=None):
 
 
 def download_youtube(url, download_dir=None, audio_only=False, download_playlist=False):
-    if not shutil.which("yt-dlp"):
-        call_echo([sys.executable, "-m", "pip", "install", "-U", "yt-dlp", "--user"])
-
     if audio_only:
         format = "bestaudio"
     else:

@@ -389,7 +389,7 @@ def cherry_pick():
 
 @menu_item()
 def commit_gpt():
-    call_echo(["run_script", "r/ML/gpt_commit.sh"], shell=sys.platform == "win32")
+    call_echo(["run_script", "r/ML/gpt/commitgpt.sh"], shell=sys.platform == "win32")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
 import ctypes
-import ctypes.wintypes
 import shutil
 import subprocess
 import sys
@@ -11,30 +10,32 @@ def _get_clip_win():
     if sys.platform != "win32":
         raise Exception("The function can only be called on Windows.")
 
+    import ctypes.wintypes as w
+
     CF_UNICODETEXT = 13
 
     u32 = ctypes.windll.user32
     k32 = ctypes.windll.kernel32
 
     OpenClipboard = u32.OpenClipboard
-    OpenClipboard.argtypes = (ctypes.wintypes.HWND,)
-    OpenClipboard.restype = ctypes.wintypes.BOOL
+    OpenClipboard.argtypes = (w.HWND,)
+    OpenClipboard.restype = w.BOOL
 
     GetClipboardData = u32.GetClipboardData
-    GetClipboardData.argtypes = (ctypes.wintypes.UINT,)
-    GetClipboardData.restype = ctypes.wintypes.HANDLE
+    GetClipboardData.argtypes = (w.UINT,)
+    GetClipboardData.restype = w.HANDLE
 
     GlobalLock = k32.GlobalLock
-    GlobalLock.argtypes = (ctypes.wintypes.HGLOBAL,)
-    GlobalLock.restype = ctypes.wintypes.LPVOID
+    GlobalLock.argtypes = (w.HGLOBAL,)
+    GlobalLock.restype = w.LPVOID
 
     GlobalUnlock = k32.GlobalUnlock
-    GlobalUnlock.argtypes = (ctypes.wintypes.HGLOBAL,)
-    GlobalUnlock.restype = ctypes.wintypes.BOOL
+    GlobalUnlock.argtypes = (w.HGLOBAL,)
+    GlobalUnlock.restype = w.BOOL
 
     CloseClipboard = u32.CloseClipboard
     CloseClipboard.argtypes = ()
-    CloseClipboard.restype = ctypes.wintypes.BOOL
+    CloseClipboard.restype = w.BOOL
 
     text = ""
     if OpenClipboard(None):

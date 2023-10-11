@@ -20,9 +20,8 @@ IF NOT EXIST .venv\ (
 CALL .venv\Scripts\activate.bat
 
 ECHO Install python packages...
-python -m pip install --user -r requirements.txt >NUL
+pip install -r requirements.txt >NUL
 
 :main
 python myscripts.py %*
 IF errorlevel 1 GOTO main
-

@@ -1,8 +1,2 @@
 #!/usr/bin/env bash
-set -e
-unset MSYS_NO_PATHCONV
-ROOT="$(dirname "$0")"
-PYTHON='python3'
-[[ -d "$ROOT/../.venv/bin" ]] && PYTHON="$ROOT/../.venv/bin/python"
-[[ -d "$ROOT/../.venv/Scripts" ]] && PYTHON="$ROOT/../.venv/Scripts/python.exe"
-"$PYTHON" "$ROOT/run_script.py" "$@"
+python3 "$(dirname "$0")/run_script.py" "$@"

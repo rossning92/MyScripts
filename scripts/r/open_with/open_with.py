@@ -48,7 +48,7 @@ def open_with_hook(files, program_id):
 
 
 def open_with(files: Union[str, List[str]], program_id=0):
-    if type(files) == str:
+    if isinstance(files, str):
         files = [files]
 
     ext = os.path.splitext(files[0])[1].lower()
@@ -65,13 +65,13 @@ def open_with(files: Union[str, List[str]], program_id=0):
 
     program = config[ext][program_id]
 
-    if type(program) == str:
+    if isinstance(program, str):
         require_package(program)
         executable = find_executable(program)
         assert executable is not None
         args = [executable] + files
 
-    elif type(program) == list:
+    elif isinstance(program, list):
         args = program + files
 
     else:
