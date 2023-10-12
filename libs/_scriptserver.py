@@ -103,7 +103,9 @@ class ScriptServer:
 
     def _server_main(self):
         server = ThreadingHTTPServer((HOST_NAME, self.port), MyHTTPRequestHandler)
-        logging.info("Script server started http://%s:%s" % (HOST_NAME, self.port))
+        logging.info(
+            "Script API server started at: http://%s:%s" % (HOST_NAME, self.port)
+        )
         server.serve_forever()
         server.server_close()
         print("Script server stopped.")

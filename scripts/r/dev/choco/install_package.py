@@ -13,13 +13,12 @@ PKGS = {
         "everything",
         "git-lfs",
         "git",
-        "googlechrome",
-        "googledrive",
+        "google-chrome",
         "irfanview",
         "mpv",
         "sharex",
         "sumatrapdf",
-        "tightvnc",
+        # "tightvnc",
         "vnc-viewer",
     ],
     "@ross": [
@@ -29,16 +28,17 @@ PKGS = {
     "@dev": [
         "7zip",
         "android-sdk",
-        "chromium",
+        # "chromium",
         "cmake",
-        "conemu",
+        # "conemu",
         "ffmpeg",
         "graphviz",
-        "hxd",
-        "imagemagick.app",
-        "llvm",
-        "msys2",
-        "nodejs-lts",
+        # "hxd",
+        "imagemagick",
+        # "llvm",
+        # "msys2",
+        # "nodejs-lts",
+        "node",
         "ripgrep",
         "vscode",
         "yarn",
@@ -108,7 +108,6 @@ PKGS = {
 
 
 def install_recursive(name):
-    logging.info('install_recursive(name="%s")' % name)
     if name.startswith("@"):
         for pkg in PKGS[name]:
             install_recursive(pkg)

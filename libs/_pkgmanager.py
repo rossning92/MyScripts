@@ -116,6 +116,7 @@ def require_package(pkg, wsl=False):
 
 
 def install_package(pkg, wsl=False):
+    logging.info(f"Install package: {pkg}")
     require_package(pkg, wsl=wsl)
 
 

@@ -15,9 +15,9 @@ if __name__ == "__main__":
     parser.add_argument("args", nargs="*")
     args = parser.parse_args()
 
-    update_env_var_explorer()
+    selected_files = update_env_var_explorer()
     start_script(
         file=args.file,
-        args=args.args,
+        args=args.args if args.args else selected_files,
         restart_instance=get_env_bool("RESTART_INSTANCE"),
     )

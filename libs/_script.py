@@ -15,6 +15,7 @@ import threading
 import time
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
@@ -90,8 +91,15 @@ LOG_PIPE_FOR_BACKGROUND_PROCESS = False
 
 
 @lru_cache(maxsize=None)
-def get_script_root():
-    return os.path.join(get_my_script_root(), "scripts")
+def get_script_root() -> str:
+    # Reversely enumerate the script directories in case the user overrides the
+    # default script directory root.
+    for d in reversed(get_script_directories()):
+        if d.name == "":
+            logging.debug(f"Script root: {d.path}")
+            return d.path
+
+    raise Exception("Failed to find script root directory.")
 
 
 @lru_cache(maxsize=None)
@@ -148,15 +156,19 @@ def get_script_dirs_config_file():
 @dataclass
 class ScriptDirectory:
     name: str
-    path: str
+    path: str  # absolute path of script directory
     include_exts: List[str]
 
 
 @lru_cache(maxsize=None)
 def get_script_directories() -> List[ScriptDirectory]:
     directories: List[ScriptDirectory] = []
+
+    # Default script root path
     directories.append(
-        ScriptDirectory(name="", path=get_script_root(), include_exts=[])
+        ScriptDirectory(
+            name="", path=os.path.join(get_my_script_root(), "scripts"), include_exts=[]
+        )
     )
 
     config_file = get_script_dirs_config_file()
@@ -209,7 +221,9 @@ def get_last_script_and_args() -> Tuple[str, Any]:
         raise ValueError("file cannot be None.")
 
 
-def wrap_wsl(commands: Union[List[str], Tuple[str], str], env=None):
+def wrap_wsl(
+    commands: Union[List[str], Tuple[str], str], env: Dict[str, str]
+) -> List[str]:
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
     logging.debug("wrap_wsl(): cmd: %s" % commands)
@@ -227,7 +241,7 @@ def wrap_wsl(commands: Union[List[str], Tuple[str], str], env=None):
         for k, v in env.items():
             bash += "export {}='{}'\n".format(k, v)
 
-    if type(commands) in [list, tuple]:
+    if isinstance(commands, (list, tuple)):
         bash += _args_to_str(commands, shell_type="bash")
     else:
         bash += commands
@@ -286,7 +300,7 @@ def wrap_bash_windows(
 
 def wrap_bash_commands(
     args: List[str], wsl=False, env: Optional[Dict[str, str]] = None, msys2=False
-):
+) -> List[str]:
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
             return wrap_wsl(args, env=env)
@@ -391,6 +405,18 @@ def set_variable(name, val, set_env_var=True):
         os.environ[name] = val
 
 
+def set_variable_value(variables, name: str, value: str):
+    if name not in variables:
+        variables[name] = []
+    try:
+        variables[name].remove(value)
+    except ValueError:
+        pass
+    variables[name].insert(0, value)
+
+    save_variables(variables)
+
+
 def save_variables(variables):
     config_file = get_variable_file()
     with FileLock("access_variable"):
@@ -449,8 +475,8 @@ def input2(message, name):
 def get_python_path(script_path=None):
     python_path = []
 
-    script_root = get_script_root()
-    python_path.append(os.path.join(script_root))
+    script_root = str(Path(__file__).resolve().parent.parent / "scripts")
+    python_path.append(script_root)
     python_path.append(os.path.join(script_root, "r"))
 
     if script_path is not None:
@@ -494,7 +520,7 @@ def wrap_args_tee(args, out_file):
         return args
 
 
-def wrap_args_cmd(args: List, title=None, cwd=None, env=None) -> str:
+def wrap_args_cmd(args: List[str], title=None, cwd=None, env=None) -> str:
     if sys.platform == "win32":
         cmdline = "cmd /c "
         if title:
@@ -852,7 +878,7 @@ class Script:
 
     def execute(
         self,
-        args: Optional[Union[str, List[str]]] = None,
+        args: List[str] = [],
         new_window: Optional[bool] = None,
         single_instance=None,
         restart_instance=False,
@@ -899,21 +925,17 @@ class Script:
         variables = self.get_variables()
 
         logging.info("Script.execute(): script=%s, args=%s" % (self.name, args))
+
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
         )
+        logging.debug(f"close_on_exit={close_on_exit}")
 
         if ext == ".md" or ext == ".txt":
             open_in_editor(script_path)
             return True
 
-        arg_list: List[str]
-        if isinstance(args, str):
-            arg_list = [args]
-        elif isinstance(args, list):
-            arg_list = args
-        else:
-            arg_list = []
+        arg_list = args
 
         # If no arguments is provided to the script, try to provide the default
         # values from the script config.
@@ -1291,6 +1313,7 @@ class Script:
 
             if command_wrapper is None:
                 command_wrapper = self.cfg["commandWrapper"]
+            logging.debug(f"command_wrapper={command_wrapper}")
 
             if command_wrapper and not background and not self.cfg["minimized"]:
                 # Add command wrapper to pause on exit
@@ -1311,13 +1334,18 @@ class Script:
                     popen_extra_args["startupinfo"] = startupinfo
 
                     CREATE_NO_WINDOW = 0x08000000
+                    # A detached process is a child process that runs
+                    # independently of its parent process. It is not associated
+                    # with the parent process and does not receive any signals
+                    # or notifications from it. Once the parent process
+                    # terminates, the detached process continues to run,
+                    # unaffected by the termination of the parent.
                     DETACHED_PROCESS = 0x00000008
-                    createflags = (
-                        DETACHED_PROCESS
-                        | CREATE_NO_WINDOW
+                    popen_extra_args["creationflags"] = (
+                        # DETACHED_PROCESS
+                        CREATE_NO_WINDOW
                         | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
-                    popen_extra_args["creationflags"] = createflags
 
                 if LOG_PIPE_FOR_BACKGROUND_PROCESS:
                     popen_extra_args["stdin"] = subprocess.DEVNULL
@@ -1661,7 +1689,6 @@ def start_script(
     ret = script.execute(
         args=args,
         cd=cd,
-        close_on_exit=True,
         command_wrapper=command_wrapper,
         new_window=new_window,
         restart_instance=restart_instance,

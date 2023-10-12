@@ -11,7 +11,7 @@ DeviceInfo = namedtuple("DeviceInfo", ["serial", "product", "battery_level", "ke
 
 def get_device_list() -> List[DeviceInfo]:
     current_serial = get_variable("ANDROID_SERIAL")
-    print("ANDROID_SERIAL = %s" % current_serial)
+    print("ANDROID_SERIAL=%s" % current_serial)
     print()
 
     lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
@@ -62,11 +62,11 @@ def get_device_list() -> List[DeviceInfo]:
             print2(" %s" % product, color="green", end="")
             print(" Battery=%s" % battery_level, end="")
             if current_serial == serial:
-                print2(" (current)", color="red", end="")
+                print2(" (*)", color="red", end="")
             device_list.append(DeviceInfo(serial, product, battery_level, key))
             print()
 
-    print("[0] clear ANDROID_SERIAL")
+    print("[0] Clear ANDROID_SERIAL")
     print()
     return device_list
 
@@ -78,11 +78,9 @@ def select_default_android_device():
         for device in device_list:
             if ch == device.key:
                 set_variable("ANDROID_SERIAL", device.serial)
-                print2("Set default device to %s" % device.serial)
                 return
             elif ch == "0":
                 set_variable("ANDROID_SERIAL", "")
-                print2("Cleared ANDROID_SERIAL")
                 return
 
 

@@ -75,7 +75,7 @@ def open_myscript_workspace():
     open_in_vscode([workspace_file])
 
 
-def edit_myscript_script(file):
+def edit_myscript_script(file: str):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
@@ -195,6 +195,8 @@ def copy_script_path_to_clipboard(
                 )
             else:
                 content = "{{ include('%s') }}" % script_path
+        else:
+            raise Exception(f'Invalid format specified "{format}".')
 
         set_clip(content)
         return content

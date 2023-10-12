@@ -1,1 +1,2 @@
 terminal: ""
+packages.pip: langchain openai chromadb langchainhub tiktoken chardet PyMuPDF

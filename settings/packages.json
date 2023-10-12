@@ -11,6 +11,11 @@
     },
     "executables": ["C:\\Program Files\\7-Zip\\7zFM.exe"]
   },
+  "7zip": {
+    "choco": {
+      "packageName": "7zip"
+    }
+  },
   "adobereader": {
     "choco": {
       "packageName": "adobereader"
@@ -18,6 +23,14 @@
     "executables": [
       "C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe"
     ]
+  },
+  "alacritty": {
+    "choco": {
+      "packageName": "alacritty"
+    },
+    "pacman": {
+      "packageName": "alacritty"
+    }
   },
   "android-sdk": {
     "choco": {
@@ -64,6 +77,11 @@
       "packageName": "dotnetcore-sdk"
     }
   },
+  "everything": {
+    "choco": {
+      "packageName": "everything"
+    }
+  },
   "expect": {
     "choco": {
       "packageName": "expect"
@@ -103,6 +121,25 @@
       "packageName": "ghostscript"
     }
   },
+  "git": {
+    "choco": {
+      "packageName": "git"
+    },
+    "pacman": {
+      "packageName": "git"
+    },
+    "termux": {
+      "packageName": "git"
+    }
+  },
+  "git-lfs": {
+    "choco": {
+      "packageName": "git-lfs"
+    },
+    "pacman": {
+      "packageName": "git-lfs"
+    }
+  },
   "golang": {
     "choco": {
       "packageName": "golang"
@@ -112,6 +149,11 @@
     },
     "termux": {
       "packageName": "golang"
+    }
+  },
+  "google-chrome": {
+    "choco": {
+      "packageName": "googlechrome"
     }
   },
   "gradle": {
@@ -130,6 +172,15 @@
       "packageName": "graphviz"
     }
   },
+  "imagemagick": {
+    "choco": {
+      "packageName": "imagemagick"
+    },
+    "executables": ["C:\\Program Files\\ImageMagick-*\\magick.exe"],
+    "pacman": {
+      "packageName": "imagemagick"
+    }
+  },
   "irfanview": {
     "choco": {
       "packageName": "irfanview"
@@ -145,15 +196,6 @@
     },
     "golang": {
       "packagePath": "github.com/iawia002/lux@latest"
-    }
-  },
-  "magick": {
-    "choco": {
-      "packageName": "imagemagick"
-    },
-    "executables": ["C:\\Program Files\\ImageMagick-*\\magick.exe"],
-    "pacman": {
-      "packageName": "imagemagick"
     }
   },
   "miniconda3": {
@@ -179,7 +221,7 @@
   },
   "node": {
     "choco": {
-      "packageName": "node"
+      "packageName": "nodejs-lts"
     },
     "pacman": {
       "packageName": "nodejs"
@@ -313,6 +355,11 @@
       "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
       "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
     ]
+  },
+  "vnc-viewer": {
+    "choco": {
+      "packageName": "vnc-viewer"
+    }
   },
   "vscode": {
     "choco": {

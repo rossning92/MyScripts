@@ -40,11 +40,17 @@ window:
     columns: 120
     lines: 40
   padding:
-    x: 8
-    y: 8
+    x: 0
+    y: 0
 
 font:
-  size: 10
-# env:
-#   # Workaround for extra large font size in Linux Mint
-#   WINIT_X11_SCALE_FACTOR: "1.0"
+  normal:
+    family: JetBrains Mono
+    style: Regular
+  bold:
+    family: JetBrains Mono
+    style: Bold
+  italic:
+    family: JetBrains Mono
+    style: Italic
+  size: 8.0

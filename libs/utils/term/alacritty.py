@@ -10,7 +10,6 @@ from _shutil import file_is_old
 def wrap_args_alacritty(
     args,
     borderless: bool = False,
-    compact=False,
     font_size: Optional[int] = None,
     font: Optional[str] = None,
     padding: Optional[int] = None,
@@ -26,46 +25,37 @@ def wrap_args_alacritty(
     # Copy alacritty config file
     # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
     if sys.platform == "win32":
-        config_file_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
+        dest_config = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
     else:
-        config_file_path = os.path.expanduser("~/.config/alacritty/alacritty.yml")
-    os.makedirs(os.path.dirname(config_file_path), exist_ok=True)
-    src_path = (
+        dest_config = os.path.expanduser("~/.config/alacritty/alacritty.yml")
+    os.makedirs(os.path.dirname(dest_config), exist_ok=True)
+    src_config = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "settings"
         / "alacritty.yml"
     ).resolve()
-    if file_is_old(src_path, config_file_path):
-        shutil.copy(src_path, config_file_path)
+    if file_is_old(src_config, dest_config):
+        shutil.copy(src_config, dest_config)
 
     out = ["alacritty"]
 
     # Specify option key value pairs
     options = []
-    if compact:
+    if font_size is not None:
         options += [
-            "font.size=8",
-            "window.dimensions.columns=80",
-            "window.dimensions.lines=20",
-            "window.padding.x=0",
-            "window.padding.y=0",
+            f"font.size={font_size}",
         ]
-    else:
-        if font_size is not None:
-            options += [
-                f"font.size={font_size}",
-            ]
-        if font is not None:
-            options += [f"font.normal.family={font}"]
-        if borderless:
-            options += ["window.decorations=none"]
-        if position:
-            options += [
-                f"window.position.x={position[0]}",
-                f"window.position.y={position[1]}",
-            ]
-        if padding is not None:
-            options += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
+    if font is not None:
+        options += [f"font.normal.family={font}"]
+    if borderless:
+        options += ["window.decorations=none"]
+    if position:
+        options += [
+            f"window.position.x={position[0]}",
+            f"window.position.y={position[1]}",
+        ]
+    if padding is not None:
+        options += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
     if len(options) > 0:
         out += ["-o"] + options
 

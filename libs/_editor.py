@@ -1,19 +1,10 @@
 import json
 import os
 import subprocess
-from typing import Optional
+from typing import List, Optional, Union
 
 from _pkgmanager import find_executable
-from _shutil import exec_ahk, is_in_termux, start_process
-
-
-def open_in_androidstudio(path, line=None):
-    args = [r"C:\Program Files\Android\Android Studio\bin\studio64.exe"]
-    if line is not None:
-        args += ["--line", str(line)]
-    args.append(path)
-    subprocess.Popen(args)
-    exec_ahk("WinActivate ahk_exe studio64.exe")
+from _shutil import is_in_termux, start_process
 
 
 def vscode_set_include_path(include_path):
@@ -40,7 +31,7 @@ def is_vscode_installed() -> bool:
 
 
 def open_in_vscode(
-    file: str,
+    file: Union[str, List[str]],
     line_number: Optional[int] = None,
     vscode_executable: Optional[str] = None,
 ):
@@ -72,7 +63,7 @@ def open_in_vim(file: str, line_number: Optional[int] = None):
     subprocess.call(args)
 
 
-def open_in_editor(path: str, line_number: Optional[int] = None):
+def open_in_editor(path: Union[str, List[str]], line_number: Optional[int] = None):
     if is_in_termux():
         open_in_vim(
             path if (isinstance(path, str)) else path[-1], line_number=line_number

@@ -612,7 +612,7 @@ def set_clip(text: str):
                 start_new_session=True,
             )
             p.communicate(input=text.encode("utf-8"))
-    elif sys.platform == 'win32':
+    elif sys.platform == "win32":
         _set_clip_win(text)
 
 
@@ -850,7 +850,7 @@ def prepend_to_path(paths, env=None):
         paths = paths.split(os.pathsep)
     else:
         raise ValueError()
-    logging.debug("prepend_to_path(): %s" % os.pathsep.join(paths))
+    logging.debug(f"Prepend to PATH: {os.pathsep.join(paths)}")
 
     if "PATH" in env:
         paths += env["PATH"].split(os.pathsep)
@@ -980,7 +980,7 @@ def clear_env_var_explorer():
     os.environ.pop("FILES", None)
 
 
-def update_env_var_explorer():
+def update_env_var_explorer() -> List[str]:
     if sys.platform == "win32":
         try:
             with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
@@ -992,18 +992,25 @@ def update_env_var_explorer():
                 del os.environ["CWD"]
 
             files = data["selected_files"]
-            if len(files) >= 1:
-                os.environ["FILE"] = files[0]
-                os.environ["FILES"] = "|".join(files)
-            else:
+            if not files:
                 if "FILE" in os.environ:
                     del os.environ["FILE"]
                 if "FILES" in os.environ:
                     del os.environ["FILES"]
+                return []
+
+            else:
+                os.environ["FILE"] = files[0]
+                os.environ["FILES"] = "|".join(files)
+
             return files
 
         except Exception:
-            print("Unable to get explorer info.")
+            logging.warning("Unable to get explorer info.")
+            return []
+
+    else:
+        return []
 
 
 def try_import(module_name, pkg_name=None):
@@ -1032,10 +1039,9 @@ def check_output(args, **kwargs):
     return subprocess.check_output(args, universal_newlines=True, **kwargs)
 
 
-def convert_to_unix_path(path, wsl=False):
+def convert_to_unix_path(path: str, wsl: bool = False) -> str:
     path = path.replace("\\", "/")
-    PATT = r'^[a-zA-Z]:/(((?![<>:"//|?*]).)+((?<![ .])/)?)*$'
-    if re.match(PATT, path):
+    if re.match(r'^[a-zA-Z]:/(((?![<>:"//|?*]).)+((?<![ .])/)?)*$', path):
         if wsl:
             path = re.sub(
                 r"^([a-zA-Z]):", lambda x: ("/mnt/" + x.group(0)[0].lower()), path
@@ -1344,7 +1350,7 @@ def refresh_env_vars():
 
                         # Add to PATH if not exists
                         if p and p not in paths:
-                            logging.debug("Add to PATH: %s" % p)
+                            logging.debug("Added to PATH: %s" % p)
                             paths.append(p)
 
         os.environ["PATH"] = os.pathsep.join(paths)

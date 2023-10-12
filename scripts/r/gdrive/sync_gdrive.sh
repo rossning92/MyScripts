@@ -17,7 +17,7 @@ sync_gdrive() {
 [[ -x "$(command -v cygpath)" ]] && local_dir="$(cygpath -w "$local_dir")" # convert to win path
 mkdir -p "$local_dir"                                                      # create local dir if not exists
 
-echo "Bi-sync \"$GDRIVE_DIR\" => \"$local_dir\""
+echo "Bi-sync \"$GDRIVE_DIR\" <=> \"$local_dir\""
 if ! sync_gdrive "$GDRIVE_DIR" "$local_dir"; then
     printf "\n\n\n"
     read -p "Resync? (y/n): " ans

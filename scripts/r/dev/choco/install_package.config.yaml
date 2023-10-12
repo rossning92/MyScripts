@@ -1,4 +1,3 @@
 globalHotkey: win+alt+i
 hotkey: ctrl+i
-runAsAdmin: true
 template: false

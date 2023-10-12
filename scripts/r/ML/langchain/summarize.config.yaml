@@ -1,2 +1,3 @@
 args.passClipboardAsFile: true
 closeOnExit: false
+globalHotkey: '#o s'

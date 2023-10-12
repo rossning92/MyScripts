@@ -2,6 +2,7 @@ import argparse
 import ctypes
 import curses
 import logging
+import logging.config
 import os
 import platform
 import re
@@ -32,6 +33,7 @@ from _script import (
     get_temp_dir,
     is_instance_running,
     save_variables,
+    set_variable_value,
     setup_env_var,
     try_reload_scripts_autorun,
     update_script_access_time,
@@ -88,7 +90,7 @@ def setup_console_font():
         )
 
 
-class VariableEditWindow(Menu):
+class VariableEditMenu(Menu):
     def __init__(self, vars, var_name):
         self.vars = vars
         self.var_name = var_name
@@ -96,27 +98,12 @@ class VariableEditWindow(Menu):
 
         super().__init__(
             items=self.vars[var_name] if var_name in self.vars else [],
-            label=var_name,
+            label=var_name + "=",
             text="",
         )
 
-        self.add_hotkey("ctrl+d", self._select_directory)
-
-    def _select_directory(self):
-        dir_path = FileManager().select_directory()
-        if dir_path is not None:
-            self.set_input(dir_path)
-
     def save_variable_val(self, val):
-        if self.var_name not in self.vars:
-            self.vars[self.var_name] = []
-        try:
-            self.vars[self.var_name].remove(val)
-        except ValueError:
-            pass
-        self.vars[self.var_name].insert(0, val)
-
-        save_variables(self.vars)
+        set_variable_value(self.vars, self.var_name, val)
 
     def on_enter_pressed(self):
         self.save_variable_val(self.get_text())
@@ -170,7 +157,7 @@ def format_variables(variables, variable_names, variable_prefix):
     return result
 
 
-class VariableWindow(Menu):
+class VariableMenu(Menu):
     def __init__(self, script: Script):
         super().__init__(label=f"{script.name}> vars")
         self.variables = get_all_variables()
@@ -178,8 +165,22 @@ class VariableWindow(Menu):
         self.variable_prefix = script.get_public_variable_prefix()
         self.enter_pressed = False
 
+        self.add_hotkey("ctrl+d", self._select_directory)
+
         if len(self.variable_names) > 0:
             self.update_items()
+
+        self.set_message("Shortcuts: [^d] select dir")
+
+    def _select_directory(self):
+        index = self.get_selected_index()
+        if index >= 0:
+            variable_name = self.variable_names[index]
+
+            dir_path = FileManager().select_directory()
+            if dir_path is not None:
+                set_variable_value(self.variables, variable_name, dir_path)
+                self.update_items()
 
     def update_items(self):
         self.items[:] = format_variables(
@@ -194,7 +195,7 @@ class VariableWindow(Menu):
         if ch == "\t":
             self.edit_variable()
             return True
-        if ch == "C":
+        elif ch == "C":
             index = self.get_selected_index()
             name = self.variable_names[index]
             if name in self.variables and len(self.variables[name]) > 0:
@@ -202,12 +203,13 @@ class VariableWindow(Menu):
                 set_clip(val)
                 self.close()
             return True
-        return False
+        else:
+            return super().on_char(ch)
 
     def edit_variable(self):
         index = self.get_selected_index()
         var_name = self.variable_names[index]
-        w = VariableEditWindow(self.variables, var_name)
+        w = VariableEditMenu(self.variables, var_name)
         w.exec()
         # if w.enter_pressed:
         #     self.close()
@@ -427,7 +429,7 @@ class MainWindow(Menu[Script]):
             elif ch == "\t":
                 script = self.get_selected_item()
                 if script is not None:
-                    w = VariableWindow(script)
+                    w = VariableMenu(script)
                     if w.variable_names:
                         w.exec()
                         if w.enter_pressed:
@@ -514,12 +516,6 @@ def _init(no_gui=False):
         print("An instance is already running, exiting.")
         sys.exit(0)
 
-    setup_logger(
-        log_to_file=os.path.join(get_temp_dir(), "MyScripts.log"),
-        log_to_stderr=False,
-        level=logging.DEBUG,
-    )
-
     logging.info("Python executable: %s" % sys.executable)
 
     # Add bin folder to PATH
@@ -555,6 +551,14 @@ def _main_loop(no_gui=False, run_script_and_quit=False):
 
 
 if __name__ == "__main__":
+    log_file = os.path.join(get_temp_dir(), "MyScripts.log")
+    logging.basicConfig(
+        filename=log_file,
+        filemode="w",
+        format="%(asctime)s %(levelname).1s %(filename)-10s: %(funcName)-10s: %(message)s",
+        level=logging.DEBUG,
+    )
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "cmd",

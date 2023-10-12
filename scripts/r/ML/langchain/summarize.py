@@ -6,23 +6,33 @@ import argparse
 import os
 from pprint import pprint
 
-from langchain import OpenAI
 from langchain.chains.summarize import load_summarize_chain
-from langchain.docstore.document import Document
+from langchain.document_loaders.generic import GenericLoader
+from langchain.llms import OpenAI
 from langchain.text_splitter import CharacterTextSplitter
 
 
 def summarize(file: str):
+    abspath = os.path.abspath(file)
+
     # Create language model
     llm = OpenAI(temperature=0)
 
+    # Load document from a text file
+    # loader = TextLoader(file, autodetect_encoding=True)
+    # docs = loader.load()
+
+    # Load document using a generic loader (based on the file type)
+    loader = GenericLoader.from_filesystem(
+        path=os.path.dirname(abspath),
+        glob=os.path.basename(abspath),
+    )
+    docs = loader.lazy_load()
+
     # Create text splitter
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    with open(file, encoding="utf-8") as f:
-        content = f.read()
-    texts = text_splitter.split_text(content)
+    docs = text_splitter.split_documents(docs)
 
-    docs = [Document(page_content=t) for t in texts]
     chain = load_summarize_chain(
         llm,
         chain_type="map_reduce",
@@ -49,6 +59,7 @@ def main():
     )
     args = parser.parse_args()
 
+    print(f'Summarizing "{args.file}"...')
     output_text = summarize(file=args.file)
 
     if args.output:

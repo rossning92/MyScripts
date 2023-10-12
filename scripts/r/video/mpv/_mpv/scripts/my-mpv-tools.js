@@ -165,7 +165,7 @@ function exportVideo(params) {
 
     if (params.noEncode) {
       // Copy instead of re-encoding
-      args = args.concat(["-vcodec", "copy", "-acodec", "copy"]);
+      args = args.concat(["-vcodec", "copy"]);
     } else {
       // Video encoding
       if (nvenc) {
@@ -196,8 +196,8 @@ function exportVideo(params) {
       }
     }
 
-    // Audio encoding
-    args = args.concat(["-c:a", "aac", "-b:a", "128k"]);
+    // Audio encoding (always encode audio so that video and audio are in sync)
+    args = args.concat(["-c:a", "aac"]);
   }
 
   if (params.background) {
