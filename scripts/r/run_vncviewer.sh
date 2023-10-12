@@ -33,7 +33,8 @@ if [[ "$(uname)" == "linux"* || "$(uname)" == "Linux"* ]]; then
 
     killall vncviewer
     nohup vncviewer -config ~/connection.vnc &
-elif [[ "$(uname)" == "MINGW"* ]]; then
+elif [[ "$(uname -o)" == "Msys" ]]; then
+    taskkill /f /im vncviewer.exe
     "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" -config connection.vnc &
 else
     echo "Unsupported OS: $(uname)"

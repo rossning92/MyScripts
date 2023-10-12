@@ -10,11 +10,10 @@ OnClipboardChange("ClipChanged")
 return
 
 #If not WinActive("ahk_exe vncviewer.exe")
-
-^!r::RunLastScript()
-{{HOTKEYS}}
-
+    ^!r::RunLastScript()
 #If
+
+{{HOTKEYS}}
 
 StartScript(scriptName, scriptPath)
 {

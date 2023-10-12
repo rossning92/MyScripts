@@ -16,7 +16,7 @@
 # Ignore directories
 __pycache__/
 .idea/
-/.venv/
+.venv/
 /config/
 build/
 generated/

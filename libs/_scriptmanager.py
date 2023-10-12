@@ -175,6 +175,10 @@ def _to_ahk_hotkey(hotkey: str):
 
 
 def register_global_hotkeys_win(scripts: List[Script]):
+    def wrap_hotkey_def_with_context_expr(hotkey_def: str, expr: str):
+        return f"#If {expr}\n    {hotkey_def}\n#If\n\n"
+
+    default_hotkey_context = 'not WinActive("ahk_exe vncviewer.exe")'
     hotkeys = ""
     match_clipboard = []
     first_hotkey_defined: Set[str] = set()
@@ -186,22 +190,28 @@ def register_global_hotkeys_win(scripts: List[Script]):
             hotkey_array = hotkey_chain.split()
             if len(hotkey_array) == 1:
                 htk = _to_ahk_hotkey(hotkey_array[0])
-                hotkeys += f"{htk}::{function_def}\n"
+                hotkeys += wrap_hotkey_def_with_context_expr(
+                    f"{htk}::{function_def}", default_hotkey_context
+                )
             elif len(hotkey_array) == 2:
                 # First hotkey in the key combination
-                hotkey1 = _to_ahk_hotkey(hotkey_array[0])
-                if hotkey1 not in first_hotkey_defined:
-                    hotkeys += f"{hotkey1}::return\n"
-                first_hotkey_defined.add(hotkey1)
+                key1 = _to_ahk_hotkey(hotkey_array[0])
+                if key1 not in first_hotkey_defined:
+                    hotkeys += wrap_hotkey_def_with_context_expr(
+                        f"{key1}::return", default_hotkey_context
+                    )
+
+                first_hotkey_defined.add(key1)
 
                 # Second hotkey in the key combination
-                hotkey2 = _to_ahk_hotkey(hotkey_array[1])
-
-                hotkeys += (
-                    f'#If, A_PriorHotkey = "{hotkey1}"\n'
-                    f"    {hotkey2}::{function_def}\n"
-                    "#If\n"
+                key2 = _to_ahk_hotkey(hotkey_array[1])
+                hotkeys += wrap_hotkey_def_with_context_expr(
+                    f"{key2}::{function_def}",
+                    f'{default_hotkey_context} and A_PriorHotkey = "{key1}"',
                 )
+
+            else:
+                raise Exception("Only support chaining two hotkeys.")
 
         mc = script.cfg["matchClipboard"]
         if mc:

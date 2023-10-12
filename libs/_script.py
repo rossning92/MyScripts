@@ -32,7 +32,6 @@ from _shutil import (
     call_echo,
     close_window_by_name,
     convert_to_unix_path,
-    file_is_old,
     format_time,
     get_ahk_exe,
     get_home_path,
@@ -54,6 +53,7 @@ from _shutil import (
 from _template import render_template
 from utils.menu import get_hotkey_abbr
 from utils.menu.input import Input
+from utils.term.alacritty import wrap_args_alacritty
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -598,67 +598,6 @@ def wrap_args_wt(
         return [WINDOWS_TERMINAL_EXEC, "-p", title] + args
     else:
         return [WINDOWS_TERMINAL_EXEC] + args
-
-
-def wrap_args_alacritty(
-    args,
-    title=None,
-    font_size=None,
-    font=None,
-    borderless=False,
-    position=None,
-    padding=None,
-    **kwargs,
-):
-    assert isinstance(args, list)
-
-    if not shutil.which("alacritty"):
-        raise FileNotFoundError("Alacritty is not installed.")
-
-    # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
-    if sys.platform == "windows":
-        dest_path = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
-    else:
-        dest_path = os.path.expanduser("~/.config/alacritty/alacritty.yml")
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    src_path = os.path.abspath(SCRIPT_ROOT + "/../settings/alacritty.yml")
-    if file_is_old(src_path, dest_path):
-        shutil.copy(src_path, dest_path)
-
-    out = ["alacritty"]
-
-    # Override configuration file options
-    options = []
-    if font_size is not None:
-        options += [
-            f"font.size={font_size}",
-        ]
-    if font is not None:
-        options += [f"font.normal.family={font}"]
-    if borderless:
-        options += ["window.decorations=none"]
-    if position:
-        options += [
-            f"window.position.x={position[0]}",
-            f"window.position.y={position[1]}",
-        ]
-    if padding is not None:
-        options += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
-
-    if len(options) > 0:
-        out += ["-o"] + options
-
-    if title:
-        out += ["--title", title]
-
-    if sys.platform == "win32":
-        # HACK: Alacritty handles spaces in a weird way: if arg has space in it,
-        # must double quote it. Backslash will need to be replaced with three
-        # backslashes otherwise they'll disappear for some reason
-        args = ['"' + x.replace("\\", "\\\\\\") + '"' if " " in x else x for x in args]
-
-    out += ["-e"] + args
-    return out
 
 
 def get_relative_script_path(path):
@@ -1941,7 +1880,12 @@ def get_all_script_access_time() -> Tuple[Dict, float]:
 
 def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
     def should_ignore(dir, file):
-        if file == "tmp" or file == "generated":
+        if (
+            file == "tmp"
+            or file == "generated"
+            or file == ".venv"
+            or file == "node_modules"
+        ):
             return True
 
         # Ignore folder starting with `_`

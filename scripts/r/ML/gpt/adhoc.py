@@ -21,4 +21,9 @@ if __name__ == "__main__":
         else:
             input_text = args.input
 
-        complete_chat(input_text=input_text, prompt_text=prompt_text, pause=True)
+        complete_chat(
+            input_text=input_text,
+            prompt_text=prompt_text,
+            pause=True,
+            copy_to_clipboard=True,
+        )

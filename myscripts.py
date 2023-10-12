@@ -22,6 +22,7 @@ from _ext import (
     edit_script_config,
     rename_script,
 )
+from _filemgr import FileManager
 from _script import (
     Script,
     get_all_variables,
@@ -99,6 +100,13 @@ class VariableEditWindow(Menu):
             text="",
         )
 
+        self.add_hotkey("ctrl+d", self._select_directory)
+
+    def _select_directory(self):
+        dir_path = FileManager().select_directory()
+        if dir_path is not None:
+            self.set_input(dir_path)
+
     def save_variable_val(self, val):
         if self.var_name not in self.vars:
             self.vars[self.var_name] = []
@@ -126,8 +134,8 @@ class VariableEditWindow(Menu):
             del self.vars[self.var_name][i]
             save_variables(self.vars)
             return True
-
-        return False
+        else:
+            return super().on_char(ch)
 
 
 def format_key_value_pairs(kvp):
@@ -297,10 +305,12 @@ class MainWindow(Menu[Script]):
         else:
             return None
 
-    def get_selected_script_path(self) -> str | None:
-        index = self.get_selected_index()
-        if index >= 0:
-            return self.items[index].script_path
+    def get_selected_script_path(self) -> Optional[str]:
+        script = self.get_selected_item()
+        if script is not None:
+            return script.script_path
+        else:
+            return None
 
     def _reload_scripts(self):
         if self.is_refreshing:

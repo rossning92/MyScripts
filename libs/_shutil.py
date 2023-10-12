@@ -24,6 +24,7 @@ from time import sleep
 from typing import List, Optional, Union
 
 import yaml
+from utils.clip import _set_clip_win
 
 logger = logging.getLogger(__name__)
 CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
@@ -611,14 +612,8 @@ def set_clip(text: str):
                 start_new_session=True,
             )
             p.communicate(input=text.encode("utf-8"))
-    else:
-        try:
-            import pyperclip
-        except ImportError:
-            subprocess.call([sys.executable, "-m", "pip", "install", "pyperclip"])
-            import pyperclip
-
-        pyperclip.copy(text)
+    elif sys.platform == 'win32':
+        _set_clip_win(text)
 
 
 def fnull():
@@ -862,7 +857,10 @@ def prepend_to_path(paths, env=None):
     else:
         paths += os.environ["PATH"].split(os.pathsep)
 
-    # Remove non-existing directories
+    # Remove duplicates while keeping the order
+    paths = list(dict.fromkeys(paths))
+
+    # Remove directories that no longer exists.
     paths = [p for p in paths if os.path.exists(p)]
     s = os.pathsep.join(paths)
 

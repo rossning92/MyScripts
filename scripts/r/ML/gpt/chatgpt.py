@@ -4,12 +4,11 @@ import sys
 from typing import Dict, Iterator, List, Optional
 
 import openai
-from _shutil import load_json, save_json, set_clip
-from _shutil import pause as _pause
+from _shutil import load_json, pause, save_json, set_clip
 from utils.menu import Menu
 
 
-class Chat:
+class ChatAPI:
     def __init__(self, stream_mode: bool = True) -> None:
         self.stream_mode = stream_mode
         self.messages: List[Dict[str, str]] = [
@@ -67,22 +66,23 @@ def complete_chat(
     prompt_text: Optional[str] = None,
     copy_to_clipboard: bool = False,
     pause: bool = False,
+    _pause=pause,
 ):
     if prompt_text:
         input_text = prompt_text + "\n\n\n" + input_text
 
     full_response = ""
-    chat = Chat()
+    chat = ChatAPI()
     for chunk in chat.ask(input_text):
         full_response += chunk
         print(chunk, end="")
 
-    if copy_to_clipboard:
-        set_clip(full_response)
-
     if pause:
         print("\n")
         _pause()
+
+    if copy_to_clipboard:
+        set_clip(full_response)
 
     return full_response
 
@@ -142,7 +142,7 @@ def main():
 
 def conversation():
     config_file = os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_conversation.json")
-    chat = Chat()
+    chat = ChatAPI()
     chat.load_chat(config_file)
     for message in chat.messages:
         if message["role"] != "system":
