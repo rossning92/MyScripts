@@ -137,16 +137,29 @@ def main():
         )
 
     else:  # empty
-        conversation()
+        start_conversation()
 
 
-def conversation():
-    config_file = os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_conversation.json")
+def start_conversation(
+    *,
+    input_text: Optional[str] = None,
+    prompt_text: Optional[str] = None,
+):
+    config_file = os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json")
     chat = ChatAPI()
+
+    # Load existing chat
     chat.load_chat(config_file)
     for message in chat.messages:
         if message["role"] != "system":
             print(f"> {message['content']}")
+
+    if input_text and prompt_text:
+        input_text = prompt_text + "\n\n\n" + input_text
+
+        print("> ", end="")
+        for chunk in chat.ask(input_text):
+            print(chunk, end="")
 
     try:
         while True:

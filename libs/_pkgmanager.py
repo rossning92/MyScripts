@@ -66,19 +66,19 @@ def require_package(pkg, wsl=False):
                 return
 
         elif "pacman" in packages[pkg] and shutil.which("pacman"):
-            pacmanPackage = packages[pkg]["pacman"]["packageName"]
+            pacman_package_name = packages[pkg]["pacman"]["packageName"]
             if (
                 subprocess.call(
-                    ["pacman", "-Q", pacmanPackage],
+                    ["pacman", "-Q", pacman_package_name],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.STDOUT,
                 )
                 != 0
             ):
                 logging.info(f"Installing package using pacman: {pkg}...")
-                print(["sudo", "pacman", "-S", pacmanPackage])
+                print(["sudo", "pacman", "-S", pacman_package_name])
                 subprocess.check_call(
-                    ["sudo", "pacman", "-Sy", "--noconfirm", pacmanPackage]
+                    ["sudo", "pacman", "-Sy", "--noconfirm", pacman_package_name]
                 )
             return
 
@@ -104,8 +104,12 @@ def require_package(pkg, wsl=False):
                 )
                 != 0
             ):
-                logging.warning(f'Package "{pkg}" was not found, installing...')
-                subprocess.check_call(["wsl", "sudo", "apt", "install", pkg, "-y"])
+                apt_package_name = packages[pkg]["apt"]["packageName"]
+                logging.info(f"Installing package using apt: {pkg}...")
+                subprocess.check_call(
+                    ["wsl", "sudo", "apt", "install", "-y", apt_package_name]
+                )
+
             return
 
         elif "choco" in packages[pkg] and sys.platform == "win32":

@@ -248,6 +248,9 @@
     },
     "termux": {
       "packageName": "openssh"
+    },
+    "apt": {
+      "packageName": "openssh-client"
     }
   },
   "pandoc": {

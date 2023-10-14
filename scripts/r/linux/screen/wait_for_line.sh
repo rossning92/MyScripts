@@ -3,8 +3,6 @@ set -e
 name="$1"
 line="$2"
 
-source "$(dirname "$0")/_wsl_screen_workaround.sh"
-
 while true; do
     screen -S $name -X hardcopy /tmp/screen_buffer.txt
     last_line="$(cat /tmp/screen_buffer.txt | awk '/./{line=$0} END{print line}')"

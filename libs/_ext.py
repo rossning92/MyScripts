@@ -60,7 +60,7 @@ def create_myscript_workspace() -> str:
             if script_root not in d.path
         ]
     )
-    workspace_file = os.path.join(get_data_dir(), "MyScripts.code-workspace")
+    workspace_file = os.path.join(get_data_dir(), "myscripts.code-workspace")
     save_json(
         workspace_file,
         {

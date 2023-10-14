@@ -181,7 +181,7 @@ def get_script_directories() -> List[ScriptDirectory]:
         if not os.path.isabs(directory):  # is relative path
             directory = os.path.abspath(
                 os.path.join(
-                    # relative to "script_directories.txt"
+                    # Relative to "script_directories.json" config file
                     os.path.dirname(config_file),
                     directory,
                 )
@@ -254,7 +254,14 @@ def wrap_wsl(
     # return ["bash.exe", "-c", commands]
 
     logging.debug("wrap_wsl(): write temp shell script: %s" % tmp_sh_file)
-    return ["bash.exe", "-c", tmp_sh_file]
+    return [
+        "bash.exe",
+        # Ensures that .bashrc is read
+        "-l",
+        "-i",
+        "-c",
+        tmp_sh_file,
+    ]
 
 
 def wrap_bash_windows(

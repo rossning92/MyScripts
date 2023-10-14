@@ -1,7 +1,5 @@
 set -e
 
-source "$(dirname "$0")/_wsl_screen_workaround.sh"
-
 # Clean-up dead sessions
 screen -wipe || true
 
