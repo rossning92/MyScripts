@@ -7,7 +7,7 @@ sys.path.insert(
 )
 
 from _script import start_script
-from _shutil import get_env_bool, update_env_var_explorer
+from _shutil import get_env_bool, prepend_to_path, update_env_var_explorer
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -15,7 +15,12 @@ if __name__ == "__main__":
     parser.add_argument("args", nargs="*")
     args = parser.parse_args()
 
+    # If Python is running in a virtual environment (venv), ensure that the
+    # shell executes the Python version located inside the venv.
+    prepend_to_path(os.path.dirname(sys.executable))
+
     selected_files = update_env_var_explorer()
+
     start_script(
         file=args.file,
         args=args.args if args.args else selected_files,

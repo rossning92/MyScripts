@@ -31,6 +31,8 @@ declare global {
   function getSelectedText(): string;
   function sendText(text: string): void;
   function click(el: HTMLElement): void;
+
+  // Use this web app to test the keyCode: https://unixpapa.com/js/testkey.html
   function sendKey(keyCode: number, type?: "up" | "press"): void;
   function sleep(callback: () => void, ms: number): void;
   function addNote(el: HTMLElement, text: string): void;

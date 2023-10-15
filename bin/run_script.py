@@ -7,7 +7,7 @@ sys.path.insert(
 )
 
 from _script import run_script
-from _shutil import setup_logger, update_env_var_explorer
+from _shutil import prepend_to_path, setup_logger, update_env_var_explorer
 
 
 def try_parse() -> Tuple[Dict, Optional[str], List[str]]:
@@ -37,24 +37,28 @@ def try_parse() -> Tuple[Dict, Optional[str], List[str]]:
     return kwargs, file, rest_args
 
 
-kwargs, file, rest_args = try_parse()
+if __name__ == "__main__":
+    kwargs, file, rest_args = try_parse()
 
-update_env_var_explorer()
+    # If Python is running in a virtual environment (venv), ensure that the
+    # shell executes the Python version located inside the venv.
+    prepend_to_path(os.path.dirname(sys.executable))
 
-if "cd" not in kwargs:
-    kwargs["cd"] = False
+    update_env_var_explorer()
 
-if kwargs.get("log", None):
-    del kwargs["log"]
-    setup_logger()
+    if "cd" not in kwargs:
+        kwargs["cd"] = False
 
+    if kwargs.get("log", None):
+        del kwargs["log"]
+        setup_logger()
 
-try:
-    run_script(
-        file=file,
-        args=rest_args,
-        **kwargs,
-    )
-except Exception as ex:
-    print("Error: %s" % ex)
-    sys.exit(1)
+    try:
+        run_script(
+            file=file,
+            args=rest_args,
+            **kwargs,
+        )
+    except Exception as ex:
+        print("Error: %s" % ex)
+        sys.exit(1)

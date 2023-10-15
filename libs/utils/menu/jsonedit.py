@@ -25,5 +25,5 @@ class JsonEditWindow(DictEditMenu):
             data,
             default_dict=default,
             on_dict_update=on_dict_update,
-            label=f"edit {json_file}",
+            prompt=f"edit {json_file}",
         )

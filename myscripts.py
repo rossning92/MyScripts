@@ -23,7 +23,6 @@ from _ext import (
     edit_script_config,
     rename_script,
 )
-from _filemgr import FileManager
 from _script import (
     Script,
     get_all_variables,
@@ -52,6 +51,7 @@ from _shutil import (
 )
 from utils.menu import Menu
 from utils.menu.confirm import confirm
+from utils.menu.filemgr import FileManager
 
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
@@ -98,7 +98,7 @@ class VariableEditMenu(Menu):
 
         super().__init__(
             items=self.vars[var_name] if var_name in self.vars else [],
-            label=var_name + "=",
+            prompt=var_name + "=",
             text="",
         )
 
@@ -159,7 +159,7 @@ def format_variables(variables, variable_names, variable_prefix):
 
 class VariableMenu(Menu):
     def __init__(self, script: Script):
-        super().__init__(label=f"{script.name}> vars")
+        super().__init__(prompt=f"{script.name}> vars")
         self.variables = get_all_variables()
         self.variable_names = sorted(script.get_variable_names())
         self.variable_prefix = script.get_public_variable_prefix()
@@ -236,7 +236,7 @@ class MainWindow(Menu[Script]):
             items=script_manager.scripts,
             ascii_only=False,
             cancellable=run_script_and_quit,
-            label=platform.node() + "$",
+            prompt=platform.node() + "$",
         )
 
         self.add_hotkey("ctrl+r", self._reload_scripts)
@@ -346,7 +346,7 @@ class MainWindow(Menu[Script]):
         if script:
             content = copy_script_path_to_clipboard(script)
             self.set_message(
-                f"copied to clipboard: {content}" if content else "Copied to clipboard."
+                f"Content copied: {content}" if content else "Copied to clipboard."
             )
 
     def _copy_to_clipboard_include_derivative(self):
@@ -401,7 +401,7 @@ class MainWindow(Menu[Script]):
         items = []
         items.extend(self._hotkeys.values())
         items.extend(script_manager.hotkeys.values())
-        w = Menu(label="all hotkeys", items=items)
+        w = Menu(prompt="all hotkeys", items=items)
         w.exec()
 
     def update_last_refresh_time(self):

@@ -4,9 +4,7 @@ import time
 from typing import Iterable, Iterator, List, Optional
 
 from _editor import open_in_editor
-from _script import (
-    get_relative_script_path,
-)
+from _script import get_relative_script_path
 from utils.menu import Menu
 from utils.menu.textinput import TextInput
 
@@ -55,7 +53,7 @@ class _FindResultMenu(Menu[_MatchedLine]):
         self.__find_result: List[_MatchedLine] = []
         self.__keyword = keyword
         self.__files = files
-        super().__init__(label="Result:", items=self.__find_result)
+        super().__init__(prompt="Result:", items=self.__find_result)
 
     def on_created(self):
         last_time = 0.0

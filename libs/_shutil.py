@@ -33,9 +33,10 @@ CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 TITLE_MATCH_MODE_EXACT = 0
 TITLE_MATCH_MODE_PARTIAL = 1
 TITLE_MATCH_MODE_START_WITH = 2
+TITLE_MATCH_MODE_DEFAULT = TITLE_MATCH_MODE_PARTIAL
 
 
-def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXACT):
+def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_DEFAULT):
     if sys.platform == "win32":
         from ctypes.wintypes import BOOL, HWND, LPARAM
 
@@ -99,11 +100,11 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_EXA
     return False
 
 
-def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
+def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
     return control_window_by_name(name=name, cmd="activate", match_mode=match_mode)
 
 
-def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_EXACT):
+def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
     return control_window_by_name(name=name, cmd="close", match_mode=match_mode)
 
 
@@ -840,7 +841,7 @@ def get_short_path_name(long_name):
             output_buf_size = needed
 
 
-def prepend_to_path(paths, env=None):
+def prepend_to_path(paths: Union[str, List[str]], env=None):
     if env is None:
         env = os.environ
 

@@ -24,13 +24,11 @@ from _clip import get_clip, get_selection
 from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
-from _filemgr import FileManager
 from _pkgmanager import open_log_file, require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
     IgnoreSigInt,
     activate_window_by_name,
-    call_echo,
     close_window_by_name,
     convert_to_unix_path,
     format_time,
@@ -52,9 +50,12 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
+from timed import timed
 from utils.menu import get_hotkey_abbr
+from utils.menu.filemgr import FileManager
 from utils.menu.input import Input
 from utils.term.alacritty import wrap_args_alacritty
+from utils.venv import activate_python_venv, get_venv_python_executable
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -129,10 +130,6 @@ def get_data_dir() -> str:
 
 
 def setup_env_var(env):
-    # If Python is running in a virtual environment (venv), ensure that the
-    # shell executes the Python version located inside the venv.
-    prepend_to_path(os.path.dirname(sys.executable))
-
     root = get_my_script_root()
 
     bin_dir = os.path.join(root, "bin")
@@ -264,9 +261,7 @@ def wrap_wsl(
     ]
 
 
-def wrap_bash_windows(
-    args: List[str], env: Optional[Dict[str, str]] = None, msys2=False
-):
+def wrap_bash_win(args: List[str], env: Optional[Dict[str, str]] = None, msys2=False):
     if env is not None:
         # https://www.msys2.org/wiki/MSYS2-introduction/#path
         env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
@@ -313,7 +308,7 @@ def wrap_bash_commands(
             return wrap_wsl(args, env=env)
 
         else:
-            return wrap_bash_windows(args, env=env, msys2=msys2)
+            return wrap_bash_win(args, env=env, msys2=msys2)
 
     else:  # Linux
         if len(args) == 1 and args[0].endswith(".sh"):
@@ -633,7 +628,7 @@ def wrap_args_wt(
         return [WINDOWS_TERMINAL_EXEC] + args
 
 
-def get_relative_script_path(path):
+def get_relative_script_path(path: str) -> str:
     path = path.replace("\\", "/")
     for d in get_script_directories():
         prefix = d.path.replace("\\", "/") + "/"
@@ -643,23 +638,25 @@ def get_relative_script_path(path):
     return path
 
 
-def get_absolute_script_path(path):
+def get_absolute_script_path(path: str):
     # If already absolute path
     if os.path.isabs(path):
         return path
 
     script_dirs = get_script_directories()
-    separated_path = path.split("/")
-    if separated_path:
-        matched_script_dir = next(
-            filter(lambda x: x.name == separated_path[0], script_dirs), None
-        )
-        if matched_script_dir:
-            separated_path[0] = matched_script_dir.path
+    path_arr = path.split("/")
+    if path_arr:
+        if path_arr[0] == "r" or path_arr[0] == "ext":
+            path_arr.insert(0, os.path.join(get_my_script_root(), "scripts"))
         else:
-            separated_path = [get_script_root()] + separated_path
-    path = os.path.join(*separated_path)
-    return path
+            matched_script_dir = next(
+                filter(lambda d: d.name == path_arr[0], script_dirs), None
+            )
+            if matched_script_dir:
+                path_arr[0] = matched_script_dir.path
+            else:
+                path_arr.insert(0, get_script_root())
+    return os.path.join(*path_arr)
 
 
 class LogPipe(threading.Thread):
@@ -1005,28 +1002,6 @@ class Script:
         # Setup PYTHONPATH globally (e.g. useful for vscode)
         setup_python_path(env)
 
-        # Install packages
-        if self.cfg["packages"]:
-            packages = self.cfg["packages"].split()
-            for pkg in packages:
-                require_package(pkg, wsl=sys.platform == "win32" and self.cfg["wsl"])
-
-            if "node" in packages:
-                print("node package is required.")
-                setup_nodejs(install=False)
-
-        if self.cfg["packages.pip"]:
-            import importlib.util
-
-            pip_packages = self.cfg["packages.pip"].split()
-            for pkg in pip_packages:
-                # Check if pip package is installed
-                spec = importlib.util.find_spec(pkg)
-                if spec is None:
-                    print(f"{pkg} is not installed, installing...")
-
-                    subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
-
         # Check if template is enabled or not
         if self.cfg["template"] is None:
             source = self.get_script_source()
@@ -1184,7 +1159,10 @@ class Script:
             )
 
         elif ext == ".py" or ext == ".ipynb":
-            python_exec = sys.executable
+            if self.cfg["venv.name"]:
+                python_exec = get_venv_python_executable(self.cfg["venv.name"])
+            else:
+                python_exec = sys.executable
 
             if template and ext == ".py":
                 python_file = write_temp_file(
@@ -1214,26 +1192,12 @@ class Script:
                 if env_name != "base" and not os.path.exists(
                     conda_path + "\\envs\\" + env_name
                 ):
-                    call_echo(
+                    subprocess.check_call(
                         'call "%s" & conda create --name %s python=3.6'
                         % (activate, env_name)
                     )
 
                 args_activate = ["cmd", "/c", "call", activate, env_name, "&"]
-
-            elif self.cfg["venv"]:
-                assert sys.platform == "win32"
-                venv_path = os.path.expanduser("~\\venv\\%s" % self.cfg["venv"])
-                if not os.path.exists(venv_path):
-                    call_echo(["python", "-m", "venv", venv_path])
-
-                args_activate = [
-                    "cmd",
-                    "/c",
-                    "call",
-                    "%s\\Scripts\\activate.bat" % venv_path,
-                    "&",
-                ]
 
             if ext == ".py":
                 if self.cfg["runpy"]:
@@ -1299,6 +1263,36 @@ class Script:
 
         else:
             print("ERROR: not supported script extension: %s" % ext)
+
+        # venv
+        if self.cfg["venv.name"]:
+            activate_python_venv(self.cfg["venv.name"], env)
+        else:
+            # If Python is running in a virtual environment (venv), ensure that the
+            # shell executes the Python version located inside the venv.
+            prepend_to_path(os.path.dirname(sys.executable))
+
+        # Install dependant packages
+        if self.cfg["packages"]:
+            packages = self.cfg["packages"].split()
+            for pkg in packages:
+                require_package(pkg, wsl=sys.platform == "win32" and self.cfg["wsl"])
+
+            if "node" in packages:
+                print("node package is required.")
+                setup_nodejs(install=False)
+
+        if self.cfg["packages.pip"]:
+            import importlib.util
+
+            pip_packages = self.cfg["packages.pip"].split()
+            for pkg in pip_packages:
+                # Check if pip package is installed
+                spec = importlib.util.find_spec(pkg)
+                if spec is None:
+                    print(f"{pkg} is not installed, installing...")
+
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
         # Run commands
         if len(arg_list) > 0:
@@ -1612,6 +1606,7 @@ class Script:
         return variable_names
 
 
+@timed
 def find_script(patt: str) -> Optional[str]:
     if os.path.exists(patt):
         return os.path.abspath(patt)
@@ -1621,6 +1616,7 @@ def find_script(patt: str) -> Optional[str]:
         return script_path
 
     # Fuzzy search
+    logging.debug(f"fuzzy search by: {patt}")
     for d in get_script_directories():
         path = os.path.join(d.path, "**", patt)
 
@@ -1659,7 +1655,7 @@ def start_script(
 
     # Print command line arguments
     logging.info(
-        "run_script: %s"
+        "cmdline: %s"
         % _args_to_str(
             [file] + args, shell_type="cmd" if sys.platform == "win32" else "bash"
         )
@@ -1775,7 +1771,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "title": "",
         "updateSelectedScriptAccessTime": False,
         "variableNames": "auto",
-        "venv": "",
+        "venv.name": "",
         "webApp": False,
         "workingDir": "",
         "wsl": False,

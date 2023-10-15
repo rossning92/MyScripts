@@ -1,6 +1,6 @@
 import argparse
 
-from _filemgr import FileManager
+from utils.menu.filemgr import FileManager
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

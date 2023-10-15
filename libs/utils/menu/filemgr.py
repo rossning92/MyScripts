@@ -5,10 +5,11 @@ import shutil
 from typing import Dict, List, Optional
 
 from _editor import open_in_editor
-from _shutil import get_home_path, shell_open
-from utils.menu import Menu
-from utils.menu.confirm import confirm
-from utils.menu.textinput import TextInput
+from _shutil import get_home_path, set_clip, shell_open
+
+from . import Menu
+from .confirm import confirm
+from .textinput import TextInput
 
 
 class _Config:
@@ -75,6 +76,7 @@ class FileManager(Menu[_File]):
         self.add_hotkey("right", self._goto_selected_directory)
         self.add_hotkey("shift+h", self._goto_home)
         self.add_hotkey("shift+n", self._rename_file)
+        self.add_hotkey("shift+c", self._copy_file_full_path)
         self.__selected_file_dict: Dict[str, str] = {}
 
         if goto is not None:
@@ -86,6 +88,12 @@ class FileManager(Menu[_File]):
                 self.goto_directory(os.path.dirname(goto), os.path.basename(goto))
         else:
             self.goto_directory(self.__config.cur_dir, self.__config.selected_file)
+
+    def _copy_file_full_path(self):
+        file_full_path = self.get_selected_file_full_path()
+        if file_full_path is not None:
+            set_clip(file_full_path)
+            self.set_message(f"Path copied: {file_full_path}")
 
     def _edit_text_file(self):
         file_full_path = self.get_selected_file_full_path()
@@ -157,7 +165,7 @@ class FileManager(Menu[_File]):
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
-            w = Menu(label="New name", text=selected.name)
+            w = Menu(prompt="New name", text=selected.name)
             w.exec()
             new_name = w.get_input()
             if not new_name:
@@ -171,7 +179,7 @@ class FileManager(Menu[_File]):
             self.refresh()
 
     def _goto(self):
-        path = TextInput().request_input()
+        path = TextInput(prompt="Goto:").request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
 

@@ -1,6 +1,6 @@
 import os
 
-from _filemgr import FileManager
+from utils.menu.filemgr import FileManager
 
 if __name__ == "__main__":
     script_path = os.environ["SCRIPT"]

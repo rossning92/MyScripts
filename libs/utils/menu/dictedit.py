@@ -1,12 +1,6 @@
 import curses
 import curses.ascii
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-)
+from typing import Any, Callable, Dict, List, Optional
 
 from ..menu import Menu
 
@@ -27,7 +21,7 @@ class _DictValueEditMenu(Menu):
 
         super().__init__(
             items=items,
-            label=name,
+            prompt=name,
             text="",
         )
 
@@ -84,14 +78,14 @@ class DictEditMenu(Menu):
         on_dict_update: Optional[Callable[[Dict], None]] = None,
         dict_history: Dict[str, List[Any]] = {},
         on_dict_history_update: Optional[Callable[[Dict[str, List[Any]]], None]] = None,
-        label="",
+        prompt="",
     ):
-        super().__init__(label=label)
+        super().__init__(prompt=prompt)
         self.dict_ = dict_
         self.default_dict = default_dict
         self.enter_pressed = False
         self.on_dict_update = on_dict_update
-        self.label = label
+        self.label = prompt
         self.dict_history = dict_history
         self.on_dict_history_update = on_dict_history_update
 

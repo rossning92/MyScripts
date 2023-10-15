@@ -6,14 +6,14 @@ from ..menu import Menu
 
 
 class TextInput(Menu):
-    def __init__(self, history_file: Optional[str] = None):
+    def __init__(self, prompt: str = ">", history_file: Optional[str] = None):
         self.__history_file = history_file
         if self.__history_file:
             self.__history_data = load_json(
                 self.__history_file, default={"history": []}
             )
         super().__init__(
-            label=">",
+            prompt=prompt,
             items=self.__history_data["history"] if self.__history_file else [],
         )
 

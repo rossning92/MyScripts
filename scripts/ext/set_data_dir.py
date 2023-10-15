@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from _filemgr import FileManager
+from utils.menu.filemgr import FileManager
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))

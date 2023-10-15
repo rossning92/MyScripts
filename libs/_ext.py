@@ -146,7 +146,7 @@ def edit_script_config(script_path):
         data,
         default_dict=default_config,
         on_dict_update=on_dict_update,
-        label=f"edit {script_config_file_rel_path}",
+        prompt=f"edit {script_config_file_rel_path}",
         on_dict_history_update=on_dict_history_update,
         dict_history=config_edit_history,
     )
@@ -210,7 +210,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
     else:
         text = get_selected_script_dir_rel(script_path=ref_script_path)
         label = "new script"
-    w: Menu = Menu(label=label, text=text)
+    w: Menu = Menu(prompt=label, text=text)
     w.exec()
     dest_script = w.get_text()
     if not dest_script:
@@ -327,7 +327,7 @@ def rename_script(
     else:
         items = []
 
-    w = Menu(label="new name", text=script_rel_path, items=items)
+    w = Menu(prompt="new name", text=script_rel_path, items=items)
     w.exec()
     new_script_rel_path = w.get_text()
     if not new_script_rel_path:

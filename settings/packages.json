@@ -188,6 +188,9 @@
     "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"]
   },
   "klogg": {
+    "choco": {
+      "packageName": "klogg"
+    },
     "executables": ["C:\\Program Files\\klogg\\klogg.exe"]
   },
   "lux": {
@@ -240,6 +243,9 @@
     "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"]
   },
   "openssh": {
+    "apt": {
+      "packageName": "openssh-client"
+    },
     "choco": {
       "packageName": "openssh"
     },
@@ -248,9 +254,6 @@
     },
     "termux": {
       "packageName": "openssh"
-    },
-    "apt": {
-      "packageName": "openssh-client"
     }
   },
   "pandoc": {

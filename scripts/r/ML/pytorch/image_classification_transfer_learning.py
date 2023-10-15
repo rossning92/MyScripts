@@ -1,7 +1,6 @@
-#%%
+# %%
 # modified from https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html
 
-from __future__ import division, print_function
 
 import copy
 import time
@@ -130,7 +129,7 @@ def evaluate_model(model, num_images=6):
         model.train(mode=was_training)
 
 
-#%%
+# %%
 
 ######################################################################
 # ConvNet as fixed feature extractor
@@ -172,7 +171,10 @@ if __name__ == "__main__":
 
     dataloaders = {
         x: torch.utils.data.DataLoader(
-            image_datasets[x], batch_size=4, shuffle=True, num_workers=4
+            image_datasets[x],
+            batch_size=4,
+            shuffle=True,
+            num_workers=4,
         )
         for x in ["train", "val"]
     }
@@ -180,6 +182,7 @@ if __name__ == "__main__":
     class_names = image_datasets2.classes
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
 
     if 1:
         # Get a batch of training data
@@ -219,4 +222,3 @@ if __name__ == "__main__":
 
     plt.ioff()
     plt.show()
-

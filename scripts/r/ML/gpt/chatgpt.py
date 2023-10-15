@@ -5,18 +5,19 @@ from typing import Dict, Iterator, List, Optional
 
 import openai
 from _shutil import load_json, pause, save_json, set_clip
+from _term import clear_terminal
 from utils.menu import Menu
 
 
 class ChatAPI:
     def __init__(self, stream_mode: bool = True) -> None:
         self.stream_mode = stream_mode
-        self.messages: List[Dict[str, str]] = [
-            {"role": "system", "content": "You are a helpful assistant."}
-        ]
+        self.messages: List[Dict[str, str]] = []
 
         # https://platform.openai.com/account/api-keys
         openai.api_key = os.environ["OPENAI_API_KEY"]
+
+        self.start_new_chat()
 
     def ask(self, question: str) -> Iterator[str]:
         self.messages.append({"role": "user", "content": question})
@@ -58,6 +59,13 @@ class ChatAPI:
         if os.path.isfile(file):
             data = load_json(file)
             self.messages = data["messages"]
+
+    def start_new_chat(self):
+        self.messages.clear()
+        self.messages.append(
+            {"role": "system", "content": "You are a helpful assistant."}
+        )
+        clear_terminal()
 
 
 def complete_chat(
@@ -145,7 +153,9 @@ def start_conversation(
     input_text: Optional[str] = None,
     prompt_text: Optional[str] = None,
 ):
-    config_file = os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json")
+    config_file = os.path.join(
+        os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json"
+    )
     chat = ChatAPI()
 
     # Load existing chat
@@ -164,11 +174,15 @@ def start_conversation(
     try:
         while True:
             question = input("> ")
-            print("> ", end="")
-            for chunk in chat.ask(question):
-                print(chunk, end="")
-            print("")
-            chat.save_chat(config_file)
+            if question == "":
+                chat.start_new_chat()
+
+            else:
+                print("> ", end="")
+                for chunk in chat.ask(question):
+                    print(chunk, end="")
+                print("")
+                chat.save_chat(config_file)
 
     except (KeyboardInterrupt, EOFError):
         pass
