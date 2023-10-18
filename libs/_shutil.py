@@ -36,6 +36,46 @@ TITLE_MATCH_MODE_START_WITH = 2
 TITLE_MATCH_MODE_DEFAULT = TITLE_MATCH_MODE_PARTIAL
 
 
+def _activate_window_win(hwnd):
+    # Define the WINDOWPLACEMENT structure
+    class WINDOWPLACEMENT(ctypes.Structure):
+        _fields_ = [
+            ("length", ctypes.c_uint),
+            ("flags", ctypes.c_uint),
+            ("showCmd", ctypes.c_uint),
+            ("ptMinPosition", ctypes.c_long * 2),
+            ("ptMaxPosition", ctypes.c_long * 2),
+            ("rcNormalPosition", ctypes.c_long * 4),
+            ("rcDevice", ctypes.c_long * 4),
+        ]
+
+    user32 = ctypes.windll.user32
+    GetWindowPlacement = user32.GetWindowPlacement
+    ShowWindow = user32.ShowWindow
+    SetForegroundWindow = user32.SetForegroundWindow
+
+    SW_SHOWMAXIMIZED = 3
+    SW_SHOWMINIMIZED = 2
+    SW_RESTORE = 9
+    SW_NORMAL = 1
+
+    # Get the window placement
+    place = WINDOWPLACEMENT()
+    place.length = ctypes.sizeof(WINDOWPLACEMENT)
+    GetWindowPlacement(hwnd, ctypes.byref(place))
+
+    # Switch based on showCmd
+    if place.showCmd == SW_SHOWMAXIMIZED:
+        ShowWindow(hwnd, SW_SHOWMAXIMIZED)
+    elif place.showCmd == SW_SHOWMINIMIZED:
+        ShowWindow(hwnd, SW_RESTORE)
+    else:
+        ShowWindow(hwnd, SW_NORMAL)
+
+    # Set the window to the foreground
+    SetForegroundWindow(hwnd)
+
+
 def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_DEFAULT):
     if sys.platform == "win32":
         from ctypes.wintypes import BOOL, HWND, LPARAM
@@ -68,8 +108,7 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_DEF
 
         if matched_hwnd:
             if cmd == "activate":
-                user32.ShowWindow(matched_hwnd, 9)  # in case the window is minimized
-                user32.SetForegroundWindow(matched_hwnd)
+                _activate_window_win(matched_hwnd)
                 return True
             elif cmd == "close":
                 WM_CLOSE = 0x10

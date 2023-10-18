@@ -153,6 +153,13 @@ def start_conversation(
     input_text: Optional[str] = None,
     prompt_text: Optional[str] = None,
 ):
+    def ask_question(question):
+        print("> ", end="")
+        for chunk in chat.ask(question):
+            print(chunk, end="")
+        print()
+        chat.save_chat(config_file)
+
     config_file = os.path.join(
         os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json"
     )
@@ -166,10 +173,7 @@ def start_conversation(
 
     if input_text and prompt_text:
         input_text = prompt_text + "\n\n\n" + input_text
-
-        print("> ", end="")
-        for chunk in chat.ask(input_text):
-            print(chunk, end="")
+        ask_question(input_text)
 
     try:
         while True:
@@ -178,11 +182,7 @@ def start_conversation(
                 chat.start_new_chat()
 
             else:
-                print("> ", end="")
-                for chunk in chat.ask(question):
-                    print(chunk, end="")
-                print("")
-                chat.save_chat(config_file)
+                ask_question(question)
 
     except (KeyboardInterrupt, EOFError):
         pass

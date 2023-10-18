@@ -1250,6 +1250,10 @@ class Script:
             fallback_to_shell_open = True
             if self.cfg["webApp"]:
                 chrome_executables = ["google-chrome-stable", "google-chrome", "chrome"]
+                if sys.platform == "win32":
+                    chrome_executables.insert(
+                        0, r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+                    )
                 for chrome_exec in chrome_executables:
                     if shutil.which(chrome_exec):
                         subprocess.check_call(
