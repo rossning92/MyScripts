@@ -1,1 +1,1 @@
-adb shell top -m 10 -d 0.2
+adb shell top -b -m 10

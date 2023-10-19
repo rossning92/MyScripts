@@ -33,7 +33,8 @@ CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 TITLE_MATCH_MODE_EXACT = 0
 TITLE_MATCH_MODE_PARTIAL = 1
 TITLE_MATCH_MODE_START_WITH = 2
-TITLE_MATCH_MODE_DEFAULT = TITLE_MATCH_MODE_PARTIAL
+TITLE_MATCH_MODE_REGEX = 3
+TITLE_MATCH_MODE_DEFAULT = TITLE_MATCH_MODE_REGEX
 
 
 def _activate_window_win(hwnd):
@@ -83,25 +84,32 @@ def control_window_by_name(name, cmd="activate", match_mode=TITLE_MATCH_MODE_DEF
         user32 = ctypes.windll.user32
         matched_hwnd = None
 
+        if match_mode == TITLE_MATCH_MODE_REGEX:
+            patt = re.compile(name)
+
         def callback(hwnd, lParam):
             nonlocal matched_hwnd
+
             length = user32.GetWindowTextLengthW(hwnd) + 1
             buffer = ctypes.create_unicode_buffer(length)
             user32.GetWindowTextW(hwnd, buffer, length)
-            win_text_str = str(buffer.value)
-            if match_mode == TITLE_MATCH_MODE_EXACT and name == win_text_str:
+            win_title = str(buffer.value)
+            if match_mode == TITLE_MATCH_MODE_EXACT and name == win_title:
                 matched_hwnd = hwnd
                 return False  # early exit
-            elif match_mode == TITLE_MATCH_MODE_PARTIAL and name in win_text_str:
+            elif match_mode == TITLE_MATCH_MODE_PARTIAL and name in win_title:
                 matched_hwnd = hwnd
                 return False  # early exit
-            elif match_mode == TITLE_MATCH_MODE_START_WITH and win_text_str.startswith(
+            elif match_mode == TITLE_MATCH_MODE_START_WITH and win_title.startswith(
                 name
             ):
                 matched_hwnd = hwnd
                 return False  # early exit
-
-            return True
+            elif match_mode == TITLE_MATCH_MODE_REGEX and re.search(patt, win_title):
+                matched_hwnd = hwnd
+                return False  # early exit
+            else:
+                return True
 
         WNDENUMPROC = ctypes.WINFUNCTYPE(BOOL, HWND, LPARAM)
         user32.EnumWindows(WNDENUMPROC(callback), 42)
