@@ -15,13 +15,7 @@ if __name__ == "__main__":
         )
     ).request_input()
     if prompt_text:
-        if os.path.isfile(args.input):
-            with open(args.input, "r", encoding="utf-8") as f:
-                input_text = f.read()
-        else:
-            input_text = args.input
-
         start_conversation(
-            input_text=input_text,
+            input=args.input,
             prompt_text=prompt_text,
         )

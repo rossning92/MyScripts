@@ -83,6 +83,9 @@
     }
   },
   "expect": {
+    "apt": {
+      "packageName": "expect"
+    },
     "choco": {
       "packageName": "expect"
     },
@@ -296,6 +299,9 @@
     }
   },
   "screen": {
+    "apt": {
+      "packageName": "screen"
+    },
     "choco": {
       "packageName": "screen"
     },

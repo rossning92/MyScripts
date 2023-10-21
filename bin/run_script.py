@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from typing import Dict, List, Optional, Tuple
@@ -60,5 +61,5 @@ if __name__ == "__main__":
             **kwargs,
         )
     except Exception as ex:
-        print("Error: %s" % ex)
+        logging.error(ex)
         sys.exit(1)

@@ -2,9 +2,7 @@ import argparse
 import logging
 import os
 import re
-import shutil
 import subprocess
-import sys
 import time
 
 import requests
@@ -15,8 +13,6 @@ from _shutil import (
     prepend_to_path,
     setup_logger,
 )
-
-URL_PATT = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
 root = os.path.dirname(os.path.realpath(__file__))
 
@@ -68,8 +64,8 @@ def download_youtube(url, download_dir=None, audio_only=False, download_playlist
 
 
 def download_video(url, audio_only=False, download_dir=None, save_url=True):
-    retry = 3
-    while retry > 0:
+    total_retry = 3
+    while total_retry > 0:
         try:
             url = get_redirected_url(url)
             if "bilibili.com" in url:
@@ -97,16 +93,12 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
                     f.write(url)
 
             return
-        except subprocess.CalledProcessError as ex:
-            logging.warning(ex)
-            logging.info("Try upgrading yt-dlp.")
-            call_echo(["pip", "install", "--upgrade", "--user", "yt-dlp"])
-
-            logging.warning("Retry in 1 sec.")
+        except subprocess.CalledProcessError:
+            logging.warning("Failed to download the video, retry in 1 sec.")
             time.sleep(1)
-            retry -= 1
+            total_retry -= 1
 
-    if retry == 0:
+    if total_retry == 0:
         raise Exception(f"Max retries exceeded with url: {url}")
 
 
@@ -114,15 +106,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--audio_only", default=False, action="store_true")
     parser.add_argument("--download_dir", default=None, type=str)
-    parser.add_argument("url", type=str, nargs="?")
+    parser.add_argument("url", type=str)
     args = parser.parse_args()
 
     setup_logger()
 
-    url = args.url
-    if not url:
-        input_ = input("input video url: ")
-        first_match = next(re.finditer(URL_PATT, input_))
-        url = first_match.group()
-
-    download_video(url=url, audio_only=args.audio_only, download_dir=args.download_dir)
+    download_video(
+        url=args.url, audio_only=args.audio_only, download_dir=args.download_dir
+    )

@@ -13,9 +13,10 @@ import torch.optim as optim
 import torchvision
 from torch.optim import lr_scheduler
 from torch.utils.data import random_split
+from torchvision import datasets, models, transforms
 
 data_dir = "/tmp/image_data"
-val_data_size = 80
+val_data_ratio = 0.2
 
 
 def imshow(inp, title=None):
@@ -146,40 +147,35 @@ def evaluate_model(model, num_images=6):
 if __name__ == "__main__":
     plt.ion()  # interactive mode
 
-    data_transform = torchvision.transforms.Compose(
+    data_transform = transforms.Compose(
         [
-            torchvision.transforms.RandomResizedCrop(224),
-            torchvision.transforms.RandomHorizontalFlip(),
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(
-                [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
-            ),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
     )
 
-    image_datasets2 = torchvision.datasets.ImageFolder(data_dir, data_transform)
-    print(image_datasets2)
+    all_image_datasets = datasets.ImageFolder(data_dir, data_transform)
+    train_data, test_data = random_split(
+        all_image_datasets, lengths=[1 - val_data_ratio, val_data_ratio]
+    )
 
-    data_size = len(image_datasets2)
-    train_size = int(data_size * 0.6)
-    lengths = [data_size - val_data_size, val_data_size]
-    train_data, test_data = random_split(image_datasets2, lengths)
     image_datasets = {
         "train": train_data,
         "val": test_data,
     }
-
     dataloaders = {
         x: torch.utils.data.DataLoader(
             image_datasets[x],
             batch_size=4,
             shuffle=True,
-            num_workers=4,
         )
         for x in ["train", "val"]
     }
     dataset_sizes = {x: len(image_datasets[x]) for x in ["train", "val"]}
-    class_names = image_datasets2.classes
+    class_names = all_image_datasets.classes
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -194,7 +190,7 @@ if __name__ == "__main__":
         imshow(out, title=[class_names[x] for x in classes])
 
     # Create the model
-    model_conv = torchvision.models.resnet18(pretrained=True)
+    model_conv = models.resnet18(pretrained=True)
     for param in model_conv.parameters():
         param.requires_grad = False
 

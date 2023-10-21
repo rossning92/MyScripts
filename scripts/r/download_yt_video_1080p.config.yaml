@@ -1,1 +1,1 @@
-matchClipboard: (www\.)?youtube\.com/(watch|shorts)
+matchClipboard: (www\.)?youtube\.com/(shorts/|watch\?v=)[a-zA-Z0-9-]+|youtu\.be/[a-zA-Z0-9]+

@@ -9,19 +9,19 @@ class ConfirmMenu(Menu):
             prompt=prompt,
         )
 
+        self.confirmed = False
         self.add_hotkey("y", self.confirm)
         self.add_hotkey("n", self.cancel)
 
     def confirm(self):
-        self.set_selected_row(0)
+        self.confirmed = True
         self.close()
 
     def cancel(self):
-        self.set_selected_row(1)
         self.close()
 
 
 def confirm(prompt: str) -> bool:
     menu = ConfirmMenu(prompt=prompt)
     menu.exec()
-    return menu.get_selected_index() == 0
+    return menu.confirmed

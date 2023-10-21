@@ -1749,33 +1749,28 @@ def update_yaml(file, dict_):
 def setup_logger(
     level: int = logging.INFO,
     log_to_stderr: bool = True,
-    log_to_file: Optional[str] = None,
+    log_file: Optional[str] = None,
 ):
-    logger = logging.getLogger()
-    logger.setLevel(level)
-
-    formatter = logging.Formatter(
-        "%(asctime)s %(levelname).1s %(filename)-10s: %(funcName)-10s: %(message)s"
+    format = (
+        "%(asctime)s.%(msecs)03d %(levelname).1s %(filename)-10s: "
+        "%(funcName)-10s: "
+        "%(message)s"
     )
-
+    datefmt = "%H:%M:%S"
     if log_to_stderr:
-        stream_handler = logging.StreamHandler(sys.stderr)
-        stream_handler.setFormatter(formatter)
-        stream_handler.setLevel(level)
-        logger.addHandler(stream_handler)
-    else:
-        # Don't log to stdout
-        logger.propagate = False
-
-    if log_to_file:
-        file_handler = logging.FileHandler(
-            log_to_file, "w+", encoding="utf-8"
-        )  # overwrite the file
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(level)
-        logger.addHandler(file_handler)
-
-    return logger
+        logging.basicConfig(
+            format=format,
+            datefmt=datefmt,
+            level=logging.DEBUG,
+        )
+    elif log_file:
+        logging.basicConfig(
+            filename=log_file,
+            filemode="w",
+            format=format,
+            datefmt=datefmt,
+            level=logging.DEBUG,
+        )
 
 
 if os.environ.get("_LOG"):

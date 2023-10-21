@@ -1,6 +1,8 @@
+import logging
 import os
 import re
 import subprocess
+from typing import Set
 
 from _shutil import setup_logger
 
@@ -9,8 +11,7 @@ def grant_all_permissions(pkg):
     out = subprocess.check_output(
         ["adb", "shell", "dumpsys package %s" % pkg], universal_newlines=True
     )
-    permissions = re.findall(r"(android\.permission\.[A-Z_]+)", out)
-    permissions = set(permissions)
+    permissions: Set[str] = set(re.findall(r"(android\.permission\.[A-Z_]+)", out))
 
     with open(os.devnull, "w") as fnull:
         for permission in permissions:
@@ -25,8 +26,9 @@ def grant_all_permissions(pkg):
                 stdout=fnull,
             )
             if ret_code != 0:
-                logger.warning("Failed to grant permission: %s" % permission)
+                logging.warning("Failed to grant permission: %s" % permission)
 
 
-logger = setup_logger()
-grant_all_permissions(os.environ.get("PKG_NAME"))
+if __name__ == "__main__":
+    setup_logger()
+    grant_all_permissions(os.environ.get("PKG_NAME"))

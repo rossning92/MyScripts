@@ -8,7 +8,6 @@ from typing import Optional
 from urllib.parse import unquote
 
 from _script import get_data_dir, get_my_script_root
-from _shutil import load_json, save_json
 
 HOST_NAME = "127.0.0.1"
 
@@ -45,28 +44,30 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             if self.path == "/system":
-                data = self.read_json()
+                data = self.get_req_data()
                 out = subprocess.check_output(
                     args=data["args"], universal_newlines=True, encoding="utf-8"
                 )
 
-                logging.info("/%s: response: %s" % (self.path, out))
+                logging.info("%s: response: %s" % (self.path, out))
                 self.send_response(200)
                 self.send_header("Content-type", "text/plain; charset=UTF-8")
                 self.end_headers()
                 self.wfile.write(out.encode("utf-8"))
 
-            elif self.path == "/load-data":
-                req = self.read_json()
-                data_file = os.path.join(get_data_dir(), f"{req['name']}.json")
-                data = load_json(data_file, {})
-                self.send_json({"success": True, "data": data})
+            elif self.path == "/load-file":
+                req = self.get_req_data()
+                file_path = os.path.join(get_data_dir(), f"{req['file']}")
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                self.send_json({"success": True, "content": content})
 
-            elif self.path == "/save-data":
-                req = self.read_json()
-                data_file = os.path.join(get_data_dir(), f"{req['name']}.json")
-                save_json(data_file, req["data"])
-                self.send_json({"success": True})
+            elif self.path == "/save-file":
+                req = self.get_req_data()
+                file_path = os.path.join(get_data_dir(), f"{req['file']}")
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(req["content"])
+                self.send_json({"success": True, "filePath": file_path})
 
             else:
                 return self.send_response(500)
@@ -79,10 +80,9 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
-    def read_json(self):
+    def get_req_data(self):
         data_string = self.rfile.read(int(self.headers["Content-Length"]))
         data = json.loads(data_string.decode("utf-8"))
-        logging.info("%s: request: %s" % (self.path, data))
         return data
 
     def end_headers(self):

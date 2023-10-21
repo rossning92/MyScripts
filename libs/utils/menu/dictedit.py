@@ -2,6 +2,8 @@ import curses
 import curses.ascii
 from typing import Any, Callable, Dict, List, Optional
 
+from _shutil import set_clip
+
 from ..menu import Menu
 
 
@@ -91,7 +93,19 @@ class DictEditMenu(Menu):
 
         self.update_items()
 
+        self.add_hotkey("ctrl+y", self.__copy_selected_dict_value)
+
+    def __copy_selected_dict_value(self):
+        key = self.get_selected_key()
+        if key is not None:
+            value = self.dict_[key]
+            set_clip(value)
+            self.set_message(f"copied: {value}")
+
     def update_items(self):
+        if len(self.dict_) == 0:
+            return
+
         self.items.clear()
 
         keys = list(self.dict_.keys())
@@ -109,20 +123,33 @@ class DictEditMenu(Menu):
 
     def on_char(self, ch):
         if ch == "\t":
-            self.edit_dict_value()
+            self.__edit_dict_value()
             return True
-        return False
+        else:
+            return super().on_char(ch)
 
-    def edit_dict_value(self):
+    def get_selected_key(self) -> Optional[str]:
         index = self.get_selected_index()
-        name = list(self.dict_.keys())[index]
-        val = self.dict_[name]
+        if index < 0:
+            return None
+        else:
+            return list(self.dict_.keys())[index]
 
+    def __get_dict_history_values(self, name: str) -> List[str]:
         if name not in self.dict_history:
             dict_history_values = self.dict_history[name] = []
         else:
             dict_history_values = self.dict_history[name]
+        return dict_history_values
 
+    def __edit_dict_value(self):
+        name = self.get_selected_key()
+        if name is None:
+            return
+
+        val = self.dict_[name]
+
+        dict_history_values = self.__get_dict_history_values(name)
         _DictValueEditMenu(
             dict_=self.dict_,
             name=name,
@@ -137,4 +164,21 @@ class DictEditMenu(Menu):
             self.on_dict_history_update(self.dict_history)
 
         self.update_items()
-        self._input.clear()
+
+    def set_dict_value(self, name: str, value: str):
+        # Update dict
+        self.dict_[name] = value
+
+        # Update dict history
+        dict_history_values = self.__get_dict_history_values(name)
+        if value in dict_history_values:  # avoid duplicates
+            dict_history_values.remove(value)
+        dict_history_values.insert(0, value)
+
+        if self.on_dict_update:
+            self.on_dict_update(self.dict_)
+        if self.on_dict_history_update:
+            self.on_dict_history_update(self.dict_history)
+
+        self.update_items()
+        self.update_items()

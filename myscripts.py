@@ -1,6 +1,5 @@
 import argparse
 import ctypes
-import curses
 import logging
 import logging.config
 import os
@@ -9,7 +8,7 @@ import re
 import sys
 import time
 import traceback
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
@@ -25,32 +24,32 @@ from _ext import (
 )
 from _script import (
     Script,
-    get_all_variables,
     get_default_script_config,
     get_script_config_file_path,
     get_script_variables,
     get_temp_dir,
+    get_variable_edit_history_file,
     is_instance_running,
-    save_variables,
-    set_variable_value,
     setup_env_var,
     try_reload_scripts_autorun,
     update_script_access_time,
+    update_variables,
 )
 from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
+    load_json,
     pause,
     quote_arg,
     refresh_env_vars,
     run_at_startup,
-    set_clip,
-    setup_logger,
+    save_json,
     setup_nodejs,
 )
 from utils.menu import Menu
 from utils.menu.confirm import confirm
+from utils.menu.dictedit import DictEditMenu
 from utils.menu.filemgr import FileManager
 
 REFRESH_INTERVAL_SECS = 60
@@ -90,41 +89,6 @@ def setup_console_font():
         )
 
 
-class VariableEditMenu(Menu):
-    def __init__(self, vars, var_name):
-        self.vars = vars
-        self.var_name = var_name
-        self.enter_pressed = False
-
-        super().__init__(
-            items=self.vars[var_name] if var_name in self.vars else [],
-            prompt=var_name + "=",
-            text="",
-        )
-
-    def save_variable_val(self, val):
-        set_variable_value(self.vars, self.var_name, val)
-
-    def on_enter_pressed(self):
-        self.save_variable_val(self.get_text())
-        self.enter_pressed = True
-        self.close()
-
-    def on_char(self, ch):
-        if ch == "\t":
-            val = self.get_selected_item()
-            if val is not None:
-                self.set_input(val)
-            return True
-        elif ch == curses.KEY_DC:  # delete key
-            i = self.get_selected_index()
-            del self.vars[self.var_name][i]
-            save_variables(self.vars)
-            return True
-        else:
-            return super().on_char(ch)
-
-
 def format_key_value_pairs(kvp):
     result = []
     key_length = [len(key) for key in kvp]
@@ -148,73 +112,38 @@ def format_variables(variables, variable_names, variable_prefix):
     else:
         max_width = 0
     for i, name in enumerate(variable_names):
-        var_val = (
-            variables[name][0]
-            if (name in variables and len(variables[name]) > 0)
-            else ""
-        )
+        var_val = variables[name] if name in variables else ""
         result.append(short_var_names[i].ljust(max_width) + ": " + var_val)
     return result
 
 
-class VariableMenu(Menu):
+class VariableEditMenu(DictEditMenu):
     def __init__(self, script: Script):
-        super().__init__(prompt=f"{script.name}> vars")
-        self.variables = get_all_variables()
-        self.variable_names = sorted(script.get_variable_names())
-        self.variable_prefix = script.get_public_variable_prefix()
-        self.enter_pressed = False
-
-        self.add_hotkey("ctrl+d", self._select_directory)
-
-        if len(self.variable_names) > 0:
-            self.update_items()
-
-        self.set_message("Shortcuts: [^d] select dir")
-
-    def _select_directory(self):
-        index = self.get_selected_index()
-        if index >= 0:
-            variable_name = self.variable_names[index]
-
-            dir_path = FileManager().select_directory()
-            if dir_path is not None:
-                set_variable_value(self.variables, variable_name, dir_path)
-                self.update_items()
-
-    def update_items(self):
-        self.items[:] = format_variables(
-            self.variables, self.variable_names, self.variable_prefix
+        self.variables = get_script_variables(script)
+        self.variable_edit_history = load_json(get_variable_edit_history_file(), {})
+        super().__init__(
+            self.variables,
+            prompt=f"{script.name}: vars:",
+            on_dict_update=self.on_dict_update,
+            on_dict_history_update=self.on_dict_history_update,
+            dict_history=self.variable_edit_history,
         )
 
-    def on_enter_pressed(self):
-        self.enter_pressed = True
-        self.close()
+        self.add_hotkey("ctrl+d", self.__select_directory)
+        self.set_message("[^d] select dir")
 
-    def on_char(self, ch):
-        if ch == "\t":
-            self.edit_variable()
-            return True
-        elif ch == "C":
-            index = self.get_selected_index()
-            name = self.variable_names[index]
-            if name in self.variables and len(self.variables[name]) > 0:
-                val = self.variables[name][0]
-                set_clip(val)
-                self.close()
-            return True
-        else:
-            return super().on_char(ch)
+    def on_dict_history_update(self, history: Dict[str, List[Any]]):
+        save_json(get_variable_edit_history_file(), history)
 
-    def edit_variable(self):
-        index = self.get_selected_index()
-        var_name = self.variable_names[index]
-        w = VariableEditMenu(self.variables, var_name)
-        w.exec()
-        # if w.enter_pressed:
-        #     self.close()
-        self.update_items()
-        self.clear_input()
+    def __select_directory(self):
+        key = self.get_selected_key()
+        if key is not None:
+            dir_path = FileManager().select_directory()
+            if dir_path is not None:
+                self.set_dict_value(key, dir_path)
+
+    def on_dict_update(self, d: Dict):
+        update_variables(d)
 
 
 def restart_program():
@@ -429,11 +358,9 @@ class MainWindow(Menu[Script]):
             elif ch == "\t":
                 script = self.get_selected_item()
                 if script is not None:
-                    w = VariableMenu(script)
-                    if w.variable_names:
+                    w = VariableEditMenu(script)
+                    if len(w.variables) > 0:
                         w.exec()
-                        if w.enter_pressed:
-                            self.run_selected_script()
                 return True
 
             elif ch == "L":

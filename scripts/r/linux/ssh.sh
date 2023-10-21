@@ -35,7 +35,7 @@ fi
 cat >~/s.expect <<EOF
 set timeout 10
 spawn ${ssh_command}
-expect "password:"
+expect -nocase "password"
 send "${SSH_PWD}\r"
 ${EXPECT_EXTRA_COMMANDS}
 interact

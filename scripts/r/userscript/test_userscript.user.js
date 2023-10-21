@@ -27,13 +27,13 @@ addButton("Run calculator", () => {
   system(["calc"]);
 });
 
-addButton("saveData()", () => {
-  saveData("test_data", { foo: "bar" }).then((data) => {
-    alert(JSON.stringify(data, null, 4));
+addButton("Test saveData()", () => {
+  saveData("test_data", { foo: "bar" }).then((result) => {
+    alert(JSON.stringify(result, null, 4));
   });
 });
 
-addButton("loadData()", () => {
+addButton("Test loadData()", () => {
   loadData("test_data", {}).then((data) => {
     alert(JSON.stringify(data, null, 4));
   });

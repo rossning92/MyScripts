@@ -337,12 +337,28 @@ def _args_to_str(args, shell_type):
 
 
 @lru_cache(maxsize=None)
+def get_variable_edit_history_file():
+    return os.path.join(get_data_dir(), "variable_edit_history.json")
+
+
+@lru_cache(maxsize=None)
 def get_variable_file():
-    variable_file = os.path.join(get_data_dir(), "variables.json")
-    return variable_file
+    variable_file_v2 = os.path.join(get_data_dir(), "variables_v2.json")
+
+    # TODO: migrate to new variable file
+    if True:
+        if not os.path.exists(variable_file_v2):
+            variable_file = os.path.join(get_data_dir(), "variables.json")
+            shutil.copy(variable_file, get_variable_edit_history_file())
+
+            variables = load_json(variable_file)
+            variables_v2 = {k: v[0] for k, v in variables.items()}
+            save_json(variable_file_v2, variables_v2)
+
+    return variable_file_v2
 
 
-def get_all_variables() -> Dict[str, List]:
+def get_all_variables() -> Dict[str, str]:
     file = get_variable_file()
 
     with FileLock("access_variable"):
@@ -350,18 +366,15 @@ def get_all_variables() -> Dict[str, List]:
             return {}
 
         with open(file, "r", encoding="utf-8") as f:
-            variables = json.load(f)
-            return variables
+            return json.load(f)
 
 
-def get_script_variables(script) -> Dict[str, List]:
+def get_script_variables(script) -> Dict[str, str]:
     all_vars = get_all_variables()
-    vars: Dict[str, List] = {}
+    vars: Dict[str, str] = {}
     for var_name in script.get_variable_names():
         if var_name in all_vars:
             vars[var_name] = all_vars[var_name]
-        else:
-            vars[var_name] = []
     return vars
 
 
@@ -377,10 +390,10 @@ def get_variable(name):
         if name not in variables:
             return
 
-        return variables[name][0]
+        return variables[name]
 
 
-def set_variable(name, val, set_env_var=True):
+def set_variable(name: str, val: str, set_env_var=True):
     logging.info("Set %s=%s" % (name, val))
     assert val is not None
 
@@ -389,16 +402,7 @@ def set_variable(name, val, set_env_var=True):
         with open(file, "r", encoding="utf-8") as f:
             variables = json.load(f)
 
-        if name not in variables:
-            variables[name] = []
-        vals = variables[name]
-
-        try:
-            vals.remove(val)
-        except ValueError:
-            pass
-
-        vals.insert(0, val)
+        variables[name] = val
 
         with open(file, "w", encoding="utf-8") as f:
             json.dump(variables, f, indent=2)
@@ -407,19 +411,12 @@ def set_variable(name, val, set_env_var=True):
         os.environ[name] = val
 
 
-def set_variable_value(variables, name: str, value: str):
-    if name not in variables:
-        variables[name] = []
-    try:
-        variables[name].remove(value)
-    except ValueError:
-        pass
-    variables[name].insert(0, value)
-
-    save_variables(variables)
+def set_variable_value(variables: Dict[str, str], name: str, value: str):
+    variables[name] = value
+    update_variables(variables)
 
 
-def save_variables(variables):
+def update_variables(variables: Dict[str, str]):
     config_file = get_variable_file()
     with FileLock("access_variable"):
         if not os.path.exists(config_file):
@@ -826,10 +823,9 @@ class Script:
         variables = {}
         for vname in vnames:
             if vname in saved_variables:
-                if len(saved_variables[vname]) > 0:
-                    last_modified_value = saved_variables[vname][0]
-                    # Note that last_modified_value can be an empty string
-                    variables[vname] = last_modified_value
+                last_modified_value = saved_variables[vname]
+                # Note that last_modified_value can be an empty string
+                variables[vname] = last_modified_value
             else:
                 variables[vname] = ""
 
@@ -1703,7 +1699,7 @@ def start_script(
         tee=tee,
     )
     if not ret:
-        raise Exception("%s returns non zero" % file)
+        raise Exception(f"{file} returned non-zero exit status {ret}")
 
     # Restore title
     if console_title and sys.platform == "win32":

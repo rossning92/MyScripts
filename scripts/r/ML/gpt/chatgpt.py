@@ -1,4 +1,5 @@
 import argparse
+import builtins
 import os
 import sys
 from typing import Dict, Iterator, List, Optional
@@ -70,18 +71,22 @@ class ChatAPI:
 
 def complete_chat(
     *,
-    input_text: str,
+    input: str,
     prompt_text: Optional[str] = None,
     copy_to_clipboard: bool = False,
     pause: bool = False,
     _pause=pause,
 ):
+    if os.path.isfile(input):
+        with open(input, "r", encoding="utf-8") as f:
+            input = f.read()
+
     if prompt_text:
-        input_text = prompt_text + "\n\n\n" + input_text
+        input = prompt_text + "\n\n\n" + input
 
     full_response = ""
     chat = ChatAPI()
-    for chunk in chat.ask(input_text):
+    for chunk in chat.ask(input):
         full_response += chunk
         print(chunk, end="")
 
@@ -115,10 +120,10 @@ def main():
     if args.input:
         if os.path.isfile(args.input):
             with open(args.input, "r", encoding="utf-8") as f:
-                input_text = f.read()
+                input = f.read()
 
         else:
-            input_text = args.input
+            input = args.input
 
         # Specify custom ad-hoc prompt if any
         if args.adhoc:
@@ -138,7 +143,7 @@ def main():
             prompt_text = None
 
         complete_chat(
-            input_text=input_text,
+            input=input,
             prompt_text=prompt_text,
             copy_to_clipboard=args.copy_to_clipboard,
             pause=args.pause,
@@ -150,7 +155,7 @@ def main():
 
 def start_conversation(
     *,
-    input_text: Optional[str] = None,
+    input: Optional[str] = None,
     prompt_text: Optional[str] = None,
 ):
     def ask_question(question):
@@ -171,13 +176,17 @@ def start_conversation(
         if message["role"] != "system":
             print(f"> {message['content']}")
 
-    if input_text and prompt_text:
-        input_text = prompt_text + "\n\n\n" + input_text
-        ask_question(input_text)
+    if input and os.path.isfile(input):
+        with open(input, "r", encoding="utf-8") as f:
+            input = f.read()
+
+    if input and prompt_text:
+        input = prompt_text + "\n\n\n" + input
+        ask_question(input)
 
     try:
         while True:
-            question = input("> ")
+            question = builtins.input("> ")
             if question == "":
                 chat.start_new_chat()
 

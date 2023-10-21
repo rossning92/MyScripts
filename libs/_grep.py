@@ -50,7 +50,6 @@ def _open_bookmark(*, kw=None, path=None, repo=None, **kwargs):
     else:
         # Replace repo with repo absolute path
         variables = get_all_variables()
-        variables = {k: v[0] for k, v in variables.items()}
         if repo in variables:
             repo = variables[repo]
             if not os.path.isdir(repo):

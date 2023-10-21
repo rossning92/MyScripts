@@ -9,6 +9,7 @@ import os
 from _shutil import setup_logger
 from langchain import hub
 from langchain.chat_models import ChatOpenAI
+from langchain.document_loaders.generic import GenericLoader
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.schema.runnable import RunnablePassthrough
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     langchain_qa_log = os.path.join(
         os.environ.get("MY_TEMP_DIR", os.getcwd()), "langchain_qa_log.txt"
     )
-    setup_logger(level=logging.DEBUG, log_to_file=langchain_qa_log, log_to_stderr=False)
+    setup_logger(level=logging.DEBUG, log_file=langchain_qa_log, log_to_stderr=False)
 
     # Argument parser
     parser = argparse.ArgumentParser()
@@ -30,13 +31,16 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Read doc
-    with open(args.file, encoding="utf-8") as f:
-        content = f.read()
+    # Load document using a generic loader (based on the file type)
+    loader = GenericLoader.from_filesystem(
+        path=os.path.dirname(args.file),
+        glob=os.path.basename(args.file),
+    )
+    docs = loader.lazy_load()
 
     # Split doc into chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
-    texts = text_splitter.split_text(content)
+    docs = text_splitter.split_documents(docs)
 
     # Embed and store splits
     underlying_embeddings = OpenAIEmbeddings()
@@ -51,11 +55,8 @@ if __name__ == "__main__":
         underlying_embeddings, fs, namespace=underlying_embeddings.model
     )
 
-    retriever = Chroma.from_texts(
-        texts,
-        cached_embedder,
-        metadatas=[{"source": str(i)} for i in range(len(texts))],
-    ).as_retriever()
+    vectorstore = Chroma.from_documents(docs, cached_embedder)
+    retriever = vectorstore.as_retriever()
 
     # Prompt
     rag_prompt = hub.pull("rlm/rag-prompt")
