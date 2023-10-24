@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 import traceback
@@ -51,8 +52,6 @@ def open_with(files: Union[str, List[str]], program_id=0):
     if isinstance(files, str):
         files = [files]
 
-    ext = os.path.splitext(files[0])[1].lower()
-
     if is_in_termux():
         shell_open(files[0])
         return
@@ -60,10 +59,23 @@ def open_with(files: Union[str, List[str]], program_id=0):
     if open_with_hook(files, program_id):
         return
 
-    if ext not in config:
-        raise Exception('Extension "%s" is not supported.' % ext)
+    # Try to match ext by regex
+    for patt, programs in config["matchByRegex"].items():
+        if re.search(patt, files[0]):
+            print(f"Matched file type: {patt}")
+            open_files_with_program(files, programs, program_id)
+            return
 
-    program = config[ext][program_id]
+    ext = os.path.splitext(files[0])[1].lower()
+    if ext in config["matchByExt"]:
+        open_files_with_program(files, config["matchByExt"][ext], program_id)
+        return
+
+    raise Exception("File type is not supported.")
+
+
+def open_files_with_program(files, programs, program_id):
+    program = programs[program_id]
 
     if isinstance(program, str):
         require_package(program)
@@ -75,7 +87,7 @@ def open_with(files: Union[str, List[str]], program_id=0):
         args = program + files
 
     else:
-        raise Exception("Unsupported program definition.")
+        raise Exception("A program must be str or list.")
 
     subprocess.Popen(args, close_fds=True)
 
