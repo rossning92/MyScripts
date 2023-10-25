@@ -88,7 +88,7 @@ if sys.platform == "win32":
 
 VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
-LOG_PIPE_FOR_BACKGROUND_PROCESS = False
+LOG_PIPE_FOR_BACKGROUND_PROCESS = True
 
 
 @lru_cache(maxsize=None)
@@ -348,12 +348,13 @@ def get_variable_file():
     # TODO: migrate to new variable file
     if True:
         if not os.path.exists(variable_file_v2):
-            variable_file = os.path.join(get_data_dir(), "variables.json")
-            shutil.copy(variable_file, get_variable_edit_history_file())
+            variable_file_v1 = os.path.join(get_data_dir(), "variables.json")
+            if os.path.exists(variable_file_v1):
+                shutil.copy(variable_file_v1, get_variable_edit_history_file())
 
-            variables = load_json(variable_file)
-            variables_v2 = {k: v[0] for k, v in variables.items()}
-            save_json(variable_file_v2, variables_v2)
+                variables = load_json(variable_file_v1)
+                variables_v2 = {k: v[0] for k, v in variables.items()}
+                save_json(variable_file_v2, variables_v2)
 
     return variable_file_v2
 
@@ -367,15 +368,6 @@ def get_all_variables() -> Dict[str, str]:
 
         with open(file, "r", encoding="utf-8") as f:
             return json.load(f)
-
-
-def get_script_variables(script) -> Dict[str, str]:
-    all_vars = get_all_variables()
-    vars: Dict[str, str] = {}
-    for var_name in script.get_variable_names():
-        if var_name in all_vars:
-            vars[var_name] = all_vars[var_name]
-    return vars
 
 
 def get_variable(name):
@@ -394,7 +386,7 @@ def get_variable(name):
 
 
 def set_variable(name: str, val: str, set_env_var=True):
-    logging.info("Set %s=%s" % (name, val))
+    logging.debug("set variable: %s=%s" % (name, val))
     assert val is not None
 
     with FileLock("access_variable"):
@@ -924,7 +916,10 @@ class Script:
         # Get variable name value pairs
         variables = self.get_variables()
 
-        logging.info("Script.execute(): script=%s, args=%s" % (self.name, args))
+        logging.info(
+            "execute: %s %s"
+            % (self.name, _args_to_str(args, shell_type="bash") if args else "")
+        )
 
         close_on_exit = (
             close_on_exit if close_on_exit is not None else self.cfg["closeOnExit"]
@@ -1260,6 +1255,7 @@ class Script:
 
             if fallback_to_shell_open:
                 shell_open(url)
+            return True
 
         else:
             print("ERROR: not supported script extension: %s" % ext)
@@ -1276,7 +1272,7 @@ class Script:
         if self.cfg["packages"]:
             packages = self.cfg["packages"].split()
             for pkg in packages:
-                require_package(pkg, wsl=sys.platform == "win32" and self.cfg["wsl"])
+                require_package(pkg, wsl=self.cfg["wsl"])
 
             if "node" in packages:
                 print("node package is required.")
@@ -1606,6 +1602,17 @@ class Script:
         return variable_names
 
 
+def get_script_variables(script: Script) -> Dict[str, str]:
+    all_variables = get_all_variables()
+    script_variables: Dict[str, str] = {}
+    for name in script.get_variable_names():
+        if name in all_variables:
+            script_variables[name] = all_variables[name]
+        else:
+            script_variables[name] = ""
+    return script_variables
+
+
 @timed
 def find_script(patt: str) -> Optional[str]:
     if os.path.exists(patt):
@@ -1755,7 +1762,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "hotkey": "",
         "matchClipboard": "",
         "minimized": False,
-        "runEveryNSeconds": "",
+        "runEveryNSec": "",
         "msys2": False,
         "newWindow": True,
         "packages": "",
@@ -1960,7 +1967,7 @@ def get_all_scripts() -> Iterator[str]:
 def execute_script_autorun(script: Script):
     assert script.cfg["autoRun"] or script.cfg["runAtStartup"]
     try:
-        logging.info("auto run script: %s" % script.name)
+        logging.debug("autorun: %s" % script.name)
         script.execute(new_window=False, command_wrapper=False)
     except Exception as ex:
         logging.warning(f"Failed to autorun script: {script.script_path}")

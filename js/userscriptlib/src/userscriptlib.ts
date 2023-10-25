@@ -14,14 +14,16 @@ declare global {
   var GM_xmlhttpRequest: any;
 
   function addButton(name: string, onclick: () => void, hotkey?: string): void;
-  function addNote(el: HTMLElement, text: string): void;
+  function highlight(el: HTMLElement, text?: string): void;
   function addText(text: string, { color = "black" }: { color?: string }): void;
   function click(el: HTMLElement): void;
   function download(url: string, filename?: string): void;
   function findElementByPartialText(text: string): Node | null;
   function findElementBySelector(selector: string): Node | null;
   function findElementByText(text: string): Node | null;
+  function findElementsByText(text: string): Node[];
   function findElementByXPath(exp: string): Node | null;
+  function findElementsByXPath(exp: string): Node[];
   function getSelectedText(): string;
   function loadData(name: string): Promise<object>;
   function loadFile(file: string): Promise<string>;
@@ -236,6 +238,21 @@ _global.addText = (text, { color = "black" }) => {
   getButtonContainer().appendChild(div);
 };
 
+_global.findElementsByXPath = (exp) => {
+  const query = document.evaluate(
+    exp,
+    document,
+    null,
+    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+    null
+  );
+  let results: Node[] = [];
+  for (let i = 0, length = query.snapshotLength; i < length; ++i) {
+    results.push(query.snapshotItem(i));
+  }
+  return results;
+};
+
 _global.findElementByXPath = (exp) => {
   const query = document.evaluate(
     exp,
@@ -253,6 +270,10 @@ _global.findElementBySelector = (selector) => {
 
 _global.findElementByText = (text) => {
   return findElementByXPath(`//*[text() = '${text}']`);
+};
+
+_global.findElementsByText = (text) => {
+  return findElementsByXPath(`//*[text() = '${text}']`);
 };
 
 _global.findElementByPartialText = (text) => {
@@ -511,7 +532,13 @@ _global.sleep = (callback, durationMs) => {
   const intervalID = setInterval(timer, 1000);
 };
 
-_global.addNote = (ele, message) => {
+_global.highlight = (ele, message = "👆") => {
+  ele.scrollIntoView({
+    behavior: "auto",
+    block: "center",
+    inline: "center",
+  });
+
   const tooltip = document.createElement("div");
 
   tooltip.style.position = "absolute";

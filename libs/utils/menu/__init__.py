@@ -169,12 +169,13 @@ class Menu(Generic[T]):
         allow_input=True,
         ascii_only=False,
         cancellable=True,
-        close_on_selection=False,
+        close_on_selection=True,
         debug=False,
         history: Optional[str] = None,
         items: List[T] = [],
         prompt="",
         text="",
+        on_item_selected: Optional[Callable[[T], None]] = None,
     ):
         self.items = items
         self.last_key_pressed_timestamp: float = 0.0
@@ -196,6 +197,7 @@ class Menu(Generic[T]):
         self._width: int = -1
         self.__debug = debug
         self.__allow_input: bool = allow_input
+        self.__on_item_selected = on_item_selected
 
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
@@ -607,11 +609,14 @@ class Menu(Generic[T]):
 
     def on_enter_pressed(self):
         item = self.get_selected_item()
+        if item is not None:
+            if self.__on_item_selected is not None:
+                self.call_func_without_curses(
+                    lambda item=item: self.__on_item_selected(item)
+                )
         if item is not None and hasattr(item, "callback") and callable(item.callback):
             self.call_func_without_curses(lambda item=item: item.callback())
-            if self._close_on_selection:
-                self.close()
-        else:
+        if self._close_on_selection:
             self.close()
         self._should_update_screen = True
 
@@ -639,7 +644,7 @@ class Menu(Generic[T]):
         self._should_update_screen = True
 
     def __open_command_palette(self):
-        w = Menu(prompt=": command palette", items=list(self._hotkeys.values()))
+        w = Menu(prompt="Commands:", items=list(self._hotkeys.values()))
         w.exec()
         hotkey = w.get_selected_item()
         if hotkey is not None:

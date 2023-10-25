@@ -95,24 +95,24 @@ def require_package(pkg, wsl=False):
                 subprocess.check_call(["pkg", "install", pkg, "-y"])
             return
 
-        elif wsl and sys.platform == "win32":
-            if "apt" in packages[pkg]:
-                apt_package = packages[pkg]["apt"]["packageName"]
-                if (
-                    subprocess.call(
-                        ["wsl", "dpkg", "-s", apt_package],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.STDOUT,
-                    )
-                    != 0
-                ):
-                    logging.info(f"Installing package using apt: {pkg}...")
-                    subprocess.check_call(
-                        ["wsl", "sudo", "apt", "install", "-y", apt_package]
-                    )
-                return
+        elif wsl and "apt" in packages[pkg]:
+            apt_package = packages[pkg]["apt"]["packageName"]
+            wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
+            if (
+                subprocess.call(
+                    wsl_cmd + ["dpkg", "-s", apt_package],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
+                )
+                != 0
+            ):
+                logging.info(f"Installing package using apt: {pkg}...")
+                subprocess.check_call(
+                    wsl_cmd + ["sudo", "apt", "install", "-y", apt_package]
+                )
+            return
 
-        elif "choco" in packages[pkg] and sys.platform == "win32":
+        elif sys.platform == "win32" and "choco" in packages[pkg]:
             _choco_install(pkg)
             return
 

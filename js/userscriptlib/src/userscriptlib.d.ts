@@ -5,7 +5,7 @@ declare global {
     }
     var GM_xmlhttpRequest: any;
     function addButton(name: string, onclick: () => void, hotkey?: string): void;
-    function addNote(el: HTMLElement, text: string): void;
+    function highlight(el: HTMLElement, text?: string): void;
     function addText(text: string, { color }: {
         color?: string;
     }): void;
@@ -14,7 +14,9 @@ declare global {
     function findElementByPartialText(text: string): Node | null;
     function findElementBySelector(selector: string): Node | null;
     function findElementByText(text: string): Node | null;
+    function findElementsByText(text: string): Node[];
     function findElementByXPath(exp: string): Node | null;
+    function findElementsByXPath(exp: string): Node[];
     function getSelectedText(): string;
     function loadData(name: string): Promise<object>;
     function loadFile(file: string): Promise<string>;

@@ -175,6 +175,20 @@
       "packageName": "graphviz"
     }
   },
+  "grep": {
+    "apt": {
+      "packageName": "grep"
+    },
+    "choco": {
+      "packageName": "grep"
+    },
+    "pacman": {
+      "packageName": "grep"
+    },
+    "termux": {
+      "packageName": "grep"
+    }
+  },
   "imagemagick": {
     "choco": {
       "packageName": "imagemagick"
@@ -195,6 +209,20 @@
       "packageName": "klogg"
     },
     "executables": ["C:\\Program Files\\klogg\\klogg.exe"]
+  },
+  "less": {
+    "apt": {
+      "packageName": "less"
+    },
+    "choco": {
+      "packageName": "less"
+    },
+    "pacman": {
+      "packageName": "less"
+    },
+    "termux": {
+      "packageName": "less"
+    }
   },
   "lux": {
     "executablePath": {

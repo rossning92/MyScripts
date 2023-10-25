@@ -7,7 +7,7 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
 from _script import (
     Script,
@@ -332,7 +332,7 @@ class ScriptManager:
                 script = Script(file)
                 reloaded = True
 
-            if script.cfg["runEveryNSeconds"]:
+            if script.cfg["runEveryNSec"]:
                 self.scripts_scheduled.append(script)
 
             if reloaded:
@@ -371,24 +371,18 @@ class ScriptManager:
         # Startup script should only be run once
         self.startup = False
 
-    def check_scheduled_scripts(self):
+    def get_scheduled_scripts_to_run(self) -> Iterator[Script]:
         if self.no_gui:
             return
 
         now = time.time()
         for script in self.scripts_scheduled:
-            run_every_n_seconds = script.cfg["runEveryNSeconds"]
+            run_every_n_seconds = script.cfg["runEveryNSec"]
             if run_every_n_seconds:
                 if now > script.last_scheduled_run_time + int(run_every_n_seconds):
                     if script.is_running():
                         logging.warn("Script is still running, skip scheduled task.")
                     else:
                         logging.info(f"Run scheduled task: {script.name}")
-                        script.execute(
-                            args=[],
-                            close_on_exit=True,
-                            restart_instance=False,
-                            new_window=False,
-                            background=True,
-                        )
+                        yield script
                     script.last_scheduled_run_time = time.time()

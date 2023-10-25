@@ -45,6 +45,7 @@ from _shutil import (
     refresh_env_vars,
     run_at_startup,
     save_json,
+    setup_logger,
     setup_nodejs,
 )
 from utils.menu import Menu
@@ -202,7 +203,18 @@ class MainWindow(Menu[Script]):
         ):
             self._reload_scripts()
 
-        script_manager.check_scheduled_scripts()
+        for script in script_manager.get_scheduled_scripts_to_run():
+
+            def exec_script():
+                script.execute(
+                    args=[],
+                    close_on_exit=True,
+                    restart_instance=False,
+                    new_window=False,
+                    background=True,
+                )
+
+            self.call_func_without_curses(exec_script)
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
@@ -479,12 +491,7 @@ def _main_loop(no_gui=False, run_script_and_quit=False):
 
 if __name__ == "__main__":
     log_file = os.path.join(get_temp_dir(), "MyScripts.log")
-    logging.basicConfig(
-        filename=log_file,
-        filemode="w",
-        format="%(asctime)s %(levelname).1s %(filename)-10s: %(funcName)-10s: %(message)s",
-        level=logging.DEBUG,
-    )
+    setup_logger(log_to_stderr=False, log_file=log_file)
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(

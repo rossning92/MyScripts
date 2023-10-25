@@ -119,7 +119,7 @@ class FileManager(Menu[_File]):
             goto=self.__copy_to_path
             if self.__copy_to_path is not None
             else self.__config.cur_dir,
-            prompt=": Copy to",
+            prompt="Copy to:",
             save_states=False,
         )
         dest_dir = filemgr.select_directory()
@@ -165,7 +165,7 @@ class FileManager(Menu[_File]):
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
-            w = Menu(prompt="New name", text=selected.name)
+            w = Menu(prompt="New name>", text=selected.name)
             w.exec()
             new_name = w.get_input()
             if not new_name:
@@ -179,7 +179,7 @@ class FileManager(Menu[_File]):
             self.refresh()
 
     def _goto(self):
-        path = TextInput(prompt="Goto:").request_input()
+        path = TextInput(prompt="Goto>").request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
 

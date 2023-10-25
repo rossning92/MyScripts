@@ -1,8 +1,20 @@
 {
-  "matchByRegex": {
-    "bugreport-.*?\\.txt$": ["klogg", "vscode"]
-  },
   "matchByExt": {
+    ".3g2": ["mpv", "vlc"],
+    ".3gp": ["mpv", "vlc"],
+    ".3gp2": ["mpv", "vlc"],
+    ".3gpp": ["mpv", "vlc"],
+    ".4-win-x64": ["PathAdd"],
+    ".7z": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".aac": ["mpv", "vlc"],
+    ".ac3": ["mpv", "vlc"],
+    ".aco": ["vscode", "notepad++"],
+    ".ahk": ["vscode", "notepad++"],
+    ".ai": ["AI"],
+    ".aliases": ["vscode", "notepad++"],
+    ".amr": ["mpv", "vlc"],
+    ".amv": ["mpv", "vlc"],
+    ".ape": ["mpv", "vlc"],
     ".apk": [
       [
         "run_script",
@@ -18,20 +30,6 @@
         "--force_reinstall"
       ]
     ],
-    ".3g2": ["mpv", "vlc"],
-    ".3gp": ["mpv", "vlc"],
-    ".3gp2": ["mpv", "vlc"],
-    ".3gpp": ["mpv", "vlc"],
-    ".4-win-x64": ["PathAdd"],
-    ".aac": ["mpv", "vlc"],
-    ".ac3": ["mpv", "vlc"],
-    ".aco": ["vscode", "notepad++"],
-    ".ahk": ["vscode", "notepad++"],
-    ".ai": ["AI"],
-    ".aliases": ["vscode", "notepad++"],
-    ".amr": ["mpv", "vlc"],
-    ".amv": ["mpv", "vlc"],
-    ".ape": ["mpv", "vlc"],
     ".ase": ["vscode", "notepad++"],
     ".asf": ["mpv", "vlc"],
     ".asp": ["vscode", "notepad++"],
@@ -85,6 +83,7 @@
     ".dmskm": ["mpv", "vlc"],
     ".dng": ["irfanview"],
     ".docx": ["LibreOfficeWriter"],
+    ".dot": ["vscode", "notepad++"],
     ".downloading": ["mpv", "vlc"],
     ".dpg": ["mpv", "vlc"],
     ".dpl": ["mpv", "vlc"],
@@ -95,7 +94,6 @@
     ".dtshd": ["mpv", "vlc"],
     ".dvr-ms": ["mpv", "vlc"],
     ".dxf": ["vscode", "notepad++"],
-    ".dot": ["vscode", "notepad++"],
     ".eac3": ["mpv", "vlc"],
     ".efu": ["vscode", "notepad++"],
     ".ejs": ["vscode", "notepad++"],
@@ -122,6 +120,7 @@
     ".gitignore": ["vscode", "notepad++"],
     ".gradle": ["vscode", "notepad++"],
     ".grid": ["vscode", "notepad++"],
+    ".gz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
     ".h": ["vscode", "notepad++"],
     ".h_": ["vscode", "notepad++"],
     ".hpp": ["vscode", "notepad++"],
@@ -161,10 +160,10 @@
     ".list": ["vscode", "notepad++"],
     ".lmp4": ["mpv", "vlc"],
     ".lnk": ["HxD"],
-    ".log": ["klogg", "vscode"],
+    ".log": [["run_script", "r/logviewer.py"], "vscode"],
     ".lrc": ["vscode", "notepad++"],
-    ".lyx": ["vscode", "notepad++"],
     ".lua": ["vscode", "notepad++"],
+    ".lyx": ["vscode", "notepad++"],
     ".m1a": ["mpv", "vlc"],
     ".m1v": ["mpv", "vlc"],
     ".m2a": ["mpv", "vlc"],
@@ -230,6 +229,10 @@
     ".pde": ["vscode", "notepad++"],
     ".pdf": ["sumatrapdf", "adobereader"],
     ".pem": ["vscode", "notepad++"],
+    ".perfetto-trace": [
+      ["run_script", "r/android/perfetto/open_perfetto_trace.py"]
+    ],
+    ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
     ".pgc": ["vscode", "notepad++"],
     ".php": ["vscode", "notepad++"],
     ".pkl": ["vscode", "notepad++"],
@@ -257,6 +260,7 @@
     ".r": ["vscode", "notepad++"],
     ".ram": ["mpv", "vlc"],
     ".rapotp": ["mpv", "vlc"],
+    ".rar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
     ".rb": ["vscode", "notepad++"],
     ".record": ["vscode", "notepad++"],
     ".reg": ["vscode", "notepad++"],
@@ -283,9 +287,11 @@
     ".svg": ["irfanview"],
     ".swf": ["mpv", "vlc"],
     ".tak": ["mpv", "vlc"],
+    ".tar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
     ".td": ["mpv", "vlc"],
     ".tdl": ["mpv", "vlc"],
     ".tex": ["vscode", "notepad++"],
+    ".tgz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
     ".tif": ["irfanview"],
     ".tiff": ["irfanview"],
     ".tmlanguage": ["vscode", "notepad++"],
@@ -302,6 +308,8 @@
     ".txt": ["vscode", "klogg"],
     ".ui": ["vscode", "notepad++"],
     ".user": ["vscode", "notepad++"],
+    ".usf": ["vscode", "notepad++"],
+    ".ush": ["vscode", "notepad++"],
     ".vbs": ["vscode", "notepad++"],
     ".vcf": ["vscode", "notepad++"],
     ".vcproj": ["vscode", "notepad++"],
@@ -331,17 +339,12 @@
     ".yml": ["vscode", "notepad++"],
     ".zim": ["vscode", "notepad++"],
     ".zip": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-    ".rar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-    ".zxp": ["vscode", "notepad++"],
-    ".gz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-    ".usf": ["vscode", "notepad++"],
-    ".ush": ["vscode", "notepad++"],
-    ".tar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-    ".tgz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-    ".7z": [["run_script", "r/unzip.py", "--open"], "7zfm"],
-    ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
-    ".perfetto-trace": [
-      ["run_script", "r/android/perfetto/open_perfetto_trace.py"]
+    ".zxp": ["vscode", "notepad++"]
+  },
+  "matchByRegex": {
+    "(logcat|bugreport-).*?\\.txt$": [
+      ["run_script", "r/logviewer.py"],
+      "vscode"
     ]
   }
 }

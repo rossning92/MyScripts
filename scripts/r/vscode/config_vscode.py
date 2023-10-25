@@ -135,7 +135,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             "yzhang.markdown-all-in-one",
             "mushan.vscode-paste-image",
             # For [[wiki-links]], backlinks, #tags and @bibtex-citations
-            "kortina.vscode-markdown-notes",
+            "foam.foam-vscode",
             # Javascript
             "dbaeumer.vscode-eslint",
             "esbenp.prettier-vscode",

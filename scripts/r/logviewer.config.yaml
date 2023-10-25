@@ -1,1 +1,2 @@
-wsl: true
+singleInstance: false
+packages: less grep

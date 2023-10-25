@@ -1752,8 +1752,9 @@ def setup_logger(
     log_file: Optional[str] = None,
 ):
     format = (
-        "%(asctime)s.%(msecs)03d %(levelname).1s %(filename)-10s: "
-        "%(funcName)-10s: "
+        "%(asctime)s.%(msecs)03d %(levelname).1s "
+        # "%(filename)-10s: "
+        # "%(funcName)-10s: "
         "%(message)s"
     )
     datefmt = "%H:%M:%S"
