@@ -38,6 +38,7 @@ PYTHON_MODULE_LIST = {
     "selenium": "selenium",
     "simpleaudio": "simpleaudio",
     "skimage": "scikit-image",
+    "sklearn": "scikit-learn",
     "slugify": "python-slugify",
     "websockets": "websockets",
     "win32api": "pywin32",
@@ -53,7 +54,7 @@ class MyMetaPathFinder(MetaPathFinder):
     A importlib.abc.MetaPathFinder to auto-install missing modules using pip
     """
 
-    def find_spec(fullname, path, target=None):
+    def find_spec(self, fullname, path, target=None):
         if path is None:
             if fullname in PYTHON_MODULE_LIST:
                 installed = subprocess.call(
@@ -70,7 +71,7 @@ class MyMetaPathFinder(MetaPathFinder):
 
 
 os.environ["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-sys.meta_path.append(MyMetaPathFinder)
+sys.meta_path.append(MyMetaPathFinder())
 
 
 if __name__ == "__main__":

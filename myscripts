@@ -6,10 +6,11 @@ cd "$(dirname "$0")"
 if [[ "$(uname)" == "Linux" ]] && [[ -f "/etc/debian_version" ]]; then
     # Install required packages
     declare -a packages=(
+        "python3"
         "python3-pip"
-        "suckless-tools" # for dmenu
-        "sxhkd"
-        "wmctrl"
+        # "suckless-tools" # for dmenu
+        # "sxhkd"
+        # "wmctrl"
     )
     for package in "${packages[@]}"; do
         dpkg -s "$package" >/dev/null 2>&1 || {
@@ -19,12 +20,12 @@ if [[ "$(uname)" == "Linux" ]] && [[ -f "/etc/debian_version" ]]; then
     done
 
     # Start sxhkd
-    touch ~/.sxhkdrc
-    killall sxhkd >/dev/null 2>&1 || true
-    setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
+    # touch ~/.sxhkdrc
+    # killall sxhkd >/dev/null 2>&1 || true
+    # setsid sxhkd -c ~/.sxhkdrc >/dev/null 2>&1 &
 
     # Disable capslock key
-    setxkbmap -option ctrl:nocaps
+    # setxkbmap -option ctrl:nocaps
 
 elif command -v termux-setup-storage; then # is running in termux
     if [[ ! -x "$(command -v python)" ]]; then
@@ -58,7 +59,8 @@ echo -ne '\033]0;MyScriptsTerminal\007'
 # Default settings for FZF
 export FZF_DEFAULT_OPTS='--layout=reverse'
 
-[[ ! -d .venv ]] && python3 -m venv .venv --system-site-packages
-source .venv/bin/activate
-pip3 install -r requirements.txt >/dev/null
-python3 myscripts.py "$@"
+[[ ! -d "$HOME/.venv/myscripts" ]] && python3 -m venv "$HOME/.venv/myscripts" --system-site-packages
+source "$HOME/.venv/myscripts/bin/activate"
+
+pip install -r requirements.txt >/dev/null
+python myscripts.py "$@"

@@ -2,8 +2,6 @@ import argparse
 import logging
 import os
 import re
-import subprocess
-import time
 
 import requests
 from _shutil import (
@@ -13,6 +11,7 @@ from _shutil import (
     prepend_to_path,
     setup_logger,
 )
+from utils.retry import retry
 
 root = os.path.dirname(os.path.realpath(__file__))
 
@@ -35,21 +34,12 @@ def get_redirected_url(url):
 
 
 def download_bilibili(url, download_dir=None):
-    # Cookie
-    kvp = []
-    with open(os.path.join(get_home_path(), ".bilibili-cookies.txt"), "r") as f:
-        lines = f.read().splitlines()
-        for line in lines:
-            if line.startswith("#"):
-                continue
-            if line.strip() == "":
-                continue
-            cols = line.split("\t")
-            kvp.append(cols[-2] + "=" + cols[-1])
-    cookie = ";".join(kvp)
-
     prepend_to_path([os.path.join(get_home_path(), "go", "bin")])
-    call_echo(["lux", "-c", cookie, url], shell=False, cwd=download_dir)
+    cookie_file = os.path.join(get_home_path(), ".bilibili-cookies.txt")
+    with open(cookie_file, "r") as f:
+        cookie = f.read()
+    # call_echo(["lux", "-c", cookie_file, url], shell=False, cwd=download_dir)
+    call_echo(["BBDown", "-c", cookie, url], shell=False, cwd=download_dir)
 
 
 def download_youtube(url, download_dir=None, audio_only=False, download_playlist=False):
@@ -63,43 +53,32 @@ def download_youtube(url, download_dir=None, audio_only=False, download_playlist
     call_echo(args, cwd=download_dir)
 
 
+@retry()
 def download_video(url, audio_only=False, download_dir=None, save_url=True):
-    total_retry = 3
-    while total_retry > 0:
-        try:
-            url = get_redirected_url(url)
-            if "bilibili.com" in url:
-                ddir = get_download_dir("Bilibili", base=download_dir)
-                download_bilibili(
-                    url,
-                    download_dir=ddir,
-                )
-            elif "youtube.com" in url:
-                ddir = get_download_dir("Youtube", base=download_dir)
-                download_youtube(
-                    url,
-                    download_dir=ddir,
-                    audio_only=audio_only,
-                )
+    url = get_redirected_url(url)
+    if "bilibili.com" in url:
+        ddir = get_download_dir("Bilibili", base=download_dir)
+        download_bilibili(
+            url,
+            download_dir=ddir,
+        )
+    elif "youtube.com" in url:
+        ddir = get_download_dir("Youtube", base=download_dir)
+        download_youtube(
+            url,
+            download_dir=ddir,
+            audio_only=audio_only,
+        )
 
-            # Save url
-            if save_url:
-                # Remove anything after "&":
-                # https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
-                url = re.sub(r"(\?(?!v)|&).*$", "", url)
-                url_file = get_newest_file(os.path.join(ddir, "*.*")) + ".url"
-                logging.info("Save url to: %s" % url_file)
-                with open(url_file, "w", encoding="utf-8") as f:
-                    f.write(url)
-
-            return
-        except subprocess.CalledProcessError:
-            logging.warning("Failed to download the video, retry in 1 sec.")
-            time.sleep(1)
-            total_retry -= 1
-
-    if total_retry == 0:
-        raise Exception(f"Max retries exceeded with url: {url}")
+    # Save url
+    if save_url:
+        # Remove anything after "&":
+        # https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
+        url = re.sub(r"(\?(?!v)|&).*$", "", url)
+        url_file = get_newest_file(os.path.join(ddir, "*.*")) + ".url"
+        logging.info("Save url to: %s" % url_file)
+        with open(url_file, "w", encoding="utf-8") as f:
+            f.write(url)
 
 
 if __name__ == "__main__":

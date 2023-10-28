@@ -14,10 +14,10 @@ IF NOT %errorlevel%==0 (
 
 TITLE MyScriptsTerminal
 
-IF NOT EXIST .venv\ (
-  python -m venv .venv --system-site-packages
+IF NOT EXIST "%USERPROFILE%\.venv\myscripts" (
+  python -m venv "%USERPROFILE%\.venv\myscripts" --system-site-packages
 )
-CALL .venv\Scripts\activate.bat
+CALL "%USERPROFILE%\.venv\myscripts\Scripts\activate.bat"
 
 ECHO Install python packages...
 pip install -r requirements.txt >NUL

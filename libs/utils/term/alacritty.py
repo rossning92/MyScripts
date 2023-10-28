@@ -7,6 +7,10 @@ from typing import Optional, Tuple
 from _shutil import file_is_old
 
 
+def is_alacritty_installed():
+    return shutil.which("alacritty")
+
+
 def wrap_args_alacritty(
     args,
     borderless: bool = False,
@@ -19,7 +23,7 @@ def wrap_args_alacritty(
 ):
     assert isinstance(args, list)
 
-    if not shutil.which("alacritty"):
+    if not is_alacritty_installed():
         raise FileNotFoundError("Alacritty is not installed.")
 
     # Copy alacritty config file

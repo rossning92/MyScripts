@@ -4,12 +4,14 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Dict, Optional
 
 from _shutil import (
     check_output,
     get_home_path,
     is_in_termux,
     load_json,
+    prepend_to_path,
     refresh_env_vars,
     run_elevated,
     start_process,
@@ -50,7 +52,7 @@ def find_executable(pkg, install=False):
     return None
 
 
-def require_package(pkg, wsl=False):
+def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
     if "dependantPackages" in packages:
         for pkg in packages["dependantPackages"]:
             require_package(pkg)
@@ -110,6 +112,25 @@ def require_package(pkg, wsl=False):
                 subprocess.check_call(
                     wsl_cmd + ["sudo", "apt", "install", "-y", apt_package]
                 )
+            return
+
+        elif sys.platform == "win32" and "dotnet" in packages[pkg]:
+            dotnet_package = packages[pkg]["dotnet"]["packageName"]
+            if (
+                subprocess.call(
+                    ["dotnet", "tool", "list", "--global", dotnet_package],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.STDOUT,
+                )
+                != 0
+            ):
+                logging.info(f"Installing dotnet package package: {dotnet_package}...")
+                subprocess.check_call(
+                    ["dotnet", "tool", "install", "--global", dotnet_package]
+                )
+            prepend_to_path(
+                os.path.expandvars("%USERPROFILE%\\.dotnet\\tools"), env=env
+            )
             return
 
         elif sys.platform == "win32" and "choco" in packages[pkg]:

@@ -240,6 +240,7 @@ def register_global_hotkeys_win(scripts: List[Script]):
 
 def execute_script(script: Script, close_on_exit=None, no_gui=False):
     refresh_env_vars()
+
     if no_gui:
         args: List[str] = []
     else:

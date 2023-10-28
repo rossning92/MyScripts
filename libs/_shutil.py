@@ -21,7 +21,7 @@ from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
 from time import sleep
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import yaml
 from utils.clip import _set_clip_win
@@ -888,9 +888,8 @@ def get_short_path_name(long_name):
             output_buf_size = needed
 
 
-def prepend_to_path(paths: Union[str, List[str]], env=None):
-    if env is None:
-        env = os.environ
+def prepend_to_path(paths: Union[str, List[str]], env: Optional[Dict[str, str]] = None):
+    env_dict: Dict[str, str] = env if env is not None else os.environ
 
     if isinstance(paths, list):
         pass
@@ -900,8 +899,8 @@ def prepend_to_path(paths: Union[str, List[str]], env=None):
         raise ValueError()
     logging.debug(f"Prepend to PATH: {os.pathsep.join(paths)}")
 
-    if "PATH" in env:
-        paths += env["PATH"].split(os.pathsep)
+    if "PATH" in env_dict:
+        paths += env_dict["PATH"].split(os.pathsep)
     else:
         paths += os.environ["PATH"].split(os.pathsep)
 
@@ -913,7 +912,7 @@ def prepend_to_path(paths: Union[str, List[str]], env=None):
     s = os.pathsep.join(paths)
 
     # Update PATH environmental variable
-    env["PATH"] = s
+    env_dict["PATH"] = s
 
 
 def get_cur_time_str():
@@ -1458,8 +1457,8 @@ def slugify(value, allow_unicode=True):
             .encode("ascii", "ignore")
             .decode("ascii")
         )
-    value = re.sub(r"[^\w\s-]", "", value.lower())
-    return re.sub(r"[-\s]+", "-", value).strip("-_")
+    value = re.sub(r"[^\w\s-]+", "_", value.lower())
+    return re.sub(r"[-\s]+", "_", value).strip("-_")
 
 
 def load_json(file: str, default=None):

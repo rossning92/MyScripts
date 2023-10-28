@@ -34,6 +34,7 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
+    is_in_termux,
     load_json,
     load_yaml,
     npm_install,
@@ -54,7 +55,7 @@ from timed import timed
 from utils.menu import get_hotkey_abbr
 from utils.menu.filemgr import FileManager
 from utils.menu.input import Input
-from utils.term.alacritty import wrap_args_alacritty
+from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.venv import activate_python_venv, get_venv_python_executable
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -89,6 +90,8 @@ if sys.platform == "win32":
 VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
 LOG_PIPE_FOR_BACKGROUND_PROCESS = True
+
+SUPPORT_GNU_SCREEN = False
 
 
 @lru_cache(maxsize=None)
@@ -649,10 +652,10 @@ def get_absolute_script_path(path: str):
 
 
 class LogPipe(threading.Thread):
-    def __init__(self, read_pipe, level):
+    def __init__(self, read_pipe, log_level):
         threading.Thread.__init__(self)
         self.daemon = False
-        self.level = level
+        self.level = log_level
         self.read_pipe = read_pipe
         self.start()
 
@@ -880,6 +883,10 @@ class Script:
         command_wrapper: Optional[bool] = True,
         background=False,
     ) -> bool:
+        # Termux does not have any GUI support, so we never open script in new window.
+        # if is_in_termux():
+        #     new_window = False
+
         if not self.is_supported():
             logging.warning(f"{self.name} is not supported on {sys.platform}.")
             return False
@@ -907,9 +914,16 @@ class Script:
         if tee is None:
             tee = self.cfg["tee"]
 
-        if not restart_instance and single_instance:
+        if new_window and not restart_instance and single_instance:
             title = self.get_window_title()
-            if activate_window_by_name(title):
+            if (
+                SUPPORT_GNU_SCREEN
+                and shutil.which("screen")
+                and subprocess.call(["screen", "-r", slugify(title)]) == 0
+            ):
+                return True
+
+            elif activate_window_by_name(title):
                 logging.info(f"Activated window by title: {title}")
                 return True
 
@@ -1272,7 +1286,7 @@ class Script:
         if self.cfg["packages"]:
             packages = self.cfg["packages"].split()
             for pkg in packages:
-                require_package(pkg, wsl=self.cfg["wsl"])
+                require_package(pkg, wsl=self.cfg["wsl"], env=env)
 
             if "node" in packages:
                 print("node package is required.")
@@ -1377,8 +1391,26 @@ class Script:
 
             elif new_window:
                 if restart_instance and single_instance:
-                    # Close exising instances
-                    close_window_by_name(self.get_window_title())
+                    if (
+                        SUPPORT_GNU_SCREEN
+                        and shutil.which("screen")
+                        and subprocess.call(
+                            [
+                                "screen",
+                                "-S",
+                                slugify(self.get_window_title()),
+                                "-X",
+                                "quit",
+                            ]
+                        )
+                        == 0
+                    ):
+                        pass
+
+                    else:
+                        # Close exising instances
+                        close_window_by_name(self.get_window_title())
+
                 try:
                     if sys.platform == "win32":
                         # Open in specified terminal (e.g. Windows Terminal)
@@ -1447,8 +1479,6 @@ class Script:
                             open_in_terminal = True
 
                     elif sys.platform == "linux":
-                        # arg_list = ["tmux", "split-window"] + arg_list
-
                         TERMINAL = "alacritty"
                         if TERMINAL == "gnome":
                             arg_list = [
@@ -1494,13 +1524,25 @@ class Script:
                             no_wait = True
                             open_in_terminal = True
 
-                        elif TERMINAL == "alacritty":
+                        elif TERMINAL == "alacritty" and is_alacritty_installed():
                             arg_list = wrap_args_alacritty(
                                 arg_list,
                                 title=self.get_window_title(),
                             )
                             no_wait = True
                             open_in_terminal = True
+
+                        elif SUPPORT_GNU_SCREEN and shutil.which("screen"):
+                            arg_list = [
+                                "screen",
+                                "-S",
+                                slugify(self.get_window_title()),
+                            ] + arg_list
+
+                        else:
+                            raise FileNotFoundError(
+                                "No terminal is available for `newWindow` on linux."
+                            )
 
                     else:
                         logging.warning(
@@ -1569,8 +1611,8 @@ class Script:
                         success = self.ps.wait() == 0
 
                 if LOG_PIPE_FOR_BACKGROUND_PROCESS and background:
-                    LogPipe(self.ps.stdout, logging.INFO)
-                    LogPipe(self.ps.stderr, logging.ERROR)
+                    LogPipe(self.ps.stdout, log_level=logging.ERROR)
+                    LogPipe(self.ps.stderr, log_level=logging.ERROR)
 
                 return success
 

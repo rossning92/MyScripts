@@ -1,14 +1,14 @@
-from _audio import *
-from _shutil import *
+import os
+import subprocess
 
+from _shutil import get_files, write_temp_file
 
 if __name__ == "__main__":
     files = get_files()
 
     file_list = write_temp_file("\n".join(["file '%s'" % f for f in files]), ".txt")
-    cd(os.environ["CWD"])
-    mkdir("out")
-    call_echo(
+    os.chdir(os.environ["CWD"])
+    subprocess.check_call(
         [
             "ffmpeg",
             "-f",
@@ -19,8 +19,7 @@ if __name__ == "__main__":
             file_list,
             "-c",
             "copy",
-            "out/concat.mp4",
+            "concat.mp4",
             "-y",
-        ],
-        shell=False,
+        ]
     )
