@@ -3,7 +3,7 @@ import os
 from _pkgmanager import find_executable, require_package
 from _shutil import call_echo, get_files
 
-require_package("magick")
+require_package("imagemagick")
 magick = find_executable("magick")
 
 f = get_files(cd=True)[0]

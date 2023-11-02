@@ -320,6 +320,11 @@
       "packageName": "prusaslicer"
     }
   },
+  "renderdoc": {
+    "choco": {
+      "packageName": "renderdoc"
+    }
+  },
   "ripgrep": {
     "choco": {
       "packageName": "ripgrep"

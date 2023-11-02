@@ -1,3 +1,4 @@
+import datetime
 import re
 import subprocess
 from collections import namedtuple
@@ -6,7 +7,9 @@ from typing import List
 from _script import get_variable, set_variable
 from _shutil import getch, print2
 
-DeviceInfo = namedtuple("DeviceInfo", ["serial", "product", "battery_level", "key"])
+DeviceInfo = namedtuple(
+    "DeviceInfo", ["serial", "flavor", "battery_level", "key", "date_utc"]
+)
 
 
 def get_device_list() -> List[DeviceInfo]:
@@ -24,19 +27,26 @@ def get_device_list() -> List[DeviceInfo]:
         if line.strip():
             serial, _ = line.split()
 
-            # Get product name
+            # Get ro.build.flavor
             try:
-                product = subprocess.check_output(
-                    ["adb", "-s", serial, "shell", "getprop", "ro.build.product"],
+                flavor = subprocess.check_output(
+                    ["adb", "-s", serial, "shell", "getprop", "ro.build.flavor"],
                     universal_newlines=True,
                 ).strip()
+
+                date_utc = int(
+                    subprocess.check_output(
+                        ["adb", "-s", serial, "shell", "getprop", "ro.build.date.utc"],
+                        universal_newlines=True,
+                    ).strip()
+                )
 
                 # Get battery level
                 out = subprocess.check_output(
                     ["adb", "-s", serial, "shell", "dumpsys", "battery"],
                     universal_newlines=True,
                 )
-                match = re.findall("level: (\d+)", out)
+                match = re.findall(r"level: (\d+)", out)
                 if match:
                     battery_level = match[0]
                 else:
@@ -45,7 +55,8 @@ def get_device_list() -> List[DeviceInfo]:
                 continue
 
             # Find next unused key
-            for key in product:
+            key = None
+            for key in flavor:
                 key = key.lower()
                 if key not in used_key:
                     used_key.add(key)
@@ -59,11 +70,23 @@ def get_device_list() -> List[DeviceInfo]:
                 ),
                 end="",
             )
-            print2(" %s" % product, color="green", end="")
-            print(" Battery=%s" % battery_level, end="")
+            print2(" %s" % flavor, color="green", end="")
+            print(
+                " bat=%s %s"
+                % (battery_level, datetime.datetime.utcfromtimestamp(date_utc)),
+                end="",
+            )
             if current_serial == serial:
                 print2(" (*)", color="red", end="")
-            device_list.append(DeviceInfo(serial, product, battery_level, key))
+            device_list.append(
+                DeviceInfo(
+                    serial=serial,
+                    flavor=flavor,
+                    battery_level=battery_level,
+                    key=key,
+                    date_utc=date_utc,
+                )
+            )
             print()
 
     print("[0] Clear ANDROID_SERIAL")

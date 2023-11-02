@@ -47,6 +47,7 @@ from _shutil import (
     setup_nodejs,
     shell_open,
     slugify,
+    start_process,
     wrap_args_conemu,
     write_temp_file,
 )
@@ -1261,7 +1262,7 @@ class Script:
                     )
                 for chrome_exec in chrome_executables:
                     if shutil.which(chrome_exec):
-                        subprocess.check_call(
+                        start_process(
                             [chrome_exec, "--chrome-frame", "--app=" + url]
                         )
                         fallback_to_shell_open = False

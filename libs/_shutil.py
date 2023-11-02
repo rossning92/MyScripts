@@ -1235,19 +1235,19 @@ def start_process(args, shell=False):
         DETACHED_PROCESS = 0x00000008
         creationflags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
 
-    start_new_session = False
     if sys.platform == "linux":
         start_new_session = True
+    else:
+        start_new_session = False
 
-    with open(os.devnull) as nul:
-        subprocess.Popen(
-            args,
-            shell=shell,
-            creationflags=creationflags,
-            start_new_session=start_new_session,
-            stderr=nul,
-            stdout=nul,
-        )
+    subprocess.Popen(
+        args,
+        shell=shell,
+        creationflags=creationflags,
+        start_new_session=start_new_session,
+        stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+    )
 
 
 def setup_nodejs(install=True):

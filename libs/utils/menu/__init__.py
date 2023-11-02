@@ -4,7 +4,17 @@ import os
 import re
 import sys
 import time
-from typing import Callable, Dict, Generic, Iterator, List, Optional, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    TypeVar,
+    Union,
+)
 
 from _shutil import load_json, save_json, slugify
 
@@ -56,15 +66,29 @@ class _Hotkey:
         return "%s (%s)" % (self.func.__name__, get_hotkey_abbr(self.hotkey))
 
 
-def _fuzzy_search_func(items, kw):
-    kw = kw.lower()
-    if not kw:
-        for i, s in enumerate(items):
-            yield i
+def _match_fuzzy(item: Any, patt: str) -> bool:
+    patt = patt.lower()
+    if not patt:
+        return True
     else:
-        for i, item in enumerate(items):
-            if all([(x in str(item).lower()) for x in kw.split(" ")]):
-                yield i
+        return all([(x in str(item).lower()) for x in patt.split(" ")])
+
+
+def _match_regex(item: Any, patt: str) -> bool:
+    if not patt:
+        return True
+    else:
+        try:
+            return re.search(patt, str(item), re.IGNORECASE) is not None
+        except re.error:
+            return False
+
+
+def _match(item: Any, patt: str, fuzzy_match: bool) -> bool:
+    if fuzzy_match:
+        return _match_fuzzy(item, patt)
+    else:
+        return _match_regex(item, patt)
 
 
 class _InputWidget:
@@ -163,6 +187,7 @@ T = TypeVar("T")
 
 class Menu(Generic[T]):
     stdscr = None
+    color_pair_map: Dict[str, str] = {}
 
     def __init__(
         self,
@@ -176,6 +201,8 @@ class Menu(Generic[T]):
         prompt="",
         text="",
         on_item_selected: Optional[Callable[[T], None]] = None,
+        text_color_map: Optional[Dict[str, str]] = None,
+        fuzzy_search=True,
     ):
         self.items = items
         self.last_key_pressed_timestamp: float = 0.0
@@ -193,11 +220,13 @@ class Menu(Generic[T]):
         self._message: Optional[str] = None
         self._requested_selected_row: int = -1
         self._selected_row: int = 0
-        self._should_update_items: bool = False
+        self._should_update_matched_items: bool = False
         self._width: int = -1
         self.__debug = debug
         self.__allow_input: bool = allow_input
         self.__on_item_selected = on_item_selected
+        self.__text_color_map = text_color_map
+        self.__fuzzy_search = fuzzy_search
 
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
@@ -237,6 +266,21 @@ class Menu(Generic[T]):
             return func
 
         return decorator
+
+    def append_item(self, item: T):
+        last_line_selected = self._selected_row == len(self._matched_item_indices) - 1
+
+        self.items.append(item)
+        self._last_item_count = len(self.items)
+        if _match(item, self.get_text(), fuzzy_match=self.__fuzzy_search):
+            self._matched_item_indices.append(self._last_item_count - 1)
+
+            # Scroll to bottom if last line is selected
+            if last_line_selected:
+                self._selected_row = len(self._matched_item_indices) - 1
+
+            # update screen
+            self._should_update_screen = True
 
     def set_input(self, text: str):
         self._input.set_text(text)
@@ -296,6 +340,20 @@ class Menu(Generic[T]):
         curses.init_pair(1, curses.COLOR_BLUE, -1)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
+        color_pair_index = 3
+
+        curses.init_pair(color_pair_index, curses.COLOR_RED, -1)
+        Menu.color_pair_map["red"] = color_pair_index
+        color_pair_index += 1
+
+        curses.init_pair(color_pair_index, curses.COLOR_YELLOW, -1)
+        Menu.color_pair_map["yellow"] = color_pair_index
+        color_pair_index += 1
+
+        curses.init_pair(color_pair_index, curses.COLOR_BLUE, -1)
+        Menu.color_pair_map["blue"] = color_pair_index
+        color_pair_index += 1
+
         stdscr.keypad(True)
         stdscr.nodelay(False)
         stdscr.timeout(1000)
@@ -322,11 +380,16 @@ class Menu(Generic[T]):
         Menu.stdscr.refresh()
 
     def update_matched_items(self):
-        # Search scripts
-        self._matched_item_indices = list(
-            _fuzzy_search_func(self.items, self.get_text())
-        )
-        self.reset_selection()
+        self._matched_item_indices.clear()
+        for i, item in enumerate(self.items):
+            if _match(item, self.get_text(), fuzzy_match=self.__fuzzy_search):
+                self._matched_item_indices.append(i)
+
+        num_matched_items = len(self._matched_item_indices)
+        if num_matched_items > 0:
+            self._selected_row = min(self._selected_row, num_matched_items - 1)
+        else:
+            self._selected_row = 0
 
     def reset_selection(self):
         self._selected_row = 0
@@ -336,27 +399,27 @@ class Menu(Generic[T]):
         self.on_item_selected()
 
     def refresh(self):
-        self._should_update_items = True
+        self._should_update_matched_items = True
 
     # Returns false if we should exit main loop for the current window
-    def process_events(self, blocking=False) -> bool:
+    def process_events(self, timeout_ms: int = 0) -> bool:
         assert Menu.stdscr is not None
 
-        if blocking:
-            Menu.stdscr.timeout(1000)
+        if timeout_ms > 0:
+            Menu.stdscr.timeout(timeout_ms)
         else:
             Menu.stdscr.timeout(0)
 
-        self._should_update_items = (
-            self._should_update_items
+        self._should_update_matched_items = (
+            self._should_update_matched_items
             or self._last_input != self.get_text()
             or self._last_item_count != len(self.items)
         )
-        if not blocking or self._should_update_items:
+        if self._should_update_matched_items:
             self._last_input = self.get_text()
             self._last_item_count = len(self.items)
             self.update_matched_items()
-            self._should_update_items = False
+            self._should_update_matched_items = False
             self._should_update_screen = True
 
         if self._requested_selected_row >= 0:
@@ -424,7 +487,7 @@ class Menu(Generic[T]):
 
             self.prev_key = ch
 
-        if ch == -1 and blocking:  # getch() is timed-out
+        if ch == -1 and timeout_ms:  # getch() is timed-out
             self.__on_idle()
 
         if self._closed:
@@ -445,7 +508,7 @@ class Menu(Generic[T]):
     def _exec(self):
         self.on_created()
         self.on_main_loop()
-        while self.process_events(blocking=True):
+        while self.process_events(timeout_ms=1000):
             self.on_main_loop()
 
     def get_selected_index(self):
@@ -483,6 +546,12 @@ class Menu(Generic[T]):
         if col < 0:
             s = ".." + s[-col + 2 :]
             col = 0
+
+        # Highlight text by regex
+        if self.__text_color_map is not None:
+            for patt, color in self.__text_color_map.items():
+                if re.search(patt, s):
+                    color_pair = Menu.color_pair_map[color]
 
         if color_pair > 0:
             Menu.stdscr.attron(curses.color_pair(color_pair))
