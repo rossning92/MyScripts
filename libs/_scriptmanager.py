@@ -291,6 +291,7 @@ class ScriptManager:
         self.hotkeys: Dict[str, Script] = {}
         self.no_gui = no_gui
         self.startup = startup
+        self.__clipboard_script_map: List[Tuple[re.Pattern, Script]] = []
 
     def update_access_time(self):
         access_time, _ = get_all_script_access_time()
@@ -356,6 +357,18 @@ class ScriptManager:
 
         return any_script_reloaded
 
+    def update_clipboard_script_map(self):
+        self.__clipboard_script_map.clear()
+        for script in self.scripts:
+            patt = script.cfg["matchClipboard"]
+            if patt:
+                self.__clipboard_script_map.append((re.compile(patt), script))
+
+    def match_clipboard(self, s: str) -> Iterator[Script]:
+        for regex, script in self.__clipboard_script_map:
+            if re.search(regex, s):
+                yield script
+
     def refresh_all_scripts(self, on_progress: Optional[Callable[[], None]] = None):
         begin_time = time.time()
 
@@ -363,6 +376,7 @@ class ScriptManager:
             self.hotkeys = register_hotkeys(self.scripts)
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
+                self.update_clipboard_script_map()
                 # monitor_clipboard(self.scripts)
 
         self.sort_scripts()

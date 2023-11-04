@@ -441,11 +441,15 @@ mp.add_forced_key_binding("X", "cut_video_background", function () {
 
 mp.add_forced_key_binding("ctrl+x", "cut_video_no_encode", function () {
   mp.osd_message("cut video (no encode)...");
-  exportVideo({
-    start: inTime,
-    duration: outTime - inTime,
-    background: true,
-    noEncode: true,
+  mp.command_native({
+    name: "subprocess",
+    args: [
+      "run_script",
+      "r/video/cut_video_no_encode.py",
+      mp.get_property_native("path"),
+      inTime.toString(),
+      (outTime - inTime).toString(),
+    ],
   });
   inTime = 0;
   outTime = 0;

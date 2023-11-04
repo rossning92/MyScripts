@@ -1,4 +1,4 @@
-from _clip import get_clip
+from utils.clip import get_clip
 
 from ..menu import Menu
 

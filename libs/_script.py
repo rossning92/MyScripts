@@ -20,7 +20,6 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
 import yaml
 from _android import setup_android_env
-from _clip import get_clip, get_selection
 from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
@@ -34,7 +33,6 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
-    is_in_termux,
     load_json,
     load_yaml,
     npm_install,
@@ -53,6 +51,7 @@ from _shutil import (
 )
 from _template import render_template
 from timed import timed
+from utils.clip import get_clip, get_selection
 from utils.menu import get_hotkey_abbr
 from utils.menu.filemgr import FileManager
 from utils.menu.input import Input
@@ -872,6 +871,9 @@ class Script:
             return False
         return True
 
+    def get_short_name(self) -> str:
+        return os.path.splitext(os.path.basename(self.name))[0]
+
     def execute(
         self,
         args: List[str] = [],
@@ -1262,9 +1264,7 @@ class Script:
                     )
                 for chrome_exec in chrome_executables:
                     if shutil.which(chrome_exec):
-                        start_process(
-                            [chrome_exec, "--chrome-frame", "--app=" + url]
-                        )
+                        start_process([chrome_exec, "--chrome-frame", "--app=" + url])
                         fallback_to_shell_open = False
                         break
 
@@ -1311,13 +1311,19 @@ class Script:
                 log_file = os.path.join(
                     get_home_path(),
                     "Desktop",
-                    "{}_{}.log".format(self.name.split("/")[-1], int(time.time())),
+                    "{}_{}.log".format(self.get_short_name(), int(time.time())),
                 )
-                arg_list = wrap_args_tee(
-                    arg_list,
-                    out_file=log_file,
-                )
-                open_log_file(log_file)
+                # arg_list = wrap_args_tee(
+                #     arg_list,
+                #     out_file=log_file,
+                # )
+                # open_log_file(log_file)
+                arg_list = [
+                    sys.executable,
+                    os.path.join(get_my_script_root(), "scripts", "r", "logviewer.py"),
+                    log_file,
+                    "--cmdline",
+                ] + arg_list
 
             no_wait = False
             open_in_terminal = False

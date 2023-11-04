@@ -1,3 +1,3 @@
 @ECHO OFF
-CALL "%~dp0..\.venv\Scripts\activate.bat"
+CALL "%USERPROFILE%\.venv\myscripts\Scripts\activate.bat"
 python "%~dp0start_script.py" %*

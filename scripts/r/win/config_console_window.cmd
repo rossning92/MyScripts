@@ -31,4 +31,4 @@ reg add HKCU\Console /v ColorTable14 /t REG_DWORD /d 0x008cfaf1 /f >NUL
 reg add HKCU\Console /v ColorTable15 /t REG_DWORD /d 0x00f2f8f8 /f >NUL
 
 @REM Window size
-reg add HKCU\Console /v WindowSize /t REG_DWORD /d 0x190050 /f
+reg add HKCU\Console /v WindowSize /t REG_DWORD /d 0x280078 /f

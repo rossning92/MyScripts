@@ -38,8 +38,8 @@ def download_bilibili(url, download_dir=None):
     cookie_file = os.path.join(get_home_path(), ".bilibili-cookies.txt")
     with open(cookie_file, "r") as f:
         cookie = f.read()
-    # call_echo(["lux", "-c", cookie_file, url], shell=False, cwd=download_dir)
-    call_echo(["BBDown", "-c", cookie, url], shell=False, cwd=download_dir)
+    call_echo(["lux", "-c", cookie, url], shell=False, cwd=download_dir)
+    # call_echo(["BBDown", "-c", cookie, url], shell=False, cwd=download_dir)
 
 
 def download_youtube(url, download_dir=None, audio_only=False, download_playlist=False):

@@ -3,8 +3,9 @@ import logging
 import os
 import subprocess
 import sys
+from typing import Optional, Tuple
 
-from _shutil import call_echo, get_temp_file_name
+from _shutil import call_echo, get_next_file_name, get_temp_file_name
 
 
 def hstack_videos(files, out_file=None):
@@ -176,7 +177,7 @@ def _get_media_duration(f):
 def ffmpeg(
     in_file,
     out_file=None,
-    start_and_duration=None,
+    start_and_duration: Optional[Tuple[float, float]] = None,
     reencode=True,
     nvenc=True,
     extra_args=None,
@@ -212,10 +213,7 @@ def ffmpeg(
         overwrite = False
 
     if out_file is None:
-        os.makedirs("out", exist_ok=True)
-        out_file = os.path.join(
-            os.path.dirname(in_file), "out", os.path.basename(in_file)
-        )
+        out_file = get_next_file_name(in_file)
 
     if crf and crf < 19:
         raise Exception("ERROR: 19 is visually identical to 0. Do not go lower.")
@@ -225,23 +223,33 @@ def ffmpeg(
 
     args = ["ffmpeg"]
 
-    if loop > 0:
-        args += ["-stream_loop", "%d" % loop]
-
-    args += ["-i", in_file]
-
     if quiet:
         args += ["-hide_banner", "-loglevel", "panic", "-stats"]
 
-    if start_and_duration:
-        args += [
-            "-ss",
-            str(start_and_duration[0]),
-            "-strict",
-            "-2",
-            "-t",
-            str(start_and_duration[1]),
-        ]
+    if loop > 0:
+        args += ["-stream_loop", "%d" % loop]
+
+    # Fast seek
+    if start_and_duration is not None and not reencode:
+        args += ["-ss", str(start_and_duration[0] - 10)]
+
+    args += ["-i", in_file]
+
+    if start_and_duration is not None:
+        if reencode:
+            args += [
+                "-ss",
+                str(start_and_duration[0]),
+                "-strict",
+                "-2",
+                "-t",
+                str(start_and_duration[1]),
+            ]
+        else:
+            args += [
+                "-t",
+                str(start_and_duration[1]),
+            ]
 
     # FPS
     if fps:
@@ -367,14 +375,21 @@ def ffmpeg(
             #     '-bufsize', bitrate,
             # ]
 
-        if no_audio:
-            args += ["-an"]
+    else:
+        args += ["-vcodec", "copy", "-avoid_negative_ts", "make_zero"]
+
+    if no_audio:
+        args += ["-an"]
+    else:
+        # Audio
+        if reencode:
+            args += ["-c:a", "aac"]
         else:
-            args += ["-c:a", "aac", "-b:a", "128k"]  # Audio
+            args += ["-c:a", "copy"]
 
     args += [out_file, "-y"]  # Override file
 
-    logging.info("Run ffmpeg command: " + " ".join(args))
+    logging.info("Run FFmpeg: " + " ".join(args))
     subprocess.check_call(args)
 
     if overwrite:

@@ -171,7 +171,7 @@ class MainWindow(Menu[Script]):
 
         self.add_hotkey("ctrl+r", self._reload_scripts)
         self.add_hotkey("shift+m", self._edit_script_config)
-        self.add_hotkey("shift+c", self._copy_to_clipboard)
+        self.add_hotkey("ctrl+y", self._copy_to_clipboard)
         self.add_hotkey("shift+i", self._copy_to_clipboard_include_derivative)
         self.add_hotkey("ctrl+n", self._new_script)
         self.add_hotkey("ctrl+d", self._duplicate_script)

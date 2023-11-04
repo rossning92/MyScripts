@@ -3,8 +3,10 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from typing import List
 
+from _script import get_my_script_root
 from _shutil import download, get_home_path, prepend_to_path, unzip
 
 if sys.platform == "win32":
@@ -110,6 +112,17 @@ def setup_color_theme(data_dir: str):
     update_settings({"workbench.colorTheme": "Dracula"}, data_dir=data_dir)
 
 
+def setup_mermaid(data_dir: str):
+    update_settings(
+        {
+            "mermaid-editor.preview.defaultMermaidConfig": str(
+                Path(get_my_script_root()) / "settings" / "mermaid" / "config.json"
+            )
+        },
+        data_dir=data_dir,
+    )
+
+
 def config_vscode(data_dir=None, compact=False, glslang=False):
     if not data_dir:
         if sys.platform == "win32":
@@ -122,6 +135,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     setup_python(data_dir=data_dir)
     setup_gpt(data_dir=data_dir)
     setup_color_theme(data_dir=data_dir)
+    setup_mermaid(data_dir=data_dir)
 
     install_extensions(
         [
