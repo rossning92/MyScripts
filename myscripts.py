@@ -130,7 +130,7 @@ class VariableEditMenu(DictEditMenu):
             dict_history=self.variable_edit_history,
         )
 
-        self.add_hotkey("ctrl+d", self.__select_directory)
+        self.add_command(self.__select_directory, hotkey="ctrl+d")
         self.set_message("[^d] select dir")
 
     def on_dict_history_update(self, history: Dict[str, List[Any]]):
@@ -169,19 +169,22 @@ class MainWindow(Menu[Script]):
             prompt=platform.node() + "$",
         )
 
-        self.add_hotkey("ctrl+r", self._reload_scripts)
-        self.add_hotkey("shift+m", self._edit_script_config)
-        self.add_hotkey("ctrl+y", self._copy_to_clipboard)
-        self.add_hotkey("shift+i", self._copy_to_clipboard_include_derivative)
-        self.add_hotkey("ctrl+n", self._new_script)
-        self.add_hotkey("ctrl+d", self._duplicate_script)
-        self.add_hotkey("shift+n", self._rename_script)
-        self.add_hotkey(
-            "shift+b", lambda: self._rename_script(replace_all_occurrence=True)
+        self.add_command(self._reload_scripts, hotkey="ctrl+r")
+        self.add_command(self._edit_script_config, hotkey="shift+m")
+        self.add_command(self._copy_to_clipboard, hotkey="ctrl+y")
+        self.add_command(self._copy_to_clipboard_include_derivative, hotkey="shift+i")
+        self.add_command(self._new_script, hotkey="ctrl+n")
+        self.add_command(self._duplicate_script, hotkey="ctrl+d")
+        self.add_command(self._rename_script, hotkey="shift+n")
+        self.add_command(
+            lambda: self._rename_script(
+                replace_all_occurrence=True,
+            ),
+            hotkey="shift+b",
         )
-        self.add_hotkey("ctrl+e", self._edit_script)
-        self.add_hotkey("ctrl+k", self._delete_file)
-        self.add_hotkey("?", self._help)
+        self.add_command(self._edit_script, hotkey="ctrl+e")
+        self.add_command(self._delete_file, hotkey="ctrl+k")
+        self.add_command(self._help, hotkey="?")
 
     def _delete_file(self):
         script_path = self.get_selected_script_path()

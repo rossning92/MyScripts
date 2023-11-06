@@ -22,9 +22,14 @@ class LogViewerMenu(Menu[str]):
             cancellable=False,
             fuzzy_search=False,
         )
+        self.add_command(self.sort)
 
         if filter:
             self.set_input(filter)
+
+    def sort(self):
+        self.__lines.sort()
+        self.refresh()
 
     def get_status_bar_text(self):
         return self.__file_name + " | " + super().get_status_bar_text()

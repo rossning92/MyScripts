@@ -1,5 +1,6 @@
 import argparse
 import os
+from typing import Optional
 
 from _shutil import setup_logger
 from _video import ffmpeg, hstack_videos
@@ -18,11 +19,15 @@ if __name__ == "__main__":
         else None
     )
 
-    start_and_duration = (
-        os.environ["_START_AND_DURATION"].split()
-        if os.environ.get("_START_AND_DURATION")
-        else None
-    )
+    start: Optional[float]
+    duration: Optional[float]
+    if os.environ.get("_START_AND_DURATION"):
+        start_str, duration_str = os.environ["_START_AND_DURATION"].split()
+        start = float(start_str)
+        duration = float(duration_str)
+    else:
+        start = None
+        duration = None
 
     for file in args.file:
         if not os.path.isfile(file):
@@ -45,9 +50,8 @@ if __name__ == "__main__":
                         out_file=os.path.join(
                             out_dir, "{}_crf{}.mp4".format(name_no_ext, crf)
                         ),
-                        start_and_duration=(
-                            (0, 5) if start_and_duration is None else start_and_duration
-                        ),
+                        start=0 if start is None else start,
+                        duration=5 if duration is None else duration,
                         crf=crf,
                         nvenc=False,
                         title="crf={}".format(crf),
@@ -67,7 +71,8 @@ if __name__ == "__main__":
                 max_size_mb=(
                     float(env["_MAX_SIZE_MB"]) if env.get("_MAX_SIZE_MB") else None
                 ),
-                start_and_duration=start_and_duration,
+                start=start,
+                duration=duration,
                 fps=int(env["_FPS"]) if env.get("_FPS") else None,
                 width=int(env["_WIDTH"]) if env.get("_WIDTH") else None,
                 height=int(env["_HEIGHT"]) if env.get("_HEIGHT") else None,

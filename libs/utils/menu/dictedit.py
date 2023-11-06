@@ -93,7 +93,7 @@ class DictEditMenu(Menu):
 
         self.update_items()
 
-        self.add_hotkey("ctrl+y", self.__copy_selected_dict_value)
+        self.add_command(self.__copy_selected_dict_value, hotkey="ctrl+y")
 
     def __copy_selected_dict_value(self):
         key = self.get_selected_key()

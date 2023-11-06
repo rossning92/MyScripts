@@ -177,7 +177,8 @@ def _get_media_duration(f):
 def ffmpeg(
     in_file,
     out_file=None,
-    start_and_duration: Optional[Tuple[float, float]] = None,
+    start: Optional[float] = None,
+    duration: Optional[float] = None,
     reencode=True,
     nvenc=True,
     extra_args=None,
@@ -230,26 +231,27 @@ def ffmpeg(
         args += ["-stream_loop", "%d" % loop]
 
     # Fast seek
-    if start_and_duration is not None and not reencode:
-        args += ["-ss", str(start_and_duration[0] - 10)]
+    if start is not None:
+        if reencode:
+            args += ["-ss", str(start - 10)]
+        else:
+            args += ["-ss", str(start)]
 
     args += ["-i", in_file]
 
-    if start_and_duration is not None:
-        if reencode:
-            args += [
-                "-ss",
-                str(start_and_duration[0]),
-                "-strict",
-                "-2",
-                "-t",
-                str(start_and_duration[1]),
-            ]
-        else:
-            args += [
-                "-t",
-                str(start_and_duration[1]),
-            ]
+    if start is not None and reencode:
+        args += [
+            "-ss",
+            str(start),
+            "-strict",
+            "-2",
+        ]
+
+    if duration is not None:
+        args += [
+            "-t",
+            str(duration),
+        ]
 
     # FPS
     if fps:

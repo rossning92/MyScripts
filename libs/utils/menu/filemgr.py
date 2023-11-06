@@ -66,17 +66,17 @@ class FileManager(Menu[_File]):
 
         super().__init__(items=self.__files)
 
-        self.add_hotkey("ctrl+e", self._edit_text_file)
-        self.add_hotkey("ctrl+k", self._delete_file)
-        self.add_hotkey("ctrl+r", self._list_files_recursively)
-        self.add_hotkey("ctrl+y", self._copy_to)
-        self.add_hotkey("ctrl+g", self._goto)
-        self.add_hotkey("delete", self._delete_file)
-        self.add_hotkey("left", self._goto_parent_directory)
-        self.add_hotkey("right", self._goto_selected_directory)
-        self.add_hotkey("shift+h", self._goto_home)
-        self.add_hotkey("shift+n", self._rename_file)
-        self.add_hotkey("shift+c", self._copy_file_full_path)
+        self.add_command(self._edit_text_file, "ctrl+e")
+        self.add_command(self._delete_file, "ctrl+k")
+        self.add_command(self._list_files_recursively, "ctrl+r")
+        self.add_command(self._copy_to, "ctrl+y")
+        self.add_command(self._goto, "ctrl+g")
+        self.add_command(self._delete_file, "delete")
+        self.add_command(self._goto_parent_directory, "left")
+        self.add_command(self._goto_selected_directory, "right")
+        self.add_command(self._goto_home, "shift+h")
+        self.add_command(self._rename_file, "shift+n")
+        self.add_command(self._copy_file_full_path, "shift+c")
         self.__selected_file_dict: Dict[str, str] = {}
 
         if goto is not None:

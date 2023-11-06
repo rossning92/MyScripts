@@ -30,7 +30,7 @@ class LogViewer(LogViewerMenu):
     def __init__(self, file: str) -> None:
         super().__init__(file=file)
 
-        self.add_hotkey("ctrl+f", lambda: self.filter_logs())
+        self.add_command(lambda: self.filter_logs(), hotkey="ctrl+f")
 
     def filter_logs(self):
         m = _FilterMenu()

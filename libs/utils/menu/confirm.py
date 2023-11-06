@@ -10,8 +10,8 @@ class ConfirmMenu(Menu):
         )
 
         self.confirmed = False
-        self.add_hotkey("y", self.confirm)
-        self.add_hotkey("n", self.cancel)
+        self.add_command(self.confirm, hotkey="y")
+        self.add_command(self.cancel, hotkey="n")
 
     def confirm(self):
         self.confirmed = True

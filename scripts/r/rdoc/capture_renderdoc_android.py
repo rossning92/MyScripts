@@ -7,7 +7,7 @@ import time
 
 import renderdoc as rd
 from _android import get_device_name, get_main_activity
-from _shutil import get_date_str, get_home_path, setup_logger
+from _shutil import get_home_path, get_time_str, setup_logger
 
 
 def list_executables(remote):
@@ -116,7 +116,7 @@ def main():
     env = []
     opts = rd.GetDefaultCaptureOptions()
 
-    logging.info(f"Running {exe}")
+    logging.info(f"Start {exe}")
 
     result = remote.ExecuteAndInject(exe, workingDir, cmdLine, env, opts)
 
@@ -145,16 +145,18 @@ def main():
         remote.ShutdownServerAndConnection()
         raise RuntimeError(f"Couldn't connect to target control for {exe}")
 
-    logging.info("Connected - waiting for desired capture")
+    logging.info("Connected to remote server.")
 
     # TODO: Wait for the capture condition we want
     # capture_condition()
 
-    logging.info("Wait for 15 seconds")
-    time.sleep(15)
+    run_wait_secs = 15
+    if os.environ.get("RUN_WAIT_SECS"):
+        run_wait_secs = int(os.environ.get("RUN_WAIT_SECS"))
+    logging.info(f"Wait for {run_wait_secs} seconds, then capture a frame.")
+    time.sleep(run_wait_secs)
 
-    logging.info("Triggering capture")
-
+    logging.info("Trigger capture")
     target.TriggerCapture(1)
 
     # Pump messages, keep waiting until we get a capture message. Time out after 30 seconds
@@ -192,7 +194,7 @@ def main():
     local_file = os.path.join(
         get_home_path(),
         "Desktop",
-        f"{pkg_name}-{get_device_name()}-{get_date_str()}.rdc",
+        f"{pkg_name}-{get_device_name()}-{get_time_str()}.rdc",
     )
     logging.info(f"Save capture to {local_file}")
     remote.CopyCaptureFromRemote(
@@ -202,5 +204,6 @@ def main():
     )
 
 
-setup_logger()
-main()
+if __name__ == "__main__":
+    setup_logger()
+    main()

@@ -59,14 +59,17 @@ def _is_backspace_key(ch: Union[int, str]):
     )
 
 
-class _Hotkey:
-    def __init__(self, hotkey: str, func: Callable):
+class _Command:
+    def __init__(self, hotkey: Optional[str], func: Callable):
         self.hotkey = hotkey
         self.func = func
         self.name = func.__name__.strip("_")
 
     def __str__(self) -> str:
-        return "%s (%s)" % (self.name, get_hotkey_abbr(self.hotkey))
+        if self.hotkey is not None:
+            return "%s (%s)" % (self.name, get_hotkey_abbr(self.hotkey))
+        else:
+            return self.name
 
 
 def _match_fuzzy(item: Any, patt: str) -> bool:
@@ -253,12 +256,13 @@ class Menu(Generic[T]):
             self.indices = [x[1] for x in sorted_items]
 
         # Hotkeys
-        self._hotkeys: Dict[Union[int, str], _Hotkey] = {}
-        self.add_hotkey("ctrl+y", self.__copy)
-        self.add_hotkey("ctrl+v", self.__paste)
-        self.add_hotkey("ctrl+p", self.__palette)
+        self._hotkeys: Dict[Union[int, str], _Command] = {}
+        self._custom_commands: List[_Command] = []
+        self.add_command(self.__yank, hotkey="ctrl+y")
+        self.add_command(self.__paste, hotkey="ctrl+v")
+        self.add_command(self.__palette, hotkey="ctrl+p")
 
-    def __copy(self):
+    def __yank(self):
         selected_item = self.get_selected_item()
         if selected_item:
             s = str(selected_item)
@@ -268,9 +272,15 @@ class Menu(Generic[T]):
     def __paste(self):
         self.set_input(get_clip())
 
-    def add_hotkey(self, hotkey: str, func: Callable):
-        for ch in to_ascii_hotkey(hotkey):
-            self._hotkeys[ch] = _Hotkey(hotkey=hotkey, func=func)
+    def add_command(self, func: Callable, hotkey: Optional[str] = None) -> _Command:
+        command = _Command(hotkey=hotkey, func=func)
+        self._custom_commands.append(command)
+
+        if hotkey is not None:
+            for ch in to_ascii_hotkey(hotkey):
+                self._hotkeys[ch] = command
+
+        return command
 
     def get_history_file(self):
         from _script import get_data_dir
@@ -433,15 +443,13 @@ class Menu(Generic[T]):
     def process_events(self, timeout_ms: int = 0) -> bool:
         assert Menu.stdscr is not None
 
-        now = time.time()
-
         if timeout_ms > 0:
             Menu.stdscr.timeout(timeout_ms)
         else:
             Menu.stdscr.timeout(0)
 
         if self._should_update_matched_items or (
-            now > self._last_match_time + 0.1
+            time.time() > self._last_match_time + 0.1
             and (
                 self._last_input != self.get_text()
                 or self._last_item_count != len(self.items)
@@ -452,7 +460,7 @@ class Menu(Generic[T]):
             self.update_matched_items()
             self._should_update_matched_items = False
             self._should_update_screen = True
-            self._last_match_time = now
+            self._last_match_time = time.time()
 
         if self._requested_selected_row >= 0:
             self._selected_row = self._requested_selected_row
@@ -730,17 +738,16 @@ class Menu(Generic[T]):
             if row >= height:
                 break
 
-        matched_item_str = "(%d/%d)" % (
+        # Draw status bar
+        a = self.get_status_bar_text()
+        b = " [%d/%d]" % (
             self._selected_row + 1,
             len(self._matched_item_indices),
         )
-        self.draw_text(0, self._width - len(matched_item_str), matched_item_str)
-
-        # Draw status bar
         self.draw_text(
             row=self._height - 1,
             col=0,
-            s=self.get_status_bar_text(),
+            s=f"{a[:self._width - len(b)]:<{self._width - len(b)}}{b:>{len(b)}}",
             color_pair=Menu.color_pair_map["WHITE"],
         )
 
@@ -815,7 +822,7 @@ class Menu(Generic[T]):
         self._should_update_screen = True
 
     def __palette(self):
-        w = Menu(prompt="Commands:", items=list(self._hotkeys.values()))
+        w = Menu(prompt="Commands:", items=self._custom_commands)
         w.exec()
         hotkey = w.get_selected_item()
         if hotkey is not None:

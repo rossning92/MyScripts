@@ -1002,7 +1002,7 @@ def unzip(file, to=None):
 
 
 def get_time_str():
-    return datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+    return datetime.datetime.now().strftime("%y%m%d%H%M%S")
 
 
 def get_date_str():

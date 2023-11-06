@@ -2,15 +2,16 @@ import argparse
 
 from _video import ffmpeg
 
-parser = argparse.ArgumentParser()
-parser.add_argument("file")
-parser.add_argument("start")
-parser.add_argument("duration")
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file")
+    parser.add_argument("start", type=float)
+    parser.add_argument("duration", nargs="?", default=None, type=float)
+    args = parser.parse_args()
 
-
-ffmpeg(
-    in_file=args.file,
-    start_and_duration=(float(args.start), float(args.duration)),
-    reencode=False,
-)
+    ffmpeg(
+        in_file=args.file,
+        start=args.start,
+        duration=args.duration,
+        reencode=False,
+    )
