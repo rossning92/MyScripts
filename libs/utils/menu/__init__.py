@@ -12,12 +12,12 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Tuple,
     TypeVar,
     Union,
 )
 
 from _shutil import load_json, save_json, set_clip, slugify
-
 from utils.clip import get_clip
 
 
@@ -100,6 +100,7 @@ def _match(item: Any, patt: str, fuzzy_match: bool) -> bool:
 class _InputWidget:
     def __init__(self, prompt="", text="", ascii_only=False):
         self.prompt = prompt
+        self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
 
@@ -207,7 +208,7 @@ class Menu(Generic[T]):
         prompt="",
         text="",
         on_item_selected: Optional[Callable[[T], None]] = None,
-        text_color_map: Optional[Dict[str, str]] = None,
+        text_color_map: Optional[List[Tuple[str, str]]] = None,
         fuzzy_search=True,
     ):
         self.items = items
@@ -297,12 +298,16 @@ class Menu(Generic[T]):
 
         return decorator
 
+    def match_item(self, patt: str, item: T) -> bool:
+        s = str(item)
+        return _match(s, patt, fuzzy_match=self.__fuzzy_search)
+
     def append_item(self, item: T):
         last_line_selected = self._selected_row == len(self._matched_item_indices) - 1
 
         self.items.append(item)
         self._last_item_count = len(self.items)
-        if _match(item, self.get_text(), fuzzy_match=self.__fuzzy_search):
+        if self.match_item(self.get_input(), item):
             self._matched_item_indices.append(self._last_item_count - 1)
 
             # Scroll to bottom if last line is selected
@@ -420,7 +425,7 @@ class Menu(Generic[T]):
     def update_matched_items(self):
         self._matched_item_indices.clear()
         for i, item in enumerate(self.items):
-            if _match(item, self.get_text(), fuzzy_match=self.__fuzzy_search):
+            if self.match_item(self.get_input(), item):
                 self._matched_item_indices.append(i)
 
         num_matched_items = len(self._matched_item_indices)
@@ -451,11 +456,11 @@ class Menu(Generic[T]):
         if self._should_update_matched_items or (
             time.time() > self._last_match_time + 0.1
             and (
-                self._last_input != self.get_text()
+                self._last_input != self.get_input()
                 or self._last_item_count != len(self.items)
             )
         ):
-            self._last_input = self.get_text()
+            self._last_input = self.get_input()
             self._last_item_count = len(self.items)
             self.update_matched_items()
             self._should_update_matched_items = False
@@ -707,7 +712,7 @@ class Menu(Generic[T]):
                 # Highlight text by regex
                 color = "white"
                 if self.__text_color_map is not None:
-                    for patt, c in self.__text_color_map.items():
+                    for patt, c in self.__text_color_map:
                         if re.search(patt, item_text):
                             color = c
                 if is_item_selected:

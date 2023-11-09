@@ -444,7 +444,7 @@ class MainWindow(Menu[Script]):
                         % script.script_path
                     )
 
-                height = max(5, height - len(preview))
+                height = max(5, height - len(preview) - 1)
                 for i, s in enumerate(preview):
                     if height + i >= self._height:
                         break

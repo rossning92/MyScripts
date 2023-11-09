@@ -150,28 +150,34 @@ def main():
         )
 
     else:  # empty
-        start_conversation()
+        start_conversation(
+            chat_history=os.path.join(
+                os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json"
+            )
+        )
 
 
 def start_conversation(
     *,
     input: Optional[str] = None,
     prompt_text: Optional[str] = None,
+    chat_history: Optional[str] = None,
 ):
     def ask_question(question):
         print("> ", end="")
         for chunk in chat.ask(question):
             print(chunk, end="")
         print()
-        chat.save_chat(config_file)
 
-    config_file = os.path.join(
-        os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json"
-    )
+        if chat_history:
+            chat.save_chat(chat_history)
+
     chat = ChatAPI()
 
     # Load existing chat
-    chat.load_chat(config_file)
+    if chat_history:
+        chat.load_chat(chat_history)
+
     for message in chat.messages:
         if message["role"] != "system":
             print(f"> {message['content']}")

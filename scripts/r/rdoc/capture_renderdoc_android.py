@@ -96,6 +96,8 @@ def main():
             logging.warn(f"Error on connection: {ex}")
             logging.info("Try to connect again")
 
+    assert remote is not None
+
     # We now have a remote connection. This works regardless of whether it's a device
     # with a protocol or not. In fact we are done with the protocol at this point
     logging.info("Got connection to remote server")

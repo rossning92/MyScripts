@@ -13,11 +13,11 @@ class LogViewerMenu(Menu[str]):
         super().__init__(
             prompt="/",
             items=self.__lines,
-            text_color_map={
-                " D ": "blue",
-                " W ": "yellow",
-                " (E|F) ": "red",
-            },
+            text_color_map=[
+                (r" D |\bDEBUG\b", "blue"),
+                (r" W |\bWARN\b", "yellow"),
+                (r" (E|F) |\bERROR\b|>>>", "red"),
+            ],
             close_on_selection=False,
             cancellable=False,
             fuzzy_search=False,
@@ -30,6 +30,10 @@ class LogViewerMenu(Menu[str]):
     def sort(self):
         self.__lines.sort()
         self.refresh()
+
+    def on_enter_pressed(self):
+        self._selected_row = self._matched_item_indices[self._selected_row]
+        self.set_input("")
 
     def get_status_bar_text(self):
         return self.__file_name + " | " + super().get_status_bar_text()
