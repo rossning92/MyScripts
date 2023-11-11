@@ -66,17 +66,20 @@ class FileManager(Menu[_File]):
 
         super().__init__(items=self.__files)
 
-        self.add_command(self._edit_text_file, "ctrl+e")
-        self.add_command(self._delete_file, "ctrl+k")
-        self.add_command(self._list_files_recursively, "ctrl+r")
-        self.add_command(self._copy_to, "ctrl+y")
-        self.add_command(self._goto, "ctrl+g")
-        self.add_command(self._delete_file, "delete")
-        self.add_command(self._goto_parent_directory, "left")
-        self.add_command(self._goto_selected_directory, "right")
-        self.add_command(self._goto_home, "shift+h")
-        self.add_command(self._rename_file, "shift+n")
-        self.add_command(self._copy_file_full_path, "shift+c")
+        self.add_command(self._copy_file_full_path, hotkey="ctrl+y")
+        self.add_command(self._copy_to, hotkey="ctrl+y")
+        self.add_command(self._create_new_dir, hotkey="ctrl+n")
+        self.add_command(self._delete_file, hotkey="ctrl+k")
+        self.add_command(self._delete_file, hotkey="delete")
+        self.add_command(self._edit_text_file, hotkey="ctrl+e")
+        self.add_command(self._goto_home, hotkey="shift+h")
+        self.add_command(self._goto_parent_directory, hotkey="left")
+        self.add_command(self._goto_selected_directory, hotkey="right")
+        self.add_command(self._goto, hotkey="ctrl+g")
+        self.add_command(self._list_files_recursively)
+        self.add_command(self._refresh_current_directory, hotkey="ctrl+r")
+        self.add_command(self._rename_file, hotkey="shift+n")
+
         self.__selected_file_dict: Dict[str, str] = {}
 
         if goto is not None:
@@ -88,6 +91,14 @@ class FileManager(Menu[_File]):
                 self.goto_directory(os.path.dirname(goto), os.path.basename(goto))
         else:
             self.goto_directory(self.__config.cur_dir, self.__config.selected_file)
+
+    def _create_new_dir(self):
+        new_dir_name = TextInput(prompt="Create directory:").request_input()
+        if new_dir_name:
+            current_dir = self.__config.cur_dir
+            new_dir_path = os.path.join(current_dir, new_dir_name)
+            os.makedirs(new_dir_path, exist_ok=True)
+            self.goto_directory(new_dir_path)
 
     def _copy_file_full_path(self):
         file_full_path = self.get_selected_file_full_path()
@@ -108,7 +119,7 @@ class FileManager(Menu[_File]):
                     shutil.rmtree(file_full_path)
                 else:
                     os.remove(file_full_path)
-                self.refresh()
+                self._refresh_current_directory()
 
     def _copy_to(self):
         src_file = self.get_selected_file_full_path()
@@ -165,9 +176,9 @@ class FileManager(Menu[_File]):
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
-            w = Menu(prompt="New name>", text=selected.name)
-            w.exec()
-            new_name = w.get_input()
+            new_name = TextInput(
+                prompt="Rename to:", text=selected.name
+            ).request_input()
             if not new_name:
                 return
 
@@ -176,7 +187,7 @@ class FileManager(Menu[_File]):
 
             os.rename(src, dest)
 
-            self.refresh()
+            self._refresh_current_directory()
 
     def _goto(self):
         path = TextInput(prompt="Goto>").request_input()
@@ -193,7 +204,7 @@ class FileManager(Menu[_File]):
         self.exec()
         return self.__selected_full_path
 
-    def refresh(self):
+    def _refresh_current_directory(self):
         self.goto_directory(self.__config.cur_dir)
 
     def goto_directory(

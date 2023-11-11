@@ -50,12 +50,12 @@ from _shutil import (
     write_temp_file,
 )
 from _template import render_template
-from timed import timed
 from utils.clip import get_clip, get_selection
 from utils.menu import get_hotkey_abbr
 from utils.menu.filemgr import FileManager
 from utils.menu.input import Input
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
+from utils.timed import timed
 from utils.venv import activate_python_venv, get_venv_python_executable
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -874,6 +874,9 @@ class Script:
     def get_short_name(self) -> str:
         return os.path.splitext(os.path.basename(self.name))[0]
 
+    def get_context(self) -> Dict[str, str]:
+        return {"HOME": get_home_path(), "SCRIPT": quote_arg(self.script_path)}
+
     def execute(
         self,
         args: List[str] = [],
@@ -1030,7 +1033,9 @@ class Script:
                 env["ANDROID_SERIAL"] = android_serial
 
         if self.cfg["workingDir"]:
-            cwd = self.cfg["workingDir"]
+            cwd = self.cfg["workingDir"].format(**self.get_context())
+            if not os.path.exists(cwd):
+                os.makedirs(cwd, exist_ok=True)
         elif cd:
             cwd = os.path.abspath(
                 os.path.join(os.getcwd(), os.path.dirname(script_path))
@@ -1048,7 +1053,7 @@ class Script:
 
         cmdline = self.cfg["cmdline"]
         if cmdline:
-            arg_list = shlex.split(cmdline.format(SCRIPT=quote_arg(self.script_path)))
+            arg_list = shlex.split(cmdline.format(**self.get_context()))
 
         elif ext == ".ps1":
             if sys.platform == "win32":

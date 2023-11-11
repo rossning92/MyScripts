@@ -102,7 +102,7 @@ def format_key_value_pairs(kvp):
     return result
 
 
-def format_variables(variables, variable_names, variable_prefix):
+def format_variables(variables, variable_names, variable_prefix) -> List[str]:
     result = []
     short_var_names = [
         re.sub("^" + re.escape(variable_prefix), "", x) for x in variable_names
@@ -114,7 +114,7 @@ def format_variables(variables, variable_names, variable_prefix):
         max_width = 0
     for i, name in enumerate(variable_names):
         var_val = variables[name] if name in variables else ""
-        result.append(short_var_names[i].ljust(max_width) + ": " + var_val)
+        result.append("var : " + short_var_names[i].ljust(max_width) + ": " + var_val)
     return result
 
 
@@ -218,6 +218,13 @@ class MainWindow(Menu[Script]):
                 )
 
             self.call_func_without_curses(exec_script)
+
+    def match_item(self, keyword: str, script: Script) -> bool:
+        patt = script.cfg["matchClipboard"]
+        if patt and re.search(patt, keyword) is not None:
+            return True
+        else:
+            return super().match_item(keyword, script)
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
@@ -426,7 +433,7 @@ class MainWindow(Menu[Script]):
                 config_preview = {}
                 for name, value in script.cfg.items():
                     if value != default_script_config[name]:
-                        config_preview[f"[Cfg] {name}"] = str(value)
+                        config_preview[f"cfg : {name}"] = str(value)
                 preview += format_key_value_pairs(config_preview)
 
                 # Preview variables
@@ -448,7 +455,9 @@ class MainWindow(Menu[Script]):
                 for i, s in enumerate(preview):
                     if height + i >= self._height:
                         break
-                    self.draw_text(height + i, 0, s)
+                    self.draw_text(
+                        height + i, 0, s, color_pair=Menu.color_pair_map["yellow"]
+                    )
 
         super().on_update_screen(height=height)
 

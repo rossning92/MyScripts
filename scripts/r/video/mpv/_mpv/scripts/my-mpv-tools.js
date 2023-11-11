@@ -13,19 +13,6 @@ function setClip(text) {
   });
 }
 
-function copyFile(src, dst) {
-  mp.command_native({
-    name: "subprocess",
-    args: [
-      "powershell",
-      "Copy-Item",
-      '"' + src + '"', // double quote
-      "-Destination",
-      '"' + dst + '"', // double quote
-    ],
-  });
-}
-
 function deleteFile(file) {
   mp.command_native({
     name: "subprocess",

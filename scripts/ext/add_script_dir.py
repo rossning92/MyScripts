@@ -1,7 +1,9 @@
 import argparse
+import os
 
 from _script import add_script_dir
-from _shutil import get_current_folder
+from utils.menu.filemgr import FileManager
+from utils.menu.textinput import TextInput
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -10,11 +12,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.prefix and args.script_dir:
-        script_dir = args.script_dir
+        script_dir_path = args.script_dir
         prefix = args.prefix
     else:
-        script_dir = get_current_folder()
-        prefix = input("prefix: ")
+        script_dir_path = FileManager(prompt="Script dir:").select_directory()
+        if not script_dir_path:
+            exit(0)
 
-    print("Add script directory: %s: %s" % (prefix, script_dir))
-    add_script_dir(script_dir, prefix=prefix)
+        script_dir_name = os.path.basename(script_dir_path)
+        prefix = TextInput(
+            prompt="Prefix:", text=os.path.basename(script_dir_path)
+        ).request_input()
+        if not prefix:
+            exit(0)
+
+    print("Add script directory: %s: %s" % (prefix, script_dir_path))
+    add_script_dir(script_dir_path, prefix=prefix)

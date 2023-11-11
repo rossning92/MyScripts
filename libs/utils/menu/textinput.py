@@ -6,7 +6,7 @@ from ..menu import Menu
 
 
 class TextInput(Menu):
-    def __init__(self, prompt: str = ">", history_file: Optional[str] = None):
+    def __init__(self, prompt: str = ">", history_file: Optional[str] = None, text=""):
         self.__history_file = history_file
         if self.__history_file:
             self.__history_data = load_json(
@@ -15,6 +15,7 @@ class TextInput(Menu):
         super().__init__(
             prompt=prompt,
             items=self.__history_data["history"] if self.__history_file else [],
+            text=text,
         )
 
     def request_input(self) -> Optional[str]:

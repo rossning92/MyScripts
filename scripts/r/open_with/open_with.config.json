@@ -342,9 +342,6 @@
     ".zxp": ["vscode", "notepad++"]
   },
   "matchByRegex": {
-    "(logcat|bugreport-).*?\\.txt$": [
-      ["run_script", "r/logviewer.py"],
-      "vscode"
-    ]
+    "(logcat|bugreport).*?\\.txt$": [["run_script", "r/logviewer.py"], "vscode"]
   }
 }

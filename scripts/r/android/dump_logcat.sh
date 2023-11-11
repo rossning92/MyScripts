@@ -7,6 +7,6 @@ fname="logcat_${device}_${date}.log"
 
 adb logcat -c
 
-adb logcat >$fname &
+bash "$(dirname "$0")/logcat_non_stop.sh" >$fname 2>$fname &
 
 run_script r/logviewer.py "$fname"

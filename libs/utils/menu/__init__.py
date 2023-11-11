@@ -11,6 +11,7 @@ from typing import (
     Generic,
     Iterator,
     List,
+    NamedTuple,
     Optional,
     Tuple,
     TypeVar,
@@ -148,9 +149,9 @@ class _InputWidget:
     def on_char(self, ch):
         if ch == curses.ERR:
             pass
-        elif ch == curses.KEY_LEFT:
+        elif ch == curses.KEY_LEFT or ch == 452:  # curses.KEY_B1
             self.caret_pos = max(self.caret_pos - 1, 0)
-        elif ch == curses.KEY_RIGHT:
+        elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
         elif _is_backspace_key(ch):
             if self.caret_pos > 0:
@@ -233,7 +234,10 @@ class Menu(Generic[T]):
         self.__on_item_selected = on_item_selected
         self.__text_color_map = text_color_map
         self.__fuzzy_search = fuzzy_search
+
         self.__scroll_x = 0
+        self.__can_scroll_left = False
+        self.__can_scroll_right = False
 
         self._should_update_matched_items: bool = False
 
@@ -316,6 +320,13 @@ class Menu(Generic[T]):
 
             # update screen
             self._should_update_screen = True
+
+    def clear_items(self):
+        self.items.clear()
+        self._last_item_count = 0
+        self._matched_item_indices.clear()
+        self._selected_row = 0
+        self._should_update_screen = True
 
     def set_input(self, text: str):
         self._input.set_text(text)
@@ -506,11 +517,15 @@ class Menu(Generic[T]):
                 self._should_update_screen = True
                 self.on_item_selected()
 
-            elif ch == curses.KEY_LEFT or ch == 452:  # curses.KEY_B1
+            elif self.__can_scroll_left and (
+                ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
+            ):
                 self.__scroll_x = max(self.__scroll_x - self._width // 2, 0)
                 self._should_update_screen = True
 
-            elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
+            elif self.__can_scroll_right and (
+                ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
+            ):
                 self.__scroll_x += self._width // 2
                 self._should_update_screen = True
 
@@ -595,6 +610,11 @@ class Menu(Generic[T]):
     def get_items_per_page(self):
         return self._height - 3
 
+    class DrawTextResult(NamedTuple):
+        next_i: int
+        can_scroll_left: bool
+        can_scroll_right: bool
+
     def draw_text(
         self,
         row: int,
@@ -603,7 +623,7 @@ class Menu(Generic[T]):
         color_pair=0,
         wrap_text=False,
         scroll_x=0,
-    ) -> int:
+    ) -> DrawTextResult:
         """_summary_
 
         Args:
@@ -619,7 +639,9 @@ class Menu(Generic[T]):
         assert col >= 0
 
         if row >= self._height:
-            return False
+            raise Exception(
+                "Row number should be smaller than the height of the screen."
+            )
 
         s = s[scroll_x:]
 
@@ -637,19 +659,21 @@ class Menu(Generic[T]):
 
         y = row
         last_row_index = row
+        can_scroll_right = False
         for i, ch in enumerate(s):
             try:
                 Menu.stdscr.addstr(y, x, ch)
             except curses.error:
-                # Tolerate "addwstr() returned ERR"
+                # Tolerate "addwstr() returned ERR" when drawing the character at the bottom right corner.
                 pass
             except ValueError:
                 # If an invalid character is passed, simply stop rendering, for example, an "embedded null character".
                 break
 
             last_y = y
-            y, x = Menu.stdscr.getyx()  # type: ignore
 
+            # Get current cursor position
+            y, x = Menu.stdscr.getyx()  # type: ignore
             if wrap_text:
                 if y >= self._height:
                     last_row_index = self._height - 1
@@ -663,13 +687,14 @@ class Menu(Generic[T]):
                         Menu.stdscr.attron(curses.color_pair(2))
                         Menu.stdscr.addstr(row, self._width - 1, ">")
                         Menu.stdscr.attroff(curses.color_pair(2))
+                        can_scroll_right = True
                     break
 
             last_row_index = y
 
         if color_pair > 0:
             if y < self._height:
-                space_len = self._width - x
+                space_len = self._width - x - 1
                 if space_len > 0:
                     try:
                         Menu.stdscr.addstr(y, x, " " * space_len)
@@ -680,7 +705,11 @@ class Menu(Generic[T]):
                         pass
             Menu.stdscr.attroff(curses.color_pair(color_pair))
 
-        return last_row_index
+        return Menu.DrawTextResult(
+            next_i=last_row_index,
+            can_scroll_left=scroll_x > 0,
+            can_scroll_right=can_scroll_right,
+        )
 
     def on_update_screen(self, height: int):
         assert Menu.stdscr is not None
@@ -704,6 +733,8 @@ class Menu(Generic[T]):
 
         self._text_overflow = False
         next_i = 0
+        self.__can_scroll_left = False
+        self.__can_scroll_right = False
         for i, item_index in enumerate(indices_in_page):
             if row >= next_i:
                 is_item_selected = i == selected_index_in_page
@@ -728,16 +759,19 @@ class Menu(Generic[T]):
                 )
 
                 # Draw item text
-                next_i = (
-                    self.draw_text(
-                        row,
-                        row_number_width + 1,
-                        item_text,
-                        wrap_text=is_item_selected,
-                        color_pair=color_pair,
-                        scroll_x=self.__scroll_x,
-                    )
-                ) + 1
+                draw_text_result = self.draw_text(
+                    row,
+                    row_number_width + 1,
+                    item_text,
+                    wrap_text=is_item_selected,
+                    color_pair=color_pair,
+                    scroll_x=self.__scroll_x,
+                )
+                next_i = draw_text_result.next_i + 1
+                if draw_text_result.can_scroll_left:
+                    self.__can_scroll_left = True
+                if draw_text_result.can_scroll_right:
+                    self.__can_scroll_right = True
 
             row += 1
             if row >= height:
