@@ -19,6 +19,7 @@ from typing import (
 )
 
 from _shutil import load_json, save_json, set_clip, slugify
+
 from utils.clip import get_clip
 
 

@@ -6,6 +6,7 @@ import os
 import platform
 import re
 import sys
+import threading
 import time
 import traceback
 from typing import Any, Dict, List, Optional
@@ -32,7 +33,6 @@ from _script import (
     is_instance_running,
     setup_env_var,
     try_reload_scripts_autorun,
-    update_script_access_time,
     update_variables,
 )
 from _scriptmanager import ScriptManager, execute_script
@@ -52,9 +52,13 @@ from utils.menu import Menu
 from utils.menu.confirm import confirm
 from utils.menu.dictedit import DictEditMenu
 from utils.menu.filemgr import FileManager
+from utils.menu.textinput import TextInput
 
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
+
+
+script_server: Optional[ScriptServer] = None
 
 
 def setup_console_font():
@@ -131,7 +135,6 @@ class VariableEditMenu(DictEditMenu):
         )
 
         self.add_command(self.__select_directory, hotkey="ctrl+d")
-        self.set_message("[^d] select dir")
 
     def on_dict_history_update(self, history: Dict[str, List[Any]]):
         save_json(get_variable_edit_history_file(), history)
@@ -148,6 +151,14 @@ class VariableEditMenu(DictEditMenu):
 
 
 def restart_program():
+    if script_server is not None:
+        script_server.stop_server()
+
+    for t in threading.enumerate():
+        if t is not threading.main_thread():
+            logging.debug(f"Waiting {t} to exit...")
+            t.join()
+
     os.execl(
         sys.executable,
         sys.executable,
@@ -185,6 +196,15 @@ class MainWindow(Menu[Script]):
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._delete_file, hotkey="ctrl+k")
         self.add_command(self._help, hotkey="?")
+        self.add_command(self._cmdline_args)
+
+    def _cmdline_args(self):
+        script = self.get_selected_script()
+        if script:
+            input = TextInput(prompt="args>").request_input()
+            if input is not None:
+                script.cmdline_args = input
+                logging.warning(f"Set cmdline_args to: {script.cmdline_args}")
 
     def _delete_file(self):
         script_path = self.get_selected_script_path()
@@ -231,7 +251,7 @@ class MainWindow(Menu[Script]):
         if index >= 0:
             script = self.items[index]
 
-            update_script_access_time(script)
+            script.update_script_access_time()
             script_manager.sort_scripts()
             self.refresh()
 
@@ -402,7 +422,7 @@ class MainWindow(Menu[Script]):
                         self._reload_scripts()
                     else:
                         if script.cfg["updateSelectedScriptAccessTime"]:
-                            update_script_access_time(selected_script)
+                            selected_script.update_script_access_time()
                         script_manager.sort_scripts()
                         self.refresh()
                     return True
@@ -428,6 +448,10 @@ class MainWindow(Menu[Script]):
             if script is not None:
                 preview = []
                 default_script_config = get_default_script_config()
+
+                # Command line args
+                if script.cmdline_args is not None:
+                    preview.append(f"arg : {script.cmdline_args}")
 
                 # Preview script configs
                 config_preview = {}
@@ -463,6 +487,8 @@ class MainWindow(Menu[Script]):
 
 
 def _init(no_gui=False):
+    global script_server
+
     if not no_gui and is_instance_running():
         print("An instance is already running, exiting.")
         sys.exit(0)

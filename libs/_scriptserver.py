@@ -38,8 +38,11 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                     )
                 )
 
-        except IOError:
-            self.send_error(404, "File Not Found: %s" % self.path)
+            else:
+                raise Exception(f"Invalid path: {self.path}")
+
+        except Exception as ex:
+            self.send_error(500, str(ex))
 
     def do_POST(self):
         try:
@@ -99,22 +102,44 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 class ScriptServer:
     def __init__(self, port=4312) -> None:
         self.port = port
-        self.t: Optional[threading.Thread] = None
+        self.__httpd: Optional[ThreadingHTTPServer] = None
+        self.__lock = threading.Lock()
+        self.__server_thread: Optional[threading.Thread] = None
 
     def _server_main(self):
-        server = ThreadingHTTPServer((HOST_NAME, self.port), MyHTTPRequestHandler)
-        logging.info(
-            "Script API server started at: http://%s:%s" % (HOST_NAME, self.port)
-        )
-        server.serve_forever()
-        server.server_close()
-        print("Script server stopped.")
+        httpd = ThreadingHTTPServer((HOST_NAME, self.port), MyHTTPRequestHandler)
+        with self.__lock:
+            self.__httpd = httpd
+
+        logging.info("API server started at: http://%s:%s" % (HOST_NAME, self.port))
+        httpd.serve_forever()
+        httpd.server_close()
+
+        with self.__lock:
+            self.__httpd = None
+
+        logging.info("API server stopped.")
 
     def start_server(self):
-        self.t = threading.Thread(target=self._server_main, daemon=True)
-        self.t.start()
+        if self.__server_thread is not None:
+            raise Exception("API server is already started.")
+        logging.debug("Starting API server...")
+        self.__server_thread = threading.Thread(target=self._server_main, daemon=True)
+        self.__server_thread.start()
+
+    def stop_server(self, join_thread=True):
+        with self.__lock:
+            httpd = self.__httpd
+
+        if httpd is None or self.__server_thread is None:
+            raise Exception("API server is not started.")
+        logging.debug("Stopping API server...")
+        httpd.shutdown()
+
+        if join_thread:
+            self.join_server_thread()
 
     def join_server_thread(self):
-        if self.t is None:
-            raise Exception("Server is not started.")
-        self.t.join()
+        if self.__server_thread is None:
+            raise Exception("API server is not started.")
+        self.__server_thread.join()

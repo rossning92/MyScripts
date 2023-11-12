@@ -1,7 +1,7 @@
 import os
 import sys
 
-from _script import run_script
+from _script import run_script, start_script
 from _shutil import get_files
 
 
@@ -23,6 +23,12 @@ def create_link(script):
 
 
 if __name__ == "__main__":
-    script = get_files()[0]
-    file = create_link(script)
-    run_script(file)
+    files = get_files()
+    if len(files) > 0:
+        script = files[0]
+        file = create_link(script)
+        run_script(file)
+
+    else:
+        # Run last script
+        start_script(restart_instance=True)

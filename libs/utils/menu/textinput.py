@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from _shutil import load_json, save_json
 
@@ -6,7 +6,14 @@ from ..menu import Menu
 
 
 class TextInput(Menu):
-    def __init__(self, prompt: str = ">", history_file: Optional[str] = None, text=""):
+    def __init__(
+        self,
+        prompt: str = ">",
+        history_list: Optional[List[str]] = None,
+        history_file: Optional[str] = None,
+        text="",
+    ):
+        self.__history_list = history_list
         self.__history_file = history_file
         if self.__history_file:
             self.__history_data = load_json(
@@ -30,6 +37,10 @@ class TextInput(Menu):
                         self.__history_data["history"].remove(s)
                     self.__history_data["history"].insert(0, s)
                     save_json(self.__history_file, self.__history_data)
+                if self.__history_list is not None:
+                    if s in self.__history_list:
+                        self.__history_list.remove(s)
+                    self.__history_list.insert(0, s)
                 return s
             else:
                 return self.get_selected_item()

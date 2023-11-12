@@ -23,7 +23,7 @@ from _android import setup_android_env
 from _cpp import setup_cmake
 from _editor import open_in_editor
 from _filelock import FileLock
-from _pkgmanager import open_log_file, require_package
+from _pkgmanager import require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
     IgnoreSigInt,
@@ -46,6 +46,7 @@ from _shutil import (
     shell_open,
     slugify,
     start_process,
+    update_json,
     wrap_args_conemu,
     write_temp_file,
 )
@@ -414,16 +415,9 @@ def set_variable_value(variables: Dict[str, str], name: str, value: str):
 def update_variables(variables: Dict[str, str]):
     config_file = get_variable_file()
     with FileLock("access_variable"):
-        if not os.path.exists(config_file):
-            data = {}
-        else:
-            with open(get_variable_file(), "r") as f:
-                data = json.load(f)
-
+        data = load_json(config_file, default={})
         data.update(variables)
-
-        with open(config_file, "w") as f:
-            json.dump(data, f, indent=4)
+        save_json(config_file, data)
 
 
 def read_setting(setting, name, val):
@@ -708,6 +702,8 @@ class Script:
 
         self.last_scheduled_run_time = 0.0
 
+        self.cmdline_args: Optional[str] = None
+
     def is_running(self) -> bool:
         return self.ps is not None and self.ps.poll() is None
 
@@ -955,7 +951,9 @@ class Script:
         # If no arguments is provided to the script, try to provide the default
         # values from the script config.
         if len(arg_list) == 0:
-            if self.cfg["args"]:
+            if self.cmdline_args:
+                arg_list += self.cmdline_args.split()
+            elif self.cfg["args"]:
                 arg_list += self.cfg["args"].split()
 
             if self.cfg["args.passSelectionAsFile"]:
@@ -1655,6 +1653,10 @@ class Script:
 
         return variable_names
 
+    def update_script_access_time(self):
+        config_file = _get_script_access_time_file()
+        update_json(config_file, {self.script_path: time.time()})
+
 
 def get_script_variables(script: Script) -> Dict[str, str]:
     all_variables = get_all_variables()
@@ -1932,20 +1934,6 @@ def is_instance_running() -> bool:
 def _get_script_access_time_file() -> str:
     config_file = os.path.join(get_temp_dir(), "script_access_time.json")
     return config_file
-
-
-def update_script_access_time(script):
-    config_file = _get_script_access_time_file()
-    if os.path.exists(config_file):
-        with open(config_file, "r") as f:
-            data = json.load(f)
-    else:
-        data = {}
-
-    data[script.script_path] = time.time()
-
-    with open(config_file, "w") as f:
-        json.dump(data, f, indent=4)
 
 
 _script_access_time_file_mtime = 0.0
