@@ -702,7 +702,9 @@ class Script:
 
         self.last_scheduled_run_time = 0.0
 
-        self.cmdline_args: Optional[str] = None
+    def match_pattern(self, text: str):
+        patt = self.cfg["matchClipboard"]
+        return patt and re.search(patt, text) is not None
 
     def is_running(self) -> bool:
         return self.ps is not None and self.ps.poll() is None
@@ -951,9 +953,7 @@ class Script:
         # If no arguments is provided to the script, try to provide the default
         # values from the script config.
         if len(arg_list) == 0:
-            if self.cmdline_args:
-                arg_list += self.cmdline_args.split()
-            elif self.cfg["args"]:
+            if self.cfg["args"]:
                 arg_list += self.cfg["args"].split()
 
             if self.cfg["args.passSelectionAsFile"]:

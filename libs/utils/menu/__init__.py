@@ -19,7 +19,6 @@ from typing import (
 )
 
 from _shutil import load_json, save_json, set_clip, slugify
-
 from utils.clip import get_clip
 
 
@@ -218,6 +217,12 @@ class Menu(Generic[T]):
         self.prev_key: Union[int, str] = -1
         self.is_cancelled: bool = False
 
+        self.__allow_input: bool = allow_input
+        self.__debug = debug
+        self.__fuzzy_search = fuzzy_search
+        self.__last_selected_item: Optional[T] = None
+        self.__on_item_selected = on_item_selected
+        self.__text_color_map = text_color_map
         self._cancellable: bool = cancellable
         self._close_on_selection: bool = close_on_selection
         self._closed: bool = False
@@ -230,13 +235,9 @@ class Menu(Generic[T]):
         self._requested_selected_row: int = -1
         self._selected_row: int = 0
         self._width: int = -1
-        self.__debug = debug
-        self.__allow_input: bool = allow_input
-        self.__on_item_selected = on_item_selected
-        self.__text_color_map = text_color_map
-        self.__fuzzy_search = fuzzy_search
 
         self.__scroll_x = 0
+        self.__scroll_distance = 0
         self.__can_scroll_left = False
         self.__can_scroll_right = False
 
@@ -445,13 +446,14 @@ class Menu(Generic[T]):
             self._selected_row = min(self._selected_row, num_matched_items - 1)
         else:
             self._selected_row = 0
+        self.__check_if_item_selection_changed()
 
     def reset_selection(self):
         self._selected_row = 0
 
     def set_selected_row(self, selected_row: int):
         self._requested_selected_row = selected_row
-        self.on_item_selected()
+        self.__check_if_item_selection_changed()
 
     def refresh(self):
         self._should_update_matched_items = True
@@ -509,25 +511,25 @@ class Menu(Generic[T]):
             elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
                 self._selected_row = max(self._selected_row - 1, 0)
                 self._should_update_screen = True
-                self.on_item_selected()
+                self.__check_if_item_selection_changed()
 
             elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
                 self._selected_row = min(
                     self._selected_row + 1, len(self._matched_item_indices) - 1
                 )
                 self._should_update_screen = True
-                self.on_item_selected()
+                self.__check_if_item_selection_changed()
 
             elif self.__can_scroll_left and (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
             ):
-                self.__scroll_x = max(self.__scroll_x - self._width // 2, 0)
+                self.__scroll_x = max(self.__scroll_x - self.__scroll_distance, 0)
                 self._should_update_screen = True
 
             elif self.__can_scroll_right and (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
             ):
-                self.__scroll_x += self._width // 2
+                self.__scroll_x += self.__scroll_distance
                 self._should_update_screen = True
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
@@ -535,7 +537,7 @@ class Menu(Generic[T]):
                     self._selected_row - self.get_items_per_page(), 0
                 )
                 self._should_update_screen = True
-                self.on_item_selected()
+                self.__check_if_item_selection_changed()
 
             elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
                 self._selected_row = min(
@@ -543,17 +545,17 @@ class Menu(Generic[T]):
                     len(self._matched_item_indices) - 1,
                 )
                 self._should_update_screen = True
-                self.on_item_selected()
+                self.__check_if_item_selection_changed()
 
             elif ch == curses.KEY_HOME or ch == 449:
                 self._selected_row = 0
                 self._should_update_screen = True
-                self.on_item_selected()
+                self.__check_if_item_selection_changed()
 
             elif ch == curses.KEY_END or ch == 455:
                 self._selected_row = len(self._matched_item_indices) - 1
                 self._should_update_screen = True
-                self.on_item_selected()
+                self.__check_if_item_selection_changed()
 
             elif ch == "\x1b":  # escape key
                 if self._cancellable:
@@ -769,6 +771,7 @@ class Menu(Generic[T]):
                     scroll_x=self.__scroll_x,
                 )
                 next_i = draw_text_result.next_i + 1
+                self.__scroll_distance = self._width - row_number_width - 2
                 if draw_text_result.can_scroll_left:
                     self.__can_scroll_left = True
                 if draw_text_result.can_scroll_right:
@@ -854,7 +857,18 @@ class Menu(Generic[T]):
         self.is_cancelled = True
         self._closed = True
 
-    def on_item_selected(self):
+    def __check_if_item_selection_changed(self):
+        if self._selected_row < len(self._matched_item_indices):
+            item_index = self._matched_item_indices[self._selected_row]
+            selected = self.items[item_index]
+        else:
+            selected = None
+
+        if selected != self.__last_selected_item:
+            self.on_item_selection_changed(selected)
+        self.__last_selected_item = selected
+
+    def on_item_selection_changed(self, item: Optional[T]):
         pass
 
     def set_message(self, message: Optional[str] = None):

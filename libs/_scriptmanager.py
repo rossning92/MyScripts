@@ -5,7 +5,6 @@ import re
 import shutil
 import subprocess
 import sys
-import threading
 import time
 from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
@@ -17,12 +16,10 @@ from _script import (
     get_my_script_root,
     get_script_history_file,
     get_temp_dir,
-    run_script,
 )
 from _shutil import (
     clear_env_var_explorer,
     get_ahk_exe,
-    is_in_termux,
     pause,
     refresh_env_vars,
     save_json,
@@ -45,54 +42,6 @@ def add_keyboard_hooks(keyboard_hooks):
             keyboard.add_hotkey(hotkey, func)
 
 
-class MonitorClipboardThread(threading.Thread):
-    def __init__(self, match_clipboard: List[Tuple[re.Pattern, str, str]]):
-        super().__init__(daemon=True)
-
-        self.match_clipboard = match_clipboard
-        self.stopped = threading.Event()
-
-    def run(self) -> None:
-        logging.debug("MonitorClipboardThread started.")
-        if sys.platform == "linux" and not is_in_termux():
-            import pyperclip
-
-            try:
-                while not self.stopped.is_set():
-                    try:
-                        clip = pyperclip.waitForNewPaste(timeout=0.5)
-
-                        matched_script: Dict[str, str] = {}
-                        for patt, script_name, script_path in self.match_clipboard:
-                            if re.match(patt, clip):
-                                matched_script[script_name] = script_path
-
-                        if matched_script:
-                            ps = subprocess.run(
-                                ["dmenu"],
-                                input="\n".join(matched_script.keys()),
-                                encoding="utf-8",
-                                stdout=subprocess.PIPE,
-                            )
-                            script_name = ps.stdout.strip()
-                            if script_name in matched_script:
-                                script_path = matched_script[script_name]
-                                run_script(script_path, args=[clip], new_window=None)
-
-                    except pyperclip.PyperclipTimeoutException:
-                        pass
-            except Exception as ex:
-                logging.error("Error on monitoring clipboard: %s" % ex)
-
-        logging.debug("MonitorClipboardThread stopped.")
-
-    def stop(self):
-        if self.stopped.is_set():
-            raise Exception("Must not call stop twice.")
-        self.stopped.set()
-        self.join()
-
-
 def register_hotkeys(scripts) -> Dict[str, Script]:
     hotkeys = {}
     for script in scripts:
@@ -103,26 +52,6 @@ def register_hotkeys(scripts) -> Dict[str, Script]:
                 hotkeys[ch] = script
 
     return hotkeys
-
-
-_monitor_clipboard_thread: Optional[MonitorClipboardThread] = None
-
-
-def monitor_clipboard(scripts: List[Script]):
-    match_clipboard: List[Tuple[re.Pattern, str, str]] = []
-    for script in scripts:
-        patt = script.cfg["matchClipboard"]
-        if patt:
-            match_clipboard.append((re.compile(patt), script.name, script.script_path))
-    match_clipboard = sorted(match_clipboard, key=lambda x: x[1])  # sort by name
-
-    # Start MonitorClipboardThread
-    global _monitor_clipboard_thread
-    if _monitor_clipboard_thread is not None:
-        _monitor_clipboard_thread.stop()
-
-    _monitor_clipboard_thread = MonitorClipboardThread(match_clipboard=match_clipboard)
-    _monitor_clipboard_thread.start()
 
 
 def register_global_hotkeys_linux(scripts: List[Script]):
@@ -238,22 +167,27 @@ def register_global_hotkeys_win(scripts: List[Script]):
     )
 
 
-def execute_script(script: Script, close_on_exit=None, no_gui=False):
+def execute_script(
+    script: Script, args: Optional[List[str]] = None, close_on_exit=None, no_gui=False
+):
     refresh_env_vars()
 
-    if no_gui:
-        args: List[str] = []
+    if args is None:
+        if not no_gui:
+            args_: List[str] = []
+        else:
+            args_ = update_env_var_explorer()
     else:
-        args = update_env_var_explorer()
+        args_ = args
 
     # Save last executed script
-    save_json(get_script_history_file(), {"file": script.script_path, "args": args})
+    save_json(get_script_history_file(), {"file": script.script_path, "args": args_})
 
     if not no_gui:
         clear_terminal()
 
     success = script.execute(
-        args=args,
+        args=args_,
         close_on_exit=close_on_exit,
         restart_instance=True,
         new_window=False if no_gui else None,
@@ -377,7 +311,6 @@ class ScriptManager:
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
                 self.update_clipboard_script_map()
-                # monitor_clipboard(self.scripts)
 
         self.sort_scripts()
 

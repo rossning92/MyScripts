@@ -11,7 +11,6 @@ from _android import (
     start_app,
 )
 from _shutil import (
-    call_highlight,
     cd,
     confirm,
     find_newest_file,
@@ -44,7 +43,7 @@ def build_uproject(
     print2("Project File: %s" % project_file)
 
     if out_dir is None:
-        out_dir = out_dir_root + "/%s" % project_name
+        out_dir = os.path.join(out_dir_root, project_name)
 
     # Build C++ module?
     if compile_cpp:
@@ -52,7 +51,7 @@ def build_uproject(
 
     # UE4 Automation Tool
     mkdir(out_dir)
-    call_highlight(
+    subprocess.check_call(
         [
             r"%s\Engine\Build\BatchFiles\RunUAT.bat" % ue_source,
             "BuildCookRun",
@@ -75,8 +74,7 @@ def build_uproject(
             "-clientconfig=Development",
             "-utf8output",
             "-compile",
-        ],
-        highlight={r"\b(warning|WARNING):": "yellow", r"\b(error|ERROR):": "RED"},
+        ]
     )
 
     apk_file = list(glob.glob(os.path.join(out_dir, "**", "*.apk"), recursive=True))[0]
@@ -91,7 +89,7 @@ if __name__ == "__main__":
     ue_version = get_unreal_source_version()
     if ue_version.startswith("5"):
         install_cmdline_tools(version="8.0")
-        setup_android_env()
+        setup_android_env(jdk_version="11.0")  # for UE5.3+
         # subprocess.check_call(
         #     rf"{os.environ['UE_SOURCE']}\Engine\Extras\Android\SetupAndroid.bat",
         #     shell=True,

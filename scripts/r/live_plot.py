@@ -57,6 +57,7 @@ def plot_time_series(metric_regex, samples=500):
                         np.arange(frame_index, frame_index + maxsize),
                         ys[-samples:],
                         label=name,
+                        linewidth=0.5,
                     )
 
                 plt.legend()

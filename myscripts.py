@@ -172,6 +172,7 @@ class MainWindow(Menu[Script]):
         self.last_refresh_time = 0.0
         self.is_refreshing = False
         self.__run_script_and_quit = run_script_and_quit
+        self.__cmdline_args: Optional[str] = None
 
         super().__init__(
             items=script_manager.scripts,
@@ -196,15 +197,14 @@ class MainWindow(Menu[Script]):
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._delete_file, hotkey="ctrl+k")
         self.add_command(self._help, hotkey="?")
-        self.add_command(self._cmdline_args)
+        self.add_command(self._set_cmdline_args)
 
-    def _cmdline_args(self):
+    def _set_cmdline_args(self):
         script = self.get_selected_script()
         if script:
             input = TextInput(prompt="args>").request_input()
             if input is not None:
-                script.cmdline_args = input
-                logging.warning(f"Set cmdline_args to: {script.cmdline_args}")
+                self.__cmdline_args = input
 
     def _delete_file(self):
         script_path = self.get_selected_script_path()
@@ -240,8 +240,7 @@ class MainWindow(Menu[Script]):
             self.call_func_without_curses(exec_script)
 
     def match_item(self, keyword: str, script: Script) -> bool:
-        patt = script.cfg["matchClipboard"]
-        if patt and re.search(patt, keyword) is not None:
+        if script.match_pattern(keyword):
             return True
         else:
             return super().match_item(keyword, script)
@@ -258,6 +257,7 @@ class MainWindow(Menu[Script]):
             self.call_func_without_curses(
                 lambda: execute_script(
                     script,
+                    args=None if self.__cmdline_args is None else [self.__cmdline_args],
                     close_on_exit=close_on_exit,
                     no_gui=self.no_gui,
                 )
@@ -440,6 +440,13 @@ class MainWindow(Menu[Script]):
     def on_idle(self):
         try_reload_scripts_autorun(script_manager.scripts_autorun)
 
+    def on_item_selection_changed(self, script: Optional[Script]):
+        text = self.get_input()
+        if script is not None and text and script.match_pattern(text):
+            self.__cmdline_args = text
+        else:
+            self.__cmdline_args = None
+
     def on_update_screen(self, height: int):
         height = self._height
 
@@ -450,8 +457,8 @@ class MainWindow(Menu[Script]):
                 default_script_config = get_default_script_config()
 
                 # Command line args
-                if script.cmdline_args is not None:
-                    preview.append(f"arg : {script.cmdline_args}")
+                if self.__cmdline_args is not None:
+                    preview.append(f"arg : {self.__cmdline_args}")
 
                 # Preview script configs
                 config_preview = {}

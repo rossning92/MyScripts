@@ -8,4 +8,4 @@ else
 fi
 
 git fetch origin ${branch}:refs/remotes/origin/${branch} --filter=blob:none
-git checkout -b ${branch} origin/${branch}
+git checkout -B ${branch} origin/${branch}
