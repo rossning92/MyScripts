@@ -1,3 +1,4 @@
 set -e
 adb root
-adb shell "find / -name '*$1*' 2>/dev/null"
+read -p "search:" kw
+adb shell "find / -name '*$kw*' 2>/dev/null"

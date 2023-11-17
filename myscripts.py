@@ -118,7 +118,7 @@ def format_variables(variables, variable_names, variable_prefix) -> List[str]:
         max_width = 0
     for i, name in enumerate(variable_names):
         var_val = variables[name] if name in variables else ""
-        result.append("var : " + short_var_names[i].ljust(max_width) + ": " + var_val)
+        result.append("env : " + short_var_names[i].ljust(max_width) + ": " + var_val)
     return result
 
 
@@ -460,13 +460,6 @@ class MainWindow(Menu[Script]):
                 if self.__cmdline_args is not None:
                     preview.append(f"arg : {self.__cmdline_args}")
 
-                # Preview script configs
-                config_preview = {}
-                for name, value in script.cfg.items():
-                    if value != default_script_config[name]:
-                        config_preview[f"cfg : {name}"] = str(value)
-                preview += format_key_value_pairs(config_preview)
-
                 # Preview variables
                 try:
                     vars = get_script_variables(script)
@@ -481,6 +474,13 @@ class MainWindow(Menu[Script]):
                         "Error on reading variables from script, script does not exist: %s"
                         % script.script_path
                     )
+
+                # Preview script configs
+                config_preview = {}
+                for name, value in script.cfg.items():
+                    if value != default_script_config[name]:
+                        config_preview[f"cfg : {name}"] = str(value)
+                preview += format_key_value_pairs(config_preview)
 
                 height = max(5, height - len(preview) - 1)
                 for i, s in enumerate(preview):

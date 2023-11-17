@@ -91,9 +91,21 @@ class DictEditMenu(Menu):
         self.dict_history = dict_history
         self.on_dict_history_update = on_dict_history_update
 
-        self.update_items()
+        self.__update_items()
 
         self.add_command(self.__copy_selected_dict_value, hotkey="ctrl+y")
+        self.add_command(self.__toggle_value, hotkey="left")
+        self.add_command(self.__toggle_value, hotkey="right")
+
+    def __toggle_value(self):
+        key = self.get_selected_key()
+        if key is not None:
+            value = self.dict_[key]
+            value_type = type(value)
+            if value_type == bool:
+                self.dict_[key] = not self.dict_[key]
+                self.__notify_dict_updated()
+                self.__update_items()
 
     def __copy_selected_dict_value(self):
         key = self.get_selected_key()
@@ -102,7 +114,13 @@ class DictEditMenu(Menu):
             set_clip(value)
             self.set_message(f"copied: {value}")
 
-    def update_items(self):
+    def __notify_dict_updated(self):
+        if self.on_dict_update:
+            self.on_dict_update(self.dict_)
+        if self.on_dict_history_update:
+            self.on_dict_history_update(self.dict_history)
+
+    def __update_items(self):
         if len(self.dict_) == 0:
             return
 
@@ -158,12 +176,8 @@ class DictEditMenu(Menu):
             dict_history_values=dict_history_values,
         ).exec()
 
-        if self.on_dict_update:
-            self.on_dict_update(self.dict_)
-        if self.on_dict_history_update:
-            self.on_dict_history_update(self.dict_history)
-
-        self.update_items()
+        self.__notify_dict_updated()
+        self.__update_items()
 
     def set_dict_value(self, name: str, value: str):
         # Update dict
@@ -175,10 +189,5 @@ class DictEditMenu(Menu):
             dict_history_values.remove(value)
         dict_history_values.insert(0, value)
 
-        if self.on_dict_update:
-            self.on_dict_update(self.dict_)
-        if self.on_dict_history_update:
-            self.on_dict_history_update(self.dict_history)
-
-        self.update_items()
-        self.update_items()
+        self.__notify_dict_updated()
+        self.__update_items()

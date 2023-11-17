@@ -3,6 +3,7 @@ import time
 from typing import List, Optional
 
 from . import Menu
+from .textinput import TextInput
 
 
 class _SelectFilterMenu(Menu[str]):
@@ -44,10 +45,17 @@ class LogViewerMenu(Menu[str]):
         )
 
         self.add_command(self.sort)
-        self.add_command(lambda: self.filter_logs(), hotkey="ctrl+f")
+        self.add_command(self.save_filter)
+
+        self.add_command(self.filter_logs, hotkey="ctrl+f")
+        self.add_command(self.clear_logs, hotkey="ctrl+k")
 
         if filter:
             self.set_input(filter)
+
+    def clear_logs(self):
+        self.__lines.clear()
+        self.refresh()
 
     def filter_logs(self):
         m = _SelectFilterMenu(log_filter_dir=self.log_filter_dir)
@@ -60,6 +68,18 @@ class LogViewerMenu(Menu[str]):
                 encoding="utf-8",
             ) as f:
                 self.set_input(f.read())
+
+    def save_filter(self):
+        filter = self.get_input()
+        if filter:
+            filter_name = TextInput(prompt="filter name:").request_input()
+            if filter_name:
+                with open(
+                    os.path.join(self.log_filter_dir, f"{filter_name}.txt"),
+                    "w",
+                    encoding="utf-8",
+                ) as f:
+                    f.write(filter)
 
     def sort(self):
         self.__lines.sort()
