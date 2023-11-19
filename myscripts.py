@@ -173,6 +173,7 @@ class MainWindow(Menu[Script]):
         self.is_refreshing = False
         self.__run_script_and_quit = run_script_and_quit
         self.__cmdline_args: Optional[str] = None
+        self.__last_copy_time = 0.0
 
         super().__init__(
             items=script_manager.scripts,
@@ -181,22 +182,16 @@ class MainWindow(Menu[Script]):
             prompt=platform.node() + "$",
         )
 
-        self.add_command(self._reload_scripts, hotkey="ctrl+r")
-        self.add_command(self._edit_script_config, hotkey="shift+m")
-        self.add_command(self._copy_to_clipboard, hotkey="ctrl+y")
-        self.add_command(self._copy_to_clipboard_include_derivative, hotkey="shift+i")
-        self.add_command(self._new_script, hotkey="ctrl+n")
+        self.add_command(self._all_script_hotkeys)
+        self.add_command(self._copy_cmdline, hotkey="ctrl+y")
+        self.add_command(self._delete_file)
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
-        self.add_command(self._rename_script, hotkey="shift+n")
-        self.add_command(
-            lambda: self._rename_script(
-                replace_all_occurrence=True,
-            ),
-            hotkey="shift+b",
-        )
+        self.add_command(self._edit_script_settings, hotkey="ctrl+s")
         self.add_command(self._edit_script, hotkey="ctrl+e")
-        self.add_command(self._delete_file, hotkey="ctrl+k")
-        self.add_command(self._help, hotkey="?")
+        self.add_command(self._new_script, hotkey="ctrl+n")
+        self.add_command(self._reload_scripts, hotkey="ctrl+r")
+        self.add_command(self._rename_script_and_replace_all)
+        self.add_command(self._rename_script)
         self.add_command(self._set_cmdline_args)
 
     def _set_cmdline_args(self):
@@ -303,7 +298,7 @@ class MainWindow(Menu[Script]):
         self.is_refreshing = False
         return True
 
-    def _edit_script_config(self):
+    def _edit_script_settings(self):
         script_path = self.get_selected_script_path()
         if script_path:
             edit_script_config(script_path)
@@ -312,21 +307,21 @@ class MainWindow(Menu[Script]):
             self.items[index] = Script(script_path)
             self.clear_input()
 
-    def _copy_to_clipboard(self):
+    def _copy_cmdline(self):
         script = self.get_selected_script()
         if script:
-            content = copy_script_path_to_clipboard(script)
+            now = time.time()
+            include_derivative = now < self.__last_copy_time + 1
+            content = copy_script_path_to_clipboard(
+                script,
+                format="include" if include_derivative else "cmdline",
+                with_variables=include_derivative,
+            )
             self.set_message(
-                f"Content copied: {content}" if content else "Copied to clipboard."
+                f"copied to clipboard: {content}" if content else "copied to clipboard."
             )
 
-    def _copy_to_clipboard_include_derivative(self):
-        script = self.get_selected_script()
-        if script:
-            content = copy_script_path_to_clipboard(
-                script, format="include", with_variables=True
-            )
-            self.set_message(f"copied to clipboard: {content}")
+            self.__last_copy_time = now
 
     def _new_script_or_duplicate_script(self, duplicate=False):
         ref_script_path = self.get_selected_script_path()
@@ -363,17 +358,18 @@ class MainWindow(Menu[Script]):
             self.set_message()
         self.clear_input()
 
+    def _rename_script_and_replace_all(self):
+        self._rename_script(
+            replace_all_occurrence=True,
+        )
+
     def _edit_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
             self.call_func_without_curses(lambda: edit_myscript_script(script_path))
 
-    def _help(self):
-        items = []
-        items.extend(self._hotkeys.values())
-        items.extend(script_manager.hotkeys.values())
-        w = Menu(prompt="all hotkeys", items=items)
-        w.exec()
+    def _all_script_hotkeys(self):
+        Menu(prompt="all hotkeys", items=list(script_manager.hotkeys.values())).exec()
 
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()

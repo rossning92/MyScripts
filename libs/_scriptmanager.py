@@ -172,11 +172,12 @@ def execute_script(
 ):
     refresh_env_vars()
 
+    args_: List[str]
     if args is None:
         if not no_gui:
-            args_: List[str] = []
-        else:
             args_ = update_env_var_explorer()
+        else:
+            args_ = []
     else:
         args_ = args
 

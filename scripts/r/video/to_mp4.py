@@ -67,7 +67,7 @@ if __name__ == "__main__":
                 out_file=out_file,
                 extra_args=extra_args,
                 nvenc=bool(env.get("_NVENC")),
-                crf=int(env["_CRF"]) if env.get("_CRF") in env else 19,
+                crf=int(env["_CRF"]) if env.get("_CRF") else 19,
                 max_size_mb=(
                     float(env["_MAX_SIZE_MB"]) if env.get("_MAX_SIZE_MB") else None
                 ),

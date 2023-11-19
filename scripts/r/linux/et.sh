@@ -8,7 +8,7 @@ else
     port=2022
 fi
 
-cmdline="et ${ET_EXTRA_ARGS} ${SSH_USER}@${SSH_HOST}:${port}"
+cmdline="et -x ${ET_EXTRA_ARGS} ${SSH_USER}@${SSH_HOST}:${port}"
 echo "${cmdline}"
 
 cat >~/et.sh <<EOF

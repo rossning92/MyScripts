@@ -1,14 +1,16 @@
-branch='{{BRANCH}}'
-
 set -e
 
-if [ -z "$1" ]; then
-    echo "No argument provided"
+if [[ -n "{{GIT_URL}}" ]]; then
+    url="{{GIT_URL}}"
+elif [[ -n "$1" ]]; then
+    url="$1"
+else
+    echo "ERROR: git repo url is not provided."
     exit 1
 fi
-name=$(basename "$1")
 
-repo="$HOME/Projects/${name}"
+name=$(basename "$url")
+repo="$HOME/Projects/$name"
 mkdir -p "$repo"
 cd "$repo"
 
@@ -16,11 +18,11 @@ if [[ -d '.git' ]]; then
     echo '".git" already exist, skip cloning.'
 else
     extra_args=''
-    if [[ -n "${branch}" ]]; then
-        extra_args+="-b ${branch}"
+    if [[ -n "{{BRANCH}}" ]]; then
+        extra_args+="-b {{BRANCH}}"
     fi
     echo "Cloning into $repo"
-    git clone $1 --single-branch --filter=blob:none ${extra_args} .
+    git clone "$url" --single-branch --filter=blob:none ${extra_args} .
 fi
 
-run_script ext/open_in_editor.py .
+# run_script ext/open_in_editor.py .

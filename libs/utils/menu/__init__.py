@@ -19,6 +19,7 @@ from typing import (
 )
 
 from _shutil import load_json, save_json, set_clip, slugify
+
 from utils.clip import get_clip
 
 
@@ -509,16 +510,18 @@ class Menu(Generic[T]):
                 self.on_enter_pressed()
 
             elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
-                self._selected_row = max(self._selected_row - 1, 0)
-                self._should_update_screen = True
-                self.__check_if_item_selection_changed()
+                if len(self._matched_item_indices) > 0:
+                    self._selected_row = max(self._selected_row - 1, 0)
+                    self._should_update_screen = True
+                    self.__check_if_item_selection_changed()
 
             elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
-                self._selected_row = min(
-                    self._selected_row + 1, len(self._matched_item_indices) - 1
-                )
-                self._should_update_screen = True
-                self.__check_if_item_selection_changed()
+                if len(self._matched_item_indices) > 0:
+                    self._selected_row = min(
+                        self._selected_row + 1, len(self._matched_item_indices) - 1
+                    )
+                    self._should_update_screen = True
+                    self.__check_if_item_selection_changed()
 
             elif self.__can_scroll_left and (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1

@@ -1634,7 +1634,7 @@ class Script:
             if self.ext in SCRIPT_EXTENSIONS:
                 with open(self.script_path, "r", encoding="utf-8") as f:
                     s = f.read()
-                    variable_names = re.findall(r"\b([A-Z_$][A-Z_$0-9]{3,})\b", s)
+                    variable_names = re.findall(r"\b([A-Z_$][A-Z_$0-9]{5,})\b", s)
             else:
                 return []
         else:
