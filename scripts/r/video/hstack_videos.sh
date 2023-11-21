@@ -1,8 +1,4 @@
-input=
-for i in "$@"; do
-    input="$input -i $i"
-done
-
+input=$(printf " -i %s" "$@")
 ffmpeg \
     $input -filter_complex hstack=$# \
     -c:v libx264 \

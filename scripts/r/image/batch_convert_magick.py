@@ -3,8 +3,8 @@ import os
 from _pkgmanager import find_executable, require_package
 from _shutil import call_echo, get_files, mkdir
 
-require_package("magick")
-magick = find_executable("magick")
+require_package("imagemagick")
+magick = find_executable("imagemagick")
 files = get_files()
 
 

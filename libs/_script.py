@@ -700,8 +700,6 @@ class Script:
         self.mtime = 0.0
         self.refresh_script()
 
-        self.last_scheduled_run_time = 0.0
-
     def match_pattern(self, text: str):
         patt = self.cfg["matchClipboard"]
         return patt and re.search(patt, text) is not None
@@ -1937,16 +1935,16 @@ def _get_script_access_time_file() -> str:
 
 
 _script_access_time_file_mtime = 0.0
-_cached_script_access_time: Dict = {}
+_cached_script_access_time: Dict[str, float] = {}
 
 
-def get_all_script_access_time() -> Tuple[Dict, float]:
+def get_all_script_access_time() -> Dict[str, float]:
     global _script_access_time_file_mtime
     global _cached_script_access_time
 
     config_file = _get_script_access_time_file()
     if not os.path.exists(config_file):
-        return {}, 0
+        return {}
 
     mtime = os.path.getmtime(config_file)
     if mtime > _script_access_time_file_mtime:
@@ -1954,7 +1952,7 @@ def get_all_script_access_time() -> Tuple[Dict, float]:
         with open(config_file, "r") as f:
             _cached_script_access_time = json.load(f)
 
-    return _cached_script_access_time, _script_access_time_file_mtime
+    return _cached_script_access_time
 
 
 def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:

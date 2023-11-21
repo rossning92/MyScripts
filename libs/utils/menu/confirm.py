@@ -5,7 +5,7 @@ class ConfirmMenu(Menu):
     def __init__(self, prompt) -> None:
         super().__init__(
             allow_input=False,
-            items=["[y] yes", "[n] no"],
+            items=["yes (y)", "no (n)"],
             prompt=prompt,
         )
 

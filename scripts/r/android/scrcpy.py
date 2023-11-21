@@ -35,7 +35,7 @@ def update_android_serial():
 
 
 if __name__ == "__main__":
-    win_pos = [int(x) for x in os.environ.get("_POS", "").split()]
+    win_pos = [int(x) for x in os.environ.get("SCRCPY_POS", "").split()]
 
     while True:
         wait_until_boot_complete()
@@ -56,8 +56,8 @@ if __name__ == "__main__":
         if serial:
             args += ["--serial", serial]
 
-        if "_SIZE" in os.environ:
-            args += ["--max-size", os.environ["_SIZE"]]
+        if "SCRCPY_HEIGHT" in os.environ:
+            args += ["--max-size", os.environ["SCRCPY_HEIGHT"]]
 
         ps = subprocess.Popen(args, stdin=subprocess.PIPE)
         ps.stdin.close()  # to avoid stuck in "press any key..."
