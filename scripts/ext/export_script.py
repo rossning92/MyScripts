@@ -100,7 +100,7 @@ def _export_script(script_path, out_dir, create_executable=False):
     # Render scripts
     out_file = "%s/%s" % (out_dir, os.path.basename(script_path))
     print("Render: %s" % script_path)
-    with open(out_file, "w") as f:
+    with open(out_file, "w", newline="\n") as f:
         f.write(content)
 
     if create_executable and ext == ".py":

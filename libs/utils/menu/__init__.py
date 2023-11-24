@@ -9,7 +9,6 @@ from typing import (
     Callable,
     Dict,
     Generic,
-    Iterator,
     List,
     NamedTuple,
     Optional,
@@ -32,26 +31,6 @@ def get_hotkey_abbr(hotkey: str):
     )
 
 
-def to_ascii_hotkey(hotkey: str) -> Iterator[Union[int, str]]:
-    hotkey = hotkey.lower()
-    key = hotkey[-1].lower()
-    if hotkey == "delete":
-        yield curses.KEY_DC  # 330
-    elif hotkey == "left":
-        yield curses.KEY_LEFT
-        yield 452  # curses.KEY_B1
-    elif hotkey == "right":
-        yield curses.KEY_RIGHT
-        yield 454  # curses.KEY_B3
-    elif "ctrl+" in hotkey:
-        yield curses.ascii.ctrl(key)
-    elif "shift+" in hotkey or "alt+" in hotkey:
-        # HACK: use `shift+` in place of `alt+`
-        yield key.upper()
-    else:
-        yield key
-
-
 def _is_backspace_key(ch: Union[int, str]):
     return (
         ch == curses.KEY_BACKSPACE
@@ -61,10 +40,15 @@ def _is_backspace_key(ch: Union[int, str]):
 
 
 class _Command:
-    def __init__(self, hotkey: Optional[str], func: Callable):
+    def __init__(
+        self, hotkey: Optional[str], func: Callable, name: Optional[str] = None
+    ):
         self.hotkey = hotkey
         self.func = func
-        self.name = func.__name__.strip("_")
+        if name is not None:
+            self.name = name
+        else:
+            self.name = func.__name__.strip("_")
 
     def __str__(self) -> str:
         if self.hotkey is not None:
@@ -264,14 +248,14 @@ class Menu(Generic[T]):
             self.indices = [x[1] for x in sorted_items]
 
         # Hotkeys
-        self._hotkeys: Dict[Union[int, str], _Command] = {}
+        self._hotkeys: Dict[str, _Command] = {}
         self._custom_commands: List[_Command] = []
         if enable_command_palette:
             self.add_command(self._yank, hotkey="ctrl+y")
             self.add_command(self._paste, hotkey="ctrl+v")
             self.add_command(self._palette, hotkey="ctrl+p")
             self._command_palette_menu = Menu(
-                prompt="Commands:",
+                prompt="commands:",
                 items=self._custom_commands,
                 enable_command_palette=False,
             )
@@ -286,13 +270,14 @@ class Menu(Generic[T]):
     def _paste(self):
         self.set_input(get_clip())
 
-    def add_command(self, func: Callable, hotkey: Optional[str] = None) -> _Command:
-        command = _Command(hotkey=hotkey, func=func)
+    def add_command(
+        self, func: Callable, hotkey: Optional[str] = None, name: Optional[str] = None
+    ) -> _Command:
+        command = _Command(hotkey=hotkey, func=func, name=name)
         self._custom_commands.append(command)
 
         if hotkey is not None:
-            for ch in to_ascii_hotkey(hotkey):
-                self._hotkeys[ch] = command
+            self._hotkeys[hotkey] = command
 
         return command
 
@@ -535,14 +520,20 @@ class Menu(Generic[T]):
             elif self._can_scroll_left and (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
             ):
-                self._scroll_x = max(self._scroll_x - self._scroll_distance, 0)
-                self._should_update_screen = True
+                if "left" in self._hotkeys:
+                    self._hotkeys["left"].func()
+                else:
+                    self._scroll_x = max(self._scroll_x - self._scroll_distance, 0)
+                    self._should_update_screen = True
 
             elif self._can_scroll_right and (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
             ):
-                self._scroll_x += self._scroll_distance
-                self._should_update_screen = True
+                if "right" in self._hotkeys:
+                    self._hotkeys["right"].func()
+                else:
+                    self._scroll_x += self._scroll_distance
+                    self._should_update_screen = True
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
                 self._selected_row = max(
@@ -569,6 +560,15 @@ class Menu(Generic[T]):
                 self._should_update_screen = True
                 self._check_if_item_selection_changed()
 
+            elif ch == curses.KEY_DC and "delete" in self._hotkeys:
+                self._hotkeys["delete"].func()
+
+            elif self._check_ctrl_hotkey(ch):
+                pass
+
+            elif self._check_shift_hotkey(ch):
+                pass
+
             elif ch == "\x1b":  # escape key
                 if self._cancellable:
                     self.is_cancelled = True
@@ -593,6 +593,26 @@ class Menu(Generic[T]):
         else:
             return True
 
+    def _check_ctrl_hotkey(self, ch: Union[str, int]) -> bool:
+        if curses.ascii.isctrl(ch):
+            htk = "ctrl+" + curses.ascii.unctrl(ch)[-1].lower()
+            if htk in self._hotkeys:
+                self._hotkeys[htk].func()
+                return True
+        return False
+
+    def _check_shift_hotkey(self, ch: Union[str, int]) -> bool:
+        if isinstance(ch, str):
+            if ch in self._hotkeys:
+                self._hotkeys[ch].func()
+                return True
+            elif len(ch) == 1 and ch.isupper():
+                htk = "shift+" + ch.lower()
+                if htk in self._hotkeys:
+                    self._hotkeys[htk].func()
+                    return True
+        return False
+
     def _on_idle(self):
         self.on_idle()
 
@@ -603,6 +623,7 @@ class Menu(Generic[T]):
         pass
 
     def _exec(self):
+        self.is_cancelled = False
         self._closed = False
         self._should_update_screen = True
         self.on_created()

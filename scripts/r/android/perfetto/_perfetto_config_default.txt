@@ -2,10 +2,12 @@ buffers: {
     size_kb: 63488
     fill_policy: DISCARD
 }
+
 buffers: {
     size_kb: 63488
     fill_policy: DISCARD
 }
+
 data_sources: {
     config {
         name: "linux.process_stats"
@@ -15,6 +17,7 @@ data_sources: {
         }
     }
 }
+
 data_sources: {
     config {
         name: "linux.sys_stats"
@@ -25,6 +28,7 @@ data_sources: {
         }
     }
 }
+
 data_sources: {
     config {
         name: "linux.ftrace"
@@ -48,6 +52,7 @@ data_sources: {
         }
     }
 }
+
 data_sources: {
     config {
         name: "track_event"
@@ -56,6 +61,7 @@ data_sources: {
         }
     }
 }
+
 # Logcat
 data_sources: {
     config {
@@ -64,4 +70,7 @@ data_sources: {
         }
     }
 }
+
+{{ include('_perfetto_config_callstack_sampling.txt') if CALLSTACK_SAMPLING_PROCESS else '' }}
+
 {{DEFAULT_TRACE_CONFIG_APPEND}}

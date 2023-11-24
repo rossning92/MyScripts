@@ -29,7 +29,6 @@ from _shutil import (
 )
 from _template import render_template_file
 from _term import clear_terminal
-from utils.menu import to_ascii_hotkey
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_temp_dir(), "GlobalHotkey.ahk")
 
@@ -41,18 +40,6 @@ def add_keyboard_hooks(keyboard_hooks):
         keyboard.unhook_all()
         for hotkey, func in keyboard_hooks.items():
             keyboard.add_hotkey(hotkey, func)
-
-
-def register_hotkeys(scripts) -> Dict[str, Script]:
-    hotkeys = {}
-    for script in scripts:
-        hotkey = script.cfg["hotkey"]
-        if hotkey:
-            logging.debug("Hotkey: %s: %s" % (hotkey, script.name))
-            for ch in to_ascii_hotkey(hotkey):
-                hotkeys[ch] = script
-
-    return hotkeys
 
 
 def register_global_hotkeys_linux(scripts: List[Script]):
@@ -219,23 +206,22 @@ def register_global_hotkeys(scripts, no_gui=False):
         register_global_hotkeys_mac(scripts, no_gui=no_gui)
 
 
-def _get_last_scheduled_script_run_time_file():
-    return os.path.join(get_temp_dir(), "last_scheduled_script_run_time.json")
+def _get_next_scheduled_script_run_time_file():
+    return os.path.join(get_temp_dir(), "next_scheduled_script_run_time.json")
 
 
 class ScriptManager:
     def __init__(self, no_gui=False, startup=False):
-        self.scripts: List[Script] = []
-        self.scripts_autorun: List[Script] = []
-        self.hotkeys: Dict[str, Script] = {}
-        self.no_gui = no_gui
-        self.startup = startup
-        self.__match_scripts: List[Tuple[re.Pattern, Script]] = []
-
-        self.__scheduled_script: List[Script] = []
-        self.__last_scheduled_script_run_time: Dict[str, float] = load_json(
-            _get_last_scheduled_script_run_time_file(), default={}
+        self.next_scheduled_script_run_time: Dict[str, float] = load_json(
+            _get_next_scheduled_script_run_time_file(), default={}
         )
+        self.no_gui = no_gui
+        self.scripts_autorun: List[Script] = []
+        self.scripts: List[Script] = []
+        self.startup = startup
+
+        self.__match_scripts: List[Tuple[re.Pattern, Script]] = []
+        self.__scheduled_script: List[Script] = []
 
     def update_script_access_time(self):
         access_time = get_all_script_access_time()
@@ -314,11 +300,24 @@ class ScriptManager:
             if re.search(regex, s):
                 yield script
 
-    def refresh_all_scripts(self, on_progress: Optional[Callable[[], None]] = None):
+    def refresh_all_scripts(
+        self,
+        on_progress: Optional[Callable[[], None]] = None,
+        on_register_hotkeys: Optional[Callable[[Dict[str, Script]], None]] = None,
+    ):
         begin_time = time.time()
 
         if self.reload_scripts(autorun=not self.no_gui, on_progress=on_progress):
-            self.hotkeys = register_hotkeys(self.scripts)
+            # Register hotkeys
+            if on_register_hotkeys is not None:
+                hotkeys: Dict[str, Script] = {}
+                for script in self.scripts:
+                    hotkey = script.cfg["hotkey"]
+                    if hotkey:
+                        logging.debug("Hotkey: %s: %s" % (hotkey, script.name))
+                        hotkeys[hotkey] = script
+                on_register_hotkeys(hotkeys)
+
             if not self.no_gui:
                 register_global_hotkeys(self.scripts)
                 self.update_clipboard_script_map()
@@ -340,10 +339,8 @@ class ScriptManager:
             run_every_n_seconds = script.cfg["runEveryNSec"]
             if run_every_n_seconds:
                 if (
-                    script.script_path not in self.__last_scheduled_script_run_time
-                    or now
-                    > self.__last_scheduled_script_run_time[script.script_path]
-                    + int(run_every_n_seconds)
+                    script.script_path not in self.next_scheduled_script_run_time
+                    or now > self.next_scheduled_script_run_time[script.script_path]
                 ):
                     if script.is_running():
                         logging.warn("Script is still running, skip scheduled task.")
@@ -352,11 +349,11 @@ class ScriptManager:
                         has_any_script_to_run = True
                         yield script
 
-                    self.__last_scheduled_script_run_time[
+                    self.next_scheduled_script_run_time[
                         script.script_path
-                    ] = time.time()
+                    ] = time.time() + int(run_every_n_seconds)
 
         if has_any_script_to_run:
             # Save last scheduled script run time
-            config_file = _get_last_scheduled_script_run_time_file()
-            save_json(config_file, self.__last_scheduled_script_run_time)
+            config_file = _get_next_scheduled_script_run_time_file()
+            save_json(config_file, self.next_scheduled_script_run_time)

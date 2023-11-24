@@ -182,7 +182,6 @@ class MainWindow(Menu[Script]):
             prompt=platform.node() + "$",
         )
 
-        self.add_command(self._all_script_hotkeys)
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")
         self.add_command(self._delete_file)
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
@@ -193,6 +192,14 @@ class MainWindow(Menu[Script]):
         self.add_command(self._rename_script_and_replace_all)
         self.add_command(self._rename_script)
         self.add_command(self._set_cmdline_args)
+        self.add_command(self._next_scheduled_script)
+
+    def _next_scheduled_script(self):
+        items = [
+            f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))} {os.path.basename(script_path)}"
+            for script_path, ts in script_manager.next_scheduled_script_run_time.items()
+        ]
+        Menu(items=items, prompt="next scheduled script>").exec()
 
     def _set_cmdline_args(self):
         script = self.get_selected_script()
@@ -280,6 +287,14 @@ class MainWindow(Menu[Script]):
         else:
             return None
 
+    def _on_register_hotkeys(self, hotkeys: Dict[str, Script]):
+        for hotkey, script in hotkeys.items():
+            self.add_command(
+                lambda script=script: self._run_hotkey(script),
+                hotkey=hotkey,
+                name=script.name,
+            )
+
     def _reload_scripts(self):
         if self.is_refreshing:
             return
@@ -292,7 +307,9 @@ class MainWindow(Menu[Script]):
             self.process_events()
             self.set_message("refreshing scripts: %d" % len(script_manager.scripts))
 
-        script_manager.refresh_all_scripts(on_progress=on_process)
+        script_manager.refresh_all_scripts(
+            on_progress=on_process, on_register_hotkeys=self._on_register_hotkeys
+        )
         self.set_message()
         self.update_last_refresh_time()
         self.is_refreshing = False
@@ -368,9 +385,6 @@ class MainWindow(Menu[Script]):
         if script_path:
             self.call_func_without_curses(lambda: edit_myscript_script(script_path))
 
-    def _all_script_hotkeys(self):
-        Menu(prompt="all hotkeys", items=list(script_manager.hotkeys.values())).exec()
-
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
 
@@ -403,25 +417,6 @@ class MainWindow(Menu[Script]):
 
             elif ch == "L":
                 self.call_func_without_curses(lambda: restart_program())
-
-            elif ch in script_manager.hotkeys:
-                script = script_manager.hotkeys[ch]
-                selected_script = self.get_selected_item()
-                if selected_script is not None:
-                    os.environ["SCRIPT"] = os.path.abspath(selected_script.script_path)
-
-                    self.call_func_without_curses(
-                        lambda: execute_script(script, no_gui=self.no_gui)
-                    )
-                    if script.cfg["reloadScriptsAfterRun"]:
-                        logging.info("Reload scripts after running: %s" % script.name)
-                        self._reload_scripts()
-                    else:
-                        if script.cfg["updateSelectedScriptAccessTime"]:
-                            selected_script.update_script_access_time()
-                        script_manager.sort_scripts()
-                        self.refresh()
-                    return True
 
             elif ch == "\x1b":
                 return True
@@ -487,6 +482,24 @@ class MainWindow(Menu[Script]):
                     )
 
         super().on_update_screen(height=height)
+
+    def _run_hotkey(self, script: Script):
+        selected_script = self.get_selected_item()
+        if selected_script is not None:
+            os.environ["SCRIPT"] = os.path.abspath(selected_script.script_path)
+
+            self.call_func_without_curses(
+                lambda script=script: execute_script(script, no_gui=self.no_gui)
+            )
+            if script.cfg["reloadScriptsAfterRun"]:
+                logging.info("Reload scripts after running: %s" % script.name)
+                self._reload_scripts()
+            else:
+                if script.cfg["updateSelectedScriptAccessTime"]:
+                    selected_script.update_script_access_time()
+                script_manager.sort_scripts()
+                self.refresh()
+            return True
 
 
 def _init(no_gui=False):

@@ -1,0 +1,21 @@
+# CPU callstack sampling
+# https://perfetto.dev/docs/reference/trace-config-proto#PerfEventConfig.CallstackSampling
+data_sources {
+  config {
+    name: "linux.perf"
+    target_buffer: 1
+    perf_event_config {
+      timebase {
+        counter: SW_CPU_CLOCK
+        frequency: 100
+        # timestamp_clock: PERF_CLOCK_MONOTONIC
+      }
+      callstack_sampling {
+        scope {
+          target_cmdline: "{{CALLSTACK_SAMPLING_PROCESS}}"
+        }
+        kernel_frames: false
+      }
+    }
+  }
+}

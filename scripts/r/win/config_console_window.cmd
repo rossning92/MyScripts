@@ -9,8 +9,12 @@ reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x36 /f >NUL
 reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xe0000 /f >NUL
 reg add HKCU\Console /v InsertMode /t REG_DWORD /d 1 /f >NUL
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f >NUL
-@REM use ctrl+shift+c/v to copy and paste
+
+@REM Use ctrl+shift+c/v to copy and paste
 reg add HKCU\Console /v InterceptCopyPaste /t REG_DWORD /d 1 /f >NUL
+
+@REM Window size (0x28: 40 rows 0x78: 120 columns)
+reg add HKCU\Console /v WindowSize /t REG_DWORD /d 0x280078 /f
 
 @REM Terminal colors
 reg add HKCU\Console /v ColorTable00 /t REG_DWORD /d 0x00362a28 /f >NUL
@@ -29,6 +33,3 @@ reg add HKCU\Console /v ColorTable12 /t REG_DWORD /d 0x005555ff /f >NUL
 reg add HKCU\Console /v ColorTable13 /t REG_DWORD /d 0x00c679ff /f >NUL
 reg add HKCU\Console /v ColorTable14 /t REG_DWORD /d 0x008cfaf1 /f >NUL
 reg add HKCU\Console /v ColorTable15 /t REG_DWORD /d 0x00f2f8f8 /f >NUL
-
-@REM Window size
-reg add HKCU\Console /v WindowSize /t REG_DWORD /d 0x280078 /f

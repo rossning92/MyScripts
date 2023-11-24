@@ -134,8 +134,8 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
 
     setup_python(data_dir=data_dir)
     setup_gpt(data_dir=data_dir)
-    # setup_color_theme(data_dir=data_dir)
     setup_mermaid(data_dir=data_dir)
+    # setup_color_theme(data_dir=data_dir)
 
     install_extensions(
         [
@@ -148,7 +148,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             # Markdown
             "yzhang.markdown-all-in-one",
             "mushan.vscode-paste-image",
-            # For [[wiki-links]], backlinks, #tags and @bibtex-citations
+            # Note-taking
             "foam.foam-vscode",
             # Javascript
             "dbaeumer.vscode-eslint",

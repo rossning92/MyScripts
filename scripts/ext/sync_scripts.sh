@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 cd "$(dirname "$0")/../../"
-echo "Sync script repo: $(pwd)"
+if [[ -n "$AMEND" ]]; then
+    echo "Sync repo (amend): $(pwd)"
+else
+    echo "Sync repo: $(pwd)"
+fi
 
 if [[ ! -d ".git" ]]; then
     git init
@@ -20,11 +24,7 @@ git config credential.helper store
 git status --short
 status=$(git status --short)
 if [[ ! -z "$status" ]]; then
-    if [[ -n "$AMEND" ]]; then
-        echo "Confirm amend? (y/n)"
-    else
-        echo "Confirm commit? (y/n)"
-    fi
+    echo "Confirm? (y/n)"
     read -n1 ans
     if [[ "$ans" == "y" ]]; then
         git add -A
