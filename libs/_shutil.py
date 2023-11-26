@@ -1877,3 +1877,13 @@ class IgnoreSigInt(object):
 
     def __exit__(self, type, value, tb):
         signal.signal(signal.SIGINT, self.original_handler)
+
+
+def get_hotkey_abbr(hotkey: str):
+    return (
+        hotkey.lower()
+        .replace("win+", "#")
+        .replace("ctrl+", "^")
+        .replace("alt+", "!")
+        .replace("shift+", "+")
+    )

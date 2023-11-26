@@ -17,18 +17,9 @@ from typing import (
     Union,
 )
 
-from _shutil import load_json, save_json, set_clip, slugify
+from _shutil import get_hotkey_abbr, load_json, save_json, set_clip, slugify
+
 from utils.clip import get_clip
-
-
-def get_hotkey_abbr(hotkey: str):
-    return (
-        hotkey.lower()
-        .replace("win+", "#")
-        .replace("ctrl+", "^")
-        .replace("alt+", "!")
-        .replace("shift+", "+")
-    )
 
 
 def _is_backspace_key(ch: Union[int, str]):
@@ -517,23 +508,27 @@ class Menu(Generic[T]):
                     self._should_update_screen = True
                     self._check_if_item_selection_changed()
 
-            elif self._can_scroll_left and (
+            elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
-            ):
-                if "left" in self._hotkeys:
-                    self._hotkeys["left"].func()
-                else:
-                    self._scroll_x = max(self._scroll_x - self._scroll_distance, 0)
-                    self._should_update_screen = True
+            ) and self._can_scroll_left:
+                self._scroll_x = max(self._scroll_x - self._scroll_distance, 0)
+                self._should_update_screen = True
 
-            elif self._can_scroll_right and (
+            elif (
+                ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B3
+            ) and "left" in self._hotkeys:
+                self._hotkeys["left"].func()
+
+            elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
-            ):
-                if "right" in self._hotkeys:
-                    self._hotkeys["right"].func()
-                else:
-                    self._scroll_x += self._scroll_distance
-                    self._should_update_screen = True
+            ) and self._can_scroll_right:
+                self._scroll_x += self._scroll_distance
+                self._should_update_screen = True
+
+            elif (
+                ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
+            ) and "right" in self._hotkeys:
+                self._hotkeys["right"].func()
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
                 self._selected_row = max(

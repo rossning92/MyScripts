@@ -106,6 +106,7 @@ class DictEditMenu(Menu):
                 self.dict_[key] = not self.dict_[key]
                 self.__notify_dict_updated()
                 self.__update_items()
+                self.update_screen()
 
     def __copy_selected_dict_value(self):
         key = self.get_selected_key()

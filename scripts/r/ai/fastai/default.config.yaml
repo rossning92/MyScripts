@@ -1,0 +1,4 @@
+packages.pip: fastai
+venv.name: fastai
+workingDir: "{HOME}/fastai"
+closeOnExit: false

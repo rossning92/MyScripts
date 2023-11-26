@@ -117,8 +117,8 @@ if __name__ == "__main__":
     out_dir = build_uproject(
         ue_source=os.environ["UE_SOURCE"],
         project_dir=os.environ["UE_PROJECT_DIR"],
-        compile_cpp=bool(os.environ.get("_COMPILE_CPP")),
-        clean=bool(os.environ.get("_CLEAN")),
+        compile_cpp=bool(os.environ.get("UE_BUILD_ANDROID_COMPILE_CPP")),
+        clean=bool(os.environ.get("UE_BUILD_ANDROID_CLEAN_BUILD")),
     )
 
     if os.environ.get("_INSTALL"):

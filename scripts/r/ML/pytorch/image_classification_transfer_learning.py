@@ -15,7 +15,7 @@ from torch.optim import lr_scheduler
 from torch.utils.data import random_split
 from torchvision import datasets, models, transforms
 
-data_dir = "/tmp/image_data"
+data_dir = r"{{IMAGE_DATASET_DIR}}"
 val_data_ratio = 0.2
 
 

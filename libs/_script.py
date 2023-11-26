@@ -33,6 +33,7 @@ from _shutil import (
     format_time,
     get_ahk_exe,
     get_home_path,
+    get_hotkey_abbr,
     load_json,
     load_yaml,
     npm_install,
@@ -52,9 +53,6 @@ from _shutil import (
 )
 from _template import render_template
 from utils.clip import get_clip, get_selection
-from utils.menu import get_hotkey_abbr
-from utils.menu.filemgr import FileManager
-from utils.menu.input import Input
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.timed import timed
 from utils.venv import activate_python_venv, get_venv_python_executable
@@ -718,6 +716,9 @@ class Script:
         script_config_file = get_script_config_file(self.script_path)
         if script_config_file:
             mtime = max(mtime, os.path.getmtime(script_config_file))
+        default_script_config_file = get_default_script_config_path(self.script_path)
+        if os.path.exists(default_script_config_file):
+            mtime = max(mtime, os.path.getmtime(default_script_config_file))
 
         if mtime > self.mtime:
             self.mtime = mtime
@@ -965,6 +966,8 @@ class Script:
                 arg_list.append(temp_file)
 
             elif self.cfg["args.passSelectedFile"]:
+                from utils.menu.filemgr import FileManager
+
                 file = FileManager().select_file()
                 if file is None:
                     return True
@@ -972,6 +975,8 @@ class Script:
                     arg_list.append(file)
 
             elif self.cfg["args.passSelectedDir"]:
+                from utils.menu.filemgr import FileManager
+
                 file = FileManager().select_directory()
                 if file is None:
                     return True
@@ -1208,6 +1213,22 @@ class Script:
 
                 args_activate = ["cmd", "/c", "call", activate, env_name, "&"]
 
+            # Install pip packages
+            if self.cfg["packages.pip"]:
+                pip_packages = self.cfg["packages.pip"].split()
+                for pkg in pip_packages:
+                    # Check if pip package is installed
+                    ret = subprocess.call(
+                        [python_exec, "-m", "pip", "show", pkg],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    if ret != 0:
+                        print(f"{pkg} is not found, installing...")
+                        subprocess.check_call(
+                            [python_exec, "-m", "pip", "install", pkg]
+                        )
+
             if ext == ".py":
                 if self.cfg["runpy"]:
                     run_py = os.path.abspath(SCRIPT_ROOT + "/../bin/run_python.py")
@@ -1251,6 +1272,8 @@ class Script:
         elif ext == ".url":
             url = self.get_script_source()
             if "%s" in url:
+                from utils.menu.input import Input
+
                 keyword = Input().input()
                 if not keyword:
                     return True
@@ -1293,18 +1316,6 @@ class Script:
             if "node" in packages:
                 print("node package is required.")
                 setup_nodejs(install=False)
-
-        if self.cfg["packages.pip"]:
-            import importlib.util
-
-            pip_packages = self.cfg["packages.pip"].split()
-            for pkg in pip_packages:
-                # Check if pip package is installed
-                spec = importlib.util.find_spec(pkg)
-                if spec is None:
-                    print(f"{pkg} is not installed, installing...")
-
-                    subprocess.check_call([sys.executable, "-m", "pip", "install", pkg])
 
         # Run commands
         if len(arg_list) > 0:
@@ -1843,8 +1854,12 @@ def get_script_config_file_path(script_path: str) -> str:
     return os.path.splitext(script_path)[0] + ".config.yaml"
 
 
+def get_default_script_config_path(script_path: str) -> str:
+    return os.path.join(os.path.dirname(script_path), "default.config.yaml")
+
+
 def get_script_folder_level_config(script_path: str) -> Optional[Dict[str, Any]]:
-    config_file_path = os.path.join(os.path.dirname(script_path), "default.config.yaml")
+    config_file_path = get_default_script_config_path(script_path)
     if os.path.exists(config_file_path):
         with open(config_file_path, "r") as f:
             return yaml.load(f.read(), Loader=yaml.FullLoader)

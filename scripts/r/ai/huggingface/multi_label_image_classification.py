@@ -1,13 +1,15 @@
 # https://github.com/huggingface/notebooks/blob/main/examples/image_classification.ipynb
 
 import argparse
+import glob
+import os
 from pprint import pprint
+from typing import List
 
-import evaluate
+import datasets
 import numpy as np
 import requests
 import torch
-from datasets import load_dataset
 from PIL import Image
 from torchvision.transforms import (
     CenterCrop,
@@ -32,25 +34,62 @@ batch_size = 32  # batch size for training and evaluation
 model_name = model_checkpoint.split("/")[-1]
 
 
+# fmt: off
+image_extensions = {
+    ".blp", ".bmp", ".dib", ".bufr", ".cur", ".pcx", ".dcx", ".dds", ".ps", ".eps", ".fit", ".fits", ".fli", ".flc",
+    ".ftc", ".ftu", ".gbr", ".gif", ".grib", ".h5", ".hdf", ".png", ".apng", ".jp2", ".j2k", ".jpc", ".jpf", ".jpx",
+    ".j2c", ".icns", ".ico", ".im", ".iim", ".tif", ".tiff", ".jfif", ".jpe", ".jpg", ".jpeg", ".mpg", ".mpeg",
+    ".msp", ".pcd", ".pxr", ".pbm", ".pgm", ".ppm", ".pnm", ".psd", ".bw", ".rgb", ".rgba", ".sgi", ".ras", ".tga",
+    ".icb", ".vda", ".vst", ".webp", ".wmf", ".emf", ".xbm", ".xpm"
+}
+# fmt: on
+
+
 def fine_tunning_model(image_dir: str):
-    # Load dataset from local/remote files or folders using the ImageFolder feature
-    dataset = load_dataset("imagefolder", data_dir=image_dir)
+    # Load multi-label image dataset
+    label_set = set()
+    image_files = []
+    image_labels = []
+    for file in glob.glob(
+        os.path.join("**", "*.*"), root_dir=image_dir, recursive=True
+    ):
+        ext = os.path.splitext(file)[1].lower()
 
-    labels = dataset["train"].features["label"].names
-    label2id, id2label = dict(), dict()
-    for i, label in enumerate(labels):
-        label2id[label] = i
-        id2label[i] = label
+        # Check if its a image file
+        if ext in image_extensions:
+            dirname = os.path.dirname(file)
+            if dirname:
+                labels = os.path.dirname(file).split(os.path.sep)
+                for label in labels:
+                    label_set.add(label)
+                image_files.append(os.path.join(image_dir, file))
+                image_labels.append(labels)
 
-    print("id2label:", id2label)
+    unique_labels = sorted(list(label_set))
+    print("num unique labels:", len(unique_labels))
+    label2id = {v: i for i, v in enumerate(unique_labels)}
+    id2label = {i: v for i, v in enumerate(unique_labels)}
+    print(label2id)
 
-    metric = evaluate.load("accuracy")
+    def labels_to_N_hot(labels: List[str]):
+        true_index = [label2id[cl] for cl in labels]
+        label = np.zeros((len(unique_labels),), dtype=float)
+        label[true_index] = 1
+        return label.tolist()
+
+    dataset = datasets.Dataset.from_dict(
+        {
+            "image": image_files,
+            "labels": [labels_to_N_hot(labels) for labels in image_labels],
+        }
+    ).cast_column("image", datasets.Image())
 
     image_processor = AutoImageProcessor.from_pretrained(model_checkpoint)
     model = AutoModelForImageClassification.from_pretrained(
         model_checkpoint,
         label2id=label2id,
         id2label=id2label,
+        num_labels=len(unique_labels),
         ignore_mismatched_sizes=True,  # provide this in case you're planning to fine-tune an already fine-tuned checkpoint
     )
 
@@ -99,24 +138,40 @@ def fine_tunning_model(image_dir: str):
         return example_batch
 
     # split up training into training + validation
-    splits = dataset["train"].train_test_split(test_size=0.1)
+    splits = dataset.train_test_split(test_size=0.1)
     train_ds = splits["train"]
     val_ds = splits["test"]
 
     train_ds.set_transform(preprocess_train)
     val_ds.set_transform(preprocess_val)
 
-    # the compute_metrics function takes a Named Tuple as input:
-    # predictions, which are the logits of the model as Numpy arrays,
-    # and label_ids, which are the ground-truth labels as Numpy arrays.
-    def compute_metrics(eval_pred):
-        """Computes accuracy on a batch of predictions"""
-        predictions = np.argmax(eval_pred.predictions, axis=1)
-        return metric.compute(predictions=predictions, references=eval_pred.label_ids)
+    from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+
+    # source: https://jesusleal.io/2021/04/21/Longformer-multilabel-classification/
+    def multi_label_metrics(predictions, labels, threshold=0.5):
+        # first, apply sigmoid on predictions which are of shape (batch_size, num_labels)
+        sigmoid = torch.nn.Sigmoid()
+        probs = sigmoid(torch.Tensor(predictions))
+        # next, use threshold to turn them into integer predictions
+        y_pred = np.zeros(probs.shape)
+        y_pred[np.where(probs >= threshold)] = 1
+        # finally, compute metrics
+        y_true = labels
+        f1_micro_average = f1_score(y_true=y_true, y_pred=y_pred, average="micro")
+        roc_auc = roc_auc_score(y_true, y_pred, average="micro")
+        accuracy = accuracy_score(y_true, y_pred)
+        # return as dictionary
+        metrics = {"f1": f1_micro_average, "roc_auc": roc_auc, "accuracy": accuracy}
+        return metrics
+
+    def compute_metrics(p):
+        preds = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
+        result = multi_label_metrics(predictions=preds, labels=p.label_ids)
+        return result
 
     def collate_fn(examples):
         pixel_values = torch.stack([example["pixel_values"] for example in examples])
-        labels = torch.tensor([example["label"] for example in examples])
+        labels = torch.tensor([example["labels"] for example in examples])
         return {"pixel_values": pixel_values, "labels": labels}
 
     args = TrainingArguments(
