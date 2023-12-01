@@ -16,11 +16,11 @@ lorem_words = [
 
 
 def generate_lorem_text(
-    num_paragraphs=10,
-    min_sentences=3,
-    max_sentences=6,
+    num_paragraphs=100,
+    min_sentences=1,
+    max_sentences=3,
     min_words_per_sentence=5,
-    max_words_per_sentence=15,
+    max_words_per_sentence=10,
 ):
     lorem_paragraphs = []
     for _ in range(num_paragraphs):

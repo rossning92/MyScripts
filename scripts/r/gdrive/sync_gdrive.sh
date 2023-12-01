@@ -10,7 +10,8 @@ source "$(dirname "$0")/_init_rclone.sh"
 cd "$HOME"
 
 sync_gdrive() {
-    rclone bisync "drive:$1" "$2" --verbose --progress --exclude=.mypy_cache "${@:3}"
+    # --progress : enable progress bar
+    rclone bisync "drive:$1" "$2" --verbose --exclude=.mypy_cache "${@:3}"
 }
 
 [[ -z "$LOCAL_DIR" ]] && local_dir="$HOME/gdrive/$GDRIVE_DIR" || local_dir="$LOCAL_DIR"

@@ -1,9 +1,10 @@
+import argparse
 import ctypes
 import struct
 import sys
 
 
-def set_res(width, height, bpp=32):
+def set_res(width, height, bpp=32) -> bool:
     DM_BITSPERPEL = 0x00040000
     DM_PELSWIDTH = 0x00080000
     DM_PELSHEIGHT = 0x00100000
@@ -28,5 +29,9 @@ def set_res(width, height, bpp=32):
 
 
 if __name__ == "__main__":
-    result = set_res(1920, 1080)
-    sys.exit(result)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("width", type=int)
+    parser.add_argument("height", type=int)
+    args = parser.parse_args()
+    success = set_res(args.width, args.height)
+    sys.exit(0 if success else 1)

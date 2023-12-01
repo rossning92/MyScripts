@@ -13,7 +13,7 @@ append_if_not_exist() {
 }
 
 # Install utilities
-sudo pacman -S --noconfirm unzip openssh network-manager-applet fzf xclip
+sudo pacman -S --noconfirm unzip openssh network-manager-applet fzf xclip inetutils
 
 # Install fonts
 sudo pacman -S $(pacman -Ssq 'noto-fonts-*')

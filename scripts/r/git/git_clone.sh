@@ -22,7 +22,11 @@ else
         extra_args+="-b {{BRANCH}}"
     fi
     echo "Cloning into $repo"
-    git clone "$url" --single-branch --filter=blob:none ${extra_args} .
+    # git clone "$url" --single-branch --filter=blob:none ${extra_args} .
+
+    # Create a treeless clone: download all reachable commits while fetching
+    # trees and blobs on-demand.
+    git clone --filter=tree:0 --single-branch ${extra_args} "$url" .
 fi
 
 # run_script ext/open_in_editor.py .

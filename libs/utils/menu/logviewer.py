@@ -86,8 +86,9 @@ class LogViewerMenu(Menu[str]):
         self.refresh()
 
     def on_enter_pressed(self):
-        if self._selected_row < len(self._matched_item_indices):
-            self._selected_row = self._matched_item_indices[self._selected_row]
+        if self._selected_row_end < len(self._matched_item_indices):
+            self._selected_row_end = self._matched_item_indices[self._selected_row_end]
+            self._selected_row_start = self._selected_row_end
             self.set_input("")
 
     def get_status_bar_text(self):

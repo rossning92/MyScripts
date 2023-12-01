@@ -14,7 +14,7 @@ from .textinput import TextInput
 
 class _Config:
     def __init__(self) -> None:
-        self.cur_dir = get_home_path()
+        self.cur_dir: str = get_home_path()
         self.selected_file = ""
         self.config_file = os.path.join(
             os.environ["MY_DATA_DIR"], "filemgr_config.json"
@@ -23,7 +23,12 @@ class _Config:
     def load(self):
         with open(self.config_file, "r") as file:
             data = json.load(file)
-        self.cur_dir = data["cur_dir"]
+
+        cur_dir = data["cur_dir"]
+        if not isinstance(cur_dir, str):
+            raise Exception("Invalid type for `cur_dir`, must be str.")
+        self.cur_dir = cur_dir
+
         self.selected_file = data["selected_file"]
 
     def save(self):
@@ -79,6 +84,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._list_files_recursively)
         self.add_command(self._refresh_current_directory, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="shift+n")
+        self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
 
         self.__selected_file_dict: Dict[str, str] = {}
 
@@ -92,10 +98,16 @@ class FileManager(Menu[_File]):
         else:
             self.goto_directory(self.__config.cur_dir, self.__config.selected_file)
 
+    def _reveal_in_file_explorer(self):
+        shell_open(self.get_cur_dir())
+
+    def get_cur_dir(self) -> str:
+        return self.__config.cur_dir
+
     def _create_new_dir(self):
         new_dir_name = TextInput(prompt="Create directory:").request_input()
         if new_dir_name:
-            current_dir = self.__config.cur_dir
+            current_dir = self.get_cur_dir()
             new_dir_path = os.path.join(current_dir, new_dir_name)
             os.makedirs(new_dir_path, exist_ok=True)
             self.goto_directory(new_dir_path)
@@ -129,7 +141,7 @@ class FileManager(Menu[_File]):
         filemgr = FileManager(
             goto=self.__copy_to_path
             if self.__copy_to_path is not None
-            else self.__config.cur_dir,
+            else self.get_cur_dir(),
             prompt="Copy to:",
             save_states=False,
         )
@@ -145,14 +157,14 @@ class FileManager(Menu[_File]):
 
     def _goto_parent_directory(self):
         # If current directory is not file system root
-        parent = os.path.dirname(self.__config.cur_dir)
-        if parent != self.__config.cur_dir:
-            self.goto_directory(parent, os.path.basename(self.__config.cur_dir))
+        parent = os.path.dirname(self.get_cur_dir())
+        if parent != self.get_cur_dir():
+            self.goto_directory(parent, os.path.basename(self.get_cur_dir()))
 
     def _goto_selected_directory(self):
         selected = self.get_selected_item()
         if selected:
-            full_path = os.path.join(self.__config.cur_dir, selected.name)
+            full_path = os.path.join(self.get_cur_dir(), selected.name)
             if selected.relative_path:
                 if os.path.isfile(full_path):
                     self.goto_directory(
@@ -162,16 +174,14 @@ class FileManager(Menu[_File]):
                     self.goto_directory(full_path)
 
             else:
-                full_path = os.path.join(self.__config.cur_dir, selected.name)
+                full_path = os.path.join(self.get_cur_dir(), selected.name)
                 if os.path.isdir(full_path):
-                    d = os.path.abspath(
-                        os.path.join(self.__config.cur_dir, selected.name)
-                    )
+                    d = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
                     self.goto_directory(d)
 
     def _list_files_recursively(self):
         self.set_message("Files listed recursively.")
-        self.goto_directory(self.__config.cur_dir, list_file_recursively=True)
+        self.goto_directory(self.get_cur_dir(), list_file_recursively=True)
 
     def _rename_file(self):
         selected = self.get_selected_item()
@@ -182,8 +192,8 @@ class FileManager(Menu[_File]):
             if not new_name:
                 return
 
-            src = os.path.abspath(os.path.join(self.__config.cur_dir, selected.name))
-            dest = os.path.abspath(os.path.join(self.__config.cur_dir, new_name))
+            src = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
+            dest = os.path.abspath(os.path.join(self.get_cur_dir(), new_name))
 
             os.rename(src, dest)
 
@@ -205,7 +215,7 @@ class FileManager(Menu[_File]):
         return self.__selected_full_path
 
     def _refresh_current_directory(self):
-        self.goto_directory(self.__config.cur_dir)
+        self.goto_directory(self.get_cur_dir())
 
     def goto_directory(
         self,
@@ -216,16 +226,16 @@ class FileManager(Menu[_File]):
         self.set_message(None)
 
         # Remember last selected file
-        if directory != self.__config.cur_dir:
+        if directory != self.get_cur_dir():
             selected_item = self.get_selected_item()
             if selected_item is not None:
-                self.__selected_file_dict[self.__config.cur_dir] = selected_item.name
+                self.__selected_file_dict[self.get_cur_dir()] = selected_item.name
 
         # Change directory
         if not os.path.isdir(directory):
             directory = get_home_path()
 
-        if directory != self.__config.cur_dir:
+        if directory != self.get_cur_dir():
             self.__config.cur_dir = directory
             if self.__save_states:
                 self.__config.save()
@@ -236,13 +246,13 @@ class FileManager(Menu[_File]):
         # Clear input
         self.clear_input()
         if self.__prompt:
-            self.set_prompt(f"{self.__prompt} {self.__config.cur_dir}")
+            self.set_prompt(f"{self.__prompt} {self.get_cur_dir()}")
         else:
-            self.set_prompt(self.__config.cur_dir)
+            self.set_prompt(self.get_cur_dir())
 
         # Set last selected file
-        if selected_file is None and self.__config.cur_dir in self.__selected_file_dict:
-            selected_file = self.__selected_file_dict[self.__config.cur_dir]
+        if selected_file is None and self.get_cur_dir() in self.__selected_file_dict:
+            selected_file = self.__selected_file_dict[self.get_cur_dir()]
         if selected_file is not None:
             try:
                 selected_row = next(
@@ -261,12 +271,12 @@ class FileManager(Menu[_File]):
             if list_file_recursively:
                 files = list(
                     glob.glob(
-                        os.path.join(self.__config.cur_dir, "**", "*"), recursive=True
+                        os.path.join(self.get_cur_dir(), "**", "*"), recursive=True
                     )
                 )
                 files = [file for file in files if os.path.isfile(file)]
                 files = [
-                    file.replace(self.__config.cur_dir + os.path.sep, "").replace(
+                    file.replace(self.get_cur_dir() + os.path.sep, "").replace(
                         "\\", "/"
                     )
                     for file in files
@@ -276,18 +286,18 @@ class FileManager(Menu[_File]):
                 )
 
             else:
-                dirs = []
-                files = []
-                for file in os.listdir(self.__config.cur_dir):
-                    full_path = os.path.join(self.__config.cur_dir, file)
+                dir_items = []
+                file_items = []
+                for file in os.listdir(self.get_cur_dir()):
+                    full_path = os.path.join(self.get_cur_dir(), file)
                     if os.path.isdir(full_path):
-                        dirs.append(_File(file, is_dir=True))
+                        dir_items.append(_File(file, is_dir=True))
                     else:
-                        files.append(_File(file, is_dir=False))
-                dirs.sort(key=lambda x: x.name)
-                files.sort(key=lambda x: x.name)
-                self.__files.extend(dirs)
-                self.__files.extend(files)
+                        file_items.append(_File(file, is_dir=False))
+                dir_items.sort(key=lambda x: x.name)
+                file_items.sort(key=lambda x: x.name)
+                self.__files.extend(dir_items)
+                self.__files.extend(file_items)
 
         except Exception as ex:
             self.set_message(str(ex))
@@ -295,7 +305,7 @@ class FileManager(Menu[_File]):
     def get_selected_file_full_path(self) -> Optional[str]:
         selected = self.get_selected_item()
         if selected:
-            full_path = os.path.join(self.__config.cur_dir, selected.name)
+            full_path = os.path.join(self.get_cur_dir(), selected.name)
             return full_path
         else:
             return None
@@ -303,7 +313,7 @@ class FileManager(Menu[_File]):
     def on_exit(self):
         selected = self.get_selected_item(ignore_cancellation=True)
         if selected:
-            selected_full_path = os.path.join(self.__config.cur_dir, selected.name)
+            selected_full_path = os.path.join(self.get_cur_dir(), selected.name)
             self.__config.cur_dir = os.path.dirname(selected_full_path)
             self.__config.selected_file = os.path.basename(selected_full_path)
             if self.__save_states:
@@ -311,17 +321,15 @@ class FileManager(Menu[_File]):
 
     def on_enter_pressed(self):
         if self.__select_mode == FileManager.SELECT_MODE_DIRECTORY:
-            self.__selected_full_path = self.__config.cur_dir
+            self.__selected_full_path = self.get_cur_dir()
             return super().on_enter_pressed()
 
         else:
             selected = self.get_selected_item()
             if selected:
-                full_path = os.path.join(self.__config.cur_dir, selected.name)
+                full_path = os.path.join(self.get_cur_dir(), selected.name)
                 if os.path.isdir(full_path):
-                    d = os.path.abspath(
-                        os.path.join(self.__config.cur_dir, selected.name)
-                    )
+                    d = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
                     self.goto_directory(d)
                     return True
                 elif os.path.isfile(full_path):

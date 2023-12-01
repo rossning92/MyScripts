@@ -9,7 +9,7 @@ import sys
 import threading
 import time
 import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
@@ -444,21 +444,26 @@ class MainWindow(Menu[Script]):
         if not self.is_refreshing:
             script = self.get_selected_item()
             if script is not None:
-                preview = []
+                preview: List[Tuple[str, str]] = []
                 default_script_config = get_default_script_config()
 
                 # Command line args
                 if self.__cmdline_args is not None:
-                    preview.append(f"arg : {self.__cmdline_args}")
+                    preview.append(("yellow", f"arg : {self.__cmdline_args}"))
 
                 # Preview variables
                 try:
                     vars = get_script_variables(script)
                     if len(vars) > 0:
-                        preview += format_variables(
-                            vars,
-                            sorted(script.get_variable_names()),
-                            script.get_public_variable_prefix(),
+                        preview.extend(
+                            [
+                                ("cyan", x)
+                                for x in format_variables(
+                                    vars,
+                                    sorted(script.get_variable_names()),
+                                    script.get_public_variable_prefix(),
+                                )
+                            ]
                         )
                 except FileNotFoundError:  # Scripts have been removed
                     logging.warning(
@@ -471,14 +476,16 @@ class MainWindow(Menu[Script]):
                 for name, value in script.cfg.items():
                     if value != default_script_config[name]:
                         config_preview[f"cfg : {name}"] = str(value)
-                preview += format_key_value_pairs(config_preview)
+                preview.extend(
+                    [("magenta", x) for x in format_key_value_pairs(config_preview)]
+                )
 
                 height = max(5, height - len(preview) - 1)
-                for i, s in enumerate(preview):
+                for i, (color, s) in enumerate(preview):
                     if height + i >= self._height:
                         break
                     self.draw_text(
-                        height + i, 0, s, color_pair=Menu.color_pair_map["yellow"]
+                        height + i, 0, s, color_pair=Menu.color_pair_map[color]
                     )
 
         super().on_update_screen(height=height)
