@@ -14,7 +14,7 @@ if "%_CLEAN_BUILD%"=="1" (
 )
 
 if not exist "UE4.sln" (
-    run_script r/UE4/editor/setup_env.py
+    run_script r/ue/editor/setup_env.py
 )
 
 call "%~dp0_msbuild.cmd" "UE4.sln" /t:Engine\UE4 /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo

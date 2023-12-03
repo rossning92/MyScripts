@@ -6,7 +6,7 @@ from distutils.dir_util import copy_tree
 
 from _browser import open_url
 from _code import append_code, patch_code, prepend_code, prepend_line
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _shutil import call_echo, cd, copy, mkdir, save_json, update_json
 from _template import render_template_file
 from utils.menu import Menu
@@ -435,7 +435,7 @@ Runner.run(runner, engine);
 
 @menu.item()
 def open_vscode():
-    open_in_editor(os.getcwd())
+    open_code_editor(os.getcwd())
 
 
 @menu.item()

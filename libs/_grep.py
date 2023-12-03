@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 import yaml
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _script import get_all_variables, get_data_dir
 from utils.menu.select import select_option
 
@@ -46,7 +46,7 @@ def search_code(text, root, extra_params=None):
 
 def _open_bookmark(*, kw=None, path=None, repo=None, **kwargs):
     if kw is None and path is not None:
-        open_in_editor(path)
+        open_code_editor(path)
     else:
         # Replace repo with repo absolute path
         variables = get_all_variables()
@@ -62,11 +62,11 @@ def _open_bookmark(*, kw=None, path=None, repo=None, **kwargs):
             result += search_code(text=kw, root=repo, extra_params=["-g", path])
 
         if len(result) == 1:
-            open_in_editor(result[0][0], line_number=result[0][1])
+            open_code_editor(result[0][0], line_number=result[0][1])
         elif len(result) > 1:
             indices = select_option([f"{x[0]}:{x[1]}" for x in result])
             i = indices[0]
-            open_in_editor(result[i][0], line_number=result[i][1])
+            open_code_editor(result[i][0], line_number=result[i][1])
 
 
 def show_bookmarks(open_bookmark_func=None):

@@ -2,13 +2,12 @@ import os
 
 from _android import setup_android_env
 from _script import run_script
+from _unrealcommon import get_unreal_source_version
 from UE4.uproject.build_android import build_uproject
 from UE4.uproject.config_uproject_for_mobile import config_uproject
-from _unrealcommon import get_unreal_source_version
-
 
 if __name__ == "__main__":
-    run_script("r/UE4/editor/setup_android.cmd")
+    run_script("r/ue/editor/setup_android.cmd")
     setup_android_env(ndk_version="21.1.6352462")
     ue_version = get_unreal_source_version()
 

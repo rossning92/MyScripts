@@ -14,7 +14,7 @@ if [[ ! -d "MarlinFirmware-Configurations" ]]; then
 fi
 
 if [[ -n "${_OPEN_VSCODE}" ]]; then
-    run_script ext/open_in_editor.py .
+    run_script ext/open_code_editor.py .
 fi
 
 cp -r "MarlinFirmware-Configurations/config/examples/Creality/CR-10S/BigTreeTech SKR Mini E3 3.0/." Marlin/Marlin/

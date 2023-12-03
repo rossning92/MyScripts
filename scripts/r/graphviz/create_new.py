@@ -1,5 +1,5 @@
-from _shutil import *
 from _editor import *
+from _shutil import *
 
 cd(r"{{GRAPHVIZ_SRC_FOLDER}}")
 
@@ -27,4 +27,4 @@ fn = "%s.dot" % get_cur_time_str()
 with open(fn, "w") as f:
     f.write(template)
 
-open_in_editor(fn)
+open_code_editor(fn)

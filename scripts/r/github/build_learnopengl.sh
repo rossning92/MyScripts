@@ -12,5 +12,5 @@ mkdir -p build
     cmake --build . --target "$target"
 )
 
-run_script ext/open_in_editor.py .
+run_script ext/open_code_editor.py .
 # run_script ext/open.py LearnOpenGL.sln

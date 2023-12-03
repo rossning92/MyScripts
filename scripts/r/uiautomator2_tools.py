@@ -4,14 +4,14 @@ call_echo("pip install --upgrade --pre uiautomator2")
 
 import uiautomator2 as u2
 from _android import setup_android_env
-from _editor import open_in_editor
+from _editor import open_code_editor
 
 
 @menu_item(key="d")
 def dump_ui_hierarchy():
     xml = d.dump_hierarchy()
     xml_file = write_temp_file(xml, ".xml")
-    open_in_editor(xml_file)
+    open_code_editor(xml_file)
 
 
 @menu_item(key="w")

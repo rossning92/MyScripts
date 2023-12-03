@@ -63,7 +63,7 @@ def open_in_vim(file: str, line_number: Optional[int] = None):
     subprocess.call(args)
 
 
-def open_in_editor(path: Union[str, List[str]], line_number: Optional[int] = None):
+def open_code_editor(path: Union[str, List[str]], line_number: Optional[int] = None):
     if is_in_termux():
         open_in_vim(
             path if (isinstance(path, str)) else path[-1], line_number=line_number

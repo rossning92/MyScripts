@@ -5,7 +5,7 @@ import re
 import shutil
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from _editor import is_vscode_installed, open_in_editor, open_in_vscode
+from _editor import is_vscode_installed, open_code_editor, open_in_vscode
 from _script import (
     Script,
     get_absolute_script_path,
@@ -83,7 +83,7 @@ def edit_myscript_script(file: str):
         workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])
     else:
-        open_in_editor([file])
+        open_code_editor([file])
 
 
 def enter_script_path():

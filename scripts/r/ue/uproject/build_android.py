@@ -10,14 +10,7 @@ from _android import (
     setup_android_env,
     start_app,
 )
-from _shutil import (
-    cd,
-    confirm,
-    find_newest_file,
-    mkdir,
-    print2,
-    setup_logger,
-)
+from _shutil import cd, confirm, find_newest_file, mkdir, print2, setup_logger
 from _unrealcommon import get_unreal_source_version
 from build_cpp_modules import build_cpp_modules
 
@@ -110,7 +103,7 @@ if __name__ == "__main__":
     else:
         raise Exception(f"Unknown Unreal Engine version: {ue_version}")
 
-    # run_script("r/UE4/kill_editor.cmd")
+    # run_script("r/ue/kill_editor.cmd")
 
     # TODO: no need this after UE5?
 

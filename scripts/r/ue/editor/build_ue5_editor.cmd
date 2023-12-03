@@ -4,7 +4,7 @@
 
 cd /d "%UE_SOURCE%"
 
-run_script r/UE4/editor/SelectNoRegisterUEFileTypes.ahk
+run_script r/ue/editor/SelectNoRegisterUEFileTypes.ahk
 
 echo Killing running instances...
 taskkill /t /f /im UE5Editor.exe

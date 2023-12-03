@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     if not os.path.exists("UE4.sln"):
         if os.path.exists("Setup.bat"):
-            call_echo("run_script r/UE4/editor/SelectNoRegisterUEFileTypes.ahk")
+            call_echo("run_script r/ue/editor/SelectNoRegisterUEFileTypes.ahk")
             call_echo("Setup.bat")
 
         # install_package("netfx-4.6.2-devpack")

@@ -1,6 +1,6 @@
 import os
 
-from _editor import open_in_editor
+from _editor import open_code_editor
 
 if __name__ == "__main__":
     project_file = os.path.join(

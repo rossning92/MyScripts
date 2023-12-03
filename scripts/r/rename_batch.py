@@ -1,7 +1,7 @@
 import os
 import time
 
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _shutil import get_files, write_temp_file
 
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     files = sorted(files)
 
     tmp_file = write_temp_file("\n".join(files), ".txt")
-    open_in_editor(tmp_file)
+    open_code_editor(tmp_file)
 
     wait_until_file_modified(tmp_file)
 

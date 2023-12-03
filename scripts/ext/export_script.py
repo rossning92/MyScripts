@@ -2,7 +2,7 @@ import os
 import re
 import shutil
 
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _script import get_python_path, render_script
 
 _exported_python_modules = set()
@@ -131,5 +131,5 @@ if __name__ == "__main__":
     script_path = os.getenv("SCRIPT")
 
     out_file = export_script(script_path, out_dir, create_executable=True)
-    open_in_editor(out_file)
+    open_code_editor(out_file)
     # shell_open(out_dir)

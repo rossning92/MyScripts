@@ -15,7 +15,7 @@ if __name__ == "__main__":
         with open(config_file) as f:
             cur_path = f.read()
 
-    path = FileManager(goto=cur_path, prompt="Set data dir to:").select_directory()
+    path = FileManager(goto=cur_path, prompt="data dir =").select_directory()
     if path is not None:
         with open(config_file, "w") as f:
             f.write(path)

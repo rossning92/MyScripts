@@ -4,7 +4,7 @@ import os
 import shutil
 from typing import Dict, List, Optional
 
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _shutil import get_home_path, set_clip, shell_open
 
 from . import Menu
@@ -121,7 +121,7 @@ class FileManager(Menu[_File]):
     def _edit_text_file(self):
         file_full_path = self.get_selected_file_full_path()
         if file_full_path is not None:
-            self.call_func_without_curses(lambda: open_in_editor(file_full_path))
+            self.call_func_without_curses(lambda: open_code_editor(file_full_path))
 
     def _delete_file(self):
         file_full_path = self.get_selected_file_full_path()

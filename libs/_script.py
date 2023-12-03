@@ -21,7 +21,7 @@ from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 import yaml
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _filelock import FileLock
 from _pkgmanager import require_package
 from _shutil import (
@@ -944,7 +944,7 @@ class Script:
         logging.debug(f"close_on_exit={close_on_exit}")
 
         if ext == ".md" or ext == ".txt":
-            open_in_editor(script_path)
+            open_code_editor(script_path)
             return True
 
         arg_list = args

@@ -1,5 +1,5 @@
-from _shutil import *
 from _editor import *
+from _shutil import *
 
 cwd = os.path.realpath(".")
-open_in_editor(cwd)
+open_code_editor(cwd)

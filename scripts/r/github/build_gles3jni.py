@@ -1,7 +1,7 @@
 import os
 
 from _android import setup_android_env, start_app
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _git import git_clone
 from _shutil import call_echo, cd, menu_item, setup_logger
 
@@ -24,7 +24,7 @@ def build_gles3jni():
 @menu_item(key="n")
 def build_native_activity():
     cd(os.path.join(folder, "native-activity"))
-    open_in_editor(os.getcwd())
+    open_code_editor(os.getcwd())
     call_echo("gradlew installDebug")
     start_app("com.example.native_activity", use_monkey=True)
 

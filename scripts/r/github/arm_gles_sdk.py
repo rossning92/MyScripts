@@ -10,4 +10,4 @@ if __name__ == "__main__":
 
     shell_open(".")
 
-    # open_in_editor(os.getcwd())
+    # open_code_editor(os.getcwd())

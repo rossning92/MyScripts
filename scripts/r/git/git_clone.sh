@@ -29,4 +29,4 @@ else
     git clone --filter=tree:0 --single-branch ${extra_args} "$url" .
 fi
 
-# run_script ext/open_in_editor.py .
+# run_script ext/open_code_editor.py .

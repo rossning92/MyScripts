@@ -2,7 +2,7 @@ import os
 
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _git import git_clone
 from _shutil import call_echo, cd, setup_logger, shell_open
 
@@ -22,4 +22,4 @@ if __name__ == "__main__":
         call_echo('cmake -G "Visual Studio 16 2019" -A x64 ..')
         shell_open("vulkanExamples.sln")
     else:
-        open_in_editor(d)
+        open_code_editor(d)

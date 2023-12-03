@@ -1,6 +1,5 @@
-from _shutil import *
 from _editor import *
-
+from _shutil import *
 
 call_echo(["adb", "root"])
 call_echo(["adb", "remount"])
@@ -12,7 +11,7 @@ tmp_file = os.path.join(tempfile.gettempdir(), file_name)
 call_echo(["adb", "pull", f, tmp_file])
 
 print("Please modify the file...")
-open_in_editor(tmp_file)
+open_code_editor(tmp_file)
 wait_until_file_modified(tmp_file)
 
 print("Push file to device...")

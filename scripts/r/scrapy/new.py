@@ -1,8 +1,9 @@
+import shutil
+import webbrowser
+
 from _conda import *
 from _editor import *
 from _shutil import *
-import shutil
-import webbrowser
 
 PROJECT_NAME = "{{SCRAPY_PROJECT}}"
 
@@ -29,7 +30,7 @@ replace(
 append_line(f"{PROJECT_NAME}/settings.py", "FEED_EXPORT_ENCODING = 'utf-8'")
 
 
-# open_in_editor(".")
+# open_code_editor(".")
 # webbrowser.open("https://docs.scrapy.org/en/latest/")
 
 

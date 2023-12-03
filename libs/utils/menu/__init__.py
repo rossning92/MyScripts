@@ -873,10 +873,10 @@ class Menu(Generic[T]):
 
     def get_status_bar_text(self) -> str:
         columns: List[str] = []
+        if self._multi_select_mode:
+            columns.append("multi_select_mode")
         if self._message:
             columns.append(self._message)
-        if self._multi_select_mode:
-            columns.append("MULTI_SELECT")
         columns.append("command_palette (^p)")
         return " | ".join(columns)
 
@@ -973,3 +973,4 @@ class Menu(Generic[T]):
 
     def _toggle_multi_select(self):
         self._multi_select_mode = not self._multi_select_mode
+        self.update_screen()

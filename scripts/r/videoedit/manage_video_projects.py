@@ -3,7 +3,7 @@ import glob
 import os
 from pprint import pprint
 
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _shutil import (
     getch,
     load_yaml,
@@ -128,7 +128,7 @@ def bulk_edit():
 
     save_yaml(videos, tmp_file)
 
-    open_in_editor(tmp_file)
+    open_code_editor(tmp_file)
 
 
 if __name__ == "__main__":

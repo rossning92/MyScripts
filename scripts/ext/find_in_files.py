@@ -3,7 +3,7 @@ import os
 import time
 from typing import Iterable, Iterator, List, Optional
 
-from _editor import open_in_editor
+from _editor import open_code_editor
 from _script import get_relative_script_path
 from utils.menu import Menu
 from utils.menu.textinput import TextInput
@@ -78,7 +78,7 @@ def find_in_files(files: Iterable[str], history_file: Optional[str] = None):
         find_result_menu.exec()
         selected_line = find_result_menu.get_selected_item()
         if selected_line is not None:
-            open_in_editor(selected_line.full_path, line_number=selected_line.line_no)
+            open_code_editor(selected_line.full_path, line_number=selected_line.line_no)
 
 
 if __name__ == "__main__":
