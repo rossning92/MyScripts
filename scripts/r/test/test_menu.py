@@ -36,5 +36,7 @@ def generate_lorem_text(
 
 
 if __name__ == "__main__":
-    menu = Menu(items=generate_lorem_text(), prompt="$", debug=True)
+    menu = Menu(
+        items=generate_lorem_text(), prompt="$", debug=True, search_on_enter=True
+    )
     menu.exec()

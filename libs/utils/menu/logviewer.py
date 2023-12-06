@@ -1,26 +1,28 @@
+import json
 import os
 import time
+from collections import OrderedDict
 from typing import List, Optional
 
 from . import Menu
 from .textinput import TextInput
 
 
-class _SelectFilterMenu(Menu[str]):
-    def __init__(self, log_filter_dir: str):
-        log_filters = (
+class _SelectPresetMenu(Menu[str]):
+    def __init__(self, preset_dir: str):
+        preset_names = (
             [
                 os.path.splitext(f)[0]
-                for f in os.listdir(log_filter_dir)
-                if f.endswith(".txt")
+                for f in os.listdir(preset_dir)
+                if f.endswith(".json")
             ]
-            if os.path.isdir(log_filter_dir)
+            if os.path.isdir(preset_dir)
             else []
         )
 
         super().__init__(
-            items=log_filters,
-            prompt="/",
+            items=preset_names,
+            prompt="load preset>",
         )
 
 
@@ -29,26 +31,28 @@ class LogViewerMenu(Menu[str]):
         self.__file = file
         self.__file_name = os.path.basename(file)
         self.__lines: List[str] = []
-        self.log_filter_dir = os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
+        self.preset_dir = os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
+
+        self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()
+        self.__default_log_highlight[r" D |\bDEBUG\b"] = "blue"
+        self.__default_log_highlight[r" W |\bWARN\b"] = "yellow"
+        self.__default_log_highlight[r" (E|F) |\bERROR\b|>>>"] = "red"
+        self.__log_highlight = self.__default_log_highlight.copy()
 
         super().__init__(
             prompt="/",
             items=self.__lines,
-            text_color_map=[
-                (r" D |\bDEBUG\b", "blue"),
-                (r" W |\bWARN\b", "yellow"),
-                (r" (E|F) |\bERROR\b|>>>", "red"),
-            ],
+            log_highlight=self.__log_highlight,
             close_on_selection=False,
             cancellable=False,
             fuzzy_search=False,
+            search_on_enter=True,
         )
 
-        self.add_command(self.sort)
-        self.add_command(self.save_filter)
-
-        self.add_command(self.filter_logs, hotkey="ctrl+f")
         self.add_command(self.clear_logs, hotkey="ctrl+k")
+        self.add_command(self.load_preset, hotkey="ctrl+l")
+        self.add_command(self.save_preset)
+        self.add_command(self.sort)
 
         if filter:
             self.set_input(filter)
@@ -57,38 +61,48 @@ class LogViewerMenu(Menu[str]):
         self.__lines.clear()
         self.refresh()
 
-    def filter_logs(self):
-        m = _SelectFilterMenu(log_filter_dir=self.log_filter_dir)
+    def load_preset(self):
+        m = _SelectPresetMenu(preset_dir=self.preset_dir)
         m.exec()
-        filter_name = m.get_selected_item()
-        if filter_name:
-            with open(
-                os.path.join(self.log_filter_dir, f"{filter_name}.txt"),
-                "r",
-                encoding="utf-8",
-            ) as f:
-                self.set_input(f.read())
+        preset_name = m.get_selected_item()
+        if preset_name:
+            preset_file = os.path.join(self.preset_dir, f"{preset_name}.json")
+            with open(preset_file, "r", encoding="utf-8") as f:
+                preset = json.load(f)
 
-    def save_filter(self):
+            self.set_input(preset["regex"])
+            self.update_matched_items()
+
+            if "sort" in preset and preset["sort"]:
+                self.sort()
+
+            if "highlight" in preset:
+                self.__log_highlight.clear()
+                self.__log_highlight.update(self.__default_log_highlight)
+                self.__log_highlight.update(preset["highlight"])
+
+        self.update_screen()
+
+    def save_preset(self):
         filter = self.get_input()
         if filter:
-            filter_name = TextInput(prompt="filter name:").request_input()
-            if filter_name:
-                with open(
-                    os.path.join(self.log_filter_dir, f"{filter_name}.txt"),
-                    "w",
-                    encoding="utf-8",
-                ) as f:
-                    f.write(filter)
+            preset_name = TextInput(prompt="filter name:").request_input()
+            if preset_name:
+                preset_file = os.path.join(self.preset_dir, f"{preset_name}.json")
+                with open(preset_file, "w", encoding="utf-8") as f:
+                    json.dump({"regex": filter}, f, indent=2, ensure_ascii=False)
+        self.update_screen()
 
     def sort(self):
         self.__lines.sort()
         self.refresh()
 
     def on_enter_pressed(self):
-        if self._selected_row_end < len(self._matched_item_indices):
-            self._selected_row_end = self._matched_item_indices[self._selected_row_end]
-            self._selected_row_start = self._selected_row_end
+        if self.search_by_input():
+            pass
+        elif self._selected_row_end < len(self._matched_item_indices):
+            row_number = self._matched_item_indices[self._selected_row_end]
+            self.set_selected_row(row_number)
             self.set_input("")
 
     def get_status_bar_text(self):

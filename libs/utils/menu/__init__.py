@@ -13,7 +13,7 @@ from typing import (
     List,
     NamedTuple,
     Optional,
-    Tuple,
+    OrderedDict,
     TypeVar,
     Union,
 )
@@ -85,7 +85,9 @@ class _InputWidget:
         self.text = text
         self.caret_pos = len(text)
 
-    def draw_input_widget(self, stdscr, row, move_cursor=False) -> int:
+    def draw_input_widget(
+        self, stdscr, row, move_cursor=False, show_enter_symbol=False
+    ) -> int:
         """_summary_
 
         Args:
@@ -106,7 +108,11 @@ class _InputWidget:
         try:
             stdscr.addstr(y, x, self.text[: self.caret_pos])
             cursor_y, cursor_x = Menu.stdscr.getyx()  # type: ignore
-            stdscr.addstr(cursor_y, cursor_x, self.text[self.caret_pos :])
+            stdscr.addstr(
+                cursor_y,
+                cursor_x,
+                self.text[self.caret_pos :] + (" \u23CE" if show_enter_symbol else ""),
+            )
 
             if move_cursor:
                 try:
@@ -185,10 +191,11 @@ class Menu(Generic[T]):
         prompt="",
         text="",
         on_item_selected: Optional[Callable[[T], None]] = None,
-        text_color_map: Optional[List[Tuple[str, str]]] = None,
+        log_highlight: Optional[OrderedDict[str, str]] = None,
         fuzzy_search=True,
         enable_command_palette=True,
         wrap_text=False,
+        search_on_enter=False,
     ):
         self.items = items
         self.last_key_pressed_timestamp: float = 0.0
@@ -203,16 +210,17 @@ class Menu(Generic[T]):
         self._fuzzy_search = fuzzy_search
         self._height: int = -1
         self._input = _InputWidget(prompt=prompt, text=text, ascii_only=ascii_only)
-        self._last_input = None
+        self._last_input: Optional[str] = None
         self._last_item_count = 0
         self._last_selected_item: Optional[T] = None
         self._matched_item_indices: List[int] = []
         self._message: Optional[str] = None
         self._on_item_selected = on_item_selected
         self._requested_selected_row: int = -1
-        self._text_color_map = text_color_map
+        self._log_highlight = log_highlight
         self._width: int = -1
         self._wrap_text: bool = wrap_text
+        self.__search_on_enter: bool = search_on_enter
 
         self._selected_row_begin: int = 0
         self._selected_row_end: int = 0
@@ -446,6 +454,12 @@ class Menu(Generic[T]):
             self._selected_row_end = 0
         self._check_if_item_selection_changed()
 
+        self._last_input = self.get_input()
+        self._last_item_count = len(self.items)
+        self._last_match_time = time.time()
+        self._should_update_matched_items = False
+        self._should_update_screen = True
+
     def reset_selection(self):
         self._selected_row_begin = 0
         self._selected_row_end = 0
@@ -469,16 +483,11 @@ class Menu(Generic[T]):
         if self._should_update_matched_items or (
             time.time() > self._last_match_time + 0.1
             and (
-                self._last_input != self.get_input()
+                (not self.__search_on_enter and self._last_input != self.get_input())
                 or self._last_item_count != len(self.items)
             )
         ):
-            self._last_input = self.get_input()
-            self._last_item_count = len(self.items)
             self.update_matched_items()
-            self._should_update_matched_items = False
-            self.update_screen()
-            self._last_match_time = time.time()
 
         if self._requested_selected_row >= 0:
             self._selected_row_begin = self._requested_selected_row
@@ -818,8 +827,8 @@ class Menu(Generic[T]):
 
                 # Highlight text by regex
                 color = "white"
-                if self._text_color_map is not None:
-                    for patt, c in self._text_color_map:
+                if self._log_highlight is not None:
+                    for patt, c in self._log_highlight.items():
                         if re.search(patt, item_text):
                             color = c
                 if is_item_selected:
@@ -869,7 +878,12 @@ class Menu(Generic[T]):
 
         # Render input widget at the end, so the cursor will be move to the
         # correct position.
-        self._input.draw_input_widget(Menu.stdscr, 0, move_cursor=True)
+        self._input.draw_input_widget(
+            Menu.stdscr,
+            0,
+            move_cursor=True,
+            show_enter_symbol=self.__should_trigger_search(),
+        )
 
     def get_status_bar_text(self) -> str:
         columns: List[str] = []
@@ -914,18 +928,36 @@ class Menu(Generic[T]):
         else:
             return False
 
+    def __should_trigger_search(self) -> bool:
+        return self.__search_on_enter and self.get_input() != self._last_input
+
+    def search_by_input(self) -> bool:
+        if self.__should_trigger_search():
+            self.update_matched_items()
+            return True
+        else:
+            return False
+
     def on_enter_pressed(self):
-        item = self.get_selected_item()
-        if item is not None:
-            if self._on_item_selected is not None:
-                self.call_func_without_curses(
-                    lambda item=item: self._on_item_selected(item)
-                )
-        if item is not None and hasattr(item, "callback") and callable(item.callback):
-            self.call_func_without_curses(lambda item=item: item.callback())
-        if self._close_on_selection:
-            self.close()
-        self.update_screen()
+        if self.search_by_input():
+            return
+
+        else:
+            item = self.get_selected_item()
+            if item is not None:
+                if self._on_item_selected is not None:
+                    self.call_func_without_curses(
+                        lambda item=item: self._on_item_selected(item)
+                    )
+            if (
+                item is not None
+                and hasattr(item, "callback")
+                and callable(item.callback)
+            ):
+                self.call_func_without_curses(lambda item=item: item.callback())
+            if self._close_on_selection:
+                self.close()
+            self.update_screen()
 
     def on_tab_pressed(self):
         pass
