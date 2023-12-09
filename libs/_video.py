@@ -233,7 +233,9 @@ def ffmpeg(
     # Fast seek
     if start is not None:
         if reencode:
-            args += ["-ss", str(start - 10)]
+            fast_seek_start = start - 10
+            if fast_seek_start > 0:
+                args += ["-ss", str(fast_seek_start)]
         else:
             args += ["-ss", str(start)]
 

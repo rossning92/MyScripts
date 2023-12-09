@@ -111,7 +111,7 @@ def enter_script_path():
     return script_path
 
 
-def edit_script_config(script_path):
+def edit_script_config(script_path: str):
     default_config = get_default_script_config()
 
     script_config_file = get_script_config_file(script_path)

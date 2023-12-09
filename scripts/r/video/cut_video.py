@@ -1,26 +1,19 @@
-from _shutil import *
-from _video import *
+import os
 
+from _shutil import get_files, setup_logger
+from _video import ffmpeg
+from utils.slugify import slugify
 
-def slugify(value):
-    """
-    Normalizes string, converts to lowercase, removes non-alpha characters,
-    and converts spaces to hyphens.
-    """
-    import unicodedata
+if __name__ == "__main__":
+    setup_logger()
+    in_file = get_files(cd=True)[0]
+    name, ext = os.path.splitext(in_file)
 
-    value = unicodedata.normalize("NFKD", value)
-    value = re.sub("[^\w\s-]", "", value).strip().lower()
-    value = re.sub("[-\s]+", "-", value)
-    return value
+    ext = ".mp4"
 
+    start, duration = "{{_START_AND_DURATION}}".split()
+    out_file = name + f"_cut_{slugify(start)}_{slugify(duration)}" + ext
 
-in_file = get_files(cd=True)[0]
-name, ext = os.path.splitext(in_file)
-
-ext = ".mp4"
-
-start, duration = "{{_START_AND_DURATION}}".split()
-out_file = name + f"_cut_{slugify(start)}_{slugify(duration)}" + ext
-
-ffmpeg(in_file, out_file, start=float(start), duration=float(duration), reencode=True)
+    ffmpeg(
+        in_file, out_file, start=float(start), duration=float(duration), reencode=True
+    )

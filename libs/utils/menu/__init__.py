@@ -85,15 +85,18 @@ class _InputWidget:
         self.text = text
         self.caret_pos = len(text)
 
-    def draw_input_widget(
-        self, stdscr, row, move_cursor=False, show_enter_symbol=False
-    ) -> int:
+    class DrawInputResult(NamedTuple):
+        cursor_x: int
+        cursor_y: int
+        last_x: int
+        last_y: int
+
+    def draw_input(self, stdscr, row, show_enter_symbol=False) -> DrawInputResult:
         """_summary_
 
         Args:
             stdscr (_type_): _description_
             row (_type_): _description_
-            move_cursor (bool, optional): _description_. Defaults to False.
 
         Returns:
             int: The index of the last row of text being drawn on the screen.
@@ -113,16 +116,14 @@ class _InputWidget:
                 cursor_x,
                 self.text[self.caret_pos :] + (" \u23CE" if show_enter_symbol else ""),
             )
+            y, x = Menu.stdscr.getyx()
 
-            if move_cursor:
-                try:
-                    stdscr.move(cursor_y, cursor_x)
-                except curses.error:
-                    pass
         except curses.error:
             pass
 
-        return y
+        return _InputWidget.DrawInputResult(
+            cursor_x=cursor_x, cursor_y=cursor_y, last_x=x, last_y=y
+        )
 
     def clear(self):
         self.text = ""
@@ -191,7 +192,7 @@ class Menu(Generic[T]):
         prompt="",
         text="",
         on_item_selected: Optional[Callable[[T], None]] = None,
-        log_highlight: Optional[OrderedDict[str, str]] = None,
+        highlight: Optional[OrderedDict[str, str]] = None,
         fuzzy_search=True,
         enable_command_palette=True,
         wrap_text=False,
@@ -217,7 +218,7 @@ class Menu(Generic[T]):
         self._message: Optional[str] = None
         self._on_item_selected = on_item_selected
         self._requested_selected_row: int = -1
-        self._log_highlight = log_highlight
+        self._highlight = highlight
         self._width: int = -1
         self._wrap_text: bool = wrap_text
         self.__search_on_enter: bool = search_on_enter
@@ -385,6 +386,11 @@ class Menu(Generic[T]):
 
         stdscr = curses.initscr()
         curses.noecho()
+        # Enter raw mode. In raw mode, normal line buffering and processing of
+        # interrupt, quit, suspend, and flow control keys are turned off. This
+        # allows for the use of the hotkey Ctrl-S, which used to be associated
+        # with XOFF/XON flow control. Ctrl-S functions as the XOFF command.
+        curses.raw()
         curses.cbreak()
         curses.start_color()
         curses.use_default_colors()  # The default color is assigned to -1
@@ -518,7 +524,7 @@ class Menu(Generic[T]):
             if self.on_char(ch):
                 self.update_screen()
 
-            elif ch == "\n":
+            elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()
 
             elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
@@ -796,8 +802,15 @@ class Menu(Generic[T]):
         if height < 0:
             height = self._height
 
+        # Render input widget
+        draw_input_result = self._input.draw_input(
+            Menu.stdscr,
+            0,
+            show_enter_symbol=self.__should_trigger_search(),
+        )
+
         # Get matched scripts
-        row = 2
+        row = draw_input_result.last_y + 2
         items_per_page = self.get_items_per_page()
 
         page_index = self._selected_row_end // items_per_page
@@ -832,8 +845,8 @@ class Menu(Generic[T]):
 
                 # Highlight text by regex
                 color = "white"
-                if self._log_highlight is not None:
-                    for patt, c in self._log_highlight.items():
+                if self._highlight is not None:
+                    for patt, c in self._highlight.items():
                         if re.search(patt, item_text):
                             color = c
                 if is_item_selected:
@@ -881,14 +894,11 @@ class Menu(Generic[T]):
             color_pair=Menu.color_pair_map["WHITE"],
         )
 
-        # Render input widget at the end, so the cursor will be move to the
-        # correct position.
-        self._input.draw_input_widget(
-            Menu.stdscr,
-            0,
-            move_cursor=True,
-            show_enter_symbol=self.__should_trigger_search(),
-        )
+        # Move cursor
+        try:
+            Menu.stdscr.move(draw_input_result.cursor_y, draw_input_result.cursor_x)
+        except curses.error:
+            pass
 
     def get_status_bar_text(self) -> str:
         columns: List[str] = []

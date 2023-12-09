@@ -1,14 +1,18 @@
+# https://github.com/openai/openai-python#streaming-responses
+
 import argparse
 import builtins
 import os
 import sys
 from typing import Dict, Iterator, List, Optional
 
-import openai
 from _shutil import load_json, pause, save_json
 from _term import clear_terminal
+from openai import OpenAI
 from utils.clip import set_clip
 from utils.menu import Menu
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 class ChatAPI:
@@ -17,26 +21,22 @@ class ChatAPI:
         self.messages: List[Dict[str, str]] = []
 
         # https://platform.openai.com/account/api-keys
-        openai.api_key = os.environ["OPENAI_API_KEY"]
 
         self.start_new_chat()
 
     def ask(self, question: str) -> Iterator[str]:
         self.messages.append({"role": "user", "content": question})
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=self.messages,
-            stream=self.stream_mode,
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo", messages=self.messages, stream=self.stream_mode
         )
 
         try:
             if self.stream_mode:
                 s = ""
                 for chunk in response:
-                    chunk_message = chunk["choices"][0]["delta"]  # type: ignore
-                    if "content" in chunk_message:
-                        content = chunk_message["content"]
+                    content = chunk.choices[0].delta.content  # type: ignore
+                    if content is not None:
                         s += content
                         yield content
 

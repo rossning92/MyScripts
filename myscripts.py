@@ -166,7 +166,7 @@ def restart_program():
     )
 
 
-class MainWindow(Menu[Script]):
+class _MyScriptMenu(Menu[Script]):
     def __init__(self, no_gui=False, run_script_and_quit=False):
         self.no_gui = no_gui
         self.last_refresh_time = 0.0
@@ -316,13 +316,10 @@ class MainWindow(Menu[Script]):
         return True
 
     def _edit_script_settings(self):
-        script_path = self.get_selected_script_path()
-        if script_path:
-            edit_script_config(script_path)
-            # reload the current script
-            index = self.get_selected_index()
-            self.items[index] = Script(script_path)
-            self.clear_input()
+        script = self.get_selected_script()
+        if script:
+            edit_script_config(script.script_path)
+            script.refresh_script()
 
     def _copy_cmdline(self):
         script = self.get_selected_script()
@@ -402,11 +399,6 @@ class MainWindow(Menu[Script]):
                 self.clear_input()
                 return True
 
-            elif ch == "\n":
-                self.run_selected_script()
-                self.clear_input()
-                return True
-
             elif ch == "\t":
                 script = self.get_selected_item()
                 if script is not None:
@@ -427,6 +419,11 @@ class MainWindow(Menu[Script]):
         finally:
             # Reset last refresh time when key press event is processed
             self.update_last_refresh_time()
+
+    def on_enter_pressed(self):
+        self.run_selected_script()
+        self.clear_input()
+        return True
 
     def on_idle(self):
         try_reload_scripts_autorun(script_manager.scripts_autorun)
@@ -539,9 +536,9 @@ def _init(no_gui=False):
 
 def _main_loop(no_gui=False, run_script_and_quit=False):
     _init(no_gui=no_gui)
-    while True:  # repeat if MainWindow throws exceptions
+    while True:  # repeat if _MyScriptMenu throws exceptions
         try:
-            MainWindow(no_gui=no_gui, run_script_and_quit=run_script_and_quit).exec()
+            _MyScriptMenu(no_gui=no_gui, run_script_and_quit=run_script_and_quit).exec()
             if run_script_and_quit:
                 break
 

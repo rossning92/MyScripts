@@ -1,7 +1,7 @@
 @ECHO OFF
 
 CD /d "%~dp0"
-CHCP 65001
+@REM CHCP 65001
 
 CALL install\install_choco.cmd
 CALL install\install_autohotkey.cmd

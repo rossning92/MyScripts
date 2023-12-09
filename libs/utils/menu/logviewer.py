@@ -42,7 +42,7 @@ class LogViewerMenu(Menu[str]):
         super().__init__(
             prompt="/",
             items=self.__lines,
-            log_highlight=self.__log_highlight,
+            highlight=self.__log_highlight,
             close_on_selection=False,
             cancellable=False,
             fuzzy_search=False,

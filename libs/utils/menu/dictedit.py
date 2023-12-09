@@ -1,5 +1,6 @@
 import curses
 import curses.ascii
+from collections import OrderedDict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from utils.clip import set_clip
@@ -111,7 +112,10 @@ class DictEditMenu(Menu[_KeyValuePair]):
         on_dict_history_update: Optional[Callable[[Dict[str, List[Any]]], None]] = None,
         prompt="",
     ):
-        super().__init__(prompt=prompt)
+        super().__init__(
+            prompt=prompt,
+            highlight=OrderedDict([(r"\(\*\)", "green")]),
+        )
         self.dict_ = dict_
         self.default_dict = default_dict
         self.enter_pressed = False

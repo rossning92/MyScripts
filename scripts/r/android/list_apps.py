@@ -30,7 +30,7 @@ menu = Menu(close_on_selection=True)
 
 
 @menu.item()
-def restart_app():
+def restart_app_with_logcat():
     start_script("r/android/restart_app_logcat.py", restart_instance=True)
 
 
