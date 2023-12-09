@@ -6,6 +6,11 @@ import time
 from functools import lru_cache
 
 
+@lru_cache(maxsize=None)
+def _is_in_termux():
+    return shutil.which("termux-setup-storage") is not None
+
+
 def _set_clip_win(text: str):
     if sys.platform != "win32":
         raise Exception("The function is only supported on Windows.")
@@ -295,3 +300,22 @@ def get_selection():
 
     else:
         raise Exception(f"Unsupported OS: {sys.platform}")
+
+
+def set_clip(text: str):
+    if sys.platform == "linux":
+        if _is_in_termux():
+            if not shutil.which("termux-clipboard-set"):
+                subprocess.check_call(["pkg", "install", "termux-api"])
+            subprocess.check_call(["termux-clipboard-set", text])
+        else:
+            p = subprocess.Popen(
+                ["xclip", "-selection", "c"],
+                stdin=subprocess.PIPE,
+                close_fds=True,
+                # make sure that xclip is not killed so other apps can paste the content
+                start_new_session=True,
+            )
+            p.communicate(input=text.encode("utf-8"))
+    elif sys.platform == "win32":
+        _set_clip_win(text)

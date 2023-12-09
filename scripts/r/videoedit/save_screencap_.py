@@ -1,5 +1,6 @@
 from _shutil import *
 from _term import *
+from utils.clip import set_clip
 from video_editor import edit_video
 
 if __name__ == "__main__":
@@ -26,4 +27,3 @@ if __name__ == "__main__":
         set_clip(clip)
         print("Clip is set to: %s" + clip)
         edit_video(os.path.abspath(dest_file))
-

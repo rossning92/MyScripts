@@ -5,7 +5,7 @@ adb reboot bootloader || true
 # fastboot wait-for-device
 
 echo 'Erase userdata...'
-fastboot --set-active=b
+# fastboot --set-active=b
 fastboot format userdata
 # fastboot erase misc
 # fastboot erase userdata

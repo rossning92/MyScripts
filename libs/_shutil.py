@@ -24,7 +24,6 @@ from time import sleep
 from typing import Dict, List, Optional, Union
 
 import yaml
-from utils.clip import _set_clip_win
 
 logger = logging.getLogger(__name__)
 CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
@@ -643,25 +642,6 @@ def is_in_termux():
 
 def is_in_wsl() -> bool:
     return "microsoft" in platform.uname().release.lower()
-
-
-def set_clip(text: str):
-    if sys.platform == "linux":
-        if is_in_termux():
-            if not shutil.which("termux-clipboard-set"):
-                subprocess.check_call(["pkg", "install", "termux-api"])
-            subprocess.check_call(["termux-clipboard-set", text])
-        else:
-            p = subprocess.Popen(
-                ["xclip", "-selection", "c"],
-                stdin=subprocess.PIPE,
-                close_fds=True,
-                # make sure that xclip is not killed so other apps can paste the content
-                start_new_session=True,
-            )
-            p.communicate(input=text.encode("utf-8"))
-    elif sys.platform == "win32":
-        _set_clip_win(text)
 
 
 def fnull():

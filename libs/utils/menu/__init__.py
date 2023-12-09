@@ -18,9 +18,9 @@ from typing import (
     Union,
 )
 
-from _shutil import get_hotkey_abbr, load_json, save_json, set_clip, slugify
+from _shutil import get_hotkey_abbr, load_json, save_json, slugify
 
-from utils.clip import get_clip
+from utils.clip import get_clip, set_clip
 
 
 def _is_backspace_key(ch: Union[int, str]):
@@ -334,6 +334,7 @@ class Menu(Generic[T]):
 
     def set_input(self, text: str):
         self._input.set_text(text)
+        self.search_by_input()
 
     def get_input(self) -> str:
         return self._input.text
@@ -562,39 +563,43 @@ class Menu(Generic[T]):
                 self._hotkeys["right"].func()
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
-                self._selected_row_end = max(
-                    self._selected_row_end - self.get_items_per_page(), 0
-                )
-                if not self._multi_select_mode:
-                    self._selected_row_begin = self._selected_row_end
-                self.update_screen()
-                self._check_if_item_selection_changed()
+                if len(self._matched_item_indices) > 0:
+                    self._selected_row_end = max(
+                        self._selected_row_end - self.get_items_per_page(), 0
+                    )
+                    if not self._multi_select_mode:
+                        self._selected_row_begin = self._selected_row_end
+                    self.update_screen()
+                    self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
-                self._selected_row_end = min(
-                    self._selected_row_end + self.get_items_per_page(),
-                    len(self._matched_item_indices) - 1,
-                )
-                if not self._multi_select_mode:
-                    self._selected_row_begin = self._selected_row_end
-                self.update_screen()
-                self._check_if_item_selection_changed()
+                if len(self._matched_item_indices) > 0:
+                    self._selected_row_end = min(
+                        self._selected_row_end + self.get_items_per_page(),
+                        len(self._matched_item_indices) - 1,
+                    )
+                    if not self._multi_select_mode:
+                        self._selected_row_begin = self._selected_row_end
+                    self.update_screen()
+                    self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_HOME or ch == 449:
-                self._selected_row_end = 0
-                if not self._multi_select_mode:
-                    self._selected_row_begin = self._selected_row_end
-                self.update_screen()
-                self._check_if_item_selection_changed()
+                if len(self._matched_item_indices) > 0:
+                    self._selected_row_end = 0
+                    if not self._multi_select_mode:
+                        self._selected_row_begin = self._selected_row_end
+                    self.update_screen()
+                    self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_END or ch == 455:
-                self._selected_row_begin = self._selected_row_end = (
-                    len(self._matched_item_indices) - 1
-                )
-                if not self._multi_select_mode:
-                    self._selected_row_begin = self._selected_row_end
-                self.update_screen()
-                self._check_if_item_selection_changed()
+                if len(self._matched_item_indices) > 0:
+                    self._selected_row_begin = self._selected_row_end = (
+                        len(self._matched_item_indices) - 1
+                    )
+                    if not self._multi_select_mode:
+                        self._selected_row_begin = self._selected_row_end
+                    self.update_screen()
+                    self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_DC and "delete" in self._hotkeys:
                 self._hotkeys["delete"].func()
@@ -905,9 +910,11 @@ class Menu(Generic[T]):
 
     def get_selected_items(self) -> Iterator[T]:
         if len(self._matched_item_indices) > 0:
-            item_indices = self._matched_item_indices[
-                self._selected_row_begin : (self._selected_row_end + 1)
-            ]
+            i = self._selected_row_begin
+            j = self._selected_row_end
+            if i > j:
+                i, j = j, i
+            item_indices = self._matched_item_indices[i : j + 1]
             for item_index in item_indices:
                 yield self.items[item_index]
 

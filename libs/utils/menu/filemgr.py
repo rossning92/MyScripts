@@ -5,7 +5,9 @@ import shutil
 from typing import Dict, List, Optional
 
 from _editor import open_code_editor
-from _shutil import get_home_path, set_clip, shell_open
+from _shutil import get_home_path, shell_open
+
+from utils.clip import set_clip
 
 from . import Menu
 from .confirm import confirm

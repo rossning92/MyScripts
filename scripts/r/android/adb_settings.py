@@ -1,5 +1,6 @@
 import numpy as np
-from _shutil import read_proc_lines, set_clip
+from _shutil import read_proc_lines
+from utils.clip import set_clip
 from utils.menu.select import select_option
 
 last_result = None

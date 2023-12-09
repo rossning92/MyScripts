@@ -17,4 +17,4 @@ if __name__ == "__main__":
             ps.wait()
 
     else:
-        LogViewerMenu(file=args.file).exec()
+        LogViewerMenu(file=args.file, filter=args.filter).exec()

@@ -20,8 +20,9 @@ from _script import (
     get_script_root,
     save_json,
 )
-from _shutil import load_yaml, quote_arg, save_yaml, set_clip
+from _shutil import load_yaml, quote_arg, save_yaml
 from _template import render_template_file
+from utils.clip import set_clip
 from utils.menu import Menu
 from utils.menu.dictedit import DictEditMenu
 

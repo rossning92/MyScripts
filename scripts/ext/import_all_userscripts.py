@@ -5,7 +5,8 @@ from zipfile import ZipFile
 
 from _browser import open_url
 from _script import get_all_scripts
-from _shutil import set_clip, setup_logger
+from _shutil import setup_logger
+from utils.clip import set_clip
 
 if __name__ == "__main__":
     setup_logger()

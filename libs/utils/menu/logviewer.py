@@ -71,7 +71,6 @@ class LogViewerMenu(Menu[str]):
                 preset = json.load(f)
 
             self.set_input(preset["regex"])
-            self.update_matched_items()
 
             if "sort" in preset and preset["sort"]:
                 self.sort()

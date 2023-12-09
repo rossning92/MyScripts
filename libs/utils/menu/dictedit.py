@@ -1,8 +1,8 @@
 import curses
 import curses.ascii
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from _shutil import set_clip
+from utils.clip import set_clip
 
 from ..menu import Menu
 
@@ -28,26 +28,29 @@ class _DictValueEditMenu(Menu):
         )
 
     def on_enter_pressed(self):
-        val = self.get_text()
+        text = self.get_text()
+        assert text is not None
+
+        val: Union[str, int, float, bool]
         if self.type == str:
-            val = val.strip()
+            val = text.strip()
         elif self.type == int:
-            val = int(val)
+            val = int(text)
         elif self.type == float:
-            val = float(val)
+            val = float(text)
         elif self.type == bool or self.type == type(None):
-            if val.lower() == "true":
+            if text.lower() == "true":
                 val = True
-            elif val.lower() == "false":
+            elif text.lower() == "false":
                 val = False
-            elif val == "1":
+            elif text == "1":
                 val = True
-            elif val == "0":
+            elif text == "0":
                 val = False
             else:
-                raise Exception("Unknown bool value: {}".format(val))
+                raise Exception("Invalid bool value: {}".format(text))
         else:
-            raise Exception("Unknown type: {}".format(self.type))
+            raise Exception("Invalid type: {}".format(self.type))
 
         self.dict_[self.name] = val
 
@@ -72,11 +75,37 @@ class _DictValueEditMenu(Menu):
         return False
 
 
-class DictEditMenu(Menu):
+class _KeyValuePair:
+    def __init__(
+        self,
+        dict: Dict[str, Any],
+        key: str,
+        key_display_width: int,
+        default_dict: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        self.key = key
+
+        self.__default_dict = default_dict
+        self.__dict = dict
+        self.__key_display_width = key_display_width
+
+    def __str__(self) -> str:
+        modified = (
+            self.__default_dict is not None
+            and self.__dict[self.key] != self.__default_dict[self.key]
+        )
+        return "{}: {}{}".format(
+            self.key.ljust(self.__key_display_width),
+            self.__dict[self.key],
+            " (*)" if modified else "",
+        )
+
+
+class DictEditMenu(Menu[_KeyValuePair]):
     def __init__(
         self,
         dict_,
-        default_dict=None,
+        default_dict: Optional[Dict[str, Any]] = None,
         on_dict_update: Optional[Callable[[Dict], None]] = None,
         dict_history: Dict[str, List[Any]] = {},
         on_dict_history_update: Optional[Callable[[Dict[str, List[Any]]], None]] = None,
@@ -91,7 +120,7 @@ class DictEditMenu(Menu):
         self.dict_history = dict_history
         self.on_dict_history_update = on_dict_history_update
 
-        self.__update_items()
+        self.__init_items()
 
         self.add_command(self.__copy_selected_dict_value, hotkey="ctrl+y")
         self.add_command(self.__toggle_value, hotkey="left")
@@ -105,7 +134,6 @@ class DictEditMenu(Menu):
             if value_type == bool:
                 self.dict_[key] = not self.dict_[key]
                 self.__notify_dict_updated()
-                self.__update_items()
                 self.update_screen()
 
     def __copy_selected_dict_value(self):
@@ -121,20 +149,36 @@ class DictEditMenu(Menu):
         if self.on_dict_history_update:
             self.on_dict_history_update(self.dict_history)
 
-    def __update_items(self):
+    def __init_items(self):
         if len(self.dict_) == 0:
             return
 
-        self.items.clear()
-
+        # Get max width for keys
         keys = list(self.dict_.keys())
         max_width = max([len(x) for x in keys]) + 1
+
+        kvps: List[Tuple[str, bool]] = []
         for key in keys:
-            s = "{}: {}".format(key.ljust(max_width), self.dict_[key])
-            if self.default_dict is not None:
-                if self.dict_[key] != self.default_dict[key]:
-                    s += " (*)"
-            self.items.append(s)
+            modified = (
+                self.default_dict is not None
+                and self.dict_[key] != self.default_dict[key]
+            )
+            kvps.append((key, modified))
+
+        # Show modified values first
+        kvps = sorted(kvps, key=lambda x: x[1], reverse=True)
+
+        # Update items
+        self.items.clear()
+        for key, _ in kvps:
+            self.items.append(
+                _KeyValuePair(
+                    self.dict_,
+                    key=key,
+                    key_display_width=max_width,
+                    default_dict=self.default_dict,
+                )
+            )
 
     def on_enter_pressed(self):
         self.enter_pressed = True
@@ -148,11 +192,11 @@ class DictEditMenu(Menu):
             return super().on_char(ch)
 
     def get_selected_key(self) -> Optional[str]:
-        index = self.get_selected_index()
-        if index < 0:
-            return None
+        selected = self.get_selected_item()
+        if selected is not None:
+            return selected.key
         else:
-            return list(self.dict_.keys())[index]
+            return None
 
     def __get_dict_history_values(self, name: str) -> List[str]:
         if name not in self.dict_history:
@@ -178,7 +222,7 @@ class DictEditMenu(Menu):
         ).exec()
 
         self.__notify_dict_updated()
-        self.__update_items()
+        self.update_screen()
 
     def set_dict_value(self, name: str, value: str):
         # Update dict
@@ -191,4 +235,4 @@ class DictEditMenu(Menu):
         dict_history_values.insert(0, value)
 
         self.__notify_dict_updated()
-        self.__update_items()
+        self.update_screen()

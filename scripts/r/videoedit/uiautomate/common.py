@@ -7,7 +7,8 @@ import time
 
 import pyautogui
 from _script import wrap_args_wt
-from _shutil import exec_ahk, getch, set_clip
+from _shutil import exec_ahk, getch
+from utils.clip import set_clip
 
 INTERVAL_NEW_FILE = 1
 

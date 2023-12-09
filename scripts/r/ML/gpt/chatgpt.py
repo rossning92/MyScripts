@@ -5,8 +5,9 @@ import sys
 from typing import Dict, Iterator, List, Optional
 
 import openai
-from _shutil import load_json, pause, save_json, set_clip
+from _shutil import load_json, pause, save_json
 from _term import clear_terminal
+from utils.clip import set_clip
 from utils.menu import Menu
 
 
