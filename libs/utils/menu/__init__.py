@@ -1,5 +1,6 @@
 import curses
 import curses.ascii
+import logging
 import os
 import re
 import sys
@@ -19,7 +20,6 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
-
 from utils.clip import get_clip, set_clip
 
 
@@ -616,13 +616,11 @@ class Menu(Generic[T]):
             elif self._check_shift_hotkey(ch):
                 pass
 
+            elif self._check_alt_hotkey(ch):
+                pass
+
             elif ch == "\x1b":  # escape key
-                if self._cancellable:
-                    self.is_cancelled = True
-                    self._closed = True
-                else:
-                    self._input.clear()
-                    self.update_screen()
+                self.on_escape_pressed()
 
             elif ch != "\0":
                 if self._allow_input:
@@ -640,10 +638,24 @@ class Menu(Generic[T]):
         else:
             return True
 
+    def on_escape_pressed(self):
+        if "escape" in self._hotkeys:
+            logging.debug("Hotkey pressed: escape")
+            self._hotkeys["escape"].func()
+            return True
+        else:
+            if self._cancellable:
+                self.is_cancelled = True
+                self._closed = True
+            else:
+                self._input.clear()
+                self.update_screen()
+
     def _check_ctrl_hotkey(self, ch: Union[str, int]) -> bool:
         if curses.ascii.isctrl(ch):
             htk = "ctrl+" + curses.ascii.unctrl(ch)[-1].lower()
             if htk in self._hotkeys:
+                logging.debug(f"Hotkey pressed: {htk}")
                 self._hotkeys[htk].func()
                 return True
         return False
@@ -656,9 +668,38 @@ class Menu(Generic[T]):
             elif len(ch) == 1 and ch.isupper():
                 htk = "shift+" + ch.lower()
                 if htk in self._hotkeys:
+                    logging.debug(f"Hotkey pressed: {htk}")
                     self._hotkeys[htk].func()
                     return True
         return False
+
+    def _check_alt_hotkey(self, ch: Union[int, str]) -> bool:
+        is_alt_hotkey = False
+        key2: Optional[str] = None
+
+        if sys.platform == "win32":
+            if isinstance(ch, int):
+                if ch >= 0x1A1 and ch <= 0x1BA:
+                    key2 = chr(ord("a") + (ch - 0x1A1))
+                    is_alt_hotkey = True
+
+        if ch == "\x1b":
+            assert Menu.stdscr is not None
+            # Try to immediately get the next key after ALT
+            Menu.stdscr.nodelay(True)
+            ch2 = Menu.stdscr.getch()
+            Menu.stdscr.nodelay(False)
+            if isinstance(ch2, int) and ch2 >= ord("a") and ch2 <= ord("z"):
+                key2 = chr(ch2)
+                is_alt_hotkey = True
+
+        if key2 is not None:
+            htk = "alt+" + key2
+            if htk in self._hotkeys:
+                logging.debug(f"Hotkey pressed: {htk}")
+                self._hotkeys[htk].func()
+
+        return is_alt_hotkey
 
     def _on_idle(self):
         self.on_idle()
@@ -999,7 +1040,7 @@ class Menu(Generic[T]):
         else:
             selected = None
 
-        if selected != self._last_selected_item:
+        if selected != self._last_selected_item or self._last_input != self.get_input():
             self.on_item_selection_changed(selected)
         self._last_selected_item = selected
 

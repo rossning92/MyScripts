@@ -1,3 +1,5 @@
+# ruff: noqa: E402
+
 import argparse
 import ctypes
 import logging
@@ -14,7 +16,6 @@ from typing import Any, Dict, List, Optional, Tuple
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
-
 
 from _ext import (
     copy_script_path_to_clipboard,
@@ -188,11 +189,15 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._new_script, hotkey="ctrl+n")
+        self.add_command(self._next_scheduled_script)
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
+        self.add_command(self._reload, hotkey="alt+l")
         self.add_command(self._rename_script_and_replace_all)
         self.add_command(self._rename_script)
         self.add_command(self._set_cmdline_args)
-        self.add_command(self._next_scheduled_script)
+
+    def _reload(self):
+        self.call_func_without_curses(lambda: restart_program())
 
     def _next_scheduled_script(self):
         items = [
@@ -407,12 +412,6 @@ class _MyScriptMenu(Menu[Script]):
                         w.exec()
                 return True
 
-            elif ch == "L":
-                self.call_func_without_curses(lambda: restart_program())
-
-            elif ch == "\x1b":
-                return True
-
             else:
                 return super().on_char(ch)
 
@@ -424,6 +423,9 @@ class _MyScriptMenu(Menu[Script]):
         self.run_selected_script()
         self.clear_input()
         return True
+
+    def on_escape_pressed(self):
+        self.clear_input()
 
     def on_idle(self):
         try_reload_scripts_autorun(script_manager.scripts_autorun)

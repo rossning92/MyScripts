@@ -1,4 +1,4 @@
-hotkey: shift+s
+hotkey: alt+s
 newWindow: false
 reloadScriptsAfterRun: true
 template: false

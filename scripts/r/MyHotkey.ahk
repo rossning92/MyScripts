@@ -42,7 +42,7 @@ return
 
 #LButton::WindowMouseDragMove()
 
-!a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
+#a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
 #c::ActivateChrome(0)
 #!c::ActivateChrome(2)
 #!2::ActivateChrome(3)
