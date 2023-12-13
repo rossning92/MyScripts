@@ -233,6 +233,7 @@
       ["run_script", "r/android/perfetto/open_perfetto_trace.py"]
     ],
     ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
+    ".perfetto": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
     ".pgc": ["vscode", "notepad++"],
     ".php": ["vscode", "notepad++"],
     ".pkl": ["vscode", "notepad++"],

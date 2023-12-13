@@ -61,14 +61,19 @@ def uninstall_app():
 
 @menu.item()
 def dumpsys_package():
-    call_echo(["adb", "shell", "dumpsys", "package", pkg])
-    input("(press enter to continue)")
+    lines = subprocess.check_output(
+        ["adb", "shell", f"dumpsys package {pkg}"], universal_newlines=True
+    ).splitlines()
+    Menu(items=lines).exec()
 
 
 @menu.item()
 def dumpsys_package_permission():
-    call_echo(["adb", "shell", f"dumpsys package {pkg} | grep permission"])
-    input("(press enter to continue)")
+    lines = subprocess.check_output(
+        ["adb", "shell", f"dumpsys package {pkg} | grep permission"],
+        universal_newlines=True,
+    ).splitlines()
+    Menu(items=lines).exec()
 
 
 @menu.item()
