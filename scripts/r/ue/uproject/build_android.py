@@ -70,8 +70,9 @@ def build_uproject(
         ]
     )
 
-    apk_file = list(glob.glob(os.path.join(out_dir, "**", "*.apk"), recursive=True))[0]
-    os.rename(apk_file, os.path.join(out_dir, os.path.basename(out_dir) + ".apk"))
+    # Copy the apk file to the output directory
+    # apk_file = list(glob.glob(os.path.join(out_dir, "**", "*.apk"), recursive=True))[0]
+    # os.rename(apk_file, os.path.join(out_dir, os.path.basename(out_dir) + ".apk"))
 
     return out_dir
 

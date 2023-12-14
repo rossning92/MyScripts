@@ -1,6 +1,7 @@
-import os
-from _ue4 import update_config
 import glob
+import os
+
+from _ue4 import update_config
 
 
 def config_uproject(
@@ -11,6 +12,7 @@ def config_uproject(
     openxr=True,
     tonemapsubpass=False,
     update_package_name=False,
+    is_ue5=True,
 ):
     os.chdir(project_dir)
 
@@ -23,8 +25,8 @@ def config_uproject(
         "bBuildForES2=False",
         "bBuildForES31=%s" % str(not vulkan),
         "bPackageDataInsideApk=True",
-        "MinSDKVersion=23",
-        "TargetSDKVersion=25",
+        f"MinSDKVersion={32 if is_ue5 else 23}",
+        f"TargetSDKVersion={32 if is_ue5 else 25}",
         "bFullScreen=True",
         "bRemoveOSIG=True",
         "bBuildForArmV7=False",
@@ -46,8 +48,7 @@ def config_uproject(
         [
             "r.MobileHDR=False",
             # "r.MSAA.CompositingSampleCount=%d" % msaa,
-            "r.MobileMSAA=%d" % msaa,  # UE4
-            "r.MSAACount=%d" % msaa,  # UE5
+            f"r.MSAACount={msaa}" if is_ue5 else f"r.MobileMSAA={msaa}",
             "vr.MobileMultiView=%s" % str(multiview),
             "vr.MobileMultiView.Direct=%s" % str(multiview),
         ],
