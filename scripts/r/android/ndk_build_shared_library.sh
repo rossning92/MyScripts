@@ -15,7 +15,7 @@ src_file=$(basename "$1")
 mkdir -p jni
 
 # Define the Android.mk file content
-cat >jni/Android.mk <<EOF
+[[ ! -f jni/Android.mk ]] && cat >jni/Android.mk <<EOF
 LOCAL_PATH := \$(call my-dir)
 
 include \$(CLEAR_VARS)
@@ -28,7 +28,7 @@ include \$(BUILD_SHARED_LIBRARY)
 EOF
 
 # Define the Application.mk file content
-cat >jni/Application.mk <<EOF
+[[ ! -f jni/Application.mk ]] && cat >jni/Application.mk <<EOF
 APP_STL := c++_static
 APP_ABI := armeabi-v7a arm64-v8a
 EOF

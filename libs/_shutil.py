@@ -54,23 +54,16 @@ def _activate_window_win(hwnd):
     ShowWindow = user32.ShowWindow
     SetForegroundWindow = user32.SetForegroundWindow
 
-    SW_SHOWMAXIMIZED = 3
-    SW_SHOWMINIMIZED = 2
-    SW_RESTORE = 9
-    SW_NORMAL = 1
-
     # Get the window placement
     place = WINDOWPLACEMENT()
     place.length = ctypes.sizeof(WINDOWPLACEMENT)
     GetWindowPlacement(hwnd, ctypes.byref(place))
 
-    # Switch based on showCmd
-    if place.showCmd == SW_SHOWMAXIMIZED:
-        ShowWindow(hwnd, SW_SHOWMAXIMIZED)
-    elif place.showCmd == SW_SHOWMINIMIZED:
+    # Restore window if window is minimized
+    SW_SHOWMINIMIZED = 2
+    SW_RESTORE = 9
+    if place.showCmd == SW_SHOWMINIMIZED:
         ShowWindow(hwnd, SW_RESTORE)
-    else:
-        ShowWindow(hwnd, SW_NORMAL)
 
     # Set the window to the foreground
     SetForegroundWindow(hwnd)

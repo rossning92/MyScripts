@@ -214,6 +214,9 @@
     },
     "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"]
   },
+  "jre": {
+    "apt": { "packageName": "openjdk-17-jre" }
+  },
   "klogg": {
     "choco": {
       "packageName": "klogg"
@@ -382,6 +385,20 @@
       "%LOCALAPPDATA%\\Programs\\Tad\\Tad.exe",
       "C:\\Program Files\\Tad\\Tad.exe"
     ]
+  },
+  "unzip": {
+    "apt": {
+      "packageName": "unzip"
+    },
+    "choco": {
+      "packageName": "unzip"
+    },
+    "pacman": {
+      "packageName": "unzip"
+    },
+    "termux": {
+      "packageName": "unzip"
+    }
   },
   "veracrypt": {
     "choco": {
