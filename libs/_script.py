@@ -1258,7 +1258,7 @@ class Script:
             else:
                 assert False
 
-            if self.cfg["wsl"]:
+            if sys.platform == "win32" and self.cfg["wsl"]:
                 arg_list = wrap_wsl(arg_list, env=env)
         elif ext == ".vbs":
             assert sys.platform == "win32"
