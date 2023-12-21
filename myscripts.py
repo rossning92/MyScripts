@@ -26,10 +26,10 @@ from _ext import (
 )
 from _script import (
     Script,
+    get_data_dir,
     get_default_script_config,
     get_script_config_file_path,
     get_script_variables,
-    get_temp_dir,
     get_variable_edit_history_file,
     is_instance_running,
     setup_env_var,
@@ -550,7 +550,7 @@ def _main_loop(no_gui=False, run_script_and_quit=False):
 
 
 if __name__ == "__main__":
-    log_file = os.path.join(get_temp_dir(), "MyScripts.log")
+    log_file = os.path.join(get_data_dir(), "MyScripts.log")
     setup_logger(log_to_stderr=False, log_file=log_file)
 
     parser = argparse.ArgumentParser(description=__doc__)

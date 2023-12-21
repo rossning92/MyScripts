@@ -682,16 +682,16 @@ class Menu(Generic[T]):
                 if ch >= 0x1A1 and ch <= 0x1BA:
                     key2 = chr(ord("a") + (ch - 0x1A1))
                     is_alt_hotkey = True
-
-        if ch == "\x1b":
-            assert Menu.stdscr is not None
-            # Try to immediately get the next key after ALT
-            Menu.stdscr.nodelay(True)
-            ch2 = Menu.stdscr.getch()
-            Menu.stdscr.nodelay(False)
-            if isinstance(ch2, int) and ch2 >= ord("a") and ch2 <= ord("z"):
-                key2 = chr(ch2)
-                is_alt_hotkey = True
+        else:
+            if ch == "\x1b":
+                assert Menu.stdscr is not None
+                # Try to immediately get the next key after ALT
+                Menu.stdscr.nodelay(True)
+                ch2 = Menu.stdscr.getch()
+                Menu.stdscr.nodelay(False)
+                if isinstance(ch2, int) and ch2 >= ord("a") and ch2 <= ord("z"):
+                    key2 = chr(ch2)
+                    is_alt_hotkey = True
 
         if key2 is not None:
             htk = "alt+" + key2

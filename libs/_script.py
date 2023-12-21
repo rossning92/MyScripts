@@ -208,7 +208,7 @@ def add_script_dir(d, prefix=None):
 
 
 def get_script_history_file():
-    return os.path.join(os.path.join(get_temp_dir(), "last_script.json"))
+    return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
 
 
 def get_last_script_and_args() -> Tuple[str, Any]:
