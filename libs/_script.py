@@ -199,7 +199,7 @@ def add_script_dir(d, prefix=None):
         prefix = "link/" + os.path.basename(d)
 
     config_file = get_script_dirs_config_file()
-    data = load_json(config_file)
+    data = load_json(config_file, default=[])
     # Remove existing item given by name
     data = [item for item in data if item["name"] != prefix]
     # Add new item

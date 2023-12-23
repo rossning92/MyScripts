@@ -78,7 +78,6 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                 != 0
             ):
                 logging.info(f"Installing package using pacman: {pkg}...")
-                print(["sudo", "pacman", "-S", pacman_package_name])
                 subprocess.check_call(
                     ["sudo", "pacman", "-Sy", "--noconfirm", pacman_package_name]
                 )
