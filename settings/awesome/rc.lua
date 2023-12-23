@@ -729,3 +729,5 @@ end)
 
 awful.util.spawn("nm-applet")
 awful.util.spawn_with_shell("alacritty -e $HOME/MyScripts/myscripts --startup")
+
+splitscreen:init_layout()

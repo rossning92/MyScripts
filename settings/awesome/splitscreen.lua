@@ -1,11 +1,12 @@
 -- https://devrandom.ro/blog/2022-awesome-window-manager-hacks.html
+
 local awful = require("awful")
 local M = {}
 
 function M.split_screen()
     if (screen.count() ~= 1) then
         -- A sanity check, so we don't split multiple times.
-        debug("more than 1 screen, bailing on split_screen", screen.count())
+        debug("More than 1 screen, skip split_screen()", screen.count())
         return
     end
     local geo = screen[1].geometry
@@ -15,7 +16,7 @@ function M.split_screen()
     parent.original_w = geo.width
     parent.original_h = geo.height
     parent:fake_resize(geo.x, geo.y, new_width, geo.height)
-    fake = screen.fake_add(geo.x + new_width, geo.y, new_width2, geo.height)
+    local fake = screen.fake_add(geo.x + new_width, geo.y, new_width2, geo.height)
     if (parent.fakes == nil) then
         parent.fakes = {}
     end
@@ -45,6 +46,20 @@ function M.toggle_layout()
         M.split_screen()
     else
         M.reset_layout()
+    end
+end
+
+function M.init_layout()
+    if (screen.count() ~= 1) then
+        -- A sanity check, so we don't split multiple times.
+        debug("More than 1 screen, skip split_screen()", screen.count())
+        return
+    end
+
+    -- Automatically split the screen if it is a ultra wide screen.
+    local geo = screen[1].geometry
+    if geo.width / geo.height > 2 then
+        M.split_screen()
     end
 end
 

@@ -1,4 +1,5 @@
 set -e
+set -x
 
 (
     mkdir -p ~/Downloads
@@ -18,7 +19,7 @@ set -e
     cd "$(dirname "$0")"
     adb push setup_termux.sh /data/local/tmp/setup_termux.sh
 
-    adb shell dumpsys package com.termux | grep userId=
+    # adb shell dumpsys package com.termux | grep userId=
 
     adb shell am start -n com.termux/.app.TermuxActivity
     echo 'Wait for 5 seconds.'

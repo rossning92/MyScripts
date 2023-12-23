@@ -1,5 +1,11 @@
 set -e
 
+file_append() {
+    if [[ ! -f $1 ]] || ! grep -qF -- "$2" $1; then
+        echo "$2" >>$1
+    fi
+}
+
 export DEFAULT_ALWAYS_YES=true
 export ASSUME_ALWAYS_YES=true
 
@@ -34,14 +40,6 @@ done
 # Workaround for major performance degradation with most termux-api calls
 # See https://github.com/termux/termux-api/issues/552
 sed -i 's#^exec /system/bin/app_process /#exec /system/bin/app_process -Xnoimage-dex2oat /#' "$PREFIX/bin/am"
-
-# ==============================
-# Configure bashrc
-# ==============================
-cat >~/.bashrc <<EOF
-#!/data/data/com.termux/files/usr/bin/sh
-# termux-wake-lock
-EOF
 
 # ==============================
 # Configure terminal color theme
@@ -87,6 +85,13 @@ EOF
 ln -f -s $HOME/MyScripts/settings/vim/.vimrc $HOME/.vimrc
 
 # ==============================
+# Others
+# ==============================
+
+# WORKAROUND for TERMUX__USER_ID error when using xdg-open
+file_append ~/.bashrc "export TERMUX__USER_ID=$(whoami)"
+
+# ==============================
 # Install SSH Server
 # ==============================
 
@@ -105,10 +110,7 @@ sshd
 sleep 2
 logcat -s 'sshd:*' -d | tail -n 10
 
-# Run sshd at startup
-if [[ ! -f ~/.bashrc ]] || ! grep -qF -- "sshd" ~/.bashrc; then
-    echo "sshd" >>~/.bashrc
-fi
+file_append ~/.bashrc "sshd"
 
 # https://stackoverflow.com/questions/13322485/how-to-get-the-primary-ip-address-of-the-local-machine-on-linux-and-os-x
 ipaddr=$(ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')

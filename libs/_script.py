@@ -90,7 +90,7 @@ VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
 LOG_PIPE_FOR_BACKGROUND_PROCESS = True
 
-SUPPORT_GNU_SCREEN = True
+SUPPORT_GNU_SCREEN = False
 
 
 @lru_cache(maxsize=None)
@@ -1945,8 +1945,7 @@ def is_instance_running() -> bool:
 
 
 def _get_script_access_time_file() -> str:
-    config_file = os.path.join(get_temp_dir(), "script_access_time.json")
-    return config_file
+    return os.path.join(get_data_dir(), "script_access_time.json")
 
 
 _script_access_time_file_mtime = 0.0

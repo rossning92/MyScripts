@@ -22,13 +22,18 @@ EOF
 
 if [[ "$(uname)" == "linux"* || "$(uname)" == "Linux"* ]]; then
     if ! command -v vncviewer &>/dev/null; then
-        echo 'Download and install VNC Viewer...'
-        url="https://downloads.realvnc.com/download/file/viewer.files/VNC-Viewer-7.5.1-Linux-x64.deb"
-        deb_file="VNC-Viewer.deb"
-        wget "$url" -O "$deb_file"
-        sudo dpkg -i "$deb_file"
-        rm "$deb_file"
-        echo 'VNC Viewer installed successfully.'
+        if [[ -f "/etc/arch-release" ]]; then
+            echo 'Installing VNC Viewer...'
+            yay -S --noconfirm realvnc-vnc-viewer
+        else
+            echo 'Download and install VNC Viewer...'
+            url="https://downloads.realvnc.com/download/file/viewer.files/VNC-Viewer-7.5.1-Linux-x64.deb"
+            deb_file="VNC-Viewer.deb"
+            wget "$url" -O "$deb_file"
+            sudo dpkg -i "$deb_file"
+            rm "$deb_file"
+            echo 'VNC Viewer installed successfully.'
+        fi
     fi
 
     killall vncviewer

@@ -400,6 +400,7 @@ def get_adk_path():
 
     elif sys.platform == "linux":
         ADK_SEARCH_PATH = [
+            "/opt/android-sdk/",  # arch linux
             os.path.expanduser("~/Android/Sdk"),
             os.path.expanduser("~/android-sdk"),
         ]

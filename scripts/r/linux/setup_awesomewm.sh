@@ -10,8 +10,15 @@ if [[ -f "/etc/debian_version" ]]; then
         }
     done
 elif [[ -f "/etc/arch-release" ]]; then
-    sudo pacman -S --noconfirm awesome xorg-server xorg-xinit awesome 
-fi 
+    sudo pacman -S --noconfirm awesome xorg-server xorg-xinit awesome
+fi
 
 # Copy awesome config file
 ln -sf "$(dirname "$0")/../../../settings/awesome" $HOME/.config/
+
+append_if_not_exist() {
+    if [[ ! -f $1 ]] || ! grep -qF -- "$2" $1; then
+        echo "$2" >>$1
+    fi
+}
+append_if_not_exist ~/.xinitrc "exec awesome"
