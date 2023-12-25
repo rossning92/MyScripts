@@ -20,6 +20,7 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
+
 from utils.clip import get_clip, set_clip
 
 
@@ -102,6 +103,8 @@ class _InputWidget:
             int: The index of the last row of text being drawn on the screen.
         """
 
+        assert Menu.stdscr is not None
+
         # Draw label
         stdscr.addstr(row, 0, self.prompt)
 
@@ -116,7 +119,7 @@ class _InputWidget:
                 cursor_x,
                 self.text[self.caret_pos :] + (" \u23CE" if show_enter_symbol else ""),
             )
-            y, x = Menu.stdscr.getyx()
+            y, x = Menu.stdscr.getyx()  # type: ignore
 
         except curses.error:
             pass
@@ -399,10 +402,10 @@ class Menu(Generic[T]):
 
         color_pair_index = 3
 
-        def init_color_pair(name: str, color):
+        def init_color_pair(name: str, color: int):
             nonlocal color_pair_index
 
-            curses.init_pair(color_pair_index, color, -1)
+            curses.init_pair(color_pair_index, -1 if name == "white" else color, -1)
             Menu.color_pair_map[name] = color_pair_index
             color_pair_index += 1
 
@@ -689,9 +692,16 @@ class Menu(Generic[T]):
                 Menu.stdscr.nodelay(True)
                 ch2 = Menu.stdscr.getch()
                 Menu.stdscr.nodelay(False)
-                if isinstance(ch2, int) and ch2 >= ord("a") and ch2 <= ord("z"):
+                if isinstance(ch2, int) and (
+                    (ch2 >= ord("a") and ch2 <= ord("z"))
+                    or ch2 == ord("\r")
+                    or ch2 == ord("\n")
+                ):
                     key2 = chr(ch2)
                     is_alt_hotkey = True
+
+        if key2 == "\n" or key2 == "\r":
+            key2 = "enter"
 
         if key2 is not None:
             htk = "alt+" + key2

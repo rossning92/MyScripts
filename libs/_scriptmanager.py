@@ -50,7 +50,7 @@ def register_global_hotkeys_linux(scripts: List[Script]):
     s = (
         "control+q\n"
         "  wmctrl -a MyScriptsTerminal"
-        f' || alacritty -e "{get_my_script_root()}/myscripts" --startup\n\n'
+        f' || alacritty -e "{get_my_script_root()}/myscripts"\n\n'
     )
 
     for script in scripts:

@@ -190,6 +190,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._new_script, hotkey="ctrl+n")
         self.add_command(self._next_scheduled_script)
+        self.add_command(self._on_alt_enter_pressed, hotkey="alt+enter")
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
         self.add_command(self._rename_script_and_replace_all)
@@ -390,31 +391,27 @@ class _MyScriptMenu(Menu[Script]):
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
 
+    def _on_alt_enter_pressed(self):
+        try:
+            self.run_selected_script(close_on_exit=False)
+            self.clear_input()
+        finally:
+            # Reset last refresh time when key press event is processed
+            self.update_last_refresh_time()
+
     def on_char(self, ch):
         self.set_message(None)
 
         try:
-            if ch == KEY_CODE_CTRL_ENTER_WIN or (
-                # Alt + Enter is pressed
-                # (note that "\x1b" is the ASCII “Escape” control character)
-                self.prev_key == "\x1b"
-                and ch == "\n"
-            ):
-                self.run_selected_script(close_on_exit=False)
-                self.clear_input()
-                return True
-
-            elif ch == "\t":
+            if ch == "\t":
                 script = self.get_selected_item()
                 if script is not None:
                     w = VariableEditMenu(script)
                     if len(w.variables) > 0:
                         w.exec()
                 return True
-
             else:
                 return super().on_char(ch)
-
         finally:
             # Reset last refresh time when key press event is processed
             self.update_last_refresh_time()

@@ -79,13 +79,13 @@ class FileManager(Menu[_File]):
         self.add_command(self._delete_file, hotkey="ctrl+k")
         self.add_command(self._delete_file, hotkey="delete")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
-        self.add_command(self._goto_home, hotkey="shift+h")
+        self.add_command(self._goto_home, hotkey="alt+h")
         self.add_command(self._goto_parent_directory, hotkey="left")
         self.add_command(self._goto_selected_directory, hotkey="right")
         self.add_command(self._goto, hotkey="ctrl+g")
         self.add_command(self._list_files_recursively)
         self.add_command(self._refresh_current_directory, hotkey="ctrl+r")
-        self.add_command(self._rename_file, hotkey="shift+n")
+        self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
 
         self.__selected_file_dict: Dict[str, str] = {}

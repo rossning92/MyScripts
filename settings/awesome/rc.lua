@@ -1,3 +1,5 @@
+-- https://awesomewm.org/doc/api/sample%20files/rc.lua.html
+
 -- If LuaRocks is installed, make sure that packages installed through it are
 -- found (e.g. lgi). If LuaRocks is not installed, do nothing.
 pcall(require, "luarocks.loader")
@@ -251,29 +253,23 @@ awful.screen.connect_for_each_screen(function(s)
 end)
 -- }}}
 
--- {{{ Mouse bindings
-root.buttons(gears.table.join(awful.button({}, 3, function()
-    mymainmenu:toggle()
-end), awful.button({}, 4, awful.tag.viewnext), awful.button({}, 5, awful.tag.viewprev)))
--- }}}
-
 -- {{{ Key bindings
 globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help, {
         description = "show help",
         group = "awesome"
     }),
-    awful.key({ modkey }, "Left", awful.tag.viewprev, {
-        description = "view previous",
-        group = "tag"
-    }),
-    awful.key({ modkey }, "Right", awful.tag.viewnext, {
-        description = "view next",
-        group = "tag"
-    }),
-    awful.key({ modkey }, "Escape", awful.tag.history.restore, {
-        description = "go back",
-        group = "tag"
-    }),
+    -- awful.key({ modkey }, "Left", awful.tag.viewprev, {
+    --     description = "view previous",
+    --     group = "tag"
+    -- }),
+    -- awful.key({ modkey }, "Right", awful.tag.viewnext, {
+    --     description = "view next",
+    --     group = "tag"
+    -- }),
+    -- awful.key({ modkey }, "Escape", awful.tag.history.restore, {
+    --     description = "go back",
+    --     group = "tag"
+    -- }),
     -- awful.key({ modkey }, "j", function()
     --     awful.client.focus.byidx(1)
     -- end, {
@@ -286,12 +282,12 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
     --     description = "focus previous by index",
     --     group = "client"
     -- }),
-    awful.key({ modkey }, "w", function()
-        mymainmenu:show()
-    end, {
-        description = "show main menu",
-        group = "awesome"
-    }),
+    -- awful.key({ modkey }, "w", function()
+    --     mymainmenu:show()
+    -- end, {
+    --     description = "show main menu",
+    --     group = "awesome"
+    -- }),
 
     -- Layout manipulation
     awful.key({ modkey, "Shift" }, "j", function()
@@ -415,17 +411,17 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
         description = "run prompt",
         group = "launcher"
     }),
-    awful.key({ modkey }, "x", function()
-        awful.prompt.run {
-            prompt = "Run Lua code: ",
-            textbox = awful.screen.focused().mypromptbox.widget,
-            exe_callback = awful.util.eval,
-            history_path = awful.util.get_cache_dir() .. "/history_eval"
-        }
-    end, {
-        description = "lua execute prompt",
-        group = "awesome"
-    }),
+    -- awful.key({ modkey }, "x", function()
+    --     awful.prompt.run {
+    --         prompt = "Run Lua code: ",
+    --         textbox = awful.screen.focused().mypromptbox.widget,
+    --         exe_callback = awful.util.eval,
+    --         history_path = awful.util.get_cache_dir() .. "/history_eval"
+    --     }
+    -- end, {
+    --     description = "lua execute prompt",
+    --     group = "awesome"
+    -- }),
     awful.key({ modkey }, "b", function()
         splitscreen:toggle_layout()
     end, {
@@ -434,12 +430,12 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
     }),
 
     -- Menubar
-    awful.key({ modkey }, "p", function()
-        menubar.show()
-    end, {
-        description = "show the menubar",
-        group = "launcher"
-    }),
+    -- awful.key({ modkey }, "p", function()
+    --     menubar.show()
+    -- end, {
+    --     description = "show the menubar",
+    --     group = "launcher"
+    -- }),
 
     -- Volume control
     awful.key({}, "XF86AudioRaiseVolume", function()
@@ -586,21 +582,39 @@ for i = 1, 9 do
     )
 end
 
-clientbuttons = gears.table.join(awful.button({}, 1, function(c)
-    c:emit_signal("request::activate", "mouse_click", {
-        raise = true
-    })
-end), awful.button({ modkey }, 1, function(c)
-    c:emit_signal("request::activate", "mouse_click", {
-        raise = true
-    })
-    awful.mouse.client.move(c)
-end), awful.button({ modkey }, 3, function(c)
-    c:emit_signal("request::activate", "mouse_click", {
-        raise = true
-    })
-    awful.mouse.client.resize(c)
-end))
+clientbuttons = gears.table.join(
+    awful.button({}, 1, function(c)
+        c:emit_signal("request::activate", "mouse_click", {
+            raise = true
+        })
+    end),
+    awful.button({ modkey }, 1, function(c)
+        c:emit_signal("request::activate", "mouse_click", {
+            raise = true
+        })
+        awful.mouse.client.move(c)
+    end),
+    awful.button({ modkey }, 3, function(c)
+        c:emit_signal("request::activate", "mouse_click", {
+            raise = true
+        })
+        awful.mouse.client.resize(c)
+    end),
+    awful.button(
+        { modkey },
+        4 -- mouse wheel scroll up
+        , function(c)
+            awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ +5%", false)
+        end
+    ),
+    awful.button(
+        { modkey },
+        5, -- mouse wheel scroll down
+        function(c)
+            awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ -5%", false)
+        end
+    )
+)
 
 -- Set keys
 root.keys(globalkeys)

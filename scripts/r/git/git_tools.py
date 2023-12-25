@@ -261,7 +261,6 @@ def fixup_commit():
 
 @menu_item(key="G")
 def sync_github():
-    require_package("gh")
     FNULL = fnull()
     ret = subprocess.call(
         "gh repo view rossning92/%s" % repo_name, shell=True, stdout=FNULL

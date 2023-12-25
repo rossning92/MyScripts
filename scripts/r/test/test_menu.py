@@ -40,4 +40,6 @@ if __name__ == "__main__":
         items=generate_lorem_text(), prompt="$", debug=True, search_on_enter=True
     )
     menu.add_command(lambda: menu.set_message("alt+z pressed"), hotkey="alt+z")
+    menu.add_command(lambda: menu.set_message("alt+enter pressed"), hotkey="alt+enter")
+
     menu.exec()
