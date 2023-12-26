@@ -1265,6 +1265,13 @@ def setup_nodejs(install=True):
         if os.path.exists(yarn_global_module_path):
             node_path.append(yarn_global_module_path)
 
+    if shutil.which("npm"):
+        npm_global_module_path = subprocess.check_output(
+            ["npm", "root", "-g"], universal_newlines=True
+        ).strip()
+        if os.path.exists(npm_global_module_path):
+            node_path.append(npm_global_module_path)
+
     os.environ["NODE_PATH"] = os.path.pathsep.join(node_path)
     logging.info("Node.js: NODE_PATH: %s" % node_path)
 

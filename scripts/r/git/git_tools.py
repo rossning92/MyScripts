@@ -3,7 +3,6 @@ import subprocess
 import sys
 from urllib.request import urlretrieve
 
-from _pkgmanager import require_package
 from _script import get_my_script_root, run_script
 from _shutil import (
     call2,
@@ -287,9 +286,7 @@ def sync_github():
 
 @menu_item(key="S")
 def setup_project():
-    subprocess.check_call(
-        ["run_script", "r/git/git_init.sh"], shell=sys.platform == "win32"
-    )
+    run_script("r/git/git_init.sh")
 
 
 @menu_item(key="X")
@@ -406,7 +403,5 @@ if __name__ == "__main__":
         bundle_file = os.path.join(backup_dir, repo_name + ".bundle")
 
     cd(repo_dir)
-
-    setup_project()
 
     menu_loop()

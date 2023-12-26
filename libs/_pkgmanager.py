@@ -68,68 +68,67 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                 return
 
         elif "pacman" in packages[pkg] and shutil.which("pacman"):
-            pacman_package_name = packages[pkg]["pacman"]["packageName"]
-            if (
-                subprocess.call(
-                    ["pacman", "-Q", pacman_package_name],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
-                )
-                != 0
-            ):
-                logging.info(f"Installing package using pacman: {pkg}...")
-                subprocess.check_call(
-                    ["sudo", "pacman", "-Sy", "--noconfirm", pacman_package_name]
-                )
+            for p in packages[pkg]["pacman"]["packages"]:
+                if (
+                    subprocess.call(
+                        ["pacman", "-Q", p],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT,
+                    )
+                    != 0
+                ):
+                    logging.info(f"Installing package using pacman: {p}...")
+                    subprocess.check_call(["sudo", "pacman", "-Sy", "--noconfirm", p])
             return
 
-        elif "termux" in packages[pkg] and is_in_termux():
-            if (
-                subprocess.call(
-                    ["dpkg", "-s", pkg],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
-                )
-                != 0
-            ):
-                logging.warning(f'Package "{pkg}" was not found, installing...')
-                subprocess.check_call(["pkg", "install", pkg, "-y"])
+        elif is_in_termux() and "termux" in packages[pkg]:
+            for p in packages[pkg]["termux"]["packages"]:
+                if (
+                    subprocess.call(
+                        ["dpkg", "-s", p],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT,
+                    )
+                    != 0
+                ):
+                    logging.warning(f'Package "{p}" was not found, installing...')
+                    subprocess.check_call(["pkg", "install", p, "-y"])
             return
 
         elif wsl and "apt" in packages[pkg]:
-            apt_package = packages[pkg]["apt"]["packageName"]
             wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
-            if (
-                subprocess.call(
-                    wsl_cmd + ["dpkg", "-s", apt_package],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
-                )
-                != 0
-            ):
-                logging.info(f"Installing package using apt: {pkg}...")
-                subprocess.check_call(
-                    wsl_cmd + ["sudo", "apt", "install", "-y", apt_package]
-                )
+            for p in packages[pkg]["apt"]["packages"]:
+                if (
+                    subprocess.call(
+                        wsl_cmd + ["dpkg", "-s", p],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT,
+                    )
+                    != 0
+                ):
+                    logging.info(f"Installing package using apt: {pkg}...")
+                    subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
             return
 
-        elif sys.platform == "win32" and "dotnet" in packages[pkg]:
-            dotnet_package = packages[pkg]["dotnet"]["packageName"]
-            if (
-                subprocess.call(
-                    ["dotnet", "tool", "list", "--global", dotnet_package],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.STDOUT,
+        elif "dotnet" in packages[pkg]:
+            for p in packages[pkg]["dotnet"]["packages"]:
+                if (
+                    subprocess.call(
+                        ["dotnet", "tool", "list", "--global", p],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.STDOUT,
+                    )
+                    != 0
+                ):
+                    logging.info(f"Installing dotnet package package: {p}...")
+                    subprocess.check_call(["dotnet", "tool", "install", "--global", p])
+            if sys.platform == "win32":
+                prepend_to_path(
+                    os.path.expandvars("%USERPROFILE%\\.dotnet\\tools"), env=env
                 )
-                != 0
-            ):
-                logging.info(f"Installing dotnet package package: {dotnet_package}...")
-                subprocess.check_call(
-                    ["dotnet", "tool", "install", "--global", dotnet_package]
-                )
-            prepend_to_path(
-                os.path.expandvars("%USERPROFILE%\\.dotnet\\tools"), env=env
-            )
+            else:
+                prepend_to_path(os.path.expandvars("$HOME/.dotnet/tools"), env=env)
+
             return
 
         elif sys.platform == "win32" and "choco" in packages[pkg]:
@@ -160,21 +159,20 @@ def _is_go_package_installed(go_pkg_path):
 
 
 def _choco_install(pkg, upgrade=False):
-    pkg = packages[pkg]["choco"]["packageName"]
+    for p in packages[pkg]["choco"]["packages"]:
+        out = check_output(["choco", "list", "--local", "--exact", p])
 
-    out = check_output(["choco", "list", "--local", "--exact", pkg])
+        if "0 packages installed" in out:
+            logging.info("Install `%s`..." % p)
+            run_elevated(
+                ["choco", "install", p, "-y", "-s", "https://chocolatey.org/api/v2/"],
+            )
 
-    if "0 packages installed" in out:
-        logging.info("Install `%s`..." % pkg)
-        run_elevated(
-            ["choco", "install", pkg, "-y", "-s", "https://chocolatey.org/api/v2/"],
-        )
-
-    elif upgrade:
-        logging.info("Upgrade `%s`..." % pkg)
-        run_elevated(
-            ["choco", "upgrade", pkg, "-y", "-s", "https://chocolatey.org/api/v2/"],
-        )
+        elif upgrade:
+            logging.info("Upgrade `%s`..." % p)
+            run_elevated(
+                ["choco", "upgrade", p, "-y", "-s", "https://chocolatey.org/api/v2/"],
+            )
 
     refresh_env_vars()
 

@@ -1,15 +1,19 @@
 set -e
 
 file_prepend() {
-    if [[ ! -f $1 ]] || ! grep -qF -- "$2" $1; then
-        printf '%s\n%s\n' "$2" "$(cat $1)" >$1
+    # Remove the line if it exists and then prepend it
+    if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
+        sed -i "\%^$2$%d" "$1"
     fi
+    printf '%s\n%s\n' "$2" "$(cat $1)" >"$1"
 }
 
 file_append() {
-    if [[ ! -f $1 ]] || ! grep -qF -- "$2" $1; then
-        echo "$2" >>$1
+    # Remove the line if it exists and then append it
+    if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
+        sed -i "\%^$2$%d" "$1"
     fi
+    echo "$2" >>"$1"
 }
 
 file_append_sudo() {
@@ -27,7 +31,7 @@ yay_install() {
 }
 
 # Install utilities
-pac_install git unzip openssh network-manager-applet fzf xclip inetutils alacritty sxhkd wmctrl
+pac_install git unzip openssh fzf xclip inetutils alacritty sxhkd wmctrl
 
 # Install fonts
 pac_install $(pacman -Ssq 'noto-fonts-*')
@@ -47,18 +51,19 @@ else
     sed -i "s/Xft.dpi:.*/Xft.dpi: $DPI_VALUE/" ~/.Xresources
 fi
 # This should be the first line of .xinitrc, so that all other apps can get the correct DPI value.
-file_append ~/.xinitrc "xrdb -merge ~/.Xresources"
+file_prepend ~/.xinitrc "xrdb -merge ~/.Xresources"
 
-# Auto-start MyScript
-file_append ~/.xinitrc "alacritty -e $HOME/MyScripts/myscripts --startup &"
+# Network manager
+pac_install network-manager-applet
+file_append ~/.xinitrc "nm-applet &"
 
 # Bluetooth
 # - bluez and bluez-utils: a Linux Bluetooth stack
 # - blueman: GUI tool for desktop environments
 pac_install bluez bluez-utils blueman
 file_append ~/.xinitrc "blueman-applet &"
-# then you can use bluetoothctl to pair in command line
 sudo systemctl enable bluetooth.service --now
+# then you can use bluetoothctl to pair in command line
 
 # Setup audio
 pac_install pulseaudio pavucontrol pulseaudio-bluetooth
@@ -67,8 +72,10 @@ pac_install alsa-utils # for amixer CLI command
 # Setup input method
 pac_install fcitx fcitx-configtool fcitx-googlepinyin
 file_append ~/.xinitrc "fcitx -d"
-# sed -iE 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config                                                             # set trigger key
-# sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config # disable extra trigger key
+# Set trigger key: left shift
+sed -iE 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config
+# Disable extra trigger key
+sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config
 
 # Automatically run startx without using display manager / login manager.
 file_append \
@@ -105,6 +112,11 @@ Section "InputClass"
     Option "HorizScrollDelta" "-111"
 EndSection
 EOF
+
+# Auto-start MyScript
+file_append ~/.xinitrc 'alacritty -e "$HOME/MyScripts/myscripts" --startup &'
+
+file_append ~/.xinitrc "exec awesome"
 
 # Disable sudo password
 file_append_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"

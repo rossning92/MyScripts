@@ -1,24 +1,24 @@
 {
   "7z": {
     "choco": {
-      "packageName": "7zip"
+      "packages": ["7zip"]
     },
     "executables": ["C:\\Program Files\\7-Zip\\7z.exe"]
   },
   "7zfm": {
     "choco": {
-      "packageName": "7zip"
+      "packages": ["7zip"]
     },
     "executables": ["C:\\Program Files\\7-Zip\\7zFM.exe"]
   },
   "7zip": {
     "choco": {
-      "packageName": "7zip"
+      "packages": ["7zip"]
     }
   },
   "adobereader": {
     "choco": {
-      "packageName": "adobereader"
+      "packages": ["adobereader"]
     },
     "executables": [
       "C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe"
@@ -26,215 +26,218 @@
   },
   "alacritty": {
     "choco": {
-      "packageName": "alacritty"
+      "packages": ["alacritty"]
     },
     "pacman": {
-      "packageName": "alacritty"
+      "packages": ["alacritty"]
     }
   },
   "android-sdk": {
     "choco": {
-      "packageName": "android-sdk"
+      "packages": ["android-sdk"]
     },
     "executables": ["C:\\Android\\android-sdk\\tools\\bin\\sdkmanager.bat"]
   },
   "apktool": {
     "choco": {
-      "packageName": "apktool"
+      "packages": ["apktool"]
     }
   },
   "audacity": {
     "choco": {
-      "packageName": "audacity"
+      "packages": ["audacity"]
     },
     "executables": ["C:\\Program Files (x86)\\Audacity\\audacity.exe"]
   },
   "autologon": {
     "choco": {
-      "packageName": "autologon"
+      "packages": ["autologon"]
     }
   },
   "bbdown": {
     "dotnet": {
-      "packageName": "bbdown"
+      "packages": ["bbdown"]
     }
   },
   "carnac": {
     "choco": {
-      "packageName": "carnac"
+      "packages": ["carnac"]
     }
   },
   "cmake": {
     "choco": {
-      "packageName": "cmake"
+      "packages": ["cmake"]
     },
     "pacman": {
-      "packageName": "cmake"
+      "packages": ["cmake"]
     }
   },
   "dotnet": {
     "choco": {
-      "packageName": "dotnet"
+      "packages": ["dotnet"]
+    },
+    "pacman": {
+      "packages": ["dotnet-runtime", "dotnet-sdk"]
     }
   },
   "dotnet-6.0-sdk": {
     "choco": {
-      "packageName": "dotnet-6.0-sdk"
+      "packages": ["dotnet-6.0-sdk"]
     }
   },
   "dotnetcore-sdk": {
     "choco": {
-      "packageName": "dotnetcore-sdk"
+      "packages": ["dotnetcore-sdk"]
     }
   },
   "everything": {
     "choco": {
-      "packageName": "everything"
+      "packages": ["everything"]
     }
   },
   "expect": {
     "apt": {
-      "packageName": "expect"
+      "packages": ["expect"]
     },
     "choco": {
-      "packageName": "expect"
+      "packages": ["expect"]
     },
     "pacman": {
-      "packageName": "expect"
+      "packages": ["expect"]
     },
     "termux": {
-      "packageName": "expect"
+      "packages": ["expect"]
     }
   },
   "ffmpeg": {
     "choco": {
-      "packageName": "ffmpeg"
+      "packages": ["ffmpeg"]
     },
     "executables": ["C:\\ProgramData\\chocolatey\\bin\\ffmpeg.exe"],
     "pacman": {
-      "packageName": "ffmpeg"
+      "packages": ["ffmpeg"]
     },
     "termux": {
-      "packageName": "ffmpeg"
+      "packages": ["ffmpeg"]
     }
   },
   "fzf": {
     "choco": {
-      "packageName": "fzf"
+      "packages": ["fzf"]
     },
     "pacman": {
-      "packageName": "fzf"
+      "packages": ["fzf"]
     },
     "termux": {
-      "packageName": "fzf"
+      "packages": ["fzf"]
     }
   },
   "ghostscript": {
     "choco": {
-      "packageName": "ghostscript"
+      "packages": ["ghostscript"]
     }
   },
   "git": {
     "choco": {
-      "packageName": "git"
+      "packages": ["git"]
     },
     "pacman": {
-      "packageName": "git"
+      "packages": ["git"]
     },
     "termux": {
-      "packageName": "git"
+      "packages": ["git"]
     }
   },
   "git-lfs": {
     "choco": {
-      "packageName": "git-lfs"
+      "packages": ["git-lfs"]
     },
     "pacman": {
-      "packageName": "git-lfs"
+      "packages": ["git-lfs"]
     }
   },
   "golang": {
     "choco": {
-      "packageName": "golang"
+      "packages": ["golang"]
     },
     "pacman": {
-      "packageName": "go"
+      "packages": ["go"]
     },
     "termux": {
-      "packageName": "golang"
+      "packages": ["golang"]
     }
   },
   "google-chrome": {
     "choco": {
-      "packageName": "googlechrome"
+      "packages": ["googlechrome"]
     }
   },
   "gradle": {
     "choco": {
-      "packageName": "gradle"
+      "packages": ["gradle"]
     },
     "pacman": {
-      "packageName": "gradle"
+      "packages": ["gradle"]
     }
   },
   "graphviz": {
     "choco": {
-      "packageName": "graphviz"
+      "packages": ["graphviz"]
     },
     "pacman": {
-      "packageName": "graphviz"
+      "packages": ["graphviz"]
     }
   },
   "grep": {
     "apt": {
-      "packageName": "grep"
+      "packages": ["grep"]
     },
     "choco": {
-      "packageName": "grep"
+      "packages": ["grep"]
     },
     "pacman": {
-      "packageName": "grep"
+      "packages": ["grep"]
     },
     "termux": {
-      "packageName": "grep"
+      "packages": ["grep"]
     }
   },
   "imagemagick": {
     "choco": {
-      "packageName": "imagemagick"
+      "packages": ["imagemagick"]
     },
     "executables": ["C:\\Program Files\\ImageMagick-*\\magick.exe"],
     "pacman": {
-      "packageName": "imagemagick"
+      "packages": ["imagemagick"]
     }
   },
   "irfanview": {
     "choco": {
-      "packageName": "irfanview"
+      "packages": ["irfanview"]
     },
     "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"]
   },
   "jre": {
-    "apt": { "packageName": "openjdk-17-jre" }
+    "apt": { "packages": ["openjdk-17-jre"] }
   },
   "klogg": {
     "choco": {
-      "packageName": "klogg"
+      "packages": ["klogg"]
     },
     "executables": ["C:\\Program Files\\klogg\\klogg.exe"]
   },
   "less": {
     "apt": {
-      "packageName": "less"
+      "packages": ["less"]
     },
     "choco": {
-      "packageName": "less"
+      "packages": ["less"]
     },
     "pacman": {
-      "packageName": "less"
+      "packages": ["less"]
     },
     "termux": {
-      "packageName": "less"
+      "packages": ["less"]
     }
   },
   "lux": {
@@ -247,130 +250,130 @@
   },
   "miniconda3": {
     "choco": {
-      "packageName": "miniconda3"
+      "packages": ["miniconda3"]
     }
   },
   "mpv": {
     "choco": {
-      "packageName": "mpv"
+      "packages": ["mpv"]
     },
     "executables": [
       "C:\\ProgramData\\chocolatey\\lib\\mpv.install\\tools\\mpv.exe"
     ],
     "pacman": {
-      "packageName": "mpv"
+      "packages": ["mpv"]
     }
   },
   "nmap": {
     "choco": {
-      "packageName": "nmap"
+      "packages": ["nmap"]
     }
   },
   "node": {
     "choco": {
-      "packageName": "nodejs-lts"
+      "packages": ["nodejs-lts"]
     },
     "pacman": {
-      "packageName": "nodejs"
+      "packages": ["nodejs"]
     }
   },
   "notepad++": {
     "choco": {
-      "packageName": "notepadplusplus"
+      "packages": ["notepadplusplus"]
     },
     "executables": ["notepad++.exe"]
   },
   "ocenaudio": {
     "choco": {
-      "packageName": "ocenaudio"
+      "packages": ["ocenaudio"]
     },
     "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"]
   },
   "openssh": {
     "apt": {
-      "packageName": "openssh-client"
+      "packages": ["openssh-client"]
     },
     "choco": {
-      "packageName": "openssh"
+      "packages": ["openssh"]
     },
     "pacman": {
-      "packageName": "openssh"
+      "packages": ["openssh"]
     },
     "termux": {
-      "packageName": "openssh"
+      "packages": ["openssh"]
     }
   },
   "pandoc": {
     "choco": {
-      "packageName": "pandoc"
+      "packages": ["pandoc"]
     },
     "pacman": {
-      "packageName": "pandoc-cli"
+      "packages": ["pandoc-cli"]
     }
   },
   "pdftk": {
     "choco": {
-      "packageName": "pdftk"
+      "packages": ["pdftk"]
     }
   },
   "protoc": {
     "choco": {
-      "packageName": "protoc"
+      "packages": ["protoc"]
     }
   },
   "prusaslicer": {
     "choco": {
-      "packageName": "prusaslicer"
+      "packages": ["prusaslicer"]
     }
   },
   "renderdoc": {
     "choco": {
-      "packageName": "renderdoc"
+      "packages": ["renderdoc"]
     }
   },
   "ripgrep": {
     "choco": {
-      "packageName": "ripgrep"
+      "packages": ["ripgrep"]
     },
     "executables": ["C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"]
   },
   "rpi-imager": {
     "choco": {
-      "packageName": "rpi-imager"
+      "packages": ["rpi-imager"]
     }
   },
   "scrcpy": {
     "choco": {
-      "packageName": "scrcpy"
+      "packages": ["scrcpy"]
     }
   },
   "screen": {
     "apt": {
-      "packageName": "screen"
+      "packages": ["screen"]
     },
     "choco": {
-      "packageName": "screen"
+      "packages": ["screen"]
     },
     "pacman": {
-      "packageName": "screen"
+      "packages": ["screen"]
     },
     "termux": {
-      "packageName": "screen"
+      "packages": ["screen"]
     }
   },
   "sharex": {
     "choco": {
-      "packageName": "sharex"
+      "packages": ["sharex"]
     }
   },
   "sox": {
     "choco": {
-      "packageName": "sox.portable"
+      "packages": ["sox.portable"]
     }
   },
   "sumatrapdf": {
     "choco": {
-      "packageName": "sumatrapdf"
+      "packages": ["sumatrapdf"]
     },
     "executables": [
       "SumatraPDF.exe",
@@ -379,7 +382,7 @@
   },
   "tad": {
     "choco": {
-      "packageName": "tad"
+      "packages": ["tad"]
     },
     "executables": [
       "%LOCALAPPDATA%\\Programs\\Tad\\Tad.exe",
@@ -388,40 +391,40 @@
   },
   "unzip": {
     "apt": {
-      "packageName": "unzip"
+      "packages": ["unzip"]
     },
     "choco": {
-      "packageName": "unzip"
+      "packages": ["unzip"]
     },
     "pacman": {
-      "packageName": "unzip"
+      "packages": ["unzip"]
     },
     "termux": {
-      "packageName": "unzip"
+      "packages": ["unzip"]
     }
   },
   "veracrypt": {
     "choco": {
-      "packageName": "veracrypt"
+      "packages": ["veracrypt"]
     },
     "executables": ["C:\\Program Files\\VeraCrypt\\VeraCrypt.exe"],
     "pacman": {
-      "packageName": "veracrypt"
+      "packages": ["veracrypt"]
     }
   },
   "visualcpp-build-tools": {
     "choco": {
-      "packageName": "visualcpp-build-tools"
+      "packages": ["visualcpp-build-tools"]
     }
   },
   "visualstudio2019community": {
     "choco": {
-      "packageName": "visualstudio2019community"
+      "packages": ["visualstudio2019community"]
     }
   },
   "vlc": {
     "choco": {
-      "packageName": "vlc"
+      "packages": ["vlc"]
     },
     "executables": [
       "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
@@ -430,12 +433,12 @@
   },
   "vnc-viewer": {
     "choco": {
-      "packageName": "vnc-viewer"
+      "packages": ["vnc-viewer"]
     }
   },
   "vscode": {
     "choco": {
-      "packageName": "vscode"
+      "packages": ["vscode"]
     },
     "executables": [
       "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
@@ -446,10 +449,10 @@
   },
   "yarn": {
     "choco": {
-      "packageName": "yarn"
+      "packages": ["yarn"]
     },
     "pacman": {
-      "packageName": "yarn"
+      "packages": ["yarn"]
     }
   }
 }
