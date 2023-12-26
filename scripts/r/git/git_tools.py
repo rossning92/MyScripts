@@ -12,14 +12,15 @@ from _shutil import (
     fnull,
     get_output,
     get_time_str,
-    menu_item,
-    menu_loop,
     print2,
     shell_open,
 )
+from utils.menu.actionmenu import ActionMenu
+
+menu = ActionMenu(close_on_selection=False)
 
 
-@menu_item(key="c")
+@menu.action()
 def commit(dry_run=False, amend=False) -> bool:
     if is_working_tree_clean():
         print2("Working directory clean, changed files in HEAD:", color="gray")
@@ -47,13 +48,13 @@ def commit(dry_run=False, amend=False) -> bool:
         return False
 
 
-@menu_item(key="C")
+@menu.action()
 def commit_and_push():
     if commit():
         git_push()
 
 
-@menu_item(key="R")
+@menu.action()
 def revert_all():
     call_echo("git status --short")
     if not confirm("Revert all files?"):
@@ -61,7 +62,7 @@ def revert_all():
     call_echo("git reset HEAD --hard")
 
 
-@menu_item(key="P")
+@menu.action()
 def git_push(force=False):
     # Push and auto track remote branch
     subprocess.check_call(["git", "config", "--global", "push.default", "current"])
@@ -76,13 +77,12 @@ def git_push(force=False):
     call_echo(args)
 
 
-@menu_item()
+@menu.action()
 def git_push_force():
     git_push(force=True)
 
 
-@menu_item(key="l")
-def show_git_log(show_all=True):
+def git_log(show_all=True):
     args = [
         "git",
         "log",
@@ -99,15 +99,16 @@ def show_git_log(show_all=True):
     )
 
 
-@menu_item(key="s")
-def print_status():
+@menu.action(hotkey="alt+s")
+def git_status():
     print2(
         "\nrepo_dir: %s" % os.getcwd(),
         color="magenta",
     )
 
     commit(dry_run=True)
-    show_git_log(show_all=False)
+    git_log(show_all=False)
+    input()
 
 
 def create_bundle():
@@ -135,7 +136,7 @@ def add_gitignore():
             f.writelines(["/build"])
 
 
-@menu_item(key="b")
+@menu.action()
 def switch_branch():
     call_echo(["git", "branch"])
     name = input("Switch to branch [master]: ")
@@ -150,7 +151,7 @@ def get_current_branch():
     ).strip()
 
 
-@menu_item(key="H")
+@menu.action()
 def amend_history_commit():
     commit_id = input("History commit ID: ")
 
@@ -173,23 +174,23 @@ def amend_history_commit():
     call_echo(["git", "tag", "-d", "history-rewrite"])
 
 
-@menu_item(key="a")
+@menu.action()
 def amend():
     commit(amend=True)
 
 
-@menu_item(key="A")
+@menu.action(hotkey="alt+a")
 def amend_and_push():
     if commit(amend=True):
         git_push(force=True)
 
 
-@menu_item(key="p")
+@menu.action()
 def pull():
     call_echo(["git", "pull"])
 
 
-@menu_item(key="r")
+@menu.action()
 def revert_file():
     file = input("Input file to revert: ")
     if file:
@@ -205,7 +206,7 @@ def is_working_tree_clean():
     )
 
 
-@menu_item(key="d")
+@menu.action(hotkey="alt+d")
 def diff():
     if not is_working_tree_clean():
         call_echo(["git", "diff"])
@@ -213,52 +214,52 @@ def diff():
         call_echo(["git", "diff", "HEAD^", "HEAD"])
 
 
-@menu_item(key="D")
+@menu.action()
 def diff_previous_commit():
     call_echo("git diff HEAD^ HEAD")
 
 
-@menu_item()
+@menu.action()
 def diff_with_main_branch():
     call_echo("git diff origin/main...HEAD")
 
 
-@menu_item()
+@menu.action()
 def diff_commit():
     commit = input("commit hash: ")
     call_echo("git show %s" % commit)
 
 
-@menu_item(key="`")
+@menu.action(hotkey="`")
 def command():
     cmd = input("cmd> ")
     subprocess.call(cmd, shell=True)
 
 
-@menu_item(key="B")
+@menu.action()
 def unbundle():
     print2("Restoring from: %s" % bundle_file)
     call_echo(["git", "pull", bundle_file, "master:master"])
 
 
-@menu_item(key="Z")
+@menu.action()
 def undo():
     call_echo("git reset HEAD@{1}")
 
 
-@menu_item(key="o")
+@menu.action()
 def open_folder():
     shell_open(os.getcwd())
 
 
-@menu_item(key="f")
+@menu.action()
 def fixup_commit():
     commit_id = input("Fixup commit (hash): ")
     call_echo(["git", "commit", "--fixup", commit_id])
     call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"])
 
 
-@menu_item(key="G")
+@menu.action()
 def sync_github():
     FNULL = fnull()
     ret = subprocess.call(
@@ -284,12 +285,12 @@ def sync_github():
     )
 
 
-@menu_item(key="S")
-def setup_project():
+@menu.action()
+def git_init():
     run_script("r/git/git_init.sh")
 
 
-@menu_item(key="X")
+@menu.action()
 def clean_all():
     for dry_run in [True, False]:
         if not dry_run:
@@ -322,7 +323,7 @@ def checkout_branch(branch):
     call_echo(["git", "checkout", branch])
 
 
-@menu_item(key="E")
+@menu.action()
 def amend_commit_message(message=None):
     args = ["git", "commit", "--amend"]
     if message:
@@ -330,7 +331,7 @@ def amend_commit_message(message=None):
     call_echo(args)
 
 
-@menu_item(key="p")
+@menu.action()
 def create_patch():
     hash = input("Enter commit hash: ")
     if not hash:
@@ -338,25 +339,25 @@ def create_patch():
     call_echo(["git", "format-patch", "-1", hash])
 
 
-@menu_item()
+@menu.action()
 def garbage_collect():
     if confirm("Dangerous! this will expire all recent reflogs."):
         run_script("r/git/garbage_collect.sh")
 
 
-@menu_item()
+@menu.action()
 def checkout_remote_branch_partial():
     run_script(
         "r/git/git_checkout_remote_branch_partial.sh", variables={"GIT_REPO": repo_dir}
     )
 
 
-@menu_item()
+@menu.action()
 def checkout_remote_branch():
     run_script("r/git/git_checkout_remote_branch.sh", variables={"GIT_REPO": repo_dir})
 
 
-@menu_item(key="p")
+@menu.action()
 def apply_patch():
     file = input("Enter patch file path: ")
     if not file:
@@ -364,33 +365,33 @@ def apply_patch():
     call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
 
 
-@menu_item()
+@menu.action()
 def unstash():
     call_echo(["git", "stash", "apply"])
 
 
-@menu_item()
+@menu.action()
 def create_new_branch_and_checkout():
     branch = input("new branch name: ")
     if branch:
         call_echo(["git", "checkout", "-b", branch])
 
 
-@menu_item()
+@menu.action()
 def cherry_pick():
     commit = input("new commit hash: ")
     if commit:
         call_echo(["git", "cherry-pick", commit])
 
 
-@menu_item()
+@menu.action()
 def commit_gpt():
-    call_echo(["run_script", "r/ML/gpt/commitgpt.sh"], shell=sys.platform == "win32")
+    run_script("r/ML/gpt/commitgpt.sh")
 
 
 if __name__ == "__main__":
-    backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
-    repo_dir = os.environ.get("GIT_REPO")
+    backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")  # env: GIT_REPO_BACKUP_DIR
+    repo_dir = os.environ.get("GIT_REPO")  # env: GIT_REPO
     if not repo_dir:
         repo_dir = get_my_script_root()
 
@@ -404,4 +405,4 @@ if __name__ == "__main__":
 
     cd(repo_dir)
 
-    menu_loop()
+    menu.exec()

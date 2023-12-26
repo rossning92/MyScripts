@@ -62,6 +62,7 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
+-- beautiful.wallpaper = nil
 
 -- This is used later as the default terminal and editor to run.
 terminal = "alacritty"
@@ -170,6 +171,8 @@ local function set_wallpaper(s)
             wallpaper = wallpaper(s)
         end
         gears.wallpaper.maximized(wallpaper, s, true)
+    else
+        gears.wallpaper.set("#000000")
     end
 end
 

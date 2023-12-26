@@ -1639,11 +1639,19 @@ class Script:
             return True
 
     def get_variable_names(self) -> List[str]:
+        VARIABLE_NAME_PATT = r"\b([A-Z_$][A-Z_$0-9]{5,})\b"
         if self.cfg["variableNames"] == "auto":
             if self.ext in SCRIPT_EXTENSIONS:
                 with open(self.script_path, "r", encoding="utf-8") as f:
                     s = f.read()
-                    variable_names = re.findall(r"\b([A-Z_$][A-Z_$0-9]{5,})\b", s)
+
+                    # Search all environmental variable names using regular expressions.
+                    # For example: "env: ENV_VAR_NAME".
+                    variable_names = re.findall("env: " + VARIABLE_NAME_PATT, s)
+
+                    # Fallback to matching all uppercase names.
+                    if len(variable_names) == 0:
+                        variable_names = re.findall(VARIABLE_NAME_PATT, s)
             else:
                 return []
         else:

@@ -24,7 +24,7 @@ def select_app_pkg():
 
 
 if __name__ == "__main__":
-    pkg = os.environ.get("PKG_NAME")
+    pkg = os.environ.get("PKG_NAME")  # env: PKG_NAME
     if not pkg:
         pkg = select_app_pkg()
         if not pkg:
@@ -32,7 +32,9 @@ if __name__ == "__main__":
 
     out_dir = os.environ.get(
         "ANDROID_APP_BACKUP_DIR", os.path.expanduser("~/android_backup")
-    )
+    )  # env: ANDROID_APP_BACKUP_DIR
     os.makedirs(out_dir, exist_ok=True)
+
     backup_pkg(pkg, out_dir=out_dir)
+
     shell_open(out_dir)

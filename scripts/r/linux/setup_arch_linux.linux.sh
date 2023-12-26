@@ -31,7 +31,7 @@ yay_install() {
 }
 
 # Install utilities
-pac_install git unzip openssh fzf xclip inetutils alacritty sxhkd wmctrl
+pac_install git unzip openssh fzf xclip inetutils alacritty sxhkd wmctrl less vim
 
 # Install fonts
 pac_install $(pacman -Ssq 'noto-fonts-*')

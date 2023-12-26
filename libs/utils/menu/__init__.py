@@ -165,17 +165,6 @@ class _InputWidget:
             self.caret_pos += 1
 
 
-class _MenuItem:
-    def __init__(
-        self, name: str, callback: Optional[Callable[[], None]] = None
-    ) -> None:
-        self.name = name
-        self.callback = callback
-
-    def __str__(self):
-        return self.name
-
-
 T = TypeVar("T")
 
 
@@ -295,16 +284,6 @@ class Menu(Generic[T]):
         from _script import get_data_dir
 
         return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
-
-    def item(self, name: Optional[str] = None):
-        def decorator(func):
-            nonlocal name
-            if name is None:
-                name = func.__name__
-            self.items.append(_MenuItem(name=name, callback=func))
-            return func
-
-        return decorator
 
     def match_item(self, patt: str, item: T) -> bool:
         s = str(item)
@@ -1017,15 +996,10 @@ class Menu(Generic[T]):
                     self.call_func_without_curses(
                         lambda item=item: self._on_item_selected(item)
                     )
-            if (
-                item is not None
-                and hasattr(item, "callback")
-                and callable(item.callback)
-            ):
-                self.call_func_without_curses(lambda item=item: item.callback())
             if self._close_on_selection:
                 self.close()
-            self.update_screen()
+            else:
+                self.update_screen()
 
     def on_tab_pressed(self):
         pass

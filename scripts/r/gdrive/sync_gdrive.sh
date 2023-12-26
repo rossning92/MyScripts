@@ -1,6 +1,9 @@
 set -e
 
-if [[ -z "${GDRIVE_DIR}" ]]; then
+# env: GDRIVE_DIR
+# env: LOCAL_DIR
+
+if [[ -z "$GDRIVE_DIR" ]]; then
     echo 'ERROR: GDRIVE_DIR cannot be empty.'
     exit 1
 fi
@@ -11,14 +14,14 @@ cd "$HOME"
 
 sync_gdrive() {
     # --progress : enable progress bar
-    rclone bisync "drive:$1" "$2" --verbose --exclude=.mypy_cache "${@:3}"
+    rclone bisync "drive:$1" "$2" --verbose --exclude=.mypy_cache/** "${@:3}"
 }
 
 [[ -z "$LOCAL_DIR" ]] && local_dir="$HOME/gdrive/$GDRIVE_DIR" || local_dir="$LOCAL_DIR"
 [[ -x "$(command -v cygpath)" ]] && local_dir="$(cygpath -w "$local_dir")" # convert to win path
 mkdir -p "$local_dir"                                                      # create local dir if not exists
 
-echo "Bi-sync \"$GDRIVE_DIR\" <=> \"$local_dir\""
+echo "Sync \"gdrive://$GDRIVE_DIR\" <=> \"$local_dir\""
 if ! sync_gdrive "$GDRIVE_DIR" "$local_dir"; then
     printf "\n\n\n"
     read -p "Resync? (y/n): " ans

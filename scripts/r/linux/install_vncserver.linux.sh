@@ -1,13 +1,10 @@
-# https://wiki.archlinux.org/title/TigerVNC#With_xprofile
+# https://wiki.archlinux.org/title/x11vnc
 
 set -e
 
-if [[ ! -x "$(command -v x0vncserver)" ]]; then
+if [[ ! -x "$(command -v x11vnc)" ]]; then
     if [[ -f "/etc/arch-release" ]]; then
-        sudo pacman -S --noconfirm tigervnc
-    else
-        sudo apt update
-        sudo apt-get install tigervnc-scraping-server -y
+        sudo pacman -S --noconfirm x11vnc
     fi
 fi
 
@@ -25,5 +22,5 @@ file_prepend() {
 file_prepend ~/.xinitrc "x0vncserver -rfbauth ~/.vnc/passwd &"
 
 # Run x0vncserver now
-killall x0vncserver || true
-nohup x0vncserver -rfbauth ~/.vnc/passwd 2>/dev/null >/dev/null &
+killall x11vnc || true
+nohup x11vnc -many -usepw -display :0 2>/dev/null >/dev/null &

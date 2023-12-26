@@ -9,9 +9,14 @@ from _code import append_code, patch_code, prepend_code, prepend_line
 from _editor import open_code_editor
 from _shutil import call_echo, cd, copy, mkdir, save_json, update_json
 from _template import render_template_file
-from utils.menu import Menu
+from utils.menu.actionmenu import ActionMenu
 
-OVERWRITE = bool("{{_OVERWRITE}}")
+project_dir = os.path.expanduser(os.environ["JS_PROJECT_DIR"])  # env: JS_PROJECT_DIR
+
+overwrite_existing_file = bool(
+    os.environ.get("OVERWRITE_EXISTING_FILE")
+)  # env: OVERWRITE_EXISTING_FILE
+
 
 REACT_INDEX_JS = "src/hello-react.jsx"
 SERVER_INDEX_JS = "src/server/index.js"
@@ -21,7 +26,7 @@ TEMPLATE_DIR = os.getcwd() + "/js_tools"
 THREEJS_INDEX_JS = "src/hello-three.js"
 
 
-menu = Menu()
+menu = ActionMenu()
 
 
 def write_file(file, content, overwrite=False):
@@ -65,7 +70,7 @@ def add_packages(packages, dev=False, use_yarn=False):
                     call_echo(["npm", "install", pkg], shell=True)
 
 
-@menu.item()
+@menu.action()
 def add_css_loader():
     add_packages(["style-loader", "css-loader"], dev=True)
 
@@ -80,7 +85,7 @@ def add_css_loader():
     )
 
 
-@menu.item()
+@menu.action()
 def add_webpack(index_js="src/index.js", build_dir="docs"):
     WEBPACK_CONFIG = "webpack.config.js"
 
@@ -92,7 +97,7 @@ def add_webpack(index_js="src/index.js", build_dir="docs"):
     # CSS loader
     add_packages(["style-loader", "css-loader", "file-loader"], dev=True)
 
-    if not os.path.exists(WEBPACK_CONFIG) or OVERWRITE:
+    if not os.path.exists(WEBPACK_CONFIG) or overwrite_existing_file:
         render_template_file(
             TEMPLATE_DIR + "/webpack.config.js",
             WEBPACK_CONFIG,
@@ -133,7 +138,7 @@ def add_script_to_package(name, script):
         json.dump(data, f, indent=2)
 
 
-@menu.item()
+@menu.action()
 def add_react(index_js=REACT_INDEX_JS):
     add_webpack(index_js=index_js)
 
@@ -180,7 +185,7 @@ def add_react(index_js=REACT_INDEX_JS):
     )
 
     mkdir(os.path.dirname(index_js))
-    if not os.path.exists(index_js) or OVERWRITE:
+    if not os.path.exists(index_js) or overwrite_existing_file:
         render_template_file(TEMPLATE_DIR + "/hello-react.jsx", index_js)
 
     add_script_to_package(
@@ -189,7 +194,7 @@ def add_react(index_js=REACT_INDEX_JS):
     )
 
 
-@menu.item()
+@menu.action()
 def add_react_starter():
     # https://github.com/react-boilerplate/react-boilerplate-cra-template
     call_echo(
@@ -198,7 +203,7 @@ def add_react_starter():
     )
 
 
-@menu.item()
+@menu.action()
 def add_MERN_stack():
     add_react()
     add_express()
@@ -211,12 +216,12 @@ def add_MERN_stack():
     call_echo("npm run dev")
 
 
-@menu.item()
+@menu.action()
 def add_dat_gui():
     add_packages(["dat.gui"])
 
 
-@menu.item()
+@menu.action()
 def add_p5(index_js="src/index.js"):
     add_packages(["p5"])
     add_packages(["@types/matter-js"], dev=True)
@@ -241,13 +246,13 @@ const sketch = (p) => {
 new p5(sketch);
 """
 
-    if not os.path.exists(index_js) or OVERWRITE:
+    if not os.path.exists(index_js) or overwrite_existing_file:
         mkdir(os.path.dirname(index_js))
         with open(index_js, "w") as f:
             f.write(index_js)
 
 
-@menu.item()
+@menu.action()
 def add_react_bootstrap():
     add_packages(["bootstrap", "react-bootstrap", "react-bootstrap-icons"])
 
@@ -255,7 +260,7 @@ def add_react_bootstrap():
     prepend_line(REACT_INDEX_JS, "import 'bootstrap/dist/css/bootstrap.min.css';")
 
 
-@menu.item()
+@menu.action()
 def add_express():
     add_packages(["express"])
     add_packages(["nodemon"], dev=True)  # Monitor js changes and and hot reload
@@ -264,7 +269,7 @@ def add_express():
     add_script_to_package("server", "nodemon src/server/index.js")
 
     # Server index.js
-    if not os.path.exists(SERVER_INDEX_JS) or OVERWRITE:
+    if not os.path.exists(SERVER_INDEX_JS) or overwrite_existing_file:
         mkdir(os.path.dirname(SERVER_INDEX_JS))
         with open(SERVER_INDEX_JS, "w") as f:
             f.write(
@@ -284,7 +289,7 @@ app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${proc
             )
 
 
-@menu.item()
+@menu.action()
 def add_mongodb():
     add_packages(["mongoose"])
 
@@ -325,7 +330,7 @@ mongoose
     )
 
 
-@menu.item()
+@menu.action()
 def add_threejs():
     add_packages(["three", "@types/three"])
 
@@ -343,7 +348,7 @@ import "./main.css";""",
     )
 
 
-@menu.item()
+@menu.action()
 def add_tweakpane():
     # https://cocopon.github.io/tweakpane/getting-started/
     add_packages(
@@ -354,7 +359,7 @@ def add_tweakpane():
     )
 
 
-@menu.item()
+@menu.action()
 def add_typescript():
     add_packages(["typescript", "ts-loader"], dev=True)
 
@@ -394,7 +399,7 @@ def add_typescript():
     )
 
 
-@menu.item()
+@menu.action()
 def add_matterjs(index_js="src/index.js"):
     add_packages(["matter-js"])
     add_packages(["@types/matter-js"])
@@ -433,12 +438,12 @@ Runner.run(runner, engine);
     )
 
 
-@menu.item()
+@menu.action()
 def open_vscode():
     open_code_editor(os.getcwd())
 
 
-@menu.item()
+@menu.action()
 def add_fontawesome():
     add_packages(
         [
@@ -451,7 +456,7 @@ def add_fontawesome():
     )
 
 
-@menu.item()
+@menu.action()
 def add_face_landmark_detection():
     add_packages(
         [
@@ -463,33 +468,33 @@ def add_face_landmark_detection():
     )
 
 
-@menu.item()
+@menu.action()
 def add_links():
     copy_tree(TEMPLATE_DIR + "/links", "src/links")
 
 
-@menu.item()
+@menu.action()
 def nextjs_create_app():
     call_echo(["yarn", "create", "next-app", os.getcwd()], shell=True)
 
 
-@menu.item()
+@menu.action()
 def nextjs_start_dev_server():
     open_url("http://localhost:3000/")
     call_echo(["yarn", "dev"], shell=True)
 
 
-@menu.item()
+@menu.action()
 def yarn_init():
     subprocess.check_call(["run_script", "r/web/init_yarn_package.sh"])
 
 
-@menu.item()
+@menu.action()
 def add_puppeteer():
     add_packages(["puppeteer"])
 
 
-@menu.item()
+@menu.action()
 def add_eslint():
     """
     https://eslint.org/docs/latest/user-guide/getting-started
@@ -549,7 +554,6 @@ def add_eslint():
 
 
 if __name__ == "__main__":
-    project_dir = os.path.expanduser(r"{{JS_PROJECT_DIR}}")
     cd(project_dir)
     print("Project dir: %s" % project_dir)
 

@@ -7,6 +7,7 @@ from _script import set_variable, start_script
 from _shutil import call_echo, shell_open
 from utils.clip import set_clip
 from utils.menu import Menu
+from utils.menu.actionmenu import ActionMenu
 from utils.menu.select import select_option
 
 SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
@@ -26,25 +27,25 @@ def select_app_pkg():
         return lines[i]
 
 
-menu = Menu(close_on_selection=True)
+menu = ActionMenu(close_on_selection=True)
 
 
-@menu.item()
+@menu.action()
 def restart_app_with_logcat():
     start_script("r/android/restart_app_logcat.py", restart_instance=True)
 
 
-@menu.item()
+@menu.action()
 def set_variable_package_name():
     set_variable("PKG_NAME", pkg)
 
 
-@menu.item()
+@menu.action()
 def copy_package_name_to_clipboard():
     set_clip(pkg)
 
 
-@menu.item()
+@menu.action()
 def backup_app():
     out_dir = os.environ.get("ANDROID_APP_BACKUP_DIR")
     if not out_dir:
@@ -54,12 +55,12 @@ def backup_app():
     shell_open(out_dir)
 
 
-@menu.item()
+@menu.action()
 def uninstall_app():
     call_echo(["adb", "uninstall", pkg])
 
 
-@menu.item()
+@menu.action()
 def dumpsys_package():
     lines = subprocess.check_output(
         ["adb", "shell", f"dumpsys package {pkg}"], universal_newlines=True
@@ -67,7 +68,7 @@ def dumpsys_package():
     Menu(items=lines).exec()
 
 
-@menu.item()
+@menu.action()
 def dumpsys_package_permission():
     lines = subprocess.check_output(
         ["adb", "shell", f"dumpsys package {pkg} | grep permission"],
@@ -76,7 +77,7 @@ def dumpsys_package_permission():
     Menu(items=lines).exec()
 
 
-@menu.item()
+@menu.action()
 def get_app_version():
     call_echo(["run_script", "r/android/get_app_version.sh"])
     input("(press enter to continue)")

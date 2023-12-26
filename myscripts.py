@@ -54,6 +54,7 @@ from utils.menu.confirm import confirm
 from utils.menu.dictedit import DictEditMenu
 from utils.menu.filemgr import FileManager
 from utils.menu.textinput import TextInput
+from utils.timeutil import time_diff_str
 
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
@@ -189,7 +190,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._new_script, hotkey="ctrl+n")
-        self.add_command(self._next_scheduled_script)
+        self.add_command(self._next_scheduled_script, hotkey="alt+t")
         self.add_command(self._on_alt_enter_pressed, hotkey="alt+enter")
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
@@ -202,7 +203,7 @@ class _MyScriptMenu(Menu[Script]):
 
     def _next_scheduled_script(self):
         items = [
-            f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(ts))} {os.path.basename(script_path)}"
+            f"{os.path.basename(script_path)} ({time_diff_str(ts)})"
             for script_path, ts in script_manager.next_scheduled_script_run_time.items()
         ]
         Menu(items=items, prompt="next scheduled script>").exec()
