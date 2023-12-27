@@ -218,7 +218,9 @@
     "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"]
   },
   "jre": {
-    "apt": { "packages": ["openjdk-17-jre"] }
+    "apt": {
+      "packages": ["openjdk-17-jre"]
+    }
   },
   "klogg": {
     "choco": {
@@ -326,6 +328,20 @@
       "packages": ["prusaslicer"]
     }
   },
+  "putty": {
+    "apt": {
+      "packages": ["putty-tools"]
+    },
+    "choco": {
+      "packages": ["putty"]
+    },
+    "pacman": {
+      "packages": ["putty"]
+    },
+    "termux": {
+      "packages": ["putty-tools"]
+    }
+  },
   "renderdoc": {
     "choco": {
       "packages": ["renderdoc"]
@@ -369,6 +385,17 @@
   "sox": {
     "choco": {
       "packages": ["sox.portable"]
+    }
+  },
+  "sshpass": {
+    "apt": {
+      "packages": ["sshpass"]
+    },
+    "pacman": {
+      "packages": ["sshpass"]
+    },
+    "termux": {
+      "packages": ["sshpass"]
     }
   },
   "sumatrapdf": {

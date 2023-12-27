@@ -1,0 +1,1 @@
+run_script r/3dprint/print_3d_model.py CCR10S_xyzCalibration_cube.gcode

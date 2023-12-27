@@ -187,7 +187,6 @@ class Menu(Generic[T]):
         highlight: Optional[OrderedDict[str, str]] = None,
         fuzzy_search=True,
         enable_command_palette=True,
-        wrap_text=False,
         search_on_enter=False,
     ):
         self.items = items
@@ -212,7 +211,6 @@ class Menu(Generic[T]):
         self._requested_selected_row: int = -1
         self._highlight = highlight
         self._width: int = -1
-        self._wrap_text: bool = wrap_text
         self.__search_on_enter: bool = search_on_enter
 
         self._selected_row_begin: int = 0
@@ -811,8 +809,8 @@ class Menu(Generic[T]):
             last_row_index = y
 
         if color_pair > 0:
-            if y < self._height:
-                space_len = self._width - x - 1
+            if y < self._height - 1:
+                space_len = self._width - x
                 if space_len > 0:
                     try:
                         Menu.stdscr.addstr(y, x, " " * space_len)
@@ -899,7 +897,7 @@ class Menu(Generic[T]):
                     row,
                     row_number_width + 1,
                     item_text,
-                    wrap_text=self._wrap_text and is_item_selected,
+                    wrap_text=is_item_selected and not self._multi_select_mode,
                     color_pair=color_pair,
                     scroll_x=self._scroll_x,
                 )
@@ -1050,4 +1048,6 @@ class Menu(Generic[T]):
 
     def _toggle_multi_select(self):
         self._multi_select_mode = not self._multi_select_mode
+        if not self._multi_select_mode:
+            self._selected_row_begin = self._selected_row_end
         self.update_screen()

@@ -118,7 +118,6 @@ class DictEditMenu(Menu[_KeyValuePair]):
         )
         self.dict_ = dict_
         self.default_dict = default_dict
-        self.enter_pressed = False
         self.on_dict_update = on_dict_update
         self.label = prompt
         self.dict_history = dict_history
@@ -185,7 +184,6 @@ class DictEditMenu(Menu[_KeyValuePair]):
             )
 
     def on_enter_pressed(self):
-        self.enter_pressed = True
         self.close()
 
     def on_char(self, ch):

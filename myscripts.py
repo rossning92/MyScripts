@@ -206,7 +206,7 @@ class _MyScriptMenu(Menu[Script]):
             f"{os.path.basename(script_path)} ({time_diff_str(ts)})"
             for script_path, ts in script_manager.next_scheduled_script_run_time.items()
         ]
-        Menu(items=items, prompt="next scheduled script>").exec()
+        Menu(items=items, prompt="scheduled scripts:").exec()
 
     def _set_cmdline_args(self):
         script = self.get_selected_script()

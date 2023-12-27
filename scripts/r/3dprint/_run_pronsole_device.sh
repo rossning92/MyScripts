@@ -1,3 +1,5 @@
+set -e
+
 cat >~/.pronsolerc <<EOF
 macro preheat
     M140 S45
@@ -18,6 +20,7 @@ macro fan
     M106 S{0}
 EOF
 
+export TERM=rxvt-unicode-256color
 if ! screen -list | grep -q "3dp"; then
     screen -mS 3dp bash -c 'pronsole -e connect -e block_until_online'
 else

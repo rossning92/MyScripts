@@ -210,7 +210,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
         label = "duplicate script"
     else:
         text = get_selected_script_dir_rel(script_path=ref_script_path)
-        label = "new script"
+        label = "new script:"
     w: Menu = Menu(prompt=label, text=text)
     w.exec()
     dest_script = w.get_text()

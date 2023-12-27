@@ -111,6 +111,7 @@ def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port
     _putty_wrapper(
         "plink",
         [
+            "-no-antispoof",
             "-ssh",
             "-t",
             _get_user_host(user=user, host=host),
@@ -137,6 +138,7 @@ def run_bash_script_ssh(
     # pwd
     pwd = _get_pwd(pwd)
     if pwd:
+        require_package("sshpass")
         args += ["sshpass", "-p", pwd]
 
     args += [
@@ -168,7 +170,6 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default=None)
     parser.add_argument("--user", type=str, default=None)
     parser.add_argument("--pwd", type=str, default=None)
-    parser.add_argument("--putty", action="store_true")
     parser.add_argument("file", type=str, nargs="?", default=None)
 
     args = parser.parse_args()
@@ -201,7 +202,7 @@ if __name__ == "__main__":
     tmp_file = write_temp_file(bash_commands, ".sh")
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
-    if args.putty:
+    if sys.platform == "win32":
         run_bash_script_putty(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
     else:
         run_bash_script_ssh(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
