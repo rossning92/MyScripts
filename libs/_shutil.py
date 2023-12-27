@@ -1248,10 +1248,12 @@ def setup_nodejs(install=True):
     node_path.append(os.path.abspath(os.path.dirname(__file__) + "/../jslib"))
 
     if sys.platform == "win32":
-        npm_modules = os.path.expandvars(r"%APPDATA%\npm\node_modules")
-        if os.path.exists(npm_modules):
-            node_path.append(npm_modules)
+        # npm global modules
+        npm_global_module_path = os.path.expandvars(r"%APPDATA%\npm\node_modules")
+        if os.path.exists(npm_global_module_path):
+            node_path.append(npm_global_module_path)
 
+        # yarn global modules
         yarn_global_module_path = os.path.expandvars(
             r"%LOCALAPPDATA%\Yarn\Data\global\node_modules"
         )
@@ -1259,18 +1261,17 @@ def setup_nodejs(install=True):
             node_path.append(yarn_global_module_path)
 
     elif sys.platform == "linux":
+        # npm global modules
+        npm_global_module_path = "/usr/lib/node_modules"
+        if os.path.exists(npm_global_module_path):
+            node_path.append(npm_global_module_path)
+
+        # yarn global modules
         yarn_global_module_path = os.path.expanduser(
             "~/.config/yarn/global/node_modules"
         )
         if os.path.exists(yarn_global_module_path):
             node_path.append(yarn_global_module_path)
-
-    if shutil.which("npm"):
-        npm_global_module_path = subprocess.check_output(
-            ["npm", "root", "-g"], universal_newlines=True
-        ).strip()
-        if os.path.exists(npm_global_module_path):
-            node_path.append(npm_global_module_path)
 
     os.environ["NODE_PATH"] = os.path.pathsep.join(node_path)
     logging.info("Node.js: NODE_PATH: %s" % node_path)

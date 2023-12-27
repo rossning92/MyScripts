@@ -44,7 +44,7 @@ class LogViewerMenu(Menu[str]):
             items=self.__lines,
             highlight=self.__log_highlight,
             close_on_selection=False,
-            cancellable=False,
+            cancellable=True,
             fuzzy_search=False,
             search_on_enter=True,
         )

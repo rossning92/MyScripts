@@ -464,6 +464,9 @@ class Menu(Generic[T]):
     def process_events(self, timeout_ms: int = 0) -> bool:
         assert Menu.stdscr is not None
 
+        if self._closed:
+            return False
+
         if timeout_ms > 0:
             Menu.stdscr.timeout(timeout_ms)
         else:
