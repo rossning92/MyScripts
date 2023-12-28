@@ -68,24 +68,36 @@ def _putty_wrapper(command, extra_args=[], pwd=None, port=None):
         raise Exception("Non-zero return code.")
 
 
-def push_file_ssh(file, dest=None):
-    if dest is None:
-        dest = ""
+def push_file_ssh(src, dest, user=None, host=None, pwd=None):
+    args = []
 
-    call_echo(["scp", file, "{}:{}".format(_get_user_host(), dest)])
+    pwd = _get_pwd(pwd)
+    if pwd:
+        require_package("sshpass")
+        args += ["sshpass", "-p", pwd]
+
+    args += ["scp", src, "{}:{}".format(_get_user_host(user=user, host=host), dest)]
+
+    call_echo(args)
 
     return dest
 
 
 def push_file_putty(src, dest=None, user=None, host=None, pwd=None):
-    if not dest:
-        dest = "/home/%s/%s" % (_get_user(user), os.path.basename(src))
-
     _putty_wrapper(
         "pscp",
         [src, "{}:{}".format(_get_user_host(user=user, host=host), dest)],
         pwd=pwd,
     )
+
+
+def push_file(src, dest=None, user=None, host=None, pwd=None):
+    if not dest:
+        dest = "/home/%s/%s" % (_get_user(user), os.path.basename(src))
+    if sys.platform == "win32":
+        push_file_putty(src=src, dest=dest, user=user, host=host, pwd=pwd)
+    else:
+        push_file_ssh(src=src, dest=dest, user=user, host=host, pwd=pwd)
 
 
 def pull_file_putty(src, dest=None):
@@ -164,6 +176,13 @@ def run_bash_script_vagrant(bash_script_file, vagrant_id):
     call_echo(f'vagrant ssh -c "bash /tmp/tmp_script.sh" {vagrant_id}')
 
 
+def run_script(file, wsl=True, user=None, host=None, pwd=None, port=None):
+    if sys.platform == "win32":
+        run_bash_script_putty(file, user=user, host=host, pwd=pwd)
+    else:
+        run_bash_script_ssh(file, user=user, host=host, pwd=pwd)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--command", type=str, default=None)
@@ -202,7 +221,4 @@ if __name__ == "__main__":
     tmp_file = write_temp_file(bash_commands, ".sh")
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
-    if sys.platform == "win32":
-        run_bash_script_putty(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
-    else:
-        run_bash_script_ssh(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
+    run_script(tmp_file, user=args.user, host=args.host, pwd=args.pwd)

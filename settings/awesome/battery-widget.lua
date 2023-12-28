@@ -20,6 +20,7 @@ local dpi = require('beautiful').xresources.apply_dpi
 function script_path()
     return debug.getinfo(1).source:match("@?(.*/)")
 end
+
 local icon_dir = script_path() .. '/icons/'
 
 local battery_widget = {}

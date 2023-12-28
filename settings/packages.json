@@ -342,6 +342,11 @@
       "packages": ["putty-tools"]
     }
   },
+  "remmina": {
+    "pacman": {
+      "packages": ["remmina", "libvncserver"]
+    }
+  },
   "renderdoc": {
     "choco": {
       "packages": ["renderdoc"]

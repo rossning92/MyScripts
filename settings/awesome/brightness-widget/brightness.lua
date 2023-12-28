@@ -16,6 +16,7 @@ local beautiful = require("beautiful")
 function script_path()
     return debug.getinfo(1).source:match("@?(.*/)")
 end
+
 local get_brightness_cmd
 local set_brightness_cmd
 local inc_brightness_cmd
@@ -97,7 +98,7 @@ local function worker(user_args)
             {
                 {
                     image = path_to_icon,
-                    resize = true,
+                    resize = false,
                     widget = wibox.widget.imagebox
                 },
                 valign = 'center',
@@ -117,7 +118,6 @@ local function worker(user_args)
     else
         show_warning(type .. " type is not supported by the widget")
         return
-
     end
 
     local update_widget = function(widget, stdout, _, _, _)
@@ -134,6 +134,7 @@ local function worker(user_args)
             end)
         end)
     end
+
     local old_level = 0
     function brightness_widget:toggle()
         if rmb_set_max then
@@ -154,6 +155,7 @@ local function worker(user_args)
             brightness_widget:set(current_level)
         end
     end
+
     function brightness_widget:inc()
         spawn.easy_async(inc_brightness_cmd, function()
             spawn.easy_async(get_brightness_cmd, function(out)
@@ -161,6 +163,7 @@ local function worker(user_args)
             end)
         end)
     end
+
     function brightness_widget:dec()
         spawn.easy_async(dec_brightness_cmd, function()
             spawn.easy_async(get_brightness_cmd, function(out)
@@ -183,7 +186,7 @@ local function worker(user_args)
 
     if tooltip then
         awful.tooltip {
-            objects = {brightness_widget.widget},
+            objects = { brightness_widget.widget },
             timer_function = function()
                 return current_level .. " %"
             end

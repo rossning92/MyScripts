@@ -6,6 +6,7 @@ local widget = {}
 function script_path()
     return debug.getinfo(1).source:match("@?(.*/)")
 end
+
 local ICON_DIR = script_path() .. '/../icons/'
 
 function widget.get_widget(widgets_args)
@@ -55,7 +56,6 @@ function widget.get_widget(widgets_args)
             self.is_muted = false
         end
     }
-
 end
 
 return widget

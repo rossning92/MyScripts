@@ -70,12 +70,16 @@ pac_install pulseaudio pavucontrol pulseaudio-bluetooth
 pac_install alsa-utils # for amixer CLI command
 
 # Setup input method
-pac_install fcitx fcitx-configtool fcitx-googlepinyin
-file_append ~/.xinitrc "fcitx -d"
-# Set trigger key: left shift
-sed -iE 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config
-# Disable extra trigger key
-sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config
+# pac_install fcitx fcitx-configtool fcitx-googlepinyin
+# file_append ~/.xinitrc "fcitx -d"
+# # Set trigger key: left shift
+# sed -iE 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config
+# # Disable extra trigger key
+# sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config
+
+# https://wiki.archlinux.org/title/Fcitx5
+pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
+file_append ~/.xinitrc "fcitx5 -d"
 
 # Automatically run startx without using display manager / login manager.
 file_append \
