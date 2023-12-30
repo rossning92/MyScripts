@@ -90,6 +90,11 @@
       "packages": ["dotnetcore-sdk"]
     }
   },
+  "eternalterminal": {
+    "yay": {
+      "packages": ["eternalterminal"]
+    }
+  },
   "everything": {
     "choco": {
       "packages": ["everything"]
