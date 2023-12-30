@@ -1,14 +1,9 @@
 set -e
 
-run_script r/linux/install_et.sh
+et_port="${ET_PORT:-2022}"
+ssh_port="${SSH_PORT:-22}"
 
-if [[ -n "${ET_PORT}" ]]; then
-    port="${ET_PORT}"
-else
-    port=2022
-fi
-
-cmdline="et -x ${ET_EXTRA_ARGS} ${SSH_USER}@${SSH_HOST}:${port}"
+cmdline="et -x --ssh-option \"Port $ssh_port\" ${ET_EXTRA_ARGS} ${SSH_USER}@${SSH_HOST}:${et_port}"
 echo "${cmdline}"
 
 cat >~/et.sh <<EOF

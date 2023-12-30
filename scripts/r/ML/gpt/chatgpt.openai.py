@@ -1,50 +1,18 @@
+# https://github.com/openai/openai-python#streaming-responses
+
 import argparse
 import builtins
-import json
 import os
 import sys
 from typing import Dict, Iterator, List, Optional
 
-import requests
 from _shutil import load_json, pause, save_json
 from _term import clear_terminal
+from openai import OpenAI
 from utils.clip import set_clip
 from utils.menu import Menu
 
-openai_api_key = os.environ["OPENAI_API_KEY"]
-if not openai_api_key:
-    raise Exception("OPENAI_API_KEY must be provided.")
-
-
-def stream(messages: List[Dict[str, str]]) -> Iterator[str]:
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai_api_key}",
-    }
-    data = {
-        "model": "gpt-3.5-turbo",
-        "messages": messages,
-        "stream": True,
-    }
-
-    response = requests.post(url, headers=headers, json=data, stream=True)
-    for chunk in response.iter_lines():
-        if len(chunk) == 0:
-            continue
-
-        if b"DONE" in chunk:
-            break
-
-        try:
-            decoded_line = json.loads(chunk.decode("utf-8").split("data: ")[1])
-            token = decoded_line["choices"][0]["delta"].get("content")
-
-            if token is not None:
-                yield token
-
-        except GeneratorExit:
-            break
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 class ChatAPI:
@@ -58,7 +26,33 @@ class ChatAPI:
 
     def ask(self, question: str) -> Iterator[str]:
         self.messages.append({"role": "user", "content": question})
-        return stream(self.messages)
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo", messages=self.messages, stream=self.stream_mode
+        )
+
+        try:
+            if self.stream_mode:
+                s = ""
+                for chunk in response:
+                    content = chunk.choices[0].delta.content  # type: ignore
+                    if content is not None:
+                        s += content
+                        yield content
+
+            else:
+                s = response["choices"][0]["message"]["content"]  # type: ignore
+                yield s
+
+            self.messages.append(
+                {
+                    "role": "assistant",
+                    "content": s,
+                }
+            )
+
+        except (BrokenPipeError, IOError):
+            pass
 
     def save_chat(self, file: str):
         save_json(file, {"messages": self.messages})

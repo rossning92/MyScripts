@@ -93,7 +93,8 @@
   "eternalterminal": {
     "yay": {
       "packages": ["eternalterminal"]
-    }
+    },
+    "termux": { "packages": ["et"] }
   },
   "everything": {
     "choco": {

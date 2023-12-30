@@ -188,6 +188,7 @@ class Menu(Generic[T]):
         fuzzy_search=True,
         enable_command_palette=True,
         search_on_enter=False,
+        selected_index=0,
     ):
         self.items = items
         self.last_key_pressed_timestamp: float = 0.0
@@ -213,8 +214,8 @@ class Menu(Generic[T]):
         self._width: int = -1
         self.__search_on_enter: bool = search_on_enter
 
-        self._selected_row_begin: int = 0
-        self._selected_row_end: int = 0
+        self._selected_row_begin: int = selected_index
+        self._selected_row_end: int = selected_index
         self._multi_select_mode: bool = False
 
         self._scroll_x = 0

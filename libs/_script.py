@@ -1388,25 +1388,18 @@ class Script:
                     popen_extra_args["close_fds"] = True
                 no_wait = True
 
-            elif self.cfg["minimized"]:
-                if sys.platform == "win32":
-                    startupinfo = subprocess.STARTUPINFO()
-                    startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
-                    SW_MINIMIZE = 6
-                    startupinfo.wShowWindow = SW_MINIMIZE
-                    popen_extra_args["startupinfo"] = startupinfo
+            elif sys.platform == "win32" and self.cfg["minimized"]:
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+                SW_MINIMIZE = 6
+                startupinfo.wShowWindow = SW_MINIMIZE
+                popen_extra_args["startupinfo"] = startupinfo
 
-                    popen_extra_args["creationflags"] = (
-                        subprocess.CREATE_NEW_CONSOLE
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
-                    )
-                    popen_extra_args["close_fds"] = True
-                    no_wait = True
-
-                else:
-                    logging.warning(
-                        '"minimized" is not supported on platform %s' % sys.platform
-                    )
+                popen_extra_args["creationflags"] = (
+                    subprocess.CREATE_NEW_CONSOLE | subprocess.CREATE_NEW_PROCESS_GROUP
+                )
+                popen_extra_args["close_fds"] = True
+                no_wait = True
 
             elif new_window:
                 if restart_instance and single_instance:

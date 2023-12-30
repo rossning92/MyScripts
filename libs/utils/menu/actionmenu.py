@@ -15,19 +15,24 @@ class _Action:
 
 
 class ActionMenu(Menu[_Action]):
+    def add_action(
+        self, func, name: Optional[str] = None, hotkey: Optional[str] = None
+    ):
+        item_name = name if name else func.__name__
+        if hotkey:
+            item_name += " (%s)" % (get_hotkey_abbr(hotkey))
+        action = _Action(name=item_name, callback=func)
+        self.items.append(action)
+        self.add_command(
+            lambda action=action: self.__on_action(action),
+            name=item_name,
+            hotkey=hotkey,
+        )
+
     def action(self, name: Optional[str] = None, hotkey: Optional[str] = None):
         def decorator(func):
             nonlocal name
-            item_name = name if name else func.__name__
-            if hotkey:
-                item_name += " (%s)" % (get_hotkey_abbr(hotkey))
-            action = _Action(name=item_name, callback=func)
-            self.items.append(action)
-            self.add_command(
-                lambda action=action: self.__on_action(action),
-                name=item_name,
-                hotkey=hotkey,
-            )
+            self.add_action(func, name=name, hotkey=hotkey)
             return func
 
         return decorator

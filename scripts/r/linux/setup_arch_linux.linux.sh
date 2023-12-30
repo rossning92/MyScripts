@@ -1,22 +1,24 @@
 set -e
 
-file_prepend() {
+prepend_line_dedup() {
     # Remove the line if it exists and then prepend it
     if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
-        sed -i "\%^$2$%d" "$1"
+        repl=$(printf '%s\n' "$2" | sed -e 's/[]\/$*.^[]/\\&/g')
+        sed -i "\%^$repl$%d" "$1"
     fi
     printf '%s\n%s\n' "$2" "$(cat $1)" >"$1"
 }
 
-file_append() {
+append_line_dedup() {
     # Remove the line if it exists and then append it
     if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
-        sed -i "\%^$2$%d" "$1"
+        repl=$(printf '%s\n' "$2" | sed -e 's/[]\/$*.^[]/\\&/g')
+        sed -i "\%^$repl$%d" "$1"
     fi
     echo "$2" >>"$1"
 }
 
-file_append_sudo() {
+append_line_sudo() {
     if [[ ! -f $1 ]] || ! sudo grep -qF -- "$2" $1; then
         echo "$2" | sudo tee -a $1
     fi
@@ -51,17 +53,17 @@ else
     sed -i "s/Xft.dpi:.*/Xft.dpi: $DPI_VALUE/" ~/.Xresources
 fi
 # This should be the first line of .xinitrc, so that all other apps can get the correct DPI value.
-file_prepend ~/.xinitrc "xrdb -merge ~/.Xresources"
+prepend_line_dedup ~/.xinitrc "xrdb -merge ~/.Xresources"
 
 # Network manager
 pac_install network-manager-applet
-file_append ~/.xinitrc "nm-applet &"
+append_line_dedup ~/.xinitrc "nm-applet &"
 
 # Bluetooth
 # - bluez and bluez-utils: a Linux Bluetooth stack
 # - blueman: GUI tool for desktop environments
 pac_install bluez bluez-utils blueman
-file_append ~/.xinitrc "blueman-applet &"
+append_line_dedup ~/.xinitrc "blueman-applet &"
 sudo systemctl enable bluetooth.service --now
 # then you can use bluetoothctl to pair in command line
 
@@ -71,7 +73,7 @@ pac_install alsa-utils # for amixer CLI command
 
 # Setup input method
 # pac_install fcitx fcitx-configtool fcitx-googlepinyin
-# file_append ~/.xinitrc "fcitx -d"
+# append_line_dedup ~/.xinitrc "fcitx -d"
 # # Set trigger key: left shift
 # sed -iE 's/#?TriggerKey=.*/TriggerKey=SHIFT_LSHIFT/' ~/.config/fcitx/config
 # # Disable extra trigger key
@@ -79,16 +81,16 @@ pac_install alsa-utils # for amixer CLI command
 
 # https://wiki.archlinux.org/title/Fcitx5
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
-file_append ~/.xinitrc "fcitx5 -d"
+append_line_dedup ~/.xinitrc "fcitx5 -d"
 
 # Automatically run startx without using display manager / login manager.
-file_append \
+append_line_dedup \
     "$HOME/.bash_profile" \
     '[[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]] && startx'
 
 # Automatically mount USB devices
 pac_install udisks2 udiskie
-file_append ~/.xinitrc "udiskie &"
+append_line_dedup ~/.xinitrc "udiskie &"
 
 # Install window manager
 source "$(dirname "$0")/setup_awesomewm.sh"
@@ -118,12 +120,12 @@ EndSection
 EOF
 
 # Auto-start MyScript
-file_append ~/.xinitrc 'alacritty -e "$HOME/MyScripts/myscripts" --startup &'
+append_line_dedup ~/.xinitrc 'alacritty -e "$HOME/MyScripts/myscripts" --startup &'
 
-file_append ~/.xinitrc "exec awesome"
+append_line_dedup ~/.xinitrc "exec awesome"
 
 # Disable sudo password
-file_append_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
+append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
 
 # Install GitHub CLI
 pac_install github-cli
