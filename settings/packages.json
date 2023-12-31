@@ -91,10 +91,12 @@
     }
   },
   "eternalterminal": {
+    "termux": {
+      "packages": ["et"]
+    },
     "yay": {
       "packages": ["eternalterminal"]
-    },
-    "termux": { "packages": ["et"] }
+    }
   },
   "everything": {
     "choco": {
@@ -396,6 +398,12 @@
   "sox": {
     "choco": {
       "packages": ["sox.portable"]
+    },
+    "pacman": {
+      "packages": ["sox", "lame", "libmad", "twolame"]
+    },
+    "termux": {
+      "packages": ["sox"]
     }
   },
   "sshpass": {

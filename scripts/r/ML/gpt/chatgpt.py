@@ -1,50 +1,15 @@
 import argparse
 import builtins
-import json
 import os
 import sys
 from typing import Dict, Iterator, List, Optional
 
-import requests
 from _shutil import load_json, pause, save_json
 from _term import clear_terminal
+from ai.openai.chat_completion import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
-
-openai_api_key = os.environ["OPENAI_API_KEY"]
-if not openai_api_key:
-    raise Exception("OPENAI_API_KEY must be provided.")
-
-
-def stream(messages: List[Dict[str, str]]) -> Iterator[str]:
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {openai_api_key}",
-    }
-    data = {
-        "model": "gpt-3.5-turbo",
-        "messages": messages,
-        "stream": True,
-    }
-
-    response = requests.post(url, headers=headers, json=data, stream=True)
-    for chunk in response.iter_lines():
-        if len(chunk) == 0:
-            continue
-
-        if b"DONE" in chunk:
-            break
-
-        try:
-            decoded_line = json.loads(chunk.decode("utf-8").split("data: ")[1])
-            token = decoded_line["choices"][0]["delta"].get("content")
-
-            if token is not None:
-                yield token
-
-        except GeneratorExit:
-            break
+from utils.printc import printc
 
 
 class ChatAPI:
@@ -58,7 +23,11 @@ class ChatAPI:
 
     def ask(self, question: str) -> Iterator[str]:
         self.messages.append({"role": "user", "content": question})
-        return stream(self.messages)
+        content = ""
+        for chunk in chat_completion(self.messages):
+            content += chunk
+            yield chunk
+        self.messages.append({"role": "assistant", "content": content})
 
     def save_chat(self, file: str):
         save_json(file, {"messages": self.messages})
@@ -171,13 +140,10 @@ def start_conversation(
     chat_history: Optional[str] = None,
 ):
     def ask_question(question):
-        print("> ", end="")
+        printc("> ", end="", color="yellow")
         for chunk in chat.ask(question):
-            print(chunk, end="")
+            printc(chunk, end="", color="yellow")
         print()
-
-        if chat_history:
-            chat.save_chat(chat_history)
 
     chat = ChatAPI()
 
@@ -187,7 +153,10 @@ def start_conversation(
 
     for message in chat.messages:
         if message["role"] != "system":
-            print(f"> {message['content']}")
+            if message["role"] == "assistant":
+                printc(f"> {message['content']}", color="yellow")
+            else:
+                print(f"> {message['content']}")
 
     if input and os.path.isfile(input):
         with open(input, "r", encoding="utf-8") as f:
@@ -205,6 +174,9 @@ def start_conversation(
 
             else:
                 ask_question(question)
+
+            if chat_history:
+                chat.save_chat(chat_history)
 
     except (KeyboardInterrupt, EOFError):
         pass

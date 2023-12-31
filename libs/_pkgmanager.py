@@ -78,7 +78,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                     != 0
                 ):
                     logging.info(f"Installing package using pacman: {p}")
-                    subprocess.check_call(["sudo", "pacman", "-Sy", "--noconfirm", p])
+                    subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
             return
 
         elif "yay" in packages[pkg] and shutil.which("pacman"):
@@ -93,7 +93,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                     != 0
                 ):
                     logging.info(f"Installing package using yay: {p}")
-                    subprocess.check_call(["yay", "-Sy", "--noconfirm", p])
+                    subprocess.check_call(["yay", "-S", "--noconfirm", p])
             return
 
         elif is_in_termux() and "termux" in packages[pkg]:

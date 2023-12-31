@@ -372,7 +372,7 @@ class TerminalRecorder:
                 self.delete_cur_file()
 
             elif ch == "n":
-                run_script("/r/audio/set_mic_volume.ps1")
+                run_script("r/audio/set_mic_volume.ps1")
                 self.create_noise_profile()
 
             elif ch == ",":
@@ -407,19 +407,21 @@ class TerminalRecorder:
 
 
 if __name__ == "__main__":
-    out_dir = os.environ.get("RECORDER_OUT_DIR")
+    out_dir = os.environ.get("RECORD_OUT_DIR")  # env: RECORD_OUT_DIR
     if not out_dir:
-        raise Exception("RECORDER_OUT_DIR is not set.")
+        raise Exception("RECORD_OUT_DIR is not set.")
 
     out_dir = os.path.abspath(out_dir)
     print("record out dir: %s" % out_dir)
     os.makedirs(out_dir, exist_ok=True)
     os.chdir(out_dir)
 
-    non_interactive = ("RECORDER_INTERACTIVE" in os.environ) and (
-        os.environ["RECORDER_INTERACTIVE"] == "0"
+    # env: RECORD_INTERACTIVE
+    non_interactive = ("RECORD_INTERACTIVE" in os.environ) and (
+        os.environ["RECORD_INTERACTIVE"] == "0"
     )
 
-    run_script("/r/audio/set_mic_volume.ps1")
+    if sys.platform == "win32":
+        run_script("r/audio/set_mic_volume.ps1")
 
     TerminalRecorder(interactive=not non_interactive).main_loop()

@@ -24,6 +24,7 @@ from time import sleep
 from typing import Dict, List, Optional, Union
 
 import yaml
+from utils.printc import printc
 
 logger = logging.getLogger(__name__)
 CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
@@ -739,39 +740,8 @@ def supports_color():
     return supported_platform and is_a_tty
 
 
-_console_color_initialized = False
-
-
 def print2(msg, color="yellow", end="\n"):
-    # https://gist.github.com/dominikwilkowski/60eed2ea722183769d586c76f22098dd
-    # ANSI escape codes for colors
-    COLOR_MAP = {
-        "gray": "\u001b[90;1m",
-        "blue": "\u001b[34;1m",
-        "cyan": "\u001b[36;1m",
-        "green": "\u001b[32;1m",
-        "magenta": "\u001b[35;1m",
-        "red": "\u001b[31;1m",
-        "RED": "\u001b[41;1m",
-        "white": "\u001b[37;1m",
-        "yellow": "\u001b[33;1m",
-        "YELLOW": "\u001b[43;1m",
-    }
-    RESET = "\033[0m"
-
-    # Enable ANSI escape sequence processing for the console window by calling
-    # the SetConsoleMode Windows API with the ENABLE_VIRTUAL_TERMINAL_PROCESSING
-    # flag set.
-    global _console_color_initialized
-    if not _console_color_initialized:
-        if sys.platform == "win32":
-            kernel32 = ctypes.windll.kernel32
-            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-        _console_color_initialized = True
-
-    if not isinstance(msg, str):
-        msg = str(msg)
-    print(COLOR_MAP[color] + msg + RESET, end=end, flush=True)
+    printc(msg, color=color, end=end)
 
 
 def call_highlight(args, highlight=None, filter_line=None, **kwargs):
