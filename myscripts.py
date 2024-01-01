@@ -435,7 +435,7 @@ class _MyScriptMenu(Menu[Script]):
         else:
             self.__cmdline_args = None
 
-    def on_update_screen(self, height: int):
+    def on_update_screen(self, item_y_max: int):
         height = self._height
 
         if not self.is_refreshing:
@@ -485,7 +485,7 @@ class _MyScriptMenu(Menu[Script]):
                         height + i, 0, s, color_pair=Menu.color_pair_map[color]
                     )
 
-        super().on_update_screen(height=height)
+        super().on_update_screen(item_y_max=height)
 
     def _run_hotkey(self, script: Script):
         selected_script = self.get_selected_item()

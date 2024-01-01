@@ -917,6 +917,9 @@ class Script:
         if tee is None:
             tee = self.cfg["tee"]
 
+        if self.cfg["restartInstance"]:
+            restart_instance = True
+
         if new_window and not restart_instance and single_instance:
             title = self.get_window_title()
             if (
@@ -1811,31 +1814,32 @@ def get_default_script_config() -> Dict[str, Any]:
     return {
         "adk.jdk_version": "",
         "adk": False,
-        "args": "",
+        "args.passClipboardAsFile": False,
         "args.passSelectedDir": False,
         "args.passSelectedFile": False,
         "args.passSelectionAsFile": False,
-        "args.passClipboardAsFile": False,
+        "args": "",
         "autoRun": False,
         "background": False,
         "closeOnExit": True,
         "cmake.version": "",
         "cmake": False,
         "cmdline": "",
-        "conda": "",
         "commandWrapper": True,
+        "conda": "",
         "globalHotkey": "",
         "hotkey": "",
         "matchClipboard": "",
         "minimized": False,
-        "runEveryNSec": "",
         "msys2": False,
         "newWindow": True,
-        "packages": "",
         "packages.pip": "",
+        "packages": "",
         "reloadScriptsAfterRun": False,
+        "restartInstance": False,
         "runAsAdmin": False,
         "runAtStartup": False,
+        "runEveryNSec": "",
         "runpy": True,
         "singleInstance": True,
         "tee": False,

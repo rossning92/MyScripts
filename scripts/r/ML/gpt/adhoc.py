@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from r.ML.gpt.chatgpt import start_conversation
+from ML.gpt.chatgui import ChatMenu
 from utils.menu.textinput import TextInput
 
 if __name__ == "__main__":
@@ -14,8 +14,12 @@ if __name__ == "__main__":
             os.environ["MY_DATA_DIR"], "adhoc_prompt_history.json"
         )
     ).request_input()
+
     if prompt_text:
-        start_conversation(
-            input=args.input,
-            prompt_text=prompt_text,
-        )
+        if os.path.isfile(args.input):
+            with open(args.input, "r", encoding="utf-8") as f:
+                input_text = f.read()
+        else:
+            input_text = args.input
+        chat = ChatMenu(first_message=prompt_text + ":\n---\n" + input_text)
+        chat.exec()

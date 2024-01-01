@@ -159,11 +159,11 @@ class _Menu(ActionMenu):
         super().__init__()
         self.__chat = chat
 
-    @ActionMenu.action()
-    def clear(self):
+    @ActionMenu.action(hotkey="ctrl+n")
+    def new_chat(self):
         self.__chat.start_new_chat()
 
-    @ActionMenu.action()
+    @ActionMenu.action(hotkey="ctrl+y")
     def copy_last_message(self):
         self.__chat.copy_last_message()
 

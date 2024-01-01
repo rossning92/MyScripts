@@ -79,6 +79,9 @@ pac_install alsa-utils # for amixer CLI command
 # # Disable extra trigger key
 # sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config
 
+# Disable CapsLock key
+append_line_dedup ~/.xinitrc "setxkbmap -option caps:none"
+
 # https://wiki.archlinux.org/title/Fcitx5
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"

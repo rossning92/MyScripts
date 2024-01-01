@@ -20,7 +20,6 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
-
 from utils.clip import get_clip, set_clip
 
 
@@ -172,6 +171,18 @@ class Menu(Generic[T]):
     stdscr = None
     color_pair_map: Dict[str, int] = {}
 
+    class ScreenWrapper:
+        def __init__(self):
+            self._should_init_curses = Menu.stdscr is None
+
+        def __enter__(self):
+            if self._should_init_curses:
+                Menu.init_curses()
+
+        def __exit__(self, exc_type, exc_val, traceback):
+            if self._should_init_curses:
+                Menu.destroy_curses()
+
     def __init__(
         self,
         allow_input=True,
@@ -184,11 +195,14 @@ class Menu(Generic[T]):
         prompt="",
         text="",
         on_item_selected: Optional[Callable[[T], None]] = None,
-        highlight: Optional[OrderedDict[str, str]] = None,
+        highlight: Optional[Union[OrderedDict[str, str], Dict[str, str]]] = None,
         fuzzy_search=True,
         enable_command_palette=True,
         search_on_enter=False,
         selected_index=0,
+        wrap_text=False,
+        search_mode=True,
+        line_number=True,
     ):
         self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
@@ -200,7 +214,6 @@ class Menu(Generic[T]):
         self._close_on_selection: bool = close_on_selection
         self._closed: bool = False
         self._debug = debug
-        self._fuzzy_search = fuzzy_search
         self._height: int = -1
         self._input = _InputWidget(prompt=prompt, text=text, ascii_only=ascii_only)
         self._last_input: Optional[str] = None
@@ -212,7 +225,16 @@ class Menu(Generic[T]):
         self._requested_selected_row: int = -1
         self._highlight = highlight
         self._width: int = -1
+        self.__wrap_text: bool = wrap_text
+        self.__line_number = line_number
+
+        self.__search_mode = search_mode
         self.__search_on_enter: bool = search_on_enter
+        self.__fuzzy_search = fuzzy_search
+
+        self.__start_index: int = 0
+        self.__num_rendered_items: int = 0
+        self.__empty_lines: int = 0
 
         self._selected_row_begin: int = selected_index
         self._selected_row_end: int = selected_index
@@ -266,7 +288,10 @@ class Menu(Generic[T]):
         self.set_message("copied")
 
     def _paste(self):
-        self.set_input(get_clip())
+        text = get_clip()
+        if text != self.get_input():
+            self.set_input(text)
+            self.update_screen()
 
     def add_command(
         self, func: Callable, hotkey: Optional[str] = None, name: Optional[str] = None
@@ -286,24 +311,34 @@ class Menu(Generic[T]):
 
     def match_item(self, patt: str, item: T) -> bool:
         s = str(item)
-        return _match(s, patt, fuzzy_match=self._fuzzy_search)
+        return _match(s, patt, fuzzy_match=self.__fuzzy_search)
+
+    def get_item_indices(self):
+        if self.__search_mode:
+            return self._matched_item_indices
+        else:
+            return range(len(self.items))
 
     def append_item(self, item: T):
-        last_line_selected = (
-            self._selected_row_end == len(self._matched_item_indices) - 1
-        )
+        last_line_selected = self._selected_row_end == len(self.get_item_indices()) - 1
 
         self.items.append(item)
         self._last_item_count = len(self.items)
-        if self.match_item(self.get_input(), item):
-            self._matched_item_indices.append(self._last_item_count - 1)
 
-            # Scroll to bottom if last line is selected
-            if last_line_selected:
-                self._selected_row_begin = self._selected_row_end = (
-                    len(self._matched_item_indices) - 1
-                )
+        # Scroll to bottom if last line is selected
+        if self.__search_mode:
+            if self.match_item(self.get_input(), item):
+                self._matched_item_indices.append(self._last_item_count - 1)
+                if last_line_selected:
+                    self._selected_row_begin = self._selected_row_end = (
+                        len(self._matched_item_indices) - 1
+                    )
+                self.update_screen()
 
+        if last_line_selected:
+            self._selected_row_begin = self._selected_row_end = (
+                len(self.get_item_indices()) - 1
+            )
             self.update_screen()
 
     def clear_items(self):
@@ -316,7 +351,8 @@ class Menu(Generic[T]):
 
     def set_input(self, text: str):
         self._input.set_text(text)
-        self.search_by_input()
+        if self.__search_mode:
+            self.search_by_input()
 
     def get_input(self) -> str:
         return self._input.text
@@ -326,7 +362,8 @@ class Menu(Generic[T]):
 
     def clear_input(self):
         self._input.clear()
-        self.reset_selection()
+        if self.__search_mode:
+            self.reset_selection()
         self.update_screen()
 
     def call_func_without_curses(self, func: Callable[[], Any]):
@@ -335,13 +372,7 @@ class Menu(Generic[T]):
         Menu.init_curses()
 
     def exec(self) -> int:
-        if Menu.stdscr is None:
-            try:
-                Menu.init_curses()
-                self._exec()
-            finally:
-                Menu.destroy_curses()
-        else:
+        with Menu.ScreenWrapper():
             self._exec()
 
         idx = self.get_selected_index()
@@ -422,10 +453,12 @@ class Menu(Generic[T]):
         else:
             # Use erase instead of clear to prevent flickering
             Menu.stdscr.erase()
-        self.on_update_screen(height=self._height)
+        self.on_update_screen(item_y_max=self._height - 1)
         Menu.stdscr.refresh()
 
     def update_matched_items(self):
+        assert self.__search_mode
+
         self._matched_item_indices.clear()
         for i, item in enumerate(self.items):
             if self.match_item(self.get_input(), item):
@@ -471,20 +504,30 @@ class Menu(Generic[T]):
         else:
             Menu.stdscr.timeout(0)
 
-        if self._should_update_matched_items or (
-            time.time() > self._last_match_time + 0.1
-            and (
-                (not self.__search_on_enter and self._last_input != self.get_input())
-                or self._last_item_count != len(self.items)
-            )
-        ):
-            self.update_matched_items()
+        if self.__search_mode:
+            if self._should_update_matched_items or (
+                time.time() > self._last_match_time + 0.1
+                and (
+                    (
+                        not self.__search_on_enter
+                        and self._last_input != self.get_input()
+                    )
+                    or self._last_item_count != len(self.items)
+                )
+            ):
+                self.update_matched_items()
+
+        # if self._last_input != self.get_input() or self._last_item_count != len(
+        #     self.items
+        # ):
+        #     self._should_update_screen = True
 
         if self._requested_selected_row >= 0:
             self._selected_row_begin = self._requested_selected_row
             self._selected_row_end = self._requested_selected_row
             self._requested_selected_row = -1
 
+        # Update screen
         if self._should_update_screen:
             self._update_screen()
             self._should_update_screen = False
@@ -512,7 +555,7 @@ class Menu(Generic[T]):
                 self.on_enter_pressed()
 
             elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
-                if len(self._matched_item_indices) > 0:
+                if len(self.get_item_indices()) > 0:
                     self._selected_row_end = max(self._selected_row_end - 1, 0)
                     if not self._multi_select_mode:
                         self._selected_row_begin = self._selected_row_end
@@ -520,10 +563,10 @@ class Menu(Generic[T]):
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
-                if len(self._matched_item_indices) > 0:
+                if len(self.get_item_indices()) > 0:
                     self._selected_row_end = min(
                         self._selected_row_end + 1,
-                        len(self._matched_item_indices) - 1,
+                        len(self.get_item_indices()) - 1,
                     )
                     if not self._multi_select_mode:
                         self._selected_row_begin = self._selected_row_end
@@ -553,7 +596,7 @@ class Menu(Generic[T]):
                 self._hotkeys["right"].func()
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
-                if len(self._matched_item_indices) > 0:
+                if len(self.get_item_indices()) > 0:
                     self._selected_row_end = max(
                         self._selected_row_end - self.get_items_per_page(), 0
                     )
@@ -563,10 +606,10 @@ class Menu(Generic[T]):
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
-                if len(self._matched_item_indices) > 0:
+                if len(self.get_item_indices()) > 0:
                     self._selected_row_end = min(
                         self._selected_row_end + self.get_items_per_page(),
-                        len(self._matched_item_indices) - 1,
+                        len(self.get_item_indices()) - 1,
                     )
                     if not self._multi_select_mode:
                         self._selected_row_begin = self._selected_row_end
@@ -574,7 +617,7 @@ class Menu(Generic[T]):
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_HOME or ch == 449:
-                if len(self._matched_item_indices) > 0:
+                if len(self.get_item_indices()) > 0:
                     self._selected_row_end = 0
                     if not self._multi_select_mode:
                         self._selected_row_begin = self._selected_row_end
@@ -582,9 +625,9 @@ class Menu(Generic[T]):
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_END or ch == 455:
-                if len(self._matched_item_indices) > 0:
+                if len(self.get_item_indices()) > 0:
                     self._selected_row_begin = self._selected_row_end = (
-                        len(self._matched_item_indices) - 1
+                        len(self.get_item_indices()) - 1
                     )
                     if not self._multi_select_mode:
                         self._selected_row_begin = self._selected_row_end
@@ -713,8 +756,8 @@ class Menu(Generic[T]):
     def get_selected_index(self):
         if self.is_cancelled:
             return -1
-        elif len(self._matched_item_indices) > 0:
-            return self._matched_item_indices[self._selected_row_end]
+        elif len(self.get_item_indices()) > 0:
+            return self.get_item_indices()[self._selected_row_end]
         else:
             return -1
 
@@ -725,10 +768,10 @@ class Menu(Generic[T]):
             return self._input.text
 
     def get_items_per_page(self):
-        return self._height - 3
+        return self.__num_rendered_items + self.__empty_lines
 
     class DrawTextResult(NamedTuple):
-        next_i: int
+        last_y: int
         can_scroll_left: bool
         can_scroll_right: bool
 
@@ -740,6 +783,7 @@ class Menu(Generic[T]):
         color_pair=0,
         wrap_text=False,
         scroll_x=0,
+        bold=False,
     ) -> DrawTextResult:
         """_summary_
 
@@ -771,15 +815,15 @@ class Menu(Generic[T]):
         else:
             x = col
 
-        if color_pair > 0:
-            Menu.stdscr.attron(curses.color_pair(color_pair))
-
         y = row
         last_row_index = row
         can_scroll_right = False
+        attr = curses.color_pair(color_pair)
+        if bold:
+            attr |= curses.A_BOLD
         for i, ch in enumerate(s):
             try:
-                Menu.stdscr.addstr(y, x, ch)
+                Menu.stdscr.addstr(y, x, ch, attr)
             except curses.error:
                 # Tolerate "addwstr() returned ERR" when drawing the character at the bottom right corner.
                 pass
@@ -809,30 +853,14 @@ class Menu(Generic[T]):
 
             last_row_index = y
 
-        if color_pair > 0:
-            if y < self._height - 1:
-                space_len = self._width - x
-                if space_len > 0:
-                    try:
-                        Menu.stdscr.addstr(y, x, " " * space_len)
-                    except curses.error:
-                        # addch() returns an error because it tries to wrap to
-                        # the next line after adding a character, but this
-                        # behavior is expected.
-                        pass
-            Menu.stdscr.attroff(curses.color_pair(color_pair))
-
         return Menu.DrawTextResult(
-            next_i=last_row_index,
+            last_y=last_row_index,
             can_scroll_left=scroll_x > 0,
             can_scroll_right=can_scroll_right,
         )
 
-    def on_update_screen(self, height: int):
+    def on_update_screen(self, item_y_max: int):
         assert Menu.stdscr is not None
-
-        if height < 0:
-            height = self._height
 
         # Render input widget
         draw_input_result = self._input.draw_input(
@@ -842,82 +870,85 @@ class Menu(Generic[T]):
         )
 
         # Get matched scripts
-        row = draw_input_result.last_y + 2
-        items_per_page = self.get_items_per_page()
+        item_y = draw_input_result.last_y + 2
 
-        page_index = self._selected_row_end // items_per_page
-        selected_j = self._selected_row_end % items_per_page
-
-        page_index_begin = self._selected_row_begin // items_per_page
-        if page_index_begin < page_index:
-            selected_i = 0
-        elif page_index_begin > page_index:
-            selected_i = items_per_page - 1
-        else:
-            selected_i = self._selected_row_begin % items_per_page
-        if selected_i > selected_j:
-            selected_i, selected_j = selected_j, selected_i
-
-        start_index = page_index * items_per_page
-        end_index = start_index + items_per_page
-        indices_in_page = self._matched_item_indices[start_index:end_index]
-        if len(indices_in_page):
-            row_number_width = max(len(str(i + 1)) for i in indices_in_page)
-        else:
-            row_number_width = 0
+        # Update the start index for the current page.
+        if self.get_items_per_page() > 0:
+            if self._selected_row_end >= self.__start_index + self.get_items_per_page():
+                self.__start_index = self._selected_row_end
+            elif self._selected_row_end < self.__start_index:
+                self.__start_index = self._selected_row_end
 
         self._text_overflow = False
-        next_i = 0
         self._can_scroll_left = False
         self._can_scroll_right = False
-        for i, item_index in enumerate(indices_in_page):
-            if row >= next_i:
-                is_item_selected = i >= selected_i and i <= selected_j
-                item_text = str(self.items[item_index])
+        matched_item_index = self.__start_index
 
-                # Highlight text by regex
-                color = "white"
-                if self._highlight is not None:
-                    for patt, c in self._highlight.items():
-                        if re.search(patt, item_text):
-                            color = c
-                if is_item_selected:
-                    color = color.upper()
-                color_pair = Menu.color_pair_map[color]
+        item_indices = self.get_item_indices()
 
-                # Draw row number
-                row_number = f"{item_index + 1}"
+        while matched_item_index < len(item_indices) and item_y < item_y_max:
+            item_index = item_indices[matched_item_index]
+            self.__num_rendered_items = matched_item_index - self.__start_index + 1
+            is_item_selected = (
+                matched_item_index >= self._selected_row_begin
+                and matched_item_index <= self._selected_row_end
+            ) or (
+                matched_item_index <= self._selected_row_begin
+                and matched_item_index >= self._selected_row_end
+            )
+            item_text = str(self.items[item_index])
+
+            # Draw line number
+            line_number_width = 0
+            if self.__line_number:
+                line_number = f"{item_index + 1}"
+                line_number_text = f"{line_number}"
+                line_number_width = len(line_number_text)
                 self.draw_text(
-                    row,
+                    item_y,
                     0,
-                    row_number.rjust(row_number_width),
+                    line_number_text,
+                    color_pair=Menu.color_pair_map["WHITE"] if is_item_selected else 0,
                 )
 
-                # Draw item text
-                draw_text_result = self.draw_text(
-                    row,
-                    row_number_width + 1,
-                    item_text,
-                    wrap_text=is_item_selected and not self._multi_select_mode,
-                    color_pair=color_pair,
-                    scroll_x=self._scroll_x,
-                )
-                next_i = draw_text_result.next_i + 1
-                self._scroll_distance = self._width - row_number_width - 2
-                if draw_text_result.can_scroll_left:
-                    self._can_scroll_left = True
-                if draw_text_result.can_scroll_right:
-                    self._can_scroll_right = True
+            # Highlight text by regex
+            color = "white"
+            if self._highlight is not None:
+                for patt, c in self._highlight.items():
+                    if re.search(patt, item_text):
+                        color = c
+            color_pair = Menu.color_pair_map[color]
 
-            row += 1
-            if row >= height:
-                break
+            # Draw item
+            draw_text_result = self.draw_text(
+                item_y,
+                line_number_width + 1,
+                item_text,
+                wrap_text=self.__wrap_text,
+                color_pair=color_pair,
+                scroll_x=self._scroll_x,
+                bold=is_item_selected,
+            )
+
+            increments = draw_text_result.last_y + 1 - item_y
+            if self.__wrap_text:
+                matched_item_index += 1
+            else:
+                matched_item_index += increments
+            item_y += increments
+            self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
+
+            self._scroll_distance = self._width - line_number_width - 1
+            if draw_text_result.can_scroll_left:
+                self._can_scroll_left = True
+            if draw_text_result.can_scroll_right:
+                self._can_scroll_right = True
 
         # Draw status bar
         a = self.get_status_bar_text()
         b = " [%d/%d]" % (
             self._selected_row_end + 1,
-            len(self._matched_item_indices),
+            len(item_indices),
         )
         self.draw_text(
             row=self._height - 1,
@@ -944,19 +975,19 @@ class Menu(Generic[T]):
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
         if not ignore_cancellation and self.is_cancelled:
             return None
-        elif len(self._matched_item_indices) > 0:
-            item_index = self._matched_item_indices[self._selected_row_end]
+        elif len(self.get_item_indices()) > 0:
+            item_index = self.get_item_indices()[self._selected_row_end]
             return self.items[item_index]
         else:
             return None
 
     def get_selected_items(self) -> Iterator[T]:
-        if len(self._matched_item_indices) > 0:
+        if len(self.get_item_indices()) > 0:
             i = self._selected_row_begin
             j = self._selected_row_end
             if i > j:
                 i, j = j, i
-            item_indices = self._matched_item_indices[i : j + 1]
+            item_indices = self.get_item_indices()[i : j + 1]
             for item_index in item_indices:
                 yield self.items[item_index]
 
@@ -978,7 +1009,10 @@ class Menu(Generic[T]):
             return False
 
     def __should_trigger_search(self) -> bool:
-        return self.__search_on_enter and self.get_input() != self._last_input
+        if self.__search_mode:
+            return self.__search_on_enter and self.get_input() != self._last_input
+        else:
+            return False
 
     def search_by_input(self) -> bool:
         if self.__should_trigger_search():
@@ -1020,8 +1054,8 @@ class Menu(Generic[T]):
         self._closed = True
 
     def _check_if_item_selection_changed(self):
-        if self._selected_row_end < len(self._matched_item_indices):
-            item_index = self._matched_item_indices[self._selected_row_end]
+        if self._selected_row_end < len(self.get_item_indices()):
+            item_index = self.get_item_indices()[self._selected_row_end]
             selected = self.items[item_index]
         else:
             selected = None

@@ -37,7 +37,11 @@ def generate_lorem_text(
 
 if __name__ == "__main__":
     menu = Menu(
-        items=generate_lorem_text(), prompt="$", debug=True, search_on_enter=True
+        items=generate_lorem_text(),
+        prompt="$",
+        debug=True,
+        search_on_enter=True,
+        wrap_text=True,
     )
     menu.add_command(lambda: menu.set_message("alt+z pressed"), hotkey="alt+z")
     menu.add_command(lambda: menu.set_message("alt+enter pressed"), hotkey="alt+enter")

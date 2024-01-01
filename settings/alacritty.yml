@@ -42,6 +42,9 @@ window:
 
 font:
   size: 10
+
+selection:
+  save_to_clipboard: true
 # env:
 #   # Workaround for extra large font size in Linux Mint
 #   WINIT_X11_SCALE_FACTOR: "1.0"
