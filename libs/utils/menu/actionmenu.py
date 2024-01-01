@@ -1,3 +1,5 @@
+from collections import defaultdict
+from functools import partial
 from typing import Callable, Optional
 
 from _shutil import get_hotkey_abbr
@@ -6,33 +8,54 @@ from ..menu import Menu
 
 
 class _Action:
-    def __init__(self, name: str, callback: Callable[[], None]) -> None:
+    def __init__(
+        self, name: str, callback: Callable, hotkey: Optional[str] = None
+    ) -> None:
         self.name = name
         self.callback = callback
+        self.hotkey = hotkey
 
     def __str__(self):
-        return self.name
+        if self.hotkey:
+            return "%s (%s)" % (self.name, get_hotkey_abbr(self.hotkey))
+        else:
+            return self.name
 
 
 class ActionMenu(Menu[_Action]):
-    def add_action(
-        self, func, name: Optional[str] = None, hotkey: Optional[str] = None
-    ):
-        item_name = name if name else func.__name__
-        if hotkey:
-            item_name += " (%s)" % (get_hotkey_abbr(hotkey))
-        action = _Action(name=item_name, callback=func)
-        self.items.append(action)
-        self.add_command(
-            lambda action=action: self.__on_action(action),
-            name=item_name,
-            hotkey=hotkey,
-        )
+    __class_actions: defaultdict[str, list[_Action]] = defaultdict(list)
 
-    def action(self, name: Optional[str] = None, hotkey: Optional[str] = None):
+    def __init__(self, **kwags):
+        super().__init__(**kwags)
+        class_name = self.__class__.__name__
+        for act in ActionMenu.__class_actions[class_name]:
+            self.__add_action(
+                _Action(
+                    name=act.name,
+                    callback=partial(act.callback, self),
+                    hotkey=act.hotkey,
+                )
+            )
+
+    @staticmethod
+    def action(name: Optional[str] = None, hotkey: Optional[str] = None):
+        def decorator(method):
+            class_name = method.__qualname__.split(".")[0]
+            action = _Action(
+                name=name if name else method.__name__, callback=method, hotkey=hotkey
+            )
+            ActionMenu.__class_actions[class_name].append(action)
+            return method
+
+        return decorator
+
+    def func(self, name: Optional[str] = None, hotkey: Optional[str] = None):
         def decorator(func):
-            nonlocal name
-            self.add_action(func, name=name, hotkey=hotkey)
+            self.__add_action(
+                _Action(
+                    name=name if name else func.__name__, callback=func, hotkey=hotkey
+                )
+            )
             return func
 
         return decorator
@@ -41,6 +64,14 @@ class ActionMenu(Menu[_Action]):
         action = self.get_selected_item()
         if action is not None:
             self.__on_action(action)
+
+    def __add_action(self, action: _Action):
+        self.items.append(action)
+        self.add_command(
+            lambda action=action: self.__on_action(action),
+            name=action.name,
+            hotkey=action.hotkey,
+        )
 
     def __on_action(self, action: _Action):
         self.call_func_without_curses(action.callback)

@@ -9,10 +9,11 @@ from _term import clear_terminal
 from ai.openai.chat_completion import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
+from utils.menu.actionmenu import ActionMenu
 from utils.printc import printc
 
 
-class ChatAPI:
+class Chat:
     def __init__(self, stream_mode: bool = True) -> None:
         self.stream_mode = stream_mode
         self.messages: List[Dict[str, str]] = []
@@ -21,13 +22,22 @@ class ChatAPI:
 
         self.start_new_chat()
 
-    def ask(self, question: str) -> Iterator[str]:
-        self.messages.append({"role": "user", "content": question})
+    def _send(self, message: str) -> Iterator[str]:
+        self.messages.append({"role": "user", "content": message})
         content = ""
         for chunk in chat_completion(self.messages):
             content += chunk
             yield chunk
         self.messages.append({"role": "assistant", "content": content})
+
+    def send(self, message: str) -> str:
+        printc("> ", end="", color="yellow")
+        response = ""
+        for chunk in self._send(message):
+            response += chunk
+            printc(chunk, end="", color="yellow")
+        print()
+        return response
 
     def save_chat(self, file: str):
         save_json(file, {"messages": self.messages})
@@ -37,12 +47,23 @@ class ChatAPI:
             data = load_json(file)
             self.messages = data["messages"]
 
+            for message in self.messages:
+                if message["role"] != "system":
+                    if message["role"] == "assistant":
+                        printc(f"> {message['content']}", color="yellow")
+                    else:
+                        print(f"> {message['content']}")
+
     def start_new_chat(self):
         self.messages.clear()
         self.messages.append(
             {"role": "system", "content": "You are a helpful assistant."}
         )
         clear_terminal()
+
+    def copy_last_message(self):
+        if len(self.messages) > 0:
+            set_clip(self.messages[-1]["content"])
 
 
 def complete_chat(
@@ -61,8 +82,8 @@ def complete_chat(
         input = prompt_text + "\n\n\n" + input
 
     full_response = ""
-    chat = ChatAPI()
-    for chunk in chat.ask(input):
+    chat = Chat()
+    for chunk in chat._send(input):
         full_response += chunk
         print(chunk, end="")
 
@@ -133,30 +154,31 @@ def main():
         )
 
 
+class _Menu(ActionMenu):
+    def __init__(self, chat: Chat):
+        super().__init__()
+        self.__chat = chat
+
+    @ActionMenu.action()
+    def clear(self):
+        self.__chat.start_new_chat()
+
+    @ActionMenu.action()
+    def copy_last_message(self):
+        self.__chat.copy_last_message()
+
+
 def start_conversation(
     *,
     input: Optional[str] = None,
     prompt_text: Optional[str] = None,
     chat_history: Optional[str] = None,
 ):
-    def ask_question(question):
-        printc("> ", end="", color="yellow")
-        for chunk in chat.ask(question):
-            printc(chunk, end="", color="yellow")
-        print()
-
-    chat = ChatAPI()
+    chat = Chat()
 
     # Load existing chat
     if chat_history:
         chat.load_chat(chat_history)
-
-    for message in chat.messages:
-        if message["role"] != "system":
-            if message["role"] == "assistant":
-                printc(f"> {message['content']}", color="yellow")
-            else:
-                print(f"> {message['content']}")
 
     if input and os.path.isfile(input):
         with open(input, "r", encoding="utf-8") as f:
@@ -164,16 +186,16 @@ def start_conversation(
 
     if input and prompt_text:
         input = prompt_text + "\n\n\n" + input
-        ask_question(input)
+        chat.send(input)
 
     try:
         while True:
-            question = builtins.input("> ")
-            if question == "":
-                chat.start_new_chat()
+            message = builtins.input("> ")
+            if message == "":
+                _Menu(chat=chat).exec()
 
             else:
-                ask_question(question)
+                chat.send(message)
 
             if chat_history:
                 chat.save_chat(chat_history)

@@ -6,10 +6,10 @@ from utils.menu.actionmenu import ActionMenu
 
 class ContainerMenu(ActionMenu):
     def __init__(self, container: str):
-        self.__container = container
         super().__init__()
-        self.add_action(self.delete_container)
+        self.__container = container
 
+    @ActionMenu.action()
     def delete_container(self):
         subprocess.check_output(["docker", "rm", "-f", self.__container])
 

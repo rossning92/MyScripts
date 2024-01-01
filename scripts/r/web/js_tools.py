@@ -70,7 +70,7 @@ def add_packages(packages, dev=False, use_yarn=False):
                     call_echo(["npm", "install", pkg], shell=True)
 
 
-@menu.action()
+@menu.func()
 def add_css_loader():
     add_packages(["style-loader", "css-loader"], dev=True)
 
@@ -85,7 +85,7 @@ def add_css_loader():
     )
 
 
-@menu.action()
+@menu.func()
 def add_webpack(index_js="src/index.js", build_dir="docs"):
     WEBPACK_CONFIG = "webpack.config.js"
 
@@ -138,7 +138,7 @@ def add_script_to_package(name, script):
         json.dump(data, f, indent=2)
 
 
-@menu.action()
+@menu.func()
 def add_react(index_js=REACT_INDEX_JS):
     add_webpack(index_js=index_js)
 
@@ -194,7 +194,7 @@ def add_react(index_js=REACT_INDEX_JS):
     )
 
 
-@menu.action()
+@menu.func()
 def add_react_starter():
     # https://github.com/react-boilerplate/react-boilerplate-cra-template
     call_echo(
@@ -203,7 +203,7 @@ def add_react_starter():
     )
 
 
-@menu.action()
+@menu.func()
 def add_MERN_stack():
     add_react()
     add_express()
@@ -216,12 +216,12 @@ def add_MERN_stack():
     call_echo("npm run dev")
 
 
-@menu.action()
+@menu.func()
 def add_dat_gui():
     add_packages(["dat.gui"])
 
 
-@menu.action()
+@menu.func()
 def add_p5(index_js="src/index.js"):
     add_packages(["p5"])
     add_packages(["@types/matter-js"], dev=True)
@@ -252,7 +252,7 @@ new p5(sketch);
             f.write(index_js)
 
 
-@menu.action()
+@menu.func()
 def add_react_bootstrap():
     add_packages(["bootstrap", "react-bootstrap", "react-bootstrap-icons"])
 
@@ -260,7 +260,7 @@ def add_react_bootstrap():
     prepend_line(REACT_INDEX_JS, "import 'bootstrap/dist/css/bootstrap.min.css';")
 
 
-@menu.action()
+@menu.func()
 def add_express():
     add_packages(["express"])
     add_packages(["nodemon"], dev=True)  # Monitor js changes and and hot reload
@@ -289,7 +289,7 @@ app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${proc
             )
 
 
-@menu.action()
+@menu.func()
 def add_mongodb():
     add_packages(["mongoose"])
 
@@ -330,7 +330,7 @@ mongoose
     )
 
 
-@menu.action()
+@menu.func()
 def add_threejs():
     add_packages(["three", "@types/three"])
 
@@ -348,7 +348,7 @@ import "./main.css";""",
     )
 
 
-@menu.action()
+@menu.func()
 def add_tweakpane():
     # https://cocopon.github.io/tweakpane/getting-started/
     add_packages(
@@ -359,7 +359,7 @@ def add_tweakpane():
     )
 
 
-@menu.action()
+@menu.func()
 def add_typescript():
     add_packages(["typescript", "ts-loader"], dev=True)
 
@@ -399,7 +399,7 @@ def add_typescript():
     )
 
 
-@menu.action()
+@menu.func()
 def add_matterjs(index_js="src/index.js"):
     add_packages(["matter-js"])
     add_packages(["@types/matter-js"])
@@ -438,12 +438,12 @@ Runner.run(runner, engine);
     )
 
 
-@menu.action()
+@menu.func()
 def open_vscode():
     open_code_editor(os.getcwd())
 
 
-@menu.action()
+@menu.func()
 def add_fontawesome():
     add_packages(
         [
@@ -456,7 +456,7 @@ def add_fontawesome():
     )
 
 
-@menu.action()
+@menu.func()
 def add_face_landmark_detection():
     add_packages(
         [
@@ -468,33 +468,33 @@ def add_face_landmark_detection():
     )
 
 
-@menu.action()
+@menu.func()
 def add_links():
     copy_tree(TEMPLATE_DIR + "/links", "src/links")
 
 
-@menu.action()
+@menu.func()
 def nextjs_create_app():
     call_echo(["yarn", "create", "next-app", os.getcwd()], shell=True)
 
 
-@menu.action()
+@menu.func()
 def nextjs_start_dev_server():
     open_url("http://localhost:3000/")
     call_echo(["yarn", "dev"], shell=True)
 
 
-@menu.action()
+@menu.func()
 def yarn_init():
     subprocess.check_call(["run_script", "r/web/init_yarn_package.sh"])
 
 
-@menu.action()
+@menu.func()
 def add_puppeteer():
     add_packages(["puppeteer"])
 
 
-@menu.action()
+@menu.func()
 def add_eslint():
     """
     https://eslint.org/docs/latest/user-guide/getting-started

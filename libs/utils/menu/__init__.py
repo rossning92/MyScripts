@@ -180,7 +180,7 @@ class Menu(Generic[T]):
         close_on_selection=True,
         debug=False,
         history: Optional[str] = None,
-        items: List[T] = [],
+        items: Optional[List[T]] = None,
         prompt="",
         text="",
         on_item_selected: Optional[Callable[[T], None]] = None,
@@ -190,7 +190,7 @@ class Menu(Generic[T]):
         search_on_enter=False,
         selected_index=0,
     ):
-        self.items = items
+        self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
         self.prev_key: Union[int, str] = -1
         self.is_cancelled: bool = False
