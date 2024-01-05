@@ -20,6 +20,7 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
+
 from utils.clip import get_clip, set_clip
 
 
@@ -272,8 +273,8 @@ class Menu(Generic[T]):
         if enable_command_palette:
             self.add_command(self._toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self._palette, hotkey="ctrl+p")
-            self.add_command(self._paste, hotkey="ctrl+v")
-            self.add_command(self._yank, hotkey="ctrl+y")
+            self.add_command(self.paste, hotkey="ctrl+v")
+            self.add_command(self.yank, hotkey="ctrl+y")
 
             self._command_palette_menu = Menu(
                 prompt="command palette:",
@@ -281,13 +282,13 @@ class Menu(Generic[T]):
                 enable_command_palette=False,
             )
 
-    def _yank(self):
+    def yank(self):
         selected_items = self.get_selected_items()
         s = "\n".join([str(x) for x in selected_items])
         set_clip(s)
         self.set_message("copied")
 
-    def _paste(self):
+    def paste(self):
         text = get_clip()
         if text != self.get_input():
             self.set_input(text)
@@ -879,7 +880,6 @@ class Menu(Generic[T]):
             elif self._selected_row_end < self.__start_index:
                 self.__start_index = self._selected_row_end
 
-        self._text_overflow = False
         self._can_scroll_left = False
         self._can_scroll_right = False
         matched_item_index = self.__start_index
