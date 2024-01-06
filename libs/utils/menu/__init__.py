@@ -407,10 +407,8 @@ class Menu(Generic[T]):
         curses.cbreak()
         curses.start_color()
         curses.use_default_colors()  # The default color is assigned to -1
-        curses.init_pair(1, curses.COLOR_BLUE, -1)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_CYAN)
 
-        color_pair_index = 3
+        color_pair_index = 0
 
         def init_color_pair(name: str, color: int):
             nonlocal color_pair_index
@@ -518,15 +516,17 @@ class Menu(Generic[T]):
             ):
                 self.update_matched_items()
 
-        # if self._last_input != self.get_input() or self._last_item_count != len(
-        #     self.items
-        # ):
-        #     self._should_update_screen = True
-
+        # Update item selection
         if self._requested_selected_row >= 0:
             self._selected_row_begin = self._requested_selected_row
             self._selected_row_end = self._requested_selected_row
             self._requested_selected_row = -1
+
+        total_items = len(self.get_item_indices())
+        if self._selected_row_begin >= total_items:
+            self._selected_row_begin = max(0, total_items - 1)
+        if self._selected_row_end >= total_items:
+            self._selected_row_end = max(0, total_items - 1)
 
         # Update screen
         if self._should_update_screen:
@@ -781,7 +781,7 @@ class Menu(Generic[T]):
         row: int,
         col: int,
         s: str,
-        color_pair=0,
+        color: str = "white",
         wrap_text=False,
         scroll_x=0,
         bold=False,
@@ -809,9 +809,9 @@ class Menu(Generic[T]):
 
         # Draw left arrow
         if scroll_x > 0:
-            Menu.stdscr.attron(curses.color_pair(2))
-            Menu.stdscr.addstr(row, col, "<")
-            Menu.stdscr.attroff(curses.color_pair(2))
+            Menu.stdscr.addstr(
+                row, col, "<", curses.color_pair(Menu.color_pair_map["CYAN"])
+            )
             x = col + 1
         else:
             x = col
@@ -819,7 +819,7 @@ class Menu(Generic[T]):
         y = row
         last_row_index = row
         can_scroll_right = False
-        attr = curses.color_pair(color_pair)
+        attr = curses.color_pair(Menu.color_pair_map[color])
         if bold:
             attr |= curses.A_BOLD
         for i, ch in enumerate(s):
@@ -846,9 +846,12 @@ class Menu(Generic[T]):
                 if y > last_y:
                     if i < len(s) - 1:
                         last_row_index = row
-                        Menu.stdscr.attron(curses.color_pair(2))
-                        Menu.stdscr.addstr(row, self._width - 1, ">")
-                        Menu.stdscr.attroff(curses.color_pair(2))
+                        Menu.stdscr.addstr(
+                            row,
+                            self._width - 1,
+                            ">",
+                            curses.color_pair(Menu.color_pair_map["CYAN"]),
+                        )
                         can_scroll_right = True
                     break
 
@@ -886,6 +889,11 @@ class Menu(Generic[T]):
 
         item_indices = self.get_item_indices()
 
+        if self.__line_number and len(item_indices) > 0:
+            line_number_width = len(str(item_indices[-1])) + 1
+        else:
+            line_number_width = 0
+
         while matched_item_index < len(item_indices) and item_y < item_y_max:
             item_index = item_indices[matched_item_index]
             self.__num_rendered_items = matched_item_index - self.__start_index + 1
@@ -896,36 +904,37 @@ class Menu(Generic[T]):
                 matched_item_index <= self._selected_row_begin
                 and matched_item_index >= self._selected_row_end
             )
+            itm = self.items[item_index]
             item_text = str(self.items[item_index])
 
             # Draw line number
-            line_number_width = 0
             if self.__line_number:
                 line_number = f"{item_index + 1}"
                 line_number_text = f"{line_number}"
-                line_number_width = len(line_number_text)
                 self.draw_text(
                     item_y,
                     0,
-                    line_number_text,
-                    color_pair=Menu.color_pair_map["WHITE"] if is_item_selected else 0,
+                    line_number_text.rjust(line_number_width - 1) + " ",
+                    color="MAGENTA" if is_item_selected else "magenta",
                 )
 
-            # Highlight text by regex
-            color = "white"
-            if self._highlight is not None:
-                for patt, c in self._highlight.items():
-                    if re.search(patt, item_text):
-                        color = c
-            color_pair = Menu.color_pair_map[color]
+            if hasattr(itm, "color"):
+                color = itm.__dict__["color"]
+            else:
+                # Highlight text by regex
+                color = "white"
+                if self._highlight is not None:
+                    for patt, c in self._highlight.items():
+                        if re.search(patt, item_text):
+                            color = c
 
             # Draw item
             draw_text_result = self.draw_text(
                 item_y,
-                line_number_width + 1,
+                line_number_width,
                 item_text,
                 wrap_text=self.__wrap_text,
-                color_pair=color_pair,
+                color=color,
                 scroll_x=self._scroll_x,
                 bold=is_item_selected,
             )
@@ -954,7 +963,7 @@ class Menu(Generic[T]):
             row=self._height - 1,
             col=0,
             s=f"{a[:self._width - len(b)]:<{self._width - len(b)}}{b:>{len(b)}}",
-            color_pair=Menu.color_pair_map["WHITE"],
+            color="WHITE",
         )
 
         # Move cursor

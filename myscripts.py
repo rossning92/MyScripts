@@ -481,9 +481,7 @@ class _MyScriptMenu(Menu[Script]):
                 for i, (color, s) in enumerate(preview):
                     if height + i >= self._height:
                         break
-                    self.draw_text(
-                        height + i, 0, s, color_pair=Menu.color_pair_map[color]
-                    )
+                    self.draw_text(height + i, 0, s, color=color)
 
         super().on_update_screen(item_y_max=height)
 

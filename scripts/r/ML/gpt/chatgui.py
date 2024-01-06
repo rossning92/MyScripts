@@ -8,13 +8,15 @@ from utils.clip import set_clip
 from utils.menu import Menu
 
 
-class _Message:
-    def __init__(self, role: str, text: str) -> None:
+class _Line:
+    def __init__(self, role: str, text: str, message_index: int) -> None:
         self.role = role
         self.text = text
+        self.color = "yellow" if role == "user" else "white"
+        self.message_index = message_index
 
     def __str__(self) -> str:
-        return f"{self.role[0]}: {self.text}"
+        return self.text
 
 
 def extract_code_from_markdown(s: str) -> List[str]:
@@ -22,49 +24,50 @@ def extract_code_from_markdown(s: str) -> List[str]:
     return code_blocks
 
 
-class ChatMenu(Menu[_Message]):
+class ChatMenu(Menu[_Line]):
     def __init__(self, first_message: Optional[str] = None) -> None:
-        self.__messages: List[_Message] = []
+        self.__lines: List[_Line] = []
+        self.__messages: List[Dict[str, str]] = []
         super().__init__(
-            items=self.__messages,
+            items=self.__lines,
             search_mode=False,
             wrap_text=True,
-            highlight={"^u:": "blue"},
-            prompt=">"
-            # line_number=False,
+            prompt=">",
+            line_number=True,
         )
         self.__first_message = first_message
 
         self.add_command(self.start_new_chat, hotkey="ctrl+n")
         self.add_command(self.__yank_message, hotkey="ctrl+y")
-        self.add_command(self.__delete_message, hotkey="ctrl+k")
+
+        self.start_new_chat()
 
     def on_created(self):
         if self.__first_message is not None:
             self.__send_message(self.__first_message)
 
-    def __get_messages(self) -> List[Dict[str, str]]:
-        messages: List[Dict[str, str]] = [
-            {"role": "system", "content": "You are a helpful assistant."}
-        ]
-        for m in self.__messages:
-            messages.append({"role": m.role, "content": m.text})
-        return messages
-
     def __send_message(self, text: str) -> None:
-        m = _Message(role="user", text=text)
-        self.append_item(m)
+        message_index = len(self.__messages)
+        self.__messages.append({"role": "user", "content": text})
+        for s in text.splitlines():
+            self.append_item(_Line(role="user", text=s, message_index=message_index))
 
-        messages = self.__get_messages()
+        response = ""
+        message_index = len(self.__messages)
+        line = _Line(role="assistant", text="", message_index=message_index)
+        self.append_item(line)
+        for chunk in chat_completion(self.__messages):
+            response += chunk
+            for i, a in enumerate(chunk.split("\n")):
+                if i > 0:
+                    line = _Line(role="assistant", text="", message_index=message_index)
+                    self.append_item(line)
+                line.text += a
 
-        m = _Message(role="assistant", text="")
-        self.append_item(m)
-
-        for chunk in chat_completion(messages):
-            m.text += chunk
             self.update_screen()
             self.process_events()
 
+        self.__messages.append({"role": "assistant", "content": response})
         self.save_chat()
 
     def __get_data_file(self) -> str:
@@ -73,25 +76,29 @@ class ChatMenu(Menu[_Message]):
         )
 
     def save_chat(self):
-        save_json(
-            self.__get_data_file(),
-            {
-                "messages": [
-                    {"role": m.role, "content": m.text} for m in self.__messages
-                ]
-            },
-        )
+        save_json(self.__get_data_file(), {"messages": self.__messages})
 
     def load_chat(self):
         if os.path.isfile(self.__get_data_file()):
             data = load_json(self.__get_data_file())
-            self.__messages.clear()
+            self.__messages = data["messages"]
 
-            for m in data["messages"]:
-                self.append_item(_Message(role=m["role"], text=m["content"]))
+            for message_index, message in enumerate(self.__messages):
+                if message["role"] != "system":
+                    for line in message["content"].splitlines():
+                        self.append_item(
+                            _Line(
+                                role=message["role"],
+                                text=line,
+                                message_index=message_index,
+                            )
+                        )
 
     def start_new_chat(self):
-        self.__messages.clear()
+        self.__lines.clear()
+        self.__messages = [
+            {"role": "system", "content": "You are a helpful assistant."}
+        ]
         self.update_screen()
 
     def on_enter_pressed(self):
@@ -100,22 +107,17 @@ class ChatMenu(Menu[_Message]):
         self.clear_input()
 
     def __yank_message(self):
-        message = self.get_selected_item()
-        if message is not None:
-            code_block = extract_code_from_markdown(message.text)
+        line = self.get_selected_item()
+        if line is not None:
+            message = self.__messages[line.message_index]
+            message_text = message["content"]
+            code_block = extract_code_from_markdown(message_text)
             if len(code_block) > 0:
                 set_clip(code_block[0])
                 self.set_message("code copied.")
             else:
-                set_clip(message.text)
+                set_clip(message_text)
                 self.set_message("message copied.")
-
-    def __delete_message(self):
-        idx = self.get_selected_index()
-        if idx >= 0:
-            del self.__messages[idx]
-            self.save_chat()
-            self.update_screen()
 
 
 if __name__ == "__main__":
