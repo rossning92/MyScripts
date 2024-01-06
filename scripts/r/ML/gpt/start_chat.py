@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from ML.gpt.chatgui import ChatMenu
+from ML.gpt.chatgpt import ChatMenu
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

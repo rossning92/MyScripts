@@ -1,208 +1,126 @@
-import argparse
-import builtins
 import os
-import sys
-from typing import Dict, Iterator, List, Optional
+import re
+from typing import Dict, List, Optional
 
-from _shutil import load_json, pause, save_json
-from _term import clear_terminal
+from _shutil import load_json, save_json
 from ai.openai.chat_completion import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
-from utils.menu.actionmenu import ActionMenu
-from utils.printc import printc
 
 
-class Chat:
-    def __init__(self, stream_mode: bool = True) -> None:
-        self.stream_mode = stream_mode
-        self.messages: List[Dict[str, str]] = []
+class _Line:
+    def __init__(self, role: str, text: str, message_index: int) -> None:
+        self.role = role
+        self.text = text
+        self.color = "yellow" if role == "user" else "white"
+        self.message_index = message_index
 
-        # https://platform.openai.com/account/api-keys
+    def __str__(self) -> str:
+        return self.text
+
+
+def extract_code_from_markdown(s: str) -> List[str]:
+    code_blocks = re.findall(r"```(?:.*?)\n([\s\S]*?)\n```", s)
+    return code_blocks
+
+
+class ChatMenu(Menu[_Line]):
+    def __init__(self, first_message: Optional[str] = None) -> None:
+        self.__lines: List[_Line] = []
+        self.__messages: List[Dict[str, str]] = []
+        super().__init__(
+            items=self.__lines,
+            search_mode=False,
+            wrap_text=True,
+            prompt=">",
+            line_number=True,
+        )
+        self.__first_message = first_message
+
+        self.add_command(self.start_new_chat, hotkey="ctrl+n")
+        self.add_command(self.__yank_message, hotkey="ctrl+y")
 
         self.start_new_chat()
 
-    def _send(self, message: str) -> Iterator[str]:
-        self.messages.append({"role": "user", "content": message})
-        content = ""
-        for chunk in chat_completion(self.messages):
-            content += chunk
-            yield chunk
-        self.messages.append({"role": "assistant", "content": content})
+    def on_created(self):
+        if self.__first_message is not None:
+            self.__send_message(self.__first_message)
 
-    def send(self, message: str) -> str:
-        printc("> ", end="", color="yellow")
+    def __send_message(self, text: str) -> None:
+        message_index = len(self.__messages)
+        self.__messages.append({"role": "user", "content": text})
+        for s in text.splitlines():
+            self.append_item(_Line(role="user", text=s, message_index=message_index))
+
         response = ""
-        for chunk in self._send(message):
+        message_index = len(self.__messages)
+        line = _Line(role="assistant", text="", message_index=message_index)
+        self.append_item(line)
+        for chunk in chat_completion(self.__messages):
             response += chunk
-            printc(chunk, end="", color="yellow")
-        print()
-        return response
+            for i, a in enumerate(chunk.split("\n")):
+                if i > 0:
+                    line = _Line(role="assistant", text="", message_index=message_index)
+                    self.append_item(line)
+                line.text += a
 
-    def save_chat(self, file: str):
-        save_json(file, {"messages": self.messages})
+            self.update_screen()
+            self.process_events()
 
-    def load_chat(self, file: str):
-        if os.path.isfile(file):
-            data = load_json(file)
-            self.messages = data["messages"]
+        self.__messages.append({"role": "assistant", "content": response})
+        self.save_chat()
 
-            for message in self.messages:
+    def __get_data_file(self) -> str:
+        return os.path.join(
+            os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json"
+        )
+
+    def save_chat(self):
+        save_json(self.__get_data_file(), {"messages": self.__messages})
+
+    def load_chat(self):
+        if os.path.isfile(self.__get_data_file()):
+            data = load_json(self.__get_data_file())
+            self.__messages = data["messages"]
+
+            for message_index, message in enumerate(self.__messages):
                 if message["role"] != "system":
-                    if message["role"] == "assistant":
-                        printc(f"> {message['content']}", color="yellow")
-                    else:
-                        print(f"> {message['content']}")
+                    for line in message["content"].splitlines():
+                        self.append_item(
+                            _Line(
+                                role=message["role"],
+                                text=line,
+                                message_index=message_index,
+                            )
+                        )
 
     def start_new_chat(self):
-        self.messages.clear()
-        self.messages.append(
+        self.__lines.clear()
+        self.__messages = [
             {"role": "system", "content": "You are a helpful assistant."}
-        )
-        clear_terminal()
+        ]
+        self.update_screen()
 
-    def copy_last_message(self):
-        if len(self.messages) > 0:
-            set_clip(self.messages[-1]["content"])
+    def on_enter_pressed(self):
+        text = self.get_input()
+        self.__send_message(text)
+        self.clear_input()
 
-
-def complete_chat(
-    *,
-    input: str,
-    prompt_text: Optional[str] = None,
-    copy_to_clipboard: bool = False,
-    pause: bool = False,
-    _pause=pause,
-):
-    if os.path.isfile(input):
-        with open(input, "r", encoding="utf-8") as f:
-            input = f.read()
-
-    if prompt_text:
-        input = prompt_text + "\n\n\n" + input
-
-    full_response = ""
-    chat = Chat()
-    for chunk in chat._send(input):
-        full_response += chunk
-        print(chunk, end="")
-
-    if pause:
-        print("\n")
-        _pause()
-
-    if copy_to_clipboard:
-        set_clip(full_response)
-
-    return full_response
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=str, nargs="?", default=None)
-    parser.add_argument("-c", "--copy-to-clipboard", action="store_true", default=False)
-    parser.add_argument("-p", "--load-prompt-file", action="store_true", default=False)
-    parser.add_argument(
-        "--adhoc",
-        default=None,
-        help="Ad-hoc prompt text",
-        type=str,
-    )
-    parser.add_argument(
-        "--pause", help="Pause after completion.", action="store_true", default=False
-    )
-    args = parser.parse_args()
-
-    # If input is provided
-    if args.input:
-        if os.path.isfile(args.input):
-            with open(args.input, "r", encoding="utf-8") as f:
-                input = f.read()
-
-        else:
-            input = args.input
-
-        # Specify custom ad-hoc prompt if any
-        if args.adhoc:
-            prompt_text = args.adhoc
-
-        elif args.load_prompt_file:
-            prompt_file = os.path.join(os.environ["MY_DATA_DIR"], "custom_prompts.json")
-            if os.path.exists(prompt_file):
-                options = load_json(prompt_file)
-                idx = Menu(options, history="custom_prompts").exec()
-                if idx < 0:
-                    sys.exit(0)
-                prompt_text = options[idx]
+    def __yank_message(self):
+        line = self.get_selected_item()
+        if line is not None:
+            message = self.__messages[line.message_index]
+            message_text = message["content"]
+            code_block = extract_code_from_markdown(message_text)
+            if len(code_block) > 0:
+                set_clip(code_block[0])
+                self.set_message("code copied.")
             else:
-                prompt_text = None
-        else:
-            prompt_text = None
-
-        complete_chat(
-            input=input,
-            prompt_text=prompt_text,
-            copy_to_clipboard=args.copy_to_clipboard,
-            pause=args.pause,
-        )
-
-    else:  # empty
-        start_conversation(
-            chat_history=os.path.join(
-                os.environ["MY_DATA_DIR"], "chatgpt_start_conversation.json"
-            )
-        )
-
-
-class _Menu(ActionMenu):
-    def __init__(self, chat: Chat):
-        super().__init__()
-        self.__chat = chat
-
-    @ActionMenu.action(hotkey="ctrl+n")
-    def new_chat(self):
-        self.__chat.start_new_chat()
-
-    @ActionMenu.action(hotkey="ctrl+y")
-    def copy_last_message(self):
-        self.__chat.copy_last_message()
-
-
-def start_conversation(
-    *,
-    input: Optional[str] = None,
-    prompt_text: Optional[str] = None,
-    chat_history: Optional[str] = None,
-):
-    chat = Chat()
-
-    # Load existing chat
-    if chat_history:
-        chat.load_chat(chat_history)
-
-    if input and os.path.isfile(input):
-        with open(input, "r", encoding="utf-8") as f:
-            input = f.read()
-
-    if input and prompt_text:
-        input = prompt_text + "\n\n\n" + input
-        chat.send(input)
-
-    try:
-        while True:
-            message = builtins.input("> ")
-            if message == "":
-                _Menu(chat=chat).exec()
-
-            else:
-                chat.send(message)
-
-            if chat_history:
-                chat.save_chat(chat_history)
-
-    except (KeyboardInterrupt, EOFError):
-        pass
+                set_clip(message_text)
+                self.set_message("message copied.")
 
 
 if __name__ == "__main__":
-    main()
+    chat = ChatMenu()
+    chat.load_chat()
+    chat.exec()

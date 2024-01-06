@@ -890,9 +890,9 @@ class Menu(Generic[T]):
         item_indices = self.get_item_indices()
 
         if self.__line_number and len(item_indices) > 0:
-            line_number_width = len(str(item_indices[-1])) + 1
+            line_number_chars = len(str(item_indices[-1]))
         else:
-            line_number_width = 0
+            line_number_chars = 0
 
         while matched_item_index < len(item_indices) and item_y < item_y_max:
             item_index = item_indices[matched_item_index]
@@ -907,17 +907,6 @@ class Menu(Generic[T]):
             itm = self.items[item_index]
             item_text = str(self.items[item_index])
 
-            # Draw line number
-            if self.__line_number:
-                line_number = f"{item_index + 1}"
-                line_number_text = f"{line_number}"
-                self.draw_text(
-                    item_y,
-                    0,
-                    line_number_text.rjust(line_number_width - 1) + " ",
-                    color="MAGENTA" if is_item_selected else "magenta",
-                )
-
             if hasattr(itm, "color"):
                 color = itm.__dict__["color"]
             else:
@@ -931,13 +920,33 @@ class Menu(Generic[T]):
             # Draw item
             draw_text_result = self.draw_text(
                 item_y,
-                line_number_width,
+                line_number_chars + 2,
                 item_text,
                 wrap_text=self.__wrap_text,
                 color=color,
                 scroll_x=self._scroll_x,
                 bold=is_item_selected,
             )
+
+            # Draw line number
+            if self.__line_number:
+                line_number = f"{item_index + 1}"
+                line_number_text = f"{line_number}"
+                line_number_color = "MAGENTA" if is_item_selected else "magenta"
+                self.draw_text(
+                    item_y,
+                    0,
+                    line_number_text.rjust(line_number_chars) + "  ",
+                    color=line_number_color,
+                )
+
+                for y in range(item_y + 1, draw_text_result.last_y + 1):
+                    self.draw_text(
+                        y,
+                        0,
+                        " " * (line_number_chars + 2),
+                        color=line_number_color,
+                    )
 
             increments = draw_text_result.last_y + 1 - item_y
             if self.__wrap_text:
@@ -947,7 +956,7 @@ class Menu(Generic[T]):
             item_y += increments
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
-            self._scroll_distance = self._width - line_number_width - 1
+            self._scroll_distance = self._width - line_number_chars - 1
             if draw_text_result.can_scroll_left:
                 self._can_scroll_left = True
             if draw_text_result.can_scroll_right:

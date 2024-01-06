@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from ML.gpt.chatgui import ChatMenu
+from ML.gpt.chatgpt import ChatMenu
 from utils.menu.textinput import TextInput
 
 if __name__ == "__main__":

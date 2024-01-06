@@ -384,18 +384,6 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
         description = "decrease the number of columns",
         group = "layout"
     }),
-    awful.key({ modkey }, "space", function()
-        awful.layout.inc(1)
-    end, {
-        description = "select next",
-        group = "layout"
-    }),
-    awful.key({ modkey, "Shift" }, "space", function()
-        awful.layout.inc(-1)
-    end, {
-        description = "select previous",
-        group = "layout"
-    }),
     awful.key({ modkey, "Control" }, "n", function()
         local c = awful.client.restore()
         -- Focus restored client
