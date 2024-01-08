@@ -2,7 +2,8 @@ import subprocess
 
 from utils.menu import Menu
 
-if __name__ == "__main__":
+
+def select_screen_to_attach():
     try:
         out = subprocess.check_output(["screen", "-ls"], universal_newlines=True)
         lines = out.splitlines()
@@ -16,3 +17,7 @@ if __name__ == "__main__":
             subprocess.call(["screen", "-d", "-r", id])
     except subprocess.CalledProcessError as e:
         print(e.output)
+
+
+if __name__ == "__main__":
+    select_screen_to_attach()

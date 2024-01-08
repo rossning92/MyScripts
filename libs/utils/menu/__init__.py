@@ -408,7 +408,7 @@ class Menu(Generic[T]):
         curses.start_color()
         curses.use_default_colors()  # The default color is assigned to -1
 
-        color_pair_index = 0
+        color_pair_index = 1  # note that color pair index starts with 1
 
         def init_color_pair(name: str, color: int):
             nonlocal color_pair_index

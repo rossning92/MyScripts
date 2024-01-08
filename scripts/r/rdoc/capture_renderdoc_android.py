@@ -7,7 +7,7 @@ import time
 
 import renderdoc as rd
 from _android import get_device_name, get_main_activity
-from _shutil import get_home_path, get_time_str, setup_logger
+from _shutil import get_home_path, get_time_str, getch, setup_logger
 
 
 def list_executables(remote):
@@ -155,8 +155,12 @@ def main():
     run_wait_secs = 15
     if os.environ.get("RUN_WAIT_SECS"):
         run_wait_secs = int(os.environ.get("RUN_WAIT_SECS"))
-    logging.info(f"Wait for {run_wait_secs} seconds, then capture a frame.")
-    time.sleep(run_wait_secs)
+    if run_wait_secs < 0:
+        print("(press enter to trigger capture...)")
+        getch()
+    else:
+        logging.info(f"Wait for {run_wait_secs} seconds, then capture a frame.")
+        time.sleep(run_wait_secs)
 
     logging.info("Trigger capture")
     target.TriggerCapture(1)

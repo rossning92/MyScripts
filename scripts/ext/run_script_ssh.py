@@ -111,7 +111,15 @@ def pull_file_ssh(src, dest=None):
     if dest is None:
         dest = os.getcwd()
 
-    call_echo(["scp", "{}:{}".format(_get_user_host(), src), dest])
+    call_echo(
+        [
+            "scp",
+            "-o",
+            "StrictHostKeyChecking=no",
+            "{}:{}".format(_get_user_host(), src),
+            dest,
+        ]
+    )
 
     return dest
 

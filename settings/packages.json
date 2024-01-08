@@ -140,6 +140,17 @@
       "packages": ["fzf"]
     }
   },
+  "gh": {
+    "choco": {
+      "packages": ["gh"]
+    },
+    "pacman": {
+      "packages": ["gh"]
+    },
+    "termux": {
+      "packages": ["gh"]
+    }
+  },
   "ghostscript": {
     "choco": {
       "packages": ["ghostscript"]

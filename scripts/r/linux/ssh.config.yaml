@@ -1,3 +1,4 @@
 globalHotkey: win+alt+]
 packages: openssh expect
+title: remote_shell
 wsl: true

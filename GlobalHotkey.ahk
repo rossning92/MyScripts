@@ -43,6 +43,10 @@ RunLastScript()
 ClipChanged(type) {
     global MatchClipboard
 
+    if WinActive("ahk_exe vncviewer.exe") {
+        return
+    }
+
     if (type = 1) { ; clipboard has text
         text := Clipboard
         matchedScript := []
