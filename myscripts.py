@@ -446,7 +446,7 @@ class _MyScriptMenu(Menu[Script]):
 
                 # Command line args
                 if self.__cmdline_args is not None:
-                    preview.append(("yellow", f"arg : {self.__cmdline_args}"))
+                    preview.append(("cyan", f"arg : {self.__cmdline_args}"))
 
                 # Preview variables
                 try:
@@ -454,7 +454,7 @@ class _MyScriptMenu(Menu[Script]):
                     if len(vars) > 0:
                         preview.extend(
                             [
-                                ("cyan", x)
+                                ("yellow", x)
                                 for x in format_variables(
                                     vars,
                                     sorted(script.get_variable_names()),
@@ -474,7 +474,7 @@ class _MyScriptMenu(Menu[Script]):
                     if value != default_script_config[name]:
                         config_preview[f"cfg : {name}"] = str(value)
                 preview.extend(
-                    [("magenta", x) for x in format_key_value_pairs(config_preview)]
+                    [("blue", x) for x in format_key_value_pairs(config_preview)]
                 )
 
                 height = max(5, height - len(preview) - 1)

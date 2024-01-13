@@ -653,7 +653,7 @@ class LogPipe(threading.Thread):
 
     def log(self):
         for line in iter(self.read_pipe.readline, b""):
-            logging.log(self.level, line.strip(b"\n").decode())
+            logging.log(self.level, ">>> " + line.strip(b"\n").decode())
 
         self.read_pipe.close()
 
@@ -1291,7 +1291,12 @@ class Script:
                     )
                 for chrome_exec in chrome_executables:
                     if shutil.which(chrome_exec):
-                        start_process([chrome_exec, "--chrome-frame", "--app=" + url])
+                        # args = [chrome_exec, "--new-window"]
+                        # if self.cfg["title"]:
+                        #     args.append(f"--window-name={self.cfg['title']}")
+                        # args.append(url)
+                        args = [chrome_exec, f"--app={url}"]
+                        start_process(args)
                         fallback_to_shell_open = False
                         break
 
@@ -1626,8 +1631,8 @@ class Script:
                         success = self.ps.wait() == 0
 
                 if LOG_PIPE_FOR_BACKGROUND_PROCESS and background:
-                    LogPipe(self.ps.stdout, log_level=logging.ERROR)
-                    LogPipe(self.ps.stderr, log_level=logging.ERROR)
+                    LogPipe(self.ps.stdout, log_level=logging.INFO)
+                    LogPipe(self.ps.stderr, log_level=logging.INFO)
 
                 return success
 
@@ -1663,6 +1668,9 @@ class Script:
         ]
 
         variable_names = [x for x in variable_names if x not in VARIABLE_NAME_EXCLUDE]
+
+        # Sort the variable names
+        variable_names = sorted(variable_names)
 
         return variable_names
 

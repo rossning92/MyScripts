@@ -20,7 +20,6 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
-
 from utils.clip import get_clip, set_clip
 
 
@@ -646,6 +645,11 @@ class Menu(Generic[T]):
 
             elif self._check_alt_hotkey(ch):
                 pass
+
+            elif (
+                sys.platform == "win32" and ch == 0x211 and "alt+enter" in self._hotkeys
+            ):
+                self._hotkeys["alt+enter"].func()
 
             elif ch == "\x1b":  # escape key
                 self.on_escape_pressed()

@@ -17,7 +17,6 @@ WantedBy=multi-user.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable ${name}.service
-sudo systemctl restart ${name}.service
+sudo systemctl restart ${name}.service --now
 
 sudo journalctl -u ${name}.service -f

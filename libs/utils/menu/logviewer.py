@@ -36,7 +36,8 @@ class LogViewerMenu(Menu[str]):
         self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()
         self.__default_log_highlight[r" D |\bDEBUG\b|\bDebug\b"] = "blue"
         self.__default_log_highlight[r" W |\bWARN\b|\bWarn(ing)?\b"] = "yellow"
-        self.__default_log_highlight[r" (E|F) |\bERROR\b|\bError\b|>>>"] = "red"
+        self.__default_log_highlight[r" (E|F) |\bERROR\b|\bError\b"] = "red"
+        self.__default_log_highlight[">>>"] = "green"
         self.__log_highlight = self.__default_log_highlight.copy()
 
         super().__init__(
