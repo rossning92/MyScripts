@@ -21,4 +21,4 @@ WantedBy=sleep.target
 WantedBy=suspend.target
 EOF
 
-systemctl enable betterlockscreen@$USER --now
+sudo systemctl enable betterlockscreen@$USER --now

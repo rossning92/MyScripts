@@ -20,6 +20,7 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
+
 from utils.clip import get_clip, set_clip
 
 
@@ -936,7 +937,7 @@ class Menu(Generic[T]):
             if self.__line_number:
                 line_number = f"{item_index + 1}"
                 line_number_text = f"{line_number}"
-                line_number_color = "MAGENTA" if is_item_selected else "magenta"
+                line_number_color = "WHITE" if is_item_selected else "white"
                 self.draw_text(
                     item_y,
                     0,
@@ -1104,7 +1105,10 @@ class Menu(Generic[T]):
         self._should_update_screen = True
 
     def _toggle_multi_select(self):
-        self._multi_select_mode = not self._multi_select_mode
+        self.set_multi_select(not self._multi_select_mode)
+
+    def set_multi_select(self, mode: bool):
+        self._multi_select_mode = mode
         if not self._multi_select_mode:
             self._selected_row_begin = self._selected_row_end
         self.update_screen()
