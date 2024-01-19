@@ -277,7 +277,7 @@ class Menu(Generic[T]):
             self.add_command(self.yank, hotkey="ctrl+y")
 
             self._command_palette_menu = Menu(
-                prompt="command palette:",
+                prompt="command:",
                 items=self._custom_commands,
                 enable_command_palette=False,
             )
@@ -992,7 +992,6 @@ class Menu(Generic[T]):
             columns.append("multi_select_mode")
         if self._message:
             columns.append(self._message)
-        columns.append("command_palette (^p)")
         return " | ".join(columns)
 
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
