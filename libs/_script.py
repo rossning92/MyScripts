@@ -963,6 +963,10 @@ class Script:
                 temp_file = write_temp_file(selection, ".txt")
                 arg_list.append(temp_file)
 
+            elif self.cfg["args.passSelection"]:
+                selection = get_selection()
+                arg_list.append(selection)
+
             elif self.cfg["args.passClipboardAsFile"]:
                 clipboard = get_clip()
                 temp_file = write_temp_file(clipboard, ".txt")
@@ -1825,6 +1829,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "args.passClipboardAsFile": False,
         "args.passSelectedDir": False,
         "args.passSelectedFile": False,
+        "args.passSelection": False,
         "args.passSelectionAsFile": False,
         "args": "",
         "autoRun": False,

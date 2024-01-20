@@ -17,184 +17,12 @@ from _shutil import (
 )
 from utils.menu.actionmenu import ActionMenu
 
-menu = ActionMenu(close_on_selection=False)
-
-
-@menu.func()
-def commit(dry_run=False, amend=False) -> bool:
-    if is_working_tree_clean():
-        print2("Working directory clean, changed files in HEAD:", color="gray")
-        for line in get_output(
-            ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
-            shell=False,
-        ).splitlines():
-            print2("  " + line, color="gray")
-        return False
-
-    call_echo("git status --short")
-    if not dry_run and confirm("Commit all changes?"):
-        call_echo("git add -A")
-
-        if amend:
-            call_echo("git commit --amend --no-edit --quiet")
-        else:
-            message = input("commit message: ")
-            if not message:
-                message = "Temporary commit @ %s" % get_time_str()
-
-            call_echo(["git", "commit", "-m", message])
-        return True
-    else:
-        return False
-
-
-@menu.func()
-def commit_and_push():
-    if commit():
-        git_push()
-
-
-@menu.func()
-def revert_all():
-    call_echo("git status --short")
-    if not confirm("Revert all files?"):
-        return
-    call_echo("git reset HEAD --hard")
-
-
-@menu.func()
-def git_push(force=False):
-    # Push and auto track remote branch
-    subprocess.check_call(["git", "config", "--global", "push.default", "current"])
-    args = [
-        "git",
-        "push",
-        # will track remote branch of the same name:
-        "-u",
-    ]
-    if force:
-        args += ["--force"]
-    call_echo(args)
-
-
-@menu.func()
-def git_push_force():
-    git_push(force=True)
-
-
-def git_log(show_all=True):
-    args = [
-        "git",
-        "log",
-        "--date=relative",
-        "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
-        "--graph",
-    ]
-    if not show_all:
-        args.append("-10")
-    call_echo(
-        args,
-        check=False,
-        shell=False,
-    )
-
-
-@menu.func(hotkey="alt+s")
-def git_status():
-    print2(
-        "\nrepo_dir: %s" % os.getcwd(),
-        color="magenta",
-    )
-
-    commit(dry_run=True)
-    git_log(show_all=False)
-    input()
-
-
-def create_bundle():
-    if bundle_file is not None:
-        print2("Create bundle: %s" % bundle_file)
-        call_echo(["git", "bundle", "create", bundle_file, "master"])
-
 
 def add_gitignore_node():
     urlretrieve(
         "https://raw.githubusercontent.com/github/gitignore/master/Node.gitignore",
         ".gitignore",
     )
-
-
-def add_gitignore():
-    if os.path.exists(".gitignore"):
-        return
-
-    if os.path.exists("package.json"):
-        add_gitignore_node()
-
-    else:  # unknown project
-        with open(".gitignore", "w") as f:
-            f.writelines(["/build"])
-
-
-@menu.func()
-def switch_branch():
-    call_echo(["git", "branch"])
-    name = input("Switch to branch [master]: ")
-    if not name:
-        name = "master"
-    call_echo(["git", "checkout", name])
-
-
-def get_current_branch():
-    return subprocess.check_output(
-        ["git", "branch", "--show-current"], universal_newlines=True
-    ).strip()
-
-
-@menu.func()
-def amend_history_commit():
-    commit_id = input("History commit ID: ")
-
-    call_echo(["git", "tag", "history-rewrite", commit_id])
-    call2(["git", "config", "--global", "advice.detachedHead", "false"])
-    call_echo(["git", "checkout", commit_id])
-
-    input("Press enter to rebase children comments...")
-    call_echo(
-        [
-            "git",
-            "rebase",
-            "--onto",
-            "HEAD",
-            # from commit id <==> master
-            "tags/history-rewrite",
-            "master",
-        ]
-    )
-    call_echo(["git", "tag", "-d", "history-rewrite"])
-
-
-@menu.func()
-def amend():
-    commit(amend=True)
-
-
-@menu.func(hotkey="alt+a")
-def amend_and_push():
-    if commit(amend=True):
-        git_push(force=True)
-
-
-@menu.func()
-def pull():
-    call_echo(["git", "pull"])
-
-
-@menu.func()
-def revert_file():
-    file = input("Input file to revert: ")
-    if file:
-        call_echo("git checkout %s" % file)
 
 
 def is_working_tree_clean():
@@ -206,203 +34,359 @@ def is_working_tree_clean():
     )
 
 
-@menu.func(hotkey="alt+d")
-def diff():
-    if not is_working_tree_clean():
-        call_echo(["git", "diff"])
-    else:
-        call_echo(["git", "diff", "HEAD^", "HEAD"])
+def git_log(show_all=False):
+    args = [
+        "git",
+        "log",
+        "--date=relative",
+        "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
+        "--graph",
+    ]
+    if not show_all:
+        args.append("-10")
+    return subprocess.check_output(args, universal_newlines=True).strip()
 
 
-@menu.func()
-def diff_previous_commit():
-    call_echo("git diff HEAD^ HEAD")
+class GitMenu(ActionMenu):
+    def __init__(self, repo_path: str):
+        self.repo_path = repo_path
 
+        self.repo_name = os.path.basename(repo_path)
+        if self.repo_name is None:
+            raise Exception("Invalid repo name")
 
-@menu.func()
-def diff_with_main_branch():
-    call_echo("git diff origin/main...HEAD")
+        self.bundle_file = None
+        if backup_dir:
+            self.bundle_file = os.path.join(backup_dir, self.repo_name + ".bundle")
 
+        cd(repo_path)
 
-@menu.func()
-def diff_commit():
-    commit = input("commit hash: ")
-    call_echo("git show %s" % commit)
+        super().__init__(
+            prompt=git_log() + "\n\n" + self.repo_path, close_on_selection=False
+        )
 
+    @ActionMenu.action()
+    def commit(self, dry_run=False, amend=False) -> bool:
+        if is_working_tree_clean():
+            print2("Working directory clean, changed files in HEAD:", color="gray")
+            for line in get_output(
+                ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+                shell=False,
+            ).splitlines():
+                print2("  " + line, color="gray")
+            return False
 
-@menu.func(hotkey="`")
-def command():
-    cmd = input("cmd> ")
-    subprocess.call(cmd, shell=True)
+        call_echo("git status --short")
+        if not dry_run and confirm("Commit all changes?"):
+            call_echo("git add -A")
 
+            if amend:
+                call_echo("git commit --amend --no-edit --quiet")
+            else:
+                message = input("commit message: ")
+                if not message:
+                    message = "Temporary commit @ %s" % get_time_str()
 
-@menu.func()
-def unbundle():
-    print2("Restoring from: %s" % bundle_file)
-    call_echo(["git", "pull", bundle_file, "master:master"])
+                call_echo(["git", "commit", "-m", message])
+            return True
+        else:
+            return False
 
+    @ActionMenu.action()
+    def commit_and_push(self):
+        if self.commit():
+            self.git_push()
 
-@menu.func()
-def undo():
-    call_echo("git reset HEAD@{1}")
+    @ActionMenu.action()
+    def revert_all(self):
+        call_echo("git status --short")
+        if not confirm("Revert all files?"):
+            return
+        call_echo("git reset HEAD --hard")
 
-
-@menu.func()
-def open_folder():
-    shell_open(os.getcwd())
-
-
-@menu.func()
-def fixup_commit():
-    commit_id = input("Fixup commit (hash): ")
-    call_echo(["git", "commit", "--fixup", commit_id])
-    call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"])
-
-
-@menu.func()
-def sync_github():
-    FNULL = fnull()
-    ret = subprocess.call(
-        "gh repo view rossning92/%s" % repo_name, shell=True, stdout=FNULL
-    )
-    if ret == 1:
-        cd(os.path.dirname(repo_dir))
-        if not confirm('Create "%s" on GitHub?' % repo_name):
-            sys.exit(1)
-        call_echo("gh repo create --private -y %s" % repo_name)
-    else:
-        print('GitHub repo already exists: "%s"' % repo_name)
-    cd(repo_dir)
-
-    subprocess.check_call(
-        [
+    @ActionMenu.action()
+    def git_push(self, force=False):
+        # Push and auto track remote branch
+        subprocess.check_call(["git", "config", "--global", "push.default", "current"])
+        args = [
             "git",
-            "remote",
-            "add",
-            "origin",
-            f"https://github.com/rossning92/{repo_name}.git",
+            "push",
+            # will track remote branch of the same name:
+            "-u",
         ]
-    )
+        if force:
+            args += ["--force"]
+        call_echo(args)
 
+    @ActionMenu.action()
+    def git_push_force(self):
+        self.git_push(force=True)
 
-@menu.func()
-def git_init():
-    run_script("r/git/git_init.sh")
+    def git_log(self, show_all=True):
+        args = [
+            "git",
+            "log",
+            "--date=relative",
+            "--pretty=format:%C(yellow)%h %Cblue%ad %Cgreen%aN%Cred%d %Creset%s",
+            "--graph",
+        ]
+        if not show_all:
+            args.append("-10")
+        call_echo(
+            args,
+            check=False,
+            shell=False,
+        )
 
+    @ActionMenu.action(hotkey="alt+s")
+    def git_status(self):
+        print2(
+            "\nrepo_dir: %s" % os.getcwd(),
+            color="magenta",
+        )
 
-@menu.func()
-def clean_all():
-    for dry_run in [True, False]:
-        if not dry_run:
-            if not confirm("Clean untracked files?"):
-                return
+        self.commit(dry_run=True)
+        self.git_log(show_all=False)
+        input()
 
+    def create_bundle(self):
+        if self.bundle_file is not None:
+            print2("Create bundle: %s" % self.bundle_file)
+            call_echo(["git", "bundle", "create", self.bundle_file, "master"])
+
+    def add_gitignore(self):
+        if os.path.exists(".gitignore"):
+            return
+
+        if os.path.exists("package.json"):
+            add_gitignore_node()
+
+        else:  # unknown project
+            with open(".gitignore", "w") as f:
+                f.writelines(["/build"])
+
+    @ActionMenu.action()
+    def switch_branch(self):
+        call_echo(["git", "branch"])
+        name = input("Switch to branch [master]: ")
+        if not name:
+            name = "master"
+        call_echo(["git", "checkout", name])
+
+    def get_current_branch(self):
+        return subprocess.check_output(
+            ["git", "branch", "--show-current"], universal_newlines=True
+        ).strip()
+
+    @ActionMenu.action()
+    def amend_history_commit(self):
+        commit_id = input("History commit ID: ")
+
+        call_echo(["git", "tag", "history-rewrite", commit_id])
+        call2(["git", "config", "--global", "advice.detachedHead", "false"])
+        call_echo(["git", "checkout", commit_id])
+
+        input("Press enter to rebase children comments...")
         call_echo(
             [
                 "git",
-                "clean",
-                "-n" if dry_run else "-f",
-                "-x",  # remove ignored files
-                "-d",  # remove directories
+                "rebase",
+                "--onto",
+                "HEAD",
+                # from commit id <==> master
+                "tags/history-rewrite",
+                "master",
+            ]
+        )
+        call_echo(["git", "tag", "-d", "history-rewrite"])
+
+    @ActionMenu.action()
+    def amend(self):
+        self.commit(amend=True)
+
+    @ActionMenu.action(hotkey="alt+a")
+    def amend_and_push(self):
+        if self.commit(amend=True):
+            self.git_push(force=True)
+
+    @ActionMenu.action()
+    def pull(self):
+        call_echo(["git", "pull"])
+
+    @ActionMenu.action()
+    def revert_file(self):
+        file = input("Input file to revert: ")
+        if file:
+            call_echo("git checkout %s" % file)
+
+    @ActionMenu.action(hotkey="alt+d")
+    def diff(self):
+        if not is_working_tree_clean():
+            call_echo(["git", "diff"])
+        else:
+            call_echo(["git", "diff", "HEAD^", "HEAD"])
+
+    @ActionMenu.action()
+    def diff_previous_commit(self):
+        call_echo("git diff HEAD^ HEAD")
+
+    @ActionMenu.action()
+    def diff_with_main_branch(self):
+        call_echo("git diff origin/main...HEAD")
+
+    @ActionMenu.action()
+    def diff_commit(self):
+        commit = input("commit hash: ")
+        call_echo("git show %s" % commit)
+
+    @ActionMenu.action(hotkey="`")
+    def command(self):
+        cmd = input("cmd> ")
+        subprocess.call(cmd, shell=True)
+
+    @ActionMenu.action()
+    def unbundle(self):
+        print2("Restoring from: %s" % self.bundle_file)
+        call_echo(["git", "pull", self.bundle_file, "master:master"])
+
+    @ActionMenu.action()
+    def undo(self):
+        call_echo("git reset HEAD@{1}")
+
+    @ActionMenu.action()
+    def open_folder(self):
+        shell_open(os.getcwd())
+
+    @ActionMenu.action()
+    def fixup_commit(self):
+        commit_id = input("Fixup commit (hash): ")
+        call_echo(["git", "commit", "--fixup", commit_id])
+        call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"])
+
+    @ActionMenu.action()
+    def sync_github(self):
+        FNULL = fnull()
+        ret = subprocess.call(
+            "gh repo view rossning92/%s" % self.repo_name, shell=True, stdout=FNULL
+        )
+        if ret == 1:
+            os.chdir(os.path.dirname(self.repo_path))
+            if not confirm('Create "%s" on GitHub?' % self.repo_name):
+                sys.exit(1)
+            call_echo("gh repo create --private -y %s" % self.repo_name)
+        else:
+            print('GitHub repo already exists: "%s"' % self.repo_name)
+        os.chdir(self.repo_path)
+
+        subprocess.check_call(
+            [
+                "git",
+                "remote",
+                "add",
+                "origin",
+                f"https://github.com/rossning92/{self.repo_name}.git",
             ]
         )
 
+    @ActionMenu.action()
+    def git_init(self):
+        run_script("r/git/git_init.sh")
 
-def checkout_branch(branch):
-    if (
-        subprocess.check_output(
-            ["git", "branch", "--list", branch], universal_newlines=True
-        ).strip()
-        == ""
-    ):
-        if confirm("Create branch %s?" % branch):
+    @ActionMenu.action()
+    def clean_all(self):
+        for dry_run in [True, False]:
+            if not dry_run:
+                if not confirm("Clean untracked files?"):
+                    return
+
+            call_echo(
+                [
+                    "git",
+                    "clean",
+                    "-n" if dry_run else "-f",
+                    "-x",  # remove ignored files
+                    "-d",  # remove directories
+                ]
+            )
+
+    def checkout_branch(self, branch):
+        if (
+            subprocess.check_output(
+                ["git", "branch", "--list", branch], universal_newlines=True
+            ).strip()
+            == ""
+        ):
+            if confirm("Create branch %s?" % branch):
+                call_echo(["git", "checkout", "-b", branch])
+            else:
+                raise Exception('branch does not exist: "%s"' % branch)
+
+        call_echo(["git", "checkout", branch])
+
+    @ActionMenu.action()
+    def amend_commit_message(self, message=None):
+        args = ["git", "commit", "--amend"]
+        if message:
+            args += ["-m", message]
+        call_echo(args)
+
+    @ActionMenu.action()
+    def create_patch(self):
+        hash = input("Enter commit hash: ")
+        if not hash:
+            return
+        call_echo(["git", "format-patch", "-1", hash])
+
+    @ActionMenu.action()
+    def garbage_collect(self):
+        if confirm("Dangerous! this will expire all recent reflogs."):
+            run_script("r/git/garbage_collect.sh")
+
+    @ActionMenu.action()
+    def checkout_remote_branch_partial(self):
+        run_script(
+            "r/git/git_checkout_remote_branch_partial.sh",
+            variables={"GIT_REPO": repo_path},
+        )
+
+    @ActionMenu.action()
+    def checkout_remote_branch(self):
+        run_script(
+            "r/git/git_checkout_remote_branch.sh", variables={"GIT_REPO": repo_path}
+        )
+
+    @ActionMenu.action()
+    def apply_patch(self):
+        file = input("Enter patch file path: ")
+        if not file:
+            return
+        call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
+
+    @ActionMenu.action()
+    def unstash(self):
+        call_echo(["git", "stash", "apply"])
+
+    @ActionMenu.action()
+    def create_new_branch_and_checkout(self):
+        branch = input("new branch name: ")
+        if branch:
             call_echo(["git", "checkout", "-b", branch])
-        else:
-            raise Exception('branch does not exist: "%s"' % branch)
 
-    call_echo(["git", "checkout", branch])
+    @ActionMenu.action()
+    def cherry_pick(self):
+        commit = input("new commit hash: ")
+        if commit:
+            call_echo(["git", "cherry-pick", commit])
 
-
-@menu.func()
-def amend_commit_message(message=None):
-    args = ["git", "commit", "--amend"]
-    if message:
-        args += ["-m", message]
-    call_echo(args)
-
-
-@menu.func()
-def create_patch():
-    hash = input("Enter commit hash: ")
-    if not hash:
-        return
-    call_echo(["git", "format-patch", "-1", hash])
-
-
-@menu.func()
-def garbage_collect():
-    if confirm("Dangerous! this will expire all recent reflogs."):
-        run_script("r/git/garbage_collect.sh")
-
-
-@menu.func()
-def checkout_remote_branch_partial():
-    run_script(
-        "r/git/git_checkout_remote_branch_partial.sh", variables={"GIT_REPO": repo_dir}
-    )
-
-
-@menu.func()
-def checkout_remote_branch():
-    run_script("r/git/git_checkout_remote_branch.sh", variables={"GIT_REPO": repo_dir})
-
-
-@menu.func()
-def apply_patch():
-    file = input("Enter patch file path: ")
-    if not file:
-        return
-    call_echo(["git", "apply", "--reject", "--whitespace=fix", file])
-
-
-@menu.func()
-def unstash():
-    call_echo(["git", "stash", "apply"])
-
-
-@menu.func()
-def create_new_branch_and_checkout():
-    branch = input("new branch name: ")
-    if branch:
-        call_echo(["git", "checkout", "-b", branch])
-
-
-@menu.func()
-def cherry_pick():
-    commit = input("new commit hash: ")
-    if commit:
-        call_echo(["git", "cherry-pick", commit])
-
-
-@menu.func()
-def commit_gpt():
-    run_script("r/ML/gpt/commitgpt.sh")
+    @ActionMenu.action()
+    def commit_gpt(self):
+        run_script("r/ML/gpt/commitgpt.sh")
 
 
 if __name__ == "__main__":
     backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")  # env: GIT_REPO_BACKUP_DIR
-    repo_dir = os.environ.get("GIT_REPO")  # env: GIT_REPO
-    if not repo_dir:
-        repo_dir = get_my_script_root()
+    repo_path = os.environ.get("GIT_REPO", "")  # env: GIT_REPO
+    if not repo_path:
+        repo_path = get_my_script_root()
 
-    repo_name = os.path.basename(repo_dir)
-    if repo_name is None:
-        raise Exception("Invalid repo name")
-
-    bundle_file = None
-    if backup_dir:
-        bundle_file = os.path.join(backup_dir, repo_name + ".bundle")
-
-    cd(repo_dir)
-
-    menu.exec()
+    GitMenu(repo_path=repo_path).exec()
