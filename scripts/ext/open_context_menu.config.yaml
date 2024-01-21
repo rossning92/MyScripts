@@ -1,2 +1,2 @@
-args.passSelection: true
+args.passClipboard: true
 globalHotkey: win+alt+o

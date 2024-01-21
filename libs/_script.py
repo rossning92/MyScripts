@@ -967,6 +967,10 @@ class Script:
                 selection = get_selection()
                 arg_list.append(selection)
 
+            elif self.cfg["args.passClipboard"]:
+                clipboard = get_clip()
+                arg_list.append(clipboard)
+
             elif self.cfg["args.passClipboardAsFile"]:
                 clipboard = get_clip()
                 temp_file = write_temp_file(clipboard, ".txt")
@@ -1826,6 +1830,7 @@ def get_default_script_config() -> Dict[str, Any]:
     return {
         "adk.jdk_version": "",
         "adk": False,
+        "args.passClipboard": False,
         "args.passClipboardAsFile": False,
         "args.passSelectedDir": False,
         "args.passSelectedFile": False,
