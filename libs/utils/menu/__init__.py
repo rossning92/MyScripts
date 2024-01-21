@@ -23,6 +23,8 @@ from _shutil import get_hotkey_abbr, load_json, save_json, slugify
 
 from utils.clip import get_clip, set_clip
 
+GUTTER_SIZE = 1
+
 
 def _is_backspace_key(ch: Union[int, str]):
     return (
@@ -925,7 +927,7 @@ class Menu(Generic[T]):
             # Draw item
             draw_text_result = self.draw_text(
                 item_y,
-                line_number_chars + 2,
+                line_number_chars + GUTTER_SIZE,
                 item_text,
                 wrap_text=self.__wrap_text,
                 color=color,
@@ -941,7 +943,7 @@ class Menu(Generic[T]):
                 self.draw_text(
                     item_y,
                     0,
-                    line_number_text.rjust(line_number_chars) + "  ",
+                    line_number_text.rjust(line_number_chars) + (" " * GUTTER_SIZE),
                     color=line_number_color,
                 )
 
@@ -949,7 +951,7 @@ class Menu(Generic[T]):
                     self.draw_text(
                         y,
                         0,
-                        " " * (line_number_chars + 2),
+                        " " * (line_number_chars + GUTTER_SIZE),
                         color=line_number_color,
                     )
 

@@ -74,6 +74,9 @@ reg add HKCU\SOFTWARE\Microsoft\InputMethod\Settings\CHS /t REG_DWORD /v "Englis
 reg add HKCU\SOFTWARE\Microsoft\InputMethod\Settings\CHS /t REG_DWORD /v EnableChineseEnglishPunctuationSwitch /d 0 /f >NUL
 reg add HKCU\SOFTWARE\Microsoft\InputMethod\Settings\CHS /t REG_DWORD /v EnableSimplifiedTraditionalOutputSwitch /d 0 /f >NUL
 
+echo Disable News and Interests.
+reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Feeds /t REG_DWORD /v ShellFeedsTaskbarViewMode /d 2 /f >NUL
+
 TASKKILL /F /IM explorer.exe >NUL
 start explorer.exe
 

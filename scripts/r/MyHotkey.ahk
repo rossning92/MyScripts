@@ -12,7 +12,7 @@ CurrentDesktop := 0
 WindowDividor := 2/3
 LastKeyPressTime := 0
 
-CONSOLE_WINDOW = MyScriptsTerminal
+CONSOLE_WINDOW = MyTerminal
 
 SetTitleMatchMode, 2
 

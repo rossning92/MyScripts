@@ -49,7 +49,7 @@ def register_global_hotkeys_linux(scripts: List[Script]):
 
     s = (
         "control+q\n"
-        "  wmctrl -a MyScriptsTerminal"
+        "  wmctrl -a MyTerminal"
         f' || alacritty -e "{get_my_script_root()}/myscripts"\n\n'
     )
 
@@ -211,11 +211,11 @@ def _get_next_scheduled_script_run_time_file():
 
 
 class ScriptManager:
-    def __init__(self, no_gui=False, startup=False):
+    def __init__(self, start_daemon=True, startup=False):
         self.next_scheduled_script_run_time: Dict[str, float] = load_json(
             _get_next_scheduled_script_run_time_file(), default={}
         )
-        self.no_gui = no_gui
+        self.start_daemon = start_daemon
         self.scripts_autorun: List[Script] = []
         self.scripts: List[Script] = []
         self.startup = startup
@@ -307,7 +307,7 @@ class ScriptManager:
     ):
         begin_time = time.time()
 
-        if self.reload_scripts(autorun=not self.no_gui, on_progress=on_progress):
+        if self.reload_scripts(autorun=self.start_daemon, on_progress=on_progress):
             # Register hotkeys
             if on_register_hotkeys is not None:
                 hotkeys: Dict[str, Script] = {}
@@ -318,7 +318,7 @@ class ScriptManager:
                         hotkeys[hotkey] = script
                 on_register_hotkeys(hotkeys)
 
-            if not self.no_gui:
+            if self.start_daemon:
                 register_global_hotkeys(self.scripts)
                 self.update_clipboard_script_map()
 
@@ -330,7 +330,7 @@ class ScriptManager:
         self.startup = False
 
     def get_scheduled_scripts_to_run(self) -> Iterator[Script]:
-        if self.no_gui:
+        if not self.start_daemon:
             return
 
         has_any_script_to_run = False

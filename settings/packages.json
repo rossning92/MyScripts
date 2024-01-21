@@ -91,6 +91,9 @@
     }
   },
   "eternalterminal": {
+    "apt": {
+      "packages": ["et"]
+    },
     "termux": {
       "packages": ["et"]
     },

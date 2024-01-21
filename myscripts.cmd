@@ -12,7 +12,7 @@ IF NOT %errorlevel%==0 (
     CALL install\install_python.cmd
 )
 
-TITLE MyScriptsTerminal
+TITLE MyTerminal
 
 IF NOT EXIST "%USERPROFILE%\.venv\myscripts" (
   python -m venv "%USERPROFILE%\.venv\myscripts" --system-site-packages

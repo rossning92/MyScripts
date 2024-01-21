@@ -55,6 +55,7 @@ from _template import render_template
 from utils.clip import get_clip, get_selection
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.timed import timed
+from utils.tmux import is_in_tmux
 from utils.venv import activate_python_venv, get_venv_python_executable
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -91,6 +92,8 @@ VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 LOG_PIPE_FOR_BACKGROUND_PROCESS = True
 
 SUPPORT_GNU_SCREEN = False
+
+DEFAULT_LINUX_TERMINAL = "alacritty"
 
 
 @lru_cache(maxsize=None)
@@ -874,6 +877,43 @@ class Script:
     def get_context(self) -> Dict[str, str]:
         return {"HOME": get_home_path(), "SCRIPT": quote_arg(self.script_path)}
 
+    def activate_window(self) -> bool:
+        title = self.get_window_title()
+        if (
+            SUPPORT_GNU_SCREEN
+            and shutil.which("screen")
+            and subprocess.call(["screen", "-r", slugify(title)]) == 0
+        ):
+            return True
+
+        elif activate_window_by_name(title):
+            logging.info(f"Activated window by title: {title}")
+            return True
+
+        else:
+            return False
+
+    def close_window(self):
+        if (
+            SUPPORT_GNU_SCREEN
+            and shutil.which("screen")
+            and subprocess.call(
+                [
+                    "screen",
+                    "-S",
+                    slugify(self.get_window_title()),
+                    "-X",
+                    "quit",
+                ]
+            )
+            == 0
+        ):
+            pass
+
+        else:
+            # Close exising instances
+            close_window_by_name(self.get_window_title())
+
     def execute(
         self,
         args: List[str] = [],
@@ -921,16 +961,7 @@ class Script:
             restart_instance = True
 
         if new_window and not restart_instance and single_instance:
-            title = self.get_window_title()
-            if (
-                SUPPORT_GNU_SCREEN
-                and shutil.which("screen")
-                and subprocess.call(["screen", "-r", slugify(title)]) == 0
-            ):
-                return True
-
-            elif activate_window_by_name(title):
-                logging.info(f"Activated window by title: {title}")
+            if self.activate_window():
                 return True
 
         # Get variable name value pairs
@@ -962,6 +993,14 @@ class Script:
                 selection = get_selection()
                 temp_file = write_temp_file(selection, ".txt")
                 arg_list.append(temp_file)
+
+            elif self.cfg["args.passUserInput"]:
+                from utils.menu.input import Input
+
+                text = Input().input()
+                if not text:
+                    return True
+                arg_list.append(text)
 
             elif self.cfg["args.passSelection"]:
                 selection = get_selection()
@@ -1419,25 +1458,7 @@ class Script:
 
             elif new_window:
                 if restart_instance and single_instance:
-                    if (
-                        SUPPORT_GNU_SCREEN
-                        and shutil.which("screen")
-                        and subprocess.call(
-                            [
-                                "screen",
-                                "-S",
-                                slugify(self.get_window_title()),
-                                "-X",
-                                "quit",
-                            ]
-                        )
-                        == 0
-                    ):
-                        pass
-
-                    else:
-                        # Close exising instances
-                        close_window_by_name(self.get_window_title())
+                    self.close_window()
 
                 try:
                     if sys.platform == "win32":
@@ -1507,76 +1528,102 @@ class Script:
                             open_in_terminal = True
 
                     elif sys.platform == "linux":
-                        TERMINAL = "alacritty"
-                        if TERMINAL == "gnome":
-                            arg_list = [
-                                "gnome-terminal",
-                                "--",
-                                "bash",
-                                "-c",
-                                "%s || read -rsn1 -p 'Press any key to exit...'"
-                                % _args_to_str(arg_list, shell_type="bash"),
-                            ]
-
-                        elif TERMINAL == "xterm":
-                            arg_list = [
-                                "xterm",
-                                "-xrm",
-                                "XTerm.vt100.allowTitleOps: false",
-                                "-T",
-                                self.get_window_title(),
-                                "-e",
-                                _args_to_str(arg_list, shell_type="bash"),
-                            ]
-                            no_wait = True
-                            open_in_terminal = True
-
-                        elif TERMINAL == "xfce":
-                            arg_list = [
-                                "xfce4-terminal",
-                                "-T",
-                                self.get_window_title(),
-                                "-e",
-                                _args_to_str(arg_list, shell_type="bash"),
-                                "--hold",
-                            ]
-                            no_wait = True
-                            open_in_terminal = True
-
-                        elif TERMINAL == "kitty":
-                            arg_list = [
-                                "kitty",
-                                "--title",
-                                self.get_window_title(),
-                            ] + arg_list
-                            no_wait = True
-                            open_in_terminal = True
-
-                        elif TERMINAL == "alacritty" and is_alacritty_installed():
-                            arg_list = wrap_args_alacritty(
-                                arg_list,
-                                title=self.get_window_title(),
+                        if is_in_tmux():
+                            arg_list = (
+                                [
+                                    "tmux",
+                                    # "split-window",
+                                    "new-window",
+                                    "-n",
+                                    slugify(self.get_window_title()),
+                                ]
+                                + [  # Pass environmental variable to new window.
+                                    item
+                                    for k, v in env.items()
+                                    for item in ("-e", f"{k}={v}")
+                                ]
+                                + arg_list
                             )
-                            no_wait = True
-                            open_in_terminal = True
 
-                        elif SUPPORT_GNU_SCREEN and shutil.which("screen"):
-                            arg_list = [
-                                "screen",
-                                "-S",
-                                slugify(self.get_window_title()),
-                            ] + arg_list
+                        elif os.environ.get("DISPLAY"):
+                            term_emulator = DEFAULT_LINUX_TERMINAL
+                            if term_emulator == "gnome":
+                                arg_list = [
+                                    "gnome-terminal",
+                                    "--",
+                                    "bash",
+                                    "-c",
+                                    "%s || read -rsn1 -p 'Press any key to exit...'"
+                                    % _args_to_str(arg_list, shell_type="bash"),
+                                ]
+
+                            elif term_emulator == "xterm":
+                                arg_list = [
+                                    "xterm",
+                                    "-xrm",
+                                    "XTerm.vt100.allowTitleOps: false",
+                                    "-T",
+                                    self.get_window_title(),
+                                    "-e",
+                                    _args_to_str(arg_list, shell_type="bash"),
+                                ]
+                                no_wait = True
+                                open_in_terminal = True
+
+                            elif term_emulator == "xfce":
+                                arg_list = [
+                                    "xfce4-terminal",
+                                    "-T",
+                                    self.get_window_title(),
+                                    "-e",
+                                    _args_to_str(arg_list, shell_type="bash"),
+                                    "--hold",
+                                ]
+                                no_wait = True
+                                open_in_terminal = True
+
+                            elif term_emulator == "kitty":
+                                arg_list = [
+                                    "kitty",
+                                    "--title",
+                                    self.get_window_title(),
+                                ] + arg_list
+                                no_wait = True
+                                open_in_terminal = True
+
+                            elif (
+                                term_emulator == "alacritty"
+                                and is_alacritty_installed()
+                            ):
+                                arg_list = wrap_args_alacritty(
+                                    arg_list,
+                                    title=self.get_window_title(),
+                                )
+                                no_wait = True
+                                open_in_terminal = True
+
+                            elif SUPPORT_GNU_SCREEN and shutil.which("screen"):
+                                arg_list = [
+                                    "screen",
+                                    "-S",
+                                    slugify(self.get_window_title()),
+                                ] + arg_list
+
+                            else:
+                                raise FileNotFoundError(
+                                    "No terminal is available for `newWindow` on linux."
+                                )
 
                         else:
-                            raise FileNotFoundError(
-                                "No terminal is available for `newWindow` on linux."
-                            )
+                            new_window = False
+                            no_wait = False
 
                     else:
                         logging.warning(
                             '"new_window" is not implemented on platform "%s"'
                             % sys.platform
                         )
+
                 except FileNotFoundError as ex:
                     new_window = False
                     no_wait = False
@@ -1836,6 +1883,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "args.passSelectedFile": False,
         "args.passSelection": False,
         "args.passSelectionAsFile": False,
+        "args.passUserInput": False,
         "args": "",
         "autoRun": False,
         "background": False,

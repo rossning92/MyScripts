@@ -103,8 +103,8 @@ class ChatMenu(Menu[_Line]):
 
     def on_enter_pressed(self):
         text = self.get_input()
-        self.__send_message(text)
         self.clear_input()
+        self.__send_message(text)
 
     def __yank_message(self):
         line = self.get_selected_item()

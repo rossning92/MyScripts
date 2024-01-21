@@ -1,12 +1,12 @@
 # ruff: noqa: E402
 
 import argparse
-import ctypes
 import logging
 import logging.config
 import os
 import platform
 import re
+import shutil
 import sys
 import threading
 import time
@@ -61,39 +61,7 @@ KEY_CODE_CTRL_ENTER_WIN = 529
 
 
 script_server: Optional[ScriptServer] = None
-
-
-def setup_console_font():
-    if sys.platform == "win32":
-        LF_FACESIZE = 32
-        STD_OUTPUT_HANDLE = -11
-
-        class COORD(ctypes.Structure):
-            _fields_ = [("X", ctypes.c_short), ("Y", ctypes.c_short)]
-
-        class CONSOLE_FONT_INFOEX(ctypes.Structure):
-            _fields_ = [
-                ("cbSize", ctypes.c_ulong),
-                ("nFont", ctypes.c_ulong),
-                ("dwFontSize", COORD),
-                ("FontFamily", ctypes.c_uint),
-                ("FontWeight", ctypes.c_uint),
-                ("FaceName", ctypes.c_wchar * LF_FACESIZE),
-            ]
-
-        font = CONSOLE_FONT_INFOEX()
-        font.cbSize = ctypes.sizeof(CONSOLE_FONT_INFOEX)
-        font.nFont = 12
-        font.dwFontSize.X = 11
-        font.dwFontSize.Y = 18
-        font.FontFamily = 54
-        font.FontWeight = 400
-        font.FaceName = "Lucida Console"
-
-        handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
-        ctypes.windll.kernel32.SetCurrentConsoleFontEx(
-            handle, ctypes.c_long(False), ctypes.pointer(font)
-        )
+script_manager: Optional[ScriptManager] = None
 
 
 def format_key_value_pairs(kvp):
@@ -504,12 +472,12 @@ class _MyScriptMenu(Menu[Script]):
             return True
 
 
-def _init(no_gui=False):
+def _main(no_gui=False):
     global script_server
+    global script_manager
 
-    if not no_gui and is_instance_running():
-        print("An instance is already running, exiting.")
-        sys.exit(0)
+    start_daemon = not is_instance_running()
+    logging.info(f"start_daemon: {start_daemon}")
 
     logging.info("Python executable: %s" % sys.executable)
 
@@ -527,13 +495,13 @@ def _init(no_gui=False):
 
     setup_nodejs(install=False)
 
-    if not no_gui:
+    if start_daemon:
         script_server = ScriptServer()
         script_server.start_server()
 
+    script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
 
-def _main_loop(no_gui=False, run_script_and_quit=False):
-    _init(no_gui=no_gui)
+    run_script_and_quit = args.cmd == "r" or args.cmd == "run"
     while True:  # repeat if _MyScriptMenu throws exceptions
         try:
             _MyScriptMenu(no_gui=no_gui, run_script_and_quit=run_script_and_quit).exec()
@@ -566,16 +534,31 @@ if __name__ == "__main__":
         action="store_true",
         help="will autorun all scripts with runAtStartup=True",
     )
+    parser.add_argument(
+        "-t",
+        "--tmux",
+        action="store_true",
+        help="Run in tmux.",
+    )
     args = parser.parse_args()
+
+    if args.tmux:
+        tmux_exec = shutil.which("tmux")
+        if tmux_exec is None:
+            raise Exception("tmux is not installed.")
+        os.execl(
+            tmux_exec,
+            "tmux",
+            "-f",
+            os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
+            "new",
+            sys.executable,
+            *(x for x in sys.argv if x not in ("-t", "--tmux")),
+        )
 
     run_at_startup(
         name="MyScripts",
         cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
 
-    # setup_console_font()
-    script_manager = ScriptManager(no_gui=args.no_gui, startup=args.startup)
-    if args.cmd == "r" or args.cmd == "run":
-        _main_loop(no_gui=True, run_script_and_quit=True)
-    else:
-        _main_loop(no_gui=args.no_gui)
+    _main(no_gui=args.no_gui)

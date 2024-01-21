@@ -53,7 +53,7 @@ if [ ! -f "$BASHRC" ] || ! grep -qF -- "$line" "$BASHRC"; then
 fi
 
 # Set terminal title
-echo -ne '\033]0;MyScriptsTerminal\007'
+echo -ne '\033]0;MyTerminal\007'
 
 # Default settings for FZF
 export FZF_DEFAULT_OPTS='--layout=reverse'
