@@ -1,2 +1,3 @@
 args.passSelectionAsFile: true
 globalHotkey: win+k a
+variableNames: CUSTOM_PROMPT_FILE OPENAI_API_KEY

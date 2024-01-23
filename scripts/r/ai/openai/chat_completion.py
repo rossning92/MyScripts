@@ -1,11 +1,13 @@
 import json
 import os
-from typing import Dict, Iterator, List
+from typing import Dict, Iterator, List, Optional
 
 import requests
 
 
-def chat_completion(messages: List[Dict[str, str]]) -> Iterator[str]:
+def chat_completion(
+    messages: List[Dict[str, str]], model: Optional[str] = None
+) -> Iterator[str]:
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
         raise Exception("OPENAI_API_KEY must be provided.")
@@ -16,7 +18,7 @@ def chat_completion(messages: List[Dict[str, str]]) -> Iterator[str]:
         "Authorization": f"Bearer {api_key}",
     }
     data = {
-        "model": "gpt-3.5-turbo",
+        "model": model if model else "gpt-3.5-turbo",
         "messages": messages,
         "stream": True,
     }

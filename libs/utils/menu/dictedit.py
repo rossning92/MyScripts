@@ -238,3 +238,6 @@ class DictEditMenu(Menu[_KeyValuePair]):
 
         self.__notify_dict_updated()
         self.update_screen()
+
+    def get_value(self, name: str):
+        return self.dict_[name]

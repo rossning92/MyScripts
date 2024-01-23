@@ -745,6 +745,8 @@ class Script:
             s += " (%s)" % (get_hotkey_abbr(self.cfg["hotkey"]))
         if self.cfg["globalHotkey"]:
             s += " {%s}" % (get_hotkey_abbr(self.cfg["globalHotkey"]))
+        if self.cfg["autoRun"]:
+            s += " [autorun]"
 
         return s
 
@@ -2093,7 +2095,7 @@ def execute_script_autorun(script: Script):
     assert script.cfg["autoRun"] or script.cfg["runAtStartup"]
     try:
         logging.debug("autorun: %s" % script.name)
-        script.execute(new_window=False, command_wrapper=False)
+        script.execute(command_wrapper=False)
     except Exception as ex:
         logging.warning(f"Failed to autorun script: {script.script_path}")
         logging.exception(ex)

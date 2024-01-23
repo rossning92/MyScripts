@@ -1,7 +1,9 @@
 set -e
-cd $HOME/Desktop
-echo 'Clear logcat buffer...'
-adb logcat -c
+
+if [[ -n "$CLEAR_LOGCAT" ]]; then
+    echo 'Clear logcat buffer...'
+    adb logcat -c
+fi
 
 if [[ -n "$1" ]]; then
     fname="$1"
@@ -11,7 +13,5 @@ else
     fname="logcat_${device}_${date}.log"
 fi
 
-echo "Dump logcat to $fname"
-stdbuf -o0 adb logcat >$fname &
-run_script ext/open.py $fname
-wait
+echo "Dump logcat to \"$fname\""
+stdbuf -o0 adb logcat >"$fname"

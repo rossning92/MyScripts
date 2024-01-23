@@ -149,15 +149,11 @@ class _InputWidget:
             self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.ascii.ctrl("a"):
             self.clear()
-        elif ch == "\n":
-            pass
-
         # HACK: Workaround for single and double quote on Windows
         elif ch == 530 and sys.platform == "win32":
             self._on_char("'")
         elif ch == 460 and sys.platform == "win32":
             self._on_char('"')
-
         elif isinstance(ch, str):
             self._on_char(ch)
 
@@ -710,12 +706,12 @@ class Menu(Generic[T]):
 
     def _check_alt_hotkey(self, ch: Union[int, str]) -> bool:
         is_alt_hotkey = False
-        key2: Optional[str] = None
+        key_name: Optional[str] = None
 
         if sys.platform == "win32":
             if isinstance(ch, int):
                 if ch >= 0x1A1 and ch <= 0x1BA:
-                    key2 = chr(ord("a") + (ch - 0x1A1))
+                    key_name = chr(ord("a") + (ch - 0x1A1))
                     is_alt_hotkey = True
         else:
             if ch == "\x1b":
@@ -729,17 +725,20 @@ class Menu(Generic[T]):
                     or ch2 == ord("\r")
                     or ch2 == ord("\n")
                 ):
-                    key2 = chr(ch2)
+                    key_name = chr(ch2)
                     is_alt_hotkey = True
 
-        if key2 == "\n" or key2 == "\r":
-            key2 = "enter"
+        if key_name == "\n" or key_name == "\r":
+            key_name = "enter"
 
-        if key2 is not None:
-            htk = "alt+" + key2
+        if key_name is not None:
+            htk = "alt+" + key_name
             if htk in self._hotkeys:
                 logging.debug(f"Hotkey pressed: {htk}")
                 self._hotkeys[htk].func()
+            elif key_name == "enter":  # alt + enter
+                self._input.on_char("\n")  # new line
+                self.update_screen()
 
         return is_alt_hotkey
 
@@ -1005,15 +1004,20 @@ class Menu(Generic[T]):
         else:
             return None
 
-    def get_selected_items(self) -> Iterator[T]:
+    def get_selected_indices(self) -> Iterator[int]:
         if len(self.get_item_indices()) > 0:
             i = self._selected_row_begin
             j = self._selected_row_end
             if i > j:
                 i, j = j, i
-            item_indices = self.get_item_indices()[i : j + 1]
-            for item_index in item_indices:
-                yield self.items[item_index]
+            for idx in self.get_item_indices()[i : j + 1]:
+                yield idx
+        else:
+            return
+
+    def get_selected_items(self) -> Iterator[T]:
+        for item_index in self.get_selected_indices():
+            yield self.items[item_index]
 
     def on_char(self, ch: int):
         if ch == "\t":

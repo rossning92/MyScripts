@@ -104,7 +104,7 @@ class VariableEditMenu(DictEditMenu):
             dict_history=self.variable_edit_history,
         )
 
-        self.add_command(self.__select_directory, hotkey="ctrl+d")
+        self.add_command(self.__select_directory, hotkey="alt+d")
 
     def on_dict_history_update(self, history: Dict[str, List[Any]]):
         save_json(get_variable_edit_history_file(), history)
@@ -112,7 +112,7 @@ class VariableEditMenu(DictEditMenu):
     def __select_directory(self):
         key = self.get_selected_key()
         if key is not None:
-            dir_path = FileManager().select_directory()
+            dir_path = FileManager(goto=self.get_value(key)).select_directory()
             if dir_path is not None:
                 self.set_dict_value(key, dir_path)
 
