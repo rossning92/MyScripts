@@ -1326,9 +1326,12 @@ class Script:
             if "%s" in url:
                 from utils.menu.input import Input
 
-                keyword = Input().input()
-                if not keyword:
-                    return True
+                if len(arg_list) == 1:
+                    keyword = arg_list[0]
+                else:
+                    keyword = Input().input()
+                    if not keyword:
+                        return True
                 url = url.replace("%s", keyword)
 
             fallback_to_shell_open = True

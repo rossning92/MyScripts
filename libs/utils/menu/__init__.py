@@ -20,7 +20,6 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
-
 from utils.clip import get_clip, set_clip
 
 GUTTER_SIZE = 1
@@ -358,6 +357,7 @@ class Menu(Generic[T]):
 
     def set_prompt(self, prompt: str):
         self._input.prompt = prompt
+        self.update_screen()
 
     def clear_input(self):
         self._input.clear()
