@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-from _android import backup_pkg
+from _android import backup_pkg, get_apk_path
 from _script import set_variable, start_script
 from _shutil import call_echo, shell_open
 from utils.clip import set_clip
@@ -53,6 +53,12 @@ def backup_app():
     os.makedirs(out_dir, exist_ok=True)
     backup_pkg(pkg, out_dir=out_dir)
     shell_open(out_dir)
+
+
+@menu.func()
+def _get_apk_path():
+    print(get_apk_path(pkg))
+    input("(press enter key to exit...)")
 
 
 @menu.func()
