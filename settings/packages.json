@@ -272,6 +272,11 @@
       "packagePath": "github.com/iawia002/lux@latest"
     }
   },
+  "mermaid-cli": {
+    "npm": {
+      "packages": ["@mermaid-js/mermaid-cli"]
+    }
+  },
   "miniconda3": {
     "choco": {
       "packages": ["miniconda3"]
