@@ -20,6 +20,7 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
+
 from utils.clip import get_clip, set_clip
 
 GUTTER_SIZE = 1
@@ -168,6 +169,7 @@ T = TypeVar("T")
 class Menu(Generic[T]):
     stdscr = None
     color_pair_map: Dict[str, int] = {}
+    should_update_screen = False
 
     class ScreenWrapper:
         def __init__(self):
@@ -180,6 +182,8 @@ class Menu(Generic[T]):
         def __exit__(self, exc_type, exc_val, traceback):
             if self._should_init_curses:
                 Menu.destroy_curses()
+            else:
+                Menu.should_update_screen = True
 
     def __init__(
         self,
@@ -527,9 +531,10 @@ class Menu(Generic[T]):
             self._selected_row_end = max(0, total_items - 1)
 
         # Update screen
-        if self._should_update_screen:
+        if self._should_update_screen or Menu.should_update_screen:
             self._update_screen()
             self._should_update_screen = False
+            Menu.should_update_screen = False
 
         # Keyboard event
         try:

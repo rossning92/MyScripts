@@ -8,6 +8,7 @@ from _editor import open_code_editor
 from _shutil import get_home_path, shell_open
 
 from utils.clip import set_clip
+from utils.menu.logviewer import LogViewerMenu
 
 from . import Menu
 from .confirm import confirm
@@ -335,6 +336,13 @@ class FileManager(Menu[_File]):
             if self.__save_states:
                 self.__config.save()
 
+    def open_file(self, full_path: str):
+        _, ext = os.path.splitext(full_path)
+        if ext.lower() == ".log":
+            LogViewerMenu(file=full_path).exec()
+        else:
+            shell_open(full_path)
+
     def on_enter_pressed(self):
         if self.__select_mode == FileManager.SELECT_MODE_DIRECTORY:
             self.__selected_full_path = self.get_cur_dir()
@@ -353,5 +361,5 @@ class FileManager(Menu[_File]):
                     if self.__select_mode == FileManager.SELECT_MODE_FILE:
                         return super().on_enter_pressed()
                     else:
-                        shell_open(full_path)
+                        self.open_file(full_path)
                         return True

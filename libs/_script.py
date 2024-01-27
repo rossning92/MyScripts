@@ -14,6 +14,7 @@ import tempfile
 import threading
 import time
 from dataclasses import dataclass
+from enum import IntEnum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
@@ -89,7 +90,14 @@ if sys.platform == "win32":
 
 VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
-LOG_PIPE_FOR_BACKGROUND_PROCESS = True
+
+class BackgroundProcessOutputType(IntEnum):
+    LOG_PIPE = 1
+    REDIRECT_TO_FILE = 2
+
+
+background_process_output_type = BackgroundProcessOutputType.REDIRECT_TO_FILE
+
 
 SUPPORT_GNU_SCREEN = False
 
@@ -1437,10 +1445,29 @@ class Script:
                         | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
-                if LOG_PIPE_FOR_BACKGROUND_PROCESS:
+                if (
+                    background_process_output_type
+                    == BackgroundProcessOutputType.LOG_PIPE
+                ):
                     popen_extra_args["stdin"] = subprocess.DEVNULL
                     popen_extra_args["stdout"] = subprocess.PIPE
                     popen_extra_args["stderr"] = subprocess.PIPE
+
+                elif (
+                    background_process_output_type
+                    == BackgroundProcessOutputType.REDIRECT_TO_FILE
+                ):
+                    log_dir = os.path.join(get_data_dir(), "logs")
+                    os.makedirs(log_dir, exist_ok=True)
+                    fd = open(
+                        os.path.join(log_dir, slugify(self.get_window_title()))
+                        + ".log",
+                        "w",
+                    )
+                    popen_extra_args["stdin"] = subprocess.DEVNULL
+                    popen_extra_args["stdout"] = fd
+                    popen_extra_args["stderr"] = fd
+
                 else:
                     popen_extra_args["stdin"] = subprocess.DEVNULL
                     popen_extra_args["stdout"] = subprocess.DEVNULL
@@ -1639,7 +1666,7 @@ class Script:
                 if sys.platform == "linux":
                     popen_extra_args["start_new_session"] = True
 
-            if use_shell_execute_win32:
+            if sys.platform == "win32" and use_shell_execute_win32:
                 SW_SHOWNORMAL = 1
                 lpParameters = _args_to_str(arg_list[1:], shell_type="cmd")
                 logging.debug(
@@ -1690,9 +1717,22 @@ class Script:
                     with IgnoreSigInt():
                         success = self.ps.wait() == 0
 
-                if LOG_PIPE_FOR_BACKGROUND_PROCESS and background:
-                    LogPipe(self.ps.stdout, log_level=logging.INFO)
-                    LogPipe(self.ps.stderr, log_level=logging.INFO)
+                if background:
+                    if (
+                        background_process_output_type
+                        == BackgroundProcessOutputType.LOG_PIPE
+                    ):
+                        LogPipe(self.ps.stdout, log_level=logging.INFO)
+                        LogPipe(self.ps.stderr, log_level=logging.INFO)
+                    elif (
+                        background_process_output_type
+                        == BackgroundProcessOutputType.REDIRECT_TO_FILE
+                    ):
+                        # Close fd immediately. If we don't call `close()` the
+                        # file handles will remain open in the parent process,
+                        # which can cause potential issues like having many open
+                        # file descriptors.
+                        fd.close()
 
                 return success
 

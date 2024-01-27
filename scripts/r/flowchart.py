@@ -33,7 +33,8 @@ class FlowChartMenu(Menu[Node]):
             lambda: self.call_func_without_curses(self.__export_to_mermaid),
             hotkey="ctrl+e",
         )
-        self.add_command(self.__add_dep, hotkey="ctrl+d")
+        self.add_command(self.__add_node_from, hotkey="ctrl+f")
+        self.add_command(self.__add_node_to, hotkey="ctrl+t")
         self.add_command(self.__add_node, hotkey="ctrl+n")
         self.add_command(self.__load, hotkey="ctrl+s")
         self.add_command(self.__rename_node, hotkey="alt+n")
@@ -73,7 +74,7 @@ class FlowChartMenu(Menu[Node]):
             if node.parent == name:
                 yield node
 
-    def __add_dep(self):
+    def __add_node_to(self):
         if self.__cur_node:
             name = TextInput(
                 prompt=f"{self.__cur_node} -->",
@@ -82,6 +83,19 @@ class FlowChartMenu(Menu[Node]):
             if name:
                 self.add_node(name=name)
                 self.get_node(self.__cur_node).deps.append(name)
+
+        self.__save()
+        self.update_screen()
+
+    def __add_node_from(self):
+        if self.__cur_node:
+            name = TextInput(
+                prompt=f"{self.__cur_node} <--",
+                items=[node.name for node in self.__nodes],
+            ).request_input()
+            if name:
+                self.add_node(name=name)
+                self.get_node(name=name).deps.append(self.__cur_node)
 
         self.__save()
         self.update_screen()

@@ -106,7 +106,11 @@ class LogViewerMenu(Menu[str]):
             self.set_input("")
 
     def get_status_bar_text(self):
-        return self.__file_name + " | " + super().get_status_bar_text()
+        cols = [self.__file_name]
+        text = super().get_status_bar_text()
+        if text:
+            cols.append(text)
+        return " | ".join(cols)
 
     def on_created(self):
         last_update = 0.0
