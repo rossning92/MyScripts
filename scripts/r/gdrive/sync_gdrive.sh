@@ -12,9 +12,23 @@ source "$(dirname "$0")/_init_rclone.sh"
 
 cd "$HOME"
 
-sync_gdrive() {
+rclone_wrapper() {
+    logfile="$(mktemp)"
+
     # --progress : enable progress bar
-    rclone bisync "drive:$1" "$2" --verbose --exclude=.mypy_cache/** "${@:3}"
+    rclone bisync "drive:$1" "$2" --verbose --exclude=.mypy_cache/** "${@:3}" 2>&1 | tee "$logfile"
+    ret=${PIPESTATUS[0]}
+    if [[ "$ret" != "0" ]]; then
+        echo "ERROR: rclone returned $ret"
+        if grep -q 'too many deletes' "$logfile"; then
+            read -p "Too many deletes, force sync? (y/n): " ans
+            if [[ "$ans" == "y" ]]; then
+                rclone_wrapper "$@" --force
+            fi
+        fi
+    fi
+
+    rm "$logfile"
 }
 
 [[ -z "$LOCAL_DIR" ]] && local_dir="$HOME/gdrive/$GDRIVE_DIR" || local_dir="$LOCAL_DIR"
@@ -22,10 +36,4 @@ sync_gdrive() {
 mkdir -p "$local_dir"                                                      # create local dir if not exists
 
 echo "Sync \"gdrive://$GDRIVE_DIR\" <=> \"$local_dir\""
-if ! sync_gdrive "$GDRIVE_DIR" "$local_dir"; then
-    printf "\n\n\n"
-    read -p "Resync? (y/n): " ans
-    if [[ "$ans" == "y" ]]; then
-        sync_gdrive "$GDRIVE_DIR" "$local_dir" --resync
-    fi
-fi
+rclone_wrapper "$GDRIVE_DIR" "$local_dir"

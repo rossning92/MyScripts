@@ -924,6 +924,12 @@ class Script:
             # Close exising instances
             close_window_by_name(self.get_window_title())
 
+    def get_script_log_file(self) -> str:
+        log_dir = os.path.join(get_data_dir(), "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, slugify(self.get_window_title())) + ".log"
+        return log_file
+
     def execute(
         self,
         args: List[str] = [],
@@ -1457,13 +1463,7 @@ class Script:
                     background_process_output_type
                     == BackgroundProcessOutputType.REDIRECT_TO_FILE
                 ):
-                    log_dir = os.path.join(get_data_dir(), "logs")
-                    os.makedirs(log_dir, exist_ok=True)
-                    fd = open(
-                        os.path.join(log_dir, slugify(self.get_window_title()))
-                        + ".log",
-                        "w",
-                    )
+                    fd = open(self.get_script_log_file(), "w")
                     popen_extra_args["stdin"] = subprocess.DEVNULL
                     popen_extra_args["stdout"] = fd
                     popen_extra_args["stderr"] = fd

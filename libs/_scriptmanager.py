@@ -329,6 +329,15 @@ class ScriptManager:
         # Startup script should only be run once
         self.startup = False
 
+    def get_scheduled_scripts_run_time(self) -> Dict[Script, float]:
+        run_time: Dict[Script, float] = {}
+        for script in self.__scheduled_script:
+            if script.script_path in self.next_scheduled_script_run_time:
+                run_time[script] = self.next_scheduled_script_run_time[
+                    script.script_path
+                ]
+        return run_time
+
     def get_scheduled_scripts_to_run(self) -> Iterator[Script]:
         if not self.start_daemon:
             return

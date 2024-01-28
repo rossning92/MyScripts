@@ -34,9 +34,9 @@ class LogViewerMenu(Menu[str]):
         self.preset_dir = os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
 
         self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()
-        self.__default_log_highlight[r" D |\bDEBUG\b|\bDebug\b"] = "blue"
-        self.__default_log_highlight[r" W |\bWARN\b|\bWarn(ing)?\b"] = "yellow"
-        self.__default_log_highlight[r" (E|F) |\bERROR\b|\bError\b"] = "red"
+        self.__default_log_highlight[r" D |\b(DEBUG|Debug|debug)\b"] = "blue"
+        self.__default_log_highlight[r" W |\b(WARN|Warn(ing)?|warn(ing)?)\b"] = "yellow"
+        self.__default_log_highlight[r" (E|F) |\b(ERROR|Error|error)\b"] = "red"
         self.__default_log_highlight[">>>"] = "green"
         self.__log_highlight = self.__default_log_highlight.copy()
 

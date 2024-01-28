@@ -20,11 +20,7 @@ if [[ ! -f 'package.json' ]]; then
         --use-yarn
 fi
 
-# DaisyUI (based on Tailwind CSS)
-yarn add daisyui@latest
-if ! grep -q "daisyui" tailwind.config.ts; then
-    sed -i -r 's/(plugins: \[)/\1require\("daisyui\")/' tailwind.config.ts
-fi
+run_script r/web/add_daisyui_nextjs.sh
 
 # Mongodb
 yarn add mongodb@latest
