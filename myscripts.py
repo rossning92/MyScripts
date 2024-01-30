@@ -13,8 +13,6 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-from utils.menu.logviewer import LogViewerMenu
-
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -55,6 +53,7 @@ from utils.menu import Menu
 from utils.menu.confirm import confirm
 from utils.menu.dictedit import DictEditMenu
 from utils.menu.filemgr import FileManager
+from utils.menu.logviewer import LogViewerMenu
 from utils.menu.textinput import TextInput
 from utils.timeutil import time_diff_str
 
