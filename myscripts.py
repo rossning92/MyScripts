@@ -13,6 +13,7 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
+
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -36,6 +37,7 @@ from _script import (
     try_reload_scripts_autorun,
     update_variables,
 )
+from utils.fileutils import read_last_line
 from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
@@ -142,7 +144,13 @@ class _ScheduledScript:
         self.scheduled_time = scheduled_time
 
     def __str__(self) -> str:
-        return f"{time_diff_str(self.scheduled_time):<10} : {os.path.basename(self.script.script_path)} "
+        script_log_file = self.script.get_script_log_file()
+        if os.path.exists(script_log_file):
+            last_line = read_last_line(script_log_file)
+        else:
+            last_line = None
+
+        return f"{time_diff_str(self.scheduled_time):<10} : {os.path.basename(self.script.script_path):<24} : {last_line}"
 
 
 class _ScheduledScriptMenu(Menu[_ScheduledScript]):
@@ -241,6 +249,7 @@ class _MyScriptMenu(Menu[Script]):
                     new_window=False,
                     background=True,
                 )
+
             try:
                 self.call_func_without_curses(exec_script)
             except Exception as ex:
@@ -446,7 +455,7 @@ class _MyScriptMenu(Menu[Script]):
 
                 # Command line args
                 if self.__cmdline_args is not None:
-                    preview.append(("cyan", f"arg : {self.__cmdline_args}"))
+                    preview.append(("yellow", f"arg : {self.__cmdline_args}"))
 
                 # Preview variables
                 try:
@@ -474,7 +483,7 @@ class _MyScriptMenu(Menu[Script]):
                     if value != default_script_config[name]:
                         config_preview[f"cfg : {name}"] = str(value)
                 preview.extend(
-                    [("blue", x) for x in format_key_value_pairs(config_preview)]
+                    [("yellow", x) for x in format_key_value_pairs(config_preview)]
                 )
 
                 height = max(5, height - len(preview) - 1)

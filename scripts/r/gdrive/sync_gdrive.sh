@@ -25,10 +25,13 @@ rclone_wrapper() {
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --force
             fi
+        elif grep -q 'cannot find prior' "$logfile"; then
+            read -p "First time sync? (y/n): " ans
+            if [[ "$ans" == "y" ]]; then
+                rclone_wrapper "$@" --resync
+            fi
         fi
     fi
-
-    rm "$logfile"
 }
 
 [[ -z "$LOCAL_DIR" ]] && local_dir="$HOME/gdrive/$GDRIVE_DIR" || local_dir="$LOCAL_DIR"

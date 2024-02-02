@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# class_name=org.remmina.Remmina
+class_name=.realvnc-vncviewer
+
 # Get the window ID by window class
-window_id=$(wmctrl -lx | awk '/org.remmina.Remmina/ {print $1}')
+window_id=$(wmctrl -lx | awk "/$class_name/ {print \$1}")
 
 if [[ -n "$window_id" ]]; then
     active_window_id=$(xprop -root _NET_ACTIVE_WINDOW | awk '{print $5}')

@@ -20,7 +20,7 @@ IF NOT EXIST "%USERPROFILE%\.venv\myscripts" (
 CALL "%USERPROFILE%\.venv\myscripts\Scripts\activate.bat"
 
 ECHO Install python packages...
-pip install -r requirements.txt >NUL
+pip --disable-pip-version-check install -r requirements.txt >NUL
 
 :main
 python myscripts.py %*

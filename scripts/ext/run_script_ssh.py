@@ -131,7 +131,7 @@ def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port
     _putty_wrapper(
         "plink",
         [
-            "-no-antispoof",
+            # "-no-antispoof",
             "-ssh",
             "-t",
             _get_user_host(user=user, host=host),

@@ -1432,7 +1432,7 @@ def load_json(file: str, default=None):
 
 def save_json(file: str, data):
     with open(file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
 
 
 def update_json(file, dict_):

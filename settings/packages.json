@@ -369,6 +369,17 @@
       "packages": ["putty-tools"]
     }
   },
+  "rclone": {
+    "choco": {
+      "packages": ["rclone"]
+    },
+    "pacman": {
+      "packages": ["rclone"]
+    },
+    "termux": {
+      "packages": ["rclone"]
+    }
+  },
   "remmina": {
     "pacman": {
       "packages": ["remmina", "libvncserver"]

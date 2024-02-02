@@ -27,11 +27,17 @@ class _SelectPresetMenu(Menu[str]):
 
 
 class LogViewerMenu(Menu[str]):
-    def __init__(self, file: str, filter: Optional[str] = None):
+    def __init__(
+        self, file: str, filter: Optional[str] = None, preset_dir: Optional[str] = None
+    ):
         self.__file = file
         self.__file_name = os.path.basename(file)
         self.__lines: List[str] = []
-        self.preset_dir = os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
+        self.preset_dir = (
+            preset_dir
+            if preset_dir
+            else os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
+        )
 
         self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()
         self.__default_log_highlight[r" D |\b(DEBUG|Debug|debug)\b"] = "blue"
