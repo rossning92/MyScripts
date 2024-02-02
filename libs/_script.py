@@ -1546,18 +1546,7 @@ class Script:
                             open_in_terminal = True
 
                         else:
-                            arg_list = wrap_args_cmd(
-                                arg_list,
-                                cwd=cwd,
-                                title=self.get_window_title(),
-                                env=env,
-                            )
-                            popen_extra_args["creationflags"] = (
-                                subprocess.CREATE_NEW_CONSOLE
-                                | subprocess.CREATE_NEW_PROCESS_GROUP
-                            )
-                            no_wait = True
-                            open_in_terminal = True
+                            logging.warning("No terminal installed, ignore `newWindow` option.")
 
                     elif sys.platform == "linux":
                         if is_in_tmux():

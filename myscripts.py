@@ -241,8 +241,10 @@ class _MyScriptMenu(Menu[Script]):
                     new_window=False,
                     background=True,
                 )
-
-            self.call_func_without_curses(exec_script)
+            try:
+                self.call_func_without_curses(exec_script)
+            except Exception as ex:
+                logging.error(f"Error on running scheduled script: {ex}")
 
     def match_item(self, keyword: str, script: Script) -> bool:
         if script.match_pattern(keyword):

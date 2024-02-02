@@ -216,7 +216,7 @@ def _is_go_package_installed(go_pkg_path):
 
 def _choco_install(pkg, upgrade=False):
     for p in packages[pkg]["choco"]["packages"]:
-        out = check_output(["choco", "list", "--local", "--exact", p])
+        out = check_output(["choco", "list", "--exact", p])
 
         if "0 packages installed" in out:
             logging.info("Install `%s`..." % p)

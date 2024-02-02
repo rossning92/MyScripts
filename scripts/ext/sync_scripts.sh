@@ -11,7 +11,7 @@ if [[ ! -d ".git" ]]; then
     git init
     git remote add origin https://github.com/rossning92/MyScripts
     git fetch
-    git reset --hard origin/master
+    git reset --mixed origin/master
     git branch --set-upstream-to=origin/master master
     git submodule update --init --recursive
 fi
