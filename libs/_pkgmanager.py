@@ -186,9 +186,9 @@ def is_npm_global_package_installed(p):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
             shell=sys.platform == "win32",
-            creationflags=subprocess.CREATE_NEW_CONSOLE
-            if sys.platform == "win32"
-            else 0,  # prevent title change
+            creationflags=(
+                subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0
+            ),  # prevent title change
         )
         == 0
     )
@@ -214,11 +214,24 @@ def _is_go_package_installed(go_pkg_path):
     )
 
 
+def _choco_is_package_installed(name: str) -> bool:
+    use_builtin_choco_command = False
+    if use_builtin_choco_command:
+        # Note that the "--localonly" option has been removed in Chocolatey 2.0 and higher.
+        out = check_output(["choco", "list", "--exact", "--localonly", name])
+        return "0 packages installed" not in out
+    else:
+        path = shutil.which("choco")
+        if path:
+            lib_path = os.path.abspath(os.path.dirname(path) + f"\\..\\lib\\{name}")
+            return os.path.exists(lib_path)
+        else:
+            raise Exception("choco is not installed.")
+
+
 def _choco_install(pkg, upgrade=False):
     for p in packages[pkg]["choco"]["packages"]:
-        out = check_output(["choco", "list", "--exact", p])
-
-        if "0 packages installed" in out:
+        if not _choco_is_package_installed(p):
             logging.info("Install `%s`..." % p)
             run_elevated(
                 ["choco", "install", p, "-y", "-s", "https://chocolatey.org/api/v2/"],
@@ -229,6 +242,9 @@ def _choco_install(pkg, upgrade=False):
             run_elevated(
                 ["choco", "upgrade", p, "-y", "-s", "https://chocolatey.org/api/v2/"],
             )
+
+        else:
+            logging.debug(f'Package "{p}" already exists, skip installation.')
 
     refresh_env_vars()
 

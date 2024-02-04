@@ -6,8 +6,8 @@ else
     fullscreen=0
 fi
 
-if [[ -z "$QUALITY" ]]; then
-    QUALITY="Medium"
+if [[ -z "$VNC_QUALITY" ]]; then
+    quality="Medium"
 fi
 
 cd ~
@@ -15,7 +15,7 @@ rm connection.vnc || true
 cat >connection.vnc <<EOF
 ConnMethod=tcp
 FullScreen=${fullscreen}
-Quality=${QUALITY}
+Quality=${quality}
 Host=${VNC_SERVER}
 Password=${pwd}
 EOF

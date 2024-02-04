@@ -109,6 +109,8 @@ fi
 
 # Hardware specific (TODO: move)
 yay_install k380-function-keys-conf
+pac_install solaar # Logitech device manager
+append_line_dedup ~/.xinitrc 'solaar &'
 
 # Configure Touchpad:
 # https://wiki.archlinux.org/title/Touchpad_Synaptics

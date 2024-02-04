@@ -212,6 +212,16 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "workbench.action.navigateForward",
                     "when": "canNavigateForward",
                 },
+                {
+                    "key": "shift+alt+f",
+                    "command": "references-view.findReferences",
+                    "when": "editorHasReferenceProvider",
+                },
+                {
+                    "key": "shift+alt+f12",
+                    "command": "-references-view.findReferences",
+                    "when": "editorHasReferenceProvider",
+                },
                 # Genie:
                 {
                     "key": "ctrl+k a",
