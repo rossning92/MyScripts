@@ -16,5 +16,6 @@ if [[ -n "$window_id" ]]; then
         wmctrl -i -a "$window_id"
     fi
 else
-    echo "Window not found!"
+    echo "Starting VNC viewer since the window cannot be found."
+    run_script r/vncviewer_realvnc.sh
 fi
