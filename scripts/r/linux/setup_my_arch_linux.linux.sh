@@ -79,12 +79,12 @@ pac_install alsa-utils # for amixer CLI command
 # # Disable extra trigger key
 # sed -iE 's/#?#UseExtraTriggerKeyOnlyWhenUseItToInactivate=.*/UseExtraTriggerKeyOnlyWhenUseItToInactivate=False/' ~/.config/fcitx/config
 
-# Disable CapsLock key
-append_line_dedup ~/.xinitrc "setxkbmap -option caps:none"
-
 # https://wiki.archlinux.org/title/Fcitx5
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"
+
+# Disable CapsLock key
+append_line_dedup ~/.xinitrc "setxkbmap -option caps:none"
 
 # Automatically run startx without using display manager / login manager.
 append_line_dedup \
@@ -110,7 +110,7 @@ fi
 # Hardware specific (TODO: move)
 yay_install k380-function-keys-conf
 pac_install solaar # Logitech device manager
-append_line_dedup ~/.xinitrc 'solaar &'
+append_line_dedup ~/.xinitrc 'solaar --window hide &'
 
 # Configure Touchpad:
 # https://wiki.archlinux.org/title/Touchpad_Synaptics
