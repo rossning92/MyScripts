@@ -9,3 +9,9 @@ tools/install-build-deps --android
 tools/gn args out/android
 
 tools/ninja -C out/android
+
+adb root
+adb remount
+adb push out/android/traced /system/bin/
+adb push out/android/libperfetto.so /system/lib64/
+adb push out/android/libperfetto_android_internal.so /system/lib64/

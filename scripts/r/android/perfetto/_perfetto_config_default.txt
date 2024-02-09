@@ -45,6 +45,9 @@ data_sources: {
             ftrace_events: "task/task_newtask"
             ftrace_events: "task/task_rename"
 
+            # ftrace_events: "raw_syscalls/sys_enter"
+            # ftrace_events: "raw_syscalls/sys_exit"
+
             # Atrace gfx category
             atrace_categories: "am"
             atrace_categories: "binder_driver"
