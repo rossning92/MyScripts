@@ -13,7 +13,6 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -37,7 +36,6 @@ from _script import (
     try_reload_scripts_autorun,
     update_variables,
 )
-from utils.fileutils import read_last_line
 from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
@@ -51,6 +49,7 @@ from _shutil import (
     setup_logger,
     setup_nodejs,
 )
+from utils.fileutils import read_last_line
 from utils.menu import Menu
 from utils.menu.confirm import confirm
 from utils.menu.dictedit import DictEditMenu
@@ -199,7 +198,8 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._new_script, hotkey="ctrl+n")
         self.add_command(self._next_scheduled_script, hotkey="alt+t")
-        self.add_command(self._on_alt_enter_pressed, hotkey="alt+enter")
+        self.add_command(self._run_without_close_on_exist, hotkey="alt+enter")
+        self.add_command(self._run_without_close_on_exist, hotkey="ctrl+enter")
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
         self.add_command(self._rename_script_and_replace_all)
@@ -401,7 +401,7 @@ class _MyScriptMenu(Menu[Script]):
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
 
-    def _on_alt_enter_pressed(self):
+    def _run_without_close_on_exist(self):
         try:
             self.run_selected_script(close_on_exit=False)
             self.clear_input()

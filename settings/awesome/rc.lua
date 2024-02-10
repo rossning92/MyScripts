@@ -427,7 +427,10 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
     end, {
         description = "decrease brightness",
         group = "custom"
-    })
+    }),
+
+    awful.key({ modkey }, "a", naughty.destroy_all_notifications,
+        { description = "clear notifications", group = "awesome" })
 )
 
 clientkeys = gears.table.join(awful.key({ modkey }, "f", function(c)

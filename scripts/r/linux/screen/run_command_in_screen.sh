@@ -10,15 +10,16 @@ if screen -ls $name; then
     screen -r $name
 else
     echo "Create new screen session: $name"
-    if [[ $(grep Microsoft /proc/version) ]]; then # WSL 1
+    # if [[ $(grep Microsoft /proc/version) ]]; then # WSL 1
+    if false; then
         # HACK: If you run Windows commands within the current bash script, e.g.
         # cmd.exe, for some reason they will be killed when you close the
         # terminal. To avoid this, start a new session by running the `wsl`
         # command.
         wsl.exe -e bash -c "SCREENDIR=$HOME/.screen screen -dm -S $name bash"
+        screen -S $name -X stuff "$commands\n"
     else
-        screen -dm -S $name bash
+        screen -dm -S $name bash -c "$commands"
     fi
-    screen -S $name -X stuff "$commands\n"
     screen -r $name
 fi
