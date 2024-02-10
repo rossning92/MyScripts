@@ -112,8 +112,9 @@ class ChatMenu(Menu[_Line]):
         self.__send_message(text)
 
     def __yank(self):
-        idx = self.get_selected_index()
-        if idx >= 0:
+        indices = list(self.get_selected_indices())
+        if len(indices) == 1:
+            idx = indices[0]
             line = self.__lines[idx]
             if line != self.__last_yanked_line:
                 self.__yank_mode = 0
@@ -135,6 +136,14 @@ class ChatMenu(Menu[_Line]):
                     set_clip(message_text)
                     self.set_message("message copied")
                 self.__yank_mode = 0
+        elif len(indices) > 1:
+            line_text = []
+            for idx in indices:
+                line = self.__lines[idx]
+                line_text.append(line.text)
+            set_clip("\n".join(line_text))
+            self.set_message("selected line copied")
+            self.set_multi_select(False)
 
 
 if __name__ == "__main__":

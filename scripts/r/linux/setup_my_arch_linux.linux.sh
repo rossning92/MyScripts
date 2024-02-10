@@ -83,8 +83,18 @@ pac_install alsa-utils # for amixer CLI command
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"
 
-# Disable CapsLock key
-append_line_dedup ~/.xinitrc "setxkbmap -option caps:none"
+# Key mapping using https://github.com/rvaiya/keyd
+# Map CapsLock to Control+Meta key
+yay_install keyd
+sudo tee /etc/keyd/default.conf <<EOF
+[ids]
+*
+[main]
+capslock = overload(capslock, esc)
+
+[capslock:C-M]
+EOF
+sudo systemctl enable keyd.service --now
 
 # Automatically run startx without using display manager / login manager.
 append_line_dedup \
@@ -134,4 +144,6 @@ append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
 
 # Install GitHub CLI
 pac_install github-cli
-[[ "$(gh auth status 2>&1)" =~ "not logged" ]] && gh auth login
+if [[ "$(gh auth status 2>&1)" =~ "not logged" ]]; then
+    gh auth login
+fi
