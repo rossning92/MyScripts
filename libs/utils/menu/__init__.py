@@ -119,7 +119,7 @@ class _InputWidget:
             stdscr.addstr(
                 cursor_y,
                 cursor_x,
-                self.text[self.caret_pos :] + (" \u23CE" if show_enter_symbol else ""),
+                self.text[self.caret_pos :] + (" [ENTER]" if show_enter_symbol else ""),
             )
             y, x = Menu.stdscr.getyx()  # type: ignore
 
@@ -234,27 +234,27 @@ class Menu(Generic[T]):
         self.__search_on_enter: bool = search_on_enter
         self.__fuzzy_search = fuzzy_search
 
-        self.__start_index: int = 0
+        self.__scroll_y: int = 0
         self.__num_rendered_items: int = 0
         self.__empty_lines: int = 0
 
-        self._selected_row_begin: int = selected_index
-        self._selected_row_end: int = selected_index
-        self._multi_select_mode: bool = False
+        self.__selected_row_begin: int = selected_index
+        self.__selected_row_end: int = selected_index
+        self.__multi_select_mode: bool = False
 
-        self._scroll_x = 0
-        self._scroll_distance = 0
-        self._can_scroll_left = False
-        self._can_scroll_right = False
+        self.__scroll_x = 0
+        self.__scroll_distance = 0
+        self.__can_scroll_left = False
+        self.__can_scroll_right = False
 
-        self._should_update_matched_items: bool = False
+        self.__should_update_matched_items: bool = False
 
         # Avoid updating the matching items when input changes too often.
-        self._last_match_time: float = 0
+        self.__last_match_time: float = 0
 
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
-        self._should_update_screen = True
+        self.__should_update_screen = True
 
         # History
         self.history = history
@@ -322,7 +322,7 @@ class Menu(Generic[T]):
             return range(len(self.items))
 
     def append_item(self, item: T):
-        last_line_selected = self._selected_row_end == len(self.get_item_indices()) - 1
+        last_line_selected = self.__selected_row_end == len(self.get_item_indices()) - 1
 
         self.items.append(item)
         self._last_item_count = len(self.items)
@@ -332,13 +332,13 @@ class Menu(Generic[T]):
             if self.match_item(self.get_input(), item):
                 self._matched_item_indices.append(self._last_item_count - 1)
                 if last_line_selected:
-                    self._selected_row_begin = self._selected_row_end = (
+                    self.__selected_row_begin = self.__selected_row_end = (
                         len(self._matched_item_indices) - 1
                     )
                 self.update_screen()
 
         if last_line_selected:
-            self._selected_row_begin = self._selected_row_end = (
+            self.__selected_row_begin = self.__selected_row_end = (
                 len(self.get_item_indices()) - 1
             )
             self.update_screen()
@@ -347,8 +347,8 @@ class Menu(Generic[T]):
         self.items.clear()
         self._last_item_count = 0
         self._matched_item_indices.clear()
-        self._selected_row_begin = 0
-        self._selected_row_end = 0
+        self.__selected_row_begin = 0
+        self.__selected_row_end = 0
         self.update_screen()
 
     def set_input(self, text: str):
@@ -364,10 +364,11 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def clear_input(self):
-        self._input.clear()
         if self.__search_mode:
-            self.reset_selection()
-        self.update_screen()
+            if self.__selected_row_end < len(self._matched_item_indices):
+                row_number = self._matched_item_indices[self.__selected_row_end]
+                self.set_selected_row(row_number)
+        self.set_input("")
 
     def call_func_without_curses(self, func: Callable[[], Any]):
         Menu.destroy_curses()
@@ -467,31 +468,33 @@ class Menu(Generic[T]):
 
         num_matched_items = len(self._matched_item_indices)
         if num_matched_items > 0:
-            self._selected_row_begin = min(
-                self._selected_row_begin, num_matched_items - 1
+            self.__selected_row_begin = min(
+                self.__selected_row_begin, num_matched_items - 1
             )
-            self._selected_row_end = min(self._selected_row_end, num_matched_items - 1)
+            self.__selected_row_end = min(
+                self.__selected_row_end, num_matched_items - 1
+            )
         else:
-            self._selected_row_begin = 0
-            self._selected_row_end = 0
+            self.__selected_row_begin = 0
+            self.__selected_row_end = 0
         self._check_if_item_selection_changed()
 
         self._last_input = self.get_input()
         self._last_item_count = len(self.items)
-        self._last_match_time = time.time()
-        self._should_update_matched_items = False
-        self._should_update_screen = True
+        self.__last_match_time = time.time()
+        self.__should_update_matched_items = False
+        self.__should_update_screen = True
 
     def reset_selection(self):
-        self._selected_row_begin = 0
-        self._selected_row_end = 0
+        self.__selected_row_begin = 0
+        self.__selected_row_end = 0
 
     def set_selected_row(self, selected_row: int):
         self._requested_selected_row = selected_row
         self._check_if_item_selection_changed()
 
     def refresh(self):
-        self._should_update_matched_items = True
+        self.__should_update_matched_items = True
 
     # Returns false if we should exit main loop for the current window
     def process_events(self, timeout_ms: int = 0) -> bool:
@@ -506,8 +509,8 @@ class Menu(Generic[T]):
             Menu.stdscr.timeout(0)
 
         if self.__search_mode:
-            if self._should_update_matched_items or (
-                time.time() > self._last_match_time + 0.1
+            if self.__should_update_matched_items or (
+                time.time() > self.__last_match_time + 0.1
                 and (
                     (
                         not self.__search_on_enter
@@ -520,20 +523,20 @@ class Menu(Generic[T]):
 
         # Update item selection
         if self._requested_selected_row >= 0:
-            self._selected_row_begin = self._requested_selected_row
-            self._selected_row_end = self._requested_selected_row
+            self.__selected_row_begin = self._requested_selected_row
+            self.__selected_row_end = self._requested_selected_row
             self._requested_selected_row = -1
 
         total_items = len(self.get_item_indices())
-        if self._selected_row_begin >= total_items:
-            self._selected_row_begin = max(0, total_items - 1)
-        if self._selected_row_end >= total_items:
-            self._selected_row_end = max(0, total_items - 1)
+        if self.__selected_row_begin >= total_items:
+            self.__selected_row_begin = max(0, total_items - 1)
+        if self.__selected_row_end >= total_items:
+            self.__selected_row_end = max(0, total_items - 1)
 
         # Update screen
-        if self._should_update_screen or Menu.should_update_screen:
+        if self.__should_update_screen or Menu.should_update_screen:
             self._update_screen()
-            self._should_update_screen = False
+            self.__should_update_screen = False
             Menu.should_update_screen = False
 
         # Keyboard event
@@ -560,27 +563,27 @@ class Menu(Generic[T]):
 
             elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
                 if len(self.get_item_indices()) > 0:
-                    self._selected_row_end = max(self._selected_row_end - 1, 0)
-                    if not self._multi_select_mode:
-                        self._selected_row_begin = self._selected_row_end
+                    self.__selected_row_end = max(self.__selected_row_end - 1, 0)
+                    if not self.__multi_select_mode:
+                        self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
                 if len(self.get_item_indices()) > 0:
-                    self._selected_row_end = min(
-                        self._selected_row_end + 1,
+                    self.__selected_row_end = min(
+                        self.__selected_row_end + 1,
                         len(self.get_item_indices()) - 1,
                     )
-                    if not self._multi_select_mode:
-                        self._selected_row_begin = self._selected_row_end
+                    if not self.__multi_select_mode:
+                        self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
             elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
-            ) and self._can_scroll_left:
-                self._scroll_x = max(self._scroll_x - self._scroll_distance, 0)
+            ) and self.__can_scroll_left:
+                self.__scroll_x = max(self.__scroll_x - self.__scroll_distance, 0)
                 self.update_screen()
 
             elif (
@@ -590,8 +593,8 @@ class Menu(Generic[T]):
 
             elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
-            ) and self._can_scroll_right:
-                self._scroll_x += self._scroll_distance
+            ) and self.__can_scroll_right:
+                self.__scroll_x += self.__scroll_distance
                 self.update_screen()
 
             elif (
@@ -601,40 +604,40 @@ class Menu(Generic[T]):
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
                 if len(self.get_item_indices()) > 0:
-                    self._selected_row_end = max(
-                        self._selected_row_end - self.get_items_per_page(), 0
+                    self.__selected_row_end = max(
+                        self.__selected_row_end - self.get_items_per_page(), 0
                     )
-                    if not self._multi_select_mode:
-                        self._selected_row_begin = self._selected_row_end
+                    if not self.__multi_select_mode:
+                        self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
                 if len(self.get_item_indices()) > 0:
-                    self._selected_row_end = min(
-                        self._selected_row_end + self.get_items_per_page(),
+                    self.__selected_row_end = min(
+                        self.__selected_row_end + self.get_items_per_page(),
                         len(self.get_item_indices()) - 1,
                     )
-                    if not self._multi_select_mode:
-                        self._selected_row_begin = self._selected_row_end
+                    if not self.__multi_select_mode:
+                        self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_HOME or ch == 449:
                 if len(self.get_item_indices()) > 0:
-                    self._selected_row_end = 0
-                    if not self._multi_select_mode:
-                        self._selected_row_begin = self._selected_row_end
+                    self.__selected_row_end = 0
+                    if not self.__multi_select_mode:
+                        self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
             elif ch == curses.KEY_END or ch == 455:
                 if len(self.get_item_indices()) > 0:
-                    self._selected_row_begin = self._selected_row_end = (
+                    self.__selected_row_begin = self.__selected_row_end = (
                         len(self.get_item_indices()) - 1
                     )
-                    if not self._multi_select_mode:
-                        self._selected_row_begin = self._selected_row_end
+                    if not self.__multi_select_mode:
+                        self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
@@ -769,7 +772,7 @@ class Menu(Generic[T]):
         if self.is_cancelled:
             return -1
         elif len(self.get_item_indices()) > 0:
-            return self.get_item_indices()[self._selected_row_end]
+            return self.get_item_indices()[self.__selected_row_end]
         else:
             return -1
 
@@ -889,14 +892,14 @@ class Menu(Generic[T]):
 
         # Update the start index for the current page.
         if self.get_items_per_page() > 0:
-            if self._selected_row_end >= self.__start_index + self.get_items_per_page():
-                self.__start_index = self._selected_row_end
-            elif self._selected_row_end < self.__start_index:
-                self.__start_index = self._selected_row_end
+            if self.__selected_row_end >= self.__scroll_y + self.get_items_per_page():
+                self.__scroll_y = self.__selected_row_end
+            elif self.__selected_row_end < self.__scroll_y:
+                self.__scroll_y = self.__selected_row_end
 
-        self._can_scroll_left = False
-        self._can_scroll_right = False
-        matched_item_index = self.__start_index
+        self.__can_scroll_left = False
+        self.__can_scroll_right = False
+        matched_item_index = self.__scroll_y
 
         item_indices = self.get_item_indices()
 
@@ -907,13 +910,13 @@ class Menu(Generic[T]):
 
         while matched_item_index < len(item_indices) and item_y < item_y_max:
             item_index = item_indices[matched_item_index]
-            self.__num_rendered_items = matched_item_index - self.__start_index + 1
+            self.__num_rendered_items = matched_item_index - self.__scroll_y + 1
             is_item_selected = (
-                matched_item_index >= self._selected_row_begin
-                and matched_item_index <= self._selected_row_end
+                matched_item_index >= self.__selected_row_begin
+                and matched_item_index <= self.__selected_row_end
             ) or (
-                matched_item_index <= self._selected_row_begin
-                and matched_item_index >= self._selected_row_end
+                matched_item_index <= self.__selected_row_begin
+                and matched_item_index >= self.__selected_row_end
             )
             itm = self.items[item_index]
             item_text = str(self.items[item_index])
@@ -935,7 +938,7 @@ class Menu(Generic[T]):
                 item_text,
                 wrap_text=self.__wrap_text,
                 color=color,
-                scroll_x=self._scroll_x,
+                scroll_x=self.__scroll_x,
                 bold=is_item_selected,
             )
 
@@ -967,16 +970,16 @@ class Menu(Generic[T]):
             item_y += increments
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
-            self._scroll_distance = self._width - line_number_chars - 1
+            self.__scroll_distance = self._width - line_number_chars - 1
             if draw_text_result.can_scroll_left:
-                self._can_scroll_left = True
+                self.__can_scroll_left = True
             if draw_text_result.can_scroll_right:
-                self._can_scroll_right = True
+                self.__can_scroll_right = True
 
         # Draw status bar
         a = self.get_status_bar_text()
         b = " [%d/%d]" % (
-            self._selected_row_end + 1,
+            self.__selected_row_end + 1,
             len(item_indices),
         )
         self.draw_text(
@@ -994,7 +997,7 @@ class Menu(Generic[T]):
 
     def get_status_bar_text(self) -> str:
         columns: List[str] = []
-        if self._multi_select_mode:
+        if self.__multi_select_mode:
             columns.append("multi_select_mode")
         if self._message:
             columns.append(self._message)
@@ -1004,15 +1007,15 @@ class Menu(Generic[T]):
         if not ignore_cancellation and self.is_cancelled:
             return None
         elif len(self.get_item_indices()) > 0:
-            item_index = self.get_item_indices()[self._selected_row_end]
+            item_index = self.get_item_indices()[self.__selected_row_end]
             return self.items[item_index]
         else:
             return None
 
     def get_selected_indices(self) -> Iterator[int]:
         if len(self.get_item_indices()) > 0:
-            i = self._selected_row_begin
-            j = self._selected_row_end
+            i = self.__selected_row_begin
+            j = self.__selected_row_end
             if i > j:
                 i, j = j, i
             for idx in self.get_item_indices()[i : j + 1]:
@@ -1087,8 +1090,8 @@ class Menu(Generic[T]):
         self._closed = True
 
     def _check_if_item_selection_changed(self):
-        if self._selected_row_end < len(self.get_item_indices()):
-            item_index = self.get_item_indices()[self._selected_row_end]
+        if self.__selected_row_end < len(self.get_item_indices()):
+            item_index = self.get_item_indices()[self.__selected_row_end]
             selected = self.items[item_index]
         else:
             selected = None
@@ -1112,13 +1115,13 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def update_screen(self):
-        self._should_update_screen = True
+        self.__should_update_screen = True
 
     def _toggle_multi_select(self):
-        self.set_multi_select(not self._multi_select_mode)
+        self.set_multi_select(not self.__multi_select_mode)
 
     def set_multi_select(self, mode: bool):
-        self._multi_select_mode = mode
-        if not self._multi_select_mode:
-            self._selected_row_begin = self._selected_row_end
+        self.__multi_select_mode = mode
+        if not self.__multi_select_mode:
+            self.__selected_row_begin = self.__selected_row_end
         self.update_screen()

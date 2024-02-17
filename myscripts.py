@@ -49,6 +49,7 @@ from _shutil import (
     setup_logger,
     setup_nodejs,
 )
+from utils.clip import set_clip
 from utils.fileutils import read_last_line
 from utils.menu import Menu
 from utils.menu.confirm import confirm
@@ -192,6 +193,7 @@ class _MyScriptMenu(Menu[Script]):
         )
 
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")
+        self.add_command(self._copy_script_path, hotkey="alt+y")
         self.add_command(self._delete_file)
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
@@ -352,6 +354,13 @@ class _MyScriptMenu(Menu[Script]):
             )
 
             self.__last_copy_time = now
+
+    def _copy_script_path(self):
+        script = self.get_selected_script()
+        if script:
+            script_path = script.get_script_path()
+            set_clip(script_path)
+            self.set_message(f"copied: {script_path}")
 
     def _new_script_or_duplicate_script(self, duplicate=False):
         ref_script_path = self.get_selected_script_path()

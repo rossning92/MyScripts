@@ -134,9 +134,14 @@ Section "InputClass"
 EndSection
 EOF
 
+# Screenshot
+pac_install flameshot
+append_line_dedup ~/.xinitrc 'flameshot &'
+
 # Auto-start MyScript
 append_line_dedup ~/.xinitrc 'alacritty -e "$HOME/MyScripts/myscripts" --startup &'
 
+# Replace the current process with the awesomewm when initializing X.
 append_line_dedup ~/.xinitrc "exec awesome"
 
 # Disable sudo password

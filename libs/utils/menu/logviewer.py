@@ -105,11 +105,10 @@ class LogViewerMenu(Menu[str]):
 
     def on_enter_pressed(self):
         if self.search_by_input():
-            pass
-        elif self._selected_row_end < len(self._matched_item_indices):
-            row_number = self._matched_item_indices[self._selected_row_end]
-            self.set_selected_row(row_number)
-            self.set_input("")
+            return
+
+        else:
+            self.clear_input()
 
     def get_status_bar_text(self):
         cols = [self.__file_name]

@@ -374,12 +374,12 @@ globalkeys = gears.table.join(awful.key({ modkey }, "s", hotkeys_popup.show_help
     }),
 
     -- Prompt
-    awful.key({ modkey }, "r", function()
-        awful.screen.focused().mypromptbox:run()
-    end, {
-        description = "run prompt",
-        group = "launcher"
-    }),
+    -- awful.key({ modkey }, "r", function()
+    --     awful.screen.focused().mypromptbox:run()
+    -- end, {
+    --     description = "run prompt",
+    --     group = "launcher"
+    -- }),
     -- awful.key({ modkey }, "x", function()
     --     awful.prompt.run {
     --         prompt = "Run Lua code: ",
@@ -719,5 +719,20 @@ client.connect_signal("unfocus", function(c)
     c.border_color = beautiful.border_normal
 end)
 -- }}}
+
+--- Test keygrabber
+local a = awful.keygrabber {
+    stop_key         = "Escape",
+    start_callback   = function() naughty.notify { text = "start 1" } end,
+    stop_callback    = function() naughty.notify { text = "stop 1" } end,
+    root_keybindings = {
+        { { "Mod4" }, "b", function() end },
+    },
+    keybindings      = {
+        { {}, "x", function()
+            naughty.notify { text = "in grabber 1" }
+        end },
+    },
+}
 
 splitscreen:init_layout()
