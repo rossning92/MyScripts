@@ -167,7 +167,6 @@ def get_script_dirs_config_file():
 class ScriptDirectory:
     name: str
     path: str  # absolute path of script directory
-    include_exts: List[str]
 
 
 @lru_cache(maxsize=None)
@@ -176,9 +175,7 @@ def get_script_directories() -> List[ScriptDirectory]:
 
     # Default script root path
     directories.append(
-        ScriptDirectory(
-            name="", path=os.path.join(get_my_script_root(), "scripts"), include_exts=[]
-        )
+        ScriptDirectory(name="", path=os.path.join(get_my_script_root(), "scripts"))
     )
 
     config_file = get_script_dirs_config_file()
@@ -197,10 +194,7 @@ def get_script_directories() -> List[ScriptDirectory]:
                 )
             )
 
-        include_exts = item["includeExts"] if "includeExts" in item else []
-        directories.append(
-            ScriptDirectory(name=name, path=directory, include_exts=include_exts)
-        )
+        directories.append(ScriptDirectory(name=name, path=directory))
 
     return directories
 
@@ -1067,9 +1061,9 @@ class Script:
             setup_android_env(
                 env=env,
                 jdk_version=self.cfg["adk.jdk_version"],
-                android_home=variables["ANDROID_HOME"]
-                if "ANDROID_HOME" in variables
-                else None,
+                android_home=(
+                    variables["ANDROID_HOME"] if "ANDROID_HOME" in variables else None
+                ),
             )
 
         if self.cfg["cmake"]:
@@ -1546,7 +1540,9 @@ class Script:
                             open_in_terminal = True
 
                         else:
-                            logging.warning("No terminal installed, ignore `newWindow` option.")
+                            logging.warning(
+                                "No terminal installed, ignore `newWindow` option."
+                            )
 
                     elif sys.platform == "linux":
                         if is_in_tmux():
@@ -2074,7 +2070,20 @@ def get_all_script_access_time() -> Dict[str, float]:
     return _cached_script_access_time
 
 
+script_dir_config_file = ".scriptdirconfig.json"
+
+
+def get_default_script_dir_config():
+    return {"includeExts": ""}
+
+
 def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
+    dir_config = load_json(
+        os.path.join(directory, script_dir_config_file),
+        default=get_default_script_dir_config(),
+    )
+    include_exts += dir_config["includeExts"].split()
+
     def should_ignore(dir, file):
         if (
             file == "tmp"
@@ -2109,7 +2118,7 @@ def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
 
 def get_all_scripts() -> Iterator[str]:
     for d in get_script_directories():
-        files = get_scripts_recursive(d.path, include_exts=d.include_exts)
+        files = get_scripts_recursive(d.path)
         for file in files:
             # File has been removed during iteration
             if not os.path.exists(file):

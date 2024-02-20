@@ -363,9 +363,13 @@ class Menu(Generic[T]):
         self._input.prompt = prompt
         self.update_screen()
 
-    def clear_input(self):
+    def clear_input(self, reset_selection=False):
         if self.__search_mode:
-            if self.__selected_row_end < len(self._matched_item_indices):
+            if reset_selection:
+                self.reset_selection()
+            elif self.__selected_row_end < len(
+                self._matched_item_indices
+            ):  # select the same item when filter is removed
                 row_number = self._matched_item_indices[self.__selected_row_end]
                 self.set_selected_row(row_number)
         self.set_input("")
@@ -904,9 +908,9 @@ class Menu(Generic[T]):
         item_indices = self.get_item_indices()
 
         if self.__line_number and len(item_indices) > 0:
-            line_number_chars = len(str(item_indices[-1]))
+            line_number_width = len(str(item_indices[-1] + 1))
         else:
-            line_number_chars = 0
+            line_number_width = 0
 
         while matched_item_index < len(item_indices) and item_y < item_y_max:
             item_index = item_indices[matched_item_index]
@@ -934,7 +938,7 @@ class Menu(Generic[T]):
             # Draw item
             draw_text_result = self.draw_text(
                 item_y,
-                line_number_chars + GUTTER_SIZE,
+                line_number_width + GUTTER_SIZE,
                 item_text,
                 wrap_text=self.__wrap_text,
                 color=color,
@@ -950,7 +954,7 @@ class Menu(Generic[T]):
                 self.draw_text(
                     item_y,
                     0,
-                    line_number_text.rjust(line_number_chars) + (" " * GUTTER_SIZE),
+                    line_number_text.rjust(line_number_width) + (" " * GUTTER_SIZE),
                     color=line_number_color,
                 )
 
@@ -958,7 +962,7 @@ class Menu(Generic[T]):
                     self.draw_text(
                         y,
                         0,
-                        " " * (line_number_chars + GUTTER_SIZE),
+                        " " * (line_number_width + GUTTER_SIZE),
                         color=line_number_color,
                     )
 
@@ -970,7 +974,9 @@ class Menu(Generic[T]):
             item_y += increments
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
-            self.__scroll_distance = self._width - line_number_chars - 1
+            self.__scroll_distance = (
+                self._width - line_number_width - GUTTER_SIZE
+            ) // 2
             if draw_text_result.can_scroll_left:
                 self.__can_scroll_left = True
             if draw_text_result.can_scroll_right:

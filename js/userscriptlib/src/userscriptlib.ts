@@ -1,9 +1,9 @@
 import { register } from "@violentmonkey/shortcut";
 
-const panelBorderStyle = "1px solid lightgray";
-const panelCollapsedByDefault = false;
-const panelFontSize = "8pt";
-const panelOpacity = "0.8";
+const defaultPanelBorderStyle = "1px solid lightgray";
+const defaultPanelCollapse = false;
+const defaultFontSize = "9pt";
+const defaultPanelOpacity = "0.8";
 
 export {};
 
@@ -47,11 +47,17 @@ const _global = window /* browser */ || global; /* node */
 
 function createPanel() {
   const panel = document.createElement("div");
-  panel.style.opacity = panelOpacity;
-  panel.style.left = "0";
+  panel.style.all = "revert";
+  panel.style.opacity = defaultPanelOpacity;
   panel.style.position = "fixed";
+  panel.style.left = "0";
   panel.style.top = "0";
   panel.style.zIndex = "9999";
+  panel.style.border = defaultPanelBorderStyle;
+
+  addNoPrintStyle();
+  panel.className = "no-print";
+
   document.body.appendChild(panel);
   return panel;
 }
@@ -62,7 +68,7 @@ function getButtonContainer() {
     return buttonContainer;
   } else {
     const panel = createPanel();
-    let collapsed = panelCollapsedByDefault;
+    let collapsed = defaultPanelCollapse;
 
     function updateContainerStyle() {
       container.style.display = collapsed ? "none" : "block";
@@ -77,6 +83,7 @@ function getButtonContainer() {
     });
 
     const container = document.createElement("div");
+
     panel.appendChild(container);
     updateContainerStyle();
 
@@ -102,13 +109,12 @@ function createLogPane(panel: HTMLDivElement) {
   textarea.id = "userscriptlib-log-pane";
   textarea.readOnly = true;
   textarea.rows = 5;
-  textarea.style.all = "revert";
   textarea.style.display = "none";
   textarea.style.boxSizing = "border-box";
-  textarea.style.fontSize = panelFontSize;
+  textarea.style.fontSize = defaultFontSize;
   textarea.style.resize = "none";
   textarea.style.width = "100%";
-  textarea.style.border = panelBorderStyle;
+  textarea.style.border = defaultPanelBorderStyle;
   panel.appendChild(textarea);
 }
 
@@ -134,8 +140,11 @@ function createHandle({
   onClick?: () => void;
 }) {
   const handle = document.createElement("div");
+  handle.innerText = "[userscript]";
+  handle.style.fontSize = defaultFontSize;
   handle.style.backgroundColor = "lightgray";
-  handle.style.height = "8px";
+  handle.style.userSelect = "none";
+  handle.style.cursor = "default";
   panel.appendChild(handle);
 
   handle.addEventListener("mousedown", (ev) => {
@@ -212,13 +221,14 @@ async function waitFor<Type>(
 _global.addButton = (name, onclick, hotkey) => {
   const button = document.createElement("button");
   button.style.backgroundColor = "white";
-  button.style.border = panelBorderStyle;
+  button.style.border = "none";
   button.style.color = "black";
   button.style.display = "block";
-  button.style.fontSize = panelFontSize;
+  button.style.fontSize = defaultFontSize;
   button.style.margin = "0";
   button.style.padding = "0px 8px";
   button.style.width = "100%";
+  button.style.textAlign = "left";
   button.textContent = name;
   if (hotkey) {
     button.textContent += ` (${hotkey})`;
@@ -331,6 +341,21 @@ _global.download = (url, filename) => {
     })
     .catch(console.error);
 };
+
+function addNoPrintStyle() {
+  if (!document.getElementById("no-print-style")) {
+    const style = document.createElement("style");
+    style.id = "no-print-style";
+    style.innerHTML = `
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+      `;
+    document.getElementsByTagName("head")[0].appendChild(style);
+  }
+}
 
 function checkXmlHttpRequest() {
   if (!GM_xmlhttpRequest) {

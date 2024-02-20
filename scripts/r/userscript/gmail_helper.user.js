@@ -12,7 +12,7 @@
 addButton(
   "mark all as read",
   () => {
-    waitForXPath('//*[@aria-label="More" or @title="More"]').then((el) => {
+    waitForXPath('//*[@aria-label="More email options"]').then((el) => {
       click(el);
       waitForText("Mark all as read").then((el) => {
         click(el);

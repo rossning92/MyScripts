@@ -413,7 +413,7 @@ class _MyScriptMenu(Menu[Script]):
     def _run_without_close_on_exist(self):
         try:
             self.run_selected_script(close_on_exit=False)
-            self.clear_input()
+            self.clear_input(reset_selection=True)
         finally:
             # Reset last refresh time when key press event is processed
             self.update_last_refresh_time()
@@ -437,7 +437,7 @@ class _MyScriptMenu(Menu[Script]):
 
     def on_enter_pressed(self):
         self.run_selected_script()
-        self.clear_input()
+        self.clear_input(reset_selection=True)
         return True
 
     def on_escape_pressed(self):
