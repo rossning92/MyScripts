@@ -1093,14 +1093,15 @@ class Script:
             if android_serial:
                 env["ANDROID_SERIAL"] = android_serial
 
-        if self.cfg["workingDir"]:
-            cwd = self.cfg["workingDir"].format(**self.get_context())
-            if not os.path.exists(cwd):
-                os.makedirs(cwd, exist_ok=True)
-        elif cd:
-            cwd = os.path.abspath(
-                os.path.join(os.getcwd(), os.path.dirname(script_path))
-            )
+        if cd:
+            if self.cfg["workingDir"]:
+                cwd = self.cfg["workingDir"].format(**self.get_context())
+                if not os.path.exists(cwd):
+                    os.makedirs(cwd, exist_ok=True)
+            else:
+                cwd = os.path.abspath(
+                    os.path.join(os.getcwd(), os.path.dirname(script_path))
+                )
         else:
             cwd = None
 
