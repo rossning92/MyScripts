@@ -54,6 +54,7 @@ class ChatMenu(Menu[_Line]):
     def __send_message(self, text: str) -> None:
         message_index = len(self.__messages)
         self.__messages.append({"role": "user", "content": text})
+        self.save_chat()
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 

@@ -119,7 +119,7 @@ class _InputWidget:
             stdscr.addstr(
                 cursor_y,
                 cursor_x,
-                self.text[self.caret_pos :] + (" [ENTER]" if show_enter_symbol else ""),
+                self.text[self.caret_pos :] + (" ↵" if show_enter_symbol else ""),
             )
             y, x = Menu.stdscr.getyx()  # type: ignore
 
@@ -147,7 +147,7 @@ class _InputWidget:
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
             self.caret_pos = max(self.caret_pos - 1, 0)
-        elif ch == curses.ascii.ctrl("a"):
+        elif ch == curses.ascii.ctrl("u"):
             self.clear()
         # HACK: Workaround for single and double quote on Windows
         elif ch == 530 and sys.platform == "win32":
@@ -219,6 +219,7 @@ class Menu(Generic[T]):
         self._height: int = -1
         self._input = _InputWidget(prompt=prompt, text=text, ascii_only=ascii_only)
         self._last_input: Optional[str] = None
+        self.__search_history: List[str] = []
         self._last_item_count = 0
         self._last_selected_item: Optional[T] = None
         self._matched_item_indices: List[int] = []
@@ -273,15 +274,22 @@ class Menu(Generic[T]):
         self._custom_commands: List[_Command] = []
         if enable_command_palette:
             self.add_command(self._toggle_multi_select, hotkey="ctrl+x")
-            self.add_command(self._palette, hotkey="ctrl+p")
+            self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
+            self.add_command(self.__undo, hotkey="alt+z")
 
             self._command_palette_menu = Menu(
-                prompt="command:",
+                prompt="cmd>",
                 items=self._custom_commands,
                 enable_command_palette=False,
             )
+
+    def __undo(self):
+        if len(self.__search_history) > 0:
+            last_input = self.__search_history.pop(0)
+            self.set_message(last_input)
+            self.set_input(last_input, save_search_history=False)
 
     def yank(self):
         selected_items = self.get_selected_items()
@@ -351,10 +359,10 @@ class Menu(Generic[T]):
         self.__selected_row_end = 0
         self.update_screen()
 
-    def set_input(self, text: str):
+    def set_input(self, text: str, save_search_history=True):
         self._input.set_text(text)
         if self.__search_mode:
-            self.search_by_input()
+            self.search_by_input(save_search_history=save_search_history)
 
     def get_input(self) -> str:
         return self._input.text
@@ -462,7 +470,7 @@ class Menu(Generic[T]):
         self.on_update_screen(item_y_max=self._height - 1)
         Menu.stdscr.refresh()
 
-    def update_matched_items(self):
+    def update_matched_items(self, save_search_history=True):
         assert self.__search_mode
 
         self._matched_item_indices.clear()
@@ -483,6 +491,8 @@ class Menu(Generic[T]):
             self.__selected_row_end = 0
         self._check_if_item_selection_changed()
 
+        if save_search_history and self._last_input is not None:
+            self.__search_history.insert(0, self._last_input)
         self._last_input = self.get_input()
         self._last_item_count = len(self.items)
         self.__last_match_time = time.time()
@@ -1056,9 +1066,9 @@ class Menu(Generic[T]):
         else:
             return False
 
-    def search_by_input(self) -> bool:
+    def search_by_input(self, save_search_history=True) -> bool:
         if self.__should_trigger_search():
-            self.update_matched_items()
+            self.update_matched_items(save_search_history=save_search_history)
             return True
         else:
             return False
@@ -1070,9 +1080,10 @@ class Menu(Generic[T]):
         else:
             item = self.get_selected_item()
             if item is not None:
-                if self._on_item_selected is not None:
+                on_item_selected = self._on_item_selected
+                if on_item_selected is not None:
                     self.call_func_without_curses(
-                        lambda item=item: self._on_item_selected(item)
+                        lambda item=item: on_item_selected(item)
                     )
             if self._close_on_selection:
                 self.close()
@@ -1113,7 +1124,7 @@ class Menu(Generic[T]):
         self._message = message
         self.update_screen()
 
-    def _palette(self):
+    def __command_palette(self):
         self._command_palette_menu.exec()
         hotkey = self._command_palette_menu.get_selected_item()
         if hotkey is not None:
