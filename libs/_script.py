@@ -339,6 +339,16 @@ def _args_to_str(args, shell_type):
         return " ".join(
             [x.replace(" ", "` ").replace("(", "`(").replace(")", "`)") for x in args]
         )
+    elif shell_type == "bash":
+        return " ".join(
+            [
+                x.replace(" ", "\\ ")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("'", "\\'")
+                for x in args
+            ]
+        )
     else:
         return " ".join([quote_arg(x, shell_type=shell_type) for x in args])
 
@@ -1028,11 +1038,8 @@ class Script:
             elif self.cfg["args.passSelectedFile"]:
                 from utils.menu.filemgr import FileManager
 
-                file = FileManager().select_file()
-                if file is None:
-                    return True
-                else:
-                    arg_list.append(file)
+                files = FileManager().select_files()
+                arg_list.extend(files)
 
             elif self.cfg["args.passSelectedDir"]:
                 from utils.menu.filemgr import FileManager

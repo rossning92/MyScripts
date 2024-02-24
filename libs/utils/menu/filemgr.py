@@ -66,7 +66,7 @@ class FileManager(Menu[_File]):
             self.__config.load()
 
         self.__files: List[_File] = []
-        self.__selected_full_path: Optional[str] = None
+        self.__selected_files_full_path: List[str] = []
         self.__prompt: Optional[str] = prompt
         self.__select_mode: int = FileManager.SELECT_MODE_NONE
         self.__save_states: bool = save_states if goto is None else False
@@ -144,14 +144,16 @@ class FileManager(Menu[_File]):
             self.update_screen()
 
     def _copy_to(self):
-        src_file = self.get_selected_file_full_path()
-        if src_file is None:
+        src = self.get_selected_file_full_path()
+        if src is None:
             return
 
         filemgr = FileManager(
-            goto=self.__copy_to_path
-            if self.__copy_to_path is not None
-            else self.get_cur_dir(),
+            goto=(
+                self.__copy_to_path
+                if self.__copy_to_path is not None
+                else self.get_cur_dir()
+            ),
             prompt="Copy to:",
             save_states=False,
         )
@@ -159,8 +161,10 @@ class FileManager(Menu[_File]):
         if dest_dir is not None:
             self.__copy_to_path = dest_dir
 
-            # Copy file to destination directory
-            shutil.copy(src_file, dest_dir)
+            if os.path.isdir(src):
+                shutil.copytree(src, os.path.join(dest_dir, os.path.basename(src)))
+            else:
+                shutil.copy(src, dest_dir)
 
     def _goto_home(self):
         self.goto_directory(get_home_path())
@@ -214,15 +218,28 @@ class FileManager(Menu[_File]):
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
 
-    def select_file(self):
+    def select_file(self) -> Optional[str]:
         self.__select_mode = FileManager.SELECT_MODE_FILE
         self.exec()
-        return self.__selected_full_path
+        return (
+            self.__selected_files_full_path[0]
+            if len(self.__selected_files_full_path) > 0
+            else None
+        )
 
-    def select_directory(self):
+    def select_files(self) -> List[str]:
+        self.__select_mode = FileManager.SELECT_MODE_FILE
+        self.exec()
+        return self.__selected_files_full_path
+
+    def select_directory(self) -> Optional[str]:
         self.__select_mode = FileManager.SELECT_MODE_DIRECTORY
         self.exec()
-        return self.__selected_full_path
+        return (
+            self.__selected_files_full_path[0]
+            if len(self.__selected_files_full_path) > 0
+            else None
+        )
 
     def _refresh_current_directory(self):
         self.goto_directory(self.get_cur_dir())
@@ -345,21 +362,33 @@ class FileManager(Menu[_File]):
 
     def on_enter_pressed(self):
         if self.__select_mode == FileManager.SELECT_MODE_DIRECTORY:
-            self.__selected_full_path = self.get_cur_dir()
+            self.__selected_files_full_path = [self.get_cur_dir()]
             return super().on_enter_pressed()
 
         else:
-            selected = self.get_selected_item()
-            if selected:
-                full_path = os.path.join(self.get_cur_dir(), selected.name)
+            selected = list(self.get_selected_items())
+            if len(selected) == 1:
+                full_path = os.path.join(self.get_cur_dir(), selected[0].name)
                 if os.path.isdir(full_path):
-                    d = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
+                    d = os.path.abspath(
+                        os.path.join(self.get_cur_dir(), selected[0].name)
+                    )
                     self.goto_directory(d)
                     return True
                 elif os.path.isfile(full_path):
-                    self.__selected_full_path = full_path
+                    self.__selected_files_full_path = [full_path]
                     if self.__select_mode == FileManager.SELECT_MODE_FILE:
                         return super().on_enter_pressed()
                     else:
                         self.open_file(full_path)
                         return True
+            elif (
+                len(selected) > 1 and self.__select_mode == FileManager.SELECT_MODE_FILE
+            ):
+                self.__selected_files_full_path = [
+                    os.path.join(self.get_cur_dir(), x.name) for x in selected
+                ]
+                return super().on_enter_pressed()
+
+            else:
+                return super().on_enter_pressed()

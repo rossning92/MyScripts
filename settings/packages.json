@@ -343,6 +343,9 @@
   "pdftk": {
     "choco": {
       "packages": ["pdftk"]
+    },
+    "pacman": {
+      "packages": ["pdftk"]
     }
   },
   "protoc": {

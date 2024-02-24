@@ -1107,11 +1107,11 @@ class Menu(Generic[T]):
         self._closed = True
 
     def _check_if_item_selection_changed(self):
+        selected = None
         if self.__selected_row_end < len(self.get_item_indices()):
             item_index = self.get_item_indices()[self.__selected_row_end]
-            selected = self.items[item_index]
-        else:
-            selected = None
+            if item_index < len(self.items):
+                selected = self.items[item_index]
 
         if selected != self._last_selected_item or self._last_input != self.get_input():
             self.on_item_selection_changed(selected)
