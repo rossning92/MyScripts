@@ -41,9 +41,12 @@ class _Config:
 
 
 class _File:
-    def __init__(self, name: str, is_dir: bool, relative_path=False) -> None:
+    def __init__(
+        self, name: str, is_dir: bool, full_path: str, relative_path=False
+    ) -> None:
         self.name = name
         self.is_dir = is_dir
+        self.full_path = full_path
         self.relative_path = relative_path
 
     def __str__(self) -> str:
@@ -71,6 +74,7 @@ class FileManager(Menu[_File]):
         self.__select_mode: int = FileManager.SELECT_MODE_NONE
         self.__save_states: bool = save_states if goto is None else False
         self.__copy_to_path: Optional[str] = None
+        self.__sort_by = "name"
 
         super().__init__(items=self.__files)
 
@@ -80,6 +84,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
         self.add_command(self._goto_home, hotkey="alt+h")
+        self.add_command(self._goto_downloads, hotkey="alt+d")
         self.add_command(self._goto_parent_directory, hotkey="left")
         self.add_command(self._goto_selected_directory, hotkey="right")
         self.add_command(self._goto, hotkey="ctrl+g")
@@ -168,6 +173,9 @@ class FileManager(Menu[_File]):
 
     def _goto_home(self):
         self.goto_directory(get_home_path())
+
+    def _goto_downloads(self):
+        self.goto_directory(os.path.join(get_home_path(), "Downloads"))
 
     def _goto_parent_directory(self):
         # If current directory is not file system root
@@ -310,7 +318,15 @@ class FileManager(Menu[_File]):
                     for file in files
                 ]
                 self.__files.extend(
-                    [_File(file, is_dir=False, relative_path=True) for file in files]
+                    [
+                        _File(
+                            file,
+                            is_dir=False,
+                            full_path=self.get_cur_dir() + "/" + file,
+                            relative_path=True,
+                        )
+                        for file in files
+                    ]
                 )
 
             else:
@@ -319,11 +335,32 @@ class FileManager(Menu[_File]):
                 for file in os.listdir(self.get_cur_dir()):
                     full_path = os.path.join(self.get_cur_dir(), file)
                     if os.path.isdir(full_path):
-                        dir_items.append(_File(file, is_dir=True))
+                        dir_items.append(
+                            _File(
+                                file,
+                                full_path=os.path.join(self.get_cur_dir(), file),
+                                is_dir=True,
+                            )
+                        )
                     else:
-                        file_items.append(_File(file, is_dir=False))
-                dir_items.sort(key=lambda x: x.name)
-                file_items.sort(key=lambda x: x.name)
+                        file_items.append(
+                            _File(
+                                file,
+                                full_path=os.path.join(self.get_cur_dir(), file),
+                                is_dir=False,
+                            )
+                        )
+                if self.__sort_by == "name":
+                    dir_items.sort(key=lambda x: x.name)
+                    file_items.sort(key=lambda x: x.name)
+                elif self.__sort_by == "mtime":
+                    dir_items.sort(
+                        key=lambda x: os.path.getmtime(x.full_path), reverse=True
+                    )
+                    file_items.sort(
+                        key=lambda x: os.path.getmtime(x.full_path), reverse=True
+                    )
+
                 self.__files.extend(dir_items)
                 self.__files.extend(file_items)
 
