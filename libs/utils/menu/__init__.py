@@ -273,17 +273,25 @@ class Menu(Generic[T]):
         self._hotkeys: Dict[str, _Command] = {}
         self._custom_commands: List[_Command] = []
         if enable_command_palette:
-            self.add_command(self._toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__command_palette, hotkey="ctrl+p")
+            self.add_command(self.__select_all, hotkey="ctrl+a")
+            self.add_command(self.__undo, hotkey="alt+z")
+            self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
-            self.add_command(self.__undo, hotkey="alt+z")
 
             self._command_palette_menu = Menu(
                 prompt="cmd>",
                 items=self._custom_commands,
                 enable_command_palette=False,
             )
+
+    def __select_all(self):
+        self.__multi_select_mode = True
+        total_items = len(self.get_item_indices())
+        self.__selected_row_begin = 0
+        self.__selected_row_end = total_items - 1
+        self.update_screen()
 
     def __undo(self):
         if len(self.__search_history) > 0:
@@ -1134,7 +1142,7 @@ class Menu(Generic[T]):
     def update_screen(self):
         self.__should_update_screen = True
 
-    def _toggle_multi_select(self):
+    def __toggle_multi_select(self):
         self.set_multi_select(not self.__multi_select_mode)
 
     def set_multi_select(self, mode: bool):
