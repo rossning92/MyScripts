@@ -48,6 +48,7 @@ class _File:
         self.is_dir = is_dir
         self.full_path = full_path
         self.relative_path = relative_path
+        self.color = "blue" if self.is_dir else "white"
 
     def __str__(self) -> str:
         if self.is_dir:
