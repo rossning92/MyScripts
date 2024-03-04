@@ -20,7 +20,6 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
-
 from utils.clip import get_clip, set_clip
 
 GUTTER_SIZE = 1
@@ -1116,8 +1115,9 @@ class Menu(Generic[T]):
 
     def _check_if_item_selection_changed(self):
         selected = None
-        if self.__selected_row_end < len(self.get_item_indices()):
-            item_index = self.get_item_indices()[self.__selected_row_end]
+        item_indices = self.get_item_indices()
+        if self.__selected_row_end < len(item_indices):
+            item_index = item_indices[self.__selected_row_end]
             if item_index < len(self.items):
                 selected = self.items[item_index]
 
