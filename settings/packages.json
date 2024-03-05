@@ -404,6 +404,11 @@
       "packages": ["rpi-imager"]
     }
   },
+  "sane": {
+    "pacman": {
+      "packages": ["sane"]
+    }
+  },
   "scrcpy": {
     "choco": {
       "packages": ["scrcpy"]
