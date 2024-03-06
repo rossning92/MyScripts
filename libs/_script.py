@@ -1340,12 +1340,12 @@ class Script:
         elif ext == ".url":
             url = self.get_script_source()
             if "%s" in url:
-                from utils.menu.input import Input
+                from utils.menu.textinput import TextInput
 
                 if len(arg_list) == 1:
                     keyword = arg_list[0]
                 else:
-                    keyword = Input().input()
+                    keyword = TextInput(show_clipboard=True).request_input()
                     if not keyword:
                         return True
                 url = url.replace("%s", keyword)

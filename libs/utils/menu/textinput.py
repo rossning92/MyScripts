@@ -2,6 +2,8 @@ from typing import List, Optional
 
 from _shutil import load_json, save_json
 
+from utils.clip import get_clip
+
 from ..menu import Menu
 
 
@@ -13,6 +15,7 @@ class TextInput(Menu):
         history_list: Optional[List[str]] = None,
         history_file: Optional[str] = None,
         text="",
+        show_clipboard: bool = False,
     ):
         self.__history_list = history_list
         self.__history_file = history_file
@@ -23,9 +26,12 @@ class TextInput(Menu):
         self.__items = items
         super().__init__(
             prompt=prompt,
-            items=self.__items
-            if self.__items is not None
-            else (self.__history_data["history"] if self.__history_file else []),
+            items=([get_clip()] if show_clipboard else [])
+            + (
+                self.__items
+                if self.__items is not None
+                else (self.__history_data["history"] if self.__history_file else [])
+            ),
             text=text,
         )
 
