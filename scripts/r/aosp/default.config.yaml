@@ -1,1 +1,3 @@
+cmdline: run_script ext/run_script_remotely.py {SCRIPT}
+newWindow: false
 wsl: true

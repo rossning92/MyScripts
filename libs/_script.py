@@ -13,6 +13,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.parse
 from dataclasses import dataclass
 from enum import IntEnum
 from functools import lru_cache
@@ -1348,7 +1349,7 @@ class Script:
                     keyword = TextInput(show_clipboard=True).request_input()
                     if not keyword:
                         return True
-                url = url.replace("%s", keyword)
+                url = url.replace("%s", urllib.parse.quote(keyword))
 
             fallback_to_shell_open = True
             if self.cfg["webApp"]:

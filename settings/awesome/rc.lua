@@ -721,18 +721,18 @@ end)
 -- }}}
 
 --- Test keygrabber
-local a = awful.keygrabber {
-    stop_key         = "Escape",
-    start_callback   = function() naughty.notify { text = "start 1" } end,
-    stop_callback    = function() naughty.notify { text = "stop 1" } end,
-    root_keybindings = {
-        { { "Mod4" }, "b", function() end },
-    },
-    keybindings      = {
-        { {}, "x", function()
-            naughty.notify { text = "in grabber 1" }
-        end },
-    },
-}
+-- local a = awful.keygrabber {
+--     stop_key         = "Escape",
+--     start_callback   = function() naughty.notify { text = "start 1" } end,
+--     stop_callback    = function() naughty.notify { text = "stop 1" } end,
+--     root_keybindings = {
+--         { { "Mod4" }, "b", function() end },
+--     },
+--     keybindings      = {
+--         { {}, "x", function()
+--             naughty.notify { text = "in grabber 1" }
+--         end },
+--     },
+-- }
 
 splitscreen:init_layout()
