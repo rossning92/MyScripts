@@ -79,8 +79,9 @@ class FileManager(Menu[_File]):
 
         super().__init__(items=self.__files)
 
+        self.add_command(self.copy_file, hotkey="ctrl+y")
+
         self.add_command(self._copy_file_full_path, hotkey="ctrl+y")
-        self.add_command(self._copy_to, hotkey="ctrl+y")
         self.add_command(self._create_new_dir, hotkey="ctrl+n")
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
@@ -149,9 +150,11 @@ class FileManager(Menu[_File]):
 
             self.update_screen()
 
-    def _copy_to(self):
-        src = self.get_selected_file_full_path()
-        if src is None:
+    def copy_file(self, file: Optional[str] = None):
+        if file is None:
+            file = self.get_selected_file_full_path()
+
+        if file is None:
             return
 
         filemgr = FileManager(
@@ -167,10 +170,10 @@ class FileManager(Menu[_File]):
         if dest_dir is not None:
             self.__copy_to_path = dest_dir
 
-            if os.path.isdir(src):
-                shutil.copytree(src, os.path.join(dest_dir, os.path.basename(src)))
+            if os.path.isdir(file):
+                shutil.copytree(file, os.path.join(dest_dir, os.path.basename(file)))
             else:
-                shutil.copy(src, dest_dir)
+                shutil.copy(file, dest_dir)
 
     def _goto_home(self):
         self.goto_directory(get_home_path())
