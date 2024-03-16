@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import shutil
+import subprocess
 from typing import Dict, List, Optional
 
 from _editor import open_code_editor
@@ -40,13 +41,27 @@ class _Config:
             json.dump(data, f, indent=4)
 
 
+def human_readable_size(num):
+    for unit in ("", "k", "M", "G", "T", "P", "E", "Z"):
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}"
+        num /= 1024.0
+    return f"{num:.1f}Y"
+
+
 class _File:
     def __init__(
-        self, name: str, is_dir: bool, full_path: str, relative_path=False
+        self,
+        name: str,
+        is_dir: bool,
+        full_path: str,
+        file_size: int,
+        relative_path=False,
     ) -> None:
         self.name = name
         self.is_dir = is_dir
         self.full_path = full_path
+        self.file_size = file_size
         self.relative_path = relative_path
         self.color = "blue" if self.is_dir else "white"
 
@@ -54,9 +69,9 @@ class _File:
         if self.is_dir:
             return f"[ {self.name} ]"
         elif self.relative_path:
-            return f"./{self.name}"
+            return f"./{self.name}\t({human_readable_size(self.file_size)})"
         else:
-            return self.name
+            return f"{self.name}\t({human_readable_size(self.file_size)})"
 
 
 class FileManager(Menu[_File]):
@@ -327,6 +342,9 @@ class FileManager(Menu[_File]):
                             file,
                             is_dir=False,
                             full_path=self.get_cur_dir() + "/" + file,
+                            file_size=os.path.getsize(
+                                os.path.join(self.get_cur_dir(), file)
+                            ),
                             relative_path=True,
                         )
                         for file in files
@@ -342,7 +360,8 @@ class FileManager(Menu[_File]):
                         dir_items.append(
                             _File(
                                 file,
-                                full_path=os.path.join(self.get_cur_dir(), file),
+                                full_path=full_path,
+                                file_size=0,
                                 is_dir=True,
                             )
                         )
@@ -350,7 +369,8 @@ class FileManager(Menu[_File]):
                         file_items.append(
                             _File(
                                 file,
-                                full_path=os.path.join(self.get_cur_dir(), file),
+                                full_path=full_path,
+                                file_size=os.path.getsize(full_path),
                                 is_dir=False,
                             )
                         )
@@ -398,6 +418,9 @@ class FileManager(Menu[_File]):
         _, ext = os.path.splitext(full_path)
         if ext.lower() == ".log":
             LogViewerMenu(file=full_path).exec()
+        elif ext.lower() in [".zip", ".gz"]:
+            subprocess.check_call(["run_script", "r/unzip.py", full_path])
+            self._refresh_current_directory()
         else:
             shell_open(full_path)
 

@@ -1,2 +1,2 @@
-args.passSelectedFile: true
+args.selectFiles: true
 packages: imagemagick

@@ -1,2 +1,2 @@
-args.passSelectionAsFile: true
+args.selectionAsFile: true
 globalHotkey: win+k q

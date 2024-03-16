@@ -1,2 +1,2 @@
-args.passUserInput: true
+args.userInput: true
 runAsAdmin: true

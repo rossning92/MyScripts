@@ -1010,12 +1010,12 @@ class Script:
             if self.cfg["args"]:
                 arg_list += self.cfg["args"].split()
 
-            if self.cfg["args.passSelectionAsFile"]:
+            if self.cfg["args.selectionAsFile"]:
                 selection = get_selection()
                 temp_file = write_temp_file(selection, ".txt")
                 arg_list.append(temp_file)
 
-            elif self.cfg["args.passUserInput"]:
+            elif self.cfg["args.userInput"]:
                 from utils.menu.input import Input
 
                 text = Input().input()
@@ -1023,26 +1023,26 @@ class Script:
                     return True
                 arg_list.append(text)
 
-            elif self.cfg["args.passSelection"]:
+            elif self.cfg["args.selection"]:
                 selection = get_selection()
                 arg_list.append(selection)
 
-            elif self.cfg["args.passClipboard"]:
+            elif self.cfg["args.clipboard"]:
                 clipboard = get_clip()
                 arg_list.append(clipboard)
 
-            elif self.cfg["args.passClipboardAsFile"]:
+            elif self.cfg["args.clipboardAsFile"]:
                 clipboard = get_clip()
                 temp_file = write_temp_file(clipboard, ".txt")
                 arg_list.append(temp_file)
 
-            elif self.cfg["args.passSelectedFile"]:
+            elif self.cfg["args.selectFiles"]:
                 from utils.menu.filemgr import FileManager
 
                 files = FileManager().select_files()
                 arg_list.extend(files)
 
-            elif self.cfg["args.passSelectedDir"]:
+            elif self.cfg["args.selectDir"]:
                 from utils.menu.filemgr import FileManager
 
                 file = FileManager().select_directory()
@@ -1916,13 +1916,13 @@ def get_default_script_config() -> Dict[str, Any]:
     return {
         "adk.jdk_version": "",
         "adk": False,
-        "args.passClipboard": False,
-        "args.passClipboardAsFile": False,
-        "args.passSelectedDir": False,
-        "args.passSelectedFile": False,
-        "args.passSelection": False,
-        "args.passSelectionAsFile": False,
-        "args.passUserInput": False,
+        "args.clipboard": False,
+        "args.clipboardAsFile": False,
+        "args.selectDir": False,
+        "args.selectFiles": False,
+        "args.selection": False,
+        "args.selectionAsFile": False,
+        "args.userInput": False,
         "args": "",
         "autoRun": False,
         "background": False,
