@@ -20,6 +20,7 @@ from typing import (
 )
 
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
+
 from utils.clip import get_clip, set_clip
 
 GUTTER_SIZE = 1
@@ -194,7 +195,7 @@ class Menu(Generic[T]):
         history: Optional[str] = None,
         items: Optional[List[T]] = None,
         prompt="",
-        text="",
+        text: Optional[str] = None,
         on_item_selected: Optional[Callable[[T], None]] = None,
         highlight: Optional[Union[OrderedDict[str, str], Dict[str, str]]] = None,
         fuzzy_search=True,
@@ -216,7 +217,9 @@ class Menu(Generic[T]):
         self._closed: bool = False
         self._debug = debug
         self._height: int = -1
-        self._input = _InputWidget(prompt=prompt, text=text, ascii_only=ascii_only)
+        self._input = _InputWidget(
+            prompt=prompt, text=text if text else "", ascii_only=ascii_only
+        )
         self._last_input: Optional[str] = None
         self.__search_history: List[str] = []
         self._last_item_count = 0
@@ -286,8 +289,11 @@ class Menu(Generic[T]):
             )
 
     def __select_all(self):
-        self.__multi_select_mode = True
         total_items = len(self.get_item_indices())
+        if total_items <= 0:
+            return
+
+        self.__multi_select_mode = True
         self.__selected_row_begin = 0
         self.__selected_row_end = total_items - 1
         self.update_screen()

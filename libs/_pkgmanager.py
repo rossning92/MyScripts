@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 from functools import lru_cache
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from _shutil import (
     check_output,
@@ -53,7 +53,13 @@ def find_executable(pkg, install=False):
     return None
 
 
-def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
+def get_all_available_packages() -> List[str]:
+    return [name for name in packages.keys()]
+
+
+def require_package(
+    pkg, wsl=False, env: Optional[Dict[str, str]] = None, force_install=False
+):
     if "dependantPackages" in packages:
         for pkg in packages["dependantPackages"]:
             require_package(pkg)
@@ -63,14 +69,14 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
             require_package("golang")
             if "packagePath" in packages[pkg]["golang"]:
                 go_pkg_path = packages[pkg]["golang"]["packagePath"]
-                if not _is_go_package_installed(go_pkg_path):
+                if not _is_go_package_installed(go_pkg_path) or force_install:
                     logging.info(f"Installing go package: {go_pkg_path}...")
                     subprocess.check_call(["go", "install", go_pkg_path])
                 return
 
         elif "npm" in packages[pkg]:
             for p in packages[pkg]["npm"]["packages"]:
-                if not is_npm_global_package_installed(p):
+                if not is_npm_global_package_installed(p) or force_install:
                     logging.info(f"Installing package using npm: {p}")
                     subprocess.check_call(
                         (["sudo"] if sys.platform == "linux" else [])
@@ -101,7 +107,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                         stderr=subprocess.STDOUT,
                     )
                     != 0
-                ):
+                ) or force_install:
                     logging.info(f"Installing package using pacman: {p}")
                     subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
             return
@@ -116,7 +122,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                         stderr=subprocess.STDOUT,
                     )
                     != 0
-                ):
+                ) or force_install:
                     logging.info(f"Installing package using yay: {p}")
                     subprocess.check_call(["yay", "-S", "--noconfirm", p])
             return
@@ -130,7 +136,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                         stderr=subprocess.STDOUT,
                     )
                     != 0
-                ):
+                ) or force_install:
                     logging.warning(f'Package "{p}" was not found, installing...')
                     subprocess.check_call(["pkg", "install", p, "-y"])
             return
@@ -145,7 +151,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                         stderr=subprocess.STDOUT,
                     )
                     != 0
-                ):
+                ) or force_install:
                     logging.info(f"Installing package using apt: {pkg}...")
                     subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
             return
@@ -159,7 +165,7 @@ def require_package(pkg, wsl=False, env: Optional[Dict[str, str]] = None):
                         stderr=subprocess.STDOUT,
                     )
                     != 0
-                ):
+                ) or force_install:
                     logging.info(f"Installing dotnet package package: {p}...")
                     subprocess.check_call(["dotnet", "tool", "install", "--global", p])
             if sys.platform == "win32":

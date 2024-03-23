@@ -175,7 +175,11 @@ class _ScheduledScriptMenu(Menu[_ScheduledScript]):
 
 class _MyScriptMenu(Menu[Script]):
     def __init__(
-        self, script_manager: ScriptManager, no_gui=False, run_script_and_quit=False
+        self,
+        script_manager: ScriptManager,
+        no_gui=False,
+        run_script_and_quit=False,
+        input_text: Optional[str] = None,
     ):
         self.script_manager = script_manager
         self.no_gui = no_gui
@@ -191,6 +195,8 @@ class _MyScriptMenu(Menu[Script]):
             ascii_only=False,
             cancellable=run_script_and_quit,
             prompt=platform.node() + "$",
+            text=input_text,
+            wrap_text=True,
         )
 
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")
@@ -530,7 +536,7 @@ class _MyScriptMenu(Menu[Script]):
             return True
 
 
-def _main(no_gui=False):
+def _main(no_gui=False, input_text: Optional[str] = None):
     global script_server
 
     start_daemon = not is_instance_running()
@@ -565,6 +571,7 @@ def _main(no_gui=False):
                 script_manager=script_manager,
                 no_gui=no_gui,
                 run_script_and_quit=run_script_and_quit,
+                input_text=input_text,
             ).exec()
             if run_script_and_quit:
                 break
@@ -601,6 +608,13 @@ if __name__ == "__main__":
         action="store_true",
         help="Run in tmux.",
     )
+    parser.add_argument(
+        "-i",
+        "--input",
+        type=str,
+        default=None,
+        help="Specify input.",
+    )
     args = parser.parse_args()
 
     if args.tmux:
@@ -622,4 +636,4 @@ if __name__ == "__main__":
         cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
 
-    _main(no_gui=args.no_gui)
+    _main(no_gui=args.no_gui, input_text=args.input)
