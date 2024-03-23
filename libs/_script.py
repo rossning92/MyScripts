@@ -1121,6 +1121,12 @@ class Script:
         if sys.platform == "win32" and self.cfg["wsl"]:
             arg_list = [convert_to_unix_path(x, wsl=self.cfg["wsl"]) for x in arg_list]
 
+        if self.cfg["runRemotely"]:
+            from utils.remoteshell import run_bash_script_in_remote_shell
+
+            run_bash_script_in_remote_shell(self.get_script_path())
+            return True
+
         cmdline = self.cfg["cmdline"]
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context()))
@@ -1946,6 +1952,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "runAtStartup": False,
         "runEveryNSec": "",
         "runpy": True,
+        "runRemotely": False,
         "singleInstance": True,
         "tee": False,
         "template": None,

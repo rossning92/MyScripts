@@ -4,6 +4,8 @@ import os
 from _pkgmanager import find_executable, require_package
 from _shutil import call2, mkdir, shell_open
 
+USE_7Z = False
+
 
 def unzip(src, dest=None, open_out_dir=False):
     extracted = False
@@ -21,20 +23,27 @@ def unzip(src, dest=None, open_out_dir=False):
                 break
 
         if not extracted:
-            require_package("7z")
-            _7z = find_executable("7z")
             if dest:
                 out_dir = dest
             else:
                 out_dir = os.path.splitext(file)[0]
-            args = [
-                _7z,
-                "x",  # extract
-                "-aoa",  # overwrite all existing files
-                "-o" + out_dir,  # out folder
-                file,
-            ]
-            call2(args)
+
+            if USE_7Z:
+                require_package("7z")
+                _7z = find_executable("7z")
+                args = [
+                    _7z,
+                    "x",  # extract
+                    "-aoa",  # overwrite all existing files
+                    "-o" + out_dir,  # out folder
+                    file,
+                ]
+                call2(args)
+            else:
+                import zipfile
+
+                with zipfile.ZipFile(file, "r") as zip_ref:
+                    zip_ref.extractall(out_dir)
 
     if open_out_dir:
         shell_open(out_dir)

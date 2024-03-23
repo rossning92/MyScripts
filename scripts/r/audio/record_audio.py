@@ -43,7 +43,7 @@ def record_audio(out_file: str):
         time.sleep(1)  # HACK: wait for 1 second until the file is saved.
 
     elif sys.platform == "linux":
-        subprocess.run(["run_script", "r/require_package.py", "sox"], check=True)
+        subprocess.run(["run_script", "r/install_package.py", "sox"], check=True)
 
         process = subprocess.Popen(["rec", "--no-show-progress", out_file])
         pid = process.pid

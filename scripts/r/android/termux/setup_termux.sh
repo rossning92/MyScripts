@@ -84,6 +84,13 @@ EOF
 # Config vim
 ln -f -s $HOME/MyScripts/settings/vim/.vimrc $HOME/.vimrc
 
+# Setup URL sharing
+mkdir -p "$HOME/bin"
+cat >"$HOME/bin/termux-url-opener" <<'EOF'
+# WORKAROUND: shebang such as `#!/bin/sh` won't work in Termux.
+bash "$HOME/MyScripts/myscripts" --input "$1"
+EOF
+
 # ==============================
 # Others
 # ==============================
