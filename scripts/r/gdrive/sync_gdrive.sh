@@ -24,12 +24,18 @@ rclone_wrapper() {
             read -p "Too many deletes, force sync? (y/n): " ans
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --force
+            else
+                return 1
             fi
         elif grep -q 'cannot find prior' "$logfile"; then
             read -p "First time sync? (y/n): " ans
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --resync
+            else
+                return 1
             fi
+        else
+            return 1
         fi
     fi
 }

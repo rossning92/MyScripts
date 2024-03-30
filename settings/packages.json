@@ -293,6 +293,17 @@
       "packages": ["mpv"]
     }
   },
+  "neovim": {
+    "choco": {
+      "packages": ["neovim"]
+    },
+    "pacman": {
+      "packages": ["neovim"]
+    },
+    "termux": {
+      "packages": ["neovim"]
+    }
+  },
   "nmap": {
     "choco": {
       "packages": ["nmap"]
@@ -397,7 +408,10 @@
     "choco": {
       "packages": ["ripgrep"]
     },
-    "executables": ["C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"]
+    "executables": ["C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"],
+    "pacman": {
+      "packages": ["ripgrep"]
+    }
   },
   "rpi-imager": {
     "choco": {

@@ -150,7 +150,7 @@ class _ScheduledScript:
         else:
             last_line = None
 
-        return f"{time_diff_str(self.scheduled_time):<10} : {os.path.basename(self.script.script_path):<24} : {last_line}"
+        return f"{time_diff_str(self.scheduled_time):<4} : {os.path.basename(self.script.script_path)} : {last_line}"
 
 
 class _ScheduledScriptMenu(Menu[_ScheduledScript]):
@@ -171,6 +171,21 @@ class _ScheduledScriptMenu(Menu[_ScheduledScript]):
             script_log_file = item.script.get_script_log_file()
             if os.path.exists(script_log_file):
                 LogViewerMenu(file=script_log_file).exec()
+
+
+def get_scheduled_script_log_preview(script_manager: ScriptManager) -> List[str]:
+    logs: List[str] = []
+    for (
+        script,
+        scheduled_time,
+    ) in script_manager.get_scheduled_scripts_run_time().items():
+        script_log_file = script.get_script_log_file()
+        if os.path.exists(script_log_file):
+            last_line = read_last_line(script_log_file)
+            logs.append(
+                f"{time_diff_str(scheduled_time):<4} : {os.path.basename(script.script_path)} : {last_line}"
+            )
+    return logs
 
 
 class _MyScriptMenu(Menu[Script]):
@@ -471,9 +486,10 @@ class _MyScriptMenu(Menu[Script]):
         height = self._height
 
         if not self.is_refreshing:
+            preview: List[Tuple[str, str]] = []
+
             script = self.get_selected_item()
             if script is not None:
-                preview: List[Tuple[str, str]] = []
                 default_script_config = get_default_script_config()
 
                 # Command line args
@@ -509,11 +525,20 @@ class _MyScriptMenu(Menu[Script]):
                     [("yellow", x) for x in format_key_value_pairs(config_preview)]
                 )
 
-                height = max(5, height - len(preview) - 1)
-                for i, (color, s) in enumerate(preview):
-                    if height + i >= self._height:
-                        break
-                    self.draw_text(height + i, 0, s, color=color)
+            # Scheduled script log preview
+            preview.extend(
+                [
+                    ("blue", line)
+                    for line in get_scheduled_script_log_preview(self.script_manager)
+                ]
+            )
+
+            # Draw preview
+            height = max(5, height - len(preview) - 1)
+            for i, (color, s) in enumerate(preview):
+                if height + i >= self._height:
+                    break
+                self.draw_text(height + i, 0, s, color=color)
 
         super().on_update_screen(item_y_max=height)
 
