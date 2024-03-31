@@ -3,9 +3,9 @@ import logging
 import os
 import re
 import shutil
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
-from _editor import is_vscode_installed, open_code_editor, open_in_vscode
+from _editor import is_vscode_installed, open_code_editor, open_in_vim, open_in_vscode
 from _script import (
     Script,
     get_absolute_script_path,
@@ -76,15 +76,21 @@ def open_myscript_workspace():
     open_in_vscode([workspace_file])
 
 
-def edit_myscript_script(file: str):
+def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
-    if is_vscode_installed():
+    if editor == "auto":
+        if is_vscode_installed():
+            workspace_file = create_myscript_workspace()
+            open_in_vscode([workspace_file, file])
+        else:
+            open_code_editor([file])
+    elif editor == "vim":
+        open_in_vim(file=file)
+    elif editor == "vscode":
         workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])
-    else:
-        open_code_editor([file])
 
 
 def enter_script_path():
@@ -265,7 +271,7 @@ def create_new_script(ref_script_path=None, duplicate=False):
             with open(dest_script, "w") as _:
                 pass
 
-    edit_myscript_script(os.path.realpath(dest_script))
+    edit_script(os.path.realpath(dest_script))
     return dest_script
 
 

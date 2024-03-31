@@ -3,7 +3,7 @@ import os
 import subprocess
 from typing import List, Optional, Union
 
-from _pkgmanager import find_executable
+from _pkgmanager import find_executable, require_package
 from _shutil import is_in_termux, start_process
 
 
@@ -56,7 +56,8 @@ def open_in_vscode(
 
 
 def open_in_vim(file: str, line_number: Optional[int] = None):
-    args = ["vim"]
+    require_package("neovim")
+    args = ["nvim"]
     if line_number is not None:
         args.append(f"+{line_number}")
     args.append(file)

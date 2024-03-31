@@ -20,7 +20,7 @@ sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
 from _ext import (
     copy_script_path_to_clipboard,
     create_new_script,
-    edit_myscript_script,
+    edit_script,
     edit_script_config,
     rename_script,
 )
@@ -221,6 +221,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
         self.add_command(self._edit_script, hotkey="ctrl+e")
+        self.add_command(self._edit_script_vim)
         self.add_command(self._new_script, hotkey="ctrl+n")
         self.add_command(self._next_scheduled_script, hotkey="alt+t")
         self.add_command(self._run_without_close_on_exist, hotkey="alt+enter")
@@ -434,7 +435,14 @@ class _MyScriptMenu(Menu[Script]):
     def _edit_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            self.call_func_without_curses(lambda: edit_myscript_script(script_path))
+            self.call_func_without_curses(lambda: edit_script(script_path))
+
+    def _edit_script_vim(self):
+        script_path = self.get_selected_script_path()
+        if script_path:
+            self.call_func_without_curses(
+                lambda: edit_script(script_path, editor="vim")
+            )
 
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
