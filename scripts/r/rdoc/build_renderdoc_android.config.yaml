@@ -1,2 +1,3 @@
 adk: true
 msys2: true
+runAsAdmin: true

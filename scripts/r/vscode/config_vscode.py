@@ -45,7 +45,7 @@ def get_vscode_cmdline(data_dir=None):
     return args
 
 
-def install_extensions(extensions: list[str], data_dir=None):
+def install_extensions(extensions: List[str], data_dir=None):
     for extension in extensions:
         print(f'Installing extension "{extension}"')
         run_command(
@@ -57,19 +57,19 @@ def install_extensions(extensions: list[str], data_dir=None):
 def update_settings(settings, data_dir):
     setting_config_file = os.path.abspath(data_dir + "/User/settings.json")
     try:
-        with open(setting_config_file) as f:
+        with open(setting_config_file, "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         data = {}
 
     data.update(settings)
 
-    with open(setting_config_file, "w") as f:
+    with open(setting_config_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
 
 def pip_install(package: str):
-    run_command([sys.executable, "-m", "pip", "install", package])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 
 def setup_python(data_dir: str):
@@ -175,7 +175,9 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     )
 
     print("Update key bindings...")
-    with open(os.path.abspath(data_dir + "/User/keybindings.json"), "w") as f:
+    with open(
+        os.path.abspath(data_dir + "/User/keybindings.json"), "w", encoding="utf-8"
+    ) as f:
         json.dump(
             [
                 {

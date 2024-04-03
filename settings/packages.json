@@ -92,7 +92,8 @@
   },
   "eternalterminal": {
     "apt": {
-      "packages": ["et"]
+      "packages": ["et"],
+      "ppa": "jgmath2000/et"
     },
     "termux": {
       "packages": ["et"]
@@ -293,6 +294,11 @@
       "packages": ["mpv"]
     }
   },
+  "msys2": {
+    "choco": {
+      "packages": ["msys2"]
+    }
+  },
   "neovim": {
     "choco": {
       "packages": ["neovim"]
@@ -486,6 +492,11 @@
       "%LOCALAPPDATA%\\Programs\\Tad\\Tad.exe",
       "C:\\Program Files\\Tad\\Tad.exe"
     ]
+  },
+  "tightvnc": {
+    "choco": {
+      "packages": ["tightvnc"]
+    }
   },
   "unzip": {
     "apt": {

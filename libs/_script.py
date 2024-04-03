@@ -1236,6 +1236,10 @@ class Script:
             script_path = convert_to_unix_path(script_path, wsl=self.cfg["wsl"])
 
             arg_list = [script_path] + arg_list
+
+            if self.cfg["msys2"]:
+                require_package("msys2")
+
             arg_list = wrap_bash_commands(
                 arg_list, wsl=self.cfg["wsl"], env=env, msys2=self.cfg["msys2"]
             )

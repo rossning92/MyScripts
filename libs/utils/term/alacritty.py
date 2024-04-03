@@ -27,16 +27,16 @@ def wrap_args_alacritty(
         raise FileNotFoundError("Alacritty is not installed.")
 
     # Copy alacritty config file
-    # https://github.com/alacritty/alacritty/blob/master/alacritty.yml
+    # https://github.com/alacritty/alacritty/blob/master/alacritty.toml
     if sys.platform == "win32":
-        dest_config = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.yml")
+        dest_config = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.toml")
     else:
-        dest_config = os.path.expanduser("~/.config/alacritty/alacritty.yml")
+        dest_config = os.path.expanduser("~/.config/alacritty/alacritty.toml")
     os.makedirs(os.path.dirname(dest_config), exist_ok=True)
     src_config = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "settings"
-        / "alacritty.yml"
+        / "alacritty.toml"
     ).resolve()
     if file_is_old(src_config, dest_config):
         shutil.copy(src_config, dest_config)

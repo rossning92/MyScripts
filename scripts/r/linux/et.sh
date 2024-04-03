@@ -1,22 +1,22 @@
 set -e
 
-et_port="${ET_PORT:-2022}"
-ssh_port="${SSH_PORT:-22}"
-
-cmdline="et -x --ssh-option \"Port $ssh_port\" ${ET_EXTRA_ARGS} ${SSH_USER}@${SSH_HOST}:${et_port}"
-echo "${cmdline}"
+et_cmd="et -x --ssh-option \"Port {{SSH_PORT if SSH_PORT else 22}}\" {{ET_EXTRA_ARGS}} {{SSH_USER}}@{{SSH_HOST}}:{{ET_PORT if ET_PORT else 2022}}"
+echo "${et_cmd}"
 
 cat >~/et.sh <<EOF
 set timeout 10
-spawn ${cmdline}
+spawn ${et_cmd}
 expect "password:"
-send "${SSH_PWD}\r"
-${ET_EXTRA_EXPECT_COMMANDS}
+send "{{SSH_PWD}}\r"
+{{ET_EXTRA_EXPECT_COMMANDS}}
 interact
 EOF
 
-if [[ -n "${_RUN_IN_SCREEN}" ]]; then
-    "$(dirname "$0")/screen/run_command_in_screen.sh" et "expect ~/et.sh"
+run_command_in_screen() {
+    {{ include('r/linux/screen/run_command_in_screen.sh') }}
+}
+if [[ -n "{{_RUN_IN_SCREEN}}" ]]; then
+    run_command_in_screen et "expect ~/et.sh"
 else
     expect ~/et.sh
 fi

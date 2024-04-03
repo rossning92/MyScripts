@@ -1,6 +1,6 @@
 from collections import defaultdict
 from functools import partial
-from typing import Callable, Optional
+from typing import Callable, DefaultDict, List, Optional
 
 from _shutil import get_hotkey_abbr
 
@@ -23,7 +23,7 @@ class _Action:
 
 
 class ActionMenu(Menu[_Action]):
-    __class_actions: defaultdict[str, list[_Action]] = defaultdict(list)
+    __class_actions: DefaultDict[str, List[_Action]] = defaultdict(list)
 
     def __init__(self, **kwags):
         super().__init__(**kwags)

@@ -1,10 +1,9 @@
 import argparse
 import os
+import sys
 
 from _pkgmanager import find_executable, require_package
 from _shutil import call2, mkdir, shell_open
-
-USE_7Z = False
 
 
 def unzip(src, dest=None, open_out_dir=False):
@@ -28,7 +27,7 @@ def unzip(src, dest=None, open_out_dir=False):
             else:
                 out_dir = os.path.splitext(file)[0]
 
-            if USE_7Z:
+            if sys.platform == "win32":
                 require_package("7z")
                 _7z = find_executable("7z")
                 args = [

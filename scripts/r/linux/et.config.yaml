@@ -1,4 +1,4 @@
 closeOnExit: false
+packages: eternalterminal expect screen
 title: remote_shell
 wsl: true
-packages: eternalterminal screen

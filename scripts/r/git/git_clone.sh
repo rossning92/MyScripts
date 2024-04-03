@@ -1,9 +1,9 @@
 set -e
 
-if [[ -n "{{GIT_URL}}" ]]; then
-    url="{{GIT_URL}}"
-elif [[ -n "$1" ]]; then
+if [[ -n "$1" ]]; then
     url="$1"
+elif [[ -n "{{GIT_URL}}" ]]; then
+    url="{{GIT_URL}}"
 else
     echo "ERROR: git repo url is not provided."
     exit 1

@@ -58,7 +58,7 @@ def get_all_available_packages() -> List[str]:
 
 
 def require_package(
-    pkg, wsl=False, env: Optional[Dict[str, str]] = None, force_install=False
+    pkg: str, wsl=False, env: Optional[Dict[str, str]] = None, force_install=False
 ):
     if "dependantPackages" in packages:
         for pkg in packages["dependantPackages"]:
@@ -152,6 +152,14 @@ def require_package(
                     )
                     != 0
                 ) or force_install:
+                    if "ppa" in packages[pkg]["apt"]:
+                        ppa = packages[pkg]["apt"]["ppa"]
+                        assert isinstance(ppa, str)
+                        subprocess.check_call(
+                            wsl_cmd + ["sudo", "add-apt-repository", f"ppa:{ppa}", "-y"]
+                        )
+                        subprocess.check_call(wsl_cmd + ["sudo", "apt-get", "update"])
+
                     logging.info(f"Installing package using apt: {pkg}...")
                     subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
             return

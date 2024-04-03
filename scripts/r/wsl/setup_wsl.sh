@@ -8,9 +8,9 @@ append_if_not_exist() {
 
 append_if_not_exist "$HOME/.bashrc" 'export SCREENDIR=$HOME/.screen; [ -d $SCREENDIR ] || mkdir -p -m 700 $SCREENDIR'
 
-source "$(dirname "$0")/enable_systemd.sh"
+# source "$(dirname "$0")/enable_systemd.sh"
 
-source "$(dirname "$0")/setup_wsl_vpnkit.sh"
+# source "$(dirname "$0")/setup_wsl_vpnkit.sh"
 
 # Shutdown WSL to take effect.
 wsl.exe --shutdown
