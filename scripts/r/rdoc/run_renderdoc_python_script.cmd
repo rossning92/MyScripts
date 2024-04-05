@@ -4,4 +4,6 @@
 set "PYTHONPATH=%USERPROFILE%\Projects\renderdoc\x64\Development\pymodules;%PYTHONPATH%"
 set "PATH=%USERPROFILE%\Projects\renderdoc\x64\Development;%PATH%"
 
-"%PYTHON36_DIR%\python.exe" %*
+@REM "You must use exactly the same version of python to load the module as was used to build it"
+"C:\Python36\python.exe" %*
+if %ERRORLEVEL% GEQ 1 EXIT /B 1

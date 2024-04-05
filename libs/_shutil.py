@@ -23,6 +23,11 @@ from pathlib import Path
 from time import sleep
 from typing import Dict, List, Optional, Union
 
+try:
+    import yaml
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "pyyaml"])
+
 import yaml
 from utils.printc import printc
 

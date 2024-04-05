@@ -4,7 +4,7 @@ from _image import combine_images
 from _shutil import get_files, shell_open
 
 if __name__ == "__main__":
-    cols = int("{{_COLS}}") if "{{_COLS}}" else None
+    cols = int("{{_NUM_COLS}}") if "{{_NUM_COLS}}" else None
     col_major_order = True if "{{_COL_MAJOR_ORDER}}" else False
     draw_label = True if "{{_DRAW_LABEL}}" else False
     label_align = "{{_LABEL_ALIGN}}" if "{{_LABEL_ALIGN}}" else "bottom"

@@ -73,7 +73,7 @@ if __name__ == "__main__":
                 ),
                 start=start,
                 duration=duration,
-                fps=int(env["_FPS"]) if env.get("_FPS") else None,
+                fps=int(env["_FRAMERATE"]) if env.get("_FRAMERATE") else None,
                 width=int(env["_WIDTH"]) if env.get("_WIDTH") else None,
                 height=int(env["_HEIGHT"]) if env.get("_HEIGHT") else None,
                 no_audio=bool(env.get("_NO_AUDIO")),

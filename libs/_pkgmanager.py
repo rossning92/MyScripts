@@ -186,7 +186,7 @@ def require_package(
             return
 
         elif sys.platform == "win32" and "choco" in packages[pkg]:
-            _choco_install(pkg)
+            _choco_install(pkg, force_install=force_install)
             return
 
     raise Exception(f"{pkg} cannot be found.")
@@ -243,22 +243,24 @@ def _choco_is_package_installed(name: str) -> bool:
             raise Exception("choco is not installed.")
 
 
-def _choco_install(pkg, upgrade=False):
+def _choco_install(pkg, upgrade=False, force_install=True):
     for p in packages[pkg]["choco"]["packages"]:
-        if not _choco_is_package_installed(p):
+        if not _choco_is_package_installed(p) or force_install:
             logging.info("Install `%s`..." % p)
-            run_elevated(
-                ["choco", "install", p, "-y", "-s", "https://chocolatey.org/api/v2/"],
-            )
+            args = ["choco", "install", p, "-y", "-s", "https://chocolatey.org/api/v2/"]
+            if force_install:
+                args.append("-f")
+            run_elevated(args)
 
-        elif upgrade:
+        elif upgrade or force_install:
             logging.info("Upgrade `%s`..." % p)
-            run_elevated(
-                ["choco", "upgrade", p, "-y", "-s", "https://chocolatey.org/api/v2/"],
-            )
+            args = ["choco", "upgrade", p, "-y", "-s", "https://chocolatey.org/api/v2/"]
+            if force_install:
+                args.append("-f")
+            run_elevated(args)
 
         else:
-            logging.debug(f'Package "{p}" already exists, skip installation.')
+            logging.debug(f"Package {p} already exists, skip installation.")
 
     refresh_env_vars()
 

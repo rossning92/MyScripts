@@ -389,6 +389,11 @@
       "packages": ["putty-tools"]
     }
   },
+  "python36": {
+    "choco": {
+      "packages": ["python36"]
+    }
+  },
   "rclone": {
     "choco": {
       "packages": ["rclone"]

@@ -20,6 +20,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
+try:
+    import yaml
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "pyyaml"])
+
 import yaml
 from _android import setup_android_env
 from _cpp import setup_cmake
