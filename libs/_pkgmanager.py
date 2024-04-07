@@ -189,6 +189,24 @@ def require_package(
             _choco_install(pkg, force_install=force_install)
             return
 
+        elif "pip" in packages[pkg]:
+            for p in packages[pkg]["pip"]["packages"]:
+                # Check if pip package is installed
+                ret = (
+                    subprocess.call(
+                        [sys.executable, "-m", "pip", "show", p],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    or force_install
+                )
+                if ret != 0:
+                    logging.info(f"Installing pip package: {p}...")
+                    subprocess.check_call(
+                        [sys.executable, "-m", "pip", "install", "--upgrade", p]
+                    )
+            return
+
     raise Exception(f"{pkg} cannot be found.")
 
 

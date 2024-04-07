@@ -460,7 +460,7 @@ def setup_jdk(jdk_version=None, env=None):
     env["JAVA_HOME"] = java_home
     logging.info("JAVA_HOME: %s" % java_home)
 
-    jdk_bin = java_home + "\\bin"
+    jdk_bin = os.path.join(java_home, "bin")
     prepend_to_path(jdk_bin, env=env)
 
 

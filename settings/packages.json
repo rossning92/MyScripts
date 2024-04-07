@@ -149,7 +149,7 @@
       "packages": ["gh"]
     },
     "pacman": {
-      "packages": ["gh"]
+      "packages": ["github-cli"]
     },
     "termux": {
       "packages": ["gh"]
@@ -567,6 +567,11 @@
     },
     "pacman": {
       "packages": ["yarn"]
+    }
+  },
+  "yt-dlp": {
+    "pip": {
+      "packages": ["yt-dlp"]
     }
   }
 }
