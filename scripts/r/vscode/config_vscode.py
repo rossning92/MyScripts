@@ -123,6 +123,22 @@ def setup_mermaid(data_dir: str):
     )
 
 
+def install_shader_tools(data_dir: str):
+    settings = {
+        "glsllint.glslangValidatorPath": install_glslangvalidator(),
+        "[glsl]": {"editor.defaultFormatter": "xaver.clang-format"},
+        "glsl-canvas.textures": {
+            "0": "https://raw.githubusercontent.com/JoeyDeVries/LearnOpenGL/master/resources/textures/awesomeface.png",
+            "1": "https://rawgit.com/actarian/plausible-brdf-shader/master/textures/noise/cloud-1.png",
+            "2": "https://rawgit.com/actarian/plausible-brdf-shader/master/textures/noise/cloud-2.jpg",
+        },
+    }
+    update_settings(settings, data_dir=data_dir)
+
+    # Shader preview tool
+    install_extensions(["circledev.glsl-canvas"], data_dir=data_dir)
+
+
 def config_vscode(data_dir=None, compact=False, glslang=False):
     if not data_dir:
         if sys.platform == "win32":
@@ -136,6 +152,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     setup_gpt(data_dir=data_dir)
     setup_mermaid(data_dir=data_dir)
     # setup_color_theme(data_dir=data_dir)
+    install_shader_tools(data_dir=data_dir)
 
     install_extensions(
         [
@@ -157,8 +174,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             "foxundermoon.shell-format",
             # AutoHotkey
             "cweijan.vscode-autohotkey-plus",
-            # GLSL Shader
-            "circledev.glsl-canvas",  # shader preview
             # "cadenas.vscode-glsllint",
             "xaver.clang-format",
             # Powershell
@@ -235,6 +250,12 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "chatgpt-vscode.optimize",
                     "when": "editorHasSelection",
                 },
+                # glsl-canvas
+                {
+                    "key": "ctrl+shift+v",
+                    "command": "glsl-canvas.showGlslCanvas",
+                    "when": "resourceExtname == '.glsl'",
+                },
             ],
             f,
             indent=4,
@@ -253,9 +274,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
         "window.title": "${rootName}${separator}${appName}",
         "workbench.editor.enablePreviewFromQuickOpen": False,
     }
-
-    if glslang and sys.platform == "win32":
-        settings["glsllint.glslangValidatorPath"] = install_glslangvalidator()
 
     settings.update(
         {

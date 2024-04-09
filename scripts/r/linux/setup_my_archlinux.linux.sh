@@ -32,9 +32,11 @@ yay_install() {
     yay -S --noconfirm --needed --needed "$@"
 }
 
-# Install utilities
+# Install utilities.
+# - acpi: for battery monitor
 pac_install \
     alacritty \
+    acpi \
     fzf \
     git \
     inetutils \
@@ -51,13 +53,21 @@ pac_install $(pacman -Ssq 'noto-fonts-*')
 
 # Install yay - AUR package manager: https://github.com/Jguer/yay#binary
 if [[ ! -x "$(command -v yay)" ]]; then
-    sudo pacman -S --needed git base-devel && git clone https://aur.archlinux.org/yay-bin.git && cd yay-bin && makepkg -si
+    (
+        cd /tmp/
+        sudo pacman -S --needed --noconfirm git base-devel
+        git clone https://aur.archlinux.org/yay-bin.git
+        cd yay-bin
+        makepkg -si
+        cd ..
+        rm yay-bin -rf
+    )
 fi
 
 yay_install visual-studio-code-bin google-chrome
 
 # Configure HiDPI display
-DPI_VALUE=144 # 96 * 1.5x
+DPI_VALUE=144 # 96 * 1.5
 if ! grep -qF -- "Xft.dpi" ~/.Xresources; then
     echo "Xft.dpi: $DPI_VALUE" >>~/.Xresources
 else

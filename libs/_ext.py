@@ -256,6 +256,8 @@ def create_new_script(ref_script_path=None, duplicate=False):
             shutil.copyfile(os.path.join(template_root, "python.py"), dest_script)
         elif ext == ".mmd":
             shutil.copyfile(os.path.join(template_root, "mermaid.mmd"), dest_script)
+        elif ext == ".glsl":
+            shutil.copyfile(os.path.join(template_root, "shader.glsl"), dest_script)
         elif dest_script.endswith(".user.js"):
             userscript_name = re.sub(r"\.user\.js$", "", os.path.basename(dest_script))
             render_template_file(
