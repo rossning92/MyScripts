@@ -124,7 +124,7 @@ class LogViewerMenu(Menu[str]):
             while not self._closed:
                 line = f.readline()
                 if line == "":
-                    self.process_events(timeout_ms=1000)
+                    self.process_events(timeout_sec=1.0)
                     file_size = os.path.getsize(self.__file)
                     if file_size < last_file_size:
                         f.seek(0)

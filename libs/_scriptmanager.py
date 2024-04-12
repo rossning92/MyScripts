@@ -358,9 +358,9 @@ class ScriptManager:
                         has_any_script_to_run = True
                         yield script
 
-                    self.next_scheduled_script_run_time[
-                        script.script_path
-                    ] = time.time() + int(run_every_n_seconds)
+                    self.next_scheduled_script_run_time[script.script_path] = (
+                        time.time() + int(run_every_n_seconds)
+                    )
 
         if has_any_script_to_run:
             # Save last scheduled script run time

@@ -16,7 +16,7 @@ rclone_wrapper() {
     logfile="$(mktemp)"
 
     # --progress : enable progress bar
-    rclone bisync "drive:$1" "$2" --verbose --exclude=.mypy_cache/** "${@:3}" 2>&1 | tee "$logfile"
+    rclone bisync "drive:$1" "$2" --verbose --ignore-checksum --exclude=.mypy_cache/** "${@:3}" 2>&1 | tee "$logfile"
     ret=${PIPESTATUS[0]}
     if [[ "$ret" != "0" ]]; then
         echo "ERROR: rclone returned $ret"
@@ -28,7 +28,7 @@ rclone_wrapper() {
                 return 1
             fi
         elif grep -q 'cannot find prior' "$logfile"; then
-            read -p "First time sync? (y/n): " ans
+            read -p "Resync? (y/n): " ans
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --resync
             else

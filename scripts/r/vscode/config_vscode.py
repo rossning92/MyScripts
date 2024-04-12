@@ -185,6 +185,8 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             "janisdd.vscode-edit-csv",
             # Lua
             "sumneko.lua",
+            # excalidraw
+            "pomdtr.excalidraw-editor",
         ],
         data_dir=data_dir,
     )

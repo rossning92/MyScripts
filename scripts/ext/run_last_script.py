@@ -27,7 +27,7 @@ if __name__ == "__main__":
     if len(files) > 0:
         script = files[0]
         file = create_link(script)
-        run_script(file)
+        start_script(file=file, restart_instance=True)
 
     else:
         # Run last script

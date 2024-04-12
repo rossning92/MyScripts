@@ -24,6 +24,7 @@ from _shutil import get_hotkey_abbr, load_json, save_json, slugify
 from utils.clip import get_clip, set_clip
 
 GUTTER_SIZE = 1
+PROCESS_EVENT_INTERVAL_SEC = 0.1
 
 
 def _is_backspace_key(ch: Union[int, str]):
@@ -524,20 +525,20 @@ class Menu(Generic[T]):
         self.__should_update_matched_items = True
 
     # Returns false if we should exit main loop for the current window
-    def process_events(self, timeout_ms: int = 0) -> bool:
+    def process_events(self, timeout_sec: float = 0.0) -> bool:
         assert Menu.stdscr is not None
 
         if self._closed:
             return False
 
-        if timeout_ms > 0:
-            Menu.stdscr.timeout(timeout_ms)
+        if timeout_sec > 0.0:
+            Menu.stdscr.timeout(int(timeout_sec * 1000.0))
         else:
             Menu.stdscr.timeout(0)
 
         if self.__search_mode:
             if self.__should_update_matched_items or (
-                time.time() > self.__last_match_time + 0.1
+                time.time() > self.__last_match_time + PROCESS_EVENT_INTERVAL_SEC
                 and (
                     (
                         not self.__search_on_enter
@@ -695,7 +696,7 @@ class Menu(Generic[T]):
 
             self.prev_key = ch
 
-        if ch == -1 and timeout_ms:  # getch() is timed-out
+        if ch == -1 and timeout_sec > 0.0:  # getch() is timed-out
             self._on_idle()
 
         if self._closed:
@@ -792,7 +793,7 @@ class Menu(Generic[T]):
         self.update_screen()
         self.on_created()
         self.on_main_loop()
-        while self.process_events(timeout_ms=1000):
+        while self.process_events(timeout_sec=PROCESS_EVENT_INTERVAL_SEC):
             self.on_main_loop()
 
     def get_selected_index(self):

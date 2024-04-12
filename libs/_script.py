@@ -696,7 +696,20 @@ class Script:
         else:
             self.name = self.script_rel_path
 
-        self.ext = os.path.splitext(script_path)[1].lower()  # Extension / script type
+        root, ext = os.path.splitext(script_path)
+        basename = os.path.basename(root)
+
+        # Script alias
+        if basename:
+            words = re.split("[^a-zA-Z0-9]+", basename)
+            if 2 <= len(words) <= 4:
+                self.alias = "".join((w[0].lower() if w else "" for w in words))
+            else:
+                self.alias = ""
+        else:
+            self.alias = ""
+
+        self.ext = ext.lower()
         self.override_variables = None
         self.console_title = None
         self.script_path = script_path
@@ -759,12 +772,15 @@ class Script:
             s = "%s (lnk)"
 
         # Show keyboard shortcut
-        if self.cfg["hotkey"]:
-            s += " (%s)" % (get_hotkey_abbr(self.cfg["hotkey"]))
         if self.cfg["globalHotkey"]:
             s += " {%s}" % (get_hotkey_abbr(self.cfg["globalHotkey"]))
+        if self.cfg["hotkey"]:
+            s += " [%s]" % (get_hotkey_abbr(self.cfg["hotkey"]))
+        if self.alias:
+            s += f" ({self.alias})"
+
         if self.cfg["autoRun"]:
-            s += " [autorun]"
+            s += " #autorun"
 
         return s
 
