@@ -4,7 +4,7 @@ import re
 import subprocess
 from typing import Set
 
-from _shutil import setup_logger
+from utils.logger import setup_logger
 
 
 def grant_all_permissions(pkg):

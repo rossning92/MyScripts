@@ -1,10 +1,10 @@
 import argparse
-import logging
 import subprocess
 import sys
 
 from _pkgmanager import install_package
-from _shutil import call2, setup_logger
+from _shutil import call2
+from utils.logger import setup_logger
 from utils.menu import Menu
 
 PKGS = {

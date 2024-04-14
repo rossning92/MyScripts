@@ -46,11 +46,11 @@ from _shutil import (
     refresh_env_vars,
     run_at_startup,
     save_json,
-    setup_logger,
     setup_nodejs,
 )
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
+from utils.logger import setup_logger
 from utils.menu import Menu
 from utils.menu.confirm import confirm
 from utils.menu.dictedit import DictEditMenu
@@ -485,8 +485,12 @@ class _MyScriptMenu(Menu[Script]):
 
     def on_item_selection_changed(self, script: Optional[Script]):
         text = self.get_input()
-        if script is not None and text and script.match_pattern(text):
-            self.__cmdline_args = text
+        if script and text:
+            match = script.match_pattern(text)
+            if match:
+                self.__cmdline_args = match.group()
+            else:
+                self.__cmdline_args = None
         else:
             self.__cmdline_args = None
 

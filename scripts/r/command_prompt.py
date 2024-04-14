@@ -4,7 +4,8 @@ import sys
 
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _shutil import setup_logger, setup_nodejs
+from _shutil import setup_nodejs
+from utils.logger import setup_logger
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)

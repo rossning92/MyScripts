@@ -3,7 +3,8 @@ import logging
 import os
 
 from _android import restart_app
-from _shutil import call_echo, setup_logger
+from _shutil import call_echo
+from utils.logger import setup_logger
 
 if __name__ == "__main__":
     setup_logger(level=logging.DEBUG)

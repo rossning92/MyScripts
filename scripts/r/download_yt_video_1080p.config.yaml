@@ -1,2 +1,2 @@
-matchClipboard: https?://(www\.)?youtube\.com/(shorts/|watch\?v=)[_a-zA-Z0-9-]+|youtu\.be/[a-zA-Z0-9]+
+matchClipboard: "{{ include('r/youtube_video_url_regex.txt') }}"
 packages.pip: yt-dlp

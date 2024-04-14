@@ -1,6 +1,7 @@
 import os
 
-from _shutil import setup_logger, shell_open
+from _shutil import shell_open
+from utils.logger import setup_logger
 
 from .record_screen import record_app
 

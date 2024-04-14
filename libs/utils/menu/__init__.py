@@ -537,15 +537,19 @@ class Menu(Generic[T]):
             Menu.stdscr.timeout(0)
 
         if self.__search_mode:
-            if self.__should_update_matched_items or (
-                time.time() > self.__last_match_time + PROCESS_EVENT_INTERVAL_SEC
-                and (
-                    (
-                        not self.__search_on_enter
-                        and self._last_input != self.get_input()
+            if (
+                self.__should_update_matched_items
+                or (
+                    time.time() > self.__last_match_time + PROCESS_EVENT_INTERVAL_SEC
+                    and (
+                        (
+                            not self.__search_on_enter
+                            and self._last_input != self.get_input()
+                        )
+                        or self._last_item_count != len(self.items)
                     )
-                    or self._last_item_count != len(self.items)
                 )
+                or (len(self.items) < self._last_item_count)
             ):
                 self.update_matched_items()
 
@@ -936,6 +940,7 @@ class Menu(Generic[T]):
         else:
             line_number_width = 0
 
+        assert len(item_indices) <= len(self.items)
         while matched_item_index < len(item_indices) and item_y < item_y_max:
             item_index = item_indices[matched_item_index]
             self.__num_rendered_items = matched_item_index - self.__scroll_y + 1
@@ -946,11 +951,11 @@ class Menu(Generic[T]):
                 matched_item_index <= self.__selected_row_begin
                 and matched_item_index >= self.__selected_row_end
             )
-            itm = self.items[item_index]
+            item = self.items[item_index]
             item_text = str(self.items[item_index])
 
-            if hasattr(itm, "color"):
-                color = itm.__dict__["color"]
+            if hasattr(item, "color"):
+                color = item.__dict__["color"]
             else:
                 # Highlight text by regex
                 color = "white"

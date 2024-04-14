@@ -2,7 +2,8 @@ import argparse
 import os
 
 from _android import screenshot
-from _shutil import get_home_path, setup_logger, shell_open
+from _shutil import get_home_path, shell_open
+from utils.logger import setup_logger
 
 # adb shell screencap -p /sdcard/screencap.png
 # adb pull /sdcard/screencap.png

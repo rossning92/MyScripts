@@ -3,7 +3,8 @@ import os
 from _android import setup_android_env, start_app
 from _editor import open_code_editor
 from _git import git_clone
-from _shutil import call_echo, cd, menu_item, setup_logger
+from _shutil import call_echo, cd, menu_item
+from utils.logger import setup_logger
 
 setup_logger()
 # run_elevated("choco install ninja -y")

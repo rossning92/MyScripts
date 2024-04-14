@@ -7,7 +7,8 @@ import time
 
 import renderdoc as rd
 from _android import get_device_name, get_main_activity
-from _shutil import get_home_path, get_time_str, getch, setup_logger
+from _shutil import get_home_path, get_time_str, getch
+from utils.logger import setup_logger
 
 
 def list_executables(remote):

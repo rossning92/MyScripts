@@ -9,8 +9,8 @@ from _shutil import (
     get_home_path,
     get_newest_file,
     prepend_to_path,
-    setup_logger,
 )
+from utils.logger import setup_logger
 from utils.retry import retry
 
 root = os.path.dirname(os.path.realpath(__file__))

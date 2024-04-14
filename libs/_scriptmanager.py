@@ -130,9 +130,9 @@ def register_global_hotkeys_win(scripts: List[Script]):
             else:
                 raise Exception("Only support chaining two hotkeys.")
 
-        mc = script.cfg["matchClipboard"]
-        if mc:
-            match_clipboard.append([mc, script.name, script.script_path])
+        patt = script.cfg["matchClipboard"]
+        if patt:
+            match_clipboard.append([patt, script.name, script.script_path])
 
     match_clipboard = sorted(match_clipboard, key=lambda x: x[1])  # sort by name
 

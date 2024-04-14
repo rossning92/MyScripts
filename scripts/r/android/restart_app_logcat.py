@@ -4,7 +4,8 @@ import os
 import subprocess
 
 from _android import clear_logcat, logcat, restart_app
-from _shutil import call_echo, setup_logger
+from _shutil import call_echo
+from utils.logger import setup_logger
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

@@ -1,7 +1,8 @@
 import os
 
-from _shutil import get_files, setup_logger
+from _shutil import get_files
 from _video import ffmpeg
+from utils.logger import setup_logger
 from utils.slugify import slugify
 
 if __name__ == "__main__":

@@ -10,9 +10,10 @@ from _android import (
     setup_android_env,
     start_app,
 )
-from _shutil import cd, confirm, find_newest_file, mkdir, print2, setup_logger
+from _shutil import cd, confirm, find_newest_file, mkdir, print2
 from _unrealcommon import get_unreal_source_version
 from build_cpp_modules import build_cpp_modules
+from utils.logger import setup_logger
 
 out_dir_root = os.environ["UE_ANDROID_OUT_DIR"]
 

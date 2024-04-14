@@ -2,9 +2,9 @@ import argparse
 import os
 from typing import Optional
 
-from _shutil import setup_logger
 from _video import ffmpeg, hstack_videos
 from open_with.open_with import open_with
+from utils.logger import setup_logger
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

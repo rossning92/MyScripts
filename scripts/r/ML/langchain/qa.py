@@ -6,7 +6,6 @@ import argparse
 import logging
 import os
 
-from _shutil import setup_logger
 from langchain import hub
 from langchain.chat_models import ChatOpenAI
 from langchain.document_loaders.generic import GenericLoader
@@ -16,6 +15,7 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.storage import LocalFileStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
+from utils.logger import setup_logger
 
 if __name__ == "__main__":
     langchain_qa_log = os.path.join(

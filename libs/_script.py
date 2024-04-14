@@ -682,6 +682,18 @@ class LogPipe(threading.Thread):
         self.log()
 
 
+def get_script_alias(name_without_ext: str) -> str:
+    basename = os.path.basename(name_without_ext)
+    if basename:
+        words = re.split("[^a-zA-Z0-9]+", basename)
+        if 2 <= len(words) <= 4:
+            return "".join((w[0].lower() if w else "" for w in words))
+        else:
+            return ""
+    else:
+        return ""
+
+
 class Script:
     def __init__(self, script_path: str, name=None):
         if not os.path.isfile(script_path):
@@ -697,18 +709,8 @@ class Script:
             self.name = self.script_rel_path
 
         root, ext = os.path.splitext(script_path)
-        basename = os.path.basename(root)
 
-        # Script alias
-        if basename:
-            words = re.split("[^a-zA-Z0-9]+", basename)
-            if 2 <= len(words) <= 4:
-                self.alias = "".join((w[0].lower() if w else "" for w in words))
-            else:
-                self.alias = ""
-        else:
-            self.alias = ""
-
+        self.alias = get_script_alias(root)
         self.ext = ext.lower()
         self.override_variables = None
         self.console_title = None
@@ -732,9 +734,9 @@ class Script:
         self.mtime = 0.0
         self.refresh_script()
 
-    def match_pattern(self, text: str):
+    def match_pattern(self, text: str) -> Optional[re.Match]:
         patt = self.cfg["matchClipboard"]
-        return patt and re.search(patt, text) is not None
+        return re.search(patt, text) if patt else None
 
     def is_running(self) -> bool:
         return self.ps is not None and self.ps.poll() is None
@@ -1061,6 +1063,8 @@ class Script:
                 from utils.menu.filemgr import FileManager
 
                 files = FileManager().select_files()
+                if len(files) == 0:
+                    return True
                 arg_list.extend(files)
 
             elif self.cfg["args.selectDir"]:
@@ -2033,6 +2037,11 @@ def load_script_config(script_path) -> Dict[str, Any]:
             script_level_config = yaml.load(f.read(), Loader=yaml.FullLoader)
         if script_level_config is not None:
             config.update(script_level_config)
+
+    if "matchClipboard" in config and config["matchClipboard"]:
+        config["matchClipboard"] = render_template(
+            config["matchClipboard"], file_locator=find_script
+        )
 
     return config
 

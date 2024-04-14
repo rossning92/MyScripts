@@ -209,7 +209,7 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                 },
                 {"key": "shift+alt+r", "command": "revealFileInOS"},
                 {"key": "shift+alt+c", "command": "copyFilePath"},
-                {"key": "ctrl+shift+enter", "command": "editor.action.openLink"},
+                {"key": "alt+g", "command": "editor.action.openLink"},
                 {
                     "key": "alt+l",
                     "command": "markdown.extension.editing.toggleList",

@@ -5,7 +5,8 @@ import os
 import subprocess
 import time
 
-from _shutil import setup_logger, shell_open, write_temp_file
+from _shutil import shell_open, write_temp_file
+from utils.logger import setup_logger
 from utils.term.alacritty import wrap_args_alacritty
 
 from .common import run_commands
@@ -96,9 +97,11 @@ def record_term(
     else:
         record_screen(
             file,
-            callback=(lambda: (run_commands(cmd), time.sleep(0.2)))
-            if cmd is not None
-            else None,
+            callback=(
+                (lambda: (run_commands(cmd), time.sleep(0.2)))
+                if cmd is not None
+                else None
+            ),
             rect=(0, 0, size[0], size[1]),
         )
 

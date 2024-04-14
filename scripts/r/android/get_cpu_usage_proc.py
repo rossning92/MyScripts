@@ -5,7 +5,7 @@ import time
 from statistics import mean
 from typing import List
 
-from _shutil import setup_logger
+from utils.logger import setup_logger
 
 last_total_idle = None
 

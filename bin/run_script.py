@@ -8,7 +8,8 @@ sys.path.insert(
 )
 
 from _script import run_script
-from _shutil import prepend_to_path, setup_logger, update_env_var_explorer
+from _shutil import prepend_to_path, update_env_var_explorer
+from utils.logger import setup_logger
 
 
 def try_parse() -> Tuple[Dict, Optional[str], List[str]]:
