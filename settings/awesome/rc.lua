@@ -25,7 +25,9 @@ require('mouse-follow-focus')
 
 --- Define custom widgets
 local battery_widget = require("battery-widget")
-local volume_widget = require('volume-widget.volume')
+
+local volume_widget = require('volume-widget.volume-widget')
+
 local brightness_widget = require("brightness-widget.brightness")
 local cpu_widget = require("cpu-widget.cpu-widget")
 
@@ -125,7 +127,7 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 
 -- {{{ Wibar
 -- Create a textclock widget
-mytextclock = wibox.widget.textclock('%F, %H:%M')
+mytextclock = wibox.widget.textclock('%m/%d %H:%M')
 
 -- Create a wibox for each screen and add it
 local taglist_buttons = gears.table.join(awful.button({}, 1, function(t)
@@ -180,6 +182,8 @@ end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", set_wallpaper)
+
+local volume = volume_widget:new({})
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
@@ -240,10 +244,7 @@ awful.screen.connect_for_each_screen(function(s)
             battery_widget {
                 show_current_level = true
             },
-            volume_widget {
-                widget_type = 'icon_and_text',
-                step = 10
-            },
+            volume.widget,
             brightness_widget {
                 type = 'icon_and_text',
                 program = 'light',
@@ -398,19 +399,16 @@ globalkeys = gears.table.join(
 
     -- Volume control
     awful.key({}, "XF86AudioRaiseVolume", function()
-        volume_widget:inc()
+        volume:up()
     end),
     awful.key({}, "XF86AudioLowerVolume", function()
-        volume_widget:dec()
-    end),
-    awful.key({}, "XF86AudioMute", function()
-        volume_widget:toggle()
+        volume:down()
     end),
     awful.key({ modkey }, "Up", function()
-        volume_widget:inc()
+        volume:up()
     end),
     awful.key({ modkey }, "Down", function()
-        volume_widget:dec()
+        volume:down()
     end),
 
     -- Brightness control

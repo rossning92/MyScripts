@@ -72,7 +72,7 @@ local function worker(user_args)
             {
                 {
                     image = path_to_icon,
-                    resize = false,
+                    resize = true,
                     widget = wibox.widget.imagebox
                 },
                 valign = 'center',
