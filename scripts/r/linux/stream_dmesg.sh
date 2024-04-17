@@ -1,1 +1,1 @@
-sudo dmesg --follow
+sudo dmesg --time-format ctime --follow

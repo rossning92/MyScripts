@@ -17,7 +17,7 @@ Volume.__index = Volume
 
 function Volume:new(args)
     local obj = setmetatable({}, Volume)
-    obj.step = args.step or 5
+    obj.step = args.step or 10
 
     -- Create widget
     obj.widget = wibox.widget {

@@ -601,7 +601,7 @@ def _main(no_gui=False, input_text: Optional[str] = None):
 
     script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
 
-    run_script_and_quit = args.cmd == "r" or args.cmd == "run"
+    run_script_and_quit = bool(args.input)
     while True:  # repeat if _MyScriptMenu throws exceptions
         try:
             _MyScriptMenu(
@@ -624,11 +624,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "cmd",
-        nargs="?",
-        help="The cmd can be `run` which executes a script and exit to the terminal.",
-    )
-    parser.add_argument(
         "-n",
         "--no-gui",
         action="store_true",
@@ -646,10 +641,8 @@ if __name__ == "__main__":
         help="Run in tmux.",
     )
     parser.add_argument(
-        "-i",
-        "--input",
-        type=str,
-        default=None,
+        "input",
+        nargs="?",
         help="Specify input.",
     )
     args = parser.parse_args()
@@ -673,4 +666,7 @@ if __name__ == "__main__":
         cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
 
-    _main(no_gui=args.no_gui, input_text=args.input)
+    _main(
+        no_gui=args.no_gui,
+        input_text=args.input if (args.input != "r" or args.input != "run") else None,
+    )

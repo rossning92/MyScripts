@@ -452,13 +452,13 @@ clientkeys = gears.table.join(awful.key({ modkey }, "f", function(c)
         description = "move to master",
         group = "client"
     }),
-    awful.key({ modkey }, "Left", function(c)
+    awful.key({ "Mod1" }, "1", function(c)
         c:move_to_screen()
     end, {
         description = "move to screen",
         group = "client"
     }),
-    awful.key({ modkey }, "Right", function(c)
+    awful.key({ "Mod1" }, "2", function(c)
         c:move_to_screen()
     end, {
         description = "move to screen",

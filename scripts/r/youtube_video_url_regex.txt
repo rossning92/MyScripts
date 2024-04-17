@@ -1,1 +1,1 @@
-https?://(www\.)?youtube\.com/(shorts/|watch\?v=)[_a-zA-Z0-9-]+|youtu\.be/[a-zA-Z0-9]+
+https?://(((www|m)\.)?youtube\.com/(shorts/|watch\?v=)[_a-zA-Z0-9-]+|youtu\.be/[a-zA-Z0-9]+)
