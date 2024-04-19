@@ -83,8 +83,8 @@ append_line_dedup ~/.xinitrc "nm-applet &"
 # Bluetooth
 # - bluez and bluez-utils: a Linux Bluetooth stack
 # - blueman: GUI tool for desktop environments
-pac_install bluez bluez-utils blueman
-append_line_dedup ~/.xinitrc "blueman-applet &"
+pac_install bluez bluez-utils # blueman
+# append_line_dedup ~/.xinitrc "blueman-applet &"
 sudo systemctl enable bluetooth.service --now
 # then you can use bluetoothctl to pair in command line
 
@@ -146,9 +146,37 @@ if lspci -k | grep -q "NVIDIA Corporation"; then
     pac_install nvidia-settings
 fi
 
-yay_install k380-function-keys-conf
-pac_install solaar # Logitech device manager
-append_line_dedup ~/.xinitrc 'solaar --window hide &'
+setup_logitech_keyboard() {
+    pac_install solaar # Logitech device manager
+    append_line_dedup ~/.xinitrc 'solaar --window hide &'
+
+    sudo bash -c 'cat > /usr/bin/logitech-fn-swap << EOF
+#!/bin/bash
+while true; do
+    solaar config K380 fn-swap off
+    solaar config K600 fn-swap off
+    sleep 10
+done
+EOF'
+
+    sudo chmod +x /usr/bin/logitech-fn-swap
+
+    sudo bash -c 'cat > /etc/systemd/system/logitech-fn-swap.service <<EOF
+[Unit]
+Description=logitech-fn-swap systemd service unit file.
+
+[Service]
+ExecStart=/usr/bin/logitech-fn-swap
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
+    sudo systemctl daemon-reload
+    sudo systemctl restart logitech-fn-swap.service --now
+}
+
+setup_logitech_keyboard
 
 # Configure Touchpad:
 # https://wiki.archlinux.org/title/Touchpad_Synaptics

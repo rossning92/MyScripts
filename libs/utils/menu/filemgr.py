@@ -94,18 +94,19 @@ class FileManager(Menu[_File]):
 
         super().__init__(items=self.__files)
 
-        self.add_command(self.copy_file, hotkey="ctrl+y")
+        self.add_command(self.copy_to, hotkey="alt+c")
 
         self.add_command(self._copy_file_full_path, hotkey="ctrl+y")
         self.add_command(self._create_new_dir, hotkey="ctrl+n")
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
-        self.add_command(self._goto_home, hotkey="alt+h")
         self.add_command(self._goto_downloads, hotkey="alt+d")
+        self.add_command(self._goto_home, hotkey="alt+h")
         self.add_command(self._goto_parent_directory, hotkey="left")
         self.add_command(self._goto_selected_directory, hotkey="right")
         self.add_command(self._goto, hotkey="ctrl+g")
         self.add_command(self._list_files_recursively, hotkey="alt+r")
+        self.add_command(self._move_to, hotkey="alt+m")
         self.add_command(self._refresh_current_directory, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
@@ -165,7 +166,7 @@ class FileManager(Menu[_File]):
 
             self.update_screen()
 
-    def copy_file(self, file: Optional[str] = None):
+    def copy_to(self, file: Optional[str] = None):
         if file is None:
             file = self.get_selected_file_full_path()
 
@@ -189,6 +190,20 @@ class FileManager(Menu[_File]):
                 shutil.copytree(file, os.path.join(dest_dir, os.path.basename(file)))
             else:
                 shutil.copy(file, dest_dir)
+
+    def _move_to(self):
+        src = self.get_selected_file_full_path()
+        if src is None:
+            return
+
+        filemgr = FileManager(
+            goto=self.get_cur_dir(),
+            prompt="Move to:",
+            save_states=False,
+        )
+        dest_dir = filemgr.select_directory()
+        if dest_dir is not None:
+            shutil.move(src, dest_dir)
 
     def _goto_home(self):
         self.goto_directory(get_home_path())
@@ -227,9 +242,7 @@ class FileManager(Menu[_File]):
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
-            new_name = TextInput(
-                prompt="Rename to:", text=selected.name
-            ).request_input()
+            new_name = TextInput(prompt="Rename:", text=selected.name).request_input()
             if not new_name:
                 return
 

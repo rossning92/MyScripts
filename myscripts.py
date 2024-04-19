@@ -215,7 +215,7 @@ class _MyScriptMenu(Menu[Script]):
         )
 
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")
-        self.add_command(self._copy_file, hotkey="alt+y")
+        self.add_command(self._copy_to, hotkey="alt+y")
         self.add_command(self._copy_script_path)
         self.add_command(self._delete_file)
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
@@ -379,11 +379,11 @@ class _MyScriptMenu(Menu[Script]):
 
             self.__last_copy_time = now
 
-    def _copy_file(self):
+    def _copy_to(self):
         script = self.get_selected_script()
         if script:
             script_path = script.get_script_path()
-            self.__filemgr.copy_file(script_path)
+            self.__filemgr.copy_to(script_path)
 
     def _copy_script_path(self):
         script = self.get_selected_script()
@@ -641,32 +641,43 @@ if __name__ == "__main__":
         help="Run in tmux.",
     )
     parser.add_argument(
+        "--is-running",
+        action="store_true",
+        help="Is another instance running?",
+    )
+    parser.add_argument(
         "input",
         nargs="?",
         help="Specify input.",
     )
     args = parser.parse_args()
 
-    if args.tmux:
-        tmux_exec = shutil.which("tmux")
-        if tmux_exec is None:
-            raise Exception("tmux is not installed.")
-        os.execl(
-            tmux_exec,
-            "tmux",
-            "-f",
-            os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
-            "new",
-            sys.executable,
-            *(x for x in sys.argv if x not in ("-t", "--tmux")),
+    if args.is_running:
+        print(f"is_instance_running(): {is_instance_running()}")
+    else:
+        if args.tmux:
+            tmux_exec = shutil.which("tmux")
+            if tmux_exec is None:
+                raise Exception("tmux is not installed.")
+            os.execl(
+                tmux_exec,
+                "tmux",
+                "-f",
+                os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
+                "new",
+                sys.executable,
+                *(x for x in sys.argv if x not in ("-t", "--tmux")),
+            )
+
+        run_at_startup(
+            name="MyScripts",
+            cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd"))
+            + " --startup",
         )
 
-    run_at_startup(
-        name="MyScripts",
-        cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
-    )
-
-    _main(
-        no_gui=args.no_gui,
-        input_text=args.input if (args.input != "r" or args.input != "run") else None,
-    )
+        _main(
+            no_gui=args.no_gui,
+            input_text=(
+                args.input if (args.input != "r" or args.input != "run") else None
+            ),
+        )

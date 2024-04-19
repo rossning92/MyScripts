@@ -16,12 +16,19 @@ rclone_wrapper() {
     logfile="$(mktemp)"
 
     # --progress : enable progress bar
-    rclone bisync "drive:$1" "$2" --verbose --ignore-checksum --exclude=.mypy_cache/** "${@:3}" 2>&1 | tee "$logfile"
+    rclone bisync "drive:$1" "$2" --verbose \
+        --ignore-checksum \
+        --max-lock 2m \
+        --recover \
+        --resilient \
+        --exclude=.mypy_cache/** \
+        "${@:3}" \
+        2>&1 | tee "$logfile"
     ret=${PIPESTATUS[0]}
     if [[ "$ret" != "0" ]]; then
         echo "ERROR: rclone returned $ret"
         if grep -q 'too many deletes' "$logfile"; then
-            read -p "Too many deletes, force sync? (y/n): " ans
+            read -p "Force sync? (y/n): " ans
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --force
             else

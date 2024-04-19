@@ -27,6 +27,10 @@ GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
 
 
+def _clamp(n, smallest, largest):
+    return max(smallest, min(n, largest))
+
+
 def _is_backspace_key(ch: Union[int, str]):
     return (
         ch == curses.KEY_BACKSPACE
@@ -170,7 +174,7 @@ T = TypeVar("T")
 class Menu(Generic[T]):
     stdscr = None
     color_pair_map: Dict[str, int] = {}
-    should_update_screen = False
+    _should_update_screen = False
 
     class ScreenWrapper:
         def __init__(self):
@@ -184,7 +188,7 @@ class Menu(Generic[T]):
             if self._should_init_curses:
                 Menu.destroy_curses()
             else:
-                Menu.should_update_screen = True
+                Menu._should_update_screen = True
 
     def __init__(
         self,
@@ -566,10 +570,10 @@ class Menu(Generic[T]):
             self.__selected_row_end = max(0, total_items - 1)
 
         # Update screen
-        if self.__should_update_screen or Menu.should_update_screen:
-            self._update_screen()
+        if self.__should_update_screen or Menu._should_update_screen:
+            Menu._should_update_screen = False
             self.__should_update_screen = False
-            Menu.should_update_screen = False
+            self._update_screen()
 
         # Keyboard event
         try:
@@ -922,18 +926,27 @@ class Menu(Generic[T]):
         # Get matched scripts
         item_y = draw_input_result.last_y + 2
 
-        # Update the start index for the current page.
-        if self.get_items_per_page() > 0:
-            if self.__selected_row_end >= self.__scroll_y + self.get_items_per_page():
-                self.__scroll_y = self.__selected_row_end
+        item_indices = self.get_item_indices()
+
+        # Update scroll y.
+        items_per_page = self.get_items_per_page()
+        if items_per_page > 0:
+            if self.__selected_row_end >= self.__scroll_y + items_per_page:
+                self.__scroll_y = _clamp(
+                    self.__selected_row_end,
+                    0,
+                    len(item_indices) - items_per_page + 1,
+                )
             elif self.__selected_row_end < self.__scroll_y:
-                self.__scroll_y = self.__selected_row_end
+                self.__scroll_y = _clamp(
+                    self.__selected_row_end,
+                    0,
+                    len(item_indices) - items_per_page + 1,
+                )
 
         self.__can_scroll_left = False
         self.__can_scroll_right = False
         matched_item_index = self.__scroll_y
-
-        item_indices = self.get_item_indices()
 
         if self.__line_number and len(item_indices) > 0:
             line_number_width = len(str(item_indices[-1] + 1))
@@ -1010,6 +1023,9 @@ class Menu(Generic[T]):
                 self.__can_scroll_left = True
             if draw_text_result.can_scroll_right:
                 self.__can_scroll_right = True
+
+        if items_per_page != self.get_items_per_page():
+            self.__should_update_screen = True
 
         # Draw status bar
         a = self.get_status_bar_text()
