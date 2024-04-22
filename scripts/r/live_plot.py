@@ -30,7 +30,8 @@ def plot_time_series(metric_regex, samples=500):
     frame_index = 0
 
     last_update = 0.0
-
+    min_val = 0.0
+    max_val = 0.0
     while True:
         line = sys.stdin.readline()
         if line == "":
@@ -47,6 +48,8 @@ def plot_time_series(metric_regex, samples=500):
                 val = float(match[0])
                 data[name].append(val)
                 frame_index = len(data[name]) + 1
+                min_val = min(min_val, val * 1.15)
+                max_val = max(max_val, val * 1.15)
 
             now = time.time()
             if now - last_update > 0.5:
@@ -61,7 +64,7 @@ def plot_time_series(metric_regex, samples=500):
                     )
 
                 plt.legend()
-                plt.ylim(bottom=-2, top=10)
+                plt.ylim(bottom=min_val, top=max_val)
                 plt_pause(0.01)
                 last_update = now
 

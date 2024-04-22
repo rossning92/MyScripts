@@ -1,31 +1,38 @@
-import matplotlib.pyplot as plt
+import argparse
+import os
+from typing import Any
+
 import numpy as np
-from _shutil import *
-from _image import *
-from _math import *
+from _image import show_im
 
-if "{{_DTYPE}}" == "float32":
-    dtype = np.float32
-elif "{{_DTYPE}}" == "float16":
-    dtype = np.float16
-elif "{{_DTYPE}}" == "int16":
-    dtype = np.int16
-else:
-    dtype = np.uint8
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", type=str, help="file path")
+    args = parser.parse_args()
 
-f = get_files()[0]
+    dtype: Any
+    requested_dtype = os.environ.get("_DTYPE", "")
+    if requested_dtype == "f32":
+        dtype = np.float32
+    elif requested_dtype == "f16":
+        dtype = np.float16
+    elif requested_dtype == "i16":
+        dtype = np.int16
+    else:
+        dtype = np.uint8
 
-im = np.fromfile(f, dtype=dtype)
-if dtype == np.float16:
-    im = im.astype(np.float32)
+    im = np.fromfile(args.file, dtype=dtype)
+    if dtype == np.float16:
+        im = im.astype(np.float32)
 
-width, height = [int(x) for x in "{{_SIZE}}".split()]
+    width = int(os.environ["_WIDTH"])
+    height = int(os.environ["_HEIGHT"])
 
-shape = [height, width]
-if "{{_CHANNEL}}":
-    shape.append({{_CHANNEL}})
+    shape = [height, width]
+    if os.environ.get("_CHANNEL"):
+        shape.append(int(os.environ["_CHANNEL"]))
 
-im = im.reshape(shape)
-print(im)
+    im = im.reshape(shape)
+    print(im)
 
-show_im(im, split_channels=bool("{{_SPLIT_CHANNELS}}"))
+    show_im(im, split_channels=bool(os.environ.get("_SPLIT_CHANNELS")))

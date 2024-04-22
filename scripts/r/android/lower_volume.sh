@@ -11,4 +11,5 @@
 # #prev
 # adb shell media dispatch previous >/dev/null
 
+echo 'Turn down volume...'
 for i in {1..10}; do adb shell input keyevent 25; done
