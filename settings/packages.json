@@ -72,6 +72,14 @@
       "packages": ["cmake"]
     }
   },
+  "dmenu": {
+    "apt": {
+      "packages": ["dmenu"]
+    },
+    "pacman": {
+      "packages": ["dmenu"]
+    }
+  },
   "dotnet": {
     "choco": {
       "packages": ["dotnet"]

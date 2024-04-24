@@ -62,6 +62,7 @@ def register_global_hotkeys_linux(scripts: List[Script]):
                         hotkey.lower()
                         .replace("win+", "super+")
                         .replace("enter", "Return")
+                        .replace("tab", "Tab")
                         .replace("[", "bracketleft")
                         .replace("]", "bracketright")
                     )

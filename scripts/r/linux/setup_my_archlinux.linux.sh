@@ -35,16 +35,18 @@ yay_install() {
 # Install utilities.
 # - acpi: for battery monitor
 pac_install \
-    alacritty \
     acpi \
+    alacritty \
     fzf \
     git \
     inetutils \
     less \
+    neofetch \
     neovim \
     openssh \
     sxhkd \
     unzip \
+    usbutils \
     wmctrl \
     xclip
 
@@ -146,11 +148,27 @@ if lspci -k | grep -q "NVIDIA Corporation"; then
     pac_install nvidia-settings
 fi
 
+# Setup Intel graphics.
+# https://wiki.archlinux.org/title/intel_graphics
+if lspci -k | grep -q "Intel Corporation UHD Graphics 615"; then
+    # Provides the legacy intel DDX driver from Gen 2 to Gen 9 hardware
+    pac_install xf86-video-intel
+
+    sudo mkdir -p /etc/X11/xorg.conf.d/
+    sudo bash -c 'cat > /etc/X11/xorg.conf.d/20-intel.conf <<EOF
+Section "Device"
+  Identifier "Intel Graphics"
+  Driver "intel"
+  Option "TearFree" "true"
+EndSection
+EOF'
+fi
+
 setup_logitech_keyboard() {
     pac_install solaar # Logitech device manager
     append_line_dedup ~/.xinitrc 'solaar --window hide &'
 
-    sudo bash -c 'cat > /usr/bin/logitech-fn-swap << EOF
+    sudo bash -c 'cat > /usr/bin/logitech-fn-swap <<EOF
 #!/bin/bash
 while true; do
     solaar config K380 fn-swap off
@@ -176,7 +194,9 @@ EOF'
     sudo systemctl restart logitech-fn-swap.service --now
 }
 
-setup_logitech_keyboard
+if lsusb | grep -q "Unifying Receiver"; then
+    setup_logitech_keyboard
+fi
 
 # Configure Touchpad:
 # https://wiki.archlinux.org/title/Touchpad_Synaptics
