@@ -1,6 +1,6 @@
 from ai.openai.speech_to_text import speech_to_text
 from ai.openai.text_to_speech import text_to_speech
-from ML.gpt.chatgpt2 import Chat
+from ML.gpt.chatgpt_deprecated import Chat
 
 
 def voice_chat():

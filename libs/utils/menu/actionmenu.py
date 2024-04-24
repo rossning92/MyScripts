@@ -73,6 +73,10 @@ class ActionMenu(Menu[_Action]):
             hotkey=action.hotkey,
         )
 
+    def add_action(self, name: str, callback: Callable, hotkey: Optional[str] = None):
+        action = _Action(name=name, callback=callback, hotkey=hotkey)
+        self.__add_action(action)
+
     def __on_action(self, action: _Action):
         self.call_func_without_curses(action.callback)
         if self._close_on_selection:

@@ -26,7 +26,10 @@ def extract_code_from_markdown(s: str) -> List[str]:
 
 class ChatMenu(Menu[_Line]):
     def __init__(
-        self, first_message: Optional[str] = None, model: Optional[str] = None
+        self,
+        first_message: Optional[str] = None,
+        model: Optional[str] = None,
+        copy_result_and_exit=False,
     ) -> None:
         self.__model = model
         self.__lines: List[_Line] = []
@@ -41,6 +44,7 @@ class ChatMenu(Menu[_Line]):
         self.__first_message = first_message
         self.__last_yanked_line: Optional[_Line] = None
         self.__yank_mode = 0
+        self.__copy_result_and_exit = copy_result_and_exit
 
         self.add_command(self.start_new_chat, hotkey="ctrl+n")
         self.add_command(self.__yank, hotkey="ctrl+y")
@@ -50,6 +54,11 @@ class ChatMenu(Menu[_Line]):
     def on_created(self):
         if self.__first_message is not None:
             self.__send_message(self.__first_message)
+
+            if self.__copy_result_and_exit:
+                message = self.__messages[-1]["content"]
+                set_clip(message)
+                self.close()
 
     def __send_message(self, text: str) -> None:
         message_index = len(self.__messages)
@@ -145,6 +154,25 @@ class ChatMenu(Menu[_Line]):
             set_clip("\n".join(line_text))
             self.set_message("selected line copied")
             self.set_multi_select(False)
+
+
+def complete_chat(
+    *,
+    input_text: str,
+    prompt_text: Optional[str] = None,
+):
+    if os.path.isfile(input_text):
+        with open(input_text, "r", encoding="utf-8") as f:
+            input_text = f.read()
+
+    if prompt_text:
+        input_text = prompt_text + ":\n---\n" + input_text
+
+    chat = ChatMenu(
+        first_message=input_text,
+        copy_result_and_exit=True,
+    )
+    chat.exec()
 
 
 if __name__ == "__main__":

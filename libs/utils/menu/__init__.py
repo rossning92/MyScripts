@@ -293,6 +293,15 @@ class Menu(Generic[T]):
                 enable_command_palette=False,
             )
 
+            for item in self.items:
+                if hasattr(item, "hotkey"):
+                    hotkey = item.__dict__["hotkey"]
+                    if hotkey:
+                        self.add_command(
+                            lambda item=item: self.__on_item_hotkey(item),
+                            hotkey=hotkey,
+                        )
+
     def __select_all(self):
         total_items = len(self.get_item_indices())
         if total_items <= 0:
@@ -1178,3 +1187,11 @@ class Menu(Generic[T]):
         if not self.__multi_select_mode:
             self.__selected_row_begin = self.__selected_row_end
         self.update_screen()
+
+    def __on_item_hotkey(self, item: T):
+        # Select the item.
+        self.__selected_row_begin = self.__selected_row_end = self.items.index(item)
+        if self._close_on_selection:
+            self.close()
+        else:
+            self.update_screen()
