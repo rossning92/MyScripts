@@ -1,5 +1,7 @@
+import argparse
 import json
 import os
+import sys
 from typing import Dict, Iterator, List, Optional
 
 import requests
@@ -40,3 +42,17 @@ def chat_completion(
 
         except GeneratorExit:
             break
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input", nargs="?", type=str, help="Input input")
+    args = parser.parse_args()
+
+    if not sys.stdin.isatty():
+        input_text = sys.stdin.read()
+    else:
+        input_text = args.input
+
+    for chunk in chat_completion([{"role": "user", "content": input_text}]):
+        print(chunk, end="")

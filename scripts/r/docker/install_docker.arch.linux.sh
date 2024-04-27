@@ -5,7 +5,12 @@ sudo pacman -S --noconfirm --needed docker
 
 docker --version
 
+if lspci -k | grep -q "NVIDIA Corporation"; then
+    yay -S --noconfirm --needed nvidia-container-toolkit
+fi
+
 sudo systemctl enable docker.socket --now
+# sudo systemctl restart docker
 
 # Enable non-root users to run docker commands
 sudo groupadd docker || true

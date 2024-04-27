@@ -94,6 +94,11 @@ sudo systemctl enable bluetooth.service --now
 pac_install pulseaudio pavucontrol pulseaudio-bluetooth
 pac_install alsa-utils # for amixer CLI command
 
+# Set power key to suspend
+# https://wiki.archlinux.org/title/Power_management#ACPI_events
+sudo sed -i -E 's/^#?HandlePowerKey=.*/HandlePowerKey=suspend/' /etc/systemd/logind.conf
+systemctl kill -s HUP systemd-logind
+
 # Setup input method
 # https://wiki.archlinux.org/title/Fcitx5
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons

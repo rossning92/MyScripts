@@ -6,7 +6,7 @@ from typing import Dict, Iterator, List, Optional
 
 from _shutil import load_json, pause, save_json
 from _term import clear_terminal
-from ai.openai.chat_completion import chat_completion
+from ai.openai.complete_chat import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
 from utils.menu.actionmenu import ActionMenu

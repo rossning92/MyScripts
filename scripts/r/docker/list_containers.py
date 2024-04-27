@@ -15,8 +15,15 @@ class ContainerMenu(ActionMenu):
 
 
 if __name__ == "__main__":
+    # "-a": to view stopped containers
     lines = subprocess.check_output(
-        ["docker", "ps", "-a"], universal_newlines=True
+        [
+            "docker",
+            "ps",
+            "--format",  # https://docs.docker.com/reference/cli/docker/container/ls/#format
+            "table {{.ID}}\t{{.Image}}\t{{.Status}}",
+        ],
+        universal_newlines=True,
     ).splitlines()
     menu = Menu(items=lines, selected_index=1)
     menu.exec()

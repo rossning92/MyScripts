@@ -3,7 +3,7 @@ import re
 from typing import Dict, List, Optional
 
 from _shutil import load_json, save_json
-from ai.openai.chat_completion import chat_completion
+from ai.openai.complete_chat import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
 

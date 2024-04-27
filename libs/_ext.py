@@ -5,7 +5,7 @@ import re
 import shutil
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
-from _editor import is_vscode_installed, open_code_editor, open_in_vim, open_in_vscode
+from _editor import is_vscode_available, open_code_editor, open_in_vim, open_in_vscode
 from _script import (
     Script,
     get_absolute_script_path,
@@ -81,11 +81,11 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
         file = open(file, "r", encoding="utf-8").read().strip()
 
     if editor == "auto":
-        if is_vscode_installed():
+        if is_vscode_available():
             workspace_file = create_myscript_workspace()
             open_in_vscode([workspace_file, file])
         else:
-            open_code_editor([file])
+            open_in_vim(file=file)
     elif editor == "vim":
         open_in_vim(file=file)
     elif editor == "vscode":

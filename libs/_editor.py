@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 from typing import List, Optional, Union
 
 from _pkgmanager import find_executable, require_package
@@ -26,7 +27,10 @@ def vscode_set_include_path(include_path):
         json.dump(data, f, indent=4)
 
 
-def is_vscode_installed() -> bool:
+def is_vscode_available() -> bool:
+    # If a graphical display is not available in a Linux environment, return false.
+    if sys.platform == "linux" and not os.environ.get("DISPLAY"):
+        return False
     return find_executable("vscode") is not None
 
 
@@ -65,9 +69,9 @@ def open_in_vim(file: str, line_number: Optional[int] = None):
 
 
 def open_code_editor(path: Union[str, List[str]], line_number: Optional[int] = None):
-    if is_in_termux():
-        open_in_vim(
-            path if (isinstance(path, str)) else path[-1], line_number=line_number
-        )
-    else:
+    if is_vscode_available():
         open_in_vscode(path, line_number=line_number)
+    else:
+        open_in_vim(
+            file=path if (isinstance(path, str)) else path[-1], line_number=line_number
+        )

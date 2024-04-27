@@ -8,12 +8,15 @@ from utils.menu import Menu
 
 
 class _Prompt:
-    def __init__(self, prompt: str, hotkey: Optional[str] = None) -> None:
+    def __init__(
+        self, prompt: str, name: Optional[str] = None, hotkey: Optional[str] = None
+    ) -> None:
+        self.name = name
         self.prompt = prompt
         self.hotkey = hotkey
 
     def __str__(self) -> str:
-        return self.prompt
+        return self.name if self.name else self.prompt
 
 
 if __name__ == "__main__":
@@ -38,6 +41,7 @@ if __name__ == "__main__":
         prompts.append(
             _Prompt(
                 prompt=item["prompt"],
+                name=item["name"] if "name" in item else None,
                 hotkey=item["hotkey"] if "hotkey" in item else None,
             )
         )

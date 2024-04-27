@@ -424,6 +424,18 @@ globalkeys = gears.table.join(
         description = "decrease brightness",
         group = "custom"
     }),
+    awful.key({ modkey, "Mod1" }, "Up", function()
+        brightness_widget:inc()
+    end, {
+        description = "increase brightness",
+        group = "custom"
+    }),
+    awful.key({ modkey, "Mod1" }, "Down", function()
+        brightness_widget:dec()
+    end, {
+        description = "decrease brightness",
+        group = "custom"
+    }),
 
     awful.key({ modkey }, "a", naughty.destroy_all_notifications,
         { description = "clear notifications", group = "awesome" })

@@ -35,7 +35,6 @@ def update_android_serial():
 
 
 if __name__ == "__main__":
-    win_pos = [int(x) for x in os.environ.get("SCRCPY_POS", "").split()]
 
     while True:
         wait_until_boot_complete()
@@ -45,7 +44,8 @@ if __name__ == "__main__":
             "--always-on-top",
         ]
 
-        if win_pos:
+        if os.environ.get('SCRCPY_POS'):
+            win_pos = [int(x) for x in os.environ["SCRCPY_POS"].split()]
             args += [
                 "--window-x",
                 "%s" % win_pos[0],
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         if serial:
             args += ["--serial", serial]
 
-        if "SCRCPY_HEIGHT" in os.environ:
+        if os.environ.get("SCRCPY_HEIGHT"):
             args += ["--max-size", os.environ["SCRCPY_HEIGHT"]]
 
         ps = subprocess.Popen(args, stdin=subprocess.PIPE)
