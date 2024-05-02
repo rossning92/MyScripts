@@ -187,6 +187,8 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             "sumneko.lua",
             # excalidraw
             "pomdtr.excalidraw-editor",
+            # TeX / LaTeX
+            "James-Yu.latex-workshop",
         ],
         data_dir=data_dir,
     )
@@ -210,6 +212,11 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                 {"key": "shift+alt+r", "command": "revealFileInOS"},
                 {"key": "shift+alt+c", "command": "copyFilePath"},
                 {"key": "alt+g", "command": "editor.action.openLink"},
+                {
+                    "key": "alt+g",
+                    "command": "editor.action.revealDefinition",
+                    "when": "editorHasDefinitionProvider && editorTextFocus",
+                },
                 {
                     "key": "alt+l",
                     "command": "markdown.extension.editing.toggleList",

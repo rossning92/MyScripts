@@ -9,7 +9,7 @@ class _Item:
         self.columns = columns
 
     def __str__(self) -> str:
-        return " | ".join(self.columns)
+        return " , ".join(self.columns)
 
 
 class CsvMenu(Menu[_Item]):

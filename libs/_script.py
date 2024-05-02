@@ -83,6 +83,7 @@ SCRIPT_EXTENSIONS = {
     ".ps1",
     ".py",
     ".sh",
+    ".tex",
     ".txt",
     ".url",
     ".vbs",  # Windows specific,

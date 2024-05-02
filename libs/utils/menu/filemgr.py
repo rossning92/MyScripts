@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import subprocess
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from _editor import open_code_editor
@@ -42,11 +43,15 @@ class _Config:
 
 
 def human_readable_size(num):
-    for unit in ("", "k", "M", "G", "T", "P", "E", "Z"):
+    for unit in ("B", "k", "M", "G", "T", "P", "E", "Z"):
         if abs(num) < 1024.0:
             return f"{num:3.1f}{unit}"
         num /= 1024.0
     return f"{num:.1f}Y"
+
+
+def get_dir_size(full_path: str) -> int:
+    return sum(f.stat().st_size for f in Path(full_path).glob("**/*") if f.is_file())
 
 
 class _File:
@@ -67,7 +72,10 @@ class _File:
 
     def __str__(self) -> str:
         if self.is_dir:
-            return f"[ {self.name} ]"
+            s = f"{self.name}"
+            if self.file_size > 0:
+                s += f"\t({human_readable_size(self.file_size)})"
+            return s
         elif self.relative_path:
             return f"./{self.name}\t({human_readable_size(self.file_size)})"
         else:
@@ -89,7 +97,7 @@ class FileManager(Menu[_File]):
         self.__prompt: Optional[str] = prompt
         self.__select_mode: int = FileManager.SELECT_MODE_NONE
         self.__save_states: bool = save_states if goto is None else False
-        self.__copy_to_path: Optional[str] = None
+        self.__last_copy_to_path: Optional[str] = None
         self.__sort_by = "name"
 
         super().__init__(items=self.__files)
@@ -100,6 +108,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._create_new_dir, hotkey="ctrl+n")
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
+        self.add_command(self._get_dir_size, hotkey="alt+s")
         self.add_command(self._goto_downloads, hotkey="alt+d")
         self.add_command(self._goto_home, hotkey="alt+h")
         self.add_command(self._goto_parent_directory, hotkey="left")
@@ -143,6 +152,12 @@ class FileManager(Menu[_File]):
             set_clip(file_full_path)
             self.set_message(f"Path copied: {file_full_path}")
 
+    def _get_dir_size(self):
+        for file in self.items:
+            if file.is_dir:
+                file.file_size = get_dir_size(file.full_path)
+        self.update_screen()
+
     def _edit_text_file(self):
         file_full_path = self.get_selected_file_full_path()
         if file_full_path is not None:
@@ -175,8 +190,8 @@ class FileManager(Menu[_File]):
 
         filemgr = FileManager(
             goto=(
-                self.__copy_to_path
-                if self.__copy_to_path is not None
+                self.__last_copy_to_path
+                if self.__last_copy_to_path is not None
                 else self.get_cur_dir()
             ),
             prompt="Copy to:",
@@ -184,7 +199,7 @@ class FileManager(Menu[_File]):
         )
         dest_dir = filemgr.select_directory()
         if dest_dir is not None:
-            self.__copy_to_path = dest_dir
+            self.__last_copy_to_path = dest_dir
 
             if os.path.isdir(file):
                 shutil.copytree(file, os.path.join(dest_dir, os.path.basename(file)))
@@ -204,6 +219,7 @@ class FileManager(Menu[_File]):
         dest_dir = filemgr.select_directory()
         if dest_dir is not None:
             shutil.move(src, dest_dir)
+            self._refresh_current_directory()
 
     def _goto_home(self):
         self.goto_directory(get_home_path())

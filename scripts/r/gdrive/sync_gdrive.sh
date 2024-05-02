@@ -15,8 +15,8 @@ cd "$HOME"
 rclone_wrapper() {
     logfile="$(mktemp)"
 
-    # --progress : enable progress bar
-    rclone bisync "drive:$1" "$2" --verbose \
+    rclone bisync "drive:$1" "$2" \
+        --verbose \
         --ignore-checksum \
         --max-lock 2m \
         --recover \

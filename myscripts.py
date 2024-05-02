@@ -216,7 +216,7 @@ class _MyScriptMenu(Menu[Script]):
 
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")
         self.add_command(self._copy_to, hotkey="alt+y")
-        self.add_command(self._copy_script_path)
+        self.add_command(self._copy_file_path)
         self.add_command(self._delete_file)
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
@@ -385,7 +385,7 @@ class _MyScriptMenu(Menu[Script]):
             script_path = script.get_script_path()
             self.__filemgr.copy_to(script_path)
 
-    def _copy_script_path(self):
+    def _copy_file_path(self):
         script = self.get_selected_script()
         if script:
             script_path = script.get_script_path()

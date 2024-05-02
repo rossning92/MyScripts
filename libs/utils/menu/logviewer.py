@@ -43,7 +43,7 @@ class LogViewerMenu(Menu[str]):
         self.__default_log_highlight[r" D |\b(DEBUG|Debug|debug)\b"] = "blue"
         self.__default_log_highlight[r" W |\b(WARN|Warn(ing)?|warn(ing)?)\b"] = "yellow"
         self.__default_log_highlight[r" (E|F) |\b(ERROR|Error|error)\b"] = "red"
-        self.__default_log_highlight[">>>"] = "green"
+        self.__default_log_highlight[">>>|success"] = "green"
         self.__log_highlight = self.__default_log_highlight.copy()
 
         super().__init__(
