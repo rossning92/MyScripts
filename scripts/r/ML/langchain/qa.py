@@ -1,7 +1,5 @@
 # https://python.langchain.com/en/latest/use_cases/question_answering.html
 
-# OPENAI_API_KEY
-
 import argparse
 import logging
 import os

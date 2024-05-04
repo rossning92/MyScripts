@@ -10,13 +10,22 @@ function M.split_screen()
         return
     end
     local geo = screen[1].geometry
-    local new_width = math.ceil(3 * geo.width / 4) - 30 -- personal sweet spot for main screen size
-    local new_width2 = geo.width - new_width
+    local aspect = geo.width / geo.height
+
+    local screen1_width, screen2_width
+    if aspect < 21 / 9 then
+        screen1_width = math.floor(geo.width * 2 / 3)
+        screen2_width = geo.width - screen1_width
+    else
+        screen1_width = math.floor(3 * geo.width / 4)
+        screen2_width = geo.width - screen1_width
+    end
+
     local parent = screen[1]
     parent.original_w = geo.width
     parent.original_h = geo.height
-    parent:fake_resize(geo.x, geo.y, new_width, geo.height)
-    local fake = screen.fake_add(geo.x + new_width, geo.y, new_width2, geo.height)
+    parent:fake_resize(geo.x, geo.y, screen1_width, geo.height)
+    local fake = screen.fake_add(geo.x + screen1_width, geo.y, screen2_width, geo.height)
     if (parent.fakes == nil) then
         parent.fakes = {}
     end
@@ -58,7 +67,7 @@ function M.init_layout()
 
     -- Automatically split the screen if it is a ultra wide screen.
     local geo = screen[1].geometry
-    if geo.width / geo.height > 2 then
+    if geo.width / geo.height >= 21 / 9 then
         M.split_screen()
     end
 end

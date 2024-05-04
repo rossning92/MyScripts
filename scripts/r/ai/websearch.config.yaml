@@ -1,0 +1,4 @@
+args.userInput: true
+closeOnExit: false
+template: false
+variableNames: OPENAI_API_KEY SERPERDEV_API_KEY

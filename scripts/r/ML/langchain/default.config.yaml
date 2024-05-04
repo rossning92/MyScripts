@@ -1,2 +1,3 @@
 terminal: ""
-packages.pip: langchain openai chromadb langchainhub tiktoken chardet PyMuPDF
+packages.pip: langchain openai
+variableNames: OPENAI_API_KEY

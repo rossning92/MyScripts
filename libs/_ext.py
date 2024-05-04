@@ -61,6 +61,10 @@ def create_myscript_workspace() -> str:
             if script_root not in d.path
         ]
     )
+    folders.sort(
+        # HACK: Foam directory must be first in order for [[wikilinks]] to work.
+        key=lambda item: 0 if os.path.exists(os.path.join(item["path"], ".foam")) else 1
+    )
     workspace_file = os.path.join(get_data_dir(), "myscripts.code-workspace")
     save_json(
         workspace_file,

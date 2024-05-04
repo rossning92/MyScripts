@@ -25,6 +25,10 @@ from utils.clip import get_clip, set_clip
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
+SHIFT_DOWN = 0x150
+SHIFT_UP = 0x151
+KEY_A2 = 450
+KEY_C2 = 456
 
 
 def _clamp(n, smallest, largest):
@@ -232,7 +236,8 @@ class Menu(Generic[T]):
         self._matched_item_indices: List[int] = []
         self._message: Optional[str] = None
         self._on_item_selected = on_item_selected
-        self._requested_selected_row: int = -1
+        self._requested_selected_row_begin: int = -1
+        self._requested_selected_row_end: int = -1
         self._highlight = highlight
         self._width: int = -1
         self.__wrap_text: bool = wrap_text
@@ -471,6 +476,7 @@ class Menu(Generic[T]):
         init_color_pair("magenta", curses.COLOR_MAGENTA)
         init_color_pair("cyan", curses.COLOR_CYAN)
         init_color_pair("white", curses.COLOR_WHITE)
+        init_color_pair("gray", curses.COLOR_WHITE)
 
         stdscr.keypad(True)
         stdscr.nodelay(False)
@@ -531,7 +537,11 @@ class Menu(Generic[T]):
         self.__selected_row_end = 0
 
     def set_selected_row(self, selected_row: int):
-        self._requested_selected_row = selected_row
+        self.set_selection(selected_row, selected_row)
+
+    def set_selection(self, begin_row: int, end_row: int):
+        self._requested_selected_row_begin = begin_row
+        self._requested_selected_row_end = end_row
         self._check_if_item_selection_changed()
 
     def refresh(self):
@@ -567,10 +577,14 @@ class Menu(Generic[T]):
                 self.update_matched_items()
 
         # Update item selection
-        if self._requested_selected_row >= 0:
-            self.__selected_row_begin = self._requested_selected_row
-            self.__selected_row_end = self._requested_selected_row
-            self._requested_selected_row = -1
+        if (
+            self._requested_selected_row_begin >= 0
+            or self._requested_selected_row_end >= 0
+        ):
+            self.__selected_row_begin = self._requested_selected_row_begin
+            self.__selected_row_end = self._requested_selected_row_end
+            self._requested_selected_row_begin = -1
+            self._requested_selected_row_end = -1
 
         total_items = len(self.get_item_indices())
         if self.__selected_row_begin >= total_items:
@@ -606,21 +620,21 @@ class Menu(Generic[T]):
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()
 
-            elif ch == curses.KEY_UP or ch == 450:  # curses.KEY_A2
+            elif ch == curses.KEY_UP or ch == KEY_A2 or ch == SHIFT_UP:
                 if len(self.get_item_indices()) > 0:
                     self.__selected_row_end = max(self.__selected_row_end - 1, 0)
-                    if not self.__multi_select_mode:
+                    if not self.__multi_select_mode and not ch == SHIFT_UP:
                         self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
 
-            elif ch == curses.KEY_DOWN or ch == 456:  # curses.KEY_C2
+            elif ch == curses.KEY_DOWN or ch == KEY_C2 or ch == SHIFT_DOWN:
                 if len(self.get_item_indices()) > 0:
                     self.__selected_row_end = min(
                         self.__selected_row_end + 1,
                         len(self.get_item_indices()) - 1,
                     )
-                    if not self.__multi_select_mode:
+                    if not self.__multi_select_mode and not ch == SHIFT_DOWN:
                         self.__selected_row_begin = self.__selected_row_end
                     self.update_screen()
                     self._check_if_item_selection_changed()
@@ -835,6 +849,12 @@ class Menu(Generic[T]):
         can_scroll_left: bool
         can_scroll_right: bool
 
+    def color_name_to_attr(self, color: str) -> int:
+        attr = curses.color_pair(Menu.color_pair_map[color])
+        if color == "gray":
+            attr |= curses.A_DIM
+        return attr
+
     def draw_text(
         self,
         row: int,
@@ -868,9 +888,7 @@ class Menu(Generic[T]):
 
         # Draw left arrow
         if scroll_x > 0:
-            Menu.stdscr.addstr(
-                row, col, "<", curses.color_pair(Menu.color_pair_map["CYAN"])
-            )
+            Menu.stdscr.addstr(row, col, "<", self.color_name_to_attr("CYAN"))
             x = col + 1
         else:
             x = col
@@ -878,7 +896,7 @@ class Menu(Generic[T]):
         y = row
         last_row_index = row
         can_scroll_right = False
-        attr = curses.color_pair(Menu.color_pair_map[color])
+        attr = self.color_name_to_attr(color)
         if bold:
             attr |= curses.A_BOLD
         for i, ch in enumerate(s):
@@ -909,7 +927,7 @@ class Menu(Generic[T]):
                             row,
                             self._width - 1,
                             ">",
-                            curses.color_pair(Menu.color_pair_map["CYAN"]),
+                            self.color_name_to_attr("CYAN"),
                         )
                         can_scroll_right = True
                     break
@@ -1001,7 +1019,7 @@ class Menu(Generic[T]):
             if self.__line_number:
                 line_number = f"{item_index + 1}"
                 line_number_text = f"{line_number}"
-                line_number_color = "WHITE" if is_item_selected else "white"
+                line_number_color = "WHITE" if is_item_selected else "gray"
                 self.draw_text(
                     item_y,
                     0,

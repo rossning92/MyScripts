@@ -7,9 +7,7 @@ from typing import Callable, List, Optional
 class Template:
     """Compile an text into a template function"""
 
-    def __init__(
-        self, text, file_locator: Optional[Callable[[str], Optional[str]]] = None
-    ):
+    def __init__(self, text, file_locator: Optional[Callable[[str], str]] = None):
         self.delimiter = re.compile(r"{{(.*?)}}", re.DOTALL)
         self.tokens = self.compile(text)
         self.file_locator = file_locator
@@ -43,7 +41,7 @@ class Template:
         global_context["set"] = set
 
         # Include function
-        def include(file, context={}):
+        def include(file: str, context={}):
             nonlocal undefined_names
 
             if self.file_locator:

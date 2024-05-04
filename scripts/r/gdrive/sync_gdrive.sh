@@ -15,6 +15,11 @@ cd "$HOME"
 rclone_wrapper() {
     logfile="$(mktemp)"
 
+    extra_args=''
+    if [[ -n "$_DRY_RUN" ]]; then # env: _DRY_RUN
+        extra_args+=' --dry-run'
+    fi
+
     rclone bisync "drive:$1" "$2" \
         --verbose \
         --ignore-checksum \
@@ -22,6 +27,7 @@ rclone_wrapper() {
         --recover \
         --resilient \
         --exclude=.mypy_cache/** \
+        $extra_args \
         "${@:3}" \
         2>&1 | tee "$logfile"
     ret=${PIPESTATUS[0]}
