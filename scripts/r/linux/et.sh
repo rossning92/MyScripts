@@ -9,6 +9,7 @@ spawn ${et_cmd}
 expect "password:"
 send "{{SSH_PWD}}\r"
 {{ET_EXTRA_EXPECT_COMMANDS}}
+
 interact
 EOF
 

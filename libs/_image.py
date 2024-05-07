@@ -155,7 +155,7 @@ def draw_text(
 
     draw = ImageDraw.Draw(im)
     font = ImageFont.truetype("arial.ttf", int(box[3] / 16 * font_scale))
-    w, h = draw.multiline_textsize(text, font=font)
+    _, _, w, h = draw.multiline_textbbox((0, 0), text, font=font)
 
     if align == "top":
         x = box[0] + (box[2] - w) / 2
