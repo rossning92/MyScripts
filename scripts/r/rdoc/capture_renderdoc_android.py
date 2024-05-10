@@ -1,14 +1,52 @@
 # https://github.com/baldurk/renderdoc/search?l=Python&q=ExecuteAndInject
 
+import argparse
+import json
 import logging
 import os
+import socket
+import subprocess
+import sys
 import threading
 import time
+from typing import Any, List
 
 import renderdoc as rd
 from _android import get_device_name, get_main_activity
-from _shutil import get_home_path, get_time_str, getch
+from _shutil import get_home_path, get_time_str
 from utils.logger import setup_logger
+
+
+def server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(("localhost", 12345))
+    server_socket.listen(5)
+    should_exit = False
+    while not should_exit:
+        conn, addr = server_socket.accept()
+        data = json.loads(conn.recv(1024).decode())
+        logging.debug(data)
+        try:
+            if data["cmd"] == "launch-app":
+                launch_app()
+            elif data["cmd"] == "capture":
+                capture()
+            elif data["cmd"] == "exit":
+                should_exit = True
+        except Exception:
+            conn.send(json.dumps({"success": False}).encode())
+        conn.send(json.dumps({"success": True}).encode())
+        conn.close()
+
+
+def send_command(data: Any):
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(("localhost", 12345))
+    client_socket.send(json.dumps(data).encode())
+    response = json.loads(client_socket.recv(1024).decode())
+    client_socket.close()
+    if not response["success"]:
+        sys.exit(1)
 
 
 def list_executables(remote):
@@ -22,7 +60,15 @@ def list_executables(remote):
         logging.info("  - " + p.filename)
 
 
-def main():
+target: Any = None
+kill: Any = None
+ping_thread: Any = None
+remote: Any = None
+
+
+def launch_app():
+    global target, kill, ping_thread, remote
+
     # This sample is intended as an example of how to do remote capture and replay
     # as well as using device protocols to automatically enumerate remote targets.
     #
@@ -78,6 +124,22 @@ def main():
         try:
             # Let's try to connect
             result, remote = rd.CreateRemoteServerConnection(url)
+            if remote is None:
+                logging.warn(
+                    "Failed to create remote server connection. "
+                    "Perhaps renderdoccmd is already running? "
+                    "Killing the process..."
+                )
+                subprocess.call(
+                    [
+                        "adb",
+                        "shell",
+                        "am",
+                        "force-stop",
+                        "org.renderdoc.renderdoccmd.arm64",
+                    ]
+                )
+                result, remote = rd.CreateRemoteServerConnection(url)
 
             if result == rd.ResultCode.NetworkIOFailed and protocol is not None:
                 # If there's just no I/O, most likely the server is not running. If we have
@@ -116,7 +178,7 @@ def main():
 
     workingDir = ""
     cmdLine = ""
-    env = []
+    env: List[str] = []
     opts = rd.GetDefaultCaptureOptions()
 
     logging.info(f"Start {exe}")
@@ -153,26 +215,30 @@ def main():
     # TODO: Wait for the capture condition we want
     # capture_condition()
 
-    run_wait_secs = 15
-    if os.environ.get("RUN_WAIT_SECS"):
-        run_wait_secs = int(os.environ.get("RUN_WAIT_SECS"))
-    if run_wait_secs < 0:
-        print("(press enter to trigger capture...)")
-        getch()
-    else:
-        logging.info(f"Wait for {run_wait_secs} seconds, then capture a frame.")
-        time.sleep(run_wait_secs)
+    # run_wait_secs = 15
+    # if os.environ.get("RUN_WAIT_SECS"):
+    #     run_wait_secs = int(os.environ["RUN_WAIT_SECS"])
+    # if run_wait_secs < 0:
+    #     print("(press enter to trigger capture...)")
+    #     getch()
+    # else:
+    #     logging.info(f"Wait for {run_wait_secs} seconds, then capture a frame.")
+    #     time.sleep(run_wait_secs)
+
+
+def capture():
+    global target, kill, ping_thread, remote
 
     logging.info("Trigger capture")
     target.TriggerCapture(1)
 
     # Pump messages, keep waiting until we get a capture message. Time out after 30 seconds
     msg = None
-    start = time.clock()
+    start = time.time()
     while msg is None or msg.type != rd.TargetControlMessageType.NewCapture:
         msg = target.ReceiveMessage(None)
 
-        if time.clock() - start > 30:
+        if time.time() - start > 30:
             break
 
     # Close the target connection, we're done either way
@@ -201,7 +267,7 @@ def main():
     local_file = os.path.join(
         get_home_path(),
         "Desktop",
-        f"{pkg_name}-{get_device_name()}-{get_time_str()}.rdc",
+        f"{os.environ['PKG_NAME']}-{get_device_name()}-{get_time_str()}.rdc",
     )
     logging.info(f"Save capture to {local_file}")
     remote.CopyCaptureFromRemote(
@@ -212,5 +278,13 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("cmd", help="command", type=str)
+    args = parser.parse_args()
+
     setup_logger()
-    main()
+
+    if args.cmd == "server":
+        server()
+    else:
+        send_command({"cmd": args.cmd})

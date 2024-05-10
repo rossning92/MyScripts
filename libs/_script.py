@@ -1155,7 +1155,7 @@ class Script:
 
         cmdline = self.cfg["cmdline"]
         if cmdline:
-            arg_list = shlex.split(cmdline.format(**self.get_context()))
+            arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
 
         elif ext == ".ps1":
             if sys.platform == "win32":

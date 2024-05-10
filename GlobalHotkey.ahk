@@ -9,10 +9,6 @@ MatchClipboard := {{MATCH_CLIPBOARD}}
 OnClipboardChange("ClipChanged")
 return
 
-#If not WinActive("ahk_exe vncviewer.exe")
-    ^!r::RunLastScript()
-#If
-
 {{HOTKEYS}}
 
 StartScript(scriptName, scriptPath)
