@@ -2,6 +2,10 @@ set -e
 name="$1"
 commands="$2"
 
+if [[ $(grep Microsoft /proc/version) ]]; then # WSL 1
+    export SCREENDIR=$HOME/.screen
+fi
+
 # Clean up dead screen sessions
 screen -wipe >/dev/null 2>&1 || true
 

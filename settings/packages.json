@@ -445,6 +445,9 @@
   "scrcpy": {
     "choco": {
       "packages": ["scrcpy"]
+    },
+    "pacman": {
+      "packages": ["scrcpy"]
     }
   },
   "screen": {

@@ -1259,9 +1259,11 @@ class Script:
                 script_path = write_temp_file(
                     self.render(source=source), slugify(self.name) + ".sh"
                 )
-            script_path = convert_to_unix_path(script_path, wsl=self.cfg["wsl"])
 
             arg_list = [script_path] + arg_list
+            arg_list = [
+                convert_to_unix_path(arg, wsl=self.cfg["wsl"]) for arg in arg_list
+            ]
 
             if self.cfg["msys2"]:
                 require_package("msys2")

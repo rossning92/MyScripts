@@ -263,12 +263,15 @@ def capture():
         f"Got new capture at {cap_path} which is frame {msg.newCapture.frameNumber} with {msg.newCapture.api}"
     )
 
-    # We could save the capture locally
-    local_file = os.path.join(
-        get_home_path(),
-        "Desktop",
-        f"{os.environ['PKG_NAME']}-{get_device_name()}-{get_time_str()}.rdc",
-    )
+    # Save the capture to host.
+    if os.environ.get("RDC_FILE"):
+        local_file = os.environ["RDC_FILE"]
+    else:
+        local_file = os.path.join(
+            get_home_path(),
+            "Desktop",
+            f"{os.environ['PKG_NAME']}-{get_device_name()}-{get_time_str()}.rdc",
+        )
     logging.info(f"Save capture to {local_file}")
     remote.CopyCaptureFromRemote(
         cap_path,
@@ -280,6 +283,7 @@ def capture():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("cmd", help="command", type=str)
+    parser.add_argument("rest", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
     setup_logger()
@@ -287,4 +291,4 @@ if __name__ == "__main__":
     if args.cmd == "server":
         server()
     else:
-        send_command({"cmd": args.cmd})
+        send_command({"cmd": args.cmd, "args": args.rest})

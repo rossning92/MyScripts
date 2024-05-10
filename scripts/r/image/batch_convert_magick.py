@@ -43,7 +43,7 @@ for f in files:
     if "{{_BRIGHTNESS}}":
         args += ["-brightness-contrast", "{{_BRIGHTNESS}}x0"]
 
-    out_file = os.path.join(folder, "out", "%s.%s" % (name, ext))
+    out_file = os.path.join(folder, "out", "%s%s" % (name, ext))
     mkdir(os.path.join(folder, "out"))
 
     args += [f"{'PNG24:' if ext.lower()=='png' else ''}" + out_file]
