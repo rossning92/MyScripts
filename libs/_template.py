@@ -8,7 +8,7 @@ class Template:
     """Compile an text into a template function"""
 
     def __init__(self, text, file_locator: Optional[Callable[[str], str]] = None):
-        self.delimiter = re.compile(r"{{(.*?)}}[\r\n]?", re.DOTALL)
+        self.delimiter = re.compile(r"{{(.*?)}}", re.DOTALL)
         self.tokens = self.compile(text)
         self.file_locator = file_locator
 

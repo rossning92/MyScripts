@@ -141,6 +141,14 @@
       "packages": ["ffmpeg"]
     }
   },
+  "flameshot": {
+    "apt": {
+      "packages": ["flameshot"]
+    },
+    "pacman": {
+      "packages": ["flameshot"]
+    }
+  },
   "fzf": {
     "choco": {
       "packages": ["fzf"]

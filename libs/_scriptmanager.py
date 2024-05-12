@@ -58,13 +58,15 @@ def register_global_hotkeys_linux(scripts: List[Script]):
         if hotkey_chain and script.is_supported():
             hotkey_def = ";".join(
                 [
-                    (
+                    re.sub(
+                        r"\bf(\d+)\b",
+                        "F\\1",
                         hotkey.lower()
                         .replace("win+", "super+")
                         .replace("enter", "Return")
                         .replace("tab", "Tab")
                         .replace("[", "bracketleft")
-                        .replace("]", "bracketright")
+                        .replace("]", "bracketright"),
                     )
                     for hotkey in hotkey_chain.split()
                 ]

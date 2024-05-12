@@ -6,8 +6,12 @@ echo "${et_cmd}"
 cat >~/et.sh <<EOF
 set timeout 10
 spawn ${et_cmd}
+
+{{if SSH_PWD}}
 expect "password:"
 send "{{SSH_PWD}}\r"
+{{end}}
+
 {{ET_EXTRA_EXPECT_COMMANDS}}
 
 interact
