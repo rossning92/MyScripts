@@ -91,7 +91,11 @@ class Template:
                 if not is_code:
                     result.append(token)
                 else:
-                    if match := re.match(rf"({VARIABLE_NAME_REGEX})\s*=\s*(.+)", token):
+                    if token.startswith("#"):
+                        pass
+                    elif match := re.match(
+                        rf"({VARIABLE_NAME_REGEX})\s*=\s*(.+)", token
+                    ):
                         variable_name = match.group(1)
                         expr = match.group(2)
                         val = eval(expr, global_context)

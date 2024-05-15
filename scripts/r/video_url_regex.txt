@@ -1,1 +1,1 @@
-https?://(((www|m)\.)?bilibili\.com/video/[a-zA-Z0-9]+|b23\.tv/[a-zA-Z0-9]+)|{{ include('r/youtube_video_url_regex.txt') }}
+{{ include('r/video_url_regex_bili.txt') }}|{{ include('r/video_url_regex_youtube.txt') }}

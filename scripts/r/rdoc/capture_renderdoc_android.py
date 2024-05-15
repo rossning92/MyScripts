@@ -33,7 +33,8 @@ def server():
                 capture()
             elif data["cmd"] == "exit":
                 should_exit = True
-        except Exception:
+        except Exception as ex:
+            logging.exception(ex)
             conn.send(json.dumps({"success": False}).encode())
         conn.send(json.dumps({"success": True}).encode())
         conn.close()
@@ -120,44 +121,45 @@ def launch_app():
             logging.info(f"{name} already has a program running on {ident}")
             # raise RuntimeError(f"{name} already has a program running on {ident}")
 
-    while True:
-        try:
-            # Let's try to connect
+    while remote is None:
+        # Let's try to connect
+        result, remote = rd.CreateRemoteServerConnection(url)
+        if remote is None:
+            logging.warn(
+                "Failed to create remote server connection. "
+                "Perhaps renderdoccmd is already running? "
+                "Killing the process..."
+            )
+            subprocess.call(
+                [
+                    "adb",
+                    "shell",
+                    "am",
+                    "force-stop",
+                    "org.renderdoc.renderdoccmd.arm32",
+                ]
+            )
+            subprocess.call(
+                [
+                    "adb",
+                    "shell",
+                    "am",
+                    "force-stop",
+                    "org.renderdoc.renderdoccmd.arm64",
+                ]
+            )
+
             result, remote = rd.CreateRemoteServerConnection(url)
-            if remote is None:
-                logging.warn(
-                    "Failed to create remote server connection. "
-                    "Perhaps renderdoccmd is already running? "
-                    "Killing the process..."
-                )
-                subprocess.call(
-                    [
-                        "adb",
-                        "shell",
-                        "am",
-                        "force-stop",
-                        "org.renderdoc.renderdoccmd.arm64",
-                    ]
-                )
-                result, remote = rd.CreateRemoteServerConnection(url)
 
-            if result == rd.ResultCode.NetworkIOFailed and protocol is not None:
-                # If there's just no I/O, most likely the server is not running. If we have
-                # a protocol, we can try to start the remote server
-                logging.info("Couldn't connect to remote server, trying to start it")
+        if result == rd.ResultCode.NetworkIOFailed and protocol is not None:
+            # If there's just no I/O, most likely the server is not running. If we have
+            # a protocol, we can try to start the remote server
+            logging.info("Couldn't connect to remote server, trying to start it")
 
-                result = protocol.StartRemoteServer(url)
+            result = protocol.StartRemoteServer(url)
 
-                if result != rd.ResultCode.Succeeded:
-                    raise RuntimeError(
-                        f"Couldn't launch remote server, got error {str(result)}"
-                    )
-
-            break
-
-        except RuntimeError as ex:
-            logging.warn(f"Error on connection: {ex}")
-            logging.info("Try to connect again")
+            if result != rd.ResultCode.Succeeded:
+                logging.warn(f"Couldn't launch remote server, got error {str(result)}")
 
     assert remote is not None
 

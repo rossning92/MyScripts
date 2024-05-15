@@ -132,7 +132,8 @@ class ChatMenu(Menu[_Line]):
         s = "%d" % len(self.__data["conversations"])
         return s + " | " + super().get_status_bar_text()
 
-    def __copy_code_block(self, index: int):
+    def __copy_block(self, index: int):
+        # Check if it's in the code block; if so, copy all the code.
         is_code_block = False
         code_begin = -1
         code_end = -1
@@ -148,9 +149,18 @@ class ChatMenu(Menu[_Line]):
                         set_clip("\n".join(code_lines))
                         self.set_selection(code_begin, code_end)
                         self.set_message("code copied")
-                        break
+                        return
             elif is_code_block:
                 code_lines.append(line.text)
+
+        # Copy the whole message.
+        message_index = self.__lines[index].message_index
+        messages = self.get_messages()
+        if message_index < len(messages):
+            text = messages[message_index]["content"]
+            set_clip(text)
+            self.set_message("message copied")
+            return
 
     def __yank(self):
         indices = list(self.get_selected_indices())
@@ -169,7 +179,7 @@ class ChatMenu(Menu[_Line]):
             elif self.__yank_mode == 1:
                 index = self.get_selected_index()
                 if index >= 0:
-                    self.__copy_code_block(index=index)
+                    self.__copy_block(index=index)
         elif len(indices) > 1:
             line_text = []
             for idx in indices:

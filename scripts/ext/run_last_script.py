@@ -1,7 +1,7 @@
 import os
 import sys
 
-from _script import run_script, start_script
+from _script import start_script
 from _shutil import get_files
 
 

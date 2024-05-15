@@ -2,11 +2,13 @@ import os
 import sys
 import tempfile
 import time
+from io import TextIOWrapper
+from typing import Optional
 
 
 class FileLock:
     def __init__(self, name) -> None:
-        self.fh = None
+        self.fh: Optional[TextIOWrapper] = None
         self.name = name
 
     def __enter__(self):
@@ -16,12 +18,7 @@ class FileLock:
                 try:
                     if os.path.exists(lock_file):
                         os.remove(lock_file)
-                    self.fh = os.open(
-                        lock_file,
-                        os.O_CREAT  # create file if not exists
-                        | os.O_EXCL
-                        | os.O_RDWR,  # open for read and write
-                    )
+                    self.fh = open(lock_file, "x")
                     break
                 except FileExistsError:
                     time.sleep(0.1)
@@ -47,7 +44,5 @@ class FileLock:
         return self.fh
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if sys.platform == "win32":
-            os.close(self.fh)
-        else:
-            self.fh.close()
+        assert self.fh is not None
+        self.fh.close()
