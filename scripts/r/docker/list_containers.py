@@ -20,6 +20,7 @@ if __name__ == "__main__":
         [
             "docker",
             "ps",
+            "-a",
             "--format",  # https://docs.docker.com/reference/cli/docker/container/ls/#format
             "table {{.ID}}\t{{.Image}}\t{{.Status}}",
         ],

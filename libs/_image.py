@@ -388,6 +388,7 @@ def to_ndarray(im):
 def select_roi(im):
     import matplotlib.pyplot as plt
     import numpy as np
+    from matplotlib.backend_bases import MouseButton
     from matplotlib.widgets import RectangleSelector
 
     im = to_ndarray(im)
@@ -403,12 +404,11 @@ def select_roi(im):
         roi = [int(round(x)) for x in roi]
 
     _, ax = plt.subplots()
-    rs = RectangleSelector(
+    __ = RectangleSelector(
         ax,
         line_select_callback,
-        drawtype="box",
         useblit=False,
-        button=[1],
+        button=[MouseButton.LEFT],
         minspanx=5,
         minspany=5,
         spancoords="pixels",
@@ -417,8 +417,14 @@ def select_roi(im):
 
     plt.imshow(im, origin="upper")
 
-    mng = plt.get_current_fig_manager()
-    mng.full_screen_toggle()
+    manager = plt.get_current_fig_manager()
+    manager.window.showMaximized()
+
+    plt.connect(
+        "key_press_event",
+        lambda event: plt.close() if event.key in ["enter", "escape"] else None,
+    )
+
     plt.show()
 
     return roi

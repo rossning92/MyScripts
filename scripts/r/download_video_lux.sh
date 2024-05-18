@@ -10,3 +10,4 @@ url="$1"
 
 lux -c "$cookie" "$url"
 
+run_script r/save_video_url.py "$url"

@@ -1,18 +1,6 @@
-from _shutil import *
-from _image import *
 import numpy as np
-
-
-def crop_border2(pil_image):
-    np_array = np.array(pil_image)
-    blank_px = [255, 255, 255, 0]
-    mask = np_array != blank_px
-    coords = np.argwhere(mask)
-    x0, y0, z0 = coords.min(axis=0)
-    x1, y1, z1 = coords.max(axis=0) + 1
-    cropped_box = np_array[x0:x1, y0:y1, z0:z1]
-    pil_image = Image.fromarray(cropped_box, "RGBA")
-    return pil_image
+from _image import *
+from _shutil import *
 
 
 def crop_border(pil_image):
