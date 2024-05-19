@@ -392,22 +392,26 @@ class _MyScriptMenu(Menu[Script]):
             set_clip(script_path)
             self.set_message(f"copied: {script_path}")
 
-    def _new_script_or_duplicate_script(self, duplicate=False):
-        ref_script_path = self.get_selected_script_path()
-        if ref_script_path:
-            script_path = create_new_script(
-                ref_script_path=ref_script_path, duplicate=duplicate
-            )
-            if script_path:
-                script = Script(script_path)
-                self.script_manager.scripts.insert(0, script)
+    def _new_script_or_duplicate_script(self, src_script_path: Optional[str]):
+        script_dirs = sorted(
+            set(os.path.dirname(x.name) + "/" for x in self.script_manager.scripts)
+        )
+        script_path = create_new_script(
+            src_script_path=src_script_path,
+            script_dirs=script_dirs,
+        )
+        if script_path:
+            script = Script(script_path)
+            self.script_manager.scripts.insert(0, script)
         self.clear_input()
 
     def _new_script(self):
-        self._new_script_or_duplicate_script(duplicate=False)
+        self._new_script_or_duplicate_script(src_script_path=None)
 
     def _duplicate_script(self):
-        self._new_script_or_duplicate_script(duplicate=True)
+        src_script_path = self.get_selected_script_path()
+        if src_script_path:
+            self._new_script_or_duplicate_script(src_script_path=src_script_path)
 
     def _rename_script(self, replace_all_occurrence=False):
         def on_progress(msg: str):

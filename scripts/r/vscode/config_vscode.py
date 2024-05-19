@@ -127,16 +127,12 @@ def install_shader_tools(data_dir: str):
     settings = {
         "glsllint.glslangValidatorPath": install_glslangvalidator(),
         "[glsl]": {"editor.defaultFormatter": "xaver.clang-format"},
-        "glsl-canvas.textures": {
-            "0": "https://raw.githubusercontent.com/JoeyDeVries/LearnOpenGL/master/resources/textures/awesomeface.png",
-            "1": "https://rawgit.com/actarian/plausible-brdf-shader/master/textures/noise/cloud-1.png",
-            "2": "https://rawgit.com/actarian/plausible-brdf-shader/master/textures/noise/cloud-2.jpg",
-        },
+        "shader-toy.reloadOnEditText": False,
     }
     update_settings(settings, data_dir=data_dir)
 
     # Shader preview tool
-    install_extensions(["circledev.glsl-canvas"], data_dir=data_dir)
+    install_extensions(["stevensona.shader-toy"], data_dir=data_dir)
 
 
 def config_vscode(data_dir=None, compact=False, glslang=False):

@@ -58,8 +58,8 @@ from _shutil import (
     wrap_args_conemu,
     write_temp_file,
 )
-from _template import render_template
 from utils.clip import get_clip, get_selection
+from utils.template import render_template
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.timed import timed
 from utils.tmux import is_in_tmux
@@ -75,6 +75,8 @@ SCRIPT_EXTENSIONS = {
     ".cmd",
     ".cpp",
     ".expect",
+    ".frag",  # shader
+    ".glsl",  # shader
     ".ipynb",  # Python
     ".js",
     ".link",
@@ -1022,10 +1024,6 @@ class Script:
         )
         logging.debug(f"close_on_exit={close_on_exit}")
 
-        if ext == ".md" or ext == ".txt":
-            open_code_editor(script_path)
-            return True
-
         arg_list = args
 
         # If no arguments is provided to the script, try to provide the default
@@ -1156,6 +1154,17 @@ class Script:
         cmdline = self.cfg["cmdline"]
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
+
+        elif ext in [".md", ".txt"]:
+            if template:
+                script_path = write_temp_file(
+                    self.render(source=source), slugify(self.name) + ".sh"
+                )
+                md_file_path = script_path
+            else:
+                md_file_path = script_path
+            open_code_editor(md_file_path)
+            return True
 
         elif ext == ".ps1":
             if sys.platform == "win32":

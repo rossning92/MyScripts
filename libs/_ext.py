@@ -5,7 +5,7 @@ import re
 import shutil
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
-from _editor import is_vscode_available, open_code_editor, open_in_vim, open_in_vscode
+from _editor import is_vscode_available, open_in_vim, open_in_vscode
 from _script import (
     Script,
     get_absolute_script_path,
@@ -21,10 +21,10 @@ from _script import (
     save_json,
 )
 from _shutil import load_yaml, quote_arg, save_yaml
-from _template import render_template_file
 from utils.clip import set_clip
 from utils.menu import Menu
 from utils.menu.dictedit import DictEditMenu
+from utils.template import render_template_file
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -217,15 +217,18 @@ def copy_script_path_to_clipboard(
         return content
 
 
-def create_new_script(ref_script_path=None, duplicate=False):
+def create_new_script(
+    src_script_path: Optional[str] = None,
+    script_dirs: Optional[List[str]] = None,
+):
     label: str
-    if duplicate:
-        text = get_selected_script_path_rel(script_path=ref_script_path)
+    if src_script_path is not None:
+        text = get_selected_script_path_rel(script_path=src_script_path)
         label = "duplicate script"
     else:
-        text = get_selected_script_dir_rel(script_path=ref_script_path)
+        text = ""
         label = "new script:"
-    w: Menu = Menu(prompt=label, text=text)
+    w: Menu = Menu(prompt=label, text=text, items=script_dirs)
     w.exec()
     dest_script = w.get_text()
     if not dest_script:
@@ -244,11 +247,11 @@ def create_new_script(ref_script_path=None, duplicate=False):
     if not ext:
         logging.warning("Script extension is required.")
 
-    if duplicate:
-        if not os.path.isabs(ref_script_path):
-            src_script = os.path.join(get_script_root(), ref_script_path)
+    if src_script_path is not None:  # duplicate the script.
+        if not os.path.isabs(src_script_path):
+            src_script = os.path.join(get_script_root(), src_script_path)
         else:
-            src_script = ref_script_path
+            src_script = src_script_path
         shutil.copyfile(src_script, dest_script)
         src_script_config_file = get_script_config_file(src_script)
         if src_script_config_file is not None:

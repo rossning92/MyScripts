@@ -27,8 +27,8 @@ from _shutil import (
     start_process,
     update_env_var_explorer,
 )
-from _template import render_template_file
 from _term import clear_terminal
+from utils.template import render_template_file
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 

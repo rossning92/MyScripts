@@ -8,8 +8,8 @@ from _browser import open_url
 from _code import append_code, patch_code, prepend_code, prepend_line
 from _editor import open_code_editor
 from _shutil import call_echo, cd, copy, mkdir, save_json, update_json
-from _template import render_template_file
 from utils.menu.actionmenu import ActionMenu
+from utils.template import render_template_file
 
 project_dir = os.path.expanduser(os.environ["JS_PROJECT_DIR"])  # env: JS_PROJECT_DIR
 

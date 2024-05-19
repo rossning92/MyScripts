@@ -1043,9 +1043,10 @@ class Menu(Generic[T]):
             item_y += increments
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
-            self.__scroll_distance = (
-                self._width - line_number_width - GUTTER_SIZE
-            ) // 2
+            # self.__scroll_distance = (
+            #     self._width - line_number_width - GUTTER_SIZE
+            # ) // 2
+            self.__scroll_distance = 10
             if draw_text_result.can_scroll_left:
                 self.__can_scroll_left = True
             if draw_text_result.can_scroll_right:

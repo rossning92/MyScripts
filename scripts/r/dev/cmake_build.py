@@ -1,9 +1,8 @@
 import os
 
-from _shutil import call_echo, print2
-from _template import render_template_file
-
 import vcpkg
+from _shutil import call_echo, print2
+from utils.template import render_template_file
 
 template_file = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "CMakeLists.template.txt"
