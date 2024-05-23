@@ -258,8 +258,14 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                 # glsl-canvas
                 {
                     "key": "ctrl+shift+v",
-                    "command": "glsl-canvas.showGlslCanvas",
+                    "command": "shader-toy.showGlslPreview",
                     "when": "resourceExtname == '.glsl'",
+                },
+                # csv
+                {
+                    "key": "ctrl+shift+v",
+                    "command": "edit-csv.edit",
+                    "when": "resourceExtname == '.csv'",
                 },
             ],
             f,

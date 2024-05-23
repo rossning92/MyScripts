@@ -61,9 +61,9 @@ def compile(file):
     args = []
 
     if file.endswith(".cpp") or file.endswith(".cc"):
-        args += ["g++"]
+        args += ["clang++"]
     elif file.endswith(".c"):
-        args += ["gcc"]
+        args += ["clang"]
     else:
         raise Exception("Invalid source file: %s" % file)
 

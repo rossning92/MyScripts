@@ -299,6 +299,11 @@
       "packages": ["miniconda3"]
     }
   },
+  "moonlight": {
+    "choco": {
+      "packages": ["moonlight"]
+    }
+  },
   "mpv": {
     "choco": {
       "packages": ["mpv"]

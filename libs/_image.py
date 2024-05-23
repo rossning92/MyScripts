@@ -129,8 +129,6 @@ def show_im(
 
         if text:
             ax.title.set_text(text[i])
-        else:
-            ax.title.set_text(format[i])
 
         # if norm:
         #     im = np.mean(im.astype(float), axis=2)
