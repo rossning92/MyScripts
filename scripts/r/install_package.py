@@ -1,6 +1,7 @@
 import argparse
 
 from _pkgmanager import get_all_available_packages, require_package
+from utils.logger import setup_logger
 from utils.menu.select import select_option
 
 if __name__ == "__main__":
@@ -10,6 +11,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.package:
+        setup_logger()
+
         require_package(pkg=args.package, force_install=args.force)
 
     else:

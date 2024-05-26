@@ -123,7 +123,15 @@ def setup_mermaid(data_dir: str):
     )
 
 
-def install_shader_tools(data_dir: str):
+def setup_csv_tools(data_dir: str):
+    install_extensions(["janisdd.vscode-edit-csv"], data_dir=data_dir)
+    update_settings(
+        {"csv-edit.initialColumnWidth": 120},
+        data_dir=data_dir,
+    )
+
+
+def setup_shader_tools(data_dir: str):
     settings = {
         "glsllint.glslangValidatorPath": install_glslangvalidator(),
         "[glsl]": {"editor.defaultFormatter": "xaver.clang-format"},
@@ -147,8 +155,9 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
     setup_python(data_dir=data_dir)
     setup_gpt(data_dir=data_dir)
     setup_mermaid(data_dir=data_dir)
+    setup_csv_tools(data_dir=data_dir)
+    setup_shader_tools(data_dir=data_dir)
     # setup_color_theme(data_dir=data_dir)
-    install_shader_tools(data_dir=data_dir)
 
     install_extensions(
         [
@@ -177,8 +186,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             # Mermaid Diagram
             "bierner.markdown-mermaid",
             "tomoyukim.vscode-mermaid-editor",
-            # csv
-            "janisdd.vscode-edit-csv",
             # Lua
             "sumneko.lua",
             # excalidraw

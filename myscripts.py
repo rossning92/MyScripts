@@ -328,11 +328,12 @@ class _MyScriptMenu(Menu[Script]):
             return None
 
     def _on_register_hotkeys(self, hotkeys: Dict[str, Script]):
+        self.delete_commands_if(lambda cmd: cmd.name.startswith("run: "))
         for hotkey, script in hotkeys.items():
             self.add_command(
                 lambda script=script: self._run_hotkey(script),
                 hotkey=hotkey,
-                name=script.name,
+                name="run: " + script.name,
             )
 
     def _reload_scripts(self):

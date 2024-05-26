@@ -1,3 +1,4 @@
+import argparse
 import os
 from typing import Any, Dict, List, Optional
 
@@ -5,6 +6,8 @@ from _shutil import load_json, save_json
 from ai.openai.complete_chat import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
+
+MAX_CONVERSATIONS = 10
 
 
 class _Line:
@@ -21,9 +24,10 @@ class _Line:
 class ChatMenu(Menu[_Line]):
     def __init__(
         self,
-        first_message: Optional[str] = None,
+        message: Optional[str] = None,
         model: Optional[str] = None,
         copy_result_and_exit=False,
+        new_conversation=True,
     ) -> None:
         self.__model = model
         self.__lines: List[_Line] = []
@@ -35,7 +39,7 @@ class ChatMenu(Menu[_Line]):
             prompt=">",
             line_number=True,
         )
-        self.__first_message = first_message
+        self.__first_message = message
         self.__last_yanked_line: Optional[_Line] = None
         self.__yank_mode = 0
         self.__copy_result_and_exit = copy_result_and_exit
@@ -44,7 +48,9 @@ class ChatMenu(Menu[_Line]):
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
 
-        self.new_conversation()
+        self.load_conversations()
+        if new_conversation:
+            self.new_conversation()
 
     def __load_conversation(self):
         menu = Menu(items=[c for c in self.__data["conversations"]])
@@ -52,11 +58,11 @@ class ChatMenu(Menu[_Line]):
         selected_index = menu.get_selected_index()
         if selected_index >= 0:
             conv = self.__data["conversations"]
-            conv.append(conv.pop(selected_index))
+            conv.insert(0, conv.pop(selected_index))
             self.populate_lines()
 
     def get_messages(self) -> List[Dict[str, str]]:
-        return self.__data["conversations"][-1]["messages"]
+        return self.__data["conversations"][0]["messages"]
 
     def on_created(self):
         if self.__first_message is not None:
@@ -120,7 +126,11 @@ class ChatMenu(Menu[_Line]):
     def new_conversation(self):
         if len(self.get_messages()) > 0:
             self.__lines.clear()
-            self.__data["conversations"].append({"messages": []})
+            conversations = self.__data["conversations"]
+            while len(conversations) >= MAX_CONVERSATIONS:
+                # Remove the oldest conversation
+                del conversations[-1]
+            conversations.insert(0, {"messages": []})
             self.update_screen()
 
     def on_enter_pressed(self):
@@ -135,32 +145,39 @@ class ChatMenu(Menu[_Line]):
     def __copy_block(self, index: int):
         # Check if it's in the code block; if so, copy all the code.
         is_code_block = False
-        code_begin = -1
-        code_end = -1
-        code_lines: List[str] = []
+        start = -1
+        stop = -1
+        text: List[str] = []
         for i, line in enumerate(self.__lines):
             if line.text.startswith("```"):
                 is_code_block = not is_code_block
                 if is_code_block:
-                    code_begin = i + 1
+                    start = i + 1
                 else:
-                    code_end = i - 1
-                    if code_begin <= index <= code_end:
-                        set_clip("\n".join(code_lines))
-                        self.set_selection(code_begin, code_end)
+                    stop = i - 1
+                    if start <= index <= stop:
+                        set_clip("\n".join(text))
+                        self.set_selection(start, stop)
                         self.set_message("code copied")
                         return
             elif is_code_block:
-                code_lines.append(line.text)
+                text.append(line.text)
 
         # Copy the whole message.
         message_index = self.__lines[index].message_index
-        messages = self.get_messages()
-        if message_index < len(messages):
-            text = messages[message_index]["content"]
-            set_clip(text)
-            self.set_message("message copied")
-            return
+        start = -1
+        stop = -1
+        text = []
+        for i, line in enumerate(self.__lines):
+            if line.message_index == message_index:
+                if start == -1:
+                    start = i
+                stop = i
+                text.append(line.text)
+        set_clip("\n".join(text))
+        self.set_selection(start, stop)
+        self.set_message("message copied")
+        return
 
     def __yank(self):
         indices = list(self.get_selected_indices())
@@ -194,6 +211,7 @@ def complete_chat(
     *,
     input_text: str,
     prompt_text: Optional[str] = None,
+    model: Optional[str] = None,
 ):
     if os.path.isfile(input_text):
         with open(input_text, "r", encoding="utf-8") as f:
@@ -203,13 +221,29 @@ def complete_chat(
         input_text = prompt_text + ":\n---\n" + input_text
 
     chat = ChatMenu(
-        first_message=input_text,
+        message=input_text,
         copy_result_and_exit=True,
+        model=model,
     )
     chat.exec()
 
 
-if __name__ == "__main__":
-    chat = ChatMenu()
-    chat.load_conversations()
+def _main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("input", type=str, nargs="?")
+    args = parser.parse_args()
+
+    if args.input is None:
+        s = None
+    elif os.path.isfile(args.input):
+        with open(args.input, "r", encoding="utf-8") as f:
+            s = f.read()
+    else:
+        s = args.input
+
+    chat = ChatMenu(message=s, new_conversation=False)
     chat.exec()
+
+
+if __name__ == "__main__":
+    _main()

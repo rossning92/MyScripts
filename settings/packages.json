@@ -410,6 +410,11 @@
       "packages": ["putty-tools"]
     }
   },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
+    }
+  },
   "python36": {
     "choco": {
       "packages": ["python36"]

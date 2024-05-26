@@ -20,7 +20,7 @@ def chat_completion(
         "Authorization": f"Bearer {api_key}",
     }
     data = {
-        "model": model if model else "gpt-3.5-turbo",
+        "model": model if model else "gpt-4o",
         "messages": messages,
         "stream": True,
     }

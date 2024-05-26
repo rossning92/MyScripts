@@ -74,6 +74,7 @@ SCRIPT_EXTENSIONS = {
     ".cc",
     ".cmd",
     ".cpp",
+    ".csv",
     ".expect",
     ".frag",  # shader
     ".glsl",  # shader
@@ -1384,6 +1385,9 @@ class Script:
 
         elif ext == ".cpp" or ext == ".c" or ext == ".cc":
             arg_list = ["run_script", "ext/build_and_run_cpp.py", script_path]
+
+        elif ext == ".csv":
+            arg_list = ["run_script", "r/csv/csvviewer.py", script_path]
 
         elif ext == ".url":
             url = self.get_script_source()

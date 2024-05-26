@@ -1,4 +1,5 @@
 import argparse
+import glob
 import json
 import os
 from typing import List, Optional
@@ -19,15 +20,15 @@ class _Prompt:
         return self.name if self.name else self.prompt
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=str)
-    args = parser.parse_args()
+def get_input(s: str) -> str:
+    if os.path.isfile(s):
+        with open(s, "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return s
 
-    prompt_file = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "prompts.json"
-    )
 
+def load_prompts_from_file(prompt_file: str) -> List[_Prompt]:
     data = []
     with open(prompt_file, "r", encoding="utf-8") as f:
         data.extend(json.load(f))
@@ -45,6 +46,41 @@ if __name__ == "__main__":
                 hotkey=item["hotkey"] if "hotkey" in item else None,
             )
         )
+    return prompts
+
+
+def load_prompts_from_dir(prompt_dir: str) -> List[_Prompt]:
+    prompts: List[_Prompt] = []
+
+    if not os.path.isdir(prompt_dir):
+        raise ValueError(f"The directory {prompt_dir} does not exist.")
+
+    files = glob.glob(os.path.join(prompt_dir, "*.md"))
+    for file_path in files:
+        if os.path.isfile(file_path):
+            with open(file_path, "r", encoding="utf-8") as file:
+                prompt = file.read()
+                filename = os.path.basename(file_path)
+                prompts.append(
+                    _Prompt(prompt=prompt, name=os.path.splitext(filename)[0])
+                )
+
+    return prompts
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("input", type=str)
+    args = parser.parse_args()
+
+    prompt_file = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "prompts.json"
+    )
+
+    prompts = load_prompts_from_file(prompt_file)
+
+    if os.environ.get("PROMPT_DIR"):
+        prompts += load_prompts_from_dir(os.environ["PROMPT_DIR"])
 
     menu = Menu(items=prompts, wrap_text=True)
     menu.exec()
@@ -56,10 +92,5 @@ if __name__ == "__main__":
         prompt = menu.get_input()
 
     if prompt:
-        if os.path.isfile(args.input):
-            with open(args.input, "r", encoding="utf-8") as f:
-                input_text = f.read()
-        else:
-            input_text = args.input
-        chat = ChatMenu(first_message=prompt + ":\n---\n" + input_text, model="gpt-4")
+        chat = ChatMenu(message=prompt + ":\n---\n" + get_input(args.input))
         chat.exec()

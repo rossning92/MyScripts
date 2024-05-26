@@ -33,7 +33,7 @@ rclone_wrapper() {
     ret=${PIPESTATUS[0]}
     if [[ "$ret" != "0" ]]; then
         echo "ERROR: rclone returned $ret"
-        if grep -q 'too many deletes' "$logfile"; then
+        if grep -q 'force' "$logfile"; then
             read -p "Force sync? (y/n): " ans
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --force

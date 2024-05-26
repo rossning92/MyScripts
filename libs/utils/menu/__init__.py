@@ -287,8 +287,9 @@ class Menu(Generic[T]):
         if enable_command_palette:
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__select_all, hotkey="ctrl+a")
-            self.add_command(self.__undo, hotkey="alt+z")
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
+            self.add_command(self.__toggle_wrap, hotkey="alt+z")
+            self.add_command(self.__undo, hotkey="alt+u")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
 
@@ -345,6 +346,11 @@ class Menu(Generic[T]):
             self._hotkeys[hotkey] = command
 
         return command
+
+    def delete_commands_if(self, condition: Callable[[_Command], bool]):
+        for cmd in self._custom_commands[:]:  # Iterate over a copy of the list
+            if condition(cmd):
+                self._custom_commands.remove(cmd)
 
     def get_history_file(self):
         from _script import get_data_dir
@@ -1200,6 +1206,10 @@ class Menu(Generic[T]):
 
     def __toggle_multi_select(self):
         self.set_multi_select(not self.__multi_select_mode)
+
+    def __toggle_wrap(self):
+        self.__wrap_text = not self.__wrap_text
+        self.update_screen()
 
     def set_multi_select(self, mode: bool):
         self.__multi_select_mode = mode
