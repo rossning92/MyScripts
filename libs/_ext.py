@@ -243,7 +243,7 @@ def create_new_script(
         os.makedirs(dir_name, exist_ok=True)
 
     # Check script extensions
-    _, ext = os.path.splitext(dest_script)
+    name_without_ext, ext = os.path.splitext(dest_script)
     if not ext:
         logging.warning("Script extension is required.")
 
@@ -265,6 +265,11 @@ def create_new_script(
             shutil.copyfile(os.path.join(template_root, "mermaid.mmd"), dest_script)
         elif ext == ".glsl":
             shutil.copyfile(os.path.join(template_root, "shader.glsl"), dest_script)
+        elif ext == ".png":
+            # Create an excalidraw png file
+            dest_script = name_without_ext + ".excalidraw.png"
+            with open(dest_script, "w") as _:
+                pass
         elif dest_script.endswith(".user.js"):
             userscript_name = re.sub(r"\.user\.js$", "", os.path.basename(dest_script))
             render_template_file(

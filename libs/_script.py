@@ -92,6 +92,10 @@ SCRIPT_EXTENSIONS = {
     ".vbs",  # Windows specific,
 }
 
+BINARY_EXTENSIONS = {
+    ".pdf",
+}
+
 DEFAULT_TERMINAL_FONT_SIZE = 8
 if sys.platform == "win32":
     WINDOWS_TERMINAL_EXEC = (
@@ -2150,7 +2154,7 @@ def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
     )
     include_exts += dir_config["includeExts"].split()
 
-    def should_ignore(dir, file):
+    def should_ignore(dir: str, file: str):
         if (
             file == "tmp"
             or file == "generated"
@@ -2176,7 +2180,12 @@ def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
             ext = os.path.splitext(file)[1].lower()
 
             # Filter by script extensions
-            if ext not in SCRIPT_EXTENSIONS and ext not in include_exts:
+            if (
+                ext not in SCRIPT_EXTENSIONS
+                and ext not in include_exts
+                and ext not in BINARY_EXTENSIONS
+                and not file.endswith(".excalidraw.png")
+            ):
                 continue
 
             yield os.path.join(root, file)

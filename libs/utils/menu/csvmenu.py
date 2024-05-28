@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -46,6 +46,7 @@ class RowMenu(Menu[_Cell]):
     def __init__(self, df: pd.DataFrame, row_index: int) -> None:
         self.df = df
         self.row_index = row_index
+        self.selected_cell: Optional[_Cell] = None
 
         max_column_name_width = max(len(col) for col in df.columns)
 
@@ -61,10 +62,17 @@ class RowMenu(Menu[_Cell]):
 
         super().__init__(items=self.cells, wrap_text=True, prompt=f"row {row_index}")
 
+    def on_enter_pressed(self):
+        cell = self.get_selected_item()
+        if cell is not None:
+            self.selected_cell = cell
+            self.close()
+
 
 class CsvMenu(Menu[_Row]):
     def __init__(self, csv_file: str, text: str = ""):
         self.df = pd.read_csv(csv_file, header=0, index_col=None)
+        self.selected_val: Optional[str] = None
 
         rows: List[_Row] = []
         for row_index in range(len(self.df)):
@@ -76,3 +84,7 @@ class CsvMenu(Menu[_Row]):
         if row is not None:
             menu = RowMenu(df=self.df, row_index=row.row_index)
             menu.exec()
+            if menu.selected_cell is not None:
+                val = self.df.iloc[row.row_index][menu.selected_cell.name]
+                self.selected_val = val
+                self.close()

@@ -11,6 +11,8 @@ def main() -> None:
     csv_file = args.file
     menu = CsvMenu(csv_file=csv_file)
     menu.exec()
+    if menu.selected_val is not None:
+        print(menu.selected_val)
 
 
 if __name__ == "__main__":
