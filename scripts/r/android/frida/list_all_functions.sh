@@ -9,4 +9,4 @@ Process.enumerateModulesSync().forEach(function(m) {
         });
     }
 });
-' | fzf | clip
+' | fzf

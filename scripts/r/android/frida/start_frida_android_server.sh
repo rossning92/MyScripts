@@ -3,7 +3,7 @@
 set -e
 
 # Install Frida’s CLI tools: https://frida.re/docs/installation/
-pip install frida-tools --user
+pip install frida-tools
 
 cd /tmp
 
@@ -22,4 +22,4 @@ if ! adb shell test -f "/data/local/tmp/frida-server"; then
 fi
 
 adb shell 'kill $(pidof frida-server)' || true
-adb shell "nohup /data/local/tmp/frida-server /dev/null 2>&1 &"
+adb shell "nohup /data/local/tmp/frida-server &> /dev/null &"

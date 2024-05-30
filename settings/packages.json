@@ -420,6 +420,11 @@
       "packages": ["python36"]
     }
   },
+  "python312": {
+    "choco": {
+      "packages": ["python312"]
+    }
+  },
   "rclone": {
     "choco": {
       "packages": ["rclone"]
