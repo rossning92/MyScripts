@@ -355,7 +355,14 @@ class _MyScriptMenu(Menu[Script]):
         )
         self.set_message()
         self.update_last_refresh_time()
+        self.update_matched_items()
         self.is_refreshing = False
+
+        if self.__run_script_and_quit:
+            # If only one script is matched, run it directly.
+            if len(self._matched_item_indices) == 1:
+                self.run_selected_script()
+
         return True
 
     def _edit_script_settings(self):

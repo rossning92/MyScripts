@@ -2,8 +2,10 @@ import argparse
 import glob
 import json
 import os
+import sys
 from typing import List, Optional
 
+from ai.openai.complete_chat import chat_completion
 from ML.gpt.chatgpt import ChatMenu
 from utils.menu import Menu
 
@@ -70,27 +72,43 @@ def load_prompts_from_dir(prompt_dir: str) -> List[_Prompt]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=str)
+    parser.add_argument("input", nargs="?", type=str)
+    parser.add_argument("-p", "--prompt", default=None, type=str)
     args = parser.parse_args()
 
-    prompt_file = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "prompts.json"
-    )
-
-    prompts = load_prompts_from_file(prompt_file)
-
-    if os.environ.get("PROMPT_DIR"):
-        prompts += load_prompts_from_dir(os.environ["PROMPT_DIR"])
-
-    menu = Menu(items=prompts, wrap_text=True)
-    menu.exec()
-
-    selected_item = menu.get_selected_item()
-    if selected_item is not None:
-        prompt = selected_item.prompt
+    # Read prompt
+    if args.prompt is not None:
+        prompt = args.prompt
     else:
-        prompt = menu.get_input()
+        prompt_file = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "prompts.json"
+        )
 
-    if prompt:
-        chat = ChatMenu(message=prompt + ":\n---\n" + get_input(args.input))
+        prompts = load_prompts_from_file(prompt_file)
+
+        if os.environ.get("PROMPT_DIR"):
+            prompts += load_prompts_from_dir(os.environ["PROMPT_DIR"])
+
+        menu = Menu(items=prompts, wrap_text=True)
+        menu.exec()
+
+        selected_item = menu.get_selected_item()
+        if selected_item is not None:
+            prompt = selected_item.prompt
+        else:
+            prompt = menu.get_input()
+    if not prompt:
+        raise Exception("Prompt must not be empty.")
+
+    # Read input text.
+    if not sys.stdin.isatty():
+        input_text = sys.stdin.read()
+        for chunk in chat_completion(
+            [{"role": "user", "content": prompt + ":\n---\n" + input_text}]
+        ):
+            print(chunk, end="")
+
+    else:
+        input_text = get_input(args.input)
+        chat = ChatMenu(message=prompt + ":\n---\n" + input_text)
         chat.exec()
