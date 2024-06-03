@@ -1,7 +1,8 @@
 import os
 
 from _image import combine_images
-from _shutil import get_files, shell_open
+from _shutil import get_files
+from utils.shutil import shell_open
 
 if __name__ == "__main__":
     cols = int("{{_NUM_COLS}}") if "{{_NUM_COLS}}" else None

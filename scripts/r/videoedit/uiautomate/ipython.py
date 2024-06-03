@@ -1,6 +1,7 @@
 import os
 
-from _shutil import shell_open, write_temp_file
+from _shutil import write_temp_file
+from utils.shutil import shell_open
 
 from .windows_terminal import record_windows_terminal
 

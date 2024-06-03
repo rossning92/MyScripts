@@ -5,8 +5,9 @@ import os
 import subprocess
 import time
 
-from _shutil import shell_open, write_temp_file
+from _shutil import write_temp_file
 from utils.logger import setup_logger
+from utils.shutil import shell_open
 from utils.term.alacritty import wrap_args_alacritty
 
 from .common import run_commands

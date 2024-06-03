@@ -4,8 +4,9 @@ from _android import setup_android_env
 from _cpp import setup_cmake
 from _editor import open_code_editor
 from _git import git_clone
-from _shutil import call_echo, cd, shell_open
+from _shutil import call_echo, cd
 from utils.logger import setup_logger
+from utils.shutil import shell_open
 
 if __name__ == "__main__":
     setup_logger()

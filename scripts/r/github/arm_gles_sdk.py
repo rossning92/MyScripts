@@ -1,5 +1,5 @@
 from _git import git_clone
-from _shutil import shell_open
+from utils.shutil import shell_open
 
 if __name__ == "__main__":
     # run_elevated('choco install ninja -y')

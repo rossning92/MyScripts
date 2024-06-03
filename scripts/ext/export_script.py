@@ -132,4 +132,3 @@ if __name__ == "__main__":
 
     out_file = export_script(script_path, out_dir, create_executable=True)
     open_code_editor(out_file)
-    # shell_open(out_dir)

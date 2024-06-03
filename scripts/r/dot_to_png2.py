@@ -1,4 +1,5 @@
 from _shutil import *
+from utils.shutil import shell_open
 
 
 def generate_png(s, out_file):
@@ -24,7 +25,10 @@ def generate_png(s, out_file):
     )
 
     print("Generating %s" % out_file)
-    p = subprocess.Popen(["dot", "-Nfontname=Source Han Serif CN", "-Tpng", "-o", out_file], stdin=subprocess.PIPE)
+    p = subprocess.Popen(
+        ["dot", "-Nfontname=Source Han Serif CN", "-Tpng", "-o", out_file],
+        stdin=subprocess.PIPE,
+    )
     p.stdin.write(s.encode("utf-8"))
     p.stdin.close()
     p.wait()

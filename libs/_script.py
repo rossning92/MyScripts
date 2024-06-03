@@ -51,7 +51,6 @@ from _shutil import (
     save_json,
     save_yaml,
     setup_nodejs,
-    shell_open,
     slugify,
     start_process,
     update_json,
@@ -59,6 +58,7 @@ from _shutil import (
     write_temp_file,
 )
 from utils.clip import get_clip, get_selection
+from utils.shutil import shell_open
 from utils.template import render_template
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.timed import timed

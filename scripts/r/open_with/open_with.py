@@ -7,7 +7,8 @@ import traceback
 from typing import List, Union
 
 from _pkgmanager import find_executable, require_package
-from _shutil import is_in_termux, run_elevated, shell_open
+from _shutil import is_in_termux, run_elevated
+from utils.shutil import shell_open
 
 
 def load_config():

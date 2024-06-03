@@ -13,9 +13,9 @@ from _shutil import (
     get_output,
     get_time_str,
     print2,
-    shell_open,
 )
 from utils.menu.actionmenu import ActionMenu
+from utils.shutil import shell_open
 
 
 def add_gitignore_node():

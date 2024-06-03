@@ -7,10 +7,11 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from _editor import open_code_editor
-from _shutil import get_home_path, shell_open
+from _shutil import get_home_path
 
 from utils.clip import set_clip
 from utils.menu.logviewer import LogViewerMenu
+from utils.shutil import shell_open
 
 from . import Menu
 from .confirm import confirm

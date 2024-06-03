@@ -1,8 +1,8 @@
 import os
 import tempfile
 
-from _shutil import shell_open
 from utils.math import animate_function
+from utils.shutil import shell_open
 
 
 def quadratic(x, a):

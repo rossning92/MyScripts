@@ -1,7 +1,7 @@
 import os
 import time
 
-from _shutil import shell_open
+from utils.shutil import shell_open
 
 from .common import run_commands
 from .record_screen import start_record, stop_record

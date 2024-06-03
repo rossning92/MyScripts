@@ -1,6 +1,7 @@
 import os
 
-from _shutil import call_echo, get_files, shell_open
+from _shutil import call_echo, get_files
+from utils.shutil import shell_open
 
 
 def convert_md_to_docx(file):

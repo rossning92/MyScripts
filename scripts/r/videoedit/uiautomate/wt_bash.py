@@ -1,7 +1,8 @@
 import os
 
-from .windows_terminal import open_wt, record_windows_terminal
-from _shutil import shell_open
+from utils.shutil import shell_open
+
+from .windows_terminal import record_windows_terminal
 
 root = os.path.dirname(os.path.abspath(__file__))
 

@@ -3,7 +3,8 @@ import os
 import sys
 
 from _pkgmanager import find_executable, require_package
-from _shutil import call2, mkdir, shell_open
+from _shutil import call2, mkdir
+from utils.shutil import shell_open
 
 
 def unzip(src, dest=None, open_out_dir=False):

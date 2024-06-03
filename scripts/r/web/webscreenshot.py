@@ -1,9 +1,9 @@
-from pyppeteer import launch
 import asyncio
 import os
-from _shutil import shell_open, get_files
-import sys
-import time
+
+from _shutil import get_files
+from pyppeteer import launch
+from utils.shutil import shell_open
 
 
 async def screenshotDOMElement(*, page, selector, path):
@@ -37,7 +37,11 @@ def webscreenshot(html_file, out_file=None, javascript=None, debug=False):
         browser = await launch(
             # headless=False,
             executablePath=r"C:\Program Files (x86)\Chromium\Application\chrome.exe",
-            args=["--enable-font-antialiasing", "--font-render-hinting=max", "--force-device-scale-factor=1"],
+            args=[
+                "--enable-font-antialiasing",
+                "--font-render-hinting=max",
+                "--force-device-scale-factor=1",
+            ],
         )
         page = await browser.newPage()
 

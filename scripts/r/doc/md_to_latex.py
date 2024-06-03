@@ -1,6 +1,7 @@
 import os
 
-from _shutil import call_echo, get_files, shell_open
+from _shutil import call_echo, get_files
+from utils.shutil import shell_open
 
 if __name__ == "__main__":
     f = get_files(cd=True)[0]

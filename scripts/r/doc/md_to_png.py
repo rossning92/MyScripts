@@ -1,8 +1,10 @@
-from web.webscreenshot import webscreenshot
+from _shutil import get_files
 from md_to_html import convert_md_to_html
-from _shutil import get_files, shell_open
+from utils.shutil import shell_open
+from web.webscreenshot import webscreenshot
 
-f = get_files()[0]
-f = convert_md_to_html(f)
-f = webscreenshot(f)
-shell_open(f)
+if __name__ == "__main__":
+    f = get_files()[0]
+    f = convert_md_to_html(f)
+    f = webscreenshot(f)
+    shell_open(f)

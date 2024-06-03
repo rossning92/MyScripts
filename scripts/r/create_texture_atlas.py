@@ -2,7 +2,8 @@ import glob
 import os
 
 from _image import combine_images
-from _shutil import cd, get_current_folder, get_files, shell_open
+from _shutil import cd, get_current_folder
+from utils.shutil import shell_open
 
 if __name__ == "__main__":
     cols = int("{{_COLS}}") if "{{_COLS}}" else None

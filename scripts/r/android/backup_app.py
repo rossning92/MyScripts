@@ -3,8 +3,8 @@ import subprocess
 import sys
 
 from _android import backup_pkg
-from _shutil import shell_open
 from utils.menu.select import select_option
+from utils.shutil import shell_open
 
 SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
 

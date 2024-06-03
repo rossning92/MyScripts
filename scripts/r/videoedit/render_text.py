@@ -3,7 +3,7 @@ import subprocess
 import tempfile
 
 from _pkgmanager import find_executable, require_package
-from _shutil import shell_open
+from utils.shutil import shell_open
 
 require_package("magick")
 IMAGE_MAGICK = find_executable("magick")

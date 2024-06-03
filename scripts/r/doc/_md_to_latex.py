@@ -3,7 +3,8 @@ import re
 import subprocess
 import tempfile
 
-from _shutil import cd, get_files, get_hash, shell_open
+from _shutil import cd, get_files, get_hash
+from utils.shutil import shell_open
 
 HEADER = os.path.realpath("_header.tex")
 

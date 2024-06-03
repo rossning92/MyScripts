@@ -4,9 +4,10 @@ import sys
 import tempfile
 from typing import Iterator, List, Optional
 
-from _shutil import load_json, save_json, shell_open
+from _shutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.textinput import TextInput
+from utils.shutil import shell_open
 
 
 class Node:
