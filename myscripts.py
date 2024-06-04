@@ -170,7 +170,7 @@ class _ScheduledScriptMenu(Menu[_ScheduledScript]):
         if item is not None:
             script_log_file = item.script.get_script_log_file()
             if os.path.exists(script_log_file):
-                LogViewerMenu(file=script_log_file).exec()
+                LogViewerMenu(files=[script_log_file]).exec()
 
 
 def get_scheduled_script_log_preview(script_manager: ScriptManager) -> List[str]:

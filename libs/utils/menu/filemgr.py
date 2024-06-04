@@ -447,7 +447,7 @@ class FileManager(Menu[_File]):
     def open_file(self, full_path: str):
         _, ext = os.path.splitext(full_path)
         if ext.lower() == ".log":
-            LogViewerMenu(file=full_path).exec()
+            LogViewerMenu(files=[full_path]).exec()
         elif ext.lower() in [".zip", ".gz"]:
             subprocess.check_call(["run_script", "r/unzip.py", full_path])
             self._refresh_current_directory()

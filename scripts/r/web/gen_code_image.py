@@ -1,7 +1,10 @@
-from _cache import *
-from _shutil import *
-from web.webscreenshot import webscreenshot
 import argparse
+import os
+import re
+
+from _script import get_script_root
+from _shutil import mkdir, npm_install
+from web.webscreenshot2 import webscreenshot
 
 
 def gen_code_image_from_file(file, out_file, **kwargs):
@@ -84,14 +87,10 @@ def gen_code_image(
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("file", type=str, help="input source file")
-    # args = parser.parse_args()
-    # file = args.file
-
-    files = get_files(cd=True)
-
-    for file in files:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs="*")
+    args = parser.parse_args()
+    for file in args.files:
         out_dir = os.path.join(os.path.dirname(file), "out")
         mkdir(out_dir)
 
@@ -100,8 +99,8 @@ if __name__ == "__main__":
             s = f.read().replace("\r", "")
 
         out_file = os.path.join(
-            out_dir, os.path.splitext(os.path.basename(file))[0] + ".png",
+            out_dir,
+            os.path.splitext(os.path.basename(file))[0] + ".png",
         )
 
         gen_code_image(s, out_file, lang=ext.lstrip("."))
-

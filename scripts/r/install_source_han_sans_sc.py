@@ -1,12 +1,16 @@
 import glob
 import os
 import subprocess
+import sys
 import tempfile
 
 from _shutil import copy, download, remove, unzip
 
 
 def install_font(url):
+    if sys.platform != "win32":
+        raise OSError("This function can only be run on Windows.")
+
     tmp_dir = os.path.join(tempfile.gettempdir(), "SourceHanSansSC")
     os.makedirs(tmp_dir, exist_ok=True)
     os.chdir(tmp_dir)

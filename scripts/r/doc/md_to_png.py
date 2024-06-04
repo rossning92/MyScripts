@@ -1,7 +1,7 @@
 from _shutil import get_files
 from md_to_html import convert_md_to_html
 from utils.shutil import shell_open
-from web.webscreenshot import webscreenshot
+from web.webscreenshot2 import webscreenshot
 
 if __name__ == "__main__":
     f = get_files()[0]

@@ -28,10 +28,17 @@ class _SelectPresetMenu(Menu[str]):
 
 class LogViewerMenu(Menu[str]):
     def __init__(
-        self, file: str, filter: Optional[str] = None, preset_dir: Optional[str] = None
+        self,
+        files: List[str],
+        filter: Optional[str] = None,
+        preset_dir: Optional[str] = None,
     ):
-        self.__file = file
-        self.__file_name = os.path.basename(file)
+        self.__files = files
+        self.__file_name = (
+            os.path.basename(self.__files[0])
+            if len(self.__files) == 1
+            else "[multiple]"
+        )
         self.__lines: List[str] = []
         self.preset_dir = (
             preset_dir
@@ -119,21 +126,33 @@ class LogViewerMenu(Menu[str]):
 
     def on_created(self):
         last_update = 0.0
-        last_file_size = 0
-        with open(self.__file, "r", encoding="utf-8", errors="replace") as f:
-            while not self._closed:
-                line = f.readline()
-                if line == "":
-                    self.process_events(timeout_sec=1.0)
-                    file_size = os.path.getsize(self.__file)
-                    if file_size < last_file_size:
-                        f.seek(0)
-                        self.clear_items()
-                    last_file_size = file_size
+        if len(self.__files) == 1:
+            last_file_size = 0
+            with open(self.__files[0], "r", encoding="utf-8", errors="replace") as f:
+                while not self._closed:
+                    line = f.readline()
+                    if line == "":
+                        self.process_events(timeout_sec=1.0)
+                        file_size = os.path.getsize(self.__files[0])
+                        if file_size < last_file_size:
+                            f.seek(0)
+                            self.clear_items()
+                        last_file_size = file_size
 
-                else:
-                    self.append_item(line.rstrip("\n"))
+                    else:
+                        self.append_item(line.rstrip("\n"))
 
+                        now = time.time()
+                        if now - last_update > 0.1:
+                            last_update = now
+                            self.process_events()
+        else:
+            for file in self.__files:
+                file_name = os.path.basename(file)
+                with open(file, "r", encoding="utf-8", errors="replace") as f:
+                    lines = f.read().splitlines()
+                    for line in lines:
+                        self.append_item(file_name + ": " + line)
                     now = time.time()
                     if now - last_update > 0.1:
                         last_update = now
