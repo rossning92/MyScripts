@@ -1,5 +1,8 @@
+{{if True}}true{{else}}false{{end}}
+{{if False}}true{{else}}false{{end}}
+
 {{for i in range(2)}}
 {{for j in range(2)}}
-## Section {{i}}.{{j}}
+i={{i}} j={{j}}
 {{end}}
 {{end}}

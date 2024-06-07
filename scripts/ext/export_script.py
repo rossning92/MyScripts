@@ -4,6 +4,7 @@ import shutil
 
 from _editor import open_code_editor
 from _script import get_python_path, render_script
+from utils.logger import setup_logger
 
 _exported_python_modules = set()
 _exported_scripts = set()
@@ -127,6 +128,8 @@ def export_script(script_path, out_dir, create_executable=False):
 
 
 if __name__ == "__main__":
+    setup_logger()
+
     out_dir = os.path.abspath(os.path.expanduser("~/Desktop/script_export"))
     script_path = os.getenv("SCRIPT")
 

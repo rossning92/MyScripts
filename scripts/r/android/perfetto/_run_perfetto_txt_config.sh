@@ -13,11 +13,16 @@ adb shell perfetto \
 duration_ms: {{PERFETTO_DURATION_MS}}
 EOF
 
-{{ f'trace="{PERFETTO_OUT_FILE}"' if PERFETTO_OUT_FILE else r'''
+{{if PERFETTO_OUT_FILE}}
+trace="{PERFETTO_OUT_FILE}"
+{{else}}
 cd "$HOME/Desktop/"
 device=$(adb shell getprop ro.product.device | tr -d '\r')
-trace="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"''' }}
+trace="trace-$device-$(date +'%Y%m%d%H%M%S').perfetto-trace"
+{{end}}
 echo "Saving as '$trace'..."
 adb pull /data/misc/perfetto-traces/trace "$trace"
 
-{{ "" if PERFETTO_OUT_FILE else 'run_script r/android/perfetto/open_perfetto_trace.py "$trace"' }}
+{{if not PERFETTO_OUT_FILE}}
+run_script r/android/perfetto/open_perfetto_trace.py "$trace"
+{{end}}

@@ -2,6 +2,8 @@
 
 set -e
 
+echo 'Build RenderDoc for Android...'
+
 # Install packages if not already installed
 packages=("mingw-w64-x86_64-cmake" "mingw-w64-x86_64-make" "mingw-w64-x86_64-gcc")
 for package in "${packages[@]}"; do

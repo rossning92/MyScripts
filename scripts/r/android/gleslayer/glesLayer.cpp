@@ -7,6 +7,7 @@
 #include <string.h>
 #include <string>
 #include <unordered_map>
+#include <atomic>
 
 #define xstr(a) str(a)
 #define str(a) #a
@@ -36,6 +37,32 @@ EGLAPI EGLDisplay EGLAPIENTRY glesLayer_glViewport(GLint x, GLint y,
   return next(x, y, width, height);
 }
 
+std::atomic<int> eglContextCounter;
+
+EGLAPI EGLContext EGLAPIENTRY glesLayer_eglCreateContext(
+    EGLDisplay display, EGLConfig config, EGLContext share_context,
+    EGLint const *attrib_list) {
+  ALOGI("eglCreateContext called: count=%d", ++eglContextCounter);
+  if (funcMap.find("eglCreateContext") == funcMap.end())
+    ALOGI("%s", "Unable to find funcMap entry for eglCreateContext");
+  EGLFuncPointer entry = funcMap["eglCreateContext"];
+  typedef EGLContext (*PFNEGLCREATECONTEXT)(EGLDisplay, EGLConfig, EGLContext,
+                                            EGLint const *);
+  PFNEGLCREATECONTEXT next = reinterpret_cast<PFNEGLCREATECONTEXT>(entry);
+  return next(display, config, share_context, attrib_list);
+}
+
+EGLAPI EGLBoolean EGLAPIENTRY glesLayer_eglDestroyContext(EGLDisplay display,
+                                                          EGLContext context) {
+  ALOGI("eglDestroyContext called: count=%d", --eglContextCounter);
+  if (funcMap.find("eglDestroyContext") == funcMap.end())
+    ALOGI("%s", "Unable to find funcMap entry for eglDestroyContext");
+  EGLFuncPointer entry = funcMap["eglDestroyContext"];
+  typedef EGLBoolean (*PFNEGLDESTROYCONTEXT)(EGLDisplay, EGLContext);
+  PFNEGLDESTROYCONTEXT next = reinterpret_cast<PFNEGLDESTROYCONTEXT>(entry);
+  return next(display, context);
+}
+
 EGLAPI EGLFuncPointer EGLAPIENTRY eglGPA(const char *funcName) {
 #define GETPROCADDR(func)                                                      \
   if (!strcmp(funcName, #func)) {                                              \
@@ -43,7 +70,10 @@ EGLAPI EGLFuncPointer EGLAPIENTRY eglGPA(const char *funcName) {
           " in eglGPA");                                                       \
     return (EGLFuncPointer)glesLayer_##func;                                   \
   }
-  GETPROCADDR(glViewport);
+  // GETPROCADDR(glViewport);
+  GETPROCADDR(eglCreateContext);
+  GETPROCADDR(eglDestroyContext);
+
   // Don't return anything for unrecognized functions
   return nullptr;
 }

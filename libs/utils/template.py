@@ -79,9 +79,11 @@ class Template:
                 if ret is not None:
                     return ret
             except NameError as ex:
+                logging.warning(f"Undefined name: {ex.name}")
                 if undefined_names is not None:
-                    logging.debug(f"Undefined name: {ex.name}")
                     undefined_names.append(ex.name)
+                else:
+                    raise
             return None
 
         def eval_tokens(tokens: List[Tuple[bool, str]], should_eval=True) -> List[str]:
@@ -100,13 +102,21 @@ class Template:
                         expr = match.group(2)
                         val = eval(expr, global_context)
                         global_context[variable_name] = val
-
                     elif token.startswith("if "):
                         condition = token[3:]
                         cond = eval(condition, global_context)
                         result.extend(eval_tokens(tokens=tokens, should_eval=cond))
                         is_code, token = tokens.pop(0)
-                        assert (is_code, token) == (True, "end")
+                        if (is_code, token) == (True, "else"):
+                            result.extend(
+                                eval_tokens(tokens=tokens, should_eval=not cond)
+                            )
+                            is_code, token = tokens.pop(0)
+                        if (is_code, token) != (True, "end"):
+                            raise Exception('Expect "{{end}}"')
+                    elif token == "else":
+                        tokens.insert(0, (True, "else"))
+                        return result if should_eval else []
                     elif match := re.match(
                         f"for ({VARIABLE_NAME_REGEX}) in (.+)", token
                     ):

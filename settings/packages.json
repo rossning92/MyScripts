@@ -302,6 +302,9 @@
   "moonlight": {
     "choco": {
       "packages": ["moonlight"]
+    },
+    "yay": {
+      "packages": ["moonlight-qt", "libva-intel-driver"]
     }
   },
   "mpv": {
@@ -415,14 +418,14 @@
       "packages": ["PyMuPDF"]
     }
   },
-  "python36": {
-    "choco": {
-      "packages": ["python36"]
-    }
-  },
   "python312": {
     "choco": {
       "packages": ["python312"]
+    }
+  },
+  "python36": {
+    "choco": {
+      "packages": ["python36"]
     }
   },
   "rclone": {
