@@ -2,8 +2,6 @@
 
 set -e
 
-echo 'Build RenderDoc for Android...'
-
 # Install packages if not already installed
 packages=("mingw-w64-x86_64-cmake" "mingw-w64-x86_64-make" "mingw-w64-x86_64-gcc")
 for package in "${packages[@]}"; do
@@ -14,9 +12,7 @@ done
 
 cd ~/Projects/renderdoc
 
-export JAVA_HOME="C:\Program Files\Java\jdk1.8.0_333"
-export PATH="C:\Program Files\Java\jdk1.8.0_333\bin:${PATH}"
-
+echo 'Build RenderDoc for Android...'
 # Build Android
 (
     # arm32

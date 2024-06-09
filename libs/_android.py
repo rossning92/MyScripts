@@ -428,13 +428,15 @@ def setup_jdk(jdk_version=None, env=None):
     def find_jdk(patterns, jdk_version=None):
         jdk_paths = []
         for pattern in patterns:
-            matched = glob.glob(pattern)
-            if len(matched) == 0:
+            paths = glob.glob(pattern)
+            if len(paths) == 0:
                 continue
             if jdk_version:
-                jdk_paths += [x for x in matched if ("%s" % jdk_version) in x]
+                jdk_paths += [
+                    p for p in paths if re.match(r"^\D*" + re.escape(jdk_version), p)
+                ]
             else:
-                jdk_paths += matched
+                jdk_paths += paths
         jdk_paths = sorted(jdk_paths)
         return jdk_paths[-1]  # Choose latest JDK
 

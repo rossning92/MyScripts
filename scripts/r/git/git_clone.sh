@@ -15,7 +15,7 @@ mkdir -p "$repo"
 cd "$repo"
 
 if [[ -d '.git' ]]; then
-    echo '".git" already exist, skip cloning.'
+    echo "'${repo}/.git' already exist, skip cloning."
 else
     extra_args=''
     if [[ -n "{{BRANCH}}" ]]; then

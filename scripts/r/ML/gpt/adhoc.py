@@ -1,12 +1,14 @@
 import argparse
 import glob
 import json
+import logging
 import os
 import sys
 from typing import List, Optional
 
 from ai.openai.complete_chat import chat_completion
 from ML.gpt.chatgpt import ChatMenu
+from utils.logger import setup_logger
 from utils.menu import Menu
 
 
@@ -74,11 +76,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", nargs="?", type=str)
     parser.add_argument("-p", "--prompt", default=None, type=str)
+    parser.add_argument("-v", "--verbose", action="store_true")
+
     args = parser.parse_args()
+
+    if args.verbose:
+        setup_logger()
 
     # Read prompt
     if args.prompt is not None:
         prompt = args.prompt
+        if not os.path.isabs(prompt):
+            if os.environ.get("PROMPT_DIR"):
+                prompt_file = os.path.join(os.environ["PROMPT_DIR"], prompt)
+                if os.path.isfile(prompt_file):
+                    with open(prompt_file, "r", encoding="utf-8") as f:
+                        prompt = f.read()
     else:
         prompt_file = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "prompts.json"
@@ -103,12 +116,14 @@ if __name__ == "__main__":
     # Read input text.
     if not sys.stdin.isatty():
         input_text = sys.stdin.read()
-        for chunk in chat_completion(
-            [{"role": "user", "content": prompt + ":\n---\n" + input_text}]
-        ):
+        message = prompt + ":\n---\n" + input_text
+        logging.debug(message)
+        for chunk in chat_completion([{"role": "user", "content": message}]):
             print(chunk, end="")
 
     else:
         input_text = get_input(args.input)
-        chat = ChatMenu(message=prompt + ":\n---\n" + input_text)
+        message = prompt + ":\n---\n" + input_text
+        logging.debug(message)
+        chat = ChatMenu(message=message)
         chat.exec()
