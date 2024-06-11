@@ -16,7 +16,7 @@ PYTHON_MODULE_LIST = {
     "langchain": "langchain",
     "markdown2": "markdown2",
     "matplotlib": "matplotlib",
-    "moviepy": "moviepy",
+    "moviepy": "moviepy==1.0.3",
     "mss": "mss",
     "numpy": "numpy",
     "openai": "openai",
@@ -92,6 +92,5 @@ if __name__ == "__main__":
 
         # Run module
         runpy.run_module(module_name, run_name="__main__")
-        # subprocess.check_call([sys.executable, "-m", module_name] + sys.argv[1:])
     else:
         runpy.run_path(module_file, run_name="__main__")

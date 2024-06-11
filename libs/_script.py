@@ -842,15 +842,8 @@ class Script:
         if source is None:
             source = self.get_script_source()
 
-        cwd = os.getcwd()
-        script_path = self.get_script_path()
-        script_dir = os.path.dirname(script_path)
-        if script_dir:
-            os.chdir(script_dir)
-
         result = render_template(source, variables, file_locator=find_script)
 
-        os.chdir(cwd)
         return result
 
     def set_override_variables(self, variables):

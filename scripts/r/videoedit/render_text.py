@@ -5,8 +5,8 @@ import tempfile
 from _pkgmanager import find_executable, require_package
 from utils.shutil import shell_open
 
-require_package("magick")
-IMAGE_MAGICK = find_executable("magick")
+require_package("imagemagick")
+IMAGE_MAGICK = find_executable("imagemagick")
 os.environ["IMAGEMAGICK_BINARY"] = IMAGE_MAGICK
 
 

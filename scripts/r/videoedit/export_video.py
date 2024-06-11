@@ -4,11 +4,11 @@ import importlib
 import inspect
 import os
 import re
+import shutil
 import subprocess
 import sys
 
 import yaml
-from _pkgmanager import find_executable, require_package
 from _shutil import (
     format_time,
     get_time_str,
@@ -17,6 +17,8 @@ from _shutil import (
     start_process,
     to_valid_file_name,
 )
+
+os.environ["FFMPEG_BINARY"] = shutil.which("ffmpeg")
 from moviepy.config import change_settings
 
 from . import automation, common, editor
@@ -25,8 +27,6 @@ SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 ignore_undefined = False
 
-require_package("ffmpeg")
-change_settings({"FFMPEG_BINARY": find_executable("ffmpeg")})
 
 config = None
 

@@ -10,6 +10,7 @@ from _editor import open_code_editor
 from _shutil import get_home_path
 
 from utils.clip import set_clip
+from utils.fileutils import human_readable_size
 from utils.menu.logviewer import LogViewerMenu
 from utils.shutil import shell_open
 
@@ -41,14 +42,6 @@ class _Config:
         data = {"cur_dir": self.cur_dir, "selected_file": self.selected_file}
         with open(self.config_file, "w") as f:
             json.dump(data, f, indent=4)
-
-
-def human_readable_size(num):
-    for unit in ("B", "k", "M", "G", "T", "P", "E", "Z"):
-        if abs(num) < 1024.0:
-            return f"{num:3.1f}{unit}"
-        num /= 1024.0
-    return f"{num:.1f}Y"
 
 
 def get_dir_size(full_path: str) -> int:

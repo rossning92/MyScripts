@@ -73,7 +73,10 @@ def get_device_list() -> List[DeviceInfo]:
             print2(" %s" % flavor, color="green", end="")
             print(
                 " bat=%s %s"
-                % (battery_level, datetime.datetime.utcfromtimestamp(date_utc)),
+                % (
+                    battery_level,
+                    datetime.datetime.fromtimestamp(date_utc, datetime.UTC),
+                ),
                 end="",
             )
             if current_serial == serial:

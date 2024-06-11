@@ -21,3 +21,11 @@ def read_last_non_empty_line(file: str) -> Optional[str]:
         if line != "":
             return line
     return None
+
+
+def human_readable_size(num):
+    for unit in ("B", "k", "M", "G", "T", "P", "E", "Z"):
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}"
+        num /= 1024.0
+    return f"{num:.1f}Y"

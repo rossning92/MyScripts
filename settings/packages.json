@@ -334,6 +334,11 @@
       "packages": ["neovim"]
     }
   },
+  "ninja": {
+    "choco": {
+      "packages": ["ninja"]
+    }
+  },
   "nmap": {
     "choco": {
       "packages": ["nmap"]
