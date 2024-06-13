@@ -1450,14 +1450,11 @@ class Script:
                     "Desktop",
                     "{}_{}.log".format(self.get_short_name(), int(time.time())),
                 )
-                # arg_list = wrap_args_tee(
-                #     arg_list,
-                #     out_file=log_file,
-                # )
-                # open_log_file(log_file)
+                logging.debug(f"log_file: {log_file}")
                 arg_list = [
                     sys.executable,
                     os.path.join(get_my_script_root(), "scripts", "r", "logviewer.py"),
+                    "--output",
                     log_file,
                     "--cmdline",
                 ] + arg_list

@@ -59,7 +59,7 @@ def convert_to_gif(
 
 
 if __name__ == "__main__":
-    fps = int("{{_FPS}}") if "{{_FPS}}" else 15
+    fps = int("{{_FRAMERATE}}") if "{{_FRAMERATE}}" else 15
     height = int("{{_SCALE_H}}") if "{{_SCALE_H}}" else None
     optimize = bool("{{_OPTIMIZE_GIF}}")
     single_pallete = bool("{{_SINGLE_PALETTE}}")
