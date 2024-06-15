@@ -11,13 +11,13 @@ files = get_files()
 for f in files:
     folder, basename = os.path.dirname(f), os.path.basename(f)
     name, ext = os.path.splitext(basename)
-    if "{{_EXT}}":
-        ext = "{{_EXT}}"
+    if "{{_EXTENSION}}":
+        ext = "{{_EXTENSION}}"
 
     args = [magick, f]
 
-    if "{{_CROP}}":
-        x, y, w, h = "{{_CROP}}".split()
+    if "{{_CROP_RECT}}":
+        x, y, w, h = "{{_CROP_RECT}}".split()
         args += ["-crop", f"{w}x{h}+{x}+{y}"]
 
     if "{{_NEAREST}}":
