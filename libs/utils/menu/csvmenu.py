@@ -38,7 +38,7 @@ class _Row:
 
     def __str__(self) -> str:
         row = self.df.iloc[self.row_index].values.tolist()
-        row_str = " ".join([format_text(x) for x in map(str, row)])
+        row_str = " ".join([x for x in map(str, row)])
         return row_str
 
 
@@ -88,3 +88,7 @@ class CsvMenu(Menu[_Row]):
                 val = self.df.iloc[row.row_index][menu.selected_cell.name]
                 self.selected_val = val
                 self.close()
+
+    def get_item_text(self, item: _Row) -> str:
+        row = self.df.iloc[item.row_index].values.tolist()
+        return " ".join([format_text(x) for x in map(str, row)])

@@ -946,6 +946,9 @@ class Menu(Generic[T]):
             can_scroll_right=can_scroll_right,
         )
 
+    def get_item_text(self, item: T) -> str:
+        return str(item)
+
     def on_update_screen(self, item_y_max: int):
         assert Menu.stdscr is not None
 
@@ -998,7 +1001,7 @@ class Menu(Generic[T]):
                 and matched_item_index >= self.__selected_row_end
             )
             item = self.items[item_index]
-            item_text = str(self.items[item_index])
+            item_text = self.get_item_text(self.items[item_index])
 
             if hasattr(item, "color"):
                 color = item.__dict__["color"]
