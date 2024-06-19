@@ -400,13 +400,16 @@ class _MyScriptMenu(Menu[Script]):
             set_clip(script_path)
             self.set_message(f"copied: {script_path}")
 
-    def _new_script_or_duplicate_script(self, src_script_path: Optional[str]):
+    def _new_script_or_duplicate_script(
+        self, src_script_path: Optional[str], duplicate=False
+    ):
         script_dirs = sorted(
             set(os.path.dirname(x.name) + "/" for x in self.script_manager.scripts)
         )
         script_path = create_new_script(
             src_script_path=src_script_path,
             script_dirs=script_dirs,
+            duplicate=duplicate,
         )
         if script_path:
             script = Script(script_path)
@@ -414,12 +417,15 @@ class _MyScriptMenu(Menu[Script]):
         self.clear_input()
 
     def _new_script(self):
-        self._new_script_or_duplicate_script(src_script_path=None)
+        src_script_path = self.get_selected_script_path()
+        self._new_script_or_duplicate_script(src_script_path=src_script_path)
 
     def _duplicate_script(self):
         src_script_path = self.get_selected_script_path()
         if src_script_path:
-            self._new_script_or_duplicate_script(src_script_path=src_script_path)
+            self._new_script_or_duplicate_script(
+                src_script_path=src_script_path, duplicate=True
+            )
 
     def _rename_script(self, replace_all_occurrence=False):
         def on_progress(msg: str):
@@ -585,10 +591,17 @@ class _MyScriptMenu(Menu[Script]):
             return True
 
 
-def _main(no_gui=False, input_text: Optional[str] = None):
+def _main(
+    no_gui=False,
+    input_text: Optional[str] = None,
+):
     global script_server
 
-    start_daemon = not is_instance_running()
+    start_daemon = True
+    if is_instance_running():
+        start_daemon = False
+    if input_text:
+        start_daemon = False
     logging.debug(f"start_daemon: {start_daemon}")
 
     logging.info("Python executable: %s" % sys.executable)

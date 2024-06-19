@@ -176,29 +176,30 @@ class FileManager(Menu[_File]):
             self.update_screen()
 
     def copy_to(self, file: Optional[str] = None):
-        if file is None:
-            file = self.get_selected_file_full_path()
+        files: List[str] = []
+        if file is not None:
+            files.append(file)
+        else:
+            files = self.get_selected_files()
 
-        if file is None:
-            return
-
-        filemgr = FileManager(
-            goto=(
-                self.__last_copy_to_path
-                if self.__last_copy_to_path is not None
-                else self.get_cur_dir()
-            ),
-            prompt="Copy to:",
-            save_states=False,
-        )
-        dest_dir = filemgr.select_directory()
-        if dest_dir is not None:
-            self.__last_copy_to_path = dest_dir
-
-            if os.path.isdir(file):
-                shutil.copytree(file, os.path.join(dest_dir, os.path.basename(file)))
-            else:
-                shutil.copy(file, dest_dir)
+        if len(files) > 0:
+            filemgr = FileManager(
+                goto=(
+                    self.__last_copy_to_path
+                    if self.__last_copy_to_path is not None
+                    else self.get_cur_dir()
+                ),
+                prompt="Copy to:",
+                save_states=False,
+            )
+            dest_dir = filemgr.select_directory()
+            if dest_dir is not None:
+                self.__last_copy_to_path = dest_dir
+                for f in files:
+                    if os.path.isdir(f):
+                        shutil.copytree(f, os.path.join(dest_dir, os.path.basename(f)))
+                    else:
+                        shutil.copy(f, dest_dir)
 
     def _move_to(self):
         src = self.get_selected_file_full_path()
@@ -422,6 +423,7 @@ class FileManager(Menu[_File]):
         else:
             return None
 
+    # Return the full path of all selected files.
     def get_selected_files(self) -> List[str]:
         return [
             os.path.join(self.get_cur_dir(), file.name)

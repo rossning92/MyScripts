@@ -1384,7 +1384,7 @@ class Script:
             arg_list = ["run_script", "ext/build_and_run_cpp.py", script_path]
 
         elif ext == ".csv":
-            arg_list = ["run_script", "r/csv/csvviewer.py", script_path]
+            arg_list = [sys.executable, find_script("r/csv/csvviewer.py"), script_path]
 
         elif ext == ".url":
             url = self.get_script_source()

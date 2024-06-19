@@ -220,13 +220,15 @@ def copy_script_path_to_clipboard(
 def create_new_script(
     src_script_path: Optional[str] = None,
     script_dirs: Optional[List[str]] = None,
+    duplicate=False,
 ):
     label: str
-    if src_script_path is not None:
-        text = get_selected_script_path_rel(script_path=src_script_path)
+    src_script_rel_path = get_selected_script_path_rel(script_path=src_script_path)
+    if duplicate:
+        text = src_script_rel_path
         label = "duplicate script"
     else:
-        text = ""
+        text = os.path.dirname(src_script_rel_path) + "/"
         label = "new script:"
     w: Menu = Menu(prompt=label, text=text, items=script_dirs)
     w.exec()
@@ -247,7 +249,8 @@ def create_new_script(
     if not ext:
         logging.warning("Script extension is required.")
 
-    if src_script_path is not None:  # duplicate the script.
+    if duplicate:
+        assert src_script_path is not None
         if not os.path.isabs(src_script_path):
             src_script = os.path.join(get_script_root(), src_script_path)
         else:

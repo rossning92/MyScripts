@@ -47,6 +47,7 @@ class ChatMenu(Menu[_Line]):
         self.add_command(self.new_conversation, hotkey="ctrl+n")
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
+        self.add_command(self.__delete_current_message, hotkey="delete")
 
         self.load_conversations()
         if new_conversation:
@@ -117,6 +118,7 @@ class ChatMenu(Menu[_Line]):
                                 message_index=message_index,
                             )
                         )
+        self.update_screen()
 
     def load_conversations(self):
         if os.path.isfile(self.__get_data_file()):
@@ -205,6 +207,12 @@ class ChatMenu(Menu[_Line]):
             set_clip("\n".join(line_text))
             self.set_message("selected line copied")
             self.set_multi_select(False)
+
+    def __delete_current_message(self):
+        selected_line = self.get_selected_item()
+        if selected_line is not None:
+            del self.get_messages()[selected_line.message_index]
+            self.populate_lines()
 
 
 def complete_chat(
