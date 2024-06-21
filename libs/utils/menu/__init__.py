@@ -173,6 +173,7 @@ class _InputWidget:
 
 
 T = TypeVar("T")
+R = TypeVar("R")
 
 
 class Menu(Generic[T]):
@@ -257,8 +258,7 @@ class Menu(Generic[T]):
 
         self.__scroll_x = 0
         self.__scroll_distance = 0
-        self.__can_scroll_left = False
-        self.__can_scroll_right = False
+        self.__can_scroll = False
 
         self.__should_update_matched_items: bool = False
 
@@ -420,10 +420,11 @@ class Menu(Generic[T]):
                 self.set_selected_row(row_number)
         self.set_input("")
 
-    def call_func_without_curses(self, func: Callable[[], Any]):
+    def call_func_without_curses(self, func: Callable[[], R]) -> R:
         Menu.destroy_curses()
-        func()
+        ret_val = func()
         Menu.init_curses()
+        return ret_val
 
     def exec(self) -> int:
         with Menu.ScreenWrapper():
@@ -647,7 +648,7 @@ class Menu(Generic[T]):
 
             elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
-            ) and self.__can_scroll_left:
+            ) and self.__can_scroll:
                 self.__scroll_x = max(self.__scroll_x - self.__scroll_distance, 0)
                 self.update_screen()
 
@@ -658,7 +659,7 @@ class Menu(Generic[T]):
 
             elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
-            ) and self.__can_scroll_right:
+            ) and self.__can_scroll:
                 self.__scroll_x += self.__scroll_distance
                 self.update_screen()
 
@@ -980,8 +981,7 @@ class Menu(Generic[T]):
                     len(item_indices) - items_per_page + 1,
                 )
 
-        self.__can_scroll_left = False
-        self.__can_scroll_right = False
+        self.__can_scroll = False
         matched_item_index = self.__scroll_y
 
         if self.__line_number and len(item_indices) > 0:
@@ -1056,10 +1056,9 @@ class Menu(Generic[T]):
             #     self._width - line_number_width - GUTTER_SIZE
             # ) // 2
             self.__scroll_distance = 10
-            if draw_text_result.can_scroll_left:
-                self.__can_scroll_left = True
-            if draw_text_result.can_scroll_right:
-                self.__can_scroll_right = True
+            self.__can_scroll = (
+                draw_text_result.can_scroll_left or draw_text_result.can_scroll_right
+            )
 
         if items_per_page != self.get_items_per_page():
             self.__should_update_screen = True

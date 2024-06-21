@@ -500,6 +500,11 @@
       "packages": ["sharex"]
     }
   },
+  "socat": {
+    "pacman": {
+      "packages": ["socat"]
+    }
+  },
   "sox": {
     "choco": {
       "packages": ["sox.portable"]

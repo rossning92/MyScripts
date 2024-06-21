@@ -184,6 +184,7 @@ end
 screen.connect_signal("property::geometry", set_wallpaper)
 
 local volume = volume_widget:new({})
+local mem_widget = awful.widget.watch('bash -c "free -h | awk \'/^Mem/ {print $3 + 0 \\"/\\" $2}\'"', 10)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
@@ -250,7 +251,7 @@ awful.screen.connect_for_each_screen(function(s)
                 program = 'light',
                 step = 10
             },
-            awful.widget.watch('bash -c "free -h | awk \'/^Mem/ {print $3}\'"', 30),
+            mem_widget,
             wibox.widget.systray(),
             mytextclock,
             -- s.mylayoutbox

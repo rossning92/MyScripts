@@ -1,5 +1,7 @@
 import argparse
 import os
+import subprocess
+import tempfile
 from typing import Any, Dict, List, Optional
 
 from _shutil import load_json, save_json
@@ -44,10 +46,11 @@ class ChatMenu(Menu[_Line]):
         self.__yank_mode = 0
         self.__copy_result_and_exit = copy_result_and_exit
 
-        self.add_command(self.new_conversation, hotkey="ctrl+n")
-        self.add_command(self.__yank, hotkey="ctrl+y")
-        self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__delete_current_message, hotkey="delete")
+        self.add_command(self.__edit_message, hotkey="ctrl+e")
+        self.add_command(self.__load_conversation, hotkey="ctrl+l")
+        self.add_command(self.__yank, hotkey="ctrl+y")
+        self.add_command(self.new_conversation, hotkey="ctrl+n")
 
         self.load_conversations()
         if new_conversation:
@@ -81,6 +84,9 @@ class ChatMenu(Menu[_Line]):
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
+        self.__get_response()
+
+    def __get_response(self):
         response = ""
         message_index = len(self.get_messages())
         line = _Line(role="assistant", text="", message_index=message_index)
@@ -213,6 +219,39 @@ class ChatMenu(Menu[_Line]):
         if selected_line is not None:
             del self.get_messages()[selected_line.message_index]
             self.populate_lines()
+
+    def __edit_text(self, text: str):
+        with tempfile.NamedTemporaryFile(
+            suffix=".tmp", mode="w+", delete=False, encoding="utf-8"
+        ) as tmp_file:
+            tmp_file.write(text)
+            tmp_filename = tmp_file.name
+
+        subprocess.call(["nvim", tmp_filename])
+
+        with open(tmp_filename, "r", encoding="utf-8") as f:
+            new_text = f.read()
+        return new_text
+
+    def __edit_message(self):
+        selected_line = self.get_selected_item()
+        if selected_line is not None:
+            message_index = selected_line.message_index
+            selected_message = self.get_messages()[message_index]
+            content = selected_message["content"]
+            new_content = self.call_func_without_curses(
+                lambda: self.__edit_text(content)
+            )
+            if new_content != content:
+                selected_message["content"] = new_content
+
+                # Delete all messages after.
+                del self.get_messages()[message_index + 1 :]
+
+                self.populate_lines()
+
+                if selected_message["role"] == "user":
+                    self.__get_response()
 
 
 def complete_chat(

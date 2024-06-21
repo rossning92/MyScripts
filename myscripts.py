@@ -195,13 +195,15 @@ class _MyScriptMenu(Menu[Script]):
         no_gui=False,
         run_script_and_quit=False,
         input_text: Optional[str] = None,
+        cmdline_args: Optional[List[str]] = None,
     ):
         self.script_manager = script_manager
         self.no_gui = no_gui
         self.last_refresh_time = 0.0
         self.is_refreshing = False
         self.__run_script_and_quit = run_script_and_quit
-        self.__cmdline_args: Optional[str] = None
+        self.__cmdline_args: List[str] = cmdline_args if cmdline_args else []
+        self.__auto_infer_cmdline_args: bool = not bool(cmdline_args)
         self.__last_copy_time = 0.0
         self.__filemgr = FileManager()
 
@@ -243,7 +245,7 @@ class _MyScriptMenu(Menu[Script]):
         if script:
             input = TextInput(prompt="args>").request_input()
             if input is not None:
-                self.__cmdline_args = input
+                self.__cmdline_args[:] = [input]
 
     def _delete_file(self):
         script_path = self.get_selected_script_path()
@@ -299,7 +301,7 @@ class _MyScriptMenu(Menu[Script]):
             self.call_func_without_curses(
                 lambda: execute_script(
                     script,
-                    args=None if self.__cmdline_args is None else [self.__cmdline_args],
+                    args=self.__cmdline_args if self.__cmdline_args else None,
                     close_on_exit=close_on_exit,
                     no_gui=self.no_gui,
                 )
@@ -495,22 +497,20 @@ class _MyScriptMenu(Menu[Script]):
         self.clear_input(reset_selection=True)
         return True
 
-    def on_escape_pressed(self):
-        self.clear_input()
-
     def on_idle(self):
         try_reload_scripts_autorun(self.script_manager.scripts_autorun)
 
     def on_item_selection_changed(self, script: Optional[Script]):
-        text = self.get_input()
-        if script and text:
-            match = script.match_pattern(text)
-            if match:
-                self.__cmdline_args = match.group()
+        if self.__auto_infer_cmdline_args:
+            text = self.get_input()
+            if script and text:
+                match = script.match_pattern(text)
+                if match:
+                    self.__cmdline_args[:] = [match.group()]
+                else:
+                    self.__cmdline_args.clear()
             else:
-                self.__cmdline_args = None
-        else:
-            self.__cmdline_args = None
+                self.__cmdline_args.clear()
 
     def on_update_screen(self, item_y_max: int):
         height = self._height
@@ -523,7 +523,7 @@ class _MyScriptMenu(Menu[Script]):
                 default_script_config = get_default_script_config()
 
                 # Command line args
-                if self.__cmdline_args is not None:
+                if self.__cmdline_args:
                     preview.append(("yellow", f"arg : {self.__cmdline_args}"))
 
                 # Preview variables
@@ -591,11 +591,79 @@ class _MyScriptMenu(Menu[Script]):
             return True
 
 
-def _main(
-    no_gui=False,
-    input_text: Optional[str] = None,
-):
+def _main():
     global script_server
+
+    log_file = os.path.join(get_data_dir(), "MyScripts.log")
+    setup_logger(log_to_stderr=False, log_file=log_file)
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "-n",
+        "--no-gui",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--startup",
+        action="store_true",
+        help="will autorun all scripts with runAtStartup=True",
+    )
+    parser.add_argument(
+        "-t",
+        "--tmux",
+        action="store_true",
+        help="Run in tmux.",
+    )
+    parser.add_argument(
+        "--is-running",
+        action="store_true",
+        help="Is another instance running?",
+    )
+    parser.add_argument(
+        "-q",
+        "--quit",
+        action="store_true",
+        help="Quit after running any script.",
+    )
+    parser.add_argument(
+        "input",
+        nargs="?",
+        help="Specify input.",
+    )
+    parser.add_argument(
+        "--args",
+        nargs=argparse.REMAINDER,
+        help="Command line arguments to pass to scripts.",
+    )
+
+    args = parser.parse_args()
+
+    # Output if an instance is already running.
+    if args.is_running:
+        print(f"is_instance_running(): {is_instance_running()}")
+        return
+
+    if args.tmux:
+        tmux_exec = shutil.which("tmux")
+        if tmux_exec is None:
+            raise Exception("tmux is not installed.")
+        os.execl(
+            tmux_exec,
+            "tmux",
+            "-f",
+            os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
+            "new",
+            sys.executable,
+            *(x for x in sys.argv if x not in ("-t", "--tmux")),
+        )
+
+    run_at_startup(
+        name="MyScripts",
+        cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
+    )
+
+    input_text = args.input if (args.input != "r" or args.input != "run") else None
 
     start_daemon = True
     if is_instance_running():
@@ -626,14 +694,15 @@ def _main(
 
     script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
 
-    run_script_and_quit = bool(args.input)
+    run_script_and_quit = bool(args.input) or args.quit
     while True:  # repeat if _MyScriptMenu throws exceptions
         try:
             _MyScriptMenu(
                 script_manager=script_manager,
-                no_gui=no_gui,
+                no_gui=args.no_gui,
                 run_script_and_quit=run_script_and_quit,
                 input_text=input_text,
+                cmdline_args=args.args,
             ).exec()
             if run_script_and_quit:
                 break
@@ -644,65 +713,4 @@ def _main(
 
 
 if __name__ == "__main__":
-    log_file = os.path.join(get_data_dir(), "MyScripts.log")
-    setup_logger(log_to_stderr=False, log_file=log_file)
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "-n",
-        "--no-gui",
-        action="store_true",
-        default=False,
-    )
-    parser.add_argument(
-        "--startup",
-        action="store_true",
-        help="will autorun all scripts with runAtStartup=True",
-    )
-    parser.add_argument(
-        "-t",
-        "--tmux",
-        action="store_true",
-        help="Run in tmux.",
-    )
-    parser.add_argument(
-        "--is-running",
-        action="store_true",
-        help="Is another instance running?",
-    )
-    parser.add_argument(
-        "input",
-        nargs="?",
-        help="Specify input.",
-    )
-    args = parser.parse_args()
-
-    if args.is_running:
-        print(f"is_instance_running(): {is_instance_running()}")
-    else:
-        if args.tmux:
-            tmux_exec = shutil.which("tmux")
-            if tmux_exec is None:
-                raise Exception("tmux is not installed.")
-            os.execl(
-                tmux_exec,
-                "tmux",
-                "-f",
-                os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
-                "new",
-                sys.executable,
-                *(x for x in sys.argv if x not in ("-t", "--tmux")),
-            )
-
-        run_at_startup(
-            name="MyScripts",
-            cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd"))
-            + " --startup",
-        )
-
-        _main(
-            no_gui=args.no_gui,
-            input_text=(
-                args.input if (args.input != "r" or args.input != "run") else None
-            ),
-        )
+    _main()

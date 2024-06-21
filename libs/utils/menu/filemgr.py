@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -113,6 +114,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._refresh_current_directory, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
+        self.add_command(self._run_script, hotkey="!")
 
         self.__selected_file_dict: Dict[str, str] = {}
 
@@ -481,3 +483,16 @@ class FileManager(Menu[_File]):
 
             else:
                 return super().on_enter_pressed()
+
+    def _run_script(self):
+        files = self.get_selected_files()
+        if len(files) > 0:
+            script_root = os.path.realpath(os.path.dirname(__file__))
+            myscripts_path = os.path.abspath(
+                os.path.join(script_root, "..", "..", "..", "myscripts.py")
+            )
+            self.call_func_without_curses(
+                lambda: subprocess.call(
+                    [sys.executable, myscripts_path, "--quit", "--args"] + files
+                )
+            )
