@@ -25,9 +25,9 @@ require('mouse-follow-focus')
 
 --- Define custom widgets
 local battery_widget = require("battery-widget")
-
+local disk_usage_widget = require("disk-usage-widget")
+local memory_widget = require("memory-widget")
 local volume_widget = require('volume-widget.volume-widget')
-
 local brightness_widget = require("brightness-widget.brightness")
 local cpu_widget = require("cpu-widget.cpu-widget")
 
@@ -184,7 +184,6 @@ end
 screen.connect_signal("property::geometry", set_wallpaper)
 
 local volume = volume_widget:new({})
-local mem_widget = awful.widget.watch('bash -c "free -h | awk \'/^Mem/ {print $3 + 0 \\"/\\" $2}\'"', 10)
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
@@ -251,7 +250,8 @@ awful.screen.connect_for_each_screen(function(s)
                 program = 'light',
                 step = 10
             },
-            mem_widget,
+            memory_widget {},
+            disk_usage_widget {},
             wibox.widget.systray(),
             mytextclock,
             -- s.mylayoutbox

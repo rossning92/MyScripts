@@ -9,7 +9,7 @@ from ai.openai.complete_chat import chat_completion
 from utils.clip import set_clip
 from utils.menu import Menu
 
-MAX_CONVERSATIONS = 10
+MAX_CONVERSATIONS = 25
 
 
 class _Line:

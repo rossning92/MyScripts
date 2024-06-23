@@ -1,6 +1,5 @@
 import argparse
 import os
-import pprint
 
 import requests
 
@@ -14,8 +13,8 @@ def google_search(
         search_results = response.json()
         return search_results
     else:
-        print(f"Error occurred: {response.status_code}")
         response.raise_for_status()
+        raise Exception(f"Error occurred: {response.status_code}")
 
 
 def main():
@@ -28,9 +27,9 @@ def main():
         for item in results["items"]:
             title = item["title"]
             link = item["link"]
-            print(f"Title: {title}\nLink: {link}")
+            print(f"[{title}]({link})")
             if "snippet" in item:
-                print(f'Snippet: {item["snippet"]}')
+                print(item["snippet"])
             print()
 
     else:
