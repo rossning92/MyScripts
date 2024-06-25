@@ -2,6 +2,7 @@ import csv
 from typing import List, Optional, OrderedDict
 
 from ..menu import Menu
+from .textinput import TextInput
 
 
 def format_text(s: str) -> str:
@@ -13,6 +14,7 @@ def format_text(s: str) -> str:
 class _CsvData:
     def __init__(self, file: str) -> None:
         self._rows: List[List[str]] = []
+        self._file = file
 
         with open(file, encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
@@ -22,6 +24,10 @@ class _CsvData:
     def get_cell(self, row_index: int, name: str) -> str:
         col_index = self.get_header().index(name)
         return self._rows[row_index][col_index]
+
+    def set_cell(self, row_index: int, name: str, value: str):
+        col_index = self.get_header().index(name)
+        self._rows[row_index][col_index] = value
 
     def get_row_list(self, row_index) -> List[str]:
         return self._rows[row_index]
@@ -38,6 +44,11 @@ class _CsvData:
     def get_header(self) -> List[str]:
         return self._rows[0]
 
+    def save(self):
+        with open(self._file, mode="w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(self._rows)
+
 
 class _Cell:
     def __init__(
@@ -53,11 +64,14 @@ class _Cell:
         self.max_column_name_width = max_column_name_width
 
     def __str__(self) -> str:
-        return (
-            self.name.ljust(self.max_column_name_width, " ")
-            + " : "
-            + str(self.df.get_cell(self.row_index, self.name))
+        cell_value = str(self.df.get_cell(self.row_index, self.name))
+        lines = cell_value.splitlines()
+        header = self.name.ljust(self.max_column_name_width, " ") + " : "
+        indented_lines = "\n".join(
+            ((" " * (self.max_column_name_width + 3)) + line if i > 0 else line)
+            for i, line in enumerate(lines)
         )
+        return header + indented_lines
 
 
 class _Row:
@@ -94,8 +108,14 @@ class RowMenu(Menu[_Cell]):
     def on_enter_pressed(self):
         cell = self.get_selected_item()
         if cell is not None:
-            self.selected_cell = cell
-            self.close()
+            value = self.df.get_cell(self.row_index, cell.name)
+            new_value = TextInput(prompt=f"{cell.name} :", text=value).request_input()
+            if new_value is not None and new_value != value:
+                self.df.set_cell(self.row_index, cell.name, new_value)
+                self.df.save()
+                # If the header is changed, close the menu because the cell becomes invalid.
+                if self.row_index == 0:
+                    self.close()
 
 
 class CsvMenu(Menu[_Row]):
