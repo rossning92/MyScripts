@@ -1,12 +1,11 @@
 import argparse
 import os
-import subprocess
-import tempfile
 from typing import Any, Dict, List, Optional
 
 from _shutil import load_json, save_json
 from ai.openai.complete_chat import chat_completion
 from utils.clip import set_clip
+from utils.editor import edit_text
 from utils.menu import Menu
 
 MAX_CONVERSATIONS = 25
@@ -220,28 +219,13 @@ class ChatMenu(Menu[_Line]):
             del self.get_messages()[selected_line.message_index]
             self.populate_lines()
 
-    def __edit_text(self, text: str):
-        with tempfile.NamedTemporaryFile(
-            suffix=".tmp", mode="w+", delete=False, encoding="utf-8"
-        ) as tmp_file:
-            tmp_file.write(text)
-            tmp_filename = tmp_file.name
-
-        subprocess.call(["nvim", tmp_filename])
-
-        with open(tmp_filename, "r", encoding="utf-8") as f:
-            new_text = f.read()
-        return new_text
-
     def __edit_message(self):
         selected_line = self.get_selected_item()
         if selected_line is not None:
             message_index = selected_line.message_index
             selected_message = self.get_messages()[message_index]
             content = selected_message["content"]
-            new_content = self.call_func_without_curses(
-                lambda: self.__edit_text(content)
-            )
+            new_content = self.call_func_without_curses(lambda: edit_text(content))
             if new_content != content:
                 selected_message["content"] = new_content
 

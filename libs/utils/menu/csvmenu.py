@@ -1,6 +1,8 @@
 import csv
 from typing import List, Optional, OrderedDict
 
+from utils.editor import edit_text
+
 from ..menu import Menu
 from .textinput import TextInput
 
@@ -105,17 +107,36 @@ class RowMenu(Menu[_Cell]):
 
         super().__init__(items=self.cells, wrap_text=True, prompt=f"row {row_index}")
 
+        self.add_command(
+            lambda: self.call_func_without_curses(
+                lambda: self.edit_cell(external_editor=True)
+            ),
+            hotkey="ctrl+e",
+            name="edit_cell_in_editor",
+        )
+
     def on_enter_pressed(self):
+        self.edit_cell()
+
+    def edit_cell(self, external_editor=False):
         cell = self.get_selected_item()
         if cell is not None:
             value = self.df.get_cell(self.row_index, cell.name)
-            new_value = TextInput(prompt=f"{cell.name} :", text=value).request_input()
+
+            if external_editor:
+                new_value = edit_text(text=value).rstrip()
+            else:
+                new_value = TextInput(
+                    prompt=f"{cell.name} :", text=value
+                ).request_input()
+
             if new_value is not None and new_value != value:
                 self.df.set_cell(self.row_index, cell.name, new_value)
                 self.df.save()
                 # If the header is changed, close the menu because the cell becomes invalid.
                 if self.row_index == 0:
                     self.close()
+                self.update_screen()
 
 
 class CsvMenu(Menu[_Row]):
