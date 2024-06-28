@@ -1036,9 +1036,9 @@ class Script:
                 arg_list.append(temp_file)
 
             elif self.cfg["args.userInput"]:
-                from utils.menu.input import Input
+                from utils.menu.textinput import TextInput
 
-                text = Input().input()
+                text = TextInput().request_input()
                 if not text:
                     return True
                 arg_list.append(text)

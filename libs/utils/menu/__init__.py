@@ -119,7 +119,7 @@ class _InputWidget:
         # Draw label
         stdscr.addstr(row, 0, self.prompt)
 
-        y, x = Menu.stdscr.getyx()  # type: ignore
+        cursor_y, cursor_x = y, x = Menu.stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
 
         try:
@@ -257,7 +257,6 @@ class Menu(Generic[T]):
         self.__multi_select_mode: bool = False
 
         self.__scroll_x = 0
-        self.__scroll_distance = 0
         self.__can_scroll = False
 
         self.__should_update_matched_items: bool = False
@@ -649,7 +648,7 @@ class Menu(Generic[T]):
             elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
             ) and self.__can_scroll:
-                self.__scroll_x = max(self.__scroll_x - self.__scroll_distance, 0)
+                self.__scroll_x = max(self.__scroll_x - self.get_scroll_distance(), 0)
                 self.update_screen()
 
             elif (
@@ -660,7 +659,7 @@ class Menu(Generic[T]):
             elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
             ) and self.__can_scroll:
-                self.__scroll_x += self.__scroll_distance
+                self.__scroll_x += self.get_scroll_distance()
                 self.update_screen()
 
             elif (
@@ -1052,10 +1051,6 @@ class Menu(Generic[T]):
             item_y += increments
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
-            # self.__scroll_distance = (
-            #     self._width - line_number_width - GUTTER_SIZE
-            # ) // 2
-            self.__scroll_distance = 10
             self.__can_scroll = (
                 draw_text_result.can_scroll_left or draw_text_result.can_scroll_right
             )
@@ -1081,6 +1076,9 @@ class Menu(Generic[T]):
             Menu.stdscr.move(draw_input_result.cursor_y, draw_input_result.cursor_x)
         except curses.error:
             pass
+
+    def get_scroll_distance(self) -> int:
+        return 10
 
     def get_status_bar_text(self) -> str:
         columns: List[str] = []

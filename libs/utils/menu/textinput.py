@@ -40,17 +40,14 @@ class TextInput(Menu):
         if self.is_cancelled:
             return None
         else:
-            s = self.get_input()
-            if s:
-                if self.__history_file:
-                    if s in self.__history_data["history"]:
-                        self.__history_data["history"].remove(s)
-                    self.__history_data["history"].insert(0, s)
-                    save_json(self.__history_file, self.__history_data)
-                if self.__history_list is not None:
-                    if s in self.__history_list:
-                        self.__history_list.remove(s)
-                    self.__history_list.insert(0, s)
-                return s
-            else:
-                return self.get_selected_item()
+            text = self.get_input()
+            if self.__history_file:
+                if text in self.__history_data["history"]:
+                    self.__history_data["history"].remove(text)
+                self.__history_data["history"].insert(0, text)
+                save_json(self.__history_file, self.__history_data)
+            if self.__history_list is not None:
+                if text in self.__history_list:
+                    self.__history_list.remove(text)
+                self.__history_list.insert(0, text)
+            return text

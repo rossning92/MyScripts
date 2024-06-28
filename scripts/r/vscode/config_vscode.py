@@ -251,6 +251,26 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
                     "command": "-references-view.findReferences",
                     "when": "editorHasReferenceProvider",
                 },
+                {
+                    "key": "ctrl+shift+alt+up",
+                    "command": "workbench.action.compareEditor.previousChange",
+                    "when": "textCompareEditorVisible",
+                },
+                {
+                    "key": "ctrl+shift+alt+up",
+                    "command": "workbench.action.editor.previousChange",
+                    "when": "editorTextFocus && !textCompareEditorActive",
+                },
+                {
+                    "key": "ctrl+shift+alt+down",
+                    "command": "workbench.action.editor.nextChange",
+                    "when": "editorTextFocus && !textCompareEditorActive",
+                },
+                {
+                    "key": "ctrl+shift+alt+down",
+                    "command": "workbench.action.compareEditor.nextChange",
+                    "when": "textCompareEditorVisible",
+                },
                 # Genie:
                 {
                     "key": "ctrl+k a",

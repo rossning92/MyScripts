@@ -6,9 +6,12 @@ from utils.editor import edit_text
 from ..menu import Menu
 from .textinput import TextInput
 
+COLUMN_WIDTH = 16
+COLUMN_SEPARATOR = " "
+
 
 def format_text(s: str) -> str:
-    max_width = 16
+    max_width = COLUMN_WIDTH
     s = s.replace("\n", " ")
     return (s[: (max_width - 2)] + "..") if len(s) > max_width else s.ljust(max_width)
 
@@ -50,6 +53,20 @@ class _CsvData:
         with open(self._file, mode="w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
             writer.writerows(self._rows)
+
+    def add_row(
+        self, values: Optional[List[str]] = None, index: Optional[int] = None
+    ) -> int:
+        num_columns = len(self.get_header())
+        if values is None:
+            values = [""] * num_columns
+        elif len(values) != num_columns:
+            raise Exception(f"{num_columns} elements are required based on the header.")
+
+        if index is None:
+            index = len(self._rows)
+        self._rows.insert(index, values)
+        return index
 
 
 class _Cell:
@@ -144,21 +161,42 @@ class CsvMenu(Menu[_Row]):
         self.df = _CsvData(csv_file)
         self.selected_val: Optional[str] = None
 
-        rows: List[_Row] = []
+        self._rows: List[_Row] = []
+        self._update_rows()
+
+        super().__init__(items=self._rows, text=text)
+
+        self.add_command(
+            self._add_row,
+            hotkey="ctrl+n",
+        )
+
+    def _update_rows(self):
+        self._rows.clear()
         for row_index in range(self.df.get_row_count()):
-            rows.append(_Row(df=self.df, row_index=row_index))
-        super().__init__(items=rows, text=text)
+            self._rows.append(_Row(df=self.df, row_index=row_index))
 
     def on_enter_pressed(self):
         row = self.get_selected_item()
         if row is not None:
-            menu = RowMenu(df=self.df, row_index=row.row_index)
-            menu.exec()
-            if menu.selected_cell is not None:
-                val = self.df.get_cell(row.row_index, menu.selected_cell.name)
-                self.selected_val = val
-                self.close()
+            self._edit_row(row_index=row.row_index)
+
+    def get_scroll_distance(self) -> int:
+        return COLUMN_WIDTH + len(COLUMN_SEPARATOR)
+
+    def _edit_row(self, row_index: int):
+        menu = RowMenu(df=self.df, row_index=row_index)
+        menu.exec()
+        if menu.selected_cell is not None:
+            val = self.df.get_cell(row_index, menu.selected_cell.name)
+            self.selected_val = val
+            self.close()
 
     def get_item_text(self, item: _Row) -> str:
         row = self.df.get_row_list(item.row_index)
-        return " ".join([format_text(x) for x in map(str, row)])
+        return COLUMN_SEPARATOR.join([format_text(x) for x in map(str, row)])
+
+    def _add_row(self):
+        row_index = self.df.add_row()
+        self._update_rows()
+        self.set_selected_row(row_index)

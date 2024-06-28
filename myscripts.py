@@ -62,6 +62,10 @@ from utils.timeutil import time_diff_str
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
 
+# If the first character is a leader key in the search keyword, we will try to
+# do an exact match for script alias only.
+LEADER_KEY = " "
+
 
 script_server: Optional[ScriptServer] = None
 
@@ -284,10 +288,13 @@ class _MyScriptMenu(Menu[Script]):
                 logging.error(f"Error on running scheduled script: {ex}")
 
     def match_item(self, keyword: str, script: Script) -> bool:
-        if script.match_pattern(keyword):
-            return True
+        if keyword[0:1] == LEADER_KEY:
+            return script.alias == keyword[1:]
         else:
-            return super().match_item(keyword, script)
+            if script.match_pattern(keyword):
+                return True
+            else:
+                return super().match_item(keyword, script)
 
     def run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
