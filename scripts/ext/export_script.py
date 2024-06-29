@@ -2,8 +2,8 @@ import os
 import re
 import shutil
 
-from _editor import open_code_editor
 from _script import get_python_path, render_script
+from utils.editor import open_code_editor
 from utils.logger import setup_logger
 
 _exported_python_modules = set()

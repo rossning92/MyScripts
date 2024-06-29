@@ -1,5 +1,5 @@
-from _editor import *
-from _shutil import *
+from _shutil import cd, get_cur_time_str
+from utils.editor import open_code_editor
 
 cd(r"{{GRAPHVIZ_SRC_FOLDER}}")
 

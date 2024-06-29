@@ -1,5 +1,8 @@
-from _editor import *
-from _shutil import *
+import os
+import tempfile
+
+from _shutil import call_echo, wait_until_file_modified
+from utils.editor import open_code_editor
 
 call_echo(["adb", "root"])
 call_echo(["adb", "remount"])

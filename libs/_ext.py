@@ -5,7 +5,6 @@ import re
 import shutil
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
-from _editor import is_vscode_available, open_in_vim, open_in_vscode
 from _script import (
     Script,
     get_absolute_script_path,
@@ -22,6 +21,7 @@ from _script import (
 )
 from _shutil import load_yaml, quote_arg, save_yaml
 from utils.clip import set_clip
+from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
 from utils.menu import Menu
 from utils.menu.dictedit import DictEditMenu
 from utils.template import render_template_file

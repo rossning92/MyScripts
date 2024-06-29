@@ -7,12 +7,13 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from _editor import open_code_editor
 from _shutil import get_home_path
 
 from utils.clip import set_clip
+from utils.editor import open_code_editor
 from utils.fileutils import human_readable_size
 from utils.menu.logviewer import LogViewerMenu
+from utils.platform import is_termux
 from utils.shutil import shell_open
 
 from . import Menu
@@ -95,7 +96,7 @@ class FileManager(Menu[_File]):
         self.__last_copy_to_path: Optional[str] = None
         self.__sort_by = "name"
 
-        super().__init__(items=self.__files)
+        super().__init__(items=self.__files, wrap_text=True)
 
         self.add_command(self.copy_to, hotkey="alt+c")
 
@@ -104,8 +105,6 @@ class FileManager(Menu[_File]):
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
         self.add_command(self._get_dir_size, hotkey="alt+s")
-        self.add_command(self._goto_downloads, hotkey="alt+d")
-        self.add_command(self._goto_home, hotkey="alt+h")
         self.add_command(self._goto_parent_directory, hotkey="left")
         self.add_command(self._goto_selected_directory, hotkey="right")
         self.add_command(self._goto, hotkey="ctrl+g")
@@ -218,12 +217,6 @@ class FileManager(Menu[_File]):
             shutil.move(src, dest_dir)
             self._refresh_current_directory()
 
-    def _goto_home(self):
-        self.goto_directory(get_home_path())
-
-    def _goto_downloads(self):
-        self.goto_directory(os.path.join(get_home_path(), "Downloads"))
-
     def _goto_parent_directory(self):
         # If current directory is not file system root
         parent = os.path.dirname(self.get_cur_dir())
@@ -266,8 +259,17 @@ class FileManager(Menu[_File]):
 
             self._refresh_current_directory()
 
+    def _get_download_dir(self):
+        if is_termux():
+            return os.path.join(get_home_path(), "storage", "downloads")
+        else:
+            return os.path.join(get_home_path(), "Downloads")
+
     def _goto(self):
-        path = TextInput(prompt="Goto>").request_input()
+        paths = [get_home_path(), self._get_download_dir()]
+        path = TextInput(
+            items=paths, prompt="Goto", return_selection_if_empty=True
+        ).request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
 

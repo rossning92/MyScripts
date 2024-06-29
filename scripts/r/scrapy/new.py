@@ -2,8 +2,8 @@ import shutil
 import webbrowser
 
 from _conda import *
-from _editor import *
 from _shutil import *
+from utils.editor import *
 
 PROJECT_NAME = "{{SCRAPY_PROJECT}}"
 

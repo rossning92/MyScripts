@@ -16,6 +16,7 @@ class TextInput(Menu):
         history_file: Optional[str] = None,
         text="",
         show_clipboard: bool = False,
+        return_selection_if_empty: bool = False,
     ):
         self.__history_list = history_list
         self.__history_file = history_file
@@ -24,6 +25,7 @@ class TextInput(Menu):
                 self.__history_file, default={"history": []}
             )
         self.__items = items
+        self.__return_selection_if_empty = return_selection_if_empty
         super().__init__(
             prompt=prompt,
             items=([get_clip()] if show_clipboard else [])
@@ -50,4 +52,7 @@ class TextInput(Menu):
                 if text in self.__history_list:
                     self.__history_list.remove(text)
                 self.__history_list.insert(0, text)
-            return text
+            if text == "" and self.__return_selection_if_empty:
+                return self.get_selected_item()
+            else:
+                return text

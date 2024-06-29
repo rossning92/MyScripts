@@ -1,7 +1,7 @@
 import os
 
-from _editor import open_in_vscode
 from _shutil import chdir, get_output, load_json, print2, save_json
+from utils.editor import open_in_vscode
 from utils.menu import Menu
 
 

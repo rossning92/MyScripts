@@ -6,8 +6,8 @@ from distutils.dir_util import copy_tree
 
 from _browser import open_url
 from _code import append_code, patch_code, prepend_code, prepend_line
-from _editor import open_code_editor
 from _shutil import call_echo, cd, copy, mkdir, save_json, update_json
+from utils.editor import open_code_editor
 from utils.menu.actionmenu import ActionMenu
 from utils.template import render_template_file
 

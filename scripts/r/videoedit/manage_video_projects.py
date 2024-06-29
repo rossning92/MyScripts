@@ -3,7 +3,6 @@ import glob
 import os
 from pprint import pprint
 
-from _editor import open_code_editor
 from _shutil import (
     getch,
     load_yaml,
@@ -14,6 +13,7 @@ from _shutil import (
     update_yaml,
 )
 from export_video import load_config
+from utils.editor import open_code_editor
 from utils.menu.select import select_option
 
 vproject_root = r"{{VPROJECT_ROOT}}"

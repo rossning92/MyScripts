@@ -1,6 +1,6 @@
 import os
 
-from _editor import open_code_editor
+from utils.editor import open_code_editor
 
 if __name__ == "__main__":
     git_repo = os.environ["GIT_REPO"]

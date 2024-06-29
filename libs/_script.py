@@ -28,7 +28,6 @@ except ImportError:
 import yaml
 from _android import setup_android_env
 from _cpp import setup_cmake
-from _editor import open_code_editor
 from _filelock import FileLock
 from _pkgmanager import require_package
 from _shutil import (
@@ -58,6 +57,7 @@ from _shutil import (
     write_temp_file,
 )
 from utils.clip import get_clip, get_selection
+from utils.editor import open_code_editor
 from utils.shutil import shell_open
 from utils.template import render_template
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty

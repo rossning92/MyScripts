@@ -2,8 +2,8 @@ import json
 import os
 import subprocess
 
-from _editor import open_code_editor
 from _shutil import prepend_to_path
+from utils.editor import open_code_editor
 
 proj_dir = r"{{VIDEO_PROJECT_DIR}}"
 

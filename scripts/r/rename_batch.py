@@ -1,8 +1,8 @@
 import os
 import time
 
-from _editor import open_code_editor
 from _shutil import get_files, write_temp_file
+from utils.editor import open_code_editor
 
 
 def wait_until_file_modified(f):
