@@ -1,3 +1,4 @@
+import argparse
 import os
 import subprocess
 import tempfile
@@ -39,6 +40,14 @@ def text_to_speech(text: str):
 
 
 if __name__ == "__main__":
-    text_to_speech(
-        "Today is a wonderful day to build something people love!",
+    parser = argparse.ArgumentParser(description="Text to Speech converter")
+    parser.add_argument(
+        "text",
+        type=str,
+        nargs="?",
+        default="Today is a wonderful day to build something people love!",
+        help="Text to be converted to speech",
     )
+    args = parser.parse_args()
+
+    text_to_speech(args.text)

@@ -384,8 +384,8 @@ class GitMenu(ActionMenu):
 
 
 if __name__ == "__main__":
-    backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")  # env: GIT_REPO_BACKUP_DIR
-    repo_path = os.environ.get("GIT_REPO", "")  # env: GIT_REPO
+    backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
+    repo_path = os.environ.get("GIT_REPO", "")
     if not repo_path:
         repo_path = get_my_script_root()
 

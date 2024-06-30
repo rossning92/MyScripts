@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# env: PRINTER_3D_HOST
-# env: PRINTER_3D_USER
-# env: PRINTER_3D_PWD
-
 set -e
 cd "$(dirname "$0")"
 

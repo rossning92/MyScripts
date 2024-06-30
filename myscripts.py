@@ -87,14 +87,11 @@ def format_variables(variables, variable_names, variable_prefix) -> List[str]:
     short_var_names = [
         re.sub("^" + re.escape(variable_prefix), "", x) for x in variable_names
     ]
-    var_name_length = [len(x) for x in short_var_names]
-    if var_name_length:
-        max_width = max(var_name_length) + 1
-    else:
-        max_width = 0
-    for i, name in enumerate(variable_names):
-        var_val = variables[name] if name in variables else ""
-        result.append("env : " + short_var_names[i].ljust(max_width) + ": " + var_val)
+    for i, (full_name, short_name) in enumerate(zip(variable_names, short_var_names)):
+        var_val = variables.get(full_name, "")
+        result.append(
+            ("env : " if i == 0 else " " * 6) + f"{short_name:<16} : {var_val}"
+        )
     return result
 
 
@@ -554,13 +551,17 @@ class _MyScriptMenu(Menu[Script]):
                     )
 
                 # Preview script configs
-                config_preview = {}
+                cfg_preview_count = 0
                 for name, value in script.cfg.items():
                     if value != default_script_config[name]:
-                        config_preview[f"cfg : {name}"] = str(value)
-                preview.extend(
-                    [("yellow", x) for x in format_key_value_pairs(config_preview)]
-                )
+                        preview.append(
+                            (
+                                "yellow",
+                                ("cfg : " if cfg_preview_count == 0 else " " * 6)
+                                + f"{name:<16} : {value}",
+                            )
+                        )
+                        cfg_preview_count += 1
 
             # Scheduled script log preview
             preview.extend(

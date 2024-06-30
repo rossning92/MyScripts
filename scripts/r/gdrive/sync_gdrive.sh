@@ -1,8 +1,5 @@
 set -e
 
-# env: GDRIVE_DIR
-# env: LOCAL_DIR
-
 if [[ -z "$GDRIVE_DIR" ]]; then
     echo 'ERROR: GDRIVE_DIR cannot be empty.'
     exit 1
@@ -16,7 +13,7 @@ rclone_wrapper() {
     logfile="$(mktemp)"
 
     extra_args=''
-    if [[ -n "$_DRY_RUN" ]]; then # env: _DRY_RUN
+    if [[ -n "$_DRY_RUN" ]]; then
         extra_args+=' --dry-run'
     fi
 

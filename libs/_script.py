@@ -1785,13 +1785,8 @@ class Script:
                 with open(self.script_path, "r", encoding="utf-8") as f:
                     s = f.read()
 
-                    # Search all environmental variable names using regular expressions.
-                    # For example: "env: ENV_VAR_NAME".
-                    variable_names = re.findall("env: " + VARIABLE_NAME_PATT, s)
-
-                    # Fallback to matching all uppercase names.
-                    if len(variable_names) == 0:
-                        variable_names = re.findall(VARIABLE_NAME_PATT, s)
+                    # Find all uppercase names to use as variable names.
+                    variable_names = re.findall(VARIABLE_NAME_PATT, s)
             else:
                 return []
         else:

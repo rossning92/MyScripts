@@ -18,7 +18,7 @@ if __name__ == "__main__":
             print(script_path)
             matched_script.append(script_path)
 
-    menu = Menu(prompt=f"script for: {args.text}", items=matched_script)
+    menu = Menu(prompt=f"run script with arg = {args.text}", items=matched_script)
     menu.exec()
     script_path = menu.get_selected_item()
     if script_path is not None:

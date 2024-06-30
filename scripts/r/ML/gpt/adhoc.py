@@ -7,7 +7,7 @@ import sys
 from typing import List, Optional
 
 from ai.openai.complete_chat import chat_completion
-from ML.gpt.chatgpt import ChatMenu
+from ML.gpt.chatmenu import ChatMenu
 from utils.logger import setup_logger
 from utils.menu import Menu
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         if os.environ.get("PROMPT_DIR"):
             prompts += load_prompts_from_dir(os.environ["PROMPT_DIR"])
 
-        menu = Menu(items=prompts, wrap_text=True)
+        menu = Menu(items=prompts, wrap_text=True, history="chatmenu_adhoc")
         menu.exec()
 
         selected_item = menu.get_selected_item()

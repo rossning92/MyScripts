@@ -11,11 +11,9 @@ from utils.editor import open_code_editor
 from utils.menu.actionmenu import ActionMenu
 from utils.template import render_template_file
 
-project_dir = os.path.expanduser(os.environ["JS_PROJECT_DIR"])  # env: JS_PROJECT_DIR
+project_dir = os.path.expanduser(os.environ["JS_PROJECT_DIR"])
 
-overwrite_existing_file = bool(
-    os.environ.get("OVERWRITE_EXISTING_FILE")
-)  # env: OVERWRITE_EXISTING_FILE
+overwrite_existing_file = bool(os.environ.get("OVERWRITE_EXISTING_FILE"))
 
 
 REACT_INDEX_JS = "src/hello-react.jsx"

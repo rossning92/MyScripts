@@ -23,10 +23,10 @@ elif sys.platform == "win32":
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(__file__))
-    if os.environ.get("CURA_RESTORE_SETTING"):  # env: CURA_RESTORE_SETTING
+    if os.environ.get("CURA_RESTORE_SETTING"):
         shutil.unpack_archive("cura_settings.zip", cura_setting_dir)
 
     subprocess.call([cura_exec])
 
-    if os.environ.get("CURA_BACKUP_SETTING"):  # env: CURA_BACKUP_SETTING
+    if os.environ.get("CURA_BACKUP_SETTING"):
         shutil.make_archive("cura_settings", "zip", cura_setting_dir)

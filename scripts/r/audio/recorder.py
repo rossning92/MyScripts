@@ -407,7 +407,7 @@ class TerminalRecorder:
 
 
 if __name__ == "__main__":
-    out_dir = os.environ.get("RECORD_OUT_DIR")  # env: RECORD_OUT_DIR
+    out_dir = os.environ.get("RECORD_OUT_DIR")
     if not out_dir:
         raise Exception("RECORD_OUT_DIR is not set.")
 
@@ -416,7 +416,6 @@ if __name__ == "__main__":
     os.makedirs(out_dir, exist_ok=True)
     os.chdir(out_dir)
 
-    # env: RECORD_INTERACTIVE
     non_interactive = ("RECORD_INTERACTIVE" in os.environ) and (
         os.environ["RECORD_INTERACTIVE"] == "0"
     )
