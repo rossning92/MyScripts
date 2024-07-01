@@ -45,7 +45,7 @@ class ChatMenu(Menu[_Line]):
         self.__yank_mode = 0
         self.__copy_result_and_exit = copy_result_and_exit
 
-        self.add_command(self.__delete_current_message, hotkey="delete")
+        self.add_command(self.__delete_current_message, hotkey="ctrl+k")
         self.add_command(self.__edit_message, hotkey="ctrl+e")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__yank, hotkey="ctrl+y")
