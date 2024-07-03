@@ -22,6 +22,7 @@ from typing import (
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
 
 from utils.clip import get_clip, set_clip
+from utils.sysapi import speech_to_text
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
@@ -291,6 +292,7 @@ class Menu(Generic[T]):
             self.add_command(self.__undo, hotkey="alt+u")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
+            self.add_command(self.__voice_input, hotkey="alt+v")
 
             self._command_palette_menu = Menu(
                 prompt="cmd>",
@@ -306,6 +308,15 @@ class Menu(Generic[T]):
                             lambda item=item: self.__on_item_hotkey(item),
                             hotkey=hotkey,
                         )
+
+    def __voice_input(self):
+        try:
+            text = speech_to_text()
+            if text is not None:
+                self.set_input(text)
+        except Exception as e:
+            self.set_message(f'ERROR: {e}')
+
 
     def __select_all(self):
         total_items = len(self.get_item_indices())

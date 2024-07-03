@@ -57,7 +57,9 @@ from utils.menu.dictedit import DictEditMenu
 from utils.menu.filemgr import FileManager
 from utils.menu.logviewer import LogViewerMenu
 from utils.menu.textinput import TextInput
+from utils.platform import is_termux
 from utils.timeutil import time_diff_str
+from utils.tmux import is_in_tmux
 
 REFRESH_INTERVAL_SECS = 60
 KEY_CODE_CTRL_ENTER_WIN = 529
@@ -652,35 +654,38 @@ def _main():
         print(f"is_instance_running(): {is_instance_running()}")
         return
 
-    if args.tmux:
-        tmux_exec = shutil.which("tmux")
-        if tmux_exec is None:
-            raise Exception("tmux is not installed.")
-        os.execl(
-            tmux_exec,
-            "tmux",
-            "-f",
-            os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
-            "new",
-            sys.executable,
-            *(x for x in sys.argv if x not in ("-t", "--tmux")),
-        )
-
-    run_at_startup(
-        name="MyScripts",
-        cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
-    )
-
     input_text = args.input if (args.input != "r" or args.input != "run") else None
 
+    # Check if the daemon should be started.
     start_daemon = True
     if is_instance_running():
         start_daemon = False
     if input_text:
         start_daemon = False
     logging.debug(f"start_daemon: {start_daemon}")
-
     logging.info("Python executable: %s" % sys.executable)
+
+    # Check if we should run in tmux.
+    should_run_in_tmux = args.tmux or (
+        not is_in_tmux() and start_daemon and is_termux()
+    )
+    if should_run_in_tmux:
+        tmux_exec = shutil.which("tmux")
+        if tmux_exec is not None:
+            os.execl(
+                tmux_exec,
+                "tmux",
+                "-f",
+                os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
+                "new",
+                sys.executable,
+                *(x for x in sys.argv if x not in ("-t", "--tmux")),
+            )
+
+    run_at_startup(
+        name="MyScripts",
+        cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
+    )
 
     # Add bin folder to PATH
     bin_dir = os.path.join(MYSCRIPT_ROOT, "bin")

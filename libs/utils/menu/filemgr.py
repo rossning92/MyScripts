@@ -21,6 +21,13 @@ from .confirm import confirm
 from .textinput import TextInput
 
 
+def get_download_dir():
+    if is_termux():
+        return os.path.join(get_home_path(), "storage", "downloads")
+    else:
+        return os.path.join(get_home_path(), "Downloads")
+
+
 class _Config:
     def __init__(self) -> None:
         self.cur_dir: str = get_home_path()
@@ -83,18 +90,26 @@ class FileManager(Menu[_File]):
     SELECT_MODE_FILE = 1
     SELECT_MODE_DIRECTORY = 2
 
-    def __init__(self, goto=None, save_states=True, prompt=None):
+    def __init__(
+        self,
+        goto=None,
+        save_states=True,
+        prompt=None,
+        path_history: List[str] = [get_home_path(), get_download_dir()],
+    ):
         self.__config = _Config()
         if os.path.exists(self.__config.config_file):
             self.__config.load()
 
         self.__files: List[_File] = []
-        self.__selected_files_full_path: List[str] = []
-        self.__prompt: Optional[str] = prompt
-        self.__select_mode: int = FileManager.SELECT_MODE_NONE
-        self.__save_states: bool = save_states if goto is None else False
         self.__last_copy_to_path: Optional[str] = None
+        self.__prompt: Optional[str] = prompt
+        self.__save_states: bool = save_states if goto is None else False
+        self.__select_mode: int = FileManager.SELECT_MODE_NONE
+        self.__selected_file_dict: Dict[str, str] = {}
+        self.__selected_files_full_path: List[str] = []
         self.__sort_by = "name"
+        self.__path_history: List[str] = path_history
 
         super().__init__(items=self.__files, wrap_text=True)
 
@@ -114,8 +129,6 @@ class FileManager(Menu[_File]):
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
         self.add_command(self._run_script, hotkey="!")
-
-        self.__selected_file_dict: Dict[str, str] = {}
 
         if goto is not None:
             if goto == ".":
@@ -259,16 +272,9 @@ class FileManager(Menu[_File]):
 
             self._refresh_current_directory()
 
-    def _get_download_dir(self):
-        if is_termux():
-            return os.path.join(get_home_path(), "storage", "downloads")
-        else:
-            return os.path.join(get_home_path(), "Downloads")
-
     def _goto(self):
-        paths = [get_home_path(), self._get_download_dir()]
         path = TextInput(
-            items=paths, prompt="Goto", return_selection_if_empty=True
+            items=self.__path_history, prompt="Goto", return_selection_if_empty=True
         ).request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
@@ -322,6 +328,14 @@ class FileManager(Menu[_File]):
             self.__config.cur_dir = directory
             if self.__save_states:
                 self.__config.save()
+
+        # Add directory path to history
+        try:
+            self.__path_history.remove(directory)
+        except ValueError:
+            pass
+        finally:
+            self.__path_history.insert(0, directory)
 
         # Enumerate files
         self._list_files(list_file_recursively=list_file_recursively)

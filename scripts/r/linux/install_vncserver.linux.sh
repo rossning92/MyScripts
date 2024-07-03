@@ -10,7 +10,7 @@ fi
 
 # Setup VNC password
 if [[ ! -f ~/.vnc/passwd ]]; then
-    vncpasswd
+    x11vnc -usepw -storepasswd
 fi
 
 # Create a systemd service to launch an x11vnc server

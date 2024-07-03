@@ -8,5 +8,5 @@ foreach ($n in $nets) {
     $pname = $(Get-Process -id $nar[-1]).ProcessName
     $ppath = $(Get-Process -id $nar[-1]).Path
     # print the modified line with processname instead of PID:
-    $n -replace "$($nar[-1])", "$($ppath) $($pname)"
+    $n -replace "$($nar[-1])", "$($nar[-1]) $($ppath) $($ppid) $($pname)"
 }
