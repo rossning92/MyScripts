@@ -1,3 +1,5 @@
+import argparse
+import logging
 import os
 import tempfile
 
@@ -5,8 +7,8 @@ import requests
 from audio.record_audio import record_audio
 
 
-def convert_audio_to_text(file) -> str:
-    print(f"Converting audio to text: {file}")
+def convert_audio_to_text(file: str) -> str:
+    logging.info(f"Converting audio to text: {file}")
 
     url = "https://api.openai.com/v1/audio/transcriptions"
     headers = {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]}
@@ -33,4 +35,8 @@ def speech_to_text() -> str:
 
 
 if __name__ == "__main__":
-    print(speech_to_text())
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", type=str, help="Path to the audio file")
+    args = parser.parse_args()
+    result = convert_audio_to_text(args.file)
+    print(result)

@@ -1,7 +1,7 @@
 import os
 
 from _shutil import write_temp_file
-from ext.run_script_ssh import run_bash_script_putty
+from utils.remoteshell import run_bash_script_putty
 
 if __name__ == "__main__":
     bash = (

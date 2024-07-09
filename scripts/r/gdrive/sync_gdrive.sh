@@ -24,6 +24,7 @@ rclone_wrapper() {
         --recover \
         --resilient \
         --exclude=.mypy_cache/** \
+        --conflict-resolve newer \
         $extra_args \
         "${@:3}" \
         2>&1 | tee "$logfile"

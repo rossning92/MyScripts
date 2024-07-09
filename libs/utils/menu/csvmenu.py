@@ -68,6 +68,12 @@ class _CsvData:
         self._rows.insert(index, values)
         return index
 
+    def delete_row(self, row_index: int) -> None:
+        if row_index < 0 or row_index >= len(self._rows):
+            raise IndexError(f"Row index {row_index} out of bounds.")
+
+        del self._rows[row_index]
+
 
 class _Cell:
     def __init__(
@@ -166,10 +172,8 @@ class CsvMenu(Menu[_Row]):
 
         super().__init__(items=self._rows, text=text)
 
-        self.add_command(
-            self._add_row,
-            hotkey="ctrl+n",
-        )
+        self.add_command(self._add_row, hotkey="alt+n")
+        self.add_command(self._delete_row, hotkey="alt+d")
 
     def _update_rows(self):
         self._rows.clear()
@@ -194,9 +198,21 @@ class CsvMenu(Menu[_Row]):
 
     def get_item_text(self, item: _Row) -> str:
         row = self.df.get_row_list(item.row_index)
-        return COLUMN_SEPARATOR.join([format_text(x) for x in map(str, row)])
+        return COLUMN_SEPARATOR.join(
+            [
+                format_text(text) if i < len(row) - 1 else text
+                for i, text in enumerate(map(str, row))
+            ]
+        )
 
     def _add_row(self):
         row_index = self.df.add_row()
         self._update_rows()
+        self._edit_row(row_index=row_index)
         self.set_selected_row(row_index)
+
+    def _delete_row(self):
+        row = self.get_selected_item()
+        if row is not None:
+            self.df.delete_row(row_index=row.row_index)
+            self._update_rows()

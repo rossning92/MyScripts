@@ -2,7 +2,7 @@ import argparse
 import os
 
 from _shutil import cd
-from ext.run_script_ssh import pull_file_ssh
+from utils.remoteshell import pull_file_ssh
 
 if __name__ == "__main__":
     # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD

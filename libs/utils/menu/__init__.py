@@ -292,7 +292,7 @@ class Menu(Generic[T]):
             self.add_command(self.__undo, hotkey="alt+u")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
-            self.add_command(self.__voice_input, hotkey="alt+v")
+            self.add_command(self.__voice_input, hotkey="alt+i")
 
             self._command_palette_menu = Menu(
                 prompt="cmd>",
@@ -315,8 +315,7 @@ class Menu(Generic[T]):
             if text is not None:
                 self.set_input(text)
         except Exception as e:
-            self.set_message(f'ERROR: {e}')
-
+            self.set_message(f"ERROR: {e}")
 
     def __select_all(self):
         total_items = len(self.get_item_indices())

@@ -2,7 +2,7 @@ import argparse
 import os
 
 from _shutil import get_files
-from ext.run_script_ssh import push_file_putty
+from utils.remoteshell import push_file_putty
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

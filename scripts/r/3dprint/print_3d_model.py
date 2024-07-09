@@ -3,7 +3,7 @@ import os
 
 from _shutil import write_temp_file
 from ext.run_script_remotely import run_bash_script_in_remote_shell
-from ext.run_script_ssh import push_file, run_script
+from utils.remoteshell import push_file, run_bash_script_ssh
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     if os.environ.get("_RUN_IN_REMOTE_SHELL"):
         run_bash_script_in_remote_shell(bash_file)
     else:
-        run_script(
+        run_bash_script_ssh(
             bash_file,
             host=os.environ["PRINTER_3D_HOST"],
             user=os.environ["PRINTER_3D_USER"],

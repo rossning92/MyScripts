@@ -1153,6 +1153,13 @@ class Script:
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
 
+        elif self.cfg["runOverSsh"]:
+            arg_list = [
+                sys.executable,
+                find_script("ext/run_script_ssh.py"),
+                script_path,
+            ]
+
         elif ext in [".md", ".txt"]:
             if template:
                 script_path = write_temp_file(
@@ -1985,6 +1992,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "runAsAdmin": False,
         "runAtStartup": False,
         "runEveryNSec": "",
+        "runOverSsh": False,
         "runpy": True,
         "runRemotely": False,
         "singleInstance": True,
