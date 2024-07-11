@@ -909,8 +909,7 @@ class Menu(Generic[T]):
         else:
             x = col
 
-        y = row
-        last_row_index = row
+        last_row_index = y = row
         can_scroll_right = False
         attr = self.color_name_to_attr(color)
         if bold:
@@ -947,8 +946,8 @@ class Menu(Generic[T]):
                         )
                         can_scroll_right = True
                     break
-
-            last_row_index = y
+            if x > col:
+                last_row_index = y
 
         return Menu.DrawTextResult(
             last_y=last_row_index,

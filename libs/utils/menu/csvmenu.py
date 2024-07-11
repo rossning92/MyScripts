@@ -26,6 +26,14 @@ class _CsvData:
             for i, row in enumerate(reader):
                 self._rows.append(row)
 
+    def get_header(self) -> List[str]:
+        return self._rows[0]
+
+    def sort_by_column(self, name: str, desc=False):
+        header = self.get_header()
+        idx = header.index(name)
+        self._rows[1:] = sorted(self._rows[1:], key=lambda x: x[idx], reverse=desc)
+
     def get_cell(self, row_index: int, name: str) -> str:
         col_index = self.get_header().index(name)
         return self._rows[row_index][col_index]
@@ -45,9 +53,6 @@ class _CsvData:
 
     def get_row_count(self) -> int:
         return len(self._rows)
-
-    def get_header(self) -> List[str]:
-        return self._rows[0]
 
     def save(self):
         with open(self._file, mode="w", newline="", encoding="utf-8") as csvfile:
@@ -116,17 +121,8 @@ class RowMenu(Menu[_Cell]):
         self.row_index = row_index
         self.selected_cell: Optional[_Cell] = None
 
-        max_column_name_width = max(len(col) for col in df.get_header())
-
-        self.cells = [
-            _Cell(
-                df=self.df,
-                row_index=self.row_index,
-                name=name,
-                max_column_name_width=max_column_name_width,
-            )
-            for name, _ in df.get_row_dict(self.row_index).items()
-        ]
+        self.cells: List[_Cell] = []
+        self._initialize_cells()
 
         super().__init__(items=self.cells, wrap_text=True, prompt=f"row {row_index}")
 
@@ -137,6 +133,38 @@ class RowMenu(Menu[_Cell]):
             hotkey="ctrl+e",
             name="edit_cell_in_editor",
         )
+        self.add_command(
+            self._prev_row,
+            hotkey="left",
+        )
+        self.add_command(
+            self._next_row,
+            hotkey="right",
+        )
+
+    def _goto_row(self, row_index: int):
+        self.row_index = row_index
+        self.set_prompt(f"row {row_index}")
+        self._initialize_cells()
+        self.update_screen()
+
+    def _prev_row(self):
+        self._goto_row(max(self.row_index - 1, 0))
+
+    def _next_row(self):
+        self._goto_row(min(self.row_index + 1, self.df.get_row_count() - 1))
+
+    def _initialize_cells(self):
+        max_column_name_width = max(len(col) for col in self.df.get_header())
+        self.cells[:] = [
+            _Cell(
+                df=self.df,
+                row_index=self.row_index,
+                name=name,
+                max_column_name_width=max_column_name_width,
+            )
+            for name, _ in self.df.get_row_dict(self.row_index).items()
+        ]
 
     def on_enter_pressed(self):
         self.edit_cell()
@@ -150,7 +178,7 @@ class RowMenu(Menu[_Cell]):
                 new_value = edit_text(text=value).rstrip()
             else:
                 new_value = TextInput(
-                    prompt=f"{cell.name} :", text=value
+                    prompt=f"Edit {cell.name} :", text=value
                 ).request_input()
 
             if new_value is not None and new_value != value:
@@ -170,10 +198,23 @@ class CsvMenu(Menu[_Row]):
         self._rows: List[_Row] = []
         self._update_rows()
 
-        super().__init__(items=self._rows, text=text)
+        super().__init__(items=self._rows, text=text, prompt="filter row :")
 
         self.add_command(self._add_row, hotkey="alt+n")
         self.add_command(self._delete_row, hotkey="alt+d")
+        self.add_command(self._sort_by_column, hotkey="alt+s")
+
+    def _sort_by_column(self):
+        menu = Menu(items=self.df.get_header(), prompt="sort by :")
+        menu.exec()
+        name = menu.get_selected_item()
+        if name is not None:
+            self.df.sort_by_column(name=name)
+            self.update_screen()
+
+    def _save(self):
+        self.df.save()
+        self.set_message("saved")
 
     def _update_rows(self):
         self._rows.clear()

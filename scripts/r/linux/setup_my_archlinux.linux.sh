@@ -103,6 +103,7 @@ systemctl kill -s HUP systemd-logind
 # https://wiki.archlinux.org/title/Fcitx5
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"
+# TODO: Set up Fcitx5 manually by running `fcitx5-configtool`.
 
 # Key mapping using https://github.com/rvaiya/keyd
 # Map "CapsLock" to "Control + Meta" key.
