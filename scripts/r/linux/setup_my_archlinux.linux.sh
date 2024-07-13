@@ -138,6 +138,9 @@ source "$(dirname "$0")/setup_awesomewm.sh"
 yay_install yarn mongodb-bin mongodb-tools-bin
 sudo systemctl enable mongodb.service --now
 
+# Enable DNS resolve caching.
+sudo systemctl enable --now systemd-resolved.service
+
 # ------------------------------
 # Hardware specific (TODO: move)
 # ------------------------------
