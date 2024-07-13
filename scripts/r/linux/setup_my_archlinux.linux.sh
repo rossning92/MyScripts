@@ -97,13 +97,13 @@ pac_install alsa-utils # for amixer CLI command
 # Set power key to suspend
 # https://wiki.archlinux.org/title/Power_management#ACPI_events
 sudo sed -i -E 's/^#?HandlePowerKey=.*/HandlePowerKey=suspend/' /etc/systemd/logind.conf
-systemctl kill -s HUP systemd-logind
+sudo systemctl kill -s HUP systemd-logind
 
 # Setup input method
 # https://wiki.archlinux.org/title/Fcitx5
+ln -s "$(dirname "$0")/../../../settings/fcitx5" "$HOME/.config/fcitx5"
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"
-# TODO: Set up Fcitx5 manually by running `fcitx5-configtool`.
 
 # Key mapping using https://github.com/rvaiya/keyd
 # Map "CapsLock" to "Control + Meta" key.
