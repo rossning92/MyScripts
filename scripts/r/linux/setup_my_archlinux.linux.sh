@@ -49,6 +49,7 @@ pac_install \
     usbutils \
     wmctrl \
     xclip
+append_line_dedup "$HOME/.bashrc" 'alias v=nvim'
 
 # Install fonts
 pac_install $(pacman -Ssq 'noto-fonts-*')

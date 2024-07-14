@@ -1,9 +1,10 @@
+import argparse
 import logging
 import os
 import subprocess
 import time
 from statistics import mean
-from typing import List
+from typing import Iterator, Optional
 
 from utils.logger import setup_logger
 
@@ -12,11 +13,11 @@ last_total_idle = None
 # https://man7.org/linux/man-pages/man5/proc.5.html
 
 
-def get_cpu_usage(proc_name, samples=10) -> List[float]:
-    result: List[float] = []
+def get_cpu_usage(proc_name, samples: Optional[int] = None) -> Iterator[float]:
     prev_ticks = None
-    past = None
-    while len(result) < 10:
+    past = 0.0
+    counter = 0
+    while samples is None or counter < samples:
         now = time.time()
         out = subprocess.check_output(
             ["adb", "shell", "cat", f"/proc/$(pidof {proc_name})/stat"],
@@ -31,24 +32,27 @@ def get_cpu_usage(proc_name, samples=10) -> List[float]:
 
         if prev_ticks:
             val = (ticks - prev_ticks) / (now - past)
-            result.append(val)
-            logging.info("Sample (%d/%d): %.2f" % (len(result), samples, val))
+            yield val
+            logging.info(f"Sample {counter}: {val:.2f}")
+            counter += 1
 
         prev_ticks = ticks
         past = now
 
         time.sleep(1)
 
-    return result
-
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--samples", "-n", type=int, nargs="?")
+    args = parser.parse_args()
+
     setup_logger()
 
     proc_name = os.environ["_PROC_NAME"]
     out_file = os.environ.get("OUT_FILE", "")
 
-    result = get_cpu_usage(proc_name)
+    result = get_cpu_usage(proc_name, samples=args.samples)
     mean_val = mean(result)
     print("%.4f" % mean_val)
 

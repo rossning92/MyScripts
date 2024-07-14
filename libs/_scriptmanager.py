@@ -289,6 +289,9 @@ class ScriptManager:
 
             bisect.insort(self.scripts, script)
 
+        # The startup scripts should run only once.
+        self.startup = False
+
         return any_script_reloaded
 
     def update_clipboard_script_map(self):

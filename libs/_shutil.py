@@ -1736,17 +1736,17 @@ def keep_awake():
         )
 
 
-def quote_arg(s, shell_type: str = "cmd"):
+def quote_arg(s, shell_type: str = "cmd") -> str:
     if shell_type == "powershell":
-        s = s.replace("(", r"`(").replace(")", r"`)")
+        s = s.replace(" ", "` ").replace("(", "`(").replace(")", "`)")
     elif shell_type == "cmd":
         s = s.replace('"', '""')  # for cmd, we need to escape " with ""
-
-    if " " in s or "\\" in s:  # quote space
-        if shell_type == "cmd":
+        if " " in s or "\\" in s:  # quote space
             s = '"' + s + '"'
-        else:
-            s = "'" + s + "'"  # single quote for bash
+    elif shell_type == "bash":
+        s = re.sub(r"( |!|\$|#|&|\"|'|\(|\)|\||<|>|`|\\\|;)", r"\\\1", s)
+    else:
+        raise Exception(f"Invalid shell type: {shell_type}")
 
     return s
 

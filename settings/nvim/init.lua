@@ -98,3 +98,15 @@ cmp.setup({
     end,
   },
 })
+
+local function run_and_insert_output()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local content = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
+  local command = "run_script r/ai/openai/complete_chat.py \'" .. content:gsub("'", "'\\''") .. "\'"
+  local handle = io.popen(command)
+  local result = handle:read("*a")
+  handle:close()
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(result, "\n"))
+end
+
+vim.keymap.set({ "n", "i" }, "<C-h>", run_and_insert_output)

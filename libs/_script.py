@@ -349,22 +349,7 @@ def exec_cmd(cmd):
 
 def _args_to_str(args, shell_type):
     assert type(args) in [list, tuple]
-    if shell_type == "powershell":
-        return " ".join(
-            [x.replace(" ", "` ").replace("(", "`(").replace(")", "`)") for x in args]
-        )
-    elif shell_type == "bash":
-        return " ".join(
-            [
-                x.replace(" ", "\\ ")
-                .replace("(", "\\(")
-                .replace(")", "\\)")
-                .replace("'", "\\'")
-                for x in args
-            ]
-        )
-    else:
-        return " ".join([quote_arg(x, shell_type=shell_type) for x in args])
+    return " ".join([quote_arg(x, shell_type=shell_type) for x in args])
 
 
 @lru_cache(maxsize=None)
