@@ -309,9 +309,14 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
         "files.trimTrailingWhitespace": True,
         "pasteImage.path": "${currentFileNameWithoutExt}",
         "search.exclude": {"**/build": True},
-        "window.title": "${rootName}${separator}${appName}",
         "workbench.editor.enablePreviewFromQuickOpen": False,
     }
+    if not data_dir:
+        settings.update(
+            {
+                "window.title": "${rootName}${separator}${appName}",
+            }
+        )
 
     settings.update(
         {
@@ -348,5 +353,5 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
 
 
 if __name__ == "__main__":
-    data_dir = os.environ.get("_DATA_DIR")
+    data_dir = os.environ.get("VSCODE_DATA_DIR")
     config_vscode(data_dir=data_dir, compact=False, glslang=True)

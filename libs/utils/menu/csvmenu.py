@@ -202,6 +202,7 @@ class CsvMenu(Menu[_Row]):
 
         self.add_command(self._add_row, hotkey="alt+n")
         self.add_command(self._delete_row, hotkey="alt+d")
+        self.add_command(self._save, hotkey="ctrl+s")
         self.add_command(self._sort_by_column, hotkey="alt+s")
 
     def _sort_by_column(self):

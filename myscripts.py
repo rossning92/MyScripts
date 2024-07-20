@@ -308,6 +308,7 @@ class _MyScriptMenu(Menu[Script]):
                 lambda: execute_script(
                     script,
                     args=self.__cmdline_args if self.__cmdline_args else None,
+                    cd=len(self.__cmdline_args) == 0,
                     close_on_exit=close_on_exit,
                     no_gui=self.no_gui,
                 )
@@ -588,7 +589,11 @@ class _MyScriptMenu(Menu[Script]):
             os.environ["SCRIPT"] = os.path.abspath(selected_script.script_path)
 
             self.call_func_without_curses(
-                lambda script=script: execute_script(script, no_gui=self.no_gui)
+                lambda script=script: execute_script(
+                    script,
+                    cd=len(self.__cmdline_args) == 0,
+                    no_gui=self.no_gui,
+                )
             )
             if script.cfg["reloadScriptsAfterRun"]:
                 logging.info("Reload scripts after running: %s" % script.name)
@@ -707,15 +712,16 @@ def _main():
 
     script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
 
-    run_script_and_quit = bool(args.input) or args.quit
+    no_gui = args.no_gui or bool(args.args)
+    run_script_and_quit = bool(args.input) or args.quit or bool(args.args)
     while True:  # repeat if _MyScriptMenu throws exceptions
         try:
             _MyScriptMenu(
-                script_manager=script_manager,
-                no_gui=args.no_gui,
-                run_script_and_quit=run_script_and_quit,
-                input_text=input_text,
                 cmdline_args=args.args,
+                input_text=input_text,
+                no_gui=no_gui,
+                run_script_and_quit=run_script_and_quit,
+                script_manager=script_manager,
             ).exec()
             if run_script_and_quit:
                 break

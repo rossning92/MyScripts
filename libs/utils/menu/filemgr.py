@@ -35,6 +35,7 @@ class _Config:
         self.config_file = os.path.join(
             os.environ["MY_DATA_DIR"], "filemgr_config.json"
         )
+        self.path_history: List[str] = [get_home_path(), get_download_dir()]
 
     def load(self):
         with open(self.config_file, "r") as file:
@@ -45,10 +46,18 @@ class _Config:
             raise Exception("Invalid type for `cur_dir`, must be str.")
         self.cur_dir = cur_dir
 
-        self.selected_file = data["selected_file"]
+        if "selected_file" in data:
+            self.selected_file = data["selected_file"]
+
+        if "path_history" in data:
+            self.path_history = data["path_history"]
 
     def save(self):
-        data = {"cur_dir": self.cur_dir, "selected_file": self.selected_file}
+        data = {
+            "cur_dir": self.cur_dir,
+            "selected_file": self.selected_file,
+            "path_history": self.path_history,
+        }
         with open(self.config_file, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -95,7 +104,6 @@ class FileManager(Menu[_File]):
         goto=None,
         save_states=True,
         prompt=None,
-        path_history: List[str] = [get_home_path(), get_download_dir()],
     ):
         self.__config = _Config()
         if os.path.exists(self.__config.config_file):
@@ -109,7 +117,6 @@ class FileManager(Menu[_File]):
         self.__selected_file_dict: Dict[str, str] = {}
         self.__selected_files_full_path: List[str] = []
         self.__sort_by = "name"
-        self.__path_history: List[str] = path_history
 
         super().__init__(items=self.__files, wrap_text=True)
 
@@ -125,7 +132,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._goto, hotkey="ctrl+g")
         self.add_command(self._list_files_recursively, hotkey="alt+r")
         self.add_command(self._move_to, hotkey="alt+m")
-        self.add_command(self._refresh_current_directory, hotkey="ctrl+r")
+        self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
         self.add_command(self._run_script, hotkey="!")
@@ -185,7 +192,7 @@ class FileManager(Menu[_File]):
                         shutil.rmtree(file_full_path)
                     else:
                         os.remove(file_full_path)
-                self._refresh_current_directory()
+                self._refresh_cur_dir()
 
             self.update_screen()
 
@@ -228,7 +235,7 @@ class FileManager(Menu[_File]):
         dest_dir = filemgr.select_directory()
         if dest_dir is not None:
             shutil.move(src, dest_dir)
-            self._refresh_current_directory()
+            self._refresh_cur_dir()
 
     def _goto_parent_directory(self):
         # If current directory is not file system root
@@ -270,11 +277,13 @@ class FileManager(Menu[_File]):
 
             os.rename(src, dest)
 
-            self._refresh_current_directory()
+            self._refresh_cur_dir()
 
     def _goto(self):
         path = TextInput(
-            items=self.__path_history, prompt="Goto", return_selection_if_empty=True
+            items=self.__config.path_history,
+            prompt="Goto",
+            return_selection_if_empty=True,
         ).request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
@@ -302,9 +311,20 @@ class FileManager(Menu[_File]):
             else None
         )
 
-    def _refresh_current_directory(self):
+    def _refresh_cur_dir(self):
         self.goto_directory(self.get_cur_dir())
         self.set_multi_select(False)
+
+    def _add_path_to_history(self, directory: str):
+        MAX_PATH_IN_HISTORY = 20
+        try:
+            self.__config.path_history.remove(directory)
+        except ValueError:
+            pass
+        finally:
+            self.__config.path_history.insert(0, directory)
+        if len(self.__config.path_history) > MAX_PATH_IN_HISTORY:
+            self.__config.path_history.pop()
 
     def goto_directory(
         self,
@@ -324,18 +344,13 @@ class FileManager(Menu[_File]):
         if not os.path.isdir(directory):
             directory = get_home_path()
 
+        self._add_path_to_history(directory)
+
+        # Save config
         if directory != self.get_cur_dir():
             self.__config.cur_dir = directory
             if self.__save_states:
                 self.__config.save()
-
-        # Add directory path to history
-        try:
-            self.__path_history.remove(directory)
-        except ValueError:
-            pass
-        finally:
-            self.__path_history.insert(0, directory)
 
         # Enumerate files
         self._list_files(list_file_recursively=list_file_recursively)
@@ -463,7 +478,7 @@ class FileManager(Menu[_File]):
             LogViewerMenu(files=[full_path]).exec()
         elif ext.lower() in [".zip", ".gz"]:
             subprocess.check_call(["run_script", "r/unzip.py", full_path])
-            self._refresh_current_directory()
+            self._refresh_cur_dir()
         else:
             shell_open(full_path)
 
@@ -507,8 +522,11 @@ class FileManager(Menu[_File]):
             myscripts_path = os.path.abspath(
                 os.path.join(script_root, "..", "..", "..", "myscripts.py")
             )
-            self.call_func_without_curses(
+            ret_code = self.call_func_without_curses(
                 lambda: subprocess.call(
-                    [sys.executable, myscripts_path, "--quit", "--args"] + files
-                )
+                    [sys.executable, myscripts_path, "--args"] + files,
+                    cwd=self.get_cur_dir(),
+                ),
             )
+            if ret_code == 0:
+                self._refresh_cur_dir()

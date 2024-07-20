@@ -159,7 +159,11 @@ def register_global_hotkeys_win(scripts: List[Script]):
 
 
 def execute_script(
-    script: Script, args: Optional[List[str]] = None, close_on_exit=None, no_gui=False
+    script: Script,
+    args: Optional[List[str]] = None,
+    cd=True,
+    close_on_exit=None,
+    no_gui=False,
 ):
     refresh_env_vars()
 
@@ -180,9 +184,10 @@ def execute_script(
 
     success = script.execute(
         args=args_,
+        cd=cd,
         close_on_exit=close_on_exit,
-        restart_instance=True,
         new_window=False if no_gui else None,
+        restart_instance=True,
     )
     if not success:
         pause()

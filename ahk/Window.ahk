@@ -194,10 +194,11 @@ ToggleDesktopIcons(show:=True) {
     }
 }
 
-ActivateWindowByTitle(title)
+ActivateWindowByTitle(title, exePath:="")
 {
     WinGet, hwnds, List, %title%
 
+    found := False
     Loop % hwnds
     {
         hwnd := hwnds%A_Index%
@@ -205,26 +206,36 @@ ActivateWindowByTitle(title)
         WinGet, style, Style, ahk_id %hwnd%
 
         ; Skip unimportant window
-        if (style & WS_DISABLED)
+        if (style & WS_DISABLED) {
             continue
+        }
 
         ; Skip window with no title
         WinGetTitle, title, ahk_id %hwnd%
-        if not title
+        if not title {
             continue
+        }
 
         ; Skip active window
-        if WinActive("ahk_id " hwnd)
+        if WinActive("ahk_id " hwnd) {
+            found := True
             continue
+        }
 
         ; Skip top most window
         WinGet, style, ExStyle, ahk_id %hwnd%
-        if (style & 0x8)
+        if (style & 0x8) {
+            found := True
             continue
+        }
 
         WinActivate ahk_id %hwnd%
+        found := True
+        break
+    }
 
-        return
+    if (exePath <> "" and not found) {
+        Run, %exePath%
     }
 }
 
