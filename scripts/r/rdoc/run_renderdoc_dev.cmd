@@ -1,4 +1,4 @@
 @echo off
-cd /d "{{RENDERDOC_SOURCE}}"
+cd /d "%USERPROFILE%\Projects\renderdoc"
 cd "x64\Development"
 start qrenderdoc.exe %*

@@ -17,6 +17,8 @@ def plot_time_series(
     samples=500,
     out_image: Optional[str] = None,
     out_csv: Optional[str] = None,
+    min_val: Optional[float] = None,
+    max_val: Optional[float] = None,
 ):
     plt.style.use("bmh")
 
@@ -49,11 +51,20 @@ def plot_time_series(
             )
 
         plt.legend()
-        plt.ylim(bottom=min_val, top=max_val)
+
+        if min_val:
+            plt.ylim(bottom=min_val)
+        else:
+            plt.ylim(bottom=cur_min_val)
+        if max_val:
+            plt.ylim(top=max_val)
+        else:
+            plt.ylim(top=cur_max_val)
+
         plt_pause(0.01)
 
-    min_val = 0.0
-    max_val = 0.0
+    cur_min_val = 0.0
+    cur_max_val = 0.0
     while True:
         line = sys.stdin.readline()
         if request_exit or line == "":
@@ -74,8 +85,8 @@ def plot_time_series(
                     val = float(match.group(2))
                 data[name].append(val)
                 frame_index = len(data[name]) + 1
-                min_val = min(min_val, val * 1.15)
-                max_val = max(max_val, val * 1.15)
+                cur_min_val = min(cur_min_val, val * 1.15)
+                cur_max_val = max(cur_max_val, val * 1.15)
 
             now = time.time()
             if now - last_update > 0.5:
@@ -119,6 +130,18 @@ if __name__ == "__main__":
         nargs="?",
         help="Output csv.",
     )
+    parser.add_argument(
+        "--min",
+        type=float,
+        nargs="?",
+        help="Specify min value for the chart.",
+    )
+    parser.add_argument(
+        "--max",
+        type=float,
+        nargs="?",
+        help="Specify max value for the chart.",
+    )
     args = parser.parse_args()
 
     plot_time_series(
@@ -126,4 +149,6 @@ if __name__ == "__main__":
         metrics=args.metrics,
         out_image=args.out_image,
         out_csv=args.out_csv,
+        min_val=args.min,
+        max_val=args.max,
     )
