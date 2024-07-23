@@ -27,18 +27,17 @@ if __name__ == "__main__":
 
     elif args.file:
         file = args.file
-        with open(file, "r", encoding="utf-8") as f:
-            bash_commands += f.read() + "\n"
 
     else:
         file = os.environ["SCRIPT"]
         if not file.endswith(".sh"):
             raise Exception("Unsuppported file extension to run via ssh.")
 
-        file = find_script(file)
-
-        script = Script(file)
-        bash_commands += script.render()
+    script_file = find_script(file)
+    if script_file is None:
+        raise Exception(f"Unable to locate script: {script_file}")
+    script = Script(script_file)
+    bash_commands += script.render()
 
     tmp_file = write_temp_file(bash_commands, ".sh")
 
