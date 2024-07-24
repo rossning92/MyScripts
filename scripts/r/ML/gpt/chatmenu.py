@@ -37,7 +37,6 @@ class ChatMenu(Menu[_Line]):
             items=self.__lines,
             search_mode=False,
             wrap_text=True,
-            prompt=">",
             line_number=True,
         )
         self.__first_message = message

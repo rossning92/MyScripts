@@ -16,7 +16,7 @@ def format_text(s: str) -> str:
     return (s[: (max_width - 2)] + "..") if len(s) > max_width else s.ljust(max_width)
 
 
-class _CsvData:
+class CsvData:
     def __init__(self, file: str) -> None:
         self._rows: List[List[str]] = []
         self._file = file
@@ -80,10 +80,10 @@ class _CsvData:
         del self._rows[row_index]
 
 
-class _Cell:
+class CsvCell:
     def __init__(
         self,
-        df: _CsvData,
+        df: CsvData,
         row_index: int,
         name: str,
         max_column_name_width: int,
@@ -104,8 +104,8 @@ class _Cell:
         return header + indented_lines
 
 
-class _Row:
-    def __init__(self, df: _CsvData, row_index: int) -> None:
+class CsvRow:
+    def __init__(self, df: CsvData, row_index: int) -> None:
         self.df = df
         self.row_index = row_index
 
@@ -115,13 +115,13 @@ class _Row:
         return row_str
 
 
-class RowMenu(Menu[_Cell]):
-    def __init__(self, df: _CsvData, row_index: int) -> None:
+class RowMenu(Menu[CsvCell]):
+    def __init__(self, df: CsvData, row_index: int) -> None:
         self.df = df
         self.row_index = row_index
-        self.selected_cell: Optional[_Cell] = None
+        self.selected_cell: Optional[CsvCell] = None
 
-        self.cells: List[_Cell] = []
+        self.cells: List[CsvCell] = []
         self._initialize_cells()
 
         super().__init__(items=self.cells, wrap_text=True, prompt=f"row {row_index}")
@@ -157,7 +157,7 @@ class RowMenu(Menu[_Cell]):
     def _initialize_cells(self):
         max_column_name_width = max(len(col) for col in self.df.get_header())
         self.cells[:] = [
-            _Cell(
+            CsvCell(
                 df=self.df,
                 row_index=self.row_index,
                 name=name,
@@ -178,7 +178,7 @@ class RowMenu(Menu[_Cell]):
                 new_value = edit_text(text=value).rstrip()
             else:
                 new_value = TextInput(
-                    prompt=f"Edit {cell.name} :", text=value
+                    prompt=f"edit {cell.name}", text=value
                 ).request_input()
 
             if new_value is not None and new_value != value:
@@ -190,15 +190,15 @@ class RowMenu(Menu[_Cell]):
                 self.update_screen()
 
 
-class CsvMenu(Menu[_Row]):
+class CsvMenu(Menu[CsvRow]):
     def __init__(self, csv_file: str, text: str = ""):
-        self.df = _CsvData(csv_file)
+        self.df = CsvData(csv_file)
         self.selected_val: Optional[str] = None
 
-        self._rows: List[_Row] = []
+        self._rows: List[CsvRow] = []
         self._update_rows()
 
-        super().__init__(items=self._rows, text=text, prompt="filter row :")
+        super().__init__(items=self._rows, text=text, prompt="filter row")
 
         self.add_command(self._add_row, hotkey="alt+n")
         self.add_command(self._delete_row, hotkey="alt+d")
@@ -206,7 +206,7 @@ class CsvMenu(Menu[_Row]):
         self.add_command(self._sort_by_column, hotkey="alt+s")
 
     def _sort_by_column(self):
-        menu = Menu(items=self.df.get_header(), prompt="sort by :")
+        menu = Menu(items=self.df.get_header(), prompt="sort by")
         menu.exec()
         name = menu.get_selected_item()
         if name is not None:
@@ -220,7 +220,7 @@ class CsvMenu(Menu[_Row]):
     def _update_rows(self):
         self._rows.clear()
         for row_index in range(self.df.get_row_count()):
-            self._rows.append(_Row(df=self.df, row_index=row_index))
+            self._rows.append(CsvRow(df=self.df, row_index=row_index))
 
     def on_enter_pressed(self):
         row = self.get_selected_item()
@@ -238,7 +238,7 @@ class CsvMenu(Menu[_Row]):
             self.selected_val = val
             self.close()
 
-    def get_item_text(self, item: _Row) -> str:
+    def get_item_text(self, item: CsvRow) -> str:
         row = self.df.get_row_list(item.row_index)
         return COLUMN_SEPARATOR.join(
             [

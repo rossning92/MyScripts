@@ -154,7 +154,7 @@ class FileManager(Menu[_File]):
         return self.__config.cur_dir
 
     def _create_new_dir(self):
-        new_dir_name = TextInput(prompt="Create directory:").request_input()
+        new_dir_name = TextInput(prompt="create directory").request_input()
         if new_dir_name:
             current_dir = self.get_cur_dir()
             new_dir_path = os.path.join(current_dir, new_dir_name)
@@ -210,7 +210,7 @@ class FileManager(Menu[_File]):
                     if self.__last_copy_to_path is not None
                     else self.get_cur_dir()
                 ),
-                prompt="Copy to:",
+                prompt="copy to",
                 save_states=False,
             )
             dest_dir = filemgr.select_directory()
@@ -229,7 +229,7 @@ class FileManager(Menu[_File]):
 
         filemgr = FileManager(
             goto=self.get_cur_dir(),
-            prompt="Move to:",
+            prompt="move to:",
             save_states=False,
         )
         dest_dir = filemgr.select_directory()
@@ -268,7 +268,7 @@ class FileManager(Menu[_File]):
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
-            new_name = TextInput(prompt="Rename:", text=selected.name).request_input()
+            new_name = TextInput(prompt="rename", text=selected.name).request_input()
             if not new_name:
                 return
 
@@ -282,7 +282,7 @@ class FileManager(Menu[_File]):
     def _goto(self):
         path = TextInput(
             items=self.__config.path_history,
-            prompt="Goto",
+            prompt="goto",
             return_selection_if_empty=True,
         ).request_input()
         if path is not None and os.path.isdir(path):
@@ -358,7 +358,7 @@ class FileManager(Menu[_File]):
         # Clear input
         self.clear_input()
         if self.__prompt:
-            self.set_prompt(f"{self.__prompt} {self.get_cur_dir()}")
+            self.set_prompt(f"{self.__prompt}: {self.get_cur_dir()}")
         else:
             self.set_prompt(self.get_cur_dir())
 

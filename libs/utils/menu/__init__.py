@@ -118,7 +118,7 @@ class _InputWidget:
         assert Menu.stdscr is not None
 
         # Draw label
-        stdscr.addstr(row, 0, self.prompt)
+        stdscr.addstr(row, 0, self.prompt + ":")
 
         cursor_y, cursor_x = y, x = Menu.stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
@@ -295,7 +295,7 @@ class Menu(Generic[T]):
             self.add_command(self.__voice_input, hotkey="alt+i")
 
             self._command_palette_menu = Menu(
-                prompt="cmd>",
+                prompt="cmd",
                 items=self._custom_commands,
                 enable_command_palette=False,
             )

@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from _shutil import load_json, save_json
@@ -36,6 +37,9 @@ class TextInput(Menu):
             ),
             text=text,
         )
+        self.add_command(self.__insert_dir_path)
+        self.add_command(self.__insert_file_path)
+        self.add_command(self.__insert_date, hotkey="alt+d")
 
     def request_input(self) -> Optional[str]:
         self.exec()
@@ -56,3 +60,26 @@ class TextInput(Menu):
                 return self.get_selected_item()
             else:
                 return text
+
+    def __insert_dir_path(self):
+        from ..menu.filemgr import FileManager
+
+        dir_path = FileManager(
+            goto=self.get_input(),
+            prompt="insert dir path",
+        ).select_directory()
+        if dir_path is not None:
+            self.set_input(dir_path)
+
+    def __insert_file_path(self):
+        from ..menu.filemgr import FileManager
+
+        file_path = FileManager(
+            goto=self.get_input(),
+            prompt="insert file path",
+        ).select_file()
+        if file_path is not None:
+            self.set_input(file_path)
+
+    def __insert_date(self):
+        self.set_input(datetime.datetime.now().strftime("%Y-%m-%d"))

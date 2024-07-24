@@ -103,7 +103,7 @@ class VariableEditMenu(DictEditMenu):
         self.variable_edit_history = load_json(get_variable_edit_history_file(), {})
         super().__init__(
             self.variables,
-            prompt=f"{script.name}: vars:",
+            prompt=f"{script.name} : vars",
             on_dict_update=self.on_dict_update,
             on_dict_history_update=self.on_dict_history_update,
             dict_history=self.variable_edit_history,
@@ -162,7 +162,7 @@ class _ScheduledScriptMenu(Menu[_ScheduledScript]):
             _ScheduledScript(script=script, scheduled_time=scheduled_time)
             for script, scheduled_time in script_manager.get_scheduled_scripts_run_time().items()
         ]
-        super().__init__(items=items, prompt=": scheduled scripts:")
+        super().__init__(items=items, prompt="scheduled scripts")
 
     def on_idle(self):
         self.update_screen()
@@ -214,7 +214,7 @@ class _MyScriptMenu(Menu[Script]):
             items=self.script_manager.scripts,
             ascii_only=False,
             cancellable=run_script_and_quit,
-            prompt=platform.node() + "$",
+            prompt=platform.node(),
             text=input_text,
             wrap_text=True,
         )
@@ -246,7 +246,7 @@ class _MyScriptMenu(Menu[Script]):
     def _set_cmdline_args(self):
         script = self.get_selected_script()
         if script:
-            input = TextInput(prompt="args>").request_input()
+            input = TextInput(prompt="args").request_input()
             if input is not None:
                 self.__cmdline_args[:] = [input]
 
