@@ -433,7 +433,9 @@ def setup_jdk(jdk_version=None, env=None):
                 continue
             if jdk_version:
                 jdk_paths += [
-                    p for p in paths if re.match(r"^\D*" + re.escape(jdk_version), p)
+                    p
+                    for p in paths
+                    if re.match(r"^\D*" + re.escape(jdk_version), os.path.basename(p))
                 ]
             else:
                 jdk_paths += paths
@@ -444,6 +446,7 @@ def setup_jdk(jdk_version=None, env=None):
         java_home = find_jdk(
             [
                 r"C:\Program Files\Java\jdk*",
+                r"C:\Program Files (x86)\Android\openjdk\jdk-*",
                 r"C:\Program Files\Eclipse Adoptium\jdk*",
             ],
             jdk_version=jdk_version,
