@@ -23,23 +23,27 @@ class CsvData:
 
         with open(file, encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
-            for i, row in enumerate(reader):
+            for row in reader:
                 self._rows.append(row)
 
     def get_header(self) -> List[str]:
         return self._rows[0]
 
+    def get_column_index(self, name: str) -> int:
+        return self.get_header().index(name)
+
     def sort_by_column(self, name: str, desc=False):
-        header = self.get_header()
-        idx = header.index(name)
-        self._rows[1:] = sorted(self._rows[1:], key=lambda x: x[idx], reverse=desc)
+        col_index = self.get_column_index(name)
+        self._rows[1:] = sorted(
+            self._rows[1:], key=lambda x: x[col_index], reverse=desc
+        )
 
     def get_cell(self, row_index: int, name: str) -> str:
-        col_index = self.get_header().index(name)
+        col_index = self.get_column_index(name)
         return self._rows[row_index][col_index]
 
     def set_cell(self, row_index: int, name: str, value: str):
-        col_index = self.get_header().index(name)
+        col_index = self.get_column_index(name)
         self._rows[row_index][col_index] = value
 
     def get_row_list(self, row_index) -> List[str]:
@@ -78,6 +82,10 @@ class CsvData:
             raise IndexError(f"Row index {row_index} out of bounds.")
 
         del self._rows[row_index]
+
+    def get_unique_values_for_column(self, name: str) -> List[str]:
+        col_index = self.get_column_index(name)
+        return list(set([row[col_index] for row in self._rows[1:]]))
 
 
 class CsvCell:
@@ -178,7 +186,9 @@ class RowMenu(Menu[CsvCell]):
                 new_value = edit_text(text=value).rstrip()
             else:
                 new_value = TextInput(
-                    prompt=f"edit {cell.name}", text=value
+                    prompt=f"edit {cell.name}",
+                    text=value,
+                    items=self.df.get_unique_values_for_column(cell.name),
                 ).request_input()
 
             if new_value is not None and new_value != value:

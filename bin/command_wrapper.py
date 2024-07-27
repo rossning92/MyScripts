@@ -1,5 +1,4 @@
 import os
-import shlex
 import subprocess
 import sys
 import time
@@ -52,8 +51,16 @@ def _notify(message: str, icon: Literal["info", "error"] = "info"):
         )
 
 
+def _format_seconds(seconds: float) -> str:
+    minutes = int(seconds // 60)
+    remaining_seconds = seconds % 60
+    result = f"{minutes:02}:{remaining_seconds:02.0f}"
+    return result
+
+
 if __name__ == "__main__":
-    close_on_exit = int(os.environ.get("CLOSE_ON_EXIT", "1"))
+    close_on_exit = int(os.environ.get("CMDW_CLOSE_ON_EXIT", "1"))
+    window_title = os.environ.get("CMDW_WINDOW_TITLE")
 
     start_time = time.time()
     args = sys.argv[1:]
@@ -64,13 +71,15 @@ if __name__ == "__main__":
         has_error = code != 0
         duration = end_time - start_time
         keep_terminal_on = not close_on_exit
-        if has_error or keep_terminal_on:
+        if duration > 10 or has_error:
             _notify(
-                f"Error on {' '.join(shlex.quote(arg) for arg in args)}", icon="error"
+                f"{window_title} finished in {_format_seconds(duration)}, exit code {code}",
+                icon="info" if code == 0 else "error",
             )
+        if has_error or keep_terminal_on:
             print("---")
             print("(exit code: %d)" % code)
-            print("(duration: %.2f seconds)" % duration)
+            print(f"(duration: {_format_seconds(duration)} seconds)")
             print("(cmdline: %s)" % args)
             _getch()
 

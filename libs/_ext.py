@@ -229,7 +229,7 @@ def create_new_script(
         label = "duplicate script"
     else:
         text = os.path.dirname(src_script_rel_path) + "/"
-        label = "new script:"
+        label = "new script"
     w: Menu = Menu(prompt=label, text=text, items=script_dirs)
     w.exec()
     dest_script = w.get_text()

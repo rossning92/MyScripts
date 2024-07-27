@@ -53,23 +53,28 @@ def register_global_hotkeys_linux(scripts: List[Script]):
         f' || alacritty -e "{get_my_script_root()}/myscripts"\n\n'
     )
 
+    replacements = {
+        "win+": "super+",
+        "enter": "Return",
+        "tab": "Tab",
+        "[": "bracketleft",
+        "]": "bracketright",
+        ",": "comma",
+        ".": "period",
+    }
+    f_key_pattern = re.compile(r"\bf(\d+)\b")
+
+    def replace_hotkey(hotkey: str) -> str:
+        for key, value in replacements.items():
+            hotkey = hotkey.replace(key, value)
+        hotkey = f_key_pattern.sub(r"F\1", hotkey)
+        return hotkey
+
     for script in scripts:
         hotkey_chain = script.cfg["globalHotkey"]
         if hotkey_chain and script.is_supported():
             hotkey_def = ";".join(
-                [
-                    re.sub(
-                        r"\bf(\d+)\b",
-                        "F\\1",
-                        hotkey.lower()
-                        .replace("win+", "super+")
-                        .replace("enter", "Return")
-                        .replace("tab", "Tab")
-                        .replace("[", "bracketleft")
-                        .replace("]", "bracketright"),
-                    )
-                    for hotkey in hotkey_chain.split()
-                ]
+                [replace_hotkey(hotkey.lower()) for hotkey in hotkey_chain.split()]
             )
             s += "{}\n".format(hotkey_def)
             s += (

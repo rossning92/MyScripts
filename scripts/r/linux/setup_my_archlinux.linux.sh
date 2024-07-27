@@ -177,31 +177,6 @@ fi
 setup_logitech_keyboard() {
     pac_install solaar # Logitech device manager
     append_line_dedup ~/.xinitrc 'solaar --window hide &'
-
-    sudo bash -c 'cat > /usr/bin/logitech-fn-swap <<EOF
-#!/bin/bash
-while true; do
-    solaar config K380 fn-swap off
-    solaar config K600 fn-swap off
-    sleep 10
-done
-EOF'
-
-    sudo chmod +x /usr/bin/logitech-fn-swap
-
-    sudo bash -c 'cat > /etc/systemd/system/logitech-fn-swap.service <<EOF
-[Unit]
-Description=logitech-fn-swap systemd service unit file.
-
-[Service]
-ExecStart=/usr/bin/logitech-fn-swap
-
-[Install]
-WantedBy=multi-user.target
-EOF'
-
-    sudo systemctl daemon-reload
-    sudo systemctl restart logitech-fn-swap.service --now
 }
 
 if lsusb | grep -q "Unifying Receiver"; then

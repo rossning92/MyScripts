@@ -1461,7 +1461,8 @@ class Script:
 
             if command_wrapper and not background and not self.cfg["minimized"]:
                 # Add command wrapper to pause on exit
-                env["CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
+                env["CMDW_CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
+                env["CMDW_WINDOW_TITLE"] = self.get_window_title()
                 arg_list = [
                     sys.executable,
                     os.path.join(get_bin_dir(), "command_wrapper.py"),

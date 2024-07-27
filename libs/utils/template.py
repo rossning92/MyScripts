@@ -104,7 +104,11 @@ class Template:
                         global_context[variable_name] = val
                     elif token.startswith("if "):
                         condition = token[3:]
-                        cond = eval(condition, global_context)
+                        try:
+                            cond = eval(condition, global_context)
+                        except NameError as ex:
+                            logging.warning(f"{ex}")
+                            cond = False
                         result.extend(eval_tokens(tokens=tokens, should_eval=cond))
                         is_code, token = tokens.pop(0)
                         if (is_code, token) == (True, "else"):
