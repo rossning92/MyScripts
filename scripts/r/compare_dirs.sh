@@ -1,0 +1,1 @@
+diff -q "$CMPDIR_PATH1" "$CMPDIR_PATH2"

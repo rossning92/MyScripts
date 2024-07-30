@@ -5,7 +5,8 @@ from _script import Script, find_script, get_variable
 from _shutil import write_temp_file
 from utils.remoteshell import run_bash_script_ssh
 
-if __name__ == "__main__":
+
+def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--command", type=str, default=None)
     parser.add_argument("--host", type=str, default=None)
@@ -16,6 +17,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     bash_commands = ""
+
+    # XXX: Hack remote terminal size.
+    bash_commands += "stty rows 40\n" "stty cols 120\n"
 
     # ANDROID_SERIAL
     android_serial = get_variable("ANDROID_SERIAL")
@@ -43,3 +47,7 @@ if __name__ == "__main__":
 
     # Prerequisites: SSH_HOST, SSH_USER, SSH_PORT and SSH_PWD
     run_bash_script_ssh(tmp_file, user=args.user, host=args.host, pwd=args.pwd)
+
+
+if __name__ == "__main__":
+    _main()

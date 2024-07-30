@@ -229,7 +229,7 @@ class FileManager(Menu[_File]):
 
         filemgr = FileManager(
             goto=self.get_cur_dir(),
-            prompt="move to:",
+            prompt="move to",
             save_states=False,
         )
         dest_dir = filemgr.select_directory()
