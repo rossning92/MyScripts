@@ -4,6 +4,11 @@ import sys
 import time
 from typing import Literal
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+send_notification_ps1 = os.path.abspath(
+    os.path.join(script_dir, "..", "scripts", "ext", "send_notification.ps1")
+)
+
 
 def _getch():
     if sys.platform == "win32":
@@ -30,25 +35,12 @@ def _getch():
 
 def _notify(message: str, icon: Literal["info", "error"] = "info"):
     if sys.platform == "win32":
-        message_escaped = message.replace("'", "''")
-
         if icon == "error":
             icon_enum = "Error"
         else:
             icon_enum = "Information"
 
-        subprocess.check_call(
-            [
-                "powershell",
-                "-c",
-                '[void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms");'
-                "$notify = New-Object System.Windows.Forms.NotifyIcon;"
-                f"$notify.Icon = [System.Drawing.SystemIcons]::{icon_enum};"
-                f"$notify.BalloonTipText = '{message_escaped}';"
-                "$notify.Visible = $True;"
-                "$notify.ShowBalloonTip(3000)",
-            ]
-        )
+        subprocess.check_call(["powershell", "-file", send_notification_ps1, message])
 
 
 def _format_seconds(seconds: float) -> str:

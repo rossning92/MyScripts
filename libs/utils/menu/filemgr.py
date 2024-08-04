@@ -284,6 +284,10 @@ class FileManager(Menu[_File]):
             items=self.__config.path_history,
             prompt="goto",
             return_selection_if_empty=True,
+            item_hotkey={
+                get_download_dir(): "ctrl+d",
+                get_home_path(): "ctrl+h",
+            },
         ).request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)

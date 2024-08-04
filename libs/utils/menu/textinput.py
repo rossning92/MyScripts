@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from _shutil import load_json, save_json
 
@@ -18,6 +18,7 @@ class TextInput(Menu):
         text="",
         show_clipboard: bool = False,
         return_selection_if_empty: bool = False,
+        item_hotkey: Optional[Dict[str, str]] = None,
     ):
         self.__history_list = history_list
         self.__history_file = history_file
@@ -40,6 +41,17 @@ class TextInput(Menu):
         self.add_command(self.__insert_dir_path)
         self.add_command(self.__insert_file_path)
         self.add_command(self.__insert_date, hotkey="alt+d")
+        if item_hotkey is not None:
+            for item, hotkey in item_hotkey.items():
+                self.add_command(
+                    func=lambda item=item: self._set_input_and_close(item),
+                    hotkey=hotkey,
+                    name=f"select {item}",
+                )
+
+    def _set_input_and_close(self, text: str):
+        self.set_input(text)
+        self.close()
 
     def request_input(self) -> Optional[str]:
         self.exec()

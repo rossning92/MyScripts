@@ -57,6 +57,7 @@ from _shutil import (
     write_temp_file,
 )
 from utils.clip import get_clip, get_selection
+from utils.dotenv import load_dotenv
 from utils.editor import open_code_editor
 from utils.shutil import shell_open
 from utils.template import render_template
@@ -1058,8 +1059,16 @@ class Script:
                 else:
                     arg_list.append(file)
 
+        dotenv: Dict[str, str] = {}
+        load_dotenv(
+            os.path.join(
+                get_my_script_root(), "settings", "myscripts", "default_env.txt"
+            ),
+            env=dotenv,
+        )
+
         # Override environmental variables with `variables`
-        env = {**variables}
+        env = {**dotenv, **variables}
 
         # Set proxy settings
         proxy_settings = load_json(

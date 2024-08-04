@@ -1050,12 +1050,16 @@ def convert_to_unix_path(path: str, wsl: bool = False) -> str:
 
 def append_to_path_global(path):
     if sys.platform == "win32":
-        if False and " " in path:
-            path = get_short_path_name(path)
+        # Convert to short path in order to remove spaces in path.
+        # if " " in path:
+        #     path = get_short_path_name(path)
 
-        s = get_output(r"reg query HKCU\Environment /v PATH")
-        s = re.search(r"PATH\s+(?:REG_SZ|REG_EXPAND_SZ)\s+(.*)", s).group(1).strip()
-        paths = s.split(";")
+        out = get_output(r"reg query HKCU\Environment /v PATH")
+        match = re.search(r"PATH\s+(?:REG_SZ|REG_EXPAND_SZ)\s+(.*)", out)
+        if match is None:
+            raise Exception(f"Invalid output from reg query: {out}")
+        val = match.group(1).strip()
+        paths = val.split(";")
         new_paths = []
         for p in paths:
             if os.path.isdir(p):
@@ -1067,8 +1071,11 @@ def append_to_path_global(path):
             new_paths.append(path)
             logging.debug("Added to PATH: %s" % path)
 
-        with fnull() as nul:
-            subprocess.call(["setx", "PATH", ";".join(new_paths)], stdout=nul)
+        if new_paths != paths:
+            path_str = ";".join(new_paths)
+            logging.debug(f"Update PATH using setx: {path_str}")
+            with fnull() as nul:
+                subprocess.call(["setx", "PATH", path_str], stdout=nul)
 
 
 def wait_key(prompt=None, timeout=5):

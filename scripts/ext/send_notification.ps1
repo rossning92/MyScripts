@@ -1,10 +1,13 @@
+# https://github.com/GitHub30/toast-notification-examples
+
 param (
-    [string]$Message = "Test message"
+    [string]$bodyText = "Test message"
 )
 
-[System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-$notify = New-Object System.Windows.Forms.NotifyIcon
-$notify.Icon = [System.Drawing.SystemIcons]::Information
-$notify.BalloonTipText = $Message
-$notify.Visible = $True
-$notify.ShowBalloonTip(3000)
+$ToastText01 = [Windows.UI.Notifications.ToastTemplateType, Windows.UI.Notifications, ContentType = WindowsRuntime]::ToastText01
+$TemplateContent = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]::GetTemplateContent($ToastText01)
+$TemplateContent.SelectSingleNode('//text[@id="1"]').InnerText = $bodyText
+$ToastNotification = [Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime]::New($TemplateContent)
+$ToastNotification.Tag = 'PowerShell'
+$AppId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe'
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($AppId).Show($ToastNotification)
