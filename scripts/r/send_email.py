@@ -1,11 +1,6 @@
 import argparse
-import webbrowser
-from urllib.parse import quote
 
-
-def email(*, to: str, subject: str, body: str):
-    mailto = f"mailto:{to}?subject={quote(subject)}&body={quote(body, safe='')}"
-    webbrowser.open(mailto)
+from utils.email import send_email
 
 
 def _main():
@@ -13,10 +8,11 @@ def _main():
     parser.add_argument("-t", "--to", required=True)
     parser.add_argument("-s", "--subject", required=True)
     parser.add_argument("-b", "--body", required=True)
+    parser.add_argument("--gmail", action="store_true")
 
     args = parser.parse_args()
 
-    email(to=args.to, subject=args.subject, body=args.body)
+    send_email(to=args.to, subject=args.subject, body=args.body, gmail=args.gmail)
 
 
 if __name__ == "__main__":

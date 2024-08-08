@@ -136,8 +136,8 @@ append_line_dedup ~/.xinitrc "udiskie &"
 source "$(dirname "$0")/setup_awesomewm.sh"
 
 # Install dev tools
-yay_install yarn mongodb-bin mongodb-tools-bin
-sudo systemctl enable mongodb.service --now
+# yay_install yarn mongodb-bin mongodb-tools-bin
+# sudo systemctl enable mongodb.service --now
 
 # Enable DNS resolve caching.
 sudo systemctl enable --now systemd-resolved.service

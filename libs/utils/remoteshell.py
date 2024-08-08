@@ -186,19 +186,23 @@ def pull_file_putty(src, dest=None):
     _putty_wrapper("pscp", [_get_user_host() + ":" + src, dest])
 
 
-def pull_file_ssh(src, dest=None):
+def pull_file_ssh(src, dest=None, port=None):
     if dest is None:
         dest = os.getcwd()
 
-    call_echo(
-        [
-            "scp",
-            "-o",
-            "StrictHostKeyChecking=no",
-            "{}:{}".format(_get_user_host(), src),
-            dest,
-        ]
-    )
+    args = [
+        "scp",
+        "-o",
+        "StrictHostKeyChecking=no",
+    ]
+
+    args += ["-P", _get_port(port)]
+    args += [
+        "{}:{}".format(_get_user_host(), src),
+        dest,
+    ]
+
+    call_echo(args)
 
     return dest
 

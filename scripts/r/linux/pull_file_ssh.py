@@ -5,7 +5,7 @@ from _shutil import cd
 from utils.remoteshell import pull_file_ssh
 
 if __name__ == "__main__":
-    # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD
+    # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD, SSH_PORT
     parser = argparse.ArgumentParser()
     parser.add_argument("src", type=str, nargs="?", default=None)
     args = parser.parse_args()
