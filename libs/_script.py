@@ -20,6 +20,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
+from utils.email import send_email
+
 try:
     import yaml
 except ImportError:
@@ -688,6 +690,49 @@ def get_script_alias(name_without_ext: str) -> str:
         return ""
 
 
+def _send_email(file_path: str):
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    subject = ""
+    to = ""
+    cc = ""
+    gmail = False
+    body = ""
+
+    i = 0
+    lines = content.splitlines()
+    if lines[0] == "---":
+        i = 1
+        while lines[i] != "---":
+            k, v = lines[i].split(":", maxsplit=2)
+            if k.lower() == "cc" or k.lower() == "bcc":
+                cc = v.strip()
+            elif k.lower() == "subject":
+                subject = v.strip()
+            elif k.lower() == "to":
+                to = v.strip()
+            elif k.lower() == "gmail":
+                gmail = True
+            i += 1
+        i += 1
+
+    while lines[i].strip() == "":  # skip empty lines
+        i += 1
+
+    while i < len(lines):
+        body += lines[i] + "\n"
+        i += 1
+
+    send_email(
+        body=body,
+        cc=cc,
+        gmail=gmail,
+        subject=subject,
+        to=to,
+    )
+
+
 class Script:
     def __init__(self, script_path: str, name=None):
         if not os.path.isfile(script_path):
@@ -1155,15 +1200,18 @@ class Script:
             ]
 
         elif ext in [".md", ".txt"]:
-            if template:
-                script_path = write_temp_file(
-                    self.render(source=source), slugify(self.name) + ".sh"
-                )
-                md_file_path = script_path
+            if script_path.endswith(".email.md"):
+                _send_email(script_path)
             else:
-                md_file_path = script_path
-            open_code_editor(md_file_path)
-            return True
+                if template:
+                    script_path = write_temp_file(
+                        self.render(source=source), slugify(self.name) + ".sh"
+                    )
+                    md_file_path = script_path
+                else:
+                    md_file_path = script_path
+                open_code_editor(md_file_path)
+                return True
 
         elif ext == ".ps1":
             if sys.platform == "win32":
