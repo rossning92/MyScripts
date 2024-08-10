@@ -99,14 +99,22 @@ cmp.setup({
   },
 })
 
-local function run_and_insert_output()
-  local bufnr = vim.api.nvim_get_current_buf()
-  local content = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
-  local command = "run_script r/ai/openai/complete_chat.py \'" .. content:gsub("'", "'\\''") .. "\'"
+local function fix()
+  local text = vim.api.nvim_get_current_line()
+
+  local command =
+      "run_script r/ai/openai/complete_chat.py \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
+      text:gsub("'", "'\\''") .. "\'"
   local handle = io.popen(command)
-  local result = handle:read("*a")
+  if handle == nil then
+    print("Error: failed to execute command")
+    return
+  end
+
+  text = handle:read("*a")
   handle:close()
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(result, "\n"))
+
+  vim.api.nvim_set_current_line(text)
 end
 
-vim.keymap.set({ "n", "i" }, "<C-h>", run_and_insert_output)
+vim.keymap.set({ "n", "i" }, "<C-k>f", fix)

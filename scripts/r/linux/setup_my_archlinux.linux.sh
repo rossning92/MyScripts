@@ -86,7 +86,7 @@ append_line_dedup ~/.xinitrc "nm-applet &"
 # Bluetooth
 # - bluez and bluez-utils: a Linux Bluetooth stack
 # - blueman: GUI tool for desktop environments
-pac_install bluez bluez-utils # blueman
+pac_install bluez bluez-utils bluez-tools # blueman
 # append_line_dedup ~/.xinitrc "blueman-applet &"
 sudo systemctl enable bluetooth.service --now
 # then you can use bluetoothctl to pair in command line

@@ -22,7 +22,7 @@ class _SelectPresetMenu(Menu[str]):
 
         super().__init__(
             items=preset_names,
-            prompt="load preset>",
+            prompt="load preset",
         )
 
 
@@ -54,7 +54,6 @@ class LogViewerMenu(Menu[str]):
         self.__log_highlight = self.__default_log_highlight.copy()
 
         super().__init__(
-            prompt="/",
             items=self.__lines,
             highlight=self.__log_highlight,
             close_on_selection=False,
@@ -63,19 +62,19 @@ class LogViewerMenu(Menu[str]):
             search_on_enter=True,
         )
 
-        self.add_command(self.clear_logs, hotkey="ctrl+k")
-        self.add_command(self.load_preset, hotkey="ctrl+l")
-        self.add_command(self.save_preset)
-        self.add_command(self.sort)
+        self.add_command(self.__clear_logs, hotkey="ctrl+k")
+        self.add_command(self.__load_preset, hotkey="ctrl+l")
+        self.add_command(self.__save_preset, hotkey="ctrl+s")
+        self.add_command(self.__sort)
 
         if filter:
             self.set_input(filter)
 
-    def clear_logs(self):
+    def __clear_logs(self):
         self.__lines.clear()
         self.refresh()
 
-    def load_preset(self):
+    def __load_preset(self):
         m = _SelectPresetMenu(preset_dir=self.preset_dir)
         m.exec()
         preset_name = m.get_selected_item()
@@ -87,7 +86,7 @@ class LogViewerMenu(Menu[str]):
             self.set_input(preset["regex"])
 
             if "sort" in preset and preset["sort"]:
-                self.sort()
+                self.__sort()
 
             if "highlight" in preset:
                 self.__log_highlight.clear()
@@ -96,17 +95,17 @@ class LogViewerMenu(Menu[str]):
 
         self.update_screen()
 
-    def save_preset(self):
+    def __save_preset(self):
         filter = self.get_input()
         if filter:
-            preset_name = TextInput(prompt="filter name:").request_input()
+            preset_name = TextInput(prompt="save preset").request_input()
             if preset_name:
                 preset_file = os.path.join(self.preset_dir, f"{preset_name}.json")
                 with open(preset_file, "w", encoding="utf-8") as f:
                     json.dump({"regex": filter}, f, indent=2, ensure_ascii=False)
         self.update_screen()
 
-    def sort(self):
+    def __sort(self):
         self.__lines.sort()
         self.refresh()
 

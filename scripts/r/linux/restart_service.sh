@@ -6,4 +6,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable $service
 sudo systemctl restart $service --now
 systemctl status $service
-journalctl -u $service
+journalctl -u $service --follow

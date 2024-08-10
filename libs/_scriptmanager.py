@@ -169,6 +169,7 @@ def execute_script(
     cd=True,
     close_on_exit=None,
     no_gui=False,
+    out_to_file: Optional[str] = None,
 ):
     refresh_env_vars()
 
@@ -193,6 +194,7 @@ def execute_script(
         close_on_exit=close_on_exit,
         new_window=False if no_gui else None,
         restart_instance=True,
+        out_to_file=out_to_file,
     )
     if not success:
         pause()

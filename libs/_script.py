@@ -113,7 +113,7 @@ class BackgroundProcessOutputType(IntEnum):
     REDIRECT_TO_FILE = 2
 
 
-background_process_output_type = BackgroundProcessOutputType.REDIRECT_TO_FILE
+BG_PROCESS_OUTPUT_TYPE = BackgroundProcessOutputType.REDIRECT_TO_FILE
 
 
 SUPPORT_GNU_SCREEN = False
@@ -1001,6 +1001,7 @@ class Script:
         tee=None,
         command_wrapper: Optional[bool] = True,
         background=False,
+        out_to_file: Optional[str] = None,
     ) -> bool:
         # Termux does not have any GUI support, so we never open script in new window.
         # if is_in_termux():
@@ -1516,7 +1517,11 @@ class Script:
                 command_wrapper = self.cfg["commandWrapper"]
             logging.debug(f"command_wrapper={command_wrapper}")
 
-            if command_wrapper and not background and not self.cfg["minimized"]:
+            if (
+                command_wrapper
+                and not (background or out_to_file)
+                and not self.cfg["minimized"]
+            ):
                 # Add command wrapper to pause on exit
                 env["CMDW_CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
                 env["CMDW_WINDOW_TITLE"] = self.get_window_title()
@@ -1525,7 +1530,7 @@ class Script:
                     os.path.join(get_bin_dir(), "command_wrapper.py"),
                 ] + arg_list
 
-            if background:
+            if background or out_to_file:
                 logging.debug("background = true")
 
                 if sys.platform == "win32":
@@ -1549,19 +1554,19 @@ class Script:
                         | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
-                if (
-                    background_process_output_type
-                    == BackgroundProcessOutputType.LOG_PIPE
-                ):
+                if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
                     popen_extra_args["stdin"] = subprocess.DEVNULL
                     popen_extra_args["stdout"] = subprocess.PIPE
                     popen_extra_args["stderr"] = subprocess.PIPE
 
                 elif (
-                    background_process_output_type
+                    BG_PROCESS_OUTPUT_TYPE
                     == BackgroundProcessOutputType.REDIRECT_TO_FILE
                 ):
-                    fd = open(self.get_script_log_file(), "w")
+                    fd = open(
+                        (out_to_file if out_to_file else self.get_script_log_file()),
+                        "w",
+                    )
                     popen_extra_args["stdin"] = subprocess.DEVNULL
                     popen_extra_args["stdout"] = fd
                     popen_extra_args["stderr"] = fd
@@ -1806,15 +1811,12 @@ class Script:
                     with IgnoreSigInt():
                         success = self.ps.wait() == 0
 
-                if background:
-                    if (
-                        background_process_output_type
-                        == BackgroundProcessOutputType.LOG_PIPE
-                    ):
+                if background or out_to_file:
+                    if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
                         LogPipe(self.ps.stdout, log_level=logging.INFO)
                         LogPipe(self.ps.stderr, log_level=logging.INFO)
                     elif (
-                        background_process_output_type
+                        BG_PROCESS_OUTPUT_TYPE
                         == BackgroundProcessOutputType.REDIRECT_TO_FILE
                     ):
                         # Close fd immediately. If we don't call `close()` the

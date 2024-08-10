@@ -6,9 +6,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from utils.clip import set_clip
 
 from ..menu import Menu
+from ..menu.textinput import TextInput
 
 
-class _DictValueEditMenu(Menu):
+class _DictValueEditMenu(TextInput):
     def __init__(
         self,
         dict_,
@@ -184,14 +185,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
             )
 
     def on_enter_pressed(self):
-        self.close()
-
-    def on_char(self, ch):
-        if ch == "\t":
-            self.__edit_dict_value()
-            return True
-        else:
-            return super().on_char(ch)
+        self.__edit_dict_value()
 
     def get_selected_key(self) -> Optional[str]:
         selected = self.get_selected_item()

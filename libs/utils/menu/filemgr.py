@@ -522,10 +522,8 @@ class FileManager(Menu[_File]):
     def _run_script(self):
         files = self.get_selected_files()
         if len(files) > 0:
-            script_root = os.path.realpath(os.path.dirname(__file__))
-            myscripts_path = os.path.abspath(
-                os.path.join(script_root, "..", "..", "..", "myscripts.py")
-            )
+            script_dir = os.path.realpath(os.path.dirname(__file__))
+            myscripts_path = os.path.abspath(script_dir + "/../../../myscripts.py")
             ret_code = self.call_func_without_curses(
                 lambda: subprocess.call(
                     [sys.executable, myscripts_path, "--args"] + files,

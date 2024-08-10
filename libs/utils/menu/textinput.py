@@ -1,4 +1,8 @@
 import datetime
+import os
+import subprocess
+import sys
+import tempfile
 from typing import Dict, List, Optional
 
 from _shutil import load_json, save_json
@@ -41,6 +45,7 @@ class TextInput(Menu):
         self.add_command(self.__insert_dir_path)
         self.add_command(self.__insert_file_path)
         self.add_command(self.__insert_date, hotkey="alt+d")
+        self.add_command(self.__run_script_and_insert_output, hotkey="!")
         if item_hotkey is not None:
             for item, hotkey in item_hotkey.items():
                 self.add_command(
@@ -48,6 +53,27 @@ class TextInput(Menu):
                     hotkey=hotkey,
                     name=f"select {item}",
                 )
+
+    def __run_script_and_insert_output(self):
+        script_dir = os.path.realpath(os.path.dirname(__file__))
+        myscripts_path = os.path.abspath(script_dir + "/../../../myscripts.py")
+        with tempfile.NamedTemporaryFile() as tmpfile:
+            ret_code = self.call_func_without_curses(
+                lambda: subprocess.call(
+                    [
+                        sys.executable,
+                        myscripts_path,
+                        "--prompt",
+                        "insert script output",
+                        "--out-to-file",
+                        tmpfile.name,
+                    ],
+                ),
+            )
+            if ret_code == 0:
+                with open(tmpfile.name, "r", encoding="utf-8") as f:
+                    out = f.read().strip()
+                self.set_input(out)
 
     def _set_input_and_close(self, text: str):
         self.set_input(text)

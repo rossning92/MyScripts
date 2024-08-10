@@ -16,7 +16,7 @@ ExecStart=/bin/bash /opt/${name}_service.sh
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl daemon-reload
+sudo systemctl daemon-reload # reload systemd configurations.
 sudo systemctl restart ${name}.service --now
 
 sudo journalctl -u ${name}.service -f

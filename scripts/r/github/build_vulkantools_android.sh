@@ -7,6 +7,7 @@ which ninja
 
 export CMAKE_GENERATOR=Ninja
 
+run_script r/git/git_clone.sh https://github.com/LunarG/VulkanTools
 cd ~/Projects/VulkanTools
 
 cmake -S . -B build \

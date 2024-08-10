@@ -12,5 +12,8 @@
     "**/node_modules": true,
     "**/tmp": true
   },
-  "search.useIgnoreFiles": false
+  "search.useIgnoreFiles": false,
+  "Lua.diagnostics.globals": [
+    "vim"
+  ]
 }

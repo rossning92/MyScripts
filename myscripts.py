@@ -199,6 +199,8 @@ class _MyScriptMenu(Menu[Script]):
         run_script_and_quit=False,
         input_text: Optional[str] = None,
         cmdline_args: Optional[List[str]] = None,
+        out_to_file: Optional[str] = None,
+        prompt: Optional[str] = None,
     ):
         self.script_manager = script_manager
         self.no_gui = no_gui
@@ -209,12 +211,13 @@ class _MyScriptMenu(Menu[Script]):
         self.__auto_infer_cmdline_args: bool = not bool(cmdline_args)
         self.__last_copy_time = 0.0
         self.__filemgr = FileManager()
+        self.__out_to_file = out_to_file
 
         super().__init__(
             items=self.script_manager.scripts,
             ascii_only=False,
             cancellable=run_script_and_quit,
-            prompt=platform.node(),
+            prompt=prompt if prompt else platform.node(),
             text=input_text,
             wrap_text=True,
         )
@@ -229,8 +232,8 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._edit_script_vim)
         self.add_command(self._new_script, hotkey="ctrl+n")
         self.add_command(self._next_scheduled_script, hotkey="alt+t")
-        self.add_command(self._run_without_close_on_exist, hotkey="alt+enter")
-        self.add_command(self._run_without_close_on_exist, hotkey="ctrl+enter")
+        self.add_command(self._run_script_no_close, hotkey="alt+enter")
+        self.add_command(self._run_script_no_close, hotkey="ctrl+enter")
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
         self.add_command(self._rename_script_and_replace_all)
@@ -295,7 +298,7 @@ class _MyScriptMenu(Menu[Script]):
             else:
                 return super().match_item(keyword, script)
 
-    def run_selected_script(self, close_on_exit=None):
+    def _run_selected_script(self, close_on_exit=None):
         index = self.get_selected_index()
         if index >= 0:
             script = self.items[index]
@@ -311,6 +314,7 @@ class _MyScriptMenu(Menu[Script]):
                     cd=len(self.__cmdline_args) == 0,
                     close_on_exit=close_on_exit,
                     no_gui=self.no_gui,
+                    out_to_file=self.__out_to_file,
                 )
             )
 
@@ -370,7 +374,7 @@ class _MyScriptMenu(Menu[Script]):
         if self.__run_script_and_quit:
             # If only one script is matched, run it directly.
             if len(self._matched_item_indices) == 1:
-                self.run_selected_script()
+                self._run_selected_script()
 
         return True
 
@@ -474,9 +478,9 @@ class _MyScriptMenu(Menu[Script]):
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()
 
-    def _run_without_close_on_exist(self):
+    def _run_script_no_close(self):
         try:
-            self.run_selected_script(close_on_exit=False)
+            self._run_selected_script(close_on_exit=False)
             self.clear_input(reset_selection=True)
         finally:
             # Reset last refresh time when key press event is processed
@@ -500,7 +504,7 @@ class _MyScriptMenu(Menu[Script]):
             self.update_last_refresh_time()
 
     def on_enter_pressed(self):
-        self.run_selected_script()
+        self._run_selected_script()
         self.clear_input(reset_selection=True)
         return True
 
@@ -642,6 +646,18 @@ def _main():
         help="Quit after running any script.",
     )
     parser.add_argument(
+        "--prompt",
+        default=None,
+        help="Specify custom prompt.",
+    )
+    parser.add_argument(
+        "-o",
+        "--out-to-file",
+        type=str,
+        default=None,
+        help="Save script output to a file.",
+    )
+    parser.add_argument(
         "input",
         nargs="?",
         help="Specify input.",
@@ -712,8 +728,10 @@ def _main():
 
     script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
 
-    no_gui = args.no_gui or bool(args.args)
-    run_script_and_quit = bool(args.input) or args.quit or bool(args.args)
+    no_gui = args.no_gui or bool(args.args) or bool(args.out_to_file)
+    run_script_and_quit = (
+        bool(args.input) or args.quit or bool(args.args) or bool(args.out_to_file)
+    )
     while True:  # repeat if _MyScriptMenu throws exceptions
         try:
             _MyScriptMenu(
@@ -722,6 +740,8 @@ def _main():
                 no_gui=no_gui,
                 run_script_and_quit=run_script_and_quit,
                 script_manager=script_manager,
+                out_to_file=args.out_to_file,
+                prompt=args.prompt,
             ).exec()
             if run_script_and_quit:
                 break
