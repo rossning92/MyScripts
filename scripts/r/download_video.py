@@ -2,13 +2,12 @@ import argparse
 import logging
 import os
 import re
+import subprocess
 
 import requests
 from _shutil import (
     call_echo,
-    get_home_path,
     get_newest_file,
-    prepend_to_path,
 )
 from utils.logger import setup_logger
 from utils.retry import retry
@@ -34,12 +33,9 @@ def get_redirected_url(url):
 
 
 def download_bilibili(url, download_dir=None):
-    prepend_to_path([os.path.join(get_home_path(), "go", "bin")])
-    cookie_file = os.path.join(get_home_path(), ".bilibili-cookies.txt")
-    with open(cookie_file, "r") as f:
-        cookie = f.read()
-    call_echo(["lux", "-c", cookie, url], shell=False, cwd=download_dir)
-    # call_echo(["BBDown", "-c", cookie, url], shell=False, cwd=download_dir)
+    subprocess.check_call(
+        ["run_script", "r/download_video_lux.sh", url], cwd=download_dir
+    )
 
 
 def download_youtube(url, download_dir=None, audio_only=False, download_playlist=False):
@@ -70,15 +66,15 @@ def download_video(url, audio_only=False, download_dir=None, save_url=True):
             audio_only=audio_only,
         )
 
-    # Save url
-    if save_url:
-        # Remove anything after "&":
-        # https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
-        url = re.sub(r"(\?(?!v)|&).*$", "", url)
-        url_file = get_newest_file(os.path.join(ddir, "*.*")) + ".url"
-        logging.info("Save url to: %s" % url_file)
-        with open(url_file, "w", encoding="utf-8") as f:
-            f.write(url)
+        # Save url
+        if save_url:
+            # Remove anything after "&":
+            # https://www.youtube.com/watch?v=xxxxxxxx&list=yyyyyyyy&start_radio=1
+            url = re.sub(r"(\?(?!v)|&).*$", "", url)
+            url_file = get_newest_file(os.path.join(ddir, "*.*")) + ".url"
+            logging.info("Save url to: %s" % url_file)
+            with open(url_file, "w", encoding="utf-8") as f:
+                f.write(url)
 
 
 if __name__ == "__main__":

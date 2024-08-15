@@ -124,7 +124,7 @@ def require_package(
                     != 0
                 ) or force_install:
                     logging.info(f"Installing package using yay: {p}")
-                    subprocess.check_call(["yay", "-S", "--noconfirm", p])
+                    subprocess.check_call(["yay", "-S", "--noconfirm", "--rebuild", p])
             return
 
         elif is_in_termux() and "termux" in packages[pkg]:

@@ -20,7 +20,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
-from utils.email import send_email
+from utils.email import send_email_md
+from utils.menu.csvmenu import CsvMenu
 
 try:
     import yaml
@@ -690,49 +691,6 @@ def get_script_alias(name_without_ext: str) -> str:
         return ""
 
 
-def _send_email(file_path: str):
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    subject = ""
-    to = ""
-    cc = ""
-    gmail = False
-    body = ""
-
-    i = 0
-    lines = content.splitlines()
-    if lines[0] == "---":
-        i = 1
-        while lines[i] != "---":
-            k, v = lines[i].split(":", maxsplit=2)
-            if k.lower() == "cc" or k.lower() == "bcc":
-                cc = v.strip()
-            elif k.lower() == "subject":
-                subject = v.strip()
-            elif k.lower() == "to":
-                to = v.strip()
-            elif k.lower() == "gmail":
-                gmail = True
-            i += 1
-        i += 1
-
-    while lines[i].strip() == "":  # skip empty lines
-        i += 1
-
-    while i < len(lines):
-        body += lines[i] + "\n"
-        i += 1
-
-    send_email(
-        body=body,
-        cc=cc,
-        gmail=gmail,
-        subject=subject,
-        to=to,
-    )
-
-
 class Script:
     def __init__(self, script_path: str, name=None):
         if not os.path.isfile(script_path):
@@ -864,8 +822,18 @@ class Script:
         return source
 
     def render(self, source: Optional[str] = None, variables=None) -> str:
-        if variables is None:
-            variables = self.get_variables()
+        read_var_from_csv = self.cfg["template.readVarFromCsv"]
+        if read_var_from_csv:
+            menu = CsvMenu(csv_file=read_var_from_csv)
+            row_index = menu.select_row()
+            if row_index >= 0:
+                variables = {
+                    k.upper(): v for k, v in menu.df.get_row_dict(row_index).items()
+                }
+
+        else:
+            if variables is None:
+                variables = self.get_variables()
 
         if not self.check_link_existence():
             raise Exception("Link is invalid.")
@@ -1202,11 +1170,11 @@ class Script:
 
         elif ext in [".md", ".txt"]:
             if script_path.endswith(".email.md"):
-                _send_email(script_path)
+                send_email_md(script_path)
             else:
                 if template:
                     script_path = write_temp_file(
-                        self.render(source=source), slugify(self.name) + ".sh"
+                        self.render(source=source), slugify(self.name) + ext
                     )
                     md_file_path = script_path
                 else:
@@ -2043,6 +2011,7 @@ def get_default_script_config() -> Dict[str, Any]:
         "singleInstance": True,
         "tee": False,
         "template": None,
+        "template.readVarFromCsv": "",
         "terminal": "alacritty",
         "title": "",
         "updateSelectedScriptAccessTime": False,

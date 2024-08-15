@@ -482,7 +482,8 @@ class FileManager(Menu[_File]):
             LogViewerMenu(files=[full_path]).exec()
         elif ext.lower() in [".zip", ".gz"]:
             subprocess.check_call(["run_script", "r/unzip.py", full_path])
-            self._refresh_cur_dir()
+            out_dir = os.path.splitext(full_path)[0]
+            self.goto_directory(out_dir)
         else:
             shell_open(full_path)
 

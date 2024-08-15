@@ -208,6 +208,8 @@ class CsvMenu(Menu[CsvRow]):
         self._rows: List[CsvRow] = []
         self._update_rows()
 
+        self._select_row = False
+
         super().__init__(items=self._rows, text=text, prompt="filter row")
 
         self.add_command(self._add_row, hotkey="alt+n")
@@ -233,9 +235,12 @@ class CsvMenu(Menu[CsvRow]):
             self._rows.append(CsvRow(df=self.df, row_index=row_index))
 
     def on_enter_pressed(self):
-        row = self.get_selected_item()
-        if row is not None:
-            self._edit_row(row_index=row.row_index)
+        if self._select_row:
+            super().on_enter_pressed()
+        else:
+            row = self.get_selected_item()
+            if row is not None:
+                self._edit_row(row_index=row.row_index)
 
     def get_scroll_distance(self) -> int:
         return COLUMN_WIDTH + len(COLUMN_SEPARATOR)
@@ -268,3 +273,10 @@ class CsvMenu(Menu[CsvRow]):
         if row is not None:
             self.df.delete_row(row_index=row.row_index)
             self._update_rows()
+
+    def select_row(self) -> int:
+        try:
+            self._select_row = True
+            return self.exec()
+        finally:
+            self._select_row = False
