@@ -1,7 +1,7 @@
 import os
 
-from _android import setup_android_env
-from _shutil import call_echo, cd, find_newest_file, print2, start_process
+from _shutil import call_echo, cd, find_newest_file, print2
+from _unrealcommon import setup_ue_android_env
 
 if __name__ == "__main__":
     # No need NVPACK for UE4.25+
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # except:
     #     print2("WARNING: NVPACK not found.")
 
-    setup_android_env()
+    # setup_ue_android_env()
 
     # os.environ["DATA_CACHE_DIR"] = r"C:\UE4-DataCache"
 

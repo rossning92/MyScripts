@@ -1170,7 +1170,7 @@ class Script:
 
         elif ext in [".md", ".txt"]:
             if script_path.endswith(".email.md"):
-                send_email_md(script_path)
+                send_email_md(content=self.render(source=source))
             else:
                 if template:
                     script_path = write_temp_file(

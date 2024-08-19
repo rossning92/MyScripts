@@ -1,9 +1,10 @@
 # https://docs.unrealengine.com/5.1/en-US/downloading-unreal-engine-source-code/
+# https://github.com/Oculus-VR/UnrealEngine
 
 set -e
 
 if [[ -z "${UE_VERSION}" ]]; then
-    UE_VERSION=5.1
+    UE_VERSION=5.4
 fi
 
 if [[ -n "${UE_SOURCE}" ]]; then

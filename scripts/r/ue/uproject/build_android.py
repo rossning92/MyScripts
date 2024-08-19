@@ -1,3 +1,5 @@
+# https://dev.epicgames.com/documentation/en-us/unreal-engine/how-to-set-up-android-sdk-and-ndk-for-your-unreal-engine-development-environment
+
 import glob
 import os
 import shutil
@@ -6,12 +8,10 @@ import subprocess
 from _android import (
     adb_install,
     get_pkg_name_apk,
-    install_cmdline_tools,
-    setup_android_env,
     start_app,
 )
 from _shutil import cd, confirm, find_newest_file, mkdir, print2
-from _unrealcommon import get_unreal_source_version
+from _unrealcommon import setup_ue_android_env
 from build_cpp_modules import build_cpp_modules
 from utils.logger import setup_logger
 
@@ -81,29 +81,7 @@ def build_uproject(
 if __name__ == "__main__":
     setup_logger()
 
-    ue_version = get_unreal_source_version()
-    if ue_version.startswith("5"):
-        install_cmdline_tools(version="8.0")
-        setup_android_env(jdk_version="11.0")  # for UE5.3+
-        # subprocess.check_call(
-        #     rf"{os.environ['UE_SOURCE']}\Engine\Extras\Android\SetupAndroid.bat",
-        #     shell=True,
-        # )
-    elif ue_version.startswith("4.27"):
-        setup_android_env(ndk_version="21.1.6352462", build_tools_version="28.0.3")
-        subprocess.check_call(
-            [
-                "sdkmanager",
-                "platform-tools",
-                "platforms;android-28",
-                "build-tools;28.0.3",
-                "cmake;3.10.2.4988404",
-                "ndk;21.1.6352462",
-            ],
-            shell=True,
-        )
-    else:
-        raise Exception(f"Unknown Unreal Engine version: {ue_version}")
+    setup_ue_android_env()
 
     # run_script("r/ue/kill_editor.cmd")
 
