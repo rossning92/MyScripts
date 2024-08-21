@@ -80,8 +80,10 @@ def _match_regex(item: Any, patt: str) -> bool:
             return False
 
 
-def _match(item: Any, patt: str, fuzzy_match: bool) -> bool:
-    if fuzzy_match:
+def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
+    if patt.isdigit():
+        return int(patt) == index + 1
+    elif fuzzy_match:
         return _match_fuzzy(item, patt)
     else:
         return _match_regex(item, patt)
@@ -366,9 +368,9 @@ class Menu(Generic[T]):
 
         return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
 
-    def match_item(self, patt: str, item: T) -> bool:
+    def match_item(self, patt: str, item: T, index: int) -> bool:
         s = str(item)
-        return _match(s, patt, fuzzy_match=self.__fuzzy_search)
+        return _match(s, patt, fuzzy_match=self.__fuzzy_search, index=index)
 
     def get_item_indices(self):
         if self.__search_mode:
@@ -381,11 +383,12 @@ class Menu(Generic[T]):
 
         self.items.append(item)
         self._last_item_count = len(self.items)
+        added_index = self._last_item_count - 1
 
         # Scroll to bottom if last line is selected
         if self.__search_mode:
-            if self.match_item(self.get_input(), item):
-                self._matched_item_indices.append(self._last_item_count - 1)
+            if self.match_item(self.get_input(), item, added_index):
+                self._matched_item_indices.append(added_index)
                 if last_line_selected:
                     self.__selected_row_begin = self.__selected_row_end = (
                         len(self._matched_item_indices) - 1
@@ -524,7 +527,7 @@ class Menu(Generic[T]):
 
         self._matched_item_indices.clear()
         for i, item in enumerate(self.items):
-            if self.match_item(self.get_input(), item):
+            if self.match_item(self.get_input(), item, i):
                 self._matched_item_indices.append(i)
 
         num_matched_items = len(self._matched_item_indices)

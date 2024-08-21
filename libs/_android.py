@@ -623,7 +623,10 @@ class AdbInstallResult:
 
 
 def adb_install(
-    apk, force_reinstall=False, grant_permissions=False
+    apk,
+    force_reinstall=False,
+    grant_permissions=False,
+    skip_install_if_exist=True,
 ) -> AdbInstallResult:
     # Get package name
     out = subprocess.check_output(
@@ -641,7 +644,7 @@ def adb_install(
             logger.info("App does not exist on device, installing...")
             should_install = True
 
-        if not should_install:
+        if not should_install and not skip_install_if_exist:
             # Get local apk size in bytes
             local_file_size = os.path.getsize(apk)
 
@@ -718,13 +721,19 @@ def adb_install(
 
 
 def adb_install2(
-    file, force_reinstall=False, grant_permissions=False
+    file,
+    force_reinstall=False,
+    grant_permissions=False,
+    skip_install_if_exist=True,
 ) -> AdbInstallResult:
     """
     Install + restore app data.
     """
     result = adb_install(
-        file, force_reinstall=force_reinstall, grant_permissions=grant_permissions
+        file,
+        force_reinstall=force_reinstall,
+        grant_permissions=grant_permissions,
+        skip_install_if_exist=skip_install_if_exist,
     )
 
     if result.installed:
@@ -891,9 +900,14 @@ def toggle_prop(name, values=("0", "1")):
     subprocess.check_call(["adb", "shell", command])
 
 
-def run_apk(apk, grant_permissions=False, force_reinstall=False) -> AdbInstallResult:
+def run_apk(
+    apk, grant_permissions=False, force_reinstall=False, skip_install_if_exist=True
+) -> AdbInstallResult:
     result = adb_install2(
-        apk, grant_permissions=grant_permissions, force_reinstall=force_reinstall
+        apk,
+        grant_permissions=grant_permissions,
+        force_reinstall=force_reinstall,
+        skip_install_if_exist=skip_install_if_exist,
     )
     restart_app(result.pkg)
     return result

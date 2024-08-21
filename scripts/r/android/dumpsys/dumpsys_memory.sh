@@ -1,1 +1,1 @@
-adb shell dumpsys meminfo
+adb shell dumpsys meminfo {{PKG_NAME}}
