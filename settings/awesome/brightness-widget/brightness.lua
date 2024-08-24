@@ -35,12 +35,12 @@ end
 local function worker(user_args)
     local args = user_args or {}
 
-    local type = args.type or 'arc' -- arc or icon_and_text
+    local type = args.type or 'icon_and_text' -- arc or icon_and_text
     local path_to_icon = args.path_to_icon or script_path() .. '/brightness.svg'
     local font = args.font or beautiful.font
     local timeout = args.timeout or 100
 
-    local program = args.program or 'light'
+    local program = args.program or 'brightnessctl'
     local step = args.step or 5
     local base = args.base or 20
     local current_level = 0 -- current brightness value

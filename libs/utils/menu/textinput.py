@@ -16,7 +16,7 @@ class TextInput(Menu):
     def __init__(
         self,
         items: Optional[List[str]] = None,
-        prompt: str = ">",
+        prompt: str = "",
         history_list: Optional[List[str]] = None,
         history_file: Optional[str] = None,
         text="",

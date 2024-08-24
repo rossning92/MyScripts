@@ -6,12 +6,13 @@ import sys
 from _pkgmanager import require_package
 from _script import Script, get_variable
 from _shutil import (
-    activate_window_by_name,
     call_echo,
     convert_to_unix_path,
     quote_arg,
     write_temp_file,
 )
+
+from .window import activate_window_by_name
 
 
 def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=False):

@@ -2,9 +2,6 @@
 
 app=$1
 
-# cur_desktop=$(wmctrl -d | grep '\*' | cut -d ' ' -f1)
-# matched_win_ids=$(wmctrl -l | grep -- "$app" | grep " $cur_desktop " | awk '{print $1}')
-
 matched_win_ids=$(wmctrl -l | grep -- "$app" | awk '{print $1}')
 win_ids=($(xprop -root | awk -F'# ' '/_NET_CLIENT_LIST_STACKING/ {gsub(/,/, " "); print $2}'))
 

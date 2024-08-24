@@ -4,12 +4,12 @@ import sys
 
 from _script import Script, get_variable
 from _shutil import (
-    activate_window_by_name,
     call_echo,
     convert_to_unix_path,
     quote_arg,
     write_temp_file,
 )
+from utils.window import activate_window_by_name
 
 
 def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=False):
@@ -67,9 +67,7 @@ def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=Fal
             # ^C: send Ctrl-C
             "screen -d -X stuff ^Z^Mbg^M;"
             if send_prev_job_to_background
-            else "screen -d -X stuff ^C;"
-            if ext == ".sh"
-            else ""
+            else "screen -d -X stuff ^C;" if ext == ".sh" else ""
         )
         + (
             "screen -d -X msgwait 0;"

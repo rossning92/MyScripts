@@ -527,6 +527,11 @@
       "packages": ["sshpass"]
     }
   },
+  "sshuttle": {
+    "pacman": {
+      "packages": ["sshuttle"]
+    }
+  },
   "sumatrapdf": {
     "choco": {
       "packages": ["sumatrapdf"]

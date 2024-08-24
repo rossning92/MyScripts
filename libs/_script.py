@@ -36,8 +36,6 @@ from _pkgmanager import require_package
 from _shutil import (
     CONEMU_INSTALL_DIR,
     IgnoreSigInt,
-    activate_window_by_name,
-    close_window_by_name,
     convert_to_unix_path,
     format_time,
     get_ahk_exe,
@@ -68,6 +66,7 @@ from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.timed import timed
 from utils.tmux import is_in_tmux
 from utils.venv import activate_python_venv, get_venv_python_executable
+from utils.window import activate_window_by_name, close_window_by_name
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -804,7 +803,7 @@ class Script:
         elif self.cfg["title"]:
             return self.cfg["title"]
         else:
-            return self.name
+            return "!!" + self.name
 
     def get_script_path(self) -> str:
         return self.real_script_path if self.real_script_path else self.script_path

@@ -245,11 +245,7 @@ awful.screen.connect_for_each_screen(function(s)
                 show_current_level = true
             },
             volume.widget,
-            brightness_widget {
-                type = 'icon_and_text',
-                program = 'light',
-                step = 10
-            },
+            brightness_widget {},
             memory_widget {},
             disk_usage_widget {},
             wibox.widget.systray(),

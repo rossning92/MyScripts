@@ -61,7 +61,7 @@ if [[ ! -x "$(command -v yay)" ]]; then
         sudo pacman -S --needed --noconfirm git base-devel
         git clone https://aur.archlinux.org/yay-bin.git
         cd yay-bin
-        makepkg -si
+        makepkg -si --noconfirm
         cd ..
         rm yay-bin -rf
     )
@@ -181,6 +181,11 @@ setup_logitech_keyboard() {
 
 if lsusb | grep -q "Unifying Receiver"; then
     setup_logitech_keyboard
+fi
+
+# Backlight control
+if [ -d /sys/class/backlight ]; then
+    pac_install backlightctl
 fi
 
 # Configure Touchpad:

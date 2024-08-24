@@ -13,6 +13,7 @@ pid=$!
 
 echo "Pairing $mac_addr"
 bluetoothctl pair "$mac_addr" >/dev/null
+bluetoothctl trust "$mac_addr" >/dev/null
 
 echo "Stop Bluetooth agent..."
 kill -INT $pid
