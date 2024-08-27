@@ -613,6 +613,11 @@
     ],
     "linux_install": "/r/install_vscode_linux"
   },
+  "xxd": {
+    "pacman": {
+      "packages": ["tinyxxd"]
+    }
+  },
   "yarn": {
     "choco": {
       "packages": ["yarn"]
