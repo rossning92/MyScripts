@@ -571,12 +571,15 @@ class _MyScriptMenu(Menu[Script]):
                         cfg_preview_count += 1
 
             # Scheduled script log preview
-            preview.extend(
-                [
-                    ("blue", line)
-                    for line in get_scheduled_script_log_preview(self.script_manager)
-                ]
-            )
+            if not self.no_gui:
+                preview.extend(
+                    [
+                        ("blue", line)
+                        for line in get_scheduled_script_log_preview(
+                            self.script_manager
+                        )
+                    ]
+                )
 
             # Draw preview
             height = max(5, height - len(preview) - 1)

@@ -10,7 +10,7 @@ Before=suspend.target
 
 [Service]
 User=%I
-Type=forking
+Type=simple
 Environment=DISPLAY=:0
 ExecStart=/usr/bin/betterlockscreen --lock
 TimeoutSec=infinity
@@ -21,4 +21,6 @@ WantedBy=sleep.target
 WantedBy=suspend.target
 EOF
 
-sudo systemctl enable betterlockscreen@$USER --now
+sudo systemctl enable betterlockscreen@$(whoami)
+
+# betterlockscreen --lock

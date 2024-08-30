@@ -22,6 +22,7 @@ from typing import (
 from _shutil import get_hotkey_abbr, load_json, save_json, slugify
 
 from utils.clip import get_clip, set_clip
+from utils.editor import edit_text
 from utils.sysapi import speech_to_text
 
 GUTTER_SIZE = 1
@@ -295,6 +296,7 @@ class Menu(Generic[T]):
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
             self.add_command(self.__voice_input, hotkey="alt+i")
+            self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
 
             self._command_palette_menu = Menu(
                 prompt="cmd",
@@ -1030,9 +1032,8 @@ class Menu(Generic[T]):
                 line_number_width + GUTTER_SIZE,
                 item_text,
                 wrap_text=self.__wrap_text,
-                color=color,
+                color=color.upper() if is_item_selected else color,
                 scroll_x=self.__scroll_x,
-                bold=is_item_selected,
             )
 
             # Draw line number
@@ -1205,6 +1206,11 @@ class Menu(Generic[T]):
     def set_message(self, message: Optional[str] = None):
         self._message = message
         self.update_screen()
+
+    def __edit_text_in_external_editor(self):
+        text = self.get_input()
+        text = self.call_func_without_curses(lambda: edit_text(text))
+        self.set_input(text)
 
     def __command_palette(self):
         self._command_palette_menu.exec()

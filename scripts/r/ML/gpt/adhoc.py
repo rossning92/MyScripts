@@ -1,6 +1,5 @@
 import argparse
 import glob
-import json
 import logging
 import os
 import sys
@@ -10,6 +9,10 @@ from ai.openai.complete_chat import chat_completion
 from ML.gpt.chatmenu import ChatMenu
 from utils.logger import setup_logger
 from utils.menu import Menu
+
+
+def _get_script_dir() -> str:
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 class _Prompt:
@@ -30,27 +33,6 @@ def get_input(s: str) -> str:
             return f.read()
     else:
         return s
-
-
-def load_prompts_from_file(prompt_file: str) -> List[_Prompt]:
-    data = []
-    with open(prompt_file, "r", encoding="utf-8") as f:
-        data.extend(json.load(f))
-    if os.environ.get("CUSTOM_PROMPT_FILE", ""):
-        custom_prompt_file = os.environ["CUSTOM_PROMPT_FILE"]
-        with open(custom_prompt_file, "r", encoding="utf-8") as f:
-            data.extend(json.load(f))
-
-    prompts: List[_Prompt] = []
-    for item in data:
-        prompts.append(
-            _Prompt(
-                prompt=item["prompt"],
-                name=item["name"] if "name" in item else None,
-                hotkey=item["hotkey"] if "hotkey" in item else None,
-            )
-        )
-    return prompts
 
 
 def load_prompts_from_dir(prompt_dir: str) -> List[_Prompt]:
@@ -93,12 +75,10 @@ if __name__ == "__main__":
                     with open(prompt_file, "r", encoding="utf-8") as f:
                         prompt = f.read()
     else:
-        prompt_file = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "prompts.json"
-        )
-
-        prompts = load_prompts_from_file(prompt_file)
-
+        prompts: List[_Prompt] = []
+        prompt_dir = os.path.join(_get_script_dir(), "prompts")
+        assert os.path.isdir(prompt_dir)
+        prompts = load_prompts_from_dir(prompt_dir=prompt_dir)
         if os.environ.get("PROMPT_DIR"):
             prompts += load_prompts_from_dir(os.environ["PROMPT_DIR"])
 

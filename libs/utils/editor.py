@@ -19,7 +19,7 @@ def edit_text(text: str):
     subprocess.call(["nvim", tmp_filename])
 
     with open(tmp_filename, "r", encoding="utf-8") as f:
-        new_text = f.read()
+        new_text = f.read().rstrip("\n")
     return new_text
 
 

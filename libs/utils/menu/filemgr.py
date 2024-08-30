@@ -130,7 +130,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._goto_parent_directory, hotkey="left")
         self.add_command(self._goto_selected_directory, hotkey="right")
         self.add_command(self._goto, hotkey="ctrl+g")
-        self.add_command(self._list_files_recursively, hotkey="alt+r")
+        self.add_command(self._find_files_recursively, hotkey="ctrl+f")
         self.add_command(self._move_to, hotkey="alt+m")
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
@@ -261,8 +261,8 @@ class FileManager(Menu[_File]):
                     d = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
                     self.goto_directory(d)
 
-    def _list_files_recursively(self):
-        self.set_message("Files listed recursively.")
+    def _find_files_recursively(self):
+        self.set_message("Find files recursively.")
         self.goto_directory(self.get_cur_dir(), list_file_recursively=True)
 
     def _rename_file(self):
@@ -527,7 +527,14 @@ class FileManager(Menu[_File]):
             myscripts_path = os.path.abspath(script_dir + "/../../../myscripts.py")
             ret_code = self.call_func_without_curses(
                 lambda: subprocess.call(
-                    [sys.executable, myscripts_path, "--args"] + files,
+                    [
+                        sys.executable,
+                        myscripts_path,
+                        "--prompt",
+                        "run script on selected files",
+                        "--args",
+                    ]
+                    + files,
                     cwd=self.get_cur_dir(),
                 ),
             )

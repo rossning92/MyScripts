@@ -25,7 +25,11 @@ class Template:
         return tokens
 
     def render(
-        self, context=None, undefined_names: Optional[List[str]] = None, **kwargs
+        self,
+        context=None,
+        undefined_names: Optional[List[str]] = None,
+        throw_if_name_undefined=False,
+        **kwargs,
     ):
         """Render the template according to the given context"""
 
@@ -82,7 +86,7 @@ class Template:
                 logging.warning(f"Undefined name: {ex.name}")
                 if undefined_names is not None:
                     undefined_names.append(ex.name)
-                else:
+                elif throw_if_name_undefined:
                     raise
             return None
 

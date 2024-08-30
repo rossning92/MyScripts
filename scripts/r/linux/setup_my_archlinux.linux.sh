@@ -222,3 +222,5 @@ pac_install github-cli
 if [[ "$(gh auth status 2>&1)" =~ "not logged" ]]; then
     gh auth login
 fi
+
+run_script r/linux/install_screen_lock.arch.linux.sh
