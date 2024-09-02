@@ -18,6 +18,7 @@ rclone_wrapper() {
     fi
 
     rclone bisync "drive:$1" "$2" \
+        --color NEVER \
         --verbose \
         --ignore-checksum \
         --max-lock 2m \

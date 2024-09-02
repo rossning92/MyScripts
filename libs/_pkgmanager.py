@@ -112,6 +112,20 @@ def require_package(
                     subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
             return
 
+        elif "dnf" in packages[pkg] and shutil.which("dnf"):
+            for p in packages[pkg]["dnf"]["packages"]:
+                if (
+                    subprocess.call(
+                        ["dnf", "list", "installed", p],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    != 0
+                ) or force_install:
+                    logging.info(f"Installing package using dnf: {p}")
+                    subprocess.check_call(["sudo", "dnf", "install", "-y", p])
+            return
+
         elif "yay" in packages[pkg] and shutil.which("pacman"):
             yay_packages = packages[pkg]["yay"]["packages"]
             for p in yay_packages:

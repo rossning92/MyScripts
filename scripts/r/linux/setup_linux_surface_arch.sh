@@ -31,12 +31,7 @@ Server = https://pkg.surfacelinux.com/arch/"
     sudo grub-mkconfig -o /boot/grub/grub.cfg
 fi
 
-# Config thermald
-# https://github.com/linux-surface/linux-surface/tree/master/contrib/thermald
-echo 'Setup thermald...'
-sudo pacman -S thermald --noconfirm
-sudo cp "$(dirname "$0")/../../../settings/linux-surface/thermal-conf.xml" /etc/thermald/thermal-conf.xml
-sudo systemctl enable thermald.service --now
+run_script r/linux/arch/setup_thermald.sh
 
 # Brightness control
 if command -v apt &>/dev/null; then

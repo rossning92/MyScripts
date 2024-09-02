@@ -243,7 +243,8 @@ def get_last_script_and_args() -> Tuple[str, Any]:
 
 
 def wrap_wsl(
-    commands: Union[List[str], Tuple[str], str], env: Dict[str, str]
+    commands: Union[List[str], Tuple[str], str],
+    env: Optional[Dict[str, str]],
 ) -> List[str]:
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
@@ -253,12 +254,12 @@ def wrap_wsl(
     # by current shell
     bash = ""
 
-    # Workaround: PATH environmental variable can't be shared between windows
-    # and linux (WSL)
-    if "PATH" in env:
-        del env["PATH"]
-
     if env is not None:
+        # Workaround: PATH environmental variable can't be shared between windows
+        # and linux (WSL)
+        if "PATH" in env:
+            del env["PATH"]
+
         for k, v in env.items():
             bash += "export {}='{}'\n".format(k, v)
 
@@ -1411,7 +1412,9 @@ class Script:
                 if len(arg_list) == 1:
                     keyword = arg_list[0]
                 else:
-                    keyword = TextInput(show_clipboard=True).request_input()
+                    keyword = TextInput(
+                        show_clipboard=True, return_selection_if_empty=True
+                    ).request_input()
                     if not keyword:
                         return True
                 url = url.replace("%s", urllib.parse.quote(keyword))

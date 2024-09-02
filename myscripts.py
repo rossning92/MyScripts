@@ -195,7 +195,7 @@ class _MyScriptMenu(Menu[Script]):
     def __init__(
         self,
         script_manager: ScriptManager,
-        no_gui=False,
+        no_daemon=False,
         run_script_and_quit=False,
         input_text: Optional[str] = None,
         cmdline_args: Optional[List[str]] = None,
@@ -203,7 +203,7 @@ class _MyScriptMenu(Menu[Script]):
         prompt: Optional[str] = None,
     ):
         self.script_manager = script_manager
-        self.no_gui = no_gui
+        self.__no_daemon = no_daemon
         self.last_refresh_time = 0.0
         self.is_refreshing = False
         self.__run_script_and_quit = run_script_and_quit
@@ -313,7 +313,7 @@ class _MyScriptMenu(Menu[Script]):
                     args=self.__cmdline_args if self.__cmdline_args else None,
                     cd=len(self.__cmdline_args) == 0,
                     close_on_exit=close_on_exit,
-                    no_gui=self.no_gui,
+                    no_daemon=self.__no_daemon,
                     out_to_file=self.__out_to_file,
                 )
             )
@@ -571,7 +571,7 @@ class _MyScriptMenu(Menu[Script]):
                         cfg_preview_count += 1
 
             # Scheduled script log preview
-            if not self.no_gui:
+            if not self.__no_daemon:
                 preview.extend(
                     [
                         ("blue", line)
@@ -599,7 +599,7 @@ class _MyScriptMenu(Menu[Script]):
                 lambda script=script: execute_script(
                     script,
                     cd=len(self.__cmdline_args) == 0,
-                    no_gui=self.no_gui,
+                    no_daemon=self.__no_daemon,
                 )
             )
             if script.cfg["reloadScriptsAfterRun"]:
@@ -622,7 +622,7 @@ def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "-n",
-        "--no-gui",
+        "--no-daemon",
         action="store_true",
         default=False,
     )
@@ -731,7 +731,7 @@ def _main():
 
     script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
 
-    no_gui = args.no_gui or bool(args.args) or bool(args.out_to_file)
+    no_daemon = args.no_daemon or bool(args.args) or bool(args.out_to_file)
     run_script_and_quit = (
         bool(args.input) or args.quit or bool(args.args) or bool(args.out_to_file)
     )
@@ -740,7 +740,7 @@ def _main():
             _MyScriptMenu(
                 cmdline_args=args.args,
                 input_text=input_text,
-                no_gui=no_gui,
+                no_daemon=no_daemon,
                 run_script_and_quit=run_script_and_quit,
                 script_manager=script_manager,
                 out_to_file=args.out_to_file,

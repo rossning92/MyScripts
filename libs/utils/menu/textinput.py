@@ -94,7 +94,7 @@ class TextInput(Menu):
                 if text in self.__history_list:
                     self.__history_list.remove(text)
                 self.__history_list.insert(0, text)
-            if text == "" and self.__return_selection_if_empty:
+            if text.strip() == "" and self.__return_selection_if_empty:
                 return self.get_selected_item()
             else:
                 return text

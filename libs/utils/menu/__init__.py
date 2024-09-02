@@ -23,7 +23,7 @@ from _shutil import get_hotkey_abbr, load_json, save_json, slugify
 
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
-from utils.sysapi import speech_to_text
+from utils.speechtotext import speech_to_text
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1

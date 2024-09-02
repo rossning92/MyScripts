@@ -48,7 +48,8 @@ pac_install \
     unzip \
     usbutils \
     wmctrl \
-    xclip
+    xclip \
+    zip
 append_line_dedup "$HOME/.bashrc" 'alias v=nvim'
 
 # Install fonts

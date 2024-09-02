@@ -185,7 +185,7 @@ class ChatMenu(Menu[_Line]):
         self.set_message("message copied")
         return
 
-    def on_item_selection_changed(self, item: _Line | None):
+    def on_item_selection_changed(self, item: Optional[_Line]):
         self.__yank_mode = 0
         return super().on_item_selection_changed(item)
 

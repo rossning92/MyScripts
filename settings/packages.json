@@ -180,6 +180,9 @@
     "choco": {
       "packages": ["git"]
     },
+    "dnf": {
+      "packages": ["git"]
+    },
     "pacman": {
       "packages": ["git"]
     },

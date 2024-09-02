@@ -99,22 +99,38 @@ cmp.setup({
   },
 })
 
-local function fix()
-  local text = vim.api.nvim_get_current_line()
-
-  local command =
-      "run_script r/ai/openai/complete_chat.py \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
-      text:gsub("'", "'\\''") .. "\'"
+local function execute_command(command)
   local handle = io.popen(command)
   if handle == nil then
     print("Error: failed to execute command")
-    return
+    return nil
   end
 
-  text = handle:read("*a")
+  local text = handle:read("*a")
   handle:close()
-
-  vim.api.nvim_set_current_line(text)
+  return text
 end
 
+local function fix()
+  local text = vim.api.nvim_get_current_line()
+  local output = execute_command(
+    "run_script r/ai/openai/complete_chat.py \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
+    text:gsub("'", "'\\''") .. "\'")
+  if output then
+    vim.api.nvim_set_current_line(output)
+  end
+end
 vim.keymap.set({ "n", "i" }, "<C-k>f", fix)
+
+local function speech_to_text()
+  local output = execute_command("run_script r/speech_to_text.py")
+  if output then
+    output = string.gsub(output, '^%s*(.-)%s*$', '%1') -- trim trailing spaces
+
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    vim.api.nvim_buf_set_lines(0, row, row, false, { output })
+    -- Move cursor to the end of the newly inserted line
+    vim.api.nvim_win_set_cursor(0, { row + 1, #output })
+  end
+end
+vim.keymap.set({ "n", "i" }, "<C-i>", speech_to_text)

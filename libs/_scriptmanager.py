@@ -168,14 +168,14 @@ def execute_script(
     args: Optional[List[str]] = None,
     cd=True,
     close_on_exit=None,
-    no_gui=False,
+    no_daemon=False,
     out_to_file: Optional[str] = None,
 ):
     refresh_env_vars()
 
     args_: List[str]
     if args is None:
-        if not no_gui:
+        if not no_daemon:
             args_ = update_env_var_explorer()
         else:
             args_ = []
@@ -185,14 +185,14 @@ def execute_script(
     # Save last executed script
     save_json(get_script_history_file(), {"file": script.script_path, "args": args_})
 
-    if not no_gui:
+    if not no_daemon:
         clear_terminal()
 
     success = script.execute(
         args=args_,
         cd=cd,
         close_on_exit=close_on_exit,
-        new_window=False if no_gui else None,
+        new_window=False if no_daemon else None,
         restart_instance=True,
         out_to_file=out_to_file,
     )
@@ -200,25 +200,25 @@ def execute_script(
         pause()
 
 
-def register_global_hotkeys_mac(scripts: List[Script], no_gui=False):
+def register_global_hotkeys_mac(scripts: List[Script], no_daemon=False):
     keyboard_hooks = {}
     for script in scripts:
         hotkey = script.cfg["globalHotkey"]
         if hotkey and script.is_supported():
             logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
             keyboard_hooks[hotkey] = lambda script=script: execute_script(
-                script, no_gui=no_gui
+                script, no_daemon=no_daemon
             )
     add_keyboard_hooks(keyboard_hooks)
 
 
-def register_global_hotkeys(scripts, no_gui=False):
+def register_global_hotkeys(scripts, no_daemon=False):
     if sys.platform == "win32":
         register_global_hotkeys_win(scripts)
     elif sys.platform == "linux":
         register_global_hotkeys_linux(scripts)
     elif sys.platform == "darwin":
-        register_global_hotkeys_mac(scripts, no_gui=no_gui)
+        register_global_hotkeys_mac(scripts, no_daemon=no_daemon)
 
 
 def _get_next_scheduled_script_run_time_file():
