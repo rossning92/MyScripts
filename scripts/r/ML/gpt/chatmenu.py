@@ -46,6 +46,7 @@ class ChatMenu(Menu[_Line]):
 
         self.add_command(self.__delete_current_message, hotkey="ctrl+k")
         self.add_command(self.__edit_message, hotkey="alt+e")
+        self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
@@ -222,23 +223,30 @@ class ChatMenu(Menu[_Line]):
             del self.get_messages()[selected_line.message_index]
             self.populate_lines()
 
-    def __edit_message(self):
-        selected_line = self.get_selected_item()
-        if selected_line is not None:
-            message_index = selected_line.message_index
-            selected_message = self.get_messages()[message_index]
-            content = selected_message["content"]
-            new_content = self.call_func_without_curses(lambda: edit_text(content))
-            if new_content != content:
-                selected_message["content"] = new_content
+    def __edit_message(self, message_index=-1):
+        if message_index < 0:
+            selected_line = self.get_selected_item()
+            if selected_line is not None:
+                message_index = selected_line.message_index
+            else:
+                return
 
-                # Delete all messages after.
-                del self.get_messages()[message_index + 1 :]
+        message = self.get_messages()[message_index]
+        content = message["content"]
+        new_content = self.call_func_without_curses(lambda: edit_text(content))
+        if new_content != content:
+            message["content"] = new_content
 
-                self.populate_lines()
+            # Delete all messages after.
+            del self.get_messages()[message_index + 1 :]
 
-                if selected_message["role"] == "user":
-                    self.__get_response()
+            self.populate_lines()
+
+            if message["role"] == "user":
+                self.__get_response()
+
+    def __edit_prompt(self):
+        self.__edit_message(message_index=0)
 
 
 def complete_chat(

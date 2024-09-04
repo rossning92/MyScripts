@@ -52,7 +52,11 @@ if __name__ == "__main__":
     if not sys.stdin.isatty():
         input_text = sys.stdin.read()
     else:
-        input_text = args.input
+        if os.path.isfile(args.input):
+            with open(args.input, "r", encoding="utf-8") as f:
+                input_text = f.read()
+        else:
+            input_text = args.input
 
     for chunk in chat_completion([{"role": "user", "content": input_text}]):
         print(chunk, end="")

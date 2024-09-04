@@ -14,4 +14,8 @@ sudo tee /etc/udev/rules.d/42-logitech-keyboard.rules <<'EOF'
 SUBSYSTEM=="bluetooth", ACTION=="add", KERNEL=="hci0:*", RUN+="/usr/local/bin/disable_logitech_fn_keys.sh"
 EOF
 
+sudo tee /etc/udev/rules.d/99-hidraw.rules <<'EOF'
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", MODE="0664", GROUP="plugdev"
+EOF
+
 sudo udevadm control --reload
