@@ -96,6 +96,7 @@ class _InputWidget:
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
+        self.selected_text = ""
 
     def set_text(self, text):
         self.text = text
@@ -129,11 +130,12 @@ class _InputWidget:
         try:
             stdscr.addstr(y, x, self.text[: self.caret_pos])
             cursor_y, cursor_x = Menu.stdscr.getyx()  # type: ignore
-            stdscr.addstr(
-                cursor_y,
-                cursor_x,
-                self.text[self.caret_pos :] + (" ↵" if show_enter_symbol else ""),
-            )
+            s = self.text[self.caret_pos :]
+            if self.selected_text:
+                s += f" ({self.selected_text})"
+            if show_enter_symbol:
+                s += " ↵"
+            stdscr.addstr(cursor_y, cursor_x, s)
             y, x = Menu.stdscr.getyx()  # type: ignore
 
         except curses.error:
@@ -160,6 +162,7 @@ class _InputWidget:
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
             self.caret_pos = max(self.caret_pos - 1, 0)
+            self.selected_text = ""
         elif ch == curses.ascii.ctrl("u"):
             self.clear()
         # HACK: Workaround for single and double quote on Windows
@@ -174,6 +177,7 @@ class _InputWidget:
         if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
             self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
             self.caret_pos += 1
+            self.selected_text = ""
 
 
 T = TypeVar("T")
@@ -860,7 +864,11 @@ class Menu(Generic[T]):
         if self.is_cancelled:
             return None
         else:
-            return self._input.text
+            return (
+                self._input.selected_text
+                if self._input.selected_text
+                else self._input.text
+            )
 
     def get_items_per_page(self):
         return self.__num_rendered_items + self.__empty_lines
@@ -1197,6 +1205,7 @@ class Menu(Generic[T]):
                 selected = self.items[item_index]
 
         if selected != self._last_selected_item or self._last_input != self.get_input():
+            self._input.selected_text = "" if selected is None else str(selected)
             self.on_item_selection_changed(selected)
         self._last_selected_item = selected
 
