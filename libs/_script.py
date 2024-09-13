@@ -466,16 +466,6 @@ def write_setting(setting, name, val):
         json.dump(data, f, indent=2)
 
 
-def input2(message, name):
-    val = get_variable(name)
-    user_input = input("%s (default: %s): " % (message, val))
-    if not user_input and val:
-        return val
-
-    set_variable(name, val)
-    return user_input
-
-
 def get_python_path(script_path=None):
     python_path = []
 

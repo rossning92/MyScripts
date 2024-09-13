@@ -1,30 +1,23 @@
-from ..menu import Menu
+from ..menu.actionmenu import ActionMenu
 
 
-class ConfirmMenu(Menu):
-    def __init__(self, prompt) -> None:
-        super().__init__(
-            allow_input=False,
-            items=["yes (y)", "no (n)"],
-            prompt=prompt,
-        )
-
+class ConfirmMenu(ActionMenu):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.__confirmed = False
-        self.add_command(self.confirm, hotkey="y")
-        self.add_command(self.cancel, hotkey="n")
 
+    @ActionMenu.action(hotkey="y")
     def confirm(self):
         self.__confirmed = True
         self.close()
 
+    @ActionMenu.action(hotkey="n")
     def cancel(self):
+        self.__confirmed = False
         self.close()
 
     def is_confirmed(self):
-        if self.get_selected_index() == 0:
-            return True
-        else:
-            return self.__confirmed
+        return self.__confirmed
 
 
 def confirm(prompt: str) -> bool:

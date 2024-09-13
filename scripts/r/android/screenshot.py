@@ -28,7 +28,7 @@ if __name__ == "__main__":
     for i in range(n):
         file_name = screenshot(
             out_file=args.out if args.out else None,
-            scale=float(os.environ["_SCALE"]) if "_SCALE" in os.environ else None,
+            scale=float(os.environ["_SCALE"]) if os.environ.get("_SCALE") else None,
         )
 
     if args.out is None and n == 1:

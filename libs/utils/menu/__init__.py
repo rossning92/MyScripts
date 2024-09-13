@@ -91,12 +91,13 @@ def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
 
 
 class _InputWidget:
-    def __init__(self, prompt="", text="", ascii_only=False):
+    def __init__(self, auto_complete: bool, prompt="", text="", ascii_only=False):
         self.prompt = prompt
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
-        self.selected_text = ""
+        self.completed_text = ""
+        self.__auto_complete = auto_complete
 
     def set_text(self, text):
         self.text = text
@@ -130,11 +131,14 @@ class _InputWidget:
         try:
             stdscr.addstr(y, x, self.text[: self.caret_pos])
             cursor_y, cursor_x = Menu.stdscr.getyx()  # type: ignore
+
             s = self.text[self.caret_pos :]
-            if self.selected_text:
-                s += f" ({self.selected_text})"
+            if self.__auto_complete:
+                if self.completed_text:
+                    s += f" [{self.completed_text}]"
             if show_enter_symbol:
                 s += " ↵"
+
             stdscr.addstr(cursor_y, cursor_x, s)
             y, x = Menu.stdscr.getyx()  # type: ignore
 
@@ -162,7 +166,8 @@ class _InputWidget:
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
             self.caret_pos = max(self.caret_pos - 1, 0)
-            self.selected_text = ""
+            if self.__auto_complete:
+                self.completed_text = ""
         elif ch == curses.ascii.ctrl("u"):
             self.clear()
         # HACK: Workaround for single and double quote on Windows
@@ -177,7 +182,8 @@ class _InputWidget:
         if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
             self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
             self.caret_pos += 1
-            self.selected_text = ""
+            if self.__auto_complete:
+                self.completed_text = ""
 
 
 T = TypeVar("T")
@@ -223,6 +229,7 @@ class Menu(Generic[T]):
         wrap_text=False,
         search_mode=True,
         line_number=True,
+        auto_complete=False,
     ):
         self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
@@ -236,7 +243,10 @@ class Menu(Generic[T]):
         self._debug = debug
         self._height: int = -1
         self._input = _InputWidget(
-            prompt=prompt, text=text if text else "", ascii_only=ascii_only
+            auto_complete=auto_complete,
+            prompt=prompt,
+            text=text if text else "",
+            ascii_only=ascii_only,
         )
         self._last_input: Optional[str] = None
         self.__search_history: List[str] = []
@@ -275,6 +285,8 @@ class Menu(Generic[T]):
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
         self.__should_update_screen = True
+
+        self.__auto_complete = auto_complete
 
         # History
         self.history = history
@@ -419,6 +431,8 @@ class Menu(Generic[T]):
         self._input.set_text(text)
         if self.__search_mode:
             self.search_by_input(save_search_history=save_search_history)
+        if self.__auto_complete:
+            self._input.completed_text = ""
 
     def get_input(self) -> str:
         return self._input.text
@@ -865,8 +879,8 @@ class Menu(Generic[T]):
             return None
         else:
             return (
-                self._input.selected_text
-                if self._input.selected_text
+                self._input.completed_text
+                if self._input.completed_text
                 else self._input.text
             )
 
@@ -1072,9 +1086,8 @@ class Menu(Generic[T]):
             item_y += increments
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
-            self.__can_scroll = (
-                draw_text_result.can_scroll_left or draw_text_result.can_scroll_right
-            )
+            if draw_text_result.can_scroll_left or draw_text_result.can_scroll_right:
+                self.__can_scroll = True
 
         if items_per_page != self.get_items_per_page():
             self.__should_update_screen = True
@@ -1205,7 +1218,8 @@ class Menu(Generic[T]):
                 selected = self.items[item_index]
 
         if selected != self._last_selected_item or self._last_input != self.get_input():
-            self._input.selected_text = "" if selected is None else str(selected)
+            if self.__auto_complete:
+                self._input.completed_text = "" if selected is None else str(selected)
             self.on_item_selection_changed(selected)
         self._last_selected_item = selected
 

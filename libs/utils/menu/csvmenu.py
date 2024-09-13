@@ -132,7 +132,11 @@ class RowMenu(Menu[CsvCell]):
         self.cells: List[CsvCell] = []
         self._initialize_cells()
 
-        super().__init__(items=self.cells, wrap_text=True, prompt=f"row {row_index}")
+        super().__init__(
+            items=self.cells,
+            wrap_text=True,
+            prompt=f"row {row_index}",
+        )
 
         self.add_command(
             lambda: self.call_func_without_curses(
@@ -210,7 +214,11 @@ class CsvMenu(Menu[CsvRow]):
 
         self._select_row = False
 
-        super().__init__(items=self._rows, text=text, prompt="filter row")
+        super().__init__(
+            items=self._rows,
+            text=text,
+            prompt="filter row",
+        )
 
         self.add_command(self._add_row, hotkey="alt+n")
         self.add_command(self._delete_row, hotkey="alt+d")

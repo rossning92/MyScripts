@@ -26,6 +26,7 @@ def chat_completion(
     }
 
     response = requests.post(url, headers=headers, json=data, stream=True)
+    response.raise_for_status()
     for chunk in response.iter_lines():
         if len(chunk) == 0:
             continue

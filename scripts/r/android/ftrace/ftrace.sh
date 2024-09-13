@@ -25,7 +25,7 @@ if [[ -z "$TRACE_SECOND" ]]; then
     adb shell cat /sys/kernel/tracing/trace_pipe >"$OUT_FILE" 2>&1 &
     run_script r/logviewer.py "$OUT_FILE"
 else
-    echo "Start tracking for ${TRACE_SECOND} seconds..."
+    echo "Start tracing for ${TRACE_SECOND} seconds..."
     sleep "${TRACE_SECOND}"
 fi
 
