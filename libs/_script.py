@@ -1964,7 +1964,7 @@ def run_script(
     )
 
 
-def get_default_script_config() -> Dict[str, Any]:
+def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
     return {
         "adk.jdk_version": "",
         "adk": False,
@@ -2023,11 +2023,16 @@ def get_default_script_config_path(script_path: str) -> str:
     return os.path.join(os.path.dirname(script_path), "default.config.yaml")
 
 
-def get_script_folder_level_config(script_path: str) -> Optional[Dict[str, Any]]:
+def load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:
+    return load_yaml(file)
+
+
+def get_script_folder_level_config(
+    script_path: str,
+) -> Optional[Dict[str, Union[str, bool, None]]]:
     config_file_path = get_default_script_config_path(script_path)
     if os.path.exists(config_file_path):
-        with open(config_file_path, "r") as f:
-            return yaml.load(f.read(), Loader=yaml.FullLoader)
+        return load_script_config_file(config_file_path)
     else:
         return None
 
@@ -2040,7 +2045,7 @@ def get_script_config_file(script_path: str) -> Optional[str]:
     return None
 
 
-def load_script_config(script_path) -> Dict[str, Any]:
+def load_script_config(script_path) -> Dict[str, Union[str, bool, None]]:
     # Load script default config.
     config = get_default_script_config()
 
@@ -2052,8 +2057,7 @@ def load_script_config(script_path) -> Dict[str, Any]:
     # Load the script-level config.
     script_config_file = get_script_config_file(script_path)
     if script_config_file:
-        with open(script_config_file, "r") as f:
-            script_level_config = yaml.load(f.read(), Loader=yaml.FullLoader)
+        script_level_config = load_script_config_file(script_config_file)
         if script_level_config is not None:
             config.update(script_level_config)
 
@@ -2071,7 +2075,7 @@ def update_script_config(kvp, script_file):
     if not os.path.exists(script_config_file):
         data = {}
     else:
-        data = load_yaml(script_config_file)
+        data = load_script_config_file(script_config_file)
         if data is None:
             data = {}
 

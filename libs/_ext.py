@@ -17,9 +17,10 @@ from _script import (
     get_script_config_file_path,
     get_script_directories,
     get_script_root,
+    load_script_config_file,
     save_json,
 )
-from _shutil import load_yaml, quote_arg, save_yaml
+from _shutil import quote_arg, save_yaml
 from utils.clip import set_clip
 from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
 from utils.menu import Menu
@@ -128,7 +129,7 @@ def edit_script_config(script_path: str):
     if script_config_file is None:
         data = {}
     else:
-        data = load_yaml(script_config_file)
+        data = load_script_config_file(script_config_file)
 
     data = {**default_config, **data}
 

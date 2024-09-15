@@ -1,13 +1,13 @@
 import logging
 import re
 import subprocess
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 class Template:
     """Compile an text into a template function"""
 
-    def __init__(self, text, file_locator: Optional[Callable[[str], str]] = None):
+    def __init__(self, text: str, file_locator: Optional[Callable[[str], str]] = None):
         self.delimiter = re.compile(r"{{(.*?)}}", re.DOTALL)
         self.tokens = self.compile(text)
         self.file_locator = file_locator
@@ -171,11 +171,11 @@ def render_template_file(
 
 
 def render_template(
-    template,
-    context=None,
+    template: str,
+    context: Optional[Dict[str, Any]] = None,
     file_locator: Optional[Callable[[str], Optional[str]]] = None,
     undefined_names: Optional[List[str]] = None,
-):
+) -> str:
     return Template(template, file_locator=file_locator).render(
         context, undefined_names=undefined_names
     )

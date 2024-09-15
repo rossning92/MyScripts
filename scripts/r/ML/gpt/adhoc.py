@@ -20,10 +20,9 @@ class _Prompt:
     def __init__(
         self,
         path: str,
-        name: str,
         hotkey: Optional[str] = None,
     ) -> None:
-        self.name = name
+        self.name = os.path.splitext(os.path.basename(path))[0]
         self.path = path
         self.hotkey = hotkey
 
@@ -53,9 +52,7 @@ def load_prompts_from_dir(prompt_dir: str) -> List[_Prompt]:
     files = glob.glob(os.path.join(prompt_dir, "*.md"))
     for file_path in files:
         if os.path.isfile(file_path):
-            filename = os.path.basename(file_path)
-            name = os.path.splitext(filename)[0]
-            prompts.append(_Prompt(name=name, path=file_path))
+            prompts.append(_Prompt(path=file_path))
 
     return prompts
 
@@ -65,6 +62,9 @@ if __name__ == "__main__":
     parser.add_argument("input", nargs="?", type=str)
     parser.add_argument("-p", "--prompt", default=None, type=str)
     parser.add_argument("-v", "--verbose", action="store_true")
+    parser.add_argument(
+        "--copy-and-exit", action="store_true", help="Copy the last message and exit."
+    )
 
     args = parser.parse_args()
 
@@ -74,12 +74,14 @@ if __name__ == "__main__":
     # Read prompt
     if args.prompt is not None:
         prompt = args.prompt
-        if not os.path.isabs(prompt):
-            if os.environ.get("PROMPT_DIR"):
-                prompt_file = os.path.join(os.environ["PROMPT_DIR"], prompt)
-                if os.path.isfile(prompt_file):
-                    with open(prompt_file, "r", encoding="utf-8") as f:
-                        prompt = f.read()
+        if os.path.isabs(prompt):
+            prompt_file = prompt
+        elif os.environ.get("PROMPT_DIR"):
+            prompt_file = os.path.join(os.environ["PROMPT_DIR"], prompt)
+
+        if os.path.isfile(prompt_file):
+            p = _Prompt(path=prompt_file)
+            prompt = p.load_prompt()
     else:
         prompts: List[_Prompt] = []
         prompt_dir = os.path.join(_get_script_dir(), "prompts")
@@ -96,6 +98,7 @@ if __name__ == "__main__":
             prompt = selected_item.load_prompt()
         else:
             prompt = menu.get_input()
+
     if not prompt:
         raise Exception("Prompt must not be empty.")
 
@@ -111,5 +114,5 @@ if __name__ == "__main__":
         input_text = get_input(args.input)
         message = prompt + ":\n---\n" + input_text
         logging.debug(message)
-        chat = ChatMenu(message=message)
+        chat = ChatMenu(message=message, copy_result_and_exit=args.copy_and_exit)
         chat.exec()
