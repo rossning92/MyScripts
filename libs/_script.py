@@ -2016,11 +2016,11 @@ def get_default_script_config_path(script_path: str) -> str:
     return os.path.join(os.path.dirname(script_path), "default.config.json")
 
 
-def load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:
+def _load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:
     return load_json(file)
 
 
-def save_script_config_file(data: Dict[str, Union[str, bool, None]], file: str):
+def _save_script_config_file(data: Dict[str, Union[str, bool, None]], file: str):
     save_json(file, data)
 
 
@@ -2029,7 +2029,7 @@ def get_script_folder_level_config(
 ) -> Optional[Dict[str, Union[str, bool, None]]]:
     config_file_path = get_default_script_config_path(script_path)
     if os.path.exists(config_file_path):
-        return load_script_config_file(config_file_path)
+        return _load_script_config_file(config_file_path)
     else:
         return None
 
@@ -2054,7 +2054,7 @@ def load_script_config(script_path) -> Dict[str, Union[str, bool, None]]:
     # Load the script-level config.
     script_config_file = get_script_config_file(script_path)
     if script_config_file:
-        script_level_config = load_script_config_file(script_config_file)
+        script_level_config = _load_script_config_file(script_config_file)
         if script_level_config is not None:
             config.update(script_level_config)
 
@@ -2072,13 +2072,13 @@ def update_script_config(kvp, script_file):
     if not os.path.exists(script_config_file):
         data = {}
     else:
-        data = load_script_config_file(script_config_file)
+        data = _load_script_config_file(script_config_file)
         if data is None:
             data = {}
 
     data = {**default_config, **data, **kvp}
     data = {k: v for k, v in data.items() if default_config[k] != v}
-    save_script_config_file(data, script_config_file)
+    _save_script_config_file(data, script_config_file)
 
 
 def create_script_link(script_file):

@@ -7,6 +7,8 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
 from _script import (
     Script,
+    _load_script_config_file,
+    _save_script_config_file,
     get_absolute_script_path,
     get_all_scripts,
     get_data_dir,
@@ -17,9 +19,7 @@ from _script import (
     get_script_config_file_path,
     get_script_directories,
     get_script_root,
-    load_script_config_file,
     save_json,
-    save_script_config_file,
 )
 from _shutil import quote_arg
 from utils.clip import set_clip
@@ -130,7 +130,7 @@ def edit_script_config(script_path: str):
     if script_config_file is None:
         data = {}
     else:
-        data = load_script_config_file(script_config_file)
+        data = _load_script_config_file(script_config_file)
 
     data = {**default_config, **data}
 
@@ -138,7 +138,7 @@ def edit_script_config(script_path: str):
 
     def on_dict_update(dict):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
-        save_script_config_file(
+        _save_script_config_file(
             data,
             script_config_file_path,
         )
