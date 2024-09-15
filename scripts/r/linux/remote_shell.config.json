@@ -1,0 +1,6 @@
+{
+  "globalHotkey": "win+alt+e",
+  "packages": "screen",
+  "title": "remote_shell",
+  "wsl": true
+}

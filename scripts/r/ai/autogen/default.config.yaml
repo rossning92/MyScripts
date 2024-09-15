@@ -1,4 +1,0 @@
-closeOnExit: false
-packages.pip: pyautogen
-venv.name: pyautogen
-workingDir: "{HOME}/pyautogen"

@@ -19,8 +19,9 @@ from _script import (
     get_script_root,
     load_script_config_file,
     save_json,
+    save_script_config_file,
 )
-from _shutil import quote_arg, save_yaml
+from _shutil import quote_arg
 from utils.clip import set_clip
 from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
 from utils.menu import Menu
@@ -137,7 +138,7 @@ def edit_script_config(script_path: str):
 
     def on_dict_update(dict):
         data = {k: v for k, v in dict.items() if default_config[k] != v}
-        save_yaml(
+        save_script_config_file(
             data,
             script_config_file_path,
         )

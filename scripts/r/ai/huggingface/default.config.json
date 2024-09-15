@@ -1,0 +1,5 @@
+{
+  "closeOnExit": false,
+  "venv.name": "huggingface",
+  "workingDir": "{HOME}/huggingface"
+}

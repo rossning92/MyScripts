@@ -20,15 +20,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
-from utils.email import send_email_md
-from utils.menu.csvmenu import CsvMenu
-
-try:
-    import yaml
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--user", "pyyaml"])
-
-import yaml
 from _android import setup_android_env
 from _cpp import setup_cmake
 from _filelock import FileLock
@@ -42,14 +33,12 @@ from _shutil import (
     get_home_path,
     get_hotkey_abbr,
     load_json,
-    load_yaml,
     npm_install,
     prepend_to_path,
     print2,
     quote_arg,
     run_elevated,
     save_json,
-    save_yaml,
     setup_nodejs,
     slugify,
     start_process,
@@ -60,6 +49,8 @@ from _shutil import (
 from utils.clip import get_clip, get_selection
 from utils.dotenv import load_dotenv
 from utils.editor import open_code_editor
+from utils.email import send_email_md
+from utils.menu.csvmenu import CsvMenu
 from utils.shutil import shell_open
 from utils.template import render_template
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
@@ -119,6 +110,8 @@ BG_PROCESS_OUTPUT_TYPE = BackgroundProcessOutputType.REDIRECT_TO_FILE
 SUPPORT_GNU_SCREEN = False
 
 DEFAULT_LINUX_TERMINAL = "alacritty"
+
+MIGRATE_CONFIG_TO_JSON = True
 
 
 @lru_cache(maxsize=None)
@@ -2016,15 +2009,19 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
 
 
 def get_script_config_file_path(script_path: str) -> str:
-    return os.path.splitext(script_path)[0] + ".config.yaml"
+    return os.path.splitext(script_path)[0] + ".config.json"
 
 
 def get_default_script_config_path(script_path: str) -> str:
-    return os.path.join(os.path.dirname(script_path), "default.config.yaml")
+    return os.path.join(os.path.dirname(script_path), "default.config.json")
 
 
 def load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:
-    return load_yaml(file)
+    return load_json(file)
+
+
+def save_script_config_file(data: Dict[str, Union[str, bool, None]], file: str):
+    save_json(file, data)
 
 
 def get_script_folder_level_config(
@@ -2081,7 +2078,7 @@ def update_script_config(kvp, script_file):
 
     data = {**default_config, **data, **kvp}
     data = {k: v for k, v in data.items() if default_config[k] != v}
-    save_yaml(data, script_config_file)
+    save_script_config_file(data, script_config_file)
 
 
 def create_script_link(script_file):

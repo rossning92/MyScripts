@@ -1,0 +1,5 @@
+{
+  "globalHotkey": "win+tab",
+  "newWindow": false,
+  "packages": "dmenu"
+}

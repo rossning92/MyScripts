@@ -5,7 +5,8 @@ import glob
 import os
 import shutil
 
-from _shutil import load_yaml, to_valid_file_name
+from _shutil import to_valid_file_name
+from utils.yaml import load_yaml
 
 if __name__ == "__main__":
     vproject_root = r"{{VPROJECT_ROOT}}"

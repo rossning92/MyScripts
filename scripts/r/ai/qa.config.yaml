@@ -1,5 +1,0 @@
-closeOnExit: false
-packages.pip: haystack-ai chroma-haystack
-template: false
-variableNames: OPENAI_API_KEY
-workingDir: '{HOME}'

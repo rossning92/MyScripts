@@ -1,4 +1,0 @@
-closeOnExit: false
-matchClipboard: ^(.+\.so)$
-tee: true
-wsl: true

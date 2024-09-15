@@ -1,3 +1,0 @@
-matchClipboard: "{{ include('r/video_url_regex_bili.txt') }}"
-packages: lux
-singleInstance: false

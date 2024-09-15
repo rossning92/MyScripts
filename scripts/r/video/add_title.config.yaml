@@ -1,3 +1,0 @@
-args.selectFiles: true
-packages: ffmpeg
-template: false

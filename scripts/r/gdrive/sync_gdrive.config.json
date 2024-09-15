@@ -1,0 +1,5 @@
+{
+  "closeOnExit": false,
+  "packages": "rclone",
+  "variableNames": "GDRIVE_DIR LOCAL_DIR _DRY_RUN"
+}

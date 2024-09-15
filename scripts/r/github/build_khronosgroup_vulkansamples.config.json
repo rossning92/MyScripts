@@ -1,0 +1,7 @@
+{
+  "adk": true,
+  "adk.jdk_version": "11.0",
+  "cmake": true,
+  "cmake.version": "3.19.3",
+  "packages": "gradle"
+}

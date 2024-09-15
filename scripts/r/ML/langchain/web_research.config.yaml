@@ -1,4 +1,0 @@
-closeOnExit: false
-packages.pip: chromadb google-api-python-client bs4 html2text
-variableNames: OPENAI_API_KEY GOOGLE_API_KEY GOOGLE_CSE_ID
-workingDir: '{HOME}/langchain'

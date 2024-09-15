@@ -1,3 +1,0 @@
-args.selectionAsFile: true
-globalHotkey: win+k a
-variableNames: OPENAI_API_KEY SERPERDEV_API_KEY PROMPT_DIR

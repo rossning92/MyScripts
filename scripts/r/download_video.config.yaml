@@ -1,4 +1,0 @@
-matchClipboard: "{{ include('r/video_url_regex_youtube.txt') }}"
-packages: lux
-packages.pip: yt-dlp
-singleInstance: false
