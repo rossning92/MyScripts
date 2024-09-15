@@ -2017,11 +2017,16 @@ def get_default_script_config_path(script_path: str) -> str:
 
 
 def _load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:
-    return load_json(file)
+    config = load_json(file)
+    return config
 
 
 def _save_script_config_file(data: Dict[str, Union[str, bool, None]], file: str):
-    save_json(file, data)
+    if len(data) == 0:
+        if os.path.isfile(file):
+            os.remove(file)
+    else:
+        save_json(file, data)
 
 
 def get_script_folder_level_config(

@@ -3,7 +3,7 @@ import curses.ascii
 from collections import OrderedDict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from utils.clip import set_clip
+from utils.clip import get_clip, set_clip
 
 from ..menu import Menu
 from ..menu.textinput import TextInput
@@ -129,14 +129,23 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.add_command(self.__copy_selected_dict_value, hotkey="ctrl+y")
         self.add_command(self.__toggle_value, hotkey="left")
         self.add_command(self.__toggle_value, hotkey="right")
+        self.add_command(self.__paste_value, hotkey="ctrl+v")
 
     def __toggle_value(self):
         key = self.get_selected_key()
         if key is not None:
             value = self.dict_[key]
-            value_type = type(value)
-            if value_type == bool:
+            if isinstance(value, bool):
                 self.dict_[key] = not self.dict_[key]
+                self.__notify_dict_updated()
+                self.update_screen()
+
+    def __paste_value(self):
+        key = self.get_selected_key()
+        if key is not None:
+            value = self.dict_[key]
+            if isinstance(value, str):
+                self.dict_[key] = get_clip()
                 self.__notify_dict_updated()
                 self.update_screen()
 
