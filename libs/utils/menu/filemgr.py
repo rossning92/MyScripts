@@ -1,5 +1,6 @@
 import glob
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -130,7 +131,7 @@ class FileManager(Menu[_File]):
         self.add_command(self._goto_parent_directory, hotkey="left")
         self.add_command(self._goto_selected_directory, hotkey="right")
         self.add_command(self._goto, hotkey="ctrl+g")
-        self.add_command(self._find_files_recursively, hotkey="ctrl+f")
+        self.add_command(self._list_files_recursively, hotkey="ctrl+l")
         self.add_command(self._move_to, hotkey="alt+m")
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
@@ -196,7 +197,7 @@ class FileManager(Menu[_File]):
 
             self.update_screen()
 
-    def copy_to(self, file: Optional[str] = None):
+    def _copy_or_move_files(self, file: Optional[str] = None, copy=True):
         files: List[str] = []
         if file is not None:
             files.append(file)
@@ -210,32 +211,30 @@ class FileManager(Menu[_File]):
                     if self.__last_copy_to_path is not None
                     else self.get_cur_dir()
                 ),
-                prompt="copy to",
+                prompt="%s to" % ("copy" if copy else "move"),
                 save_states=False,
             )
             dest_dir = filemgr.select_directory()
             if dest_dir is not None:
                 self.__last_copy_to_path = dest_dir
-                for f in files:
-                    if os.path.isdir(f):
-                        shutil.copytree(f, os.path.join(dest_dir, os.path.basename(f)))
+                for src in files:
+                    if copy:
+                        if os.path.isdir(src):
+                            shutil.copytree(
+                                src, os.path.join(dest_dir, os.path.basename(src))
+                            )
+                        else:
+                            shutil.copy(src, dest_dir)
                     else:
-                        shutil.copy(f, dest_dir)
+                        shutil.move(src, dest_dir)
+
+                self.goto_directory(dest_dir, selected_file=os.path.basename(files[0]))
+
+    def copy_to(self, file: Optional[str] = None):
+        self._copy_or_move_files(file=file, copy=True)
 
     def _move_to(self):
-        src = self.get_selected_file_full_path()
-        if src is None:
-            return
-
-        filemgr = FileManager(
-            goto=self.get_cur_dir(),
-            prompt="move to",
-            save_states=False,
-        )
-        dest_dir = filemgr.select_directory()
-        if dest_dir is not None:
-            shutil.move(src, dest_dir)
-            self._refresh_cur_dir()
+        self._copy_or_move_files(copy=False)
 
     def _goto_parent_directory(self):
         # If current directory is not file system root
@@ -261,7 +260,7 @@ class FileManager(Menu[_File]):
                     d = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
                     self.goto_directory(d)
 
-    def _find_files_recursively(self):
+    def _list_files_recursively(self):
         self.set_message("Find files recursively.")
         self.goto_directory(self.get_cur_dir(), list_file_recursively=True)
 
@@ -383,39 +382,42 @@ class FileManager(Menu[_File]):
     def _list_files(self, list_file_recursively=False):
         self.__files.clear()
 
-        try:
-            if list_file_recursively:
-                files = list(
-                    glob.glob(
-                        os.path.join(self.get_cur_dir(), "**", "*"), recursive=True
-                    )
-                )
-                files = [file for file in files if os.path.isfile(file)]
-                files = [
-                    file.replace(self.get_cur_dir() + os.path.sep, "").replace(
-                        "\\", "/"
+        if list_file_recursively:
+            files = list(
+                glob.glob(os.path.join(self.get_cur_dir(), "**", "*"), recursive=True)
+            )
+            files = [file for file in files if os.path.isfile(file)]
+            files = [
+                file.replace(self.get_cur_dir() + os.path.sep, "").replace("\\", "/")
+                for file in files
+            ]
+            self.__files.extend(
+                [
+                    _File(
+                        file,
+                        is_dir=False,
+                        full_path=self.get_cur_dir() + "/" + file,
+                        file_size=os.path.getsize(
+                            os.path.join(self.get_cur_dir(), file)
+                        ),
+                        relative_path=True,
                     )
                     for file in files
                 ]
-                self.__files.extend(
-                    [
-                        _File(
-                            file,
-                            is_dir=False,
-                            full_path=self.get_cur_dir() + "/" + file,
-                            file_size=os.path.getsize(
-                                os.path.join(self.get_cur_dir(), file)
-                            ),
-                            relative_path=True,
-                        )
-                        for file in files
-                    ]
-                )
+            )
 
-            else:
-                dir_items = []
-                file_items = []
-                for file in os.listdir(self.get_cur_dir()):
+        else:
+            dir_items = []
+            file_items = []
+
+            try:
+                files = os.listdir(self.get_cur_dir())
+            except Exception as ex:
+                logging.error(str(ex))
+                files = []
+
+            for file in files:
+                try:
                     full_path = os.path.join(self.get_cur_dir(), file)
                     if os.path.isdir(full_path):
                         dir_items.append(
@@ -435,22 +437,23 @@ class FileManager(Menu[_File]):
                                 is_dir=False,
                             )
                         )
-                if self.__sort_by == "name":
-                    dir_items.sort(key=lambda x: x.name)
-                    file_items.sort(key=lambda x: x.name)
-                elif self.__sort_by == "mtime":
-                    dir_items.sort(
-                        key=lambda x: os.path.getmtime(x.full_path), reverse=True
-                    )
-                    file_items.sort(
-                        key=lambda x: os.path.getmtime(x.full_path), reverse=True
-                    )
 
-                self.__files.extend(dir_items)
-                self.__files.extend(file_items)
+                except Exception as ex:
+                    logging.error(str(ex))
 
-        except Exception as ex:
-            self.set_message(str(ex))
+            if self.__sort_by == "name":
+                dir_items.sort(key=lambda x: x.name)
+                file_items.sort(key=lambda x: x.name)
+            elif self.__sort_by == "mtime":
+                dir_items.sort(
+                    key=lambda x: os.path.getmtime(x.full_path), reverse=True
+                )
+                file_items.sort(
+                    key=lambda x: os.path.getmtime(x.full_path), reverse=True
+                )
+
+            self.__files.extend(dir_items)
+            self.__files.extend(file_items)
 
     def get_selected_file_full_path(self) -> Optional[str]:
         selected = self.get_selected_item()
