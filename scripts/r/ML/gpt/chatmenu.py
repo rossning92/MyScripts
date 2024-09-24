@@ -8,7 +8,7 @@ from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.menu import Menu
 
-MAX_CONVERSATIONS = 25
+MAX_CONVERSATIONS = 100
 
 
 class _Line:
