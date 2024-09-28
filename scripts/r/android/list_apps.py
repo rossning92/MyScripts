@@ -38,7 +38,7 @@ def restart_app():
 
 @menu.func()
 def restart_app_with_logcat():
-    start_script("r/android/restart_app_logcat.py", restart_instance=True)
+    start_script("r/android/restart_app_logcat.sh", restart_instance=True)
 
 
 @menu.func()

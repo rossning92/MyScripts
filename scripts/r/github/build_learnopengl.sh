@@ -26,5 +26,3 @@ while true; do
     fi
     read -p "Press Enter key to build and run..."
 done
-
-# run_script ext/open.py LearnOpenGL.sln

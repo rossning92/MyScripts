@@ -12,4 +12,4 @@ adb shell settings put global enable_gpu_debug_layers 1
 adb shell settings put global gpu_debug_app $PKG_NAME
 adb shell settings put global gpu_debug_layers_gles libGLES_glesLayer.so
 
-run_script r/android/restart_app_logcat.py $PKG_NAME
+run_script r/android/restart_app_logcat.sh $PKG_NAME

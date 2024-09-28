@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 
+from _pkgmanager import require_package
 from _shutil import download, prepend_to_path, unzip
 
 
@@ -55,6 +56,8 @@ def setup_cmake(cmake_version=None, install=True, env=None):
             return True
 
         return False
+    else:
+        require_package("cmake")
 
 
 def compile(file):
@@ -68,7 +71,12 @@ def compile(file):
         raise Exception("Invalid source file: %s" % file)
 
     # Specify output file
-    out_file = os.path.splitext(file)[0] + (".exe" if sys.platform == "win32" else "")
+    out_dir = os.path.join(os.path.dirname(file), "out")
+    os.makedirs(out_dir, exist_ok=True)
+    file_name = os.path.splitext(os.path.basename(file))[0] + (
+        ".exe" if sys.platform == "win32" else ""
+    )
+    out_file = os.path.join(out_dir, file_name)
 
     # Compile if source file is newer than the executable
     args += [

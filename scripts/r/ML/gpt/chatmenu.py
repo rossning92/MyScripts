@@ -83,6 +83,7 @@ class ChatMenu(Menu[_Line]):
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
+        self.goto_line(len(self.items) - 1)
         self.__get_response()
 
     def __get_response(self):

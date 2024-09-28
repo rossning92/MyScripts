@@ -985,6 +985,9 @@ class Menu(Generic[T]):
     def get_item_text(self, item: T) -> str:
         return str(item)
 
+    def goto_line(self, line: int):
+        self.__scroll_y = line
+
     def on_update_screen(self, item_y_max: int):
         assert Menu.stdscr is not None
 

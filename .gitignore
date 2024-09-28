@@ -22,4 +22,5 @@ __pycache__/
 build/
 generated/
 node_modules/
+out/
 tmp/

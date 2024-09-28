@@ -23,4 +23,4 @@ adb shell settings put global gpu_debug_app $pkg
 adb shell settings put global gpu_debug_layers $layername
 adb shell settings list global | grep gpu
 
-run_script r/android/restart_app_logcat.py $pkg
+run_script r/android/restart_app_logcat.sh $pkg
