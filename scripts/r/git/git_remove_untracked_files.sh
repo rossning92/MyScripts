@@ -1,8 +1,6 @@
 set -e
-cd "${GIT_REPO}"
-
 git clean -n -x -d
-read -p "Confirm (y/n): " ans
+read -n1 -p 'This will remove all untracked files, continue? (y/n)' ans
 if [[ "$ans" == 'y' ]]; then
     git clean -f -x -d
 fi

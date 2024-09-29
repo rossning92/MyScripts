@@ -896,7 +896,11 @@ class Script:
         return os.path.splitext(os.path.basename(self.name))[0]
 
     def get_context(self) -> Dict[str, str]:
-        return {"HOME": get_home_path(), "SCRIPT": quote_arg(self.script_path)}
+        return {
+            **self.get_variables(),
+            "HOME": get_home_path(),
+            "SCRIPT": quote_arg(self.script_path),
+        }
 
     def activate_window(self) -> bool:
         title = self.get_window_title()

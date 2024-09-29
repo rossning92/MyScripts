@@ -1,7 +1,8 @@
 import os
+import subprocess
 
 import vcpkg
-from _shutil import call_echo, print2
+from _shutil import print2
 from utils.template import render_template_file
 
 template_file = os.path.join(
@@ -9,7 +10,10 @@ template_file = os.path.join(
 )
 
 
-def cmake_build(project_dir, project_name=None, use_vcpkg=False):
+def cmake_build(project_dir=None, project_name=None, use_vcpkg=False):
+    if project_dir is None:
+        project_dir = os.getcwd()
+
     print2("Project dir: %s" % project_dir)
 
     if project_name is None:
@@ -49,10 +53,11 @@ def cmake_build(project_dir, project_name=None, use_vcpkg=False):
     if os.environ.get("_WIN32"):
         args += ["-T", "host=x86", "-A", "win32"]
 
-    call_echo(args, cwd=project_dir)
+    print(args)
+    subprocess.check_call(args, cwd=project_dir)
 
     # Build the project
-    call_echo(
+    subprocess.check_call(
         [
             "cmake",
             "--build",
@@ -64,6 +69,4 @@ def cmake_build(project_dir, project_name=None, use_vcpkg=False):
 
 
 if __name__ == "__main__":
-    cmake_build(
-        os.environ["PROJECT_DIR"], use_vcpkg=os.environ.get("_USE_VCPKG", False)
-    )
+    cmake_build(use_vcpkg=os.environ.get("_USE_VCPKG", False))

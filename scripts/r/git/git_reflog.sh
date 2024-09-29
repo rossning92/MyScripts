@@ -1,1 +1,1 @@
-git reflog --date=iso
+git reflog --date=iso -10

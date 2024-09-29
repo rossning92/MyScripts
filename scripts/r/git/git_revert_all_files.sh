@@ -1,7 +1,5 @@
-set -e
-cd "${GIT_REPO}"
-
-read -p "Confirm (y/n): " ans
+git status --short
+read -n1 -p 'This will revert all files, continue? (y/n)' ans
 if [[ "$ans" == 'y' ]]; then
-    git reset --hard
+    git reset HEAD --hard
 fi

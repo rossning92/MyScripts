@@ -1,7 +1,7 @@
 import curses
 import curses.ascii
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from utils.clip import get_clip, set_clip
 
@@ -12,16 +12,16 @@ from ..menu.textinput import TextInput
 class _DictValueEditMenu(TextInput):
     def __init__(
         self,
-        dict_,
-        name,
-        type,
+        dict_: Dict,
+        name: str,
+        type: Type,
         dict_history_values: List,
         items: List,
     ):
-        self.dict_ = dict_
-        self.dict_history_values = dict_history_values
-        self.name = name
-        self.type = type
+        self.__dict = dict_
+        self.__dict_history_values = dict_history_values
+        self.__name = name
+        self.__type = type
 
         super().__init__(
             items=items,
@@ -34,13 +34,13 @@ class _DictValueEditMenu(TextInput):
         assert text is not None
 
         val: Union[str, int, float, bool]
-        if self.type == str:
+        if self.__type == str:
             val = text.strip()
-        elif self.type == int:
+        elif self.__type == int:
             val = int(text)
-        elif self.type == float:
+        elif self.__type == float:
             val = float(text)
-        elif self.type == bool or self.type == type(None):
+        elif self.__type == bool or self.__type == type(None):
             if text.lower() == "true":
                 val = True
             elif text.lower() == "false":
@@ -52,14 +52,14 @@ class _DictValueEditMenu(TextInput):
             else:
                 raise Exception("Invalid bool value: {}".format(text))
         else:
-            raise Exception("Invalid type: {}".format(self.type))
+            raise Exception("Invalid type: {}".format(self.__type))
 
-        self.dict_[self.name] = val
+        self.__dict[self.__name] = val
 
         # Save edit history
-        if val in self.dict_history_values:  # avoid duplicates
-            self.dict_history_values.remove(val)
-        self.dict_history_values.insert(0, val)
+        if val in self.__dict_history_values:  # avoid duplicates
+            self.__dict_history_values.remove(val)
+        self.__dict_history_values.insert(0, val)
 
         self.close()
 
@@ -71,7 +71,7 @@ class _DictValueEditMenu(TextInput):
             return True
         elif ch == curses.KEY_DC:  # delete key
             i = self.get_selected_index()
-            del self.dict_history_values[i]
+            del self.__dict_history_values[i]
             return True
 
         return False
@@ -127,11 +127,17 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.__init_items()
 
         self.add_command(self.__copy_selected_dict_value, hotkey="ctrl+y")
-        self.add_command(self.__toggle_value, hotkey="left")
-        self.add_command(self.__toggle_value, hotkey="right")
+        self.add_command(self.__prev_value, hotkey="left")
+        self.add_command(self.__next_value, hotkey="right")
         self.add_command(self.__paste_value, hotkey="ctrl+v")
 
-    def __toggle_value(self):
+    def __prev_value(self):
+        self.__prev_or_next_value(prev=True)
+
+    def __next_value(self):
+        self.__prev_or_next_value(prev=False)
+
+    def __prev_or_next_value(self, prev=False):
         key = self.get_selected_key()
         if key is not None:
             value = self.dict_[key]
@@ -139,6 +145,20 @@ class DictEditMenu(Menu[_KeyValuePair]):
                 self.dict_[key] = not self.dict_[key]
                 self.__notify_dict_updated()
                 self.update_screen()
+            elif isinstance(value, str):
+                if self.dict_history and key in self.dict_history:
+                    values = self.dict_history[key]
+                    try:
+                        index = values.index(value)
+                        index = (
+                            max(0, index - 1)
+                            if prev
+                            else min(index + 1, len(values) - 1)
+                        )
+                        self.dict_[key] = values[index]
+                        self.__notify_dict_updated()
+                    except ValueError:
+                        pass
 
     def __paste_value(self):
         key = self.get_selected_key()
@@ -147,7 +167,6 @@ class DictEditMenu(Menu[_KeyValuePair]):
             if isinstance(value, str):
                 self.dict_[key] = get_clip()
                 self.__notify_dict_updated()
-                self.update_screen()
 
     def __copy_selected_dict_value(self):
         key = self.get_selected_key()
@@ -161,6 +180,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
             self.on_dict_update(self.dict_)
         if self.on_dict_history_update:
             self.on_dict_history_update(self.dict_history)
+        self.update_screen()
 
     def __init_items(self):
         if len(self.dict_) == 0:

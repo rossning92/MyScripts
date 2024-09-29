@@ -97,7 +97,7 @@ def format_variables(variables, variable_names, variable_prefix) -> List[str]:
     return result
 
 
-class VariableEditMenu(DictEditMenu):
+class EditVariableMenu(DictEditMenu):
     def __init__(self, script: Script):
         self.variables = get_script_variables(script)
         self.variable_edit_history = load_json(get_variable_edit_history_file(), {})
@@ -493,7 +493,7 @@ class _MyScriptMenu(Menu[Script]):
             if ch == "\t":
                 script = self.get_selected_item()
                 if script is not None:
-                    w = VariableEditMenu(script)
+                    w = EditVariableMenu(script)
                     if len(w.variables) > 0:
                         w.exec()
                 return True

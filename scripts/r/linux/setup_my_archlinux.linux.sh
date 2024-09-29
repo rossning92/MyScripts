@@ -55,18 +55,7 @@ append_line_dedup "$HOME/.bashrc" 'alias v=nvim'
 # Install fonts
 pac_install $(pacman -Ssq 'noto-fonts-*')
 
-# Install yay - AUR package manager: https://github.com/Jguer/yay#binary
-if [[ ! -x "$(command -v yay)" ]]; then
-    (
-        cd /tmp/
-        sudo pacman -S --needed --noconfirm git base-devel
-        git clone https://aur.archlinux.org/yay-bin.git
-        cd yay-bin
-        makepkg -si --noconfirm
-        cd ..
-        rm yay-bin -rf
-    )
-fi
+{{ include('r/linux/arch/install_yay.sh') }}
 
 yay_install visual-studio-code-bin google-chrome
 

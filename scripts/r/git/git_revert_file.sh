@@ -1,1 +1,1 @@
-git checkout HEAD -- $1
+git checkout HEAD -- "$1"

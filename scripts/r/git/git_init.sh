@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd '{{GIT_REPO}}'
-
 if [ ! -d ".git" ]; then
     git init
 
