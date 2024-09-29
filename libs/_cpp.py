@@ -56,7 +56,7 @@ def setup_cmake(cmake_version=None, install=True, env=None):
             return True
 
         return False
-    else:
+    elif install:
         require_package("cmake")
 
 
