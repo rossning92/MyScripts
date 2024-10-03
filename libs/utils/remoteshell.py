@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 from _pkgmanager import require_package
-from _script import Script, get_variable
+from _script import Script, _args_to_str, get_variable
 from _shutil import (
     call_echo,
     convert_to_unix_path,
@@ -230,37 +230,48 @@ def run_bash_script_putty(bash_script_file, user=None, host=None, pwd=None, port
 def run_bash_script_openssh(
     bash_script_file, wsl=True, user=None, host=None, pwd=None, port=None
 ):
-    with open(bash_script_file, "r", encoding="utf-8") as f:
-        command: str = f.read()
-
     args = []
 
-    # wsl
-    if wsl and sys.platform == "win32":
-        args += ["wsl"]
-
-    # pwd
-    pwd = _get_pwd(pwd)
-    if pwd:
-        require_package("sshpass")
-        args += ["sshpass", "-p", pwd]
-
-    args += [
-        "ssh",
-        "-o",
-        "StrictHostKeyChecking=no",  # disable host key checking
-        "-t",  # interactive session
-        _get_user_host(user=user, host=host),
-    ]
+    use_wsl = wsl and sys.platform == "win32"
 
     port = _get_port(port=port)
-    if port:
-        args += ["-p", port]
 
-    if wsl:
-        command = command.replace("$", "\\$")  # avoid variable expansion
-    args += [command]
+    if use_wsl:
+        bash_script_file = convert_to_unix_path(bash_script_file, wsl=True)
+
+    tmp_expect_file = write_temp_file(
+        f"""set timeout 10
+spawn bash -c {{ssh -o StrictHostKeyChecking=no -p {port} -t {_get_user_host(user=user, host=host)} "$(<{bash_script_file})"}}
+expect {{
+    "Passcode or option" {{
+        send "push\r"
+    }}
+    "password" {{
+        send "{pwd}\r"
+    }}
+    eof {{
+        exit [lindex [wait] 3]
+    }}
+}}
+interact""",
+        ".expect",
+    )
+
+    args += [
+        "expect",
+        (
+            convert_to_unix_path(tmp_expect_file, wsl=True)
+            if use_wsl
+            else tmp_expect_file
+        ),
+    ]
+
+    if use_wsl:
+        args = ["bash.exe", "-lic", _args_to_str(args, shell_type="bash")]
+
     subprocess.check_call(args)
+
+    os.remove(tmp_expect_file)
 
 
 def run_bash_script_vagrant(bash_script_file, vagrant_id):
@@ -269,7 +280,7 @@ def run_bash_script_vagrant(bash_script_file, vagrant_id):
 
 
 def run_bash_script_ssh(file, wsl=True, user=None, host=None, pwd=None, port=None):
-    if sys.platform == "win32":
-        run_bash_script_putty(file, user=user, host=host, pwd=pwd)
-    else:
-        run_bash_script_openssh(file, user=user, host=host, pwd=pwd)
+    # if sys.platform == "win32":
+    #     run_bash_script_putty(file, user=user, host=host, pwd=pwd)
+    # else:
+    run_bash_script_openssh(file, user=user, host=host, pwd=pwd)

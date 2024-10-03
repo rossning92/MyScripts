@@ -151,9 +151,9 @@ class DictEditMenu(Menu[_KeyValuePair]):
                     try:
                         index = values.index(value)
                         index = (
-                            max(0, index - 1)
+                            min(index + 1, len(values) - 1)
                             if prev
-                            else min(index + 1, len(values) - 1)
+                            else max(0, index - 1)
                         )
                         self.dict_[key] = values[index]
                         self.__notify_dict_updated()
@@ -165,8 +165,8 @@ class DictEditMenu(Menu[_KeyValuePair]):
         if key is not None:
             value = self.dict_[key]
             if isinstance(value, str):
-                self.dict_[key] = get_clip()
-                self.__notify_dict_updated()
+                val = get_clip()
+                self.set_dict_value(key, val)
 
     def __copy_selected_dict_value(self):
         key = self.get_selected_key()

@@ -679,26 +679,26 @@ class Menu(Generic[T]):
                     self._check_if_item_selection_changed()
 
             elif (
+                ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B3
+            ) and "left" in self._hotkeys:
+                self._hotkeys["left"].func()
+
+            elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
             ) and self.__can_scroll:
                 self.__scroll_x = max(self.__scroll_x - self.get_scroll_distance(), 0)
                 self.update_screen()
 
             elif (
-                ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B3
-            ) and "left" in self._hotkeys:
-                self._hotkeys["left"].func()
+                ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
+            ) and "right" in self._hotkeys:
+                self._hotkeys["right"].func()
 
             elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
             ) and self.__can_scroll:
                 self.__scroll_x += self.get_scroll_distance()
                 self.update_screen()
-
-            elif (
-                ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
-            ) and "right" in self._hotkeys:
-                self._hotkeys["right"].func()
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
                 if len(self.get_item_indices()) > 0:

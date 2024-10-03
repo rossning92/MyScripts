@@ -32,6 +32,7 @@ from _shutil import (
     get_ahk_exe,
     get_home_path,
     get_hotkey_abbr,
+    is_in_wsl,
     load_json,
     npm_install,
     prepend_to_path,
@@ -195,6 +196,9 @@ def get_script_directories() -> List[ScriptDirectory]:
         name = item["name"]
 
         directory = item["directory"]
+        if is_in_wsl():
+            directory = convert_to_unix_path(directory, wsl=True)
+
         if not os.path.isabs(directory):  # is relative path
             directory = os.path.abspath(
                 os.path.join(
