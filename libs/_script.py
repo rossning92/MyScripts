@@ -2021,7 +2021,7 @@ def get_script_config_file_path(script_path: str) -> str:
 
 
 def get_default_script_config_path(script_path: str) -> str:
-    return os.path.join(os.path.dirname(script_path), "default.config.json")
+    return os.path.join(os.path.dirname(script_path), ".default.config.json")
 
 
 def _load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:

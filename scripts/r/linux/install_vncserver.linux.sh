@@ -14,8 +14,10 @@ if [[ ! -f ~/.vnc/passwd ]]; then
 fi
 
 # Create a systemd service to launch an x11vnc server
+# https://wiki.archlinux.org/title/X11vnc#Run_x11vnc_%22system-wide%22_in_(GDM_and_GNOME_Shell)
 sudo tee /etc/systemd/system/x11vnc.service <<-EOF
 [Service]
+User=$USER
 ExecStart=
 ExecStart=/usr/bin/x11vnc -many -no6 -rfbport 5900 -rfbauth $HOME/.vnc/passwd -auth $HOME/.Xauthority -display :0
 Restart=on-failure

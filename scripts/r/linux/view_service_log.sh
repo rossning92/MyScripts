@@ -1,4 +1,3 @@
 set -e
-selected=$(systemctl list-unit-files --all | fzf)
-service=$(echo "$selected" | awk '{print $1}')
-journalctl -u $service
+{{ include('r/linux/_select_service.sh') }}
+journalctl -u $service -f
