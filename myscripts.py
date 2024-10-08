@@ -725,11 +725,11 @@ def _main():
 
     setup_nodejs(install=False)
 
-    if start_daemon:
-        script_server = ScriptServer()
-        script_server.start_server()
-
     script_manager = ScriptManager(start_daemon=start_daemon, startup=args.startup)
+
+    if start_daemon:
+        script_server = ScriptServer(script_manager=script_manager)
+        script_server.start_server()
 
     no_daemon = args.no_daemon or bool(args.args) or bool(args.out_to_file)
     run_script_and_quit = (

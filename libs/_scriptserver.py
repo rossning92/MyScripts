@@ -3,16 +3,22 @@ import logging
 import os
 import subprocess
 import threading
+from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
 from urllib.parse import unquote
 
 from _script import get_data_dir, get_my_script_root
+from _scriptmanager import ScriptManager
 
 HOST_NAME = "127.0.0.1"
 
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
+    def __init__(self, script_manager: ScriptManager, *args, **kwargs):
+        self.__script_manager = script_manager
+        super().__init__(*args, **kwargs)
+
     def _serve_file(self, path):
         with open(path, "rb") as f:
             self.send_response(200)
@@ -36,6 +42,16 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                         "dist",
                         "userscriptlib.js",
                     )
+                )
+
+            elif self.path == "/scripts":
+                self.send_json(
+                    {
+                        "scripts": [
+                            {"name": script.name, "path": script.script_path}
+                            for script in self.__script_manager.scripts
+                        ]
+                    }
                 )
 
             else:
@@ -100,18 +116,20 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 class ScriptServer:
-    def __init__(self, port=4312) -> None:
-        self.port = port
+    def __init__(self, script_manager: ScriptManager, port=4312) -> None:
+        self.__port = port
         self.__httpd: Optional[ThreadingHTTPServer] = None
         self.__lock = threading.Lock()
         self.__server_thread: Optional[threading.Thread] = None
+        self.__script_manager = script_manager
 
     def _server_main(self):
-        httpd = ThreadingHTTPServer((HOST_NAME, self.port), MyHTTPRequestHandler)
+        handler = partial(MyHTTPRequestHandler, self.__script_manager)
+        httpd = ThreadingHTTPServer((HOST_NAME, self.__port), handler)
         with self.__lock:
             self.__httpd = httpd
 
-        logging.info("API server started at: http://%s:%s" % (HOST_NAME, self.port))
+        logging.info("API server started at: http://%s:%s" % (HOST_NAME, self.__port))
         httpd.serve_forever()
         httpd.server_close()
 
