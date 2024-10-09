@@ -253,7 +253,8 @@ expect {{
         exit [lindex [wait] 3]
     }}
 }}
-interact""",
+interact
+exit [lindex [wait] 3]""",
         ".expect",
     )
 
