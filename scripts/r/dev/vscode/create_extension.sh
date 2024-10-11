@@ -2,3 +2,5 @@
 cd ~/.vscode/extensions
 
 npx --package yo --package generator-code -- yo code
+
+# https://github.com/microsoft/vscode-extension-samples/

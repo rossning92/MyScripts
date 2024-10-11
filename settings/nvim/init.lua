@@ -13,9 +13,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Example using a list of specs with the default options
-vim.g.mapleader = " " -- Make sure to set `mapleader` before lazy so your mappings are correct
--- vim.g.maplocalleader = "\\" -- Same for `maplocalleader`
+vim.g.mapleader = " "
 
 require("lazy").setup({
   "folke/which-key.nvim",
@@ -111,16 +109,50 @@ local function execute_command(command)
   return text
 end
 
-local function fix()
-  local text = vim.api.nvim_get_current_line()
-  local output = execute_command(
-    "run_script r/ai/openai/complete_chat.py \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
-    text:gsub("'", "'\\''") .. "\'")
-  if output then
-    vim.api.nvim_set_current_line(output)
+local function replace_selected_text(expr)
+  local mode = vim.fn.mode()
+  local start_pos = vim.fn.getpos("v")
+  local end_pos = vim.fn.getpos(".")
+
+  if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
+    start_pos, end_pos = end_pos, start_pos
   end
+
+  local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
+  local text = ""
+  if mode == 'v' then
+    for i, line in ipairs(lines) do
+      local start_col = (i == 1) and start_pos[3] or 1
+      local end_col = (i == #lines) and end_pos[3] or #line
+      text = text .. line:sub(start_col, end_col) .. (i ~= #lines and '\n' or '')
+    end
+  else
+    text = table.concat(lines, '\n')
+  end
+
+  text = expr(text)
+
+  if mode == 'v' then
+    text = lines[1]:sub(1, start_pos[3] - 1) .. text .. lines[#lines]:sub(end_pos[3] + 1)
+  end
+
+  lines = {}
+  for line in text:gmatch("[^\r\n]+") do
+    table.insert(lines, line)
+  end
+  vim.api.nvim_buf_set_lines(0, start_pos[2] - 1, end_pos[2], false, lines)
+
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
 end
-vim.keymap.set({ "n", "i" }, "<C-k>f", fix)
+
+local function fix()
+  replace_selected_text(function(text)
+    return execute_command(
+      "run_script r/ai/openai/complete_chat.py \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
+      text:gsub("'", "'\\''") .. "\'")
+  end)
+end
+vim.keymap.set({ "n", "i", "v" }, "<C-k>f", fix)
 
 local function speech_to_text()
   local output = execute_command("run_script r/speech_to_text.py")

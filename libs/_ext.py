@@ -313,8 +313,12 @@ def replace_script_str(
             if i % 20 == 0:
                 on_progress("searching (%d/%d)" % (i + 1, len(files)))
 
-        with open(file, "r", encoding="utf-8") as f:
-            lines = f.read().splitlines()
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                lines = f.read().splitlines()
+        except UnicodeDecodeError:
+            # Ignore non-text files.
+            continue
 
         dirty = False
         for i, line in enumerate(lines):
@@ -357,7 +361,7 @@ def rename_script(
     else:
         items = []
 
-    w = Menu(prompt="new name", text=script_rel_path, items=items)
+    w = Menu(prompt="new name", search_mode=False, text=script_rel_path, items=items)
     w.exec()
     new_script_rel_path = w.get_text()
     if not new_script_rel_path:

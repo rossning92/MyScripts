@@ -143,7 +143,7 @@ def setup_shader_tools(data_dir: str):
     install_extensions(["stevensona.shader-toy"], data_dir=data_dir)
 
 
-def config_vscode(data_dir=None, compact=False, glslang=False):
+def config_vscode(data_dir=None, compact=False):
     if not data_dir:
         if sys.platform == "win32":
             data_dir = os.path.expandvars("%APPDATA%/Code")
@@ -177,8 +177,6 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
             "esbenp.prettier-vscode",
             # Bash
             "foxundermoon.shell-format",
-            # AutoHotkey
-            "cweijan.vscode-autohotkey-plus",
             # "cadenas.vscode-glsllint",
             "xaver.clang-format",
             # Powershell
@@ -354,4 +352,4 @@ def config_vscode(data_dir=None, compact=False, glslang=False):
 
 if __name__ == "__main__":
     data_dir = os.environ.get("VSCODE_DATA_DIR")
-    config_vscode(data_dir=data_dir, compact=False, glslang=True)
+    config_vscode(data_dir=data_dir, compact=False)
