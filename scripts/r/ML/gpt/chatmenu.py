@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 from _shutil import load_json, save_json
-from ai.openai.complete_chat import chat_completion
+from ai.openai.complete_chat import complete_messages
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.menu import Menu
@@ -91,7 +91,7 @@ class ChatMenu(Menu[_Line]):
         message_index = len(self.get_messages())
         line = _Line(role="assistant", text="", message_index=message_index)
         self.append_item(line)
-        for chunk in chat_completion(self.get_messages(), model=self.__model):
+        for chunk in complete_messages(self.get_messages(), model=self.__model):
             response += chunk
             for i, a in enumerate(chunk.split("\n")):
                 if i > 0:

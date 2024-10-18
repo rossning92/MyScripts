@@ -16,6 +16,8 @@ from typing import Any, Dict, List, Optional, Tuple
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
+sys.path.append(os.path.join(MYSCRIPT_ROOT, "scripts"))
+sys.path.append(os.path.join(MYSCRIPT_ROOT, "scripts", "r"))
 
 from _ext import (
     copy_script_path_to_clipboard,
@@ -239,6 +241,10 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._rename_script_and_replace_all)
         self.add_command(self._rename_script, hotkey="alt+n")
         self.add_command(self._set_cmdline_args)
+        self.add_command(self._voice_command, hotkey="alt+v")
+
+    def _voice_command(self):
+        pass
 
     def _reload(self):
         self.call_func_without_curses(lambda: restart_program())

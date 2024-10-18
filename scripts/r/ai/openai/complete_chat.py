@@ -7,7 +7,7 @@ from typing import Dict, Iterator, List, Optional
 import requests
 
 
-def chat_completion(
+def complete_messages(
     messages: List[Dict[str, str]], model: Optional[str] = None
 ) -> Iterator[str]:
     api_key = os.environ["OPENAI_API_KEY"]
@@ -45,6 +45,13 @@ def chat_completion(
             break
 
 
+def complete_message(input_text: str) -> str:
+    result = ""
+    for chunk in complete_messages([{"role": "user", "content": input_text}]):
+        result += chunk
+    return result
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input", nargs="?", type=str, help="Input input")
@@ -59,5 +66,5 @@ if __name__ == "__main__":
         else:
             input_text = args.input
 
-    for chunk in chat_completion([{"role": "user", "content": input_text}]):
+    for chunk in complete_messages([{"role": "user", "content": input_text}]):
         print(chunk, end="")
