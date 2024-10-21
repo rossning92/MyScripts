@@ -1,4 +1,5 @@
 {
   "adk": true,
-  "cmake": true
+  "closeOnExit": false,
+  "msys2": true
 }

@@ -1,3 +1,4 @@
 {
+  "closeOnExit": false,
   "runAsAdmin": true
 }

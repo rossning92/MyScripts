@@ -58,7 +58,11 @@ def get_all_available_packages() -> List[str]:
 
 
 def require_package(
-    pkg: str, wsl=False, env: Optional[Dict[str, str]] = None, force_install=False
+    pkg: str,
+    wsl=False,
+    env: Optional[Dict[str, str]] = None,
+    force_install=False,
+    upgrade=False,
 ):
     if "dependantPackages" in packages:
         for pkg in packages["dependantPackages"]:
@@ -200,7 +204,7 @@ def require_package(
             return
 
         elif sys.platform == "win32" and "choco" in packages[pkg]:
-            _choco_install(pkg, force_install=force_install)
+            _choco_install(pkg, force_install=force_install, upgrade=upgrade)
             return
 
         elif "pip" in packages[pkg]:

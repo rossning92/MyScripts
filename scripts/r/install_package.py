@@ -20,4 +20,4 @@ if __name__ == "__main__":
         packages = get_all_available_packages()
         i = select_option(packages)
         if i >= 0:
-            require_package(pkg=packages[i], force_install=True)
+            require_package(pkg=packages[i], force_install=True, upgrade=True)
