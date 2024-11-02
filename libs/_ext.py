@@ -3,7 +3,7 @@ import logging
 import os
 import re
 import shutil
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
+from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Tuple
 
 from _script import (
     Script,
@@ -295,23 +295,21 @@ def create_new_script(
 
 
 def replace_script_str(
-    old,
-    new=None,
-    dry_run=False,
+    old: str,
+    new: Optional[str] = None,
+    dry_run: bool = False,
     matched_files: Optional[List[str]] = None,
-    on_progress: Optional[Callable[[str], None]] = None,
-) -> List[Tuple[str, int, str]]:
-    modified_lines: List[Tuple[str, int, str]] = []
+    files_to_replace: Optional[List[str]] = None,
+    on_progress: Optional[Callable[[str], bool]] = None,
+) -> Generator[Tuple[str, int, str], None, None]:
+    if files_to_replace is None:
+        files_to_replace = list(get_all_scripts())
 
-    if not dry_run and matched_files is not None:
-        files = matched_files
-    else:
-        files = list(get_all_scripts())
-
-    for i, file in enumerate(files):
+    for i, file in enumerate(files_to_replace):
         if on_progress is not None:
             if i % 20 == 0:
-                on_progress("searching (%d/%d)" % (i + 1, len(files)))
+                if on_progress("searching (%d/%d)" % (i + 1, len(files_to_replace))):
+                    break
 
         try:
             with open(file, "r", encoding="utf-8") as f:
@@ -321,49 +319,57 @@ def replace_script_str(
             continue
 
         dirty = False
-        for i, line in enumerate(lines):
+        for j, line in enumerate(lines):
             if old in line:
                 if dry_run:
-                    modified_lines.append(
-                        (get_relative_script_path(file), i + 1, lines[i])
-                    )
+                    yield (get_relative_script_path(file), j + 1, lines[j])
+                elif new is not None:
+                    lines[j] = line.replace(old, new)
                 else:
-                    lines[i] = line.replace(old, new)
+                    raise Exception("Replacement string cannot be empty")
                 dirty = True
 
         if dirty:
             if matched_files is not None:
                 matched_files.append(file)
             if not dry_run:
+                logging.debug(f"Replace in file: {file}: `{old}` -> `{new}`")
                 s = "\n".join(lines)
                 with open(file, "w", encoding="utf-8") as f:
                     f.write(s)
 
-    return modified_lines
-
 
 def rename_script(
     script_full_path,
-    on_progress: Optional[Callable[[str], None]] = None,
     replace_all_occurrence: bool = False,
 ):
     script_rel_path = get_relative_script_path(script_full_path)
 
-    matched_files: List[str] = []
-    if replace_all_occurrence:
-        modified_lines = replace_script_str(
-            script_rel_path,
-            dry_run=True,
-            matched_files=matched_files,
-            on_progress=on_progress,
-        )
-        items = [f"{x[0]}:{x[1]}:\t{x[2]}" for x in modified_lines]
-    else:
-        items = []
+    items: List[str] = []
+    menu = Menu(
+        prompt="rename script", search_mode=False, text=script_rel_path, items=items
+    )
 
-    w = Menu(prompt="new name", search_mode=False, text=script_rel_path, items=items)
-    w.exec()
-    new_script_rel_path = w.get_text()
+    def on_progress(message: str) -> bool:
+        menu.set_message(message)
+        return menu.process_events()
+
+    matched_files: List[str] = []
+    with menu:
+        if replace_all_occurrence:
+            for line in replace_script_str(
+                script_rel_path,
+                dry_run=True,
+                matched_files=matched_files,
+                on_progress=on_progress,
+            ):
+                items.append(f"{line[0]}:{line[1]}:\t{line[2]}")
+
+    menu.set_message(None)
+    menu.exec()
+
+    # Get new script path
+    new_script_rel_path = menu.get_text()
     if not new_script_rel_path:
         return False
 
@@ -380,7 +386,9 @@ def rename_script(
 
     # Replace script string
     if replace_all_occurrence:
-        replace_script_str(
-            script_rel_path, new_script_rel_path, matched_files=matched_files
+        list(
+            replace_script_str(
+                script_rel_path, new_script_rel_path, files_to_replace=matched_files
+            )
         )
     return True

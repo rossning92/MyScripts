@@ -195,20 +195,6 @@ class Menu(Generic[T]):
     color_pair_map: Dict[str, int] = {}
     _should_update_screen = False
 
-    class ScreenWrapper:
-        def __init__(self):
-            self._should_init_curses = Menu.stdscr is None
-
-        def __enter__(self):
-            if self._should_init_curses:
-                Menu.init_curses()
-
-        def __exit__(self, exc_type, exc_val, traceback):
-            if self._should_init_curses:
-                Menu.destroy_curses()
-            else:
-                Menu._should_update_screen = True
-
     def __init__(
         self,
         allow_input=True,
@@ -231,6 +217,8 @@ class Menu(Generic[T]):
         line_number=True,
         auto_complete=False,
     ):
+        self._is_stdscr_owner: Optional[bool] = None
+
         self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
         self.prev_key: Union[int, str] = -1
@@ -328,6 +316,20 @@ class Menu(Generic[T]):
                             lambda item=item: self.__on_item_hotkey(item),
                             hotkey=hotkey,
                         )
+
+    def __enter__(self):
+        if self._is_stdscr_owner is not None:
+            raise Exception("Using with-clause on Menu object twice is not allowed")
+        self._is_stdscr_owner = Menu.stdscr is None
+        if self._is_stdscr_owner:
+            Menu.init_curses()
+
+    def __exit__(self, exc_type, exc_val, traceback):
+        if self._is_stdscr_owner:
+            Menu.destroy_curses()
+        else:
+            Menu._should_update_screen = True
+        self._is_stdscr_owner = None
 
     def __voice_input(self):
         try:
@@ -459,7 +461,7 @@ class Menu(Generic[T]):
         return ret_val
 
     def exec(self) -> int:
-        with Menu.ScreenWrapper():
+        with self:
             self._exec()
 
         idx = self.get_selected_index()
@@ -586,12 +588,12 @@ class Menu(Generic[T]):
     def refresh(self):
         self.__should_update_matched_items = True
 
-    # Returns false if we should exit main loop for the current window
+    # Returns True if we should exit main loop for the current window
     def process_events(self, timeout_sec: float = 0.0) -> bool:
         assert Menu.stdscr is not None
 
         if self._closed:
-            return False
+            return True
 
         if timeout_sec > 0.0:
             Menu.stdscr.timeout(int(timeout_sec * 1000.0))
@@ -771,9 +773,9 @@ class Menu(Generic[T]):
 
         if self._closed:
             self.on_exit()
-            return False
-        else:
             return True
+        else:
+            return False
 
     def on_escape_pressed(self):
         if "escape" in self._hotkeys:
@@ -857,13 +859,16 @@ class Menu(Generic[T]):
     def on_idle(self):
         pass
 
-    def _exec(self):
+    def _reset_state(self):
         self.is_cancelled = False
         self._closed = False
+
+    def _exec(self):
+        self._reset_state()
         self.update_screen()
         self.on_created()
         self.on_main_loop()
-        while self.process_events(timeout_sec=PROCESS_EVENT_INTERVAL_SEC):
+        while not self.process_events(timeout_sec=PROCESS_EVENT_INTERVAL_SEC):
             self.on_main_loop()
 
     def get_selected_index(self):

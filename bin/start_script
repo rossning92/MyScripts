@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
 script_dir="$(dirname "$0")"
 [[ "$(uname -o)" == "Msys" ]] && script_dir=$(cygpath -w "$script_dir")
-python "$script_dir/start_script.py" "$@"
+if command -v python >/dev/null 2>&1; then
+    PYTHON_EXEC="python"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_EXEC="python3"
+else
+    echo "Neither 'python' nor 'python3' was found. Please install Python."
+    exit 1
+fi
+"$PYTHON_EXEC" "$script_dir/start_script.py" "$@"

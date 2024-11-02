@@ -71,17 +71,18 @@ if __name__ == "__main__":
     if args.verbose:
         setup_logger()
 
-    # Read prompt
+    # Load prompt
     if args.prompt is not None:
-        prompt = args.prompt
-        if os.path.isabs(prompt):
-            prompt_file = prompt
+        if os.path.isfile(args.prompt):
+            prompt = _Prompt(path=args.prompt).load_prompt()
         elif os.environ.get("PROMPT_DIR"):
-            prompt_file = os.path.join(os.environ["PROMPT_DIR"], prompt)
-
-        if os.path.isfile(prompt_file):
-            p = _Prompt(path=prompt_file)
-            prompt = p.load_prompt()
+            prompt_file = os.path.join(os.environ["PROMPT_DIR"], args.prompt)
+            if os.path.isfile(prompt_file):
+                prompt = _Prompt(path=prompt_file).load_prompt()
+            else:
+                prompt = args.prompt
+        else:
+            prompt = args.prompt
     else:
         prompts: List[_Prompt] = []
         prompt_dir = os.path.join(_get_script_dir(), "prompts")

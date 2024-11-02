@@ -238,8 +238,8 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._run_script_no_close, hotkey="ctrl+enter")
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
-        self.add_command(self._rename_script_and_replace_all)
-        self.add_command(self._rename_script, hotkey="alt+n")
+        self.add_command(self._rename_script_and_replace_all, hotkey="alt+n")
+        self.add_command(self._rename_script)
         self.add_command(self._set_cmdline_args)
         self.add_command(self._voice_command, hotkey="alt+v")
 
@@ -447,17 +447,11 @@ class _MyScriptMenu(Menu[Script]):
             )
 
     def _rename_script(self, replace_all_occurrence=False):
-        def on_progress(msg: str):
-            nonlocal self
-            self.process_events()
-            self.set_message(msg)
-
         script_path = self.get_selected_script_path()
         if script_path:
             self.set_message("searching scripts to rename...")
             if rename_script(
                 script_path,
-                on_progress=on_progress,
                 replace_all_occurrence=replace_all_occurrence,
             ):
                 self._reload_scripts()
@@ -690,8 +684,10 @@ def _main():
     start_daemon = True
     if is_instance_running():
         start_daemon = False
+        logging.debug("Already instance running, set start_daemon = False")
     if input_text:
         start_daemon = False
+        logging.debug("input_text is not null, set start_daemon = False")
     logging.debug(f"start_daemon: {start_daemon}")
     logging.info("Python executable: %s" % sys.executable)
 

@@ -160,6 +160,7 @@ class ChatMenu(Menu[_Line]):
             if line.text.startswith("```"):
                 is_code_block = not is_code_block
                 if is_code_block:
+                    text.clear()
                     start = i + 1
                 else:
                     stop = i - 1

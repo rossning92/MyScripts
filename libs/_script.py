@@ -808,8 +808,14 @@ class Script:
 
         return source
 
-    def render(self, source: Optional[str] = None, variables=None) -> str:
+    def render(
+        self,
+        source: Optional[str] = None,
+        variables: Optional[Dict] = None,
+    ) -> str:
         read_var_from_csv = self.cfg["template.readVarFromCsv"]
+        assert isinstance(read_var_from_csv, str)
+
         if read_var_from_csv:
             menu = CsvMenu(csv_file=read_var_from_csv)
             row_index = menu.select_row()
@@ -1003,6 +1009,18 @@ class Script:
         # Get variable name value pairs
         variables = self.get_variables()
 
+        # Override environment variable with user input.
+        if self.cfg["env.userInput"]:
+            from utils.menu.textinput import TextInput
+
+            assert isinstance(self.cfg["env.userInput"], str)
+            env_var_names = self.cfg["env.userInput"].split()
+            for name in env_var_names:
+                val = TextInput(prompt="input " + name).request_input()
+                if not val:
+                    return True
+                variables[name] = val
+
         logging.info(
             "execute: %s %s"
             % (self.name, _args_to_str(args, shell_type="bash") if args else "")
@@ -1161,11 +1179,12 @@ class Script:
 
         elif ext in [".md", ".txt"]:
             if script_path.endswith(".email.md"):
-                send_email_md(content=self.render(source=source))
+                send_email_md(content=self.render(variables=variables, source=source))
             else:
                 if template:
                     script_path = write_temp_file(
-                        self.render(source=source), slugify(self.name) + ext
+                        self.render(variables=variables, source=source),
+                        slugify(self.name) + ext,
                     )
                     md_file_path = script_path
                 else:
@@ -1177,7 +1196,8 @@ class Script:
             if sys.platform == "win32":
                 if template:
                     ps_path = write_temp_file(
-                        self.render(source=source), slugify(self.name) + ".ps1"
+                        self.render(variables=variables, source=source),
+                        slugify(self.name) + ".ps1",
                     )
                 else:
                     ps_path = os.path.abspath(script_path)
@@ -1201,7 +1221,7 @@ class Script:
 
                 if template:
                     script_path = write_temp_file(
-                        self.render(source=source),
+                        self.render(variables=variables, source=source),
                         os.path.join(
                             "GeneratedAhkScript/", os.path.basename(self.script_path)
                         ),
@@ -1227,7 +1247,8 @@ class Script:
             if sys.platform == "win32":
                 if template:
                     batch_file = write_temp_file(
-                        self.render(source=source), slugify(self.name) + ".cmd"
+                        self.render(variables=variables, source=source),
+                        slugify(self.name) + ".cmd",
                     )
                 else:
                     batch_file = os.path.abspath(script_path)
@@ -1256,7 +1277,7 @@ class Script:
                         "w",
                         encoding="utf-8",
                     ) as f:
-                        f.write(self.render(source=source))
+                        f.write(self.render(variables=variables, source=source))
 
                 url = "http://127.0.0.1:4312/fs/" + user_script_path.replace(
                     os.path.sep, "/"
@@ -1273,7 +1294,8 @@ class Script:
         elif ext == ".sh":
             if template:
                 script_path = write_temp_file(
-                    self.render(source=source), slugify(self.name) + ".sh"
+                    self.render(variables=variables, source=source),
+                    slugify(self.name) + ".sh",
                 )
 
             arg_list = [script_path] + arg_list
@@ -1303,7 +1325,8 @@ class Script:
 
             if template and ext == ".py":
                 python_file = write_temp_file(
-                    self.render(source=source), slugify(self.name) + ".py"
+                    self.render(variables=variables, source=source),
+                    slugify(self.name) + ".py",
                 )
             else:
                 python_file = os.path.abspath(script_path)
@@ -1976,6 +1999,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "args.selection": False,
         "args.selectionAsFile": False,
         "args.userInput": False,
+        "env.userInput": "",
         "args": "",
         "autoRun": False,
         "background": False,
