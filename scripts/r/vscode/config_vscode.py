@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from _script import get_my_script_root
 from _shutil import download, get_home_path, prepend_to_path, unzip
@@ -26,16 +26,16 @@ def install_glslangvalidator():
         )
 
 
-def run_command(args: List[str]):
-    subprocess.check_call(
+def run_command(args: List[str], check=True):
+    subprocess.run(
         args,
-        # we need to set shell=True on Windows because the code command is a batch file.
         shell=sys.platform == "win32",
         stdout=subprocess.DEVNULL,
+        check=check,
     )
 
 
-def get_vscode_cmdline(data_dir=None):
+def get_vscode_cmdline(data_dir: Optional[str] = None) -> List[str]:
     if not shutil.which("code"):
         raise Exception("cannot locate vscode command: code")
 
@@ -51,6 +51,16 @@ def install_extensions(extensions: List[str], data_dir=None):
         run_command(
             get_vscode_cmdline(data_dir=data_dir)
             + ["--install-extension", "%s" % extension],
+        )
+
+
+def uninstall_extensions(extensions: List[str], data_dir=None):
+    for extension in extensions:
+        print(f'Uninstalling extension "{extension}"')
+        run_command(
+            get_vscode_cmdline(data_dir=data_dir)
+            + ["--uninstall-extension", "%s" % extension],
+            check=False,
         )
 
 
@@ -100,8 +110,12 @@ def setup_python(data_dir: str):
     update_settings(settings, data_dir=data_dir)
 
 
-def setup_gpt(data_dir: str):
+def setup_ai_tools(data_dir: str):
     install_extensions(
+        ["saoudrizwan.claude-dev"],
+        data_dir=data_dir,
+    )
+    uninstall_extensions(
         ["genieai.chatgpt-vscode"],
         data_dir=data_dir,
     )
@@ -153,7 +167,7 @@ def config_vscode(data_dir=None, compact=False):
             raise Exception("OS not supported: {}".format(sys.platform))
 
     setup_python(data_dir=data_dir)
-    setup_gpt(data_dir=data_dir)
+    setup_ai_tools(data_dir=data_dir)
     setup_mermaid(data_dir=data_dir)
     setup_csv_tools(data_dir=data_dir)
     setup_shader_tools(data_dir=data_dir)
@@ -240,16 +254,6 @@ def config_vscode(data_dir=None, compact=False):
                     "when": "canNavigateForward",
                 },
                 {
-                    "key": "shift+alt+f",
-                    "command": "references-view.findReferences",
-                    "when": "editorHasReferenceProvider",
-                },
-                {
-                    "key": "shift+alt+f12",
-                    "command": "-references-view.findReferences",
-                    "when": "editorHasReferenceProvider",
-                },
-                {
                     "key": "ctrl+shift+alt+up",
                     "command": "workbench.action.compareEditor.previousChange",
                     "when": "textCompareEditorVisible",
@@ -268,17 +272,6 @@ def config_vscode(data_dir=None, compact=False):
                     "key": "ctrl+shift+alt+down",
                     "command": "workbench.action.compareEditor.nextChange",
                     "when": "textCompareEditorVisible",
-                },
-                # Genie:
-                {
-                    "key": "ctrl+k a",
-                    "command": "chatgpt-vscode.adhoc",
-                    "when": "editorHasSelection",
-                },
-                {
-                    "key": "ctrl+k o",
-                    "command": "chatgpt-vscode.optimize",
-                    "when": "editorHasSelection",
                 },
                 # glsl-canvas
                 {
@@ -351,5 +344,4 @@ def config_vscode(data_dir=None, compact=False):
 
 
 if __name__ == "__main__":
-    data_dir = os.environ.get("VSCODE_DATA_DIR")
-    config_vscode(data_dir=data_dir, compact=False)
+    config_vscode(data_dir=os.environ.get("VSCODE_DATA_DIR"), compact=False)

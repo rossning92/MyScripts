@@ -1,6 +1,0 @@
-VCToolChain.cs	Modified	Engine/Source/Programs/UnrealBuildTool/Platform/Windows
-
-
-// Enable C++ exceptions when building with the editor or when building UHT.
-if (true || (!WindowsPlatform.bCompileWithClang &&	// @todo clang: C++ exceptions are not supported with Clang on Windows yet
-    (CompileEnvironment.bEnableExceptions)))

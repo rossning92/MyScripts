@@ -45,7 +45,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                 )
 
             elif self.path == "/scripts":
-                self.send_json(
+                self._send_json(
                     {
                         "scripts": [
                             {"name": script.name, "path": script.script_path}
@@ -63,7 +63,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             if self.path == "/system":
-                data = self.get_req_data()
+                data = self._get_req_data()
                 out = subprocess.check_output(
                     args=data["args"], universal_newlines=True, encoding="utf-8"
                 )
@@ -75,31 +75,31 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(out.encode("utf-8"))
 
             elif self.path == "/load-file":
-                req = self.get_req_data()
+                req = self._get_req_data()
                 file_path = os.path.join(get_data_dir(), f"{req['file']}")
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
-                self.send_json({"success": True, "content": content})
+                self._send_json({"success": True, "content": content})
 
             elif self.path == "/save-file":
-                req = self.get_req_data()
+                req = self._get_req_data()
                 file_path = os.path.join(get_data_dir(), f"{req['file']}")
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(req["content"])
-                self.send_json({"success": True, "filePath": file_path})
+                self._send_json({"success": True, "filePath": file_path})
 
             else:
                 return self.send_response(500)
         except Exception:
             logging.exception("")
 
-    def send_json(self, data):
+    def _send_json(self, data):
         self.send_response(200)
         self.send_header("Content-type", "application/json; charset=utf-8")
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
-    def get_req_data(self):
+    def _get_req_data(self):
         data_string = self.rfile.read(int(self.headers["Content-Length"]))
         data = json.loads(data_string.decode("utf-8"))
         return data
