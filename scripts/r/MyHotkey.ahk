@@ -39,173 +39,162 @@ return
 return
 
 #If not WinActive("ahk_exe tvnviewer.exe") and not WinActive("ahk_class vwr::CDesktopWin") and not WinActive("ahk_exe League of Legends.exe")
+    #LButton::WindowMouseDragMove()
 
-#LButton::WindowMouseDragMove()
+    #a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
+    #c::ActivateChrome(0)
+    #!c::ActivateChrome(2)
+    #!2::ActivateChrome(3)
+    #m::ToggleMicrophone()
 
-#a::Run "C:\Program Files\Everything\Everything.exe" -toggle-window
-#c::ActivateChrome(0)
-#!c::ActivateChrome(2)
-#!2::ActivateChrome(3)
-#m::ToggleMicrophone()
+    ^q::
+        ; If explorer is active, copy file path to clipboard
+        UpdateExplorerInfo()
 
-^q::
-    ; If explorer is active, copy file path to clipboard
-    UpdateExplorerInfo()
+        ; Activate script window
+        if WinExist(CONSOLE_WINDOW) {
+            WinActivate % CONSOLE_WINDOW
+        }
+    return
 
-    ; Activate script window
-    if WinExist(CONSOLE_WINDOW) {
-        WinActivate % CONSOLE_WINDOW
-    }
-return
+    #F4::
+        Suspend, Permit
+        WinGet, pid, PID, A
+        Process, Close, %pid%
+        SoundPlay %BEEP_FILE%
+    return
 
-#F4::
-    Suspend, Permit
-    WinGet, pid, PID, A
-    Process, Close, %pid%
-    SoundPlay %BEEP_FILE%
-return
+    $F1::
+        Send ^{PrintScreen}
+    return
 
-$F1::
-    Send ^{PrintScreen}
-return
+    #Left::
+        UpdateWindowPosition("left")
+    return
 
-#Left::
-    UpdateWindowPosition("left")
-return
+    #Right::
+        UpdateWindowPosition("right")
+    return
 
-#Right::
-    UpdateWindowPosition("right")
-return
+    #u::
+        KeyWait, LWin, U
+        SendMessage,0x112,0xF170,2,,Program Manager
+    return
 
-#u::
-    KeyWait, LWin, U
-    SendMessage,0x112,0xF170,2,,Program Manager
-return
+    !`::
+        CoordMode, ToolTip, Window
+        WinGet, ExStyle, ExStyle, A
+        If (ExStyle & 0x8) {
+            SetAlwaysOnTop("A", False)
+        } else {
+            SetAlwaysOnTop("A", True)
+            ToolTip, AlwaysOnTop=1, 0, 0
+        }
+        SetTimer, RemoveToolTip, -2000
+    return
 
-!`::
-    CoordMode, ToolTip, Window
-    WinGet, ExStyle, ExStyle, A
-    If (ExStyle & 0x8) {
+    #MButton::
+        MouseGetPos,,, hwndUnderCursor
+        WinGetPos, winX, winY, , , ahk_id %hwndUnderCursor%
+        WinGet, ExStyle, ExStyle, ahk_id %hwndUnderCursor%
+        CoordMode, ToolTip, Screen
+        If (ExStyle & 0x8) {
+            SetAlwaysOnTop("ahk_id " hwndUnderCursor, False)
+            ToolTip, AlwaysOnTop=0, %winX%, %winY%
+        } else {
+            SetAlwaysOnTop("ahk_id " hwndUnderCursor, True)
+            ToolTip, AlwaysOnTop=1, %winX%, %winY%
+        }
+        SetTimer, RemoveToolTip, -2000
+    return
+
+    #Up::
+        WinMaximize, A
+        WinSet, AlwaysOnTop, Off, A
         SetAlwaysOnTop("A", False)
-        ToolTip, AlwaysOnTop=0, 0, 0
-    } else {
+    return
+
+    ToggleWindowDivider() {
+        global WindowDividor
+        if (WindowDividor = 2/3) {
+            WindowDividor := 1/2
+        } else {
+            WindowDividor := 2/3
+        }
+    }
+
+    GetLastKeyPressTimeDelta() {
+        global LastKeyPressTime
+
+        time := (A_Hour*3600 + A_Min*60 + A_Sec)*1000 + A_MSec
+        delta := time - LastKeyPressTime
+        LastKeyPressTime := time
+        return delta
+    }
+
+    $!1::
+        if WinActive("ahk_exe FL64.exe") {
+            SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
+            return
+        }
+
+        SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
+        SetAlwaysOnTop("A", False)
+    return
+
+    $!2::
+        SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
+
         SetAlwaysOnTop("A", True)
         ToolTip, AlwaysOnTop=1, 0, 0
-    }
-    SetTimer, RemoveToolTip, -2000
-return
+        SetTimer, RemoveToolTip, -2000
+    return
 
-#MButton::
-    MouseGetPos,,, hwndUnderCursor
-    WinGetPos, winX, winY, , , ahk_id %hwndUnderCursor%
-    WinGet, ExStyle, ExStyle, ahk_id %hwndUnderCursor%
-    CoordMode, ToolTip, Screen
-    If (ExStyle & 0x8) {
-        SetAlwaysOnTop("ahk_id " hwndUnderCursor, False)
-        ToolTip, AlwaysOnTop=0, %winX%, %winY%
-        ; WinSet, Transparent, Off, ahk_id %hwndUnderCursor%
-    } else {
-        SetAlwaysOnTop("ahk_id " hwndUnderCursor, True)
-        ToolTip, AlwaysOnTop=1, %winX%, %winY%
-        ; WinSet, Transparent, 150, ahk_id %hwndUnderCursor%
-    }
-    SetTimer, RemoveToolTip, -2000
-return
+    $!3::
+        SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
+        SetAlwaysOnTop("A", False)
+    return
+
+    $!4::
+        SetWindowPos("A", 240, 135, 1440, 810)
+        SetAlwaysOnTop("A", False)
+    return
+
+    $!5::
+        SetWindowPos("A", 0, 0, 960, 540)
+        SetAlwaysOnTop("A", False)
+    return
+
+    $!6::
+        WinGetPos, , , w, h, A
+        SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
+        SetAlwaysOnTop("A", False)
+    return
+
+    #0::
+        CurrentDesktop := 1 - CurrentDesktop
+        SwitchDesktopByNumber(CurrentDesktop + 1)
+        ToggleDesktopIcons(1 - CurrentDesktop)
+    return
+
+    !#d::
+        ToggleDesktopIcons()
+    return
+
+    ^!+v::
+        Send %Clipboard%
+    return
+#If
+
+#If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_class vwr::CDesktopWin")
+    $XButton2::
+        ToggleVNC()
+    return
+#If
 
 RemoveToolTip:
     ToolTip
 return
-
-#Up::
-    WinMaximize, A
-    WinSet, AlwaysOnTop, Off, A
-    SetAlwaysOnTop("A", False)
-return
-
-ToggleWindowDivider() {
-    global WindowDividor
-    if (WindowDividor = 2/3) {
-        WindowDividor := 1/2
-    } else {
-        WindowDividor := 2/3
-    }
-}
-
-GetLastKeyPressTimeDelta() {
-    global LastKeyPressTime
-
-    time := (A_Hour*3600 + A_Min*60 + A_Sec)*1000 + A_MSec
-    delta := time - LastKeyPressTime
-    LastKeyPressTime := time
-return delta
-}
-
-$!1::
-    if WinActive("ahk_exe FL64.exe") {
-        SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
-        return
-    }
-
-    SetWindowPosF("A", 0, 0, WindowDividor, 1, False, True)
-    SetAlwaysOnTop("A", False)
-return
-
-$!2::
-    SetWindowPosF("A", WindowDividor, 0, 1-WindowDividor, 1)
-
-    delta := GetLastKeyPressTimeDelta()
-    if (delta < 1000) {
-        SetAlwaysOnTop("A", True)
-        ToolTip, AlwaysOnTop=1, 0, 0
-    } else {
-        SetAlwaysOnTop("A", False)
-        ToolTip, AlwaysOnTop=0, 0, 0
-    }
-    SetTimer, RemoveToolTip, -2000
-return
-
-$!3::
-    SetWindowPos("A", 0, 0, 1920, 1080, forceResize:=True)
-    SetAlwaysOnTop("A", False)
-return
-
-$!4::
-    SetWindowPos("A", 240, 135, 1440, 810)
-    SetAlwaysOnTop("A", False)
-return
-
-$!5::
-    SetWindowPos("A", 0, 0, 960, 540)
-    SetAlwaysOnTop("A", False)
-return
-
-$!6::
-    WinGetPos, , , w, h, A
-    SetWindowPos("A", (1920 - w) / 2, (1080 - h) / 2)
-    SetAlwaysOnTop("A", False)
-return
-
-#0::
-    CurrentDesktop := 1 - CurrentDesktop
-    SwitchDesktopByNumber(CurrentDesktop + 1)
-    ToggleDesktopIcons(1 - CurrentDesktop)
-return
-
-!#d::
-    ToggleDesktopIcons()
-return
-
-^!+v::
-    Send %Clipboard%
-return
-
-#If
-
-#If WinExist("ahk_exe tvnviewer.exe") or WinExist("ahk_class vwr::CDesktopWin")
-$XButton2::
-ToggleVNC()
-return
-#If
 
 ArrayHasValue(array, needle) {
     if not IsObject(array) {
