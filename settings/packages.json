@@ -16,6 +16,11 @@
       "packages": ["7zip"]
     }
   },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
+    }
+  },
   "adobereader": {
     "choco": {
       "packages": ["adobereader"]
@@ -355,6 +360,11 @@
       "packages": ["nodejs"]
     }
   },
+  "nomachine": {
+    "yay": {
+      "packages": ["nomachine"]
+    }
+  },
   "notepad++": {
     "choco": {
       "packages": ["notepadplusplus"]
@@ -419,11 +429,6 @@
     },
     "termux": {
       "packages": ["putty-tools"]
-    }
-  },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
     }
   },
   "python312": {
