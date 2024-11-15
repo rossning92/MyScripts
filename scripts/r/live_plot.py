@@ -74,6 +74,7 @@ def plot_time_series(
         line = line.rstrip("\n")
 
         for i, patt in enumerate(metrics):
+            patt = patt.replace("%f", r"(-?\d+\.\d+)").replace('%d', r'(-?\d+)')
             match = re.search(patt, line)
             if match:
                 if names is not None:
