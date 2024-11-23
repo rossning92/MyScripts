@@ -433,21 +433,6 @@ def update_variables(variables: Dict[str, str]):
         save_json(config_file, data)
 
 
-def read_setting(setting, name, val):
-    file = os.path.join(get_data_dir(), "%s.json" % setting)
-
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-    except IOError:
-        return
-
-    if name not in data:
-        return
-
-    return data[name]
-
-
 def write_setting(setting, name, val):
     file = os.path.join(get_data_dir(), "%s.json" % setting)
 
