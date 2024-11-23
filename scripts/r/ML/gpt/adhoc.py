@@ -57,7 +57,7 @@ def load_prompts_from_dir(prompt_dir: str) -> List[_Prompt]:
     return prompts
 
 
-if __name__ == "__main__":
+def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", nargs="?", type=str)
     parser.add_argument("-p", "--prompt", default=None, type=str)
@@ -117,3 +117,7 @@ if __name__ == "__main__":
         logging.debug(message)
         chat = ChatMenu(message=message, copy_result_and_exit=args.copy_and_exit)
         chat.exec()
+
+
+if __name__ == "__main__":
+    _main()
