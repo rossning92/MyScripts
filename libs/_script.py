@@ -4,7 +4,6 @@ import json
 import locale
 import logging
 import os
-import platform
 import re
 import shlex
 import shutil
@@ -14,9 +13,7 @@ import tempfile
 import threading
 import time
 import urllib.parse
-from dataclasses import dataclass
 from enum import IntEnum
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
@@ -32,7 +29,6 @@ from _shutil import (
     get_ahk_exe,
     get_home_path,
     get_hotkey_abbr,
-    is_in_wsl,
     load_json,
     npm_install,
     prepend_to_path,
@@ -46,6 +42,21 @@ from _shutil import (
     update_json,
     wrap_args_conemu,
     write_temp_file,
+)
+from scripting.path import (
+    get_absolute_script_path,
+    get_bin_dir,
+    get_data_dir,
+    get_default_script_config_path,
+    get_my_script_root,
+    get_relative_script_path,
+    get_script_config_file,
+    get_script_config_file_path,
+    get_script_directories,
+    get_script_dirs_config_file,
+    get_script_history_file,
+    get_temp_dir,
+    get_variable_file,
 )
 from utils.clip import get_clip, get_selection
 from utils.dotenv import load_dotenv
@@ -115,44 +126,6 @@ DEFAULT_LINUX_TERMINAL = "alacritty"
 MIGRATE_CONFIG_TO_JSON = True
 
 
-@lru_cache(maxsize=None)
-def get_script_root() -> str:
-    # Reversely enumerate the script directories in case the user overrides the
-    # default script directory root.
-    for d in reversed(get_script_directories()):
-        if d.name == "":
-            logging.debug(f"Script root: {d.path}")
-            return d.path
-
-    raise Exception("Failed to find script root directory.")
-
-
-@lru_cache(maxsize=None)
-def get_my_script_root():
-    return os.path.abspath(SCRIPT_ROOT + "/../")
-
-
-@lru_cache(maxsize=None)
-def get_data_dir() -> str:
-    data_dir_config_file = os.path.abspath(
-        os.path.join(SCRIPT_ROOT, "..", "config", "data_dir.txt")
-    )
-    if os.path.exists(data_dir_config_file):
-        with open(data_dir_config_file, "r") as f:
-            data_dir = f.read().strip()
-            if not os.path.isabs(data_dir):  # if relative path
-                data_dir = os.path.normpath(
-                    os.path.join(
-                        get_my_script_root(), data_dir.replace("/", os.path.sep)
-                    )
-                )
-
-    else:
-        data_dir = os.path.abspath("%s/../tmp/data/%s" % (SCRIPT_ROOT, platform.node()))
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
-
-
 def setup_env_var(env):
     root = get_my_script_root()
 
@@ -162,55 +135,6 @@ def setup_env_var(env):
     env["PYTHONPATH"] = os.path.join(root, "libs")
     env["MY_DATA_DIR"] = get_data_dir()
     env["MY_TEMP_DIR"] = get_temp_dir()
-
-
-def get_bin_dir():
-    return os.path.abspath(SCRIPT_ROOT + "/../bin")
-
-
-@lru_cache(maxsize=None)
-def get_script_dirs_config_file():
-    config_json_file = os.path.join(get_data_dir(), "script_directories.json")
-    return config_json_file
-
-
-@dataclass
-class ScriptDirectory:
-    name: str
-    path: str  # absolute path of script directory
-
-
-@lru_cache(maxsize=None)
-def get_script_directories() -> List[ScriptDirectory]:
-    directories: List[ScriptDirectory] = []
-
-    # Default script root path
-    directories.append(
-        ScriptDirectory(name="", path=os.path.join(get_my_script_root(), "scripts"))
-    )
-
-    config_file = get_script_dirs_config_file()
-    data = load_json(config_file, default=[])
-
-    for item in data:
-        name = item["name"]
-
-        directory = item["directory"]
-        if is_in_wsl():
-            directory = convert_to_unix_path(directory, wsl=True)
-
-        if not os.path.isabs(directory):  # is relative path
-            directory = os.path.abspath(
-                os.path.join(
-                    # Relative to "script_directories.json" config file
-                    os.path.dirname(config_file),
-                    directory,
-                )
-            )
-
-        directories.append(ScriptDirectory(name=name, path=directory))
-
-    return directories
 
 
 def add_script_dir(d, prefix=None):
@@ -224,10 +148,6 @@ def add_script_dir(d, prefix=None):
     # Add new item
     data.append({"name": prefix, "directory": d})
     save_json(config_file, data)
-
-
-def get_script_history_file():
-    return os.path.join(os.path.join(get_data_dir(), "last_script.json"))
 
 
 def get_last_script_and_args() -> Tuple[str, Any]:
@@ -351,29 +271,6 @@ def exec_cmd(cmd):
 def _args_to_str(args, shell_type):
     assert type(args) in [list, tuple]
     return " ".join([quote_arg(x, shell_type=shell_type) for x in args])
-
-
-@lru_cache(maxsize=None)
-def get_variable_edit_history_file():
-    return os.path.join(get_data_dir(), "variable_edit_history.json")
-
-
-@lru_cache(maxsize=None)
-def get_variable_file():
-    variable_file_v2 = os.path.join(get_data_dir(), "variables_v2.json")
-
-    # TODO: migrate to new variable file
-    if True:
-        if not os.path.exists(variable_file_v2):
-            variable_file_v1 = os.path.join(get_data_dir(), "variables.json")
-            if os.path.exists(variable_file_v1):
-                shutil.copy(variable_file_v1, get_variable_edit_history_file())
-
-                variables = load_json(variable_file_v1)
-                variables_v2 = {k: v[0] for k, v in variables.items()}
-                save_json(variable_file_v2, variables_v2)
-
-    return variable_file_v2
 
 
 def get_all_variables() -> Dict[str, str]:
@@ -600,37 +497,6 @@ def wrap_args_wt(
         return [WINDOWS_TERMINAL_EXEC, "-p", title] + args
     else:
         return [WINDOWS_TERMINAL_EXEC] + args
-
-
-def get_relative_script_path(path: str) -> str:
-    path = path.replace("\\", "/")
-    for d in get_script_directories():
-        prefix = d.path.replace("\\", "/") + "/"
-        if path.startswith(prefix):
-            path = (d.name + "/" if d.name else "") + path[len(prefix) :]
-            break
-    return path
-
-
-def get_absolute_script_path(path: str):
-    # If already absolute path
-    if os.path.isabs(path):
-        return path
-
-    script_dirs = get_script_directories()
-    path_arr = path.split("/")
-    if path_arr:
-        if path_arr[0] == "r" or path_arr[0] == "ext":
-            path_arr.insert(0, os.path.join(get_my_script_root(), "scripts"))
-        else:
-            matched_script_dir = next(
-                filter(lambda d: d.name == path_arr[0], script_dirs), None
-            )
-            if matched_script_dir:
-                path_arr[0] = matched_script_dir.path
-            else:
-                path_arr.insert(0, get_script_root())
-    return os.path.join(*path_arr)
 
 
 class LogPipe(threading.Thread):
@@ -2025,14 +1891,6 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
     }
 
 
-def get_script_config_file_path(script_path: str) -> str:
-    return os.path.splitext(script_path)[0] + ".config.json"
-
-
-def get_default_script_config_path(script_path: str) -> str:
-    return os.path.join(os.path.dirname(script_path), ".default.config.json")
-
-
 def _load_script_config_file(file: str) -> Dict[str, Union[str, bool, None]]:
     config = load_json(file)
     return config
@@ -2054,14 +1912,6 @@ def get_script_folder_level_config(
         return _load_script_config_file(config_file_path)
     else:
         return None
-
-
-def get_script_config_file(script_path: str) -> Optional[str]:
-    f = get_script_config_file_path(script_path)
-    if os.path.exists(f):
-        return f
-
-    return None
 
 
 def load_script_config(script_path) -> Dict[str, Union[str, bool, None]]:
@@ -2250,10 +2100,3 @@ def try_reload_scripts_autorun(scripts_autorun: List[Script]):
 def render_script(script_path) -> str:
     script = Script(script_path)
     return script.render()
-
-
-@lru_cache(maxsize=None)
-def get_temp_dir() -> str:
-    temp_dir = os.path.join(tempfile.gettempdir(), "MyScripts")
-    os.makedirs(temp_dir, exist_ok=True)
-    return temp_dir

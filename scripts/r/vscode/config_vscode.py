@@ -6,8 +6,8 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from _script import get_my_script_root
 from _shutil import download, get_home_path, prepend_to_path, unzip
+from scripting.path import get_my_script_root
 
 if sys.platform == "win32":
     prepend_to_path([r"C:\Program Files\Microsoft VS Code\bin"])

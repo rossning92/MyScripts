@@ -9,19 +9,21 @@ from _script import (
     Script,
     _load_script_config_file,
     _save_script_config_file,
-    get_absolute_script_path,
     get_all_scripts,
-    get_data_dir,
     get_default_script_config,
+    save_json,
+)
+from _shutil import quote_arg
+from scripting.path import (
+    get_absolute_script_path,
+    get_data_dir,
     get_my_script_root,
     get_relative_script_path,
     get_script_config_file,
     get_script_config_file_path,
     get_script_directories,
     get_script_root,
-    save_json,
 )
-from _shutil import quote_arg
 from utils.clip import set_clip
 from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
 from utils.menu import Menu

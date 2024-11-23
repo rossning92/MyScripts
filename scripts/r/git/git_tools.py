@@ -3,7 +3,6 @@ import subprocess
 import sys
 from urllib.request import urlretrieve
 
-from _script import get_my_script_root
 from _shutil import (
     call2,
     call_echo,
@@ -14,6 +13,7 @@ from _shutil import (
     get_time_str,
     print2,
 )
+from scripting.path import get_my_script_root
 from utils.menu.actionmenu import ActionMenu
 from utils.shutil import shell_open
 

@@ -384,7 +384,7 @@ class Menu(Generic[T]):
                 self._custom_commands.remove(cmd)
 
     def get_history_file(self):
-        from _script import get_data_dir
+        from scripting.path import get_data_dir
 
         return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
 

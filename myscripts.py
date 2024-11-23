@@ -13,6 +13,12 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
+from scripting.path import (
+    get_data_dir,
+    get_script_config_file_path,
+    get_variable_edit_history_file,
+)
+
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -28,11 +34,8 @@ from _ext import (
 )
 from _script import (
     Script,
-    get_data_dir,
     get_default_script_config,
-    get_script_config_file_path,
     get_script_variables,
-    get_variable_edit_history_file,
     is_instance_running,
     setup_env_var,
     try_reload_scripts_autorun,

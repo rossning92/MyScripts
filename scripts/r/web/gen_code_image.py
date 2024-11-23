@@ -2,8 +2,8 @@ import argparse
 import os
 import re
 
-from _script import get_script_root
 from _shutil import mkdir, npm_install
+from scripting.path import get_script_root
 from web.webscreenshot2 import webscreenshot
 
 

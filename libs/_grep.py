@@ -4,7 +4,8 @@ import subprocess
 import sys
 
 import yaml
-from _script import get_all_variables, get_data_dir
+from _script import get_all_variables
+from scripting.path import get_data_dir
 from utils.editor import open_code_editor
 from utils.menu.select import select_option
 

@@ -3,7 +3,7 @@ import os
 import time
 from typing import Iterable, Iterator, List, Optional
 
-from _script import get_relative_script_path
+from scripting.path import get_relative_script_path
 from utils.editor import open_code_editor
 from utils.menu import Menu
 from utils.menu.textinput import TextInput

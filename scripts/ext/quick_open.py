@@ -1,7 +1,7 @@
 import glob
 import os
 
-from _script import get_my_script_root
+from scripting.path import get_my_script_root
 from utils.editor import open_code_editor
 from utils.menu import Menu
 

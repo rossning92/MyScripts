@@ -13,9 +13,6 @@ from _script import (
     execute_script_autorun,
     get_all_script_access_time,
     get_all_scripts,
-    get_data_dir,
-    get_my_script_root,
-    get_script_history_file,
 )
 from _shutil import (
     clear_env_var_explorer,
@@ -28,6 +25,7 @@ from _shutil import (
     update_env_var_explorer,
 )
 from _term import clear_terminal
+from scripting.path import get_data_dir, get_my_script_root, get_script_history_file
 from utils.template import render_template_file
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
