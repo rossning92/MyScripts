@@ -9,10 +9,10 @@ from _shutil import load_json, save_json
 
 from utils.clip import get_clip
 
-from ..menu import Menu
+from . import Menu
 
 
-class TextInput(Menu):
+class InputMenu(Menu):
     def __init__(
         self,
         items: Optional[List[str]] = None,
@@ -102,9 +102,9 @@ class TextInput(Menu):
             return text
 
     def __insert_dir_path(self):
-        from ..menu.filemgr import FileManager
+        from .filemenu import FileMenu
 
-        dir_path = FileManager(
+        dir_path = FileMenu(
             goto=self.get_input(),
             prompt="insert dir path",
         ).select_directory()
@@ -112,9 +112,9 @@ class TextInput(Menu):
             self.set_input(dir_path)
 
     def __insert_file_path(self):
-        from ..menu.filemgr import FileManager
+        from .filemenu import FileMenu
 
-        file_path = FileManager(
+        file_path = FileMenu(
             goto=self.get_input(),
             prompt="insert file path",
         ).select_file()

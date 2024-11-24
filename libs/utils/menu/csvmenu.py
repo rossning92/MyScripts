@@ -4,7 +4,7 @@ from typing import List, Optional, OrderedDict
 from utils.editor import edit_text
 
 from ..menu import Menu
-from .textinput import TextInput
+from .inputmenu import InputMenu
 
 COLUMN_WIDTH = 16
 COLUMN_SEPARATOR = " "
@@ -189,7 +189,7 @@ class RowMenu(Menu[CsvCell]):
             if external_editor:
                 new_value = edit_text(text=value).rstrip()
             else:
-                new_value = TextInput(
+                new_value = InputMenu(
                     prompt=f"edit {cell.name}",
                     text=value,
                     items=self.df.get_unique_values_for_column(cell.name),

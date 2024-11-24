@@ -1,4 +1,4 @@
-from ..menu import Menu
+from . import Menu
 
 
 class ConfirmMenu(Menu):

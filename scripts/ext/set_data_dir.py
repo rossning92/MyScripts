@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from utils.menu.filemgr import FileManager
+from utils.menu.filemenu import FileMenu
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         with open(config_file) as f:
             cur_path = f.read()
 
-    path = FileManager(goto=cur_path, prompt="data dir =").select_directory()
+    path = FileMenu(goto=cur_path, prompt="data dir =").select_directory()
     if path is not None:
         with open(config_file, "w") as f:
             f.write(path)

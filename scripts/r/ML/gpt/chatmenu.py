@@ -30,7 +30,13 @@ class ChatMenu(Menu[_Line]):
         model: Optional[str] = None,
         copy_result_and_exit=False,
         new_conversation=True,
+        data_file: Optional[str] = None,
     ) -> None:
+        self.__data_file = (
+            data_file
+            if data_file
+            else os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_conversations.json")
+        )
         self.__model = model
         self.__lines: List[_Line] = []
         self.__data: Dict[str, Any] = {"conversations": [{"messages": []}]}
@@ -108,11 +114,8 @@ class ChatMenu(Menu[_Line]):
         self.on_message(content)
         self.save_conversations()
 
-    def __get_data_file(self) -> str:
-        return os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_conversations.json")
-
     def save_conversations(self):
-        save_json(self.__get_data_file(), self.__data)
+        save_json(self.__data_file, self.__data)
 
     def populate_lines(self):
         self.__lines.clear()
@@ -130,8 +133,8 @@ class ChatMenu(Menu[_Line]):
         self.update_screen()
 
     def load_conversations(self):
-        if os.path.isfile(self.__get_data_file()):
-            self.__data = load_json(self.__get_data_file())
+        if os.path.isfile(self.__data_file):
+            self.__data = load_json(self.__data_file)
             self.populate_lines()
 
     def new_conversation(self, first_message: Optional[str] = None):

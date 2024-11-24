@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 
-from utils.menu.logviewer import LogViewerMenu
+from utils.menu.logmenu import LogMenu
 from utils.slugify import slugify
 
 if __name__ == "__main__":
@@ -25,7 +25,7 @@ if __name__ == "__main__":
             )
         with open(file, "w") as f:
             ps = subprocess.Popen(args.cmdline, stdout=f, stderr=f)
-            LogViewerMenu(
+            LogMenu(
                 files=[file],
                 filter=args.filter,
                 preset_dir=preset_dir,
@@ -33,7 +33,7 @@ if __name__ == "__main__":
             ps.wait()
 
     else:
-        LogViewerMenu(
+        LogMenu(
             files=args.files,
             filter=args.filter,
             preset_dir=preset_dir,

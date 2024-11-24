@@ -5,11 +5,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from utils.clip import get_clip, set_clip
 
-from ..menu import Menu
-from ..menu.textinput import TextInput
+from . import Menu
+from .inputmenu import InputMenu
 
 
-class _DictValueEditMenu(TextInput):
+class _DictValueEditMenu(InputMenu):
     def __init__(
         self,
         dict_: Dict,

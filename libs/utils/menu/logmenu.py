@@ -5,7 +5,7 @@ from collections import OrderedDict
 from typing import List, Optional
 
 from . import Menu
-from .textinput import TextInput
+from .inputmenu import InputMenu
 
 
 class _SelectPresetMenu(Menu[str]):
@@ -26,7 +26,7 @@ class _SelectPresetMenu(Menu[str]):
         )
 
 
-class LogViewerMenu(Menu[str]):
+class LogMenu(Menu[str]):
     def __init__(
         self,
         files: List[str],
@@ -98,7 +98,7 @@ class LogViewerMenu(Menu[str]):
     def __save_preset(self):
         filter = self.get_input()
         if filter:
-            preset_name = TextInput(prompt="save preset").request_input()
+            preset_name = InputMenu(prompt="save preset").request_input()
             if preset_name:
                 preset_file = os.path.join(self.preset_dir, f"{preset_name}.json")
                 with open(preset_file, "w", encoding="utf-8") as f:

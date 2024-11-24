@@ -1,7 +1,7 @@
 import os
 
-from utils.menu.filemgr import FileManager
+from utils.menu.filemenu import FileMenu
 
 if __name__ == "__main__":
     script_path = os.environ["SCRIPT"]
-    FileManager(goto=script_path).exec()
+    FileMenu(goto=script_path).exec()

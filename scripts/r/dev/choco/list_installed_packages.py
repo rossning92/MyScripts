@@ -2,7 +2,7 @@ import subprocess
 from typing import List
 
 from utils.menu import Menu
-from utils.menu.confirm import confirm
+from utils.menu.confirmmenu import confirm
 
 
 class ChocoPackageMenu(Menu):

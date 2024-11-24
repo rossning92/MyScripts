@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
 
-from utils.menu.jsonedit import JsonEditWindow
+from utils.menu.jsoneditmenu import JsonEditMenu
 
 if __name__ == "__main__":
-    JsonEditWindow(
+    JsonEditMenu(
         os.path.join(os.environ["MY_DATA_DIR"], "proxy_settings.json"),
         default={"http_proxy": ""},
     ).exec()

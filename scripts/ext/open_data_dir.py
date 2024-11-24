@@ -1,6 +1,6 @@
 import os
 
-from utils.menu.filemgr import FileManager
+from utils.menu.filemenu import FileMenu
 
 if __name__ == "__main__":
-    FileManager(os.environ["MY_DATA_DIR"]).exec()
+    FileMenu(os.environ["MY_DATA_DIR"]).exec()

@@ -2,8 +2,8 @@ import argparse
 import os
 
 from _script import add_script_dir
-from utils.menu.filemgr import FileManager
-from utils.menu.textinput import TextInput
+from utils.menu.filemenu import FileMenu
+from utils.menu.inputmenu import InputMenu
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -15,12 +15,12 @@ if __name__ == "__main__":
         script_dir_path = args.script_dir
         prefix = args.prefix
     else:
-        script_dir_path = FileManager(prompt="script dir").select_directory()
+        script_dir_path = FileMenu(prompt="script dir").select_directory()
         if not script_dir_path:
             exit(0)
 
         script_dir_name = os.path.basename(script_dir_path)
-        prefix = TextInput(
+        prefix = InputMenu(
             prompt="prefix", text=os.path.basename(script_dir_path)
         ).request_input()
         if not prefix:

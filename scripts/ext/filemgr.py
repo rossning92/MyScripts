@@ -1,6 +1,6 @@
 import argparse
 
-from utils.menu.filemgr import FileManager
+from utils.menu.filemenu import FileMenu
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -17,4 +17,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    FileManager(goto=args.goto, prompt=args.prompt).exec()
+    FileMenu(goto=args.goto, prompt=args.prompt).exec()

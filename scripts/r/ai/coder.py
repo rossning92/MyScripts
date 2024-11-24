@@ -1,33 +1,14 @@
 import os
 import re
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 from ML.gpt.chatmenu import ChatMenu
-from utils.menu.confirm import ConfirmMenu
-from utils.menu.filemgr import FileManager
+from utils.menu.confirmmenu import ConfirmMenu
+from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 
-
-def get_edit_blocks(input_string):
-    code_block_pattern = r"^(.*)\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE\n```"
-    matches = re.findall(code_block_pattern, input_string, re.MULTILINE)
-    return matches
-
-
-def apply_changes(file_list: List[Tuple[str, str, str]]):
-    for file_path, search, replace in file_list:
-        # If search block is empty, create a new file
-        if not search:
-            with open(file_path, "w", encoding="utf-8") as file:  # Create a new file
-                file.write(replace)
-        else:
-            with open(file_path, "r+", encoding="utf-8") as file:
-                content = file.read()
-                updated_content = content.replace(search, replace)
-                file.seek(0)
-                file.write(updated_content)
-                file.truncate()
+setting_dir = ".coder"
 
 
 prompt = """
@@ -80,6 +61,27 @@ If you want to put code in a new file, use a *SEARCH/REPLACE block* with:
 """
 
 
+def get_edit_blocks(input_string):
+    code_block_pattern = r"^\**(.*)\**\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE\n```"
+    matches = re.findall(code_block_pattern, input_string, re.MULTILINE)
+    return matches
+
+
+def apply_changes(file_list: List[Tuple[str, str, str]]):
+    for file_path, search, replace in file_list:
+        # If search block is empty, create a new file
+        if not search:
+            with open(file_path, "w", encoding="utf-8") as file:  # Create a new file
+                file.write(replace)
+        else:
+            with open(file_path, "r+", encoding="utf-8") as file:
+                content = file.read()
+                updated_content = content.replace(search, replace)
+                file.seek(0)
+                file.write(updated_content)
+                file.truncate()
+
+
 class SelectCodeBlockMenu(TextMenu):
     def __init__(self, file: str, **kwargs):
         super().__init__(file=file, prompt="select block", **kwargs)
@@ -93,32 +95,50 @@ class FileListMenu(ListEditMenu):
     def __init__(self):
         super().__init__(
             prompt="file list",
-            json_file="tmp/context.json",
+            json_file=os.path.join(setting_dir, "context.json"),
             wrap_text=True,
         )
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
 
     def get_item_text(self, item: Any) -> str:
-        return f'{item["file"]}:\n {item["content"]}'
+        file = item["file"]
+        content = item["content"]
+        if content:
+            return f'{file}:\n{item["content"]}'
+        else:
+            return file
 
     def add_file(self):
-        menu = FileManager(prompt="add file", goto=os.getcwd())
+        menu = FileMenu(prompt="add file", goto=os.getcwd())
         file = menu.select_file()
         if file is not None:
+            content: Optional[str]
             with open(file, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            m = SelectCodeBlockMenu(file)
-            m.exec()
-            lines = list(m.get_selected_items())
-            content = "\n".join(lines)
+            select_code_block_menu = SelectCodeBlockMenu(file)
+            select_code_block_menu.exec()
+            if select_code_block_menu.is_cancelled:
+                content = None
+            else:
+                lines = list(select_code_block_menu.get_selected_items())
+                content = "\n".join(lines)
 
             self.append_item({"file": file, "content": content})
 
+    def clear(self):
+        self.items.clear()
+
     def get_file_list_string(self) -> str:
-        return "\n".join(
-            [f'{file["file"]}\n```\n{file["content"]}\n```' for file in self.items]
-        )
+        result = []
+        for item in self.items:
+            file = item["file"]
+            content = item["content"]
+            if content is None:
+                with open(file, "r", encoding="utf-8") as f:
+                    content = f.read()
+            result.append(f"{file}\n```\n{content}\n```")
+        return "\n".join(result)
 
 
 class ApplyChangeMenu(ConfirmMenu):
@@ -134,12 +154,13 @@ class ApplyChangeMenu(ConfirmMenu):
 
 class CoderMenu(ChatMenu):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(data_file=os.path.join(setting_dir, "chat.json"), **kwargs)
         self.__file_list_menu = FileListMenu()
         self.__update_message()
 
         self.add_command(self.__add_file, hotkey="alt+a")
         self.add_command(self.__apply_change, hotkey="alt+enter")
+        self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
 
     def __add_file(self):
@@ -153,6 +174,10 @@ class CoderMenu(ChatMenu):
         self.__file_list_menu.exec()
         self.__update_message()
 
+    def __clear_files(self):
+        self.__file_list_menu.clear()
+        self.__update_message()
+
     def on_message(self, content: str):
         self.__apply_change()
 
@@ -161,7 +186,13 @@ class CoderMenu(ChatMenu):
         if len(messages) <= 0:
             return
 
-        content = messages[-1]["content"]
+        selected_line = self.get_selected_item()
+        if selected_line is None:
+            return
+
+        selected_message = self.get_messages()[selected_line.message_index]
+        content = selected_message["content"]
+
         blocks = get_edit_blocks(content)
         if len(blocks) > 0:
             menu = ApplyChangeMenu(items=blocks)
@@ -182,4 +213,5 @@ class CoderMenu(ChatMenu):
 
 
 if __name__ == "__main__":
+    os.makedirs(setting_dir, exist_ok=True)
     CoderMenu().exec()

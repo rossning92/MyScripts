@@ -56,11 +56,11 @@ from utils.clip import set_clip
 from utils.fileutils import read_last_line
 from utils.logger import setup_logger
 from utils.menu import Menu
-from utils.menu.confirm import confirm
-from utils.menu.dictedit import DictEditMenu
-from utils.menu.filemgr import FileManager
-from utils.menu.logviewer import LogViewerMenu
-from utils.menu.textinput import TextInput
+from utils.menu.confirmmenu import confirm
+from utils.menu.dicteditmenu import DictEditMenu
+from utils.menu.filemenu import FileMenu
+from utils.menu.inputmenu import InputMenu
+from utils.menu.logmenu import LogMenu
 from utils.platform import is_termux
 from utils.timeutil import time_diff_str
 from utils.tmux import is_in_tmux
@@ -121,7 +121,7 @@ class EditVariableMenu(DictEditMenu):
     def __select_directory(self):
         key = self.get_selected_key()
         if key is not None:
-            dir_path = FileManager(goto=self.get_value(key)).select_directory()
+            dir_path = FileMenu(goto=self.get_value(key)).select_directory()
             if dir_path is not None:
                 self.set_dict_value(key, dir_path)
 
@@ -177,7 +177,7 @@ class _ScheduledScriptMenu(Menu[_ScheduledScript]):
         if item is not None:
             script_log_file = item.script.get_script_log_file()
             if os.path.exists(script_log_file):
-                LogViewerMenu(files=[script_log_file]).exec()
+                LogMenu(files=[script_log_file]).exec()
 
 
 def get_scheduled_script_log_preview(script_manager: ScriptManager) -> List[str]:
@@ -214,7 +214,7 @@ class _MyScriptMenu(Menu[Script]):
         self.__cmdline_args: List[str] = cmdline_args if cmdline_args else []
         self.__auto_infer_cmdline_args: bool = not bool(cmdline_args)
         self.__last_copy_time = 0.0
-        self.__filemgr = FileManager()
+        self.__filemgr = FileMenu()
         self.__out_to_file = out_to_file
 
         super().__init__(
@@ -257,7 +257,7 @@ class _MyScriptMenu(Menu[Script]):
     def _set_cmdline_args(self):
         script = self.get_selected_script()
         if script:
-            input = TextInput(prompt="args").request_input()
+            input = InputMenu(prompt="args").request_input()
             if input is not None:
                 self.__cmdline_args[:] = [input]
 
@@ -680,17 +680,26 @@ def _main():
         print(f"is_instance_running(): {is_instance_running()}")
         return
 
-    input_text = args.input if (args.input != "r" or args.input != "run") else None
-
     # Check if the daemon should be started.
     start_daemon = True
-    if is_instance_running():
+    if args.no_daemon:
         start_daemon = False
-        logging.debug("Already instance running, set start_daemon = False")
-    if input_text:
+        logging.debug("--no-daemon is specified. Set start_daemon = False")
+    elif args.input:
         start_daemon = False
-        logging.debug("input_text is not null, set start_daemon = False")
-    logging.debug(f"start_daemon: {start_daemon}")
+        logging.debug("input_text is specified. Set start_daemon = False")
+    elif args.args:
+        start_daemon = False
+        logging.debug("args is specified. Set start_daemon = False")
+    elif args.out_to_file:
+        start_daemon = False
+        logging.debug("out_to_file is specified. Set start_daemon = False")
+    elif is_instance_running():
+        start_daemon = False
+        logging.debug("Instance is already running. Set start_daemon to False.")
+    else:
+        logging.debug(f"start_daemon = {start_daemon}")
+
     logging.info("Python executable: %s" % sys.executable)
 
     # Check if we should run in tmux.
@@ -735,7 +744,6 @@ def _main():
         script_server = ScriptServer(script_manager=script_manager)
         script_server.start_server()
 
-    no_daemon = args.no_daemon or bool(args.args) or bool(args.out_to_file)
     run_script_and_quit = (
         bool(args.input) or args.quit or bool(args.args) or bool(args.out_to_file)
     )
@@ -743,8 +751,8 @@ def _main():
         try:
             _MyScriptMenu(
                 cmdline_args=args.args,
-                input_text=input_text,
-                no_daemon=no_daemon,
+                input_text=args.input,
+                no_daemon=not start_daemon,
                 run_script_and_quit=run_script_and_quit,
                 script_manager=script_manager,
                 out_to_file=args.out_to_file,

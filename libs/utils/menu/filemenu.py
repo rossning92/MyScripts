@@ -13,13 +13,13 @@ from _shutil import get_home_path
 from utils.clip import set_clip
 from utils.editor import open_code_editor
 from utils.fileutils import human_readable_size
-from utils.menu.logviewer import LogViewerMenu
+from utils.menu.logmenu import LogMenu
 from utils.platform import is_termux
 from utils.shutil import shell_open
 
 from . import Menu
-from .confirm import confirm
-from .textinput import TextInput
+from .confirmmenu import confirm
+from .inputmenu import InputMenu
 
 
 def get_download_dir():
@@ -95,7 +95,7 @@ class _File:
             return f"{self.name}\t({human_readable_size(self.file_size)})"
 
 
-class FileManager(Menu[_File]):
+class FileMenu(Menu[_File]):
     SELECT_MODE_NONE = 0
     SELECT_MODE_FILE = 1
     SELECT_MODE_DIRECTORY = 2
@@ -114,7 +114,7 @@ class FileManager(Menu[_File]):
         self.__last_copy_to_path: Optional[str] = None
         self.__prompt: Optional[str] = prompt
         self.__save_states: bool = save_states if goto is None else False
-        self.__select_mode: int = FileManager.SELECT_MODE_NONE
+        self.__select_mode: int = FileMenu.SELECT_MODE_NONE
         self.__selected_file_dict: Dict[str, str] = {}
         self.__selected_files_full_path: List[str] = []
         self.__sort_by = "name"
@@ -155,7 +155,7 @@ class FileManager(Menu[_File]):
         return self.__config.cur_dir
 
     def _create_new_dir(self):
-        new_dir_name = TextInput(prompt="create directory").request_input()
+        new_dir_name = InputMenu(prompt="create directory").request_input()
         if new_dir_name:
             current_dir = self.get_cur_dir()
             new_dir_path = os.path.join(current_dir, new_dir_name)
@@ -205,7 +205,7 @@ class FileManager(Menu[_File]):
             files = self.get_selected_files()
 
         if len(files) > 0:
-            filemgr = FileManager(
+            filemgr = FileMenu(
                 goto=(
                     self.__last_copy_to_path
                     if self.__last_copy_to_path is not None
@@ -267,7 +267,7 @@ class FileManager(Menu[_File]):
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
-            new_name = TextInput(prompt="rename", text=selected.name).request_input()
+            new_name = InputMenu(prompt="rename", text=selected.name).request_input()
             if not new_name:
                 return
 
@@ -279,7 +279,7 @@ class FileManager(Menu[_File]):
             self._refresh_cur_dir()
 
     def _goto(self):
-        path = TextInput(
+        path = InputMenu(
             items=self.__config.path_history,
             prompt="goto",
             return_selection_if_empty=True,
@@ -292,7 +292,7 @@ class FileManager(Menu[_File]):
             self.goto_directory(path)
 
     def select_file(self) -> Optional[str]:
-        self.__select_mode = FileManager.SELECT_MODE_FILE
+        self.__select_mode = FileMenu.SELECT_MODE_FILE
         self.exec()
         return (
             self.__selected_files_full_path[0]
@@ -301,12 +301,12 @@ class FileManager(Menu[_File]):
         )
 
     def select_files(self) -> List[str]:
-        self.__select_mode = FileManager.SELECT_MODE_FILE
+        self.__select_mode = FileMenu.SELECT_MODE_FILE
         self.exec()
         return self.__selected_files_full_path
 
     def select_directory(self) -> Optional[str]:
-        self.__select_mode = FileManager.SELECT_MODE_DIRECTORY
+        self.__select_mode = FileMenu.SELECT_MODE_DIRECTORY
         self.exec()
         return (
             self.__selected_files_full_path[0]
@@ -482,7 +482,7 @@ class FileManager(Menu[_File]):
     def open_file(self, full_path: str):
         _, ext = os.path.splitext(full_path)
         if ext.lower() == ".log":
-            LogViewerMenu(files=[full_path]).exec()
+            LogMenu(files=[full_path]).exec()
         elif ext.lower() in [".zip", ".gz"]:
             subprocess.check_call(["run_script", "r/unzip.py", full_path])
             out_dir = os.path.splitext(full_path)[0]
@@ -491,7 +491,7 @@ class FileManager(Menu[_File]):
             shell_open(full_path)
 
     def on_enter_pressed(self):
-        if self.__select_mode == FileManager.SELECT_MODE_DIRECTORY:
+        if self.__select_mode == FileMenu.SELECT_MODE_DIRECTORY:
             self.__selected_files_full_path = [self.get_cur_dir()]
             return super().on_enter_pressed()
 
@@ -507,14 +507,12 @@ class FileManager(Menu[_File]):
                     return True
                 elif os.path.isfile(full_path):
                     self.__selected_files_full_path = [full_path]
-                    if self.__select_mode == FileManager.SELECT_MODE_FILE:
+                    if self.__select_mode == FileMenu.SELECT_MODE_FILE:
                         return super().on_enter_pressed()
                     else:
                         self.open_file(full_path)
                         return True
-            elif (
-                len(selected) > 1 and self.__select_mode == FileManager.SELECT_MODE_FILE
-            ):
+            elif len(selected) > 1 and self.__select_mode == FileMenu.SELECT_MODE_FILE:
                 self.__selected_files_full_path = [
                     os.path.join(self.get_cur_dir(), x.name) for x in selected
                 ]

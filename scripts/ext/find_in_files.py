@@ -6,7 +6,7 @@ from typing import Iterable, Iterator, List, Optional
 from scripting.path import get_relative_script_path
 from utils.editor import open_code_editor
 from utils.menu import Menu
-from utils.menu.textinput import TextInput
+from utils.menu.inputmenu import InputMenu
 
 
 class _MatchedLine:
@@ -70,7 +70,7 @@ class _FindResultMenu(Menu[_MatchedLine]):
 
 
 def find_in_files(files: Iterable[str], history_file: Optional[str] = None):
-    text_input = TextInput(history_file=history_file)
+    text_input = InputMenu(history_file=history_file)
     keyword = text_input.request_input()
 
     if keyword:

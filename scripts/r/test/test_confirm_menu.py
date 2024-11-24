@@ -1,4 +1,4 @@
-from utils.menu.confirm import ConfirmMenu
+from utils.menu.confirmmenu import ConfirmMenu
 
 if __name__ == "__main__":
     menu = ConfirmMenu()

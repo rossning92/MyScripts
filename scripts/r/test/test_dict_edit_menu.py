@@ -1,4 +1,4 @@
-from utils.menu.dictedit import DictEditMenu
+from utils.menu.dicteditmenu import DictEditMenu
 
 if __name__ == "__main__":
     menu = DictEditMenu(

@@ -6,7 +6,7 @@ from typing import Iterator, List, Optional
 
 from _shutil import load_json, save_json
 from utils.menu import Menu
-from utils.menu.textinput import TextInput
+from utils.menu.inputmenu import InputMenu
 from utils.shutil import shell_open
 
 
@@ -50,7 +50,7 @@ class FlowChartMenu(Menu[Node]):
             return False
 
     def __add_node(self):
-        name = TextInput(
+        name = InputMenu(
             prompt=f"{self.__cur_node} ::", items=[node.name for node in self.__nodes]
         ).request_input()
         if name:
@@ -77,7 +77,7 @@ class FlowChartMenu(Menu[Node]):
 
     def __add_node_to(self):
         if self.__cur_node:
-            name = TextInput(
+            name = InputMenu(
                 prompt=f"{self.__cur_node} -->",
                 items=[node.name for node in self.__nodes],
             ).request_input()
@@ -90,7 +90,7 @@ class FlowChartMenu(Menu[Node]):
 
     def __add_node_from(self):
         if self.__cur_node:
-            name = TextInput(
+            name = InputMenu(
                 prompt=f"{self.__cur_node} <--",
                 items=[node.name for node in self.__nodes],
             ).request_input()
@@ -165,7 +165,7 @@ class FlowChartMenu(Menu[Node]):
             return
         old_name = node.name
 
-        new_name = TextInput(prompt=f"rename {old_name}>").request_input()
+        new_name = InputMenu(prompt=f"rename {old_name}>").request_input()
         if not new_name:
             return
 

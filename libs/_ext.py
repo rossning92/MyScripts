@@ -27,7 +27,7 @@ from scripting.path import (
 from utils.clip import set_clip
 from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
 from utils.menu import Menu
-from utils.menu.dictedit import DictEditMenu
+from utils.menu.dicteditmenu import DictEditMenu
 from utils.template import render_template_file
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))

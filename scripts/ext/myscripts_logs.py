@@ -1,7 +1,8 @@
 import os
 
-from utils.menu.logviewer import LogViewerMenu
+from utils.menu.logmenu import LogMenu
 
-LogViewerMenu(
-    files=[os.path.join(os.environ["MY_DATA_DIR"], "MyScripts.log")], filter=" (I|W|E) .*"
+LogMenu(
+    files=[os.path.join(os.environ["MY_DATA_DIR"], "MyScripts.log")],
+    filter=" (I|W|E) .*",
 ).exec()

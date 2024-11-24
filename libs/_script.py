@@ -862,12 +862,12 @@ class Script:
 
         # Override environment variable with user input.
         if self.cfg["env.userInput"]:
-            from utils.menu.textinput import TextInput
+            from utils.menu.inputmenu import InputMenu
 
             assert isinstance(self.cfg["env.userInput"], str)
             env_var_names = self.cfg["env.userInput"].split()
             for name in env_var_names:
-                val = TextInput(prompt="input " + name).request_input()
+                val = InputMenu(prompt="input " + name).request_input()
                 if not val:
                     return True
                 variables[name] = val
@@ -896,9 +896,9 @@ class Script:
                 arg_list.append(temp_file)
 
             elif self.cfg["args.userInput"]:
-                from utils.menu.textinput import TextInput
+                from utils.menu.inputmenu import InputMenu
 
-                text = TextInput().request_input()
+                text = InputMenu().request_input()
                 if not text:
                     return True
                 arg_list.append(text)
@@ -917,17 +917,17 @@ class Script:
                 arg_list.append(temp_file)
 
             elif self.cfg["args.selectFiles"]:
-                from utils.menu.filemgr import FileManager
+                from utils.menu.filemenu import FileMenu
 
-                files = FileManager().select_files()
+                files = FileMenu().select_files()
                 if len(files) == 0:
                     return True
                 arg_list.extend(files)
 
             elif self.cfg["args.selectDir"]:
-                from utils.menu.filemgr import FileManager
+                from utils.menu.filemenu import FileMenu
 
-                file = FileManager().select_directory()
+                file = FileMenu().select_directory()
                 if file is None:
                     return True
                 else:
@@ -1272,12 +1272,12 @@ class Script:
         elif ext == ".url":
             url = self.get_script_source()
             if "%s" in url:
-                from utils.menu.textinput import TextInput
+                from utils.menu.inputmenu import InputMenu
 
                 if len(arg_list) == 1:
                     keyword = arg_list[0]
                 else:
-                    keyword = TextInput(
+                    keyword = InputMenu(
                         show_clipboard=True, return_selection_if_empty=True
                     ).request_input()
                     if not keyword:
