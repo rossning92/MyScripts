@@ -293,7 +293,7 @@ class Menu(Generic[T]):
         self._custom_commands: List[_Command] = []
         if enable_command_palette:
             self.add_command(self.__command_palette, hotkey="ctrl+p")
-            self.add_command(self.__select_all, hotkey="ctrl+a")
+            self.add_command(self.select_all, hotkey="ctrl+a")
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__toggle_wrap, hotkey="alt+z")
             self.add_command(self.__undo, hotkey="alt+u")
@@ -339,7 +339,9 @@ class Menu(Generic[T]):
         except Exception as e:
             self.set_message(f"ERROR: {e}")
 
-    def __select_all(self):
+    def select_all(self):
+        self.update_matched_items()
+
         total_items = len(self.get_item_indices())
         if total_items <= 0:
             return
@@ -347,6 +349,7 @@ class Menu(Generic[T]):
         self.__multi_select_mode = True
         self.__selected_row_begin = 0
         self.__selected_row_end = total_items - 1
+
         self.update_screen()
 
     def __undo(self):

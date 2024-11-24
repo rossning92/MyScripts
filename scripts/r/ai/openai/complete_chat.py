@@ -27,6 +27,7 @@ def complete_messages(
 
     response = requests.post(url, headers=headers, json=data, stream=True)
     response.raise_for_status()
+    content = ""
     for chunk in response.iter_lines():
         if len(chunk) == 0:
             continue
@@ -39,10 +40,13 @@ def complete_messages(
             token = decoded_line["choices"][0]["delta"].get("content")
 
             if token is not None:
+                content += token
                 yield token
 
         except GeneratorExit:
             break
+
+    messages.append({"role": "assistant", "content": content})
 
 
 def complete_message(input_text: str) -> str:

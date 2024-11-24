@@ -25,6 +25,7 @@ class _Line:
 class ChatMenu(Menu[_Line]):
     def __init__(
         self,
+        prompt: str = "c",
         message: Optional[str] = None,
         model: Optional[str] = None,
         copy_result_and_exit=False,
@@ -34,6 +35,7 @@ class ChatMenu(Menu[_Line]):
         self.__lines: List[_Line] = []
         self.__data: Dict[str, Any] = {"conversations": [{"messages": []}]}
         super().__init__(
+            prompt=prompt,
             items=self.__lines,
             search_mode=False,
             wrap_text=True,
@@ -84,15 +86,15 @@ class ChatMenu(Menu[_Line]):
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
         self.goto_line(len(self.items) - 1)
-        self.__get_response()
+        self.__complete_chat()
 
-    def __get_response(self):
-        response = ""
+    def __complete_chat(self):
+        content = ""
         message_index = len(self.get_messages())
         line = _Line(role="assistant", text="", message_index=message_index)
         self.append_item(line)
         for chunk in complete_messages(self.get_messages(), model=self.__model):
-            response += chunk
+            content += chunk
             for i, a in enumerate(chunk.split("\n")):
                 if i > 0:
                     line = _Line(role="assistant", text="", message_index=message_index)
@@ -102,7 +104,8 @@ class ChatMenu(Menu[_Line]):
             self.update_screen()
             self.process_events()
 
-        self.get_messages().append({"role": "assistant", "content": response})
+        self.get_messages().append({"role": "assistant", "content": content})
+        self.on_message(content)
         self.save_conversations()
 
     def __get_data_file(self) -> str:
@@ -131,7 +134,7 @@ class ChatMenu(Menu[_Line]):
             self.__data = load_json(self.__get_data_file())
             self.populate_lines()
 
-    def new_conversation(self):
+    def new_conversation(self, first_message: Optional[str] = None):
         if len(self.get_messages()) > 0:
             self.__lines.clear()
             conversations = self.__data["conversations"]
@@ -139,10 +142,18 @@ class ChatMenu(Menu[_Line]):
                 # Remove the oldest conversation
                 del conversations[-1]
             conversations.insert(0, {"messages": []})
+
+        if first_message:
+            self.__send_message(first_message)
+        else:
             self.update_screen()
 
+    def process_user_message(self, message: str, i: int) -> str:
+        return message
+
     def on_enter_pressed(self):
-        text = self.get_input()
+        i = len(self.get_messages())
+        text = self.process_user_message(self.get_input(), i)
         self.clear_input()
         self.__send_message(text)
 
@@ -245,10 +256,13 @@ class ChatMenu(Menu[_Line]):
             self.populate_lines()
 
             if message["role"] == "user":
-                self.__get_response()
+                self.__complete_chat()
 
     def __edit_prompt(self):
         self.__edit_message(message_index=0)
+
+    def on_message(self, content: str):
+        pass
 
 
 def complete_chat(

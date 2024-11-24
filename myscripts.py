@@ -13,12 +13,6 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-from scripting.path import (
-    get_data_dir,
-    get_script_config_file_path,
-    get_variable_edit_history_file,
-)
-
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -52,6 +46,11 @@ from _shutil import (
     run_at_startup,
     save_json,
     setup_nodejs,
+)
+from scripting.path import (
+    get_data_dir,
+    get_script_config_file_path,
+    get_variable_edit_history_file,
 )
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
