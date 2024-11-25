@@ -83,9 +83,14 @@ class Template:
                 if ret is not None:
                     return ret
             except NameError as ex:
-                logging.warning(f"Undefined name: {ex.name}")
+                match = re.search(r"name '(\w+)' is not defined", str(ex))
+                if not match:
+                    raise Exception('Failed to retrieve an undefined variable name')
+                variable_name = match.group(1)
+
+                logging.warning(f"Undefined name: {variable_name}")
                 if undefined_names is not None:
-                    undefined_names.append(ex.name)
+                    undefined_names.append(variable_name)
                 elif throw_if_name_undefined:
                     raise
             return None
