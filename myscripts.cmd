@@ -1,27 +1,26 @@
-@ECHO OFF
+@echo off
 
-CD /d "%~dp0"
-@REM CHCP 65001
+cd /d "%~dp0"
 
-CALL install\install_choco.cmd
-CALL install\install_autohotkey.cmd
+call install\install_choco.cmd
+call install\install_autohotkey.cmd
 
-ECHO Find python executable...
-CALL install\find_python.cmd
-IF NOT %errorlevel%==0 (
-    CALL install\install_python.cmd
+echo Find python executable...
+python --version >nul 2>&1
+if not %errorlevel%==0 (
+    call install\install_python.cmd
 )
 
-TITLE MyTerminal
+title MyTerminal
 
-IF NOT EXIST "%USERPROFILE%\.venv\myscripts" (
+if not exist "%USERPROFILE%\.venv\myscripts" (
   python -m venv "%USERPROFILE%\.venv\myscripts" --system-site-packages
 )
-CALL "%USERPROFILE%\.venv\myscripts\Scripts\activate.bat"
+call "%USERPROFILE%\.venv\myscripts\Scripts\activate.bat"
 
-ECHO Install python packages...
-pip --disable-pip-version-check install -r requirements.txt
+echo Install packages...
+pip --disable-pip-version-check install -r requirements.txt >nul
 
 :main
 python myscripts.py %*
-IF errorlevel 1 GOTO main
+if errorlevel 1 goto main

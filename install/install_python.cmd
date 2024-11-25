@@ -1,1 +1,3 @@
-@powershell Start-Process cmd -verb runAs -wait -ArgumentList /c,choco,install,python,--version,3.10.4,-y
+@echo off
+echo Install Python 3.10.4...
+powershell Start-Process cmd -verb runAs -wait -ArgumentList /c,choco,install,python,--version,3.10.4,-y

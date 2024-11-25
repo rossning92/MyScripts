@@ -75,7 +75,7 @@ def get_device_list() -> List[DeviceInfo]:
                 " bat=%s %s"
                 % (
                     battery_level,
-                    datetime.datetime.fromtimestamp(date_utc, datetime.UTC),
+                    datetime.datetime.fromtimestamp(date_utc, datetime.timezone.utc),
                 ),
                 end="",
             )
