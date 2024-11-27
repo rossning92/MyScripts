@@ -82,8 +82,8 @@ def _match_regex(item: Any, patt: str) -> bool:
 
 
 def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
-    if patt.isdigit():
-        return int(patt) == index + 1
+    if patt[0:1] == ":" and patt[1:].isdigit():
+        return int(patt[1:]) == index + 1
     elif fuzzy_match:
         return _match_fuzzy(item, patt)
     else:
@@ -299,7 +299,6 @@ class Menu(Generic[T]):
             self.add_command(self.__undo, hotkey="alt+u")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
-            self.add_command(self.__voice_input, hotkey="alt+i")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
 
             self._command_palette_menu = Menu(
@@ -438,6 +437,7 @@ class Menu(Generic[T]):
             self.search_by_input(save_search_history=save_search_history)
         if self.__auto_complete:
             self._input.completed_text = ""
+        self.update_screen()
 
     def get_input(self) -> str:
         return self._input.text
@@ -660,6 +660,10 @@ class Menu(Generic[T]):
             self.last_key_pressed_timestamp = time.time()
             if self.on_char(ch):
                 self.update_screen()
+
+            elif ch == " " and self.get_input() == " ":
+                self.set_input("")
+                self.__voice_input()
 
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()

@@ -1,15 +1,46 @@
 import argparse
+import base64
 import json
 import os
 import sys
-from typing import Dict, Iterator, List, Optional
+from pathlib import Path
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import requests
 
 
-def complete_messages(
-    messages: List[Dict[str, str]], model: Optional[str] = None
+def encode_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+
+def complete_chat(
+    message: Union[str, List[Dict[str, Any]]],
+    image: Optional[str] = None,
+    model: Optional[str] = None,
 ) -> Iterator[str]:
+    if image is not None:
+        if not isinstance(message, str):
+            raise Exception("Message must be a str")
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": message},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{encode_image(image)}"
+                        },
+                    },
+                ],
+            }
+        ]
+    elif isinstance(message, str):
+        messages = [{"role": "user", "content": message}]
+    else:
+        messages = message
+
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
         raise Exception("OPENAI_API_KEY must be provided.")
@@ -49,16 +80,10 @@ def complete_messages(
     messages.append({"role": "assistant", "content": content})
 
 
-def complete_message(input_text: str) -> str:
-    result = ""
-    for chunk in complete_messages([{"role": "user", "content": input_text}]):
-        result += chunk
-    return result
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", nargs="?", type=str, help="Input input")
+    parser.add_argument("input", nargs="?", type=str)
+    parser.add_argument("--image", type=Path)
     args = parser.parse_args()
 
     if not sys.stdin.isatty():
@@ -70,5 +95,5 @@ if __name__ == "__main__":
         else:
             input_text = args.input
 
-    for chunk in complete_messages([{"role": "user", "content": input_text}]):
+    for chunk in complete_chat(input_text, image=args.image):
         print(chunk, end="")

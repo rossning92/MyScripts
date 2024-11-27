@@ -2,9 +2,10 @@ import logging
 import sys
 
 from _script import Script, get_all_scripts, run_script
-from r.ai.use_tool import use_tool
 from utils.logger import setup_logger
 from utils.speechtotext import speech_to_text
+
+from scripts.r.ai.usetool import use_tool
 
 
 def _match_fuzzy(item: str, patt: str) -> bool:

@@ -31,6 +31,11 @@ class ListEditMenu(Menu):
         self.update_screen()
         self.__save_json()
 
+    def clear(self):
+        self.items.clear()
+        self.update_screen()
+        self.__save_json()
+
     def __save_json(self):
         if self.__json_file is not None:
             os.makedirs(os.path.dirname(self.__json_file), exist_ok=True)

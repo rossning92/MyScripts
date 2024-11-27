@@ -150,6 +150,9 @@
     "apt": {
       "packages": ["flameshot"]
     },
+    "choco": {
+      "packages": ["flameshot"]
+    },
     "pacman": {
       "packages": ["flameshot"]
     }

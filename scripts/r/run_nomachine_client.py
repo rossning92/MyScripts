@@ -5,6 +5,7 @@ from _shutil import start_process
 
 host_name = os.environ["NX_HOST"]
 session_file = os.path.expanduser(f"~/NoMachine/{host_name}.nxs")
+resolution = (1920, 1080)
 
 
 def update_xml(session_file):
@@ -26,8 +27,8 @@ def update_xml(session_file):
             "Show remote display resize message": "false",
             # Screen resolution
             "Use custom resolution": "true",
-            "Resolution height": "1080",
-            "Resolution width": "1920",
+            "Resolution width": f"{resolution[0]}",
+            "Resolution height": f"{resolution[1]}",
         },
         "Login": {
             "Last selected user login": "system user",

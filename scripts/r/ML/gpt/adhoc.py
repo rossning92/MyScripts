@@ -5,7 +5,7 @@ import os
 import sys
 from typing import List, Optional
 
-from ai.openai.complete_chat import complete_messages
+from ai.openai.complete_chat import complete_chat
 from ML.gpt.chatmenu import ChatMenu
 from utils.logger import setup_logger
 from utils.menu import Menu
@@ -108,7 +108,7 @@ def _main():
         input_text = sys.stdin.read()
         message = prompt + ":\n---\n" + input_text
         logging.debug(message)
-        for chunk in complete_messages([{"role": "user", "content": message}]):
+        for chunk in complete_chat([{"role": "user", "content": message}]):
             print(chunk, end="")
 
     else:

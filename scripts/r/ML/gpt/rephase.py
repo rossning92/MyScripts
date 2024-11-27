@@ -1,8 +1,8 @@
 import sys
 
-from ML.gpt.chatmenu import complete_chat
+from ML.gpt.chatmenu import complete_chat_gui
 
-complete_chat(
+complete_chat_gui(
     prompt_text=(
         "For optimising the grammar, clarity and conciseness of text and improving readability. "
         "As a writing improvement assistant, your task is to improve the spelling, grammar, clarity, concision, and overall readability of the text provided, while breaking down long sentences, reducing repetition, and providing suggestions for improvement, in everyday language. "

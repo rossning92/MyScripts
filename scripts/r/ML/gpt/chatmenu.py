@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 from _shutil import load_json, save_json
-from ai.openai.complete_chat import complete_messages
+from ai.openai.complete_chat import complete_chat
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.menu import Menu
@@ -32,6 +32,7 @@ class ChatMenu(Menu[_Line]):
         new_conversation=True,
         data_file: Optional[str] = None,
     ) -> None:
+        self.__is_generating = False
         self.__data_file = (
             data_file
             if data_file
@@ -77,14 +78,15 @@ class ChatMenu(Menu[_Line]):
 
     def on_created(self):
         if self.__first_message is not None:
-            self.__send_message(self.__first_message)
+            self.send_message(self.__first_message)
 
             if self.__copy_result_and_exit:
                 message = self.get_messages()[-1]["content"]
                 set_clip(message)
                 self.close()
 
-    def __send_message(self, text: str) -> None:
+    def send_message(self, text: str) -> None:
+        self.clear_input()
         message_index = len(self.get_messages())
         self.get_messages().append({"role": "user", "content": text})
         self.save_conversations()
@@ -95,11 +97,15 @@ class ChatMenu(Menu[_Line]):
         self.__complete_chat()
 
     def __complete_chat(self):
+        if self.__is_generating:
+            return
+
+        self.__is_generating = True
         content = ""
         message_index = len(self.get_messages())
         line = _Line(role="assistant", text="", message_index=message_index)
         self.append_item(line)
-        for chunk in complete_messages(self.get_messages(), model=self.__model):
+        for chunk in complete_chat(self.get_messages(), model=self.__model):
             content += chunk
             for i, a in enumerate(chunk.split("\n")):
                 if i > 0:
@@ -110,9 +116,10 @@ class ChatMenu(Menu[_Line]):
             self.update_screen()
             self.process_events()
 
+        self.__is_generating = False
         self.get_messages().append({"role": "assistant", "content": content})
-        self.on_message(content)
         self.save_conversations()
+        self.on_message(content)
 
     def save_conversations(self):
         save_json(self.__data_file, self.__data)
@@ -137,7 +144,7 @@ class ChatMenu(Menu[_Line]):
             self.__data = load_json(self.__data_file)
             self.populate_lines()
 
-    def new_conversation(self, first_message: Optional[str] = None):
+    def new_conversation(self, message: Optional[str] = None):
         if len(self.get_messages()) > 0:
             self.__lines.clear()
             conversations = self.__data["conversations"]
@@ -146,19 +153,13 @@ class ChatMenu(Menu[_Line]):
                 del conversations[-1]
             conversations.insert(0, {"messages": []})
 
-        if first_message:
-            self.__send_message(first_message)
+        if message:
+            self.send_message(message)
         else:
             self.update_screen()
 
-    def process_user_message(self, message: str, i: int) -> str:
-        return message
-
     def on_enter_pressed(self):
-        i = len(self.get_messages())
-        text = self.process_user_message(self.get_input(), i)
-        self.clear_input()
-        self.__send_message(text)
+        self.send_message(self.get_input())
 
     def get_status_bar_text(self) -> str:
         s = "%d" % len(self.__data["conversations"])
@@ -268,7 +269,7 @@ class ChatMenu(Menu[_Line]):
         pass
 
 
-def complete_chat(
+def complete_chat_gui(
     *,
     input_text: str,
     prompt_text: Optional[str] = None,

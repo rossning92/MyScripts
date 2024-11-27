@@ -1,8 +1,10 @@
+import argparse
 import os
 import re
 from typing import Any, List, Optional, Tuple
 
 from ML.gpt.chatmenu import ChatMenu
+from r.tree import tree
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
@@ -11,7 +13,28 @@ from utils.menu.textmenu import TextMenu
 setting_dir = ".coder"
 
 
-prompt = """
+def get_context_files(task: str):
+    return f"""\
+List the files that need to be modified for the coding task I provide.
+Return only the file list inside ```files and ```. Nothing else.
+Each line should be a full file path.
+Return empty if no files need modification.
+
+## Here is my task:
+---
+{task}
+---
+
+## Here are all the files:
+---
+{tree()}
+---
+"""
+
+
+def get_coding_prompt(task: str, file_list: str):
+    return (
+        """\
 Act as an expert software developer.
 Take requests for changes to the supplied code.
 Output a copy of each file that needs changes
@@ -59,6 +82,13 @@ If you want to put code in a new file, use a *SEARCH/REPLACE block* with:
 ## My task
 
 """
+        + task
+        + (
+            "\n\nHere starts the code to be modified:\n\n" + file_list
+            if file_list
+            else ""
+        )
+    )
 
 
 def get_edit_blocks(input_string):
@@ -108,7 +138,7 @@ class FileListMenu(ListEditMenu):
         else:
             return file
 
-    def add_file(self):
+    def _add_file(self):
         menu = FileMenu(prompt="add file", goto=os.getcwd())
         file = menu.select_file()
         if file is not None:
@@ -124,10 +154,12 @@ class FileListMenu(ListEditMenu):
                 lines = list(select_code_block_menu.get_selected_items())
                 content = "\n".join(lines)
 
-            self.append_item({"file": file, "content": content})
+            self.add_file(file, content)
 
-    def clear(self):
-        self.items.clear()
+    def add_file(self, file: str, content: Optional[str] = None):
+        if not os.path.isfile(file):
+            raise FileNotFoundError(f'"{file}" does not exist')
+        self.append_item({"file": file, "content": content})
 
     def get_file_list_string(self) -> str:
         result = []
@@ -143,7 +175,7 @@ class FileListMenu(ListEditMenu):
 
 class ApplyChangeMenu(ConfirmMenu):
     def __init__(self, **kwargs):
-        super().__init__(prompt="apply?", wrap_text=True, **kwargs)
+        super().__init__(prompt="apply changes?", wrap_text=True, **kwargs)
 
     def get_item_text(self, item: Any) -> str:
         file = item[0]
@@ -153,22 +185,32 @@ class ApplyChangeMenu(ConfirmMenu):
 
 
 class CoderMenu(ChatMenu):
-    def __init__(self, **kwargs):
+    def __init__(self, files: Optional[List[str]] = None, **kwargs):
         super().__init__(data_file=os.path.join(setting_dir, "chat.json"), **kwargs)
+
         self.__file_list_menu = FileListMenu()
-        self.__update_message()
+
+        if files:
+            self.__clear_files()
+            for file in files:
+                self.__file_list_menu.add_file(file)
 
         self.add_command(self.__add_file, hotkey="alt+a")
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
 
+        self.__update_message()
+
     def __add_file(self):
-        self.__file_list_menu.add_file()
+        self.__file_list_menu._add_file()
         self.__update_message()
 
     def __update_message(self):
-        self.set_message(f"file list: {len(self.__file_list_menu.items)}")
+        files = ", ".join(
+            [os.path.basename(file["file"]) for file in self.__file_list_menu.items]
+        )
+        self.set_message(f"files: {files}")
 
     def __list_files(self):
         self.__file_list_menu.exec()
@@ -179,6 +221,16 @@ class CoderMenu(ChatMenu):
         self.__update_message()
 
     def on_message(self, content: str):
+        match = re.findall(r"```files\n([\S\s]+?)\n\s*```", content, flags=re.MULTILINE)
+        if match:
+            files = match[0].splitlines()
+            menu = ListEditMenu(prompt="add files to context?", items=files)
+            menu.exec()
+            if not menu.is_cancelled and files:
+                for file in files:
+                    self.__file_list_menu.add_file(file)
+                self.__update_message()
+
         self.__apply_change()
 
     def __apply_change(self):
@@ -200,18 +252,32 @@ class CoderMenu(ChatMenu):
             if menu.is_confirmed():
                 apply_changes(blocks)
 
-    def process_user_message(self, message: str, i: int) -> str:
+    def on_enter_pressed(self):
+        i = len(self.get_messages())
         if i == 0:
-            message = prompt + message
+            task = self.get_input()
 
-            # Append file context
-            file_list = self.__file_list_menu.get_file_list_string()
-            if file_list:
-                message += "\n\nHere starts the code to be modified:\n\n" + file_list
+            if len(self.__file_list_menu.items) == 0:
+                self.send_message(get_context_files(task=task))
 
-        return message
+            self.send_message(
+                get_coding_prompt(
+                    task=task,
+                    file_list=self.__file_list_menu.get_file_list_string(),
+                )
+            )
+        else:
+            return super().on_enter_pressed()
+
+
+def _main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs="*")
+    args = parser.parse_args()
+
+    os.makedirs(setting_dir, exist_ok=True)
+    CoderMenu(files=args.files).exec()
 
 
 if __name__ == "__main__":
-    os.makedirs(setting_dir, exist_ok=True)
-    CoderMenu().exec()
+    _main()
