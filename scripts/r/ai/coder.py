@@ -5,12 +5,17 @@ from typing import Any, List, Optional, Tuple
 
 from ML.gpt.chatmenu import ChatMenu
 from r.tree import tree
+from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 
-setting_dir = ".coder"
+SETTING_DIR = ".coder"
+
+CONVERSATION_FILE = "chat_v2.json"
+
+SESSION_FILE = "session.json"
 
 
 def get_context_files(task: str):
@@ -125,7 +130,7 @@ class FileListMenu(ListEditMenu):
     def __init__(self):
         super().__init__(
             prompt="file list",
-            json_file=os.path.join(setting_dir, "context.json"),
+            json_file=os.path.join(SETTING_DIR, "context.json"),
             wrap_text=True,
         )
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
@@ -157,8 +162,17 @@ class FileListMenu(ListEditMenu):
             self.add_file(file, content)
 
     def add_file(self, file: str, content: Optional[str] = None):
+        file_and_lines = file.split("#")
+
+        file = file_and_lines[0]
         if not os.path.isfile(file):
             raise FileNotFoundError(f'"{file}" does not exist')
+
+        if len(file_and_lines) == 2:
+            start, end = map(int, file_and_lines[1].split("-"))
+            with open(file, "r", encoding="utf-8") as f:
+                content = "\n".join(f.read().splitlines()[start + 1 : end + 2])
+
         self.append_item({"file": file, "content": content})
 
     def get_file_list_string(self) -> str:
@@ -186,7 +200,12 @@ class ApplyChangeMenu(ConfirmMenu):
 
 class CoderMenu(ChatMenu):
     def __init__(self, files: Optional[List[str]] = None, **kwargs):
-        super().__init__(data_file=os.path.join(setting_dir, "chat.json"), **kwargs)
+        super().__init__(
+            conv_file=(
+                os.path.join(SETTING_DIR, CONVERSATION_FILE) if not files else None
+            ),
+            **kwargs,
+        )
 
         self.__file_list_menu = FileListMenu()
 
@@ -195,30 +214,33 @@ class CoderMenu(ChatMenu):
             for file in files:
                 self.__file_list_menu.add_file(file)
 
+        self.__session_file = os.path.join(SETTING_DIR, SESSION_FILE)
+        self.__session = load_json(self.__session_file, default={})
+
         self.add_command(self.__add_file, hotkey="alt+a")
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
 
-        self.__update_message()
+        self.__update_prompt()
 
     def __add_file(self):
         self.__file_list_menu._add_file()
-        self.__update_message()
+        self.__update_prompt()
 
-    def __update_message(self):
-        files = ", ".join(
+    def __update_prompt(self):
+        files = "|".join(
             [os.path.basename(file["file"]) for file in self.__file_list_menu.items]
         )
-        self.set_message(f"files: {files}")
+        self.set_prompt(files)
 
     def __list_files(self):
         self.__file_list_menu.exec()
-        self.__update_message()
+        self.__update_prompt()
 
     def __clear_files(self):
         self.__file_list_menu.clear()
-        self.__update_message()
+        self.__update_prompt()
 
     def on_message(self, content: str):
         match = re.findall(r"```files\n([\S\s]+?)\n\s*```", content, flags=re.MULTILINE)
@@ -229,7 +251,7 @@ class CoderMenu(ChatMenu):
             if not menu.is_cancelled and files:
                 for file in files:
                     self.__file_list_menu.add_file(file)
-                self.__update_message()
+                self.__update_prompt()
 
         self.__apply_change()
 
@@ -256,6 +278,8 @@ class CoderMenu(ChatMenu):
         i = len(self.get_messages())
         if i == 0:
             task = self.get_input()
+            self.__session["task"] = task
+            save_json(self.__session_file, self.__session)
 
             if len(self.__file_list_menu.items) == 0:
                 self.send_message(get_context_files(task=task))
@@ -275,7 +299,7 @@ def _main():
     parser.add_argument("files", nargs="*")
     args = parser.parse_args()
 
-    os.makedirs(setting_dir, exist_ok=True)
+    os.makedirs(SETTING_DIR, exist_ok=True)
     CoderMenu(files=args.files).exec()
 
 

@@ -19,10 +19,11 @@ from typing import (
     Union,
 )
 
-from _shutil import get_hotkey_abbr, load_json, save_json, slugify
+from _shutil import get_hotkey_abbr, slugify
 
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
+from utils.jsonutil import load_json, save_json
 from utils.speechtotext import speech_to_text
 
 GUTTER_SIZE = 1

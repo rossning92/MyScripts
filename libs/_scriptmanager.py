@@ -17,15 +17,14 @@ from _script import (
 from _shutil import (
     clear_env_var_explorer,
     get_ahk_exe,
-    load_json,
     pause,
     refresh_env_vars,
-    save_json,
     start_process,
     update_env_var_explorer,
 )
 from _term import clear_terminal
 from scripting.path import get_data_dir, get_my_script_root, get_script_history_file
+from utils.jsonutil import load_json, save_json
 from utils.template import render_template_file
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")

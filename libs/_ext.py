@@ -11,7 +11,6 @@ from _script import (
     _save_script_config_file,
     get_all_scripts,
     get_default_script_config,
-    save_json,
 )
 from _shutil import quote_arg
 from scripting.path import (
@@ -26,6 +25,7 @@ from scripting.path import (
 )
 from utils.clip import set_clip
 from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
+from utils.jsonutil import save_json
 from utils.menu import Menu
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.template import render_template_file

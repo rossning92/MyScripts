@@ -1,6 +1,6 @@
 import os
 
-from _shutil import load_json, save_json
+from utils.jsonutil import load_json, save_json
 
 from .dicteditmenu import DictEditMenu
 

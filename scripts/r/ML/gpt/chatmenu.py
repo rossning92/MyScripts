@@ -1,11 +1,13 @@
 import argparse
+import glob
 import os
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from _shutil import load_json, save_json
 from ai.openai.complete_chat import complete_chat
 from utils.clip import set_clip
 from utils.editor import edit_text
+from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 
 MAX_CONVERSATIONS = 100
@@ -22,6 +24,12 @@ class _Line:
         return self.text
 
 
+class _SelectConvMenu(Menu[str]):
+    def get_item_text(self, conv_file: str) -> str:
+        conv = load_json(conv_file)
+        return str(conv)
+
+
 class ChatMenu(Menu[_Line]):
     def __init__(
         self,
@@ -30,17 +38,13 @@ class ChatMenu(Menu[_Line]):
         model: Optional[str] = None,
         copy_result_and_exit=False,
         new_conversation=True,
-        data_file: Optional[str] = None,
+        conv_file: Optional[str] = None,
     ) -> None:
         self.__is_generating = False
-        self.__data_file = (
-            data_file
-            if data_file
-            else os.path.join(os.environ["MY_DATA_DIR"], "chatgpt_conversations.json")
-        )
+
         self.__model = model
         self.__lines: List[_Line] = []
-        self.__data: Dict[str, Any] = {"conversations": [{"messages": []}]}
+
         super().__init__(
             prompt=prompt,
             items=self.__lines,
@@ -60,21 +64,41 @@ class ChatMenu(Menu[_Line]):
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
 
-        self.load_conversations()
-        if new_conversation:
-            self.new_conversation()
+        self.__conversations_dir = os.path.join(
+            os.environ["MY_DATA_DIR"], "conversations"
+        )
+        os.makedirs(self.__conversations_dir, exist_ok=True)
+
+        self.__conv: Dict[str, Any] = {"messages": []}  # conversation data
+        self.__conv_file: str
+
+        self.new_conversation()
+        if conv_file:
+            self.__conv_file = conv_file
+            if os.path.exists(self.__conv_file):
+                self.load_conversation(conv_file)
+        elif not new_conversation:
+            conversation_files = self.get_all_conversation_files()
+            if len(conversation_files) > 0:
+                self.load_conversation(conversation_files[-1])
+
+    def get_all_conversation_files(self) -> List[str]:
+        return sorted(
+            glob.glob(os.path.join(self.__conversations_dir, "conversation_*.json")),
+            key=os.path.getmtime,
+        )
 
     def __load_conversation(self):
-        menu = Menu(items=[c for c in self.__data["conversations"]])
+        menu = _SelectConvMenu(
+            items=[f for f in reversed(self.get_all_conversation_files())]
+        )
         menu.exec()
-        selected_index = menu.get_selected_index()
-        if selected_index >= 0:
-            conv = self.__data["conversations"]
-            conv.insert(0, conv.pop(selected_index))
-            self.populate_lines()
+        selected = menu.get_selected_item()
+        if selected:
+            self.load_conversation(selected)
 
     def get_messages(self) -> List[Dict[str, str]]:
-        return self.__data["conversations"][0]["messages"]
+        return self.__conv["messages"]
 
     def on_created(self):
         if self.__first_message is not None:
@@ -89,7 +113,7 @@ class ChatMenu(Menu[_Line]):
         self.clear_input()
         message_index = len(self.get_messages())
         self.get_messages().append({"role": "user", "content": text})
-        self.save_conversations()
+        self.save_conversation()
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
@@ -118,40 +142,50 @@ class ChatMenu(Menu[_Line]):
 
         self.__is_generating = False
         self.get_messages().append({"role": "assistant", "content": content})
-        self.save_conversations()
+        self.save_conversation()
         self.on_message(content)
 
-    def save_conversations(self):
-        save_json(self.__data_file, self.__data)
+    def save_conversation(self):
+        save_json(self.__conv_file, self.__conv)
+        self.delete_old_conversations()
 
     def populate_lines(self):
         self.__lines.clear()
-        if len(self.__data["conversations"]) > 0:
-            for message_index, message in enumerate(self.get_messages()):
-                if message["role"] != "system":
-                    for line in message["content"].splitlines():
-                        self.append_item(
-                            _Line(
-                                role=message["role"],
-                                text=line,
-                                message_index=message_index,
-                            )
+        for message_index, message in enumerate(self.get_messages()):
+            if message["role"] != "system":
+                for line in message["content"].splitlines():
+                    self.append_item(
+                        _Line(
+                            role=message["role"],
+                            text=line,
+                            message_index=message_index,
                         )
+                    )
         self.update_screen()
 
-    def load_conversations(self):
-        if os.path.isfile(self.__data_file):
-            self.__data = load_json(self.__data_file)
-            self.populate_lines()
+    def load_conversation(self, file: str):
+        if not os.path.isfile(file):
+            raise FileNotFoundError(f'No such file: "{file}"')
+
+        self.__conv_file = file
+        self.__conv = load_json(self.__conv_file)
+        self.populate_lines()
+
+    def delete_old_conversations(self):
+        conversation_files = self.get_all_conversation_files()
+        for file in conversation_files[
+            : max(0, len(conversation_files) - MAX_CONVERSATIONS)
+        ]:
+            os.remove(file)
 
     def new_conversation(self, message: Optional[str] = None):
-        if len(self.get_messages()) > 0:
-            self.__lines.clear()
-            conversations = self.__data["conversations"]
-            while len(conversations) >= MAX_CONVERSATIONS:
-                # Remove the oldest conversation
-                del conversations[-1]
-            conversations.insert(0, {"messages": []})
+        self.__lines.clear()
+        self.__conv = {"messages": []}
+
+        self.__conv_file = os.path.join(
+            self.__conversations_dir,
+            "conversation_%s.json" % datetime.now().strftime("%y%m%d%H%M%S"),
+        )
 
         if message:
             self.send_message(message)
@@ -160,10 +194,6 @@ class ChatMenu(Menu[_Line]):
 
     def on_enter_pressed(self):
         self.send_message(self.get_input())
-
-    def get_status_bar_text(self) -> str:
-        s = "%d" % len(self.__data["conversations"])
-        return s + " | " + super().get_status_bar_text()
 
     def __copy_block(self, index: int):
         # Check if it's in the code block; if so, copy all the code.

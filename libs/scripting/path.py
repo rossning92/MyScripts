@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import List, Optional
 
-from _shutil import convert_to_unix_path, is_in_wsl, load_json, save_json
+from _shutil import convert_to_unix_path, is_in_wsl
+from utils.jsonutil import load_json, save_json
 
 
 @dataclass

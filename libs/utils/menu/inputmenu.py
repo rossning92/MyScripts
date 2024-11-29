@@ -5,9 +5,8 @@ import sys
 import tempfile
 from typing import Dict, List, Optional
 
-from _shutil import load_json, save_json
-
 from utils.clip import get_clip
+from utils.jsonutil import load_json, save_json
 
 from . import Menu
 

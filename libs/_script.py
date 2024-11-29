@@ -29,13 +29,11 @@ from _shutil import (
     get_ahk_exe,
     get_home_path,
     get_hotkey_abbr,
-    load_json,
     npm_install,
     prepend_to_path,
     print2,
     quote_arg,
     run_elevated,
-    save_json,
     setup_nodejs,
     slugify,
     start_process,
@@ -62,6 +60,7 @@ from utils.clip import get_clip, get_selection
 from utils.dotenv import load_dotenv
 from utils.editor import open_code_editor
 from utils.email import send_email_md
+from utils.jsonutil import load_json, save_json
 from utils.menu.csvmenu import CsvMenu
 from utils.shutil import shell_open
 from utils.template import render_template

@@ -11,12 +11,12 @@ from _shutil import (
     check_output,
     get_home_path,
     is_in_termux,
-    load_json,
     prepend_to_path,
     refresh_env_vars,
     run_elevated,
     start_process,
 )
+from utils.jsonutil import load_json
 
 packages = load_json(
     os.path.abspath(

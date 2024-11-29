@@ -23,6 +23,7 @@ from pathlib import Path
 from time import sleep
 from typing import Dict, List, Optional, Union
 
+from utils.jsonutil import load_json, save_json
 from utils.printc import printc
 
 logger = logging.getLogger(__name__)
@@ -1287,22 +1288,6 @@ def slugify(value, allow_unicode=True):
         )
     value = re.sub(r"[^\w\s-]+", "_", value.lower())
     return re.sub(r"[-\s]+", "_", value).strip("-_")
-
-
-def load_json(file: str, default=None):
-    try:
-        with open(file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.decoder.JSONDecodeError):
-        if default is not None:
-            return default
-        else:
-            raise Exception("Default value is not specified.")
-
-
-def save_json(file: str, data):
-    with open(file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
 
 
 def update_json(file, dict_):

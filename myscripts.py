@@ -39,12 +39,10 @@ from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
-    load_json,
     pause,
     quote_arg,
     refresh_env_vars,
     run_at_startup,
-    save_json,
     setup_nodejs,
 )
 from scripting.path import (
@@ -54,6 +52,7 @@ from scripting.path import (
 )
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
+from utils.jsonutil import load_json, save_json
 from utils.logger import setup_logger
 from utils.menu import Menu
 from utils.menu.confirmmenu import confirm
