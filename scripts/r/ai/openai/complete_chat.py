@@ -8,6 +8,8 @@ from typing import Any, Dict, Iterator, List, Optional, Union
 
 import requests
 
+DEFAULT_MODEL = "gpt-4o"
+
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -51,7 +53,7 @@ def complete_chat(
         "Authorization": f"Bearer {api_key}",
     }
     data = {
-        "model": model if model else "gpt-4o",
+        "model": model if model else DEFAULT_MODEL,
         "messages": messages,
         "stream": True,
     }

@@ -40,9 +40,7 @@ class ChatMenu(Menu[_Line]):
         new_conversation=True,
         conv_file: Optional[str] = None,
     ) -> None:
-        self.__is_generating = False
 
-        self.__model = model
         self.__lines: List[_Line] = []
 
         super().__init__(
@@ -52,10 +50,14 @@ class ChatMenu(Menu[_Line]):
             wrap_text=True,
             line_number=True,
         )
-        self.__first_message = message
-        self.__last_yanked_line: Optional[_Line] = None
-        self.__yank_mode = 0
+
+        self.__auto_create_conv_file = conv_file is None
         self.__copy_result_and_exit = copy_result_and_exit
+        self.__first_message = message
+        self.__is_generating = False
+        self.__last_yanked_line: Optional[_Line] = None
+        self.__model = model
+        self.__yank_mode = 0
 
         self.add_command(self.__delete_current_message, hotkey="ctrl+k")
         self.add_command(self.__edit_message, hotkey="alt+e")
@@ -75,7 +77,7 @@ class ChatMenu(Menu[_Line]):
         self.new_conversation()
         if conv_file:
             self.__conv_file = conv_file
-            if os.path.exists(self.__conv_file):
+            if not new_conversation and os.path.exists(self.__conv_file):
                 self.load_conversation(conv_file)
         elif not new_conversation:
             conversation_files = self.get_all_conversation_files()
@@ -141,7 +143,6 @@ class ChatMenu(Menu[_Line]):
             self.process_events()
 
         self.__is_generating = False
-        self.get_messages().append({"role": "assistant", "content": content})
         self.save_conversation()
         self.on_message(content)
 
@@ -178,14 +179,19 @@ class ChatMenu(Menu[_Line]):
         ]:
             os.remove(file)
 
-    def new_conversation(self, message: Optional[str] = None):
+    def clear_messages(self):
         self.__lines.clear()
-        self.__conv = {"messages": []}
+        self.__conv["messages"].clear()
+        self.update_screen()
 
-        self.__conv_file = os.path.join(
-            self.__conversations_dir,
-            "conversation_%s.json" % datetime.now().strftime("%y%m%d%H%M%S"),
-        )
+    def new_conversation(self, message: Optional[str] = None):
+        self.clear_messages()
+
+        if self.__auto_create_conv_file:
+            self.__conv_file = os.path.join(
+                self.__conversations_dir,
+                "conversation_%s.json" % datetime.now().strftime("%y%m%d%H%M%S"),
+            )
 
         if message:
             self.send_message(message)

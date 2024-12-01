@@ -25,11 +25,11 @@ require('mouse-follow-focus')
 
 --- Define custom widgets
 local battery_widget = require("battery-widget")
-local disk_usage_widget = require("disk-usage-widget")
-local memory_widget = require("memory-widget")
-local volume_widget = require('volume-widget.volume-widget')
 local brightness_widget = require("brightness-widget.brightness")
 local cpu_widget = require("cpu-widget.cpu-widget")
+local disk_usage_widget = require("disk-usage-widget")
+local memory_widget = require("memory-widget")
+local volume_widget = require('volume-widget')
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to

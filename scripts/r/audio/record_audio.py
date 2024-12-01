@@ -12,7 +12,8 @@ from utils.getch import getch
 
 
 def _wait_for_key() -> bool:
-    print("(Press 'Enter' to continue, 'q' to cancel)")
+    sys.stderr.write("(Press 'Enter' to continue, 'q' to cancel)\n")
+    sys.stderr.flush()
     while True:
         try:
             key = getch()
@@ -37,8 +38,14 @@ def cleanup():
 atexit.register(cleanup)
 
 
-def record_audio(out_file: str) -> Optional[str]:
+def record_audio(out_file: Optional[str] = None) -> Optional[str]:
+    import tempfile
+
     global _is_recording_termux
+
+    if out_file is None:
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+        out_file = temp_file.name
 
     saved = False
     if is_in_termux():

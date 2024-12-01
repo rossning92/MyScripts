@@ -3,8 +3,9 @@ import os
 import re
 from typing import Any, List, Optional, Tuple
 
+from ai.get_context_files import GetContextFilesMenu
 from ML.gpt.chatmenu import ChatMenu
-from r.tree import tree
+from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
@@ -12,29 +13,9 @@ from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 
 SETTING_DIR = ".coder"
-
+CONTEXT_FILE = "context.json"
 CONVERSATION_FILE = "chat_v2.json"
-
 SESSION_FILE = "session.json"
-
-
-def get_context_files(task: str):
-    return f"""\
-List the files that need to be modified for the coding task I provide.
-Return only the file list inside ```files and ```. Nothing else.
-Each line should be a full file path.
-Return empty if no files need modification.
-
-## Here is my task:
----
-{task}
----
-
-## Here are all the files:
----
-{tree()}
----
-"""
 
 
 def get_coding_prompt(task: str, file_list: str):
@@ -45,7 +26,8 @@ Take requests for changes to the supplied code.
 Output a copy of each file that needs changes
 
 
-Describe each change with a *SEARCH/REPLACE block*
+## Describe each change with a *SEARCH/REPLACE block*
+
 All changes to files must use this *SEARCH/REPLACE block* format.
 ONLY EVER RETURN CODE IN A *SEARCH/REPLACE BLOCK*!
 Every *SEARCH/REPLACE block* must use this format:
@@ -53,9 +35,9 @@ Every *SEARCH/REPLACE block* must use this format:
 filename.py
 ```
 <<<<<<< SEARCH
-...
+... original code block ...
 =======
-...
+... replaced code block ...
 >>>>>>> REPLACE
 ```
 
@@ -130,7 +112,7 @@ class FileListMenu(ListEditMenu):
     def __init__(self):
         super().__init__(
             prompt="file list",
-            json_file=os.path.join(SETTING_DIR, "context.json"),
+            json_file=os.path.join(SETTING_DIR, CONTEXT_FILE),
             wrap_text=True,
         )
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
@@ -201,9 +183,8 @@ class ApplyChangeMenu(ConfirmMenu):
 class CoderMenu(ChatMenu):
     def __init__(self, files: Optional[List[str]] = None, **kwargs):
         super().__init__(
-            conv_file=(
-                os.path.join(SETTING_DIR, CONVERSATION_FILE) if not files else None
-            ),
+            conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
+            new_conversation=False,
             **kwargs,
         )
 
@@ -221,6 +202,7 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
+        self.add_command(self.__edit_task, hotkey="alt+t")
 
         self.__update_prompt()
 
@@ -243,16 +225,6 @@ class CoderMenu(ChatMenu):
         self.__update_prompt()
 
     def on_message(self, content: str):
-        match = re.findall(r"```files\n([\S\s]+?)\n\s*```", content, flags=re.MULTILINE)
-        if match:
-            files = match[0].splitlines()
-            menu = ListEditMenu(prompt="add files to context?", items=files)
-            menu.exec()
-            if not menu.is_cancelled and files:
-                for file in files:
-                    self.__file_list_menu.add_file(file)
-                self.__update_prompt()
-
         self.__apply_change()
 
     def __apply_change(self):
@@ -278,20 +250,44 @@ class CoderMenu(ChatMenu):
         i = len(self.get_messages())
         if i == 0:
             task = self.get_input()
-            self.__session["task"] = task
-            save_json(self.__session_file, self.__session)
 
+            # Get context files
             if len(self.__file_list_menu.items) == 0:
-                self.send_message(get_context_files(task=task))
 
-            self.send_message(
-                get_coding_prompt(
+                menu = GetContextFilesMenu(
                     task=task,
-                    file_list=self.__file_list_menu.get_file_list_string(),
+                    conv_file=os.path.join(SETTING_DIR, "chat_get_context_files.json"),
                 )
-            )
+                menu.exec()
+
+                for file in menu.files:
+                    self.__file_list_menu.add_file(file)
+                self.__update_prompt()
+
+            self.__complete_task(task=task)
         else:
             return super().on_enter_pressed()
+
+    def __save_session(self):
+        save_json(self.__session_file, self.__session)
+
+    def __complete_task(self, task: str):
+        self.__session["task"] = task
+        self.__save_session()
+
+        self.clear_messages()
+        self.send_message(
+            get_coding_prompt(
+                task=task,
+                file_list=self.__file_list_menu.get_file_list_string(),
+            )
+        )
+
+    def __edit_task(self):
+        task = self.__session["task"]
+        new_task = self.call_func_without_curses(lambda: edit_text(task))
+        if new_task != task:
+            self.__complete_task(new_task)
 
 
 def _main():

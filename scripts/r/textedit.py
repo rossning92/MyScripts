@@ -2,7 +2,6 @@ import subprocess
 from typing import List
 
 from utils.menu import Menu
-from utils.speechtotext import speech_to_text
 
 
 class TextEdit(Menu[str]):
@@ -15,13 +14,17 @@ class TextEdit(Menu[str]):
 
     def __voice_input(self):
         try:
+            from r.speech_to_text import speech_to_text
+
             text = speech_to_text()
         except Exception as e:
             self.set_message(f"ERROR: {e}")
-            text = str(e)
-
-        if text is None:
             return
+
+        if not text:
+            return
+
+        self.set_input(text)
         self.append_item(text)
         self.update_screen()
 

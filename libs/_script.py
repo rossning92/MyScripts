@@ -940,6 +940,12 @@ class Script:
             ),
             env=dotenv,
         )
+        dot_env_file = os.path.join(get_data_dir(), ".env")
+        if os.path.exists(dot_env_file):
+            load_dotenv(
+                dot_env_file,
+                env=dotenv,
+            )
 
         # Override environmental variables with `variables`
         env = {**dotenv, **variables}

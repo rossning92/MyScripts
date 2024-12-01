@@ -106,6 +106,7 @@ def setup_python(data_dir: str):
         "python.analysis.typeCheckingMode": "basic",
         "python.experiments.enabled": False,
         "python.languageServer": "Pylance",
+        "python.terminal.activateEnvironment": False,
     }
     update_settings(settings, data_dir=data_dir)
 

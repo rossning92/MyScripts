@@ -2,8 +2,8 @@ import logging
 import sys
 
 from _script import Script, get_all_scripts, run_script
+from r.speech_to_text import speech_to_text
 from utils.logger import setup_logger
-from utils.speechtotext import speech_to_text
 
 from scripts.r.ai.usetool import use_tool
 
@@ -31,7 +31,7 @@ def run_tool(path: str) -> None:
 
 
 def _main():
-    text = speech_to_text(allow_input=True)
+    text = speech_to_text()
     if text is None:
         sys.exit(1)
 

@@ -1,5 +1,5 @@
-// @ts-ignore
 const vscode = require("vscode");
+const process = require("process");
 
 /**
  * Opens a terminal with the specified options.
@@ -17,7 +17,9 @@ async function runCoder({ args }) {
     }
   }
 
-  const terminal = vscode.window.createTerminal(name, "run_script", [
+  const terminalName =
+    process.platform === "win32" ? "run_script.exe" : "run_script";
+  const terminal = vscode.window.createTerminal(name, terminalName, [
     "r/ai/coder.py",
     ...args,
   ]);

@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-import tempfile
+from typing import Optional
 
 import requests
 from audio.record_audio import record_audio
@@ -25,13 +25,14 @@ def convert_audio_to_text(file: str) -> str:
     return text
 
 
-def speech_to_text() -> str:
-    record_file = os.path.join(tempfile.gettempdir(), "record.mp3")
-    try:
-        record_audio(record_file)
-        return convert_audio_to_text(record_file)
-    finally:
-        os.remove(record_file)
+def speech_to_text() -> Optional[str]:
+    audio_file = record_audio()
+    if audio_file:
+        text = convert_audio_to_text(audio_file)
+        os.remove(audio_file)
+        return text
+    else:
+        return None
 
 
 if __name__ == "__main__":
@@ -39,8 +40,10 @@ if __name__ == "__main__":
     parser.add_argument("--file", type=str, help="Path to the audio file", default=None)
     args = parser.parse_args()
 
+    result: Optional[str]
     if args.file:
         result = convert_audio_to_text(args.file)
     else:
         result = speech_to_text()
-    print(result)
+
+    print(result, end="")

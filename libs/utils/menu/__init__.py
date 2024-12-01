@@ -3,6 +3,7 @@ import curses.ascii
 import logging
 import os
 import re
+import subprocess
 import sys
 import time
 from typing import (
@@ -24,7 +25,6 @@ from _shutil import get_hotkey_abbr, slugify
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
-from utils.speechtotext import speech_to_text
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
@@ -333,8 +333,10 @@ class Menu(Generic[T]):
 
     def __voice_input(self):
         try:
+            from r.speech_to_text import speech_to_text
+
             text = speech_to_text()
-            if text is not None:
+            if text:
                 self.set_input(text)
         except Exception as e:
             self.set_message(f"ERROR: {e}")
@@ -664,7 +666,7 @@ class Menu(Generic[T]):
 
             elif ch == " " and self.get_input() == " ":
                 self.set_input("")
-                self.__voice_input()
+                self.call_func_without_curses(lambda: self.__voice_input())
 
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()
