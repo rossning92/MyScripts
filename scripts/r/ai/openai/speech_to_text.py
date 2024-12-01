@@ -36,7 +36,11 @@ def speech_to_text() -> str:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("file", type=str, help="Path to the audio file")
+    parser.add_argument("--file", type=str, help="Path to the audio file", default=None)
     args = parser.parse_args()
-    result = convert_audio_to_text(args.file)
+
+    if args.file:
+        result = convert_audio_to_text(args.file)
+    else:
+        result = speech_to_text()
     print(result)

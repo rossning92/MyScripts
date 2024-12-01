@@ -92,7 +92,7 @@ sudo systemctl kill -s HUP systemd-logind
 
 # Setup input method
 # https://wiki.archlinux.org/title/Fcitx5
-ln -s "$(dirname "$0")/../../../settings/fcitx5" "$HOME/.config/fcitx5"
+ln -s "{{MYSCRIPT_ROOT}}/settings/fcitx5" "$HOME/.config/fcitx5" || true
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"
 
@@ -123,7 +123,7 @@ pac_install udisks2 udiskie
 append_line_dedup ~/.xinitrc "udiskie &"
 
 # Install window manager
-source "$(dirname "$0")/setup_awesomewm.sh"
+{{ include('r/linux/setup_awesomewm.sh') }}
 
 # Install dev tools
 # yay_install yarn mongodb-bin mongodb-tools-bin
@@ -164,18 +164,25 @@ EndSection
 EOF'
 fi
 
+# Setup keyboard
 setup_logitech_keyboard() {
-    pac_install solaar # Logitech device manager
-    append_line_dedup ~/.xinitrc 'solaar --window hide &'
+    if lsusb | grep -q "Unifying Receiver"; then
+        pac_install solaar # Logitech device manager
+        append_line_dedup ~/.xinitrc 'solaar --window hide &'
+    fi
 }
+setup_logitech_keyboard
 
-if lsusb | grep -q "Unifying Receiver"; then
-    setup_logitech_keyboard
-fi
+# Setup clipboard manager
+setup_clipboard_manager() {
+    pac_install clipmenu # Logitech device manager
+    append_line_dedup ~/.xinitrc 'clipmenud &'
+}
+setup_clipboard_manager
 
 # Backlight control
 if [ -d /sys/class/backlight ]; then
-    pac_install backlightctl
+    pac_install brightnessctl
 fi
 
 # Configure Touchpad:
@@ -192,9 +199,6 @@ EOF
 
 # Auto-start MyScript
 append_line_dedup ~/.xinitrc 'alacritty -e "$HOME/MyScripts/myscripts" --startup &'
-
-# Replace the current process with the awesomewm when initializing X.
-append_line_dedup ~/.xinitrc "exec awesome"
 
 # Disable sudo password
 append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
@@ -213,4 +217,7 @@ if [[ "$(gh auth status 2>&1)" =~ "not logged" ]]; then
     gh auth login
 fi
 
-run_script r/linux/install_screen_lock.arch.linux.sh
+{{ include('r/linux/install_screen_lock.arch.linux.sh') }}
+
+# Replace the current process with the awesomewm when initializing X.
+append_line_dedup ~/.xinitrc "exec awesome"

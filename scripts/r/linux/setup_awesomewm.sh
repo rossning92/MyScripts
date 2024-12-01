@@ -14,7 +14,7 @@ elif [[ -f "/etc/arch-release" ]]; then
 fi
 
 # Copy awesome config file
-ln -sf "$(dirname "$0")/../../../settings/awesome" $HOME/.config/
+ln -sf "{{MYSCRIPT_ROOT}}/settings/awesome" $HOME/.config/
 
 append_if_not_exist() {
     if [[ ! -f $1 ]] || ! grep -qF -- "$2" $1; then

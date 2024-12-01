@@ -85,7 +85,7 @@ class Template:
             except NameError as ex:
                 match = re.search(r"name '(\w+)' is not defined", str(ex))
                 if not match:
-                    raise Exception('Failed to retrieve an undefined variable name')
+                    raise Exception("Failed to retrieve an undefined variable name")
                 variable_name = match.group(1)
 
                 logging.warning(f"Undefined name: {variable_name}")
@@ -182,5 +182,5 @@ def render_template(
     undefined_names: Optional[List[str]] = None,
 ) -> str:
     return Template(template, file_locator=file_locator).render(
-        context, undefined_names=undefined_names
+        context=context, undefined_names=undefined_names
     )

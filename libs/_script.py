@@ -696,7 +696,8 @@ class Script:
         saved_variables = get_all_variables()
 
         # Get all variables
-        variables = {}
+        variables = {"MYSCRIPT_ROOT": get_my_script_root()}
+
         for vname in vnames:
             if vname in saved_variables:
                 last_modified_value = saved_variables[vname]

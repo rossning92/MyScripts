@@ -23,7 +23,7 @@
     "keybindings": [
       {
         "command": "ross.coder.edit",
-        "key": "ctrl+k c",
+        "key": "ctrl+i",
         "when": "editorTextFocus"
       }
     ]
