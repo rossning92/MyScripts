@@ -77,6 +77,14 @@
       "packages": ["cmake"]
     }
   },
+  "ctags": {
+    "choco": {
+      "packages": ["universal-ctags"]
+    },
+    "pacman": {
+      "packages": ["ctags"]
+    }
+  },
   "dmenu": {
     "apt": {
       "packages": ["dmenu"]

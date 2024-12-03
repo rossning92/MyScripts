@@ -23,4 +23,5 @@ EOF
 
 sudo systemctl enable betterlockscreen@$(whoami)
 
+# To lock screen now:
 # betterlockscreen --lock

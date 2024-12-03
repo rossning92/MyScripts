@@ -363,12 +363,10 @@ class _MyScriptMenu(Menu[Script]):
         self.is_refreshing = True
         self.set_message("refreshing scripts...")
 
-        def on_progress():
+        def on_progress(i: int):
             nonlocal self
             self.process_events()
-            self.set_message(
-                "refreshing scripts: %d" % len(self.script_manager.scripts)
-            )
+            self.set_message(f"refreshing scripts: {i + 1}")
 
         self.script_manager.refresh_all_scripts(
             on_progress=on_progress, on_register_hotkeys=self._on_register_hotkeys

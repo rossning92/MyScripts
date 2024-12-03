@@ -1,4 +1,3 @@
-import bisect
 import logging
 import os
 import re
@@ -255,10 +254,11 @@ class ScriptManager:
     def reload_scripts(
         self,
         autorun=True,
-        on_progress: Optional[Callable[[], None]] = None,
+        on_progress: Optional[Callable[[int], None]] = None,
     ) -> bool:
         script_dict = {script.script_path: script for script in self.scripts}
-        self.scripts.clear()
+        existing_scripts: Set[str] = set()
+
         self.scripts_autorun.clear()
         self.__scheduled_script.clear()
 
@@ -268,13 +268,15 @@ class ScriptManager:
         for i, file in enumerate(get_all_scripts()):
             if i % 20 == 0:
                 if on_progress is not None:
-                    on_progress()
+                    on_progress(i)
 
+            existing_scripts.add(file)
             if file in script_dict:
                 script = script_dict[file]
                 reloaded = script.refresh_script()
             else:
                 script = Script(file)
+                self.scripts.append(script)
                 reloaded = True
 
             if script.cfg["runEveryNSec"]:
@@ -296,7 +298,13 @@ class ScriptManager:
                 if should_run_script:
                     execute_script_autorun(script)
 
-            bisect.insort(self.scripts, script)
+        # Remove deleted scripts
+        self.scripts[:] = [
+            script for script in self.scripts if script.script_path in existing_scripts
+        ]
+
+        # Sort
+        self.scripts.sort()
 
         # The startup scripts should run only once.
         self.startup = False
@@ -317,7 +325,7 @@ class ScriptManager:
 
     def refresh_all_scripts(
         self,
-        on_progress: Optional[Callable[[], None]] = None,
+        on_progress: Optional[Callable[[int], None]] = None,
         on_register_hotkeys: Optional[Callable[[Dict[str, Script]], None]] = None,
     ):
         begin_time = time.time()

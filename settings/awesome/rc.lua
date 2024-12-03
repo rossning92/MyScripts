@@ -24,7 +24,7 @@ require("awful.hotkeys_popup.keys")
 require('mouse-follow-focus')
 
 --- Define custom widgets
-local battery_widget = require("battery-widget")
+-- local battery_widget = require("battery-widget")
 local brightness_widget = require("brightness-widget.brightness")
 local cpu_widget = require("cpu-widget.cpu-widget")
 local disk_usage_widget = require("disk-usage-widget")
@@ -241,9 +241,9 @@ awful.screen.connect_for_each_screen(function(s)
             spacing = 8,
             mykeyboardlayout,
             cpu_widget(),
-            battery_widget {
-                show_current_level = true
-            },
+            -- battery_widget {
+            --     show_current_level = true
+            -- },
             volume.widget,
             brightness_widget {},
             memory_widget {},

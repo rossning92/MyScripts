@@ -39,7 +39,9 @@ def to_tree(tags, scope="", indent=""):
         signature = tag["signature"] if "signature" in tag else ""
         output += f"{indent}{prefix}{name}{signature}\n"
         output += to_tree(
-            tags, scope=scope + "." + name if scope else name, indent=indent + (" " * 2)
+            tags,
+            scope=scope + "." + name if scope else name,
+            indent=indent + (" " * 2),
         )
 
     return output
