@@ -1,12 +1,14 @@
 import argparse
-import subprocess
 from typing import Tuple
+
+from PIL import Image
 
 
 def crop_image(file_path, rect: Tuple[int, int, int, int], out_file):
     x, y, w, h = rect
-    args = ["magick", file_path, "-crop", f"{w}x{h}+{x}+{y}", out_file]
-    subprocess.check_call(args)
+    with Image.open(file_path) as img:
+        cropped_img = img.crop((x, y, x + w, y + h))
+        cropped_img.save(out_file)
 
 
 def _main():
