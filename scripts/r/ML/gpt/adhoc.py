@@ -49,7 +49,7 @@ def load_prompts_from_dir(prompt_dir: str) -> List[_Prompt]:
     if not os.path.isdir(prompt_dir):
         raise ValueError(f"The directory {prompt_dir} does not exist.")
 
-    files = glob.glob(os.path.join(prompt_dir, "*.md"))
+    files = glob.glob(os.path.join(prompt_dir, "**", "*.md"), recursive=True)
     for file_path in files:
         if os.path.isfile(file_path):
             prompts.append(_Prompt(path=file_path))

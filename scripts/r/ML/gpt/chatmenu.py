@@ -31,9 +31,11 @@ class _SelectConvMenu(Menu[str]):
 
 
 class ChatMenu(Menu[_Line]):
+    default_conv: Dict = {"messages": []}
+
     def __init__(
         self,
-        prompt: str = "c",
+        prompt: str = "a",
         message: Optional[str] = None,
         model: Optional[str] = None,
         copy_result_and_exit=False,
@@ -71,7 +73,7 @@ class ChatMenu(Menu[_Line]):
         )
         os.makedirs(self.__conversations_dir, exist_ok=True)
 
-        self.__conv: Dict[str, Any] = {"messages": []}  # conversation data
+        self.__conv: Dict[str, Any] = ChatMenu.default_conv.copy()  # conversation data
         self.__conv_file: str
 
         self.new_conversation()
@@ -169,7 +171,7 @@ class ChatMenu(Menu[_Line]):
             raise FileNotFoundError(f'No such file: "{file}"')
 
         self.__conv_file = file
-        self.__conv = load_json(self.__conv_file)
+        self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
         self.populate_lines()
 
     def delete_old_conversations(self):

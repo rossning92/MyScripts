@@ -1,4 +1,4 @@
-{{val=SYSPROP_VAL if 'SYSPROP_VAL' in globals() else 1}}
+{{val=SYSPROP_VAL if 'SYSPROP_VAL' in globals() and SYSPROP_VAL else 1}}
 toggle_sysprop() {
     while true; do
         val=$(adb shell getprop $1 | tr -d '\r')

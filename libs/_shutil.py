@@ -744,7 +744,7 @@ def get_cur_time_str():
     return datetime.datetime.now().strftime("%y%m%d%H%M%S")
 
 
-def exec_bash(script, wsl=False, echo=False):
+def exec_bash(script, wsl=False, echo=False, capture_output=False) -> Optional[str]:
     logging.debug("exec_bash: bash commands: %s" % script)
     args = None
     if sys.platform == "win32":
@@ -765,9 +765,10 @@ def exec_bash(script, wsl=False, echo=False):
     # HACK: disable path conversion
     env = os.environ.copy()
     env["MSYS_NO_PATHCONV"] = "1"
-    ret = subprocess.call(args, env=env)
-    if ret != 0:
-        raise Exception("Bash returned non-zero value.")
+    if capture_output:
+        return subprocess.check_output(args, env=env, text=True, encoding="utf-8")
+    else:
+        subprocess.check_output(args, env=env)
 
 
 def get_files(cd=False, ignore_dirs=True):
