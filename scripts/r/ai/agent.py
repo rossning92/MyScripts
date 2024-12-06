@@ -8,26 +8,23 @@ from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
+from utils.template import render_template
 
 SETTING_DIR = "tmp"
 CONVERSATION_FILE = "chat.json"
-SESSION_FILE = "session.json"
+SESSION_FILE = "agent_session.json"
 
 
 def _get_prompt(task: str):
     return f"""\
 1. You are my assistant to help me complete a task.
-
-2. You can run any bash command at any time until the task can be completed.
-
-3. To run a bash command, respond with a valid bash command using the following format:
+2. You can execute any bash command anytime to complete the task. To do so, provide a valid bash command in this format:
 ```bash
 ... bash command ...
 ```
 and I'll then reply with the function's return value.
 
-4. Once the task is completed, you must reply with the full result using the following format:
-
+3. Once the task is completed, you must reply with the full result using the following format:
 TASK COMPLETED
 ```
 ... result goes here...
@@ -56,7 +53,7 @@ class AgentMenu(ChatMenu):
 
         self.task_result: Optional[str] = None
 
-        self.add_command(self.__edit_task, hotkey="alt+t")
+        self.add_command(self.__edit_task, hotkey="alt+p")
 
     def on_created(self):
         if self.__task:
@@ -148,10 +145,21 @@ def _main():
     parser.add_argument("task", nargs="?", type=str)
     args = parser.parse_args()
 
+    if args.task is None:
+        task = None
+    elif os.path.isfile(args.task):
+        with open(args.task, "r", encoding="utf-8") as f:
+            task = f.read()
+            task = render_template(task, context=dict(os.environ))
+    else:
+        task = args.task
+
     os.makedirs(SETTING_DIR, exist_ok=True)
-    menu = AgentMenu(yes_always=True, task=args.task)
+
+    menu = AgentMenu(yes_always=True, task=task)
     menu.exec()
-    if args.task:
+
+    if task:
         print(menu.task_result)
 
 

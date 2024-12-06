@@ -766,9 +766,18 @@ def exec_bash(script, wsl=False, echo=False, capture_output=False) -> Optional[s
     env = os.environ.copy()
     env["MSYS_NO_PATHCONV"] = "1"
     if capture_output:
-        return subprocess.check_output(args, env=env, text=True, encoding="utf-8")
+        with open(os.devnull) as fnull:
+            return subprocess.check_output(
+                args,
+                env=env,
+                text=True,
+                stdin=fnull,
+                stderr=subprocess.PIPE,
+                encoding="utf-8",
+            )
     else:
-        subprocess.check_output(args, env=env)
+        subprocess.check_call(args, env=env)
+        return None
 
 
 def get_files(cd=False, ignore_dirs=True):

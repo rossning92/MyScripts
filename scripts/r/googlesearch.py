@@ -17,12 +17,8 @@ def google_search(
         raise Exception(f"Error occurred: {response.status_code}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Perform a Google search.")
-    parser.add_argument("query", type=str, help="The search query")
-    args = parser.parse_args()
-
-    results = google_search(args.query)
+def print_google_search(query: str):
+    results = google_search(query)
     if "items" in results:
         for item in results["items"]:
             title = item["title"]
@@ -31,9 +27,16 @@ def main():
             if "snippet" in item:
                 print(item["snippet"])
             print()
-
     else:
         print("No results found")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Perform a Google search.")
+    parser.add_argument("query", type=str, help="The search query")
+    args = parser.parse_args()
+
+    print_google_search(args.query)
 
 
 if __name__ == "__main__":

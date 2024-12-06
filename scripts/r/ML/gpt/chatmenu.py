@@ -17,7 +17,7 @@ class _Line:
     def __init__(self, role: str, text: str, message_index: int) -> None:
         self.role = role
         self.text = text
-        self.color = "yellow" if role == "user" else "white"
+        self.color = "blue" if role == "user" else "white"
         self.message_index = message_index
 
     def __str__(self) -> str:
@@ -121,7 +121,7 @@ class ChatMenu(Menu[_Line]):
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
-        self.goto_line(len(self.items) - 1)
+        # self.goto_line(len(self.items) - 1)
         self.__complete_chat()
 
     def __complete_chat(self):
@@ -167,9 +167,6 @@ class ChatMenu(Menu[_Line]):
         self.update_screen()
 
     def load_conversation(self, file: str):
-        if not os.path.isfile(file):
-            raise FileNotFoundError(f'No such file: "{file}"')
-
         self.__conv_file = file
         self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
         self.populate_lines()
