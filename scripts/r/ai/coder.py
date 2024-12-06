@@ -202,7 +202,7 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
-        self.add_command(self.__edit_task, hotkey="alt+t")
+        self.add_command(self.__edit_task, hotkey="alt+p")
 
         self.__update_prompt()
 

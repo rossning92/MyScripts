@@ -4,7 +4,10 @@ import json
 def load_json(file: str, default=None):
     try:
         with open(file, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if default is not None and isinstance(default, dict):
+                data = {**default, **data}
+            return data
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         if default is not None:
             return default

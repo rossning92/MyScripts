@@ -88,7 +88,7 @@ class Template:
                     raise Exception("Failed to retrieve an undefined variable name")
                 variable_name = match.group(1)
 
-                logging.warning(f"Undefined name: {variable_name}")
+                # logging.warning(f"Undefined name: {variable_name}")
                 if undefined_names is not None:
                     undefined_names.append(variable_name)
                 elif throw_if_name_undefined:
