@@ -296,6 +296,9 @@ def _main():
     args = parser.parse_args()
 
     os.makedirs(SETTING_DIR, exist_ok=True)
+    with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
+        f.write("*")
+
     CoderMenu(files=args.files).exec()
 
 

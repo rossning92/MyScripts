@@ -27,6 +27,7 @@ from _ext import (
     rename_script,
 )
 from _script import (
+    BINARY_EXTENSIONS,
     Script,
     get_default_script_config,
     get_script_variables,
@@ -392,18 +393,22 @@ class _MyScriptMenu(Menu[Script]):
     def _copy_cmdline(self):
         script = self.get_selected_script()
         if script:
-            now = time.time()
-            include_derivative = now < self.__last_copy_time + 1
-            content = copy_script_path_to_clipboard(
-                script,
-                format="include" if include_derivative else "cmdline",
-                with_variables=include_derivative,
-            )
-            self.set_message(
-                f"copied to clipboard: {content}" if content else "copied to clipboard."
-            )
-
-            self.__last_copy_time = now
+            if script.ext in BINARY_EXTENSIONS:
+                self._copy_file_path()
+            else:
+                now = time.time()
+                include_derivative = now < self.__last_copy_time + 1
+                content = copy_script_path_to_clipboard(
+                    script,
+                    format="include" if include_derivative else "cmdline",
+                    with_variables=include_derivative,
+                )
+                self.set_message(
+                    f"copied to clipboard: {content}"
+                    if content
+                    else "copied to clipboard."
+                )
+                self.__last_copy_time = now
 
     def _copy_to(self):
         script = self.get_selected_script()
