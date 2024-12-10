@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ai.openai.complete_chat import complete_chat
+from ai.complete_chat import complete_chat
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json

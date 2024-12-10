@@ -1,26 +1,27 @@
 import argparse
 import os
 
-from _shutil import get_files
-from utils.remoteshell import push_file_putty
+from utils.remoteshell import push_file_ssh
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "file",
         type=str,
-        default=None,
+        nargs="?",
     )
     args = parser.parse_args()
 
     if args.file:
         file = args.file
     else:
-        file = get_files()[0]
+        file = os.environ["SSH_FILE_TO_PUSH"]
 
-    push_file_putty(
+    # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD, SSH_PORT
+    push_file_ssh(
         file,
-        host=os.environ.get("PRINTER_3D_HOST"),
-        user=os.environ.get("PRINTER_3D_USER"),
-        pwd=os.environ.get("PRINTER_3D_PWD"),
+        dest="/home/rossning92",
+        host=os.environ.get("SSH_HOST"),
+        user=os.environ.get("SSH_USER"),
+        pwd=os.environ.get("SSH_PWD"),
     )

@@ -151,10 +151,11 @@ def _putty_wrapper(command, extra_args=[], pwd=None, port=None):
 def push_file_ssh(src, dest, user=None, host=None, pwd=None):
     args = []
 
-    pwd = _get_pwd(pwd)
-    if pwd:
-        require_package("sshpass")
-        args += ["sshpass", "-p", pwd]
+    if sys.platform != "win32":
+        pwd = _get_pwd(pwd)
+        if pwd:
+            require_package("sshpass")
+            args += ["sshpass", "-p", pwd]
 
     args += ["scp", src, "{}:{}".format(_get_user_host(user=user, host=host), dest)]
 

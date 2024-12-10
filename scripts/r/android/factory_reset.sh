@@ -4,12 +4,12 @@ echo 'Reboot to bootloader...'
 adb reboot bootloader || true
 # fastboot wait-for-device
 
-echo 'Erase userdata...'
-# fastboot --set-active=b
-fastboot format userdata
+fastboot oem factory-reset
+fastboot erase misc
+fastboot reboot
+
+# echo 'Erase userdata...'
+# fastboot format userdata
 # fastboot erase misc
 # fastboot erase userdata
 # fastboot erase metadata
-
-echo 'Reboot...'
-fastboot reboot
