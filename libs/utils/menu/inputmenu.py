@@ -40,7 +40,6 @@ class InputMenu(Menu):
                 else (self.__history_data["history"] if self.__history_file else [])
             ),
             text=text,
-            auto_complete=True,
         )
         self.add_command(self.__insert_dir_path)
         self.add_command(self.__insert_file_path)

@@ -43,12 +43,12 @@ def send_email_md(
             if lines[i].strip() != "":
                 k, v = lines[i].split(":", maxsplit=2)
                 if k.lower() == "cc" or k.lower() == "bcc":
-                    cc = v.strip()
+                    cc = v.strip().strip('"')
                 elif k.lower() == "subject":
                     subject = v.strip()
                 elif k.lower() == "to":
                     if not to:
-                        to = v.strip()
+                        to = v.strip().strip('"')
                 elif k.lower() == "gmail":
                     gmail = True
             i += 1

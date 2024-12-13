@@ -27,7 +27,6 @@ from _ext import (
     rename_script,
 )
 from _script import (
-    BINARY_EXTENSIONS,
     Script,
     get_default_script_config,
     get_script_variables,
@@ -227,8 +226,8 @@ class _MyScriptMenu(Menu[Script]):
         )
 
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")
-        self.add_command(self._copy_to, hotkey="alt+y")
-        self.add_command(self._copy_file_path)
+        self.add_command(self._copy_to)
+        self.add_command(self._copy_file_path, hotkey="alt+y")
         self.add_command(self._delete_file, hotkey="ctrl+k")
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
@@ -393,22 +392,17 @@ class _MyScriptMenu(Menu[Script]):
     def _copy_cmdline(self):
         script = self.get_selected_script()
         if script:
-            if script.ext in BINARY_EXTENSIONS:
-                self._copy_file_path()
-            else:
-                now = time.time()
-                include_derivative = now < self.__last_copy_time + 1
-                content = copy_script_path_to_clipboard(
-                    script,
-                    format="include" if include_derivative else "cmdline",
-                    with_variables=include_derivative,
-                )
-                self.set_message(
-                    f"copied to clipboard: {content}"
-                    if content
-                    else "copied to clipboard."
-                )
-                self.__last_copy_time = now
+            now = time.time()
+            include_derivative = now < self.__last_copy_time + 1
+            content = copy_script_path_to_clipboard(
+                script,
+                format="include" if include_derivative else "cmdline",
+                with_variables=include_derivative,
+            )
+            self.set_message(
+                f"copied to clipboard: {content}" if content else "copied to clipboard."
+            )
+            self.__last_copy_time = now
 
     def _copy_to(self):
         script = self.get_selected_script()
@@ -515,7 +509,7 @@ class _MyScriptMenu(Menu[Script]):
     def on_idle(self):
         try_reload_scripts_autorun(self.script_manager.scripts_autorun)
 
-    def on_item_selection_changed(self, script: Optional[Script]):
+    def on_item_selection_changed(self, script: Optional[Script], i: int):
         if self.__auto_infer_cmdline_args:
             text = self.get_input()
             if script and text:

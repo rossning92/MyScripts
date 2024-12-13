@@ -1,7 +1,9 @@
 import csv
+import os
 from typing import List, Optional, OrderedDict
 
 from utils.editor import edit_text
+from utils.jsonutil import load_json, save_json
 
 from ..menu import Menu
 from .inputmenu import InputMenu
@@ -204,8 +206,17 @@ class RowMenu(Menu[CsvCell]):
                 self.update_screen()
 
 
+def _get_setting_file(csv_file: str) -> str:
+    tmp_dir = os.path.join(os.path.dirname(csv_file), "tmp")
+    os.makedirs(tmp_dir, exist_ok=True)
+    return os.path.join(tmp_dir, "csvmenu_setting.json")
+
+
 class CsvMenu(Menu[CsvRow]):
     def __init__(self, csv_file: str, text: str = ""):
+        self.__setting_file = _get_setting_file(csv_file)
+        self.__settings = load_json(self.__setting_file, default={})
+
         self.df = CsvData(csv_file)
         self.selected_val: Optional[str] = None
 
@@ -224,6 +235,14 @@ class CsvMenu(Menu[CsvRow]):
         self.add_command(self._delete_row, hotkey="alt+d")
         self.add_command(self._save, hotkey="ctrl+s")
         self.add_command(self._sort_by_column, hotkey="alt+s")
+
+        if "selected_row" in self.__settings:
+            row = self.__settings["selected_row"]
+            if row >= 0:
+                self.set_selected_row(row)
+
+    def __save_settings(self):
+        save_json(self.__setting_file, self.__settings)
 
     def _sort_by_column(self):
         menu = Menu(items=self.df.get_header(), prompt="sort by")
@@ -288,3 +307,7 @@ class CsvMenu(Menu[CsvRow]):
             return self.exec()
         finally:
             self._select_row = False
+
+    def on_item_selection_changed(self, item: CsvRow | None, i: int):
+        self.__settings["selected_row"] = i
+        self.__save_settings()

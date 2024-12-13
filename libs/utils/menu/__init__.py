@@ -3,7 +3,6 @@ import curses.ascii
 import logging
 import os
 import re
-import subprocess
 import sys
 import time
 from typing import (
@@ -92,13 +91,11 @@ def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
 
 
 class _InputWidget:
-    def __init__(self, auto_complete: bool, prompt="", text="", ascii_only=False):
+    def __init__(self, prompt="", text="", ascii_only=False):
         self.prompt = prompt
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
-        self.completed_text = ""
-        self.__auto_complete = auto_complete
 
     def set_text(self, text):
         self.text = text
@@ -134,9 +131,6 @@ class _InputWidget:
             cursor_y, cursor_x = Menu.stdscr.getyx()  # type: ignore
 
             s = self.text[self.caret_pos :]
-            if self.__auto_complete:
-                if self.completed_text:
-                    s += f"[{self.completed_text}]"
             if show_enter_symbol:
                 s += " ↵"
 
@@ -162,9 +156,7 @@ class _InputWidget:
         elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
         elif _is_backspace_key(ch):
-            if self.__auto_complete and self.completed_text != "":
-                self.completed_text = ""
-            elif self.caret_pos > 0:
+            if self.caret_pos > 0:
                 self.text = (
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
@@ -183,8 +175,6 @@ class _InputWidget:
         if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
             self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
             self.caret_pos += 1
-            if self.__auto_complete:
-                self.completed_text = ""
 
 
 T = TypeVar("T")
@@ -216,7 +206,6 @@ class Menu(Generic[T]):
         wrap_text=False,
         search_mode=True,
         line_number=True,
-        auto_complete=False,
     ):
         self._is_stdscr_owner: Optional[bool] = None
 
@@ -232,7 +221,6 @@ class Menu(Generic[T]):
         self._debug = debug
         self._height: int = -1
         self._input = _InputWidget(
-            auto_complete=auto_complete,
             prompt=prompt,
             text=text if text else "",
             ascii_only=ascii_only,
@@ -244,8 +232,6 @@ class Menu(Generic[T]):
         self._matched_item_indices: List[int] = []
         self._message: Optional[str] = None
         self._on_item_selected = on_item_selected
-        self._requested_selected_row_begin: int = -1
-        self._requested_selected_row_end: int = -1
         self._highlight = highlight
         self._width: int = -1
         self.__wrap_text: bool = wrap_text
@@ -274,8 +260,6 @@ class Menu(Generic[T]):
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
         self.__should_update_screen = True
-
-        self.__auto_complete = auto_complete
 
         # History
         self.history = history
@@ -438,8 +422,6 @@ class Menu(Generic[T]):
         self._input.set_text(text)
         if self.__search_mode:
             self.search_by_input(save_search_history=save_search_history)
-        if self.__auto_complete:
-            self._input.completed_text = ""
         self.update_screen()
 
     def get_input(self) -> str:
@@ -558,6 +540,7 @@ class Menu(Generic[T]):
             if self.match_item(self.get_input(), item, i):
                 self._matched_item_indices.append(i)
 
+        # Update selected rows
         num_matched_items = len(self._matched_item_indices)
         if num_matched_items > 0:
             self.__selected_row_begin = min(
@@ -587,12 +570,32 @@ class Menu(Generic[T]):
         self.set_selection(selected_row, selected_row)
 
     def set_selection(self, begin_row: int, end_row: int):
-        self._requested_selected_row_begin = begin_row
-        self._requested_selected_row_end = end_row
+        self.__selected_row_begin = begin_row
+        self.__selected_row_end = end_row
+
+        if self.__search_mode:
+            self.update_matched_items()
+
+        total = len(self.get_item_indices())
+        if self.__selected_row_begin >= total:
+            self.__selected_row_begin = max(0, total - 1)
+        if self.__selected_row_end >= total:
+            self.__selected_row_end = max(0, total - 1)
         self._check_if_item_selection_changed()
 
     def refresh(self):
         self.__should_update_matched_items = True
+
+    def __set_selection_by_offset(self, offset: int, multi_select: bool):
+        total_rows = len(self.get_item_indices())
+        if total_rows > 0:
+            selected_row_end = min(
+                max(self.__selected_row_end + offset, 0), total_rows - 1
+            )
+            selected_row_begin = (
+                self.__selected_row_begin if multi_select else selected_row_end
+            )
+            self.set_selection(selected_row_begin, selected_row_end)
 
     # Returns True if we should exit main loop for the current window
     def process_events(self, timeout_sec: float = 0.0) -> bool:
@@ -622,22 +625,6 @@ class Menu(Generic[T]):
                 or (len(self.items) < self._last_item_count)
             ):
                 self.update_matched_items()
-
-        # Update item selection
-        if (
-            self._requested_selected_row_begin >= 0
-            or self._requested_selected_row_end >= 0
-        ):
-            self.__selected_row_begin = self._requested_selected_row_begin
-            self.__selected_row_end = self._requested_selected_row_end
-            self._requested_selected_row_begin = -1
-            self._requested_selected_row_end = -1
-
-        total_items = len(self.get_item_indices())
-        if self.__selected_row_begin >= total_items:
-            self.__selected_row_begin = max(0, total_items - 1)
-        if self.__selected_row_end >= total_items:
-            self.__selected_row_end = max(0, total_items - 1)
 
         # Update screen
         if self.__should_update_screen or Menu._should_update_screen:
@@ -672,23 +659,14 @@ class Menu(Generic[T]):
                 self.on_enter_pressed()
 
             elif ch == curses.KEY_UP or ch == KEY_A2 or ch == SHIFT_UP:
-                if len(self.get_item_indices()) > 0:
-                    self.__selected_row_end = max(self.__selected_row_end - 1, 0)
-                    if not self.__multi_select_mode and not ch == SHIFT_UP:
-                        self.__selected_row_begin = self.__selected_row_end
-                    self.update_screen()
-                    self._check_if_item_selection_changed()
+                self.__set_selection_by_offset(
+                    offset=-1, multi_select=self.__multi_select_mode or ch == SHIFT_UP
+                )
 
             elif ch == curses.KEY_DOWN or ch == KEY_C2 or ch == SHIFT_DOWN:
-                if len(self.get_item_indices()) > 0:
-                    self.__selected_row_end = min(
-                        self.__selected_row_end + 1,
-                        len(self.get_item_indices()) - 1,
-                    )
-                    if not self.__multi_select_mode and not ch == SHIFT_DOWN:
-                        self.__selected_row_begin = self.__selected_row_end
-                    self.update_screen()
-                    self._check_if_item_selection_changed()
+                self.__set_selection_by_offset(
+                    offset=1, multi_select=self.__multi_select_mode or ch == SHIFT_DOWN
+                )
 
             elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B3
@@ -713,43 +691,34 @@ class Menu(Generic[T]):
                 self.update_screen()
 
             elif ch == curses.KEY_PPAGE or ch == 451:  # curses.KEY_A3
-                if len(self.get_item_indices()) > 0:
-                    self.__selected_row_end = max(
-                        self.__selected_row_end - self.get_items_per_page(), 0
-                    )
-                    if not self.__multi_select_mode:
-                        self.__selected_row_begin = self.__selected_row_end
-                    self.update_screen()
-                    self._check_if_item_selection_changed()
+                self.__set_selection_by_offset(
+                    offset=-self.get_items_per_page(),
+                    multi_select=self.__multi_select_mode,
+                )
 
             elif ch == curses.KEY_NPAGE or ch == 457:  # curses.KEY_C3
-                if len(self.get_item_indices()) > 0:
-                    self.__selected_row_end = min(
-                        self.__selected_row_end + self.get_items_per_page(),
-                        len(self.get_item_indices()) - 1,
-                    )
-                    if not self.__multi_select_mode:
-                        self.__selected_row_begin = self.__selected_row_end
-                    self.update_screen()
-                    self._check_if_item_selection_changed()
+                self.__set_selection_by_offset(
+                    offset=self.get_items_per_page(),
+                    multi_select=self.__multi_select_mode,
+                )
 
             elif ch == curses.KEY_HOME or ch == 449:
                 if len(self.get_item_indices()) > 0:
-                    self.__selected_row_end = 0
-                    if not self.__multi_select_mode:
-                        self.__selected_row_begin = self.__selected_row_end
-                    self.update_screen()
-                    self._check_if_item_selection_changed()
+                    begin = (
+                        0 if not self.__multi_select_mode else self.__selected_row_begin
+                    )
+                    end = 0
+                    self.set_selection(begin, end)
 
             elif ch == curses.KEY_END or ch == 455:
                 if len(self.get_item_indices()) > 0:
-                    self.__selected_row_begin = self.__selected_row_end = (
-                        len(self.get_item_indices()) - 1
+                    end = len(self.get_item_indices()) - 1
+                    begin = (
+                        end
+                        if not self.__multi_select_mode
+                        else self.__selected_row_begin
                     )
-                    if not self.__multi_select_mode:
-                        self.__selected_row_begin = self.__selected_row_end
-                    self.update_screen()
-                    self._check_if_item_selection_changed()
+                    self.set_selection(begin, end)
 
             elif ch == curses.KEY_DC and "delete" in self._hotkeys:
                 self._hotkeys["delete"].func()
@@ -893,11 +862,7 @@ class Menu(Generic[T]):
         if self.is_cancelled:
             return None
         else:
-            return (
-                self._input.completed_text
-                if self._input.completed_text
-                else self._input.text
-            )
+            return self._input.text
 
     def get_items_per_page(self):
         return self.__num_rendered_items + self.__empty_lines
@@ -1230,18 +1195,17 @@ class Menu(Generic[T]):
     def _check_if_item_selection_changed(self):
         selected = None
         item_indices = self.get_item_indices()
+        item_index = -1
         if self.__selected_row_end < len(item_indices):
             item_index = item_indices[self.__selected_row_end]
             if item_index < len(self.items):
                 selected = self.items[item_index]
 
         if selected != self._last_selected_item or self._last_input != self.get_input():
-            if self.__auto_complete:
-                self._input.completed_text = "" if selected is None else str(selected)
-            self.on_item_selection_changed(selected)
+            self.on_item_selection_changed(selected, i=item_index)
         self._last_selected_item = selected
 
-    def on_item_selection_changed(self, item: Optional[T]):
+    def on_item_selection_changed(self, item: Optional[T], i: int):
         pass
 
     def set_message(self, message: Optional[str] = None):
