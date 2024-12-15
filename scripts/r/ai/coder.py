@@ -1,7 +1,8 @@
 import argparse
 import os
 import re
-from typing import Any, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, List, Optional
 
 from ai.get_context_files import GetContextFilesMenu
 from ML.gpt.chatmenu import ChatMenu
@@ -18,7 +19,7 @@ CONVERSATION_FILE = "chat_v2.json"
 SESSION_FILE = "session.json"
 
 
-def get_coding_prompt(task: str, file_list: str):
+def _get_editing_prompt(task: str, context: str):
     return (
         """\
 Act as an expert software developer.
@@ -70,33 +71,38 @@ If you want to put code in a new file, use a *SEARCH/REPLACE block* with:
 
 """
         + task
-        + (
-            "\n\nHere starts the code to be modified:\n\n" + file_list
-            if file_list
-            else ""
-        )
+        + ("\n\nHere starts the code to be modified:\n\n" + context if context else "")
     )
 
 
-def get_edit_blocks(input_string):
-    code_block_pattern = r"^\**(.*)\**\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE\n```"
+@dataclass
+class Change:
+    file: str
+    search: str
+    replace: str
+
+
+def _get_changes(input_string):
+    code_block_pattern = r"^\**(.+)\**\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE\n```"
     matches = re.findall(code_block_pattern, input_string, re.MULTILINE)
-    return matches
+    return [
+        Change(file=match[0], search=match[1], replace=match[2]) for match in matches
+    ]
 
 
-def apply_changes(file_list: List[Tuple[str, str, str]]):
-    for file_path, search, replace in file_list:
+def _apply_changes(changes: List[Change]):
+    for c in changes:
         # If search block is empty, create a new file
-        if not search:
-            with open(file_path, "w", encoding="utf-8") as file:  # Create a new file
-                file.write(replace)
+        if not c.search:
+            with open(c.file, "w", encoding="utf-8") as f:  # Create a new file
+                f.write(c.replace)
         else:
-            with open(file_path, "r+", encoding="utf-8") as file:
-                content = file.read()
-                updated_content = content.replace(search, replace)
-                file.seek(0)
-                file.write(updated_content)
-                file.truncate()
+            with open(c.file, "r+", encoding="utf-8") as f:
+                content = f.read()
+                updated_content = content.replace(c.search, c.replace)
+                f.seek(0)
+                f.write(updated_content)
+                f.truncate()
 
 
 class SelectCodeBlockMenu(TextMenu):
@@ -157,15 +163,15 @@ class FileListMenu(ListEditMenu):
 
         self.append_item({"file": file, "content": content})
 
-    def get_file_list_string(self) -> str:
+    def get_context(self) -> str:
         result = []
         for item in self.items:
-            file = item["file"]
-            content = item["content"]
-            if content is None:
-                with open(file, "r", encoding="utf-8") as f:
+            if "content" in item and item["content"]:
+                content = item["content"]
+            else:
+                with open(item["file"], "r", encoding="utf-8") as f:
                     content = f.read()
-            result.append(f"{file}\n```\n{content}\n```")
+            result.append(f"{item["file"]}\n```\n{content}\n```")
         return "\n".join(result)
 
 
@@ -173,11 +179,17 @@ class ApplyChangeMenu(ConfirmMenu):
     def __init__(self, **kwargs):
         super().__init__(prompt="apply changes?", wrap_text=True, **kwargs)
 
-    def get_item_text(self, item: Any) -> str:
-        file = item[0]
-        search = item[1] + "\n" if item[1] else ""
-        replace = item[2] + "\n" if item[2] else ""
-        return f"{file}\n<<<<<<<\n{search}=======\n{replace}>>>>>>>"
+    def get_item_text(self, c: Change) -> str:
+        return (
+            f"{c.file}\n"
+            "```\n"
+            "<<<<<<< SEARCH\n"
+            f"{c.search + '\n' if c.search else ''}"
+            "=======\n"
+            f"{c.replace + '\n' if c.replace else ''}"
+            ">>>>>>> REPLACE\n"
+            "```"
+        )
 
 
 class CoderMenu(ChatMenu):
@@ -239,12 +251,12 @@ class CoderMenu(ChatMenu):
         selected_message = self.get_messages()[selected_line.message_index]
         content = selected_message["content"]
 
-        blocks = get_edit_blocks(content)
-        if len(blocks) > 0:
-            menu = ApplyChangeMenu(items=blocks)
+        changes = _get_changes(content)
+        if len(changes) > 0:
+            menu = ApplyChangeMenu(items=changes)
             menu.exec()
             if menu.is_confirmed():
-                apply_changes(blocks)
+                _apply_changes(changes)
 
     def on_enter_pressed(self):
         i = len(self.get_messages())
@@ -277,9 +289,9 @@ class CoderMenu(ChatMenu):
 
         self.clear_messages()
         self.send_message(
-            get_coding_prompt(
+            _get_editing_prompt(
                 task=task,
-                file_list=self.__file_list_menu.get_file_list_string(),
+                context=self.__file_list_menu.get_context(),
             )
         )
 

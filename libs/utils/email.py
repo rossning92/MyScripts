@@ -1,7 +1,7 @@
-import webbrowser
 from typing import Optional
 from urllib.parse import quote
 
+from utils.shutil import shell_open
 from utils.template import render_template
 
 
@@ -14,7 +14,7 @@ def send_email(
         url = f"https://mail.google.com/mail/?view=cm&fs=1&to={to}&su={subject}&body={body}&bcc={cc}"
     else:
         url = f"mailto:{to}?subject={subject}&body={body}"
-    webbrowser.open(url)
+    shell_open(url)
 
 
 def send_email_md(

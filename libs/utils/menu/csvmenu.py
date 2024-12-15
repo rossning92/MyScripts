@@ -308,6 +308,6 @@ class CsvMenu(Menu[CsvRow]):
         finally:
             self._select_row = False
 
-    def on_item_selection_changed(self, item: CsvRow | None, i: int):
+    def on_item_selection_changed(self, item: Optional[CsvRow], i: int):
         self.__settings["selected_row"] = i
         self.__save_settings()

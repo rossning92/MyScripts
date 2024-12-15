@@ -388,7 +388,15 @@ class Menu(Generic[T]):
             return range(len(self.items))
 
     def append_item(self, item: T):
-        last_line_selected = self.__selected_row_end == len(self.get_item_indices()) - 1
+        # Clamp selection index to be within a valid range.
+        total_items = len(self.get_item_indices())
+        self.__selected_row_begin = min(
+            max(0, self.__selected_row_begin), total_items - 1
+        )
+        self.__selected_row_end = min(max(0, self.__selected_row_end), total_items - 1)
+
+        # Check if last line is selected
+        last_line_selected = self.__selected_row_end == total_items - 1
 
         self.items.append(item)
         self._last_item_count = len(self.items)
@@ -1203,6 +1211,7 @@ class Menu(Generic[T]):
 
         if selected != self._last_selected_item or self._last_input != self.get_input():
             self.on_item_selection_changed(selected, i=item_index)
+            self.update_screen()
         self._last_selected_item = selected
 
     def on_item_selection_changed(self, item: Optional[T], i: int):
