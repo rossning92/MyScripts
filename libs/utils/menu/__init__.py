@@ -442,13 +442,18 @@ class Menu(Generic[T]):
     def clear_input(self, reset_selection=False):
         if self.__search_mode:
             if reset_selection:
+                self.set_input("")
                 self.reset_selection()
             elif self.__selected_row_end < len(
                 self._matched_item_indices
             ):  # select the same item when filter is removed
                 row_number = self._matched_item_indices[self.__selected_row_end]
+                self.set_input("")
                 self.set_selected_row(row_number)
-        self.set_input("")
+            else:
+                self.set_input("")
+        else:
+            self.set_input("")
 
     def call_func_without_curses(self, func: Callable[[], R]) -> R:
         Menu.destroy_curses()
@@ -581,8 +586,8 @@ class Menu(Generic[T]):
         self.__selected_row_begin = begin_row
         self.__selected_row_end = end_row
 
-        if self.__search_mode:
-            self.update_matched_items()
+        # if self.__search_mode:
+        #     self.update_matched_items()
 
         total = len(self.get_item_indices())
         if self.__selected_row_begin >= total:

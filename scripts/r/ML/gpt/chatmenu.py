@@ -35,7 +35,7 @@ class ChatMenu(Menu[_Line]):
 
     def __init__(
         self,
-        prompt: str = "a",
+        prompt: str = "c",
         message: Optional[str] = None,
         model: Optional[str] = None,
         copy_result_and_exit=False,

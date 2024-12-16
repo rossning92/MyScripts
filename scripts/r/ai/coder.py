@@ -171,7 +171,7 @@ class FileListMenu(ListEditMenu):
             else:
                 with open(item["file"], "r", encoding="utf-8") as f:
                     content = f.read()
-            result.append(f"{item["file"]}\n```\n{content}\n```")
+            result.append(f'{item["file"]}\n```\n{content}\n```')
         return "\n".join(result)
 
 
@@ -180,13 +180,15 @@ class ApplyChangeMenu(ConfirmMenu):
         super().__init__(prompt="apply changes?", wrap_text=True, **kwargs)
 
     def get_item_text(self, c: Change) -> str:
+        search = c.search + "\n" if c.search else ""
+        replace = c.replace + "\n" if c.replace else ""
         return (
             f"{c.file}\n"
             "```\n"
             "<<<<<<< SEARCH\n"
-            f"{c.search + '\n' if c.search else ''}"
+            f"{search}"
             "=======\n"
-            f"{c.replace + '\n' if c.replace else ''}"
+            f"{replace}"
             ">>>>>>> REPLACE\n"
             "```"
         )
