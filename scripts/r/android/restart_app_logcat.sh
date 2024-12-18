@@ -8,3 +8,5 @@ run_script r/android/logcat_for_pkg.sh &
 sleep 3
 
 run_script r/android/restart_app.py
+
+wait
