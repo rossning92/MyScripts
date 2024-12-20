@@ -7,9 +7,7 @@ end
 
 local disk_usage_widget = {}
 
-local function worker(user_args)
-    local args = user_args or {}
-
+local function worker()
     local icon_widget = wibox.widget {
         image  = get_icon_path() .. "/disk-usage-widget-icon.svg",
         resize = true,
@@ -31,7 +29,7 @@ local function worker(user_args)
 end
 
 return setmetatable(disk_usage_widget, {
-    __call = function(_, ...)
-        return worker(...)
+    __call = function(_)
+        return worker()
     end
 })

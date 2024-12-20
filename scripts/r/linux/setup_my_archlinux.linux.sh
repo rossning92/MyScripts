@@ -175,8 +175,8 @@ setup_logitech_keyboard
 
 # Setup clipboard manager
 setup_clipboard_manager() {
-    pac_install clipmenu # Logitech device manager
-    append_line_dedup ~/.xinitrc 'clipmenud &'
+    pac_install parcellite
+    append_line_dedup ~/.xinitrc 'parcellite &'
 }
 setup_clipboard_manager
 
