@@ -1,13 +1,13 @@
 import argparse
 import os
-import subprocess
 import tempfile
 from typing import Optional
 
 import requests
+from utils.playback import play
 
 
-def text_to_speech_openai(text: str, out_file: Optional[str] = None):
+def text_to_speech(text: str, out_file: Optional[str] = None):
     response = requests.post(
         "https://api.openai.com/v1/audio/speech",
         headers={
@@ -26,8 +26,11 @@ def text_to_speech_openai(text: str, out_file: Optional[str] = None):
             tmpfile = os.path.join(tempfile.gettempdir(), "speech.mp3")
             with open(tmpfile, "wb") as file:
                 file.write(response.content)
-            subprocess.check_call(["mpv", tmpfile])
+
+            play(tmpfile)
+
             os.remove(tmpfile)
+
         else:
             with open(out_file, "wb") as file:
                 file.write(response.content)
@@ -35,12 +38,8 @@ def text_to_speech_openai(text: str, out_file: Optional[str] = None):
         raise Exception(response.text)
 
 
-def text_to_speech(text: str):
-    text_to_speech_openai(text=text)
-
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Text to Speech converter")
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "text",
         type=str,

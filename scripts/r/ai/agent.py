@@ -93,7 +93,7 @@ Here's my task:
 """
 
 
-class PyAgentMenu(ChatMenu):
+class AgentMenu(ChatMenu):
     def __init__(
         self,
         context: Optional[Dict] = None,
@@ -112,11 +112,7 @@ class PyAgentMenu(ChatMenu):
         if agent_file:
             self.__load_agent(agent_file, context=context)
         else:
-            agent_files = self.__get_agent_files()
-            if len(agent_files) > 0:
-                self.__load_agent(agent_files[-1])
-            else:
-                self.__new_agent()
+            self.__new_agent()
 
         self.task_result: Optional[str] = None
 
@@ -125,6 +121,12 @@ class PyAgentMenu(ChatMenu):
         self.add_command(self.__new_agent, hotkey="ctrl+n")
         self.add_command(self.__add_tool, hotkey="alt+t")
         self.add_command(self.__edit_context, hotkey="alt+c")
+        self.add_command(self.__load_last_agent, hotkey="alt+l")
+
+    def __load_last_agent(self):
+        agent_files = self.__get_agent_files()
+        if len(agent_files) > 0:
+            self.__load_agent(agent_files[-1])
 
     def __edit_context(self):
         self.__agent["context"].clear()
@@ -187,16 +189,19 @@ class PyAgentMenu(ChatMenu):
 
     def on_enter_pressed(self):
         text = self.get_input().strip()
+        self.send_message(text)
+
+    def send_message(self, text: str) -> None:
         if not text:
             self.__complete_task()
         else:
             i = len(self.get_messages())
             if i == 0:
-                self.__agent["task"] = self.get_input()
+                self.__agent["task"] = text
                 self.__save_agent()
                 self.__complete_task()
             else:
-                return super().on_enter_pressed()
+                super().send_message(text)
 
     def __get_agent_files(self) -> List[str]:
         return sorted(
@@ -233,7 +238,7 @@ class PyAgentMenu(ChatMenu):
 
         task = self.__get_task_with_context()
 
-        self.send_message(
+        super().send_message(
             _get_prompt(
                 task=task,
                 tools=self.__tools,
@@ -264,7 +269,7 @@ class PyAgentMenu(ChatMenu):
 
             # Convert agent as a tool that can be called through a Python function call.
             def exec_agent(context):
-                menu = PyAgentMenu(
+                menu = AgentMenu(
                     context=context,
                     agent_file=agent_file,
                     yes_always=self.__yes_always,
@@ -346,8 +351,20 @@ class PyAgentMenu(ChatMenu):
             if self.__run:
                 self.close()
 
+            self.on_result(result)
+            self.on_response(result)
+
+        elif not response_message:
+            self.on_response(content)
+
         if response_message:
             self.send_message(response_message)
+
+    def on_response(self, text: str):
+        pass
+
+    def on_result(self, text: str):
+        pass
 
     def __edit_task(self):
         self.__agent["task"] = self.call_func_without_curses(
@@ -392,7 +409,7 @@ def _main():
     os.makedirs(AGENT_DIR, exist_ok=True)
     os.makedirs(CHAT_DIR, exist_ok=True)
 
-    menu = PyAgentMenu(
+    menu = AgentMenu(
         yes_always=True, context=context, agent_file=args.agent, run=args.run
     )
     menu.exec()
