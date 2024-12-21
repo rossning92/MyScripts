@@ -15,6 +15,7 @@ from typing import (
     NamedTuple,
     Optional,
     OrderedDict,
+    TextIO,
     TypeVar,
     Union,
 )
@@ -207,50 +208,56 @@ class Menu(Generic[T]):
         search_mode=True,
         line_number=True,
     ):
-        self._is_stdscr_owner: Optional[bool] = None
-
         self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
         self.prev_key: Union[int, str] = -1
         self.is_cancelled: bool = False
 
-        self._allow_input: bool = allow_input
-        self._cancellable: bool = cancellable
-        self._close_on_selection: bool = close_on_selection
-        self._closed: bool = False
-        self._debug = debug
         self._height: int = -1
-        self._input = _InputWidget(
+
+        self.__input = _InputWidget(
             prompt=prompt,
             text=text if text else "",
             ascii_only=ascii_only,
         )
-        self._last_input: Optional[str] = None
-        self.__search_history: List[str] = []
-        self._last_item_count = 0
-        self._last_selected_item: Optional[T] = None
-        self._matched_item_indices: List[int] = []
-        self._message: Optional[str] = None
-        self._on_item_selected = on_item_selected
-        self._highlight = highlight
-        self._width: int = -1
-        self.__wrap_text: bool = wrap_text
-        self.__line_number = line_number
 
+        self.__allow_input: bool = allow_input
+        self.__cancellable: bool = cancellable
+        self.__close_on_selection: bool = close_on_selection
+        self.__closed: bool = False
+        self.__debug = debug
+        self.__empty_lines: int = 0
+
+        self.__highlight = highlight
+        self.__is_stdscr_owner: Optional[bool] = None
+        self.__last_input: Optional[str] = None
+        self.__last_item_count = 0
+        self.__last_selected_item: Optional[T] = None
+        self.__line_number = line_number
+        self.__matched_item_indices: List[int] = []
+        self.__message: Optional[str] = None
+        self.__num_rendered_items: int = 0
+        self.__on_item_selected = on_item_selected
+        self.__saved_stderr: Optional[TextIO] = None
+        self.__saved_stdout: Optional[TextIO] = None
+        self.__search_history: List[str] = []
+        self.__width: int = -1
+        self.__wrap_text: bool = wrap_text
+
+        # Search
         self.__search_mode = search_mode
         self.__search_on_enter: bool = search_on_enter
         self.__fuzzy_search = fuzzy_search
 
+        # Scroll
         self.__scroll_y: int = 0
-        self.__num_rendered_items: int = 0
-        self.__empty_lines: int = 0
+        self.__scroll_x = 0
+        self.__can_scroll = False
 
+        # Selection
         self.__selected_row_begin: int = selected_index
         self.__selected_row_end: int = selected_index
         self.__multi_select_mode: bool = False
-
-        self.__scroll_x = 0
-        self.__can_scroll = False
 
         self.__should_update_matched_items: bool = False
 
@@ -273,9 +280,9 @@ class Menu(Generic[T]):
             self.items = [x[0] for x in sorted_items]
             self.indices = [x[1] for x in sorted_items]
 
-        # Hotkeys
-        self._hotkeys: Dict[str, _Command] = {}
-        self._custom_commands: List[_Command] = []
+        # Commands and hotkeys
+        self.__hotkeys: Dict[str, _Command] = {}
+        self.__custom_commands: List[_Command] = []
         if enable_command_palette:
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.select_all, hotkey="ctrl+a")
@@ -288,7 +295,7 @@ class Menu(Generic[T]):
 
             self._command_palette_menu = Menu(
                 prompt="cmd",
-                items=self._custom_commands,
+                items=self.__custom_commands,
                 enable_command_palette=False,
             )
 
@@ -301,19 +308,42 @@ class Menu(Generic[T]):
                             hotkey=hotkey,
                         )
 
+    def __redirect_output(self):
+        class ConsoleRedirect:
+            def __init__(self, menu: Menu) -> None:
+                self.menu = menu
+
+            def write(self, message):
+                if message.strip():
+                    self.menu.set_message(message)
+
+            def flush(self):
+                pass
+
+        self.__saved_stdout = sys.stdout
+        self.__saved_stderr = sys.stderr
+        sys.stdout = sys.stderr = ConsoleRedirect(self)
+
+    def __recover_output(self):
+        assert self.__saved_stdout and self.__saved_stderr
+        sys.stdout = self.__saved_stdout
+        sys.stderr = self.__saved_stderr
+
     def __enter__(self):
-        if self._is_stdscr_owner is not None:
+        if self.__is_stdscr_owner is not None:
             raise Exception("Using with-clause on Menu object twice is not allowed")
-        self._is_stdscr_owner = Menu.stdscr is None
-        if self._is_stdscr_owner:
+        self.__is_stdscr_owner = Menu.stdscr is None
+        if self.__is_stdscr_owner:
+            self.__redirect_output()
             Menu.init_curses()
 
     def __exit__(self, exc_type, exc_val, traceback):
-        if self._is_stdscr_owner:
+        if self.__is_stdscr_owner:
             Menu.destroy_curses()
+            self.__recover_output()
         else:
             Menu._should_update_screen = True
-        self._is_stdscr_owner = None
+        self.__is_stdscr_owner = None
 
     def __voice_input(self):
         try:
@@ -360,17 +390,17 @@ class Menu(Generic[T]):
         self, func: Callable, hotkey: Optional[str] = None, name: Optional[str] = None
     ) -> _Command:
         command = _Command(hotkey=hotkey, func=func, name=name)
-        self._custom_commands.append(command)
+        self.__custom_commands.append(command)
 
         if hotkey is not None:
-            self._hotkeys[hotkey] = command
+            self.__hotkeys[hotkey] = command
 
         return command
 
     def delete_commands_if(self, condition: Callable[[_Command], bool]):
-        for cmd in self._custom_commands[:]:  # Iterate over a copy of the list
+        for cmd in self.__custom_commands[:]:  # Iterate over a copy of the list
             if condition(cmd):
-                self._custom_commands.remove(cmd)
+                self.__custom_commands.remove(cmd)
 
     def get_history_file(self):
         from scripting.path import get_data_dir
@@ -383,7 +413,7 @@ class Menu(Generic[T]):
 
     def get_item_indices(self):
         if self.__search_mode:
-            return self._matched_item_indices
+            return self.__matched_item_indices
         else:
             return range(len(self.items))
 
@@ -399,16 +429,16 @@ class Menu(Generic[T]):
         last_line_selected = self.__selected_row_end == total_items - 1
 
         self.items.append(item)
-        self._last_item_count = len(self.items)
-        added_index = self._last_item_count - 1
+        self.__last_item_count = len(self.items)
+        added_index = self.__last_item_count - 1
 
         # Scroll to bottom if last line is selected
         if self.__search_mode:
             if self.match_item(self.get_input(), item, added_index):
-                self._matched_item_indices.append(added_index)
+                self.__matched_item_indices.append(added_index)
                 if last_line_selected:
                     self.__selected_row_begin = self.__selected_row_end = (
-                        len(self._matched_item_indices) - 1
+                        len(self.__matched_item_indices) - 1
                     )
                 self.update_screen()
 
@@ -420,23 +450,23 @@ class Menu(Generic[T]):
 
     def clear_items(self):
         self.items.clear()
-        self._last_item_count = 0
-        self._matched_item_indices.clear()
+        self.__last_item_count = 0
+        self.__matched_item_indices.clear()
         self.__selected_row_begin = 0
         self.__selected_row_end = 0
         self.update_screen()
 
     def set_input(self, text: str, save_search_history=True):
-        self._input.set_text(text)
+        self.__input.set_text(text)
         if self.__search_mode:
             self.search_by_input(save_search_history=save_search_history)
         self.update_screen()
 
     def get_input(self) -> str:
-        return self._input.text
+        return self.__input.text
 
     def set_prompt(self, prompt: str):
-        self._input.prompt = prompt
+        self.__input.prompt = prompt
         self.update_screen()
 
     def clear_input(self, reset_selection=False):
@@ -445,9 +475,9 @@ class Menu(Generic[T]):
                 self.set_input("")
                 self.reset_selection()
             elif self.__selected_row_end < len(
-                self._matched_item_indices
+                self.__matched_item_indices
             ):  # select the same item when filter is removed
-                row_number = self._matched_item_indices[self.__selected_row_end]
+                row_number = self.__matched_item_indices[self.__selected_row_end]
                 self.set_input("")
                 self.set_selected_row(row_number)
             else:
@@ -535,7 +565,7 @@ class Menu(Generic[T]):
     def _update_screen(self):
         assert Menu.stdscr is not None
 
-        self._height, self._width = Menu.stdscr.getmaxyx()  # type: ignore
+        self._height, self.__width = Menu.stdscr.getmaxyx()  # type: ignore
 
         if sys.platform == "win32":
             Menu.stdscr.clear()
@@ -548,13 +578,13 @@ class Menu(Generic[T]):
     def update_matched_items(self, save_search_history=True):
         assert self.__search_mode
 
-        self._matched_item_indices.clear()
+        self.__matched_item_indices.clear()
         for i, item in enumerate(self.items):
             if self.match_item(self.get_input(), item, i):
-                self._matched_item_indices.append(i)
+                self.__matched_item_indices.append(i)
 
         # Update selected rows
-        num_matched_items = len(self._matched_item_indices)
+        num_matched_items = len(self.__matched_item_indices)
         if num_matched_items > 0:
             self.__selected_row_begin = min(
                 self.__selected_row_begin, num_matched_items - 1
@@ -567,10 +597,10 @@ class Menu(Generic[T]):
             self.__selected_row_end = 0
         self._check_if_item_selection_changed()
 
-        if save_search_history and self._last_input is not None:
-            self.__search_history.insert(0, self._last_input)
-        self._last_input = self.get_input()
-        self._last_item_count = len(self.items)
+        if save_search_history and self.__last_input is not None:
+            self.__search_history.insert(0, self.__last_input)
+        self.__last_input = self.get_input()
+        self.__last_item_count = len(self.items)
         self.__last_match_time = time.time()
         self.__should_update_matched_items = False
         self.__should_update_screen = True
@@ -614,7 +644,7 @@ class Menu(Generic[T]):
     def process_events(self, timeout_sec: float = 0.0) -> bool:
         assert Menu.stdscr is not None
 
-        if self._closed:
+        if self.__closed:
             return True
 
         if timeout_sec > 0.0:
@@ -630,12 +660,12 @@ class Menu(Generic[T]):
                     and (
                         (
                             not self.__search_on_enter
-                            and self._last_input != self.get_input()
+                            and self.__last_input != self.get_input()
                         )
-                        or self._last_item_count != len(self.items)
+                        or self.__last_item_count != len(self.items)
                     )
                 )
-                or (len(self.items) < self._last_item_count)
+                or (len(self.items) < self.__last_item_count)
             ):
                 self.update_matched_items()
 
@@ -654,7 +684,7 @@ class Menu(Generic[T]):
             sys.exit(0)
 
         if ch != -1:  # getch() will return -1 when timeout
-            if self._debug:
+            if self.__debug:
                 if isinstance(ch, str):
                     self.set_message(f"key={repr(ch)}")
                 elif isinstance(ch, int):
@@ -683,8 +713,8 @@ class Menu(Generic[T]):
 
             elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B3
-            ) and "left" in self._hotkeys:
-                self._hotkeys["left"].func()
+            ) and "left" in self.__hotkeys:
+                self.__hotkeys["left"].func()
 
             elif (
                 ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B1
@@ -694,8 +724,8 @@ class Menu(Generic[T]):
 
             elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
-            ) and "right" in self._hotkeys:
-                self._hotkeys["right"].func()
+            ) and "right" in self.__hotkeys:
+                self.__hotkeys["right"].func()
 
             elif (
                 ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
@@ -733,8 +763,8 @@ class Menu(Generic[T]):
                     )
                     self.set_selection(begin, end)
 
-            elif ch == curses.KEY_DC and "delete" in self._hotkeys:
-                self._hotkeys["delete"].func()
+            elif ch == curses.KEY_DC and "delete" in self.__hotkeys:
+                self.__hotkeys["delete"].func()
 
             elif self._check_ctrl_hotkey(ch):
                 pass
@@ -746,16 +776,18 @@ class Menu(Generic[T]):
                 pass
 
             elif (
-                sys.platform == "win32" and ch == 0x211 and "alt+enter" in self._hotkeys
+                sys.platform == "win32"
+                and ch == 0x211
+                and "alt+enter" in self.__hotkeys
             ):
-                self._hotkeys["alt+enter"].func()
+                self.__hotkeys["alt+enter"].func()
 
             elif ch == "\x1b":  # escape key
                 self.on_escape_pressed()
 
             elif ch != "\0":
-                if self._allow_input:
-                    self._input.on_char(ch)
+                if self.__allow_input:
+                    self.__input.on_char(ch)
                     self.update_screen()
 
             self.prev_key = ch
@@ -763,44 +795,44 @@ class Menu(Generic[T]):
         if ch == -1 and timeout_sec > 0.0:  # getch() is timed-out
             self._on_idle()
 
-        if self._closed:
+        if self.__closed:
             self.on_exit()
             return True
         else:
             return False
 
     def on_escape_pressed(self):
-        if "escape" in self._hotkeys:
+        if "escape" in self.__hotkeys:
             logging.debug("Hotkey pressed: escape")
-            self._hotkeys["escape"].func()
+            self.__hotkeys["escape"].func()
             return True
         else:
-            if self._cancellable:
+            if self.__cancellable:
                 self.is_cancelled = True
-                self._closed = True
+                self.__closed = True
             else:
-                self._input.clear()
+                self.__input.clear()
                 self.update_screen()
 
     def _check_ctrl_hotkey(self, ch: Union[str, int]) -> bool:
         if curses.ascii.isctrl(ch):
             htk = "ctrl+" + curses.ascii.unctrl(ch)[-1].lower()
-            if htk in self._hotkeys:
+            if htk in self.__hotkeys:
                 logging.debug(f"Hotkey pressed: {htk}")
-                self._hotkeys[htk].func()
+                self.__hotkeys[htk].func()
                 return True
         return False
 
     def _check_shift_hotkey(self, ch: Union[str, int]) -> bool:
         if isinstance(ch, str):
-            if ch in self._hotkeys:
-                self._hotkeys[ch].func()
+            if ch in self.__hotkeys:
+                self.__hotkeys[ch].func()
                 return True
             elif len(ch) == 1 and ch.isupper():
                 htk = "shift+" + ch.lower()
-                if htk in self._hotkeys:
+                if htk in self.__hotkeys:
                     logging.debug(f"Hotkey pressed: {htk}")
-                    self._hotkeys[htk].func()
+                    self.__hotkeys[htk].func()
                     return True
         return False
 
@@ -833,11 +865,11 @@ class Menu(Generic[T]):
 
         if key_name is not None:
             htk = "alt+" + key_name
-            if htk in self._hotkeys:
+            if htk in self.__hotkeys:
                 logging.debug(f"Hotkey pressed: {htk}")
-                self._hotkeys[htk].func()
+                self.__hotkeys[htk].func()
             elif key_name == "enter":  # alt + enter
-                self._input.on_char("\n")  # new line
+                self.__input.on_char("\n")  # new line
                 self.update_screen()
 
         return is_alt_hotkey
@@ -853,7 +885,7 @@ class Menu(Generic[T]):
 
     def _reset_state(self):
         self.is_cancelled = False
-        self._closed = False
+        self.__closed = False
 
     def _exec(self):
         self._reset_state()
@@ -875,7 +907,7 @@ class Menu(Generic[T]):
         if self.is_cancelled:
             return None
         else:
-            return self._input.text
+            return self.__input.text
 
     def get_items_per_page(self):
         return self.__num_rendered_items + self.__empty_lines
@@ -960,7 +992,7 @@ class Menu(Generic[T]):
                         last_row_index = row
                         Menu.stdscr.addstr(
                             row,
-                            self._width - 1,
+                            self.__width - 1,
                             ">",
                             self.color_name_to_attr("CYAN"),
                         )
@@ -985,7 +1017,7 @@ class Menu(Generic[T]):
         assert Menu.stdscr is not None
 
         # Render input widget
-        draw_input_result = self._input.draw_input(
+        draw_input_result = self.__input.draw_input(
             Menu.stdscr,
             0,
             show_enter_symbol=self.__should_trigger_search(),
@@ -1039,8 +1071,8 @@ class Menu(Generic[T]):
             else:
                 # Highlight text by regex
                 color = "white"
-                if self._highlight is not None:
-                    for patt, c in self._highlight.items():
+                if self.__highlight is not None:
+                    for patt, c in self.__highlight.items():
                         if re.search(patt, item_text):
                             color = c
 
@@ -1097,7 +1129,7 @@ class Menu(Generic[T]):
         self.draw_text(
             row=self._height - 1,
             col=0,
-            s=f"{a[:self._width - len(b)]:<{self._width - len(b)}}{b:>{len(b)}}",
+            s=f"{a[:self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}",
             color="WHITE",
         )
 
@@ -1114,8 +1146,8 @@ class Menu(Generic[T]):
         columns: List[str] = []
         if self.__multi_select_mode:
             columns.append("multi_select_mode")
-        if self._message:
-            columns.append(self._message)
+        if self.__message:
+            columns.append(self.__message)
         return " | ".join(columns)
 
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
@@ -1152,8 +1184,8 @@ class Menu(Generic[T]):
         elif ch == curses.ascii.ctrl("c"):
             sys.exit(0)
 
-        elif ch in self._hotkeys:
-            self._hotkeys[ch].func()
+        elif ch in self.__hotkeys:
+            self.__hotkeys[ch].func()
             return True
 
         else:
@@ -1161,7 +1193,7 @@ class Menu(Generic[T]):
 
     def __should_trigger_search(self) -> bool:
         if self.__search_mode:
-            return self.__search_on_enter and self.get_input() != self._last_input
+            return self.__search_on_enter and self.get_input() != self.__last_input
         else:
             return False
 
@@ -1179,12 +1211,12 @@ class Menu(Generic[T]):
         else:
             item = self.get_selected_item()
             if item is not None:
-                on_item_selected = self._on_item_selected
+                on_item_selected = self.__on_item_selected
                 if on_item_selected is not None:
                     self.call_func_without_curses(
                         lambda item=item: on_item_selected(item)
                     )
-            if self._close_on_selection:
+            if self.__close_on_selection:
                 self.close()
             else:
                 self.update_screen()
@@ -1199,11 +1231,11 @@ class Menu(Generic[T]):
         pass
 
     def close(self):
-        self._closed = True
+        self.__closed = True
 
     def cancel(self):
         self.is_cancelled = True
-        self._closed = True
+        self.__closed = True
 
     def _check_if_item_selection_changed(self):
         selected = None
@@ -1214,16 +1246,19 @@ class Menu(Generic[T]):
             if item_index < len(self.items):
                 selected = self.items[item_index]
 
-        if selected != self._last_selected_item or self._last_input != self.get_input():
+        if (
+            selected != self.__last_selected_item
+            or self.__last_input != self.get_input()
+        ):
             self.on_item_selection_changed(selected, i=item_index)
             self.update_screen()
-        self._last_selected_item = selected
+        self.__last_selected_item = selected
 
     def on_item_selection_changed(self, item: Optional[T], i: int):
         pass
 
     def set_message(self, message: Optional[str] = None):
-        self._message = message
+        self.__message = message
         self.update_screen()
 
     def __edit_text_in_external_editor(self):
@@ -1257,7 +1292,7 @@ class Menu(Generic[T]):
     def __on_item_hotkey(self, item: T):
         # Select the item.
         self.__selected_row_begin = self.__selected_row_end = self.items.index(item)
-        if self._close_on_selection:
+        if self.__close_on_selection:
             self.close()
         else:
             self.update_screen()

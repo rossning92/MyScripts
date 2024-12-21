@@ -5,14 +5,19 @@ import signal
 import subprocess
 import sys
 import time
-from typing import Optional
+from typing import List, Optional
 
 from _shutil import is_in_termux
 from utils.getch import getch
 
 
+def _run_without_output(command: List[str]):
+    with open(os.devnull, "w") as devnull:
+        subprocess.check_call(command, stdout=devnull, stderr=devnull)
+
+
 def _wait_for_key() -> bool:
-    sys.stderr.write("(Press 'Enter' to continue, 'q' to cancel)\n")
+    sys.stderr.write("Recording, press ENTER when done or Q to cancel...\n")
     sys.stderr.flush()
     while True:
         try:
@@ -44,19 +49,20 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
     global _is_recording_termux
 
     if out_file is None:
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-        out_file = temp_file.name
+        out_file = tempfile.mktemp(suffix=".mp3")
 
     saved = False
     if is_in_termux():
         _is_recording_termux = True
-        subprocess.check_call(["termux-microphone-record", "-f", out_file])
+        _run_without_output(["termux-microphone-record", "-f", out_file])
 
         saved = _wait_for_key()
 
         _is_recording_termux = False
-        subprocess.check_call(["termux-microphone-record", "-q"])
-        time.sleep(1)  # HACK: wait for 1 second until the file is saved.
+        _run_without_output(["termux-microphone-record", "-q"])
+
+        # HACK: Wait for 1 second to make sure that the file is saved correctly.
+        time.sleep(1)
 
     elif sys.platform == "linux":
         subprocess.run(["run_script", "r/install_package.py", "sox"], check=True)

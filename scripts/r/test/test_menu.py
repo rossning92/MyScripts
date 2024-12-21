@@ -43,7 +43,7 @@ if __name__ == "__main__":
         search_on_enter=True,
         wrap_text=True,
     )
-    menu.add_command(lambda: menu.set_message("alt+z pressed"), hotkey="alt+z")
-    menu.add_command(lambda: menu.set_message("alt+enter pressed"), hotkey="alt+enter")
+    menu.add_command(lambda: print("alt+z pressed"), hotkey="alt+z")
+    menu.add_command(lambda: print("alt+enter pressed"), hotkey="alt+enter")
 
     menu.exec()
