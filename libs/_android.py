@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 from collections import namedtuple
+from typing import Optional
 
 from _shutil import (
     call2,
@@ -913,7 +914,7 @@ def run_apk(
     return result
 
 
-def find_device_by_product_name(product):
+def find_device_by_product_name_adb(product) -> Optional[str]:
     lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
         "\n"
     )[1:]
@@ -931,7 +932,39 @@ def find_device_by_product_name(product):
         if prod == product:
             return serial
 
-    raise Exception("Couldn't find device with product name %s" % product)
+    return None
+
+
+def find_device_by_product_name_fastboot(product) -> Optional[str]:
+    lines = subprocess.check_output(
+        ["fastboot", "devices"], universal_newlines=True
+    ).splitlines()
+    for line in lines:
+        if not line.strip():
+            continue
+
+        serial = line.split("\t")[0]
+        out = subprocess.check_output(
+            ["fastboot", "-s", serial, "getvar", "product"],
+            universal_newlines=True,
+            stderr=subprocess.STDOUT,
+        )
+        match = re.findall(r"product\s*:\s*(\w+)", out)
+        prod = match[0]
+        if prod == product:
+            return serial
+
+    return None
+
+
+def find_device_by_product_name(product: str) -> Optional[str]:
+    serial = find_device_by_product_name_adb(product)
+    if serial:
+        return serial
+    serial = find_device_by_product_name_fastboot(product)
+    if serial:
+        return serial
+    return None
 
 
 def setprop(prop):

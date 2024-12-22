@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 import time
-from typing import Literal
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 send_notification_ps1 = os.path.abspath(
@@ -33,13 +32,8 @@ def _getch():
     return ch
 
 
-def _notify(message: str, icon: Literal["info", "error"] = "info"):
+def _notify(message: str):
     if sys.platform == "win32":
-        if icon == "error":
-            icon_enum = "Error"
-        else:
-            icon_enum = "Information"
-
         subprocess.check_call(["powershell", "-file", send_notification_ps1, message])
 
 
@@ -66,7 +60,6 @@ if __name__ == "__main__":
         if duration > 10 or has_error:
             _notify(
                 f"{window_title} finished in {_format_seconds(duration)}, exit code {code}",
-                icon="info" if code == 0 else "error",
             )
         if has_error or keep_terminal_on:
             print("---")

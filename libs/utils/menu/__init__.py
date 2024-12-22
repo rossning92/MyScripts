@@ -315,7 +315,8 @@ class Menu(Generic[T]):
 
             def write(self, message):
                 if message.strip():
-                    self.menu.set_message(message)
+                    self.menu.set_prompt(message)
+                    self.menu.process_events()
 
             def flush(self):
                 pass

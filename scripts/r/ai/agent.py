@@ -351,19 +351,15 @@ class AgentMenu(ChatMenu):
             if self.__run:
                 self.close()
 
-            self.on_result(result)
-            self.on_response(result)
+            self.on_response(result, done=True)
 
         elif not response_message:
-            self.on_response(content)
+            self.on_response(content, done=False)
 
         if response_message:
             self.send_message(response_message)
 
-    def on_response(self, text: str):
-        pass
-
-    def on_result(self, text: str):
+    def on_response(self, text: str, done: bool):
         pass
 
     def __edit_task(self):

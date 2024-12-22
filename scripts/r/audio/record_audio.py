@@ -17,8 +17,7 @@ def _run_without_output(command: List[str]):
 
 
 def _wait_for_key() -> bool:
-    sys.stderr.write("Recording, press ENTER when done or Q to cancel...\n")
-    sys.stderr.flush()
+    print("Recording, press ENTER when done or Q to cancel...")
     while True:
         try:
             key = getch()
@@ -83,8 +82,10 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
         os.remove(out_file)
 
     if saved:
+        print("Saved recording")
         return out_file
     else:
+        print("Cancelled recording")
         return None
 
 

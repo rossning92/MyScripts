@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# class_name=org.remmina.Remmina
-class_name=.realvnc-vncviewer
+class_name=com.moonlight_stream.Moonlight
 
 # Find window ID by window class
 window_id=$(wmctrl -lx | awk "/$class_name/ {print \$1}")
@@ -16,5 +15,6 @@ if [[ -n "$window_id" ]]; then
         wmctrl -i -a "$window_id"
     fi
 else
-    run_script r/vncviewer_realvnc.sh
+    # Window does not exist, start it
+    run_script r/linux/moonlight.sh
 fi
