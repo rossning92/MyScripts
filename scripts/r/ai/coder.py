@@ -198,7 +198,6 @@ class CoderMenu(ChatMenu):
     def __init__(self, files: Optional[List[str]] = None, **kwargs):
         super().__init__(
             conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
-            new_conversation=False,
             **kwargs,
         )
 

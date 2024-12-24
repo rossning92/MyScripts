@@ -1,16 +1,13 @@
 import argparse
-import glob
 import os
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from ai.complete_chat import complete_chat
 from utils.clip import set_clip
 from utils.editor import edit_text
+from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
-
-MAX_CONVERSATIONS = 100
 
 
 class _Line:
@@ -72,6 +69,11 @@ class ChatMenu(Menu[_Line]):
             os.environ["MY_DATA_DIR"], "conversations"
         )
         os.makedirs(self.__conversations_dir, exist_ok=True)
+        self.__history_manager = HistoryManager(
+            save_dir=self.__conversations_dir,
+            prefix="conversation_",
+            ext=".json",
+        )
 
         self.__conv: Dict[str, Any] = ChatMenu.default_conv.copy()  # conversation data
         self.__conv_file: str
@@ -82,19 +84,13 @@ class ChatMenu(Menu[_Line]):
             if not new_conversation and os.path.exists(self.__conv_file):
                 self.load_conversation(conv_file)
         elif not new_conversation:
-            conversation_files = self.get_all_conversation_files()
+            conversation_files = self.__history_manager.get_all_files()
             if len(conversation_files) > 0:
                 self.load_conversation(conversation_files[-1])
 
-    def get_all_conversation_files(self) -> List[str]:
-        return sorted(
-            glob.glob(os.path.join(self.__conversations_dir, "conversation_*.json")),
-            key=os.path.getmtime,
-        )
-
     def __load_conversation(self):
         menu = _SelectConvMenu(
-            items=[f for f in reversed(self.get_all_conversation_files())]
+            items=[f for f in self.__history_manager.get_all_files_desc()]
         )
         menu.exec()
         selected = menu.get_selected_item()
@@ -107,11 +103,6 @@ class ChatMenu(Menu[_Line]):
     def on_created(self):
         if self.__first_message is not None:
             self.send_message(self.__first_message)
-
-            if self.__copy_result_and_exit:
-                message = self.get_messages()[-1]["content"]
-                set_clip(message)
-                self.close()
 
     def send_message(self, text: str) -> None:
         self.clear_input()
@@ -148,9 +139,13 @@ class ChatMenu(Menu[_Line]):
         self.save_conversation()
         self.on_message(content)
 
+        if self.__copy_result_and_exit:
+            set_clip(content)
+            self.close()
+
     def save_conversation(self):
         save_json(self.__conv_file, self.__conv)
-        self.delete_old_conversations()
+        self.__history_manager.delete_old_files()
 
     def populate_lines(self):
         self.__lines.clear()
@@ -171,13 +166,6 @@ class ChatMenu(Menu[_Line]):
         self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
         self.populate_lines()
 
-    def delete_old_conversations(self):
-        conversation_files = self.get_all_conversation_files()
-        for file in conversation_files[
-            : max(0, len(conversation_files) - MAX_CONVERSATIONS)
-        ]:
-            os.remove(file)
-
     def clear_messages(self):
         self.__lines.clear()
         self.__conv["messages"].clear()
@@ -187,10 +175,7 @@ class ChatMenu(Menu[_Line]):
         self.clear_messages()
 
         if self.__auto_create_conv_file:
-            self.__conv_file = os.path.join(
-                self.__conversations_dir,
-                "conversation_%s.json" % datetime.now().strftime("%y%m%d%H%M%S"),
-            )
+            self.__conv_file = self.__history_manager.get_new_file()
 
         if message:
             self.send_message(message)

@@ -14,10 +14,10 @@ function M.split_screen()
 
     local screen1_width, screen2_width
     if aspect < 21 / 9 then
-        screen1_width = math.floor(geo.width * 2 / 3)
+        screen1_width = math.floor(geo.width * 2 / 3 + 0.5)
         screen2_width = geo.width - screen1_width
     else
-        screen1_width = math.floor(3 * geo.width / 4)
+        screen1_width = math.floor(geo.width * 3 / 4 + 0.5)
         screen2_width = geo.width - screen1_width
     end
 

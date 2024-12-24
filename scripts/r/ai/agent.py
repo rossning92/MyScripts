@@ -187,10 +187,6 @@ class AgentMenu(ChatMenu):
     def on_message(self, content: str):
         self.__check_code_blocks()
 
-    def on_enter_pressed(self):
-        text = self.get_input().strip()
-        self.send_message(text)
-
     def send_message(self, text: str) -> None:
         if not text:
             self.__complete_task()

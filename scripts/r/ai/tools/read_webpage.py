@@ -1,6 +1,13 @@
 # https://github.com/unclecode/crawl4ai
 
+import argparse
 import asyncio
+import importlib.util
+import subprocess
+import sys
+
+if not importlib.util.find_spec("crawl4ai"):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "crawl4ai"])
 
 from crawl4ai import AsyncWebCrawler
 from crawl4ai.content_filter_strategy import PruningContentFilter
@@ -18,7 +25,23 @@ def read_webpage(url: str) -> str:
                     )
                 ),
             )
-            content = result.markdown_v2.raw_markdown
-            return content
+            markdown = result.markdown_v2
+            if markdown:
+                return markdown.raw_markdown
+            else:
+                return "nothing"
 
     return asyncio.run(crawl())
+
+
+def _main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("url", type=str)
+    args = parser.parse_args()
+
+    content = read_webpage(args.url)
+    print(content)
+
+
+if __name__ == "__main__":
+    _main()
