@@ -35,7 +35,7 @@ class ChatMenu(Menu[_Line]):
         prompt: str = "c",
         message: Optional[str] = None,
         model: Optional[str] = None,
-        copy_result_and_exit=False,
+        copy_and_exit=False,
         new_conversation=True,
         conv_file: Optional[str] = None,
     ) -> None:
@@ -51,7 +51,7 @@ class ChatMenu(Menu[_Line]):
         )
 
         self.__auto_create_conv_file = conv_file is None
-        self.__copy_result_and_exit = copy_result_and_exit
+        self.__copy_and_exit = copy_and_exit
         self.__first_message = message
         self.__is_generating = False
         self.__last_yanked_line: Optional[_Line] = None
@@ -139,7 +139,7 @@ class ChatMenu(Menu[_Line]):
         self.save_conversation()
         self.on_message(content)
 
-        if self.__copy_result_and_exit:
+        if self.__copy_and_exit:
             set_clip(content)
             self.close()
 
@@ -304,7 +304,7 @@ def complete_chat_gui(
 
     chat = ChatMenu(
         message=input_text,
-        copy_result_and_exit=True,
+        copy_and_exit=True,
         model=model,
     )
     chat.exec()

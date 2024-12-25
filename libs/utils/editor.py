@@ -9,6 +9,10 @@ from _pkgmanager import find_executable, require_package
 from _shutil import start_process
 
 
+def edit_file(file: str):
+    subprocess.call(["nvim", file])
+
+
 def edit_text(text: str):
     with tempfile.NamedTemporaryFile(
         suffix=".tmp", mode="w+", delete=False, encoding="utf-8"
@@ -16,7 +20,7 @@ def edit_text(text: str):
         tmp_file.write(text)
         tmp_filename = tmp_file.name
 
-    subprocess.call(["nvim", tmp_filename])
+    edit_file(tmp_filename)
 
     with open(tmp_filename, "r", encoding="utf-8") as f:
         new_text = f.read().rstrip("\n")

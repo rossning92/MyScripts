@@ -74,6 +74,7 @@ class _File:
         is_dir: bool,
         full_path: str,
         file_size: int,
+        show_size: bool,
         relative_path=False,
     ) -> None:
         self.name = name
@@ -81,18 +82,20 @@ class _File:
         self.full_path = full_path
         self.file_size = file_size
         self.relative_path = relative_path
+        self.show_size = show_size
         self.color = "blue" if self.is_dir else "white"
 
     def __str__(self) -> str:
-        if self.is_dir:
-            s = f"{self.name}"
-            if self.file_size > 0:
-                s += f"\t({human_readable_size(self.file_size)})"
-            return s
-        elif self.relative_path:
-            return f"./{self.name}\t({human_readable_size(self.file_size)})"
-        else:
-            return f"{self.name}\t({human_readable_size(self.file_size)})"
+        # Size column
+        size = human_readable_size(self.file_size) if not self.is_dir else ""
+        s = ""
+        if self.show_size:
+            s += f"{size:>6}  "
+
+        # Name column
+        s += self.name
+
+        return s
 
 
 class FileMenu(Menu[_File]):
@@ -105,6 +108,8 @@ class FileMenu(Menu[_File]):
         goto=None,
         save_states=True,
         prompt=None,
+        recursive=False,
+        show_size=True,
     ):
         self.__config = _Config()
         if os.path.exists(self.__config.config_file):
@@ -118,6 +123,7 @@ class FileMenu(Menu[_File]):
         self.__selected_file_dict: Dict[str, str] = {}
         self.__selected_files_full_path: List[str] = []
         self.__sort_by = "name"
+        self.__show_size = show_size
 
         super().__init__(items=self.__files, wrap_text=True)
 
@@ -140,13 +146,21 @@ class FileMenu(Menu[_File]):
 
         if goto is not None:
             if goto == ".":
-                self.goto_directory(os.getcwd())
+                self.goto_directory(os.getcwd(), list_file_recursively=recursive)
             elif os.path.isdir(goto):
-                self.goto_directory(goto)
+                self.goto_directory(goto, list_file_recursively=recursive)
             else:
-                self.goto_directory(os.path.dirname(goto), os.path.basename(goto))
+                self.goto_directory(
+                    os.path.dirname(goto),
+                    os.path.basename(goto),
+                    list_file_recursively=recursive,
+                )
         else:
-            self.goto_directory(self.__config.cur_dir, self.__config.selected_file)
+            self.goto_directory(
+                self.__config.cur_dir,
+                self.__config.selected_file,
+                list_file_recursively=recursive,
+            )
 
     def _reveal_in_file_explorer(self):
         shell_open(self.get_cur_dir())
@@ -361,7 +375,7 @@ class FileMenu(Menu[_File]):
         # Clear input
         self.clear_input()
         if self.__prompt:
-            self.set_prompt(f"{self.__prompt}: {self.get_cur_dir()}")
+            self.set_prompt(f"{self.__prompt} ({self.get_cur_dir()})")
         else:
             self.set_prompt(self.get_cur_dir())
 
@@ -401,6 +415,7 @@ class FileMenu(Menu[_File]):
                             os.path.join(self.get_cur_dir(), file)
                         ),
                         relative_path=True,
+                        show_size=self.__show_size,
                     )
                     for file in files
                 ]
@@ -426,6 +441,7 @@ class FileMenu(Menu[_File]):
                                 full_path=full_path,
                                 file_size=0,
                                 is_dir=True,
+                                show_size=self.__show_size,
                             )
                         )
                     else:
@@ -435,6 +451,7 @@ class FileMenu(Menu[_File]):
                                 full_path=full_path,
                                 file_size=os.path.getsize(full_path),
                                 is_dir=False,
+                                show_size=self.__show_size,
                             )
                         )
 
