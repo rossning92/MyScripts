@@ -128,7 +128,7 @@ class LogMenu(Menu[str]):
         if len(self.__files) == 1:
             last_file_size = 0
             with open(self.__files[0], "r", encoding="utf-8", errors="replace") as f:
-                while not self._closed:
+                while not self.is_closed():
                     line = f.readline()
                     if line == "":
                         self.process_events(timeout_sec=1.0)

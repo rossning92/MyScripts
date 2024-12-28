@@ -39,18 +39,22 @@ def _get_prompt(
 ):
 
     code_execution_prompt = (
-        """\
+        '''\
 You can execute Python code anytime to complete the task.
-If a task can be completed without Python code, just provide the result directly.
 To do so, provide valid Python code block using the following format:
 ```python
 ... python code ...
 ```
-Avoid using third-party libraries.
-Don't add any comments into the code.
-Return Python code block only, nothing else.
-I'll run the code and reply to you with the output.
-"""
+
+If a task can be done without Python code, simply give the result instead of the code.
+
+For the python code:
+- To pass a multiline string parameter, enclose it with `r"""`, start the content without a new line, and end with `"""`.
+- Avoid using third-party libraries.
+- Don't add any comments into the code.
+- Return Python code block only, nothing else.
+- I'll run the code and reply to you with the output.
+'''
         if code_execution
         else ""
     )
@@ -138,7 +142,7 @@ class AgentMenu(ChatMenu):
         self.__agent_file = agent_file
         self.__agent = load_json(
             self.__agent_file,
-            default={"task": "", "tools": [], "agents": [], "context": {}},
+            default={"task": "", "tools": get_all_tools(), "agents": [], "context": {}},
         )
 
         if context:

@@ -1,47 +1,29 @@
 # https://github.com/unclecode/crawl4ai
+# Prerequisite: run_script r/ai/run_crawl4ai_docker.sh
 
 import argparse
-import asyncio
-import importlib.util
-import subprocess
-import sys
+import json
 
-if not importlib.util.find_spec("crawl4ai"):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "crawl4ai"])
-
-from crawl4ai import AsyncWebCrawler
-from crawl4ai.content_filter_strategy import PruningContentFilter
-from crawl4ai.markdown_generation_strategy import DefaultMarkdownGenerator
+import requests
 
 
 def read_webpage(url: str) -> str:
-    async def crawl():
-        async with AsyncWebCrawler() as crawler:
-            result = await crawler.arun(
-                url=url,
-                markdown_generator=DefaultMarkdownGenerator(
-                    content_filter=PruningContentFilter(
-                        threshold=0.48, threshold_type="fixed", min_word_threshold=0
-                    )
-                ),
-            )
-            markdown = result.markdown_v2
-            if markdown:
-                return markdown.raw_markdown
-            else:
-                return "nothing"
-
-    return asyncio.run(crawl())
-
-
-def _main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("url", type=str)
-    args = parser.parse_args()
-
-    content = read_webpage(args.url)
-    print(content)
+    response = requests.post(
+        "http://localhost:11235/crawl_sync",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": "Bearer your_secret_token",
+        },
+        data=json.dumps({"urls": url}),
+    )
+    result = response.json()
+    return result["result"]["markdown"]
 
 
 if __name__ == "__main__":
-    _main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("url", type=str)
+
+    args = parser.parse_args()
+
+    print(read_webpage(args.url))

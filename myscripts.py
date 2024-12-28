@@ -378,7 +378,7 @@ class _MyScriptMenu(Menu[Script]):
 
         if self.__run_script_and_quit:
             # If only one script is matched, run it directly.
-            if len(self._matched_item_indices) == 1:
+            if self.get_row_count() == 1:
                 self._run_selected_script()
 
         return True

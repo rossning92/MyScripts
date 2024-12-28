@@ -208,10 +208,11 @@ class Menu(Generic[T]):
         search_mode=True,
         line_number=True,
     ):
+        self.close_on_selection: bool = close_on_selection
+        self.is_cancelled: bool = False
         self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
         self.prev_key: Union[int, str] = -1
-        self.is_cancelled: bool = False
 
         self._height: int = -1
 
@@ -223,7 +224,6 @@ class Menu(Generic[T]):
 
         self.__allow_input: bool = allow_input
         self.__cancellable: bool = cancellable
-        self.__close_on_selection: bool = close_on_selection
         self.__closed: bool = False
         self.__debug = debug
         self.__empty_lines: int = 0
@@ -1217,7 +1217,7 @@ class Menu(Generic[T]):
                     self.call_func_without_curses(
                         lambda item=item: on_item_selected(item)
                     )
-            if self.__close_on_selection:
+            if self.close_on_selection:
                 self.close()
             else:
                 self.update_screen()
@@ -1233,6 +1233,9 @@ class Menu(Generic[T]):
 
     def close(self):
         self.__closed = True
+
+    def is_closed(self):
+        return self.__closed
 
     def cancel(self):
         self.is_cancelled = True
@@ -1293,7 +1296,10 @@ class Menu(Generic[T]):
     def __on_item_hotkey(self, item: T):
         # Select the item.
         self.__selected_row_begin = self.__selected_row_end = self.items.index(item)
-        if self.__close_on_selection:
+        if self.close_on_selection:
             self.close()
         else:
             self.update_screen()
+
+    def get_row_count(self):
+        return len(self.__matched_item_indices)

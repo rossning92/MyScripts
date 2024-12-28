@@ -560,6 +560,14 @@
       "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
     ]
   },
+  "sunshine": {
+    "choco": {
+      "packages": ["sunshine"]
+    },
+    "yay": {
+      "packages": ["sunshine-bin"]
+    }
+  },
   "tad": {
     "choco": {
       "packages": ["tad"]
