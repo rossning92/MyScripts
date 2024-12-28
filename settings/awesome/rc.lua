@@ -29,6 +29,7 @@ local brightness_widget = require("brightness-widget.brightness")
 local cpu_widget = require("cpu-widget.cpu-widget")
 local disk_usage_widget = require("disk-usage-widget")
 local memory_widget = require("memory-widget")
+local temperature_widget = require("temperature-widget")
 local volume_widget = require('volume-widget')
 
 -- {{{ Error handling
@@ -242,6 +243,7 @@ awful.screen.connect_for_each_screen(function(s)
             mykeyboardlayout,
             cpu_widget(),
             battery_widget {},
+            temperature_widget {},
             volume.widget,
             brightness_widget {},
             memory_widget {},
