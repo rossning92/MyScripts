@@ -60,7 +60,11 @@ class AskMenu(ChatMenu):
                 self.__prompt = f.read()
         else:
             menu = FileMenu(
-                prompt="prompt", goto=_get_prompt_dir(), show_size=False, recursive=True
+                prompt="prompt",
+                goto=_get_prompt_dir(),
+                show_size=False,
+                recursive=True,
+                allow_cd=False,
             )
             selected = menu.select_file()
             if selected:

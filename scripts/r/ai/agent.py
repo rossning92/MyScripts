@@ -25,6 +25,7 @@ SETTING_DIR = "tmp"
 MODULE_NAME = Path(__file__).stem
 CHAT_DIR = os.path.join(SETTING_DIR, MODULE_NAME + "_chats")
 AGENT_DIR = os.path.join(SETTING_DIR, MODULE_NAME + "_agents")
+UNSAVED_AGENT_FILE = "unsaved.json"
 
 
 def _get_agent_name(agent_file: str) -> str:
@@ -112,11 +113,16 @@ class AgentMenu(ChatMenu):
 
         super().__init__(**kwargs)
 
-        # Load agent
         if agent_file:
+            # Load specified agent
             self.__load_agent(agent_file, context=context)
         else:
-            self.__new_agent()
+            # Try to load last agent
+            agent_files = self.__get_agent_files()
+            if len(agent_files) > 0:
+                self.__load_agent(agent_files[-1])
+            else:
+                self.__new_agent()
 
         self.task_result: Optional[str] = None
 
@@ -125,12 +131,6 @@ class AgentMenu(ChatMenu):
         self.add_command(self.__new_agent, hotkey="ctrl+n")
         self.add_command(self.__add_tool, hotkey="alt+t")
         self.add_command(self.__edit_context, hotkey="alt+c")
-        self.add_command(self.__load_last_agent, hotkey="alt+l")
-
-    def __load_last_agent(self):
-        agent_files = self.__get_agent_files()
-        if len(agent_files) > 0:
-            self.__load_agent(agent_files[-1])
 
     def __edit_context(self):
         self.__agent["context"].clear()
@@ -168,14 +168,7 @@ class AgentMenu(ChatMenu):
         self.set_prompt(prompt)
 
     def __new_agent(self):
-        i = 1
-        while True:
-            agent_file = os.path.join(AGENT_DIR, f"agent{i}.json")
-            if os.path.exists(agent_file):
-                i += 1
-            else:
-                break
-
+        agent_file = os.path.join(AGENT_DIR, UNSAVED_AGENT_FILE)
         self.__load_agent(agent_file, clear_messages=True)
 
     def __list_agent(self):
@@ -346,7 +339,6 @@ class AgentMenu(ChatMenu):
         )
         if len(match) > 0:
             result = match[0]
-            self.set_message(f"result: {result}")
             self.task_result = result if result else "Returns nothing."
             if self.__run:
                 self.close()

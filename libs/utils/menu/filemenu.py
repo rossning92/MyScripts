@@ -110,6 +110,7 @@ class FileMenu(Menu[_File]):
         prompt=None,
         recursive=False,
         show_size=True,
+        allow_cd=True,
     ):
         self.__config = _Config()
         if os.path.exists(self.__config.config_file):
@@ -124,6 +125,7 @@ class FileMenu(Menu[_File]):
         self.__selected_files_full_path: List[str] = []
         self.__sort_by = "name"
         self.__show_size = show_size
+        self.__allow_cd = allow_cd
 
         super().__init__(items=self.__files, wrap_text=True)
 
@@ -134,15 +136,17 @@ class FileMenu(Menu[_File]):
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
         self.add_command(self._get_dir_size, hotkey="alt+s")
-        self.add_command(self._goto_parent_directory, hotkey="left")
-        self.add_command(self._goto_selected_directory, hotkey="right")
-        self.add_command(self._goto, hotkey="ctrl+g")
         self.add_command(self._list_files_recursively, hotkey="ctrl+l")
         self.add_command(self._move_to, hotkey="alt+m")
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
         self.add_command(self._run_script, hotkey="!")
+
+        if allow_cd:
+            self.add_command(self._goto_parent_directory, hotkey="left")
+            self.add_command(self._goto_selected_directory, hotkey="right")
+            self.add_command(self._goto, hotkey="ctrl+g")
 
         if goto is not None:
             if goto == ".":
@@ -374,10 +378,16 @@ class FileMenu(Menu[_File]):
 
         # Clear input
         self.clear_input()
-        if self.__prompt:
-            self.set_prompt(f"{self.__prompt} ({self.get_cur_dir()})")
-        else:
-            self.set_prompt(self.get_cur_dir())
+
+        # Update prompt
+        if self.__allow_cd:
+            self.set_prompt(
+                f"{self.__prompt} ({self.get_cur_dir()})"
+                if self.__prompt
+                else self.get_cur_dir()
+            )
+        elif self.__prompt:
+            self.set_prompt(self.__prompt)
 
         # Set last selected file
         if selected_file is None and self.get_cur_dir() in self.__selected_file_dict:

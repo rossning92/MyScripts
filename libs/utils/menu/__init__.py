@@ -983,7 +983,8 @@ class Menu(Generic[T]):
             y, x = Menu.stdscr.getyx()  # type: ignore
             if wrap_text:
                 if y >= self._height:
-                    last_row_index = self._height - 1
+                    # If text overflows outside of the screen, set last_row_index to screen height.
+                    last_row_index = self._height
                     break
                 elif y > last_y:
                     x = col
@@ -1108,18 +1109,29 @@ class Menu(Generic[T]):
                     )
 
             increments = draw_text_result.last_y + 1 - item_y
+
+            # Ensure the selected item text is fully visible on the screen.
+            if (
+                self.__selected_row_end == matched_item_index
+                and item_y + increments >= item_y_max
+            ):
+                self.__scroll_y = max(self.__scroll_y - 1, 0)
+                self.update_screen()
+
             if self.__wrap_text:
                 matched_item_index += 1
             else:
                 matched_item_index += increments
+
             item_y += increments
+
             self.__empty_lines = max(0, item_y_max - draw_text_result.last_y - 1)
 
             if draw_text_result.can_scroll_left or draw_text_result.can_scroll_right:
                 self.__can_scroll = True
 
         if items_per_page != self.get_items_per_page():
-            self.__should_update_screen = True
+            self.update_screen()
 
         # Draw status bar
         a = self.get_status_bar_text()
