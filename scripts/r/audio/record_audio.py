@@ -50,9 +50,14 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
     if out_file is None:
         out_file = tempfile.mktemp(suffix=".mp3")
 
+    # Delete the file if it exists.
+    if os.path.exists(out_file):
+        os.remove(out_file)
+
     saved = False
     if is_in_termux():
         _is_recording_termux = True
+
         _run_without_output(["termux-microphone-record", "-f", out_file])
 
         saved = _wait_for_key()
@@ -60,8 +65,8 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
         _is_recording_termux = False
         _run_without_output(["termux-microphone-record", "-q"])
 
-        # HACK: Wait for 1 second to make sure that the file is saved correctly.
-        time.sleep(1)
+        # Must wait for a tiny bit of time to make sure that the file is saved correctly.
+        time.sleep(0.1)
 
     elif sys.platform == "linux":
         subprocess.run(["run_script", "r/install_package.py", "sox"], check=True)

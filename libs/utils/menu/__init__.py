@@ -331,20 +331,20 @@ class Menu(Generic[T]):
         sys.stderr = self.__saved_stderr
 
     def __enter__(self):
-        if self.__is_stdscr_owner is not None:
+        if self.__is_stdscr_owner:
             raise Exception("Using with-clause on Menu object twice is not allowed")
         self.__is_stdscr_owner = Menu.stdscr is None
         if self.__is_stdscr_owner:
-            self.__redirect_output()
+            # self.__redirect_output()
             Menu.init_curses()
 
     def __exit__(self, exc_type, exc_val, traceback):
         if self.__is_stdscr_owner:
             Menu.destroy_curses()
-            self.__recover_output()
+            # self.__recover_output()
         else:
             Menu._should_update_screen = True
-        self.__is_stdscr_owner = None
+        self.__is_stdscr_owner = False
 
     def __voice_input(self):
         try:

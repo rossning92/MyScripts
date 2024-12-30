@@ -1,3 +1,4 @@
 {
-  "closeOnExit": false
+  "closeOnExit": false,
+  "packages.pip": "tree_sitter tree_sitter_cpp tree_sitter_python"
 }

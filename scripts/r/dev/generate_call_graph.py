@@ -1,10 +1,11 @@
+import argparse
 import os
-import subprocess
 from collections import defaultdict
 from typing import DefaultDict, List, Optional, Set
 
 from _shutil import write_temp_file
 from tree_sitter import Language, Node, Parser
+from utils.editor import open_in_vscode
 
 
 def filename_to_lang(filename: str) -> str:
@@ -82,8 +83,12 @@ def generate_mermaid_flowchart(call_graph: DefaultDict[str, Set[str]]) -> str:
 
 
 def _main():
-    fname = os.environ["_FILE"]
-    lang = filename_to_lang(fname)
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("file", nargs="?", default=None)
+    args = arg_parser.parse_args()
+
+    file = args.file if args.file is not None else os.environ["_FILE"]
+    lang = filename_to_lang(file)
 
     language = get_language(lang)
     parser = Parser(language)
@@ -98,7 +103,7 @@ def _main():
 
     # Read source code
     with open(
-        fname,
+        file,
         "r",
     ) as file:
         source_code = file.read()
@@ -108,9 +113,11 @@ def _main():
     call_graph = generate_call_graph(
         tree.root_node, call_query=call_query, function_query=function_query
     )
+
+    # Generate a mermaid flow chart
     s = generate_mermaid_flowchart(call_graph)
-    file = write_temp_file(text=s, file_path=".mmd")
-    subprocess.call([r"C:\Program Files\Microsoft VS Code\bin\code.cmd", file])
+    mermaid_file = write_temp_file(text=s, file_path=".mmd")
+    open_in_vscode(mermaid_file)
 
 
 if __name__ == "__main__":

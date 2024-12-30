@@ -1,6 +1,9 @@
-from agent import AgentMenu
+from typing import Callable, List
+
+from ai.agent import AgentMenu
 from ai.openai.speech_to_text import speech_to_text
 from ai.openai.text_to_speech import text_to_speech
+from utils.email import send_email
 
 
 class AssistantMenu(AgentMenu):
@@ -18,9 +21,15 @@ class AssistantMenu(AgentMenu):
 
     def on_created(self):
         super().on_created()
+        self.__listen()
 
     def on_response(self, text: str, done: bool):
         text_to_speech(text)
+        if not done:
+            self.__listen()
+
+    def get_tools(self) -> List[Callable]:
+        return super().get_tools() + [send_email]
 
 
 if __name__ == "__main__":

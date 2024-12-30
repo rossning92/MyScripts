@@ -5,7 +5,7 @@ from typing import Callable
 TOOLS_PATH = "tools"
 
 
-def get_all_tools():
+def get_all_tool_names():
     modules = [
         os.path.splitext(f)[0] for f in os.listdir(TOOLS_PATH) if f.endswith(".py")
     ]

@@ -6,7 +6,7 @@ from utils.template import render_template
 
 
 def send_email(
-    *, to: str = "", subject: str = "", body: str = "", cc: str = "", gmail=False
+    to: str = "", subject: str = "", body: str = "", cc: str = "", gmail=False
 ):
     subject = quote(subject)
     body = quote(body, safe="")

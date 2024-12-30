@@ -6,11 +6,11 @@ import logging
 import os
 import re
 import traceback
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-from ai.toolutil import get_all_tools, load_tool
+from ai.toolutil import get_all_tool_names, load_tool
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.exec_then_eval import exec_then_eval
@@ -40,7 +40,8 @@ def _get_prompt(
 ):
 
     code_execution_prompt = (
-        '''\
+        '''## Python Code Execution
+
 You can execute Python code anytime to complete the task.
 To do so, provide valid Python code block using the following format:
 ```python
@@ -61,7 +62,10 @@ For the python code:
     )
 
     if tools:
-        tools_prompt = "You can call the following Python functions anytime to complete the task:\n"
+        tools_prompt = """## Tools Usage
+
+You can call the following Python functions anytime to complete the task:
+"""
 
         for tool in tools:
             tools_prompt += f"* {tool.__name__}{inspect.signature(tool)}"
@@ -70,11 +74,11 @@ For the python code:
             tools_prompt += "\n"
 
         tools_prompt += """
-You must provide a valid Python function call using the following format:
+To do this, you must provide a valid Python function call in this format:
 ```python
 ... function call ...
 ```
-I'll run the code and reply to you with the return value.
+I'll execute the code and reply to you with the result.
 Don't explain, don't add any comments.
 Only one Python function call is allowed per message.
 """
@@ -82,14 +86,15 @@ Only one Python function call is allowed per message.
     else:
         tools_prompt = ""
 
-    return f"""\
-You are my assistant to help me complete a task.
+    return f"""You are my assistant to help me complete a task.
 
 {code_execution_prompt}
 
 {tools_prompt}
 
 Once the task is complete, you must reply with the result enclosed in <result> and </result>.
+
+## Task
 
 Here's my task:
 -------
@@ -105,6 +110,7 @@ class AgentMenu(ChatMenu):
         agent_file: Optional[str] = None,
         yes_always=True,
         run=False,
+        load_last_agent=False,
         **kwargs,
     ):
         self.__run = run
@@ -118,19 +124,27 @@ class AgentMenu(ChatMenu):
             self.__load_agent(agent_file, context=context)
         else:
             # Try to load last agent
-            agent_files = self.__get_agent_files()
-            if len(agent_files) > 0:
-                self.__load_agent(agent_files[-1])
+            if load_last_agent and self.__load_last_agent():
+                pass
             else:
                 self.__new_agent()
 
         self.task_result: Optional[str] = None
 
-        self.add_command(self.__edit_task, hotkey="alt+p")
-        self.add_command(self.__list_agent, hotkey="ctrl+l")
-        self.add_command(self.__new_agent, hotkey="ctrl+n")
         self.add_command(self.__add_tool, hotkey="alt+t")
         self.add_command(self.__edit_context, hotkey="alt+c")
+        self.add_command(self.__edit_task, hotkey="alt+p")
+        self.add_command(self.__list_agent, hotkey="ctrl+l")
+        self.add_command(self.__load_last_agent, hotkey="alt+l")
+        self.add_command(self.__new_agent, hotkey="ctrl+n")
+
+    def __load_last_agent(self) -> bool:
+        files = self.__get_agent_files()
+        if len(files) > 0:
+            self.__load_agent(files[-1])
+            return True
+        else:
+            return False
 
     def __edit_context(self):
         self.__agent["context"].clear()
@@ -142,7 +156,12 @@ class AgentMenu(ChatMenu):
         self.__agent_file = agent_file
         self.__agent = load_json(
             self.__agent_file,
-            default={"task": "", "tools": get_all_tools(), "agents": [], "context": {}},
+            default={
+                "task": "",
+                "tools": get_all_tool_names(),
+                "agents": [],
+                "context": {},
+            },
         )
 
         if context:
@@ -226,7 +245,7 @@ class AgentMenu(ChatMenu):
     def __complete_task(self):
         self.clear_messages()
 
-        self.__tools = self.__get_tools()
+        self.__tools = self.get_tools()
         self.__globals.update({t.__name__: t for t in self.__tools})
 
         task = self.__get_task_with_context()
@@ -238,7 +257,7 @@ class AgentMenu(ChatMenu):
             )
         )
 
-    def __get_tools(self):
+    def get_tools(self) -> List[Callable]:
         tools: List[Callable] = []
         for tool_name in self.__agent["tools"]:
             tools.append(load_tool(tool_name))
@@ -305,7 +324,9 @@ class AgentMenu(ChatMenu):
 
             if should_run:
                 for block in blocks:
-                    with io.StringIO() as buf, redirect_stdout(buf):
+                    with io.StringIO() as buf, redirect_stdout(buf), redirect_stderr(
+                        buf
+                    ):
                         success = False
                         try:
                             return_val = exec_then_eval(
@@ -327,7 +348,12 @@ class AgentMenu(ChatMenu):
                                     if output:
                                         output += "\n"
                                     output += str(return_val)
-                                response_message = output
+                                response_message = (
+                                    "The result from the Python code above:\n"
+                                    "```plaintext\n"
+                                    f"{output}\n"
+                                    "```\n"
+                                )
                             else:
                                 response_message = (
                                     "The Python code finishes successfully."
@@ -362,7 +388,7 @@ class AgentMenu(ChatMenu):
         self.__complete_task()
 
     def __add_tool(self):
-        tools = get_all_tools()
+        tools = get_all_tool_names()
         menu = Menu(items=tools)
         menu.exec()
         selected_tool = menu.get_selected_item()
@@ -398,7 +424,10 @@ def _main():
     os.makedirs(CHAT_DIR, exist_ok=True)
 
     menu = AgentMenu(
-        yes_always=True, context=context, agent_file=args.agent, run=args.run
+        load_last_agent=True,
+        context=context,
+        agent_file=args.agent,
+        run=args.run,
     )
     menu.exec()
 
