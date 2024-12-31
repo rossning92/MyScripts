@@ -1,4 +1,5 @@
 import ctypes
+import functools
 import glob
 import json
 import locale
@@ -526,6 +527,20 @@ def get_script_alias(name_without_ext: str) -> str:
             return ""
     else:
         return ""
+
+
+@functools.lru_cache(maxsize=None)
+def install_pip_packages(pkg: str, python_exec: str) -> None:
+    # Check if pip package is installed
+    ret = subprocess.call(
+        [python_exec, "-c", f"import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('{pkg}') else 1)"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if ret != 0:
+        print(f"{pkg} is not found, installing...")
+        subprocess.check_call([python_exec, "-m", "pip", "install", pkg])
 
 
 class Script:
@@ -1217,20 +1232,10 @@ class Script:
                 args_activate = ["cmd", "/c", "call", activate, env_name, "&"]
 
             # Install pip packages
-            if self.cfg["packages.pip"]:
-                pip_packages = self.cfg["packages.pip"].split()
-                for pkg in pip_packages:
-                    # Check if pip package is installed
-                    ret = subprocess.call(
-                        [python_exec, "-m", "pip", "show", pkg],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
-                    if ret != 0:
-                        print(f"{pkg} is not found, installing...")
-                        subprocess.check_call(
-                            [python_exec, "-m", "pip", "install", pkg]
-                        )
+            config_packages_pip = self.cfg["packages.pip"]
+            assert isinstance(config_packages_pip, str)
+            for pkg in config_packages_pip.split():
+                install_pip_packages(pkg, python_exec=python_exec)
 
             if ext == ".py":
                 if self.cfg["runpy"]:
