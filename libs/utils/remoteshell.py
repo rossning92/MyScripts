@@ -194,6 +194,7 @@ def pull_file_ssh(src, dest=None, port=None):
 
     args = [
         "scp",
+        "-r",  # Recursively copy entire directories
         "-o",
         "StrictHostKeyChecking=no",
     ]
