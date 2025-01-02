@@ -2,12 +2,13 @@ import argparse
 import os
 from typing import Any, Dict, List, Optional
 
-from ai.complete_chat import complete_chat
+from ai.openai.complete_chat import complete_chat, create_user_message, message_to_str
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
+from utils.menu.filemenu import FileMenu
 
 
 class _Line:
@@ -40,29 +41,30 @@ class ChatMenu(Menu[_Line]):
         conv_file: Optional[str] = None,
     ) -> None:
 
+        self.__auto_create_conv_file = conv_file is None
+        self.__copy_and_exit = copy_and_exit
+        self.__first_message = message
+        self.__image_file: Optional[str] = None
+        self.__is_generating = False
+        self.__last_yanked_line: Optional[_Line] = None
         self.__lines: List[_Line] = []
+        self.__model = model
+        self.__prompt = prompt
+        self.__yank_mode = 0
 
         super().__init__(
-            prompt=prompt,
             items=self.__lines,
             search_mode=False,
             wrap_text=True,
             line_number=True,
         )
 
-        self.__auto_create_conv_file = conv_file is None
-        self.__copy_and_exit = copy_and_exit
-        self.__first_message = message
-        self.__is_generating = False
-        self.__last_yanked_line: Optional[_Line] = None
-        self.__model = model
-        self.__yank_mode = 0
-
         self.add_command(self.__delete_current_message, hotkey="ctrl+k")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__yank, hotkey="ctrl+y")
+        self.add_command(self.__add_image, hotkey="alt+i")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
 
         self.__conversations_dir = os.path.join(
@@ -88,6 +90,19 @@ class ChatMenu(Menu[_Line]):
             if len(conversation_files) > 0:
                 self.load_conversation(conversation_files[-1])
 
+        self.__update_prompt()
+
+    def __update_prompt(self):
+        prompt = f"{self.__prompt}"
+        if self.__image_file:
+            prompt += f" ({os.path.basename(self.__image_file)})"
+        self.set_prompt(prompt)
+
+    def __add_image(self):
+        menu = FileMenu()
+        self.__image_file = menu.select_file()
+        self.__update_prompt()
+
     def __load_conversation(self):
         menu = _SelectConvMenu(
             items=[f for f in self.__history_manager.get_all_files_desc()]
@@ -97,7 +112,7 @@ class ChatMenu(Menu[_Line]):
         if selected:
             self.load_conversation(selected)
 
-    def get_messages(self) -> List[Dict[str, str]]:
+    def get_messages(self) -> List[Dict[str, Any]]:
         return self.__conv["messages"]
 
     def on_created(self):
@@ -107,12 +122,18 @@ class ChatMenu(Menu[_Line]):
     def send_message(self, text: str) -> None:
         self.clear_input()
         message_index = len(self.get_messages())
-        self.get_messages().append({"role": "user", "content": text})
+        self.get_messages().append(
+            create_user_message(text=text, image_file=self.__image_file)
+        )
+
+        # Reset image file
+        self.__image_file = None
+        self.__update_prompt()
+
         self.save_conversation()
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
-        # self.goto_line(len(self.items) - 1)
         self.__complete_chat()
 
     def __complete_chat(self):
@@ -151,7 +172,7 @@ class ChatMenu(Menu[_Line]):
         self.__lines.clear()
         for message_index, message in enumerate(self.get_messages()):
             if message["role"] != "system":
-                for line in message["content"].splitlines():
+                for line in message_to_str(message).splitlines():
                     self.append_item(
                         _Line(
                             role=message["role"],

@@ -11,35 +11,52 @@ import requests
 DEFAULT_MODEL = "gpt-4o"
 
 
-def encode_image(image_path):
+def _encode_image_base64(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 
+def create_user_message(text: str, image_file: Optional[str] = None) -> Dict[str, Any]:
+    if image_file:
+        return {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": text},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{_encode_image_base64(image_file)}"
+                    },
+                },
+            ],
+        }
+    else:
+        return {"role": "user", "content": text}
+
+
+def message_to_str(message: Dict[str, Any]):
+    content = message["content"]
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        s = ""
+        for c in content:
+            if c["type"] == "text":
+                s += c["text"]
+            elif c["type"] == "image_url":
+                s += " <image_url>"
+        return s
+    else:
+        return ""
+
+
 def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
-    image: Optional[str] = None,
+    image_file: Optional[str] = None,
     model: Optional[str] = None,
 ) -> Iterator[str]:
-    if image is not None:
-        if not isinstance(message, str):
-            raise Exception("Message must be a str")
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": message},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{encode_image(image)}"
-                        },
-                    },
-                ],
-            }
-        ]
-    elif isinstance(message, str):
-        messages = [{"role": "user", "content": message}]
+    if isinstance(message, str):
+        messages = [create_user_message(text=message, image_file=image_file)]
     else:
         messages = message
 
@@ -97,5 +114,5 @@ if __name__ == "__main__":
         else:
             input_text = args.input
 
-    for chunk in complete_chat(input_text, image=args.image):
+    for chunk in complete_chat(input_text, image_file=args.image):
         print(chunk, end="")
