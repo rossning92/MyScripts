@@ -80,6 +80,7 @@ def compile(file):
 
     # Compile if source file is newer than the executable
     args += [
+        "-std=c++23",
         "-O2",
         "-pipe",
         "-o",

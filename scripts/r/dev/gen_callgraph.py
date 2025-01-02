@@ -1,26 +1,43 @@
 import argparse
+import itertools
+import logging
 import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from functools import lru_cache
+from glob import glob
 from io import StringIO
 from typing import DefaultDict, Dict, List, Optional, Set
 
 from _shutil import write_temp_file
-from tree_sitter import Language, Node, Parser, Query
+from tree_sitter import Language, Node, Parser, Query, Tree
 from utils.editor import open_in_vscode
+from utils.logger import setup_logger
 
 SCOPE_SEP = "::"
 
 
+ext_language_dict = {
+    ".py": "python",
+    ".h": "cpp",
+    ".c": "cpp",
+    ".cc": "cpp",
+    ".cpp": "cpp",
+}
+
+
+def is_supported_file(file: str) -> bool:
+    _, ext = os.path.splitext(file)
+    return ext.lower() in ext_language_dict
+
+
 def filename_to_lang(filename: str) -> str:
-    # fmt: off
-    ext_language_dict = {".py": "python", ".js": "javascript", ".mjs": "javascript", ".go": "go", ".bash": "bash", ".c": "cpp", ".cc": "cpp", ".cs": "c_sharp", ".cl": "commonlisp", ".cpp": "cpp", ".css": "css", ".dockerfile": "dockerfile", ".dot": "dot", ".el": "elisp", ".ex": "elixir", ".elm": "elm", ".et": "embedded_template", ".erl": "erlang", ".gomod": "gomod", ".hack": "hack", ".hs": "haskell", ".hcl": "hcl", ".html": "html", ".java": "java", ".jsdoc": "jsdoc", ".json": "json", ".jl": "julia", ".kt": "kotlin", ".lua": "lua", ".mk": "make", ".m": "objc", ".ml": "ocaml", ".pl": "perl", ".php": "php", ".ql": "ql", ".r": "r", ".R": "r", ".regex": "regex", ".rst": "rst", ".rb": "ruby", ".rs": "rust", ".scala": "scala", ".sql": "sql", ".sqlite": "sqlite", ".toml": "toml", ".tsq": "tsq", ".tsx": "typescript", ".ts": "typescript", ".yaml": "yaml"}
-    # fmt: on
     _, ext = os.path.splitext(filename)
-    return ext_language_dict[ext]
+    return ext_language_dict[ext.lower()]
 
 
+@lru_cache(maxsize=None)
 def get_language(lang: str) -> Language:
     if lang == "cpp":
         import tree_sitter_cpp
@@ -38,11 +55,6 @@ def get_node_text(node):
     return node.text.decode()
 
 
-def find_calls(node: Node, call_query) -> List[Node]:
-    calls = call_query.captures(node)
-    return calls["function_name"] if "function_name" in calls else []
-
-
 def _find_first_identifier(node: Node) -> Optional[str]:
     if node.type == "identifier":
         return get_node_text(node)
@@ -55,7 +67,7 @@ def _find_first_identifier(node: Node) -> Optional[str]:
     return None
 
 
-def find_function_calls(node: Node) -> List[str]:
+def _find_function_calls(node: Node) -> List[str]:
     if node.type == "call_expression":
         function_node = node.child_by_field_name("function_body")
         assert function_node is not None
@@ -65,7 +77,7 @@ def find_function_calls(node: Node) -> List[str]:
 
     out: List[str] = []
     for n in node.children:
-        out += find_function_calls(n)
+        out += _find_function_calls(n)
     return out
 
 
@@ -92,34 +104,40 @@ class CallGraph:
     scope: Scope = field(default_factory=Scope)
 
 
-def build_nodes(graph: CallGraph, filename: str, node: Node, function_query: Query):
-    matches = function_query.matches(node)
+def add_function_nodes(
+    graph: CallGraph,
+    module: str,
+    root_node: Node,
+):
+    query = get_cpp_function_definition_query()
+    matches = query.matches(root_node)
     for _, match in matches:
         name = match["name"][0]
         if "scope" in match:
             scope = match["scope"][0]
             caller_text = (
-                filename
+                module
                 + SCOPE_SEP
                 + get_node_text(scope)
                 + SCOPE_SEP
                 + get_node_text(name)
             )
-            graph.scope.scopes[filename].scopes[get_node_text(scope)].nodes.add(
+            graph.scope.scopes[module].scopes[get_node_text(scope)].nodes.add(
                 caller_text
             )
         else:
-            caller_text = filename + SCOPE_SEP + get_node_text(name)
-            graph.scope.scopes[filename].nodes.add(caller_text)
+            caller_text = module + SCOPE_SEP + get_node_text(name)
+            graph.scope.scopes[module].nodes.add(caller_text)
 
         graph.nodes.add(caller_text)
 
 
-def build_edges(graph: CallGraph, filename: str, node: Node, function_query: Query):
-    matches = function_query.matches(node)
+def add_call_edges(graph: CallGraph, module: str, root_node: Node):
+    query = get_cpp_function_definition_query()
+    matches = query.matches(root_node)
     for _, match in matches:
         name = match["name"][0]
-        caller_text = filename + SCOPE_SEP
+        caller_text = module + SCOPE_SEP
         if "scope" in match:
             scope = match["scope"][0]
             caller_text += get_node_text(scope) + SCOPE_SEP
@@ -135,23 +153,32 @@ def build_edges(graph: CallGraph, filename: str, node: Node, function_query: Que
                 if re.search(r"\b" + callee_text + "$", function_name)
             ]
             for callee in matched_function_names:
+                # TODO: remove?
                 graph.nodes.add(callee)
 
                 if callee != caller_text:  # avoid self-loop
                     graph.edges[caller_text].add(callee)
 
 
-def generate_call_graph(files: List[str]) -> CallGraph:
-    graph = CallGraph()
-    for first_pass in [True, False]:
-        for file in files:
-            lang = filename_to_lang(file)
+@lru_cache(maxsize=None)
+def get_cpp_include_query() -> Query:
+    language = get_language("cpp")
 
-            language = get_language(lang)
-            parser = Parser(language)
+    return language.query(
+        """\
+(preproc_include path:
+  (string_literal
+    (string_content) @path))
+"""
+    )
 
-            function_query = language.query(
-                """\
+
+@lru_cache(maxsize=None)
+def get_cpp_function_definition_query() -> Query:
+    language = get_language("cpp")
+
+    return language.query(
+        """\
 (function_definition
   declarator: (function_declarator
     declarator: (qualified_identifier
@@ -164,29 +191,91 @@ def generate_call_graph(files: List[str]) -> CallGraph:
     declarator: (identifier) @name)
   body: (compound_statement) @function_body)
 """
+    )
+
+
+def get_module_name(filepath: str):
+    return os.path.splitext(os.path.basename(filepath))[0] + ".o"
+
+
+def add_module_edges(graph: CallGraph, root_node: Node, module: str):
+    include_query = get_cpp_include_query()
+
+    captures = include_query.captures(root_node)
+    if "path" in captures:
+        for path_node in captures["path"]:
+            path = get_node_text(path_node)
+            target_module = get_module_name(path)
+            if target_module in graph.nodes and target_module != module:
+                graph.edges[module].add(target_module)
+
+
+def add_module_node(graph: CallGraph, module: str) -> None:
+    graph.nodes.add(module)
+
+
+@lru_cache(maxsize=None)
+def get_parser(file: str) -> Parser:
+    lang = filename_to_lang(file)
+    language = get_language(lang)
+    return Parser(language)
+
+
+@lru_cache(maxsize=None)
+def get_tree(file: str) -> Tree:
+    parser = get_parser(file)
+
+    # Read source code
+    with open(file, "r", encoding="utf-8", errors="ignore") as f:
+        source_code = f.read()
+    return parser.parse(source_code.encode())
+
+
+def generate_call_graph(files: List[str], show_modules_only=False) -> CallGraph:
+    graph = CallGraph()
+
+    # Build nodes
+    logging.info("Build nodes...")
+    for file in files:
+        logging.info(f"Process file: {file}")
+
+        tree = get_tree(file)
+
+        module = get_module_name(file)
+
+        add_module_node(
+            graph=graph,
+            module=module,
+        )
+
+        if not show_modules_only:
+            add_function_nodes(
+                graph=graph,
+                module=module,
+                root_node=tree.root_node,
             )
 
-            # Read source code
-            with open(file, "r") as f:
-                source_code = f.read()
-            tree = parser.parse(source_code.encode())
+    # Build edges
+    logging.info("Build edges...")
+    for file in files:
+        logging.info(f"Process file: {file}")
 
-            filename = os.path.basename(file)
+        tree = get_tree(file)
 
-            if first_pass:
-                build_nodes(
-                    graph,
-                    filename=filename,
-                    node=tree.root_node,
-                    function_query=function_query,
-                )
-            else:
-                build_edges(
-                    graph,
-                    filename=filename,
-                    node=tree.root_node,
-                    function_query=function_query,
-                )
+        module = get_module_name(file)
+
+        add_module_edges(
+            graph=graph,
+            root_node=tree.root_node,
+            module=module,
+        )
+
+        if not show_modules_only:
+            add_call_edges(
+                graph=graph,
+                module=module,
+                root_node=tree.root_node,
+            )
 
     return graph
 
@@ -268,11 +357,28 @@ def _main():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--include", nargs="?", type=str)
     arg_parser.add_argument("-o", "--output", type=str, default=None)
+    arg_parser.add_argument(
+        "-M",
+        "--show-modules-only",
+        action="store_true",
+        help="show module level diagram",
+    )
     arg_parser.add_argument("files", nargs="+")
 
     args = arg_parser.parse_args()
 
-    call_graph = generate_call_graph(args.files)
+    setup_logger()
+
+    files = [
+        filepath.replace(os.path.sep, "/")
+        for filepath in itertools.chain(
+            *[glob(pathname, recursive=True) for pathname in args.files]
+        )
+    ]
+    files = [f for f in files if is_supported_file(f)]
+    call_graph = generate_call_graph(
+        files=files, show_modules_only=args.show_modules_only
+    )
 
     # Generate mermaid diagram
     s = render_mermaid_flowchart(call_graph, include=args.include)

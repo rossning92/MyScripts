@@ -2,7 +2,7 @@ import argparse
 import os
 from typing import Any, Dict, List, Optional
 
-from ai.complete_chat import complete_chat
+from ai.openai.complete_chat import complete_chat, create_user_message
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.historymanager import HistoryManager
@@ -97,7 +97,7 @@ class ChatMenu(Menu[_Line]):
         if selected:
             self.load_conversation(selected)
 
-    def get_messages(self) -> List[Dict[str, str]]:
+    def get_messages(self) -> List[Dict[str, Any]]:
         return self.__conv["messages"]
 
     def on_created(self):
@@ -107,12 +107,11 @@ class ChatMenu(Menu[_Line]):
     def send_message(self, text: str) -> None:
         self.clear_input()
         message_index = len(self.get_messages())
-        self.get_messages().append({"role": "user", "content": text})
+        self.get_messages().append(create_user_message(text=text))
         self.save_conversation()
         for s in text.splitlines():
             self.append_item(_Line(role="user", text=s, message_index=message_index))
 
-        # self.goto_line(len(self.items) - 1)
         self.__complete_chat()
 
     def __complete_chat(self):
