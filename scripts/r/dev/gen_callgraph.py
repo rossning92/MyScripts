@@ -3,6 +3,7 @@ import itertools
 import logging
 import os
 import re
+import subprocess
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -14,6 +15,7 @@ from _shutil import write_temp_file
 from tree_sitter import Language, Node, Parser, Query, Tree
 from utils.editor import open_in_vscode
 from utils.logger import setup_logger
+from utils.shutil import shell_open
 
 SCOPE_SEP = "::"
 
@@ -93,7 +95,6 @@ def _find_all_identifiers(node: Node) -> List[str]:
 
 @dataclass
 class Scope:
-    nodes: Set[str] = field(default_factory=set)
     scopes: DefaultDict = field(default_factory=lambda: defaultdict(Scope))
 
 
@@ -104,43 +105,55 @@ class CallGraph:
     scope: Scope = field(default_factory=Scope)
 
 
+def get_function_definitions(lang: str, module: str, root_node: Node):
+    query = get_function_definition_query(lang=lang)
+    matches = query.matches(root_node)
+    for _, match in matches:
+        name = match["function_name"][0]
+        if "class_name" in match:
+            class_name = match["class_name"][0]
+            yield (
+                module
+                + SCOPE_SEP
+                + "class "
+                + get_node_text(class_name)
+                + SCOPE_SEP
+                + get_node_text(name)
+            )
+
+        else:
+            yield module + SCOPE_SEP + get_node_text(name)
+
+
+def add_scope(scope: Scope, name: str):
+    full_name = []
+    for identifier in name.split(SCOPE_SEP):
+        full_name.append(identifier)
+        scope = scope.scopes[SCOPE_SEP.join(full_name)]
+
+
 def add_function_nodes(
+    lang: str,
     graph: CallGraph,
     module: str,
     root_node: Node,
 ):
-    query = get_cpp_function_definition_query()
-    matches = query.matches(root_node)
-    for _, match in matches:
-        name = match["name"][0]
-        if "scope" in match:
-            scope = match["scope"][0]
-            caller_text = (
-                module
-                + SCOPE_SEP
-                + get_node_text(scope)
-                + SCOPE_SEP
-                + get_node_text(name)
-            )
-            graph.scope.scopes[module].scopes[get_node_text(scope)].nodes.add(
-                caller_text
-            )
-        else:
-            caller_text = module + SCOPE_SEP + get_node_text(name)
-            graph.scope.scopes[module].nodes.add(caller_text)
-
+    for caller_text in get_function_definitions(
+        lang=lang, module=module, root_node=root_node
+    ):
+        add_scope(scope=graph.scope, name=caller_text)
         graph.nodes.add(caller_text)
 
 
-def add_call_edges(graph: CallGraph, module: str, root_node: Node):
-    query = get_cpp_function_definition_query()
+def add_call_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
+    query = get_function_definition_query(lang=lang)
     matches = query.matches(root_node)
     for _, match in matches:
-        name = match["name"][0]
+        name = match["function_name"][0]
         caller_text = module + SCOPE_SEP
-        if "scope" in match:
-            scope = match["scope"][0]
-            caller_text += get_node_text(scope) + SCOPE_SEP
+        if "class_name" in match:
+            class_name = match["class_name"][0]
+            caller_text += "class " + get_node_text(class_name) + SCOPE_SEP
         caller_text += get_node_text(name)
 
         function_node = match["function_body"][0]
@@ -174,7 +187,7 @@ def get_cpp_include_query() -> Query:
 
 
 @lru_cache(maxsize=None)
-def get_cpp_function_definition_query() -> Query:
+def get_function_definition_query_cpp() -> Query:
     language = get_language("cpp")
 
     return language.query(
@@ -182,16 +195,48 @@ def get_cpp_function_definition_query() -> Query:
 (function_definition
   declarator: (function_declarator
     declarator: (qualified_identifier
-      scope: (namespace_identifier) @scope
-      name: (identifier) @name))
+      scope: (namespace_identifier) @class_name
+      name: (identifier) @function_name))
   body: (compound_statement) @function_body)
 
 (function_definition
   declarator: (function_declarator
-    declarator: (identifier) @name)
+    declarator: (identifier) @function_name)
   body: (compound_statement) @function_body)
 """
     )
+
+
+@lru_cache(maxsize=None)
+def get_function_definition_query_python() -> Query:
+    language = get_language("python")
+
+    return language.query(
+        """\
+(module
+  (function_definition
+    name: (identifier) @function_name
+    body: (block) @function_body))
+
+(module
+  (class_definition
+    name: (identifier) @class_name
+    body: (block
+      (function_definition
+        name: (identifier) @function_name
+        body: (block) @function_body))))
+"""
+    )
+
+
+@lru_cache(maxsize=None)
+def get_function_definition_query(lang: str) -> Query:
+    if lang == "cpp":
+        return get_function_definition_query_cpp()
+    elif lang == "python":
+        return get_function_definition_query_python()
+    else:
+        raise Exception(f"Language '{lang}' is not supported")
 
 
 def get_module_name(filepath: str):
@@ -231,7 +276,9 @@ def get_tree(file: str) -> Tree:
     return parser.parse(source_code.encode())
 
 
-def generate_call_graph(files: List[str], show_modules_only=False) -> CallGraph:
+def generate_call_graph(
+    files: List[str], show_modules_only=False, include: Optional[str] = None
+) -> CallGraph:
     graph = CallGraph()
 
     # Build nodes
@@ -239,9 +286,9 @@ def generate_call_graph(files: List[str], show_modules_only=False) -> CallGraph:
     for file in files:
         logging.info(f"Process file: {file}")
 
-        tree = get_tree(file)
-
+        lang = filename_to_lang(file)
         module = get_module_name(file)
+        tree = get_tree(file)
 
         add_module_node(
             graph=graph,
@@ -250,6 +297,7 @@ def generate_call_graph(files: List[str], show_modules_only=False) -> CallGraph:
 
         if not show_modules_only:
             add_function_nodes(
+                lang=lang,
                 graph=graph,
                 module=module,
                 root_node=tree.root_node,
@@ -272,12 +320,27 @@ def generate_call_graph(files: List[str], show_modules_only=False) -> CallGraph:
 
         if not show_modules_only:
             add_call_edges(
+                lang=lang,
                 graph=graph,
                 module=module,
                 root_node=tree.root_node,
             )
 
-    return graph
+    # Filter call graph
+    filtered_graph = CallGraph()
+    if include:
+        for caller, callees in graph.edges.copy().items():
+            for callee in callees:
+                if (re.search(include, caller, re.IGNORECASE)) or (
+                    re.search(include, callee, re.IGNORECASE)
+                ):
+                    filtered_graph.edges[caller].add(callee)
+                    filtered_graph.nodes.add(caller)
+                    filtered_graph.nodes.add(callee)
+                    add_scope(scope=filtered_graph.scope, name=caller)
+                    add_scope(scope=filtered_graph.scope, name=callee)
+
+    return filtered_graph
 
 
 class ShortName:
@@ -299,56 +362,43 @@ class ShortName:
             return self.name_map[name]
 
 
-def render_mermaid_scope(
-    scope: Scope, short_name: ShortName, visible_nodes: Optional[Set[str]], depth=1
-) -> str:
+def escape_mermaid_node(name: str):
+    return re.sub(r"\b(call)\b", r"\1_", name)
+
+
+def render_mermaid_scope(scope: Scope, short_name: ShortName, depth=1) -> str:
     out = StringIO()
-    for node in scope.nodes:
-        if visible_nodes is None or node in visible_nodes:
-            out.write((" " * depth * 4) + short_name.get(node) + "\n")
+    indent = " " * 4 * depth
     for name, s in scope.scopes.items():
-        out.write((" " * depth * 4) + "subgraph " + short_name.get(name) + "\n")
-        out.write(
-            render_mermaid_scope(
-                scope=s,
-                short_name=short_name,
-                visible_nodes=visible_nodes,
-                depth=depth + 1,
+        if len(s.scopes) > 0:
+            out.write(
+                indent + "subgraph " + short_name.get(escape_mermaid_node(name)) + "\n"
             )
-        )
-        out.write((" " * depth * 4) + "end\n\n")
+            out.write(indent + "    direction LR\n\n")
+            out.write(
+                render_mermaid_scope(
+                    scope=s,
+                    short_name=short_name,
+                    depth=depth + 1,
+                )
+            )
+            out.write(indent + "end\n\n")
+        else:
+            out.write(indent + short_name.get(escape_mermaid_node(name)) + "\n")
+
     return out.getvalue()
 
 
-def render_mermaid_flowchart(graph: CallGraph, include: Optional[str] = None) -> str:
-    s = "flowchart\n"
+def render_mermaid_flowchart(graph: CallGraph) -> str:
+    s = "flowchart LR\n"
 
     short_name = ShortName()
 
-    visible_nodes: Optional[Set[str]] = None
-    if include:
-        visible_nodes = set()
-        for caller, callees in graph.edges.items():
-            for callee in callees:
-                if re.search(include, caller, re.IGNORECASE) or re.search(
-                    include, callee, re.IGNORECASE
-                ):
-                    visible_nodes.add(caller)
-                    visible_nodes.add(callee)
-
-    s += render_mermaid_scope(
-        scope=graph.scope, short_name=short_name, visible_nodes=visible_nodes
-    )
+    s += render_mermaid_scope(scope=graph.scope, short_name=short_name)
 
     for caller, callees in graph.edges.items():
         for callee in callees:
-            if include:
-                if re.search(include, caller, re.IGNORECASE) or re.search(
-                    include, callee, re.IGNORECASE
-                ):
-                    s += f"    {short_name.get(caller)} --> {short_name.get(callee)}\n"
-            else:
-                s += f"    {short_name.get(caller)} --> {short_name.get(callee)}\n"
+            s += f"    {short_name.get(escape_mermaid_node(caller))} --> {short_name.get(escape_mermaid_node(callee))}\n"
 
     return s
 
@@ -377,18 +427,40 @@ def _main():
     ]
     files = [f for f in files if is_supported_file(f)]
     call_graph = generate_call_graph(
-        files=files, show_modules_only=args.show_modules_only
+        files=files,
+        show_modules_only=args.show_modules_only,
+        include=args.include,
     )
 
     # Generate mermaid diagram
-    s = render_mermaid_flowchart(call_graph, include=args.include)
+    s = render_mermaid_flowchart(call_graph)
     if args.output:
         out_file = args.output
-        with open(out_file, "w", encoding="utf-8") as f:
-            f.write(s)
+        ext = os.path.splitext(out_file)[1].lower()
+        if ext == ".svg":
+            process = subprocess.Popen(
+                [
+                    "npx",
+                    "-p",
+                    "@mermaid-js/mermaid-cli",
+                    "mmdc",
+                    "-o",
+                    out_file,
+                    "--input",
+                    "-",
+                ],
+                stdin=subprocess.PIPE,
+            )
+            process.communicate(input=s.encode())
+            process.wait()
+            shell_open(out_file)
+        else:
+            with open(out_file, "w", encoding="utf-8") as f:
+                f.write(s)
+            open_in_vscode(out_file)
     else:
         out_file = write_temp_file(text=s, file_path=".mmd")
-    open_in_vscode(out_file)
+        open_in_vscode(out_file)
 
 
 if __name__ == "__main__":
