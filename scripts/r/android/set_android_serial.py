@@ -98,13 +98,16 @@ def get_device_list() -> List[DeviceInfo]:
 
 
 def select_default_android_device():
-    device_list = get_device_list()
-    ch = getch()
-    for device in device_list:
-        if ch == device.key:
-            set_variable("ANDROID_SERIAL", device.serial)
-        elif ch == "0":
-            set_variable("ANDROID_SERIAL", "")
+    while True:
+        device_list = get_device_list()
+        ch = getch()
+        for device in device_list:
+            if ch == device.key:
+                set_variable("ANDROID_SERIAL", device.serial)
+                break
+            elif ch == "0":
+                set_variable("ANDROID_SERIAL", "")
+                break
 
 
 if __name__ == "__main__":

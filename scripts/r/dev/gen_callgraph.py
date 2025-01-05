@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from glob import glob
 from io import StringIO
-from typing import DefaultDict, Dict, List, Optional, Set
+from queue import Queue
+from typing import DefaultDict, Dict, List, Optional, Set, Tuple
 
 from _shutil import write_temp_file
 from tree_sitter import Language, Node, Parser, Query, Tree
@@ -101,8 +102,35 @@ class Scope:
 @dataclass
 class CallGraph:
     nodes: Set[str] = field(default_factory=set)
+
     edges: DefaultDict[str, Set[str]] = field(default_factory=lambda: defaultdict(set))
+    reverse_edges: DefaultDict[str, Set[str]] = field(
+        default_factory=lambda: defaultdict(set)
+    )
+
     scope: Scope = field(default_factory=Scope)
+
+    def add_scope(self, name: str):
+        full_name = []
+        scope = self.scope
+        for identifier in name.split(SCOPE_SEP):
+            full_name.append(identifier)
+            scope = scope.scopes[SCOPE_SEP.join(full_name)]
+
+    def add_node(self, node: str):
+        self.nodes.add(node)
+        self.add_scope(name=node)
+
+    def add_edge(self, from_node: str, to_node: str):
+        # Avoid self-loop
+        if from_node == to_node:
+            return
+
+        self.add_node(from_node)
+        self.add_node(to_node)
+
+        self.edges[from_node].add(to_node)
+        self.reverse_edges[to_node].add(from_node)
 
 
 def get_function_definitions(lang: str, module: str, root_node: Node):
@@ -125,13 +153,6 @@ def get_function_definitions(lang: str, module: str, root_node: Node):
             yield module + SCOPE_SEP + get_node_text(name)
 
 
-def add_scope(scope: Scope, name: str):
-    full_name = []
-    for identifier in name.split(SCOPE_SEP):
-        full_name.append(identifier)
-        scope = scope.scopes[SCOPE_SEP.join(full_name)]
-
-
 def add_function_nodes(
     lang: str,
     graph: CallGraph,
@@ -141,8 +162,7 @@ def add_function_nodes(
     for caller_text in get_function_definitions(
         lang=lang, module=module, root_node=root_node
     ):
-        add_scope(scope=graph.scope, name=caller_text)
-        graph.nodes.add(caller_text)
+        graph.add_node(caller_text)
 
 
 def add_call_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
@@ -170,7 +190,7 @@ def add_call_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
                 graph.nodes.add(callee)
 
                 if callee != caller_text:  # avoid self-loop
-                    graph.edges[caller_text].add(callee)
+                    graph.add_edge(caller_text, callee)
 
 
 @lru_cache(maxsize=None)
@@ -194,14 +214,28 @@ def get_function_definition_query_cpp() -> Query:
         """\
 (function_definition
   declarator: (function_declarator
-    declarator: (qualified_identifier
-      scope: (namespace_identifier) @class_name
-      name: (identifier) @function_name))
+    declarator: (identifier) @function_name)
   body: (compound_statement) @function_body)
 
 (function_definition
+  declarator: (pointer_declarator
+    declarator: (function_declarator
+      declarator: (identifier) @function_name))
+  body: (compound_statement) @function_body)
+
+(class_specifier
+  name: (type_identifier) @class_name
+  body: (field_declaration_list
+    (function_definition
+      declarator: (function_declarator
+        declarator: (field_identifier) @function_name)
+      body: (compound_statement) @function_body)))
+
+(function_definition
   declarator: (function_declarator
-    declarator: (identifier) @function_name)
+    declarator: (qualified_identifier
+      scope: (namespace_identifier) @class_name
+      name: (identifier) @function_name))
   body: (compound_statement) @function_body)
 """
     )
@@ -252,7 +286,7 @@ def add_module_edges(graph: CallGraph, root_node: Node, module: str):
             path = get_node_text(path_node)
             target_module = get_module_name(path)
             if target_module in graph.nodes and target_module != module:
-                graph.edges[module].add(target_module)
+                graph.add_edge(module, target_module)
 
 
 def add_module_node(graph: CallGraph, module: str) -> None:
@@ -277,7 +311,11 @@ def get_tree(file: str) -> Tree:
 
 
 def generate_call_graph(
-    files: List[str], show_modules_only=False, include: Optional[str] = None
+    files: List[str],
+    show_modules_only,
+    match: Optional[str],
+    invert_match: Optional[str],
+    match_callers: Optional[int],
 ) -> CallGraph:
     graph = CallGraph()
 
@@ -326,21 +364,33 @@ def generate_call_graph(
                 root_node=tree.root_node,
             )
 
-    # Filter call graph
-    filtered_graph = CallGraph()
-    if include:
-        for caller, callees in graph.edges.copy().items():
-            for callee in callees:
-                if (re.search(include, caller, re.IGNORECASE)) or (
-                    re.search(include, callee, re.IGNORECASE)
-                ):
-                    filtered_graph.edges[caller].add(callee)
-                    filtered_graph.nodes.add(caller)
-                    filtered_graph.nodes.add(callee)
-                    add_scope(scope=filtered_graph.scope, name=caller)
-                    add_scope(scope=filtered_graph.scope, name=callee)
+    if match:
+        logging.info(f"Match node by pattern: {match}")
+        filtered_graph = CallGraph()
 
-    return filtered_graph
+        for node in graph.nodes:
+            if re.search(match, node, re.IGNORECASE):
+                filtered_graph.add_node(node)
+
+                if match_callers is not None:
+                    # Add all the callers recursively to the diagram
+                    q: Queue[Tuple[str, int]] = Queue()
+                    q.put((node, 0))
+                    while not q.empty():
+                        n, depth = q.get()
+                        if depth < match_callers:
+                            for caller in graph.reverse_edges[n]:
+                                filtered_graph.add_edge(caller, n)
+                                q.put((caller, depth + 1))
+
+        for caller, callees in graph.edges.items():
+            for callee in callees:
+                if caller in filtered_graph.nodes and callee in filtered_graph.nodes:
+                    filtered_graph.add_edge(caller, callee)
+
+        graph = filtered_graph
+
+    return graph
 
 
 class ShortName:
@@ -366,7 +416,9 @@ def escape_mermaid_node(name: str):
     return re.sub(r"\b(call)\b", r"\1_", name)
 
 
-def render_mermaid_scope(scope: Scope, short_name: ShortName, depth=1) -> str:
+def render_mermaid_nodes(
+    scope: Scope, short_name: ShortName, match: Optional[str], depth=1
+) -> str:
     out = StringIO()
     indent = " " * 4 * depth
     for name, s in scope.scopes.items():
@@ -376,25 +428,30 @@ def render_mermaid_scope(scope: Scope, short_name: ShortName, depth=1) -> str:
             )
             out.write(indent + "    direction LR\n\n")
             out.write(
-                render_mermaid_scope(
+                render_mermaid_nodes(
                     scope=s,
                     short_name=short_name,
+                    match=match,
                     depth=depth + 1,
                 )
             )
             out.write(indent + "end\n\n")
         else:
             out.write(indent + short_name.get(escape_mermaid_node(name)) + "\n")
+            if match and re.search(match, name, re.IGNORECASE):
+                out.write(
+                    f"{indent}style {short_name.get(escape_mermaid_node(name))} color:red\n"
+                )
 
     return out.getvalue()
 
 
-def render_mermaid_flowchart(graph: CallGraph) -> str:
+def render_mermaid_flowchart(graph: CallGraph, match: Optional[str]) -> str:
     s = "flowchart LR\n"
 
     short_name = ShortName()
 
-    s += render_mermaid_scope(scope=graph.scope, short_name=short_name)
+    s += render_mermaid_nodes(scope=graph.scope, short_name=short_name, match=match)
 
     for caller, callees in graph.edges.items():
         for callee in callees:
@@ -405,8 +462,11 @@ def render_mermaid_flowchart(graph: CallGraph) -> str:
 
 def _main():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--include", nargs="?", type=str)
+    arg_parser.add_argument("--match", nargs="?", type=str)
+    arg_parser.add_argument("-v", "--invert-match", nargs="?", type=str)
     arg_parser.add_argument("-o", "--output", type=str, default=None)
+    arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)
+
     arg_parser.add_argument(
         "-M",
         "--show-modules-only",
@@ -429,11 +489,13 @@ def _main():
     call_graph = generate_call_graph(
         files=files,
         show_modules_only=args.show_modules_only,
-        include=args.include,
+        match=args.match,
+        invert_match=args.invert_match,
+        match_callers=args.match_callers,
     )
 
     # Generate mermaid diagram
-    s = render_mermaid_flowchart(call_graph)
+    s = render_mermaid_flowchart(graph=call_graph, match=args.match)
     if args.output:
         out_file = args.output
         ext = os.path.splitext(out_file)[1].lower()
