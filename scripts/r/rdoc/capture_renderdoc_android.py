@@ -9,7 +9,7 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Any, List
+from typing import Any, List, Optional
 
 import renderdoc as rd
 from _android import get_device_name, get_main_activity
@@ -17,7 +17,7 @@ from _shutil import get_home_path, get_time_str
 from utils.logger import setup_logger
 
 
-def server():
+def daemon_main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(("localhost", 12345))
     server_socket.listen(5)
@@ -28,7 +28,7 @@ def server():
         logging.debug(data)
         try:
             if data["cmd"] == "launch-app":
-                launch_app()
+                launch_app(*data["args"])
             elif data["cmd"] == "capture":
                 capture()
             elif data["cmd"] == "exit":
@@ -67,7 +67,7 @@ ping_thread: Any = None
 remote: Any = None
 
 
-def launch_app():
+def launch_app(pkg_name: str, exe: Optional[str] = None):
     global target, kill, ping_thread, remote
 
     # This sample is intended as an example of how to do remote capture and replay
@@ -170,11 +170,6 @@ def launch_app():
 
     # list_executables(remote)
 
-    # Select your executable, perhaps hardcoded or browsing using the above
-    # functions
-    pkg_name = os.environ["PKG_NAME"]
-
-    exe = os.environ.get("START_ACTIVITY")
     if not exe:
         exe = get_main_activity(pkg_name)
 
@@ -290,7 +285,7 @@ if __name__ == "__main__":
 
     setup_logger()
 
-    if args.cmd == "server":
-        server()
+    if args.cmd == "daemon":
+        daemon_main()
     else:
         send_command({"cmd": args.cmd, "args": args.rest})

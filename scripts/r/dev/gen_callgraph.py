@@ -19,6 +19,7 @@ from utils.logger import setup_logger
 from utils.shutil import shell_open
 
 SCOPE_SEP = "::"
+CLASS_PREFIX = ""
 
 
 ext_language_dict = {
@@ -143,7 +144,7 @@ def get_function_definitions(lang: str, module: str, root_node: Node):
             yield (
                 module
                 + SCOPE_SEP
-                + "class "
+                + CLASS_PREFIX
                 + get_node_text(class_name)
                 + SCOPE_SEP
                 + get_node_text(name)
@@ -173,7 +174,7 @@ def add_call_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
         caller_text = module + SCOPE_SEP
         if "class_name" in match:
             class_name = match["class_name"][0]
-            caller_text += "class " + get_node_text(class_name) + SCOPE_SEP
+            caller_text += CLASS_PREFIX + get_node_text(class_name) + SCOPE_SEP
         caller_text += get_node_text(name)
 
         function_node = match["function_body"][0]
