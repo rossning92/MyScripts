@@ -13,9 +13,10 @@ if [[ ! -f "$profile_path" ]]; then
 name=$VNC_SERVER
 server=$VNC_SERVER
 protocol=VNC
-viewmode=1
 scale=1
 keyboard_grab=1
+quality=1
+colordepth=16
 EOF
 fi
 
