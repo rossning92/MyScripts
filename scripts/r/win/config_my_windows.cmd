@@ -1,11 +1,20 @@
 @ECHO OFF
 
-echo Remove the Cortana icon
-reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search /v SearchboxTaskbarMode /t REG_DWORD /d 0 /f >NUL
+echo Remove Cortana icon from taskbar
 reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v ShowCortanaButton /t REG_DWORD /d 0 /f >NUL
 
 echo Never combine taskbar icons
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v TaskbarGlomLevel /t REG_DWORD /d 2 /f >NUL
+
+echo Remove pinned items from Taskbar
+reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f >NUL
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins /v MailPin /t REG_DWORD /d 1 /f >NUL
+
+echo Disable search bar from the Taskbar (Windows 11)
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Search /v SearchboxTaskbarMode /t REG_DWORD /d 0 /f >NUL
+
+echo Hide Widgets on Taskbar
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v TaskbarDa /t REG_DWORD /d 0 /f >NUL
 
 echo Show file extensions
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f >NUL
@@ -27,10 +36,6 @@ reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Laun
 
 echo Disable adding frequent folders in Quick access
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer /v ShowFrequent /t REG_DWORD /d 0 /f >NUL
-
-echo Remove pinned items from Taskbar
-reg delete HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband /f >NUL
-reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins /v MailPin /t REG_DWORD /d 1 /f >NUL
 
 echo Disable recent items
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v Start_TrackDocs /t REG_DWORD /d 0 /f >NUL
