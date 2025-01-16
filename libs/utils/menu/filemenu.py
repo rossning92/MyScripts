@@ -5,8 +5,9 @@ import os
 import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 from _shutil import get_home_path
 
@@ -75,6 +76,7 @@ class _File:
         full_path: str,
         file_size: int,
         show_size: bool,
+        show_mtime: bool,
         relative_path=False,
     ) -> None:
         self.name = name
@@ -83,14 +85,22 @@ class _File:
         self.file_size = file_size
         self.relative_path = relative_path
         self.show_size = show_size
+        self.show_mtime = show_mtime
         self.color = "blue" if self.is_dir else "white"
 
     def __str__(self) -> str:
-        # Size column
-        size = human_readable_size(self.file_size) if not self.is_dir else ""
         s = ""
+
+        # Size column
         if self.show_size:
+            size = human_readable_size(self.file_size) if not self.is_dir else ""
             s += f"{size:>6}  "
+
+        # Modified time column
+        if self.show_size:
+            mtime = os.path.getmtime(self.full_path)
+            formatted_time = datetime.fromtimestamp(mtime).strftime("%y-%m-%d %H:%M")
+            s += formatted_time + "  "
 
         # Name column
         s += self.name
@@ -109,6 +119,7 @@ class FileMenu(Menu[_File]):
         save_states=True,
         prompt=None,
         recursive=False,
+        show_mtime=True,
         show_size=True,
         allow_cd=True,
     ):
@@ -123,7 +134,8 @@ class FileMenu(Menu[_File]):
         self.__select_mode: int = FileMenu.SELECT_MODE_NONE
         self.__selected_file_dict: Dict[str, str] = {}
         self.__selected_files_full_path: List[str] = []
-        self.__sort_by = "name"
+        self.__sort_by: Literal["name", "mtime"] = "name"
+        self.__show_mtime = show_mtime
         self.__show_size = show_size
         self.__allow_cd = allow_cd
 
@@ -142,6 +154,8 @@ class FileMenu(Menu[_File]):
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
         self.add_command(self._run_script, hotkey="!")
+        self.add_command(lambda: self.sort_by("name"), name="sort_by_name")
+        self.add_command(lambda: self.sort_by("mtime"), name="sort_by_mtime")
 
         if allow_cd:
             self.add_command(self._goto_parent_directory, hotkey="left")
@@ -425,6 +439,7 @@ class FileMenu(Menu[_File]):
                             os.path.join(self.get_cur_dir(), file)
                         ),
                         relative_path=True,
+                        show_mtime=self.__show_mtime,
                         show_size=self.__show_size,
                     )
                     for file in files
@@ -451,6 +466,7 @@ class FileMenu(Menu[_File]):
                                 full_path=full_path,
                                 file_size=0,
                                 is_dir=True,
+                                show_mtime=self.__show_mtime,
                                 show_size=self.__show_size,
                             )
                         )
@@ -461,6 +477,7 @@ class FileMenu(Menu[_File]):
                                 full_path=full_path,
                                 file_size=os.path.getsize(full_path),
                                 is_dir=False,
+                                show_mtime=self.__show_mtime,
                                 show_size=self.__show_size,
                             )
                         )
@@ -481,6 +498,10 @@ class FileMenu(Menu[_File]):
 
             self.__files.extend(dir_items)
             self.__files.extend(file_items)
+
+    def sort_by(self, by: Literal["name", "mtime"]):
+        self.__sort_by = by
+        self._list_files()
 
     def get_selected_file_full_path(self) -> Optional[str]:
         selected = self.get_selected_item()

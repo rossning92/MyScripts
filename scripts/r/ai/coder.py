@@ -8,7 +8,7 @@ from ai.get_context_files import GetContextFilesMenu
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
-from utils.menu.confirmmenu import ConfirmMenu
+from utils.menu.confirmmenu import ConfirmMenu, confirm
 from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
@@ -135,21 +135,9 @@ class FileListMenu(ListEditMenu):
         menu = FileMenu(prompt="add file", goto=os.getcwd())
         file = menu.select_file()
         if file is not None:
-            content: Optional[str]
-            with open(file, "r", encoding="utf-8") as f:
-                content = f.read()
+            self.add_file(file)
 
-            select_code_block_menu = SelectCodeBlockMenu(file)
-            select_code_block_menu.exec()
-            if select_code_block_menu.is_cancelled:
-                content = None
-            else:
-                lines = list(select_code_block_menu.get_selected_items())
-                content = "\n".join(lines)
-
-            self.add_file(file, content)
-
-    def add_file(self, file: str, content: Optional[str] = None):
+    def add_file(self, file: str):
         file_and_lines = file.split("#")
 
         file = file_and_lines[0]
@@ -265,8 +253,9 @@ class CoderMenu(ChatMenu):
             task = self.get_input()
 
             # Get context files
-            if len(self.__file_list_menu.items) == 0:
-
+            if len(self.__file_list_menu.items) == 0 and confirm(
+                "Search for relevant files to add to context"
+            ):
                 menu = GetContextFilesMenu(
                     task=task,
                     conv_file=os.path.join(SETTING_DIR, "chat_get_context_files.json"),
