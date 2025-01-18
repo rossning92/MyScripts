@@ -6,6 +6,7 @@
 # Ignore certain files
 .DS_Store
 .ipynb_checkpoints
+*.bak
 *.exe
 !/bin/*.exe
 *.log

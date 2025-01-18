@@ -1,3 +1,4 @@
 {
-  "wsl": true
+  "wsl": true,
+  "wsl.distro": "Ubuntu-24.04"
 }

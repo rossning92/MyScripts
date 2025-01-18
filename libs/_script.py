@@ -162,6 +162,7 @@ def get_last_script_and_args() -> Tuple[str, Any]:
 def wrap_wsl(
     commands: Union[List[str], Tuple[str], str],
     env: Optional[Dict[str, str]],
+    distro: Optional[str] = None,
 ) -> List[str]:
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
@@ -193,8 +194,16 @@ def wrap_wsl(
     # return ["bash.exe", "-c", commands]
 
     logging.debug("wrap_wsl(): write temp shell script: %s" % tmp_sh_file)
-    return [
-        "bash.exe",
+    return (
+        [
+            "wsl",
+            "-d",
+            distro,
+            "bash",
+        ]
+        if distro
+        else ["bash.exe"]
+    ) + [
         # Ensures that .bashrc is read
         "-l",
         "-i",
@@ -243,12 +252,15 @@ def wrap_bash_win(args: List[str], env: Optional[Dict[str, str]] = None, msys2=F
 
 
 def wrap_bash_commands(
-    args: List[str], wsl=False, env: Optional[Dict[str, str]] = None, msys2=False
+    args: List[str],
+    wsl=False,
+    wsl_distro: Optional[str] = None,
+    env: Optional[Dict[str, str]] = None,
+    msys2=False,
 ) -> List[str]:
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
-            return wrap_wsl(args, env=env)
-
+            return wrap_wsl(args, env=env, distro=wsl_distro)
         else:
             return wrap_bash_win(args, env=env, msys2=msys2)
 
@@ -533,7 +545,11 @@ def get_script_alias(name_without_ext: str) -> str:
 def install_pip_packages(pkg: str, python_exec: str) -> None:
     # Check if pip package is installed
     ret = subprocess.call(
-        [python_exec, "-c", f"import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('{pkg}') else 1)"],
+        [
+            python_exec,
+            "-c",
+            f"import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('{pkg}') else 1)",
+        ],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -1179,13 +1195,18 @@ class Script:
                 require_package("msys2")
 
             arg_list = wrap_bash_commands(
-                arg_list, wsl=self.cfg["wsl"], env=env, msys2=self.cfg["msys2"]
+                arg_list,
+                wsl=self.cfg["wsl"],
+                wsl_distro=self.cfg["wsl.distro"],
+                env=env,
+                msys2=self.cfg["msys2"],
             )
 
         elif ext == ".expect":
             arg_list = wrap_bash_commands(
                 ["expect", convert_to_unix_path(script_path, wsl=True)],
                 wsl=True,
+                wsl_distro=self.cfg["wsl.distro"],
                 env=env,
             )
 
@@ -1899,6 +1920,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "webApp": False,
         "workingDir": "",
         "wsl": False,
+        "wsl.distro": "",
     }
 
 

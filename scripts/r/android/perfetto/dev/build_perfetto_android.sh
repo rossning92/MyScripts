@@ -6,7 +6,16 @@ source "$(dirname "$0")/_setup_perfetto_project.sh"
 
 tools/install-build-deps --android
 
-tools/gn args out/android
+mkdir -p out/
+mkdir -p out/android
+cat >out/android/args.gn <<EOF
+target_os = "android"
+target_cpu = "arm64"
+
+is_debug = true
+cc_wrapper = "ccache"
+EOF
+tools/gn gen out/android
 
 tools/ninja -C out/android
 

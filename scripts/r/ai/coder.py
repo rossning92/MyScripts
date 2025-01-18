@@ -1,14 +1,14 @@
 import argparse
 import os
 import re
-from dataclasses import dataclass
 from typing import Any, List, Optional
 
+from ai.codeeditutils import Change, apply_change_interactive, revert_changes
 from ai.get_context_files import GetContextFilesMenu
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
-from utils.menu.confirmmenu import ConfirmMenu, confirm
+from utils.menu.confirmmenu import confirm
 from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
@@ -75,34 +75,12 @@ If you want to put code in a new file, use a *SEARCH/REPLACE block* with:
     )
 
 
-@dataclass
-class Change:
-    file: str
-    search: str
-    replace: str
-
-
-def _get_changes(input_string):
+def _find_changes(s: str):
     code_block_pattern = r"^\**(.+)\**\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE\n```"
-    matches = re.findall(code_block_pattern, input_string, re.MULTILINE)
+    matches = re.findall(code_block_pattern, s, re.MULTILINE)
     return [
         Change(file=match[0], search=match[1], replace=match[2]) for match in matches
     ]
-
-
-def _apply_changes(changes: List[Change]):
-    for c in changes:
-        # If search block is empty, create a new file
-        if not c.search:
-            with open(c.file, "w", encoding="utf-8") as f:  # Create a new file
-                f.write(c.replace)
-        else:
-            with open(c.file, "r+", encoding="utf-8") as f:
-                content = f.read()
-                updated_content = content.replace(c.search, c.replace)
-                f.seek(0)
-                f.write(updated_content)
-                f.truncate()
 
 
 class SelectCodeBlockMenu(TextMenu):
@@ -164,31 +142,14 @@ class FileListMenu(ListEditMenu):
         return "\n".join(result)
 
 
-class ApplyChangeMenu(ConfirmMenu):
-    def __init__(self, **kwargs):
-        super().__init__(prompt="apply changes?", wrap_text=True, **kwargs)
-
-    def get_item_text(self, c: Change) -> str:
-        search = c.search + "\n" if c.search else ""
-        replace = c.replace + "\n" if c.replace else ""
-        return (
-            f"{c.file}\n"
-            "```\n"
-            "<<<<<<< SEARCH\n"
-            f"{search}"
-            "=======\n"
-            f"{replace}"
-            ">>>>>>> REPLACE\n"
-            "```"
-        )
-
-
 class CoderMenu(ChatMenu):
     def __init__(self, files: Optional[List[str]] = None, **kwargs):
         super().__init__(
             conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
             **kwargs,
         )
+
+        self.__modified_files: List[str] = []
 
         self.__file_list_menu = FileListMenu()
 
@@ -203,8 +164,9 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__add_file, hotkey="alt+a")
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
-        self.add_command(self.__list_files, hotkey="alt+l")
         self.add_command(self.__edit_task, hotkey="alt+p")
+        self.add_command(self.__list_files, hotkey="alt+l")
+        self.add_command(self.__revert_modified_files, hotkey="ctrl+z")
 
         self.__update_prompt()
 
@@ -241,12 +203,8 @@ class CoderMenu(ChatMenu):
         selected_message = self.get_messages()[selected_line.message_index]
         content = selected_message["content"]
 
-        changes = _get_changes(content)
-        if len(changes) > 0:
-            menu = ApplyChangeMenu(items=changes)
-            menu.exec()
-            if menu.is_confirmed():
-                _apply_changes(changes)
+        changes = _find_changes(content)
+        self.__modified_files[:] = apply_change_interactive(changes)
 
     def on_enter_pressed(self):
         i = len(self.get_messages())
@@ -286,10 +244,15 @@ class CoderMenu(ChatMenu):
             )
         )
 
+    def __revert_modified_files(self):
+        revert_changes(self.__modified_files)
+        self.__modified_files.clear()
+
     def __edit_task(self):
         task = self.__session["task"]
         new_task = self.call_func_without_curses(lambda: edit_text(task))
         if new_task != task:
+            self.__revert_modified_files()
             self.__complete_task(new_task)
 
 
