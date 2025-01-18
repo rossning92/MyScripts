@@ -1,0 +1,1 @@
+wsl --install --distribution Ubuntu-24.04 --version 2

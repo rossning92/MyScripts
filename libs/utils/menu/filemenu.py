@@ -34,33 +34,26 @@ class _Config:
     def __init__(self) -> None:
         self.cur_dir: str = get_home_path()
         self.selected_file = ""
-        self.config_file = os.path.join(
-            os.environ["MY_DATA_DIR"], "filemgr_config.json"
-        )
         self.path_history: List[str] = [get_home_path(), get_download_dir()]
+        self.sort_by: Literal["name", "mtime"] = "name"
 
-    def load(self):
-        with open(self.config_file, "r") as file:
+    def load(self, config_file: str):
+        with open(config_file, "r") as file:
             data = json.load(file)
 
-        cur_dir = data["cur_dir"]
-        if not isinstance(cur_dir, str):
-            raise Exception("Invalid type for `cur_dir`, must be str.")
-        self.cur_dir = cur_dir
+        for key, value in data.items():
+            if key in self.__dict__:
+                if not isinstance(value, type(self.__dict__[key])):
+                    raise Exception(f"Invalid type for `{key}`")
+                setattr(self, key, value)
 
-        if "selected_file" in data:
-            self.selected_file = data["selected_file"]
-
-        if "path_history" in data:
-            self.path_history = data["path_history"]
-
-    def save(self):
+    def save(self, config_file: str):
         data = {
-            "cur_dir": self.cur_dir,
-            "selected_file": self.selected_file,
-            "path_history": self.path_history,
+            key: value
+            for key, value in self.__dict__.items()
+            if not key.startswith("_")
         }
-        with open(self.config_file, "w") as f:
+        with open(config_file, "w") as f:
             json.dump(data, f, indent=4)
 
 
@@ -123,9 +116,12 @@ class FileMenu(Menu[_File]):
         show_size=True,
         allow_cd=True,
     ):
+        self.__config_file = os.path.join(
+            os.environ["MY_DATA_DIR"], "filemgr_config.json"
+        )
         self.__config = _Config()
-        if os.path.exists(self.__config.config_file):
-            self.__config.load()
+        if os.path.exists(self.__config_file):
+            self.__config.load(self.__config_file)
 
         self.__files: List[_File] = []
         self.__last_copy_to_path: Optional[str] = None
@@ -134,7 +130,6 @@ class FileMenu(Menu[_File]):
         self.__select_mode: int = FileMenu.SELECT_MODE_NONE
         self.__selected_file_dict: Dict[str, str] = {}
         self.__selected_files_full_path: List[str] = []
-        self.__sort_by: Literal["name", "mtime"] = "name"
         self.__show_mtime = show_mtime
         self.__show_size = show_size
         self.__allow_cd = allow_cd
@@ -385,7 +380,7 @@ class FileMenu(Menu[_File]):
         if directory != self.get_cur_dir():
             self.__config.cur_dir = directory
             if self.__save_states:
-                self.__config.save()
+                self.__config.save(self.__config_file)
 
         # Enumerate files
         self._list_files(list_file_recursively=list_file_recursively)
@@ -485,10 +480,10 @@ class FileMenu(Menu[_File]):
                 except Exception as ex:
                     logging.error(str(ex))
 
-            if self.__sort_by == "name":
+            if self.__config.sort_by == "name":
                 dir_items.sort(key=lambda x: x.name)
                 file_items.sort(key=lambda x: x.name)
-            elif self.__sort_by == "mtime":
+            elif self.__config.sort_by == "mtime":
                 dir_items.sort(
                     key=lambda x: os.path.getmtime(x.full_path), reverse=True
                 )
@@ -500,7 +495,10 @@ class FileMenu(Menu[_File]):
             self.__files.extend(file_items)
 
     def sort_by(self, by: Literal["name", "mtime"]):
-        self.__sort_by = by
+        self.__config.sort_by = by
+        if self.__save_states:
+            self.__config.save(self.__config_file)
+
         self._list_files()
 
     def get_selected_file_full_path(self) -> Optional[str]:
@@ -525,7 +523,7 @@ class FileMenu(Menu[_File]):
             self.__config.cur_dir = os.path.dirname(selected_full_path)
             self.__config.selected_file = os.path.basename(selected_full_path)
             if self.__save_states:
-                self.__config.save()
+                self.__config.save(self.__config_file)
 
     def open_file(self, full_path: str):
         _, ext = os.path.splitext(full_path)
@@ -589,3 +587,6 @@ class FileMenu(Menu[_File]):
             )
             if ret_code == 0:
                 self._refresh_cur_dir()
+
+    def get_status_bar_text(self) -> str:
+        return f"sort={self.__config.sort_by}"

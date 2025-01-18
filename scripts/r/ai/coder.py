@@ -148,8 +148,9 @@ class FileListMenu(ListEditMenu):
             start, end = map(int, file_and_lines[1].split("-"))
             with open(file, "r", encoding="utf-8") as f:
                 content = "\n".join(f.read().splitlines()[start + 1 : end + 2])
-
-        self.append_item({"file": file, "content": content})
+            self.append_item({"file": file, "content": content})
+        else:
+            self.append_item({"file": file})
 
     def get_context(self) -> str:
         result = []
