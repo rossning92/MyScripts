@@ -1,3 +1,5 @@
+# https://perfetto.dev/docs/contributing/build-instructions#ui-development
+
 set -e
 
 source "$(dirname "$0")/_setup_perfetto_project.sh"

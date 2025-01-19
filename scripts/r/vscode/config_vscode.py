@@ -184,7 +184,7 @@ def config_vscode(data_dir=None, compact=False):
             "ms-vscode.cpptools-extension-pack",
             # Markdown
             "yzhang.markdown-all-in-one",
-            "mushan.vscode-paste-image",
+            "telesoho.vscode-markdown-paste-image",
             # Note-taking
             "foam.foam-vscode",
             # Javascript

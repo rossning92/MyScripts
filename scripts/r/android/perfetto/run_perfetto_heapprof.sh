@@ -2,7 +2,7 @@
 # https://perfetto.dev/docs/reference/trace-config-proto#HeapprofdConfig
 
 # PERFETTO_DURATION_MS, PERFETTO_REPO, PERFETTO_OUT_FILE
-{{ include('r/android/perfetto/_run_perfetto_txt_config.sh', {'TRACE_CONFIG_STR': '''
+{{ include('r/android/perfetto/_run_and_open_perfetto_txt_config.sh', {'TRACE_CONFIG_STR': '''
 buffers: {
     size_kb: 131072
     fill_policy: DISCARD
