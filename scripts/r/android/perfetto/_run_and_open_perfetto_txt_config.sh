@@ -5,13 +5,7 @@
 set -e
 adb root
 
-adb shell perfetto \
-    -c - --txt \
-    -o /data/misc/perfetto-traces/trace \
-    <<EOF
-{{TRACE_CONFIG_STR}}
-duration_ms: {{PERFETTO_DURATION_MS}}
-EOF
+{{ include('_run_perfetto_text_config.sh', {'TRACE_CONFIG_STR': TRACE_CONFIG_STR, 'PERFETTO_DURATION_MS': PERFETTO_DURATION_MS}) }}
 
 {{if PERFETTO_OUT_FILE}}
 trace="{PERFETTO_OUT_FILE}"
@@ -24,5 +18,5 @@ echo "Saving as '$trace'..."
 adb pull /data/misc/perfetto-traces/trace "$trace"
 
 {{if not PERFETTO_OUT_FILE}}
-run_script r/android/perfetto/open_perfetto_trace.py "$trace"
+run_script r/android/perfetto/open_perfetto_trace.py "$trace" {{if PERFETTO_UI_URL}}--url "{{PERFETTO_UI_URL}}"{{end}}
 {{end}}

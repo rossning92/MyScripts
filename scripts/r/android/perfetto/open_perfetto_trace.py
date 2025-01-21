@@ -5,7 +5,7 @@ import socketserver
 import webbrowser
 
 
-def open_trace_in_browser(path):
+def open_trace_in_browser(path: str, url: str):
     # HTTP Server used to open the trace in the browser.
     class HttpHandler(http.server.SimpleHTTPRequestHandler):
         def end_headers(self):
@@ -27,9 +27,7 @@ def open_trace_in_browser(path):
     fname = os.path.basename(path)
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("127.0.0.1", PORT), HttpHandler) as httpd:
-        webbrowser.open_new_tab(
-            "https://ui.perfetto.dev/#!/?url=http://127.0.0.1:%d/%s" % (PORT, fname)
-        )
+        webbrowser.open_new_tab(f"{url}/#!/?url=http://127.0.0.1:{PORT}/{fname}")
         while httpd.__dict__.get("last_request") != "/" + fname:
             httpd.handle_request()
             print("last_request:", httpd.__dict__.get("last_request"))
@@ -38,6 +36,12 @@ def open_trace_in_browser(path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=str)
+    parser.add_argument(
+        "--url",
+        type=str,
+        default="https://ui.perfetto.dev",
+        help="The base URL to use for Perfetto UI",
+    )
     args = parser.parse_args()
 
-    open_trace_in_browser(args.file)
+    open_trace_in_browser(args.file, args.url)

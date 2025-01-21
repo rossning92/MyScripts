@@ -1,8 +1,9 @@
-# https://perfetto.dev/docs/contributing/common-tasks#add-a-new-ftrace-event
-
 set -e
 
 source "$(dirname "$0")/_setup_perfetto_project.sh"
+
+# add `format` and `event`
+# https://perfetto.dev/docs/contributing/common-tasks#add-a-new-ftrace-event
 
 tools/run_ftrace_proto_gen
 
