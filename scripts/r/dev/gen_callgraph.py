@@ -311,12 +311,35 @@ def get_tree(file: str) -> Tree:
     return parser.parse(source_code.encode())
 
 
+def add_callers_or_callees_to_graph(
+    node: str,
+    max_depth: int,
+    graph: CallGraph,
+    new_graph: CallGraph,
+    is_caller: bool,
+):
+    q: Queue[Tuple[str, int]] = Queue()
+    q.put((node, 0))
+    while not q.empty():
+        n, d = q.get()
+        if d < max_depth:
+            for connected_node in (
+                graph.reverse_edges[n] if is_caller else graph.edges[n]
+            ):
+                if is_caller:
+                    new_graph.add_edge(connected_node, n)
+                else:
+                    new_graph.add_edge(n, connected_node)
+                q.put((connected_node, d + 1))
+
+
 def generate_call_graph(
     files: List[str],
     show_modules_only,
     match: Optional[str],
     invert_match: Optional[str],
     match_callers: Optional[int],
+    match_callees: Optional[int],
 ) -> CallGraph:
     graph = CallGraph()
 
@@ -374,15 +397,22 @@ def generate_call_graph(
                 filtered_graph.add_node(node)
 
                 if match_callers is not None:
-                    # Add all the callers recursively to the diagram
-                    q: Queue[Tuple[str, int]] = Queue()
-                    q.put((node, 0))
-                    while not q.empty():
-                        n, depth = q.get()
-                        if depth < match_callers:
-                            for caller in graph.reverse_edges[n]:
-                                filtered_graph.add_edge(caller, n)
-                                q.put((caller, depth + 1))
+                    add_callers_or_callees_to_graph(
+                        node=node,
+                        max_depth=match_callers,
+                        graph=graph,
+                        new_graph=filtered_graph,
+                        is_caller=True,
+                    )
+
+                if match_callees is not None:
+                    add_callers_or_callees_to_graph(
+                        node=node,
+                        max_depth=match_callees,
+                        graph=graph,
+                        new_graph=filtered_graph,
+                        is_caller=False,
+                    )
 
         for caller, callees in graph.edges.items():
             for callee in callees:
@@ -467,6 +497,7 @@ def _main():
     arg_parser.add_argument("-v", "--invert-match", nargs="?", type=str)
     arg_parser.add_argument("-o", "--output", type=str, default=None)
     arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)
+    arg_parser.add_argument("--match-callees", nargs="?", type=int, const=1)
 
     arg_parser.add_argument(
         "-M",
@@ -493,6 +524,7 @@ def _main():
         match=args.match,
         invert_match=args.invert_match,
         match_callers=args.match_callers,
+        match_callees=args.match_callees,
     )
 
     # Generate mermaid diagram
