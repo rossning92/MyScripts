@@ -1,3 +1,4 @@
 {
-  "args.selectFiles": true
+  "args.selectFiles": true,
+  "packages": "ghostscript"
 }

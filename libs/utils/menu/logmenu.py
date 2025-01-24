@@ -5,25 +5,8 @@ from collections import OrderedDict
 from typing import List, Optional
 
 from . import Menu
+from .filemenu import FileMenu
 from .inputmenu import InputMenu
-
-
-class _SelectPresetMenu(Menu[str]):
-    def __init__(self, preset_dir: str):
-        preset_names = (
-            [
-                os.path.splitext(f)[0]
-                for f in os.listdir(preset_dir)
-                if f.endswith(".json")
-            ]
-            if os.path.isdir(preset_dir)
-            else []
-        )
-
-        super().__init__(
-            items=preset_names,
-            prompt="load preset",
-        )
 
 
 class LogMenu(Menu[str]):
@@ -75,11 +58,16 @@ class LogMenu(Menu[str]):
         self.refresh()
 
     def __load_preset(self):
-        m = _SelectPresetMenu(preset_dir=self.preset_dir)
-        m.exec()
-        preset_name = m.get_selected_item()
-        if preset_name:
-            preset_file = os.path.join(self.preset_dir, f"{preset_name}.json")
+        menu = FileMenu(
+            prompt="select preset",
+            goto=self.preset_dir,
+            show_size=False,
+            recursive=True,
+            allow_cd=False,
+        )
+        selected = menu.select_file()
+        if selected:
+            preset_file = selected
             with open(preset_file, "r", encoding="utf-8") as f:
                 preset = json.load(f)
 

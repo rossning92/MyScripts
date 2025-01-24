@@ -14,7 +14,6 @@ from _shutil import get_home_path
 from utils.clip import set_clip
 from utils.editor import open_code_editor
 from utils.fileutils import human_readable_size
-from utils.menu.logmenu import LogMenu
 from utils.platform import is_termux
 from utils.shutil import shell_open
 
@@ -528,6 +527,8 @@ class FileMenu(Menu[_File]):
     def open_file(self, full_path: str):
         _, ext = os.path.splitext(full_path)
         if ext.lower() == ".log":
+            from utils.menu.logmenu import LogMenu
+
             LogMenu(files=[full_path]).exec()
         elif ext.lower() in [".zip", ".gz"]:
             subprocess.check_call(["run_script", "r/unzip.py", full_path])

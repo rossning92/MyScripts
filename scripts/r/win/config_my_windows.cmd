@@ -48,8 +48,8 @@ reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR /v GameDVR_Enable
 echo Disable shake to minimize
 reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v DisallowShaking /t REG_DWORD /d 1 /f >NUL
 
-echo Turn off hibernation
-powercfg.exe /hibernate off
+echo Disable hibernation
+powercfg /hibernate off
 
 echo Disable UAC
 CALL "%~dp0disable_UAC.cmd"
