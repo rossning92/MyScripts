@@ -154,7 +154,7 @@ def get_function_definitions(lang: str, module: str, root_node: Node):
             yield module + SCOPE_SEP + get_node_text(name)
 
 
-def add_function_nodes(
+def create_nodes(
     lang: str,
     graph: CallGraph,
     module: str,
@@ -166,7 +166,7 @@ def add_function_nodes(
         graph.add_node(caller_text)
 
 
-def add_call_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
+def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
     query = get_function_definition_query(lang=lang)
     matches = query.matches(root_node)
     for _, match in matches:
@@ -177,19 +177,16 @@ def add_call_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
             caller_text += CLASS_PREFIX + get_node_text(class_name) + SCOPE_SEP
         caller_text += get_node_text(name)
 
-        function_node = match["function_body"][0]
+        function_body_node = match["function_body"][0]
 
         # Add edge to call graph
-        for callee_text in _find_all_identifiers(function_node):
+        for identifier in _find_all_identifiers(function_body_node):
             matched_function_names = [
                 function_name
                 for function_name in graph.nodes
-                if re.search(r"\b" + callee_text + "$", function_name)
+                if re.search(r"\b" + identifier + "$", function_name)
             ]
             for callee in matched_function_names:
-                # TODO: remove?
-                graph.nodes.add(callee)
-
                 if callee != caller_text:  # avoid self-loop
                     graph.add_edge(caller_text, callee)
 
@@ -358,7 +355,7 @@ def generate_call_graph(
         )
 
         if not show_modules_only:
-            add_function_nodes(
+            create_nodes(
                 lang=lang,
                 graph=graph,
                 module=module,
@@ -381,7 +378,7 @@ def generate_call_graph(
         )
 
         if not show_modules_only:
-            add_call_edges(
+            create_edges(
                 lang=lang,
                 graph=graph,
                 module=module,
@@ -498,7 +495,6 @@ def _main():
     arg_parser.add_argument("-o", "--output", type=str, default=None)
     arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)
     arg_parser.add_argument("--match-callees", nargs="?", type=int, const=1)
-
     arg_parser.add_argument(
         "-M",
         "--show-modules-only",
