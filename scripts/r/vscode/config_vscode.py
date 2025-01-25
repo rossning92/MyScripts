@@ -180,8 +180,7 @@ def config_vscode(data_dir=None, compact=False):
             "stkb.rewrap",
             "streetsidesoftware.code-spell-checker",
             # C++
-            "ms-vscode.cpptools",
-            "ms-vscode.cpptools-extension-pack",
+            "llvm-vs-code-extensions.vscode-clangd",
             # Markdown
             "yzhang.markdown-all-in-one",
             "telesoho.vscode-markdown-paste-image",

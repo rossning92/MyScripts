@@ -20,4 +20,7 @@ colordepth=16
 EOF
 fi
 
+# Known issues:
+# 1. Shift+Tab hotkey does not work on remote desktop.
+# 2. Mouse shortcut is grabbed.
 nohup remmina "$profile_path" 2>/dev/null >/dev/null &

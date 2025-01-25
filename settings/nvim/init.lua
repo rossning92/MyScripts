@@ -114,11 +114,16 @@ local function replace_selected_text(expr)
   local start_pos = vim.fn.getpos("v")
   local end_pos = vim.fn.getpos(".")
 
+  -- Swap start_pos and end_pos if start comes after end.
+  -- This ensures selections are correctly handled even if made from end to start.
   if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
     start_pos, end_pos = end_pos, start_pos
   end
 
+  -- Retrieve the lines in the buffer from start_pos to end_pos.
   local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
+
+  -- Extract text only within the region defined by start_pos and end_pos.
   local text = ""
   if mode == 'v' then
     for i, line in ipairs(lines) do
@@ -130,19 +135,25 @@ local function replace_selected_text(expr)
     text = table.concat(lines, '\n')
   end
 
+  -- Apply function on the extracted text.
   text = expr(text)
 
   if mode == 'v' then
+    -- Reconstruct the text by splicing the replaced text back into the original lines.
     text = lines[1]:sub(1, start_pos[3] - 1) .. text .. lines[#lines]:sub(end_pos[3] + 1)
   end
 
+  -- Split the reconstructed text back into lines.
   lines = {}
   for line in text:gmatch("[^\r\n]+") do
     table.insert(lines, line)
   end
+
+  -- Set the modified lines back to the buffer.
   vim.api.nvim_buf_set_lines(0, start_pos[2] - 1, end_pos[2], false, lines)
 
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+  -- Move cursor to the end of the last line of the replaced text.
+  vim.api.nvim_win_set_cursor(0, { start_pos[2] + #lines - 1, #lines[#lines] })
 end
 
 local function fix()

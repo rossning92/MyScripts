@@ -1,0 +1,29 @@
+packages = {
+    "@common": [
+        "alacritty",
+        "everything",
+        "git-lfs",
+        "git",
+        "google-chrome",
+        "irfanview",
+        "mpv",
+        "sharex",
+        "sumatrapdf",
+        "vnc-viewer",
+    ],
+    "@ross": [
+        "@common",
+        "@dev",
+    ],
+    "@dev": [
+        "7zip",
+        "android-sdk",
+        "cmake",
+        "ffmpeg",
+        "graphviz",
+        "imagemagick",
+        "node",
+        "ripgrep",
+        "vscode",
+    ],
+}
