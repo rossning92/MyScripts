@@ -424,7 +424,6 @@ def _main():
     os.makedirs(CHAT_DIR, exist_ok=True)
 
     menu = AgentMenu(
-        load_last_agent=True,
         context=context,
         agent_file=args.agent,
         run=args.run,

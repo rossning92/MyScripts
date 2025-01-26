@@ -54,13 +54,13 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
     if os.path.exists(out_file):
         os.remove(out_file)
 
-    saved = False
+    should_save = False
     if is_in_termux():
         _is_recording_termux = True
 
         _run_without_output(["termux-microphone-record", "-f", out_file])
 
-        saved = _wait_for_key()
+        should_save = _wait_for_key()
 
         _is_recording_termux = False
         _run_without_output(["termux-microphone-record", "-q"])
@@ -74,23 +74,21 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
         process = subprocess.Popen(["rec", "--no-show-progress", out_file])
         pid = process.pid
 
-        saved = _wait_for_key()
+        should_save = _wait_for_key()
 
         os.kill(pid, signal.SIGINT)
 
     else:
-        print("ERROR: not implemented.", file=sys.stderr)
+        print("ERROR: Not implemented.", file=sys.stderr)
         sys.exit(1)
 
     # Delete the recording file if canceled.
-    if not saved and os.path.exists(out_file):
+    if not should_save and os.path.exists(out_file):
         os.remove(out_file)
 
-    if saved:
-        print("Saved recording")
+    if should_save:
         return out_file
     else:
-        print("Cancelled recording")
         return None
 
 

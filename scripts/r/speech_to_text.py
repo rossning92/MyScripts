@@ -16,10 +16,10 @@ def speech_to_text_termux() -> Optional[str]:
 
 
 def speech_to_text() -> Optional[str]:
-    if is_termux():
-        return speech_to_text_termux()
-    else:
-        return speech_to_text_openai()
+    # if is_termux():
+    #     return speech_to_text_termux()
+    # else:
+    return speech_to_text_openai()
 
 
 if __name__ == "__main__":

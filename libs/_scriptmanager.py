@@ -81,8 +81,12 @@ def register_global_hotkeys_linux(scripts: List[Script]):
 
     with open(os.path.expanduser("~/.sxhkdrc"), "w") as f:
         f.write(s)
-    subprocess.call(["pkill", "-USR1", "sxhkd"])
-    start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
+    if subprocess.call(["pgrep", "sxhkd"], stdout=subprocess.DEVNULL) == 0:
+        logging.debug("Reload sxhkd config")
+        subprocess.call(["pkill", "-USR1", "sxhkd"])  # reload config
+    else:
+        logging.debug("Start sxhkd daemon")
+        start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
 
 
 def _to_ahk_hotkey(hotkey: str):

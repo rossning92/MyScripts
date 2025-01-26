@@ -347,14 +347,17 @@ class Menu(Generic[T]):
         self.__is_stdscr_owner = False
 
     def __voice_input(self):
-        try:
-            from r.speech_to_text import speech_to_text
+        from r.speech_to_text import speech_to_text
 
-            text = speech_to_text()
-            if text:
-                self.set_input(text)
+        try:
+            text = self.call_func_without_curses(lambda: speech_to_text())
         except Exception as e:
             self.set_message(f"ERROR: {e}")
+            return
+
+        if text:
+            self.set_input(text)
+            self.on_enter_pressed()
 
     def select_all(self):
         self.update_matched_items()
@@ -697,7 +700,7 @@ class Menu(Generic[T]):
 
             elif ch == " " and self.get_input() == " ":
                 self.set_input("")
-                self.call_func_without_curses(lambda: self.__voice_input())
+                self.__voice_input()
 
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()
