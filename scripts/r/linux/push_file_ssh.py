@@ -24,4 +24,5 @@ if __name__ == "__main__":
         host=os.environ.get("SSH_HOST"),
         user=os.environ.get("SSH_USER"),
         pwd=os.environ.get("SSH_PWD"),
+        port=os.environ.get("SSH_PORT"),
     )

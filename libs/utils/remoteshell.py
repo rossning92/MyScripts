@@ -148,7 +148,7 @@ def _putty_wrapper(command, extra_args=[], pwd=None, port=None):
         raise Exception("Non-zero return code.")
 
 
-def push_file_ssh(src, dest, user=None, host=None, pwd=None):
+def push_file_ssh(src, dest, user=None, host=None, pwd=None, port=None):
     args = []
 
     if sys.platform != "win32":
@@ -157,7 +157,9 @@ def push_file_ssh(src, dest, user=None, host=None, pwd=None):
             require_package("sshpass")
             args += ["sshpass", "-p", pwd]
 
-    args += ["scp", src, "{}:{}".format(_get_user_host(user=user, host=host), dest)]
+    args += ["scp"]
+    args += ["-P", _get_port(port)]
+    args += [src, "{}:{}".format(_get_user_host(user=user, host=host), dest)]
 
     call_echo(args)
 
