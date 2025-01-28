@@ -796,7 +796,9 @@ class Script:
 
     def activate_window(self) -> bool:
         title = self.get_window_title()
-        if (
+        if is_in_tmux() and subprocess.call(["tmux", "select-window", "-t", slugify(title)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0:
+            return True
+        elif (
             SUPPORT_GNU_SCREEN
             and shutil.which("screen")
             and subprocess.call(["screen", "-r", slugify(title)]) == 0

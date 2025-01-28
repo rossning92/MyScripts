@@ -25,6 +25,7 @@ from _term import clear_terminal
 from scripting.path import get_data_dir, get_my_script_root, get_script_history_file
 from utils.jsonutil import load_json, save_json
 from utils.template import render_template_file
+from utils.tmux import is_in_tmux
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 
@@ -193,7 +194,7 @@ def execute_script(
         cd=cd,
         close_on_exit=close_on_exit,
         new_window=False if no_daemon else None,
-        restart_instance=True,
+        restart_instance=False if is_in_tmux() else True,
         out_to_file=out_to_file,
     )
     if not success:
