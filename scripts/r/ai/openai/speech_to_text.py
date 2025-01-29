@@ -21,8 +21,10 @@ def convert_audio_to_text(file: str) -> str:
         )
     }
     response = requests.post(url, headers=headers, data=payload, files=files)
-    text = response.json()["text"]
-    return text
+    json = response.json()
+    if "text" not in json:
+        raise Exception(f"Invalid result: {json}")
+    return json["text"]
 
 
 def speech_to_text() -> Optional[str]:

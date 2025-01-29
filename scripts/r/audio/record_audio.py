@@ -66,7 +66,7 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
         _run_without_output(["termux-microphone-record", "-q"])
 
         # Must wait for a tiny bit of time to make sure that the file is saved correctly.
-        time.sleep(0.1)
+        time.sleep(0.25)
 
     elif sys.platform == "linux":
         subprocess.run(["run_script", "r/install_package.py", "sox"], check=True)

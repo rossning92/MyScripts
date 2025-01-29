@@ -349,12 +349,7 @@ class Menu(Generic[T]):
     def __voice_input(self):
         from r.speech_to_text import speech_to_text
 
-        try:
-            text = self.call_func_without_curses(lambda: speech_to_text())
-        except Exception as e:
-            self.set_message(f"ERROR: {e}")
-            return
-
+        text = self.call_func_without_curses(lambda: speech_to_text())
         if text:
             self.set_input(text)
             self.on_enter_pressed()
