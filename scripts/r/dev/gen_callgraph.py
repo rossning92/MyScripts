@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import subprocess
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -69,20 +70,6 @@ def _find_first_identifier(node: Node) -> Optional[str]:
             return id
 
     return None
-
-
-def _find_function_calls(node: Node) -> List[str]:
-    if node.type == "call_expression":
-        function_node = node.child_by_field_name("function_body")
-        assert function_node is not None
-        id = _find_first_identifier(function_node)
-        assert id is not None
-        return [id]
-
-    out: List[str] = []
-    for n in node.children:
-        out += _find_function_calls(n)
-    return out
 
 
 def _find_all_identifiers(node: Node) -> List[str]:
@@ -178,6 +165,10 @@ def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
         caller_text += get_node_text(name)
 
         function_body_node = match["function_body"][0]
+
+        logging.info(
+            f"Parse function: {caller_text} ({function_body_node.start_point.row}-{function_body_node.end_point.row})"
+        )
 
         # Add edge to call graph
         for identifier in _find_all_identifiers(function_body_node):
@@ -313,7 +304,7 @@ def add_callers_or_callees_to_graph(
     max_depth: int,
     graph: CallGraph,
     new_graph: CallGraph,
-    is_caller: bool,
+    should_find_callers: bool,
 ):
     q: Queue[Tuple[str, int]] = Queue()
     q.put((node, 0))
@@ -321,9 +312,9 @@ def add_callers_or_callees_to_graph(
         n, d = q.get()
         if d < max_depth:
             for connected_node in (
-                graph.reverse_edges[n] if is_caller else graph.edges[n]
+                graph.reverse_edges[n] if should_find_callers else graph.edges[n]
             ):
-                if is_caller:
+                if should_find_callers:
                     new_graph.add_edge(connected_node, n)
                 else:
                     new_graph.add_edge(n, connected_node)
@@ -399,7 +390,7 @@ def generate_call_graph(
                         max_depth=match_callers,
                         graph=graph,
                         new_graph=filtered_graph,
-                        is_caller=True,
+                        should_find_callers=True,
                     )
 
                 if match_callees is not None:
@@ -408,7 +399,7 @@ def generate_call_graph(
                         max_depth=match_callees,
                         graph=graph,
                         new_graph=filtered_graph,
-                        is_caller=False,
+                        should_find_callers=False,
                     )
 
         for caller, callees in graph.edges.items():
@@ -541,6 +532,7 @@ def _main():
                     "-",
                 ],
                 stdin=subprocess.PIPE,
+                shell=sys.platform == "win32",
             )
             process.communicate(input=s.encode())
             process.wait()
