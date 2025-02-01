@@ -1,3 +1,4 @@
+import argparse
 import json
 import subprocess
 from typing import Optional
@@ -23,9 +24,16 @@ def speech_to_text() -> Optional[str]:
 
 
 if __name__ == "__main__":
-    try:
-        text = speech_to_text()
-        if text is not None:
-            print(text)
-    except Exception as ex:
-        print(str(ex))
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-o", "--output", type=str, help="Path to the output text file", default=None
+    )
+    args = parser.parse_args()
+
+    text = speech_to_text()
+    if text is not None:
+        print(text)
+
+        if args.output:
+            with open(args.output, "w") as f:
+                f.write(text)

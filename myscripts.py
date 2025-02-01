@@ -296,12 +296,12 @@ class _MyScriptMenu(Menu[Script]):
             except Exception as ex:
                 logging.error(f"Error on running scheduled script: {ex}")
 
-    def match_item(self, keyword: str, script: Script, index: int) -> bool:
-        if keyword[0:1] == LEADER_KEY:
-            return script.alias == keyword[1:]
+    def match_item(self, keyword: str, script: Script, index: int) -> int:
+        if len(keyword) > 0 and script.alias == keyword:
+            return 2
         else:
             if script.match_pattern(keyword):
-                return True
+                return 1
             else:
                 return super().match_item(patt=keyword, item=script, index=index)
 

@@ -1,19 +1,16 @@
 import argparse
 import glob
 import inspect
-import io
 import logging
 import os
 import re
-import traceback
-from contextlib import redirect_stderr, redirect_stdout
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 from ai.toolutil import get_all_tool_names, load_tool
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
-from utils.exec_then_eval import exec_then_eval
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
@@ -28,78 +25,71 @@ AGENT_DIR = os.path.join(SETTING_DIR, MODULE_NAME + "_agents")
 UNSAVED_AGENT_FILE = "unsaved.json"
 
 
+def _find_xml_strings(tags: List[str], s: str) -> List[str]:
+    tag_patt = "(?:" + "|".join([re.escape(tag) for tag in tags]) + ")"
+    return re.findall(
+        rf"<{tag_patt}>\s*(?:[\S\s]*?)\s*</{tag_patt}>", s, flags=re.MULTILINE
+    )
+
+
 def _get_agent_name(agent_file: str) -> str:
     agent_name, _ = os.path.splitext(os.path.basename(agent_file))
     return agent_name
 
 
-def _get_prompt(
-    task: str,
-    tools: Optional[List[Callable]] = None,
-    code_execution=True,
-):
-
-    code_execution_prompt = (
-        '''## Python Code Execution
-
-You can execute Python code anytime to complete the task.
-To do so, provide valid Python code block using the following format:
-```python
-... python code ...
-```
-
-If a task can be done without Python code, simply give the result instead of the code.
-
-For the python code:
-- To pass a multiline string parameter, enclose it with `r"""`, start the content without a new line, and end with `"""`.
-- Avoid using third-party libraries.
-- Don't add any comments into the code.
-- Return Python code block only, nothing else.
-- I'll run the code and reply to you with the output.
-'''
-        if code_execution
-        else ""
-    )
+def _get_prompt(task: str, tools: Optional[List[Callable]] = None):
 
     if tools:
-        tools_prompt = """## Tools Usage
+        tools_prompt = """# Tool Use
 
-You can call the following Python functions anytime to complete the task:
+You have access to a set of tools.
+You can use one tool per message, and will receive the result of that tool use in the user's response.
+You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
+
+## Formatting
+
+Tool use is formatted using XML-style tags.
+The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags.
+Always adhere to this format for the tool use to ensure proper parsing and execution. Here's the structure:
+
+<tool_name>
+<parameter1_name>some value1</parameter1_name>
+<parameter2_name>some value2</parameter2_name>
+...
+</tool_name>
+
+For example:
+
+<read_file>
+<path>src/main.js</path>
+</read_file>
+
+## Tools
+
 """
 
         for tool in tools:
-            tools_prompt += f"* {tool.__name__}{inspect.signature(tool)}"
+            tools_prompt += f"### {tool.__name__}\n\n"
             if tool.__doc__:
-                tools_prompt += f"  # {tool.__doc__}"
-            tools_prompt += "\n"
+                tools_prompt += f"Description: {tool.__doc__}"
+            tools_prompt += "Usage:\n"
+            tools_prompt += f"<{tool.__name__}>\n"
+            for param in inspect.signature(tool).parameters.values():
+                tools_prompt += f"<{param.name}>...</{param.name}>\n"
+            tools_prompt += f"</{tool.__name__}>\n\n"
 
-        tools_prompt += """
-To do this, you must provide a valid Python function call in this format:
-```python
-... function call ...
-```
-I'll execute the code and reply to you with the result.
-Don't explain, don't add any comments.
-Only one Python function call is allowed per message.
-"""
         logging.debug(tools_prompt)
     else:
         tools_prompt = ""
 
     return f"""You are my assistant to help me complete a task.
-
-{code_execution_prompt}
-
-{tools_prompt}
-
 Once the task is complete, you must reply with the result enclosed in <result> and </result>.
-
-## Task
-
 Here's my task:
 -------
 {task}
 -------
+
+{tools_prompt}
 """
 
 
@@ -115,7 +105,6 @@ class AgentMenu(ChatMenu):
     ):
         self.__run = run
         self.__yes_always = yes_always
-        self.__globals: Dict = {}
 
         super().__init__(**kwargs)
 
@@ -137,6 +126,7 @@ class AgentMenu(ChatMenu):
         self.add_command(self.__list_agent, hotkey="ctrl+l")
         self.add_command(self.__load_last_agent, hotkey="alt+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
+        self.add_command(self.__check_code_blocks, hotkey="alt+enter")
 
     def __load_last_agent(self) -> bool:
         files = self.__get_agent_files()
@@ -173,6 +163,8 @@ class AgentMenu(ChatMenu):
         self.load_conversation(conv_file)
         if clear_messages:
             self.clear_messages()
+
+        self.__tools = self.get_tools()
 
     def __update_prompt(self):
         task = self.__agent["task"].strip()
@@ -245,9 +237,6 @@ class AgentMenu(ChatMenu):
     def __complete_task(self):
         self.clear_messages()
 
-        self.__tools = self.get_tools()
-        self.__globals.update({t.__name__: t for t in self.__tools})
-
         task = self.__get_task_with_context()
 
         super().send_message(
@@ -310,54 +299,33 @@ class AgentMenu(ChatMenu):
         selected_message = self.get_messages()[selected_line.message_index]
         content = selected_message["content"]
 
-        # Check if any Python code blocks are returned.
         response_message = ""
-        blocks = re.findall(
-            r"```python\n([\S\s]+?)\n\s*```", content, flags=re.MULTILINE
-        )
-        if len(blocks) > 0:
-            should_run = True
+
+        xml_strings = _find_xml_strings([t.__name__ for t in self.__tools], content)
+        for xml_string in xml_strings:
+            # Parse the XML string for the tool usage into valid Python code to be executed.
+            args: Dict[str, str] = {}
+            tree = ET.ElementTree(ET.fromstring(xml_string))
+            root = tree.getroot()
+            tool_name = root.tag
+            assert tool_name
+            for i, child in enumerate(root):
+                if child.text:
+                    args[child.tag] = child.text
+                else:
+                    raise ValueError(f"Tag {child.tag} does not contain text")
+
+            # Run tool
             if not self.__yes_always:
-                menu = ConfirmMenu("run command?", items=blocks)
+                menu = ConfirmMenu("run tool?", items=[xml_string])
                 menu.exec()
                 should_run = menu.is_confirmed()
+            else:
+                should_run = True
 
             if should_run:
-                for block in blocks:
-                    with io.StringIO() as buf, redirect_stdout(buf), redirect_stderr(
-                        buf
-                    ):
-                        success = False
-                        try:
-                            return_val = exec_then_eval(
-                                block,
-                                globals=self.__globals,
-                            )
-                            success = True
-                        except Exception:
-                            tb = traceback.format_exc()
-                            Menu(items=tb.splitlines()).exec()
-
-                        if success:
-                            stdout = buf.getvalue()
-                            if return_val is not None or stdout:
-                                output = ""
-                                if stdout:
-                                    output += stdout
-                                if return_val is not None:
-                                    if output:
-                                        output += "\n"
-                                    output += str(return_val)
-                                response_message = (
-                                    "The result from the Python code above:\n"
-                                    "```plaintext\n"
-                                    f"{output}\n"
-                                    "```\n"
-                                )
-                            else:
-                                response_message = (
-                                    "The Python code finishes successfully."
-                                )
+                tool = next(tool for tool in self.__tools if tool.__name__ == tool_name)
+                response_message = tool(**args)
 
         # Check if the task is completed
         match = re.findall(

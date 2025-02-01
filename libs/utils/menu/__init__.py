@@ -16,6 +16,7 @@ from typing import (
     Optional,
     OrderedDict,
     TextIO,
+    Tuple,
     TypeVar,
     Union,
 )
@@ -406,9 +407,21 @@ class Menu(Generic[T]):
 
         return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
 
-    def match_item(self, patt: str, item: T, index: int) -> bool:
+    def match_item(self, patt: str, item: T, index: int) -> int:
+        """
+        Checks if an item matches a pattern.
+
+        Args:
+            patt (str): Pattern to match.
+            item (T): Item to be checked.
+            index (int): Item index.
+
+        Returns:
+            int: rank: greater than 0 if the item matches the pattern, 0 otherwise. Results will be ordered by rank from high to low.
+        """
+
         s = str(item)
-        return _match(s, patt, fuzzy_match=self.__fuzzy_search, index=index)
+        return 1 if _match(s, patt, fuzzy_match=self.__fuzzy_search, index=index) else 0
 
     def get_item_indices(self):
         if self.__search_mode:
@@ -577,10 +590,14 @@ class Menu(Generic[T]):
     def update_matched_items(self, save_search_history=True):
         assert self.__search_mode
 
-        self.__matched_item_indices.clear()
+        matches: List[Tuple[int, int]] = []  # list of tuple of index and rank
         for i, item in enumerate(self.items):
-            if self.match_item(self.get_input(), item, i):
-                self.__matched_item_indices.append(i)
+            rank = self.match_item(self.get_input(), item, i)
+            if rank > 0:  # match
+                matches.append((i, rank))
+        # Sort matches by rank in descending order, preserving order for equal ranks
+        matches = sorted(matches, key=lambda x: x[1], reverse=True)
+        self.__matched_item_indices[:] = [index for index, _ in matches]
 
         # Update selected rows
         num_matched_items = len(self.__matched_item_indices)

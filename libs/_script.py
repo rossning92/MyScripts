@@ -533,7 +533,7 @@ def get_script_alias(name_without_ext: str) -> str:
     basename = os.path.basename(name_without_ext)
     if basename:
         words = re.split("[^a-zA-Z0-9]+", basename)
-        if 2 <= len(words) <= 4:
+        if 1 <= len(words) <= 4:
             return "".join((w[0].lower() if w else "" for w in words))
         else:
             return ""

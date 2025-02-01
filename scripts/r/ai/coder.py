@@ -103,8 +103,7 @@ class FileListMenu(ListEditMenu):
 
     def get_item_text(self, item: Any) -> str:
         file = item["file"]
-        content = item["content"]
-        if content:
+        if "content" in item and item["content"]:
             return f'{file}:\n{item["content"]}'
         else:
             return file

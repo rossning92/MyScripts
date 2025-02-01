@@ -165,15 +165,60 @@ local function fix()
 end
 vim.keymap.set({ "n", "i", "v" }, "<C-k>f", fix)
 
-local function speech_to_text()
-  local output = execute_command("run_script r/speech_to_text.py")
-  if output then
-    output = string.gsub(output, '^%s*(.-)%s*$', '%1') -- trim trailing spaces
+local function run_in_terminal(cmd, on_exit)
+  -- Create a new buffer (unlisted and scratch)
+  local bufnr = vim.api.nvim_create_buf(false, true)
 
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    vim.api.nvim_buf_set_lines(0, row, row, false, { output })
-    -- Move cursor to the end of the newly inserted line
-    vim.api.nvim_win_set_cursor(0, { row + 1, #output })
-  end
+  -- Calculate dimensions and position for the window
+  local win_width = math.floor(vim.o.columns * 0.8)
+  local win_height = math.floor(vim.o.lines * 0.8)
+  local col_position = math.floor(vim.o.columns * 0.1)
+  local row_position = math.floor(vim.o.lines * 0.1)
+
+  -- Open a new floating window that uses the new buffer
+  local win_id = vim.api.nvim_open_win(bufnr, true, {
+    relative = 'editor',
+    width = win_width,
+    height = win_height,
+    col = col_position,
+    row = row_position,
+    border = 'single'
+  })
+
+  -- Start a terminal and run command
+  vim.fn.termopen(cmd, {
+    on_exit = function(_, exit_code, _)
+      if exit_code == 0 then
+        -- Close the floating window if exit code is 0
+        vim.api.nvim_win_close(win_id, true)
+        on_exit()
+      end
+    end,
+  })
+
+  -- Start insert mode
+  vim.cmd("startinsert")
+end
+
+local function insert_line(line)
+  line = string.gsub(line, '^%s*(.-)%s*$', '%1') -- trim trailing spaces
+
+  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+  vim.api.nvim_buf_set_lines(0, row, row, false, { line })
+  -- Move cursor to the end of the newly inserted line
+  vim.api.nvim_win_set_cursor(0, { row + 1, #line })
+end
+
+local function speech_to_text()
+  run_in_terminal("run_script r/speech_to_text.py -o /tmp/out.txt", function()
+    local file = io.open("/tmp/out.txt", "r")
+    if file then
+      local text = file:read("*a")
+      file:close()
+      insert_line(text)
+    else
+      print("Error: Could not open file '/tmp/out.txt'.")
+    end
+  end)
 end
 vim.keymap.set({ "n", "i" }, "<C-i>", speech_to_text)

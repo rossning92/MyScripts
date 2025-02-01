@@ -344,7 +344,7 @@ def _main():
     else:
         s = args.input
 
-    chat = ChatMenu(message=s, new_conversation=False)
+    chat = ChatMenu(message=s)
     chat.exec()
 
 
