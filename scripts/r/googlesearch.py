@@ -1,5 +1,6 @@
 import argparse
 import os
+from io import StringIO
 
 import requests
 
@@ -17,18 +18,20 @@ def google_search(
         raise Exception(f"Error occurred: {response.status_code}")
 
 
-def print_google_search(query: str):
+def get_google_search_result(query: str) -> str:
     results = google_search(query)
+    output = StringIO()
     if "items" in results:
         for item in results["items"]:
             title = item["title"]
             link = item["link"]
-            print(f"[{title}]({link})")
+            output.write(f"[{title}]({link})\n")
             if "snippet" in item:
-                print(item["snippet"])
-            print()
+                output.write(item["snippet"] + "\n")
+            output.write("\n")
     else:
-        print("No results found")
+        output.write("No results found")
+    return output.getvalue()
 
 
 def main():
@@ -36,7 +39,7 @@ def main():
     parser.add_argument("query", type=str, help="The search query")
     args = parser.parse_args()
 
-    print_google_search(args.query)
+    get_google_search_result(args.query)
 
 
 if __name__ == "__main__":

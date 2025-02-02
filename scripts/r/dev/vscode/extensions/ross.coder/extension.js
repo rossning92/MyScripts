@@ -20,6 +20,7 @@ async function runCoder({ args }) {
   const terminalName =
     process.platform === "win32" ? "run_script.exe" : "run_script";
   const terminal = vscode.window.createTerminal(name, terminalName, [
+    "@command_wrapper=1",
     "r/ai/coder.py",
     ...args,
   ]);

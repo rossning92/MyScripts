@@ -175,7 +175,11 @@ class CoderMenu(ChatMenu):
 
     def __update_prompt(self):
         files = "|".join(
-            [os.path.basename(file["file"]) for file in self.__file_list_menu.items]
+            [
+                os.path.basename(file["file"])
+                + ("(%d)" % len(file["content"]) if "content" in file else "")
+                for file in self.__file_list_menu.items
+            ]
         )
         self.set_prompt(files)
 

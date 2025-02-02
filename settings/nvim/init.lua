@@ -210,14 +210,19 @@ local function insert_line(line)
 end
 
 local function speech_to_text()
-  run_in_terminal("run_script r/speech_to_text.py -o /tmp/out.txt", function()
-    local file = io.open("/tmp/out.txt", "r")
+  local tmp_file = os.tmpname()
+  run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, function()
+    -- Read text
+    local file = io.open(tmp_file, "r")
     if file then
       local text = file:read("*a")
       file:close()
+      os.remove(tmp_file)
+
+      -- Insert text to current buffer
       insert_line(text)
     else
-      print("Error: Could not open file '/tmp/out.txt'.")
+      print("Error: Could not open file '" .. tmp_file .. "'.")
     end
   end)
 end

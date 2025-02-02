@@ -1865,6 +1865,7 @@ def run_script(
     restart_instance=False,
     single_instance=False,
     cd=True,
+    command_wrapper=False,
     tee=False,
     **kwargs,
 ):
@@ -1872,7 +1873,7 @@ def run_script(
         file,
         args,
         cd=cd,
-        command_wrapper=False,
+        command_wrapper=command_wrapper,
         new_window=new_window,
         restart_instance=restart_instance,
         single_instance=single_instance,
