@@ -600,17 +600,17 @@ class Menu(Generic[T]):
         self.__matched_item_indices[:] = [index for index, _ in matches]
 
         # Update selected rows
-        num_matched_items = len(self.__matched_item_indices)
-        if num_matched_items > 0:
-            self.__selected_row_begin = min(
-                self.__selected_row_begin, num_matched_items - 1
-            )
-            self.__selected_row_end = min(
-                self.__selected_row_end, num_matched_items - 1
-            )
-        else:
-            self.__selected_row_begin = 0
-            self.__selected_row_end = 0
+        # num_matched_items = len(self.__matched_item_indices)
+        # if num_matched_items > 0:
+        #     self.__selected_row_begin = min(
+        #         self.__selected_row_begin, num_matched_items - 1
+        #     )
+        #     self.__selected_row_end = min(
+        #         self.__selected_row_end, num_matched_items - 1
+        #     )
+        # else:
+        self.__selected_row_begin = 0
+        self.__selected_row_end = 0
         self._check_if_item_selection_changed()
 
         if save_search_history and self.__last_input is not None:

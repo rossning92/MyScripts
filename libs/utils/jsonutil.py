@@ -1,7 +1,10 @@
 import json
+from typing import Any, Dict, List, Union
 
 
-def load_json(file: str, default=None):
+def load_json(
+    file: str, default: Union[Dict[str, Any], List[Any], None] = None
+) -> Union[Dict[str, Any], List[Any]]:
     try:
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
