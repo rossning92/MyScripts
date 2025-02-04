@@ -3,31 +3,26 @@
     "choco": {
       "packages": ["7zip"]
     },
-    "executables": ["C:\\Program Files\\7-Zip\\7z.exe"]
+    "executables": ["C:\\Program Files\\7-Zip\\7z.exe"],
+    "winget": { "packages": ["7zip.7zip"] }
   },
   "7zfm": {
     "choco": {
       "packages": ["7zip"]
     },
-    "executables": ["C:\\Program Files\\7-Zip\\7zFM.exe"]
+    "executables": ["C:\\Program Files\\7-Zip\\7zFM.exe"],
+    "winget": { "packages": ["7zip.7zip"] }
   },
   "7zip": {
     "choco": {
       "packages": ["7zip"]
-    }
+    },
+    "winget": { "packages": ["7zip.7zip"] }
   },
   "PyMuPDF": {
     "pip": {
       "packages": ["PyMuPDF"]
     }
-  },
-  "adobereader": {
-    "choco": {
-      "packages": ["adobereader"]
-    },
-    "executables": [
-      "C:\\Program Files (x86)\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe"
-    ]
   },
   "alacritty": {
     "choco": {
@@ -35,13 +30,15 @@
     },
     "pacman": {
       "packages": ["alacritty"]
-    }
+    },
+    "winget": { "packages": ["Alacritty.Alacritty"] }
   },
   "android-sdk": {
     "choco": {
       "packages": ["android-sdk"]
     },
-    "executables": ["C:\\Android\\android-sdk\\tools\\bin\\sdkmanager.bat"]
+    "executables": ["C:\\Android\\android-sdk\\tools\\bin\\sdkmanager.bat"],
+    "winget": { "packages": ["Google.PlatformTools"] }
   },
   "apktool": {
     "choco": {
@@ -75,7 +72,8 @@
     },
     "pacman": {
       "packages": ["cmake"]
-    }
+    },
+    "winget": { "packages": ["Kitware.CMake"] }
   },
   "ctags": {
     "choco": {
@@ -104,7 +102,8 @@
   "dotnet-6.0-sdk": {
     "choco": {
       "packages": ["dotnet-6.0-sdk"]
-    }
+    },
+    "winget": { "packages": ["Microsoft.DotNet.SDK.6"] }
   },
   "dotnetcore-sdk": {
     "choco": {
@@ -126,7 +125,8 @@
   "everything": {
     "choco": {
       "packages": ["everything"]
-    }
+    },
+    "winget": { "packages": ["voidtools.Everything"] }
   },
   "expect": {
     "apt": {
@@ -152,7 +152,8 @@
     },
     "termux": {
       "packages": ["ffmpeg"]
-    }
+    },
+    "winget": { "packages": ["Gyan.FFmpeg"] }
   },
   "flameshot": {
     "apt": {
@@ -163,7 +164,8 @@
     },
     "pacman": {
       "packages": ["flameshot"]
-    }
+    },
+    "winget": { "packages": ["Flameshot.Flameshot"] }
   },
   "fzf": {
     "choco": {
@@ -174,7 +176,8 @@
     },
     "termux": {
       "packages": ["fzf"]
-    }
+    },
+    "winget": { "packages": ["junegunn.fzf"] }
   },
   "gh": {
     "choco": {
@@ -185,12 +188,14 @@
     },
     "termux": {
       "packages": ["gh"]
-    }
+    },
+    "winget": { "packages": ["GitHub.cli"] }
   },
   "ghostscript": {
     "choco": {
       "packages": ["ghostscript"]
-    }
+    },
+    "winget": { "packages": ["ArtifexSoftware.GhostScript"] }
   },
   "git": {
     "choco": {
@@ -204,7 +209,8 @@
     },
     "termux": {
       "packages": ["git"]
-    }
+    },
+    "winget": { "packages": ["Git.Git"] }
   },
   "git-lfs": {
     "choco": {
@@ -212,7 +218,8 @@
     },
     "pacman": {
       "packages": ["git-lfs"]
-    }
+    },
+    "winget": { "packages": ["GitHub.GitLFS"] }
   },
   "golang": {
     "choco": {
@@ -223,12 +230,14 @@
     },
     "termux": {
       "packages": ["golang"]
-    }
+    },
+    "winget": { "packages": ["GoLang.Go"] }
   },
   "google-chrome": {
     "choco": {
       "packages": ["googlechrome"]
-    }
+    },
+    "winget": { "packages": ["Google.Chrome"] }
   },
   "gradle": {
     "choco": {
@@ -244,7 +253,8 @@
     },
     "pacman": {
       "packages": ["graphviz"]
-    }
+    },
+    "winget": { "packages": ["Graphviz.Graphviz"] }
   },
   "grep": {
     "apt": {
@@ -258,7 +268,8 @@
     },
     "termux": {
       "packages": ["grep"]
-    }
+    },
+    "winget": { "packages": ["GnuWin32.Grep"] }
   },
   "imagemagick": {
     "choco": {
@@ -267,24 +278,20 @@
     "executables": ["C:\\Program Files\\ImageMagick-*\\magick.exe"],
     "pacman": {
       "packages": ["imagemagick"]
-    }
+    },
+    "winget": { "packages": ["ImageMagick.ImageMagick"] }
   },
   "irfanview": {
     "choco": {
       "packages": ["irfanview"]
     },
-    "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"]
+    "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"],
+    "winget": { "packages": ["IrfanSkiljan.IrfanView"] }
   },
   "jre": {
     "apt": {
       "packages": ["openjdk-17-jre"]
     }
-  },
-  "klogg": {
-    "choco": {
-      "packages": ["klogg"]
-    },
-    "executables": ["C:\\Program Files\\klogg\\klogg.exe"]
   },
   "less": {
     "apt": {
@@ -324,7 +331,8 @@
     },
     "yay": {
       "packages": ["moonlight-qt", "libva-intel-driver"]
-    }
+    },
+    "winget": { "packages": ["MoonlightGameStreamingProject.Moonlight"] }
   },
   "mpv": {
     "choco": {
@@ -340,7 +348,8 @@
   "msys2": {
     "choco": {
       "packages": ["msys2"]
-    }
+    },
+    "winget": { "packages": ["MSYS2.MSYS2"] }
   },
   "neovim": {
     "choco": {
@@ -351,17 +360,20 @@
     },
     "termux": {
       "packages": ["neovim"]
-    }
+    },
+    "winget": { "packages": ["Neovim.Neovim"] }
   },
   "ninja": {
     "choco": {
       "packages": ["ninja"]
-    }
+    },
+    "winget": { "packages": ["Ninja-build.Ninja"] }
   },
   "nmap": {
     "choco": {
       "packages": ["nmap"]
-    }
+    },
+    "winget": { "packages": ["Insecure.Nmap"] }
   },
   "node": {
     "choco": {
@@ -369,24 +381,20 @@
     },
     "pacman": {
       "packages": ["nodejs"]
-    }
+    },
+    "winget": { "packages": ["OpenJS.NodeJS"] }
   },
   "nomachine": {
     "yay": {
       "packages": ["nomachine"]
     }
   },
-  "notepad++": {
-    "choco": {
-      "packages": ["notepadplusplus"]
-    },
-    "executables": ["notepad++.exe"]
-  },
   "ocenaudio": {
     "choco": {
       "packages": ["ocenaudio"]
     },
-    "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"]
+    "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"],
+    "winget": { "packages": ["Ocenaudio.Ocenaudio"] }
   },
   "openssh": {
     "apt": {
@@ -400,7 +408,8 @@
     },
     "termux": {
       "packages": ["openssh"]
-    }
+    },
+    "winget": { "packages": ["Microsoft.OpenSSH.Beta"] }
   },
   "pandoc": {
     "choco": {
@@ -408,7 +417,8 @@
     },
     "pacman": {
       "packages": ["pandoc-cli"]
-    }
+    },
+    "winget": { "packages": ["JohnMacFarlane.Pandoc"] }
   },
   "pdftk": {
     "choco": {
@@ -416,7 +426,8 @@
     },
     "pacman": {
       "packages": ["pdftk"]
-    }
+    },
+    "winget": { "packages": ["PDFLabs.PDFtk.Server"] }
   },
   "protoc": {
     "choco": {
@@ -440,17 +451,20 @@
     },
     "termux": {
       "packages": ["putty-tools"]
-    }
+    },
+    "winget": { "packages": ["PuTTY.PuTTY"] }
   },
   "python312": {
     "choco": {
       "packages": ["python312"]
-    }
+    },
+    "winget": { "packages": ["Python.Python.3.12"] }
   },
   "python36": {
     "choco": {
       "packages": ["python36"]
-    }
+    },
+    "winget": { "packages": ["Python.Python.3.6"] }
   },
   "rclone": {
     "choco": {
@@ -461,7 +475,8 @@
     },
     "termux": {
       "packages": ["rclone"]
-    }
+    },
+    "winget": { "packages": ["Rclone.Rclone"] }
   },
   "remmina": {
     "pacman": {
@@ -471,7 +486,8 @@
   "renderdoc": {
     "choco": {
       "packages": ["renderdoc"]
-    }
+    },
+    "winget": { "packages": ["BaldurKarlsson.RenderDoc"] }
   },
   "ripgrep": {
     "choco": {
@@ -480,7 +496,8 @@
     "executables": ["C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"],
     "pacman": {
       "packages": ["ripgrep"]
-    }
+    },
+    "winget": { "packages": ["BurntSushi.ripgrep.MSVC"] }
   },
   "rpi-imager": {
     "choco": {
@@ -498,7 +515,8 @@
     },
     "pacman": {
       "packages": ["scrcpy"]
-    }
+    },
+    "winget": { "packages": ["Genymobile.scrcpy"] }
   },
   "screen": {
     "apt": {
@@ -517,7 +535,8 @@
   "sharex": {
     "choco": {
       "packages": ["sharex"]
-    }
+    },
+    "winget": { "packages": ["ShareX.ShareX"] }
   },
   "socat": {
     "pacman": {
@@ -533,7 +552,8 @@
     },
     "termux": {
       "packages": ["sox"]
-    }
+    },
+    "winget": { "packages": ["ChrisBagwell.SoX"] }
   },
   "sshpass": {
     "apt": {
@@ -558,7 +578,8 @@
     "executables": [
       "SumatraPDF.exe",
       "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
-    ]
+    ],
+    "winget": { "packages": ["SumatraPDF.SumatraPDF"] }
   },
   "sunshine": {
     "choco": {
@@ -566,21 +587,14 @@
     },
     "yay": {
       "packages": ["sunshine-bin"]
-    }
-  },
-  "tad": {
-    "choco": {
-      "packages": ["tad"]
     },
-    "executables": [
-      "%LOCALAPPDATA%\\Programs\\Tad\\Tad.exe",
-      "C:\\Program Files\\Tad\\Tad.exe"
-    ]
+    "winget": { "packages": ["LizardByte.Sunshine"] }
   },
   "tightvnc": {
     "choco": {
       "packages": ["tightvnc"]
-    }
+    },
+    "winget": { "packages": ["GlavSoft.TightVNC"] }
   },
   "unzip": {
     "apt": {
@@ -594,7 +608,8 @@
     },
     "termux": {
       "packages": ["unzip"]
-    }
+    },
+    "winget": { "packages": ["GnuWin32.UnZip"] }
   },
   "veracrypt": {
     "choco": {
@@ -603,31 +618,20 @@
     "executables": ["C:\\Program Files\\VeraCrypt\\VeraCrypt.exe"],
     "pacman": {
       "packages": ["veracrypt"]
-    }
+    },
+    "winget": { "packages": ["IDRIX.VeraCrypt"] }
   },
   "visualcpp-build-tools": {
     "choco": {
       "packages": ["visualcpp-build-tools"]
-    }
-  },
-  "visualstudio2019community": {
-    "choco": {
-      "packages": ["visualstudio2019community"]
-    }
-  },
-  "vlc": {
-    "choco": {
-      "packages": ["vlc"]
     },
-    "executables": [
-      "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
-      "C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
-    ]
+    "winget": { "packages": ["Microsoft.VisualStudio.2022.BuildTools"] }
   },
   "vnc-viewer": {
     "choco": {
       "packages": ["vnc-viewer"]
-    }
+    },
+    "winget": { "packages": ["RealVNC.VNCViewer"] }
   },
   "vscode": {
     "choco": {
@@ -638,7 +642,8 @@
       "C:\\Program Files\\Microsoft VS Code\\Code.exe",
       "code"
     ],
-    "linux_install": "/r/install_vscode_linux"
+    "linux_install": "/r/install_vscode_linux",
+    "winget": { "packages": ["Microsoft.VisualStudioCode"] }
   },
   "xxd": {
     "pacman": {
@@ -651,7 +656,8 @@
     },
     "pacman": {
       "packages": ["yarn"]
-    }
+    },
+    "winget": { "packages": ["Yarn.Yarn"] }
   },
   "yt-dlp": {
     "pip": {

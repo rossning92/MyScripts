@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 from functools import lru_cache
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 from _shutil import (
     check_output,
@@ -14,7 +14,6 @@ from _shutil import (
     prepend_to_path,
     refresh_env_vars,
     run_elevated,
-    start_process,
 )
 from utils.jsonutil import load_json
 
@@ -63,6 +62,7 @@ def require_package(
     env: Optional[Dict[str, str]] = None,
     force_install=False,
     upgrade=False,
+    win_package_manager: Literal["choco", "winget"] = "choco",
 ):
     if "dependantPackages" in packages:
         for pkg in packages["dependantPackages"]:
@@ -203,9 +203,13 @@ def require_package(
 
             return
 
-        elif sys.platform == "win32" and "choco" in packages[pkg]:
-            _choco_install(pkg, force_install=force_install, upgrade=upgrade)
-            return
+        elif sys.platform == "win32":
+            if win_package_manager == "choco" and "choco" in packages[pkg]:
+                _choco_install(pkg, force_install=force_install, upgrade=upgrade)
+                return
+            elif win_package_manager == "winget" and "winget" in packages[pkg]:
+                _winget_install(pkg, force_install=force_install, upgrade=upgrade)
+                return
 
         elif "pip" in packages[pkg]:
             for p in packages[pkg]["pip"]["packages"]:
@@ -301,7 +305,35 @@ def _choco_install(pkg, upgrade=False, force_install=True):
     refresh_env_vars()
 
 
-def open_log_file(file):
-    klogg = find_executable("klogg")
-    if klogg:
-        start_process([klogg, "--follow", file])
+WINGET_EXEC = r"C:\Users\rossning92\AppData\Local\Microsoft\WindowsApps\winget.exe"
+
+
+def _winget_is_package_installed(pkg: str):
+    return (
+        subprocess.call(
+            [
+                WINGET_EXEC,
+                "list",
+                "-e",
+                pkg,
+            ],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        == 0
+    )
+
+
+def _winget_install(pkg: str, upgrade=False, force_install=True):
+    for p in packages[pkg]["winget"]["packages"]:
+        args = [
+            WINGET_EXEC,
+            "install",
+            "-e",
+            "--id",
+            p,
+            "--accept-source-agreements",
+            "--accept-package-agreements",
+        ]
+        subprocess.check_call(args)
