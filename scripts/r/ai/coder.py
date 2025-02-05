@@ -124,7 +124,9 @@ class FileListMenu(ListEditMenu):
         if len(file_and_lines) == 2:
             start, end = map(int, file_and_lines[1].split("-"))
             with open(file, "r", encoding="utf-8") as f:
-                content = "\n".join(f.read().splitlines()[start + 1 : end + 2])
+                lines = f.read().splitlines()
+            assert start >= 1 and start <= end and end <= len(lines)
+            content = "\n".join(lines[start - 1 : end])
             self.append_item({"file": file, "content": content})
         else:
             self.append_item({"file": file})

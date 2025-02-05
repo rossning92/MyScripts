@@ -4,7 +4,6 @@ import subprocess
 from typing import Optional
 
 from ai.openai.speech_to_text import speech_to_text as speech_to_text_openai
-from utils.platform import is_termux
 
 
 def speech_to_text_termux() -> Optional[str]:

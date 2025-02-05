@@ -1,12 +1,16 @@
 import os
-from typing import Any, Optional
+from typing import Generic, List, Optional, TypeVar
 
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 
+T = TypeVar("T")
 
-class ListEditMenu(Menu):
-    def __init__(self, items=[], json_file: Optional[str] = None, **kwargs):
+
+class ListEditMenu(Menu, Generic[T]):
+    def __init__(
+        self, items: Optional[List[T]] = None, json_file: Optional[str] = None, **kwargs
+    ):
         self.__json_file = json_file
 
         if json_file is not None:
@@ -14,7 +18,7 @@ class ListEditMenu(Menu):
         if not isinstance(items, list):
             raise TypeError("JSON data must be a list")
 
-        super().__init__(items=items, **kwargs)
+        super().__init__(items=items or [], **kwargs)
 
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
 
@@ -23,19 +27,19 @@ class ListEditMenu(Menu):
         if 0 <= index < len(self.items):
             del self.items[index]
             self.update_screen()
-            self.__save_json()
+            self.save_json()
 
-    def append_item(self, item: Any):
+    def append_item(self, item: T):
         self.items.append(item)
         self.update_screen()
-        self.__save_json()
+        self.save_json()
 
     def clear(self):
         self.items.clear()
         self.update_screen()
-        self.__save_json()
+        self.save_json()
 
-    def __save_json(self):
+    def save_json(self):
         if self.__json_file is not None:
             os.makedirs(os.path.dirname(self.__json_file), exist_ok=True)
             save_json(self.__json_file, self.items)

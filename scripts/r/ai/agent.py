@@ -144,15 +144,20 @@ class AgentMenu(ChatMenu):
         self, agent_file: str, clear_messages=False, context: Optional[Dict] = None
     ):
         self.__agent_file = agent_file
-        self.__agent = load_json(
-            self.__agent_file,
-            default={
-                "task": "",
-                "tools": get_all_tool_names(),
-                "agents": [],
-                "context": {},
-            },
-        )
+
+        agent_default = {
+            "task": "",
+            "tools": get_all_tool_names(),
+            "agents": [],
+            "context": {},
+        }
+        if clear_messages:
+            self.__agent = agent_default
+        else:
+            self.__agent = load_json(
+                self.__agent_file,
+                default=agent_default,
+            )
 
         if context:
             self.__agent["context"].update(context)
@@ -170,11 +175,10 @@ class AgentMenu(ChatMenu):
         task = self.__agent["task"].strip()
 
         prompt = f"""\
-  agent : {_get_agent_name(self.__agent_file)}
+agent   : {_get_agent_name(self.__agent_file)}
 &prompt : {task.splitlines()[0] if task else ''}
- &tools : {self.__agent['tools']}
-   &ctx : {self.__agent['context']}
--------
+&tools  : {self.__agent['tools']}
+&ctxt   : {self.__agent['context']}
 """
         self.set_prompt(prompt)
 

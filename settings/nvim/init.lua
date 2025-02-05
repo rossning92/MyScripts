@@ -165,24 +165,20 @@ local function fix()
 end
 vim.keymap.set({ "n", "i", "v" }, "<C-k>f", fix)
 
-local function run_in_terminal(cmd, on_exit)
+local function run_in_terminal(cmd, opts)
+  opts = opts or {}
+
   -- Create a new buffer (unlisted and scratch)
   local bufnr = vim.api.nvim_create_buf(false, true)
-
-  -- Calculate dimensions and position for the window
-  local win_width = math.floor(vim.o.columns * 0.8)
-  local win_height = math.floor(vim.o.lines * 0.8)
-  local col_position = math.floor(vim.o.columns * 0.1)
-  local row_position = math.floor(vim.o.lines * 0.1)
 
   -- Open a new floating window that uses the new buffer
   local win_id = vim.api.nvim_open_win(bufnr, true, {
     relative = 'editor',
-    width = win_width,
-    height = win_height,
-    col = col_position,
-    row = row_position,
-    border = 'single'
+    width = vim.o.columns,
+    height = vim.o.lines,
+    col = 0,
+    row = 0,
+    style = 'minimal'
   })
 
   -- Start a terminal and run command
@@ -191,39 +187,89 @@ local function run_in_terminal(cmd, on_exit)
       if exit_code == 0 then
         -- Close the floating window if exit code is 0
         vim.api.nvim_win_close(win_id, true)
-        on_exit()
+        if opts.on_exit then
+          opts.on_exit()
+        end
       end
-    end,
+    end
   })
 
   -- Start insert mode
   vim.cmd("startinsert")
 end
 
-local function insert_line(line)
+local function append_line(line)
   line = string.gsub(line, '^%s*(.-)%s*$', '%1') -- trim trailing spaces
 
-  local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-  vim.api.nvim_buf_set_lines(0, row, row, false, { line })
+  local current_line = vim.api.nvim_get_current_line()
+  local cur_row_number = vim.api.nvim_win_get_cursor(0)[1] -- 1-based
+
+  -- Determine where to insert this new line
+  local insert_index -- zero-based
+  if current_line == "" then
+    insert_index = cur_row_number - 1
+  else
+    insert_index = cur_row_number
+  end
+
+  -- Insert line
+  vim.api.nvim_buf_set_lines(0, insert_index, insert_index, false, { line })
+
   -- Move cursor to the end of the newly inserted line
-  vim.api.nvim_win_set_cursor(0, { row + 1, #line })
+  vim.api.nvim_win_set_cursor(0, {
+    insert_index + 1, -- row number: 1-based
+    #line             -- column index: 0-based
+  })
 end
 
 local function speech_to_text()
   local tmp_file = os.tmpname()
-  run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, function()
-    -- Read text
-    local file = io.open(tmp_file, "r")
-    if file then
-      local text = file:read("*a")
-      file:close()
-      os.remove(tmp_file)
+  run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, {
+    on_exit = function()
+      -- Read text
+      local file = io.open(tmp_file, "r")
+      if file then
+        local text = file:read("*a")
+        file:close()
+        os.remove(tmp_file)
 
-      -- Insert text to current buffer
-      insert_line(text)
-    else
-      print("Error: Could not open file '" .. tmp_file .. "'.")
+        -- Insert text to current buffer
+        if text ~= "" then
+          append_line(text)
+        end
+      else
+        print("Error: Could not open file '" .. tmp_file .. "'.")
+      end
     end
-  end)
+  })
 end
-vim.keymap.set({ "n", "i" }, "<C-i>", speech_to_text)
+vim.keymap.set({ "n", "i" }, "<C-v>", speech_to_text)
+
+local function run_coder()
+  local full_path = vim.api.nvim_buf_get_name(0)
+  if full_path ~= "" then
+    -- Get selected line ranges
+    local start_pos = vim.fn.getpos("v")
+    local end_pos = vim.fn.getpos(".")
+
+    -- If any text is selected
+    if start_pos[2] ~= end_pos[2] or start_pos[3] ~= end_pos[3] then
+      local line_start = start_pos[2]
+      local line_end = end_pos[2]
+
+      -- Swap line start and end if start comes after end
+      if line_start > line_end then
+        line_start, line_end = line_end, line_start
+      end
+
+      -- Concatenate selected line range at the end
+      full_path = full_path .. "#" .. line_start .. "-" .. line_end
+    end
+
+    run_in_terminal('run_script r/ai/coder.py "' .. full_path .. '"', {
+      on_exit = function()
+      end
+    })
+  end
+end
+vim.keymap.set({ "n", "i", "v" }, "<C-i>", run_coder)

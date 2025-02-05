@@ -2,8 +2,14 @@ import sys
 from time import sleep
 
 
-def getch(timeout=-1):
-    """Returns None when getch is timeout."""
+def getch(timeout=-1.0):
+    """Get a single character from user input.
+
+    Returns:
+        str or None: The character read, or None if the operation times out.
+    Raises:
+        KeyboardInterrupt: If the user interrupts the input with Ctrl+C.
+    """
 
     if sys.platform == "win32":
         import msvcrt
@@ -21,6 +27,7 @@ def getch(timeout=-1):
             ch = msvcrt.getch().decode(errors="replace")
 
     else:
+        import select
         import termios
         import tty
 
@@ -28,7 +35,14 @@ def getch(timeout=-1):
         old_settings = termios.tcgetattr(fd)
         try:
             tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
+            if timeout > 0.0:
+                rlist, _, _ = select.select([sys.stdin], [], [], timeout)
+                if rlist:
+                    ch = sys.stdin.read(1)
+                else:
+                    ch = None
+            else:
+                ch = sys.stdin.read(1)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 

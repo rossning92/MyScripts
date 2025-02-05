@@ -17,16 +17,24 @@ def _run_without_output(command: List[str]):
 
 
 def _wait_for_key() -> bool:
-    print("Recording, press ENTER when done or Q to cancel...")
-    while True:
+    sys.stdout.write("Recording (Press [ENTER] to confirm / [Q] to cancel)")
+    sys.stdout.flush()
+    status: Optional[bool] = None
+    while status is None:
         try:
             key = getch()
         except KeyboardInterrupt:
-            return False
+            status = False
         if key == "\n" or key == "\r":
-            return True
+            status = True
         elif key == "q":
-            return False
+            status = False
+    if status:
+        sys.stdout.write("\nDone.\n")
+    else:
+        sys.stdout.write("\nCanceled.\n")
+    sys.stdout.flush()
+    return status
 
 
 _is_recording_termux = False

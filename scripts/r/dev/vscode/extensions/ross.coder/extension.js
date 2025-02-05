@@ -44,7 +44,7 @@ function activate(context) {
       const fileName = editor.document.fileName;
       const fileAndLines = selection.isEmpty
         ? fileName
-        : `${fileName}#${selection.start.line}-${selection.end.line}`;
+        : `${fileName}#${selection.start.line + 1}-${selection.end.line + 1}`;
 
       await runCoder({
         args: [fileAndLines],

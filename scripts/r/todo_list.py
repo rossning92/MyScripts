@@ -1,37 +1,41 @@
 import argparse
 import os
+from datetime import datetime
 from typing import Any, Dict
 
-from utils.jsonutil import load_json, save_json
-from utils.menu import Menu
 from utils.menu.dicteditmenu import DictEditMenu
+from utils.menu.listeditmenu import ListEditMenu
+
+TodoItem = Dict[str, Any]
 
 
-class TodoMenu(Menu[Dict[str, Any]]):
+class TodoMenu(ListEditMenu[TodoItem]):
     def __init__(
         self,
         data_file: str,
     ):
-        self.__load_data(data_file)
-        super().__init__(items=self.__items)
+        super().__init__(json_file=data_file)
+        self.add_command(self.__new_task, hotkey="ctrl+n")
 
-    def __load_data(self, data_file):
-        self.__data_file = data_file
-        self.__items = load_json(self.__data_file, default=[])
+    def __new_task(self):
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        todo_item = {"due": current_date, "done": "", "description": ""}
+        self.items.append(todo_item)
+        self.__edit_todo_item(todo_item)
 
-    def __save_data(self):
-        save_json(self.__data_file, data=self.__items)
+    def __edit_todo_item(self, item: TodoItem):
+        DictEditMenu(
+            item,
+            on_dict_update=lambda _: self.save_json(),
+        ).exec()
 
     def on_enter_pressed(self):
         selected = self.get_selected_item()
         if selected:
-            DictEditMenu(
-                selected,
-                on_dict_update=lambda _: self.__save_data(),
-            ).exec()
+            self.__edit_todo_item(selected)
 
-    def get_item_text(self, item: Dict[str, Any]) -> str:
-        return item["due"] + " " + item["description"]
+    def get_item_text(self, item: TodoItem) -> str:
+        return "[ ] " + item["due"] + " " + item["description"]
 
 
 def main():
