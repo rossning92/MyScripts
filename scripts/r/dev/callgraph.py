@@ -14,11 +14,12 @@ CLASS_PREFIX = ""
 
 
 ext_language_dict = {
-    ".py": "python",
-    ".h": "cpp",
     ".c": "cpp",
     ".cc": "cpp",
     ".cpp": "cpp",
+    ".h": "cpp",
+    ".hpp": "cpp",
+    ".py": "python",
 }
 
 
@@ -90,6 +91,8 @@ class CallGraph:
 
     node_preview: Dict[str, str] = field(default_factory=dict)
 
+    highlighted_nodes: Set[str] = field(default_factory=set)
+
     def add_scope(self, name: str):
         full_name = []
         scope = self.scope
@@ -118,7 +121,7 @@ def get_function_definitions(
     module: str,
     root_node: Node,
     generate_preview: bool,
-) -> Iterator[Tuple[str, Optional[str]]]:
+) -> Iterator[Tuple[str, Optional[str], Node]]:
     query = get_function_definition_query(lang=lang)
     matches = query.matches(root_node)
     for _, match in matches:
@@ -140,28 +143,15 @@ def get_function_definitions(
                     + get_node_text(name)
                 ),
                 function_preview,
+                function_def,
             )
 
         else:
-            yield (module + SCOPE_SEP + get_node_text(name), function_preview)
-
-
-def create_nodes(
-    lang: str,
-    graph: CallGraph,
-    module: str,
-    root_node: Node,
-    generate_preview: bool,
-):
-    for function_name, preview in get_function_definitions(
-        lang=lang,
-        module=module,
-        root_node=root_node,
-        generate_preview=generate_preview,
-    ):
-        graph.add_node(function_name)
-        if preview:
-            graph.node_preview[function_name] = preview
+            yield (
+                module + SCOPE_SEP + get_node_text(name),
+                function_preview,
+                function_def,
+            )
 
 
 def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
@@ -177,9 +167,7 @@ def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
 
         function_body_node = match["function_body"][0]
 
-        logging.info(
-            f"Parse function: {caller_text} ({function_body_node.start_point.row}-{function_body_node.end_point.row})"
-        )
+        logging.info(f"Find callees from: {caller_text}")
 
         # Add edge to call graph
         for identifier in _find_all_identifiers(function_body_node):
@@ -229,7 +217,7 @@ def get_function_definition_query_cpp() -> Query:
     (function_definition
       declarator: (function_declarator
         declarator: (field_identifier) @function_name)
-      body: (compound_statement) @function_body)) @function_def)
+      body: (compound_statement) @function_body) @function_def))
 
 (function_definition
   declarator: (function_declarator
@@ -274,8 +262,11 @@ def get_function_definition_query(lang: str) -> Query:
 
 
 def get_module_name(filepath: str):
-    return filepath
-    # return os.path.splitext(os.path.basename(filepath))[0] + ".o"
+    lang = filename_to_lang(filepath)
+    if lang == "cpp":
+        return os.path.splitext(os.path.basename(filepath))[0] + ".o"
+    else:
+        return filepath
 
 
 def add_module_edges(graph: CallGraph, root_node: Node, module: str):
@@ -341,8 +332,11 @@ def generate_call_graph(
     match_callers: Optional[int] = None,
     match_callees: Optional[int] = None,
     generate_preview=False,
+    diff: Optional[Dict[str, List[Tuple[int, int]]]] = None,
 ) -> CallGraph:
     graph = CallGraph()
+
+    filtered_nodes: Set[str] = set()
 
     # Build nodes
     logging.info("Build nodes...")
@@ -359,13 +353,30 @@ def generate_call_graph(
         )
 
         if not show_modules_only:
-            create_nodes(
+            for function_name, preview, function_def_node in get_function_definitions(
                 lang=lang,
-                graph=graph,
                 module=module,
                 root_node=tree.root_node,
                 generate_preview=generate_preview,
-            )
+            ):
+                # Add node
+                logging.info(
+                    f"Add function node: {function_name} ({function_def_node.start_point.row}-{function_def_node.end_point.row})"
+                )
+                graph.add_node(function_name)
+                if preview:
+                    graph.node_preview[function_name] = preview
+
+                # Filter nodes
+                if diff:
+                    for line_range in diff[file]:
+                        if max(
+                            function_def_node.start_point.row, line_range[0] - 1
+                        ) <= min(function_def_node.end_point.row, line_range[1] - 1):
+                            filtered_nodes.add(function_name)
+
+                if match and re.search(match, function_name, re.IGNORECASE):
+                    filtered_nodes.add(function_name)
 
     # Build edges
     logging.info("Build edges...")
@@ -390,13 +401,13 @@ def generate_call_graph(
                 root_node=tree.root_node,
             )
 
-    if match:
-        logging.info(f"Match node by pattern: {match}")
+    if filtered_nodes:
         filtered_graph = CallGraph()
 
         for node in graph.nodes:
-            if re.search(match, node, re.IGNORECASE):
+            if node in filtered_nodes:
                 filtered_graph.add_node(node)
+                filtered_graph.highlighted_nodes.add(node)
 
                 if match_callers is not None:
                     add_callers_or_callees_to_graph(

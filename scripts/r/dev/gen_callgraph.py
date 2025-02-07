@@ -6,7 +6,7 @@ import subprocess
 import sys
 from glob import glob
 from io import StringIO
-from typing import Dict, Optional, Set
+from typing import Dict, Set
 
 from callgraph import (
     SCOPE_SEP,
@@ -15,6 +15,7 @@ from callgraph import (
     generate_call_graph,
     is_supported_file,
 )
+from utils.diffutils import extract_modified_files_and_line_ranges
 from utils.editor import open_in_vscode
 from utils.logger import setup_logger
 from utils.shutil import shell_open
@@ -48,7 +49,7 @@ def escape_mermaid_node(name: str):
 
 
 def render_mermaid_nodes(
-    scope: Scope, short_name: ShortName, match: Optional[str], depth=1
+    graph: CallGraph, scope: Scope, short_name: ShortName, depth=1
 ) -> str:
     out = StringIO()
     indent = " " * 4 * depth
@@ -60,16 +61,16 @@ def render_mermaid_nodes(
             out.write(indent + "    direction LR\n\n")
             out.write(
                 render_mermaid_nodes(
+                    graph=graph,
                     scope=s,
                     short_name=short_name,
-                    match=match,
                     depth=depth + 1,
                 )
             )
             out.write(indent + "end\n\n")
         else:
             out.write(indent + short_name.get(escape_mermaid_node(name)) + "\n")
-            if match and re.search(match, name, re.IGNORECASE):
+            if name in graph.highlighted_nodes:
                 out.write(
                     f"{indent}style {short_name.get(escape_mermaid_node(name))} color:red\n"
                 )
@@ -77,12 +78,12 @@ def render_mermaid_nodes(
     return out.getvalue()
 
 
-def render_mermaid_flowchart(graph: CallGraph, match: Optional[str]) -> str:
+def render_mermaid_flowchart(graph: CallGraph) -> str:
     s = "flowchart LR\n"
 
     short_name = ShortName()
 
-    s += render_mermaid_nodes(scope=graph.scope, short_name=short_name, match=match)
+    s += render_mermaid_nodes(graph=graph, scope=graph.scope, short_name=short_name)
 
     for caller, callees in graph.edges.items():
         for callee in callees:
@@ -104,19 +105,28 @@ def _main():
         action="store_true",
         help="show module level diagram",
     )
-    arg_parser.add_argument("files", nargs="+")
+    arg_parser.add_argument("--diff", type=str)
+    arg_parser.add_argument("files", nargs="*")
 
     args = arg_parser.parse_args()
 
     setup_logger()
 
-    files = [
-        filepath.replace(os.path.sep, "/")
-        for filepath in itertools.chain(
-            *[glob(pathname, recursive=True) for pathname in args.files]
-        )
-    ]
+    if args.diff:
+        diff = extract_modified_files_and_line_ranges(args.diff)
+        files = list(diff.keys())
+    else:
+        diff = None
+        files = [
+            filepath.replace(os.path.sep, "/")
+            for filepath in itertools.chain(
+                *[glob(pathname, recursive=True) for pathname in args.files]
+            )
+        ]
+        files = [f for f in files if is_supported_file(f)]
     files = [f for f in files if is_supported_file(f)]
+
+    # Generate call graph
     call_graph = generate_call_graph(
         files=files,
         show_modules_only=args.show_modules_only,
@@ -124,10 +134,11 @@ def _main():
         invert_match=args.invert_match,
         match_callers=args.match_callers,
         match_callees=args.match_callees,
+        diff=diff,
     )
 
     # Generate mermaid diagram
-    mermaid_code = render_mermaid_flowchart(graph=call_graph, match=args.match)
+    mermaid_code = render_mermaid_flowchart(graph=call_graph)
     if args.output:
         out_file = args.output
     else:
