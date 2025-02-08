@@ -1,10 +1,10 @@
 import json
-from typing import Any, Dict, List, Union
+from typing import Optional, TypeVar
+
+T = TypeVar("T")
 
 
-def load_json(
-    file: str, default: Union[Dict[str, Any], List[Any], None] = None
-) -> Union[Dict[str, Any], List[Any]]:
+def load_json(file: str, default: Optional[T] = None) -> T:
     try:
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)

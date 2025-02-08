@@ -1,7 +1,8 @@
 import argparse
 import os
 import re
-from typing import Any, List, Optional
+from io import StringIO
+from typing import Any, AnyStr, Dict, List, Optional
 
 from ai.codeeditutils import Change, apply_change_interactive, revert_changes
 from ai.get_context_files import GetContextFilesMenu
@@ -14,7 +15,6 @@ from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 
 SETTING_DIR = ".coder"
-CONTEXT_FILE = "context.json"
 CONVERSATION_FILE = "chat_v2.json"
 SESSION_FILE = "session.json"
 
@@ -93,10 +93,10 @@ class SelectCodeBlockMenu(TextMenu):
 
 
 class FileListMenu(ListEditMenu):
-    def __init__(self):
+    def __init__(self, files: List[str]):
         super().__init__(
+            items=files,
             prompt="file list",
-            json_file=os.path.join(SETTING_DIR, CONTEXT_FILE),
             wrap_text=True,
         )
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
@@ -145,29 +145,35 @@ class FileListMenu(ListEditMenu):
 
 class CoderMenu(ChatMenu):
     def __init__(self, files: Optional[List[str]] = None, **kwargs):
+        # Create directory if it does not exist.
+        os.makedirs(SETTING_DIR, exist_ok=True)
+        with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
+            f.write("*")
+
         super().__init__(
             conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
+            new_conversation=False,
             **kwargs,
         )
 
         self.__modified_files: List[str] = []
 
-        self.__file_list_menu = FileListMenu()
+        self.__session_file = os.path.join(SETTING_DIR, SESSION_FILE)
+        self.__session: Dict[str, Any] = load_json(
+            self.__session_file, default={"task": "", "files": []}
+        )
+        self.__file_list_menu = FileListMenu(files=self.__session["files"])
 
         if files:
             self.__clear_files()
             for file in files:
                 self.__file_list_menu.add_file(file)
 
-        self.__session_file = os.path.join(SETTING_DIR, SESSION_FILE)
-        self.__session = load_json(self.__session_file, default={})
-
         self.add_command(self.__add_file, hotkey="alt+a")
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
-        self.add_command(self.__edit_task, hotkey="alt+p")
         self.add_command(self.__list_files, hotkey="alt+l")
-        self.add_command(self.__revert_modified_files, hotkey="ctrl+z")
+        self.add_command(self.__undo, hotkey="ctrl+z")
 
         self.__update_prompt()
 
@@ -176,14 +182,20 @@ class CoderMenu(ChatMenu):
         self.__update_prompt()
 
     def __update_prompt(self):
-        files = "|".join(
-            [
-                os.path.basename(file["file"])
-                + ("(%d)" % len(file["content"]) if "content" in file else "")
-                for file in self.__file_list_menu.items
-            ]
+        s = StringIO()
+        s.write("task : " + self.__session["task"] + "\n")
+        s.write(
+            "files: "
+            + "|".join(
+                [
+                    file["file"]
+                    + ("(%d)" % len(file["content"]) if "content" in file else "")
+                    for file in self.__file_list_menu.items
+                ]
+            )
+            + "\n"
         )
-        self.set_prompt(files)
+        self.set_prompt(s.getvalue())
 
     def __list_files(self):
         self.__file_list_menu.exec()
@@ -253,7 +265,7 @@ class CoderMenu(ChatMenu):
         revert_changes(self.__modified_files)
         self.__modified_files.clear()
 
-    def __edit_task(self):
+    def __undo(self):
         task = self.__session["task"]
         new_task = self.call_func_without_curses(lambda: edit_text(task))
         if new_task != task:
@@ -266,11 +278,14 @@ def _main():
     parser.add_argument("files", nargs="*")
     args = parser.parse_args()
 
-    os.makedirs(SETTING_DIR, exist_ok=True)
-    with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
-        f.write("*")
+    # If only one context file is specified, change directory to the file folder.
+    files = args.files
+    if files and len(files) == 1 and os.path.isabs(files[0]):
+        dir_name = os.path.dirname(files[0])
+        os.chdir(dir_name)
+        files[0] = os.path.basename(files[0])
 
-    CoderMenu(files=args.files).exec()
+    CoderMenu(files=files).exec()
 
 
 if __name__ == "__main__":

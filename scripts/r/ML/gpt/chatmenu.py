@@ -141,22 +141,32 @@ class ChatMenu(Menu[_Line]):
             return
 
         self.__is_generating = True
-        content = ""
-        message_index = len(self.get_messages())
-        line = _Line(role="assistant", text="", message_index=message_index)
-        self.append_item(line)
-        for chunk in complete_chat(self.get_messages(), model=self.__model):
-            content += chunk
-            for i, a in enumerate(chunk.split("\n")):
-                if i > 0:
-                    line = _Line(role="assistant", text="", message_index=message_index)
-                    self.append_item(line)
-                line.text += a
 
-            self.update_screen()
-            self.process_events()
+        try:
+            content = ""
+            message_index = len(self.get_messages())
+            line = _Line(role="assistant", text="", message_index=message_index)
+            self.append_item(line)
+            for chunk in complete_chat(self.get_messages(), model=self.__model):
+                content += chunk
+                for i, a in enumerate(chunk.split("\n")):
+                    if i > 0:
+                        line = _Line(
+                            role="assistant", text="", message_index=message_index
+                        )
+                        self.append_item(line)
+                    line.text += a
 
-        self.__is_generating = False
+                self.update_screen()
+                self.process_events(raise_keyboard_interrupt=True)
+
+
+        except KeyboardInterrupt:
+            self.set_message("interrupt")
+            return
+        finally:
+            self.__is_generating = False
+        
         self.save_conversation()
         self.on_message(content)
 

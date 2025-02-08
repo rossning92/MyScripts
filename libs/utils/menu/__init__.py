@@ -657,7 +657,9 @@ class Menu(Generic[T]):
             self.set_selection(selected_row_begin, selected_row_end)
 
     # Returns True if we should exit main loop for the current window
-    def process_events(self, timeout_sec: float = 0.0) -> bool:
+    def process_events(
+        self, timeout_sec: float = 0.0, raise_keyboard_interrupt=False
+    ) -> bool:
         assert Menu.stdscr is not None
 
         if self.__closed:
@@ -692,12 +694,16 @@ class Menu(Generic[T]):
             self._update_screen()
 
         # Keyboard event
+        ch: Union[int, str] = -1
         try:
             ch = Menu.stdscr.get_wch()
         except curses.error:
-            ch = -1
+            pass
         except KeyboardInterrupt:
-            sys.exit(0)
+            if raise_keyboard_interrupt:
+                raise
+            else:
+                self.close()
 
         if ch != -1:  # getch() will return -1 when timeout
             if self.__debug:
@@ -709,6 +715,12 @@ class Menu(Generic[T]):
             self.last_key_pressed_timestamp = time.time()
             if self.on_char(ch):
                 self.update_screen()
+
+            elif ch == curses.ascii.ctrl("c"):
+                if raise_keyboard_interrupt:
+                    raise KeyboardInterrupt
+                else:
+                    self.close()
 
             elif ch == " " and self.get_input() == " ":
                 self.set_input("")
@@ -1208,9 +1220,6 @@ class Menu(Generic[T]):
             if item is not None:
                 self.set_input("%s" % item)
             return True
-
-        elif ch == curses.ascii.ctrl("c"):
-            sys.exit(0)
 
         elif ch in self.__hotkeys:
             self.__hotkeys[ch].func()
