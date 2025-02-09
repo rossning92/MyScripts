@@ -15,7 +15,6 @@ class _Line:
     def __init__(self, role: str, text: str, message_index: int) -> None:
         self.role = role
         self.text = text
-        self.color = "blue" if role == "user" else "white"
         self.message_index = message_index
 
     def __str__(self) -> str:
@@ -112,6 +111,9 @@ class ChatMenu(Menu[_Line]):
         if selected:
             self.load_conversation(selected)
 
+    def get_item_color(self, item: _Line) -> str:
+        return "blue" if item.role == "user" else "white"
+
     def get_messages(self) -> List[Dict[str, Any]]:
         return self.__conv["messages"]
 
@@ -160,13 +162,12 @@ class ChatMenu(Menu[_Line]):
                 self.update_screen()
                 self.process_events(raise_keyboard_interrupt=True)
 
-
         except KeyboardInterrupt:
             self.set_message("interrupt")
             return
         finally:
             self.__is_generating = False
-        
+
         self.save_conversation()
         self.on_message(content)
 

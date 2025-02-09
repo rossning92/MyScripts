@@ -4,6 +4,7 @@ from collections import OrderedDict
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from utils.clip import get_clip, set_clip
+from utils.editor import edit_text
 
 from . import Menu
 from .inputmenu import InputMenu
@@ -26,7 +27,7 @@ class _DictValueEditMenu(InputMenu):
         super().__init__(
             items=items,
             prompt=name,
-            text="",
+            text=self.__dict[self.__name],
         )
 
     def on_enter_pressed(self):
@@ -116,6 +117,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
         super().__init__(
             prompt=prompt,
             highlight=OrderedDict([(r"\(\*\)", "green")]),
+            wrap_text=True,
         )
         self.dict_ = dict_
         self.default_dict = default_dict
@@ -130,6 +132,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.add_command(self.__prev_value, hotkey="left")
         self.add_command(self.__next_value, hotkey="right")
         self.add_command(self.__paste_value, hotkey="ctrl+v")
+        self.add_command(self.__edit_value, hotkey="ctrl+e")
 
     def __prev_value(self):
         self.__prev_or_next_value(prev=True)
@@ -159,6 +162,15 @@ class DictEditMenu(Menu[_KeyValuePair]):
                         self.__notify_dict_updated()
                     except ValueError:
                         pass
+
+    def __edit_value(self):
+        key = self.get_selected_key()
+        if key is not None:
+            value = self.dict_[key]
+            if isinstance(value, str):
+                new_value = self.call_func_without_curses(lambda: edit_text(value))
+                if new_value != value:
+                    self.set_dict_value(key, new_value)
 
     def __paste_value(self):
         key = self.get_selected_key()

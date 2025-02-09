@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict
 
+from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.listeditmenu import ListEditMenu
 
@@ -15,13 +16,35 @@ class TodoMenu(ListEditMenu[TodoItem]):
         data_file: str,
     ):
         super().__init__(json_file=data_file)
+
+        self.items.sort(key=lambda item: item["done"])
+
         self.add_command(self.__new_task, hotkey="ctrl+n")
+        self.add_command(self.__edit_task_description, hotkey="ctrl+e")
+        self.add_command(self.__toggle_status, hotkey="ctrl+x")
+
+    def __edit_task_description(self):
+        selected = self.get_selected_item()
+        if selected:
+            new_text = self.call_func_without_curses(
+                lambda: edit_text(selected["description"])
+            )
+            if new_text != selected["description"]:
+                selected["description"] = new_text
+                self.save_json()
 
     def __new_task(self):
         current_date = datetime.now().strftime("%Y-%m-%d")
-        todo_item = {"due": current_date, "done": "", "description": ""}
+        todo_item = {"due": current_date, "done": False, "description": ""}
         self.items.append(todo_item)
         self.__edit_todo_item(todo_item)
+
+    def __toggle_status(self):
+        selected = self.get_selected_item()
+        if selected:
+            selected["done"] = False if selected["done"] else True
+            self.save_json()
+            self.update_screen()
 
     def __edit_todo_item(self, item: TodoItem):
         DictEditMenu(
@@ -35,7 +58,15 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.__edit_todo_item(selected)
 
     def get_item_text(self, item: TodoItem) -> str:
-        return "[ ] " + item["due"] + " " + item["description"]
+        return (
+            ("[x] " if item["done"] else "[ ] ")
+            + item["due"]
+            + " "
+            + item["description"]
+        )
+
+    def get_item_color(self, item: Any) -> str:
+        return "blue" if item["done"] else "white"
 
 
 def main():

@@ -1039,6 +1039,9 @@ class Menu(Generic[T]):
     def get_item_text(self, item: T) -> str:
         return str(item)
 
+    def get_item_color(self, item: T) -> str:
+        return "white"
+
     def goto_line(self, line: int):
         self.__scroll_y = line
 
@@ -1095,15 +1098,12 @@ class Menu(Generic[T]):
             item = self.items[item_index]
             item_text = self.get_item_text(self.items[item_index])
 
-            if hasattr(item, "color"):
-                color = item.__dict__["color"]
-            else:
-                # Highlight text by regex
-                color = "white"
-                if self.__highlight is not None:
-                    for patt, c in self.__highlight.items():
-                        if re.search(patt, item_text):
-                            color = c
+            # Item color
+            color = self.get_item_color(item)
+            if self.__highlight is not None:
+                for patt, c in self.__highlight.items():
+                    if re.search(patt, item_text):
+                        color = c
 
             # Draw item
             draw_text_result = self.draw_text(

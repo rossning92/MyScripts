@@ -27,9 +27,7 @@ UNSAVED_AGENT_FILE = "unsaved.json"
 
 def _find_xml_strings(tags: List[str], s: str) -> List[str]:
     tag_patt = "(?:" + "|".join([re.escape(tag) for tag in tags]) + ")"
-    return re.findall(
-        rf"<{tag_patt}>\s*(?:[\S\s]*?)\s*</{tag_patt}>", s, flags=re.MULTILINE
-    )
+    return re.findall(rf"<{tag_patt}>[\S\s]*?</{tag_patt}>", s, flags=re.MULTILINE)
 
 
 def _get_agent_name(agent_file: str) -> str:
@@ -329,7 +327,7 @@ agent   : {_get_agent_name(self.__agent_file)}
 
             if should_run:
                 tool = next(tool for tool in self.__tools if tool.__name__ == tool_name)
-                response_message = tool(**args)
+                response_message = "Returns:\n-------\n" + tool(**args) + "\n-------"
 
         # Check if the task is completed
         match = re.findall(
