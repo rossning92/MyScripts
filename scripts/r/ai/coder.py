@@ -2,7 +2,7 @@ import argparse
 import os
 import re
 from io import StringIO
-from typing import Any, AnyStr, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from ai.codeeditutils import Change, apply_change_interactive, revert_changes
 from ai.get_context_files import GetContextFilesMenu

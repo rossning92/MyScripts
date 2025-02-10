@@ -4,20 +4,26 @@
       "packages": ["7zip"]
     },
     "executables": ["C:\\Program Files\\7-Zip\\7z.exe"],
-    "winget": { "packages": ["7zip.7zip"] }
+    "winget": {
+      "packages": ["7zip.7zip"]
+    }
   },
   "7zfm": {
     "choco": {
       "packages": ["7zip"]
     },
     "executables": ["C:\\Program Files\\7-Zip\\7zFM.exe"],
-    "winget": { "packages": ["7zip.7zip"] }
+    "winget": {
+      "packages": ["7zip.7zip"]
+    }
   },
   "7zip": {
     "choco": {
       "packages": ["7zip"]
     },
-    "winget": { "packages": ["7zip.7zip"] }
+    "winget": {
+      "packages": ["7zip.7zip"]
+    }
   },
   "PyMuPDF": {
     "pip": {
@@ -31,14 +37,18 @@
     "pacman": {
       "packages": ["alacritty"]
     },
-    "winget": { "packages": ["Alacritty.Alacritty"] }
+    "winget": {
+      "packages": ["Alacritty.Alacritty"]
+    }
   },
   "android-sdk": {
     "choco": {
       "packages": ["android-sdk"]
     },
     "executables": ["C:\\Android\\android-sdk\\tools\\bin\\sdkmanager.bat"],
-    "winget": { "packages": ["Google.PlatformTools"] }
+    "winget": {
+      "packages": ["Google.PlatformTools"]
+    }
   },
   "apktool": {
     "choco": {
@@ -73,7 +83,9 @@
     "pacman": {
       "packages": ["cmake"]
     },
-    "winget": { "packages": ["Kitware.CMake"] }
+    "winget": {
+      "packages": ["Kitware.CMake"]
+    }
   },
   "ctags": {
     "choco": {
@@ -103,7 +115,9 @@
     "choco": {
       "packages": ["dotnet-6.0-sdk"]
     },
-    "winget": { "packages": ["Microsoft.DotNet.SDK.6"] }
+    "winget": {
+      "packages": ["Microsoft.DotNet.SDK.6"]
+    }
   },
   "dotnetcore-sdk": {
     "choco": {
@@ -126,7 +140,9 @@
     "choco": {
       "packages": ["everything"]
     },
-    "winget": { "packages": ["voidtools.Everything"] }
+    "winget": {
+      "packages": ["voidtools.Everything"]
+    }
   },
   "expect": {
     "apt": {
@@ -153,7 +169,9 @@
     "termux": {
       "packages": ["ffmpeg"]
     },
-    "winget": { "packages": ["Gyan.FFmpeg"] }
+    "winget": {
+      "packages": ["Gyan.FFmpeg"]
+    }
   },
   "flameshot": {
     "apt": {
@@ -165,7 +183,9 @@
     "pacman": {
       "packages": ["flameshot"]
     },
-    "winget": { "packages": ["Flameshot.Flameshot"] }
+    "winget": {
+      "packages": ["Flameshot.Flameshot"]
+    }
   },
   "fzf": {
     "choco": {
@@ -177,7 +197,9 @@
     "termux": {
       "packages": ["fzf"]
     },
-    "winget": { "packages": ["junegunn.fzf"] }
+    "winget": {
+      "packages": ["junegunn.fzf"]
+    }
   },
   "gh": {
     "choco": {
@@ -189,13 +211,17 @@
     "termux": {
       "packages": ["gh"]
     },
-    "winget": { "packages": ["GitHub.cli"] }
+    "winget": {
+      "packages": ["GitHub.cli"]
+    }
   },
   "ghostscript": {
     "choco": {
       "packages": ["ghostscript"]
     },
-    "winget": { "packages": ["ArtifexSoftware.GhostScript"] }
+    "winget": {
+      "packages": ["ArtifexSoftware.GhostScript"]
+    }
   },
   "git": {
     "choco": {
@@ -210,7 +236,9 @@
     "termux": {
       "packages": ["git"]
     },
-    "winget": { "packages": ["Git.Git"] }
+    "winget": {
+      "packages": ["Git.Git"]
+    }
   },
   "git-lfs": {
     "choco": {
@@ -219,7 +247,9 @@
     "pacman": {
       "packages": ["git-lfs"]
     },
-    "winget": { "packages": ["GitHub.GitLFS"] }
+    "winget": {
+      "packages": ["GitHub.GitLFS"]
+    }
   },
   "golang": {
     "choco": {
@@ -231,13 +261,17 @@
     "termux": {
       "packages": ["golang"]
     },
-    "winget": { "packages": ["GoLang.Go"] }
+    "winget": {
+      "packages": ["GoLang.Go"]
+    }
   },
   "google-chrome": {
     "choco": {
       "packages": ["googlechrome"]
     },
-    "winget": { "packages": ["Google.Chrome"] }
+    "winget": {
+      "packages": ["Google.Chrome"]
+    }
   },
   "gradle": {
     "choco": {
@@ -254,7 +288,9 @@
     "pacman": {
       "packages": ["graphviz"]
     },
-    "winget": { "packages": ["Graphviz.Graphviz"] }
+    "winget": {
+      "packages": ["Graphviz.Graphviz"]
+    }
   },
   "grep": {
     "apt": {
@@ -269,7 +305,9 @@
     "termux": {
       "packages": ["grep"]
     },
-    "winget": { "packages": ["GnuWin32.Grep"] }
+    "winget": {
+      "packages": ["GnuWin32.Grep"]
+    }
   },
   "imagemagick": {
     "choco": {
@@ -279,14 +317,18 @@
     "pacman": {
       "packages": ["imagemagick"]
     },
-    "winget": { "packages": ["ImageMagick.ImageMagick"] }
+    "winget": {
+      "packages": ["ImageMagick.ImageMagick"]
+    }
   },
   "irfanview": {
     "choco": {
       "packages": ["irfanview"]
     },
     "executables": ["C:\\Program Files\\IrfanView\\i_view64.exe"],
-    "winget": { "packages": ["IrfanSkiljan.IrfanView"] }
+    "winget": {
+      "packages": ["IrfanSkiljan.IrfanView"]
+    }
   },
   "jre": {
     "apt": {
@@ -305,6 +347,11 @@
     },
     "termux": {
       "packages": ["less"]
+    }
+  },
+  "libreoffice": {
+    "winget": {
+      "packages": ["TheDocumentFoundation.LibreOffice"]
     }
   },
   "lux": {
@@ -329,10 +376,12 @@
     "choco": {
       "packages": ["moonlight"]
     },
+    "winget": {
+      "packages": ["MoonlightGameStreamingProject.Moonlight"]
+    },
     "yay": {
       "packages": ["moonlight-qt", "libva-intel-driver"]
-    },
-    "winget": { "packages": ["MoonlightGameStreamingProject.Moonlight"] }
+    }
   },
   "mpv": {
     "choco": {
@@ -349,7 +398,9 @@
     "choco": {
       "packages": ["msys2"]
     },
-    "winget": { "packages": ["MSYS2.MSYS2"] }
+    "winget": {
+      "packages": ["MSYS2.MSYS2"]
+    }
   },
   "neovim": {
     "choco": {
@@ -361,19 +412,25 @@
     "termux": {
       "packages": ["neovim"]
     },
-    "winget": { "packages": ["Neovim.Neovim"] }
+    "winget": {
+      "packages": ["Neovim.Neovim"]
+    }
   },
   "ninja": {
     "choco": {
       "packages": ["ninja"]
     },
-    "winget": { "packages": ["Ninja-build.Ninja"] }
+    "winget": {
+      "packages": ["Ninja-build.Ninja"]
+    }
   },
   "nmap": {
     "choco": {
       "packages": ["nmap"]
     },
-    "winget": { "packages": ["Insecure.Nmap"] }
+    "winget": {
+      "packages": ["Insecure.Nmap"]
+    }
   },
   "node": {
     "choco": {
@@ -382,7 +439,9 @@
     "pacman": {
       "packages": ["nodejs"]
     },
-    "winget": { "packages": ["OpenJS.NodeJS"] }
+    "winget": {
+      "packages": ["OpenJS.NodeJS"]
+    }
   },
   "nomachine": {
     "yay": {
@@ -394,7 +453,9 @@
       "packages": ["ocenaudio"]
     },
     "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"],
-    "winget": { "packages": ["Ocenaudio.Ocenaudio"] }
+    "winget": {
+      "packages": ["Ocenaudio.Ocenaudio"]
+    }
   },
   "openssh": {
     "apt": {
@@ -409,7 +470,9 @@
     "termux": {
       "packages": ["openssh"]
     },
-    "winget": { "packages": ["Microsoft.OpenSSH.Beta"] }
+    "winget": {
+      "packages": ["Microsoft.OpenSSH.Beta"]
+    }
   },
   "pandoc": {
     "choco": {
@@ -418,7 +481,9 @@
     "pacman": {
       "packages": ["pandoc-cli"]
     },
-    "winget": { "packages": ["JohnMacFarlane.Pandoc"] }
+    "winget": {
+      "packages": ["JohnMacFarlane.Pandoc"]
+    }
   },
   "pdftk": {
     "choco": {
@@ -427,7 +492,9 @@
     "pacman": {
       "packages": ["pdftk"]
     },
-    "winget": { "packages": ["PDFLabs.PDFtk.Server"] }
+    "winget": {
+      "packages": ["PDFLabs.PDFtk.Server"]
+    }
   },
   "protoc": {
     "choco": {
@@ -452,19 +519,25 @@
     "termux": {
       "packages": ["putty-tools"]
     },
-    "winget": { "packages": ["PuTTY.PuTTY"] }
+    "winget": {
+      "packages": ["PuTTY.PuTTY"]
+    }
   },
   "python312": {
     "choco": {
       "packages": ["python312"]
     },
-    "winget": { "packages": ["Python.Python.3.12"] }
+    "winget": {
+      "packages": ["Python.Python.3.12"]
+    }
   },
   "python36": {
     "choco": {
       "packages": ["python36"]
     },
-    "winget": { "packages": ["Python.Python.3.6"] }
+    "winget": {
+      "packages": ["Python.Python.3.6"]
+    }
   },
   "rclone": {
     "choco": {
@@ -476,7 +549,9 @@
     "termux": {
       "packages": ["rclone"]
     },
-    "winget": { "packages": ["Rclone.Rclone"] }
+    "winget": {
+      "packages": ["Rclone.Rclone"]
+    }
   },
   "remmina": {
     "pacman": {
@@ -487,7 +562,9 @@
     "choco": {
       "packages": ["renderdoc"]
     },
-    "winget": { "packages": ["BaldurKarlsson.RenderDoc"] }
+    "winget": {
+      "packages": ["BaldurKarlsson.RenderDoc"]
+    }
   },
   "ripgrep": {
     "choco": {
@@ -497,7 +574,9 @@
     "pacman": {
       "packages": ["ripgrep"]
     },
-    "winget": { "packages": ["BurntSushi.ripgrep.MSVC"] }
+    "winget": {
+      "packages": ["BurntSushi.ripgrep.MSVC"]
+    }
   },
   "rpi-imager": {
     "choco": {
@@ -516,7 +595,9 @@
     "pacman": {
       "packages": ["scrcpy"]
     },
-    "winget": { "packages": ["Genymobile.scrcpy"] }
+    "winget": {
+      "packages": ["Genymobile.scrcpy"]
+    }
   },
   "screen": {
     "apt": {
@@ -536,7 +617,9 @@
     "choco": {
       "packages": ["sharex"]
     },
-    "winget": { "packages": ["ShareX.ShareX"] }
+    "winget": {
+      "packages": ["ShareX.ShareX"]
+    }
   },
   "socat": {
     "pacman": {
@@ -553,7 +636,9 @@
     "termux": {
       "packages": ["sox"]
     },
-    "winget": { "packages": ["ChrisBagwell.SoX"] }
+    "winget": {
+      "packages": ["ChrisBagwell.SoX"]
+    }
   },
   "sshpass": {
     "apt": {
@@ -579,22 +664,28 @@
       "SumatraPDF.exe",
       "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
     ],
-    "winget": { "packages": ["SumatraPDF.SumatraPDF"] }
+    "winget": {
+      "packages": ["SumatraPDF.SumatraPDF"]
+    }
   },
   "sunshine": {
     "choco": {
       "packages": ["sunshine"]
     },
+    "winget": {
+      "packages": ["LizardByte.Sunshine"]
+    },
     "yay": {
       "packages": ["sunshine-bin"]
-    },
-    "winget": { "packages": ["LizardByte.Sunshine"] }
+    }
   },
   "tightvnc": {
     "choco": {
       "packages": ["tightvnc"]
     },
-    "winget": { "packages": ["GlavSoft.TightVNC"] }
+    "winget": {
+      "packages": ["GlavSoft.TightVNC"]
+    }
   },
   "unzip": {
     "apt": {
@@ -609,7 +700,9 @@
     "termux": {
       "packages": ["unzip"]
     },
-    "winget": { "packages": ["GnuWin32.UnZip"] }
+    "winget": {
+      "packages": ["GnuWin32.UnZip"]
+    }
   },
   "veracrypt": {
     "choco": {
@@ -619,19 +712,25 @@
     "pacman": {
       "packages": ["veracrypt"]
     },
-    "winget": { "packages": ["IDRIX.VeraCrypt"] }
+    "winget": {
+      "packages": ["IDRIX.VeraCrypt"]
+    }
   },
   "visualcpp-build-tools": {
     "choco": {
       "packages": ["visualcpp-build-tools"]
     },
-    "winget": { "packages": ["Microsoft.VisualStudio.2022.BuildTools"] }
+    "winget": {
+      "packages": ["Microsoft.VisualStudio.2022.BuildTools"]
+    }
   },
   "vnc-viewer": {
     "choco": {
       "packages": ["vnc-viewer"]
     },
-    "winget": { "packages": ["RealVNC.VNCViewer"] }
+    "winget": {
+      "packages": ["RealVNC.VNCViewer"]
+    }
   },
   "vscode": {
     "choco": {
@@ -643,7 +742,9 @@
       "code"
     ],
     "linux_install": "/r/install_vscode_linux",
-    "winget": { "packages": ["Microsoft.VisualStudioCode"] }
+    "winget": {
+      "packages": ["Microsoft.VisualStudioCode"]
+    }
   },
   "xxd": {
     "pacman": {
@@ -657,7 +758,9 @@
     "pacman": {
       "packages": ["yarn"]
     },
-    "winget": { "packages": ["Yarn.Yarn"] }
+    "winget": {
+      "packages": ["Yarn.Yarn"]
+    }
   },
   "yt-dlp": {
     "pip": {

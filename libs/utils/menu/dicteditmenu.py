@@ -93,13 +93,15 @@ class _KeyValuePair:
         self.__key_display_width = key_display_width
 
     def __str__(self) -> str:
+        value = self.__dict[self.key]
         modified = (
             self.__default_dict is not None
-            and self.__dict[self.key] != self.__default_dict[self.key]
+            and value != self.__default_dict[self.key]
         )
-        return "{}: {}{}".format(
+        return "{}:{}{}{}".format(
             self.key.ljust(self.__key_display_width),
-            self.__dict[self.key],
+            "\n" if isinstance(value, str) and "\n" in value else " ",
+            value,
             " (*)" if modified else "",
         )
 

@@ -58,12 +58,13 @@ class ChatMenu(Menu[_Line]):
             line_number=True,
         )
 
+        self.add_command(self.__add_image, hotkey="alt+i")
         self.add_command(self.__delete_current_message, hotkey="ctrl+k")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
+        self.add_command(self.__undo, hotkey="ctrl+z")
         self.add_command(self.__yank, hotkey="ctrl+y")
-        self.add_command(self.__add_image, hotkey="alt+i")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
 
         self.__conversations_dir = os.path.join(
@@ -101,6 +102,14 @@ class ChatMenu(Menu[_Line]):
         menu = FileMenu()
         self.__image_file = menu.select_file()
         self.__update_prompt()
+
+    def __undo(self):
+        messages = self.get_messages()
+        if messages:
+            messages.pop()
+        while messages and messages[-1]["role"] != "assistant":
+            messages.pop()
+        self.populate_lines()
 
     def __load_conversation(self):
         menu = _SelectConvMenu(

@@ -78,7 +78,6 @@ class _File:
         self.relative_path = relative_path
         self.show_size = show_size
         self.show_mtime = show_mtime
-        self.color = "blue" if self.is_dir else "white"
 
     def __str__(self) -> str:
         s = ""
@@ -173,6 +172,9 @@ class FileMenu(Menu[_File]):
                 self.__config.selected_file,
                 list_file_recursively=recursive,
             )
+
+    def get_item_color(self, item: _File) -> str:
+        return "blue" if item.is_dir else "white"
 
     def _reveal_in_file_explorer(self):
         shell_open(self.get_cur_dir())

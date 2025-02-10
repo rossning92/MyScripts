@@ -18,6 +18,9 @@ ext_language_dict = {
     ".cc": "cpp",
     ".cpp": "cpp",
     ".h": "cpp",
+    ".frag": "cpp",
+    ".vert": "cpp",
+    ".glsl": "cpp",
     ".hpp": "cpp",
     ".py": "python",
 }

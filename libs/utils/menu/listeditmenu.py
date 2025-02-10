@@ -13,14 +13,17 @@ class ListEditMenu(Menu, Generic[T]):
     ):
         self.__json_file = json_file
 
-        if json_file is not None:
-            items = load_json(json_file, default=[])
-        if not isinstance(items, list):
-            raise TypeError("JSON data must be a list")
+        super().__init__(items=items if items else [], **kwargs)
 
-        super().__init__(items=items or [], **kwargs)
+        self.load_json()
 
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
+
+    def load_json(self):
+        if self.__json_file is not None:
+            self.items[:] = load_json(self.__json_file, default=[])
+        if not isinstance(self.items[:], list):
+            raise TypeError("JSON data must be a list")
 
     def delete_selected_item(self):
         index = self.get_selected_index()

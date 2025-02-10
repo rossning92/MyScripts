@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime
 from typing import (
     Any,
     Callable,
@@ -1298,7 +1299,8 @@ class Menu(Generic[T]):
         pass
 
     def set_message(self, message: Optional[str] = None):
-        self.__message = message
+        ts = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        self.__message = f"{ts}: {message}"
         self.update_screen()
 
     def __edit_text_in_external_editor(self):
