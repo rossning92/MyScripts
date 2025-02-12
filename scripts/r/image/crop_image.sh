@@ -1,9 +1,10 @@
 set -e
+set -x
 cd "$(dirname "$1")"
 
 mkdir -p "out"
 
-IFS=',' read -r x y w h <<<"$CROP_RECT"
+IFS=' ' read -r x y w h <<<"$CROP_RECT"
 
 for file in "$@"; do
     file="$(basename "$file")"

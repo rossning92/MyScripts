@@ -190,22 +190,30 @@ def pull_file_putty(src, dest=None):
     _putty_wrapper("pscp", [_get_user_host() + ":" + src, dest])
 
 
-def pull_file_ssh(src, dest=None, port=None):
+def pull_file_ssh(src, dest=None, port=None, wsl=True):
     if dest is None:
         dest = os.getcwd()
 
+    use_wsl = wsl and sys.platform == "win32"
+
     args = [
         "scp",
+        "-P",
+        _get_port(port),
         "-r",  # Recursively copy entire directories
         "-o",
         "StrictHostKeyChecking=no",
     ]
-
-    args += ["-P", _get_port(port)]
     args += [
         "{}:{}".format(_get_user_host(), src),
-        dest,
     ]
+    if use_wsl:
+        args += [convert_to_unix_path(dest, wsl=True)]
+    else:
+        args += [dest]
+
+    if use_wsl:
+        args = ["bash.exe", "-lic", _args_to_str(args, shell_type="bash")]
 
     call_echo(args)
 
@@ -285,7 +293,4 @@ def run_bash_script_vagrant(bash_script_file, vagrant_id):
 
 
 def run_bash_script_ssh(file, wsl=True, user=None, host=None, pwd=None, port=None):
-    # if sys.platform == "win32":
-    #     run_bash_script_putty(file, user=user, host=host, pwd=pwd)
-    # else:
     run_bash_script_openssh(file, user=user, host=host, pwd=pwd)
