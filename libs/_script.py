@@ -92,6 +92,7 @@ SCRIPT_EXTENSIONS = {
     ".ps1",
     ".py",
     ".sh",
+    ".sql",
     ".tex",
     ".txt",
     ".url",
