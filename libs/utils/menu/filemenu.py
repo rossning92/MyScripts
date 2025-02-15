@@ -136,7 +136,7 @@ class FileMenu(Menu[_File]):
 
         self.add_command(self.copy_to, hotkey="alt+c")
 
-        self.add_command(self._copy_file_full_path, hotkey="ctrl+y")
+        self.add_command(self._copy_file_full_path, hotkey="alt+y")
         self.add_command(self._create_new_dir, hotkey="ctrl+n")
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
@@ -590,6 +590,3 @@ class FileMenu(Menu[_File]):
             )
             if ret_code == 0:
                 self._refresh_cur_dir()
-
-    def get_status_bar_text(self) -> str:
-        return f"sort={self.__config.sort_by}"

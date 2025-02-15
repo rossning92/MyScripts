@@ -150,11 +150,7 @@ class CoderMenu(ChatMenu):
         with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
             f.write("*")
 
-        super().__init__(
-            conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
-            new_conversation=False,
-            **kwargs,
-        )
+        super().__init__(**kwargs)
 
         self.__modified_files: List[str] = []
 
@@ -173,6 +169,7 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
+        self.add_command(self.__load_last_session, hotkey="ctrl+l")
         self.add_command(self.__undo, hotkey="ctrl+z")
 
         self.__update_prompt()
@@ -180,6 +177,9 @@ class CoderMenu(ChatMenu):
     def __add_file(self):
         self.__file_list_menu._add_file()
         self.__update_prompt()
+
+    def __load_last_session(self):
+        self.load_conversation(os.path.join(SETTING_DIR, CONVERSATION_FILE))
 
     def __update_prompt(self):
         s = StringIO()

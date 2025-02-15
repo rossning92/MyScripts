@@ -1,4 +1,5 @@
 vim.wo.relativenumber = true
+vim.wo.number = true
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -97,25 +98,24 @@ cmp.setup({
   },
 })
 
-local function execute_command(command)
-  local handle = io.popen(command)
-  if handle == nil then
-    print("Error: failed to execute command")
-    return nil
+local function read_text_file(filepath)
+  local file, err = io.open(filepath, "r")
+  if not file then
+    error("Error: Could not open file '" .. filepath .. "'. " .. (err or "Unknown error"))
   end
 
-  local text = handle:read("*a")
-  handle:close()
+  local text = file:read("*a")
+  file:close()
+  os.remove(filepath)
   return text
 end
 
-local function replace_selected_text(expr)
+local function get_selected_text()
   local mode = vim.fn.mode()
   local start_pos = vim.fn.getpos("v")
   local end_pos = vim.fn.getpos(".")
 
   -- Swap start_pos and end_pos if start comes after end.
-  -- This ensures selections are correctly handled even if made from end to start.
   if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
     start_pos, end_pos = end_pos, start_pos
   end
@@ -135,8 +135,21 @@ local function replace_selected_text(expr)
     text = table.concat(lines, '\n')
   end
 
-  -- Apply function on the extracted text.
-  text = expr(text)
+  return text
+end
+
+local function replace_selected_text(text)
+  local mode = vim.fn.mode()
+  local start_pos = vim.fn.getpos("v")
+  local end_pos = vim.fn.getpos(".")
+
+  -- Swap start_pos and end_pos if start comes after end.
+  if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
+    start_pos, end_pos = end_pos, start_pos
+  end
+
+  -- Retrieve the lines in the buffer from start_pos to end_pos.
+  local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
 
   if mode == 'v' then
     -- Reconstruct the text by splicing the replaced text back into the original lines.
@@ -155,15 +168,6 @@ local function replace_selected_text(expr)
   -- Move cursor to the end of the last line of the replaced text.
   vim.api.nvim_win_set_cursor(0, { start_pos[2] + #lines - 1, #lines[#lines] })
 end
-
-local function fix()
-  replace_selected_text(function(text)
-    return execute_command(
-      "run_script r/ai/openai/complete_chat.py \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
-      text:gsub("'", "'\\''") .. "\'")
-  end)
-end
-vim.keymap.set({ "n", "i", "v" }, "<C-k>f", fix)
 
 local function run_in_terminal(cmd, opts)
   opts = opts or {}
@@ -198,6 +202,22 @@ local function run_in_terminal(cmd, opts)
   vim.cmd("startinsert")
 end
 
+local function fix()
+  local text = get_selected_text()
+  local tmp_file = os.tmpname()
+  run_in_terminal(
+    "run_script r/ai/complete_chat.py -o " ..
+    tmp_file .. " \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
+    text:gsub("'", "'\\''") .. "\'", {
+      on_exit = function()
+        local new_text = read_text_file(tmp_file)
+        os.remove(tmp_file)
+        replace_selected_text(new_text)
+      end
+    })
+end
+vim.keymap.set({ "n", "i", "v" }, "<C-k>f", fix)
+
 local function append_line(line)
   line = string.gsub(line, '^%s*(.-)%s*$', '%1') -- trim trailing spaces
 
@@ -226,19 +246,10 @@ local function speech_to_text()
   local tmp_file = os.tmpname()
   run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, {
     on_exit = function()
-      -- Read text
-      local file = io.open(tmp_file, "r")
-      if file then
-        local text = file:read("*a")
-        file:close()
-        os.remove(tmp_file)
-
-        -- Insert text to current buffer
-        if text ~= "" then
-          append_line(text)
-        end
-      else
-        print("Error: Could not open file '" .. tmp_file .. "'.")
+      local text = read_text_file(tmp_file)
+      os.remove(tmp_file)
+      if text ~= "" then
+        append_line(text)
       end
     end
   })

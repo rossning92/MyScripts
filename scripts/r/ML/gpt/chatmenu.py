@@ -202,8 +202,10 @@ class ChatMenu(Menu[_Line]):
                     )
         self.update_screen()
 
-    def load_conversation(self, file: str):
-        self.__conv_file = file
+    def load_conversation(self, file: Optional[str] = None):
+        if file is not None:
+            assert os.path.exists(file)
+            self.__conv_file = file
         self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
         self.populate_lines()
 
