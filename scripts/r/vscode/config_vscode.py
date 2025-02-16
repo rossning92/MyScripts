@@ -178,7 +178,7 @@ def config_vscode(data_dir=None, compact=False):
         [
             "mhutchie.git-graph",
             "stkb.rewrap",
-            "streetsidesoftware.code-spell-checker",
+            # "streetsidesoftware.code-spell-checker",
             # C++
             "llvm-vs-code-extensions.vscode-clangd",
             # Markdown

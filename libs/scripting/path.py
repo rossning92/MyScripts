@@ -27,9 +27,16 @@ def get_script_dirs_config_file():
 def get_script_directories() -> List[ScriptDirectory]:
     directories: List[ScriptDirectory] = []
 
-    # Default script root path
+    # Scripts root path
     directories.append(
         ScriptDirectory(name="", path=os.path.join(get_my_script_root(), "scripts"))
+    )
+
+    # Settings directory
+    directories.append(
+        ScriptDirectory(
+            name="settings", path=os.path.join(get_my_script_root(), "settings")
+        )
     )
 
     config_file = get_script_dirs_config_file()

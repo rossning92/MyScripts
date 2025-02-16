@@ -145,6 +145,8 @@ class FileListMenu(ListEditMenu):
 
 class CoderMenu(ChatMenu):
     def __init__(self, files: Optional[List[str]] = None, **kwargs):
+        self.__close_after_edit = True
+
         # Create directory if it does not exist.
         os.makedirs(SETTING_DIR, exist_ok=True)
         with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
@@ -183,7 +185,6 @@ class CoderMenu(ChatMenu):
 
     def __update_prompt(self):
         s = StringIO()
-        s.write("task : " + self.__session["task"] + "\n")
         s.write(
             "files: "
             + "|".join(
@@ -221,7 +222,11 @@ class CoderMenu(ChatMenu):
         content = selected_message["content"]
 
         changes = _find_changes(content)
-        self.__modified_files[:] = apply_change_interactive(changes)
+        modified_files = apply_change_interactive(changes)
+        if modified_files:
+            self.__modified_files[:] = modified_files
+            if self.__close_after_edit:
+                self.close()
 
     def on_enter_pressed(self):
         i = len(self.get_messages())

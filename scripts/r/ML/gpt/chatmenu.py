@@ -204,8 +204,12 @@ class ChatMenu(Menu[_Line]):
 
     def load_conversation(self, file: Optional[str] = None):
         if file is not None:
-            assert os.path.exists(file)
             self.__conv_file = file
+
+        if not os.path.exists(self.__conv_file):
+            self.set_message(f"Conv file not exist: {self.__conv_file}")
+            return
+
         self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
         self.populate_lines()
 

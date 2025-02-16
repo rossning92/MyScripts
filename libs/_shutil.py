@@ -1082,7 +1082,7 @@ def start_process(args, shell=False):
         start_new_session = True
         close_fds = True
 
-    subprocess.run(
+    subprocess.Popen(
         args,
         shell=shell,
         creationflags=creationflags,

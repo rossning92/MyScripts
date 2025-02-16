@@ -1,5 +1,7 @@
 vim.wo.relativenumber = true
 vim.wo.number = true
+vim.g.mapleader = " "
+vim.opt.shortmess:append("I") -- Disable intro message
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -13,8 +15,6 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
   })
 end
 vim.opt.rtp:prepend(lazypath)
-
-vim.g.mapleader = " "
 
 require("lazy").setup({
   "folke/which-key.nvim",
@@ -279,6 +279,8 @@ local function run_coder()
 
     run_in_terminal('run_script r/ai/coder.py "' .. full_path .. '"', {
       on_exit = function()
+        -- Reload the current file from disk
+        vim.api.nvim_command('edit!')
       end
     })
   end

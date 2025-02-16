@@ -87,6 +87,7 @@ SCRIPT_EXTENSIONS = {
     ".ipynb",  # Python
     ".js",
     ".link",
+    ".lua",
     ".md",
     ".mmd",  # mermaid source file
     ".ps1",

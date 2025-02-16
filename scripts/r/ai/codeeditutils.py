@@ -1,7 +1,8 @@
 import os
 import shutil
 from dataclasses import dataclass
-from typing import List, Set
+from io import StringIO
+from typing import List, Optional, Set
 
 from utils.menu.confirmmenu import ConfirmMenu
 
@@ -12,29 +13,35 @@ class Change:
     search: str
     replace: str
 
+    def __str__(self) -> str:
+        output = StringIO()
+        output.write(f"{self.file}:\n")
+        for line in self.search.splitlines():
+            output.write(f"- {line}\n")
+        for line in self.replace.splitlines():
+            output.write(f"+ {line}\n")
+        return output.getvalue()
+
 
 class ApplyChangeMenu(ConfirmMenu):
-    def __init__(self, items: List[Change], **kwargs) -> None:
+    def __init__(self, changes: List[Change], **kwargs) -> None:
         super().__init__(
-            prompt=f"apply changes ({len(items)})?",
-            items=items,
+            prompt=f"apply changes ({len(changes)})?",
+            items=self.format_changes(changes).splitlines(),
             wrap_text=True,
             **kwargs,
         )
 
-    def get_item_text(self, c: Change) -> str:
-        search = c.search + "\n" if c.search else ""
-        replace = c.replace + "\n" if c.replace else ""
-        return (
-            f"{c.file}\n"
-            "```\n"
-            "<<<<<<< SEARCH\n"
-            f"{search}"
-            "=======\n"
-            f"{replace}"
-            ">>>>>>> REPLACE\n"
-            "```"
-        )
+    def format_changes(self, changes: List[Change]) -> str:
+        return "\n".join(str(c) for c in changes)
+
+    def get_item_color(self, item: str) -> str:
+        if item.startswith("+ "):
+            return "green"
+        elif item.startswith("- "):
+            return "red"
+        else:
+            return "white"
 
 
 def apply_changes(changes: List[Change]) -> List[str]:
@@ -63,16 +70,16 @@ def apply_changes(changes: List[Change]) -> List[str]:
     return list(modified_files)
 
 
-def apply_change_interactive(changes: List[Change]) -> List[str]:
+def apply_change_interactive(changes: List[Change]) -> Optional[List[str]]:
     if len(changes) > 0:
-        menu = ApplyChangeMenu(items=changes)
+        menu = ApplyChangeMenu(changes=changes)
         menu.exec()
         if menu.is_confirmed():
             return apply_changes(changes)
         else:
-            return []
+            return None
     else:
-        return []
+        return None
 
 
 def revert_changes(files: List[str]) -> None:
