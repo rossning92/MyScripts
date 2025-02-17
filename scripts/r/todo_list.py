@@ -33,7 +33,19 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def get_item_text(self, item: TodoItem) -> str:
         date = _parse_date(item["due"])
-        # Format the date as a string
+
+        # Calculate the relative difference and convert to appropriate unit
+        now = datetime.now(date.tzinfo)
+        diff = (date - now).days
+        if abs(diff) > 365:
+            time_diff_str = f"{'+' if diff > 0 else ''}{diff // 365}yr"
+        elif abs(diff) > 30:
+            time_diff_str = f"{'+' if diff > 0 else ''}{diff // 30}mo"
+        elif abs(diff) != 0:
+            time_diff_str = f"{'+' if diff > 0 else ''}{diff}d"
+        else:
+            time_diff_str = ""
+
         if date.hour == 0 and date.minute == 0:
             date_str = date.strftime("%y-%m-%d").ljust(14)
         else:
@@ -41,9 +53,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         return (
             ("[x]" if item["done"] else "[ ]")
-            + "  "
+            + " "
+            + f"{time_diff_str:>5}"
+            + " "
             + date_str
-            + "  "
+            + " "
             + item["description"]
         )
 
@@ -93,7 +107,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_message("reloaded")
 
     def __sort_tasks(self):
-        self.items.sort(key=lambda item: (item["done"], item.get("due")))
+        self.items.sort(key=lambda item: item.get("due"), reverse=True)
 
     def __toggle_status(self):
         selected = self.get_selected_item()

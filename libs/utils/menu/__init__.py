@@ -1299,8 +1299,11 @@ class Menu(Generic[T]):
         pass
 
     def set_message(self, message: Optional[str] = None):
-        ts = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-        self.__message = f"{ts}: {message}"
+        if message:
+            ts = datetime.now().strftime("%H:%M:%S.%f")[:-5]
+            self.__message = f"{ts}: {message}"
+        else:
+            message = None
         self.update_screen()
 
     def __edit_text_in_external_editor(self):

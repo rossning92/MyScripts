@@ -175,21 +175,17 @@ local function run_in_terminal(cmd, opts)
   -- Create a new buffer (unlisted and scratch)
   local bufnr = vim.api.nvim_create_buf(false, true)
 
-  -- Open a new floating window that uses the new buffer
-  local win_id = vim.api.nvim_open_win(bufnr, true, {
-    relative = 'editor',
-    width = vim.o.columns,
-    height = vim.o.lines,
-    col = 0,
-    row = 0,
-    style = 'minimal'
-  })
+  -- Split the current window and open the new buffer in the bottom half
+  vim.cmd('split')
+  vim.cmd('wincmd J')                           -- Move the new split to the bottom
+  local win_id = vim.api.nvim_get_current_win() -- Get the current window ID
+  vim.api.nvim_win_set_buf(win_id, bufnr)       -- Set the buffer to the new window
 
   -- Start a terminal and run command
   vim.fn.termopen(cmd, {
     on_exit = function(_, exit_code, _)
       if exit_code == 0 then
-        -- Close the floating window if exit code is 0
+        -- Close the window if exit code is 0
         vim.api.nvim_win_close(win_id, true)
         if opts.on_exit then
           opts.on_exit()

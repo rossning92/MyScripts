@@ -264,10 +264,12 @@ def get_function_definition_query(lang: str) -> Query:
         raise Exception(f"Language '{lang}' is not supported")
 
 
-def get_module_name(filepath: str):
+def get_module_name(filepath: str, use_full_path=False):
     lang = filename_to_lang(filepath)
+    if not use_full_path:
+        filepath = os.path.basename(filepath)
     if lang == "cpp":
-        return os.path.splitext(os.path.basename(filepath))[0] + ".o"
+        return os.path.splitext(filepath)[0] + ".o"
     else:
         return filepath
 
