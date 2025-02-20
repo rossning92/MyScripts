@@ -10,7 +10,7 @@ from _shutil import start_process
 
 
 def edit_file(file: str):
-    subprocess.call(["nvim", file])
+    subprocess.call(["nvim", file, "+startinsert"])
 
 
 def edit_text(text: str):

@@ -338,6 +338,7 @@ def generate_call_graph(
     match_callees: Optional[int] = None,
     generate_preview=False,
     diff: Optional[Dict[str, List[Tuple[int, int]]]] = None,
+    ignore_case=False,
 ) -> CallGraph:
     graph = CallGraph()
 
@@ -380,7 +381,9 @@ def generate_call_graph(
                         ) <= min(function_def_node.end_point.row, line_range[1] - 1):
                             filtered_nodes.add(function_name)
 
-                if match and re.search(match, function_name, re.IGNORECASE):
+                if match and re.search(
+                    match, function_name, re.IGNORECASE if ignore_case else 0
+                ):
                     filtered_nodes.add(function_name)
 
     # Build edges

@@ -1,7 +1,8 @@
 vim.wo.relativenumber = true
 vim.wo.number = true
 vim.g.mapleader = " "
-vim.opt.shortmess:append("I") -- Disable intro message
+vim.opt.shortmess:append("I")     -- Disable intro message
+vim.opt.clipboard = "unnamedplus" -- Use system clipboard
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
