@@ -19,7 +19,7 @@ class ListEditMenu(Menu, Generic[T]):
         self.__json_file = json_file
         self.__backup_json = backup_json
 
-        super().__init__(items=items if items else [], **kwargs)
+        super().__init__(items=items if items is not None else [], **kwargs)
 
         self.load_json()
 

@@ -58,14 +58,20 @@ def apply_changes(changes: List[Change]) -> List[str]:
             with open(c.file, "w", encoding="utf-8") as f:  # Create a new file
                 f.write(c.replace)
         else:
-            with open(c.file, "r+", encoding="utf-8") as f:
+            with open(c.file, "r", encoding="utf-8") as f:
                 content = f.read()
-                if c.search not in content:
-                    raise ValueError(f"Search string not found in {c.file}")
-                updated_content = content.replace(c.search, c.replace)
-                f.seek(0)
+                if "\r\n" in content:
+                    newline = "\r\n"
+                else:
+                    newline = "\n"
+
+            if c.search not in content:
+                raise ValueError(f"Search string not found in {c.file}")
+
+            updated_content = content.replace(c.search, c.replace, 1)
+
+            with open(c.file, "w", encoding="utf-8", newline=newline) as f:
                 f.write(updated_content)
-                f.truncate()
 
     return list(modified_files)
 

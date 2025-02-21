@@ -14,6 +14,7 @@ TodoItem = Dict[str, Any]
 
 DUE_DATE_FIELD = "due"
 IMPORTANT_FIELD = "important"
+DONE_FIELD = "done"
 
 
 def _parse_date(s: str) -> Optional[datetime]:
@@ -142,7 +143,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def __sort_tasks(self):
         self.items.sort(
-            key=lambda item: (item.get(DUE_DATE_FIELD, ""), item.get("description")),
+            key=lambda item: (
+                not item.get(DONE_FIELD, False),
+                item.get(DUE_DATE_FIELD, ""),
+                item.get("description"),
+            ),
             reverse=True,
         )
 
