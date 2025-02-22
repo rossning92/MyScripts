@@ -1,9 +1,9 @@
 import argparse
 import os
+import re
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-import dateutil.parser
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.inputmenu import InputMenu
@@ -17,11 +17,14 @@ IMPORTANT_FIELD = "important"
 DONE_FIELD = "done"
 
 
-def _parse_date(s: str) -> Optional[datetime]:
-    try:
-        return dateutil.parser.parse(s, ignoretz=True)
-    except dateutil.parser.ParserError:
-        return None
+def _parse_date(text: str) -> Optional[datetime]:
+    pattern = r"(?:(?P<year>\d{2,4})-)?(?P<month>\d{1,2})-(?P<day>\d{1,2})"
+    match = re.search(pattern, text)
+    if match:
+        year = int(match.group("year") or datetime.now().year)
+        month = int(match.group("month"))
+        day = int(match.group("day"))
+    return datetime(year, month, day)
 
 
 class TodoMenu(ListEditMenu[TodoItem]):

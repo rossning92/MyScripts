@@ -574,6 +574,9 @@
     "pacman": {
       "packages": ["ripgrep"]
     },
+    "termux": {
+      "packages": ["ripgrep"]
+    },
     "winget": {
       "packages": ["BurntSushi.ripgrep.MSVC"]
     }

@@ -1368,7 +1368,7 @@ def send_ctrl_c(ps):
                 # handler.
                 pass
         else:
-            ps.send_signal(signal.CTRL_C_EVENT)  # type: ignore
+            ps.send_signal(signal.SIGINT)
             ps.wait()
 
 

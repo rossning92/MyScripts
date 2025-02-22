@@ -33,6 +33,8 @@ def text_to_speech(text: str, out_file: Optional[str] = None):
                 # ["ffplay", "-fs", "-nodisp", "-autoexit", "-loglevel", "quiet", "-"],
                 ["play", "--volume", "2", "-q", "-t", format, "-"],
                 stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
             assert process.stdin is not None
             for chunk in response.iter_content(chunk_size=None):

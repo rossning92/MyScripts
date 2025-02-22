@@ -24,7 +24,9 @@ if __name__ == "__main__":
                 tempfile.gettempdir(), slugify(str(args.cmdline)) + ".log"
             )
         with open(file, "w") as f:
-            ps = subprocess.Popen(args.cmdline, stdout=f, stderr=f)
+            ps = subprocess.Popen(
+                args.cmdline, stdout=f, stderr=f, stdin=subprocess.DEVNULL
+            )
             LogMenu(
                 files=[file],
                 filter=args.filter,

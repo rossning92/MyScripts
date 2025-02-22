@@ -15,7 +15,7 @@ class AssistantMenu(AgentMenu):
             super().on_enter_pressed()
 
     def __listen(self):
-        text = speech_to_text()
+        text = self.call_func_without_curses(lambda: speech_to_text())
         if text:
             self.send_message(text)
 

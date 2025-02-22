@@ -171,14 +171,15 @@ class AgentMenu(ChatMenu):
 
     def __update_prompt(self):
         task = self.__agent["task"].strip()
-
-        prompt = f"""\
-agent   : {_get_agent_name(self.__agent_file)}
-&prompt : {task.splitlines()[0] if task else ''}
-&tools  : {self.__agent['tools']}
-&ctxt   : {self.__agent['context']}
-"""
-        self.set_prompt(prompt)
+        tools = self.__agent["tools"]
+        prompt = task.splitlines()[0] if task else ""
+        context = self.__agent["context"]
+        self.set_prompt(
+            f"agent={_get_agent_name(self.__agent_file)}, "
+            f'prompt="{prompt}", '
+            f"&tools={tools}, "
+            f"&context={context}\n"
+        )
 
     def __new_agent(self):
         agent_file = os.path.join(AGENT_DIR, UNSAVED_AGENT_FILE)
