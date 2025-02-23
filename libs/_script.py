@@ -1848,7 +1848,7 @@ def start_script(
         tee=tee,
     )
     if not ret:
-        raise Exception(f"{file} returned non-zero exit status {ret}")
+        raise subprocess.CalledProcessError(returncode=ret, cmd=args)
 
     # Restore title
     if console_title and sys.platform == "win32":

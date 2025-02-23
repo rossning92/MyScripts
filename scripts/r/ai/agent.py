@@ -4,9 +4,8 @@ import inspect
 import logging
 import os
 import re
-import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from ai.toolutil import get_all_tool_names, load_tool
 from ML.gpt.chatmenu import ChatMenu
@@ -30,6 +29,32 @@ def _find_xml_strings(tags: List[str], s: str) -> List[str]:
     return re.findall(rf"<{tag_patt}>[\S\s]*?</{tag_patt}>", s, flags=re.MULTILINE)
 
 
+def _parse_xml_string_for_tool(s: str) -> Tuple[str, Dict[str, str]]:
+    match = re.match(r"^\s*<([a-z_]+)>([\d\D]*?)</\1>\s*$", s)
+    if match is None:
+        raise Exception()
+    tool_name = match.group(1)
+    params_xml_str = match.group(2)
+
+    param_patt = re.compile(r"^\s*<([a-z_]+)>[\r\n]*([\d\D]*?)[\r\n]*</\1>\s*")
+    params: Dict[str, str] = {}
+    while True:
+        match = re.match(param_patt, params_xml_str)
+        if match:
+            name = match.group(1)
+            if name in params:
+                raise ValueError(f"Duplicate parameter detected: {name}")
+            value = match.group(2)
+            params[name] = (
+                value.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+            )
+            end = match.span()[1]
+            params_xml_str = params_xml_str[end:]
+        else:
+            break
+    return (tool_name, params)
+
+
 def _get_agent_name(agent_file: str) -> str:
     agent_name, _ = os.path.splitext(os.path.basename(agent_file))
     return agent_name
@@ -48,19 +73,15 @@ You use tools step-by-step to accomplish a given task, with each tool use inform
 
 Tool use is formatted using XML-style tags.
 The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags.
+You do not need to escape any characters, such as <, >, and & in XML tags.
+You can simply put multiline text in XML tags.
 Always adhere to this format for the tool use to ensure proper parsing and execution. Here's the structure:
 
 <tool_name>
-<parameter1_name>some value1</parameter1_name>
-<parameter2_name>some value2</parameter2_name>
+<param1>...</param1>
+<param2>...</param2>
 ...
 </tool_name>
-
-For example:
-
-<read_file>
-<path>src/main.js</path>
-</read_file>
 
 ## Tools
 
@@ -307,16 +328,7 @@ class AgentMenu(ChatMenu):
         xml_strings = _find_xml_strings([t.__name__ for t in self.__tools], content)
         for xml_string in xml_strings:
             # Parse the XML string for the tool usage into valid Python code to be executed.
-            args: Dict[str, str] = {}
-            tree = ET.ElementTree(ET.fromstring(xml_string))
-            root = tree.getroot()
-            tool_name = root.tag
-            assert tool_name
-            for i, child in enumerate(root):
-                if child.text:
-                    args[child.tag] = child.text
-                else:
-                    raise ValueError(f"Tag {child.tag} does not contain text")
+            tool_name, args = _parse_xml_string_for_tool(xml_string)
 
             # Run tool
             if not self.__yes_always:
@@ -328,7 +340,11 @@ class AgentMenu(ChatMenu):
 
             if should_run:
                 tool = next(tool for tool in self.__tools if tool.__name__ == tool_name)
-                response_message = "Returns:\n-------\n" + tool(**args) + "\n-------"
+                ret = tool(**args)
+                if ret:
+                    response_message = "Returns:\n-------\n" + str(ret) + "\n-------"
+                else:
+                    response_message = "Done"
 
         # Check if the task is completed
         match = re.findall(

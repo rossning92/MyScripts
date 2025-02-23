@@ -25,11 +25,6 @@
       "packages": ["7zip.7zip"]
     }
   },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
-    }
-  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -506,6 +501,11 @@
       "packages": ["prusaslicer"]
     }
   },
+  "pulseaudio": {
+    "termux": {
+      "packages": ["pulseaudio"]
+    }
+  },
   "putty": {
     "apt": {
       "packages": ["putty-tools"]
@@ -521,6 +521,11 @@
     },
     "winget": {
       "packages": ["PuTTY.PuTTY"]
+    }
+  },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
     }
   },
   "python312": {

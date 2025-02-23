@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from subprocess import CalledProcessError
 from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(
@@ -61,6 +62,6 @@ if __name__ == "__main__":
             args=rest_args,
             **kwargs,
         )
-    except Exception as ex:
+    except CalledProcessError as ex:
         logging.error(ex)
         sys.exit(1)

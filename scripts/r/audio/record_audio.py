@@ -1,23 +1,18 @@
 import argparse
-import atexit
 import os
 import signal
 import subprocess
 import sys
-import time
-from typing import List, Optional
+from functools import lru_cache
+from typing import Optional
 
+from _pkgmanager import require_package
 from _shutil import is_in_termux
 from utils.getch import getch
 
 
-def _run_without_output(command: List[str]):
-    with open(os.devnull, "w") as devnull:
-        subprocess.check_call(command, stdout=devnull, stderr=devnull)
-
-
 def _wait_for_key() -> bool:
-    sys.stdout.write("Recording (Press [ENTER] to confirm / [Q] to cancel)")
+    sys.stdout.write("Recording (Press Enter to confirm or Q to cancel)")
     sys.stdout.flush()
     status: Optional[bool] = None
     while status is None:
@@ -37,17 +32,16 @@ def _wait_for_key() -> bool:
     return status
 
 
-_is_recording_termux = False
-
-
-def cleanup():
-    global _is_recording_termux
-    if _is_recording_termux:
-        subprocess.check_call(["termux-microphone-record", "-q"])
-        _is_recording_termux = False
-
-
-atexit.register(cleanup)
+@lru_cache(maxsize=None)
+def initialize_pulseaudio():
+    if is_in_termux():
+        require_package("pulseaudio")
+        subprocess.call(
+            ["pulseaudio", "-k"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        subprocess.check_call(["pulseaudio", "-L", "module-sles-source", "-D"])
 
 
 def record_audio(out_file: Optional[str] = None) -> Optional[str]:
@@ -63,23 +57,20 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
         os.remove(out_file)
 
     should_save = False
-    if is_in_termux():
-        _is_recording_termux = True
+    if sys.platform == "linux":
+        require_package("sox")
 
-        _run_without_output(["termux-microphone-record", "-f", out_file])
+        if is_in_termux():
+            initialize_pulseaudio()
 
-        should_save = _wait_for_key()
-
-        _is_recording_termux = False
-        _run_without_output(["termux-microphone-record", "-q"])
-
-        # Must wait for a tiny bit of time to make sure that the file is saved correctly.
-        time.sleep(0.25)
-
-    elif sys.platform == "linux":
-        subprocess.run(["run_script", "r/install_package.py", "sox"], check=True)
-
-        process = subprocess.Popen(["rec", "--no-show-progress", out_file])
+        process = subprocess.Popen(
+            [
+                "rec",
+                "--no-show-progress",
+                "-V1",  # only show failure messages
+                out_file,
+            ]
+        )
         pid = process.pid
 
         should_save = _wait_for_key()
@@ -101,8 +92,14 @@ def record_audio(out_file: Optional[str] = None) -> Optional[str]:
 
 
 if __name__ == "__main__":
+    import datetime
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("file", type=str, help="The filename to record to")
+    parser.add_argument("file", type=str, nargs="?", help="The filename to record to")
     args = parser.parse_args()
+
+    if not args.file:
+        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        args.file = f"recording_{current_time}.wav"
 
     record_audio(out_file=args.file)

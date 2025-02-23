@@ -2,7 +2,7 @@ set -e
 
 cd "$VIDEO_DOWNLOAD_DIR"
 
-export PATH=$(echo $HOME/go/bin):$PATH
+export PATH="$(echo $HOME/go/bin):$PATH"
 
 cookie_file="$HOME/.bilibili-cookies.txt"
 cookie="$(cat "$cookie_file")"
