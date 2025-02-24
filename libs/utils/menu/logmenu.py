@@ -26,7 +26,10 @@ class LogMenu(Menu[str]):
         self.preset_dir = (
             preset_dir
             if preset_dir
-            else os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
+            else (
+                os.environ.get("LOG_PRESET_DIR")
+                or os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
+            )
         )
 
         self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()

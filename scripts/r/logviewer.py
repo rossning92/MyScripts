@@ -14,8 +14,6 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--cmdline", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
-    preset_dir = os.environ.get("LOGVIEWER_PRESET_DIR")
-
     if args.cmdline:
         if args.output:
             file = args.output
@@ -30,7 +28,6 @@ if __name__ == "__main__":
             LogMenu(
                 files=[file],
                 filter=args.filter,
-                preset_dir=preset_dir,
             ).exec()
             ps.wait()
 
@@ -38,5 +35,4 @@ if __name__ == "__main__":
         LogMenu(
             files=args.files,
             filter=args.filter,
-            preset_dir=preset_dir,
         ).exec()

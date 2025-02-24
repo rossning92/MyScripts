@@ -200,16 +200,25 @@ local function run_in_terminal(cmd, opts)
 end
 
 local function fix()
+  -- Prompt
   local text = get_selected_text()
-  local tmp_file = os.tmpname()
+  local prompt = "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" .. text
+  local prompt_file = os.tmpname()
+  local file = io.open(prompt_file, "w")
+  if file then
+    file:write(prompt)
+    file:close()
+  end
+
+  local output_file = os.tmpname()
   run_in_terminal(
-    "run_script r/ai/complete_chat.py -o " ..
-    tmp_file .. " \'Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
-    text:gsub("'", "'\\''") .. "\'", {
+    { "run_script", "r/ai/complete_chat.py", "-o", output_file, prompt_file }, {
       on_exit = function()
-        local new_text = read_text_file(tmp_file)
-        os.remove(tmp_file)
+        local new_text = read_text_file(output_file)
         replace_selected_text(new_text)
+
+        os.remove(prompt_file)
+        os.remove(output_file)
       end
     })
 end

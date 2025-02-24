@@ -390,14 +390,13 @@ class FileMenu(Menu[_File]):
         self.clear_input()
 
         # Update prompt
-        if self.__allow_cd:
-            self.set_prompt(
-                f"{self.__prompt} ({self.get_cur_dir()})"
-                if self.__prompt
-                else self.get_cur_dir()
-            )
+        prompt_text = ""
+        if self.__allow_cd and self.__prompt:
+            prompt_text = self.__prompt
         elif self.__prompt:
-            self.set_prompt(self.__prompt)
+            prompt_text = self.__prompt
+        prompt_text += " (" + self.get_cur_dir() + ")"
+        self.set_prompt(prompt_text)
 
         # Set last selected file
         if selected_file is None and self.get_cur_dir() in self.__selected_file_dict:

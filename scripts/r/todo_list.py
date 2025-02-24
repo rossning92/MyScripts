@@ -14,7 +14,15 @@ TodoItem = Dict[str, Any]
 
 DUE_DATE_FIELD = "due"
 IMPORTANT_FIELD = "important"
-DONE_FIELD = "done"
+DONE_FIELD_DEPRECATED = "done"
+STATUS_FIELD = "status"
+
+_status_sort_key = {
+    "none": 0,
+    "in_progress": 1,
+    "closed": 2,
+}
+_status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
 
 
 def _parse_date(text: str) -> Optional[datetime]:
@@ -27,6 +35,17 @@ def _parse_date(text: str) -> Optional[datetime]:
     return datetime(year, month, day)
 
 
+class _reversor:
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __eq__(self, other):
+        return other.obj == self.obj
+
+    def __lt__(self, other):
+        return other.obj < self.obj
+
+
 class TodoMenu(ListEditMenu[TodoItem]):
     def __init__(
         self,
@@ -36,14 +55,24 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__sort_tasks()
 
+        self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
         self.add_command(self.__edit_due, hotkey="alt+d")
         self.add_command(self.__new_task, hotkey="ctrl+n")
         self.add_command(self.__reload, hotkey="ctrl+r")
+        self.add_command(self.__set_status_closed, hotkey="alt+c")
+        self.add_command(self.__set_status_wip, hotkey="alt+w")
+        self.add_command(self.__set_status_open, hotkey="alt+o")
         self.add_command(self.__toggle_important, hotkey="!")
-        self.add_command(self.__toggle_status, hotkey="ctrl+x")
 
-    def __set_selected_item_value(self, name, value: Any):
+    def __duplicate_task(self):
+        selected = self.get_selected_item()
+        if selected:
+            copy = selected.copy()
+            self.items.append(copy)
+            self.__edit_todo_item(copy)
+
+    def __set_selected_item_value(self, name: str, value: Any):
         selected = self.get_selected_item()
         if selected:
             if value is None:
@@ -82,7 +111,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
                     date_str = date.strftime("%m-%d %H:%M")
 
         return (
-            ("[x]" if item["done"] else "[ ]")
+            _status_symbols[item[STATUS_FIELD]]
             + (" ! " if item.get(IMPORTANT_FIELD) else "   ")
             + " "
             + f"{time_diff_str:>5} {date_str:<11}"
@@ -92,7 +121,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def get_item_color(self, item: Any) -> str:
         now = datetime.now()
-        if item["done"]:
+        if item[STATUS_FIELD] == "in_progress":
+            return "green"
+        elif item[STATUS_FIELD] == "closed":
             return "blue"
 
         if item.get(IMPORTANT_FIELD):
@@ -106,10 +137,21 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         return "white"
 
+    def load_json(self):
+        super().load_json()
+        for item in self.items:
+            if DONE_FIELD_DEPRECATED in item:
+                item[STATUS_FIELD] = "closed" if item[DONE_FIELD_DEPRECATED] else "none"
+                del item[DONE_FIELD_DEPRECATED]
+
     def on_enter_pressed(self):
         selected = self.get_selected_item()
         if selected:
             self.__edit_todo_item(selected)
+
+    def save_json(self):
+        self.__sort_tasks()
+        return super().save_json()
 
     def __edit_due(self):
         selected = self.get_selected_item()
@@ -121,6 +163,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 selected[DUE_DATE_FIELD] = val
                 self.save_json()
 
+    def __edit_description(self):
+        selected = self.get_selected_item()
+        if selected:
+            self.__edit_item_description(selected)
+
     def __edit_item_description(self, item: TodoItem):
         new_text = self.call_func_without_curses(lambda: edit_text(item["description"]))
         if new_text != item["description"]:
@@ -128,14 +175,14 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.save_json()
             self.update_screen()
 
-    def __edit_description(self):
-        selected = self.get_selected_item()
-        if selected:
-            self.__edit_item_description(selected)
+    def __edit_todo_item(self, item: TodoItem):
+        DictEditMenu(
+            item,
+            on_dict_update=lambda _: self.save_json(),
+        ).exec()
 
     def __new_task(self):
-        # current_date = datetime.now().strftime("%Y-%m-%d")
-        item = {"done": False, "description": ""}
+        item = {STATUS_FIELD: "none", "description": ""}
         self.items.append(item)
         self.__edit_item_description(item)
 
@@ -145,27 +192,27 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_message("reloaded")
 
     def __sort_tasks(self):
+        selected_item = self.get_selected_item()
         self.items.sort(
             key=lambda item: (
-                not item.get(DONE_FIELD, False),
-                item.get(DUE_DATE_FIELD, ""),
+                _status_sort_key[item.get(STATUS_FIELD, 0)],
+                _reversor(item.get(DUE_DATE_FIELD, "")),
                 item.get("description"),
             ),
-            reverse=True,
         )
+        for i, item in enumerate(self.items):
+            if item == selected_item:
+                self.set_selected_row(i)
+                break
 
-    def __toggle_status(self):
-        selected = self.get_selected_item()
-        if selected:
-            selected["done"] = False if selected["done"] else True
-            self.save_json()
-            self.update_screen()
+    def __set_status_closed(self):
+        self.__set_selected_item_value(STATUS_FIELD, "closed")
 
-    def __edit_todo_item(self, item: TodoItem):
-        DictEditMenu(
-            item,
-            on_dict_update=lambda _: self.save_json(),
-        ).exec()
+    def __set_status_open(self):
+        self.__set_selected_item_value(STATUS_FIELD, "none")
+
+    def __set_status_wip(self):
+        self.__set_selected_item_value(STATUS_FIELD, "in_progress")
 
 
 def main():

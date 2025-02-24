@@ -1,3 +1,4 @@
 {
-  "singleInstance": false
+  "singleInstance": false,
+  "variableNames": "LOG_PRESET_DIR"
 }
