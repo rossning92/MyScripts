@@ -629,12 +629,18 @@ class Menu(Generic[T]):
     def set_selected_row(self, selected_row: int):
         self.set_selection(selected_row, selected_row)
 
+    def set_selected_item(self, item: T):
+        for i, itm in enumerate(self.items):
+            if itm == item:
+                self.set_selected_row(i)
+                break
+
     def set_selection(self, begin_row: int, end_row: int):
+        if self.__search_mode:
+            self.update_matched_items()
+
         self.__selected_row_begin = begin_row
         self.__selected_row_end = end_row
-
-        # if self.__search_mode:
-        #     self.update_matched_items()
 
         total = len(self.get_item_indices())
         if self.__selected_row_begin >= total:

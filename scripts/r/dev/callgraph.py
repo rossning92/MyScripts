@@ -8,6 +8,7 @@ from queue import Queue
 from typing import DefaultDict, Dict, Iterator, List, Optional, Set, Tuple
 
 from tree_sitter import Language, Node, Parser, Query, Tree
+from utils.defaultordereddict import DefaultOrderedDict
 
 SCOPE_SEP = "::"
 CLASS_PREFIX = ""
@@ -78,7 +79,10 @@ def _find_all_identifiers(node: Node) -> List[str]:
 
 @dataclass
 class Scope:
-    scopes: DefaultDict = field(default_factory=lambda: defaultdict(Scope))
+    # It's important to maintain the order of each child to know which function is called first and which one is called afterward.
+    scopes: DefaultOrderedDict = field(
+        default_factory=lambda: DefaultOrderedDict(Scope)
+    )
 
 
 @dataclass

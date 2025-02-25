@@ -4,6 +4,7 @@ from typing import Generic, List, Optional, TypeVar
 
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
+from utils.menu.confirmmenu import ConfirmMenu
 
 T = TypeVar("T")
 
@@ -34,9 +35,12 @@ class ListEditMenu(Menu, Generic[T]):
     def delete_selected_item(self):
         index = self.get_selected_index()
         if 0 <= index < len(self.items):
-            del self.items[index]
-            self.update_screen()
-            self.save_json()
+            confirm_menu = ConfirmMenu(prompt="delete item?")
+            confirm_menu.exec()
+            if confirm_menu.is_confirmed():
+                del self.items[index]
+                self.update_screen()
+                self.save_json()
 
     def append_item(self, item: T):
         self.items.append(item)

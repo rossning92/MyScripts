@@ -212,7 +212,7 @@ local function fix()
 
   local output_file = os.tmpname()
   run_in_terminal(
-    { "run_script", "r/ai/complete_chat.py", "-o", output_file, prompt_file }, {
+    "run_script r/ai/complete_chat.py -o " .. output_file .. " " .. prompt_file, {
       on_exit = function()
         local new_text = read_text_file(output_file)
         replace_selected_text(new_text)

@@ -976,6 +976,7 @@ class Script:
                 else:
                     arg_list.append(file)
 
+        # Load dotenv
         dotenv: Dict[str, str] = {}
         load_dotenv(
             os.path.join(
@@ -990,8 +991,8 @@ class Script:
                 env=dotenv,
             )
 
-        # Override environmental variables with `variables`
-        env = {**dotenv, **variables}
+        # Set up environment variables for the new process
+        env = {**variables, **dotenv}
 
         # Set proxy settings
         proxy_settings = load_json(

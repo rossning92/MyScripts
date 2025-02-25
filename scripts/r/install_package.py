@@ -8,7 +8,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("package", type=str, nargs="?", default=None)
     parser.add_argument("-f", "--force", action="store_true")
-    parser.add_argument("--winget", action="store_true", default=os.getenv("WINGET"))
+    parser.add_argument("--winget", action="store_true", default=True)
     args = parser.parse_args()
 
     pkg = args.package

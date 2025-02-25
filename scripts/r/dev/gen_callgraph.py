@@ -49,7 +49,11 @@ def escape_mermaid_node(name: str):
 
 
 def render_mermaid_nodes(
-    graph: CallGraph, scope: Scope, short_name: ShortName, depth=1
+    graph: CallGraph,
+    scope: Scope,
+    short_name: ShortName,
+    direction: str,
+    depth=1,
 ) -> str:
     out = StringIO()
     indent = " " * 4 * depth
@@ -58,12 +62,13 @@ def render_mermaid_nodes(
             out.write(
                 indent + "subgraph " + short_name.get(escape_mermaid_node(name)) + "\n"
             )
-            out.write(indent + "    direction LR\n\n")
+            out.write(indent + f"    direction {direction}\n\n")
             out.write(
                 render_mermaid_nodes(
                     graph=graph,
                     scope=s,
                     short_name=short_name,
+                    direction=direction,
                     depth=depth + 1,
                 )
             )
@@ -78,12 +83,14 @@ def render_mermaid_nodes(
     return out.getvalue()
 
 
-def render_mermaid_flowchart(graph: CallGraph) -> str:
-    s = "flowchart LR\n"
+def render_mermaid_flowchart(graph: CallGraph, direction: str) -> str:
+    s = f"flowchart {direction}\n"
 
     short_name = ShortName()
 
-    s += render_mermaid_nodes(graph=graph, scope=graph.scope, short_name=short_name)
+    s += render_mermaid_nodes(
+        graph=graph, scope=graph.scope, short_name=short_name, direction=direction
+    )
 
     for caller, callees in graph.edges.items():
         for callee in callees:
@@ -99,6 +106,8 @@ def _main():
     arg_parser.add_argument("-o", "--output", type=str, default=None)
     arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)
     arg_parser.add_argument("--match-callees", nargs="?", type=int, const=1)
+    arg_parser.add_argument("--direction", type=str, default="LR")
+
     arg_parser.add_argument(
         "-M",
         "--show-modules-only",
@@ -138,7 +147,7 @@ def _main():
     )
 
     # Generate mermaid diagram
-    mermaid_code = render_mermaid_flowchart(graph=call_graph)
+    mermaid_code = render_mermaid_flowchart(graph=call_graph, direction=args.direction)
     if args.output:
         out_file = args.output
     else:

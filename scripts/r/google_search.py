@@ -39,7 +39,8 @@ def main():
     parser.add_argument("query", type=str, help="The search query")
     args = parser.parse_args()
 
-    get_google_search_result(args.query)
+    result = get_google_search_result(args.query)
+    print(result)
 
 
 if __name__ == "__main__":
