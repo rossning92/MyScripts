@@ -9,6 +9,7 @@ from typing import DefaultDict, Dict, Iterator, List, Optional, Set, Tuple
 
 from tree_sitter import Language, Node, Parser, Query, Tree
 from utils.defaultordereddict import DefaultOrderedDict
+from utils.orderedset import OrderedSet
 
 SCOPE_SEP = "::"
 CLASS_PREFIX = ""
@@ -68,6 +69,9 @@ def _find_first_identifier(node: Node) -> Optional[str]:
 
 
 def _find_all_identifiers(node: Node) -> List[str]:
+    if node.type == "function_definition":
+        return []
+
     if node.type == "identifier" or node.type == "field_identifier":
         return [get_node_text(node)]
 
@@ -89,7 +93,9 @@ class Scope:
 class CallGraph:
     nodes: Set[str] = field(default_factory=set)
 
-    edges: DefaultDict[str, Set[str]] = field(default_factory=lambda: defaultdict(set))
+    edges: DefaultDict[str, OrderedSet[str]] = field(
+        default_factory=lambda: defaultdict(OrderedSet)
+    )
     reverse_edges: DefaultDict[str, Set[str]] = field(
         default_factory=lambda: defaultdict(set)
     )
@@ -161,7 +167,12 @@ def get_function_definitions(
             )
 
 
+def walk_tree(graph: CallGraph, root_node: Node):
+    pass
+
+
 def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
+    walk_tree(graph=graph, root_node=root_node)
     query = get_function_definition_query(lang=lang)
     matches = query.matches(root_node)
     for _, match in matches:

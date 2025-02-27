@@ -40,8 +40,8 @@ def _format_timestamp(ts: int) -> str:
 
 def _parse_date(text: str) -> Optional[datetime]:
     pattern = (
-        r"(?:(?P<year>\d{2,4})-)?(?P<month>\d{1,2})-(?P<day>\d{1,2})\s+"
-        r"(?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
+        r"(?:(?P<year>\d{2,4})-)?(?P<month>\d{1,2})-(?P<day>\d{1,2})"
+        r"(\s+(?P<hour>\d{1,2}):(?P<minute>\d{1,2}))?"
     )
     match = re.search(pattern, text)
     if match:
@@ -197,11 +197,13 @@ class TodoMenu(ListEditMenu[TodoItem]):
         # Parse to datetime
         dt = _parse_date(val)
         if not dt:
+            self.set_message("Failed to parse date")
             return
 
         # Convert to timestamp
         ts = dt.timestamp()
         if ts == selected.get(FIELD_DUE_TIMESTAMP, 0):
+            self.set_message("Skip updating the same date")
             return
 
         selected[FIELD_DUE_TIMESTAMP] = ts

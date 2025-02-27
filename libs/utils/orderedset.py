@@ -1,19 +1,19 @@
 from collections import OrderedDict
 from collections.abc import MutableSet
-from typing import Any, Generic, Iterable, Iterator, Optional, TypeVar
+from typing import Any, Iterable, Iterator, Optional, TypeVar
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
-class OrderedSet(MutableSet, Generic[T]):
-    def __init__(self, iterable: Optional[Iterable[T]] = None) -> None:
-        self._d: OrderedDict[T, None] = (
+class OrderedSet(MutableSet[_T]):
+    def __init__(self, iterable: Optional[Iterable[_T]] = None) -> None:
+        self._d: OrderedDict[_T, None] = (
             OrderedDict((element, None) for element in iterable)
             if iterable
             else OrderedDict()
         )
 
-    def update(self, *args: Iterable[T], **kwargs: Any) -> None:
+    def update(self, *args: Iterable[_T], **kwargs: Any) -> None:
         if kwargs:
             raise TypeError("update() takes no keyword arguments")
 
@@ -21,16 +21,16 @@ class OrderedSet(MutableSet, Generic[T]):
             for e in s:
                 self.add(e)
 
-    def add(self, elem: T) -> None:
+    def add(self, elem: _T) -> None:
         self._d[elem] = None
 
-    def discard(self, elem: T) -> None:
+    def discard(self, elem: _T) -> None:
         self._d.pop(elem, None)
 
     def __contains__(self, x: object) -> bool:
         return x in self._d
 
-    def __iter__(self) -> Iterator[T]:
+    def __iter__(self) -> Iterator[_T]:
         for ele in self._d:
             yield ele
 

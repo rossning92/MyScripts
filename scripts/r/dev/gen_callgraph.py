@@ -6,7 +6,7 @@ import subprocess
 import sys
 from glob import glob
 from io import StringIO
-from typing import Dict, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 from callgraph import (
     SCOPE_SEP,
@@ -53,6 +53,7 @@ def render_mermaid_nodes(
     scope: Scope,
     short_name: ShortName,
     direction: str,
+    annotate: Optional[List[Tuple[str, str]]],
     depth=1,
 ) -> str:
     out = StringIO()
@@ -69,6 +70,7 @@ def render_mermaid_nodes(
                     scope=s,
                     short_name=short_name,
                     direction=direction,
+                    annotate=annotate,
                     depth=depth + 1,
                 )
             )
@@ -79,17 +81,31 @@ def render_mermaid_nodes(
                 out.write(
                     f"{indent}style {short_name.get(escape_mermaid_node(name))} color:red\n"
                 )
+            if annotate:
+                for k, v in annotate:
+                    if k in name:
+                        out.write(
+                            f'{indent}{short_name.get(escape_mermaid_node(name))} ~~~|"{v}"|{short_name.get(escape_mermaid_node(name))}\n'
+                        )
 
     return out.getvalue()
 
 
-def render_mermaid_flowchart(graph: CallGraph, direction: str) -> str:
+def render_mermaid_flowchart(
+    graph: CallGraph,
+    direction: str,
+    annotate: Optional[List[Tuple[str, str]]],
+) -> str:
     s = f"flowchart {direction}\n"
 
     short_name = ShortName()
 
     s += render_mermaid_nodes(
-        graph=graph, scope=graph.scope, short_name=short_name, direction=direction
+        graph=graph,
+        scope=graph.scope,
+        short_name=short_name,
+        direction=direction,
+        annotate=annotate,
     )
 
     for caller, callees in graph.edges.items():
@@ -107,7 +123,6 @@ def _main():
     arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)
     arg_parser.add_argument("--match-callees", nargs="?", type=int, const=1)
     arg_parser.add_argument("--direction", type=str, default="LR")
-
     arg_parser.add_argument(
         "-M",
         "--show-modules-only",
@@ -115,6 +130,7 @@ def _main():
         help="show module level diagram",
     )
     arg_parser.add_argument("--diff", type=str)
+    arg_parser.add_argument("--annotate", type=str)
     arg_parser.add_argument("files", nargs="*")
 
     args = arg_parser.parse_args()
@@ -147,7 +163,15 @@ def _main():
     )
 
     # Generate mermaid diagram
-    mermaid_code = render_mermaid_flowchart(graph=call_graph, direction=args.direction)
+    mermaid_code = render_mermaid_flowchart(
+        graph=call_graph,
+        direction=args.direction,
+        annotate=(
+            [kvp.split("=") for kvp in args.annotate.split(";")]
+            if args.annotate
+            else None
+        ),
+    )
     if args.output:
         out_file = args.output
     else:
