@@ -40,7 +40,12 @@ class GrepMenu(Menu[_Line]):
         input_str = self.get_input()
         args = ["rg", "-C", "3", "--json", input_str]
         process = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1, text=True
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=1,
+            text=True,
+            encoding="utf-8",
         )
 
         # variables
