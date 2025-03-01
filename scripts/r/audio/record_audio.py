@@ -3,7 +3,6 @@ import os
 import signal
 import subprocess
 import sys
-from functools import lru_cache
 from typing import Optional
 
 from _pkgmanager import require_package
@@ -32,7 +31,6 @@ def _wait_for_key() -> bool:
     return status
 
 
-@lru_cache(maxsize=None)
 def initialize_pulseaudio():
     if is_in_termux():
         require_package("pulseaudio")

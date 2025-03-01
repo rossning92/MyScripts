@@ -663,6 +663,9 @@ class Menu(Generic[T]):
             )
             self.set_selection(selected_row_begin, selected_row_end)
 
+    def __handle_keyboard_interrupt(self):
+        sys.exit(0)
+
     # Returns True if we should exit main loop for the current window
     def process_events(
         self, timeout_sec: float = 0.0, raise_keyboard_interrupt=False
@@ -710,7 +713,7 @@ class Menu(Generic[T]):
             if raise_keyboard_interrupt:
                 raise
             else:
-                self.close()
+                self.__handle_keyboard_interrupt()
 
         if ch != -1:  # getch() will return -1 when timeout
             if self.__debug:
@@ -727,7 +730,7 @@ class Menu(Generic[T]):
                 if raise_keyboard_interrupt:
                     raise KeyboardInterrupt
                 else:
-                    self.close()
+                    self.__handle_keyboard_interrupt()
 
             elif ch == " " and self.get_input() == " ":
                 self.set_input("")

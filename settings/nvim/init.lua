@@ -136,26 +136,12 @@ local function get_selected_text()
     text = table.concat(lines, '\n')
   end
 
-  return text
+  return text, start_pos, end_pos
 end
 
-local function replace_selected_text(text)
-  local mode = vim.fn.mode()
-  local start_pos = vim.fn.getpos("v")
-  local end_pos = vim.fn.getpos(".")
-
-  -- Swap start_pos and end_pos if start comes after end.
-  if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
-    start_pos, end_pos = end_pos, start_pos
-  end
-
+local function replace_text(text, start_pos, end_pos)
   -- Retrieve the lines in the buffer from start_pos to end_pos.
   local lines = vim.api.nvim_buf_get_lines(0, start_pos[2] - 1, end_pos[2], false)
-
-  if mode == 'v' then
-    -- Reconstruct the text by splicing the replaced text back into the original lines.
-    text = lines[1]:sub(1, start_pos[3] - 1) .. text .. lines[#lines]:sub(end_pos[3] + 1)
-  end
 
   -- Split the reconstructed text back into lines.
   lines = {}
@@ -201,7 +187,7 @@ end
 
 local function fix()
   -- Prompt
-  local text = get_selected_text()
+  local text, start_pos, end_pos = get_selected_text()
   local prompt = "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" .. text
   local prompt_file = os.tmpname()
   local file = io.open(prompt_file, "w")
@@ -215,7 +201,7 @@ local function fix()
     "run_script r/ai/complete_chat.py -o " .. output_file .. " " .. prompt_file, {
       on_exit = function()
         local new_text = read_text_file(output_file)
-        replace_selected_text(new_text)
+        replace_text(new_text, start_pos, end_pos)
 
         os.remove(prompt_file)
         os.remove(output_file)
