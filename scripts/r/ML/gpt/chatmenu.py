@@ -9,6 +9,7 @@ from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.filemenu import FileMenu
+from utils.menu.jsoneditmenu import JsonEditMenu
 
 
 class _Line:
@@ -32,14 +33,14 @@ class ChatMenu(Menu[_Line]):
 
     def __init__(
         self,
-        prompt: str = "c",
+        conv_file: Optional[str] = None,
+        copy_and_exit=False,
+        data_dir: Optional[str] = None,
         message: Optional[str] = None,
         model: Optional[str] = None,
-        copy_and_exit=False,
         new_conversation=True,
-        conv_file: Optional[str] = None,
+        prompt: str = "c",
     ) -> None:
-
         self.__auto_create_conv_file = conv_file is None
         self.__copy_and_exit = copy_and_exit
         self.__first_message = message
@@ -50,6 +51,16 @@ class ChatMenu(Menu[_Line]):
         self.__model = model
         self.__prompt = prompt
         self.__yank_mode = 0
+
+        self.__data_dir = (
+            data_dir if data_dir else os.path.join(os.environ["MY_DATA_DIR"], "chat")
+        )
+        os.makedirs(self.__data_dir, exist_ok=True)
+
+        self.__settings_file = os.path.join(self.__data_dir, "settings.json")
+        self.__settings_menu = JsonEditMenu(
+            json_file=self.__settings_file, default={"model": "gpt-4o"}
+        )
 
         super().__init__(
             items=self.__lines,
@@ -63,6 +74,7 @@ class ChatMenu(Menu[_Line]):
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
+        self.add_command(self.__edit_settings, hotkey="ctrl+s")
         self.add_command(self.__undo, hotkey="ctrl+z")
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
@@ -92,24 +104,85 @@ class ChatMenu(Menu[_Line]):
 
         self.__update_prompt()
 
-    def __update_prompt(self):
-        prompt = f"{self.__prompt}"
-        if self.__image_file:
-            prompt += f" ({os.path.basename(self.__image_file)})"
-        self.set_prompt(prompt)
-
     def __add_image(self):
         menu = FileMenu()
         self.__image_file = menu.select_file()
         self.__update_prompt()
 
-    def __undo(self):
-        messages = self.get_messages()
-        if messages:
-            messages.pop()
-        while messages and messages[-1]["role"] != "assistant":
-            messages.pop()
-        self.populate_lines()
+    def __copy_block(self, index: int):
+        # Check if it's in the code block; if so, copy all the code.
+        is_code_block = False
+        start = -1
+        stop = -1
+        text: List[str] = []
+        for i, line in enumerate(self.__lines):
+            if line.text.startswith("```"):
+                is_code_block = not is_code_block
+                if is_code_block:
+                    text.clear()
+                    start = i + 1
+                else:
+                    stop = i - 1
+                    if start <= index <= stop:
+                        set_clip("\n".join(text))
+                        self.set_selection(start, stop)
+                        self.set_message("code copied")
+                        return
+            elif is_code_block:
+                text.append(line.text)
+
+        # Copy the whole message.
+        message_index = self.__lines[index].message_index
+        start = -1
+        stop = -1
+        text = []
+        for i, line in enumerate(self.__lines):
+            if line.message_index == message_index:
+                if start == -1:
+                    start = i
+                stop = i
+                text.append(line.text)
+        set_clip("\n".join(text))
+        self.set_selection(start, stop)
+        self.set_message("message copied")
+        return
+
+    def __delete_current_message(self):
+        selected_line = self.get_selected_item()
+        if selected_line is not None:
+            del self.get_messages()[selected_line.message_index]
+            self.populate_lines()
+
+    def __edit_message(self, message_index=-1):
+        if message_index < 0:
+            selected_line = self.get_selected_item()
+            if selected_line is not None:
+                message_index = selected_line.message_index
+            else:
+                return
+
+        message = self.get_messages()[message_index]
+        content = message["content"]
+        new_content = self.call_func_without_curses(lambda: edit_text(content))
+        if new_content != content:
+            message["content"] = new_content
+
+            # Delete all messages after.
+            del self.get_messages()[message_index + 1 :]
+
+            self.populate_lines()
+
+            if message["role"] == "user":
+                self.__complete_chat()
+
+    def __edit_settings(self):
+        self.__settings_menu.exec()
+
+    def __edit_prompt(self):
+        self.__edit_message(message_index=0)
+
+    def __get_model(self) -> str:
+        return self.__model or self.__settings_menu.data["model"]
 
     def __load_conversation(self):
         menu = _SelectConvMenu(
@@ -119,6 +192,47 @@ class ChatMenu(Menu[_Line]):
         selected = menu.get_selected_item()
         if selected:
             self.load_conversation(selected)
+
+    def __undo(self):
+        messages = self.get_messages()
+        if messages:
+            messages.pop()
+        while messages and messages[-1]["role"] != "assistant":
+            messages.pop()
+        self.populate_lines()
+
+    def __update_prompt(self):
+        prompt = f"{self.__prompt}"
+        if self.__image_file:
+            prompt += f" ({os.path.basename(self.__image_file)})"
+        self.set_prompt(prompt)
+
+    def __yank(self):
+        indices = list(self.get_selected_indices())
+        if len(indices) == 1:
+            idx = indices[0]
+            line = self.__lines[idx]
+            if line != self.__last_yanked_line:
+                self.__yank_mode = 0
+                self.__last_yanked_line = line
+
+            if self.__yank_mode == 0:
+                set_clip(line.text)
+                self.set_message(f"line {idx+1} copied")
+                self.__yank_mode = 1
+
+            elif self.__yank_mode == 1:
+                index = self.get_selected_index()
+                if index >= 0:
+                    self.__copy_block(index=index)
+        elif len(indices) > 1:
+            line_text = []
+            for idx in indices:
+                line = self.__lines[idx]
+                line_text.append(line.text)
+            set_clip("\n".join(line_text))
+            self.set_message("selected line copied")
+            self.set_multi_select(False)
 
     def get_item_color(self, item: _Line) -> str:
         return "blue" if item.role == "user" else "white"
@@ -158,7 +272,7 @@ class ChatMenu(Menu[_Line]):
             message_index = len(self.get_messages())
             line = _Line(role="assistant", text="", message_index=message_index)
             self.append_item(line)
-            for chunk in complete_chat(self.get_messages(), model=self.__model):
+            for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
                 content += chunk
                 for i, a in enumerate(chunk.split("\n")):
                     if i > 0:
@@ -232,105 +346,9 @@ class ChatMenu(Menu[_Line]):
     def on_enter_pressed(self):
         self.send_message(self.get_input())
 
-    def __copy_block(self, index: int):
-        # Check if it's in the code block; if so, copy all the code.
-        is_code_block = False
-        start = -1
-        stop = -1
-        text: List[str] = []
-        for i, line in enumerate(self.__lines):
-            if line.text.startswith("```"):
-                is_code_block = not is_code_block
-                if is_code_block:
-                    text.clear()
-                    start = i + 1
-                else:
-                    stop = i - 1
-                    if start <= index <= stop:
-                        set_clip("\n".join(text))
-                        self.set_selection(start, stop)
-                        self.set_message("code copied")
-                        return
-            elif is_code_block:
-                text.append(line.text)
-
-        # Copy the whole message.
-        message_index = self.__lines[index].message_index
-        start = -1
-        stop = -1
-        text = []
-        for i, line in enumerate(self.__lines):
-            if line.message_index == message_index:
-                if start == -1:
-                    start = i
-                stop = i
-                text.append(line.text)
-        set_clip("\n".join(text))
-        self.set_selection(start, stop)
-        self.set_message("message copied")
-        return
-
     def on_item_selection_changed(self, item: Optional[_Line], i: int):
         self.__yank_mode = 0
         return super().on_item_selection_changed(item, i)
-
-    def __yank(self):
-        indices = list(self.get_selected_indices())
-        if len(indices) == 1:
-            idx = indices[0]
-            line = self.__lines[idx]
-            if line != self.__last_yanked_line:
-                self.__yank_mode = 0
-                self.__last_yanked_line = line
-
-            if self.__yank_mode == 0:
-                set_clip(line.text)
-                self.set_message(f"line {idx+1} copied")
-                self.__yank_mode = 1
-
-            elif self.__yank_mode == 1:
-                index = self.get_selected_index()
-                if index >= 0:
-                    self.__copy_block(index=index)
-        elif len(indices) > 1:
-            line_text = []
-            for idx in indices:
-                line = self.__lines[idx]
-                line_text.append(line.text)
-            set_clip("\n".join(line_text))
-            self.set_message("selected line copied")
-            self.set_multi_select(False)
-
-    def __delete_current_message(self):
-        selected_line = self.get_selected_item()
-        if selected_line is not None:
-            del self.get_messages()[selected_line.message_index]
-            self.populate_lines()
-
-    def __edit_message(self, message_index=-1):
-        if message_index < 0:
-            selected_line = self.get_selected_item()
-            if selected_line is not None:
-                message_index = selected_line.message_index
-            else:
-                return
-
-        message = self.get_messages()[message_index]
-        content = message["content"]
-        new_content = self.call_func_without_curses(lambda: edit_text(content))
-        if new_content != content:
-            message["content"] = new_content
-
-            # Delete all messages after.
-            del self.get_messages()[message_index + 1 :]
-
-            self.populate_lines()
-
-            if message["role"] == "user":
-                self.__complete_chat()
-
-    def __edit_prompt(self):
-        self.__edit_message(message_index=0)
 
     def on_message(self, content: str):
         pass

@@ -229,9 +229,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def __new_task(self):
         item = {FIELD_STATUS: "none", "description": ""}
-        self.items.append(item)
         self.__edit_item_description(item)
-        self.set_selected_item(item)
+        if item["description"]:
+            self.items.append(item)
+            self.save_json()
+            self.set_selected_item(item)
 
     def __reload(self):
         self.load_json()

@@ -39,11 +39,12 @@ if __name__ == "__main__":
     while True:
         wait_until_boot_complete()
 
-        args = ["scrcpy", "--always-on-top"]
+        args = ["scrcpy", "--window-title=scrcpy"]
 
         if os.environ.get("SCRCPY_POS"):
             win_pos = [int(x) for x in os.environ["SCRCPY_POS"].split()]
             args += [
+                "--always-on-top",
                 "--window-x",
                 "%s" % win_pos[0],
                 "--window-y",
