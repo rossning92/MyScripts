@@ -1,5 +1,6 @@
 {
   "adk": true,
   "globalHotkey": "win+alt+a",
-  "packages": "scrcpy"
+  "packages": "scrcpy",
+  "title": "scrcpy"
 }

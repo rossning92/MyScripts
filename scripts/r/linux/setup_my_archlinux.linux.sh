@@ -10,6 +10,7 @@ prepend_line_dedup() {
 }
 
 append_line_dedup() {
+    touch "$1"
     # Remove the line if it exists and then append it
     if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
         repl=$(printf '%s\n' "$2" | sed -e 's/[]\/$*.^[]/\\&/g')
@@ -95,6 +96,9 @@ sudo systemctl kill -s HUP systemd-logind
 ln -s "{{MYSCRIPT_ROOT}}/settings/fcitx5" "$HOME/.config/fcitx5" || true
 pac_install fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 append_line_dedup ~/.xinitrc "fcitx5 -d"
+append_line_dedup ~/.xprofile "export XMODIFIERS=@im=fcitx"
+append_line_dedup ~/.xprofile "export QT_IM_MODULE=fcitx"
+append_line_dedup ~/.xprofile "export GTK_IM_MODULE=fcitx"
 
 # Key mapping using https://github.com/rvaiya/keyd
 # Map "CapsLock" to "Control + Meta" key.

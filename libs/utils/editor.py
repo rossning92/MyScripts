@@ -9,8 +9,11 @@ from _pkgmanager import find_executable, require_package
 from _shutil import start_process
 
 
-def edit_file(file: str):
-    subprocess.call(["nvim", file, "+startinsert"])
+def edit_file(file: str, start_insert=False):
+    args = ["nvim", file]
+    if start_insert:
+        args.append("+startinsert")
+    subprocess.call(args)
 
 
 def edit_text(text: str):

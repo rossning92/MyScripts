@@ -845,7 +845,7 @@ class Menu(Generic[T]):
             self.__hotkeys["escape"].func()
             return True
         else:
-            if self.__cancellable:
+            if self.__cancellable and self.get_input() == "":
                 self.is_cancelled = True
                 self.__closed = True
             else:
