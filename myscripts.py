@@ -381,7 +381,6 @@ class _MyScriptMenu(Menu[Script]):
         )
         self.set_message("scripts reloaded")
         self.update_last_refresh_time()
-        self.update_matched_items()
         self.is_refreshing = False
 
         if self.__run_script_and_quit:

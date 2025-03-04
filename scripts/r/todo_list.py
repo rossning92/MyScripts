@@ -12,6 +12,7 @@ from utils.menu.listeditmenu import ListEditMenu
 TodoItem = Dict[str, Any]
 
 
+FIELD_CLOSED_TS = "closed_ts"
 FIELD_DUE_TIMESTAMP = "due_ts"
 FIELD_IMPORTANT = "important"
 FIELD_STATUS = "status"
@@ -92,13 +93,14 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.items.append(copy)
             self.__edit_todo_item(copy)
 
-    def __set_selected_item_value(self, name: str, value: Any):
+    def __set_selected_item_value(self, kvps: Dict[str, Any]):
         selected = self.get_selected_item()
         if selected:
-            if value is None:
-                del selected[name]
-            else:
-                selected[name] = value
+            for name, value in kvps.items():
+                if value is None:
+                    del selected[name]
+                else:
+                    selected[name] = value
             self.save_json()
             self.update_screen()
 
@@ -106,9 +108,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
         selected = self.get_selected_item()
         if selected:
             if selected.get(FIELD_IMPORTANT):
-                self.__set_selected_item_value(FIELD_IMPORTANT, None)
+                self.__set_selected_item_value({FIELD_IMPORTANT: None})
             else:
-                self.__set_selected_item_value(FIELD_IMPORTANT, True)
+                self.__set_selected_item_value({FIELD_IMPORTANT: True})
 
     def get_item_text(self, item: TodoItem) -> str:
         date_str = ""
@@ -252,13 +254,18 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_selected_item(selected)
 
     def __set_status_closed(self):
-        self.__set_selected_item_value(FIELD_STATUS, "closed")
+        self.__set_selected_item_value(
+            {
+                FIELD_STATUS: "closed",
+                FIELD_CLOSED_TS: datetime.now().timestamp(),
+            }
+        )
 
     def __set_status_open(self):
-        self.__set_selected_item_value(FIELD_STATUS, "none")
+        self.__set_selected_item_value({FIELD_STATUS: "none"})
 
     def __set_status_wip(self):
-        self.__set_selected_item_value(FIELD_STATUS, "in_progress")
+        self.__set_selected_item_value({FIELD_STATUS: "in_progress"})
 
 
 def main():

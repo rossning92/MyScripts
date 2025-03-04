@@ -135,7 +135,7 @@ class _InputWidget:
 
             s = self.text[self.caret_pos :]
             if show_enter_symbol:
-                s += " ↵"
+                s += " [enter]"
 
             stdscr.addstr(cursor_y, cursor_x, s)
             y, x = Menu.stdscr.getyx()  # type: ignore
@@ -357,7 +357,7 @@ class Menu(Generic[T]):
             self.on_enter_pressed()
 
     def select_all(self):
-        self.update_matched_items()
+        self.__update_matched_items()
 
         total_items = len(self.get_item_indices())
         if total_items <= 0:
@@ -588,40 +588,6 @@ class Menu(Generic[T]):
         self.on_update_screen(item_y_max=self._height - 1)
         Menu.stdscr.refresh()
 
-    def update_matched_items(self, save_search_history=True):
-        assert self.__search_mode
-
-        matches: List[Tuple[int, int]] = []  # list of tuple of index and rank
-        for i, item in enumerate(self.items):
-            rank = self.match_item(self.get_input(), item, i)
-            if rank > 0:  # match
-                matches.append((i, rank))
-        # Sort matches by rank in descending order, preserving order for equal ranks
-        matches = sorted(matches, key=lambda x: x[1], reverse=True)
-        self.__matched_item_indices[:] = [index for index, _ in matches]
-
-        # Update selected rows
-        # num_matched_items = len(self.__matched_item_indices)
-        # if num_matched_items > 0:
-        #     self.__selected_row_begin = min(
-        #         self.__selected_row_begin, num_matched_items - 1
-        #     )
-        #     self.__selected_row_end = min(
-        #         self.__selected_row_end, num_matched_items - 1
-        #     )
-        # else:
-        self.__selected_row_begin = 0
-        self.__selected_row_end = 0
-        self._check_if_item_selection_changed()
-
-        if save_search_history and self.__last_input is not None:
-            self.__search_history.insert(0, self.__last_input)
-        self.__last_input = self.get_input()
-        self.__last_item_count = len(self.items)
-        self.__last_match_time = time.time()
-        self.__should_update_matched_items = False
-        self.__should_update_screen = True
-
     def reset_selection(self):
         self.__selected_row_begin = 0
         self.__selected_row_end = 0
@@ -636,8 +602,7 @@ class Menu(Generic[T]):
                 break
 
     def set_selection(self, begin_row: int, end_row: int):
-        if self.__search_mode:
-            self.update_matched_items()
+        self.__update_matched_items()
 
         self.__selected_row_begin = begin_row
         self.__selected_row_end = end_row
@@ -680,22 +645,7 @@ class Menu(Generic[T]):
         else:
             Menu.stdscr.timeout(0)
 
-        if self.__search_mode:
-            if (
-                self.__should_update_matched_items
-                or (
-                    time.time() > self.__last_match_time + PROCESS_EVENT_INTERVAL_SEC
-                    and (
-                        (
-                            not self.__search_on_enter
-                            and self.__last_input != self.get_input()
-                        )
-                        or self.__last_item_count != len(self.items)
-                    )
-                )
-                or (len(self.items) < self.__last_item_count)
-            ):
-                self.update_matched_items()
+        self.__update_matched_items()
 
         # Update screen
         if self.__should_update_screen or Menu._should_update_screen:
@@ -838,6 +788,44 @@ class Menu(Generic[T]):
             return True
         else:
             return False
+
+    def __update_matched_items(self, save_search_history=True, force_update=False):
+        if self.__search_mode:
+            if (
+                force_update
+                or self.__should_update_matched_items
+                or (
+                    time.time() > self.__last_match_time + PROCESS_EVENT_INTERVAL_SEC
+                    and (
+                        (
+                            not self.__search_on_enter
+                            and self.__last_input != self.get_input()
+                        )
+                        or self.__last_item_count != len(self.items)
+                    )
+                )
+                or (len(self.items) < self.__last_item_count)
+            ):
+                matches: List[Tuple[int, int]] = []  # list of tuple of index and rank
+                for i, item in enumerate(self.items):
+                    rank = self.match_item(self.get_input(), item, i)
+                    if rank > 0:  # match
+                        matches.append((i, rank))
+                # Sort matches by rank in descending order, preserving order for equal ranks
+                matches = sorted(matches, key=lambda x: x[1], reverse=True)
+                self.__matched_item_indices[:] = [index for index, _ in matches]
+
+                self.__selected_row_begin = 0
+                self.__selected_row_end = 0
+                self._check_if_item_selection_changed()
+
+                if save_search_history and self.__last_input is not None:
+                    self.__search_history.insert(0, self.__last_input)
+                self.__last_input = self.get_input()
+                self.__last_item_count = len(self.items)
+                self.__last_match_time = time.time()
+                self.__should_update_matched_items = False
+                self.__should_update_screen = True
 
     def on_escape_pressed(self):
         if "escape" in self.__hotkeys:
@@ -1246,7 +1234,9 @@ class Menu(Generic[T]):
 
     def search_by_input(self, save_search_history=True) -> bool:
         if self.__should_trigger_search():
-            self.update_matched_items(save_search_history=save_search_history)
+            self.__update_matched_items(
+                save_search_history=save_search_history, force_update=True
+            )
             return True
         else:
             return False
