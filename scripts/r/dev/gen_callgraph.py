@@ -39,7 +39,7 @@ class ShortName:
                     self.used_name.add(new_name)
                     self.name_map[name] = new_name
                     return new_name
-            raise Exception("Failed to create a simplified name")
+            raise Exception(f'Failed to create a simplified name: "{name}"')
         else:
             return self.name_map[name]
 
@@ -76,17 +76,28 @@ def render_mermaid_nodes(
             )
             out.write(indent + "end\n\n")
         else:
-            out.write(indent + short_name.get(escape_mermaid_node(name)) + "\n")
+            # Check if there is an annotation for the node.
+            annotation = None
+            if annotate:
+                for k, v in annotate:
+                    if k in name:
+                        annotation = v
+
+            # Render node
+            if annotation:
+                out.write(
+                    indent
+                    + short_name.get(escape_mermaid_node(name))
+                    + f'["{short_name.get(escape_mermaid_node(name))}<br/><br/>({annotation})"]\n'
+                )
+            else:
+                out.write(indent + short_name.get(escape_mermaid_node(name)) + "\n")
+
+            # Highlight node
             if name in graph.highlighted_nodes:
                 out.write(
                     f"{indent}style {short_name.get(escape_mermaid_node(name))} color:red\n"
                 )
-            if annotate:
-                for k, v in annotate:
-                    if k in name:
-                        out.write(
-                            f'{indent}{short_name.get(escape_mermaid_node(name))} ~~~|"{v}"|{short_name.get(escape_mermaid_node(name))}\n'
-                        )
 
     return out.getvalue()
 
@@ -131,6 +142,7 @@ def _main():
     )
     arg_parser.add_argument("--diff", type=str)
     arg_parser.add_argument("--annotate", type=str)
+    arg_parser.add_argument("--include-all-identifiers", action="store_true")
     arg_parser.add_argument("files", nargs="*")
 
     args = arg_parser.parse_args()
@@ -160,6 +172,7 @@ def _main():
         match_callers=args.match_callers,
         match_callees=args.match_callees,
         diff=diff,
+        include_all_identifiers=args.include_all_identifiers,
     )
 
     # Generate mermaid diagram

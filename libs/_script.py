@@ -1338,10 +1338,6 @@ class Script:
                     )
                 for chrome_exec in chrome_executables:
                     if shutil.which(chrome_exec):
-                        # args = [chrome_exec, "--new-window"]
-                        # if self.cfg["title"]:
-                        #     args.append(f"--window-name={self.cfg['title']}")
-                        # args.append(url)
                         args = [chrome_exec, f"--app={url}"]
                         start_process(args)
                         fallback_to_shell_open = False

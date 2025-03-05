@@ -167,12 +167,13 @@ def get_function_definitions(
             )
 
 
-def walk_tree(graph: CallGraph, root_node: Node):
-    pass
-
-
-def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
-    walk_tree(graph=graph, root_node=root_node)
+def create_edges(
+    lang: str,
+    graph: CallGraph,
+    module: str,
+    root_node: Node,
+    include_all_identifiers: bool,
+):
     query = get_function_definition_query(lang=lang)
     matches = query.matches(root_node)
     for _, match in matches:
@@ -189,14 +190,21 @@ def create_edges(lang: str, graph: CallGraph, module: str, root_node: Node):
 
         # Add edge to call graph
         for identifier in _find_all_identifiers(function_body_node):
-            matched_function_names = [
+            # Add edge callee
+            is_callee = False
+            found_function_names = [
                 function_name
                 for function_name in graph.nodes
                 if re.search(r"\b" + identifier + "$", function_name)
             ]
-            for callee in matched_function_names:
+            for callee in found_function_names:
                 if callee != caller_text:  # avoid self-loop
                     graph.add_edge(caller_text, callee)
+                    is_callee = True
+
+            # Add edge to other identifiers
+            if not is_callee and include_all_identifiers:
+                graph.add_edge(caller_text, identifier)
 
 
 @lru_cache(maxsize=None)
@@ -354,12 +362,13 @@ def generate_call_graph(
     generate_preview=False,
     diff: Optional[Dict[str, List[Tuple[int, int]]]] = None,
     ignore_case=False,
+    include_all_identifiers=False,
 ) -> CallGraph:
     graph = CallGraph()
 
     filtered_nodes: Set[str] = set()
 
-    # Build nodes
+    # Add nodes
     logging.info("Build nodes...")
     for file in files:
         logging.info(f"Process file: {file}")
@@ -396,12 +405,7 @@ def generate_call_graph(
                         ) <= min(function_def_node.end_point.row, line_range[1] - 1):
                             filtered_nodes.add(function_name)
 
-                if match and re.search(
-                    match, function_name, re.IGNORECASE if ignore_case else 0
-                ):
-                    filtered_nodes.add(function_name)
-
-    # Build edges
+    # Add edges
     logging.info("Build edges...")
     for file in files:
         logging.info(f"Process file: {file}")
@@ -422,7 +426,13 @@ def generate_call_graph(
                 graph=graph,
                 module=module,
                 root_node=tree.root_node,
+                include_all_identifiers=include_all_identifiers,
             )
+
+    # Filter nodes
+    for n in graph.nodes:
+        if match and re.search(match, n, re.IGNORECASE if ignore_case else 0):
+            filtered_nodes.add(n)
 
     if filtered_nodes:
         filtered_graph = CallGraph()
