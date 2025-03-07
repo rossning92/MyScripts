@@ -128,11 +128,21 @@ class FileListMenu(ListEditMenu):
             start = max(1, start)
             end = min(end, len(lines))
             content = "\n".join(lines[start - 1 : end])
-            self.append_item({"file": file, "content": content})
+            self.append_item(
+                {
+                    "file": file,
+                    "content": content,
+                    "line_start": start,
+                    "line_end": end,
+                }
+            )
         else:
             self.append_item({"file": file})
 
-    def get_context(self) -> str:
+    def get_context(self) -> List[Any]:
+        return self.items
+
+    def get_context_prompt(self) -> str:
         result = []
         for item in self.items:
             if "content" in item and item["content"]:
@@ -238,7 +248,9 @@ class CoderMenu(ChatMenu):
         content = selected_message["content"]
 
         changes = _find_changes(content)
-        modified_files = apply_change_interactive(changes)
+        modified_files = apply_change_interactive(
+            changes=changes, context=self.__file_list_menu.get_context_prompt()
+        )
         if modified_files:
             self.__modified_files[:] = modified_files
             if self.__close_after_edit:
@@ -282,7 +294,7 @@ class CoderMenu(ChatMenu):
                 context=(
                     self.__context
                     if self.__context
-                    else self.__file_list_menu.get_context()
+                    else self.__file_list_menu.get_context_prompt()
                 ),
             )
         )

@@ -1,8 +1,8 @@
 # https://perfetto.dev/docs/contributing/build-instructions#standalone-builds
 
-set -e
+set -e -x
 
-source "$(dirname "$0")/_setup_perfetto_project.sh"
+{{ include('_setup_perfetto_project.sh') }}
 
 tools/install-build-deps --android
 
@@ -23,8 +23,7 @@ tools/ninja -C out/android
 adb shell killall traced || true
 adb shell killall traced_probes || true
 
-adb root
-adb remount
+{{ include('r/android/adb_remount.sh') }}
 adb push out/android/perfetto /system/bin/
 adb push out/android/traced /system/bin/
 adb push out/android/libperfetto.so /system/lib64/

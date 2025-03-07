@@ -2,7 +2,7 @@ import os
 import shutil
 from dataclasses import dataclass
 from io import StringIO
-from typing import List, Optional, Set
+from typing import Any, List, Optional, Set
 
 from utils.menu.confirmmenu import ConfirmMenu
 
@@ -44,7 +44,7 @@ class ApplyChangeMenu(ConfirmMenu):
             return "white"
 
 
-def apply_changes(changes: List[Change]) -> List[str]:
+def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
     modified_files: Set[str] = set()
     for c in changes:
         # Back up file before changes.
@@ -58,6 +58,7 @@ def apply_changes(changes: List[Change]) -> List[str]:
             with open(c.file, "w", encoding="utf-8") as f:  # Create a new file
                 f.write(c.replace)
         else:
+            # Read file
             with open(c.file, "r", encoding="utf-8") as f:
                 content = f.read()
                 if "\r\n" in content:
@@ -65,23 +66,26 @@ def apply_changes(changes: List[Change]) -> List[str]:
                 else:
                     newline = "\n"
 
+            # Replace
             if c.search not in content:
                 raise ValueError(f"Search string not found in {c.file}")
-
             updated_content = content.replace(c.search, c.replace, 1)
 
+            # Save file
             with open(c.file, "w", encoding="utf-8", newline=newline) as f:
                 f.write(updated_content)
 
     return list(modified_files)
 
 
-def apply_change_interactive(changes: List[Change]) -> Optional[List[str]]:
+def apply_change_interactive(
+    changes: List[Change], context: List[Any]
+) -> Optional[List[str]]:
     if len(changes) > 0:
         menu = ApplyChangeMenu(changes=changes)
         menu.exec()
         if menu.is_confirmed():
-            return apply_changes(changes)
+            return apply_changes(changes=changes, context=context)
         else:
             return None
     else:
