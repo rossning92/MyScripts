@@ -6,7 +6,7 @@ from .dicteditmenu import DictEditMenu
 
 
 class JsonEditMenu(DictEditMenu):
-    def __init__(self, json_file, *, default={}):
+    def __init__(self, json_file, *, default={}, **kwargs):
         data = load_json(json_file) if os.path.exists(json_file) else {}
         self.data = {**default, **data}
 
@@ -22,4 +22,5 @@ class JsonEditMenu(DictEditMenu):
             default_dict=default,
             on_dict_update=on_dict_update,
             prompt=f"edit {json_file}",
+            **kwargs,
         )

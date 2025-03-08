@@ -1,6 +1,6 @@
 import argparse
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from ai.openai.complete_chat import complete_chat, create_user_message, message_to_str
 from utils.clip import set_clip
@@ -59,7 +59,9 @@ class ChatMenu(Menu[_Line]):
 
         self.__settings_file = os.path.join(self.__data_dir, "settings.json")
         self.__settings_menu = JsonEditMenu(
-            json_file=self.__settings_file, default={"model": "gpt-4o"}
+            json_file=self.__settings_file,
+            default={"model": "gpt-4o"},
+            schema={"model": Literal["gpt-4o", "o3-mini"]},
         )
 
         super().__init__(
@@ -352,6 +354,9 @@ class ChatMenu(Menu[_Line]):
 
     def on_message(self, content: str):
         pass
+
+    def get_status_bar_text(self) -> str:
+        return super().get_status_bar_text() + str(self.__settings_menu.data)
 
 
 def complete_chat_gui(

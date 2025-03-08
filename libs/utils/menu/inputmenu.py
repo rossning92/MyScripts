@@ -3,15 +3,17 @@ import os
 import subprocess
 import sys
 import tempfile
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypeVar
 
 from utils.clip import get_clip
 from utils.jsonutil import load_json, save_json
 
 from . import Menu
 
+T = TypeVar("T")
 
-class InputMenu(Menu):
+
+class InputMenu(Menu[T]):
     def __init__(
         self,
         items: Optional[List[str]] = None,

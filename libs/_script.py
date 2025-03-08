@@ -1041,17 +1041,23 @@ class Script:
             if android_serial:
                 env["ANDROID_SERIAL"] = android_serial
 
+        cwd = None
         if cd:
+            # If custom working dir is specified.
             if self.cfg["workingDir"]:
-                cwd = self.cfg["workingDir"].format(**self.get_context())
-                if not os.path.exists(cwd):
-                    os.makedirs(cwd, exist_ok=True)
-            else:
+                working_dir = self.cfg["workingDir"]
+                assert isinstance(working_dir, str)
+                working_dir = working_dir.format(**self.get_context())
+                if working_dir:
+                    cwd = working_dir
+                    if not os.path.exists(cwd):
+                        os.makedirs(cwd, exist_ok=True)
+
+            # Default to set working directory to script dir.
+            if cwd is None:
                 cwd = os.path.abspath(
                     os.path.join(os.getcwd(), os.path.dirname(script_path))
                 )
-        else:
-            cwd = None
 
         if "CWD" in os.environ:
             cwd = os.environ["CWD"]

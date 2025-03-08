@@ -246,7 +246,7 @@ local function speech_to_text()
     end
   })
 end
-vim.keymap.set({ "n", "i" }, "<C-v>", speech_to_text)
+vim.keymap.set('n', "<leader><space>", speech_to_text)
 
 local function run_coder()
   local full_path = vim.api.nvim_buf_get_name(0)

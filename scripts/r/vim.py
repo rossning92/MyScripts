@@ -1,3 +1,3 @@
 import os
 
-os.system("nvim +startinsert")
+os.system("nvim")

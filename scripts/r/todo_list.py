@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+from utils.dateutil import parse_datetime
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.inputmenu import InputMenu
@@ -12,7 +13,7 @@ from utils.menu.listeditmenu import ListEditMenu
 TodoItem = Dict[str, Any]
 
 
-FIELD_CLOSED_TS = "closed_ts"
+FIELD_CLOSED_TIMESTAMP = "closed_ts"
 FIELD_DUE_TIMESTAMP = "due_ts"
 FIELD_IMPORTANT = "important"
 FIELD_STATUS = "status"
@@ -28,32 +29,29 @@ _status_sort_key = {
 _status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
 
 
-def _format_timestamp(ts: int) -> str:
+def _format_timestamp(ts: int, include_year: bool = True) -> str:
+    dt = datetime.fromtimestamp(ts)
+    date_format = "%Y-%m-%d" if include_year else "%m-%d"
+    time_format = "" if (dt.hour == 0 and dt.minute == 0) else " %H:%M"
+    return dt.strftime(date_format + time_format)
+
+
+def get_pretty_ts(ts):
+    date_str = ""
+    time_diff_str = ""
+    date_str = _format_timestamp(ts, include_year=False).ljust(11)
+
     date = datetime.fromtimestamp(ts)
     if date:
-        if date.hour == 0 and date.minute == 0:
-            return date.strftime("%m-%d")
-        else:
-            return date.strftime("%m-%d %H:%M")
-    else:
-        return ""
-
-
-def _parse_date(text: str) -> Optional[datetime]:
-    pattern = (
-        r"(?:(?P<year>\d{2,4})-)?(?P<month>\d{1,2})-(?P<day>\d{1,2})"
-        r"(\s+(?P<hour>\d{1,2}):(?P<minute>\d{1,2}))?"
-    )
-    match = re.search(pattern, text)
-    if match:
-        year = int(match.group("year") or datetime.now().year)
-        month = int(match.group("month"))
-        day = int(match.group("day"))
-        hour = int(match.group("hour") or 0)
-        minute = int(match.group("minute") or 0)
-        return datetime(year, month, day, hour, minute)
-    else:
-        return None
+        now = datetime.now(date.tzinfo)
+        diff = (date - now).days
+        if abs(diff) > 365:
+            time_diff_str = f"{'+' if diff > 0 else ''}{diff // 365}y"
+        elif abs(diff) > 30:
+            time_diff_str = f"{'+' if diff > 0 else ''}{diff // 30}M"
+        elif abs(diff) != 0:
+            time_diff_str = f"{'+' if diff > 0 else ''}{diff}d"
+    return f"{time_diff_str:>4} {date_str}"
 
 
 class _reversor:
@@ -113,30 +111,25 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 self.__set_selected_item_value({FIELD_IMPORTANT: True})
 
     def get_item_text(self, item: TodoItem) -> str:
-        date_str = ""
-        time_diff_str = ""
+        # Date
         if item.get(FIELD_DUE_TIMESTAMP):
-            ts = item[FIELD_DUE_TIMESTAMP]
-            date_str = _format_timestamp(ts).ljust(11)
+            date = get_pretty_ts(item[FIELD_DUE_TIMESTAMP])
+        elif item.get(FIELD_CLOSED_TIMESTAMP):
+            date = get_pretty_ts(item[FIELD_CLOSED_TIMESTAMP])
+        else:
+            date = ""
 
-            date = datetime.fromtimestamp(ts)
-            if date:
-                now = datetime.now(date.tzinfo)
-                diff = (date - now).days
-                if abs(diff) > 365:
-                    time_diff_str = f"{'+' if diff > 0 else ''}{diff // 365}yr"
-                elif abs(diff) > 30:
-                    time_diff_str = f"{'+' if diff > 0 else ''}{diff // 30}mo"
-                elif abs(diff) != 0:
-                    time_diff_str = f"{'+' if diff > 0 else ''}{diff}d"
+        # Description
+        desc_lines = item["description"].splitlines()
+        desc = desc_lines[0] + " ..." if len(desc_lines) > 1 else desc_lines[0]
 
         return (
             _status_symbols[item[FIELD_STATUS]]
             + (" ! " if item.get(FIELD_IMPORTANT) else "   ")
             + " "
-            + f"{time_diff_str:>5} {date_str:<11}"
+            + f"{date:<16}"
             + " "
-            + item["description"]
+            + desc
         )
 
     def get_item_color(self, item: Any) -> str:
@@ -164,7 +157,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 item[FIELD_STATUS] = "closed" if item[FIELD_DONE_DEPRECATED] else "none"
                 del item[FIELD_DONE_DEPRECATED]
             if FIELD_DUE_DEPRECATED in item:
-                dt = _parse_date(item[FIELD_DUE_DEPRECATED])
+                dt = parse_datetime(item[FIELD_DUE_DEPRECATED])
                 if dt:
                     item[FIELD_DUE_TIMESTAMP] = dt.timestamp()
                 del item[FIELD_DUE_DEPRECATED]
@@ -197,7 +190,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
             return
 
         # Parse to datetime
-        dt = _parse_date(val)
+        dt = parse_datetime(val)
         if not dt:
             self.set_message("Failed to parse date")
             return
@@ -257,7 +250,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__set_selected_item_value(
             {
                 FIELD_STATUS: "closed",
-                FIELD_CLOSED_TS: datetime.now().timestamp(),
+                FIELD_CLOSED_TIMESTAMP: datetime.now().timestamp(),
             }
         )
 

@@ -1,7 +1,18 @@
 import curses
 import curses.ascii
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    get_origin,
+)
 
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
@@ -10,7 +21,7 @@ from . import Menu
 from .inputmenu import InputMenu
 
 
-class _DictValueEditMenu(InputMenu):
+class _DictValueEditMenu(InputMenu[str]):
     def __init__(
         self,
         dict_: Dict,
@@ -23,6 +34,9 @@ class _DictValueEditMenu(InputMenu):
         self.__dict_history_values = dict_history_values
         self.__name = name
         self.__type = type
+
+        if get_origin(self.__type) == Literal:
+            items = [x for x in self.__type.__args__]
 
         super().__init__(
             items=items,
@@ -93,17 +107,23 @@ class _KeyValuePair:
         self.__key_display_width = key_display_width
 
     def __str__(self) -> str:
+        sep = " : "
         value = self.__dict[self.key]
-        modified = (
-            self.__default_dict is not None
-            and value != self.__default_dict[self.key]
+        is_modified = (
+            self.__default_dict is not None and value != self.__default_dict[self.key]
         )
-        return "{}:{}{}{}".format(
-            self.key.ljust(self.__key_display_width),
-            "\n" if isinstance(value, str) and "\n" in value else " ",
-            value,
-            " (*)" if modified else "",
-        )
+        header = self.key.ljust(self.__key_display_width)
+        if isinstance(value, str):
+            # Indent string value.
+            value = "\n".join(
+                (
+                    (" " * (self.__key_display_width + len(sep))) + line
+                    if i > 0
+                    else line
+                )
+                for i, line in enumerate(value.splitlines())
+            )
+        return "{}{}{}{}".format(header, sep, value, " (*)" if is_modified else "")
 
 
 class DictEditMenu(Menu[_KeyValuePair]):
@@ -115,7 +135,10 @@ class DictEditMenu(Menu[_KeyValuePair]):
         dict_history: Dict[str, List[Any]] = {},
         on_dict_history_update: Optional[Callable[[Dict[str, List[Any]]], None]] = None,
         prompt="",
+        schema: Optional[Dict[str, Type]] = None,
     ):
+        self.__schema = schema
+
         super().__init__(
             prompt=prompt,
             highlight=OrderedDict([(r"\(\*\)", "green")]),
@@ -255,7 +278,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
         _DictValueEditMenu(
             dict_=self.dict_,
             name=name,
-            type=type(val),
+            type=self.__schema[name] if self.__schema is not None else type(val),
             items=dict_history_values,
             dict_history_values=dict_history_values,
         ).exec()
