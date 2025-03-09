@@ -4,7 +4,13 @@ import re
 from io import StringIO
 from typing import Any, Dict, List, Optional
 
-from ai.codeeditutils import Change, apply_change_interactive, revert_changes
+from ai.codeeditutils import (
+    Change,
+    apply_change_interactive,
+    read_file_from_line_range,
+    read_file_lines,
+    revert_changes,
+)
 from ai.get_context_files import GetContextFilesMenu
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
@@ -102,11 +108,7 @@ class FileListMenu(ListEditMenu):
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
 
     def get_item_text(self, item: Any) -> str:
-        file = item["file"]
-        if "content" in item and item["content"]:
-            return f'{file}:\n{item["content"]}'
-        else:
-            return file
+        return "{}#{}-{}".format(item["file"], item["line_start"], item["line_end"])
 
     def _add_file(self):
         menu = FileMenu(prompt="add file", goto=os.getcwd())
@@ -123,21 +125,18 @@ class FileListMenu(ListEditMenu):
 
         if len(file_and_lines) == 2:
             start, end = map(int, file_and_lines[1].split("-"))
-            with open(file, "r", encoding="utf-8") as f:
-                lines = f.read().splitlines()
-            start = max(1, start)
-            end = min(end, len(lines))
-            content = "\n".join(lines[start - 1 : end])
-            self.append_item(
-                {
-                    "file": file,
-                    "content": content,
-                    "line_start": start,
-                    "line_end": end,
-                }
-            )
+            content = read_file_from_line_range(file, start, end)
         else:
-            self.append_item({"file": file})
+            content, lines = read_file_lines(file)
+            start, end = 1, len(lines)
+        self.append_item(
+            {
+                "file": file,
+                "content": content,
+                "line_start": start,
+                "line_end": end,
+            }
+        )
 
     def get_context(self) -> List[Any]:
         return self.items
@@ -145,12 +144,9 @@ class FileListMenu(ListEditMenu):
     def get_context_prompt(self) -> str:
         result = []
         for item in self.items:
-            if "content" in item and item["content"]:
-                content = item["content"]
-            else:
-                with open(item["file"], "r", encoding="utf-8") as f:
-                    content = f.read()
-            result.append(f'{item["file"]}\n```\n{content}\n```')
+            file = item["file"]
+            content = item["content"]
+            result.append(f"{file}\n```\n{content}\n```")
         return "\n".join(result)
 
 
@@ -215,8 +211,9 @@ class CoderMenu(ChatMenu):
             "files:\n"
             + "\n".join(
                 [
-                    file["file"]
-                    + ("(%d)" % len(file["content"]) if "content" in file else "")
+                    "{}#{}-{}".format(
+                        file["file"], file["line_start"], file["line_end"]
+                    )
                     for file in self.__file_list_menu.items
                 ]
             )
@@ -249,7 +246,7 @@ class CoderMenu(ChatMenu):
 
         changes = _find_changes(content)
         modified_files = apply_change_interactive(
-            changes=changes, context=self.__file_list_menu.get_context_prompt()
+            changes=changes, context=self.__file_list_menu.get_context()
         )
         if modified_files:
             self.__modified_files[:] = modified_files

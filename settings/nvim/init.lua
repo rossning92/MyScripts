@@ -3,6 +3,16 @@ vim.wo.number = true
 vim.g.mapleader = " "
 vim.opt.shortmess:append("I")     -- Disable intro message
 vim.opt.clipboard = "unnamedplus" -- Use system clipboard
+vim.opt.termguicolors = false
+
+vim.keymap.set('n', '<up>', "v:count == 0 ? 'gk' : 'k'", { expr = true })
+vim.keymap.set('n', '<down>', "v:count == 0 ? 'gj' : 'j'", { expr = true })
+vim.api.nvim_set_keymap('n', '<C-A>', 'ggVG', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
+
+-- Terminal settings
+vim.api.nvim_command("autocmd TermOpen * startinsert")
+vim.api.nvim_command("autocmd TermOpen * setlocal nonumber norelativenumber signcolumn=no")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -180,9 +190,6 @@ local function run_in_terminal(cmd, opts)
       end
     end
   })
-
-  -- Start insert mode
-  vim.cmd("startinsert")
 end
 
 local function fix()

@@ -1,5 +1,5 @@
 {{if MESSAGE}}
 git commit --amend -m "{{MESSAGE}}"
 {{else}}
-git commit --amend
+EDITOR=nvim git commit --amend
 {{end}}

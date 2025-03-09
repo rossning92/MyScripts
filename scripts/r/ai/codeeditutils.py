@@ -2,9 +2,35 @@ import os
 import shutil
 from dataclasses import dataclass
 from io import StringIO
-from typing import Any, List, Optional, Set
+from typing import Any, List, Optional, Set, Tuple
 
 from utils.menu.confirmmenu import ConfirmMenu
+
+
+def read_file_lines(file: str) -> Tuple[str, List[str]]:
+    with open(file, "r", encoding="utf-8") as f:
+        s = f.read()
+        lines = s.splitlines()
+    return s, lines
+
+
+def read_file_from_line_range(file: str, start: int, end: int) -> str:
+    _, lines = read_file_lines(file)
+    start, end = max(1, start), min(end, len(lines))
+    content = "\n".join(lines[start - 1 : end])
+    return content
+
+
+def replace_text_in_line_range(
+    search: str, replace: str, content: str, start: int, end: int
+) -> str:
+    lines = content.split("\n")
+    start, end = max(1, start), min(end, len(lines))
+    target_region = "\n".join(lines[start - 1 : end])
+    updated_region = target_region.replace(search, replace)
+    updated_lines = lines[: start - 1] + updated_region.split("\n") + lines[end:]
+    updated_content = "\n".join(updated_lines)
+    return updated_content
 
 
 @dataclass
@@ -58,7 +84,6 @@ def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
             with open(c.file, "w", encoding="utf-8") as f:  # Create a new file
                 f.write(c.replace)
         else:
-            # Read file
             with open(c.file, "r", encoding="utf-8") as f:
                 content = f.read()
                 if "\r\n" in content:
@@ -66,10 +91,20 @@ def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
                 else:
                     newline = "\n"
 
-            # Replace
-            if c.search not in content:
+            # Find corresponding code blocks in context
+            code_blocks = [block for block in context if c.search in block["content"]]
+            if not code_blocks:
                 raise ValueError(f"Search string not found in {c.file}")
-            updated_content = content.replace(c.search, c.replace, 1)
+            code_block = code_blocks[0]
+
+            # Replace
+            updated_content = replace_text_in_line_range(
+                c.search,
+                c.replace,
+                content=content,
+                start=code_block["line_start"],
+                end=code_block["line_end"],
+            )
 
             # Save file
             with open(c.file, "w", encoding="utf-8", newline=newline) as f:

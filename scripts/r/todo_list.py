@@ -1,8 +1,7 @@
 import argparse
 import os
-import re
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from utils.dateutil import parse_datetime
 from utils.editor import edit_text
@@ -240,7 +239,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.items.sort(
             key=lambda item: (
                 _status_sort_key[item.get(FIELD_STATUS, 0)],
-                _reversor(item.get(FIELD_DUE_TIMESTAMP, 0)),
+                (
+                    _reversor(item.get(FIELD_DUE_TIMESTAMP, 0))
+                    if item.get(FIELD_STATUS) != "none"
+                    else item.get(FIELD_DUE_TIMESTAMP, 0)
+                ),
                 item.get("description"),
             ),
         )
