@@ -50,6 +50,8 @@ def get_pretty_ts(ts):
             time_diff_str = f"{'+' if diff > 0 else ''}{diff // 30}M"
         elif abs(diff) != 0:
             time_diff_str = f"{'+' if diff > 0 else ''}{diff}d"
+        elif abs(diff) == 0:
+            time_diff_str = "now"
     return f"{time_diff_str:>4} {date_str}"
 
 
