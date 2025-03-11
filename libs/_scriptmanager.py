@@ -171,6 +171,7 @@ def execute_script(
     close_on_exit=None,
     no_daemon=False,
     out_to_file: Optional[str] = None,
+    run_over_ssh: Optional[bool] = None,
 ):
     refresh_env_vars()
 
@@ -196,6 +197,7 @@ def execute_script(
         new_window=False if no_daemon else None,
         restart_instance=False if is_in_tmux() else True,
         out_to_file=out_to_file,
+        run_over_ssh=run_over_ssh,
     )
     if not success:
         pause()

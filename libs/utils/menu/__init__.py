@@ -175,7 +175,7 @@ class _InputWidget:
             self._on_char(ch)
 
     def _on_char(self, ch: str):
-        if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7F]", ch)):
+        if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7f]", ch)):
             self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
             self.caret_pos += 1
 
@@ -500,9 +500,10 @@ class Menu(Generic[T]):
 
     def call_func_without_curses(self, func: Callable[[], R]) -> R:
         Menu.destroy_curses()
-        ret_val = func()
-        Menu.init_curses()
-        return ret_val
+        try:
+            return func()
+        finally:
+            Menu.init_curses()
 
     def exec(self) -> int:
         with self:
@@ -833,7 +834,7 @@ class Menu(Generic[T]):
             self.__hotkeys["escape"].func()
             return True
         else:
-            if self.__cancellable and self.get_input() == "":
+            if self.__cancellable:
                 self.is_cancelled = True
                 self.__closed = True
             else:

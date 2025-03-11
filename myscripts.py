@@ -1,6 +1,7 @@
 # ruff: noqa: E402
 
 import argparse
+import io
 import logging
 import logging.config
 import os
@@ -245,6 +246,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._next_scheduled_script, hotkey="alt+t")
         self.add_command(self._run_script_no_close, hotkey="alt+enter")
         self.add_command(self._run_script_no_close, hotkey="ctrl+enter")
+        self.add_command(self._run_script_local)
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
         self.add_command(self._rename_script_and_replace_all, hotkey="alt+n")
@@ -313,33 +315,47 @@ class _MyScriptMenu(Menu[Script]):
             else:
                 return super().match_item(patt=keyword, item=script, index=index)
 
-    def _run_selected_script(self, close_on_exit=None):
-        index = self.get_selected_index()
-        if index >= 0:
-            script = self.items[index]
+    def _run_selected_script(self, close_on_exit=None, run_over_ssh=None):
+        try:
+            index = self.get_selected_index()
+            if index >= 0:
+                script = self.items[index]
 
-            script.update_script_access_time()
-            self.script_manager.sort_scripts()
-            self.refresh()
+                script.update_script_access_time()
+                self.script_manager.sort_scripts()
+                self.refresh()
 
-            self.call_func_without_curses(
-                lambda: execute_script(
-                    script,
-                    args=self.__cmdline_args if self.__cmdline_args else None,
-                    cd=len(self.__cmdline_args) == 0,
-                    close_on_exit=close_on_exit,
-                    no_daemon=self.__no_daemon,
-                    out_to_file=self.__out_to_file,
+                self.call_func_without_curses(
+                    lambda: execute_script(
+                        script,
+                        args=self.__cmdline_args if self.__cmdline_args else None,
+                        cd=len(self.__cmdline_args) == 0,
+                        close_on_exit=close_on_exit,
+                        no_daemon=self.__no_daemon,
+                        out_to_file=self.__out_to_file,
+                        run_over_ssh=run_over_ssh,
+                    )
                 )
-            )
 
-            if self.__run_script_and_quit:
-                self.close()
-                return
+                if self.__run_script_and_quit:
+                    self.close()
+                    return
 
-            if script.cfg["reloadScriptsAfterRun"]:
-                logging.info("Reload scripts after running: %s" % script.name)
-                self._reload_scripts()
+                if script.cfg["reloadScriptsAfterRun"]:
+                    logging.info("Reload scripts after running: %s" % script.name)
+                    self._reload_scripts()
+
+                self.clear_input(reset_selection=True)
+
+        except Exception:
+            output = io.StringIO()
+            traceback.print_exc(file=output)
+            err_lines = output.getvalue().splitlines()
+            Menu(prompt="Error on run_selected_script", items=err_lines).exec()
+
+        finally:
+            # Reset the last refresh time whenever we run a script.
+            self.update_last_refresh_time()
 
     def get_selected_script(self) -> Optional[Script]:
         index = self.get_selected_index()
@@ -484,12 +500,10 @@ class _MyScriptMenu(Menu[Script]):
         self.last_refresh_time = time.time()
 
     def _run_script_no_close(self):
-        try:
-            self._run_selected_script(close_on_exit=False)
-            self.clear_input(reset_selection=True)
-        finally:
-            # Reset last refresh time when key press event is processed
-            self.update_last_refresh_time()
+        self._run_selected_script(close_on_exit=False)
+
+    def _run_script_local(self):
+        self._run_selected_script(run_over_ssh=False)
 
     def on_char(self, ch):
         self.set_message(None)
@@ -510,7 +524,6 @@ class _MyScriptMenu(Menu[Script]):
 
     def on_enter_pressed(self):
         self._run_selected_script()
-        self.clear_input(reset_selection=True)
         return True
 
     def on_idle(self):
@@ -750,24 +763,20 @@ def _main():
     run_script_and_quit = (
         bool(args.input) or args.quit or bool(args.args) or bool(args.out_to_file)
     )
-    while True:  # repeat if _MyScriptMenu throws exceptions
-        try:
-            _MyScriptMenu(
-                cmdline_args=args.args,
-                input_text=args.input,
-                no_daemon=not start_daemon,
-                run_script_and_quit=run_script_and_quit,
-                script_manager=script_manager,
-                out_to_file=args.out_to_file,
-                prompt=args.prompt,
-            ).exec()
-            if run_script_and_quit:
-                break
-
-        except Exception:
-            traceback.print_exc(file=sys.stdout)
-            pause()
+    _MyScriptMenu(
+        cmdline_args=args.args,
+        input_text=args.input,
+        no_daemon=not start_daemon,
+        run_script_and_quit=run_script_and_quit,
+        script_manager=script_manager,
+        out_to_file=args.out_to_file,
+        prompt=args.prompt,
+    ).exec()
 
 
 if __name__ == "__main__":
-    _main()
+    try:
+        _main()
+    except Exception:
+        traceback.print_exc(file=sys.stdout)
+        pause()

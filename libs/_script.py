@@ -861,6 +861,7 @@ class Script:
         command_wrapper: Optional[bool] = True,
         background=False,
         out_to_file: Optional[str] = None,
+        run_over_ssh: Optional[bool] = None,
     ) -> bool:
         # Termux does not have any GUI support, so we never open script in new window.
         # if is_in_termux():
@@ -1077,7 +1078,7 @@ class Script:
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
 
-        elif self.cfg["runOverSsh"]:
+        elif self.cfg["runOverSsh"] if run_over_ssh is None else run_over_ssh:
             arg_list = [
                 sys.executable,
                 find_script("ext/run_script_ssh.py"),
