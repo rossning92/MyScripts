@@ -35,7 +35,6 @@ def complete_chat(
         "stream": True,
     }
 
-    content = ""
     with requests.post(api_url, headers=headers, json=payload, stream=True) as response:
         response.raise_for_status()
         for line in response.iter_lines():
@@ -52,10 +51,7 @@ def complete_chat(
                 ):
                     text_chunk = json_data["delta"].get("text", "")
                     if text_chunk:
-                        content += text_chunk
                         yield text_chunk
 
                 if json_data.get("type") == "message_stop":
                     break
-
-    messages.append({"role": "assistant", "content": content})

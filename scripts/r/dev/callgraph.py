@@ -186,8 +186,6 @@ def create_edges(
 
         function_body_node = match["function_body"][0]
 
-        logging.info(f"Find callees from: {caller_text}")
-
         # Add edge to call graph
         for identifier in _find_all_identifiers(function_body_node):
             # Add edge callee
@@ -200,6 +198,7 @@ def create_edges(
             for callee in found_function_names:
                 if callee != caller_text:  # avoid self-loop
                     graph.add_edge(caller_text, callee)
+                    logging.info(f"Add function call: {caller_text} -> {callee}")
                     is_callee = True
 
             # Add edge to other identifiers
@@ -335,7 +334,7 @@ def add_callers_or_callees_to_graph(
     max_depth: int,
     graph: CallGraph,
     new_graph: CallGraph,
-    should_find_callers: bool,
+    find_callers: bool,
 ):
     q: Queue[Tuple[str, int]] = Queue()
     q.put((node, 0))
@@ -343,12 +342,9 @@ def add_callers_or_callees_to_graph(
         n, d = q.get()
         if d < max_depth:
             for connected_node in (
-                graph.reverse_edges[n] if should_find_callers else graph.edges[n]
+                graph.reverse_edges[n] if find_callers else graph.edges[n]
             ):
-                if should_find_callers:
-                    new_graph.add_edge(connected_node, n)
-                else:
-                    new_graph.add_edge(n, connected_node)
+                new_graph.add_node(connected_node)
                 q.put((connected_node, d + 1))
 
 
@@ -439,16 +435,18 @@ def generate_call_graph(
 
         for node in graph.nodes:
             if node in filtered_nodes:
+                # Add filtered nodes
                 filtered_graph.add_node(node)
                 filtered_graph.highlighted_nodes.add(node)
 
+                # Add caller and callee nodes
                 if match_callers is not None:
                     add_callers_or_callees_to_graph(
                         node=node,
                         max_depth=match_callers,
                         graph=graph,
                         new_graph=filtered_graph,
-                        should_find_callers=True,
+                        find_callers=True,
                     )
 
                 if match_callees is not None:
@@ -457,9 +455,10 @@ def generate_call_graph(
                         max_depth=match_callees,
                         graph=graph,
                         new_graph=filtered_graph,
-                        should_find_callers=False,
+                        find_callers=False,
                     )
 
+        # Add edges
         for caller, callees in graph.edges.items():
             for callee in callees:
                 if caller in filtered_graph.nodes and callee in filtered_graph.nodes:

@@ -77,7 +77,6 @@ def complete_chat(
 
     response = requests.post(url, headers=headers, json=data, stream=True)
     response.raise_for_status()
-    content = ""
     for chunk in response.iter_lines():
         if len(chunk) == 0:
             continue
@@ -88,15 +87,10 @@ def complete_chat(
         try:
             decoded_line = json.loads(chunk.decode("utf-8").split("data: ")[1])
             token = decoded_line["choices"][0]["delta"].get("content")
-
             if token is not None:
-                content += token
                 yield token
-
         except GeneratorExit:
             break
-
-    messages.append({"role": "assistant", "content": content})
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@ def get_pretty_ts(ts):
     date = datetime.fromtimestamp(ts)
     if date:
         now = datetime.now(date.tzinfo)
-        diff = (date - now).days
+        diff = (date.date() - now.date()).days
         if abs(diff) > 365:
             time_diff_str = f"{'+' if diff > 0 else ''}{diff // 365}y"
         elif abs(diff) > 30:

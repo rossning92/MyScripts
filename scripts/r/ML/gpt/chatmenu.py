@@ -2,7 +2,8 @@ import argparse
 import os
 from typing import Any, Dict, List, Literal, Optional
 
-from ai.openai.complete_chat import complete_chat, create_user_message, message_to_str
+from ai.complete_chat import complete_chat
+from ai.openai.complete_chat import create_user_message, message_to_str
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.historymanager import HistoryManager
@@ -61,7 +62,7 @@ class ChatMenu(Menu[_Line]):
         self.__settings_menu = JsonEditMenu(
             json_file=self.__settings_file,
             default={"model": "gpt-4o"},
-            schema={"model": Literal["gpt-4o", "o3-mini"]},
+            schema={"model": Literal["gpt-4o", "o3-mini", "claude-3-5-sonnet-latest"]},
         )
 
         super().__init__(
@@ -271,6 +272,7 @@ class ChatMenu(Menu[_Line]):
 
         try:
             content = ""
+            messages = self.get_messages()
             message_index = len(self.get_messages())
             line = _Line(role="assistant", text="", message_index=message_index)
             self.append_item(line)
@@ -286,6 +288,8 @@ class ChatMenu(Menu[_Line]):
 
                 self.update_screen()
                 self.process_events(raise_keyboard_interrupt=True)
+
+            messages.append({"role": "assistant", "content": content})
 
         except KeyboardInterrupt:
             self.set_message("interrupt")

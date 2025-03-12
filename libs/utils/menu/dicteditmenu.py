@@ -66,6 +66,8 @@ class _DictValueEditMenu(InputMenu[str]):
                 val = False
             else:
                 raise Exception("Invalid bool value: {}".format(text))
+        elif get_origin(self.__type) == Literal:
+            val = text.strip()
         else:
             raise Exception("Invalid type: {}".format(self.__type))
 
