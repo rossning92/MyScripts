@@ -7,6 +7,7 @@ import requests
 
 def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
+    model: str = "claude-3-5-sonnet-latest",
 ) -> Iterator[str]:
 
     api_key = os.environ["ANTHROPIC_API_KEY"]
@@ -28,7 +29,7 @@ def complete_chat(
 
     payload = {
         # https://docs.anthropic.com/en/docs/about-claude/models
-        "model": "claude-3-5-sonnet-latest",
+        "model": model,
         "messages": messages,
         "max_tokens": 4096,
         "stream": True,

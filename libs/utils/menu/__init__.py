@@ -135,7 +135,7 @@ class _InputWidget:
 
             s = self.text[self.caret_pos :]
             if show_enter_symbol:
-                s += " [enter]"
+                s += " [search]"
 
             stdscr.addstr(cursor_y, cursor_x, s)
             y, x = Menu.stdscr.getyx()  # type: ignore

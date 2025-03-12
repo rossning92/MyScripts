@@ -11,8 +11,7 @@ def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
     model: Optional[str] = None,
 ) -> Iterator[str]:
-    ai_provider = os.getenv("API_PROVIDER", "openai").lower()
-    if ai_provider == "anthropic":
+    if model and model.startswith("claude"):
         return ai.anthropic.complete_chat.complete_chat(message)
     else:
         return ai.openai.complete_chat.complete_chat(message, model=model)
