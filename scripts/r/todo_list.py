@@ -77,6 +77,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
+        self.add_command(self.__edit_closed_date, hotkey="alt+c")
         self.add_command(self.__edit_due, hotkey="alt+d")
         self.add_command(self.__new_task, hotkey="ctrl+n")
         self.add_command(self.__reload, hotkey="ctrl+r")
@@ -172,7 +173,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__sort_tasks()
         return super().save_json()
 
-    def __edit_due(self):
+    def __edit_timestamp_field(self, field_name: str):
         # Check selected item
         selected = self.get_selected_item()
         if not selected:
@@ -180,10 +181,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         # User inputs a date
         val = InputMenu(
-            prompt="due date",
+            prompt=field_name,
             text=(
-                _format_timestamp(selected[FIELD_DUE_TIMESTAMP])
-                if FIELD_DUE_TIMESTAMP in selected
+                _format_timestamp(selected[field_name])
+                if field_name in selected
                 else ""
             ),
         ).request_input()
@@ -198,12 +199,18 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         # Convert to timestamp
         ts = dt.timestamp()
-        if ts == selected.get(FIELD_DUE_TIMESTAMP, 0):
+        if ts == selected.get(field_name, 0):
             self.set_message("Skip updating the same date")
             return
 
-        selected[FIELD_DUE_TIMESTAMP] = ts
+        selected[field_name] = ts
         self.save_json()
+
+    def __edit_due(self):
+        self.__edit_timestamp_field(field_name=FIELD_DUE_TIMESTAMP)
+
+    def __edit_closed_date(self):
+        self.__edit_timestamp_field(field_name=FIELD_CLOSED_TIMESTAMP)
 
     def __edit_description(self):
         selected = self.get_selected_item()
@@ -242,9 +249,15 @@ class TodoMenu(ListEditMenu[TodoItem]):
             key=lambda item: (
                 _status_sort_key[item.get(FIELD_STATUS, 0)],
                 (
-                    _reversor(item.get(FIELD_DUE_TIMESTAMP, 0))
+                    _reversor(
+                        item.get(
+                            FIELD_DUE_TIMESTAMP, item.get(FIELD_CLOSED_TIMESTAMP, 0)
+                        )
+                    )
                     if item.get(FIELD_STATUS) != "none"
-                    else item.get(FIELD_DUE_TIMESTAMP, 0)
+                    else item.get(
+                        FIELD_DUE_TIMESTAMP, item.get(FIELD_CLOSED_TIMESTAMP, 0)
+                    )
                 ),
                 item.get("description"),
             ),

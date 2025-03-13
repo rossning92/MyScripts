@@ -24,13 +24,14 @@ from .inputmenu import InputMenu
 class _DictValueEditMenu(InputMenu[str]):
     def __init__(
         self,
-        dict_: Dict,
+        data: Dict,
         name: str,
+        text: str,
         type: Type,
         dict_history_values: List,
         items: List,
     ):
-        self.__dict = dict_
+        self.__data = data
         self.__dict_history_values = dict_history_values
         self.__name = name
         self.__type = type
@@ -41,7 +42,7 @@ class _DictValueEditMenu(InputMenu[str]):
         super().__init__(
             items=items,
             prompt=name,
-            text=self.__dict[self.__name],
+            text=text,
         )
 
     def on_enter_pressed(self):
@@ -49,13 +50,13 @@ class _DictValueEditMenu(InputMenu[str]):
         assert text is not None
 
         val: Union[str, int, float, bool]
-        if self.__type == str:
+        if self.__type is str:
             val = text.strip()
-        elif self.__type == int:
+        elif self.__type is int:
             val = int(text)
-        elif self.__type == float:
+        elif self.__type is float:
             val = float(text)
-        elif self.__type == bool or self.__type == type(None):
+        elif self.__type is bool or self.__type is type(None):
             if text.lower() == "true":
                 val = True
             elif text.lower() == "false":
@@ -71,7 +72,7 @@ class _DictValueEditMenu(InputMenu[str]):
         else:
             raise Exception("Invalid type: {}".format(self.__type))
 
-        self.__dict[self.__name] = val
+        self.__data[self.__name] = val
 
         # Save edit history
         if val in self.__dict_history_values:  # avoid duplicates
@@ -131,7 +132,7 @@ class _KeyValuePair:
 class DictEditMenu(Menu[_KeyValuePair]):
     def __init__(
         self,
-        dict_,
+        data,
         default_dict: Optional[Dict[str, Any]] = None,
         on_dict_update: Optional[Callable[[Dict], None]] = None,
         dict_history: Dict[str, List[Any]] = {},
@@ -146,12 +147,11 @@ class DictEditMenu(Menu[_KeyValuePair]):
             highlight=OrderedDict([(r"\(\*\)", "green")]),
             wrap_text=True,
         )
-        self.dict_ = dict_
-        self.default_dict = default_dict
-        self.on_dict_update = on_dict_update
-        self.label = prompt
-        self.dict_history = dict_history
-        self.on_dict_history_update = on_dict_history_update
+        self.__data = data
+        self.__default_dict = default_dict
+        self.__on_dict_update = on_dict_update
+        self.__dict_history = dict_history
+        self.__on_dict_history_update = on_dict_history_update
 
         self.__init_items()
 
@@ -170,14 +170,14 @@ class DictEditMenu(Menu[_KeyValuePair]):
     def __prev_or_next_value(self, prev=False):
         key = self.get_selected_key()
         if key is not None:
-            value = self.dict_[key]
+            value = self.__data[key]
             if isinstance(value, bool):
-                self.dict_[key] = not self.dict_[key]
+                self.__data[key] = not self.__data[key]
                 self.__notify_dict_updated()
                 self.update_screen()
             elif isinstance(value, str):
-                if self.dict_history and key in self.dict_history:
-                    values = self.dict_history[key]
+                if self.__dict_history and key in self.__dict_history:
+                    values = self.__dict_history[key]
                     try:
                         index = values.index(value)
                         index = (
@@ -185,7 +185,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
                             if prev
                             else max(0, index - 1)
                         )
-                        self.dict_[key] = values[index]
+                        self.__data[key] = values[index]
                         self.__notify_dict_updated()
                     except ValueError:
                         pass
@@ -193,7 +193,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
     def __edit_value(self):
         key = self.get_selected_key()
         if key is not None:
-            value = self.dict_[key]
+            value = self.__data[key]
             if isinstance(value, str):
                 new_value = self.call_func_without_curses(lambda: edit_text(value))
                 if new_value != value:
@@ -202,7 +202,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
     def __paste_value(self):
         key = self.get_selected_key()
         if key is not None:
-            value = self.dict_[key]
+            value = self.__data[key]
             if isinstance(value, str):
                 val = get_clip()
                 self.set_dict_value(key, val)
@@ -210,30 +210,30 @@ class DictEditMenu(Menu[_KeyValuePair]):
     def __copy_selected_dict_value(self):
         key = self.get_selected_key()
         if key is not None:
-            value = self.dict_[key]
+            value = self.__data[key]
             set_clip(value)
             self.set_message(f"copied: {value}")
 
     def __notify_dict_updated(self):
-        if self.on_dict_update:
-            self.on_dict_update(self.dict_)
-        if self.on_dict_history_update:
-            self.on_dict_history_update(self.dict_history)
+        if self.__on_dict_update:
+            self.__on_dict_update(self.__data)
+        if self.__on_dict_history_update:
+            self.__on_dict_history_update(self.__dict_history)
         self.update_screen()
 
     def __init_items(self):
-        if len(self.dict_) == 0:
+        if len(self.__data) == 0:
             return
 
         # Get max width for keys
-        keys = list(self.dict_.keys())
+        keys = list(self.__data.keys())
         max_width = max([len(x) for x in keys]) + 1
 
         kvps: List[Tuple[str, bool]] = []
         for key in keys:
             modified = (
-                self.default_dict is not None
-                and self.dict_[key] != self.default_dict[key]
+                self.__default_dict is not None
+                and self.__data[key] != self.__default_dict[key]
             )
             kvps.append((key, modified))
 
@@ -245,10 +245,10 @@ class DictEditMenu(Menu[_KeyValuePair]):
         for key, _ in kvps:
             self.items.append(
                 _KeyValuePair(
-                    self.dict_,
+                    self.__data,
                     key=key,
                     key_display_width=max_width,
-                    default_dict=self.default_dict,
+                    default_dict=self.__default_dict,
                 )
             )
 
@@ -263,10 +263,10 @@ class DictEditMenu(Menu[_KeyValuePair]):
             return None
 
     def __get_dict_history_values(self, name: str) -> List[str]:
-        if name not in self.dict_history:
-            dict_history_values = self.dict_history[name] = []
+        if name not in self.__dict_history:
+            dict_history_values = self.__dict_history[name] = []
         else:
-            dict_history_values = self.dict_history[name]
+            dict_history_values = self.__dict_history[name]
         return dict_history_values
 
     def __edit_dict_value(self):
@@ -274,23 +274,17 @@ class DictEditMenu(Menu[_KeyValuePair]):
         if name is None:
             return
 
-        val = self.dict_[name]
-
-        dict_history_values = self.__get_dict_history_values(name)
-        _DictValueEditMenu(
-            dict_=self.dict_,
-            name=name,
-            type=self.__schema[name] if self.__schema is not None else type(val),
-            items=dict_history_values,
-            dict_history_values=dict_history_values,
-        ).exec()
+        self.edit_dict_value(data=self.__data, name=name)
 
         self.__notify_dict_updated()
         self.update_screen()
 
+    def get_value(self, name: str):
+        return self.__data[name]
+
     def set_dict_value(self, name: str, value: str):
         # Update dict
-        self.dict_[name] = value
+        self.__data[name] = value
 
         # Update dict history
         dict_history_values = self.__get_dict_history_values(name)
@@ -301,5 +295,15 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.__notify_dict_updated()
         self.update_screen()
 
-    def get_value(self, name: str):
-        return self.dict_[name]
+    def edit_dict_value(self, data: Dict[str, Any], name: str):
+        dict_history_values = self.__get_dict_history_values(name)
+        _DictValueEditMenu(
+            data=data,
+            name=name,
+            text=str(self.__data[name]),
+            type=(
+                self.__schema[name] if self.__schema is not None else type(data[name])
+            ),
+            items=dict_history_values,
+            dict_history_values=dict_history_values,
+        ).exec()
