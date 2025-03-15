@@ -7,7 +7,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from _shutil import get_home_path
 
@@ -47,13 +47,16 @@ class _Config:
                 setattr(self, key, value)
 
     def save(self, config_file: str):
-        data = {
+        data = self.get_data_dict()
+        with open(config_file, "w") as f:
+            json.dump(data, f, indent=4)
+
+    def get_data_dict(self) -> Dict[str, Any]:
+        return {
             key: value
             for key, value in self.__dict__.items()
             if not key.startswith("_")
         }
-        with open(config_file, "w") as f:
-            json.dump(data, f, indent=4)
 
 
 def get_dir_size(full_path: str) -> int:
@@ -589,3 +592,6 @@ class FileMenu(Menu[_File]):
             )
             if ret_code == 0:
                 self._refresh_cur_dir()
+
+    def get_status_bar_text(self) -> str:
+        return f"sort={self.__config.sort_by} {super().get_status_bar_text()}"
