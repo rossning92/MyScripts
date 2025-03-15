@@ -58,7 +58,7 @@ pac_install $(pacman -Ssq 'noto-fonts-*')
 
 {{ include('r/linux/arch/install_yay.sh') }}
 
-yay_install visual-studio-code-bin google-chrome
+yay_install google-chrome
 
 # Configure HiDPI display
 DPI_VALUE=144 # 96 * 1.5
@@ -215,13 +215,20 @@ append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
 pac_install flameshot
 append_line_dedup ~/.xinitrc 'flameshot &'
 
+{{ include('r/linux/install_screen_lock.arch.linux.sh') }}
+
+# Replace the current process with the awesomewm when initializing X.
+append_line_dedup ~/.xinitrc "exec awesome"
+
+run_script r/install_package.py vscode
+
+# System time
+sudo timedatectl set-ntp true
+# Set the timezone based on geo-location:
+timedatectl set-timezone $(curl -s https://ipapi.co/timezone)
+
 # Install GitHub CLI
 pac_install github-cli
 if [[ "$(gh auth status 2>&1)" =~ "not logged" ]]; then
     gh auth login
 fi
-
-{{ include('r/linux/install_screen_lock.arch.linux.sh') }}
-
-# Replace the current process with the awesomewm when initializing X.
-append_line_dedup ~/.xinitrc "exec awesome"

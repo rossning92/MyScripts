@@ -367,6 +367,12 @@
       "packages": ["miniconda3"]
     }
   },
+  "mongodb": {
+    "post_install": ["sudo systemctl enable mongodb.service --now"],
+    "yay": {
+      "packages": ["mongodb-bin", "mongodb-tools-bin"]
+    }
+  },
   "moonlight": {
     "choco": {
       "packages": ["moonlight"]
@@ -749,9 +755,17 @@
       "C:\\Program Files\\Microsoft VS Code\\Code.exe",
       "code"
     ],
-    "linux_install": "/r/install_vscode_linux",
+    "post_install": ["run_script r/vscode/config_vscode.py"],
     "winget": {
       "packages": ["Microsoft.VisualStudioCode"]
+    },
+    "yay": {
+      "packages": ["visual-studio-code-bin"]
+    }
+  },
+  "xdotool": {
+    "pacman": {
+      "packages": ["xdotool"]
     }
   },
   "xxd": {

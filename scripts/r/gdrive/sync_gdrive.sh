@@ -11,13 +11,18 @@ cd "$HOME"
 
 rclone_wrapper() {
     logfile="$(mktemp)"
+    local_dir="$2"
 
     extra_args=''
     if [[ -n "$_DRY_RUN" ]]; then
         extra_args+=' --dry-run'
     fi
+    if [[ ! -d "$local_dir" ]]; then 
+        extra_args+=' --resync'
+        mkdir "$local_dir"
+    fi
 
-    rclone bisync "drive:$1" "$2" \
+    rclone bisync "drive:$1" "$local_dir" \
         --color NEVER \
         --verbose \
         --ignore-checksum \
@@ -54,7 +59,6 @@ rclone_wrapper() {
 
 [[ -z "$LOCAL_DIR" ]] && local_dir="$HOME/gdrive/$GDRIVE_DIR" || local_dir="$LOCAL_DIR"
 [[ -x "$(command -v cygpath)" ]] && local_dir="$(cygpath -w "$local_dir")" # convert to win path
-mkdir -p "$local_dir"                                                      # create local dir if not exists
 
 echo "Sync \"gdrive://$GDRIVE_DIR\" <=> \"$local_dir\""
 rclone_wrapper "$GDRIVE_DIR" "$local_dir"

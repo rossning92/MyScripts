@@ -68,6 +68,8 @@ def require_package(
         for pkg in packages["dependantPackages"]:
             require_package(pkg)
 
+    package_matched = False
+    was_package_installed = False  # Whether or not a package has just been installed.
     if pkg in packages:
         if "golang" in packages[pkg]:
             require_package("golang")
@@ -76,7 +78,8 @@ def require_package(
                 if not _is_go_package_installed(go_pkg_path) or force_install:
                     logging.info(f"Installing go package: {go_pkg_path}...")
                     subprocess.check_call(["go", "install", go_pkg_path])
-                return
+                    was_package_installed = True
+                package_matched = True
 
         elif "npm" in packages[pkg]:
             for p in packages[pkg]["npm"]["packages"]:
@@ -87,7 +90,8 @@ def require_package(
                         + ["npm", "install", "-g", p],
                         shell=sys.platform == "win32",
                     )
-            return
+                    was_package_installed = True
+            package_matched = True
 
         elif "yarn" in packages[pkg]:
             for p in packages[pkg]["yarn"]["packages"]:
@@ -100,7 +104,8 @@ def require_package(
                     yarn_global_bin_path,
                     env=env,
                 )
-            return
+                was_package_installed = True
+            package_matched = True
 
         elif "pacman" in packages[pkg] and shutil.which("pacman"):
             for p in packages[pkg]["pacman"]["packages"]:
@@ -114,7 +119,8 @@ def require_package(
                 ) or force_install:
                     logging.info(f"Installing package using pacman: {p}")
                     subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
-            return
+                    was_package_installed = True
+            package_matched = True
 
         elif "dnf" in packages[pkg] and shutil.which("dnf"):
             for p in packages[pkg]["dnf"]["packages"]:
@@ -128,7 +134,8 @@ def require_package(
                 ) or force_install:
                     logging.info(f"Installing package using dnf: {p}")
                     subprocess.check_call(["sudo", "dnf", "install", "-y", p])
-            return
+                    was_package_installed = True
+            package_matched = True
 
         elif "yay" in packages[pkg] and shutil.which("pacman"):
             yay_packages = packages[pkg]["yay"]["packages"]
@@ -143,7 +150,8 @@ def require_package(
                 ) or force_install:
                     logging.info(f"Installing package using yay: {p}")
                     subprocess.check_call(["yay", "-S", "--noconfirm", "--rebuild", p])
-            return
+                    was_package_installed = True
+            package_matched = True
 
         elif is_in_termux() and "termux" in packages[pkg]:
             for p in packages[pkg]["termux"]["packages"]:
@@ -157,7 +165,8 @@ def require_package(
                 ) or force_install:
                     logging.warning(f'Package "{p}" was not found, installing...')
                     subprocess.check_call(["pkg", "install", p, "-y"])
-            return
+                    was_package_installed = True
+            package_matched = True
 
         elif wsl and "apt" in packages[pkg]:
             wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
@@ -180,7 +189,8 @@ def require_package(
 
                     logging.info(f"Installing package using apt: {pkg}...")
                     subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
-            return
+                    was_package_installed = True
+            package_matched = True
 
         elif "dotnet" in packages[pkg]:
             for p in packages[pkg]["dotnet"]["packages"]:
@@ -194,22 +204,22 @@ def require_package(
                 ) or force_install:
                     logging.info(f"Installing dotnet package package: {p}...")
                     subprocess.check_call(["dotnet", "tool", "install", "--global", p])
+                    was_package_installed = True
             if sys.platform == "win32":
                 prepend_to_path(
                     os.path.expandvars("%USERPROFILE%\\.dotnet\\tools"), env=env
                 )
             else:
                 prepend_to_path(os.path.expandvars("$HOME/.dotnet/tools"), env=env)
-
-            return
+            package_matched = True
 
         elif sys.platform == "win32":
             if win_package_manager == "choco" and "choco" in packages[pkg]:
                 _choco_install(pkg, force_install=force_install, upgrade=upgrade)
-                return
+                package_matched = True
             elif win_package_manager == "winget" and "winget" in packages[pkg]:
                 _winget_install(pkg, force_install=force_install, upgrade=upgrade)
-                return
+                package_matched = True
 
         elif "pip" in packages[pkg]:
             for p in packages[pkg]["pip"]["packages"]:
@@ -227,9 +237,16 @@ def require_package(
                     subprocess.check_call(
                         [sys.executable, "-m", "pip", "install", "--upgrade", p]
                     )
-            return
+                    was_package_installed = True
+            package_matched = True
 
-    raise Exception(f"{pkg} cannot be found.")
+        if was_package_installed and "post_install" in packages[pkg]:
+            post_install = packages[pkg]["post_install"]
+            for cmd in post_install:
+                subprocess.check_call(cmd, shell=True)
+
+    if not package_matched:
+        raise Exception(f"{pkg} is not found")
 
 
 @lru_cache(maxsize=None)

@@ -89,11 +89,11 @@ def setup_python(data_dir: str):
 
     install_extensions(
         [
-            "charliermarsh.ruff",
-            "ms-python.black-formatter",
-            "ms-python.mypy-type-checker",
             "ms-python.python",
+            "ms-python.mypy-type-checker",
+            "ms-python.black-formatter",
             "ms-toolsai.jupyter",
+            "charliermarsh.ruff",
             "njpwerner.autodocstring",
         ],
         data_dir=data_dir,

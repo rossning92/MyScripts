@@ -36,9 +36,8 @@ if [[ "$auto_install" == true ]]; then
                     sudo pacman -S --noconfirm $1
                 fi
             }
-
-            check_and_install 'python'
-            check_and_install 'python-pip'
+            check_and_install 'python3'
+            check_and_install 'python3-pip'
         fi
     elif command -v termux-setup-storage; then # is running in termux
         if [[ ! -x "$(command -v python)" ]]; then
