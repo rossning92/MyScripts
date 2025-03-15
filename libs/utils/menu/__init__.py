@@ -616,7 +616,8 @@ class Menu(Generic[T]):
         self._check_if_item_selection_changed()
 
     def refresh(self):
-        self.__should_update_matched_items = True
+        # self.__should_update_matched_items = True
+        self.__update_matched_items(force_update=True)
 
     def __set_selection_by_offset(self, offset: int, multi_select: bool):
         total_rows = len(self.get_item_indices())

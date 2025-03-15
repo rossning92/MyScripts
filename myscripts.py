@@ -317,10 +317,8 @@ class _MyScriptMenu(Menu[Script]):
 
     def _run_selected_script(self, close_on_exit=None, run_over_ssh=None):
         try:
-            index = self.get_selected_index()
-            if index >= 0:
-                script = self.items[index]
-
+            script = self.get_selected_item()
+            if script:
                 script.update_script_access_time()
                 self.script_manager.sort_scripts()
                 self.refresh()
@@ -400,7 +398,7 @@ class _MyScriptMenu(Menu[Script]):
         self.is_refreshing = False
 
         if self.__run_script_and_quit:
-            # If only one script is matched, run it directly.
+            self.refresh()
             if self.get_row_count() == 1:
                 self._run_selected_script()
 
