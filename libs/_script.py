@@ -1378,9 +1378,10 @@ class Script:
         # Run commands
         if len(arg_list) > 0:
             if tee:
+                out_dir = os.path.join(get_home_path(), "Desktop")
+                os.makedirs(out_dir, exist_ok=True)
                 log_file = os.path.join(
-                    get_home_path(),
-                    "Desktop",
+                    out_dir,
                     "{}_{}.log".format(self.get_short_name(), int(time.time())),
                 )
                 logging.debug(f"log_file: {log_file}")

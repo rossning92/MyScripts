@@ -1,3 +1,4 @@
 {
-  "closeOnExit": false
+  "packages": "netstat",
+  "tee": true
 }

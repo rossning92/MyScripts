@@ -1,0 +1,15 @@
+.markdown-body {
+  font-size: 12pt;
+  line-height: 1.5;
+}
+
+br {
+  margin: 0;
+  padding: 0;
+}
+
+img.emoji-img.emoji {
+  max-width: 12pt;
+  max-height: 12pt;
+  vertical-align: middle;
+}

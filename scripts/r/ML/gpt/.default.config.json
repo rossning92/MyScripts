@@ -1,4 +1,3 @@
 {
-  "restartInstance": true,
   "variableNames": "OPENAI_API_KEY"
 }

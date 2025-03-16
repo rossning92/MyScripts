@@ -266,6 +266,9 @@
     },
     "winget": {
       "packages": ["Google.Chrome"]
+    },
+    "yay": {
+      "packages": ["google-chrome"]
     }
   },
   "gradle": {
@@ -357,6 +360,11 @@
       "packagePath": "github.com/iawia002/lux@latest"
     }
   },
+  "mdpdf": {
+    "yarn": {
+      "packages": ["mdpdf"]
+    }
+  },
   "mermaid-cli": {
     "npm": {
       "packages": ["@mermaid-js/mermaid-cli"]
@@ -415,6 +423,11 @@
     },
     "winget": {
       "packages": ["Neovim.Neovim"]
+    }
+  },
+  "netstat": {
+    "pacman": {
+      "packages": ["net-tools"]
     }
   },
   "ninja": {
@@ -510,6 +523,11 @@
   "pulseaudio": {
     "termux": {
       "packages": ["pulseaudio"]
+    }
+  },
+  "puppeteer": {
+    "yarn": {
+      "packages": ["puppeteer"]
     }
   },
   "putty": {

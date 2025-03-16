@@ -2,57 +2,45 @@
 set -e
 cd "$(dirname "$0")"
 
-auto_install=false
-for arg in "$@"; do
-    if [ "$arg" == "-i" ]; then
-        auto_install=true
-        shift
-        break
-    fi
-done
-
-if [[ "$auto_install" == true ]]; then
-    if [[ "$(uname)" == "Linux" ]]; then
-        # Check if Debian-based distro
-        if [[ -f "/etc/debian_version" ]]; then
-            # Install required packages
-            declare -a packages=(
-                "python3"
-                "python3-pip"
-            )
-            for package in "${packages[@]}"; do
-                dpkg -s "$package" >/dev/null 2>&1 || {
-                    sudo apt-get update
-                    sudo apt-get install -y "$package"
-                }
-            done
-
-        # Check if Arch-based distro
-        elif [[ -f "/etc/arch-release" ]]; then
-            function check_and_install {
-                if ! pacman -Qi $1 >/dev/null; then
-                    echo "Package $1 is not installed."
-                    echo "Installing $1..."
-                    sudo pacman -S --noconfirm $1
-                fi
+if [[ "$(uname)" == "Linux" ]]; then
+    # Check if Debian-based distro
+    if [[ -f "/etc/debian_version" ]]; then
+        # Install required packages
+        declare -a packages=(
+            "python3"
+            "python3-pip"
+        )
+        for package in "${packages[@]}"; do
+            dpkg -s "$package" >/dev/null 2>&1 || {
+                sudo apt-get update
+                sudo apt-get install -y "$package"
             }
-            check_and_install 'python3'
-            check_and_install 'python3-pip'
-        fi
-    elif command -v termux-setup-storage; then # is running in termux
-        if [[ ! -x "$(command -v python)" ]]; then
-            pkg update
-            pkg install -y python
-        fi
-    fi
+        done
 
-    # Setup bash alias
-    line="export PATH=\"$(pwd)/bin:\$PATH\""
-    BASHRC="$HOME/.bashrc"
-    # Append a line to $BASHRC file if it doesn't already exist.
-    if [ ! -f "$BASHRC" ] || ! grep -qF -- "$line" "$BASHRC"; then
-        echo "$line" >>"$BASHRC"
+    # Check if Arch-based distro
+    elif [[ -f "/etc/arch-release" ]]; then
+        function check_and_install {
+            if ! pacman -Qi $1 >/dev/null; then
+                echo "Package $1 is not installed."
+                echo "Installing $1..."
+                sudo pacman -S --noconfirm $1
+            fi
+        }
+        check_and_install 'python'
     fi
+elif command -v termux-setup-storage; then # is running in termux
+    if [[ ! -x "$(command -v python)" ]]; then
+        pkg update
+        pkg install -y python
+    fi
+fi
+
+# Setup bash alias
+line="export PATH=\"$(pwd)/bin:\$PATH\""
+BASHRC="$HOME/.bashrc"
+# Append a line to $BASHRC file if it doesn't already exist.
+if [ ! -f "$BASHRC" ] || ! grep -qF -- "$line" "$BASHRC"; then
+    echo "$line" >>"$BASHRC"
 fi
 
 # Set terminal title

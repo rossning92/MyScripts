@@ -58,7 +58,6 @@ pac_install $(pacman -Ssq 'noto-fonts-*')
 
 {{ include('r/linux/arch/install_yay.sh') }}
 
-yay_install google-chrome
 
 # Configure HiDPI display
 DPI_VALUE=144 # 96 * 1.5
@@ -128,10 +127,6 @@ append_line_dedup ~/.xinitrc "udiskie &"
 
 # Install window manager
 {{ include('r/linux/setup_awesomewm.sh') }}
-
-# Install dev tools
-# yay_install yarn mongodb-bin mongodb-tools-bin
-# sudo systemctl enable mongodb.service --now
 
 # Enable DNS resolve caching.
 sudo systemctl enable --now systemd-resolved.service
@@ -221,6 +216,7 @@ append_line_dedup ~/.xinitrc 'flameshot &'
 append_line_dedup ~/.xinitrc "exec awesome"
 
 run_script r/install_package.py vscode
+run_script r/install_package.py google-chrome
 
 # System time
 sudo timedatectl set-ntp true

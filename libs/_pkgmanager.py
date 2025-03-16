@@ -17,11 +17,23 @@ from _shutil import (
 )
 from utils.jsonutil import load_json
 
-packages = load_json(
-    os.path.abspath(
+_cached_packages = None
+_cached_mtime = None
+
+
+def get_packages():
+    global _cached_packages
+    global _cached_mtime
+
+    file_path = os.path.abspath(
         os.path.dirname(os.path.abspath(__file__)) + "/../settings/packages.json"
     )
-)
+    mtime = os.path.getmtime(file_path)
+    if _cached_packages is None or _cached_mtime != mtime:
+        _cached_packages = load_json(file_path)
+        _cached_mtime = mtime
+
+    return _cached_packages
 
 
 def find_executable(pkg, install=False):
@@ -30,6 +42,7 @@ def find_executable(pkg, install=False):
     if exe_path:
         return exe_path
 
+    packages = get_packages()
     executables = []
     if pkg in packages:
         if "executables" in packages[pkg]:
@@ -53,6 +66,7 @@ def find_executable(pkg, install=False):
 
 
 def get_all_available_packages() -> List[str]:
+    packages = get_packages()
     return [name for name in packages.keys()]
 
 
@@ -64,6 +78,8 @@ def require_package(
     upgrade=False,
     win_package_manager: Literal["choco", "winget"] = "choco",
 ):
+    packages = get_packages()
+
     if "dependantPackages" in packages:
         for pkg in packages["dependantPackages"]:
             require_package(pkg)
@@ -94,6 +110,7 @@ def require_package(
             package_matched = True
 
         elif "yarn" in packages[pkg]:
+            require_package("yarn")
             for p in packages[pkg]["yarn"]["packages"]:
                 logging.info(f"Installing package using npm: {p}")
                 subprocess.check_call(["yarn", "global", "add", p])
@@ -301,6 +318,7 @@ def _choco_is_package_installed(name: str) -> bool:
 
 
 def _choco_install(pkg, upgrade=False, force_install=True):
+    packages = get_packages()
     for p in packages[pkg]["choco"]["packages"]:
         if not _choco_is_package_installed(p) or force_install:
             logging.info("Install `%s`..." % p)
@@ -343,6 +361,7 @@ def _winget_is_package_installed(pkg: str):
 
 
 def _winget_install(pkg: str, upgrade=False, force_install=True):
+    packages = get_packages()
     for p in packages[pkg]["winget"]["packages"]:
         args = [
             WINGET_EXEC,

@@ -167,6 +167,10 @@ def config_vscode(data_dir=None, compact=False):
         else:
             raise Exception("OS not supported: {}".format(sys.platform))
 
+    subprocess.check_call(
+        ["run_script", "r/dev/vscode/extensions/install_all_extensions.sh"]
+    )
+
     setup_python(data_dir=data_dir)
     setup_ai_tools(data_dir=data_dir)
     setup_mermaid(data_dir=data_dir)
@@ -313,6 +317,8 @@ def config_vscode(data_dir=None, compact=False):
         {
             "[markdown]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[html]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[javascript]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[json]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[jsonc]": {"editor.defaultFormatter": "vscode.json-language-features"},
         }
     )

@@ -1,1 +1,1 @@
-sudo netstat -tulpn | grep LISTEN | less
+sudo netstat -tulpn | grep LISTEN
