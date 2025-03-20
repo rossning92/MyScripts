@@ -166,6 +166,10 @@ class _InputWidget:
                 self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.ascii.ctrl("u"):
             self.clear()
+        elif ch == curses.ascii.ctrl("w"):
+            i_last_word_end = max(0, self.text.rfind(" "))
+            self.text = self.text[:i_last_word_end]
+            self.caret_pos = len(self.text)
         # HACK: Workaround for single and double quote on Windows
         elif ch == 530 and sys.platform == "win32":
             self._on_char("'")

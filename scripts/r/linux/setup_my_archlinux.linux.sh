@@ -99,18 +99,7 @@ append_line_dedup ~/.xprofile "export XMODIFIERS=@im=fcitx"
 append_line_dedup ~/.xprofile "export QT_IM_MODULE=fcitx"
 append_line_dedup ~/.xprofile "export GTK_IM_MODULE=fcitx"
 
-# Key mapping using https://github.com/rvaiya/keyd
-# Map "CapsLock" to "Control + Meta" key.
-yay_install keyd
-sudo tee /etc/keyd/default.conf <<EOF
-[ids]
-*
-[main]
-capslock = overload(capslock, esc)
-
-[capslock:C-M]
-EOF
-sudo systemctl enable keyd.service --now
+run_script r/linux/arch/setup_keyd.sh
 
 # Automatically run startx without using display manager / login manager.
 append_line_dedup \
