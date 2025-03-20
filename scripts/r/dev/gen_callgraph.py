@@ -18,6 +18,8 @@ from callgraph import (
 from utils.diffutils import extract_modified_files_and_line_ranges
 from utils.editor import open_in_vscode
 from utils.logger import setup_logger
+from utils.menu.dicteditmenu import DictEditMenu
+from utils.menu.filemenu import FileMenu
 from utils.shutil import shell_open
 from utils.template import render_template_file
 from utils.temputil import get_temp_file
@@ -126,7 +128,36 @@ def render_mermaid_flowchart(
     return s
 
 
+class CallGraphMenu(DictEditMenu):
+    def on_enter_pressed(self):
+        key = self.get_selected_key()
+        if key is None:
+            return
+
+        if key == "files":
+            file_menu = FileMenu()
+            file = file_menu.select_file()
+            if file:
+                self.set_dict_value("files", file)
+        else:
+            return super().on_enter_pressed()
+
+
+def run_interactive_menu():
+    menu = CallGraphMenu(
+        data={
+            "files": "",
+            "match": "",
+            "match_callers": 0,
+            "match_callees": 0,
+        }
+    )
+    menu.exec()
+
+
 def _main():
+    # run_interactive_menu()
+
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--match", nargs="?", type=str)
     arg_parser.add_argument("-v", "--invert-match", nargs="?", type=str)

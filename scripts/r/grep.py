@@ -29,7 +29,7 @@ class GrepMenu(Menu[_Line]):
     def __init__(self, search_dir: Optional[str] = None, **kwargs):
         self.__search_dir = search_dir
 
-        super().__init__(search_mode=False, **kwargs)
+        super().__init__(prompt=f"grep ({search_dir})", search_mode=False, **kwargs)
 
     def __add_match(self, file: str, lines: List[Tuple[bool, str]], match_index: int):
         self.append_item(
@@ -116,12 +116,9 @@ class GrepMenu(Menu[_Line]):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-d",
-        "--search-dir",
-        type=str,
-        default=os.environ.get("SEARCH_DIR", default=None),
-    )
+    parser.add_argument("search_dir", type=str, nargs="?")
     args = parser.parse_args()
 
-    GrepMenu(search_dir=args.search_dir).exec()
+    GrepMenu(
+        search_dir=args.search_dir if args.search_dir else os.environ.get("SEARCH_DIR")
+    ).exec()
