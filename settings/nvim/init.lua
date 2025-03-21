@@ -197,7 +197,12 @@ local function is_windows()
   return os_name and os_name:lower():match("windows")
 end
 
-local run_script = is_windows() and "run_script.exe" or "run_script"
+-- Workaround: If Neovim is running on Windows within MSYS2, we should force set
+-- the default shell to cmd.exe in order to have commands like `termopen`
+-- working properly.
+if is_windows() then
+  vim.o.shell = "cmd.exe"
+end
 
 local function fix()
   -- Prompt
@@ -212,7 +217,7 @@ local function fix()
 
   local output_file = os.tmpname()
   run_in_terminal(
-    { run_script, "r/ai/complete_chat.py", "-o", output_file, prompt_file }, {
+    "run_script r/ai/complete_chat.py -o " .. output_file .. " " .. prompt_file, {
       on_exit = function()
         local new_text = read_text_file(output_file)
         replace_text(new_text, start_pos, end_pos)
@@ -250,7 +255,7 @@ end
 
 local function speech_to_text()
   local tmp_file = os.tmpname()
-  run_in_terminal({ run_script, "r/speech_to_text.py", tmp_file }, {
+  run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, {
     on_exit = function()
       local text = read_text_file(tmp_file)
       os.remove(tmp_file)
@@ -283,7 +288,7 @@ local function run_coder()
       full_path = full_path .. "#" .. line_start .. "-" .. line_end
     end
 
-    run_in_terminal({ run_script, 'r/ai/coder.py', full_path }, {
+    run_in_terminal('run_script r/ai/coder.py "' .. full_path .. '"', {
       on_exit = function()
         -- Reload the current file from disk
         vim.api.nvim_command('edit!')

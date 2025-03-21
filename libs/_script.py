@@ -863,10 +863,6 @@ class Script:
         out_to_file: Optional[str] = None,
         run_over_ssh: Optional[bool] = None,
     ) -> bool:
-        # Termux does not have any GUI support, so we never open script in new window.
-        # if is_in_termux():
-        #     new_window = False
-
         if not self.is_supported():
             logging.warning(f"{self.name} is not supported on {sys.platform}.")
             return False
