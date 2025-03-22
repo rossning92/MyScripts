@@ -104,18 +104,26 @@ def require_package(
                     subprocess.check_call(
                         (["sudo"] if sys.platform == "linux" else [])
                         + ["npm", "install", "-g", p],
+                        # On Windows, `npm` command is a batch script and needs to be executed in a shell.
                         shell=sys.platform == "win32",
                     )
                     was_package_installed = True
             package_matched = True
 
         elif "yarn" in packages[pkg]:
+            require_package("node")
             require_package("yarn")
             for p in packages[pkg]["yarn"]["packages"]:
                 logging.info(f"Installing package using npm: {p}")
-                subprocess.check_call(["yarn", "global", "add", p])
+                subprocess.check_call(
+                    ["yarn", "global", "add", p],
+                    # On Windows, `yarn` command is a batch script and needs to be executed in a shell.
+                    shell=sys.platform == "win32",
+                )
                 yarn_global_bin_path = subprocess.check_output(
-                    ["yarn", "global", "bin"], universal_newlines=True
+                    ["yarn", "global", "bin"],
+                    universal_newlines=True,
+                    shell=sys.platform == "win32",
                 ).strip()
                 prepend_to_path(
                     yarn_global_bin_path,

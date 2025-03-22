@@ -711,6 +711,17 @@
       "packages": ["sunshine-bin"]
     }
   },
+  "syncthing": {
+    "pacman": {
+      "packages": ["syncthing"]
+    },
+    "termux": {
+      "packages": ["syncthing"]
+    },
+    "winget": {
+      "packages": ["Syncthing.Syncthing"]
+    }
+  },
   "tightvnc": {
     "choco": {
       "packages": ["tightvnc"]

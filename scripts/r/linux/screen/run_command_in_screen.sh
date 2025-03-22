@@ -1,10 +1,11 @@
 set -e
 
-# Clean-up dead sessions
-screen -wipe || true
-
 name="$1"
 commands="$2"
+
+# Clean-up dead sessions
+screen -wipe $name || true
+
 if screen -ls $name; then
     echo "Reattach to screen session: $name"
     screen -r $name

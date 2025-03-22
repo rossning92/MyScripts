@@ -14,6 +14,7 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
+
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -51,6 +52,7 @@ from scripting.path import (
     get_script_config_file_path,
     get_variable_edit_history_file,
 )
+from _term import set_terminal_title
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
 from utils.jsonutil import load_json, save_json
@@ -354,6 +356,9 @@ class _MyScriptMenu(Menu[Script]):
         finally:
             # Reset the last refresh time whenever we run a script.
             self.update_last_refresh_time()
+
+            # Make sure to recover the original terminal title in case it's being modified by other programs.
+            set_terminal_title("MyTerminal")
 
     def get_selected_script(self) -> Optional[Script]:
         index = self.get_selected_index()

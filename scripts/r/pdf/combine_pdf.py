@@ -18,6 +18,7 @@ bookmarks_fmt = (
 files = sys.argv[1:]
 files = [x.replace("\\\\", "\\") for x in files]
 files = [file for file in files if file.lower().endswith(".pdf")]
+files = sorted(files)
 print("Input Files:")
 for file in files:
     print(f" - {file}")

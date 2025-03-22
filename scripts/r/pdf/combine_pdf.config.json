@@ -1,5 +1,4 @@
 {
   "args.selectFiles": true,
-  "closeOnExit": false,
   "packages": "pdftk"
 }
