@@ -29,5 +29,5 @@ if __name__ == "__main__":
             pkg=pkg,
             force_install=force_install,
             upgrade=upgrade,
-            win_package_manager="winget" if args.winget else "choco",
+            win_package_manager=["winget" if args.winget else "choco"],
         )

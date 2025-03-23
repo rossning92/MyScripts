@@ -76,7 +76,7 @@ def require_package(
     env: Optional[Dict[str, str]] = None,
     force_install=False,
     upgrade=False,
-    win_package_manager: Literal["choco", "winget"] = "choco",
+    win_package_manager: List[Literal["choco", "winget"]] = ["winget", "choco"],
 ):
     packages = get_packages()
 
@@ -239,12 +239,15 @@ def require_package(
             package_matched = True
 
         elif sys.platform == "win32":
-            if win_package_manager == "choco" and "choco" in packages[pkg]:
-                _choco_install(pkg, force_install=force_install, upgrade=upgrade)
-                package_matched = True
-            elif win_package_manager == "winget" and "winget" in packages[pkg]:
-                _winget_install(pkg, force_install=force_install, upgrade=upgrade)
-                package_matched = True
+            for pm in win_package_manager:
+                if pm == "choco" and "choco" in packages[pkg]:
+                    _choco_install(pkg, force_install=force_install, upgrade=upgrade)
+                    package_matched = True
+                    break
+                elif pm == "winget" and "winget" in packages[pkg]:
+                    _winget_install(pkg, force_install=force_install, upgrade=upgrade)
+                    package_matched = True
+                    break
 
         elif "pip" in packages[pkg]:
             for p in packages[pkg]["pip"]["packages"]:
@@ -371,13 +374,14 @@ def _winget_is_package_installed(pkg: str):
 def _winget_install(pkg: str, upgrade=False, force_install=True):
     packages = get_packages()
     for p in packages[pkg]["winget"]["packages"]:
-        args = [
-            WINGET_EXEC,
-            "install",
-            "-e",
-            "--id",
-            p,
-            "--accept-source-agreements",
-            "--accept-package-agreements",
-        ]
-        subprocess.check_call(args)
+        if not _winget_is_package_installed(p) or force_install:
+            args = [
+                WINGET_EXEC,
+                "install",
+                "-e",
+                "--id",
+                p,
+                "--accept-source-agreements",
+                "--accept-package-agreements",
+            ]
+            subprocess.check_call(args)

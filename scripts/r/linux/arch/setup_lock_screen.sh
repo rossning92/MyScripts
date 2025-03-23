@@ -1,6 +1,6 @@
 set -e
 
-yay -S --noconfirm betterlockscreen
+sudo pacman -S --noconfirm i3lock
 
 cat <<EOF | sudo tee /usr/lib/systemd/system/betterlockscreen@.service
 [Unit]
@@ -12,7 +12,7 @@ Before=suspend.target
 User=%I
 Type=simple
 Environment=DISPLAY=:0
-ExecStart=/usr/bin/betterlockscreen --lock
+ExecStart=/usr/bin/i3lock -n
 TimeoutSec=infinity
 ExecStartPost=/usr/bin/sleep 1
 
@@ -22,6 +22,3 @@ WantedBy=suspend.target
 EOF
 
 sudo systemctl enable betterlockscreen@$(whoami)
-
-# To lock screen now:
-# betterlockscreen --lock

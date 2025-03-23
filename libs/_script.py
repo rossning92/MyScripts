@@ -131,8 +131,13 @@ MIGRATE_CONFIG_TO_JSON = True
 def setup_env_var(env):
     root = get_my_script_root()
 
-    bin_dir = os.path.join(root, "bin")
-    prepend_to_path(bin_dir, env=env)
+    paths = [os.path.join(root, "bin")]
+
+    winget_links_dir = os.path.expanduser(r"%LOCALAPPDATA%\Microsoft\WinGet\Links")
+    if os.path.exists(winget_links_dir):
+        paths.append(winget_links_dir)
+
+    prepend_to_path(paths, env=env)
 
     env["PYTHONPATH"] = os.path.join(root, "libs")
     env["MY_DATA_DIR"] = get_data_dir()
@@ -649,7 +654,9 @@ class Script:
             s += f" ({self.alias})"
 
         if self.cfg["autoRun"]:
-            s += " #autorun"
+            s += " @autorun"
+        if self.cfg["runAtStartup"]:
+            s += " @startup"
 
         return s
 

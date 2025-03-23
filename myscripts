@@ -28,19 +28,31 @@ if [[ "$(uname)" == "Linux" ]]; then
         }
         check_and_install 'python'
     fi
-elif command -v termux-setup-storage; then # is running in termux
+elif [[ -n "${TERMUX_VERSION}" ]]; then
     if [[ ! -x "$(command -v python)" ]]; then
         pkg update
         pkg install -y python
     fi
 fi
 
-# Setup bash alias
-line="export PATH=\"$(pwd)/bin:\$PATH\""
-BASHRC="$HOME/.bashrc"
-# Append a line to $BASHRC file if it doesn't already exist.
-if [ ! -f "$BASHRC" ] || ! grep -qF -- "$line" "$BASHRC"; then
-    echo "$line" >>"$BASHRC"
+append_line_dedup() {
+    touch "$1"
+    # Remove the line if it exists and then append it
+    if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
+        repl=$(printf '%s\n' "$2" | sed -e 's/[]\/$*.^[]/\\&/g')
+        sed -i "\%^$repl$%d" "$1"
+    fi
+    echo "$2" >>"$1"
+}
+
+append_line_dedup \
+    "$HOME/.bashrc" \
+    "export PATH=\"$(pwd)/bin:\$PATH\""
+
+if [[ -n "$TERMUX_VERSION" ]]; then
+    append_line_dedup \
+        "$HOME/.bashrc" \
+        '[[ "$(tty)" == "/dev/pts/0" ]] && $HOME/MyScripts/myscripts --startup'
 fi
 
 # Set terminal title

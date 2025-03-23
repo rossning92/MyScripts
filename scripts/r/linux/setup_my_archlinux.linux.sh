@@ -191,7 +191,7 @@ append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
 pac_install flameshot
 append_line_dedup ~/.xinitrc 'flameshot &'
 
-{{ include('r/linux/install_screen_lock.arch.linux.sh') }}
+{{ include('r/linux/arch/setup_lock_screen.sh') }}
 
 # Replace the current process with the awesomewm when initializing X.
 append_line_dedup ~/.xinitrc "exec awesome"

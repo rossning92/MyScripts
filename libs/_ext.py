@@ -161,7 +161,7 @@ def edit_script_config(script_path: str):
         data,
         default_dict=default_config,
         on_dict_update=on_dict_update,
-        prompt=f"edit {script_config_file_rel_path}",
+        prompt=f"edit setting ({script_config_file_rel_path})",
         on_dict_history_update=on_dict_history_update,
         dict_history=config_edit_history,
     )

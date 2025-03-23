@@ -19,12 +19,12 @@ StartScript(scriptName, scriptPath)
     UpdateExplorerInfo()
     now := A_TickCount
     if (scriptName = LastScriptName and now - LastScriptStartTime < 1000) {
-        EnvSet, RESTART_INSTANCE, 1
+        options := "--restart-instance true"
         Send {Alt Up}{Ctrl Up}{Shift Up} ; prevent wrong windows getting focus
     } else {
-        EnvSet, RESTART_INSTANCE, 0
+        options := "--restart-instance false"
     }
-    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" "%scriptPath%",, Hide
+    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" %options% "%scriptPath%",, Hide
 
     LastScriptStartTime := now
     LastScriptName := scriptName
@@ -32,8 +32,7 @@ StartScript(scriptName, scriptPath)
 
 RunLastScript()
 {
-    EnvSet, RESTART_INSTANCE, 1
-    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}",, Hide
+    Run "{{PYTHON_EXEC}}" --restart-instance true "{{START_SCRIPT}}",, Hide
 }
 
 ClipChanged(type) {
