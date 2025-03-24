@@ -1,1 +1,1 @@
-git diff --word-diff
+git diff

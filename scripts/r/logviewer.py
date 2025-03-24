@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parser.add_argument("files", nargs="*", type=str)
     parser.add_argument("-o", "--output", type=str)
     parser.add_argument("-f", "--filter", type=str, default=None)
+    parser.add_argument("--wrap-text", action="store_true")
     parser.add_argument("-c", "--cmdline", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -21,18 +22,8 @@ if __name__ == "__main__":
             file = os.path.join(
                 tempfile.gettempdir(), slugify(str(args.cmdline)) + ".log"
             )
-        with open(file, "w") as f:
-            ps = subprocess.Popen(
-                args.cmdline, stdout=f, stderr=f, stdin=subprocess.DEVNULL
-            )
-            LogMenu(
-                files=[file],
-                filter=args.filter,
-            ).exec()
-            ps.wait()
+        f = open(file, "w")
+        subprocess.Popen(args.cmdline, stdout=f, stderr=f, stdin=subprocess.DEVNULL)
+        files = [file]
 
-    else:
-        LogMenu(
-            files=args.files,
-            filter=args.filter,
-        ).exec()
+    LogMenu(files=files, filter=args.filter, wrap_text=args.wrap_text).exec()

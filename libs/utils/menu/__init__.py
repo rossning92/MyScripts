@@ -170,6 +170,8 @@ class _InputWidget:
             i_last_word_end = max(0, self.text.rfind(" "))
             self.text = self.text[:i_last_word_end]
             self.caret_pos = len(self.text)
+        elif ch == curses.ascii.ctrl("a"):
+            self.caret_pos = 0
         # HACK: Workaround for single and double quote on Windows
         elif ch == 530 and sys.platform == "win32":
             self._on_char("'")
@@ -291,7 +293,6 @@ class Menu(Generic[T]):
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
             self.add_command(self.__command_palette, hotkey="ctrl+p")
-            self.add_command(self.select_all, hotkey="ctrl+a")
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__toggle_wrap, hotkey="alt+z")
             self.add_command(self.__undo, hotkey="alt+u")

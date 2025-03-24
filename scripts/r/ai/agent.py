@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
-from ai.toolutil import get_all_tool_names, load_tool
+from ai.toolutil import get_all_tools, load_tool
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
@@ -166,7 +166,7 @@ class AgentMenu(ChatMenu):
 
         agent_default = {
             "task": "",
-            "tools": get_all_tool_names(),
+            "tools": get_all_tools(),
             "agents": [],
             "context": {},
         }
@@ -375,7 +375,7 @@ class AgentMenu(ChatMenu):
         self.__complete_task()
 
     def __add_tool(self):
-        tools = get_all_tool_names()
+        tools = get_all_tools()
         menu = Menu(items=tools)
         menu.exec()
         selected_tool = menu.get_selected_item()

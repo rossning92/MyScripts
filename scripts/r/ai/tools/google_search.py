@@ -1,4 +1,4 @@
-from google_search import get_google_search_result
+from r.google_search import get_google_search_result
 
 
 def google_search(query: str):

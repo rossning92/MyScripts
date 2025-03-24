@@ -15,6 +15,7 @@ class LogMenu(Menu[str]):
         files: List[str],
         filter: Optional[str] = None,
         preset_dir: Optional[str] = None,
+        wrap_text=False,
     ):
         self.__files = files
         self.__file_name = (
@@ -46,6 +47,7 @@ class LogMenu(Menu[str]):
             cancellable=True,
             fuzzy_search=False,
             search_on_enter=True,
+            wrap_text=wrap_text,
         )
 
         self.add_command(self.__clear_logs, hotkey="ctrl+k")

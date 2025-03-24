@@ -687,7 +687,7 @@ def adb_install(
             logging.warning(msg)
 
             if "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in msg:
-                pkg = re.findall("Package ([a-z0-9A-Z.]+)", msg)[0]
+                pkg = re.findall("[Pp]ackage ([a-z0-9A-Z.]+)", msg)[0]
                 logging.warning("Uninstalling %s..." % pkg)
                 subprocess.check_call(["adb", "uninstall", pkg])
                 subprocess.check_call(adb_install_cmd + [apk])
