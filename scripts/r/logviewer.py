@@ -25,5 +25,7 @@ if __name__ == "__main__":
         f = open(file, "w")
         subprocess.Popen(args.cmdline, stdout=f, stderr=f, stdin=subprocess.DEVNULL)
         files = [file]
+    else:
+        files = args.files
 
     LogMenu(files=files, filter=args.filter, wrap_text=args.wrap_text).exec()

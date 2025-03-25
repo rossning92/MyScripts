@@ -92,9 +92,10 @@ def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
                     newline = "\n"
 
             # Find corresponding code blocks in context
+            assert context
             code_blocks = [block for block in context if c.search in block["content"]]
             if not code_blocks:
-                raise ValueError(f"Search string not found in {c.file}")
+                raise ValueError(f"Search string not found in {c.file}: {c.search}")
             code_block = code_blocks[0]
 
             # Replace

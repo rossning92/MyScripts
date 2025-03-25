@@ -1,3 +1,7 @@
+# UE5:
+# https://developers.meta.com/horizon/documentation/unreal/unreal-quick-start-setup-dev-environ
+# https://developers.meta.com/horizon/documentation/unreal/unreal-quick-start-install-metaxr-plugin/
+
 # https://docs.unrealengine.com/5.1/en-US/downloading-unreal-engine-source-code/
 # https://developer.oculus.com/documentation/unreal/unreal-quick-start-guide-quest/
 
