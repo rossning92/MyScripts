@@ -45,6 +45,11 @@
       "packages": ["Google.PlatformTools"]
     }
   },
+  "android-tools": {
+    "pacman": {
+      "packages": ["android-tools"]
+    }
+  },
   "apktool": {
     "choco": {
       "packages": ["apktool"]
@@ -790,6 +795,11 @@
     },
     "yay": {
       "packages": ["visual-studio-code-bin"]
+    }
+  },
+  "wget": {
+    "pacman": {
+      "packages": ["wget"]
     }
   },
   "xdotool": {
