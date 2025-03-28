@@ -21,6 +21,18 @@ _cached_packages = None
 _cached_mtime = None
 
 
+def _call_without_output(args) -> bool:
+    return (
+        subprocess.call(
+            args,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        == 0
+    )
+
+
 def get_packages():
     global _cached_packages
     global _cached_mtime
@@ -134,14 +146,7 @@ def require_package(
 
         elif "pacman" in packages[pkg] and shutil.which("pacman"):
             for p in packages[pkg]["pacman"]["packages"]:
-                if (
-                    subprocess.call(
-                        ["pacman", "-Q", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.STDOUT,
-                    )
-                    != 0
-                ) or force_install:
+                if not _call_without_output(["pacman", "-Q", p]) or force_install:
                     logging.info(f"Installing package using pacman: {p}")
                     subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
                     was_package_installed = True
@@ -150,13 +155,9 @@ def require_package(
         elif "dnf" in packages[pkg] and shutil.which("dnf"):
             for p in packages[pkg]["dnf"]["packages"]:
                 if (
-                    subprocess.call(
-                        ["dnf", "list", "installed", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
-                    != 0
-                ) or force_install:
+                    not _call_without_output(["dnf", "list", "installed", p])
+                    or force_install
+                ):
                     logging.info(f"Installing package using dnf: {p}")
                     subprocess.check_call(["sudo", "dnf", "install", "-y", p])
                     was_package_installed = True
@@ -165,14 +166,7 @@ def require_package(
         elif "yay" in packages[pkg] and shutil.which("pacman"):
             yay_packages = packages[pkg]["yay"]["packages"]
             for p in yay_packages:
-                if (
-                    subprocess.call(
-                        ["yay", "-Q", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.STDOUT,
-                    )
-                    != 0
-                ) or force_install:
+                if not _call_without_output(["yay", "-Q", p]) or force_install:
                     logging.info(f"Installing package using yay: {p}")
                     subprocess.check_call(["yay", "-S", "--noconfirm", "--rebuild", p])
                     was_package_installed = True
@@ -180,14 +174,7 @@ def require_package(
 
         elif is_in_termux() and "termux" in packages[pkg]:
             for p in packages[pkg]["termux"]["packages"]:
-                if (
-                    subprocess.call(
-                        ["dpkg", "-s", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.STDOUT,
-                    )
-                    != 0
-                ) or force_install:
+                if not _call_without_output(["dpkg", "-s", p]) or force_install:
                     logging.warning(f'Package "{p}" was not found, installing...')
                     subprocess.check_call(["pkg", "install", p, "-y"])
                     was_package_installed = True
@@ -197,13 +184,9 @@ def require_package(
             wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
             for p in packages[pkg]["apt"]["packages"]:
                 if (
-                    subprocess.call(
-                        wsl_cmd + ["dpkg", "-s", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.STDOUT,
-                    )
-                    != 0
-                ) or force_install:
+                    not _call_without_output(wsl_cmd + ["dpkg", "-s", p])
+                    or force_install
+                ):
                     if "ppa" in packages[pkg]["apt"]:
                         ppa = packages[pkg]["apt"]["ppa"]
                         assert isinstance(ppa, str)
@@ -220,13 +203,9 @@ def require_package(
         elif "dotnet" in packages[pkg]:
             for p in packages[pkg]["dotnet"]["packages"]:
                 if (
-                    subprocess.call(
-                        ["dotnet", "tool", "list", "--global", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.STDOUT,
-                    )
-                    != 0
-                ) or force_install:
+                    not _call_without_output(["dotnet", "tool", "list", "--global", p])
+                    or force_install
+                ):
                     logging.info(f"Installing dotnet package package: {p}...")
                     subprocess.check_call(["dotnet", "tool", "install", "--global", p])
                     was_package_installed = True
@@ -252,15 +231,7 @@ def require_package(
         elif "pip" in packages[pkg]:
             for p in packages[pkg]["pip"]["packages"]:
                 # Check if pip package is installed
-                ret = (
-                    subprocess.call(
-                        [sys.executable, "-m", "pip", "show", p],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
-                    or force_install
-                )
-                if ret != 0:
+                if not _call_without_output([sys.executable, "-m", "pip", "show", p]):
                     logging.info(f"Installing pip package: {p}...")
                     subprocess.check_call(
                         [sys.executable, "-m", "pip", "install", "--upgrade", p]
@@ -272,6 +243,10 @@ def require_package(
             post_install = packages[pkg]["post_install"]
             for cmd in post_install:
                 subprocess.check_call(cmd, shell=True)
+
+        if sys.platform == "linux" and "flatpak" in packages[pkg]:
+            _flatpak_install(pkg, force_install=force_install, upgrade=upgrade)
+            package_matched = True
 
     if not package_matched:
         raise Exception(f"{pkg} is not found")
@@ -383,5 +358,22 @@ def _winget_install(pkg: str, upgrade=False, force_install=True):
                 p,
                 "--accept-source-agreements",
                 "--accept-package-agreements",
+            ]
+            subprocess.check_call(args)
+
+
+def _flatpak_is_package_installed(pkg: str):
+    return _call_without_output(["flatpak", "info", pkg])
+
+
+def _flatpak_install(pkg: str, upgrade=False, force_install=True):
+    packages = get_packages()
+    for p in packages[pkg]["flatpak"]["packages"]:
+        if not _flatpak_is_package_installed(p) or force_install:
+            args = [
+                "flatpak",
+                "install",
+                "-y",
+                p,
             ]
             subprocess.check_call(args)

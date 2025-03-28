@@ -8,5 +8,5 @@ if __name__ == "__main__":
     # --border-top=1mm --border-bottom=1mm
     subprocess.check_call(
         ["mdpdf", "--style=" + style_path, "--format=Letter", sys.argv[1]],
-        shell=True,
+        shell=sys.platform == "win32",
     )

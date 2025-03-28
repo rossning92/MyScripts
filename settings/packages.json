@@ -66,6 +66,11 @@
       "packages": ["autologon"]
     }
   },
+  "bambu-studio": {
+    "flatpak": {
+      "packages": ["com.bambulab.BambuStudio"]
+    }
+  },
   "bbdown": {
     "dotnet": {
       "packages": ["bbdown"]
@@ -795,6 +800,11 @@
     },
     "yay": {
       "packages": ["visual-studio-code-bin"]
+    }
+  },
+  "wechat": {
+    "flatpak": {
+      "packages": ["com.tencent.WeChat"]
     }
   },
   "wget": {

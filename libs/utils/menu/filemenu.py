@@ -139,6 +139,7 @@ class FileMenu(Menu[_File]):
 
         self.add_command(self.copy_to, hotkey="alt+c")
 
+        self.add_command(self._copy_dir_path)
         self.add_command(self._copy_file_full_path, hotkey="alt+y")
         self.add_command(self._create_new_dir, hotkey="ctrl+n")
         self.add_command(self._delete_files, hotkey="ctrl+k")
@@ -192,6 +193,11 @@ class FileMenu(Menu[_File]):
             new_dir_path = os.path.join(current_dir, new_dir_name)
             os.makedirs(new_dir_path, exist_ok=True)
             self.goto_directory(new_dir_path)
+
+    def _copy_dir_path(self):
+        dir_path = self.get_cur_dir()
+        set_clip(dir_path)
+        self.set_message(f"Cur dir copied: {dir_path}")
 
     def _copy_file_full_path(self):
         file_full_path = self.get_selected_file_full_path()
