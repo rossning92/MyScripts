@@ -5,7 +5,7 @@ from utils.menu.filemenu import FileMenu
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "goto",
+        "dir",
         nargs="?",
         type=str,
         default=None,
@@ -17,4 +17,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    FileMenu(goto=args.goto, prompt=args.prompt).exec()
+    FileMenu(goto=args.dir, prompt=args.prompt).exec()

@@ -18,15 +18,13 @@ from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 
 from . import Menu
-from .inputmenu import InputMenu
 
 
-class _DictValueEditMenu(InputMenu[str]):
+class _DictValueEditMenu(Menu[str]):
     def __init__(
         self,
         data: Dict,
         name: str,
-        text: str,
         type: Type,
         dict_history_values: List,
         items: List,
@@ -42,7 +40,6 @@ class _DictValueEditMenu(InputMenu[str]):
         super().__init__(
             items=items,
             prompt=name,
-            text=text,
         )
 
     def on_enter_pressed(self):
@@ -68,7 +65,13 @@ class _DictValueEditMenu(InputMenu[str]):
             else:
                 raise Exception("Invalid bool value: {}".format(text))
         elif get_origin(self.__type) == Literal:
-            val = text.strip()
+            if text.strip() == "":
+                selected_val = self.get_selected_item()
+                assert type(selected_val) is str
+                val = selected_val
+            else:
+                val = text.strip()
+
         else:
             raise Exception("Invalid type: {}".format(self.__type))
 
@@ -300,7 +303,6 @@ class DictEditMenu(Menu[_KeyValuePair]):
         _DictValueEditMenu(
             data=data,
             name=name,
-            text=str(self.__data[name]),
             type=(
                 self.__schema[name] if self.__schema is not None else type(data[name])
             ),

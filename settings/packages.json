@@ -481,6 +481,11 @@
       "packages": ["Ocenaudio.Ocenaudio"]
     }
   },
+  "openscad": {
+    "pacman": {
+      "packages": ["openscad"]
+    }
+  },
   "openssh": {
     "apt": {
       "packages": ["openssh-client"]

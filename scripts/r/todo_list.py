@@ -127,10 +127,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         return (
             _status_symbols[item[FIELD_STATUS]]
-            + (" ! " if item.get(FIELD_IMPORTANT) else "   ")
             + " "
             + f"{date:<16}"
             + " "
+            + ("!! " if item.get(FIELD_IMPORTANT) else "")
             + desc
         )
 

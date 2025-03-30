@@ -76,6 +76,8 @@ def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
         # Back up file before changes.
         if os.path.exists(c.file) and c.file not in modified_files:
             backup_file = f"{c.file}.bak"
+            if os.path.exists(backup_file):
+                os.remove(backup_file)
             shutil.copyfile(c.file, backup_file)
             modified_files.add(c.file)
 

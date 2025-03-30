@@ -1219,14 +1219,14 @@ class Menu(Generic[T]):
         for item_index in self.get_selected_indices():
             yield self.items[item_index]
 
-    def on_char(self, ch: int):
+    def on_char(self, ch: Union[int, str]):
         if ch == "\t":
             item = self.get_selected_item()
             if item is not None:
                 self.set_input("%s" % item)
             return True
 
-        elif ch in self.__hotkeys:
+        elif type(ch) is str and ch in self.__hotkeys:
             self.__hotkeys[ch].func()
             return True
 

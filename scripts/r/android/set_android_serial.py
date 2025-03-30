@@ -1,22 +1,24 @@
-import datetime
 import re
 import subprocess
-from collections import namedtuple
-from typing import List
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import List, Optional
 
 from _script import get_variable, set_variable
-from _shutil import getch, print2
+from utils.menu import Menu
 
-DeviceInfo = namedtuple(
-    "DeviceInfo", ["serial", "flavor", "battery_level", "key", "date_utc"]
-)
+
+@dataclass
+class DeviceInfo:
+    serial: str
+    flavor: str
+    battery_level: Optional[int]
+    key: Optional[str]
+    date_utc: Optional[float]
+    is_current: bool
 
 
 def get_device_list() -> List[DeviceInfo]:
-    current_serial = get_variable("ANDROID_SERIAL")
-    print("ANDROID_SERIAL=%s" % current_serial)
-    print()
-
     lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
         "\n"
     )
@@ -34,7 +36,7 @@ def get_device_list() -> List[DeviceInfo]:
                     universal_newlines=True,
                 ).strip()
 
-                date_utc = int(
+                date_utc = float(
                     subprocess.check_output(
                         ["adb", "-s", serial, "shell", "getprop", "ro.build.date.utc"],
                         universal_newlines=True,
@@ -48,7 +50,7 @@ def get_device_list() -> List[DeviceInfo]:
                 )
                 match = re.findall(r"level: (\d+)", out)
                 if match:
-                    battery_level = match[0]
+                    battery_level = int(match[0])
                 else:
                     battery_level = None
             except subprocess.CalledProcessError:
@@ -62,25 +64,7 @@ def get_device_list() -> List[DeviceInfo]:
                     used_key.add(key)
                     break
 
-            print(
-                "[%s] %s"
-                % (
-                    key,
-                    serial,
-                ),
-                end="",
-            )
-            print2(" %s" % flavor, color="green", end="")
-            print(
-                " bat=%s %s"
-                % (
-                    battery_level,
-                    datetime.datetime.fromtimestamp(date_utc, datetime.timezone.utc),
-                ),
-                end="",
-            )
-            if current_serial == serial:
-                print2(" (*)", color="red", end="")
+            current_serial = get_variable("ANDROID_SERIAL")
             device_list.append(
                 DeviceInfo(
                     serial=serial,
@@ -88,27 +72,48 @@ def get_device_list() -> List[DeviceInfo]:
                     battery_level=battery_level,
                     key=key,
                     date_utc=date_utc,
+                    is_current=current_serial == serial,
                 )
             )
-            print()
 
-    print("[0] Clear ANDROID_SERIAL")
-    print()
     return device_list
 
 
-def select_default_android_device():
-    while True:
-        device_list = get_device_list()
-        ch = getch()
-        for device in device_list:
-            if ch == device.key:
-                set_variable("ANDROID_SERIAL", device.serial)
-                break
-            elif ch == "0":
-                set_variable("ANDROID_SERIAL", "")
-                break
+class DeviceSelectMenu(Menu[DeviceInfo]):
+    def __init__(self):
+        self.__devices = get_device_list()
+        super().__init__(items=self.__devices)
+
+    def on_char(self, ch: int | str) -> bool:
+        if ch == " ":
+            self.__devices[:] = get_device_list()
+            return True
+        elif ch == "0":
+            set_variable("ANDROID_SERIAL", "")
+            return True
+        elif type(ch) is str and ch >= "a" and ch <= "z":
+            for device in self.__devices:
+                if ch == device.key:
+                    set_variable("ANDROID_SERIAL", device.serial)
+                    device.is_current = True
+                else:
+                    device.is_current = False
+            return True
+        else:
+            return super().on_char(ch)
+
+    def get_item_text(self, item: DeviceInfo) -> str:
+        s = f"[{item.key}] {item.serial:<15}  bat={item.battery_level:>3}%"
+        if item.date_utc:
+            s += f"  build_date={datetime.fromtimestamp(item.date_utc, timezone.utc)}"
+        return s
+
+    def get_item_color(self, item: DeviceInfo) -> str:
+        if item.is_current:
+            return "green"
+        else:
+            return super().get_item_color(item)
 
 
 if __name__ == "__main__":
-    select_default_android_device()
+    DeviceSelectMenu().exec()

@@ -195,10 +195,12 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__apply_change, hotkey="alt+enter")
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
-        self.add_command(self.__load_last_session, hotkey="ctrl+l")
+        self.add_command(self.__retry, hotkey="ctrl+r")
         self.add_command(self.__undo, hotkey="ctrl+z")
 
         self.__update_prompt()
+
+        self.load_conversation(os.path.join(SETTING_DIR, CONVERSATION_FILE))
 
     def on_created(self):
         if self.__task:
@@ -208,8 +210,9 @@ class CoderMenu(ChatMenu):
         self.__file_list_menu._add_file()
         self.__update_prompt()
 
-    def __load_last_session(self):
-        self.load_conversation(os.path.join(SETTING_DIR, CONVERSATION_FILE))
+    def __retry(self):
+        self.clear_messages()
+        self.set_input(self.__session["task"])
 
     def __update_prompt(self):
         s = StringIO()

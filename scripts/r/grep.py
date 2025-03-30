@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
-from typing import List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from _shutil import send_ctrl_c, write_temp_file
 from utils.menu import Menu
@@ -19,6 +19,9 @@ class _Match:
     line_end: int
     lines: List[Tuple[bool, int, str]]
 
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
     def to_json(self) -> str:
         return json.dumps(asdict(self))
 
@@ -32,7 +35,7 @@ class _Line:
     ) -> None:
         self.text: str = text
         self.type: Literal["file", "matched", "context"] = type
-        self.context: _Match = match
+        self.match: _Match = match
 
     def __str__(self) -> str:
         return self.text
@@ -62,9 +65,11 @@ class GrepMenu(Menu[_Line]):
 
         super().__init__(prompt=f"grep ({search_dir})", search_mode=False, **kwargs)
 
+        self.add_command(self.__delete_selected, hotkey="ctrl+k")
         self.add_command(self.__run_coder, hotkey="ctrl+t")
-        self.add_command(self.__show_more, hotkey="alt+m")
+        self.add_command(self.__save_matches, hotkey="ctrl+s")
         self.add_command(self.__show_less, hotkey="alt+l")
+        self.add_command(self.__show_more, hotkey="alt+m")
 
         if query:
             self.set_input(query)
@@ -81,7 +86,7 @@ class GrepMenu(Menu[_Line]):
         if task:
             for i, match in enumerate(self.get_selected_items()):
                 self.set_message(f"processing match {i+1}")
-                tmpfile = write_temp_file("[" + match.context.to_json() + "]", ".json")
+                tmpfile = write_temp_file("[" + match.match.to_json() + "]", ".json")
                 ret_code = self.call_func_without_curses(
                     lambda tmpfile=tmpfile: subprocess.call(
                         [
@@ -99,6 +104,18 @@ class GrepMenu(Menu[_Line]):
                 self.set_message(f"done with {i+1}")
                 if ret_code != 0:
                     break
+
+    def __save_matches(self):
+        data = [match.to_dict() for match in self.__matches]
+        with open("matches.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        self.set_message("matches saved to matches.json")
+
+    def __delete_selected(self):
+        selected = self.get_selected_item()
+        if selected:
+            self.__matches.remove(selected.match)
+        self.__update_items(True)
 
     def __add_match(self, file: str, lines: List[Tuple[bool, int, str]]):
         file_path = file.replace(os.path.sep, "/")
