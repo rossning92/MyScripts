@@ -1,3 +1,4 @@
 {
-  "globalHotkey": "win+alt+n"
+  "globalHotkey": "win+alt+n",
+  "packages": "neovim"
 }

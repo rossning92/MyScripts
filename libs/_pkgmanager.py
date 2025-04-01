@@ -15,6 +15,7 @@ from _shutil import (
     refresh_env_vars,
     run_elevated,
 )
+from utils import wingetutils
 from utils.jsonutil import load_json
 
 _cached_packages = None
@@ -224,9 +225,12 @@ def require_package(
                     package_matched = True
                     break
                 elif pm == "winget" and "winget" in packages[pkg]:
-                    _winget_install(pkg, force_install=force_install, upgrade=upgrade)
-                    package_matched = True
-                    break
+                    for p in packages[pkg]["winget"]["packages"]:
+                        wingetutils.install_package(
+                            pkg, force_install=force_install, upgrade=upgrade
+                        )
+                        package_matched = True
+                        break
 
         elif "pip" in packages[pkg]:
             for p in packages[pkg]["pip"]["packages"]:
@@ -288,16 +292,17 @@ def _is_go_package_installed(go_pkg_path):
     )
 
 
-def _choco_is_package_installed(name: str) -> bool:
+def _choco_is_package_installed(pkg: str) -> bool:
+    logging.debug(f"Checking if choco package {pkg} is installed")
     use_builtin_choco_command = False
     if use_builtin_choco_command:
         # Note that the "--localonly" option has been removed in Chocolatey 2.0 and higher.
-        out = check_output(["choco", "list", "--exact", "--localonly", name])
+        out = check_output(["choco", "list", "--exact", "--localonly", pkg])
         return "0 packages installed" not in out
     else:
         path = shutil.which("choco")
         if path:
-            lib_path = os.path.abspath(os.path.dirname(path) + f"\\..\\lib\\{name}")
+            lib_path = os.path.abspath(os.path.dirname(path) + f"\\..\\lib\\{pkg}")
             return os.path.exists(lib_path)
         else:
             raise Exception("choco is not installed.")
@@ -326,43 +331,8 @@ def _choco_install(pkg, upgrade=False, force_install=True):
     refresh_env_vars()
 
 
-WINGET_EXEC = r"C:\Users\rossning92\AppData\Local\Microsoft\WindowsApps\winget.exe"
-
-
-def _winget_is_package_installed(pkg: str):
-    return (
-        subprocess.call(
-            [
-                WINGET_EXEC,
-                "list",
-                "-e",
-                pkg,
-            ],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        == 0
-    )
-
-
-def _winget_install(pkg: str, upgrade=False, force_install=True):
-    packages = get_packages()
-    for p in packages[pkg]["winget"]["packages"]:
-        if not _winget_is_package_installed(p) or force_install:
-            args = [
-                WINGET_EXEC,
-                "install",
-                "-e",
-                "--id",
-                p,
-                "--accept-source-agreements",
-                "--accept-package-agreements",
-            ]
-            subprocess.check_call(args)
-
-
 def _flatpak_is_package_installed(pkg: str):
+    logging.debug(f"Checking if flatpak package {pkg} is installed")
     return _call_without_output(["flatpak", "info", pkg])
 
 
