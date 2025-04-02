@@ -14,9 +14,9 @@ fi
 filename="$(basename -- "$VK_LAYER_SO")"
 
 echo "Push $VK_LAYER_SO to device..."
-adb push "$VK_LAYER_SO" /data/local/tmp/$filename.so
-adb shell run-as $pkg cp /data/local/tmp/$filename.so . #  same permission as the app
-adb shell run-as $pkg ls $filename.so
+adb push "$VK_LAYER_SO" /data/local/tmp/$filename
+adb shell run-as $pkg cp /data/local/tmp/$filename . #  same permission as the app
+adb shell run-as $pkg ls $filename
 
 echo "Enable gpu_debug_layers..."
 adb shell settings put global enable_gpu_debug_layers 1
@@ -24,4 +24,4 @@ adb shell settings put global gpu_debug_app $pkg
 adb shell settings put global gpu_debug_layers $layername
 adb shell settings list global | grep gpu
 
-start_script r/android/restart_app_logcat.sh $pkg
+start_script --restart-instance True r/android/restart_app_logcat.sh $pkg

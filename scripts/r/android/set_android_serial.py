@@ -11,7 +11,7 @@ from utils.menu import Menu
 @dataclass
 class DeviceInfo:
     serial: str
-    flavor: str
+    product_name: str
     battery_level: Optional[int]
     key: Optional[str]
     date_utc: Optional[float]
@@ -29,10 +29,10 @@ def get_device_list() -> List[DeviceInfo]:
         if line.strip():
             serial, _ = line.split()
 
-            # Get ro.build.flavor
+            # Get product name
             try:
-                flavor = subprocess.check_output(
-                    ["adb", "-s", serial, "shell", "getprop", "ro.build.flavor"],
+                product_name = subprocess.check_output(
+                    ["adb", "-s", serial, "shell", "getprop", "ro.product.name"],
                     universal_newlines=True,
                 ).strip()
 
@@ -58,7 +58,7 @@ def get_device_list() -> List[DeviceInfo]:
 
             # Find next unused key
             key = None
-            for key in flavor:
+            for key in product_name:
                 key = key.lower()
                 if key not in used_key:
                     used_key.add(key)
@@ -68,7 +68,7 @@ def get_device_list() -> List[DeviceInfo]:
             device_list.append(
                 DeviceInfo(
                     serial=serial,
-                    flavor=flavor,
+                    product_name=product_name,
                     battery_level=battery_level,
                     key=key,
                     date_utc=date_utc,
@@ -103,7 +103,7 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
             return super().on_char(ch)
 
     def get_item_text(self, item: DeviceInfo) -> str:
-        s = f"[{item.key}] {item.serial:<15}  bat={item.battery_level:>3}%"
+        s = f"[{item.key}] {item.product_name:<12} {item.serial:<15}  bat={item.battery_level:>3}%"
         if item.date_utc:
             s += f"  build_date={datetime.fromtimestamp(item.date_utc, timezone.utc)}"
         return s

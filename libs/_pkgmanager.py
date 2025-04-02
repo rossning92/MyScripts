@@ -227,7 +227,7 @@ def require_package(
                 elif pm == "winget" and "winget" in packages[pkg]:
                     for p in packages[pkg]["winget"]["packages"]:
                         wingetutils.install_package(
-                            pkg, force_install=force_install, upgrade=upgrade
+                            p, force_install=force_install, upgrade=upgrade
                         )
                         package_matched = True
                         break

@@ -790,6 +790,11 @@
       "packages": ["RealVNC.VNCViewer"]
     }
   },
+  "vs2022": {
+    "winget": {
+      "packages": ["Microsoft.VisualStudio.2022.Community"]
+    }
+  },
   "vscode": {
     "choco": {
       "packages": ["vscode"]

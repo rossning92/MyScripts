@@ -1,5 +1,4 @@
 import argparse
-import os
 
 from _pkgmanager import get_all_available_packages, require_package
 from utils.menu.select import select_option

@@ -1,4 +1,5 @@
 @REM https://docs.unrealengine.com/5.0/en-US/Welcome/
+@REM https://github.com/Oculus-VR/UnrealEngine
 
 @echo off
 
@@ -31,13 +32,13 @@ if not exist "Engine\Plugins\Runtime\OculusXR" (
 
 taskkill /f /im UE5Editor.exe 2>nul
 
-@REM Alternative:
-@REM "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community" --add "Microsoft.VisualStudio.Workload.ManagedDesktop" --focusedUI --force
+@REM Install build dependencies:
 @REM https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2022
+@REM "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Community" --add Microsoft.VisualStudio.Workload.ManagedDesktop --add Microsoft.VisualStudio.Workload.NativeDesktop --config "%UE_SOURCE%\.vsconfig" --focusedUI --force --includeRecommended
 
 run_script r/win/msbuild.cmd "UE5.sln" /t:Engine\UE5 /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-:: For build lighting
+@REM For building lighting:
 @REM call _msbuild "UE5.sln" /t:Programs\UnrealLightmass /p:Configuration="Development Editor" /p:Platform=Win64 /maxcpucount /nologo
 @REM if %errorlevel% neq 0 exit /b %errorlevel%

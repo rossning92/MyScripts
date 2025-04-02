@@ -1,39 +1,36 @@
 {
-	"name": "ross.coder",
-	"displayName": "ross.coder",
-	"description": "",
-	"version": "0.0.1",
-	"engines": {
-		"vscode": "^1.60.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"*"
-	],
-	"main": "./extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "ross.coder.edit",
-				"title": "Coder: Edit"
-			}
-		],
-		"keybindings": [
-			{
-				"command": "ross.coder.edit",
-				"key": "ctrl+i",
-				"when": "editorTextFocus"
-			}
-		]
-	},
-	"devDependencies": {
-		"@types/vscode": "^1.94.0",
-		"@types/mocha": "^10.0.8",
-		"@types/node": "20.x"
-	},
-	"__metadata": {
-		"size": 3095229
-	}
+  "name": "ross.coder",
+  "displayName": "ross.coder",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ross.coder.edit",
+        "title": "Coder: Edit"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "ross.coder.edit",
+        "key": "ctrl+i",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.94.0",
+    "@types/mocha": "^10.0.8",
+    "@types/node": "20.x"
+  }
 }
