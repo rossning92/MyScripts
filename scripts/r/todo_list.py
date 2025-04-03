@@ -1,7 +1,7 @@
 import argparse
 import os
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from utils.dateutil import parse_datetime
 from utils.editor import edit_text
@@ -28,7 +28,7 @@ _status_sort_key = {
 _status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
 
 
-def _format_timestamp(ts: int, include_year: bool = True) -> str:
+def _format_timestamp(ts: float, include_year: bool = True) -> str:
     dt = datetime.fromtimestamp(ts)
     date_format = "%Y-%m-%d" if include_year else "%m-%d"
     time_format = "" if (dt.hour == 0 and dt.minute == 0) else " %H:%M"
@@ -77,11 +77,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
-        self.add_command(self.__edit_closed_date, hotkey="alt+c")
         self.add_command(self.__edit_due, hotkey="alt+d")
         self.add_command(self.__new_task, hotkey="ctrl+n")
         self.add_command(self.__reload, hotkey="ctrl+r")
-        self.add_command(self.__set_status_closed, hotkey="alt+x")
+        self.add_command(self.__close_task, hotkey="alt+c")
         self.add_command(self.__set_status_wip, hotkey="alt+w")
         self.add_command(self.__set_status_open, hotkey="alt+o")
         self.add_command(self.__toggle_important, hotkey="!")
@@ -173,32 +172,40 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__sort_tasks()
         return super().save_json()
 
+    def __input_date(
+        self, prompt: str, default_ts: Optional[float] = None
+    ) -> Optional[float]:
+        # User inputs a date
+        val = InputMenu(
+            prompt=prompt,
+            text=(_format_timestamp(default_ts) if default_ts is not None else ""),
+        ).request_input()
+        if not val:
+            return None
+
+        # Parse to datetime
+        dt = parse_datetime(val)
+        if not dt:
+            self.set_message("Failed to parse date")
+            return None
+
+        # Convert to timestamp
+        ts = dt.timestamp()
+        return ts
+
     def __edit_timestamp_field(self, field_name: str):
         # Check selected item
         selected = self.get_selected_item()
         if not selected:
             return
 
-        # User inputs a date
-        val = InputMenu(
+        ts = self.__input_date(
             prompt=field_name,
-            text=(
-                _format_timestamp(selected[field_name])
-                if field_name in selected
-                else ""
-            ),
-        ).request_input()
-        if not val:
+            default_ts=selected[field_name] if field_name in selected else None,
+        )
+        if ts is None:
             return
 
-        # Parse to datetime
-        dt = parse_datetime(val)
-        if not dt:
-            self.set_message("Failed to parse date")
-            return
-
-        # Convert to timestamp
-        ts = dt.timestamp()
         if ts == selected.get(field_name, 0):
             self.set_message("Skip updating the same date")
             return
@@ -208,9 +215,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def __edit_due(self):
         self.__edit_timestamp_field(field_name=FIELD_DUE_TIMESTAMP)
-
-    def __edit_closed_date(self):
-        self.__edit_timestamp_field(field_name=FIELD_CLOSED_TIMESTAMP)
 
     def __edit_description(self):
         selected = self.get_selected_item()
@@ -264,11 +268,15 @@ class TodoMenu(ListEditMenu[TodoItem]):
         )
         self.set_selected_item(selected)
 
-    def __set_status_closed(self):
+    def __close_task(self):
+        ts = self.__input_date(prompt="close task with date")
+        if ts is None:
+            return
+
         self.__set_selected_item_value(
             {
                 FIELD_STATUS: "closed",
-                FIELD_CLOSED_TIMESTAMP: datetime.now().timestamp(),
+                FIELD_CLOSED_TIMESTAMP: ts,
             }
         )
 

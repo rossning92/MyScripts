@@ -26,10 +26,6 @@ if not exist "UE5.sln" (
     cmd /c GenerateProjectFiles.bat
 )
 
-if not exist "Engine\Plugins\Runtime\OculusXR" (
-    git submodule update --init --recursive
-)
-
 taskkill /f /im UE5Editor.exe 2>nul
 
 @REM Install build dependencies:
