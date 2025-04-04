@@ -1,5 +1,7 @@
 import re
 import subprocess
+import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -79,10 +81,30 @@ def get_device_list() -> List[DeviceInfo]:
     return device_list
 
 
+def _update_device_list(devices: List[DeviceInfo], stop_event: threading.Event):
+    while not stop_event.is_set():
+        devices[:] = get_device_list()
+        time.sleep(5)
+
+
 class DeviceSelectMenu(Menu[DeviceInfo]):
     def __init__(self):
-        self.__devices = get_device_list()
+        self.__devices: List[DeviceInfo] = []
+
+        # Create seperate thread to update device list
+        self.__stop_event = threading.Event()
+        self.__device_update_thread = threading.Thread(
+            target=lambda devices=self.__devices, stop_event=self.__stop_event: _update_device_list(
+                devices, stop_event
+            )
+        )
+        self.__device_update_thread.start()
+
         super().__init__(items=self.__devices)
+
+    def on_exit(self):
+        self.__stop_event.set()
+        self.__device_update_thread.join()
 
     def on_char(self, ch: int | str) -> bool:
         if ch == " ":
