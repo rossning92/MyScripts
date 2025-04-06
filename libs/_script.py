@@ -92,12 +92,13 @@ SCRIPT_EXTENSIONS = {
     ".mmd",  # mermaid source file
     ".ps1",
     ".py",
+    ".scad",  # openscad
     ".sh",
     ".sql",
     ".tex",
     ".txt",
     ".url",
-    ".vbs",  # Windows specific,
+    ".vbs",  # Windows specific
 }
 
 BINARY_EXTENSIONS = {
@@ -568,6 +569,8 @@ def install_pip_packages(pkg: str, python_exec: str) -> None:
 
 class Script:
     def __init__(self, script_path: str, name=None):
+        self.__cached_source: Optional[str] = None
+
         if not os.path.isfile(script_path):
             raise Exception("Script file does not exist.")
 
@@ -605,6 +608,9 @@ class Script:
 
         self.mtime = 0.0
         self.refresh_script()
+
+    def clear_source_cache(self):
+        self.__cached_source = None
 
     def match_pattern(self, text: str) -> Optional[re.Match]:
         patt = self.cfg["matchClipboard"]
@@ -687,6 +693,9 @@ class Script:
         return self.real_script_path if self.real_script_path else self.script_path
 
     def get_script_source(self) -> str:
+        if self.__cached_source:
+            return self.__cached_source
+
         if self.ext in [".bat", ".cmd"]:
             encoding = locale.getpreferredencoding()
         else:
@@ -696,11 +705,11 @@ class Script:
         with open(script_path, "r", encoding=encoding) as f:
             source = f.read()
 
-        return source
+        self.__cached_source = source
+        return self.__cached_source
 
     def render(
         self,
-        source: Optional[str] = None,
         variables: Optional[Dict] = None,
     ) -> str:
         read_var_from_csv = self.cfg["template.readVarFromCsv"]
@@ -721,10 +730,9 @@ class Script:
         if not self.check_link_existence():
             raise Exception("Link is invalid.")
 
-        if source is None:
-            source = self.get_script_source()
-
-        result = render_template(source, variables, file_locator=find_script)
+        result = render_template(
+            self.get_script_source(), variables, file_locator=find_script
+        )
 
         return result
 
@@ -870,6 +878,8 @@ class Script:
         out_to_file: Optional[str] = None,
         run_over_ssh: Optional[bool] = None,
     ) -> bool:
+        self.clear_source_cache()
+
         if not self.is_supported():
             logging.warning(f"{self.name} is not supported on {sys.platform}.")
             return False
@@ -1028,10 +1038,8 @@ class Script:
 
         # Check if template is enabled or not
         if self.cfg["template"] is None:
-            source = self.get_script_source()
-            template = "{{" in source
+            template = "{{" in self.get_script_source()
         else:
-            source = None
             template = self.cfg["template"]
         logging.debug(f"template={template}")
 
@@ -1090,11 +1098,11 @@ class Script:
 
         elif ext in [".md", ".txt"]:
             if script_path.endswith(".email.md"):
-                send_email_md(content=self.render(variables=variables, source=source))
+                send_email_md(content=self.render(variables=variables))
             else:
                 if template:
                     script_path = write_temp_file(
-                        self.render(variables=variables, source=source),
+                        self.render(variables=variables),
                         slugify(self.name) + ext,
                     )
                     md_file_path = script_path
@@ -1107,7 +1115,7 @@ class Script:
             if sys.platform == "win32":
                 if template:
                     ps_path = write_temp_file(
-                        self.render(variables=variables, source=source),
+                        self.render(variables=variables),
                         slugify(self.name) + ".ps1",
                     )
                 else:
@@ -1132,7 +1140,7 @@ class Script:
 
                 if template:
                     script_path = write_temp_file(
-                        self.render(variables=variables, source=source),
+                        self.render(variables=variables),
                         os.path.join(
                             "GeneratedAhkScript/", os.path.basename(self.script_path)
                         ),
@@ -1158,7 +1166,7 @@ class Script:
             if sys.platform == "win32":
                 if template:
                     batch_file = write_temp_file(
-                        self.render(variables=variables, source=source),
+                        self.render(variables=variables),
                         slugify(self.name) + ".cmd",
                     )
                 else:
@@ -1188,7 +1196,7 @@ class Script:
                         "w",
                         encoding="utf-8",
                     ) as f:
-                        f.write(self.render(variables=variables, source=source))
+                        f.write(self.render(variables=variables))
 
                 url = "http://127.0.0.1:4312/fs/" + user_script_path.replace(
                     os.path.sep, "/"
@@ -1205,7 +1213,7 @@ class Script:
         elif ext == ".sh":
             if template:
                 script_path = write_temp_file(
-                    self.render(variables=variables, source=source),
+                    self.render(variables=variables),
                     slugify(self.name) + ".sh",
                 )
 
@@ -1241,7 +1249,7 @@ class Script:
 
             if template and ext == ".py":
                 python_file = write_temp_file(
-                    self.render(variables=variables, source=source),
+                    self.render(variables=variables),
                     slugify(self.name) + ".py",
                 )
             else:
@@ -1325,7 +1333,11 @@ class Script:
             arg_list = [sys.executable, find_script("r/csv/csvviewer.py"), script_path]
 
         elif ext == ".url":
-            url = self.get_script_source()
+            if template:
+                url = self.render(variables=variables)
+            else:
+                url = self.get_script_source()
+
             if "%s" in url:
                 from utils.menu.inputmenu import InputMenu
 

@@ -1,3 +1,4 @@
 {
-  "packages": "syncthing"
+  "packages": "syncthing",
+  "title": "syncthing"
 }

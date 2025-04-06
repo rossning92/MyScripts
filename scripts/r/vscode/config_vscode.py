@@ -158,6 +158,10 @@ def setup_shader_tools(data_dir: str):
     install_extensions(["stevensona.shader-toy"], data_dir=data_dir)
 
 
+def setup_openscad(data_dir: str):
+    install_extensions(["Leathong.openscad-language-support"], data_dir=data_dir)
+
+
 def config_vscode(data_dir=None, compact=False):
     if not data_dir:
         if sys.platform == "win32":
@@ -176,6 +180,7 @@ def config_vscode(data_dir=None, compact=False):
     setup_mermaid(data_dir=data_dir)
     setup_csv_tools(data_dir=data_dir)
     setup_shader_tools(data_dir=data_dir)
+    setup_openscad(data_dir=data_dir)
     # setup_color_theme(data_dir=data_dir)
 
     install_extensions(
