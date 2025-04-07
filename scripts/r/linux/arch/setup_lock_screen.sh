@@ -12,7 +12,7 @@ Before=suspend.target
 User=%I
 Type=simple
 Environment=DISPLAY=:0
-ExecStart=/usr/bin/i3lock -n
+ExecStart=/usr/bin/i3lock -n -c 282a36
 TimeoutSec=infinity
 ExecStartPost=/usr/bin/sleep 1
 

@@ -2072,7 +2072,7 @@ def get_all_script_access_time() -> Dict[str, float]:
     mtime = os.path.getmtime(config_file)
     if mtime > _script_access_time_file_mtime:
         _script_access_time_file_mtime = mtime
-        with open(config_file, "r") as f:
+        with open(config_file, "r", encoding="utf-8") as f:
             _cached_script_access_time = json.load(f)
 
     return _cached_script_access_time
