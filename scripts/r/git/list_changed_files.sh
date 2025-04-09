@@ -1,6 +1,6 @@
 if [ -z "$(git status --short)" ]; then
-    echo "Working directory clean, changed files in HEAD:"
-    git diff-tree --no-commit-id --name-only -r HEAD
+    git log -1 --pretty=oneline
+    git diff --name-status HEAD HEAD~1
 else
     git status --short
 fi

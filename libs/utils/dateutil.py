@@ -5,7 +5,8 @@ from typing import Optional
 
 def parse_datetime(text: str) -> Optional[datetime]:
     if text.strip().lower() in ["today", "now"]:
-        return datetime(datetime.now().year, datetime.now().month, datetime.now().day)
+        now = datetime.now()
+        return datetime(now.year, now.month, now.day)
 
     # Try match date and time.
     match = re.search(

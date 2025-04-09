@@ -269,7 +269,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_selected_item(selected)
 
     def __close_task(self):
-        ts = self.__input_date(prompt="close task with date")
+        now = datetime.now()
+        ts_now = datetime(now.year, now.month, now.day).timestamp()
+        ts = self.__input_date(prompt="close task with date", default_ts=ts_now)
         if ts is None:
             return
 
