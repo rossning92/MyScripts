@@ -430,15 +430,14 @@ class FileMenu(Menu[_File]):
             )
             files = [file for file in files if os.path.isfile(file)]
             files = [
-                file.replace(self.get_cur_dir() + os.path.sep, "").replace("\\", "/")
-                for file in files
+                file.replace(self.get_cur_dir() + os.path.sep, "") for file in files
             ]
             self.__files.extend(
                 [
                     _File(
                         file,
                         is_dir=False,
-                        full_path=self.get_cur_dir() + "/" + file,
+                        full_path=self.get_cur_dir() + os.path.sep + file,
                         file_size=os.path.getsize(
                             os.path.join(self.get_cur_dir(), file)
                         ),

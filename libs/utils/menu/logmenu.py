@@ -91,9 +91,18 @@ class LogMenu(Menu[str]):
     def __save_preset(self):
         filter = self.get_input()
         if filter:
-            preset_name = InputMenu(prompt="save preset").request_input()
-            if preset_name:
-                preset_file = os.path.join(self.preset_dir, f"{preset_name}.json")
+            menu = FileMenu(
+                prompt="save preset",
+                goto=self.preset_dir,
+                show_size=False,
+                allow_cd=False,
+            )
+            menu.exec()
+            file_name = menu.get_input()
+            if file_name:
+                if not file_name.endswith(".json"):
+                    file_name += ".json"
+                preset_file = os.path.join(self.preset_dir, file_name)
                 with open(preset_file, "w", encoding="utf-8") as f:
                     json.dump({"regex": filter}, f, indent=2, ensure_ascii=False)
         self.update_screen()

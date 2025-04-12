@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import Literal
 
 TITLE_MATCH_MODE_EXACT = 0
 TITLE_MATCH_MODE_PARTIAL = 1
@@ -47,7 +48,9 @@ def _activate_window_win(hwnd):
 
 
 def _control_window(
-    name, cmd="activate", match_mode=TITLE_MATCH_MODE_DEFAULT, all=False
+    name,
+    cmd: Literal["activate", "close"],
+    match_mode=TITLE_MATCH_MODE_DEFAULT,
 ):
     if sys.platform == "win32":
         from ctypes.wintypes import BOOL, HWND, LPARAM
@@ -59,6 +62,19 @@ def _control_window(
 
         hwnds = []  # matched hwnds
 
+        active_hwnd = user32.GetForegroundWindow()
+
+        def should_search_next(hwnd) -> bool:
+            if cmd == "activate" and hwnd == active_hwnd:
+                # Skip the active window and continue searching for the next match
+                return True
+            elif cmd == "close":
+                # Keep searching
+                return True
+            else:
+                # Stop searching
+                return False
+
         def callback(hwnd, lParam):
             length = user32.GetWindowTextLengthW(hwnd) + 1
             buffer = ctypes.create_unicode_buffer(length)
@@ -66,18 +82,18 @@ def _control_window(
             win_title = str(buffer.value)
             if match_mode == TITLE_MATCH_MODE_EXACT and name == win_title:
                 hwnds.append(hwnd)
-                return all
+                return should_search_next(hwnd=hwnd)
             elif match_mode == TITLE_MATCH_MODE_PARTIAL and name in win_title:
                 hwnds.append(hwnd)
-                return all
+                return should_search_next(hwnd=hwnd)
             elif match_mode == TITLE_MATCH_MODE_START_WITH and win_title.startswith(
                 name
             ):
                 hwnds.append(hwnd)
-                return all
+                return should_search_next(hwnd=hwnd)
             elif match_mode == TITLE_MATCH_MODE_REGEX and re.search(patt, win_title):
                 hwnds.append(hwnd)
-                return all
+                return should_search_next(hwnd=hwnd)
             else:
                 return True
 
@@ -86,13 +102,15 @@ def _control_window(
 
         for hwnd in hwnds:
             if cmd == "activate":
-                _activate_window_win(hwnd)
-                return True
+                if hwnd != active_hwnd:
+                    _activate_window_win(hwnd)
+                    break
             elif cmd == "close":
                 WM_CLOSE = 0x10
                 user32.PostMessageA(hwnd, WM_CLOSE, 0, 0)
             else:
                 raise Exception("Invalid cmd parameter: %s" % cmd)
+        return len(hwnds) > 0  # has any matches
 
     elif sys.platform == "linux":
         if not shutil.which("wmctrl"):
@@ -117,9 +135,9 @@ def _control_window(
     return False
 
 
-def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT, all=False):
-    return _control_window(name=name, cmd="activate", match_mode=match_mode, all=all)
+def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
+    return _control_window(name=name, cmd="activate", match_mode=match_mode)
 
 
-def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT, all=False):
-    return _control_window(name=name, cmd="close", match_mode=match_mode, all=all)
+def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
+    return _control_window(name=name, cmd="close", match_mode=match_mode)

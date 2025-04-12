@@ -687,6 +687,11 @@
       "packages": ["ChrisBagwell.SoX"]
     }
   },
+  "speedtest-cli": {
+    "pacman": {
+      "packages": ["speedtest-cli"]
+    }
+  },
   "sshpass": {
     "apt": {
       "packages": ["sshpass"]

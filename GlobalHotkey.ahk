@@ -3,36 +3,33 @@
 #include ahk/ExplorerHelper.ahk
 #include ahk/WaitKey.ahk
 
-LastScriptName := ""
-LastScriptStartTime := 0
+LastScript := ""
 MatchClipboard := {{MATCH_CLIPBOARD}}
 OnClipboardChange("ClipChanged")
 return
 
 {{HOTKEYS}}
 
+#enter::RestartLastScript()
+
 StartScript(scriptName, scriptPath)
 {
-    global LastScriptStartTime
-    global LastScriptName
+    global LastScript
 
     UpdateExplorerInfo()
     now := A_TickCount
-    if (scriptName = LastScriptName and now - LastScriptStartTime < 1000) {
-        options := "--restart-instance true"
-        Send {Alt Up}{Ctrl Up}{Shift Up} ; prevent wrong windows getting focus
-    } else {
-        options := "--restart-instance false"
-    }
-    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" %options% "%scriptPath%",, Hide
+    options := ""
+    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" --restart-instance false "%scriptPath%",, Hide
 
-    LastScriptStartTime := now
-    LastScriptName := scriptName
+    LastScript := scriptPath
 }
 
-RunLastScript()
+RestartLastScript()
 {
-    Run "{{PYTHON_EXEC}}" --restart-instance true "{{START_SCRIPT}}",, Hide
+    global LastScript
+    if (LastScript <> "") {
+        Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" --restart-instance true %LastScript%,, Hide
+    }
 }
 
 ClipChanged(type) {

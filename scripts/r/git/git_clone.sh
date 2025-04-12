@@ -26,4 +26,6 @@ else
     git clone --filter=blob:none --recurse-submodules --single-branch ${extra_args} "$url" .
 fi
 
-# run_script ext/open_code_editor.py .
+if [[ -n "$OPEN_IN_EDITOR" ]]; then
+    run_script ext/open_code_editor.py .
+fi
