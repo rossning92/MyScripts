@@ -378,13 +378,13 @@ def rename_script(
     # Rename script
     new_script_full_path = get_absolute_script_path(new_script_rel_path)
     os.makedirs(os.path.dirname(new_script_full_path), exist_ok=True)
-    os.rename(script_full_path, new_script_full_path)
+    shutil.move(script_full_path, new_script_full_path)
 
     # Rename config file if any
     config_file = get_script_config_file_path(script_full_path)
     new_config_file = get_script_config_file_path(new_script_full_path)
     if os.path.exists(config_file):
-        os.rename(config_file, new_config_file)
+        shutil.move(config_file, new_config_file)
 
     # Replace script string
     if replace_all_occurrence:

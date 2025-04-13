@@ -181,7 +181,7 @@ def config_vscode(data_dir=None, compact=False):
     setup_csv_tools(data_dir=data_dir)
     setup_shader_tools(data_dir=data_dir)
     setup_openscad(data_dir=data_dir)
-    # setup_color_theme(data_dir=data_dir)
+    setup_color_theme(data_dir=data_dir)
 
     install_extensions(
         [

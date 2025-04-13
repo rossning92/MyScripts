@@ -59,11 +59,11 @@ class GrepMenu(Menu[_Line]):
         **kwargs,
     ):
         self.__context = context
-        self.__search_dir = search_dir
+        self.__search_dir = search_dir if search_dir else os.getcwd()
         self.__matches: List[_Match] = []
         self.__exclude = exclude
 
-        super().__init__(prompt=f"grep ({search_dir})", search_mode=False, **kwargs)
+        super().__init__(prompt=f"grep ({self.__search_dir})", search_mode=False, **kwargs)
 
         self.add_command(self.__delete_selected, hotkey="ctrl+k")
         self.add_command(self.__run_coder, hotkey="ctrl+t")
