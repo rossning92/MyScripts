@@ -2,6 +2,7 @@
 
 adb root
 
+adb shell getprop ro.boot.bootreason
 adb shell ls -lah /sys/fs/pstore
 adb shell cat /sys/fs/pstore/console-ramoops*
 adb shell cat /proc/last_kmsg

@@ -81,10 +81,15 @@ def get_device_list() -> List[DeviceInfo]:
     return device_list
 
 
-def _update_device_list(devices: List[DeviceInfo], stop_event: threading.Event):
+def _update_device_list(
+    devices: List[DeviceInfo],
+    stop_event: threading.Event,
+    update_event: threading.Event,
+):
     while not stop_event.is_set():
         devices[:] = get_device_list()
-        time.sleep(5)
+        update_event.set()
+        time.sleep(3)
 
 
 class DeviceSelectMenu(Menu[DeviceInfo]):
@@ -93,9 +98,10 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
 
         # Create seperate thread to update device list
         self.__stop_event = threading.Event()
+        self.__update_event = threading.Event()
         self.__device_update_thread = threading.Thread(
-            target=lambda devices=self.__devices, stop_event=self.__stop_event: _update_device_list(
-                devices, stop_event
+            target=lambda: _update_device_list(
+                self.__devices, self.__stop_event, self.__update_event
             )
         )
         self.__device_update_thread.start()
@@ -107,10 +113,7 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
         self.__device_update_thread.join()
 
     def on_char(self, ch: int | str) -> bool:
-        if ch == " ":
-            self.__devices[:] = get_device_list()
-            return True
-        elif ch == "0":
+        if ch == "0":
             set_variable("ANDROID_SERIAL", "")
             return True
         elif type(ch) is str and ch >= "a" and ch <= "z":
@@ -125,7 +128,8 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
             return super().on_char(ch)
 
     def get_item_text(self, item: DeviceInfo) -> str:
-        s = f"[{item.key}] {item.product_name:<12} {item.serial:<15}  bat={item.battery_level:>3}%"
+        bat = f"{item.battery_level:>3}%" if item.battery_level is not None else "n/a"
+        s = f"[{item.key}] {item.product_name:<12} {item.serial:<15}  bat={bat}"
         if item.date_utc:
             s += f"  build_date={datetime.fromtimestamp(item.date_utc, timezone.utc)}"
         return s
@@ -135,6 +139,11 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
             return "green"
         else:
             return super().get_item_color(item)
+
+    def on_idle(self):
+        if self.__update_event.isSet():
+            self.__update_event.clear()
+            self.update_screen()
 
 
 if __name__ == "__main__":

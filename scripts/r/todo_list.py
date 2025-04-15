@@ -266,6 +266,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 item.get("description"),
             ),
         )
+        self.refresh()
         self.set_selected_item(selected)
 
     def __close_task(self):

@@ -3,6 +3,8 @@
 #include ahk/ExplorerHelper.ahk
 #include ahk/WaitKey.ahk
 
+Menu, Tray, Icon, Shell32.dll, 42 ; Tree icon
+
 LastScript := ""
 MatchClipboard := {{MATCH_CLIPBOARD}}
 OnClipboardChange("ClipChanged")

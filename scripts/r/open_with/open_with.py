@@ -13,7 +13,7 @@ from utils.shutil import shell_open
 
 def load_config():
     with open(
-        os.path.join(os.path.dirname(__file__), "open_with.config.json"),
+        os.path.join(os.path.dirname(__file__), "open_with_config.json"),
         "r",
         encoding="utf-8",
     ) as f:

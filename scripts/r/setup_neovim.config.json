@@ -1,4 +1,5 @@
 {
   "autoRun": true,
-  "newWindow": false
+  "newWindow": false,
+  "runAsAdmin": true
 }

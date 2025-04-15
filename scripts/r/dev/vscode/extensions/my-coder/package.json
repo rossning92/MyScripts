@@ -1,6 +1,6 @@
 {
-  "name": "ross.coder",
-  "displayName": "ross.coder",
+  "name": "my-coder",
+  "displayName": "my-coder",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -16,13 +16,13 @@
   "contributes": {
     "commands": [
       {
-        "command": "ross.coder.edit",
+        "command": "my-coder.edit",
         "title": "Coder: Edit"
       }
     ],
     "keybindings": [
       {
-        "command": "ross.coder.edit",
+        "command": "ross-coder.edit",
         "key": "ctrl+i",
         "when": "editorTextFocus"
       }
@@ -32,5 +32,8 @@
     "@types/vscode": "^1.94.0",
     "@types/mocha": "^10.0.8",
     "@types/node": "20.x"
+  },
+  "__metadata": {
+    "size": 191664
   }
 }

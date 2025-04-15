@@ -602,8 +602,8 @@ class Menu(Generic[T]):
         self.set_selection(selected_row, selected_row)
 
     def set_selected_item(self, item: T):
-        for i, itm in enumerate(self.items):
-            if itm == item:
+        for i, idx in enumerate(self.get_item_indices()):
+            if self.items[idx] == item:
                 self.set_selected_row(i)
                 break
 
@@ -621,7 +621,6 @@ class Menu(Generic[T]):
         self._check_if_item_selection_changed()
 
     def refresh(self):
-        # self.__should_update_matched_items = True
         self.__update_matched_items(force_update=True)
 
     def __set_selection_by_offset(self, offset: int, multi_select: bool):

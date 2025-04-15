@@ -218,6 +218,17 @@ def require_package(
                 prepend_to_path(os.path.expandvars("$HOME/.dotnet/tools"), env=env)
             package_matched = True
 
+        elif "pip" in packages[pkg]:
+            for p in packages[pkg]["pip"]["packages"]:
+                # Check if pip package is installed
+                if not _call_without_output([sys.executable, "-m", "pip", "show", p]):
+                    logging.info(f"Installing pip package: {p}...")
+                    subprocess.check_call(
+                        [sys.executable, "-m", "pip", "install", "--upgrade", p]
+                    )
+                    was_package_installed = True
+            package_matched = True
+
         elif sys.platform == "win32":
             for pm in win_package_manager:
                 if pm == "choco" and "choco" in packages[pkg]:
@@ -231,17 +242,6 @@ def require_package(
                         )
                         package_matched = True
                         break
-
-        elif "pip" in packages[pkg]:
-            for p in packages[pkg]["pip"]["packages"]:
-                # Check if pip package is installed
-                if not _call_without_output([sys.executable, "-m", "pip", "show", p]):
-                    logging.info(f"Installing pip package: {p}...")
-                    subprocess.check_call(
-                        [sys.executable, "-m", "pip", "install", "--upgrade", p]
-                    )
-                    was_package_installed = True
-            package_matched = True
 
         if was_package_installed and "post_install" in packages[pkg]:
             post_install = packages[pkg]["post_install"]

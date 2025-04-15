@@ -7,4 +7,4 @@ if __name__ == "__main__":
     parser.add_argument("name", help="window name")
     args = parser.parse_args()
 
-    close_window_by_name(name=args.name, all=True)
+    close_window_by_name(name=args.name)
