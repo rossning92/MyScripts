@@ -14,7 +14,6 @@ import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
-
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "bin"))
@@ -47,12 +46,12 @@ from _shutil import (
     run_at_startup,
     setup_nodejs,
 )
+from _term import set_terminal_title
 from scripting.path import (
     get_data_dir,
     get_script_config_file_path,
     get_variable_edit_history_file,
 )
-from _term import set_terminal_title
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
 from utils.jsonutil import load_json, save_json
@@ -607,7 +606,7 @@ class _MyScriptMenu(Menu[Script]):
             for i, (color, s) in enumerate(preview):
                 if height + i >= self._height:
                     break
-                self.draw_text(height + i, 0, s, color=color)
+                self.draw_text(height + i, 0, s, color=color, ymax=item_y_max)
 
         super().on_update_screen(item_y_max=height)
 

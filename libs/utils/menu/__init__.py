@@ -960,6 +960,7 @@ class Menu(Generic[T]):
         row: int,
         col: int,
         s: str,
+        ymax: int,  # max y (exclusive).
         color: str = "white",
         wrap_text=False,
         scroll_x=0,
@@ -979,7 +980,7 @@ class Menu(Generic[T]):
         assert row >= 0
         assert col >= 0
 
-        if row >= self._height:
+        if row >= ymax:
             raise Exception(
                 "Row number should be smaller than the height of the screen."
             )
@@ -1013,9 +1014,9 @@ class Menu(Generic[T]):
             # Get current cursor position
             y, x = Menu.stdscr.getyx()  # type: ignore
             if wrap_text:
-                if y >= self._height:
+                if y >= ymax:
                     # If text overflows outside of the screen, set last_row_index to screen height.
-                    last_row_index = self._height
+                    last_row_index = ymax
                     break
                 elif y > last_y:
                     x = col
@@ -1117,6 +1118,7 @@ class Menu(Generic[T]):
                 wrap_text=self.__wrap_text,
                 color=color.upper() if is_item_selected else color,
                 scroll_x=self.__scroll_x,
+                ymax=item_y_max,
             )
 
             # Draw line number
@@ -1129,14 +1131,19 @@ class Menu(Generic[T]):
                     0,
                     line_number_text.rjust(line_number_width) + (" " * GUTTER_SIZE),
                     color=line_number_color,
+                    ymax=item_y_max,
                 )
 
-                for y in range(item_y + 1, draw_text_result.last_y + 1):
+                # Draw gutter
+                for y in range(
+                    item_y + 1, min(draw_text_result.last_y + 1, item_y_max - 1)
+                ):
                     self.draw_text(
                         y,
                         0,
                         " " * (line_number_width + GUTTER_SIZE),
                         color=line_number_color,
+                        ymax=item_y_max,
                     )
 
             increments = draw_text_result.last_y + 1 - item_y
@@ -1175,6 +1182,7 @@ class Menu(Generic[T]):
             col=0,
             s=f"{a[:self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}",
             color="WHITE",
+            ymax=self._height,
         )
 
         # Move cursor
