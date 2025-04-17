@@ -9,6 +9,8 @@ from typing import List, Optional
 from _script import get_variable, set_variable
 from utils.menu import Menu
 
+REFRESH_DEVICE_INTERVAL_SECS = 5
+
 
 @dataclass
 class DeviceInfo:
@@ -89,7 +91,7 @@ def _update_device_list(
     while not stop_event.is_set():
         devices[:] = get_device_list()
         update_event.set()
-        time.sleep(3)
+        time.sleep(REFRESH_DEVICE_INTERVAL_SECS)
 
 
 class DeviceSelectMenu(Menu[DeviceInfo]):
@@ -141,7 +143,7 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
             return super().get_item_color(item)
 
     def on_idle(self):
-        if self.__update_event.isSet():
+        if self.__update_event.is_set():
             self.__update_event.clear()
             self.update_screen()
 

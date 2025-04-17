@@ -1,8 +1,9 @@
 import argparse
 import logging
 import os
-import subprocess
 import sys
+
+from utils.create_symlink import create_symlink
 
 
 def link_vscode_extension(extension_dir: str):
@@ -17,24 +18,19 @@ def link_vscode_extension(extension_dir: str):
     if not os.path.isdir(extension_dir):
         raise Exception(f"{extension_dir} must be a valid dir")
 
+    if not os.path.exists(extension_dir):
+        raise Exception(f"VSCode extension path does not exist: {extension_dir}")
     if sys.platform == "win32":
-        if not os.path.exists(extension_dir):
-            raise Exception(f"VSCode extension path does not exist: {extension_dir}")
-        subprocess.call(
-            f'MKLINK /J "%USERPROFILE%\\.vscode\\extensions\\{extension_name}" "{extension_dir}"',
-            shell=True,
+        symlink_path = os.path.expandvars(
+            f"%USERPROFILE%\\.vscode\\extensions\\{extension_name}"
         )
     elif sys.platform == "linux":
-        args = [
-            "ln",
-            "-sf",
-            extension_dir,
-            os.path.expanduser("~/.vscode/extensions/"),
-        ]
-        logging.debug(f"Create symbolic link: {args}")
-        subprocess.call(args)
+        symlink_path = os.path.expanduser("~/.vscode/extensions/{extension_name}")
     else:
         raise Exception("Unsupported platform: " + sys.platform)
+
+    logging.debug(f"Create symbolic link: {args}")
+    create_symlink(extension_dir, symlink_path)
 
 
 if __name__ == "__main__":

@@ -33,17 +33,20 @@ from utils.template import render_template_file
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-def get_selected_script_path_rel(script_path=None):
+def get_selected_script_path_rel(script_path=None) -> Optional[str]:
     if script_path is None:
         script_path = os.getenv("SCRIPT")
-        assert script_path
+        if not script_path:
+            return None
     rel_path = script_path.replace(get_script_root() + os.path.sep, "")
     rel_path = rel_path.replace("\\", "/")
     return rel_path
 
 
-def get_selected_script_dir_rel(script_path=None):
+def get_selected_script_dir_rel(script_path=None) -> Optional[str]:
     rel_path = get_selected_script_path_rel(script_path=script_path)
+    if not rel_path:
+        return None
     rel_path = os.path.dirname(rel_path)
     if rel_path:
         rel_path += "/"
@@ -102,7 +105,10 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
 
 
 def enter_script_path():
-    script_dir = get_selected_script_dir_rel().lstrip("/")
+    script_rel_path = get_selected_script_dir_rel()
+    if not script_rel_path:
+        return None
+    script_dir = script_rel_path.lstrip("/")
     script_path = input("Script path (%s [Enter]): " % script_dir)
     if not script_path:
         script_name = input("Script path %s" % script_dir)
@@ -225,20 +231,23 @@ def create_new_script(
     src_script_path: Optional[str] = None,
     script_dirs: Optional[List[str]] = None,
     duplicate=False,
-):
+) -> Optional[str]:
     label: str
     src_script_rel_path = get_selected_script_path_rel(script_path=src_script_path)
-    if duplicate:
-        text = src_script_rel_path
-        label = "duplicate script"
-    else:
-        text = os.path.dirname(src_script_rel_path) + "/"
-        label = "new script"
+
+    if not src_script_rel_path:
+        return None if duplicate else ""
+
+    text = (
+        src_script_rel_path if duplicate else os.path.dirname(src_script_rel_path) + "/"
+    )
+    label = "duplicate script" if duplicate else "new script"
+
     w: Menu = Menu(prompt=label, text=text, items=script_dirs)
     w.exec()
     dest_script = w.get_text()
     if not dest_script:
-        return
+        return None
 
     # Convert to abspath
     dest_script = get_absolute_script_path(dest_script)
