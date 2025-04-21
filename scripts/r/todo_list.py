@@ -168,6 +168,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
         if selected:
             self.__edit_todo_item(selected)
 
+    def on_escape_pressed(self):
+        if not self.clear_input():
+            self.close()
+
     def save_json(self):
         self.__sort_tasks()
         return super().save_json()

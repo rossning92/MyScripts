@@ -487,7 +487,10 @@ class Menu(Generic[T]):
         self.__input.prompt = prompt
         self.update_screen()
 
-    def clear_input(self, reset_selection=False):
+    def clear_input(self, reset_selection=False) -> bool:
+        if self.get_input() == '':
+            return False
+
         if self.__search_mode:
             if reset_selection:
                 self.set_input("")
@@ -502,6 +505,7 @@ class Menu(Generic[T]):
                 self.set_input("")
         else:
             self.set_input("")
+        return True
 
     def call_func_without_curses(self, func: Callable[[], R]) -> R:
         Menu.destroy_curses()
