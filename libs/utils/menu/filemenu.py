@@ -551,6 +551,13 @@ class FileMenu(Menu[_File]):
             self.__selected_files_full_path = [self.get_cur_dir()]
             return super().on_enter_pressed()
 
+        elif self.__select_mode == FileMenu.SELECT_MODE_FILE:
+            self.__selected_files_full_path = [
+                os.path.join(self.get_cur_dir(), item.name)
+                for item in self.get_selected_items()
+            ]
+            return super().on_enter_pressed()
+
         else:
             selected = list(self.get_selected_items())
             if len(selected) == 1:
@@ -568,11 +575,6 @@ class FileMenu(Menu[_File]):
                     else:
                         self.open_file(full_path)
                         return True
-            elif len(selected) > 1 and self.__select_mode == FileMenu.SELECT_MODE_FILE:
-                self.__selected_files_full_path = [
-                    os.path.join(self.get_cur_dir(), x.name) for x in selected
-                ]
-                return super().on_enter_pressed()
 
             else:
                 return super().on_enter_pressed()

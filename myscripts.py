@@ -604,7 +604,7 @@ class _MyScriptMenu(Menu[Script]):
             # Draw preview
             height = max(5, height - len(preview) - 1)
             for i, (color, s) in enumerate(preview):
-                if height + i >= self._height:
+                if height + i >= item_y_max:
                     break
                 self.draw_text(height + i, 0, s, color=color, ymax=item_y_max)
 

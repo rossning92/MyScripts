@@ -488,14 +488,14 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def clear_input(self, reset_selection=False) -> bool:
-        if self.get_input() == '':
+        if self.get_input() == "":
             return False
 
         if self.__search_mode:
             if reset_selection:
                 self.set_input("")
                 self.reset_selection()
-            elif self.__selected_row_end < len(
+            elif self.__selected_row_end >= 0 and self.__selected_row_end < len(
                 self.__matched_item_indices
             ):  # select the same item when filter is removed
                 row_number = self.__matched_item_indices[self.__selected_row_end]
@@ -986,7 +986,7 @@ class Menu(Generic[T]):
 
         if row >= ymax:
             raise Exception(
-                "Row number should be smaller than the height of the screen."
+                f'row should be smaller than ymax, but row={row} yamx={ymax} s="{s}"'
             )
 
         s = s[scroll_x:]

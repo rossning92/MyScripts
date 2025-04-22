@@ -6,6 +6,9 @@ from http.server import ThreadingHTTPServer
 from _shutil import get_ip_addresses
 
 PORT = 8000
+if os.environ.get('HTTP_SERVER_PORT'):
+    PORT = int(os.environ['HTTP_SERVER_PORT'])
+
 
 os.chdir(os.environ["HTTP_ROOT_DIR"])
 

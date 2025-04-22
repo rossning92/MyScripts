@@ -6,7 +6,6 @@ from typing import List, Optional
 
 from . import Menu
 from .filemenu import FileMenu
-from .inputmenu import InputMenu
 
 
 class LogMenu(Menu[str]):
@@ -97,7 +96,7 @@ class LogMenu(Menu[str]):
                 show_size=False,
                 allow_cd=False,
             )
-            menu.exec()
+            menu.select_file()
             file_name = menu.get_input()
             if file_name:
                 if not file_name.endswith(".json"):
@@ -114,7 +113,6 @@ class LogMenu(Menu[str]):
     def on_enter_pressed(self):
         if self.search_by_input():
             return
-
         else:
             self.clear_input()
 
