@@ -4,6 +4,8 @@ import time
 from collections import OrderedDict
 from typing import List, Optional
 
+from utils.menu.dicteditmenu import DictEditMenu
+
 from . import Menu
 from .filemenu import FileMenu
 
@@ -31,6 +33,10 @@ class LogMenu(Menu[str]):
                 or os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
             )
         )
+        self.__preset = {
+            "regex": "",
+            "sort": False,
+        }
 
         self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()
         self.__default_log_highlight[r" D |\b(DEBUG|Debug|debug)\b"] = "blue"
@@ -50,6 +56,7 @@ class LogMenu(Menu[str]):
         )
 
         self.add_command(self.__clear_logs, hotkey="ctrl+k")
+        self.add_command(self.__edit_preset, hotkey="alt+p")
         self.add_command(self.__load_preset, hotkey="ctrl+l")
         self.add_command(self.__save_preset, hotkey="ctrl+s")
         self.add_command(self.__sort)
@@ -61,6 +68,9 @@ class LogMenu(Menu[str]):
         self.__lines.clear()
         self.refresh()
 
+    def __edit_preset(self):
+        DictEditMenu(self.__preset).exec()
+
     def __load_preset(self):
         menu = FileMenu(
             prompt="select preset",
@@ -69,48 +79,47 @@ class LogMenu(Menu[str]):
             recursive=True,
             allow_cd=False,
         )
-        selected = menu.select_file()
-        if selected:
-            preset_file = selected
+        preset_file = menu.select_file()
+        if preset_file:
             with open(preset_file, "r", encoding="utf-8") as f:
-                preset = json.load(f)
+                self.__preset = json.load(f)
 
-            self.set_input(preset["regex"])
+            assert isinstance(self.__preset["regex"], str)
+            self.set_input(self.__preset["regex"])
 
-            if "sort" in preset and preset["sort"]:
+            if self.__preset.get("sort"):
                 self.__sort()
 
-            if "highlight" in preset:
+            if self.__preset.get("highlight"):
                 self.__log_highlight.clear()
                 self.__log_highlight.update(self.__default_log_highlight)
-                self.__log_highlight.update(preset["highlight"])
+                assert isinstance(self.__preset["regex"], dict)
+                self.__log_highlight.update(self.__preset["highlight"])
 
         self.update_screen()
 
     def __save_preset(self):
-        filter = self.get_input()
-        if filter:
-            menu = FileMenu(
-                prompt="save preset",
-                goto=self.preset_dir,
-                show_size=False,
-                allow_cd=False,
-            )
-            menu.select_file()
-            file_name = menu.get_input()
-            if file_name:
-                if not file_name.endswith(".json"):
-                    file_name += ".json"
-                preset_file = os.path.join(self.preset_dir, file_name)
-                with open(preset_file, "w", encoding="utf-8") as f:
-                    json.dump({"regex": filter}, f, indent=2, ensure_ascii=False)
-        self.update_screen()
+        menu = FileMenu(
+            prompt="save preset",
+            goto=self.preset_dir,
+            show_size=False,
+            allow_cd=False,
+        )
+        menu.select_file()
+        file_name = menu.get_input()
+        if file_name:
+            if not file_name.endswith(".json"):
+                file_name += ".json"
+            preset_file = os.path.join(self.preset_dir, file_name)
+            with open(preset_file, "w", encoding="utf-8") as f:
+                json.dump(self.__preset, f, indent=2, ensure_ascii=False)
 
     def __sort(self):
         self.__lines.sort()
         self.refresh()
 
     def on_enter_pressed(self):
+        self.__preset["regex"] = self.get_input()
         if self.search_by_input():
             return
         else:
