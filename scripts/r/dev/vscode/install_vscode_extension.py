@@ -10,6 +10,12 @@ def link_vscode_extension(extension_dir: str):
     if not os.path.exists(extension_dir):
         raise Exception(f"VSCode extension path does not exist: {extension_dir}")
 
+    package_file = os.path.join(extension_dir, "package.json")
+    if not os.path.exists(package_file):
+        raise Exception(
+            f"Invalid extension path because the file does not exist: {package_file}"
+        )
+
     extension_name = os.path.basename(extension_dir)
 
     if not os.path.isabs(extension_dir):
@@ -25,7 +31,7 @@ def link_vscode_extension(extension_dir: str):
             f"%USERPROFILE%\\.vscode\\extensions\\{extension_name}"
         )
     elif sys.platform == "linux":
-        symlink_path = os.path.expanduser("~/.vscode/extensions/{extension_name}")
+        symlink_path = os.path.expanduser(f"~/.vscode/extensions/{extension_name}")
     else:
         raise Exception("Unsupported platform: " + sys.platform)
 

@@ -36,7 +36,6 @@ def _format_timestamp(ts: float, include_year: bool = True) -> str:
 
 
 def get_pretty_ts(ts):
-    date_str = ""
     time_diff_str = ""
     date_str = _format_timestamp(ts, include_year=False).ljust(11)
 
@@ -45,14 +44,21 @@ def get_pretty_ts(ts):
         now = datetime.now(date.tzinfo)
         diff = (date.date() - now.date()).days
         if abs(diff) > 365:
-            time_diff_str = f"{'+' if diff > 0 else ''}{diff // 365}y"
+            years, remainder = divmod(diff, 365)
+            months = remainder // 30
+            sign = "+" if diff > 0 else ""
+            month_str = f"{months}M" if months > 0 else ""
+            time_diff_str = f"{sign}{years}y{month_str}"
         elif abs(diff) > 30:
-            time_diff_str = f"{'+' if diff > 0 else ''}{diff // 30}M"
+            months, days = divmod(diff, 30)
+            sign = "+" if diff > 0 else ""
+            day_str = f"{days}d" if days > 0 else ""
+            time_diff_str = f"{sign}{months}M{day_str}"
         elif abs(diff) != 0:
             time_diff_str = f"{'+' if diff > 0 else ''}{diff}d"
         elif abs(diff) == 0:
             time_diff_str = "now"
-    return f"{time_diff_str:>4} {date_str}"
+    return f"{time_diff_str:>7} {date_str}"
 
 
 class _reversor:
@@ -127,7 +133,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         return (
             _status_symbols[item[FIELD_STATUS]]
             + " "
-            + f"{date:<16}"
+            + f"{date:<19}"
             + " "
             + ("!! " if item.get(FIELD_IMPORTANT) else "")
             + desc
@@ -185,7 +191,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
             text=(_format_timestamp(default_ts) if default_ts is not None else ""),
         ).request_input()
         if not val:
-            return None
+            return 0.0
 
         # Parse to datetime
         dt = parse_datetime(val)
@@ -214,7 +220,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.set_message("Skip updating the same date")
             return
 
-        selected[field_name] = ts
+        if ts <= 0.0:
+            del selected[field_name]
+            self.set_message(f"Reset {field_name}")
+        else:
+            selected[field_name] = ts
         self.save_json()
 
     def __edit_due(self):

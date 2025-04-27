@@ -1,3 +1,4 @@
+import logging
 import re
 import subprocess
 import threading
@@ -23,9 +24,14 @@ class DeviceInfo:
 
 
 def get_device_list() -> List[DeviceInfo]:
-    lines = subprocess.check_output(["adb", "devices"], universal_newlines=True).split(
-        "\n"
-    )
+    try:
+        lines = subprocess.check_output(
+            ["adb", "devices"], universal_newlines=True
+        ).split("\n")
+    except subprocess.CalledProcessError as ex:
+        logging.exception(ex)
+        return []
+
     lines = lines[1:]
     device_list = []
     used_key = set()

@@ -173,7 +173,7 @@ class CoderMenu(ChatMenu):
         with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
             f.write("*")
 
-        super().__init__(**kwargs)
+        super().__init__(model="claude-3-7-sonnet-20250219", **kwargs)
 
         self.__modified_files: List[str] = []
 

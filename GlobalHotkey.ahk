@@ -37,10 +37,11 @@ RestartLastScript()
 ClipChanged(type) {
     global MatchClipboard
 
-    ; ; Early return if control key is not pressed down.
-    ; if !GetKeyState("Control", "P") {
-    ;     return
-    ; }
+    ; Early return if control key is not pressed down.
+    Sleep 500
+    if !GetKeyState("Control") {
+        return
+    }
 
     if WinActive("ahk_exe vncviewer.exe") {
         return

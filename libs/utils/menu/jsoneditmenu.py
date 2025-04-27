@@ -11,10 +11,9 @@ class JsonEditMenu(DictEditMenu):
         self.data = {**default, **data}
 
         def on_dict_update(dict):
-            self.data = {k: v for k, v in dict.items() if default[k] != v}
             save_json(
                 json_file,
-                self.data,
+                {k: v for k, v in dict.items() if default[k] != v},
             )
 
         super().__init__(

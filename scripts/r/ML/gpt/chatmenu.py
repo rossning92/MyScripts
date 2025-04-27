@@ -49,7 +49,6 @@ class ChatMenu(Menu[_Line]):
         self.__is_generating = False
         self.__last_yanked_line: Optional[_Line] = None
         self.__lines: List[_Line] = []
-        self.__model = model
         self.__prompt = prompt
         self.__yank_mode = 0
 
@@ -61,8 +60,10 @@ class ChatMenu(Menu[_Line]):
         self.__settings_file = os.path.join(self.__data_dir, "settings.json")
         self.__settings_menu = JsonEditMenu(
             json_file=self.__settings_file,
-            default={"model": "gpt-4o"},
-            schema={"model": Literal["gpt-4o", "o3-mini", "claude-3-5-sonnet-latest"]},
+            default={"model": model if model else "gpt-4o"},
+            schema={
+                "model": Literal["gpt-4o", "o3-mini", "claude-3-7-sonnet-20250219"]
+            },
         )
 
         super().__init__(
@@ -185,7 +186,7 @@ class ChatMenu(Menu[_Line]):
         self.__edit_message(message_index=0)
 
     def __get_model(self) -> str:
-        return self.__model or self.__settings_menu.data["model"]
+        return self.__settings_menu.data["model"]
 
     def __load_conversation(self):
         menu = _SelectConvMenu(
