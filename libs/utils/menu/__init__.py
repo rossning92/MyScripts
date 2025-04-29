@@ -99,6 +99,7 @@ class _InputWidget:
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
+        self.selected_text: str = ""
 
     def set_text(self, text):
         self.text = text
@@ -138,6 +139,16 @@ class _InputWidget:
                 s += " [search]"
 
             stdscr.addstr(cursor_y, cursor_x, s)
+
+            if self.selected_text:
+                y, x = Menu.stdscr.getyx()  # type: ignore
+                stdscr.addstr(
+                    y,
+                    x,
+                    f"[{self.selected_text[:10]}...]",
+                    Menu.color_name_to_attr("blue"),
+                )
+
             y, x = Menu.stdscr.getyx()  # type: ignore
 
         except curses.error:
@@ -184,6 +195,7 @@ class _InputWidget:
         if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7f]", ch)):
             self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
             self.caret_pos += 1
+            self.selected_text = ""
 
 
 T = TypeVar("T")
@@ -388,7 +400,7 @@ class Menu(Generic[T]):
 
     def paste(self):
         text = get_clip()
-        if text != self.get_input():
+        if text != self.__input.text:
             self.set_input(text)
             self.update_screen()
 
@@ -452,7 +464,7 @@ class Menu(Generic[T]):
 
         # Scroll to bottom if last line is selected
         if self.__search_mode:
-            if self.match_item(self.get_input(), item, added_index):
+            if self.match_item(self.__input.text, item, added_index):
                 self.__matched_item_indices.append(added_index)
                 if last_line_selected:
                     self.__selected_row_begin = self.__selected_row_end = (
@@ -481,14 +493,18 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def get_input(self) -> str:
-        return self.__input.text
+        return (
+            self.__input.selected_text
+            if self.__input.selected_text
+            else self.__input.text
+        )
 
     def set_prompt(self, prompt: str):
         self.__input.prompt = prompt
         self.update_screen()
 
     def clear_input(self, reset_selection=False) -> bool:
-        if self.get_input() == "":
+        if self.__input.text == "":
             return False
 
         if self.__search_mode:
@@ -692,7 +708,7 @@ class Menu(Generic[T]):
                 else:
                     self.__handle_keyboard_interrupt()
 
-            elif ch == " " and self.get_input() == " ":
+            elif ch == " " and self.__input.text == " ":
                 self.set_input("")
                 self.__voice_input()
 
@@ -809,7 +825,7 @@ class Menu(Generic[T]):
                     and (
                         (
                             not self.__search_on_enter
-                            and self.__last_input != self.get_input()
+                            and self.__last_input != self.__input.text
                         )
                         or self.__last_item_count != len(self.items)
                     )
@@ -818,7 +834,7 @@ class Menu(Generic[T]):
             ):
                 matches: List[Tuple[int, int]] = []  # list of tuple of index and rank
                 for i, item in enumerate(self.items):
-                    rank = self.match_item(self.get_input(), item, i)
+                    rank = self.match_item(self.__input.text, item, i)
                     if rank > 0:  # match
                         matches.append((i, rank))
                 # Sort matches by rank in descending order, preserving order for equal ranks
@@ -831,7 +847,7 @@ class Menu(Generic[T]):
 
                 if save_search_history and self.__last_input is not None:
                     self.__search_history.insert(0, self.__last_input)
-                self.__last_input = self.get_input()
+                self.__last_input = self.__input.text
                 self.__last_item_count = len(self.items)
                 self.__last_match_time = time.time()
                 self.__should_update_matched_items = False
@@ -943,7 +959,7 @@ class Menu(Generic[T]):
         if self.is_cancelled:
             return None
         else:
-            return self.__input.text
+            return self.get_input()
 
     def get_items_per_page(self):
         return self.__num_rendered_items + self.__empty_lines
@@ -953,7 +969,8 @@ class Menu(Generic[T]):
         can_scroll_left: bool
         can_scroll_right: bool
 
-    def color_name_to_attr(self, color: str) -> int:
+    @staticmethod
+    def color_name_to_attr(color: str) -> int:
         attr = curses.color_pair(Menu.color_pair_map[color])
         if color == "gray":
             attr |= curses.A_DIM
@@ -993,14 +1010,14 @@ class Menu(Generic[T]):
 
         # Draw left arrow
         if scroll_x > 0:
-            Menu.stdscr.addstr(row, col, "<", self.color_name_to_attr("CYAN"))
+            Menu.stdscr.addstr(row, col, "<", Menu.color_name_to_attr("CYAN"))
             x = col + 1
         else:
             x = col
 
         last_row_index = y = row
         can_scroll_right = False
-        attr = self.color_name_to_attr(color)
+        attr = Menu.color_name_to_attr(color)
         if bold:
             attr |= curses.A_BOLD
         for i, ch in enumerate(s):
@@ -1032,7 +1049,7 @@ class Menu(Generic[T]):
                             row,
                             self.__width - 1,
                             ">",
-                            self.color_name_to_attr("CYAN"),
+                            Menu.color_name_to_attr("CYAN"),
                         )
                         can_scroll_right = True
                     break
@@ -1246,7 +1263,7 @@ class Menu(Generic[T]):
 
     def __should_trigger_search(self) -> bool:
         if self.__search_mode:
-            return self.__search_on_enter and self.get_input() != self.__last_input
+            return self.__search_on_enter and self.__input.text != self.__last_input
         else:
             return False
 
@@ -1306,11 +1323,12 @@ class Menu(Generic[T]):
 
         if (
             selected != self.__last_selected_item
-            or self.__last_input != self.get_input()
+            or self.__last_input != self.__input.text
         ):
             self.on_item_selection_changed(selected, i=item_index)
             self.update_screen()
         self.__last_selected_item = selected
+        self.__input.selected_text = str(selected) if selected is not None else ""
 
     def on_item_selection_changed(self, item: Optional[T], i: int):
         pass
@@ -1324,7 +1342,7 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def __edit_text_in_external_editor(self):
-        text = self.get_input()
+        text = self.__input.text
         text = self.call_func_without_curses(lambda: edit_text(text))
         self.set_input(text)
 

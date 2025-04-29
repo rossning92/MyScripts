@@ -159,7 +159,7 @@ def _main():
     # run_interactive_menu()
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--match", nargs="?", type=str)
+    arg_parser.add_argument("-E", "--match", nargs="?", type=str)
     arg_parser.add_argument("-v", "--invert-match", nargs="?", type=str)
     arg_parser.add_argument("-o", "--output", type=str, default=None)
     arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)

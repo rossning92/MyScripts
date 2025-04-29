@@ -4,10 +4,18 @@ import time
 from collections import OrderedDict
 from typing import List, Optional
 
+from utils.jsonutil import save_json
 from utils.menu.dicteditmenu import DictEditMenu
 
 from . import Menu
 from .filemenu import FileMenu
+
+
+def _get_default_preset():
+    return {
+        "regex": "",
+        "sort": False,
+    }
 
 
 class LogMenu(Menu[str]):
@@ -33,10 +41,8 @@ class LogMenu(Menu[str]):
                 or os.path.join(os.environ["MY_DATA_DIR"], "log_filters")
             )
         )
-        self.__preset = {
-            "regex": "",
-            "sort": False,
-        }
+        self.__preset_file: Optional[str] = None
+        self.__preset = _get_default_preset()
 
         self.__default_log_highlight: OrderedDict[str, str] = OrderedDict()
         self.__default_log_highlight[r" D |\b(DEBUG|Debug|debug)\b"] = "blue"
@@ -69,7 +75,9 @@ class LogMenu(Menu[str]):
         self.refresh()
 
     def __edit_preset(self):
-        DictEditMenu(self.__preset).exec()
+        DictEditMenu(self.__preset, default_dict=_get_default_preset()).exec()
+        if self.__preset_file:
+            save_json(self.__preset_file, self.__preset)
 
     def __load_preset(self):
         menu = FileMenu(
@@ -79,10 +87,10 @@ class LogMenu(Menu[str]):
             recursive=True,
             allow_cd=False,
         )
-        preset_file = menu.select_file()
-        if preset_file:
-            with open(preset_file, "r", encoding="utf-8") as f:
-                self.__preset = json.load(f)
+        self.__preset_file = menu.select_file()
+        if self.__preset_file:
+            with open(self.__preset_file, "r", encoding="utf-8") as f:
+                self.__preset = {**_get_default_preset(), **json.load(f)}
 
             assert isinstance(self.__preset["regex"], str)
             self.set_input(self.__preset["regex"])
@@ -110,9 +118,8 @@ class LogMenu(Menu[str]):
         if file_name:
             if not file_name.endswith(".json"):
                 file_name += ".json"
-            preset_file = os.path.join(self.preset_dir, file_name)
-            with open(preset_file, "w", encoding="utf-8") as f:
-                json.dump(self.__preset, f, indent=2, ensure_ascii=False)
+            self.__preset_file = os.path.join(self.preset_dir, file_name)
+            save_json(self.__preset_file, self.__preset)
 
     def __sort(self):
         self.__lines.sort()
