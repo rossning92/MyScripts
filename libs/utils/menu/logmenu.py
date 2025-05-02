@@ -99,9 +99,9 @@ class LogMenu(Menu[str]):
                 self.__sort()
 
             if self.__preset.get("highlight"):
+                assert isinstance(self.__preset["highlight"], dict)
                 self.__log_highlight.clear()
                 self.__log_highlight.update(self.__default_log_highlight)
-                assert isinstance(self.__preset["regex"], dict)
                 self.__log_highlight.update(self.__preset["highlight"])
 
         self.update_screen()

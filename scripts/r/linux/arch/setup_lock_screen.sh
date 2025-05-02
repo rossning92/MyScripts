@@ -2,7 +2,7 @@ set -e
 
 sudo pacman -S --noconfirm i3lock
 
-cat <<EOF | sudo tee /usr/lib/systemd/system/betterlockscreen@.service
+sudo bash -c 'cat << EOF >/usr/lib/systemd/system/betterlockscreen@.service
 [Unit]
 Description=Lock screen when going to sleep/suspend
 Before=sleep.target
@@ -19,6 +19,6 @@ ExecStartPost=/usr/bin/sleep 1
 [Install]
 WantedBy=sleep.target
 WantedBy=suspend.target
-EOF
+EOF'
 
 sudo systemctl enable betterlockscreen@$(whoami)

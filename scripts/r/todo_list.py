@@ -17,8 +17,6 @@ FIELD_DUE_TIMESTAMP = "due_ts"
 FIELD_IMPORTANT = "important"
 FIELD_STATUS = "status"
 
-FIELD_DONE_DEPRECATED = "done"
-FIELD_DUE_DEPRECATED = "due"
 
 _status_sort_key = {
     "none": 0,
@@ -159,24 +157,21 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def load_json(self):
         super().load_json()
-        for item in self.items:
-            if FIELD_DONE_DEPRECATED in item:
-                item[FIELD_STATUS] = "closed" if item[FIELD_DONE_DEPRECATED] else "none"
-                del item[FIELD_DONE_DEPRECATED]
-            if FIELD_DUE_DEPRECATED in item:
-                dt = parse_datetime(item[FIELD_DUE_DEPRECATED])
-                if dt:
-                    item[FIELD_DUE_TIMESTAMP] = dt.timestamp()
-                del item[FIELD_DUE_DEPRECATED]
 
     def on_enter_pressed(self):
         selected = self.get_selected_item()
         if selected:
             self.__edit_todo_item(selected)
 
+    def __select_first_item_with_due_date(self):
+        for item in self.items:
+            if item.get(FIELD_DUE_TIMESTAMP):
+                self.set_selected_item(item)
+                break
+
     def on_escape_pressed(self):
         if not self.clear_input():
-            self.close()
+            self.__select_first_item_with_due_date()
 
     def save_json(self):
         self.__sort_tasks()
