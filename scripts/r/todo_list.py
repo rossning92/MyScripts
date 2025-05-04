@@ -12,10 +12,10 @@ from utils.menu.listeditmenu import ListEditMenu
 TodoItem = Dict[str, Any]
 
 
-FIELD_CLOSED_TIMESTAMP = "closed_ts"
-FIELD_DUE_TIMESTAMP = "due_ts"
-FIELD_IMPORTANT = "important"
-FIELD_STATUS = "status"
+_CLOSED_TIMESTAMP = "closed_ts"
+_DUE_TIMESTAMP = "due_ts"
+_IMPORTANT = "important"
+_STATUS = "status"
 
 
 _status_sort_key = {
@@ -110,17 +110,17 @@ class TodoMenu(ListEditMenu[TodoItem]):
     def __toggle_important(self):
         selected = self.get_selected_item()
         if selected:
-            if selected.get(FIELD_IMPORTANT):
-                self.__set_selected_item_value({FIELD_IMPORTANT: None})
+            if selected.get(_IMPORTANT):
+                self.__set_selected_item_value({_IMPORTANT: None})
             else:
-                self.__set_selected_item_value({FIELD_IMPORTANT: True})
+                self.__set_selected_item_value({_IMPORTANT: True})
 
     def get_item_text(self, item: TodoItem) -> str:
         # Date
-        if item.get(FIELD_DUE_TIMESTAMP):
-            date = get_pretty_ts(item[FIELD_DUE_TIMESTAMP])
-        elif item.get(FIELD_CLOSED_TIMESTAMP):
-            date = get_pretty_ts(item[FIELD_CLOSED_TIMESTAMP])
+        if item.get(_DUE_TIMESTAMP):
+            date = get_pretty_ts(item[_DUE_TIMESTAMP])
+        elif item.get(_CLOSED_TIMESTAMP):
+            date = get_pretty_ts(item[_CLOSED_TIMESTAMP])
         else:
             date = ""
 
@@ -129,27 +129,26 @@ class TodoMenu(ListEditMenu[TodoItem]):
         desc = desc_lines[0] + " ..." if len(desc_lines) > 1 else desc_lines[0]
 
         return (
-            _status_symbols[item[FIELD_STATUS]]
+            _status_symbols[item[_STATUS]]
             + " "
             + f"{date:<19}"
-            + " "
-            + ("!! " if item.get(FIELD_IMPORTANT) else "")
+            + ("!" if item.get(_IMPORTANT) else " ")
             + desc
         )
 
     def get_item_color(self, item: Any) -> str:
         now = datetime.now()
-        if item[FIELD_STATUS] == "in_progress":
+        if item[_STATUS] == "in_progress":
             return "green"
-        elif item[FIELD_STATUS] == "closed":
+        elif item[_STATUS] == "closed":
             return "blue"
 
-        if item.get(FIELD_IMPORTANT):
+        if item.get(_IMPORTANT):
             return "yellow"
 
-        due = item.get(FIELD_DUE_TIMESTAMP)
+        due = item.get(_DUE_TIMESTAMP)
         if due:
-            due_date = datetime.fromtimestamp(item[FIELD_DUE_TIMESTAMP])
+            due_date = datetime.fromtimestamp(item[_DUE_TIMESTAMP])
             if due_date and due_date < now:
                 return "red"
 
@@ -165,7 +164,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def __select_first_item_with_due_date(self):
         for item in self.items:
-            if item.get(FIELD_DUE_TIMESTAMP):
+            if item.get(_DUE_TIMESTAMP):
                 self.set_selected_item(item)
                 break
 
@@ -180,15 +179,20 @@ class TodoMenu(ListEditMenu[TodoItem]):
     def __input_date(
         self, prompt: str, default_ts: Optional[float] = None
     ) -> Optional[float]:
-        # User inputs a date
         val = InputMenu(
             prompt=prompt,
             text=(_format_timestamp(default_ts) if default_ts is not None else ""),
         ).request_input()
-        if not val:
+
+        # Return none if input was cancelled
+        if val is None:
+            return None
+
+        # Return 0 if the user input was empty
+        if val == "":
             return 0.0
 
-        # Parse to datetime
+        # Parse date and time
         dt = parse_datetime(val)
         if not dt:
             self.set_message("Failed to parse date")
@@ -223,7 +227,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.save_json()
 
     def __edit_due(self):
-        self.__edit_timestamp_field(field_name=FIELD_DUE_TIMESTAMP)
+        self.__edit_timestamp_field(field_name=_DUE_TIMESTAMP)
 
     def __edit_description(self):
         selected = self.get_selected_item()
@@ -244,7 +248,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         ).exec()
 
     def __new_task(self):
-        item = {FIELD_STATUS: "none", "description": ""}
+        item = {_STATUS: "none", "description": ""}
         self.__edit_item_description(item)
         if item["description"]:
             self.items.append(item)
@@ -260,17 +264,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
         selected = self.get_selected_item()
         self.items.sort(
             key=lambda item: (
-                _status_sort_key[item.get(FIELD_STATUS, 0)],
+                _status_sort_key[item.get(_STATUS, 0)],
                 (
-                    _reversor(
-                        item.get(
-                            FIELD_DUE_TIMESTAMP, item.get(FIELD_CLOSED_TIMESTAMP, 0)
-                        )
-                    )
-                    if item.get(FIELD_STATUS) != "none"
-                    else item.get(
-                        FIELD_DUE_TIMESTAMP, item.get(FIELD_CLOSED_TIMESTAMP, 0)
-                    )
+                    _reversor(item.get(_DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, 0)))
+                    if item.get(_STATUS) != "none"
+                    else item.get(_DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, 0))
                 ),
                 item.get("description"),
             ),
@@ -287,16 +285,16 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__set_selected_item_value(
             {
-                FIELD_STATUS: "closed",
-                FIELD_CLOSED_TIMESTAMP: ts,
+                _STATUS: "closed",
+                _CLOSED_TIMESTAMP: ts,
             }
         )
 
     def __set_status_open(self):
-        self.__set_selected_item_value({FIELD_STATUS: "none"})
+        self.__set_selected_item_value({_STATUS: "none"})
 
     def __set_status_wip(self):
-        self.__set_selected_item_value({FIELD_STATUS: "in_progress"})
+        self.__set_selected_item_value({_STATUS: "in_progress"})
 
 
 def main():

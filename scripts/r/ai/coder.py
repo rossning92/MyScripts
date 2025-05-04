@@ -173,7 +173,12 @@ class CoderMenu(ChatMenu):
         with open(os.path.join(SETTING_DIR, ".gitignore"), "w") as f:
             f.write("*")
 
-        super().__init__(model="claude-3-7-sonnet-20250219", **kwargs)
+        super().__init__(
+            model="claude-3-7-sonnet-20250219",
+            conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
+            new_conversation=False,
+            **kwargs,
+        )
 
         self.__modified_files: List[str] = []
 
@@ -199,8 +204,6 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__undo, hotkey="ctrl+z")
 
         self.__update_prompt()
-
-        self.load_conversation(os.path.join(SETTING_DIR, CONVERSATION_FILE))
 
     def on_created(self):
         if self.__task:

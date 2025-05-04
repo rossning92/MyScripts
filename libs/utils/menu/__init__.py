@@ -22,6 +22,7 @@ from typing import (
     Union,
 )
 
+from _browser import open_url
 from _shutil import get_hotkey_abbr, slugify
 
 from utils.clip import get_clip, set_clip
@@ -34,6 +35,8 @@ SHIFT_DOWN = 0x150
 SHIFT_UP = 0x151
 KEY_A2 = 450
 KEY_C2 = 456
+
+URL_REGEX = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
 
 def _clamp(n, smallest, largest):
@@ -93,7 +96,7 @@ def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
         return _match_regex(item, patt)
 
 
-class _InputWidget:
+class _TextInput:
     def __init__(self, prompt="", text="", ascii_only=False):
         self.prompt = prompt
         self.text = text
@@ -142,24 +145,25 @@ class _InputWidget:
 
             if self.selected_text:
                 y, x = Menu.stdscr.getyx()  # type: ignore
+                _, max_x = Menu.stdscr.getmaxyx()  # type: ignore
+                max_text_len = max_x - x
                 stdscr.addstr(
                     y,
                     x,
-                    f"[{self.selected_text[:10]}...]",
+                    self.selected_text[:max_text_len],
                     Menu.color_name_to_attr("blue"),
                 )
-
-            y, x = Menu.stdscr.getyx()  # type: ignore
 
         except curses.error:
             pass
 
-        return _InputWidget.DrawInputResult(
+        return _TextInput.DrawInputResult(
             cursor_x=cursor_x, cursor_y=cursor_y, last_x=x, last_y=y
         )
 
     def clear(self):
         self.text = ""
+        self.selected_text = ""
         self.caret_pos = 0
 
     def on_char(self, ch):
@@ -175,6 +179,8 @@ class _InputWidget:
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
                 self.caret_pos = max(self.caret_pos - 1, 0)
+            if self.text == "":
+                self.selected_text = ""
         elif ch == curses.ascii.ctrl("u"):
             self.clear()
         elif ch == curses.ascii.ctrl("w"):
@@ -236,7 +242,7 @@ class Menu(Generic[T]):
 
         self._height: int = -1
 
-        self.__input = _InputWidget(
+        self.__input = _TextInput(
             prompt=prompt,
             text=text if text else "",
             ascii_only=ascii_only,
@@ -311,6 +317,7 @@ class Menu(Generic[T]):
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
+            self.add_command(self.__goto, hotkey="ctrl+g")
 
             self._command_palette_menu = Menu(
                 prompt="cmd",
@@ -326,6 +333,15 @@ class Menu(Generic[T]):
                             lambda item=item: self.__on_item_hotkey(item),
                             hotkey=hotkey,
                         )
+
+    def __goto(self):
+        selected = self.get_selected_item()
+        if selected:
+            text = str(selected)
+            match = re.search(URL_REGEX, text)
+            if match:
+                open_url(match.group(0))
+                return
 
     def __redirect_output(self):
         class ConsoleRedirect:
@@ -1328,7 +1344,7 @@ class Menu(Generic[T]):
             self.on_item_selection_changed(selected, i=item_index)
             self.update_screen()
         self.__last_selected_item = selected
-        self.__input.selected_text = str(selected) if selected is not None else ""
+        self.__input.selected_text = selected if isinstance(selected, str) else ""
 
     def on_item_selection_changed(self, item: Optional[T], i: int):
         pass

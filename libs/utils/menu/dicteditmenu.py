@@ -1,5 +1,4 @@
 import curses
-import curses.ascii
 from collections import OrderedDict
 from typing import (
     Any,
