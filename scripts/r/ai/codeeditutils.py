@@ -27,7 +27,7 @@ def replace_text_in_line_range(
     lines = content.split("\n")
     start, end = max(1, start), min(end, len(lines))
     target_region = "\n".join(lines[start - 1 : end])
-    updated_region = target_region.replace(search.strip(), replace)
+    updated_region = target_region.replace(search.rstrip(), replace)
     updated_lines = lines[: start - 1] + updated_region.split("\n") + lines[end:]
     updated_content = "\n".join(updated_lines)
     return updated_content

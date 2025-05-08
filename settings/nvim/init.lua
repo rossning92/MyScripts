@@ -174,9 +174,12 @@ local function run_in_terminal(cmd, opts)
 
   -- Split the current window and open the new buffer in the bottom half
   vim.cmd('split')
-  vim.cmd('wincmd J')                           -- Move the new split to the bottom
-  local win_id = vim.api.nvim_get_current_win() -- Get the current window ID
-  vim.api.nvim_win_set_buf(win_id, bufnr)       -- Set the buffer to the new window
+  vim.cmd('wincmd J') -- Move the new split to the bottom
+  local win_id = vim.api.nvim_get_current_win()
+  if opts.height then
+    vim.api.nvim_win_set_height(win_id, opts.height)
+  end
+  vim.api.nvim_win_set_buf(win_id, bufnr)
 
   -- Start a terminal and run command
   vim.fn.termopen(cmd, {
@@ -217,7 +220,8 @@ local function fix()
 
   local output_file = os.tmpname()
   run_in_terminal(
-    "run_script r/ai/complete_chat.py -o " .. output_file .. " " .. prompt_file, {
+    "run_script r/ai/complete_chat.py --quiet -o " .. output_file .. " " .. prompt_file, {
+      height = 5,
       on_exit = function()
         local new_text = read_text_file(output_file)
         replace_text(new_text, start_pos, end_pos)
@@ -256,6 +260,7 @@ end
 local function speech_to_text()
   local tmp_file = os.tmpname()
   run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, {
+    height = 5,
     on_exit = function()
       local text = read_text_file(tmp_file)
       os.remove(tmp_file)

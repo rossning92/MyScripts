@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input", nargs="?", type=str)
     parser.add_argument("-o", "--output", type=str)
+    parser.add_argument("-q", "--quiet", action="store_true")
     args = parser.parse_args()
 
     if not sys.stdin.isatty():
@@ -35,7 +36,8 @@ if __name__ == "__main__":
     output = ""
     for chunk in complete_chat(input_text):
         output += chunk
-        print(chunk, end="")
+        if not args.quiet:
+            print(chunk, end="")
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:

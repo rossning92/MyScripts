@@ -363,7 +363,10 @@ def rename_script(
 
     def on_progress(message: str) -> bool:
         menu.set_message(message)
-        return menu.process_events()
+        ret = menu.process_events()
+        if ret:
+            menu.set_message("search canceled")
+        return ret
 
     matched_files: List[str] = []
     with menu:
@@ -376,7 +379,7 @@ def rename_script(
             ):
                 items.append(f"{line[0]}:{line[1]}:\t{line[2]}")
 
-    menu.set_message(None)
+    menu.set_message("search completed")
     menu.exec()
 
     # Get new script path

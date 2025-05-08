@@ -1,12 +1,14 @@
 import argparse
 import itertools
+import json
 import os
 import re
 import subprocess
 import sys
 from glob import glob
 from io import StringIO
-from typing import Dict, List, Optional, Set, Tuple
+from types import SimpleNamespace
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from callgraph import (
     SCOPE_SEP,
@@ -159,6 +161,16 @@ def _main():
     # run_interactive_menu()
 
     arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument(
+        "-C",
+        "--load-config",
+        type=str,
+        default=None,
+        help="Load config from a json file instead of command line args",
+    )
+    arg_parser.add_argument(
+        "--root", type=str, default=None, help="Root dir for source code"
+    )
     arg_parser.add_argument("-E", "--match", nargs="?", type=str)
     arg_parser.add_argument("-v", "--invert-match", nargs="?", type=str)
     arg_parser.add_argument("-o", "--output", type=str, default=None)
@@ -176,9 +188,18 @@ def _main():
     arg_parser.add_argument("--include-all-identifiers", action="store_true")
     arg_parser.add_argument("files", nargs="*")
 
-    args = arg_parser.parse_args()
+    args: Union[argparse.Namespace, SimpleNamespace] = arg_parser.parse_args()
+
+    if args.load_config:
+        with open(args.load_config, "r", encoding="utf-8") as f:
+            args_dict = vars(args)
+            args_dict.update(json.load(f))
+            args = SimpleNamespace(**args_dict)
 
     setup_logger()
+
+    if args.root:
+        os.chdir(args.root)
 
     if args.diff:
         diff = extract_modified_files_and_line_ranges(args.diff)
