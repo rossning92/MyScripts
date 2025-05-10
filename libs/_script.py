@@ -144,6 +144,8 @@ def setup_env_var(env):
     env["MY_DATA_DIR"] = get_data_dir()
     env["MY_TEMP_DIR"] = get_temp_dir()
 
+    _load_dotenv(env)
+
 
 def add_script_dir(d, prefix=None):
     if prefix is None:
@@ -992,18 +994,7 @@ class Script:
 
         # Load dotenv
         dotenv: Dict[str, str] = {}
-        load_dotenv(
-            os.path.join(
-                get_my_script_root(), "settings", "myscripts", "default_env.txt"
-            ),
-            env=dotenv,
-        )
-        dot_env_file = os.path.join(get_data_dir(), ".env")
-        if os.path.exists(dot_env_file):
-            load_dotenv(
-                dot_env_file,
-                env=dotenv,
-            )
+        _load_dotenv(dotenv)
 
         # Set up environment variables for the new process
         env = {**variables, **dotenv}
@@ -2166,3 +2157,16 @@ def try_reload_scripts_autorun(scripts_autorun: List[Script]):
 def render_script(script_path) -> str:
     script = Script(script_path)
     return script.render()
+
+
+def _load_dotenv(dotenv):
+    load_dotenv(
+        os.path.join(get_my_script_root(), "settings", "myscripts", "default_env.txt"),
+        env=dotenv,
+    )
+    dot_env_file = os.path.join(get_data_dir(), ".env")
+    if os.path.exists(dot_env_file):
+        load_dotenv(
+            dot_env_file,
+            env=dotenv,
+        )

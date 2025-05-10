@@ -271,32 +271,29 @@ class ChatMenu(Menu[_Line]):
 
         self.__is_generating = True
 
-        try:
-            content = ""
-            messages = self.get_messages()
-            message_index = len(self.get_messages())
-            line = _Line(role="assistant", text="", message_index=message_index)
-            self.append_item(line)
-            for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
-                content += chunk
-                for i, a in enumerate(chunk.split("\n")):
-                    if i > 0:
-                        line = _Line(
-                            role="assistant", text="", message_index=message_index
-                        )
-                        self.append_item(line)
-                    line.text += a
+        content = ""
+        messages = self.get_messages()
+        message_index = len(self.get_messages())
+        line = _Line(role="assistant", text="", message_index=message_index)
+        self.append_item(line)
+        for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
+            content += chunk
+            for i, a in enumerate(chunk.split("\n")):
+                if i > 0:
+                    line = _Line(
+                        role="assistant", text="", message_index=message_index
+                    )
+                    self.append_item(line)
+                line.text += a
 
-                self.update_screen()
-                self.process_events(raise_keyboard_interrupt=True)
+            self.update_screen()
+            self.process_events(raise_keyboard_interrupt=True)
+            if not self.__is_generating:
+                break
 
-            messages.append({"role": "assistant", "content": content})
+        messages.append({"role": "assistant", "content": content})
 
-        except KeyboardInterrupt:
-            self.set_message("interrupt")
-            return
-        finally:
-            self.__is_generating = False
+        self.__is_generating = False
 
         self.save_conversation()
         self.on_message(content)
@@ -362,6 +359,11 @@ class ChatMenu(Menu[_Line]):
 
     def get_status_bar_text(self) -> str:
         return super().get_status_bar_text() + str(self.__settings_menu.data)
+
+    def on_escape_pressed(self):
+        if self.__is_generating:
+            self.set_message("interrupt")
+            self.__is_generating = False
 
 
 def complete_chat_gui(

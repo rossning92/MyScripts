@@ -113,7 +113,11 @@ class _KeyValuePair:
 
     def __str__(self) -> str:
         sep = " : "
-        value = self.__dict[self.key]
+        if self.key in self.__dict:
+            value = self.__dict[self.key]
+        else:
+            assert self.__default_dict is not None
+            value = self.__default_dict[self.key]
         is_modified = (
             self.__default_dict is not None and value != self.__default_dict[self.key]
         )
@@ -224,17 +228,17 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.update_screen()
 
     def __init_items(self):
-        if len(self.__data) == 0:
-            return
-
         # Get max width for keys
-        keys = list(self.__data.keys())
-        max_width = max([len(x) for x in keys]) + 1
+        keys = set(self.__data.keys())
+        if self.__default_dict:
+            keys.update(self.__default_dict.keys())
+        max_width = max(len(x) for x in keys) + 1
 
         kvps: List[Tuple[str, bool]] = []
         for key in keys:
             modified = (
                 self.__default_dict is not None
+                and key in self.__data
                 and self.__data[key] != self.__default_dict[key]
             )
             kvps.append((key, modified))
@@ -303,7 +307,13 @@ class DictEditMenu(Menu[_KeyValuePair]):
             data=data,
             name=name,
             type=(
-                self.__schema[name] if self.__schema is not None else type(data[name])
+                self.__schema[name]
+                if self.__schema is not None
+                else (
+                    type(self.__default_dict[name])
+                    if self.__default_dict
+                    else type(data[name])
+                )
             ),
             items=dict_history_values,
             dict_history_values=dict_history_values,

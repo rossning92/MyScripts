@@ -73,7 +73,7 @@ You use tools step-by-step to accomplish a given task, with each tool use inform
 
 Tool use is formatted using XML-style tags.
 The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags.
-You do not need to escape any characters, such as <, >, and & in XML tags.
+Do not escape any characters, such as <, >, and & in XML tags. Do not wrap in `<![CDATA[` and `]]>`.
 You can simply put multiline text in XML tags.
 Always adhere to this format for the tool use to ensure proper parsing and execution. Here's the structure:
 
@@ -102,7 +102,7 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
         tools_prompt = ""
 
     return f"""You are my assistant to help me complete a task.
-Once the task is complete, you must reply with the result enclosed in <result> and </result>.
+Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
 Here's my task:
 -------
 {task}
@@ -191,15 +191,12 @@ class AgentMenu(ChatMenu):
         self.__tools = self.get_tools()
 
     def __update_prompt(self):
-        task = self.__agent["task"].strip()
         tools = self.__agent["tools"]
-        prompt = task.splitlines()[0] if task else ""
         context = self.__agent["context"]
         self.set_prompt(
-            f"agent={_get_agent_name(self.__agent_file)}, "
-            f'prompt="{prompt}", '
-            f"&tools={tools}, "
-            f"&context={context}\n"
+            f'agent="{_get_agent_name(self.__agent_file)}"  '
+            f"(!t)tools={tools}  "
+            f"(!c)context={context}\n"
         )
 
     def __new_agent(self):
@@ -414,6 +411,7 @@ def _main():
         context=context,
         agent_file=args.agent,
         run=args.run,
+        load_last_agent=True,
     )
     menu.exec()
 

@@ -5,10 +5,14 @@ vim.opt.shortmess:append("I")     -- Disable intro message
 vim.opt.clipboard = "unnamedplus" -- Use system clipboard
 vim.opt.termguicolors = false
 
-vim.keymap.set('n', '<up>', "v:count == 0 ? 'gk' : 'k'", { expr = true })
-vim.keymap.set('n', '<down>', "v:count == 0 ? 'gj' : 'j'", { expr = true })
-vim.api.nvim_set_keymap('n', '<C-A>', 'ggVG', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
+-- Better up/down movement
+vim.keymap.set('n', '<up>', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+vim.keymap.set('n', '<down>', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+vim.keymap.set('i', '<up>', '<C-o>gk', { silent = true })
+vim.keymap.set('i', '<down>', '<C-o>gj', { silent = true })
+
+vim.keymap.set('n', '<C-A>', 'ggVG', { noremap = true, silent = true })
+vim.keymap.set('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
 
 -- Terminal settings
 vim.api.nvim_command("autocmd TermOpen * startinsert")
@@ -221,7 +225,7 @@ local function fix()
   local output_file = os.tmpname()
   run_in_terminal(
     "run_script r/ai/complete_chat.py --quiet -o " .. output_file .. " " .. prompt_file, {
-      height = 5,
+      height = 1,
       on_exit = function()
         local new_text = read_text_file(output_file)
         replace_text(new_text, start_pos, end_pos)
@@ -260,7 +264,7 @@ end
 local function speech_to_text()
   local tmp_file = os.tmpname()
   run_in_terminal("run_script r/speech_to_text.py -o " .. tmp_file, {
-    height = 5,
+    height = 1,
     on_exit = function()
       local text = read_text_file(tmp_file)
       os.remove(tmp_file)

@@ -145,21 +145,7 @@ class CallGraphMenu(DictEditMenu):
             return super().on_enter_pressed()
 
 
-def run_interactive_menu():
-    menu = CallGraphMenu(
-        data={
-            "files": "",
-            "match": "",
-            "match_callers": 0,
-            "match_callees": 0,
-        }
-    )
-    menu.exec()
-
-
 def _main():
-    # run_interactive_menu()
-
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument(
         "-C",

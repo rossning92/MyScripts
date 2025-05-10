@@ -77,20 +77,20 @@ def complete_chat(
 
     response = requests.post(url, headers=headers, json=data, stream=True)
     response.raise_for_status()
-    for chunk in response.iter_lines():
-        if len(chunk) == 0:
-            continue
+    try:
+        for chunk in response.iter_lines():
+            if len(chunk) == 0:
+                continue
 
-        if b"DONE" in chunk:
-            break
+            if b"DONE" in chunk:
+                break
 
-        try:
             decoded_line = json.loads(chunk.decode("utf-8").split("data: ")[1])
             token = decoded_line["choices"][0]["delta"].get("content")
             if token is not None:
                 yield token
-        except GeneratorExit:
-            break
+    finally:
+        response.close()
 
 
 if __name__ == "__main__":

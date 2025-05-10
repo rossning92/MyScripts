@@ -23,7 +23,7 @@ def export_packages():
 
 
 def is_package_installed(pkg: str):
-    logging.debug('Checking if winget package "{pkg}" is installed')
+    logging.debug(f"Checking if winget package {pkg} is installed")
 
     export_file = get_export_file()
     if not os.path.exists(export_file):

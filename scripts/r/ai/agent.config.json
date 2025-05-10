@@ -1,4 +1,5 @@
 {
   "globalHotkey": "win+k g",
-  "variableNames": ""
+  "variableNames": "",
+  "workingDir": "{HOME}/agent_data"
 }

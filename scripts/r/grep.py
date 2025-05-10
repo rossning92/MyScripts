@@ -42,7 +42,7 @@ class _Line:
 
     def get_color(self):
         if self.type == "file":
-            return "CYAN"
+            return "yellow"
         elif self.type == "matched":
             return "green"
         else:
@@ -63,7 +63,12 @@ class GrepMenu(Menu[_Line]):
         self.__matches: List[_Match] = []
         self.__exclude = exclude
 
-        super().__init__(prompt=f"grep ({self.__search_dir})", search_mode=False, **kwargs)
+        super().__init__(
+            prompt=f"grep ({self.__search_dir})",
+            search_mode=False,
+            line_number=False,
+            **kwargs,
+        )
 
         self.add_command(self.__delete_selected, hotkey="ctrl+k")
         self.add_command(self.__run_coder, hotkey="ctrl+t")
@@ -139,8 +144,8 @@ class GrepMenu(Menu[_Line]):
 
     def __update_items(self, show_code: bool):
         self.clear_items()
-        for i, match in enumerate(self.__matches):
-            self.append_item(_Line(f"{match.file} ({i+1})", type="file", match=match))
+        for match in self.__matches:
+            self.append_item(_Line(match.file, type="file", match=match))
             if show_code:
                 for is_match, line_number, line in match.lines:
                     self.append_item(

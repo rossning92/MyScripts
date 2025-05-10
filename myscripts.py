@@ -40,7 +40,6 @@ from _scriptmanager import ScriptManager, execute_script
 from _scriptserver import ScriptServer
 from _shutil import (
     append_to_path_global,
-    pause,
     quote_arg,
     refresh_env_vars,
     run_at_startup,
@@ -59,6 +58,7 @@ from utils.logger import setup_logger
 from utils.menu import Menu
 from utils.menu.confirmmenu import confirm
 from utils.menu.dicteditmenu import DictEditMenu
+from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.inputmenu import InputMenu
 from utils.menu.logmenu import LogMenu
@@ -765,20 +765,22 @@ def _main():
     run_script_and_quit = (
         bool(args.input) or args.quit or bool(args.args) or bool(args.out_to_file)
     )
-    _MyScriptMenu(
-        cmdline_args=args.args,
-        input_text=args.input,
-        no_daemon=not start_daemon,
-        run_script_and_quit=run_script_and_quit,
-        script_manager=script_manager,
-        out_to_file=args.out_to_file,
-        prompt=args.prompt,
-    ).exec()
+
+    try:
+        _MyScriptMenu(
+            cmdline_args=args.args,
+            input_text=args.input,
+            no_daemon=not start_daemon,
+            run_script_and_quit=run_script_and_quit,
+            script_manager=script_manager,
+            out_to_file=args.out_to_file,
+            prompt=args.prompt,
+        ).exec()
+    except Exception:
+        ExceptionMenu().exec()
+        if not run_script_and_quit:
+            restart_program()
 
 
 if __name__ == "__main__":
-    try:
-        _main()
-    except Exception:
-        traceback.print_exc(file=sys.stdout)
-        pause()
+    _main()
