@@ -174,13 +174,14 @@ class _TextInput:
         elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
         elif _is_backspace_key(ch):
-            if self.caret_pos > 0:
+            if self.selected_text != "":
+                self.selected_text = ""
+            elif self.caret_pos > 0:
                 self.text = (
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
                 self.caret_pos = max(self.caret_pos - 1, 0)
-            if self.text == "":
-                self.selected_text = ""
+
         elif ch == curses.ascii.ctrl("u"):
             self.clear()
         elif ch == curses.ascii.ctrl("w"):

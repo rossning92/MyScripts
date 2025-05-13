@@ -1,1 +1,1 @@
-git apply --reject --whitespace=fix "$1"
+git apply --reject --whitespace=fix "{{PATCH_FILE}}"

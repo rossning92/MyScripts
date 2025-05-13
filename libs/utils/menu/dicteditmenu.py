@@ -228,6 +228,9 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.update_screen()
 
     def __init_items(self):
+        if len(self.__data) == 0:
+            return
+
         # Get max width for keys
         keys = set(self.__data.keys())
         if self.__default_dict:

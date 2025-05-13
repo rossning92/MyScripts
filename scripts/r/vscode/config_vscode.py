@@ -124,7 +124,14 @@ def setup_ai_tools(data_dir: str):
 
 def setup_color_theme(data_dir: str):
     install_extensions(["dracula-theme.theme-dracula"], data_dir=data_dir)
-    update_settings({"workbench.colorTheme": "Dracula"}, data_dir=data_dir)
+    update_settings(
+        {
+            "workbench.colorTheme": "Dracula",
+            "workbench.preferredDarkColorTheme": "Dracula Theme",
+            "workbench.preferredLightColorTheme": "Default Light+",
+        },
+        data_dir=data_dir,
+    )
 
 
 def setup_mermaid(data_dir: str):
