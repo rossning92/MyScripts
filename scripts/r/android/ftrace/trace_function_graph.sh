@@ -10,9 +10,13 @@ adb shell 'echo 0 >/sys/kernel/tracing/tracing_on'
 adb shell 'echo 96000 >/sys/kernel/tracing/buffer_size_kb' # 96M
 adb shell "echo function_graph >/sys/kernel/tracing/current_tracer"
 
-adb shell "echo '{{FTRACE_FILTER}}' >>/sys/kernel/tracing/set_ftrace_filter"
+{{if FTRACE_FILTER}}
+adb shell "echo '{{FTRACE_FILTER}}' >/sys/kernel/tracing/set_ftrace_filter"
+{{end}}
 
+{{if FTRACE_PID}}
 adb shell "echo '{{FTRACE_PID}}' >/sys/kernel/tracing/set_ftrace_pid"
+{{end}}
 
 echo 'Start trace...'
 adb shell "echo 1 >/sys/kernel/tracing/tracing_on"

@@ -1345,7 +1345,9 @@ class Menu(Generic[T]):
             self.on_item_selection_changed(selected, i=item_index)
             self.update_screen()
         self.__last_selected_item = selected
-        self.__input.selected_text = selected if isinstance(selected, str) else ""
+        self.__input.selected_text = (
+            selected if self.__search_mode and isinstance(selected, str) else ""
+        )
 
     def on_item_selection_changed(self, item: Optional[T], i: int):
         pass

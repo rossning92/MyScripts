@@ -2,17 +2,16 @@ import logging
 import os
 import subprocess
 import sys
+from typing import List
 
 from _pkgmanager import require_package
-from _script import Script, _args_to_str, get_variable
+from _script import Script, _args_to_str, get_variable, start_script
 from _shutil import (
     call_echo,
     convert_to_unix_path,
     quote_arg,
     write_temp_file,
 )
-
-from .window import activate_window_by_name
 
 
 def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=False):
@@ -59,32 +58,27 @@ def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=Fal
     args = []
     if sys.platform == "win32":
         args.append("wsl")
-    args += [
-        "bash",
-        "-c",
+    args += ["bash", "-c"]
+    screen_commands: List[str] = []
+    if sys.platform == "win32":
+        screen_commands.append("export SCREENDIR=$HOME/.screen")
+    if send_prev_job_to_background:
+        screen_commands.append("screen -d -X stuff ^Z^Mbg^M")
+    else:
+        screen_commands.append("screen -d -X stuff ^Z^Mbg^M")
+    screen_commands += [
+        "screen -d -X msgwait 0",
+        f"screen -d -X readbuf { convert_to_unix_path(tmp_file, wsl=True)}",
+        "screen -d -X paste .",
     ]
-    args.append(
-        ("export SCREENDIR=$HOME/.screen;" if sys.platform == "win32" else "")
-        + (
-            # -d: indicates attached screen sessions
-            # ^C: send Ctrl-C
-            "screen -d -X stuff ^Z^Mbg^M;"
-            if send_prev_job_to_background
-            else "screen -d -X stuff ^C;" if ext == ".sh" else ""
-        )
-        + (
-            "screen -d -X msgwait 0;"
-            "screen -d -X readbuf %s;"
-            "screen -d -X paste ." % convert_to_unix_path(tmp_file, wsl=True)
-        ),
-    )
+    args.append(" && ".join(screen_commands))
 
     call_echo(
         args,
         shell=False,
     )
 
-    activate_window_by_name("remote_shell")
+    start_script("r/linux/remote_shell.sh")
 
 
 def _get_user(user=None):

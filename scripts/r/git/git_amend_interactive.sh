@@ -1,7 +1,4 @@
-if [ -z "$(git status --porcelain)" ]; then
-  echo "Working tree is clean."
-  exit 0
-fi
+[ -z "$(git status --porcelain)" ] && echo "Working tree is clean." && exit 0
 git diff
 {{ include('r/confirm_.sh', {'MESSAGE': 'Commit all changes'}) }}
 git add -A
