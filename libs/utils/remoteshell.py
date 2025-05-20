@@ -65,7 +65,7 @@ def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=Fal
     if send_prev_job_to_background:
         screen_commands.append("screen -d -X stuff ^Z^Mbg^M")
     else:
-        screen_commands.append("screen -d -X stuff ^Z^Mbg^M")
+        screen_commands.append("screen -d -X stuff ^C")
     screen_commands += [
         "screen -d -X msgwait 0",
         f"screen -d -X readbuf { convert_to_unix_path(tmp_file, wsl=True)}",

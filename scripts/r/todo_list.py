@@ -3,9 +3,10 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from utils.dateutil import parse_datetime
+from utils.dateutil import format_timestamp, parse_datetime
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
+from utils.menu.inputdatemenu import input_date
 from utils.menu.inputmenu import InputMenu
 from utils.menu.listeditmenu import ListEditMenu
 
@@ -26,16 +27,9 @@ _status_sort_key = {
 _status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
 
 
-def _format_timestamp(ts: float, include_year: bool = True) -> str:
-    dt = datetime.fromtimestamp(ts)
-    date_format = "%Y-%m-%d" if include_year else "%m-%d"
-    time_format = "" if (dt.hour == 0 and dt.minute == 0) else " %H:%M"
-    return dt.strftime(date_format + time_format)
-
-
 def get_pretty_ts(ts):
     time_diff_str = ""
-    date_str = _format_timestamp(ts, include_year=False).ljust(11)
+    date_str = format_timestamp(ts, include_year=False).ljust(11)
 
     date = datetime.fromtimestamp(ts)
     if date:
@@ -176,39 +170,13 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__sort_tasks()
         return super().save_json()
 
-    def __input_date(
-        self, prompt: str, default_ts: Optional[float] = None
-    ) -> Optional[float]:
-        val = InputMenu(
-            prompt=prompt,
-            text=(_format_timestamp(default_ts) if default_ts is not None else ""),
-        ).request_input()
-
-        # Return none if input was cancelled
-        if val is None:
-            return None
-
-        # Return 0 if the user input was empty
-        if val == "":
-            return 0.0
-
-        # Parse date and time
-        dt = parse_datetime(val)
-        if not dt:
-            self.set_message("Failed to parse date")
-            return None
-
-        # Convert to timestamp
-        ts = dt.timestamp()
-        return ts
-
     def __edit_timestamp_field(self, field_name: str):
         # Check selected item
         selected = self.get_selected_item()
         if not selected:
             return
 
-        ts = self.__input_date(
+        ts = input_date(
             prompt=field_name,
             default_ts=selected[field_name] if field_name in selected else None,
         )
@@ -277,9 +245,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_selected_item(selected)
 
     def __close_task(self):
-        now = datetime.now()
-        ts_now = datetime(now.year, now.month, now.day).timestamp()
-        ts = self.__input_date(prompt="close task with date", default_ts=ts_now)
+        ts = input_date(prompt="close task with date")
         if ts is None:
             return
 

@@ -745,9 +745,8 @@ class Script:
         vnames = self.get_variable_names()
         saved_variables = get_all_variables()
 
-        # Get all variables
-        variables = {"MYSCRIPT_ROOT": get_my_script_root()}
-
+        # Get all variables for the script
+        variables = {}
         for vname in vnames:
             if vname in saved_variables:
                 last_modified_value = saved_variables[vname]
@@ -811,6 +810,7 @@ class Script:
             **self.get_variables(),
             "HOME": get_home_path(),
             "SCRIPT": quote_arg(self.script_path),
+            "MYSCRIPT_ROOT": get_my_script_root(),
         }
 
     def activate_window(self) -> bool:

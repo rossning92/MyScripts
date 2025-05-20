@@ -4,7 +4,7 @@ from typing import Optional
 
 
 def parse_datetime(text: str) -> Optional[datetime]:
-    if text.strip().lower() in ["today", "now"]:
+    if text.strip().lower() in ["today"]:
         now = datetime.now()
         return datetime(now.year, now.month, now.day)
 
@@ -23,3 +23,10 @@ def parse_datetime(text: str) -> Optional[datetime]:
         return datetime(year, month, day, hour, minute)
 
     return None
+
+
+def format_timestamp(ts: float, include_year: bool = True) -> str:
+    dt = datetime.fromtimestamp(ts)
+    date_format = "%Y-%m-%d" if include_year else "%m-%d"
+    time_format = "" if (dt.hour == 0 and dt.minute == 0) else " %H:%M"
+    return dt.strftime(date_format + time_format)

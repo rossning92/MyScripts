@@ -11,6 +11,7 @@ from _script import (
     _save_script_config_file,
     get_all_scripts,
     get_default_script_config,
+    start_script,
 )
 from _shutil import quote_arg
 from scripting.path import (
@@ -96,9 +97,9 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
             workspace_file = create_myscript_workspace()
             open_in_vscode([workspace_file, file])
         else:
-            open_in_vim(file=file)
+            start_script("r/vim.py", args=[file])
     elif editor == "vim":
-        open_in_vim(file=file)
+        start_script("r/vim.py", args=[file])
     elif editor == "vscode":
         workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])
