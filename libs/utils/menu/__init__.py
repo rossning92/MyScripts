@@ -239,7 +239,6 @@ class Menu(Generic[T]):
         self.is_cancelled: bool = False
         self.items: List[T] = items if items is not None else []
         self.last_key_pressed_timestamp: float = 0.0
-        self.prev_key: Union[int, str] = -1
 
         self._height: int = -1
 
@@ -249,6 +248,7 @@ class Menu(Generic[T]):
             ascii_only=ascii_only,
         )
 
+        self.__last_key: Union[int, str] = -1
         self.__allow_input: bool = allow_input
         self.__cancellable: bool = cancellable
         self.__closed: bool = False
@@ -821,7 +821,7 @@ class Menu(Generic[T]):
                     self.__input.on_char(ch)
                     self.update_screen()
 
-            self.prev_key = ch
+            self.__last_key = ch
 
         if ch == -1 and timeout_sec > 0.0:  # getch() is timed-out
             self._on_idle()
@@ -1341,7 +1341,7 @@ class Menu(Generic[T]):
         if (
             selected != self.__last_selected_item
             or self.__last_input != self.__input.text
-        ):
+        ) and not _is_backspace_key(self.__last_key):
             self.on_item_selection_changed(selected, i=item_index)
             self.__input.selected_text = (
                 selected if self.__search_mode and isinstance(selected, str) else ""

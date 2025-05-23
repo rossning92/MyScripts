@@ -21,7 +21,7 @@ if ! screen -ls $name >/dev/null 2>&1; then
         screen -dm -S $name bash
     fi
     if [[ -n "$commands" ]]; then
-        screen -S $name -X stuff "$commands && exit 0 || exit 1\n"
+        screen -S $name -X stuff "($commands) && exit 0 || exit 1\n"
     fi
 else
     echo "Screen \"$name\" already exists, skip."

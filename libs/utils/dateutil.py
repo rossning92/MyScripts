@@ -1,12 +1,16 @@
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 
 def parse_datetime(text: str) -> Optional[datetime]:
-    if text.strip().lower() in ["today"]:
+    text_lower = text.strip().lower()
+    if text_lower == "today":
         now = datetime.now()
         return datetime(now.year, now.month, now.day)
+    elif text_lower == "tomorrow":
+        tomorrow = datetime.now() + timedelta(days=1)
+        return datetime(tomorrow.year, tomorrow.month, tomorrow.day)
 
     # Try match date and time.
     match = re.search(

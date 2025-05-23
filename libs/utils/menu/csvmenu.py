@@ -231,7 +231,9 @@ class CsvMenu(Menu[CsvRow]):
             prompt="filter row",
         )
 
-        self.add_command(self._add_row, hotkey="alt+n")
+        self.add_command(self._add_row)
+        self.add_command(self._add_row_before, hotkey="alt+n")
+        self.add_command(self._add_row_after, hotkey="ctrl+n")
         self.add_command(self._delete_row, hotkey="alt+d")
         self.add_command(self._save, hotkey="ctrl+s")
         self.add_command(self._sort_by_column, hotkey="alt+s")
@@ -289,11 +291,21 @@ class CsvMenu(Menu[CsvRow]):
             ]
         )
 
-    def _add_row(self):
-        row_index = self.df.add_row()
+    def _add_row(self, row_index=None):
+        row_index = self.df.add_row(index=row_index)
         self._update_rows()
         self._edit_row(row_index=row_index)
         self.set_selected_row(row_index)
+
+    def _add_row_before(self):
+        row = self.get_selected_item()
+        if row is not None:
+            self._add_row(row_index=row.row_index)
+
+    def _add_row_after(self):
+        row = self.get_selected_item()
+        if row is not None:
+            self._add_row(row_index=row.row_index + 1)
 
     def _delete_row(self):
         row = self.get_selected_item()

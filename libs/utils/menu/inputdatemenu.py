@@ -17,6 +17,7 @@ class InputDateMenu(Menu[str]):
             items.append(format_timestamp(default_ts))
         items += [
             "Today",
+            "Tomorrow",
             "Monday",
             "Tuesday",
             "Wednesday",

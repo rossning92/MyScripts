@@ -1,13 +1,12 @@
 import argparse
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from utils.dateutil import format_timestamp, parse_datetime
+from utils.dateutil import format_timestamp
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.inputdatemenu import input_date
-from utils.menu.inputmenu import InputMenu
 from utils.menu.listeditmenu import ListEditMenu
 
 TodoItem = Dict[str, Any]

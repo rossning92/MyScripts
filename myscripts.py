@@ -108,7 +108,7 @@ class EditVariableMenu(DictEditMenu):
         self.variable_edit_history = load_json(get_variable_edit_history_file(), {})
         super().__init__(
             self.variables,
-            prompt=f"{script.name} : vars",
+            prompt=f"{script.name} : edit vars",
             on_dict_update=self.on_dict_update,
             on_dict_history_update=self.on_dict_history_update,
             dict_history=self.variable_edit_history,
