@@ -1,37 +1,44 @@
 import argparse
+import datetime
 import os
 import signal
 import subprocess
 import sys
+from threading import Event, Thread
 from typing import Optional
 
 from _pkgmanager import require_package
 from _shutil import is_in_termux
 from utils.getch import getch
+from utils.retry import retry
 
 
 def _wait_for_key() -> bool:
-    sys.stdout.write("Recording (Press Enter to confirm or Q to cancel)")
-    sys.stdout.flush()
-    status: Optional[bool] = None
-    while status is None:
-        try:
-            key = getch()
-        except KeyboardInterrupt:
-            status = False
-        if key == "\n" or key == "\r":
-            status = True
-        elif key == "q":
-            status = False
-    if status:
-        sys.stdout.write("\nDone.\n")
+    success: Optional[bool] = None
+    while success is None:
+        for indicator in "|/-\\":
+            sys.stdout.write(
+                f"\rRecording {indicator} (Press 'Enter' to confirm or 'q' to cancel)"
+            )
+            sys.stdout.flush()
+            try:
+                key = getch(timeout=0.5)
+            except KeyboardInterrupt:
+                success = False
+            if key in ["\n", "\r", " "]:
+                success = True
+            elif key in ["q", "\x1b"]:
+                success = False
+    if success:
+        sys.stdout.write("\nDone\n")
     else:
-        sys.stdout.write("\nCanceled.\n")
+        sys.stdout.write("\nCanceled\n")
     sys.stdout.flush()
-    return status
+    return success
 
 
-def initialize_pulseaudio():
+@retry()
+def _initialize_pulseaudio():
     if is_in_termux():
         require_package("pulseaudio")
         subprocess.call(
@@ -42,62 +49,63 @@ def initialize_pulseaudio():
         subprocess.check_call(["pulseaudio", "-L", "module-sles-source", "-D"])
 
 
-def record_audio(out_file: Optional[str] = None) -> Optional[str]:
-    import tempfile
+def record_audio(out_file: str, stop_event: Optional[Event] = None) -> Optional[str]:
+    if sys.platform != "linux":
+        raise NotImplementedError()
 
-    global _is_recording_termux
-
-    if out_file is None:
-        out_file = tempfile.mktemp(suffix=".mp3")
-
-    # Delete the file if it exists.
+    # Delete the file if it exists
     if os.path.exists(out_file):
         os.remove(out_file)
 
-    should_save = False
-    if sys.platform == "linux":
-        require_package("sox")
+    require_package("sox")
 
-        if is_in_termux():
-            initialize_pulseaudio()
+    if is_in_termux():
+        _initialize_pulseaudio()
 
-        process = subprocess.Popen(
-            [
-                "rec",
-                "--no-show-progress",
-                "-V1",  # only show failure messages
-                out_file,
-            ]
-        )
-        pid = process.pid
+    process = subprocess.Popen(
+        [
+            "rec",
+            "--no-show-progress",
+            "-V1",  # only show failure messages
+            out_file,
+        ]
+    )
 
-        should_save = _wait_for_key()
-
-        os.kill(pid, signal.SIGINT)
-
+    if stop_event and stop_event.wait():
+        process.send_signal(signal.SIGINT)
     else:
-        print("ERROR: Not implemented.", file=sys.stderr)
-        sys.exit(1)
+        process.wait()
 
-    # Delete the recording file if canceled.
-    if not should_save and os.path.exists(out_file):
-        os.remove(out_file)
-
-    if should_save:
-        return out_file
-    else:
-        return None
+    return out_file
 
 
-if __name__ == "__main__":
-    import datetime
-
+def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=str, nargs="?", help="The filename to record to")
     args = parser.parse_args()
 
-    if not args.file:
-        current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        args.file = f"recording_{current_time}.wav"
+    out_file = args.file
+    if not out_file:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        out_file = f"recording_{timestamp}.mp3"
 
-    record_audio(out_file=args.file)
+    # Start recording
+    stop_event = Event()
+    t = Thread(
+        target=record_audio,
+        kwargs={"out_file": out_file, "stop_event": stop_event},
+    )
+    t.start()
+
+    # Wait to stop recording
+    should_save = _wait_for_key()
+    stop_event.set()
+    t.join()
+
+    # Delete the recording file if canceled
+    if not should_save and os.path.exists(out_file):
+        os.remove(out_file)
+
+
+if __name__ == "__main__":
+    _main()

@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 from datetime import datetime
 from typing import Any, Dict
 
@@ -68,6 +69,8 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self,
         data_file: str,
     ):
+        self.__last_reload_check_time = 0.0
+
         super().__init__(json_file=data_file, backup_json=True)
 
         self.__sort_tasks()
@@ -147,13 +150,16 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         return "white"
 
-    def load_json(self):
-        super().load_json()
-
     def on_enter_pressed(self):
         selected = self.get_selected_item()
         if selected:
             self.__edit_todo_item(selected)
+
+    def on_idle(self):
+        now = time.time()
+        if now > self.__last_reload_check_time + 1.0:
+            self.__last_reload_check_time = now
+            self.__reload()
 
     def __select_first_item_with_due_date(self):
         for item in self.items:
@@ -223,9 +229,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.set_selected_item(item)
 
     def __reload(self):
-        self.load_json()
-        self.__sort_tasks()
-        self.set_message("reloaded")
+        if self.load_json():
+            self.__sort_tasks()
+            self.set_message("reloaded")
 
     def __sort_tasks(self):
         selected = self.get_selected_item()

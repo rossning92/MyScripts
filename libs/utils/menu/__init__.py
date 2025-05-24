@@ -381,11 +381,21 @@ class Menu(Generic[T]):
         else:
             Menu._should_update_screen = True
         self.__is_stdscr_owner = False
+        self.on_close()
 
     def __voice_input(self):
-        from r.speech_to_text import speech_to_text
+        from ai.openai.speech_to_text import convert_audio_to_text
 
-        text = self.call_func_without_curses(lambda: speech_to_text())
+        from utils.menu.recordmenu import RecordMenu
+
+        record_menu = RecordMenu()
+        record_menu.exec()
+        out_file = record_menu.get_output_file()
+        if not out_file:
+            return
+
+        text = convert_audio_to_text(file=out_file)
+        os.remove(out_file)
         if text:
             self.set_input(text)
             self.on_enter_pressed()
@@ -725,9 +735,15 @@ class Menu(Generic[T]):
                 else:
                     self.__handle_keyboard_interrupt()
 
+            elif ch == " " and self.__input.text == "" and "space" in self.__hotkeys:
+                self.__hotkeys["space"].func()
+
             elif ch == " " and self.__input.text == " ":
                 self.set_input("")
-                self.__voice_input()
+                if "space space" in self.__hotkeys:
+                    self.__hotkeys["space space"].func()
+                else:
+                    self.__voice_input()
 
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()
@@ -877,8 +893,7 @@ class Menu(Generic[T]):
             return True
         else:
             if self.__cancellable:
-                self.is_cancelled = True
-                self.__closed = True
+                self.cancel()
             else:
                 self.__input.clear()
                 self.update_screen()
@@ -952,6 +967,9 @@ class Menu(Generic[T]):
     def on_idle(self):
         pass
 
+    def on_close(self):
+        pass
+
     def _reset_state(self):
         self.is_cancelled = False
         self.__closed = False
@@ -963,6 +981,7 @@ class Menu(Generic[T]):
         self.on_main_loop()
         while not self.process_events(timeout_sec=PROCESS_EVENT_INTERVAL_SEC):
             self.on_main_loop()
+        self.on_close()
 
     def get_selected_index(self):
         if self.is_cancelled:
@@ -1344,7 +1363,11 @@ class Menu(Generic[T]):
         ) and not _is_backspace_key(self.__last_key):
             self.on_item_selection_changed(selected, i=item_index)
             self.__input.selected_text = (
-                selected if self.__search_mode and isinstance(selected, str) else ""
+                selected
+                if self.__search_mode
+                and not self.__search_on_enter
+                and isinstance(selected, str)
+                else ""
             )
             self.update_screen()
         self.__last_selected_item = selected

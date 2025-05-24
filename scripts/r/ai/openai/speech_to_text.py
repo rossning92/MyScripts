@@ -23,7 +23,7 @@ def convert_audio_to_text(file: str) -> str:
     response = requests.post(url, headers=headers, data=payload, files=files)
     json = response.json()
     if "text" not in json:
-        raise Exception(f"Invalid result: {json}")
+        raise ValueError(f"Invalid result: {json}")
     return json["text"]
 
 

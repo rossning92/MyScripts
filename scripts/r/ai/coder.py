@@ -219,18 +219,11 @@ class CoderMenu(ChatMenu):
 
     def __update_prompt(self):
         s = StringIO()
-        s.write(
-            "files:\n"
-            + "\n".join(
-                [
-                    "* {}#{}-{}".format(
-                        file["file"], file["line_start"], file["line_end"]
-                    )
-                    for file in self.__file_list_menu.items
-                ]
-            )
-            + "\n"
-        )
+        files = [
+            "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
+            for file in self.__file_list_menu.items
+        ]
+        s.write(f"files={files}")
         self.set_prompt(s.getvalue())
 
     def __list_files(self):

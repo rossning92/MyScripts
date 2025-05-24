@@ -1,12 +1,18 @@
 import argparse
 import os
+import signal
 import subprocess
+from threading import Event
 from typing import Optional
 
 import requests
 
 
-def text_to_speech(text: str, out_file: Optional[str] = None):
+def text_to_speech(
+    text: str,
+    out_file: Optional[str] = None,
+    cancel_event: Optional[Event] = None,
+):
     format = os.path.splitext(out_file)[1].lstrip(".") if out_file else "mp3"
     response = requests.post(
         "https://api.openai.com/v1/audio/speech",
@@ -30,16 +36,21 @@ def text_to_speech(text: str, out_file: Optional[str] = None):
                     f.write(chunk)
         else:
             process = subprocess.Popen(
-                # ["ffplay", "-fs", "-nodisp", "-autoexit", "-loglevel", "quiet", "-"],
-                ["play", "--volume", "2", "-q", "-t", format, "-"],
+                ["play", "--volume", "4", "-q", "-t", format, "-"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            assert process.stdin is not None
             for chunk in response.iter_content(chunk_size=None):
-                process.stdin.write(chunk)
-            process.stdin.close()
+                if cancel_event and cancel_event.is_set():
+                    process.send_signal(signal.SIGINT)
+                    break
+                if process.stdin:
+                    process.stdin.write(chunk)
+                else:
+                    break
+            if process.stdin:
+                process.stdin.close()
             process.wait()
     else:
         raise Exception(response.text)

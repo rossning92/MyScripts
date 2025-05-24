@@ -280,9 +280,7 @@ class ChatMenu(Menu[_Line]):
             content += chunk
             for i, a in enumerate(chunk.split("\n")):
                 if i > 0:
-                    line = _Line(
-                        role="assistant", text="", message_index=message_index
-                    )
+                    line = _Line(role="assistant", text="", message_index=message_index)
                     self.append_item(line)
                 line.text += a
 
@@ -303,6 +301,7 @@ class ChatMenu(Menu[_Line]):
             self.close()
 
     def save_conversation(self):
+        os.makedirs(os.path.dirname(self.__conv_file), exist_ok=True)
         save_json(self.__conv_file, self.__conv)
         self.__history_manager.delete_old_files()
 

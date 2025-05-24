@@ -17,8 +17,9 @@ class ListEditMenu(Menu, Generic[T]):
         backup_json=False,
         **kwargs
     ):
-        self.__json_file = json_file
         self.__backup_json = backup_json
+        self.__json_file = json_file
+        self.__last_mtime = 0.0
 
         super().__init__(items=items if items is not None else [], **kwargs)
 
@@ -26,11 +27,16 @@ class ListEditMenu(Menu, Generic[T]):
 
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
 
-    def load_json(self):
+    def load_json(self) -> bool:
         if self.__json_file is not None:
-            self.items[:] = load_json(self.__json_file, default=[])
-        if not isinstance(self.items[:], list):
-            raise TypeError("JSON data must be a list")
+            mtime = os.path.getmtime(self.__json_file)
+            if mtime > self.__last_mtime:
+                self.__last_mtime = mtime
+                self.items[:] = load_json(self.__json_file, default=[])
+                if not isinstance(self.items[:], list):
+                    raise TypeError("JSON data must be a list")
+                return True
+        return False
 
     def delete_selected_item(self):
         index = self.get_selected_index()

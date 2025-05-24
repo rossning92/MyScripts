@@ -4,6 +4,7 @@ import subprocess
 from typing import Optional
 
 from ai.openai.speech_to_text import speech_to_text as speech_to_text_openai
+from _shutil import is_in_termux
 
 
 def speech_to_text_termux() -> Optional[str]:
@@ -15,11 +16,11 @@ def speech_to_text_termux() -> Optional[str]:
         return None
 
 
-def speech_to_text() -> Optional[str]:
-    # if is_termux():
-    #     return speech_to_text_termux()
-    # else:
-    return speech_to_text_openai()
+def speech_to_text(high_quality=True) -> Optional[str]:
+    if not high_quality and is_in_termux():
+        return speech_to_text_termux()
+    else:
+        return speech_to_text_openai()
 
 
 if __name__ == "__main__":

@@ -194,9 +194,9 @@ class AgentMenu(ChatMenu):
         tools = self.__agent["tools"]
         context = self.__agent["context"]
         self.set_prompt(
-            f'agent="{_get_agent_name(self.__agent_file)}"  '
-            f"(!t)tools={tools}  "
-            f"(!c)context={context}\n"
+            f'agent="{_get_agent_name(self.__agent_file)}", '
+            f"tools={tools}, "
+            f"context={context}\n"
         )
 
     def __new_agent(self):
@@ -235,6 +235,7 @@ class AgentMenu(ChatMenu):
         )
 
     def __save_agent(self):
+        os.makedirs(os.path.dirname(self.__agent_file), exist_ok=True)
         save_json(self.__agent_file, self.__agent)
 
     def __get_task_with_context(self):
