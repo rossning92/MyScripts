@@ -194,9 +194,9 @@ class AgentMenu(ChatMenu):
         tools = self.__agent["tools"]
         context = self.__agent["context"]
         self.set_prompt(
-            f'agent="{_get_agent_name(self.__agent_file)}"  '
-            f"(!t)tools={tools}  "
-            f"(!c)context={context}\n"
+            f'agent="{_get_agent_name(self.__agent_file)}", '
+            f"tools={tools}, "
+            f"context={context}\n"
         )
 
     def __new_agent(self):

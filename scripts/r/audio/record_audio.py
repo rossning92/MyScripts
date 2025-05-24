@@ -11,24 +11,27 @@ from utils.getch import getch
 
 
 def _wait_for_key() -> bool:
-    sys.stdout.write("Recording (Press Enter to confirm or Q to cancel)")
-    sys.stdout.flush()
-    status: Optional[bool] = None
-    while status is None:
-        try:
-            key = getch()
-        except KeyboardInterrupt:
-            status = False
-        if key == "\n" or key == "\r":
-            status = True
-        elif key == "q":
-            status = False
-    if status:
-        sys.stdout.write("\nDone.\n")
+    success: Optional[bool] = None
+    while success is None:
+        for indicator in "|/-\\":
+            sys.stdout.write(
+                f"\rRecording {indicator} (Press 'Enter' to confirm or 'q' to cancel)"
+            )
+            sys.stdout.flush()
+            try:
+                key = getch(timeout=0.5)
+            except KeyboardInterrupt:
+                success = False
+            if key in ["\n", "\r", " "]:
+                success = True
+            elif key in ["q", "\x1b"]:
+                success = False
+    if success:
+        sys.stdout.write("\nDone\n")
     else:
-        sys.stdout.write("\nCanceled.\n")
+        sys.stdout.write("\nCanceled\n")
     sys.stdout.flush()
-    return status
+    return success
 
 
 def initialize_pulseaudio():
