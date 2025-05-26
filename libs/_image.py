@@ -56,6 +56,22 @@ def crop_image(im, rect=None, rect_normalized=None):
     return im
 
 
+def crop_image_interactive(file: str):
+    rect = None
+    im = Image.open(file)
+
+    out_dir = os.path.join(os.path.dirname(file), "out")
+    os.makedirs(out_dir, exist_ok=True)
+
+    rect = select_roi(file)
+    if rect is None:
+        return
+
+    im = crop_image(im, rect=rect)
+
+    im.save(file, quality=90)
+
+
 def scale_image(im, sx, sy):
     if type(im) == str:
         f = im

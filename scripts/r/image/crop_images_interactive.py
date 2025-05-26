@@ -1,17 +1,14 @@
 import argparse
 import os
+from typing import List
 
 from _image import crop_image, select_roi
 from PIL import Image
 
 
-def _main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("files", nargs="+", help="input image files")
-    args = parser.parse_args()
-
+def crop_images_interactive(files: List[str]):
     rect = None
-    for i, file in enumerate(args.files):
+    for i, file in enumerate(files):
         im = Image.open(file)
 
         out_dir = os.path.join(os.path.dirname(file), "out")
@@ -26,6 +23,14 @@ def _main():
 
         out_file = os.path.join(out_dir, os.path.basename(file))
         im.save(out_file, quality=90)
+
+
+def _main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs="+", help="input image files")
+    args = parser.parse_args()
+
+    crop_images_interactive(args.files)
 
 
 if __name__ == "__main__":

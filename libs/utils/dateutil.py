@@ -5,7 +5,26 @@ from typing import Optional
 
 def parse_datetime(text: str) -> Optional[datetime]:
     text_lower = text.strip().lower()
-    if text_lower == "today":
+
+    weekdays = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6,
+    }
+    if text_lower in weekdays:
+        now = datetime.now()
+        current_weekday = now.weekday()
+        target_weekday = weekdays[text_lower]
+        days_ahead = target_weekday - current_weekday
+        if days_ahead <= 0:  # Target weekday has passed this week
+            days_ahead += 7
+        next_day = now + timedelta(days=days_ahead)
+        return datetime(next_day.year, next_day.month, next_day.day)
+    elif text_lower == "today":
         now = datetime.now()
         return datetime(now.year, now.month, now.day)
     elif text_lower == "tomorrow":

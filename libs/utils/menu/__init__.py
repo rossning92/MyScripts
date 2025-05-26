@@ -106,6 +106,7 @@ class _TextInput:
 
     def set_text(self, text):
         self.text = text
+        self.selected_text = text
         self.caret_pos = len(text)
 
     class DrawInputResult(NamedTuple):
@@ -1385,8 +1386,10 @@ class Menu(Generic[T]):
 
     def __edit_text_in_external_editor(self):
         text = self.__input.text
-        text = self.call_func_without_curses(lambda: edit_text(text))
-        self.set_input(text)
+        new_text = self.call_func_without_curses(lambda: edit_text(text))
+        self.set_input(new_text)
+        if new_text != text:
+            self.on_enter_pressed()
 
     def __command_palette(self):
         self._command_palette_menu.exec()

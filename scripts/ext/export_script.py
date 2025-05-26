@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 import shutil
@@ -44,7 +45,7 @@ def _export_python_module_recursive(script_path, out_dir):
             _export_python_module_recursive(python_module, out_dir)
 
 
-def _export_script(script_path, out_dir, create_executable=False):
+def _export_script(script_path, out_dir, out=None, create_executable=False):
     ext = os.path.splitext(script_path)[1]
     script_name = os.path.splitext(os.path.basename(script_path))[0]
 
@@ -64,7 +65,6 @@ def _export_script(script_path, out_dir, create_executable=False):
     other_scripts = re.findall(
         r"(?<=\W)(?:(?:\w+|\.\.)/)*\w+\.(?:py|cmd|ahk|sh)(?=\W)", content
     )
-    print(other_scripts)
     for s in other_scripts:
         script_abs_path = os.path.abspath(os.path.dirname(script_path) + "/" + s)
 
@@ -75,7 +75,7 @@ def _export_script(script_path, out_dir, create_executable=False):
                 shutil.copy(script_abs_path, "%s/%s" % (out_dir, file_name))
                 old_new_path_map[s] = file_name
                 print("Copy: %s" % script_abs_path)
-                _export_script(script_abs_path, out_dir)  # Recurse
+                _export_script(script_abs_path, out_dir=out_dir, out=out)  # Recurse
 
     if ext == ".py":
         _export_python_module_recursive(script_path, out_dir)
@@ -99,7 +99,10 @@ def _export_script(script_path, out_dir, create_executable=False):
         content = content.replace(k, v)
 
     # Render scripts
-    out_file = "%s/%s" % (out_dir, os.path.basename(script_path))
+    if out:
+        out_file = out
+    else:
+        out_file = "%s/%s" % (out_dir, os.path.basename(script_path))
     print("Render: %s" % script_path)
     with open(out_file, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
@@ -120,18 +123,40 @@ def _export_script(script_path, out_dir, create_executable=False):
         return out_file
 
 
-def export_script(script_path, out_dir, create_executable=False):
+def export_script(script_path, out_dir, out=None, create_executable=False):
     if os.path.isdir(out_dir):
         shutil.rmtree(out_dir, ignore_errors=True)
     os.makedirs(out_dir, exist_ok=True)
-    return _export_script(script_path, out_dir, create_executable)
+    return _export_script(
+        script_path, out_dir=out_dir, out=out, create_executable=create_executable
+    )
+
+
+def _main():
+    setup_logger()
+
+    parser = argparse.ArgumentParser(description="Process some paths.")
+    parser.add_argument(
+        "-o",
+        "--out",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--out-dir",
+        type=str,
+        default=os.path.abspath(os.path.expanduser("~/Desktop/script_export")),
+    )
+
+    parser.add_argument("script_path", type=str)
+    args = parser.parse_args()
+
+    out_file = export_script(
+        args.script_path, out_dir=args.out_dir, out=args.out, create_executable=True
+    )
+    if not args.out:
+        open_code_editor(out_file)
 
 
 if __name__ == "__main__":
-    setup_logger()
-
-    out_dir = os.path.abspath(os.path.expanduser("~/Desktop/script_export"))
-    script_path = os.getenv("SCRIPT")
-
-    out_file = export_script(script_path, out_dir, create_executable=True)
-    open_code_editor(out_file)
+    _main()

@@ -39,13 +39,14 @@ class ChatMenu(Menu[_Line]):
         data_dir: Optional[str] = None,
         message: Optional[str] = None,
         model: Optional[str] = None,
+        image_file: Optional[str] = None,
         new_conversation=True,
         prompt: str = "c",
     ) -> None:
         self.__auto_create_conv_file = conv_file is None
         self.__copy_and_exit = copy_and_exit
         self.__first_message = message
-        self.__image_file: Optional[str] = None
+        self.__image_file: Optional[str] = image_file
         self.__is_generating = False
         self.__last_yanked_line: Optional[_Line] = None
         self.__lines: List[_Line] = []
@@ -389,6 +390,7 @@ def complete_chat_gui(
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?")
+    parser.add_argument("--image-file", type=str, nargs="?")
     args = parser.parse_args()
 
     if args.input is None:
@@ -399,7 +401,7 @@ def _main():
     else:
         s = args.input
 
-    chat = ChatMenu(message=s)
+    chat = ChatMenu(message=s, image_file=args.image_file)
     chat.exec()
 
 

@@ -244,7 +244,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._edit_script, hotkey="ctrl+e")
         self.add_command(self._edit_script_vim)
         self.add_command(self._new_script, hotkey="ctrl+n")
-        self.add_command(self._next_scheduled_script, hotkey="alt+t")
+        self.add_command(self._next_scheduled_script)
         self.add_command(self._run_script_no_close, hotkey="alt+enter")
         self.add_command(self._run_script_no_close, hotkey="ctrl+enter")
         self.add_command(self._run_script_local)
@@ -613,11 +613,15 @@ class _MyScriptMenu(Menu[Script]):
     def _run_hotkey(self, script: Script):
         selected_script = self.get_selected_item()
         if selected_script is not None:
-            os.environ["SCRIPT"] = os.path.abspath(selected_script.script_path)
+            selected_script_abs_path = os.path.abspath(selected_script.script_path)
+
+            # TODO: This environment variable is deprecated, remove.
+            os.environ["SCRIPT"] = selected_script_abs_path
 
             self.call_func_without_curses(
                 lambda script=script: execute_script(
                     script,
+                    args=[selected_script_abs_path],
                     cd=len(self.__cmdline_args) == 0,
                     no_daemon=self.__no_daemon,
                 )
