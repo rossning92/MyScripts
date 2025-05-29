@@ -1080,6 +1080,9 @@ class Script:
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
 
+        elif self.cfg["openWithRunScript"]:
+            arg_list = ["run_script", self.cfg["openWithRunScript"]] + arg_list
+
         elif self.cfg["runOverSsh"] if run_over_ssh is None else run_over_ssh:
             arg_list = [
                 sys.executable,
@@ -1922,6 +1925,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "minimized": False,
         "msys2": False,
         "newWindow": True,
+        "openWithRunScript": False,
         "packages.pip": "",
         "packages": "",
         "reloadScriptsAfterRun": False,

@@ -37,7 +37,20 @@ require("lazy").setup({
   -- Detect tabstop and shiftwidth automatically
   'NMAC427/guess-indent.nvim',
 
-  'folke/which-key.nvim',
+  -- Showing available keybindings in a popup as you type.
+  {
+    'folke/which-key.nvim',
+    event = 'VimEnter',
+    opts = {
+      -- this setting is independent of vim.o.timeoutlen
+      delay = 0,
+      spec = {
+        { '<leader>s', group = '[S]earch' },
+        { '<leader>t', group = '[T]oggle' },
+        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+      },
+    },
+  },
 
   -- Fuzzy finder
   {
