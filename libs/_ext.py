@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import shutil
+import subprocess
 from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Tuple
 
 from _script import (
@@ -97,9 +98,9 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
             workspace_file = create_myscript_workspace()
             open_in_vscode([workspace_file, file])
         else:
-            start_script("r/vim.py", args=[file])
+            subprocess.run(["nvim", file])
     elif editor == "vim":
-        start_script("r/vim.py", args=[file])
+        subprocess.run(["nvim", file])
     elif editor == "vscode":
         workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])

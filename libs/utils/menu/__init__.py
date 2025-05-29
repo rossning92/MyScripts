@@ -1230,18 +1230,19 @@ class Menu(Generic[T]):
             self.update_screen()
 
         # Draw status bar
-        a = self.get_status_bar_text()
-        b = " [%d/%d]" % (
-            self.__selected_row_end + 1,
-            len(item_indices),
-        )
-        self.draw_text(
-            row=self._height - 1,
-            col=0,
-            s=f"{a[:self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}",
-            color="WHITE",
-            ymax=self._height,
-        )
+        if item_y_max > 1:
+            a = self.get_status_bar_text()
+            b = " [%d/%d]" % (
+                self.__selected_row_end + 1,
+                len(item_indices),
+            )
+            self.draw_text(
+                row=self._height - 1,
+                col=0,
+                s=f"{a[:self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}",
+                color="WHITE",
+                ymax=self._height,
+            )
 
         # Move cursor
         try:

@@ -26,6 +26,7 @@ declare -a packages=(
     "screen"
     "sed"
     "termux-api"
+    "termux-exec"
     "unzip"
     "vim"
     "which"

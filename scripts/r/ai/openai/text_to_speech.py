@@ -2,6 +2,7 @@ import argparse
 import os
 import signal
 import subprocess
+import time
 from threading import Event
 from typing import Optional
 
@@ -11,7 +12,7 @@ import requests
 def text_to_speech(
     text: str,
     out_file: Optional[str] = None,
-    cancel_event: Optional[Event] = None,
+    stop_event: Optional[Event] = None,
 ):
     format = os.path.splitext(out_file)[1].lstrip(".") if out_file else "mp3"
     response = requests.post(
@@ -42,7 +43,7 @@ def text_to_speech(
                 stderr=subprocess.DEVNULL,
             )
             for chunk in response.iter_content(chunk_size=None):
-                if cancel_event and cancel_event.is_set():
+                if stop_event and stop_event.is_set():
                     process.send_signal(signal.SIGINT)
                     break
                 if process.stdin:
@@ -51,7 +52,11 @@ def text_to_speech(
                     break
             if process.stdin:
                 process.stdin.close()
-            process.wait()
+            while process.poll() is None:
+                if stop_event and stop_event.is_set():
+                    process.send_signal(signal.SIGINT)
+                    break
+                time.sleep(0.1)
     else:
         raise Exception(response.text)
 

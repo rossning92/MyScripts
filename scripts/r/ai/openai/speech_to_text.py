@@ -4,7 +4,8 @@ import os
 from typing import Optional
 
 import requests
-from audio.record_audio import record_audio
+from utils.menu.asynctaskmenu import AsyncTaskMenu
+from utils.menu.recordmenu import RecordMenu
 
 
 def convert_audio_to_text(file: str) -> str:
@@ -28,13 +29,24 @@ def convert_audio_to_text(file: str) -> str:
 
 
 def speech_to_text() -> Optional[str]:
-    audio_file = record_audio()
-    if audio_file:
-        text = convert_audio_to_text(audio_file)
-        os.remove(audio_file)
-        return text
-    else:
+    record_menu = RecordMenu()
+    record_menu.exec()
+    out_file = record_menu.get_output_file()
+    if not out_file:
         return None
+
+    if not os.path.exists(out_file):
+        return None
+
+    async_task_menu = AsyncTaskMenu(
+        lambda: convert_audio_to_text(file=out_file),
+        prompt="convert audio to text",
+    )
+    try:
+        async_task_menu.exec()
+    except ValueError:
+        return None
+    return async_task_menu.get_result()
 
 
 if __name__ == "__main__":

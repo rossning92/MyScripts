@@ -1,33 +1,24 @@
 import os
 import tempfile
-from threading import Event, Thread
 from typing import Optional
 
 from audio.record_audio import record_audio
 
-from utils.menu import Menu
+from utils.menu.asynctaskmenu import AsyncTaskMenu
 
 
-class RecordMenu(Menu):
+class RecordMenu(AsyncTaskMenu):
     def __init__(self, out_file: Optional[str] = None):
-        super().__init__(prompt="recording...")
-
-        self.__stop_event = Event()
         self.__out_file = out_file if out_file else tempfile.mktemp(suffix=".wav")
-        self.__record_thread = Thread(
-            target=record_audio,
-            kwargs={"out_file": self.__out_file, "stop_event": self.__stop_event},
+        super().__init__(
+            target=lambda stop_event: record_audio(
+                out_file=self.__out_file, stop_event=stop_event
+            ),
+            prompt="recording",
         )
-        self.__record_thread.start()
-
-        self.add_command(self.__done, hotkey="space")
-
-    def __done(self):
-        self.close()
 
     def on_close(self):
-        self.__stop_event.set()
-        self.__record_thread.join()
+        super().on_close()
         if self.is_cancelled and os.path.exists(self.__out_file):
             os.remove(self.__out_file)
 

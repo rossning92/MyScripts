@@ -875,7 +875,7 @@ class Script:
         close_on_exit=None,
         cd=True,
         tee=None,
-        command_wrapper: Optional[bool] = True,
+        command_wrapper: Optional[bool] = None,
         background=False,
         out_to_file: Optional[str] = None,
         run_over_ssh: Optional[bool] = None,
@@ -1079,6 +1079,9 @@ class Script:
         cmdline = self.cfg["cmdline"]
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
+
+        elif self.cfg["openWithRunScript"]:
+            arg_list = ["run_script", self.cfg["openWithRunScript"]] + arg_list
 
         elif self.cfg["runOverSsh"] if run_over_ssh is None else run_over_ssh:
             arg_list = [
@@ -1922,6 +1925,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "minimized": False,
         "msys2": False,
         "newWindow": True,
+        "openWithRunScript": False,
         "packages.pip": "",
         "packages": "",
         "reloadScriptsAfterRun": False,

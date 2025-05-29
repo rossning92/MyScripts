@@ -12,6 +12,7 @@ class TextMenu(Menu[str]):
             cancellable=True,
             fuzzy_search=False,
             search_on_enter=True,
+            wrap_text=True,
             **kwargs
         )
         if file:

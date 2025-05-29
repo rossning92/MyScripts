@@ -64,6 +64,7 @@ def complete_chat(
     if not api_key:
         raise Exception("OPENAI_API_KEY must be provided.")
 
+    # https://platform.openai.com/docs/api-reference/completions/create
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
