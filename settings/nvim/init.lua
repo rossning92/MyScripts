@@ -6,6 +6,8 @@ vim.g.mapleader = " "
 vim.opt.shortmess:append("I")     -- Disable intro message
 vim.opt.clipboard = "unnamedplus" -- Use system clipboard
 vim.opt.termguicolors = false
+vim.opt.mouse = ""                -- Disable mouse
+vim.opt.messagesopt = "wait:1000,history:500"
 
 -- Better up/down movement
 vim.keymap.set('n', '<up>', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
@@ -317,6 +319,16 @@ require("lazy").setup({
         default = { 'lsp', 'path', 'snippets', 'buffer' },
       },
     },
+  },
+
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = {},
   },
 
   -- Custom plugins under `lua/custom/plugins/`

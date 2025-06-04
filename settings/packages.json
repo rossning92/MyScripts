@@ -628,6 +628,9 @@
   "rpi-imager": {
     "choco": {
       "packages": ["rpi-imager"]
+    },
+    "pacman": {
+      "packages": ["rpi-imager"]
     }
   },
   "sane": {

@@ -208,7 +208,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.__edit_item_description(selected)
 
     def __edit_item_description(self, item: TodoItem):
-        new_text = self.call_func_without_curses(lambda: edit_text(item["description"]))
+        new_text = self.call_func_without_curses(
+            lambda: edit_text(item["description"], tmp_file_ext=".md")
+        )
         if new_text != item["description"]:
             item["description"] = new_text
             self.save_json()

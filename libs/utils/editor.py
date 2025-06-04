@@ -16,9 +16,9 @@ def edit_file(file: str, start_insert=False):
     subprocess.call(args)
 
 
-def edit_text(text: str):
+def edit_text(text: str, tmp_file_ext=".txt"):
     with tempfile.NamedTemporaryFile(
-        suffix=".tmp", mode="w+", delete=False, encoding="utf-8"
+        suffix=tmp_file_ext, mode="w+", delete=False, encoding="utf-8"
     ) as tmp_file:
         tmp_file.write(text)
         tmp_filename = tmp_file.name

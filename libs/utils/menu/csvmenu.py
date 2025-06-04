@@ -4,6 +4,7 @@ from typing import List, Optional, OrderedDict
 
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
+from utils.menu.confirmmenu import ConfirmMenu
 
 from ..menu import Menu
 from .inputmenu import InputMenu
@@ -88,6 +89,13 @@ class CsvData:
     def get_unique_values_for_column(self, name: str) -> List[str]:
         col_index = self.get_column_index(name)
         return list(set([row[col_index] for row in self._rows[1:]]))
+
+    def duplicate_row(self, row_index: int) -> int:
+        if row_index < 0 or row_index >= len(self._rows):
+            raise IndexError(f"Row index {row_index} out of bounds.")
+
+        duplicated_values = self._rows[row_index].copy()
+        return self.add_row(duplicated_values, row_index + 1)
 
 
 class CsvCell:
@@ -234,7 +242,8 @@ class CsvMenu(Menu[CsvRow]):
         self.add_command(self._add_row)
         self.add_command(self._add_row_before, hotkey="alt+n")
         self.add_command(self._add_row_after, hotkey="ctrl+n")
-        self.add_command(self._delete_row, hotkey="alt+d")
+        self.add_command(self._duplicate_row, hotkey="ctrl+d")
+        self.add_command(self._delete_row, hotkey="ctrl+k")
         self.add_command(self._save, hotkey="ctrl+s")
         self.add_command(self._sort_by_column, hotkey="alt+s")
 
@@ -307,11 +316,20 @@ class CsvMenu(Menu[CsvRow]):
         if row is not None:
             self._add_row(row_index=row.row_index + 1)
 
+    def _duplicate_row(self):
+        row = self.get_selected_item()
+        if row is not None:
+            dup_row_index = self.df.duplicate_row(row.row_index)
+            self._update_rows()
+            self.set_selected_row(dup_row_index)
+            self._edit_row(dup_row_index)
+
     def _delete_row(self):
         row = self.get_selected_item()
         if row is not None:
-            self.df.delete_row(row_index=row.row_index)
-            self._update_rows()
+            if ConfirmMenu(prompt=f'Delete row "{row}"?').exec() == 0:
+                self.df.delete_row(row_index=row.row_index)
+                self._update_rows()
 
     def select_row(self) -> int:
         try:
