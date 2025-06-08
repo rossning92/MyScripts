@@ -2,8 +2,10 @@ import argparse
 import os
 import re
 import shutil
+import subprocess
 
-from _script import get_python_path, render_script
+from _script import get_python_path, render_script, run_script
+from doc.md_to_pdf import markdown_to_pdf
 from utils.editor import open_code_editor
 from utils.logger import setup_logger
 
@@ -123,13 +125,22 @@ def _export_script(script_path, out_dir, out=None, create_executable=False):
         return out_file
 
 
-def export_script(script_path, out_dir, out=None, create_executable=False):
+def export_script(
+    script_path, out_dir, out=None, create_executable=False, open_exported_file=False
+):
+    _, ext = os.path.splitext(script_path)
+    if ext.lower() == ".md":
+        subprocess.check_call(["run_script", "r/doc/md_to_pdf.py", script_path])
+        return
+
     if os.path.isdir(out_dir):
         shutil.rmtree(out_dir, ignore_errors=True)
     os.makedirs(out_dir, exist_ok=True)
-    return _export_script(
+    out_file = _export_script(
         script_path, out_dir=out_dir, out=out, create_executable=create_executable
     )
+    if open_exported_file:
+        open_code_editor(out_file)
 
 
 def _main():
@@ -151,11 +162,13 @@ def _main():
     parser.add_argument("script_path", type=str)
     args = parser.parse_args()
 
-    out_file = export_script(
-        args.script_path, out_dir=args.out_dir, out=args.out, create_executable=True
+    export_script(
+        args.script_path,
+        out_dir=args.out_dir,
+        out=args.out,
+        create_executable=True,
+        open_exported_file=not args.out,
     )
-    if not args.out:
-        open_code_editor(out_file)
 
 
 if __name__ == "__main__":

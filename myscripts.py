@@ -241,8 +241,6 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._delete_file, hotkey="ctrl+k")
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
-        # self.add_command(self._edit_script, hotkey="ctrl+e")
-        self.add_command(self._edit_script_vim)
         self.add_command(self._new_script, hotkey="ctrl+n")
         self.add_command(self._next_scheduled_script)
         self.add_command(self._run_script_no_close, hotkey="alt+enter")
