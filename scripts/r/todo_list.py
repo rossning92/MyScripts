@@ -64,6 +64,17 @@ class _reversor:
         return other.obj < self.obj
 
 
+class _EditTodoItemMenu(DictEditMenu):
+    def edit_dict_value(self, data: Dict[str, Any], name: str):
+        return super().edit_dict_value(data, name)
+
+    def get_value_str(self, name: str, val: Any) -> str:
+        if name in (_CLOSED_TIMESTAMP, _DUE_TIMESTAMP):
+            return format_timestamp(val)
+        else:
+            return super().get_value_str(name, val)
+
+
 class TodoMenu(ListEditMenu[TodoItem]):
     def __init__(
         self,
@@ -217,7 +228,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.update_screen()
 
     def __edit_todo_item(self, item: TodoItem):
-        DictEditMenu(
+        _EditTodoItemMenu(
             item,
             on_dict_update=lambda _: self.save_json(),
         ).exec()

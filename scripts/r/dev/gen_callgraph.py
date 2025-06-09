@@ -192,14 +192,21 @@ def _main():
         files = list(diff.keys())
     else:
         diff = None
-        files = [
-            filepath.replace(os.path.sep, "/")
-            for filepath in itertools.chain(
-                *[glob(pathname, recursive=True) for pathname in args.files]
-            )
-        ]
-        files = [f for f in files if is_supported_file(f)]
-    files = [f for f in files if is_supported_file(f)]
+        if args.files:
+            files = [
+                filepath.replace(os.path.sep, "/")
+                for filepath in itertools.chain(
+                    *[glob(pathname, recursive=True) for pathname in args.files]
+                )
+            ]
+            files = [f for f in files if is_supported_file(f)]
+        else:
+            files = subprocess.check_output(
+                ["rg", "-l", args.match], universal_newlines=True
+            ).splitlines()
+
+    files = [file.replace(os.path.sep, "/") for file in files]
+    files = [file for file in files if is_supported_file(file)]
 
     # Generate call graph
     call_graph = generate_call_graph(

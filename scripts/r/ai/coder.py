@@ -110,7 +110,6 @@ class FileListMenu(ListEditMenu):
             prompt="file list",
             wrap_text=True,
         )
-        self.add_command(self.delete_selected_item, hotkey="ctrl+k")
 
     def get_item_text(self, item: Any) -> str:
         return "{}#{}-{}".format(item["file"], item["line_start"], item["line_end"])

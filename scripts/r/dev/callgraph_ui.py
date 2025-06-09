@@ -2,6 +2,7 @@ import argparse
 import os
 import subprocess
 
+from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 
 
@@ -33,10 +34,28 @@ class CallGraphMenu(JsonEditMenu):
 
 def _main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("config_file")
+    parser.add_argument("config_file", type=str, nargs="?")
     args = parser.parse_args()
 
-    CallGraphMenu(config_file=args.config_file).exec()
+    if not args.config_file:
+        callgraph_dir = os.path.join(os.path.expanduser("~"), "callgraph")
+        os.makedirs(callgraph_dir, exist_ok=True)
+        menu = FileMenu(
+            prompt="select callgraph config",
+            goto=callgraph_dir,
+            show_size=False,
+            recursive=True,
+            allow_cd=False,
+        )
+        menu.select_file()
+        file_name = menu.get_input()
+        if file_name:
+            config_file = os.path.join(callgraph_dir, file_name)
+        else:
+            return
+    else:
+        config_file = args.config_file
+    CallGraphMenu(config_file=config_file).exec()
 
 
 if __name__ == "__main__":

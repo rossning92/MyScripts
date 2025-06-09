@@ -17,6 +17,7 @@ from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 
 from . import Menu
+from .listeditmenu import ListEditMenu
 
 
 class _DictValueEditMenu(Menu[str]):
@@ -103,12 +104,14 @@ class _KeyValuePair:
         dict: Dict[str, Any],
         key: str,
         key_display_width: int,
+        get_value_str: Callable[[str, str], str],
         default_dict: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.key = key
 
         self.__default_dict = default_dict
         self.__dict = dict
+        self.__get_value_str = get_value_str
         self.__key_display_width = key_display_width
 
     def __str__(self) -> str:
@@ -132,7 +135,12 @@ class _KeyValuePair:
                 )
                 for i, line in enumerate(value.splitlines())
             )
-        return "{}{}{}{}".format(header, sep, value, " (*)" if is_modified else "")
+        return "{}{}{}{}".format(
+            header,
+            sep,
+            self.__get_value_str(self.key, value),
+            " (*)" if is_modified else "",
+        )
 
 
 class DictEditMenu(Menu[_KeyValuePair]):
@@ -258,6 +266,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
                     key=key,
                     key_display_width=max_width,
                     default_dict=self.__default_dict,
+                    get_value_str=self.get_value_str,
                 )
             )
 
@@ -305,19 +314,27 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.update_screen()
 
     def edit_dict_value(self, data: Dict[str, Any], name: str):
-        dict_history_values = self.__get_dict_history_values(name)
-        _DictValueEditMenu(
-            data=data,
-            name=name,
-            type=(
-                self.__schema[name]
-                if self.__schema is not None
-                else (
-                    type(self.__default_dict[name])
-                    if self.__default_dict
-                    else type(data[name])
-                )
-            ),
-            items=dict_history_values,
-            dict_history_values=dict_history_values,
-        ).exec()
+        data_type = (
+            self.__schema[name]
+            if self.__schema is not None
+            else (
+                type(self.__default_dict[name])
+                if self.__default_dict
+                else type(data[name])
+            )
+        )
+        if data_type is list:
+            list_values = data[name]
+            ListEditMenu(list_values, prompt=f"edit {name}").exec()
+        else:
+            dict_history_values = self.__get_dict_history_values(name)
+            _DictValueEditMenu(
+                data=data,
+                name=name,
+                type=data_type,
+                items=dict_history_values,
+                dict_history_values=dict_history_values,
+            ).exec()
+
+    def get_value_str(self, name: str, val: Any) -> str:
+        return str(val)
