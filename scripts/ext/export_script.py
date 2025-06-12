@@ -4,8 +4,7 @@ import re
 import shutil
 import subprocess
 
-from _script import get_python_path, render_script, run_script
-from doc.md_to_pdf import markdown_to_pdf
+from _script import get_python_path, render_script
 from utils.editor import open_code_editor
 from utils.logger import setup_logger
 

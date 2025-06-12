@@ -87,8 +87,19 @@ reg add HKCU\SOFTWARE\Microsoft\InputMethod\Settings\CHS /t REG_DWORD /v "Englis
 reg add HKCU\SOFTWARE\Microsoft\InputMethod\Settings\CHS /t REG_DWORD /v EnableChineseEnglishPunctuationSwitch /d 0 /f >NUL
 reg add HKCU\SOFTWARE\Microsoft\InputMethod\Settings\CHS /t REG_DWORD /v EnableSimplifiedTraditionalOutputSwitch /d 0 /f >NUL
 
+@REM Windows 11 stuff:
+
 echo Disable News and Interests
 reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Feeds /t REG_DWORD /v ShellFeedsTaskbarViewMode /d 2 /f >NUL
+
+echo Disable search icon on the taskbar
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v SearchboxTaskbarMode /t REG_DWORD /d 0 /f
+
+echo Align taskbar left
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f
+
+echo Disable transparency effect
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v EnableTransparency /t REG_DWORD /d 0 /f
 
 TASKKILL /F /IM explorer.exe >NUL
 start explorer.exe
