@@ -897,9 +897,6 @@ class Script:
         self.cfg = self.load_config()
 
         new_window = self.cfg["newWindow"] if new_window is None else new_window
-        # TODO: Mac does not support newWindow yet
-        if sys.platform == "darwin":
-            new_window = False
 
         background = background or self.cfg["background"]
 
@@ -1546,25 +1543,25 @@ class Script:
                                 "No terminal installed, ignore `newWindow` option."
                             )
 
-                    elif sys.platform == "linux":
-                        if is_in_tmux():
-                            arg_list = (
-                                [
-                                    "tmux",
-                                    # "split-window",
-                                    "new-window",
-                                    "-n",
-                                    slugify(self.get_window_title()),
-                                ]
-                                + [  # Pass environmental variable to new window.
-                                    item
-                                    for k, v in env.items()
-                                    for item in ("-e", f"{k}={v}")
-                                ]
-                                + arg_list
-                            )
+                    elif is_in_tmux():
+                        arg_list = (
+                            [
+                                "tmux",
+                                # "split-window",
+                                "new-window",
+                                "-n",
+                                slugify(self.get_window_title()),
+                            ]
+                            + [  # Pass environmental variable to new window.
+                                item
+                                for k, v in env.items()
+                                for item in ("-e", f"{k}={v}")
+                            ]
+                            + arg_list
+                        )
 
-                        elif os.environ.get("DISPLAY"):
+                    elif sys.platform == "linux":
+                        if os.environ.get("DISPLAY"):
                             term_emulator = DEFAULT_LINUX_TERMINAL
                             if term_emulator == "gnome":
                                 arg_list = [
@@ -1636,6 +1633,23 @@ class Script:
                         else:
                             new_window = False
                             no_wait = False
+
+                    elif sys.platform == "darwin":
+                        if is_alacritty_installed():
+                            arg_list = wrap_args_alacritty(
+                                arg_list,
+                                title=self.get_window_title(),
+                            )
+                            no_wait = True
+                            open_in_terminal = True
+                        else:
+                            arg_list = [
+                                "osascript",
+                                "-e",
+                                'tell app "Terminal" to do script "%s"' % _args_to_str(arg_list, shell_type="bash"),
+                                "-e",
+                                'tell app "Terminal" to activate',
+                            ]
 
                     else:
                         logging.warning(

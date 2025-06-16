@@ -8,10 +8,10 @@ import time
 from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
 from _script import (
-    Script,
     execute_script_autorun,
     get_all_script_access_time,
     get_all_scripts,
+    Script,
 )
 from _shutil import (
     clear_env_var_explorer,
@@ -204,15 +204,50 @@ def execute_script(
 
 
 def register_global_hotkeys_mac(scripts: List[Script], no_daemon=False):
-    keyboard_hooks = {}
-    for script in scripts:
-        hotkey = script.cfg["globalHotkey"]
-        if hotkey and script.is_supported():
-            logging.info("GlobalHotkey: %s: %s" % (hotkey, script.name))
-            keyboard_hooks[hotkey] = lambda script=script: execute_script(
-                script, no_daemon=no_daemon
-            )
-    add_keyboard_hooks(keyboard_hooks)
+    # if not shutil.which("shkd"):
+    #     logging.warning("shkd is not installed, skip global hotkey registration")
+    #     return
+
+    s = f'ctrl-q : open -n "{get_my_script_root()}/myscripts"\n\n'
+
+    if True:
+        replacements = {
+            "win+": "cmd+",
+            "enter": "Return",
+            "tab": "Tab",
+            "[": "bracketleft",
+            "]": "bracketright",
+            ",": "comma",
+            ".": "period",
+        }
+        f_key_pattern = re.compile(r"\bf(\d+)\b")
+
+        def replace_hotkey(hotkey: str) -> str:
+            for key, value in replacements.items():
+                hotkey = hotkey.replace(key, value)
+            hotkey = f_key_pattern.sub(r"F\1", hotkey)
+
+            # Replace right most + with -
+            hotkey = re.sub(r"(\w+)\+(\w+)$", r"\1-\2", hotkey)
+
+            return hotkey
+
+        for script in scripts:
+            hotkey_chain = script.cfg["globalHotkey"]
+            if hotkey_chain and script.is_supported():
+                hotkey_def = ";".join(
+                    [replace_hotkey(hotkey.lower()) for hotkey in hotkey_chain.split()]
+                )
+                s += "{} : ".format(hotkey_def)
+                s += (
+                    "python3"
+                    f" {get_my_script_root()}/bin/start_script.py"
+                    f" {script.script_path}\n\n"
+                )
+
+    with open(os.path.expanduser("~/.skhdrc"), "w") as f:
+        f.write(s)
+    subprocess.call(["skhd", "-r"])  # reload config
 
 
 def register_global_hotkeys(scripts, no_daemon=False):

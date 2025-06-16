@@ -40,7 +40,12 @@ append_line_dedup() {
     # Remove the line if it exists and then append it
     if [[ -f "$1" ]] && grep -qF -- "$2" "$1"; then
         repl=$(printf '%s\n' "$2" | sed -e 's/[]\/$*.^[]/\\&/g')
-        sed -i "\%^$repl$%d" "$1"
+        # If on mac, use sed -i '' instead of sed -i
+        if [[ "$(uname)" == "Darwin" ]]; then
+            sed -i '' "\%^$repl$%d" "$1"
+        else
+            sed -i "\%^$repl$%d" "$1"
+        fi
     fi
     echo "$2" >>"$1"
 }

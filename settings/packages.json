@@ -235,6 +235,7 @@
     "dnf": {
       "packages": ["git"]
     },
+    "executables": ["git"],
     "pacman": {
       "packages": ["git"]
     },
@@ -243,6 +244,11 @@
     },
     "winget": {
       "packages": ["Git.Git"]
+    }
+  },
+  "git-credential-manager": {
+    "brew": {
+      "packages": ["git-credential-manager"]
     }
   },
   "git-lfs": {
@@ -422,9 +428,13 @@
     }
   },
   "neovim": {
+    "brew": {
+      "packages": ["neovim"]
+    },
     "choco": {
       "packages": ["neovim"]
     },
+    "executables": ["nvim"],
     "pacman": {
       "packages": ["neovim"]
     },

@@ -83,6 +83,12 @@ def get_all_available_packages() -> List[str]:
     return [name for name in packages.keys()]
 
 
+def has_executable(executables: List[str]) -> bool:
+    for executable in executables:
+        if shutil.which(executable):
+            return True
+    return False
+
 def require_package(
     pkg: str,
     wsl=False,
@@ -100,7 +106,11 @@ def require_package(
     package_matched = False
     was_package_installed = False  # Whether or not a package has just been installed.
     if pkg in packages:
-        if "golang" in packages[pkg]:
+        if "executables" in packages[pkg] and has_executable(packages[pkg]["executables"]):
+            package_matched = True
+            was_package_installed = True
+
+        elif "golang" in packages[pkg]:
             require_package("golang")
             if "packagePath" in packages[pkg]["golang"]:
                 go_pkg_path = packages[pkg]["golang"]["packagePath"]
@@ -150,6 +160,14 @@ def require_package(
                 if not _call_without_output(["pacman", "-Q", p]) or force_install:
                     logging.info(f"Installing package using pacman: {p}")
                     subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
+                    was_package_installed = True
+            package_matched = True
+
+        elif "brew" in packages[pkg] and shutil.which("brew"):
+            for p in packages[pkg]["pacman"]["packages"]:
+                if not _call_without_output(["brew", "list", p]) or force_install:
+                    logging.info(f"Installing package using pacman: {p}")
+                    subprocess.check_call(["brew", "install", p])
                     was_package_installed = True
             package_matched = True
 
