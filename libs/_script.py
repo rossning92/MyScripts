@@ -66,6 +66,10 @@ from utils.menu.csvmenu import CsvMenu
 from utils.shutil import shell_open
 from utils.template import render_template
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
+from utils.term.windowsterminal import (
+    DEFAULT_TERMINAL_FONT_SIZE,
+    setup_windows_terminal,
+)
 from utils.timed import timed
 from utils.tmux import is_in_tmux
 from utils.venv import activate_python_venv, get_venv_python_executable
@@ -105,7 +109,6 @@ BINARY_EXTENSIONS = {
     ".pdf",
 }
 
-DEFAULT_TERMINAL_FONT_SIZE = 8
 if sys.platform == "win32":
     WINDOWS_TERMINAL_EXEC = (
         os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
@@ -439,84 +442,17 @@ def wrap_args_cmd(args: List[str], title=None, cwd=None, env=None) -> str:
 def wrap_args_wt(
     args,
     title=None,
-    font_size=None,
-    default_font_size=DEFAULT_TERMINAL_FONT_SIZE,
-    icon=None,
+    font_size=DEFAULT_TERMINAL_FONT_SIZE,
     opacity=1.0,
     **kwargs,
 ) -> List[str]:
     if sys.platform != "win32":
         raise Exception("OS not supported.")
 
-    # Escape simicolons used in wt command.
-    args = [x.replace(";", r"\;") for x in args]
-
-    CONFIG_FILE = os.path.expandvars(
-        r"%LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-    )
-
-    with open(CONFIG_FILE, "r") as f:
-        lines = f.read().splitlines()
-
-    lines = [x for x in lines if not x.lstrip().startswith("//")]
-    data = json.loads("\n".join(lines))
-
-    updated = False
-
-    settings = {
-        "initialCols": 120,
-        "initialRows": 40,
-    }
-    for k, v in settings.items():
-        if k not in data or data[k] != v:
-            data[k] = v
-            updated = True
-
-    # Default font size and color scheme
-    profiles_defaults = {
-        "colorScheme": "One Half Dark",
-        "font": {"face": "Consolas", "size": default_font_size},
-    }
-    if profiles_defaults != data["profiles"]["defaults"]:
-        data["profiles"]["defaults"] = profiles_defaults
-        updated = True
-
-    # Customize selection color
-    for scheme in filter(lambda x: x["name"] == "One Half Dark", data["schemes"]):
-        if scheme["selectionBackground"] != "#ffff00":
-            scheme["selectionBackground"] = "#ffff00"
-            updated = True
+    setup_windows_terminal(font_size=font_size, opacity=opacity)
 
     if title:
-        filtered = list(filter(lambda x: x["name"] == title, data["profiles"]["list"]))
-        profile = {
-            "name": title,
-            "hidden": False,
-            "suppressApplicationTitle": True,
-        }
-        if font_size is not None:
-            profile["fontSize"] = font_size
-
-        if opacity < 1:
-            profile["useAcrylic"] = True
-            profile["acrylicOpacity"] = opacity
-
-        if icon is not None:
-            profile["icon"] = icon.replace("\\", "/")
-
-        if len(filtered) == 0:
-            data["profiles"]["list"].append(profile)
-            updated = True
-        elif profile != filtered[0]:
-            filtered[0].update(profile)
-            updated = True
-
-        if updated:
-            # Only update when config file is changed
-            with open(CONFIG_FILE, "w") as f:
-                json.dump(data, f, indent=4)
-
-        return [WINDOWS_TERMINAL_EXEC, "-p", title] + args
+        return [WINDOWS_TERMINAL_EXEC, "--title", title] + args
     else:
         return [WINDOWS_TERMINAL_EXEC] + args
 
@@ -1078,7 +1014,11 @@ class Script:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
 
         elif self.cfg["openWithScript"]:
-            arg_list = ["run_script", self.cfg["openWithScript"], script_path] + arg_list
+            arg_list = [
+                "run_script",
+                self.cfg["openWithScript"],
+                script_path,
+            ] + arg_list
 
         elif self.cfg["runOverSsh"] if run_over_ssh is None else run_over_ssh:
             arg_list = [
@@ -1510,15 +1450,10 @@ class Script:
                                 title=self.get_window_title(),
                             )
 
-                            # Workaround that prevents alacritty from being
-                            # closed by parent terminal. The "shell = True"
+                            # Workaround: prevent Alacritty from being closed by parent terminal. The "shell = True"
                             # below is very important!
-                            DETACHED_PROCESS = 0x00000008
-                            # CREATE_BREAKAWAY_FROM_JOB = 0x01000000
                             popen_extra_args["creationflags"] = (
-                                subprocess.CREATE_NEW_PROCESS_GROUP
-                                | DETACHED_PROCESS
-                                # | CREATE_BREAKAWAY_FROM_JOB
+                                subprocess.CREATE_NO_WINDOW
                             )
                             popen_extra_args["close_fds"] = True
                             shell = True
@@ -1646,7 +1581,8 @@ class Script:
                             arg_list = [
                                 "osascript",
                                 "-e",
-                                'tell app "Terminal" to do script "%s"' % _args_to_str(arg_list, shell_type="bash"),
+                                'tell app "Terminal" to do script "%s"'
+                                % _args_to_str(arg_list, shell_type="bash"),
                                 "-e",
                                 'tell app "Terminal" to activate',
                             ]
