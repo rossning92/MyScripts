@@ -509,10 +509,15 @@ class Script:
     def __init__(self, script_path: str, name=None):
         self.__cached_source: Optional[str] = None
 
-        if not os.path.isfile(script_path):
-            raise Exception("Script file does not exist.")
+        if os.path.isfile(script_path):
+            script_path = os.path.abspath(script_path)
+        else:
+            matched_script = find_script(script_path)
+            if matched_script:
+                script_path = matched_script
+            else:
+                raise Exception("Script file does not exist.")
 
-        script_path = os.path.abspath(script_path)
         self.script_rel_path = get_relative_script_path(script_path)
 
         # Script display name

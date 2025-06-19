@@ -1,4 +1,4 @@
-@ECHO OFF
+@echo off
 
 echo Remove Cortana icon from taskbar
 reg add HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v ShowCortanaButton /t REG_DWORD /d 0 /f >NUL
@@ -101,11 +101,14 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Ta
 echo Disable transparency effect
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v EnableTransparency /t REG_DWORD /d 0 /f
 
-TASKKILL /F /IM explorer.exe >NUL
+echo Revert to the full right-click menu
+reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
+
+taskkill /f /im explorer.exe >NUL
 start explorer.exe
 
-@REM echo Set default browser manually.
-@RE "%windir%\system32\control.exe" /name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings
+@REM echo Set default browser manually
+@REM "%windir%\system32\control.exe" /name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings
 
 echo Disable the standby timeout
 powercfg /change standby-timeout-ac 0

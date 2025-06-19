@@ -8,7 +8,7 @@ adb root
 {{ include('_run_perfetto_text_config.sh', {'TRACE_CONFIG_STR': TRACE_CONFIG_STR, 'PERFETTO_DURATION_MS': PERFETTO_DURATION_MS}) }}
 
 {{if PERFETTO_OUT_FILE}}
-trace="{PERFETTO_OUT_FILE}"
+trace="{{PERFETTO_OUT_FILE}}"
 {{else}}
 cd "$HOME/Desktop/"
 device=$(adb shell getprop ro.product.device | tr -d '\r')

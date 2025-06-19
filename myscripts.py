@@ -728,6 +728,8 @@ def _main():
     )
     if should_run_in_tmux:
         tmux_exec = shutil.which("tmux")
+        if not tmux_exec:
+            raise RuntimeError("tmux is not installed")
         if tmux_exec is not None:
             os.execl(
                 tmux_exec,
@@ -735,6 +737,8 @@ def _main():
                 "-f",
                 os.path.join(MYSCRIPT_ROOT, "settings", "tmux", ".tmux.conf"),
                 "new",
+                "-n",
+                "myscripts",
                 sys.executable,
                 *(x for x in sys.argv if x not in ("-t", "--tmux")),
             )

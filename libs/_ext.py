@@ -93,17 +93,12 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
-    if editor == "auto":
-        if is_vscode_available():
-            workspace_file = create_myscript_workspace()
-            open_in_vscode([workspace_file, file])
-        else:
-            subprocess.run(["nvim", file])
-    elif editor == "vim":
-        subprocess.run(["nvim", file])
-    elif editor == "vscode":
+    use_vscode = editor == "vscode" or (editor == "auto" and is_vscode_available())
+    if use_vscode:
         workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])
+    else:
+        subprocess.run(["nvim", file], cwd=get_my_script_root())
 
 
 def enter_script_path():

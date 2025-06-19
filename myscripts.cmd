@@ -21,6 +21,4 @@ call "%USERPROFILE%\.venv\myscripts\Scripts\activate.bat"
 echo Install packages...
 pip --disable-pip-version-check install -r requirements.txt >nul
 
-:main
 python myscripts.py %*
-if errorlevel 1 goto main

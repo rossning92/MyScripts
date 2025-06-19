@@ -11,6 +11,28 @@ def is_alacritty_installed():
     return shutil.which("alacritty")
 
 
+# https://github.com/alacritty/alacritty/blob/master/alacritty.toml
+def setup_alacritty():
+    if not is_alacritty_installed():
+        raise FileNotFoundError("Alacritty is not installed")
+
+    src_config = (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "settings"
+        / "alacritty"
+        / "alacritty.toml"
+    ).resolve()
+
+    if sys.platform == "win32":
+        dest_config = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.toml")
+    else:
+        dest_config = os.path.expanduser("~/.config/alacritty/alacritty.toml")
+    os.makedirs(os.path.dirname(dest_config), exist_ok=True)
+
+    if file_is_old(src_config, dest_config):
+        shutil.copy(src_config, dest_config)
+
+
 def wrap_args_alacritty(
     args,
     borderless: bool = False,
@@ -23,25 +45,9 @@ def wrap_args_alacritty(
 ):
     assert isinstance(args, list)
 
-    if not is_alacritty_installed():
-        raise FileNotFoundError("Alacritty is not installed.")
+    setup_alacritty()
 
-    # Copy alacritty config file
-    # https://github.com/alacritty/alacritty/blob/master/alacritty.toml
-    if sys.platform == "win32":
-        dest_config = os.path.expandvars(r"%APPDATA%\alacritty\alacritty.toml")
-    else:
-        dest_config = os.path.expanduser("~/.config/alacritty/alacritty.toml")
-    os.makedirs(os.path.dirname(dest_config), exist_ok=True)
-    src_config = (
-        Path(__file__).resolve().parent.parent.parent.parent
-        / "settings"
-        / "alacritty.toml"
-    ).resolve()
-    if file_is_old(src_config, dest_config):
-        shutil.copy(src_config, dest_config)
-
-    out = ["alacritty"]
+    out_args = ["alacritty"]
 
     # Specify option key value pairs
     options = []
@@ -61,15 +67,17 @@ def wrap_args_alacritty(
     if padding is not None:
         options += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
     if len(options) > 0:
-        out += ["-o"] + options
+        out_args += ["-o"] + options
 
     if title:
-        out += ["--title", title]
+        out_args += ["--title", title]
 
     if sys.platform == "win32":
-        # HACK: Alacritty handles spaces in a weird way: if arg has space in it,
-        # must double quote it. Backslash will need to be replaced with 2 backslashes otherwise they'll disappear for some reason.
+        # HACK: Alacritty handles spaces in a weird way: if the argument has
+        # spaces in it, you must double quote it. Backslashes will need to be
+        # replaced with 2 backslashes otherwise they will disappear for some
+        # reason.
         args = ['"' + x.replace("\\", "\\\\") + '"' if " " in x else x for x in args]
 
-    out += ["-e"] + args
-    return out
+    out_args += ["-e"] + args
+    return out_args

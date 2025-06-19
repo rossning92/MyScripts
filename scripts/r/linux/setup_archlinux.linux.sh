@@ -54,10 +54,9 @@ pac_install \
 append_line_dedup "$HOME/.bashrc" 'alias v=nvim'
 
 # Install fonts
-pac_install $(pacman -Ssq 'noto-fonts-*')
+pac_install $(pacman -Ssq 'noto-fonts-*') ttf-noto-nerd
 
 {{ include('r/linux/arch/install_yay.sh') }}
-
 
 # Configure HiDPI display
 DPI_VALUE=144 # 96 * 1.5
