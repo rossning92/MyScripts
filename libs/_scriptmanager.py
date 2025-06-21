@@ -8,10 +8,10 @@ import time
 from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
 from _script import (
+    Script,
     execute_script_autorun,
     get_all_script_access_time,
     get_all_scripts,
-    Script,
 )
 from _shutil import (
     clear_env_var_explorer,
@@ -169,15 +169,15 @@ def execute_script(
     args: Optional[List[str]] = None,
     cd=True,
     close_on_exit=None,
-    no_daemon=False,
     out_to_file: Optional[str] = None,
     run_over_ssh: Optional[bool] = None,
+    run_script_and_quit=False,
 ):
     refresh_env_vars()
 
     args_: List[str]
     if args is None:
-        if not no_daemon:
+        if not run_script_and_quit:
             args_ = update_env_var_explorer()
         else:
             args_ = []
@@ -187,14 +187,14 @@ def execute_script(
     # Save last executed script
     save_json(get_script_history_file(), {"file": script.script_path, "args": args_})
 
-    if not no_daemon:
+    if not run_script_and_quit:
         clear_terminal()
 
     success = script.execute(
         args=args_,
         cd=cd,
         close_on_exit=close_on_exit,
-        new_window=False if no_daemon else None,
+        new_window=False if run_script_and_quit else None,
         restart_instance=False if is_in_tmux() else True,
         out_to_file=out_to_file,
         run_over_ssh=run_over_ssh,
@@ -203,7 +203,7 @@ def execute_script(
         pause()
 
 
-def register_global_hotkeys_mac(scripts: List[Script], no_daemon=False):
+def register_global_hotkeys_mac(scripts: List[Script]):
     # if not shutil.which("shkd"):
     #     logging.warning("shkd is not installed, skip global hotkey registration")
     #     return
@@ -250,13 +250,13 @@ def register_global_hotkeys_mac(scripts: List[Script], no_daemon=False):
     subprocess.call(["skhd", "-r"])  # reload config
 
 
-def register_global_hotkeys(scripts, no_daemon=False):
+def register_global_hotkeys(scripts):
     if sys.platform == "win32":
         register_global_hotkeys_win(scripts)
     elif sys.platform == "linux":
         register_global_hotkeys_linux(scripts)
     elif sys.platform == "darwin":
-        register_global_hotkeys_mac(scripts, no_daemon=no_daemon)
+        register_global_hotkeys_mac(scripts)
 
 
 def _get_next_scheduled_script_run_time_file():
@@ -417,7 +417,7 @@ class ScriptManager:
                     or now > self.next_scheduled_script_run_time[script.script_path]
                 ):
                     if script.is_running():
-                        logging.warn("Script is still running, skip scheduled task.")
+                        logging.warning("Script is still running, skip scheduled task")
                     else:
                         logging.info(f"Run scheduled task: {script.name}")
                         has_any_script_to_run = True

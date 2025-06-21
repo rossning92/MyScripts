@@ -837,6 +837,7 @@ class Script:
 
         self.cfg = self.load_config()
 
+        assert isinstance(self.cfg["newWindow"], bool)
         new_window = self.cfg["newWindow"] if new_window is None else new_window
 
         background = background or self.cfg["background"]
