@@ -251,10 +251,6 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._rename_script_and_replace_all, hotkey="alt+n")
         self.add_command(self._rename_script)
         self.add_command(self._set_cmdline_args)
-        self.add_command(self._voice_command, hotkey="alt+v")
-
-    def _voice_command(self):
-        pass
 
     def _reload(self):
         self.call_func_without_curses(lambda: restart_program())
@@ -270,15 +266,16 @@ class _MyScriptMenu(Menu[Script]):
                 self.__cmdline_args[:] = [input]
 
     def _delete_file(self):
-        script_path = self.get_selected_script_path()
-        if script_path and confirm(f'Delete "{script_path}"?'):
-            os.remove(script_path)
+        script = self.get_selected_script()
 
-            script_config_path = get_script_config_file_path(script_path)
+        if script and confirm(f'Delete "{script.script_path}"?'):
+            os.remove(script.script_path)
+
+            script_config_path = get_script_config_file_path(script.script_path)
             if os.path.exists(script_config_path):
                 os.remove(script_config_path)
 
-            self._reload_scripts()
+            self.script_manager.scripts.remove(script)
 
     def on_main_loop(self):
         # Reload scripts
@@ -328,9 +325,9 @@ class _MyScriptMenu(Menu[Script]):
                         args=self.__cmdline_args if self.__cmdline_args else None,
                         cd=len(self.__cmdline_args) == 0,
                         close_on_exit=close_on_exit,
-                        no_daemon=self.__no_daemon,
                         out_to_file=self.__out_to_file,
                         run_over_ssh=run_over_ssh,
+                        run_script_and_quit=self.__run_script_and_quit,
                     )
                 )
 
@@ -468,15 +465,17 @@ class _MyScriptMenu(Menu[Script]):
             )
 
     def _rename_script(self, replace_all_occurrence=False):
-        script_path = self.get_selected_script_path()
-        if script_path:
-            self.set_message("searching scripts to rename...")
-            if rename_script(
-                script_path,
+        script = self.get_selected_script()
+        if script:
+            new_script_path = rename_script(
+                script.script_path,
                 replace_all_occurrence=replace_all_occurrence,
-            ):
-                self._reload_scripts()
-            self.set_message()
+            )
+            if new_script_path:
+                index = self.script_manager.scripts.index(script)
+                new_script = Script(new_script_path)
+                self.script_manager.scripts[index] = new_script
+
         self.clear_input()
 
     def _rename_script_and_replace_all(self):
@@ -621,7 +620,7 @@ class _MyScriptMenu(Menu[Script]):
                     script,
                     args=[selected_script_abs_path],
                     cd=len(self.__cmdline_args) == 0,
-                    no_daemon=self.__no_daemon,
+                    run_script_and_quit=self.__run_script_and_quit,
                 )
             )
             if script.cfg["reloadScriptsAfterRun"]:
@@ -704,19 +703,19 @@ def _main():
     start_daemon = True
     if args.no_daemon:
         start_daemon = False
-        logging.debug("--no-daemon is specified. Set start_daemon = False")
+        logging.debug("--no-daemon is specified, set start_daemon = False")
     elif args.input:
         start_daemon = False
-        logging.debug("input_text is specified. Set start_daemon = False")
+        logging.debug("input_text is specified, set start_daemon = False")
     elif args.args:
         start_daemon = False
-        logging.debug("args is specified. Set start_daemon = False")
+        logging.debug("args is specified, set start_daemon = False")
     elif args.out_to_file:
         start_daemon = False
-        logging.debug("out_to_file is specified. Set start_daemon = False")
+        logging.debug("out_to_file is specified, set start_daemon = False")
     elif is_instance_running():
         start_daemon = False
-        logging.debug("Instance is already running. Set start_daemon to False.")
+        logging.debug("Instance is already running, set start_daemon = False")
     else:
         logging.debug(f"start_daemon = {start_daemon}")
 

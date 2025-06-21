@@ -30,9 +30,12 @@ foreground = "#000000"
 background = "#ffff00"
 foreground = "#000000"
 
-[font]
-size = 10
-
 [window.dimensions]
 columns = 120
 lines = 40
+
+[keyboard]
+bindings = [
+{ key = "C", mods = "Control|Shift", action = "Copy" },
+{ key = "V", mods = "Control|Shift", action = "Paste" },
+]

@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import time
 from datetime import datetime
 from typing import Any, Dict
@@ -19,11 +20,6 @@ _IMPORTANT = "important"
 _STATUS = "status"
 
 
-_status_sort_key = {
-    "none": 0,
-    "in_progress": 1,
-    "closed": 2,
-}
 _status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
 
 
@@ -35,20 +31,20 @@ def get_pretty_ts(ts):
     if date:
         now = datetime.now(date.tzinfo)
         diff = (date.date() - now.date()).days
-        if abs(diff) > 365:
-            years, remainder = divmod(diff, 365)
+        sign = "+" if diff > 0 else "-"
+        total_days = abs(diff)
+        if total_days > 365:
+            years, remainder = divmod(total_days, 365)
             months = remainder // 30
-            sign = "+" if diff > 0 else ""
             month_str = f"{months}M" if months > 0 else ""
             time_diff_str = f"{sign}{years}y{month_str}"
-        elif abs(diff) > 30:
-            months, days = divmod(diff, 30)
-            sign = "+" if diff > 0 else ""
+        elif total_days > 30:
+            months, days = divmod(total_days, 30)
             day_str = f"{days}d" if days > 0 else ""
             time_diff_str = f"{sign}{months}M{day_str}"
-        elif abs(diff) != 0:
-            time_diff_str = f"{'+' if diff > 0 else ''}{diff}d"
-        elif abs(diff) == 0:
+        elif total_days != 0:
+            time_diff_str = f"{sign}{total_days}d"
+        elif total_days == 0:
             time_diff_str = "now"
     return f"{time_diff_str:>7} {date_str}"
 
@@ -172,15 +168,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.__last_reload_check_time = now
             self.__reload()
 
-    def __select_first_item_with_due_date(self):
-        for item in self.items:
-            if item.get(_DUE_TIMESTAMP):
-                self.set_selected_item(item)
-                break
-
     def on_escape_pressed(self):
         if not self.clear_input():
-            self.__select_first_item_with_due_date()
+            if len(self.items) > 0:
+                self.set_selected_item(self.items[0])
 
     def save_json(self):
         self.__sort_tasks()
@@ -250,11 +241,13 @@ class TodoMenu(ListEditMenu[TodoItem]):
         selected = self.get_selected_item()
         self.items.sort(
             key=lambda item: (
-                _status_sort_key[item.get(_STATUS, 0)],
+                item.get(_STATUS, "none") == "closed",
                 (
-                    _reversor(item.get(_DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, 0)))
-                    if item.get(_STATUS) != "none"
-                    else item.get(_DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, 0))
+                    -item.get(_DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, 0.0))
+                    if item.get(_STATUS, "none") == "closed"
+                    else item.get(
+                        _DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, sys.float_info.max)
+                    )
                 ),
                 item.get("description"),
             ),

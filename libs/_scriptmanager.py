@@ -169,15 +169,15 @@ def execute_script(
     args: Optional[List[str]] = None,
     cd=True,
     close_on_exit=None,
-    no_daemon=False,
     out_to_file: Optional[str] = None,
     run_over_ssh: Optional[bool] = None,
+    run_script_and_quit=False,
 ):
     refresh_env_vars()
 
     args_: List[str]
     if args is None:
-        if not no_daemon:
+        if not run_script_and_quit:
             args_ = update_env_var_explorer()
         else:
             args_ = []
@@ -187,14 +187,14 @@ def execute_script(
     # Save last executed script
     save_json(get_script_history_file(), {"file": script.script_path, "args": args_})
 
-    if not no_daemon:
+    if not run_script_and_quit:
         clear_terminal()
 
     success = script.execute(
         args=args_,
         cd=cd,
         close_on_exit=close_on_exit,
-        new_window=False if no_daemon else None,
+        new_window=False if run_script_and_quit else None,
         restart_instance=False if is_in_tmux() else True,
         out_to_file=out_to_file,
         run_over_ssh=run_over_ssh,
@@ -203,60 +203,79 @@ def execute_script(
         pause()
 
 
-def register_global_hotkeys_mac(scripts: List[Script], no_daemon=False):
-    # if not shutil.which("shkd"):
-    #     logging.warning("shkd is not installed, skip global hotkey registration")
-    #     return
+def register_global_hotkeys_mac(scripts: List[Script]):
+    if not shutil.which("skhd"):
+        logging.warning("skhd is not installed, skip global hotkey registration")
+        return
 
-    s = f'ctrl-q : open -n "{get_my_script_root()}/myscripts"\n\n'
+    error_log_file = f"/tmp/skhd_{os.getlogin()}.err.log"
+    if os.path.exists(error_log_file):
+        with open(error_log_file, "r") as f:
+            err = f.read().strip()
+        if err:
+            logging.error("Last skhd error: " + err)
 
-    if True:
-        replacements = {
-            "win+": "cmd+",
-            "enter": "Return",
-            "tab": "Tab",
-            "[": "bracketleft",
-            "]": "bracketright",
-            ",": "comma",
-            ".": "period",
-        }
-        f_key_pattern = re.compile(r"\bf(\d+)\b")
+    # Clear /tmp/skhd_$USER.err.log
+    with open(error_log_file, "w") as f:
+        f.write("")
 
-        def replace_hotkey(hotkey: str) -> str:
-            for key, value in replacements.items():
-                hotkey = hotkey.replace(key, value)
-            hotkey = f_key_pattern.sub(r"F\1", hotkey)
+    s = f'ctrl-q : {sys.executable} {get_my_script_root()}/bin/run_script.py r/activate_window.py MyTerminal || open -n "{get_my_script_root()}/myscripts"\n\n'
 
-            # Replace right most + with -
-            hotkey = re.sub(r"(\w+)\+(\w+)$", r"\1-\2", hotkey)
+    replacements = {
+        "win+": "cmd+",
+        "enter": "return",
+        "[": "0x21",
+        "]": "0x1E",
+        ",": "0x2B",
+        ".": "0x2F",
+        "del": "backspace",
+        "=": "0x1D",
+    }
+    f_key_pattern = re.compile(r"\bf(\d+)\b")
 
-            return hotkey
+    def replace_hotkey(hotkey: str) -> str:
+        # Replace F-keys to lower case: f1, f2, ...
+        for key, value in replacements.items():
+            hotkey = hotkey.replace(key, value)
+        hotkey = f_key_pattern.sub(r"f\1", hotkey)
 
-        for script in scripts:
-            hotkey_chain = script.cfg["globalHotkey"]
-            if hotkey_chain and script.is_supported():
-                hotkey_def = ";".join(
-                    [replace_hotkey(hotkey.lower()) for hotkey in hotkey_chain.split()]
+        # Replace right most + with -
+        hotkey = re.sub(r"\+(\w+)$", r"-\1", hotkey)
+
+        return hotkey
+
+    for script in scripts:
+        hotkey_chain_def = script.cfg["globalHotkey"]
+        assert isinstance(hotkey_chain_def, str)
+        if hotkey_chain_def and script.is_supported():
+            hotkey_chain = [
+                replace_hotkey(hotkey.lower()) for hotkey in hotkey_chain_def.split()
+            ]
+            if len(hotkey_chain) > 1:
+                logging.warning(
+                    f'Hotkey chain "{hotkey_chain_def}" is not supported on macos'
                 )
-                s += "{} : ".format(hotkey_def)
-                s += (
-                    "python3"
-                    f" {get_my_script_root()}/bin/start_script.py"
-                    f" {script.script_path}\n\n"
-                )
+                continue
+            hotkey_def = ";".join(hotkey_chain)
+            s += "{} : ".format(hotkey_def)
+            s += (
+                "python3"
+                f" {get_my_script_root()}/bin/start_script.py"
+                f" {script.script_path}\n\n"
+            )
 
     with open(os.path.expanduser("~/.skhdrc"), "w") as f:
         f.write(s)
     subprocess.call(["skhd", "-r"])  # reload config
 
 
-def register_global_hotkeys(scripts, no_daemon=False):
+def register_global_hotkeys(scripts):
     if sys.platform == "win32":
         register_global_hotkeys_win(scripts)
     elif sys.platform == "linux":
         register_global_hotkeys_linux(scripts)
     elif sys.platform == "darwin":
-        register_global_hotkeys_mac(scripts, no_daemon=no_daemon)
+        register_global_hotkeys_mac(scripts)
 
 
 def _get_next_scheduled_script_run_time_file():
@@ -417,7 +436,7 @@ class ScriptManager:
                     or now > self.next_scheduled_script_run_time[script.script_path]
                 ):
                     if script.is_running():
-                        logging.warn("Script is still running, skip scheduled task.")
+                        logging.warning("Script is still running, skip scheduled task")
                     else:
                         logging.info(f"Run scheduled task: {script.name}")
                         has_any_script_to_run = True

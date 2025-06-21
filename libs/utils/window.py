@@ -132,6 +132,37 @@ def _control_window(
             return subprocess.call(["wmctrl", "-c", name]) == 0
         else:
             raise Exception("Invalid cmd parameter: %s" % cmd)
+
+    elif sys.platform == "darwin":
+        if cmd == "activate":
+            return 0 == subprocess.call(
+                [
+                    "osascript",
+                    "-e",
+                    f"""set theTitle to "{name}"
+
+tell application "System Events"
+	set theProcesses to every process where background only is false
+	repeat with theProcess in theProcesses
+		tell theProcess
+			repeat with theWindow in windows
+				if name of theWindow contains theTitle then
+					tell theWindow to perform action "AXRaise"
+					set frontmost of theProcess to true
+					return
+				end if
+			end repeat
+		end tell
+	end repeat
+    error "not found"
+end tell""",
+                ]
+            )
+        elif cmd == "close":
+            logging.warning("Cannot close window on macos")
+        else:
+            raise Exception("Invalid cmd parameter: %s" % cmd)
+
     return False
 
 

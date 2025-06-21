@@ -350,7 +350,7 @@ def replace_script_str(
 def rename_script(
     script_full_path,
     replace_all_occurrence: bool = False,
-):
+) -> Optional[str]:
     script_rel_path = get_relative_script_path(script_full_path)
 
     items: List[str] = []
@@ -382,7 +382,7 @@ def rename_script(
     # Get new script path
     new_script_rel_path = menu.get_text()
     if not new_script_rel_path:
-        return False
+        return None
 
     # Rename script
     new_script_full_path = get_absolute_script_path(new_script_rel_path)
@@ -402,4 +402,4 @@ def rename_script(
                 script_rel_path, new_script_rel_path, files_to_replace=matched_files
             )
         )
-    return True
+    return new_script_full_path
