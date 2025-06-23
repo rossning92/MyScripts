@@ -49,20 +49,17 @@ def get_pretty_ts(ts):
     return f"{time_diff_str:>7} {date_str}"
 
 
-class _reversor:
-    def __init__(self, obj):
-        self.obj = obj
-
-    def __eq__(self, other):
-        return other.obj == self.obj
-
-    def __lt__(self, other):
-        return other.obj < self.obj
-
-
 class _EditTodoItemMenu(DictEditMenu):
     def edit_dict_value(self, data: Dict[str, Any], name: str):
-        return super().edit_dict_value(data, name)
+        if name in (_CLOSED_TIMESTAMP, _DUE_TIMESTAMP):
+            ts = input_date(
+                prompt=name,
+                default_ts=data[name],
+            )
+            if ts:
+                data[name] = ts
+        else:
+            return super().edit_dict_value(data, name)
 
     def get_value_str(self, name: str, val: Any) -> str:
         if name in (_CLOSED_TIMESTAMP, _DUE_TIMESTAMP):
@@ -177,32 +174,30 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__sort_tasks()
         return super().save_json()
 
-    def __edit_timestamp_field(self, field_name: str):
-        # Check selected item
-        selected = self.get_selected_item()
-        if not selected:
-            return
-
+    def __edit_timestamp_field(self, item: TodoItem, field_name: str):
         ts = input_date(
             prompt=field_name,
-            default_ts=selected[field_name] if field_name in selected else None,
+            default_ts=item[field_name] if field_name in item else None,
         )
         if ts is None:
             return
 
-        if ts == selected.get(field_name, 0):
+        if ts == item.get(field_name, 0):
             self.set_message("Skip updating the same date")
             return
 
         if ts <= 0.0:
-            del selected[field_name]
+            del item[field_name]
             self.set_message(f"Reset {field_name}")
         else:
-            selected[field_name] = ts
+            item[field_name] = ts
         self.save_json()
 
     def __edit_due(self):
-        self.__edit_timestamp_field(field_name=_DUE_TIMESTAMP)
+        selected = self.get_selected_item()
+        if not selected:
+            return
+        self.__edit_timestamp_field(selected, field_name=_DUE_TIMESTAMP)
 
     def __edit_description(self):
         selected = self.get_selected_item()

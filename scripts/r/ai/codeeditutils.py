@@ -70,7 +70,9 @@ class ApplyChangeMenu(ConfirmMenu):
             return "white"
 
 
-def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
+def apply_changes(
+    changes: List[Change], file_list: Optional[List[Any]] = None
+) -> List[str]:
     modified_files: Set[str] = set()
     for c in changes:
         # Back up file before changes.
@@ -93,37 +95,43 @@ def apply_changes(changes: List[Change], context: List[Any]) -> List[str]:
                 else:
                     newline = "\n"
 
-            # Find corresponding code blocks in context
-            assert context
-            code_blocks = [block for block in context if c.search in block["content"]]
-            if not code_blocks:
-                raise ValueError(f"Search string not found in {c.file}: {c.search}")
-            code_block = code_blocks[0]
+            if file_list:
+                # Find corresponding code blocks in context
+                code_blocks = [
+                    block for block in file_list if c.search in block["content"]
+                ]
+                if not code_blocks:
+                    raise ValueError(f"Search string not found in {c.file}: {c.search}")
+                code_block = code_blocks[0]
 
-            # Replace
-            updated_content = replace_text_in_line_range(
-                c.search,
-                c.replace,
-                content=content,
-                start=code_block["line_start"],
-                end=code_block["line_end"],
-            )
+                # Replace
+                content = replace_text_in_line_range(
+                    c.search,
+                    c.replace,
+                    content=content,
+                    start=code_block["line_start"],
+                    end=code_block["line_end"],
+                )
+            else:
+                if c.search not in content:
+                    raise Exception(f"Cannot find '{c.search}' in the content")
+                content = content.replace(c.search, c.replace)
 
             # Save file
             with open(c.file, "w", encoding="utf-8", newline=newline) as f:
-                f.write(updated_content)
+                f.write(content)
 
     return list(modified_files)
 
 
 def apply_change_interactive(
-    changes: List[Change], context: List[Any]
+    changes: List[Change], file_list: Optional[List[Any]] = None
 ) -> Optional[List[str]]:
     if len(changes) > 0:
         menu = ApplyChangeMenu(changes=changes)
         menu.exec()
         if menu.is_confirmed():
-            return apply_changes(changes=changes, context=context)
+            return apply_changes(changes=changes, file_list=file_list)
         else:
             return None
     else:

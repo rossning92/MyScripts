@@ -85,12 +85,31 @@ If you want to put code in a new file, use a *SEARCH/REPLACE block* with:
     )
 
 
-def _find_changes(s: str):
-    code_block_pattern = r"^\**(.+)\**\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE"
+def _find_changes(s: str) -> List[Change]:
+    code_block_pattern = r"^\**(.*?)\**\n```.*?\n<<<<<<< SEARCH\n([\S\s]*?)\n?=======\n([\S\s]*?)\n?>>>>>>> REPLACE"
     matches = re.findall(code_block_pattern, s, re.MULTILINE)
-    return [
-        Change(file=match[0], search=match[1], replace=match[2]) for match in matches
-    ]
+
+    changes: List[Change] = []
+    last_file = ""
+    for match in matches:
+        # File path
+        file = match[0]
+        if not file:
+            file = last_file
+        if not file:
+            raise Exception(f"File name is empty in match: '{match}'")
+
+        # Search string
+        search = match[1]
+
+        # Replace string
+        replace = match[2]
+
+        changes.append(Change(file=file, search=search, replace=replace))
+
+        last_file = file
+
+    return changes
 
 
 class SelectCodeBlockMenu(TextMenu):
@@ -103,10 +122,10 @@ class SelectCodeBlockMenu(TextMenu):
 
 
 class FileListMenu(ListEditMenu):
-    def __init__(self, files: List[str], context_file: Optional[str] = None):
+    def __init__(self, files: List[str], file_list_json: Optional[str] = None):
         super().__init__(
             items=files,
-            json_file=context_file,
+            json_file=file_list_json,
             prompt="file list",
             wrap_text=True,
         )
@@ -159,13 +178,21 @@ class CoderMenu(ChatMenu):
         self,
         files: Optional[List[str]] = None,
         context_file: Optional[str] = None,
+        file_list_json: Optional[str] = None,
         task: Optional[str] = None,
         yes: bool = False,
         **kwargs,
     ):
-        self.__close_after_edit = True
+        self.__close_after_edit = False
         self.__task = task
         self.__yes = yes
+
+        self.__context: Optional[str]
+        if context_file:
+            with open(context_file, "r", encoding="utf-8") as f:
+                self.__context = f.read()
+        else:
+            self.__context = None
 
         # Create directory if it does not exist.
         os.makedirs(SETTING_DIR, exist_ok=True)
@@ -186,7 +213,7 @@ class CoderMenu(ChatMenu):
             self.__session_file, default={"task": task, "files": []}
         )
         self.__file_list_menu = FileListMenu(
-            files=self.__session["files"], context_file=context_file
+            files=self.__session["files"], file_list_json=file_list_json
         )
 
         if files:
@@ -200,7 +227,7 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__clear_files, hotkey="alt+x")
         self.add_command(self.__list_files, hotkey="alt+l")
         self.add_command(self.__retry, hotkey="ctrl+r")
-        self.add_command(self.__undo, hotkey="ctrl+z")
+        self.add_command(self.__edit_prompt, hotkey="alt+p")
 
         self.__update_prompt()
 
@@ -250,13 +277,14 @@ class CoderMenu(ChatMenu):
             content = selected_message["content"]
 
             changes = _find_changes(content)
+            file_list = (
+                self.__file_list_menu.get_context() if not self.__context else None
+            )
             if self.__yes:
-                modified_files = apply_changes(
-                    changes=changes, context=self.__file_list_menu.get_context()
-                )
+                modified_files = apply_changes(changes=changes, file_list=file_list)
             else:
                 modified_files = apply_change_interactive(
-                    changes=changes, context=self.__file_list_menu.get_context()
+                    changes=changes, file_list=file_list
                 )
 
             if modified_files:
@@ -274,6 +302,8 @@ class CoderMenu(ChatMenu):
         i = len(self.get_messages())
         if i == 0:
             task = self.get_input()
+            if not task:
+                task = self.__session["task"]
 
             # Get context files
             if len(self.__file_list_menu.items) == 0 and confirm(
@@ -304,7 +334,11 @@ class CoderMenu(ChatMenu):
         self.send_message(
             _get_editing_prompt(
                 task=task,
-                context=self.__file_list_menu.get_context_prompt(),
+                context=(
+                    self.__context
+                    if self.__context
+                    else self.__file_list_menu.get_context_prompt()
+                ),
             )
         )
 
@@ -312,7 +346,7 @@ class CoderMenu(ChatMenu):
         revert_changes(self.__modified_files)
         self.__modified_files.clear()
 
-    def __undo(self):
+    def __edit_prompt(self):
         task = self.__session["task"]
         new_task = self.call_func_without_curses(lambda: edit_text(task))
         if new_task != task:
@@ -322,7 +356,8 @@ class CoderMenu(ChatMenu):
 
 def _main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--context", type=str, default=None)
+    parser.add_argument("--file-list-json", type=str, default=None)
+    parser.add_argument("--context-file", type=str, default=None)
     parser.add_argument("--task", type=str, default=None)
     parser.add_argument("-y", "--yes", action="store_true")
     parser.add_argument("files", nargs="*")
@@ -336,7 +371,8 @@ def _main():
         files[0] = os.path.basename(files[0])
 
     CoderMenu(
-        context_file=args.context,
+        file_list_json=args.file_list_json,
+        context_file=args.context_file,
         files=files,
         task=args.task,
         yes=args.yes,

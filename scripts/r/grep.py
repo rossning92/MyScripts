@@ -7,6 +7,8 @@ from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from _shutil import send_ctrl_c, write_temp_file
+from utils.editor import edit_text_file
+from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.inputmenu import InputMenu
 
@@ -30,54 +32,64 @@ class _Line:
     def __init__(
         self,
         text: str,
-        type: Literal["file", "matched", "context"],
+        type: Literal["file", "matched_line", "context_line"],
         match: _Match,
+        line_number: Optional[int] = None,
     ) -> None:
         self.text: str = text
-        self.type: Literal["file", "matched", "context"] = type
+        self.type: Literal["file", "matched_line", "context_line"] = type
         self.match: _Match = match
+        self.line_number = line_number
 
     def __str__(self) -> str:
         return self.text
-
-    def get_color(self):
-        if self.type == "file":
-            return "yellow"
-        elif self.type == "matched":
-            return "green"
-        else:
-            return "white"
 
 
 class GrepMenu(Menu[_Line]):
     def __init__(
         self,
-        search_dir: Optional[str] = None,
+        path: Optional[str] = None,
         query: Optional[str] = None,
         context=3,
         exclude: Optional[str] = None,
         **kwargs,
     ):
         self.__context = context
-        self.__search_dir = search_dir if search_dir else os.getcwd()
+        self.__path = path if path else os.getcwd()
         self.__matches: List[_Match] = []
         self.__exclude = exclude
+        self.__data: Dict[str, Any] = load_json("tmp/grep_data.json", default={})
 
         super().__init__(
-            prompt=f"grep ({self.__search_dir})",
+            prompt=f"grep ({self.__path})",
             search_mode=False,
             line_number=False,
             **kwargs,
         )
 
         self.add_command(self.__delete_selected, hotkey="ctrl+k")
-        self.add_command(self.__run_coder, hotkey="ctrl+t")
+        self.add_command(self.__run_coder_for_each_match)
+        self.add_command(self.__run_coder, hotkey="alt+c")
         self.add_command(self.__save_matches, hotkey="ctrl+s")
         self.add_command(self.__show_less, hotkey="alt+l")
         self.add_command(self.__show_more, hotkey="alt+m")
+        self.add_command(self.__list_search_history, hotkey="ctrl+l")
 
         if query:
             self.set_input(query)
+
+    def get_item_text(self, line: _Line) -> str:
+        return (
+            line.text if line.type == "file" else f"{line.line_number:3d} {line.text}"
+        )
+
+    def __list_search_history(self):
+        history: List[str] = self.__data["history"]
+        i = Menu(items=history).exec()
+        if i < 0:
+            return
+
+        self.__find(history[i])
 
     def __show_less(self):
         self.__update_items(show_code=False)
@@ -88,27 +100,53 @@ class GrepMenu(Menu[_Line]):
     def __run_coder(self):
         m = InputMenu(prompt="task")
         task = m.request_input()
-        if task:
-            for i, match in enumerate(self.get_selected_items()):
-                self.set_message(f"processing match {i+1}")
-                tmpfile = write_temp_file("[" + match.match.to_json() + "]", ".json")
-                ret_code = self.call_func_without_curses(
-                    lambda tmpfile=tmpfile: subprocess.call(
-                        [
-                            "run_script",
-                            "@command_wrapper=1",
-                            "r/ai/coder.py",
-                            "--yes",
-                            "--task",
-                            task,
-                            "--context",
-                            tmpfile,
-                        ]
-                    )
+        if not task:
+            return
+
+        context = "\n".join([str(item) for item in self.items])
+        context_file = write_temp_file(context, ".txt")
+        self.call_func_without_curses(lambda: edit_text_file(context_file))
+        ret = self.call_func_without_curses(
+            lambda: subprocess.call(
+                [
+                    "run_script",
+                    "@command_wrapper=1",
+                    "r/ai/coder.py",
+                    "--task",
+                    task,
+                    "--context-file",
+                    context_file,
+                ]
+            )
+        )
+        self.set_message(f"coder returns with {ret}")
+
+    def __run_coder_for_each_match(self):
+        m = InputMenu(prompt="task")
+        task = m.request_input()
+        if not task:
+            return
+
+        for i, match in enumerate(self.get_selected_items()):
+            self.set_message(f"processing match {i+1}")
+            file_list_json = write_temp_file("[" + match.match.to_json() + "]", ".json")
+            ret_code = self.call_func_without_curses(
+                lambda: subprocess.call(
+                    [
+                        "run_script",
+                        "@command_wrapper=1",
+                        "r/ai/coder.py",
+                        "--yes",
+                        "--task",
+                        task,
+                        "--file-list-json",
+                        file_list_json,
+                    ]
                 )
-                self.set_message(f"done with {i+1}")
-                if ret_code != 0:
-                    break
+            )
+            self.set_message(f"done with {i+1}")
+            if ret_code != 0:
+                break
 
     def __save_matches(self):
         data = [match.to_dict() for match in self.__matches]
@@ -144,24 +182,52 @@ class GrepMenu(Menu[_Line]):
 
     def __update_items(self, show_code: bool):
         self.clear_items()
+        last_file = None
         for match in self.__matches:
-            self.append_item(_Line(match.file, type="file", match=match))
+            self.append_item(
+                _Line(
+                    match.file if match.file != last_file else "-------",
+                    type="file",
+                    match=match,
+                )
+            )
+            last_file = match.file
             if show_code:
                 for is_match, line_number, line in match.lines:
                     self.append_item(
                         _Line(
-                            f"{line_number:3d} {line}",
-                            type="matched" if is_match else "context",
+                            line,
+                            type="matched_line" if is_match else "context_line",
                             match=match,
+                            line_number=line_number,
                         )
                     )
 
-    def get_item_color(self, item: _Line) -> str:
-        return item.get_color()
+    def get_item_color(self, line: _Line) -> str:
+        if line.type == "file":
+            return "yellow"
+        elif line.type == "matched_line":
+            return "green"
+        else:
+            return "white"
 
     def on_enter_pressed(self):
-        self.items.clear()
         input_str = self.get_input()
+        self.__find(input_str)
+
+    def __find(self, input_str: str):
+        self.items.clear()
+
+        # Save search history
+        if "history" not in self.__data:
+            self.__data["history"] = []
+        try:
+            self.__data["history"].remove(input_str)
+        except ValueError:
+            pass
+        self.__data["history"].insert(0, input_str)
+        save_json("tmp/grep_data.json", self.__data)
+
         args = [
             "rg",
             "--ignore-case",
@@ -173,7 +239,13 @@ class GrepMenu(Menu[_Line]):
         ]
         if self.__exclude:
             args += ["--glob", "!" + self.__exclude]
+
+        # Search pattern
         args.append(input_str)
+
+        # Search file path (if specified)
+        if os.path.isfile(self.__path):
+            args.append(self.__path)
 
         self.set_message(f"{args}")
         self.process_events()
@@ -185,7 +257,7 @@ class GrepMenu(Menu[_Line]):
             bufsize=1,
             text=True,
             encoding="utf-8",
-            cwd=self.__search_dir if self.__search_dir else None,
+            cwd=self.__path if os.path.isdir(self.__path) else None,
         )
 
         # variables
@@ -205,7 +277,7 @@ class GrepMenu(Menu[_Line]):
             if data_type in ("context", "match"):
                 file_path = data["data"]["path"]["text"]
                 data_lines = data["data"]["lines"]
-                line_text = data_lines["text"]
+                line_text = data_lines["text"].rstrip()
                 line_number = data["data"]["line_number"]
 
                 # A code block is ready
@@ -246,14 +318,16 @@ class GrepMenu(Menu[_Line]):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("search_dir", type=str, nargs="?")
+    parser.add_argument(
+        "path", type=str, nargs="?", default=os.environ.get("SEARCH_PATH")
+    )
     parser.add_argument("--query", type=str, default=None)
     parser.add_argument("--context", type=int, default=3)
     parser.add_argument("--exclude", type=str, default=None)
     args = parser.parse_args()
 
     GrepMenu(
-        search_dir=args.search_dir,
+        path=args.path,
         query=args.query,
         context=args.context,
         exclude=args.exclude,

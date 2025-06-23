@@ -9,7 +9,7 @@ from _pkgmanager import find_executable, require_package
 from _shutil import start_process
 
 
-def edit_file(file: str, start_insert=False):
+def edit_text_file(file: str, start_insert=False):
     args = ["nvim", file]
     if start_insert:
         args.append("+startinsert")
@@ -23,7 +23,7 @@ def edit_text(text: str, tmp_file_ext=".txt"):
         tmp_file.write(text)
         tmp_filename = tmp_file.name
 
-    edit_file(tmp_filename)
+    edit_text_file(tmp_filename)
 
     with open(tmp_filename, "r", encoding="utf-8") as f:
         new_text = f.read().rstrip("\n")
