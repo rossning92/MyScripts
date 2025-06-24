@@ -682,7 +682,7 @@ class Menu(Generic[T]):
             )
             self.set_selection(selected_row_begin, selected_row_end)
 
-    def __handle_keyboard_interrupt(self):
+    def on_keyboard_interrupt(self):
         sys.exit(0)
 
     # Returns True if we should exit main loop for the current window
@@ -717,7 +717,7 @@ class Menu(Generic[T]):
             if raise_keyboard_interrupt:
                 raise
             else:
-                self.__handle_keyboard_interrupt()
+                self.on_keyboard_interrupt()
 
         if ch != -1:  # getch() will return -1 when timeout
             if self.__debug:
@@ -734,7 +734,7 @@ class Menu(Generic[T]):
                 if raise_keyboard_interrupt:
                     raise KeyboardInterrupt
                 else:
-                    self.__handle_keyboard_interrupt()
+                    self.on_keyboard_interrupt()
 
             elif ch == " " and self.__input.text == "" and "space" in self.__hotkeys:
                 self.__hotkeys["space"].func()

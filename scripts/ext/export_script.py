@@ -5,6 +5,7 @@ import shutil
 import subprocess
 
 from _script import get_python_path, render_script
+from _shutil import confirm
 from utils.editor import open_code_editor
 from utils.logger import setup_logger
 
@@ -128,7 +129,7 @@ def export_script(
     script_path, out_dir, out=None, create_executable=False, open_exported_file=False
 ):
     _, ext = os.path.splitext(script_path)
-    if ext.lower() == ".md":
+    if ext.lower() == ".md" and confirm("Export to pdf"):
         subprocess.check_call(["run_script", "r/doc/md_to_pdf.py", script_path])
         return
 

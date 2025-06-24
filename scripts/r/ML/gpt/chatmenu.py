@@ -75,7 +75,6 @@ class ChatMenu(Menu[_Line]):
         )
 
         self.add_command(self.__add_image, hotkey="alt+i")
-        self.add_command(self.__delete_current_message, hotkey="ctrl+k")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
@@ -151,12 +150,6 @@ class ChatMenu(Menu[_Line]):
         self.set_selection(start, stop)
         self.set_message("message copied")
         return
-
-    def __delete_current_message(self):
-        selected_line = self.get_selected_item()
-        if selected_line is not None:
-            del self.get_messages()[selected_line.message_index]
-            self.populate_lines()
 
     def __edit_message(self, message_index=-1):
         if message_index < 0:
@@ -250,6 +243,9 @@ class ChatMenu(Menu[_Line]):
             self.send_message(self.__first_message)
 
     def send_message(self, text: str) -> None:
+        if self.__is_generating:
+            return
+
         self.clear_input()
         message_index = len(self.get_messages())
         self.get_messages().append(

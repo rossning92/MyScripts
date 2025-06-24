@@ -7,11 +7,12 @@ import re
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
 
-from ai.toolutil import get_all_tools, load_tool
-from ML.gpt.chatmenu import ChatMenu
+from ai.tools.execute_python import execute_python
+from ai.tools.run_bash_command import run_bash_command
+from ai.tools.write_file import write_file
+from ML.gpt.chatmenu import ChatMenu, _Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
-from utils.menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.inputmenu import InputMenu
@@ -139,13 +140,11 @@ class AgentMenu(ChatMenu):
 
         self.task_result: Optional[str] = None
 
-        self.add_command(self.__add_tool, hotkey="alt+t")
         self.add_command(self.__edit_context, hotkey="alt+c")
         self.add_command(self.__edit_task, hotkey="alt+p")
         self.add_command(self.__list_agent, hotkey="ctrl+l")
         self.add_command(self.__load_last_agent, hotkey="alt+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
-        self.add_command(self.__check_code_blocks, hotkey="alt+enter")
 
     def __load_last_agent(self) -> bool:
         files = self.__get_agent_files()
@@ -166,7 +165,6 @@ class AgentMenu(ChatMenu):
 
         agent_default = {
             "task": "",
-            "tools": get_all_tools(),
             "agents": [],
             "context": {},
         }
@@ -191,7 +189,7 @@ class AgentMenu(ChatMenu):
         self.__tools = self.get_tools()
 
     def __update_prompt(self):
-        tools = self.__agent["tools"]
+        tools = [t.__name__ for t in self.get_tools()]
         context = self.__agent["context"]
         self.set_prompt(
             f'agent="{_get_agent_name(self.__agent_file)}", '
@@ -213,8 +211,16 @@ class AgentMenu(ChatMenu):
         if self.__run:
             self.__complete_task()
 
+    def on_enter_pressed(self):
+        if self.get_input() == "":
+            messages = self.get_messages()
+            if len(messages) > 0 and messages[-1]["role"] == "assistant":
+                self.__check_tool_use()
+        else:
+            return super().on_enter_pressed()
+
     def on_message(self, content: str):
-        self.__check_code_blocks()
+        self.__check_tool_use()
 
     def send_message(self, text: str) -> None:
         if not text:
@@ -269,9 +275,7 @@ class AgentMenu(ChatMenu):
         )
 
     def get_tools(self) -> List[Callable]:
-        tools: List[Callable] = []
-        for tool_name in self.__agent["tools"]:
-            tools.append(load_tool(tool_name))
+        tools: List[Callable] = [run_bash_command, execute_python, write_file]
 
         for agent_name in self.__agent["agents"]:
             if not isinstance(agent_name, str):
@@ -309,7 +313,15 @@ class AgentMenu(ChatMenu):
             tools.append(scope[agent_name])
         return tools
 
-    def __check_code_blocks(self):
+    def get_item_color(self, line: _Line) -> str:
+        if "<result>" in line.text:
+            return "green"
+        elif "ERROR:" in line.text:
+            return "red"
+        else:
+            return super().get_item_color(line)
+
+    def __check_tool_use(self):
         messages = self.get_messages()
         if len(messages) <= 0:
             return
@@ -338,11 +350,14 @@ class AgentMenu(ChatMenu):
 
             if should_run:
                 tool = next(tool for tool in self.__tools if tool.__name__ == tool_name)
-                ret = tool(**args)
-                if ret:
-                    response_message = "Returns:\n-------\n" + str(ret) + "\n-------"
-                else:
-                    response_message = "Done"
+                try:
+                    ret = tool(**args)
+                    if ret:
+                        response_message = f"Returns:\n-------\n{str(ret)}\n-------"
+                    else:
+                        response_message = "Done"
+                except Exception as ex:
+                    response_message = f"ERROR:\n-------\n{str(ex)}\n-------"
 
         # Check if the task is completed
         match = re.findall(
@@ -371,15 +386,6 @@ class AgentMenu(ChatMenu):
         )
         self.__save_agent()
         self.__complete_task()
-
-    def __add_tool(self):
-        tools = get_all_tools()
-        menu = Menu(items=tools)
-        menu.exec()
-        selected_tool = menu.get_selected_item()
-        if selected_tool:
-            self.__agent["tools"].append(selected_tool)
-            self.__update_prompt()
 
 
 def _main():
@@ -412,7 +418,6 @@ def _main():
         context=context,
         agent_file=args.agent,
         run=args.run,
-        load_last_agent=True,
     )
     menu.exec()
 

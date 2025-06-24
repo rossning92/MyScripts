@@ -101,7 +101,9 @@ def apply_changes(
                     block for block in file_list if c.search in block["content"]
                 ]
                 if not code_blocks:
-                    raise ValueError(f"Search string not found in {c.file}: {c.search}")
+                    raise ValueError(
+                        f'Cannot find any match in "{c.file}":\n```\n{c.search}\n```'
+                    )
                 code_block = code_blocks[0]
 
                 # Replace
@@ -114,7 +116,9 @@ def apply_changes(
                 )
             else:
                 if c.search not in content:
-                    raise Exception(f"Cannot find '{c.search}' in the content")
+                    raise ValueError(
+                        f'Cannot find any match in "{c.file}":\n```\n{c.search}\n```'
+                    )
                 content = content.replace(c.search, c.replace)
 
             # Save file
