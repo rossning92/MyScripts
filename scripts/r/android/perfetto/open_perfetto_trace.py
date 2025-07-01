@@ -3,6 +3,7 @@ import http.server
 import os
 import socketserver
 import webbrowser
+from urllib.parse import quote
 
 
 def open_trace_in_browser(path: str, url: str):
@@ -24,7 +25,7 @@ def open_trace_in_browser(path: str, url: str):
 
     path = os.path.abspath(path)
     os.chdir(os.path.dirname(path))
-    fname = os.path.basename(path)
+    fname = quote(os.path.basename(path))
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("127.0.0.1", PORT), HttpHandler) as httpd:
         webbrowser.open_new_tab(f"{url}/#!/?url=http://127.0.0.1:{PORT}/{fname}")

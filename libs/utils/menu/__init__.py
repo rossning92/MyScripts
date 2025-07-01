@@ -650,10 +650,16 @@ class Menu(Generic[T]):
         self.set_selection(selected_row, selected_row)
 
     def set_selected_item(self, item: T):
-        for i, idx in enumerate(self.get_item_indices()):
-            if self.items[idx] == item:
-                self.set_selected_row(i)
-                break
+        def try_select_item(item: T) -> bool:
+            for i, idx in enumerate(self.get_item_indices()):
+                if self.items[idx] == item:
+                    self.set_selected_row(i)
+                    return True
+            return False
+
+        if not try_select_item(item):
+            self.clear_input()
+            try_select_item(item)
 
     def set_selection(self, begin_row: int, end_row: int):
         self.__update_matched_items()

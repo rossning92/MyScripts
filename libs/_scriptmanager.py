@@ -8,10 +8,10 @@ import time
 from typing import Callable, Dict, Iterator, List, Optional, Set, Tuple
 
 from _script import (
+    Script,
     execute_script_autorun,
     get_all_script_access_time,
     get_all_scripts,
-    Script,
 )
 from _shutil import (
     clear_env_var_explorer,
@@ -170,8 +170,8 @@ def execute_script(
     cd=True,
     close_on_exit=None,
     out_to_file: Optional[str] = None,
-    run_over_ssh: Optional[bool] = None,
     run_script_and_quit=False,
+    run_script_local=False,
 ):
     refresh_env_vars()
 
@@ -197,7 +197,7 @@ def execute_script(
         new_window=False if run_script_and_quit else None,
         restart_instance=False if is_in_tmux() else True,
         out_to_file=out_to_file,
-        run_over_ssh=run_over_ssh,
+        run_script_local=run_script_local,
     )
     if not success:
         pause()

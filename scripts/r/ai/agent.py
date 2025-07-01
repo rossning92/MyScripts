@@ -215,12 +215,12 @@ class AgentMenu(ChatMenu):
         if self.get_input() == "":
             messages = self.get_messages()
             if len(messages) > 0 and messages[-1]["role"] == "assistant":
-                self.__check_tool_use()
+                self.__handle_response()
         else:
             return super().on_enter_pressed()
 
     def on_message(self, content: str):
-        self.__check_tool_use()
+        self.__handle_response()
 
     def send_message(self, text: str) -> None:
         if not text:
@@ -262,17 +262,16 @@ class AgentMenu(ChatMenu):
                 self.__update_prompt()
                 return task
 
+    def get_prompt(self) -> str:
+        task = self.__get_task_with_context()
+        return _get_prompt(
+            task=task,
+            tools=self.__tools,
+        )
+
     def __complete_task(self):
         self.clear_messages()
-
-        task = self.__get_task_with_context()
-
-        super().send_message(
-            _get_prompt(
-                task=task,
-                tools=self.__tools,
-            )
-        )
+        super().send_message(self.get_prompt())
 
     def get_tools(self) -> List[Callable]:
         tools: List[Callable] = [run_bash_command, execute_python, write_file]
@@ -321,7 +320,7 @@ class AgentMenu(ChatMenu):
         else:
             return super().get_item_color(line)
 
-    def __check_tool_use(self):
+    def __handle_response(self):
         messages = self.get_messages()
         if len(messages) <= 0:
             return
@@ -358,6 +357,9 @@ class AgentMenu(ChatMenu):
                         response_message = "Done"
                 except Exception as ex:
                     response_message = f"ERROR:\n-------\n{str(ex)}\n-------"
+                except KeyboardInterrupt:
+                    self.set_message("Canceled by the user")
+                    return
 
         # Check if the task is completed
         match = re.findall(

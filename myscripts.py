@@ -311,7 +311,7 @@ class _MyScriptMenu(Menu[Script]):
             else:
                 return super().match_item(patt=keyword, item=script, index=index)
 
-    def _run_selected_script(self, close_on_exit=None, run_over_ssh=None):
+    def _run_selected_script(self, close_on_exit=None, run_script_local=False):
         try:
             script = self.get_selected_item()
             if script:
@@ -326,8 +326,8 @@ class _MyScriptMenu(Menu[Script]):
                         cd=len(self.__cmdline_args) == 0,
                         close_on_exit=close_on_exit,
                         out_to_file=self.__out_to_file,
-                        run_over_ssh=run_over_ssh,
                         run_script_and_quit=self.__run_script_and_quit,
+                        run_script_local=run_script_local,
                     )
                 )
 
@@ -502,7 +502,7 @@ class _MyScriptMenu(Menu[Script]):
         self._run_selected_script(close_on_exit=False)
 
     def _run_script_local(self):
-        self._run_selected_script(run_over_ssh=False)
+        self._run_selected_script(run_script_local=True)
 
     def on_char(self, ch):
         self.set_message(None)

@@ -10,18 +10,15 @@ from ai.codeeditutils import (
     Change,
     apply_change_interactive,
     apply_changes,
-    read_file_from_line_range,
-    read_file_lines,
     revert_changes,
 )
+from ai.filecontextmenu import FileContextMenu
 from ai.get_context_files import GetContextFilesMenu
 from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import confirm
-from utils.menu.filemenu import FileMenu
-from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 
 SETTING_DIR = ".coder"
@@ -121,58 +118,6 @@ class SelectCodeBlockMenu(TextMenu):
         self.close()
 
 
-class FileListMenu(ListEditMenu):
-    def __init__(self, files: List[str], file_list_json: Optional[str] = None):
-        super().__init__(
-            items=files,
-            json_file=file_list_json,
-            prompt="file list",
-            wrap_text=True,
-        )
-
-    def get_item_text(self, item: Any) -> str:
-        return "{}#{}-{}".format(item["file"], item["line_start"], item["line_end"])
-
-    def _add_file(self):
-        menu = FileMenu(prompt="add file", goto=os.getcwd())
-        file = menu.select_file()
-        if file is not None:
-            self.add_file(file)
-
-    def add_file(self, file: str):
-        file_and_lines = file.split("#")
-
-        file = file_and_lines[0]
-        if not os.path.isfile(file):
-            raise FileNotFoundError(f'"{file}" does not exist')
-
-        if len(file_and_lines) == 2:
-            start, end = map(int, file_and_lines[1].split("-"))
-            content = read_file_from_line_range(file, start, end)
-        else:
-            content, lines = read_file_lines(file)
-            start, end = 1, len(lines)
-        self.append_item(
-            {
-                "file": file,
-                "content": content,
-                "line_start": start,
-                "line_end": end,
-            }
-        )
-
-    def get_context(self) -> List[Any]:
-        return self.items
-
-    def get_context_prompt(self) -> str:
-        result = []
-        for item in self.items:
-            file = item["file"]
-            content = item["content"]
-            result.append(f"{file}\n```\n{content}\n```")
-        return "\n".join(result)
-
-
 class CoderMenu(ChatMenu):
     def __init__(
         self,
@@ -202,7 +147,6 @@ class CoderMenu(ChatMenu):
         super().__init__(
             model="claude-3-7-sonnet-20250219",
             conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
-            new_conversation=False,
             **kwargs,
         )
 
@@ -212,15 +156,9 @@ class CoderMenu(ChatMenu):
         self.__session: Dict[str, Any] = load_json(
             self.__session_file, default={"task": task, "files": []}
         )
-        self.__file_list_menu = FileListMenu(
-            files=self.__session["files"], file_list_json=file_list_json
+        self.__file_context_menu = FileContextMenu(
+            items=self.__session["files"], files=files, file_list_json=file_list_json
         )
-
-        if files:
-            self.__clear_files()
-            for file in files:
-                self.__file_list_menu.add_file(file)
-            self.__save_session()
 
         self.add_command(self.__add_file, hotkey="alt+a")
         self.add_command(self.__apply_change, hotkey="alt+enter")
@@ -236,7 +174,7 @@ class CoderMenu(ChatMenu):
             self.__complete_task(task=self.__task)
 
     def __add_file(self):
-        self.__file_list_menu._add_file()
+        self.__file_context_menu._add_file()
         self.__update_prompt()
 
     def __retry(self):
@@ -247,17 +185,17 @@ class CoderMenu(ChatMenu):
         s = StringIO()
         files = [
             "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
-            for file in self.__file_list_menu.items
+            for file in self.__file_context_menu.items
         ]
         s.write(f"files={files}")
         self.set_prompt(s.getvalue())
 
     def __list_files(self):
-        self.__file_list_menu.exec()
+        self.__file_context_menu.exec()
         self.__update_prompt()
 
     def __clear_files(self):
-        self.__file_list_menu.clear()
+        self.__file_context_menu.clear()
         self.__update_prompt()
 
     def on_message(self, content: str):
@@ -277,9 +215,7 @@ class CoderMenu(ChatMenu):
             content = selected_message["content"]
 
             changes = _find_changes(content)
-            file_list = (
-                self.__file_list_menu.get_context() if not self.__context else None
-            )
+            file_list = self.__file_context_menu.items if not self.__context else None
             if self.__yes:
                 modified_files = apply_changes(changes=changes, file_list=file_list)
             else:
@@ -306,7 +242,7 @@ class CoderMenu(ChatMenu):
                 task = self.__session["task"]
 
             # Get context files
-            if len(self.__file_list_menu.items) == 0 and confirm(
+            if len(self.__file_context_menu.items) == 0 and confirm(
                 "Search for relevant files to add to context"
             ):
                 menu = GetContextFilesMenu(
@@ -316,7 +252,7 @@ class CoderMenu(ChatMenu):
                 menu.exec()
 
                 for file in menu.files:
-                    self.__file_list_menu.add_file(file)
+                    self.__file_context_menu.add_file(file)
                 self.__update_prompt()
 
             self.__complete_task(task=task)
@@ -337,7 +273,7 @@ class CoderMenu(ChatMenu):
                 context=(
                     self.__context
                     if self.__context
-                    else self.__file_list_menu.get_context_prompt()
+                    else self.__file_context_menu.get_prompt()
                 ),
             )
         )

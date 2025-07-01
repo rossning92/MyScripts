@@ -89,6 +89,7 @@ def has_executable(executables: List[str]) -> bool:
             return True
     return False
 
+
 def require_package(
     pkg: str,
     wsl=False,
@@ -106,7 +107,9 @@ def require_package(
     package_matched = False
     was_package_installed = False  # Whether or not a package has just been installed.
     if pkg in packages:
-        if "executables" in packages[pkg] and has_executable(packages[pkg]["executables"]):
+        if "executables" in packages[pkg] and has_executable(
+            packages[pkg]["executables"]
+        ):
             package_matched = True
             was_package_installed = True
 
@@ -239,7 +242,10 @@ def require_package(
         elif "pip" in packages[pkg]:
             for p in packages[pkg]["pip"]["packages"]:
                 # Check if pip package is installed
-                if not _call_without_output([sys.executable, "-m", "pip", "show", p]):
+                if (
+                    not _call_without_output([sys.executable, "-m", "pip", "show", p])
+                    or force_install
+                ):
                     logging.info(f"Installing pip package: {p}...")
                     subprocess.check_call(
                         [sys.executable, "-m", "pip", "install", "--upgrade", p]
@@ -258,8 +264,9 @@ def require_package(
                         wingetutils.install_package(
                             p, force_install=force_install, upgrade=upgrade
                         )
-                        package_matched = True
                         break
+                    package_matched = True
+                    break
 
         if was_package_installed and "post_install" in packages[pkg]:
             post_install = packages[pkg]["post_install"]

@@ -819,7 +819,7 @@ class Script:
         command_wrapper: Optional[bool] = None,
         background=False,
         out_to_file: Optional[str] = None,
-        run_over_ssh: Optional[bool] = None,
+        run_script_local=False,
     ) -> bool:
         self.clear_source_cache()
 
@@ -1019,14 +1019,14 @@ class Script:
         if cmdline:
             arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
 
-        elif self.cfg["openWithScript"]:
+        elif not run_script_local and self.cfg["openWithScript"]:
             arg_list = [
                 "run_script",
                 self.cfg["openWithScript"],
                 script_path,
             ] + arg_list
 
-        elif self.cfg["runOverSsh"] if run_over_ssh is None else run_over_ssh:
+        elif not run_script_local and self.cfg["runOverSsh"]:
             arg_list = [
                 sys.executable,
                 find_script("ext/run_script_ssh.py"),

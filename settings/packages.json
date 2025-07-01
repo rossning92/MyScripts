@@ -251,6 +251,20 @@
       "packages": ["git-credential-manager"]
     }
   },
+  "git-delta": {
+    "choco": {
+      "packages": ["delta"]
+    },
+    "pacman": {
+      "packages": ["git-delta"]
+    },
+    "termux": {
+      "packages": ["git-delta"]
+    },
+    "winget": {
+      "packages": ["dandavison.delta"]
+    }
+  },
   "git-lfs": {
     "choco": {
       "packages": ["git-lfs"]
