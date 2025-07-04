@@ -1,5 +1,6 @@
 import argparse
 import os
+from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
 
 from ai.complete_chat import complete_chat
@@ -79,7 +80,7 @@ class ChatMenu(Menu[_Line]):
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__edit_settings, hotkey="ctrl+s")
-        self.add_command(self.__undo, hotkey="ctrl+z")
+        self.add_command(self.undo_messages, hotkey="ctrl+z")
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
 
@@ -191,13 +192,15 @@ class ChatMenu(Menu[_Line]):
         if selected:
             self.load_conversation(selected)
 
-    def __undo(self):
+    def undo_messages(self) -> List[Dict[str, Any]]:
+        removed_messages: List[Dict[str, Any]] = []
         messages = self.get_messages()
         if messages:
-            messages.pop()
+            removed_messages.append(messages.pop())
         while messages and messages[-1]["role"] != "assistant":
-            messages.pop()
+            removed_messages.append(messages.pop())
         self.populate_lines()
+        return removed_messages
 
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
@@ -286,7 +289,13 @@ class ChatMenu(Menu[_Line]):
             if not self.__is_generating:
                 break
 
-        messages.append({"role": "assistant", "content": content})
+        messages.append(
+            {
+                "role": "assistant",
+                "content": content,
+                "timestamp": datetime.now().timestamp(),
+            }
+        )
 
         self.__is_generating = False
 

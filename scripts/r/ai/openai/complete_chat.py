@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Union
 
@@ -29,9 +30,14 @@ def create_user_message(text: str, image_file: Optional[str] = None) -> Dict[str
                     },
                 },
             ],
+            "timestamp": datetime.now().timestamp(),
         }
     else:
-        return {"role": "user", "content": text}
+        return {
+            "role": "user",
+            "content": text,
+            "timestamp": datetime.now().timestamp(),
+        }
 
 
 def message_to_str(message: Dict[str, Any]):

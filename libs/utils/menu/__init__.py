@@ -315,7 +315,7 @@ class Menu(Generic[T]):
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__toggle_wrap, hotkey="alt+z")
-            self.add_command(self.__undo, hotkey="alt+u")
+            self.add_command(self.undo_messages, hotkey="alt+u")
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
@@ -414,7 +414,7 @@ class Menu(Generic[T]):
 
         self.update_screen()
 
-    def __undo(self):
+    def undo_messages(self):
         if len(self.__search_history) > 0:
             last_input = self.__search_history.pop(0)
             self.set_message(last_input)

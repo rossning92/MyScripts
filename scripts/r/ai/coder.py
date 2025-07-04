@@ -10,7 +10,6 @@ from ai.codeeditutils import (
     Change,
     apply_change_interactive,
     apply_changes,
-    revert_changes,
 )
 from ai.filecontextmenu import FileContextMenu
 from ai.get_context_files import GetContextFilesMenu
@@ -19,7 +18,6 @@ from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import confirm
-from utils.menu.textmenu import TextMenu
 
 SETTING_DIR = ".coder"
 CONVERSATION_FILE = "chat_v2.json"
@@ -109,15 +107,6 @@ def _find_changes(s: str) -> List[Change]:
     return changes
 
 
-class SelectCodeBlockMenu(TextMenu):
-    def __init__(self, file: str, **kwargs):
-        super().__init__(file=file, prompt="select block", **kwargs)
-        self.select_all()
-
-    def on_enter_pressed(self):
-        self.close()
-
-
 class CoderMenu(ChatMenu):
     def __init__(
         self,
@@ -150,8 +139,6 @@ class CoderMenu(ChatMenu):
             **kwargs,
         )
 
-        self.__modified_files: List[str] = []
-
         self.__session_file = os.path.join(SETTING_DIR, SESSION_FILE)
         self.__session: Dict[str, Any] = load_json(
             self.__session_file, default={"task": task, "files": []}
@@ -167,36 +154,22 @@ class CoderMenu(ChatMenu):
         self.add_command(self.__retry, hotkey="ctrl+r")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
 
-        self.__update_prompt()
-
     def on_created(self):
         if self.__task:
             self.__complete_task(task=self.__task)
 
     def __add_file(self):
         self.__file_context_menu._add_file()
-        self.__update_prompt()
 
     def __retry(self):
         self.clear_messages()
         self.set_input(self.__session["task"])
 
-    def __update_prompt(self):
-        s = StringIO()
-        files = [
-            "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
-            for file in self.__file_context_menu.items
-        ]
-        s.write(f"files={files}")
-        self.set_prompt(s.getvalue())
-
     def __list_files(self):
         self.__file_context_menu.exec()
-        self.__update_prompt()
 
     def __clear_files(self):
         self.__file_context_menu.clear()
-        self.__update_prompt()
 
     def on_message(self, content: str):
         self.__apply_change()
@@ -224,7 +197,6 @@ class CoderMenu(ChatMenu):
                 )
 
             if modified_files:
-                self.__modified_files[:] = modified_files
                 if self.__close_after_edit:
                     self.close()
 
@@ -253,7 +225,6 @@ class CoderMenu(ChatMenu):
 
                 for file in menu.files:
                     self.__file_context_menu.add_file(file)
-                self.__update_prompt()
 
             self.__complete_task(task=task)
         else:
@@ -278,16 +249,15 @@ class CoderMenu(ChatMenu):
             )
         )
 
-    def __revert_modified_files(self):
-        revert_changes(self.__modified_files)
-        self.__modified_files.clear()
-
     def __edit_prompt(self):
         task = self.__session["task"]
         new_task = self.call_func_without_curses(lambda: edit_text(task))
         if new_task != task:
-            self.__revert_modified_files()
+            # TODO: Revert all modified files
             self.__complete_task(new_task)
+
+    def get_status_bar_text(self) -> str:
+        return self.__file_context_menu.get_summary() + super().get_status_bar_text()
 
 
 def _main():

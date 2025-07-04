@@ -179,23 +179,12 @@ class AgentMenu(ChatMenu):
         if context:
             self.__agent["context"].update(context)
 
-        self.__update_prompt()
-
         conv_file = os.path.join(CHAT_DIR, _get_agent_name(self.__agent_file) + ".json")
         self.load_conversation(conv_file)
         if clear_messages:
             self.clear_messages()
 
         self.__tools = self.get_tools()
-
-    def __update_prompt(self):
-        tools = [t.__name__ for t in self.get_tools()]
-        context = self.__agent["context"]
-        self.set_prompt(
-            f'agent="{_get_agent_name(self.__agent_file)}", '
-            f"tools={tools}, "
-            f"context={context}\n"
-        )
 
     def __new_agent(self):
         agent_file = os.path.join(AGENT_DIR, UNSAVED_AGENT_FILE)
@@ -259,7 +248,6 @@ class AgentMenu(ChatMenu):
                         self.__agent["context"][name] = val
                         self.__save_agent()
             else:
-                self.__update_prompt()
                 return task
 
     def get_prompt(self) -> str:
@@ -388,6 +376,16 @@ class AgentMenu(ChatMenu):
         )
         self.__save_agent()
         self.__complete_task()
+
+    def get_status_bar_text(self) -> str:
+        tools = [t.__name__ for t in self.get_tools()]
+        context = self.__agent["context"]
+        s = (
+            f'agent="{_get_agent_name(self.__agent_file)}", '
+            f"tools={tools}, "
+            f"context={context}\n"
+        )
+        return s + super().get_status_bar_text()
 
 
 def _main():

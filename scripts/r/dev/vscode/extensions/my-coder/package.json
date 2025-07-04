@@ -32,8 +32,5 @@
     "@types/vscode": "^1.94.0",
     "@types/mocha": "^10.0.8",
     "@types/node": "20.x"
-  },
-  "__metadata": {
-    "size": 191664
   }
 }

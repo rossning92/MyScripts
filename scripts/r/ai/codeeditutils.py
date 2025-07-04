@@ -1,5 +1,3 @@
-import os
-import shutil
 from dataclasses import dataclass
 from io import StringIO
 from typing import Any, List, Optional, Set, Tuple
@@ -75,14 +73,6 @@ def apply_changes(
 ) -> List[str]:
     modified_files: Set[str] = set()
     for c in changes:
-        # Back up file before changes.
-        if os.path.exists(c.file) and c.file not in modified_files:
-            backup_file = f"{c.file}.bak"
-            if os.path.exists(backup_file):
-                os.remove(backup_file)
-            shutil.copyfile(c.file, backup_file)
-            modified_files.add(c.file)
-
         # If search block is empty, create a new file
         if not c.search:
             with open(c.file, "w", encoding="utf-8") as f:  # Create a new file
@@ -140,13 +130,3 @@ def apply_change_interactive(
             return None
     else:
         return None
-
-
-def revert_changes(files: List[str]) -> None:
-    for file in files:
-        backup_file = f"{file}.bak"
-        if os.path.exists(backup_file):
-            shutil.copyfile(backup_file, file)
-            os.remove(backup_file)
-        else:
-            raise FileNotFoundError(f"No backup found for {file}")
