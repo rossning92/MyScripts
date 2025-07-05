@@ -1,5 +1,4 @@
 import os
-from io import StringIO
 from typing import Any, List, Optional
 
 from ai.codeeditutils import read_file_from_line_range, read_file_lines
@@ -44,7 +43,7 @@ class FileContextMenu(ListEditMenu):
 
         if len(file_and_lines) == 2:
             start, end = map(int, file_and_lines[1].split("-"))
-            content = read_file_from_line_range(file, start, end)
+            content = "...\n" + read_file_from_line_range(file, start, end) + "\n..."
         else:
             content, lines = read_file_lines(file)
             start, end = 1, len(lines)
@@ -63,13 +62,19 @@ class FileContextMenu(ListEditMenu):
             file = item["file"]
             content = item["content"]
             result.append(f"{file}\n```\n{content}\n```")
-        return "## Source Code\n" + "\n".join(result)
+        return """# Opened files
+
+(Note that the ellipses (`...`) suggest that there is additional code in the original file before and after the provided code.)
+
+""" + "\n".join(
+            result
+        )
 
     def get_summary(self) -> str:
-        s = StringIO()
-        files = [
-            "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
-            for file in self.items
-        ]
-        s.write(f"files={files}")
-        return s.getvalue()
+        files = " ".join(
+            [
+                "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
+                for file in self.items
+            ]
+        )
+        return f"FILES: {files}"

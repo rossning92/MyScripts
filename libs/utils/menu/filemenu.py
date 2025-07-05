@@ -600,5 +600,5 @@ class FileMenu(Menu[_File]):
             if ret_code == 0:
                 self._refresh_cur_dir()
 
-    def get_status_bar_text(self) -> str:
-        return f"sort={self.__config.sort_by} {super().get_status_bar_text()}"
+    def get_status_text(self) -> str:
+        return f"sort={self.__config.sort_by} {super().get_status_text()}"

@@ -27,6 +27,11 @@ def complete_chat(
     else:
         messages = message
 
+    # Remove __timestamps key from messages
+    for msg in messages:
+        if "__timestamp" in msg:
+            del msg["__timestamp"]
+
     payload = {
         # https://docs.anthropic.com/en/docs/about-claude/models
         "model": model,

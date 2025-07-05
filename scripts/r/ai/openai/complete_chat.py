@@ -30,13 +30,13 @@ def create_user_message(text: str, image_file: Optional[str] = None) -> Dict[str
                     },
                 },
             ],
-            "timestamp": datetime.now().timestamp(),
+            "__timestamp": datetime.now().timestamp(),
         }
     else:
         return {
             "role": "user",
             "content": text,
-            "timestamp": datetime.now().timestamp(),
+            "__timestamp": datetime.now().timestamp(),
         }
 
 

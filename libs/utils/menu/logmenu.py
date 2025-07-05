@@ -132,9 +132,9 @@ class LogMenu(Menu[str]):
         else:
             self.clear_input()
 
-    def get_status_bar_text(self):
+    def get_status_text(self):
         cols = [self.__file_name]
-        text = super().get_status_bar_text()
+        text = super().get_status_text()
         if text:
             cols.append(text)
         return " | ".join(cols)

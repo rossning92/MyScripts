@@ -3,7 +3,6 @@
 import argparse
 import io
 import logging
-import logging.config
 import os
 import platform
 import re
@@ -12,7 +11,7 @@ import sys
 import threading
 import time
 import traceback
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 MYSCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(MYSCRIPT_ROOT, "libs"))
@@ -66,12 +65,7 @@ from utils.platform import is_termux
 from utils.timeutil import time_diff_str
 from utils.tmux import is_in_tmux
 
-REFRESH_INTERVAL_SECS = 60
-KEY_CODE_CTRL_ENTER_WIN = 529
-
-# If the first character is a leader key in the search keyword, we will try to
-# do an exact match for script alias only.
-LEADER_KEY = " "
+_REFRESH_INTERVAL_SECS = 60
 
 
 script_server: Optional[ScriptServer] = None
@@ -94,11 +88,9 @@ def format_variables(variables, variable_names, variable_prefix) -> List[str]:
     short_var_names = [
         re.sub("^" + re.escape(variable_prefix), "", x) for x in variable_names
     ]
-    for i, (full_name, short_name) in enumerate(zip(variable_names, short_var_names)):
+    for full_name, short_name in zip(variable_names, short_var_names):
         var_val = variables.get(full_name, "")
-        result.append(
-            ("env : " if i == 0 else " " * 6) + f"{short_name:<16} : {var_val}"
-        )
+        result.append(f"V {short_name:<16} : {var_val}")
     return result
 
 
@@ -189,7 +181,7 @@ class _ScheduledScriptMenu(Menu[_ScheduledScript]):
                 LogMenu(files=[script_log_file]).exec()
 
 
-def get_scheduled_script_log_preview(script_manager: ScriptManager) -> List[str]:
+def get_scheduled_script_logs(script_manager: ScriptManager) -> List[str]:
     logs: List[str] = []
     for (
         script,
@@ -199,7 +191,7 @@ def get_scheduled_script_log_preview(script_manager: ScriptManager) -> List[str]
         if os.path.exists(script_log_file):
             last_line = read_last_line(script_log_file)
             logs.append(
-                f"{time_diff_str(scheduled_time):<4} : {os.path.basename(script.script_path)} : {last_line}"
+                f"T {time_diff_str(scheduled_time):<4} : {os.path.basename(script.script_path)} : {last_line.strip()}"
             )
     return logs
 
@@ -281,8 +273,8 @@ class _MyScriptMenu(Menu[Script]):
         # Reload scripts
         now = time.time()
         if (
-            now - self.last_key_pressed_timestamp > REFRESH_INTERVAL_SECS
-            and now - self.last_refresh_time > REFRESH_INTERVAL_SECS
+            now - self.last_key_pressed_timestamp > _REFRESH_INTERVAL_SECS
+            and now - self.last_refresh_time > _REFRESH_INTERVAL_SECS
         ):
             self._reload_scripts()
 
@@ -540,11 +532,9 @@ class _MyScriptMenu(Menu[Script]):
             else:
                 self.__cmdline_args.clear()
 
-    def on_update_screen(self, item_y_max: int):
-        height = self._height
-
+    def get_status_text(self) -> str:
         if not self.is_refreshing:
-            preview: List[Tuple[str, str]] = []
+            lines: List[str] = []
 
             script = self.get_selected_item()
             if script is not None:
@@ -552,15 +542,15 @@ class _MyScriptMenu(Menu[Script]):
 
                 # Command line args
                 if self.__cmdline_args:
-                    preview.append(("yellow", f"arg : {self.__cmdline_args}"))
+                    lines.append((f"[arg] {self.__cmdline_args}"))
 
-                # Preview variables
+                # Variables
                 try:
                     vars = get_script_variables(script)
                     if len(vars) > 0:
-                        preview.extend(
+                        lines.extend(
                             [
-                                ("yellow", x)
+                                x
                                 for x in format_variables(
                                     vars,
                                     sorted(script.get_variable_names()),
@@ -574,38 +564,19 @@ class _MyScriptMenu(Menu[Script]):
                         % script.script_path
                     )
 
-                # Preview script configs
-                cfg_preview_count = 0
+                # Script configs
                 for name, value in script.cfg.items():
                     if value != default_script_config[name]:
-                        preview.append(
-                            (
-                                "yellow",
-                                ("cfg : " if cfg_preview_count == 0 else " " * 6)
-                                + f"{name:<16} : {value}",
-                            )
-                        )
-                        cfg_preview_count += 1
+                        lines.append(f"C {name:<16} : {value}")
 
-            # Scheduled script log preview
+            # Scheduled script logs
             if not self.__no_daemon:
-                preview.extend(
-                    [
-                        ("blue", line)
-                        for line in get_scheduled_script_log_preview(
-                            self.script_manager
-                        )
-                    ]
+                lines.extend(
+                    [line for line in get_scheduled_script_logs(self.script_manager)]
                 )
-
-            # Draw preview
-            height = max(5, height - len(preview) - 1)
-            for i, (color, s) in enumerate(preview):
-                if height + i >= item_y_max:
-                    break
-                self.draw_text(height + i, 0, s, color=color, ymax=item_y_max)
-
-        super().on_update_screen(item_y_max=height)
+            return "\n".join(lines) + "\n" + super().get_status_text()
+        else:
+            return super().get_status_text()
 
     def _run_hotkey(self, script: Script):
         selected_script = self.get_selected_item()

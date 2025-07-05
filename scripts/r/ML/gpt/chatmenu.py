@@ -293,7 +293,7 @@ class ChatMenu(Menu[_Line]):
             {
                 "role": "assistant",
                 "content": content,
-                "timestamp": datetime.now().timestamp(),
+                "__timestamp": datetime.now().timestamp(),
             }
         )
 
@@ -362,8 +362,9 @@ class ChatMenu(Menu[_Line]):
     def on_message(self, content: str):
         pass
 
-    def get_status_bar_text(self) -> str:
-        return super().get_status_bar_text() + str(self.__settings_menu.data)
+    def get_status_text(self) -> str:
+        config_text = "CONFG: " + str(self.__settings_menu.data)
+        return config_text + "\n" + super().get_status_text()
 
     def on_escape_pressed(self):
         if self.__is_generating:

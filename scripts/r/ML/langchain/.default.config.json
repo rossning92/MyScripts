@@ -1,5 +1,0 @@
-{
-  "packages.pip": "langchain openai langchain-core langchain-openai langchain-community",
-  "terminal": "",
-  "variableNames": "OPENAI_API_KEY"
-}

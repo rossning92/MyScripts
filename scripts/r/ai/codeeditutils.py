@@ -105,9 +105,16 @@ def apply_changes(
                     end=code_block["line_end"],
                 )
             else:
-                if c.search not in content:
+                count = content.count(c.search)
+                if count == 0:
                     raise ValueError(
                         f'Cannot find any match in "{c.file}":\n```\n{c.search}\n```'
+                    )
+                elif count > 1:
+                    raise ValueError(
+                        f'Found more than one match in "{c.file}". '
+                        "You can try adding some surrounding lines in order to uniquely match the search block:\n"
+                        f"```\n{c.search}\n```"
                     )
                 content = content.replace(c.search, c.replace)
 

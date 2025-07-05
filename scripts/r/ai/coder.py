@@ -3,7 +3,6 @@ import io
 import os
 import re
 import traceback
-from io import StringIO
 from typing import Any, Dict, List, Optional
 
 from ai.codeeditutils import (
@@ -256,8 +255,8 @@ class CoderMenu(ChatMenu):
             # TODO: Revert all modified files
             self.__complete_task(new_task)
 
-    def get_status_bar_text(self) -> str:
-        return self.__file_context_menu.get_summary() + super().get_status_bar_text()
+    def get_status_text(self) -> str:
+        return self.__file_context_menu.get_summary() + "\n" + super().get_status_text()
 
 
 def _main():

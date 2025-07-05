@@ -25,13 +25,13 @@ class CodeAgentMenu(AgentMenu):
     def undo_messages(self) -> List[Dict[str, Any]]:
         removed_messages = super().undo_messages()
         if len(removed_messages) > 0:
-            timestamp = removed_messages[-1].get("timestamp", None)
+            timestamp = removed_messages[-1].get("__timestamp", None)
             if timestamp is not None:
                 restore_files_to_timestamp(timestamp=timestamp)
         return removed_messages
 
-    def get_status_bar_text(self) -> str:
-        return self.__file_context_menu.get_summary() + super().get_status_bar_text()
+    def get_status_text(self) -> str:
+        return self.__file_context_menu.get_summary() + "\n" + super().get_status_text()
 
 
 def _parse_files(files: List[str]) -> List[str]:

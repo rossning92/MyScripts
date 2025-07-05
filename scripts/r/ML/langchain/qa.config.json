@@ -1,5 +1,0 @@
-{
-  "args.selectionAsFile": true,
-  "globalHotkey": "win+k q",
-  "packages.pip": "langchain openai chromadb langchainhub tiktoken chardet PyMuPDF"
-}

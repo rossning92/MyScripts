@@ -74,8 +74,8 @@ You use tools step-by-step to accomplish a given task, with each tool use inform
 
 Tool use is formatted using XML-style tags.
 The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags.
-Do not escape any characters, such as <, >, and & in XML tags. Do not wrap in `<![CDATA[` and `]]>`.
-You can simply put multiline text in XML tags.
+Do not escape any characters in parameters, such as `<`, `>`, and `&`, in XML tags. Do not wrap parameters in `<![CDATA[` and `]]>`.
+You can directly put multiline text in XML tags.
 Always adhere to this format for the tool use to ensure proper parsing and execution. Here's the structure:
 
 <tool_name>
@@ -91,7 +91,7 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
         for tool in tools:
             tools_prompt += f"### {tool.__name__}\n\n"
             if tool.__doc__:
-                tools_prompt += f"Description: {tool.__doc__}"
+                tools_prompt += f"{tool.__doc__.strip()}\n"
             tools_prompt += "Usage:\n"
             tools_prompt += f"<{tool.__name__}>\n"
             for param in inspect.signature(tool).parameters.values():
@@ -377,15 +377,12 @@ class AgentMenu(ChatMenu):
         self.__save_agent()
         self.__complete_task()
 
-    def get_status_bar_text(self) -> str:
-        tools = [t.__name__ for t in self.get_tools()]
+    def get_status_text(self) -> str:
+        name = _get_agent_name(self.__agent_file)
+        tools = "|".join([t.__name__ for t in self.get_tools()])
         context = self.__agent["context"]
-        s = (
-            f'agent="{_get_agent_name(self.__agent_file)}", '
-            f"tools={tools}, "
-            f"context={context}\n"
-        )
-        return s + super().get_status_bar_text()
+        s = f"AGENT: name='{name}' tools='{tools}' context={context}"
+        return s + "\n" + super().get_status_text()
 
 
 def _main():
