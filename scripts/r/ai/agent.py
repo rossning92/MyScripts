@@ -378,14 +378,11 @@ class AgentMenu(ChatMenu):
         self.__complete_task()
 
     def get_status_bar_text(self) -> str:
-        tools = [t.__name__ for t in self.get_tools()]
+        name = _get_agent_name(self.__agent_file)
+        tools = "|".join([t.__name__ for t in self.get_tools()])
         context = self.__agent["context"]
-        s = (
-            f'agent="{_get_agent_name(self.__agent_file)}", '
-            f"tools={tools}, "
-            f"context={context}\n"
-        )
-        return s + super().get_status_bar_text()
+        s = f"[agent] name='{name}' tools='{tools}' context={context}"
+        return s + "\n" + super().get_status_bar_text()
 
 
 def _main():

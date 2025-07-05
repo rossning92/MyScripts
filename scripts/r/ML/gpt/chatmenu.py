@@ -363,7 +363,8 @@ class ChatMenu(Menu[_Line]):
         pass
 
     def get_status_bar_text(self) -> str:
-        return super().get_status_bar_text() + str(self.__settings_menu.data)
+        config_text = "[cfg] " + str(self.__settings_menu.data)
+        return config_text + "\n" + super().get_status_bar_text()
 
     def on_escape_pressed(self):
         if self.__is_generating:

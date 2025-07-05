@@ -66,10 +66,10 @@ class FileContextMenu(ListEditMenu):
         return "## Source Code\n" + "\n".join(result)
 
     def get_summary(self) -> str:
-        s = StringIO()
-        files = [
-            "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
-            for file in self.items
-        ]
-        s.write(f"files={files}")
-        return s.getvalue()
+        files = " ".join(
+            [
+                "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
+                for file in self.items
+            ]
+        )
+        return f"[files] {files}"

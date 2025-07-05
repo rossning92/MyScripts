@@ -31,7 +31,11 @@ class CodeAgentMenu(AgentMenu):
         return removed_messages
 
     def get_status_bar_text(self) -> str:
-        return self.__file_context_menu.get_summary() + super().get_status_bar_text()
+        return (
+            self.__file_context_menu.get_summary()
+            + "\n"
+            + super().get_status_bar_text()
+        )
 
 
 def _parse_files(files: List[str]) -> List[str]:

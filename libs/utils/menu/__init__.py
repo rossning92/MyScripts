@@ -1129,6 +1129,27 @@ class Menu(Generic[T]):
 
         item_indices = self.get_item_indices()
 
+        # Draw status bar
+        status_bar_text = self.get_status_bar_text()
+        lines = status_bar_text.splitlines()
+        if len(lines) < self._height:
+            for i, status_line in enumerate(lines):
+                parts = status_line.split("\t", maxsplit=1)
+                if len(parts) == 1:
+                    status_line = parts[0]
+                else:
+                    status_bar_text, b = parts
+                    status_line = f"{status_bar_text[:self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}"
+
+                self.draw_text(
+                    row=self._height - len(lines) + i,
+                    col=0,
+                    s=status_line,
+                    color="blue",
+                    ymax=self._height,
+                )
+            item_y_max -= len(lines) - 1
+
         # Update scroll y.
         items_per_page = self.get_items_per_page()
         if items_per_page > 0:
@@ -1235,21 +1256,6 @@ class Menu(Generic[T]):
         if items_per_page != self.get_items_per_page():
             self.update_screen()
 
-        # Draw status bar
-        if item_y_max > 1:
-            a = self.get_status_bar_text()
-            b = " [%d/%d]" % (
-                self.__selected_row_end + 1,
-                len(item_indices),
-            )
-            self.draw_text(
-                row=self._height - 1,
-                col=0,
-                s=f"{a[:self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}",
-                color="WHITE",
-                ymax=self._height,
-            )
-
         # Move cursor
         try:
             Menu.stdscr.move(draw_input_result.cursor_y, draw_input_result.cursor_x)
@@ -1260,12 +1266,18 @@ class Menu(Generic[T]):
         return 10
 
     def get_status_bar_text(self) -> str:
-        columns: List[str] = []
+        s = ""
         if self.__multi_select_mode:
-            columns.append("multi_select_mode")
+            s += "multi_select_mode"
+        item_indices = self.get_item_indices()
+        if len(item_indices) > 0:
+            s += "\t[%d/%d]" % (
+                self.__selected_row_end + 1,
+                len(item_indices),
+            )
         if self.__message:
-            columns.append(self.__message)
-        return " | ".join(columns)
+            s += "\n" + self.__message
+        return s
 
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
         if not ignore_cancellation and self.is_cancelled:
