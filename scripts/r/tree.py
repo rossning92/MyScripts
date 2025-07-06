@@ -3,10 +3,11 @@ import os
 from io import StringIO
 from itertools import islice
 from pathlib import Path
+from typing import Union
 
 
 def tree(
-    dir_path: Path,
+    dir_path: Union[Path, str],
     max_level: int = -1,
     limit_to_directories: bool = False,
     length_limit: int = 1000,
@@ -32,7 +33,7 @@ def tree(
         pointers = [tee] * (len(contents) - 1) + [last]
         for pointer, path in zip(pointers, contents):
             if path.is_dir():
-                yield prefix + pointer + path.name
+                yield prefix + pointer + path.name + "/"
                 directories += 1
                 extension = branch if pointer == tee else space
                 yield from inner(path, prefix=prefix + extension, level=level - 1)

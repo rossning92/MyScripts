@@ -157,13 +157,14 @@ def _set_clip_win(text: str):
             raise Exception("Error calling DestroyWindow()")
 
 
-def _get_clip_win():
+def _get_clip_win() -> str:
     if sys.platform != "win32":
         raise Exception("The function is only supported on Windows.")
 
     import ctypes.wintypes as w
 
     CF_UNICODETEXT = 13
+    CF_FILENAMEW = 49159  # Format Name = "FileNameW"
 
     u32 = ctypes.windll.user32
     k32 = ctypes.windll.kernel32
@@ -190,14 +191,22 @@ def _get_clip_win():
 
     text = ""
     if OpenClipboard(None):
+        # Try getting CF_UNICODETEXT first
         h_clip_mem = GetClipboardData(CF_UNICODETEXT)
-        text = ctypes.wstring_at(GlobalLock(h_clip_mem))
-        GlobalUnlock(h_clip_mem)
+        if not h_clip_mem:
+            # If CF_UNICODETEXT is not available, try FileNameW
+            h_clip_mem = GetClipboardData(CF_FILENAMEW)
+
+        if h_clip_mem:
+            locked_mem = GlobalLock(h_clip_mem)
+            if locked_mem:
+                text = ctypes.wstring_at(locked_mem)
+                GlobalUnlock(h_clip_mem)
         CloseClipboard()
     return text
 
 
-def get_clip():
+def get_clip() -> str:
     if _is_termux():
         return subprocess.check_output(
             ["termux-clipboard-get"], universal_newlines=True

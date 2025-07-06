@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# class_name=.realvnc-vncviewer
-class_name=org.remmina.Remmina
+class_name=.realvnc-vncviewer
+# class_name=org.remmina.Remmina
 
 # Find window ID by window class
 window_id=$(wmctrl -lx | awk "/$class_name/ {print \$1}")
@@ -16,5 +16,5 @@ if [[ -n "$window_id" ]]; then
         wmctrl -i -a "$window_id"
     fi
 else
-    run_script r/vncviewer_remmina.sh
+    run_script r/vncviewer_realvnc.sh
 fi

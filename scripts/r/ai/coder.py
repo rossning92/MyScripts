@@ -133,7 +133,7 @@ class CoderMenu(ChatMenu):
             f.write("*")
 
         super().__init__(
-            model="claude-3-7-sonnet-20250219",
+            model="claude-3-7-sonnet-latest",
             conv_file=os.path.join(SETTING_DIR, CONVERSATION_FILE),
             **kwargs,
         )

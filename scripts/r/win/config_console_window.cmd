@@ -17,7 +17,6 @@ reg add HKCU\Console /v FaceName /t REG_SZ /d Terminal /f >NUL
 reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x30 /f >NUL
 reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xc0008 /f >NUL
 
-
 @REM Use Ctrl-Shift-C and Ctrl-Shift-V to copy and paste
 reg add HKCU\Console /v InterceptCopyPaste /t REG_DWORD /d 1 /f >NUL
 
@@ -26,7 +25,7 @@ reg add HKCU\Console /v WindowSize /t REG_DWORD /d 0x280078 /f
 
 @REM Terminal colors
 reg add HKCU\Console /v ColorTable00 /t REG_DWORD /d 0x00362a28 /f >NUL
-reg add HKCU\Console /v ColorTable01 /t REG_DWORD /d 0x00bc4354 /f >NUL
+reg add HKCU\Console /v ColorTable01 /t REG_DWORD /d 0x00faa9ca /f >NUL
 reg add HKCU\Console /v ColorTable02 /t REG_DWORD /d 0x003dde66 /f >NUL
 reg add HKCU\Console /v ColorTable03 /t REG_DWORD /d 0x00fbd677 /f >NUL
 reg add HKCU\Console /v ColorTable04 /t REG_DWORD /d 0x003c3cee /f >NUL

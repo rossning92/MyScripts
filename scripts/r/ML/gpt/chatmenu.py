@@ -1,5 +1,6 @@
 import argparse
 import os
+import tempfile
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
 
@@ -64,7 +65,13 @@ class ChatMenu(Menu[_Line]):
             json_file=self.__settings_file,
             default={"model": model if model else "gpt-4o"},
             schema={
-                "model": Literal["gpt-4o", "o3-mini", "claude-3-7-sonnet-20250219"]
+                "model": Literal[
+                    "gpt-4o",
+                    "o3-mini",
+                    "claude-3-7-sonnet-latest",
+                    "claude-sonnet-4-0",
+                    "claude-opus-4-0",
+                ]
             },
         )
 
@@ -370,6 +377,22 @@ class ChatMenu(Menu[_Line]):
         if self.__is_generating:
             self.set_message("interrupt")
             self.__is_generating = False
+
+    def paste(self) -> bool:
+        if not super().paste():
+            from PIL import Image, ImageGrab
+
+            im = ImageGrab.grabclipboard()
+            if isinstance(im, Image.Image):
+                with tempfile.NamedTemporaryFile(
+                    suffix=".jpg", delete=False
+                ) as temp_file:
+                    im.save(temp_file.name)
+                    self.__image_file = temp_file.name
+                    self.__update_prompt()
+                    return True
+
+        return False
 
 
 def complete_chat_gui(

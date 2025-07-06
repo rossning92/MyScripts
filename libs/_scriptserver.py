@@ -1,17 +1,31 @@
 import json
 import logging
 import os
+import re
 import subprocess
 import threading
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import unquote
 
+from _script import Script
 from _scriptmanager import ScriptManager
 from scripting.path import get_data_dir, get_my_script_root
 
 HOST_NAME = "127.0.0.1"
+
+
+def _match_scripts_with_param(
+    script_manager: ScriptManager, param: str
+) -> List[Script]:
+    matched_script: List[Script] = []
+    for script in script_manager.scripts:
+        patt = script.cfg["matchClipboard"]
+        assert isinstance(patt, str)
+        if patt and re.search(patt, param):
+            matched_script.append(script)
+    return matched_script
 
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -44,12 +58,18 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                     )
                 )
 
-            elif self.path == "/scripts":
+            elif self.path == "/scripts" or self.path.startswith("/scripts/"):
+                if self.path.startswith("/scripts/"):
+                    param = unquote(self.path.removeprefix("/scripts/"))
+                    scripts = _match_scripts_with_param(self.__script_manager, param)
+                else:
+                    scripts = self.__script_manager.scripts
+
                 self._send_json(
                     {
                         "scripts": [
                             {"name": script.name, "path": script.script_path}
-                            for script in self.__script_manager.scripts
+                            for script in scripts
                         ]
                     }
                 )

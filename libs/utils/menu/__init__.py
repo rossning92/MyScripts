@@ -22,7 +22,6 @@ from typing import (
     Union,
 )
 
-from _browser import open_url
 from _shutil import get_hotkey_abbr, slugify
 
 from utils.clip import get_clip, set_clip
@@ -36,7 +35,6 @@ SHIFT_UP = 0x151
 KEY_A2 = 450
 KEY_C2 = 456
 
-URL_REGEX = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
 
 def _clamp(n, smallest, largest):
@@ -339,11 +337,10 @@ class Menu(Generic[T]):
     def __goto(self):
         selected = self.get_selected_item()
         if selected:
-            text = str(selected)
-            match = re.search(URL_REGEX, text)
-            if match:
-                open_url(match.group(0))
-                return
+            from ext.contextmenu import ContextMenu
+
+            ContextMenu(param=str(selected)).exec()
+
 
     def __redirect_output(self):
         class ConsoleRedirect:
@@ -426,11 +423,14 @@ class Menu(Generic[T]):
         set_clip(s)
         self.set_message("copied")
 
-    def paste(self):
+    def paste(self) -> bool:
         text = get_clip()
         if text != self.__input.text:
             self.set_input(text)
             self.update_screen()
+            return True
+        else:
+            return False
 
     def add_command(
         self, func: Callable, hotkey: Optional[str] = None, name: Optional[str] = None
@@ -1340,15 +1340,16 @@ class Menu(Generic[T]):
         else:
             item = self.get_selected_item()
             if item is not None:
-                on_item_selected = self.__on_item_selected
-                if on_item_selected is not None:
-                    self.call_func_without_curses(
-                        lambda item=item: on_item_selected(item)
-                    )
+                self.on_item_selected(item)
             if self.close_on_selection:
                 self.close()
             else:
                 self.update_screen()
+
+    def on_item_selected(self, item: T):
+        on_item_selected = self.__on_item_selected
+        if on_item_selected is not None:
+            self.call_func_without_curses(lambda item=item: on_item_selected(item))
 
     def on_tab_pressed(self):
         pass

@@ -57,18 +57,21 @@ class FileContextMenu(ListEditMenu):
         )
 
     def get_prompt(self) -> str:
-        result = []
+        source_code_list = []
         for item in self.items:
             file = item["file"]
             content = item["content"]
-            result.append(f"{file}\n```\n{content}\n```")
-        return """# Opened files
+            source_code_list.append(f"{file}\n```\n{content}\n```")
+        if not source_code_list:
+            return ""
+        source_code_str = "\n".join(source_code_list)
 
-(Note that the ellipses (`...`) suggest that there is additional code in the original file before and after the provided code.)
+        return f"""# Opened files
 
-""" + "\n".join(
-            result
-        )
+{source_code_str}
+
+Note that the ellipses (`...`) suggest that there is additional code in the original file before and after the provided code.
+"""
 
     def get_summary(self) -> str:
         files = " ".join(
