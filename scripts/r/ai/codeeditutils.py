@@ -113,7 +113,7 @@ def apply_changes(
                 elif count > 1:
                     raise ValueError(
                         f'Found more than one match in "{c.file}". '
-                        "You can try adding some surrounding lines in order to uniquely match the search block:\n"
+                        "Try adding some surrounding lines in order to uniquely match the search block:\n"
                         f"```\n{c.search}\n```"
                     )
                 content = content.replace(c.search, c.replace)

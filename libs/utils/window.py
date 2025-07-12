@@ -113,25 +113,46 @@ def _control_window(
         return len(hwnds) > 0  # has any matches
 
     elif sys.platform == "linux":
-        if not shutil.which("wmctrl"):
-            logging.warning("Cannot %s window, wmctrl is not installed." % cmd)
-            return
+        if os.environ.get("XDG_SESSION_TYPE", None) == "wayland" and shutil.which(
+            "swaymsg"
+        ):
+            if cmd == "activate":
+                return 0 == subprocess.call(
+                    [
+                        "swaymsg",
+                        f'[title="{name}"] focus',
+                    ]
+                )
+            elif cmd == "close":
+                return 0 == subprocess.call(
+                    [
+                        "swaymsg",
+                        f'[title="{name}"] kill',
+                    ]
+                )
+            else:
+                raise Exception("Invalid cmd parameter: %s" % cmd)
 
-        if cmd == "activate":
-            return 0 == subprocess.call(
-                [
-                    "bash",
-                    os.path.abspath(
-                        os.path.dirname(__file__)
-                        + "/../../scripts/r/linux/activate_window_by_name.sh"
-                    ),
-                    name,
-                ]
-            )
-        elif cmd == "close":
-            return subprocess.call(["wmctrl", "-c", name]) == 0
+        elif os.environ.get("DISPLAY", None) and shutil.which("wmctrl"):
+            if cmd == "activate":
+                return 0 == subprocess.call(
+                    [
+                        "bash",
+                        os.path.abspath(
+                            os.path.dirname(__file__)
+                            + "/../../scripts/r/linux/activate_window_by_name.sh"
+                        ),
+                        name,
+                    ]
+                )
+            elif cmd == "close":
+                return subprocess.call(["wmctrl", "-c", name]) == 0
+            else:
+                raise Exception("Invalid cmd parameter: %s" % cmd)
+
         else:
-            raise Exception("Invalid cmd parameter: %s" % cmd)
+            logging.warning("Cannot %s window, window manager is not supported" % cmd)
+            return
 
     elif sys.platform == "darwin":
         if cmd == "activate":

@@ -59,7 +59,7 @@ pac_install $(pacman -Ssq 'noto-fonts-*') ttf-noto-nerd
 {{ include('r/linux/arch/install_yay.sh') }}
 
 # Configure HiDPI display
-DPI_VALUE=144 # 96 * 1.5
+DPI_VALUE=120 # 96 * 1.25
 if ! grep -qF -- "Xft.dpi" ~/.Xresources; then
     echo "Xft.dpi: $DPI_VALUE" >>~/.Xresources
 else

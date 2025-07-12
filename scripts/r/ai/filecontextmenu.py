@@ -73,7 +73,7 @@ class FileContextMenu(ListEditMenu):
 Note that the ellipses (`...`) suggest that there is additional code in the original file before and after the provided code.
 """
 
-    def get_summary(self) -> str:
+    def get_status_text(self) -> str:
         files = " ".join(
             [
                 "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])

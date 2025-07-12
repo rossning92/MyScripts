@@ -1,5 +1,4 @@
 import argparse
-import glob
 import inspect
 import logging
 import os
@@ -14,15 +13,17 @@ from ML.gpt.chatmenu import ChatMenu, _Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
-from utils.menu.filemenu import FileMenu
 from utils.menu.inputmenu import InputMenu
 from utils.template import render_template
 
-SETTING_DIR = "tmp"
 MODULE_NAME = Path(__file__).stem
-CHAT_DIR = os.path.join(SETTING_DIR, MODULE_NAME + "_chats")
-AGENT_DIR = os.path.join(SETTING_DIR, MODULE_NAME + "_agents")
-UNSAVED_AGENT_FILE = "unsaved.json"
+DATA_DIR = ".{}".format(MODULE_NAME)
+AGENT_FILE = "agent.json"
+AGENT_DEFAULT = {
+    "task": "",
+    "agents": [],
+    "context": {},
+}
 
 
 def _find_xml_strings(tags: List[str], s: str) -> List[str]:
@@ -121,20 +122,25 @@ class AgentMenu(ChatMenu):
         yes_always=True,
         run=False,
         load_last_agent=False,
+        data_dir: str = DATA_DIR,
         **kwargs,
     ):
+        self.__agent = AGENT_DEFAULT.copy()
+        self.__agent_file = agent_file or os.path.join(data_dir, AGENT_FILE)
+        self.__data_dir = data_dir
         self.__run = run
+        self.__tools = self.get_tools()
         self.__yes_always = yes_always
 
-        super().__init__(**kwargs)
+        super().__init__(conv_file=os.path.join(self.__data_dir, "chat.json"), **kwargs)
+
+        os.makedirs(data_dir, exist_ok=True)
 
         if agent_file:
-            # Load specified agent
             self.__load_agent(agent_file, context=context)
         else:
-            # Try to load last agent
-            if load_last_agent and self.__load_last_agent():
-                pass
+            if load_last_agent:
+                self.__load_agent()
             else:
                 self.__new_agent()
 
@@ -142,59 +148,41 @@ class AgentMenu(ChatMenu):
 
         self.add_command(self.__edit_context, hotkey="alt+c")
         self.add_command(self.__edit_task, hotkey="alt+p")
-        self.add_command(self.__list_agent, hotkey="ctrl+l")
-        self.add_command(self.__load_last_agent, hotkey="alt+l")
+        self.add_command(self.__load_agent, hotkey="alt+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
 
-    def __load_last_agent(self) -> bool:
-        files = self.__get_agent_files()
-        if len(files) > 0:
-            self.__load_agent(files[-1])
-            return True
-        else:
-            return False
-
     def __edit_context(self):
+        assert isinstance(self.__agent["context"], dict)
         self.__agent["context"].clear()
         self.__get_task_with_context()
 
     def __load_agent(
-        self, agent_file: str, clear_messages=False, context: Optional[Dict] = None
+        self,
+        agent_file: Optional[str] = None,
+        clear_messages=False,
+        context: Optional[Dict] = None,
     ):
-        self.__agent_file = agent_file
+        if agent_file is not None:
+            self.__agent_file = agent_file
 
-        agent_default = {
-            "task": "",
-            "agents": [],
-            "context": {},
-        }
         if clear_messages:
-            self.__agent = agent_default
+            self.__agent = AGENT_DEFAULT.copy()
         else:
             self.__agent = load_json(
                 self.__agent_file,
-                default=agent_default,
+                default=AGENT_DEFAULT.copy(),
             )
 
         if context:
+            assert isinstance(self.__agent["context"], dict)
             self.__agent["context"].update(context)
 
-        conv_file = os.path.join(CHAT_DIR, _get_agent_name(self.__agent_file) + ".json")
-        self.load_conversation(conv_file)
-        if clear_messages:
-            self.clear_messages()
-
-        self.__tools = self.get_tools()
+        self.load_conversation()
 
     def __new_agent(self):
-        agent_file = os.path.join(AGENT_DIR, UNSAVED_AGENT_FILE)
-        self.__load_agent(agent_file, clear_messages=True)
-
-    def __list_agent(self):
-        menu = FileMenu(goto=AGENT_DIR)
-        selected = menu.select_file()
-        if selected:
-            self.__load_agent(selected)
+        self.__agent_file = os.path.join(self.__data_dir, AGENT_FILE)
+        self.__agent = AGENT_DEFAULT.copy()
+        self.new_conversation()
 
     def on_created(self):
         if self.__run:
@@ -223,12 +211,6 @@ class AgentMenu(ChatMenu):
             else:
                 super().send_message(text)
 
-    def __get_agent_files(self) -> List[str]:
-        return sorted(
-            glob.glob(os.path.join(AGENT_DIR, "*.json")),
-            key=os.path.getmtime,
-        )
-
     def __save_agent(self):
         os.makedirs(os.path.dirname(self.__agent_file), exist_ok=True)
         save_json(self.__agent_file, self.__agent)
@@ -245,6 +227,7 @@ class AgentMenu(ChatMenu):
                 for name in undefined_names:
                     val = InputMenu(prompt=name).request_input()
                     if val:
+                        assert isinstance(self.__agent["context"], dict)
                         self.__agent["context"][name] = val
                         self.__save_agent()
             else:
@@ -381,7 +364,7 @@ class AgentMenu(ChatMenu):
         name = _get_agent_name(self.__agent_file)
         tools = "|".join([t.__name__ for t in self.get_tools()])
         context = self.__agent["context"]
-        s = f"AGENT: name='{name}' tools='{tools}' context={context}"
+        s = f"AGENT: name='{name}' tools='{tools}' context={context} cwd='{os.getcwd()}'"
         return s + "\n" + super().get_status_text()
 
 
@@ -406,10 +389,6 @@ def _main():
 
     args = parser.parse_args()
     context = dict(kvp.split("=") for kvp in args.context) if args.context else None
-
-    os.makedirs(SETTING_DIR, exist_ok=True)
-    os.makedirs(AGENT_DIR, exist_ok=True)
-    os.makedirs(CHAT_DIR, exist_ok=True)
 
     menu = AgentMenu(
         context=context,

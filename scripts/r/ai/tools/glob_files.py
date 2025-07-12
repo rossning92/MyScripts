@@ -13,4 +13,4 @@ def glob_files(pattern) -> str:
     """
     files = glob.glob(pattern, recursive=True)
     files.sort(key=os.path.getmtime, reverse=True)
-    return "\n".join(files) + f"\n\nFound ${len(files)} matching file(s)`"
+    return "\n".join(files) + f"\n\nFound {len(files)} matching file(s)`"

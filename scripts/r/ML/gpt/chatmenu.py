@@ -46,6 +46,7 @@ class ChatMenu(Menu[_Line]):
         prompt: str = "c",
     ) -> None:
         self.__auto_create_conv_file = conv_file is None
+        self.__conv_file = conv_file
         self.__copy_and_exit = copy_and_exit
         self.__first_message = message
         self.__image_file: Optional[str] = image_file
@@ -102,14 +103,15 @@ class ChatMenu(Menu[_Line]):
         )
 
         self.__conv: Dict[str, Any] = ChatMenu.default_conv.copy()  # conversation data
-        self.__conv_file: str
+        self.__conv_file: Optional[str]
 
         self.new_conversation()
-        if conv_file:
-            self.__conv_file = conv_file
+        if new_conversation:
+            pass
+        elif self.__conv_file is not None:
             if not new_conversation and os.path.exists(self.__conv_file):
                 self.load_conversation(conv_file)
-        elif not new_conversation:
+        else:  # load last conversation
             conversation_files = self.__history_manager.get_all_files()
             if len(conversation_files) > 0:
                 self.load_conversation(conversation_files[-1])
@@ -335,6 +337,9 @@ class ChatMenu(Menu[_Line]):
     def load_conversation(self, file: Optional[str] = None):
         if file is not None:
             self.__conv_file = file
+
+        if not self.__conv_file:
+            return
 
         if not os.path.exists(self.__conv_file):
             self.set_message(f"Conv file not exist: {self.__conv_file}")

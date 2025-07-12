@@ -28,7 +28,7 @@ File tree:
 
 class CodeAgentMenu(AgentMenu):
     def __init__(self, files: Optional[List[str]], **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(data_dir=".coder", **kwargs)
         self.__file_context_menu = FileContextMenu(files=files)
 
     def get_tools(self) -> List[Callable]:
@@ -50,7 +50,11 @@ class CodeAgentMenu(AgentMenu):
         return removed_messages
 
     def get_status_text(self) -> str:
-        return self.__file_context_menu.get_summary() + "\n" + super().get_status_text()
+        return (
+            self.__file_context_menu.get_status_text()
+            + "\n"
+            + super().get_status_text()
+        )
 
 
 def _parse_files(files: List[str]) -> List[str]:

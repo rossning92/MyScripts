@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import re
@@ -39,11 +40,7 @@ def add_keyboard_hooks(keyboard_hooks):
             keyboard.add_hotkey(hotkey, func)
 
 
-def register_global_hotkeys_linux(scripts: List[Script]):
-    if not shutil.which("sxhkd"):
-        logging.warning("sxhkd is not installed, skip global hotkey registration.")
-        return
-
+def register_global_hotkeys_sxhkd(scripts: List[Script]):
     s = (
         "control+q\n"
         "  wmctrl -a MyTerminal"
@@ -88,6 +85,59 @@ def register_global_hotkeys_linux(scripts: List[Script]):
     else:
         logging.debug("Start sxhkd daemon")
         start_process(["sxhkd", "-c", os.path.expanduser("~/.sxhkdrc")])
+
+
+def register_global_hotkeys_sway(scripts: List[Script]):
+    def replace_hotkey(hotkey: str) -> str:
+        replacements = {
+            "win+": "Mod4+",
+            "ctrl+": "Control+",
+            "alt+": "Mod1+",
+            "[": "bracketleft",
+            "]": "bracketright",
+            ",": "comma",
+            ".": "period",
+        }
+        for key, value in replacements.items():
+            hotkey = hotkey.replace(key, value)
+        return hotkey
+
+    for script in scripts:
+        hotkey_chain = script.cfg["globalHotkey"]
+        if hotkey_chain and script.is_supported():
+            hotkey_chain_arr = [
+                replace_hotkey(hotkey.lower()) for hotkey in hotkey_chain.split()
+            ]
+
+            if len(hotkey_chain_arr) == 1:
+                logging.info(
+                    f"Register global hotkey '{hotkey_chain_arr[0]}' for script '{script.name}'"
+                )
+                args = [
+                    "sway",
+                    "bindsym",
+                    hotkey_chain_arr[0],
+                    "exec",
+                    "python3",
+                    f"{get_my_script_root()}/bin/start_script.py",
+                    script.script_path,
+                ]
+                out = subprocess.check_output(args)
+                if not json.loads(out)[0]["success"]:
+                    raise RuntimeError(
+                        f"Failed to register hotkey: {str(out)} for script: {script.name}"
+                    )
+            else:
+                logging.warning(
+                    f"Hotkey chain '{hotkey_chain}' is not supported on sway, only single hotkey is supported."
+                )
+
+
+def register_global_hotkeys_linux(scripts: List[Script]):
+    if os.environ.get("SWAYSOCK"):
+        register_global_hotkeys_sway(scripts)
+    elif shutil.which("sxhkd"):
+        register_global_hotkeys_sxhkd(scripts)
 
 
 def _to_ahk_hotkey(hotkey: str):
