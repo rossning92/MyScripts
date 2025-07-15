@@ -15,7 +15,7 @@
     ".amr": ["mpv", "vlc"],
     ".amv": ["mpv", "vlc"],
     ".ape": ["mpv", "vlc"],
-    ".apex": [["adb", "install", "-d", "-g"]],
+    ".apex": [["start_script", "r/android/install_apex.py"]],
     ".apk": [
       [
         "run_script",

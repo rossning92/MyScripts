@@ -74,10 +74,14 @@ Note that the ellipses (`...`) suggest that there is additional code in the orig
 """
 
     def get_status_text(self) -> str:
-        files = " ".join(
-            [
-                "{}#{}-{}".format(file["file"], file["line_start"], file["line_end"])
-                for file in self.items
-            ]
-        )
-        return f"FILES: {files}"
+        if len(self.items) == 0:
+            return ""
+        else:
+            return "FILES: " + " ".join(
+                [
+                    "{}#{}-{}".format(
+                        file["file"], file["line_start"], file["line_end"]
+                    )
+                    for file in self.items
+                ]
+            )

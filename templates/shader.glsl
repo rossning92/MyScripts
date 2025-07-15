@@ -1,5 +1,5 @@
 #iChannel0                                                                     \
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/718smiley.svg/480px-718smiley.svg.png"
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Awesome_Face.svg/600px-Awesome_Face.svg.png"
 
 // precision mediump float;
 

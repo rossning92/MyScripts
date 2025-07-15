@@ -1,5 +1,6 @@
 import argparse
 import os
+from platform import platform
 from typing import Any, Callable, Dict, List, Optional
 
 from ai.agent import AgentMenu
@@ -11,6 +12,7 @@ from ai.tools.run_bash_command import run_bash_command
 from ai.tools.search_and_replace import search_and_replace
 from ai.tools.write_file import write_file
 from tree import tree
+from utils.menu.filemenu import FileMenu
 
 
 def get_env_info() -> str:
@@ -18,6 +20,7 @@ def get_env_info() -> str:
 
     return f"""# Environment Information
 
+Platform: {platform()}
 Current working directory: {os.getcwd()}
 File tree:
 ```
@@ -28,8 +31,9 @@ File tree:
 
 class CodeAgentMenu(AgentMenu):
     def __init__(self, files: Optional[List[str]], **kwargs):
-        super().__init__(data_dir=".coder", **kwargs)
+        super().__init__(data_dir=".coder", model="claude-sonnet-4-0", **kwargs)
         self.__file_context_menu = FileContextMenu(files=files)
+        self.add_command(self.__open_file_menu, hotkey="alt+f")
 
     def get_tools(self) -> List[Callable]:
         return [read_file, write_file, search_and_replace, run_bash_command, glob_files]
@@ -50,11 +54,11 @@ class CodeAgentMenu(AgentMenu):
         return removed_messages
 
     def get_status_text(self) -> str:
-        return (
-            self.__file_context_menu.get_status_text()
-            + "\n"
-            + super().get_status_text()
-        )
+        files = self.__file_context_menu.get_status_text()
+        return (files + "\n" if files else "") + super().get_status_text()
+
+    def __open_file_menu(self):
+        FileMenu(goto=os.getcwd()).exec()
 
 
 def _parse_files(files: List[str]) -> List[str]:

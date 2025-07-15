@@ -1,11 +1,9 @@
 import argparse
 import http.client
 import json
-import re
 import urllib.parse
 from typing import List
 
-from _browser import open_url
 from _script import Script
 from utils.menu import Menu
 
@@ -29,22 +27,9 @@ def _match_scripts_with_param(param: str) -> List[str]:
 
 
 class ContextMenu(Menu[str]):
-    # Match url
-    URL_PATTERN = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
-
     def __init__(self, param: str, **kwargs):
         self.__param = param
-
-        items: List[str] = []
-
-        match = re.search(ContextMenu.URL_PATTERN, param)
-        if match:
-            items.insert(0, match.group(0))
-
-        # Match scripts
-        items.extend(_match_scripts_with_param(self.__param))
-
-        super().__init__(items=items, **kwargs)
+        super().__init__(items=_match_scripts_with_param(self.__param), **kwargs)
 
     def on_created(self):
         if len(self.items) == 1:
@@ -52,11 +37,8 @@ class ContextMenu(Menu[str]):
             self.close()
 
     def on_item_selected(self, item: str):
-        if re.match(ContextMenu.URL_PATTERN, item):
-            open_url(item)
-        else:
-            script = Script(item)
-            script.execute(args=[self.__param])
+        script = Script(item)
+        script.execute(args=[self.__param])
 
 
 if __name__ == "__main__":

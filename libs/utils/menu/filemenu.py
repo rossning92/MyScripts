@@ -109,7 +109,7 @@ class FileMenu(Menu[_File]):
 
     def __init__(
         self,
-        goto=None,
+        goto: Optional[str] = ".",
         save_states=True,
         prompt=None,
         recursive=False,

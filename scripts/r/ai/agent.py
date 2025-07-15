@@ -361,10 +361,8 @@ class AgentMenu(ChatMenu):
         self.__complete_task()
 
     def get_status_text(self) -> str:
-        name = _get_agent_name(self.__agent_file)
         tools = "|".join([t.__name__ for t in self.get_tools()])
-        context = self.__agent["context"]
-        s = f"AGENT: name='{name}' tools='{tools}' context={context} cwd='{os.getcwd()}'"
+        s = f"TOOLS: {tools}\nCWD  : {os.getcwd()}"
         return s + "\n" + super().get_status_text()
 
 
