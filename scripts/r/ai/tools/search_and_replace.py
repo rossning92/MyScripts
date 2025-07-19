@@ -11,10 +11,7 @@ def search_and_replace(file: str, search: str, replace: str):
     """
     backup_files([file])
 
-    if (
-        apply_change_interactive(
-            changes=[Change(file=file, search=search, replace=replace)]
-        )
-        is None
+    if not apply_change_interactive(
+        change=Change(file=file, search=search, replace=replace)
     ):
         raise KeyboardInterrupt("Search and replace was canceled by the user")

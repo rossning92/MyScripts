@@ -2,7 +2,8 @@ import argparse
 import os
 import tempfile
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from queue import Queue
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 from ai.complete_chat import complete_chat
 from ai.openai.complete_chat import create_user_message, message_to_str
@@ -53,6 +54,7 @@ class ChatMenu(Menu[_Line]):
         self.__is_generating = False
         self.__last_yanked_line: Optional[_Line] = None
         self.__lines: List[_Line] = []
+        self.__post_generation: Queue[Callable] = Queue()
         self.__prompt = prompt
         self.__yank_mode = 0
 
@@ -315,7 +317,13 @@ class ChatMenu(Menu[_Line]):
             set_clip(content)
             self.close()
 
+        while not self.__post_generation.empty():
+            action = self.__post_generation.get()
+            action()
+
     def save_conversation(self):
+        if self.__conv_file is None:
+            return
         os.makedirs(os.path.dirname(self.__conv_file), exist_ok=True)
         save_json(self.__conv_file, self.__conv)
         self.__history_manager.delete_old_files()
@@ -365,7 +373,12 @@ class ChatMenu(Menu[_Line]):
             self.update_screen()
 
     def on_enter_pressed(self):
-        self.send_message(self.get_input())
+        if self.__cancel_chat_completion():
+            self.__post_generation.put(
+                lambda message=self.get_input(): self.send_message(message)
+            )
+        else:
+            self.send_message(self.get_input())
 
     def on_item_selection_changed(self, item: Optional[_Line], i: int):
         self.__yank_mode = 0
@@ -379,9 +392,15 @@ class ChatMenu(Menu[_Line]):
         return config_text + "\n" + super().get_status_text()
 
     def on_escape_pressed(self):
+        self.__cancel_chat_completion()
+
+    def __cancel_chat_completion(self) -> bool:
         if self.__is_generating:
             self.set_message("interrupt")
             self.__is_generating = False
+            return True
+        else:
+            return False
 
     def paste(self) -> bool:
         if not super().paste():

@@ -1,5 +1,6 @@
 {
   "commandWrapper": false,
   "globalHotkey": "win+alt+p",
-  "hotkey": "alt+p"
+  "hotkey": "alt+p",
+  "title": "command_prompt"
 }
