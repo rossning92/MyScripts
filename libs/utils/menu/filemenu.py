@@ -69,7 +69,6 @@ class _File:
         name: str,
         is_dir: bool,
         full_path: str,
-        file_size: int,
         show_size: bool,
         show_mtime: bool,
         relative_path=False,
@@ -77,23 +76,47 @@ class _File:
         self.name = name
         self.is_dir = is_dir
         self.full_path = full_path
-        self.file_size = file_size
         self.relative_path = relative_path
         self.show_size = show_size
         self.show_mtime = show_mtime
+        self.__stat: Optional[os.stat_result] = None
+        self.__dir_size = 0
+
+    def __get_stat(self):
+        if self.__stat is None:
+            try:
+                self.__stat = os.stat(self.full_path)
+            except Exception:
+                self.__stat = os.stat_result((0,) * 10)
+        return self.__stat
+
+    @property
+    def mtime(self) -> float:
+        return self.__get_stat().st_mtime
+
+    @property
+    def size(self) -> int:
+        if self.is_dir:
+            return self.__dir_size
+        else:
+            return self.__get_stat().st_size
+
+    def update_dir_size(self):
+        self.__dir_size = get_dir_size(self.full_path)
 
     def __str__(self) -> str:
         s = ""
 
         # Size column
         if self.show_size:
-            size = human_readable_size(self.file_size) if not self.is_dir else ""
+            size = human_readable_size(self.size) if self.size else ""
             s += f"{size:>6}  "
 
         # Modified time column
         if self.show_size:
-            mtime = os.path.getmtime(self.full_path)
-            formatted_time = datetime.fromtimestamp(mtime).strftime("%y-%m-%d %H:%M")
+            formatted_time = datetime.fromtimestamp(self.mtime).strftime(
+                "%y-%m-%d %H:%M"
+            )
             s += formatted_time + "  "
 
         # Name column
@@ -208,7 +231,7 @@ class FileMenu(Menu[_File]):
     def _get_dir_size(self):
         for file in self.items:
             if file.is_dir:
-                file.file_size = get_dir_size(file.full_path)
+                file.update_dir_size()
         self.update_screen()
 
     def _edit_text_file(self):
@@ -438,9 +461,6 @@ class FileMenu(Menu[_File]):
                         file,
                         is_dir=False,
                         full_path=self.get_cur_dir() + os.path.sep + file,
-                        file_size=os.path.getsize(
-                            os.path.join(self.get_cur_dir(), file)
-                        ),
                         relative_path=True,
                         show_mtime=self.__show_mtime,
                         show_size=self.__show_size,
@@ -467,7 +487,6 @@ class FileMenu(Menu[_File]):
                             _File(
                                 file,
                                 full_path=full_path,
-                                file_size=0,
                                 is_dir=True,
                                 show_mtime=self.__show_mtime,
                                 show_size=self.__show_size,
@@ -478,7 +497,6 @@ class FileMenu(Menu[_File]):
                             _File(
                                 file,
                                 full_path=full_path,
-                                file_size=os.path.getsize(full_path),
                                 is_dir=False,
                                 show_mtime=self.__show_mtime,
                                 show_size=self.__show_size,
@@ -492,12 +510,8 @@ class FileMenu(Menu[_File]):
                 dir_items.sort(key=lambda x: x.name)
                 file_items.sort(key=lambda x: x.name)
             elif self.__config.sort_by == "mtime":
-                dir_items.sort(
-                    key=lambda x: os.path.getmtime(x.full_path), reverse=True
-                )
-                file_items.sort(
-                    key=lambda x: os.path.getmtime(x.full_path), reverse=True
-                )
+                dir_items.sort(key=lambda x: x.mtime, reverse=True)
+                file_items.sort(key=lambda x: x.mtime, reverse=True)
 
             self.__files.extend(dir_items)
             self.__files.extend(file_items)

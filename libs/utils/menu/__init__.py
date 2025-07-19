@@ -36,7 +36,6 @@ KEY_A2 = 450
 KEY_C2 = 456
 
 
-
 def _clamp(n, smallest, largest):
     return max(smallest, min(n, largest))
 
@@ -340,7 +339,6 @@ class Menu(Generic[T]):
             from ext.contextmenu import ContextMenu
 
             ContextMenu(param=str(selected)).exec()
-
 
     def __redirect_output(self):
         class ConsoleRedirect:
@@ -1053,7 +1051,7 @@ class Menu(Generic[T]):
 
         # Draw left arrow
         if scroll_x > 0:
-            Menu.stdscr.addstr(row, col, "<", Menu.color_name_to_attr("CYAN"))
+            Menu.stdscr.addstr(row, col, "<", Menu.color_name_to_attr("WHITE"))
             x = col + 1
         else:
             x = col
@@ -1092,7 +1090,7 @@ class Menu(Generic[T]):
                             row,
                             self.__width - 1,
                             ">",
-                            Menu.color_name_to_attr("CYAN"),
+                            Menu.color_name_to_attr("WHITE"),
                         )
                         can_scroll_right = True
                     break

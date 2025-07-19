@@ -1,3 +1,5 @@
+from ai.tools import Settings
+from utils.menu.confirmmenu import confirm
 from utils.menu.shellcmdmenu import ShellCmdMenu
 
 
@@ -7,6 +9,9 @@ def run_bash_command(command: str) -> str:
     Ensure the command is properly formatted and does not contain any harmful instructions.
     """
 
-    menu = ShellCmdMenu(command=command, prompt=f"Running `{command}`")
+    if Settings.need_confirm and not confirm(f"Run command: {command}?"):
+        raise KeyboardInterrupt("Command execution was canceled by the user")
+
+    menu = ShellCmdMenu(command=command, prompt=f"Running command: {command}")
     menu.exec()
     return menu.get_output()

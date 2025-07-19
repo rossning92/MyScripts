@@ -9,7 +9,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 from ai.tools.execute_python import execute_python
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
-from ML.gpt.chatmenu import ChatMenu, _Line
+from ML.gpt.chatmenu import ChatMenu, Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
@@ -55,11 +55,6 @@ def _parse_xml_string_for_tool(s: str) -> Tuple[str, Dict[str, str]]:
         else:
             break
     return (tool_name, params)
-
-
-def _get_agent_name(agent_file: str) -> str:
-    agent_name, _ = os.path.splitext(os.path.basename(agent_file))
-    return agent_name
 
 
 def _get_prompt(task: str, tools: Optional[List[Callable]] = None):
@@ -132,7 +127,11 @@ class AgentMenu(ChatMenu):
         self.__tools = self.get_tools()
         self.__yes_always = yes_always
 
-        super().__init__(conv_file=os.path.join(self.__data_dir, "chat.json"), **kwargs)
+        super().__init__(
+            data_dir=data_dir,
+            conv_file=os.path.join(self.__data_dir, "chat.json"),
+            **kwargs,
+        )
 
         os.makedirs(data_dir, exist_ok=True)
 
@@ -283,7 +282,7 @@ class AgentMenu(ChatMenu):
             tools.append(scope[agent_name])
         return tools
 
-    def get_item_color(self, line: _Line) -> str:
+    def get_item_color(self, line: Line) -> str:
         if "<result>" in line.text:
             return "green"
         elif "ERROR:" in line.text:

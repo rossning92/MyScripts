@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from _shutil import send_ctrl_c, write_temp_file
@@ -11,6 +12,9 @@ from utils.editor import edit_text_file
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.inputmenu import InputMenu
+
+_MODULE_NAME = Path(__file__).stem
+DIVIDER = "─" * 80
 
 
 @dataclass
@@ -58,7 +62,8 @@ class GrepMenu(Menu[_Line]):
         self.__path = path if path else os.getcwd()
         self.__matches: List[_Match] = []
         self.__exclude = exclude
-        self.__data: Dict[str, Any] = load_json("tmp/grep_data.json", default={})
+        self.__data_file = os.path.join(".config", f"{_MODULE_NAME}.json")
+        self.__data: Dict[str, Any] = load_json(self.__data_file, default={})
 
         super().__init__(
             prompt=f"grep ({self.__path})",
@@ -111,7 +116,7 @@ class GrepMenu(Menu[_Line]):
                 [
                     "run_script",
                     "@command_wrapper=1",
-                    "r/ai/coder.py",
+                    "r/ai/code_agent.py",
                     "--task",
                     task,
                     "--context-file",
@@ -135,7 +140,7 @@ class GrepMenu(Menu[_Line]):
                     [
                         "run_script",
                         "@command_wrapper=1",
-                        "r/ai/coder.py",
+                        "r/ai/code_agent.py",
                         "--yes",
                         "--task",
                         task,
@@ -186,7 +191,7 @@ class GrepMenu(Menu[_Line]):
         for match in self.__matches:
             self.append_item(
                 _Line(
-                    match.file if match.file != last_file else "-------",
+                    match.file if match.file != last_file else DIVIDER,
                     type="file",
                     match=match,
                 )
@@ -226,7 +231,7 @@ class GrepMenu(Menu[_Line]):
         except ValueError:
             pass
         self.__data["history"].insert(0, input_str)
-        save_json("tmp/grep_data.json", self.__data)
+        save_json(self.__data_file, self.__data)
 
         args = [
             "rg",

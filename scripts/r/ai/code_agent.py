@@ -5,12 +5,14 @@ from typing import Any, Callable, Dict, List, Optional
 
 from ai.agent import AgentMenu
 from ai.filecontextmenu import FileContextMenu
+from ai.tools import Settings
 from ai.tools.checkpoints import restore_files_to_timestamp
 from ai.tools.glob_files import glob_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.search_and_replace import search_and_replace
 from ai.tools.write_file import write_file
+from ML.gpt.chatmenu import SettingsMenu
 from tree import tree
 from utils.menu.filemenu import FileMenu
 
@@ -29,9 +31,30 @@ File tree:
 """
 
 
+class _SettingsMenu(SettingsMenu):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.__update_settings()
+
+    def get_default_values(self) -> Dict[str, Any]:
+        return {**super().get_default_values(), "need_confirm": True}
+
+    def on_dict_update(self, data):
+        super().on_dict_update(data)
+        self.__update_settings()
+
+    def __update_settings(self):
+        Settings.need_confirm = self.data["need_confirm"]
+
+
 class CodeAgentMenu(AgentMenu):
     def __init__(self, files: Optional[List[str]], **kwargs):
-        super().__init__(data_dir=".coder", model="claude-sonnet-4-0", **kwargs)
+        super().__init__(
+            data_dir=".coder",
+            model="claude-sonnet-4-0",
+            settings_menu_class=_SettingsMenu,
+            **kwargs,
+        )
         self.__file_context_menu = FileContextMenu(files=files)
         self.add_command(self.__open_file_menu, hotkey="alt+f")
 

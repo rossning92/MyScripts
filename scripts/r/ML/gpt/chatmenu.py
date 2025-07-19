@@ -2,7 +2,9 @@ import argparse
 import os
 import tempfile
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from pathlib import Path
+from queue import Queue
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 from ai.complete_chat import complete_chat
 from ai.openai.complete_chat import create_user_message, message_to_str
@@ -14,8 +16,30 @@ from utils.menu import Menu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 
+_MODULE_NAME = Path(__file__).stem
 
-class _Line:
+
+class SettingsMenu(JsonEditMenu):
+    def __init__(self, settings_file: str, model: Optional[str]) -> None:
+        self.__model = model
+        super().__init__(json_file=settings_file)
+
+    def get_default_values(self) -> Dict[str, Any]:
+        return {"model": self.__model if self.__model else "gpt-4o"}
+
+    def get_schema(self) -> Dict[str, Any]:
+        return {
+            "model": Literal[
+                "gpt-4o",
+                "o3-mini",
+                "claude-3-7-sonnet-latest",
+                "claude-sonnet-4-0",
+                "claude-opus-4-0",
+            ]
+        }
+
+
+class Line:
     def __init__(self, role: str, text: str, message_index: int) -> None:
         self.role = role
         self.text = text
@@ -31,7 +55,7 @@ class _SelectConvMenu(Menu[str]):
         return str(conv)
 
 
-class ChatMenu(Menu[_Line]):
+class ChatMenu(Menu[Line]):
     default_conv: Dict = {"messages": []}
 
     def __init__(
@@ -44,6 +68,7 @@ class ChatMenu(Menu[_Line]):
         image_file: Optional[str] = None,
         new_conversation=True,
         prompt: str = "c",
+        settings_menu_class=SettingsMenu,
     ) -> None:
         self.__auto_create_conv_file = conv_file is None
         self.__conv_file = conv_file
@@ -51,29 +76,19 @@ class ChatMenu(Menu[_Line]):
         self.__first_message = message
         self.__image_file: Optional[str] = image_file
         self.__is_generating = False
-        self.__last_yanked_line: Optional[_Line] = None
-        self.__lines: List[_Line] = []
+        self.__last_yanked_line: Optional[Line] = None
+        self.__lines: List[Line] = []
+        self.__post_generation: Queue[Callable] = Queue()
         self.__prompt = prompt
         self.__yank_mode = 0
 
         self.__data_dir = (
-            data_dir if data_dir else os.path.join(os.environ["MY_DATA_DIR"], "chat")
+            data_dir if data_dir else os.path.join(".config", _MODULE_NAME)
         )
         os.makedirs(self.__data_dir, exist_ok=True)
 
-        self.__settings_file = os.path.join(self.__data_dir, "settings.json")
-        self.__settings_menu = JsonEditMenu(
-            json_file=self.__settings_file,
-            default={"model": model if model else "gpt-4o"},
-            schema={
-                "model": Literal[
-                    "gpt-4o",
-                    "o3-mini",
-                    "claude-3-7-sonnet-latest",
-                    "claude-sonnet-4-0",
-                    "claude-opus-4-0",
-                ]
-            },
+        self.__settings_menu = settings_menu_class(
+            settings_file=os.path.join(self.__data_dir, "settings.json"), model=model
         )
 
         super().__init__(
@@ -92,9 +107,7 @@ class ChatMenu(Menu[_Line]):
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
 
-        self.__conversations_dir = os.path.join(
-            os.environ["MY_DATA_DIR"], "conversations"
-        )
+        self.__conversations_dir = os.path.join(self.__data_dir, "conversations")
         os.makedirs(self.__conversations_dir, exist_ok=True)
         self.__history_manager = HistoryManager(
             save_dir=self.__conversations_dir,
@@ -244,7 +257,7 @@ class ChatMenu(Menu[_Line]):
             self.set_message("selected line copied")
             self.set_multi_select(False)
 
-    def get_item_color(self, item: _Line) -> str:
+    def get_item_color(self, item: Line) -> str:
         return "blue" if item.role == "user" else "white"
 
     def get_messages(self) -> List[Dict[str, Any]]:
@@ -270,7 +283,7 @@ class ChatMenu(Menu[_Line]):
 
         self.save_conversation()
         for s in text.splitlines():
-            self.append_item(_Line(role="user", text=s, message_index=message_index))
+            self.append_item(Line(role="user", text=s, message_index=message_index))
 
         self.__complete_chat()
 
@@ -283,13 +296,13 @@ class ChatMenu(Menu[_Line]):
         content = ""
         messages = self.get_messages()
         message_index = len(self.get_messages())
-        line = _Line(role="assistant", text="", message_index=message_index)
+        line = Line(role="assistant", text="", message_index=message_index)
         self.append_item(line)
         for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
             content += chunk
             for i, a in enumerate(chunk.split("\n")):
                 if i > 0:
-                    line = _Line(role="assistant", text="", message_index=message_index)
+                    line = Line(role="assistant", text="", message_index=message_index)
                     self.append_item(line)
                 line.text += a
 
@@ -315,7 +328,13 @@ class ChatMenu(Menu[_Line]):
             set_clip(content)
             self.close()
 
+        while not self.__post_generation.empty():
+            action = self.__post_generation.get()
+            action()
+
     def save_conversation(self):
+        if self.__conv_file is None:
+            return
         os.makedirs(os.path.dirname(self.__conv_file), exist_ok=True)
         save_json(self.__conv_file, self.__conv)
         self.__history_manager.delete_old_files()
@@ -326,7 +345,7 @@ class ChatMenu(Menu[_Line]):
             if message["role"] != "system":
                 for line in message_to_str(message).splitlines():
                     self.append_item(
-                        _Line(
+                        Line(
                             role=message["role"],
                             text=line,
                             message_index=message_index,
@@ -365,9 +384,14 @@ class ChatMenu(Menu[_Line]):
             self.update_screen()
 
     def on_enter_pressed(self):
-        self.send_message(self.get_input())
+        if self.__cancel_chat_completion():
+            self.__post_generation.put(
+                lambda message=self.get_input(): self.send_message(message)
+            )
+        else:
+            self.send_message(self.get_input())
 
-    def on_item_selection_changed(self, item: Optional[_Line], i: int):
+    def on_item_selection_changed(self, item: Optional[Line], i: int):
         self.__yank_mode = 0
         return super().on_item_selection_changed(item, i)
 
@@ -379,9 +403,15 @@ class ChatMenu(Menu[_Line]):
         return config_text + "\n" + super().get_status_text()
 
     def on_escape_pressed(self):
+        self.__cancel_chat_completion()
+
+    def __cancel_chat_completion(self) -> bool:
         if self.__is_generating:
             self.set_message("interrupt")
             self.__is_generating = False
+            return True
+        else:
+            return False
 
     def paste(self) -> bool:
         if not super().paste():

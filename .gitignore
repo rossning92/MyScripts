@@ -16,9 +16,10 @@
 
 # Ignore directories
 __pycache__/
-.mypy_cache/
 .coder/
+.config/
 .idea/
+.mypy_cache/
 .venv/
 /config/
 build/

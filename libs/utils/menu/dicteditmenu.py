@@ -154,18 +154,18 @@ class DictEditMenu(Menu[_KeyValuePair]):
         prompt="",
         schema: Optional[Dict[str, Type]] = None,
     ):
-        self.__schema = schema
+        self.__data = data
+        self.__default_dict: Dict[str, Any] = default_dict or {}
+        self.__dict_history = dict_history
+        self.__on_dict_history_update = on_dict_history_update
+        self.__on_dict_update = on_dict_update
+        self.__schema: Dict[str, Any] = schema or {}
 
         super().__init__(
             prompt=prompt,
             highlight=OrderedDict([(r"\(\*\)", "green")]),
             wrap_text=True,
         )
-        self.__data = data
-        self.__default_dict = default_dict
-        self.__on_dict_update = on_dict_update
-        self.__dict_history = dict_history
-        self.__on_dict_history_update = on_dict_history_update
 
         self.__init_items()
 
@@ -229,8 +229,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
             self.set_message(f"copied: {value}")
 
     def __notify_dict_updated(self):
-        if self.__on_dict_update:
-            self.__on_dict_update(self.__data)
+        self.on_dict_update(self.__data)
         if self.__on_dict_history_update:
             self.__on_dict_history_update(self.__dict_history)
         self.update_screen()
@@ -239,18 +238,20 @@ class DictEditMenu(Menu[_KeyValuePair]):
         if len(self.__data) == 0:
             return
 
+        default_dict = self.get_default_values()
+
         # Get max width for keys
         keys = set(self.__data.keys())
-        if self.__default_dict:
-            keys.update(self.__default_dict.keys())
+        if default_dict:
+            keys.update(default_dict.keys())
         max_width = max(len(x) for x in keys) + 1
 
         kvps: List[Tuple[str, bool]] = []
         for key in keys:
             modified = (
-                self.__default_dict is not None
+                default_dict is not None
                 and key in self.__data
-                and self.__data[key] != self.__default_dict[key]
+                and self.__data[key] != default_dict[key]
             )
             kvps.append((key, modified))
 
@@ -265,7 +266,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
                     self.__data,
                     key=key,
                     key_display_width=max_width,
-                    default_dict=self.__default_dict,
+                    default_dict=default_dict,
                     get_value_str=self.get_value_str,
                 )
             )
@@ -279,6 +280,12 @@ class DictEditMenu(Menu[_KeyValuePair]):
             return selected.key
         else:
             return None
+
+    def get_default_values(self) -> Dict[str, Any]:
+        return self.__default_dict
+
+    def get_schema(self) -> Dict[str, Any]:
+        return self.__schema
 
     def __get_dict_history_values(self, name: str) -> List[str]:
         if name not in self.__dict_history:
@@ -314,14 +321,13 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.update_screen()
 
     def edit_dict_value(self, data: Dict[str, Any], name: str):
+        default_dict = self.get_default_values()
+        schema = self.get_schema()
+
         data_type = (
-            self.__schema[name]
-            if self.__schema is not None
-            else (
-                type(self.__default_dict[name])
-                if self.__default_dict
-                else type(data[name])
-            )
+            schema[name]
+            if schema is not None
+            else (type(default_dict[name]) if default_dict else type(data[name]))
         )
         if data_type is list:
             list_values = data[name]
@@ -338,3 +344,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
 
     def get_value_str(self, name: str, val: Any) -> str:
         return str(val)
+
+    def on_dict_update(self, data):
+        if self.__on_dict_update:
+            self.__on_dict_update(self.__data)

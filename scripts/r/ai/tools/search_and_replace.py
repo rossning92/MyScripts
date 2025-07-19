@@ -1,4 +1,5 @@
-from ai.codeeditutils import Change, apply_change_interactive
+from ai.codeeditutils import Change, apply_change, apply_change_interactive
+from ai.tools import Settings
 from ai.tools.checkpoints import backup_files
 
 
@@ -11,10 +12,9 @@ def search_and_replace(file: str, search: str, replace: str):
     """
     backup_files([file])
 
-    if (
-        apply_change_interactive(
-            changes=[Change(file=file, search=search, replace=replace)]
-        )
-        is None
-    ):
-        raise KeyboardInterrupt("Search and replace was canceled by the user")
+    change = Change(file=file, search=search, replace=replace)
+    if Settings.need_confirm:
+        if not apply_change_interactive(change=change):
+            raise KeyboardInterrupt("Search and replace was canceled by the user")
+    else:
+        apply_change(change=change)

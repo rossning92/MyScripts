@@ -234,7 +234,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._duplicate_script, hotkey="ctrl+d")
         self.add_command(self._edit_script_settings, hotkey="ctrl+s")
         self.add_command(self._new_script, hotkey="ctrl+n")
-        self.add_command(self._next_scheduled_script)
+        self.add_command(self._list_scheduled_scripts)
         self.add_command(self._run_script_no_close, hotkey="alt+enter")
         self.add_command(self._run_script_no_close, hotkey="ctrl+enter")
         self.add_command(self._run_script_local)
@@ -247,7 +247,7 @@ class _MyScriptMenu(Menu[Script]):
     def _reload(self):
         self.call_func_without_curses(lambda: restart_program())
 
-    def _next_scheduled_script(self):
+    def _list_scheduled_scripts(self):
         _ScheduledScriptMenu(script_manager=self.script_manager).exec()
 
     def _set_cmdline_args(self):

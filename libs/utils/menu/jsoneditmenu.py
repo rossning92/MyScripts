@@ -15,26 +15,31 @@ class JsonEditMenu(DictEditMenu):
         auto_create=True,
         **kwargs,
     ):
-        data = load_json(json_file) if os.path.exists(json_file) else {}
-        self.data = {**default, **data}
+        self.__json_file = json_file
+        self.__save_modified_only = save_modified_only
 
-        def on_dict_update(dict):
-            save_json(
-                json_file,
-                (
-                    {k: v for k, v in dict.items() if default[k] != v}
-                    if save_modified_only
-                    else {**default, **self.data}
-                ),
-            )
+        self.data = {
+            **self.get_default_values(),
+            **(load_json(json_file) if os.path.exists(json_file) else {}),
+        }
 
         if auto_create and not os.path.exists(json_file):
-            on_dict_update(data)
+            self.on_dict_update(self.data)
 
         super().__init__(
             self.data,
             default_dict=default,
-            on_dict_update=on_dict_update,
             prompt=f"edit {json_file}",
             **kwargs,
+        )
+
+    def on_dict_update(self, data):
+        default = self.get_default_values()
+        save_json(
+            self.__json_file,
+            (
+                {k: v for k, v in data.items() if default[k] != v}
+                if self.__save_modified_only
+                else {**default, **self.data}
+            ),
         )
