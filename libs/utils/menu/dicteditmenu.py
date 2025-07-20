@@ -105,7 +105,7 @@ class _KeyValuePair:
         key: str,
         key_display_width: int,
         get_value_str: Callable[[str, str], str],
-        default_dict: Optional[Dict[str, Any]] = None,
+        default_dict: Dict[str, Any] = {},
     ) -> None:
         self.key = key
 
@@ -119,10 +119,10 @@ class _KeyValuePair:
         if self.key in self.__dict:
             value = self.__dict[self.key]
         else:
-            assert self.__default_dict is not None
+            assert self.__default_dict
             value = self.__default_dict[self.key]
         is_modified = (
-            self.__default_dict is not None and value != self.__default_dict[self.key]
+            bool(self.__default_dict) and value != self.__default_dict[self.key]
         )
         header = self.key.ljust(self.__key_display_width)
         if isinstance(value, str):
@@ -249,7 +249,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
         kvps: List[Tuple[str, bool]] = []
         for key in keys:
             modified = (
-                default_dict is not None
+                bool(default_dict)
                 and key in self.__data
                 and self.__data[key] != default_dict[key]
             )
@@ -326,7 +326,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
 
         data_type = (
             schema[name]
-            if schema is not None
+            if schema
             else (type(default_dict[name]) if default_dict else type(data[name]))
         )
         if data_type is list:

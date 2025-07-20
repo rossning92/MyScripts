@@ -105,13 +105,13 @@ def require_package(
             require_package(pkg)
 
     package_matched = False
-    was_package_installed = False  # Whether or not a package has just been installed.
     if pkg in packages:
+        # Whether or not a package has just been installed.
+        newly_installed = False
         if "executables" in packages[pkg] and has_executable(
             packages[pkg]["executables"]
         ):
             package_matched = True
-            was_package_installed = True
 
         elif "golang" in packages[pkg]:
             require_package("golang")
@@ -120,7 +120,7 @@ def require_package(
                 if not _is_go_package_installed(go_pkg_path) or force_install:
                     logging.info(f"Installing go package: {go_pkg_path}...")
                     subprocess.check_call(["go", "install", go_pkg_path])
-                    was_package_installed = True
+                    newly_installed = True
                 package_matched = True
 
         elif "npm" in packages[pkg]:
@@ -133,7 +133,7 @@ def require_package(
                         # On Windows, `npm` command is a batch script and needs to be executed in a shell.
                         shell=sys.platform == "win32",
                     )
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif "yarn" in packages[pkg]:
@@ -155,7 +155,7 @@ def require_package(
                     yarn_global_bin_path,
                     env=env,
                 )
-                was_package_installed = True
+                newly_installed = True
             package_matched = True
 
         elif "pacman" in packages[pkg] and shutil.which("pacman"):
@@ -163,7 +163,7 @@ def require_package(
                 if not _call_without_output(["pacman", "-Q", p]) or force_install:
                     logging.info(f"Installing package using pacman: {p}")
                     subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", p])
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif "brew" in packages[pkg] and shutil.which("brew"):
@@ -171,7 +171,7 @@ def require_package(
                 if not _call_without_output(["brew", "list", p]) or force_install:
                     logging.info(f"Installing package using pacman: {p}")
                     subprocess.check_call(["brew", "install", p])
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif "dnf" in packages[pkg] and shutil.which("dnf"):
@@ -182,7 +182,7 @@ def require_package(
                 ):
                     logging.info(f"Installing package using dnf: {p}")
                     subprocess.check_call(["sudo", "dnf", "install", "-y", p])
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif "yay" in packages[pkg] and shutil.which("pacman"):
@@ -191,7 +191,7 @@ def require_package(
                 if not _call_without_output(["yay", "-Q", p]) or force_install:
                     logging.info(f"Installing package using yay: {p}")
                     subprocess.check_call(["yay", "-S", "--noconfirm", "--rebuild", p])
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif is_in_termux() and "termux" in packages[pkg]:
@@ -199,7 +199,7 @@ def require_package(
                 if not _call_without_output(["dpkg", "-s", p]) or force_install:
                     logging.warning(f'Package "{p}" was not found, installing...')
                     subprocess.check_call(["pkg", "install", p, "-y"])
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif wsl and "apt" in packages[pkg]:
@@ -219,7 +219,7 @@ def require_package(
 
                     logging.info(f"Installing package using apt: {pkg}...")
                     subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif "dotnet" in packages[pkg]:
@@ -230,7 +230,7 @@ def require_package(
                 ):
                     logging.info(f"Installing dotnet package package: {p}...")
                     subprocess.check_call(["dotnet", "tool", "install", "--global", p])
-                    was_package_installed = True
+                    newly_installed = True
             if sys.platform == "win32":
                 prepend_to_path(
                     os.path.expandvars("%USERPROFILE%\\.dotnet\\tools"), env=env
@@ -250,7 +250,7 @@ def require_package(
                     subprocess.check_call(
                         [sys.executable, "-m", "pip", "install", "--upgrade", p]
                     )
-                    was_package_installed = True
+                    newly_installed = True
             package_matched = True
 
         elif sys.platform == "win32":
@@ -261,14 +261,14 @@ def require_package(
                     break
                 elif pm == "winget" and "winget" in packages[pkg]:
                     for p in packages[pkg]["winget"]["packages"]:
-                        wingetutils.install_package(
-                            p, force_install=force_install, upgrade=upgrade
-                        )
+                        if not wingetutils.is_package_installed(p) or force_install:
+                            wingetutils.install_package(p, upgrade=upgrade)
+                        newly_installed = True
                         break
                     package_matched = True
                     break
 
-        if was_package_installed and "post_install" in packages[pkg]:
+        if newly_installed and "post_install" in packages[pkg]:
             post_install = packages[pkg]["post_install"]
             for cmd in post_install:
                 subprocess.check_call(cmd, shell=True)

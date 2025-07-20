@@ -56,6 +56,7 @@ class CodeAgentMenu(AgentMenu):
             **kwargs,
         )
         self.__file_context_menu = FileContextMenu(files=files)
+        self.add_command(self.__add_file, hotkey="@")
         self.add_command(self.__open_file_menu, hotkey="alt+f")
 
     def get_tools(self) -> List[Callable]:
@@ -79,6 +80,17 @@ class CodeAgentMenu(AgentMenu):
     def get_status_text(self) -> str:
         files = self.__file_context_menu.get_status_text()
         return (files + "\n" if files else "") + super().get_status_text()
+
+    def __add_file(self):
+        file_menu = FileMenu()
+        file = file_menu.select_file()
+        if file:
+            cwd = os.getcwd()
+            if os.path.commonpath([cwd, file]) == cwd:
+                path = os.path.relpath(file, cwd)
+            else:
+                path = file
+            self.insert_text(f"`{path}` ")
 
     def __open_file_menu(self):
         FileMenu(goto=os.getcwd()).exec()

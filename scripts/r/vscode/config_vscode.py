@@ -116,10 +116,6 @@ def setup_ai_tools(data_dir: str):
         ["saoudrizwan.claude-dev"],
         data_dir=data_dir,
     )
-    uninstall_extensions(
-        ["genieai.chatgpt-vscode"],
-        data_dir=data_dir,
-    )
 
 
 def setup_color_theme(data_dir: str):
@@ -193,7 +189,7 @@ def config_vscode(data_dir=None, compact=False):
     install_extensions(
         [
             "mhutchie.git-graph",
-            "stkb.rewrap",
+            # "stkb.rewrap",
             # "streetsidesoftware.code-spell-checker",
             # C++
             "llvm-vs-code-extensions.vscode-clangd",
@@ -289,6 +285,7 @@ def config_vscode(data_dir=None, compact=False):
                     "command": "workbench.action.compareEditor.nextChange",
                     "when": "textCompareEditorVisible",
                 },
+                {"key": "ctrl+0", "command": "workbench.action.zoomReset"},
                 # glsl-canvas
                 {
                     "key": "ctrl+shift+v",

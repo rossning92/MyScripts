@@ -38,16 +38,15 @@ def is_package_installed(pkg: str):
     return matched_packages != 0
 
 
-def install_package(pkg: str, upgrade=False, force_install=True):
-    if not is_package_installed(pkg) or force_install:
-        args = [
-            _WINGET_EXEC,
-            "install",
-            "-e",
-            "--id",
-            pkg,
-            "--accept-source-agreements",
-            "--accept-package-agreements",
-        ]
-        subprocess.check_call(args)
-        export_packages()
+def install_package(pkg: str, upgrade=False):
+    args = [
+        _WINGET_EXEC,
+        "install",
+        "-e",
+        "--id",
+        pkg,
+        "--accept-source-agreements",
+        "--accept-package-agreements",
+    ]
+    subprocess.check_call(args)
+    export_packages()

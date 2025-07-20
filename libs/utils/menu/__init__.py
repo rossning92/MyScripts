@@ -198,9 +198,12 @@ class _TextInput:
 
     def _on_char(self, ch: str):
         if not self.ascii_only or (self.ascii_only and re.match("[\x00-\x7f]", ch)):
-            self.text = self.text[: self.caret_pos] + ch + self.text[self.caret_pos :]
-            self.caret_pos += 1
-            self.selected_text = ""
+            self.insert_text(ch)
+
+    def insert_text(self, text: str):
+        self.text = self.text[: self.caret_pos] + text + self.text[self.caret_pos :]
+        self.caret_pos += len(text)
+        self.selected_text = ""
 
 
 T = TypeVar("T")
@@ -518,6 +521,10 @@ class Menu(Generic[T]):
             self.search_by_input(save_search_history=save_search_history)
         self.update_screen()
 
+    def insert_text(self, text: str):
+        self.__input.insert_text(text)
+        self.update_screen()
+
     def get_input(self) -> str:
         return (
             self.__input.selected_text
@@ -739,6 +746,9 @@ class Menu(Generic[T]):
                     raise KeyboardInterrupt
                 else:
                     self.on_keyboard_interrupt()
+
+            elif ch == "@" and "@" in self.__hotkeys:
+                self.__hotkeys["@"].func()
 
             elif ch == " " and self.__input.text == "" and "space" in self.__hotkeys:
                 self.__hotkeys["space"].func()

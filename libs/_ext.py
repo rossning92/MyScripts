@@ -6,13 +6,13 @@ import shutil
 import subprocess
 from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Tuple
 
+from _pkgmanager import require_package
 from _script import (
     Script,
     _load_script_config_file,
     _save_script_config_file,
     get_all_scripts,
     get_default_script_config,
-    start_script,
 )
 from _shutil import quote_arg
 from scripting.path import (
@@ -26,7 +26,7 @@ from scripting.path import (
     get_script_root,
 )
 from utils.clip import set_clip
-from utils.editor import is_vscode_available, open_in_vim, open_in_vscode
+from utils.editor import is_vscode_available, open_in_vscode
 from utils.jsonutil import save_json
 from utils.menu import Menu
 from utils.menu.dicteditmenu import DictEditMenu
@@ -98,6 +98,7 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
         workspace_file = create_myscript_workspace()
         open_in_vscode([workspace_file, file])
     else:
+        require_package("neovim")
         subprocess.run(["nvim", file], cwd=get_my_script_root())
 
 

@@ -17,7 +17,7 @@ rclone_wrapper() {
     if [[ -n "$_DRY_RUN" ]]; then
         extra_args+=' --dry-run'
     fi
-    if [[ ! -d "$local_dir" ]]; then 
+    if [[ ! -d "$local_dir" ]]; then
         extra_args+=' --resync'
         mkdir "$local_dir"
     fi
@@ -37,7 +37,10 @@ rclone_wrapper() {
     ret=${PIPESTATUS[0]}
     if [[ "$ret" != "0" ]]; then
         echo "ERROR: rclone returned $ret"
-        if grep -q ' --resync' "$logfile"; then
+        if [[ "$ret" == 7 ]]; then
+            echo 'ERROR: Rate limit exceeded'
+            exit 0
+        elif grep -q ' --resync' "$logfile"; then
             read -p "Resync? (y/n): " ans
             if [[ "$ans" == "y" ]]; then
                 rclone_wrapper "$@" --resync
@@ -57,6 +60,7 @@ rclone_wrapper() {
     fi
 }
 
+[[ ! -d "$HOME/gdrive" ]] && mkdir -p "$HOME/gdrive"
 [[ -z "$LOCAL_DIR" ]] && local_dir="$HOME/gdrive/$GDRIVE_DIR" || local_dir="$LOCAL_DIR"
 [[ -x "$(command -v cygpath)" ]] && local_dir="$(cygpath -w "$local_dir")" # convert to win path
 

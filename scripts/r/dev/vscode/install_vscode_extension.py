@@ -36,6 +36,7 @@ def link_vscode_extension(extension_dir: str):
         raise Exception("Unsupported platform: " + sys.platform)
 
     logging.debug(f"Create symbolic link: {args}")
+    os.makedirs(os.path.dirname(symlink_path), exist_ok=True)
     create_symlink(extension_dir, symlink_path)
 
 

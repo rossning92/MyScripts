@@ -696,6 +696,8 @@ class Script:
             else:
                 variables[vname] = ""
 
+        variables["MYSCRIPT_ROOT"] = get_my_script_root()
+
         # Override variables
         if self.override_variables:
             variables = {**variables, **self.override_variables}
@@ -751,7 +753,6 @@ class Script:
             **self.get_variables(),
             "HOME": get_home_path(),
             "SCRIPT": quote_arg(self.script_path),
-            "MYSCRIPT_ROOT": get_my_script_root(),
         }
 
     def activate_window(self) -> bool:

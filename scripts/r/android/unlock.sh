@@ -9,7 +9,7 @@ if [[ "$out" == *"mDreamingLockscreen=true"* ]]; then
     adb shell input touchscreen swipe 540 1000 540 200
     sleep 0.5
 
-    echo "${ANDROID_PIN}"
+    echo "Entering pin..."
     adb shell input text ${ANDROID_PIN}
     sleep 0.5
     adb shell input keyevent 66 # KEYCODE_ENTER

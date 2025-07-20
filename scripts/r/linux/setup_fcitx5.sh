@@ -19,7 +19,7 @@ prepend_line_dedup() {
     printf '%s\n%s\n' "$2" "$(cat $1)" >"$1"
 }
 
-[ -e "$HOME/.config/fcitx5" ] || ln -s "{{MYSCRIPT_ROOT}}/settings/fcitx5" "$HOME/.config/fcitx5"
+ln -sf "{{MYSCRIPT_ROOT}}/settings/fcitx5" "$HOME/.config/fcitx5"
 
 sudo pacman -S --noconfirm --needed fcitx5 fcitx5-qt fcitx5-gtk fcitx5-config-qt fcitx5-chinese-addons
 

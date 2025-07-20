@@ -42,7 +42,6 @@ pac_install \
     git \
     inetutils \
     less \
-    neofetch \
     neovim \
     openssh \
     sxhkd \
@@ -89,7 +88,7 @@ pac_install alsa-utils # for amixer CLI command
 sudo sed -i -E 's/^#?HandlePowerKey=.*/HandlePowerKey=suspend/' /etc/systemd/logind.conf
 sudo systemctl kill -s HUP systemd-logind
 
-run_script r/linux/setup_input_fcitx5.sh
+run_script r/linux/setup_fcitx5.sh
 run_script r/linux/arch/setup_keyd.sh
 
 # Automatically run startx without using display manager / login manager.

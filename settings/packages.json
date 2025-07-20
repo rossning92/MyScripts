@@ -108,6 +108,16 @@
       "packages": ["dmenu"]
     }
   },
+  "docker": {
+    "pacman": {
+      "packages": ["docker"]
+    },
+    "post_install": [
+      "sudo systemctl enable docker.socket --now",
+      "sudo groupadd docker || true",
+      "sudo usermod -aG docker $(whoami)"
+    ]
+  },
   "dotnet": {
     "choco": {
       "packages": ["dotnet"]
