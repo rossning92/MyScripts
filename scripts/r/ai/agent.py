@@ -17,7 +17,7 @@ from utils.menu.inputmenu import InputMenu
 from utils.template import render_template
 
 MODULE_NAME = Path(__file__).stem
-DATA_DIR = ".{}".format(MODULE_NAME)
+DATA_DIR = os.path.join(".config", MODULE_NAME)
 AGENT_FILE = "agent.json"
 AGENT_DEFAULT = {
     "task": "",

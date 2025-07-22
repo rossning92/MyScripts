@@ -19,7 +19,7 @@ sudo tee /etc/systemd/system/x11vnc.service <<-EOF
 [Service]
 User=$USER
 ExecStart=
-ExecStart=/usr/bin/x11vnc -many -no6 -rfbport 5900 -rfbauth $HOME/.vnc/passwd -auth $HOME/.Xauthority -display :0
+ExecStart=/usr/bin/x11vnc -many -no6 -noxdamage -rfbport 5900 -rfbauth $HOME/.vnc/passwd -auth $HOME/.Xauthority -display :0
 Restart=on-failure
 RestartSec=3
 
