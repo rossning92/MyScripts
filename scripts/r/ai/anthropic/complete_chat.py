@@ -41,7 +41,14 @@ def complete_chat(
     }
 
     with requests.post(api_url, headers=headers, json=payload, stream=True) as response:
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise Exception(
+                f"HTTP {response.status_code} error: {str(e)}\n"
+                f"Text: {response.text}"
+            )
+
         for line in response.iter_lines():
             if line:
                 decoded_line = line.decode("utf-8")

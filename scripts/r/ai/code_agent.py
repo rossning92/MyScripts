@@ -7,10 +7,10 @@ from ai.agent import AgentMenu
 from ai.filecontextmenu import FileContextMenu
 from ai.tools import Settings
 from ai.tools.checkpoints import restore_files_to_timestamp
+from ai.tools.edit_file import edit_file
 from ai.tools.glob_files import glob_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
-from ai.tools.search_and_replace import search_and_replace
 from ai.tools.write_file import write_file
 from ML.gpt.chatmenu import SettingsMenu
 from tree import tree
@@ -60,7 +60,7 @@ class CodeAgentMenu(AgentMenu):
         self.add_command(self.__open_file_menu, hotkey="alt+f")
 
     def get_tools(self) -> List[Callable]:
-        return [read_file, write_file, search_and_replace, run_bash_command, glob_files]
+        return [read_file, write_file, edit_file, run_bash_command, glob_files]
 
     def get_prompt(self) -> str:
         return (
@@ -108,7 +108,21 @@ def _parse_files(files: List[str]) -> List[str]:
 def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument("files", nargs="*")
+    parser.add_argument(
+        "-d",
+        "--dir",
+        type=str,
+        help="Source root directory",
+        default=os.environ.get("SOURCE_ROOT"),
+    )
     args = parser.parse_args()
+
+    if args.dir:
+        os.chdir(args.dir)
+    else:
+        default_dir = os.path.expanduser("~/TestProject")
+        os.makedirs(default_dir, exist_ok=True)
+        os.chdir(default_dir)
 
     files = _parse_files(args.files)
 

@@ -25,6 +25,11 @@
       "packages": ["7zip.7zip"]
     }
   },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
+    }
+  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -206,6 +211,7 @@
     "choco": {
       "packages": ["fzf"]
     },
+    "executables": ["fzf"],
     "pacman": {
       "packages": ["fzf"]
     },
@@ -506,6 +512,11 @@
       "packages": ["nomachine"]
     }
   },
+  "npm": {
+    "pacman": {
+      "packages": ["npm"]
+    }
+  },
   "ocenaudio": {
     "choco": {
       "packages": ["ocenaudio"]
@@ -575,7 +586,7 @@
     }
   },
   "puppeteer": {
-    "yarn": {
+    "npm": {
       "packages": ["puppeteer"]
     }
   },
@@ -594,11 +605,6 @@
     },
     "winget": {
       "packages": ["PuTTY.PuTTY"]
-    }
-  },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
     }
   },
   "python312": {
@@ -648,7 +654,10 @@
     "choco": {
       "packages": ["ripgrep"]
     },
-    "executables": ["C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"],
+    "executables": [
+      "rg",
+      "C:\\ProgramData\\chocolatey\\lib\\ripgrep\\tools\\rg.exe"
+    ],
     "pacman": {
       "packages": ["ripgrep"]
     },

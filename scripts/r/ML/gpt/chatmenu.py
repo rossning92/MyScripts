@@ -10,6 +10,7 @@ from ai.complete_chat import complete_chat
 from ai.openai.complete_chat import create_user_message, message_to_str
 from utils.clip import set_clip
 from utils.editor import edit_text
+from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
@@ -17,6 +18,8 @@ from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 
 _MODULE_NAME = Path(__file__).stem
+
+_INTERRUPT_MESSAGE = "[INTERRUPTED]"
 
 
 class SettingsMenu(JsonEditMenu):
@@ -86,6 +89,7 @@ class ChatMenu(Menu[Line]):
             data_dir if data_dir else os.path.join(".config", _MODULE_NAME)
         )
         os.makedirs(self.__data_dir, exist_ok=True)
+        create_gitignore(self.__data_dir)
 
         self.__settings_menu = settings_menu_class(
             settings_file=os.path.join(self.__data_dir, "settings.json"), model=model
@@ -298,18 +302,28 @@ class ChatMenu(Menu[Line]):
         message_index = len(self.get_messages())
         line = Line(role="assistant", text="", message_index=message_index)
         self.append_item(line)
-        for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
-            content += chunk
-            for i, a in enumerate(chunk.split("\n")):
-                if i > 0:
-                    line = Line(role="assistant", text="", message_index=message_index)
-                    self.append_item(line)
-                line.text += a
+        try:
+            for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
+                content += chunk
+                for i, a in enumerate(chunk.split("\n")):
+                    if i > 0:
+                        line = Line(
+                            role="assistant", text="", message_index=message_index
+                        )
+                        self.append_item(line)
+                    line.text += a
 
-            self.update_screen()
-            self.process_events(raise_keyboard_interrupt=True)
-            if not self.__is_generating:
-                break
+                self.update_screen()
+                self.process_events(raise_keyboard_interrupt=True)
+        except KeyboardInterrupt:
+            content += f"\n{_INTERRUPT_MESSAGE}"
+            self.append_item(
+                Line(
+                    role="assistant",
+                    text=f"{_INTERRUPT_MESSAGE}",
+                    message_index=message_index,
+                )
+            )
 
         messages.append(
             {
@@ -329,8 +343,7 @@ class ChatMenu(Menu[Line]):
             self.close()
 
         while not self.__post_generation.empty():
-            action = self.__post_generation.get()
-            action()
+            (self.__post_generation.get())()
 
     def save_conversation(self):
         if self.__conv_file is None:
@@ -384,12 +397,14 @@ class ChatMenu(Menu[Line]):
             self.update_screen()
 
     def on_enter_pressed(self):
-        if self.__cancel_chat_completion():
+        try:
+            self.__cancel_chat_completion()
+            self.send_message(self.get_input())
+        except KeyboardInterrupt:
             self.__post_generation.put(
                 lambda message=self.get_input(): self.send_message(message)
             )
-        else:
-            self.send_message(self.get_input())
+            raise
 
     def on_item_selection_changed(self, item: Optional[Line], i: int):
         self.__yank_mode = 0
@@ -405,13 +420,9 @@ class ChatMenu(Menu[Line]):
     def on_escape_pressed(self):
         self.__cancel_chat_completion()
 
-    def __cancel_chat_completion(self) -> bool:
+    def __cancel_chat_completion(self):
         if self.__is_generating:
-            self.set_message("interrupt")
-            self.__is_generating = False
-            return True
-        else:
-            return False
+            raise KeyboardInterrupt()
 
     def paste(self) -> bool:
         if not super().paste():

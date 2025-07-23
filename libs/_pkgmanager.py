@@ -124,6 +124,7 @@ def require_package(
                 package_matched = True
 
         elif "npm" in packages[pkg]:
+            require_package("npm")
             for p in packages[pkg]["npm"]["packages"]:
                 if not is_npm_global_package_installed(p) or force_install:
                     logging.info(f"Installing package using npm: {p}")
