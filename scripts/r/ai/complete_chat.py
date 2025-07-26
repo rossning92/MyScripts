@@ -10,11 +10,20 @@ import ai.openai.complete_chat
 def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
     model: Optional[str] = None,
+    system_prompt: Optional[str] = None,
 ) -> Iterator[str]:
     if model and model.startswith("claude"):
-        return ai.anthropic.complete_chat.complete_chat(message)
+        return ai.anthropic.complete_chat.complete_chat(
+            message,
+            model=model,
+            system_prompt=system_prompt,
+        )
     else:
-        return ai.openai.complete_chat.complete_chat(message, model=model)
+        return ai.openai.complete_chat.complete_chat(
+            message,
+            model=model,
+            system_prompt=system_prompt,
+        )
 
 
 if __name__ == "__main__":

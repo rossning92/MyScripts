@@ -14,6 +14,7 @@ from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.inputmenu import InputMenu
+from utils.strutil import to_ordinal
 from utils.template import render_template
 
 MODULE_NAME = Path(__file__).stem
@@ -58,16 +59,17 @@ def _parse_xml_string_for_tool(s: str) -> Tuple[str, Dict[str, str]]:
 
 
 def _get_prompt(task: str, tools: Optional[List[Callable]] = None):
-
     if tools:
         tools_prompt = """# Tool Use
 
-You have access to a set of tools.
-You can use one tool per message, and will receive the result of that tool use in the user's response.
-You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
+You can use the available tools to complete the user's task.
+
+IMPORTANT:
+- You MUST wait for the actual tool result before proceeding.
 
 ## Formatting
 
+You MUST use the tools in the following format as part of your message. I will reply in the next message with the result of the tool use.
 Tool use is formatted using XML-style tags.
 The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags.
 Do not escape any characters in parameters, such as `<`, `>`, and `&`, in XML tags. Do not wrap parameters in `<![CDATA[` and `]]>`.
@@ -100,13 +102,14 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
 
     return f"""You are my assistant to help me complete a task.
 Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
+
 Here's my task:
 -------
 {task}
 -------
 
 {tools_prompt}
-"""
+""".rstrip()
 
 
 class AgentMenu(ChatMenu):
@@ -146,7 +149,7 @@ class AgentMenu(ChatMenu):
         self.task_result: Optional[str] = None
 
         self.add_command(self.__edit_context, hotkey="alt+c")
-        self.add_command(self.__edit_task, hotkey="alt+p")
+        self.add_command(self.__edit_task)
         self.add_command(self.__load_agent, hotkey="alt+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
 
@@ -233,11 +236,7 @@ class AgentMenu(ChatMenu):
                 return task
 
     def get_prompt(self) -> str:
-        task = self.__get_task_with_context()
-        return _get_prompt(
-            task=task,
-            tools=self.__tools,
-        )
+        return _get_prompt(task=self.__get_task_with_context(), tools=self.__tools)
 
     def __complete_task(self):
         self.clear_messages()
@@ -299,21 +298,27 @@ class AgentMenu(ChatMenu):
         if selected_line is None:
             return
 
-        selected_message = self.get_messages()[selected_line.message_index]
+        selected_message = self.get_messages()[selected_line.msg_index]
         content = selected_message["content"]
 
-        response_message = ""
-
+        reply = ""
+        interrupted = False
+        has_error = False
         xml_strings = _find_xml_strings([t.__name__ for t in self.__tools], content)
-        for xml_string in xml_strings:
+        for i, xml_string in enumerate(xml_strings):
             # Parse the XML string for the tool usage into valid Python code to be executed.
             tool_name, args = _parse_xml_string_for_tool(xml_string)
 
             # Run tool
             if not self.__yes_always:
-                menu = ConfirmMenu("run tool?", items=[xml_string])
+                menu = ConfirmMenu(f"Run tool ({tool_name})?", items=[xml_string])
                 menu.exec()
-                should_run = menu.is_confirmed()
+                if menu.is_confirmed():
+                    should_run = True
+                else:
+                    should_run = False
+                    reply += f"The {to_ordinal(i+1)} tool ({tool_name}) was interrupted by user.\n"
+                    break
             else:
                 should_run = True
 
@@ -322,32 +327,48 @@ class AgentMenu(ChatMenu):
                 try:
                     ret = tool(**args)
                     if ret:
-                        response_message = f"Returns:\n-------\n{str(ret)}\n-------"
+                        reply += f"""The {to_ordinal(i+1)} tool ({tool_name}) returned:
+-------
+{str(ret)}
+-------
+
+"""
+
                     else:
-                        response_message = "Done"
+                        reply += f"The {to_ordinal(i+1)} tool ({tool_name}) completed successfully.\n\n"
                 except Exception as ex:
-                    response_message = f"ERROR:\n-------\n{str(ex)}\n-------"
+                    has_error = True
+                    reply += f"""ERROR in the {to_ordinal(i+1)} tool ({tool_name}):
+-------
+{str(ex)}
+-------
+
+"""
                 except KeyboardInterrupt:
-                    self.set_message("Canceled by the user")
-                    return
+                    reply += f"The {to_ordinal(i+1)} tool using {tool_name} was interrupted by user.\n"
+                    interrupted = True
+                    break
 
         # Check if the task is completed
-        match = re.findall(
+        result = re.findall(
             r"<result>\s*([\S\s]*?)\s*</result>", content, flags=re.MULTILINE
         )
-        if len(match) > 0:
-            result = match[0]
-            self.task_result = result if result else "Returns nothing."
+        if len(result) > 0:
+            self.task_result = result[0] if result[0] else "Returns nothing."
             if self.__run:
                 self.close()
 
-            self.on_response(result, done=True)
+            self.on_response(result[0], done=True)
 
-        elif not response_message:
+        elif not reply:
             self.on_response(content, done=False)
 
-        if response_message:
-            self.send_message(response_message)
+        reply = reply.rstrip()
+        if reply:
+            if not has_error and (result or interrupted):
+                self.append_user_message(reply)
+            else:
+                self.send_message(reply)
 
     def on_response(self, text: str, done: bool):
         pass

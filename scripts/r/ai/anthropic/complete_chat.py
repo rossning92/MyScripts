@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, Iterator, List, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import requests
 
@@ -8,8 +8,8 @@ import requests
 def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
     model: str = "claude-3-5-sonnet-latest",
+    system_prompt: Optional[str] = None,
 ) -> Iterator[str]:
-
     api_key = os.environ["ANTHROPIC_API_KEY"]
     if not api_key:
         raise Exception("ANTHROPIC_API_KEY must be provided.")
@@ -39,6 +39,9 @@ def complete_chat(
         "max_tokens": 4096,
         "stream": True,
     }
+
+    if system_prompt:
+        payload["system"] = system_prompt
 
     with requests.post(api_url, headers=headers, json=payload, stream=True) as response:
         try:

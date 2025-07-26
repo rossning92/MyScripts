@@ -94,8 +94,9 @@ def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
 
 
 class _TextInput:
-    def __init__(self, prompt="", text="", ascii_only=False):
+    def __init__(self, prompt="", prompt_color="white", text="", ascii_only=False):
         self.prompt = prompt
+        self.prompt_color = prompt_color
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
@@ -126,7 +127,12 @@ class _TextInput:
         assert Menu.stdscr is not None
 
         # Draw label
-        stdscr.addstr(row, 0, self.prompt + ":")
+        stdscr.addstr(
+            row,
+            0,
+            self.prompt + ":",
+            Menu.color_name_to_attr(self.prompt_color),
+        )
 
         cursor_y, cursor_x = y, x = Menu.stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
@@ -235,6 +241,7 @@ class Menu(Generic[T]):
         wrap_text=False,
         search_mode=True,
         line_number=True,
+        prompt_color="white",
     ):
         self.close_on_selection: bool = close_on_selection
         self.is_cancelled: bool = False
@@ -247,6 +254,7 @@ class Menu(Generic[T]):
             prompt=prompt,
             text=text if text else "",
             ascii_only=ascii_only,
+            prompt_color=prompt_color,
         )
 
         self.__last_key: Union[int, str] = -1
@@ -1206,7 +1214,7 @@ class Menu(Generic[T]):
             # Draw item
             draw_text_result = self.draw_text(
                 item_y,
-                line_number_width + GUTTER_SIZE,
+                line_number_width + (GUTTER_SIZE if self.__line_number else 0),
                 item_text,
                 wrap_text=self.__wrap_text,
                 color=color.upper() if is_item_selected else color,

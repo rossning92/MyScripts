@@ -9,9 +9,9 @@ def run_bash_command(command: str) -> str:
     Ensure the command is properly formatted and does not contain any harmful instructions.
     """
 
-    if Settings.need_confirm and not confirm(f"Run command: {command}?"):
+    if Settings.need_confirm and not confirm(f"Run `{command}`?"):
         raise KeyboardInterrupt("Command execution was canceled by the user")
 
-    menu = ShellCmdMenu(command=command, prompt=f"Running command: {command}")
+    menu = ShellCmdMenu(command=command, prompt=f"Running `{command}`")
     menu.exec()
     return menu.get_output()

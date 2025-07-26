@@ -22,18 +22,18 @@ class MutableString:
 
 class ShellCmdMenu(Menu):
     def __init__(self, command: str, prompt: str = "", **kwargs):
-        super().__init__(prompt=prompt, search_mode=False, **kwargs)
+        super().__init__(prompt=prompt, search_mode=False, line_number=False, **kwargs)
 
         self.__command = command
         self.__prompt = prompt
         self.__exception: Optional[Exception] = None
         self.__output = ""
 
-        self.__thread = Thread(
-            target=self.__shell_cmd_thread,
-        )
+        self.__thread = Thread(target=self.__shell_cmd_thread)
         self.__spinner = cycle(["|", "/", "-", "\\"])
         self.__thread.start()
+
+        self.__update_prompt()
 
     def __shell_cmd_thread(self):
         try:
@@ -74,7 +74,7 @@ class ShellCmdMenu(Menu):
                 raise self.__exception
             self.close()
         else:
-            self.set_prompt(self.__prompt + " " + next(self.__spinner))
+            self.__update_prompt()
 
     def on_enter_pressed(self):
         if self.__process and self.__process.stdin:
@@ -90,3 +90,6 @@ class ShellCmdMenu(Menu):
                 os.kill(self.__process.pid, signal.CTRL_C_EVENT)
             else:
                 self.__process.send_signal(signal.SIGINT)
+
+    def __update_prompt(self):
+        self.set_prompt(next(self.__spinner) + " " + self.__prompt)

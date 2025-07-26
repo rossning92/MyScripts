@@ -51,7 +51,7 @@ class CodeAgentMenu(AgentMenu):
     def __init__(self, files: Optional[List[str]], **kwargs):
         super().__init__(
             data_dir=".coder",
-            model="claude-sonnet-4-0",
+            model="claude-3-7-sonnet-latest",
             settings_menu_class=_SettingsMenu,
             **kwargs,
         )
@@ -63,10 +63,14 @@ class CodeAgentMenu(AgentMenu):
         return [read_file, write_file, edit_file, run_bash_command, glob_files]
 
     def get_prompt(self) -> str:
-        return (
-            super().get_prompt()
-            + self.__file_context_menu.get_prompt()
-            + get_env_info()
+        return "\n\n".join(
+            s
+            for s in [
+                super().get_prompt(),
+                self.__file_context_menu.get_prompt(),
+                get_env_info(),
+            ]
+            if s
         )
 
     def undo_messages(self) -> List[Dict[str, Any]]:

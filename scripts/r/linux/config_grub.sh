@@ -3,11 +3,8 @@ set -e
 
 yay -S --noconfirm --needed grub
 
-# Disable GRUB submenus and show all kernel entries in a single menu
 sudo sed -i -E 's/^#?GRUB_DISABLE_SUBMENU=.*/GRUB_DISABLE_SUBMENU=y/' /etc/default/grub
-# Boot the last selected entry by default
 sudo sed -i -E 's/^#?GRUB_DEFAULT=.*/GRUB_DEFAULT=saved/' /etc/default/grub
-# Enable saving of the last selected boot entry
 sudo sed -i -E 's/^#?GRUB_SAVEDEFAULT=.*/GRUB_SAVEDEFAULT=true/' /etc/default/grub
 
 sudo grub-mkconfig -o /boot/grub/grub.cfg

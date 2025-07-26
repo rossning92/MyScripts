@@ -60,6 +60,7 @@ def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
     image_file: Optional[str] = None,
     model: Optional[str] = None,
+    system_prompt: Optional[str] = None,
 ) -> Iterator[str]:
     if isinstance(message, str):
         messages = [create_user_message(text=message, image_file=image_file)]
@@ -78,7 +79,10 @@ def complete_chat(
     }
     data = {
         "model": model if model else DEFAULT_MODEL,
-        "messages": messages,
+        "messages": (
+            [{"role": "system", "content": system_prompt}] if system_prompt else []
+        )
+        + messages,
         "stream": True,
     }
 

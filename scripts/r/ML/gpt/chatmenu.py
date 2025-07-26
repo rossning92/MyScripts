@@ -16,6 +16,7 @@ from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
+from utils.menu.textmenu import TextMenu
 
 _MODULE_NAME = Path(__file__).stem
 
@@ -34,6 +35,7 @@ class SettingsMenu(JsonEditMenu):
         return {
             "model": Literal[
                 "gpt-4o",
+                "gpt-4o-mini",
                 "o3-mini",
                 "claude-3-7-sonnet-latest",
                 "claude-sonnet-4-0",
@@ -43,13 +45,17 @@ class SettingsMenu(JsonEditMenu):
 
 
 class Line:
-    def __init__(self, role: str, text: str, message_index: int) -> None:
+    def __init__(self, role: str, text: str, msg_index: int, subindex: int) -> None:
         self.role = role
         self.text = text
-        self.message_index = message_index
+        self.msg_index = msg_index
+        self.subindex = subindex  # subindex with in the message
 
     def __str__(self) -> str:
-        return self.text
+        if self.subindex == 0:
+            return f"[{self.msg_index+1}] {self.text}"
+        else:
+            return self.text
 
 
 class _SelectConvMenu(Menu[str]):
@@ -71,6 +77,7 @@ class ChatMenu(Menu[Line]):
         image_file: Optional[str] = None,
         new_conversation=True,
         prompt: str = "c",
+        system_prompt: Optional[str] = None,
         settings_menu_class=SettingsMenu,
     ) -> None:
         self.__auto_create_conv_file = conv_file is None
@@ -83,6 +90,7 @@ class ChatMenu(Menu[Line]):
         self.__lines: List[Line] = []
         self.__post_generation: Queue[Callable] = Queue()
         self.__prompt = prompt
+        self.__system_prompt = system_prompt
         self.__yank_mode = 0
 
         self.__data_dir = (
@@ -105,11 +113,14 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__add_image, hotkey="alt+i")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
-        self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__edit_settings, hotkey="ctrl+s")
-        self.add_command(self.undo_messages, hotkey="ctrl+z")
+        self.add_command(self.__goto_next_message, hotkey="alt+n")
+        self.add_command(self.__goto_prev_message, hotkey="alt+p")
+        self.add_command(self.__load_conversation, hotkey="ctrl+l")
+        self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
+        self.add_command(self.undo_messages, hotkey="ctrl+z")
 
         self.__conversations_dir = os.path.join(self.__data_dir, "conversations")
         os.makedirs(self.__conversations_dir, exist_ok=True)
@@ -163,12 +174,12 @@ class ChatMenu(Menu[Line]):
                 text.append(line.text)
 
         # Copy the whole message.
-        message_index = self.__lines[index].message_index
+        msg_index = self.__lines[index].msg_index
         start = -1
         stop = -1
         text = []
         for i, line in enumerate(self.__lines):
-            if line.message_index == message_index:
+            if line.msg_index == msg_index:
                 if start == -1:
                     start = i
                 stop = i
@@ -178,24 +189,31 @@ class ChatMenu(Menu[Line]):
         self.set_message("message copied")
         return
 
-    def __edit_message(self, message_index=-1):
-        if message_index < 0:
-            selected_line = self.get_selected_item()
-            if selected_line is not None:
-                message_index = selected_line.message_index
-            else:
-                return
+    def __edit_message(self, first_user_message=False):
+        msg_index = -1
+        if first_user_message:
+            for i, message in enumerate(self.get_messages()):
+                if message["role"] == "user":
+                    msg_index = i
+                    break
+        else:
+            selected = self.get_selected_item()
+            if selected:
+                msg_index = selected.msg_index
+        if msg_index < 0:
+            self.set_message("Cannot find message to edit")
+            return
 
-        message = self.get_messages()[message_index]
+        message = self.get_messages()[msg_index]
         content = message["content"]
         new_content = self.call_func_without_curses(lambda: edit_text(content))
         if new_content != content:
             message["content"] = new_content
 
             # Delete all messages after.
-            del self.get_messages()[message_index + 1 :]
+            del self.get_messages()[msg_index + 1 :]
 
-            self.populate_lines()
+            self.__populate_lines()
 
             if message["role"] == "user":
                 self.__complete_chat()
@@ -203,8 +221,32 @@ class ChatMenu(Menu[Line]):
     def __edit_settings(self):
         self.__settings_menu.exec()
 
+    def __goto_message(self, direction: Literal["next", "prev"]):
+        i = self.get_selected_index()
+        if i < 0:
+            return
+
+        if direction == "next":
+            range_params = (i + 1, len(self.__lines), 1)
+        else:  # direction == "prev"
+            range_params = (i - 1, -1, -1)
+
+        for j in range(*range_params):
+            if (
+                self.__lines[j].subindex == 0
+                and self.__lines[j].msg_index != self.__lines[i].msg_index
+            ):
+                self.set_selected_item(self.__lines[j])
+                return
+
+    def __goto_next_message(self):
+        self.__goto_message("next")
+
+    def __goto_prev_message(self):
+        self.__goto_message("prev")
+
     def __edit_prompt(self):
-        self.__edit_message(message_index=0)
+        self.__edit_message(first_user_message=True)
 
     def __get_model(self) -> str:
         return self.__settings_menu.data["model"]
@@ -225,7 +267,7 @@ class ChatMenu(Menu[Line]):
             removed_messages.append(messages.pop())
         while messages and messages[-1]["role"] != "assistant":
             removed_messages.append(messages.pop())
-        self.populate_lines()
+        self.__populate_lines()
         return removed_messages
 
     def __update_prompt(self):
@@ -233,6 +275,12 @@ class ChatMenu(Menu[Line]):
         if self.__image_file:
             prompt += f" ({os.path.basename(self.__image_file)})"
         self.set_prompt(prompt)
+
+    def __view_system_prompt(self):
+        if self.__system_prompt:
+            TextMenu(text=self.__system_prompt, prompt="System Prompt").exec()
+        else:
+            self.set_message("No system prompt set")
 
     def __yank(self):
         indices = list(self.get_selected_indices())
@@ -262,7 +310,7 @@ class ChatMenu(Menu[Line]):
             self.set_multi_select(False)
 
     def get_item_color(self, item: Line) -> str:
-        return "blue" if item.role == "user" else "white"
+        return "white" if item.role == "assistant" else "blue"
 
     def get_messages(self) -> List[Dict[str, Any]]:
         return self.__conv["messages"]
@@ -276,20 +324,26 @@ class ChatMenu(Menu[Line]):
             return
 
         self.clear_input()
-        message_index = len(self.get_messages())
-        self.get_messages().append(
-            create_user_message(text=text, image_file=self.__image_file)
-        )
+
+        self.append_user_message(text)
 
         # Reset image file
         self.__image_file = None
         self.__update_prompt()
 
-        self.save_conversation()
-        for s in text.splitlines():
-            self.append_item(Line(role="user", text=s, message_index=message_index))
-
         self.__complete_chat()
+
+    def append_user_message(self, text: str):
+        msg_index = len(self.get_messages())
+        self.get_messages().append(
+            create_user_message(text=text, image_file=self.__image_file)
+        )
+        for i, text in enumerate(text.splitlines()):
+            self.append_item(
+                Line(role="user", text=text, msg_index=msg_index, subindex=i)
+            )
+        self.save_conversation()
+        self.update_screen()
 
     def __complete_chat(self):
         if self.__is_generating:
@@ -299,29 +353,41 @@ class ChatMenu(Menu[Line]):
 
         content = ""
         messages = self.get_messages()
-        message_index = len(self.get_messages())
-        line = Line(role="assistant", text="", message_index=message_index)
+        msg_index = len(self.get_messages())
+        interrupted = False
+        line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
+        subindex = 1
         self.append_item(line)
         try:
-            for chunk in complete_chat(self.get_messages(), model=self.__get_model()):
+            for chunk in complete_chat(
+                self.get_messages(),
+                model=self.__get_model(),
+                system_prompt=self.__system_prompt,
+            ):
                 content += chunk
                 for i, a in enumerate(chunk.split("\n")):
                     if i > 0:
                         line = Line(
-                            role="assistant", text="", message_index=message_index
+                            role="assistant",
+                            text="",
+                            msg_index=msg_index,
+                            subindex=subindex,
                         )
+                        subindex += 1
                         self.append_item(line)
                     line.text += a
 
                 self.update_screen()
                 self.process_events(raise_keyboard_interrupt=True)
         except KeyboardInterrupt:
+            interrupted = True
             content += f"\n{_INTERRUPT_MESSAGE}"
             self.append_item(
                 Line(
                     role="assistant",
                     text=f"{_INTERRUPT_MESSAGE}",
-                    message_index=message_index,
+                    msg_index=msg_index,
+                    subindex=subindex,
                 )
             )
 
@@ -332,18 +398,18 @@ class ChatMenu(Menu[Line]):
                 "__timestamp": datetime.now().timestamp(),
             }
         )
-
         self.__is_generating = False
-
         self.save_conversation()
-        self.on_message(content)
 
-        if self.__copy_and_exit:
-            set_clip(content)
-            self.close()
+        if not interrupted:
+            self.on_message(content)
 
-        while not self.__post_generation.empty():
-            (self.__post_generation.get())()
+            if self.__copy_and_exit:
+                set_clip(content)
+                self.close()
+
+            while not self.__post_generation.empty():
+                (self.__post_generation.get())()
 
     def save_conversation(self):
         if self.__conv_file is None:
@@ -352,18 +418,18 @@ class ChatMenu(Menu[Line]):
         save_json(self.__conv_file, self.__conv)
         self.__history_manager.delete_old_files()
 
-    def populate_lines(self):
+    def __populate_lines(self):
         self.__lines.clear()
-        for message_index, message in enumerate(self.get_messages()):
-            if message["role"] != "system":
-                for line in message_to_str(message).splitlines():
-                    self.append_item(
-                        Line(
-                            role=message["role"],
-                            text=line,
-                            message_index=message_index,
-                        )
+        for msg_index, message in enumerate(self.get_messages()):
+            for i, line in enumerate(message_to_str(message).splitlines()):
+                self.append_item(
+                    Line(
+                        role=message["role"],
+                        text=line,
+                        msg_index=msg_index,
+                        subindex=i,
                     )
+                )
         self.update_screen()
 
     def load_conversation(self, file: Optional[str] = None):
@@ -378,11 +444,11 @@ class ChatMenu(Menu[Line]):
             return
 
         self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
-        self.populate_lines()
+        self.__populate_lines()
 
     def clear_messages(self):
         self.__lines.clear()
-        self.__conv["messages"].clear()
+        self.get_messages().clear()
         self.update_screen()
 
     def new_conversation(self, message: Optional[str] = None):
