@@ -14,6 +14,7 @@ from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.inputmenu import InputMenu
+from utils.strutil import to_ordinal
 from utils.template import render_template
 
 MODULE_NAME = Path(__file__).stem
@@ -302,18 +303,23 @@ class AgentMenu(ChatMenu):
         selected_message = self.get_messages()[selected_line.message_index]
         content = selected_message["content"]
 
-        response_message = ""
+        reply = ""
 
         xml_strings = _find_xml_strings([t.__name__ for t in self.__tools], content)
-        for xml_string in xml_strings:
+        for i, xml_string in enumerate(xml_strings):
             # Parse the XML string for the tool usage into valid Python code to be executed.
             tool_name, args = _parse_xml_string_for_tool(xml_string)
 
             # Run tool
             if not self.__yes_always:
-                menu = ConfirmMenu("run tool?", items=[xml_string])
+                menu = ConfirmMenu(f"Run tool ({tool_name})?", items=[xml_string])
                 menu.exec()
-                should_run = menu.is_confirmed()
+                if menu.is_confirmed():
+                    should_run = True
+                else:
+                    should_run = False
+                    reply += f"The {to_ordinal(i+1)} tool using {tool_name} was interrupted by user. Wait for my instructions before proceeding further.\n"
+                    break
             else:
                 should_run = True
 
@@ -322,14 +328,25 @@ class AgentMenu(ChatMenu):
                 try:
                     ret = tool(**args)
                     if ret:
-                        response_message = f"Returns:\n-------\n{str(ret)}\n-------"
+                        reply += f"""The {to_ordinal(i+1)} tool use ({tool_name}) returned:
+-------
+{str(ret)}
+-------
+"""
+
                     else:
-                        response_message = "Done"
+                        reply += f"The {to_ordinal(i+1)} tool use ({tool_name}) completed successfully.\n"
                 except Exception as ex:
-                    response_message = f"ERROR:\n-------\n{str(ex)}\n-------"
+                    reply += f"""ERROR in the {to_ordinal(i+1)} tool use ({tool_name}):
+-------
+{str(ex)}
+-------
+"""
                 except KeyboardInterrupt:
-                    self.set_message("Canceled by the user")
-                    return
+                    reply += f"The {to_ordinal(i+1)} tool using {tool_name} was interrupted by user. Wait for my instructions before proceeding further.\n"
+                    break
+
+        reply = reply.rstrip()
 
         # Check if the task is completed
         match = re.findall(
@@ -343,11 +360,11 @@ class AgentMenu(ChatMenu):
 
             self.on_response(result, done=True)
 
-        elif not response_message:
+        elif not reply:
             self.on_response(content, done=False)
 
-        if response_message:
-            self.send_message(response_message)
+        if reply:
+            self.send_message(reply)
 
     def on_response(self, text: str, done: bool):
         pass
