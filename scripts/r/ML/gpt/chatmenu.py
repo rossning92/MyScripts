@@ -325,7 +325,8 @@ class ChatMenu(Menu[Line]):
 
         self.clear_input()
 
-        self.append_user_message(text)
+        if text:
+            self.append_user_message(text)
 
         # Reset image file
         self.__image_file = None

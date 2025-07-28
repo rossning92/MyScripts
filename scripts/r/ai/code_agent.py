@@ -14,6 +14,7 @@ from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
 from ML.gpt.chatmenu import SettingsMenu
 from tree import tree
+from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
 
 
@@ -57,7 +58,27 @@ class CodeAgentMenu(AgentMenu):
         )
         self.__file_context_menu = FileContextMenu(files=files)
         self.add_command(self.__add_file, hotkey="@")
-        self.add_command(self.__open_file_menu, hotkey="alt+f")
+        self.add_command(self.__edit_instructions)
+
+    def __edit_instructions(self):
+        self.call_func_without_curses(
+            lambda: edit_text_file(os.path.join(self.get_data_dir(), "instructions.md"))
+        )
+
+    def __get_instructions(self) -> str:
+        file = os.path.join(self.get_data_dir(), "instructions.md")
+        if not os.path.exists(file):
+            return ""
+
+        with open(file, "r", encoding="utf-8") as f:
+            s = f.read().strip()
+        if not s:
+            return ""
+
+        return f"""# General Instructions
+
+{s}
+"""
 
     def get_tools(self) -> List[Callable]:
         return [read_file, write_file, edit_file, run_bash_command, glob_files]
@@ -69,6 +90,7 @@ class CodeAgentMenu(AgentMenu):
                 super().get_prompt(),
                 self.__file_context_menu.get_prompt(),
                 get_env_info(),
+                self.__get_instructions(),
             ]
             if s
         )
@@ -95,9 +117,6 @@ class CodeAgentMenu(AgentMenu):
             else:
                 path = file
             self.insert_text(f"`{path}` ")
-
-    def __open_file_menu(self):
-        FileMenu(goto=os.getcwd()).exec()
 
 
 def _parse_files(files: List[str]) -> List[str]:

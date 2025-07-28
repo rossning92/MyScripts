@@ -13,6 +13,7 @@ from ML.gpt.chatmenu import ChatMenu, Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
+from utils.menu.filemenu import FileMenu
 from utils.menu.inputmenu import InputMenu
 from utils.strutil import to_ordinal
 from utils.template import render_template
@@ -152,6 +153,7 @@ class AgentMenu(ChatMenu):
         self.add_command(self.__edit_task)
         self.add_command(self.__load_agent, hotkey="alt+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
+        self.add_command(self.__open_file_menu, hotkey="alt+f")
 
     def __edit_context(self):
         assert isinstance(self.__agent["context"], dict)
@@ -191,10 +193,13 @@ class AgentMenu(ChatMenu):
             self.__complete_task()
 
     def on_enter_pressed(self):
-        if self.get_input() == "":
-            messages = self.get_messages()
-            if len(messages) > 0 and messages[-1]["role"] == "assistant":
-                self.__handle_response()
+        messages = self.get_messages()
+        if (
+            self.get_input() == ""
+            and len(messages) > 0
+            and messages[-1]["role"] == "assistant"
+        ):
+            self.__handle_response()
         else:
             return super().on_enter_pressed()
 
@@ -380,10 +385,16 @@ class AgentMenu(ChatMenu):
         self.__save_agent()
         self.__complete_task()
 
+    def __open_file_menu(self):
+        FileMenu(goto=os.getcwd()).exec()
+
     def get_status_text(self) -> str:
         tools = "|".join([t.__name__ for t in self.get_tools()])
         s = f"TOOLS: {tools}\nCWD  : {os.getcwd()}"
         return s + "\n" + super().get_status_text()
+
+    def get_data_dir(self) -> str:
+        return self.__data_dir
 
 
 def _main():

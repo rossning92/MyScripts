@@ -15,5 +15,5 @@ def write_file(file: str, content: str):
     if os.path.exists(file):
         backup_files([file])
 
-    with open(file, "w") as f:
+    with open(file, "w", encoding="utf-8") as f:
         f.write(content)
