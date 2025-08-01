@@ -33,16 +33,30 @@ def parse_datetime(text: str) -> Optional[datetime]:
 
     # Try match date and time.
     match = re.search(
-        r"(?:(?P<year>\d{2,4})[-/])?(?P<month>\d{1,2})[-/](?P<day>\d{1,2})"
-        r"(\s+(?P<hour>\d{1,2}):(?P<minute>\d{1,2}))?",
-        text,
+        "^"
+        r"(?:(?P<year>\d{2,4})[-/])?"
+        r"(?:(?P<month>\d{1,2})[-/](?P<day>\d{1,2}))?"
+        r"\s*"
+        r"(?:(?P<hour>\d{1,2})(?::(?P<minute>\d{1,2}))?(?P<ampm>am|pm)?)?"
+        "$",
+        text_lower,
     )
     if match:
-        year = int(match.group("year") or datetime.now().year)
-        month = int(match.group("month"))
-        day = int(match.group("day"))
+        now = datetime.now()
+        year = int(match.group("year") or now.year)
+        month = int(match.group("month") or now.month)
+        day = int(match.group("day") or now.day)
         hour = int(match.group("hour") or 0)
         minute = int(match.group("minute") or 0)
+        ampm = match.group("ampm")
+
+        # Adjust hour for AM/PM if specified
+        if ampm:
+            if ampm == "pm" and hour < 12:
+                hour += 12
+            elif ampm == "am" and hour == 12:
+                hour = 0
+
         return datetime(year, month, day, hour, minute)
 
     return None

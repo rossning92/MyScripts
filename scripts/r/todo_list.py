@@ -14,7 +14,6 @@ from utils.menu.listeditmenu import ListEditMenu
 TodoItem = Dict[str, Any]
 
 
-_CLOSED_TIMESTAMP = "closed_ts"
 _DUE_TIMESTAMP = "due_ts"
 _IMPORTANT = "important"
 _STATUS = "status"
@@ -51,7 +50,7 @@ def get_pretty_ts(ts):
 
 class _EditTodoItemMenu(DictEditMenu):
     def edit_dict_value(self, data: Dict[str, Any], name: str):
-        if name in (_CLOSED_TIMESTAMP, _DUE_TIMESTAMP):
+        if name in (_DUE_TIMESTAMP,):
             ts = input_date(
                 prompt=name,
                 default_ts=data[name],
@@ -62,7 +61,7 @@ class _EditTodoItemMenu(DictEditMenu):
             return super().edit_dict_value(data, name)
 
     def get_value_str(self, name: str, val: Any) -> str:
-        if name in (_CLOSED_TIMESTAMP, _DUE_TIMESTAMP):
+        if name in (_DUE_TIMESTAMP,):
             return format_timestamp(val)
         else:
             return super().get_value_str(name, val)
@@ -119,8 +118,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
         # Date
         if item.get(_DUE_TIMESTAMP):
             date = get_pretty_ts(item[_DUE_TIMESTAMP])
-        elif item.get(_CLOSED_TIMESTAMP):
-            date = get_pretty_ts(item[_CLOSED_TIMESTAMP])
         else:
             date = ""
 
@@ -242,11 +239,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
             key=lambda item: (
                 item.get(_STATUS, "none") == "closed",
                 (
-                    -item.get(_DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, 0.0))
+                    -item.get(_DUE_TIMESTAMP, 0.0)
                     if item.get(_STATUS, "none") == "closed"
-                    else item.get(
-                        _DUE_TIMESTAMP, item.get(_CLOSED_TIMESTAMP, sys.float_info.max)
-                    )
+                    else item.get(_DUE_TIMESTAMP, sys.float_info.max)
                 ),
                 item.get("description"),
             ),
@@ -255,16 +250,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_selected_item(selected)
 
     def __close_task(self):
-        ts = input_date(prompt="close task with date")
-        if ts is None:
-            return
-
-        self.__set_selected_item_value(
-            {
-                _STATUS: "closed",
-                _CLOSED_TIMESTAMP: ts,
-            }
-        )
+        self.__set_selected_item_value({_STATUS: "closed"})
 
     def __set_status_open(self):
         self.__set_selected_item_value({_STATUS: "none"})

@@ -57,12 +57,19 @@ local function run_in_terminal(cmd, opts)
     -- Create a new buffer (unlisted and scratch)
     local bufnr = vim.api.nvim_create_buf(false, true)
 
-    -- Split the current window and open the new buffer in the bottom half
-    vim.cmd('split')
-    vim.cmd('wincmd J') -- Move the new split to the bottom
-    local win_id = vim.api.nvim_get_current_win()
-    if opts.height then
-        vim.api.nvim_win_set_height(win_id, opts.height)
+    local win_id
+    if opts.fullscreen then
+        -- Use a fullscreen terminal
+        vim.cmd('tabnew')
+        win_id = vim.api.nvim_get_current_win()
+    else
+        -- Split the current window and open the new buffer in the bottom half
+        vim.cmd('split')
+        vim.cmd('wincmd J') -- Move the new split to the bottom
+        win_id = vim.api.nvim_get_current_win()
+        if opts.height then
+            vim.api.nvim_win_set_height(win_id, opts.height)
+        end
     end
     vim.api.nvim_win_set_buf(win_id, bufnr)
 
@@ -180,7 +187,8 @@ local function run_coder()
         end
 
         run_in_terminal('run_script r/ai/code_agent.py "' .. full_path .. '"', {
-            on_exit = function()
+            fullscreen = true,
+	    on_exit = function()
                 -- Reload the current file from disk
                 vim.api.nvim_command('edit!')
             end

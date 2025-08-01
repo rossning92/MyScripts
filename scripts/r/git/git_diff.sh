@@ -1,5 +1,5 @@
 if git diff-index --quiet HEAD --; then
-    git diff HEAD~1 HEAD
+    git diff --color HEAD~1 HEAD | less -R -+F
 else
-    git diff
+    git diff --color | less -R -+F
 fi
