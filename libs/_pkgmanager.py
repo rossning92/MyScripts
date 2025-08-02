@@ -363,6 +363,7 @@ def _flatpak_is_package_installed(pkg: str):
 
 
 def _flatpak_install(pkg: str, upgrade=False, force_install=True):
+    require_package("flatpak")
     packages = get_packages()
     for p in packages[pkg]["flatpak"]["packages"]:
         if not _flatpak_is_package_installed(p) or force_install:

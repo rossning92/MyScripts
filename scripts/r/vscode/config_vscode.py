@@ -202,7 +202,7 @@ def config_vscode(data_dir=None, compact=False):
             "dbaeumer.vscode-eslint",
             "esbenp.prettier-vscode",
             # Bash
-            "foxundermoon.shell-format",
+            "mkhl.shfmt",
             # "cadenas.vscode-glsllint",
             "xaver.clang-format",
             # Powershell

@@ -1,13 +1,14 @@
 import argparse
 import base64
 import json
+import logging
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 import requests
+from ai.tokenutil import token_count
 
 DEFAULT_MODEL = "gpt-4o"
 
@@ -30,14 +31,9 @@ def create_user_message(text: str, image_file: Optional[str] = None) -> Dict[str
                     },
                 },
             ],
-            "__timestamp": datetime.now().timestamp(),
         }
     else:
-        return {
-            "role": "user",
-            "content": text,
-            "__timestamp": datetime.now().timestamp(),
-        }
+        return {"role": "user", "content": text}
 
 
 def message_to_str(message: Dict[str, Any]):
@@ -61,6 +57,7 @@ def complete_chat(
     image_file: Optional[str] = None,
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
+    include_usage: bool = True,
 ) -> Iterator[str]:
     if isinstance(message, str):
         messages = [create_user_message(text=message, image_file=image_file)]
@@ -85,6 +82,8 @@ def complete_chat(
         + messages,
         "stream": True,
     }
+    if include_usage:
+        data["stream_options"] = {"include_usage": True}
 
     response = requests.post(url, headers=headers, json=data, stream=True)
     response.raise_for_status()
@@ -93,13 +92,24 @@ def complete_chat(
             if len(chunk) == 0:
                 continue
 
+            logging.debug(f"Received chunk: {chunk}")
+
             if b"DONE" in chunk:
                 break
 
             decoded_line = json.loads(chunk.decode("utf-8").split("data: ")[1])
-            token = decoded_line["choices"][0]["delta"].get("content")
-            if token is not None:
-                yield token
+            choises = decoded_line.get("choices", [])
+            if choises:
+                token = choises[0]["delta"].get("content")
+                if token is not None:
+                    yield token
+
+            if include_usage:
+                usage = decoded_line.get("usage", None)
+                if usage:
+                    token_count.input_tokens += usage["prompt_tokens"]
+                    token_count.output_tokens += usage["completion_tokens"]
+
     finally:
         response.close()
 

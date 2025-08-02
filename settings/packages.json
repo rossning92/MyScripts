@@ -25,11 +25,6 @@
       "packages": ["7zip.7zip"]
     }
   },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
-    }
-  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -205,6 +200,11 @@
     },
     "winget": {
       "packages": ["Flameshot.Flameshot"]
+    }
+  },
+  "flatpak": {
+    "pacman": {
+      "packages": ["flatpak"]
     }
   },
   "fzf": {
@@ -570,6 +570,23 @@
       "packages": ["PDFLabs.PDFtk.Server"]
     }
   },
+  "perl": {
+    "apt": {
+      "packages": ["perl"]
+    },
+    "choco": {
+      "packages": ["strawberryperl"]
+    },
+    "pacman": {
+      "packages": ["perl"]
+    },
+    "termux": {
+      "packages": ["perl"]
+    },
+    "winget": {
+      "packages": ["StrawberryPerl.StrawberryPerl"]
+    }
+  },
   "protoc": {
     "choco": {
       "packages": ["protoc"]
@@ -605,6 +622,11 @@
     },
     "winget": {
       "packages": ["PuTTY.PuTTY"]
+    }
+  },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
     }
   },
   "python312": {
@@ -866,7 +888,10 @@
   "wechat": {
     "flatpak": {
       "packages": ["com.tencent.WeChat"]
-    }
+    },
+    "post_install": [
+      "sudo flatpak override com.tencent.WeChat --filesystem=home"
+    ]
   },
   "wget": {
     "pacman": {

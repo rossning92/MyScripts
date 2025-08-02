@@ -1,4 +1,4 @@
--- https://github.com/nvim-lua/kickstart.nvim/blob/master/init.lua
+-- A starting point for Neovim config: https://github.com/nvim-lua/kickstart.nvim/blob/master/init.lua
 
 vim.wo.relativenumber = true
 vim.wo.number = true

@@ -43,7 +43,11 @@ class FileContextMenu(ListEditMenu):
 
         if len(file_and_lines) == 2:
             start, end = map(int, file_and_lines[1].split("-"))
-            content = "...\n" + read_file_from_line_range(file, start, end) + "\n..."
+            content = f"""...
+<selected>
+{read_file_from_line_range(file, start, end)}
+</selected>
+..."""
         else:
             content, lines = read_file_lines(file)
             start, end = 1, len(lines)
@@ -66,12 +70,14 @@ class FileContextMenu(ListEditMenu):
             return ""
         source_code_str = "\n".join(source_code_list)
 
-        return f"""# Opened files
+        prompt = f"""# Current file(s)
 
 {source_code_str}
 
-Note that the ellipses (`...`) suggest that there is additional code in the original file before and after the provided code.
 """
+        if "<selected>" in prompt:
+            prompt += "NOTE: <selected>...</selected> marks the selected code in the editor. Ellipsis (...) indicates the surrounding code.\n"
+        return prompt
 
     def get_status_text(self) -> str:
         if len(self.items) == 0:

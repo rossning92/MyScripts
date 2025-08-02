@@ -798,6 +798,11 @@ class Script:
         ):
             pass
 
+        elif is_in_tmux():
+            subprocess.call(
+                ["tmux", "kill-window", "-t", slugify(self.get_window_title())]
+            )
+
         else:
             # Close exising instances
             close_window_by_name(self.get_window_title())

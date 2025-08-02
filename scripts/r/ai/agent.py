@@ -59,7 +59,7 @@ def _parse_xml_string_for_tool(s: str) -> Tuple[str, Dict[str, str]]:
     return (tool_name, params)
 
 
-def _get_prompt(task: str, tools: Optional[List[Callable]] = None):
+def _get_prompt(tools: Optional[List[Callable]] = None):
     if tools:
         tools_prompt = """# Tool Use
 
@@ -102,12 +102,8 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
         tools_prompt = ""
 
     return f"""You are my assistant to help me complete a task.
-Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
-
-Here's my task:
--------
-{task}
--------
+- Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
+- You should do what the user asks you to do, and nothing else.
 
 # Tone
 
@@ -115,6 +111,11 @@ Here's my task:
 - You should answer the user's question directly without elaboration, explanation, or details, unless the user asks for them.
 - You should keep your response to 1-2 sentences (not including tool use or code generation).
 - You should NOT answer with unnecessary preamble or postamble (such as explaining your code or summarizing your action), unless the user asks you to.
+
+# Code style
+
+- Do not add comments to code unless the user requests it or the code is complex and needs context.
+- You should follow existing code style, conventions, and utilize available libraries and utilities.
 
 {tools_prompt}
 """.rstrip()
@@ -141,6 +142,7 @@ class AgentMenu(ChatMenu):
         super().__init__(
             data_dir=data_dir,
             conv_file=os.path.join(self.__data_dir, "chat.json"),
+            system_prompt=_get_prompt(tools=self.__tools),
             **kwargs,
         )
 
@@ -248,7 +250,7 @@ class AgentMenu(ChatMenu):
                 return task
 
     def get_prompt(self) -> str:
-        return _get_prompt(task=self.__get_task_with_context(), tools=self.__tools)
+        return self.__get_task_with_context()
 
     def __complete_task(self):
         self.clear_messages()
@@ -292,14 +294,6 @@ class AgentMenu(ChatMenu):
             )
             tools.append(scope[agent_name])
         return tools
-
-    def get_item_color(self, line: Line) -> str:
-        if "<result>" in line.text:
-            return "green"
-        elif "ERROR:" in line.text:
-            return "red"
-        else:
-            return super().get_item_color(line)
 
     def __handle_response(self):
         messages = self.get_messages()

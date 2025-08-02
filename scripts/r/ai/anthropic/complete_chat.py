@@ -1,13 +1,17 @@
 import json
+import logging
 import os
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 import requests
+from ai.tokenutil import token_count
+
+DEFAULT_MODEL = "claude-3-7-sonnet-latest"
 
 
 def complete_chat(
     message: Union[str, List[Dict[str, Any]]],
-    model: str = "claude-3-5-sonnet-latest",
+    model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
 ) -> Iterator[str]:
     api_key = os.environ["ANTHROPIC_API_KEY"]
@@ -26,11 +30,6 @@ def complete_chat(
         messages = [{"role": "user", "content": message}]
     else:
         messages = message
-
-    # Remove __timestamps key from messages
-    for msg in messages:
-        if "__timestamp" in msg:
-            del msg["__timestamp"]
 
     payload = {
         # https://docs.anthropic.com/en/docs/about-claude/models
@@ -55,6 +54,7 @@ def complete_chat(
         for line in response.iter_lines():
             if line:
                 decoded_line = line.decode("utf-8")
+                logging.debug(f"Received line: {decoded_line}")
 
                 if not decoded_line.startswith("data: "):
                     continue
@@ -70,3 +70,13 @@ def complete_chat(
 
                 if json_data.get("type") == "message_stop":
                     break
+
+                if json_data["type"] == "message_start":
+                    token_count.input_tokens += json_data["message"]["usage"][
+                        "input_tokens"
+                    ]
+                    token_count.output_tokens += json_data["message"]["usage"][
+                        "output_tokens"
+                    ]
+                elif json_data["type"] == "message_delta":
+                    token_count.output_tokens += json_data["usage"]["output_tokens"]

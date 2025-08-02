@@ -14,7 +14,7 @@ from utils.menu import Menu
 from utils.menu.inputmenu import InputMenu
 
 _MODULE_NAME = Path(__file__).stem
-DIVIDER = "─" * 80
+DIVIDER = "─"
 
 
 @dataclass
@@ -191,7 +191,11 @@ class GrepMenu(Menu[_Line]):
         for match in self.__matches:
             self.append_item(
                 _Line(
-                    match.file if match.file != last_file else DIVIDER,
+                    (
+                        f"{match.file} ".ljust(120, DIVIDER)
+                        if match.file != last_file
+                        else ""
+                    ),
                     type="file",
                     match=match,
                 )

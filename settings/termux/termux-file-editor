@@ -1,0 +1,2 @@
+#!/bin/bash
+run_script ext/contextmenu.py "$1"

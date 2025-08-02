@@ -5,7 +5,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
+from io import StringIO
 from typing import (
     Any,
     Callable,
@@ -217,9 +217,11 @@ R = TypeVar("R")
 
 
 class Menu(Generic[T]):
-    stdscr = None
-    color_pair_map: Dict[str, int] = {}
     _should_update_screen = False
+    color_pair_map: Dict[str, int] = {}
+    log_handler: Optional[logging.StreamHandler] = None
+    logger: Optional[logging.Logger] = None
+    stdscr = None
 
     def __init__(
         self,
@@ -321,13 +323,14 @@ class Menu(Generic[T]):
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
             self.add_command(self.__command_palette, hotkey="ctrl+p")
-            self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
-            self.add_command(self.__toggle_wrap, hotkey="alt+z")
-            self.add_command(self.__prev_search_history, hotkey="alt+u")
-            self.add_command(self.paste, hotkey="ctrl+v")
-            self.add_command(self.yank, hotkey="ctrl+y")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")
+            self.add_command(self.__logs)
+            self.add_command(self.__prev_search_history, hotkey="alt+u")
+            self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
+            self.add_command(self.__toggle_wrap, hotkey="alt+z")
+            self.add_command(self.paste, hotkey="ctrl+v")
+            self.add_command(self.yank, hotkey="ctrl+y")
 
             self._command_palette_menu = Menu(
                 prompt="cmd",
@@ -351,40 +354,39 @@ class Menu(Generic[T]):
 
             ContextMenu(param=str(selected)).exec()
 
-    def __redirect_output(self):
-        class ConsoleRedirect:
-            def __init__(self, menu: Menu) -> None:
-                self.menu = menu
+    def __logs(self):
+        if Menu.log_handler:
+            from .textmenu import TextMenu
 
-            def write(self, message):
-                if message.strip():
-                    self.menu.set_prompt(message)
-                    self.menu.process_events()
+            TextMenu(text=Menu.log_handler.stream.getvalue(), prompt="Logs").exec()
 
-            def flush(self):
-                pass
+    @staticmethod
+    def __setup_logging():
+        Menu.log_handler = logging.StreamHandler(StringIO())
+        Menu.logger = logging.getLogger()
+        Menu.logger.setLevel(logging.DEBUG)
+        for handler in Menu.logger.handlers:
+            Menu.logger.removeHandler(handler)
+        Menu.logger.addHandler(Menu.log_handler)
 
-        self.__saved_stdout = sys.stdout
-        self.__saved_stderr = sys.stderr
-        sys.stdout = sys.stderr = ConsoleRedirect(self)
-
-    def __recover_output(self):
-        assert self.__saved_stdout and self.__saved_stderr
-        sys.stdout = self.__saved_stdout
-        sys.stderr = self.__saved_stderr
+    @staticmethod
+    def __teardown_logging():
+        if Menu.logger and Menu.log_handler:
+            Menu.logger.removeHandler(Menu.log_handler)
+            Menu.log_handler.close()
 
     def __enter__(self):
         if self.__is_stdscr_owner:
             raise Exception("Using with-clause on Menu object twice is not allowed")
         self.__is_stdscr_owner = Menu.stdscr is None
         if self.__is_stdscr_owner:
-            # self.__redirect_output()
+            Menu.__setup_logging()
             Menu.init_curses()
 
     def __exit__(self, exc_type, exc_val, traceback):
         if self.__is_stdscr_owner:
             Menu.destroy_curses()
-            # self.__recover_output()
+            Menu.__teardown_logging()
         else:
             Menu._should_update_screen = True
         self.__is_stdscr_owner = False
@@ -1415,8 +1417,7 @@ class Menu(Generic[T]):
 
     def set_message(self, message: Optional[str] = None):
         if message:
-            ts = datetime.now().strftime("%H:%M:%S.%f")[:-5]
-            self.__message = f"{ts}: {message}"
+            self.__message = message
         else:
             message = None
         self.update_screen()

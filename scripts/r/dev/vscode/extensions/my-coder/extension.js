@@ -1,11 +1,12 @@
 const vscode = require("vscode");
 const process = require("process");
+const { spawn } = require("child_process");
 
 /**
- * Opens a terminal with the specified options.
- *
- * @param {Object} options - The options for opening the terminal.
- * @param {string[]} options.args - The shell command to run in the terminal.
+ * Runs coder in terminal.
+ * @param {Object} params - The parameters object
+ * @param {string[]} params.args - Arguments to pass to coder
+ * @returns {Promise<void>}
  */
 async function runCoder({ args }) {
   const name = "Coder";
@@ -46,9 +47,17 @@ function activate(context) {
         ? fileName
         : `${fileName}#${selection.start.line + 1}-${selection.end.line + 1}`;
 
-      await runCoder({
-        args: [fileAndLines],
-      });
+      // await runCoder({
+      //   args: [fileAndLines],
+      // });
+      spawn(
+        "start_script",
+        ["--restart-instance=true", "r/ai/code_agent.py", fileAndLines],
+        {
+          detached: true,
+          stdio: "ignore",
+        }
+      );
     }
   );
 

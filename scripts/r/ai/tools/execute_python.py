@@ -5,7 +5,8 @@ from utils.exec_then_eval import exec_then_eval
 
 
 def execute_python(code: str) -> str:
-    """Execute supplied python code.
+    """
+    Execute supplied python code.
     - Avoid using third-party libraries.
     - Don't add any comments into the code.
     """

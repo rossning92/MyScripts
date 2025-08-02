@@ -1,34 +1,30 @@
 import argparse
 import os
 from platform import platform
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from ai.agent import AgentMenu
+from ai.anthropic.complete_chat import DEFAULT_MODEL
 from ai.filecontextmenu import FileContextMenu
 from ai.tools import Settings
-from ai.tools.checkpoints import restore_files_to_timestamp
 from ai.tools.edit_file import edit_file
 from ai.tools.glob_files import glob_files
+from ai.tools.grep_tool import grep_tool
+from ai.tools.list_files import list_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
 from ML.gpt.chatmenu import SettingsMenu
-from tree import tree
+from utils.checkpoints import restore_files_since_timestamp
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
 
 
 def get_env_info() -> str:
-    file_tree = tree(os.getcwd(), max_level=1)
-
     return f"""# Environment Information
 
 Platform: {platform()}
 Current working directory: {os.getcwd()}
-File tree:
-```
-{file_tree}
-```
 """
 
 
@@ -52,7 +48,7 @@ class CodeAgentMenu(AgentMenu):
     def __init__(self, files: Optional[List[str]], **kwargs):
         super().__init__(
             data_dir=".coder",
-            model="claude-3-7-sonnet-latest",
+            model=DEFAULT_MODEL,
             settings_menu_class=_SettingsMenu,
             **kwargs,
         )
@@ -81,7 +77,15 @@ class CodeAgentMenu(AgentMenu):
 """
 
     def get_tools(self) -> List[Callable]:
-        return [read_file, write_file, edit_file, run_bash_command, glob_files]
+        return [
+            read_file,
+            write_file,
+            edit_file,
+            run_bash_command,
+            list_files,
+            glob_files,
+            grep_tool,
+        ]
 
     def get_prompt(self) -> str:
         return "\n\n".join(
@@ -95,12 +99,10 @@ class CodeAgentMenu(AgentMenu):
             if s
         )
 
-    def undo_messages(self) -> List[Dict[str, Any]]:
+    def undo_messages(self) -> List[Tuple[Dict[str, Any], float]]:
         removed_messages = super().undo_messages()
-        if len(removed_messages) > 0:
-            timestamp = removed_messages[-1].get("__timestamp", None)
-            if timestamp is not None:
-                restore_files_to_timestamp(timestamp=timestamp)
+        for message, timestamp in reversed(removed_messages):
+            restore_files_since_timestamp(timestamp=timestamp)
         return removed_messages
 
     def get_status_text(self) -> str:

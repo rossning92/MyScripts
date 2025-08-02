@@ -245,7 +245,7 @@ def execute_script(
         cd=cd,
         close_on_exit=close_on_exit,
         new_window=False if run_script_and_quit else None,
-        restart_instance=False if is_in_tmux() else True,
+        restart_instance=True,
         out_to_file=out_to_file,
         run_script_local=run_script_local,
     )

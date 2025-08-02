@@ -4,10 +4,11 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
-from typing import Any, Callable, Dict, List, Literal, Optional
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
 from ai.complete_chat import complete_chat
 from ai.openai.complete_chat import create_user_message, message_to_str
+from ai.tokenutil import token_count
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.gitignore import create_gitignore
@@ -65,7 +66,7 @@ class _SelectConvMenu(Menu[str]):
 
 
 class ChatMenu(Menu[Line]):
-    default_conv: Dict = {"messages": []}
+    default_conv: Dict = {"messages": [], "timestamps": []}
 
     def __init__(
         self,
@@ -131,7 +132,6 @@ class ChatMenu(Menu[Line]):
         )
 
         self.__conv: Dict[str, Any] = ChatMenu.default_conv.copy()  # conversation data
-        self.__conv_file: Optional[str]
 
         self.new_conversation()
         if new_conversation:
@@ -260,13 +260,13 @@ class ChatMenu(Menu[Line]):
         if selected:
             self.load_conversation(selected)
 
-    def undo_messages(self) -> List[Dict[str, Any]]:
-        removed_messages: List[Dict[str, Any]] = []
+    def undo_messages(self) -> List[Tuple[Dict[str, Any], float]]:
+        removed_messages: List[Tuple[Dict[str, Any], float]] = []
         messages = self.get_messages()
         if messages:
-            removed_messages.append(messages.pop())
+            removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
         while messages and messages[-1]["role"] != "assistant":
-            removed_messages.append(messages.pop())
+            removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
         self.__populate_lines()
         return removed_messages
 
@@ -334,9 +334,14 @@ class ChatMenu(Menu[Line]):
 
         self.__complete_chat()
 
+    def __append_message(self, message: Dict[str, Any]):
+        self.get_messages().append(message)
+        self.__conv["timestamps"].append(datetime.now().timestamp())
+        assert len(self.get_messages()) == len(self.__conv["timestamps"])
+
     def append_user_message(self, text: str):
         msg_index = len(self.get_messages())
-        self.get_messages().append(
+        self.__append_message(
             create_user_message(text=text, image_file=self.__image_file)
         )
         for i, text in enumerate(text.splitlines()):
@@ -353,7 +358,6 @@ class ChatMenu(Menu[Line]):
         self.__is_generating = True
 
         content = ""
-        messages = self.get_messages()
         msg_index = len(self.get_messages())
         interrupted = False
         line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
@@ -392,11 +396,10 @@ class ChatMenu(Menu[Line]):
                 )
             )
 
-        messages.append(
+        self.__append_message(
             {
                 "role": "assistant",
                 "content": content,
-                "__timestamp": datetime.now().timestamp(),
             }
         )
         self.__is_generating = False
@@ -450,6 +453,8 @@ class ChatMenu(Menu[Line]):
     def clear_messages(self):
         self.__lines.clear()
         self.get_messages().clear()
+        self.__conv["timestamps"].clear()
+        token_count.clear()
         self.update_screen()
 
     def new_conversation(self, message: Optional[str] = None):
@@ -481,8 +486,8 @@ class ChatMenu(Menu[Line]):
         pass
 
     def get_status_text(self) -> str:
-        config_text = "CONFG: " + str(self.__settings_menu.data)
-        return config_text + "\n" + super().get_status_text()
+        return f"""CHAT : tokIn={token_count.input_tokens} tokOut={token_count.output_tokens} cfg={str(self.__settings_menu.data)}
+{super().get_status_text()}"""
 
     def on_escape_pressed(self):
         self.__cancel_chat_completion()
