@@ -1415,8 +1415,7 @@ class Menu(Generic[T]):
 
     def set_message(self, message: Optional[str] = None):
         if message:
-            ts = datetime.now().strftime("%H:%M:%S.%f")[:-5]
-            self.__message = f"{ts}: {message}"
+            self.__message = message
         else:
             message = None
         self.update_screen()

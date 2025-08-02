@@ -8,8 +8,8 @@ def edit_file(file: str, old_string: str, new_string: str):
 
     The `old_string` MUST uniquely identify the instance you want to change. If multiple matches exist, add some surrounding lines to uniquely identify the instance.
     The `old_string` string MUST exactly match existing content, including whitespace and indentation, as it appears in the file.
-    You can use this tool multiple times to make multiple changes across multiple files in a single request.
-    This tool is intended to make small edits. To create a new file, or replace the entire file content, use `write_file` instead.
+    You can use `edit_file` multiple times to make multiple changes across multiple files in a single request.
+    You should use the `edit_file` tool for small edits. To create a new file or replace the entire file content, use `write_file` instead.
     """
     backup_files([file])
 
