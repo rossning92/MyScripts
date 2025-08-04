@@ -2,6 +2,7 @@ import argparse
 import os
 import tempfile
 from datetime import datetime
+from email.mime import image
 from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
@@ -540,15 +541,18 @@ def _main():
     parser.add_argument("--image-file", type=str, nargs="?")
     args = parser.parse_args()
 
-    if args.input is None:
-        s = None
-    elif os.path.isfile(args.input):
-        with open(args.input, "r", encoding="utf-8") as f:
-            s = f.read()
+    image_file: Optional[str] = None
+    message: Optional[str] = None
+    if os.path.isfile(args.input):
+        if args.input.endswith(".jpg") or args.input.endswith(".png"):
+            image_file = args.input
+        else:
+            with open(args.input, "r", encoding="utf-8") as f:
+                message = f.read()
     else:
-        s = args.input
+        message = args.input
 
-    chat = ChatMenu(message=s, image_file=args.image_file)
+    chat = ChatMenu(message=message, image_file=image_file)
     chat.exec()
 
 

@@ -48,11 +48,13 @@ ln -f -s $HOME/MyScripts/settings/termux $HOME/.termux
 # Config vim
 ln -f -s $HOME/MyScripts/settings/vim/.vimrc $HOME/.vimrc
 
-# Setup URL sharing
+# Set up hooks for sharing to Termux
 mkdir -p "$HOME/bin"
+cat >"$HOME/bin/termux-file-editor" <<'EOF'
+bash "$HOME/MyScripts/bin/run_script" ext/contextmenu.py "$1"
+EOF
 cat >"$HOME/bin/termux-url-opener" <<'EOF'
-# WORKAROUND: shebang such as `#!/bin/sh` won't work in Termux.
-bash "$HOME/MyScripts/myscripts" --input "$1"
+bash "$HOME/MyScripts/bin/run_script" ext/contextmenu.py "$1"
 EOF
 
 # ==============================

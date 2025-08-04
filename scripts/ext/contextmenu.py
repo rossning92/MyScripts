@@ -2,13 +2,23 @@ import argparse
 import http.client
 import json
 import urllib.parse
+from dataclasses import dataclass
 from typing import List
 
 from _script import Script
 from utils.menu import Menu
 
 
-def _match_scripts_with_param(param: str) -> List[str]:
+@dataclass
+class _ScriptItem:
+    name: str
+    path: str
+
+    def __str__(self) -> str:
+        return self.name
+
+
+def _match_scripts_with_param(param: str) -> List[_ScriptItem]:
     encoded_param = urllib.parse.quote(param)
     host = "127.0.0.1:4312"
     path = f"/scripts/{encoded_param}"
@@ -19,25 +29,32 @@ def _match_scripts_with_param(param: str) -> List[str]:
         if response.status == 200:
             data = response.read().decode("utf-8")
             json_data = json.loads(data)
-            return [script["path"] for script in json_data["scripts"]]
+            return [
+                _ScriptItem(name=script["name"], path=script["path"])
+                for script in json_data["scripts"]
+            ]
         else:
             raise Exception(f"Failed to retrieve data: {response.status}")
     finally:
         conn.close()
 
 
-class ContextMenu(Menu[str]):
+class ContextMenu(Menu[_ScriptItem]):
     def __init__(self, param: str, **kwargs):
         self.__param = param
-        super().__init__(items=_match_scripts_with_param(self.__param), **kwargs)
+        super().__init__(
+            prompt=f"({self.__param})",
+            items=_match_scripts_with_param(self.__param),
+            **kwargs,
+        )
 
     def on_created(self):
         if len(self.items) == 1:
             self.on_item_selected(self.items[0])
             self.close()
 
-    def on_item_selected(self, item: str):
-        script = Script(item)
+    def on_item_selected(self, item: _ScriptItem):
+        script = Script(item.path)
         script.execute(args=[self.__param])
 
 

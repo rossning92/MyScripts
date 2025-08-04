@@ -1,9 +1,10 @@
 import os
+import subprocess
 import sys
 import tempfile
 import webbrowser
 
-from _shutil import start_process
+from _shutil import is_in_termux, start_process
 
 
 def open_url(url, profile_name=None):
@@ -26,6 +27,8 @@ def open_url(url, profile_name=None):
                 args.append(url)
                 start_process(args)
                 return
+    elif is_in_termux():
+        subprocess.call(["termux-open-url", url])
     else:
         webbrowser.open(url)
         return
