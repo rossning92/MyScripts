@@ -543,7 +543,7 @@ def _main():
 
     image_file: Optional[str] = None
     message: Optional[str] = None
-    if os.path.isfile(args.input):
+    if args.input and os.path.isfile(args.input):
         if args.input.endswith(".jpg") or args.input.endswith(".png"):
             image_file = args.input
         else:

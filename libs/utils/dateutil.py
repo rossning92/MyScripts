@@ -36,8 +36,7 @@ def parse_datetime(text: str) -> Optional[datetime]:
         "^"
         r"(?:(?P<year>\d{2,4})[-/])?"
         r"(?:(?P<month>\d{1,2})[-/](?P<day>\d{1,2}))?"
-        r"\s*"
-        r"(?:(?P<hour>\d{1,2})(?::(?P<minute>\d{1,2}))?(?P<ampm>am|pm)?)?"
+        r"(?:\s+(?P<hour>\d{1,2})(?::(?P<minute>\d{1,2}))?(?P<ampm>am|pm)?)?"
         "$",
         text_lower,
     )

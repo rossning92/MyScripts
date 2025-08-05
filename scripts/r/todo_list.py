@@ -83,10 +83,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.add_command(self.__edit_due, hotkey="alt+d")
         self.add_command(self.__new_task, hotkey="ctrl+n")
         self.add_command(self.__reload, hotkey="ctrl+r")
-        self.add_command(self.__close_task, hotkey="alt+c")
         self.add_command(self.__set_status_wip, hotkey="alt+w")
-        self.add_command(self.__set_status_open, hotkey="alt+o")
         self.add_command(self.__toggle_important, hotkey="!")
+        self.add_command(self.__toggle_status, hotkey="alt+x")
 
     def __duplicate_task(self):
         selected = self.get_selected_item()
@@ -113,6 +112,14 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 self.__set_selected_item_value({_IMPORTANT: None})
             else:
                 self.__set_selected_item_value({_IMPORTANT: True})
+
+    def __toggle_status(self):
+        selected = self.get_selected_item()
+        if selected:
+            if selected.get(_STATUS) != "closed":
+                self.__set_selected_item_value({_STATUS: "closed"})
+            else:
+                self.__set_selected_item_value({_STATUS: "none"})
 
     def get_item_text(self, item: TodoItem) -> str:
         # Date
@@ -160,7 +167,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         now = time.time()
         if now > self.__last_reload_check_time + 1.0:
             self.__last_reload_check_time = now
-            self.__reload()
+            self.__reload(sort=False)
 
     def on_escape_pressed(self):
         if not self.clear_input():
@@ -168,8 +175,17 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 self.set_selected_item(self.items[0])
 
     def save_json(self):
-        self.__sort_tasks()
-        return super().save_json()
+        try:
+            super().save_json()
+        except Exception as e:
+            self.set_message(f"Error on saving: {e}")
+
+    def load_json(self) -> bool:
+        try:
+            return super().load_json()
+        except Exception as e:
+            self.set_message(f"Error on loading: {e}")
+            return False
 
     def __edit_timestamp_field(self, item: TodoItem, field_name: str):
         ts = input_date(
@@ -228,10 +244,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__edit_timestamp_field(item, field_name=_DUE_TIMESTAMP)
 
-    def __reload(self):
+    def __reload(self, sort=True):
         if self.load_json():
-            self.__sort_tasks()
             self.set_message("reloaded")
+        if sort:
+            self.__sort_tasks()
 
     def __sort_tasks(self):
         selected = self.get_selected_item()
@@ -248,12 +265,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
         )
         self.refresh()
         self.set_selected_item(selected)
-
-    def __close_task(self):
-        self.__set_selected_item_value({_STATUS: "closed"})
-
-    def __set_status_open(self):
-        self.__set_selected_item_value({_STATUS: "none"})
 
     def __set_status_wip(self):
         self.__set_selected_item_value({_STATUS: "in_progress"})

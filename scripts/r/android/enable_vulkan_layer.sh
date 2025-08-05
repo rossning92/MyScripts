@@ -14,9 +14,13 @@ fi
 filename="$(basename -- "$VK_LAYER_SO")"
 
 echo "Push $VK_LAYER_SO to device..."
-adb push "$VK_LAYER_SO" /data/local/tmp/$filename
-adb shell run-as $pkg cp /data/local/tmp/$filename . #  same permission as the app
-adb shell run-as $pkg ls $filename
+# adb push "$VK_LAYER_SO" /data/local/tmp/$filename
+# adb shell run-as $pkg cp /data/local/tmp/$filename . #  same permission as the app
+# adb shell run-as $pkg ls $filename
+
+adb root
+app_path=$(adb shell "pm path $pkg | sed -e 's/package://g' | sed -e 's/\/base\.apk//g'")
+adb push "$VK_LAYER_SO" "${app_path}/lib/arm64/"
 
 echo "Enable gpu_debug_layers..."
 adb shell settings put global enable_gpu_debug_layers 1

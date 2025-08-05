@@ -14,7 +14,7 @@ def edit_file(file: str, old_string: str, new_string: str):
     backup_files([file])
 
     change = Change(file=file, search=old_string, replace=new_string)
-    if Settings.need_confirm:
+    if Settings.need_confirm_edit_file:
         if not apply_change_interactive(change=change):
             raise KeyboardInterrupt("Search and replace was canceled by the user")
     else:
