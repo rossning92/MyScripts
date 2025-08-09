@@ -1,6 +1,7 @@
 import logging
 import os
 import platform
+import re
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -186,3 +187,15 @@ def get_absolute_script_path(path: str):
             else:
                 path_arr.insert(0, get_script_root())
     return os.path.join(*path_arr)
+
+
+def get_script_alias(name_without_ext: str) -> str:
+    basename = os.path.basename(name_without_ext)
+    if basename:
+        words = re.split("[^a-zA-Z0-9]+", basename)
+        if 1 <= len(words) <= 4:
+            return "".join((w[0].lower() if w else "" for w in words))
+        else:
+            return ""
+    else:
+        return ""

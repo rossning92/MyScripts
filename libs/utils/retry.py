@@ -1,3 +1,6 @@
+import logging
+
+
 def retry(times=3, exceptions=(Exception,)):
     def decorator(func):
         def newfn(*args, **kwargs):
@@ -6,8 +9,8 @@ def retry(times=3, exceptions=(Exception,)):
                 try:
                     return func(*args, **kwargs)
                 except exceptions:
-                    print(
-                        "Error on running run %s, attempt "
+                    logging.error(
+                        "Error on running %s, attempt "
                         "%d of %d" % (func, attempt, times)
                     )
                     attempt += 1

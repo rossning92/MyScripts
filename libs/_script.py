@@ -49,6 +49,7 @@ from scripting.path import (
     get_default_script_config_path,
     get_my_script_root,
     get_relative_script_path,
+    get_script_alias,
     get_script_config_file,
     get_script_config_file_path,
     get_script_directories,
@@ -475,18 +476,6 @@ class LogPipe(threading.Thread):
         self.log()
 
 
-def get_script_alias(name_without_ext: str) -> str:
-    basename = os.path.basename(name_without_ext)
-    if basename:
-        words = re.split("[^a-zA-Z0-9]+", basename)
-        if 1 <= len(words) <= 4:
-            return "".join((w[0].lower() if w else "" for w in words))
-        else:
-            return ""
-    else:
-        return ""
-
-
 @functools.lru_cache(maxsize=None)
 def install_pip_packages(pkg: str, python_exec: str) -> None:
     # Check if pip package is installed
@@ -624,13 +613,23 @@ class Script:
                 return False
         return True
 
-    def get_window_title(self):
+    def get_window_title(self) -> str:
         if self.console_title:
             return self.console_title
         elif self.cfg["title"]:
+            assert isinstance(self.cfg["title"], str)
             return self.cfg["title"]
         else:
             return "!!" + self.name
+
+    def get_window_name_tmux(self) -> str:
+        if self.console_title:
+            return self.console_title
+        elif self.cfg["title"]:
+            assert isinstance(self.cfg["title"], str)
+            return self.cfg["title"]
+        else:
+            return os.path.splitext(os.path.basename(self.script_path))[0]
 
     def get_script_path(self) -> str:
         return self.real_script_path if self.real_script_path else self.script_path
@@ -760,7 +759,7 @@ class Script:
         if (
             is_in_tmux()
             and subprocess.call(
-                ["tmux", "select-window", "-t", slugify(title)],
+                ["tmux", "select-window", "-t", self.get_window_name_tmux()],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
@@ -799,9 +798,7 @@ class Script:
             pass
 
         elif is_in_tmux():
-            subprocess.call(
-                ["tmux", "kill-window", "-t", slugify(self.get_window_title())]
-            )
+            subprocess.call(["tmux", "kill-window", "-t", self.get_window_name_tmux()])
 
         else:
             # Close exising instances
@@ -1497,7 +1494,7 @@ class Script:
                                 # "split-window",
                                 "new-window",
                                 "-n",
-                                slugify(self.get_window_title()),
+                                self.get_window_name_tmux(),
                             ]
                             + [  # Pass environmental variable to new window.
                                 item
