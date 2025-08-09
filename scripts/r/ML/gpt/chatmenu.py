@@ -61,6 +61,9 @@ class Line:
 
 
 class _SelectConvMenu(Menu[str]):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(prompt="load conversation", **kwargs)
+
     def get_item_text(self, conv_file: str) -> str:
         conv = load_json(conv_file)
         return str(conv)

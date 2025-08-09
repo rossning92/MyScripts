@@ -5,6 +5,11 @@ if [[ -z "$VNC_SERVER" ]]; then
     exit 1
 fi
 
+# Right Control+C to disconnect.
+if [[ -f "$HOME/.config/remmina/remmina.pref" ]]; then
+    sed -i 's/shortcutkey_disconnect=[0-9][0-9]*/shortcutkey_disconnect=99/g' "$HOME/.config/remmina/remmina.pref"
+fi
+
 mkdir -p "$HOME/.local/share/remmina"
 profile_path="$HOME/.local/share/remmina/$VNC_SERVER.remmina"
 if [[ ! -f "$profile_path" ]]; then

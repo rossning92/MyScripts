@@ -9,7 +9,7 @@ from typing import Callable, Dict, List, Optional, Tuple
 from ai.tools.execute_python import execute_python
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
-from ML.gpt.chatmenu import ChatMenu, Line
+from ML.gpt.chatmenu import ChatMenu
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
@@ -200,17 +200,6 @@ class AgentMenu(ChatMenu):
     def on_created(self):
         if self.__run:
             self.__complete_task()
-
-    def on_enter_pressed(self):
-        messages = self.get_messages()
-        if (
-            self.get_input() == ""
-            and len(messages) > 0
-            and messages[-1]["role"] == "assistant"
-        ):
-            self.__handle_response()
-        else:
-            return super().on_enter_pressed()
 
     def on_message(self, content: str):
         self.__handle_response()

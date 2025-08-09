@@ -67,16 +67,18 @@ def complete_chat(
                     text_chunk = json_data["delta"].get("text", "")
                     if text_chunk:
                         yield text_chunk
-
-                if json_data.get("type") == "message_stop":
+                elif json_data.get("type") == "message_stop":
                     break
-
-                if json_data["type"] == "message_start":
+                elif json_data.get("type") == "error":
+                    raise Exception(
+                        f"Error from API: {json_data.get('error', 'Unknown error')}"
+                    )
+                elif json_data.get("type") == "message_start":
                     token_count.input_tokens += json_data["message"]["usage"][
                         "input_tokens"
                     ]
                     token_count.output_tokens += json_data["message"]["usage"][
                         "output_tokens"
                     ]
-                elif json_data["type"] == "message_delta":
+                elif json_data.get("type") == "message_delta":
                     token_count.output_tokens += json_data["usage"]["output_tokens"]

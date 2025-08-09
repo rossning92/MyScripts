@@ -911,6 +911,8 @@ class Menu(Generic[T]):
                 self.__should_update_matched_items = False
                 self.__should_update_screen = True
 
+                self.on_matched_items_updated()
+
     def on_escape_pressed(self):
         if "escape" in self.__hotkeys:
             logging.debug("Hotkey pressed: escape")
@@ -922,6 +924,9 @@ class Menu(Generic[T]):
             else:
                 self.__input.clear()
                 self.update_screen()
+
+    def on_matched_items_updated(self):
+        pass
 
     def _check_ctrl_hotkey(self, ch: Union[str, int]) -> bool:
         if curses.ascii.isctrl(ch):

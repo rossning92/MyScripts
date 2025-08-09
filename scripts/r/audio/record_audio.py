@@ -46,7 +46,7 @@ def _initialize_pulseaudio():
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        subprocess.check_call(["pulseaudio", "-L", "module-sles-source", "-D"])
+        subprocess.check_call(["pulseaudio", "-L", "module-sles-source", "-D"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 def record_audio(out_file: str, stop_event: Optional[Event] = None) -> Optional[str]:

@@ -1,5 +1,4 @@
 {
-  "globalHotkey": "ctrl+win+g",
   "packages": "ripgrep fzf",
   "template": true
 }
