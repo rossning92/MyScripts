@@ -16,6 +16,7 @@ from utils.jsonutil import load_json, save_json
 class ScriptDirectory:
     name: str
     path: str  # absolute path of script directory
+    glob: Optional[str] = None  # glob pattern to match files in this directory
 
 
 @lru_cache(maxsize=None)
@@ -30,13 +31,18 @@ def get_script_directories() -> List[ScriptDirectory]:
 
     # Scripts root path
     directories.append(
-        ScriptDirectory(name="", path=os.path.join(get_my_script_root(), "scripts"))
+        ScriptDirectory(
+            name="",
+            path=os.path.join(get_my_script_root(), "scripts"),
+        )
     )
 
     # Settings directory
     directories.append(
         ScriptDirectory(
-            name="settings", path=os.path.join(get_my_script_root(), "settings")
+            name="settings",
+            path=os.path.join(get_my_script_root(), "settings"),
+            glob="*",
         )
     )
 

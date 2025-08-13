@@ -15,6 +15,7 @@ import threading
 import time
 import urllib.parse
 from enum import IntEnum
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
@@ -43,6 +44,7 @@ from _shutil import (
     write_temp_file,
 )
 from scripting.path import (
+    ScriptDirectory,
     get_absolute_script_path,
     get_bin_dir,
     get_data_dir,
@@ -2039,9 +2041,11 @@ def get_default_script_dir_config():
     return {"includeExts": ""}
 
 
-def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
+def _get_scripts_recursive(
+    directory: ScriptDirectory, include_exts=[]
+) -> Iterator[str]:
     dir_config = load_json(
-        os.path.join(directory, script_dir_config_file),
+        os.path.join(directory.path, script_dir_config_file),
         default=get_default_script_dir_config(),
     )
     include_exts += dir_config["includeExts"].split()
@@ -2065,27 +2069,31 @@ def get_scripts_recursive(directory, include_exts=[]) -> Iterator[str]:
 
         return False
 
-    for root, dirs, files in os.walk(directory, topdown=True):
+    for root, dirs, files in os.walk(directory.path, topdown=True):
         dirs[:] = [d for d in dirs if not should_ignore(root, d)]
 
         for file in files:
             ext = os.path.splitext(file)[1].lower()
 
-            # Filter by script extensions
-            if (
-                ext not in SCRIPT_EXTENSIONS
-                and ext not in include_exts
-                and ext not in BINARY_EXTENSIONS
-                and not file.endswith(".excalidraw.png")
-            ):
-                continue
+            if directory.glob:
+                if not fnmatch(file, directory.glob):
+                    continue
+            else:
+                # Filter by script extensions
+                if (
+                    ext not in SCRIPT_EXTENSIONS
+                    and ext not in include_exts
+                    and ext not in BINARY_EXTENSIONS
+                    and not file.endswith(".excalidraw.png")
+                ):
+                    continue
 
             yield os.path.join(root, file)
 
 
 def get_all_scripts() -> Iterator[str]:
     for d in get_script_directories():
-        files = get_scripts_recursive(d.path)
+        files = _get_scripts_recursive(d)
         for file in files:
             # File has been removed during iteration
             if not os.path.exists(file):

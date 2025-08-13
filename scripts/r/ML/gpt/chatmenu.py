@@ -16,6 +16,8 @@ from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
+from utils.menu.confirmmenu import ConfirmMenu
+from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 from utils.menu.textmenu import TextMenu
@@ -361,44 +363,52 @@ class ChatMenu(Menu[Line]):
 
         self.__is_generating = True
 
-        content = ""
-        msg_index = len(self.get_messages())
-        interrupted = False
-        line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
-        subindex = 1
-        self.append_item(line)
-        try:
-            for chunk in complete_chat(
-                self.get_messages(),
-                model=self.__get_model(),
-                system_prompt=self.__system_prompt,
-            ):
-                content += chunk
-                for i, a in enumerate(chunk.split("\n")):
-                    if i > 0:
-                        line = Line(
-                            role="assistant",
-                            text="",
-                            msg_index=msg_index,
-                            subindex=subindex,
-                        )
-                        subindex += 1
-                        self.append_item(line)
-                    line.text += a
+        def complete() -> Tuple[Optional[str], bool]:
+            content = ""
+            msg_index = len(self.get_messages())
+            line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
+            subindex = 1
+            self.append_item(line)
+            try:
+                for chunk in complete_chat(
+                    self.get_messages(),
+                    model=self.__get_model(),
+                    system_prompt=self.__system_prompt,
+                ):
+                    content += chunk
+                    for i, a in enumerate(chunk.split("\n")):
+                        if i > 0:
+                            line = Line(
+                                role="assistant",
+                                text="",
+                                msg_index=msg_index,
+                                subindex=subindex,
+                            )
+                            subindex += 1
+                            self.append_item(line)
+                        line.text += a
 
-                self.update_screen()
-                self.process_events(raise_keyboard_interrupt=True)
-        except KeyboardInterrupt:
-            interrupted = True
-            content += f"\n{_INTERRUPT_MESSAGE}"
-            self.append_item(
-                Line(
-                    role="assistant",
-                    text=f"{_INTERRUPT_MESSAGE}",
-                    msg_index=msg_index,
-                    subindex=subindex,
+                    self.update_screen()
+                    self.process_events(raise_keyboard_interrupt=True)
+                return content, False
+            except KeyboardInterrupt:
+                content += f"\n{_INTERRUPT_MESSAGE}"
+                self.append_item(
+                    Line(
+                        role="assistant",
+                        text=f"{_INTERRUPT_MESSAGE}",
+                        msg_index=msg_index,
+                        subindex=subindex,
+                    )
                 )
-            )
+                return content, True
+
+        content = None
+        while content is None:  # retry on exception
+            try:
+                content, interrupted = complete()
+            except Exception:
+                ExceptionMenu().exec()
 
         self.__append_message(
             {
