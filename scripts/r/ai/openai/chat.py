@@ -1,39 +1,16 @@
 import argparse
-import base64
 import json
 import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional
 
 import requests
+from ai.chat import create_user_message
 from ai.tokenutil import token_count
 
 DEFAULT_MODEL = "gpt-4o"
-
-
-def _encode_image_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
-
-def create_user_message(text: str, image_file: Optional[str] = None) -> Dict[str, Any]:
-    if image_file:
-        return {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": text},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{_encode_image_base64(image_file)}"
-                    },
-                },
-            ],
-        }
-    else:
-        return {"role": "user", "content": text}
 
 
 def message_to_str(message: Dict[str, Any]):
@@ -46,24 +23,22 @@ def message_to_str(message: Dict[str, Any]):
             if c["type"] == "text":
                 s += c["text"]
             elif c["type"] == "image_url":
-                s += " <image_url>"
+                s += "<image_url/>"
+            elif c["type"] == "tool_use":
+                s += f"<tool_use>{c}</tool_use>"
+            elif c["type"] == "tool_result":
+                s += f"<tool_result>{c}</tool_result>"
         return s
     else:
         return ""
 
 
 def complete_chat(
-    message: Union[str, List[Dict[str, Any]]],
-    image_file: Optional[str] = None,
+    messages: List[Dict[str, Any]],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     include_usage: bool = True,
 ) -> Iterator[str]:
-    if isinstance(message, str):
-        messages = [create_user_message(text=message, image_file=image_file)]
-    else:
-        messages = message
-
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
         raise Exception("OPENAI_API_KEY must be provided.")
@@ -87,6 +62,7 @@ def complete_chat(
 
     response = requests.post(url, headers=headers, json=data, stream=True)
     response.raise_for_status()
+    content = ""
     try:
         for chunk in response.iter_lines():
             if len(chunk) == 0:
@@ -102,6 +78,7 @@ def complete_chat(
             if choises:
                 token = choises[0]["delta"].get("content")
                 if token is not None:
+                    content += token
                     yield token
 
             if include_usage:
@@ -112,6 +89,12 @@ def complete_chat(
 
     finally:
         response.close()
+        messages.append(
+            {
+                "role": "assistant",
+                "content": content,
+            }
+        )
 
 
 if __name__ == "__main__":
@@ -129,5 +112,5 @@ if __name__ == "__main__":
         else:
             input_text = args.input
 
-    for chunk in complete_chat(input_text, image_file=args.image):
+    for chunk in complete_chat(messages=[create_user_message(input_text, args.image)]):
         print(chunk, end="")

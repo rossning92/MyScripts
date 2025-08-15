@@ -106,7 +106,7 @@ local function fix()
 
     local output_file = os.tmpname()
     run_in_terminal(
-        "run_script r/ai/complete_chat.py --quiet -o " .. output_file .. " " .. prompt_file, {
+        "run_script r/ai/chat.py --quiet -o " .. output_file .. " " .. prompt_file, {
             height = 1,
             on_exit = function()
                 local new_text = read_text_file(output_file)

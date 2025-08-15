@@ -16,7 +16,7 @@ Examples:
  - Add new test cases
 EOF
 
-message=$(run_script r/ai/openai/complete_chat.py "$temp_file" | fzf | cut -d '.' -f 2- | xargs)
+message=$(run_script r/ai/openai/chat.py "$temp_file" | fzf | cut -d '.' -f 2- | xargs)
 
 git add -A
 git commit -m "$message"

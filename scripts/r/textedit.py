@@ -36,7 +36,7 @@ class TextEdit(Menu[str]):
         out = subprocess.check_output(
             [
                 "run_script",
-                "r/ai/openai/complete_chat.py",
+                "r/ai/openai/chat.py",
                 "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n"
                 + self.lines[i],
             ],

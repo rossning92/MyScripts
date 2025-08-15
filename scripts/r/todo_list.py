@@ -239,10 +239,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
             return
 
         self.items.append(item)
+        self.__edit_timestamp_field(item, field_name=_DUE_TIMESTAMP)
+        self.__sort_tasks()
         self.save_json()
         self.set_selected_item(item)
-
-        self.__edit_timestamp_field(item, field_name=_DUE_TIMESTAMP)
 
     def __reload(self, sort=True):
         if self.load_json():

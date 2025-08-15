@@ -1164,7 +1164,7 @@ class Script:
                 convert_to_unix_path(arg, wsl=self.cfg["wsl"]) for arg in arg_list
             ]
 
-            if self.cfg["msys2"]:
+            if sys.platform == "win32" and self.cfg["msys2"]:
                 require_package("msys2")
 
             arg_list = wrap_bash_commands(

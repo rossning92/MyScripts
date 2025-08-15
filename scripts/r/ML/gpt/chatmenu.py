@@ -2,21 +2,20 @@ import argparse
 import os
 import tempfile
 from datetime import datetime
-from email.mime import image
 from pathlib import Path
 from queue import Queue
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 
-from ai.complete_chat import complete_chat
-from ai.openai.complete_chat import create_user_message, message_to_str
+from ai.chat import complete_chat, create_user_message
+from ai.openai.chat import message_to_str
 from ai.tokenutil import token_count
+from ai.tool_use import ToolResult, ToolUse
 from utils.clip import set_clip
 from utils.editor import edit_text
 from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
-from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
@@ -219,7 +218,7 @@ class ChatMenu(Menu[Line]):
             # Delete all messages after.
             del self.get_messages()[msg_index + 1 :]
 
-            self.__populate_lines()
+            self.__refresh_lines()
 
             if message["role"] == "user":
                 self.__complete_chat()
@@ -273,7 +272,7 @@ class ChatMenu(Menu[Line]):
             removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
         while messages and messages[-1]["role"] != "assistant":
             removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
-        self.__populate_lines()
+        self.__refresh_lines()
         return removed_messages
 
     def __update_prompt(self):
@@ -325,14 +324,16 @@ class ChatMenu(Menu[Line]):
         if self.__first_message is not None:
             self.send_message(self.__first_message)
 
-    def send_message(self, text: str) -> None:
+    def send_message(
+        self, text: str, tool_results: Optional[List[ToolResult]] = None
+    ) -> None:
         if self.__is_generating:
             return
 
         self.clear_input()
 
-        if text:
-            self.append_user_message(text)
+        if text or tool_results:
+            self.append_user_message(text, tool_results=tool_results)
 
         # Reset image file
         self.__image_file = None
@@ -342,13 +343,20 @@ class ChatMenu(Menu[Line]):
 
     def __append_message(self, message: Dict[str, Any]):
         self.get_messages().append(message)
+        self.__append_timestamp()
+
+    def __append_timestamp(self):
         self.__conv["timestamps"].append(datetime.now().timestamp())
         assert len(self.get_messages()) == len(self.__conv["timestamps"])
 
-    def append_user_message(self, text: str):
+    def append_user_message(
+        self, text: str, tool_results: Optional[List[ToolResult]] = None
+    ):
         msg_index = len(self.get_messages())
         self.__append_message(
-            create_user_message(text=text, image_file=self.__image_file)
+            create_user_message(
+                text=text, image_file=self.__image_file, tool_results=tool_results
+            )
         )
         for i, text in enumerate(text.splitlines()):
             self.append_item(
@@ -356,6 +364,22 @@ class ChatMenu(Menu[Line]):
             )
         self.save_conversation()
         self.update_screen()
+
+    def complete_chat(
+        self,
+        messages: List[Dict[str, Any]],
+        model: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        tools: Optional[List[Callable[..., Any]]] = None,
+        on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+    ) -> Iterator[str]:
+        return complete_chat(
+            messages,
+            model,
+            system_prompt,
+            tools=tools,
+            on_tool_use=on_tool_use,
+        )
 
     def __complete_chat(self):
         if self.__is_generating:
@@ -370,7 +394,7 @@ class ChatMenu(Menu[Line]):
             subindex = 1
             self.append_item(line)
             try:
-                for chunk in complete_chat(
+                for chunk in self.complete_chat(
                     self.get_messages(),
                     model=self.__get_model(),
                     system_prompt=self.__system_prompt,
@@ -410,14 +434,10 @@ class ChatMenu(Menu[Line]):
             except Exception:
                 ExceptionMenu().exec()
 
-        self.__append_message(
-            {
-                "role": "assistant",
-                "content": content,
-            }
-        )
+        self.__append_timestamp()
         self.__is_generating = False
         self.save_conversation()
+        self.__refresh_lines()
 
         if not interrupted:
             self.on_message(content)
@@ -436,18 +456,17 @@ class ChatMenu(Menu[Line]):
         save_json(self.__conv_file, self.__conv)
         self.__history_manager.delete_old_files()
 
-    def __populate_lines(self):
-        self.__lines.clear()
-        for msg_index, message in enumerate(self.get_messages()):
-            for i, line in enumerate(message_to_str(message).splitlines()):
-                self.append_item(
-                    Line(
-                        role=message["role"],
-                        text=line,
-                        msg_index=msg_index,
-                        subindex=i,
-                    )
-                )
+    def __refresh_lines(self):
+        self.__lines[:] = [
+            Line(
+                role=message["role"],
+                text=line,
+                msg_index=msg_index,
+                subindex=i,
+            )
+            for msg_index, message in enumerate(self.get_messages())
+            for i, line in enumerate(message_to_str(message).splitlines())
+        ]
         self.update_screen()
 
     def load_conversation(self, file: Optional[str] = None):
@@ -462,7 +481,7 @@ class ChatMenu(Menu[Line]):
             return
 
         self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
-        self.__populate_lines()
+        self.__refresh_lines()
 
     def clear_messages(self):
         self.__lines.clear()

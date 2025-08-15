@@ -2,7 +2,7 @@ import os
 import time
 from typing import Callable, List
 
-from ai.agent import AgentMenu
+from ai.agentmenu import AgentMenu
 from ai.openai.speech_to_text import convert_audio_to_text
 from ai.openai.text_to_speech import text_to_speech
 from utils.menu.asynctaskmenu import AsyncTaskMenu

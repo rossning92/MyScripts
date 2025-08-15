@@ -3,8 +3,8 @@ import os
 from platform import platform
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from ai.agent import AgentMenu
-from ai.anthropic.complete_chat import DEFAULT_MODEL
+from ai.agentmenu import AgentMenu
+from ai.anthropic.chat import DEFAULT_MODEL
 from ai.filecontextmenu import FileContextMenu
 from ai.tools import Settings
 from ai.tools.edit_file import edit_file
@@ -145,7 +145,7 @@ def _main():
     if args.dir:
         os.chdir(args.dir)
     else:
-        default_dir = os.path.expanduser("~/TestProject")
+        default_dir = os.path.expanduser("~/TestCodeAgent")
         os.makedirs(default_dir, exist_ok=True)
         os.chdir(default_dir)
 
