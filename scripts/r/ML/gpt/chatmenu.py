@@ -2,13 +2,12 @@ import argparse
 import os
 import tempfile
 from datetime import datetime
-from email.mime import image
 from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
 from ai.complete_chat import complete_chat
-from ai.openai.complete_chat import create_user_message, message_to_str
+from ai.openai.chat import create_user_message, message_to_str
 from ai.tokenutil import token_count
 from utils.clip import set_clip
 from utils.editor import edit_text
@@ -16,7 +15,6 @@ from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
-from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
@@ -342,6 +340,9 @@ class ChatMenu(Menu[Line]):
 
     def __append_message(self, message: Dict[str, Any]):
         self.get_messages().append(message)
+        self.__append_timestamp()
+
+    def __append_timestamp(self):
         self.__conv["timestamps"].append(datetime.now().timestamp())
         assert len(self.get_messages()) == len(self.__conv["timestamps"])
 
@@ -410,12 +411,7 @@ class ChatMenu(Menu[Line]):
             except Exception:
                 ExceptionMenu().exec()
 
-        self.__append_message(
-            {
-                "role": "assistant",
-                "content": content,
-            }
-        )
+        self.__append_timestamp()
         self.__is_generating = False
         self.save_conversation()
 

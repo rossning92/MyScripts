@@ -9,9 +9,7 @@ from utils.logger import setup_logger
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)
-
     setup_cmake(install=False)
-
     setup_nodejs(install=False)
 
     try:

@@ -1,26 +1,26 @@
 import argparse
 import os
 import sys
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional
 
-import ai.anthropic.complete_chat
-import ai.openai.complete_chat
+import ai.anthropic.chat
+import ai.openai.chat
 
 
 def complete_chat(
-    message: Union[str, List[Dict[str, Any]]],
+    messages: List[Dict[str, Any]],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
 ) -> Iterator[str]:
     if model and model.startswith("claude"):
-        return ai.anthropic.complete_chat.complete_chat(
-            message,
+        return ai.anthropic.chat.complete_chat(
+            messages,
             model=model,
             system_prompt=system_prompt,
         )
     else:
-        return ai.openai.complete_chat.complete_chat(
-            message,
+        return ai.openai.chat.complete_chat(
+            messages,
             model=model,
             system_prompt=system_prompt,
         )
@@ -43,7 +43,7 @@ if __name__ == "__main__":
             input_text = args.input
 
     output = ""
-    for chunk in complete_chat(input_text):
+    for chunk in complete_chat([{"role": "user", "content": input_text}]):
         output += chunk
         if not args.quiet:
             print(chunk, end="")
