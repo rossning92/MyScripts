@@ -104,7 +104,7 @@ class _TextInput:
 
     def set_text(self, text):
         self.text = text
-        self.selected_text = text
+        self.selected_text = ""
         self.caret_pos = len(text)
 
     class DrawInputResult(NamedTuple):
@@ -244,6 +244,7 @@ class Menu(Generic[T]):
         search_mode=True,
         line_number=True,
         prompt_color="white",
+        follow=False,
     ):
         self.close_on_selection: bool = close_on_selection
         self.is_cancelled: bool = False
@@ -276,8 +277,6 @@ class Menu(Generic[T]):
         self.__message: Optional[str] = None
         self.__num_rendered_items: int = 0
         self.__on_item_selected = on_item_selected
-        self.__saved_stderr: Optional[TextIO] = None
-        self.__saved_stdout: Optional[TextIO] = None
         self.__search_history: List[str] = []
         self.__width: int = -1
         self.__wrap_text: bool = wrap_text
@@ -293,6 +292,7 @@ class Menu(Generic[T]):
         self.__can_scroll = False
 
         # Selection
+        self.__follow = follow
         self.__selected_row_begin: int = selected_index
         self.__selected_row_end: int = selected_index
         self.__multi_select_mode: bool = False
@@ -327,6 +327,7 @@ class Menu(Generic[T]):
             self.add_command(self.__goto, hotkey="ctrl+g")
             self.add_command(self.__logs)
             self.add_command(self.__prev_search_history, hotkey="alt+u")
+            self.add_command(self.__select_all)
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__toggle_wrap, hotkey="alt+z")
             self.add_command(self.paste, hotkey="ctrl+v")
@@ -409,18 +410,8 @@ class Menu(Generic[T]):
             self.set_input(text)
             self.on_enter_pressed()
 
-    def select_all(self):
-        self.__update_matched_items()
-
-        total_items = len(self.get_item_indices())
-        if total_items <= 0:
-            return
-
-        self.__multi_select_mode = True
-        self.__selected_row_begin = 0
-        self.__selected_row_end = total_items - 1
-
-        self.update_screen()
+    def __select_all(self):
+        self.set_selection(0, -1)
 
     def __prev_search_history(self):
         if len(self.__search_history) > 0:
@@ -487,16 +478,6 @@ class Menu(Generic[T]):
             return range(len(self.items))
 
     def append_item(self, item: T):
-        # Clamp selection index to be within a valid range.
-        total_items = len(self.get_item_indices())
-        self.__selected_row_begin = min(
-            max(0, self.__selected_row_begin), total_items - 1
-        )
-        self.__selected_row_end = min(max(0, self.__selected_row_end), total_items - 1)
-
-        # Check if last line is selected
-        last_line_selected = self.__selected_row_end == total_items - 1
-
         self.items.append(item)
         self.__last_item_count = len(self.items)
         added_index = self.__last_item_count - 1
@@ -505,24 +486,13 @@ class Menu(Generic[T]):
         if self.__search_mode:
             if self.match_item(self.__input.text, item, added_index):
                 self.__matched_item_indices.append(added_index)
-                if last_line_selected:
-                    self.__selected_row_begin = self.__selected_row_end = (
-                        len(self.__matched_item_indices) - 1
-                    )
                 self.update_screen()
-
-        if last_line_selected:
-            self.__selected_row_begin = self.__selected_row_end = (
-                len(self.get_item_indices()) - 1
-            )
-            self.update_screen()
 
     def clear_items(self):
         self.items.clear()
         self.__last_item_count = 0
         self.__matched_item_indices.clear()
-        self.__selected_row_begin = 0
-        self.__selected_row_end = 0
+        self.reset_selection()
         self.update_screen()
 
     def set_input(self, text: str, save_search_history=True):
@@ -658,8 +628,7 @@ class Menu(Generic[T]):
         Menu.stdscr.refresh()
 
     def reset_selection(self):
-        self.__selected_row_begin = 0
-        self.__selected_row_end = 0
+        self.set_selection(0, 0)
 
     def set_selected_row(self, selected_row: int):
         self.set_selection(selected_row, selected_row)
@@ -678,16 +647,31 @@ class Menu(Generic[T]):
 
     def set_selection(self, begin_row: int, end_row: int):
         self.__update_matched_items()
+        total = len(self.get_item_indices())
+        if total == 0:
+            return
 
+        if end_row == -1:
+            end_row = total - 1
+
+        if (
+            begin_row == self.__selected_row_begin
+            and end_row == self.__selected_row_end
+        ):
+            return
+
+        if begin_row != end_row:
+            self.__multi_select_mode = True
         self.__selected_row_begin = begin_row
         self.__selected_row_end = end_row
 
-        total = len(self.get_item_indices())
         if self.__selected_row_begin >= total:
             self.__selected_row_begin = max(0, total - 1)
         if self.__selected_row_end >= total:
             self.__selected_row_end = max(0, total - 1)
+        self.__follow = self.__selected_row_end == total - 1
         self._check_if_item_selection_changed()
+        self.update_screen()
 
     def refresh(self):
         self.__update_matched_items(force_update=True)
@@ -1150,7 +1134,12 @@ class Menu(Generic[T]):
         # Get matched scripts
         item_y = draw_input_result.last_y + 2
 
+        # Auto select last item
         item_indices = self.get_item_indices()
+        if self.__follow:
+            if not self.__multi_select_mode:
+                self.__selected_row_begin = len(item_indices) - 1
+            self.__selected_row_end = len(item_indices) - 1
 
         # Draw status bar
         status_bar_text = self.get_status_text()
@@ -1289,19 +1278,23 @@ class Menu(Generic[T]):
         return 10
 
     def get_status_text(self) -> str:
-        s = ""
+        status = ""
         if self.__message:
-            s += self.__message
-        s += "\t"
-        if self.__multi_select_mode:
-            s += "[x]"
+            status += self.__message
+        status += "\t"
         item_indices = self.get_item_indices()
         if len(item_indices) > 0:
-            s += "[%d/%d]" % (
-                self.__selected_row_end + 1,
-                len(item_indices),
-            )
-        return s
+            current_position = self.__selected_row_end + 1
+            total_items = len(item_indices)
+            indicators = []
+            if self.__multi_select_mode:
+                indicators.append("x")
+            if self.__follow:
+                indicators.append("f")
+            if indicators:
+                status += f"({','.join(indicators)})"
+            status += f"[{current_position}/{total_items}]"
+        return status
 
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
         if not ignore_cancellation and self.is_cancelled:
@@ -1459,7 +1452,9 @@ class Menu(Generic[T]):
 
     def __on_item_hotkey(self, item: T):
         # Select the item.
-        self.__selected_row_begin = self.__selected_row_end = self.items.index(item)
+        i = self.items.index(item)
+        self.set_selection(i, i)
+
         if self.close_on_selection:
             self.close()
         else:

@@ -5,7 +5,7 @@
     ".3gp2": ["mpv", "vlc"],
     ".3gpp": ["mpv", "vlc"],
     ".4-win-x64": ["PathAdd"],
-    ".7z": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".7z": [["start_script", "r/unzip.py", "--open"], "7zfm"],
     ".aac": ["mpv", "vlc"],
     ".ac3": ["mpv", "vlc"],
     ".aco": ["vscode", "notepad++"],
@@ -18,13 +18,13 @@
     ".apex": [["start_script", "r/android/install_apex.py"]],
     ".apk": [
       [
-        "run_script",
+        "start_script",
         "r/android/install_apk.py",
         "--run",
         "--grant_permissions"
       ],
       [
-        "run_script",
+        "start_script",
         "r/android/install_apk.py",
         "--run",
         "--grant_permissions",
@@ -68,7 +68,7 @@
     ".crash": ["vscode", "notepad++"],
     ".crdownload": ["mpv", "vlc"],
     ".crt": ["vscode", "notepad++"],
-    ".cs": ["vscode", ["run_script", "r/compile_cs.cmd"]],
+    ".cs": ["vscode", ["start_script", "r/compile_cs.cmd"]],
     ".cson": ["vscode", "notepad++"],
     ".css": ["vscode", "notepad++"],
     ".csv": ["vscode", "tad"],
@@ -114,14 +114,14 @@
     ".flac": ["mpv", "vlc"],
     ".flv": ["mpv", "vlc"],
     ".frag": ["vscode", "notepad++"],
-    ".gcode": ["vscode", ["run_script", "r/3dprint/print_3d_model.py"]],
+    ".gcode": ["vscode", ["start_script", "r/3dprint/print_3d_model.py"]],
     ".gif": ["irfanview"],
     ".git-credentials": ["vscode", "notepad++"],
     ".gitconfig": ["vscode", "notepad++"],
     ".gitignore": ["vscode", "notepad++"],
     ".gradle": ["vscode", "notepad++"],
     ".grid": ["vscode", "notepad++"],
-    ".gz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".gz": [["start_script", "r/unzip.py", "--open"], "7zfm"],
     ".h": ["vscode", "notepad++"],
     ".h_": ["vscode", "notepad++"],
     ".hpp": ["vscode", "notepad++"],
@@ -161,7 +161,7 @@
     ".list": ["vscode", "notepad++"],
     ".lmp4": ["mpv", "vlc"],
     ".lnk": ["HxD"],
-    ".log": [["run_script", "r/logviewer.py"], "vscode"],
+    ".log": [["start_script", "r/logviewer.py"], "vscode"],
     ".lrc": ["vscode", "notepad++"],
     ".lua": ["vscode", "notepad++"],
     ".lyx": ["vscode", "notepad++"],
@@ -230,11 +230,13 @@
     ".pde": ["vscode", "notepad++"],
     ".pdf": ["sumatrapdf", "adobereader"],
     ".pem": ["vscode", "notepad++"],
-    ".perfetto": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
-    ".perfetto-trace": [
-      ["run_script", "r/android/perfetto/open_perfetto_trace.py"]
+    ".perfetto": [
+      ["start_script", "r/android/perfetto/open_perfetto_trace.py"]
     ],
-    ".pftrace": [["run_script", "r/android/perfetto/open_perfetto_trace.py"]],
+    ".perfetto-trace": [
+      ["start_script", "r/android/perfetto/open_perfetto_trace.py"]
+    ],
+    ".pftrace": [["start_script", "r/android/perfetto/open_perfetto_trace.py"]],
     ".pgc": ["vscode", "notepad++"],
     ".php": ["vscode", "notepad++"],
     ".pkl": ["vscode", "notepad++"],
@@ -262,7 +264,7 @@
     ".r": ["vscode", "notepad++"],
     ".ram": ["mpv", "vlc"],
     ".rapotp": ["mpv", "vlc"],
-    ".rar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".rar": [["start_script", "r/unzip.py", "--open"], "7zfm"],
     ".rb": ["vscode", "notepad++"],
     ".record": ["vscode", "notepad++"],
     ".reg": ["vscode", "notepad++"],
@@ -289,11 +291,11 @@
     ".svg": ["irfanview"],
     ".swf": ["mpv", "vlc"],
     ".tak": ["mpv", "vlc"],
-    ".tar": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".tar": [["start_script", "r/unzip.py", "--open"], "7zfm"],
     ".td": ["mpv", "vlc"],
     ".tdl": ["mpv", "vlc"],
     ".tex": ["vscode", "notepad++"],
-    ".tgz": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".tgz": [["start_script", "r/unzip.py", "--open"], "7zfm"],
     ".tif": ["irfanview"],
     ".tiff": ["irfanview"],
     ".tmlanguage": ["vscode", "notepad++"],
@@ -307,7 +309,7 @@
     ".tspotp": ["mpv", "vlc"],
     ".tsv": ["vscode", "notepad++"],
     ".tud": ["mpv", "vlc"],
-    ".txt": ["vscode", ["run_script", "r/logviewer.py"]],
+    ".txt": ["vscode", ["start_script", "r/logviewer.py"]],
     ".ui": ["vscode", "notepad++"],
     ".user": ["vscode", "notepad++"],
     ".usf": ["vscode", "notepad++"],
@@ -340,10 +342,13 @@
     ".yaml": ["vscode", "notepad++"],
     ".yml": ["vscode", "notepad++"],
     ".zim": ["vscode", "notepad++"],
-    ".zip": [["run_script", "r/unzip.py", "--open"], "7zfm"],
+    ".zip": [["start_script", "r/unzip.py", "--open"], "7zfm"],
     ".zxp": ["vscode", "notepad++"]
   },
   "matchByRegex": {
-    "(logcat|bugreport).*?\\.txt$": [["run_script", "r/logviewer.py"], "vscode"]
+    "(logcat|bugreport).*?\\.txt$": [
+      ["start_script", "r/logviewer.py"],
+      "vscode"
+    ]
   }
 }

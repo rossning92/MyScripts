@@ -6,7 +6,7 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 
-from ai.chat import complete_chat, create_user_message
+from ai.chat import complete_chat, create_user_message, get_text_content
 from ai.openai.chat import message_to_str
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
@@ -24,6 +24,33 @@ from utils.menu.textmenu import TextMenu
 _MODULE_NAME = Path(__file__).stem
 
 _INTERRUPT_MESSAGE = "[INTERRUPTED]"
+
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _get_prompt_dir() -> str:
+    prompt_dir = os.environ.get("PROMPT_DIR")
+    if prompt_dir:
+        return prompt_dir
+
+    prompt_dir = os.path.join(_SCRIPT_DIR, "prompts")
+    return prompt_dir
+
+
+def select_prompt_file() -> Optional[str]:
+    menu = FileMenu(
+        prompt="select prompt",
+        goto=_get_prompt_dir(),
+        show_size=False,
+        recursive=True,
+        allow_cd=False,
+    )
+    selected = menu.select_file()
+    if selected:
+        return selected
+    else:
+        return None
 
 
 class SettingsMenu(JsonEditMenu):
@@ -80,7 +107,7 @@ class ChatMenu(Menu[Line]):
         data_dir: Optional[str] = None,
         message: Optional[str] = None,
         model: Optional[str] = None,
-        image_file: Optional[str] = None,
+        attachment: Optional[str] = None,
         new_conversation=True,
         prompt: str = "c",
         system_prompt: Optional[str] = None,
@@ -90,7 +117,7 @@ class ChatMenu(Menu[Line]):
         self.__conv_file = conv_file
         self.__copy_and_exit = copy_and_exit
         self.__first_message = message
-        self.__image_file: Optional[str] = image_file
+        self.__attachment: Optional[str] = attachment
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
         self.__lines: List[Line] = []
@@ -114,15 +141,17 @@ class ChatMenu(Menu[Line]):
             search_mode=False,
             wrap_text=True,
             line_number=True,
+            follow=True,
         )
 
-        self.add_command(self.__add_image, hotkey="alt+i")
+        self.add_command(self.__add_attachment, hotkey="alt+a")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__edit_settings, hotkey="ctrl+s")
         self.add_command(self.__goto_next_message, hotkey="alt+n")
         self.add_command(self.__goto_prev_message, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
+        self.add_command(self.__select_prompt, hotkey="alt+p")
         self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
@@ -151,9 +180,9 @@ class ChatMenu(Menu[Line]):
 
         self.__update_prompt()
 
-    def __add_image(self):
+    def __add_attachment(self):
         menu = FileMenu()
-        self.__image_file = menu.select_file()
+        self.__attachment = menu.select_file()
         self.__update_prompt()
 
     def __copy_block(self, index: int):
@@ -265,6 +294,13 @@ class ChatMenu(Menu[Line]):
         if selected:
             self.load_conversation(selected)
 
+    def __select_prompt(self):
+        prompt_file = select_prompt_file()
+        if prompt_file:
+            with open(prompt_file, "r", encoding="utf-8") as f:
+                message = f.read()
+                self.send_message(message)
+
     def undo_messages(self) -> List[Tuple[Dict[str, Any], float]]:
         removed_messages: List[Tuple[Dict[str, Any], float]] = []
         messages = self.get_messages()
@@ -273,12 +309,14 @@ class ChatMenu(Menu[Line]):
         while messages and messages[-1]["role"] != "assistant":
             removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
         self.__refresh_lines()
+        if removed_messages:
+            self.set_input(get_text_content(removed_messages[-1][0]))
         return removed_messages
 
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
-        if self.__image_file:
-            prompt += f" ({os.path.basename(self.__image_file)})"
+        if self.__attachment:
+            prompt += " (attachment)"
         self.set_prompt(prompt)
 
     def __view_system_prompt(self):
@@ -335,8 +373,7 @@ class ChatMenu(Menu[Line]):
         if text or tool_results:
             self.append_user_message(text, tool_results=tool_results)
 
-        # Reset image file
-        self.__image_file = None
+        self.__attachment = None
         self.__update_prompt()
 
         self.__complete_chat()
@@ -353,9 +390,23 @@ class ChatMenu(Menu[Line]):
         self, text: str, tool_results: Optional[List[ToolResult]] = None
     ):
         msg_index = len(self.get_messages())
+
+        image_file = None
+        if self.__attachment:
+            ext = os.path.splitext(self.__attachment)[1]
+            if ext == ".txt":
+                with open(self.__attachment, "r", encoding="utf-8") as f:
+                    text += f"\n\n<context>\n{f.read()}\n</context>"
+            elif ext in (".jpg", ".jpeg", ".png", ".gif"):
+                image_file = self.__attachment
+            else:
+                raise Exception(f"Unsupported attachment type: {ext}")
+
         self.__append_message(
             create_user_message(
-                text=text, image_file=self.__image_file, tool_results=tool_results
+                text=text,
+                image_file=image_file,
+                tool_results=tool_results,
             )
         )
         for i, text in enumerate(text.splitlines()):
@@ -426,6 +477,8 @@ class ChatMenu(Menu[Line]):
                     )
                 )
                 return content, True
+            finally:
+                self.__append_timestamp()
 
         content = None
         while content is None:  # retry on exception
@@ -434,7 +487,6 @@ class ChatMenu(Menu[Line]):
             except Exception:
                 ExceptionMenu().exec()
 
-        self.__append_timestamp()
         self.__is_generating = False
         self.save_conversation()
         self.__refresh_lines()
@@ -539,7 +591,7 @@ class ChatMenu(Menu[Line]):
                     suffix=".jpg", delete=False
                 ) as temp_file:
                     im.save(temp_file.name)
-                    self.__image_file = temp_file.name
+                    self.__attachment = temp_file.name
                     self.__update_prompt()
                     return True
 
@@ -570,21 +622,10 @@ def complete_chat_gui(
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?")
-    parser.add_argument("--image-file", type=str, nargs="?")
+    parser.add_argument("--attachment", type=str, nargs="?")
     args = parser.parse_args()
 
-    image_file: Optional[str] = None
-    message: Optional[str] = None
-    if args.input and os.path.isfile(args.input):
-        if args.input.endswith(".jpg") or args.input.endswith(".png"):
-            image_file = args.input
-        else:
-            with open(args.input, "r", encoding="utf-8") as f:
-                message = f.read()
-    else:
-        message = args.input
-
-    chat = ChatMenu(message=message, image_file=image_file)
+    chat = ChatMenu(message=args.input, attachment=args.attachment)
     chat.exec()
 
 

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 from _shutil import get_home_path
+from open_with.open_with import open_with
 
 from utils.clip import set_clip
 from utils.editor import open_code_editor
@@ -249,10 +250,13 @@ class FileMenu(Menu[_File]):
                 question = f"Delete {len(files)} files?"
             if confirm(question):
                 for file_full_path in files:
-                    if os.path.isdir(file_full_path):
-                        shutil.rmtree(file_full_path)
-                    else:
-                        os.remove(file_full_path)
+                    try:
+                        if os.path.isdir(file_full_path):
+                            shutil.rmtree(file_full_path)
+                        else:
+                            os.remove(file_full_path)
+                    except Exception as e:
+                        self.set_message(str(e))
                 self._refresh_cur_dir()
 
             self.update_screen()
@@ -549,16 +553,12 @@ class FileMenu(Menu[_File]):
 
     def open_file(self, full_path: str):
         _, ext = os.path.splitext(full_path)
-        if ext.lower() == ".log":
-            from utils.menu.logmenu import LogMenu
-
-            LogMenu(files=[full_path]).exec()
-        elif ext.lower() in [".zip", ".gz"]:
+        if ext.lower() in [".zip", ".gz"]:
             subprocess.check_call(["run_script", "r/unzip.py", full_path])
             out_dir = os.path.splitext(full_path)[0]
             self.goto_directory(out_dir)
         else:
-            shell_open(full_path)
+            open_with([full_path])
 
     def on_enter_pressed(self):
         if self.__select_mode == FileMenu.SELECT_MODE_DIRECTORY:

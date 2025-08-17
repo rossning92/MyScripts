@@ -59,6 +59,7 @@ class LogMenu(Menu[str]):
             fuzzy_search=False,
             search_on_enter=True,
             wrap_text=wrap_text,
+            follow=True,
         )
 
         self.add_command(self.__clear_logs, hotkey="ctrl+k")

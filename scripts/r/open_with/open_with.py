@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import re
@@ -7,7 +8,7 @@ import traceback
 from typing import List, Union
 
 from _pkgmanager import find_executable, require_package
-from _shutil import is_in_termux, run_elevated
+from _shutil import is_in_termux, run_elevated, start_process
 from utils.shutil import shell_open
 
 
@@ -23,7 +24,7 @@ def load_config():
 config = load_config()
 
 
-def open_with_hook(files, program_id):
+def open_with_hook(files: List[str], program_id: int):
     file_name = os.path.basename(files[0])
     ext = os.path.splitext(files[0])[1].lower()
 
@@ -90,12 +91,15 @@ def open_files_with_program(files, programs, program_id):
     else:
         raise Exception("A program must be str or list.")
 
-    subprocess.Popen(args, close_fds=True)
+    start_process(args)
 
 
 if __name__ == "__main__":
     try:
-        program_id = int(sys.argv[1])
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-p", "--program-id", type=int, default=0)
+        parser.add_argument("files", nargs="*")
+        args = parser.parse_args()
 
         with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
             data = json.load(f)
@@ -103,9 +107,10 @@ if __name__ == "__main__":
         if data["current_folder"]:
             os.environ["CWD"] = data["current_folder"]
 
-        files = data["selected_files"]
-
-        open_with(files, program_id)
+        open_with(
+            files=args.files if args.files else data["selected_files"],
+            program_id=args.program_id,
+        )
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
         print(e)
