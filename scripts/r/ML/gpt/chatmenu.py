@@ -6,8 +6,7 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 
-from ai.chat import complete_chat, create_user_message, get_text_content
-from ai.openai.chat import message_to_str
+from ai.chat import Message, complete_chat, message_to_str
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
 from utils.clip import set_clip
@@ -82,10 +81,7 @@ class Line:
         self.subindex = subindex  # subindex with in the message
 
     def __str__(self) -> str:
-        if self.subindex == 0:
-            return f"[{self.msg_index+1}] {self.text}"
-        else:
-            return self.text
+        return self.text
 
 
 class _SelectConvMenu(Menu[str]):
@@ -93,13 +89,11 @@ class _SelectConvMenu(Menu[str]):
         super().__init__(prompt="load conversation", **kwargs)
 
     def get_item_text(self, conv_file: str) -> str:
-        conv = load_json(conv_file)
+        conv = load_json(conv_file, default=[])
         return str(conv)
 
 
 class ChatMenu(Menu[Line]):
-    default_conv: Dict = {"messages": [], "timestamps": []}
-
     def __init__(
         self,
         conv_file: Optional[str] = None,
@@ -146,10 +140,10 @@ class ChatMenu(Menu[Line]):
 
         self.add_command(self.__add_attachment, hotkey="alt+a")
         self.add_command(self.__edit_message, hotkey="alt+e")
-        self.add_command(self.__edit_prompt, hotkey="alt+p")
+        self.add_command(self.__edit_prompt)
         self.add_command(self.__edit_settings, hotkey="ctrl+s")
-        self.add_command(self.__goto_next_message, hotkey="alt+n")
-        self.add_command(self.__goto_prev_message, hotkey="alt+p")
+        self.add_command(self.__goto_next_message, hotkey="right")
+        self.add_command(self.__goto_prev_message, hotkey="left")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__select_prompt, hotkey="alt+p")
         self.add_command(self.__view_system_prompt)
@@ -158,14 +152,13 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.undo_messages, hotkey="ctrl+z")
 
         self.__conversations_dir = os.path.join(self.__data_dir, "conversations")
-        os.makedirs(self.__conversations_dir, exist_ok=True)
         self.__history_manager = HistoryManager(
             save_dir=self.__conversations_dir,
             prefix="conversation_",
             ext=".json",
         )
 
-        self.__conv: Dict[str, Any] = ChatMenu.default_conv.copy()  # conversation data
+        self.__messages: List[Message] = []
 
         self.new_conversation()
         if new_conversation:
@@ -239,17 +232,17 @@ class ChatMenu(Menu[Line]):
             return
 
         message = self.get_messages()[msg_index]
-        content = message["content"]
+        content = message["text"]
         new_content = self.call_func_without_curses(lambda: edit_text(content))
         if new_content != content:
-            message["content"] = new_content
+            message["text"] = new_content
 
             # Delete all messages after.
             del self.get_messages()[msg_index + 1 :]
 
             self.__refresh_lines()
 
-            if message["role"] == "user":
+            if message["text"] == "user":
                 self.__complete_chat()
 
     def __edit_settings(self):
@@ -301,16 +294,17 @@ class ChatMenu(Menu[Line]):
                 message = f.read()
                 self.send_message(message)
 
-    def undo_messages(self) -> List[Tuple[Dict[str, Any], float]]:
-        removed_messages: List[Tuple[Dict[str, Any], float]] = []
+    def undo_messages(self) -> List[Message]:
+        removed_messages: List[Message] = []
         messages = self.get_messages()
         if messages:
-            removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
-        while messages and messages[-1]["role"] != "assistant":
-            removed_messages.append((messages.pop(), self.__conv["timestamps"].pop()))
+            removed_messages.append(messages.pop())
         self.__refresh_lines()
         if removed_messages:
-            self.set_input(get_text_content(removed_messages[-1][0]))
+            if removed_messages[-1]["role"] == "user":
+                self.set_input(removed_messages[-1]["text"])
+            else:
+                self.clear_input()
         return removed_messages
 
     def __update_prompt(self):
@@ -352,18 +346,28 @@ class ChatMenu(Menu[Line]):
             self.set_message("selected line copied")
             self.set_multi_select(False)
 
+    def get_line_number_text(self, item_index: int) -> str:
+        item = self.items[item_index]
+        line_number_text = f"{item.msg_index+1}"
+        if item.subindex == 0:
+            return line_number_text
+        else:
+            return " " * len(line_number_text)
+
     def get_item_color(self, item: Line) -> str:
         return "white" if item.role == "assistant" else "blue"
 
-    def get_messages(self) -> List[Dict[str, Any]]:
-        return self.__conv["messages"]
+    def get_messages(self) -> List[Message]:
+        return self.__messages
 
     def on_created(self):
         if self.__first_message is not None:
             self.send_message(self.__first_message)
 
     def send_message(
-        self, text: str, tool_results: Optional[List[ToolResult]] = None
+        self,
+        text: str,
+        tool_results: Optional[List[ToolResult]] = None,
     ) -> None:
         if self.__is_generating:
             return
@@ -378,16 +382,10 @@ class ChatMenu(Menu[Line]):
 
         self.__complete_chat()
 
-    def __append_message(self, message: Dict[str, Any]):
-        self.get_messages().append(message)
-        self.__append_timestamp()
-
-    def __append_timestamp(self):
-        self.__conv["timestamps"].append(datetime.now().timestamp())
-        assert len(self.get_messages()) == len(self.__conv["timestamps"])
-
     def append_user_message(
-        self, text: str, tool_results: Optional[List[ToolResult]] = None
+        self,
+        text: str,
+        tool_results: Optional[List[ToolResult]] = None,
     ):
         msg_index = len(self.get_messages())
 
@@ -402,13 +400,18 @@ class ChatMenu(Menu[Line]):
             else:
                 raise Exception(f"Unsupported attachment type: {ext}")
 
-        self.__append_message(
-            create_user_message(
-                text=text,
-                image_file=image_file,
-                tool_results=tool_results,
-            )
+        message = Message(
+            role="user",
+            text=text,
+            timestamp=datetime.now().timestamp(),
         )
+        if image_file:
+            message["image_file"] = image_file
+        if tool_results:
+            message["tool_result"] = tool_results
+
+        self.get_messages().append(message)
+
         for i, text in enumerate(text.splitlines()):
             self.append_item(
                 Line(role="user", text=text, msg_index=msg_index, subindex=i)
@@ -418,7 +421,7 @@ class ChatMenu(Menu[Line]):
 
     def complete_chat(
         self,
-        messages: List[Dict[str, Any]],
+        messages: List[Message],
         model: Optional[str] = None,
         system_prompt: Optional[str] = None,
         tools: Optional[List[Callable[..., Any]]] = None,
@@ -444,6 +447,8 @@ class ChatMenu(Menu[Line]):
             line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
             subindex = 1
             self.append_item(line)
+            self.process_events(raise_keyboard_interrupt=True)
+
             try:
                 for chunk in self.complete_chat(
                     self.get_messages(),
@@ -478,7 +483,13 @@ class ChatMenu(Menu[Line]):
                 )
                 return content, True
             finally:
-                self.__append_timestamp()
+                self.get_messages().append(
+                    Message(
+                        role="assistant",
+                        text=content,
+                        timestamp=datetime.now().timestamp(),
+                    )
+                )
 
         content = None
         while content is None:  # retry on exception
@@ -505,7 +516,7 @@ class ChatMenu(Menu[Line]):
         if self.__conv_file is None:
             return
         os.makedirs(os.path.dirname(self.__conv_file), exist_ok=True)
-        save_json(self.__conv_file, self.__conv)
+        save_json(self.__conv_file, self.__messages)
         self.__history_manager.delete_old_files()
 
     def __refresh_lines(self):
@@ -532,13 +543,12 @@ class ChatMenu(Menu[Line]):
             self.set_message(f"Conv file not exist: {self.__conv_file}")
             return
 
-        self.__conv = load_json(self.__conv_file, default=ChatMenu.default_conv.copy())
+        self.__messages = load_json(self.__conv_file)
         self.__refresh_lines()
 
     def clear_messages(self):
         self.__lines.clear()
         self.get_messages().clear()
-        self.__conv["timestamps"].clear()
         token_count.clear()
         self.update_screen()
 

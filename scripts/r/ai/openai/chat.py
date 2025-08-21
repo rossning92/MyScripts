@@ -4,33 +4,13 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import requests
-from ai.chat import create_user_message
-from ai.tokenutil import token_count
+from ai.chat import function_to_tool_definition
+from ai.tool_use import ToolUse
 
 DEFAULT_MODEL = "gpt-4o"
-
-
-def message_to_str(message: Dict[str, Any]):
-    content = message["content"]
-    if isinstance(content, str):
-        return content
-    elif isinstance(content, list):
-        s = ""
-        for c in content:
-            if c["type"] == "text":
-                s += c["text"]
-            elif c["type"] == "image_url":
-                s += "<image_url/>"
-            elif c["type"] == "tool_use":
-                s += f"<tool_use>{c}</tool_use>"
-            elif c["type"] == "tool_result":
-                s += f"<tool_result>{c}</tool_result>"
-        return s
-    else:
-        return ""
 
 
 def complete_chat(
@@ -38,63 +18,90 @@ def complete_chat(
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     include_usage: bool = True,
+    tools: Optional[List[Callable[..., Any]]] = None,
+    on_tool_use: Optional[Callable[[ToolUse], None]] = None,
 ) -> Iterator[str]:
+    logging.debug(f"messages: {messages}")
+
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
         raise Exception("OPENAI_API_KEY must be provided.")
 
-    # https://platform.openai.com/docs/api-reference/completions/create
-    url = "https://api.openai.com/v1/chat/completions"
+    # https://platform.openai.com/docs/api-reference/responses
+    url = "https://api.openai.com/v1/responses"
     headers = {
-        "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
     }
-    data = {
+
+    payload = {
         "model": model if model else DEFAULT_MODEL,
-        "messages": (
-            [{"role": "system", "content": system_prompt}] if system_prompt else []
-        )
-        + messages,
+        "input": messages,
         "stream": True,
     }
-    if include_usage:
-        data["stream_options"] = {"include_usage": True}
+    if system_prompt:
+        payload["instructions"] = system_prompt
+    if tools:
+        # https://platform.openai.com/docs/guides/tools?lang=bash&tool-type=function-calling
+        payload["tools"] = [
+            {
+                "type": "function",
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        param.name: {
+                            "type": param.type,
+                            "description": param.description,
+                        }
+                        for param in tool.parameters
+                    },
+                    "required": tool.required,
+                    "additionalProperties": False,
+                },
+                "strict": True,
+            }
+            for tool in map(function_to_tool_definition, tools)
+        ]
+    with requests.post(url, headers=headers, json=payload, stream=True) as response:
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise Exception(
+                f"HTTP {response.status_code} error: {str(e)}\n"
+                f"Text: {response.text}"
+            )
 
-    response = requests.post(url, headers=headers, json=data, stream=True)
-    response.raise_for_status()
-    content = ""
-    try:
-        for chunk in response.iter_lines():
-            if len(chunk) == 0:
+        content = ""
+        for line in response.iter_lines():
+            if not line:
                 continue
 
-            logging.debug(f"Received chunk: {chunk}")
+            logging.debug(f"Received chunk: {line}")
 
-            if b"DONE" in chunk:
-                break
+            if line.startswith(b"data: "):
+                data = json.loads(line[6:].decode("utf-8"))
 
-            decoded_line = json.loads(chunk.decode("utf-8").split("data: ")[1])
-            choises = decoded_line.get("choices", [])
-            if choises:
-                token = choises[0]["delta"].get("content")
-                if token is not None:
-                    content += token
-                    yield token
-
-            if include_usage:
-                usage = decoded_line.get("usage", None)
-                if usage:
-                    token_count.input_tokens += usage["prompt_tokens"]
-                    token_count.output_tokens += usage["completion_tokens"]
-
-    finally:
-        response.close()
-        messages.append(
-            {
-                "role": "assistant",
-                "content": content,
-            }
-        )
+                if data["type"] == "response.completed":
+                    break
+                elif data["type"] == "response.output_text.delta":
+                    delta = data["delta"]
+                    assert isinstance(delta, str), "Delta must be a string"
+                    content += delta
+                    yield delta
+                if data["type"] == "response.output_item.done":
+                    item = data["item"]
+                    if item["type"] == "function_call":
+                        if on_tool_use:
+                            on_tool_use(
+                                ToolUse(
+                                    tool_name=item["name"],
+                                    args=json.loads(item["arguments"]),
+                                    tool_use_id=item["id"],
+                                )
+                            )
+                            messages.append(item)
 
 
 if __name__ == "__main__":
@@ -112,5 +119,6 @@ if __name__ == "__main__":
         else:
             input_text = args.input
 
-    for chunk in complete_chat(messages=[create_user_message(input_text, args.image)]):
-        print(chunk, end="")
+    # TODO: Remove create_user_message below
+    # for chunk in complete_chat(messages=[create_user_message(input_text, args.image)]):
+    #     print(chunk, end="")

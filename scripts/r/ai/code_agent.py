@@ -1,10 +1,11 @@
 import argparse
 import os
 from platform import platform
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 from ai.agentmenu import AgentMenu
 from ai.anthropic.chat import DEFAULT_MODEL
+from ai.chat import Message
 from ai.filecontextmenu import FileContextMenu
 from ai.tools import Settings
 from ai.tools.edit_file import edit_file
@@ -47,7 +48,7 @@ class _SettingsMenu(SettingsMenu):
 class CodeAgentMenu(AgentMenu):
     def __init__(self, files: Optional[List[str]], **kwargs):
         super().__init__(
-            data_dir=".coder",
+            data_dir=os.path.join(".config", "coder"),
             model=DEFAULT_MODEL,
             settings_menu_class=_SettingsMenu,
             **kwargs,
@@ -99,10 +100,10 @@ class CodeAgentMenu(AgentMenu):
             if s
         )
 
-    def undo_messages(self) -> List[Tuple[Dict[str, Any], float]]:
+    def undo_messages(self) -> List[Message]:
         removed_messages = super().undo_messages()
-        for message, timestamp in reversed(removed_messages):
-            restore_files_since_timestamp(timestamp=timestamp)
+        for message in reversed(removed_messages):
+            restore_files_since_timestamp(timestamp=message["timestamp"])
         return removed_messages
 
     def get_status_text(self) -> str:

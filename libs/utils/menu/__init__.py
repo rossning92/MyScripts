@@ -408,6 +408,7 @@ class Menu(Generic[T]):
         os.remove(out_file)
         if text:
             self.set_input(text)
+        if not record_menu.space_pressed:
             self.on_enter_pressed()
 
     def __select_all(self):
@@ -768,8 +769,10 @@ class Menu(Generic[T]):
                 )
 
             elif (
-                ch == curses.KEY_LEFT or ch == 452  # curses.KEY_B3
-            ) and "left" in self.__hotkeys:
+                (ch == curses.KEY_LEFT or ch == 452)  # curses.KEY_B3
+                and "left" in self.__hotkeys
+                and self.get_input() == ""
+            ):
                 self.__hotkeys["left"].func()
 
             elif (
@@ -779,8 +782,10 @@ class Menu(Generic[T]):
                 self.update_screen()
 
             elif (
-                ch == curses.KEY_RIGHT or ch == 454  # curses.KEY_B3
-            ) and "right" in self.__hotkeys:
+                (ch == curses.KEY_RIGHT or ch == 454)  # curses.KEY_B3
+                and "right" in self.__hotkeys
+                and self.get_input() == ""
+            ):
                 self.__hotkeys["right"].func()
 
             elif (
@@ -1182,7 +1187,7 @@ class Menu(Generic[T]):
         matched_item_index = self.__scroll_y
 
         if self.__line_number and len(item_indices) > 0:
-            line_number_width = len(str(item_indices[-1] + 1))
+            line_number_width = len(self.get_line_number_text(item_indices[-1]))
         else:
             line_number_width = 0
 
@@ -1220,8 +1225,7 @@ class Menu(Generic[T]):
 
             # Draw line number
             if self.__line_number:
-                line_number = f"{item_index + 1}"
-                line_number_text = f"{line_number}"
+                line_number_text = self.get_line_number_text(item_index)
                 line_number_color = "WHITE" if is_item_selected else "gray"
                 self.draw_text(
                     item_y,
@@ -1288,12 +1292,11 @@ class Menu(Generic[T]):
             total_items = len(item_indices)
             indicators = []
             if self.__multi_select_mode:
-                indicators.append("x")
+                indicators.append("MultiSel")
             if self.__follow:
-                indicators.append("f")
-            if indicators:
-                status += f"({','.join(indicators)})"
-            status += f"[{current_position}/{total_items}]"
+                indicators.append("Follow")
+            indicators.append(f"{current_position}/{total_items}")
+            status += " ".join(indicators)
         return status
 
     def get_selected_item(self, ignore_cancellation=False) -> Optional[T]:
@@ -1462,3 +1465,6 @@ class Menu(Generic[T]):
 
     def get_row_count(self):
         return len(self.__matched_item_indices)
+
+    def get_line_number_text(self, item_index: int) -> str:
+        return f"{item_index + 1}"

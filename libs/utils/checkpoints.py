@@ -4,7 +4,7 @@ import zipfile
 from datetime import datetime
 from typing import List
 
-CHECKPOINTS_DIR = os.path.join(".coder", "checkpoints")
+CHECKPOINTS_DIR = os.path.join(".config", "coder", "checkpoints")
 
 
 def backup_files(files: List[str]):

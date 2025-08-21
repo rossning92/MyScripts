@@ -2,9 +2,9 @@ import argparse
 import os
 import re
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Callable, Dict, Iterator, List, Optional
 
-from ai.chat import get_text_content
+from ai.chat import Message
 from ai.tool_use import (
     ToolResult,
     ToolUse,
@@ -138,7 +138,7 @@ class AgentMenu(ChatMenu):
 
     def complete_chat(
         self,
-        messages: List[Dict[str, Any]],
+        messages: List[Message],
         model: Optional[str] = None,
         system_prompt: Optional[str] = None,
         **__,
@@ -164,7 +164,9 @@ class AgentMenu(ChatMenu):
         self.__handle_response()
 
     def send_message(
-        self, text: str, tool_results: Optional[List[ToolResult]] = None
+        self,
+        text: str,
+        tool_results: Optional[List[ToolResult]] = None,
     ) -> None:
         if not text and not tool_results:
             self.__complete_task()
@@ -250,30 +252,29 @@ class AgentMenu(ChatMenu):
         if len(messages) <= 0:
             return
 
-        selected_line = self.get_selected_item()
-        if selected_line is None:
-            return
-
-        selected_message = self.get_messages()[selected_line.msg_index]
-        text_content = get_text_content(selected_message)
+        selected_message = messages[-1]
+        text_content = selected_message["text"]
 
         reply = ""
         interrupted = False
         has_error = False
+
         tool_uses = (
-            self.__tool_uses
+            self.__tool_uses.copy()
             if _USE_TOOLS_API
-            else parse_text_for_tool_use(text_content, self.__tools)
+            else list(parse_text_for_tool_use(text_content, self.__tools))
         )
+        selected_message["tool_use"] = tool_uses
+
         tool_results: List[ToolResult] = []
         for i, tool_use in enumerate(tool_uses):
             tool = next(
-                tool for tool in self.__tools if tool.__name__ == tool_use.tool_name
+                tool for tool in self.__tools if tool.__name__ == tool_use["tool_name"]
             )
 
             # Run tool
             if not self.__yes_always:
-                menu = ConfirmMenu(f"Run tool ({tool_use.tool_name})?")
+                menu = ConfirmMenu(f"Run tool ({tool_use['tool_name']})?")
                 menu.exec()
                 if menu.is_confirmed():
                     should_run = True
@@ -282,29 +283,29 @@ class AgentMenu(ChatMenu):
                     if _USE_TOOLS_API:
                         tool_results.append(
                             ToolResult(
-                                tool_use_id=tool_use.tool_use_id,
+                                tool_use_id=tool_use["tool_use_id"],
                                 content="Tool was interrupted by user.",
                             )
                         )
                     else:
-                        reply += f"The {to_ordinal(i+1)} tool ({tool_use.tool_name}) was interrupted by user.\n"
+                        reply += f"The {to_ordinal(i+1)} tool ({tool_use['tool_name']}) was interrupted by user.\n"
                     break
             else:
                 should_run = True
 
             if should_run:
                 try:
-                    ret = tool(**tool_use.args)
+                    ret = tool(**tool_use["args"])
                     if ret:
                         if _USE_TOOLS_API:
                             tool_results.append(
                                 ToolResult(
-                                    tool_use_id=tool_use.tool_use_id,
+                                    tool_use_id=tool_use["tool_use_id"],
                                     content=str(ret),
                                 )
                             )
                         else:
-                            reply += f"""The {to_ordinal(i+1)} tool ({tool_use.tool_name}) returned:
+                            reply += f"""The {to_ordinal(i+1)} tool ({tool_use['tool_name']}) returned:
 -------
 {str(ret)}
 -------
@@ -315,24 +316,24 @@ class AgentMenu(ChatMenu):
                         if _USE_TOOLS_API:
                             tool_results.append(
                                 ToolResult(
-                                    tool_use_id=tool_use.tool_use_id,
+                                    tool_use_id=tool_use["tool_use_id"],
                                     content="Tool completed successfully.",
                                 )
                             )
                         else:
-                            reply += f"The {to_ordinal(i+1)} tool ({tool_use.tool_name}) completed successfully.\n\n"
+                            reply += f"The {to_ordinal(i+1)} tool ({tool_use['tool_name']}) completed successfully.\n\n"
 
                 except Exception as ex:
                     has_error = True
                     if _USE_TOOLS_API:
                         tool_results.append(
                             ToolResult(
-                                tool_use_id=tool_use.tool_use_id,
+                                tool_use_id=tool_use["tool_use_id"],
                                 content=str(ex),
                             )
                         )
                     else:
-                        reply += f"""ERROR in the {to_ordinal(i+1)} tool ({tool_use.tool_name}):
+                        reply += f"""ERROR in the {to_ordinal(i+1)} tool ({tool_use['tool_name']}):
 -------
 {str(ex)}
 -------
@@ -343,12 +344,12 @@ class AgentMenu(ChatMenu):
                     if _USE_TOOLS_API:
                         tool_results.append(
                             ToolResult(
-                                tool_use_id=tool_use.tool_use_id,
+                                tool_use_id=tool_use["tool_use_id"],
                                 content="Tool was interrupted by user.",
                             )
                         )
                     else:
-                        reply += f"The {to_ordinal(i+1)} tool using {tool_use.tool_name} was interrupted by user.\n"
+                        reply += f"The {to_ordinal(i+1)} tool using {tool_use['tool_name']} was interrupted by user.\n"
                     break
 
         # Check if the task is completed

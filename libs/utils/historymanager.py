@@ -27,6 +27,7 @@ class HistoryManager:
             os.remove(file)
 
     def get_new_file(self):
+        os.makedirs(self.__save_dir, exist_ok=True)
         dt = datetime.now().strftime("%y%m%d%H%M%S")
         return os.path.join(
             self.__save_dir,

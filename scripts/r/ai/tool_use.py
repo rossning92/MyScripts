@@ -1,19 +1,17 @@
 import inspect
 import logging
 import re
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List
+import uuid
+from typing import Any, Callable, Dict, Iterable, List, TypedDict
 
 
-@dataclass
-class ToolUse:
+class ToolUse(TypedDict):
     tool_name: str
     args: Dict[str, Any]
-    tool_use_id: str = ""
+    tool_use_id: str
 
 
-@dataclass
-class ToolResult:
+class ToolResult(TypedDict):
     tool_use_id: str
     content: str
 
@@ -46,10 +44,7 @@ def _parse_xml_string_for_tool(s: str) -> ToolUse:
             params_xml_str = params_xml_str[end:]
         else:
             break
-    return ToolUse(
-        tool_name=tool_name,
-        args=params,
-    )
+    return ToolUse(tool_name=tool_name, args=params, tool_use_id=str(uuid.uuid4()))
 
 
 def parse_text_for_tool_use(

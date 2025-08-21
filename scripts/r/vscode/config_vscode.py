@@ -286,6 +286,7 @@ def config_vscode(data_dir=None, compact=False):
                     "when": "textCompareEditorVisible",
                 },
                 {"key": "ctrl+0", "command": "workbench.action.zoomReset"},
+                {"key": "ctrl+k s", "command": "workbench.action.files.saveFiles"},
                 # glsl-canvas
                 {
                     "key": "ctrl+shift+v",

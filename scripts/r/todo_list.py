@@ -91,6 +91,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         selected = self.get_selected_item()
         if selected:
             copy = selected.copy()
+            copy[_STATUS] = "none"
             self.items.append(copy)
             self.__edit_todo_item(copy)
 

@@ -2054,6 +2054,7 @@ def _get_scripts_recursive(
         if (
             file == "tmp"
             or file == "generated"
+            or file == ".config"
             or file == ".venv"
             or file == "node_modules"
         ):

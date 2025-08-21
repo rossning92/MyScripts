@@ -44,6 +44,7 @@ pac_install \
     less \
     neovim \
     openssh \
+    playerctl \
     sxhkd \
     unzip \
     usbutils \

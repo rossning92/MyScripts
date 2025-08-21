@@ -387,7 +387,7 @@ globalkeys = gears.table.join(
     }),
 
     -- Menubar
-    awful.key({ modkey }, "p", function() menubar.show() end,
+    awful.key({ modkey }, "r", function() menubar.show() end,
         { description = "show the menubar", group = "launcher" }),
 
     -- Volume control
@@ -403,6 +403,14 @@ globalkeys = gears.table.join(
     awful.key({ modkey }, "Down", function()
         volume:down()
     end),
+
+    -- Media control
+    awful.key({ modkey }, "p", function()
+        awful.util.spawn("playerctl play-pause", false)
+    end, {
+        description = "play/pause media",
+        group = "media"
+    }),
 
     -- Brightness control
     awful.key({}, "XF86MonBrightnessUp", function()
