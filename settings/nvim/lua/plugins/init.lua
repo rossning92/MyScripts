@@ -257,6 +257,7 @@ return {
     },
 
     -- Autocompletion
+    -- https://cmp.saghen.dev/installation.html
     {
         'saghen/blink.cmp',
         event = 'VimEnter',
@@ -267,9 +268,11 @@ return {
             sources = {
                 default = { 'lsp', 'path', 'snippets', 'buffer' },
             },
+            keymap = { preset = 'super-tab' }, -- tab to accept
         },
     },
 
+    -- Markdown
     {
         'MeanderingProgrammer/render-markdown.nvim',
         dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite

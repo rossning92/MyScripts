@@ -439,7 +439,15 @@ globalkeys = gears.table.join(
     }),
 
     awful.key({ modkey }, "a", naughty.destroy_all_notifications,
-        { description = "clear notifications", group = "awesome" })
+        { description = "clear notifications", group = "awesome" }),
+
+    -- Lock screen
+    awful.key({ modkey }, "l", function()
+        awful.spawn("betterlockscreen -l")
+    end, {
+        description = "lock screen",
+        group = "system"
+    })
 )
 
 clientkeys = gears.table.join(awful.key({ modkey }, "f", function(c)

@@ -393,9 +393,10 @@ class Menu(Generic[T]):
         self.__is_stdscr_owner = False
         self.on_close()
 
-    def __voice_input(self):
+    def voice_input(self):
         from ai.openai.speech_to_text import convert_audio_to_text
 
+        from utils.menu.asynctaskmenu import AsyncTaskMenu
         from utils.menu.recordmenu import RecordMenu
 
         record_menu = RecordMenu()
@@ -404,12 +405,22 @@ class Menu(Generic[T]):
         if not out_file:
             return
 
-        text = convert_audio_to_text(file=out_file)
+        stt_menu = AsyncTaskMenu(
+            lambda: convert_audio_to_text(file=out_file),
+            prompt="(converting)",
+        )
+        try:
+            stt_menu.exec()
+        except ValueError as e:
+            self.set_message(f"ERROR: {e}")
+            return
+
         os.remove(out_file)
+        text = stt_menu.get_result()
         if text:
             self.set_input(text)
-        if not record_menu.space_pressed:
-            self.on_enter_pressed()
+            if not record_menu.space_pressed:
+                self.on_enter_pressed()
 
     def __select_all(self):
         self.set_selection(0, -1)
@@ -753,7 +764,7 @@ class Menu(Generic[T]):
                 if "space space" in self.__hotkeys:
                     self.__hotkeys["space space"].func()
                 else:
-                    self.__voice_input()
+                    self.voice_input()
 
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()

@@ -79,6 +79,7 @@ class GrepMenu(Menu[_Line]):
         self.add_command(self.__show_less, hotkey="alt+l")
         self.add_command(self.__show_more, hotkey="alt+m")
         self.add_command(self.__list_search_history, hotkey="ctrl+l")
+        self.add_command(self.__edit_file, hotkey="ctrl+e")
 
         if query:
             self.set_input(query)
@@ -164,6 +165,13 @@ class GrepMenu(Menu[_Line]):
         if selected:
             self.__matches.remove(selected.match)
         self.__update_items(True)
+        
+    def __edit_file(self):
+        selected = self.get_selected_item()
+        if selected:
+            file_path = selected.match.file
+            self.call_func_without_curses(lambda: edit_text_file(os.path.join(self.__path, file_path)))
+            self.set_message(f"Opened {file_path} for editing")
 
     def __add_match(self, file: str, lines: List[Tuple[bool, int, str]]):
         file_path = file.replace(os.path.sep, "/")
@@ -192,7 +200,7 @@ class GrepMenu(Menu[_Line]):
             self.append_item(
                 _Line(
                     (
-                        f"{match.file} ".ljust(120, DIVIDER)
+                        f"{match.file} ".ljust(40, DIVIDER)
                         if match.file != last_file
                         else ""
                     ),

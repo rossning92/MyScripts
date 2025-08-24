@@ -76,6 +76,12 @@
       "packages": ["bbdown"]
     }
   },
+  "betterlockscreen": {
+    "post_install": ["sudo systemctl enable betterlockscreen@$(whoami)"],
+    "yay": {
+      "packages": ["betterlockscreen"]
+    }
+  },
   "carnac": {
     "choco": {
       "packages": ["carnac"]
