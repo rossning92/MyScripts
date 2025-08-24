@@ -29,7 +29,7 @@ def get_script_dirs_config_file():
 def get_script_directories() -> List[ScriptDirectory]:
     directories: List[ScriptDirectory] = []
 
-    # Scripts root path
+    # Scripts root dir
     directories.append(
         ScriptDirectory(
             name="",
@@ -37,12 +37,20 @@ def get_script_directories() -> List[ScriptDirectory]:
         )
     )
 
-    # Settings directory
+    # Settings dir
     directories.append(
         ScriptDirectory(
             name="settings",
             path=os.path.join(get_my_script_root(), "settings"),
             glob="*",
+        )
+    )
+
+    # libs dir
+    directories.append(
+        ScriptDirectory(
+            name="libs",
+            path=os.path.join(get_my_script_root(), "libs"),
         )
     )
 

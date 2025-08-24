@@ -15,7 +15,7 @@ class RecordMenu(AsyncTaskMenu):
             target=lambda stop_event: record_audio(
                 out_file=self.__out_file, stop_event=stop_event
             ),
-            prompt="recording",
+            prompt="(recording)",
         )
         self.add_command(self.__on_space_pressed, hotkey="space")
 

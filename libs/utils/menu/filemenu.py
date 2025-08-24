@@ -108,19 +108,19 @@ class _File:
     def __str__(self) -> str:
         s = ""
 
-        # Size column
+        # Size
         if self.show_size:
             size = human_readable_size(self.size) if self.size else ""
             s += f"{size:>6}  "
 
-        # Modified time column
+        # Modified time
         if self.show_size:
             formatted_time = datetime.fromtimestamp(self.mtime).strftime(
                 "%y-%m-%d %H:%M"
             )
             s += formatted_time + "  "
 
-        # Name column
+        # Name
         s += self.name
 
         return s
@@ -513,12 +513,12 @@ class FileMenu(Menu[_File]):
             if self.__config.sort_by == "name":
                 dir_items.sort(key=lambda x: x.name)
                 file_items.sort(key=lambda x: x.name)
-            elif self.__config.sort_by == "mtime":
-                dir_items.sort(key=lambda x: x.mtime, reverse=True)
-                file_items.sort(key=lambda x: x.mtime, reverse=True)
 
             self.__files.extend(dir_items)
             self.__files.extend(file_items)
+
+            if self.__config.sort_by == "mtime":
+                self.__files.sort(key=lambda x: x.mtime, reverse=True)
 
     def sort_by(self, by: Literal["name", "mtime"]):
         self.__config.sort_by = by

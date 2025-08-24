@@ -8,11 +8,11 @@ class TextEdit(Menu[str]):
     def __init__(self):
         self.lines: List[str] = []
         super().__init__(items=self.lines, search_mode=False)
-        self.add_command(self.__voice_input, hotkey="alt+i")
+        self.add_command(self.voice_input, hotkey="alt+i")
         self.add_command(self.__fix, hotkey="alt+f")
         self.add_command(self.__delete_line, hotkey="ctrl+k")
 
-    def __voice_input(self):
+    def voice_input(self):
         try:
             from r.speech_to_text import speech_to_text
 
