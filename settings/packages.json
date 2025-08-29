@@ -565,6 +565,11 @@
       "packages": ["JohnMacFarlane.Pandoc"]
     }
   },
+  "pdfarranger": {
+    "pacman": {
+      "packages": ["pdfarranger"]
+    }
+  },
   "pdftk": {
     "choco": {
       "packages": ["pdftk"]
@@ -787,7 +792,7 @@
       "packages": ["sumatrapdf"]
     },
     "executables": [
-      "SumatraPDF.exe",
+      "C:\\Program Files\\SumatraPDF\\SumatraPDF.exe",
       "%LOCALAPPDATA%\\SumatraPDF\\SumatraPDF.exe"
     ],
     "winget": {

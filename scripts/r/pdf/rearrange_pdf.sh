@@ -1,0 +1,1 @@
+pdfarranger "$1"

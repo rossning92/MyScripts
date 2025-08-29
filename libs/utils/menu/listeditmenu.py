@@ -59,10 +59,20 @@ class ListEditMenu(Menu, Generic[T]):
         self.save_json()
 
     def save_json(self):
-        if self.__json_file is not None:
-            directory = os.path.dirname(self.__json_file)
-            if directory and not os.path.exists(directory):
-                os.makedirs(directory)
+        if self.__json_file:
+            if os.path.exists(self.__json_file):
+                mtime = os.path.getmtime(self.__json_file)
+                if mtime > self.__last_mtime:
+                    raise RuntimeError("JSON file has been modified externally")
+            else:
+                directory = os.path.dirname(self.__json_file)
+                if directory and not os.path.exists(directory):
+                    os.makedirs(directory)
+
+            # Backup existing json file
             if self.__backup_json and os.path.exists(self.__json_file):
                 shutil.copy(self.__json_file, self.__json_file + ".bak")
+
+            # Save to json file
             save_json(self.__json_file, self.items)
+            self.__last_mtime = os.path.getmtime(self.__json_file)

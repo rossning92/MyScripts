@@ -325,7 +325,7 @@ class Menu(Generic[T]):
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")
-            self.add_command(self.__logs)
+            self.add_command(self.__logs, hotkey="alt+l")
             self.add_command(self.__prev_search_history, hotkey="alt+u")
             self.add_command(self.__select_all)
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
@@ -780,10 +780,8 @@ class Menu(Generic[T]):
                 )
 
             elif (
-                (ch == curses.KEY_LEFT or ch == 452)  # curses.KEY_B3
-                and "left" in self.__hotkeys
-                and self.get_input() == ""
-            ):
+                ch == curses.KEY_LEFT or ch == 452
+            ) and "left" in self.__hotkeys:  # curses.KEY_B3
                 self.__hotkeys["left"].func()
 
             elif (
@@ -793,10 +791,8 @@ class Menu(Generic[T]):
                 self.update_screen()
 
             elif (
-                (ch == curses.KEY_RIGHT or ch == 454)  # curses.KEY_B3
-                and "right" in self.__hotkeys
-                and self.get_input() == ""
-            ):
+                ch == curses.KEY_RIGHT or ch == 454
+            ) and "right" in self.__hotkeys:  # curses.KEY_B3
                 self.__hotkeys["right"].func()
 
             elif (
@@ -1432,6 +1428,7 @@ class Menu(Generic[T]):
             self.__message = message
         else:
             message = None
+        logging.info(f"set_message: {message}")
         self.update_screen()
 
     def __edit_text_in_external_editor(self):

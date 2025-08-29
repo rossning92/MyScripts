@@ -1,33 +1,22 @@
+import argparse
 import os
-import time
 
-from _shutil import get_files, write_temp_file
-from utils.editor import open_code_editor
-
-
-def wait_until_file_modified(f):
-    last_mtime = os.path.getmtime(f)
-    while True:
-        time.sleep(0.2)
-        mtime = os.path.getmtime(f)
-        if mtime > last_mtime:
-            return
-
+from utils.editor import edit_text
 
 if __name__ == "__main__":
-    files = get_files(cd=True, ignore_dirs=False)
+    parser = argparse.ArgumentParser(description="Batch rename files")
+    parser.add_argument("files", nargs="+", help="Files to rename")
+    args = parser.parse_args()
+
+    files = args.files
     files = sorted(files)
 
-    tmp_file = write_temp_file("\n".join(files), ".txt")
-    open_code_editor(tmp_file)
+    s = "\n".join(files)
+    s = edit_text(s)
 
-    wait_until_file_modified(tmp_file)
+    renamed_files = [x.strip() for x in s.splitlines()]
 
-    with open(tmp_file, "r", encoding="utf-8") as f:
-        new_files = f.readlines()
-        new_files = [x.strip() for x in new_files]
-
-    for old, new in zip(files, new_files):
+    for old, new in zip(files, renamed_files):
         if old != new:
             print("%s => %s" % (old, new))
             os.rename(old, new)
