@@ -44,7 +44,7 @@ def get_pretty_ts(ts):
         elif total_days != 0:
             time_diff_str = f"{sign}{total_days}d"
         elif total_days == 0:
-            time_diff_str = "now"
+            time_diff_str = "today"
     return f"{time_diff_str:>7} {date_str}"
 
 

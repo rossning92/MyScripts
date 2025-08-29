@@ -1,5 +1,6 @@
 import argparse
 import os
+import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +20,7 @@ from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 from utils.menu.textmenu import TextMenu
+from utils.platform import is_termux
 
 _MODULE_NAME = Path(__file__).stem
 
@@ -103,6 +105,7 @@ class ChatMenu(Menu[Line]):
         model: Optional[str] = None,
         attachment: Optional[str] = None,
         new_conversation=True,
+        out_file: Optional[str] = None,
         prompt: str = "c",
         system_prompt: Optional[str] = None,
         settings_menu_class=SettingsMenu,
@@ -117,6 +120,7 @@ class ChatMenu(Menu[Line]):
         self.__lines: List[Line] = []
         self.__post_generation: Queue[Callable] = Queue()
         self.__prompt = prompt
+        self.__out_file = out_file
         self.__system_prompt = system_prompt
         self.__yank_mode = 0
 
@@ -145,7 +149,8 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__goto_next_message, hotkey="right")
         self.add_command(self.__goto_prev_message, hotkey="left")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
-        self.add_command(self.__select_prompt, hotkey="alt+p")
+        self.add_command(self.__select_prompt, hotkey="tab")
+        self.add_command(self.__take_photo, hotkey="alt+i")
         self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_conversation, hotkey="ctrl+n")
@@ -294,6 +299,24 @@ class ChatMenu(Menu[Line]):
                 message = f.read()
                 self.send_message(message)
 
+    def __take_photo(self):
+        if not is_termux():
+            self.set_message("Taking photo is only supported in Android")
+            return
+
+        tmp_photo = os.path.join(tempfile.gettempdir(), "photo.jpg")
+        try:
+            subprocess.run(
+                ["termux-camera-photo", "-c", "0", tmp_photo],
+                check=True,
+            )
+        except Exception as e:
+            self.set_message(f"Failed to take photo: {e}")
+            return
+
+        self.__attachment = tmp_photo
+        self.__update_prompt()
+
     def undo_messages(self) -> List[Message]:
         removed_messages: List[Message] = []
         messages = self.get_messages()
@@ -310,7 +333,7 @@ class ChatMenu(Menu[Line]):
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
         if self.__attachment:
-            prompt += " (attachment)"
+            prompt += " ({})".format(os.path.basename(self.__attachment))
         self.set_prompt(prompt)
 
     def __view_system_prompt(self):
@@ -394,7 +417,17 @@ class ChatMenu(Menu[Line]):
             ext = os.path.splitext(self.__attachment)[1]
             if ext == ".txt":
                 with open(self.__attachment, "r", encoding="utf-8") as f:
-                    text += f"\n\n<context>\n{f.read()}\n</context>"
+                    context = f.read()
+
+                text = f"""You are my assistant to help me process the following text according to my instructions. You should only return the result, do not include any other text.
+# Instructions
+{text}
+
+# Input text
+The following starts with the input text, which is wrapped in <input_text> and </input_text> tags.
+<input_text>
+{context}
+</input_text>"""
             elif ext in (".jpg", ".jpeg", ".png", ".gif"):
                 image_file = self.__attachment
             else:
@@ -507,6 +540,10 @@ class ChatMenu(Menu[Line]):
 
             if self.__copy_and_exit:
                 set_clip(content)
+                self.close()
+            elif self.__out_file:
+                with open(self.__out_file, "w", encoding="utf-8") as f:
+                    f.write(content)
                 self.close()
 
             while not self.__post_generation.empty():
@@ -633,9 +670,21 @@ def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?")
     parser.add_argument("--attachment", type=str, nargs="?")
+    parser.add_argument("-i", "--in-file", type=str)
+    parser.add_argument("-o", "--out-file", type=str)
     args = parser.parse_args()
 
-    chat = ChatMenu(message=args.input, attachment=args.attachment)
+    if args.in_file:
+        with open(args.in_file, "r", encoding="utf-8") as f:
+            message = f.read()
+    else:
+        message = args.input
+
+    chat = ChatMenu(
+        message=message,
+        attachment=args.attachment,
+        out_file=args.out_file,
+    )
     chat.exec()
 
 

@@ -92,32 +92,57 @@ if is_windows() then
     vim.o.shell = "cmd.exe"
 end
 
-local function fix()
-    -- Prompt
-    local text, start_pos, end_pos = get_selected_text()
-    local prompt = "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n" ..
-        text
-    local prompt_file = os.tmpname()
-    local file = io.open(prompt_file, "w")
+local function write_to_temp_file(content, extension)
+    local file_path = os.tmpname() .. (extension or "")
+    local file = io.open(file_path, "w")
     if file then
-        file:write(prompt)
+        file:write(content)
         file:close()
     end
-
-    local output_file = os.tmpname()
-    run_in_terminal(
-        "run_script r/ai/chat.py --quiet -o " .. output_file .. " " .. prompt_file, {
-            height = 1,
-            on_exit = function()
-                local new_text = read_text_file(output_file)
-                replace_text(new_text, start_pos, end_pos)
-
-                os.remove(prompt_file)
-                os.remove(output_file)
-            end
-        })
+    return file_path
 end
-vim.keymap.set({ "n", "i", "v" }, "<C-k>f", fix)
+
+local function process_selected_text(opts)
+    local text, start_pos, end_pos = get_selected_text()
+    local input_file = nil
+    local output_file = os.tmpname()
+    local command = "run_script r/ML/gpt/chatmenu.py -o " .. output_file
+
+    opts = opts or {}
+
+    if opts.prefix then
+        local prompt = opts.prefix .. text
+        input_file = write_to_temp_file(prompt)
+        command = command .. " -i " .. input_file
+    else
+        input_file = write_to_temp_file(text, ".txt")
+        command = command .. " --attachment " .. input_file
+    end
+
+    run_in_terminal(command, {
+        height = 5,
+        on_exit = function()
+            local new_text = read_text_file(output_file)
+            replace_text(new_text, start_pos, end_pos)
+
+            if input_file then
+                os.remove(input_file)
+            end
+        end
+    })
+end
+
+local function fix()
+    process_selected_text({
+        prefix = "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n"
+    })
+end
+
+local function inline_chat()
+    process_selected_text()
+end
+vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>i", inline_chat)
+vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>f", fix)
 
 local function append_line(line)
     line = string.gsub(line, '^%s*(.-)%s*$', '%1') -- trim trailing spaces
@@ -187,6 +212,6 @@ local function run_coder()
         })
     end
 end
-vim.keymap.set({ "n", "i", "v" }, "<C-k>i", run_coder)
+vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>c", run_coder)
 
 return {}

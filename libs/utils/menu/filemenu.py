@@ -558,7 +558,11 @@ class FileMenu(Menu[_File]):
             out_dir = os.path.splitext(full_path)[0]
             self.goto_directory(out_dir)
         else:
-            open_with([full_path])
+            try:
+                open_with([full_path])
+            except Exception as e:
+                self.set_message(str(e))
+                shell_open(full_path)
 
     def on_enter_pressed(self):
         if self.__select_mode == FileMenu.SELECT_MODE_DIRECTORY:
@@ -604,7 +608,7 @@ class FileMenu(Menu[_File]):
                         sys.executable,
                         myscripts_path,
                         "--prompt",
-                        "run script on selected files",
+                        "(open with script)",
                         "--args",
                     ]
                     + files,
