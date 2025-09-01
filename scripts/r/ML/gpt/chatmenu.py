@@ -67,6 +67,7 @@ class SettingsMenu(JsonEditMenu):
             "model": Literal[
                 "gpt-4o",
                 "gpt-4o-mini",
+                "gpt-5",
                 "o3-mini",
                 "claude-3-7-sonnet-latest",
                 "claude-sonnet-4-0",

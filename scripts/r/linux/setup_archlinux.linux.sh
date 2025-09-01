@@ -143,6 +143,20 @@ EndSection
 EOF'
 fi
 
+if lspci -k | grep -q "Intel Corporation UHD Graphics 630"; then
+    pac_install xf86-video-intel
+
+    sudo mkdir -p /etc/X11/xorg.conf.d/
+    sudo bash -c 'cat > /etc/X11/xorg.conf.d/20-intel.conf <<EOF
+Section "Device"
+  Identifier "Intel Graphics"
+  Driver "intel"
+  Option "TearFree" "true"
+  Option "TripleBuffer" "true"
+EndSection
+EOF'
+fi
+
 # Setup keyboard
 setup_logitech_keyboard() {
     if lsusb | grep -q "Unifying Receiver"; then

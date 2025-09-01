@@ -479,7 +479,7 @@ class LogPipe(threading.Thread):
 
 
 @functools.lru_cache(maxsize=None)
-def install_pip_packages(pkg: str, python_exec: str) -> None:
+def _install_pip_packages(pkg: str, python_exec: str) -> None:
     # Check if pip package is installed
     ret = subprocess.call(
         [
@@ -494,6 +494,10 @@ def install_pip_packages(pkg: str, python_exec: str) -> None:
     if ret != 0:
         print(f"{pkg} is not found, installing...")
         subprocess.check_call([python_exec, "-m", "pip", "install", pkg])
+
+
+def _is_in_x_window_system() -> bool:
+    return bool(os.environ.get("DISPLAY"))
 
 
 class Script:
@@ -1050,7 +1054,7 @@ class Script:
                     md_file_path = script_path
                 else:
                     md_file_path = script_path
-                open_code_editor(md_file_path)
+                start_script("ext/edit.py", args=[md_file_path])
                 return True
 
         elif ext == ".ps1":
@@ -1229,7 +1233,7 @@ class Script:
             config_packages_pip = self.cfg["packages.pip"]
             assert isinstance(config_packages_pip, str)
             for pkg in config_packages_pip.split():
-                install_pip_packages(pkg, python_exec=python_exec)
+                _install_pip_packages(pkg, python_exec=python_exec)
 
             if ext == ".py":
                 if self.cfg["runpy"]:
@@ -1507,7 +1511,7 @@ class Script:
                         )
 
                     elif sys.platform == "linux":
-                        if os.environ.get("DISPLAY"):
+                        if _is_in_x_window_system():
                             term_emulator = DEFAULT_LINUX_TERMINAL
                             if term_emulator == "gnome":
                                 arg_list = [

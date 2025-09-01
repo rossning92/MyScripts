@@ -23,7 +23,7 @@
     "keybindings": [
       {
         "command": "my-coder.edit",
-        "key": "ctrl+i",
+        "key": "ctrl+k c",
         "when": "editorTextFocus"
       }
     ]

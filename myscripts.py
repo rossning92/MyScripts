@@ -7,6 +7,7 @@ import os
 import platform
 import re
 import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -63,7 +64,7 @@ from utils.menu.inputmenu import InputMenu
 from utils.menu.logmenu import LogMenu
 from utils.platform import is_termux
 from utils.timeutil import time_diff_str
-from utils.tmux import is_in_tmux
+from utils.tmux import has_tmux_session, is_in_tmux
 
 _REFRESH_INTERVAL_SECS = 60
 
@@ -215,6 +216,7 @@ class _MyScriptMenu(Menu[Script]):
         self.__cmdline_args: List[str] = cmdline_args if cmdline_args else []
         self.__auto_infer_cmdline_args: bool = not bool(cmdline_args)
         self.__last_copy_time = 0.0
+        self.__last_keyboard_interrupt_time = 0.0
         self.__filemgr = FileMenu()
         self.__out_to_file = out_to_file
 
@@ -513,6 +515,13 @@ class _MyScriptMenu(Menu[Script]):
             # Reset last refresh time when key press event is processed
             self.update_last_refresh_time()
 
+    def on_keyboard_interrupt(self):
+        now = time.time()
+        self.set_message("Press Ctrl-C again to exit")
+        if now < self.__last_keyboard_interrupt_time + 1:
+            self.close()
+        self.__last_keyboard_interrupt_time = now
+
     def on_enter_pressed(self):
         self._run_selected_script()
         return True
@@ -664,6 +673,11 @@ def _main():
     )
 
     args = parser.parse_args()
+
+    if not is_in_tmux() and has_tmux_session():
+        print("Attaching to existing tmux session...")
+        subprocess.check_call(["tmux", "attach"])
+        return
 
     # Output if an instance is already running.
     if args.is_running:

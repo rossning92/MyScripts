@@ -4,7 +4,7 @@ local wibox = require("wibox")
 local battery_widget = {}
 
 local function worker()
-    script_dir = debug.getinfo(1).source:match("@?(.*/)")
+    local script_dir = debug.getinfo(1).source:match("@?(.*/)")
     local icon_widget = wibox.widget {
         image  = script_dir .. "/battery-widget.svg",
         resize = true,

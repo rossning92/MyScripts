@@ -32,6 +32,8 @@ local memory_widget = require("memory-widget")
 local temperature_widget = require("temperature-widget")
 local volume_widget = require('volume-widget')
 
+local cyclefocus = require('cyclefocus')
+
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -311,13 +313,19 @@ globalkeys = gears.table.join(
         description = "jump to urgent client",
         group = "client"
     }),
+    -- awful.key({ "Mod1" }, "Tab", function()
+    --     awful.client.focus.history.previous()
+    --     if client.focus then
+    --         client.focus:raise()
+    --     end
+    -- end, {
+    --     description = "go back",
+    --     group = "client"
+    -- }),
     awful.key({ "Mod1" }, "Tab", function()
-        awful.client.focus.history.previous()
-        if client.focus then
-            client.focus:raise()
-        end
+        cyclefocus.cycle({ modifier = "Alt_L" })
     end, {
-        description = "go back",
+        description = "cycle through clients",
         group = "client"
     }),
 

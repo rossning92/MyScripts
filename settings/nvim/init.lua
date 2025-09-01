@@ -22,14 +22,15 @@ vim.keymap.set('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
 vim.api.nvim_command("autocmd TermOpen * startinsert")
 vim.api.nvim_command("autocmd TermOpen * setlocal nonumber norelativenumber signcolumn=no")
 
--- Enable autoread and set up checking triggers
+-- auto-reload files when modified externally
+-- https://unix.stackexchange.com/a/383044
 vim.o.autoread = true
-vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
+vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "CursorHoldI", "FocusGained" }, {
   command = "if mode() != 'c' | checktime | endif",
-  pattern = "*",
+  pattern = { "*" },
 })
-
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   vim.fn.system({
     "git",
