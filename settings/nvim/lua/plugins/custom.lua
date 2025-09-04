@@ -214,4 +214,11 @@ local function run_coder()
 end
 vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>c", run_coder)
 
+local function start_script_with_selection()
+    local text = get_selected_text()
+    local temp_file = write_to_temp_file(text, ".txt")
+    vim.fn.jobstart('start_script r/ML/gpt/ask.py ' .. temp_file)
+end
+vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>a", start_script_with_selection)
+
 return {}

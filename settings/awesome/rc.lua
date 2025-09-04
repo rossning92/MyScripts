@@ -451,7 +451,7 @@ globalkeys = gears.table.join(
 
     -- Lock screen
     awful.key({ modkey }, "l", function()
-        awful.spawn("betterlockscreen -l")
+        awful.spawn("betterlockscreen -l --off 5")
     end, {
         description = "lock screen",
         group = "system"

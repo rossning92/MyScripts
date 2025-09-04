@@ -459,6 +459,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
         model: Optional[str] = None,
         system_prompt: Optional[str] = None,
         tools: Optional[List[Callable[..., Any]]] = None,
+        on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
         on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     ) -> Iterator[str]:
         return complete_chat(
@@ -466,6 +467,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
             model,
             system_prompt,
             tools=tools,
+            on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
         )
 
@@ -475,21 +477,27 @@ The following starts with the input text, which is wrapped in <input_text> and <
 
         self.__is_generating = True
 
+        message = Message(
+            role="assistant",
+            text="",
+            timestamp=datetime.now().timestamp(),
+        )
+        self.get_messages().append(message)
+
         def complete() -> Tuple[Optional[str], bool]:
-            content = ""
+            message["text"] = ""
             msg_index = len(self.get_messages())
             line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
             subindex = 1
             self.append_item(line)
             self.process_events(raise_keyboard_interrupt=True)
-
             try:
                 for chunk in self.complete_chat(
                     self.get_messages(),
                     model=self.__get_model(),
                     system_prompt=self.__system_prompt,
                 ):
-                    content += chunk
+                    message["text"] += chunk
                     for i, a in enumerate(chunk.split("\n")):
                         if i > 0:
                             line = Line(
@@ -504,9 +512,9 @@ The following starts with the input text, which is wrapped in <input_text> and <
 
                     self.update_screen()
                     self.process_events(raise_keyboard_interrupt=True)
-                return content, False
+                return message["text"], False
             except KeyboardInterrupt:
-                content += f"\n{_INTERRUPT_MESSAGE}"
+                message["text"] += f"\n{_INTERRUPT_MESSAGE}"
                 self.append_item(
                     Line(
                         role="assistant",
@@ -515,20 +523,12 @@ The following starts with the input text, which is wrapped in <input_text> and <
                         subindex=subindex,
                     )
                 )
-                return content, True
-            finally:
-                self.get_messages().append(
-                    Message(
-                        role="assistant",
-                        text=content,
-                        timestamp=datetime.now().timestamp(),
-                    )
-                )
+                return message["text"], True
 
-        content = None
-        while content is None:  # retry on exception
+        text_content = None
+        while text_content is None:  # retry on exception
             try:
-                content, interrupted = complete()
+                text_content, interrupted = complete()
             except Exception:
                 ExceptionMenu().exec()
 
@@ -537,14 +537,14 @@ The following starts with the input text, which is wrapped in <input_text> and <
         self.__refresh_lines()
 
         if not interrupted:
-            self.on_message(content)
+            self.on_message(text_content)
 
             if self.__copy_and_exit:
-                set_clip(content)
+                set_clip(text_content)
                 self.close()
             elif self.__out_file:
                 with open(self.__out_file, "w", encoding="utf-8") as f:
-                    f.write(content)
+                    f.write(text_content)
                 self.close()
 
             while not self.__post_generation.empty():

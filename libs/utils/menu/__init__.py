@@ -3,7 +3,9 @@ import curses.ascii
 import logging
 import os
 import re
+import subprocess
 import sys
+import tempfile
 import time
 from io import StringIO
 from typing import (
@@ -188,8 +190,8 @@ class _TextInput:
         elif ch == curses.ascii.ctrl("u"):
             self.clear()
         elif ch == curses.ascii.ctrl("w"):
-            i_last_word_end = max(0, self.text.rfind(" "))
-            self.text = self.text[:i_last_word_end]
+            position_after_last_space = max(0, self.text.rstrip().rfind(" ") + 1)
+            self.text = self.text[:position_after_last_space]
             self.caret_pos = len(self.text)
         elif ch == curses.ascii.ctrl("a"):
             self.caret_pos = 0
@@ -321,6 +323,7 @@ class Menu(Generic[T]):
         self.__hotkeys: Dict[str, _Command] = {}
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
+            self.add_command(self.__ask_selection)
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")
@@ -417,7 +420,7 @@ class Menu(Generic[T]):
         os.remove(out_file)
         text = stt_menu.get_result()
         if text:
-            self.set_input(text)
+            self.insert_text(text)
             if not record_menu.space_pressed:
                 self.on_enter_pressed()
 
@@ -431,19 +434,16 @@ class Menu(Generic[T]):
             self.set_input(last_input, save_search_history=False)
 
     def yank(self):
-        selected_items = self.get_selected_items()
-        s = "\n".join([str(x) for x in selected_items])
-        set_clip(s)
+        set_clip(self.__get_selected_lines())
         self.set_message("copied")
 
     def paste(self) -> bool:
         text = get_clip()
-        if text != self.__input.text:
-            self.set_input(text)
-            self.update_screen()
-            return True
-        else:
+        if not text:
             return False
+        self.insert_text(text)
+        self.update_screen()
+        return True
 
     def add_command(
         self, func: Callable, hotkey: Optional[str] = None, name: Optional[str] = None
@@ -497,7 +497,8 @@ class Menu(Generic[T]):
         if self.__search_mode:
             if self.match_item(self.__input.text, item, added_index):
                 self.__matched_item_indices.append(added_index)
-                self.update_screen()
+
+        self.update_screen()
 
     def clear_items(self):
         self.items.clear()
@@ -1479,3 +1480,17 @@ class Menu(Generic[T]):
 
     def get_line_number_text(self, item_index: int) -> str:
         return f"{item_index + 1}"
+
+    def __get_selected_lines(self) -> str:
+        selected_items = self.get_selected_items()
+        return "\n".join([str(x) for x in selected_items])
+
+    def __ask_selection(self):
+        selected_lines = self.__get_selected_lines()
+        if selected_lines:
+            with tempfile.NamedTemporaryFile(
+                mode="w+", delete=False, suffix=".txt", encoding="utf-8"
+            ) as f:
+                f.write(selected_lines)
+                tmpfile = f.name
+            subprocess.run(["start_script", "r/ML/gpt/ask.py", tmpfile])

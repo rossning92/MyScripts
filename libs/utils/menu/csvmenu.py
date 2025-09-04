@@ -4,7 +4,7 @@ from typing import List, Optional, OrderedDict
 
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
-from utils.menu.confirmmenu import ConfirmMenu
+from utils.menu.confirmmenu import confirm
 
 from ..menu import Menu
 from .inputmenu import InputMenu
@@ -229,23 +229,23 @@ class CsvMenu(Menu[CsvRow]):
         self.selected_val: Optional[str] = None
 
         self._rows: List[CsvRow] = []
-        self._update_rows()
+        self.__update_rows()
 
         self._select_row = False
 
         super().__init__(
             items=self._rows,
             text=text,
-            prompt="filter row",
+            prompt="/",
         )
 
-        self.add_command(self._add_row)
-        self.add_command(self._add_row_before, hotkey="alt+n")
-        self.add_command(self._add_row_after, hotkey="ctrl+n")
-        self.add_command(self._duplicate_row, hotkey="ctrl+d")
-        self.add_command(self._delete_row, hotkey="ctrl+k")
-        self.add_command(self._save, hotkey="ctrl+s")
-        self.add_command(self._sort_by_column, hotkey="alt+s")
+        self.add_command(self.__add_row)
+        self.add_command(self.__add_row_before, hotkey="alt+n")
+        self.add_command(self.__add_row_after, hotkey="ctrl+n")
+        self.add_command(self.__duplicate_row, hotkey="ctrl+d")
+        self.add_command(self.__delete_row, hotkey="ctrl+k")
+        self.add_command(self.__save, hotkey="ctrl+s")
+        self.add_command(self.__sort_by_column, hotkey="alt+s")
 
         if "selected_row" in self.__settings:
             row = self.__settings["selected_row"]
@@ -255,7 +255,7 @@ class CsvMenu(Menu[CsvRow]):
     def __save_settings(self):
         save_json(self.__setting_file, self.__settings)
 
-    def _sort_by_column(self):
+    def __sort_by_column(self):
         menu = Menu(items=self.df.get_header(), prompt="sort by")
         menu.exec()
         name = menu.get_selected_item()
@@ -263,11 +263,11 @@ class CsvMenu(Menu[CsvRow]):
             self.df.sort_by_column(name=name)
             self.update_screen()
 
-    def _save(self):
+    def __save(self):
         self.df.save()
         self.set_message("saved")
 
-    def _update_rows(self):
+    def __update_rows(self):
         self._rows.clear()
         for row_index in range(self.df.get_row_count()):
             self._rows.append(CsvRow(df=self.df, row_index=row_index))
@@ -278,12 +278,12 @@ class CsvMenu(Menu[CsvRow]):
         else:
             row = self.get_selected_item()
             if row is not None:
-                self._edit_row(row_index=row.row_index)
+                self.__edit_row(row_index=row.row_index)
 
     def get_scroll_distance(self) -> int:
         return COLUMN_WIDTH + len(COLUMN_SEPARATOR)
 
-    def _edit_row(self, row_index: int):
+    def __edit_row(self, row_index: int):
         menu = RowMenu(df=self.df, row_index=row_index)
         menu.exec()
         if menu.selected_cell is not None:
@@ -300,36 +300,37 @@ class CsvMenu(Menu[CsvRow]):
             ]
         )
 
-    def _add_row(self, row_index=None):
+    def __add_row(self, row_index=None):
         row_index = self.df.add_row(index=row_index)
-        self._update_rows()
-        self._edit_row(row_index=row_index)
+        self.__update_rows()
+        self.__edit_row(row_index=row_index)
         self.set_selected_row(row_index)
 
-    def _add_row_before(self):
+    def __add_row_before(self):
         row = self.get_selected_item()
         if row is not None:
-            self._add_row(row_index=row.row_index)
+            self.__add_row(row_index=row.row_index)
 
-    def _add_row_after(self):
+    def __add_row_after(self):
         row = self.get_selected_item()
         if row is not None:
-            self._add_row(row_index=row.row_index + 1)
+            self.__add_row(row_index=row.row_index + 1)
 
-    def _duplicate_row(self):
+    def __duplicate_row(self):
         row = self.get_selected_item()
         if row is not None:
             dup_row_index = self.df.duplicate_row(row.row_index)
-            self._update_rows()
+            self.__update_rows()
             self.set_selected_row(dup_row_index)
-            self._edit_row(dup_row_index)
+            self.__edit_row(dup_row_index)
 
-    def _delete_row(self):
+    def __delete_row(self):
         row = self.get_selected_item()
         if row is not None:
-            if ConfirmMenu(prompt=f'Delete row "{row}"?').exec() == 0:
+            if confirm('Delete row "{row}"?'):
                 self.df.delete_row(row_index=row.row_index)
-                self._update_rows()
+                self.df.save()
+                self.__update_rows()
 
     def select_row(self) -> int:
         try:

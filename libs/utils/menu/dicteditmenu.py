@@ -42,6 +42,8 @@ class _DictValueEditMenu(Menu[str]):
             prompt=name,
         )
 
+        self.add_command(self.__delete_history_value, hotkey="delete")
+
     def on_enter_pressed(self):
         text = self.get_text()
         assert text is not None
@@ -90,12 +92,12 @@ class _DictValueEditMenu(Menu[str]):
             if val is not None:
                 self.set_input(val)
             return True
-        elif ch == curses.KEY_DC:  # delete key
-            i = self.get_selected_index()
-            del self.__dict_history_values[i]
-            return True
-
         return False
+
+    def __delete_history_value(self):
+        i = self.get_selected_index()
+        if i >= 0:
+            del self.__dict_history_values[i]
 
 
 class _KeyValuePair:

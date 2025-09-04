@@ -23,6 +23,7 @@ def complete_chat(
     model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
+    on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
 ) -> Iterator[str]:
     logging.debug(f"messages={messages}")
@@ -109,6 +110,14 @@ def complete_chat(
                     if content_block["type"] == "tool_use":
                         tool_use = content_block.copy()
                         tool_input_json = ""
+                        if on_tool_use_start:
+                            on_tool_use_start(
+                                ToolUse(
+                                    tool_name=tool_use["name"],
+                                    args=tool_use["input"],
+                                    tool_use_id=tool_use["id"],
+                                )
+                            )
                     elif content_block["type"] == "text":
                         text = content_block.copy()
 

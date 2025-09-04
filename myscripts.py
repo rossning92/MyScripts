@@ -101,17 +101,23 @@ class EditVariableMenu(DictEditMenu):
         self.variable_edit_history = load_json(get_variable_edit_history_file(), {})
         super().__init__(
             self.variables,
-            prompt=f"{script.name} : edit vars",
+            prompt=f"{script.name} > edit vars",
             on_dict_update=self.on_dict_update,
             on_dict_history_update=self.on_dict_history_update,
             dict_history=self.variable_edit_history,
         )
 
+        self.add_command(self.__clear_value, hotkey="delete")
         self.add_command(self.__select_directory, hotkey="alt+d")
         self.add_command(self.__select_file, hotkey="alt+f")
 
     def on_dict_history_update(self, history: Dict[str, List[Any]]):
         save_json(get_variable_edit_history_file(), history)
+
+    def __clear_value(self):
+        key = self.get_selected_key()
+        if key is not None:
+            self.set_dict_value(key, "")
 
     def __select_directory(self):
         key = self.get_selected_key()

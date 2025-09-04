@@ -36,13 +36,13 @@ def message_to_str(message: Message) -> str:
         out.append(message["text"])
     image_file = message.get("image_file", None)
     if image_file:
-        out.append(f"  (image: {image_file})")
+        out.append(f"* Image: {image_file}")
     for tool_use in message.get("tool_use", []):
         tool_name = tool_use["tool_name"]
-        out.append(f"  (tool: {tool_name})")
+        out.append(f"* Running tool: {tool_name}")
     for tool_result in message.get("tool_result", []):
         first_line = tool_result["content"].splitlines()[0]
-        out.append(f'  (tool_result: "{first_line} ..."')
+        out.append(f'* Tool result: "{first_line} ..."')
     return "\n".join(out)
 
 
@@ -108,6 +108,7 @@ def complete_chat(
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
+    on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
 ) -> Iterator[str]:
     if model and model.startswith("claude"):
@@ -124,6 +125,7 @@ def complete_chat(
             model=model,
             system_prompt=system_prompt,
             tools=tools,
+            on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
         )
     else:
