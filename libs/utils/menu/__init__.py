@@ -3,7 +3,9 @@ import curses.ascii
 import logging
 import os
 import re
+import subprocess
 import sys
+import tempfile
 import time
 from io import StringIO
 from typing import (
@@ -321,6 +323,7 @@ class Menu(Generic[T]):
         self.__hotkeys: Dict[str, _Command] = {}
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
+            self.add_command(self.__ask_selection)
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")
@@ -431,9 +434,7 @@ class Menu(Generic[T]):
             self.set_input(last_input, save_search_history=False)
 
     def yank(self):
-        selected_items = self.get_selected_items()
-        s = "\n".join([str(x) for x in selected_items])
-        set_clip(s)
+        set_clip(self.__get_selected_lines())
         self.set_message("copied")
 
     def paste(self) -> bool:
@@ -497,7 +498,8 @@ class Menu(Generic[T]):
         if self.__search_mode:
             if self.match_item(self.__input.text, item, added_index):
                 self.__matched_item_indices.append(added_index)
-                self.update_screen()
+
+        self.update_screen()
 
     def clear_items(self):
         self.items.clear()
@@ -1479,3 +1481,17 @@ class Menu(Generic[T]):
 
     def get_line_number_text(self, item_index: int) -> str:
         return f"{item_index + 1}"
+
+    def __get_selected_lines(self) -> str:
+        selected_items = self.get_selected_items()
+        return "\n".join([str(x) for x in selected_items])
+
+    def __ask_selection(self):
+        selected_lines = self.__get_selected_lines()
+        if selected_lines:
+            with tempfile.NamedTemporaryFile(
+                mode="w+", delete=False, suffix=".txt", encoding="utf-8"
+            ) as f:
+                f.write(selected_lines)
+                tmpfile = f.name
+            subprocess.run(["start_script", "r/ML/gpt/ask.py", tmpfile])

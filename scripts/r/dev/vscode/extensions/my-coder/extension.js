@@ -46,10 +46,6 @@ function activate(context) {
       const fileAndLines = selection.isEmpty
         ? fileName
         : `${fileName}#${selection.start.line + 1}-${selection.end.line + 1}`;
-
-      // await runCoder({
-      //   args: [fileAndLines],
-      // });
       spawn(
         "start_script",
         ["--restart-instance=true", "r/ai/code_agent.py", fileAndLines],

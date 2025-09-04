@@ -1,7 +1,7 @@
 import os
 from typing import Any, List, Optional
 
-from ai.codeeditutils import read_file_from_line_range, read_file_lines
+from ai.codeeditutils import read_file_from_line_range
 from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
 
@@ -43,34 +43,39 @@ class FileContextMenu(ListEditMenu):
 
         if len(file_and_lines) == 2:
             start, end = map(int, file_and_lines[1].split("-"))
-            content = f"""...
-<selected>
-{read_file_from_line_range(file, start, end)}
-</selected>
-..."""
+            self.append_item(
+                {
+                    "file": file,
+                    "line_start": start,
+                    "line_end": end,
+                }
+            )
         else:
-            content, lines = read_file_lines(file)
-            start, end = 1, len(lines)
-        self.append_item(
-            {
-                "file": file,
-                "content": content,
-                "line_start": start,
-                "line_end": end,
-            }
-        )
+            self.append_item({"file": file})
 
     def get_prompt(self) -> str:
         source_code_list = []
         for item in self.items:
             file = item["file"]
-            content = item["content"]
-            source_code_list.append(f"{file}\n```\n{content}\n```")
+            if "line_start" in item and "line_end" in item:
+                content = read_file_from_line_range(
+                    file, item["line_start"], item["line_end"]
+                )
+                source_code_list.append(
+                    f"""{file}
+```
+...
+<selected>{content}</selected>
+...
+```"""
+                )
+            else:
+                source_code_list.append(file)
         if not source_code_list:
             return ""
         source_code_str = "\n".join(source_code_list)
 
-        prompt = f"""# Current file(s)
+        prompt = f"""# Open Files
 
 {source_code_str}
 
@@ -85,8 +90,12 @@ class FileContextMenu(ListEditMenu):
         else:
             return "FILES: " + " ".join(
                 [
-                    "{}#{}-{}".format(
-                        file["file"], file["line_start"], file["line_end"]
+                    (
+                        "{}#{}-{}".format(
+                            file["file"], file["line_start"], file["line_end"]
+                        )
+                        if "line_start" in file and "line_end" in file
+                        else file["file"]
                     )
                     for file in self.items
                 ]

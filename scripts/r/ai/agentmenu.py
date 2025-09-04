@@ -14,7 +14,7 @@ from ai.tool_use import (
 from ai.tools.execute_python import execute_python
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
-from ML.gpt.chatmenu import ChatMenu
+from ML.gpt.chatmenu import ChatMenu, Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
@@ -74,7 +74,6 @@ class AgentMenu(ChatMenu):
         self.__run = run
         self.__tools = self.get_tools()
         self.__yes_always = yes_always
-        self.__tool_uses: List[ToolUse] = []
 
         super().__init__(
             data_dir=data_dir,
@@ -143,17 +142,13 @@ class AgentMenu(ChatMenu):
         system_prompt: Optional[str] = None,
         **__,
     ) -> Iterator[str]:
-        self.__tool_uses.clear()
         return super().complete_chat(
             messages=messages,
             model=model,
             system_prompt=system_prompt,
             tools=self.__tools if _USE_TOOLS_API else None,
-            on_tool_use=(
-                (lambda tool_use: self.__tool_uses.append(tool_use))
-                if _USE_TOOLS_API
-                else None
-            ),
+            on_tool_use_start=self.__on_tool_use_start if _USE_TOOLS_API else None,
+            on_tool_use=(self.__on_tool_use if _USE_TOOLS_API else None),
         )
 
     def on_created(self):
@@ -252,19 +247,18 @@ class AgentMenu(ChatMenu):
         if len(messages) <= 0:
             return
 
-        selected_message = messages[-1]
-        text_content = selected_message["text"]
+        last_message = messages[-1]
+        text_content = last_message["text"]
 
         reply = ""
         interrupted = False
         has_error = False
 
         tool_uses = (
-            self.__tool_uses.copy()
+            (last_message["tool_use"].copy() if "tool_use" in last_message else [])
             if _USE_TOOLS_API
             else list(parse_text_for_tool_use(text_content, self.__tools))
         )
-        selected_message["tool_use"] = tool_uses
 
         tool_results: List[ToolResult] = []
         for i, tool_use in enumerate(tool_uses):
@@ -382,6 +376,32 @@ class AgentMenu(ChatMenu):
         )
         self.__save_agent()
         self.__complete_task()
+
+    def __on_tool_use_start(self, tool_use: ToolUse):
+        if len(self.items) > 0:
+            last_line = self.items[-1]
+            msg_index = last_line.msg_index
+            sub_index = last_line.subindex + 1
+        else:
+            msg_index = 0
+            sub_index = 0
+        tool_name = tool_use["tool_name"]
+        self.append_item(
+            Line(
+                role="assistant",
+                text=f"* Running tool: {tool_name}",
+                msg_index=msg_index,
+                subindex=sub_index,
+            )
+        )
+        self.process_events()
+
+    def __on_tool_use(self, tool_use: ToolUse):
+        messages = self.get_messages()
+        assert len(messages) > 0
+        if "tool_use" not in messages[-1]:
+            messages[-1]["tool_use"] = []
+        messages[-1]["tool_use"].append(tool_use)
 
     def __open_file_menu(self):
         FileMenu(goto=os.getcwd()).exec()
