@@ -7,7 +7,8 @@ from pathlib import Path
 from queue import Queue
 from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 
-from ai.chat import Message, complete_chat, message_to_str
+from ai.chat import complete_chat, get_tool_result_text, message_to_str
+from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
 from utils.clip import set_clip
@@ -439,17 +440,30 @@ The following starts with the input text, which is wrapped in <input_text> and <
             text=text,
             timestamp=datetime.now().timestamp(),
         )
+        subindex = 0
+        for text in text.splitlines():
+            self.append_item(
+                Line(role="user", text=text, msg_index=msg_index, subindex=subindex)
+            )
+            subindex += 1
+
         if image_file:
             message["image_file"] = image_file
         if tool_results:
             message["tool_result"] = tool_results
 
+            for tool_result in tool_results:
+                self.append_item(
+                    Line(
+                        role="user",
+                        text=get_tool_result_text(tool_result),
+                        msg_index=msg_index,
+                        subindex=subindex,
+                    )
+                )
+
         self.get_messages().append(message)
 
-        for i, text in enumerate(text.splitlines()):
-            self.append_item(
-                Line(role="user", text=text, msg_index=msg_index, subindex=i)
-            )
         self.save_conversation()
         self.update_screen()
 
@@ -486,10 +500,9 @@ The following starts with the input text, which is wrapped in <input_text> and <
 
         def complete() -> Tuple[Optional[str], bool]:
             message["text"] = ""
-            msg_index = len(self.get_messages())
-            line = Line(role="assistant", text="", msg_index=msg_index, subindex=0)
-            subindex = 1
-            self.append_item(line)
+            msg_index = len(self.get_messages()) - 1
+            line: Optional[Line] = None
+            subindex = 0
             self.process_events(raise_keyboard_interrupt=True)
             try:
                 for chunk in self.complete_chat(
@@ -499,7 +512,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
                 ):
                     message["text"] += chunk
                     for i, a in enumerate(chunk.split("\n")):
-                        if i > 0:
+                        if i > 0 or line is None:
                             line = Line(
                                 role="assistant",
                                 text="",
@@ -534,7 +547,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
 
         self.__is_generating = False
         self.save_conversation()
-        self.__refresh_lines()
+        # self.__refresh_lines()
 
         if not interrupted:
             self.on_message(text_content)

@@ -2,7 +2,7 @@ import os
 import tempfile
 
 from _image import crop_image_interactive
-from ML.gpt.chatmenu import ChatMenu
+from ML.gpt.chat_menu import ChatMenu
 from PIL import ImageGrab
 
 

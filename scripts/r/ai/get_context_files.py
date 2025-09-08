@@ -1,7 +1,7 @@
 import re
 from typing import List
 
-from ML.gpt.chatmenu import ChatMenu
+from ML.gpt.chat_menu import ChatMenu
 from r.tree import tree
 from utils.menu.listeditmenu import ListEditMenu
 

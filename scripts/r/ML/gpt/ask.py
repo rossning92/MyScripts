@@ -1,6 +1,6 @@
 import argparse
 
-from ML.gpt.chatmenu import ChatMenu
+from ML.gpt.chat_menu import ChatMenu
 
 
 def _main():

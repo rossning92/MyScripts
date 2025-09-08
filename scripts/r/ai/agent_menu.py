@@ -4,7 +4,8 @@ import re
 from pathlib import Path
 from typing import Callable, Dict, Iterator, List, Optional
 
-from ai.chat import Message
+from ai.chat import get_tool_use_text
+from ai.message import Message
 from ai.tool_use import (
     ToolResult,
     ToolUse,
@@ -14,7 +15,7 @@ from ai.tool_use import (
 from ai.tools.execute_python import execute_python
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
-from ML.gpt.chatmenu import ChatMenu, Line
+from ML.gpt.chat_menu import ChatMenu, Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
@@ -385,11 +386,10 @@ class AgentMenu(ChatMenu):
         else:
             msg_index = 0
             sub_index = 0
-        tool_name = tool_use["tool_name"]
         self.append_item(
             Line(
                 role="assistant",
-                text=f"* Running tool: {tool_name}",
+                text=get_tool_use_text(tool_use),
                 msg_index=msg_index,
                 subindex=sub_index,
             )

@@ -1,6 +1,6 @@
 from typing import Callable, List
 
-from ai.agentmenu import AgentMenu
+from ai.agent_menu import AgentMenu
 from utils.shutil import shell_open
 
 
@@ -13,10 +13,6 @@ def open_url(url: str):
 
 
 class AssistantMenu(AgentMenu):
-    def __init__(self, **kwargs):
-        self.__last_escape_pressed = 0.0
-        super().__init__(**kwargs)
-
     def on_created(self):
         self.voice_input()
 

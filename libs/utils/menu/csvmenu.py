@@ -66,6 +66,14 @@ class CsvData:
             writer = csv.writer(csvfile)
             writer.writerows(self._rows)
 
+    def add_column(self, name: str, index: Optional[int] = None):
+        if len(self._rows) == 0:
+            self._rows.append([])
+        if index is None:
+            index = len(self._rows[0])
+        for i, row in enumerate(self._rows):
+            row.insert(index, name if i == 0 else "")
+
     def add_row(
         self, values: Optional[List[str]] = None, index: Optional[int] = None
     ) -> int:
@@ -126,11 +134,6 @@ class CsvRow:
     def __init__(self, df: CsvData, row_index: int) -> None:
         self.df = df
         self.row_index = row_index
-
-    def __str__(self) -> str:
-        row = self.df.get_row_list(self.row_index)
-        row_str = " ".join([x for x in map(str, row)])
-        return row_str
 
 
 class RowMenu(Menu[CsvCell]):
@@ -239,6 +242,7 @@ class CsvMenu(Menu[CsvRow]):
             prompt="/",
         )
 
+        self.add_command(self.__add_column, hotkey="alt+c")
         self.add_command(self.__add_row)
         self.add_command(self.__add_row_before, hotkey="alt+n")
         self.add_command(self.__add_row_after, hotkey="ctrl+n")
@@ -293,12 +297,23 @@ class CsvMenu(Menu[CsvRow]):
 
     def get_item_text(self, item: CsvRow) -> str:
         row = self.df.get_row_list(item.row_index)
-        return COLUMN_SEPARATOR.join(
+        s = COLUMN_SEPARATOR.join(
             [
                 format_text(text) if i < len(row) - 1 else text
                 for i, text in enumerate(map(str, row))
             ]
         )
+        if item.row_index == 0:
+            s = s.upper()
+        return s
+
+    def __add_column(self):
+        name = InputMenu(prompt="New column name").request_input()
+        if name is not None and name != "":
+            self.df.add_column(name=name)
+            self.df.save()
+            self.__update_rows()
+            self.set_message(f'added column "{name}"')
 
     def __add_row(self, row_index=None):
         row_index = self.df.add_row(index=row_index)

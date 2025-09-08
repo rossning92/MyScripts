@@ -11,15 +11,43 @@ from typing import (
 )
 
 import requests
-from ai.chat import function_to_tool_definition
+from ai.message import Message
 from ai.tokenutil import token_count
-from ai.tool_use import ToolUse
+from ai.tool_use import ToolUse, function_to_tool_definition
 
 DEFAULT_MODEL = "claude-3-7-sonnet-latest"
 
 
+def _to_claude_message_content(message: Message) -> List[Dict[str, Any]]:
+    content = []
+
+    if message["text"]:
+        content.append({"type": "text", "text": message["text"]})
+
+    for tool_use in message.get("tool_use", []):
+        content.append(
+            {
+                "type": "tool_use",
+                "name": tool_use["tool_name"],
+                "id": tool_use["tool_use_id"],
+                "input": tool_use["args"],
+            }
+        )
+
+    for tool_result in message.get("tool_result", []):
+        content.append(
+            {
+                "type": "tool_result",
+                "tool_use_id": tool_result["tool_use_id"],
+                "content": tool_result["content"],
+            }
+        )
+
+    return content
+
+
 def complete_chat(
-    messages: List[Dict[str, Any]],
+    messages: List[Message],
     model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
@@ -43,7 +71,13 @@ def complete_chat(
     payload = {
         # https://docs.anthropic.com/en/docs/about-claude/models
         "model": model,
-        "messages": messages,
+        "messages": [
+            {
+                "role": message["role"],
+                "content": _to_claude_message_content(message),
+            }
+            for message in messages
+        ],
         "max_tokens": 4096,
         "stream": True,
     }

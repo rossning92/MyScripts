@@ -2,7 +2,17 @@ import inspect
 import logging
 import re
 import uuid
-from typing import Any, Callable, Dict, Iterable, List, TypedDict
+from dataclasses import dataclass
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Literal,
+    TypedDict,
+    get_type_hints,
+)
 
 
 class ToolUse(TypedDict):
@@ -96,3 +106,50 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
 
     logging.debug(prompt)
     return prompt
+
+
+@dataclass
+class ToolParam:
+    name: str
+    type: Literal["integer", "number", "boolean", "string"]
+    description: str
+
+
+@dataclass
+class ToolDefinition:
+    name: str
+    description: str
+    parameters: List[ToolParam]
+    required: List[str]
+
+
+def function_to_tool_definition(func: Callable[..., Any]) -> ToolDefinition:
+    """Convert a function to a tool definition."""
+    sig = inspect.signature(func)
+    doc = inspect.getdoc(func) or ""
+    type_hints = get_type_hints(func)
+
+    properties: List[ToolParam] = []
+    required = []
+
+    for name, param in sig.parameters.items():
+        param_type = type_hints.get(name, None)
+        type_str: Literal["integer", "number", "boolean", "string"] = "string"
+        if param_type is not None:
+            if issubclass(param_type, int):
+                type_str = "integer"
+            elif issubclass(param_type, float):
+                type_str = "number"
+            elif issubclass(param_type, bool):
+                type_str = "boolean"
+
+        properties.append(
+            ToolParam(name=name, type=type_str, description=f"Parameter {name}")
+        )
+
+        if param.default == inspect.Parameter.empty:
+            required.append(name)
+
+    return ToolDefinition(
+        name=func.__name__, description=doc, parameters=properties, required=required
+    )

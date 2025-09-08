@@ -3,10 +3,10 @@ import os
 from platform import platform
 from typing import Any, Callable, Dict, List, Optional
 
-from ai.agentmenu import AgentMenu
+from ai.agent_menu import AgentMenu
 from ai.anthropic.chat import DEFAULT_MODEL
-from ai.chat import Message
 from ai.filecontextmenu import FileContextMenu
+from ai.message import Message
 from ai.tools import Settings
 from ai.tools.edit_file import edit_file
 from ai.tools.glob_files import glob_files
@@ -15,7 +15,7 @@ from ai.tools.list_files import list_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
 from ai.tools.write_file import write_file
-from ML.gpt.chatmenu import SettingsMenu
+from ML.gpt.chat_menu import SettingsMenu
 from utils.checkpoints import restore_files_since_timestamp
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu

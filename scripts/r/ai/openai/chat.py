@@ -1,24 +1,87 @@
-import argparse
+import base64
 import json
 import logging
 import os
-import sys
-from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import requests
-from ai.chat import function_to_tool_definition
-from ai.tool_use import ToolUse
+from ai.message import Message
+from ai.tool_use import ToolUse, function_to_tool_definition
 
 DEFAULT_MODEL = "gpt-4o"
 
 
+def _encode_image_base64(image_path: str) -> str:
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+
+def _to_openai_message_content(message: Message) -> List[Dict[str, Any]]:
+    content = []
+
+    if message["text"]:
+        content.append(
+            {
+                "type": "input_text" if message["role"] == "user" else "output_text",
+                "text": message["text"],
+            }
+        )
+
+    if "image_file" in message:
+        content.append(
+            {
+                "type": "input_image",
+                "image_url": "data:image/jpeg;base64,{}".format(
+                    _encode_image_base64(message["image_file"])
+                ),
+            }
+        )
+
+    return content
+
+
+def _to_openai_responses_input(messages: List[Message]) -> List[Dict[str, Any]]:
+    input = []
+
+    for message in messages:
+        content = _to_openai_message_content(message)
+        if content:
+            input.append(
+                {
+                    "role": message["role"],
+                    "content": content,
+                }
+            )
+
+        for tool_use in message.get("tool_use", []):
+            input.append(
+                {
+                    "type": "function_call",
+                    "name": tool_use["tool_name"],
+                    "call_id": tool_use["tool_use_id"],
+                    "arguments": json.dumps(tool_use["args"]),
+                }
+            )
+
+        for tool_result in message.get("tool_result", []):
+            input.append(
+                {
+                    "type": "function_call_output",
+                    "call_id": tool_result["tool_use_id"],
+                    "output": tool_result["content"],
+                }
+            )
+
+    return input
+
+
 def complete_chat(
-    messages: List[Dict[str, Any]],
+    messages: List[Message],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     include_usage: bool = True,
     tools: Optional[List[Callable[..., Any]]] = None,
+    on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
 ) -> Iterator[str]:
     logging.debug(f"messages: {messages}")
@@ -36,7 +99,7 @@ def complete_chat(
 
     payload = {
         "model": model if model else DEFAULT_MODEL,
-        "input": messages,
+        "input": _to_openai_responses_input(messages),
         "stream": True,
     }
     if system_prompt:
@@ -90,7 +153,18 @@ def complete_chat(
                     assert isinstance(delta, str), "Delta must be a string"
                     content += delta
                     yield delta
-                if data["type"] == "response.output_item.done":
+                elif data["type"] == "response.output_item.added":
+                    item = data["item"]
+                    if item["type"] == "function_call":
+                        if on_tool_use_start:
+                            on_tool_use_start(
+                                ToolUse(
+                                    tool_name=item["name"],
+                                    args={},
+                                    tool_use_id=item["id"],
+                                )
+                            )
+                elif data["type"] == "response.output_item.done":
                     item = data["item"]
                     if item["type"] == "function_call":
                         if on_tool_use:
@@ -101,24 +175,3 @@ def complete_chat(
                                     tool_use_id=item["id"],
                                 )
                             )
-                            messages.append(item)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("input", nargs="?", type=str)
-    parser.add_argument("--image", type=Path)
-    args = parser.parse_args()
-
-    if not sys.stdin.isatty():
-        input_text = sys.stdin.read()
-    else:
-        if os.path.isfile(args.input):
-            with open(args.input, "r", encoding="utf-8") as f:
-                input_text = f.read()
-        else:
-            input_text = args.input
-
-    # TODO: Remove create_user_message below
-    # for chunk in complete_chat(messages=[create_user_message(input_text, args.image)]):
-    #     print(chunk, end="")

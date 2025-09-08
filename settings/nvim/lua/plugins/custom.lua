@@ -106,7 +106,7 @@ local function process_selected_text(opts)
     local text, start_pos, end_pos = get_selected_text()
     local input_file = nil
     local output_file = os.tmpname()
-    local command = "run_script r/ML/gpt/chatmenu.py -o " .. output_file
+    local command = "run_script r/ML/gpt/chat_menu.py -o " .. output_file
 
     opts = opts or {}
 

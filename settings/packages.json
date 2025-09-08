@@ -771,6 +771,11 @@
       "packages": ["speedtest-cli"]
     }
   },
+  "sqlitebrowser": {
+    "pacman": {
+      "packages": ["sqlitebrowser"]
+    }
+  },
   "sshpass": {
     "apt": {
       "packages": ["sshpass"]
