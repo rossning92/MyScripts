@@ -1,5 +1,5 @@
+import difflib
 from dataclasses import dataclass
-from io import StringIO
 from typing import List, Tuple
 
 from utils.menu.confirmmenu import ConfirmMenu
@@ -38,18 +38,16 @@ class Change:
     replace: str
 
     def __str__(self) -> str:
-        output = StringIO()
-        output.write(f"{self.file}:\n")
-        for line in self.search.splitlines():
-            output.write(f"- {line}\n")
-        for line in self.replace.splitlines():
-            output.write(f"+ {line}\n")
-        return output.getvalue()
+        search_lines = self.search.splitlines()
+        replace_lines = self.replace.splitlines()
+        diff = difflib.unified_diff(search_lines, replace_lines, lineterm="")
+        return "\n".join(diff)
 
 
 class ApplyChangeMenu(ConfirmMenu):
     def __init__(self, change: Change, **kwargs) -> None:
         super().__init__(
+            follow=True,
             prompt="apply change?",
             items=str(change).splitlines(),
             wrap_text=True,

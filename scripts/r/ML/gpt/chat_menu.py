@@ -108,7 +108,7 @@ class ChatMenu(Menu[Line]):
         attachment: Optional[str] = None,
         new_conversation=True,
         out_file: Optional[str] = None,
-        prompt: str = "c",
+        prompt: str = "u",
         system_prompt: Optional[str] = None,
         settings_menu_class=SettingsMenu,
     ) -> None:
@@ -339,8 +339,9 @@ class ChatMenu(Menu[Line]):
         self.set_prompt(prompt)
 
     def __view_system_prompt(self):
-        if self.__system_prompt:
-            TextMenu(text=self.__system_prompt, prompt="System Prompt").exec()
+        system_prompt = self.get_system_prompt()
+        if system_prompt:
+            TextMenu(text=system_prompt, prompt="System Prompt").exec()
         else:
             self.set_message("No system prompt set")
 
@@ -421,15 +422,20 @@ class ChatMenu(Menu[Line]):
                 with open(self.__attachment, "r", encoding="utf-8") as f:
                     context = f.read()
 
-                text = f"""You are my assistant to help me process the following text according to my instructions. You should only return the result, do not include any other text.
+                text = f"""You are my assistant to process the following text according to my instructions. You should only return the result, do not include any other text.
+
 # Instructions
-{text}
+
+{text.rstrip()}
 
 # Input text
-The following starts with the input text, which is wrapped in <input_text> and </input_text> tags.
+
+The following starts with the input text, which is wrapped in <input_text> and </input_text> tags:
+
 <input_text>
-{context}
-</input_text>"""
+{context.rstrip()}
+</input_text>
+"""
             elif ext in (".jpg", ".jpeg", ".png", ".gif"):
                 image_file = self.__attachment
             else:
@@ -474,6 +480,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
         system_prompt: Optional[str] = None,
         tools: Optional[List[Callable[..., Any]]] = None,
         on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
+        on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
         on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     ) -> Iterator[str]:
         return complete_chat(
@@ -482,6 +489,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
             system_prompt,
             tools=tools,
             on_tool_use_start=on_tool_use_start,
+            on_tool_use_args_delta=on_tool_use_args_delta,
             on_tool_use=on_tool_use,
         )
 
@@ -508,7 +516,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
                 for chunk in self.complete_chat(
                     self.get_messages(),
                     model=self.__get_model(),
-                    system_prompt=self.__system_prompt,
+                    system_prompt=self.get_system_prompt(),
                 ):
                     message["text"] += chunk
                     for i, a in enumerate(chunk.split("\n")):
@@ -635,6 +643,9 @@ The following starts with the input text, which is wrapped in <input_text> and <
         return f"""CHAT : tokIn={token_count.input_tokens} tokOut={token_count.output_tokens} cfg={str(self.__settings_menu.data)}
 {super().get_status_text()}"""
 
+    def get_system_prompt(self) -> Optional[str]:
+        return self.__system_prompt
+
     def on_escape_pressed(self):
         self.__cancel_chat_completion()
 
@@ -682,10 +693,11 @@ def complete_chat_gui(
 
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=str, nargs="?")
-    parser.add_argument("--attachment", type=str, nargs="?")
+    parser.add_argument("input", type=str, nargs="?", help="input message")
+    parser.add_argument("-a", "--attachment", type=str, nargs="?")
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
+    parser.add_argument("-m", "--model", type=str)
     args = parser.parse_args()
 
     if args.in_file:
@@ -698,6 +710,7 @@ def _main():
         message=message,
         attachment=args.attachment,
         out_file=args.out_file,
+        model=args.model,
     )
     chat.exec()
 

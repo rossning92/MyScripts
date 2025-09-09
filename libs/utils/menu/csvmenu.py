@@ -9,70 +9,83 @@ from utils.menu.confirmmenu import confirm
 from ..menu import Menu
 from .inputmenu import InputMenu
 
-COLUMN_WIDTH = 16
-COLUMN_SEPARATOR = " "
+MAX_COLUMN_WIDTH = 16
+
+COLUMN_SEPARATOR = "  "
 
 
-def format_text(s: str) -> str:
-    max_width = COLUMN_WIDTH
+def format_text(s: str, column_width: int, row_index: int, is_last_column: bool) -> str:
     s = s.replace("\n", " ")
-    return (s[: (max_width - 2)] + "..") if len(s) > max_width else s.ljust(max_width)
+    if row_index == 0:
+        s = s.upper()
+    if is_last_column:
+        return s
+    return (
+        (s[:MAX_COLUMN_WIDTH]).ljust(MAX_COLUMN_WIDTH)
+        if column_width > MAX_COLUMN_WIDTH
+        else s.ljust(column_width)
+    )
 
 
 class CsvData:
     def __init__(self, file: str) -> None:
-        self._rows: List[List[str]] = []
-        self._file = file
+        self.__rows: List[List[str]] = []
+        self.__file = file
+        self.column_width: List[int] = []
 
         with open(file, encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
-                self._rows.append(row)
+                self.__rows.append(row)
+
+        self.__calculate_column_width()
 
     def get_header(self) -> List[str]:
-        return self._rows[0]
+        return self.__rows[0]
 
     def get_column_index(self, name: str) -> int:
         return self.get_header().index(name)
 
     def sort_by_column(self, name: str, desc=False):
         col_index = self.get_column_index(name)
-        self._rows[1:] = sorted(
-            self._rows[1:], key=lambda x: x[col_index], reverse=desc
+        self.__rows[1:] = sorted(
+            self.__rows[1:], key=lambda x: x[col_index], reverse=desc
         )
 
     def get_cell(self, row_index: int, name: str) -> str:
         col_index = self.get_column_index(name)
-        return self._rows[row_index][col_index]
+        return self.__rows[row_index][col_index]
 
     def set_cell(self, row_index: int, name: str, value: str):
         col_index = self.get_column_index(name)
-        self._rows[row_index][col_index] = value
+        self.__rows[row_index][col_index] = value
+        self.__calculate_column_width()
 
     def get_row_list(self, row_index) -> List[str]:
-        return self._rows[row_index]
+        return self.__rows[row_index]
 
     def get_row_dict(self, row_index: int) -> OrderedDict[str, str]:
         d: OrderedDict[str, str] = OrderedDict()
-        for name, val in zip(self.get_header(), self._rows[row_index]):
+        for name, val in zip(self.get_header(), self.__rows[row_index]):
             d[name] = val
         return d
 
     def get_row_count(self) -> int:
-        return len(self._rows)
+        return len(self.__rows)
 
     def save(self):
-        with open(self._file, mode="w", newline="", encoding="utf-8") as csvfile:
+        with open(self.__file, mode="w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerows(self._rows)
+            writer.writerows(self.__rows)
 
     def add_column(self, name: str, index: Optional[int] = None):
-        if len(self._rows) == 0:
-            self._rows.append([])
+        if len(self.__rows) == 0:
+            self.__rows.append([])
         if index is None:
-            index = len(self._rows[0])
-        for i, row in enumerate(self._rows):
+            index = len(self.__rows[0])
+        for i, row in enumerate(self.__rows):
             row.insert(index, name if i == 0 else "")
+        self.__calculate_column_width()
 
     def add_row(
         self, values: Optional[List[str]] = None, index: Optional[int] = None
@@ -84,26 +97,35 @@ class CsvData:
             raise Exception(f"{num_columns} elements are required based on the header.")
 
         if index is None:
-            index = len(self._rows)
-        self._rows.insert(index, values)
+            index = len(self.__rows)
+        self.__rows.insert(index, values)
+        self.__calculate_column_width()
         return index
 
     def delete_row(self, row_index: int) -> None:
-        if row_index < 0 or row_index >= len(self._rows):
+        if row_index < 0 or row_index >= len(self.__rows):
             raise IndexError(f"Row index {row_index} out of bounds.")
-
-        del self._rows[row_index]
+        del self.__rows[row_index]
+        self.__calculate_column_width()
 
     def get_unique_values_for_column(self, name: str) -> List[str]:
         col_index = self.get_column_index(name)
-        return list(set([row[col_index] for row in self._rows[1:]]))
+        return list(set([row[col_index] for row in self.__rows[1:]]))
 
     def duplicate_row(self, row_index: int) -> int:
-        if row_index < 0 or row_index >= len(self._rows):
+        if row_index < 0 or row_index >= len(self.__rows):
             raise IndexError(f"Row index {row_index} out of bounds.")
 
-        duplicated_values = self._rows[row_index].copy()
+        duplicated_values = self.__rows[row_index].copy()
         return self.add_row(duplicated_values, row_index + 1)
+
+    def __calculate_column_width(self):
+        self.column_width.clear()
+        for col_index in range(len(self.get_header())):
+            max_width = 0
+            for row in self.__rows:
+                max_width = max(max_width, len(row[col_index]))
+            self.column_width.append(max_width)
 
 
 class CsvCell:
@@ -134,6 +156,9 @@ class CsvRow:
     def __init__(self, df: CsvData, row_index: int) -> None:
         self.df = df
         self.row_index = row_index
+
+    def __str__(self) -> str:
+        return " ".join(self.df.get_row_list(self.row_index))
 
 
 class RowMenu(Menu[CsvCell]):
@@ -284,9 +309,6 @@ class CsvMenu(Menu[CsvRow]):
             if row is not None:
                 self.__edit_row(row_index=row.row_index)
 
-    def get_scroll_distance(self) -> int:
-        return COLUMN_WIDTH + len(COLUMN_SEPARATOR)
-
     def __edit_row(self, row_index: int):
         menu = RowMenu(df=self.df, row_index=row_index)
         menu.exec()
@@ -299,12 +321,15 @@ class CsvMenu(Menu[CsvRow]):
         row = self.df.get_row_list(item.row_index)
         s = COLUMN_SEPARATOR.join(
             [
-                format_text(text) if i < len(row) - 1 else text
+                format_text(
+                    text,
+                    column_width=self.df.column_width[i],
+                    row_index=item.row_index,
+                    is_last_column=i == len(row) - 1,
+                )
                 for i, text in enumerate(map(str, row))
             ]
         )
-        if item.row_index == 0:
-            s = s.upper()
         return s
 
     def __add_column(self):

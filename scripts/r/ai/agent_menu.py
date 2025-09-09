@@ -12,9 +12,9 @@ from ai.tool_use import (
     get_tool_use_prompt,
     parse_text_for_tool_use,
 )
+from ai.tools.edit_file import edit_file
 from ai.tools.execute_python import execute_python
 from ai.tools.run_bash_command import run_bash_command
-from ai.tools.write_file import write_file
 from ML.gpt.chat_menu import ChatMenu, Line
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
@@ -36,9 +36,7 @@ _USE_TOOLS_API = True
 
 
 def _get_prompt(tools: Optional[List[Callable]] = None):
-    tools_prompt = get_tool_use_prompt(tools) if tools else ""
-
-    return f"""You are my assistant to help me complete a task.
+    prompt = """You are my assistant to help me complete a task.
 - Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
 - You should do what the user asks you to do, and nothing else.
 
@@ -51,11 +49,14 @@ def _get_prompt(tools: Optional[List[Callable]] = None):
 
 # Code style
 
-- Do not add comments to code unless the user requests it or the code is complex and needs context.
+- Do NOT add comments to code unless the user requests it or the code is complex and needs context.
 - You should follow existing code style, conventions, and utilize available libraries and utilities.
+"""
 
-{tools_prompt}
-""".rstrip()
+    if tools:
+        prompt += "\n" + get_tool_use_prompt(tools)
+
+    return prompt
 
 
 class AgentMenu(ChatMenu):
@@ -149,6 +150,9 @@ class AgentMenu(ChatMenu):
             system_prompt=system_prompt,
             tools=self.__tools if _USE_TOOLS_API else None,
             on_tool_use_start=self.__on_tool_use_start if _USE_TOOLS_API else None,
+            on_tool_use_args_delta=(
+                self.__on_tool_use_args_delta if _USE_TOOLS_API else None
+            ),
             on_tool_use=(self.__on_tool_use if _USE_TOOLS_API else None),
         )
 
@@ -205,7 +209,7 @@ class AgentMenu(ChatMenu):
         super().send_message(self.get_prompt())
 
     def get_tools(self) -> List[Callable]:
-        tools: List[Callable] = [run_bash_command, execute_python, write_file]
+        tools: List[Callable] = [run_bash_command, execute_python, edit_file]
 
         for agent_name in self.__agent["agents"]:
             if not isinstance(agent_name, str):
@@ -395,6 +399,9 @@ class AgentMenu(ChatMenu):
             )
         )
         self.process_events()
+
+    def __on_tool_use_args_delta(self, text: str):
+        pass
 
     def __on_tool_use(self, tool_use: ToolUse):
         messages = self.get_messages()

@@ -771,6 +771,12 @@
       "packages": ["speedtest-cli"]
     }
   },
+  "sqlite": {
+    "executables": ["sqlite3"],
+    "pacman": {
+      "packages": ["sqlite"]
+    }
+  },
   "sqlitebrowser": {
     "pacman": {
       "packages": ["sqlitebrowser"]
