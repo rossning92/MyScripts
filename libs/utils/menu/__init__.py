@@ -323,7 +323,7 @@ class Menu(Generic[T]):
         self.__hotkeys: Dict[str, _Command] = {}
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
-            self.add_command(self.__ask_selection)
+            self.add_command(self.__ask_selection, hotkey="!")
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")

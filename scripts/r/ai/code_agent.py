@@ -14,18 +14,19 @@ from ai.tools.grep_tool import grep_tool
 from ai.tools.list_files import list_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
-from ai.tools.write_file import write_file
 from ML.gpt.chat_menu import SettingsMenu
 from utils.checkpoints import restore_files_since_timestamp
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
+
+CUSTOM_INSTRUCTIONS_FILE = "instructions.md"
 
 
 def get_env_info() -> str:
     return f"""# Environment Information
 
 Platform: {platform()}
-Current working directory: {os.getcwd()}
+Working directory: {os.getcwd()}
 """
 
 
@@ -59,11 +60,13 @@ class CodeAgentMenu(AgentMenu):
 
     def __edit_instructions(self):
         self.call_func_without_curses(
-            lambda: edit_text_file(os.path.join(self.get_data_dir(), "instructions.md"))
+            lambda: edit_text_file(
+                os.path.join(self.get_data_dir(), CUSTOM_INSTRUCTIONS_FILE)
+            )
         )
 
     def __get_instructions(self) -> str:
-        file = os.path.join(self.get_data_dir(), "instructions.md")
+        file = os.path.join(self.get_data_dir(), CUSTOM_INSTRUCTIONS_FILE)
         if not os.path.exists(file):
             return ""
 
@@ -80,7 +83,6 @@ class CodeAgentMenu(AgentMenu):
     def get_tools(self) -> List[Callable]:
         return [
             read_file,
-            write_file,
             edit_file,
             run_bash_command,
             list_files,
@@ -88,11 +90,11 @@ class CodeAgentMenu(AgentMenu):
             grep_tool,
         ]
 
-    def get_prompt(self) -> str:
-        return "\n\n".join(
+    def get_system_prompt(self) -> Optional[str]:
+        return "\n".join(
             s
             for s in [
-                super().get_prompt(),
+                super().get_system_prompt(),
                 self.__file_context_menu.get_prompt(),
                 get_env_info(),
                 self.__get_instructions(),

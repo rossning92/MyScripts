@@ -52,6 +52,7 @@ def complete_chat(
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
+    on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
 ) -> Iterator[str]:
     logging.debug(f"messages={messages}")
@@ -78,7 +79,7 @@ def complete_chat(
             }
             for message in messages
         ],
-        "max_tokens": 4096,
+        "max_tokens": 64000,
         "stream": True,
     }
     if system_prompt:
@@ -164,7 +165,10 @@ def complete_chat(
                             yield text_chunk
 
                     if json_data["delta"]["type"] == "input_json_delta":
-                        tool_input_json += json_data["delta"]["partial_json"]
+                        partial_json = json_data["delta"]["partial_json"]
+                        tool_input_json += partial_json
+                        if on_tool_use_args_delta:
+                            on_tool_use_args_delta(partial_json)
 
                 elif json_data["type"] == "content_block_stop":
                     if text:

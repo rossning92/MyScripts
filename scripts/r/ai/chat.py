@@ -47,6 +47,7 @@ def complete_chat(
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
+    on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
 ) -> Iterator[str]:
     if model and model.startswith("claude"):
@@ -56,6 +57,7 @@ def complete_chat(
             system_prompt=system_prompt,
             tools=tools,
             on_tool_use_start=on_tool_use_start,
+            on_tool_use_args_delta=on_tool_use_args_delta,
             on_tool_use=on_tool_use,
         )
     else:

@@ -1,3 +1,5 @@
+import os
+
 from ai.codeeditutils import Change, apply_change, apply_change_interactive
 from ai.tools import Settings
 from utils.checkpoints import backup_files
@@ -5,17 +7,18 @@ from utils.checkpoints import backup_files
 
 def edit_file(file: str, old_string: str, new_string: str):
     """
-    Edit a portion of a file as specified by `old_string` and replace it with the `new_string`.
-    - The `old_string` MUST uniquely identify the instance you want to change. If multiple matches exist, add some surrounding lines to uniquely identify the instance.
-    - The `old_string` string MUST exactly match existing content, including whitespace and indentation, as it appears in the file.
-    - You can use `edit_file` multiple times to make multiple changes across multiple files in a single request.
-    - You should use the `edit_file` tool for small edits. To create a new file or replace the entire file content, use `write_file` instead.
+    Replace ONE occurrence of old_string with new_string in the specified file.
+    - The old_string MUST uniquely identify the instance you want to change. If multiple matches exist, add some surrounding lines to uniquely identify the instance.
+    - The old_string string MUST exactly match existing content, including whitespace and indentation, as it appears in the file.
+    - This tool can only change one instance at a time. If you need to change multiple instances, make separate calls to this tool for each instance.
+    - If you want to create a new file, use: a new file path; an empty old_string; the new file's contents as new_string.
     """
-    backup_files([file])
+    if os.path.exists(file):
+        backup_files([file])
 
     change = Change(file=file, search=old_string, replace=new_string)
     if Settings.need_confirm_edit_file:
         if not apply_change_interactive(change=change):
-            raise KeyboardInterrupt("Search and replace was canceled by the user")
+            raise KeyboardInterrupt("edit_file was canceled by the user")
     else:
         apply_change(change=change)

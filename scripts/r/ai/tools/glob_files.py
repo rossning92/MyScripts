@@ -4,12 +4,10 @@ import os
 
 def glob_files(pattern) -> str:
     """
-    Finds files by name and pattern and returns matching paths sorted by modification time in descending order.
-    - You MUST always use `glob_files` and avoid command line tools like `find` and `ls`.
-
-    Examples:
-    - '*.js' - Find all JavaScript files in the current directory
-    - '**/*.md' - Find all Markdown files in any subdirectory
+    Fast file pattern matching tool that works with any codebase size. Use this tool when you need to find files by name patterns.
+    - Supports glob patterns like "**/*.js" or "src/**/*.ts"
+    - Returns matching file paths sorted by modification time (newest first)
+    - You should avoid using command line tools like `find` and `ls` in favor of `glob_files`
     """
     files = glob.glob(pattern, recursive=True)
     files.sort(key=os.path.getmtime, reverse=True)

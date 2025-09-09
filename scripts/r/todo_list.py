@@ -15,7 +15,6 @@ TodoItem = Dict[str, Any]
 
 
 _DUE_TIMESTAMP = "due_ts"
-_IMPORTANT = "important"
 _STATUS = "status"
 
 
@@ -84,7 +83,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.add_command(self.__new_task, hotkey="ctrl+n")
         self.add_command(self.__reload, hotkey="ctrl+r")
         self.add_command(self.__set_status_wip, hotkey="alt+w")
-        self.add_command(self.__toggle_important, hotkey="!")
         self.add_command(self.__toggle_status, hotkey="alt+x")
 
     def __duplicate_task(self):
@@ -106,14 +104,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.save_json()
             self.update_screen()
 
-    def __toggle_important(self):
-        selected = self.get_selected_item()
-        if selected:
-            if selected.get(_IMPORTANT):
-                self.__set_selected_item_value({_IMPORTANT: None})
-            else:
-                self.__set_selected_item_value({_IMPORTANT: True})
-
     def __toggle_status(self):
         selected = self.get_selected_item()
         if selected:
@@ -133,13 +123,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         desc_lines = item["description"].splitlines()
         desc = desc_lines[0] + " ..." if len(desc_lines) > 1 else desc_lines[0]
 
-        return (
-            _status_symbols[item[_STATUS]]
-            + " "
-            + f"{date:<19}"
-            + ("!" if item.get(_IMPORTANT) else " ")
-            + desc
-        )
+        return _status_symbols[item[_STATUS]] + " " + f"{date:<19}" + " " + desc
 
     def get_item_color(self, item: Any) -> str:
         now = datetime.now()
@@ -147,9 +131,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
             return "green"
         elif item[_STATUS] == "closed":
             return "blue"
-
-        if item.get(_IMPORTANT):
-            return "yellow"
 
         due = item.get(_DUE_TIMESTAMP)
         if due:
