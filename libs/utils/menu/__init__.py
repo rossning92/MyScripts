@@ -897,6 +897,7 @@ class Menu(Generic[T]):
 
                 self.__selected_row_begin = 0
                 self.__selected_row_end = 0
+                self.__follow = False
                 self._check_if_item_selection_changed()
 
                 if save_search_history and self.__last_input is not None:

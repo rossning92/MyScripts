@@ -2,8 +2,9 @@ import argparse
 import os
 import re
 from pathlib import Path
-from typing import Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
+import ML.gpt.chat_menu
 from ai.chat import get_tool_use_text
 from ai.message import Message
 from ai.tool_use import (
@@ -32,7 +33,6 @@ AGENT_DEFAULT = {
     "agents": [],
     "context": {},
 }
-_USE_TOOLS_API = True
 
 
 def _get_prompt(tools: Optional[List[Callable]] = None):
@@ -59,6 +59,17 @@ def _get_prompt(tools: Optional[List[Callable]] = None):
     return prompt
 
 
+class SettingsMenu(ML.gpt.chat_menu.SettingsMenu):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_default_values(self) -> Dict[str, Any]:
+        return {
+            **super().get_default_values(),
+            "tool_use_api": True,
+        }
+
+
 class AgentMenu(ChatMenu):
     def __init__(
         self,
@@ -68,6 +79,7 @@ class AgentMenu(ChatMenu):
         run=False,
         load_last_agent=False,
         data_dir: str = DATA_DIR,
+        settings_menu_class=SettingsMenu,
         **kwargs,
     ):
         self.__agent = AGENT_DEFAULT.copy()
@@ -80,9 +92,7 @@ class AgentMenu(ChatMenu):
         super().__init__(
             data_dir=data_dir,
             conv_file=os.path.join(self.__data_dir, "chat.json"),
-            system_prompt=(
-                _get_prompt() if _USE_TOOLS_API else _get_prompt(tools=self.__tools)
-            ),
+            settings_menu_class=settings_menu_class,
             **kwargs,
         )
 
@@ -148,12 +158,18 @@ class AgentMenu(ChatMenu):
             messages=messages,
             model=model,
             system_prompt=system_prompt,
-            tools=self.__tools if _USE_TOOLS_API else None,
-            on_tool_use_start=self.__on_tool_use_start if _USE_TOOLS_API else None,
-            on_tool_use_args_delta=(
-                self.__on_tool_use_args_delta if _USE_TOOLS_API else None
+            tools=self.__tools if self.get_setting("tool_use_api") else None,
+            on_tool_use_start=(
+                self.__on_tool_use_start if self.get_setting("tool_use_api") else None
             ),
-            on_tool_use=(self.__on_tool_use if _USE_TOOLS_API else None),
+            on_tool_use_args_delta=(
+                self.__on_tool_use_args_delta
+                if self.get_setting("tool_use_api")
+                else None
+            ),
+            on_tool_use=(
+                self.__on_tool_use if self.get_setting("tool_use_api") else None
+            ),
         )
 
     def on_created(self):
@@ -247,6 +263,13 @@ class AgentMenu(ChatMenu):
             tools.append(scope[agent_name])
         return tools
 
+    def get_system_prompt(self) -> Optional[str]:
+        return (
+            _get_prompt()
+            if self.get_setting("tool_use_api")
+            else _get_prompt(tools=self.__tools)
+        )
+
     def __handle_response(self):
         messages = self.get_messages()
         if len(messages) <= 0:
@@ -261,7 +284,7 @@ class AgentMenu(ChatMenu):
 
         tool_uses = (
             (last_message["tool_use"].copy() if "tool_use" in last_message else [])
-            if _USE_TOOLS_API
+            if self.get_setting("tool_use_api")
             else list(parse_text_for_tool_use(text_content, self.__tools))
         )
 
@@ -279,7 +302,7 @@ class AgentMenu(ChatMenu):
                     should_run = True
                 else:
                     should_run = False
-                    if _USE_TOOLS_API:
+                    if self.get_setting("tool_use_api"):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -296,7 +319,7 @@ class AgentMenu(ChatMenu):
                 try:
                     ret = tool(**tool_use["args"])
                     if ret:
-                        if _USE_TOOLS_API:
+                        if self.get_setting("tool_use_api"):
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
@@ -312,7 +335,7 @@ class AgentMenu(ChatMenu):
 """
 
                     else:
-                        if _USE_TOOLS_API:
+                        if self.get_setting("tool_use_api"):
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
@@ -324,7 +347,7 @@ class AgentMenu(ChatMenu):
 
                 except Exception as ex:
                     has_error = True
-                    if _USE_TOOLS_API:
+                    if self.get_setting("tool_use_api"):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -340,7 +363,7 @@ class AgentMenu(ChatMenu):
 """
                 except KeyboardInterrupt:
                     interrupted = True
-                    if _USE_TOOLS_API:
+                    if self.get_setting("tool_use_api"):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],

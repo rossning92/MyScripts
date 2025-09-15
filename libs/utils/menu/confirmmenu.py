@@ -3,7 +3,12 @@ from . import Menu
 
 class ConfirmMenu(Menu):
     def __init__(self, prompt="", prompt_color="green", **kwargs):
-        super().__init__(prompt=prompt + " (y/n)", prompt_color=prompt_color, **kwargs)
+        super().__init__(
+            prompt=prompt + " (y/n)",
+            prompt_color=prompt_color,
+            search_mode=False,
+            **kwargs
+        )
         self.__confirmed = False
         self.add_command(self.__confirm, hotkey="y")
         self.add_command(self.__cancel, hotkey="n")

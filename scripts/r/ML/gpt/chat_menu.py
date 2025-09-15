@@ -61,14 +61,17 @@ class SettingsMenu(JsonEditMenu):
         super().__init__(json_file=settings_file)
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": self.__model if self.__model else "gpt-4o"}
+        return {"model": self.__model if self.__model else "gpt-4.1"}
 
     def get_schema(self) -> Dict[str, Any]:
         return {
             "model": Literal[
+                "gpt-5",
+                "gpt-5-chat-latest",
+                "gpt-4.1",
+                "gpt-4.1-mini",
                 "gpt-4o",
                 "gpt-4o-mini",
-                "gpt-5",
                 "o3-mini",
                 "claude-3-7-sonnet-latest",
                 "claude-sonnet-4-0",
@@ -148,8 +151,8 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt)
         self.add_command(self.__edit_settings, hotkey="ctrl+s")
-        self.add_command(self.__goto_next_message, hotkey="right")
-        self.add_command(self.__goto_prev_message, hotkey="left")
+        self.add_command(self.__goto_next_message, hotkey="ctrl+d")
+        self.add_command(self.__goto_prev_message, hotkey="ctrl+u")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__select_prompt, hotkey="tab")
         self.add_command(self.__take_photo, hotkey="alt+i")
@@ -282,9 +285,6 @@ class ChatMenu(Menu[Line]):
     def __edit_prompt(self):
         self.__edit_message(first_user_message=True)
 
-    def __get_model(self) -> str:
-        return self.__settings_menu.data["model"]
-
     def __load_conversation(self):
         menu = _SelectConvMenu(
             items=[f for f in self.__history_manager.get_all_files_desc()]
@@ -385,6 +385,9 @@ class ChatMenu(Menu[Line]):
 
     def get_messages(self) -> List[Message]:
         return self.__messages
+
+    def get_setting(self, name: str) -> Any:
+        return self.__settings_menu.data[name]
 
     def on_created(self):
         if self.__first_message is not None:
@@ -515,7 +518,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
             try:
                 for chunk in self.complete_chat(
                     self.get_messages(),
-                    model=self.__get_model(),
+                    model=self.get_setting("model"),
                     system_prompt=self.get_system_prompt(),
                 ):
                     message["text"] += chunk
