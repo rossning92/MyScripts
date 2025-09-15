@@ -18,6 +18,10 @@ vim.keymap.set('i', '<down>', '<C-o>gj', { silent = true })
 vim.keymap.set('n', '<C-A>', 'ggVG', { noremap = true, silent = true })
 vim.keymap.set('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
 
+-- Hotkeys to save the file
+vim.keymap.set("i", "WW", "<Esc>:w<CR>")
+vim.keymap.set({ "n", "o" }, "WW", ":w<CR>")
+
 -- Terminal settings
 vim.api.nvim_command("autocmd TermOpen * startinsert")
 vim.api.nvim_command("autocmd TermOpen * setlocal nonumber norelativenumber signcolumn=no")

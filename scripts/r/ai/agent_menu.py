@@ -2,8 +2,9 @@ import argparse
 import os
 import re
 from pathlib import Path
-from typing import Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
+import ML.gpt.chat_menu
 from ai.chat import get_tool_use_text
 from ai.message import Message
 from ai.tool_use import (
@@ -16,7 +17,6 @@ from ai.tools.edit_file import edit_file
 from ai.tools.execute_python import execute_python
 from ai.tools.run_bash_command import run_bash_command
 from ML.gpt.chat_menu import ChatMenu, Line
-from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
@@ -32,7 +32,6 @@ AGENT_DEFAULT = {
     "agents": [],
     "context": {},
 }
-_USE_TOOLS_API = True
 
 
 def _get_prompt(tools: Optional[List[Callable]] = None):
@@ -59,6 +58,17 @@ def _get_prompt(tools: Optional[List[Callable]] = None):
     return prompt
 
 
+class SettingsMenu(ML.gpt.chat_menu.SettingsMenu):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_default_values(self) -> Dict[str, Any]:
+        return {
+            **super().get_default_values(),
+            "tool_use_api": True,
+        }
+
+
 class AgentMenu(ChatMenu):
     def __init__(
         self,
@@ -68,6 +78,7 @@ class AgentMenu(ChatMenu):
         run=False,
         load_last_agent=False,
         data_dir: str = DATA_DIR,
+        settings_menu_class=SettingsMenu,
         **kwargs,
     ):
         self.__agent = AGENT_DEFAULT.copy()
@@ -80,9 +91,7 @@ class AgentMenu(ChatMenu):
         super().__init__(
             data_dir=data_dir,
             conv_file=os.path.join(self.__data_dir, "chat.json"),
-            system_prompt=(
-                _get_prompt() if _USE_TOOLS_API else _get_prompt(tools=self.__tools)
-            ),
+            settings_menu_class=settings_menu_class,
             **kwargs,
         )
 
@@ -99,7 +108,6 @@ class AgentMenu(ChatMenu):
         self.task_result: Optional[str] = None
 
         self.add_command(self.__edit_context, hotkey="alt+c")
-        self.add_command(self.__edit_task)
         self.add_command(self.__load_agent, hotkey="alt+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
         self.add_command(self.__open_file_menu, hotkey="alt+f")
@@ -148,17 +156,23 @@ class AgentMenu(ChatMenu):
             messages=messages,
             model=model,
             system_prompt=system_prompt,
-            tools=self.__tools if _USE_TOOLS_API else None,
-            on_tool_use_start=self.__on_tool_use_start if _USE_TOOLS_API else None,
-            on_tool_use_args_delta=(
-                self.__on_tool_use_args_delta if _USE_TOOLS_API else None
+            tools=self.__tools if self.get_setting("tool_use_api") else None,
+            on_tool_use_start=(
+                self.__on_tool_use_start if self.get_setting("tool_use_api") else None
             ),
-            on_tool_use=(self.__on_tool_use if _USE_TOOLS_API else None),
+            on_tool_use_args_delta=(
+                self.__on_tool_use_args_delta
+                if self.get_setting("tool_use_api")
+                else None
+            ),
+            on_tool_use=(
+                self.__on_tool_use if self.get_setting("tool_use_api") else None
+            ),
         )
 
     def on_created(self):
         if self.__run:
-            self.__complete_task()
+            self.send_message(self.get_prompt())
 
     def on_message(self, content: str):
         self.__handle_response()
@@ -168,16 +182,11 @@ class AgentMenu(ChatMenu):
         text: str,
         tool_results: Optional[List[ToolResult]] = None,
     ) -> None:
-        if not text and not tool_results:
-            self.__complete_task()
-        else:
-            i = len(self.get_messages())
-            if i == 0:
-                self.__agent["task"] = text
-                self.__save_agent()
-                self.__complete_task()
-            else:
-                super().send_message(text, tool_results=tool_results)
+        if len(self.get_messages()) == 0:
+            self.__agent["task"] = text
+            self.__save_agent()
+
+        return super().send_message(text, tool_results)
 
     def __save_agent(self):
         os.makedirs(os.path.dirname(self.__agent_file), exist_ok=True)
@@ -203,10 +212,6 @@ class AgentMenu(ChatMenu):
 
     def get_prompt(self) -> str:
         return self.__get_task_with_context()
-
-    def __complete_task(self):
-        self.clear_messages()
-        super().send_message(self.get_prompt())
 
     def get_tools(self) -> List[Callable]:
         tools: List[Callable] = [run_bash_command, execute_python, edit_file]
@@ -247,6 +252,13 @@ class AgentMenu(ChatMenu):
             tools.append(scope[agent_name])
         return tools
 
+    def get_system_prompt(self) -> Optional[str]:
+        return (
+            _get_prompt()
+            if self.get_setting("tool_use_api")
+            else _get_prompt(tools=self.__tools)
+        )
+
     def __handle_response(self):
         messages = self.get_messages()
         if len(messages) <= 0:
@@ -261,7 +273,7 @@ class AgentMenu(ChatMenu):
 
         tool_uses = (
             (last_message["tool_use"].copy() if "tool_use" in last_message else [])
-            if _USE_TOOLS_API
+            if self.get_setting("tool_use_api")
             else list(parse_text_for_tool_use(text_content, self.__tools))
         )
 
@@ -279,7 +291,7 @@ class AgentMenu(ChatMenu):
                     should_run = True
                 else:
                     should_run = False
-                    if _USE_TOOLS_API:
+                    if self.get_setting("tool_use_api"):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -296,7 +308,7 @@ class AgentMenu(ChatMenu):
                 try:
                     ret = tool(**tool_use["args"])
                     if ret:
-                        if _USE_TOOLS_API:
+                        if self.get_setting("tool_use_api"):
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
@@ -312,7 +324,7 @@ class AgentMenu(ChatMenu):
 """
 
                     else:
-                        if _USE_TOOLS_API:
+                        if self.get_setting("tool_use_api"):
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
@@ -324,7 +336,7 @@ class AgentMenu(ChatMenu):
 
                 except Exception as ex:
                     has_error = True
-                    if _USE_TOOLS_API:
+                    if self.get_setting("tool_use_api"):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -340,7 +352,7 @@ class AgentMenu(ChatMenu):
 """
                 except KeyboardInterrupt:
                     interrupted = True
-                    if _USE_TOOLS_API:
+                    if self.get_setting("tool_use_api"):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -375,13 +387,6 @@ class AgentMenu(ChatMenu):
     def on_response(self, text: str, done: bool):
         pass
 
-    def __edit_task(self):
-        self.__agent["task"] = self.call_func_without_curses(
-            lambda: edit_text(self.__agent["task"])
-        )
-        self.__save_agent()
-        self.__complete_task()
-
     def __on_tool_use_start(self, tool_use: ToolUse):
         if len(self.items) > 0:
             last_line = self.items[-1]
@@ -396,6 +401,7 @@ class AgentMenu(ChatMenu):
                 text=get_tool_use_text(tool_use),
                 msg_index=msg_index,
                 subindex=sub_index,
+                tool_use=tool_use,
             )
         )
         self.process_events()
@@ -409,6 +415,14 @@ class AgentMenu(ChatMenu):
         if "tool_use" not in messages[-1]:
             messages[-1]["tool_use"] = []
         messages[-1]["tool_use"].append(tool_use)
+
+        # Update tool use result
+        for line in reversed(self.items):
+            if (
+                line.tool_use
+                and line.tool_use["tool_use_id"] == tool_use["tool_use_id"]
+            ):
+                line.tool_use = tool_use
 
     def __open_file_menu(self):
         FileMenu(goto=os.getcwd()).exec()

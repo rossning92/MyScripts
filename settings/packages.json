@@ -701,6 +701,12 @@
       "packages": ["BurntSushi.ripgrep.MSVC"]
     }
   },
+  "rofi": {
+    "pacman": {
+      "packages": ["rofi"]
+    },
+    "post_install": ["ln -sf ~/MyScripts/settings/rofi ~/.config/"]
+  },
   "rpi-imager": {
     "choco": {
       "packages": ["rpi-imager"]

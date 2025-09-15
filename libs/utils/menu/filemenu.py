@@ -181,7 +181,7 @@ class FileMenu(Menu[_File]):
         if allow_cd:
             self.add_command(self._goto_parent_directory, hotkey="left")
             self.add_command(self._goto_selected_directory, hotkey="right")
-            self.add_command(self._goto, hotkey="ctrl+g")
+            self.add_command(self._goto_dir, hotkey="ctrl+g")
 
         if goto is not None:
             if goto == ".":
@@ -342,7 +342,7 @@ class FileMenu(Menu[_File]):
 
             self._refresh_cur_dir()
 
-    def _goto(self):
+    def _goto_dir(self):
         path = InputMenu(
             items=self.__config.path_history,
             prompt="goto",

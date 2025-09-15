@@ -179,9 +179,9 @@ class _TextInput:
         elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
         elif _is_backspace_key(ch):
-            if self.selected_text != "":
-                self.selected_text = ""
-            elif self.caret_pos > 0:
+            self.selected_text = ""
+            if self.caret_pos > 0:
+
                 self.text = (
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
                 )
@@ -897,6 +897,7 @@ class Menu(Generic[T]):
 
                 self.__selected_row_begin = 0
                 self.__selected_row_end = 0
+                self.__follow = False
                 self._check_if_item_selection_changed()
 
                 if save_search_history and self.__last_input is not None:

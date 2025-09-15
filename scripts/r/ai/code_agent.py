@@ -3,6 +3,7 @@ import os
 from platform import platform
 from typing import Any, Callable, Dict, List, Optional
 
+import ai.agent_menu
 from ai.agent_menu import AgentMenu
 from ai.anthropic.chat import DEFAULT_MODEL
 from ai.filecontextmenu import FileContextMenu
@@ -14,7 +15,6 @@ from ai.tools.grep_tool import grep_tool
 from ai.tools.list_files import list_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
-from ML.gpt.chat_menu import SettingsMenu
 from utils.checkpoints import restore_files_since_timestamp
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
@@ -30,7 +30,7 @@ Working directory: {os.getcwd()}
 """
 
 
-class _SettingsMenu(SettingsMenu):
+class SettingsMenu(ai.agent_menu.SettingsMenu):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__update_settings()
@@ -47,11 +47,17 @@ class _SettingsMenu(SettingsMenu):
 
 
 class CodeAgentMenu(AgentMenu):
-    def __init__(self, files: Optional[List[str]], model=DEFAULT_MODEL, **kwargs):
+    def __init__(
+        self,
+        files: Optional[List[str]],
+        model=DEFAULT_MODEL,
+        settings_menu_class=SettingsMenu,
+        **kwargs,
+    ):
         super().__init__(
             data_dir=os.path.join(".config", "coder"),
             model=model,
-            settings_menu_class=_SettingsMenu,
+            settings_menu_class=settings_menu_class,
             **kwargs,
         )
         self.__file_context_menu = FileContextMenu(files=files)

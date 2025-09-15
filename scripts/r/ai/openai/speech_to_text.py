@@ -11,9 +11,10 @@ from utils.menu.recordmenu import RecordMenu
 def convert_audio_to_text(file: str) -> str:
     logging.info(f"Converting audio to text: {file}")
 
+    # https://platform.openai.com/docs/guides/speech-to-text
     url = "https://api.openai.com/v1/audio/transcriptions"
     headers = {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]}
-    payload = {"model": "whisper-1"}
+    payload = {"model": "gpt-4o-transcribe"}
     files = {
         "file": (
             os.path.basename(file),
@@ -40,7 +41,7 @@ def speech_to_text() -> Optional[str]:
 
     async_task_menu = AsyncTaskMenu(
         lambda: convert_audio_to_text(file=out_file),
-        prompt="convert audio to text",
+        prompt="Converting audio to text...",
     )
     try:
         async_task_menu.exec()

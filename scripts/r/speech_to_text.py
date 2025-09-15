@@ -3,7 +3,7 @@ import json
 import subprocess
 from typing import Optional
 
-from ai.openai.speech_to_text import speech_to_text as speech_to_text_openai
+import ai.openai.speech_to_text
 from _shutil import is_in_termux
 
 
@@ -20,7 +20,7 @@ def speech_to_text(high_quality=True) -> Optional[str]:
     if not high_quality and is_in_termux():
         return speech_to_text_termux()
     else:
-        return speech_to_text_openai()
+        return ai.openai.speech_to_text.speech_to_text()
 
 
 if __name__ == "__main__":

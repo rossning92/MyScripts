@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import Callable, List
 
 from ai.agent_menu import AgentMenu
@@ -12,12 +13,19 @@ def open_url(url: str):
     shell_open(url)
 
 
+def navigate_to(destination: str):
+    encoded_destination = urllib.parse.quote(destination)
+    open_url(
+        f"https://www.google.com/maps/dir/?api=1&travelmode=driving&destination={encoded_destination}"
+    )
+
+
 class AssistantMenu(AgentMenu):
     def on_created(self):
         self.voice_input()
 
     def get_tools(self) -> List[Callable]:
-        return super().get_tools() + [open_file, open_url]
+        return super().get_tools() + [open_file, open_url, navigate_to]
 
 
 if __name__ == "__main__":

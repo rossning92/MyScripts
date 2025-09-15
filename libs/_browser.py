@@ -31,6 +31,3 @@ def open_url(url, profile_name=None):
         subprocess.call(["termux-open-url", url])
     else:
         webbrowser.open(url)
-        return
-
-    raise Exception("Failed to open chrome.")

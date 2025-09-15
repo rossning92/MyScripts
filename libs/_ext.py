@@ -99,7 +99,16 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
         open_in_vscode([workspace_file, file])
     else:
         require_package("neovim")
-        subprocess.run(["nvim", file], cwd=get_my_script_root())
+
+        # Determine the appropriate cwd based on script directories
+        cwd = get_my_script_root()  # Default fallback
+        assert os.path.isabs(file)
+        for script_dir in get_script_directories():
+            if file.startswith(script_dir.path):
+                cwd = script_dir.path
+                break
+
+        subprocess.run(["nvim", file], cwd=cwd)
 
 
 def enter_script_path():

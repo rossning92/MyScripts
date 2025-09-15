@@ -10,15 +10,16 @@ from utils.menu import Menu
 
 
 @dataclass
-class _ScriptItem:
+class _MatchedScript:
     name: str
     path: str
+    match: str
 
     def __str__(self) -> str:
         return self.name
 
 
-def _match_scripts_with_param(param: str) -> List[_ScriptItem]:
+def _match_scripts_with_param(param: str) -> List[_MatchedScript]:
     encoded_param = urllib.parse.quote(param)
     host = "127.0.0.1:4312"
     path = f"/scripts/{encoded_param}"
@@ -30,7 +31,11 @@ def _match_scripts_with_param(param: str) -> List[_ScriptItem]:
             data = response.read().decode("utf-8")
             json_data = json.loads(data)
             return [
-                _ScriptItem(name=script["name"], path=script["path"])
+                _MatchedScript(
+                    name=script["name"],
+                    path=script["path"],
+                    match=script["match"],
+                )
                 for script in json_data["scripts"]
             ]
         else:
@@ -39,12 +44,11 @@ def _match_scripts_with_param(param: str) -> List[_ScriptItem]:
         conn.close()
 
 
-class ContextMenu(Menu[_ScriptItem]):
+class ContextMenu(Menu[_MatchedScript]):
     def __init__(self, param: str, **kwargs):
-        self.__param = param
         super().__init__(
-            prompt=f"({self.__param})",
-            items=_match_scripts_with_param(self.__param),
+            prompt=f"({param})",
+            items=_match_scripts_with_param(param),
             **kwargs,
         )
 
@@ -53,9 +57,9 @@ class ContextMenu(Menu[_ScriptItem]):
             self.on_item_selected(self.items[0])
             self.close()
 
-    def on_item_selected(self, item: _ScriptItem):
+    def on_item_selected(self, item: _MatchedScript):
         script = Script(item.path)
-        script.execute(args=[self.__param])
+        script.execute(args=[item.match])
 
 
 if __name__ == "__main__":

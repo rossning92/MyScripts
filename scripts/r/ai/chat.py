@@ -16,29 +16,20 @@ from ai.message import Message
 from ai.tool_use import ToolResult, ToolUse
 
 
+def _truncate_text(text: str, max_chars: int = 100) -> str:
+    text = text.replace("\n", " ")
+    return text[:max_chars] + "..." if len(text) > max_chars else text
+
+
 def get_tool_result_text(tool_result: ToolResult) -> str:
-    lines = tool_result["content"].splitlines()
-    ellipsis = " ..." if len(lines) > 1 else ""
-    return f"* Tool result: {lines[0]}{ellipsis}"
+    content = _truncate_text(tool_result["content"])
+    return f"* tool_result: {content}"
 
 
 def get_tool_use_text(tool_use: ToolUse) -> str:
     tool_name = tool_use["tool_name"]
-    return f"* Running tool: {tool_name}"
-
-
-def message_to_str(message: Message) -> str:
-    out = []
-    if message["text"]:
-        out.append(message["text"])
-    image_file = message.get("image_file", None)
-    if image_file:
-        out.append(f"* Image: {image_file}")
-    for tool_use in message.get("tool_use", []):
-        out.append(get_tool_use_text(tool_use))
-    for tool_result in message.get("tool_result", []):
-        out.append(get_tool_result_text(tool_result))
-    return "\n".join(out)
+    args = _truncate_text(str(tool_use["args"]))
+    return f"* tool_use: {tool_name}: {args}"
 
 
 def complete_chat(

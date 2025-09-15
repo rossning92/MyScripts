@@ -1,50 +1,56 @@
+import argparse
 import subprocess
 from typing import List
 
+MAX_LINES = 1000
 
-def grep_tool(pattern: str) -> str:
+
+def grep_tool(regex: str) -> str:
     """
     Recursively searches the current directory for a regex pattern.
     - You MUST use `grep_tool` instead of command line search commands like `find` and `grep`.
     """
 
-    max_lines = 1000
-
-    # Run ripgrep command to search for the pattern
+    # Run ripgrep command
     process = subprocess.Popen(
-        ["rg", "--heading", "--line-number", pattern],
+        ["rg", "--heading", "--line-number", regex],
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,  # Redirect stderr to stdout
         text=True,
     )
 
     # Read output line by line
-    terminated = False
     assert process.stdout is not None, "stdout should not be None"
     line_count = 0
-    output_lines: List[str] = []
+    lines: List[str] = []
+
+    # Process combined stdout and stderr
     for line in process.stdout:
         line = line.rstrip()
-        output_lines.append(line)
+        lines.append(line)
         line_count += 1
 
-        if line_count >= max_lines:
+        if line_count >= MAX_LINES:
             process.terminate()  # Terminate the process early
-            terminated = True
             break
 
-    # Check for any errors
-    if not terminated:
-        return_code = process.wait()
-        if return_code != 0:
-            assert process.stderr is not None, "stderr should not be None"
-            stderr = process.stderr.read()
-            return f"Error occurred while searching: {stderr}"
+    process.wait()
 
     # Return the search results
-    if not output_lines:
-        return "No matches found."
-    result = "\n".join(output_lines)
-    if line_count >= max_lines:  # Add truncation message if max_lines are exceeded
-        result += f"\n\n...\n\n[Output truncated, showing {max_lines} lines. Try narrowing your search pattern.]"
+    if not lines:
+        return "No matches found"
+    result = "\n".join(lines)
+    if line_count >= MAX_LINES:  # Add truncation message if max_lines are exceeded
+        result += f"\n\n[Output truncated, showing only {MAX_LINES} lines. Please try narrowing your search]"
     return result
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Recursively search for patterns in files"
+    )
+    parser.add_argument("pattern", help="The regex pattern to search for")
+    args = parser.parse_args()
+
+    result = grep_tool(args.pattern)
+    print(result)

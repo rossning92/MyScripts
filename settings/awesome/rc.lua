@@ -413,7 +413,7 @@ local globalkeys = gears.table.join(
     end),
 
     -- Media control
-    awful.key({ modkey }, "p", function()
+    awful.key({}, "F10", function()
         awful.util.spawn("playerctl play-pause", false)
     end, {
         description = "play/pause media",

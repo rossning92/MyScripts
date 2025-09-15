@@ -4,10 +4,11 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from pprint import pformat
 from queue import Queue
 from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 
-from ai.chat import complete_chat, get_tool_result_text, message_to_str
+from ai.chat import complete_chat, get_tool_result_text, get_tool_use_text
 from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
@@ -61,14 +62,17 @@ class SettingsMenu(JsonEditMenu):
         super().__init__(json_file=settings_file)
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": self.__model if self.__model else "gpt-4o"}
+        return {"model": self.__model if self.__model else "gpt-4.1"}
 
     def get_schema(self) -> Dict[str, Any]:
         return {
             "model": Literal[
+                "gpt-5",
+                "gpt-5-chat-latest",
+                "gpt-4.1",
+                "gpt-4.1-mini",
                 "gpt-4o",
                 "gpt-4o-mini",
-                "gpt-5",
                 "o3-mini",
                 "claude-3-7-sonnet-latest",
                 "claude-sonnet-4-0",
@@ -78,14 +82,29 @@ class SettingsMenu(JsonEditMenu):
 
 
 class Line:
-    def __init__(self, role: str, text: str, msg_index: int, subindex: int) -> None:
+    def __init__(
+        self,
+        role: str,
+        msg_index: int,
+        subindex: int,
+        text: str = "",
+        tool_use: Optional[ToolUse] = None,
+        tool_result: Optional[ToolResult] = None,
+    ) -> None:
         self.role = role
         self.text = text
         self.msg_index = msg_index
         self.subindex = subindex  # subindex with in the message
+        self.tool_use = tool_use
+        self.tool_result = tool_result
 
     def __str__(self) -> str:
-        return self.text
+        if self.tool_use:
+            return get_tool_use_text(self.tool_use)
+        elif self.tool_result:
+            return get_tool_result_text(self.tool_result)
+        else:
+            return self.text
 
 
 class _SelectConvMenu(Menu[str]):
@@ -103,6 +122,7 @@ class ChatMenu(Menu[Line]):
         conv_file: Optional[str] = None,
         copy_and_exit=False,
         data_dir: Optional[str] = None,
+        edit_text=False,
         message: Optional[str] = None,
         model: Optional[str] = None,
         attachment: Optional[str] = None,
@@ -115,12 +135,13 @@ class ChatMenu(Menu[Line]):
         self.__auto_create_conv_file = conv_file is None
         self.__conv_file = conv_file
         self.__copy_and_exit = copy_and_exit
+        self.__edit_text = edit_text
         self.__first_message = message
         self.__attachment: Optional[str] = attachment
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
         self.__lines: List[Line] = []
-        self.__post_generation: Queue[Callable] = Queue()
+        self.__after_chat_completion: Queue[Callable] = Queue()
         self.__prompt = prompt
         self.__out_file = out_file
         self.__system_prompt = system_prompt
@@ -148,10 +169,11 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt)
         self.add_command(self.__edit_settings, hotkey="ctrl+s")
-        self.add_command(self.__goto_next_message, hotkey="right")
-        self.add_command(self.__goto_prev_message, hotkey="left")
+        self.add_command(self.__goto_next_message, hotkey="alt+n")
+        self.add_command(self.__goto_prev_message, hotkey="alt+p")
         self.add_command(self.__load_conversation, hotkey="ctrl+l")
         self.add_command(self.__select_prompt, hotkey="tab")
+        self.add_command(self.__show_more, hotkey="alt+m")
         self.add_command(self.__take_photo, hotkey="alt+i")
         self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
@@ -282,9 +304,6 @@ class ChatMenu(Menu[Line]):
     def __edit_prompt(self):
         self.__edit_message(first_user_message=True)
 
-    def __get_model(self) -> str:
-        return self.__settings_menu.data["model"]
-
     def __load_conversation(self):
         menu = _SelectConvMenu(
             items=[f for f in self.__history_manager.get_all_files_desc()]
@@ -300,6 +319,16 @@ class ChatMenu(Menu[Line]):
             with open(prompt_file, "r", encoding="utf-8") as f:
                 message = f.read()
                 self.send_message(message)
+
+    def __show_more(self):
+        selected = self.get_selected_item()
+        if selected:
+            if selected.tool_result:
+                tool_result_content = selected.tool_result["content"]
+                TextMenu(text=tool_result_content, prompt="Tool result").exec()
+            elif selected.tool_use:
+                args = pformat(selected.tool_use["args"])
+                TextMenu(text=args, prompt="Tool use args").exec()
 
     def __take_photo(self):
         if not is_termux():
@@ -386,6 +415,9 @@ class ChatMenu(Menu[Line]):
     def get_messages(self) -> List[Message]:
         return self.__messages
 
+    def get_setting(self, name: str) -> Any:
+        return self.__settings_menu.data[name]
+
     def on_created(self):
         if self.__first_message is not None:
             self.send_message(self.__first_message)
@@ -422,20 +454,33 @@ class ChatMenu(Menu[Line]):
                 with open(self.__attachment, "r", encoding="utf-8") as f:
                     context = f.read()
 
-                text = f"""You are my assistant to process the following text according to my instructions. You should only return the result, do not include any other text.
+                if self.__edit_text:
+                    text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
 
-# Instructions
-
-{text.rstrip()}
-
-# Input text
-
-The following starts with the input text, which is wrapped in <input_text> and </input_text> tags:
-
+Following is the input text:
 <input_text>
 {context.rstrip()}
 </input_text>
+
+Following is my instructions:
+<instructions>
+{text.rstrip()}
+</instructions>
 """
+                else:
+                    text = f"""Answer my question based on the provided context. You should only reply to me with the answer, nothing else.
+
+Following is the provided context:
+<context>
+{context.rstrip()}
+</context>
+
+Following is my question:
+<question>
+{text.rstrip()}
+</question>
+"""
+
             elif ext in (".jpg", ".jpeg", ".png", ".gif"):
                 image_file = self.__attachment
             else:
@@ -462,9 +507,9 @@ The following starts with the input text, which is wrapped in <input_text> and <
                 self.append_item(
                     Line(
                         role="user",
-                        text=get_tool_result_text(tool_result),
                         msg_index=msg_index,
                         subindex=subindex,
+                        tool_result=tool_result,
                     )
                 )
 
@@ -515,7 +560,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
             try:
                 for chunk in self.complete_chat(
                     self.get_messages(),
-                    model=self.__get_model(),
+                    model=self.get_setting("model"),
                     system_prompt=self.get_system_prompt(),
                 ):
                     message["text"] += chunk
@@ -523,7 +568,6 @@ The following starts with the input text, which is wrapped in <input_text> and <
                         if i > 0 or line is None:
                             line = Line(
                                 role="assistant",
-                                text="",
                                 msg_index=msg_index,
                                 subindex=subindex,
                             )
@@ -568,8 +612,8 @@ The following starts with the input text, which is wrapped in <input_text> and <
                     f.write(text_content)
                 self.close()
 
-            while not self.__post_generation.empty():
-                (self.__post_generation.get())()
+        while not self.__after_chat_completion.empty():
+            (self.__after_chat_completion.get())()
 
     def save_conversation(self):
         if self.__conv_file is None:
@@ -579,16 +623,60 @@ The following starts with the input text, which is wrapped in <input_text> and <
         self.__history_manager.delete_old_files()
 
     def __refresh_lines(self):
-        self.__lines[:] = [
-            Line(
-                role=message["role"],
-                text=line,
-                msg_index=msg_index,
-                subindex=i,
-            )
-            for msg_index, message in enumerate(self.get_messages())
-            for i, line in enumerate(message_to_str(message).splitlines())
-        ]
+        self.__lines[:] = []
+        for msg_index, message in enumerate(self.get_messages()):
+            subindex = 0
+
+            # Text content
+            if message["text"]:
+                for line in message["text"].splitlines():
+                    self.__lines.append(
+                        Line(
+                            role=message["role"],
+                            text=line,
+                            msg_index=msg_index,
+                            subindex=subindex,
+                        )
+                    )
+                    subindex += 1
+
+            # Image file
+            image_file = message.get("image_file", None)
+            if image_file:
+                self.__lines.append(
+                    Line(
+                        role=message["role"],
+                        text=f"* Image: {image_file}",
+                        msg_index=msg_index,
+                        subindex=subindex,
+                    )
+                )
+                subindex += 1
+
+            # Tool uses
+            for tool_use in message.get("tool_use", []):
+                self.__lines.append(
+                    Line(
+                        role=message["role"],
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        tool_use=tool_use,
+                    )
+                )
+                subindex += 1
+
+            # Tool results
+            for tool_result in message.get("tool_result", []):
+                self.__lines.append(
+                    Line(
+                        role=message["role"],
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        tool_result=tool_result,
+                    )
+                )
+                subindex += 1
+
         self.update_screen()
 
     def load_conversation(self, file: Optional[str] = None):
@@ -627,7 +715,7 @@ The following starts with the input text, which is wrapped in <input_text> and <
             self.__cancel_chat_completion()
             self.send_message(self.get_input())
         except KeyboardInterrupt:
-            self.__post_generation.put(
+            self.__after_chat_completion.put(
                 lambda message=self.get_input(): self.send_message(message)
             )
             raise
@@ -698,6 +786,9 @@ def _main():
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)
+    parser.add_argument(
+        "--edit-text", action="store_true", help="edit the provided text"
+    )
     args = parser.parse_args()
 
     if args.in_file:
@@ -711,6 +802,7 @@ def _main():
         attachment=args.attachment,
         out_file=args.out_file,
         model=args.model,
+        edit_text=args.edit_text,
     )
     chat.exec()
 

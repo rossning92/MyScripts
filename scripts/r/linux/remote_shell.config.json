@@ -1,5 +1,5 @@
 {
-  "globalHotkey": "win+alt+e",
+  "globalHotkey": "win+alt+r",
   "packages": "screen",
   "title": "remote_shell",
   "wsl": true

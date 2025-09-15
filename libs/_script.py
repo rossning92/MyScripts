@@ -62,7 +62,6 @@ from scripting.path import (
 )
 from utils.clip import get_clip, get_selection
 from utils.dotenv import load_dotenv
-from utils.editor import open_code_editor
 from utils.email import send_email_md
 from utils.jsonutil import load_json, save_json
 from utils.menu.csvmenu import CsvMenu
@@ -857,8 +856,9 @@ class Script:
         if tee is None:
             tee = self.cfg["tee"]
 
-        if self.cfg["restartInstance"]:
-            restart_instance = True
+        restart_instance_cfg = self.cfg["restartInstance"]
+        if restart_instance_cfg is not None:
+            restart_instance = bool(restart_instance_cfg)
 
         if new_window and not restart_instance and single_instance:
             if self.activate_window():
@@ -1054,7 +1054,7 @@ class Script:
                     md_file_path = script_path
                 else:
                     md_file_path = script_path
-                start_script("ext/edit.py", args=[md_file_path])
+                start_script("ext/vim_edit.py", args=[md_file_path])
                 return True
 
         elif ext == ".ps1":
@@ -1894,7 +1894,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "packages.pip": "",
         "packages": "",
         "reloadScriptsAfterRun": False,
-        "restartInstance": False,
+        "restartInstance": None,
         "runAsAdmin": False,
         "runAtStartup": False,
         "runEveryNSec": "",

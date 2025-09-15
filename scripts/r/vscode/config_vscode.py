@@ -299,6 +299,17 @@ def config_vscode(data_dir=None, compact=False):
                     "command": "edit-csv.edit",
                     "when": "resourceExtname == '.csv'",
                 },
+                # Find references
+                {
+                    "key": "shift+alt+f",
+                    "command": "references-view.findReferences",
+                    "when": "editorHasReferenceProvider",
+                },
+                {
+                    "key": "shift+alt+f12",
+                    "command": "-references-view.findReferences",
+                    "when": "editorHasReferenceProvider",
+                },
             ],
             f,
             indent=4,

@@ -102,11 +102,11 @@ local function write_to_temp_file(content, extension)
     return file_path
 end
 
-local function process_selected_text(opts)
+local function edit_selected_text(opts)
     local text, start_pos, end_pos = get_selected_text()
     local input_file = nil
     local output_file = os.tmpname()
-    local command = "run_script r/ML/gpt/chat_menu.py -o " .. output_file
+    local command = "run_script r/ML/gpt/chat_menu.py --edit-text -o " .. output_file
 
     opts = opts or {}
 
@@ -133,13 +133,13 @@ local function process_selected_text(opts)
 end
 
 local function fix()
-    process_selected_text({
+    edit_selected_text({
         prefix = "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n"
     })
 end
 
 local function inline_chat()
-    process_selected_text()
+    edit_selected_text()
 end
 vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>i", inline_chat)
 vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>f", fix)

@@ -6,7 +6,7 @@ import subprocess
 import threading
 from functools import partial
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from urllib.parse import unquote
 
 from _script import Script
@@ -18,14 +18,16 @@ HOST_NAME = "127.0.0.1"
 
 def _match_scripts_with_param(
     script_manager: ScriptManager, param: str
-) -> List[Script]:
-    matched_script: List[Script] = []
+) -> List[Tuple[Script, str]]:
+    result: List[Tuple[Script, str]] = []
     for script in script_manager.scripts:
         patt = script.cfg["matchClipboard"]
         assert isinstance(patt, str)
-        if patt and re.search(patt, param):
-            matched_script.append(script)
-    return matched_script
+        if patt:
+            match = re.search(patt, param)
+            if match:
+                result.append((script, match.group(0)))
+    return result
 
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -61,18 +63,28 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             elif self.path == "/scripts" or self.path.startswith("/scripts/"):
                 if self.path.startswith("/scripts/"):
                     param = unquote(self.path.removeprefix("/scripts/"))
-                    scripts = _match_scripts_with_param(self.__script_manager, param)
+                    matches = _match_scripts_with_param(self.__script_manager, param)
+                    self._send_json(
+                        {
+                            "scripts": [
+                                {
+                                    "name": script.name,
+                                    "path": script.script_path,
+                                    "match": match,
+                                }
+                                for script, match in matches
+                            ]
+                        }
+                    )
                 else:
-                    scripts = self.__script_manager.scripts
-
-                self._send_json(
-                    {
-                        "scripts": [
-                            {"name": script.name, "path": script.script_path}
-                            for script in scripts
-                        ]
-                    }
-                )
+                    self._send_json(
+                        {
+                            "scripts": [
+                                {"name": script.name, "path": script.script_path}
+                                for script in self.__script_manager.scripts
+                            ]
+                        }
+                    )
 
             else:
                 raise Exception(f"Invalid path: {self.path}")
