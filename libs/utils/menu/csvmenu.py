@@ -1,5 +1,6 @@
 import csv
 import os
+import time
 from typing import List, Optional, OrderedDict
 
 from utils.editor import edit_text
@@ -31,12 +32,10 @@ class CsvData:
     def __init__(self, file: str) -> None:
         self.__rows: List[List[str]] = []
         self.__file = file
+        self.__mtime = 0.0
         self.column_width: List[int] = []
 
-        with open(file, encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                self.__rows.append(row)
+        self.load_csv()
 
         self.__calculate_column_width()
 
@@ -73,10 +72,36 @@ class CsvData:
     def get_row_count(self) -> int:
         return len(self.__rows)
 
-    def save(self):
+    def load_csv(self) -> bool:
+        # Check if the file has been modified since last time
+        mtime = os.path.getmtime(self.__file)
+        if mtime == self.__mtime:
+            return False
+
+        # Read from CSV file
+        self.__rows.clear()
+        with open(self.__file, encoding="utf-8") as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                self.__rows.append(row)
+
+        # Update modified time
+        self.__mtime = mtime
+        return True
+
+    def save_csv(self) -> None:
+        # Check if the file has been externally modified
+        mtime = os.path.getmtime(self.__file)
+        if mtime > self.__mtime:
+            raise RuntimeError("CSV file has been modified externally")
+
+        # Write to CSV file
         with open(self.__file, mode="w", newline="", encoding="utf-8") as csvfile:
             writer = csv.writer(csvfile)
             writer.writerows(self.__rows)
+
+        # Update modified time
+        self.__mtime = os.path.getmtime(self.__file)
 
     def add_column(self, name: str, index: Optional[int] = None):
         if len(self.__rows) == 0:
@@ -235,7 +260,7 @@ class RowMenu(Menu[CsvCell]):
 
             if new_value is not None and new_value != value:
                 self.df.set_cell(self.row_index, cell.name, new_value)
-                self.df.save()
+                self.df.save_csv()
                 # If the header is changed, close the menu because the cell becomes invalid.
                 if self.row_index == 0:
                     self.close()
@@ -250,6 +275,7 @@ def _get_setting_file(csv_file: str) -> str:
 
 class CsvMenu(Menu[CsvRow]):
     def __init__(self, csv_file: str, text: str = ""):
+        self.__last_tick = 0.0
         self.__setting_file = _get_setting_file(csv_file)
         self.__settings = load_json(self.__setting_file, default={})
 
@@ -293,7 +319,7 @@ class CsvMenu(Menu[CsvRow]):
             self.update_screen()
 
     def __save(self):
-        self.df.save()
+        self.df.save_csv()
         self.set_message("saved")
 
     def __update_rows(self):
@@ -336,7 +362,7 @@ class CsvMenu(Menu[CsvRow]):
         name = InputMenu(prompt="New column name").request_input()
         if name is not None and name != "":
             self.df.add_column(name=name)
-            self.df.save()
+            self.df.save_csv()
             self.__update_rows()
             self.set_message(f'added column "{name}"')
 
@@ -369,7 +395,7 @@ class CsvMenu(Menu[CsvRow]):
         if row is not None:
             if confirm('Delete row "{row}"?'):
                 self.df.delete_row(row_index=row.row_index)
-                self.df.save()
+                self.df.save_csv()
                 self.__update_rows()
 
     def select_row(self) -> int:
@@ -382,3 +408,12 @@ class CsvMenu(Menu[CsvRow]):
     def on_item_selection_changed(self, item: Optional[CsvRow], i: int):
         self.__settings["selected_row"] = i
         self.__save_settings()
+
+    def on_idle(self):
+        now = time.time()
+        if now > self.__last_tick + 1.0:
+            self.__last_tick = now
+
+            if self.df.load_csv():
+                self.__update_rows()
+                self.set_message("CSV file reloaded")

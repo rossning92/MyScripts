@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import asdict, dataclass
@@ -14,7 +15,7 @@ from utils.menu import Menu
 from utils.menu.inputmenu import InputMenu
 
 _MODULE_NAME = Path(__file__).stem
-DIVIDER = "─"
+_DEFAULT_CONTEXT = 0
 
 
 @dataclass
@@ -54,7 +55,7 @@ class GrepMenu(Menu[_Line]):
         self,
         path: Optional[str] = None,
         query: Optional[str] = None,
-        context=3,
+        context=_DEFAULT_CONTEXT,
         exclude: Optional[str] = None,
         **kwargs,
     ):
@@ -64,6 +65,7 @@ class GrepMenu(Menu[_Line]):
         self.__exclude = exclude
         self.__data_file = os.path.join(".config", f"{_MODULE_NAME}.json")
         self.__data: Dict[str, Any] = load_json(self.__data_file, default={})
+        self.__query = ""
 
         super().__init__(
             prompt=f"grep ({self.__path})",
@@ -165,12 +167,14 @@ class GrepMenu(Menu[_Line]):
         if selected:
             self.__matches.remove(selected.match)
         self.__update_items(True)
-        
+
     def __edit_file(self):
         selected = self.get_selected_item()
         if selected:
             file_path = selected.match.file
-            self.call_func_without_curses(lambda: edit_text_file(os.path.join(self.__path, file_path)))
+            self.call_func_without_curses(
+                lambda: edit_text_file(os.path.join(self.__path, file_path))
+            )
             self.set_message(f"Opened {file_path} for editing")
 
     def __add_match(self, file: str, lines: List[Tuple[bool, int, str]]):
@@ -197,23 +201,25 @@ class GrepMenu(Menu[_Line]):
         self.clear_items()
         last_file = None
         for match in self.__matches:
-            self.append_item(
-                _Line(
-                    (
-                        f"{match.file} ".ljust(40, DIVIDER)
-                        if match.file != last_file
-                        else ""
-                    ),
-                    type="file",
-                    match=match,
-                )
-            )
+            if match.file != last_file:
+                self.append_item(_Line(match.file, type="file", match=match))
+            elif _DEFAULT_CONTEXT > 0:
+                self.append_item(_Line("", type="file", match=match))
             last_file = match.file
             if show_code:
                 for is_match, line_number, line in match.lines:
                     self.append_item(
                         _Line(
-                            line,
+                            (
+                                re.sub(
+                                    "(" + self.__query + ")",
+                                    r"\\x1b[1;31m\1\\033[0m",
+                                    line,
+                                    flags=re.IGNORECASE,
+                                )
+                                if is_match
+                                else line
+                            ),
                             type="matched_line" if is_match else "context_line",
                             match=match,
                             line_number=line_number,
@@ -222,9 +228,7 @@ class GrepMenu(Menu[_Line]):
 
     def get_item_color(self, line: _Line) -> str:
         if line.type == "file":
-            return "yellow"
-        elif line.type == "matched_line":
-            return "green"
+            return "magenta"
         else:
             return "white"
 
@@ -259,6 +263,7 @@ class GrepMenu(Menu[_Line]):
 
         # Search pattern
         args.append(input_str)
+        self.__query = input_str
 
         # Search file path (if specified)
         if os.path.isfile(self.__path):
@@ -339,7 +344,7 @@ if __name__ == "__main__":
         "path", type=str, nargs="?", default=os.environ.get("SEARCH_PATH")
     )
     parser.add_argument("--query", type=str, default=None)
-    parser.add_argument("--context", type=int, default=3)
+    parser.add_argument("--context", type=int, default=_DEFAULT_CONTEXT)
     parser.add_argument("--exclude", type=str, default=None)
     args = parser.parse_args()
 

@@ -19,7 +19,7 @@ from utils.checkpoints import restore_files_since_timestamp
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
 
-CUSTOM_INSTRUCTIONS_FILE = "instructions.md"
+README_FILE = "README.md"
 
 
 def get_env_info() -> str:
@@ -66,13 +66,11 @@ class CodeAgentMenu(AgentMenu):
 
     def __edit_instructions(self):
         self.call_func_without_curses(
-            lambda: edit_text_file(
-                os.path.join(self.get_data_dir(), CUSTOM_INSTRUCTIONS_FILE)
-            )
+            lambda: edit_text_file(os.path.join(self.get_data_dir(), README_FILE))
         )
 
-    def __get_instructions(self) -> str:
-        file = os.path.join(self.get_data_dir(), CUSTOM_INSTRUCTIONS_FILE)
+    def __get_readme_content(self) -> str:
+        file = os.path.join(self.get_data_dir(), README_FILE)
         if not os.path.exists(file):
             return ""
 
@@ -101,9 +99,9 @@ class CodeAgentMenu(AgentMenu):
             s
             for s in [
                 super().get_system_prompt(),
+                self.__get_readme_content(),
                 self.__file_context_menu.get_prompt(),
                 get_env_info(),
-                self.__get_instructions(),
             ]
             if s
         )
@@ -160,7 +158,7 @@ def _main():
     if args.dir:
         os.chdir(args.dir)
     else:
-        default_dir = os.path.expanduser("~/TestCodeAgent")
+        default_dir = os.path.expanduser("~/CodeProject")
         os.makedirs(default_dir, exist_ok=True)
         os.chdir(default_dir)
 

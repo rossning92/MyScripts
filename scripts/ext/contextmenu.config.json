@@ -1,4 +1,3 @@
 {
-  "args.clipboard": true,
-  "globalHotkey": "win+o"
+  "args.clipboard": true
 }

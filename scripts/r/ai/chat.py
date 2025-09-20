@@ -17,7 +17,7 @@ from ai.tool_use import ToolResult, ToolUse
 
 
 def _truncate_text(text: str, max_chars: int = 100) -> str:
-    text = text.replace("\n", " ")
+    text = text.rstrip().replace("\n", "↵")
     return text[:max_chars] + "..." if len(text) > max_chars else text
 
 

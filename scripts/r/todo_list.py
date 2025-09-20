@@ -71,9 +71,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self,
         data_file: str,
     ):
-        self.__last_reload_check_time = 0.0
+        self.__last_tick = 0.0
 
-        super().__init__(json_file=data_file, backup_json=True)
+        super().__init__(prompt="todo", json_file=data_file, backup_json=True)
 
         self.__sort_tasks()
 
@@ -147,8 +147,8 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def on_idle(self):
         now = time.time()
-        if now > self.__last_reload_check_time + 1.0:
-            self.__last_reload_check_time = now
+        if now > self.__last_tick + 1.0:
+            self.__last_tick = now
             self.__reload(sort=False)
 
     def on_escape_pressed(self):

@@ -180,7 +180,7 @@
     ".manifest": ["vscode", "notepad++"],
     ".markdown": ["vscode", "notepad++"],
     ".mat": ["vscode", "notepad++"],
-    ".md": ["vscode", "notepad++"],
+    ".md": [["start_script", "ext/vim_edit.py"], "vscode"],
     ".mdt": ["vscode", "notepad++"],
     ".meta": ["vscode", "notepad++"],
     ".mf": ["vscode", "notepad++"],

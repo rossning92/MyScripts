@@ -327,7 +327,7 @@ class ChatMenu(Menu[Line]):
                 tool_result_content = selected.tool_result["content"]
                 TextMenu(text=tool_result_content, prompt="Tool result").exec()
             elif selected.tool_use:
-                args = pformat(selected.tool_use["args"])
+                args = pformat(selected.tool_use["args"], sort_dicts=False)
                 TextMenu(text=args, prompt="Tool use args").exec()
 
     def __take_photo(self):
@@ -468,17 +468,12 @@ Following is my instructions:
 </instructions>
 """
                 else:
-                    text = f"""Answer my question based on the provided context. You should only reply to me with the answer, nothing else.
+                    text = f"""{text.rstrip()}
 
-Following is the provided context:
+You should reply based on the provided context:
 <context>
 {context.rstrip()}
 </context>
-
-Following is my question:
-<question>
-{text.rstrip()}
-</question>
 """
 
             elif ext in (".jpg", ".jpeg", ".png", ".gif"):

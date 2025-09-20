@@ -8,6 +8,7 @@ import requests
 def google_search(
     query, api_key=os.environ["GOOGLE_API_KEY"], cse_id=os.environ["GOOGLE_CSE_ID"]
 ):
+    # https://developers.google.com/custom-search/v1
     search_url = f"https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cse_id}"
     response = requests.get(search_url)
     if response.status_code == 200:

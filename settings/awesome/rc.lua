@@ -75,7 +75,7 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 -- beautiful.init(gears.filesystem.get_themes_dir() .. "default/theme.lua")
-beautiful.init(gears.filesystem.get_configuration_dir() .. "mytheme.lua")
+beautiful.init(gears.filesystem.get_configuration_dir() .. "themes/dracula.lua")
 -- beautiful.wallpaper = nil
 
 -- This is used later as the default terminal and editor to run.
@@ -481,18 +481,13 @@ local clientkeys = gears.table.join(awful.key({ modkey }, "f", function(c)
         description = "move to master",
         group = "client"
     }),
-    awful.key({ modkey }, "Left", function(c)
-        c:move_to_screen()
-    end, {
-        description = "move to screen",
-        group = "client"
-    }),
-    awful.key({ modkey }, "Right", function(c)
-        c:move_to_screen()
-    end, {
-        description = "move to screen",
-        group = "client"
-    }),
+    awful.key({ modkey }, "o", function(c)
+        -- Cycle to the next screen
+        -- Compared to using c:move_to_screen(), the following does not move the mouse position.
+        local current_screen = c.screen.index
+        local next_screen = (current_screen % screen.count()) + 1
+        c.screen = screen[next_screen]
+    end, { description = "cycle client through screens", group = "client" }),
     awful.key({ modkey }, "t", function(c)
         c.ontop = not c.ontop
     end, {
@@ -653,12 +648,12 @@ client.connect_signal("request::titlebars", function(c)
     }
 end)
 
--- Enable sloppy focus, so that focus follows mouse.
-client.connect_signal("mouse::enter", function(c)
-    c:emit_signal("request::activate", "mouse_enter", {
-        raise = false
-    })
-end)
+-- -- Enable sloppy focus, so that focus follows mouse.
+-- client.connect_signal("mouse::enter", function(c)
+--     c:emit_signal("request::activate", "mouse_enter", {
+--         raise = false
+--     })
+-- end)
 
 client.connect_signal("focus", function(c)
     c.border_color = beautiful.border_focus

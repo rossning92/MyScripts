@@ -1083,7 +1083,19 @@ class Menu(Generic[T]):
         attr = Menu.color_name_to_attr(color)
         if bold:
             attr |= curses.A_BOLD
-        for i, ch in enumerate(s):
+        i = 0
+        while i < len(s):
+            ch = s[i]
+            if ch == "\\":
+                if s[i : i + 10] == r"\x1b[1;31m":
+                    i += 10
+                    attr = Menu.color_name_to_attr("red") | curses.A_BOLD
+                    continue
+                elif s[i : i + 7] == r"\033[0m":
+                    i += 7
+                    attr = Menu.color_name_to_attr(color)
+                    continue
+
             try:
                 Menu.stdscr.addstr(y, x, ch, attr)
             except curses.error:
@@ -1118,6 +1130,8 @@ class Menu(Generic[T]):
                     break
             if x > col:
                 last_row_index = y
+
+            i += 1
 
         return Menu.DrawTextResult(
             last_y=last_row_index,

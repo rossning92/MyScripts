@@ -1,8 +1,6 @@
-import os
-import shutil
 from typing import Generic, List, Optional, TypeVar
 
-from utils.jsonutil import load_json, save_json
+from utils.jsonutil import try_load_json, try_save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
 
@@ -29,10 +27,11 @@ class ListEditMenu(Menu, Generic[T]):
 
     def load_json(self) -> bool:
         if self.__json_file is not None:
-            mtime = os.path.getmtime(self.__json_file)
-            if mtime > self.__last_mtime:
-                self.__last_mtime = mtime
-                self.items[:] = load_json(self.__json_file, default=[])
+            result = try_load_json(
+                self.__json_file, default=[], last_mtime=self.__last_mtime
+            )
+            if result is not None:
+                self.items[:], self.__last_mtime = result
                 if not isinstance(self.items[:], list):
                     raise TypeError("JSON data must be a list")
                 return True
@@ -60,19 +59,9 @@ class ListEditMenu(Menu, Generic[T]):
 
     def save_json(self):
         if self.__json_file:
-            if os.path.exists(self.__json_file):
-                mtime = os.path.getmtime(self.__json_file)
-                if mtime > self.__last_mtime:
-                    raise RuntimeError("JSON file has been modified externally")
-            else:
-                directory = os.path.dirname(self.__json_file)
-                if directory and not os.path.exists(directory):
-                    os.makedirs(directory)
-
-            # Backup existing json file
-            if self.__backup_json and os.path.exists(self.__json_file):
-                shutil.copy(self.__json_file, self.__json_file + ".bak")
-
-            # Save to json file
-            save_json(self.__json_file, self.items)
-            self.__last_mtime = os.path.getmtime(self.__json_file)
+            self.__last_mtime = try_save_json(
+                self.__json_file,
+                self.items,
+                last_mtime=self.__last_mtime,
+                backup=self.__backup_json,
+            )

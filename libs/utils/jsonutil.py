@@ -1,11 +1,15 @@
 import json
 import os
-from typing import Optional, TypeVar
+import shutil
+from typing import Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
 
-def load_json(file: str, default: Optional[T] = None) -> T:
+def load_json(
+    file: str,
+    default: Optional[T] = None,
+) -> T:
     try:
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -26,3 +30,34 @@ def save_json(file: str, data):
         os.makedirs(dir_path, exist_ok=True)
     with open(file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
+
+
+def try_load_json(
+    file: str,
+    last_mtime: float,
+    default: Optional[T] = None,
+) -> Optional[Tuple[T, float]]:
+    # Check if the file has been modified since last time
+    mtime = os.path.getmtime(file)
+    if mtime <= last_mtime:
+        return None
+
+    return load_json(file=file, default=default), mtime
+
+
+def try_save_json(file: str, data, last_mtime: float, backup=False):
+    # Check if the file has been externally modified
+    if os.path.exists(file):
+        mtime = os.path.getmtime(file)
+        if mtime > last_mtime:
+            raise RuntimeError("JSON file has been modified externally")
+
+    # Backup JSON file
+    if backup and os.path.exists(file):
+        shutil.copy(file, file + ".bak")
+
+    # Save JSON file
+    save_json(file=file, data=data)
+
+    # Return modified time
+    return os.path.getmtime(file)
