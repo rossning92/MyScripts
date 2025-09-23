@@ -69,6 +69,7 @@ class SettingsMenu(JsonEditMenu):
             "model": Literal[
                 "gpt-5",
                 "gpt-5-chat-latest",
+                "gpt-5-codex",
                 "gpt-4.1",
                 "gpt-4.1-mini",
                 "gpt-4o",

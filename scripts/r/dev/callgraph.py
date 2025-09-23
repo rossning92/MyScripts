@@ -4,52 +4,18 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import lru_cache
+from pathlib import Path
 from queue import Queue
 from typing import DefaultDict, Dict, Iterator, List, Optional, Set, Tuple
 
-from tree_sitter import Language, Node, Parser, Query, Tree
+from dev.sourcelang import filename_to_lang
+from tree_sitter import Node, Query, Tree
+from tree_sitter_language_pack import get_language, get_parser
 from utils.defaultordereddict import DefaultOrderedDict
 from utils.orderedset import OrderedSet
 
 SCOPE_SEP = "::"
 CLASS_PREFIX = ""
-
-
-ext_language_dict = {
-    ".c": "cpp",
-    ".cc": "cpp",
-    ".cpp": "cpp",
-    ".h": "cpp",
-    ".frag": "cpp",
-    ".vert": "cpp",
-    ".glsl": "cpp",
-    ".hpp": "cpp",
-    ".py": "python",
-}
-
-
-def is_supported_file(file: str) -> bool:
-    _, ext = os.path.splitext(file)
-    return ext.lower() in ext_language_dict
-
-
-def filename_to_lang(filename: str) -> str:
-    _, ext = os.path.splitext(filename)
-    return ext_language_dict[ext.lower()]
-
-
-@lru_cache(maxsize=None)
-def get_language(lang: str) -> Language:
-    if lang == "cpp":
-        import tree_sitter_cpp
-
-        return Language(tree_sitter_cpp.language())
-    elif lang == "python":
-        import tree_sitter_python
-
-        return Language(tree_sitter_python.language())
-    else:
-        raise Exception(f"Language {lang} is not supported.")
 
 
 def get_node_text(node):
@@ -102,8 +68,6 @@ class CallGraph:
 
     scope: Scope = field(default_factory=Scope)
 
-    node_preview: Dict[str, str] = field(default_factory=dict)
-
     highlighted_nodes: Set[str] = field(default_factory=set)
 
     def add_scope(self, name: str):
@@ -129,40 +93,100 @@ class CallGraph:
         self.reverse_edges[to_node].add(from_node)
 
 
+def parse_tree(
+    lang: str,
+    module: str,
+    tree: Tree,
+) -> Tuple[List[str], DefaultOrderedDict]:
+    query = get_query(lang=lang)
+    matches = query.matches(tree.root_node)
+    stack: List[Tuple[str, Node]] = []
+
+    functions: List[str] = []
+    calls: DefaultOrderedDict = DefaultOrderedDict(OrderedSet)
+
+    for _, match in matches:
+        if "definition.function" in match:
+            node = match["definition.function"][0]
+            name = get_node_text(match["name.definition.function"][0])
+        elif "definition.class" in match:
+            node = match["definition.class"][0]
+            name = get_node_text(match["name.definition.class"][0])
+        elif "reference.call" in match:
+            node = match["reference.call"][0]
+            name = get_node_text(match["name.reference.call"][0]) + "()"
+        else:
+            continue
+
+        while len(stack) > 0 and not (
+            node.start_point >= stack[-1][1].start_point
+            and node.end_point <= stack[-1][1].end_point
+        ):
+            stack.pop()
+
+        if "scope" in match:
+            scope = get_node_text(match["scope"][0])
+            name = scope + SCOPE_SEP + name
+
+            # WORKAROUND: For C++ qualified function definitions, sometimes
+            # TreeSitter incorrectly parses one function to be inside another
+            # function. The following code works around this bug.
+            while len(stack) > 0 and stack[-1][0].startswith(scope + SCOPE_SEP):
+                stack.pop()
+
+        if "reference.call" in match:
+            caller = SCOPE_SEP.join([module] + [x[0] for x in stack])
+            callee = name
+            if caller != module:
+                calls[caller].add(callee)
+        else:
+            stack.append((name, node))
+
+        if "definition.function" in match:
+            full_name = SCOPE_SEP.join([module] + [x[0] for x in stack])
+            functions.append(full_name)
+
+    return functions, calls
+
+
+def get_query(lang: str) -> Query:
+    query_scm_file = os.path.join(
+        Path(__file__).parent.resolve(),
+        "tree_sitter",
+        "queries",
+        f"{lang}.scm",
+    )
+    language = get_language(lang)
+    with open(query_scm_file, "r") as f:
+        source = f.read()
+    return Query(language, source)
+
+
 def get_function_definitions(
     lang: str,
     module: str,
     root_node: Node,
-    generate_preview: bool,
-) -> Iterator[Tuple[str, Optional[str], Node]]:
+) -> Iterator[Tuple[str, Node]]:
     query = get_function_definition_query(lang=lang)
     matches = query.matches(root_node)
     for _, match in matches:
         function_def = match["function_def"][0]
-        if generate_preview:
-            function_preview = get_node_text(function_def).splitlines()[0]
-        else:
-            function_preview = None
         name = match["function_name"][0]
         if "class_name" in match:
             class_name = match["class_name"][0]
             yield (
-                (
-                    module
-                    + SCOPE_SEP
-                    + CLASS_PREFIX
-                    + get_node_text(class_name)
-                    + SCOPE_SEP
-                    + get_node_text(name)
-                ),
-                function_preview,
+                module
+                + SCOPE_SEP
+                + CLASS_PREFIX
+                + get_node_text(class_name)
+                + SCOPE_SEP
+                + get_node_text(name),
                 function_def,
             )
 
         else:
             yield (
                 module + SCOPE_SEP + get_node_text(name),
-                function_preview,
                 function_def,
             )
 
@@ -297,9 +321,8 @@ def get_module_name(filepath: str, use_full_path=False):
 
 
 def add_module_edges(graph: CallGraph, root_node: Node, module: str):
-    include_query = get_cpp_include_query()
-
-    captures = include_query.captures(root_node)
+    query = get_cpp_include_query()
+    captures = query.captures(root_node)
     if "path" in captures:
         for path_node in captures["path"]:
             path = get_node_text(path_node)
@@ -313,15 +336,8 @@ def add_module_node(graph: CallGraph, module: str) -> None:
 
 
 @lru_cache(maxsize=None)
-def get_parser(file: str) -> Parser:
-    lang = filename_to_lang(file)
-    language = get_language(lang)
-    return Parser(language)
-
-
-@lru_cache(maxsize=None)
 def get_tree(file: str) -> Tree:
-    parser = get_parser(file)
+    parser = get_parser(filename_to_lang(file))
 
     # Read source code
     with open(file, "r", encoding="utf-8", errors="ignore") as f:
@@ -355,14 +371,11 @@ def generate_call_graph(
     invert_match: Optional[str] = None,
     match_callers: Optional[int] = None,
     match_callees: Optional[int] = None,
-    generate_preview=False,
     diff: Optional[Dict[str, List[Tuple[int, int]]]] = None,
     ignore_case=False,
     include_all_identifiers=False,
 ) -> CallGraph:
     graph = CallGraph()
-
-    filtered_nodes: Set[str] = set()
 
     # Add nodes
     logging.info("Build nodes...")
@@ -379,27 +392,23 @@ def generate_call_graph(
         )
 
         if not show_modules_only:
-            for function_name, preview, function_def_node in get_function_definitions(
+            for function_name, function_def_node in get_function_definitions(
                 lang=lang,
                 module=module,
                 root_node=tree.root_node,
-                generate_preview=generate_preview,
             ):
-                # Add node
                 logging.info(
                     f"Add function node: {function_name} ({function_def_node.start_point.row}-{function_def_node.end_point.row})"
                 )
                 graph.add_node(function_name)
-                if preview:
-                    graph.node_preview[function_name] = preview
 
-                # Filter nodes
-                if diff:
-                    for line_range in diff[file]:
-                        if max(
-                            function_def_node.start_point.row, line_range[0] - 1
-                        ) <= min(function_def_node.end_point.row, line_range[1] - 1):
-                            filtered_nodes.add(function_name)
+                # # Filter nodes
+                # if diff:
+                #     for line_range in diff[file]:
+                #         if max(
+                #             function_def_node.start_point.row, line_range[0] - 1
+                #         ) <= min(function_def_node.end_point.row, line_range[1] - 1):
+                #             filtered_nodes.add(function_name)
 
     # Add edges
     logging.info("Build edges...")
@@ -424,6 +433,24 @@ def generate_call_graph(
                 root_node=tree.root_node,
                 include_all_identifiers=include_all_identifiers,
             )
+
+    return filter_graph(
+        graph=graph,
+        match=match,
+        match_callers=match_callers,
+        match_callees=match_callees,
+        ignore_case=ignore_case,
+    )
+
+
+def filter_graph(
+    graph: CallGraph,
+    match: Optional[str] = None,
+    match_callers: Optional[int] = None,
+    match_callees: Optional[int] = None,
+    ignore_case=False,
+) -> CallGraph:
+    filtered_nodes: Set[str] = set()
 
     # Filter nodes
     for n in graph.nodes:
@@ -464,6 +491,67 @@ def generate_call_graph(
                 if caller in filtered_graph.nodes and callee in filtered_graph.nodes:
                     filtered_graph.add_edge(caller, callee)
 
-        graph = filtered_graph
+        return filtered_graph
+    else:
+        return graph
 
-    return graph
+
+def generate_call_graph_new(
+    files: List[str],
+    show_modules_only=False,
+    match: Optional[str] = None,
+    invert_match: Optional[str] = None,
+    match_callers: Optional[int] = None,
+    match_callees: Optional[int] = None,
+    diff: Optional[Dict[str, List[Tuple[int, int]]]] = None,
+    ignore_case=False,
+    include_all_identifiers=False,
+) -> CallGraph:
+    graph = CallGraph()
+
+    calls = DefaultOrderedDict(OrderedSet)
+
+    # Add nodes
+    logging.info("Build nodes...")
+    for file in files:
+        logging.info(f"Process file: {file}")
+
+        lang = filename_to_lang(file)
+        module = get_module_name(file)
+        tree = get_tree(file)
+
+        add_module_node(
+            graph=graph,
+            module=module,
+        )
+
+        functions, calls2 = parse_tree(
+            lang=lang,
+            module=module,
+            tree=tree,
+        )
+
+        for function_name in functions:
+            graph.add_node(function_name)
+        calls.update(calls2)
+
+    # Add edges
+    for caller, callees in calls.items():
+        for callee in callees:
+            matched_callees = [
+                function_name
+                for function_name in graph.nodes
+                if re.search(r"\b" + callee + "$", function_name)
+            ]
+            for callee in matched_callees:
+                if callee != caller:  # avoid self-loop
+                    graph.add_edge(caller, callee)
+                    logging.info(f"Add function call: {caller} -> {callee}")
+
+    return filter_graph(
+        graph=graph,
+        match=match,
+        match_callers=match_callers,
+        match_callees=match_callees,
+        ignore_case=ignore_case,
+    )

@@ -18,6 +18,7 @@
           // rankSpacing: 4,
           securityLevel: "loose",
         },
+        fontFamily: "monospace",
         themeVariables: {
           fontSize: "12",
         },
@@ -27,7 +28,7 @@
       const elem = document.getElementById("panzoom-element");
       const panzoom = Panzoom(elem, {
         excludeClass: "nodeLabel",
-        maxScale: 5,
+        maxScale: 10,
       });
       elem.parentElement.addEventListener("wheel", panzoom.zoomWithWheel);
       elem.style.userSelect = "auto";

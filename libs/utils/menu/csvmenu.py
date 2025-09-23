@@ -1,4 +1,5 @@
 import csv
+import datetime
 import os
 import time
 from typing import List, Optional, OrderedDict
@@ -216,6 +217,11 @@ class RowMenu(Menu[CsvCell]):
             self._next_row,
             hotkey="right",
         )
+        self.add_command(
+            self._insert_datetime,
+            hotkey="alt+d",
+            name="insert_datetime",
+        )
 
     def _goto_row(self, row_index: int):
         self.row_index = row_index
@@ -228,6 +234,15 @@ class RowMenu(Menu[CsvCell]):
 
     def _next_row(self):
         self._goto_row(min(self.row_index + 1, self.df.get_row_count() - 1))
+        
+    def _insert_datetime(self):
+        cell = self.get_selected_item()
+        if cell is not None:
+            now = datetime.datetime.now()
+            datetime_str = now.strftime("%Y-%m-%d %H:%M")
+            self.df.set_cell(self.row_index, cell.name, datetime_str)
+            self.df.save_csv()
+            self.update_screen()
 
     def _initialize_cells(self):
         max_column_name_width = max(len(col) for col in self.df.get_header())

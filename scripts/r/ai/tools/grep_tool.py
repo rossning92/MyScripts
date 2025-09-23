@@ -7,8 +7,11 @@ MAX_LINES = 1000
 
 def grep_tool(regex: str) -> str:
     """
-    Recursively searches the current directory for a regex pattern.
-    - You MUST use `grep_tool` instead of command line search commands like `find` and `grep`.
+    Fast content search tool for any codebase size that finds files with specific patterns in their content.
+
+    - Recursively searches file contents from the current directory.
+    - Supports full regular expression pattern matching.
+    - IMPORTANT: Always use `grep_tool` instead of command-line tools like `find` or `grep` for searches.
     """
 
     # Run ripgrep command
@@ -46,11 +49,9 @@ def grep_tool(regex: str) -> str:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Recursively search for patterns in files"
-    )
-    parser.add_argument("pattern", help="The regex pattern to search for")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("regex")
     args = parser.parse_args()
 
-    result = grep_tool(args.pattern)
+    result = grep_tool(args.regex)
     print(result)
