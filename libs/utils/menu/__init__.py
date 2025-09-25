@@ -507,6 +507,9 @@ class Menu(Generic[T]):
         self.reset_selection()
         self.update_screen()
 
+    def set_follow(self, follow: bool) -> None:
+        self.__follow = follow
+
     def set_input(self, text: str, save_search_history=True):
         self.__input.set_text(text)
         if self.__search_mode:
@@ -660,8 +663,6 @@ class Menu(Generic[T]):
     def set_selection(self, begin_row: int, end_row: int):
         self.__update_matched_items()
         total = len(self.get_item_indices())
-        if total == 0:
-            return
 
         if end_row == -1:
             end_row = total - 1

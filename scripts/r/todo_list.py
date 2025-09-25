@@ -3,9 +3,10 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Callable, Dict, List, Optional
 
-from utils.dateutil import format_timestamp
+from ai.agent_menu import AgentMenu
+from utils.dateutil import format_datetime, format_timestamp, parse_datetime
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.inputdatemenu import input_date
@@ -23,7 +24,7 @@ _status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
 
 def get_pretty_ts(ts):
     time_diff_str = ""
-    date_str = format_timestamp(ts, include_year=False).ljust(11)
+    date_str = format_timestamp(ts).ljust(11)
 
     date = datetime.fromtimestamp(ts)
     if date:
@@ -66,6 +67,39 @@ class _EditTodoItemMenu(DictEditMenu):
             return super().get_value_str(name, val)
 
 
+class _TodoAgentMenu(AgentMenu):
+    def __init__(self, **kwargs):
+        self.result_item: Optional[Dict] = None
+        super().__init__(**kwargs)
+
+    def get_system_prompt(self) -> str:
+        return (
+            f"""Help me create a to-do list item from the information I provide.
+Today's date is {format_datetime(dt=datetime.now(), show_year=True, show_hhmm=False)}
+"""
+            + super().get_system_prompt()
+        )
+
+    def get_tools(self) -> List[Callable[..., Any]]:
+        def add_todo_item(description: str, due: str):
+            """
+            Add a todo item with a description and due time.
+            - The `description` argument should be a well-written, concise one-line summary without punctuation at the end.
+            - The `due` argument is when the todo item must be completed or when the todo event will take place. You should infer this based on the information existing I gave you.
+            - The `due` argument must be in the format of YYYY-MM-DD hh:ss, where YYYY and hh:ss are optional values (e.g., `10-01 13:15`, `2025-10-01 13:15`, `03-31` are all valid values).
+            """
+
+            self.result_item = {"description": description, _STATUS: "none"}
+
+            dt = parse_datetime(due)
+            if dt:
+                self.result_item["due_ts"] = dt.timestamp()
+
+            self.close()
+
+        return super().get_tools() + [add_todo_item]
+
+
 class TodoMenu(ListEditMenu[TodoItem]):
     def __init__(
         self,
@@ -77,6 +111,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__sort_tasks()
 
+        self.add_command(self.__ai_mode, hotkey="tab")
         self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
         self.add_command(self.__edit_due, hotkey="alt+d")
@@ -169,6 +204,18 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.set_message(f"Error on loading: {e}")
             return False
 
+    def __add_item(self, item: TodoItem):
+        self.items.append(item)
+        self.__sort_tasks()
+        self.save_json()
+        self.set_selected_item(item)
+
+    def __ai_mode(self):
+        menu = _TodoAgentMenu(prompt="assistant")
+        menu.exec()
+        if menu.result_item:
+            self.__add_item(menu.result_item)
+
     def __edit_timestamp_field(self, item: TodoItem, field_name: str):
         ts = input_date(
             prompt=field_name,
@@ -219,12 +266,8 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__edit_item_description(item)
         if not item["description"]:
             return
-
-        self.items.append(item)
         self.__edit_timestamp_field(item, field_name=_DUE_TIMESTAMP)
-        self.__sort_tasks()
-        self.save_json()
-        self.set_selected_item(item)
+        self.__add_item(item)
 
     def __reload(self, sort=True):
         if self.load_json():

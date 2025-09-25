@@ -13,16 +13,19 @@ from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
 from utils.clip import set_clip
+from utils.dateutil import format_timestamp
 from utils.editor import edit_text
 from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
+from utils.menu.confirmmenu import confirm
 from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 from utils.menu.textmenu import TextMenu
 from utils.platform import is_termux
+from utils.textutil import truncate_text
 
 _MODULE_NAME = Path(__file__).stem
 
@@ -30,6 +33,23 @@ _INTERRUPT_MESSAGE = "[INTERRUPTED]"
 
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+MODELS = Literal[
+    "gpt-5",
+    "gpt-5(low)",
+    "gpt-5-chat-latest",
+    "gpt-5-codex",
+    "gpt-5-codex(low)",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gpt-4o",
+    "gpt-4o-mini",
+    "o3-mini",
+    "claude-3-7-sonnet-latest",
+    "claude-sonnet-4-0",
+    "claude-opus-4-0",
+]
+DEFAULT_MODEL = "gpt-4.1"
 
 
 def _get_prompt_dir() -> str:
@@ -57,29 +77,17 @@ def select_prompt_file() -> Optional[str]:
 
 
 class SettingsMenu(JsonEditMenu):
-    def __init__(self, settings_file: str, model: Optional[str]) -> None:
-        self.__model = model
-        super().__init__(json_file=settings_file)
+    def __init__(self, json_file: str, model: Optional[str]) -> None:
+        super().__init__(json_file=json_file)
+
+        if model:
+            self.data["model"] = model
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": self.__model if self.__model else "gpt-4.1"}
+        return {"model": DEFAULT_MODEL}
 
     def get_schema(self) -> Dict[str, Any]:
-        return {
-            "model": Literal[
-                "gpt-5",
-                "gpt-5-chat-latest",
-                "gpt-5-codex",
-                "gpt-4.1",
-                "gpt-4.1-mini",
-                "gpt-4o",
-                "gpt-4o-mini",
-                "o3-mini",
-                "claude-3-7-sonnet-latest",
-                "claude-sonnet-4-0",
-                "claude-opus-4-0",
-            ]
-        }
+        return {"model": MODELS}
 
 
 class Line:
@@ -108,13 +116,48 @@ class Line:
             return self.text
 
 
-class _SelectConvMenu(Menu[str]):
-    def __init__(self, **kwargs) -> None:
-        super().__init__(prompt="load conversation", **kwargs)
+class _Conversation:
+    def __init__(
+        self,
+        path: str,
+    ) -> None:
+        self.path = path
+        messages = load_json(path, default=[])
+        self.full_text = "\n".join((m["text"] for m in messages))
+        self.preview = (
+            format_timestamp(os.path.getmtime(path))
+            + ": "
+            + truncate_text(self.full_text)
+        )
 
-    def get_item_text(self, conv_file: str) -> str:
-        conv = load_json(conv_file, default=[])
-        return str(conv)
+    def __str__(self) -> str:
+        return self.full_text
+
+
+class _SelectConversationMenu(Menu[_Conversation]):
+    def __init__(self, history_manager: HistoryManager) -> None:
+        self.__history_manager = history_manager
+        super().__init__(prompt="Load history chat")
+        self.__refresh_conversations()
+        self.add_command(self.__delete_conversation, hotkey="ctrl+k")
+
+    def __refresh_conversations(self):
+        self.items[:] = [
+            _Conversation(f) for f in self.__history_manager.get_all_files_desc()
+        ]
+
+    def __delete_conversation(self):
+        conversations = self.get_selected_items()
+        if conversations and confirm("Delete conversation?"):
+            for conversation in conversations:
+                os.remove(conversation.path)
+            self.__refresh_conversations()
+
+    def get_item_text(self, item: _Conversation) -> str:
+        return item.preview
+
+    def match_item(self, patt: str, item: _Conversation, index: int) -> int:
+        return super().match_item(patt, item, index)
 
 
 class ChatMenu(Menu[Line]):
@@ -130,7 +173,7 @@ class ChatMenu(Menu[Line]):
         new_conversation=True,
         out_file: Optional[str] = None,
         prompt: str = "u",
-        system_prompt: Optional[str] = None,
+        system_prompt="",
         settings_menu_class=SettingsMenu,
     ) -> None:
         self.__auto_create_conv_file = conv_file is None
@@ -155,7 +198,8 @@ class ChatMenu(Menu[Line]):
         create_gitignore(self.__data_dir)
 
         self.__settings_menu = settings_menu_class(
-            settings_file=os.path.join(self.__data_dir, "settings.json"), model=model
+            json_file=os.path.join(self.__data_dir, "settings.json"),
+            model=model,
         )
 
         super().__init__(
@@ -306,13 +350,11 @@ class ChatMenu(Menu[Line]):
         self.__edit_message(first_user_message=True)
 
     def __load_conversation(self):
-        menu = _SelectConvMenu(
-            items=[f for f in self.__history_manager.get_all_files_desc()]
-        )
+        menu = _SelectConversationMenu(history_manager=self.__history_manager)
         menu.exec()
         selected = menu.get_selected_item()
         if selected:
-            self.load_conversation(selected)
+            self.load_conversation(selected.path)
 
     def __select_prompt(self):
         prompt_file = select_prompt_file()
@@ -692,7 +734,9 @@ You should reply based on the provided context:
     def clear_messages(self):
         self.__lines.clear()
         self.get_messages().clear()
-        token_count.clear()
+        token_count.reset()
+        self.reset_selection()
+        self.set_follow(True)
         self.update_screen()
 
     def new_conversation(self, message: Optional[str] = None):
@@ -727,7 +771,7 @@ You should reply based on the provided context:
         return f"""CHAT : tokIn={token_count.input_tokens} tokOut={token_count.output_tokens} cfg={str(self.__settings_menu.data)}
 {super().get_status_text()}"""
 
-    def get_system_prompt(self) -> Optional[str]:
+    def get_system_prompt(self) -> str:
         return self.__system_prompt
 
     def on_escape_pressed(self):
@@ -782,9 +826,8 @@ def _main():
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)
-    parser.add_argument(
-        "--edit-text", action="store_true", help="edit the provided text"
-    )
+    parser.add_argument("--edit-text", action="store_true")
+    parser.add_argument("-X", "--copy-and-exit", action="store_true")
     args = parser.parse_args()
 
     if args.in_file:
@@ -799,6 +842,7 @@ def _main():
         out_file=args.out_file,
         model=args.model,
         edit_text=args.edit_text,
+        copy_and_exit=args.copy_and_exit,
     )
     chat.exec()
 

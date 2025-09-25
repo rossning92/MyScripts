@@ -180,7 +180,7 @@ def wrap_wsl(
     distro: Optional[str] = None,
 ) -> List[str]:
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
-        raise Exception("WSL (Windows Subsystem for Linux) is not installed.")
+        raise FileNotFoundError("WSL is not installed")
     logging.debug("wrap_wsl(): cmd: %s" % commands)
 
     # To create a temp bash script to invoke commands to avoid command being parsed
@@ -254,7 +254,7 @@ def wrap_bash_win(args: List[str], env: Optional[Dict[str, str]] = None, msys2=F
     logging.debug("bash_exec = %s" % bash_exec)
 
     if bash_exec is None:
-        raise Exception("Cannot find MinGW bash.exe")
+        raise FileNotFoundError("Cannot find MinGW bash.exe")
 
     if len(args) == 1 and args[0].endswith(".sh"):
         # -l: must start as a login shell otherwise the PATH environmental
@@ -449,7 +449,7 @@ def wrap_args_wt(
     **kwargs,
 ) -> List[str]:
     if sys.platform != "win32":
-        raise Exception("OS not supported.")
+        raise OSError(f"{sys.platform} is not supported")
 
     setup_windows_terminal(font_size=font_size, opacity=opacity)
 
@@ -510,7 +510,7 @@ class Script:
             if matched_script:
                 script_path = matched_script
             else:
-                raise Exception("Script file does not exist.")
+                raise FileNotFoundError(f"Cannot find script file: {script_path}")
 
         self.script_rel_path = get_relative_script_path(script_path)
 
@@ -675,7 +675,7 @@ class Script:
                 variables = self.get_variables()
 
         if not self.check_link_existence():
-            raise Exception("Link is invalid.")
+            raise FileNotFoundError("Link does not exist")
 
         result = render_template(
             self.get_script_source(), variables, file_locator=find_script
@@ -1757,7 +1757,7 @@ def find_script(patt: str) -> Optional[str]:
         if len(match) == 1:
             return match[0]
         elif len(match) > 1:
-            raise Exception("Found multiple scripts: %s" % str(match))
+            raise RuntimeError("Found multiple scripts: %s" % str(match))
 
     return None
 
@@ -1791,7 +1791,7 @@ def start_script(
 
     script_path = find_script(file)
     if script_path is None:
-        raise Exception('Cannot find script: "%s"' % file)
+        raise FileNotFoundError("Cannot find script: %s" % file)
 
     script = Script(script_path)
 

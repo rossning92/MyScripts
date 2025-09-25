@@ -61,8 +61,13 @@ def parse_datetime(text: str) -> Optional[datetime]:
     return None
 
 
-def format_timestamp(ts: float, include_year: bool = True) -> str:
+def format_datetime(dt: datetime, show_year: bool = False, show_hhmm=True) -> str:
+    format = "%Y-%m-%d" if show_year else "%m-%d"
+    if show_hhmm:
+        format += "" if (dt.hour == 0 and dt.minute == 0) else " %H:%M"
+    return dt.strftime(format)
+
+
+def format_timestamp(ts: float, show_year: bool = False) -> str:
     dt = datetime.fromtimestamp(ts)
-    date_format = "%Y-%m-%d" if include_year else "%m-%d"
-    time_format = "" if (dt.hour == 0 and dt.minute == 0) else " %H:%M"
-    return dt.strftime(date_format + time_format)
+    return format_datetime(dt=dt, show_year=show_year)

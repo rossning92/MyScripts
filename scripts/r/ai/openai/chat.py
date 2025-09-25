@@ -97,13 +97,31 @@ def complete_chat(
         "Content-Type": "application/json",
     }
 
-    payload = {
-        "model": model if model else DEFAULT_MODEL,
-        "input": _to_openai_responses_input(messages),
-        "stream": True,
-    }
+    payload: Dict[str, Any] = {}
+
+    if model:
+        # https://platform.openai.com/docs/guides/reasoning
+        if model.endswith("(low)"):
+            model = model[:-5]
+            payload["reasoning"] = {"effort": "low"}
+        elif model.endswith("(medium)"):
+            model = model[:-8]
+            payload["reasoning"] = {"effort": "medium"}
+        elif model.endswith("(high)"):
+            model = model[:-6]
+            payload["reasoning"] = {"effort": "high"}
+
+    payload.update(
+        {
+            "model": model if model else DEFAULT_MODEL,
+            "input": _to_openai_responses_input(messages),
+            "stream": True,
+        }
+    )
+
     if system_prompt:
         payload["instructions"] = system_prompt
+
     if tools:
         # https://platform.openai.com/docs/guides/tools?lang=bash&tool-type=function-calling
         payload["tools"] = [

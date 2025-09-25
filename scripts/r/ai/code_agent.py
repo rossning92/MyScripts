@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict, List, Optional
 
 import ai.agent_menu
 from ai.agent_menu import AgentMenu
-from ai.anthropic.chat import DEFAULT_MODEL
 from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
 from ai.tools import Settings
@@ -20,6 +19,9 @@ from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
 
 README_FILE = "README.md"
+
+# DEFAULT_MODEL = "claude-3-7-sonnet-latest"
+DEFAULT_MODEL = "gpt-5-codex(low)"
 
 
 def get_env_info() -> str:
@@ -94,7 +96,7 @@ class CodeAgentMenu(AgentMenu):
             grep_tool,
         ]
 
-    def get_system_prompt(self) -> Optional[str]:
+    def get_system_prompt(self) -> str:
         return "\n".join(
             s
             for s in [

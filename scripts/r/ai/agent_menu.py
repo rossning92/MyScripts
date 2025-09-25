@@ -13,9 +13,6 @@ from ai.tool_use import (
     get_tool_use_prompt,
     parse_text_for_tool_use,
 )
-from ai.tools.edit_file import edit_file
-from ai.tools.execute_python import execute_python
-from ai.tools.run_bash_command import run_bash_command
 from ML.gpt.chat_menu import ChatMenu, Line
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
@@ -214,7 +211,7 @@ class AgentMenu(ChatMenu):
         return self.__get_task_with_context()
 
     def get_tools(self) -> List[Callable]:
-        tools: List[Callable] = [run_bash_command, execute_python, edit_file]
+        tools: List[Callable] = []
 
         for agent_name in self.__agent["agents"]:
             if not isinstance(agent_name, str):
@@ -252,7 +249,7 @@ class AgentMenu(ChatMenu):
             tools.append(scope[agent_name])
         return tools
 
-    def get_system_prompt(self) -> Optional[str]:
+    def get_system_prompt(self) -> str:
         return (
             _get_prompt()
             if self.get_setting("tool_use_api")
@@ -388,19 +385,17 @@ class AgentMenu(ChatMenu):
         pass
 
     def __on_tool_use_start(self, tool_use: ToolUse):
-        if len(self.items) > 0:
-            last_line = self.items[-1]
-            msg_index = last_line.msg_index
-            sub_index = last_line.subindex + 1
+        msg_index = len(self.get_messages()) - 1
+        if len(self.items) > 0 and self.items[-1].msg_index == msg_index:
+            subindex = self.items[-1].subindex + 1
         else:
-            msg_index = 0
-            sub_index = 0
+            subindex = 0
         self.append_item(
             Line(
                 role="assistant",
                 text=get_tool_use_text(tool_use),
                 msg_index=msg_index,
-                subindex=sub_index,
+                subindex=subindex,
                 tool_use=tool_use,
             )
         )

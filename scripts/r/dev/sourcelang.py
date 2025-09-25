@@ -1,6 +1,6 @@
 import os
 
-EXTENSION_TO_LANGUAGE_MAP = {
+_EXTENSION_TO_LANGUAGE_MAP = {
     # A
     ".as": "actionscript",
     ".adb": "ada",
@@ -241,9 +241,9 @@ EXTENSION_TO_LANGUAGE_MAP = {
 
 def is_supported_file(file: str) -> bool:
     _, ext = os.path.splitext(file)
-    return ext in EXTENSION_TO_LANGUAGE_MAP
+    return ext in _EXTENSION_TO_LANGUAGE_MAP
 
 
 def filename_to_lang(filename: str) -> str:
     _, ext = os.path.splitext(filename)
-    return EXTENSION_TO_LANGUAGE_MAP[ext]
+    return _EXTENSION_TO_LANGUAGE_MAP[ext]

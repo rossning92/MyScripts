@@ -12,10 +12,9 @@ from callgraph import (
     SCOPE_SEP,
     CallGraph,
     Scope,
-    generate_call_graph_new,
+    generate_call_graph,
 )
 from dev.sourcelang import is_supported_file
-from utils.diffutils import extract_modified_files_and_line_ranges
 from utils.editor import open_in_vscode
 from utils.logger import setup_logger
 from utils.menu.dicteditmenu import DictEditMenu
@@ -24,10 +23,10 @@ from utils.shutil import shell_open
 from utils.template import render_template_file
 from utils.temputil import get_temp_file
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class ShortName:
+class _ShortName:
     def __init__(self) -> None:
         self.name_map: Dict[str, str] = {}  # original name -> short name
         self.used_name: Set[str] = set()  # already used short names
@@ -46,14 +45,14 @@ class ShortName:
             return self.name_map[name]
 
 
-def escape_mermaid_node(name: str):
+def _escape_mermaid_node(name: str):
     return re.sub(r"\b(call|end)\b", r"_\1_", name)
 
 
-def render_mermaid_nodes(
+def _render_mermaid_nodes(
     graph: CallGraph,
     scope: Scope,
-    short_name: ShortName,
+    short_name: _ShortName,
     direction: str,
     annotate: Optional[List[Tuple[str, str]]],
     depth=1,
@@ -63,11 +62,11 @@ def render_mermaid_nodes(
     for name, s in scope.scopes.items():
         if len(s.scopes) > 0:
             out.write(
-                indent + "subgraph " + short_name.get(escape_mermaid_node(name)) + "\n"
+                indent + "subgraph " + short_name.get(_escape_mermaid_node(name)) + "\n"
             )
             out.write(indent + f"    direction {direction}\n\n")
             out.write(
-                render_mermaid_nodes(
+                _render_mermaid_nodes(
                     graph=graph,
                     scope=s,
                     short_name=short_name,
@@ -89,31 +88,31 @@ def render_mermaid_nodes(
             if annotation:
                 out.write(
                     indent
-                    + short_name.get(escape_mermaid_node(name))
-                    + f'["{short_name.get(escape_mermaid_node(name))}<br/><br/>({annotation})"]\n'
+                    + short_name.get(_escape_mermaid_node(name))
+                    + f'["{short_name.get(_escape_mermaid_node(name))}<br/><br/>({annotation})"]\n'
                 )
             else:
-                out.write(indent + short_name.get(escape_mermaid_node(name)) + "\n")
+                out.write(indent + short_name.get(_escape_mermaid_node(name)) + "\n")
 
             # Highlight node
             if name in graph.highlighted_nodes:
                 out.write(
-                    f"{indent}style {short_name.get(escape_mermaid_node(name))} color:red\n"
+                    f"{indent}style {short_name.get(_escape_mermaid_node(name))} color:red\n"
                 )
 
     return out.getvalue()
 
 
-def render_mermaid_flowchart(
+def _render_mermaid_flowchart(
     graph: CallGraph,
     direction: str,
     annotate: Optional[List[Tuple[str, str]]],
 ) -> str:
     s = f"flowchart {direction}\n"
 
-    short_name = ShortName()
+    short_name = _ShortName()
 
-    s += render_mermaid_nodes(
+    s += _render_mermaid_nodes(
         graph=graph,
         scope=graph.scope,
         short_name=short_name,
@@ -123,24 +122,9 @@ def render_mermaid_flowchart(
 
     for caller, callees in graph.edges.items():
         for callee in callees:
-            s += f"    {short_name.get(escape_mermaid_node(caller))} --> {short_name.get(escape_mermaid_node(callee))}\n"
+            s += f"    {short_name.get(_escape_mermaid_node(caller))} --> {short_name.get(_escape_mermaid_node(callee))}\n"
 
     return s
-
-
-class CallGraphMenu(DictEditMenu):
-    def on_enter_pressed(self):
-        key = self.get_selected_key()
-        if key is None:
-            return
-
-        if key == "files":
-            file_menu = FileMenu()
-            file = file_menu.select_file()
-            if file:
-                self.set_dict_value("files", file)
-        else:
-            return super().on_enter_pressed()
 
 
 def _main():
@@ -149,20 +133,11 @@ def _main():
         "--root", type=str, default=None, help="Root dir for source code"
     )
     arg_parser.add_argument("-E", "--match", nargs="?", type=str)
-    arg_parser.add_argument("-v", "--invert-match", nargs="?", type=str)
     arg_parser.add_argument("-o", "--output", type=str, default=None)
     arg_parser.add_argument("--match-callers", nargs="?", type=int, const=1)
     arg_parser.add_argument("--match-callees", nargs="?", type=int, const=1)
     arg_parser.add_argument("--direction", type=str, default="LR")
-    arg_parser.add_argument(
-        "-M",
-        "--show-modules-only",
-        action="store_true",
-        help="show module level diagram",
-    )
-    arg_parser.add_argument("--diff", type=str)
     arg_parser.add_argument("--annotate", type=str)
-    arg_parser.add_argument("--include-all-identifiers", action="store_true")
     arg_parser.add_argument("files", nargs="*")
 
     args = arg_parser.parse_args()
@@ -172,41 +147,32 @@ def _main():
     if args.root:
         os.chdir(args.root)
 
-    if args.diff:
-        diff = extract_modified_files_and_line_ranges(args.diff)
-        files = list(diff.keys())
+    if args.files:
+        files = [
+            filepath.replace(os.path.sep, "/")
+            for filepath in itertools.chain(
+                *[glob(pathname, recursive=True) for pathname in args.files]
+            )
+        ]
+        files = [f for f in files if is_supported_file(f)]
     else:
-        diff = None
-        if args.files:
-            files = [
-                filepath.replace(os.path.sep, "/")
-                for filepath in itertools.chain(
-                    *[glob(pathname, recursive=True) for pathname in args.files]
-                )
-            ]
-            files = [f for f in files if is_supported_file(f)]
-        else:
-            files = subprocess.check_output(
-                ["rg", "-l", args.match], universal_newlines=True
-            ).splitlines()
+        files = subprocess.check_output(
+            ["rg", "-l", args.match], universal_newlines=True
+        ).splitlines()
 
     files = [file.replace(os.path.sep, "/") for file in files]
     files = [file for file in files if is_supported_file(file)]
 
     # Generate call graph
-    call_graph = generate_call_graph_new(
+    call_graph = generate_call_graph(
         files=files,
-        show_modules_only=args.show_modules_only,
         match=args.match,
-        invert_match=args.invert_match,
         match_callers=args.match_callers,
         match_callees=args.match_callees,
-        diff=diff,
-        include_all_identifiers=args.include_all_identifiers,
     )
 
     # Generate mermaid diagram
-    mermaid_code = render_mermaid_flowchart(
+    mermaid_code = _render_mermaid_flowchart(
         graph=call_graph,
         direction=args.direction,
         annotate=(
@@ -242,7 +208,7 @@ def _main():
 
     elif ext == ".html":
         render_template_file(
-            template_file=os.path.join(SCRIPT_DIR, "mermaid_viewer.html"),
+            template_file=os.path.join(_SCRIPT_DIR, "mermaid_viewer.html"),
             output_file=out_file,
             context={"MERMAID_CODE": mermaid_code},
         )

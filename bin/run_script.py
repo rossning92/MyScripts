@@ -65,3 +65,6 @@ if __name__ == "__main__":
     except CalledProcessError as ex:
         logging.error(ex)
         sys.exit(1)
+    except FileNotFoundError as ex:
+        print(ex)
+        sys.exit(1)

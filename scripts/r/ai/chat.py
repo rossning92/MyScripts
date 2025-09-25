@@ -14,21 +14,17 @@ import ai.anthropic.chat
 import ai.openai.chat
 from ai.message import Message
 from ai.tool_use import ToolResult, ToolUse
-
-
-def _truncate_text(text: str, max_chars: int = 100) -> str:
-    text = text.rstrip().replace("\n", "↵")
-    return text[:max_chars] + "..." if len(text) > max_chars else text
+from utils.textutil import truncate_text
 
 
 def get_tool_result_text(tool_result: ToolResult) -> str:
-    content = _truncate_text(tool_result["content"])
+    content = truncate_text(tool_result["content"])
     return f"* tool_result: {content}"
 
 
 def get_tool_use_text(tool_use: ToolUse) -> str:
     tool_name = tool_use["tool_name"]
-    args = _truncate_text(str(tool_use["args"]))
+    args = truncate_text(str(tool_use["args"]))
     return f"* tool_use: {tool_name}: {args}"
 
 
