@@ -111,7 +111,7 @@ class _File:
         # Size
         if self.show_size:
             size = human_readable_size(self.size) if self.size else ""
-            s += f"{size:>6}  "
+            s += f"{size:>7}  "
 
         # Modified time
         if self.show_size:
@@ -171,6 +171,7 @@ class FileMenu(Menu[_File]):
         self.add_command(self._get_dir_size, hotkey="alt+s")
         self.add_command(self._list_files_recursively, hotkey="ctrl+l")
         self.add_command(self._move_to, hotkey="alt+m")
+        self.add_command(self._open_terminal, hotkey="ctrl+t")
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
@@ -355,6 +356,21 @@ class FileMenu(Menu[_File]):
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
 
+    def select_new_file(self, ext: Optional[str] = None) -> Optional[str]:
+        self.__select_mode = FileMenu.SELECT_MODE_FILE
+        self.exec()
+        if self.is_cancelled:
+            return None
+
+        new_file = self.get_input()
+        if not new_file:
+            return None
+
+        if ext and not new_file.endswith(ext):
+            new_file += ext
+        full_path = os.path.join(self.get_cur_dir(), new_file)
+        return full_path
+
     def select_file(self) -> Optional[str]:
         self.__select_mode = FileMenu.SELECT_MODE_FILE
         self.exec()
@@ -377,6 +393,18 @@ class FileMenu(Menu[_File]):
             if len(self.__selected_files_full_path) > 0
             else None
         )
+
+    def _open_terminal(self):
+        subprocess.check_call(
+            [
+                "start_script",
+                "--cd=false",
+                "--restart-instance=true",
+                "r/command_prompt.sh",
+            ],
+            cwd=self.get_cur_dir(),
+        )
+        self._refresh_cur_dir()
 
     def _refresh_cur_dir(self):
         self.goto_directory(self.get_cur_dir())

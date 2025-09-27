@@ -36,6 +36,7 @@ def complete_chat(
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+    web_search: bool = False,
 ) -> Iterator[str]:
     if model and model.startswith("claude"):
         return ai.anthropic.chat.complete_chat(
@@ -55,6 +56,7 @@ def complete_chat(
             tools=tools,
             on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
+            web_search=web_search,
         )
 
 

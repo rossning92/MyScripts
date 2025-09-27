@@ -6,7 +6,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from _shutil import get_temp_file_name, slugify
+from _shutil import get_temp_file_name
+from utils.slugify import slugify
 
 
 def mat_inv(m):

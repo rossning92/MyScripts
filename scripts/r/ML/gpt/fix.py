@@ -12,5 +12,5 @@ ChatMenu(
         "-------"
     ),
     model="gpt-4o-mini",
-    copy_and_exit=True,
+    copy=True,
 ).exec()

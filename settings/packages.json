@@ -863,6 +863,11 @@
       "packages": ["GnuWin32.UnZip"]
     }
   },
+  "uv": {
+    "pacman": {
+      "packages": ["uv"]
+    }
+  },
   "veracrypt": {
     "choco": {
       "packages": ["veracrypt"]

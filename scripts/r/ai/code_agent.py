@@ -158,11 +158,9 @@ def _main():
     args = parser.parse_args()
 
     if args.dir:
+        if not os.path.exists(args.dir):
+            os.makedirs(args.dir, exist_ok=True)
         os.chdir(args.dir)
-    else:
-        default_dir = os.path.expanduser("~/CodeProject")
-        os.makedirs(default_dir, exist_ok=True)
-        os.chdir(default_dir)
 
     files = _parse_files(args.files)
 

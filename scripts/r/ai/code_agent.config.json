@@ -1,3 +1,4 @@
 {
-  "globalHotkey": "win+k c"
+  "globalHotkey": "win+k c",
+  "workingDir": "{HOME}/CodeProject"
 }

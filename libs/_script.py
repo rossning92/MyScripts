@@ -37,7 +37,6 @@ from _shutil import (
     quote_arg,
     run_elevated,
     setup_nodejs,
-    slugify,
     start_process,
     update_json,
     wrap_args_conemu,
@@ -66,6 +65,7 @@ from utils.email import send_email_md
 from utils.jsonutil import load_json, save_json
 from utils.menu.csvmenu import CsvMenu
 from utils.shutil import shell_open
+from utils.slugify import slugify
 from utils.template import render_template
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
 from utils.term.windowsterminal import (

@@ -8,7 +8,7 @@ def _main():
     parser.add_argument("attachment", nargs="?", type=str)
     parser.add_argument(
         "-x",
-        "--copy-and-exit",
+        "--copy",
         action="store_true",
         help="Copy the last message and then exit",
     )
@@ -17,7 +17,7 @@ def _main():
 
     chat = ChatMenu(
         attachment=args.attachment,
-        copy_and_exit=args.copy_and_exit,
+        copy=args.copy,
     )
     chat.exec()
 

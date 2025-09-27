@@ -17,13 +17,13 @@ from _shutil import (
     get_temp_file_name,
     move_file,
     print2,
-    slugify,
     start_process,
     wait_for_key,
 )
 from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
+from utils.slugify import slugify
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 

@@ -1,8 +1,9 @@
-from mss import mss
-from PIL import Image
+from _image import *
 from _shutil import *
 from _term import *
-from _image import *
+from mss import mss
+from PIL import Image
+from utils.slugify import slugify
 
 SIZE = (1920, 1080)
 TASKBAR_HEIGHT = 45

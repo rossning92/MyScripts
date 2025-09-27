@@ -40,7 +40,7 @@ def _to_openai_message_content(message: Message) -> List[Dict[str, Any]]:
     return content
 
 
-def _to_openai_responses_input(messages: List[Message]) -> List[Dict[str, Any]]:
+def _to_openai_responses_api_input(messages: List[Message]) -> List[Dict[str, Any]]:
     input = []
 
     for message in messages:
@@ -83,6 +83,7 @@ def complete_chat(
     tools: Optional[List[Callable[..., Any]]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+    web_search=False,
 ) -> Iterator[str]:
     logging.debug(f"messages: {messages}")
 
@@ -114,7 +115,7 @@ def complete_chat(
     payload.update(
         {
             "model": model if model else DEFAULT_MODEL,
-            "input": _to_openai_responses_input(messages),
+            "input": _to_openai_responses_api_input(messages),
             "stream": True,
         }
     )
@@ -122,29 +123,41 @@ def complete_chat(
     if system_prompt:
         payload["instructions"] = system_prompt
 
+    payload_tools: List[Dict[str, Any]] = []
+
     if tools:
         # https://platform.openai.com/docs/guides/tools?lang=bash&tool-type=function-calling
-        payload["tools"] = [
-            {
-                "type": "function",
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        param.name: {
-                            "type": param.type,
-                            "description": param.description,
-                        }
-                        for param in tool.parameters
+        payload_tools.extend(
+            [
+                {
+                    "type": "function",
+                    "name": tool.name,
+                    "description": tool.description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            param.name: {
+                                "type": param.type,
+                                "description": param.description,
+                            }
+                            for param in tool.parameters
+                        },
+                        "required": tool.required,
+                        "additionalProperties": False,
                     },
-                    "required": tool.required,
-                    "additionalProperties": False,
-                },
-                "strict": True,
-            }
-            for tool in map(function_to_tool_definition, tools)
-        ]
+                    "strict": True,
+                }
+                for tool in map(function_to_tool_definition, tools)
+            ]
+        )
+
+    if web_search:
+        # https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat#sources
+        payload_tools.append({"type": "web_search"})
+
+    if payload_tools:
+        payload["tools"] = payload_tools
+
     with requests.post(url, headers=headers, json=payload, stream=True) as response:
         try:
             response.raise_for_status()

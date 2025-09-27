@@ -1,21 +1,36 @@
 import logging
 import os
+import shutil
 import zipfile
 from datetime import datetime
 from typing import List
 
 CHECKPOINTS_DIR = os.path.join(".config", "coder", "checkpoints")
+HISTORY_DIR = os.path.join(".config", "coder", "history")
 
 
 def backup_files(files: List[str]):
     os.makedirs(CHECKPOINTS_DIR, exist_ok=True)
-    checkpoint_file = f"checkpoint_{datetime.now().timestamp()}.zip"
-    checkpiont_full_path = os.path.join(CHECKPOINTS_DIR, checkpoint_file)
-    with zipfile.ZipFile(checkpiont_full_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+    os.makedirs(HISTORY_DIR, exist_ok=True)
+
+    timestamp = str(datetime.now().timestamp())
+
+    history_timestamp_dir = os.path.join(HISTORY_DIR, timestamp)
+    os.makedirs(history_timestamp_dir, exist_ok=True)
+
+    checkpoint_file = f"checkpoint_{timestamp}.zip"
+    checkpoint_full_path = os.path.join(CHECKPOINTS_DIR, checkpoint_file)
+    with zipfile.ZipFile(checkpoint_full_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for file_path in files:
+            # Write to the zip file
             logging.info(f'Adding file "{file_path}" to checkpoint "{checkpoint_file}"')
             rel_path = os.path.relpath(file_path, start=os.getcwd())
             zipf.write(file_path, arcname=rel_path)
+
+            # Make a copy in the history directory
+            history_file_path = os.path.join(history_timestamp_dir, rel_path)
+            os.makedirs(os.path.dirname(history_file_path), exist_ok=True)
+            shutil.copy2(file_path, history_file_path)
 
 
 def restore_files_since_timestamp(timestamp: float) -> None:

@@ -87,7 +87,7 @@ class AgentMenu(ChatMenu):
 
         super().__init__(
             data_dir=data_dir,
-            conv_file=os.path.join(self.__data_dir, "chat.json"),
+            chat_file=os.path.join(self.__data_dir, "chat.json"),
             settings_menu_class=settings_menu_class,
             **kwargs,
         )
@@ -135,12 +135,12 @@ class AgentMenu(ChatMenu):
             assert isinstance(self.__agent["context"], dict)
             self.__agent["context"].update(context)
 
-        self.load_conversation()
+        self.load_chat()
 
     def __new_agent(self):
         self.__agent_file = os.path.join(self.__data_dir, AGENT_FILE)
         self.__agent = AGENT_DEFAULT.copy()
-        self.new_conversation()
+        self.new_chat()
 
     def complete_chat(
         self,

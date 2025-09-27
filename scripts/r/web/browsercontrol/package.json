@@ -1,0 +1,16 @@
+{
+  "name": "browsercontrol",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "browsercontrol.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "puppeteer": "^24.22.3",
+    "turndown": "^7.2.1"
+  }
+}

@@ -23,11 +23,12 @@ from typing import (
     Union,
 )
 
-from _shutil import get_hotkey_abbr, slugify
+from _shutil import get_hotkey_abbr
 
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
+from utils.slugify import slugify
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
@@ -333,13 +334,9 @@ class Menu(Generic[T]):
             self.add_command(self.__toggle_multi_select, hotkey="ctrl+x")
             self.add_command(self.__toggle_wrap, hotkey="alt+z")
             self.add_command(self.paste, hotkey="ctrl+v")
+            self.add_command(self.voice_input, hotkey="alt+v")
+            self.add_command(self.voice_input, hotkey="space space")
             self.add_command(self.yank, hotkey="ctrl+y")
-
-            self._command_palette_menu = Menu(
-                prompt="cmd",
-                items=self.__custom_commands,
-                enable_command_palette=False,
-            )
 
             for item in self.items:
                 if hasattr(item, "hotkey"):
@@ -409,7 +406,7 @@ class Menu(Generic[T]):
 
         stt_menu = AsyncTaskMenu(
             lambda: convert_audio_to_text(file=out_file),
-            prompt="(converting)",
+            prompt="(Converting audio to text...)",
         )
         try:
             stt_menu.exec()
@@ -764,8 +761,6 @@ class Menu(Generic[T]):
                 self.set_input("")
                 if "space space" in self.__hotkeys:
                     self.__hotkeys["space space"].func()
-                else:
-                    self.voice_input()
 
             elif ch == "\n" or ch == "\r":
                 self.on_enter_pressed()
@@ -1459,8 +1454,13 @@ class Menu(Generic[T]):
             self.on_enter_pressed()
 
     def __command_palette(self):
-        self._command_palette_menu.exec()
-        hotkey = self._command_palette_menu.get_selected_item()
+        menu = Menu(
+            prompt="cmd",
+            items=self.__custom_commands,
+            enable_command_palette=False,
+        )
+        menu.exec()
+        hotkey = menu.get_selected_item()
         if hotkey is not None:
             hotkey.func()
         self.update_screen()
