@@ -61,21 +61,6 @@ def _get_prompt_dir() -> str:
     return prompt_dir
 
 
-def select_prompt_file() -> Optional[str]:
-    menu = FileMenu(
-        prompt="select prompt",
-        goto=_get_prompt_dir(),
-        show_size=False,
-        recursive=True,
-        allow_cd=False,
-    )
-    selected = menu.select_file()
-    if selected:
-        return selected
-    else:
-        return None
-
-
 class SettingsMenu(JsonEditMenu):
     def __init__(self, json_file: str, model: Optional[str]) -> None:
         super().__init__(json_file=json_file)
@@ -116,7 +101,7 @@ class Line:
             return self.text
 
 
-class _Conversation:
+class _Chat:
     def __init__(
         self,
         path: str,
@@ -134,29 +119,27 @@ class _Conversation:
         return self.full_text
 
 
-class _SelectConversationMenu(Menu[_Conversation]):
+class _SelectChatMenu(Menu[_Chat]):
     def __init__(self, history_manager: HistoryManager) -> None:
         self.__history_manager = history_manager
         super().__init__(prompt="Load history chat")
-        self.__refresh_conversations()
-        self.add_command(self.__delete_conversation, hotkey="ctrl+k")
+        self.__refresh()
+        self.add_command(self.__delete_chat, hotkey="ctrl+k")
 
-    def __refresh_conversations(self):
-        self.items[:] = [
-            _Conversation(f) for f in self.__history_manager.get_all_files_desc()
-        ]
+    def __refresh(self):
+        self.items[:] = [_Chat(f) for f in self.__history_manager.get_all_files_desc()]
 
-    def __delete_conversation(self):
-        conversations = self.get_selected_items()
-        if conversations and confirm("Delete conversation?"):
-            for conversation in conversations:
-                os.remove(conversation.path)
-            self.__refresh_conversations()
+    def __delete_chat(self):
+        chats = self.get_selected_items()
+        if chats and confirm("Delete chat?"):
+            for chat in chats:
+                os.remove(chat.path)
+            self.__refresh()
 
-    def get_item_text(self, item: _Conversation) -> str:
+    def get_item_text(self, item: _Chat) -> str:
         return item.preview
 
-    def match_item(self, patt: str, item: _Conversation, index: int) -> int:
+    def match_item(self, patt: str, item: _Chat, index: int) -> int:
         return super().match_item(patt, item, index)
 
 
@@ -170,7 +153,7 @@ class ChatMenu(Menu[Line]):
         message: Optional[str] = None,
         model: Optional[str] = None,
         attachment: Optional[str] = None,
-        new_conversation=True,
+        new_chat=True,
         out_file: Optional[str] = None,
         prompt: str = "u",
         system_prompt="",
@@ -213,37 +196,38 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__add_attachment, hotkey="alt+a")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt)
-        self.add_command(self.__edit_settings, hotkey="ctrl+s")
+        self.add_command(self.__edit_settings, hotkey="alt+s")
         self.add_command(self.__goto_next_message, hotkey="alt+n")
         self.add_command(self.__goto_prev_message, hotkey="alt+p")
-        self.add_command(self.__load_conversation, hotkey="ctrl+l")
-        self.add_command(self.__select_prompt, hotkey="tab")
+        self.add_command(self.__load_chat, hotkey="ctrl+l")
+        self.add_command(self.__load_prompt, hotkey="tab")
+        self.add_command(self.__save_prompt, hotkey="ctrl+s")
         self.add_command(self.__show_more, hotkey="alt+m")
         self.add_command(self.__take_photo, hotkey="alt+i")
         self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
-        self.add_command(self.new_conversation, hotkey="ctrl+n")
+        self.add_command(self.new_chat, hotkey="ctrl+n")
         self.add_command(self.undo_messages, hotkey="ctrl+z")
 
-        self.__conversations_dir = os.path.join(self.__data_dir, "conversations")
+        self.__chat_dir = os.path.join(self.__data_dir, "conversations")
         self.__history_manager = HistoryManager(
-            save_dir=self.__conversations_dir,
+            save_dir=self.__chat_dir,
             prefix="conversation_",
             ext=".json",
         )
 
         self.__messages: List[Message] = []
 
-        self.new_conversation()
-        if new_conversation:
+        self.new_chat()
+        if new_chat:
             pass
         elif self.__conv_file is not None:
-            if not new_conversation and os.path.exists(self.__conv_file):
-                self.load_conversation(conv_file)
-        else:  # load last conversation
-            conversation_files = self.__history_manager.get_all_files()
-            if len(conversation_files) > 0:
-                self.load_conversation(conversation_files[-1])
+            if not new_chat and os.path.exists(self.__conv_file):
+                self.load_chat(conv_file)
+        else:  # load last chat
+            files = self.__history_manager.get_all_files()
+            if len(files) > 0:
+                self.load_chat(files[-1])
 
         self.__update_prompt()
 
@@ -349,19 +333,51 @@ class ChatMenu(Menu[Line]):
     def __edit_prompt(self):
         self.__edit_message(first_user_message=True)
 
-    def __load_conversation(self):
-        menu = _SelectConversationMenu(history_manager=self.__history_manager)
+    def __save_prompt(self):
+        messages = self.get_messages()
+        if len(messages) == 0:
+            self.set_message("No messages found")
+            return
+
+        message = messages[0]  # first message
+        content = message["text"]
+
+        menu = FileMenu(
+            prompt="Save prompt to file",
+            goto=_get_prompt_dir(),
+            show_size=False,
+            allow_cd=False,
+        )
+        menu.select_file()
+        file = menu.get_input()
+        if file:
+            if not file.endswith(".md"):
+                file += ".md"
+            with open(file, "w", encoding="utf-8") as f:
+                f.write(content)
+
+    def __load_chat(self):
+        menu = _SelectChatMenu(history_manager=self.__history_manager)
         menu.exec()
         selected = menu.get_selected_item()
         if selected:
-            self.load_conversation(selected.path)
+            self.load_chat(selected.path)
 
-    def __select_prompt(self):
-        prompt_file = select_prompt_file()
-        if prompt_file:
-            with open(prompt_file, "r", encoding="utf-8") as f:
-                message = f.read()
-                self.send_message(message)
+    def __load_prompt(self):
+        menu = FileMenu(
+            prompt="select prompt",
+            goto=_get_prompt_dir(),
+            show_size=False,
+            recursive=True,
+            allow_cd=False,
+        )
+        prompt_file = menu.select_file()
+        if not prompt_file:
+            return
+
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            message = f.read()
+            self.send_message(message)
 
     def __show_more(self):
         selected = self.get_selected_item()
@@ -553,7 +569,7 @@ You should reply based on the provided context:
 
         self.get_messages().append(message)
 
-        self.save_conversation()
+        self.save_chat()
         self.update_screen()
 
     def complete_chat(
@@ -636,7 +652,7 @@ You should reply based on the provided context:
                 ExceptionMenu().exec()
 
         self.__is_generating = False
-        self.save_conversation()
+        self.save_chat()
         # self.__refresh_lines()
 
         if not interrupted:
@@ -653,7 +669,7 @@ You should reply based on the provided context:
         while not self.__after_chat_completion.empty():
             (self.__after_chat_completion.get())()
 
-    def save_conversation(self):
+    def save_chat(self):
         if self.__conv_file is None:
             return
         os.makedirs(os.path.dirname(self.__conv_file), exist_ok=True)
@@ -717,7 +733,7 @@ You should reply based on the provided context:
 
         self.update_screen()
 
-    def load_conversation(self, file: Optional[str] = None):
+    def load_chat(self, file: Optional[str] = None):
         if file is not None:
             self.__conv_file = file
 
@@ -739,7 +755,7 @@ You should reply based on the provided context:
         self.set_follow(True)
         self.update_screen()
 
-    def new_conversation(self, message: Optional[str] = None):
+    def new_chat(self, message: Optional[str] = None):
         self.clear_messages()
 
         if self.__auto_create_conv_file:

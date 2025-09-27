@@ -326,13 +326,8 @@ def config_vscode(data_dir=None, compact=False):
         "pasteImage.path": "${currentFileNameWithoutExt}",
         "search.exclude": {"**/build": True},
         "workbench.editor.enablePreviewFromQuickOpen": False,
+        "window.title": "${rootName}${separator}${appName}",
     }
-    if not data_dir:
-        settings.update(
-            {
-                "window.title": "${rootName}${separator}${appName}",
-            }
-        )
 
     settings.update(
         {

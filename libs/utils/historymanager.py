@@ -22,8 +22,8 @@ class HistoryManager:
         return reversed(self.get_all_files())
 
     def delete_old_files(self):
-        conversation_files = self.get_all_files()
-        for file in conversation_files[: max(0, len(conversation_files) - MAX_HISTORY)]:
+        files = self.get_all_files()
+        for file in files[: max(0, len(files) - MAX_HISTORY)]:
             os.remove(file)
 
     def get_new_file(self):

@@ -335,12 +335,6 @@ class Menu(Generic[T]):
             self.add_command(self.paste, hotkey="ctrl+v")
             self.add_command(self.yank, hotkey="ctrl+y")
 
-            self._command_palette_menu = Menu(
-                prompt="cmd",
-                items=self.__custom_commands,
-                enable_command_palette=False,
-            )
-
             for item in self.items:
                 if hasattr(item, "hotkey"):
                     hotkey = item.__dict__["hotkey"]
@@ -1459,8 +1453,13 @@ class Menu(Generic[T]):
             self.on_enter_pressed()
 
     def __command_palette(self):
-        self._command_palette_menu.exec()
-        hotkey = self._command_palette_menu.get_selected_item()
+        menu = Menu(
+            prompt="cmd",
+            items=self.__custom_commands,
+            enable_command_palette=False,
+        )
+        menu.exec()
+        hotkey = menu.get_selected_item()
         if hotkey is not None:
             hotkey.func()
         self.update_screen()
