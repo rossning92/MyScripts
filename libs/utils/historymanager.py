@@ -7,7 +7,10 @@ MAX_HISTORY = 100
 
 
 class HistoryManager:
-    def __init__(self, save_dir: str, prefix: str, ext: str) -> None:
+    def __init__(
+        self, save_dir: str, prefix: str, ext: str, max_history=MAX_HISTORY
+    ) -> None:
+        self.__max_history = max_history
         self.__save_dir = save_dir
         self.__prefix = prefix
         self.__ext = ext
@@ -23,7 +26,7 @@ class HistoryManager:
 
     def delete_old_files(self):
         files = self.get_all_files()
-        for file in files[: max(0, len(files) - MAX_HISTORY)]:
+        for file in files[: max(0, len(files) - self.__max_history)]:
             os.remove(file)
 
     def get_new_file(self):

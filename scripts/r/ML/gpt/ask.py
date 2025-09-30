@@ -1,6 +1,6 @@
 import argparse
 
-from ML.gpt.chat_menu import ChatMenu
+from ML.gpt.chat_menu import ChatMenu, get_default_data_dir
 
 
 def _main():
@@ -18,6 +18,7 @@ def _main():
     chat = ChatMenu(
         attachment=args.attachment,
         copy=args.copy,
+        data_dir=get_default_data_dir(),
     )
     chat.exec()
 

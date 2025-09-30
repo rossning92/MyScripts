@@ -19,13 +19,13 @@ from utils.textutil import truncate_text
 
 def get_tool_result_text(tool_result: ToolResult) -> str:
     content = truncate_text(tool_result["content"])
-    return f"* tool_result: {content}"
+    return f"❉ tool_result: {content}"
 
 
 def get_tool_use_text(tool_use: ToolUse) -> str:
     tool_name = tool_use["tool_name"]
     args = truncate_text(str(tool_use["args"]))
-    return f"* tool_use: {tool_name}: {args}"
+    return f"❉ tool_use: {tool_name}: {args}"
 
 
 def complete_chat(

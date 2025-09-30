@@ -125,6 +125,7 @@ if lspci -k | grep -q "NVIDIA Corporation"; then
         pac_install nvidia
     fi
     pac_install nvidia-settings
+    sudo nvidia-xconfig --output-xconfig /etc/X11/xorg.conf.d/10-nvidia.conf
 fi
 
 # Setup Intel graphics.

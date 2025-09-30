@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from utils.menu.filemenu import FileMenu
 
@@ -17,4 +18,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    FileMenu(goto=args.dir, prompt=args.prompt).exec()
+    FileMenu(
+        goto=args.dir,
+        prompt=args.prompt,
+        config_dir=os.path.join(".config", "filemgr"),
+    ).exec()

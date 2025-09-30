@@ -46,7 +46,7 @@ function httpGet(url) {
  */
 function activate(context) {
   const disposable = vscode.commands.registerCommand(
-    "my-extension.helloWorld",
+    "ross.scripts.helloWorld",
     async () => {
       const res = await httpGet("http://localhost:4312/scripts");
       vscode.window.showInformationMessage(res);

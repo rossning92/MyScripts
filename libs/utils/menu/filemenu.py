@@ -38,6 +38,9 @@ class _Config:
         self.sort_by: Literal["name", "mtime"] = "name"
 
     def load(self, config_file: str):
+        if not os.path.exists(config_file):
+            return
+
         with open(config_file, "r") as file:
             data = json.load(file)
 
@@ -49,6 +52,7 @@ class _Config:
 
     def save(self, config_file: str):
         data = self.get_data_dict()
+        os.makedirs(os.path.dirname(config_file), exist_ok=True)
         with open(config_file, "w") as f:
             json.dump(data, f, indent=4)
 
@@ -134,24 +138,23 @@ class FileMenu(Menu[_File]):
     def __init__(
         self,
         goto: Optional[str] = ".",
-        save_states=True,
         prompt=None,
         recursive=False,
         show_mtime=True,
         show_size=True,
         allow_cd=True,
+        config_dir: Optional[str] = None,
     ):
-        self.__config_file = os.path.join(
-            os.environ["MY_DATA_DIR"], "filemgr_config.json"
-        )
         self.__config = _Config()
-        if os.path.exists(self.__config_file):
+        self.__config_file = (
+            os.path.join(config_dir, "filemgr_config.json") if config_dir else None
+        )
+        if self.__config_file:
             self.__config.load(self.__config_file)
 
         self.__files: List[_File] = []
         self.__last_copy_to_path: Optional[str] = None
         self.__prompt: Optional[str] = prompt
-        self.__save_states: bool = save_states if goto is None else False
         self.__select_mode: int = FileMenu.SELECT_MODE_NONE
         self.__selected_file_dict: Dict[str, str] = {}
         self.__selected_files_full_path: List[str] = []
@@ -186,9 +189,17 @@ class FileMenu(Menu[_File]):
 
         if goto is not None:
             if goto == ".":
-                self.goto_directory(os.getcwd(), list_file_recursively=recursive)
+                self.goto_directory(
+                    os.getcwd(),
+                    selected_file=self.__config.selected_file,
+                    list_file_recursively=recursive,
+                )
             elif os.path.isdir(goto):
-                self.goto_directory(goto, list_file_recursively=recursive)
+                self.goto_directory(
+                    goto,
+                    selected_file=self.__config.selected_file,
+                    list_file_recursively=recursive,
+                )
             else:
                 self.goto_directory(
                     os.path.dirname(goto),
@@ -198,7 +209,7 @@ class FileMenu(Menu[_File]):
         else:
             self.goto_directory(
                 self.__config.cur_dir,
-                self.__config.selected_file,
+                selected_file=self.__config.selected_file,
                 list_file_recursively=recursive,
             )
 
@@ -277,21 +288,37 @@ class FileMenu(Menu[_File]):
                     else self.get_cur_dir()
                 ),
                 prompt="%s to" % ("copy" if copy else "move"),
-                save_states=False,
             )
             dest_dir = filemgr.select_directory()
             if dest_dir is not None:
                 self.__last_copy_to_path = dest_dir
                 for src in files:
-                    if copy:
-                        if os.path.isdir(src):
-                            shutil.copytree(
-                                src, os.path.join(dest_dir, os.path.basename(src))
-                            )
-                        else:
-                            shutil.copy(src, dest_dir)
+                    if os.path.isdir(src):
+                        shutil.copytree(
+                            src,
+                            os.path.join(dest_dir, os.path.basename(src)),
+                            dirs_exist_ok=True,
+                        )
+                        if not copy:
+                            shutil.rmtree(src)
                     else:
-                        shutil.move(src, dest_dir)
+                        if os.path.exists(
+                            os.path.join(dest_dir, os.path.basename(src))
+                        ):
+                            if confirm(
+                                f'"{os.path.basename(src)}" already exists in "{dest_dir}". Overwrite?'
+                            ):
+                                should_copy_or_move = True
+                            else:
+                                should_copy_or_move = False
+                        else:
+                            should_copy_or_move = True
+
+                        if should_copy_or_move:
+                            if copy:
+                                shutil.copy(src, dest_dir)
+                            else:
+                                shutil.move(src, dest_dir)
 
                 self.goto_directory(dest_dir, selected_file=os.path.basename(files[0]))
 
@@ -444,7 +471,7 @@ class FileMenu(Menu[_File]):
         # Save config
         if directory != self.get_cur_dir():
             self.__config.cur_dir = directory
-            if self.__save_states:
+            if self.__config_file:
                 self.__config.save(self.__config_file)
 
         # Enumerate files
@@ -550,7 +577,7 @@ class FileMenu(Menu[_File]):
 
     def sort_by(self, by: Literal["name", "mtime"]):
         self.__config.sort_by = by
-        if self.__save_states:
+        if self.__config_file:
             self.__config.save(self.__config_file)
 
         self._list_files()
@@ -573,10 +600,9 @@ class FileMenu(Menu[_File]):
     def on_exit(self):
         selected = self.get_selected_item(ignore_cancellation=True)
         if selected:
-            selected_full_path = os.path.join(self.get_cur_dir(), selected.name)
-            self.__config.cur_dir = os.path.dirname(selected_full_path)
-            self.__config.selected_file = os.path.basename(selected_full_path)
-            if self.__save_states:
+            self.__config.cur_dir = self.get_cur_dir()
+            self.__config.selected_file = selected.name
+            if self.__config_file:
                 self.__config.save(self.__config_file)
 
     def open_file(self, full_path: str):

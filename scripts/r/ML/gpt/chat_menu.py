@@ -14,6 +14,7 @@ from ai.chat import complete_chat, get_tool_result_text, get_tool_use_text
 from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
+from scripting.path import get_data_dir
 from utils.clip import set_clip
 from utils.dateutil import format_timestamp
 from utils.editor import edit_text
@@ -32,8 +33,9 @@ from utils.textutil import is_text_file, truncate_text
 
 _MODULE_NAME = Path(__file__).stem
 
-_INTERRUPT_MESSAGE = "[INTERRUPTED]"
+_MAX_CHAT_HISTORY = 200
 
+_INTERRUPT_MESSAGE = "[INTERRUPTED]"
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,6 +64,10 @@ def _get_prompt_dir() -> str:
 
     prompt_dir = os.path.join(_SCRIPT_DIR, "prompts")
     return prompt_dir
+
+
+def get_default_data_dir():
+    return os.path.join(get_data_dir(), _MODULE_NAME)
 
 
 class SettingsMenu(JsonEditMenu):
@@ -171,6 +177,7 @@ class ChatMenu(Menu[Line]):
         new_chat=True,
         out_file: Optional[str] = None,
         prompt: str = "u",
+        prompt_file: Optional[str] = None,
         system_prompt="",
         settings_menu_class=SettingsMenu,
     ) -> None:
@@ -185,6 +192,7 @@ class ChatMenu(Menu[Line]):
         self.__lines: List[Line] = []
         self.__after_chat_completion: Queue[Callable] = Queue()
         self.__prompt = prompt
+        self.__prompt_file = prompt_file
         self.__out_file = out_file
         self.__system_prompt = system_prompt
         self.__yank_mode = 0
@@ -231,6 +239,7 @@ class ChatMenu(Menu[Line]):
             save_dir=self.__chat_dir,
             prefix="chat_",
             ext=".json",
+            max_history=_MAX_CHAT_HISTORY,
         )
 
         self.__messages: List[Message] = []
@@ -394,15 +403,18 @@ class ChatMenu(Menu[Line]):
         if selected:
             self.load_chat(selected.path)
 
-    def __load_prompt(self):
-        menu = FileMenu(
-            prompt="Load prompt",
-            goto=_get_prompt_dir(),
-            show_size=False,
-            recursive=True,
-            allow_cd=False,
-        )
-        prompt_file = menu.select_file()
+    def __load_prompt(self, prompt_file: Optional[str] = None):
+        if not prompt_file:
+            menu = FileMenu(
+                prompt="Load prompt",
+                goto=_get_prompt_dir(),
+                show_size=False,
+                recursive=True,
+                allow_cd=False,
+                config_dir=os.path.join(".config", "load_prompt_menu"),
+            )
+            prompt_file = menu.select_file()
+
         if not prompt_file:
             return
 
@@ -510,8 +522,10 @@ class ChatMenu(Menu[Line]):
         return self.__settings_menu.data[name]
 
     def on_created(self):
-        if self.__first_message is not None:
+        if self.__first_message:
             self.send_message(self.__first_message)
+        elif self.__prompt_file:
+            self.__load_prompt(self.__prompt_file)
 
     def send_message(
         self,
@@ -803,6 +817,12 @@ You should reply based on the provided context:
     def on_enter_pressed(self):
         try:
             self.__cancel_chat_completion()
+
+            # Select the last line
+            last_line_index = len(self.__lines) - 1
+            if last_line_index >= 0:
+                self.set_selection(last_line_index, last_line_index)
+
             self.send_message(self.get_input())
         except KeyboardInterrupt:
             self.__after_chat_completion.put(
@@ -855,6 +875,7 @@ def _main():
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)
+    parser.add_argument("-p", "--prompt-file", type=str)
     parser.add_argument("--edit-text", action="store_true")
     parser.add_argument("--copy", action="store_true")
     args = parser.parse_args()
@@ -874,6 +895,8 @@ def _main():
         model=args.model,
         edit_text=args.edit_text,
         copy=args.copy,
+        prompt_file=args.prompt_file,
+        data_dir=get_default_data_dir(),
     )
     chat.exec()
 

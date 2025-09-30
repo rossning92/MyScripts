@@ -1,6 +1,6 @@
 {
-  "name": "my-extension",
-  "displayName": "my-extension",
+  "name": "ross.scripts",
+  "displayName": "ross.scripts",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -16,7 +16,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "my-extension.helloWorld",
+        "command": "ross.scripts.helloWorld",
         "title": "Hello World"
       }
     ]

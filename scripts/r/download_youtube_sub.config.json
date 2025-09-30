@@ -1,0 +1,4 @@
+{
+  "matchClipboard": "{{ include('r/video_url_regex_youtube.txt') }}",
+  "packages": "yt-dlp"
+}

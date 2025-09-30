@@ -1,6 +1,6 @@
 {
-  "name": "my-coder",
-  "displayName": "my-coder",
+  "name": "ross.coder",
+  "displayName": "ross.coder",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -16,13 +16,13 @@
   "contributes": {
     "commands": [
       {
-        "command": "my-coder.edit",
+        "command": "ross.coder.edit",
         "title": "Coder: Edit"
       }
     ],
     "keybindings": [
       {
-        "command": "my-coder.edit",
+        "command": "ross.coder.edit",
         "key": "ctrl+k c",
         "when": "editorTextFocus"
       }

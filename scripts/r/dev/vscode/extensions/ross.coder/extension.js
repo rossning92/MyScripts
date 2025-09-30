@@ -34,7 +34,7 @@ async function runCoder({ args }) {
  */
 function activate(context) {
   const disposable = vscode.commands.registerCommand(
-    "my-coder.edit",
+    "ross.coder.edit",
     async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
