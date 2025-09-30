@@ -3,7 +3,7 @@ import os
 import shutil
 import zipfile
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 
 CHECKPOINTS_DIR = os.path.join(".config", "coder", "checkpoints")
 HISTORY_DIR = os.path.join(".config", "coder", "history")
@@ -64,3 +64,21 @@ def restore_files_since_timestamp(timestamp: float) -> None:
     for _, checkpoint_file in checkpoints:
         checkpoint_path = os.path.join(CHECKPOINTS_DIR, checkpoint_file)
         os.remove(checkpoint_path)
+
+
+def get_oldest_files_since_timestamp(timestamp: float) -> List[Tuple[str, str]]:
+    seen = set()
+    old_files: List[Tuple[str, str]] = []
+    if os.path.exists(HISTORY_DIR):
+        for entry in sorted(os.listdir(HISTORY_DIR)):
+            entry_time = float(entry)
+            if entry_time >= timestamp:
+                sub_history_dir = os.path.join(HISTORY_DIR, entry)
+                for root, _, files in os.walk(sub_history_dir):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        rel_path = os.path.relpath(file_path, start=sub_history_dir)
+                        if rel_path not in seen:
+                            seen.add(rel_path)
+                            old_files.append((sub_history_dir, rel_path))
+    return old_files

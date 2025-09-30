@@ -14,9 +14,13 @@ from ai.tools.grep_tool import grep_tool
 from ai.tools.list_files import list_files
 from ai.tools.read_file import read_file
 from ai.tools.run_bash_command import run_bash_command
-from utils.checkpoints import restore_files_since_timestamp
+from utils.checkpoints import (
+    get_oldest_files_since_timestamp,
+    restore_files_since_timestamp,
+)
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
+from utils.shutil import start_process
 
 README_FILE = "README.md"
 
@@ -38,7 +42,11 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
         self.__update_settings()
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {**super().get_default_values(), "need_confirm": True}
+        return {
+            **super().get_default_values(),
+            "need_confirm": True,
+            "auto_open_diff": False,
+        }
 
     def on_dict_update(self, data):
         super().on_dict_update(data)
@@ -65,6 +73,7 @@ class CodeAgentMenu(AgentMenu):
         self.__file_context_menu = FileContextMenu(files=files)
         self.add_command(self.__add_file, hotkey="@")
         self.add_command(self.__edit_instructions)
+        self.add_command(self.__open_diff, hotkey="ctrl+d")
 
     def __edit_instructions(self):
         self.call_func_without_curses(
@@ -85,6 +94,17 @@ class CodeAgentMenu(AgentMenu):
 
 {s}
 """
+
+    def __open_diff(self):
+        messages = self.get_messages()
+        if len(messages) == 0:
+            self.set_message("No messages found")
+
+        for history_dir, rel_path in get_oldest_files_since_timestamp(
+            messages[0]["timestamp"]
+        ):
+            full_path = os.path.join(history_dir, rel_path)
+            start_process(["code", "--diff", full_path, rel_path])
 
     def get_tools(self) -> List[Callable]:
         return [
@@ -128,6 +148,10 @@ class CodeAgentMenu(AgentMenu):
             else:
                 path = file
             self.insert_text(f"`{path}` ")
+
+    def on_result(self, result: str):
+        if self.get_setting("auto_open_diff"):
+            self.__open_diff()
 
 
 def _parse_files(files: List[str]) -> List[str]:

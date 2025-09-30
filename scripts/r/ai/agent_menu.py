@@ -370,6 +370,7 @@ class AgentMenu(ChatMenu):
                 self.close()
 
             self.on_response(result[0], done=True)
+            self.on_result(result[0])
 
         elif not reply:
             self.on_response(text_content, done=False)
@@ -382,6 +383,9 @@ class AgentMenu(ChatMenu):
                 self.send_message(reply, tool_results=tool_results)
 
     def on_response(self, text: str, done: bool):
+        pass
+
+    def on_result(self, result: str):
         pass
 
     def __on_tool_use_start(self, tool_use: ToolUse):

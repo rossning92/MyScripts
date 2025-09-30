@@ -402,6 +402,9 @@
   "libreoffice": {
     "winget": {
       "packages": ["TheDocumentFoundation.LibreOffice"]
+    },
+    "pacman": {
+      "packages": ["libreoffice-still"]
     }
   },
   "lux": {
