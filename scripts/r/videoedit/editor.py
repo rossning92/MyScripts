@@ -5,12 +5,14 @@ import os
 import re
 import subprocess
 import tarfile
+from collections import OrderedDict
 from pprint import pprint
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import moviepy.audio.fx.all as afx
 import moviepy.video.fx.all as vfx
 import numpy as np
+from _pkgmanager import require_package
 from _shutil import call2, file_is_old, format_time, get_hash, mkdir, print2
 from audio.postprocess import dynamic_audio_normalize, process_audio_file
 from moviepy.editor import (
@@ -31,8 +33,6 @@ from .render_text import render_text
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-from collections import OrderedDict
-from typing import Any, Dict, List
 
 default_video_track_name = "vid"
 default_audio_track_name = "record"
@@ -177,9 +177,10 @@ def get_current_audio_pos():
     return _state.pos_dict["a"]
 
 
-def _tts_to_wav_google(out_file, text):
-    tmp_file = "tmp/tts/%s_gtts.mp3" % hash
-    call2(["gtts-cli", text, "--lang", "zh-cn", "--nocheck", "--output", tmp_file])
+def _tts_to_wav_gtts(out_file, text):
+    require_package("gtts")
+    tmp_file = out_file + ".tmp.mp3"
+    call2(["gtts-cli", text, "--lang", "zh", "--nocheck", "--output", tmp_file])
     call2(
         [
             "ffmpeg",
@@ -222,7 +223,7 @@ def _try_generate_tts():
     if not os.path.exists(out_file):
         print("generate tts file: %s" % out_file)
 
-        _tts_to_wav_microsoft(out_file, _state.cached_line_to_tts)
+        _tts_to_wav_gtts(out_file, _state.cached_line_to_tts)
 
     record(out_file, postprocess=False, vol=2)
 
@@ -1237,7 +1238,7 @@ def _adjust_mpy_audio_clip_volume(clip, vol_keypoints):
     xp = []
     fp = []
 
-    for (p, vol) in vol_keypoints:
+    for p, vol in vol_keypoints:
         if isinstance(vol, (int, float)):
             xp.append(p)
             fp.append(vol)

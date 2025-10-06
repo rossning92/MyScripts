@@ -2,6 +2,7 @@ import argparse
 import os
 import signal
 import subprocess
+import sys
 
 from _shutil import call_echo
 
@@ -31,12 +32,15 @@ def start_server(file=None, port=None, dev=True):
 
     args += [file]
 
-    ps = subprocess.Popen(
-        args,
-        cwd=movy_root,
-        # CTRL+C signals will be disabled in current process
-        creationflags=0x00000200,
-    )
+    if sys.platform == "win32":
+        ps = subprocess.Popen(
+            args,
+            cwd=movy_root,
+            # CTRL+C signals will be disabled in current process
+            creationflags=0x00000200,
+        )
+    else:
+        ps = subprocess.Popen(args, cwd=movy_root)
     return ps
 
 

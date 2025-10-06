@@ -2,7 +2,7 @@ import os
 import pathlib
 import sys
 
-from utils.create_symlink import create_symlink
+from utils.symlink import create_symlink
 
 
 def _main():

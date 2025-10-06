@@ -304,6 +304,15 @@ local globalkeys = gears.table.join(
         description = "swap with previous client by index",
         group = "client"
     }),
+    awful.key({ modkey, "Shift" }, "f", function()
+        local c = client.focus
+        if c then
+            c.floating = true
+            c.width = 1920
+            c.height = 1080
+            awful.placement.centered(c, { honor_workarea = true })
+        end
+    end, { description = "force window floating 1920x1080", group = "client" }),
     awful.key({ modkey, "Control" }, "j", function()
         awful.screen.focus_relative(1)
     end, {
@@ -566,7 +575,7 @@ awful.rules.rules = { -- All clients will match this rule.
             class = { "Arandr", "Blueman-manager", "Gpick", "Kruler", "MessageWin", -- kalarm.
                 "Sxiv",
                 "Tor Browser",                                                      -- Needs a fixed window size to avoid fingerprinting by screen size.
-                "Wpa_gui", "veromix", "xtightvncviewer" },
+                "Wpa_gui", "veromix", "xtightvncviewer", "mpv", },
 
             -- Note that the name property shown in xprop might be set slightly after creation of the client
             -- and the name shown there might not match defined rules here.

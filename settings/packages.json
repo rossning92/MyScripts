@@ -359,11 +359,16 @@
       "packages": ["GnuWin32.Grep"]
     }
   },
+  "gtts": {
+    "pip": {
+      "packages": ["gTTS"]
+    }
+  },
   "imagemagick": {
     "choco": {
       "packages": ["imagemagick"]
     },
-    "executables": ["C:\\Program Files\\ImageMagick-*\\magick.exe"],
+    "executables": ["magick", "C:\\Program Files\\ImageMagick-*\\magick.exe"],
     "pacman": {
       "packages": ["imagemagick"]
     },
@@ -400,11 +405,11 @@
     }
   },
   "libreoffice": {
-    "winget": {
-      "packages": ["TheDocumentFoundation.LibreOffice"]
-    },
     "pacman": {
       "packages": ["libreoffice-still"]
+    },
+    "winget": {
+      "packages": ["TheDocumentFoundation.LibreOffice"]
     }
   },
   "lux": {

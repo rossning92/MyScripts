@@ -16,7 +16,6 @@ import sys
 import tempfile
 import threading
 import time
-import unicodedata
 from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
@@ -248,7 +247,7 @@ def cd(path, expand=True, auto_create_dir=False):
     os.chdir(path)
 
 
-def call2(args, check=True, shell=True, **kwargs):
+def call2(args, check=True, shell=sys.platform == "win32", **kwargs):
     def quote(s):
         if " " in s:
             s = '"%s"' % s
@@ -258,7 +257,6 @@ def call2(args, check=True, shell=True, **kwargs):
         s = " ".join([quote(x) for x in args])
     else:
         s = args
-
     logger.debug("shell_cmd: %s" % s)
     subprocess.run(args, check=check, shell=shell, **kwargs)
 
@@ -1531,11 +1529,6 @@ def timing(f):
         return ret
 
     return wrap
-
-
-def create_symlink(src, dst):
-    assert os.path.isdir(src)
-    subprocess.check_call(["MKLINK", "/J", dst, src], shell=True)
 
 
 def to_valid_file_name(value):

@@ -5,7 +5,7 @@
       "label": "Build videoedit extension",
       "type": "npm",
       "script": "watch",
-      "path": "scripts/r/videoedit/_extension",
+      "path": "scripts/r/dev/vscode/extensions/ross.videoedit",
       "group": "build",
       "problemMatcher": "$tsc-watch",
     },

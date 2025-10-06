@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 import time
 
 from _shutil import cd, get_files
@@ -30,7 +31,11 @@ def export_movy_animation(file):
         browser = await launch(
             headless=False,
             args=["--disable-dev-shm-usage"],
-            executablePath=r"C:\Program Files\Chromium\Application\chrome.exe",
+            executablePath=(
+                r"C:\Program Files\Chromium\Application\chrome.exe"
+                if sys.platform == "win32"
+                else "chromium"
+            ),
         )
         page = await browser.newPage()
         download_dir = os.path.abspath(os.path.dirname(file))
@@ -86,4 +91,3 @@ if __name__ == "__main__":
     assert file.endswith(".js")
 
     export_movy_animation(file)
-

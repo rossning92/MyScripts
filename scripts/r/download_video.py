@@ -15,14 +15,13 @@ from utils.retry import retry
 root = os.path.dirname(os.path.realpath(__file__))
 
 
-def get_download_dir(name, base=None):
+def get_download_dir(base=None):
     if base is None:
         d = os.environ["VIDEO_DOWNLOAD_DIR"]
         if not d:
             d = os.path.join(os.path.expanduser("~"), "Desktop")
     else:
         d = base
-    d = os.path.join(d, name)
     if not os.path.exists(d):
         os.makedirs(d)
     return d
@@ -57,13 +56,13 @@ def download_youtube(url, download_dir=None, audio_only=False, download_playlist
 def download_video(url, audio_only=False, download_dir=None, save_url=True):
     url = get_redirected_url(url)
     if "bilibili.com" in url:
-        ddir = get_download_dir("Bilibili", base=download_dir)
+        ddir = get_download_dir(base=download_dir)
         download_bilibili(
             url,
             download_dir=ddir,
         )
     elif "youtube.com" in url:
-        ddir = get_download_dir("Youtube", base=download_dir)
+        ddir = get_download_dir(base=download_dir)
         download_youtube(
             url,
             download_dir=ddir,

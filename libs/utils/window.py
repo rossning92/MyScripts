@@ -5,7 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
-from typing import Literal
+from typing import Literal, Optional
 
 TITLE_MATCH_MODE_EXACT = 0
 TITLE_MATCH_MODE_PARTIAL = 1
@@ -193,3 +193,41 @@ def activate_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
 
 def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
     return _control_window(name=name, cmd="close", match_mode=match_mode)
+
+
+def get_window_rect(window_name: Optional[str] = None) -> tuple[int, int, int, int]:
+    if sys.platform == "linux":
+        if window_name:
+            cmd = ["xwininfo", "-name", window_name]
+        else:
+            # Get the window rect for the currently active window
+            window_id_proc = subprocess.run(
+                ["xdotool", "getactivewindow"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            window_id = window_id_proc.stdout.strip()
+            cmd = ["xwininfo", "-id", window_id]
+        proc = subprocess.run(
+            cmd,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        output = proc.stdout
+
+        x_match = re.search(r"Absolute upper-left X:\s+(-?\d+)", output)
+        y_match = re.search(r"Absolute upper-left Y:\s+(-?\d+)", output)
+        width_match = re.search(r"Width:\s+(\d+)", output)
+        height_match = re.search(r"Height:\s+(\d+)", output)
+        if not x_match or not y_match or not width_match or not height_match:
+            raise Exception("Unable to parse xwininfo output")
+        return (
+            int(x_match.group(1)),
+            int(y_match.group(1)),
+            int(width_match.group(1)),
+            int(height_match.group(1)),
+        )
+    else:
+        raise NotImplementedError

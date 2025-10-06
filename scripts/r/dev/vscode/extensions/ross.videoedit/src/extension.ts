@@ -106,8 +106,7 @@ function startSlideServer(file: string) {
   // Return random port number between 10000 and 20000
   let port = Math.floor(Math.random() * 10000) + 10000;
 
-  const shellArgs = [
-    "/c",
+  const args = [
     "run_script",
     "slide/export.js",
     "-d",
@@ -117,25 +116,16 @@ function startSlideServer(file: string) {
     "slide",
     "-i",
     file,
-    "||",
-    "pause",
   ];
 
-  openTerminal({ name: "SlideServer", shellArgs });
+  openTerminal({ name: "SlideServer", args });
 
   openInBrowser(`http://localhost:${port}`);
 }
 
 function runPython(file: string) {
-  const shellArgs = [
-    "/c",
-    "run_script",
-    "@cd=1:template=0",
-    file,
-    "||",
-    "pause",
-  ];
-  openTerminal({ name: "Python", shellArgs });
+  const args = ["run_script", "@cd=1:template=0:command_wrapper=1", file];
+  openTerminal({ name: "Python", args });
 }
 
 async function openFileUnderCursor() {
@@ -508,12 +498,12 @@ function writeTempTextFile(text: string) {
 
 function openTerminal({
   name,
-  shellArgs,
+  args,
   singleInstance = true,
   cwd,
 }: {
   name: string;
-  shellArgs: string[];
+  args: string[];
   singleInstance?: boolean;
   cwd?: string;
 }) {
@@ -529,8 +519,8 @@ function openTerminal({
   // Create a new terminal.
   const terminal = vscode.window.createTerminal({
     name,
-    shellPath: "cmd.exe",
-    shellArgs,
+    shellPath: args[0],
+    shellArgs: args.splice(1),
     cwd,
   });
 
@@ -543,18 +533,16 @@ function startMovyServer(file: string) {
   // Return random port number between 10000 and 20000
   let port = Math.floor(Math.random() * 10000) + 10000;
 
-  const shellArgs = [
-    "/c",
+  const args = [
     "run_script",
+    "@command_wrapper=1",
     "r/videoedit/start_movy_server.py",
     "-p",
     port.toString(),
     file,
-    "||",
-    "pause",
   ];
 
-  openTerminal({ name: "MovyServer", shellArgs });
+  openTerminal({ name: "MovyServer", args });
   openInBrowser(`http://localhost:${port}/?file=${path.basename(file)}`);
 }
 
@@ -614,9 +602,9 @@ function exportVideo({
     let activeDirectory = path.dirname(activeFilePath);
 
     const textFile = writeTempTextFile(textIn);
-    let shellArgs: string[] = [
-      "/c",
+    let args: string[] = [
       "run_script",
+      "@command_wrapper=1",
       "r/videoedit/export_video.py",
       "-i",
       textFile,
@@ -625,15 +613,13 @@ function exportVideo({
     ];
 
     if (extraArgs) {
-      shellArgs = shellArgs.concat(extraArgs);
+      args = args.concat(extraArgs);
     }
-
-    shellArgs.push("||", "pause");
 
     openTerminal({
       name: "ExportVideoDraft",
       cwd: activeDirectory,
-      shellArgs: shellArgs,
+      args,
     });
   }
 }

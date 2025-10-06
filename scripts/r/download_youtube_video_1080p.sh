@@ -5,9 +5,6 @@ if [[ -n "$VIDEO_DOWNLOAD_DIR" ]]; then
     cd "$VIDEO_DOWNLOAD_DIR"
 fi
 
-mkdir -p Youtube
-cd Youtube
-
 # https://github.com/yt-dlp/yt-dlp#format-selection
 yt-dlp -S "res:1080" --no-mtime "$1" --no-playlist
 

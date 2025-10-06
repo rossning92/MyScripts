@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from utils.create_symlink import create_symlink
+from utils.symlink import create_symlink
 
 
 def link_vscode_extension(extension_dir: str):

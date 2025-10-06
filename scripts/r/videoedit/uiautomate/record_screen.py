@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 from tempfile import gettempdir
+from typing import Optional
 
 import pyautogui
 from _script import get_variable, set_variable
@@ -20,15 +21,28 @@ from _shutil import (
     start_process,
     wait_for_key,
 )
-from _term import activate_cur_terminal, minimize_cur_terminal
 from _video import ffmpeg
 from audio.postprocess import loudnorm
+from pynput import keyboard
 from utils.slugify import slugify
+from utils.window import get_window_rect
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 
 DEFAULT_WINDOW_SIZE = (1920, 1080)
+
+
+def _get_default_monitor_source() -> Optional[str]:
+    try:
+        # Get default output device
+        source = subprocess.check_output(
+            ["pactl", "get-default-sink"],
+            text=True,
+        ).strip()
+        return source + ".monitor"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
 
 
 def set_window_pos(left, top, width, height, hwnd=None):
@@ -76,6 +90,9 @@ class ScreenRecorder:
         raise NotImplementedError
 
     def save(self, file):
+        raise NotImplementedError
+
+    def is_recording(self) -> bool:
         raise NotImplementedError
 
 
@@ -217,35 +234,82 @@ class FFmpegScreenRecorder(ScreenRecorder):
             "-hide_banner",
             "-loglevel",
             "error",
-            "-f",
-            "gdigrab",
-            "-framerate",
-            "60",
         ]
 
-        if self.rect is not None:
+        if sys.platform.startswith("win"):
             args += [
-                "-offset_x",
-                f"{self.rect[0]}",
-                "-offset_y",
-                f"{self.rect[1]}",
-                "-video_size",
-                f"{self.rect[2]}x{self.rect[3]}",
+                "-f",
+                "gdigrab",
+                "-framerate",
+                "60",
             ]
 
+            if self.rect is not None:
+                args += [
+                    "-offset_x",
+                    f"{self.rect[0]}",
+                    "-offset_y",
+                    f"{self.rect[1]}",
+                    "-video_size",
+                    f"{self.rect[2] // 2 * 2}x{self.rect[3] // 2 * 2}",
+                ]
+
+            args += [
+                "-draw_mouse",
+                "1",
+                "-i",
+                "desktop",
+            ]
+        else:
+            if self.rect is not None:
+                x, y, width, height = self.rect
+            else:
+                screen_width, screen_height = pyautogui.size()
+                x, y = 0, 0
+                width, height = screen_width, screen_height
+
+            display = os.environ.get("DISPLAY", ":0.0")
+            args += [
+                "-f",
+                "x11grab",
+                "-framerate",
+                "60",
+                "-video_size",
+                f"{width // 2 * 2}x{height // 2 * 2}",
+                "-i",
+                f"{display}+{x},{y}",
+            ]
+
+            if not self.no_audio:
+                source = _get_default_monitor_source()
+                if not source:
+                    raise Exception("Failed to find any audio monitor source")
+                args += ["-f", "pulse", "-i", source]
+
         args += [
-            "-draw_mouse",
-            "1",
-            "-i",
-            "desktop",
             "-c:v",
             "libx264",
             "-r",
             "60",
             "-preset",
             "ultrafast",
+            "-crf",
+            "19",
             "-pix_fmt",
             "yuv420p",
+        ]
+
+        if not self.no_audio:
+            args += [
+                "-c:a",
+                "aac",
+                "-b:a",
+                "160k",
+            ]
+        else:
+            args += ["-an"]
+
+        args += [
             "-y",
             self.tmp_file,
         ]
@@ -272,6 +336,9 @@ class FFmpegScreenRecorder(ScreenRecorder):
             os.remove(file)
 
         move_file(self.tmp_file, file)
+
+    def is_recording(self) -> bool:
+        return self.proc is not None
 
 
 recorder = FFmpegScreenRecorder()
@@ -349,18 +416,38 @@ def record_app(*, file, args=None, title=None, callback=None, size=DEFAULT_WINDO
 
 
 def prompt_record_file_name():
+    args = ["zenity", "--entry", "--text=Enter file name:"]
+
     last_file_name = get_variable("LAST_SCREEN_RECORD_FILE_NAME")
     if last_file_name:
-        default_file_name = get_next_file_name(last_file_name)
-    else:
-        default_file_name = None
+        suggest_file_name = get_next_file_name(last_file_name)
+        args.append(f"--entry-text={suggest_file_name}")
 
-    name = input("Input file name [%s]: " % str(default_file_name))
+    result = subprocess.run(
+        args,
+        capture_output=True,
+        text=True,
+    )
+    name = result.stdout.strip()
     if not name:
-        name = default_file_name
+        return None
+
     set_variable("LAST_SCREEN_RECORD_FILE_NAME", name)
     file = os.path.join(out_dir, "%s.mp4" % slugify(name))
     return file
+
+
+def on_press(key):
+    if key == keyboard.Key.f9:
+        if not recorder.is_recording():
+            recorder.rect = get_window_rect()
+            recorder.start_record()
+        else:
+            recorder.stop_record()
+            file = prompt_record_file_name()
+            if file:
+                recorder.save(file)
+                call_echo(["mpv", file])
 
 
 if __name__ == "__main__":
@@ -373,6 +460,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--no_audio", default=False, action="store_true")
     parser.add_argument("--out_dir", type=str, default=None)
+    parser.add_argument("--window-name", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -388,27 +476,9 @@ if __name__ == "__main__":
         if not out_dir:
             out_dir = os.path.expanduser("~/Desktop")
 
-    minimize_cur_terminal()
-
-    while True:
+    if args.window_name:
+        recorder.rect = get_window_rect(args.window_name)
         recorder.start_record()
 
-        pressed = wait_for_key(["f6", "f7"])
-        if pressed == "f6":
-            print("Canceling record...")
-            recorder.stop_record()
-            continue
-
-        elif pressed == "f7":
-            print("Stoping record...")
-            recorder.stop_record()
-            break
-
-    activate_cur_terminal()
-    file = prompt_record_file_name()
-    recorder.save(file)
-
-    # Open file
-    call_echo(["mpv", file])
-
-    time.sleep(1)
+    with keyboard.Listener(on_press=on_press) as listener:
+        listener.join()
