@@ -304,15 +304,17 @@ local globalkeys = gears.table.join(
         description = "swap with previous client by index",
         group = "client"
     }),
-    awful.key({ modkey, "Shift" }, "f", function()
+    awful.key({ modkey }, "f", function()
         local c = client.focus
         if c then
-            c.floating = true
-            c.width = 1920
-            c.height = 1080
-            awful.placement.centered(c, { honor_workarea = true })
+            c.floating = not c.floating
+            if c.floating then
+                c.width = 1920
+                c.height = 1080
+                awful.placement.centered(c, { honor_workarea = true })
+            end
         end
-    end, { description = "force window floating 1920x1080", group = "client" }),
+    end, { description = "toggle window floating 1920x1080", group = "client" }),
     awful.key({ modkey, "Control" }, "j", function()
         awful.screen.focus_relative(1)
     end, {
@@ -467,13 +469,14 @@ local globalkeys = gears.table.join(
     })
 )
 
-local clientkeys = gears.table.join(awful.key({ modkey }, "f", function(c)
-        c.fullscreen = not c.fullscreen
-        c:raise()
-    end, {
-        description = "toggle fullscreen",
-        group = "client"
-    }),
+local clientkeys = gears.table.join(
+-- awful.key({ modkey }, "f", function(c)
+--     c.fullscreen = not c.fullscreen
+--     c:raise()
+-- end, {
+--     description = "toggle fullscreen",
+--     group = "client"
+-- }),
     awful.key({ "Mod1" }, "F4", function(c)
         c:kill()
     end, {

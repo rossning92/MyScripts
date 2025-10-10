@@ -538,7 +538,8 @@
     "executables": ["%LOCALAPPDATA%\\ocenaudio\\ocenaudio.exe"],
     "winget": {
       "packages": ["Ocenaudio.Ocenaudio"]
-    }
+    },
+    "yay": { "packages": ["ocenaudio-bin"] }
   },
   "openscad": {
     "pacman": {

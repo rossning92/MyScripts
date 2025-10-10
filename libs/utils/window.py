@@ -195,26 +195,30 @@ def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
     return _control_window(name=name, cmd="close", match_mode=match_mode)
 
 
-def get_window_rect(window_name: Optional[str] = None) -> tuple[int, int, int, int]:
+def get_window_rect(
+    window_name: Optional[str] = None,
+) -> Optional[tuple[int, int, int, int]]:
     if sys.platform == "linux":
-        if window_name:
-            cmd = ["xwininfo", "-name", window_name]
-        else:
-            # Get the window rect for the currently active window
-            window_id_proc = subprocess.run(
-                ["xdotool", "getactivewindow"],
+        try:
+            if window_name:
+                cmd = ["xwininfo", "-name", window_name]
+            else:
+                window_id_proc = subprocess.run(
+                    ["xdotool", "getactivewindow"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                window_id = window_id_proc.stdout.strip()
+                cmd = ["xwininfo", "-id", window_id]
+            proc = subprocess.run(
+                cmd,
                 check=True,
                 capture_output=True,
                 text=True,
             )
-            window_id = window_id_proc.stdout.strip()
-            cmd = ["xwininfo", "-id", window_id]
-        proc = subprocess.run(
-            cmd,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        except subprocess.CalledProcessError:
+            return None
         output = proc.stdout
 
         x_match = re.search(r"Absolute upper-left X:\s+(-?\d+)", output)
@@ -231,3 +235,36 @@ def get_window_rect(window_name: Optional[str] = None) -> tuple[int, int, int, i
         )
     else:
         raise NotImplementedError
+
+
+def set_window_rect(left, top, width, height, hwnd=None):
+    if hwnd is None:
+        hwnd = ctypes.windll.user32.GetForegroundWindow()
+
+    logging.debug("set window pos")
+    ctypes.windll.user32.SetProcessDPIAware()
+    ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+    ctypes.windll.user32.SetForegroundWindow(hwnd)
+
+    arect = ctypes.wintypes.RECT()
+    DWMWA_EXTENDED_FRAME_BOUNDS = 9
+    ret = ctypes.windll.dwmapi.DwmGetWindowAttribute(
+        ctypes.wintypes.HWND(hwnd),
+        ctypes.wintypes.DWORD(DWMWA_EXTENDED_FRAME_BOUNDS),
+        ctypes.byref(arect),
+        ctypes.sizeof(arect),
+    )
+    if ret != 0:
+        raise Exception("DwmGetWindowAttribute failed")
+
+    rect = ctypes.wintypes.RECT()
+    ctypes.windll.user32.GetWindowRect(hwnd, ctypes.byref(rect))
+    dx = rect.left - arect.left
+    dy = rect.top - arect.top
+    dw = rect.right - arect.right - dx
+    dh = rect.bottom - arect.bottom - dy
+    ctypes.windll.user32.MoveWindow(
+        hwnd, left + dx, top + dy, width + dw, height + dh, True
+    )
+
+    time.sleep(0.1)

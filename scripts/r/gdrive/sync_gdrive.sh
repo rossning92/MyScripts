@@ -29,10 +29,11 @@ rclone_wrapper() {
         --max-lock 2m \
         --recover \
         --resilient \
-		--exclude=__pycache__/** \
-		--exclude=.mypy_cache/** \
-		--exclude=node_modules/** \
-		--exclude=tmp/** \
+        --exclude=__pycache__/** \
+        --exclude=.config/** \
+        --exclude=.mypy_cache/** \
+        --exclude=node_modules/** \
+        --exclude=tmp/** \
         --conflict-resolve newer \
         $extra_args \
         "${@:3}" \

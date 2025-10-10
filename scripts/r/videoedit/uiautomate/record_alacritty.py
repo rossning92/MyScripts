@@ -9,12 +9,12 @@ from _shutil import write_temp_file
 from utils.logger import setup_logger
 from utils.shutil import shell_open
 from utils.term.alacritty import wrap_args_alacritty
+from utils.window import set_window_rect
 
 from .common import run_commands
 from .record_screen import (
     DEFAULT_WINDOW_SIZE,
     record_screen,
-    set_window_pos,
     start_application,
 )
 
@@ -77,7 +77,7 @@ def term(cmd):
     while hwnd == 0:
         hwnd = ctypes.windll.user32.FindWindowW(None, "AlacrittyAutomation")
         time.sleep(0.1)
-    set_window_pos(0, 0, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1], hwnd=hwnd)
+    set_window_rect(0, 0, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1], hwnd=hwnd)
     run_commands(cmd, no_sleep=True)
 
 
