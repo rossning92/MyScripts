@@ -346,10 +346,15 @@ recorder = FFmpegScreenRecorder()
 _cur_file = None
 
 
-def start_record(file, rect=(0, 0, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1])):
+def start_record(file, rect=None, window_name=None):
     global _cur_file
 
     _cur_file = file
+    rect = None
+    print(f'Querying window rect for "{window_name}"', end="")
+    while not rect:
+        rect = get_window_rect(window_name=window_name)
+        time.sleep(0.1)
     recorder.rect = rect
     recorder.start_record()
 
@@ -359,9 +364,7 @@ def stop_record():
     recorder.save(_cur_file)
 
 
-def record_screen(
-    file, callback=None, rect=(0, 0, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1])
-):
+def record_screen(file, callback=None, rect=None):
     recorder.rect = rect
 
     if callback is None:

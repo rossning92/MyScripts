@@ -195,26 +195,30 @@ def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
     return _control_window(name=name, cmd="close", match_mode=match_mode)
 
 
-def get_window_rect(window_name: Optional[str] = None) -> tuple[int, int, int, int]:
+def get_window_rect(
+    window_name: Optional[str] = None,
+) -> Optional[tuple[int, int, int, int]]:
     if sys.platform == "linux":
-        if window_name:
-            cmd = ["xwininfo", "-name", window_name]
-        else:
-            # Get the window rect for the currently active window
-            window_id_proc = subprocess.run(
-                ["xdotool", "getactivewindow"],
+        try:
+            if window_name:
+                cmd = ["xwininfo", "-name", window_name]
+            else:
+                window_id_proc = subprocess.run(
+                    ["xdotool", "getactivewindow"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                window_id = window_id_proc.stdout.strip()
+                cmd = ["xwininfo", "-id", window_id]
+            proc = subprocess.run(
+                cmd,
                 check=True,
                 capture_output=True,
                 text=True,
             )
-            window_id = window_id_proc.stdout.strip()
-            cmd = ["xwininfo", "-id", window_id]
-        proc = subprocess.run(
-            cmd,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        except subprocess.CalledProcessError:
+            return None
         output = proc.stdout
 
         x_match = re.search(r"Absolute upper-left X:\s+(-?\d+)", output)
