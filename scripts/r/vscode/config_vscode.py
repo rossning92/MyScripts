@@ -8,6 +8,7 @@ from typing import List, Optional
 
 from _shutil import download, get_home_path, prepend_to_path, unzip
 from scripting.path import get_my_script_root
+from utils.retry import retry
 
 if sys.platform == "win32":
     prepend_to_path([r"C:\Program Files\Microsoft VS Code\bin"])
@@ -26,13 +27,40 @@ def install_glslangvalidator():
         )
 
 
+@retry()
 def run_command(args: List[str], check=True):
-    subprocess.run(
+    fatal_error_detected = False
+    stderr_chunks = []
+    process = subprocess.Popen(
         args,
         shell=sys.platform == "win32",
-        stdout=subprocess.DEVNULL,
-        check=check,
+        stderr=subprocess.PIPE,
+        text=True,
     )
+
+    assert process.stderr is not None
+    for line in iter(process.stderr.readline, ""):
+        sys.stderr.write(line)
+        sys.stderr.flush()
+        stderr_chunks.append(line)
+        # Workaround: Node.js will hang instead of crashing on the following error, so we manually kill the process.
+        # https://github.com/nodejs/node/issues/56531
+        if "FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal" in line:
+            fatal_error_detected = True
+            process.kill()
+            break
+
+    returncode = process.wait()
+    process.stderr.close()
+    stderr_text = "".join(stderr_chunks)
+
+    if fatal_error_detected:
+        raise RuntimeError(
+            "Encountered 'FATAL ERROR: v8::ToLocalChecked Empty MaybeLocal' too many times"
+        )
+
+    if check and returncode != 0:
+        raise subprocess.CalledProcessError(returncode, args, stderr=stderr_text)
 
 
 def get_vscode_cmdline(data_dir: Optional[str] = None) -> List[str]:
@@ -122,7 +150,7 @@ def setup_color_theme(data_dir: str):
     install_extensions(["dracula-theme.theme-dracula"], data_dir=data_dir)
     update_settings(
         {
-            "workbench.colorTheme": "Dracula",
+            "workbench.colorTheme": "Dracula Theme",
             "workbench.preferredDarkColorTheme": "Dracula Theme",
             "workbench.preferredLightColorTheme": "Default Light+",
         },
@@ -165,7 +193,7 @@ def setup_openscad(data_dir: str):
     install_extensions(["Leathong.openscad-language-support"], data_dir=data_dir)
 
 
-def config_vscode(data_dir=None, compact=False):
+def config_vscode(data_dir=None):
     if not data_dir:
         if sys.platform == "win32":
             data_dir = os.path.expandvars("%APPDATA%/Code")
@@ -220,10 +248,45 @@ def config_vscode(data_dir=None, compact=False):
         data_dir=data_dir,
     )
 
+    update_key_bindings(data_dir)
+
+    settings = update_settings_common()
+
+    update_settings(settings, data_dir=data_dir)
+
+
+def update_settings_common():
+    print("Update settings...")
+    settings = {
+        "cSpell.enabledLanguageIds": ["markdown", "text"],
+        "editor.codeActionsOnSave": {"source.organizeImports": True},
+        "editor.formatOnSave": True,
+        "editor.minimap.enabled": False,
+        "files.trimTrailingWhitespace": True,
+        "pasteImage.path": "${currentFileNameWithoutExt}",
+        "search.exclude": {"**/build": True},
+        "workbench.editor.enablePreviewFromQuickOpen": False,
+        "window.title": "${rootName}${separator}${appName}",
+    }
+
+    settings.update(
+        {
+            "[markdown]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[html]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[javascript]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[json]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[jsonc]": {"editor.defaultFormatter": "vscode.json-language-features"},
+        }
+    )
+
+    return settings
+
+
+def update_key_bindings(data_dir: str):
     print("Update key bindings...")
-    with open(
-        os.path.abspath(data_dir + "/User/keybindings.json"), "w", encoding="utf-8"
-    ) as f:
+    keybindings_path = os.path.abspath(data_dir + "/User/keybindings.json")
+    os.makedirs(os.path.dirname(keybindings_path), exist_ok=True)
+    with open(keybindings_path, "w", encoding="utf-8") as f:
         json.dump(
             [
                 {
@@ -315,55 +378,6 @@ def config_vscode(data_dir=None, compact=False):
             indent=4,
         )
 
-    print("Update settings...")
-
-    settings = {
-        "cSpell.enabledLanguageIds": ["markdown", "text"],
-        "editor.codeActionsOnSave": {"source.organizeImports": True},
-        "editor.formatOnSave": True,
-        "editor.minimap.enabled": False,
-        "files.trimTrailingWhitespace": True,
-        "pasteImage.path": "${currentFileNameWithoutExt}",
-        "search.exclude": {"**/build": True},
-        "workbench.editor.enablePreviewFromQuickOpen": False,
-        "window.title": "${rootName}${separator}${appName}",
-    }
-
-    settings.update(
-        {
-            "[markdown]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
-            "[html]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
-            "[javascript]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
-            "[json]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
-            "[jsonc]": {"editor.defaultFormatter": "vscode.json-language-features"},
-        }
-    )
-
-    if compact:
-        settings.update(
-            {
-                "workbench.colorTheme": "One Dark Pro Flat",
-                "workbench.startupEditor": "newUntitledFile",
-                "explorer.openEditors.visible": 0,
-                "workbench.activityBar.visible": False,
-                "workbench.statusBar.visible": False,
-                "window.zoomLevel": 0,
-                "window.menuBarVisibility": "compact",
-                "extensions.ignoreRecommendations": True,
-                "liveServer.settings.AdvanceCustomBrowserCmdLine": "chrome --new-window",
-                "extensions.autoCheckUpdates": False,
-                "update.mode": "manual",
-                # Terminal
-                "terminal.integrated.profiles.windows": {
-                    "Command Prompt": {"path": "cmd", "args": ["/k"]}
-                },
-                "terminal.integrated.defaultProfile.windows": "Command Prompt",
-                "scm.diffDecorations": "none",
-            }
-        )
-
-    update_settings(settings, data_dir=data_dir)
-
 
 if __name__ == "__main__":
-    config_vscode(data_dir=os.environ.get("VSCODE_DATA_DIR"), compact=False)
+    config_vscode(data_dir=os.environ.get("VSCODE_DATA_DIR"))

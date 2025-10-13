@@ -143,9 +143,10 @@ class FileMenu(Menu[_File]):
         show_mtime=True,
         show_size=True,
         allow_cd=True,
+        config: Optional[_Config] = None,
         config_dir: Optional[str] = None,
     ):
-        self.__config = _Config()
+        self.__config = config if config else _Config()
         self.__config_file = (
             os.path.join(config_dir, "filemgr_config.json") if config_dir else None
         )
@@ -288,6 +289,7 @@ class FileMenu(Menu[_File]):
                     else self.get_cur_dir()
                 ),
                 prompt="%s to" % ("copy" if copy else "move"),
+                config=self.__config,
             )
             dest_dir = filemgr.select_directory()
             if dest_dir is not None:
@@ -391,7 +393,7 @@ class FileMenu(Menu[_File]):
 
         new_file = self.get_input()
         if not new_file:
-            return None
+            return self.get_selected_file_full_path()
 
         if ext and not new_file.endswith(ext):
             new_file += ext

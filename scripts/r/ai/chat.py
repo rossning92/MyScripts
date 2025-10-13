@@ -17,6 +17,11 @@ from ai.tool_use import ToolResult, ToolUse
 from utils.textutil import truncate_text
 
 
+def get_context_text(context: str) -> str:
+    content = truncate_text(context)
+    return f"❉ context: “{content}”"
+
+
 def get_tool_result_text(tool_result: ToolResult) -> str:
     content = truncate_text(tool_result["content"])
     return f"❉ tool_result: {content}"

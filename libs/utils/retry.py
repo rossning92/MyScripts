@@ -11,7 +11,7 @@ def retry(times=3, exceptions=(Exception,)):
                 except exceptions:
                     logging.error(
                         "Error on running %s, attempt "
-                        "%d of %d" % (func, attempt, times)
+                        "%d of %d" % (func, attempt + 1, times)
                     )
                     attempt += 1
             return func(*args, **kwargs)

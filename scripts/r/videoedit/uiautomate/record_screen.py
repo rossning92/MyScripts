@@ -318,7 +318,7 @@ def _main():
     os.chdir(out_dir)
 
     def on_press(key):
-        if key == keyboard.Key.f9:
+        if key == keyboard.Key.f8:
             if not recorder.is_recording():
                 recorder.start_record()
                 if args.max_length:

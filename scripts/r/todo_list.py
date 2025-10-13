@@ -70,7 +70,7 @@ class _EditTodoItemMenu(DictEditMenu):
 class _TodoAgentMenu(AgentMenu):
     def __init__(self, **kwargs):
         self.result_item: Optional[Dict] = None
-        super().__init__(**kwargs)
+        super().__init__(escape_to_cancel=False, **kwargs)
 
     def get_system_prompt(self) -> str:
         return (
@@ -111,7 +111,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__sort_tasks()
 
-        self.add_command(self.__ai_mode, hotkey="tab")
+        self.add_command(self.__ai_mode, hotkey="space space")
         self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
         self.add_command(self.__edit_due, hotkey="alt+d")
@@ -211,7 +211,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_selected_item(item)
 
     def __ai_mode(self):
-        menu = _TodoAgentMenu(prompt="assistant")
+        menu = _TodoAgentMenu(prompt="ai")
         menu.exec()
         if menu.result_item:
             self.__add_item(menu.result_item)

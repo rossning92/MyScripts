@@ -10,7 +10,12 @@ from pprint import pformat
 from queue import Queue
 from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
 
-from ai.chat import complete_chat, get_tool_result_text, get_tool_use_text
+from ai.chat import (
+    complete_chat,
+    get_context_text,
+    get_tool_result_text,
+    get_tool_use_text,
+)
 from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
@@ -52,6 +57,7 @@ MODELS = Literal[
     "o3-mini",
     "claude-3-7-sonnet-latest",
     "claude-sonnet-4-0",
+    "claude-sonnet-4-5",
     "claude-opus-4-0",
 ]
 DEFAULT_MODEL = "gpt-4.1"
@@ -91,17 +97,21 @@ class Line:
         msg_index: int,
         subindex: int,
         text: str = "",
+        context: Optional[str] = None,
         tool_use: Optional[ToolUse] = None,
         tool_result: Optional[ToolResult] = None,
     ) -> None:
         self.role = role
         self.text = text
+        self.context = context
         self.msg_index = msg_index
         self.subindex = subindex  # subindex with in the message
         self.tool_use = tool_use
         self.tool_result = tool_result
 
     def __str__(self) -> str:
+        if self.context:
+            return get_context_text(self.context)
         if self.tool_use:
             return get_tool_use_text(self.tool_use)
         elif self.tool_result:
@@ -180,6 +190,7 @@ class ChatMenu(Menu[Line]):
         prompt_file: Optional[str] = None,
         system_prompt="",
         settings_menu_class=SettingsMenu,
+        escape_to_cancel=True,
     ) -> None:
         self.__auto_create_chat_file = chat_file is None
         self.__chat_file = chat_file
@@ -196,6 +207,7 @@ class ChatMenu(Menu[Line]):
         self.__out_file = out_file
         self.__system_prompt = system_prompt
         self.__yank_mode = 0
+        self.__escape_to_cancel = escape_to_cancel
 
         self.__data_dir = (
             data_dir if data_dir else os.path.join(".config", _MODULE_NAME)
@@ -300,6 +312,16 @@ class ChatMenu(Menu[Line]):
         self.set_message("message copied")
         return
 
+    def __create_prompt_file_menu(self, prompt: str):
+        return FileMenu(
+            prompt=prompt,
+            goto=_get_prompt_dir(),
+            show_size=False,
+            recursive=True,
+            allow_cd=False,
+            config_dir=os.path.join(".config", "load_prompt_menu"),
+        )
+
     def __edit_message(self, message_index=-1):
         if message_index < 0:
             selected = self.get_selected_item()
@@ -382,19 +404,15 @@ class ChatMenu(Menu[Line]):
         message = messages[0]  # first message
         content = message["text"]
 
-        menu = FileMenu(
-            prompt="Save prompt to file",
-            goto=_get_prompt_dir(),
-            show_size=False,
-            allow_cd=False,
-        )
+        menu = self.__create_prompt_file_menu(prompt="Save prompt")
         prompt_file = menu.select_new_file(ext=".md")
         if not prompt_file:
             return
 
-        prompt_file = slugify(prompt_file)
         with open(prompt_file, "w", encoding="utf-8") as f:
             f.write(content)
+
+        self.set_message(f"Prompt saved to {prompt_file}")
 
     def __load_chat(self):
         menu = _SelectChatMenu(chat_dir=self.__chat_dir)
@@ -405,14 +423,7 @@ class ChatMenu(Menu[Line]):
 
     def __load_prompt(self, prompt_file: Optional[str] = None):
         if not prompt_file:
-            menu = FileMenu(
-                prompt="Load prompt",
-                goto=_get_prompt_dir(),
-                show_size=False,
-                recursive=True,
-                allow_cd=False,
-                config_dir=os.path.join(".config", "load_prompt_menu"),
-            )
+            menu = self.__create_prompt_file_menu(prompt="Load prompt")
             prompt_file = menu.select_file()
 
         if not prompt_file:
@@ -515,8 +526,21 @@ class ChatMenu(Menu[Line]):
     def get_item_color(self, item: Line) -> str:
         return "white" if item.role == "assistant" else "blue"
 
-    def get_messages(self) -> List[Message]:
-        return self.__messages
+    def get_messages(self, expand_context=False) -> List[Message]:
+        if expand_context:
+            return [
+                (
+                    {
+                        **message,
+                        "text": message["text"] + "\n-------\n" + message["context"],
+                    }
+                    if i == 0 and "context" in message
+                    else message
+                )
+                for i, message in enumerate(self.__messages)
+            ]
+        else:
+            return self.__messages
 
     def get_setting(self, name: str) -> Any:
         return self.__settings_menu.data[name]
@@ -553,6 +577,7 @@ class ChatMenu(Menu[Line]):
         msg_index = len(self.get_messages())
 
         image_file = None
+        context: Optional[str] = None
         if self.__attachment:
             ext = os.path.splitext(self.__attachment)[1]
             if is_text_file(self.__attachment):
@@ -572,14 +597,6 @@ Following is my instructions:
 {text.rstrip()}
 </instructions>
 """
-                else:
-                    text = f"""{text.rstrip()}
-
-You should reply based on the provided context:
-<context>
-{context.rstrip()}
-</context>
-"""
 
             elif ext in (".jpg", ".jpeg", ".png", ".gif"):
                 image_file = self.__attachment
@@ -597,6 +614,18 @@ You should reply based on the provided context:
                 Line(role="user", text=text, msg_index=msg_index, subindex=subindex)
             )
             subindex += 1
+
+        if context:
+            message["context"] = context
+
+            self.append_item(
+                Line(
+                    role="user",
+                    msg_index=msg_index,
+                    subindex=subindex,
+                    context=context,
+                )
+            )
 
         if image_file:
             message["image_file"] = image_file
@@ -660,7 +689,7 @@ You should reply based on the provided context:
             self.process_events(raise_keyboard_interrupt=True)
             try:
                 for chunk in self.complete_chat(
-                    self.get_messages(),
+                    self.get_messages(expand_context=True),
                     model=self.get_setting("model"),
                     system_prompt=self.get_system_prompt(),
                 ):
@@ -735,9 +764,22 @@ You should reply based on the provided context:
                     self.__lines.append(
                         Line(
                             role=message["role"],
-                            text=line,
                             msg_index=msg_index,
                             subindex=subindex,
+                            text=line,
+                        )
+                    )
+                    subindex += 1
+
+            # Context
+            if message["text"]:
+                if "context" in message:
+                    self.__lines.append(
+                        Line(
+                            role=message["role"],
+                            msg_index=msg_index,
+                            subindex=subindex,
+                            context=message["context"],
                         )
                     )
                     subindex += 1
@@ -748,9 +790,9 @@ You should reply based on the provided context:
                 self.__lines.append(
                     Line(
                         role=message["role"],
-                        text=f"* Image: {image_file}",
                         msg_index=msg_index,
                         subindex=subindex,
+                        text=f"* Image: {image_file}",
                     )
                 )
                 subindex += 1
@@ -845,7 +887,10 @@ You should reply based on the provided context:
         return self.__system_prompt
 
     def on_escape_pressed(self):
-        self.__cancel_chat_completion()
+        if self.__escape_to_cancel:
+            self.__cancel_chat_completion()
+        else:
+            super().on_escape_pressed()
 
     def __cancel_chat_completion(self):
         if self.__is_generating:

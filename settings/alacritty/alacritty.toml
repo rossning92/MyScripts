@@ -34,8 +34,26 @@ foreground = "#000000"
 columns = 120
 lines = 40
 
+[window]
+padding.x = 8
+padding.y = 8
+
 [keyboard]
 bindings = [
-{ key = "C", mods = "Control|Shift", action = "Copy" },
-{ key = "V", mods = "Control|Shift", action = "Paste" },
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+
+  # Disable F1–F12 keys
+  { key = "F1",  action = "None" },
+  { key = "F2",  action = "None" },
+  { key = "F3",  action = "None" },
+  { key = "F4",  action = "None" },
+  { key = "F5",  action = "None" },
+  { key = "F6",  action = "None" },
+  { key = "F7",  action = "None" },
+  { key = "F8",  action = "None" },
+  { key = "F9",  action = "None" },
+  { key = "F10", action = "None" },
+  { key = "F11", action = "None" },
+  { key = "F12", action = "None" },
 ]

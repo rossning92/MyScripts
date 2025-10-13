@@ -407,7 +407,11 @@ def _set_vol(vol, duration=0, track=None, t=None):
 
     # Add keypoints
     if len(last_audio_clip.vol_keypoints) > 0:  # has previous keypoint
-        _, prev_vol = last_audio_clip.vol_keypoints[-1]
+        prev_t, prev_vol = last_audio_clip.vol_keypoints[-1]
+        if t_in_clip <= prev_t:
+            raise Exception(
+                "The current keypoint ts must be later than the previous keypoint"
+            )
         last_audio_clip.vol_keypoints.append((t_in_clip, prev_vol))
     else:
         prev_vol = vol
