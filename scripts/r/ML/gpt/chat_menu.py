@@ -409,6 +409,7 @@ class ChatMenu(Menu[Line]):
         if not prompt_file:
             return
 
+        os.makedirs(os.path.dirname(prompt_file), exist_ok=True)
         with open(prompt_file, "w", encoding="utf-8") as f:
             f.write(content)
 

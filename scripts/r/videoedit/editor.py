@@ -1098,8 +1098,24 @@ def tts(enabled=True):
     _state.enable_tts = enabled
 
 
+def _remove_bold_italic_markers(text: str) -> str:
+    """
+    Remove Markdown bold and italic markers (*, _, **, __, ***, ___)
+    from the given text while keeping the plain text content.
+    """
+    # Remove *** or ___ (bold+italic combined)
+    text = re.sub(r"(\*\*\*|___)(.*?)\1", r"\2", text)
+    # Remove ** or __ (bold)
+    text = re.sub(r"(\*\*|__)(.*?)\1", r"\2", text)
+    # Remove * or _ (italic)
+    text = re.sub(r"(\*|_)(.*?)\1", r"\2", text)
+    return text
+
+
 @common.api
 def parse_line(line):
+    line = _remove_bold_italic_markers(line)
+
     print2(line, color="green")
     _state.subtitle.append(line)
 

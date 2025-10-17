@@ -397,11 +397,11 @@ mp.add_forced_key_binding("ctrl+z", "undo", function () {
   }
 });
 
-mp.add_forced_key_binding("[", "set_in_time", function () {
+mp.add_forced_key_binding("ctrl+[", "set_in_time", function () {
   setCutPoint(true);
 });
 
-mp.add_forced_key_binding("]", "set_out_time", function () {
+mp.add_forced_key_binding("ctrl+]", "set_out_time", function () {
   setCutPoint(false);
 });
 

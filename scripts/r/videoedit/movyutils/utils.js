@@ -127,7 +127,7 @@ export function addTitle(
   return g;
 }
 
-export function addTitle4(title, { sup, scale = 0.8 } = {}) {
+export function addTitle3D(title, { sup, scale = 0.8 } = {}) {
   mo.usePerspectiveCamera();
   mo.setDefaultEase("power2.inOut");
   mo.setDefaultDuration(1);
