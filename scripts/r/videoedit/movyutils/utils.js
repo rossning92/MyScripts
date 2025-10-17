@@ -50,11 +50,16 @@ export function addIcons_List(
 
 export function addIcons_Grid(
   icons,
-  { rows = 2, cols = 3, scale = 2, stagger = 0.1, labels } = {}
+  {
+    rows = 2,
+    cols = 3,
+    scale = 2,
+    stagger = 0.1,
+    labels,
+    imageScale = 0.75,
+    textScale = 0.08,
+  } = {}
 ) {
-  const imageScale = 0.75;
-  const textScale = 0.08;
-
   const group = mo.addGroup({ scale });
   group.grow();
 
@@ -127,7 +132,7 @@ export function addTitle(
   return g;
 }
 
-export function addTitle4(title, { sup, scale = 0.8 } = {}) {
+export function addTitle3D(title, { sup, scale = 0.8 } = {}) {
   mo.usePerspectiveCamera();
   mo.setDefaultEase("power2.inOut");
   mo.setDefaultDuration(1);

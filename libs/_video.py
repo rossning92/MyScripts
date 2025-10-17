@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Optional, Tuple
+from typing import Optional
 
 from _shutil import call_echo, get_next_file_name, get_temp_file_name
 

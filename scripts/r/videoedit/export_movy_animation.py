@@ -14,7 +14,7 @@ from videoedit.start_movy_server import start_server
 PORT = 5555
 
 
-def export_movy_animation(file):
+def export_movy_animation(file, format="webm"):
     print("Render animation: %s..." % file)
 
     assert file.lower().endswith(".js")
@@ -39,7 +39,12 @@ def export_movy_animation(file):
         )
         page = await browser.newPage()
         download_dir = os.path.abspath(os.path.dirname(file))
-        out_file = os.path.join(download_dir, os.path.splitext(file)[0] + ".webm")
+        if format == "webm":
+            out_file = os.path.join(download_dir, os.path.splitext(file)[0] + ".webm")
+        elif format == "png":
+            out_file = os.path.join(download_dir, os.path.splitext(file)[0] + ".tar")
+        else:
+            raise Exception("Invalid format specified: {format}")
 
         await page._client.send(
             "Page.setDownloadBehavior",
@@ -58,9 +63,7 @@ def export_movy_animation(file):
         time.sleep(0.5)
 
         print("Start capture.")
-        await page.keyboard.down("Control")
-        await page.keyboard.press("KeyM")
-        await page.keyboard.up("Control")
+        await page.evaluate("window.exportVideo({format:'%s'})" % format)
 
         # Waiting until the video file is saved.
         print("Rendering to %s" % out_file, end="")
@@ -81,11 +84,6 @@ def export_movy_animation(file):
 
 if __name__ == "__main__":
     cd(os.path.expanduser("~/Downloads"))
-
-    if "{{_FORMAT}}":
-        format = "{{_FORMAT}}"
-    else:
-        format = "mp4"
 
     file = get_files()[0]
     assert file.endswith(".js")

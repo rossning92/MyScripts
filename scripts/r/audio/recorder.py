@@ -12,6 +12,7 @@ from _audio import concat_audio, create_noise_profile, denoise
 from _script import run_script
 from _shutil import (
     get_hash,
+    get_home_path,
     getch,
     kill_proc,
     mkdir,
@@ -26,9 +27,12 @@ import postprocess
 
 # TODO: cleanup by pa.terminate()
 pa = pyaudio.PyAudio()
+for i in range(pa.get_device_count()):
+    info = pa.get_device_info_by_index(i)
+    print(f"{i}: {info['name']} ({info['maxInputChannels']} input channels)")
 
 FILE_PREFIX = "record"
-RECORD_FILE_TYPE = "ogg"
+RECORD_FILE_TYPE = "wav"
 
 
 class RecordingFile(object):
@@ -46,20 +50,6 @@ class RecordingFile(object):
 
     def __exit__(self, exception, value, traceback):
         self.close()
-
-    def record(self, duration):
-        # Use a stream with no callback function in blocking mode
-        self._stream = pa.open(
-            format=pyaudio.paInt16,
-            channels=self.channels,
-            rate=self.rate,
-            input=True,
-            frames_per_buffer=self.frames_per_buffer,
-        )
-        for _ in range(int(self.rate / self.frames_per_buffer * duration)):
-            audio = self._stream.read(self.frames_per_buffer)
-            self.wavefile.writeframes(audio)
-        return None
 
     def start_recording(self):
         # Use a stream with a callback in non-blocking mode
@@ -213,8 +203,9 @@ class TerminalRecorder:
         self.cur_file_name = None
         self.interactive = interactive
 
-        with tempfile.TemporaryFile(suffix=".wav") as f:
-            self.tmp_wav_file = f.name
+        fd, path = tempfile.mkstemp(suffix=".wav")
+        os.close(fd)
+        self.tmp_wav_file = path
 
         audio_files = get_audio_files(self.out_dir)
         if len(audio_files) > 0:
@@ -409,7 +400,7 @@ class TerminalRecorder:
 if __name__ == "__main__":
     out_dir = os.environ.get("RECORD_OUT_DIR")
     if not out_dir:
-        raise Exception("RECORD_OUT_DIR is not set.")
+        out_dir = os.path.join(get_home_path(), "Recordings")
 
     out_dir = os.path.abspath(out_dir)
     print("record out dir: %s" % out_dir)

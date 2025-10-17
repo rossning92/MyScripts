@@ -7,7 +7,7 @@ import subprocess
 import tarfile
 from collections import OrderedDict
 from pprint import pprint
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import moviepy.audio.fx.all as afx
 import moviepy.video.fx.all as vfx
@@ -55,6 +55,7 @@ class VideoClip:
         self.pos = None
         self.transparent = True  # TODO: remove
         self.auto_extend = True
+        self.filtering: Literal["linear", "nearest"] = "linear"
 
         # Vfx
         self.speed = 1
@@ -803,6 +804,7 @@ def _add_video_clip(
     scale=(1.0, 1.0),
     width=None,
     height=None,
+    filtering: Literal["linear", "nearest"] = "linear",
     **_,
 ):
     subclip2: Optional[Tuple[float, ...]] = None
@@ -888,6 +890,7 @@ def _add_video_clip(
     clip_info.scale = (scale[0] * _state.global_scale, scale[1] * _state.global_scale)
     clip_info.width = width
     clip_info.height = height
+    clip_info.filtering = filtering
 
     # Load mpy clip
     clip_info.mpy_clip = _load_mpy_clip(
@@ -905,13 +908,13 @@ def _add_video_clip(
     if duration is None:
         if subclip2 is not None:
             if len(subclip2) == 1:
-                duration = clip_info.mpy_clip.duration - subclip2[0]
+                duration = (
+                    clip_info.mpy_clip.duration / (speed if speed else 1) - subclip2[0]
+                )
             else:
                 duration = subclip2[1] - subclip2[0]
         else:
-            duration = clip_info.mpy_clip.duration
-    else:
-        duration = duration
+            duration = clip_info.mpy_clip.duration / (speed if speed else 1)
     clip_info.duration = duration
 
     if move_playhead:  # Advance the pos
@@ -934,14 +937,20 @@ prev_anim_clip: Optional[VideoClip] = None
 
 
 @common.api
-def anim(file, **kwargs):
+def anim(file, format: Literal["webm", "png"] = "webm", **kwargs):
     global prev_anim_clip
 
     if _state.audio_only:
         return
 
     # Generate video file from .js file
-    vid_file = os.path.splitext(file)[0] + ".webm"
+    if format == "webm":
+        vid_file = os.path.splitext(file)[0] + ".webm"
+    elif format == "png":
+        vid_file = os.path.splitext(file)[0] + ".tar"
+    else:
+        raise Exception("Invalid format specified: {format}")
+
     if file_is_old(file, vid_file):
         # Remove old video file
         if os.path.exists(vid_file):
@@ -952,7 +961,7 @@ def anim(file, **kwargs):
         if os.path.exists(metadata_file):
             os.remove(metadata_file)
 
-        export_movy_animation(os.path.abspath(file))
+        export_movy_animation(os.path.abspath(file), format=format)
     file = vid_file
 
     clip_info = _add_video_clip(file, **kwargs)
@@ -1098,8 +1107,24 @@ def tts(enabled=True):
     _state.enable_tts = enabled
 
 
+def _remove_bold_italic_markers(text: str) -> str:
+    """
+    Remove Markdown bold and italic markers (*, _, **, __, ***, ___)
+    from the given text while keeping the plain text content.
+    """
+    # Remove *** or ___ (bold+italic combined)
+    text = re.sub(r"(\*\*\*|___)(.*?)\1", r"\2", text)
+    # Remove ** or __ (bold)
+    text = re.sub(r"(\*\*|__)(.*?)\1", r"\2", text)
+    # Remove * or _ (italic)
+    text = re.sub(r"(\*|_)(.*?)\1", r"\2", text)
+    return text
+
+
 @common.api
 def parse_line(line):
+    line = _remove_bold_italic_markers(line)
+
     print2(line, color="green")
     _state.subtitle.append(line)
 
@@ -1128,6 +1153,14 @@ def _update_mpy_clip(
 ):
     assert duration is not None
 
+    # Must adjust clip speed first
+    if speed is not None:
+        clip = clip.fx(
+            # pylint: disable=maybe-no-member
+            vfx.speedx,
+            speed,
+        )
+
     # video clip operations / fx
     if subclip is not None:
         assert isinstance(subclip, (tuple, list))
@@ -1152,13 +1185,6 @@ def _update_mpy_clip(
                     clip = clip.set_audio(clip.audio.set_fps(44100))
             else:
                 clip = clip.subclip(subclip[0], subclip[1]).set_duration(duration)
-
-    if speed is not None:
-        clip = clip.fx(
-            # pylint: disable=maybe-no-member
-            vfx.speedx,
-            speed,
-        )
 
     if frame is not None:
         clip = clip.to_ImageClip(frame).set_duration(duration)

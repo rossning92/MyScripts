@@ -246,6 +246,7 @@
     "choco": {
       "packages": ["ghostscript"]
     },
+    "pacman": { "packages": ["ghostscript"] },
     "winget": {
       "packages": ["ArtifexSoftware.GhostScript"]
     }

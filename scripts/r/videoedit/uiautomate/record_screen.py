@@ -46,7 +46,7 @@ def _get_default_monitor_source() -> Optional[str]:
 
 
 class ScreenRecorder:
-    def __init__(self, no_audio, rect):
+    def __init__(self, no_audio=True, rect=None):
         super().__init__()
         self.no_audio = no_audio
         self.rect = rect
@@ -54,7 +54,7 @@ class ScreenRecorder:
         self.proc = None
         self.loudnorm = False
 
-    def start_record(self):
+    def start_record(self, window_name: Optional[str] = None, rect=None):
         logging.debug("start_record()")
 
         if self.proc is not None:
@@ -68,7 +68,7 @@ class ScreenRecorder:
         if self.rect:
             rect = self.rect
         else:
-            rect = get_window_rect()
+            rect = get_window_rect(window_name=window_name)
 
         if sys.platform.startswith("win"):
             args += [
@@ -189,27 +189,23 @@ class ScreenRecorder:
         return self.proc is not None
 
 
-_recorder = None
-_cur_file = None
+_recorder = ScreenRecorder()
 
 
-def start_record(file, rect=None, window_name=None):
-    global _cur_file, _recorder
+def start_record(rect=None, window_name=None):
+    global _recorder
 
-    _cur_file = file
     rect = None
     print(f'Querying window rect for "{window_name}"', end="")
     while not rect:
         rect = get_window_rect(window_name=window_name)
         time.sleep(0.1)
-    _recorder = ScreenRecorder()
-    _recorder.rect = rect
     _recorder.start_record()
 
 
-def stop_record():
+def stop_record(out_file: str):
     _recorder.stop_record()
-    _recorder.save(_cur_file)
+    _recorder.save(out_file)
 
 
 def record_screen(file, callback=None, rect=None):

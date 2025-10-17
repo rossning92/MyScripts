@@ -38,7 +38,15 @@ def include(file):
 
     cwd = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(file)))
-    _parse_text(s)
+
+    if file.endswith(".md"):
+        _parse_text(s)
+    elif file.endswith(".py"):
+        sys.path.append(os.path.dirname(file))
+        exec(s)
+    else:
+        raise Exception("invalid file type")
+
     os.chdir(cwd)
 
 
@@ -219,8 +227,11 @@ if __name__ == "__main__":
     # Change working directory to project directory.
     if args.proj_dir is not None:
         os.chdir(args.proj_dir)
+        sys.path.append(args.proj_dir)
     elif args.input:
-        os.chdir(os.path.dirname(args.input))
+        proj_dir = os.path.dirname(args.input)
+        os.chdir(proj_dir)
+        sys.path.append(proj_dir)
     print("Project dir: %s" % os.getcwd())
 
     # Load config
