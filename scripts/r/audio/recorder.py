@@ -2,25 +2,24 @@ import datetime
 import glob
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
 import wave
+from typing import Optional
 
 import pyaudio
-from _audio import concat_audio, create_noise_profile, denoise
-from _script import run_script
+from _audio import concat_audio, create_noise_profile, denoise, set_mic_volume
 from _shutil import (
     get_hash,
     get_home_path,
     getch,
-    kill_proc,
     mkdir,
     print2,
-    run_in_background,
     sleep,
-    start_process,
 )
+from utils.menu.filemenu import FileMenu
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import postprocess
@@ -35,90 +34,78 @@ FILE_PREFIX = "record"
 RECORD_FILE_TYPE = "wav"
 
 
-class RecordingFile(object):
-    def __init__(self, fname, mode, channels, rate, frames_per_buffer):
-        self.fname = fname
-        self.mode = mode
-        self.channels = channels
-        self.rate = rate
-        self.frames_per_buffer = frames_per_buffer
-        self.wavefile = self._prepare_file(self.fname, self.mode)
+class PyAudioRecording:
+    def __init__(self, channels=2, rate=44100, frames_per_buffer=1024):
+        self._channels = channels
+        self._rate = rate
+        self._frames_per_buffer = frames_per_buffer
+        self._wavefile = None
         self._stream = None
 
-    def __enter__(self):
-        return self
+    def start_recording(self, fname: str):
+        if self._wavefile is None:
+            self._wavefile = wave.open(fname, "wb")
+            self._wavefile.setnchannels(self._channels)
+            self._wavefile.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
+            self._wavefile.setframerate(self._rate)
 
-    def __exit__(self, exception, value, traceback):
-        self.close()
+        def callback(in_data, frame_count, time_info, status):
+            assert self._wavefile is not None
+            self._wavefile.writeframes(in_data)
+            return in_data, pyaudio.paContinue
 
-    def start_recording(self):
-        # Use a stream with a callback in non-blocking mode
-        self._stream = pa.open(
-            format=pyaudio.paInt16,
-            channels=self.channels,
-            rate=self.rate,
-            input=True,
-            frames_per_buffer=self.frames_per_buffer,
-            stream_callback=self.get_callback(),
-        )
+        if self._stream is None:
+            self._stream = pa.open(
+                format=pyaudio.paInt16,
+                channels=self._channels,
+                rate=self._rate,
+                input=True,
+                frames_per_buffer=self._frames_per_buffer,
+                stream_callback=callback,
+            )
         self._stream.start_stream()
         return self
 
     def stop_recording(self):
-        self._stream.stop_stream()
-        return self
+        if self._stream is not None:
+            self._stream.stop_stream()
+            self._stream.close()
+            self._stream = None
 
-    def get_callback(self):
-        def callback(in_data, frame_count, time_info, status):
-            self.wavefile.writeframes(in_data)
-            return in_data, pyaudio.paContinue
-
-        return callback
-
-    def close(self):
-        self._stream.close()
-        self.wavefile.close()
-
-    def _prepare_file(self, fname, mode="wb"):
-        wavefile = wave.open(fname, mode)
-        wavefile.setnchannels(self.channels)
-        wavefile.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
-        wavefile.setframerate(self.rate)
-        return wavefile
-
-
-class WaveRecorder(object):
-    """
-    Records in mono by default.
-    """
-
-    def __init__(self, channels=1, rate=44100, frames_per_buffer=1024):
-        self.channels = channels
-        self.rate = rate
-        self.frames_per_buffer = frames_per_buffer
-
-        self.recording_file = None
-
-    def open(self, file, mode="wb"):
-        return RecordingFile(
-            file, mode, self.channels, self.rate, self.frames_per_buffer
-        )
-
-    def record(self, file_name):
-        self.recording_file = self.open(file_name, "wb")
-        self.recording_file.start_recording()
-
-    def stop(self):
-        if self.recording_file is not None:
-            self.recording_file.stop_recording()
-            self.recording_file.close()
-            self.recording_file = None
+        if self._wavefile is not None:
+            self._wavefile.close()
+            self._wavefile = None
 
     def is_recording(self):
-        return self.recording_file is not None
+        return self._stream is not None and self._stream.is_active()
 
 
-class WavePlayer:
+class SoxRecording:
+    def __init__(self):
+        self._sox_proc: Optional[subprocess.Popen[bytes]] = None
+
+    def start_recording(self, fname: str) -> None:
+        if self._sox_proc is None:
+            self._sox_proc = subprocess.Popen(
+                [
+                    "rec",
+                    "--no-show-progress",
+                    "-V1",
+                    fname,
+                ]
+            )
+
+    def stop_recording(self) -> None:
+        if self._sox_proc is not None:
+            self._sox_proc.send_signal(signal.SIGINT)
+            self._sox_proc.wait()
+            self._sox_proc = None
+
+    def is_recording(self) -> bool:
+        return self._sox_proc is not None and self._sox_proc.poll() is None
+
+
+class WavePlayback:
     def __init__(self):
         self.wavefile = None
         self.stream = None
@@ -154,7 +141,7 @@ class WavePlayer:
             self.wavefile = None
 
 
-class SoxPlayer:
+class SoxPlayback:
     def __init__(self):
         self.ps = None
 
@@ -164,7 +151,10 @@ class SoxPlayer:
 
     def stop(self):
         if self.ps is not None:
-            kill_proc(self.ps)
+            if sys.platform == "win32":
+                subprocess.call("TASKKILL /F /T /PID %d >NUL" % self.ps.pid, shell=True)
+            else:
+                self.ps.send_signal(signal.SIGTERM)
             self.ps = None
 
 
@@ -187,8 +177,9 @@ def create_final_vocal():
         out_file = postprocess.process_audio_file(f)
         processed_files.append(out_file)
 
-    concat_audio(processed_files, 0, out_file="out/concat.wav", channels=1)
-    run_in_background(["mpv", "--force-window", "--really-quiet", "out/concat.wav"])
+    out_file = "out/concat.wav"
+    concat_audio(processed_files, 0, out_file=out_file, channels=1)
+    return out_file
 
     # subprocess.check_call(
     #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
@@ -197,8 +188,8 @@ def create_final_vocal():
 class TerminalRecorder:
     def __init__(self, out_dir="", interactive=True):
         self.out_dir = out_dir
-        self.recorder = WaveRecorder(channels=2)
-        self.playback = SoxPlayer()
+        self.recording = SoxRecording()
+        self.playback = SoxPlayback()
 
         self.cur_file_name = None
         self.interactive = interactive
@@ -220,19 +211,20 @@ class TerminalRecorder:
     def print_help(self):
         if self.interactive:
             print2(
-                "R     - Start recording\n"
-                "S     - Stop recording\n"
-                "D     - Delete current\n"
-                "N     - Create noise profile\n"
+                "r     - Start recording\n"
+                "s     - Stop recording\n"
+                "d     - Delete current\n"
+                "n     - Create noise profile\n"
+                "N     - Remove noise profile\n"
                 ", .   - Go to prev / next\n"
                 "[ ]   - Go to first / last\n"
-                "E     - Output composed file\n"
-                "O     - Output folder\n"
+                "e     - Output composed file\n"
+                "o     - Output folder\n"
             )
 
     def _stop_all(self):
         self.playback.stop()
-        self.recorder.stop()
+        self.recording.stop_recording()
 
     def _navigate_file(self, next=None, go_to_end=None):
         files = get_audio_files(self.out_dir)
@@ -286,19 +278,24 @@ class TerminalRecorder:
         print("LOG: start collecting noise profile", flush=True)
 
         os.makedirs("tmp", exist_ok=True)
-        with self.recorder.open("tmp/noise.wav", "wb") as r:
-            r.start_recording()
-            sleep(3)
-            r.stop_recording()
+        noise_recording = SoxRecording()
+        noise_recording.start_recording("tmp/noise.wav")
+        sleep(3)
+        noise_recording.stop_recording()
 
         create_noise_profile("tmp/noise.wav")
-        print("LOG: stop collection noise profile", flush=True)
+        print("LOG: stop collecting noise profile", flush=True)
+
+    def remove_noise_profile(self):
+        if os.path.exists("tmp/noise.wav"):
+            print("LOG: noise profile removed")
+            os.remove("tmp/noise.wav")
 
     def start_record(self):
-        if self.recorder.is_recording():
+        if self.recording.is_recording():
             self.delete_cur_file()
+            self.recording.stop_recording()
 
-        self.recorder.stop()
         self.playback.stop()
 
         self.cur_file_name = os.path.join(
@@ -311,15 +308,16 @@ class TerminalRecorder:
             ),
         )
 
-        self.recorder.record(self.tmp_wav_file)
+        self.recording.start_recording(self.tmp_wav_file)
+
         print("LOG: start recording: %s" % self.cur_file_name, flush=True)
 
     def stop_record(self):
         self.playback.stop()
 
-        if self.recorder.is_recording():
-            self.recorder.stop()
+        if self.recording.is_recording():
             print("LOG: stop recording: %s" % self.cur_file_name, flush=True)
+            self.recording.stop_recording()
 
             denoise(in_file=self.tmp_wav_file)
 
@@ -340,6 +338,8 @@ class TerminalRecorder:
                     ]
                 )
             os.remove(self.tmp_wav_file)
+
+            self.playback.play(self.cur_file_name)
 
             # Don't play what's recorded.
             # self._play_cur_file()
@@ -363,8 +363,11 @@ class TerminalRecorder:
                 self.delete_cur_file()
 
             elif ch == "n":
-                run_script("r/audio/set_mic_volume.ps1")
+                set_mic_volume()
                 self.create_noise_profile()
+
+            elif ch == "N":
+                self.remove_noise_profile()
 
             elif ch == ",":
                 self._stop_all()
@@ -388,10 +391,15 @@ class TerminalRecorder:
 
             elif ch == "e":
                 self._stop_all()
-                create_final_vocal()
+                out_file = create_final_vocal()
+                self.playback.play(out_file)
 
             elif ch == "o":
-                start_process("explorer .")
+                FileMenu(
+                    goto=os.getcwd(),
+                    prompt="All recordings",
+                    allow_cd=False,
+                ).exec()
 
             elif ch == "q":
                 sys.exit(0)
@@ -411,7 +419,5 @@ if __name__ == "__main__":
         os.environ["RECORD_INTERACTIVE"] == "0"
     )
 
-    if sys.platform == "win32":
-        run_script("r/audio/set_mic_volume.ps1")
-
+    set_mic_volume()
     TerminalRecorder(interactive=not non_interactive).main_loop()

@@ -1,12 +1,14 @@
 import os
 import shutil
+import sys
+from subprocess import check_call
 
-from _shutil import call2, mkdir, print2
+from _script import run_script
 
 
 def create_noise_profile(in_file):
     os.makedirs("tmp", exist_ok=True)
-    call2(["sox", in_file, "-n", "noiseprof", "tmp/noise.prof"])
+    check_call(["sox", in_file, "-n", "noiseprof", "tmp/noise.prof"])
 
 
 def denoise(in_file, out_file=None):
@@ -18,7 +20,7 @@ def denoise(in_file, out_file=None):
             tmp_file = out_file
 
         print("De-noising %s..." % in_file)
-        call2(["sox", in_file, tmp_file, "noisered", "tmp/noise.prof", "0.21"])
+        check_call(["sox", in_file, tmp_file, "noisered", "tmp/noise.prof", "0.21"])
 
         if out_file is None:
             shutil.copyfile(tmp_file, in_file)
@@ -30,11 +32,40 @@ def denoise(in_file, out_file=None):
 
 def concat_audio(audio_files, silence_secs, out_file, channels=2):
     if silence_secs > 0:
-        mkdir("tmp")
-        call2(f"sox -n -c {channels} tmp/silence.wav trim 0.0 {silence_secs}")
-        audio_files = " tmp/silence.wav ".join(audio_files)
-    else:
-        audio_files = " ".join(audio_files)
+        os.makedirs("tmp", exist_ok=True)
+        check_call(
+            [
+                "sox",
+                "-n",
+                "-c",
+                str(channels),
+                "tmp/silence.wav",
+                "trim",
+                "0.0",
+                str(silence_secs),
+            ]
+        )
+        with_silence = []
+        for idx, file in enumerate(audio_files):
+            if idx > 0:
+                with_silence.append("tmp/silence.wav")
+            with_silence.append(file)
+        audio_files = with_silence
+    cmd = ["sox", *audio_files, out_file]
 
-    print2("Output %s" % out_file)
-    call2(f"sox {audio_files} {out_file}")
+    print("Output %s" % out_file)
+    check_call(cmd)
+
+
+def set_mic_volume(volume: float = 0.5):
+    if not isinstance(volume, (int, float)):
+        raise ValueError("Volume must be numeric")
+    if volume < 0.0 or volume > 1.0:
+        raise ValueError("Volume must be between 0 and 1")
+    if sys.platform == "linux":
+        percent = max(0, min(100, int(volume * 100)))
+        check_call(["pactl", "set-source-volume", "@DEFAULT_SOURCE@", f"{percent}%"])
+    elif sys.platform == "win32":
+        run_script("r/audio/set_mic_volume.ps1")
+    else:
+        raise NotImplementedError()

@@ -6,20 +6,23 @@ from _shutil import call_echo
 
 ALWAYS_GENERATE = False
 
+# Cut voice
 BORDER_IGNORE = 0.1
-PADDING_SECS = 0.15
+PADDING_SECS = 0.1
 MIN_VOLUME_TO_KEEP = 0.05
 
+# Loudness normalization
 LOUDNORM_DB = -14
 
+# Compressor
 COMPRESSOR_ATTACK = 0.002
 COMPRESSOR_DECAY = 0.085
 COMPRESSOR_THRES_DB = -20
 COMPRESSOR_RATIO = 4
 COMPRESSOR_GAIN = 5
 
+# EQ
 EQ_PARAMS = "bass -0 30 equalizer 315 100h -1 equalizer 12105 10k 1"
-EQ_PARAMS = ""
 
 NOISE_GATE_DB = -999
 
@@ -30,12 +33,8 @@ def rolling_window(a, window):
     return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
 
 
-def _create_dir_if_not_exists(file):
-    os.makedirs(os.path.dirname(file), exist_ok=True)
-
-
 def to_padded_mono(in_file, out_file, pad_secs=PADDING_SECS):
-    _create_dir_if_not_exists(out_file)
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
     print(out_file)
     subprocess.check_call(
         [
@@ -83,10 +82,14 @@ def filter_human_voice(in_file, out_file):
     )
 
 
-def process_audio_file(file, out_file, cut_voice=True):
+def process_audio_file(file, out_file=None, cut_voice=True, compress=True, eq=False):
     from scipy.io import wavfile
 
     name_no_ext = os.path.splitext(os.path.basename(file))[0]
+
+    if not out_file:
+        out_file = os.path.join(os.path.dirname(file), "tmp", name_no_ext + ".wav")
+
     out_dir = os.path.dirname(out_file)
 
     # Convert to mono
@@ -134,29 +137,30 @@ def process_audio_file(file, out_file, cut_voice=True):
         wavfile.write(out_file2, rate, data2)
         in_file = out_file2
 
-    # Compress
-    if 1:
+    if compress:
         # out_file2 = out_dir + "/" + name_no_ext + ".compressed.wav"
         out_file2 = out_file
-        _create_dir_if_not_exists(out_file2)
+        os.makedirs(os.path.dirname(out_file2), exist_ok=True)
 
         print(out_file2)
 
-        args = f'sox "{in_file}" "{out_file2}"'
+        args = ["sox", in_file, out_file2]
 
         # Compressor
-        args += (
-            f" compand"
-            f" {COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}"  # attack1,decay1
-            f" {NOISE_GATE_DB-1},-inf"
-            f",{NOISE_GATE_DB},{NOISE_GATE_DB}"
-            f",{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB}"
-            f",0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}"
-            f" {COMPRESSOR_GAIN} -90"  # gain initial-volume-dB
+        args.extend(
+            [
+                "compand",
+                f"{COMPRESSOR_ATTACK},{COMPRESSOR_DECAY}",  # attack1,decay1
+                f"{NOISE_GATE_DB-1},-inf"
+                f",{NOISE_GATE_DB},{NOISE_GATE_DB},{COMPRESSOR_THRES_DB},{COMPRESSOR_THRES_DB}"
+                f",0,{COMPRESSOR_THRES_DB - COMPRESSOR_THRES_DB / COMPRESSOR_RATIO}",
+                f"{COMPRESSOR_GAIN}",  # gain
+                "-90",  # initial-volume-dB
+            ]
         )
 
-        # EQ
-        args += " " + EQ_PARAMS
+        if eq:
+            args.extend(EQ_PARAMS.split())
 
         subprocess.check_call(args)
 
