@@ -25,6 +25,11 @@
       "packages": ["7zip.7zip"]
     }
   },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
+    }
+  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -246,7 +251,9 @@
     "choco": {
       "packages": ["ghostscript"]
     },
-    "pacman": { "packages": ["ghostscript"] },
+    "pacman": {
+      "packages": ["ghostscript"]
+    },
     "winget": {
       "packages": ["ArtifexSoftware.GhostScript"]
     }
@@ -363,6 +370,11 @@
   "gtts": {
     "pip": {
       "packages": ["gTTS"]
+    }
+  },
+  "hwinfo": {
+    "winget": {
+      "packages": ["REALiX.HWiNFO"]
     }
   },
   "imagemagick": {
@@ -540,7 +552,9 @@
     "winget": {
       "packages": ["Ocenaudio.Ocenaudio"]
     },
-    "yay": { "packages": ["ocenaudio-bin"] }
+    "yay": {
+      "packages": ["ocenaudio-bin"]
+    }
   },
   "openscad": {
     "pacman": {
@@ -643,11 +657,6 @@
     },
     "winget": {
       "packages": ["PuTTY.PuTTY"]
-    }
-  },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
     }
   },
   "python312": {

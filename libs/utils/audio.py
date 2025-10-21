@@ -19,15 +19,15 @@ def denoise(in_file, out_file=None):
         else:
             tmp_file = out_file
 
-        print("De-noising %s..." % in_file)
         check_call(["sox", in_file, tmp_file, "noisered", "tmp/noise.prof", "0.21"])
+        print("De-noised %s..." % in_file)
 
         if out_file is None:
             shutil.copyfile(tmp_file, in_file)
             os.remove(tmp_file)
 
     else:
-        print("WARNING: Skip noise reduction, profile does not exist.")
+        print("WARNING: Skip noise reduction, noise profile does not exist")
 
 
 def concat_audio(audio_files, silence_secs, out_file, channels=2):

@@ -238,7 +238,7 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__load_prompt, hotkey="tab")
         self.add_command(self.__save_prompt)
         self.add_command(self.__save_chat_as)
-        self.add_command(self.__show_more, hotkey="alt+m")
+        self.add_command(self.__show_more, hotkey="tab")
         self.add_command(self.__take_photo, hotkey="alt+i")
         self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
@@ -435,15 +435,18 @@ class ChatMenu(Menu[Line]):
 
         self.send_message(message)
 
-    def __show_more(self):
+    def __show_more(self) -> bool:
         selected = self.get_selected_item()
         if selected:
             if selected.tool_result:
                 tool_result_content = selected.tool_result["content"]
                 TextMenu(text=tool_result_content, prompt="Tool result").exec()
+                return True
             elif selected.tool_use:
                 args = pformat(selected.tool_use["args"], sort_dicts=False)
                 TextMenu(text=args, prompt="Tool use args").exec()
+                return True
+        return False
 
     def __take_photo(self):
         if not is_termux():
@@ -551,6 +554,11 @@ class ChatMenu(Menu[Line]):
             self.send_message(self.__first_message)
         elif self.__prompt_file:
             self.__load_prompt(self.__prompt_file)
+
+    def on_tab_pressed(self) -> bool:
+        if not self.__show_more():
+            self.__load_prompt()
+        return True
 
     def send_message(
         self,

@@ -1,10 +1,16 @@
+import argparse
 import subprocess
-import sys
 
-from _pkgmanager import require_package
+from _pkgmanager import find_executable
 
 if __name__ == "__main__":
-    app = sys.argv[1]
-    args = sys.argv[2:]
-    ret = subprocess.call([require_package(app), *args])
-    sys.exit(ret)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("app", type=str)
+    parser.add_argument("args", nargs=argparse.REMAINDER)
+    args = parser.parse_args()
+
+    executable = find_executable(args.app, install=True)
+    if not executable:
+        raise Exception(f"Cannot find executable for app {args.app}")
+
+    subprocess.check_call([executable, *args.args])

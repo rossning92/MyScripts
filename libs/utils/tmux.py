@@ -12,9 +12,13 @@ def is_tmux_installed() -> bool:
 
 
 def has_tmux_session() -> bool:
-    return is_tmux_installed() and (
-        subprocess.call(
-            ["tmux", "ls"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-        == 0
+    if not is_tmux_installed():
+        return False
+
+    result = subprocess.run(
+        ["tmux", "ls"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
     )
+    return result.returncode == 0 and bool(result.stdout.strip())

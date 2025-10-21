@@ -17,6 +17,7 @@ from _shutil import (
     start_process,
     to_valid_file_name,
 )
+from utils.confirm import confirm
 
 os.environ["FFMPEG_BINARY"] = shutil.which("ffmpeg")
 from moviepy.config import change_settings
@@ -64,15 +65,15 @@ def _remove_unused_recordings(s):
         if f not in used_recordings:
             unused_recordings.append(f)
 
-    print2("Used   : %d" % len(used_recordings), color="green")
-    print2("Unused : %d" % len(unused_recordings), color="red")
+    total = len(files)
     assert len(used_recordings) + len(unused_recordings) == len(files)
-    s = input("Press enter to confirm: ")
-    if s == "":
+    if confirm(
+        "Delete all unused recordings (%d/%d)" % (len(unused_recordings), total)
+    ):
         for f in unused_recordings:
             try:
                 os.remove(f)
-            except:
+            except Exception:
                 print("WARNING: failed to remove: %s" % f)
 
 
@@ -100,7 +101,7 @@ def _write_timestamp(t, section_name):
     _write_timestamp.f.flush()
 
 
-def _parse_text(text, apis=common.apis, **kwargs):
+def _parse_text(text, apis=common.apis, should_write_timestamp=False, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -137,8 +138,9 @@ def _parse_text(text, apis=common.apis, **kwargs):
         if text[p : p + 1] == "#":
             end = find_next(text, "\n", p)
 
-            line = text[p:end].strip()
-            _write_timestamp(editor.get_current_audio_pos(), line)
+            if should_write_timestamp:
+                line = text[p:end].strip()
+                _write_timestamp(editor.get_current_audio_pos(), line)
 
             p = end + 1
             continue
@@ -239,21 +241,22 @@ if __name__ == "__main__":
     editor.fps(config["fps"])
 
     # Check if it's in preview mode.
-    if args.preview:
-        os.makedirs("tmp/out", exist_ok=True)
-        out_filename = "tmp/out/" + get_time_str()
-    else:
-        # Video title
-        if not config["title"]:
-            title = input("please enter video title (untitled): ")
-            if title:
-                config["title"] = title
-                save_config(config)
-            else:
-                config["title"] = "untitled"
+    if not args.remove_unused_recordings:
+        if args.preview:
+            os.makedirs("tmp/out", exist_ok=True)
+            out_filename = "tmp/out/" + get_time_str()
+        else:
+            # Video title
+            if not config["title"]:
+                title = input("please enter video title (untitled): ")
+                if title:
+                    config["title"] = title
+                    save_config(config)
+                else:
+                    config["title"] = "untitled"
 
-        os.makedirs("export", exist_ok=True)
-        out_filename = "export/" + to_valid_file_name(config["title"])
+            os.makedirs("export", exist_ok=True)
+            out_filename = "export/" + to_valid_file_name(config["title"])
 
     # Load custom APIs (api.py) if exists
     api_modules = []

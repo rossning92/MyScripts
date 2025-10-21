@@ -3,6 +3,7 @@ import subprocess
 
 import numpy as np
 from _shutil import call_echo
+from scipy.io import wavfile
 
 ALWAYS_GENERATE = False
 
@@ -60,7 +61,7 @@ def loudnorm(in_file, out_file, loudnorm_db=LOUDNORM_DB):
     )
 
 
-def normalize(in_file, out_file, normalize_db):
+def normalize(in_file, out_file, normalize_db=-1):
     subprocess.check_call(["sox", in_file, out_file, "norm", "%g" % normalize_db])
 
 
@@ -82,9 +83,14 @@ def filter_human_voice(in_file, out_file):
     )
 
 
-def process_audio_file(file, out_file=None, cut_voice=True, compress=True, eq=False):
-    from scipy.io import wavfile
-
+def process_audio_file(
+    file,
+    out_file=None,
+    cut_voice=True,
+    enable_compress=True,
+    enable_eq=False,
+    enable_silenceremove=True,
+):
     name_no_ext = os.path.splitext(os.path.basename(file))[0]
 
     if not out_file:
@@ -137,7 +143,12 @@ def process_audio_file(file, out_file=None, cut_voice=True, compress=True, eq=Fa
         wavfile.write(out_file2, rate, data2)
         in_file = out_file2
 
-    if compress:
+    if enable_silenceremove:
+        out_file2 = out_dir + "/" + name_no_ext + ".silenceremove.wav"
+        remove_silence(in_file, out_file2)
+        in_file = out_file2
+
+    if enable_compress:
         # out_file2 = out_dir + "/" + name_no_ext + ".compressed.wav"
         out_file2 = out_file
         os.makedirs(os.path.dirname(out_file2), exist_ok=True)
@@ -159,7 +170,7 @@ def process_audio_file(file, out_file=None, cut_voice=True, compress=True, eq=Fa
             ]
         )
 
-        if eq:
+        if enable_eq:
             args.extend(EQ_PARAMS.split())
 
         subprocess.check_call(args)
@@ -187,4 +198,27 @@ def dynamic_audio_normalize(file):
                 out_file,
             ]
         )
+    return out_file
+
+
+def _get_output_file_name(file: str, postfix: str):
+    name_no_ext = os.path.splitext(file)[0]
+    return name_no_ext + "." + postfix + ".wav"
+
+
+def remove_silence(in_file: str, out_file: str):
+    call_echo(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            in_file,
+            "-af",
+            "silenceremove="
+            "stop_periods=-1:"
+            "stop_silence=0:"
+            "stop_threshold=-54dB",
+            out_file,
+        ]
+    )
     return out_file

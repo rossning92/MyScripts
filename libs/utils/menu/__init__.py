@@ -25,6 +25,7 @@ from typing import (
 
 from _shutil import get_hotkey_abbr
 
+from utils.clamp import clamp
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
@@ -636,7 +637,7 @@ class Menu(Generic[T]):
         else:
             # Use erase instead of clear to prevent flickering
             Menu.stdscr.erase()
-        self.on_update_screen(item_y_max=self._height - 1)
+        self.__on_update_screen(item_y_max=self._height - 1)
         Menu.stdscr.refresh()
 
     def reset_selection(self):
@@ -1144,7 +1145,7 @@ class Menu(Generic[T]):
     def goto_line(self, line: int):
         self.__scroll_y = line
 
-    def on_update_screen(self, item_y_max: int):
+    def __on_update_screen(self, item_y_max: int):
         assert Menu.stdscr is not None
 
         # Render input widget
@@ -1159,10 +1160,16 @@ class Menu(Generic[T]):
 
         # Auto select last item
         item_indices = self.get_item_indices()
+        total_items = len(item_indices)
         if self.__follow:
             if not self.__multi_select_mode:
-                self.__selected_row_begin = len(item_indices) - 1
-            self.__selected_row_end = len(item_indices) - 1
+                self.__selected_row_begin = total_items - 1
+            self.__selected_row_end = total_items - 1
+        else:
+            self.__selected_row_begin = clamp(
+                self.__selected_row_begin, 0, total_items - 1
+            )
+            self.__selected_row_end = clamp(self.__selected_row_end, 0, total_items - 1)
 
         # Draw status bar
         status_bar_text = self.get_status_text()
@@ -1343,14 +1350,7 @@ class Menu(Generic[T]):
 
     def on_char(self, ch: Union[int, str]):
         if ch == "\t":
-            if "tab" in self.__hotkeys:
-                self.__hotkeys["tab"].func()
-                return True
-            else:
-                item = self.get_selected_item()
-                if item is not None:
-                    self.set_input("%s" % item)
-                return True
+            return self.on_tab_pressed()
 
         elif type(ch) is str and ch in self.__hotkeys:
             self.__hotkeys[ch].func()
@@ -1392,8 +1392,15 @@ class Menu(Generic[T]):
         if on_item_selected is not None:
             self.call_func_without_curses(lambda item=item: on_item_selected(item))
 
-    def on_tab_pressed(self):
-        pass
+    def on_tab_pressed(self) -> bool:
+        if "tab" in self.__hotkeys:
+            self.__hotkeys["tab"].func()
+            return True
+        else:
+            item = self.get_selected_item()
+            if item is not None:
+                self.set_input("%s" % item)
+            return True
 
     def on_main_loop(self):
         pass

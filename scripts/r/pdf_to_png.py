@@ -1,9 +1,14 @@
-from _shutil import get_files, mkdir, call_echo, find_newest_file
-
+import argparse
 import os
 
+from _shutil import call_echo, find_newest_file, mkdir
+
 if __name__ == "__main__":
-    pdf_file = get_files()[0]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pdf_file")
+    args = parser.parse_args()
+
+    pdf_file = args.pdf_file
     assert pdf_file.endswith(".pdf")
 
     out_dir = os.path.splitext(pdf_file)[0]

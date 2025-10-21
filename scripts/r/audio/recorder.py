@@ -6,11 +6,8 @@ import signal
 import subprocess
 import sys
 import tempfile
-import wave
 from typing import Optional
 
-import pyaudio
-from _audio import concat_audio, create_noise_profile, denoise, set_mic_volume
 from _shutil import (
     get_hash,
     get_home_path,
@@ -19,65 +16,12 @@ from _shutil import (
     print2,
     sleep,
 )
+from audio.postprocess import process_audio_file
+from utils.audio import concat_audio, create_noise_profile, denoise, set_mic_volume
 from utils.menu.filemenu import FileMenu
-
-sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-import postprocess
-
-# TODO: cleanup by pa.terminate()
-pa = pyaudio.PyAudio()
-for i in range(pa.get_device_count()):
-    info = pa.get_device_info_by_index(i)
-    print(f"{i}: {info['name']} ({info['maxInputChannels']} input channels)")
 
 FILE_PREFIX = "record"
 RECORD_FILE_TYPE = "wav"
-
-
-class PyAudioRecording:
-    def __init__(self, channels=2, rate=44100, frames_per_buffer=1024):
-        self._channels = channels
-        self._rate = rate
-        self._frames_per_buffer = frames_per_buffer
-        self._wavefile = None
-        self._stream = None
-
-    def start_recording(self, fname: str):
-        if self._wavefile is None:
-            self._wavefile = wave.open(fname, "wb")
-            self._wavefile.setnchannels(self._channels)
-            self._wavefile.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
-            self._wavefile.setframerate(self._rate)
-
-        def callback(in_data, frame_count, time_info, status):
-            assert self._wavefile is not None
-            self._wavefile.writeframes(in_data)
-            return in_data, pyaudio.paContinue
-
-        if self._stream is None:
-            self._stream = pa.open(
-                format=pyaudio.paInt16,
-                channels=self._channels,
-                rate=self._rate,
-                input=True,
-                frames_per_buffer=self._frames_per_buffer,
-                stream_callback=callback,
-            )
-        self._stream.start_stream()
-        return self
-
-    def stop_recording(self):
-        if self._stream is not None:
-            self._stream.stop_stream()
-            self._stream.close()
-            self._stream = None
-
-        if self._wavefile is not None:
-            self._wavefile.close()
-            self._wavefile = None
-
-    def is_recording(self):
-        return self._stream is not None and self._stream.is_active()
 
 
 class SoxRecording:
@@ -89,6 +33,10 @@ class SoxRecording:
             self._sox_proc = subprocess.Popen(
                 [
                     "rec",
+                    "--buffer",
+                    "256",
+                    "--input-buffer",
+                    "256",
                     "--no-show-progress",
                     "-V1",
                     fname,
@@ -103,42 +51,6 @@ class SoxRecording:
 
     def is_recording(self) -> bool:
         return self._sox_proc is not None and self._sox_proc.poll() is None
-
-
-class WavePlayback:
-    def __init__(self):
-        self.wavefile = None
-        self.stream = None
-
-    def play(self, file_name):
-        self.stop()
-
-        self.wavefile = wave.open(file_name, "rb")
-
-        # define callback (2)
-        def callback(in_data, frame_count, time_info, status):
-            data = self.wavefile.readframes(frame_count)
-            return (data, pyaudio.paContinue)
-
-        self.stream = pa.open(
-            format=pa.get_format_from_width(self.wavefile.getsampwidth()),
-            channels=self.wavefile.getnchannels(),
-            rate=self.wavefile.getframerate(),
-            output=True,
-            stream_callback=callback,
-        )
-
-        self.stream.start_stream()
-
-    def stop(self):
-        if self.stream is not None:
-            self.stream.stop_stream()
-            self.stream.close()
-            self.stream = None
-
-        if self.wavefile is not None:
-            self.wavefile.close()
-            self.wavefile = None
 
 
 class SoxPlayback:
@@ -174,15 +86,12 @@ def create_final_vocal():
 
     processed_files = []
     for f in audio_files:
-        out_file = postprocess.process_audio_file(f)
+        out_file = process_audio_file(f)
         processed_files.append(out_file)
 
     out_file = "out/concat.wav"
     concat_audio(processed_files, 0, out_file=out_file, channels=1)
     return out_file
-
-    # subprocess.check_call(
-    #     f'ffmpeg -hide_banner -loglevel panic -i out/concat.wav -c:v copy -af loudnorm=I={LOUDNESS_DB}:LRA=1 -ar 44100 out/concat.norm.wav -y')
 
 
 class TerminalRecorder:
@@ -237,14 +146,14 @@ class TerminalRecorder:
                 i = n - 1
             else:
                 i = 0
-        elif next is not None:
+        elif next is not None and self.cur_file_name is not None:
             try:
                 i = files.index(self.cur_file_name)
             except ValueError:
                 self.cur_file_name = None
                 return
 
-            if i > 0 and next == False:
+            if i > 0 and not next:
                 i -= 1
             elif i < n - 1 and next:
                 i += 1
@@ -314,6 +223,9 @@ class TerminalRecorder:
 
     def stop_record(self):
         self.playback.stop()
+
+        if not self.cur_file_name:
+            return
 
         if self.recording.is_recording():
             print("LOG: stop recording: %s" % self.cur_file_name, flush=True)

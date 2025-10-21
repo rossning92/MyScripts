@@ -1,4 +1,4 @@
-from _audio import *
+from utils.audio import *
 
 if __name__ == "__main__":
     silence_secs = float("{{_SILENCE_SECS}}") if "{{_SILENCE_SECS}}" else 1.0

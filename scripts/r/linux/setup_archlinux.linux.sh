@@ -125,8 +125,7 @@ if lspci -k | grep -q "NVIDIA Corporation"; then
         pac_install nvidia
     fi
     pac_install nvidia-settings
-    sudo nvidia-xconfig --output-xconfig /etc/X11/xorg.conf.d/10-nvidia.conf
-    nvidia-settings --assign CurrentMetaMode="nvidia-auto-select +0+0 {ForceFullCompositionPipeline=On}"
+    sudo nvidia-xconfig --metamodes="nvidia-auto-select +0+0 {ForceCompositionPipeline=On, ForceFullCompositionPipeline=On}" --output-xconfig /etc/X11/xorg.conf.d/20-nvidia.conf
 fi
 
 # Setup Intel graphics.
