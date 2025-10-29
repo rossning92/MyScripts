@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 from io import StringIO
+from queue import Queue
 from typing import (
     Any,
     Callable,
@@ -308,6 +309,8 @@ class Menu(Generic[T]):
         # Only update screen when _should_update_screen is True. This is set to True to
         # trigger the initial draw.
         self.__should_update_screen = True
+
+        self.__event_queue: Queue[Callable[[], None]] = Queue()
 
         # History
         self.history = history
@@ -866,6 +869,9 @@ class Menu(Generic[T]):
         else:
             return False
 
+    def post_event(self, func: Callable[[], None]) -> None:
+        self.__event_queue.put(func)
+
     def __update_matched_items(self, save_search_history=True, force_update=False):
         if self.__search_mode:
             if (
@@ -1003,7 +1009,16 @@ class Menu(Generic[T]):
         self.update_screen()
         self.on_created()
         self.on_main_loop()
-        while not self.process_events(timeout_sec=PROCESS_EVENT_INTERVAL_SEC):
+        done = False
+        while not done:
+            has_event = False
+            while not self.__event_queue.empty():
+                has_event = True
+                event = self.__event_queue.get()
+                event()
+            done = self.process_events(
+                timeout_sec=0.0 if has_event else PROCESS_EVENT_INTERVAL_SEC
+            )
             self.on_main_loop()
         self.on_close()
 

@@ -458,7 +458,7 @@ function getRecorderProcess() {
           s = s.substr(5);
           vscode.window.showInformationMessage(s);
 
-          const match = /^stop recording: (.*)/.exec(s);
+          const match = /^Stop recording: (.*)/.exec(s);
           if (match) {
             const fileName = match[1];
             insertTextAtCursor(`{{ record('record/${fileName}') }}`);
@@ -548,8 +548,8 @@ function startMovyServer(file: string) {
 
 function exportVideo({
   extraArgs,
-  selectedText = true,
-}: { extraArgs?: string[]; selectedText?: boolean } = {}) {
+  exportSelectedText = true,
+}: { extraArgs?: string[]; exportSelectedText?: boolean } = {}) {
   const activeDir = getActiveDir();
   if (!activeDir) {
     return;
@@ -560,7 +560,7 @@ function exportVideo({
     let document = editor.document;
 
     let textIn = "";
-    if (selectedText) {
+    if (exportSelectedText) {
       textIn = document.getText(editor.selection);
       if (!textIn) {
         let currentLine = editor.selection.active.line;
@@ -961,7 +961,7 @@ function updateWhenClauseContext() {
 function registerCommands(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.exportVideo", () => {
-      exportVideo({ selectedText: false });
+      exportVideo();
     })
   );
 
@@ -1017,7 +1017,7 @@ function registerCommands(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.purgeFiles", () => {
       exportVideo({
-        selectedText: false,
+        exportSelectedText: false,
         extraArgs: ["--audio_only", "--remove_unused_recordings"],
       });
     })

@@ -111,6 +111,10 @@ append_line_dedup ~/.xinitrc "udiskie &"
 # Enable DNS resolve caching.
 sudo systemctl enable --now systemd-resolved.service
 
+# To avoid freezing at low memory
+sudo pacman -S earlyoom
+sudo systemctl enable earlyoom --now
+
 # ------------------------------
 # Hardware specific (TODO: move)
 # ------------------------------

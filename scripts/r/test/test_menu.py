@@ -1,4 +1,5 @@
 import random
+from typing import List
 
 from utils.menu import Menu
 
@@ -21,8 +22,8 @@ def generate_lorem_text(
     max_sentences=3,
     min_words_per_sentence=5,
     max_words_per_sentence=10,
-):
-    lorem_paragraphs = []
+) -> List[str]:
+    lorem_paragraphs: List[str] = []
     for _ in range(num_paragraphs):
         num_sentences = random.randint(min_sentences, max_sentences)
         sentences = []

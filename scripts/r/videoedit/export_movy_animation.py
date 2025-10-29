@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import time
+from typing import Optional
 
 from _shutil import cd, get_files
 from pyppeteer import launch
@@ -14,8 +15,26 @@ from videoedit.start_movy_server import start_server
 PORT = 5555
 
 
-def export_movy_animation(file, format="webm"):
+def export_movy_animation(file: str, out_file: Optional[str] = None):
     print("Render animation: %s..." % file)
+
+    download_dir = os.path.abspath(
+        os.path.dirname(out_file) if out_file else os.path.dirname(file)
+    )
+
+    if out_file:
+        root, ext = os.path.splitext(out_file)
+        base_name = os.path.basename(root)
+    else:
+        root, ext = os.path.splitext(file)
+        base_name = os.path.basename(root)
+        out_file = os.path.join(download_dir, base_name + ".webm")
+    if ext == ".webm":
+        format = "webm"
+    elif ext == ".tar":
+        format = "png"
+    else:
+        raise Exception(f"Invalid output file extension: {ext}")
 
     assert file.lower().endswith(".js")
 
@@ -23,11 +42,7 @@ def export_movy_animation(file, format="webm"):
 
     url = "http://localhost:%d/?file=%s" % (PORT, os.path.basename(file))
 
-    out_file = None
-
     async def main():
-        nonlocal out_file
-
         browser = await launch(
             headless=False,
             args=["--disable-dev-shm-usage"],
@@ -38,19 +53,12 @@ def export_movy_animation(file, format="webm"):
             ),
         )
         page = await browser.newPage()
-        download_dir = os.path.abspath(os.path.dirname(file))
-        if format == "webm":
-            out_file = os.path.join(download_dir, os.path.splitext(file)[0] + ".webm")
-        elif format == "png":
-            out_file = os.path.join(download_dir, os.path.splitext(file)[0] + ".tar")
-        else:
-            raise Exception("Invalid format specified: {format}")
 
         await page._client.send(
             "Page.setDownloadBehavior",
             {
                 "behavior": "allow",
-                "downloadPath": os.path.abspath(os.path.dirname(file)),
+                "downloadPath": download_dir,
             },
         )
 

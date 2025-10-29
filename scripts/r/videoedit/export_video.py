@@ -1,12 +1,14 @@
 import argparse
 import glob
 import importlib
+import importlib.util
 import inspect
 import os
 import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import yaml
 from _shutil import (
@@ -15,19 +17,18 @@ from _shutil import (
     keep_awake,
     print2,
     start_process,
-    to_valid_file_name,
 )
 from utils.confirm import confirm
 
+from videoedit.project import create_project
+
 os.environ["FFMPEG_BINARY"] = shutil.which("ffmpeg")
-from moviepy.config import change_settings
 
 from . import automation, common, editor
 
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 ignore_undefined = False
-
 
 config = None
 
@@ -91,17 +92,27 @@ def _convert_to_readable_time(seconds):
         return "%02d:%02d" % (minutes, seconds)
 
 
-def _write_timestamp(t, section_name):
+def _write_timestamp(t, section_name, out_filename):
     os.makedirs(os.path.dirname(out_filename), exist_ok=True)
 
     if not hasattr(_write_timestamp, "f"):
-        _write_timestamp.f = open("%s.txt" % out_filename, "w", encoding="utf-8")
+        _write_timestamp.f = open(
+            "%s.timestamp.txt" % out_filename,
+            "w",
+            encoding="utf-8",
+        )
 
-    _write_timestamp.f.write("%s (%s)\n" % (section_name, _convert_to_readable_time(t)))
+    _write_timestamp.f.write(
+        "%s - %s\n"
+        % (
+            _convert_to_readable_time(t),
+            section_name.lstrip("# "),
+        )
+    )
     _write_timestamp.f.flush()
 
 
-def _parse_text(text, apis=common.apis, should_write_timestamp=False, **kwargs):
+def _parse_text(text, apis=common.apis, should_write_timestamp=True, **kwargs):
     def find_next(text, needle, p):
         pos = text.find(needle, p)
         if pos < 0:
@@ -138,9 +149,9 @@ def _parse_text(text, apis=common.apis, should_write_timestamp=False, **kwargs):
         if text[p : p + 1] == "#":
             end = find_next(text, "\n", p)
 
-            if should_write_timestamp:
+            if out_filename and should_write_timestamp:
                 line = text[p:end].strip()
-                _write_timestamp(editor.get_current_audio_pos(), line)
+                _write_timestamp(editor.get_current_audio_pos(), line, out_filename)
 
             p = end + 1
             continue
@@ -194,7 +205,7 @@ def save_config(config, config_file=None):
 
 
 def load_config(config_file=None):
-    DEFAULT_CONFIG = {"fps": 30, "title": None}
+    DEFAULT_CONFIG = {"fps": 30}
 
     if config_file is None:
         config_file = "config.yaml"
@@ -210,6 +221,21 @@ def load_config(config_file=None):
     save_config(config, config_file=config_file)
 
     return config
+
+
+def _import_from_path(module_name: str, path: str):
+    path_ = Path(path).resolve()
+    if not path_.exists():
+        raise FileNotFoundError(path_)
+
+    spec = importlib.util.spec_from_file_location(module_name, path_)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load spec for module {module_name!r} from {path_}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
 
 
 if __name__ == "__main__":
@@ -228,13 +254,18 @@ if __name__ == "__main__":
 
     # Change working directory to project directory.
     if args.proj_dir is not None:
-        os.chdir(args.proj_dir)
-        sys.path.append(args.proj_dir)
+        proj_dir = args.proj_dir
+        os.chdir(proj_dir)
+        sys.path.append(proj_dir)
     elif args.input:
         proj_dir = os.path.dirname(args.input)
         os.chdir(proj_dir)
         sys.path.append(proj_dir)
-    print("Project dir: %s" % os.getcwd())
+    else:
+        proj_dir = os.getcwd()
+    print("Project dir: %s" % proj_dir)
+
+    create_project(proj_dir)
 
     # Load config
     config = load_config()
@@ -246,17 +277,10 @@ if __name__ == "__main__":
             os.makedirs("tmp/out", exist_ok=True)
             out_filename = "tmp/out/" + get_time_str()
         else:
-            # Video title
-            if not config["title"]:
-                title = input("please enter video title (untitled): ")
-                if title:
-                    config["title"] = title
-                    save_config(config)
-                else:
-                    config["title"] = "untitled"
-
             os.makedirs("export", exist_ok=True)
-            out_filename = "export/" + to_valid_file_name(config["title"])
+            out_filename = "export/export"
+    else:
+        out_filename = None
 
     # Load custom APIs (api.py) if exists
     api_modules = []
@@ -273,7 +297,7 @@ if __name__ == "__main__":
 
     if os.path.exists("api.py"):
         sys.path.append(os.getcwd())
-        module = importlib.import_module("api")
+        module = _import_from_path("api", os.path.join(os.getcwd(), "api.py"))
         api_modules.append(module)
 
     for module in api_modules:
@@ -309,20 +333,21 @@ if __name__ == "__main__":
 
             _parse_text(s, apis=common.apis)
 
-            out = editor.export_video(
+            out: str = editor.export_video(
                 out_filename=out_filename, resolution=(1920, 1080)
             )
 
             if sys.platform == "win32":
                 subprocess.call(["taskkill", "/f", "/im", "mpv.exe"], shell=True)
-            start_process(
-                [
-                    "mpv",
-                    out,
-                    "--force-window",
-                    "--geometry=33%-0%+0%",
-                ],
-            )
+
+            mpv_command = [
+                "mpv",
+                out,
+                "--force-window",
+            ]
+            if args.preview:
+                mpv_command.append("--geometry=33%-0%+0%")
+            start_process(mpv_command)
 
     except common.VideoEditException as ex:
         print2("ERROR: %s" % ex, color="red")

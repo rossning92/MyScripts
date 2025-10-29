@@ -29,7 +29,7 @@ class SoxRecording:
         self._sox_proc: Optional[subprocess.Popen[bytes]] = None
 
     def start_recording(self, fname: str) -> None:
-        if self._sox_proc is None:
+        if not self.is_recording():
             self._sox_proc = subprocess.Popen(
                 [
                     "rec",
@@ -40,6 +40,9 @@ class SoxRecording:
                     "--no-show-progress",
                     "-V1",
                     fname,
+                    "trim",
+                    "0",
+                    "30",
                 ]
             )
 
@@ -177,14 +180,14 @@ class TerminalRecorder:
 
         if os.path.exists(file_name):
             os.remove(file_name)
-            print("LOG: file deleted: %s" % file_name, flush=True)
+            print("LOG: File deleted: %s" % file_name, flush=True)
 
     def create_noise_profile(self):
         self._stop_all()
 
-        print("LOG: please be quiet", flush=True)
+        print("LOG: Please be quiet", flush=True)
         sleep(1)
-        print("LOG: start collecting noise profile", flush=True)
+        print("LOG: Start collecting noise profile", flush=True)
 
         os.makedirs("tmp", exist_ok=True)
         noise_recording = SoxRecording()
@@ -193,11 +196,11 @@ class TerminalRecorder:
         noise_recording.stop_recording()
 
         create_noise_profile("tmp/noise.wav")
-        print("LOG: stop collecting noise profile", flush=True)
+        print("LOG: Stop collecting noise profile", flush=True)
 
     def remove_noise_profile(self):
         if os.path.exists("tmp/noise.wav"):
-            print("LOG: noise profile removed")
+            print("LOG: Noise profile removed")
             os.remove("tmp/noise.wav")
 
     def start_record(self):
@@ -219,7 +222,7 @@ class TerminalRecorder:
 
         self.recording.start_recording(self.tmp_wav_file)
 
-        print("LOG: start recording: %s" % self.cur_file_name, flush=True)
+        print("LOG: Start recording: %s" % self.cur_file_name, flush=True)
 
     def stop_record(self):
         self.playback.stop()
@@ -228,7 +231,7 @@ class TerminalRecorder:
             return
 
         if self.recording.is_recording():
-            print("LOG: stop recording: %s" % self.cur_file_name, flush=True)
+            print("LOG: Stop recording: %s" % self.cur_file_name, flush=True)
             self.recording.stop_recording()
 
             denoise(in_file=self.tmp_wav_file)
@@ -253,8 +256,8 @@ class TerminalRecorder:
 
             self.playback.play(self.cur_file_name)
 
-            # Don't play what's recorded.
-            # self._play_cur_file()
+        else:
+            print("LOG: Recording not started yet", flush=True)
 
     def main_loop(self):
         self.print_help()

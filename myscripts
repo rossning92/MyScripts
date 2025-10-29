@@ -52,13 +52,7 @@ append_line_dedup() {
 
 append_line_dedup \
     "$HOME/.bashrc" \
-    "export PATH=\"$(pwd)/bin:\$PATH\""
-
-if [[ -n "$TERMUX_VERSION" ]]; then
-    append_line_dedup \
-        "$HOME/.bashrc" \
-        '[[ "$(tty)" == "/dev/pts/0" ]] && $HOME/MyScripts/myscripts --startup'
-fi
+    "source '$(pwd)/settings/bash/.bashrc'"
 
 # Set terminal title
 echo -ne '\033]0;MyTerminal\007'

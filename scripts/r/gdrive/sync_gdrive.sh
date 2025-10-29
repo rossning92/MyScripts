@@ -31,6 +31,7 @@ rclone_wrapper() {
         --resilient \
         --exclude=__pycache__/** \
         --exclude=.config/** \
+		--exclude=.git \
         --exclude=.mypy_cache/** \
         --exclude=node_modules/** \
         --exclude=tmp/** \

@@ -690,7 +690,7 @@ Following is my instructions:
         )
         self.get_messages().append(message)
 
-        def complete() -> Tuple[Optional[str], bool]:
+        def complete() -> bool:
             message["text"] = ""
             msg_index = len(self.get_messages()) - 1
             line: Optional[Line] = None
@@ -716,7 +716,7 @@ Following is my instructions:
 
                     self.update_screen()
                     self.process_events(raise_keyboard_interrupt=True)
-                return message["text"], False
+                return False
             except KeyboardInterrupt:
                 message["text"] += f"\n{_INTERRUPT_MESSAGE}"
                 self.append_item(
@@ -727,28 +727,27 @@ Following is my instructions:
                         subindex=subindex,
                     )
                 )
-                return message["text"], True
+                return True
 
-        text_content = None
-        while text_content is None:  # retry on exception
+        while True:  # retry on exception
             try:
-                text_content, interrupted = complete()
+                interrupted = complete()
+                break
             except Exception:
                 ExceptionMenu().exec()
 
         self.__is_generating = False
         self.save_chat()
-        # self.__refresh_lines()
 
         if not interrupted:
-            self.on_message(text_content)
+            self.on_message(message["text"])
 
             if self.__copy:
-                set_clip(text_content)
+                set_clip(message["text"])
                 self.close()
             elif self.__out_file:
                 with open(self.__out_file, "w", encoding="utf-8") as f:
-                    f.write(text_content)
+                    f.write(message["text"])
                 self.close()
 
         while not self.__after_chat_completion.empty():

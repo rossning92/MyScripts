@@ -1,6 +1,6 @@
+import argparse
 import os
-
-from _shutil import call2, call_echo, cd, get_current_folder, get_files, print2
+import subprocess
 
 
 def convert_to_gif(
@@ -18,7 +18,7 @@ def convert_to_gif(
     if out_file is None:
         out_file = os.path.join("out", os.path.splitext(in_file)[0] + ".gif")
 
-    args = [f"ffmpeg", "-i", in_file]
+    args = ["ffmpeg", "-i", in_file]
 
     # start
     if start is not None and duration is not None:
@@ -46,19 +46,33 @@ def convert_to_gif(
 
     args += [out_file, "-y"]
 
-    call_echo(args)
+    subprocess.check_call(args)
 
     # Optimize gif
     if optimize:
-        print2("Optimize gif...")
+        print("Optimize gif")
         out_gif_optimized = os.path.join(
             "out", os.path.splitext(f)[0] + ".optimized.gif"
         )
-        args = f'magick "{out_file}" -coalesce -fuzz 4%% +dither -layers Optimize "{out_gif_optimized}"'
-        call2(args)
+        args = [
+            "magick",
+            out_file,
+            "-coalesce",
+            "-fuzz",
+            "4%",
+            "+dither",
+            "-layers",
+            "Optimize",
+            out_gif_optimized,
+        ]
+        subprocess.check_call(args)
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs="+")
+    args = parser.parse_args()
+
     fps = int("{{_FRAMERATE}}") if "{{_FRAMERATE}}" else 15
     height = int("{{_SCALE_H}}") if "{{_SCALE_H}}" else None
     optimize = bool("{{_OPTIMIZE_GIF}}")
@@ -68,16 +82,10 @@ if __name__ == "__main__":
     if "{{_START_AND_DURATION}}":
         start, duration = [float(x) for x in "{{_START_AND_DURATION}}".split()]
 
-    cur_folder = get_current_folder()
-    print("Current folder: %s" % cur_folder)
-    os.makedirs(os.path.join(cur_folder, "out"), exist_ok=True)
-    cd(cur_folder)
-
-    for f in get_files(cd=True):
-        in_file = os.path.basename(f)
-
+    for f in args.files:
+        os.chdir(os.path.dirname(f))
         convert_to_gif(
-            in_file,
+            os.path.basename(f),
             optimize=optimize,
             height=height,
             fps=fps,

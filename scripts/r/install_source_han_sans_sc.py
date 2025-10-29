@@ -1,48 +1,75 @@
-import glob
+import io
 import os
 import subprocess
 import sys
-import tempfile
+import urllib.request
+import zipfile
 
-from _shutil import copy, download, remove, unzip
+_FONT_URL = "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip"
 
 
-def install_font(url):
-    if sys.platform != "win32":
-        raise OSError("This function can only be run on Windows.")
+def _register_font(font_name: str, dst_file: str):
+    subprocess.check_output(
+        [
+            "reg",
+            "add",
+            r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts",
+            "/v",
+            font_name,
+            "/t",
+            "REG_SZ",
+            "/d",
+            dst_file,
+            "/f",
+        ],
+        shell=True,
+    )
 
-    tmp_dir = os.path.join(tempfile.gettempdir(), "SourceHanSansSC")
-    os.makedirs(tmp_dir, exist_ok=True)
-    os.chdir(tmp_dir)
 
-    download(url)
-    unzip(os.path.basename(url))
+def install_font():
+    if sys.platform == "win32":
+        dst_dir = r"C:\Windows\Fonts"
+    elif sys.platform == "linux":
+        dst_dir = os.path.expanduser("~/.local/share/fonts")
+        os.makedirs(dst_dir, exist_ok=True)
+    else:
+        raise NotImplementedError("Unsupported OS: %s" % sys.platform)
 
-    for f in glob.glob(os.path.join("**", "*.otf"), recursive=True):
-        src_file = os.path.basename(f)
-        font_name = os.path.splitext(src_file)[0]
-        dst_file = os.path.join(r"C:\Windows\Fonts", os.path.basename(f))
-        copy(f, dst_file)
-        subprocess.check_output(
-            [
-                "reg",
-                "add",
-                r"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts",
-                "/v",
-                font_name,
-                "/t",
-                "REG_SZ",
-                "/d",
-                dst_file,
-                "/f",
-            ],
-            shell=True,
+    with urllib.request.urlopen(_FONT_URL) as response:
+        data = response.read()
+
+    with zipfile.ZipFile(io.BytesIO(data)) as zf:
+        for name in zf.namelist():
+            if not name.lower().endswith(".otf"):
+                continue
+
+            font_name = os.path.splitext(os.path.basename(name))[0]
+            dst_file = os.path.join(dst_dir, os.path.basename(name))
+
+            with open(dst_file, "wb") as fh:
+                fh.write(zf.read(name))
+
+            if sys.platform == "win32":
+                _register_font(font_name, dst_file)
+
+
+def get_font_file() -> str:
+    font_candidates = [
+        r"C:\Windows\Fonts\SourceHanSansSC-Bold.otf",
+        os.path.expanduser("~/.local/share/fonts/SourceHanSansSC-Bold.otf"),
+    ]
+    font_file = next((path for path in font_candidates if os.path.exists(path)), None)
+    if font_file is None:
+        install_font()
+        font_file = next(
+            (path for path in font_candidates if os.path.exists(path)), None
         )
-
-    remove(tmp_dir)
+        if font_file is None:
+            raise FileNotFoundError(
+                "Source Han Sans SC Bold font not found after installation"
+            )
+    return font_file
 
 
 if __name__ == "__main__":
-    install_font(
-        "https://github.com/adobe-fonts/source-han-sans/releases/download/2.004R/SourceHanSansSC.zip"
-    )
+    install_font()

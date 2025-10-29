@@ -210,13 +210,16 @@ def remove_silence(in_file: str, out_file: str):
     call_echo(
         [
             "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "panic",
             "-y",
             "-i",
             in_file,
             "-af",
             "silenceremove="
             "stop_periods=-1:"
-            "stop_silence=0:"
+            "stop_silence=0.2:"
             "stop_threshold=-54dB",
             out_file,
         ]

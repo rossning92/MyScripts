@@ -98,6 +98,7 @@ FPS = 30
 IMAGE_SEQUENCE_FPS = FPS
 DEFAULT_AUDIO_FADING_DURATION = 0.25
 DEFAULT_IMAGE_CLIP_DURATION = 2
+SUBTITLE_GAP_THRESHOLD = 0.5
 
 
 class State:
@@ -113,6 +114,7 @@ class State:
         self.srt_lines = []
         self.srt_index = 1
         self.last_subtitle_index = -1
+        self.last_subtitle_end_time = 0.0
         self.crossfade = 0
 
         self.video_tracks: Dict[str, List[VideoClip]] = OrderedDict(
@@ -297,6 +299,8 @@ def record(
     subtitle=True,
     subtitle_duration=None,
     cut_voice=True,
+    apad=0.1,
+    silenceremove=True,
     **kwargs,
 ):
     if not os.path.exists(file):
@@ -308,16 +312,21 @@ def record(
         name_no_ext = os.path.splitext(os.path.basename(file))[0]
         out_file = "tmp/record/" + name_no_ext + ".wav"
         if file_is_old(file, out_file):
-            process_audio_file(file, out_file, cut_voice=cut_voice)
+            process_audio_file(
+                file,
+                out_file,
+                cut_voice=cut_voice,
+                enable_silenceremove=silenceremove,
+            )
         file = out_file
 
-    audio(file, t=t, move_playhead=move_playhead, **kwargs)
+    audio(file, t=t, move_playhead=move_playhead, apad=apad, **kwargs)
 
     if move_playhead:
         _state.pos_dict["re"] = _get_time("ae")
         _state.pos_dict["t"] = _get_time("as")
 
-    END_CHARS = ["。", "，", "！", "；", "？", "|"]
+    END_CHARS = ["。", "，", "、", "！", "；", "？", "|"]
 
     if _state.enable_subtitle and subtitle and not _state.audio_only:
         if len(_state.subtitle) == 0:
@@ -346,7 +355,9 @@ def record(
                 sentense = ""
                 for i, ch in enumerate(subtitle):
                     if (
-                        ch in END_CHARS and len(sentense) >= MIN_SENTENSE_LEN
+                        ch in END_CHARS
+                        and len(sentense) >= MIN_SENTENSE_LEN
+                        and i < length - MIN_SENTENSE_LEN
                     ) or i == length - 1:
                         _state.srt_lines.extend(
                             [
@@ -357,14 +368,26 @@ def record(
                             ]
                         )
 
-                        _add_subtitle_clip(start=start, end=end, text=sentense)
+                        # Skip tiny gaps between subtitles
+                        if (
+                            abs(start - _state.last_subtitle_end_time)
+                            < SUBTITLE_GAP_THRESHOLD
+                        ):
+                            start = _state.last_subtitle_end_time
+                        _add_subtitle_clip(
+                            start=start,
+                            end=end,
+                            text=sentense,
+                        )
+                        _state.last_subtitle_end_time = end
 
                         end += char_duration
                         start = end
                         sentense = ""
                         _state.srt_index += 1
                     else:
-                        sentense += ch
+                        if ch not in END_CHARS:
+                            sentense += ch
                         end += char_duration
 
 
@@ -451,6 +474,7 @@ def _add_audio_clip(
     duration=None,
     move_playhead=True,
     loop=False,
+    apad=0.0,
 ):
     clips = get_audio_track(track).clips
 
@@ -482,12 +506,14 @@ def _add_audio_clip(
 
     if move_playhead:
         # Forward audio track pos
-        _state.pos_dict["t"] = _state.pos_dict["a"] = _state.pos_dict[
-            "ae"
-        ] = _state.pos_dict["as"] + (
-            clip_info.mpy_clip.duration
-            if clip_info.duration is None
-            else clip_info.duration
+        _state.pos_dict["t"] = _state.pos_dict["a"] = _state.pos_dict["ae"] = (
+            _state.pos_dict["as"]
+            + (
+                clip_info.mpy_clip.duration
+                if clip_info.duration is None
+                else clip_info.duration
+            )
+            + apad
         )
 
     clips.append(clip_info)
@@ -506,6 +532,7 @@ def audio(
     track=None,
     move_playhead=True,
     solo=False,
+    apad=0.0,
     **kwargs,
 ):
     t = _get_time(t)
@@ -521,7 +548,9 @@ def audio(
         crossfade=crossfade,
     )
 
-    clip = _add_audio_clip(f, t=t, track=track, move_playhead=move_playhead, **kwargs)
+    clip = _add_audio_clip(
+        f, t=t, track=track, move_playhead=move_playhead, apad=apad, **kwargs
+    )
 
     if crossfade > 0:  # Crossfade in
         clip.vol_keypoints.append((0, 0))
@@ -708,13 +737,14 @@ def _create_image_seq_clip(tar_file):
 
 @functools.lru_cache(maxsize=None)
 def _load_mpy_clip(
-    file, scale=(1.0, 1.0), frame=None, transparent=True, width=None, height=None
+    file,
+    scale=(1.0, 1.0),
+    frame=None,
+    transparent=True,
+    width=None,
+    height=None,
+    filtering: Literal["linear", "nearest"] = "linear",
 ):
-    def update_clip_size(clip):
-        if not width and not height:
-            return clip
-        else:
-            return clip.resize(width=width, height=height)
 
     def compute_size(w, h):
         aspect = w / h
@@ -733,7 +763,12 @@ def _load_mpy_clip(
         nonlocal scale
 
         # Have ffmpeg resize the frames before returning them - faster speed.
-        if scale[0] != 1.0 or scale[1] != 1.0:
+        if (
+            scale[0] != 1.0
+            or scale[1] != 1.0
+            or width is not None
+            or height is not None
+        ) and filtering == "linear":
             w, h = _get_video_resolution(f)
             w, h = compute_size(w, h)
             target_resolution = [int(h * scale[0]), int(w * scale[1])]
@@ -764,11 +799,9 @@ def _load_mpy_clip(
             clip = ImageClip(file).set_duration(DEFAULT_IMAGE_CLIP_DURATION)
             if not export_shapes:
                 clip = clip.set_mask(None)
-            clip = update_clip_size(clip)
 
     elif file.endswith(".png") or file.endswith(".jpg"):
         clip = ImageClip(file)
-        clip = update_clip_size(clip)
 
         clip = clip.set_duration(DEFAULT_IMAGE_CLIP_DURATION)
         if not transparent:
@@ -900,8 +933,9 @@ def _add_video_clip(
         transparent=clip_info.transparent,
         width=clip_info.width,
         height=clip_info.height,
+        filtering=filtering,
     )
-    if type(clip_info.mpy_clip) == VideoFileClip:
+    if isinstance(clip_info.mpy_clip, VideoFileClip) and filtering == "linear":
         clip_info.scale = (1.0, 1.0)  # HACK: video file clip are pre-scaled
 
     # Duration
@@ -945,31 +979,38 @@ def anim(file, format: Literal["webm", "png"] = "webm", **kwargs):
 
     # Generate video file from .js file
     if format == "webm":
-        vid_file = os.path.splitext(file)[0] + ".webm"
+        ext = ".webm"
     elif format == "png":
-        vid_file = os.path.splitext(file)[0] + ".tar"
+        ext = ".tar"
     else:
         raise Exception("Invalid format specified: {format}")
 
-    if file_is_old(file, vid_file):
+    base_name = os.path.basename(os.path.splitext(file)[0])
+    out_file = f"tmp/animation/{base_name}{ext}"
+
+    if file_is_old(file, out_file):
         # Remove old video file
-        if os.path.exists(vid_file):
-            os.remove(vid_file)
+        if os.path.exists(out_file):
+            os.remove(out_file)
 
         # Remove old metadata file
-        metadata_file = os.path.splitext(file)[0] + ".json"
+        metadata_file = "tmp/animation/%s.json" % base_name
         if os.path.exists(metadata_file):
             os.remove(metadata_file)
 
-        export_movy_animation(os.path.abspath(file), format=format)
-    file = vid_file
+        mkdir("tmp/animation")
+        base_name = os.path.splitext(os.path.basename(file))[0]
+        export_movy_animation(
+            os.path.abspath(file),
+            out_file=out_file,
+        )
 
-    clip_info = _add_video_clip(file, **kwargs)
+    clip_info = _add_video_clip(out_file, **kwargs)
 
     if clip_info.subclip is not None:
         assert type(clip_info.subclip) == tuple
         if prev_anim_clip:
-            if prev_anim_clip.file == os.path.abspath(file):
+            if prev_anim_clip.file == os.path.abspath(out_file):
                 if (
                     prev_anim_clip.subclip is not None
                     and len(prev_anim_clip.subclip) == 1
@@ -1148,7 +1189,10 @@ def _update_mpy_clip(
     duration,
     pos,
     scale,
+    width,
+    height,
     vol,
+    filtering: Literal["linear", "nearest"],
     **kwargs,
 ):
     assert duration is not None
@@ -1201,8 +1245,37 @@ def _update_mpy_clip(
         clip = clip.set_duration(duration)
 
     # Scale should be done before translation
-    if scale[0] != 1.0 or scale[1] != 1.0:
-        clip = clip.resize((int(clip.w * scale[0]), int(clip.h * scale[1])))
+    if scale[0] != 1.0 or scale[1] != 1.0 or width is not None or height is not None:
+        if width and height:
+            target_size = (int(width * scale[0]), int(height * scale[1]))
+        elif width:
+            aspect = clip.w / clip.h
+            target_size = (int(width * scale[0]), int(width / aspect * scale[1]))
+        elif height:
+            aspect = clip.w / clip.h
+            target_size = (int(height * aspect * scale[0]), int(height * scale[1]))
+        else:
+            target_size = (int(clip.w * scale[0]), int(clip.h * scale[1]))
+
+        if filtering == "linear":
+            if not isinstance(clip, VideoFileClip):  # VideoFileClip are pre-scaled
+                clip = clip.resize(target_size)
+        else:
+
+            def resize_nearest(target_size):
+                """Return a function to be used with clip.fl() that resizes frames to `target_size`."""
+
+                def fl_func(get_frame, t):
+                    frame = get_frame(t)
+                    img = Image.fromarray(frame)
+                    img_resized = img.resize(
+                        target_size, resample=Image.Resampling.NEAREST
+                    )
+                    return np.array(img_resized)
+
+                return fl_func
+
+            clip = clip.fl(resize_nearest(target_size))
 
     if pos is not None:
         # (x, y) marks the center location of the of the clip instead of the top
@@ -1497,8 +1570,3 @@ def export_video(*, out_filename, resolution, preview=False):
                 ffmpeg_params=["-crf", "19"],
             )
             return "%s.mp4" % out_filename
-
-
-# def _export_srt():
-#     with open("out.srt", "w", encoding="utf-8") as f:
-#         f.write("\n".join(_state.srt_lines))

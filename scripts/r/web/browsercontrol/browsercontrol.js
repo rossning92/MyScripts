@@ -8,6 +8,32 @@ const userDataDir = path.join(os.homedir(), ".browsercontrol-user-data");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+async function getActivePage(browser) {
+  const pages = await browser.pages();
+  const arr = [];
+  for (const page of pages) {
+    if (
+      await page.evaluate(() => {
+        return document.visibilityState == "visible";
+      })
+    ) {
+      arr.push(page);
+    }
+  }
+  if (arr.length == 1) return arr[0];
+  throw "Unable to get active page";
+}
+
+async function withActivePage(handler) {
+  const browser = await launchOrConnectBrowser();
+  try {
+    const page = await getActivePage(browser);
+    return await handler(page, browser);
+  } finally {
+    browser.disconnect();
+  }
+}
+
 async function launchOrConnectBrowser(browserURL = "http://127.0.0.1:21222") {
   try {
     return await connect({ browserURL });
@@ -48,44 +74,54 @@ async function launchOrConnectBrowser(browserURL = "http://127.0.0.1:21222") {
 }
 
 async function getText() {
-  const browser = await launchOrConnectBrowser();
-  try {
-    const pages = await browser.pages();
-    const page = pages.at(-1);
-
-    if (!page) {
-      throw new Error("No open pages");
-    }
-
+  return withActivePage(async (page) => {
     return await page.evaluate(() => {
       const element = document.getElementById("content");
       return element ? element.innerText : document.body.innerText;
     });
-  } finally {
-    browser.disconnect();
-  }
+  });
 }
 
 async function getMarkdown() {
-  const browser = await launchOrConnectBrowser();
-  try {
-    const pages = await browser.pages();
-    const page = pages.at(-1);
-
-    if (!page) {
-      throw new Error("No open pages");
-    }
-
+  return withActivePage(async (page) => {
     const content = await page.evaluate(() => {
       const element = document.getElementById("content");
       return element ? element.innerHTML : document.body.innerHTML;
     });
 
     const turndownService = new TurndownService();
+    turndownService.remove("script");
+    turndownService.remove("style");
     return turndownService.turndown(content);
-  } finally {
-    browser.disconnect();
-  }
+  });
+}
+
+async function scrollToBottom() {
+  return withActivePage(async (page) => {
+    await page.evaluate(async () => {
+      await new Promise((resolve) => {
+        const scrollDistance = 200;
+        const scrollInterval = 100;
+        const scrollTimeout = 2000;
+
+        let lastScrollY = 0;
+        let lastChange = Date.now();
+        const timer = setInterval(() => {
+          window.scrollBy(0, scrollDistance);
+
+          if (window.scrollY > lastScrollY) {
+            lastScrollY = window.scrollY;
+            lastChange = Date.now();
+          }
+
+          if (Date.now() - lastChange >= scrollTimeout) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, scrollInterval);
+      });
+    });
+  });
 }
 
 function showHelp() {
@@ -93,6 +129,8 @@ function showHelp() {
   console.log("  node browsercontrol.js open <url>");
   console.log("  node browsercontrol.js get-text");
   console.log("  node browsercontrol.js get-markdown");
+  console.log("  node browsercontrol.js scroll-bottom");
+  console.log("  node browsercontrol.js scrape [--filter <class> ...]");
 }
 
 const extractMostDirectChildren = (filters) => {
@@ -171,27 +209,19 @@ const extractMostDirectChildren = (filters) => {
 };
 
 async function scrape(filters) {
-  const browser = await launchOrConnectBrowser();
-  try {
-    const pages = await browser.pages();
-    const page = pages.at(-1);
-
-    if (!page) {
-      throw new Error("No open pages");
-    }
-
+  return withActivePage(async (page) => {
     const children = await page.evaluate(extractMostDirectChildren, filters);
-
     console.log(JSON.stringify(children, null, 2));
-  } finally {
-    browser.disconnect();
-  }
+  });
 }
 
 (async () => {
   const args = process.argv.slice(2);
   if (args.length === 2 && args[0] === "open") {
-    const url = args[1];
+    let url = args[1];
+    if (!/^https?:\/\//i.test(url)) {
+      url = `http://${url}`;
+    }
 
     const browser = await launchOrConnectBrowser();
     const page = await browser.newPage();
@@ -216,6 +246,16 @@ async function scrape(filters) {
     try {
       const markdown = await getMarkdown();
       console.log(markdown);
+      return;
+    } catch (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+  }
+
+  if (args.length === 1 && args[0] === "scroll-bottom") {
+    try {
+      await scrollToBottom();
       return;
     } catch (err) {
       console.error(err.message);

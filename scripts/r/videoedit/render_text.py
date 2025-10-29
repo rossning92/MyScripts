@@ -15,16 +15,13 @@ def render_text(
     font="Arial",
     font_size=45,
     color="#ffffff",
-    stroke_color="#000000",
 ):
-    font_file = r"C:\Windows\Fonts\SourceHanSansSC-Bold.otf"
-    if not os.path.exists(font_file):
-        subprocess.check_call(["run_script", "r/install_source_han_sans_sc.py"])
+    from install_source_han_sans_sc import get_font_file
 
-    # Escape `%` in ImageMagick
+    font_file = get_font_file()
+
     text = text.replace("\\*", "*").replace("\\", "\\\\").replace("%", "%%")
 
-    # Generate subtitle png image using magick
     tempfile_fd, tempfilename = tempfile.mkstemp(suffix=".png")
     os.close(tempfile_fd)
     cmd = [
@@ -35,22 +32,26 @@ def render_text(
         font_file.replace("\\", "/"),
         "-pointsize",
         "%d" % font_size,
-        "-stroke",
-        stroke_color,
-        "-strokewidth",
-        "4",
         "-kerning",
         "%d" % int(font_size * 0.05),
         "-gravity",
         "center",
-        "label:%s" % text,
-        "-stroke",
-        "None",
         "-fill",
         color,
         "label:%s" % text,
+        "(",
+        "+clone",
+        "-background",
+        "none",
+        "-shadow",
+        "100x4+0+4",
+        ")",
+        "+swap",
+        "-background",
+        "none",
         "-layers",
         "merge",
+        "+repage",
         "PNG32:%s" % tempfilename,
     ]
     subprocess.check_call(cmd)
