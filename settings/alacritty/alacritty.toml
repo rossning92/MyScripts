@@ -35,8 +35,8 @@ columns = 120
 lines = 40
 
 [window]
-padding.x = 8
-padding.y = 8
+padding.x = 0
+padding.y = 0
 
 [keyboard]
 bindings = [

@@ -2,11 +2,10 @@ import argparse
 import os
 import re
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import ML.gpt.chat_menu
 from ai.chat import get_tool_use_text
-from ai.message import Message
 from ai.tool_use import (
     ToolResult,
     ToolUse,
@@ -82,7 +81,7 @@ class AgentMenu(ChatMenu):
         self.__agent_file = agent_file or os.path.join(data_dir, AGENT_FILE)
         self.__data_dir = data_dir
         self.__run = run
-        self.__tools = self.get_tools()
+        self.__tools = self.get_tool_list()
         self.__yes_always = yes_always
 
         super().__init__(
@@ -142,31 +141,6 @@ class AgentMenu(ChatMenu):
         self.__agent = AGENT_DEFAULT.copy()
         self.new_chat()
 
-    def complete_chat(
-        self,
-        messages: List[Message],
-        model: Optional[str] = None,
-        system_prompt: Optional[str] = None,
-        **__,
-    ) -> Iterator[str]:
-        return super().complete_chat(
-            messages=messages,
-            model=model,
-            system_prompt=system_prompt,
-            tools=self.__tools if self.get_setting("tool_use_api") else None,
-            on_tool_use_start=(
-                self.__on_tool_use_start if self.get_setting("tool_use_api") else None
-            ),
-            on_tool_use_args_delta=(
-                self.__on_tool_use_args_delta
-                if self.get_setting("tool_use_api")
-                else None
-            ),
-            on_tool_use=(
-                self.__on_tool_use if self.get_setting("tool_use_api") else None
-            ),
-        )
-
     def on_created(self):
         if self.__run:
             self.send_message(self.get_prompt())
@@ -210,7 +184,7 @@ class AgentMenu(ChatMenu):
     def get_prompt(self) -> str:
         return self.__get_task_with_context()
 
-    def get_tools(self) -> List[Callable]:
+    def get_tool_list(self) -> List[Callable]:
         tools: List[Callable] = []
 
         for agent_name in self.__agent["agents"]:
@@ -248,6 +222,9 @@ class AgentMenu(ChatMenu):
             )
             tools.append(scope[agent_name])
         return tools
+
+    def get_tools(self) -> Optional[List[Callable[..., Any]]]:
+        return self.get_tool_list() if self.get_setting("tool_use_api") else None
 
     def get_system_prompt(self) -> str:
         return (
@@ -388,7 +365,10 @@ class AgentMenu(ChatMenu):
     def on_result(self, result: str):
         pass
 
-    def __on_tool_use_start(self, tool_use: ToolUse):
+    def on_tool_use_start(self, tool_use: ToolUse):
+        if not self.get_setting("tool_use_api"):
+            return
+
         msg_index = len(self.get_messages()) - 1
         if len(self.items) > 0 and self.items[-1].msg_index == msg_index:
             subindex = self.items[-1].subindex + 1
@@ -405,10 +385,14 @@ class AgentMenu(ChatMenu):
         )
         self.process_events()
 
-    def __on_tool_use_args_delta(self, text: str):
-        pass
+    def on_tool_use_args_delta(self, text: str):
+        if not self.get_setting("tool_use_api"):
+            return
 
-    def __on_tool_use(self, tool_use: ToolUse):
+    def on_tool_use(self, tool_use: ToolUse):
+        if not self.get_setting("tool_use_api"):
+            return
+
         messages = self.get_messages()
         assert len(messages) > 0
         if "tool_use" not in messages[-1]:

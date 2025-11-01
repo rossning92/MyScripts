@@ -46,7 +46,20 @@ async function openFile(filePath: string) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
     } else if (/\.(png|jpg|mp4|webm)$/g.test(filePath)) {
-      cp.spawn("mpv", ["--force-window", filePath]);
+      const selection = await vscode.window.showQuickPick(
+        ["Open", "Trim Video"],
+        {
+          placeHolder: "Choose an action",
+        }
+      );
+      if (selection === "Open") {
+        cp.spawn("mpv", ["--force-window", filePath]);
+      } else if (selection === "Trim Video") {
+        openTerminal({
+          name: "TrimVideo",
+          args: ["run_script", "r/video/trim_video.py", filePath],
+        });
+      }
     } else if (/\.(wav|mp3|ogg)$/g.test(filePath)) {
       output.appendLine(`Open with ocenaudio: ${filePath}`);
       cp.spawn("run_script", ["ext/run_app.py", "ocenaudio", filePath]);

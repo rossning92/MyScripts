@@ -7,8 +7,8 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from pprint import pformat
-from queue import Queue
-from typing import Any, Callable, Dict, Iterator, List, Literal, Optional, Tuple
+from threading import Event, Thread
+from typing import Any, Callable, Dict, List, Literal, Optional
 
 from ai.chat import (
     complete_chat,
@@ -195,13 +195,14 @@ class ChatMenu(Menu[Line]):
         self.__auto_create_chat_file = chat_file is None
         self.__chat_file = chat_file
         self.__copy = copy
+        self.__cur_subindex = 0
         self.__edit_text = edit_text
         self.__first_message = message
         self.__attachment: Optional[str] = attachment
         self.__is_generating = False
+        self.__cancel_chat_completion_event = Event()
         self.__last_yanked_line: Optional[Line] = None
         self.__lines: List[Line] = []
-        self.__after_chat_completion: Queue[Callable] = Queue()
         self.__prompt = prompt
         self.__prompt_file = prompt_file
         self.__out_file = out_file
@@ -656,32 +657,24 @@ Following is my instructions:
         self.save_chat()
         self.update_screen()
 
-    def complete_chat(
-        self,
-        messages: List[Message],
-        model: Optional[str] = None,
-        system_prompt: Optional[str] = None,
-        tools: Optional[List[Callable[..., Any]]] = None,
-        on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
-        on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
-        on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-    ) -> Iterator[str]:
-        return complete_chat(
-            messages,
-            model,
-            system_prompt,
-            tools=tools,
-            on_tool_use_start=on_tool_use_start,
-            on_tool_use_args_delta=on_tool_use_args_delta,
-            on_tool_use=on_tool_use,
-            web_search=self.get_setting("web_search"),
-        )
+    def get_tools(self) -> Optional[List[Callable[..., Any]]]:
+        return None
+
+    def on_tool_use_start(self, tool_use: ToolUse):
+        pass
+
+    def on_tool_use_args_delta(self, text: str):
+        pass
+
+    def on_tool_use(self, tool_use: ToolUse):
+        pass
 
     def __complete_chat(self):
         if self.__is_generating:
             return
 
         self.__is_generating = True
+        self.__cur_subindex = 0
 
         message = Message(
             role="assistant",
@@ -690,68 +683,106 @@ Following is my instructions:
         )
         self.get_messages().append(message)
 
-        def complete() -> bool:
-            message["text"] = ""
-            msg_index = len(self.get_messages()) - 1
-            line: Optional[Line] = None
-            subindex = 0
-            self.process_events(raise_keyboard_interrupt=True)
+        def worker(cancel_chat_completion_event: Event):
             try:
-                for chunk in self.complete_chat(
-                    self.get_messages(expand_context=True),
-                    model=self.get_setting("model"),
-                    system_prompt=self.get_system_prompt(),
+                for chunk_index, chunk in enumerate(
+                    complete_chat(
+                        self.get_messages(expand_context=True),
+                        model=self.get_setting("model"),
+                        system_prompt=self.get_system_prompt(),
+                        tools=self.get_tools(),
+                        on_tool_use_start=self.on_tool_use_start,
+                        on_tool_use_args_delta=self.on_tool_use_args_delta,
+                        on_tool_use=self.on_tool_use,
+                        web_search=self.get_setting("web_search"),
+                    )
                 ):
-                    message["text"] += chunk
-                    for i, a in enumerate(chunk.split("\n")):
-                        if i > 0 or line is None:
-                            line = Line(
-                                role="assistant",
-                                msg_index=msg_index,
-                                subindex=subindex,
-                            )
-                            subindex += 1
-                            self.append_item(line)
-                        line.text += a
+                    if cancel_chat_completion_event.is_set():
+                        return
 
-                    self.update_screen()
-                    self.process_events(raise_keyboard_interrupt=True)
-                return False
-            except KeyboardInterrupt:
-                message["text"] += f"\n{_INTERRUPT_MESSAGE}"
-                self.append_item(
-                    Line(
-                        role="assistant",
-                        text=f"{_INTERRUPT_MESSAGE}",
-                        msg_index=msg_index,
-                        subindex=subindex,
+                    self.post_event(
+                        lambda chunk_index=chunk_index, chunk=chunk: self.__on_chat_completion_chunk(
+                            chunk_index,
+                            chunk,
+                            cancel_chat_completion_event=cancel_chat_completion_event,
+                        )
+                    )
+
+                self.post_event(
+                    lambda: self.__on_chat_completion_done(
+                        cancel_chat_completion_event=cancel_chat_completion_event
                     )
                 )
-                return True
+            except Exception as exception:
+                self.post_event(
+                    lambda exception=exception: self.__on_chat_completion_exception(
+                        cancel_chat_completion_event=cancel_chat_completion_event,
+                        exception=exception,
+                    )
+                )
 
-        while True:  # retry on exception
-            try:
-                interrupted = complete()
-                break
-            except Exception:
-                ExceptionMenu().exec()
+        Thread(
+            target=lambda cancel_chat_completion_event=self.__cancel_chat_completion_event: worker(
+                cancel_chat_completion_event=cancel_chat_completion_event
+            )
+        ).start()
 
+    def __get_last_message(self) -> Message:
+        return self.get_messages()[-1]
+
+    def __on_chat_completion_done(self, cancel_chat_completion_event):
+        if cancel_chat_completion_event.is_set():
+            return
         self.__is_generating = False
+        self.__cur_subindex = 0
         self.save_chat()
 
-        if not interrupted:
-            self.on_message(message["text"])
+        last_message = self.__get_last_message()["text"]
+        self.on_message(last_message)
 
-            if self.__copy:
-                set_clip(message["text"])
-                self.close()
-            elif self.__out_file:
-                with open(self.__out_file, "w", encoding="utf-8") as f:
-                    f.write(message["text"])
-                self.close()
+        if self.__copy:
+            set_clip(last_message)
+            self.close()
+        elif self.__out_file:
+            with open(self.__out_file, "w", encoding="utf-8") as f:
+                f.write(last_message)
+            self.close()
 
-        while not self.__after_chat_completion.empty():
-            (self.__after_chat_completion.get())()
+    def __on_chat_completion_chunk(
+        self,
+        chunk_index: int,
+        chunk: str,
+        cancel_chat_completion_event: Event,
+    ):
+        if cancel_chat_completion_event.is_set():
+            return
+
+        self.__get_last_message()["text"] += chunk
+        for i, a in enumerate(chunk.split("\n")):
+            if i > 0 or chunk_index == 0:
+                line = Line(
+                    role="assistant",
+                    msg_index=len(self.get_messages()) - 1,
+                    subindex=self.__cur_subindex,
+                )
+                self.append_item(line)
+                self.__cur_subindex += 1
+            self.items[-1].text += a
+
+        self.update_screen()
+
+    def __on_chat_completion_exception(
+        self,
+        cancel_chat_completion_event: Event,
+        exception: Exception,
+    ):
+        if cancel_chat_completion_event.is_set():
+            return
+
+        self.__is_generating = False
+        self.__cur_subindex = 0
+
+        ExceptionMenu(exception=exception).exec()
 
     def save_chat(self):
         if self.__chat_file is None:
@@ -865,20 +896,14 @@ Following is my instructions:
             self.update_screen()
 
     def on_enter_pressed(self):
-        try:
-            self.__cancel_chat_completion()
+        self.__cancel_chat_completion()
 
-            # Select the last line
-            last_line_index = len(self.__lines) - 1
-            if last_line_index >= 0:
-                self.set_selection(last_line_index, last_line_index)
+        # Select the last line
+        last_line_index = len(self.__lines) - 1
+        if last_line_index >= 0:
+            self.set_selection(last_line_index, last_line_index)
 
-            self.send_message(self.get_input())
-        except KeyboardInterrupt:
-            self.__after_chat_completion.put(
-                lambda message=self.get_input(): self.send_message(message)
-            )
-            raise
+        self.send_message(self.get_input())
 
     def on_item_selection_changed(self, item: Optional[Line], i: int):
         self.__yank_mode = 0
@@ -902,7 +927,20 @@ Following is my instructions:
 
     def __cancel_chat_completion(self):
         if self.__is_generating:
-            raise KeyboardInterrupt()
+            self.__cancel_chat_completion_event.set()
+            self.__get_last_message()["text"] += f"\n{_INTERRUPT_MESSAGE}"
+            self.append_item(
+                Line(
+                    role="assistant",
+                    text=f"{_INTERRUPT_MESSAGE}",
+                    msg_index=len(self.get_messages()) - 1,
+                    subindex=self.__cur_subindex,
+                )
+            )
+            self.__is_generating = False
+            self.__cur_subindex = 0
+            self.save_chat()
+            self.__cancel_chat_completion_event = Event()
 
     def paste(self) -> bool:
         if not super().paste():

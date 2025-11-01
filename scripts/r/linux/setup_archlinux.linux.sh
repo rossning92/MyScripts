@@ -55,6 +55,7 @@ append_line_dedup "$HOME/.bashrc" 'alias v=nvim'
 
 # Install fonts
 pac_install $(pacman -Ssq 'noto-fonts-*') ttf-noto-nerd
+pac_install ttf-jetbrains-mono
 
 {{ include('r/linux/arch/install_yay.sh') }}
 

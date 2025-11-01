@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 from tempfile import gettempdir
+from tkinter import Tk, simpledialog
 from typing import Optional
 
 from _script import get_variable, set_variable
@@ -17,7 +18,7 @@ from _shutil import (
     start_process,
     wait_for_key,
 )
-from pynput import keyboard
+from utils.hotkey import register_global_hotkey
 from utils.notify import send_notify
 from utils.slugify import slugify
 from utils.window import get_window_rect, set_window_rect
@@ -28,7 +29,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 DEFAULT_WINDOW_SIZE = (1920, 1080)
 
 
-def to_float(name: str) -> Optional[float]:
+def _to_float(name: str) -> Optional[float]:
     value = os.getenv(name)
     return float(value) if value else None
 
@@ -42,6 +43,17 @@ def _get_default_monitor_source() -> Optional[str]:
         ).strip()
         return source + ".monitor"
     except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def _get_default_rect() -> Optional[list[int]]:
+    rect = os.getenv("SCREEN_RECORD_RECT")
+    if not rect:
+        return None
+    parts = rect.replace(",", " ").split()
+    try:
+        return [int(part) for part in parts]
+    except ValueError:
         return None
 
 
@@ -263,19 +275,18 @@ def record_app(*, file, args=None, title=None, callback=None, size=DEFAULT_WINDO
 
 
 def _prompt_record_file_name():
-    args = ["zenity", "--entry", "--text=Enter file name:"]
+    root = Tk()
+    root.withdraw()
 
     last_file_name = get_variable("LAST_SCREEN_RECORD_FILE_NAME")
+    initialvalue = None
     if last_file_name:
-        suggest_file_name = get_next_file_name(last_file_name)
-        args.append(f"--entry-text={suggest_file_name}")
+        initialvalue = get_next_file_name(last_file_name)
 
-    result = subprocess.run(
-        args,
-        capture_output=True,
-        text=True,
+    name = simpledialog.askstring(
+        "File Name", "Enter file name:", initialvalue=initialvalue, parent=root
     )
-    name = result.stdout.strip()
+    root.destroy()
     if not name:
         return None
 
@@ -285,14 +296,14 @@ def _prompt_record_file_name():
 
 def _main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rect", type=int, nargs="+")
+    parser.add_argument("--rect", type=int, nargs="+", default=_get_default_rect())
     parser.add_argument("--no_audio", default=True, action="store_true")
     parser.add_argument("--out_dir", type=str, default=None)
     parser.add_argument("--window-name", type=str, default=None)
     parser.add_argument(
         "--max-length",
         type=float,
-        default=to_float("MAX_LENGTH"),
+        default=_to_float("MAX_LENGTH"),
         help="Max record length in seconds",
     )
 
@@ -313,27 +324,27 @@ def _main():
             out_dir = os.path.expanduser("~/Desktop")
     os.chdir(out_dir)
 
-    def on_press(key):
-        if key == keyboard.Key.f8:
-            if not recorder.is_recording():
-                recorder.start_record()
-                if args.max_length:
-                    time.sleep(args.max_length)
-                    should_stop = True
-                else:
-                    should_stop = False
-            else:
+    def on_hotkey():
+        if not recorder.is_recording():
+            recorder.start_record()
+            if args.max_length:
+                time.sleep(args.max_length)
                 should_stop = True
+            else:
+                should_stop = False
+        else:
+            should_stop = True
 
-            if should_stop:
-                recorder.stop_record()
-                file = _prompt_record_file_name()
-                if file:
-                    recorder.save(file)
-                    call_echo(["mpv", file])
+        if should_stop:
+            recorder.stop_record()
+            file = _prompt_record_file_name()
+            if file:
+                recorder.save(file)
+                call_echo(["mpv", os.path.abspath(file)])
 
-    with keyboard.Listener(on_press=on_press) as listener:
-        listener.join()
+        return False
+
+    register_global_hotkey("F9", on_hotkey)
 
 
 if __name__ == "__main__":

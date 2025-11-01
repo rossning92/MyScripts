@@ -1152,9 +1152,7 @@ def npm_install(cwd="."):
         call_echo("yarn", cwd=cwd)
 
 
-def get_next_file_name(file):
-    POSTFIX_START = "-02"
-
+def get_next_file_name(file: str, initial_postfix="_2"):
     name, ext = os.path.splitext(file)
     basename = os.path.basename(name)
     folder = os.path.dirname(name)
@@ -1169,12 +1167,12 @@ def get_next_file_name(file):
         if len(new_digits) == len_digits:
             new_file = os.path.join(folder, prefix + new_digits + ext)
         else:
-            new_file = name + POSTFIX_START + ext
+            new_file = name + initial_postfix + ext
     else:
-        new_file = name + POSTFIX_START + ext
+        new_file = name + initial_postfix + ext
 
     if os.path.exists(new_file):
-        new_file = name + POSTFIX_START + ext
+        new_file = name + initial_postfix + ext
 
     return new_file
 

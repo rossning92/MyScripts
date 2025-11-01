@@ -25,11 +25,6 @@
       "packages": ["7zip.7zip"]
     }
   },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
-    }
-  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -148,6 +143,11 @@
   "dotnetcore-sdk": {
     "choco": {
       "packages": ["dotnetcore-sdk"]
+    }
+  },
+  "etcher": {
+    "yay": {
+      "packages": ["etcher-bin"]
     }
   },
   "eternalterminal": {
@@ -657,6 +657,11 @@
     },
     "winget": {
       "packages": ["PuTTY.PuTTY"]
+    }
+  },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
     }
   },
   "python312": {

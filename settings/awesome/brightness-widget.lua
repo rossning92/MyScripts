@@ -1,20 +1,8 @@
--------------------------------------------------
--- Brightness Widget for Awesome Window Manager
--- Shows the brightness level of the laptop display
--- More details could be found here:
--- https://github.com/streetturtle/awesome-wm-widgets/tree/master/brightness-widget
--- @author Pavel Makhov
--- @copyright 2021 Pavel Makhov
--------------------------------------------------
 local awful = require("awful")
 local wibox = require("wibox")
 local watch = require("awful.widget.watch")
 local spawn = require("awful.spawn")
 local beautiful = require("beautiful")
-
-function script_path()
-    return debug.getinfo(1).source:match("@?(.*/)")
-end
 
 local get_brightness_cmd
 local set_brightness_cmd
@@ -26,7 +14,7 @@ local brightness_widget = {}
 local function worker(user_args)
     local args = user_args or {}
 
-    local path_to_icon = args.path_to_icon or script_path() .. '/brightness.svg'
+    local icon = '󰃞'
     local font = args.font or beautiful.font
     local timeout = args.timeout or 100
 
@@ -43,28 +31,15 @@ local function worker(user_args)
     dec_brightness_cmd = "brightnessctl set " .. step .. "-%"
 
     brightness_widget.widget = wibox.widget {
-        {
-            {
-                image = path_to_icon,
-                resize = true,
-                widget = wibox.widget.imagebox
-            },
-            valign = 'center',
-            layout = wibox.container.place
-        },
-        {
-            id = 'txt',
-            font = font,
-            widget = wibox.widget.textbox
-        },
-        spacing = 4,
-        layout = wibox.layout.fixed.horizontal,
+        id = 'txt',
+        font = font,
+        widget = wibox.widget.textbox,
         set_value = function(self, level)
             local display_level = level
             if percentage then
                 display_level = display_level .. '%'
             end
-            self:get_children_by_id('txt')[1]:set_text(display_level)
+            self:set_text(icon .. ' ' .. display_level)
         end
     }
 

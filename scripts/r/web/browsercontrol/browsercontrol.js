@@ -124,12 +124,66 @@ async function scrollToBottom() {
   });
 }
 
+async function click(text) {
+  return withActivePage(async (page) => {
+    const success = await page.evaluate((searchText) => {
+      const normalize = (value) =>
+        (value || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+      const target = normalize(searchText);
+      if (!target) return false;
+
+      const isVisible = (el) => {
+        if (!el) return false;
+        const style = window.getComputedStyle(el);
+        if (
+          !style ||
+          style.visibility === "hidden" ||
+          style.display === "none"
+        ) {
+          return false;
+        }
+        const rect = el.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      };
+
+      const candidates = Array.from(
+        document.querySelectorAll(
+          "button, a, [role='button'], [role='link'], [role='tab'], [onclick], input[type='button'], input[type='submit'], input[type='reset']"
+        )
+      );
+
+      for (const el of candidates) {
+        if (!isVisible(el)) continue;
+        const label = normalize(
+          el.innerText ||
+            el.textContent ||
+            el.value ||
+            el.getAttribute("aria-label") ||
+            el.getAttribute("title")
+        );
+        if (label && (label === target || label.includes(target))) {
+          el.click();
+          return true;
+        }
+      }
+
+      return false;
+    }, text);
+
+    if (!success) {
+      throw new Error(`Unable to find clickable element with text "${text}"`);
+    }
+  });
+}
+
 function showHelp() {
   console.log("Usage:");
   console.log("  node browsercontrol.js open <url>");
   console.log("  node browsercontrol.js get-text");
   console.log("  node browsercontrol.js get-markdown");
   console.log("  node browsercontrol.js scroll-bottom");
+  console.log("  node browsercontrol.js click <text>");
   console.log("  node browsercontrol.js scrape [--filter <class> ...]");
 }
 
@@ -256,6 +310,16 @@ async function scrape(filters) {
   if (args.length === 1 && args[0] === "scroll-bottom") {
     try {
       await scrollToBottom();
+      return;
+    } catch (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+  }
+
+  if (args.length === 2 && args[0] === "click") {
+    try {
+      await click(args[1]);
       return;
     } catch (err) {
       console.error(err.message);

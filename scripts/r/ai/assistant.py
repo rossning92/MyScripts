@@ -24,8 +24,8 @@ class AssistantMenu(AgentMenu):
     def on_created(self):
         self.voice_input()
 
-    def get_tools(self) -> List[Callable]:
-        return super().get_tools() + [open_file, open_url, navigate_to]
+    def get_tool_list(self) -> List[Callable]:
+        return super().get_tool_list() + [open_file, open_url, navigate_to]
 
 
 if __name__ == "__main__":

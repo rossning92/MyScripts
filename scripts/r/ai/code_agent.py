@@ -106,7 +106,7 @@ class CodeAgentMenu(AgentMenu):
             full_path = os.path.join(history_dir, rel_path)
             start_process(["code", "--diff", full_path, rel_path])
 
-    def get_tools(self) -> List[Callable]:
+    def get_tool_list(self) -> List[Callable]:
         return [
             read_file,
             edit_file,

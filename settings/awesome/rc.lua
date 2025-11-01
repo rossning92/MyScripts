@@ -32,8 +32,8 @@ require("awful.hotkeys_popup.keys")
 
 --- Define custom widgets
 local battery_widget = require("battery-widget")
-local brightness_widget = require("brightness-widget.brightness")
-local cpu_widget = require("cpu-widget.cpu-widget")
+local brightness_widget = require("brightness-widget")
+local cpu_widget = require("cpu-widget")
 local disk_usage_widget = require("disk-usage-widget")
 local memory_widget = require("memory-widget")
 local temperature_widget = require("temperature-widget")
@@ -132,9 +132,6 @@ local mylauncher = awful.widget.launcher({
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
 -- }}}
 
--- Keyboard map indicator and switcher
-local mykeyboardlayout = awful.widget.keyboardlayout()
-
 -- {{{ Wibar
 -- Create a textclock widget
 local mytextclock = wibox.widget.textclock('%m/%d %H:%M')
@@ -216,18 +213,32 @@ awful.screen.connect_for_each_screen(function(s)
     end), awful.button({}, 5, function()
         awful.layout.inc(-1)
     end)))
-    -- Create a taglist widget
-    -- s.mytaglist = awful.widget.taglist {
-    --     screen = s,
-    --     filter = awful.widget.taglist.filter.all,
-    --     buttons = taglist_buttons
-    -- }
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist {
         screen = s,
         filter = awful.widget.tasklist.filter.currenttags,
-        buttons = tasklist_buttons
+        buttons = tasklist_buttons,
+        widget_template = {
+            {
+                {
+                    {
+                        id = 'icon_role',
+                        widget = wibox.widget.imagebox,
+                    },
+                    halign = 'center',
+                    valign = 'center',
+                    widget = wibox.container.place,
+                },
+                {
+                    id = 'text_role',
+                    widget = wibox.widget.textbox,
+                },
+                layout = wibox.layout.fixed.horizontal,
+            },
+            id = 'background_role',
+            widget = wibox.container.background,
+        }
     }
 
     -- Create the wibox
@@ -235,6 +246,11 @@ awful.screen.connect_for_each_screen(function(s)
         position = "top",
         screen = s
     })
+
+    local spacer = wibox.widget {
+        markup = '<span foreground="gray"> | </span>',
+        widget = wibox.widget.textbox
+    }
 
     -- Add widgets to the wibox
     s.mywibox:setup {
@@ -248,15 +264,22 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist, -- Middle widget
         {             -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            spacing = 8,
-            mykeyboardlayout,
+            -- spacing = 8,
+            spacer,
             cpu_widget(),
+            spacer,
             battery_widget {},
+            spacer,
             temperature_widget {},
+            spacer,
             volume.widget,
+            spacer,
             brightness_widget {},
+            spacer,
             memory_widget {},
+            spacer,
             disk_usage_widget {},
+            spacer,
             wibox.widget.systray(),
             mytextclock,
             -- s.mylayoutbox
@@ -616,6 +639,11 @@ client.connect_signal("manage", function(c)
     if awesome.startup and not c.size_hints.user_position and not c.size_hints.program_position then
         -- Prevent clients from being unreachable after screen count changes.
         awful.placement.no_offscreen(c)
+    end
+
+    if c.floating or (c.first_tag and c.first_tag.layout.name == "floating") then
+        -- Center the new window on the screen
+        awful.placement.centered(c, { honor_workarea = true, honor_padding = true })
     end
 end)
 

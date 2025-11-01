@@ -1,10 +1,6 @@
 local awful = require("awful")
 local wibox = require("wibox")
 
-local function get_icon_path()
-    return debug.getinfo(1).source:match("@?(.*/)")
-end
-
 local Volume = { mt = {}, wmt = {} }
 Volume.wmt.__index = Volume
 Volume.__index = Volume
@@ -18,23 +14,15 @@ function Volume:new(args)
         function(widget, stdout)
             local volume = stdout:match("(%d+)%%")
             if volume then
-                widget:set_text(volume)
+                widget:set_text(" " .. volume .. "%")
                 return
             end
-        end
+        end,
+        wibox.widget.textbox()
     )
     obj.volume_text_timer = volume_text_timer
 
-    -- Create widget
-    obj.widget = wibox.widget {
-        {
-            id = "icon",
-            image = get_icon_path() .. "/volume-widget-icon.svg",
-            widget = wibox.widget.imagebox
-        },
-        volume_text_widget,
-        layout = wibox.layout.fixed.horizontal
-    }
+    obj.widget = volume_text_widget
 
     return obj
 end
