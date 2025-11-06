@@ -9,7 +9,8 @@ local function worker()
         function(widget, stdout)
             local used, size = stdout:match("\n%s*(%S+)%s+(%S+)")
             if used and size then
-                widget:set_text(" " .. used .. "/" .. size)
+                local formatted_used = used:gsub("G$", "")
+                widget:set_text(" " .. formatted_used .. "/" .. size)
             end
         end
     )

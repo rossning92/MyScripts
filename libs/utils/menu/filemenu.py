@@ -255,6 +255,7 @@ class FileMenu(Menu[_File]):
 
     def _delete_files(self):
         files = self.get_selected_files()
+        selected_index = self.get_selected_index()
 
         if len(files) > 0:
             if len(files) == 1:
@@ -271,6 +272,7 @@ class FileMenu(Menu[_File]):
                     except Exception as e:
                         self.set_message(str(e))
                 self._refresh_cur_dir()
+                self.set_selected_row(selected_index)
 
             self.update_screen()
 

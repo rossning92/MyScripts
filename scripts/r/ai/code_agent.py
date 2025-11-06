@@ -7,6 +7,7 @@ import ai.agent_menu
 from ai.agent_menu import AgentMenu
 from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
+from ai.tool_use import ToolResult
 from ai.tools import Settings
 from ai.tools.edit_file import edit_file
 from ai.tools.glob_files import glob_files
@@ -24,9 +25,6 @@ from utils.shutil import start_process
 
 README_FILE = "README.md"
 
-# DEFAULT_MODEL = "claude-3-7-sonnet-latest"
-DEFAULT_MODEL = "gpt-5-codex(low)"
-
 
 def get_env_info() -> str:
     return f"""# Environment Information
@@ -37,6 +35,8 @@ Working directory: {os.getcwd()}
 
 
 class SettingsMenu(ai.agent_menu.SettingsMenu):
+    default_model = "gpt-5-codex(low)"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.__update_settings()
@@ -44,8 +44,10 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
     def get_default_values(self) -> Dict[str, Any]:
         return {
             **super().get_default_values(),
+            "model": SettingsMenu.default_model,
             "need_confirm": True,
             "auto_open_diff": False,
+            "mode": "edit",
         }
 
     def on_dict_update(self, data):
@@ -60,13 +62,11 @@ class CodeAgentMenu(AgentMenu):
     def __init__(
         self,
         files: Optional[List[str]],
-        model=DEFAULT_MODEL,
         settings_menu_class=SettingsMenu,
         **kwargs,
     ):
         super().__init__(
             data_dir=os.path.join(".config", "coder"),
-            model=model,
             settings_menu_class=settings_menu_class,
             **kwargs,
         )
@@ -74,6 +74,7 @@ class CodeAgentMenu(AgentMenu):
         self.add_command(self.__add_file, hotkey="@")
         self.add_command(self.__edit_instructions)
         self.add_command(self.__open_diff, hotkey="ctrl+d")
+        self.add_command(self.__toggle_mode, hotkey="alt+m")
 
     def __edit_instructions(self):
         self.call_func_without_curses(
@@ -106,6 +107,15 @@ class CodeAgentMenu(AgentMenu):
             full_path = os.path.join(history_dir, rel_path)
             start_process(["code", "--diff", full_path, rel_path])
 
+    def __toggle_mode(self):
+        mode = self.get_setting("mode")
+        if mode == "edit":
+            self.set_setting("mode", "plan")
+        elif mode == "plan":
+            self.set_setting("mode", "edit")
+        else:
+            raise Exception(f"Invalid mode: {mode}")
+
     def get_tool_list(self) -> List[Callable]:
         return [
             read_file,
@@ -117,16 +127,25 @@ class CodeAgentMenu(AgentMenu):
         ]
 
     def get_system_prompt(self) -> str:
-        return "\n".join(
-            s
-            for s in [
-                super().get_system_prompt(),
-                self.__get_readme_content(),
-                self.__file_context_menu.get_prompt(),
-                get_env_info(),
-            ]
-            if s
-        )
+        prompt_parts = []
+
+        system = super().get_system_prompt()
+        if system:
+            prompt_parts.append(system)
+
+        readme = self.__get_readme_content()
+        if readme:
+            prompt_parts.append(readme)
+
+        file_context = self.__file_context_menu.get_prompt()
+        if file_context:
+            prompt_parts.append(file_context)
+
+        env = get_env_info()
+        if env:
+            prompt_parts.append(env)
+
+        return "\n".join(prompt_parts)
 
     def undo_messages(self) -> List[Message]:
         removed_messages = super().undo_messages()
@@ -135,8 +154,12 @@ class CodeAgentMenu(AgentMenu):
         return removed_messages
 
     def get_status_text(self) -> str:
+        status_lines = []
         files = self.__file_context_menu.get_status_text()
-        return (files + "\n" if files else "") + super().get_status_text()
+        if files:
+            status_lines.append(files)
+        status_lines.append(super().get_status_text())
+        return "\n".join(status_lines)
 
     def __add_file(self):
         file_menu = FileMenu()
@@ -148,6 +171,17 @@ class CodeAgentMenu(AgentMenu):
             else:
                 path = file
             self.insert_text(f"`{path}` ")
+
+    def send_message(
+        self, text: str, tool_results: Optional[List[ToolResult]] = None
+    ) -> None:
+        if self.get_setting("mode") == "plan" and not tool_results:
+            text += """
+<system-reminder>
+CRITICAL: Read-only mode active. Do NOT touch files. NO modifications. You may observe, analyze, plan.
+</system-reminder>
+"""
+        return super().send_message(text, tool_results)
 
     def on_result(self, result: str):
         if self.get_setting("auto_open_diff"):
@@ -173,13 +207,11 @@ def _main():
         help="Source root directory",
         default=os.environ.get("SOURCE_ROOT"),
     )
-    parser.add_argument(
-        "-m",
-        "--model",
-        type=str,
-        default=DEFAULT_MODEL,
-    )
+    parser.add_argument("-m", "--model", type=str)
     args = parser.parse_args()
+
+    if args.model:
+        SettingsMenu.default_model = args.model
 
     if args.dir:
         if not os.path.exists(args.dir):
@@ -188,7 +220,7 @@ def _main():
 
     files = _parse_files(args.files)
 
-    menu = CodeAgentMenu(files, model=args.model)
+    menu = CodeAgentMenu(files)
     menu.exec()
 
 

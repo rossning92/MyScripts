@@ -12,6 +12,7 @@ from typing import (
 
 import ai.anthropic.chat
 import ai.openai.chat
+import ai.openai_compatible.chat
 from ai.message import Message
 from ai.tool_use import ToolResult, ToolUse
 from utils.textutil import truncate_text
@@ -43,6 +44,8 @@ def complete_chat(
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     web_search: bool = False,
 ) -> Iterator[str]:
+    openrouter_prefix = "openrouter:"
+
     if model and model.startswith("claude"):
         return ai.anthropic.chat.complete_chat(
             messages=messages,
@@ -51,6 +54,20 @@ def complete_chat(
             tools=tools,
             on_tool_use_start=on_tool_use_start,
             on_tool_use_args_delta=on_tool_use_args_delta,
+            on_tool_use=on_tool_use,
+        )
+    elif model and model.startswith(openrouter_prefix):
+        openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
+        if not openrouter_api_key:
+            raise Exception("OPENROUTER_API_KEY is not provided")
+
+        return ai.openai_compatible.chat.complete_chat(
+            endpoint_url="https://openrouter.ai/api/v1/chat/completions",
+            api_key=openrouter_api_key,
+            messages=messages,
+            model=model[len(openrouter_prefix) :],
+            system_prompt=system_prompt,
+            tools=tools,
             on_tool_use=on_tool_use,
         )
     else:

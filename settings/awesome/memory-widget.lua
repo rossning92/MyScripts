@@ -5,7 +5,7 @@ local memory_widget = {}
 local function worker()
     memory_widget = awful.widget.watch(
         'free -h',
-        10,
+        1,
         function(widget, stdout)
             local total, used = stdout:match("Mem:%s+(%S+)%s+(%S+)")
             if total and used then

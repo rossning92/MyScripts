@@ -365,15 +365,19 @@ class AgentMenu(ChatMenu):
     def on_result(self, result: str):
         pass
 
-    def on_tool_use_start(self, tool_use: ToolUse):
-        if not self.get_setting("tool_use_api"):
-            return
-
+    def __get_next_message_index_and_subindex(self):
         msg_index = len(self.get_messages()) - 1
         if len(self.items) > 0 and self.items[-1].msg_index == msg_index:
             subindex = self.items[-1].subindex + 1
         else:
             subindex = 0
+        return msg_index, subindex
+
+    def on_tool_use_start(self, tool_use: ToolUse):
+        if not self.get_setting("tool_use_api"):
+            return
+
+        msg_index, subindex = self.__get_next_message_index_and_subindex()
         self.append_item(
             Line(
                 role="assistant",
@@ -399,13 +403,27 @@ class AgentMenu(ChatMenu):
             messages[-1]["tool_use"] = []
         messages[-1]["tool_use"].append(tool_use)
 
-        # Update tool use result
+        # Add or update tool use result
+        exists = False
         for line in reversed(self.items):
             if (
                 line.tool_use
                 and line.tool_use["tool_use_id"] == tool_use["tool_use_id"]
             ):
                 line.tool_use = tool_use
+                exists = True
+                break
+        if not exists:
+            msg_index, subindex = self.__get_next_message_index_and_subindex()
+            self.append_item(
+                Line(
+                    role="assistant",
+                    text=get_tool_use_text(tool_use),
+                    msg_index=msg_index,
+                    subindex=subindex,
+                    tool_use=tool_use,
+                )
+            )
 
     def __open_file_menu(self):
         FileMenu(goto=os.getcwd()).exec()

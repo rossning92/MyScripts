@@ -59,6 +59,7 @@ MODELS = Literal[
     "claude-sonnet-4-0",
     "claude-sonnet-4-5",
     "claude-opus-4-0",
+    "openrouter:google/gemini-2.5-flash",
 ]
 DEFAULT_MODEL = "gpt-4.1"
 
@@ -550,6 +551,10 @@ class ChatMenu(Menu[Line]):
     def get_setting(self, name: str) -> Any:
         return self.__settings_menu.data[name]
 
+    def set_setting(self, name: str, value: Any) -> None:
+        self.__settings_menu.set_dict_value(name, value)
+        self.update_screen()
+
     def on_created(self):
         if self.__first_message:
             self.send_message(self.__first_message)
@@ -687,13 +692,31 @@ Following is my instructions:
             try:
                 for chunk_index, chunk in enumerate(
                     complete_chat(
-                        self.get_messages(expand_context=True),
+                        messages=self.get_messages(expand_context=True),
                         model=self.get_setting("model"),
                         system_prompt=self.get_system_prompt(),
                         tools=self.get_tools(),
-                        on_tool_use_start=self.on_tool_use_start,
-                        on_tool_use_args_delta=self.on_tool_use_args_delta,
-                        on_tool_use=self.on_tool_use,
+                        on_tool_use_start=lambda tool_use: self.post_event(
+                            lambda: (
+                                self.on_tool_use_start(tool_use)
+                                if not cancel_chat_completion_event.is_set()
+                                else None
+                            )
+                        ),
+                        on_tool_use_args_delta=lambda text: self.post_event(
+                            lambda: (
+                                self.on_tool_use_args_delta(text)
+                                if not cancel_chat_completion_event.is_set()
+                                else None
+                            )
+                        ),
+                        on_tool_use=lambda tool_use: self.post_event(
+                            lambda: (
+                                self.on_tool_use(tool_use)
+                                if not cancel_chat_completion_event.is_set()
+                                else None
+                            )
+                        ),
                         web_search=self.get_setting("web_search"),
                     )
                 ):

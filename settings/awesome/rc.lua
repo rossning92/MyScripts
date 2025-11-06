@@ -247,9 +247,10 @@ awful.screen.connect_for_each_screen(function(s)
         screen = s
     })
 
-    local spacer = wibox.widget {
-        markup = '<span foreground="gray"> | </span>',
-        widget = wibox.widget.textbox
+    local spacer = wibox.widget.separator {
+        orientation = "vertical",
+        forced_width = 16,
+        color = "gray"
     }
 
     -- Add widgets to the wibox
@@ -281,6 +282,7 @@ awful.screen.connect_for_each_screen(function(s)
             disk_usage_widget {},
             spacer,
             wibox.widget.systray(),
+            spacer,
             mytextclock,
             -- s.mylayoutbox
         }

@@ -15,21 +15,34 @@ def create_project(proj_dir: str):
         (proj_path / name).mkdir(parents=True, exist_ok=True)
 
     jsconfig = proj_path / "animation" / "jsconfig.json"
-    if not jsconfig.exists():
-        jsconfig.write_text(
-            json.dumps(
-                {
-                    "compilerOptions": {
-                        "module": "commonjs",
-                        "target": "es2016",
-                        "jsx": "preserve",
-                        "baseUrl": Path.cwd().as_posix(),
+    base_path = proj_path.resolve().as_posix()
+    movy_dist = f"{base_path}/movy/dist/*"
+    movy_utils = f"{base_path}/movyutils/*"
+    jsconfig.write_text(
+        json.dumps(
+            {
+                "compilerOptions": {
+                    "module": "es6",
+                    "target": "es2016",
+                    "jsx": "preserve",
+                    "baseUrl": base_path,
+                    "paths": {
+                        "*": [
+                            movy_dist,
+                            movy_utils,
+                        ]
                     },
-                    "exclude": ["node_modules", "**/node_modules/*"],
                 },
-                indent=4,
-            )
+                "include": [
+                    movy_dist,
+                    movy_utils,
+                    "*.js",
+                ],
+                "exclude": ["node_modules", "**/node_modules/*"],
+            },
+            indent=4,
         )
+    )
 
     index_file = proj_path / "index.md"
     if not index_file.exists():
