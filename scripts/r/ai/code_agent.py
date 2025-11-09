@@ -176,11 +176,7 @@ class CodeAgentMenu(AgentMenu):
         self, text: str, tool_results: Optional[List[ToolResult]] = None
     ) -> None:
         if self.get_setting("mode") == "plan" and not tool_results:
-            text += """
-<system-reminder>
-CRITICAL: Read-only mode active. Do NOT touch files. NO modifications. You may observe, analyze, plan.
-</system-reminder>
-"""
+            text += "\nNOTE: Please do NOT modify any files until I instruct you to."
         return super().send_message(text, tool_results)
 
     def on_result(self, result: str):

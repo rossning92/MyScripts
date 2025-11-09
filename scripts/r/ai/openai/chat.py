@@ -10,6 +10,8 @@ from ai.tool_use import ToolUse, function_to_tool_definition
 
 DEFAULT_MODEL = "gpt-4o"
 
+logger = logging.getLogger(__name__)
+
 
 def _encode_image_base64(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
@@ -85,7 +87,7 @@ def complete_chat(
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     web_search=False,
 ) -> Iterator[str]:
-    logging.debug(f"messages: {messages}")
+    logger.debug(f"messages: {messages}")
 
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
@@ -172,7 +174,7 @@ def complete_chat(
             if not line:
                 continue
 
-            logging.debug(f"Received chunk: {line}")
+            logger.debug(f"Received chunk: {line}")
 
             if line.startswith(b"data: "):
                 data = json.loads(line[6:].decode("utf-8"))

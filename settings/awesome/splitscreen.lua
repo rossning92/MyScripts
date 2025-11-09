@@ -6,7 +6,6 @@ local M = {}
 function M.split_screen()
     if (screen.count() ~= 1) then
         -- A sanity check, so we don't split multiple times.
-        debug("More than 1 screen, skip split_screen()", screen.count())
         return
     end
     local geo = screen[1].geometry
@@ -61,7 +60,6 @@ end
 function M.init_layout()
     if (screen.count() ~= 1) then
         -- A sanity check, so we don't split multiple times.
-        debug("More than 1 screen, skip split_screen()", screen.count())
         return
     end
 

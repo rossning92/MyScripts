@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "target": "es2016",
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "../../../movy/dist/*",
+        "../../../movyutils/*"
+      ]
+    }
+  },
+  "include": [
+    "*.js",
+    "../../../movy/dist/*",
+    "../../../movyutils/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules/*"
+  ]
+}

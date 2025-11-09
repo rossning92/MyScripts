@@ -1,33 +1,47 @@
-const child_process = require("child_process");
 const os = require("os");
 const path = require("path");
-const { connect } = require("puppeteer");
+const { spawn } = require("child_process");
+const puppeteer = require("puppeteer");
 const TurndownService = require("turndown");
 
 const userDataDir = path.join(os.homedir(), ".browsercontrol-user-data");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+async function launchDetachedChrome() {
+  const executablePath = puppeteer.executablePath();
+  const chromeArgs = [
+    `--remote-debugging-port=21222`,
+    `--user-data-dir=${userDataDir}`,
+    "--remote-allow-origins=*",
+    "--no-sandbox",
+  ];
+  const chromeProcess = spawn(executablePath, chromeArgs, {
+    detached: true,
+    stdio: "ignore",
+  });
+  chromeProcess.unref();
+}
+
 async function getActivePage(browser) {
   const pages = await browser.pages();
-  const arr = [];
-  for (const page of pages) {
-    if (
-      await page.evaluate(() => {
-        return document.visibilityState == "visible";
-      })
-    ) {
-      arr.push(page);
-    }
-  }
-  if (arr.length == 1) return arr[0];
-  throw "Unable to get active page";
+  const vis_results = await Promise.all(
+    pages.map(async (p) => {
+      const state = await p.evaluate(() => document.webkitHidden);
+      return !state;
+    })
+  );
+  let visiblePage = pages.filter((_v, index) => vis_results[index])[0];
+  return visiblePage;
 }
 
 async function withActivePage(handler) {
   const browser = await launchOrConnectBrowser();
   try {
     const page = await getActivePage(browser);
+    if (!page) {
+      throw "Failed to get active page";
+    }
     return await handler(page, browser);
   } finally {
     browser.disconnect();
@@ -36,34 +50,18 @@ async function withActivePage(handler) {
 
 async function launchOrConnectBrowser(browserURL = "http://127.0.0.1:21222") {
   try {
-    return await connect({ browserURL });
+    return await puppeteer.connect({ browserURL });
   } catch (err) {
-    // ignore and try launching a child process below
     console.log("Failed to connect, launching a new browser instance...");
   }
 
-  // Hack: launch browser manually since browser.launch()
-  // doesn't yet support a 'detach' option
-  const childProcess = child_process.spawn(
-    "chromium",
-    [
-      `--remote-debugging-port=21222`,
-      `--user-data-dir=${userDataDir}`,
-      "--remote-allow-origins=*",
-      "--no-sandbox",
-    ],
-    {
-      detached: true,
-      stdio: "ignore",
-    }
-  );
-  childProcess.unref();
+  await launchDetachedChrome();
 
   const maxRetries = 5;
   const retryDelay = 1000;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      return await connect({ browserURL });
+      return await puppeteer.connect({ browserURL });
     } catch (err) {
       if (attempt === maxRetries - 1) {
         throw err;
@@ -76,8 +74,8 @@ async function launchOrConnectBrowser(browserURL = "http://127.0.0.1:21222") {
 async function getText() {
   return withActivePage(async (page) => {
     return await page.evaluate(() => {
-      const element = document.getElementById("content");
-      return element ? element.innerText : document.body.innerText;
+      const el = document.getElementById("content");
+      return el ? el.innerText : document.body.innerText;
     });
   });
 }
@@ -85,8 +83,8 @@ async function getText() {
 async function getMarkdown() {
   return withActivePage(async (page) => {
     const content = await page.evaluate(() => {
-      const element = document.getElementById("content");
-      return element ? element.innerHTML : document.body.innerHTML;
+      const el = document.getElementById("content");
+      return el ? el.innerHTML : document.body.innerHTML;
     });
 
     const turndownService = new TurndownService();
@@ -124,56 +122,128 @@ async function scrollToBottom() {
   });
 }
 
+async function typeText(text) {
+  return withActivePage(async (page) => {
+    await page.keyboard.type(text);
+  });
+}
+
+async function pressKey(key) {
+  return withActivePage(async (page) => {
+    await page.keyboard.press(key);
+  });
+}
+
+async function debug() {
+  return withActivePage(async (page) => {
+    const clickableElements = await page.evaluate(getClickableElements);
+    console.log(clickableElements);
+  });
+}
+
+const getClickableElements = () => {
+  let elements = Array.prototype.slice
+    .call(document.querySelectorAll("*"))
+    .filter((el) => {
+      if (
+        el.tagName === "BUTTON" ||
+        el.tagName === "A" ||
+        (el.tagName === "INPUT" && el.type !== "hidden") ||
+        el.tagName === "TEXTAREA" ||
+        el.tagName === "SELECT" ||
+        el.onclick != null ||
+        window.getComputedStyle(el).cursor === "pointer"
+      ) {
+        const rect = el.getBoundingClientRect();
+        return (rect.right - rect.left) * (rect.bottom - rect.top) >= 20;
+      }
+      return false;
+    })
+    .map((el) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        el,
+        rect: {
+          left: rect.left,
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom,
+        },
+        text: (() => {
+          const label =
+            el.getAttribute("aria-label") ||
+            el.getAttribute("title") ||
+            el.innerText ||
+            el.textContent ||
+            el.value;
+          return label ? label.replace(/\s+/g, " ").trim() : "";
+        })(),
+      };
+    })
+    // Filter out elements without text
+    .filter((x) => Boolean(x.text));
+
+  // Only keep inner clickable elements
+  elements = elements.filter(
+    (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
+  );
+
+  const boxes = [];
+  elements.forEach(function (el) {
+    const width = el.rect.right - el.rect.left;
+    const height = el.rect.bottom - el.rect.top;
+    if (width <= 0 || height <= 0) return;
+    const box = document.createElement("div");
+    box.style.position = "fixed";
+    box.style.left = el.rect.left + "px";
+    box.style.top = el.rect.top + "px";
+    box.style.width = width + "px";
+    box.style.height = height + "px";
+    box.style.pointerEvents = "none";
+    box.style.boxSizing = "border-box";
+    box.style.zIndex = 2147483647;
+    box.style.backgroundColor = "white";
+    box.style.border = "2px solid red";
+    const label = document.createElement("div");
+    label.textContent = el.text;
+    label.style.position = "absolute";
+    label.style.top = "0";
+    label.style.left = "0";
+    label.style.width = "100%";
+    label.style.height = "100%";
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.justifyContent = "center";
+    label.style.fontSize = "8pt";
+    label.style.whiteSpace = "wrap";
+    label.style.pointerEvents = "none";
+    label.style.color = "red";
+    box.appendChild(label);
+    document.body.appendChild(box);
+    boxes.push(box);
+  });
+  setTimeout(() => boxes.forEach((box) => box.remove()), 1000);
+
+  return elements.map(({ text, rect }) => ({ text, rect }));
+};
+
 async function click(text) {
   return withActivePage(async (page) => {
-    const success = await page.evaluate((searchText) => {
-      const normalize = (value) =>
-        (value || "").replace(/\s+/g, " ").trim().toLowerCase();
+    const clickableElements = await page.evaluate(getClickableElements);
 
-      const target = normalize(searchText);
-      if (!target) return false;
+    const target =
+      clickableElements.find((el) => el.text === text) ||
+      clickableElements.find((el) => el.text.includes(text));
 
-      const isVisible = (el) => {
-        if (!el) return false;
-        const style = window.getComputedStyle(el);
-        if (
-          !style ||
-          style.visibility === "hidden" ||
-          style.display === "none"
-        ) {
-          return false;
-        }
-        const rect = el.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      };
-
-      const candidates = Array.from(
-        document.querySelectorAll(
-          "button, a, [role='button'], [role='link'], [role='tab'], [onclick], input[type='button'], input[type='submit'], input[type='reset']"
-        )
-      );
-
-      for (const el of candidates) {
-        if (!isVisible(el)) continue;
-        const label = normalize(
-          el.innerText ||
-            el.textContent ||
-            el.value ||
-            el.getAttribute("aria-label") ||
-            el.getAttribute("title")
-        );
-        if (label && (label === target || label.includes(target))) {
-          el.click();
-          return true;
-        }
-      }
-
-      return false;
-    }, text);
-
-    if (!success) {
-      throw new Error(`Unable to find clickable element with text "${text}"`);
+    if (target) {
+      const { rect } = target;
+      const centerX = rect.left + (rect.right - rect.left) / 2;
+      const centerY = rect.top + (rect.bottom - rect.top) / 2;
+      await page.mouse.click(centerX, centerY);
+      return;
     }
+
+    throw new Error(`Unable to find clickable el with text "${text}"`);
   });
 }
 
@@ -184,15 +254,19 @@ function showHelp() {
   console.log("  node browsercontrol.js get-markdown");
   console.log("  node browsercontrol.js scroll-bottom");
   console.log("  node browsercontrol.js click <text>");
+  console.log("  node browsercontrol.js type <text>");
+  console.log("  node browsercontrol.js press <key>");
   console.log("  node browsercontrol.js scrape [--filter <class> ...]");
 }
 
 const extractMostDirectChildren = (filters) => {
+  // Prepare filters for fast lookups when limiting results
   const filterSet =
     Array.isArray(filters) && filters.length ? new Set(filters) : null;
   const body = document.body;
   if (!body) return [];
 
+  // Find the element with the most direct children as the main container
   let maxEl = null;
   let maxCount = -1;
   for (const el of body.querySelectorAll("*")) {
@@ -208,6 +282,7 @@ const extractMostDirectChildren = (filters) => {
 
   if (!maxEl) return [];
 
+  // Recursively extract text content and map it by class name
   const extract = (el) => {
     const className = (() => {
       if (typeof el.className === "string") {
@@ -251,15 +326,26 @@ const extractMostDirectChildren = (filters) => {
         result[newKey] = value;
       });
     });
-    if (filterSet) {
-      result = Object.fromEntries(
-        Object.entries(result).filter(([key]) => filterSet.has(key))
-      );
-    }
+
     return result;
   };
 
-  return Array.from(maxEl.children).map(extract).filter(Boolean);
+  // Convert the top-level children into structured objects
+  let items = Array.from(maxEl.children).map(extract).filter(Boolean);
+  if (filterSet) {
+    items = items
+      .map((item) => {
+        const filtered = {};
+        Object.keys(item).forEach((key) => {
+          if (filterSet.has(key)) {
+            filtered[key] = item[key];
+          }
+        });
+        return filtered;
+      })
+      .filter((item) => Object.keys(item).length);
+  }
+  return items;
 };
 
 async function scrape(filters) {
@@ -317,9 +403,39 @@ async function scrape(filters) {
     }
   }
 
+  if (args.length === 2 && args[0] === "press") {
+    try {
+      await pressKey(args[1]);
+      return;
+    } catch (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+  }
+
   if (args.length === 2 && args[0] === "click") {
     try {
       await click(args[1]);
+      return;
+    } catch (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+  }
+
+  if (args.length === 2 && args[0] === "type") {
+    try {
+      await typeText(args[1]);
+      return;
+    } catch (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+  }
+
+  if (args.length === 1 && args[0] === "debug") {
+    try {
+      await debug(args[1]);
       return;
     } catch (err) {
       console.error(err.message);

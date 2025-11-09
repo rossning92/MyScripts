@@ -31,7 +31,7 @@ def find_vproject_root():
 
     while os.path.dirname(path) != path:
         path = os.path.abspath(path + "/../")  # parent path
-        if os.path.exists(os.path.join(path, ".vproject")):
+        if os.path.basename(path) == "vprojects":
             return path
 
 

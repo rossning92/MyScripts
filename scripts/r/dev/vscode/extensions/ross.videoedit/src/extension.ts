@@ -9,7 +9,9 @@ const SOURCE_FILE_EXT = "c|cpp|py|js|txt|html";
 
 let recorderProcess: cp.ChildProcessWithoutNullStreams | undefined;
 let currentProjectDir: string | undefined;
+let videoEditPanel: vscode.WebviewPanel | undefined;
 let output = vscode.window.createOutputChannel("VideoEdit");
+let videoPreviewTemplate: string | undefined;
 
 declare global {
   interface String {
@@ -40,12 +42,17 @@ function openInBrowser(url: string) {
   cp.spawn("run_script", ["r/web/open_url_dev.py", url]);
 }
 
-async function openFile(filePath: string) {
+async function openFile(context: vscode.ExtensionContext, filePath: string) {
   if (fs.existsSync(filePath)) {
     if (new RegExp(".(md|" + SOURCE_FILE_EXT + ")$", "g").test(filePath)) {
       const document = await vscode.workspace.openTextDocument(filePath);
       await vscode.window.showTextDocument(document);
-    } else if (/\.(png|jpg|mp4|webm)$/g.test(filePath)) {
+    } else if (/\.(png|jpg)$/g.test(filePath)) {
+      await vscode.commands.executeCommand(
+        "vscode.open",
+        vscode.Uri.file(filePath)
+      );
+    } else if (/\.(mp4|webm)$/g.test(filePath)) {
       const selection = await vscode.window.showQuickPick(
         ["Open", "Trim Video"],
         {
@@ -53,7 +60,18 @@ async function openFile(filePath: string) {
         }
       );
       if (selection === "Open") {
-        cp.spawn("mpv", ["--force-window", filePath]);
+        createVideoEditPanel();
+
+        if (videoEditPanel) {
+          const fileUri = videoEditPanel.webview.asWebviewUri(
+            vscode.Uri.file(filePath)
+          );
+          const template = getVideoPreviewTemplate(context);
+          videoEditPanel.webview.html = template.replace(
+            "{{VIDEO_SRC}}",
+            `${fileUri}`
+          );
+        }
       } else if (selection === "Trim Video") {
         openTerminal({
           name: "TrimVideo",
@@ -71,6 +89,50 @@ async function openFile(filePath: string) {
     } else {
       vscode.env.openExternal(vscode.Uri.file(filePath));
     }
+  }
+}
+
+function getVideoPreviewTemplate(context: vscode.ExtensionContext) {
+  if (videoPreviewTemplate) {
+    return videoPreviewTemplate;
+  }
+
+  const templateUri = vscode.Uri.joinPath(
+    context.extensionUri,
+    "resources",
+    "videoPreview.html"
+  );
+
+  videoPreviewTemplate = fs.readFileSync(templateUri.fsPath, "utf8");
+  return videoPreviewTemplate;
+}
+
+function createVideoEditPanel() {
+  const root = getVprojectsRoot();
+  if (!root) {
+    return;
+  }
+
+  if (!videoEditPanel) {
+    videoEditPanel = vscode.window.createWebviewPanel(
+      "videoEdit.preview",
+      "Video Edit",
+      {
+        viewColumn: vscode.ViewColumn.Beside,
+        preserveFocus: false,
+      },
+      {
+        retainContextWhenHidden: true,
+        localResourceRoots: [vscode.Uri.file(root)],
+      }
+    );
+
+    videoEditPanel.onDidDispose(() => {
+      videoEditPanel = undefined;
+    });
+  } else {
+    videoEditPanel.title = "Video Edit";
+    videoEditPanel.reveal(vscode.ViewColumn.Beside, false);
   }
 }
 
@@ -141,7 +203,7 @@ function runPython(file: string) {
   openTerminal({ name: "Python", args });
 }
 
-async function openFileUnderCursor() {
+async function openFileUnderCursor(context: vscode.ExtensionContext) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
@@ -159,7 +221,7 @@ async function openFileUnderCursor() {
     const file = getFileUnderCursor();
     if (file) {
       const absPath = getAbsPath(file);
-      openFile(absPath);
+      openFile(context, absPath);
     }
   }
 }
@@ -290,6 +352,27 @@ function getActiveDir() {
   }
 
   return path.dirname(file);
+}
+
+function getVprojectsRoot(): string | undefined {
+  const file = getActiveFile();
+  if (!file) {
+    return undefined;
+  }
+
+  let dir = path.dirname(file);
+  while (true) {
+    if (path.basename(dir) === "vprojects") {
+      return dir;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      break;
+    }
+    dir = parent;
+  }
+
+  return undefined;
 }
 
 function getRelativePath(prefix: string, p: string) {
@@ -1016,7 +1099,7 @@ function registerCommands(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.openFileUnderCursor", () => {
-      openFileUnderCursor();
+      openFileUnderCursor(context);
     })
   );
 

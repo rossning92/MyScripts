@@ -76,19 +76,19 @@ class CsvData:
     def load_csv(self) -> bool:
         # Check if the file has been modified since last time
         mtime = os.path.getmtime(self.__file)
-        if mtime == self.__mtime:
+        if mtime > self.__mtime:
+            # Read from CSV file
+            self.__rows.clear()
+            with open(self.__file, encoding="utf-8") as csvfile:
+                reader = csv.reader(csvfile)
+                for row in reader:
+                    self.__rows.append(row)
+
+            # Update modified time
+            self.__mtime = mtime
+            return True
+        else:
             return False
-
-        # Read from CSV file
-        self.__rows.clear()
-        with open(self.__file, encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                self.__rows.append(row)
-
-        # Update modified time
-        self.__mtime = mtime
-        return True
 
     def save_csv(self) -> None:
         # Check if the file has been externally modified
@@ -234,7 +234,7 @@ class RowMenu(Menu[CsvCell]):
 
     def _next_row(self):
         self._goto_row(min(self.row_index + 1, self.df.get_row_count() - 1))
-        
+
     def _insert_datetime(self):
         cell = self.get_selected_item()
         if cell is not None:

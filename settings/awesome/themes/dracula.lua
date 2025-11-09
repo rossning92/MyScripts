@@ -11,8 +11,8 @@ theme.font         = "JetBrains Mono 10"
 
 
 -- https://github.com/dracula/dracula-theme
-theme.bg_normal            = "#1e2029"
-theme.bg_focus             = "#282a36"
+theme.bg_normal            = "#282a36"
+theme.bg_focus             = "#bd93f9"
 theme.bg_urgent            = "#ff5555"
 theme.bg_minimize          = "#000000"
 theme.bg_systray           = theme.bg_normal
@@ -22,7 +22,7 @@ theme.fg_focus             = "#ffffff"
 theme.fg_urgent            = "#f8f8f2"
 
 theme.useless_gap          = dpi(0)
-theme.border_width         = dpi(2)
+theme.border_width         = dpi(1.5)
 theme.border_normal        = theme.bg_normal
 theme.border_focus         = "#bd93f9"
 theme.border_marked        = "#ff79c6"

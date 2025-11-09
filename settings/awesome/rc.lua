@@ -92,42 +92,11 @@ local modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = { -- awful.layout.suit.floating,
-    -- awful.layout.suit.tile,
-    -- awful.layout.suit.tile.left,
-    -- awful.layout.suit.tile.bottom,
-    -- awful.layout.suit.tile.top,
-    -- awful.layout.suit.fair,
-    -- awful.layout.suit.fair.horizontal,
-    -- awful.layout.suit.spiral,
-    -- awful.layout.suit.spiral.dwindle,
     awful.layout.suit.max,
-    -- awful.layout.suit.max.fullscreen,
-    -- awful.layout.suit.magnifier,
-    -- awful.layout.suit.corner.nw,
-    -- awful.layout.suit.corner.ne,
-    -- awful.layout.suit.corner.sw,
-    -- awful.layout.suit.corner.se,
 }
 -- }}}
 
 -- {{{ Menu
--- Create a launcher widget and a main menu
-local myawesomemenu = { { "hotkeys", function()
-    hotkeys_popup.show_help(nil, awful.screen.focused())
-end }, { "manual", terminal .. " -e man awesome" }, { "edit config", editor_cmd .. " " .. awesome.conffile },
-    { "restart", awesome.restart }, { "quit", function()
-    awesome.quit()
-end } }
-
-local mymainmenu = awful.menu({
-    items = { { "awesome", myawesomemenu, beautiful.awesome_icon }, { "open terminal", terminal } }
-})
-
-local mylauncher = awful.widget.launcher({
-    image = beautiful.awesome_icon,
-    menu = mymainmenu
-})
-
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
 -- }}}
@@ -187,14 +156,19 @@ local function set_wallpaper(s)
     end
 end
 
--- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
-screen.connect_signal("property::geometry", set_wallpaper)
+-- When a screen's geometry changes (e.g. different resolution)
+screen.connect_signal("property::geometry", function()
+    set_wallpaper()
+    splitscreen:init_layout()
+end)
+
 
 local volume = volume_widget:new({})
 
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
     set_wallpaper(s)
+
 
     -- Each screen has its own tag table.
     awful.tag({ "1" }, s, awful.layout.layouts[1])
@@ -253,70 +227,72 @@ awful.screen.connect_for_each_screen(function(s)
         color = "gray"
     }
 
+    local battery = battery_widget {}
+    local systray = wibox.widget.systray()
+
+    local right_widgets = {
+        layout = wibox.layout.fixed.horizontal,
+        cpu_widget(),
+        temperature_widget {},
+        volume.widget,
+        brightness_widget {},
+        memory_widget {},
+        disk_usage_widget {},
+    }
+
+    if battery then
+        table.insert(right_widgets, battery)
+    end
+
+    table.insert(right_widgets, systray)
+    table.insert(right_widgets, mytextclock)
+
+    -- Add spacers between all widgets
+    for i = #right_widgets, 1, -1 do
+        table.insert(right_widgets, i, spacer)
+    end
+
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            mylauncher,
             -- s.mytaglist,
             s.mypromptbox
         },
         s.mytasklist, -- Middle widget
-        {             -- Right widgets
-            layout = wibox.layout.fixed.horizontal,
-            -- spacing = 8,
-            spacer,
-            cpu_widget(),
-            spacer,
-            battery_widget {},
-            spacer,
-            temperature_widget {},
-            spacer,
-            volume.widget,
-            spacer,
-            brightness_widget {},
-            spacer,
-            memory_widget {},
-            spacer,
-            disk_usage_widget {},
-            spacer,
-            wibox.widget.systray(),
-            spacer,
-            mytextclock,
-            -- s.mylayoutbox
-        }
+        right_widgets
     }
 end)
 -- }}}
 
 -- {{{ Key bindings
 local globalkeys = gears.table.join(
--- awful.key({ modkey, }, "s", hotkeys_popup.show_help,
---     { description = "show help", group = "awesome" }),
--- awful.key({ modkey, }, "Left", awful.tag.viewprev,
---     { description = "view previous", group = "tag" }),
--- awful.key({ modkey, }, "Right", awful.tag.viewnext,
---     { description = "view next", group = "tag" }),
--- awful.key({ modkey, }, "Escape", awful.tag.history.restore,
---     { description = "go back", group = "tag" }),
+    awful.key({ modkey, }, "h", hotkeys_popup.show_help,
+        { description = "show help", group = "awesome" }),
+    -- awful.key({ modkey, }, "Left", awful.tag.viewprev,
+    --     { description = "view previous", group = "tag" }),
+    -- awful.key({ modkey, }, "Right", awful.tag.viewnext,
+    --     { description = "view next", group = "tag" }),
+    -- awful.key({ modkey, }, "Escape", awful.tag.history.restore,
+    --     { description = "go back", group = "tag" }),
 
--- awful.key({ modkey, }, "j",
---     function()
---         awful.client.focus.byidx(1)
---     end,
---     { description = "focus next by index", group = "client" }
--- ),
--- awful.key({ modkey, }, "k",
---     function()
---         awful.client.focus.byidx(-1)
---     end,
---     { description = "focus previous by index", group = "client" }
--- ),
--- awful.key({ modkey, }, "w", function() mymainmenu:show() end,
---     { description = "show main menu", group = "awesome" }),
+    -- awful.key({ modkey, }, "j",
+    --     function()
+    --         awful.client.focus.byidx(1)
+    --     end,
+    --     { description = "focus next by index", group = "client" }
+    -- ),
+    -- awful.key({ modkey, }, "k",
+    --     function()
+    --         awful.client.focus.byidx(-1)
+    --     end,
+    --     { description = "focus previous by index", group = "client" }
+    -- ),
+    -- awful.key({ modkey, }, "w", function() mymainmenu:show() end,
+    --     { description = "show main menu", group = "awesome" }),
 
--- Layout manipulation
+    -- Layout manipulation
     awful.key({ modkey, "Shift" }, "j", function()
         awful.client.swap.byidx(1)
     end, {

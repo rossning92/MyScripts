@@ -2,4 +2,5 @@
 set -e
 cd "$(dirname "$0")/../../../js/userscriptlib"
 
+yarn
 yarn run watch

@@ -30,10 +30,12 @@ from utils.menu import Menu
 from utils.menu.confirmmenu import confirm
 from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
+from utils.menu.inputmenu import InputMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
 from utils.menu.textmenu import TextMenu
 from utils.platform import is_termux
 from utils.slugify import slugify
+from utils.template import render_template
 from utils.textutil import is_text_file, truncate_text
 
 _MODULE_NAME = Path(__file__).stem
@@ -435,7 +437,24 @@ class ChatMenu(Menu[Line]):
         with open(prompt_file, "r", encoding="utf-8") as f:
             message = f.read()
 
-        self.send_message(message)
+        # Collect context values for template variables
+        context: Dict[str, str] = {}
+        while True:
+            undefined_names: List[str] = []
+            rendered_message = render_template(
+                template=message,
+                context=context,
+                undefined_names=undefined_names,
+            )
+            if not undefined_names:
+                break
+            for name in undefined_names:
+                val = InputMenu(prompt=f"Enter {name}").request_input()
+                if not val:
+                    return
+                context[name] = val
+
+        self.send_message(rendered_message)
 
     def __show_more(self) -> bool:
         selected = self.get_selected_item()

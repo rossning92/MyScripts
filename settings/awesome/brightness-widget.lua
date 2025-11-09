@@ -14,7 +14,7 @@ local brightness_widget = {}
 local function worker(user_args)
     local args = user_args or {}
 
-    local icon = '󰃞'
+    local icon = '󰃠'
     local font = args.font or beautiful.font
     local timeout = args.timeout or 100
 
