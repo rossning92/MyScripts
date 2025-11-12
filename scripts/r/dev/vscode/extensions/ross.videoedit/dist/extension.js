@@ -6,6 +6,7 @@ const path = require("path");
 const process = require("process");
 const fs = require("fs");
 const os = require("os");
+const useMpv = true;
 const SOURCE_FILE_EXT = "c|cpp|py|js|txt|html";
 let recorderProcess;
 let currentProjectDir;
@@ -38,11 +39,23 @@ async function openFile(context, filePath) {
                 placeHolder: "Choose an action",
             });
             if (selection === "Open") {
-                createVideoEditPanel();
-                if (videoEditPanel) {
-                    const fileUri = videoEditPanel.webview.asWebviewUri(vscode.Uri.file(filePath));
-                    const template = getVideoPreviewTemplate(context);
-                    videoEditPanel.webview.html = template.replace("{{VIDEO_SRC}}", `${fileUri}`);
+                if (useMpv) {
+                    const mpv = cp.spawn("mpv", ["--", filePath], {
+                        detached: true,
+                        stdio: "ignore",
+                    });
+                    mpv.on("error", () => {
+                        vscode.window.showErrorMessage("Failed to launch mpv.");
+                    });
+                    mpv.unref();
+                }
+                else {
+                    createVideoEditPanel();
+                    if (videoEditPanel) {
+                        const fileUri = videoEditPanel.webview.asWebviewUri(vscode.Uri.file(filePath));
+                        const template = getVideoPreviewTemplate(context);
+                        videoEditPanel.webview.html = template.replace("{{VIDEO_SRC}}", `${fileUri}`);
+                    }
                 }
             }
             else if (selection === "Trim Video") {
@@ -84,6 +97,7 @@ function createVideoEditPanel() {
         }, {
             retainContextWhenHidden: true,
             localResourceRoots: [vscode.Uri.file(root)],
+            enableScripts: true,
         });
         videoEditPanel.onDidDispose(() => {
             videoEditPanel = undefined;
