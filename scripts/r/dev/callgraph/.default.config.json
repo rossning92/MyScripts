@@ -1,0 +1,4 @@
+{
+  "packages.pip": "tree_sitter tree_sitter_language_pack",
+  "template": false
+}

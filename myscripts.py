@@ -680,7 +680,7 @@ def _main():
 
     args = parser.parse_args()
 
-    if not is_in_tmux() and has_tmux_session():
+    if args.tmux and not is_in_tmux() and has_tmux_session():
         print("Attaching to existing tmux session...")
         subprocess.check_call(["tmux", "attach"])
         return

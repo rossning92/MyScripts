@@ -1,0 +1,263 @@
+<html>
+  <head>
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        font-family: sans-serif;
+        font-size: 9pt;
+      }
+
+      label {
+        display: inline-block;
+      }
+
+      #form {
+        margin: 0;
+      }
+
+      #form input,
+      #form button {
+        font-size: inherit;
+      }
+
+      #form input {
+        display: inline-block;
+        width: 100px;
+      }
+
+      #context-menu {
+        position: absolute;
+        display: none;
+        background: white;
+        border: 1px solid #ccc;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+      }
+
+      #context-menu button {
+        display: block;
+        width: 100%;
+        padding: 4px 12px;
+        border: 0;
+        background: transparent;
+        text-align: left;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      #context-menu button:hover {
+        background: #eee;
+      }
+
+      #container {
+        flex: 1;
+        display: flex;
+        min-height: 0;
+      }
+
+      #panzoom {
+        flex: 1;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="form">
+      <label>Files:</label>
+      <input name="files" />
+      <label>Match (/):</label>
+      <input name="match" data-hotkey="/" />
+      <label>Match callers (c):</label>
+      <input name="match_callers" data-hotkey="c" />
+      <label>Match callees (e):</label>
+      <input name="match_callees" data-hotkey="e" />
+      <button type="submit">Apply</button>
+    </form>
+    <div id="container">
+      <div id="panzoom">
+        <pre class="mermaid">{{MERMAID_CODE}}</pre>
+      </div>
+    </div>
+    <div id="context-menu"></div>
+    <script src="https://unpkg.com/@panzoom/panzoom@4.6.0/dist/panzoom.min.js"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+      function initializeMermaid() {
+        const fontSize = window.getComputedStyle(document.body)?.fontSize;
+        mermaid.initialize({
+          // https://mermaid.js.org/config/schema-docs/config.html
+          // startOnLoad: true,
+          theme: "neutral",
+          // https://mermaid.js.org/config/schema-docs/config-defs-flowchart-diagram-config.html
+          flowchart: {
+            nodeSpacing: 4,
+            padding: 2,
+            securityLevel: "loose",
+          },
+          fontFamily: "sans-serif",
+          themeVariables: {
+            fontSize,
+          },
+        });
+
+        // https://mermaid.js.org/config/usage.html#using-mermaid-run
+        const contextMenu = document.getElementById("context-menu");
+        mermaid.run({
+          querySelector: ".mermaid",
+          postRenderCallback: (id) => {
+            const root = document.getElementById(id);
+            if (!root) {
+              return;
+            }
+            const nodeLabels = root.querySelectorAll(".nodeLabel");
+            nodeLabels.forEach((nodeLabel) => {
+              nodeLabel.addEventListener("contextmenu", (event) => {
+                event.preventDefault();
+                const label = nodeLabel.textContent;
+                contextMenu.innerHTML = "";
+                const copyButton = document.createElement("button");
+                copyButton.textContent = "Copy";
+                copyButton.dataset.action = "copy";
+                copyButton.dataset.label = label;
+                contextMenu.appendChild(copyButton);
+                const addFilterButton = document.createElement("button");
+                addFilterButton.textContent = "Add Filter";
+                addFilterButton.dataset.action = "add-filter";
+                addFilterButton.dataset.label = label;
+                contextMenu.appendChild(addFilterButton);
+                contextMenu.style.display = "block";
+                contextMenu.style.left = `${event.pageX}px`;
+                contextMenu.style.top = `${event.pageY}px`;
+              });
+            });
+          },
+        });
+
+        document.addEventListener("click", (event) => {
+          if (!contextMenu.contains(event.target)) {
+            contextMenu.style.display = "none";
+          }
+        });
+
+        contextMenu.addEventListener("click", async (event) => {
+          const target = event.target;
+          if (target instanceof HTMLElement) {
+            contextMenu.style.display = "none";
+            if (target.dataset.action === "copy") {
+              try {
+                await navigator.clipboard.writeText(target.dataset.label ?? "");
+              } catch (error) {}
+            } else if (target.dataset.action === "add-filter") {
+              const url = new URL(window.location.href);
+              const match = url.searchParams.get("match");
+              const newMatch = match
+                ? match + "|" + target.dataset.label
+                : target.dataset.label;
+              updateSearchParams({
+                match: newMatch,
+              });
+            }
+          }
+        });
+      }
+
+      function initializePanzoom() {
+        // https://github.com/timmywil/panzoom
+        const element = document.getElementById("panzoom");
+        const panzoom = Panzoom(element, {
+          // excludeClass: "nodeLabel",
+          maxScale: 10,
+        });
+        element.addEventListener("wheel", panzoom.zoomWithWheel);
+        element.style.userSelect = "auto";
+        document.body.style.userSelect = "auto";
+      }
+
+      function updateSearchParams(params) {
+        const url = new URL(window.location.href);
+        Object.entries(params).forEach(([name, value]) => {
+          const trimmedValue = value.trim();
+          url.searchParams.delete(name);
+          if (trimmedValue) {
+            url.searchParams.set(name, trimmedValue);
+          }
+        });
+        const search = url.searchParams.toString();
+        const newUrl = `${url.origin}${url.pathname}${
+          search ? `?${search}` : ""
+        }${url.hash}`;
+        window.location.assign(newUrl);
+      }
+
+      function initializeForm() {
+        const form = document.getElementById("form");
+        const formInputs = Array.from(form.querySelectorAll("input[name]"));
+        const url = new URL(window.location.href);
+        formInputs.forEach((formInput) => {
+          if (url.searchParams.has(formInput.name)) {
+            formInput.value = url.searchParams.get(formInput.name);
+          }
+        });
+        form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const params = Object.fromEntries(
+            formInputs.map((input) => [input.name, input.value])
+          );
+          updateSearchParams(params);
+        });
+
+        // Intialize hotkeys
+        const hotkeyInputs = Array.from(
+          document.querySelectorAll("input[data-hotkey]")
+        );
+        document.addEventListener("keydown", (event) =>
+          handleHotkeys(event, hotkeyInputs)
+        );
+      }
+
+      function handleHotkeys(event, hotkeyInputs) {
+        const activeElement = document.activeElement;
+        if (event.key === "Escape") {
+          if (activeElement && typeof activeElement.blur === "function") {
+            activeElement.blur();
+          }
+          return;
+        }
+        if (event.ctrlKey || event.metaKey || event.altKey) {
+          return;
+        }
+        if (
+          activeElement &&
+          (activeElement.tagName === "INPUT" ||
+            activeElement.tagName === "TEXTAREA" ||
+            activeElement.isContentEditable)
+        ) {
+          return;
+        }
+        const targetInput = hotkeyInputs.find(
+          (element) => element.dataset.hotkey === event.key
+        );
+        if (targetInput) {
+          event.preventDefault();
+          targetInput.focus();
+          targetInput.select();
+        }
+      }
+
+      function initialize() {
+        initializeMermaid();
+        initializePanzoom();
+        initializeForm();
+      }
+
+      initialize();
+    </script>
+  </body>
+</html>

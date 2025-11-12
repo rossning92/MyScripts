@@ -229,8 +229,8 @@ def config_vscode(data_dir=None):
             # Javascript
             "dbaeumer.vscode-eslint",
             "esbenp.prettier-vscode",
-            # Bash
-            "mkhl.shfmt",
+            # Bash formatting
+            "emeraldwalk.runonsave",
             # "cadenas.vscode-glsllint",
             "xaver.clang-format",
             # Powershell
@@ -267,6 +267,9 @@ def update_settings_common():
         "search.exclude": {"**/build": True},
         "workbench.editor.enablePreviewFromQuickOpen": False,
         "window.title": "${rootName}${separator}${appName}",
+        "emeraldwalk.runonsave": {
+            "commands": [{"match": "\\.sh$", "cmd": "shfmt -i 4 -w ${file}"}]
+        },
     }
 
     settings.update(

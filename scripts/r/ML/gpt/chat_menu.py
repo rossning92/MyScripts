@@ -467,6 +467,9 @@ class ChatMenu(Menu[Line]):
                 args = pformat(selected.tool_use["args"], sort_dicts=False)
                 TextMenu(text=args, prompt="Tool use args").exec()
                 return True
+            elif selected.context:
+                TextMenu(text=selected.context, prompt="Context").exec()
+                return True
         return False
 
     def __take_photo(self):

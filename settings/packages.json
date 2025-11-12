@@ -71,6 +71,11 @@
       "packages": ["com.bambulab.BambuStudio"]
     }
   },
+  "base-devel": {
+    "pacman": {
+      "packages": ["base-devel"]
+    }
+  },
   "bbdown": {
     "dotnet": {
       "packages": ["bbdown"]

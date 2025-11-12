@@ -386,7 +386,9 @@ def record(
                         sentense = ""
                         _state.srt_index += 1
                     else:
-                        if ch not in END_CHARS:
+                        if ch in END_CHARS:
+                            sentense += " "
+                        else:
                             sentense += ch
                         end += char_duration
 

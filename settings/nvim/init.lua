@@ -19,7 +19,7 @@ vim.keymap.set('n', '<C-A>', 'ggVG', { noremap = true, silent = true })
 vim.keymap.set('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
 
 -- Hotkeys to save the file
-vim.keymap.set("i", "WW", "<Esc>:w<CR>")
+vim.keymap.set("i", "WW", "<Esc>:w<CR>i")
 vim.keymap.set({ "n", "o" }, "WW", ":w<CR>")
 
 -- Terminal settings
@@ -29,10 +29,13 @@ vim.api.nvim_command("autocmd TermOpen * setlocal nonumber norelativenumber sign
 -- auto-reload files when modified externally
 -- https://unix.stackexchange.com/a/383044
 vim.o.autoread = true
-vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "CursorHoldI", "FocusGained" }, {
-  command = "if mode() != 'c' | checktime | endif",
-  pattern = { "*" },
-})
+-- vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "CursorHoldI", "FocusGained" }, {
+--   command = "checktime",
+--   pattern = { "*" },
+-- })
+vim.fn.timer_start(3000, vim.schedule_wrap(function()
+  vim.cmd('checktime')
+end), { ["repeat"] = -1 })
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
 if not (vim.uv or vim.loop).fs_stat(lazypath) then

@@ -4,11 +4,8 @@ import os
 from glob import glob
 from io import StringIO
 
-from callgraph import (
-    generate_call_graph,
-    is_supported_file,
-)
-from dev.callgraph import CallGraph, Scope
+from dev.callgraph.callgraph import CallGraph, Scope, generate_call_graph
+from dev.callgraph.sourcelang import is_supported_file
 from utils.logger import setup_logger
 
 TAB_SIZE = 2

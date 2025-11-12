@@ -1,4 +1,0 @@
-{
-  "closeOnExit": false,
-  "packages.pip": "tree_sitter tree_sitter_language_pack"
-}

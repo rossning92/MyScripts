@@ -3,11 +3,6 @@
 set -e
 file="$1"
 
-if ! dpkg -s build-essential >/dev/null 2>&1; then
-    sudo apt update
-    sudo apt install build-essential -y
-fi
-
 if [[ "${file}" == *.cpp ]] || [[ "${file}" == *.cc ]]; then
     compiler="g++"
 elif [[ "${file}" == *.c ]]; then
@@ -23,8 +18,16 @@ if [[ "${OSTYPE}" == "msys" ]] || [[ "${OSTYPE}" == "cygwin" ]]; then
 fi
 
 # Compile if source file is newer than the executable
-${compiler} -O2 -pipe -o "${out_file}" "${file}"
+${compiler} -O2 -pipe -lm -lcrypto -o "${out_file}" "${file}"
 echo "Output file: ${out_file}"
 
 chmod +x "${file}"
-"${out_file}"
+
+# Check if there's a -- in the arguments
+if [[ "$@" == *"--"* ]]; then
+    # Extract everything after --
+    args=$(echo "$@" | sed 's/.*--//')
+    "./${out_file}" $args
+else
+    "./${out_file}"
+fi

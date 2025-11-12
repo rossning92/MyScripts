@@ -8,8 +8,8 @@ from pathlib import Path
 from queue import Queue
 from typing import DefaultDict, List, Optional, Set, Tuple
 
-from dev.sourcelang import filename_to_lang
-from tree_sitter import Node, Query, Tree
+from dev.callgraph.sourcelang import filename_to_lang
+from tree_sitter import Node, Query, QueryCursor, Tree
 from tree_sitter_language_pack import get_language, get_parser
 from utils.defaultordereddict import DefaultOrderedDict
 from utils.orderedset import OrderedSet
@@ -74,7 +74,8 @@ def _parse_tree(
     tree: Tree,
 ) -> Tuple[List[str], DefaultOrderedDict]:
     query = _get_query(lang=lang)
-    matches = query.matches(tree.root_node)
+    query_cursor = QueryCursor(query)
+    matches = query_cursor.matches(tree.root_node)
     stack: List[Tuple[str, Node]] = []
 
     functions: List[str] = []

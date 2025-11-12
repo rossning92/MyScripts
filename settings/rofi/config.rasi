@@ -21,7 +21,7 @@ configuration {
 
 #window {
     background-color: @background-color;
-    border:           1;
+    border:           2px;
     border-color:     @bordercolor;
     padding:          15;
 }
