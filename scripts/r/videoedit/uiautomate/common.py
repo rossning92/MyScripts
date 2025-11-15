@@ -22,8 +22,8 @@ def set_window_pos(x, y, w, h):
     time.sleep(0.5)
 
 
-def send_hotkey(modifier, key):
-    pyautogui.hotkey(modifier, key)
+def send_hotkey(*args, **kwargs):
+    pyautogui.hotkey(*args, **kwargs)
 
 
 def press(keys):
@@ -164,7 +164,7 @@ def sleep_random(secs, sigma=None):
     time.sleep(max(0, random.gauss(secs, sigma)))
 
 
-def typing(s, sound=False, no_sleep=False):
+def type_text(s, sound=False, no_sleep=False):
     for ch in s:
         if ch in [" ", "\t"]:
             if sound:
@@ -258,4 +258,4 @@ def run_commands(cmd, sound=False, no_sleep=False):
                     sleep_random(0.1)
         else:
             c = c.replace("\\{", "{").replace("\\}", "}")
-            typing(c, sound=sound, no_sleep=no_sleep)
+            type_text(c, sound=sound, no_sleep=no_sleep)

@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from typing import Literal, Optional
 
 TITLE_MATCH_MODE_EXACT = 0
@@ -237,7 +238,10 @@ def get_window_rect(
         raise NotImplementedError
 
 
-def set_window_rect(left, top, width, height, hwnd=None):
+def _set_window_rect_win(left: int, top: int, width: int, height: int, hwnd=None):
+    if not sys.platform == "win32":
+        raise Exception("The function is only supported on Windows")
+
     if hwnd is None:
         hwnd = ctypes.windll.user32.GetForegroundWindow()
 
@@ -268,3 +272,15 @@ def set_window_rect(left, top, width, height, hwnd=None):
     )
 
     time.sleep(0.1)
+
+
+def set_window_rect(left: int, top: int, width: int, height: int, hwnd=None):
+    if sys.platform == "win32":
+        _set_window_rect_win(left=left, top=top, width=width, height=height, hwnd=hwnd)
+    else:
+        subprocess.check_call(
+            [
+                "awesome-client",
+                f'local awful = require("awful"); local c = client.focus; if c then c.floating = true; c:geometry({{ width = {width}, height = {height} }}); awful.placement.centered(c, {{ honor_workarea = true }}) end',
+            ]
+        )

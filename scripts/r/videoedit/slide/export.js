@@ -27,13 +27,11 @@ const compiler = webpack(webpackConfig);
 
 const server = new WebpackDevServer(compiler, webpackConfig.devServer);
 
-async function captureImageAndExit(port) {
+async function captureAndExit(port) {
   const browser = await puppeteer.launch({
     headless: !dev,
     defaultViewport: { width: 1920, height: 1080 },
     args: [
-      // "--no-sandbox",
-      // "--disable-setuid-sandbox",
       "--enable-font-antialiasing",
       "--font-render-hinting=max",
       "--force-device-scale-factor=1",
@@ -46,7 +44,13 @@ async function captureImageAndExit(port) {
   const element = await page.$(".container");
 
   const outFile = path.resolve(argv["o"]);
-  await element.screenshot({ path: outFile, omitBackground: true });
+  if (outFile.endsWith(".webm")) {
+    const recorder = await page.screencast({ path: outFile });
+    await new Promise((r) => setTimeout(r, 3000));
+    await recorder.stop();
+  } else {
+    await element.screenshot({ path: outFile, omitBackground: true });
+  }
 
   await browser.close();
   server.close();
@@ -60,7 +64,7 @@ async function captureImageAndExit(port) {
     const port = server.listeningApp.address().port;
 
     if (!dev) {
-      captureImageAndExit(port);
+      captureAndExit(port);
     }
   });
 })();

@@ -47,6 +47,7 @@ _INTERRUPT_MESSAGE = "[INTERRUPTED]"
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 MODELS = Literal[
+    "gpt-5.1(low)",
     "gpt-5",
     "gpt-5(low)",
     "gpt-5-chat-latest",
@@ -132,14 +133,13 @@ class _ChatItem:
         messages = load_json(path, default=[])
 
         file_name = os.path.splitext(os.path.basename(path))[0]
+        display_name = file_name if not file_name.startswith("chat_") else ""
         self.text = " ".join((m["text"] for m in messages))
-        self.preview = (
-            format_timestamp(os.path.getmtime(path))
-            + ": "
-            + file_name
-            + ": "
-            + truncate_text(self.text)
-        )
+        parts = [format_timestamp(os.path.getmtime(path))]
+        if display_name:
+            parts.append(display_name)
+        parts.append(truncate_text(self.text))
+        self.preview = ": ".join(parts)
 
     def __str__(self) -> str:
         return self.text

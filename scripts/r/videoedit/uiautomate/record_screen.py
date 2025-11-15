@@ -1,5 +1,4 @@
 import argparse
-import ctypes
 import logging
 import os
 import subprocess
@@ -21,7 +20,7 @@ from _shutil import (
 from utils.hotkey import register_global_hotkey
 from utils.notify import send_notify
 from utils.slugify import slugify
-from utils.window import get_window_rect, set_window_rect
+from utils.window import activate_window_by_name, get_window_rect, set_window_rect
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
@@ -241,31 +240,15 @@ def record_screen(file, callback=None, rect=None):
 
 
 def start_application(args, title=None, restart=False, size=DEFAULT_WINDOW_SIZE):
+    should_start_app = True
     if title:
-        logging.debug("find window by title: %s", title)
-        hwnd = ctypes.windll.user32.FindWindowW(None, title)
-        if restart or hwnd == 0:
-            if hwnd:
-                logging.debug("close window: %s", title)
-                WM_CLOSE = 0x10
-                ctypes.windll.user32.PostMessageA(hwnd, WM_CLOSE, 0, 0)
-                time.sleep(0.5)
-                hwnd = 0
+        if activate_window_by_name(title):
+            should_start_app = False
 
-            logging.debug("run %s" % args)
-            start_process(["cmd", "/c", "start", ""] + args)
+    if should_start_app:
+        start_process(args)
 
-        while not hwnd:
-            hwnd = ctypes.windll.user32.FindWindowW(None, title)
-            time.sleep(0.1)
-    else:
-        hwnd = old_hwnd = ctypes.windll.user32.GetForegroundWindow()
-        start_process(["cmd", "/c", "start", ""] + args)
-        while hwnd == old_hwnd:
-            hwnd = ctypes.windll.user32.GetForegroundWindow()
-            time.sleep(0.1)
-
-    set_window_rect(0, 0, size[0], size[1], hwnd=hwnd)
+    set_window_rect(100, 100, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1])
 
 
 def record_app(*, file, args=None, title=None, callback=None, size=DEFAULT_WINDOW_SIZE):

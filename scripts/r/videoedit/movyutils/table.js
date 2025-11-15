@@ -7,7 +7,6 @@ export function addTable(
     cellWidth,
     cellHeight = 0.6,
     fontSize = 0.2,
-    font = "gdh",
     striped = true,
     borderWidth = 0.03,
     borderColor = "#404040",
@@ -66,7 +65,7 @@ export function addTable(
       const width = columnWidths[columnIndex] ?? 0;
       const x = xCursor + width / 2;
       const y = startY - rowIndex * cellHeight - cellHeight / 2;
-      mo.addText(String(text), { x, y, scale: fontSize, font, z: 0.1 }).fadeIn({
+      mo.addText(String(text), { x, y, fontSize, z: 0.1 }).fadeIn({
         t: "<0.05",
         duration: 0.5,
         ease: "linear",
@@ -75,19 +74,25 @@ export function addTable(
     });
   };
 
+  function addBackground({ color, rowIndex }) {
+    mo.addRect({
+      x: startX + totalTableWidth / 2,
+      y: startY - rowIndex * cellHeight - cellHeight / 2,
+      sx: totalTableWidth,
+      sy: cellHeight,
+      color,
+    }).fadeIn({ t: "<" });
+  }
+
+  addBackground({ color: "#444444", rowIndex: 0 });
   renderRow({ cells: data.headers, rowIndex: 0 });
 
   data.data.forEach((row, index) => {
     const rowIndex = index + 1;
     if (striped && index % 2 === 0) {
-      mo.addRect({
-        x: startX + totalTableWidth / 2,
-        y: startY - rowIndex * cellHeight - cellHeight / 2,
-        sx: totalTableWidth,
-        sy: cellHeight,
-        color: "#222222",
-      }).fadeIn({ t: "<" });
+      addBackground({ color: "#222222", rowIndex });
     }
+
     renderRow({ cells: row, rowIndex });
   });
 }

@@ -3,6 +3,7 @@ import ctypes
 import logging
 import os
 import subprocess
+import sys
 import time
 
 from _shutil import write_temp_file
@@ -21,12 +22,7 @@ from .record_screen import (
 root = os.path.dirname(os.path.abspath(__file__))
 
 
-def open_alacritty(
-    args,
-    restart=True,
-    font_size=14,
-    **kwargs,
-):
+def _initialize_language_list():
     subprocess.call(
         ["powershell", "-command", "Set-WinUserLanguageList -Force 'en-US'"]
     )
@@ -40,6 +36,16 @@ def open_alacritty(
         )
     )
 
+
+def open_alacritty(
+    args,
+    restart=True,
+    font_size=14,
+    **kwargs,
+):
+    if sys.platform == "win32":
+        _initialize_language_list()
+
     title = "AlacrittyAutomation"
     args = wrap_args_alacritty(
         args,
@@ -51,7 +57,7 @@ def open_alacritty(
         **kwargs,
     )
     start_application(args=args, title=title, restart=restart)
-    time.sleep(0.2)
+    time.sleep(0.5)
 
 
 def open_cmd(cmd=None, **kwargs):

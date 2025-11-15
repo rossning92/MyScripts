@@ -26,6 +26,7 @@ from moviepy.editor import (
     concatenate_videoclips,
 )
 from PIL import Image
+from utils.template import render_template
 
 from . import common
 from .export_movy_animation import export_movy_animation
@@ -1114,6 +1115,23 @@ def md(s, track="md", move_playhead=False, **kwargs):
         move_playhead=move_playhead,
         **kwargs,
     )
+
+
+@common.api
+def code(file, **kwargs):
+    _, ext = os.path.splitext(file)
+    with open(file, encoding="utf-8") as f:
+        s = f.read()
+
+    s = render_template(s, context=kwargs)
+
+    base_name = get_hash(s)
+    out_file = f"tmp/code/{base_name}.md"
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    with open(out_file, "w", encoding="utf-8") as f:
+        f.write(f'```{ext.lstrip(".")}\n' f"{s}\n" "```\n")
+
+    slide(out_file, template="code", **kwargs)
 
 
 @common.api

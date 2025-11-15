@@ -1,155 +1,146 @@
-export function updateCodeBlocks({
+import { angular } from "@codemirror/lang-angular";
+import { cpp } from "@codemirror/lang-cpp";
+import { css } from "@codemirror/lang-css";
+import { go } from "@codemirror/lang-go";
+import { html } from "@codemirror/lang-html";
+import { java } from "@codemirror/lang-java";
+import { javascript } from "@codemirror/lang-javascript";
+import { jinja } from "@codemirror/lang-jinja";
+import { json } from "@codemirror/lang-json";
+import { less } from "@codemirror/lang-less";
+import { lezer } from "@codemirror/lang-lezer";
+import { liquid } from "@codemirror/lang-liquid";
+import { markdown } from "@codemirror/lang-markdown";
+import { php } from "@codemirror/lang-php";
+import { python } from "@codemirror/lang-python";
+import { rust } from "@codemirror/lang-rust";
+import { sass } from "@codemirror/lang-sass";
+import { sql } from "@codemirror/lang-sql";
+import { vue } from "@codemirror/lang-vue";
+import { wast } from "@codemirror/lang-wast";
+import { xml } from "@codemirror/lang-xml";
+import { yaml } from "@codemirror/lang-yaml";
+import { EditorView, basicSetup } from "codemirror";
+import { draculaInit } from "./dracula.js";
+
+export function initializeCodeBlocks({
   fontSize,
   scrollToLine,
   width,
   height,
   lineNumbers = true,
 } = {}) {
-  const codeElements = document.querySelectorAll("pre > code");
-  for (const codeElement of codeElements) {
-    if (!codeElement) {
-      return;
-    }
-
-    if (fontSize !== undefined) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror { font-size: ${fontSize}; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    if (width !== undefined) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror { min-width: ${width}; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    if (height !== undefined) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror { min-height: ${height}; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    // XXX: workaround: seems like a CodeMirror bug, line won't break if lineNumbers is false.
-    if (!lineNumbers) {
-      const style = document.createElement("style");
-      style.innerHTML = `.CodeMirror-line { display: block; height: 1.2em; }`;
-      document.getElementsByTagName("head")[0].appendChild(style);
-    }
-
-    let source = codeElement.innerText;
-
-    // Remove the last "\n" from a textarea.
-    source = source.replace(/^\s+|\s+$/g, "");
-
-    console.log(`className for pre > code element: ${codeElement.className}`);
+  document.querySelectorAll("pre > code").forEach((codeElement) => {
     const lang = codeElement.className.replace("language-", "");
+    const langExtension = getLanguageExtension(lang);
 
-    const newItem = document.createElement("textarea");
+    const preElement = codeElement.parentElement;
+    const startTag = "<sel>";
+    const endTag = "</sel>";
 
-    const markRanges = [];
-    {
-      source = source.replaceAll("\\`", "\u2022");
+    // Check if we should highlight some selected code.
+    let selection;
+    let code = codeElement.textContent;
+    const startIndex = code.indexOf(startTag);
+    const endIndex = code.indexOf(endTag);
+    if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+      const before = code.slice(0, startIndex);
+      const selected = code.slice(startIndex + startTag.length, endIndex);
+      const after = code.slice(endIndex + endTag.length);
 
-      let array1;
-      const regex1 = /`.*?`/g;
-      let i = 0;
-      while ((array1 = regex1.exec(source)) !== null) {
-        markRanges.push([
-          array1.index - i * 2,
-          array1.index + array1[0].length - (i + 1) * 2,
-        ]);
-        i++;
-      }
-
-      source = source.replaceAll("`", "");
-      source = source.replaceAll("\u2022", "`");
+      code = before + selected + after;
+      selection = {
+        anchor: before.length,
+        head: before.length + selected.length,
+      };
     }
 
-    newItem.innerHTML = source;
-    codeElement.parentNode.parentNode.replaceChild(
-      newItem,
-      codeElement.parentNode
-    );
+    const editorContainer = document.createElement("div");
+    preElement.replaceWith(editorContainer);
 
-    const editor = CodeMirror.fromTextArea(newItem, {
-      mode: "text/javascript",
-      lineNumbers,
-      styleActiveLine: true,
-      matchBrackets: true,
-      lineWrapping: true,
-      readOnly: "nocursor",
-      scrollbarStyle: "null",
-    });
-    window.editor = editor;
-    editor.setOption("theme", "one-dark");
-
-    document.onkeyup = function (e) {
-      if (e.ctrlKey && e.which == 66) {
-        const from = editor.getCursor("start");
-        const to = editor.getCursor("end");
-        editor.markText(from, to, { className: "mark" });
-      }
-    };
-
-    setLanguageMode(lang, editor);
-
-    markRanges.forEach(([from, to]) => {
-      markText(editor, from, to);
+    const view = new EditorView({
+      doc: code,
+      extensions: [basicSetup, langExtension, draculaInit()],
+      parent: editorContainer,
     });
 
-    if (scrollToLine) {
-      editor.scrollTo(
-        null,
-        editor.defaultTextHeight() * (parseInt(scrollToLine) - 0.5)
-      );
+    if (selection) {
+      view.dispatch({
+        selection,
+        scrollIntoView: true,
+        effects: [EditorView.scrollIntoView(selection.anchor, { y: "center" })],
+      });
     }
-  }
-}
 
-function setLanguageMode(lang, editor) {
-  if (lang === "js") {
-    editor.setOption("mode", "text/javascript");
-  } else if (lang == "c++") {
-    editor.setOption("mode", "text/x-c++src");
-  } else if (lang == "py") {
-    editor.setOption("mode", "python");
-  } else if (lang == "sql") {
-    editor.setOption("mode", "text/x-sql");
-  } else if (lang == "html") {
-    editor.setOption("mode", "text/html");
-  } else if (lang == "java") {
-    editor.setOption("mode", "text/x-java");
-  } else if (lang == "c") {
-    editor.setOption("mode", "text/x-csrc");
-  } else if (lang == "cpp") {
-    editor.setOption("mode", "text/x-c++src");
-  } else if (lang == "css") {
-    editor.setOption("mode", "text/css");
-  } else if (lang == "json") {
-    editor.setOption("mode", "application/json");
-  } else if (lang == "jsx") {
-    editor.setOption("mode", "text/jsx");
-  } else if (lang == "xml") {
-    editor.setOption("mode", "application/xml");
-  } else if (lang == "sh") {
-    editor.setOption("mode", "text/x-sh");
-  } else if (lang == "ts") {
-    editor.setOption("mode", "text/x-typescript");
-  } else if (lang == "tsx") {
-    editor.setOption("mode", "text/jsx");
-  } else if (lang == "md") {
-    editor.setOption("mode", "text/x-markdown");
-  } else if (lang == "yml") {
-    editor.setOption("mode", "text/x-yaml");
-  } else if (lang == "yaml") {
-    editor.setOption("mode", "text/x-yaml");
-  } else if (lang == "ini") {
-    editor.setOption("mode", "text/x-ini");
-  }
-}
-
-function markText(editor, from, to) {
-  editor.markText(editor.posFromIndex(from), editor.posFromIndex(to), {
-    className: "mark",
+    // Test smooth scrolling
+    // setTimeout(() => {
+    //   view.scrollDOM.scrollTo({ top: 100, behavior: "smooth" });
+    // }, 1000);
   });
+}
+
+function getLanguageExtension(lang) {
+  switch (lang) {
+    case "js":
+    case "javascript":
+      return javascript();
+    case "ts":
+    case "typescript":
+      return javascript({ typescript: true });
+    case "jsx":
+      return javascript({ jsx: true });
+    case "tsx":
+      return javascript({ jsx: true, typescript: true });
+    case "py":
+    case "python":
+      return python();
+    case "sql":
+      return sql();
+    case "html":
+      return html();
+    case "css":
+      return css();
+    case "json":
+      return json();
+    case "java":
+      return java();
+    case "c":
+    case "cpp":
+    case "c++":
+      return cpp();
+    case "md":
+    case "markdown":
+      return markdown();
+    case "xml":
+      return xml();
+    case "yml":
+    case "yaml":
+      return yaml();
+    case "go":
+      return go();
+    case "rust":
+      return rust();
+    case "php":
+      return php();
+    case "liquid":
+      return liquid();
+    case "jinja":
+      return jinja();
+    case "vue":
+      return vue();
+    case "angular":
+      return angular();
+    case "sass":
+      return sass();
+    case "less":
+      return less();
+    case "wast":
+      return wast();
+    case "lezer":
+      return lezer();
+    case "example":
+      return example();
+    default:
+      return javascript();
+  }
 }

@@ -6,13 +6,11 @@ const path = require("path");
 const process = require("process");
 const fs = require("fs");
 const os = require("os");
-const useMpv = true;
 const SOURCE_FILE_EXT = "c|cpp|py|js|txt|html";
 let recorderProcess;
 let currentProjectDir;
 let videoEditPanel;
 let output = vscode.window.createOutputChannel("VideoEdit");
-let videoPreviewTemplate;
 // Helper functions for String.
 String.prototype.replaceAll = function (find, replace) {
     const str = this;
@@ -39,24 +37,14 @@ async function openFile(context, filePath) {
                 placeHolder: "Choose an action",
             });
             if (selection === "Open") {
-                if (useMpv) {
-                    const mpv = cp.spawn("mpv", ["--", filePath], {
-                        detached: true,
-                        stdio: "ignore",
-                    });
-                    mpv.on("error", () => {
-                        vscode.window.showErrorMessage("Failed to launch mpv.");
-                    });
-                    mpv.unref();
-                }
-                else {
-                    createVideoEditPanel();
-                    if (videoEditPanel) {
-                        const fileUri = videoEditPanel.webview.asWebviewUri(vscode.Uri.file(filePath));
-                        const template = getVideoPreviewTemplate(context);
-                        videoEditPanel.webview.html = template.replace("{{VIDEO_SRC}}", `${fileUri}`);
-                    }
-                }
+                const mpv = cp.spawn("mpv", ["--", filePath], {
+                    detached: true,
+                    stdio: "ignore",
+                });
+                mpv.on("error", () => {
+                    vscode.window.showErrorMessage("Failed to launch mpv.");
+                });
+                mpv.unref();
             }
             else if (selection === "Trim Video") {
                 openTerminal({
@@ -77,13 +65,9 @@ async function openFile(context, filePath) {
         }
     }
 }
-function getVideoPreviewTemplate(context) {
-    if (videoPreviewTemplate) {
-        return videoPreviewTemplate;
-    }
-    const templateUri = vscode.Uri.joinPath(context.extensionUri, "resources", "videoPreview.html");
-    videoPreviewTemplate = fs.readFileSync(templateUri.fsPath, "utf8");
-    return videoPreviewTemplate;
+function readResourceFile(context, fileName) {
+    const uri = vscode.Uri.joinPath(context.extensionUri, "resources", fileName);
+    return fs.readFileSync(uri.fsPath, "utf8");
 }
 function createVideoEditPanel() {
     const root = getVprojectsRoot();
@@ -93,7 +77,7 @@ function createVideoEditPanel() {
     if (!videoEditPanel) {
         videoEditPanel = vscode.window.createWebviewPanel("videoEdit.preview", "Video Edit", {
             viewColumn: vscode.ViewColumn.Beside,
-            preserveFocus: false,
+            preserveFocus: true,
         }, {
             retainContextWhenHidden: true,
             localResourceRoots: [vscode.Uri.file(root)],
@@ -170,7 +154,7 @@ async function openFileUnderCursor(context) {
     const activeFile = editor.document.fileName;
     output.appendLine(`openFileUnderCursor(): ${activeFile}`);
     if (/animation[\\\/][a-zA-Z0-9-_]+\.js$/.test(activeFile)) {
-        startMovyServer(activeFile);
+        startMovyServer(context, activeFile);
     }
     else if (/slide[\\\/].+?\.md$/.test(activeFile)) {
         startSlideServer(activeFile);
@@ -488,7 +472,7 @@ function openTerminal({ name, args, singleInstance = true, cwd, }) {
     terminal.show(true // the terminal will not take focus.
     );
 }
-function startMovyServer(file) {
+function startMovyServer(context, file) {
     // Return random port number between 10000 and 20000
     let port = Math.floor(Math.random() * 10000) + 10000;
     const args = [
@@ -500,7 +484,14 @@ function startMovyServer(file) {
         file,
     ];
     openTerminal({ name: "MovyServer", args });
-    openInBrowser(`http://localhost:${port}/?file=${path.basename(file)}`);
+    const url = `http://localhost:${port}/?file=${path.basename(file)}`;
+    createVideoEditPanel();
+    setTimeout(() => {
+        if (videoEditPanel) {
+            const template = readResourceFile(context, "movyEditor.html");
+            videoEditPanel.webview.html = template.replace("{{URL}}", url);
+        }
+    }, 1000);
 }
 function exportVideo({ extraArgs, exportSelectedText = true, } = {}) {
     const activeDir = getActiveDir();
@@ -770,17 +761,19 @@ async function createNewDocument({ dir, func, fileNamePlaceHolder = "a space sep
         fs.mkdirSync(animationDir);
     }
     // Input file name
-    let fileName = await vscode.window.showInputBox({
+    let name = await vscode.window.showInputBox({
         placeHolder: fileNamePlaceHolder,
     });
-    if (!fileName) {
+    if (!name) {
         return;
     }
-    // Replace all spaces with dash "-".
-    fileName = fileName.replace(/\s+/g, "-");
-    const filePath = path.resolve(animationDir, fileName + extension);
+    if (extension && name.toLowerCase().endsWith(extension.toLowerCase())) {
+        name = name.slice(0, -extension.length);
+    }
+    name = name.replace(/\s+/g, "-");
+    const filePath = path.resolve(animationDir, name + extension);
     fs.writeFileSync(filePath, initContent);
-    insertTextAtCursor(`{{ ${func}('${dir}/${fileName}${extension}'${extraParams}) }}`);
+    insertTextAtCursor(`{{ ${func}('${dir}/${name}${extension}'${extraParams}) }}`);
     const document = await vscode.workspace.openTextDocument(filePath);
     await vscode.window.showTextDocument(document);
     return filePath;
@@ -830,12 +823,12 @@ function registerCommands(context) {
         const file = await createNewDocument({
             dir: "animation",
             func: "anim",
-            fileNamePlaceHolder: "animation name",
+            fileNamePlaceHolder: "name",
             initContent: 'import * as mo from "movy";\n\n',
             extension: ".js",
         });
         if (file) {
-            startMovyServer(file);
+            startMovyServer(context, file);
         }
     }));
     // Create source code document
@@ -859,7 +852,7 @@ function registerCommands(context) {
         }
         const activeFile = editor.document.fileName;
         if (activeFile.endsWith(".js")) {
-            startMovyServer(activeFile);
+            startMovyServer(context, activeFile);
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.insertMostRecentFile", () => {

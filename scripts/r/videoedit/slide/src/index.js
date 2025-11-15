@@ -1,8 +1,7 @@
-import { updateCodeBlocks } from "./utils/codemirror";
+import { initializeCodeBlocks } from "./utils/codemirror";
 import { updateMermaid } from "./utils/mermaid";
 const marked = require("marked");
 
-require(`./codemirror.css`);
 require(`./${template}.css`);
 
 // Parse Yaml front matter
@@ -25,7 +24,8 @@ if (template == "title") {
 }
 
 updateMermaid();
-updateCodeBlocks({
+
+initializeCodeBlocks({
   fontSize: matter.fontSize,
   scrollToLine: matter.scrollToLine,
   width: matter.width,
@@ -74,20 +74,4 @@ function parseYamlFrontMatter(markdown) {
     markdown: markdown.replace(yamlFrontMatter, ""),
     matter,
   };
-}
-
-function autoFitContent(elm) {
-  const scale =
-    1 /
-    Math.max(
-      elm.clientWidth / window.innerWidth,
-      elm.clientHeight / window.innerHeight
-    );
-  elm.style.transformOrigin = "0 0";
-  // elm.style.transform = `scale(${scale})`;
-  document.body.style.zoom = `${scale * 100}%`;
-}
-
-if (dev) {
-  autoFitContent(document.querySelector(".container"));
 }

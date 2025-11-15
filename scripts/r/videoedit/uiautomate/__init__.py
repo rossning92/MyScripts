@@ -1,4 +1,4 @@
-from .common import run_commands, typing
+from .common import run_commands, type_text
 from .ipython import record_ipython
 from .record_screen import start_record, stop_record
 from .windows_terminal import close_wt, open_wt, record_windows_terminal

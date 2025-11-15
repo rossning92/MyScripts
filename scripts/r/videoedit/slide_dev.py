@@ -20,5 +20,5 @@ if __name__ == "__main__":
     run_script("r/web/open_url_dev.py", ["http://localhost:1244/"])
     run_script(
         "export.js",
-        args=["-d", "-t", template, "-i", file, "-p", "1244"],
+        args=["-t", template, "-i", file, "-d", "-p", "1244"],
     )
