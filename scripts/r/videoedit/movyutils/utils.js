@@ -51,15 +51,25 @@ export function addIcons_List(
 export function addIcons_Grid(
   icons,
   {
-    rows = 2,
-    cols = 3,
-    scale = 2,
+    rows,
+    cols,
+    scale,
     stagger = 0.1,
     labels,
     imageScale = 0.75,
     textScale = 0.08,
   } = {}
 ) {
+  if (!rows || !cols) {
+    const numIcons = icons.length;
+    rows = Math.floor(Math.sqrt(numIcons));
+    cols = Math.ceil(Math.sqrt(numIcons));
+  }
+
+  if (!scale) {
+    scale = Math.min((1.0 / cols) * 8.0, 4.0);
+  }
+
   const group = mo.addGroup({ scale });
   group.grow();
 

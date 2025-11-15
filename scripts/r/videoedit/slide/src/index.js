@@ -75,19 +75,3 @@ function parseYamlFrontMatter(markdown) {
     matter,
   };
 }
-
-function autoFitContent(elm) {
-  const scale =
-    1 /
-    Math.max(
-      elm.clientWidth / window.innerWidth,
-      elm.clientHeight / window.innerHeight
-    );
-  elm.style.transformOrigin = "0 0";
-  // elm.style.transform = `scale(${scale})`;
-  document.body.style.zoom = `${scale * 100}%`;
-}
-
-if (dev) {
-  autoFitContent(document.querySelector(".container"));
-}
