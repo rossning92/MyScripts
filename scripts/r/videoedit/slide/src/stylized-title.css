@@ -1,18 +1,29 @@
 @import "./font.css";
 @import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap");
 
+@font-face {
+  font-family: "zcool-gdh";
+  src: url("https://cdn.jsdelivr.net/npm/webfont-12@1.0.0/zcool-gdh.woff") format("woff"),
+    url("https://cdn.jsdelivr.net/npm/webfont-12@1.0.0/zcool-gdh.ttf") format("truetype");
+  font-display: swap;
+}
+
 :is(h1, h2, h3, h4, h5, h6) {
   margin: 0;
 }
 
 :is(h1, h2, h3) {
-  font-family: "Roboto Condensed", "Noto Sans SC";
+  font-family: "zcool-gdh", "Roboto Condensed", "Noto Sans SC";
   font-weight: 400;
-  padding: 0.25em 1em 0.25em 1em;
+  padding: 0.5em 1em 0.5em 1em;
   line-height: 1em;
   text-align: center;
-  background-color: #ffffff;
-  color: black;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: #f1f1f1;
+}
+
+:is(h1, h2, h3, h4, h5, h6) {
+  background-color: rgba(0, 0, 0, 0.9);
 }
 
 h1 {

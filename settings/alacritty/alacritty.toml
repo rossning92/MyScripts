@@ -56,4 +56,7 @@ bindings = [
   { key = "F10", action = "None" },
   { key = "F11", action = "None" },
   { key = "F12", action = "None" },
+
+  # Toggle Vi mode with Ctrl + Space
+  { key = "Space", mods = "Control", mode = "~Vi", action = "ToggleViMode" },
 ]

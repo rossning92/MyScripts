@@ -52,7 +52,7 @@ def open_alacritty(
         title=title,
         font_size=font_size,
         borderless=True,
-        padding=32,
+        padding=64,
         font="hack",
         **kwargs,
     )

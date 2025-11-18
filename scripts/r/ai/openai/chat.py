@@ -81,7 +81,6 @@ def complete_chat(
     messages: List[Message],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
-    include_usage: bool = True,
     tools: Optional[List[Callable[..., Any]]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,

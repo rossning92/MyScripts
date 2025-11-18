@@ -352,7 +352,7 @@ def record(
                 else:
                     char_duration = (_get_time("ae") - start) / length
 
-                MIN_SENTENSE_LEN = 8
+                MIN_SENTENSE_LEN = 4
                 sentense = ""
                 for i, ch in enumerate(subtitle):
                     if (
@@ -1170,15 +1170,12 @@ def tts(enabled=True):
 
 def _remove_bold_italic_markers(text: str) -> str:
     """
-    Remove Markdown bold and italic markers (*, _, **, __, ***, ___)
-    from the given text while keeping the plain text content.
+    Remove Markdown formatting markers from text.
     """
-    # Remove *** or ___ (bold+italic combined)
-    text = re.sub(r"(\*\*\*|___)(.*?)\1", r"\2", text)
     # Remove ** or __ (bold)
-    text = re.sub(r"(\*\*|__)(.*?)\1", r"\2", text)
-    # Remove * or _ (italic)
-    text = re.sub(r"(\*|_)(.*?)\1", r"\2", text)
+    text = re.sub(r"(\*\*)(.*?)\1", r"\2", text)
+    # Remove backticks (inline code)
+    text = re.sub(r"`(.*?)`", r"\1", text)
     return text
 
 

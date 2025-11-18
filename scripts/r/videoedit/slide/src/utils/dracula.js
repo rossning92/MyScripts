@@ -24,7 +24,7 @@ export const createTheme = ({ theme, settings = {}, styles = [] }) => {
   }
 
   themeOptions["&.cm-editor"] = {
-    width: "1280px",
+    width: "1680px",
     minHeight: "1080px",
     maxHeight: "1080px",
   };
