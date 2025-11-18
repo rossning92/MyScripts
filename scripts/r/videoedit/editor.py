@@ -1194,7 +1194,6 @@ def parse_line(line):
 
 
 def enable_preview():
-    _state.enable_subtitle = False
     _state.global_scale = 0.25
     tts(True)
 

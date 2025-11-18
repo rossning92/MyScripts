@@ -1,7 +1,7 @@
 import os
 import xml.etree.ElementTree as ET
 
-from _shutil import start_process
+from utils.process import start_process
 
 host_name = os.environ["NX_HOST"]
 session_file = os.path.expanduser(f"~/NoMachine/{host_name}.nxs")

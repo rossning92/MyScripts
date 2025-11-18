@@ -4,7 +4,8 @@ import sys
 import tempfile
 import webbrowser
 
-from _shutil import is_in_termux, start_process
+from _shutil import is_in_termux
+from utils.process import start_process
 
 
 def open_url(url, profile_name=None):

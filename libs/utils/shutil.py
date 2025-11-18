@@ -3,27 +3,7 @@ import os
 import subprocess
 import sys
 
-
-def start_process(args, shell=False):
-    creationflags = 0
-    if sys.platform == "win32":
-        CREATE_NEW_PROCESS_GROUP = 0x00000200
-        DETACHED_PROCESS = 0x00000008
-        creationflags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
-
-    if sys.platform == "linux":
-        start_new_session = True
-    else:
-        start_new_session = False
-
-    subprocess.Popen(
-        args,
-        shell=shell,
-        creationflags=creationflags,
-        start_new_session=start_new_session,
-        stderr=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-    )
+from .process import start_process
 
 
 def shell_open(file="."):

@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-from _shutil import start_process
+from utils.process import start_process
 
 if __name__ == "__main__":
     script_path = os.environ["SCRIPT"]

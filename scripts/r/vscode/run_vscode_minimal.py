@@ -1,7 +1,7 @@
 import os
 import sys
 
-from _shutil import start_process
+from utils.process import start_process
 from vscode.config_vscode import (
     setup_color_theme,
     update_settings,

@@ -21,7 +21,7 @@ from utils.checkpoints import (
 )
 from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
-from utils.shutil import start_process
+from utils.process import start_process
 
 README_FILE = "README.md"
 

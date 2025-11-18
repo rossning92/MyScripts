@@ -10,7 +10,7 @@ from _shutil import write_temp_file
 from utils.logger import setup_logger
 from utils.shutil import shell_open
 from utils.term.alacritty import wrap_args_alacritty
-from utils.window import set_window_rect
+from utils.window import activate_window_by_name, set_window_rect
 
 from .common import run_commands
 from .record_screen import (
@@ -40,7 +40,7 @@ def _initialize_language_list():
 def open_alacritty(
     args,
     restart=True,
-    font_size=14,
+    font_size=18,
     **kwargs,
 ):
     if sys.platform == "win32":
@@ -57,7 +57,6 @@ def open_alacritty(
         **kwargs,
     )
     start_application(args=args, title=title, restart=restart)
-    time.sleep(0.5)
 
 
 def open_cmd(cmd=None, **kwargs):

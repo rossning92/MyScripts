@@ -2,7 +2,8 @@ import glob
 import os
 import subprocess
 
-from _shutil import download, start_process, unzip
+from _shutil import download, unzip
+from utils.process import start_process
 
 RENDERDOC_INSTALL_DIR = os.path.expandvars("%APPDATA%\\RenderDoc")
 

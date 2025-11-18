@@ -6,7 +6,8 @@ import tempfile
 from typing import List, Optional, Union
 
 from _pkgmanager import find_executable, require_package
-from _shutil import start_process
+
+from utils.process import start_process
 
 
 def edit_text_file(file: str, start_insert=False):

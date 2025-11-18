@@ -281,6 +281,15 @@ def set_window_rect(left: int, top: int, width: int, height: int, hwnd=None):
         subprocess.check_call(
             [
                 "awesome-client",
-                f'local awful = require("awful"); local c = client.focus; if c then c.floating = true; c:geometry({{ width = {width}, height = {height} }}); awful.placement.centered(c, {{ honor_workarea = true }}) end',
+                (
+                    f'local awful = require("awful"); '
+                    f"local c = client.focus; "
+                    f"if c then "
+                    f"c.floating = true; "
+                    f"c:geometry({{ width = {width}, height = {height} }}); "
+                    f"awful.placement.centered(c, {{ honor_workarea = true }}) "
+                    f"end"
+                ),
             ]
         )
+    time.sleep(1)

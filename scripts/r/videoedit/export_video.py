@@ -6,9 +6,10 @@ import inspect
 import os
 import re
 import shutil
-import subprocess
+import socket
 import sys
 from pathlib import Path
+from typing import List, Optional
 
 import yaml
 from _shutil import (
@@ -16,9 +17,9 @@ from _shutil import (
     get_time_str,
     keep_awake,
     print2,
-    start_process,
 )
 from utils.confirm import confirm
+from utils.process import start_process
 
 from videoedit.project import create_project
 
@@ -95,21 +96,14 @@ def _convert_to_readable_time(seconds):
 def _write_timestamp(t, section_name, out_filename):
     os.makedirs(os.path.dirname(out_filename), exist_ok=True)
 
-    if not hasattr(_write_timestamp, "f"):
-        _write_timestamp.f = open(
-            "%s.timestamp.txt" % out_filename,
-            "w",
-            encoding="utf-8",
+    with open("%s.timestamp.txt" % out_filename, "a", encoding="utf-8") as f:
+        f.write(
+            "%s - %s\n"
+            % (
+                _convert_to_readable_time(t),
+                section_name.lstrip("# "),
+            )
         )
-
-    _write_timestamp.f.write(
-        "%s - %s\n"
-        % (
-            _convert_to_readable_time(t),
-            section_name.lstrip("# "),
-        )
-    )
-    _write_timestamp.f.flush()
 
 
 def _parse_text(text, apis=common.apis, should_write_timestamp=True, **kwargs):
@@ -238,6 +232,22 @@ def _import_from_path(module_name: str, path: str):
     return module
 
 
+def _open_mpv_single_instance(file: str, extra_args: Optional[List[str]] = None):
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+        try:
+            sock.connect("/tmp/mpv-socket")
+            sock.sendall(b'{ "command": ["quit"] }\n')
+        except FileNotFoundError:
+            pass
+        except ConnectionRefusedError:
+            pass
+
+    args = ["mpv", "--input-ipc-server=/tmp/mpv-socket", "--force-window", file]
+    if extra_args:
+        args.extend(extra_args)
+    start_process(args)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--proj_dir", type=str, default=None)
@@ -337,17 +347,10 @@ if __name__ == "__main__":
                 out_filename=out_filename, resolution=(1920, 1080)
             )
 
-            if sys.platform == "win32":
-                subprocess.call(["taskkill", "/f", "/im", "mpv.exe"], shell=True)
-
-            mpv_command = [
-                "mpv",
-                out,
-                "--force-window",
-            ]
+            mpv_extra_args = []
             if args.preview:
-                mpv_command.append("--geometry=33%-0%+0%")
-            start_process(mpv_command)
+                mpv_extra_args.append("--geometry=33%-0%+0%")
+            _open_mpv_single_instance(out, mpv_extra_args)
 
     except common.VideoEditException as ex:
         print2("ERROR: %s" % ex, color="red")

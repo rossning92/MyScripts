@@ -14,11 +14,11 @@ from _shutil import (
     get_next_file_name,
     move_file,
     print2,
-    start_process,
     wait_for_key,
 )
 from utils.hotkey import register_global_hotkey
 from utils.notify import send_notify
+from utils.process import start_process
 from utils.slugify import slugify
 from utils.window import activate_window_by_name, get_window_rect, set_window_rect
 
@@ -239,7 +239,13 @@ def record_screen(file, callback=None, rect=None):
     _recorder.save(file)
 
 
-def start_application(args, title=None, restart=False, size=DEFAULT_WINDOW_SIZE):
+def start_application(
+    args,
+    title=None,
+    restart=False,
+    size=DEFAULT_WINDOW_SIZE,
+    start_wait_time=1.0,
+):
     should_start_app = True
     if title:
         if activate_window_by_name(title):
@@ -247,6 +253,7 @@ def start_application(args, title=None, restart=False, size=DEFAULT_WINDOW_SIZE)
 
     if should_start_app:
         start_process(args)
+        time.sleep(start_wait_time)
 
     set_window_rect(100, 100, DEFAULT_WINDOW_SIZE[0], DEFAULT_WINDOW_SIZE[1])
 

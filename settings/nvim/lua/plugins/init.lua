@@ -238,6 +238,7 @@ return {
                 default = { 'lsp', 'path', 'snippets', 'buffer' },
             },
             keymap = { preset = 'super-tab' }, -- tab to accept
+	    enabled = function() return not vim.tbl_contains({ "markdown" }, vim.bo.filetype) end,
         },
     },
 

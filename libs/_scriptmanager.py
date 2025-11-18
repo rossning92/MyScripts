@@ -19,12 +19,12 @@ from _shutil import (
     get_ahk_exe,
     pause,
     refresh_env_vars,
-    start_process,
     update_env_var_explorer,
 )
 from _term import clear_terminal
 from scripting.path import get_data_dir, get_my_script_root, get_script_history_file
 from utils.jsonutil import load_json, save_json
+from utils.process import start_process
 from utils.template import render_template_file
 from utils.tmux import is_in_tmux
 

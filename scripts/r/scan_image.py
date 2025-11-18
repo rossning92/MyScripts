@@ -2,7 +2,8 @@ import os
 import subprocess
 import sys
 
-from _shutil import get_home_path, get_time_str, start_process
+from _shutil import get_home_path, get_time_str
+from utils.process import start_process
 
 if __name__ == "__main__":
     out_file = os.path.join(get_home_path(), "Desktop", f"scan_{get_time_str()}.jpg")

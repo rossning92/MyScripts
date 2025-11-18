@@ -37,7 +37,6 @@ from _shutil import (
     quote_arg,
     run_elevated,
     setup_nodejs,
-    start_process,
     update_json,
     wrap_args_conemu,
     write_temp_file,
@@ -64,6 +63,7 @@ from utils.dotenv import load_dotenv
 from utils.email import send_email_md
 from utils.jsonutil import load_json, save_json
 from utils.menu.csvmenu import CsvMenu
+from utils.process import start_process
 from utils.shutil import shell_open
 from utils.slugify import slugify
 from utils.template import render_template
