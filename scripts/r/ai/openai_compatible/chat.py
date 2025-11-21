@@ -2,14 +2,14 @@ import json
 import logging
 import os
 from pprint import pformat
-from typing import Any, Callable, Iterator, List, Optional
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional, cast
 
-import requests
+import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolUse, function_to_tool_definition
 
 
-def complete_chat(
+async def complete_chat(
     messages: List[Message],
     endpoint_url: str,
     api_key: str,
@@ -17,7 +17,10 @@ def complete_chat(
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-) -> Iterator[str]:
+    on_reasoning: Optional[Callable[[str], None]] = None,
+    extra_payload: Optional[Dict] = None,
+    out_message: Optional[Message] = None,
+) -> AsyncIterator[str]:
     logging.debug(f"messages: {messages}")
 
     headers = {
@@ -60,30 +63,34 @@ def complete_chat(
 
     for message in messages:
         if message["text"] or message.get("tool_use"):
-            payload["messages"].append(
-                {
-                    "role": message["role"],
-                    "content": message["text"],
-                    **(
-                        {
-                            "tool_calls": [
-                                {
-                                    "id": tool_use["tool_use_id"],
-                                    "type": "function",
-                                    "function": {
-                                        "name": tool_use["tool_name"],
-                                        "arguments": json.dumps(tool_use["args"]),
-                                    },
-                                }
-                                for tool_use in message["tool_use"]
-                            ]
-                        }
-                        if "tool_use" in message
-                        else {}
-                    ),
-                }
-            )
+            m = {
+                "role": message["role"],
+                "content": message["text"],
+                **(
+                    {
+                        "tool_calls": [
+                            {
+                                "id": tool_use["tool_use_id"],
+                                "type": "function",
+                                "function": {
+                                    "name": tool_use["tool_name"],
+                                    "arguments": json.dumps(tool_use["args"]),
+                                },
+                            }
+                            for tool_use in message["tool_use"]
+                        ]
+                    }
+                    if "tool_use" in message
+                    else {}
+                ),
+            }
 
+            if "reasoning_details" in message:
+                m["reasoning_details"] = message["reasoning_details"]
+
+            payload["messages"].append(m)
+
+        # Tool call result
         for tool_result in message.get("tool_result", []):
             payload["messages"].append(
                 {
@@ -93,51 +100,82 @@ def complete_chat(
                 }
             )
 
-    logging.debug(f"=== payload ===\n{pformat(payload)}")
+    if extra_payload:
+        payload.update(extra_payload)
 
-    with requests.post(
-        endpoint_url, headers=headers, json=payload, stream=True, timeout=60
-    ) as response:
-        logging.debug(f"response status: {response.status_code}")
-        response.raise_for_status()
+    logging.debug(f"=== payload ===\n{pformat(payload, width=200)}")
 
-        for line in response.iter_lines(decode_unicode=True):
-            if not line:
-                continue
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+            endpoint_url,
+            headers=headers,
+            json=payload,
+        ) as response:
+            await _check_for_status(response)
 
-            if not line.startswith("data: "):
-                continue
+            async for line in response.content:  # iterates over lines
+                line = line.rstrip(b"\n")
 
-            data = line[6:]
-            if data == "[DONE]":
-                break
+                if not line:
+                    continue
 
-            try:
-                chunk = json.loads(data)
-                logging.debug(f"=== data ===\n{pformat(chunk)}")
-            except json.JSONDecodeError:
-                logging.debug(f"Skipping malformed chunk: {data}")
-                continue
+                if not line.startswith(b"data: "):
+                    continue
 
-            for choice in chunk.get("choices", []):
-                delta = choice.get("delta", {})
+                data_str = line[6:].decode("utf-8")
+                if data_str == "[DONE]":
+                    break
 
-                tool_calls = delta.get("tool_calls")
-                if tool_calls:
-                    logging.debug(f"tool call delta: {tool_calls}")
-                    for tool_call in tool_calls:
-                        if tool_call["type"] == "function":
-                            function = tool_call["function"]
-                            if function and on_tool_use:
-                                on_tool_use(
-                                    ToolUse(
-                                        tool_name=function["name"],
-                                        args=json.loads(function["arguments"]),
-                                        tool_use_id=tool_call["id"],
+                try:
+                    data = json.loads(data_str)
+                    logging.debug(f"=== data ===\n{pformat(data, width=200)}")
+                except json.JSONDecodeError:
+                    logging.debug(f"Skipping malformed chunk: {data_str}")
+                    continue
+
+                for choice in data.get("choices", []):
+                    delta = choice.get("delta", {})
+
+                    tool_calls = delta.get("tool_calls")
+                    if tool_calls:
+                        logging.debug(f"tool call delta: {tool_calls}")
+                        for tool_call in tool_calls:
+                            if tool_call["type"] == "function":
+                                function = tool_call["function"]
+                                if function and on_tool_use:
+                                    on_tool_use(
+                                        ToolUse(
+                                            tool_name=function["name"],
+                                            args=json.loads(function["arguments"]),
+                                            tool_use_id=tool_call["id"],
+                                        )
                                     )
-                                )
 
-                content = delta.get("content")
-                if content:
-                    logging.debug(f"yielding content chunk: {content}")
-                    yield content
+                    content = delta.get("content")
+                    if content:
+                        logging.debug(f"yielding content chunk: {content}")
+                        yield content
+
+                    reasoning_details = delta.get("reasoning_details")
+                    if reasoning_details:
+                        assert isinstance(reasoning_details, list)
+                        for reasoning_detail in reasoning_details:
+                            if reasoning_detail["type"] == "reasoning.text":
+                                reasoning_text = reasoning_detail["text"]
+                                if on_reasoning:
+                                    on_reasoning(reasoning_text)
+                                if out_message:
+                                    out_message.setdefault("reasoning", []).append(
+                                        reasoning_text
+                                    )
+
+                        if out_message:
+                            cast(dict, out_message).setdefault(
+                                "reasoning_details", []
+                            ).extend(reasoning_details)
+
+
+async def _check_for_status(response):
+    if response.status >= 400:
+        error_text = await response.text()
+        raise Exception(f"Request failed with status {response.status}: {error_text}")

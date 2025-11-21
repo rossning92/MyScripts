@@ -9,5 +9,6 @@ class Message(TypedDict):
     text: str
     context: NotRequired[str]
     image_file: NotRequired[str]
+    reasoning: NotRequired[List[str]]
     tool_use: NotRequired[List[ToolUse]]
     tool_result: NotRequired[List[ToolResult]]

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import ML.gpt.chat_menu
-from ai.chat import get_tool_use_text
+from ai.chat import get_reasoning_text, get_tool_use_text
 from ai.tool_use import (
     ToolResult,
     ToolUse,
@@ -104,7 +104,7 @@ class AgentMenu(ChatMenu):
         self.task_result: Optional[str] = None
 
         self.add_command(self.__edit_context, hotkey="alt+c")
-        self.add_command(self.__load_agent, hotkey="alt+l")
+        self.add_command(self.__load_agent, hotkey="ctrl+l")
         self.add_command(self.__new_agent, hotkey="ctrl+n")
         self.add_command(self.__open_file_menu, hotkey="alt+f")
 
@@ -365,19 +365,11 @@ class AgentMenu(ChatMenu):
     def on_result(self, result: str):
         pass
 
-    def __get_next_message_index_and_subindex(self):
-        msg_index = len(self.get_messages()) - 1
-        if len(self.items) > 0 and self.items[-1].msg_index == msg_index:
-            subindex = self.items[-1].subindex + 1
-        else:
-            subindex = 0
-        return msg_index, subindex
-
     def on_tool_use_start(self, tool_use: ToolUse):
         if not self.get_setting("tool_use_api"):
             return
 
-        msg_index, subindex = self.__get_next_message_index_and_subindex()
+        msg_index, subindex = self.get_next_message_index_and_subindex()
         self.append_item(
             Line(
                 role="assistant",
@@ -414,7 +406,7 @@ class AgentMenu(ChatMenu):
                 exists = True
                 break
         if not exists:
-            msg_index, subindex = self.__get_next_message_index_and_subindex()
+            msg_index, subindex = self.get_next_message_index_and_subindex()
             self.append_item(
                 Line(
                     role="assistant",
@@ -424,6 +416,7 @@ class AgentMenu(ChatMenu):
                     tool_use=tool_use,
                 )
             )
+
 
     def __open_file_menu(self):
         FileMenu(goto=os.getcwd()).exec()

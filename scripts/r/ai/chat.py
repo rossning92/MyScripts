@@ -4,8 +4,8 @@ import sys
 from datetime import datetime
 from typing import (
     Any,
+    AsyncIterator,
     Callable,
-    Iterator,
     List,
     Optional,
 )
@@ -34,7 +34,12 @@ def get_tool_use_text(tool_use: ToolUse) -> str:
     return f"► tool_use: {tool_name}: {args}"
 
 
-def complete_chat(
+def get_reasoning_text(text: str) -> str:
+    text = truncate_text(text)
+    return f"► reasoning: {text}"
+
+
+async def complete_chat(
     messages: List[Message],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
@@ -42,8 +47,10 @@ def complete_chat(
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+    on_reasoning: Optional[Callable[[str], None]] = None,
     web_search: bool = False,
-) -> Iterator[str]:
+    out_message: Optional[Message] = None,
+) -> AsyncIterator[str]:
     openrouter_prefix = "openrouter:"
 
     if model and model.startswith("claude"):
@@ -55,11 +62,17 @@ def complete_chat(
             on_tool_use_start=on_tool_use_start,
             on_tool_use_args_delta=on_tool_use_args_delta,
             on_tool_use=on_tool_use,
+            out_message=out_message,
         )
     elif model and model.startswith(openrouter_prefix):
         openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
         if not openrouter_api_key:
             raise Exception("OPENROUTER_API_KEY is not provided")
+
+        if "gemini-3-pro" in model:
+            extra_payload = {"reasoning": {"enabled": True}}
+        else:
+            extra_payload = None
 
         return ai.openai_compatible.chat.complete_chat(
             endpoint_url="https://openrouter.ai/api/v1/chat/completions",
@@ -69,6 +82,9 @@ def complete_chat(
             system_prompt=system_prompt,
             tools=tools,
             on_tool_use=on_tool_use,
+            on_reasoning=on_reasoning,
+            extra_payload=extra_payload,
+            out_message=out_message,
         )
     else:
         return ai.openai.chat.complete_chat(
@@ -79,6 +95,7 @@ def complete_chat(
             on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
             web_search=web_search,
+            out_message=out_message,
         )
 
 

@@ -1,6 +1,7 @@
 import curses
 import curses.ascii
 import logging
+import logging.handlers
 import os
 import re
 import subprocess
@@ -223,7 +224,7 @@ R = TypeVar("R")
 class Menu(Generic[T]):
     _should_update_screen = False
     color_pair_map: Dict[str, int] = {}
-    log_handler: Optional[logging.StreamHandler] = None
+    log_handler: Optional[logging.handlers.QueueHandler] = None
     logger: Optional[logging.Logger] = None
     stdscr = None
 
@@ -359,14 +360,11 @@ class Menu(Generic[T]):
             ContextMenu(param=str(selected)).exec()
 
     def __logs(self):
-        if Menu.log_handler:
-            from .textmenu import TextMenu
-
-            TextMenu(text=Menu.log_handler.stream.getvalue(), prompt="Logs").exec()
+        _logging_menu.exec()
 
     @staticmethod
     def __setup_logging():
-        Menu.log_handler = logging.StreamHandler(StringIO())
+        Menu.log_handler = logging.handlers.QueueHandler(_logging_menu.queue)
         Menu.logger = logging.getLogger()
         Menu.logger.setLevel(logging.DEBUG)
         for handler in Menu.logger.handlers:
@@ -1532,3 +1530,18 @@ class Menu(Generic[T]):
                 f.write(selected_lines)
                 tmpfile = f.name
             subprocess.run(["start_script", "r/ML/gpt/ask.py", tmpfile])
+
+
+class LoggingMenu(Menu):
+    def __init__(self):
+        self.queue = Queue()
+        super().__init__()
+
+    def on_idle(self):
+        while not self.queue.empty():
+            record = self.queue.get()
+            for line in record.getMessage().splitlines():
+                self.append_item(line)
+
+
+_logging_menu = LoggingMenu()

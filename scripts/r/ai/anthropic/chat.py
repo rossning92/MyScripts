@@ -3,14 +3,14 @@ import logging
 import os
 from typing import (
     Any,
+    AsyncIterator,
     Callable,
     Dict,
-    Iterator,
     List,
     Optional,
 )
 
-import requests
+import aiohttp
 from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolUse, function_to_tool_definition
@@ -46,7 +46,7 @@ def _to_claude_message_content(message: Message) -> List[Dict[str, Any]]:
     return content
 
 
-def complete_chat(
+async def complete_chat(
     messages: List[Message],
     model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
@@ -54,7 +54,8 @@ def complete_chat(
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-) -> Iterator[str]:
+    out_message: Optional[Message] = None,
+) -> AsyncIterator[str]:
     logging.debug(f"messages={messages}")
 
     api_key = os.environ["ANTHROPIC_API_KEY"]
@@ -104,44 +105,37 @@ def complete_chat(
             for tool in [function_to_tool_definition(func) for func in tools]
         ]
 
-    with requests.post(api_url, headers=headers, json=payload, stream=True) as response:
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise Exception(
-                f"HTTP {response.status_code} error: {str(e)}\n"
-                f"Text: {response.text}"
-            )
+    async with aiohttp.ClientSession(raise_for_status=True) as session:
+        async with session.post(api_url, headers=headers, json=payload) as response:
+            text = None
+            tool_use = None
+            tool_input_json = ""
+            async for line in response.content:
+                line = line.rstrip(b"\n")
 
-        text = None
-        tool_use = None
-        tool_input_json = ""
-        for line in response.iter_lines():
-            if line:
-                decoded_line = line.decode("utf-8")
-                logging.debug(f"Received line: {decoded_line}")
-
-                if not decoded_line.startswith("data: "):
+                if not line:
                     continue
 
-                json_data = json.loads(decoded_line[6:])
+                if not line.startswith(b"data: "):
+                    continue
 
-                if json_data["type"] == "message_start":
-                    token_count.input_tokens += json_data["message"]["usage"][
-                        "input_tokens"
-                    ]
-                    token_count.output_tokens += json_data["message"]["usage"][
+                data = json.loads(line[6:].decode("utf-8"))
+                logging.debug(f"Received data: {data}")
+
+                if data["type"] == "message_start":
+                    token_count.input_tokens += data["message"]["usage"]["input_tokens"]
+                    token_count.output_tokens += data["message"]["usage"][
                         "output_tokens"
                     ]
 
-                elif json_data["type"] == "message_delta":
-                    token_count.output_tokens += json_data["usage"]["output_tokens"]
+                elif data["type"] == "message_delta":
+                    token_count.output_tokens += data["usage"]["output_tokens"]
 
-                elif json_data["type"] == "message_stop":
+                elif data["type"] == "message_stop":
                     break
 
-                elif json_data["type"] == "content_block_start":
-                    content_block = json_data["content_block"]
+                elif data["type"] == "content_block_start":
+                    content_block = data["content_block"]
                     if content_block["type"] == "tool_use":
                         tool_use = content_block.copy()
                         tool_input_json = ""
@@ -156,21 +150,21 @@ def complete_chat(
                     elif content_block["type"] == "text":
                         text = content_block.copy()
 
-                elif json_data["type"] == "content_block_delta":
-                    if json_data["delta"]["type"] == "text_delta":
-                        text_chunk = json_data["delta"]["text"]
+                elif data["type"] == "content_block_delta":
+                    if data["delta"]["type"] == "text_delta":
+                        text_chunk = data["delta"]["text"]
                         if text_chunk:
                             assert isinstance(text, dict)
                             text["text"] += text_chunk
                             yield text_chunk
 
-                    if json_data["delta"]["type"] == "input_json_delta":
-                        partial_json = json_data["delta"]["partial_json"]
+                    if data["delta"]["type"] == "input_json_delta":
+                        partial_json = data["delta"]["partial_json"]
                         tool_input_json += partial_json
                         if on_tool_use_args_delta:
                             on_tool_use_args_delta(partial_json)
 
-                elif json_data["type"] == "content_block_stop":
+                elif data["type"] == "content_block_stop":
                     if text:
                         text = None
                     elif tool_use:
@@ -186,5 +180,5 @@ def complete_chat(
                         tool_use = None
                         tool_input_json = ""
 
-                elif json_data["type"] == "error":
-                    raise Exception(f"Error from API: {json_data}")
+                elif data["type"] == "error":
+                    raise Exception(f"Error from API: {data}")

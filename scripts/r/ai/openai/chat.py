@@ -2,9 +2,16 @@ import base64
 import json
 import logging
 import os
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import (
+    Any,
+    AsyncIterator,
+    Callable,
+    Dict,
+    List,
+    Optional,
+)
 
-import requests
+import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolUse, function_to_tool_definition
 
@@ -77,7 +84,7 @@ def _to_openai_responses_api_input(messages: List[Message]) -> List[Dict[str, An
     return input
 
 
-def complete_chat(
+async def complete_chat(
     messages: List[Message],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
@@ -85,7 +92,8 @@ def complete_chat(
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     web_search=False,
-) -> Iterator[str]:
+    out_message: Optional[Message] = None,
+) -> AsyncIterator[str]:
     logger.debug(f"messages: {messages}")
 
     api_key = os.environ["OPENAI_API_KEY"]
@@ -159,51 +167,43 @@ def complete_chat(
     if payload_tools:
         payload["tools"] = payload_tools
 
-    with requests.post(url, headers=headers, json=payload, stream=True) as response:
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            raise Exception(
-                f"HTTP {response.status_code} error: {str(e)}\n"
-                f"Text: {response.text}"
-            )
+    async with aiohttp.ClientSession(raise_for_status=True) as session:
+        async with session.post(url, headers=headers, json=payload) as response:
+            async for line in response.content:
+                line = line.rstrip(b"\n")
 
-        content = ""
-        for line in response.iter_lines():
-            if not line:
-                continue
+                if not line:
+                    continue
 
-            logger.debug(f"Received chunk: {line}")
+                if line.startswith(b"data: "):
+                    data = json.loads(line[6:].decode("utf-8"))
+                    logger.debug(f"Received data: {data}")
 
-            if line.startswith(b"data: "):
-                data = json.loads(line[6:].decode("utf-8"))
-
-                if data["type"] == "response.completed":
-                    break
-                elif data["type"] == "response.output_text.delta":
-                    delta = data["delta"]
-                    assert isinstance(delta, str), "Delta must be a string"
-                    content += delta
-                    yield delta
-                elif data["type"] == "response.output_item.added":
-                    item = data["item"]
-                    if item["type"] == "function_call":
-                        if on_tool_use_start:
-                            on_tool_use_start(
-                                ToolUse(
-                                    tool_name=item["name"],
-                                    args={},
-                                    tool_use_id=item["id"],
+                    if data["type"] == "response.completed":
+                        return
+                    elif data["type"] == "response.output_text.delta":
+                        delta = data["delta"]
+                        assert isinstance(delta, str), "Delta must be a string"
+                        yield delta
+                    elif data["type"] == "response.output_item.added":
+                        item = data["item"]
+                        if item["type"] == "function_call":
+                            if on_tool_use_start:
+                                on_tool_use_start(
+                                    ToolUse(
+                                        tool_name=item["name"],
+                                        args={},
+                                        tool_use_id=item["id"],
+                                    )
                                 )
-                            )
-                elif data["type"] == "response.output_item.done":
-                    item = data["item"]
-                    if item["type"] == "function_call":
-                        if on_tool_use:
-                            on_tool_use(
-                                ToolUse(
-                                    tool_name=item["name"],
-                                    args=json.loads(item["arguments"]),
-                                    tool_use_id=item["id"],
+                    elif data["type"] == "response.output_item.done":
+                        item = data["item"]
+                        if item["type"] == "function_call":
+                            if on_tool_use:
+                                on_tool_use(
+                                    ToolUse(
+                                        tool_name=item["name"],
+                                        args=json.loads(item["arguments"]),
+                                        tool_use_id=item["id"],
+                                    )
                                 )
-                            )

@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import glob
 import os
 import subprocess
@@ -7,12 +8,13 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from pprint import pformat
-from threading import Event, Thread
+from threading import Thread
 from typing import Any, Callable, Dict, List, Literal, Optional
 
 from ai.chat import (
     complete_chat,
     get_context_text,
+    get_reasoning_text,
     get_tool_result_text,
     get_tool_use_text,
 )
@@ -47,24 +49,35 @@ _INTERRUPT_MESSAGE = "[INTERRUPTED]"
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 MODELS = Literal[
-    "gpt-5.1(low)",
-    "gpt-5",
-    "gpt-5(low)",
+    "claude-3-7-sonnet-latest",
+    "claude-opus-4-0",
+    "claude-sonnet-4-0",
+    "claude-sonnet-4-5",
+    "gpt-4.1-mini",
+    "gpt-4.1",
+    "gpt-4o-mini",
+    "gpt-4o",
     "gpt-5-chat-latest",
     "gpt-5-codex",
     "gpt-5-codex(low)",
-    "gpt-4.1",
-    "gpt-4.1-mini",
-    "gpt-4o",
-    "gpt-4o-mini",
+    "gpt-5.1(low)",
+    "gpt-5",
+    "gpt-5(low)",
     "o3-mini",
-    "claude-3-7-sonnet-latest",
-    "claude-sonnet-4-0",
-    "claude-sonnet-4-5",
-    "claude-opus-4-0",
     "openrouter:google/gemini-2.5-flash",
+    "openrouter:google/gemini-3-pro-preview",
 ]
 DEFAULT_MODEL = "gpt-4.1"
+
+
+def _start_background_loop(loop: asyncio.AbstractEventLoop):
+    """Run an asyncio loop forever in a background thread."""
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+
+_loop = asyncio.new_event_loop()
+Thread(target=_start_background_loop, args=(_loop,), daemon=True).start()
 
 
 def _get_prompt_dir() -> str:
@@ -102,6 +115,7 @@ class Line:
         subindex: int,
         text: str = "",
         context: Optional[str] = None,
+        reasoning: Optional[str] = None,
         tool_use: Optional[ToolUse] = None,
         tool_result: Optional[ToolResult] = None,
     ) -> None:
@@ -110,13 +124,16 @@ class Line:
         self.context = context
         self.msg_index = msg_index
         self.subindex = subindex  # subindex with in the message
+        self.reasoning = reasoning
         self.tool_use = tool_use
         self.tool_result = tool_result
 
     def __str__(self) -> str:
         if self.context:
             return get_context_text(self.context)
-        if self.tool_use:
+        elif self.reasoning:
+            return get_reasoning_text(self.reasoning)
+        elif self.tool_use:
             return get_tool_use_text(self.tool_use)
         elif self.tool_result:
             return get_tool_result_text(self.tool_result)
@@ -203,7 +220,6 @@ class ChatMenu(Menu[Line]):
         self.__first_message = message
         self.__attachment: Optional[str] = attachment
         self.__is_generating = False
-        self.__cancel_chat_completion_event = Event()
         self.__last_yanked_line: Optional[Line] = None
         self.__lines: List[Line] = []
         self.__prompt = prompt
@@ -212,6 +228,7 @@ class ChatMenu(Menu[Line]):
         self.__system_prompt = system_prompt
         self.__yank_mode = 0
         self.__escape_to_cancel = escape_to_cancel
+        self.__chat_task: Optional[asyncio.Task] = None
 
         self.__data_dir = (
             data_dir if data_dir else os.path.join(".config", _MODULE_NAME)
@@ -332,7 +349,7 @@ class ChatMenu(Menu[Line]):
             if selected:
                 message_index = selected.msg_index
         if message_index < 0:
-            self.set_message("Cannot find any message to edit")
+            self.set_message("no message to edit")
             return
 
         message = self.get_messages()[message_index]
@@ -381,7 +398,7 @@ class ChatMenu(Menu[Line]):
 
     def __save_chat_as(self):
         if not self.__chat_file:
-            self.set_message("Current chat is empty")
+            self.set_message("current chat is empty")
             return
 
         menu = FileMenu(
@@ -394,15 +411,15 @@ class ChatMenu(Menu[Line]):
         if not chat_file:
             return
 
-        chat_file = slugify(chat_file)
-        save_json(chat_file, self.__messages)
-        self.__chat_file = chat_file
-        self.set_message(f"Chat saved to {chat_file}")
+        slugified_chat_file = slugify(chat_file)
+        save_json(slugified_chat_file, self.__messages)
+        self.__chat_file = slugified_chat_file
+        self.set_message(f"chat saved to {slugified_chat_file}")
 
     def __save_prompt(self):
         messages = self.get_messages()
         if len(messages) == 0:
-            self.set_message("No messages found")
+            self.set_message("no messages")
             return
 
         message = messages[0]  # first message
@@ -417,7 +434,7 @@ class ChatMenu(Menu[Line]):
         with open(prompt_file, "w", encoding="utf-8") as f:
             f.write(content)
 
-        self.set_message(f"Prompt saved to {prompt_file}")
+        self.set_message(f"prompt saved: {prompt_file}")
 
     def __load_chat(self):
         menu = _SelectChatMenu(chat_dir=self.__chat_dir)
@@ -459,12 +476,15 @@ class ChatMenu(Menu[Line]):
     def __show_more(self) -> bool:
         selected = self.get_selected_item()
         if selected:
+            if selected.reasoning:
+                TextMenu(text=selected.reasoning, prompt="Reasoning").exec()
+                return True
             if selected.tool_result:
                 tool_result_content = selected.tool_result["content"]
                 TextMenu(text=tool_result_content, prompt="Tool result").exec()
                 return True
             elif selected.tool_use:
-                args = pformat(selected.tool_use["args"], sort_dicts=False)
+                args = pformat(selected.tool_use["args"], sort_dicts=False, width=200)
                 TextMenu(text=args, prompt="Tool use args").exec()
                 return True
             elif selected.context:
@@ -474,7 +494,7 @@ class ChatMenu(Menu[Line]):
 
     def __take_photo(self):
         if not is_termux():
-            self.set_message("Taking photo is only supported in Android")
+            self.set_message("taking photo is only supported on Android")
             return
 
         tmp_photo = os.path.join(tempfile.gettempdir(), "photo.jpg")
@@ -484,7 +504,7 @@ class ChatMenu(Menu[Line]):
                 check=True,
             )
         except Exception as e:
-            self.set_message(f"Failed to take photo: {e}")
+            self.set_message(f"failed to take photo: {e}")
             return
 
         self.__attachment = tmp_photo
@@ -514,7 +534,7 @@ class ChatMenu(Menu[Line]):
         if system_prompt:
             TextMenu(text=system_prompt, prompt="System Prompt").exec()
         else:
-            self.set_message("No system prompt set")
+            self.set_message("no system prompt set")
 
     def __yank(self):
         indices = list(self.get_selected_indices())
@@ -542,6 +562,14 @@ class ChatMenu(Menu[Line]):
             set_clip("\n".join(line_text))
             self.set_message("selected line copied")
             self.set_multi_select(False)
+
+    def get_next_message_index_and_subindex(self):
+        msg_index = len(self.get_messages()) - 1
+        if len(self.items) > 0 and self.items[-1].msg_index == msg_index:
+            subindex = self.items[-1].subindex + 1
+        else:
+            subindex = 0
+        return msg_index, subindex
 
     def get_line_number_text(self, item_index: int) -> str:
         item = self.items[item_index]
@@ -696,10 +724,24 @@ Following is my instructions:
     def on_tool_use(self, tool_use: ToolUse):
         pass
 
+    def on_reasoning(self, reasoning: str):
+        msg_index, subindex = self.get_next_message_index_and_subindex()
+        self.append_item(
+            Line(
+                role="assistant",
+                text=get_reasoning_text(reasoning),
+                msg_index=msg_index,
+                subindex=subindex,
+                reasoning=reasoning,
+            )
+        )
+        self.process_events()
+
     def __complete_chat(self):
         if self.__is_generating:
             return
 
+        self.set_message("responding")
         self.__is_generating = True
         self.__cur_subindex = 0
 
@@ -710,98 +752,86 @@ Following is my instructions:
         )
         self.get_messages().append(message)
 
-        def worker(cancel_chat_completion_event: Event):
+        async def chat_task():
             try:
-                for chunk_index, chunk in enumerate(
-                    complete_chat(
-                        messages=self.get_messages(expand_context=True),
-                        model=self.get_setting("model"),
-                        system_prompt=self.get_system_prompt(),
-                        tools=self.get_tools(),
-                        on_tool_use_start=lambda tool_use: self.post_event(
-                            lambda: (
-                                self.on_tool_use_start(tool_use)
-                                if not cancel_chat_completion_event.is_set()
-                                else None
-                            )
-                        ),
-                        on_tool_use_args_delta=lambda text: self.post_event(
-                            lambda: (
-                                self.on_tool_use_args_delta(text)
-                                if not cancel_chat_completion_event.is_set()
-                                else None
-                            )
-                        ),
-                        on_tool_use=lambda tool_use: self.post_event(
-                            lambda: (
-                                self.on_tool_use(tool_use)
-                                if not cancel_chat_completion_event.is_set()
-                                else None
-                            )
-                        ),
-                        web_search=self.get_setting("web_search"),
-                    )
+                chunk_index = 0
+                async for chunk in await complete_chat(
+                    messages=self.get_messages(expand_context=True),
+                    model=self.get_setting("model"),
+                    system_prompt=self.get_system_prompt(),
+                    tools=self.get_tools(),
+                    on_tool_use_start=lambda tool_use: self.post_event(
+                        lambda: self.on_tool_use_start(tool_use)
+                    ),
+                    on_tool_use_args_delta=lambda text: self.post_event(
+                        lambda: self.on_tool_use_args_delta(text)
+                    ),
+                    on_tool_use=lambda tool_use: self.post_event(
+                        lambda: self.on_tool_use(tool_use)
+                    ),
+                    on_reasoning=lambda text: self.post_event(
+                        lambda: self.on_reasoning(text)
+                    ),
+                    web_search=self.get_setting("web_search"),
+                    out_message=message,
                 ):
-                    if cancel_chat_completion_event.is_set():
-                        return
-
                     self.post_event(
-                        lambda chunk_index=chunk_index, chunk=chunk: self.__on_chat_completion_chunk(
-                            chunk_index,
-                            chunk,
-                            cancel_chat_completion_event=cancel_chat_completion_event,
+                        lambda chunk_index=chunk_index, chunk=chunk: self.__on_chat_chunk(
+                            chunk_index, chunk
                         )
                     )
+                    chunk_index += 1
 
-                self.post_event(
-                    lambda: self.__on_chat_completion_done(
-                        cancel_chat_completion_event=cancel_chat_completion_event
-                    )
-                )
+                self.post_event(lambda: self.__on_chat_done())
+
+            except asyncio.CancelledError:
+                self.post_event(lambda: self.__on_chat_done(cancelled=True))
+
             except Exception as exception:
                 self.post_event(
-                    lambda exception=exception: self.__on_chat_completion_exception(
-                        cancel_chat_completion_event=cancel_chat_completion_event,
+                    lambda exception=exception: self.__on_chat_exception(
                         exception=exception,
                     )
                 )
 
-        Thread(
-            target=lambda cancel_chat_completion_event=self.__cancel_chat_completion_event: worker(
-                cancel_chat_completion_event=cancel_chat_completion_event
-            )
-        ).start()
+        def create_task():
+            self.__chat_task = asyncio.create_task(chat_task())
+
+        _loop.call_soon_threadsafe(create_task)
 
     def __get_last_message(self) -> Message:
         return self.get_messages()[-1]
 
-    def __on_chat_completion_done(self, cancel_chat_completion_event):
-        if cancel_chat_completion_event.is_set():
-            return
+    def __on_chat_done(self, cancelled=False):
         self.__is_generating = False
         self.__cur_subindex = 0
+
+        if cancelled:
+            self.__get_last_message()["text"] += f"\n{_INTERRUPT_MESSAGE}"
+            self.append_item(
+                Line(
+                    role="assistant",
+                    text=f"{_INTERRUPT_MESSAGE}",
+                    msg_index=len(self.get_messages()) - 1,
+                    subindex=self.__cur_subindex,
+                )
+            )
+        else:
+            last_message = self.__get_last_message()["text"]
+            self.on_message(last_message)
+
+            if self.__copy:
+                set_clip(last_message)
+                self.close()
+            elif self.__out_file:
+                with open(self.__out_file, "w", encoding="utf-8") as f:
+                    f.write(last_message)
+                self.close()
+
         self.save_chat()
+        self.set_message("cancelled" if cancelled else "done")
 
-        last_message = self.__get_last_message()["text"]
-        self.on_message(last_message)
-
-        if self.__copy:
-            set_clip(last_message)
-            self.close()
-        elif self.__out_file:
-            with open(self.__out_file, "w", encoding="utf-8") as f:
-                f.write(last_message)
-            self.close()
-
-    def __on_chat_completion_chunk(
-        self,
-        chunk_index: int,
-        chunk: str,
-        cancel_chat_completion_event: Event,
-    ):
-        if cancel_chat_completion_event.is_set():
-            return
-
+    def __on_chat_chunk(self, chunk_index: int, chunk: str):
         self.__get_last_message()["text"] += chunk
         for i, a in enumerate(chunk.split("\n")):
             if i > 0 or chunk_index == 0:
@@ -816,14 +846,7 @@ Following is my instructions:
 
         self.update_screen()
 
-    def __on_chat_completion_exception(
-        self,
-        cancel_chat_completion_event: Event,
-        exception: Exception,
-    ):
-        if cancel_chat_completion_event.is_set():
-            return
-
+    def __on_chat_exception(self, exception: Exception):
         self.__is_generating = False
         self.__cur_subindex = 0
 
@@ -835,7 +858,7 @@ Following is my instructions:
         os.makedirs(os.path.dirname(self.__chat_file), exist_ok=True)
         save_json(self.__chat_file, self.__messages)
         self.__history_manager.delete_old_files()
-        self.set_message(f"Chat saved to {self.__chat_file}")
+        self.set_message(f"chat saved to {self.__chat_file}")
 
     def __refresh_lines(self):
         self.__lines[:] = []
@@ -877,6 +900,18 @@ Following is my instructions:
                         msg_index=msg_index,
                         subindex=subindex,
                         text=f"* Image: {image_file}",
+                    )
+                )
+                subindex += 1
+
+            # Reasoning
+            for reasoning in message.get("reasoning", []):
+                self.__lines.append(
+                    Line(
+                        role=message["role"],
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        reasoning=reasoning,
                     )
                 )
                 subindex += 1
@@ -972,20 +1007,13 @@ Following is my instructions:
 
     def __cancel_chat_completion(self):
         if self.__is_generating:
-            self.__cancel_chat_completion_event.set()
-            self.__get_last_message()["text"] += f"\n{_INTERRUPT_MESSAGE}"
-            self.append_item(
-                Line(
-                    role="assistant",
-                    text=f"{_INTERRUPT_MESSAGE}",
-                    msg_index=len(self.get_messages()) - 1,
-                    subindex=self.__cur_subindex,
-                )
-            )
-            self.__is_generating = False
-            self.__cur_subindex = 0
-            self.save_chat()
-            self.__cancel_chat_completion_event = Event()
+
+            def cancel_chat_task():
+                if self.__chat_task and not self.__chat_task.done():
+                    self.__chat_task.cancel()
+                self.__chat_task = None
+
+            _loop.call_soon_threadsafe(cancel_chat_task)
 
     def paste(self) -> bool:
         if not super().paste():

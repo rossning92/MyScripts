@@ -7,6 +7,7 @@ from importlib import import_module
 from importlib.abc import MetaPathFinder
 
 PYTHON_MODULE_LIST = {
+    "aiohttp": "aiohttp",
     "cv2": "opencv-python",
     "filelock": "filelock",  # a platform independent file lock.
     "flask": "Flask",
