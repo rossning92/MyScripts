@@ -69,8 +69,9 @@ async def complete_chat(
         if not openrouter_api_key:
             raise Exception("OPENROUTER_API_KEY is not provided")
 
-        if "gemini-3-pro" in model:
-            extra_payload = {"reasoning": {"enabled": True}}
+        if "(reasoning)" in model:
+            model = model.replace("(reasoning)", "")
+            extra_payload = {"extra_body": {"reasoning": {"enabled": True}}}
         else:
             extra_payload = None
 

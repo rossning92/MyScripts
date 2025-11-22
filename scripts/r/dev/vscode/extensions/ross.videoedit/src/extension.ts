@@ -492,14 +492,34 @@ function setupAutoComplete(context: vscode.ExtensionContext) {
   context.subscriptions.push(provider);
 }
 
-function insertTextAtCursor(text: string) {
+function insertLineOrReplaceSelection(text: string) {
   const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    const selection = editor.selection;
+  if (!editor) {
+    return;
+  }
+
+  const selection = editor.selection;
+  if (!selection.isEmpty) {
+    // Replace any existing selection directly with the provided text.
     editor.edit((editBuilder) => {
       editBuilder.replace(selection, text);
     });
+    return;
   }
+
+  const document = editor.document;
+  const line = document.lineAt(selection.active.line);
+  const eol = document.eol === vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+
+  editor.edit((editBuilder) => {
+    if (line.isEmptyOrWhitespace) {
+      // Replace empty line content directly.
+      editBuilder.replace(line.range, text);
+    } else {
+      // Start a new line if the current one isn’t empty.
+      editBuilder.insert(line.range.end, `${eol}${text}`);
+    }
+  });
 }
 
 function getRecorderProcess() {
@@ -537,6 +557,11 @@ function getRecorderProcess() {
     });
 
     recorderProcess.stdout.on("data", (data) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        return;
+      }
+
       const lines = data.toString("utf8").split(/(\r?\n)/g);
       for (const line of lines) {
         let s = line.trim();
@@ -547,7 +572,8 @@ function getRecorderProcess() {
           const match = /^Stop recording: (.*)/.exec(s);
           if (match) {
             const fileName = match[1];
-            insertTextAtCursor(`{{ record('record/${fileName}') }}`);
+            const newPath = `record/${fileName}`;
+            insertOrUpdateRecording(editor, newPath);
           }
         }
       }
@@ -559,6 +585,30 @@ function getRecorderProcess() {
   }
 
   return recorderProcess;
+}
+
+function insertOrUpdateRecording(editor: vscode.TextEditor, newPath: string) {
+  const selection = editor.selection;
+  if (selection.isEmpty) {
+    const position = selection.active;
+    const line = editor.document.lineAt(position).text;
+    const match = /record\/record_[0-9a-z_]+\.wav/.exec(line);
+    if (match) {
+      const lineNumber = position.line;
+      const start = match.index;
+      const range = new vscode.Range(
+        lineNumber,
+        start,
+        lineNumber,
+        start + match[0].length
+      );
+      editor.edit((editBuilder) => {
+        editBuilder.replace(range, newPath);
+      });
+      return;
+    }
+  }
+  insertLineOrReplaceSelection(`{{ record('${newPath}') }}`);
 }
 
 function getRandomString() {
@@ -771,7 +821,7 @@ function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
         path.resolve(activeDir, filePath),
       ]);
 
-      insertTextAtCursor(`{{ clip('${filePath}') }}`);
+      insertLineOrReplaceSelection(`{{ clip('${filePath}') }}`);
     })
   );
 
@@ -797,7 +847,7 @@ function registerCreatePowerpointCommand(context: vscode.ExtensionContext) {
           path.resolve(activeDir, filePath),
         ]);
 
-        insertTextAtCursor(
+        insertLineOrReplaceSelection(
           `{{ overlay('${filePath}', n=1, pos=(960, 540), t='as') }}`
         );
       }
@@ -909,25 +959,6 @@ function registerToggleDurationCommand(context: vscode.ExtensionContext) {
   );
 }
 
-function replaceCurrentLine(oldText: string, newText: string) {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return;
-  }
-
-  if (editor) {
-    const currentLine = editor.selection.active.line;
-    const currentLineText = editor.document.lineAt(currentLine).text;
-    const newLineText = currentLineText.replace(oldText, newText);
-    editor.edit((editBuilder) => {
-      editBuilder.replace(
-        new vscode.Selection(currentLine, 0, currentLine, newLineText.length),
-        newLineText
-      );
-    });
-  }
-}
-
 function replaceWholeDocument(oldText: string, newText: string) {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
@@ -1037,7 +1068,7 @@ async function createNewDocument({
   const filePath = path.resolve(animationDir, name + extension);
   fs.writeFileSync(filePath, initContent);
 
-  insertTextAtCursor(
+  insertLineOrReplaceSelection(
     `{{ ${func}('${dir}/${name}${extension}'${extraParams}) }}`
   );
 
@@ -1188,7 +1219,7 @@ function registerCommands(context: vscode.ExtensionContext) {
       }
 
       const expr = getCompletedExpression(files[0]);
-      insertTextAtCursor(expr);
+      insertLineOrReplaceSelection(expr);
     })
   );
 }

@@ -216,9 +216,12 @@ def get_clip() -> str:
         return _get_clip_win()
 
     elif sys.platform == "linux":
-        return subprocess.check_output(
-            ["xclip", "-out", "-selection", "clipboard"], universal_newlines=True
-        )
+        try:
+            return subprocess.check_output(
+                ["xclip", "-out", "-selection", "clipboard"], universal_newlines=True
+            )
+        except subprocess.CalledProcessError:
+            return ""
 
 
 def _get_selection_win():
