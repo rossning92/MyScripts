@@ -66,6 +66,7 @@ MODELS = Literal[
     "o3-mini",
     "openrouter:google/gemini-2.5-flash",
     "openrouter:google/gemini-3-pro-preview",
+    "openrouter:google/gemini-3-pro-preview(reasoning)",
 ]
 DEFAULT_MODEL = "gpt-4.1"
 
