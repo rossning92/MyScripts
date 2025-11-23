@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import base64
 import glob
 import os
 import subprocess
@@ -10,10 +11,12 @@ from pathlib import Path
 from pprint import pformat
 from threading import Thread
 from typing import Any, Callable, Dict, List, Literal, Optional
+from urllib.parse import unquote_to_bytes
 
 from ai.chat import (
     complete_chat,
     get_context_text,
+    get_image_url_text,
     get_reasoning_text,
     get_tool_result_text,
     get_tool_use_text,
@@ -25,6 +28,7 @@ from scripting.path import get_data_dir
 from utils.clip import set_clip
 from utils.dateutil import format_timestamp
 from utils.editor import edit_text
+from utils.encode_image_base64 import encode_image_base64
 from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
 from utils.jsonutil import load_json, save_json
@@ -34,8 +38,10 @@ from utils.menu.exceptionmenu import ExceptionMenu
 from utils.menu.filemenu import FileMenu
 from utils.menu.inputmenu import InputMenu
 from utils.menu.jsoneditmenu import JsonEditMenu
+from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 from utils.platform import is_termux
+from utils.shutil import shell_open
 from utils.slugify import slugify
 from utils.template import render_template
 from utils.textutil import is_text_file, truncate_text
@@ -64,7 +70,9 @@ MODELS = Literal[
     "gpt-5",
     "gpt-5(low)",
     "o3-mini",
+    "openrouter:google/gemini-2.5-flash-image",
     "openrouter:google/gemini-2.5-flash",
+    "openrouter:google/gemini-3-pro-image-preview",
     "openrouter:google/gemini-3-pro-preview",
     "openrouter:google/gemini-3-pro-preview(reasoning)",
 ]
@@ -115,6 +123,7 @@ class Line:
         msg_index: int,
         subindex: int,
         text: str = "",
+        image_url: Optional[str] = None,
         context: Optional[str] = None,
         reasoning: Optional[str] = None,
         tool_use: Optional[ToolUse] = None,
@@ -122,6 +131,7 @@ class Line:
     ) -> None:
         self.role = role
         self.text = text
+        self.image_url = image_url
         self.context = context
         self.msg_index = msg_index
         self.subindex = subindex  # subindex with in the message
@@ -138,6 +148,8 @@ class Line:
             return get_tool_use_text(self.tool_use)
         elif self.tool_result:
             return get_tool_result_text(self.tool_result)
+        elif self.image_url:
+            return get_image_url_text(self.image_url)
         else:
             return self.text
 
@@ -195,6 +207,21 @@ class _SelectChatMenu(Menu[_ChatItem]):
         return super().match_item(patt, item, index)
 
 
+def _open_image(image_url: str):
+    if image_url.startswith("data:image/"):
+        header, payload = image_url.split(",", 1)
+        if ";base64" in header:
+            data = base64.b64decode(payload)
+        else:
+            data = unquote_to_bytes(payload)
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            tmp.write(data)
+            tmp_image_file = tmp.name
+    else:
+        tmp_image_file = image_url
+    shell_open(tmp_image_file)
+
+
 class ChatMenu(Menu[Line]):
     def __init__(
         self,
@@ -220,6 +247,7 @@ class ChatMenu(Menu[Line]):
         self.__edit_text = edit_text
         self.__first_message = message
         self.__attachment: Optional[str] = attachment
+        self.__image_urls: List[str] = []
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
         self.__lines: List[Line] = []
@@ -251,6 +279,7 @@ class ChatMenu(Menu[Line]):
         )
 
         self.add_command(self.__add_attachment, hotkey="alt+a")
+        self.add_command(self.__edit_image_urls, hotkey="alt+i")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__edit_settings, hotkey="alt+s")
@@ -261,7 +290,7 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__save_prompt)
         self.add_command(self.__save_chat_as)
         self.add_command(self.__show_more, hotkey="tab")
-        self.add_command(self.__take_photo, hotkey="alt+i")
+        self.add_command(self.__take_photo)
         self.add_command(self.__view_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_chat, hotkey="ctrl+n")
@@ -343,6 +372,10 @@ class ChatMenu(Menu[Line]):
             allow_cd=False,
             config_dir=os.path.join(".config", "load_prompt_menu"),
         )
+
+    def __edit_image_urls(self):
+        ListEditMenu(items=self.__image_urls).exec()
+        self.__update_prompt()
 
     def __edit_message(self, message_index=-1):
         if message_index < 0:
@@ -491,6 +524,9 @@ class ChatMenu(Menu[Line]):
             elif selected.context:
                 TextMenu(text=selected.context, prompt="Context").exec()
                 return True
+            elif selected.image_url:
+                _open_image(selected.image_url)
+                return True
         return False
 
     def __take_photo(self):
@@ -518,16 +554,22 @@ class ChatMenu(Menu[Line]):
             removed_messages.append(messages.pop())
         self.__refresh_lines()
         if removed_messages:
-            if removed_messages[-1]["role"] == "user":
-                self.set_input(removed_messages[-1]["text"])
+            last_removed = removed_messages[-1]
+            if last_removed["role"] == "user":
+                self.set_input(last_removed["text"])
+                if "image_urls" in last_removed:
+                    self.__image_urls[:] = last_removed["image_urls"]
+                else:
+                    self.__image_urls.clear()
             else:
                 self.clear_input()
+        self.__update_prompt()
         return removed_messages
 
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
-        if self.__attachment:
-            prompt += " ({})".format(os.path.basename(self.__attachment))
+        if self.__image_urls:
+            prompt += f" ({len(self.__image_urls)} images)"
         self.set_prompt(prompt)
 
     def __view_system_prompt(self):
@@ -642,7 +684,6 @@ class ChatMenu(Menu[Line]):
     ):
         msg_index = len(self.get_messages())
 
-        image_file = None
         context: Optional[str] = None
         if self.__attachment:
             ext = os.path.splitext(self.__attachment)[1]
@@ -664,8 +705,8 @@ Following is my instructions:
 </instructions>
 """
 
-            elif ext in (".jpg", ".jpeg", ".png", ".gif"):
-                image_file = self.__attachment
+            # elif ext in (".jpg", ".jpeg", ".png", ".gif"):
+            #     image_file = self.__attachment
             else:
                 raise Exception(f"Unsupported attachment type: {ext}")
 
@@ -693,8 +734,8 @@ Following is my instructions:
                 )
             )
 
-        if image_file:
-            message["image_file"] = image_file
+        if self.__image_urls:
+            message["image_urls"] = self.__image_urls
         if tool_results:
             message["tool_result"] = tool_results
 
@@ -738,6 +779,18 @@ Following is my instructions:
         )
         self.process_events()
 
+    def on_image(self, image_url: str):
+        msg_index, subindex = self.get_next_message_index_and_subindex()
+        self.append_item(
+            Line(
+                role="assistant",
+                msg_index=msg_index,
+                subindex=subindex,
+                image_url=image_url,
+            )
+        )
+        self.process_events()
+
     def __complete_chat(self):
         if self.__is_generating:
             return
@@ -761,6 +814,9 @@ Following is my instructions:
                     model=self.get_setting("model"),
                     system_prompt=self.get_system_prompt(),
                     tools=self.get_tools(),
+                    on_image=lambda image_url: self.post_event(
+                        lambda: self.on_image(image_url)
+                    ),
                     on_tool_use_start=lambda tool_use: self.post_event(
                         lambda: self.on_tool_use_start(tool_use)
                     ),
@@ -866,6 +922,18 @@ Following is my instructions:
         for msg_index, message in enumerate(self.get_messages()):
             subindex = 0
 
+            # Reasoning
+            for reasoning in message.get("reasoning", []):
+                self.__lines.append(
+                    Line(
+                        role=message["role"],
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        reasoning=reasoning,
+                    )
+                )
+                subindex += 1
+
             # Text content
             if message["text"]:
                 for line in message["text"].splitlines():
@@ -893,26 +961,14 @@ Following is my instructions:
                     subindex += 1
 
             # Image file
-            image_file = message.get("image_file", None)
-            if image_file:
+            image_urls = message.get("image_urls", [])
+            for image_url in image_urls:
                 self.__lines.append(
                     Line(
                         role=message["role"],
                         msg_index=msg_index,
                         subindex=subindex,
-                        text=f"* Image: {image_file}",
-                    )
-                )
-                subindex += 1
-
-            # Reasoning
-            for reasoning in message.get("reasoning", []):
-                self.__lines.append(
-                    Line(
-                        role=message["role"],
-                        msg_index=msg_index,
-                        subindex=subindex,
-                        reasoning=reasoning,
+                        image_url=image_url,
                     )
                 )
                 subindex += 1
@@ -1023,10 +1079,10 @@ Following is my instructions:
             im = ImageGrab.grabclipboard()
             if isinstance(im, Image.Image):
                 with tempfile.NamedTemporaryFile(
-                    suffix=".jpg", delete=False
+                    suffix=".jpg", delete=True
                 ) as temp_file:
                     im.save(temp_file.name)
-                    self.__attachment = temp_file.name
+                    self.__image_urls.append(encode_image_base64(temp_file.name))
                     self.__update_prompt()
                     return True
 

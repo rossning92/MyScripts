@@ -1112,6 +1112,15 @@ function registerCommands(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "videoEdit.exportVideoClosedCaptions",
+      () => {
+        exportVideo({ extraArgs: ["--closed-captions"] });
+      }
+    )
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand("videoEdit.startRecording", () => {
       getRecorderProcess()?.stdin.write("r\n");
     })

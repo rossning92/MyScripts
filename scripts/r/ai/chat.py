@@ -6,6 +6,7 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
+    Dict,
     List,
     Optional,
 )
@@ -18,25 +19,26 @@ from ai.tool_use import ToolResult, ToolUse
 from utils.textutil import truncate_text
 
 
+def get_image_url_text(image_url: str) -> str:
+    return "► image: {}".format(image_url[:20])
+
+
 def get_context_text(context: str) -> str:
-    content = truncate_text(context)
-    return f"► context: “{content}”"
+    return "► context: “{}”".format(truncate_text(context))
 
 
 def get_tool_result_text(tool_result: ToolResult) -> str:
-    content = truncate_text(tool_result["content"])
-    return f"► tool_result: {content}"
+    return "► tool_result: {}".format(truncate_text(tool_result["content"]))
 
 
 def get_tool_use_text(tool_use: ToolUse) -> str:
     tool_name = tool_use["tool_name"]
     args = truncate_text(str(tool_use["args"]))
-    return f"► tool_use: {tool_name}: {args}"
+    return "► tool_use: {}: {}".format(tool_name, args)
 
 
 def get_reasoning_text(text: str) -> str:
-    text = truncate_text(text)
-    return f"► reasoning: {text}"
+    return "► reasoning: {}".format(truncate_text(text))
 
 
 async def complete_chat(
@@ -44,11 +46,12 @@ async def complete_chat(
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
+    on_image: Optional[Callable[[str], None]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
-    web_search: bool = False,
+    web_search=False,
     out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     openrouter_prefix = "openrouter:"
@@ -69,11 +72,13 @@ async def complete_chat(
         if not openrouter_api_key:
             raise Exception("OPENROUTER_API_KEY is not provided")
 
+        extra_payload: Dict = {}
         if "(reasoning)" in model:
             model = model.replace("(reasoning)", "")
-            extra_payload = {"extra_body": {"reasoning": {"enabled": True}}}
-        else:
-            extra_payload = None
+            extra_payload.setdefault("extra_body", {})["reasoning"] = {"enabled": True}
+
+        if "image" in model:
+            extra_payload.setdefault("extra_body", {})["modalities"] = ["image", "text"]
 
         return ai.openai_compatible.chat.complete_chat(
             endpoint_url="https://openrouter.ai/api/v1/chat/completions",
@@ -82,6 +87,7 @@ async def complete_chat(
             model=model[len(openrouter_prefix) :],
             system_prompt=system_prompt,
             tools=tools,
+            on_image=on_image,
             on_tool_use=on_tool_use,
             on_reasoning=on_reasoning,
             extra_payload=extra_payload,

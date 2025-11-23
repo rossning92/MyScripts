@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 import os
@@ -20,11 +19,6 @@ DEFAULT_MODEL = "gpt-4o"
 logger = logging.getLogger(__name__)
 
 
-def _encode_image_base64(image_path: str) -> str:
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
-
 def _to_openai_message_content(message: Message) -> List[Dict[str, Any]]:
     content = []
 
@@ -36,15 +30,9 @@ def _to_openai_message_content(message: Message) -> List[Dict[str, Any]]:
             }
         )
 
-    if "image_file" in message:
-        content.append(
-            {
-                "type": "input_image",
-                "image_url": "data:image/jpeg;base64,{}".format(
-                    _encode_image_base64(message["image_file"])
-                ),
-            }
-        )
+    image_urls = message.get("image_urls", [])
+    for image_url in image_urls:
+        content.append({"type": "input_image", "image_url": image_url})
 
     return content
 

@@ -35,8 +35,11 @@ from .render_text import render_text
 SCRIPT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
-default_video_track_name = "vid"
-default_audio_track_name = "record"
+DEFAULT_VIDEO_TRACK_NAME = "vid"
+DEFAULT_AUDIO_TRACK_NAME = "record"
+
+closed_captions = False
+out_filename = ""
 
 
 class VideoClip:
@@ -167,13 +170,13 @@ def _get_track(tracks, name):
 
 def get_vid_track(name=None):
     if name is None:
-        name = default_video_track_name
+        name = DEFAULT_VIDEO_TRACK_NAME
     return _get_track(_state.video_tracks, name)
 
 
 def get_audio_track(name=None):
     if name is None:
-        name = default_audio_track_name
+        name = DEFAULT_AUDIO_TRACK_NAME
     return _get_track(_state.audio_tracks, name)
 
 
@@ -291,6 +294,14 @@ def _add_subtitle_clip(start, end, text):
     )
 
 
+def _write_srt(srt_file: str, start: float, end: float, text: str):
+    os.makedirs(os.path.dirname(srt_file), exist_ok=True)
+    with open(f"{srt_file}.srt", "a", encoding="utf-8") as f:
+        f.write(
+            f"{_state.srt_index}\n{format_time(start)} --> {format_time(end)}\n{text}\n\n"
+        )
+
+
 @common.api
 def record(
     file,
@@ -360,14 +371,6 @@ def record(
                         and len(sentense) >= MIN_SENTENSE_LEN
                         and i < length - MIN_SENTENSE_LEN
                     ) or i == length - 1:
-                        _state.srt_lines.extend(
-                            [
-                                "%d" % _state.srt_index,
-                                "%s --> %s" % (format_time(start), format_time(end)),
-                                sentense,
-                                "",
-                            ]
-                        )
 
                         # Skip tiny gaps between subtitles
                         if (
@@ -375,11 +378,21 @@ def record(
                             < SUBTITLE_GAP_THRESHOLD
                         ):
                             start = _state.last_subtitle_end_time
-                        _add_subtitle_clip(
+
+                        if not closed_captions:
+                            _add_subtitle_clip(
+                                start=start,
+                                end=end,
+                                text=sentense,
+                            )
+
+                        _write_srt(
+                            srt_file=out_filename + ".srt",
                             start=start,
                             end=end,
                             text=sentense,
                         )
+
                         _state.last_subtitle_end_time = end
 
                         end += char_duration
@@ -1032,7 +1045,7 @@ def video_end(track=None, t=None, fadeout=None):
     if _state.audio_only:
         return
 
-    track_name = track if track else default_video_track_name
+    track_name = track if track else DEFAULT_VIDEO_TRACK_NAME
     print('video_end(track="%s")' % track_name)
     track = get_vid_track(track)
 
@@ -1380,7 +1393,7 @@ def set_audio_only(audio_only=True):
         print("Audio only enabled.")
 
 
-def export_video(*, out_filename, resolution, preview=False):
+def export_video(*, resolution, preview=False):
     resolution = [int(x * _state.global_scale) for x in resolution]
 
     audio_clips = []

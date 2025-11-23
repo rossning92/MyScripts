@@ -252,13 +252,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--proj_dir", type=str, default=None)
     parser.add_argument("-i", "--input", type=str, default=None)
-    parser.add_argument("-a", "--audio_only", action="store_true", default=False)
-    parser.add_argument(
-        "--remove_unused_recordings", action="store_true", default=False
-    )
-    parser.add_argument("--stat", action="store_true", default=False)
-    parser.add_argument("--preview", action="store_true", default=False)
-    parser.add_argument("--force", action="store_true", default=False)
+    parser.add_argument("-a", "--audio_only", action="store_true")
+    parser.add_argument("--remove_unused_recordings", action="store_true")
+    parser.add_argument("--stat", action="store_true")
+    parser.add_argument("--preview", action="store_true")
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--closed-captions", action="store_true")
 
     args = parser.parse_args()
 
@@ -280,6 +279,7 @@ if __name__ == "__main__":
     # Load config
     config = load_config()
     editor.fps(config["fps"])
+    editor.closed_captions = args.closed_captions
 
     # Check if it's in preview mode.
     if not args.remove_unused_recordings:
@@ -289,8 +289,12 @@ if __name__ == "__main__":
         else:
             os.makedirs("export", exist_ok=True)
             out_filename = "export/export"
+
+        if args.closed_captions:
+            out_filename += "_cc"
     else:
         out_filename = None
+    editor.out_filename = out_filename
 
     # Load custom APIs (api.py) if exists
     api_modules = []
@@ -343,9 +347,7 @@ if __name__ == "__main__":
 
             _parse_text(s, apis=common.apis)
 
-            out: str = editor.export_video(
-                out_filename=out_filename, resolution=(1920, 1080)
-            )
+            out: str = editor.export_video(resolution=(1920, 1080))
 
             mpv_extra_args = []
             if args.preview:

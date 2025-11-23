@@ -16,6 +16,7 @@ async def complete_chat(
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     tools: Optional[List[Callable[..., Any]]] = None,
+    on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
     extra_payload: Optional[Dict] = None,
@@ -62,10 +63,17 @@ async def complete_chat(
         payload["messages"].append({"role": "system", "content": system_prompt})
 
     for message in messages:
+        # Message
         if message["text"] or message.get("tool_use"):
             m = {
                 "role": message["role"],
-                "content": message["text"],
+                "content": [
+                    {"type": "text", "text": message["text"]},
+                ]
+                + [
+                    {"type": "image_url", "image_url": {"url": url}}
+                    for url in message.get("image_urls", [])
+                ],
                 **(
                     {
                         "tool_calls": [
@@ -113,66 +121,81 @@ async def complete_chat(
         ) as response:
             await _check_for_status(response)
 
-            async for line in response.content:  # iterates over lines
-                line = line.rstrip(b"\n")
+            buffer = b""
+            async for chunk in response.content.iter_chunked(64 * 1024):
+                buffer += chunk
 
-                if not line:
-                    continue
+                while b"\n" in buffer:
+                    line, buffer = buffer.split(b"\n", 1)
 
-                if not line.startswith(b"data: "):
-                    continue
+                    if not line:
+                        continue
 
-                data_str = line[6:].decode("utf-8")
-                if data_str == "[DONE]":
-                    break
+                    if not line.startswith(b"data: "):
+                        continue
 
-                try:
-                    data = json.loads(data_str)
-                    logging.debug(f"=== data ===\n{pformat(data, width=200)}")
-                except json.JSONDecodeError:
-                    logging.debug(f"Skipping malformed chunk: {data_str}")
-                    continue
+                    data_str = line[6:].decode("utf-8")
+                    if data_str == "[DONE]":
+                        return
 
-                for choice in data.get("choices", []):
-                    delta = choice.get("delta", {})
+                    try:
+                        data = json.loads(data_str)
+                        logging.debug(f"=== data ===\n{pformat(data, width=200)}")
+                    except json.JSONDecodeError:
+                        logging.debug(f"Skipping malformed chunk: {data_str}")
+                        continue
 
-                    tool_calls = delta.get("tool_calls")
-                    if tool_calls:
-                        logging.debug(f"tool call delta: {tool_calls}")
-                        for tool_call in tool_calls:
-                            if tool_call["type"] == "function":
-                                function = tool_call["function"]
-                                if function and on_tool_use:
-                                    on_tool_use(
-                                        ToolUse(
-                                            tool_name=function["name"],
-                                            args=json.loads(function["arguments"]),
-                                            tool_use_id=tool_call["id"],
+                    for choice in data.get("choices", []):
+                        delta = choice.get("delta", {})
+
+                        tool_calls = delta.get("tool_calls")
+                        if tool_calls:
+                            logging.debug(f"tool call delta: {tool_calls}")
+                            for tool_call in tool_calls:
+                                if tool_call["type"] == "function":
+                                    function = tool_call["function"]
+                                    if function and on_tool_use:
+                                        on_tool_use(
+                                            ToolUse(
+                                                tool_name=function["name"],
+                                                args=json.loads(function["arguments"]),
+                                                tool_use_id=tool_call["id"],
+                                            )
                                         )
-                                    )
 
-                    content = delta.get("content")
-                    if content:
-                        logging.debug(f"yielding content chunk: {content}")
-                        yield content
+                        content = delta.get("content")
+                        if content:
+                            logging.debug(f"yielding content chunk: {content}")
+                            yield content
 
-                    reasoning_details = delta.get("reasoning_details")
-                    if reasoning_details:
-                        assert isinstance(reasoning_details, list)
-                        for reasoning_detail in reasoning_details:
-                            if reasoning_detail["type"] == "reasoning.text":
-                                reasoning_text = reasoning_detail["text"]
-                                if on_reasoning:
-                                    on_reasoning(reasoning_text)
-                                if out_message:
-                                    out_message.setdefault("reasoning", []).append(
-                                        reasoning_text
-                                    )
+                        reasoning_details = delta.get("reasoning_details")
+                        if reasoning_details:
+                            assert isinstance(reasoning_details, list)
+                            for reasoning_detail in reasoning_details:
+                                if reasoning_detail["type"] == "reasoning.text":
+                                    reasoning_text = reasoning_detail["text"]
+                                    if on_reasoning:
+                                        on_reasoning(reasoning_text)
+                                    if out_message:
+                                        out_message.setdefault("reasoning", []).append(
+                                            reasoning_text
+                                        )
 
-                        if out_message:
-                            cast(dict, out_message).setdefault(
-                                "reasoning_details", []
-                            ).extend(reasoning_details)
+                            if out_message:
+                                cast(dict, out_message).setdefault(
+                                    "reasoning_details", []
+                                ).extend(reasoning_details)
+
+                        images = delta.get("images")
+                        if images:
+                            assert isinstance(images, list)
+                            for image in images:
+                                if image["type"] == "image_url":
+                                    image_url: str = image["image_url"]["url"]
+                                    if on_image:
+                                        on_image(image_url)
+                                    if out_message:
+                                        out_message["image_urls"] = [image_url]
 
 
 async def _check_for_status(response):

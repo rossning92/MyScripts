@@ -209,7 +209,9 @@ def _get_clip_win() -> str:
 def get_clip() -> str:
     if _is_termux():
         return subprocess.check_output(
-            ["termux-clipboard-get"], universal_newlines=True
+            ["termux-clipboard-get"],
+            universal_newlines=True,
+            stderr=subprocess.DEVNULL,
         )
 
     elif sys.platform == "win32":
@@ -218,7 +220,9 @@ def get_clip() -> str:
     elif sys.platform == "linux":
         try:
             return subprocess.check_output(
-                ["xclip", "-out", "-selection", "clipboard"], universal_newlines=True
+                ["xclip", "-out", "-selection", "clipboard"],
+                universal_newlines=True,
+                stderr=subprocess.DEVNULL,
             )
         except subprocess.CalledProcessError:
             return ""
@@ -299,12 +303,16 @@ def _is_termux():
 def get_selection():
     if _is_termux():
         return subprocess.check_output(
-            ["termux-clipboard-get"], universal_newlines=True
+            ["termux-clipboard-get"],
+            universal_newlines=True,
+            stderr=subprocess.DEVNULL,
         )
 
     elif sys.platform == "linux":
         return subprocess.check_output(
-            ["xclip", "-out", "-selection", "primary"], universal_newlines=True
+            ["xclip", "-out", "-selection", "primary"],
+            universal_newlines=True,
+            stderr=subprocess.DEVNULL,
         )
 
     elif sys.platform == "win32":

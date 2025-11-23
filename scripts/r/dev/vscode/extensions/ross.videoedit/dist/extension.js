@@ -821,6 +821,9 @@ function registerCommands(context) {
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.exportVideoForce", () => {
         exportVideo({ extraArgs: ["--preview", "--force"] });
     }));
+    context.subscriptions.push(vscode.commands.registerCommand("videoEdit.exportVideoClosedCaptions", () => {
+        exportVideo({ extraArgs: ["--closed-captions"] });
+    }));
     context.subscriptions.push(vscode.commands.registerCommand("videoEdit.startRecording", () => {
         getRecorderProcess()?.stdin.write("r\n");
     }));

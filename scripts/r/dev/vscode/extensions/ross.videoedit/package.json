@@ -27,6 +27,10 @@
         "title": "VideoEdit: Export Video"
       },
       {
+        "command": "videoEdit.exportVideoClosedCaptions",
+        "title": "VideoEdit: Export Video (Closed Captions)"
+      },
+      {
         "command": "videoEdit.exportAudio",
         "title": "VideoEdit: Export Audio Only"
       },
