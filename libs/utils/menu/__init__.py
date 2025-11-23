@@ -8,7 +8,6 @@ import subprocess
 import sys
 import tempfile
 import time
-from io import StringIO
 from queue import Queue
 from typing import (
     Any,
@@ -1529,7 +1528,7 @@ class Menu(Generic[T]):
             ) as f:
                 f.write(selected_lines)
                 tmpfile = f.name
-            subprocess.run(["start_script", "r/ML/gpt/ask.py", tmpfile])
+            subprocess.run(["start_script", "r/ai/ask.py", tmpfile])
 
 
 class LoggingMenu(Menu):

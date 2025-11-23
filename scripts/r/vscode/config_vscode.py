@@ -274,11 +274,12 @@ def update_settings_common():
 
     settings.update(
         {
-            "[markdown]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[html]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[javascript]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[json]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
             "[jsonc]": {"editor.defaultFormatter": "vscode.json-language-features"},
+            "[markdown]": {"editor.defaultFormatter": "esbenp.prettier-vscode"},
+            "[python]": {"editor.defaultFormatter": "charliermarsh.ruff"},
         }
     )
 

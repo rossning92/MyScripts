@@ -106,7 +106,7 @@ local function edit_selected_text(opts)
     local text, start_pos, end_pos = get_selected_text()
     local input_file = nil
     local output_file = os.tmpname()
-    local command = "run_script r/ML/gpt/chat_menu.py --edit-text -o " .. output_file
+    local command = "run_script r/ai/chat_menu.py --edit-text -o " .. output_file
 
     opts = opts or {}
 
@@ -217,7 +217,7 @@ vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>c", run_coder)
 local function start_script_with_selection()
     local text = get_selected_text()
     local temp_file = write_to_temp_file(text, ".txt")
-    vim.fn.jobstart('start_script r/ML/gpt/ask.py ' .. temp_file)
+    vim.fn.jobstart('start_script r/ai/ask.py ' .. temp_file)
 end
 vim.keymap.set({ "n", "i", "v", "x" }, "<C-k>a", start_script_with_selection)
 

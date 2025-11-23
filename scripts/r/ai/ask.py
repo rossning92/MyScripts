@@ -1,6 +1,6 @@
 import argparse
 
-from ML.gpt.chat_menu import ChatMenu, get_default_data_dir
+from ai.chat_menu import ChatMenu, get_default_data_dir
 
 
 def _main():

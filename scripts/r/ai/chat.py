@@ -6,14 +6,13 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
-    Dict,
     List,
     Optional,
 )
 
 import ai.anthropic.chat
 import ai.openai.chat
-import ai.openai_compatible.chat
+import ai.openrouter.chat
 from ai.message import Message
 from ai.tool_use import ToolResult, ToolUse
 from utils.textutil import truncate_text
@@ -68,29 +67,16 @@ async def complete_chat(
             out_message=out_message,
         )
     elif model and model.startswith(openrouter_prefix):
-        openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-        if not openrouter_api_key:
-            raise Exception("OPENROUTER_API_KEY is not provided")
+        model = model[len(openrouter_prefix) :]
 
-        extra_payload: Dict = {}
-        if "(reasoning)" in model:
-            model = model.replace("(reasoning)", "")
-            extra_payload.setdefault("extra_body", {})["reasoning"] = {"enabled": True}
-
-        if "image" in model:
-            extra_payload.setdefault("extra_body", {})["modalities"] = ["image", "text"]
-
-        return ai.openai_compatible.chat.complete_chat(
-            endpoint_url="https://openrouter.ai/api/v1/chat/completions",
-            api_key=openrouter_api_key,
+        return await ai.openrouter.chat.complete_chat(
             messages=messages,
-            model=model[len(openrouter_prefix) :],
+            model=model,
             system_prompt=system_prompt,
             tools=tools,
             on_image=on_image,
             on_tool_use=on_tool_use,
             on_reasoning=on_reasoning,
-            extra_payload=extra_payload,
             out_message=out_message,
         )
     else:

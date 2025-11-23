@@ -4,15 +4,15 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-import ML.gpt.chat_menu
-from ai.chat import get_reasoning_text, get_tool_use_text
+import ai.chat_menu
+from ai.chat import get_tool_use_text
+from ai.chat_menu import ChatMenu, Line
 from ai.tool_use import (
     ToolResult,
     ToolUse,
     get_tool_use_prompt,
     parse_text_for_tool_use,
 )
-from ML.gpt.chat_menu import ChatMenu, Line
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
@@ -54,7 +54,7 @@ def _get_prompt(tools: Optional[List[Callable]] = None):
     return prompt
 
 
-class SettingsMenu(ML.gpt.chat_menu.SettingsMenu):
+class SettingsMenu(ai.chat_menu.SettingsMenu):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -416,7 +416,6 @@ class AgentMenu(ChatMenu):
                     tool_use=tool_use,
                 )
             )
-
 
     def __open_file_menu(self):
         FileMenu(goto=os.getcwd()).exec()

@@ -61,20 +61,20 @@ MODELS = Literal[
     "claude-sonnet-4-5",
     "gpt-4.1-mini",
     "gpt-4.1",
-    "gpt-4o-mini",
-    "gpt-4o",
     "gpt-5-chat-latest",
     "gpt-5-codex",
     "gpt-5-codex(low)",
-    "gpt-5.1(low)",
     "gpt-5",
     "gpt-5(low)",
-    "o3-mini",
+    "gpt-5.1-chat-latest",
+    "gpt-5.1(low)",
+    "openrouter:deepseek/deepseek-chat-v3.1",
     "openrouter:google/gemini-2.5-flash-image",
     "openrouter:google/gemini-2.5-flash",
     "openrouter:google/gemini-3-pro-image-preview",
     "openrouter:google/gemini-3-pro-preview",
     "openrouter:google/gemini-3-pro-preview(reasoning)",
+    "openrouter:qwen/qwen-plus-2025-07-28",
 ]
 DEFAULT_MODEL = "gpt-4.1"
 
@@ -173,6 +173,19 @@ class _ChatItem:
 
     def __str__(self) -> str:
         return self.text
+
+
+class _EditImageUrlsMenu(ListEditMenu):
+    def __init__(self, items: List[str]) -> None:
+        super().__init__(items=items, prompt="image urls")
+        self.add_command(self.__add_image, hotkey="alt+a")
+
+    def __add_image(self) -> None:
+        menu = FileMenu()
+        image_file = menu.select_file()
+        if image_file:
+            encoded = encode_image_base64(image_file)
+            self.items.append(encoded)
 
 
 class _SelectChatMenu(Menu[_ChatItem]):
@@ -291,7 +304,7 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__save_chat_as)
         self.add_command(self.__show_more, hotkey="tab")
         self.add_command(self.__take_photo)
-        self.add_command(self.__view_system_prompt)
+        self.add_command(self.__show_system_prompt)
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_chat, hotkey="ctrl+n")
         self.add_command(self.save_chat, hotkey="ctrl+s")
@@ -374,7 +387,7 @@ class ChatMenu(Menu[Line]):
         )
 
     def __edit_image_urls(self):
-        ListEditMenu(items=self.__image_urls).exec()
+        _EditImageUrlsMenu(items=self.__image_urls).exec()
         self.__update_prompt()
 
     def __edit_message(self, message_index=-1):
@@ -572,7 +585,7 @@ class ChatMenu(Menu[Line]):
             prompt += f" ({len(self.__image_urls)} images)"
         self.set_prompt(prompt)
 
-    def __view_system_prompt(self):
+    def __show_system_prompt(self):
         system_prompt = self.get_system_prompt()
         if system_prompt:
             TextMenu(text=system_prompt, prompt="System Prompt").exec()
@@ -673,6 +686,7 @@ class ChatMenu(Menu[Line]):
             self.append_user_message(text, tool_results=tool_results)
 
         self.__attachment = None
+        self.__image_urls.clear()
         self.__update_prompt()
 
         self.__complete_chat()
@@ -736,6 +750,17 @@ Following is my instructions:
 
         if self.__image_urls:
             message["image_urls"] = self.__image_urls
+            for image_url in self.__image_urls:
+                self.append_item(
+                    Line(
+                        role="user",
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        image_url=image_url,
+                    )
+                )
+                subindex += 1
+
         if tool_results:
             message["tool_result"] = tool_results
 

@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from ML.gpt.chat_menu import ChatMenu
+from ai.chat_menu import ChatMenu
 
 input_text = Path(sys.argv[-1]).read_text(encoding="utf-8")
 ChatMenu(
