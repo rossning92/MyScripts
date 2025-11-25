@@ -5,7 +5,7 @@ from ai.chat_menu import ChatMenu, get_default_data_dir
 
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("attachment", nargs="?", type=str)
+    parser.add_argument("context", nargs="?", type=str)
     parser.add_argument(
         "-x",
         "--copy",
@@ -16,7 +16,7 @@ def _main():
     args = parser.parse_args()
 
     chat = ChatMenu(
-        attachment=args.attachment,
+        context=args.context,
         copy=args.copy,
         data_dir=get_default_data_dir(),
     )

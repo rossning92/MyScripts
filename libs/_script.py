@@ -1054,7 +1054,7 @@ class Script:
                     md_file_path = script_path
                 else:
                     md_file_path = script_path
-                start_script("ext/vim_edit.py", args=[md_file_path])
+                start_script("ext/edit.py", args=[md_file_path])
                 return True
 
         elif ext == ".ps1":

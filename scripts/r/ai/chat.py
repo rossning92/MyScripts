@@ -19,7 +19,7 @@ from utils.textutil import truncate_text
 
 
 def get_image_url_text(image_url: str) -> str:
-    return "► image: {}".format(image_url[:20])
+    return "► image: {}".format(image_url[:32] + "...")
 
 
 def get_context_text(context: str) -> str:

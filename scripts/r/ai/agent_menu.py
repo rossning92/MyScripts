@@ -422,7 +422,7 @@ class AgentMenu(ChatMenu):
 
     def get_status_text(self) -> str:
         tools = "|".join([tool.__name__ for tool in self.__tools])
-        s = f"TOOLS: {tools}\nCWD  : {os.getcwd()}"
+        s = f"cwd={os.getcwd()}  tools={tools}"
         return s + "\n" + super().get_status_text()
 
     def get_data_dir(self) -> str:

@@ -4,7 +4,8 @@ const { spawn } = require("child_process");
 const puppeteer = require("puppeteer");
 const TurndownService = require("turndown");
 
-const userDataDir = path.join(os.homedir(), ".browsercontrol-user-data");
+const USER_DATA_DIR = path.join(os.homedir(), ".browsercontrol-user-data");
+const DEFAULT_DELAY_MS = 3000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -12,7 +13,7 @@ async function launchDetachedChrome() {
   const executablePath = puppeteer.executablePath();
   const chromeArgs = [
     `--remote-debugging-port=21222`,
-    `--user-data-dir=${userDataDir}`,
+    `--user-data-dir=${USER_DATA_DIR}`,
     "--remote-allow-origins=*",
     "--no-sandbox",
   ];
@@ -125,125 +126,173 @@ async function scrollToBottom() {
 async function typeText(text) {
   return withActivePage(async (page) => {
     await page.keyboard.type(text);
+    await sleep(DEFAULT_DELAY_MS);
   });
 }
 
 async function pressKey(key) {
   return withActivePage(async (page) => {
     await page.keyboard.press(key);
+    await sleep(DEFAULT_DELAY_MS);
   });
 }
 
 async function debug() {
   return withActivePage(async (page) => {
-    const clickableElements = await page.evaluate(getClickableElements);
+    const clickableElements = await page.evaluate(runAction, {
+      type: "getClickables",
+    });
     console.log(clickableElements);
   });
 }
 
-const getClickableElements = () => {
-  let elements = Array.prototype.slice
-    .call(document.querySelectorAll("*"))
-    .filter((el) => {
-      if (
-        el.tagName === "BUTTON" ||
-        el.tagName === "A" ||
-        (el.tagName === "INPUT" && el.type !== "hidden") ||
-        el.tagName === "TEXTAREA" ||
-        el.tagName === "SELECT" ||
-        el.onclick != null ||
-        window.getComputedStyle(el).cursor === "pointer"
-      ) {
+const runAction = ({ type, text } = {}) => {
+  let elements = getClickables();
+
+  highlightElements(elements);
+
+  if (type == "scrollIntoView") {
+    const target =
+      elements.find(({ text: elementText }) => elementText === text) ||
+      elements.find(({ text: elementText }) => elementText.includes(text)) ||
+      null;
+
+    if (!target) return false;
+
+    const rect = target.el.getBoundingClientRect();
+
+    const isOutsideView =
+      rect.top < 0 ||
+      rect.bottom > window.innerHeight ||
+      rect.left < 0 ||
+      rect.right > window.innerWidth;
+
+    if (isOutsideView) {
+      target.el.scrollIntoView({ block: "center", inline: "center" });
+    }
+
+    return true;
+  } else if (type == "getClickables") {
+    return elements.map(({ rect, text }) => ({
+      rect,
+      text,
+    }));
+  }
+
+  function highlightElements(elements) {
+    const boxes = [];
+    elements.forEach(function (el) {
+      const width = el.rect.right - el.rect.left;
+      const height = el.rect.bottom - el.rect.top;
+      if (width <= 0 || height <= 0) return;
+      const box = document.createElement("div");
+      box.style.position = "fixed";
+      box.style.left = el.rect.left + "px";
+      box.style.top = el.rect.top + "px";
+      box.style.width = width + "px";
+      box.style.height = height + "px";
+      box.style.pointerEvents = "none";
+      box.style.boxSizing = "border-box";
+      box.style.zIndex = 2147483647;
+      box.style.border = "2px solid red";
+      const label = document.createElement("div");
+      label.textContent = el.text;
+      label.style.position = "absolute";
+      label.style.top = "0";
+      label.style.left = "0";
+      label.style.transform = "translateY(-100%)";
+      label.style.fontSize = "8pt";
+      label.style.whiteSpace = "nowrap";
+      label.style.pointerEvents = "none";
+      label.style.backgroundColor = "red";
+      label.style.color = "white";
+      box.appendChild(label);
+      document.body.appendChild(box);
+      boxes.push(box);
+    });
+    setTimeout(() => boxes.forEach((box) => box.remove()), 1000);
+  }
+
+  function getClickables() {
+    let elements = Array.prototype.slice
+      .call(document.querySelectorAll("*"))
+      .filter((el) => {
+        if (
+          el.tagName === "BUTTON" ||
+          el.tagName === "A" ||
+          (el.tagName === "INPUT" && el.type !== "hidden") ||
+          el.tagName === "TEXTAREA" ||
+          el.tagName === "SELECT" ||
+          el.onclick != null ||
+          window.getComputedStyle(el).cursor === "pointer"
+        ) {
+          const rect = el.getBoundingClientRect();
+          return (rect.right - rect.left) * (rect.bottom - rect.top) >= 20;
+        }
+        return false;
+      })
+      .map((el) => {
         const rect = el.getBoundingClientRect();
-        return (rect.right - rect.left) * (rect.bottom - rect.top) >= 20;
-      }
-      return false;
-    })
-    .map((el) => {
-      const rect = el.getBoundingClientRect();
-      return {
-        el,
-        rect: {
-          left: rect.left,
-          top: rect.top,
-          right: rect.right,
-          bottom: rect.bottom,
-        },
-        text: (() => {
-          const label =
-            el.getAttribute("aria-label") ||
-            el.getAttribute("title") ||
-            el.innerText ||
-            el.textContent ||
-            el.value;
-          return label ? label.replace(/\s+/g, " ").trim() : "";
-        })(),
-      };
-    })
-    // Filter out elements without text
-    .filter((x) => Boolean(x.text));
+        return {
+          el,
+          rect: {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+          },
+          text: (() => {
+            const label =
+              el.getAttribute("aria-label") ||
+              el.getAttribute("title") ||
+              el.getAttribute("placeholder") ||
+              el.innerText ||
+              el.textContent ||
+              el.value;
+            return label ? label.replace(/\s+/g, " ").trim() : "";
+          })(),
+        };
+      })
+      .filter((x) => Boolean(x.text));
 
-  // Only keep inner clickable elements
-  elements = elements.filter(
-    (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
-  );
-
-  const boxes = [];
-  elements.forEach(function (el) {
-    const width = el.rect.right - el.rect.left;
-    const height = el.rect.bottom - el.rect.top;
-    if (width <= 0 || height <= 0) return;
-    const box = document.createElement("div");
-    box.style.position = "fixed";
-    box.style.left = el.rect.left + "px";
-    box.style.top = el.rect.top + "px";
-    box.style.width = width + "px";
-    box.style.height = height + "px";
-    box.style.pointerEvents = "none";
-    box.style.boxSizing = "border-box";
-    box.style.zIndex = 2147483647;
-    box.style.backgroundColor = "white";
-    box.style.border = "2px solid red";
-    const label = document.createElement("div");
-    label.textContent = el.text;
-    label.style.position = "absolute";
-    label.style.top = "0";
-    label.style.left = "0";
-    label.style.width = "100%";
-    label.style.height = "100%";
-    label.style.display = "flex";
-    label.style.alignItems = "center";
-    label.style.justifyContent = "center";
-    label.style.fontSize = "8pt";
-    label.style.whiteSpace = "wrap";
-    label.style.pointerEvents = "none";
-    label.style.color = "red";
-    box.appendChild(label);
-    document.body.appendChild(box);
-    boxes.push(box);
-  });
-  setTimeout(() => boxes.forEach((box) => box.remove()), 1000);
-
-  return elements.map(({ text, rect }) => ({ text, rect }));
+    elements = elements.filter(
+      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
+    );
+    return elements;
+  }
 };
 
 async function click(text) {
   return withActivePage(async (page) => {
-    const clickableElements = await page.evaluate(getClickableElements);
+    if (
+      !(await page.evaluate(runAction, {
+        type: "scrollIntoView",
+        text,
+      }))
+    ) {
+      throw new Error(`Unable to find clickable el with text "${text}"`);
+    }
 
-    const target =
-      clickableElements.find((el) => el.text === text) ||
-      clickableElements.find((el) => el.text.includes(text));
+    const clickables = await page.evaluate(runAction, {
+      type: "getClickables",
+    });
 
-    if (target) {
-      const { rect } = target;
+    if (clickables) {
+      const match =
+        clickables.find(({ text: elementText }) => elementText === text) ||
+        clickables.find(({ text: elementText }) => elementText.includes(text));
+
+      if (!match) {
+        throw new Error(`Unable to find clickable el with text "${text}"`);
+      }
+
+      const { rect } = match;
       const centerX = rect.left + (rect.right - rect.left) / 2;
       const centerY = rect.top + (rect.bottom - rect.top) / 2;
       await page.mouse.click(centerX, centerY);
+      await sleep(DEFAULT_DELAY_MS);
       return;
     }
-
-    throw new Error(`Unable to find clickable el with text "${text}"`);
   });
 }
 

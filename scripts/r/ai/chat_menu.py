@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import base64
 import glob
+import hashlib
 import os
 import subprocess
 import sys
@@ -178,9 +179,9 @@ class _ChatItem:
 class _EditImageUrlsMenu(ListEditMenu):
     def __init__(self, items: List[str]) -> None:
         super().__init__(items=items, prompt="image urls")
-        self.add_command(self.__add_image, hotkey="alt+a")
+        self.add_command(self.__insert_image, hotkey="alt+i")
 
-    def __add_image(self) -> None:
+    def __insert_image(self) -> None:
         menu = FileMenu()
         image_file = menu.select_file()
         if image_file:
@@ -221,18 +222,25 @@ class _SelectChatMenu(Menu[_ChatItem]):
 
 
 def _open_image(image_url: str):
-    if image_url.startswith("data:image/"):
-        header, payload = image_url.split(",", 1)
-        if ";base64" in header:
-            data = base64.b64decode(payload)
-        else:
-            data = unquote_to_bytes(payload)
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
-            tmp.write(data)
-            tmp_image_file = tmp.name
-    else:
-        tmp_image_file = image_url
-    shell_open(tmp_image_file)
+    # Extract image data
+    header, payload = image_url.split(",", 1)
+    mime_type = header.split(";")[0].split(":", 1)[1]
+    extension = mime_type.split("/")[1]
+    data = (
+        base64.b64decode(payload) if ";base64" in header else unquote_to_bytes(payload)
+    )
+
+    # Save image
+    image_dir = os.path.join(get_default_data_dir(), "exported_images")
+    os.makedirs(image_dir, exist_ok=True)
+    hash_name = hashlib.md5(data).hexdigest()[:8]
+    image_file = os.path.join(image_dir, f"{hash_name}.{extension}")
+    if not os.path.exists(image_file):
+        with open(image_file, "wb") as f:
+            f.write(data)
+
+    # Open image
+    shell_open(image_file)
 
 
 class ChatMenu(Menu[Line]):
@@ -244,7 +252,8 @@ class ChatMenu(Menu[Line]):
         edit_text=False,
         message: Optional[str] = None,
         model: Optional[str] = None,
-        attachment: Optional[str] = None,
+        context: Optional[str] = None,
+        image_urls: Optional[List[str]] = None,
         new_chat=True,
         out_file: Optional[str] = None,
         prompt: str = "u",
@@ -259,8 +268,8 @@ class ChatMenu(Menu[Line]):
         self.__cur_subindex = 0
         self.__edit_text = edit_text
         self.__first_message = message
-        self.__attachment: Optional[str] = attachment
-        self.__image_urls: List[str] = []
+        self.__context: Optional[str] = context
+        self.__image_urls: List[str] = image_urls if image_urls else []
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
         self.__lines: List[Line] = []
@@ -277,6 +286,10 @@ class ChatMenu(Menu[Line]):
         )
         os.makedirs(self.__data_dir, exist_ok=True)
         create_gitignore(self.__data_dir)
+
+        self.__file_menu = FileMenu(
+            prompt="data dir", goto=self.__data_dir, sort_by="mtime"
+        )
 
         self.__settings_menu = settings_menu_class(
             json_file=os.path.join(self.__data_dir, "settings.json"),
@@ -305,6 +318,7 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__show_more, hotkey="tab")
         self.add_command(self.__take_photo)
         self.add_command(self.__show_system_prompt)
+        self.add_command(self.__open_data_dir, hotkey="alt+f")
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_chat, hotkey="ctrl+n")
         self.add_command(self.save_chat, hotkey="ctrl+s")
@@ -335,7 +349,7 @@ class ChatMenu(Menu[Line]):
 
     def __add_attachment(self):
         menu = FileMenu()
-        self.__attachment = menu.select_file()
+        self.__context = menu.select_file()
         self.__update_prompt()
 
     def __copy_block(self, index: int):
@@ -557,7 +571,7 @@ class ChatMenu(Menu[Line]):
             self.set_message(f"failed to take photo: {e}")
             return
 
-        self.__attachment = tmp_photo
+        self.__context = tmp_photo
         self.__update_prompt()
 
     def undo_messages(self) -> List[Message]:
@@ -591,6 +605,9 @@ class ChatMenu(Menu[Line]):
             TextMenu(text=system_prompt, prompt="System Prompt").exec()
         else:
             self.set_message("no system prompt set")
+
+    def __open_data_dir(self):
+        self.__file_menu.exec()
 
     def __yank(self):
         indices = list(self.get_selected_indices())
@@ -685,8 +702,7 @@ class ChatMenu(Menu[Line]):
         if text or tool_results:
             self.append_user_message(text, tool_results=tool_results)
 
-        self.__attachment = None
-        self.__image_urls.clear()
+        self.__context = None
         self.__update_prompt()
 
         self.__complete_chat()
@@ -699,14 +715,15 @@ class ChatMenu(Menu[Line]):
         msg_index = len(self.get_messages())
 
         context: Optional[str] = None
-        if self.__attachment:
-            ext = os.path.splitext(self.__attachment)[1]
-            if is_text_file(self.__attachment):
-                with open(self.__attachment, "r", encoding="utf-8") as f:
-                    context = f.read()
+        if self.__context:
+            if not is_text_file(self.__context):
+                raise Exception(f"Context file is not a text file: {self.__context}")
 
-                if self.__edit_text:
-                    text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
+            with open(self.__context, "r", encoding="utf-8") as f:
+                context = f.read()
+
+            if self.__edit_text:
+                text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
 
 Following is the input text:
 <input_text>
@@ -718,11 +735,6 @@ Following is my instructions:
 {text.rstrip()}
 </instructions>
 """
-
-            # elif ext in (".jpg", ".jpeg", ".png", ".gif"):
-            #     image_file = self.__attachment
-            else:
-                raise Exception(f"Unsupported attachment type: {ext}")
 
         message = Message(
             role="user",
@@ -749,7 +761,7 @@ Following is my instructions:
             )
 
         if self.__image_urls:
-            message["image_urls"] = self.__image_urls
+            message["image_urls"] = self.__image_urls.copy()
             for image_url in self.__image_urls:
                 self.append_item(
                     Line(
@@ -759,6 +771,7 @@ Following is my instructions:
                         image_url=image_url,
                     )
                 )
+                self.__image_urls.clear()
                 subindex += 1
 
         if tool_results:
@@ -1075,8 +1088,14 @@ Following is my instructions:
         pass
 
     def get_status_text(self) -> str:
-        return f"""CHAT : tokIn={token_count.input_tokens} tokOut={token_count.output_tokens} cfg={str(self.__settings_menu.data)}
-{super().get_status_text()}"""
+        s = "chat: "
+        if token_count.input_tokens:
+            s += f"tokIn={token_count.input_tokens} "
+        if token_count.output_tokens:
+            s += f"tokOut={token_count.output_tokens} "
+        s += "cfg=" + str(self.__settings_menu.data) + "\n"
+        s += super().get_status_text()
+        return s
 
     def get_system_prompt(self) -> str:
         return self.__system_prompt
@@ -1117,7 +1136,7 @@ Following is my instructions:
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?", help="input message")
-    parser.add_argument("-a", "--attachment", type=str, nargs="?")
+    parser.add_argument("-a", "--context", type=str, nargs="?")
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)
@@ -1126,7 +1145,17 @@ def _main():
     parser.add_argument("--copy", action="store_true")
     args = parser.parse_args()
 
-    if args.in_file:
+    image_urls = None
+    message = None
+
+    if args.input and os.path.isfile(args.input):
+        ext = os.path.splitext(args.input)[1].lower()
+        if ext in [".png", ".jpg", ".jpeg"]:
+            image_urls = [encode_image_base64(args.input)]
+        else:
+            with open(args.input, "r", encoding="utf-8") as f:
+                message = f.read()
+    elif args.in_file:
         with open(args.in_file, "r", encoding="utf-8") as f:
             message = f.read()
     elif not sys.stdin.isatty():
@@ -1136,7 +1165,8 @@ def _main():
 
     chat = ChatMenu(
         message=message,
-        attachment=args.attachment,
+        context=args.context,
+        image_urls=image_urls,
         out_file=args.out_file,
         model=args.model,
         edit_text=args.edit_text,

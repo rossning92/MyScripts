@@ -16,7 +16,7 @@ def _main():
         screenshot_file = tempfile.mktemp(suffix=".png")
         screenshot(screenshot_file)
         crop_image_interactive(screenshot_file)
-        chat = ChatMenu(attachment=screenshot_file)
+        chat = ChatMenu(context=screenshot_file)
         chat.exec()
     finally:
         os.remove(screenshot_file)

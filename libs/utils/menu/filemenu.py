@@ -142,11 +142,13 @@ class FileMenu(Menu[_File]):
         recursive=False,
         show_mtime=True,
         show_size=True,
+        sort_by: Literal["name", "mtime"] = "name",
         allow_cd=True,
         config: Optional[_Config] = None,
         config_dir: Optional[str] = None,
     ):
         self.__config = config if config else _Config()
+        self.__config.sort_by = sort_by
         self.__config_file = (
             os.path.join(config_dir, "filemgr_config.json") if config_dir else None
         )
@@ -213,6 +215,10 @@ class FileMenu(Menu[_File]):
                 selected_file=self.__config.selected_file,
                 list_file_recursively=recursive,
             )
+
+    def on_created(self):
+        super().on_created()
+        self._refresh_cur_dir()
 
     def get_item_color(self, item: _File) -> str:
         return "blue" if item.is_dir else "white"
