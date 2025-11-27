@@ -23,6 +23,7 @@ from ai.chat import (
     get_tool_use_text,
 )
 from ai.message import Message
+from ai.models import DEFAULT_MODEL, MODELS
 from ai.tokenutil import token_count
 from ai.tool_use import ToolResult, ToolUse
 from scripting.path import get_data_dir
@@ -54,30 +55,6 @@ _MAX_CHAT_HISTORY = 200
 _INTERRUPT_MESSAGE = "[INTERRUPTED]"
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-MODELS = Literal[
-    "claude-3-7-sonnet-latest",
-    "claude-opus-4-0",
-    "claude-sonnet-4-0",
-    "claude-sonnet-4-5",
-    "gpt-4.1-mini",
-    "gpt-4.1",
-    "gpt-5-chat-latest",
-    "gpt-5-codex",
-    "gpt-5-codex(low)",
-    "gpt-5",
-    "gpt-5(low)",
-    "gpt-5.1-chat-latest",
-    "gpt-5.1(low)",
-    "openrouter:deepseek/deepseek-chat-v3.1",
-    "openrouter:google/gemini-2.5-flash-image",
-    "openrouter:google/gemini-2.5-flash",
-    "openrouter:google/gemini-3-pro-image-preview",
-    "openrouter:google/gemini-3-pro-preview",
-    "openrouter:google/gemini-3-pro-preview(reasoning)",
-    "openrouter:qwen/qwen-plus-2025-07-28",
-]
-DEFAULT_MODEL = "gpt-4.1"
 
 
 def _start_background_loop(loop: asyncio.AbstractEventLoop):
@@ -111,10 +88,10 @@ class SettingsMenu(JsonEditMenu):
             self.data["model"] = model
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": DEFAULT_MODEL, "web_search": False}
+        return {"model": DEFAULT_MODEL, "web_search": False, "retry": False}
 
     def get_schema(self) -> Dict[str, Any]:
-        return {"model": MODELS, "web_search": bool}
+        return {"model": MODELS, "web_search": bool, "retry": bool}
 
 
 class Line:
@@ -280,6 +257,9 @@ class ChatMenu(Menu[Line]):
         self.__yank_mode = 0
         self.__escape_to_cancel = escape_to_cancel
         self.__chat_task: Optional[asyncio.Task] = None
+        self.__retry_count = 0
+
+        self._out_message: Optional[Message] = None
 
         self.__data_dir = (
             data_dir if data_dir else os.path.join(".config", _MODULE_NAME)
@@ -404,23 +384,29 @@ class ChatMenu(Menu[Line]):
         _EditImageUrlsMenu(items=self.__image_urls).exec()
         self.__update_prompt()
 
-    def __edit_message(self, message_index=-1):
-        if message_index < 0:
+    def __edit_message(self, msg_index=-1):
+        if msg_index < 0:
             selected = self.get_selected_item()
             if selected:
-                message_index = selected.msg_index
-        if message_index < 0:
-            self.set_message("no message to edit")
+                msg_index = selected.msg_index
+            else:
+                self.set_message("error: no message selected")
+                return
+
+        if msg_index < 0 or msg_index >= len(self.get_messages()):
+            self.set_message("error: no message to edit")
             return
 
-        message = self.get_messages()[message_index]
+        message = self.get_messages()[msg_index]
         content = message["text"]
-        new_content = self.call_func_without_curses(lambda: edit_text(content))
+        new_content = self.call_func_without_curses(
+            lambda: edit_text(content, tmp_file_ext=".md")
+        )
         if new_content != content:
             message["text"] = new_content
 
             # Delete all messages after.
-            del self.get_messages()[message_index + 1 :]
+            del self.get_messages()[msg_index + 1 :]
 
             self.__refresh_lines()
 
@@ -455,7 +441,7 @@ class ChatMenu(Menu[Line]):
         self.__goto_message("prev")
 
     def __edit_prompt(self):
-        self.__edit_message(message_index=0)
+        self.__edit_message(msg_index=0)
 
     def __save_chat_as(self):
         if not self.__chat_file:
@@ -636,8 +622,9 @@ class ChatMenu(Menu[Line]):
             self.set_message("selected line copied")
             self.set_multi_select(False)
 
-    def get_next_message_index_and_subindex(self):
-        msg_index = len(self.get_messages()) - 1
+    def get_message_index_and_subindex(self):
+        num_messages = len(self.get_messages())
+        msg_index = num_messages if self._out_message else num_messages - 1
         if len(self.items) > 0 and self.items[-1].msg_index == msg_index:
             subindex = self.items[-1].subindex + 1
         else:
@@ -703,6 +690,7 @@ class ChatMenu(Menu[Line]):
             self.append_user_message(text, tool_results=tool_results)
 
         self.__context = None
+        self.__retry_count = 0
         self.__update_prompt()
 
         self.__complete_chat()
@@ -805,7 +793,7 @@ Following is my instructions:
         pass
 
     def on_reasoning(self, reasoning: str):
-        msg_index, subindex = self.get_next_message_index_and_subindex()
+        msg_index, subindex = self.get_message_index_and_subindex()
         self.append_item(
             Line(
                 role="assistant",
@@ -818,7 +806,7 @@ Following is my instructions:
         self.process_events()
 
     def on_image(self, image_url: str):
-        msg_index, subindex = self.get_next_message_index_and_subindex()
+        msg_index, subindex = self.get_message_index_and_subindex()
         self.append_item(
             Line(
                 role="assistant",
@@ -829,26 +817,26 @@ Following is my instructions:
         )
         self.process_events()
 
-    def __complete_chat(self):
+    def __complete_chat(self, status: str = "generating"):
         if self.__is_generating:
             return
 
-        self.set_message("responding")
+        self.set_message(status)
         self.__is_generating = True
         self.__cur_subindex = 0
 
-        message = Message(
+        self._out_message = Message(
             role="assistant",
             text="",
             timestamp=datetime.now().timestamp(),
         )
-        self.get_messages().append(message)
+        messages = self.get_messages(expand_context=True)
 
         async def chat_task():
             try:
                 chunk_index = 0
                 async for chunk in await complete_chat(
-                    messages=self.get_messages(expand_context=True),
+                    messages=messages,
                     model=self.get_setting("model"),
                     system_prompt=self.get_system_prompt(),
                     tools=self.get_tools(),
@@ -868,7 +856,7 @@ Following is my instructions:
                         lambda: self.on_reasoning(text)
                     ),
                     web_search=self.get_setting("web_search"),
-                    out_message=message,
+                    out_message=self._out_message,
                 ):
                     self.post_event(
                         lambda chunk_index=chunk_index, chunk=chunk: self.__on_chat_chunk(
@@ -894,45 +882,47 @@ Following is my instructions:
 
         _loop.call_soon_threadsafe(create_task)
 
-    def __get_last_message(self) -> Message:
-        return self.get_messages()[-1]
-
     def __on_chat_done(self, cancelled=False):
+        assert self._out_message
         self.__is_generating = False
         self.__cur_subindex = 0
 
         if cancelled:
-            self.__get_last_message()["text"] += f"\n{_INTERRUPT_MESSAGE}"
+            self._out_message["text"] += f"\n{_INTERRUPT_MESSAGE}"
             self.append_item(
                 Line(
                     role="assistant",
                     text=f"{_INTERRUPT_MESSAGE}",
-                    msg_index=len(self.get_messages()) - 1,
+                    msg_index=self.get_message_index_and_subindex()[0],
                     subindex=self.__cur_subindex,
                 )
             )
-        else:
-            last_message = self.__get_last_message()["text"]
-            self.on_message(last_message)
 
+        text = self._out_message["text"]
+        self.get_messages().append(self._out_message)
+        self.save_chat()
+        self.set_message("cancelled" if cancelled else "done")
+        self._out_message = None
+
+        if not cancelled:
             if self.__copy:
-                set_clip(last_message)
+                set_clip(text)
                 self.close()
             elif self.__out_file:
                 with open(self.__out_file, "w", encoding="utf-8") as f:
-                    f.write(last_message)
+                    f.write(text)
                 self.close()
 
-        self.save_chat()
-        self.set_message("cancelled" if cancelled else "done")
+            self.on_message(text)
 
     def __on_chat_chunk(self, chunk_index: int, chunk: str):
-        self.__get_last_message()["text"] += chunk
+        assert self._out_message
+        self._out_message["text"] += chunk
         for i, a in enumerate(chunk.split("\n")):
             if i > 0 or chunk_index == 0:
                 line = Line(
                     role="assistant",
-                    msg_index=len(self.get_messages()) - 1,
+                    msg_index=self.get_message_index_and_subindex()[0],
                     subindex=self.__cur_subindex,
                 )
                 self.append_item(line)
@@ -945,7 +935,12 @@ Following is my instructions:
         self.__is_generating = False
         self.__cur_subindex = 0
 
-        ExceptionMenu(exception=exception).exec()
+        if self.get_setting("retry"):
+            self.__retry_count += 1
+            self.__complete_chat(status=f"retry {self.__retry_count}: {exception}")
+        else:
+            menu = ExceptionMenu(exception=exception)
+            menu.exec()
 
     def save_chat(self):
         if self.__chat_file is None:
@@ -1121,7 +1116,9 @@ Following is my instructions:
             from PIL import Image, ImageGrab
 
             im = ImageGrab.grabclipboard()
+
             if isinstance(im, Image.Image):
+                im = im.convert("RGB")
                 with tempfile.NamedTemporaryFile(
                     suffix=".jpg", delete=True
                 ) as temp_file:

@@ -17,12 +17,12 @@ if __name__ == "__main__":
     else:
         file = os.environ["SSH_FILE_TO_PUSH"]
 
-    # Prerequisite: SSH_HOST, SSH_USER, SSH_PWD, SSH_PORT
+    user = os.environ["SSH_USER"]
     push_file_ssh(
         file,
-        dest="/home/rossning92",
-        host=os.environ.get("SSH_HOST"),
-        user=os.environ.get("SSH_USER"),
-        pwd=os.environ.get("SSH_PWD"),
+        dest=f"/home/{user}",
+        host=os.environ["SSH_HOST"],
+        user=user,
+        pwd=os.environ["SSH_PWD"],
         port=os.environ.get("SSH_PORT"),
     )

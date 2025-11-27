@@ -369,11 +369,10 @@ class AgentMenu(ChatMenu):
         if not self.get_setting("tool_use_api"):
             return
 
-        msg_index, subindex = self.get_next_message_index_and_subindex()
+        msg_index, subindex = self.get_message_index_and_subindex()
         self.append_item(
             Line(
                 role="assistant",
-                text=get_tool_use_text(tool_use),
                 msg_index=msg_index,
                 subindex=subindex,
                 tool_use=tool_use,
@@ -389,11 +388,10 @@ class AgentMenu(ChatMenu):
         if not self.get_setting("tool_use_api"):
             return
 
-        messages = self.get_messages()
-        assert len(messages) > 0
-        if "tool_use" not in messages[-1]:
-            messages[-1]["tool_use"] = []
-        messages[-1]["tool_use"].append(tool_use)
+        assert self._out_message
+        if "tool_use" not in self._out_message:
+            self._out_message["tool_use"] = []
+        self._out_message["tool_use"].append(tool_use)
 
         # Add or update tool use result
         exists = False
@@ -406,7 +404,7 @@ class AgentMenu(ChatMenu):
                 exists = True
                 break
         if not exists:
-            msg_index, subindex = self.get_next_message_index_and_subindex()
+            msg_index, subindex = self.get_message_index_and_subindex()
             self.append_item(
                 Line(
                     role="assistant",

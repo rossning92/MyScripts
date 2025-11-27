@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 from platform import platform
 from typing import Any, Callable, Dict, List, Optional
 
@@ -184,13 +185,13 @@ class CodeAgentMenu(AgentMenu):
             self.__open_diff()
 
 
-def _parse_files(files: List[str]) -> List[str]:
-    # If only one file is specified, switch to its directory.
-    if files and len(files) == 1 and os.path.isabs(files[0]):
-        dir_name = os.path.dirname(files[0])
-        os.chdir(dir_name)
-        files[0] = os.path.basename(files[0])
-    return files
+def _find_git_root() -> Optional[str]:
+    current = Path.cwd()
+    while current != current.parent:
+        if (current / ".git").exists():
+            return str(current)
+        current = current.parent
+    return None
 
 
 def _main():
@@ -209,14 +210,28 @@ def _main():
     if args.model:
         SettingsMenu.default_model = args.model
 
+    # Change directory to the project root
     if args.dir:
         if not os.path.exists(args.dir):
             os.makedirs(args.dir, exist_ok=True)
-        os.chdir(args.dir)
+        root = args.dir
+    else:
+        git_root = _find_git_root()
+        if git_root:
+            root = git_root
+        elif args.files and len(args.files) == 1:
+            root = os.path.dirname(args.files[0])
+        else:
+            root = os.getcwd()
+    os.chdir(root)
 
-    files = _parse_files(args.files)
+    # Convert files to relative path
+    files = [
+        os.path.relpath(file, root) if os.path.isabs(file) else file
+        for file in args.files
+    ]
 
-    menu = CodeAgentMenu(files)
+    menu = CodeAgentMenu(files=files)
     menu.exec()
 
 

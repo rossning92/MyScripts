@@ -6,7 +6,13 @@ from utils.menu import Menu
 
 
 class ExceptionMenu(Menu[str]):
-    def __init__(self, exception: Optional[Exception] = None):
+    def __init__(
+        self,
+        exception: Optional[Exception] = None,
+        prompt="exception",
+    ):
+        self.__prompt = prompt
+
         output = io.StringIO()
         if exception:
             traceback.print_exception(
@@ -18,4 +24,7 @@ class ExceptionMenu(Menu[str]):
         else:
             traceback.print_exc(file=output)
         err_lines = output.getvalue().splitlines()
-        super().__init__(prompt="exception", items=err_lines)
+        super().__init__(
+            prompt=self.__prompt,
+            items=err_lines,
+        )

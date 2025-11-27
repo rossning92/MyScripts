@@ -15,10 +15,11 @@ vim.keymap.set('n', '<down>', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent
 vim.keymap.set('i', '<up>', '<C-o>gk', { silent = true })
 vim.keymap.set('i', '<down>', '<C-o>gj', { silent = true })
 
-vim.keymap.set('n', '<C-A>', 'ggVG', { noremap = true, silent = true })
-vim.keymap.set('i', '<C-A>', '<Esc>ggVG', { noremap = true, silent = true })
+-- Scroll half‑pages and recenter the cursor
+vim.keymap.set("n", "<C-u>", "<C-u>zz", { silent = true })
+vim.keymap.set("n", "<C-d>", "<C-d>zz", { silent = true })
 
--- Hotkeys to save the file
+-- Quickly save the file
 vim.keymap.set("i", "WW", "<Esc>:w<CR>i")
 vim.keymap.set({ "n", "o" }, "WW", ":w<CR>")
 

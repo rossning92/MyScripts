@@ -1,4 +1,5 @@
 {
   "commandWrapper": false,
-  "hotkey": "ctrl+e"
+  "hotkey": "ctrl+e",
+  "title": "edt"
 }

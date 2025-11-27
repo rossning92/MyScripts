@@ -49,9 +49,6 @@ if __name__ == "__main__":
 
     update_env_var_explorer()
 
-    if "cd" not in kwargs:
-        kwargs["cd"] = False
-
     if kwargs.get("log", None):
         del kwargs["log"]
         setup_logger()

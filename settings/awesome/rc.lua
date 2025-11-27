@@ -223,7 +223,7 @@ awful.screen.connect_for_each_screen(function(s)
 
     local spacer = wibox.widget.separator {
         orientation = "vertical",
-        forced_width = 16,
+        forced_width = 1,
         color = "gray"
     }
 

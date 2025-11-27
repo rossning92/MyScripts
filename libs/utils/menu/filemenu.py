@@ -164,6 +164,7 @@ class FileMenu(Menu[_File]):
         self.__show_mtime = show_mtime
         self.__show_size = show_size
         self.__allow_cd = allow_cd
+        self.__recursive = recursive
 
         super().__init__(items=self.__files, wrap_text=True)
 
@@ -175,7 +176,7 @@ class FileMenu(Menu[_File]):
         self.add_command(self._delete_files, hotkey="ctrl+k")
         self.add_command(self._edit_text_file, hotkey="ctrl+e")
         self.add_command(self._get_dir_size, hotkey="alt+s")
-        self.add_command(self._list_files_recursively, hotkey="ctrl+l")
+        self.add_command(self._toggle_recursive, hotkey="ctrl+l")
         self.add_command(self._move_to, hotkey="alt+m")
         self.add_command(self._open_terminal, hotkey="ctrl+t")
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
@@ -195,25 +196,21 @@ class FileMenu(Menu[_File]):
                 self.goto_directory(
                     os.getcwd(),
                     selected_file=self.__config.selected_file,
-                    list_file_recursively=recursive,
                 )
             elif os.path.isdir(goto):
                 self.goto_directory(
                     goto,
                     selected_file=self.__config.selected_file,
-                    list_file_recursively=recursive,
                 )
             else:
                 self.goto_directory(
                     os.path.dirname(goto),
                     os.path.basename(goto),
-                    list_file_recursively=recursive,
                 )
         else:
             self.goto_directory(
                 self.__config.cur_dir,
                 selected_file=self.__config.selected_file,
-                list_file_recursively=recursive,
             )
 
     def on_created(self):
@@ -362,9 +359,10 @@ class FileMenu(Menu[_File]):
                     d = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
                     self.goto_directory(d)
 
-    def _list_files_recursively(self):
-        self.set_message("Find files recursively.")
-        self.goto_directory(self.get_cur_dir(), list_file_recursively=True)
+    def _toggle_recursive(self):
+        self.__recursive = not self.__recursive
+        self.set_message(f"recursive={self.__recursive}")
+        self.goto_directory(self.get_cur_dir())
 
     def _rename_file(self):
         selected = self.get_selected_item()
@@ -462,7 +460,6 @@ class FileMenu(Menu[_File]):
         self,
         directory: str,
         selected_file: Optional[str] = None,
-        list_file_recursively=False,
     ):
         self.set_message(None)
 
@@ -485,7 +482,7 @@ class FileMenu(Menu[_File]):
                 self.__config.save(self.__config_file)
 
         # Enumerate files
-        self._list_files(list_file_recursively=list_file_recursively)
+        self._list_files()
 
         # Clear input
         self.clear_input()
@@ -513,10 +510,10 @@ class FileMenu(Menu[_File]):
             except StopIteration:
                 pass
 
-    def _list_files(self, list_file_recursively=False):
+    def _list_files(self):
         self.__files.clear()
 
-        if list_file_recursively:
+        if self.__recursive:
             files = list(
                 glob.glob(os.path.join(self.get_cur_dir(), "**", "*"), recursive=True)
             )
