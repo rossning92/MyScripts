@@ -1,0 +1,22 @@
+from typing import Literal
+
+MODELS = Literal[
+    "claude-sonnet-4-5",
+    "claude-sonnet-4-0",
+    "gpt-5.1-chat-latest",
+    "gpt-5.1(low)",
+    "gpt-5-codex(low)",
+    "gpt-5-chat-latest",
+    "gpt-5",
+    "gpt-5(low)",
+    "gpt-4.1",
+    "gpt-4.1-mini",
+    "gemini-3-pro-image-preview",
+    "gemini-2.5-flash-image",
+    "openrouter:google/gemini-3-pro-image-preview",
+    "openrouter:google/gemini-3-pro-preview",
+    "openrouter:google/gemini-3-pro-preview(reasoning)",
+    "openrouter:deepseek/deepseek-chat-v3.1",
+    "openrouter:qwen/qwen-plus-2025-07-28",
+]
+DEFAULT_MODEL = "gpt-5.1-chat-latest"

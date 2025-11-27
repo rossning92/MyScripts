@@ -1845,7 +1845,7 @@ def run_script(
     new_window=False,  # should not start a new window by default
     restart_instance=False,
     single_instance=False,
-    cd=True,
+    cd=False,
     command_wrapper=False,
     tee=False,
     **kwargs,

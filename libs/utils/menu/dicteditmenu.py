@@ -1,4 +1,3 @@
-import curses
 from collections import OrderedDict
 from typing import (
     Any,
@@ -176,6 +175,8 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.add_command(self.__next_value, hotkey="right")
         self.add_command(self.__paste_value, hotkey="ctrl+v")
         self.add_command(self.__edit_value, hotkey="ctrl+e")
+        self.add_command(self.__reset_value, hotkey="ctrl+k")
+        self.add_command(self.__reset_value, hotkey="delete")
 
     def __prev_value(self):
         self.__prev_or_next_value(prev=True)
@@ -205,6 +206,18 @@ class DictEditMenu(Menu[_KeyValuePair]):
                         self.__notify_dict_updated()
                     except ValueError:
                         pass
+
+    def __reset_value(self):
+        key = self.get_selected_key()
+        if key is None:
+            return
+
+        default_values = self.get_default_values()
+        if key not in default_values:
+            return
+
+        self.__data[key] = default_values[key]
+        self.__notify_dict_updated()
 
     def __edit_value(self):
         key = self.get_selected_key()

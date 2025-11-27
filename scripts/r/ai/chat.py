@@ -11,6 +11,7 @@ from typing import (
 )
 
 import ai.anthropic.chat
+import ai.gemini.chat
 import ai.openai.chat
 import ai.openrouter.chat
 from ai.message import Message
@@ -77,6 +78,13 @@ async def complete_chat(
             on_image=on_image,
             on_tool_use=on_tool_use,
             on_reasoning=on_reasoning,
+            out_message=out_message,
+        )
+    elif model and model.startswith("gemini"):
+        return ai.gemini.chat.complete_chat(
+            messages=messages,
+            model=model,
+            on_image=on_image,
             out_message=out_message,
         )
     else:
