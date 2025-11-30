@@ -1,9 +1,9 @@
 import { register } from "@violentmonkey/shortcut";
 
 const defaultPanelBorderStyle = "1px solid lightgray";
-const defaultPanelCollapse = false;
-const defaultFontSize = "9pt";
-const defaultPanelOpacity = "0.8";
+const defaultPanelCollapse = true;
+const defaultFontSize = "10pt";
+const defaultPanelOpacity = "1.0";
 
 export {};
 
@@ -17,6 +17,7 @@ declare global {
   function highlight(el: HTMLElement, text?: string): void;
   function addText(text: string, { color = "black" }: { color?: string }): void;
   function click(el: HTMLElement): void;
+  function debug(): void;
   function download(url: string, filename?: string): void;
   function findElementByPartialText(text: string): Node | null;
   function findElementBySelector(selector: string): Node | null;
@@ -100,6 +101,7 @@ function createButtonContainer(
 ) {
   buttonContainer = document.createElement("div");
   buttonContainer.id = "userscriptlib-container";
+  buttonContainer.style.fontFamily = "monospace";
   panel.appendChild(buttonContainer);
   return buttonContainer;
 }
@@ -140,7 +142,8 @@ function createHandle({
   onClick?: () => void;
 }) {
   const handle = document.createElement("div");
-  handle.innerText = "[userscript]";
+  handle.innerText = "🖹";
+  handle.style.fontFamily = "monospace";
   handle.style.fontSize = defaultFontSize;
   handle.style.backgroundColor = "lightgray";
   handle.style.userSelect = "none";
@@ -224,6 +227,7 @@ _global.addButton = (name, onclick, hotkey) => {
   button.style.border = "none";
   button.style.color = "black";
   button.style.display = "block";
+  button.style.fontFamily = "monospace";
   button.style.fontSize = defaultFontSize;
   button.style.margin = "0";
   button.style.padding = "0px 8px";
@@ -592,3 +596,122 @@ _global.highlight = (ele, message = "👆") => {
 };
 
 _global.logd = logd;
+
+function getClickables(): Array<{
+  el: Element;
+  rect: { left: number; top: number; right: number; bottom: number };
+  text: string;
+}> {
+  let elements = Array.prototype.slice
+    .call(document.querySelectorAll("*"))
+    .filter((el: Element) => {
+      if (
+        el.tagName === "BUTTON" ||
+        el.tagName === "A" ||
+        (el.tagName === "INPUT" &&
+          (el as HTMLInputElement).type !== "hidden") ||
+        el.tagName === "TEXTAREA" ||
+        el.tagName === "SELECT" ||
+        (el as HTMLElement).onclick != null ||
+        window.getComputedStyle(el).cursor === "pointer"
+      ) {
+        const rect = el.getBoundingClientRect();
+        return (rect.right - rect.left) * (rect.bottom - rect.top) >= 20;
+      }
+      return false;
+    })
+    .map((el: Element) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        el,
+        rect: {
+          left: rect.left,
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom,
+        },
+        text: (() => {
+          const label =
+            el.getAttribute("aria-label") ||
+            el.getAttribute("title") ||
+            el.getAttribute("placeholder") ||
+            (el as HTMLElement).innerText ||
+            el.textContent ||
+            (el as HTMLInputElement).value;
+          return label ? label.replace(/\s+/g, " ").trim() : "";
+        })(),
+      };
+    })
+    .filter(
+      (x: {
+        el: Element;
+        rect: { left: number; top: number; right: number; bottom: number };
+        text: string;
+      }) => Boolean(x.text)
+    );
+
+  elements = elements.filter(
+    (x: {
+      el: Element;
+      rect: { left: number; top: number; right: number; bottom: number };
+      text: string;
+    }) =>
+      !elements.some(
+        (y: {
+          el: Element;
+          rect: { left: number; top: number; right: number; bottom: number };
+          text: string;
+        }) => x.el.contains(y.el) && !(x == y)
+      )
+  );
+  return elements;
+}
+
+function highlightElements(
+  elements: Array<{
+    el: Element;
+    rect: { left: number; top: number; right: number; bottom: number };
+    text: string;
+  }>
+) {
+  const boxes: HTMLDivElement[] = [];
+  elements.forEach(function (el: {
+    el: Element;
+    rect: { left: number; top: number; right: number; bottom: number };
+    text: string;
+  }) {
+    const width = el.rect.right - el.rect.left;
+    const height = el.rect.bottom - el.rect.top;
+    if (width <= 0 || height <= 0) return;
+    const box = document.createElement("div");
+    box.style.position = "fixed";
+    box.style.left = el.rect.left + "px";
+    box.style.top = el.rect.top + "px";
+    box.style.width = width + "px";
+    box.style.height = height + "px";
+    box.style.pointerEvents = "none";
+    box.style.boxSizing = "border-box";
+    box.style.zIndex = "2147483647";
+    box.style.border = "2px solid red";
+    const label = document.createElement("div");
+    label.textContent = el.text;
+    label.style.position = "absolute";
+    label.style.top = "0";
+    label.style.left = "0";
+    label.style.transform = "translateY(-100%)";
+    label.style.fontSize = "8pt";
+    label.style.whiteSpace = "nowrap";
+    label.style.pointerEvents = "none";
+    label.style.backgroundColor = "red";
+    label.style.color = "white";
+    box.appendChild(label);
+    document.body.appendChild(box);
+    boxes.push(box);
+  });
+  setTimeout(() => boxes.forEach((box) => box.remove()), 1000);
+}
+
+_global.debug = function () {
+  const elements = getClickables();
+  highlightElements(elements);
+};

@@ -142,17 +142,24 @@ def _putty_wrapper(command, extra_args=[], pwd=None, port=None):
         raise Exception("Non-zero return code.")
 
 
-def push_file_ssh(src, dest, user=None, host=None, pwd=None, port=None, wsl=True):
+def push_file_ssh(
+    src: List[str], dest, user=None, host=None, pwd=None, port=None, wsl=True
+):
     args = []
 
     args += ["scp", "-o", "StrictHostKeyChecking=no"]
-    args += ["-P", _get_port(port)]
 
-    # Source file
+    port = _get_port(port)
+    if port:
+        args += ["-P", port]
+
     use_wsl = wsl and sys.platform == "win32"
-    args += [convert_to_unix_path(src, wsl=True) if use_wsl else src]
 
-    # Dest file
+    if use_wsl:
+        args += [convert_to_unix_path(s, wsl=True) for s in src]
+    else:
+        args += src
+
     args += ["{}:{}".format(_get_user_host(user=user, host=host), dest)]
 
     if use_wsl:

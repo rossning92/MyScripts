@@ -91,7 +91,7 @@ def format_variables(variables, variable_names, variable_prefix) -> List[str]:
     ]
     for full_name, short_name in zip(variable_names, short_var_names):
         var_val = variables.get(full_name, "")
-        result.append(f"V {short_name:<16} : {var_val}")
+        result.append(f"v {short_name:<16} : {var_val}")
     return result
 
 
@@ -198,7 +198,7 @@ def get_scheduled_script_logs(script_manager: ScriptManager) -> List[str]:
         if os.path.exists(script_log_file):
             last_line = read_last_line(script_log_file)
             logs.append(
-                f"T {time_diff_str(scheduled_time):<4} : {os.path.basename(script.script_path)} : {last_line.strip()}"
+                f"t {time_diff_str(scheduled_time):<4} : {os.path.basename(script.script_path)} : {last_line.strip()}"
             )
     return logs
 
@@ -585,7 +585,7 @@ class _MyScriptMenu(Menu[Script]):
                 # Script configs
                 for name, value in script.cfg.items():
                     if value != default_script_config[name]:
-                        lines.append(f"C {name:<16} : {value}")
+                        lines.append(f"c {name:<16} : {value}")
 
             # Scheduled script logs
             if not self.__no_daemon:

@@ -10,6 +10,7 @@ declare global {
         color?: string;
     }): void;
     function click(el: HTMLElement): void;
+    function debug(): void;
     function download(url: string, filename?: string): void;
     function findElementByPartialText(text: string): Node | null;
     function findElementBySelector(selector: string): Node | null;

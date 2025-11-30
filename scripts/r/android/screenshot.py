@@ -6,8 +6,7 @@ from _shutil import get_home_path
 from utils.logger import setup_logger
 from utils.shutil import shell_open
 
-# adb shell screencap -p /sdcard/screencap.png
-# adb pull /sdcard/screencap.png
+# adb shell screencap -p /sdcard/screencap.png && adb pull /sdcard/screencap.png
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

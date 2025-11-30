@@ -1,5 +1,6 @@
 const os = require("os");
 const path = require("path");
+const fs = require("fs");
 const { spawn } = require("child_process");
 const puppeteer = require("puppeteer");
 const TurndownService = require("turndown");
@@ -9,8 +10,80 @@ const DEFAULT_DELAY_MS = 3000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const getChromeUserDataDir = () => {
+  if (process.platform === "win32") {
+    const base =
+      process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+    return path.join(base, "Google", "Chrome", "User Data");
+  }
+  if (process.platform === "darwin") {
+    return path.join(
+      os.homedir(),
+      "Library",
+      "Application Support",
+      "Google",
+      "Chrome"
+    );
+  }
+  return path.join(os.homedir(), ".config", "google-chrome");
+};
+
+const copyDirectory = async (src, dest) => {
+  const entries = await fs.promises.readdir(src, { withFileTypes: true });
+  await fs.promises.mkdir(dest, { recursive: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      await copyDirectory(srcPath, destPath);
+    } else if (entry.isSymbolicLink()) {
+      const link = await fs.promises.readlink(srcPath);
+      await fs.promises.symlink(link, destPath);
+    } else {
+      await fs.promises.copyFile(srcPath, destPath);
+    }
+  }
+};
+
+const ensureDefaultProfile = async () => {
+  const defaultProfileSrc = path.join(getChromeUserDataDir(), "Default");
+  const defaultProfileDest = path.join(USER_DATA_DIR, "Default");
+  try {
+    await fs.promises.access(defaultProfileDest, fs.constants.F_OK);
+    return;
+  } catch (_) {}
+  try {
+    await fs.promises.access(defaultProfileSrc, fs.constants.F_OK);
+  } catch (_) {
+    return;
+  }
+  await copyDirectory(defaultProfileSrc, defaultProfileDest);
+  const localStateSrc = path.join(
+    path.dirname(defaultProfileSrc),
+    "Local State"
+  );
+  const localStateDest = path.join(USER_DATA_DIR, "Local State");
+  try {
+    await fs.promises.copyFile(localStateSrc, localStateDest);
+  } catch (_) {}
+};
+
+const getExecutablePath = () => {
+  const defaults = {
+    win32: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    linux: "/usr/bin/google-chrome",
+  };
+  const defaultPath = defaults[process.platform];
+  if (defaultPath && fs.existsSync(defaultPath)) {
+    return defaultPath;
+  }
+  return puppeteer.executablePath();
+};
+
 async function launchDetachedChrome() {
-  const executablePath = puppeteer.executablePath();
+  await ensureDefaultProfile();
+  const executablePath = getExecutablePath();
   const chromeArgs = [
     `--remote-debugging-port=21222`,
     `--user-data-dir=${USER_DATA_DIR}`,

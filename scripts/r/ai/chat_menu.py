@@ -518,7 +518,7 @@ class ChatMenu(Menu[Line]):
                     return
                 context[name] = val
 
-        self.send_message(rendered_message)
+        self.set_input(self.get_input() + rendered_message)
 
     def __show_more(self) -> bool:
         selected = self.get_selected_item()
@@ -535,7 +535,7 @@ class ChatMenu(Menu[Line]):
                 TextMenu(text=args, prompt="Tool use args").exec()
                 return True
             elif selected.context:
-                TextMenu(text=selected.context, prompt="Context").exec()
+                TextMenu(text=selected.context, prompt="context").exec()
                 return True
             elif selected.image_url:
                 _open_image(selected.image_url)
@@ -581,6 +581,8 @@ class ChatMenu(Menu[Line]):
 
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
+        if self.__context:
+            prompt += f" (ctx: {truncate_text(self.__context, max_chars=16)})"
         if self.__image_urls:
             prompt += f" ({len(self.__image_urls)} images)"
         self.set_prompt(prompt)
@@ -705,10 +707,10 @@ class ChatMenu(Menu[Line]):
         context: Optional[str] = None
         if self.__context:
             if not is_text_file(self.__context):
-                raise Exception(f"Context file is not a text file: {self.__context}")
-
-            with open(self.__context, "r", encoding="utf-8") as f:
-                context = f.read()
+                context = self.__context
+            else:
+                with open(self.__context, "r", encoding="utf-8") as f:
+                    context = f.read()
 
             if self.__edit_text:
                 text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
@@ -1119,13 +1121,15 @@ Following is my instructions:
 
             if isinstance(im, Image.Image):
                 im = im.convert("RGB")
-                with tempfile.NamedTemporaryFile(
-                    suffix=".jpg", delete=True
-                ) as temp_file:
-                    im.save(temp_file.name)
-                    self.__image_urls.append(encode_image_base64(temp_file.name))
+                fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+                os.close(fd)
+                try:
+                    im.save(temp_path)
+                    self.__image_urls.append(encode_image_base64(temp_path))
                     self.__update_prompt()
                     return True
+                finally:
+                    os.remove(temp_path)
 
         return False
 
@@ -1133,7 +1137,7 @@ Following is my instructions:
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?", help="input message")
-    parser.add_argument("-a", "--context", type=str, nargs="?")
+    parser.add_argument("-c", "--context", type=str, nargs="?")
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)

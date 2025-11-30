@@ -311,17 +311,21 @@ def get_all_variables() -> Dict[str, str]:
             return json.load(f)
 
 
-def get_variable(name):
+def get_variable(name) -> Optional[str]:
     with FileLock("access_variable"):
         f = get_variable_file()
         if not os.path.exists(f):
-            return
+            return None
 
         with open(get_variable_file(), "r") as f:
             variables = json.load(f)
 
         if name not in variables:
-            return
+            return None
+
+        value = variables[name]
+        if not value:
+            return None
 
         return variables[name]
 
@@ -693,12 +697,9 @@ class Script:
         # Get all variables for the script
         variables = {}
         for vname in vnames:
-            if vname in saved_variables:
-                last_modified_value = saved_variables[vname]
-                # Note that last_modified_value can be an empty string
-                variables[vname] = last_modified_value
-            else:
-                variables[vname] = ""
+            value = saved_variables.get(vname)
+            if value:
+                variables[vname] = value
 
         variables["MYSCRIPT_ROOT"] = get_my_script_root()
 

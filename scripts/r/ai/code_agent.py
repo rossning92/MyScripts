@@ -185,8 +185,8 @@ class CodeAgentMenu(AgentMenu):
             self.__open_diff()
 
 
-def _find_git_root() -> Optional[str]:
-    current = Path.cwd()
+def _find_git_root(path) -> Optional[str]:
+    current = Path(path)
     while current != current.parent:
         if (current / ".git").exists():
             return str(current)
@@ -215,12 +215,15 @@ def _main():
         if not os.path.exists(args.dir):
             os.makedirs(args.dir, exist_ok=True)
         root = args.dir
-    else:
-        git_root = _find_git_root()
+    elif len(args.files) == 1 and os.path.isabs(args.files[0]):
+        root = os.path.dirname(args.files[0])
+        git_root = _find_git_root(root)
         if git_root:
             root = git_root
-        elif args.files and len(args.files) == 1:
-            root = os.path.dirname(args.files[0])
+    else:
+        git_root = _find_git_root(os.getcwd())
+        if git_root:
+            root = git_root
         else:
             root = os.getcwd()
     os.chdir(root)

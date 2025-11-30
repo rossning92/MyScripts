@@ -10,22 +10,18 @@
 // ==/UserScript==
 
 addButton(
-  "Say hello!",
+  "ask",
   () => {
-    alert("Hello, World!");
+    system([
+      "start_script",
+      "--restart-instance=1",
+      "r/ai/chat_menu.py",
+      "--context",
+      document.body.innerText,
+    ]);
   },
   "c-i"
 );
-
-addButton("Sleep 3 secs", () => {
-  sleep(() => {
-    logd("Slept for 3 sec.");
-  }, 3000);
-});
-
-addButton("Run calculator", () => {
-  system(["calc"]);
-});
 
 addButton("Test saveData()", () => {
   saveData("test_data", { foo: "bar" }).then((result) => {
@@ -37,4 +33,8 @@ addButton("Test loadData()", () => {
   loadData("test_data", {}).then((data) => {
     alert(JSON.stringify(data, null, 4));
   });
+});
+
+addButton("debug", () => {
+  debug();
 });

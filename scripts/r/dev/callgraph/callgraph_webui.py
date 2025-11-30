@@ -1,5 +1,7 @@
 import argparse
 import os
+import webbrowser
+from threading import Timer
 
 from dev.callgraph.callgraph import generate_call_graph
 from dev.callgraph.mermaid_callgraph import render_mermaid_flowchart
@@ -20,13 +22,11 @@ def index():
 
     match = request.args.get("match")
 
-    match_callers = request.args.get("match_callers")
-    if match_callers:
-        match_callers = int(match_callers)
+    match_callers_str = request.args.get("match_callers")
+    match_callers: int | None = int(match_callers_str) if match_callers_str else None
 
-    match_callees = request.args.get("match_callees")
-    if match_callees:
-        match_callees = int(match_callees)
+    match_callees_str = request.args.get("match_callees")
+    match_callees: int | None = int(match_callees_str) if match_callees_str else None
 
     direction = "LR"
     annotate = None
@@ -61,6 +61,7 @@ def _main():
 
     setup_logger()
 
+    Timer(1.0, lambda: webbrowser.open(f"http://localhost:{args.port}")).start()
     app.run(host="0.0.0.0", port=args.port, debug=True)
 
 
