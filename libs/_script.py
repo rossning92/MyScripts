@@ -868,16 +868,18 @@ class Script:
         variables = self.get_variables()
 
         # Override environment variable with user input.
-        if self.cfg["env.userInput"]:
+        if self.cfg["var.required"]:
             from utils.menu.inputmenu import InputMenu
 
-            assert isinstance(self.cfg["env.userInput"], str)
-            env_var_names = self.cfg["env.userInput"].split()
-            for name in env_var_names:
-                val = InputMenu(prompt="input " + name).request_input()
-                if not val:
-                    return True
-                variables[name] = val
+            assert isinstance(self.cfg["var.required"], str)
+            required_vars = self.cfg["var.required"].split()
+            for name in required_vars:
+                if not variables.get(name, ""):
+                    val = InputMenu(prompt="input " + name).request_input()
+                    if not val:
+                        return True  # cancelled
+                    variables[name] = val
+                    set_variable(name, val, set_env_var=False)
 
         logging.info(
             "execute: %s %s"
@@ -1874,7 +1876,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "args.selection": False,
         "args.selectionAsFile": False,
         "args.userInput": False,
-        "env.userInput": "",
+        "var.required": "",
         "args": "",
         "autoRun": False,
         "background": False,
