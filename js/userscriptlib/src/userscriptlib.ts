@@ -5,7 +5,7 @@ const defaultPanelCollapse = true;
 const defaultFontSize = "10pt";
 const defaultPanelOpacity = "1.0";
 
-export {};
+export { };
 
 declare global {
   interface Navigator {

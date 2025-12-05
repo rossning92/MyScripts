@@ -178,6 +178,7 @@ def wrap_wsl(
     commands: Union[List[str], Tuple[str], str],
     env: Optional[Dict[str, str]],
     distro: Optional[str] = None,
+    shell="bash",
 ) -> List[str]:
     if not os.path.exists(r"C:\Windows\System32\bash.exe"):
         raise FileNotFoundError("WSL is not installed")
@@ -185,7 +186,7 @@ def wrap_wsl(
 
     # To create a temp bash script to invoke commands to avoid command being parsed
     # by current shell
-    bash = ""
+    sh = ""
 
     if env is not None:
         # Workaround: PATH environmental variable can't be shared between windows
@@ -194,19 +195,15 @@ def wrap_wsl(
             del env["PATH"]
 
         for k, v in env.items():
-            bash += "export {}='{}'\n".format(k, v)
+            sh += "export {}='{}'\n".format(k, v)
 
     if isinstance(commands, (list, tuple)):
-        bash += _args_to_str(commands, shell_type="bash")
+        sh += _args_to_str(commands, shell_type="bash")
     else:
-        bash += commands
+        sh += commands
 
-    tmp_sh_file = write_temp_file(bash, ".sh")
+    tmp_sh_file = write_temp_file(sh, ".sh")
     tmp_sh_file = convert_to_unix_path(tmp_sh_file, wsl=True)
-
-    # # Escape dollar sign? Why?
-    # commands = commands.replace("$", r"\$")
-    # return ["bash.exe", "-c", commands]
 
     logging.debug("wrap_wsl(): write temp shell script: %s" % tmp_sh_file)
     return (
@@ -214,10 +211,10 @@ def wrap_wsl(
             "wsl",
             "-d",
             distro,
-            "bash",
+            shell,
         ]
         if distro
-        else ["bash.exe"]
+        else [f"{shell}.exe"]
     ) + [
         # Ensures that .bashrc is read
         "-l",
@@ -227,7 +224,12 @@ def wrap_wsl(
     ]
 
 
-def wrap_bash_win(args: List[str], env: Optional[Dict[str, str]] = None, msys2=False):
+def wrap_bash_win(
+    args: List[str],
+    env: Optional[Dict[str, str]] = None,
+    msys2=False,
+    shell="bash",
+):
     if env is not None:
         # https://www.msys2.org/wiki/MSYS2-introduction/#path
         env["MSYS_NO_PATHCONV"] = "1"  # Disable path conversion
@@ -240,30 +242,30 @@ def wrap_bash_win(args: List[str], env: Optional[Dict[str, str]] = None, msys2=F
     msys2_bash_search_list = []
     if msys2:
         msys2_bash_search_list += [
-            r"C:\tools\msys64\usr\bin\bash.exe",
-            r"C:\msys64\usr\bin\bash.exe",
+            rf"C:\tools\msys64\usr\bin\{shell}.exe",
+            rf"C:\msys64\usr\bin\{shell}.exe",
         ]
     msys2_bash_search_list += [
-        r"C:\Program Files\Git\bin\bash.exe",
+        rf"C:\Program Files\Git\bin\{shell}.exe",
     ]
-    bash_exec = None
+    sh = None
     for f in msys2_bash_search_list:
         if os.path.exists(f):
-            bash_exec = f
+            sh = f
             break
-    logging.debug("bash_exec = %s" % bash_exec)
+    logging.debug(f"{shell}_exec = %s" % sh)
 
-    if bash_exec is None:
-        raise FileNotFoundError("Cannot find MinGW bash.exe")
+    if sh is None:
+        raise FileNotFoundError(f"Cannot find MinGW {shell}.exe")
 
-    if len(args) == 1 and args[0].endswith(".sh"):
+    if len(args) == 1 and args[0].endswith(".sh") or args[0].endswith(".expect"):
         # -l: must start as a login shell otherwise the PATH environmental
         # variable is not correctly set up.
-        return [bash_exec, "-l", args[0]]
+        return [sh] + (["-l"] if args[0].endswith(".sh") else []) + [args[0]]
     else:
         bash_cmd = _args_to_str(["bash"] + args, shell_type="bash")
         logging.debug("bash_cmd = %s" % bash_cmd)
-        return [bash_exec, "-l", "-c", bash_cmd]
+        return [sh, "-l", "-c", bash_cmd]
 
 
 def wrap_bash_commands(
@@ -272,20 +274,21 @@ def wrap_bash_commands(
     wsl_distro: Optional[str] = None,
     env: Optional[Dict[str, str]] = None,
     msys2=False,
+    shell="bash",
 ) -> List[str]:
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
-            return wrap_wsl(args, env=env, distro=wsl_distro)
+            return wrap_wsl(args, env=env, distro=wsl_distro, shell=shell)
         else:
-            return wrap_bash_win(args, env=env, msys2=msys2)
+            return wrap_bash_win(args, env=env, msys2=msys2, shell=shell)
 
     else:  # Linux
         if len(args) == 1 and args[0].endswith(".sh"):
-            return ["bash", args[0]]
+            return [shell, args[0]]
         else:
-            bash_cmd = "bash " + _args_to_str(args, shell_type="bash")
+            bash_cmd = f"{shell} " + _args_to_str(args, shell_type="bash")
             logging.debug("bash_cmd = %s" % bash_cmd)
-            return ["bash", "-c", bash_cmd]
+            return [shell, "-c", bash_cmd]
 
 
 def exec_cmd(cmd):
@@ -719,7 +722,7 @@ class Script:
         }
 
         # Variables can be overridden by environmental variables
-        for name in variables.keys():
+        for name in vnames:
             if name in os.environ:
                 val = os.environ[name]
                 variables[name] = val
@@ -1159,7 +1162,7 @@ class Script:
                 npm_install(cwd=os.path.dirname(script_path))
                 arg_list = ["node", script_path] + arg_list
 
-        elif ext == ".sh":
+        elif ext == ".sh" or ext == ".expect":
             if template:
                 script_path = write_temp_file(
                     self.render(variables=variables),
@@ -1180,14 +1183,7 @@ class Script:
                 wsl_distro=self.cfg["wsl.distro"],
                 env=env,
                 msys2=self.cfg["msys2"],
-            )
-
-        elif ext == ".expect":
-            arg_list = wrap_bash_commands(
-                ["expect", convert_to_unix_path(script_path, wsl=True)],
-                wsl=True,
-                wsl_distro=self.cfg["wsl.distro"],
-                env=env,
+                shell="expect" if ext == ".expect" else "bash",
             )
 
         elif ext == ".py" or ext == ".ipynb":

@@ -12,12 +12,13 @@
 addButton(
   "ask",
   () => {
+    saveFile("/tmp/context.txt", document.body.innerText);
     system([
       "start_script",
       "--restart-instance=1",
       "r/ai/chat_menu.py",
       "--context",
-      document.body.innerText,
+      "/tmp/context.txt",
     ]);
   },
   "c-i"

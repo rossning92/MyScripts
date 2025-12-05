@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from pprint import pformat
 from typing import (
     Any,
     AsyncIterator,
@@ -82,8 +83,6 @@ async def complete_chat(
     web_search=False,
     out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
-    logger.debug(f"messages: {messages}")
-
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
         raise Exception("OPENAI_API_KEY must be provided.")
@@ -154,6 +153,8 @@ async def complete_chat(
 
     if payload_tools:
         payload["tools"] = payload_tools
+
+    logger.debug("payload: " + pformat(payload, width=200))
 
     async with aiohttp.ClientSession(raise_for_status=True) as session:
         async with session.post(url, headers=headers, json=payload) as response:

@@ -147,7 +147,7 @@ def function_to_tool_definition(func: Callable[..., Any]) -> ToolDefinition:
             ToolParam(name=name, type=type_str, description=f"Parameter {name}")
         )
 
-        if param.default == inspect.Parameter.empty:
+        if param.default is inspect.Parameter.empty:
             required.append(name)
 
     return ToolDefinition(
