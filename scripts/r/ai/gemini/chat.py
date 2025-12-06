@@ -6,6 +6,7 @@ from typing import AsyncIterator, Callable, List, Optional
 
 import aiohttp
 from ai.message import Message
+from utils.http import check_for_status
 from utils.imagedataurl import parse_image_data_url
 
 
@@ -56,7 +57,7 @@ async def complete_chat(
             headers=headers,
             json=payload,
         ) as response:
-            await _check_for_status(response)
+            await check_for_status(response)
 
             data = await response.json()
             logging.debug(f"data: {data}")
@@ -90,12 +91,6 @@ async def complete_chat(
                         yield text
                         if out_message:
                             out_message["text"] += text
-
-
-async def _check_for_status(response):
-    if response.status >= 400:
-        error_text = await response.text()
-        raise Exception(f"Request failed with status {response.status}: {error_text}")
 
 
 def _message_to_parts(message: Message):

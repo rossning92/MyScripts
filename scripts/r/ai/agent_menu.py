@@ -32,8 +32,6 @@ AGENT_DEFAULT = {
 
 def _get_prompt(tools: Optional[List[Callable]] = None):
     prompt = """You are my assistant to help me complete a task.
-- Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
-- You should do what the user asks you to do, and nothing else.
 
 # Tone
 
@@ -337,32 +335,17 @@ class AgentMenu(ChatMenu):
                         reply += f"The {to_ordinal(i+1)} tool using {tool_use['tool_name']} was interrupted by user.\n"
                     break
 
-        # Check if the task is completed
-        result = re.findall(
-            r"<result>\s*([\S\s]*?)\s*</result>", text_content, flags=re.MULTILINE
-        )
-        if len(result) > 0:
-            self.task_result = result[0] if result[0] else "Returns nothing."
-            if self.__run:
-                self.close()
-
-            self.on_response(result[0], done=True)
-            self.on_result(result[0])
-
-        elif not reply:
-            self.on_response(text_content, done=False)
+        if not reply:
+            self.on_response(text_content, done=not reply and not tool_results)
 
         reply = reply.rstrip()
         if reply or tool_results:
-            if not has_error and (result or interrupted):
+            if not has_error and interrupted:
                 self.append_user_message(reply, tool_results=tool_results)
             else:
                 self.send_message(reply, tool_results=tool_results)
 
     def on_response(self, text: str, done: bool):
-        pass
-
-    def on_result(self, result: str):
         pass
 
     def on_tool_use_start(self, tool_use: ToolUse):

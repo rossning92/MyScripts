@@ -14,6 +14,7 @@ from typing import (
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolUse, function_to_tool_definition
+from utils.http import check_for_status
 
 DEFAULT_MODEL = "gpt-4o"
 
@@ -139,9 +140,7 @@ async def complete_chat(
                             for param in tool.parameters
                         },
                         "required": tool.required,
-                        "additionalProperties": False,
                     },
-                    "strict": True,
                 }
                 for tool in map(function_to_tool_definition, tools)
             ]
@@ -156,8 +155,10 @@ async def complete_chat(
 
     logger.debug("payload: " + pformat(payload, width=200))
 
-    async with aiohttp.ClientSession(raise_for_status=True) as session:
+    async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=payload) as response:
+            await check_for_status(response)
+
             async for line in response.content:
                 line = line.rstrip(b"\n")
 

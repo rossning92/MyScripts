@@ -7,6 +7,7 @@ from typing import Any, AsyncIterator, Callable, Dict, List, Optional, cast
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolUse, function_to_tool_definition
+from utils.http import check_for_status
 
 
 async def complete_chat(
@@ -119,7 +120,7 @@ async def complete_chat(
             headers=headers,
             json=payload,
         ) as response:
-            await _check_for_status(response)
+            await check_for_status(response)
 
             buffer = b""
             async for chunk in response.content.iter_chunked(64 * 1024):
@@ -196,9 +197,3 @@ async def complete_chat(
                                         on_image(image_url)
                                     if out_message:
                                         out_message["image_urls"] = [image_url]
-
-
-async def _check_for_status(response):
-    if response.status >= 400:
-        error_text = await response.text()
-        raise Exception(f"Request failed with status {response.status}: {error_text}")
