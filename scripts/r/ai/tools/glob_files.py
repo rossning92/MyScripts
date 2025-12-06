@@ -2,7 +2,7 @@ import glob
 import os
 
 
-def glob_files(pattern) -> str:
+def glob_files(pattern: str) -> str:
     """
     Fast file pattern matching tool that works with any codebase size. Use this tool when you need to find files by name patterns.
     - Supports glob patterns like "**/*.js" or "src/**/*.ts"

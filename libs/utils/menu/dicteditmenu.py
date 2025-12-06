@@ -4,16 +4,14 @@ from typing import (
     Callable,
     Dict,
     List,
-    Literal,
     Optional,
     Tuple,
-    Type,
     Union,
-    get_origin,
 )
 
 from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
+from utils.jsonschema import JSONSchema
 
 from . import Menu
 from .listeditmenu import ListEditMenu
@@ -24,7 +22,7 @@ class _DictValueEditMenu(Menu[str]):
         self,
         data: Dict,
         name: str,
-        type: Type,
+        type: JSONSchema,
         dict_history_values: List,
         items: List,
     ):
@@ -33,8 +31,8 @@ class _DictValueEditMenu(Menu[str]):
         self.__name = name
         self.__type = type
 
-        if get_origin(self.__type) == Literal:
-            items = [x for x in self.__type.__args__]
+        if self.__type["type"] == "string" and "enum" in self.__type:
+            items = self.__type["enum"].copy()
 
         super().__init__(
             items=items,
@@ -48,13 +46,18 @@ class _DictValueEditMenu(Menu[str]):
         assert text is not None
 
         val: Union[str, int, float, bool]
-        if self.__type is str:
-            val = text.strip()
-        elif self.__type is int:
+        if self.__type["type"] == "string":
+            if "enum" in self.__type:
+                selected_val = self.get_selected_item()
+                assert selected_val
+                val = selected_val
+            else:
+                val = text.strip()
+        elif self.__type["type"] == "integer":
             val = int(text)
-        elif self.__type is float:
+        elif self.__type["type"] == "number":
             val = float(text)
-        elif self.__type is bool or self.__type is type(None):
+        elif self.__type["type"] == "boolean":
             if text.lower() == "true":
                 val = True
             elif text.lower() == "false":
@@ -65,14 +68,6 @@ class _DictValueEditMenu(Menu[str]):
                 val = False
             else:
                 raise Exception("Invalid bool value: {}".format(text))
-        elif get_origin(self.__type) == Literal:
-            if text.strip() == "":
-                selected_val = self.get_selected_item()
-                assert type(selected_val) is str
-                val = selected_val
-            else:
-                val = text.strip()
-
         else:
             raise Exception("Invalid type: {}".format(self.__type))
 
@@ -153,14 +148,14 @@ class DictEditMenu(Menu[_KeyValuePair]):
         dict_history: Dict[str, List[Any]] = {},
         on_dict_history_update: Optional[Callable[[Dict[str, List[Any]]], None]] = None,
         prompt="",
-        schema: Optional[Dict[str, Type]] = None,
+        schema: Optional[JSONSchema] = None,
     ):
         self.__data = data
         self.__default_dict: Dict[str, Any] = default_dict or {}
         self.__dict_history = dict_history
         self.__on_dict_history_update = on_dict_history_update
         self.__on_dict_update = on_dict_update
-        self.__schema: Dict[str, Any] = schema or {}
+        self.__schema: Optional[JSONSchema] = schema
 
         super().__init__(
             prompt=prompt,
@@ -299,7 +294,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
     def get_default_values(self) -> Dict[str, Any]:
         return self.__default_dict
 
-    def get_schema(self) -> Dict[str, Any]:
+    def get_schema(self) -> Optional[JSONSchema]:
         return self.__schema
 
     def __get_dict_history_values(self, name: str) -> List[str]:
@@ -339,14 +334,28 @@ class DictEditMenu(Menu[_KeyValuePair]):
         default_dict = self.get_default_values()
         schema = self.get_schema()
 
-        data_type = (
-            schema[name]
-            if schema
-            else (type(default_dict[name]) if default_dict else type(data[name]))
-        )
-        if data_type is list:
+        data_type: JSONSchema
+        if schema:
+            assert schema["type"] == "object"
+            data_type = schema["properties"][name]
+        elif default_dict:
+            if isinstance(default_dict[name], str):
+                data_type = {"type": "string"}
+            elif isinstance(default_dict[name], int):
+                data_type = {"type": "integer"}
+            elif isinstance(default_dict[name], float):
+                data_type = {"type": "number"}
+            elif isinstance(default_dict[name], bool):
+                data_type = {"type": "boolean"}
+            else:
+                raise Exception("Unsupported default_dict type: {default_dict[name]}")
+        if data_type["type"] == "array":
             list_values = data[name]
-            ListEditMenu(list_values, prompt=f"edit {name}").exec()
+            ListEditMenu(
+                list_values,
+                item_type=data_type["items"],
+                prompt=f"edit {name}",
+            ).exec()
         else:
             dict_history_values = self.__get_dict_history_values(name)
             _DictValueEditMenu(

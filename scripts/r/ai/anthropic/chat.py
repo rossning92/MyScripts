@@ -13,7 +13,7 @@ from typing import (
 import aiohttp
 from ai.message import Message
 from ai.tokenutil import token_count
-from ai.tool_use import ToolUse, function_to_tool_definition
+from ai.tool_use import ToolDefinition, ToolUse
 
 DEFAULT_MODEL = "claude-3-7-sonnet-latest"
 
@@ -50,7 +50,7 @@ async def complete_chat(
     messages: List[Message],
     model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
-    tools: Optional[List[Callable[..., Any]]] = None,
+    tools: Optional[List[ToolDefinition]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
@@ -94,7 +94,7 @@ async def complete_chat(
                     "type": "object",
                     "properties": {
                         param.name: {
-                            "type": param.type,
+                            **param.type,
                             "description": param.description,
                         }
                         for param in tool.parameters
@@ -102,7 +102,7 @@ async def complete_chat(
                     "required": tool.required,
                 },
             }
-            for tool in [function_to_tool_definition(func) for func in tools]
+            for tool in tools
         ]
 
     async with aiohttp.ClientSession(raise_for_status=True) as session:

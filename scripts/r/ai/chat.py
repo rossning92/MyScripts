@@ -3,7 +3,6 @@ import os
 import sys
 from datetime import datetime
 from typing import (
-    Any,
     AsyncIterator,
     Callable,
     List,
@@ -15,7 +14,7 @@ import ai.gemini.chat
 import ai.openai.chat
 import ai.openrouter.chat
 from ai.message import Message
-from ai.tool_use import ToolResult, ToolUse
+from ai.tool_use import ToolDefinition, ToolResult, ToolUse
 from utils.textutil import truncate_text
 
 
@@ -45,7 +44,7 @@ async def complete_chat(
     messages: List[Message],
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
-    tools: Optional[List[Callable[..., Any]]] = None,
+    tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,

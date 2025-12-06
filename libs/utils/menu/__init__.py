@@ -223,8 +223,13 @@ R = TypeVar("R")
 class Menu(Generic[T]):
     _should_update_screen = False
     color_pair_map: Dict[str, int] = {}
+
+    # Logging
     log_handler: Optional[logging.handlers.QueueHandler] = None
     logger: Optional[logging.Logger] = None
+    original_handlers: Optional[List[logging.Handler]] = None
+    original_level: Optional[int] = None
+
     stdscr = None
 
     def __init__(
@@ -365,16 +370,26 @@ class Menu(Generic[T]):
     def __setup_logging():
         Menu.log_handler = logging.handlers.QueueHandler(_logging_menu.queue)
         Menu.logger = logging.getLogger()
+        Menu.original_level = Menu.logger.level
         Menu.logger.setLevel(logging.DEBUG)
-        for handler in Menu.logger.handlers:
+        Menu.original_handlers = list(Menu.logger.handlers)
+        for handler in Menu.original_handlers:
             Menu.logger.removeHandler(handler)
         Menu.logger.addHandler(Menu.log_handler)
 
     @staticmethod
     def __teardown_logging():
-        if Menu.logger and Menu.log_handler:
-            Menu.logger.removeHandler(Menu.log_handler)
-            Menu.log_handler.close()
+        if Menu.logger:
+            if Menu.log_handler:
+                Menu.logger.removeHandler(Menu.log_handler)
+                Menu.log_handler.close()
+            if Menu.original_handlers is not None:
+                for handler in Menu.original_handlers:
+                    Menu.logger.addHandler(handler)
+                Menu.original_handlers = None
+            if Menu.original_level is not None:
+                Menu.logger.setLevel(Menu.original_level)
+                Menu.original_level = None
 
     def __enter__(self):
         if self.__is_stdscr_owner:
@@ -1534,7 +1549,7 @@ class Menu(Generic[T]):
 class LoggingMenu(Menu):
     def __init__(self):
         self.queue = Queue()
-        super().__init__()
+        super().__init__(prompt="logs")
 
     def on_idle(self):
         while not self.queue.empty():

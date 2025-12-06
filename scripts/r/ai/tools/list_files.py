@@ -2,7 +2,7 @@ import glob
 import os
 
 
-def list_files(path) -> str:
+def list_files(path: str) -> str:
     """
     Lists files and directories in a given path.
     - You MUST always use the `list_files` tool instead of commands like `ls`.

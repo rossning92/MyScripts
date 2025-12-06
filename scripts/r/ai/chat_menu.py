@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from pprint import pformat
 from threading import Thread
-from typing import Any, Callable, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 from urllib.parse import unquote_to_bytes
 
 from ai.chat import (
@@ -25,7 +25,7 @@ from ai.chat import (
 from ai.message import Message
 from ai.models import DEFAULT_MODEL, MODELS
 from ai.tokenutil import token_count
-from ai.tool_use import ToolResult, ToolUse
+from ai.tool_use import ToolDefinition, ToolResult, ToolUse
 from scripting.path import get_data_dir
 from utils.clip import set_clip
 from utils.dateutil import format_timestamp
@@ -33,6 +33,7 @@ from utils.editor import edit_text
 from utils.encode_image_base64 import encode_image_base64
 from utils.gitignore import create_gitignore
 from utils.historymanager import HistoryManager
+from utils.jsonschema import JSONSchema
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import confirm
@@ -90,8 +91,15 @@ class SettingsMenu(JsonEditMenu):
     def get_default_values(self) -> Dict[str, Any]:
         return {"model": DEFAULT_MODEL, "web_search": False, "retry": False}
 
-    def get_schema(self) -> Dict[str, Any]:
-        return {"model": MODELS, "web_search": bool, "retry": bool}
+    def get_schema(self) -> Optional[JSONSchema]:
+        return {
+            "type": "object",
+            "properties": {
+                "model": {"type": "string", "enum": MODELS},
+                "web_search": {"type": "boolean"},
+                "retry": {"type": "boolean"},
+            },
+        }
 
 
 class Line:
@@ -782,7 +790,7 @@ Following is my instructions:
         self.save_chat()
         self.update_screen()
 
-    def get_tools(self) -> Optional[List[Callable[..., Any]]]:
+    def get_tools(self) -> Optional[List[ToolDefinition]]:
         return None
 
     def on_tool_use_start(self, tool_use: ToolUse):

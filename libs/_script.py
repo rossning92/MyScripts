@@ -911,7 +911,7 @@ class Script:
             elif self.cfg["args.userInput"]:
                 from utils.menu.inputmenu import InputMenu
 
-                text = InputMenu().request_input()
+                text = InputMenu(prompt="args").request_input()
                 if not text:
                     return True
                 arg_list.append(text)

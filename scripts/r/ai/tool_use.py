@@ -9,10 +9,11 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Literal,
     TypedDict,
     get_type_hints,
 )
+
+from utils.jsonschema import JSONSchema
 
 
 class ToolUse(TypedDict):
@@ -111,8 +112,21 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
 @dataclass
 class ToolParam:
     name: str
-    type: Literal["integer", "number", "boolean", "string"]
+    type: JSONSchema
     description: str
+
+
+def python_type_to_tool_param_type(t: int | float | bool | str) -> JSONSchema:
+    if t is int:
+        return {"type": "integer"}
+    elif t is float:
+        return {"type": "number"}
+    elif t is bool:
+        return {"type": "boolean"}
+    elif t is str:
+        return {"type": "string"}
+    else:
+        raise ValueError(f"Unsupported type: {t}")
 
 
 @dataclass
@@ -133,18 +147,15 @@ def function_to_tool_definition(func: Callable[..., Any]) -> ToolDefinition:
     required = []
 
     for name, param in sig.parameters.items():
-        param_type = type_hints.get(name, None)
-        type_str: Literal["integer", "number", "boolean", "string"] = "string"
-        if param_type is not None:
-            if issubclass(param_type, int):
-                type_str = "integer"
-            elif issubclass(param_type, float):
-                type_str = "number"
-            elif issubclass(param_type, bool):
-                type_str = "boolean"
-
+        if name not in type_hints:
+            raise ValueError(f"Missing type hint for {func.__name__} param: {name}")
+        param_type = type_hints[name]
         properties.append(
-            ToolParam(name=name, type=type_str, description=f"Parameter {name}")
+            ToolParam(
+                name=name,
+                type=python_type_to_tool_param_type(param_type),
+                description=f"Parameter {name}",
+            )
         )
 
         if param.default is inspect.Parameter.empty:

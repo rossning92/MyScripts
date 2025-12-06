@@ -1,18 +1,21 @@
 import argparse
 import os
-import re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 import ai.chat_menu
 from ai.chat import get_tool_use_text
 from ai.chat_menu import ChatMenu, Line
+from ai.mcp import MCPClient
 from ai.tool_use import (
+    ToolDefinition,
     ToolResult,
     ToolUse,
+    function_to_tool_definition,
     get_tool_use_prompt,
     parse_text_for_tool_use,
 )
+from utils.jsonschema import JSONSchema
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
@@ -32,8 +35,6 @@ AGENT_DEFAULT = {
 
 def _get_prompt(tools: Optional[List[Callable]] = None):
     prompt = """You are my assistant to help me complete a task.
-- Once the task is complete, your reply must be enclosed in <result> and </result> to indicate the task is finished.
-- You should do what the user asks you to do, and nothing else.
 
 # Tone
 
@@ -62,7 +63,15 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
         return {
             **super().get_default_values(),
             "tool_use_api": True,
+            "mcp": [],
         }
+
+    def get_schema(self) -> Optional[JSONSchema]:
+        schema = super().get_schema()
+        assert schema and schema["type"] == "object"
+        schema["properties"]["tool_use_api"] = {"type": "boolean"}
+        schema["properties"]["mcp"] = {"type": "array", "items": {"type": "string"}}
+        return schema
 
 
 class AgentMenu(ChatMenu):
@@ -81,8 +90,10 @@ class AgentMenu(ChatMenu):
         self.__agent_file = agent_file or os.path.join(data_dir, AGENT_FILE)
         self.__data_dir = data_dir
         self.__run = run
-        self.__tools = self.get_tool_list()
+        self.__tools = self.get_tools_callable()
         self.__yes_always = yes_always
+        self.__mcp_clients = [MCPClient(command=["npx", "@playwright/mcp@latest"])]
+        # self.__mcp_clients.clear()
 
         super().__init__(
             data_dir=data_dir,
@@ -184,7 +195,7 @@ class AgentMenu(ChatMenu):
     def get_prompt(self) -> str:
         return self.__get_task_with_context()
 
-    def get_tool_list(self) -> List[Callable]:
+    def get_tools_callable(self) -> List[Callable]:
         tools: List[Callable] = []
 
         for agent_name in self.__agent["agents"]:
@@ -223,8 +234,16 @@ class AgentMenu(ChatMenu):
             tools.append(scope[agent_name])
         return tools
 
-    def get_tools(self) -> Optional[List[Callable[..., Any]]]:
-        return self.get_tool_list() if self.get_setting("tool_use_api") else None
+    def get_tools(self) -> Optional[List[ToolDefinition]]:
+        if self.get_setting("tool_use_api"):
+            tools = []
+            for t in self.get_tools_callable():
+                tools.append(function_to_tool_definition(t))
+            for client in self.__mcp_clients:
+                tools.extend(client.list_tools())
+            return tools
+        else:
+            return None
 
     def get_system_prompt(self) -> str:
         return (
@@ -253,10 +272,6 @@ class AgentMenu(ChatMenu):
 
         tool_results: List[ToolResult] = []
         for i, tool_use in enumerate(tool_uses):
-            tool = next(
-                tool for tool in self.__tools if tool.__name__ == tool_use["tool_name"]
-            )
-
             # Run tool
             if not self.__yes_always:
                 menu = ConfirmMenu(f"Run tool ({tool_use['tool_name']})?")
@@ -280,7 +295,29 @@ class AgentMenu(ChatMenu):
 
             if should_run:
                 try:
-                    ret = tool(**tool_use["args"])
+                    tool_name = tool_use["tool_name"]
+                    tool = next(
+                        (t for t in self.__tools if t.__name__ == tool_name), None
+                    )
+                    if tool:  # Call function tool
+                        ret = tool(**tool_use["args"])
+
+                    else:  # Call MCP tool
+                        client = next(
+                            (
+                                c
+                                for c in self.__mcp_clients
+                                if any(
+                                    t.name == tool_use["tool_name"]
+                                    for t in c.list_tools()
+                                )
+                            ),
+                            None,
+                        )
+                        if not client:
+                            raise Exception(f"Tool not found: {tool_use['tool_name']}")
+                        ret = client.call_tool(tool_use)
+
                     if ret:
                         if self.get_setting("tool_use_api"):
                             tool_results.append(
@@ -337,32 +374,17 @@ class AgentMenu(ChatMenu):
                         reply += f"The {to_ordinal(i+1)} tool using {tool_use['tool_name']} was interrupted by user.\n"
                     break
 
-        # Check if the task is completed
-        result = re.findall(
-            r"<result>\s*([\S\s]*?)\s*</result>", text_content, flags=re.MULTILINE
-        )
-        if len(result) > 0:
-            self.task_result = result[0] if result[0] else "Returns nothing."
-            if self.__run:
-                self.close()
-
-            self.on_response(result[0], done=True)
-            self.on_result(result[0])
-
-        elif not reply:
-            self.on_response(text_content, done=False)
+        if not reply:
+            self.on_response(text_content, done=not reply and not tool_results)
 
         reply = reply.rstrip()
         if reply or tool_results:
-            if not has_error and (result or interrupted):
+            if not has_error and interrupted:
                 self.append_user_message(reply, tool_results=tool_results)
             else:
                 self.send_message(reply, tool_results=tool_results)
 
     def on_response(self, text: str, done: bool):
-        pass
-
-    def on_result(self, result: str):
         pass
 
     def on_tool_use_start(self, tool_use: ToolUse):

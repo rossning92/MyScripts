@@ -80,7 +80,7 @@ Today's date is {format_datetime(dt=datetime.now(), show_year=True, show_hhmm=Fa
             + super().get_system_prompt()
         )
 
-    def get_tool_list(self) -> List[Callable[..., Any]]:
+    def get_tools_callable(self) -> List[Callable[..., Any]]:
         def add_todo_item(description: str, due: str):
             """
             Add a todo item with a description and due time.
@@ -97,7 +97,7 @@ Today's date is {format_datetime(dt=datetime.now(), show_year=True, show_hhmm=Fa
 
             self.close()
 
-        return super().get_tool_list() + [add_todo_item]
+        return super().get_tools_callable() + [add_todo_item]
 
 
 class TodoMenu(ListEditMenu[TodoItem]):

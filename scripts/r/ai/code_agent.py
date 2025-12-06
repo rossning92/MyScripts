@@ -117,7 +117,7 @@ class CodeAgentMenu(AgentMenu):
         else:
             raise Exception(f"Invalid mode: {mode}")
 
-    def get_tool_list(self) -> List[Callable]:
+    def get_tools_callable(self) -> List[Callable]:
         return [
             read_file,
             edit_file,

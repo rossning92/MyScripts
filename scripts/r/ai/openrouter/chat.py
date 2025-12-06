@@ -1,16 +1,16 @@
 import os
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import ai.openai_compatible.chat
 from ai.message import Message
-from ai.tool_use import ToolUse
+from ai.tool_use import ToolDefinition, ToolUse
 
 
 async def complete_chat(
     messages: List[Message],
     model: str,
     system_prompt: Optional[str] = None,
-    tools: Optional[List[Callable[..., Any]]] = None,
+    tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,

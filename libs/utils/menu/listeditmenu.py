@@ -1,5 +1,6 @@
 from typing import Generic, List, Optional, TypeVar
 
+from utils.jsonschema import JSONSchema
 from utils.jsonutil import try_load_json, try_save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
@@ -13,17 +14,23 @@ class ListEditMenu(Menu, Generic[T]):
         items: Optional[List[T]] = None,
         json_file: Optional[str] = None,
         backup_json=False,
+        item_type: Optional[JSONSchema] = None,
         **kwargs
     ):
         self.__backup_json = backup_json
         self.__json_file = json_file
         self.__last_mtime = 0.0
+        self.__item_type = item_type
 
         super().__init__(items=items if items is not None else [], **kwargs)
 
         self.load_json()
 
         self.add_command(self.delete_selected_item, hotkey="ctrl+k")
+        self.add_command(self.__add_item, hotkey="ctrl+n")
+
+    def __add_item(self):
+        pass
 
     def load_json(self) -> bool:
         if self.__json_file is not None:

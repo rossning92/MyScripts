@@ -1,6 +1,4 @@
-from typing import Literal
-
-MODELS = Literal[
+MODELS = [
     "claude-sonnet-4-5",
     "claude-sonnet-4-0",
     "gpt-5.1-chat-latest",

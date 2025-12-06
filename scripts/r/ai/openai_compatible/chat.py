@@ -2,11 +2,12 @@ import json
 import logging
 import os
 from pprint import pformat
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, cast
+from typing import AsyncIterator, Callable, Dict, List, Optional, cast
 
 import aiohttp
 from ai.message import Message
-from ai.tool_use import ToolUse, function_to_tool_definition
+from ai.tool_use import ToolDefinition, ToolUse
+from utils.http import check_for_status
 
 
 async def complete_chat(
@@ -15,7 +16,7 @@ async def complete_chat(
     api_key: str,
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
-    tools: Optional[List[Callable[..., Any]]] = None,
+    tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
@@ -47,7 +48,7 @@ async def complete_chat(
                         "type": "object",
                         "properties": {
                             param.name: {
-                                "type": param.type,
+                                **param.type,
                                 "description": param.description,
                             }
                             for param in tool.parameters
@@ -56,7 +57,7 @@ async def complete_chat(
                     },
                 },
             }
-            for tool in map(function_to_tool_definition, tools)
+            for tool in tools
         ]
 
     if system_prompt:
@@ -119,7 +120,7 @@ async def complete_chat(
             headers=headers,
             json=payload,
         ) as response:
-            await _check_for_status(response)
+            await check_for_status(response)
 
             buffer = b""
             async for chunk in response.content.iter_chunked(64 * 1024):
@@ -196,9 +197,3 @@ async def complete_chat(
                                         on_image(image_url)
                                     if out_message:
                                         out_message["image_urls"] = [image_url]
-
-
-async def _check_for_status(response):
-    if response.status >= 400:
-        error_text = await response.text()
-        raise Exception(f"Request failed with status {response.status}: {error_text}")
