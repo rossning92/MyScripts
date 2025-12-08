@@ -578,10 +578,8 @@ class ChatMenu(Menu[Line]):
             last_removed = removed_messages[-1]
             if last_removed["role"] == "user":
                 self.set_input(last_removed["text"])
-                if "image_urls" in last_removed:
-                    self.__image_urls[:] = last_removed["image_urls"]
-                else:
-                    self.__image_urls.clear()
+                self.__image_urls[:] = last_removed.get("image_urls", [])
+                self.__context = last_removed.get("context")
             else:
                 self.clear_input()
         self.__update_prompt()

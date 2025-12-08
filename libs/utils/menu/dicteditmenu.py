@@ -6,7 +6,6 @@ from typing import (
     List,
     Optional,
     Tuple,
-    Union,
 )
 
 from utils.clip import get_clip, set_clip
@@ -15,83 +14,7 @@ from utils.jsonschema import JSONSchema
 
 from . import Menu
 from .listeditmenu import ListEditMenu
-
-
-class _DictValueEditMenu(Menu[str]):
-    def __init__(
-        self,
-        data: Dict,
-        name: str,
-        type: JSONSchema,
-        dict_history_values: List,
-        items: List,
-    ):
-        self.__data = data
-        self.__dict_history_values = dict_history_values
-        self.__name = name
-        self.__type = type
-
-        if self.__type["type"] == "string" and "enum" in self.__type:
-            items = self.__type["enum"].copy()
-
-        super().__init__(
-            items=items,
-            prompt=name,
-        )
-
-        self.add_command(self.__delete_history_value, hotkey="delete")
-
-    def on_enter_pressed(self):
-        text = self.get_text()
-        assert text is not None
-
-        val: Union[str, int, float, bool]
-        if self.__type["type"] == "string":
-            if "enum" in self.__type:
-                selected_val = self.get_selected_item()
-                assert selected_val
-                val = selected_val
-            else:
-                val = text.strip()
-        elif self.__type["type"] == "integer":
-            val = int(text)
-        elif self.__type["type"] == "number":
-            val = float(text)
-        elif self.__type["type"] == "boolean":
-            if text.lower() == "true":
-                val = True
-            elif text.lower() == "false":
-                val = False
-            elif text == "1":
-                val = True
-            elif text == "0":
-                val = False
-            else:
-                raise Exception("Invalid bool value: {}".format(text))
-        else:
-            raise Exception("Invalid type: {}".format(self.__type))
-
-        self.__data[self.__name] = val
-
-        # Save edit history
-        if val in self.__dict_history_values:  # avoid duplicates
-            self.__dict_history_values.remove(val)
-        self.__dict_history_values.insert(0, val)
-
-        self.close()
-
-    def on_char(self, ch):
-        if ch == "\t":
-            val = self.get_selected_item()
-            if val is not None:
-                self.set_input(val)
-            return True
-        return False
-
-    def __delete_history_value(self):
-        i = self.get_selected_index()
-        if i >= 0:
-            del self.__dict_history_values[i]
+from .valueeditmenu import ValueEditMenu
 
 
 class _KeyValuePair:
@@ -114,9 +37,10 @@ class _KeyValuePair:
         sep = " : "
         if self.key in self.__dict:
             value = self.__dict[self.key]
-        else:
-            assert self.__default_dict
+        elif self.key in self.__default_dict:
             value = self.__default_dict[self.key]
+        else:
+            value = ""
         is_modified = (
             bool(self.__default_dict) and value != self.__default_dict[self.key]
         )
@@ -245,15 +169,18 @@ class DictEditMenu(Menu[_KeyValuePair]):
         self.update_screen()
 
     def __init_items(self):
-        if len(self.__data) == 0:
-            return
-
         default_dict = self.get_default_values()
 
-        # Get max width for keys
+        # Get keys
         keys = set(self.__data.keys())
         if default_dict:
             keys.update(default_dict.keys())
+        schema = self.get_schema()
+        if schema:
+            assert schema["type"] == "object"
+            keys.update(schema["properties"].keys())
+
+        # Get max width for keys
         max_width = max(len(x) for x in keys) + 1
 
         kvps: List[Tuple[str, bool]] = []
@@ -358,13 +285,16 @@ class DictEditMenu(Menu[_KeyValuePair]):
             ).exec()
         else:
             dict_history_values = self.__get_dict_history_values(name)
-            _DictValueEditMenu(
-                data=data,
-                name=name,
+            menu = ValueEditMenu(
+                value=data[name] if name in data else None,
+                prompt=name,
                 type=data_type,
                 items=dict_history_values,
                 dict_history_values=dict_history_values,
-            ).exec()
+            )
+            menu.exec()
+            if not menu.is_cancelled:
+                data[name] = menu.value
 
     def get_value_str(self, name: str, val: Any) -> str:
         return str(val)

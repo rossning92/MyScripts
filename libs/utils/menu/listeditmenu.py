@@ -4,6 +4,7 @@ from utils.jsonschema import JSONSchema
 from utils.jsonutil import try_load_json, try_save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
+from utils.menu.valueeditmenu import ValueEditMenu
 
 T = TypeVar("T")
 
@@ -26,11 +27,8 @@ class ListEditMenu(Menu, Generic[T]):
 
         self.load_json()
 
-        self.add_command(self.delete_selected_item, hotkey="ctrl+k")
-        self.add_command(self.__add_item, hotkey="ctrl+n")
-
-    def __add_item(self):
-        pass
+        self.add_command(self.__new_item, hotkey="ctrl+n")
+        self.add_command(self.__delete_item, hotkey="ctrl+k")
 
     def load_json(self) -> bool:
         if self.__json_file is not None:
@@ -44,7 +42,31 @@ class ListEditMenu(Menu, Generic[T]):
                 return True
         return False
 
-    def delete_selected_item(self):
+    def __new_item(self):
+        if not self.__item_type:
+            return
+
+        if self.__item_type["type"] == "object":
+            from utils.menu.dicteditmenu import DictEditMenu
+
+            data = {}
+            menu = DictEditMenu(
+                data=data,
+                schema=self.__item_type,
+                prompt="add item",
+            )
+            menu.exec()
+            self.items.append(data)
+        else:
+            menu = ValueEditMenu(
+                prompt="add item",
+                type=self.__item_type,
+            )
+            menu.exec()
+            if not menu.is_cancelled:
+                self.items.append(menu.value)
+
+    def __delete_item(self):
         index = self.get_selected_index()
         if 0 <= index < len(self.items):
             confirm_menu = ConfirmMenu(prompt="delete item?")

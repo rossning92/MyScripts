@@ -1,5 +1,6 @@
 import argparse
 import os
+import shlex
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -70,7 +71,10 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
         schema = super().get_schema()
         assert schema and schema["type"] == "object"
         schema["properties"]["tool_use_api"] = {"type": "boolean"}
-        schema["properties"]["mcp"] = {"type": "array", "items": {"type": "string"}}
+        schema["properties"]["mcp"] = {
+            "type": "array",
+            "items": {"type": "object", "properties": {"command": {"type": "string"}}},
+        }
         return schema
 
 
@@ -92,8 +96,6 @@ class AgentMenu(ChatMenu):
         self.__run = run
         self.__tools = self.get_tools_callable()
         self.__yes_always = yes_always
-        self.__mcp_clients = [MCPClient(command=["npx", "@playwright/mcp@latest"])]
-        # self.__mcp_clients.clear()
 
         super().__init__(
             data_dir=data_dir,
@@ -101,6 +103,10 @@ class AgentMenu(ChatMenu):
             settings_menu_class=settings_menu_class,
             **kwargs,
         )
+
+        self.__mcp_clients = []
+        for mcp in self.get_setting("mcp"):
+            self.__mcp_clients.append(MCPClient(command=shlex.split(mcp["command"])))
 
         os.makedirs(data_dir, exist_ok=True)
 
