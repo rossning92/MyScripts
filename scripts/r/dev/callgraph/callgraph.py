@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import subprocess
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -183,7 +184,7 @@ def _add_callers_or_callees_to_graph(
 
 def _filter_graph(
     graph: CallGraph,
-    match: Optional[str] = None,
+    regex: Optional[str] = None,
     match_callers: Optional[int] = None,
     match_callees: Optional[int] = None,
     ignore_case=False,
@@ -192,7 +193,7 @@ def _filter_graph(
 
     # Filter nodes
     for n in graph.nodes:
-        if match and re.search(match, n, re.IGNORECASE if ignore_case else 0):
+        if regex and re.search(regex, n, re.IGNORECASE if ignore_case else 0):
             filtered_nodes.add(n)
 
     if filtered_nodes:
@@ -236,7 +237,7 @@ def _filter_graph(
 
 def generate_call_graph(
     files: List[str],
-    match: Optional[str] = None,
+    regex: Optional[str] = None,
     match_callers: Optional[int] = None,
     match_callees: Optional[int] = None,
     ignore_case=False,
@@ -245,29 +246,44 @@ def generate_call_graph(
 
     calls = DefaultOrderedDict(OrderedSet)
 
+    if regex:
+        rg_args = ["rg", "-l", regex]
+        if ignore_case:
+            rg_args.insert(1, "-i")
+        subprocess.call(rg_args)
+        result = subprocess.run(rg_args, capture_output=True, text=True, check=False)
+        matched_files = set(result.stdout.splitlines())
+        if files:
+            files = [f for f in files if f in matched_files]
+        else:
+            files = list(matched_files)
+
     # Add nodes
     logging.info("Build nodes...")
     for file in files:
         logging.info(f"Process file: {file}")
 
-        lang = filename_to_lang(file)
-        module = _get_module_name(file)
-        tree = _get_tree(file)
+        try:
+            lang = filename_to_lang(file)
+            module = _get_module_name(file)
+            tree = _get_tree(file)
 
-        _add_module_node(
-            graph=graph,
-            module=module,
-        )
+            _add_module_node(
+                graph=graph,
+                module=module,
+            )
 
-        functions, calls2 = _parse_tree(
-            lang=lang,
-            module=module,
-            tree=tree,
-        )
+            functions, calls2 = _parse_tree(
+                lang=lang,
+                module=module,
+                tree=tree,
+            )
 
-        for function_name in functions:
-            graph.add_node(function_name)
-        calls.update(calls2)
+            for function_name in functions:
+                graph.add_node(function_name)
+            calls.update(calls2)
+        except Exception as e:
+            print(f"WARN: {e}")
 
     # Add edges
     for caller, callees in calls.items():
@@ -284,7 +300,7 @@ def generate_call_graph(
 
     return _filter_graph(
         graph=graph,
-        match=match,
+        regex=regex,
         match_callers=match_callers,
         match_callees=match_callees,
         ignore_case=ignore_case,

@@ -2,6 +2,7 @@ import argparse
 import os
 import webbrowser
 from threading import Timer
+from urllib.parse import urlencode
 
 from dev.callgraph.callgraph import generate_call_graph
 from dev.callgraph.mermaid_callgraph import render_mermaid_flowchart
@@ -16,11 +17,12 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    if not (files_param := request.args.get("files")):
-        return "Error: 'files' query parameter is required", 400
-    files = [f.strip() for f in files_param.split(",")]
+    if files_param := request.args.get("files"):
+        files = [f.strip() for f in files_param.split(",")]
+    else:
+        files = []
 
-    match = request.args.get("match")
+    regex = request.args.get("regex")
 
     match_callers_str = request.args.get("match_callers")
     match_callers: int | None = int(match_callers_str) if match_callers_str else None
@@ -33,7 +35,7 @@ def index():
 
     call_graph = generate_call_graph(
         files=files,
-        match=match,
+        regex=regex,
         match_callers=match_callers,
         match_callees=match_callees,
     )
@@ -56,12 +58,22 @@ def index():
 def _main():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--port", type=int, default=5000)
+    arg_parser.add_argument("--root", default=os.environ.get("PROJECT_ROOT"))
 
     args = arg_parser.parse_args()
 
+    root = args.root
+    if root:
+        os.chdir(root)
+
     setup_logger()
 
-    Timer(1.0, lambda: webbrowser.open(f"http://localhost:{args.port}")).start()
+    Timer(
+        1.0,
+        lambda: webbrowser.open(
+            f"http://localhost:{args.port}/?{urlencode({"cwd":os.getcwd()})}"
+        ),
+    ).start()
     app.run(host="0.0.0.0", port=args.port, debug=True)
 
 

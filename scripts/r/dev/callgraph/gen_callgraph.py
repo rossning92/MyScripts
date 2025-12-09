@@ -56,7 +56,7 @@ def _main():
     # Generate call graph
     call_graph = generate_call_graph(
         files=files,
-        match=args.match,
+        regex=args.match,
         match_callers=args.match_callers,
         match_callees=args.match_callees,
     )

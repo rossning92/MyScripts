@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Literal, Optional
+from typing import Literal, Optional, Tuple
 
 TITLE_MATCH_MODE_EXACT = 0
 TITLE_MATCH_MODE_PARTIAL = 1
@@ -198,7 +198,7 @@ def close_window_by_name(name, match_mode=TITLE_MATCH_MODE_DEFAULT):
 
 def get_window_rect(
     window_name: Optional[str] = None,
-) -> Optional[tuple[int, int, int, int]]:
+) -> Optional[Tuple[int, int, int, int]]:
     if sys.platform == "linux":
         try:
             if window_name:

@@ -17,6 +17,18 @@ from .listeditmenu import ListEditMenu
 from .valueeditmenu import ValueEditMenu
 
 
+def _infer_schema_type(value: Any) -> JSONSchema:
+    if isinstance(value, bool):
+        return {"type": "boolean"}
+    if isinstance(value, int):
+        return {"type": "integer"}
+    if isinstance(value, float):
+        return {"type": "number"}
+    if isinstance(value, str):
+        return {"type": "string"}
+    raise Exception(f"Unsupported value type: {type(value)}")
+
+
 class _KeyValuePair:
     def __init__(
         self,
@@ -265,17 +277,12 @@ class DictEditMenu(Menu[_KeyValuePair]):
         if schema:
             assert schema["type"] == "object"
             data_type = schema["properties"][name]
-        elif default_dict:
-            if isinstance(default_dict[name], str):
-                data_type = {"type": "string"}
-            elif isinstance(default_dict[name], int):
-                data_type = {"type": "integer"}
-            elif isinstance(default_dict[name], float):
-                data_type = {"type": "number"}
-            elif isinstance(default_dict[name], bool):
-                data_type = {"type": "boolean"}
-            else:
-                raise Exception("Unsupported default_dict type: {default_dict[name]}")
+        elif default_dict and name in default_dict:
+            data_type = _infer_schema_type(default_dict[name])
+        elif name in data:
+            data_type = _infer_schema_type(data[name])
+        else:
+            raise Exception(f"Missing schema and default_dict for key {name}")
         if data_type["type"] == "array":
             list_values = data[name]
             ListEditMenu(

@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 _EXTENSION_TO_LANGUAGE_MAP = {
     # A
@@ -244,6 +245,8 @@ def is_supported_file(file: str) -> bool:
     return ext in _EXTENSION_TO_LANGUAGE_MAP
 
 
-def filename_to_lang(filename: str) -> str:
+def filename_to_lang(filename: str) -> Optional[str]:
     _, ext = os.path.splitext(filename)
+    if ext not in _EXTENSION_TO_LANGUAGE_MAP:
+        raise Exception(f"Unsupported extension: {ext}")
     return _EXTENSION_TO_LANGUAGE_MAP[ext]

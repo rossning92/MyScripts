@@ -275,8 +275,11 @@ class ChatMenu(Menu[Line]):
         os.makedirs(self.__data_dir, exist_ok=True)
         create_gitignore(self.__data_dir)
 
-        self.__file_menu = FileMenu(
+        self.__data_dir_menu = FileMenu(
             prompt="data dir", goto=self.__data_dir, sort_by="mtime"
+        )
+        self.__add_file_menu = FileMenu(
+            prompt="add file", goto=self.__data_dir, sort_by="mtime"
         )
 
         self.__settings_menu = settings_menu_class(
@@ -292,7 +295,7 @@ class ChatMenu(Menu[Line]):
             follow=True,
         )
 
-        self.add_command(self.__add_attachment, hotkey="alt+a")
+        self.add_command(self.__add_file, hotkey="alt+f")
         self.add_command(self.__edit_image_urls, hotkey="alt+i")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
@@ -306,7 +309,7 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__show_more, hotkey="tab")
         self.add_command(self.__take_photo)
         self.add_command(self.__show_system_prompt)
-        self.add_command(self.__open_data_dir, hotkey="alt+f")
+        self.add_command(self.__open_data_dir, hotkey="alt+d")
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_chat, hotkey="ctrl+n")
         self.add_command(self.save_chat, hotkey="ctrl+s")
@@ -335,9 +338,8 @@ class ChatMenu(Menu[Line]):
 
         self.__update_prompt()
 
-    def __add_attachment(self):
-        menu = FileMenu()
-        self.__context = menu.select_file()
+    def __add_file(self):
+        self.__context = self.__add_file_menu.select_file()
         self.__update_prompt()
 
     def __copy_block(self, index: int):
@@ -601,7 +603,7 @@ class ChatMenu(Menu[Line]):
             self.set_message("no system prompt set")
 
     def __open_data_dir(self):
-        self.__file_menu.exec()
+        self.__data_dir_menu.exec()
 
     def __yank(self):
         indices = list(self.get_selected_indices())
@@ -1065,6 +1067,11 @@ Following is my instructions:
     def new_chat(self, message: Optional[str] = None):
         self.clear_messages()
 
+        self.set_input("")
+        self.__context = None
+        self.__image_urls.clear()
+        self.__update_prompt()
+
         if self.__auto_create_chat_file:
             self.__chat_file = self.__history_manager.get_new_file()
 
@@ -1143,7 +1150,13 @@ Following is my instructions:
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?", help="input message")
-    parser.add_argument("-c", "--context", type=str, nargs="?")
+    parser.add_argument(
+        "-c",
+        "--context",
+        type=str,
+        nargs="?",
+        help="context file path or context text",
+    )
     parser.add_argument("-i", "--in-file", type=str)
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)

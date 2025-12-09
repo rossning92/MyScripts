@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from pathlib import Path
 from platform import platform
 from typing import Any, Callable, Dict, List, Optional
@@ -106,7 +107,18 @@ class CodeAgentMenu(AgentMenu):
             messages[0]["timestamp"]
         ):
             full_path = os.path.join(history_dir, rel_path)
-            start_process(["code", "--diff", full_path, rel_path])
+            start_process(
+                [
+                    (
+                        r"C:\Program Files\Microsoft VS Code\bin\code.cmd"
+                        if sys.platform == "win32"
+                        else "code"
+                    ),
+                    "--diff",
+                    full_path,
+                    rel_path,
+                ]
+            )
 
     def __toggle_mode(self):
         mode = self.get_setting("mode")

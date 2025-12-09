@@ -59,13 +59,15 @@
   </head>
   <body>
     <form id="form">
-      <label>Files:</label>
+      <label>cwd</label>
+      <input name="cwd" />
+      <label>files</label>
       <input name="files" />
-      <label>Match (/):</label>
-      <input name="match" data-hotkey="/" />
-      <label>Match callers (c):</label>
+      <label>regex (/)</label>
+      <input name="regex" data-hotkey="/" />
+      <label>match callers (c)</label>
       <input name="match_callers" data-hotkey="c" />
-      <label>Match callees (e):</label>
+      <label>match callees (e)</label>
       <input name="match_callees" data-hotkey="e" />
       <button type="submit">Apply</button>
     </form>
