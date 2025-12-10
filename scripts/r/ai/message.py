@@ -8,7 +8,7 @@ class Message(TypedDict):
     timestamp: float
 
     text: str
-    context: NotRequired[str]
+    context: NotRequired[List[str]]
     image_urls: NotRequired[List[str]]
 
     reasoning: NotRequired[List[str]]

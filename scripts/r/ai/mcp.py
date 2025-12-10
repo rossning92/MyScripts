@@ -21,6 +21,8 @@ class MCPClient:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                shell=True,
+                encoding="utf-8",
             )
             self.__next_id = 0
 

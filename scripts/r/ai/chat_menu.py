@@ -146,7 +146,7 @@ class _ChatItem:
         path: str,
     ) -> None:
         self.path = path
-        messages = load_json(path, default=[])
+        messages: List[Message] = load_json(path, default=[])
 
         file_name = os.path.splitext(os.path.basename(path))[0]
         display_name = file_name if not file_name.startswith("chat_") else ""
@@ -253,7 +253,7 @@ class ChatMenu(Menu[Line]):
         self.__cur_subindex = 0
         self.__edit_text = edit_text
         self.__first_message = message
-        self.__context: Optional[str] = context
+        self.__context: List[str] = [context] if context else []
         self.__image_urls: List[str] = image_urls if image_urls else []
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
@@ -325,7 +325,8 @@ class ChatMenu(Menu[Line]):
 
         self.__messages: List[Message] = []
 
-        self.new_chat()
+        if self.__auto_create_chat_file:
+            self.__chat_file = self.__history_manager.get_new_file()
         if new_chat:
             pass
         elif self.__chat_file is not None:
@@ -339,7 +340,7 @@ class ChatMenu(Menu[Line]):
         self.__update_prompt()
 
     def __add_file(self):
-        self.__context = self.__add_file_menu.select_file()
+        self.__context.extend(self.__add_file_menu.select_files())
         self.__update_prompt()
 
     def __copy_block(self, index: int):
@@ -474,12 +475,12 @@ class ChatMenu(Menu[Line]):
         self.set_message(f"chat saved to {slugified_chat_file}")
 
     def __save_prompt(self):
-        messages = self.get_messages()
-        if len(messages) == 0:
-            self.set_message("no messages")
+        line = self.get_selected_item()
+        if not line:
+            self.set_message("no message found")
             return
 
-        message = messages[0]  # first message
+        message = self.get_messages()[line.msg_index]
         content = message["text"]
 
         menu = self.__create_prompt_file_menu(prompt="Save prompt")
@@ -567,7 +568,8 @@ class ChatMenu(Menu[Line]):
             self.set_message(f"failed to take photo: {e}")
             return
 
-        self.__context = tmp_photo
+        # TODO: use self.__image_urls instead
+        # self.__context = tmp_photo
         self.__update_prompt()
 
     def undo_messages(self) -> List[Message]:
@@ -581,7 +583,7 @@ class ChatMenu(Menu[Line]):
             if last_removed["role"] == "user":
                 self.set_input(last_removed["text"])
                 self.__image_urls[:] = last_removed.get("image_urls", [])
-                self.__context = last_removed.get("context")
+                self.__context[:] = last_removed.get("context", [])
             else:
                 self.clear_input()
         self.__update_prompt()
@@ -590,7 +592,7 @@ class ChatMenu(Menu[Line]):
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
         if self.__context:
-            prompt += f" (ctx: {truncate_text(self.__context, max_chars=16)})"
+            prompt += f" ({len(self.__context)} ctx)"
         if self.__image_urls:
             prompt += f" ({len(self.__image_urls)} images)"
         self.set_prompt(prompt)
@@ -658,7 +660,9 @@ class ChatMenu(Menu[Line]):
                 (
                     {
                         **message,
-                        "text": message["text"] + "\n-------\n" + message["context"],
+                        "text": message["text"]
+                        + "\n-------\n"
+                        + ("\n---\n".join(message["context"])),
                     }
                     if i == 0 and "context" in message
                     else message
@@ -699,7 +703,7 @@ class ChatMenu(Menu[Line]):
         if text or tool_results:
             self.append_user_message(text, tool_results=tool_results)
 
-        self.__context = None
+        self.__context.clear()
         self.__retry_count = 0
         self.__update_prompt()
 
@@ -712,20 +716,20 @@ class ChatMenu(Menu[Line]):
     ):
         msg_index = len(self.get_messages())
 
-        context: Optional[str] = None
-        if self.__context:
-            if not is_text_file(self.__context):
-                context = self.__context
+        context: List[str] = []
+        for c in self.__context:
+            if not is_text_file(c):
+                context.append(c)
             else:
-                with open(self.__context, "r", encoding="utf-8") as f:
-                    context = f.read()
+                with open(c, "r", encoding="utf-8") as f:
+                    context.append(f.read())
 
             if self.__edit_text:
                 text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
 
 Following is the input text:
 <input_text>
-{context.rstrip()}
+{context[0].rstrip()}
 </input_text>
 
 Following is my instructions:
@@ -748,13 +752,13 @@ Following is my instructions:
 
         if context:
             message["context"] = context
-
+        for c in context:
             self.append_item(
                 Line(
                     role="user",
                     msg_index=msg_index,
                     subindex=subindex,
-                    context=context,
+                    context=c,
                 )
             )
 
@@ -992,13 +996,13 @@ Following is my instructions:
 
             # Context
             if message["text"]:
-                if "context" in message:
+                for context in message.get("context", []):
                     self.__lines.append(
                         Line(
                             role=message["role"],
                             msg_index=msg_index,
                             subindex=subindex,
-                            context=message["context"],
+                            context=context,
                         )
                     )
                     subindex += 1
@@ -1064,21 +1068,16 @@ Following is my instructions:
         self.set_follow(True)
         self.update_screen()
 
-    def new_chat(self, message: Optional[str] = None):
+    def new_chat(self):
         self.clear_messages()
 
         self.set_input("")
-        self.__context = None
+        self.__context.clear()
         self.__image_urls.clear()
         self.__update_prompt()
 
         if self.__auto_create_chat_file:
             self.__chat_file = self.__history_manager.get_new_file()
-
-        if message:
-            self.send_message(message)
-        else:
-            self.update_screen()
 
     def on_enter_pressed(self):
         self.__cancel_chat_completion()
