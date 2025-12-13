@@ -2,7 +2,7 @@ import argparse
 import os
 import shlex
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
 
 import ai.chat_menu
 from ai.chat import get_tool_use_text
@@ -56,6 +56,10 @@ def _get_prompt(tools: Optional[List[Callable]] = None):
     return prompt
 
 
+class _MCP(TypedDict):
+    command: str
+
+
 class SettingsMenu(ai.chat_menu.SettingsMenu):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -88,6 +92,7 @@ class AgentMenu(ChatMenu):
         load_last_agent=False,
         data_dir: str = DATA_DIR,
         settings_menu_class=SettingsMenu,
+        mcp: Optional[List[_MCP]] = None,
         **kwargs,
     ):
         self.__agent = AGENT_DEFAULT.copy()
@@ -104,9 +109,10 @@ class AgentMenu(ChatMenu):
             **kwargs,
         )
 
-        self.__mcp_clients = []
-        for mcp in self.get_setting("mcp"):
-            self.__mcp_clients.append(MCPClient(command=shlex.split(mcp["command"])))
+        mcp_items = mcp if mcp else cast(List[_MCP], self.get_setting("mcp"))
+        self.__mcp_clients = [
+            MCPClient(command=shlex.split(item["command"])) for item in mcp_items
+        ]
 
         os.makedirs(data_dir, exist_ok=True)
 

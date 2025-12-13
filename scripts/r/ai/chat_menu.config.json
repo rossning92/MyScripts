@@ -1,5 +1,5 @@
 {
   "globalHotkey": "win+k k",
-  "matchClipboard": "[^\\\\]*\\.(jpg|png)$",
+  "matchClipboard": "[^\\\\]*\\.(jpg|jpeg|png)$",
   "title": "chat_menu"
 }
