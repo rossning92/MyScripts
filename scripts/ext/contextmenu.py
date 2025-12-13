@@ -7,6 +7,7 @@ from typing import List
 
 from _script import Script
 from utils.menu import Menu
+from utils.textutil import truncate_text
 
 
 @dataclass
@@ -16,7 +17,7 @@ class _MatchedScript:
     match: str
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} {self.match}"
 
 
 def _match_scripts_with_param(param: str) -> List[_MatchedScript]:
@@ -47,7 +48,7 @@ def _match_scripts_with_param(param: str) -> List[_MatchedScript]:
 class ContextMenu(Menu[_MatchedScript]):
     def __init__(self, param: str, **kwargs):
         super().__init__(
-            prompt=f"({param})",
+            prompt="open with",
             items=_match_scripts_with_param(param),
             **kwargs,
         )
@@ -59,7 +60,7 @@ class ContextMenu(Menu[_MatchedScript]):
 
     def on_item_selected(self, item: _MatchedScript):
         script = Script(item.path)
-        script.execute(args=[item.match])
+        script.execute(args=[item.match], cd=False)
 
 
 if __name__ == "__main__":

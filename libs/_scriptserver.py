@@ -24,8 +24,7 @@ def _match_scripts_with_param(
         patt = script.cfg["matchClipboard"]
         assert isinstance(patt, str)
         if patt:
-            match = re.search(patt, param)
-            if match:
+            for match in re.finditer(patt, param):
                 result.append((script, match.group(0)))
     return result
 

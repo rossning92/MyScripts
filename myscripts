@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-cd "$(dirname "$0")"
+SCRIPT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ "$(uname)" == "Linux" ]]; then
     # Check if Debian-based distro
@@ -52,7 +52,7 @@ append_line_dedup() {
 
 append_line_dedup \
     "$HOME/.bashrc" \
-    "source '$(pwd)/settings/bash/.bashrc'"
+    "source \"$SCRIPT_ROOT/settings/bash/.bashrc\""
 
 # Set terminal title
 echo -ne '\033]0;MyTerminal\007'
@@ -63,5 +63,5 @@ export FZF_DEFAULT_OPTS='--layout=reverse'
 [[ ! -d "$HOME/.venv/myscripts" ]] && python3 -m venv "$HOME/.venv/myscripts" --system-site-packages
 source "$HOME/.venv/myscripts/bin/activate"
 
-pip install -r requirements.txt >/dev/null
-python myscripts.py "$@"
+pip install -r "$SCRIPT_ROOT/requirements.txt" >/dev/null
+python "$SCRIPT_ROOT/myscripts.py" "$@"

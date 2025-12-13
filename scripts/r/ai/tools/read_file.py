@@ -1,34 +1,26 @@
-from typing import List
+from itertools import islice
 
 
-def read_file(file: str, offset: int = 0, limit: int = 2000):
-    """
-    Read a file at the specified path.
+def read_file(file: str, offset: int = 0, limit: int = 2000) -> str:
+    """Read up to `limit` lines from `file`, starting at `offset` (0-based)."""
 
-    Parameters:
-        file: Path to the file to read
-        offset: Number of lines to skip from the beginning (0-based)
-        limit: Maximum number of lines to read after the offset
-    """
-
-    lines: List[str] = []
-    truncated = False
+    if limit <= 0:
+        return f"ERROR: limit must be > 0 (got {limit})"
 
     with open(file, "r", encoding="utf-8", errors="ignore") as f:
         for _ in range(offset):
             if not f.readline():
-                return ""
+                return f"ERROR: offset {offset} is beyond end of file"
 
-        for _ in range(limit):
-            line = f.readline()
-            if not line:
-                return "".join(lines)
-            lines.append(line)
+        lines = list(islice(f, limit))
+        next_line = f.readline()
 
-        if f.readline():
-            truncated = True
+        if not next_line:
+            return "".join(lines)
 
-    result = "".join(lines)
-    if truncated:
-        result += "\n[File has more lines]"
-    return result
+        remaining = 1 + sum(1 for _ in f)
+        total = offset + len(lines) + remaining
+        result = "".join(lines)
+        return (
+            result + f"\n[File has more lines: remaining {remaining} / total {total}]"
+        )

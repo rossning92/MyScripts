@@ -323,7 +323,8 @@ class _MyScriptMenu(Menu[Script]):
                     lambda: execute_script(
                         script,
                         args=self.__cmdline_args if self.__cmdline_args else None,
-                        cd=len(self.__cmdline_args) == 0,
+                        cd=len(self.__cmdline_args) == 0
+                        and not self.__run_script_and_quit,
                         close_on_exit=close_on_exit,
                         out_to_file=self.__out_to_file,
                         run_script_and_quit=self.__run_script_and_quit,
@@ -773,7 +774,7 @@ def _main():
             run_script_and_quit=run_script_and_quit,
             script_manager=script_manager,
             out_to_file=args.out_to_file,
-            prompt=args.prompt,
+            prompt="run script" if run_script_and_quit else args.prompt,
         ).exec()
     except Exception:
         ExceptionMenu().exec()

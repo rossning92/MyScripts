@@ -37,7 +37,8 @@ Working directory: {os.getcwd()}
 
 
 class SettingsMenu(ai.agent_menu.SettingsMenu):
-    default_model = "gpt-5-codex(low)"
+    # default_model = "gpt-5-codex(low)"
+    default_model = "gpt-5.2(medium)"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -211,10 +212,11 @@ def _main():
     parser.add_argument("files", nargs="*")
     parser.add_argument(
         "-d",
+        "--repo-path",
         "--dir",
+        dest="repo_path",
         type=str,
-        help="Source root directory",
-        default=os.environ.get("SOURCE_ROOT"),
+        default=os.environ.get("REPO_PATH"),
     )
     parser.add_argument("-m", "--model", type=str)
     args = parser.parse_args()
@@ -223,15 +225,15 @@ def _main():
         SettingsMenu.default_model = args.model
 
     # Change directory to the project root
-    if args.dir:
-        if not os.path.exists(args.dir):
-            os.makedirs(args.dir, exist_ok=True)
-        root = args.dir
-    elif len(args.files) == 1 and os.path.isabs(args.files[0]):
+    if len(args.files) == 1 and os.path.isabs(args.files[0]):
         root = os.path.dirname(args.files[0])
         git_root = _find_git_root(root)
         if git_root:
             root = git_root
+    elif args.repo_path:
+        if not os.path.exists(args.repo_path):
+            os.makedirs(args.repo_path, exist_ok=True)
+        root = args.repo_path
     else:
         git_root = _find_git_root(os.getcwd())
         if git_root:

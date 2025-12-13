@@ -31,6 +31,7 @@ from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.slugify import slugify
+from utils.textutil import truncate_text
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1

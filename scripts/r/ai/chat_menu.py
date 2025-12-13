@@ -1146,6 +1146,11 @@ Following is my instructions:
         return False
 
 
+def _is_image_file(path: str) -> bool:
+    ext = os.path.splitext(path)[1].lower()
+    return ext in [".png", ".jpg", ".jpeg"]
+
+
 def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=str, nargs="?", help="input message")
@@ -1168,8 +1173,7 @@ def _main():
     message = None
 
     if args.input and os.path.isfile(args.input):
-        ext = os.path.splitext(args.input)[1].lower()
-        if ext in [".png", ".jpg", ".jpeg"]:
+        if _is_image_file(args.input):
             image_urls = [encode_image_base64(args.input)]
         else:
             with open(args.input, "r", encoding="utf-8") as f:
