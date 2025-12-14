@@ -119,6 +119,11 @@ if sys.platform == "win32":
 VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
 
+class _DefaultStrDict(dict):
+    def __missing__(self, key):
+        return ""
+
+
 class BackgroundProcessOutputType(IntEnum):
     LOG_PIPE = 1
     REDIRECT_TO_FILE = 2
@@ -1004,7 +1009,7 @@ class Script:
             if self.cfg["workingDir"]:
                 working_dir = self.cfg["workingDir"]
                 assert isinstance(working_dir, str)
-                working_dir = working_dir.format(**self.get_context())
+                working_dir = working_dir.format_map(_DefaultStrDict(self.get_context()))
                 if working_dir:
                     cwd = working_dir
                     if not os.path.exists(cwd):
@@ -1032,7 +1037,7 @@ class Script:
 
         cmdline = self.cfg["cmdline"]
         if cmdline:
-            arg_list = shlex.split(cmdline.format(**self.get_context())) + arg_list
+            arg_list = shlex.split(cmdline.format_map(_DefaultStrDict(self.get_context()))) + arg_list
 
         elif not run_script_local and self.cfg["openWithScript"]:
             arg_list = [

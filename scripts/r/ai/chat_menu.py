@@ -1133,7 +1133,7 @@ Following is my instructions:
 
             if isinstance(im, Image.Image):
                 im = im.convert("RGB")
-                fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+                fd, temp_path = tempfile.mkstemp(suffix=".png")
                 os.close(fd)
                 try:
                     im.save(temp_path)

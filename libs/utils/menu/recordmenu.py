@@ -1,3 +1,4 @@
+import logging
 import os
 import tempfile
 from typing import Optional
@@ -21,8 +22,17 @@ class RecordMenu(AsyncTaskMenu):
 
     def on_close(self):
         super().on_close()
-        if self.is_cancelled and os.path.exists(self.__out_file):
+
+        file_exists = os.path.exists(self.__out_file)
+        if not file_exists:
+            return
+
+        if self.is_cancelled:
             os.remove(self.__out_file)
+        else:
+            logging.debug(
+                "Saved recording file size: %d bytes", os.path.getsize(self.__out_file)
+            )
 
     def get_output_file(self) -> Optional[str]:
         return None if self.is_cancelled else self.__out_file

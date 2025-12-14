@@ -460,6 +460,11 @@ class AgentMenu(ChatMenu):
     def get_data_dir(self) -> str:
         return self.__data_dir
 
+    def on_close(self):
+        for c in self.__mcp_clients:
+            c.close()
+        super().on_close()
+
 
 def _main():
     parser = argparse.ArgumentParser()

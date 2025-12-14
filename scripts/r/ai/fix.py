@@ -11,6 +11,7 @@ ChatMenu(
         f"{input_text}\n"
         "-------"
     ),
+    # model="gpt-3.5-turbo",
     model="gpt-4o-mini",
     copy=True,
 ).exec()

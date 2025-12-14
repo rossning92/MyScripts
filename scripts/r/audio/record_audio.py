@@ -67,6 +67,12 @@ def record_audio(out_file: str, stop_event: Optional[Event] = None) -> Optional[
             "rec",
             "--no-show-progress",
             "-V1",  # only show failure messages
+            "-r",
+            "16000",
+            "-c",
+            "1",
+            "-b",
+            "16",
             out_file,
         ]
     )

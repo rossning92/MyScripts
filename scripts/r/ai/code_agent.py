@@ -25,7 +25,7 @@ from utils.editor import edit_text_file
 from utils.menu.filemenu import FileMenu
 from utils.process import start_process
 
-README_FILE = "README.md"
+RULE_FILE = "AGENTS.md"
 
 
 def get_env_info() -> str:
@@ -81,11 +81,11 @@ class CodeAgentMenu(AgentMenu):
 
     def __edit_instructions(self):
         self.call_func_without_curses(
-            lambda: edit_text_file(os.path.join(self.get_data_dir(), README_FILE))
+            lambda: edit_text_file(os.path.join(self.get_data_dir(), RULE_FILE))
         )
 
-    def __get_readme_content(self) -> str:
-        file = os.path.join(self.get_data_dir(), README_FILE)
+    def __get_rules(self) -> str:
+        file = os.path.join(self.get_data_dir(), RULE_FILE)
         if not os.path.exists(file):
             return ""
 
@@ -147,9 +147,9 @@ class CodeAgentMenu(AgentMenu):
         if system:
             prompt_parts.append(system)
 
-        readme = self.__get_readme_content()
-        if readme:
-            prompt_parts.append(readme)
+        rules = self.__get_rules()
+        if rules:
+            prompt_parts.append(rules)
 
         file_context = self.__file_context_menu.get_prompt()
         if file_context:
