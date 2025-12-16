@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parser.add_argument("files", nargs="*", type=str)
     parser.add_argument("-o", "--output", type=str)
     parser.add_argument("-f", "--filter", type=str, default=None)
+    parser.add_argument("-p", "--preset", type=str, default=None)
     parser.add_argument("--wrap-text", action="store_true")
     parser.add_argument("-c", "--cmdline", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -28,4 +29,9 @@ if __name__ == "__main__":
     else:
         files = args.files
 
-    LogMenu(files=files, filter=args.filter, wrap_text=args.wrap_text).exec()
+    LogMenu(
+        files=files,
+        filter=args.filter,
+        wrap_text=args.wrap_text,
+        preset_file=args.preset,
+    ).exec()

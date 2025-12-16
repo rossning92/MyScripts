@@ -68,8 +68,8 @@ class _EditTodoItemMenu(DictEditMenu):
 
 
 class _TodoAgentMenu(AgentMenu):
-    def __init__(self, **kwargs):
-        self.result_item: Optional[Dict] = None
+    def __init__(self, add_item: Callable[[TodoItem], None], **kwargs):
+        self.__add_item = add_item
         super().__init__(escape_to_cancel=False, **kwargs)
 
     def get_system_prompt(self) -> str:
@@ -89,13 +89,12 @@ Today's date is {format_datetime(dt=datetime.now(), show_year=True, show_hhmm=Fa
             - The `due` argument must be in the format of YYYY-MM-DD hh:ss, where YYYY and hh:ss are optional values (e.g., `10-01 13:15`, `2025-10-01 13:15`, `03-31` are all valid values).
             """
 
-            self.result_item = {"description": description, _STATUS: "none"}
-
+            item: TodoItem = {"description": description, _STATUS: "none"}
             dt = parse_datetime(due)
             if dt:
-                self.result_item["due_ts"] = dt.timestamp()
+                item[_DUE_TIMESTAMP] = dt.timestamp()
 
-            self.close()
+            self.__add_item(item)
 
         return super().get_tools_callable() + [add_todo_item]
 
@@ -111,7 +110,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__sort_tasks()
 
-        self.add_command(self.__ai_mode, hotkey="space space")
+        self.add_command(self.agent_mode, hotkey="space space")
         self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
         self.add_command(self.__edit_due, hotkey="alt+d")
@@ -210,11 +209,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.save_json()
         self.set_selected_item(item)
 
-    def __ai_mode(self):
-        menu = _TodoAgentMenu(prompt="ai")
+    def agent_mode(self):
+        menu = _TodoAgentMenu(add_item=self.__add_item, prompt="agent")
         menu.exec()
-        if menu.result_item:
-            self.__add_item(menu.result_item)
 
     def __edit_timestamp_field(self, item: TodoItem, field_name: str):
         ts = input_date(

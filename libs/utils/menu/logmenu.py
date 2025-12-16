@@ -24,6 +24,7 @@ class LogMenu(Menu[str]):
         files: List[str],
         filter: Optional[str] = None,
         preset_dir: Optional[str] = None,
+        preset_file: Optional[str] = None,
         wrap_text=False,
     ):
         self.__files = files
@@ -71,6 +72,9 @@ class LogMenu(Menu[str]):
         if filter:
             self.set_input(filter)
 
+        if preset_file:
+            self.__load_preset_file(preset_file)
+
     def __clear_logs(self):
         self.__lines.clear()
         self.refresh()
@@ -88,24 +92,31 @@ class LogMenu(Menu[str]):
             recursive=True,
             allow_cd=False,
         )
-        self.__preset_file = menu.select_file()
-        if self.__preset_file:
-            with open(self.__preset_file, "r", encoding="utf-8") as f:
-                self.__preset = {**_get_default_preset(), **json.load(f)}
-
-            assert isinstance(self.__preset["regex"], str)
-            self.set_input(self.__preset["regex"])
-
-            if self.__preset.get("sort"):
-                self.__sort()
-
-            if self.__preset.get("highlight"):
-                assert isinstance(self.__preset["highlight"], dict)
-                self.__log_highlight.clear()
-                self.__log_highlight.update(self.__default_log_highlight)
-                self.__log_highlight.update(self.__preset["highlight"])
+        preset_file = menu.select_file()
+        if preset_file:
+            self.__load_preset_file(preset_file)
 
         self.update_screen()
+
+    def __load_preset_file(self, preset_file: str):
+        if not os.path.isabs(preset_file):
+            preset_file = os.path.join(self.preset_dir, preset_file)
+        self.__preset_file = preset_file
+
+        with open(preset_file, "r", encoding="utf-8") as f:
+            self.__preset = {**_get_default_preset(), **json.load(f)}
+
+        assert isinstance(self.__preset["regex"], str)
+        self.set_input(self.__preset["regex"])
+
+        if self.__preset.get("sort"):
+            self.__sort()
+
+        if self.__preset.get("highlight"):
+            assert isinstance(self.__preset["highlight"], dict)
+            self.__log_highlight.clear()
+            self.__log_highlight.update(self.__default_log_highlight)
+            self.__log_highlight.update(self.__preset["highlight"])
 
     def __save_preset(self):
         menu = FileMenu(
