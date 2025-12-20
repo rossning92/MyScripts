@@ -2,7 +2,7 @@ import os
 
 from ai.agent_menu import AgentMenu
 
-_PLAYWRIGHT_MCP_COMMAND = "npx @playwright/mcp@latest"
+_PLAYWRIGHT_MCP_COMMAND = "npx --yes @playwright/mcp@latest"
 
 
 class BrowserAgent(AgentMenu):

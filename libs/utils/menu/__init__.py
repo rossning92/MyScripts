@@ -427,7 +427,7 @@ class Menu(Generic[T]):
         )
         try:
             stt_menu.exec()
-        except ValueError as e:
+        except Exception as e:
             self.set_message(f"ERROR: {e}")
             return
 

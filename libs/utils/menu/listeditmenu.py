@@ -16,7 +16,7 @@ class ListEditMenu(Menu, Generic[T]):
         json_file: Optional[str] = None,
         backup_json=False,
         item_type: Optional[JSONSchema] = None,
-        **kwargs
+        **kwargs,
     ):
         self.__backup_json = backup_json
         self.__json_file = json_file
@@ -29,6 +29,7 @@ class ListEditMenu(Menu, Generic[T]):
 
         self.add_command(self.__new_item, hotkey="ctrl+n")
         self.add_command(self.__delete_item, hotkey="ctrl+k")
+        self.add_command(self.__delete_item, hotkey="delete")
 
     def load_json(self) -> bool:
         if self.__json_file is not None:
@@ -43,27 +44,49 @@ class ListEditMenu(Menu, Generic[T]):
         return False
 
     def __new_item(self):
+        self.__edit_or_add_item()
+
+    def __edit_or_add_item(self, index=-1):
         if not self.__item_type:
             return
 
         if self.__item_type["type"] == "object":
             from utils.menu.dicteditmenu import DictEditMenu
 
-            data = {}
+            if index >= 0:
+                data = self.items[index]
+                prompt = f"edit item[{index}]"
+            else:
+                data = {}
+                self.items.append(data)
+                prompt = "add item"
+
             menu = DictEditMenu(
                 data=data,
                 schema=self.__item_type,
-                prompt="add item",
+                prompt=prompt,
             )
             menu.exec()
-            self.items.append(data)
         else:
+            if index >= 0:
+                value = self.items[index]
+                prompt = "edit item"
+            else:
+                value = None
+                prompt = "add item"
+
             menu = ValueEditMenu(
-                prompt="add item",
+                prompt=prompt,
                 type=self.__item_type,
+                value=value,
             )
             menu.exec()
-            if not menu.is_cancelled:
+            if menu.is_cancelled:
+                return
+
+            if index >= 0:
+                self.items[index] = menu.value
+            else:
                 self.items.append(menu.value)
 
     def __delete_item(self):
@@ -94,3 +117,9 @@ class ListEditMenu(Menu, Generic[T]):
                 last_mtime=self.__last_mtime,
                 backup=self.__backup_json,
             )
+
+    def on_enter_pressed(self):
+        index = self.get_selected_index()
+        if index < 0:
+            return
+        self.__edit_or_add_item(index)
