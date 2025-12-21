@@ -7,7 +7,7 @@ from typing import AsyncIterator, Callable, Dict, List, Optional, cast
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolUse
-from utils.http import check_for_status
+from utils.http import check_for_status, iter_lines
 
 
 async def complete_chat(
@@ -122,78 +122,72 @@ async def complete_chat(
         ) as response:
             await check_for_status(response)
 
-            buffer = b""
-            async for chunk in response.content.iter_chunked(64 * 1024):
-                buffer += chunk
+            async for line in iter_lines(response.content):
+                if not line:
+                    continue
 
-                while b"\n" in buffer:
-                    line, buffer = buffer.split(b"\n", 1)
+                if not line.startswith(b"data: "):
+                    continue
 
-                    if not line:
-                        continue
+                data_str = line[6:].decode("utf-8")
+                if data_str == "[DONE]":
+                    return
 
-                    if not line.startswith(b"data: "):
-                        continue
+                try:
+                    data = json.loads(data_str)
+                    logging.debug(f"=== data ===\n{pformat(data, width=200)}")
+                except json.JSONDecodeError:
+                    logging.debug(f"Skipping malformed chunk: {data_str}")
+                    continue
 
-                    data_str = line[6:].decode("utf-8")
-                    if data_str == "[DONE]":
-                        return
+                for choice in data.get("choices", []):
+                    delta = choice.get("delta", {})
 
-                    try:
-                        data = json.loads(data_str)
-                        logging.debug(f"=== data ===\n{pformat(data, width=200)}")
-                    except json.JSONDecodeError:
-                        logging.debug(f"Skipping malformed chunk: {data_str}")
-                        continue
-
-                    for choice in data.get("choices", []):
-                        delta = choice.get("delta", {})
-
-                        tool_calls = delta.get("tool_calls")
-                        if tool_calls:
-                            logging.debug(f"tool call delta: {tool_calls}")
-                            for tool_call in tool_calls:
-                                if tool_call["type"] == "function":
-                                    function = tool_call["function"]
-                                    if function and on_tool_use:
-                                        on_tool_use(
-                                            ToolUse(
-                                                tool_name=function["name"],
-                                                args=json.loads(function["arguments"]),
-                                                tool_use_id=tool_call["id"],
-                                            )
+                    tool_calls = delta.get("tool_calls")
+                    if tool_calls:
+                        logging.debug(f"tool call delta: {tool_calls}")
+                        for tool_call in tool_calls:
+                            if tool_call["type"] == "function":
+                                function = tool_call["function"]
+                                if function and on_tool_use:
+                                    on_tool_use(
+                                        ToolUse(
+                                            tool_name=function["name"],
+                                            args=json.loads(function["arguments"]),
+                                            tool_use_id=tool_call["id"],
                                         )
+                                    )
 
-                        content = delta.get("content")
-                        if content:
-                            logging.debug(f"yielding content chunk: {content}")
-                            yield content
+                    content = delta.get("content")
+                    if content:
+                        logging.debug(f"yielding content chunk: {content}")
+                        yield content
 
-                        reasoning_details = delta.get("reasoning_details")
-                        if reasoning_details:
-                            assert isinstance(reasoning_details, list)
-                            for reasoning_detail in reasoning_details:
-                                if reasoning_detail["type"] == "reasoning.text":
-                                    reasoning_text = reasoning_detail["text"]
-                                    if on_reasoning:
-                                        on_reasoning(reasoning_text)
-                                    if out_message:
-                                        out_message.setdefault("reasoning", []).append(
-                                            reasoning_text
-                                        )
+                    reasoning_details = delta.get("reasoning_details")
+                    if reasoning_details:
+                        assert isinstance(reasoning_details, list)
+                        for reasoning_detail in reasoning_details:
+                            if reasoning_detail["type"] == "reasoning.text":
+                                reasoning_text = reasoning_detail["text"]
+                                if on_reasoning:
+                                    on_reasoning(reasoning_text)
+                                if out_message:
+                                    out_message.setdefault("reasoning", []).append(
+                                        reasoning_text
+                                    )
 
-                            if out_message:
-                                cast(dict, out_message).setdefault(
-                                    "reasoning_details", []
-                                ).extend(reasoning_details)
+                        if out_message:
+                            cast(dict, out_message).setdefault(
+                                "reasoning_details", []
+                            ).extend(reasoning_details)
 
-                        images = delta.get("images")
-                        if images:
-                            assert isinstance(images, list)
-                            for image in images:
-                                if image["type"] == "image_url":
-                                    image_url: str = image["image_url"]["url"]
-                                    if on_image:
-                                        on_image(image_url)
-                                    if out_message:
-                                        out_message["image_urls"] = [image_url]
+                    images = delta.get("images")
+                    if images:
+                        assert isinstance(images, list)
+                        for image in images:
+                            if image["type"] == "image_url":
+                                image_url: str = image["image_url"]["url"]
+                                if on_image:
+                                    on_image(image_url)
+                                if out_message:
+                                    out_message["image_urls"] = [image_url]

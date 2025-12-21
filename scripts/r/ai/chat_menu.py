@@ -231,7 +231,6 @@ def _open_image(image_url: str):
 class ChatMenu(Menu[Line]):
     def __init__(
         self,
-        chat_file: Optional[str] = None,
         copy=False,
         data_dir: Optional[str] = None,
         edit_text=False,
@@ -239,16 +238,14 @@ class ChatMenu(Menu[Line]):
         model: Optional[str] = None,
         context: Optional[str] = None,
         image_urls: Optional[List[str]] = None,
-        new_chat=True,
         out_file: Optional[str] = None,
         prompt: str = "u",
         prompt_file: Optional[str] = None,
         system_prompt="",
         settings_menu_class=SettingsMenu,
-        escape_to_cancel=True,
+        cancellable: bool = False,
+        **kwargs,
     ) -> None:
-        self.__auto_create_chat_file = chat_file is None
-        self.__chat_file = chat_file
         self.__copy = copy
         self.__cur_subindex = 0
         self.__edit_text = edit_text
@@ -263,7 +260,6 @@ class ChatMenu(Menu[Line]):
         self.__out_file = out_file
         self.__system_prompt = system_prompt
         self.__yank_mode = 0
-        self.__escape_to_cancel = escape_to_cancel
         self.__chat_task: Optional[asyncio.Task] = None
         self.__retry_count = 0
 
@@ -293,6 +289,8 @@ class ChatMenu(Menu[Line]):
             wrap_text=True,
             line_number=True,
             follow=True,
+            cancellable=cancellable,
+            **kwargs,
         )
 
         self.add_command(self.__add_file, hotkey="alt+f")
@@ -324,18 +322,7 @@ class ChatMenu(Menu[Line]):
         )
 
         self.__messages: List[Message] = []
-
-        if self.__auto_create_chat_file:
-            self.__chat_file = self.__history_manager.get_new_file()
-        if new_chat:
-            pass
-        elif self.__chat_file is not None:
-            if not new_chat and os.path.exists(self.__chat_file):
-                self.load_chat(chat_file)
-        else:  # load last chat
-            files = self.__history_manager.get_all_files()
-            if len(files) > 0:
-                self.load_chat(files[-1])
+        self.__chat_file = self.__history_manager.get_new_file()
 
         self.__update_prompt()
 
@@ -455,10 +442,6 @@ class ChatMenu(Menu[Line]):
         self.__edit_message(msg_index=0)
 
     def __save_chat_as(self):
-        if not self.__chat_file:
-            self.set_message("current chat is empty")
-            return
-
         menu = FileMenu(
             prompt="Save chat as",
             goto=self.__chat_dir,
@@ -794,8 +777,8 @@ Following is my instructions:
         self.save_chat()
         self.update_screen()
 
-    def get_tools(self) -> Optional[List[ToolDefinition]]:
-        return None
+    def get_tools(self) -> List[ToolDefinition]:
+        return []
 
     def on_tool_use_start(self, tool_use: ToolUse):
         pass
@@ -1046,17 +1029,12 @@ Following is my instructions:
 
         self.update_screen()
 
-    def load_chat(self, file: Optional[str] = None):
-        if file is not None:
-            self.__chat_file = file
-
-        if not self.__chat_file:
+    def load_chat(self, file: str):
+        if not os.path.exists(file):
+            self.set_message(f"Conv file not exist: {file}")
             return
 
-        if not os.path.exists(self.__chat_file):
-            self.set_message(f"Conv file not exist: {self.__chat_file}")
-            return
-
+        self.__chat_file = file
         self.__messages = load_json(self.__chat_file)
         self.__refresh_lines()
 
@@ -1076,8 +1054,7 @@ Following is my instructions:
         self.__image_urls.clear()
         self.__update_prompt()
 
-        if self.__auto_create_chat_file:
-            self.__chat_file = self.__history_manager.get_new_file()
+        self.__chat_file = self.__history_manager.get_new_file()
 
     def on_enter_pressed(self):
         self.__cancel_chat_completion()
@@ -1110,12 +1087,10 @@ Following is my instructions:
         return self.__system_prompt
 
     def on_escape_pressed(self):
-        if self.__escape_to_cancel:
-            self.__cancel_chat_completion()
-        else:
+        if not self.__cancel_chat_completion():
             super().on_escape_pressed()
 
-    def __cancel_chat_completion(self):
+    def __cancel_chat_completion(self) -> bool:
         if self.__is_generating:
 
             def cancel_chat_task():
@@ -1124,6 +1099,8 @@ Following is my instructions:
                 self.__chat_task = None
 
             _loop.call_soon_threadsafe(cancel_chat_task)
+            return True
+        return False
 
     def paste(self) -> bool:
         if not super().paste():

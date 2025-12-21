@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    NotRequired,
     TypedDict,
     get_type_hints,
 )
@@ -21,10 +22,28 @@ class ToolUse(TypedDict):
     args: Dict[str, Any]
     tool_use_id: str
 
+    # Gemini model may return a thought signature in the response part containing the function call.
+    thoughtSignature: NotRequired[str]
+
 
 class ToolResult(TypedDict):
     tool_use_id: str
     content: str
+
+
+@dataclass
+class ToolParam:
+    name: str
+    type: JSONSchema
+    description: str
+
+
+@dataclass
+class ToolDefinition:
+    name: str
+    description: str
+    parameters: List[ToolParam]
+    required: List[str]
 
 
 def _find_xml_strings(tags: List[str], s: str) -> List[str]:
@@ -60,15 +79,14 @@ def _parse_xml_string_for_tool(s: str) -> ToolUse:
 
 def parse_text_for_tool_use(
     text: str,
-    tools: List[Callable],
+    tools: List[ToolDefinition],
 ) -> Iterable[ToolUse]:
-    xml_strings = _find_xml_strings([t.__name__ for t in tools], text)
-    for i, xml_string in enumerate(xml_strings):
-        # Parse the XML string for the tool usage into valid Python code to be executed.
+    xml_strings = _find_xml_strings([t.name for t in tools], text)
+    for xml_string in xml_strings:
         yield _parse_xml_string_for_tool(xml_string)
 
 
-def get_tool_use_prompt(tools: List[Callable]):
+def get_tool_use_prompt(tools: List[ToolDefinition]) -> str:
     prompt = """# Tool Use
 
 You can use the available tools to complete the user's task.
@@ -96,24 +114,17 @@ Always adhere to this format for the tool use to ensure proper parsing and execu
 """
 
     for tool in tools:
-        prompt += f"### {tool.__name__}\n\n"
-        if tool.__doc__:
-            prompt += f"{tool.__doc__.strip()}\n"
+        prompt += f"### {tool.name}\n\n"
+        if tool.description:
+            prompt += f"{tool.description.strip()}\n"
         prompt += "Usage:\n"
-        prompt += f"<{tool.__name__}>\n"
-        for param in inspect.signature(tool).parameters.values():
+        prompt += f"<{tool.name}>\n"
+        for param in tool.parameters:
             prompt += f"<{param.name}>...</{param.name}>\n"
-        prompt += f"</{tool.__name__}>\n\n"
+        prompt += f"</{tool.name}>\n\n"
 
     logging.debug(prompt)
     return prompt
-
-
-@dataclass
-class ToolParam:
-    name: str
-    type: JSONSchema
-    description: str
 
 
 def python_type_to_tool_param_type(t: int | float | bool | str) -> JSONSchema:
@@ -127,14 +138,6 @@ def python_type_to_tool_param_type(t: int | float | bool | str) -> JSONSchema:
         return {"type": "string"}
     else:
         raise ValueError(f"Unsupported type: {t}")
-
-
-@dataclass
-class ToolDefinition:
-    name: str
-    description: str
-    parameters: List[ToolParam]
-    required: List[str]
 
 
 def function_to_tool_definition(func: Callable[..., Any]) -> ToolDefinition:

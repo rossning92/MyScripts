@@ -1,23 +1,130 @@
 import json
 import logging
 import os
+import uuid
 from base64 import b64decode
-from typing import AsyncIterator, Callable, List, Optional
+from pprint import pformat
+from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
 import aiohttp
 from ai.message import Message
-from utils.http import check_for_status
+from ai.tool_use import ToolDefinition, ToolUse
+from utils.http import check_for_status, iter_lines
 from utils.imagedataurl import parse_image_data_url
+
+logger = logging.getLogger(__name__)
+
+
+def _tools_to_gemini_payload_tools(
+    tools: List[ToolDefinition],
+) -> List[Dict[str, Any]]:
+    function_declarations: List[Dict[str, Any]] = []
+    for t in tools:
+        properties: Dict[str, Any] = {}
+        for p in t.parameters:
+            properties[p.name] = {
+                **p.type,
+                "description": p.description,
+            }
+
+        function_declarations.append(
+            {
+                "name": t.name,
+                "description": t.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": t.required,
+                },
+            }
+        )
+
+    return [{"functionDeclarations": function_declarations}]
+
+
+def _build_tool_name_by_id(messages: List[Message]) -> Dict[str, str]:
+    tool_name_by_id: Dict[str, str] = {}
+    for message in messages:
+        for tool_use in message.get("tool_use", []):
+            tool_use_id = tool_use["tool_use_id"]
+            tool_name = tool_use["tool_name"]
+            tool_name_by_id[tool_use_id] = tool_name
+    return tool_name_by_id
+
+
+def _message_to_parts(message: Message, tool_name_by_id: Dict[str, str]):
+    parts = []
+
+    # Function calls (tool uses)
+    for tool_use in message.get("tool_use", []):
+        thought_signature = tool_use.get("thoughtSignature")
+        parts.append(
+            {
+                "functionCall": {
+                    "name": tool_use["tool_name"],
+                    "args": tool_use.get("args", {}),
+                },
+                **(
+                    {"thoughtSignature": thought_signature} if thought_signature else {}
+                ),
+            }
+        )
+
+    # Function responses (tool results)
+    for tool_result in message.get("tool_result", []):
+        tool_name = tool_name_by_id[tool_result["tool_use_id"]]
+        parts.append(
+            {
+                "functionResponse": {
+                    "name": tool_name,
+                    "response": {"result": tool_result.get("content", "")},
+                }
+            }
+        )
+
+    # Text
+    text = message.get("text")
+    if text:
+        parts.append({"text": text})
+
+    # Images
+    image_urls = message.get("image_urls", [])
+    for url in image_urls:
+        if not url:
+            continue
+        if url.startswith("data:"):
+            result = parse_image_data_url(url)
+            parts.append(
+                {
+                    "inline_data": {
+                        "mime_type": result.mime_type,
+                        "data": result.data,
+                    }
+                }
+            )
+        else:
+            parts.append(
+                {
+                    "file_data": {
+                        "mime_type": "application/octet-stream",
+                        "file_uri": url,
+                    }
+                }
+            )
+
+    return parts
 
 
 async def complete_chat(
     messages: List[Message],
     model: str,
     system_prompt: Optional[str] = None,
+    tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
+    on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
-    logging.debug(f"messages: {messages}")
+    logger.debug(f"messages: {messages}")
 
     api_key = os.environ["GEMINI_API_KEY"]
     if not api_key:
@@ -31,8 +138,9 @@ async def complete_chat(
     }
 
     contents = []
+    tool_name_by_id = _build_tool_name_by_id(messages)
     for message in messages:
-        parts = _message_to_parts(message)
+        parts = _message_to_parts(message, tool_name_by_id)
         assert len(parts) > 0
         contents.append({"role": message["role"], "parts": parts})
 
@@ -45,11 +153,16 @@ async def complete_chat(
         "safetySettings": json.loads(b64decode(safety_settings)),
     }
 
+    if tools:
+        payload["tools"] = _tools_to_gemini_payload_tools(tools)
+
     if system_prompt:
         payload["system_instruction"] = {
             "role": "system",
             "parts": [{"text": system_prompt}],
         }
+
+    logger.debug(f"payload: {pformat(payload, width=200)}")
 
     async with aiohttp.ClientSession() as session:
         async with session.post(
@@ -59,7 +172,7 @@ async def complete_chat(
         ) as response:
             await check_for_status(response)
 
-            async for line in response.content:
+            async for line in iter_lines(response.content):
                 line = line.decode("utf-8").strip()
                 if not line or line.startswith(":"):
                     continue
@@ -68,7 +181,7 @@ async def complete_chat(
                     line = line[6:]
 
                 data = json.loads(line)
-                logging.debug(f"data: {data}")
+                logger.debug(f"data: {data}")
 
                 for candidate in data["candidates"]:
                     finish_reason = candidate.get("finishReason")
@@ -97,42 +210,23 @@ async def complete_chat(
                                         image_url
                                     )
 
+                        function_call = part.get("functionCall")
+                        if function_call:
+                            tool_use = ToolUse(
+                                tool_name=function_call["name"],
+                                args=function_call.get("args", {}),
+                                tool_use_id=str(uuid.uuid4()),
+                            )
+                            if part.get("thoughtSignature"):
+                                tool_use["thoughtSignature"] = part["thoughtSignature"]
+
+                            if on_tool_use:
+                                on_tool_use(tool_use)
+                            if out_message:
+                                out_message.setdefault("tool_use", []).append(tool_use)
+
                         text = part.get("text")
                         if text:
                             yield text
                             if out_message:
                                 out_message["text"] += text
-
-
-def _message_to_parts(message: Message):
-    parts = []
-
-    text = message.get("text")
-    if text:
-        parts.append({"text": text})
-
-    image_urls = message.get("image_urls") or []
-    for url in image_urls:
-        if not url:
-            continue
-        if url.startswith("data:"):
-            result = parse_image_data_url(url)
-            parts.append(
-                {
-                    "inline_data": {
-                        "mime_type": result.mime_type,
-                        "data": result.data,
-                    }
-                }
-            )
-        else:
-            parts.append(
-                {
-                    "file_data": {
-                        "mime_type": "application/octet-stream",
-                        "file_uri": url,
-                    }
-                }
-            )
-
-    return parts

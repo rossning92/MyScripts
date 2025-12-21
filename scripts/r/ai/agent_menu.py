@@ -1,4 +1,4 @@
-import argparse
+import glob
 import os
 import shlex
 from pathlib import Path
@@ -10,6 +10,7 @@ from ai.chat_menu import ChatMenu, Line
 from ai.mcp import MCPClient
 from ai.tool_use import (
     ToolDefinition,
+    ToolParam,
     ToolResult,
     ToolUse,
     function_to_tool_definition,
@@ -17,24 +18,16 @@ from ai.tool_use import (
     parse_text_for_tool_use,
 )
 from utils.jsonschema import JSONSchema
-from utils.jsonutil import load_json, save_json
+from utils.jsonutil import load_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
-from utils.menu.inputmenu import InputMenu
 from utils.strutil import to_ordinal
-from utils.template import render_template
 
 MODULE_NAME = Path(__file__).stem
 DATA_DIR = os.path.join(".config", MODULE_NAME)
-AGENT_FILE = "agent.json"
-AGENT_DEFAULT = {
-    "task": "",
-    "agents": [],
-    "context": {},
-}
 
 
-def _get_prompt(tools: Optional[List[Callable]] = None):
+def _get_prompt(tools: Optional[List[ToolDefinition]] = None) -> str:
     prompt = """You are my assistant to help me complete a task.
 
 # Tone
@@ -60,6 +53,12 @@ class _MCP(TypedDict):
     command: str
 
 
+class _Subagent(TypedDict):
+    name: str
+    description: str
+    system_prompt: str
+
+
 class SettingsMenu(ai.chat_menu.SettingsMenu):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -82,29 +81,37 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
         return schema
 
 
+def load_subagents() -> List[_Subagent]:
+    script_dir = Path(__file__).parent
+    subagents_dir = script_dir / "subagents"
+    subagents: List[_Subagent] = []
+
+    for json_file in glob.glob(str(subagents_dir / "*.json")):
+        subagent: _Subagent = load_json(json_file)
+        agent_name = Path(json_file).stem
+        subagent["name"] = agent_name
+        subagents.append(subagent)
+    return subagents
+
+
 class AgentMenu(ChatMenu):
     def __init__(
         self,
-        context: Optional[Dict] = None,
-        agent_file: Optional[str] = None,
         yes_always=True,
-        run=False,
-        load_last_agent=False,
         data_dir: str = DATA_DIR,
         settings_menu_class=SettingsMenu,
         mcp: Optional[List[_MCP]] = None,
+        subagents: Optional[List[_Subagent]] = None,
+        tools_callable: Optional[List[Callable]] = None,
         **kwargs,
     ):
-        self.__agent = AGENT_DEFAULT.copy()
-        self.__agent_file = agent_file or os.path.join(data_dir, AGENT_FILE)
         self.__data_dir = data_dir
-        self.__run = run
-        self.__tools = self.get_tools_callable()
         self.__yes_always = yes_always
+        self.__subagents = subagents if subagents else []
+        self.__tools_callable = tools_callable if tools_callable is not None else []
 
         super().__init__(
             data_dir=data_dir,
-            chat_file=os.path.join(self.__data_dir, "chat.json"),
             settings_menu_class=settings_menu_class,
             **kwargs,
         )
@@ -116,146 +123,44 @@ class AgentMenu(ChatMenu):
 
         os.makedirs(data_dir, exist_ok=True)
 
-        if agent_file:
-            self.__load_agent(agent_file, context=context)
-        else:
-            if load_last_agent:
-                self.__load_agent()
-            else:
-                self.__new_agent()
-
-        self.task_result: Optional[str] = None
-
-        self.add_command(self.__edit_context, hotkey="alt+c")
-        self.add_command(self.__load_agent, hotkey="ctrl+l")
-        self.add_command(self.__new_agent, hotkey="ctrl+n")
         self.add_command(self.__open_file_menu, hotkey="alt+f")
 
-    def __edit_context(self):
-        assert isinstance(self.__agent["context"], dict)
-        self.__agent["context"].clear()
-        self.__get_task_with_context()
-
-    def __load_agent(
-        self,
-        agent_file: Optional[str] = None,
-        clear_messages=False,
-        context: Optional[Dict] = None,
-    ):
-        if agent_file is not None:
-            self.__agent_file = agent_file
-
-        if clear_messages:
-            self.__agent = AGENT_DEFAULT.copy()
-        else:
-            self.__agent = load_json(
-                self.__agent_file,
-                default=AGENT_DEFAULT.copy(),
-            )
-
-        if context:
-            assert isinstance(self.__agent["context"], dict)
-            self.__agent["context"].update(context)
-
-        self.load_chat()
-
-    def __new_agent(self):
-        self.__agent_file = os.path.join(self.__data_dir, AGENT_FILE)
-        self.__agent = AGENT_DEFAULT.copy()
-        self.new_chat()
-
-    def on_created(self):
-        if self.__run:
-            self.send_message(self.get_prompt())
+        self.__tools = self.get_tools()
 
     def on_message(self, content: str):
         self.__handle_response()
 
-    def send_message(
-        self,
-        text: str,
-        tool_results: Optional[List[ToolResult]] = None,
-    ) -> None:
-        if len(self.get_messages()) == 0:
-            self.__agent["task"] = text
-            self.__save_agent()
-
-        return super().send_message(text, tool_results)
-
-    def __save_agent(self):
-        os.makedirs(os.path.dirname(self.__agent_file), exist_ok=True)
-        save_json(self.__agent_file, self.__agent)
-
-    def __get_task_with_context(self):
-        while True:
-            undefined_names: List[str] = []
-            task = render_template(
-                template=self.__agent["task"],
-                context=self.__agent["context"],
-                undefined_names=undefined_names,
+    def __get_tools_subagent(self) -> List[ToolDefinition]:
+        subagents = self.__subagents
+        return [
+            ToolDefinition(
+                name=subagent["name"],
+                description=subagent["description"],
+                parameters=[
+                    ToolParam(
+                        name="prompt",
+                        type={"type": "string"},
+                        description="The task for the agent to perform",
+                    ),
+                ],
+                required=["prompt"],
             )
-            if len(undefined_names) > 0:
-                for name in undefined_names:
-                    val = InputMenu(prompt=name).request_input()
-                    if val:
-                        assert isinstance(self.__agent["context"], dict)
-                        self.__agent["context"][name] = val
-                        self.__save_agent()
-            else:
-                return task
-
-    def get_prompt(self) -> str:
-        return self.__get_task_with_context()
+            for subagent in subagents
+        ]
 
     def get_tools_callable(self) -> List[Callable]:
-        tools: List[Callable] = []
+        return self.__tools_callable
 
-        for agent_name in self.__agent["agents"]:
-            if not isinstance(agent_name, str):
-                raise Exception('Invalid value in "agents"')
-
-            # Get input parameters for the agent
-            agent_file = os.path.join(
-                os.path.dirname(self.__agent_file), agent_name + ".json"
+    def get_tools(self) -> List[ToolDefinition]:
+        return (
+            (
+                [function_to_tool_definition(t) for t in self.get_tools_callable()]
+                + self.__get_tools_subagent()
+                + [t for client in self.__mcp_clients for t in client.list_tools()]
             )
-            agent = load_json(agent_file)
-            params: List[str] = []  # function parameter names
-            render_template(
-                template=agent["task"],
-                undefined_names=params,
-                context=self.__agent["context"],
-            )
-            signature = "(" + ", ".join([f"{p}: str" for p in params]) + ")"
-
-            # Convert agent as a tool that can be called through a Python function call.
-            def exec_agent(context):
-                menu = AgentMenu(
-                    context=context,
-                    agent_file=agent_file,
-                    yes_always=self.__yes_always,
-                    run=True,
-                )
-                menu.exec()
-                return menu.task_result
-
-            scope = {"exec_agent": exec_agent}
-            exec(
-                f"def {agent_name}{signature}: return exec_agent(context=locals())",
-                scope,
-            )
-            tools.append(scope[agent_name])
-        return tools
-
-    def get_tools(self) -> Optional[List[ToolDefinition]]:
-        if self.get_setting("tool_use_api"):
-            tools = []
-            for t in self.get_tools_callable():
-                tools.append(function_to_tool_definition(t))
-            for client in self.__mcp_clients:
-                tools.extend(client.list_tools())
-            return tools
-        else:
-            return None
+            if self.get_setting("tool_use_api")
+            else []
+        )
 
     def get_system_prompt(self) -> str:
         return (
@@ -309,7 +214,12 @@ class AgentMenu(ChatMenu):
                 try:
                     tool_name = tool_use["tool_name"]
                     tool = next(
-                        (t for t in self.__tools if t.__name__ == tool_name), None
+                        (
+                            t
+                            for t in self.get_tools_callable()
+                            if t.__name__ == tool_name
+                        ),
+                        None,
                     )
                     if tool:  # Call function tool
                         ret = tool(**tool_use["args"])
@@ -326,9 +236,22 @@ class AgentMenu(ChatMenu):
                             ),
                             None,
                         )
-                        if not client:
-                            raise Exception(f"Tool not found: {tool_use['tool_name']}")
-                        ret = client.call_tool(tool_use)
+                        if client:
+                            ret = client.call_tool(tool_use)
+                        else:
+                            subagent = next(
+                                a for a in self.__subagents if a["name"] == tool_name
+                            )
+                            menu = AgentMenu(
+                                system_prompt=subagent["system_prompt"],
+                                prompt=f"subagent={tool_name}",
+                                message=tool_use["args"]["prompt"],
+                                tools_callable=self.get_tools_callable(),
+                                yes_always=self.__yes_always,
+                                cancellable=True,
+                            )
+                            menu.exec()
+                            ret = menu.get_messages()[-1]["text"]
 
                     if ret:
                         if self.get_setting("tool_use_api"):
@@ -453,8 +376,11 @@ class AgentMenu(ChatMenu):
         FileMenu(goto=os.getcwd()).exec()
 
     def get_status_text(self) -> str:
-        tools = "|".join([tool.__name__ for tool in self.__tools])
-        s = f"cwd={os.getcwd()}  tools={tools}"
+        s = f"cwd={os.getcwd()}"
+
+        if self.__tools:
+            s += "  tools=" + "|".join([tool.name for tool in self.__tools])
+
         return s + "\n" + super().get_status_text()
 
     def get_data_dir(self) -> str:
@@ -467,32 +393,7 @@ class AgentMenu(ChatMenu):
 
 
 def _main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-a",
-        "--agent",
-        type=str,
-    )
-    parser.add_argument(
-        "-c",
-        "--context",
-        metavar="KEY=VALUE",
-        nargs="+",
-    )
-    parser.add_argument(
-        "-r",
-        "--run",
-        action="store_true",
-    )
-
-    args = parser.parse_args()
-    context = dict(kvp.split("=") for kvp in args.context) if args.context else None
-
-    menu = AgentMenu(
-        context=context,
-        agent_file=args.agent,
-        run=args.run,
-    )
+    menu = AgentMenu()
     menu.exec()
 
 

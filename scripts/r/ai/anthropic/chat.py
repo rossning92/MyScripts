@@ -14,6 +14,7 @@ import aiohttp
 from ai.message import Message
 from ai.tokenutil import token_count
 from ai.tool_use import ToolDefinition, ToolUse
+from utils.http import iter_lines
 
 DEFAULT_MODEL = "claude-3-7-sonnet-latest"
 
@@ -110,7 +111,7 @@ async def complete_chat(
             text = None
             tool_use = None
             tool_input_json = ""
-            async for line in response.content:
+            async for line in iter_lines(response.content):
                 line = line.rstrip(b"\n")
 
                 if not line:

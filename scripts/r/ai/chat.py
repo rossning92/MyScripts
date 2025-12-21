@@ -83,7 +83,10 @@ async def complete_chat(
         return ai.gemini.chat.complete_chat(
             messages=messages,
             model=model,
+            system_prompt=system_prompt,
+            tools=tools,
             on_image=on_image,
+            on_tool_use=on_tool_use,
             out_message=out_message,
         )
     else:

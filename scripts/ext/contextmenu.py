@@ -7,7 +7,6 @@ from typing import List
 
 from _script import Script
 from utils.menu import Menu
-from utils.textutil import truncate_text
 
 
 @dataclass

@@ -6,7 +6,7 @@ from platform import platform
 from typing import Any, Callable, Dict, List, Optional
 
 import ai.agent_menu
-from ai.agent_menu import AgentMenu
+from ai.agent_menu import AgentMenu, load_subagents
 from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
 from ai.tool_use import ToolResult
@@ -71,6 +71,7 @@ class CodeAgentMenu(AgentMenu):
         super().__init__(
             data_dir=os.path.join(".config", "coder"),
             settings_menu_class=settings_menu_class,
+            subagents=load_subagents(),
             **kwargs,
         )
         self.__file_context_menu = FileContextMenu(files=files)
@@ -138,7 +139,7 @@ class CodeAgentMenu(AgentMenu):
             list_files,
             glob_files,
             grep_tool,
-        ]
+        ] + super().get_tools_callable()
 
     def get_system_prompt(self) -> str:
         prompt_parts = []

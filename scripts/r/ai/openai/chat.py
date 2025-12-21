@@ -14,7 +14,7 @@ from typing import (
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolUse
-from utils.http import check_for_status
+from utils.http import check_for_status, iter_lines
 
 DEFAULT_MODEL = "gpt-4o"
 
@@ -159,7 +159,7 @@ async def complete_chat(
         async with session.post(url, headers=headers, json=payload) as response:
             await check_for_status(response)
 
-            async for line in response.content:
+            async for line in iter_lines(response.content):
                 line = line.rstrip(b"\n")
 
                 if not line:
