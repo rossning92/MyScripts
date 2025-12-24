@@ -11,10 +11,16 @@ from utils.shutil import shell_open
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-o",
-        "--out",
+        "out",
+        nargs="?",
         default=None,
         type=str,
+    )
+    parser.add_argument(
+        "-s",
+        "--scale",
+        default=(float(v) if (v := os.environ.get("SCREENSHOT_SCALE")) else None),
+        type=float,
     )
     args = parser.parse_args()
 
@@ -23,12 +29,10 @@ if __name__ == "__main__":
     if not args.out:
         os.chdir(os.path.join(get_home_path(), "Desktop"))
 
-    n = int(os.environ.get("_COUNT", "1"))
-    for i in range(n):
-        file_name = screenshot(
-            out_file=args.out if args.out else None,
-            scale=float(os.environ["_SCALE"]) if os.environ.get("_SCALE") else None,
-        )
+    file_name = screenshot(
+        out_file=args.out if args.out else None,
+        scale=args.scale,
+    )
 
-    if args.out is None and n == 1:
+    if args.out is None:
         shell_open(file_name)

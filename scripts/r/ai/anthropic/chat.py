@@ -49,13 +49,13 @@ def _to_claude_message_content(message: Message) -> List[Dict[str, Any]]:
 
 async def complete_chat(
     messages: List[Message],
+    out_message: Message,
     model: str = DEFAULT_MODEL,
     system_prompt: Optional[str] = None,
     tools: Optional[List[ToolDefinition]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-    out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     logging.debug(f"messages={messages}")
 
@@ -108,8 +108,8 @@ async def complete_chat(
 
     async with aiohttp.ClientSession(raise_for_status=True) as session:
         async with session.post(api_url, headers=headers, json=payload) as response:
-            text = None
-            tool_use = None
+            cb_text = None
+            cb_tool_use = None
             tool_input_json = ""
             async for line in iter_lines(response.content):
                 line = line.rstrip(b"\n")
@@ -138,26 +138,28 @@ async def complete_chat(
                 elif data["type"] == "content_block_start":
                     content_block = data["content_block"]
                     if content_block["type"] == "tool_use":
-                        tool_use = content_block.copy()
+                        cb_tool_use = content_block.copy()
                         tool_input_json = ""
+
+                        tool_use = ToolUse(
+                            tool_name=cb_tool_use["name"],
+                            args=cb_tool_use["input"],
+                            tool_use_id=cb_tool_use["id"],
+                        )
                         if on_tool_use_start:
-                            on_tool_use_start(
-                                ToolUse(
-                                    tool_name=tool_use["name"],
-                                    args=tool_use["input"],
-                                    tool_use_id=tool_use["id"],
-                                )
-                            )
+                            on_tool_use_start(tool_use)
+
                     elif content_block["type"] == "text":
-                        text = content_block.copy()
+                        cb_text = content_block.copy()
 
                 elif data["type"] == "content_block_delta":
                     if data["delta"]["type"] == "text_delta":
-                        text_chunk = data["delta"]["text"]
-                        if text_chunk:
-                            assert isinstance(text, dict)
-                            text["text"] += text_chunk
-                            yield text_chunk
+                        text_delta = data["delta"]["text"]
+                        if text_delta:
+                            assert isinstance(cb_text, dict)
+                            cb_text["text"] += text_delta
+                            yield text_delta
+                            out_message["text"] += text_delta
 
                     if data["delta"]["type"] == "input_json_delta":
                         partial_json = data["delta"]["partial_json"]
@@ -166,19 +168,21 @@ async def complete_chat(
                             on_tool_use_args_delta(partial_json)
 
                 elif data["type"] == "content_block_stop":
-                    if text:
-                        text = None
-                    elif tool_use:
-                        tool_use["input"] = json.loads(tool_input_json)
+                    if cb_text:
+                        cb_text = None
+                    elif cb_tool_use:
+                        cb_tool_use["input"] = (
+                            json.loads(tool_input_json) if tool_input_json else {}
+                        )
+                        tool_use = ToolUse(
+                            tool_name=cb_tool_use["name"],
+                            args=cb_tool_use["input"],
+                            tool_use_id=cb_tool_use["id"],
+                        )
                         if on_tool_use:
-                            on_tool_use(
-                                ToolUse(
-                                    tool_name=tool_use["name"],
-                                    args=tool_use["input"],
-                                    tool_use_id=tool_use["id"],
-                                )
-                            )
-                        tool_use = None
+                            on_tool_use(tool_use)
+                        out_message.setdefault("tool_use", []).append(tool_use)
+                        cb_tool_use = None
                         tool_input_json = ""
 
                 elif data["type"] == "error":

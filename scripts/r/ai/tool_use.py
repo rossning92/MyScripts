@@ -22,7 +22,7 @@ class ToolUse(TypedDict):
     args: Dict[str, Any]
     tool_use_id: str
 
-    # Gemini model may return a thought signature in the response part containing the function call.
+    # Gemini model may return a thought signature, e.g. { "role": "model", "parts": [{ "functionCall": {...}, "thoughtSignature": "..." }] }
     thoughtSignature: NotRequired[str]
 
 

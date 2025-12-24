@@ -13,6 +13,7 @@ class BrowserAgent(AgentMenu):
         super().__init__(
             data_dir=os.path.join(".config", "browser_agent"),
             mcp=[{"command": _PLAYWRIGHT_MCP_COMMAND}],
+            model="claude-sonnet-4-5",
             **kwargs,
         )
 

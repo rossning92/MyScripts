@@ -99,7 +99,7 @@ def start_app(pkg, use_monkey=False, wake_up=True):
 
 
 def clear_logcat():
-    logger.debug("Clearing logcat...")
+    logger.debug("Clearing logcat")
 
     # Retry on error
     while True:
@@ -107,7 +107,7 @@ def clear_logcat():
             subprocess.check_call(["adb", "logcat", "-c"])
             break
         except subprocess.CalledProcessError:
-            logger.debug("WARNING: clear logcat failed. Retrying...")
+            logger.debug("WARNING: clear logcat failed. Retrying")
 
 
 def kill_app(pkg):
@@ -301,7 +301,7 @@ def backup_pkg(
         su = ""
 
     if backup_user_data:
-        logging.info("Backup app data...")
+        logging.info("Backup app data")
         subprocess.call(
             f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}"
         )
@@ -309,7 +309,7 @@ def backup_pkg(
         subprocess.call(f"adb shell rm /sdcard/{pkg}.tar")
 
     if backup_obb:
-        logging.info("Backup obb...")
+        logging.info("Backup obb")
         subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=obb_dir)
 
 
@@ -343,7 +343,7 @@ def screenshot(out_file=None, scale=None):
 
     while True:
         try:
-            logger.info("Taking screenshot...")
+            logger.info("Taking screenshot")
             subprocess.check_call(
                 ["adb", "shell", "screencap -p /sdcard/%s" % src_file]
             )
@@ -642,7 +642,7 @@ def adb_install(
     if not force_reinstall:
         should_install = False
         if not app_is_installed(pkg_name):
-            logger.info("App does not exist on device, installing...")
+            logger.info("App does not exist on device, installing")
             should_install = True
 
         if not should_install and not skip_install_if_exist:
@@ -716,7 +716,7 @@ def adb_install(
                         logger.warning("Failed to grant permission: %s" % permission)
 
     else:
-        logger.info("App already installed, skipping...")
+        logger.info("App already installed, skipping")
 
     return AdbInstallResult(pkg=pkg_name, installed=should_install)
 
@@ -742,7 +742,7 @@ def adb_install2(
         tar_file = os.path.splitext(file)[0] + ".tar"
         pkg = os.path.splitext(os.path.basename(file))[0]
         if os.path.exists(tar_file):
-            logger.info("Restoring app data...")
+            logger.info("Restoring app data")
             subprocess.check_call(["adb", "push", tar_file, "/data/local/tmp/"])
             adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
 
@@ -753,7 +753,7 @@ def adb_install2(
             logger.info(f"Changing owner of {pkg} => {userId}")
             adb_shell2(f"chown -R {userId}:{userId} /data/data/{pkg}", root=True)
 
-            logger.info("Resetting SELinux permisions...")
+            logger.info("Resetting SELinux permisions")
             adb_shell2(f"restorecon -R /data/data/{pkg}", root=True)
 
         # Push obb file
@@ -791,7 +791,7 @@ def sample_proc_stat():
 
 def get_pkg_name_apk(file):
     setup_android_env()
-    logger.info("Starting the app...")
+    logger.info("Starting the app")
     out = subprocess.check_output(["aapt", "dump", "badging", file]).decode()
     match = re.search("package: name='(.*?)'", out)
     if match is None:

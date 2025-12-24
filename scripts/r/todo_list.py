@@ -70,7 +70,7 @@ class _EditTodoItemMenu(DictEditMenu):
 class _TodoAgentMenu(AgentMenu):
     def __init__(self, add_item: Callable[[TodoItem], None], **kwargs):
         self.__add_item = add_item
-        super().__init__(escape_to_cancel=False, **kwargs)
+        super().__init__(cancellable=True, **kwargs)
 
     def get_system_prompt(self) -> str:
         return (

@@ -15,7 +15,21 @@ from utils.imagedataurl import parse_image_data_url
 logger = logging.getLogger(__name__)
 
 
-def _tools_to_gemini_payload_tools(
+# Gemini API does not support "additionalProperties" in JSON Schema.
+def _strip_additional_properties(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            k: _strip_additional_properties(v)
+            for k, v in value.items()
+            if k != "additionalProperties"
+        }
+    if isinstance(value, list):
+        return [_strip_additional_properties(v) for v in value]
+    return value
+
+
+# Doc: https://ai.google.dev/gemini-api/docs/function-calling
+def _to_gemini_tools(
     tools: List[ToolDefinition],
 ) -> List[Dict[str, Any]]:
     function_declarations: List[Dict[str, Any]] = []
@@ -23,7 +37,7 @@ def _tools_to_gemini_payload_tools(
         properties: Dict[str, Any] = {}
         for p in t.parameters:
             properties[p.name] = {
-                **p.type,
+                **_strip_additional_properties(p.type),
                 "description": p.description,
             }
 
@@ -117,12 +131,12 @@ def _message_to_parts(message: Message, tool_name_by_id: Dict[str, str]):
 
 async def complete_chat(
     messages: List[Message],
+    out_message: Message,
     model: str,
     system_prompt: Optional[str] = None,
     tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-    out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     logger.debug(f"messages: {messages}")
 
@@ -154,7 +168,7 @@ async def complete_chat(
     }
 
     if tools:
-        payload["tools"] = _tools_to_gemini_payload_tools(tools)
+        payload["tools"] = _to_gemini_tools(tools)
 
     if system_prompt:
         payload["system_instruction"] = {
@@ -173,14 +187,11 @@ async def complete_chat(
             await check_for_status(response)
 
             async for line in iter_lines(response.content):
-                line = line.decode("utf-8").strip()
-                if not line or line.startswith(":"):
+                line = line.strip()
+                if not line.startswith(b"data: "):
                     continue
 
-                if line.startswith("data: "):
-                    line = line[6:]
-
-                data = json.loads(line)
+                data = json.loads(line[6:].decode("utf-8"))
                 logger.debug(f"data: {data}")
 
                 for candidate in data["candidates"]:
@@ -205,10 +216,9 @@ async def complete_chat(
                                 image_url = f"data:{mime_type};base64,{base64_data}"
                                 if on_image:
                                     on_image(image_url)
-                                if out_message:
-                                    out_message.setdefault("image_urls", []).append(
-                                        image_url
-                                    )
+                                out_message.setdefault("image_urls", []).append(
+                                    image_url
+                                )
 
                         function_call = part.get("functionCall")
                         if function_call:
@@ -222,11 +232,9 @@ async def complete_chat(
 
                             if on_tool_use:
                                 on_tool_use(tool_use)
-                            if out_message:
-                                out_message.setdefault("tool_use", []).append(tool_use)
+                            out_message.setdefault("tool_use", []).append(tool_use)
 
                         text = part.get("text")
                         if text:
                             yield text
-                            if out_message:
-                                out_message["text"] += text
+                            out_message["text"] += text

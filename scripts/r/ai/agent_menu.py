@@ -345,11 +345,6 @@ class AgentMenu(ChatMenu):
         if not self.get_setting("tool_use_api"):
             return
 
-        assert self._out_message
-        if "tool_use" not in self._out_message:
-            self._out_message["tool_use"] = []
-        self._out_message["tool_use"].append(tool_use)
-
         # Add or update tool use result
         exists = False
         for line in reversed(self.items):

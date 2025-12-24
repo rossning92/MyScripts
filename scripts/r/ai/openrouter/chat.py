@@ -8,13 +8,13 @@ from ai.tool_use import ToolDefinition, ToolUse
 
 async def complete_chat(
     messages: List[Message],
+    out_message: Message,
     model: str,
     system_prompt: Optional[str] = None,
     tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
-    out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
     if not openrouter_api_key:
@@ -29,9 +29,10 @@ async def complete_chat(
         extra_payload.setdefault("extra_body", {})["modalities"] = ["image", "text"]
 
     return ai.openai_compatible.chat.complete_chat(
+        messages=messages,
+        out_message=out_message,
         endpoint_url="https://openrouter.ai/api/v1/chat/completions",
         api_key=openrouter_api_key,
-        messages=messages,
         model=model,
         system_prompt=system_prompt,
         tools=tools,
@@ -39,5 +40,4 @@ async def complete_chat(
         on_tool_use=on_tool_use,
         on_reasoning=on_reasoning,
         extra_payload=extra_payload,
-        out_message=out_message,
     )

@@ -9,9 +9,7 @@ MODELS = [
     "gemini-3-flash-preview",
     "gemini-3-pro-image-preview",
     "gemini-2.5-flash-image",
-    "openrouter:google/gemini-3-flash-preview",
     "openrouter:google/gemini-3-pro-image-preview",
-    "openrouter:google/gemini-3-pro-preview",
     "openrouter:google/gemini-3-pro-preview(reasoning)",
 ]
 DEFAULT_MODEL = "gpt-5.2-chat-latest"

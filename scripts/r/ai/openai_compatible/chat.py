@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from pprint import pformat
-from typing import AsyncIterator, Callable, Dict, List, Optional, cast
+from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import aiohttp
 from ai.message import Message
@@ -12,6 +12,7 @@ from utils.http import check_for_status, iter_lines
 
 async def complete_chat(
     messages: List[Message],
+    out_message: Message,
     endpoint_url: str,
     api_key: str,
     model: Optional[str] = None,
@@ -21,7 +22,6 @@ async def complete_chat(
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
     extra_payload: Optional[Dict] = None,
-    out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     logging.debug(f"messages: {messages}")
 
@@ -149,19 +149,23 @@ async def complete_chat(
                         for tool_call in tool_calls:
                             if tool_call["type"] == "function":
                                 function = tool_call["function"]
-                                if function and on_tool_use:
-                                    on_tool_use(
-                                        ToolUse(
-                                            tool_name=function["name"],
-                                            args=json.loads(function["arguments"]),
-                                            tool_use_id=tool_call["id"],
-                                        )
+                                if function:
+                                    tool_use = ToolUse(
+                                        tool_name=function["name"],
+                                        args=json.loads(function["arguments"]),
+                                        tool_use_id=tool_call["id"],
+                                    )
+                                    if on_tool_use:
+                                        on_tool_use(tool_use)
+                                    out_message.setdefault("tool_use", []).append(
+                                        tool_use
                                     )
 
                     content = delta.get("content")
                     if content:
                         logging.debug(f"yielding content chunk: {content}")
                         yield content
+                        out_message["text"] += content
 
                     reasoning_details = delta.get("reasoning_details")
                     if reasoning_details:
@@ -171,15 +175,13 @@ async def complete_chat(
                                 reasoning_text = reasoning_detail["text"]
                                 if on_reasoning:
                                     on_reasoning(reasoning_text)
-                                if out_message:
-                                    out_message.setdefault("reasoning", []).append(
-                                        reasoning_text
-                                    )
+                                out_message.setdefault("reasoning", []).append(
+                                    reasoning_text
+                                )
 
-                        if out_message:
-                            cast(dict, out_message).setdefault(
-                                "reasoning_details", []
-                            ).extend(reasoning_details)
+                        out_message.setdefault("reasoning_details", []).extend(
+                            reasoning_details
+                        )
 
                     images = delta.get("images")
                     if images:
@@ -189,5 +191,6 @@ async def complete_chat(
                                 image_url: str = image["image_url"]["url"]
                                 if on_image:
                                     on_image(image_url)
-                                if out_message:
-                                    out_message["image_urls"] = [image_url]
+                                out_message.setdefault("image_urls", []).append(
+                                    image_url
+                                )

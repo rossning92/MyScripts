@@ -822,7 +822,7 @@ Following is my instructions:
         self.__is_generating = True
         self.__cur_subindex = 0
 
-        self._out_message = Message(
+        self._out_message = out_message = Message(
             role="assistant",
             text="",
             timestamp=datetime.now().timestamp(),
@@ -853,7 +853,7 @@ Following is my instructions:
                         lambda: self.on_reasoning(text)
                     ),
                     web_search=self.get_setting("web_search"),
-                    out_message=self._out_message,
+                    out_message=out_message,
                 ):
                     self.post_event(
                         lambda chunk_index=chunk_index, chunk=chunk: self.__on_chat_chunk(
@@ -913,8 +913,6 @@ Following is my instructions:
             self.on_message(text)
 
     def __on_chat_chunk(self, chunk_index: int, chunk: str):
-        assert self._out_message
-        self._out_message["text"] += chunk
         for i, a in enumerate(chunk.split("\n")):
             if i > 0 or chunk_index == 0:
                 line = Line(

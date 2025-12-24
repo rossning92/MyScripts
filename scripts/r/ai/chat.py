@@ -1,7 +1,3 @@
-import argparse
-import os
-import sys
-from datetime import datetime
 from typing import (
     AsyncIterator,
     Callable,
@@ -42,6 +38,7 @@ def get_reasoning_text(text: str) -> str:
 
 async def complete_chat(
     messages: List[Message],
+    out_message: Message,
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     tools: Optional[List[ToolDefinition]] = None,
@@ -51,81 +48,51 @@ async def complete_chat(
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
     web_search=False,
-    out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     openrouter_prefix = "openrouter:"
 
     if model and model.startswith("claude"):
         return ai.anthropic.chat.complete_chat(
             messages=messages,
+            out_message=out_message,
             model=model,
             system_prompt=system_prompt,
             tools=tools,
             on_tool_use_start=on_tool_use_start,
             on_tool_use_args_delta=on_tool_use_args_delta,
             on_tool_use=on_tool_use,
-            out_message=out_message,
         )
     elif model and model.startswith(openrouter_prefix):
         model = model[len(openrouter_prefix) :]
 
         return await ai.openrouter.chat.complete_chat(
             messages=messages,
+            out_message=out_message,
             model=model,
             system_prompt=system_prompt,
             tools=tools,
             on_image=on_image,
             on_tool_use=on_tool_use,
             on_reasoning=on_reasoning,
-            out_message=out_message,
         )
     elif model and model.startswith("gemini"):
         return ai.gemini.chat.complete_chat(
             messages=messages,
+            out_message=out_message,
             model=model,
             system_prompt=system_prompt,
             tools=tools,
             on_image=on_image,
             on_tool_use=on_tool_use,
-            out_message=out_message,
         )
     else:
         return ai.openai.chat.complete_chat(
             messages=messages,
+            out_message=out_message,
             model=model,
             system_prompt=system_prompt,
             tools=tools,
             on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
             web_search=web_search,
-            out_message=out_message,
         )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("input", nargs="?", type=str)
-    parser.add_argument("-o", "--output", type=str)
-    parser.add_argument("-q", "--quiet", action="store_true")
-    args = parser.parse_args()
-
-    if not sys.stdin.isatty():
-        input_text = sys.stdin.read()
-    else:
-        if os.path.isfile(args.input):
-            with open(args.input, "r", encoding="utf-8") as f:
-                input_text = f.read()
-        else:
-            input_text = args.input
-
-    output = ""
-    for chunk in complete_chat(
-        [Message(role="user", text=input_text, timestamp=datetime.now().timestamp())]
-    ):
-        output += chunk
-        if not args.quiet:
-            print(chunk, end="")
-
-    if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(output)

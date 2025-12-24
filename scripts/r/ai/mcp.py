@@ -177,7 +177,7 @@ class MCPClient:
             },
         )
 
-        content = result["content"]
+        content = result["content"]  # unstructured content
         assert isinstance(content, list)
         for item in content:
             assert isinstance(item, dict)

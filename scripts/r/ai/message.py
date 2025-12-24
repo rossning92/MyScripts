@@ -14,3 +14,7 @@ class Message(TypedDict):
     reasoning: NotRequired[List[str]]
     tool_use: NotRequired[List[ToolUse]]
     tool_result: NotRequired[List[ToolResult]]
+
+    # Used only by openrouter
+    reasoning_details: NotRequired[List[dict]]
+

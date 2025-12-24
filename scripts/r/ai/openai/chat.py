@@ -76,13 +76,13 @@ def _to_openai_responses_api_input(messages: List[Message]) -> List[Dict[str, An
 
 async def complete_chat(
     messages: List[Message],
+    out_message: Message,
     model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     tools: Optional[List[ToolDefinition]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     web_search=False,
-    out_message: Optional[Message] = None,
 ) -> AsyncIterator[str]:
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
@@ -175,25 +175,25 @@ async def complete_chat(
                         delta = data["delta"]
                         assert isinstance(delta, str), "Delta must be a string"
                         yield delta
+                        out_message["text"] += delta
                     elif data["type"] == "response.output_item.added":
                         item = data["item"]
                         if item["type"] == "function_call":
+                            tool_use = ToolUse(
+                                tool_name=item["name"],
+                                args={},
+                                tool_use_id=item["id"],
+                            )
                             if on_tool_use_start:
-                                on_tool_use_start(
-                                    ToolUse(
-                                        tool_name=item["name"],
-                                        args={},
-                                        tool_use_id=item["id"],
-                                    )
-                                )
+                                on_tool_use_start(tool_use)
                     elif data["type"] == "response.output_item.done":
                         item = data["item"]
                         if item["type"] == "function_call":
+                            tool_use = ToolUse(
+                                tool_name=item["name"],
+                                args=json.loads(item["arguments"]),
+                                tool_use_id=item["id"],
+                            )
                             if on_tool_use:
-                                on_tool_use(
-                                    ToolUse(
-                                        tool_name=item["name"],
-                                        args=json.loads(item["arguments"]),
-                                        tool_use_id=item["id"],
-                                    )
-                                )
+                                on_tool_use(tool_use)
+                            out_message.setdefault("tool_use", []).append(tool_use)

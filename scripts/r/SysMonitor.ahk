@@ -1,16 +1,16 @@
 #SingleInstance, Force
 CoordMode, Mouse, Screen
 
-WIN_WIDTH := 208
-ROW := 3
+WIN_WIDTH := 240
+ROW := 1
 
-CustomColor = 0 ; Can be any RGB color.
+TRANS_COLOR = 010203 ; Can be any RGB color.
 Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20 +HwndMyGuiHwnd
-Gui, Margin, 4, 4
-Gui, Color, %CustomColor%
-Gui, Font, q3 cffffff w700 s9, Courier
+Gui, Margin, 2, 2
+Gui, Color, %TRANS_COLOR%
+Gui, Font, q3 c00FF00 s9, Terminal
 Gui, Add, Text, vMyText w%WIN_WIDTH% r%ROW%
-WinSet, TransColor, 1 176 ; Make color invisible
+WinSet, TransColor, %TRANS_COLOR% ; Make background transparent
 WinPosX := A_ScreenWidth - WIN_WIDTH
 WinPosY := 0
 Gui, Show, x%WinPosX% y%WinPosY% NoActivate
@@ -64,6 +64,7 @@ GetMemory(byref percent, byref total, byref free) {
 
 UpdateStats() {
     cpu := CPULoad()
+    cpu := Format("{:2}", cpu)
     GetMemory(percent, total, free)
     used := total - free
 
@@ -76,12 +77,7 @@ UpdateStats() {
     } catch {
         ping := "n/a"
     }
-    msg =
-    ( LTrim
-    CPU : %cpu%`%
-    Mem : %percent%`% (%used%/%total%G)
-    Ping: %ping%
-    )
+    msg := "CPU:" cpu "% RAM:" used "/" total "G PING:" ping
     GuiControl,, MyText, %msg%
 }
 
@@ -159,9 +155,9 @@ class IPHelper
         NumPut(2, addrinfo, 4, "int") && NumPut(1, addrinfo, 8, "int") && NumPut(6, addrinfo, 12, "int")
         if (DllCall("ws2_32\getaddrinfo", "astr", hostname
             , "ptr", 0
-        , "ptr", &addrinfo
-        , "ptr*", result) != 0)
-        throw Exception("getaddrinfo failed: " DllCall("ws2_32\WSAGetLastError"), -1), this.WSACleanup()
+            , "ptr", &addrinfo
+            , "ptr*", result) != 0)
+            throw Exception("getaddrinfo failed: " DllCall("ws2_32\WSAGetLastError"), -1), this.WSACleanup()
         addr := StrGet(this.inet_ntoa(NumGet(NumGet(result+0, 16 + 2 * A_PtrSize) + 4, 0, "uint")), "cp0")
         return addr, this.freeaddrinfo(result)
     }
@@ -184,12 +180,12 @@ class IPHelper
         VarSetCapacity(hostname, NI_MAXHOST, 0)
         if (DllCall("ws2_32\getnameinfo", "ptr", &sockaddr
             , "int", size
-        , "ptr", &hostname
-        , "uint", NI_MAXHOST
-        , "ptr", 0
-        , "uint", 0
-        , "int", 0))
-        throw Exception("getnameinfo failed: " DllCall("ws2_32\WSAGetLastError"), -1), this.WSACleanup()
+            , "ptr", &hostname
+            , "uint", NI_MAXHOST
+            , "ptr", 0
+            , "uint", 0
+            , "int", 0))
+            throw Exception("getnameinfo failed: " DllCall("ws2_32\WSAGetLastError"), -1), this.WSACleanup()
         return StrGet(&hostname+0, NI_MAXHOST, "cp0")
     }
 
@@ -232,14 +228,14 @@ class IPHelper
         size := VarSetCapacity(buf, 32 + 8, 0)
         if !(DllCall("iphlpapi\IcmpSendEcho", "ptr", hIcmpFile
             , "uint", in_addr
-        , "ptr", 0
-        , "ushort", 0
-        , "ptr", 0
-        , "ptr", &buf
-        , "uint", size
-        , "uint", timeout
-        , "uint"))
-        throw Exception("IcmpSendEcho failed", -1)
+            , "ptr", 0
+            , "ushort", 0
+            , "ptr", 0
+            , "ptr", &buf
+            , "uint", size
+            , "uint", timeout
+            , "uint"))
+            throw Exception("IcmpSendEcho failed", -1)
         return (rtt := NumGet(buf, 8, "uint")) < 1 ? 1 : rtt
     }
 
