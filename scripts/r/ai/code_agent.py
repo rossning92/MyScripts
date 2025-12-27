@@ -11,12 +11,12 @@ from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
 from ai.tool_use import ToolResult
 from ai.tools import Settings
-from ai.tools.edit_file import edit_file
-from ai.tools.glob_files import glob_files
-from ai.tools.grep_tool import grep_tool
-from ai.tools.list_files import list_files
-from ai.tools.read_file import read_file
-from ai.tools.run_bash_command import run_bash_command
+from ai.tools.bash import bash
+from ai.tools.edit import edit
+from ai.tools.glob import glob
+from ai.tools.grep import grep
+from ai.tools.list import list
+from ai.tools.read import read
 from utils.checkpoints import (
     get_oldest_files_since_timestamp,
     restore_files_since_timestamp,
@@ -133,12 +133,12 @@ class CodeAgentMenu(AgentMenu):
 
     def get_tools_callable(self) -> List[Callable]:
         return [
-            read_file,
-            edit_file,
-            run_bash_command,
-            list_files,
-            glob_files,
-            grep_tool,
+            read,
+            edit,
+            bash,
+            list,
+            glob,
+            grep,
         ] + super().get_tools_callable()
 
     def get_system_prompt(self) -> str:

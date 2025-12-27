@@ -1,7 +1,7 @@
 from itertools import islice
 
 
-def read_file(file: str, offset: int = 0, limit: int = 2000) -> str:
+def read(file: str, offset: int = 0, limit: int = 2000) -> str:
     """Read up to `limit` lines from `file`, starting at `offset` (0-based)."""
 
     if limit <= 0:
