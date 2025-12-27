@@ -2,13 +2,13 @@ import glob
 import os
 
 
-def list_files(path: str) -> str:
+def list(path: str) -> str:
     """
     Lists files and directories in a given path.
     - You MUST always use the `list_files` tool instead of commands like `ls`.
     """
     if not os.path.exists(path):
-        raise Exception("Path '{path}' does not exist")
+        raise Exception(f'Path "{path}" does not exist')
 
     files = glob.glob(os.path.join(path, "*"))
     result = []

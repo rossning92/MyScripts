@@ -1,4 +1,3 @@
 {
-  "closeOnExit": false,
-  "wsl": true
+  "closeOnExit": false
 }

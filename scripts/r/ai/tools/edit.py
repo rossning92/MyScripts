@@ -5,7 +5,7 @@ from ai.tools import Settings
 from utils.checkpoints import backup_files
 
 
-def edit_file(file: str, old_string: str, new_string: str):
+def edit(file: str, old_string: str, new_string: str):
     """
     Replace ONE occurrence of old_string with new_string in the specified file.
     - The old_string MUST uniquely identify the instance you want to change. If multiple matches exist, add some surrounding lines to uniquely identify the instance.

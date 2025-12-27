@@ -1,7 +1,6 @@
 set -e
 
 et_cmd="et --ssh-option \"Port {{SSH_PORT if SSH_PORT else 22}}\" --ssh-option \"StrictHostKeyChecking no\" {{ET_EXTRA_ARGS}} {{SSH_USER}}@{{SSH_HOST}}:{{ET_PORT if ET_PORT else 2022}}"
-echo "${et_cmd}"
 
 cat >~/et.sh <<EOF
 set timeout 10

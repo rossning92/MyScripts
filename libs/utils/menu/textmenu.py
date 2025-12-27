@@ -5,15 +5,19 @@ from . import Menu
 
 class TextMenu(Menu[str]):
     def __init__(
-        self, text: Optional[str] = None, file: Optional[str] = None, **kwargs
+        self,
+        text: Optional[str] = None,
+        file: Optional[str] = None,
+        wrap_text=True,
+        **kwargs,
     ):
         super().__init__(
             close_on_selection=False,
             cancellable=True,
             fuzzy_search=False,
             search_on_enter=True,
-            wrap_text=True,
-            **kwargs
+            wrap_text=wrap_text,
+            **kwargs,
         )
         if file:
             with open(file, "r", encoding="utf-8") as f:

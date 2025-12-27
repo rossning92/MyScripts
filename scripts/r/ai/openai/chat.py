@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from pprint import pformat
 from typing import (
     Any,
     AsyncIterator,
@@ -153,7 +152,7 @@ async def complete_chat(
     if payload_tools:
         payload["tools"] = payload_tools
 
-    logger.debug("payload: " + pformat(payload, width=200))
+    logger.debug(f"payload: {payload}")
 
     async with aiohttp.ClientSession() as session:
         async with session.post(url, headers=headers, json=payload) as response:

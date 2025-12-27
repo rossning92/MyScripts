@@ -7,7 +7,7 @@ from utils.menu.shellcmdmenu import ShellCmdMenu
 TRUSTED_COMMANDS = ["ls", "pwd", "date"]
 
 
-def run_bash_command(command: str) -> str:
+def bash(command: str) -> str:
     """
     Execute a bash command on the system.
     - Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task.

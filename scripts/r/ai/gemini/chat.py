@@ -3,7 +3,6 @@ import logging
 import os
 import uuid
 from base64 import b64decode
-from pprint import pformat
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
 import aiohttp
@@ -176,7 +175,7 @@ async def complete_chat(
             "parts": [{"text": system_prompt}],
         }
 
-    logger.debug(f"payload: {pformat(payload, width=200)}")
+    logger.debug(f"payload: {payload}")
 
     async with aiohttp.ClientSession() as session:
         async with session.post(

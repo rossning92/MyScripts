@@ -1,7 +1,7 @@
 #SingleInstance, Force
 CoordMode, Mouse, Screen
 
-WIN_WIDTH := 240
+WIN_WIDTH := 300
 ROW := 1
 
 TRANS_COLOR = 010203 ; Can be any RGB color.
@@ -77,7 +77,7 @@ UpdateStats() {
     } catch {
         ping := "n/a"
     }
-    msg := "CPU:" cpu "% RAM:" used "/" total "G PING:" ping
+    msg := "CPU:" cpu "%  RAM:" used "/" total "G  PING:" ping
     GuiControl,, MyText, %msg%
 }
 

@@ -5,7 +5,7 @@ from typing import List
 MAX_LINES = 1000
 
 
-def grep_tool(regex: str) -> str:
+def grep(regex: str) -> str:
     """
     Fast content search tool for any codebase size that finds files with specific patterns in their content.
 
@@ -53,5 +53,5 @@ if __name__ == "__main__":
     parser.add_argument("regex")
     args = parser.parse_args()
 
-    result = grep_tool(args.regex)
+    result = grep(args.regex)
     print(result)

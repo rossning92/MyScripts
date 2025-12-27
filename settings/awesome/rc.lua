@@ -34,6 +34,7 @@ require("awful.hotkeys_popup.keys")
 local battery_widget = require("battery-widget")
 local brightness_widget = require("brightness-widget")
 local cpu_widget = require("cpu-widget")
+local gpu_widget = require("gpu-widget")
 local disk_usage_widget = require("disk-usage-widget")
 local memory_widget = require("memory-widget")
 local temperature_widget = require("temperature-widget")
@@ -221,36 +222,35 @@ awful.screen.connect_for_each_screen(function(s)
         screen = s
     })
 
-    local spacer = wibox.widget.separator {
-        orientation = "vertical",
-        forced_width = 1,
-        color = "gray"
-    }
-
-    local battery = battery_widget {}
     local systray = wibox.widget.systray()
 
     local right_widgets = {
         layout = wibox.layout.fixed.horizontal,
+    }
+
+    for _, w in ipairs({
         cpu_widget(),
         temperature_widget {},
         volume.widget,
         brightness_widget {},
         memory_widget {},
         disk_usage_widget {},
-    }
+    }) do
+        table.insert(right_widgets, wibox.container.margin(w, 4, 4))
+    end
 
+    local gpu = gpu_widget()
+    if gpu then
+        table.insert(right_widgets, wibox.container.margin(gpu, 4, 4))
+    end
+
+    local battery = battery_widget {}
     if battery then
         table.insert(right_widgets, battery)
     end
 
     table.insert(right_widgets, systray)
     table.insert(right_widgets, mytextclock)
-
-    -- Add spacers between all widgets
-    for i = #right_widgets, 1, -1 do
-        table.insert(right_widgets, i, spacer)
-    end
 
     -- Add widgets to the wibox
     s.mywibox:setup {

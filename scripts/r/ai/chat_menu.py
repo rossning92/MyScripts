@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from pprint import pformat
 from threading import Thread
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, TypedDict
 from urllib.parse import unquote_to_bytes
 
 from ai.chat import (
@@ -23,7 +23,6 @@ from ai.chat import (
     get_tool_use_text,
 )
 from ai.message import Message
-from ai.models import DEFAULT_MODEL, MODELS
 from ai.tokenutil import token_count
 from ai.tool_use import ToolDefinition, ToolResult, ToolUse
 from scripting.path import get_data_dir
@@ -49,13 +48,21 @@ from utils.slugify import slugify
 from utils.template import render_template
 from utils.textutil import is_text_file, truncate_text
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+class ModelsData(TypedDict):
+    models: List[str]
+    default_model: str
+
+
+_MODELS: ModelsData = load_json(os.path.join(_SCRIPT_DIR, "models.json"))
+
 _MODULE_NAME = Path(__file__).stem
 
 _MAX_CHAT_HISTORY = 200
 
 _INTERRUPT_MESSAGE = "[INTERRUPTED]"
-
-_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def _start_background_loop(loop: asyncio.AbstractEventLoop):
@@ -89,13 +96,13 @@ class SettingsMenu(JsonEditMenu):
             self.data["model"] = model
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": DEFAULT_MODEL, "web_search": False, "retry": False}
+        return {"model": _MODELS["default_model"], "web_search": False, "retry": False}
 
     def get_schema(self) -> Optional[JSONSchema]:
         return {
             "type": "object",
             "properties": {
-                "model": {"type": "string", "enum": MODELS},
+                "model": {"type": "string", "enum": _MODELS["models"]},
                 "web_search": {"type": "boolean"},
                 "retry": {"type": "boolean"},
             },

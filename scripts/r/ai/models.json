@@ -1,4 +1,5 @@
-MODELS = [
+{
+  "models": [
     "claude-sonnet-4-5",
     "claude-sonnet-4-0",
     "gpt-5.2(medium)",
@@ -11,5 +12,7 @@ MODELS = [
     "gemini-2.5-flash-image",
     "openrouter:google/gemini-3-pro-image-preview",
     "openrouter:google/gemini-3-pro-preview(reasoning)",
-]
-DEFAULT_MODEL = "gpt-5.2-chat-latest"
+    "llama.cpp:local-model"
+  ],
+  "default_model": "gpt-5.2-chat-latest"
+}

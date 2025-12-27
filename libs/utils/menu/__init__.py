@@ -31,7 +31,6 @@ from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.slugify import slugify
-from utils.textutil import truncate_text
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
@@ -1108,17 +1107,36 @@ class Menu(Generic[T]):
         attr = Menu.color_name_to_attr(color)
         if bold:
             attr |= curses.A_BOLD
+
+        # Handle ANSI color codes
         i = 0
         while i < len(s):
             ch = s[i]
-            if ch == "\\":
-                if s[i : i + 10] == r"\x1b[1;31m":
-                    i += 10
-                    attr = Menu.color_name_to_attr("red") | curses.A_BOLD
-                    continue
-                elif s[i : i + 7] == r"\033[0m":
-                    i += 7
-                    attr = Menu.color_name_to_attr(color)
+            if ch == "\\" or ch == "\x1b":
+                match = re.match(r"(?:\\x1b\[|\\033\[|[\x1b\033]\[)([0-9;]*)m", s[i:])
+                if match:
+                    i += match.end()
+                    for code in match.group(1).split(";"):
+                        if code in ("0", ""):
+                            attr = curses.A_NORMAL
+                        elif code == "1":
+                            attr |= curses.A_BOLD
+                        elif code.isdigit() and 30 <= int(code) <= 37:
+                            color_name = [
+                                "black",
+                                "red",
+                                "green",
+                                "yellow",
+                                "blue",
+                                "magenta",
+                                "cyan",
+                                "white",
+                            ][int(code) - 30]
+                            attr = (attr & ~curses.A_COLOR) | Menu.color_name_to_attr(
+                                color_name
+                            )
+                        elif code != "":
+                            attr |= curses.A_DIM
                     continue
 
             try:
@@ -1462,9 +1480,11 @@ class Menu(Generic[T]):
             self.on_item_selection_changed(selected, i=item_index)
             self.__input.selected_text = (
                 selected
-                if self.__search_mode
-                and not self.__search_on_enter
-                and isinstance(selected, str)
+                if (
+                    self.__search_mode
+                    and not self.__search_on_enter
+                    and isinstance(selected, str)
+                )
                 else ""
             )
             self.update_screen()

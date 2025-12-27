@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from pprint import pformat
 from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import aiohttp
@@ -112,7 +111,7 @@ async def complete_chat(
     if extra_payload:
         payload.update(extra_payload)
 
-    logging.debug(f"=== payload ===\n{pformat(payload, width=200)}")
+    logging.debug(f"payload: {payload}")
 
     async with aiohttp.ClientSession() as session:
         async with session.post(
@@ -135,7 +134,7 @@ async def complete_chat(
 
                 try:
                     data = json.loads(data_str)
-                    logging.debug(f"=== data ===\n{pformat(data, width=200)}")
+                    logging.debug(f"data: {data}")
                 except json.JSONDecodeError:
                     logging.debug(f"Skipping malformed chunk: {data_str}")
                     continue

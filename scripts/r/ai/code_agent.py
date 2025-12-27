@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 from pathlib import Path
 from platform import platform
 from typing import Any, Callable, Dict, List, Optional
@@ -11,19 +10,19 @@ from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
 from ai.tool_use import ToolResult
 from ai.tools import Settings
-from ai.tools.edit_file import edit_file
-from ai.tools.glob_files import glob_files
-from ai.tools.grep_tool import grep_tool
-from ai.tools.list_files import list_files
-from ai.tools.read_file import read_file
-from ai.tools.run_bash_command import run_bash_command
+from ai.tools.bash import bash
+from ai.tools.edit import edit
+from ai.tools.glob import glob
+from ai.tools.grep import grep
+from ai.tools.list import list
+from ai.tools.read import read
 from utils.checkpoints import (
     get_oldest_files_since_timestamp,
     restore_files_since_timestamp,
 )
 from utils.editor import edit_text_file
+from utils.menu.diffmenu import DiffMenu
 from utils.menu.filemenu import FileMenu
-from utils.process import start_process
 
 RULE_FILE = "AGENTS.md"
 
@@ -37,8 +36,8 @@ Working directory: {os.getcwd()}
 
 
 class SettingsMenu(ai.agent_menu.SettingsMenu):
-    # default_model = "gpt-5-codex(low)"
-    default_model = "gpt-5.2(medium)"
+    # default_model = "gpt-5.2(medium)"
+    default_model = "gemini-3-flash-preview"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -104,23 +103,12 @@ class CodeAgentMenu(AgentMenu):
         messages = self.get_messages()
         if len(messages) == 0:
             self.set_message("No messages found")
+            return
 
         for history_dir, rel_path in get_oldest_files_since_timestamp(
             messages[0]["timestamp"]
         ):
-            full_path = os.path.join(history_dir, rel_path)
-            start_process(
-                [
-                    (
-                        r"C:\Program Files\Microsoft VS Code\bin\code.cmd"
-                        if sys.platform == "win32"
-                        else "code"
-                    ),
-                    "--diff",
-                    full_path,
-                    rel_path,
-                ]
-            )
+            DiffMenu(file1=os.path.join(history_dir, rel_path), file2=rel_path).exec()
 
     def __toggle_mode(self):
         mode = self.get_setting("mode")
@@ -133,12 +121,12 @@ class CodeAgentMenu(AgentMenu):
 
     def get_tools_callable(self) -> List[Callable]:
         return [
-            read_file,
-            edit_file,
-            run_bash_command,
-            list_files,
-            glob_files,
-            grep_tool,
+            read,
+            edit,
+            bash,
+            list,
+            glob,
+            grep,
         ] + super().get_tools_callable()
 
     def get_system_prompt(self) -> str:

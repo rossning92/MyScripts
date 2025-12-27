@@ -8,6 +8,7 @@ from typing import (
 import ai.anthropic.chat
 import ai.gemini.chat
 import ai.openai.chat
+import ai.openai_compatible.chat
 import ai.openrouter.chat
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolResult, ToolUse
@@ -49,7 +50,8 @@ async def complete_chat(
     on_reasoning: Optional[Callable[[str], None]] = None,
     web_search=False,
 ) -> AsyncIterator[str]:
-    openrouter_prefix = "openrouter:"
+    OPENROUTER_PREFIX = "openrouter:"
+    LLAMA_CPP_PREFIX = "llama.cpp:"
 
     if model and model.startswith("claude"):
         return ai.anthropic.chat.complete_chat(
@@ -62,8 +64,8 @@ async def complete_chat(
             on_tool_use_args_delta=on_tool_use_args_delta,
             on_tool_use=on_tool_use,
         )
-    elif model and model.startswith(openrouter_prefix):
-        model = model[len(openrouter_prefix) :]
+    elif model and model.startswith(OPENROUTER_PREFIX):
+        model = model[len(OPENROUTER_PREFIX) :]
 
         return await ai.openrouter.chat.complete_chat(
             messages=messages,
@@ -83,6 +85,18 @@ async def complete_chat(
             system_prompt=system_prompt,
             tools=tools,
             on_image=on_image,
+            on_tool_use=on_tool_use,
+        )
+    elif model and model.startswith(LLAMA_CPP_PREFIX):
+        model = model[len("llama.cpp:") :]
+        return ai.openai_compatible.chat.complete_chat(
+            endpoint_url="http://127.0.0.1:8080/v1/chat/completions",
+            api_key="dummy-key",
+            messages=messages,
+            out_message=out_message,
+            model=model,
+            system_prompt=system_prompt,
+            tools=tools,
             on_tool_use=on_tool_use,
         )
     else:

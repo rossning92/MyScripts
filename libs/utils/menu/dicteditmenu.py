@@ -193,7 +193,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
             keys.update(schema["properties"].keys())
 
         # Get max width for keys
-        max_width = max(len(x) for x in keys) + 1
+        max_width = max((len(x) for x in keys), default=0) + 1
 
         kvps: List[Tuple[str, bool]] = []
         for key in keys:

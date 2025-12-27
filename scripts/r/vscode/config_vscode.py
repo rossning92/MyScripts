@@ -128,7 +128,13 @@ def setup_python(data_dir: str):
     )
 
     settings = {
-        "[python]": {"editor.defaultFormatter": "ms-python.black-formatter"},
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.codeActionsOnSave": {
+                "source.fixAll.ruff": True,
+                "source.organizeImports.ruff": True,
+            },
+        },
         "python.analysis.autoImportCompletions": True,
         "python.analysis.persistAllIndices": True,
         "python.analysis.typeCheckingMode": "basic",
