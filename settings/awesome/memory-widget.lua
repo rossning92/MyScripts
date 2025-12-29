@@ -3,6 +3,7 @@ local awful = require("awful")
 local memory_widget = {}
 
 local function worker()
+    local icon = "";
     memory_widget = awful.widget.watch(
         'free -h',
         1,
@@ -11,7 +12,7 @@ local function worker()
             if total and used then
                 local formatted_used = used:gsub("Gi", "")
                 local formatted_total = total:gsub("Gi", "G")
-                widget:set_text(" " .. formatted_used .. "/" .. formatted_total)
+                widget:set_text(icon .. formatted_used .. "/" .. formatted_total .. " ")
             end
         end
     )

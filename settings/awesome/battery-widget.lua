@@ -29,7 +29,7 @@ local function worker()
             local is_charging = stdout:find("Charging") ~= nil
             if battery_level then
                 local icon = is_charging and "󰂄" or "󰁹"
-                widget:set_text(icon .. " " .. battery_level)
+                widget:set_text(icon .. battery_level .. " ")
             end
         end
     )

@@ -4,6 +4,8 @@ local awful = require("awful")
 local widget = {}
 
 local function worker()
+    local icon = "";
+
     local temp_paths = {
         "/sys/class/thermal/thermal_zone0/temp", -- For Intel CPUs
         "/sys/class/hwmon/hwmon1/temp1_input"    -- For AMD CPUs
@@ -23,7 +25,7 @@ local function worker()
             10,
             function(widget, stdout)
                 local temp = math.floor(tonumber(stdout) / 1000)
-                widget:set_text(" " .. tostring(temp) .. "°C")
+                widget:set_text(icon .. tostring(temp) .. "°C ")
             end
         )
     end

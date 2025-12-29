@@ -7,7 +7,7 @@ local themes_path  = gfs.get_themes_dir()
 local theme        = {}
 
 -- Font
-theme.font         = "JetBrains Mono 10"
+theme.font         = "Mono 10"
 
 
 -- https://github.com/dracula/dracula-theme

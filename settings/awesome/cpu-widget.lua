@@ -21,7 +21,7 @@ local function worker()
                     local diff_idle = idle_sum - prev_idle
                     if diff_total > 0 then
                         local usage = math.floor(((diff_total - diff_idle) / diff_total) * 100 + 0.5)
-                        widget:set_text(icon .. " " .. usage .. "%")
+                        widget:set_text(icon .. usage .. "% ")
                     end
                     prev_total = total
                     prev_idle = idle_sum

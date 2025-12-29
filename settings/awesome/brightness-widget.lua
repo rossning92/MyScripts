@@ -39,7 +39,7 @@ local function worker(user_args)
             if percentage then
                 display_level = display_level .. '%'
             end
-            self:set_text(icon .. ' ' .. display_level)
+            self:set_text(icon .. display_level .. " ")
         end
     }
 

@@ -6,6 +6,8 @@ Volume.wmt.__index = Volume
 Volume.__index = Volume
 
 function Volume:new(args)
+    local icon = ""
+
     local obj = setmetatable({}, Volume)
     obj.step = args.step or 10
 
@@ -14,7 +16,7 @@ function Volume:new(args)
         function(widget, stdout)
             local volume = stdout:match("(%d+)%%")
             if volume then
-                widget:set_text(" " .. volume .. "%")
+                widget:set_text(icon .. volume .. "% ")
                 return
             end
         end,

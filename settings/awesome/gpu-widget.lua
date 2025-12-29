@@ -9,13 +9,14 @@ local function worker()
     end
 
     local widget = wibox.widget.textbox()
+    local icon = "󰢮";
 
     -- `-l 1` reports GPU data every 1 second
     awful.spawn.with_line_callback('nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits -l 1', {
         stdout = function(line)
             local utilization = line:match("(%d+)")
             if utilization then
-                widget:set_text("󰢮 " .. utilization .. "%")
+                widget:set_text(icon .. utilization .. "% ")
             end
         end
     })

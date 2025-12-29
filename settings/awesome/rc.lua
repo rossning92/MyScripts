@@ -230,27 +230,18 @@ awful.screen.connect_for_each_screen(function(s)
 
     for _, w in ipairs({
         cpu_widget(),
+        gpu_widget() or false,
         temperature_widget {},
         volume.widget,
         brightness_widget {},
         memory_widget {},
         disk_usage_widget {},
+        battery_widget {} or false,
+        systray,
+        mytextclock,
     }) do
-        table.insert(right_widgets, wibox.container.margin(w, 4, 4))
+        if w then table.insert(right_widgets, w) end
     end
-
-    local gpu = gpu_widget()
-    if gpu then
-        table.insert(right_widgets, wibox.container.margin(gpu, 4, 4))
-    end
-
-    local battery = battery_widget {}
-    if battery then
-        table.insert(right_widgets, battery)
-    end
-
-    table.insert(right_widgets, systray)
-    table.insert(right_widgets, mytextclock)
 
     -- Add widgets to the wibox
     s.mywibox:setup {
