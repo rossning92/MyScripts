@@ -2,20 +2,13 @@ import argparse
 import os
 from pathlib import Path
 from platform import platform
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import ai.agent_menu
 from ai.agent_menu import AgentMenu, load_subagents
 from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
-from ai.tool_use import ToolResult
 from ai.tools import Settings
-from ai.tools.bash import bash
-from ai.tools.edit import edit
-from ai.tools.glob import glob
-from ai.tools.grep import grep
-from ai.tools.list import list
-from ai.tools.read import read
 from utils.checkpoints import (
     get_oldest_files_since_timestamp,
     restore_files_since_timestamp,
@@ -49,7 +42,6 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
             "model": SettingsMenu.default_model,
             "need_confirm": True,
             "auto_open_diff": False,
-            "mode": "edit",
         }
 
     def on_dict_update(self, data):
@@ -77,7 +69,6 @@ class CodeAgentMenu(AgentMenu):
         self.add_command(self.__add_file, hotkey="@")
         self.add_command(self.__edit_instructions)
         self.add_command(self.__open_diff, hotkey="ctrl+d")
-        self.add_command(self.__toggle_mode, hotkey="alt+m")
 
     def __edit_instructions(self):
         self.call_func_without_curses(
@@ -109,25 +100,6 @@ class CodeAgentMenu(AgentMenu):
             messages[0]["timestamp"]
         ):
             DiffMenu(file1=os.path.join(history_dir, rel_path), file2=rel_path).exec()
-
-    def __toggle_mode(self):
-        mode = self.get_setting("mode")
-        if mode == "edit":
-            self.set_setting("mode", "plan")
-        elif mode == "plan":
-            self.set_setting("mode", "edit")
-        else:
-            raise Exception(f"Invalid mode: {mode}")
-
-    def get_tools_callable(self) -> List[Callable]:
-        return [
-            read,
-            edit,
-            bash,
-            list,
-            glob,
-            grep,
-        ] + super().get_tools_callable()
 
     def get_system_prompt(self) -> str:
         prompt_parts = []
@@ -174,13 +146,6 @@ class CodeAgentMenu(AgentMenu):
             else:
                 path = file
             self.insert_text(f"`{path}` ")
-
-    def send_message(
-        self, text: str, tool_results: Optional[List[ToolResult]] = None
-    ) -> None:
-        if self.get_setting("mode") == "plan" and not tool_results:
-            text += "\nNOTE: Please do NOT modify any files until I instruct you to."
-        return super().send_message(text, tool_results)
 
     def on_result(self, result: str):
         if self.get_setting("auto_open_diff"):

@@ -44,7 +44,7 @@ def grep(regex: str) -> str:
         return "No matches found"
     result = "\n".join(lines)
     if line_count >= MAX_LINES:  # Add truncation message if max_lines are exceeded
-        result += f"\n\n[Output truncated, showing only {MAX_LINES} lines. Please try narrowing your search]"
+        result += f"\n\n(Truncated to {MAX_LINES} lines; narrow your search.)"
     return result
 
 

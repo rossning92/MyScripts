@@ -1,3 +1,4 @@
+import functools
 import glob
 import os
 import shlex
@@ -5,9 +6,16 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
 
 import ai.chat_menu
+import ai.tools.bash
+import ai.tools.edit
+import ai.tools.glob
+import ai.tools.grep
+import ai.tools.list
+import ai.tools.read
 from ai.chat import get_tool_use_text
 from ai.chat_menu import ChatMenu, Line
 from ai.mcp import MCPClient
+from ai.skill import get_skill_prompt, get_skills
 from ai.tool_use import (
     ToolDefinition,
     ToolParam,
@@ -45,6 +53,10 @@ def _get_prompt(tools: Optional[List[ToolDefinition]] = None) -> str:
 
     if tools:
         prompt += "\n" + get_tool_use_prompt(tools)
+
+    skill_prompt = get_skill_prompt()
+    if skill_prompt:
+        prompt += "\n" + skill_prompt
 
     return prompt
 
@@ -108,7 +120,18 @@ class AgentMenu(ChatMenu):
         self.__data_dir = data_dir
         self.__yes_always = yes_always
         self.__subagents = subagents if subagents else []
-        self.__tools_callable = tools_callable if tools_callable is not None else []
+        self.__tools_callable = (
+            tools_callable
+            if tools_callable is not None
+            else [
+                self.__hook_read_tool(ai.tools.read.read),
+                ai.tools.edit.edit,
+                ai.tools.bash.bash,
+                ai.tools.list.list,
+                ai.tools.glob.glob,
+                ai.tools.grep.grep,
+            ]
+        )
 
         super().__init__(
             data_dir=data_dir,
@@ -205,7 +228,7 @@ class AgentMenu(ChatMenu):
                             )
                         )
                     else:
-                        reply += f"The {to_ordinal(i+1)} tool ({tool_use['tool_name']}) was interrupted by user.\n"
+                        reply += f"The {to_ordinal(i + 1)} tool ({tool_use['tool_name']}) was interrupted by user.\n"
                     break
             else:
                 should_run = True
@@ -262,7 +285,7 @@ class AgentMenu(ChatMenu):
                                 )
                             )
                         else:
-                            reply += f"""The {to_ordinal(i+1)} tool ({tool_use['tool_name']}) returned:
+                            reply += f"""The {to_ordinal(i + 1)} tool ({tool_use["tool_name"]}) returned:
 -------
 {str(ret)}
 -------
@@ -278,7 +301,7 @@ class AgentMenu(ChatMenu):
                                 )
                             )
                         else:
-                            reply += f"The {to_ordinal(i+1)} tool ({tool_use['tool_name']}) completed successfully.\n\n"
+                            reply += f"The {to_ordinal(i + 1)} tool ({tool_use['tool_name']}) completed successfully.\n\n"
 
                 except Exception as ex:
                     has_error = True
@@ -290,7 +313,7 @@ class AgentMenu(ChatMenu):
                             )
                         )
                     else:
-                        reply += f"""ERROR in the {to_ordinal(i+1)} tool ({tool_use['tool_name']}):
+                        reply += f"""ERROR in the {to_ordinal(i + 1)} tool ({tool_use["tool_name"]}):
 -------
 {str(ex)}
 -------
@@ -306,7 +329,7 @@ class AgentMenu(ChatMenu):
                             )
                         )
                     else:
-                        reply += f"The {to_ordinal(i+1)} tool using {tool_use['tool_name']} was interrupted by user.\n"
+                        reply += f"The {to_ordinal(i + 1)} tool using {tool_use['tool_name']} was interrupted by user.\n"
                     break
 
         if not reply:
@@ -385,6 +408,20 @@ class AgentMenu(ChatMenu):
         for c in self.__mcp_clients:
             c.close()
         super().on_close()
+
+    def __hook_read_tool(self, func):
+        @functools.wraps(func)
+        def wrapper(file: str, **kwargs) -> str:
+            if skill := next((s for s in get_skills() if s.file_path == file), None):
+                self.__mcp_clients.extend(
+                    MCPClient(command=shlex.split(c))
+                    for c in skill.metadata.get("mcp_servers", [])
+                )
+                self.__tools = self.get_tools()
+                return skill.content
+            return func(file=file, **kwargs)
+
+        return wrapper
 
 
 def _main():

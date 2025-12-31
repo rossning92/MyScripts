@@ -1,3 +1,4 @@
 {
-  "hotkey": "space space"
+  "hotkey": "space space",
+  "workingDir": "{HOME}"
 }

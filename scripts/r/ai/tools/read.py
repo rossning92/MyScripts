@@ -21,6 +21,4 @@ def read(file: str, offset: int = 0, limit: int = 2000) -> str:
         remaining = 1 + sum(1 for _ in f)
         total = offset + len(lines) + remaining
         result = "".join(lines)
-        return (
-            result + f"\n[File has more lines: remaining {remaining} / total {total}]"
-        )
+        return result + f"\n... ({remaining} remaining lines, total {total})"

@@ -608,7 +608,7 @@ class ChatMenu(Menu[Line]):
 
             if self.__yank_mode == 0:
                 set_clip(line.text)
-                self.set_message(f"line {idx+1} copied")
+                self.set_message(f"line {idx + 1} copied")
                 self.__yank_mode = 1
 
             elif self.__yank_mode == 1:
@@ -635,7 +635,7 @@ class ChatMenu(Menu[Line]):
 
     def get_line_number_text(self, item_index: int) -> str:
         item = self.items[item_index]
-        line_number_text = f"{item.msg_index+1}"
+        line_number_text = f"{item.msg_index + 1}"
         if item.subindex == 0:
             return line_number_text
         else:
@@ -863,9 +863,8 @@ Following is my instructions:
                     out_message=out_message,
                 ):
                     self.post_event(
-                        lambda chunk_index=chunk_index, chunk=chunk: self.__on_chat_chunk(
-                            chunk_index, chunk
-                        )
+                        lambda chunk_index=chunk_index,
+                        chunk=chunk: self.__on_chat_chunk(chunk_index, chunk)
                     )
                     chunk_index += 1
 

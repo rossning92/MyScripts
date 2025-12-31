@@ -1,9 +1,21 @@
 import os
+import re
+from typing import Optional
 
 
-def truncate_text(text: str, max_chars: int = 120) -> str:
-    text = text.rstrip().replace("\n", "↵ ")
-    return text[:max_chars] + "..." if len(text) > max_chars else text
+def truncate_text(
+    text: str,
+    max_chars: int = 100,
+    max_lines: Optional[int] = None,
+) -> str:
+    n_lines = len(text.splitlines())
+    if max_lines is not None:
+        text = "\n".join(text.splitlines()[:max_lines])
+    text = re.sub(r"\s+", " ", text.strip())
+    if len(text) > max_chars or (max_lines and n_lines > max_lines):
+        return f"{text[:max_chars]}.. ({n_lines} lines)"
+    else:
+        return text
 
 
 def is_text_file(filepath: str, encoding="utf-8", buffer_size=4096, threshold=0.9):

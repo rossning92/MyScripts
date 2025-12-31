@@ -3,7 +3,7 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from ai.agent_menu import AgentMenu
 from utils.dateutil import format_datetime, format_timestamp, parse_datetime
@@ -11,6 +11,7 @@ from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.inputdatemenu import input_date
 from utils.menu.listeditmenu import ListEditMenu
+from utils.textutil import truncate_text
 
 TodoItem = Dict[str, Any]
 
@@ -73,12 +74,9 @@ class _TodoAgentMenu(AgentMenu):
         super().__init__(cancellable=True, **kwargs)
 
     def get_system_prompt(self) -> str:
-        return (
-            f"""Help me create a to-do list item from the information I provide.
+        return f"""Help me create a to-do list item from the information I provide.
 Today's date is {format_datetime(dt=datetime.now(), show_year=True, show_hhmm=False)}
-"""
-            + super().get_system_prompt()
-        )
+""" + super().get_system_prompt()
 
     def get_tools_callable(self) -> List[Callable[..., Any]]:
         def add_todo_item(description: str, due: str):
@@ -154,8 +152,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
             date = ""
 
         # Description
-        desc_lines = item["description"].splitlines()
-        desc = desc_lines[0] + " ..." if len(desc_lines) > 1 else desc_lines[0]
+        desc = truncate_text(item["description"], max_lines=1)
 
         return _status_symbols[item[_STATUS]] + " " + f"{date:<19}" + " " + desc
 
