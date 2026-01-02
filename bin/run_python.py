@@ -20,11 +20,9 @@ PYTHON_MODULE_LIST = {
     "moviepy": "moviepy==1.0.3",
     "mss": "mss",
     "numpy": "numpy",
-    "openai": "openai",
     "pandas": "pandas",
     "perfetto": "perfetto",
     "PIL": "pillow",
-    "prompt_toolkit": "prompt_toolkit",  # Not compatible with PyInquirer
     "pyaudio": "pyaudio",
     "pyautogui": "pyautogui",
     "pyftpdlib": "pyftpdlib",

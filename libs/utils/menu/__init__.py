@@ -157,7 +157,7 @@ class _TextInput:
             int: The index of the last row of text being drawn on the screen.
         """
 
-        assert Menu.stdscr is not None
+        assert Menu._stdscr is not None
 
         # Draw label
         stdscr.addstr(
@@ -167,12 +167,12 @@ class _TextInput:
             Menu._get_color_pair(self.prompt_color),
         )
 
-        cursor_y, cursor_x = y, x = Menu.stdscr.getyx()  # type: ignore
+        cursor_y, cursor_x = y, x = Menu._stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
 
         try:
             stdscr.addstr(y, x, self.text[: self.caret_pos])
-            cursor_y, cursor_x = Menu.stdscr.getyx()  # type: ignore
+            cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
 
             s = self.text[self.caret_pos :]
             if show_enter_symbol:
@@ -181,8 +181,8 @@ class _TextInput:
             stdscr.addstr(cursor_y, cursor_x, s)
 
             if self.selected_text:
-                y, x = Menu.stdscr.getyx()  # type: ignore
-                _, max_x = Menu.stdscr.getmaxyx()  # type: ignore
+                y, x = Menu._stdscr.getyx()  # type: ignore
+                _, max_x = Menu._stdscr.getmaxyx()  # type: ignore
                 max_text_len = max_x - x
                 stdscr.addstr(
                     y,
@@ -251,7 +251,6 @@ R = TypeVar("R")
 class Menu(Generic[T]):
     _should_update_screen = False
     _color_pair_map: Dict[Tuple[int, int], int] = {}
-    _next_pair_index = 1
 
     # Logging
     log_handler: Optional[logging.handlers.QueueHandler] = None
@@ -259,7 +258,7 @@ class Menu(Generic[T]):
     original_handlers: Optional[List[logging.Handler]] = None
     original_level: Optional[int] = None
 
-    stdscr = None
+    _stdscr = None
 
     def __init__(
         self,
@@ -423,7 +422,7 @@ class Menu(Generic[T]):
     def __enter__(self):
         if self.__is_stdscr_owner:
             raise Exception("Using with-clause on Menu object twice is not allowed")
-        self.__is_stdscr_owner = Menu.stdscr is None
+        self.__is_stdscr_owner = Menu._stdscr is None
         if self.__is_stdscr_owner:
             Menu.__setup_logging()
             Menu.init_curses()
@@ -618,7 +617,7 @@ class Menu(Generic[T]):
 
     @staticmethod
     def init_curses():
-        if Menu.stdscr is not None:
+        if Menu._stdscr is not None:
             return
 
         # Remove escape key delay for Linux system
@@ -639,37 +638,38 @@ class Menu(Generic[T]):
         stdscr.keypad(True)
         stdscr.nodelay(False)
         stdscr.timeout(1000)
-        Menu.stdscr = stdscr
+        Menu._stdscr = stdscr
 
     @staticmethod
     def _get_color_pair(fg: Union[int, str], bg: Union[int, str] = -1) -> int:
         fg_int = _to_curses_color(fg)
         bg_int = _to_curses_color(bg)
         if (fg_int, bg_int) not in Menu._color_pair_map:
-            curses.init_pair(Menu._next_pair_index, fg_int, bg_int)
-            Menu._color_pair_map[(fg_int, bg_int)] = Menu._next_pair_index
-            Menu._next_pair_index += 1
+            pair_index = len(Menu._color_pair_map) + 1
+            curses.init_pair(pair_index, fg_int, bg_int)
+            Menu._color_pair_map[(fg_int, bg_int)] = pair_index
         return curses.color_pair(Menu._color_pair_map[(fg_int, bg_int)])
 
     @staticmethod
     def destroy_curses():
-        if Menu.stdscr is None:
+        if Menu._stdscr is None:
             return
         curses.endwin()
-        Menu.stdscr = None
+        Menu._stdscr = None
+        Menu._color_pair_map.clear()
 
     def _update_screen(self):
-        assert Menu.stdscr is not None
+        assert Menu._stdscr is not None
 
-        self._height, self.__width = Menu.stdscr.getmaxyx()  # type: ignore
+        self._height, self.__width = Menu._stdscr.getmaxyx()  # type: ignore
 
         if sys.platform == "win32":
-            Menu.stdscr.clear()
+            Menu._stdscr.clear()
         else:
             # Use erase instead of clear to prevent flickering
-            Menu.stdscr.erase()
+            Menu._stdscr.erase()
         self.__on_update_screen(item_y_max=self._height - 1)
-        Menu.stdscr.refresh()
+        Menu._stdscr.refresh()
 
     def reset_selection(self):
         self.set_selection(0, 0)
@@ -736,15 +736,15 @@ class Menu(Generic[T]):
     def process_events(
         self, timeout_sec: float = 0.0, raise_keyboard_interrupt=False
     ) -> bool:
-        assert Menu.stdscr is not None
+        assert Menu._stdscr is not None
 
         if self.__closed:
             return True
 
         if timeout_sec > 0.0:
-            Menu.stdscr.timeout(int(timeout_sec * 1000.0))
+            Menu._stdscr.timeout(int(timeout_sec * 1000.0))
         else:
-            Menu.stdscr.timeout(0)
+            Menu._stdscr.timeout(0)
 
         self.__update_matched_items()
 
@@ -757,7 +757,7 @@ class Menu(Generic[T]):
         # Keyboard event
         ch: Union[int, str] = -1
         try:
-            ch = Menu.stdscr.get_wch()
+            ch = Menu._stdscr.get_wch()
         except curses.error:
             pass
         except KeyboardInterrupt:
@@ -997,11 +997,11 @@ class Menu(Generic[T]):
                     is_alt_hotkey = True
         else:
             if ch == "\x1b":
-                assert Menu.stdscr is not None
+                assert Menu._stdscr is not None
                 # Try to immediately get the next key after ALT
-                Menu.stdscr.nodelay(True)
-                ch2 = Menu.stdscr.getch()
-                Menu.stdscr.nodelay(False)
+                Menu._stdscr.nodelay(True)
+                ch2 = Menu._stdscr.getch()
+                Menu._stdscr.nodelay(False)
                 if isinstance(ch2, int) and (
                     (ch2 >= ord("a") and ch2 <= ord("z"))
                     or ch2 == ord("\r")
@@ -1103,7 +1103,7 @@ class Menu(Generic[T]):
         Returns:
             int: The index of the last row of text being drawn on the screen.
         """
-        assert Menu.stdscr is not None
+        assert Menu._stdscr is not None
         assert row >= 0
         assert col >= 0
 
@@ -1116,7 +1116,7 @@ class Menu(Generic[T]):
 
         # Draw left arrow
         if scroll_x > 0:
-            Menu.stdscr.addstr(
+            Menu._stdscr.addstr(
                 row,
                 col,
                 "<",
@@ -1157,7 +1157,7 @@ class Menu(Generic[T]):
                     continue
 
             try:
-                Menu.stdscr.addstr(y, x, ch, attr)
+                Menu._stdscr.addstr(y, x, ch, attr)
             except curses.error:
                 # Tolerate "addwstr() returned ERR" when drawing the character at the bottom right corner.
                 pass
@@ -1168,7 +1168,7 @@ class Menu(Generic[T]):
             last_y = y
 
             # Get current cursor position
-            y, x = Menu.stdscr.getyx()  # type: ignore
+            y, x = Menu._stdscr.getyx()  # type: ignore
             if wrap_text:
                 if y >= ymax:
                     # If text overflows outside of the screen, set last_row_index to screen height.
@@ -1180,7 +1180,7 @@ class Menu(Generic[T]):
                 if y > last_y:
                     if i < len(s) - 1:
                         last_row_index = row
-                        Menu.stdscr.addstr(
+                        Menu._stdscr.addstr(
                             row,
                             self.__width - 1,
                             ">",
@@ -1211,11 +1211,11 @@ class Menu(Generic[T]):
         self.__scroll_y = line
 
     def __on_update_screen(self, item_y_max: int):
-        assert Menu.stdscr is not None
+        assert Menu._stdscr is not None
 
         # Render input widget
         draw_input_result = self.__input.draw_input(
-            Menu.stdscr,
+            Menu._stdscr,
             0,
             show_enter_symbol=self.__should_trigger_search(),
         )
@@ -1380,7 +1380,7 @@ class Menu(Generic[T]):
 
         # Move cursor
         try:
-            Menu.stdscr.move(draw_input_result.cursor_y, draw_input_result.cursor_x)
+            Menu._stdscr.move(draw_input_result.cursor_y, draw_input_result.cursor_x)
         except curses.error:
             pass
 

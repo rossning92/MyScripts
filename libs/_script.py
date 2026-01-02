@@ -1009,7 +1009,9 @@ class Script:
             if self.cfg["workingDir"]:
                 working_dir = self.cfg["workingDir"]
                 assert isinstance(working_dir, str)
-                working_dir = working_dir.format_map(_DefaultStrDict(self.get_context()))
+                working_dir = working_dir.format_map(
+                    _DefaultStrDict(self.get_context())
+                )
                 if working_dir:
                     cwd = working_dir
                     if not os.path.exists(cwd):
@@ -1037,7 +1039,10 @@ class Script:
 
         cmdline = self.cfg["cmdline"]
         if cmdline:
-            arg_list = shlex.split(cmdline.format_map(_DefaultStrDict(self.get_context()))) + arg_list
+            arg_list = (
+                shlex.split(cmdline.format_map(_DefaultStrDict(self.get_context())))
+                + arg_list
+            )
 
         elif not run_script_local and self.cfg["openWithScript"]:
             arg_list = [
@@ -1399,8 +1404,7 @@ class Script:
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
                         # DETACHED_PROCESS
-                        CREATE_NO_WINDOW
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                        CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
                 if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
@@ -2065,6 +2069,7 @@ def _get_scripts_recursive(
             or file == ".config"
             or file == ".venv"
             or file == "node_modules"
+            or file == "build"
         ):
             return True
 

@@ -1,7 +1,7 @@
 #SingleInstance, Force
 CoordMode, Mouse, Screen
 
-WIN_WIDTH := 300
+WIN_WIDTH := 275
 ROW := 1
 
 TRANS_COLOR = 010203 ; Can be any RGB color.
@@ -64,7 +64,6 @@ GetMemory(byref percent, byref total, byref free) {
 
 UpdateStats() {
     cpu := CPULoad()
-    cpu := Format("{:2}", cpu)
     GetMemory(percent, total, free)
     used := total - free
 
@@ -77,7 +76,7 @@ UpdateStats() {
     } catch {
         ping := "n/a"
     }
-    msg := "CPU:" cpu "%  RAM:" used "/" total "G  PING:" ping
+    msg := "CPU:" Format("{:-3}", cpu "%") "  RAM:" used "/" total "G  PING:" ping
     GuiControl,, MyText, %msg%
 }
 
