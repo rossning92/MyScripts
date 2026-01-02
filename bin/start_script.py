@@ -28,6 +28,7 @@ if __name__ == "__main__":
     parser.add_argument("file", nargs="?")
     parser.add_argument("--cd", type=str2bool, default=True)
     parser.add_argument("--restart-instance", type=str2bool, default=None)
+    parser.add_argument("--run-in-tmux", action="store_true")
     parser.add_argument("args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -42,4 +43,5 @@ if __name__ == "__main__":
         args=args.args if args.args else selected_files,
         cd=args.cd,
         restart_instance=args.restart_instance,
+        run_in_tmux=args.run_in_tmux,
     )

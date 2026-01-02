@@ -662,8 +662,8 @@ class ChatMenu(Menu[Line]):
         else:
             return self.__messages
 
-    def get_setting(self, name: str) -> Any:
-        return self.__settings_menu.data[name]
+    def get_settings(self) -> Dict[str, Any]:
+        return self.__settings_menu.data
 
     def set_setting(self, name: str, value: Any) -> None:
         self.__settings_menu.set_dict_value(name, value)
@@ -841,7 +841,7 @@ Following is my instructions:
                 chunk_index = 0
                 async for chunk in await complete_chat(
                     messages=messages,
-                    model=self.get_setting("model"),
+                    model=self.get_settings()["model"],
                     system_prompt=self.get_system_prompt(),
                     tools=self.get_tools(),
                     on_image=lambda image_url: self.post_event(
@@ -859,7 +859,7 @@ Following is my instructions:
                     on_reasoning=lambda text: self.post_event(
                         lambda: self.on_reasoning(text)
                     ),
-                    web_search=self.get_setting("web_search"),
+                    web_search=self.get_settings()["web_search"],
                     out_message=out_message,
                 ):
                     self.post_event(
@@ -936,7 +936,7 @@ Following is my instructions:
         self.__is_generating = False
         self.__cur_subindex = 0
 
-        if self.get_setting("retry"):
+        if self.get_settings()["retry"]:
             self.__retry_count += 1
             self.__complete_chat(status=f"retry {self.__retry_count}: {exception}")
         else:

@@ -768,17 +768,13 @@ class Script:
             "SCRIPT": quote_arg(self.script_path),
         }
 
-    def activate_window(self) -> bool:
+    def __activate_window(self, run_in_tmux: bool) -> bool:
         title = self.get_window_title()
-        if (
-            is_in_tmux()
-            and subprocess.call(
-                ["tmux", "select-window", "-t", self.get_window_name_tmux()],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            == 0
-        ):
+        if (run_in_tmux or is_in_tmux()) and subprocess.call(
+            ["tmux", "select-window", "-t", self.get_window_name_tmux()],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ) == 0:
             return True
         elif (
             SUPPORT_GNU_SCREEN
@@ -794,7 +790,7 @@ class Script:
         else:
             return False
 
-    def close_window(self):
+    def __close_window(self, run_in_tmux: bool):
         if (
             SUPPORT_GNU_SCREEN
             and shutil.which("screen")
@@ -811,7 +807,7 @@ class Script:
         ):
             pass
 
-        elif is_in_tmux():
+        elif run_in_tmux or is_in_tmux():
             subprocess.call(["tmux", "kill-window", "-t", self.get_window_name_tmux()])
 
         else:
@@ -837,6 +833,7 @@ class Script:
         background=False,
         out_to_file: Optional[str] = None,
         run_script_local=False,
+        run_in_tmux=False,
     ) -> bool:
         self.clear_source_cache()
 
@@ -870,7 +867,7 @@ class Script:
             restart_instance = bool(restart_instance_cfg)
 
         if new_window and not restart_instance and single_instance:
-            if self.activate_window():
+            if self.__activate_window(run_in_tmux=run_in_tmux):
                 return True
 
         # Get variable name value pairs
@@ -1009,7 +1006,9 @@ class Script:
             if self.cfg["workingDir"]:
                 working_dir = self.cfg["workingDir"]
                 assert isinstance(working_dir, str)
-                working_dir = working_dir.format_map(_DefaultStrDict(self.get_context()))
+                working_dir = working_dir.format_map(
+                    _DefaultStrDict(self.get_context())
+                )
                 if working_dir:
                     cwd = working_dir
                     if not os.path.exists(cwd):
@@ -1037,7 +1036,10 @@ class Script:
 
         cmdline = self.cfg["cmdline"]
         if cmdline:
-            arg_list = shlex.split(cmdline.format_map(_DefaultStrDict(self.get_context()))) + arg_list
+            arg_list = (
+                shlex.split(cmdline.format_map(_DefaultStrDict(self.get_context())))
+                + arg_list
+            )
 
         elif not run_script_local and self.cfg["openWithScript"]:
             arg_list = [
@@ -1399,8 +1401,7 @@ class Script:
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
                         # DETACHED_PROCESS
-                        CREATE_NO_WINDOW
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                        CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
                 if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
@@ -1442,7 +1443,7 @@ class Script:
 
             elif new_window:
                 if restart_instance and single_instance:
-                    self.close_window()
+                    self.__close_window(run_in_tmux=run_in_tmux)
 
                 try:
                     if sys.platform == "win32":
@@ -1497,11 +1498,10 @@ class Script:
                                 "No terminal installed, ignore `newWindow` option."
                             )
 
-                    elif is_in_tmux():
+                    elif run_in_tmux or is_in_tmux():
                         arg_list = (
                             [
                                 "tmux",
-                                # "split-window",
                                 "new-window",
                                 "-n",
                                 self.get_window_name_tmux(),
@@ -1779,6 +1779,7 @@ def start_script(
     tee=None,
     template=None,
     variables=None,
+    run_in_tmux=False,
 ):
     start_time = time.time()
 
@@ -1829,6 +1830,7 @@ def start_script(
         restart_instance=restart_instance,
         single_instance=single_instance,
         tee=tee,
+        run_in_tmux=run_in_tmux,
     )
     if not ret:
         raise subprocess.CalledProcessError(returncode=ret, cmd=args)
@@ -2065,6 +2067,7 @@ def _get_scripts_recursive(
             or file == ".config"
             or file == ".venv"
             or file == "node_modules"
+            or file == "build"
         ):
             return True
 

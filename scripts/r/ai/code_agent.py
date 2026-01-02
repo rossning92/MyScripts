@@ -17,10 +17,25 @@ from utils.editor import edit_text_file
 from utils.menu.diffmenu import DiffMenu
 from utils.menu.filemenu import FileMenu
 
-RULE_FILE = "AGENTS.md"
+_SYSTEM_PROMPT = """You are my assistant to help me complete a task.
+
+# Tone
+
+- You should be concise, direct, and to the point.
+- You should answer the user's question directly without elaboration, explanation, or details, unless the user asks for them.
+- You should keep your response to 1-2 sentences (not including tool use or code generation).
+- You should NOT answer with unnecessary preamble or postamble (such as explaining your code or summarizing your action), unless the user asks you to.
+
+# Code style
+
+- Do NOT add comments to code unless the user requests it or the code is complex and needs context.
+- You should follow existing code style, conventions, and utilize available libraries and utilities.
+"""
+
+_RULE_FILE = "AGENTS.md"
 
 
-def get_env_info() -> str:
+def _get_env_info() -> str:
     return f"""# Environment Information
 
 Platform: {platform()}
@@ -72,11 +87,11 @@ class CodeAgentMenu(AgentMenu):
 
     def __edit_instructions(self):
         self.call_func_without_curses(
-            lambda: edit_text_file(os.path.join(self.get_data_dir(), RULE_FILE))
+            lambda: edit_text_file(os.path.join(self.get_data_dir(), _RULE_FILE))
         )
 
     def __get_rules(self) -> str:
-        file = os.path.join(self.get_data_dir(), RULE_FILE)
+        file = os.path.join(self.get_data_dir(), _RULE_FILE)
         if not os.path.exists(file):
             return ""
 
@@ -102,7 +117,7 @@ class CodeAgentMenu(AgentMenu):
             DiffMenu(file1=os.path.join(history_dir, rel_path), file2=rel_path).exec()
 
     def get_system_prompt(self) -> str:
-        prompt_parts = []
+        prompt_parts = [_SYSTEM_PROMPT]
 
         system = super().get_system_prompt()
         if system:
@@ -116,7 +131,7 @@ class CodeAgentMenu(AgentMenu):
         if file_context:
             prompt_parts.append(file_context)
 
-        env = get_env_info()
+        env = _get_env_info()
         if env:
             prompt_parts.append(env)
 
@@ -148,7 +163,7 @@ class CodeAgentMenu(AgentMenu):
             self.insert_text(f"`{path}` ")
 
     def on_result(self, result: str):
-        if self.get_setting("auto_open_diff"):
+        if self.get_settings()["auto_open_diff"]:
             self.__open_diff()
 
 

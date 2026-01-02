@@ -1,0 +1,16 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.ross.floatbutton'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.ross.floatbutton"
+        minSdk 26
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+}

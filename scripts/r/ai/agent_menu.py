@@ -35,28 +35,19 @@ MODULE_NAME = Path(__file__).stem
 DATA_DIR = os.path.join(".config", MODULE_NAME)
 
 
-def _get_prompt(tools: Optional[List[ToolDefinition]] = None) -> str:
-    prompt = """You are my assistant to help me complete a task.
-
-# Tone
-
-- You should be concise, direct, and to the point.
-- You should answer the user's question directly without elaboration, explanation, or details, unless the user asks for them.
-- You should keep your response to 1-2 sentences (not including tool use or code generation).
-- You should NOT answer with unnecessary preamble or postamble (such as explaining your code or summarizing your action), unless the user asks you to.
-
-# Code style
-
-- Do NOT add comments to code unless the user requests it or the code is complex and needs context.
-- You should follow existing code style, conventions, and utilize available libraries and utilities.
-"""
+def _get_prompt(
+    tools: Optional[List[ToolDefinition]] = None,
+    skill: bool = False,
+) -> str:
+    prompt = ""
 
     if tools:
         prompt += "\n" + get_tool_use_prompt(tools)
 
-    skill_prompt = get_skill_prompt()
-    if skill_prompt:
-        prompt += "\n" + skill_prompt
+    if skill:
+        skill_prompt = get_skill_prompt()
+        if skill_prompt:
+            prompt += "\n" + skill_prompt
 
     return prompt
 
@@ -80,6 +71,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             **super().get_default_values(),
             "tool_use_api": True,
             "mcp": [],
+            "skill": False,
         }
 
     def get_schema(self) -> Optional[JSONSchema]:
@@ -90,6 +82,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "type": "array",
             "items": {"type": "object", "properties": {"command": {"type": "string"}}},
         }
+        schema["properties"]["skill"] = {"type": "boolean"}
         return schema
 
 
@@ -120,18 +113,6 @@ class AgentMenu(ChatMenu):
         self.__data_dir = data_dir
         self.__yes_always = yes_always
         self.__subagents = subagents if subagents else []
-        self.__tools_callable = (
-            tools_callable
-            if tools_callable is not None
-            else [
-                self.__hook_read_tool(ai.tools.read.read),
-                ai.tools.edit.edit,
-                ai.tools.bash.bash,
-                ai.tools.list.list,
-                ai.tools.glob.glob,
-                ai.tools.grep.grep,
-            ]
-        )
 
         super().__init__(
             data_dir=data_dir,
@@ -139,7 +120,7 @@ class AgentMenu(ChatMenu):
             **kwargs,
         )
 
-        mcp_items = mcp if mcp else cast(List[_MCP], self.get_setting("mcp"))
+        mcp_items = mcp if mcp else cast(List[_MCP], self.get_settings()["mcp"])
         self.__mcp_clients = [
             MCPClient(command=shlex.split(item["command"])) for item in mcp_items
         ]
@@ -147,6 +128,21 @@ class AgentMenu(ChatMenu):
         os.makedirs(data_dir, exist_ok=True)
 
         self.add_command(self.__open_file_menu, hotkey="alt+f")
+
+        self.__tools_callable = (
+            tools_callable
+            if tools_callable is not None
+            else [
+                self.__hook_read_tool(ai.tools.read.read)
+                if self.get_settings()["skill"]
+                else ai.tools.read.read,
+                ai.tools.edit.edit,
+                ai.tools.bash.bash,
+                ai.tools.list.list,
+                ai.tools.glob.glob,
+                ai.tools.grep.grep,
+            ]
+        )
 
         self.__tools = self.get_tools()
 
@@ -181,15 +177,14 @@ class AgentMenu(ChatMenu):
                 + self.__get_tools_subagent()
                 + [t for client in self.__mcp_clients for t in client.list_tools()]
             )
-            if self.get_setting("tool_use_api")
+            if self.get_settings()["tool_use_api"]
             else []
         )
 
     def get_system_prompt(self) -> str:
-        return (
-            _get_prompt()
-            if self.get_setting("tool_use_api")
-            else _get_prompt(tools=self.__tools)
+        return _get_prompt(
+            tools=None if self.get_settings()["tool_use_api"] else self.__tools,
+            skill=self.get_settings()["skill"],
         )
 
     def __handle_response(self):
@@ -206,7 +201,7 @@ class AgentMenu(ChatMenu):
 
         tool_uses = (
             (last_message["tool_use"].copy() if "tool_use" in last_message else [])
-            if self.get_setting("tool_use_api")
+            if self.get_settings()["tool_use_api"]
             else list(parse_text_for_tool_use(text_content, self.__tools))
         )
 
@@ -220,7 +215,7 @@ class AgentMenu(ChatMenu):
                     should_run = True
                 else:
                     should_run = False
-                    if self.get_setting("tool_use_api"):
+                    if self.get_settings()["tool_use_api"]:
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -277,7 +272,7 @@ class AgentMenu(ChatMenu):
                             ret = menu.get_messages()[-1]["text"]
 
                     if ret:
-                        if self.get_setting("tool_use_api"):
+                        if self.get_settings()["tool_use_api"]:
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
@@ -293,7 +288,7 @@ class AgentMenu(ChatMenu):
 """
 
                     else:
-                        if self.get_setting("tool_use_api"):
+                        if self.get_settings()["tool_use_api"]:
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
@@ -305,7 +300,7 @@ class AgentMenu(ChatMenu):
 
                 except Exception as ex:
                     has_error = True
-                    if self.get_setting("tool_use_api"):
+                    if self.get_settings()["tool_use_api"]:
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -321,7 +316,7 @@ class AgentMenu(ChatMenu):
 """
                 except KeyboardInterrupt:
                     interrupted = True
-                    if self.get_setting("tool_use_api"):
+                    if self.get_settings()["tool_use_api"]:
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
@@ -346,7 +341,7 @@ class AgentMenu(ChatMenu):
         pass
 
     def on_tool_use_start(self, tool_use: ToolUse):
-        if not self.get_setting("tool_use_api"):
+        if not self.get_settings()["tool_use_api"]:
             return
 
         msg_index, subindex = self.get_message_index_and_subindex()
@@ -361,11 +356,11 @@ class AgentMenu(ChatMenu):
         self.process_events()
 
     def on_tool_use_args_delta(self, text: str):
-        if not self.get_setting("tool_use_api"):
+        if not self.get_settings()["tool_use_api"]:
             return
 
     def on_tool_use(self, tool_use: ToolUse):
-        if not self.get_setting("tool_use_api"):
+        if not self.get_settings()["tool_use_api"]:
             return
 
         # Add or update tool use result

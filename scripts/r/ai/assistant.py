@@ -1,7 +1,10 @@
+import subprocess
+import time
 import urllib.parse
 from typing import Callable, List
 
 from ai.agent_menu import AgentMenu
+from utils.clip import set_clip
 from utils.shutil import shell_open
 
 
@@ -20,12 +23,28 @@ def navigate_to(destination: str):
     )
 
 
+def type_text(text: str):
+    set_clip(text)
+
+    # Go to the previous app
+    subprocess.call("su -c input keyevent 187", shell=True)
+    subprocess.call("su -c input keyevent 187", shell=True)
+
+    time.sleep(1.0)
+    subprocess.call("su -c input keyevent 279", shell=True)  # paste
+
+
 class AssistantMenu(AgentMenu):
     def on_created(self):
         self.voice_input()
 
     def get_tools_callable(self) -> List[Callable]:
-        return super().get_tools_callable() + [open_file, open_url, navigate_to]
+        return super().get_tools_callable() + [
+            open_file,
+            open_url,
+            navigate_to,
+            type_text,
+        ]
 
 
 if __name__ == "__main__":

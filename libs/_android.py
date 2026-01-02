@@ -165,9 +165,7 @@ def logcat(
     args = ["adb", "logcat"]
 
     if show_log_after_secs is not None:
-        out = subprocess.check_output(
-            ["adb", "shell", "date '+%m-%d %H:%M:%S'"], shell=True
-        )
+        out = subprocess.check_output(["adb", "shell", "date '+%m-%d %H:%M:%S'"])
         out_str = out.decode().strip()
         dt_start = datetime.datetime.strptime(out_str, "%m-%d %H:%M:%S")
         dt_start += datetime.timedelta(seconds=show_log_after_secs)

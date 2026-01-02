@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import uuid
-from base64 import b64decode
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
 import aiohttp
@@ -63,6 +62,14 @@ def _build_tool_name_by_id(messages: List[Message]) -> Dict[str, str]:
             tool_name = tool_use["tool_name"]
             tool_name_by_id[tool_use_id] = tool_name
     return tool_name_by_id
+
+
+def _to_gemini_role(role: str) -> str:
+    if role == "assistant":
+        return "model"
+    if role == "user":
+        return "user"
+    raise ValueError(f"Invalid role: {role}")
 
 
 def _message_to_parts(message: Message, tool_name_by_id: Dict[str, str]):
@@ -143,6 +150,7 @@ async def complete_chat(
     if not api_key:
         raise Exception("GEMINI_API_KEY must be provided")
 
+    # https://ai.google.dev/api/generate-content#method:-models.streamGenerateContent
     endpoint_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse"
 
     headers = {
@@ -155,15 +163,19 @@ async def complete_chat(
     for message in messages:
         parts = _message_to_parts(message, tool_name_by_id)
         assert len(parts) > 0
-        contents.append({"role": message["role"], "parts": parts})
+        contents.append({"role": _to_gemini_role(message["role"]), "parts": parts})
 
     if not contents:
         contents = [{"parts": [{"text": ""}]}]
 
-    safety_settings = "W3siY2F0ZWdvcnkiOiJIQVJNX0NBVEVHT1JZX0hBUkFTU01FTlQiLCJ0aHJlc2hvbGQiOiJPRkYifSx7ImNhdGVnb3J5IjoiSEFSTV9DQVRFR09SWV9IQVRFX1NQRUVDSCIsInRocmVzaG9sZCI6Ik9GRiJ9LHsiY2F0ZWdvcnkiOiJIQVJNX0NBVEVHT1JZX1NFWFVBTExZX0VYUExJQ0lUIiwidGhyZXNob2xkIjoiT0ZGIn0seyJjYXRlZ29yeSI6IkhBUk1fQ0FURUdPUllfREFOR0VST1VTX0NPTlRFTlQiLCJ0aHJlc2hvbGQiOiJPRkYifV0="
-    payload = {
+    payload: Dict[str, Any] = {
         "contents": contents,
-        "safetySettings": json.loads(b64decode(safety_settings)),
+        "safetySettings": [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "OFF"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "OFF"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "OFF"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "OFF"},
+        ],
     }
 
     if tools:

@@ -78,9 +78,7 @@ def create_myscript_workspace() -> str:
     workspace_file = os.path.join(get_data_dir(), "myscripts.code-workspace")
     save_json(
         workspace_file,
-        {
-            "folders": folders,
-        },
+        {"folders": folders, "settings": {"search.exclude": {"**/.config": True}}},
     )
     return workspace_file
 
