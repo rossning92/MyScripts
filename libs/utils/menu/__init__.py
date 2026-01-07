@@ -133,11 +133,9 @@ class _TextInput:
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
-        self.selected_text: str = ""
 
     def set_text(self, text):
         self.text = text
-        self.selected_text = ""
         self.caret_pos = len(text)
 
     class DrawInputResult(NamedTuple):
@@ -180,17 +178,6 @@ class _TextInput:
 
             stdscr.addstr(cursor_y, cursor_x, s)
 
-            if self.selected_text:
-                y, x = Menu._stdscr.getyx()  # type: ignore
-                _, max_x = Menu._stdscr.getmaxyx()  # type: ignore
-                max_text_len = max_x - x
-                stdscr.addstr(
-                    y,
-                    x,
-                    self.selected_text[:max_text_len],
-                    Menu._get_color_pair(curses.COLOR_BLUE),
-                )
-
         except curses.error:
             pass
 
@@ -200,7 +187,6 @@ class _TextInput:
 
     def clear(self):
         self.text = ""
-        self.selected_text = ""
         self.caret_pos = 0
 
     def on_char(self, ch):
@@ -211,7 +197,6 @@ class _TextInput:
         elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
         elif _is_backspace_key(ch):
-            self.selected_text = ""
             if self.caret_pos > 0:
                 self.text = (
                     self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
@@ -241,7 +226,6 @@ class _TextInput:
     def insert_text(self, text: str):
         self.text = self.text[: self.caret_pos] + text + self.text[self.caret_pos :]
         self.caret_pos += len(text)
-        self.selected_text = ""
 
 
 T = TypeVar("T")
@@ -562,11 +546,7 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def get_input(self) -> str:
-        return (
-            self.__input.selected_text
-            if self.__input.selected_text
-            else self.__input.text
-        )
+        return self.__input.text
 
     def set_prompt(self, prompt: str):
         self.__input.prompt = prompt
@@ -1513,15 +1493,6 @@ class Menu(Generic[T]):
             or self.__last_input != self.__input.text
         ) and not _is_backspace_key(self.__last_key):
             self.on_item_selection_changed(selected, i=item_index)
-            self.__input.selected_text = (
-                selected
-                if (
-                    self.__search_mode
-                    and not self.__search_on_enter
-                    and isinstance(selected, str)
-                )
-                else ""
-            )
             self.update_screen()
         self.__last_selected_item = selected
 

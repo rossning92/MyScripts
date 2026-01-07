@@ -161,6 +161,10 @@ def show_im(
     plt.close(fig)
 
 
+def _get_text_margin(height, font_scale):
+    return int(height / 16 * font_scale * 2.0)
+
+
 def draw_text(
     im, text, text_outline=2, font_color="white", align="center", font_scale=1.0
 ):
@@ -194,7 +198,7 @@ def draw_text(
     del draw
 
 
-def add_margin(im, top=0, right=0, bottom=0, left=0, color="gray"):
+def _add_margin(im, top=0, right=0, bottom=0, left=0, color="black"):
     width, height = im.size
     new_width = width + right + left
     new_height = height + top + bottom
@@ -209,7 +213,7 @@ def combine_images(
     out_file=None,
     parse_file_name=None,
     cols=4,
-    spacing=4,
+    spacing=0.01,
     scale=1.0,
     text_outline=2,
     gif_duration=500,
@@ -256,7 +260,10 @@ def combine_images(
 
     # Add margins
     if draw_label and label_align == "bottom":
-        imgs = [add_margin(im, bottom=30) for im in imgs]
+        imgs = [
+            _add_margin(im, bottom=_get_text_margin(im.height, font_scale))
+            for im in imgs
+        ]
 
     if not cols:
         cols = math.ceil(math.sqrt(len(imgs)))
@@ -295,6 +302,9 @@ def combine_images(
         width = max([im.width for im in imgs])
         height = max([im.height for im in imgs])
 
+        # Convert spacing from percentage to pixels
+        spacing = int(spacing * width)
+
         num_imgs = len(imgs)
         rows = int(math.ceil(num_imgs / cols))
         if col_major_order:  # Swap rows and cols
@@ -325,6 +335,12 @@ def combine_images(
             c += 1
 
         if title is not None:
+            if title_align == "bottom":
+                im_combined = _add_margin(
+                    im_combined,
+                    bottom=_get_text_margin(im_combined.height, font_scale),
+                    color="black",
+                )
             draw_text(
                 im_combined,
                 title,

@@ -17,7 +17,6 @@ if __name__ == "__main__":
     gif_duration = int("{{_GIF_DURA}}") if "{{_GIF_DURA}}" else 500
     font_scale = float("{{_FONT_SCALE}}") if "{{_FONT_SCALE}}" else 1.0
     font_color = "{{_FONT_COLOR}}" if "{{_FONT_COLOR}}" else "white"
-    spacing = int("{{_SPACING}}") if "{{_SPACING}}" else 4
 
     combine_images(
         image_files=args.image_files,
@@ -32,7 +31,6 @@ if __name__ == "__main__":
         gif_duration=gif_duration,
         font_scale=font_scale,
         font_color=font_color,
-        spacing=spacing,
     )
 
     out_gif = os.path.splitext(args.out_file)[0] + ".gif"

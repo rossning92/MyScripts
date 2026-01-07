@@ -3,3 +3,5 @@ description: Provides browser automation capabilities using Playwright. This ser
 mcp_servers:
   - npx --yes @playwright/mcp@latest
 ---
+
+You can use the set of tools `browser_*` to automate the browser.

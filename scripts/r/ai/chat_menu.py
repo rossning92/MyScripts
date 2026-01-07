@@ -250,6 +250,7 @@ class ChatMenu(Menu[Line]):
         prompt_file: Optional[str] = None,
         system_prompt="",
         settings_menu_class=SettingsMenu,
+        settings_file: str = "settings.json",
         cancellable: bool = False,
         **kwargs,
     ) -> None:
@@ -286,7 +287,7 @@ class ChatMenu(Menu[Line]):
         )
 
         self.__settings_menu = settings_menu_class(
-            json_file=os.path.join(self.__data_dir, "settings.json"),
+            json_file=os.path.join(self.__data_dir, settings_file),
             model=model,
         )
 
@@ -623,6 +624,9 @@ class ChatMenu(Menu[Line]):
             set_clip("\n".join(line_text))
             self.set_message("selected line copied")
             self.set_multi_select(False)
+
+    def get_data_dir(self):
+        return self.__data_dir
 
     def get_message_index_and_subindex(self):
         num_messages = len(self.get_messages())
