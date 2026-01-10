@@ -1,8 +1,5 @@
-import difflib
-from dataclasses import dataclass
 from typing import List, Tuple
 
-from utils.menu.confirmmenu import ConfirmMenu
 
 
 def read_file_lines(file: str) -> Tuple[str, List[str]]:
@@ -31,74 +28,31 @@ def replace_text_in_line_range(
     return updated_content
 
 
-@dataclass
-class Change:
-    file: str
-    search: str
-    replace: str
-
-    def __str__(self) -> str:
-        search_lines = self.search.splitlines()
-        replace_lines = self.replace.splitlines()
-        diff = difflib.unified_diff(search_lines, replace_lines, lineterm="")
-        return "\n".join(diff)
-
-
-class ApplyChangeMenu(ConfirmMenu):
-    def __init__(self, change: Change, **kwargs) -> None:
-        super().__init__(
-            follow=True,
-            prompt="apply change?",
-            items=str(change).splitlines(),
-            wrap_text=True,
-            **kwargs,
-        )
-
-    def get_item_color(self, item: str) -> str:
-        if item.startswith("+ "):
-            return "green"
-        elif item.startswith("- "):
-            return "red"
-        else:
-            return "white"
-
-
-def apply_change(change: Change):
+def apply_change(file: str, search: str, replace: str):
     # If search block is empty, create a new file
-    if not change.search:
-        with open(change.file, "w", encoding="utf-8") as f:  # Create a new file
-            f.write(change.replace)
+    if not search:
+        with open(file, "w", encoding="utf-8") as f:  # Create a new file
+            f.write(replace)
     else:
-        with open(change.file, "r", encoding="utf-8") as f:
+        with open(file, "r", encoding="utf-8") as f:
             content = f.read()
             if "\r\n" in content:
                 newline = "\r\n"
             else:
                 newline = "\n"
 
-        count = content.count(change.search)
+        count = content.count(search)
         if count == 0:
-            raise ValueError(
-                f'Cannot find any match in "{change.file}":\n```\n{change.search}\n```'
-            )
+            raise ValueError(f'Cannot find any match in "{file}":\n```\n{search}\n```')
         elif count > 1:
             raise ValueError(
-                f'Found more than one match in "{change.file}". '
+                f'Found more than one match in "{file}". '
                 "Try adding some surrounding lines in order to uniquely match the search block:\n"
-                f"```\n{change.search}\n```"
+                f"```\n{search}\n```"
             )
-        content = content.replace(change.search, change.replace)
+        content = content.replace(search, replace)
 
         # Save file
-        with open(change.file, "w", encoding="utf-8", newline=newline) as f:
+        with open(file, "w", encoding="utf-8", newline=newline) as f:
             f.write(content)
 
-
-def apply_change_interactive(change: Change) -> bool:
-    menu = ApplyChangeMenu(change=change)
-    menu.exec()
-    if menu.is_confirmed():
-        apply_change(change=change)
-        return True
-    else:
-        return False
