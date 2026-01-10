@@ -1,4 +1,5 @@
 import argparse
+import difflib
 import os
 from pathlib import Path
 from platform import platform
@@ -6,8 +7,10 @@ from typing import Any, Dict, List, Optional
 
 import ai.agent_menu
 from ai.agent_menu import AgentMenu, load_subagents
+from ai.chat_menu import Line
 from ai.filecontextmenu import FileContextMenu
 from ai.message import Message
+from ai.tool_use import ToolUse
 from ai.tools import Settings
 from utils.checkpoints import (
     get_oldest_files_since_timestamp,
@@ -137,8 +140,8 @@ class CodeAgentMenu(AgentMenu):
 
         return "\n".join(prompt_parts)
 
-    def undo_messages(self) -> List[Message]:
-        removed_messages = super().undo_messages()
+    def revert_messages(self, from_msg_index: int) -> List[Message]:
+        removed_messages = super().revert_messages(from_msg_index=from_msg_index)
         for message in reversed(removed_messages):
             restore_files_since_timestamp(timestamp=message["timestamp"])
         return removed_messages
@@ -165,6 +168,65 @@ class CodeAgentMenu(AgentMenu):
     def on_result(self, result: str):
         if self.get_settings()["auto_open_diff"]:
             self.__open_diff()
+
+    def _get_tool_use_lines(
+        self, tool_use: ToolUse, msg_index: int, subindex: int
+    ) -> List[Line]:
+        lines = super()._get_tool_use_lines(tool_use, msg_index, subindex)
+        if tool_use["tool_name"] == "edit":
+            lines.extend(
+                self.__get_edit_diff_lines(tool_use, msg_index, subindex + len(lines))
+            )
+        return lines
+
+    def on_tool_use(self, tool_use: ToolUse):
+        super().on_tool_use(tool_use)
+        if tool_use["tool_name"] == "edit":
+            msg_index, subindex = self.get_message_index_and_subindex()
+            for line in self.__get_edit_diff_lines(tool_use, msg_index, subindex):
+                self.append_item(line)
+
+    def __get_edit_diff_lines(
+        self, tool_use: ToolUse, msg_index: int, subindex: int
+    ) -> List[Line]:
+        old_string = tool_use["args"].get("old_string", "")
+        new_string = tool_use["args"].get("new_string", "")
+
+        class IgnoreLeadingWhitespaceLine(str):
+            def __eq__(self, other):
+                return self.lstrip() == other.lstrip()
+
+            def __hash__(self):
+                return hash(self.lstrip())
+
+        diff = difflib.unified_diff(
+            [IgnoreLeadingWhitespaceLine(line) for line in old_string.splitlines()],
+            [IgnoreLeadingWhitespaceLine(line) for line in new_string.splitlines()],
+            n=1,
+            lineterm="",
+        )
+        lines = []
+        for line in diff:
+            if line.startswith(("---", "+++", "@@")):
+                continue
+            lines.append(
+                Line(
+                    role="assistant",
+                    text=line,
+                    msg_index=msg_index,
+                    subindex=subindex,
+                )
+            )
+            subindex += 1
+        return lines
+
+    def get_item_color(self, item: Line) -> str:
+        if item.role == "assistant":
+            if item.text.startswith("+"):
+                return "green"
+            elif item.text.startswith("-"):
+                return "red"
+        return super().get_item_color(item)
 
 
 def _find_git_root(path) -> Optional[str]:

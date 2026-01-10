@@ -266,6 +266,7 @@ class Menu(Generic[T]):
         line_number=True,
         prompt_color="white",
         follow=False,
+        set_input_on_select=False,
     ):
         self.close_on_selection: bool = close_on_selection
         self.is_cancelled: bool = False
@@ -317,8 +318,8 @@ class Menu(Generic[T]):
         self.__selected_row_begin: int = selected_index
         self.__selected_row_end: int = selected_index
         self.__multi_select_mode: bool = False
-
         self.__should_update_matched_items: bool = False
+        self.__set_input_on_select = set_input_on_select
 
         # Avoid updating the matching items when input changes too often.
         self.__last_match_time: float = 0
@@ -695,6 +696,16 @@ class Menu(Generic[T]):
         self._check_if_item_selection_changed()
         self.update_screen()
 
+    def __update_input_from_selection(self, index: int):
+        if not self.__set_input_on_select:
+            return
+
+        item_indices = self.get_item_indices()
+        assert 0 <= index < len(item_indices)
+        item = self.items[item_indices[index]]
+        self.__input.set_text(self.get_item_text(item))
+        self.__last_input = self.__input.text
+
     def refresh(self):
         self.__update_matched_items(force_update=True)
 
@@ -708,6 +719,8 @@ class Menu(Generic[T]):
                 self.__selected_row_begin if multi_select else selected_row_end
             )
             self.set_selection(selected_row_begin, selected_row_end)
+            if selected_row_begin == selected_row_end:
+                self.__update_input_from_selection(selected_row_end)
 
     def on_keyboard_interrupt(self):
         sys.exit(0)
@@ -836,6 +849,8 @@ class Menu(Generic[T]):
                     )
                     end = 0
                     self.set_selection(begin, end)
+                    if begin == end:
+                        self.__update_input_from_selection(end)
 
             elif ch == curses.KEY_END or ch == 455:
                 if len(self.get_item_indices()) > 0:
@@ -846,6 +861,8 @@ class Menu(Generic[T]):
                         else self.__selected_row_begin
                     )
                     self.set_selection(begin, end)
+                    if begin == end:
+                        self.__update_input_from_selection(end)
 
             elif ch == curses.KEY_DC and "delete" in self.__hotkeys:
                 self.__hotkeys["delete"].func()
@@ -914,9 +931,19 @@ class Menu(Generic[T]):
                 matches = sorted(matches, key=lambda x: x[1], reverse=True)
                 self.__matched_item_indices[:] = [index for index, _ in matches]
 
-                self.__selected_row_begin = 0
-                self.__selected_row_end = 0
-                self.__follow = False
+                if self.__last_input != self.__input.text:
+                    self.__selected_row_begin = 0
+                    self.__selected_row_end = 0
+                    self.__follow = False
+                else:
+                    total = len(self.__matched_item_indices)
+                    self.__selected_row_begin = clamp(
+                        self.__selected_row_begin, 0, total - 1
+                    )
+                    self.__selected_row_end = clamp(
+                        self.__selected_row_end, 0, total - 1
+                    )
+
                 self._check_if_item_selection_changed()
 
                 if save_search_history and self.__last_input is not None:

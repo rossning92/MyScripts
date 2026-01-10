@@ -109,10 +109,26 @@ async function getActivePage(browser) {
   return visiblePage;
 }
 
-async function withActivePage(handler) {
+async function getOrOpenPage(browser, url) {
+  let page;
+  if (url) {
+    if (!page) {
+      page = await browser.newPage();
+    }
+    if (!/^https?:\/\//i.test(url)) url = `http://${url}`;
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await sleep(3000);
+  } else {
+    page = await getActivePage(browser);
+  }
+  return page;
+}
+
+async function withActivePage(handler, { url } = {}) {
   const browser = await launchOrConnectBrowser();
   try {
-    const page = await getActivePage(browser);
+    const page = await getOrOpenPage(browser, url);
+
     if (!page) {
       throw "Failed to get active page";
     }
@@ -145,27 +161,50 @@ async function launchOrConnectBrowser(browserURL = "http://127.0.0.1:21222") {
   }
 }
 
-async function getText() {
-  return withActivePage(async (page) => {
-    return await page.evaluate(() => {
-      const el = document.getElementById("content");
-      return el ? el.innerText : document.body.innerText;
-    });
-  });
+async function getText(url) {
+  return withActivePage(
+    async (page) => {
+      return await page.evaluate(() => {
+        const el = document.getElementById("content");
+        return el ? el.innerText : document.body.innerText;
+      });
+    },
+    { url }
+  );
 }
 
-async function getMarkdown() {
-  return withActivePage(async (page) => {
-    const content = await page.evaluate(() => {
-      const el = document.getElementById("content");
-      return el ? el.innerHTML : document.body.innerHTML;
-    });
+async function getMarkdown(url) {
+  return withActivePage(
+    async (page) => {
+      const content = await page.evaluate(() => {
+        const el = document.getElementById("content");
+        return el ? el.innerHTML : document.body.innerHTML;
+      });
 
-    const turndownService = new TurndownService();
-    turndownService.remove("script");
-    turndownService.remove("style");
-    return turndownService.turndown(content);
-  });
+      const turndownService = new TurndownService();
+      turndownService.remove("script");
+      turndownService.remove("style");
+      turndownService.addRule("remove-base64-images", {
+        filter: (node) =>
+          node.nodeName === "IMG" &&
+          node.getAttribute("src")?.startsWith("data:"),
+        replacement: () => "",
+      });
+      turndownService.addRule("normalize-bracketed", {
+        filter: ["a", "button"],
+        replacement: (content, node) => {
+          const cleaned = content.trim().replace(/\s+/g, " ");
+          if (node.nodeName === "A") {
+            const href = node.getAttribute("href");
+            if (href) return `[${cleaned}](${href})`;
+          }
+          return `[${cleaned}]`;
+        },
+      });
+      return turndownService.turndown(content);
+    },
+    { url }
+  );
 }
 
 async function scrollToBottom() {
@@ -372,8 +411,8 @@ async function click(text) {
 function showHelp() {
   console.log("Usage:");
   console.log("  node browsercontrol.js open <url>");
-  console.log("  node browsercontrol.js get-text");
-  console.log("  node browsercontrol.js get-markdown");
+  console.log("  node browsercontrol.js get-text [url]");
+  console.log("  node browsercontrol.js get-markdown [url]");
   console.log("  node browsercontrol.js scroll-bottom");
   console.log("  node browsercontrol.js click <text>");
   console.log("  node browsercontrol.js type <text>");
@@ -480,89 +519,48 @@ async function scrape(filters) {
 (async () => {
   const args = process.argv.slice(2);
   if (args.length === 2 && args[0] === "open") {
-    let url = args[1];
-    if (!/^https?:\/\//i.test(url)) {
-      url = `http://${url}`;
-    }
-
+    const url = args[1];
     const browser = await launchOrConnectBrowser();
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
-
+    await getOrOpenPage(browser, url);
     browser.disconnect();
     return;
   }
 
-  if (args.length === 1 && args[0] === "get-text") {
-    try {
-      const text = await getText();
-      console.log(text);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+  if ((args.length === 1 || args.length === 2) && args[0] === "get-text") {
+    const text = await getText(args[1]);
+    console.log(text);
+    return;
   }
 
-  if (args.length === 1 && args[0] === "get-markdown") {
-    try {
-      const markdown = await getMarkdown();
-      console.log(markdown);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+  if ((args.length === 1 || args.length === 2) && args[0] === "get-markdown") {
+    const markdown = await getMarkdown(args[1]);
+    console.log(markdown);
+    return;
   }
 
   if (args.length === 1 && args[0] === "scroll-bottom") {
-    try {
-      await scrollToBottom();
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+    await scrollToBottom();
+    return;
   }
 
   if (args.length === 2 && args[0] === "press") {
-    try {
-      await pressKey(args[1]);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+    await pressKey(args[1]);
+    return;
   }
 
   if (args.length === 2 && args[0] === "click") {
-    try {
-      await click(args[1]);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+    await click(args[1]);
+    return;
   }
 
   if (args.length === 2 && args[0] === "type") {
-    try {
-      await typeText(args[1]);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+    await typeText(args[1]);
+    return;
   }
 
   if (args.length === 1 && args[0] === "debug") {
-    try {
-      await debug(args[1]);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+    await debug(args[1]);
+    return;
   }
 
   if (args.length >= 1 && args[0] === "scrape") {
@@ -571,13 +569,8 @@ async function scrape(filters) {
       filtersIndex !== -1
         ? args.slice(filtersIndex + 1).filter(Boolean)
         : undefined;
-    try {
-      await scrape(filters);
-      return;
-    } catch (err) {
-      console.error(err.message);
-      process.exit(1);
-    }
+    await scrape(filters);
+    return;
   }
 
   showHelp();

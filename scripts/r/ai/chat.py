@@ -24,7 +24,9 @@ def get_context_text(context: str) -> str:
 
 
 def get_tool_result_text(tool_result: ToolResult) -> str:
-    return "\033[34m► tool_result: {}\033[0m".format(truncate_text(tool_result["content"]))
+    return "\033[34m► tool_result: {}\033[0m".format(
+        truncate_text(tool_result["content"])
+    )
 
 
 def get_tool_use_text(tool_use: ToolUse) -> str:
@@ -86,6 +88,7 @@ async def complete_chat(
             tools=tools,
             on_image=on_image,
             on_tool_use=on_tool_use,
+            web_search=web_search,
         )
     elif model and model.startswith(LLAMA_CPP_PREFIX):
         model = model[len("llama.cpp:") :]

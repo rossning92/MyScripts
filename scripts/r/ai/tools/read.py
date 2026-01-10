@@ -2,7 +2,11 @@ from itertools import islice
 
 
 def read(file: str, offset: int = 0, limit: int = 2000) -> str:
-    """Read up to `limit` lines from `file`, starting at `offset` (0-based)."""
+    """
+    Read up to `limit` lines from `file`, starting at `offset` (0-based).
+
+    - You should always use `read` tool instead of `cat` command.
+    """
 
     if limit <= 0:
         return f"ERROR: limit must be > 0 (got {limit})"

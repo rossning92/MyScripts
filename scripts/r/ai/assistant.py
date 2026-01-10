@@ -23,7 +23,7 @@ def navigate_to(destination: str):
     )
 
 
-def type_text(text: str):
+def _send_text(text: str):
     set_clip(text)
 
     # Go to the previous app
@@ -35,6 +35,15 @@ def type_text(text: str):
 
 
 class AssistantMenu(AgentMenu):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.add_command(self.__send_text, hotkey="ctrl+t")
+
+    def __send_text(self):
+        text = self.get_input()
+        if text:
+            _send_text(text)
+
     def on_created(self):
         self.voice_input()
 
@@ -43,7 +52,6 @@ class AssistantMenu(AgentMenu):
             open_file,
             open_url,
             navigate_to,
-            type_text,
         ]
 
 

@@ -1,7 +1,6 @@
 import os
 
-from ai.codeeditutils import Change, apply_change, apply_change_interactive
-from ai.tools import Settings
+from ai.codeeditutils import apply_change
 from utils.checkpoints import backup_files
 
 
@@ -16,9 +15,4 @@ def edit(file: str, old_string: str, new_string: str):
     if os.path.exists(file):
         backup_files([file])
 
-    change = Change(file=file, search=old_string, replace=new_string)
-    if Settings.need_confirm_edit_file:
-        if not apply_change_interactive(change=change):
-            raise KeyboardInterrupt("edit_file was canceled by the user")
-    else:
-        apply_change(change=change)
+    apply_change(file=file, search=old_string, replace=new_string)

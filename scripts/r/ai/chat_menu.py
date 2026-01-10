@@ -319,7 +319,7 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__yank, hotkey="ctrl+y")
         self.add_command(self.new_chat, hotkey="ctrl+n")
         self.add_command(self.save_chat, hotkey="ctrl+s")
-        self.add_command(self.undo_messages, hotkey="ctrl+z")
+        self.add_command(self.__revert_messages, hotkey="ctrl+z")
 
         self.__chat_dir = os.path.join(self.__data_dir, "conversations")
         self.__history_manager = HistoryManager(
@@ -563,20 +563,31 @@ class ChatMenu(Menu[Line]):
         # self.__context = tmp_photo
         self.__update_prompt()
 
-    def undo_messages(self) -> List[Message]:
+    def __revert_messages(self):
+        selected = self.get_selected_item()
+        if selected:
+            self.revert_messages(from_msg_index=selected.msg_index)
+
+    def revert_messages(self, from_msg_index: int) -> List[Message]:
         removed_messages: List[Message] = []
         messages = self.get_messages()
-        if messages:
-            removed_messages.append(messages.pop())
+
+        if 0 <= from_msg_index < len(messages):
+            removed_messages = messages[from_msg_index:]
+            del messages[from_msg_index:]
+
+        if not removed_messages:
+            return []
+
         self.__refresh_lines()
-        if removed_messages:
-            last_removed = removed_messages[-1]
-            if last_removed["role"] == "user":
-                self.set_input(last_removed["text"])
-                self.__image_urls[:] = last_removed.get("image_urls", [])
-                self.__context[:] = last_removed.get("context", [])
-            else:
-                self.clear_input()
+        oldest_removed = removed_messages[0]
+        if oldest_removed["role"] == "user":
+            self.set_input(oldest_removed["text"])
+            self.__image_urls[:] = oldest_removed.get("image_urls", [])
+            self.__context[:] = oldest_removed.get("context", [])
+        else:
+            self.clear_input()
+
         self.__update_prompt()
         return removed_messages
 
@@ -790,6 +801,18 @@ Following is my instructions:
 
     def get_tools(self) -> List[ToolDefinition]:
         return []
+
+    def _get_tool_use_lines(
+        self, tool_use: ToolUse, msg_index: int, subindex: int
+    ) -> List[Line]:
+        return [
+            Line(
+                role="assistant",
+                msg_index=msg_index,
+                subindex=subindex,
+                tool_use=tool_use,
+            )
+        ]
 
     def on_tool_use_start(self, tool_use: ToolUse):
         pass
@@ -1013,15 +1036,11 @@ Following is my instructions:
 
             # Tool uses
             for tool_use in message.get("tool_use", []):
-                self.__lines.append(
-                    Line(
-                        role=message["role"],
-                        msg_index=msg_index,
-                        subindex=subindex,
-                        tool_use=tool_use,
-                    )
-                )
-                subindex += 1
+                for line in self._get_tool_use_lines(
+                    tool_use, msg_index=msg_index, subindex=subindex
+                ):
+                    self.__lines.append(line)
+                    subindex += 1
 
             # Tool results
             for tool_result in message.get("tool_result", []):

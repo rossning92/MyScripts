@@ -28,30 +28,37 @@ def _strip_additional_properties(value: Any) -> Any:
 
 # Doc: https://ai.google.dev/gemini-api/docs/function-calling
 def _to_gemini_tools(
-    tools: List[ToolDefinition],
+    tools: Optional[List[ToolDefinition]] = None,
+    web_search: bool = False,
 ) -> List[Dict[str, Any]]:
-    function_declarations: List[Dict[str, Any]] = []
-    for t in tools:
-        properties: Dict[str, Any] = {}
-        for p in t.parameters:
-            properties[p.name] = {
-                **_strip_additional_properties(p.type),
-                "description": p.description,
-            }
+    gemini_tools: List[Dict[str, Any]] = []
+    if tools:
+        function_declarations: List[Dict[str, Any]] = []
+        for t in tools:
+            properties: Dict[str, Any] = {}
+            for p in t.parameters:
+                properties[p.name] = {
+                    **_strip_additional_properties(p.type),
+                    "description": p.description,
+                }
 
-        function_declarations.append(
-            {
-                "name": t.name,
-                "description": t.description,
-                "parameters": {
-                    "type": "object",
-                    "properties": properties,
-                    "required": t.required,
-                },
-            }
-        )
+            function_declarations.append(
+                {
+                    "name": t.name,
+                    "description": t.description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": t.required,
+                    },
+                }
+            )
+        gemini_tools.append({"functionDeclarations": function_declarations})
 
-    return [{"functionDeclarations": function_declarations}]
+    if web_search:
+        gemini_tools.append({"google_search": {}})
+
+    return gemini_tools
 
 
 def _build_tool_name_by_id(messages: List[Message]) -> Dict[str, str]:
@@ -143,6 +150,7 @@ async def complete_chat(
     tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+    web_search=False,
 ) -> AsyncIterator[str]:
     logger.debug(f"messages: {messages}")
 
@@ -178,8 +186,9 @@ async def complete_chat(
         ],
     }
 
-    if tools:
-        payload["tools"] = _to_gemini_tools(tools)
+    gemini_tools = _to_gemini_tools(tools=tools, web_search=web_search)
+    if gemini_tools:
+        payload["tools"] = gemini_tools
 
     if system_prompt:
         payload["system_instruction"] = {
