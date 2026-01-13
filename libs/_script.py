@@ -232,6 +232,7 @@ def wrap_wsl(
 def wrap_bash_win(
     args: List[str],
     env: Optional[Dict[str, str]] = None,
+    git_bash=False,
     msys2=False,
     shell="bash",
 ):
@@ -244,24 +245,25 @@ def wrap_bash_win(
         # Export full PATH environment variable into MSYS2
         env["MSYS2_PATH_TYPE"] = "inherit"
 
-    msys2_bash_search_list = []
+    bash_executables = []
+    if git_bash:
+        bash_executables += [
+            rf"C:\Program Files\Git\bin\{shell}.exe",
+        ]
     if msys2:
-        msys2_bash_search_list += [
+        bash_executables += [
             rf"C:\tools\msys64\usr\bin\{shell}.exe",
             rf"C:\msys64\usr\bin\{shell}.exe",
         ]
-    msys2_bash_search_list += [
-        rf"C:\Program Files\Git\bin\{shell}.exe",
-    ]
     sh = None
-    for f in msys2_bash_search_list:
+    for f in bash_executables:
         if os.path.exists(f):
             sh = f
             break
     logging.debug(f"{shell}_exec = %s" % sh)
 
     if sh is None:
-        raise FileNotFoundError(f"Cannot find MinGW {shell}.exe")
+        raise FileNotFoundError(f"Cannot find {shell} executable")
 
     if len(args) == 1 and args[0].endswith(".sh") or args[0].endswith(".expect"):
         # -l: must start as a login shell otherwise the PATH environmental
@@ -279,13 +281,16 @@ def wrap_bash_commands(
     wsl_distro: Optional[str] = None,
     env: Optional[Dict[str, str]] = None,
     msys2=False,
+    git_bash=False,
     shell="bash",
 ) -> List[str]:
     if sys.platform == "win32":
         if wsl:  # WSL (Windows Subsystem for Linux)
             return wrap_wsl(args, env=env, distro=wsl_distro, shell=shell)
         else:
-            return wrap_bash_win(args, env=env, msys2=msys2, shell=shell)
+            return wrap_bash_win(
+                args, env=env, git_bash=git_bash, msys2=msys2, shell=shell
+            )
 
     else:  # Linux
         if len(args) == 1 and args[0].endswith(".sh"):
@@ -1181,14 +1186,15 @@ class Script:
                 convert_to_unix_path(arg, wsl=self.cfg["wsl"]) for arg in arg_list
             ]
 
-            if sys.platform == "win32" and self.cfg["msys2"]:
-                require_package("msys2")
+            # if sys.platform == "win32" and self.cfg["msys2"]:
+            #     require_package("msys2")
 
             arg_list = wrap_bash_commands(
                 arg_list,
                 wsl=self.cfg["wsl"],
                 wsl_distro=self.cfg["wsl.distro"],
                 env=env,
+                git_bash=self.cfg["gitBash"],
                 msys2=self.cfg["msys2"],
                 shell="expect" if ext == ".expect" else "bash",
             )
@@ -1401,7 +1407,8 @@ class Script:
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
                         # DETACHED_PROCESS
-                        CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+                        CREATE_NO_WINDOW
+                        | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
                 if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
@@ -1891,10 +1898,11 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "commandWrapper": True,
         "conda": "",
         "globalHotkey": "",
+        "gitBash": False,
         "hotkey": "",
         "matchClipboard": "",
         "minimized": False,
-        "msys2": False,
+        "msys2": True,
         "newWindow": True,
         "openWithScript": "",
         "packages.pip": "",

@@ -145,11 +145,7 @@ class LogMenu(Menu[str]):
             self.clear_input()
 
     def get_status_text(self):
-        cols = [self.__file_name]
-        text = super().get_status_text()
-        if text:
-            cols.append(text)
-        return " | ".join(cols)
+        return self.__file_name + "\t" + super().get_status_text()
 
     def on_created(self):
         last_update = 0.0

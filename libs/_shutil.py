@@ -885,8 +885,8 @@ def update_env_var_explorer() -> List[str]:
 
             return files
 
-        except Exception:
-            logging.warning("Unable to get explorer info.")
+        except Exception as e:
+            logging.warning(f"Failed to get explorer info: {e}")
             return []
 
     else:

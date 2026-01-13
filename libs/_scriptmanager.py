@@ -26,7 +26,6 @@ from scripting.path import get_data_dir, get_my_script_root, get_script_history_
 from utils.jsonutil import load_json, save_json
 from utils.process import start_process
 from utils.template import render_template_file
-from utils.tmux import is_in_tmux
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")
 
