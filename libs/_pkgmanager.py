@@ -10,13 +10,13 @@ from typing import Dict, List, Literal, Optional
 from _shutil import (
     check_output,
     get_home_path,
-    is_in_termux,
     prepend_to_path,
     refresh_env_vars,
     run_elevated,
 )
 from utils import wingetutils
 from utils.jsonutil import load_json
+from utils.termux import is_in_termux
 
 _cached_packages = None
 _cached_mtime = None

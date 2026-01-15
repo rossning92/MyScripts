@@ -509,11 +509,6 @@ def rename(src: str, dst: str, dry_run=False):
         os.rename(src, dst)
 
 
-@lru_cache(maxsize=None)
-def is_in_termux():
-    return shutil.which("termux-setup-storage") is not None
-
-
 def is_in_wsl() -> bool:
     return "microsoft" in platform.uname().release.lower()
 

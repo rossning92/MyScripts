@@ -8,9 +8,10 @@ import traceback
 from typing import List, Union
 
 from _pkgmanager import find_executable, require_package
-from _shutil import is_in_termux, run_elevated
+from _shutil import run_elevated
 from utils.process import start_process
 from utils.shutil import shell_open
+from utils.termux import is_in_termux
 
 
 def load_config():

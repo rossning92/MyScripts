@@ -8,9 +8,9 @@ from threading import Event, Thread
 from typing import Optional
 
 from _pkgmanager import require_package
-from _shutil import is_in_termux
 from utils.getch import getch
 from utils.retry import retry
+from utils.termux import is_in_termux
 
 
 def _wait_for_key() -> bool:
@@ -46,7 +46,11 @@ def _initialize_pulseaudio():
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        subprocess.check_call(["pulseaudio", "-L", "module-sles-source", "-D"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.check_call(
+            ["pulseaudio", "-L", "module-sles-source", "-D"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
 
 def record_audio(out_file: str, stop_event: Optional[Event] = None) -> Optional[str]:
