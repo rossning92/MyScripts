@@ -1072,7 +1072,7 @@ class Script:
                     md_file_path = script_path
                 else:
                     md_file_path = script_path
-                start_script("ext/edit.py", args=[md_file_path])
+                start_script("ext/vim_edit.py", args=[md_file_path])
                 return True
 
         elif ext == ".ps1":
@@ -1407,8 +1407,7 @@ class Script:
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
                         # DETACHED_PROCESS
-                        CREATE_NO_WINDOW
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                        CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
                 if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
