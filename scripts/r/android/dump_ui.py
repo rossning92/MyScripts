@@ -2,6 +2,8 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
+from utils.termux import is_in_termux
+
 
 def format_node(node, level=0):
     attr = node.attrib
@@ -27,25 +29,28 @@ def format_node(node, level=0):
             format_node(child, level)
 
 
-def run_adb():
+def dump_ui():
+    def run_cmd(args, text=False):
+        if is_in_termux():
+            return subprocess.run(
+                ["su", "-c", " ".join(args)], check=True, capture_output=True, text=text
+            )
+        else:
+            return subprocess.run(
+                ["adb", "shell"] + args, check=True, capture_output=True, text=text
+            )
+
     try:
-        subprocess.run(
-            ["adb", "shell", "uiautomator", "dump"], check=True, capture_output=True
-        )
-        result = subprocess.run(
-            ["adb", "shell", "cat", "/sdcard/window_dump.xml"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        run_cmd(["uiautomator", "dump"])
+        result = run_cmd(["cat", "/sdcard/window_dump.xml"], text=True)
         return result.stdout
     except subprocess.CalledProcessError as e:
-        print(f"Error running adb: {e}")
+        print(f"Error running command: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    xml_data = run_adb()
+    xml_data = dump_ui()
     try:
         root = ET.fromstring(xml_data)
         format_node(root)

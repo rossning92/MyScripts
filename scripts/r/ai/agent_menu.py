@@ -74,6 +74,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "function_call": True,
             "mcp": [],
             "skill": False,
+            "subagent": False,
         }
 
     def get_schema(self) -> Optional[JSONSchema]:
@@ -86,6 +87,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "items": {"type": "object", "properties": {"command": {"type": "string"}}},
         }
         schema["properties"]["skill"] = {"type": "boolean"}
+        schema["properties"]["subagent"] = {"type": "boolean"}
         return schema
 
 
@@ -153,6 +155,8 @@ class AgentMenu(ChatMenu):
         self.__handle_response()
 
     def __get_tools_subagent(self) -> List[ToolDefinition]:
+        if not self.get_settings().get("subagent", False):
+            return []
         subagents = self.__subagents
         return [
             ToolDefinition(
