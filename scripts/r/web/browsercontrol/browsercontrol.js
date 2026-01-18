@@ -123,7 +123,12 @@ async function getOrOpenPage(browser, url) {
       page = await browser.newPage();
     }
     if (!/^https?:\/\//i.test(url)) url = `http://${url}`;
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    const response = await page.goto(url, { waitUntil: "domcontentloaded" });
+    if (response && !response.ok()) {
+      throw new Error(
+        `Failed to load page: ${response.status()} ${response.statusText()}`
+      );
+    }
     await sleep(3000);
   } else {
     page = await getActivePage(browser);

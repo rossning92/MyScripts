@@ -1219,6 +1219,9 @@ class Menu(Generic[T]):
     def goto_line(self, line: int):
         self.__scroll_y = line
 
+    def item_wrap(self, item: T) -> bool:
+        return self.__wrap_text
+
     def __on_update_screen(self, item_y_max: int):
         assert Menu._stdscr is not None
 
@@ -1323,7 +1326,7 @@ class Menu(Generic[T]):
                 item_y,
                 line_number_width + (GUTTER_SIZE if self.__line_number else 0),
                 item_text,
-                wrap_text=self.__wrap_text,
+                wrap_text=self.item_wrap(item),
                 fg=fg,
                 bg=bg,
                 dim=dim,
@@ -1372,7 +1375,7 @@ class Menu(Generic[T]):
                 self.__scroll_y = max(self.__scroll_y - 1, 0)
                 self.update_screen()
 
-            if self.__wrap_text:
+            if self.item_wrap(item):
                 matched_item_index += 1
             else:
                 matched_item_index += increments

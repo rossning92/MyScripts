@@ -659,6 +659,9 @@ class ChatMenu(Menu[Line]):
     def get_item_color(self, item: Line) -> str:
         return "white" if item.role == "assistant" else "cyan"
 
+    def item_wrap(self, item: Line) -> bool:
+        return super().item_wrap(item) if item.text else False
+
     def get_messages(self, expand_context=False) -> List[Message]:
         if expand_context:
             return [

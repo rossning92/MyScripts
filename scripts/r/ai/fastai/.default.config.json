@@ -1,6 +1,0 @@
-{
-  "closeOnExit": false,
-  "packages.pip": "fastai",
-  "venv.name": "fastai",
-  "workingDir": "{HOME}/fastai"
-}

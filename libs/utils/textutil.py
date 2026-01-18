@@ -5,15 +5,15 @@ from typing import Optional
 
 def truncate_text(
     text: str,
-    max_chars: int = 100,
+    max_chars: int = 240,
     max_lines: Optional[int] = None,
 ) -> str:
     n_lines = len(text.splitlines())
     if max_lines is not None:
         text = "\n".join(text.splitlines()[:max_lines])
-    text = re.sub(r"\s+", " ", text.strip())
+    text = re.sub(r"[\r\n]+", " ↵ ", text.strip())
     if len(text) > max_chars or (max_lines and n_lines > max_lines):
-        return f"{text[:max_chars]}.. ({n_lines} lines)"
+        return f"({n_lines:2} lines) {text[:max_chars]}.."
     else:
         return text
 

@@ -20,15 +20,7 @@ from utils.editor import edit_text_file
 from utils.menu.diffmenu import DiffMenu
 from utils.menu.filemenu import FileMenu
 
-_SYSTEM_PROMPT = """You are my assistant to help me complete a task.
-
-# Tone
-
-- You should be concise, direct, and to the point.
-- You should answer the user's question directly without elaboration, explanation, or details, unless the user asks for them.
-- You should keep your response to 1-2 sentences (not including tool use or code generation).
-- You should NOT answer with unnecessary preamble or postamble (such as explaining your code or summarizing your action), unless the user asks you to.
-
+_SYSTEM_PROMPT = """
 # Code style
 
 - Do NOT add comments to code unless the user requests it or the code is complex and needs context.
