@@ -12,8 +12,8 @@ from typing import (
 
 import aiohttp
 from ai.message import Message
-from ai.tokenutil import token_count
 from ai.tool_use import ToolDefinition, ToolUse
+from ai.usagemetadata import UsageMetadata
 from utils.http import iter_lines
 
 DEFAULT_MODEL = "claude-3-7-sonnet-latest"
@@ -56,6 +56,7 @@ async def complete_chat(
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+    usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     logging.debug(f"messages={messages}")
 
@@ -124,13 +125,17 @@ async def complete_chat(
                 logging.debug(f"Received data: {data}")
 
                 if data["type"] == "message_start":
-                    token_count.input_tokens += data["message"]["usage"]["input_tokens"]
-                    token_count.output_tokens += data["message"]["usage"][
-                        "output_tokens"
-                    ]
+                    if usage:
+                        u = data["message"]["usage"]
+                        usage.input_tokens += u["input_tokens"]
+                        usage.output_tokens += u["output_tokens"]
+                        usage.total_tokens = usage.input_tokens + usage.output_tokens
 
                 elif data["type"] == "message_delta":
-                    token_count.output_tokens += data["usage"]["output_tokens"]
+                    if usage:
+                        u = data["usage"]
+                        usage.output_tokens += u["output_tokens"]
+                        usage.total_tokens = usage.input_tokens + usage.output_tokens
 
                 elif data["type"] == "message_stop":
                     break

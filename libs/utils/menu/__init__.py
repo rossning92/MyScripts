@@ -1101,6 +1101,7 @@ class Menu(Generic[T]):
         scroll_x=0,
         bold=False,
         dim=False,
+        reverse=False,
     ) -> DrawTextResult:
         """_summary_
 
@@ -1142,6 +1143,8 @@ class Menu(Generic[T]):
             attr |= curses.A_BOLD
         if dim:
             attr |= curses.A_DIM
+        if reverse:
+            attr |= curses.A_REVERSE
 
         i = 0
         while i < len(s):
@@ -1155,6 +1158,12 @@ class Menu(Generic[T]):
                     for code in match.group(1).split(";"):
                         if code in ("0", ""):
                             attr = curses.A_NORMAL
+                            if bold:
+                                attr |= curses.A_BOLD
+                            if dim:
+                                attr |= curses.A_DIM
+                            if reverse:
+                                attr |= curses.A_REVERSE
                         elif code == "1":
                             attr |= curses.A_BOLD
                         elif code == "2":
@@ -1314,13 +1323,6 @@ class Menu(Generic[T]):
                     if re.search(patt, item_text):
                         fg = _to_curses_color(c)
 
-            # Invert the color if the item is selected
-            bg = -1
-            dim = False
-            if is_item_selected:
-                bg = fg if fg != -1 else curses.COLOR_WHITE
-                fg = curses.COLOR_BLACK
-
             # Draw item
             draw_text_result = self.__draw_text(
                 item_y,
@@ -1328,8 +1330,7 @@ class Menu(Generic[T]):
                 item_text,
                 wrap_text=self.item_wrap(item),
                 fg=fg,
-                bg=bg,
-                dim=dim,
+                reverse=is_item_selected,
                 scroll_x=self.__scroll_x,
                 ymax=item_y_max,
             )
@@ -1337,17 +1338,13 @@ class Menu(Generic[T]):
             # Draw line number
             if self.__line_number:
                 line_number_text = self.get_line_number_text(item_index)
-                if is_item_selected:
-                    ln_fg, ln_bg, ln_dim = curses.COLOR_BLACK, curses.COLOR_WHITE, False
-                else:
-                    ln_fg, ln_bg, ln_dim = curses.COLOR_WHITE, -1, True
                 self.__draw_text(
                     item_y,
                     0,
                     line_number_text.rjust(line_number_width) + (" " * GUTTER_SIZE),
-                    fg=ln_fg,
-                    bg=ln_bg,
-                    dim=ln_dim,
+                    fg=curses.COLOR_WHITE,
+                    dim=not is_item_selected,
+                    reverse=is_item_selected,
                     ymax=item_y_max,
                 )
 
@@ -1359,9 +1356,9 @@ class Menu(Generic[T]):
                         y,
                         0,
                         " " * (line_number_width + GUTTER_SIZE),
-                        fg=ln_fg,
-                        bg=ln_bg,
-                        dim=ln_dim,
+                        fg=curses.COLOR_WHITE,
+                        dim=not is_item_selected,
+                        reverse=is_item_selected,
                         ymax=item_y_max,
                     )
 

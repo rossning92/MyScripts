@@ -6,6 +6,7 @@ from typing import AsyncIterator, Callable, Dict, List, Optional
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolUse
+from ai.usagemetadata import UsageMetadata
 from utils.http import check_for_status, iter_lines
 
 
@@ -21,6 +22,7 @@ async def complete_chat(
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
     extra_payload: Optional[Dict] = None,
+    usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     logging.debug(f"messages: {messages}")
 
@@ -33,6 +35,7 @@ async def complete_chat(
         "model": model or os.environ.get("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
         "messages": [],
         "stream": True,
+        "stream_options": {"include_usage": True},
     }
 
     if tools:
@@ -138,6 +141,13 @@ async def complete_chat(
                 except json.JSONDecodeError:
                     logging.debug(f"Skipping malformed chunk: {data_str}")
                     continue
+
+                if "usage" in data:
+                    if usage:
+                        u = data["usage"]
+                        usage.total_tokens = u["total_tokens"]
+                        usage.input_tokens = u["prompt_tokens"]
+                        usage.output_tokens = u["completion_tokens"]
 
                 for choice in data.get("choices", []):
                     delta = choice.get("delta", {})

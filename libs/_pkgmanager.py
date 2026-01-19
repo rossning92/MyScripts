@@ -159,6 +159,26 @@ def require_package(
                 newly_installed = True
             package_matched = True
 
+        elif wsl and "apt" in packages[pkg]:
+            wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
+            for p in packages[pkg]["apt"]["packages"]:
+                if (
+                    not _call_without_output(wsl_cmd + ["dpkg", "-s", p])
+                    or force_install
+                ):
+                    if "ppa" in packages[pkg]["apt"]:
+                        ppa = packages[pkg]["apt"]["ppa"]
+                        assert isinstance(ppa, str)
+                        subprocess.check_call(
+                            wsl_cmd + ["sudo", "add-apt-repository", f"ppa:{ppa}", "-y"]
+                        )
+                        subprocess.check_call(wsl_cmd + ["sudo", "apt-get", "update"])
+
+                    logging.info(f"Installing package using apt: {pkg}...")
+                    subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
+                    newly_installed = True
+            package_matched = True
+
         elif "pacman" in packages[pkg] and shutil.which("pacman"):
             for p in packages[pkg]["pacman"]["packages"]:
                 if not _call_without_output(["pacman", "-Q", p]) or force_install:
@@ -200,26 +220,6 @@ def require_package(
                 if not _call_without_output(["dpkg", "-s", p]) or force_install:
                     logging.warning(f'Package "{p}" was not found, installing...')
                     subprocess.check_call(["pkg", "install", p, "-y"])
-                    newly_installed = True
-            package_matched = True
-
-        elif wsl and "apt" in packages[pkg]:
-            wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
-            for p in packages[pkg]["apt"]["packages"]:
-                if (
-                    not _call_without_output(wsl_cmd + ["dpkg", "-s", p])
-                    or force_install
-                ):
-                    if "ppa" in packages[pkg]["apt"]:
-                        ppa = packages[pkg]["apt"]["ppa"]
-                        assert isinstance(ppa, str)
-                        subprocess.check_call(
-                            wsl_cmd + ["sudo", "add-apt-repository", f"ppa:{ppa}", "-y"]
-                        )
-                        subprocess.check_call(wsl_cmd + ["sudo", "apt-get", "update"])
-
-                    logging.info(f"Installing package using apt: {pkg}...")
-                    subprocess.check_call(wsl_cmd + ["sudo", "apt", "install", "-y", p])
                     newly_installed = True
             package_matched = True
 

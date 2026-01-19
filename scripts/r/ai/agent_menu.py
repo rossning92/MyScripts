@@ -13,7 +13,7 @@ import ai.tools.grep
 import ai.tools.list
 import ai.tools.read
 import ai.tools.web_fetch
-from ai.chat import get_tool_use_text
+import ai.tools.web_search
 from ai.chat_menu import ChatMenu, Line
 from ai.mcp import MCPClient
 from ai.skill import get_skill_prompt, get_skills
@@ -143,6 +143,7 @@ class AgentMenu(ChatMenu):
                 ai.tools.glob.glob,
                 ai.tools.grep.grep,
                 ai.tools.web_fetch.web_fetch,
+                ai.tools.web_search.web_search,
             ]
         )
 
@@ -384,7 +385,6 @@ class AgentMenu(ChatMenu):
             self.append_item(
                 Line(
                     role="assistant",
-                    text=get_tool_use_text(tool_use),
                     msg_index=msg_index,
                     subindex=subindex,
                     tool_use=tool_use,

@@ -13,6 +13,7 @@ from typing import (
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolUse
+from ai.usagemetadata import UsageMetadata
 from utils.http import check_for_status, iter_lines
 
 DEFAULT_MODEL = "gpt-4o"
@@ -82,6 +83,7 @@ async def complete_chat(
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     web_search=False,
+    usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     api_key = os.environ["OPENAI_API_KEY"]
     if not api_key:
@@ -169,6 +171,11 @@ async def complete_chat(
                     logger.debug(f"Received data: {data}")
 
                     if data["type"] == "response.completed":
+                        if usage:
+                            u = data["response"]["usage"]
+                            usage.total_tokens = u["total_tokens"]
+                            usage.input_tokens = u["input_tokens"]
+                            usage.output_tokens = u["output_tokens"]
                         return
                     elif data["type"] == "response.output_text.delta":
                         delta = data["delta"]

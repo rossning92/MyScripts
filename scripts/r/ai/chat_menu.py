@@ -23,8 +23,8 @@ from ai.chat import (
     get_tool_use_text,
 )
 from ai.message import Message
-from ai.tokenutil import token_count
 from ai.tool_use import ToolDefinition, ToolResult, ToolUse
+from ai.usagemetadata import UsageMetadata
 from scripting.path import get_data_dir
 from utils.clip import set_clip
 from utils.dateutil import format_timestamp
@@ -270,6 +270,7 @@ class ChatMenu(Menu[Line]):
         self.__yank_mode = 0
         self.__chat_task: Optional[asyncio.Task] = None
         self.__retry_count = 0
+        self.__usage = UsageMetadata()
 
         self._out_message: Optional[Message] = None
 
@@ -891,6 +892,7 @@ Following is my instructions:
                     ),
                     web_search=self.get_settings()["web_search"],
                     out_message=out_message,
+                    usage=self.__usage,
                 ):
                     self.post_event(
                         lambda chunk_index=chunk_index,
@@ -1071,7 +1073,7 @@ Following is my instructions:
     def clear_messages(self):
         self.__lines.clear()
         self.get_messages().clear()
-        token_count.reset()
+        self.__usage.reset()
         self.reset_selection()
         self.set_follow(True)
         self.update_screen()
@@ -1105,10 +1107,7 @@ Following is my instructions:
 
     def get_status_text(self) -> str:
         s = "chat: "
-        if token_count.input_tokens:
-            s += f"tokIn={token_count.input_tokens} "
-        if token_count.output_tokens:
-            s += f"tokOut={token_count.output_tokens} "
+        s += f"tokens={self.__usage} "
         s += "cfg=" + str(self.__settings_menu.data) + "\n"
         s += super().get_status_text()
         return s

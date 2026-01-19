@@ -12,6 +12,7 @@ import ai.openai_compatible.chat
 import ai.openrouter.chat
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolResult, ToolUse
+from ai.usagemetadata import UsageMetadata
 from utils.textutil import truncate_text
 
 
@@ -51,6 +52,7 @@ async def complete_chat(
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
     web_search=False,
+    usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     OPENROUTER_PREFIX = "openrouter:"
     LLAMA_CPP_PREFIX = "llama.cpp:"
@@ -65,6 +67,7 @@ async def complete_chat(
             on_tool_use_start=on_tool_use_start,
             on_tool_use_args_delta=on_tool_use_args_delta,
             on_tool_use=on_tool_use,
+            usage=usage,
         )
     elif model and model.startswith(OPENROUTER_PREFIX):
         model = model[len(OPENROUTER_PREFIX) :]
@@ -78,6 +81,7 @@ async def complete_chat(
             on_image=on_image,
             on_tool_use=on_tool_use,
             on_reasoning=on_reasoning,
+            usage=usage,
         )
     elif model and model.startswith("gemini"):
         return ai.gemini.chat.complete_chat(
@@ -89,6 +93,7 @@ async def complete_chat(
             on_image=on_image,
             on_tool_use=on_tool_use,
             web_search=web_search,
+            usage=usage,
         )
     elif model and model.startswith(LLAMA_CPP_PREFIX):
         model = model[len("llama.cpp:") :]
@@ -101,6 +106,7 @@ async def complete_chat(
             system_prompt=system_prompt,
             tools=tools,
             on_tool_use=on_tool_use,
+            usage=usage,
         )
     else:
         return ai.openai.chat.complete_chat(
@@ -112,4 +118,5 @@ async def complete_chat(
             on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
             web_search=web_search,
+            usage=usage,
         )

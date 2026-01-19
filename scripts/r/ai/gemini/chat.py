@@ -7,6 +7,7 @@ from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 import aiohttp
 from ai.message import Message
 from ai.tool_use import ToolDefinition, ToolUse
+from ai.usagemetadata import UsageMetadata
 from utils.http import check_for_status, iter_lines
 from utils.imagedataurl import parse_image_data_url
 
@@ -151,6 +152,7 @@ async def complete_chat(
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     web_search=False,
+    usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     logger.debug(f"messages: {messages}")
 
@@ -214,7 +216,14 @@ async def complete_chat(
                 data = json.loads(line[6:].decode("utf-8"))
                 logger.debug(f"data: {data}")
 
-                for candidate in data["candidates"]:
+                if "usageMetadata" in data:
+                    usage_metadata = data["usageMetadata"]
+                    if usage:
+                        usage.total_tokens = usage_metadata["totalTokenCount"]
+                        usage.input_tokens = usage_metadata["promptTokenCount"]
+                        usage.output_tokens = usage_metadata["candidatesTokenCount"]
+
+                for candidate in data.get("candidates", []):
                     finish_reason = candidate.get("finishReason")
                     if finish_reason:
                         if finish_reason != "STOP":

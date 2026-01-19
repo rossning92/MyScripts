@@ -1,7 +1,5 @@
-import logging
 import os
 import sys
-from subprocess import CalledProcessError
 from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(
@@ -53,15 +51,8 @@ if __name__ == "__main__":
         del kwargs["log"]
         setup_logger()
 
-    try:
-        run_script(
-            file=file,
-            args=rest_args,
-            **kwargs,
-        )
-    except CalledProcessError as ex:
-        logging.error(ex)
-        sys.exit(1)
-    except FileNotFoundError as ex:
-        print(ex)
-        sys.exit(1)
+    run_script(
+        file=file,
+        args=rest_args,
+        **kwargs,
+    )
