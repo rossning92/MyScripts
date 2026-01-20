@@ -3,7 +3,7 @@ from _shutil import call_echo, menu_item, menu_loop, print2, write_temp_file
 call_echo("pip install --upgrade --pre uiautomator2")
 
 import uiautomator2 as u2
-from _android import setup_android_env
+from utils.android import setup_android_env
 from utils.editor import open_code_editor
 
 

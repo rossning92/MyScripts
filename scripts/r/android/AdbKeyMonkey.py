@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-from _android import setup_android_env
 from _shutil import download, get_home_path
+from utils.android import setup_android_env
 
 if __name__ == "__main__":
     install_path = os.path.join(get_home_path(), "tools", "AdbKeyMonkey")

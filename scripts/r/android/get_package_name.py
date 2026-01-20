@@ -1,11 +1,19 @@
+import argparse
 import re
-import sys
 
-from _android import setup_android_env
 from _shutil import check_output
+from utils.android import setup_android_env
+
+def _main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("apk", type=str)
+    args = parser.parse_args()
+
+    setup_android_env()
+    out = check_output(["aapt", "dump", "badging", args.apk])
+    pkg_name = re.findall(r"name='([\w.]+)", out)[0]
+    print(pkg_name)
+
 
 if __name__ == "__main__":
-    setup_android_env()
-    out = check_output(["aapt", "dump", "badging", sys.argv[-1]])
-    pkg_name = re.findall("name='([\w.]+)", out)[0]
-    print(pkg_name)
+    _main()

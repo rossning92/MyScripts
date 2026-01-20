@@ -1,20 +1,20 @@
 import os
 
-from _android import setup_android_env
 from _code import replace
 from _pyenv import setup_py27
 from _shutil import call_echo, cd, download, mkdir
+from utils.android import setup_android_env
 
 setup_android_env()
 
 mk = """
 LOCAL_PATH := $(call my-dir)
- 
+
 include $(CLEAR_VARS)
- 
+
 LOCAL_MODULE     := getevent
 LOCAL_SRC_FILES  := getevent.c
- 
+
 include $(BUILD_EXECUTABLE)
 """
 

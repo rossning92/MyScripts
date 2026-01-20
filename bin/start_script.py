@@ -38,6 +38,7 @@ if __name__ == "__main__":
 
     start_script(
         file=args.file,
+        args=args.args,
         cd=args.cd,
         restart_instance=args.restart_instance,
         run_in_tmux=args.run_in_tmux,

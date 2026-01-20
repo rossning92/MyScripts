@@ -1,10 +1,10 @@
 import os
 
-from _android import setup_android_env
 from _script import run_script
 from _unrealcommon import get_unreal_source_version
 from UE4.uproject.build_android import build_uproject
 from UE4.uproject.config_uproject_for_mobile import config_uproject
+from utils.android import setup_android_env
 
 if __name__ == "__main__":
     run_script("r/ue/editor/setup_android.cmd")

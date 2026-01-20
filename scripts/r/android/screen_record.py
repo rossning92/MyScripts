@@ -2,10 +2,10 @@ import os
 import signal
 import subprocess
 
-from _android import get_active_pkg_and_activity
 from _shutil import cd, get_cur_time_str
 from _video import ffmpeg
 from r.video.to_gif import convert_to_gif
+from utils.android import get_active_pkg_and_activity
 
 
 def screen_record(out_file=None, max_secs=10, bit_rate="40M"):

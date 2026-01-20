@@ -12,8 +12,8 @@ import time
 from typing import Any, List, Optional
 
 import renderdoc as rd
-from _android import get_device_name, get_main_activity
 from _shutil import get_home_path, get_time_str
+from utils.android import get_device_name, get_main_activity
 from utils.logger import setup_logger
 
 

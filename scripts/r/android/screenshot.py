@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from _android import screenshot
 from _shutil import get_home_path
+from utils.android import screenshot
 from utils.logger import setup_logger
 from utils.shutil import shell_open
 

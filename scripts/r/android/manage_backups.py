@@ -3,8 +3,8 @@ import os
 import re
 import subprocess
 
-from _android import setup_android_env
 from _shutil import cd, print2, remove
+from utils.android import setup_android_env
 from utils.menu.select import select_option
 
 setup_android_env()

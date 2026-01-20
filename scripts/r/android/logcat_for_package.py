@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from _android import logcat
+from utils.android import logcat
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

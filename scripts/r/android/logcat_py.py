@@ -1,5 +1,6 @@
-from _android import logcat
 import argparse
+
+from utils.android import logcat
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--pkg", default=None)

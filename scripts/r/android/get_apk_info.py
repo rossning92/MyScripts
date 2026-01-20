@@ -1,7 +1,7 @@
 import sys
 
-from _android import setup_android_env
 from _shutil import call_echo, get_files
+from utils.android import setup_android_env
 
 # aapt dump badging xxx.apk
 

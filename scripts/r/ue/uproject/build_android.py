@@ -5,14 +5,14 @@ import os
 import shutil
 import subprocess
 
-from _android import (
+from _shutil import cd, confirm, find_newest_file, mkdir, print2
+from _unrealcommon import setup_ue_android_env
+from build_cpp_modules import build_cpp_modules
+from utils.android import (
     adb_install,
     get_pkg_name_apk,
     start_app,
 )
-from _shutil import cd, confirm, find_newest_file, mkdir, print2
-from _unrealcommon import setup_ue_android_env
-from build_cpp_modules import build_cpp_modules
 from utils.logger import setup_logger
 
 out_dir_root = os.environ["UE_ANDROID_OUT_DIR"]

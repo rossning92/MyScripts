@@ -2,7 +2,7 @@ import os
 import re
 import subprocess
 
-from _android import (
+from utils.android import (
     install_cmdline_tools,
     setup_android_env,
 )

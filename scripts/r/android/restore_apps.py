@@ -1,4 +1,4 @@
-from _android import *
+from utils.android import *
 
 # https://uwot.eu/blog/manually-backuprestore-android-applications-data/
 
@@ -21,4 +21,3 @@ for i, f in enumerate(apk_list):
         adb_install2(f)
     else:
         print2("%s already installed." % pkg_name)
-

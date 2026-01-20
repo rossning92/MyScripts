@@ -1,5 +1,5 @@
-from _android import *
 from _shutil import *
+from utils.android import *
 
 # https://uwot.eu/blog/manually-backuprestore-android-applications-data/
 
@@ -17,4 +17,3 @@ pkgs = [x.replace("package:", "") for x in lines]
 
 pprint(pkgs)
 save_config("user_apps", pkgs)
-

@@ -1,6 +1,6 @@
 import argparse
 
-from _android import run_apk, setup_android_env
+from utils.android import run_apk, setup_android_env
 from utils.logger import setup_logger
 
 if __name__ == "__main__":

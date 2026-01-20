@@ -1,8 +1,8 @@
 import os
 import sys
 
-from _android import backup_pkg, select_app_pkg
 from backup_app import select_app_pkg
+from utils.android import backup_pkg, select_app_pkg
 from utils.shutil import shell_open
 
 if __name__ == "__main__":

@@ -19,7 +19,6 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
-from _android import setup_android_env
 from _cpp import setup_cmake
 from _filelock import FileLock
 from _pkgmanager import require_package
@@ -58,6 +57,7 @@ from scripting.path import (
     get_temp_dir,
     get_variable_file,
 )
+from utils.android import setup_android_env
 from utils.clip import get_clip, get_selection
 from utils.dotenv import load_dotenv
 from utils.email import send_email_md

@@ -3,9 +3,9 @@ import os
 import subprocess
 import time
 
-from _android import wait_until_boot_complete
 from _script import get_variable
 from _shutil import kill_proc
+from utils.android import wait_until_boot_complete
 
 
 def get_screen_size():

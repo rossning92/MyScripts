@@ -2,9 +2,9 @@ import os
 import subprocess
 import sys
 
-from _android import backup_pkg, get_apk_path
 from _script import set_variable, start_script
 from _shutil import call_echo
+from utils.android import backup_pkg, get_apk_path
 from utils.clip import set_clip
 from utils.menu import Menu
 from utils.menu.actionmenu import ActionMenu

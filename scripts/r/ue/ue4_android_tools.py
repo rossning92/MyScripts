@@ -1,6 +1,6 @@
-from _android import restart_current_app
 from _shutil import menu_item, menu_loop, print2
 from _ue4 import ue4_command
+from utils.android import restart_current_app
 
 commands = {
     "r": "vr.HeadTracking.Reset",

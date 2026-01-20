@@ -1,6 +1,6 @@
-from _android import setup_android_env
 from _script import run_script
 from _shutil import call_echo
+from utils.android import setup_android_env
 
 if __name__ == "__main__":
     project_dir = r"{{_DIR}}"
