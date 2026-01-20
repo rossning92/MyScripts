@@ -849,57 +849,18 @@ def get_pretty_mtime(file):
     return get_pretty_time_delta(seconds)
 
 
-def clear_env_var_explorer():
-    os.environ.pop("CWD", None)
-    os.environ.pop("FILE", None)
-    os.environ.pop("FILES", None)
-
-
-def update_env_var_explorer() -> List[str]:
-    if sys.platform == "win32":
-        try:
-            with open(os.path.join(os.environ["TEMP"], "ow_explorer_info.json")) as f:
-                data = json.load(f)
-
-            if data["current_folder"]:
-                os.environ["CWD"] = data["current_folder"]
-            elif "CWD" in os.environ:
-                del os.environ["CWD"]
-
-            files = data["selected_files"]
-            if not files:
-                if "FILE" in os.environ:
-                    del os.environ["FILE"]
-                if "FILES" in os.environ:
-                    del os.environ["FILES"]
-                return []
-
-            else:
-                os.environ["FILE"] = files[0]
-                os.environ["FILES"] = "|".join(files)
-
-            return files
-
-        except Exception as e:
-            logging.warning(f"Failed to get explorer info: {e}")
-            return []
-
-    else:
+def get_selected_files() -> List[str]:
+    if sys.platform != "win32":
         return []
 
-
-def try_import(module_name, pkg_name=None):
-    import importlib
-
-    if not pkg_name:
-        pkg_name = module_name
     try:
-        module = importlib.import_module(module_name)
-        globals()[module_name] = module
-        return module
-    except ModuleNotFoundError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", pkg_name])
-        try_import(module_name)
+        path = os.path.join(os.environ["TEMP"], "ow_explorer_info.json")
+        with open(path) as f:
+            data = json.load(f)
+            return data["selected_files"] if data.get("selected_files") else []
+    except Exception as e:
+        logging.warning(f"Failed to get explorer info: {e}")
+        return []
 
 
 def get_ip_addresses():

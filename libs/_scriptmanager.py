@@ -15,11 +15,10 @@ from _script import (
     get_all_scripts,
 )
 from _shutil import (
-    clear_env_var_explorer,
     get_ahk_exe,
+    get_selected_files,
     pause,
     refresh_env_vars,
-    update_env_var_explorer,
 )
 from _term import clear_terminal
 from scripting.path import get_data_dir, get_my_script_root, get_script_history_file
@@ -227,7 +226,7 @@ def execute_script(
     args_: List[str]
     if args is None:
         if not run_script_and_quit:
-            args_ = update_env_var_explorer()
+            args_ = get_selected_files()
         else:
             args_ = []
     else:
@@ -371,8 +370,6 @@ class ScriptManager:
 
         self.scripts_autorun.clear()
         self.__scheduled_script.clear()
-
-        clear_env_var_explorer()
 
         any_script_reloaded = False
         for i, file in enumerate(get_all_scripts()):

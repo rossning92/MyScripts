@@ -7,7 +7,7 @@ sys.path.insert(
 )
 
 from _script import start_script
-from _shutil import prepend_to_path, update_env_var_explorer
+from _shutil import prepend_to_path
 
 
 def str2bool(value):
@@ -36,11 +36,8 @@ if __name__ == "__main__":
     # shell executes the Python version located inside the venv.
     prepend_to_path(os.path.dirname(sys.executable))
 
-    selected_files = update_env_var_explorer()
-
     start_script(
         file=args.file,
-        args=args.args if args.args else selected_files,
         cd=args.cd,
         restart_instance=args.restart_instance,
         run_in_tmux=args.run_in_tmux,
