@@ -49,7 +49,7 @@ def try_save_json(file: str, data, last_mtime: float, backup=False):
     # Check if the file has been externally modified
     if os.path.exists(file):
         mtime = os.path.getmtime(file)
-        if mtime < last_mtime:
+        if mtime > last_mtime + 1.0:
             raise RuntimeError("JSON file has been modified externally")
 
     # Backup JSON file

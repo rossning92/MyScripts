@@ -1,7 +1,8 @@
+import os
 from typing import Generic, List, Optional, TypeVar
 
 from utils.jsonschema import JSONSchema
-from utils.jsonutil import try_load_json, try_save_json
+from utils.jsonutil import save_json, try_load_json, try_save_json
 from utils.menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.valueeditmenu import ValueEditMenu
@@ -30,6 +31,7 @@ class ListEditMenu(Menu, Generic[T]):
         self.add_command(self.__new_item, hotkey="ctrl+n")
         self.add_command(self.__delete_item, hotkey="ctrl+k")
         self.add_command(self.__delete_item, hotkey="delete")
+        self.add_command(self.__force_save, hotkey="ctrl+s")
 
     def load_json(self) -> bool:
         if self.__json_file is not None:
@@ -117,6 +119,12 @@ class ListEditMenu(Menu, Generic[T]):
                 last_mtime=self.__last_mtime,
                 backup=self.__backup_json,
             )
+
+    def __force_save(self):
+        if self.__json_file:
+            save_json(self.__json_file, self.items)
+            self.__last_mtime = os.path.getmtime(self.__json_file)
+            self.set_message("force saved")
 
     def on_enter_pressed(self):
         index = self.get_selected_index()

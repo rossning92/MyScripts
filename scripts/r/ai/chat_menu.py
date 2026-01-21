@@ -121,6 +121,7 @@ class Line:
         reasoning: Optional[str] = None,
         tool_use: Optional[ToolUse] = None,
         tool_result: Optional[ToolResult] = None,
+        type: Optional[str] = None,
     ) -> None:
         self.role = role
         self.text = text
@@ -131,6 +132,7 @@ class Line:
         self.reasoning = reasoning
         self.tool_use = tool_use
         self.tool_result = tool_result
+        self.type = type
 
     def __str__(self) -> str:
         if self.context:

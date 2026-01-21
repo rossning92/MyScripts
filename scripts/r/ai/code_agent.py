@@ -1,6 +1,7 @@
 import argparse
 import difflib
 import os
+from datetime import datetime
 from pathlib import Path
 from platform import platform
 from typing import Any, Dict, List, Optional
@@ -34,7 +35,8 @@ def _get_env_info() -> str:
     return f"""# Environment Information
 
 Platform: {platform()}
-Working directory: {os.getcwd()}
+Current working directory: {os.getcwd()}
+Current date and time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 """
 
 
@@ -207,13 +209,14 @@ class CodeAgentMenu(AgentMenu):
                     text=line,
                     msg_index=msg_index,
                     subindex=subindex,
+                    type="diff",
                 )
             )
             subindex += 1
         return lines
 
     def get_item_color(self, item: Line) -> str:
-        if item.role == "assistant":
+        if item.type == "diff":
             if item.text.startswith("+"):
                 return "green"
             elif item.text.startswith("-"):

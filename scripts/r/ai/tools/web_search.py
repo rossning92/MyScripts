@@ -1,6 +1,7 @@
 import argparse
-import subprocess
 import urllib.parse
+
+from .web_fetch import web_fetch
 
 
 def web_search(query: str) -> str:
@@ -12,18 +13,7 @@ def web_search(query: str) -> str:
 
     encoded_query = urllib.parse.quote_plus(query)
     url = f"https://www.google.com/search?q={encoded_query}"
-
-    result = subprocess.run(
-        ["run_script", "r/web/browsercontrol/browsercontrol.js", "get-markdown", url],
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-    )
-    if result.returncode != 0 and not result.stdout:
-        return f"Error: failed to fetch {url}"
-
-    return result.stdout
+    return web_fetch(url)
 
 
 if __name__ == "__main__":

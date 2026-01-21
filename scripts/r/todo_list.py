@@ -117,13 +117,22 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.add_command(self.__set_status_wip, hotkey="alt+w")
         self.add_command(self.__toggle_status, hotkey="alt+x")
 
+    def __new_task(self):
+        self.__add_task_interactive({_STATUS: "none", "description": ""})
+
     def __duplicate_task(self):
         selected = self.get_selected_item()
         if selected:
-            copy = selected.copy()
-            copy[_STATUS] = "none"
-            self.items.append(copy)
-            self.__edit_todo_item(copy)
+            item = selected.copy()
+            item[_STATUS] = "none"
+            self.__add_task_interactive(item)
+
+    def __add_task_interactive(self, item: TodoItem):
+        self.__edit_item_description(item)
+        if not item["description"]:
+            return
+        self.__edit_timestamp_field(item, field_name=_DUE_TIMESTAMP)
+        self.__add_item(item)
 
     def __set_selected_item_value(self, kvps: Dict[str, Any]):
         selected = self.get_selected_item()
@@ -255,13 +264,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
             on_dict_update=lambda _: self.save_json(),
         ).exec()
 
-    def __new_task(self):
-        item = {_STATUS: "none", "description": ""}
-        self.__edit_item_description(item)
-        if not item["description"]:
-            return
-        self.__edit_timestamp_field(item, field_name=_DUE_TIMESTAMP)
-        self.__add_item(item)
 
     def __reload(self, sort=True):
         if self.load_json():
@@ -297,10 +299,32 @@ def main():
         help="Path to todo list data file",
         default=os.environ.get("TODO_DATA_FILE"),
     )
+
+    subparsers = parser.add_subparsers(dest="command")
+
+    # Command: add
+    add_parser = subparsers.add_parser("add", help="Add a new todo item")
+    add_parser.add_argument("--desc", required=True, help="Description of the todo item")
+    add_parser.add_argument("--due", help="Due date/time")
+
     args = parser.parse_args()
 
-    menu = TodoMenu(data_file=args.data_file)
-    menu.exec()
+    if args.command == "add":
+        menu = TodoMenu(data_file=args.data_file)
+        item: TodoItem = {"description": args.desc, _STATUS: "none"}
+        if args.due:
+            dt = parse_datetime(args.due)
+            if dt:
+                item[_DUE_TIMESTAMP] = dt.timestamp()
+            else:
+                print(f"Error: Invalid date format: {args.due}")
+                sys.exit(1)
+        menu.items.append(item)
+        menu.save_json()
+        print(f"Added todo: {args.desc}")
+    else:
+        menu = TodoMenu(data_file=args.data_file)
+        menu.exec()
 
 
 if __name__ == "__main__":

@@ -3,8 +3,10 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 const TurndownService = require("turndown");
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const puppeteer = require("puppeteer-extra").addExtra(
+  require("puppeteer-core"),
+);
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
 puppeteer.use(StealthPlugin());
 
@@ -26,7 +28,7 @@ const getChromeUserDataDir = () => {
       "Library",
       "Application Support",
       "Google",
-      "Chrome"
+      "Chrome",
     );
   }
   return path.join(os.homedir(), ".config", "google-chrome");
@@ -64,7 +66,7 @@ const ensureDefaultProfile = async () => {
   await copyDirectory(defaultProfileSrc, defaultProfileDest);
   const localStateSrc = path.join(
     path.dirname(defaultProfileSrc),
-    "Local State"
+    "Local State",
   );
   const localStateDest = path.join(USER_DATA_DIR, "Local State");
   try {
@@ -76,7 +78,8 @@ const getExecutablePath = () => {
   const defaults = {
     win32: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     darwin: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    linux: "/usr/bin/google-chrome",
+    linux: "/usr/bin/chromium",
+    android: "/data/data/com.termux/files/usr/bin/chromium-browser",
   };
   const defaultPath = defaults[process.platform];
   if (defaultPath && fs.existsSync(defaultPath)) {
@@ -110,7 +113,7 @@ async function getActivePage(browser) {
     pages.map(async (p) => {
       const state = await p.evaluate(() => document.webkitHidden);
       return !state;
-    })
+    }),
   );
   let visiblePage = pages.filter((_v, index) => vis_results[index])[0];
   return visiblePage;
@@ -119,14 +122,21 @@ async function getActivePage(browser) {
 async function getOrOpenPage(browser, url) {
   let page;
   if (url) {
-    if (!page) {
-      page = await browser.newPage();
-    }
+    const pages = await browser.pages();
+    page = await browser.newPage();
+    // Close all existing pages to save RAM
+    // console.log(`Closing ${pages.length} existing pages...`);
+    await Promise.race([
+      Promise.all(pages.map((p) => p.close().catch((_e) => {}))),
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
+
     if (!/^https?:\/\//i.test(url)) url = `http://${url}`;
+    // console.log(`Goto: ${url}`);
     const response = await page.goto(url, { waitUntil: "domcontentloaded" });
     if (response && !response.ok()) {
       throw new Error(
-        `Failed to load page: ${response.status()} ${response.statusText()}`
+        `Failed to load page: ${response.status()} ${response.statusText()}`,
       );
     }
     await sleep(3000);
@@ -181,7 +191,7 @@ async function getText(url) {
         return el ? el.innerText : document.body.innerText;
       });
     },
-    { url }
+    { url },
   );
 }
 
@@ -215,7 +225,7 @@ async function getMarkdown(url) {
       });
       return turndownService.turndown(content);
     },
-    { url }
+    { url },
   );
 }
 
@@ -300,7 +310,7 @@ async function dump() {
         Math.round(el.rect.bottom - el.rect.top),
       ];
       console.log(
-        `text="\x1b[33m${el.text}\x1b[0m"  rect=[${rect.join(", ")}]`
+        `text="\x1b[33m${el.text}\x1b[0m"  rect=[${rect.join(", ")}]`,
       );
     });
   });
@@ -347,7 +357,7 @@ const runAction = ({ type, text } = {}) => {
     if (el.id) {
       try {
         const labelEl = document.querySelector(
-          `label[for="${CSS.escape(el.id)}"]`
+          `label[for="${CSS.escape(el.id)}"]`,
         );
         if (labelEl) return labelEl.innerText;
       } catch (e) {}
@@ -452,7 +462,7 @@ const runAction = ({ type, text } = {}) => {
 
     // If one element contains another, return the contained one.
     elements = elements.filter(
-      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
+      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y)),
     );
     return elements;
   }
@@ -630,8 +640,8 @@ async function openDevTools(url) {
         process.platform === "win32"
           ? "start"
           : process.platform === "darwin"
-          ? "open"
-          : "xdg-open";
+            ? "open"
+            : "xdg-open";
       spawn(opener, [page.devtoolsFrontendUrl], {
         detached: true,
         stdio: "ignore",

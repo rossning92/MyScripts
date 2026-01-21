@@ -17,23 +17,21 @@ from utils.textutil import truncate_text
 
 
 def get_image_url_text(image_url: str) -> str:
-    return "\033[34m► image: {}\033[0m".format(image_url[:32] + "...")
+    return "\033[34m□ image: {}\033[0m".format(image_url[:32] + "...")
 
 
 def get_context_text(context: str) -> str:
-    return "\033[34m► context: “{}”\033[0m".format(truncate_text(context))
+    return "\033[34m≡ context: “{}”\033[0m".format(truncate_text(context))
 
 
 def get_tool_result_text(tool_result: ToolResult) -> str:
-    return "\033[34m► tool_result: {}\033[0m".format(
-        truncate_text(tool_result["content"])
-    )
+    return "\033[34m✔ {}\033[0m".format(truncate_text(tool_result["content"]))
 
 
 def get_tool_use_text(tool_use: ToolUse) -> str:
     tool_name = tool_use["tool_name"]
     args = truncate_text(str(tool_use["args"]))
-    return "\033[34m► tool_use: {}: {}\033[0m".format(tool_name, args)
+    return "\033[34m► \033[1m{}\033[22m: {}\033[0m".format(tool_name, args)
 
 
 def get_reasoning_text(text: str) -> str:

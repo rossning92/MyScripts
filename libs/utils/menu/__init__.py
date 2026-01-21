@@ -52,6 +52,19 @@ def _is_backspace_key(ch: Union[int, str]):
     )
 
 
+def _addstr(stdscr, *args) -> bool:
+    try:
+        stdscr.addstr(*args)
+    except curses.error:
+        # Tolerate "addwstr() returned ERR" when drawing the character at the bottom right corner.
+        pass
+    except ValueError:
+        # If an invalid character is passed, simply stop rendering, for example, an "embedded null character".
+        return False
+
+    return True
+
+
 class _Command:
     def __init__(
         self, hotkey: Optional[str], func: Callable, name: Optional[str] = None
@@ -158,7 +171,8 @@ class _TextInput:
         assert Menu._stdscr is not None
 
         # Draw label
-        stdscr.addstr(
+        _addstr(
+            stdscr,
             row,
             0,
             self.prompt + ":",
@@ -168,18 +182,14 @@ class _TextInput:
         cursor_y, cursor_x = y, x = Menu._stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
 
-        try:
-            stdscr.addstr(y, x, self.text[: self.caret_pos])
-            cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
+        _addstr(stdscr, y, x, self.text[: self.caret_pos])
+        cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
 
-            s = self.text[self.caret_pos :]
-            if show_enter_symbol:
-                s += " [search]"
+        s = self.text[self.caret_pos :]
+        if show_enter_symbol:
+            s += " [search]"
 
-            stdscr.addstr(cursor_y, cursor_x, s)
-
-        except curses.error:
-            pass
+        _addstr(stdscr, cursor_y, cursor_x, s)
 
         return _TextInput.DrawInputResult(
             cursor_x=cursor_x, cursor_y=cursor_y, last_x=x, last_y=y
@@ -1122,22 +1132,6 @@ class Menu(Generic[T]):
                 f'row should be smaller than ymax, but row={row} yamx={ymax} s="{s}"'
             )
 
-        s = s[scroll_x:]
-
-        # Draw left arrow
-        if scroll_x > 0:
-            Menu._stdscr.addstr(
-                row,
-                col,
-                "<",
-                Menu._get_color_pair(curses.COLOR_BLACK, curses.COLOR_WHITE),
-            )
-            x = col + 1
-        else:
-            x = col
-
-        last_row_index = y = row
-        can_scroll_right = False
         attr = Menu._get_color_pair(fg, bg)
         if bold:
             attr |= curses.A_BOLD
@@ -1146,13 +1140,30 @@ class Menu(Generic[T]):
         if reverse:
             attr |= curses.A_REVERSE
 
+        # Draw left arrow
+        if scroll_x > 0:
+            _addstr(
+                Menu._stdscr,
+                row,
+                col,
+                "<",
+                attr ^ curses.A_REVERSE,
+            )
+            x = col + 1
+        else:
+            x = col
+
+        last_row_index = y = row
+        can_scroll_right = False
+
+        visible_pos = 0
         i = 0
         while i < len(s):
             ch = s[i]
 
             # Handle ANSI color codes
             if ch == "\\" or ch == "\x1b":
-                match = re.match(r"(?:\\x1b\[|\\033\[|[\x1b\033]\[)([0-9;]*)m", s[i:])
+                match = re.match(r"(?:\\x1b\[|\x1b\[)([0-9;]*)m", s[i:])
                 if match:
                     i += match.end()
                     for code in match.group(1).split(";"):
@@ -1168,19 +1179,22 @@ class Menu(Generic[T]):
                             attr |= curses.A_BOLD
                         elif code == "2":
                             attr |= curses.A_DIM
+                        elif code == "22":
+                            attr &= ~curses.A_BOLD
+                            attr &= ~curses.A_DIM
                         elif code.isdigit() and 30 <= int(code) <= 37:
                             attr = (attr & ~curses.A_COLOR) | Menu._get_color_pair(
                                 _get_ansi_color(int(code))
                             )
                     continue
 
-            try:
-                Menu._stdscr.addstr(y, x, ch, attr)
-            except curses.error:
-                # Tolerate "addwstr() returned ERR" when drawing the character at the bottom right corner.
-                pass
-            except ValueError:
-                # If an invalid character is passed, simply stop rendering, for example, an "embedded null character".
+            # Skip visible chars
+            if visible_pos < scroll_x:
+                visible_pos += 1
+                i += 1
+                continue
+
+            if not _addstr(Menu._stdscr, y, x, ch, attr):
                 break
 
             last_y = y
@@ -1198,13 +1212,12 @@ class Menu(Generic[T]):
                 if y > last_y:
                     if i < len(s) - 1:
                         last_row_index = row
-                        Menu._stdscr.addstr(
+                        _addstr(
+                            Menu._stdscr,
                             row,
                             self.__width - 1,
                             ">",
-                            Menu._get_color_pair(
-                                curses.COLOR_BLACK, curses.COLOR_WHITE
-                            ),
+                            attr ^ curses.A_REVERSE,
                         )
                         can_scroll_right = True
                     break

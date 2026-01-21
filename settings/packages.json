@@ -92,6 +92,23 @@
       "packages": ["carnac"]
     }
   },
+  "chromium": {
+    "apt": {
+      "packages": ["chromium-browser"]
+    },
+    "choco": {
+      "packages": ["chromium"]
+    },
+    "pacman": {
+      "packages": ["chromium"]
+    },
+    "termux": {
+      "packages": ["x11-repo", "chromium"]
+    },
+    "winget": {
+      "packages": ["Hibbiki.Chromium"]
+    }
+  },
   "cmake": {
     "choco": {
       "packages": ["cmake"]

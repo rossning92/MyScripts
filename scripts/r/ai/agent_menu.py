@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
 import ai.chat_menu
 import ai.tools.bash
 import ai.tools.edit
-import ai.tools.glob
+import ai.tools.glob_tool
 import ai.tools.grep
 import ai.tools.list
 import ai.tools.read
@@ -140,7 +140,7 @@ class AgentMenu(ChatMenu):
                 ai.tools.edit.edit,
                 ai.tools.bash.bash,
                 ai.tools.list.list,
-                ai.tools.glob.glob,
+                ai.tools.glob_tool.glob,
                 ai.tools.grep.grep,
                 ai.tools.web_fetch.web_fetch,
                 ai.tools.web_search.web_search,

@@ -30,6 +30,7 @@ class InputDateMenu(Menu[str]):
             prompt=prompt,
             items=items,
             text=text,
+            set_input_on_select=True,
         )
 
 
@@ -53,8 +54,11 @@ def input_date(prompt: str, default_ts: Optional[float] = None) -> Optional[floa
         return 0.0
 
     # Parse date and time
-    dt = parse_datetime(val)
-    if not dt:
+    try:
+        dt = parse_datetime(val)
+        if not dt:
+            return None
+    except ValueError:
         return None
 
     # Convert to timestamp

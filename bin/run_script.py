@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 from typing import Dict, List, Optional, Tuple
 
@@ -49,8 +50,12 @@ if __name__ == "__main__":
         del kwargs["log"]
         setup_logger()
 
-    run_script(
-        file=file,
-        args=rest_args,
-        **kwargs,
-    )
+    try:
+        run_script(
+            file=file,
+            args=rest_args,
+            **kwargs,
+        )
+    except subprocess.CalledProcessError as e:
+        print(e)
+        sys.exit(1)

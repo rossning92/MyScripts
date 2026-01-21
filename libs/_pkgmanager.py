@@ -159,7 +159,15 @@ def require_package(
                 newly_installed = True
             package_matched = True
 
-        elif wsl and "apt" in packages[pkg]:
+        elif is_in_termux() and "termux" in packages[pkg]:
+            for p in packages[pkg]["termux"]["packages"]:
+                if not _call_without_output(["dpkg", "-s", p]) or force_install:
+                    logging.warning(f'Package "{p}" was not found, installing...')
+                    subprocess.check_call(["pkg", "install", p, "-y"])
+                    newly_installed = True
+            package_matched = True
+
+        elif "apt" in packages[pkg] and shutil.which("apt"):
             wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
             for p in packages[pkg]["apt"]["packages"]:
                 if (
@@ -215,14 +223,6 @@ def require_package(
                     newly_installed = True
             package_matched = True
 
-        elif is_in_termux() and "termux" in packages[pkg]:
-            for p in packages[pkg]["termux"]["packages"]:
-                if not _call_without_output(["dpkg", "-s", p]) or force_install:
-                    logging.warning(f'Package "{p}" was not found, installing...')
-                    subprocess.check_call(["pkg", "install", p, "-y"])
-                    newly_installed = True
-            package_matched = True
-
         elif "dotnet" in packages[pkg]:
             for p in packages[pkg]["dotnet"]["packages"]:
                 if (
@@ -254,7 +254,7 @@ def require_package(
                     newly_installed = True
             package_matched = True
 
-        elif sys.platform == "win32":
+        elif sys.platform == "win32" and not wsl:
             for pm in win_package_manager:
                 if pm == "choco" and "choco" in packages[pkg]:
                     _choco_install(pkg, force_install=force_install, upgrade=upgrade)
