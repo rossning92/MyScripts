@@ -1,3 +1,4 @@
+import os
 from typing import (
     AsyncIterator,
     Callable,
@@ -53,7 +54,6 @@ async def complete_chat(
     usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     OPENROUTER_PREFIX = "openrouter:"
-    LLAMA_CPP_PREFIX = "llama.cpp:"
 
     if model and model.startswith("claude"):
         return ai.anthropic.chat.complete_chat(
@@ -93,14 +93,13 @@ async def complete_chat(
             web_search=web_search,
             usage=usage,
         )
-    elif model and model.startswith(LLAMA_CPP_PREFIX):
-        model = model[len("llama.cpp:") :]
+    elif model == "local_llm":
         return ai.openai_compatible.chat.complete_chat(
-            endpoint_url="http://127.0.0.1:8080/v1/chat/completions",
-            api_key="dummy-key",
+            endpoint_url=os.environ["LOCAL_LLM_ENDPOINT"],
+            api_key=os.environ["LOCAL_LLM_API_KEY"],
             messages=messages,
             out_message=out_message,
-            model=model,
+            model=os.environ["LOCAL_LLM_MODEL"],
             system_prompt=system_prompt,
             tools=tools,
             on_tool_use=on_tool_use,

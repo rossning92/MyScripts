@@ -10,7 +10,7 @@
     "gemini-2.5-flash-image",
     "openrouter:google/gemini-3-pro-image-preview",
     "openrouter:google/gemini-3-pro-preview(reasoning)",
-    "llama.cpp:local-model"
+    "local_llm"
   ],
   "default_model": "gpt-5.2-chat-latest"
 }

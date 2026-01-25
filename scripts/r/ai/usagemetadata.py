@@ -18,7 +18,4 @@ class UsageMetadata:
                 return f"{n // 1000}k"
             return str(n)
 
-        if self.input_tokens > 0 or self.output_tokens > 0:
-            return f"{format_tokens(self.input_tokens)}+{format_tokens(self.output_tokens)}"
-        else:
-            return format_tokens(self.total_tokens)
+        return format_tokens(max(self.total_tokens, self.input_tokens + self.output_tokens))

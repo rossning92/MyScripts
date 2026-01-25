@@ -179,7 +179,7 @@ class _TextInput:
             Menu._get_color_pair(self.prompt_color),
         )
 
-        cursor_y, cursor_x = y, x = Menu._stdscr.getyx()  # type: ignore
+        y, x = Menu._stdscr.getyx()  # type: ignore
         x += 1  # add a space between label and text input
 
         _addstr(stdscr, y, x, self.text[: self.caret_pos])
@@ -190,9 +190,10 @@ class _TextInput:
             s += " [search]"
 
         _addstr(stdscr, cursor_y, cursor_x, s)
+        last_y, last_x = Menu._stdscr.getyx()  # type: ignore
 
         return _TextInput.DrawInputResult(
-            cursor_x=cursor_x, cursor_y=cursor_y, last_x=x, last_y=y
+            cursor_x=cursor_x, cursor_y=cursor_y, last_x=last_x, last_y=last_y
         )
 
     def clear(self):
@@ -1255,7 +1256,7 @@ class Menu(Generic[T]):
         )
 
         # Get matched scripts
-        item_y = draw_input_result.last_y + 2
+        item_y = draw_input_result.last_y + 1
 
         # Auto select last item
         item_indices = self.get_item_indices()

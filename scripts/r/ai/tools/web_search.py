@@ -6,9 +6,10 @@ from .web_fetch import web_fetch
 
 def web_search(query: str) -> str:
     """Perform web searches to gather information for user questions.
-
-    - Queries should be: Keywords (not full sentences) and SEO-friendly.
-    - Start with broad queries for an overview. Follow with narrow, specific queries based on the results. You can call the tool multiple times if needed.
+    - You can call this tool multiple times to gather enough information.
+    - Start with broader queries to get an overview, then narrow down with more specific queries based on the results you receive.
+    - You can use `after:YYYY-MM-DD` to limit results to after a given date.
+    - Your query should be keywords (not full sentences) and SEO-friendly.
     """
 
     encoded_query = urllib.parse.quote_plus(query)
