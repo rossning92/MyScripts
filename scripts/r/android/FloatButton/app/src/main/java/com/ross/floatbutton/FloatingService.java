@@ -1,5 +1,6 @@
 package com.ross.floatbutton;
 
+import android.animation.ValueAnimator;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -44,7 +45,7 @@ public class FloatingService extends Service {
 
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.OVAL);
-        shape.setColor(0x8000FF00);
+        shape.setColor(0x80FFFFFF);
         floatingView.setBackground(shape);
 
         int layoutType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -80,11 +81,23 @@ public class FloatingService extends Service {
                         windowManager.updateViewLayout(floatingView, params);
                         return true;
                     case MotionEvent.ACTION_UP:
-                        prefs.edit().putInt("x", params.x).putInt("y", params.y).apply();
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
                         if (deltaX < CLICK_THRESHOLD && deltaY < CLICK_THRESHOLD) {
                             runTermuxCommand();
+                        } else {
+                            int screenWidth = windowManager.getDefaultDisplay().getWidth();
+                            int viewWidth = floatingView.getWidth();
+                            int targetX = (params.x + viewWidth / 2 < screenWidth / 2) ? 0 : screenWidth - viewWidth;
+
+                            ValueAnimator animator = ValueAnimator.ofInt(params.x, targetX);
+                            animator.setDuration(200);
+                            animator.addUpdateListener(animation -> {
+                                params.x = (int) animation.getAnimatedValue();
+                                windowManager.updateViewLayout(floatingView, params);
+                                prefs.edit().putInt("x", params.x).putInt("y", params.y).apply();
+                            });
+                            animator.start();
                         }
                         return true;
                 }
@@ -118,13 +131,10 @@ public class FloatingService extends Service {
         intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
         intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS",
                 new String[] {
-                        "/data/data/com.termux/files/home/MyScripts/bin/start_script",
-                        "--run-in-tmux",
-                        "--restart-instance=True",
-                        "r/ai/assistant.py" });
+                        "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/entry.sh" });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "0");
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2"); // VALUE_EXTRA_SESSION_ACTION_SWITCH_TO_NEW_SESSION_AND_DONT_OPEN_ACTIVITY
         try {
             startService(intent);
         } catch (Exception e) {

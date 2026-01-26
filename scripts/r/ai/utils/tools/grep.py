@@ -5,18 +5,20 @@ from typing import List
 MAX_LINES = 1000
 
 
-def grep(regex: str) -> str:
+def grep(pattern: str) -> str:
     """
     Fast content search tool for any codebase size that finds files with specific patterns in their content.
 
     - Recursively searches file contents from the current directory.
     - Supports full regular expression pattern matching.
     - IMPORTANT: Always use `grep_tool` instead of command-line tools like `find` or `grep` for searches.
+
+    :param pattern: The regular expression pattern to search for.
     """
 
     # Run ripgrep command
     process = subprocess.Popen(
-        ["rg", "--heading", "--line-number", regex],
+        ["rg", "--heading", "--line-number", pattern],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,  # Redirect stderr to stdout
         text=True,
@@ -50,8 +52,8 @@ def grep(regex: str) -> str:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("regex")
+    parser.add_argument("pattern", help="The regular expression pattern to search for.")
     args = parser.parse_args()
 
-    result = grep(args.regex)
+    result = grep(args.pattern)
     print(result)
