@@ -1,6 +1,6 @@
 import re
 
-from ai.tools import Settings
+from ai.utils.tools import Settings
 from utils.menu.confirmmenu import confirm
 from utils.menu.shellcmdmenu import ShellCmdMenu
 

@@ -4,9 +4,9 @@ import os
 from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import aiohttp
-from ai.message import Message
-from ai.tool_use import ToolDefinition, ToolUse
-from ai.usagemetadata import UsageMetadata
+from ai.utils.message import Message
+from ai.utils.tooluse import ToolDefinition, ToolUse
+from ai.utils.usagemetadata import UsageMetadata
 from utils.http import check_for_status, iter_lines
 
 

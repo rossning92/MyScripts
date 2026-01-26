@@ -1,6 +1,6 @@
 from typing import List, Literal, NotRequired, TypedDict
 
-from ai.tool_use import ToolResult, ToolUse
+from ai.utils.tooluse import ToolResult, ToolUse
 
 
 class Message(TypedDict):
@@ -17,4 +17,3 @@ class Message(TypedDict):
 
     # Used only by openrouter
     reasoning_details: NotRequired[List[dict]]
-

@@ -1,7 +1,7 @@
 import os
 from typing import Any, List, Optional
 
-from ai.codeeditutils import read_file_from_line_range
+from ai.utils.codeedit import read_file_from_line_range
 from utils.menu.filemenu import FileMenu
 from utils.menu.listeditmenu import ListEditMenu
 

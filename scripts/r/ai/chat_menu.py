@@ -22,9 +22,9 @@ from ai.chat import (
     get_tool_result_text,
     get_tool_use_text,
 )
-from ai.message import Message
-from ai.tool_use import ToolDefinition, ToolResult, ToolUse
-from ai.usagemetadata import UsageMetadata
+from ai.utils.message import Message
+from ai.utils.tooluse import ToolDefinition, ToolResult, ToolUse
+from ai.utils.usagemetadata import UsageMetadata
 from scripting.path import get_data_dir
 from utils.clip import set_clip
 from utils.dateutil import format_timestamp

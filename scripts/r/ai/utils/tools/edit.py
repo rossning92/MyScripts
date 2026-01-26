@@ -1,6 +1,6 @@
 import os
 
-from ai.codeeditutils import apply_change
+from ai.utils.codeedit import apply_change
 from utils.checkpoints import backup_files
 
 

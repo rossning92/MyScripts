@@ -6,18 +6,18 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
 
 import ai.chat_menu
-import ai.tools.bash
-import ai.tools.edit
-import ai.tools.glob_tool
-import ai.tools.grep
-import ai.tools.list
-import ai.tools.read
-import ai.tools.web_fetch
-import ai.tools.web_search
+import ai.utils.tools.bash
+import ai.utils.tools.edit
+import ai.utils.tools.glob_tool
+import ai.utils.tools.grep
+import ai.utils.tools.list
+import ai.utils.tools.read
+import ai.utils.tools.web_fetch
+import ai.utils.tools.web_search
 from ai.chat_menu import ChatMenu, Line
-from ai.mcp import MCPClient
 from ai.skill import get_skill_prompt, get_skills
-from ai.tool_use import (
+from ai.utils.mcp import MCPClient
+from ai.utils.tooluse import (
     ToolDefinition,
     ToolParam,
     ToolResult,
@@ -134,16 +134,16 @@ class AgentMenu(ChatMenu):
             tools_callable
             if tools_callable is not None
             else [
-                self.__hook_read_tool(ai.tools.read.read)
+                self.__hook_read_tool(ai.utils.tools.read.read)
                 if self.get_settings()["skill"]
-                else ai.tools.read.read,
-                ai.tools.edit.edit,
-                ai.tools.bash.bash,
-                ai.tools.list.list,
-                ai.tools.glob_tool.glob,
-                ai.tools.grep.grep,
-                ai.tools.web_fetch.web_fetch,
-                ai.tools.web_search.web_search,
+                else ai.utils.tools.read.read,
+                ai.utils.tools.edit.edit,
+                ai.utils.tools.bash.bash,
+                ai.utils.tools.list.list,
+                ai.utils.tools.glob_tool.glob,
+                ai.utils.tools.grep.grep,
+                ai.utils.tools.web_fetch.web_fetch,
+                ai.utils.tools.web_search.web_search,
             ]
         )
 

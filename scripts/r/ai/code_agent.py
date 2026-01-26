@@ -1,18 +1,18 @@
 import argparse
 import difflib
 import os
-from datetime import datetime
 from pathlib import Path
-from platform import platform
 from typing import Any, Dict, List, Optional
 
 import ai.agent_menu
 from ai.agent_menu import AgentMenu, load_subagents
 from ai.chat_menu import Line
-from ai.filecontextmenu import FileContextMenu
-from ai.message import Message
-from ai.tool_use import ToolUse
-from ai.tools import Settings
+from ai.utils.env import get_env_info
+from ai.utils.filecontextmenu import FileContextMenu
+from ai.utils.message import Message
+from ai.utils.rules import get_rule_file, get_rules_prompt
+from ai.utils.tools import Settings
+from ai.utils.tooluse import ToolUse
 from utils.checkpoints import (
     get_oldest_files_since_timestamp,
     restore_files_since_timestamp,
@@ -26,17 +26,6 @@ _SYSTEM_PROMPT = """
 
 - Do NOT add comments to code unless the user requests it or the code is complex and needs context.
 - You should follow existing code style, conventions, and utilize available libraries and utilities.
-"""
-
-_RULE_FILE = "AGENTS.md"
-
-
-def _get_env_info() -> str:
-    return f"""# Environment Information
-
-Platform: {platform()}
-Current working directory: {os.getcwd()}
-Current date and time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 """
 
 
@@ -83,24 +72,11 @@ class CodeAgentMenu(AgentMenu):
         self.add_command(self.__open_diff, hotkey="ctrl+d")
 
     def __edit_instructions(self):
-        self.call_func_without_curses(
-            lambda: edit_text_file(os.path.join(self.get_data_dir(), _RULE_FILE))
-        )
+        file = get_rule_file(self.get_data_dir(), "AGENTS.md")
+        self.call_func_without_curses(lambda: edit_text_file(str(file)))
 
     def __get_rules(self) -> str:
-        file = os.path.join(self.get_data_dir(), _RULE_FILE)
-        if not os.path.exists(file):
-            return ""
-
-        with open(file, "r", encoding="utf-8") as f:
-            s = f.read().strip()
-        if not s:
-            return ""
-
-        return f"""# General Instructions
-
-{s}
-"""
+        return get_rules_prompt(self.get_data_dir())
 
     def __open_diff(self):
         messages = self.get_messages()
@@ -128,7 +104,7 @@ class CodeAgentMenu(AgentMenu):
         if file_context:
             prompt_parts.append(file_context)
 
-        env = _get_env_info()
+        env = get_env_info()
         if env:
             prompt_parts.append(env)
 

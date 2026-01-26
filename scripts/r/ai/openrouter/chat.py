@@ -2,9 +2,9 @@ import os
 from typing import AsyncIterator, Callable, Dict, List, Optional
 
 import ai.openai_compatible.chat
-from ai.message import Message
-from ai.tool_use import ToolDefinition, ToolUse
-from ai.usagemetadata import UsageMetadata
+from ai.utils.message import Message
+from ai.utils.tooluse import ToolDefinition, ToolUse
+from ai.utils.usagemetadata import UsageMetadata
 
 
 async def complete_chat(

@@ -1,7 +1,7 @@
 from pprint import pprint
 
 from ai.anthropic.chat import complete_chat
-from ai.message import Message
+from ai.utils.message import Message
 from utils.logger import setup_logger
 from utils.printc import printc
 

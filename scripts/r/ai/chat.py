@@ -11,9 +11,9 @@ import ai.gemini.chat
 import ai.openai.chat
 import ai.openai_compatible.chat
 import ai.openrouter.chat
-from ai.message import Message
-from ai.tool_use import ToolDefinition, ToolResult, ToolUse
-from ai.usagemetadata import UsageMetadata
+from ai.utils.message import Message
+from ai.utils.tooluse import ToolDefinition, ToolResult, ToolUse
+from ai.utils.usagemetadata import UsageMetadata
 from utils.textutil import truncate_text
 
 

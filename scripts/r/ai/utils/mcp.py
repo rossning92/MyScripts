@@ -3,7 +3,7 @@ import logging
 import subprocess
 from typing import Any, Dict, List, Optional, Sequence, cast
 
-from ai.tool_use import ToolDefinition, ToolParam, ToolUse
+from ai.utils.tooluse import ToolDefinition, ToolParam, ToolUse
 from utils.jsonschema import JSONSchema
 
 _logger = logging.getLogger(__name__)
