@@ -92,6 +92,8 @@ async function launchDetachedChrome() {
     `--user-data-dir=${USER_DATA_DIR}`,
     "--remote-allow-origins=*",
     "--no-sandbox",
+    "--window-size=1366,768",
+    "--disable-blink-features=AutomationControlled",
   ];
   if (HEADLESS) {
     chromeArgs.push("--headless=new");
@@ -136,11 +138,25 @@ export async function getOrOpenPage(browser, url) {
   } else {
     page = await getActivePage(browser);
   }
+
+  if (page) {
+    const defaultViewport = {
+      width: 1366,
+      height: 768,
+      deviceScaleFactor: 1,
+    };
+    await page.setViewport(defaultViewport);
+  }
+
   return page;
 }
 
 export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
-  const defaultViewport = HEADLESS ? { width: 1280, height: 720 } : null;
+  const defaultViewport = {
+    width: 1366,
+    height: 768,
+    deviceScaleFactor: 1,
+  };
   let browser;
   try {
     browser = await puppeteer.connect({ browserURL, defaultViewport });

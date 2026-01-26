@@ -10,7 +10,11 @@ from utils.menu.asynctaskmenu import AsyncTaskMenu
 
 class RecordMenu(AsyncTaskMenu):
     def __init__(self, out_file: Optional[str] = None):
-        self.__out_file = out_file if out_file else tempfile.mktemp(suffix=".wav")
+        if out_file:
+            self.__out_file = out_file
+        else:
+            fd, self.__out_file = tempfile.mkstemp(suffix=".wav")
+            os.close(fd)
         self.space_pressed = False
         super().__init__(
             target=lambda stop_event: record_audio(

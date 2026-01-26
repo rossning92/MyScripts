@@ -1,11 +1,13 @@
 import argparse
 import logging
 import os
+import tempfile
+from threading import Event, Thread
 from typing import Optional
 
 import requests
-from utils.menu.asynctaskmenu import AsyncTaskMenu
-from utils.menu.recordmenu import RecordMenu
+from audio.record_audio import record_audio
+from utils.getch import getch
 
 
 def convert_audio_to_text(file: str) -> str:
@@ -15,14 +17,15 @@ def convert_audio_to_text(file: str) -> str:
     url = "https://api.openai.com/v1/audio/transcriptions"
     headers = {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]}
     payload = {"model": "gpt-4o-mini-transcribe"}
-    files = {
-        "file": (
-            os.path.basename(file),
-            open(file, "rb"),
-            "application/octet-stream",
-        )
-    }
-    response = requests.post(url, headers=headers, data=payload, files=files)
+    with open(file, "rb") as f:
+        files = {
+            "file": (
+                os.path.basename(file),
+                f,
+                "application/octet-stream",
+            )
+        }
+        response = requests.post(url, headers=headers, data=payload, files=files)
     json = response.json()
     if "text" not in json:
         raise ValueError(f"Invalid result: {json}")
@@ -30,27 +33,41 @@ def convert_audio_to_text(file: str) -> str:
 
 
 def speech_to_text() -> Optional[str]:
-    record_menu = RecordMenu()
-    record_menu.exec()
-    out_file = record_menu.get_output_file()
-    if not out_file:
-        return None
+    fd, out_file = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    stop_event = Event()
+    t = Thread(target=record_audio, args=(out_file, stop_event))
+    t.start()
 
-    if not os.path.exists(out_file):
-        return None
-
-    async_task_menu = AsyncTaskMenu(
-        lambda: convert_audio_to_text(file=out_file),
-        prompt="Converting audio to text...",
-    )
     try:
-        async_task_menu.exec()
-    except ValueError:
-        return None
-    return async_task_menu.get_result()
+        print("Recording... (Press ENTER to finish, ESC to cancel)", end="", flush=True)
+        try:
+            while True:
+                ch = getch()
+                if ch in ["\r", "\n"]:
+                    print()
+                    break
+                elif ch == "\x1b":  # ESC
+                    print("\nCancelled")
+                    return None
+        except KeyboardInterrupt:
+            print("\nCancelled")
+            return None
+        finally:
+            stop_event.set()
+            t.join()
+
+        if not os.path.exists(out_file) or os.path.getsize(out_file) == 0:
+            return None
+
+        print("Converting audio to text...")
+        return convert_audio_to_text(file=out_file)
+    finally:
+        if os.path.exists(out_file):
+            os.remove(out_file)
 
 
-if __name__ == "__main__":
+def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", type=str, help="Path to the audio file", default=None)
     args = parser.parse_args()
@@ -62,3 +79,7 @@ if __name__ == "__main__":
         result = speech_to_text()
 
     print(result, end="")
+
+
+if __name__ == "__main__":
+    _main()

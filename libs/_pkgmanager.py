@@ -187,7 +187,11 @@ def require_package(
                     newly_installed = True
             package_matched = True
 
-        elif "pacman" in packages[pkg] and shutil.which("pacman"):
+        elif (
+            sys.platform == "linux"
+            and "pacman" in packages[pkg]
+            and shutil.which("pacman")
+        ):
             for p in packages[pkg]["pacman"]["packages"]:
                 if not _call_without_output(["pacman", "-Q", p]) or force_install:
                     logging.info(f"Installing package using pacman: {p}")

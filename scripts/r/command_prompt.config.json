@@ -3,5 +3,6 @@
   "globalHotkey": "win+alt+p",
   "hotkey": "alt+p",
   "msys2": true,
-  "title": "command_prompt"
+  "title": "command_prompt",
+  "restartInstance": false
 }

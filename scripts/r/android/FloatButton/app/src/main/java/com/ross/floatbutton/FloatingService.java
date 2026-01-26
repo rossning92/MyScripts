@@ -131,7 +131,7 @@ public class FloatingService extends Service {
         intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
         intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS",
                 new String[] {
-                        "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/entry.sh" });
+                        "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/on_float_button_click.sh" });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2"); // VALUE_EXTRA_SESSION_ACTION_SWITCH_TO_NEW_SESSION_AND_DONT_OPEN_ACTIVITY

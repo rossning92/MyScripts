@@ -28,23 +28,25 @@ def getch(timeout=-1.0):
 
     else:
         import select
-        import termios
-        import tty
 
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
+        isatty = sys.stdin.isatty()
+        if isatty:
+            import termios
+            import tty
+
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            tty.setraw(fd)
+
         try:
-            tty.setraw(sys.stdin.fileno())
             if timeout > 0.0:
                 rlist, _, _ = select.select([sys.stdin], [], [], timeout)
-                if rlist:
-                    ch = sys.stdin.read(1)
-                else:
-                    ch = None
+                ch = sys.stdin.read(1) if rlist else None
             else:
                 ch = sys.stdin.read(1)
         finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            if isatty:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
     if ch is not None and ord(ch) == 3:
         raise KeyboardInterrupt

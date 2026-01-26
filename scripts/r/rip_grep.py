@@ -213,7 +213,7 @@ class GrepMenu(Menu[_Line]):
                             (
                                 re.sub(
                                     "(" + self.__query + ")",
-                                    r"\\x1b[1;31m\1\\033[0m",
+                                    "\x1b[1;31m\\1\x1b[0m",
                                     line,
                                     flags=re.IGNORECASE,
                                 )

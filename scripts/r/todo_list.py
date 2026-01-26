@@ -336,6 +336,15 @@ def _main():
     delete_parser = subparsers.add_parser("delete", help="Delete a todo item")
     delete_parser.add_argument("id", type=int, help="ID of the todo item to delete")
 
+    # Command: edit
+    edit_parser = subparsers.add_parser("edit", help="Edit an existing todo item")
+    edit_parser.add_argument("id", type=int, help="ID of the todo item to edit")
+    edit_parser.add_argument("--desc", help="New description for the todo item")
+    edit_parser.add_argument("--due", help="New due date/time")
+    edit_parser.add_argument(
+        "--status", choices=["none", "closed", "in_progress"], help="New status"
+    )
+
     # Command: list
     list_parser = subparsers.add_parser("list", help="List todo items")
     list_parser.add_argument(
@@ -373,6 +382,27 @@ def _main():
         else:
             print(f"Todo item not found (id={args.id})")
             sys.exit(1)
+    elif args.command == "edit":
+        menu = TodoMenu(data_file=args.data_file)
+        item = next((item for item in menu.items if item.get("id") == args.id), None)
+        if not item:
+            print(f"Todo item not found (id={args.id})")
+            sys.exit(1)
+
+        if args.desc is not None:
+            item["description"] = args.desc
+        if args.status is not None:
+            item["status"] = args.status
+        if args.due is not None:
+            dt = parse_datetime(args.due)
+            if dt:
+                item["due_ts"] = dt.timestamp()
+            else:
+                print(f"Error: Invalid date format: {args.due}")
+                sys.exit(1)
+
+        menu.save_json()
+        print(f"Todo item updated (id={args.id})")
     elif args.command == "list":
         menu = TodoMenu(data_file=args.data_file)
         filtered_items = [
