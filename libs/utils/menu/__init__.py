@@ -1608,12 +1608,12 @@ class Menu(Generic[T]):
     def __ask_selection(self):
         selected_lines = self.__get_selected_lines()
         if selected_lines:
-            with tempfile.NamedTemporaryFile(
-                mode="w+", delete=False, suffix=".txt", encoding="utf-8"
-            ) as f:
+            tmpfile = os.path.join(tempfile.gettempdir(), "selection.txt")
+            with open(tmpfile, "w", encoding="utf-8") as f:
                 f.write(selected_lines)
-                tmpfile = f.name
-            subprocess.run(["start_script", "r/ai/ask.py", tmpfile])
+            self.call_func_without_curses(
+                lambda: subprocess.run(["start_script", "r/ai/code_agent.py", tmpfile])
+            )
 
 
 class LoggingMenu(Menu):

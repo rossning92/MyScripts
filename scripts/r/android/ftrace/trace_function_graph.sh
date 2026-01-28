@@ -5,6 +5,8 @@ adb root
 adb shell cat /sys/kernel/tracing/available_tracers
 adb shell cat /sys/kernel/tracing/current_tracer
 
+adb shell 'echo 1 >/sys/kernel/tracing/options/funcgraph-proc'
+
 echo 'Initialize function_graph tracer...'
 adb shell 'echo 0 >/sys/kernel/tracing/tracing_on'
 adb shell 'echo 96000 >/sys/kernel/tracing/buffer_size_kb' # 96M

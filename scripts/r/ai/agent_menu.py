@@ -73,7 +73,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "enable_tools": True,
             "function_call": True,
             "mcp": [],
-            "skill": False,
+            "skill": True,
             "subagent": False,
         }
 
@@ -134,9 +134,11 @@ class AgentMenu(ChatMenu):
             tools_callable
             if tools_callable is not None
             else [
-                self.__hook_read_tool(ai.utils.tools.read.read)
-                if self.get_settings()["skill"]
-                else ai.utils.tools.read.read,
+                (
+                    self.__hook_read_tool(ai.utils.tools.read.read)
+                    if self.get_settings()["skill"]
+                    else ai.utils.tools.read.read
+                ),
                 ai.utils.tools.edit.edit,
                 ai.utils.tools.bash.bash,
                 ai.utils.tools.list.list,

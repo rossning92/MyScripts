@@ -19,7 +19,7 @@ def truncate_text(
     text = " ".join(text.split())
 
     if len(text) > max_chars or (max_lines and n_lines > max_lines):
-        return f"({n_lines}) {text[:max_chars]}.."
+        return f"{text[:max_chars]}.. ({n_lines}) "
     else:
         return text
 

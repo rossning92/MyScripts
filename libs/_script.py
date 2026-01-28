@@ -230,7 +230,7 @@ def wrap_wsl(
 
 
 def wrap_bash_win(
-    args: List[str],
+    args: Union[List[str], str],
     env: Optional[Dict[str, str]] = None,
     git_bash=False,
     msys2=False,
@@ -265,14 +265,17 @@ def wrap_bash_win(
     if sh is None:
         raise FileNotFoundError(f"Cannot find {shell} executable")
 
-    if len(args) == 1 and args[0].endswith(".sh") or args[0].endswith(".expect"):
+    if isinstance(args, str):
+        bash_cmd = args
+    elif len(args) == 1 and (args[0].endswith(".sh") or args[0].endswith(".expect")):
         # -l: must start as a login shell otherwise the PATH environmental
         # variable is not correctly set up.
         return [sh] + (["-l"] if args[0].endswith(".sh") else []) + [args[0]]
     else:
         bash_cmd = _args_to_str(["bash"] + args, shell_type="bash")
-        logging.debug("bash_cmd = %s" % bash_cmd)
-        return [sh, "-l", "-c", bash_cmd]
+
+    logging.debug("bash_cmd = %s" % bash_cmd)
+    return [sh, "-l", "-c", bash_cmd]
 
 
 def wrap_bash_commands(
