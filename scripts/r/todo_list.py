@@ -3,7 +3,7 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Literal, NotRequired, TypedDict
+from typing import Any, Callable, Dict, List, Literal, NotRequired, Optional, TypedDict
 
 from ai.agent_menu import AgentMenu
 from utils.dateutil import format_datetime, format_timestamp, parse_datetime
@@ -245,6 +245,15 @@ class TodoMenu(ListEditMenu[TodoItem]):
             prompt="agent",
         )
         menu.exec()
+
+    def open_ai_agent(self, system_prompt: Optional[str] = None):
+        system_prompt = (
+            "You can run the following command to learn how to use todo and task management:\n"
+            "```\n"
+            "run_script r/todo_list.py --help\n"
+            "```"
+        )
+        super().open_ai_agent(system_prompt=system_prompt)
 
     def __edit_timestamp_field(self, item: TodoItem):
         ts = input_date(prompt="date", default_ts=item.get("due_ts"))
