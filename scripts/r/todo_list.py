@@ -3,9 +3,8 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Literal, NotRequired, TypedDict
+from typing import Any, Callable, Dict, List, Literal, NotRequired, Optional, TypedDict
 
-from ai.agent_menu import AgentMenu
 from utils.dateutil import format_datetime, format_timestamp, parse_datetime
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
@@ -70,45 +69,6 @@ class _EditTodoItemMenu(DictEditMenu):
             return super().get_value_str(name, val)
 
 
-class _TodoAgentMenu(AgentMenu):
-    def __init__(
-        self,
-        add_item: Callable[[TodoItem], None],
-        get_next_id: Callable[[], int],
-        **kwargs,
-    ):
-        self.__add_item = add_item
-        self.__get_next_id = get_next_id
-        super().__init__(cancellable=True, **kwargs)
-
-    def get_system_prompt(self) -> str:
-        return f"""Help me create a to-do list item from the information I provide.
-Today's date is {format_datetime(dt=datetime.now(), show_year=True, show_hhmm=False)}
-""" + super().get_system_prompt()
-
-    def get_tools_callable(self) -> List[Callable[..., Any]]:
-        def add_todo_item(description: str, due: str):
-            """
-            Add a todo item with a description and due time.
-            - The `description` argument should be a well-written, concise one-line summary without punctuation at the end.
-            - The `due` argument is when the todo item must be completed or when the todo event will take place. You should infer this based on the information existing I gave you.
-            - The `due` argument must be in the format of YYYY-MM-DD hh:ss, where YYYY and hh:ss are optional values (e.g., `10-01 13:15`, `2025-10-01 13:15`, `03-31` are all valid values).
-            """
-
-            item: TodoItem = {
-                "id": self.__get_next_id(),
-                "description": description,
-                "status": "none",
-            }
-            dt = parse_datetime(due)
-            if dt:
-                item["due_ts"] = dt.timestamp()
-
-            self.__add_item(item)
-
-        return super().get_tools_callable() + [add_todo_item]
-
-
 class TodoMenu(ListEditMenu[TodoItem]):
     def __init__(
         self,
@@ -120,7 +80,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         self.__sort_tasks()
 
-        self.add_command(self.agent_mode, hotkey="space space")
         self.add_command(self.__duplicate_task, hotkey="ctrl+d")
         self.add_command(self.__edit_description, hotkey="ctrl+e")
         self.add_command(self.__edit_due, hotkey="alt+d")
@@ -238,13 +197,11 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.save_json()
         self.set_selected_item(item)
 
-    def agent_mode(self):
-        menu = _TodoAgentMenu(
-            add_item=self.__add_item,
-            get_next_id=self.get_next_id,
-            prompt="agent",
+    def open_ai_agent(self, system_prompt: Optional[str] = None):
+        system_prompt = (
+            "You can use `run_script r/todo_list.py` CLI tool to manage your todo list and tasks. You must run `run_script r/todo_list.py --help` to learn how to use the tool first."
         )
-        menu.exec()
+        super().open_ai_agent(system_prompt=system_prompt)
 
     def __edit_timestamp_field(self, item: TodoItem):
         ts = input_date(prompt="date", default_ts=item.get("due_ts"))

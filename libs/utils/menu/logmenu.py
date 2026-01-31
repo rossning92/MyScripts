@@ -67,6 +67,7 @@ class LogMenu(Menu[str]):
         self.add_command(self.__edit_preset, hotkey="alt+p")
         self.add_command(self.__load_preset, hotkey="ctrl+l")
         self.add_command(self.__save_preset, hotkey="ctrl+s")
+        self.add_command(self.__save_preset_as, hotkey="alt+s")
         self.add_command(self.__sort)
 
         if filter:
@@ -80,9 +81,12 @@ class LogMenu(Menu[str]):
         self.refresh()
 
     def __edit_preset(self):
+        self.__preset["regex"] = self.get_input()
         DictEditMenu(self.__preset, default_dict=_get_default_preset()).exec()
+        self.set_input(self.__preset["regex"])
         if self.__preset_file:
             save_json(self.__preset_file, self.__preset)
+            self.set_message(f"saved: {os.path.basename(self.__preset_file)}")
 
     def __load_preset(self):
         menu = FileMenu(
@@ -119,19 +123,37 @@ class LogMenu(Menu[str]):
             self.__log_highlight.update(self.__preset["highlight"])
 
     def __save_preset(self):
+        self.__preset["regex"] = self.get_input()
+        if self.__preset_file:
+            save_json(self.__preset_file, self.__preset)
+            self.set_message(f"saved: {os.path.basename(self.__preset_file)}")
+        else:
+            self.__save_preset_as()
+
+    def __save_preset_as(self):
+        self.__preset["regex"] = self.get_input()
         menu = FileMenu(
             prompt="save preset",
             goto=self.preset_dir,
             show_size=False,
             allow_cd=False,
         )
-        menu.select_file()
-        file_name = menu.get_input()
-        if file_name:
+        selected_file = menu.select_file()
+        if menu.is_cancelled:
+            return
+
+        if selected_file:
+            self.__preset_file = selected_file
+        else:
+            file_name = menu.get_input()
+            if not file_name:
+                return
             if not file_name.endswith(".json"):
                 file_name += ".json"
             self.__preset_file = os.path.join(self.preset_dir, file_name)
-            save_json(self.__preset_file, self.__preset)
+
+        save_json(self.__preset_file, self.__preset)
+        self.set_message(f"saved: {os.path.basename(self.__preset_file)}")
 
     def __sort(self):
         self.__lines.sort()

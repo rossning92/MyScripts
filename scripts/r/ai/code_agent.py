@@ -42,7 +42,6 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
             **super().get_default_values(),
             "model": SettingsMenu.default_model,
             "need_confirm": True,
-            "auto_open_diff": False,
         }
 
     def on_dict_update(self, data):
@@ -58,6 +57,7 @@ class CodeAgentMenu(AgentMenu):
         self,
         files: Optional[List[str]],
         settings_menu_class=SettingsMenu,
+        extra_system_prompt: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(
@@ -67,6 +67,7 @@ class CodeAgentMenu(AgentMenu):
             **kwargs,
         )
         self.__file_context_menu = FileContextMenu(files=files)
+        self.__extra_system_prompt = extra_system_prompt
         self.add_command(self.__add_file, hotkey="@")
         self.add_command(self.__edit_instructions)
         self.add_command(self.__open_diff, hotkey="ctrl+d")
@@ -90,7 +91,12 @@ class CodeAgentMenu(AgentMenu):
             DiffMenu(file1=os.path.join(history_dir, rel_path), file2=rel_path).exec()
 
     def get_system_prompt(self) -> str:
-        prompt_parts = [_SYSTEM_PROMPT]
+        prompt_parts = []
+
+        if self.__extra_system_prompt:
+            prompt_parts.append(self.__extra_system_prompt)
+
+        prompt_parts.append(_SYSTEM_PROMPT)
 
         system = super().get_system_prompt()
         if system:
@@ -134,10 +140,6 @@ class CodeAgentMenu(AgentMenu):
             else:
                 path = file
             self.insert_text(f"`{path}` ")
-
-    def on_result(self, result: str):
-        if self.get_settings()["auto_open_diff"]:
-            self.__open_diff()
 
     def _get_tool_use_lines(
         self, tool_use: ToolUse, msg_index: int, subindex: int
@@ -220,6 +222,14 @@ def _main():
         type=str,
         default=os.environ.get("REPO_PATH"),
     )
+    parser.add_argument(
+        "-c",
+        "--context",
+        type=str,
+        nargs="?",
+        help="context file path or context text",
+    )
+    parser.add_argument("--system-prompt", type=str, help="extra system prompt")
     parser.add_argument("-m", "--model", type=str)
     args = parser.parse_args()
 
@@ -250,7 +260,11 @@ def _main():
         for file in args.files
     ]
 
-    menu = CodeAgentMenu(files=files)
+    menu = CodeAgentMenu(
+        files=files,
+        context=args.context,
+        extra_system_prompt=args.system_prompt,
+    )
     menu.exec()
 
 

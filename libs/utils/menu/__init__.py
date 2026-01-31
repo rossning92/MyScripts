@@ -357,7 +357,7 @@ class Menu(Generic[T]):
         self.__hotkeys: Dict[str, _Command] = {}
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
-            self.add_command(self.__ask_selection, hotkey="!")
+            self.add_command(self.open_ai_agent, hotkey="!")
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")
@@ -1605,15 +1605,28 @@ class Menu(Generic[T]):
         selected_items = self.get_selected_items()
         return "\n".join([str(x) for x in selected_items])
 
-    def __ask_selection(self):
+    def open_ai_agent(self, system_prompt: Optional[str] = None):
         selected_lines = self.__get_selected_lines()
         if selected_lines:
-            tmpfile = os.path.join(tempfile.gettempdir(), "selection.txt")
-            with open(tmpfile, "w", encoding="utf-8") as f:
-                f.write(selected_lines)
-            self.call_func_without_curses(
-                lambda: subprocess.run(["start_script", "r/ai/code_agent.py", tmpfile])
-            )
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", encoding="utf-8", delete=False
+            ) as f:
+                f.write(
+                    "\n".join(["<selected-items>", selected_lines, "</selected-items>"])
+                )
+                tmpfile = f.name
+
+            args = [
+                "start_script",
+                "--restart-instance=1",
+                "r/ai/code_agent.py",
+                "--context",
+                tmpfile,
+            ]
+            if system_prompt:
+                args += ["--system-prompt", system_prompt]
+
+            self.call_func_without_curses(lambda: subprocess.run(args))
 
 
 class LoggingMenu(Menu):

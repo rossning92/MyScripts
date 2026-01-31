@@ -183,10 +183,26 @@ class _EditImageUrlsMenu(ListEditMenu):
             self.items.append(encoded)
 
 
+class _EditContextMenu(ListEditMenu):
+    def __init__(self, items: List[str]) -> None:
+        super().__init__(items=items, prompt="edit context")
+
+    def on_enter_pressed(self):
+        index = self.get_selected_index()
+        if index >= 0:
+            self.items[index] = self.call_func_without_curses(
+                lambda: edit_text(self.items[index], tmp_file_ext=".md")
+            )
+            self.update_screen()
+
+    def get_item_text(self, item: str) -> str:
+        return truncate_text(item)
+
+
 class _SelectChatMenu(Menu[_ChatItem]):
     def __init__(self, chat_dir: str) -> None:
         self.__chat_dir = chat_dir
-        super().__init__(prompt="Load history chat")
+        super().__init__(prompt="load history chat")
         self.__refresh()
         self.add_command(self.__delete_chat, hotkey="ctrl+k")
 
@@ -260,7 +276,10 @@ class ChatMenu(Menu[Line]):
         self.__cur_subindex = 0
         self.__edit_text = edit_text
         self.__first_message = message
-        self.__context: List[str] = [context] if context else []
+        if context and is_text_file(context):
+            with open(context, "r", encoding="utf-8") as f:
+                context = f.read()
+        self.__context_list: List[str] = [context] if context else []
         self.__image_urls: List[str] = image_urls if image_urls else []
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
@@ -305,6 +324,7 @@ class ChatMenu(Menu[Line]):
         )
 
         self.add_command(self.__add_file, hotkey="alt+f")
+        self.add_command(self.__edit_context)
         self.add_command(self.__edit_image_urls, hotkey="alt+i")
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
@@ -338,7 +358,7 @@ class ChatMenu(Menu[Line]):
         self.__update_prompt()
 
     def __add_file(self):
-        self.__context.extend(self.__add_file_menu.select_files())
+        self.__context_list.extend(self.__add_file_menu.select_files())
         self.__update_prompt()
 
     def __copy_block(self, index: int):
@@ -388,6 +408,10 @@ class ChatMenu(Menu[Line]):
             allow_cd=False,
             config_dir=os.path.join(".config", "load_prompt_menu"),
         )
+
+    def __edit_context(self):
+        _EditContextMenu(items=self.__context_list).exec()
+        self.__update_prompt()
 
     def __edit_image_urls(self):
         _EditImageUrlsMenu(items=self.__image_urls).exec()
@@ -454,7 +478,7 @@ class ChatMenu(Menu[Line]):
 
     def __save_chat_as(self):
         menu = FileMenu(
-            prompt="Save chat as",
+            prompt="save chat as",
             goto=self.__chat_dir,
             show_size=False,
             allow_cd=False,
@@ -477,7 +501,7 @@ class ChatMenu(Menu[Line]):
         message = self.get_messages()[line.msg_index]
         content = message["text"]
 
-        menu = self.__create_prompt_file_menu(prompt="Save prompt")
+        menu = self.__create_prompt_file_menu(prompt="save prompt")
         prompt_file = menu.select_new_file(ext=".md")
         if not prompt_file:
             return
@@ -497,7 +521,7 @@ class ChatMenu(Menu[Line]):
 
     def __load_prompt(self, prompt_file: Optional[str] = None):
         if not prompt_file:
-            menu = self.__create_prompt_file_menu(prompt="Load prompt")
+            menu = self.__create_prompt_file_menu(prompt="load prompt")
             prompt_file = menu.select_file()
 
         if not prompt_file:
@@ -518,7 +542,7 @@ class ChatMenu(Menu[Line]):
             if not undefined_names:
                 break
             for name in undefined_names:
-                val = InputMenu(prompt=f"Enter {name}").request_input()
+                val = InputMenu(prompt=f"enter {name}").request_input()
                 if not val:
                     return
                 context[name] = val
@@ -529,15 +553,15 @@ class ChatMenu(Menu[Line]):
         selected = self.get_selected_item()
         if selected:
             if selected.reasoning:
-                TextMenu(text=selected.reasoning, prompt="Reasoning").exec()
+                TextMenu(text=selected.reasoning, prompt="reasoning").exec()
                 return True
             if selected.tool_result:
                 tool_result_content = selected.tool_result["content"]
-                TextMenu(text=tool_result_content, prompt="Tool result").exec()
+                TextMenu(text=tool_result_content, prompt="tool result").exec()
                 return True
             elif selected.tool_use:
                 args = pformat(selected.tool_use["args"], sort_dicts=False, width=200)
-                TextMenu(text=args, prompt="Tool use args").exec()
+                TextMenu(text=args, prompt="tool use args").exec()
                 return True
             elif selected.context:
                 TextMenu(text=selected.context, prompt="context").exec()
@@ -587,7 +611,7 @@ class ChatMenu(Menu[Line]):
         if oldest_removed["role"] == "user":
             self.set_input(oldest_removed["text"])
             self.__image_urls[:] = oldest_removed.get("image_urls", [])
-            self.__context[:] = oldest_removed.get("context", [])
+            self.__context_list[:] = oldest_removed.get("context", [])
         else:
             self.clear_input()
 
@@ -596,8 +620,8 @@ class ChatMenu(Menu[Line]):
 
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
-        if self.__context:
-            prompt += f" ({len(self.__context)} ctx)"
+        if self.__context_list:
+            prompt += f" ({len(self.__context_list)} context)"
         if self.__image_urls:
             prompt += f" ({len(self.__image_urls)} images)"
         self.set_prompt(prompt)
@@ -605,7 +629,7 @@ class ChatMenu(Menu[Line]):
     def __show_system_prompt(self):
         system_prompt = self.get_system_prompt()
         if system_prompt:
-            TextMenu(text=system_prompt, prompt="System Prompt").exec()
+            TextMenu(text=system_prompt, prompt="system prompt").exec()
         else:
             self.set_message("no system prompt set")
 
@@ -672,7 +696,7 @@ class ChatMenu(Menu[Line]):
                     {
                         **message,
                         "text": message["text"]
-                        + "\n-------\n"
+                        + "\n---\n"
                         + ("\n---\n".join(message["context"])),
                     }
                     if i == 0 and "context" in message
@@ -714,7 +738,7 @@ class ChatMenu(Menu[Line]):
         if text or tool_results:
             self.append_user_message(text, tool_results=tool_results)
 
-        self.__context.clear()
+        self.__context_list.clear()
         self.__retry_count = 0
         self.__update_prompt()
 
@@ -728,12 +752,8 @@ class ChatMenu(Menu[Line]):
         msg_index = len(self.get_messages())
 
         context: List[str] = []
-        for c in self.__context:
-            if not is_text_file(c):
-                context.append(c)
-            else:
-                with open(c, "r", encoding="utf-8") as f:
-                    context.append(f.read())
+        for c in self.__context_list:
+            context.append(c)
 
             if self.__edit_text:
                 text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
@@ -1084,7 +1104,7 @@ Following is my instructions:
         self.clear_messages()
 
         self.set_input("")
-        self.__context.clear()
+        self.__context_list.clear()
         self.__image_urls.clear()
         self.__update_prompt()
 

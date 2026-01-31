@@ -25,6 +25,11 @@
       "packages": ["7zip.7zip"]
     }
   },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
+    }
+  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -681,11 +686,6 @@
       "packages": ["PuTTY.PuTTY"]
     }
   },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
-    }
-  },
   "python312": {
     "choco": {
       "packages": ["python312"]
@@ -971,6 +971,17 @@
     "post_install": [
       "sudo flatpak override com.tencent.WeChat --filesystem=home"
     ]
+  },
+  "wezterm": {
+    "choco": {
+      "packages": ["wezterm"]
+    },
+    "pacman": {
+      "packages": ["wezterm"]
+    },
+    "winget": {
+      "packages": ["wez.wezterm"]
+    }
   },
   "wget": {
     "pacman": {
