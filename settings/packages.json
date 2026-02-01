@@ -583,6 +583,11 @@
       "packages": ["ocenaudio-bin"]
     }
   },
+  "ocrmypdf": {
+    "pip": {
+      "packages": ["ocrmypdf"]
+    }
+  },
   "openscad": {
     "pacman": {
       "packages": ["openscad"]

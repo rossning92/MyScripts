@@ -3,9 +3,9 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Literal, NotRequired, Optional, TypedDict
+from typing import Any, Dict, List, Literal, NotRequired, Optional, TypedDict
 
-from utils.dateutil import format_datetime, format_timestamp, parse_datetime
+from utils.dateutil import format_timestamp, parse_datetime
 from utils.editor import edit_text
 from utils.menu.dicteditmenu import DictEditMenu
 from utils.menu.inputdatemenu import input_date
@@ -197,11 +197,21 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.save_json()
         self.set_selected_item(item)
 
-    def open_ai_agent(self, system_prompt: Optional[str] = None):
+    def open_ai_agent(self, extra_args: Optional[List[str]] = None):
+        command_line = f"python {__file__}"
         system_prompt = (
-            "You can use `run_script r/todo_list.py` CLI tool to manage your todo list and tasks. You must run `run_script r/todo_list.py --help` to learn how to use the tool first."
+            f"You can use `{command_line}` CLI tool to manage your todo list and tasks. "
+            f"You must run `{command_line} --help` to learn how to use the tool first."
         )
-        super().open_ai_agent(system_prompt=system_prompt)
+        args = [
+            "--system-prompt",
+            system_prompt,
+            "--allow",
+            command_line,
+        ]
+        if extra_args:
+            args += extra_args
+        super().open_ai_agent(extra_args=args)
 
     def __edit_timestamp_field(self, item: TodoItem):
         ts = input_date(prompt="date", default_ts=item.get("due_ts"))
@@ -271,8 +281,112 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__set_selected_item_value({"status": "in_progress"})
 
 
+def _add_todo(data_file: str, desc: str, due: Optional[str] = None):
+    menu = TodoMenu(data_file=data_file)
+    item: TodoItem = {
+        "id": menu.get_next_id(),
+        "description": desc,
+        "status": "none",
+    }
+    if due:
+        dt = parse_datetime(due)
+        if dt:
+            item["due_ts"] = dt.timestamp()
+        else:
+            print(f"Error: Invalid date format: {due}")
+            sys.exit(1)
+    menu.items.append(item)
+    menu.save_json()
+    print("Todo item added:")
+    _print_todo(item)
+
+
+def _delete_todo(data_file: str, todo_id: int):
+    menu = TodoMenu(data_file=data_file)
+    item_to_delete = next(
+        (item for item in menu.items if item.get("id") == todo_id), None
+    )
+    if item_to_delete:
+        menu.items.remove(item_to_delete)
+        menu.save_json()
+        print(f"Todo item deleted (id={todo_id})")
+    else:
+        print(f"Todo item not found (id={todo_id})")
+        sys.exit(1)
+
+
+def _edit_todo(
+    data_file: str,
+    todo_id: int,
+    desc: Optional[str] = None,
+    status: Optional[str] = None,
+    due: Optional[str] = None,
+):
+    menu = TodoMenu(data_file=data_file)
+    item = next((item for item in menu.items if item.get("id") == todo_id), None)
+    if not item:
+        print(f"Todo item not found (id={todo_id})")
+        sys.exit(1)
+
+    if desc is not None:
+        item["description"] = desc
+    if status is not None:
+        item["status"] = status  # type: ignore
+    if due is not None:
+        dt = parse_datetime(due)
+        if dt:
+            item["due_ts"] = dt.timestamp()
+        else:
+            print(f"Error: Invalid date format: {due}")
+            sys.exit(1)
+
+    menu.save_json()
+    print("Todo item updated:")
+    _print_todo(item)
+
+
+def _print_todo(item: TodoItem):
+    print(f"ID: {item.get('id', 0)}")
+    print(f"Status: {item.get('status', 'none')}")
+
+    ts = item.get("due_ts")
+    if ts:
+        date_str = format_timestamp(ts, show_year=True)
+        print(f"Due: {date_str}")
+    else:
+        print("Due: None")
+
+    print(f"Description: {item.get('description', '')}")
+
+
+def _print_todos(items: List[TodoItem]):
+    for i, item in enumerate(items):
+        if i > 0:
+            print("---")
+        _print_todo(item)
+
+
+def _list_todos(data_file: str, show_all: bool = False):
+    menu = TodoMenu(data_file=data_file)
+    filtered_items = [
+        item for item in menu.items if show_all or item.get("status") != "closed"
+    ]
+    _print_todos(filtered_items)
+
+
+def _search_todos(data_file: str, query: str):
+    menu = TodoMenu(data_file=data_file)
+    query = query.lower()
+    filtered_items = [
+        item for item in menu.items if query in item.get("description", "").lower()
+    ]
+    _print_todos(filtered_items)
+
+
 def _main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         "--data-file",
         type=str,
@@ -282,18 +396,15 @@ def _main():
 
     subparsers = parser.add_subparsers(dest="command")
 
-    # Command: add
     add_parser = subparsers.add_parser("add", help="Add a new todo item")
     add_parser.add_argument(
         "--desc", required=True, help="Description of the todo item"
     )
     add_parser.add_argument("--due", help="Due date/time")
 
-    # Command: delete
     delete_parser = subparsers.add_parser("delete", help="Delete a todo item")
     delete_parser.add_argument("id", type=int, help="ID of the todo item to delete")
 
-    # Command: edit
     edit_parser = subparsers.add_parser("edit", help="Edit an existing todo item")
     edit_parser.add_argument("id", type=int, help="ID of the todo item to edit")
     edit_parser.add_argument("--desc", help="New description for the todo item")
@@ -302,83 +413,32 @@ def _main():
         "--status", choices=["none", "closed", "in_progress"], help="New status"
     )
 
-    # Command: list
     list_parser = subparsers.add_parser("list", help="List todo items")
     list_parser.add_argument(
         "--all", action="store_true", help="Show all items including closed ones"
     )
 
+    search_parser = subparsers.add_parser("search", help="Search todo items")
+    search_parser.add_argument("query", help="Search query")
+
     args = parser.parse_args()
 
     if args.command == "add":
-        menu = TodoMenu(data_file=args.data_file)
-        item: TodoItem = {
-            "id": menu.get_next_id(),
-            "description": args.desc,
-            "status": "none",
-        }
-        if args.due:
-            dt = parse_datetime(args.due)
-            if dt:
-                item["due_ts"] = dt.timestamp()
-            else:
-                print(f"Error: Invalid date format: {args.due}")
-                sys.exit(1)
-        menu.items.append(item)
-        menu.save_json()
-        print(f"Todo item added (id={item['id']})")
+        _add_todo(data_file=args.data_file, desc=args.desc, due=args.due)
     elif args.command == "delete":
-        menu = TodoMenu(data_file=args.data_file)
-        item_to_delete = next(
-            (item for item in menu.items if item.get("id") == args.id), None
-        )
-        if item_to_delete:
-            menu.items.remove(item_to_delete)
-            menu.save_json()
-            print(f"Todo item deleted (id={args.id})")
-        else:
-            print(f"Todo item not found (id={args.id})")
-            sys.exit(1)
+        _delete_todo(data_file=args.data_file, todo_id=args.id)
     elif args.command == "edit":
-        menu = TodoMenu(data_file=args.data_file)
-        item = next((item for item in menu.items if item.get("id") == args.id), None)
-        if not item:
-            print(f"Todo item not found (id={args.id})")
-            sys.exit(1)
-
-        if args.desc is not None:
-            item["description"] = args.desc
-        if args.status is not None:
-            item["status"] = args.status
-        if args.due is not None:
-            dt = parse_datetime(args.due)
-            if dt:
-                item["due_ts"] = dt.timestamp()
-            else:
-                print(f"Error: Invalid date format: {args.due}")
-                sys.exit(1)
-
-        menu.save_json()
-        print(f"Todo item updated (id={args.id})")
+        _edit_todo(
+            data_file=args.data_file,
+            todo_id=args.id,
+            desc=args.desc,
+            status=args.status,
+            due=args.due,
+        )
     elif args.command == "list":
-        menu = TodoMenu(data_file=args.data_file)
-        filtered_items = [
-            item for item in menu.items if args.all or item.get("status") != "closed"
-        ]
-        for i, item in enumerate(filtered_items):
-            if i > 0:
-                print("---")
-            print(f"ID: {item.get('id', 0)}")
-            print(f"Status: {item.get('status', 'none')}")
-
-            ts = item.get("due_ts")
-            if ts:
-                date_str = format_timestamp(ts, show_year=True)
-                print(f"Due: {date_str}")
-            else:
-                print("Due: None")
-
-            print(f"Description: {item.get('description', '')}")
+        _list_todos(data_file=args.data_file, show_all=args.all)
+    elif args.command == "search":
+        _search_todos(data_file=args.data_file, query=args.query)
     else:
         menu = TodoMenu(data_file=args.data_file)
         menu.exec()

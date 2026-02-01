@@ -24,7 +24,7 @@ const getChromeUserDataDir = () => {
       "Library",
       "Application Support",
       "Google",
-      "Chrome",
+      "Chrome"
     );
   }
   return path.join(os.homedir(), ".config", "google-chrome");
@@ -47,29 +47,6 @@ const copyDirectory = async (src, dest) => {
   }
 };
 
-const ensureDefaultProfile = async () => {
-  const defaultProfileSrc = path.join(getChromeUserDataDir(), "Default");
-  const defaultProfileDest = path.join(USER_DATA_DIR, "Default");
-  try {
-    await fs.promises.access(defaultProfileDest, fs.constants.F_OK);
-    return;
-  } catch (_) {}
-  try {
-    await fs.promises.access(defaultProfileSrc, fs.constants.F_OK);
-  } catch (_) {
-    return;
-  }
-  await copyDirectory(defaultProfileSrc, defaultProfileDest);
-  const localStateSrc = path.join(
-    path.dirname(defaultProfileSrc),
-    "Local State",
-  );
-  const localStateDest = path.join(USER_DATA_DIR, "Local State");
-  try {
-    await fs.promises.copyFile(localStateSrc, localStateDest);
-  } catch (_) {}
-};
-
 const getExecutablePath = () => {
   const defaults = {
     win32: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
@@ -85,7 +62,6 @@ const getExecutablePath = () => {
 };
 
 async function launchDetachedChrome() {
-  await ensureDefaultProfile();
   const executablePath = getExecutablePath();
   const chromeArgs = [
     `--remote-debugging-port=${DEBUG_PORT}`,
@@ -111,7 +87,7 @@ async function getActivePage(browser) {
     pages.map(async (p) => {
       const state = await p.evaluate(() => document.webkitHidden);
       return !state;
-    }),
+    })
   );
   let visiblePage = pages.filter((_v, index) => vis_results[index])[0];
   return visiblePage;
@@ -131,7 +107,7 @@ export async function getOrOpenPage(browser, url) {
     const response = await page.goto(url, { waitUntil: "domcontentloaded" });
     if (response && !response.ok()) {
       throw new Error(
-        `Failed to load page: ${response.status()} ${response.statusText()}`,
+        `Failed to load page: ${response.status()} ${response.statusText()}`
       );
     }
     await sleep(3000);
@@ -183,7 +159,9 @@ export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
   }
 
   const handleDialog = async (dialog) => {
-    console.log(`Automatically accepting dialog: [${dialog.type()}] ${dialog.message()}`);
+    console.log(
+      `Automatically accepting dialog: [${dialog.type()}] ${dialog.message()}`
+    );
     await dialog.accept().catch(() => {});
   };
 
@@ -195,11 +173,6 @@ export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
       }
     }
   });
-
-  const pages = await browser.pages();
-  for (const page of pages) {
-    page.on("dialog", handleDialog);
-  }
 
   return browser;
 }
@@ -259,7 +232,7 @@ export const runAction = ({ type, text } = {}) => {
     if (el.id) {
       try {
         const labelEl = document.querySelector(
-          `label[for="${CSS.escape(el.id)}"]`,
+          `label[for="${CSS.escape(el.id)}"]`
         );
         if (labelEl) return labelEl.innerText;
       } catch (e) {}
@@ -364,7 +337,7 @@ export const runAction = ({ type, text } = {}) => {
 
     // If one element contains another, return the contained one.
     elements = elements.filter(
-      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y)),
+      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
     );
     return elements;
   }

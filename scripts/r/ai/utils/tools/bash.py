@@ -4,7 +4,7 @@ from ai.utils.tools import Settings
 from utils.menu.confirmmenu import confirm
 from utils.menu.shellcmdmenu import ShellCmdMenu
 
-TRUSTED_COMMANDS = ["ls", "pwd", "date", "run_script"]
+TRUSTED_COMMANDS = ["ls", "pwd", "date"]
 
 
 def bash(command: str) -> str:

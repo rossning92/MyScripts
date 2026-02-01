@@ -16,11 +16,15 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 public class FloatingService extends Service {
     private WindowManager windowManager;
     private View floatingView;
+    private LinearLayout menuView;
+    private boolean isMenuOpen = false;
     private static final String CHANNEL_ID = "FloatingServiceChannel";
 
     @Override
@@ -76,15 +80,20 @@ public class FloatingService extends Service {
                         initialTouchY = event.getRawY();
                         return true;
                     case MotionEvent.ACTION_MOVE:
-                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
-                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
-                        windowManager.updateViewLayout(floatingView, params);
+                        float dX = Math.abs(event.getRawX() - initialTouchX);
+                        float dY = Math.abs(event.getRawY() - initialTouchY);
+                        if (dX > CLICK_THRESHOLD || dY > CLICK_THRESHOLD) {
+                            if (isMenuOpen) closeMenu();
+                            params.x = initialX + (int) (event.getRawX() - initialTouchX);
+                            params.y = initialY + (int) (event.getRawY() - initialTouchY);
+                            windowManager.updateViewLayout(floatingView, params);
+                        }
                         return true;
                     case MotionEvent.ACTION_UP:
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
                         if (deltaX < CLICK_THRESHOLD && deltaY < CLICK_THRESHOLD) {
-                            runTermuxCommand();
+                            toggleMenu();
                         } else {
                             int screenWidth = windowManager.getDefaultDisplay().getWidth();
                             int viewWidth = floatingView.getWidth();
@@ -123,7 +132,64 @@ public class FloatingService extends Service {
         manager.createNotificationChannel(serviceChannel);
     }
 
-    private void runTermuxCommand() {
+    private void toggleMenu() {
+        if (isMenuOpen) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
+    }
+
+    private void openMenu() {
+        if (menuView != null) return;
+
+        menuView = new LinearLayout(this);
+        menuView.setOrientation(LinearLayout.VERTICAL);
+        menuView.setBackgroundColor(Color.parseColor("#CC000000"));
+        menuView.setPadding(20, 20, 20, 20);
+
+        Button btn1 = new Button(this);
+        btn1.setText("Dump UI");
+        btn1.setOnClickListener(v -> {
+            runTermuxCommand("dump_ui.sh");
+            closeMenu();
+        });
+        menuView.addView(btn1);
+
+        Button btn2 = new Button(this);
+        btn2.setText("Voice Input");
+        btn2.setOnClickListener(v -> {
+            runTermuxCommand("voice_input.sh");
+            closeMenu();
+        });
+        menuView.addView(btn2);
+
+        WindowManager.LayoutParams floatParams = (WindowManager.LayoutParams) floatingView.getLayoutParams();
+
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        params.gravity = Gravity.TOP | Gravity.LEFT;
+        params.x = floatParams.x;
+        params.y = floatParams.y + floatingView.getHeight();
+
+        windowManager.addView(menuView, params);
+        isMenuOpen = true;
+    }
+
+    private void closeMenu() {
+        if (menuView != null) {
+            windowManager.removeView(menuView);
+            menuView = null;
+            isMenuOpen = false;
+        }
+    }
+
+    private void runTermuxCommand(String scriptName) {
         // https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent#Setup-Instructions
         Intent intent = new Intent();
         intent.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -131,7 +197,7 @@ public class FloatingService extends Service {
         intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
         intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS",
                 new String[] {
-                        "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/on_float_button_click.sh" });
+                        "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/" + scriptName });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
         intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2"); // VALUE_EXTRA_SESSION_ACTION_SWITCH_TO_NEW_SESSION_AND_DONT_OPEN_ACTIVITY
@@ -145,6 +211,7 @@ public class FloatingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        closeMenu();
         if (floatingView != null)
             windowManager.removeView(floatingView);
     }

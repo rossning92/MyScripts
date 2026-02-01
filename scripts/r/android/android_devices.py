@@ -1,9 +1,7 @@
 import logging
-import re
 import subprocess
 import threading
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from typing import List, Optional
 
 from _script import get_variable, set_variable
@@ -16,48 +14,7 @@ class DeviceInfo:
     product_name: str
     battery_level: Optional[int]
     key: Optional[str]
-    date_utc: Optional[float]
     is_current: bool
-
-
-def _get_device_info(serial: str) -> DeviceInfo:
-    product_name = "n/a"
-    date_utc: Optional[float] = None
-    battery_level = None
-
-    try:
-        product_name = subprocess.check_output(
-            ["adb", "-s", serial, "shell", "getprop", "ro.product.name"],
-            universal_newlines=True,
-            stderr=subprocess.DEVNULL,
-        ).strip()
-
-        date_utc = float(
-            subprocess.check_output(
-                ["adb", "-s", serial, "shell", "getprop", "ro.build.date.utc"],
-                universal_newlines=True,
-                stderr=subprocess.DEVNULL,
-            ).strip()
-        )
-
-        batt_out = subprocess.check_output(
-            ["adb", "-s", serial, "shell", "dumpsys", "battery"],
-            universal_newlines=True,
-            stderr=subprocess.DEVNULL,
-        )
-        match = re.findall(r"level: (\d+)", batt_out)
-        battery_level = int(match[0]) if match else None
-    except subprocess.CalledProcessError:
-        pass
-
-    return DeviceInfo(
-        serial=serial,
-        product_name=product_name,
-        battery_level=battery_level,
-        key="",
-        date_utc=date_utc,
-        is_current=False,
-    )
 
 
 def _update_device_list(
@@ -67,7 +24,7 @@ def _update_device_list(
     proc: Optional[subprocess.Popen[str]] = None
     try:
         proc = subprocess.Popen(
-            ["adb", "track-devices"],
+            ["adb", "track-devices", "-l"],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
@@ -86,32 +43,34 @@ def _update_device_list(
 
             length = int(header, 16)
             payload = proc.stdout.read(length)
-            for line in payload.split("\n"):
-                if not line:
-                    continue
 
-                serial, state = line.split("\t", 1)
-                devices[:] = [device for device in devices if device.serial != serial]
-                if state != "device":
-                    continue
-
-                devices.append(_get_device_info(serial))
-
-            # Update current device
+            new_devices = []
             current_serial = get_variable("ANDROID_SERIAL")
-            for device in devices:
-                device.is_current = device.serial == current_serial
+            for line in payload.splitlines():
+                parts = line.split()
+                if len(parts) >= 2 and parts[1] == "device":
+                    info = dict(part.split(":", 1) for part in parts[2:] if ":" in part)
+                    new_devices.append(
+                        DeviceInfo(
+                            serial=parts[0],
+                            product_name=info.get("product", "n/a"),
+                            battery_level=None,
+                            key=None,
+                            is_current=parts[0] == current_serial,
+                        )
+                    )
 
             # Update key
-            used_keys = {device.key for device in devices if device.key}
-            for device in devices:
-                key = None
+            used_keys = set()
+            for device in new_devices:
                 for ch in device.product_name.lower():
                     if "a" <= ch <= "z" and ch not in used_keys:
-                        key = ch
+                        device.key = ch
                         used_keys.add(ch)
                         break
-                device.key = key
+
+            devices[:] = new_devices
+
     except Exception:
         logging.exception("Failed to track adb devices")
     finally:
@@ -123,23 +82,55 @@ def _update_device_list(
                 proc.kill()
 
 
+def _update_battery_levels(
+    devices: List[DeviceInfo],
+    stop_event: threading.Event,
+):
+    while not stop_event.is_set():
+        for device in list(devices):
+            if stop_event.is_set():
+                break
+            try:
+                res = subprocess.run(
+                    ["adb", "-s", device.serial, "shell", "dumpsys battery"],
+                    capture_output=True,
+                    text=True,
+                    timeout=2,
+                )
+                if res.returncode == 0:
+                    for line in res.stdout.splitlines():
+                        if "level:" in line:
+                            device.battery_level = int(line.split(":")[1].strip())
+                            break
+            except Exception:
+                pass
+        stop_event.wait(10)
+
+
 class DeviceSelectMenu(Menu[DeviceInfo]):
     def __init__(self):
         self.__devices: List[DeviceInfo] = []
 
-        # Create seperate thread to update device list
         self.__stop_event = threading.Event()
+
         self.__device_update_thread = threading.Thread(
             target=lambda: _update_device_list(self.__devices, self.__stop_event),
             daemon=True,
         )
         self.__device_update_thread.start()
 
+        self.__battery_update_thread = threading.Thread(
+            target=lambda: _update_battery_levels(self.__devices, self.__stop_event),
+            daemon=True,
+        )
+        self.__battery_update_thread.start()
+
         super().__init__(items=self.__devices, prompt="devices")
 
     def on_exit(self):
         self.__stop_event.set()
         self.__device_update_thread.join()
+        self.__battery_update_thread.join()
 
     def on_char(self, ch: int | str) -> bool:
         if ch == "0":
@@ -159,8 +150,6 @@ class DeviceSelectMenu(Menu[DeviceInfo]):
     def get_item_text(self, item: DeviceInfo) -> str:
         bat = f"{item.battery_level:>3}%" if item.battery_level is not None else "n/a"
         s = f"[{item.key}] {item.product_name:<12} {item.serial:<15}  bat={bat}"
-        if item.date_utc:
-            s += f"  build_date={datetime.fromtimestamp(item.date_utc, timezone.utc)}"
         return s
 
     def get_item_color(self, item: DeviceInfo) -> str:

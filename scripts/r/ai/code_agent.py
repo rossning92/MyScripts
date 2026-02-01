@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import ai.agent_menu
+import ai.utils.tools.bash
 from ai.agent_menu import AgentMenu, load_subagents
 from ai.chat_menu import Line
 from ai.utils.env import get_env_info
@@ -231,10 +232,14 @@ def _main():
     )
     parser.add_argument("--system-prompt", type=str, help="extra system prompt")
     parser.add_argument("-m", "--model", type=str)
+    parser.add_argument("--allow", action="append", help="allow certain bash commands")
     args = parser.parse_args()
 
     if args.model:
         SettingsMenu.default_model = args.model
+
+    if args.allow:
+        ai.utils.tools.bash.TRUSTED_COMMANDS.extend(args.allow)
 
     # Change directory to the project root
     if len(args.files) == 1 and os.path.isabs(args.files[0]):

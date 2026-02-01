@@ -1605,7 +1605,7 @@ class Menu(Generic[T]):
         selected_items = self.get_selected_items()
         return "\n".join([str(x) for x in selected_items])
 
-    def open_ai_agent(self, system_prompt: Optional[str] = None):
+    def open_ai_agent(self, extra_args: Optional[List[str]] = None):
         selected_lines = self.__get_selected_lines()
         if selected_lines:
             with tempfile.NamedTemporaryFile(
@@ -1623,8 +1623,8 @@ class Menu(Generic[T]):
                 "--context",
                 tmpfile,
             ]
-            if system_prompt:
-                args += ["--system-prompt", system_prompt]
+            if extra_args:
+                args += extra_args
 
             self.call_func_without_curses(lambda: subprocess.run(args))
 

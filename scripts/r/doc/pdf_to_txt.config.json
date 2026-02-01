@@ -1,4 +1,4 @@
 {
   "args.selectFiles": true,
-  "packages": "PyMuPDF"
+  "packages": "ocrmypdf"
 }

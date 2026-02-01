@@ -61,7 +61,7 @@ class DiffMenu(TextMenu):
             "diff",
             "--color",
             "--ignore-space-change",
-            "--color-moved=dimmed-zebra",
+            "--color-moved=zebra",
             "--color-moved-ws=allow-indentation-change",
         ]
         if self.__file1 and self.__file2:
