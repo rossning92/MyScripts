@@ -108,7 +108,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.__edit_item_description(item)
         if not item["description"]:
             return
-        self.__edit_timestamp_field(item)
         self.__add_item(item)
 
     def __set_selected_item_value(self, kvps: Dict[str, Any]):

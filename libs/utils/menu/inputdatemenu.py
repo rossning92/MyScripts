@@ -30,7 +30,7 @@ class InputDateMenu(Menu[str]):
             prompt=prompt,
             items=items,
             text=text,
-            set_input_on_select=True,
+            auto_complete=True,
         )
 
 

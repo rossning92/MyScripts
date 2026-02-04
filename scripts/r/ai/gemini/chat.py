@@ -219,9 +219,11 @@ async def complete_chat(
                 if "usageMetadata" in data:
                     usage_metadata = data["usageMetadata"]
                     if usage:
-                        usage.total_tokens = usage_metadata["totalTokenCount"]
-                        usage.input_tokens = usage_metadata["promptTokenCount"]
-                        usage.output_tokens = usage_metadata["candidatesTokenCount"]
+                        usage.total_tokens = usage_metadata.get("totalTokenCount", 0)
+                        usage.input_tokens = usage_metadata.get("promptTokenCount", 0)
+                        usage.output_tokens = usage_metadata.get(
+                            "candidatesTokenCount", 0
+                        )
 
                 for candidate in data.get("candidates", []):
                     finish_reason = candidate.get("finishReason")

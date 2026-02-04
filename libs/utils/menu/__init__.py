@@ -140,12 +140,20 @@ def _get_ansi_color(code: int) -> int:
 
 
 class _TextInput:
-    def __init__(self, prompt="", prompt_color="white", text="", ascii_only=False):
+    def __init__(
+        self,
+        prompt="",
+        prompt_color="white",
+        text="",
+        ascii_only=False,
+        auto_complete=False,
+    ):
         self.prompt = prompt
         self.prompt_color = prompt_color
         self.text = text
         self.set_text(text)
         self.ascii_only = ascii_only
+        self.auto_complete = auto_complete
 
     def set_text(self, text):
         self.text = text
@@ -209,9 +217,12 @@ class _TextInput:
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
         elif _is_backspace_key(ch):
             if self.caret_pos > 0:
-                self.text = (
-                    self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
-                )
+                if self.auto_complete:
+                    self.text = self.text[: self.caret_pos - 1]
+                else:
+                    self.text = (
+                        self.text[: self.caret_pos - 1] + self.text[self.caret_pos :]
+                    )
                 self.caret_pos = max(self.caret_pos - 1, 0)
 
         elif ch == curses.ascii.ctrl("u"):
@@ -235,7 +246,10 @@ class _TextInput:
             self.insert_text(ch)
 
     def insert_text(self, text: str):
-        self.text = self.text[: self.caret_pos] + text + self.text[self.caret_pos :]
+        if self.auto_complete:
+            self.text = self.text[: self.caret_pos] + text
+        else:
+            self.text = self.text[: self.caret_pos] + text + self.text[self.caret_pos :]
         self.caret_pos += len(text)
 
 
@@ -277,7 +291,7 @@ class Menu(Generic[T]):
         line_number=True,
         prompt_color="white",
         follow=False,
-        set_input_on_select=False,
+        auto_complete=False,
     ):
         self.close_on_selection: bool = close_on_selection
         self.is_cancelled: bool = False
@@ -291,6 +305,7 @@ class Menu(Generic[T]):
             text=text if text else "",
             ascii_only=ascii_only,
             prompt_color=prompt_color,
+            auto_complete=auto_complete,
         )
 
         self.__last_key: Union[int, str] = -1
@@ -330,7 +345,7 @@ class Menu(Generic[T]):
         self.__selected_row_end: int = selected_index
         self.__multi_select_mode: bool = False
         self.__should_update_matched_items: bool = False
-        self.__set_input_on_select = set_input_on_select
+        self.__auto_complete = auto_complete
 
         # Avoid updating the matching items when input changes too often.
         self.__last_match_time: float = 0
@@ -710,7 +725,7 @@ class Menu(Generic[T]):
         self.update_screen()
 
     def __update_input_from_selection(self, index: int):
-        if not self.__set_input_on_select:
+        if not self.__auto_complete:
             return
 
         item_indices = self.get_item_indices()
@@ -936,8 +951,13 @@ class Menu(Generic[T]):
                 or (len(self.items) < self.__last_item_count)
             ):
                 matches: List[Tuple[int, int]] = []  # list of tuple of index and rank
+                patt = (
+                    self.__input.text[: self.__input.caret_pos]
+                    if self.__auto_complete
+                    else self.__input.text
+                )
                 for i, item in enumerate(self.items):
-                    rank = self.match_item(self.__input.text, item, i)
+                    rank = self.match_item(patt, item, i)
                     if rank > 0:  # match
                         matches.append((i, rank))
                 # Sort matches by rank in descending order, preserving order for equal ranks
@@ -948,6 +968,22 @@ class Menu(Generic[T]):
                     self.__selected_row_begin = 0
                     self.__selected_row_end = 0
                     self.__follow = False
+
+                    # Auto complete
+                    if (
+                        self.__auto_complete
+                        and self.__input.text
+                        and len(self.__matched_item_indices) > 0
+                    ):
+                        matched_item = str(self.items[self.__matched_item_indices[0]])
+                        patt = self.__input.text[: self.__input.caret_pos]
+                        if matched_item.lower().startswith(patt.lower()):
+                            # If the matched item starts with the current input, autocomplete it and keep the caret position
+                            self.__input.text = (
+                                patt + matched_item[self.__input.caret_pos :]
+                            )
+                        # Avoid recursive update
+                        self.__last_input = self.__input.text
                 else:
                     total = len(self.__matched_item_indices)
                     self.__selected_row_begin = clamp(
