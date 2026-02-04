@@ -1,3 +1,2 @@
-cd "${CWD}"
-
-magick -delay {{_TICKS_PER_SEC}} *.png out.gif
+cd "$(dirname "$1")"
+magick -delay {{_TICKS_PER_SEC}} "${@##*/}" out.gif

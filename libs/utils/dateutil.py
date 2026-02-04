@@ -6,6 +6,11 @@ from typing import Optional
 def parse_datetime(text: str) -> Optional[datetime]:
     text_lower = text.strip().lower()
 
+    is_next = False
+    if text_lower.startswith("next "):
+        is_next = True
+        text_lower = text_lower[5:].strip()
+
     weekdays = {
         "monday": 0,
         "tuesday": 1,
@@ -19,14 +24,22 @@ def parse_datetime(text: str) -> Optional[datetime]:
         now = datetime.now()
         current_weekday = now.weekday()
         target_weekday = weekdays[text_lower]
-        days_ahead = target_weekday - current_weekday
-        if days_ahead <= 0:  # Target weekday has passed this week
-            days_ahead += 7
+
+        if is_next:
+            days_ahead = (7 - current_weekday) + target_weekday
+        else:
+            days_ahead = target_weekday - current_weekday
+            if days_ahead <= 0:  # Target weekday has passed this week
+                days_ahead += 7
+
         next_day = now + timedelta(days=days_ahead)
         return datetime(next_day.year, next_day.month, next_day.day)
     elif text_lower == "today":
         now = datetime.now()
         return datetime(now.year, now.month, now.day)
+    elif text_lower == "yesterday":
+        yesterday = datetime.now() - timedelta(days=1)
+        return datetime(yesterday.year, yesterday.month, yesterday.day)
     elif text_lower == "tomorrow":
         tomorrow = datetime.now() + timedelta(days=1)
         return datetime(tomorrow.year, tomorrow.month, tomorrow.day)

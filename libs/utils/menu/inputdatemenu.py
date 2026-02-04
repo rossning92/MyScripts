@@ -17,6 +17,7 @@ class InputDateMenu(Menu[str]):
             items.append(format_timestamp(default_ts))
         items += [
             "Today",
+            "Yesterday",
             "Tomorrow",
             "Monday",
             "Tuesday",
@@ -25,6 +26,13 @@ class InputDateMenu(Menu[str]):
             "Friday",
             "Saturday",
             "Sunday",
+            "Next Monday",
+            "Next Tuesday",
+            "Next Wednesday",
+            "Next Thursday",
+            "Next Friday",
+            "Next Saturday",
+            "Next Sunday",
         ]
         super().__init__(
             prompt=prompt,

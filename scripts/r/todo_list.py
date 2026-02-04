@@ -130,12 +130,20 @@ class TodoMenu(ListEditMenu[TodoItem]):
     def get_item_text(self, item: TodoItem) -> str:
         # Date
         ts = item.get("due_ts")
-        date = get_pretty_ts(ts) if ts else ""
+        if ts:
+            date_str = f"{get_pretty_ts(ts):<19}"
+            if (
+                item.get("status") not in ("closed", "in_progress")
+                and datetime.fromtimestamp(ts) < datetime.now()
+            ):
+                date_str = f"\x1b[31m{date_str}\x1b[0m"
+        else:
+            date_str = " " * 19
 
         # Description
         desc = truncate_text(item["description"], max_lines=1)
 
-        return f"{_status_symbols[item['status']]} {date:<19} {desc}"
+        return f"{_status_symbols[item['status']]} {date_str} {desc}"
 
     def get_item_color(self, item: Any) -> str:
         status = item["status"]
@@ -143,10 +151,6 @@ class TodoMenu(ListEditMenu[TodoItem]):
             return "green"
         if status == "closed":
             return "blue"
-
-        due = item.get("due_ts")
-        if due and datetime.fromtimestamp(due) < datetime.now():
-            return "red"
 
         return "white"
 
@@ -197,16 +201,13 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.set_selected_item(item)
 
     def open_ai_agent(self, extra_args: Optional[List[str]] = None):
-        command_line = f"python {__file__}"
-        system_prompt = (
-            f"You can use `{command_line}` CLI tool to manage your todo list and tasks. "
-            f"You must run `{command_line} --help` to learn how to use the tool first."
-        )
+        prompt_file = os.path.join(os.path.dirname(__file__), "ai/skills/todo-list.md")
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            system_prompt = f.read()
+
         args = [
             "--system-prompt",
             system_prompt,
-            "--allow",
-            command_line,
         ]
         if extra_args:
             args += extra_args
