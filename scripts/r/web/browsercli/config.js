@@ -3,7 +3,7 @@ import path from "path";
 
 export const USER_DATA_DIR = path.join(
   os.homedir(),
-  ".browsercontrol-user-data",
+  ".browsercli-user-data",
 );
 export const DEFAULT_DELAY_MS = 3000;
 export const HEADLESS = true;

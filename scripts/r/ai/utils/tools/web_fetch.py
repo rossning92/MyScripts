@@ -23,7 +23,7 @@ class FetchRetryMenu(TextMenu):
     def debug(self):
         self.call_func_without_curses(
             lambda: subprocess.run(
-                ["run_script", "r/web/browsercontrol/browsercontrol.js", "debug"]
+                ["run_script", "r/web/browsercli/browsercli.js", "debug"]
             )
         )
 
@@ -37,7 +37,7 @@ def web_fetch(url: str) -> str:
         result = subprocess.run(
             [
                 "run_script",
-                "r/web/browsercontrol/browsercontrol.js",
+                "r/web/browsercli/browsercli.js",
                 "get-markdown",
                 url,
             ],

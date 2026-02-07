@@ -14,7 +14,7 @@ import { scrollToBottom } from "./commands/scrollToBottom.js";
 import { typeText } from "./commands/typeText.js";
 
 program
-  .name("browsercontrol")
+  .name("browsercli")
   .description("CLI to control browser via Playwright")
   .version("1.0.0");
 

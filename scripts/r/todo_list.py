@@ -351,13 +351,22 @@ def _edit_todo(
 def _get_todo_str(item: TodoItem) -> str:
     ts = item.get("due_ts")
     due_str = format_timestamp(ts, show_year=True) if ts else "None"
+
+    desc = item.get("description", "")
+    if "\n" in desc:
+        desc_str = "Description: |\n" + "\n".join(
+            f"  {line}" for line in desc.splitlines()
+        )
+    else:
+        desc_str = f"Description: {desc}"
+
     return "\n".join(
         [
             "<todo-item>",
             f"ID: {item.get('id', 0)}",
             f"Status: {item.get('status', 'None')}",
             f"Due: {due_str}",
-            f"Description: {item.get('description', '')}",
+            desc_str,
             "</todo-item>",
         ]
     )
