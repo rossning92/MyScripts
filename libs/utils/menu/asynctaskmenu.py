@@ -3,7 +3,7 @@ from itertools import cycle
 from threading import Event, Thread
 from typing import Any, Callable
 
-from utils.menu import Menu
+from .menu import Menu
 
 
 class AsyncTaskMenu(Menu):

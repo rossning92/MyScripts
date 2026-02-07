@@ -2,7 +2,7 @@ from typing import Optional
 
 from utils.dateutil import format_timestamp, parse_datetime
 
-from . import Menu
+from .menu import Menu
 
 
 class InputDateMenu(Menu[str]):

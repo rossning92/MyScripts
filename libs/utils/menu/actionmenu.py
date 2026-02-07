@@ -4,7 +4,7 @@ from typing import Callable, DefaultDict, List, Optional
 
 from _shutil import get_hotkey_abbr
 
-from ..menu import Menu
+from .menu import Menu
 
 
 class _Action:

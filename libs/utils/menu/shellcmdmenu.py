@@ -6,7 +6,7 @@ from itertools import cycle
 from threading import Thread
 from typing import Optional
 
-from utils.menu import Menu
+from .menu import Menu
 
 
 class MutableString:

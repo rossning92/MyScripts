@@ -1,6 +1,6 @@
 from typing import Optional
 
-from . import Menu
+from .menu import Menu
 
 
 class TextMenu(Menu[str]):

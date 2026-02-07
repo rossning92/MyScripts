@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, TypeVar
 from utils.clip import get_clip
 from utils.jsonutil import load_json, save_json
 
-from . import Menu
+from .menu import Menu
 
 T = TypeVar("T")
 

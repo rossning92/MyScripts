@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ..menu import Menu
+from .menu import Menu
 
 
 def select_option(options, history: Optional[str] = None):

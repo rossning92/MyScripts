@@ -18,7 +18,7 @@ from utils.fileutils import human_readable_size
 from utils.platform import is_termux
 from utils.shutil import shell_open
 
-from . import Menu
+from .menu import Menu
 from .confirmmenu import confirm
 from .inputmenu import InputMenu
 

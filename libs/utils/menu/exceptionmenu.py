@@ -2,7 +2,7 @@ import io
 import traceback
 from typing import Optional
 
-from utils.menu import Menu
+from .menu import Menu
 
 
 class ExceptionMenu(Menu[str]):

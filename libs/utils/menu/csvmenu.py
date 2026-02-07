@@ -8,7 +8,7 @@ from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.menu.confirmmenu import confirm
 
-from ..menu import Menu
+from .menu import Menu
 from .inputmenu import InputMenu
 
 MAX_COLUMN_WIDTH = 16

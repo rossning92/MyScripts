@@ -7,7 +7,7 @@ from typing import (
 
 from utils.jsonschema import JSONSchema
 
-from . import Menu
+from .menu import Menu
 
 
 class ValueEditMenu(Menu[str]):

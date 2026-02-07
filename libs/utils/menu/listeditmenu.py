@@ -3,7 +3,7 @@ from typing import Generic, List, Optional, TypeVar
 
 from utils.jsonschema import JSONSchema
 from utils.jsonutil import save_json, try_load_json, try_save_json
-from utils.menu import Menu
+from .menu import Menu
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.valueeditmenu import ValueEditMenu
 

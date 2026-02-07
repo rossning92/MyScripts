@@ -7,7 +7,7 @@ from typing import List, Optional
 from utils.jsonutil import save_json
 from utils.menu.dicteditmenu import DictEditMenu
 
-from . import Menu
+from .menu import Menu
 from .filemenu import FileMenu
 
 

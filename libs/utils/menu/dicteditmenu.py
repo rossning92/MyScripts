@@ -12,7 +12,7 @@ from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonschema import JSONSchema
 
-from . import Menu
+from .menu import Menu
 from .listeditmenu import ListEditMenu
 from .valueeditmenu import ValueEditMenu
 
