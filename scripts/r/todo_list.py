@@ -145,7 +145,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         return f"{_status_symbols[item['status']]} {date_str} {desc}"
 
-    def get_item_color(self, item: Any) -> str:
+    def get_item_text_llm(self, item: TodoItem) -> str:
+        return _get_todo_str(item)
+
+    def get_item_color(self, item: TodoItem) -> str:
         status = item["status"]
         if status == "in_progress":
             return "green"
@@ -345,24 +348,27 @@ def _edit_todo(
     _print_todo(item)
 
 
-def _print_todo(item: TodoItem):
-    print(f"ID: {item.get('id', 0)}")
-    print(f"Status: {item.get('status', 'none')}")
-
+def _get_todo_str(item: TodoItem) -> str:
     ts = item.get("due_ts")
-    if ts:
-        date_str = format_timestamp(ts, show_year=True)
-        print(f"Due: {date_str}")
-    else:
-        print("Due: None")
+    due_str = format_timestamp(ts, show_year=True) if ts else "None"
+    return "\n".join(
+        [
+            "<todo-item>",
+            f"ID: {item.get('id', 0)}",
+            f"Status: {item.get('status', 'None')}",
+            f"Due: {due_str}",
+            f"Description: {item.get('description', '')}",
+            "</todo-item>",
+        ]
+    )
 
-    print(f"Description: {item.get('description', '')}")
+
+def _print_todo(item: TodoItem):
+    print(_get_todo_str(item))
 
 
 def _print_todos(items: List[TodoItem]):
-    for i, item in enumerate(items):
-        if i > 0:
-            print("---")
+    for item in items:
         _print_todo(item)
 
 

@@ -1,7 +1,5 @@
 import { spawn } from "child_process";
 import fs from "fs";
-import os from "os";
-import path from "path";
 import puppeteerCore from "puppeteer-core";
 import puppeteerExtra from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
@@ -11,41 +9,6 @@ const puppeteer = puppeteerExtra.addExtra(puppeteerCore);
 puppeteer.use(StealthPlugin());
 
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const getChromeUserDataDir = () => {
-  if (process.platform === "win32") {
-    const base =
-      process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
-    return path.join(base, "Google", "Chrome", "User Data");
-  }
-  if (process.platform === "darwin") {
-    return path.join(
-      os.homedir(),
-      "Library",
-      "Application Support",
-      "Google",
-      "Chrome"
-    );
-  }
-  return path.join(os.homedir(), ".config", "google-chrome");
-};
-
-const copyDirectory = async (src, dest) => {
-  const entries = await fs.promises.readdir(src, { withFileTypes: true });
-  await fs.promises.mkdir(dest, { recursive: true });
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      await copyDirectory(srcPath, destPath);
-    } else if (entry.isSymbolicLink()) {
-      const link = await fs.promises.readlink(srcPath);
-      await fs.promises.symlink(link, destPath);
-    } else {
-      await fs.promises.copyFile(srcPath, destPath);
-    }
-  }
-};
 
 const getExecutablePath = () => {
   const defaults = {
@@ -61,7 +24,7 @@ const getExecutablePath = () => {
   return puppeteer.executablePath();
 };
 
-async function launchDetachedChrome() {
+async function launchDetachedChrome(headless = HEADLESS) {
   const executablePath = getExecutablePath();
   const chromeArgs = [
     `--remote-debugging-port=${DEBUG_PORT}`,
@@ -71,7 +34,7 @@ async function launchDetachedChrome() {
     "--window-size=1366,768",
     "--disable-blink-features=AutomationControlled",
   ];
-  if (HEADLESS) {
+  if (headless) {
     chromeArgs.push("--headless=new");
   }
   const chromeProcess = spawn(executablePath, chromeArgs, {
@@ -87,7 +50,7 @@ async function getActivePage(browser) {
     pages.map(async (p) => {
       const state = await p.evaluate(() => document.webkitHidden);
       return !state;
-    })
+    }),
   );
   let visiblePage = pages.filter((_v, index) => vis_results[index])[0];
   return visiblePage;
@@ -107,7 +70,7 @@ export async function getOrOpenPage(browser, url) {
     const response = await page.goto(url, { waitUntil: "domcontentloaded" });
     if (response && !response.ok()) {
       throw new Error(
-        `Failed to load page: ${response.status()} ${response.statusText()}`
+        `Failed to load page: ${response.status()} ${response.statusText()}`,
       );
     }
     await sleep(3000);
@@ -127,7 +90,10 @@ export async function getOrOpenPage(browser, url) {
   return page;
 }
 
-export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
+export async function launchOrConnectBrowser(
+  browserURL = BROWSER_URL,
+  headless = HEADLESS,
+) {
   const defaultViewport = {
     width: 1366,
     height: 768,
@@ -139,7 +105,7 @@ export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
   } catch (err) {
     console.log("Unable to connect, launching a new browser instance...");
 
-    await launchDetachedChrome();
+    await launchDetachedChrome(headless);
     const maxRetries = 5;
     const retryDelay = 1000;
     let connected = false;
@@ -160,7 +126,7 @@ export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
 
   const handleDialog = async (dialog) => {
     console.log(
-      `Automatically accepting dialog: [${dialog.type()}] ${dialog.message()}`
+      `Automatically accepting dialog: [${dialog.type()}] ${dialog.message()}`,
     );
     await dialog.accept().catch(() => {});
   };
@@ -232,7 +198,7 @@ export const runAction = ({ type, text } = {}) => {
     if (el.id) {
       try {
         const labelEl = document.querySelector(
-          `label[for="${CSS.escape(el.id)}"]`
+          `label[for="${CSS.escape(el.id)}"]`,
         );
         if (labelEl) return labelEl.innerText;
       } catch (e) {}
@@ -337,7 +303,7 @@ export const runAction = ({ type, text } = {}) => {
 
     // If one element contains another, return the contained one.
     elements = elements.filter(
-      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
+      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y)),
     );
     return elements;
   }

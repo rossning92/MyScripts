@@ -1,3 +1,4 @@
+import { program } from "commander";
 import { getOrOpenPage, launchOrConnectBrowser } from "./browser-core.js";
 import { click } from "./commands/click.js";
 import { closeAllPages } from "./commands/closeAllPages.js";
@@ -12,100 +13,117 @@ import { scrape } from "./commands/scrape.js";
 import { scrollToBottom } from "./commands/scrollToBottom.js";
 import { typeText } from "./commands/typeText.js";
 
-function showHelp() {
-  console.log("Usage:");
-  console.log("  node browsercontrol.js open <url>");
-  console.log("  node browsercontrol.js close-pages");
-  console.log("  node browsercontrol.js close-browser");
-  console.log("  node browsercontrol.js get-text [url]");
-  console.log("  node browsercontrol.js get-markdown [url]");
-  console.log("  node browsercontrol.js get-aria-snapshot");
-  console.log("  node browsercontrol.js scroll-bottom");
-  console.log("  node browsercontrol.js click <text>");
-  console.log("  node browsercontrol.js type <text>");
-  console.log("  node browsercontrol.js press <key>");
-  console.log("  node browsercontrol.js dump");
-  console.log("  node browsercontrol.js debug [url]");
-  console.log("  node browsercontrol.js scrape [--filter <class> ...]");
-}
+program
+  .name("browsercontrol")
+  .description("CLI to control browser via Playwright")
+  .version("1.0.0");
 
-const args = process.argv.slice(2);
-if (args.length === 2 && args[0] === "open") {
-  const url = args[1];
-  const browser = await launchOrConnectBrowser();
-  await getOrOpenPage(browser, url);
-  browser.disconnect();
-  process.exit(0);
-}
+program
+  .command("open")
+  .description("Open a URL or connect to an existing browser")
+  .argument("[url]", "URL to open")
+  .option("--non-headless", "Run in non-headless mode", false)
+  .action(async (url, options) => {
+    const browser = await launchOrConnectBrowser(
+      undefined,
+      !options.nonHeadless,
+    );
+    await getOrOpenPage(browser, url);
+    browser.disconnect();
+  });
 
-if (args.length === 1 && args[0] === "close-pages") {
-  await closeAllPages();
-  process.exit(0);
-}
+program
+  .command("close-pages")
+  .description("Close all pages")
+  .action(async () => {
+    await closeAllPages();
+  });
 
-if (args.length === 1 && args[0] === "close-browser") {
-  await closeBrowser();
-  process.exit(0);
-}
+program
+  .command("close-browser")
+  .description("Close the browser")
+  .action(async () => {
+    await closeBrowser();
+  });
 
-if ((args.length === 1 || args.length === 2) && args[0] === "get-text") {
-  const text = await getText(args[1]);
-  console.log(text);
-  process.exit(0);
-}
+program
+  .command("get-text")
+  .description("Get text from a page")
+  .argument("[url]", "URL to get text from")
+  .action(async (url) => {
+    const text = await getText(url);
+    console.log(text);
+  });
 
-if ((args.length === 1 || args.length === 2) && args[0] === "get-markdown") {
-  const markdown = await getMarkdown(args[1]);
-  console.log(markdown);
-  process.exit(0);
-}
+program
+  .command("get-markdown")
+  .description("Get markdown content from a page")
+  .argument("[url]", "URL to get markdown from")
+  .action(async (url) => {
+    const markdown = await getMarkdown(url);
+    console.log(markdown);
+  });
 
-if (args.length === 1 && args[0] === "get-aria-snapshot") {
-  const text = await getAriaSnapshot();
-  console.log(text);
-  process.exit(0);
-}
+program
+  .command("get-aria-snapshot")
+  .description("Get ARIA snapshot of the current page")
+  .action(async () => {
+    const text = await getAriaSnapshot();
+    console.log(text);
+  });
 
-if (args.length === 1 && args[0] === "scroll-bottom") {
-  await scrollToBottom();
-  process.exit(0);
-}
+program
+  .command("scroll-bottom")
+  .description("Scroll to the bottom of the page")
+  .action(async () => {
+    await scrollToBottom();
+  });
 
-if (args.length === 2 && args[0] === "press") {
-  await pressKey(args[1]);
-  process.exit(0);
-}
+program
+  .command("click")
+  .description("Click on an element with the specified text")
+  .argument("<text>", "Text to click")
+  .action(async (text) => {
+    await click(text);
+  });
 
-if (args.length === 2 && args[0] === "click") {
-  await click(args[1]);
-  process.exit(0);
-}
+program
+  .command("type")
+  .description("Type text into the focused element")
+  .argument("<text>", "Text to type")
+  .action(async (text) => {
+    await typeText(text);
+  });
 
-if (args.length === 2 && args[0] === "type") {
-  await typeText(args[1]);
-  process.exit(0);
-}
+program
+  .command("press")
+  .description("Press a key")
+  .argument("<key>", "Key to press")
+  .action(async (key) => {
+    await pressKey(key);
+  });
 
-if (args.length === 1 && args[0] === "dump") {
-  await dump(args[1]);
-  process.exit(0);
-}
+program
+  .command("dump")
+  .description("Dump page content")
+  .action(async () => {
+    await dump();
+  });
 
-if (args[0] === "debug") {
-  const url = args.slice(1).find((arg) => !arg.startsWith("--"));
-  await openDevTools(url);
-  process.exit(0);
-}
+program
+  .command("debug")
+  .description("Open DevTools")
+  .argument("[url]", "URL to debug")
+  .action(async (url) => {
+    await openDevTools(url);
+  });
 
-if (args.length >= 1 && args[0] === "scrape") {
-  const filtersIndex = args.findIndex((arg) => arg === "--filter");
-  const filters =
-    filtersIndex !== -1
-      ? args.slice(filtersIndex + 1).filter(Boolean)
-      : undefined;
-  await scrape(filters);
-  process.exit(0);
-}
+program
+  .command("scrape")
+  .description("Scrape content with optional filters")
+  .option("-f, --filter <classes...>", "CSS classes to filter")
+  .action(async (options) => {
+    await scrape(options.filter);
+  });
 
-showHelp();
-process.exit(1);
+await program.parseAsync(process.argv);

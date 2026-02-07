@@ -140,7 +140,8 @@ public class FloatingService extends Service {
                         "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/" + scriptName });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2"); // VALUE_EXTRA_SESSION_ACTION_SWITCH_TO_NEW_SESSION_AND_DONT_OPEN_ACTIVITY
+        // https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2");
         try {
             startService(intent);
         } catch (Exception e) {

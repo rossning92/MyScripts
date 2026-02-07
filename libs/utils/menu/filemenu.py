@@ -9,18 +9,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
+from _script import start_script
 from _shutil import get_home_path
 from open_with.open_with import open_with
 
 from utils.clip import set_clip
-from utils.editor import open_code_editor
 from utils.fileutils import human_readable_size
 from utils.platform import is_termux
 from utils.shutil import shell_open
 
-from .menu import Menu
 from .confirmmenu import confirm
 from .inputmenu import InputMenu
+from .menu import Menu
 
 
 def get_download_dir():
@@ -87,6 +87,9 @@ class _File:
         self.__stat: Optional[os.stat_result] = None
         self.__dir_size = 0
 
+    def __str__(self) -> str:
+        return self.name
+
     def __get_stat(self):
         if self.__stat is None:
             try:
@@ -108,26 +111,6 @@ class _File:
 
     def update_dir_size(self):
         self.__dir_size = get_dir_size(self.full_path)
-
-    def __str__(self) -> str:
-        s = ""
-
-        # Size
-        if self.show_size:
-            size = human_readable_size(self.size) if self.size else ""
-            s += f"{size:>7}  "
-
-        # Modified time
-        if self.show_size:
-            formatted_time = datetime.fromtimestamp(self.mtime).strftime(
-                "%y-%m-%d %H:%M"
-            )
-            s += formatted_time + "  "
-
-        # Name
-        s += self.name
-
-        return s
 
 
 class FileMenu(Menu[_File]):
@@ -182,7 +165,7 @@ class FileMenu(Menu[_File]):
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
-        self.add_command(self._run_script, hotkey="!")
+        self.add_command(self._open_with_script)
         self.add_command(lambda: self.sort_by("name"), name="sort_by_name")
         self.add_command(lambda: self.sort_by("mtime"), name="sort_by_mtime")
 
@@ -220,6 +203,31 @@ class FileMenu(Menu[_File]):
     def get_item_color(self, item: _File) -> str:
         return "blue" if item.is_dir else "white"
 
+    def get_item_text(self, item: _File) -> str:
+        s = ""
+
+        # Size
+        if item.show_size:
+            size = human_readable_size(item.size) if item.size else ""
+            s += f"{size:>7}  "
+
+        # Modified time
+        if item.show_mtime:
+            formatted_time = datetime.fromtimestamp(item.mtime).strftime(
+                "%y-%m-%d %H:%M"
+            )
+            s += formatted_time + "  "
+
+        # Name
+        s += item.name
+
+        return s
+
+    def get_item_text_llm(self, item: _File) -> str:
+        return item.full_path + (
+            "/" if item.is_dir and not item.full_path.endswith("/") else ""
+        )
+
     def _reveal_in_file_explorer(self):
         shell_open(self.get_cur_dir())
 
@@ -254,7 +262,7 @@ class FileMenu(Menu[_File]):
     def _edit_text_file(self):
         file_full_path = self.get_selected_file_full_path()
         if file_full_path is not None:
-            self.call_func_without_curses(lambda: open_code_editor(file_full_path))
+            start_script("ext/vim_edit.py", args=[file_full_path])
 
     def _delete_files(self):
         files = self.get_selected_files()
@@ -658,7 +666,7 @@ class FileMenu(Menu[_File]):
             else:
                 return super().on_enter_pressed()
 
-    def _run_script(self):
+    def _open_with_script(self):
         files = self.get_selected_files()
         if len(files) > 0:
             script_dir = os.path.realpath(os.path.dirname(__file__))

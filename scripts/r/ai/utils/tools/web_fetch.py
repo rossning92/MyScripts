@@ -9,7 +9,7 @@ class FetchRetryMenu(TextMenu):
     def __init__(self, error_message: str, prompt: str):
         super().__init__(
             text=error_message,
-            prompt=f"{prompt} ([r]retry, [d]debug)",
+            prompt=f"{prompt}\n([r]etry, [d]ebug)",
             prompt_color="red",
         )
         self.should_retry = False

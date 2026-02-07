@@ -1272,6 +1272,9 @@ class Menu(Generic[T]):
     def get_item_text(self, item: T) -> str:
         return str(item)
 
+    def get_item_text_llm(self, item: T) -> str:
+        return self.get_item_text(item)
+
     def get_item_color(self, item: T) -> str:
         return "white"
 
@@ -1642,13 +1645,19 @@ class Menu(Generic[T]):
         return "\n".join([str(x) for x in selected_items])
 
     def open_ai_agent(self, extra_args: Optional[List[str]] = None):
-        selected_lines = self.__get_selected_lines()
-        if selected_lines:
+        selected_items = self.get_selected_items()
+        if selected_items:
             with tempfile.NamedTemporaryFile(
                 mode="w", suffix=".txt", encoding="utf-8", delete=False
             ) as f:
                 f.write(
-                    "\n".join(["<selected-items>", selected_lines, "</selected-items>"])
+                    "\n".join(
+                        [
+                            "<selected-items>",
+                            *(self.get_item_text_llm(x) for x in selected_items),
+                            "</selected-items>",
+                        ]
+                    )
                 )
                 tmpfile = f.name
 
