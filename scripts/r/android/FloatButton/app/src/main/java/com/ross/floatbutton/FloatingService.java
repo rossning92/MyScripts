@@ -7,24 +7,20 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.IBinder;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 public class FloatingService extends Service {
     private WindowManager windowManager;
     private View floatingView;
-    private LinearLayout menuView;
-    private boolean isMenuOpen = false;
     private static final String CHANNEL_ID = "FloatingServiceChannel";
 
     @Override
@@ -46,6 +42,7 @@ public class FloatingService extends Service {
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         floatingView = new ImageView(this);
+        floatingView.setHapticFeedbackEnabled(true);
 
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.OVAL);
@@ -74,6 +71,7 @@ public class FloatingService extends Service {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
                         initialX = params.x;
                         initialY = params.y;
                         initialTouchX = event.getRawX();
@@ -83,7 +81,6 @@ public class FloatingService extends Service {
                         float dX = Math.abs(event.getRawX() - initialTouchX);
                         float dY = Math.abs(event.getRawY() - initialTouchY);
                         if (dX > CLICK_THRESHOLD || dY > CLICK_THRESHOLD) {
-                            if (isMenuOpen) closeMenu();
                             params.x = initialX + (int) (event.getRawX() - initialTouchX);
                             params.y = initialY + (int) (event.getRawY() - initialTouchY);
                             windowManager.updateViewLayout(floatingView, params);
@@ -93,7 +90,7 @@ public class FloatingService extends Service {
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
                         if (deltaX < CLICK_THRESHOLD && deltaY < CLICK_THRESHOLD) {
-                            toggleMenu();
+                            runTermuxCommand("voice_input.sh");
                         } else {
                             int screenWidth = windowManager.getDefaultDisplay().getWidth();
                             int viewWidth = floatingView.getWidth();
@@ -132,63 +129,6 @@ public class FloatingService extends Service {
         manager.createNotificationChannel(serviceChannel);
     }
 
-    private void toggleMenu() {
-        if (isMenuOpen) {
-            closeMenu();
-        } else {
-            openMenu();
-        }
-    }
-
-    private void openMenu() {
-        if (menuView != null) return;
-
-        menuView = new LinearLayout(this);
-        menuView.setOrientation(LinearLayout.VERTICAL);
-        menuView.setBackgroundColor(Color.parseColor("#CC000000"));
-        menuView.setPadding(20, 20, 20, 20);
-
-        Button btn1 = new Button(this);
-        btn1.setText("Dump UI");
-        btn1.setOnClickListener(v -> {
-            runTermuxCommand("dump_ui.sh");
-            closeMenu();
-        });
-        menuView.addView(btn1);
-
-        Button btn2 = new Button(this);
-        btn2.setText("Voice Input");
-        btn2.setOnClickListener(v -> {
-            runTermuxCommand("voice_input.sh");
-            closeMenu();
-        });
-        menuView.addView(btn2);
-
-        WindowManager.LayoutParams floatParams = (WindowManager.LayoutParams) floatingView.getLayoutParams();
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
-
-        params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = floatParams.x;
-        params.y = floatParams.y + floatingView.getHeight();
-
-        windowManager.addView(menuView, params);
-        isMenuOpen = true;
-    }
-
-    private void closeMenu() {
-        if (menuView != null) {
-            windowManager.removeView(menuView);
-            menuView = null;
-            isMenuOpen = false;
-        }
-    }
-
     private void runTermuxCommand(String scriptName) {
         // https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent#Setup-Instructions
         Intent intent = new Intent();
@@ -211,7 +151,6 @@ public class FloatingService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        closeMenu();
         if (floatingView != null)
             windowManager.removeView(floatingView);
     }
