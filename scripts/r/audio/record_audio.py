@@ -1,9 +1,9 @@
 import argparse
-import datetime
 import os
 import signal
 import subprocess
 import sys
+import tempfile
 from threading import Event, Thread
 from typing import Optional
 
@@ -17,9 +17,7 @@ def _wait_for_key() -> bool:
     success: Optional[bool] = None
     while success is None:
         for indicator in "|/-\\":
-            sys.stdout.write(
-                f"\rRecording {indicator} (Press 'Enter' to confirm or 'q' to cancel)"
-            )
+            sys.stdout.write(f"\rRecording... {indicator} ([Enter] Stop [q] Cancel)")
             sys.stdout.flush()
             try:
                 key = getch(timeout=0.5)
@@ -53,11 +51,17 @@ def _initialize_pulseaudio():
         )
 
 
-def record_audio(out_file: str, stop_event: Optional[Event] = None) -> Optional[str]:
+def record_audio(
+    out_file: Optional[str] = None,
+    stop_event: Optional[Event] = None,
+) -> str:
     if sys.platform != "linux":
         raise NotImplementedError()
 
-    # Delete the file if it exists
+    if out_file is None:
+        fd, out_file = tempfile.mkstemp(suffix=".wav")
+        os.close(fd)
+
     if os.path.exists(out_file):
         os.remove(out_file)
 
@@ -94,17 +98,15 @@ def _main():
     parser.add_argument("file", type=str, nargs="?", help="The filename to record to")
     args = parser.parse_args()
 
-    out_file = args.file
-    if not out_file:
-        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        out_file = f"recording_{timestamp}.mp3"
-
     # Start recording
     stop_event = Event()
-    t = Thread(
-        target=record_audio,
-        kwargs={"out_file": out_file, "stop_event": stop_event},
-    )
+    out_file = None
+
+    def _record_audio_task():
+        nonlocal out_file
+        out_file = record_audio(out_file=args.file, stop_event=stop_event)
+
+    t = Thread(target=_record_audio_task)
     t.start()
 
     # Wait to stop recording
@@ -113,7 +115,7 @@ def _main():
     t.join()
 
     # Delete the recording file if canceled
-    if not should_save and os.path.exists(out_file):
+    if out_file and not should_save and os.path.exists(out_file):
         os.remove(out_file)
 
 

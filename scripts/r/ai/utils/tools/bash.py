@@ -14,9 +14,12 @@ def bash(command: str) -> str:
     - Ensure the command is properly formatted and does not contain any harmful instructions.
     """
 
-    need_confirm = not any(
-        re.match(rf"^\s*{re.escape(cmd)}(?:\s+|$)", command) for cmd in TRUSTED_COMMANDS
-    )
+    need_confirm = True
+    for cmd in TRUSTED_COMMANDS:
+        pattern = re.escape(cmd).replace(r"\*", ".*")
+        if re.match(rf"^\s*{pattern}(?:\s+|$)", command):
+            need_confirm = False
+            break
 
     if Settings.need_confirm and need_confirm and not confirm(f"Run `{command}`?"):
         raise KeyboardInterrupt("Command execution was canceled by the user")

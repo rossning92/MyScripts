@@ -12,31 +12,6 @@ let currentProjectDir: string | undefined;
 let videoEditPanel: vscode.WebviewPanel | undefined;
 let output = vscode.window.createOutputChannel("VideoEdit");
 
-declare global {
-  interface String {
-    replaceAll: (find: string, replace: string) => string;
-    count: (substr: string) => number;
-  }
-}
-
-// Helper functions for String.
-String.prototype.replaceAll = function (find: string, replace: string) {
-  const str = this;
-  return str.replace(
-    new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g"),
-    replace
-  );
-};
-
-String.prototype.count = function (substr: string) {
-  const str = this;
-  return (
-    str.match(
-      new RegExp(substr.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g")
-    ) || []
-  ).length;
-};
-
 function openInBrowser(url: string) {
   cp.spawn("run_script", ["r/web/open_url_dev.py", url]);
 }
@@ -967,7 +942,7 @@ function replaceWholeDocument(oldText: string, newText: string) {
 
   const text = editor.document.getText();
 
-  const occurrences = text.count(oldText);
+  const occurrences = text.split(oldText).length - 1;
   vscode.window.showInformationMessage(
     `${occurrences} occurrences have been replaced.`
   );
@@ -976,7 +951,7 @@ function replaceWholeDocument(oldText: string, newText: string) {
   editor.edit((editBuilder) => {
     editBuilder.replace(
       new vscode.Range(0, 0, editor.document.lineCount, 0),
-      text.replaceAll(oldText, newText)
+      text.split(oldText).join(newText)
     );
   });
 }

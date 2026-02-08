@@ -22,12 +22,11 @@ from utils.editor import edit_text_file
 from utils.menu.diffmenu import DiffMenu
 from utils.menu.filemenu import FileMenu
 
-_SYSTEM_PROMPT = """
-# Code style
+_DIFF_CONTEXT_LINES = 0
 
-- Do NOT add comments to code unless the user requests it or the code is complex and needs context.
-- You should follow existing code style, conventions, and utilize available libraries and utilities.
-"""
+_SYSTEM_PROMPT = (
+    (Path(__file__).parent / "code_agent.system.md").read_text(encoding="utf-8").strip()
+)
 
 
 class SettingsMenu(ai.agent_menu.SettingsMenu):
@@ -57,6 +56,7 @@ class CodeAgentMenu(AgentMenu):
     def __init__(
         self,
         files: Optional[List[str]],
+        voice_input: bool = False,
         settings_menu_class=SettingsMenu,
         extra_system_prompt: Optional[str] = None,
         **kwargs,
@@ -69,9 +69,15 @@ class CodeAgentMenu(AgentMenu):
         )
         self.__file_context_menu = FileContextMenu(files=files)
         self.__extra_system_prompt = extra_system_prompt
+        self.__voice_input_enabled = voice_input
         self.add_command(self.__add_file, hotkey="@")
         self.add_command(self.__edit_instructions)
         self.add_command(self.__open_diff, hotkey="ctrl+d")
+
+    def on_created(self):
+        super().on_created()
+        if self.__voice_input_enabled:
+            self.voice_input()
 
     def __edit_instructions(self):
         file = get_rule_file(self.get_data_dir(), "AGENTS.md")
@@ -175,7 +181,7 @@ class CodeAgentMenu(AgentMenu):
         diff = difflib.unified_diff(
             [IgnoreLeadingWhitespaceLine(line) for line in old_string.splitlines()],
             [IgnoreLeadingWhitespaceLine(line) for line in new_string.splitlines()],
-            n=1,
+            n=_DIFF_CONTEXT_LINES,
             lineterm="",
         )
         lines = []
@@ -233,6 +239,7 @@ def _main():
     parser.add_argument("--system-prompt", type=str, help="extra system prompt")
     parser.add_argument("-m", "--model", type=str)
     parser.add_argument("--allow", action="append", help="allow certain bash commands")
+    parser.add_argument("--voice-input", action="store_true")
     args = parser.parse_args()
 
     if args.model:
@@ -269,6 +276,7 @@ def _main():
         files=files,
         context=args.context,
         extra_system_prompt=args.system_prompt,
+        voice_input=args.voice_input,
     )
     menu.exec()
 

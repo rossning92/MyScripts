@@ -11,15 +11,6 @@ let recorderProcess;
 let currentProjectDir;
 let videoEditPanel;
 let output = vscode.window.createOutputChannel("VideoEdit");
-// Helper functions for String.
-String.prototype.replaceAll = function (find, replace) {
-    const str = this;
-    return str.replace(new RegExp(find.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g"), replace);
-};
-String.prototype.count = function (substr) {
-    const str = this;
-    return (str.match(new RegExp(substr.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "g")) || []).length;
-};
 function openInBrowser(url) {
     cp.spawn("run_script", ["r/web/open_url_dev.py", url]);
 }
@@ -735,11 +726,11 @@ function replaceWholeDocument(oldText, newText) {
         return;
     }
     const text = editor.document.getText();
-    const occurrences = text.count(oldText);
+    const occurrences = text.split(oldText).length - 1;
     vscode.window.showInformationMessage(`${occurrences} occurrences have been replaced.`);
     // Replace all oldText with newText
     editor.edit((editBuilder) => {
-        editBuilder.replace(new vscode.Range(0, 0, editor.document.lineCount, 0), text.replaceAll(oldText, newText));
+        editBuilder.replace(new vscode.Range(0, 0, editor.document.lineCount, 0), text.split(oldText).join(newText));
     });
 }
 async function renameFile() {

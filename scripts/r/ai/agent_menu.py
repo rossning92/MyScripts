@@ -419,10 +419,18 @@ class AgentMenu(ChatMenu):
         @functools.wraps(func)
         def wrapper(file: str, **kwargs) -> str:
             if skill := next((s for s in get_skills() if s.file_path == file), None):
-                self.__mcp_clients.extend(
-                    MCPClient(command=shlex.split(c))
-                    for c in skill.metadata.get("mcp_servers", [])
-                )
+                if mcp_servers := skill.metadata.get("mcp_servers"):
+                    self.__mcp_clients.extend(
+                        MCPClient(command=shlex.split(c)) for c in mcp_servers
+                    )
+
+                if allow := skill.metadata.get("allow"):
+                    if isinstance(allow, str):
+                        allow = [allow]
+                    for cmd in allow:
+                        if cmd not in ai.utils.tools.bash.TRUSTED_COMMANDS:
+                            ai.utils.tools.bash.TRUSTED_COMMANDS.append(cmd)
+
                 self.__update_tools()
                 return skill.content
             return func(file=file, **kwargs)
