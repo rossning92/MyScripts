@@ -2,6 +2,7 @@ import argparse
 import subprocess
 
 from utils.file_cache import file_cache
+from utils.menu.shellcmdmenu import ShellCmdMenu
 from utils.menu.textmenu import TextMenu
 
 
@@ -34,23 +35,24 @@ def web_fetch(url: str) -> str:
     Fetch the content of a web page from the given URL.
     """
     while True:
-        result = subprocess.run(
-            [
+        menu = ShellCmdMenu(
+            command=[
                 "run_script",
                 "r/web/browsercli/browsercli.js",
                 "get-markdown",
                 url,
             ],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
+            prompt=f"fetching: {url}",
         )
-        if result.returncode == 0 and result.stdout:
-            return result.stdout
+        menu.exec()
 
-        error_message = result.stdout
+        returncode = menu.get_returncode()
+        stdout = menu.get_output()
+
+        if returncode == 0 and stdout:
+            return stdout
+
+        error_message = stdout
         menu = FetchRetryMenu(
             error_message=error_message,
             prompt=f"failed to fetch {url}",

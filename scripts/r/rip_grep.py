@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Tuple
 
+from _script import start_script
 from _shutil import send_ctrl_c, write_temp_file
 from utils.editor import edit_text_file
 from utils.jsonutil import load_json, save_json
@@ -172,10 +173,9 @@ class GrepMenu(Menu[_Line]):
         selected = self.get_selected_item()
         if selected:
             file_path = selected.match.file
-            self.call_func_without_curses(
-                lambda: edit_text_file(os.path.join(self.__path, file_path))
+            start_script(
+                "ext/vim_edit.py", args=[os.path.join(self.__path, file_path)], restart_instance=True
             )
-            self.set_message(f"Opened {file_path} for editing")
 
     def __add_match(self, file: str, lines: List[Tuple[bool, int, str]]):
         file_path = file.replace(os.path.sep, "/")

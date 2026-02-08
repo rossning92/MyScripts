@@ -232,7 +232,6 @@ class _MyScriptMenu(Menu[Script]):
             cancellable=run_script_and_quit,
             prompt=prompt if prompt else platform.node(),
             text=input_text,
-            wrap_text=True,
         )
 
         self.add_command(self._copy_cmdline, hotkey="ctrl+y")

@@ -4,7 +4,7 @@ import subprocess
 import sys
 from itertools import cycle
 from threading import Thread
-from typing import Optional
+from typing import List, Optional, Union
 
 from .menu import Menu
 
@@ -21,13 +21,14 @@ class MutableString:
 
 
 class ShellCmdMenu(Menu):
-    def __init__(self, command: str, prompt: str = "", **kwargs):
+    def __init__(self, command: Union[str, List[str]], prompt: str = "", **kwargs):
         super().__init__(prompt=prompt, search_mode=False, line_number=False, **kwargs)
 
         self.__command = command
         self.__prompt = prompt
         self.__exception: Optional[Exception] = None
         self.__output = ""
+        self.__process: Optional[subprocess.Popen] = None
 
         self.__thread = Thread(target=self.__shell_cmd_thread)
         self.__spinner = cycle(["|", "/", "-", "\\"])
@@ -39,7 +40,7 @@ class ShellCmdMenu(Menu):
         try:
             self.__process = subprocess.Popen(
                 self.__command,
-                shell=True,
+                shell=isinstance(self.__command, str),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -59,6 +60,7 @@ class ShellCmdMenu(Menu):
                         line = MutableString()
                         self.append_item(line)
                     line.append(s)
+            self.__process.wait()
         except Exception as e:
             self.__exception = e
 
@@ -80,6 +82,11 @@ class ShellCmdMenu(Menu):
         if self.__process and self.__process.stdin:
             self.__process.stdin.write(self.get_input().encode() + b"\n")
             self.clear_input()
+
+    def get_returncode(self) -> Optional[int]:
+        if self.__process:
+            return self.__process.returncode
+        return None
 
     def get_output(self) -> str:
         return self.__output
