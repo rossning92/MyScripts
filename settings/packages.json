@@ -25,11 +25,6 @@
       "packages": ["7zip.7zip"]
     }
   },
-  "PyMuPDF": {
-    "pip": {
-      "packages": ["PyMuPDF"]
-    }
-  },
   "alacritty": {
     "choco": {
       "packages": ["alacritty"]
@@ -691,6 +686,11 @@
       "packages": ["PuTTY.PuTTY"]
     }
   },
+  "PyMuPDF": {
+    "pip": {
+      "packages": ["PyMuPDF"]
+    }
+  },
   "python312": {
     "choco": {
       "packages": ["python312"]
@@ -996,6 +996,17 @@
   "xdotool": {
     "pacman": {
       "packages": ["xdotool"]
+    }
+  },
+  "xvfb": {
+    "apt": {
+      "packages": ["xvfb"]
+    },
+    "pacman": {
+      "packages": ["xorg-server-xvfb"]
+    },
+    "termux": {
+      "packages": ["x11-repo", "xorg-xauth", "xorg-server-xvfb"]
     }
   },
   "xxd": {

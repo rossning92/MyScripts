@@ -22,12 +22,8 @@ program
   .command("open")
   .description("Open a URL or connect to an existing browser")
   .argument("[url]", "URL to open")
-  .option("--non-headless", "Run in non-headless mode", false)
-  .action(async (url, options) => {
-    const browser = await launchOrConnectBrowser(
-      undefined,
-      !options.nonHeadless,
-    );
+  .action(async (url) => {
+    const browser = await launchOrConnectBrowser();
     await getOrOpenPage(browser, url);
     browser.disconnect();
   });

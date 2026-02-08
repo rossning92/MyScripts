@@ -3,7 +3,7 @@ import fs from "fs";
 import puppeteerCore from "puppeteer-core";
 import puppeteerExtra from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { BROWSER_URL, DEBUG_PORT, HEADLESS, USER_DATA_DIR } from "./config.js";
+import { BROWSER_URL, DEBUG_PORT, USER_DATA_DIR } from "./config.js";
 
 const puppeteer = puppeteerExtra.addExtra(puppeteerCore);
 puppeteer.use(StealthPlugin());
@@ -24,7 +24,7 @@ const getExecutablePath = () => {
   return puppeteer.executablePath();
 };
 
-async function launchDetachedChrome(headless = HEADLESS) {
+async function launchDetachedChrome() {
   const executablePath = getExecutablePath();
   const chromeArgs = [
     `--remote-debugging-port=${DEBUG_PORT}`,
@@ -34,14 +34,44 @@ async function launchDetachedChrome(headless = HEADLESS) {
     "--window-size=1366,768",
     "--disable-blink-features=AutomationControlled",
   ];
-  if (headless) {
-    chromeArgs.push("--headless=new");
+
+  if (process.platform === "linux" || process.platform === "android") {
+    const chromeProcess = spawn(
+      "xvfb-run",
+      [
+        "--auto-servernum",
+        "--server-args=-screen 0 1366x768x24",
+        executablePath,
+        ...chromeArgs,
+      ],
+      {
+        detached: true,
+        stdio: "ignore",
+      },
+    );
+    chromeProcess.on("error", () => {
+      const fallbackProcess = spawn(
+        executablePath,
+        [...chromeArgs, "--headless=new"],
+        {
+          detached: true,
+          stdio: "ignore",
+        },
+      );
+      fallbackProcess.unref();
+    });
+    chromeProcess.unref();
+  } else {
+    const chromeProcess = spawn(
+      executablePath,
+      [...chromeArgs, "--headless=new"],
+      {
+        detached: true,
+        stdio: "ignore",
+      },
+    );
+    chromeProcess.unref();
   }
-  const chromeProcess = spawn(executablePath, chromeArgs, {
-    detached: true,
-    stdio: "ignore",
-  });
-  chromeProcess.unref();
 }
 
 async function getActivePage(browser) {
@@ -90,10 +120,7 @@ export async function getOrOpenPage(browser, url) {
   return page;
 }
 
-export async function launchOrConnectBrowser(
-  browserURL = BROWSER_URL,
-  headless = HEADLESS,
-) {
+export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
   const defaultViewport = {
     width: 1366,
     height: 768,
@@ -105,7 +132,7 @@ export async function launchOrConnectBrowser(
   } catch (err) {
     console.log("Unable to connect, launching a new browser instance...");
 
-    await launchDetachedChrome(headless);
+    await launchDetachedChrome();
     const maxRetries = 5;
     const retryDelay = 1000;
     let connected = false;
