@@ -175,7 +175,7 @@ class GrepMenu(Menu[_Line]):
         if selected:
             file_path = selected.match.file
             start_script(
-                "ext/vim_edit.py", args=[os.path.join(self.__path, file_path)], restart_instance=True
+                "ext/vim_edit.py", args=[os.path.join(self.__path, file_path), "--line", str(selected.line_number)], restart_instance=True
             )
 
     def __add_match(self, file: str, lines: List[Tuple[bool, int, str]]):
@@ -229,7 +229,7 @@ class GrepMenu(Menu[_Line]):
 
     def get_item_color(self, line: _Line) -> str:
         if line.type == "file":
-            return "magenta"
+            return "cyan"
         else:
             return "white"
 

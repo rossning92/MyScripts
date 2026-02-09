@@ -88,7 +88,9 @@ def open_myscript_workspace():
     open_in_vscode([workspace_file])
 
 
-def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
+def edit_script(
+    file: str, editor: Literal["auto", "vim", "vscode"] = "auto", line: int = None
+):
     if os.path.splitext(file)[1] == ".link":
         file = open(file, "r", encoding="utf-8").read().strip()
 
@@ -97,7 +99,7 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
     )
     if use_vscode:
         workspace_file = create_myscript_workspace()
-        open_in_vscode([workspace_file, file])
+        open_in_vscode([workspace_file, file], line_number=line)
     else:
         require_package("neovim")
 
@@ -109,7 +111,11 @@ def edit_script(file: str, editor: Literal["auto", "vim", "vscode"] = "auto"):
                 cwd = script_dir.path
                 break
 
-        subprocess.run(["nvim", file], cwd=cwd)
+        args = ["nvim"]
+        if line is not None:
+            args.append(f"+{line}")
+        args.append(file)
+        subprocess.run(args, cwd=cwd)
 
 
 def enter_script_path():
