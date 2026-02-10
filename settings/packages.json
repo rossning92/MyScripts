@@ -999,6 +999,7 @@
     }
   },
   "xvfb": {
+    "winget": { "packages": [] },
     "apt": {
       "packages": ["xvfb"]
     },
