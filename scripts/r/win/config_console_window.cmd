@@ -7,15 +7,10 @@ reg add HKCU\Console /v CtrlKeyShortcutsDisabled /t REG_DWORD /d 1 /f >NUL
 reg add HKCU\Console /v InsertMode /t REG_DWORD /d 1 /f >NUL
 reg add HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f >NUL
 
-@REM Use consolas font
-@REM reg add HKCU\Console /v FaceName /t REG_SZ /d Consolas /f >NUL
-@REM reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x36 /f >NUL
-@REM reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xc0000 /f >NUL
-
-@REM Raster Fonts (8x12)
-reg add HKCU\Console /v FaceName /t REG_SZ /d Terminal /f >NUL
-reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x30 /f >NUL
-reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xc0008 /f >NUL
+@REM Font
+reg add HKCU\Console /v FaceName /t REG_SZ /d "Lucida Console" /f >NUL
+reg add HKCU\Console /v FontFamily /t REG_DWORD /d 0x36 /f >NUL
+reg add HKCU\Console /v FontSize /t REG_DWORD /d 0xe0000 /f >NUL
 
 @REM Use Ctrl-Shift-C and Ctrl-Shift-V to copy and paste
 reg add HKCU\Console /v InterceptCopyPaste /t REG_DWORD /d 1 /f >NUL

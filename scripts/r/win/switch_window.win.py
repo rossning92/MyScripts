@@ -1,4 +1,5 @@
 import ctypes
+import time
 from typing import List
 
 from utils.menu import Menu
@@ -30,16 +31,21 @@ def get_windows() -> List[WindowItem]:
                     if not (style & 0x00000080):  # WS_EX_TOOLWINDOW = 0x00000080
                         buff = ctypes.create_unicode_buffer(length + 1)
                         user32.GetWindowTextW(hwnd, buff, length + 1)
-                        windows.append(WindowItem(hwnd, buff.value))
+                        title = buff.value
+                        if title != "switch_window":
+                            windows.append(WindowItem(hwnd, title))
         hwnd = user32.GetWindow(hwnd, 2)  # GW_HWNDNEXT = 2
     return windows
 
 
 class SwitchWindowMenu(Menu):
     def __init__(self):
-        super().__init__(items=[])
+        super().__init__(prompt="switch window", items=[])
         self.add_command(self.refresh_windows, hotkey="ctrl+r")
         self.refresh_windows()
+
+        self._my_hwnd = user32.FindWindowW(None, "switch_window")
+        self._was_foreground = True
 
     def refresh_windows(self):
         self.items = get_windows()
@@ -62,6 +68,14 @@ class SwitchWindowMenu(Menu):
 
     def on_escape_pressed(self):
         self.clear_input()
+
+    def on_idle(self):
+        hwnd = user32.GetForegroundWindow()
+        is_foreground = hwnd == self._my_hwnd
+        if is_foreground and not self._was_foreground:
+            self.set_message(f"{time.strftime('%H:%M:%S')}: refresh window")
+            self.refresh_windows()
+        self._was_foreground = is_foreground
 
 
 if __name__ == "__main__":

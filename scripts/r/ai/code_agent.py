@@ -272,10 +272,15 @@ def _main():
         for file in args.files
     ]
 
+    system_prompt = args.system_prompt
+    if system_prompt and os.path.isfile(system_prompt):
+        with open(system_prompt, "r", encoding="utf-8") as f:
+            system_prompt = f.read()
+
     menu = CodeAgentMenu(
         files=files,
         context=args.context,
-        extra_system_prompt=args.system_prompt,
+        extra_system_prompt=system_prompt,
         voice_input=args.voice_input,
     )
     menu.exec()

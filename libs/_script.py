@@ -828,6 +828,10 @@ class Script:
         log_file = os.path.join(log_dir, slugify(self.get_window_title())) + ".log"
         return log_file
 
+    def __get_terminal(self) -> str:
+        assert isinstance(self.cfg["terminal"], str)
+        return self.cfg["terminal"]
+
     def execute(
         self,
         args: List[str] = [],
@@ -1458,7 +1462,7 @@ class Script:
                 try:
                     if sys.platform == "win32":
                         # Open in specified terminal (e.g. Windows Terminal)
-                        if self.cfg["terminal"] in [
+                        if self.__get_terminal() in [
                             "wt",
                             "wsl",
                             "windowsTerminal",
@@ -1472,7 +1476,7 @@ class Script:
                             no_wait = True
                             open_in_terminal = True
 
-                        elif self.cfg["terminal"] == "alacritty" and shutil.which(
+                        elif self.__get_terminal() == "alacritty" and shutil.which(
                             "alacritty"
                         ):
                             arg_list = wrap_args_alacritty(
@@ -1490,7 +1494,7 @@ class Script:
                             no_wait = True
                             open_in_terminal = True
 
-                        elif self.cfg["terminal"] == "conemu" and os.path.isdir(
+                        elif self.__get_terminal() == "conemu" and os.path.isdir(
                             CONEMU_INSTALL_DIR
                         ):
                             arg_list = wrap_args_conemu(
@@ -1499,6 +1503,20 @@ class Script:
                                 title=self.get_window_title(),
                                 wsl=self.cfg["wsl"],
                                 always_on_top=True,
+                            )
+                            no_wait = True
+                            open_in_terminal = True
+
+                        elif self.__get_terminal() == "powershell":
+                            title = self.get_window_title().replace("'", "''")
+                            arg_list = [
+                                "powershell",
+                                "-Command",
+                                f"$Host.UI.RawUI.WindowTitle = '{title}'; "
+                                + _args_to_str(arg_list, shell_type="powershell"),
+                            ]
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NEW_CONSOLE
                             )
                             no_wait = True
                             open_in_terminal = True

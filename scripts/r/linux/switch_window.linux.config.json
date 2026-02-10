@@ -1,5 +1,6 @@
 {
   "globalHotkey": "win+tab",
   "newWindow": false,
-  "packages": "rofi"
+  "packages": "rofi",
+  "title": "switch_window"
 }

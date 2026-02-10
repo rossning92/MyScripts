@@ -167,7 +167,7 @@ def require_package(
                     newly_installed = True
             package_matched = True
 
-        elif "apt" in packages[pkg] and shutil.which("apt"):
+        elif "apt" in packages[pkg] and (shutil.which("apt") or wsl):
             wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
             for p in packages[pkg]["apt"]["packages"]:
                 if (

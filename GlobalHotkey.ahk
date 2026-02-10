@@ -18,6 +18,12 @@ StartScript(scriptName, scriptPath)
 {
     global LastScript
 
+    if WinExist(scriptName)
+    {
+        WinActivate, %scriptName%
+        return
+    }
+
     UpdateExplorerInfo()
     now := A_TickCount
     options := ""

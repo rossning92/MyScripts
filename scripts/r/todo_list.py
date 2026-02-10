@@ -205,12 +205,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
     def open_ai_agent(self, extra_args: Optional[List[str]] = None):
         prompt_file = os.path.join(os.path.dirname(__file__), "ai/skills/todo-list.md")
-        with open(prompt_file, "r", encoding="utf-8") as f:
-            system_prompt = f.read()
-
         args = [
             "--system-prompt",
-            system_prompt,
+            prompt_file,
         ]
         if extra_args:
             args += extra_args
