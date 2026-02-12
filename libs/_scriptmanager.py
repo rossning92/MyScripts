@@ -158,9 +158,8 @@ def register_global_hotkeys_win(scripts: List[Script]):
     first_hotkey_defined: Set[str] = set()
 
     for script in scripts:
-        function_def = (
-            f'StartScript("{script.get_window_title()}", "{script.script_path}")'
-        )
+        restart_instance = "true" if script.cfg["restartInstance"] else "false"
+        function_def = f'StartScript("{script.get_window_title()}", "{script.script_path}", {restart_instance})'
         hotkey_chain = script.cfg["globalHotkey"]
         if hotkey_chain and script.is_supported():
             hotkey_array = hotkey_chain.split()

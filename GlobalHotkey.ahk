@@ -14,11 +14,11 @@ return
 
 #enter::RestartLastScript()
 
-StartScript(scriptName, scriptPath)
+StartScript(scriptName, scriptPath, restartInstance)
 {
     global LastScript
 
-    if WinExist(scriptName)
+    if WinExist(scriptName) and not restartInstance
     {
         WinActivate, %scriptName%
         return
@@ -27,7 +27,7 @@ StartScript(scriptName, scriptPath)
     UpdateExplorerInfo()
     now := A_TickCount
     options := ""
-    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" --restart-instance false "%scriptPath%",, Hide
+    Run "{{PYTHON_EXEC}}" "{{START_SCRIPT}}" --restart-instance %restartInstance% "%scriptPath%",, Hide
 
     LastScript := scriptPath
 }
