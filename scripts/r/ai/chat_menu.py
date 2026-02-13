@@ -738,6 +738,11 @@ class ChatMenu(Menu[Line]):
         if text or tool_results:
             self.append_user_message(text, tool_results=tool_results)
 
+        # Select the last line of the message being sent
+        last_line_index = len(self.__lines) - 1
+        if last_line_index >= 0:
+            self.set_selection(last_line_index, last_line_index)
+
         self.__context_list.clear()
         self.__retry_count = 0
         self.__update_prompt()
@@ -1111,12 +1116,8 @@ Following is my instructions:
         self.__chat_file = self.__history_manager.get_new_file()
 
     def on_enter_pressed(self):
-        self.__cancel_chat_completion()
-
-        # Select the last line
-        last_line_index = len(self.__lines) - 1
-        if last_line_index >= 0:
-            self.set_selection(last_line_index, last_line_index)
+        if self.__is_generating:
+            return
 
         self.send_message(self.get_input())
 

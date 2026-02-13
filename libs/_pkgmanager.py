@@ -98,6 +98,7 @@ def require_package(
     upgrade=False,
     win_package_manager: List[Literal["choco", "winget"]] = ["winget", "choco"],
 ):
+    wsl = wsl and sys.platform == "win32"
     packages = get_packages()
 
     if "dependantPackages" in packages:
@@ -168,7 +169,7 @@ def require_package(
             package_matched = True
 
         elif "apt" in packages[pkg] and (shutil.which("apt") or wsl):
-            wsl_cmd = ["wsl"] if wsl and sys.platform == "win32" else []
+            wsl_cmd = ["wsl"] if wsl else []
             for p in packages[pkg]["apt"]["packages"]:
                 if (
                     not _call_without_output(wsl_cmd + ["dpkg", "-s", p])

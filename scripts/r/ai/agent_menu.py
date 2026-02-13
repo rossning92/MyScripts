@@ -157,6 +157,23 @@ class AgentMenu(ChatMenu):
     def on_message(self, content: str):
         self.__handle_response()
 
+    def on_enter_pressed(self):
+        if not self.get_input() and not self._out_message:
+            messages = self.get_messages()
+            if messages and messages[-1]["role"] == "assistant":
+                last_message = messages[-1]
+                tool_uses = (
+                    last_message.get("tool_use", [])
+                    if self.get_settings()["function_call"]
+                    else list(
+                        parse_text_for_tool_use(last_message["text"], self.__tools)
+                    )
+                )
+                if tool_uses:
+                    self.__handle_response()
+                    return
+        super().on_enter_pressed()
+
     def __get_tools_subagent(self) -> List[ToolDefinition]:
         if not self.get_settings().get("subagent", False):
             return []

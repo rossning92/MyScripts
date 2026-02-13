@@ -1,7 +1,6 @@
 import ctypes
 import functools
 import glob
-import json
 import locale
 import logging
 import os
@@ -171,10 +170,9 @@ def add_script_dir(d, prefix=None):
 
 
 def get_last_script_and_args() -> Tuple[str, Any]:
-    if os.path.exists(get_script_history_file()):
-        with open(get_script_history_file(), "r") as f:
-            data = json.load(f)
-            return data["file"], data["args"]
+    data = load_json(get_script_history_file(), default={})
+    if "file" in data and "args" in data:
+        return data["file"], data["args"]
     else:
         raise ValueError("file cannot be None.")
 
@@ -320,21 +318,12 @@ def get_all_variables() -> Dict[str, str]:
     file = get_variable_file()
 
     with FileLock("access_variable"):
-        if not os.path.exists(file):
-            return {}
-
-        with open(file, "r", encoding="utf-8") as f:
-            return json.load(f)
+        return load_json(file, default={})
 
 
 def get_variable(name) -> Optional[str]:
     with FileLock("access_variable"):
-        f = get_variable_file()
-        if not os.path.exists(f):
-            return None
-
-        with open(get_variable_file(), "r") as f:
-            variables = json.load(f)
+        variables = load_json(get_variable_file(), default={})
 
         if name not in variables:
             return None
@@ -352,13 +341,11 @@ def set_variable(name: str, val: str, set_env_var=True):
 
     with FileLock("access_variable"):
         file = get_variable_file()
-        with open(file, "r", encoding="utf-8") as f:
-            variables = json.load(f)
+        variables = load_json(file, default={})
 
         variables[name] = val
 
-        with open(file, "w", encoding="utf-8") as f:
-            json.dump(variables, f, indent=2)
+        save_json(file, variables)
 
     if set_env_var:
         os.environ[name] = val
@@ -379,17 +366,9 @@ def update_variables(variables: Dict[str, str]):
 
 def write_setting(setting, name, val):
     file = os.path.join(get_data_dir(), "%s.json" % setting)
-
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-    except IOError:
-        data = {}
-
+    data = load_json(file, default={})
     data[name] = val
-
-    with open(file, "w") as f:
-        json.dump(data, f, indent=2)
+    save_json(file, data)
 
 
 def get_python_path(script_path=None):
@@ -2067,8 +2046,7 @@ def get_all_script_access_time() -> Dict[str, float]:
     mtime = os.path.getmtime(config_file)
     if mtime > _script_access_time_file_mtime:
         _script_access_time_file_mtime = mtime
-        with open(config_file, "r", encoding="utf-8") as f:
-            _cached_script_access_time = json.load(f)
+        _cached_script_access_time = load_json(config_file, default={})
 
     return _cached_script_access_time
 

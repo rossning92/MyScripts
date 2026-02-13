@@ -15,7 +15,7 @@ def truncate_text(
     if max_lines is not None and n_lines > max_lines:
         text = "\n".join(lines[:max_lines])
 
-    text = _RE_NEWLINES.sub(" ↵ ", text.strip())
+    text = _RE_NEWLINES.sub(" ⏎ ", text.strip())
     text = " ".join(text.split())
 
     if len(text) > max_chars or (max_lines and n_lines > max_lines):

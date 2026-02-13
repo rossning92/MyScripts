@@ -9,4 +9,4 @@ function logcat {
     adb logcat --uid="$uid" "$@"
 }
 
-logcat {{PKG_NAME}}
+logcat {{PKG_NAME}} "$@"
