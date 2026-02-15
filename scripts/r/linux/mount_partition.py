@@ -69,7 +69,7 @@ class DiskMountMenu(Menu[_Part]):
             return
 
         if part.fstype == "crypto_LUKS":
-            self.call_func_without_curses(
+            self.run_raw(
                 lambda: subprocess.check_call(
                     [
                         "sudo",
@@ -82,7 +82,7 @@ class DiskMountMenu(Menu[_Part]):
             )
             self.close()
         elif part.type == "crypt":
-            self.call_func_without_curses(
+            self.run_raw(
                 lambda: subprocess.check_call(
                     [
                         "sudo",

@@ -671,7 +671,7 @@ class FileMenu(Menu[_File]):
         if len(files) > 0:
             script_dir = os.path.realpath(os.path.dirname(__file__))
             myscripts_path = os.path.abspath(script_dir + "/../../../myscripts.py")
-            ret_code = self.call_func_without_curses(
+            ret_code = self.run_raw(
                 lambda: subprocess.call(
                     [
                         sys.executable,

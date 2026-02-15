@@ -78,7 +78,7 @@ class ActionMenu(Menu[_Action]):
         self.__add_action(action)
 
     def __on_action(self, action: _Action):
-        self.call_func_without_curses(action.callback)
+        self.run_raw(action.callback)
         if self.close_on_selection:
             self.close()
         else:

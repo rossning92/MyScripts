@@ -22,7 +22,7 @@ class FetchRetryMenu(TextMenu):
         self.close()
 
     def debug(self):
-        self.call_func_without_curses(
+        self.run_raw(
             lambda: subprocess.run(
                 ["run_script", "r/web/browsercli/browsercli.js", "debug"]
             )

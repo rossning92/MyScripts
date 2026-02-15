@@ -115,8 +115,8 @@ class GrepMenu(Menu[_Line]):
 
         context = "\n".join([str(item) for item in self.items])
         context_file = write_temp_file(context, ".txt")
-        self.call_func_without_curses(lambda: edit_text_file(context_file))
-        ret = self.call_func_without_curses(
+        self.run_raw(lambda: edit_text_file(context_file))
+        ret = self.run_raw(
             lambda: subprocess.call(
                 [
                     "run_script",
@@ -140,7 +140,7 @@ class GrepMenu(Menu[_Line]):
         for i, match in enumerate(self.get_selected_items()):
             self.set_message(f"processing match {i+1}")
             file_list_json = write_temp_file("[" + match.match.to_json() + "]", ".json")
-            ret_code = self.call_func_without_curses(
+            ret_code = self.run_raw(
                 lambda: subprocess.call(
                     [
                         "run_script",

@@ -600,7 +600,11 @@ class Menu(Generic[T]):
             self.set_input("")
         return True
 
-    def call_func_without_curses(self, func: Callable[[], R]) -> R:
+    @staticmethod
+    def run_raw(func: Callable[[], R]) -> R:
+        if Menu._stdscr is None:
+            return func()
+
         Menu.destroy_curses()
         try:
             return func()
@@ -1533,7 +1537,7 @@ class Menu(Generic[T]):
     def on_item_selected(self, item: T):
         on_item_selected = self.__on_item_selected
         if on_item_selected is not None:
-            self.call_func_without_curses(lambda item=item: on_item_selected(item))
+            self.run_raw(lambda item=item: on_item_selected(item))
 
     def on_tab_pressed(self) -> bool:
         if "tab" in self.__hotkeys:
@@ -1591,7 +1595,7 @@ class Menu(Generic[T]):
 
     def __edit_text_in_external_editor(self):
         text = self.__input.text
-        new_text = self.call_func_without_curses(lambda: edit_text(text))
+        new_text = self.run_raw(lambda: edit_text(text))
         self.set_input(new_text)
         if new_text != text:
             self.on_enter_pressed()
@@ -1671,7 +1675,7 @@ class Menu(Generic[T]):
             if extra_args:
                 args += extra_args
 
-            self.call_func_without_curses(lambda: subprocess.run(args))
+            self.run_raw(lambda: subprocess.run(args))
 
 
 class LoggingMenu(Menu):

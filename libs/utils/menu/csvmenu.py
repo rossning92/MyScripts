@@ -203,7 +203,7 @@ class RowMenu(Menu[CsvCell]):
         )
 
         self.add_command(
-            lambda: self.call_func_without_curses(
+            lambda: self.run_raw(
                 lambda: self.edit_cell(external_editor=True)
             ),
             hotkey="ctrl+e",

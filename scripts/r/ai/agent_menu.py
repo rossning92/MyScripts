@@ -2,6 +2,7 @@ import functools
 import glob
 import os
 import shlex
+import sys
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypedDict, cast
 
@@ -11,6 +12,7 @@ import ai.utils.tools.edit
 import ai.utils.tools.glob_tool
 import ai.utils.tools.grep
 import ai.utils.tools.list
+import ai.utils.tools.powershell
 import ai.utils.tools.read
 import ai.utils.tools.web_fetch
 import ai.utils.tools.web_search
@@ -140,7 +142,11 @@ class AgentMenu(ChatMenu):
                     else ai.utils.tools.read.read
                 ),
                 ai.utils.tools.edit.edit,
-                ai.utils.tools.bash.bash,
+                (
+                    ai.utils.tools.powershell.powershell
+                    if sys.platform == "win32"
+                    else ai.utils.tools.bash.bash
+                ),
                 ai.utils.tools.list.list,
                 ai.utils.tools.glob_tool.glob,
                 ai.utils.tools.grep.grep,
@@ -447,6 +453,8 @@ class AgentMenu(ChatMenu):
                     for cmd in allow:
                         if cmd not in ai.utils.tools.bash.TRUSTED_COMMANDS:
                             ai.utils.tools.bash.TRUSTED_COMMANDS.append(cmd)
+                        if cmd not in ai.utils.tools.powershell.TRUSTED_COMMANDS:
+                            ai.utils.tools.powershell.TRUSTED_COMMANDS.append(cmd)
 
                 self.__update_tools()
                 return skill.content

@@ -155,7 +155,7 @@ class DictEditMenu(Menu[_KeyValuePair]):
         if key is not None:
             value = self.__data[key]
             if isinstance(value, str):
-                new_value = self.call_func_without_curses(lambda: edit_text(value))
+                new_value = self.run_raw(lambda: edit_text(value))
                 if new_value != value:
                     self.set_dict_value(key, new_value)
 

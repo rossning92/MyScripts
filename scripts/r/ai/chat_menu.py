@@ -190,7 +190,7 @@ class _EditContextMenu(ListEditMenu):
     def on_enter_pressed(self):
         index = self.get_selected_index()
         if index >= 0:
-            self.items[index] = self.call_func_without_curses(
+            self.items[index] = self.run_raw(
                 lambda: edit_text(self.items[index], tmp_file_ext=".md")
             )
             self.update_screen()
@@ -432,9 +432,7 @@ class ChatMenu(Menu[Line]):
 
         message = self.get_messages()[msg_index]
         content = message["text"]
-        new_content = self.call_func_without_curses(
-            lambda: edit_text(content, tmp_file_ext=".md")
-        )
+        new_content = self.run_raw(lambda: edit_text(content, tmp_file_ext=".md"))
         if new_content != content:
             message["text"] = new_content
 
@@ -732,8 +730,6 @@ class ChatMenu(Menu[Line]):
     ) -> None:
         if self.__is_generating:
             return
-
-        self.clear_input()
 
         if text or tool_results:
             self.append_user_message(text, tool_results=tool_results)
@@ -1119,7 +1115,9 @@ Following is my instructions:
         if self.__is_generating:
             return
 
-        self.send_message(self.get_input())
+        text = self.get_input()
+        if self.clear_input():
+            self.send_message(text)
 
     def on_item_selection_changed(self, item: Optional[Line], i: int):
         self.__yank_mode = 0

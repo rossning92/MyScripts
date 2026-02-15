@@ -252,7 +252,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._set_cmdline_args)
 
     def _reload(self):
-        self.call_func_without_curses(lambda: restart_program())
+        self.run_raw(lambda: restart_program())
 
     def _list_scheduled_scripts(self):
         _ScheduledScriptMenu(script_manager=self.script_manager).exec()
@@ -297,7 +297,7 @@ class _MyScriptMenu(Menu[Script]):
                 )
 
             try:
-                self.call_func_without_curses(exec_script)
+                self.run_raw(exec_script)
             except Exception as ex:
                 logging.error(f"Error on running scheduled script: {ex}")
 
@@ -318,7 +318,7 @@ class _MyScriptMenu(Menu[Script]):
                 self.script_manager.sort_scripts()
                 self.refresh()
 
-                self.call_func_without_curses(
+                self.run_raw(
                     lambda: execute_script(
                         script,
                         args=self.__cmdline_args if self.__cmdline_args else None,
@@ -486,12 +486,12 @@ class _MyScriptMenu(Menu[Script]):
     def _edit_script(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            self.call_func_without_curses(lambda: edit_script(script_path))
+            self.run_raw(lambda: edit_script(script_path))
 
     def _edit_script_vim(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            self.call_func_without_curses(
+            self.run_raw(
                 lambda: edit_script(script_path, editor="vim")
             )
 
@@ -604,7 +604,7 @@ class _MyScriptMenu(Menu[Script]):
             # TODO: This environment variable is deprecated, remove.
             os.environ["SCRIPT"] = selected_script_abs_path
 
-            self.call_func_without_curses(
+            self.run_raw(
                 lambda script=script: execute_script(
                     script,
                     args=[selected_script_abs_path],

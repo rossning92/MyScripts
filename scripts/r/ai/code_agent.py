@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import ai.agent_menu
 import ai.utils.tools.bash
+import ai.utils.tools.powershell
 from ai.agent_menu import AgentMenu, load_subagents
 from ai.chat_menu import Line
 from ai.utils.env import get_env_info
@@ -81,7 +82,7 @@ class CodeAgentMenu(AgentMenu):
 
     def __edit_instructions(self):
         file = get_rule_file(self.get_data_dir(), "AGENTS.md")
-        self.call_func_without_curses(lambda: edit_text_file(str(file)))
+        self.run_raw(lambda: edit_text_file(str(file)))
 
     def __get_rules(self) -> str:
         return get_rules_prompt(self.get_data_dir())
@@ -247,6 +248,7 @@ def _main():
 
     if args.allow:
         ai.utils.tools.bash.TRUSTED_COMMANDS.extend(args.allow)
+        ai.utils.tools.powershell.TRUSTED_COMMANDS.extend(args.allow)
 
     # Change directory to the project root
     if len(args.files) == 1 and os.path.isabs(args.files[0]):
