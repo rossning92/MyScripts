@@ -122,6 +122,7 @@ class FileMenu(Menu[_File]):
         self,
         goto: Optional[str] = ".",
         prompt=None,
+        prompt_color="white",
         recursive=False,
         show_mtime=True,
         show_size=True,
@@ -149,7 +150,11 @@ class FileMenu(Menu[_File]):
         self.__allow_cd = allow_cd
         self.__recursive = recursive
 
-        super().__init__(items=self.__files, wrap_text=True)
+        super().__init__(
+            items=self.__files,
+            wrap_text=True,
+            prompt_color=prompt_color,
+        )
 
         self.add_command(self.copy_to, hotkey="alt+c")
 
@@ -262,7 +267,9 @@ class FileMenu(Menu[_File]):
     def _edit_text_file(self):
         file_full_path = self.get_selected_file_full_path()
         if file_full_path is not None:
-            start_script("ext/vim_edit.py", args=[file_full_path])
+            start_script(
+                "ext/vim_edit.py", restart_instance=True, args=[file_full_path]
+            )
 
     def _delete_files(self):
         files = self.get_selected_files()
@@ -301,7 +308,8 @@ class FileMenu(Menu[_File]):
                     if self.__last_copy_to_path is not None
                     else self.get_cur_dir()
                 ),
-                prompt="%s to" % ("copy" if copy else "move"),
+                prompt="copy to" if copy else "move to",
+                prompt_color="green",
                 config=self.__config,
             )
             dest_dir = filemgr.select_directory()
@@ -449,8 +457,8 @@ class FileMenu(Menu[_File]):
         )
         self._refresh_cur_dir()
 
-    def _refresh_cur_dir(self):
-        self.goto_directory(self.get_cur_dir())
+    def _refresh_cur_dir(self, clear_input: bool = False):
+        self.goto_directory(self.get_cur_dir(), clear_input=clear_input)
         self.set_multi_select(False)
 
     def _add_path_to_history(self, directory: str):
@@ -468,6 +476,7 @@ class FileMenu(Menu[_File]):
         self,
         directory: str,
         selected_file: Optional[str] = None,
+        clear_input: bool = True,
     ):
         self.set_message(None)
 
@@ -493,7 +502,8 @@ class FileMenu(Menu[_File]):
         self._list_files()
 
         # Clear input
-        self.clear_input()
+        if clear_input:
+            self.clear_input()
 
         # Update prompt
         prompt_text = ""

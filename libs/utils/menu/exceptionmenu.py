@@ -1,30 +1,36 @@
-import io
 import traceback
-from typing import Optional
+from typing import Callable, Optional
 
 from .menu import Menu
 
 
 class ExceptionMenu(Menu[str]):
+    @staticmethod
+    def retry(func: Callable):
+        while True:
+            try:
+                return func()
+            except Exception as e:
+                m = ExceptionMenu(e, "Exception ([r]etry)")
+                m.exec()
+                if not m.should_retry:
+                    return
+
     def __init__(
         self,
         exception: Optional[Exception] = None,
         prompt="exception",
     ):
-        self.__prompt = prompt
-
-        output = io.StringIO()
+        self.should_retry = False
         if exception:
-            traceback.print_exception(
-                type(exception),
-                exception,
-                exception.__traceback__,
-                file=output,
-            )
+            err_lines = "".join(traceback.format_exception(exception)).splitlines()
         else:
-            traceback.print_exc(file=output)
-        err_lines = output.getvalue().splitlines()
-        super().__init__(
-            prompt=self.__prompt,
-            items=err_lines,
-        )
+            err_lines = traceback.format_exc().splitlines()
+
+        super().__init__(prompt=prompt, items=err_lines)
+
+        self.add_command(self.__retry, hotkey="r")
+
+    def __retry(self):
+        self.should_retry = True
+        self.close()

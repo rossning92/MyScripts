@@ -22,6 +22,7 @@ from ai.chat import (
     get_tool_result_text,
     get_tool_use_text,
 )
+from ai.models import DEFAULT_MODEL, MODELS
 from ai.utils.message import Message
 from ai.utils.tooluse import ToolDefinition, ToolResult, ToolUse
 from ai.utils.usagemetadata import UsageMetadata
@@ -50,13 +51,6 @@ from utils.textutil import is_text_file, truncate_text
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-class ModelsData(TypedDict):
-    models: List[str]
-    default_model: str
-
-
-_MODELS: ModelsData = load_json(os.path.join(_SCRIPT_DIR, "models.json"))
 
 _MODULE_NAME = Path(__file__).stem
 
@@ -96,13 +90,13 @@ class SettingsMenu(JsonEditMenu):
             self.data["model"] = model
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": _MODELS["default_model"], "web_search": False, "retry": False}
+        return {"model": DEFAULT_MODEL, "web_search": False, "retry": False}
 
     def get_schema(self) -> Optional[JSONSchema]:
         return {
             "type": "object",
             "properties": {
-                "model": {"type": "string", "enum": _MODELS["models"]},
+                "model": {"type": "string", "enum": MODELS},
                 "web_search": {"type": "boolean"},
                 "retry": {"type": "boolean"},
             },

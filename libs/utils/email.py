@@ -6,11 +6,11 @@ from utils.template import render_template
 
 
 def send_email(
-    to: str = "", subject: str = "", body: str = "", cc: str = "", gmail=False
+    to: str = "", subject: str = "", body: str = "", cc: str = "", use_gmail_web=False
 ):
     subject = quote(subject)
     body = quote(body, safe="")
-    if gmail:
+    if use_gmail_web:
         url = f"https://mail.google.com/mail/?view=cm&fs=1&to={to}&su={subject}&body={body}&bcc={cc}"
     else:
         url = f"mailto:{to}?subject={subject}&body={body}"
@@ -66,7 +66,7 @@ def send_email_md(
     send_email(
         body=body,
         cc=cc,
-        gmail=gmail,
+        use_gmail_web=gmail,
         subject=subject,
         to=to,
     )

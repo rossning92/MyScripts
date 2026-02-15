@@ -59,7 +59,7 @@ def record_audio(
         raise NotImplementedError()
 
     if out_file is None:
-        fd, out_file = tempfile.mkstemp(suffix=".wav")
+        fd, out_file = tempfile.mkstemp(suffix=".mp3")
         os.close(fd)
 
     if os.path.exists(out_file):
@@ -73,22 +73,27 @@ def record_audio(
     process = subprocess.Popen(
         [
             "rec",
+            "--buffer",
+            "1024",
             "--no-show-progress",
-            "-V1",  # only show failure messages
+            "-V1",  # Only show failure messages
             "-r",
-            "16000",
+            "16000",  # Sample rate: 16kHz
             "-c",
-            "1",
-            "-b",
-            "16",
+            "1",  # Number of channels
+            "-C",
+            "32",  # MP3 bitrate in kbps (optimal for 16kHz voice)
             out_file,
+            "highpass",
+            "100",  # Remove low-frequency noise (optimal for voice)
         ]
     )
 
-    if stop_event and stop_event.wait():
+    if stop_event:
+        stop_event.wait()
         process.send_signal(signal.SIGINT)
-    else:
-        process.wait()
+
+    process.wait()
 
     return out_file
 

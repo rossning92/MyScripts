@@ -1,10 +1,10 @@
 #SingleInstance, Force
 #InstallKeybdHook
-#include %A_ScriptDir%\..\..\ahk\ExplorerHelper.ahk
-#include %A_ScriptDir%\..\..\ahk\ChromeHotkey.ahk
-#include %A_ScriptDir%\..\..\ahk\VirtualDesktop.ahk
-#include %A_ScriptDir%\..\..\ahk\Window.ahk
-#include %A_ScriptDir%\..\..\ahk\WinDrag.ahk
+#include %A_ScriptDir%\..\..\..\ahk\ExplorerHelper.ahk
+#include %A_ScriptDir%\..\..\..\ahk\ChromeHotkey.ahk
+#include %A_ScriptDir%\..\..\..\ahk\VirtualDesktop.ahk
+#include %A_ScriptDir%\..\..\..\ahk\Window.ahk
+#include %A_ScriptDir%\..\..\..\ahk\WinDrag.ahk
 
 SetCapsLockState, AlwaysOff
 
@@ -15,8 +15,6 @@ LastKeyPressTime := 0
 CONSOLE_WINDOW = MyTerminal
 
 SetTitleMatchMode, 2
-
-; AddChromeHotkey("#!.", "- To Do", "https://to-do.live.com/tasks/")
 
 SetTimer, CheckIfRShiftIsPressed, 100
 SetTimer, AutoResizeVNC, 1000

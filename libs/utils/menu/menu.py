@@ -448,34 +448,31 @@ class Menu(Generic[T]):
         self.on_close()
 
     def voice_input(self):
+        from utils.menu.exceptionmenu import ExceptionMenu
+        from utils.menu.recordmenu import RecordMenu
+        from utils.menu.speechtotextmenu import SpeechToTextMenu
+
+        record_menu = RecordMenu()
+        record_menu.exec()
+        out_file = record_menu.get_output_file()
+        if not out_file:
+            return
+
         try:
-            from ai.openai.speech_to_text import convert_audio_to_text
 
-            from utils.menu.asynctaskmenu import AsyncTaskMenu
-            from utils.menu.recordmenu import RecordMenu
+            def process_stt():
+                stt_menu = SpeechToTextMenu(out_file)
+                stt_menu.exec()
+                text = stt_menu.get_result()
+                if text:
+                    self.insert_text(text)
+                    if not record_menu.space_pressed:
+                        self.on_enter_pressed()
 
-            record_menu = RecordMenu()
-            record_menu.exec()
-            out_file = record_menu.get_output_file()
-            if not out_file:
-                return
-
-            stt_menu = AsyncTaskMenu(
-                lambda: convert_audio_to_text(file=out_file),
-                prompt="(Converting audio to text...)",
-            )
-            stt_menu.exec()
-
+            ExceptionMenu.retry(process_stt)
+        finally:
             if os.path.exists(out_file):
                 os.remove(out_file)
-
-            text = stt_menu.get_result()
-            if text:
-                self.insert_text(text)
-                if not record_menu.space_pressed:
-                    self.on_enter_pressed()
-        except Exception as e:
-            self.set_message(f"ERROR: {e}")
 
     def __select_all(self):
         self.set_selection(0, -1)
