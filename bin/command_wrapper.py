@@ -8,6 +8,11 @@ send_notification_ps1 = os.path.abspath(
     os.path.join(script_dir, "..", "scripts", "ext", "send_notification.ps1")
 )
 
+sys.path.insert(
+    0, os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../libs")
+)
+from scripting.status import set_script_status
+
 
 def _getch():
     if sys.platform == "win32":
@@ -50,11 +55,19 @@ if __name__ == "__main__":
 
     start_time = time.time()
     args = sys.argv[1:]
+
+    script_path = os.path.abspath(args[0])
+    if window_title:
+        set_script_status(window_title, "running")
+
     try:
         code = subprocess.call(args)
 
         end_time = time.time()
         has_error = code != 0
+        if window_title:
+            set_script_status(window_title, "error" if has_error else "done")
+
         duration = end_time - start_time
         keep_terminal_on = not close_on_exit
         if duration > 10 or has_error:

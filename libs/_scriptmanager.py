@@ -72,6 +72,7 @@ def register_global_hotkeys_sxhkd(scripts: List[Script]):
             s += (
                 "  python3"
                 f" {get_my_script_root()}/bin/start_script.py"
+                " --restart-instance=auto"
                 f" {script.script_path}\n\n"
             )
 
@@ -118,6 +119,7 @@ def register_global_hotkeys_sway(scripts: List[Script]):
                     "exec",
                     "python3",
                     f"{get_my_script_root()}/bin/start_script.py",
+                    "--restart-instance=auto",
                     script.script_path,
                 ]
                 out = subprocess.check_output(args)
@@ -310,6 +312,7 @@ def register_global_hotkeys_mac(scripts: List[Script]):
             s += (
                 "python3"
                 f" {get_my_script_root()}/bin/start_script.py"
+                " --restart-instance=auto"
                 f" {script.script_path}\n\n"
             )
 

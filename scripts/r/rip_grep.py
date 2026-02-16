@@ -3,36 +3,129 @@ import json
 import os
 import re
 import shlex
+import signal
 import subprocess
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from threading import Thread
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
 from _script import start_script
-from _shutil import send_ctrl_c, write_temp_file
-from utils.editor import edit_text_file
 from utils.jsonutil import load_json, save_json
 from utils.menu import Menu
-from utils.menu.inputmenu import InputMenu
 
 _MODULE_NAME = Path(__file__).stem
 _DEFAULT_CONTEXT = 0
 
 
+def run_ripgrep(
+    pattern: str,
+    path: str,
+    context: int = 0,
+    exclude: Optional[str] = None,
+    on_match: Optional[Callable[[str, List[Tuple[bool, int, str]]], None]] = None,
+    on_message: Optional[Callable[[str], None]] = None,
+    on_process: Optional[Callable[[subprocess.Popen], None]] = None,
+):
+    args = [
+        "rg",
+        "--ignore-case",
+        "-C",
+        str(context),
+        "--json",
+        "--glob",
+        "!*.bak",
+    ]
+    if exclude:
+        args += ["--glob", "!" + exclude]
+
+    # Search pattern
+    args.append(pattern)
+
+    # Search file path (if specified)
+    if os.path.isfile(path):
+        args.append(path)
+
+    if on_message:
+        on_message(shlex.join(args))
+
+    process = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=1,
+        text=True,
+        encoding="utf-8",
+        cwd=path if os.path.isdir(path) else None,
+    )
+
+    if on_process:
+        on_process(process)
+
+    # variables
+    last_file_path = ""
+    last_line_number = 0
+    lines: List[Tuple[bool, int, str]] = []
+
+    try:
+        while True:
+            assert process.stdout
+            json_str = process.stdout.readline()
+            if not json_str:
+                break
+
+            data = json.loads(json_str)
+            data_type = data.get("type")
+            if data_type in ("context", "match"):
+                file_path = data["data"]["path"]["text"]
+                data_lines = data["data"]["lines"]
+                line_text = data_lines["text"].rstrip()
+                line_number = data["data"]["line_number"]
+
+                # A code block is ready
+                if last_file_path and (
+                    file_path != last_file_path or line_number != last_line_number + 1
+                ):
+                    if on_match:
+                        on_match(last_file_path, lines)
+                    lines.clear()
+
+                lines.append(
+                    (
+                        True if data_type == "match" else False,
+                        line_number,
+                        line_text,
+                    )
+                )
+                last_file_path = file_path
+                last_line_number = line_number
+
+        if last_file_path and lines:
+            if on_match:
+                on_match(last_file_path, lines)
+
+        assert process.stderr
+        stderr_output = process.stderr.read()
+        if stderr_output:
+            if on_message:
+                on_message(f"error: {stderr_output.strip()}")
+
+        process.wait()
+        if on_message:
+            if process.returncode != 0:
+                on_message(f"rg exited with code {process.returncode}")
+            else:
+                on_message("search completed")
+
+    except Exception as e:
+        if on_message:
+            on_message(str(e))
+
+
 @dataclass
 class _Match:
     file: str
-    content: str
-    line_start: int
-    line_end: int
-    lines: List[Tuple[bool, int, str]]
-
-    def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
-
-    def to_json(self) -> str:
-        return json.dumps(asdict(self))
 
 
 class _Line:
@@ -56,18 +149,20 @@ class GrepMenu(Menu[_Line]):
     def __init__(
         self,
         path: Optional[str] = None,
-        query: Optional[str] = None,
+        pattern: Optional[str] = None,
         context=_DEFAULT_CONTEXT,
         exclude: Optional[str] = None,
         **kwargs,
     ):
         self.__context = context
         self.__path = path if path else os.getcwd()
-        self.__matches: List[_Match] = []
         self.__exclude = exclude
+        self.__last_file: Optional[str] = None
         self.__data_file = os.path.join(".config", f"{_MODULE_NAME}.json")
         self.__data: Dict[str, Any] = load_json(self.__data_file, default={})
-        self.__query = ""
+        self.__pattern = ""
+        self.__thread: Optional[Thread] = None
+        self.__process: Optional[subprocess.Popen] = None
 
         super().__init__(
             prompt=f"grep ({self.__path})",
@@ -76,17 +171,11 @@ class GrepMenu(Menu[_Line]):
             **kwargs,
         )
 
-        self.add_command(self.__delete_selected, hotkey="ctrl+k")
-        self.add_command(self.__run_coder_for_each_match)
-        self.add_command(self.__run_coder, hotkey="alt+c")
-        self.add_command(self.__save_matches, hotkey="ctrl+s")
-        self.add_command(self.__show_less, hotkey="alt+l")
-        self.add_command(self.__show_more, hotkey="alt+m")
         self.add_command(self.__list_search_history, hotkey="ctrl+l")
         self.add_command(self.__edit_file, hotkey="ctrl+e")
 
-        if query:
-            self.set_input(query)
+        if pattern:
+            self.set_input(pattern)
 
     def get_item_text(self, line: _Line) -> str:
         return (
@@ -99,133 +188,49 @@ class GrepMenu(Menu[_Line]):
         if i < 0:
             return
 
-        self.__find(history[i])
-
-    def __show_less(self):
-        self.__update_items(show_code=False)
-
-    def __show_more(self):
-        self.__update_items(show_code=True)
-
-    def __run_coder(self):
-        m = InputMenu(prompt="task")
-        task = m.request_input()
-        if not task:
-            return
-
-        context = "\n".join([str(item) for item in self.items])
-        context_file = write_temp_file(context, ".txt")
-        self.run_raw(lambda: edit_text_file(context_file))
-        ret = self.run_raw(
-            lambda: subprocess.call(
-                [
-                    "run_script",
-                    "@command_wrapper=1",
-                    "r/ai/code_agent.py",
-                    "--task",
-                    task,
-                    "--context-file",
-                    context_file,
-                ]
-            )
-        )
-        self.set_message(f"coder returns with {ret}")
-
-    def __run_coder_for_each_match(self):
-        m = InputMenu(prompt="task")
-        task = m.request_input()
-        if not task:
-            return
-
-        for i, match in enumerate(self.get_selected_items()):
-            self.set_message(f"processing match {i+1}")
-            file_list_json = write_temp_file("[" + match.match.to_json() + "]", ".json")
-            ret_code = self.run_raw(
-                lambda: subprocess.call(
-                    [
-                        "run_script",
-                        "@command_wrapper=1",
-                        "r/ai/code_agent.py",
-                        "--yes",
-                        "--task",
-                        task,
-                        "--file-list-json",
-                        file_list_json,
-                    ]
-                )
-            )
-            self.set_message(f"done with {i+1}")
-            if ret_code != 0:
-                break
-
-    def __save_matches(self):
-        data = [match.to_dict() for match in self.__matches]
-        with open("matches.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        self.set_message("matches saved to matches.json")
-
-    def __delete_selected(self):
-        selected = self.get_selected_item()
-        if selected:
-            self.__matches.remove(selected.match)
-        self.__update_items(True)
+        self.__start_rg(history[i])
 
     def __edit_file(self):
         selected = self.get_selected_item()
         if selected:
             file_path = selected.match.file
             start_script(
-                "ext/vim_edit.py", args=[os.path.join(self.__path, file_path), "--line", str(selected.line_number)], restart_instance=True
+                "ext/vim_edit.py",
+                args=[
+                    os.path.join(self.__path, file_path),
+                    "--line",
+                    str(selected.line_number),
+                ],
             )
 
     def __add_match(self, file: str, lines: List[Tuple[bool, int, str]]):
         file_path = file.replace(os.path.sep, "/")
-        content = file_path + "\n"
-        line_start = sys.maxsize
-        line_end = 0
+        match = _Match(file=file_path)
+
+        if match.file != self.__last_file:
+            self.append_item(_Line(match.file, type="file", match=match))
+        elif _DEFAULT_CONTEXT > 0:
+            self.append_item(_Line("", type="file", match=match))
+        self.__last_file = match.file
+
         for is_match, line_number, line in lines:
-            line_start = min(line_number, line_start)
-            line_end = max(line_number, line_end)
-            content += line
-        match = _Match(
-            file=file_path,
-            content=content,
-            line_start=line_start,
-            line_end=line_end,
-            lines=lines.copy(),
-        )
-        self.__matches.append(match)
-
-        self.__update_items(show_code=True)
-
-    def __update_items(self, show_code: bool):
-        self.clear_items()
-        last_file = None
-        for match in self.__matches:
-            if match.file != last_file:
-                self.append_item(_Line(match.file, type="file", match=match))
-            elif _DEFAULT_CONTEXT > 0:
-                self.append_item(_Line("", type="file", match=match))
-            last_file = match.file
-            if show_code:
-                for is_match, line_number, line in match.lines:
-                    self.append_item(
-                        _Line(
-                            (
-                                re.sub(
-                                    "(" + self.__query + ")",
-                                    "\x1b[1;31m\\1\x1b[0m",
-                                    line,
-                                    flags=re.IGNORECASE,
-                                )
-                                if is_match
-                                else line
-                            ),
-                            type="matched_line" if is_match else "context_line",
-                            match=match,
-                            line_number=line_number,
+            self.append_item(
+                _Line(
+                    (
+                        re.sub(
+                            "(" + self.__pattern + ")",
+                            "\x1b[1;31m\\1\x1b[0m",
+                            line,
+                            flags=re.IGNORECASE,
                         )
-                    )
+                        if is_match
+                        else line
+                    ),
+                    type="matched_line" if is_match else "context_line",
+                    match=match,
+                    line_number=line_number,
+                )
+            )
 
     def get_item_color(self, line: _Line) -> str:
         if line.type == "file":
@@ -235,108 +240,66 @@ class GrepMenu(Menu[_Line]):
 
     def on_enter_pressed(self):
         input_str = self.get_input()
-        self.__find(input_str)
+        self.__start_rg(input_str)
 
-    def __find(self, input_str: str):
+    def __start_rg(self, pattern: str):
+        self.__stop_rg()
+
         self.items.clear()
+        self.__last_file = None
+        self.__pattern = pattern
 
         # Save search history
         if "history" not in self.__data:
             self.__data["history"] = []
         try:
-            self.__data["history"].remove(input_str)
+            self.__data["history"].remove(pattern)
         except ValueError:
             pass
-        self.__data["history"].insert(0, input_str)
+        self.__data["history"].insert(0, pattern)
         save_json(self.__data_file, self.__data)
 
-        args = [
-            "rg",
-            "--ignore-case",
-            "-C",
-            str(self.__context),
-            "--json",
-            "--glob",
-            "!*.bak",
-        ]
-        if self.__exclude:
-            args += ["--glob", "!" + self.__exclude]
+        def on_match(file, lines):
+            self.__add_match(file=file, lines=lines)
 
-        # Search pattern
-        args.append(input_str)
-        self.__query = input_str
+        def on_message(message):
+            self.set_message(message)
 
-        # Search file path (if specified)
-        if os.path.isfile(self.__path):
-            args.append(self.__path)
+        def on_process(process):
+            self.__process = process
 
-        self.set_message(shlex.join(args))
-        self.process_events()
-
-        process = subprocess.Popen(
-            args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            bufsize=1,
-            text=True,
-            encoding="utf-8",
-            cwd=self.__path if os.path.isdir(self.__path) else None,
+        self.__thread = Thread(
+            target=run_ripgrep,
+            kwargs=dict(
+                pattern=pattern,
+                path=self.__path,
+                context=self.__context,
+                exclude=self.__exclude,
+                on_match=on_match,
+                on_message=on_message,
+                on_process=on_process,
+            ),
         )
+        self.__thread.start()
 
-        # variables
-        last_file_path = ""
-        last_line_number = 0
-        lines: List[Tuple[bool, int, str]] = []
-        self.__matches.clear()
+    def __stop_rg(self):
+        if self.__process:
+            if sys.platform == "win32":
+                os.kill(self.__process.pid, signal.CTRL_C_EVENT)
+            else:
+                self.__process.send_signal(signal.SIGINT)
+            self.__process.wait()
+            self.__process = None
 
-        while True:
-            assert process.stdout
-            json_str = process.stdout.readline()
-            if not json_str:
-                break
+    def on_close(self):
+        self.__stop_rg()
 
-            data = json.loads(json_str)
-            data_type = data["type"]
-            if data_type in ("context", "match"):
-                file_path = data["data"]["path"]["text"]
-                data_lines = data["data"]["lines"]
-                line_text = data_lines["text"].rstrip()
-                line_number = data["data"]["line_number"]
+    def on_keyboard_interrupt(self):
+        self.__stop_rg()
+        super().on_keyboard_interrupt()
 
-                # A code block is ready
-                if last_file_path and (
-                    file_path != last_file_path or line_number != last_line_number + 1
-                ):
-                    self.__add_match(file=last_file_path, lines=lines)
-
-                    lines.clear()
-
-                lines.append(
-                    (True if data_type == "match" else False, line_number, line_text)
-                )
-                last_file_path = file_path
-                last_line_number = line_number
-            try:
-                self.process_events(raise_keyboard_interrupt=True)
-            except KeyboardInterrupt:
-                send_ctrl_c(process)
-                break
-
-        if last_file_path and lines:
-            self.__add_match(file=last_file_path, lines=lines)
-
-        assert process.stderr
-        stderr_output = process.stderr.read()
-        if stderr_output:
-            self.set_message(f"error: {stderr_output.strip()}")
-
-        process.wait()
-        if process.returncode != 0:
-            self.set_message("process exited with code {process.returncode}")
-        else:
-            self.set_message("search completed")
-
-        self.update_screen()
+    def on_escape_pressed(self):
+        self.__stop_rg()
 
 
 if __name__ == "__main__":
@@ -344,14 +307,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "path", type=str, nargs="?", default=os.environ.get("SEARCH_PATH")
     )
-    parser.add_argument("--query", type=str, default=None)
+    parser.add_argument("--pattern", type=str, default=None)
     parser.add_argument("--context", type=int, default=_DEFAULT_CONTEXT)
     parser.add_argument("--exclude", type=str, default=None)
     args = parser.parse_args()
 
     GrepMenu(
         path=args.path,
-        query=args.query,
+        pattern=args.pattern,
         context=args.context,
         exclude=args.exclude,
     ).exec()

@@ -68,7 +68,7 @@ def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=Fal
         screen_commands.append("screen -d -X stuff ^C")
     screen_commands += [
         "screen -d -X msgwait 0",
-        f"screen -d -X readbuf { convert_to_unix_path(tmp_file, wsl=True)}",
+        f"screen -d -X readbuf {convert_to_unix_path(tmp_file, wsl=True)}",
         "screen -d -X paste .",
     ]
     args.append(" && ".join(screen_commands))
@@ -78,7 +78,7 @@ def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=Fal
         shell=False,
     )
 
-    start_script("r/linux/remote_shell.sh")
+    start_script("r/linux/remote_shell.sh", restart_instance=None)
 
 
 def _get_user(user=None):

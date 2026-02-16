@@ -15,13 +15,12 @@ addButton(
     saveFile("/tmp/context.txt", document.body.innerText);
     system([
       "start_script",
-      "--restart-instance=1",
       "r/ai/chat_menu.py",
       "--context",
       "/tmp/context.txt",
     ]);
   },
-  "c-i"
+  "c-i",
 );
 
 addButton("Test saveData()", () => {

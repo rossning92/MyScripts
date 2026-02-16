@@ -29,4 +29,4 @@ adb shell settings put global gpu_debug_layers $layername
 adb shell setprop debug.vulkan.layers $layername # this will force enable layers globally
 adb shell settings list global | grep gpu
 
-start_script --restart-instance True r/android/restart_app_logcat.sh $pkg
+start_script r/android/restart_app_logcat.sh $pkg

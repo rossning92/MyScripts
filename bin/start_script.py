@@ -17,7 +17,7 @@ def str2bool(value):
         return True
     elif value.lower() in ("no", "false", "f", "n", "0"):
         return False
-    elif value is None:
+    elif value.lower() == "auto":
         return None
     else:
         raise argparse.ArgumentTypeError("Boolean value expected.")
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("file", nargs="?")
     parser.add_argument("--cd", type=str2bool, default=True)
-    parser.add_argument("--restart-instance", type=str2bool, default=None)
+    parser.add_argument("--restart-instance", type=str2bool, default=True)
     parser.add_argument("--run-in-tmux", action="store_true")
     parser.add_argument("args", nargs=argparse.REMAINDER)
     args = parser.parse_args()

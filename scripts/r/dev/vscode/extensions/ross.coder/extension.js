@@ -21,18 +21,13 @@ function activate(context) {
         : `${fileName}#${selection.start.line + 1}-${selection.end.line + 1}`;
       spawn(
         "start_script",
-        [
-          "--cd=false",
-          "--restart-instance=true",
-          "r/ai/code_agent.py",
-          fileAndLines,
-        ],
+        ["--cd=false", "r/ai/code_agent.py", fileAndLines],
         {
           detached: true,
           stdio: "ignore",
-        }
+        },
       );
-    }
+    },
   );
 
   context.subscriptions.push(disposable);

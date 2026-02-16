@@ -247,8 +247,8 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._run_script_local)
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
-        self.add_command(self._rename_script_and_replace_all, hotkey="alt+n")
-        self.add_command(self._rename_script)
+        self.add_command(self._rename_script, hotkey="alt+n")
+        self.add_command(self._rename_script_replace_all)
         self.add_command(self._set_cmdline_args)
 
     def _reload(self):
@@ -478,7 +478,7 @@ class _MyScriptMenu(Menu[Script]):
 
         self.clear_input()
 
-    def _rename_script_and_replace_all(self):
+    def _rename_script_replace_all(self):
         self._rename_script(
             replace_all_occurrence=True,
         )
@@ -491,9 +491,7 @@ class _MyScriptMenu(Menu[Script]):
     def _edit_script_vim(self):
         script_path = self.get_selected_script_path()
         if script_path:
-            self.run_raw(
-                lambda: edit_script(script_path, editor="vim")
-            )
+            self.run_raw(lambda: edit_script(script_path, editor="vim"))
 
     def update_last_refresh_time(self):
         self.last_refresh_time = time.time()

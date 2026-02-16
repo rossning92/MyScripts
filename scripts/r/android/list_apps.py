@@ -33,12 +33,12 @@ menu = ActionMenu(close_on_selection=True)
 
 @menu.func()
 def restart_app():
-    start_script("r/android/restart_app.py", restart_instance=True)
+    start_script("r/android/restart_app.py")
 
 
 @menu.func()
 def restart_app_with_logcat():
-    start_script("r/android/restart_app_logcat.sh", restart_instance=True)
+    start_script("r/android/restart_app_logcat.sh")
 
 
 @menu.func()

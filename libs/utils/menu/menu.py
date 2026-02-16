@@ -1664,7 +1664,6 @@ class Menu(Generic[T]):
 
             args = [
                 "start_script",
-                "--restart-instance=1",
                 "r/ai/code_agent.py",
                 "--context",
                 tmpfile,

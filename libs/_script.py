@@ -1393,8 +1393,7 @@ class Script:
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
                         # DETACHED_PROCESS
-                        CREATE_NO_WINDOW
-                        | subprocess.CREATE_NEW_PROCESS_GROUP
+                        CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
                 if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
@@ -1781,7 +1780,7 @@ def start_script(
     config_override=None,
     console_title=None,
     new_window=None,
-    restart_instance=None,
+    restart_instance: Optional[bool] = True,
     single_instance=None,
     tee=None,
     template=None,

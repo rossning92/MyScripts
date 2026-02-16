@@ -267,9 +267,7 @@ class FileMenu(Menu[_File]):
     def _edit_text_file(self):
         file_full_path = self.get_selected_file_full_path()
         if file_full_path is not None:
-            start_script(
-                "ext/vim_edit.py", restart_instance=True, args=[file_full_path]
-            )
+            start_script("ext/vim_edit.py", args=[file_full_path])
 
     def _delete_files(self):
         files = self.get_selected_files()
@@ -450,7 +448,6 @@ class FileMenu(Menu[_File]):
             [
                 "start_script",
                 "--cd=false",
-                "--restart-instance=true",
                 "r/command_prompt.sh",
             ],
             cwd=self.get_cur_dir(),
