@@ -1,4 +1,3 @@
-import ctypes
 import os
 import subprocess
 import time
@@ -8,9 +7,14 @@ from _shutil import kill_proc
 from utils.android import wait_until_boot_complete
 
 
-def get_screen_size():
-    user32 = ctypes.windll.user32
-    return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+def get_screen_resolution():
+    if os.name == "nt":
+        import ctypes
+
+        user32 = ctypes.windll.user32
+        return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    else:
+        return 1920, 1080
 
 
 serial = get_variable("ANDROID_SERIAL")
@@ -41,15 +45,14 @@ if __name__ == "__main__":
 
         args = ["scrcpy", "--window-title=scrcpy"]
 
-        if os.environ.get("SCRCPY_POS"):
-            win_pos = [int(x) for x in os.environ["SCRCPY_POS"].split()]
-            args += [
-                "--always-on-top",
-                "--window-x",
-                "%s" % win_pos[0],
-                "--window-y",
-                "%s" % win_pos[1],
-            ]
+        sw, sh = get_screen_resolution()
+        args += [
+            "--always-on-top",
+            "--window-x",
+            "0",
+            "--window-y",
+            str(sh - 200),
+        ]
 
         if serial:
             args += ["--serial", serial]

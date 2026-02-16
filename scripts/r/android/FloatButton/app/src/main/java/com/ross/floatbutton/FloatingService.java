@@ -46,7 +46,7 @@ public class FloatingService extends Service {
 
         GradientDrawable shape = new GradientDrawable();
         shape.setShape(GradientDrawable.OVAL);
-        shape.setColor(0x80FFFFFF);
+        shape.setColor(0x8000FF00);
         floatingView.setBackground(shape);
 
         int layoutType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;

@@ -3,11 +3,6 @@ import subprocess
 import sys
 import time
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
-send_notification_ps1 = os.path.abspath(
-    os.path.join(script_dir, "..", "scripts", "ext", "send_notification.ps1")
-)
-
 sys.path.insert(
     0, os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../libs")
 )
@@ -35,11 +30,6 @@ def _getch():
     if ch is not None and ord(ch) == 3:
         raise KeyboardInterrupt
     return ch
-
-
-def _notify(message: str):
-    if sys.platform == "win32":
-        subprocess.check_call(["powershell", "-file", send_notification_ps1, message])
 
 
 def _format_seconds(seconds: float) -> str:
@@ -70,10 +60,6 @@ if __name__ == "__main__":
 
         duration = end_time - start_time
         keep_terminal_on = not close_on_exit
-        if duration > 10 or has_error:
-            _notify(
-                f"{window_title} finished in {_format_seconds(duration)}, exit code {code}",
-            )
         if has_error or keep_terminal_on:
             print("---")
             print("(exit code: %d)" % code)

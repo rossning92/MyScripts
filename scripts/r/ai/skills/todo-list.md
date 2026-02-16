@@ -3,6 +3,7 @@ description: to-do list and task management
 ---
 
 You can use the `run_script r/todo_list.py` command for to-do list and task management.
+Note that `run_script` is a script runner/script-launcher CLI tool that you must use.
 
 ## Add a new task
 
