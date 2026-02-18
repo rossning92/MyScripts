@@ -3,17 +3,15 @@ import os
 import subprocess
 import sys
 import tempfile
-from typing import Dict, List, Optional, TypeVar
+from typing import Dict, List, Optional
 
 from utils.clip import get_clip
 from utils.jsonutil import load_json, save_json
 
 from .menu import Menu
 
-T = TypeVar("T")
 
-
-class InputMenu(Menu[T]):
+class InputMenu(Menu[str]):
     def __init__(
         self,
         items: Optional[List[str]] = None,
@@ -24,6 +22,7 @@ class InputMenu(Menu[T]):
         show_clipboard: bool = False,
         return_selection_if_empty: bool = False,
         item_hotkey: Optional[Dict[str, str]] = None,
+        **kwargs,
     ):
         self.__history_list = history_list
         self.__history_file = history_file
@@ -42,6 +41,7 @@ class InputMenu(Menu[T]):
                 else (self.__history_data["history"] if self.__history_file else [])
             ),
             text=text,
+            **kwargs,
         )
         self.add_command(self.__insert_dir_path)
         self.add_command(self.__insert_file_path)

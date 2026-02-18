@@ -401,6 +401,7 @@ class FileMenu(Menu[_File]):
                 get_download_dir(): "ctrl+d",
                 get_home_path(): "ctrl+h",
             },
+            auto_complete=True,
         ).request_input()
         if path is not None and os.path.isdir(path):
             self.goto_directory(path)
