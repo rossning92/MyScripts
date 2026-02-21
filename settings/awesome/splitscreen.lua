@@ -2,12 +2,9 @@
 
 local awful = require("awful")
 local M = {}
+local is_updating = false
 
 function M.split_screen()
-    if (screen.count() ~= 1) then
-        -- A sanity check, so we don't split multiple times.
-        return
-    end
     local geo = screen[1].geometry
     local aspect = geo.width / geo.height
 
@@ -49,25 +46,50 @@ function M.reset_layout()
     end
 end
 
+function M.remove_fakes()
+    for s in screen do
+        if s.fakes then
+            for _, f in pairs(s.fakes) do
+                f:fake_remove()
+            end
+            s.fakes = nil
+        end
+    end
+end
+
 function M.toggle_layout()
+    if is_updating then return end
+    is_updating = true
+
     if (screen.count() == 1) then
         M.split_screen()
     else
         M.reset_layout()
     end
+
+    is_updating = false
 end
 
 function M.init_layout()
-    if (screen.count() ~= 1) then
-        -- A sanity check, so we don't split multiple times.
+    if is_updating then return end
+    is_updating = true
+
+    local s = screen[1]
+    if not s then
+        is_updating = false
         return
     end
 
+    local aspect = s.geometry.width / s.geometry.height
+
     -- Automatically split the screen if it is a ultra wide screen.
-    local geo = screen[1].geometry
-    if geo.width / geo.height >= 21 / 9 then
+    if aspect >= 21 / 9 then
         M.split_screen()
+    else
+        M.remove_fakes()
     end
+
+    is_updating = false
 end
 
 return M

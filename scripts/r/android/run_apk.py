@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("file")
-    parser.add_argument("-p", "--grant_permissions", default=False, action="store_true")
+    parser.add_argument("-p", "--grant-permissions", default=False, action="store_true")
     parser.add_argument("--force_reinstall", default=False, action="store_true")
     parser.add_argument("--skip_install_if_exist", default=False, action="store_true")
     args = parser.parse_args()

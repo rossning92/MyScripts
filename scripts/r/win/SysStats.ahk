@@ -63,6 +63,12 @@ GetMemory(byref percent, byref total, byref free) {
 }
 
 UpdateStats() {
+    global WIN_WIDTH, MyGuiHwnd
+
+    WinPosX := A_ScreenWidth - WIN_WIDTH
+    WinPosY := 0
+    WinMove, ahk_id %MyGuiHwnd%,, %WinPosX%, %WinPosY%
+
     cpu := CPULoad()
     GetMemory(percent, total, free)
     used := total - free

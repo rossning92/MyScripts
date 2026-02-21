@@ -15,7 +15,7 @@ if __name__ == "__main__":
     parser.add_argument("files", metavar="N", type=str, nargs="+")
     parser.add_argument("-r", "--run", default=False, action="store_true")
     parser.add_argument("-f", "--force_reinstall", default=False, action="store_true")
-    parser.add_argument("-p", "--grant_permissions", default=False, action="store_true")
+    parser.add_argument("-p", "--grant-permissions", default=False, action="store_true")
 
     args = parser.parse_args()
 
