@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import uuid
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from typing import Any, AsyncIterator, Callable, Dict, Iterator, List, Optional
 
 import aiohttp
 from ai.utils.message import Message
@@ -143,6 +143,62 @@ def _message_to_parts(message: Message, tool_name_by_id: Dict[str, str]):
     return parts
 
 
+def _process_response_data(
+    data: Dict[str, Any],
+    out_message: Message,
+    usage: Optional[UsageMetadata] = None,
+    on_image: Optional[Callable[[str], None]] = None,
+    on_tool_use: Optional[Callable[[ToolUse], None]] = None,
+) -> Iterator[str]:
+    if "usageMetadata" in data:
+        usage_metadata = data["usageMetadata"]
+        if usage:
+            usage.total_tokens = usage_metadata.get("totalTokenCount", 0)
+            usage.input_tokens = usage_metadata.get("promptTokenCount", 0)
+            usage.output_tokens = usage_metadata.get("candidatesTokenCount", 0)
+
+    for candidate in data.get("candidates", []):
+        finish_reason = candidate.get("finishReason")
+        if finish_reason:
+            if finish_reason != "STOP":
+                finish_message = candidate["finishMessage"]
+                raise Exception(f"Unexpected finish reason: {finish_message}")
+
+        content = candidate["content"]
+        parts = content["parts"]
+        for part in parts:
+            inline_data = part.get("inlineData")
+            if not inline_data:
+                inline_data = part.get("inline_data")
+            if inline_data:
+                mime_type = inline_data.get("mimeType")
+                base64_data = inline_data.get("data")
+                if mime_type and base64_data:
+                    image_url = f"data:{mime_type};base64,{base64_data}"
+                    if on_image:
+                        on_image(image_url)
+                    out_message.setdefault("image_urls", []).append(image_url)
+
+            function_call = part.get("functionCall")
+            if function_call:
+                tool_use = ToolUse(
+                    tool_name=function_call["name"],
+                    args=function_call.get("args", {}),
+                    tool_use_id=str(uuid.uuid4()),
+                )
+                if part.get("thoughtSignature"):
+                    tool_use["thoughtSignature"] = part["thoughtSignature"]
+
+                if on_tool_use:
+                    on_tool_use(tool_use)
+                out_message.setdefault("tool_use", []).append(tool_use)
+
+            text = part.get("text")
+            if text:
+                yield text
+                out_message["text"] += text
+
+
 async def complete_chat(
     messages: List[Message],
     out_message: Message,
@@ -216,56 +272,11 @@ async def complete_chat(
                 data = json.loads(line[6:].decode("utf-8"))
                 logger.debug(f"data: {data}")
 
-                if "usageMetadata" in data:
-                    usage_metadata = data["usageMetadata"]
-                    if usage:
-                        usage.total_tokens = usage_metadata.get("totalTokenCount", 0)
-                        usage.input_tokens = usage_metadata.get("promptTokenCount", 0)
-                        usage.output_tokens = usage_metadata.get(
-                            "candidatesTokenCount", 0
-                        )
-
-                for candidate in data.get("candidates", []):
-                    finish_reason = candidate.get("finishReason")
-                    if finish_reason:
-                        if finish_reason != "STOP":
-                            finish_message = candidate["finishMessage"]
-                            raise Exception(
-                                f"Unexpected finish reason: {finish_message}"
-                            )
-
-                    content = candidate["content"]
-                    parts = content["parts"]
-                    for part in parts:
-                        inline_data = part.get("inlineData")
-                        if not inline_data:
-                            inline_data = part.get("inline_data")
-                        if inline_data:
-                            mime_type = inline_data.get("mimeType")
-                            base64_data = inline_data.get("data")
-                            if mime_type and base64_data:
-                                image_url = f"data:{mime_type};base64,{base64_data}"
-                                if on_image:
-                                    on_image(image_url)
-                                out_message.setdefault("image_urls", []).append(
-                                    image_url
-                                )
-
-                        function_call = part.get("functionCall")
-                        if function_call:
-                            tool_use = ToolUse(
-                                tool_name=function_call["name"],
-                                args=function_call.get("args", {}),
-                                tool_use_id=str(uuid.uuid4()),
-                            )
-                            if part.get("thoughtSignature"):
-                                tool_use["thoughtSignature"] = part["thoughtSignature"]
-
-                            if on_tool_use:
-                                on_tool_use(tool_use)
-                            out_message.setdefault("tool_use", []).append(tool_use)
-
-                        text = part.get("text")
-                        if text:
-                            yield text
-                            out_message["text"] += text
+                for text in _process_response_data(
+                    data,
+                    out_message=out_message,
+                    usage=usage,
+                    on_image=on_image,
+                    on_tool_use=on_tool_use,
+                ):
+                    yield text

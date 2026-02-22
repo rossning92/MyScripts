@@ -3,7 +3,7 @@
 vim.wo.relativenumber = true
 vim.wo.number = true
 vim.g.mapleader = " "
-vim.opt.shortmess:append("I")     -- Disable intro message
+vim.opt.shortmess:append("IA")    -- Disable intro message and swapfile warning
 vim.opt.clipboard = "unnamedplus" -- Use system clipboard
 vim.opt.termguicolors = true
 vim.opt.mouse = ""                -- Disable mouse

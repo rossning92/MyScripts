@@ -15,6 +15,7 @@ class RecordMenu(AsyncTaskMenu):
                 out_file=out_file, stop_event=stop_event
             ),
             prompt="recording",
+            prompt_color="green",
         )
         self.add_command(self.__on_space_pressed, hotkey="space")
 

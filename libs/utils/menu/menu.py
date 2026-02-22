@@ -453,7 +453,12 @@ class Menu(Generic[T]):
         from utils.menu.speechtotextmenu import SpeechToTextMenu
 
         record_menu = RecordMenu()
-        record_menu.exec()
+        try:
+            record_menu.exec()
+        except NotImplementedError:
+            self.set_message("Error: voice input not implemented")
+            return
+
         out_file = record_menu.get_output_file()
         if not out_file:
             return
@@ -1217,9 +1222,19 @@ class Menu(Generic[T]):
                             attr |= curses.A_BOLD
                         elif code == "2":
                             attr |= curses.A_DIM
+                        elif code == "7":
+                            if reverse:
+                                attr &= ~curses.A_REVERSE
+                            else:
+                                attr |= curses.A_REVERSE
                         elif code == "22":
                             attr &= ~curses.A_BOLD
                             attr &= ~curses.A_DIM
+                        elif code == "27":
+                            if reverse:
+                                attr |= curses.A_REVERSE
+                            else:
+                                attr &= ~curses.A_REVERSE
                         elif code.isdigit() and 30 <= int(code) <= 37:
                             attr = (attr & ~curses.A_COLOR) | Menu._get_color_pair(
                                 _get_ansi_color(int(code))

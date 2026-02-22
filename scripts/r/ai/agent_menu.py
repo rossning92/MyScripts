@@ -17,8 +17,8 @@ import ai.utils.tools.read
 import ai.utils.tools.web_fetch
 import ai.utils.tools.web_search
 from ai.chat_menu import ChatMenu, Line
-from ai.skill import get_skill_prompt, get_skills
 from ai.utils.mcp import MCPClient
+from ai.utils.skill import get_skill_prompt, get_skills
 from ai.utils.tooluse import (
     ToolDefinition,
     ToolParam,
