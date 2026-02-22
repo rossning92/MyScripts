@@ -1,6 +1,7 @@
 import ctypes
 import locale
 import os
+import subprocess
 import sys
 
 
@@ -17,42 +18,17 @@ def minimize_cur_terminal():
         ctypes.windll.user32.ShowWindow(hwnd, 6)
 
 
-def _prompt(options, message=None):
-    for i, option in enumerate(options):
-        print("%d. %s" % (i + 1, option))
-
-    if message is None:
-        message = "selections"
-
-    print("%s (indices, sep by space)> " % message, flush=True, end="")
-    input_ = input()
-    selections = [int(x) - 1 for x in input_.split()]
-    return selections
-
-
-def select_options(options, message=None):
-    return _prompt(options=options, message=message)
-
-
-def prompt_list(options, message=None):
-    selected = _prompt(options=options, message=message)
-    if len(selected) == 1:
-        return selected[0]
-    elif len(selected) == 0:
-        return None
-    else:
-        raise Exception("Please only select 1 item.")
-
-
-def ceildiv(a, b):
-    return -(a // -b)
-
-
 def clear_terminal():
     if sys.platform == "win32":
-        os.system("cls")
-    else:
-        os.system("clear")
+        subprocess.run(["cls"], check=False, shell=True)
+        return
+
+    if os.environ.get("TERM"):
+        subprocess.run(["clear"], check=False)
+        return
+
+    sys.stdout.write("\033[2J\033[H")
+    sys.stdout.flush()
 
 
 def get_terminal_title():

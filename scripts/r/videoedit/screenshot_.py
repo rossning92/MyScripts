@@ -1,16 +1,16 @@
 from _image import *
 from _shutil import *
-from _term import *
 from mss import mss
 from PIL import Image
 from utils.slugify import slugify
+from utils.term import *
 
 SIZE = (1920, 1080)
 TASKBAR_HEIGHT = 45
 
 
 def print_help():
-    print2("[c] crop (0,0,1920,1080)\n" "[1] scale to 1080p\n" "[q] quit\n")
+    print2("[c] crop (0,0,1920,1080)\n[1] scale to 1080p\n[q] quit\n")
 
 
 if __name__ == "__main__":

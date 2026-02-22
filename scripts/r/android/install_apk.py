@@ -3,9 +3,9 @@ import logging
 import os
 
 from _shutil import call_echo, get_files
-from _term import set_terminal_title
 from utils.android import adb_install2, get_pkg_name_apk
 from utils.logger import setup_logger
+from utils.term import set_terminal_title
 
 if __name__ == "__main__":
     setup_logger(level=logging.INFO)

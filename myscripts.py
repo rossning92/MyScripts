@@ -45,7 +45,6 @@ from _shutil import (
     run_at_startup,
     setup_nodejs,
 )
-from _term import set_terminal_title
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
 from utils.jsonutil import load_json, save_json
@@ -63,6 +62,7 @@ from utils.script.path import (
     get_script_config_file_path,
     get_variable_edit_history_file,
 )
+from utils.term import set_terminal_title
 from utils.timeutil import time_diff_str
 from utils.tmux import has_tmux_session, is_in_tmux
 

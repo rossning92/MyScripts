@@ -8,6 +8,13 @@ from ai.utils.tools import Settings
 from utils.menu.confirmmenu import confirm
 from utils.menu.menu import Menu
 from utils.menu.shellcmdmenu import ShellCmdMenu
+from utils.term import clear_terminal
+
+
+def _run_script(command: str, log_file: str) -> None:
+    clear_terminal()
+    subprocess.run(["script", "-q", "-e", "-c", command, log_file], check=False)
+
 
 TRUSTED_COMMANDS = ["ls", "pwd", "date"]
 
@@ -19,11 +26,7 @@ def _run_bash(command: str) -> str:
 
     try:
         # Run command interactively using 'script' (-q: quiet, -e: return exit code, -c: run command)
-        Menu.run_raw(
-            lambda: subprocess.run(
-                ["script", "-q", "-e", "-c", command, log_file], check=False
-            )
-        )
+        Menu.run_raw(lambda: _run_script(command, log_file))
 
         # Read the captured output
         with open(log_file, "r") as f:

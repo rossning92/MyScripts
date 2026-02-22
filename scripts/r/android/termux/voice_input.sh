@@ -18,8 +18,18 @@ if [[ "$confirm_choice" == "yes" ]]; then
     echo "" >&3
     wait $pid
     if [[ -f "$tmp_file" ]]; then
-        termux-clipboard-set <"$tmp_file"
-        su -c "input keyevent 279"
+        text=$(cat "$tmp_file")
+        if [[ -n "$text" ]]; then
+            # Use clipboard paste for multiline/tabbed or non-ASCII content.
+            if [[ "$text" == *$'\n'* || "$text" == *$'\t'* ]] || printf '%s' "$text" | LC_ALL=C grep -q '[^ -~]'; then
+                termux-clipboard-set <"$tmp_file"
+                su -c "input keyevent 279"
+            else
+                safe_text=${text// /%s}
+                safe_text=$(printf '%q' "$safe_text")
+                su -c "input text $safe_text"
+            fi
+        fi
     fi
 else
     printf '\e' >&3

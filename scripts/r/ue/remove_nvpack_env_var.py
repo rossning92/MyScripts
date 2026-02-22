@@ -1,6 +1,7 @@
-from _shutil import *
-from _term import *
 import json
+
+from _shutil import *
+from utils.term import *
 
 out = subprocess.check_output("reg query HKCU\Environment", shell=True)
 out = out.decode()

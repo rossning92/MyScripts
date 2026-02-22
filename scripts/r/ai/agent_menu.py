@@ -28,6 +28,7 @@ from ai.utils.tooluse import (
     get_tool_use_prompt,
     parse_text_for_tool_use,
 )
+from utils.notify import send_notify
 from utils.jsonschema import JSONSchema
 from utils.jsonutil import load_json
 from utils.menu.confirmmenu import ConfirmMenu
@@ -370,7 +371,8 @@ class AgentMenu(ChatMenu):
                 self.send_message(reply, tool_results=tool_results)
 
     def on_response(self, text: str, done: bool):
-        pass
+        if done:
+            send_notify(text[:100])
 
     def on_tool_use_start(self, tool_use: ToolUse):
         if not self.get_settings()["function_call"]:

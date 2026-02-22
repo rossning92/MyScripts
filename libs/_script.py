@@ -1517,6 +1517,7 @@ class Script:
                             [
                                 "tmux",
                                 "new-window",
+                                "-a",  # Insert window after the current window
                                 "-n",
                                 self.get_window_name_tmux(),
                             ]

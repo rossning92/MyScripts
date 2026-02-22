@@ -2,6 +2,7 @@ MODELS = [
     "claude-sonnet-4-5",
     "gpt-5.2(medium)",
     "gpt-5.2-chat-latest",
+    "gpt-5.2-codex",
     "gpt-5-mini",
     "gpt-4.1",
     "gpt-4.1-mini",

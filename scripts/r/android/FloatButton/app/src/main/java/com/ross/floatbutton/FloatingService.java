@@ -90,7 +90,7 @@ public class FloatingService extends Service {
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
                         if (deltaX < CLICK_THRESHOLD && deltaY < CLICK_THRESHOLD) {
-                            runTermuxCommand("voice_input.sh");
+                            runTermuxCommand("voice_input.sh", true);
                         } else {
                             int screenWidth = windowManager.getDefaultDisplay().getWidth();
                             int viewWidth = floatingView.getWidth();
@@ -129,7 +129,7 @@ public class FloatingService extends Service {
         manager.createNotificationChannel(serviceChannel);
     }
 
-    private void runTermuxCommand(String scriptName) {
+    private void runTermuxCommand(String scriptName, boolean background) {
         // https://github.com/termux/termux-app/wiki/RUN_COMMAND-Intent#Setup-Instructions
         Intent intent = new Intent();
         intent.setClassName("com.termux", "com.termux.app.RunCommandService");
@@ -139,9 +139,11 @@ public class FloatingService extends Service {
                 new String[] {
                         "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/" + scriptName });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
-        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", false);
-        // https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java
-        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2");
+        intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", background);
+        if (!background) {
+            // https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java
+            intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2");
+        }
         try {
             startService(intent);
         } catch (Exception e) {

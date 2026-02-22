@@ -1,7 +1,7 @@
 from _shutil import *
-from _term import *
 from utils.clip import set_clip
 from utils.slugify import slugify
+from utils.term import *
 from video_editor import edit_video
 
 if __name__ == "__main__":
