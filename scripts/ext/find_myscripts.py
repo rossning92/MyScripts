@@ -2,7 +2,7 @@ import glob
 import os
 
 from find_in_files import find_in_files
-from scripting.path import get_my_script_root
+from utils.script.path import get_my_script_root
 
 if __name__ == "__main__":
     find_in_files(

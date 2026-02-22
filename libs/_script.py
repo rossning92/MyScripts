@@ -39,7 +39,14 @@ from _shutil import (
     wrap_args_conemu,
     write_temp_file,
 )
-from scripting.path import (
+from utils.android import setup_android_env
+from utils.clip import get_clip, get_selection
+from utils.dotenv import load_dotenv
+from utils.email import send_email_md
+from utils.jsonutil import load_json, save_json
+from utils.menu.csvmenu import CsvMenu
+from utils.process import start_process
+from utils.script.path import (
     ScriptDirectory,
     get_absolute_script_path,
     get_bin_dir,
@@ -56,13 +63,6 @@ from scripting.path import (
     get_temp_dir,
     get_variable_file,
 )
-from utils.android import setup_android_env
-from utils.clip import get_clip, get_selection
-from utils.dotenv import load_dotenv
-from utils.email import send_email_md
-from utils.jsonutil import load_json, save_json
-from utils.menu.csvmenu import CsvMenu
-from utils.process import start_process
 from utils.shutil import shell_open
 from utils.slugify import slugify
 from utils.template import render_template
@@ -795,7 +795,15 @@ class Script:
             pass
 
         elif run_in_tmux or is_in_tmux():
-            subprocess.call(["tmux", "kill-window", "-t", self.get_window_name_tmux()])
+            cp = subprocess.run(
+                ["tmux", "kill-window", "-t", self.get_window_name_tmux()],
+                capture_output=True,
+                text=True,
+            )
+            if cp.stdout.strip():
+                logging.info(cp.stdout.strip())
+            if cp.stderr.strip():
+                logging.info(cp.stderr.strip())
 
         else:
             # Close exising instances

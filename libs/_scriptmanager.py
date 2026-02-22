@@ -21,9 +21,9 @@ from _shutil import (
     refresh_env_vars,
 )
 from _term import clear_terminal
-from scripting.path import get_data_dir, get_my_script_root, get_script_history_file
 from utils.jsonutil import load_json, save_json
 from utils.process import start_process
+from utils.script.path import get_data_dir, get_my_script_root, get_script_history_file
 from utils.template import render_template_file
 
 MYSCRIPT_GLOBAL_HOTKEY = os.path.join(get_data_dir(), "GlobalHotkey.ahk")

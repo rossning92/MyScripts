@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from pprint import pformat
 from threading import Thread
-from typing import Any, Dict, List, Literal, Optional, TypedDict
+from typing import Any, Dict, List, Literal, Optional
 from urllib.parse import unquote_to_bytes
 
 from ai.chat import (
@@ -26,7 +26,6 @@ from ai.models import DEFAULT_MODEL, MODELS
 from ai.utils.message import Message
 from ai.utils.tooluse import ToolDefinition, ToolResult, ToolUse
 from ai.utils.usagemetadata import UsageMetadata
-from scripting.path import get_data_dir
 from utils.clip import set_clip
 from utils.dateutil import format_timestamp
 from utils.editor import edit_text
@@ -44,6 +43,7 @@ from utils.menu.jsoneditmenu import JsonEditMenu
 from utils.menu.listeditmenu import ListEditMenu
 from utils.menu.textmenu import TextMenu
 from utils.platform import is_termux
+from utils.script.path import get_data_dir
 from utils.shutil import shell_open
 from utils.slugify import slugify
 from utils.template import render_template
@@ -213,7 +213,7 @@ class _SelectChatMenu(Menu[_ChatItem]):
 
     def __delete_chat(self):
         chats = self.get_selected_items()
-        if chats and confirm("Delete chat?"):
+        if chats and confirm("delete chat?"):
             for chat in chats:
                 os.remove(chat.path)
             self.__refresh()
@@ -323,8 +323,8 @@ class ChatMenu(Menu[Line]):
         self.add_command(self.__edit_message, hotkey="alt+e")
         self.add_command(self.__edit_prompt, hotkey="alt+p")
         self.add_command(self.__edit_settings, hotkey="alt+s")
-        self.add_command(self.__go_up_message, hotkey="alt+u")
-        self.add_command(self.__go_down_message, hotkey="alt+d")
+        self.add_command(self.__go_prev_message, hotkey="left")
+        self.add_command(self.__go_next_message, hotkey="right")
         self.add_command(self.__load_chat, hotkey="ctrl+l")
         self.add_command(self.__load_prompt, hotkey="tab")
         self.add_command(self.__save_prompt)
@@ -459,10 +459,10 @@ class ChatMenu(Menu[Line]):
                 self.set_selected_item(self.__lines[j])
                 return
 
-    def __go_down_message(self):
+    def __go_next_message(self):
         self.__goto_message("next")
 
-    def __go_up_message(self):
+    def __go_prev_message(self):
         self.__goto_message("prev")
 
     def __edit_prompt(self):
@@ -912,8 +912,9 @@ Following is my instructions:
                     usage=self.__usage,
                 ):
                     self.post_event(
-                        lambda chunk_index=chunk_index,
-                        chunk=chunk: self.__on_chat_chunk(chunk_index, chunk)
+                        lambda chunk_index=chunk_index, chunk=chunk: (
+                            self.__on_chat_chunk(chunk_index, chunk)
+                        )
                     )
                     chunk_index += 1
 

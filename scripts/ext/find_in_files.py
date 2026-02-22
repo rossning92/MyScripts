@@ -3,10 +3,10 @@ import os
 import time
 from typing import Iterable, Iterator, List, Optional
 
-from scripting.path import get_relative_script_path
 from utils.editor import open_code_editor
 from utils.menu import Menu
 from utils.menu.inputmenu import InputMenu
+from utils.script.path import get_relative_script_path
 
 
 class _MatchedLine:

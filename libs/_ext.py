@@ -15,7 +15,12 @@ from _script import (
     get_default_script_config,
 )
 from _shutil import quote_arg
-from scripting.path import (
+from utils.clip import set_clip
+from utils.editor import is_vscode_available, open_in_vscode
+from utils.jsonutil import save_json
+from utils.menu import Menu
+from utils.menu.dicteditmenu import DictEditMenu
+from utils.script.path import (
     get_absolute_script_path,
     get_data_dir,
     get_my_script_root,
@@ -25,11 +30,6 @@ from scripting.path import (
     get_script_directories,
     get_script_root,
 )
-from utils.clip import set_clip
-from utils.editor import is_vscode_available, open_in_vscode
-from utils.jsonutil import save_json
-from utils.menu import Menu
-from utils.menu.dicteditmenu import DictEditMenu
 from utils.template import render_template_file
 from utils.tmux import is_in_tmux
 

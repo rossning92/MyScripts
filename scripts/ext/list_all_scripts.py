@@ -1,5 +1,5 @@
 from _script import get_all_scripts
-from scripting.path import get_script_config_file
+from utils.script.path import get_script_config_file
 
 if __name__ == "__main__":
     for file in get_all_scripts():

@@ -1,9 +1,9 @@
 import glob
 import os
 
-from scripting.path import get_my_script_root
 from utils.editor import open_code_editor
 from utils.menu import Menu
+from utils.script.path import get_my_script_root
 
 
 def _main():

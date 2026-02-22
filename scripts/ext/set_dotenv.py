@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from scripting.path import get_data_dir
 from utils.dotenv import set_dotenv
+from utils.script.path import get_data_dir
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

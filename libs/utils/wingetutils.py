@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 
-from scripting.path import get_data_dir
+from utils.script.path import get_data_dir
 
 
 def get_export_file() -> str:

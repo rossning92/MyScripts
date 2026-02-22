@@ -4,7 +4,7 @@ import sys
 import time
 from typing import List
 
-from scripting.status import get_script_status
+from utils.script.status import get_script_status
 from utils.menu import Menu
 from utils.tmux import is_in_tmux
 

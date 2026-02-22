@@ -517,7 +517,7 @@ class Menu(Generic[T]):
                 self.__custom_commands.remove(cmd)
 
     def get_history_file(self):
-        from scripting.path import get_data_dir
+        from utils.script.path import get_data_dir
 
         return os.path.join(get_data_dir(), "%s_history.json" % slugify(self.history))
 
@@ -1291,7 +1291,7 @@ class Menu(Generic[T]):
     def get_item_text_llm(self, item: T) -> str:
         return self.get_item_text(item)
 
-    def get_item_color(self, item: T) -> str:
+    def get_item_color(self, item: T) -> Union[str, Tuple[str, str]]:
         return "white"
 
     def goto_line(self, line: int):
@@ -1386,7 +1386,17 @@ class Menu(Generic[T]):
             item_text = self.get_item_text(self.items[item_index])
 
             # Item color
-            fg: int = _to_curses_color(self.get_item_color(item))
+            item_color = self.get_item_color(item)
+            if isinstance(item_color, tuple):
+                fg_color, bg_color = item_color
+            elif isinstance(item_color, str):
+                fg_color, bg_color = item_color, -1
+            else:
+                raise ValueError(f"Invalid item color: {item_color}")
+            fg: int = _to_curses_color(fg_color)
+            bg: int = _to_curses_color(bg_color)
+
+            # If a highlight is specified
             if self.__highlight is not None:
                 for patt, c in self.__highlight.items():
                     if re.search(patt, item_text):
@@ -1399,6 +1409,7 @@ class Menu(Generic[T]):
                 item_text,
                 wrap_text=self.item_wrap(item),
                 fg=fg,
+                bg=bg,
                 reverse=is_item_selected,
                 scroll_x=self.__scroll_x,
                 ymax=item_y_max,

@@ -13,8 +13,8 @@ from _shutil import (
     get_time_str,
     print2,
 )
-from scripting.path import get_my_script_root
 from utils.menu.actionmenu import ActionMenu
+from utils.script.path import get_my_script_root
 from utils.shutil import shell_open
 
 

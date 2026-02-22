@@ -11,7 +11,7 @@ from urllib.parse import unquote
 
 from _script import Script
 from _scriptmanager import ScriptManager
-from scripting.path import get_data_dir, get_my_script_root
+from utils.script.path import get_data_dir, get_my_script_root
 
 HOST_NAME = "127.0.0.1"
 

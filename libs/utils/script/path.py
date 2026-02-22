@@ -92,7 +92,7 @@ def get_script_root() -> str:
 
 @lru_cache(maxsize=None)
 def get_my_script_root():
-    return os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../../")
+    return os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../../../")
 
 
 @lru_cache(maxsize=None)

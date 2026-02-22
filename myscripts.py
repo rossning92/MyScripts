@@ -46,11 +46,6 @@ from _shutil import (
     setup_nodejs,
 )
 from _term import set_terminal_title
-from scripting.path import (
-    get_data_dir,
-    get_script_config_file_path,
-    get_variable_edit_history_file,
-)
 from utils.clip import set_clip
 from utils.fileutils import read_last_line
 from utils.jsonutil import load_json, save_json
@@ -63,6 +58,11 @@ from utils.menu.filemenu import FileMenu
 from utils.menu.inputmenu import InputMenu
 from utils.menu.logmenu import LogMenu
 from utils.platform import is_termux
+from utils.script.path import (
+    get_data_dir,
+    get_script_config_file_path,
+    get_variable_edit_history_file,
+)
 from utils.timeutil import time_diff_str
 from utils.tmux import has_tmux_session, is_in_tmux
 
