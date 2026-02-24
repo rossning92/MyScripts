@@ -4,8 +4,8 @@ import sys
 import time
 from typing import List
 
-from utils.script.status import get_script_status
 from utils.menu import Menu
+from utils.script.status import get_script_status
 from utils.tmux import is_in_tmux
 
 
@@ -114,30 +114,43 @@ class SwitchWindowMenu(Menu[WindowItem]):
         self.script_status = get_script_status()
         self.refresh()
 
+    def __activate_window(self, win_id):
+        if isinstance(win_id, str) and win_id.startswith("tmux:"):
+            target = win_id[len("tmux:") :]
+            subprocess.call(["tmux", "select-window", "-t", target])
+            self.close()
+        elif sys.platform == "win32":
+            user32 = ctypes.windll.user32
+
+            hwnd = win_id
+            if user32.IsIconic(hwnd):
+                user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+
+            # Use the "Alt" key hack to bypass focus stealing restrictions
+            # 0x12 is VK_MENU (Alt key)
+            user32.keybd_event(0x12, 0, 0, 0)  # Alt Down
+            user32.SetForegroundWindow(hwnd)
+            user32.keybd_event(0x12, 0, 2, 0)  # Alt Up
+
+            self.clear_input()
+        elif sys.platform == "linux":
+            subprocess.call(["wmctrl", "-i", "-a", win_id])
+            self.close()
+
     def on_enter_pressed(self):
         selected = self.get_selected_item()
         if selected:
-            if isinstance(selected.id, str) and selected.id.startswith("tmux:"):
-                target = selected.id[len("tmux:") :]
-                subprocess.call(["tmux", "select-window", "-t", target])
-                self.close()
-            elif sys.platform == "win32":
-                user32 = ctypes.windll.user32
+            self.__activate_window(selected.id)
 
-                hwnd = selected.id
-                if user32.IsIconic(hwnd):
-                    user32.ShowWindow(hwnd, 9)  # SW_RESTORE
-
-                # Use the "Alt" key hack to bypass focus stealing restrictions
-                # 0x12 is VK_MENU (Alt key)
-                user32.keybd_event(0x12, 0, 0, 0)  # Alt Down
-                user32.SetForegroundWindow(hwnd)
-                user32.keybd_event(0x12, 0, 2, 0)  # Alt Up
-
-                self.clear_input()
-            elif sys.platform == "linux":
-                subprocess.call(["wmctrl", "-i", "-a", selected.id])
-                self.close()
+    def on_char(self, ch):
+        if isinstance(ch, str) and ch.isdigit():
+            index = int(ch) - 1
+            if 0 <= index <= 8:
+                item_indices = list(self.get_item_indices())
+                if index < len(item_indices):
+                    self.__activate_window(self.items[item_indices[index]].id)
+                    return True
+        return super().on_char(ch)
 
     def on_escape_pressed(self):
         self.clear_input()
