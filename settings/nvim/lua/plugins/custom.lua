@@ -186,12 +186,12 @@ vim.keymap.set('n', "<leader><space>", speech_to_text)
 local function run_coder()
     local full_path = vim.api.nvim_buf_get_name(0)
     if full_path ~= "" then
-        -- Get selected line ranges
-        local start_pos = vim.fn.getpos("v")
-        local end_pos = vim.fn.getpos(".")
+        local mode = vim.fn.mode()
 
-        -- If any text is selected
-        if start_pos[2] ~= end_pos[2] or start_pos[3] ~= end_pos[3] then
+        if mode == "v" or mode == "V" or mode == "\22" then
+            -- Get selected line ranges
+            local start_pos = vim.fn.getpos("v")
+            local end_pos = vim.fn.getpos(".")
             local line_start = start_pos[2]
             local line_end = end_pos[2]
 

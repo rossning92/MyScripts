@@ -101,6 +101,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Ta
 echo Disable transparency effect
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v EnableTransparency /t REG_DWORD /d 0 /f
 
+echo Disable CABC
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v DisableCABC /t REG_DWORD /d 1 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v CABCOption /t REG_DWORD /d 0 /f
+
 echo Revert to the full right-click menu
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
 

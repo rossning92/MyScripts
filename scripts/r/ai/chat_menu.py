@@ -152,13 +152,17 @@ class _ChatItem:
         messages: List[Message] = load_json(path, default=[])
 
         file_name = os.path.splitext(os.path.basename(path))[0]
-        display_name = file_name if not file_name.startswith("chat_") else ""
-        self.text = " ".join((m["text"] for m in messages))
-        parts = [format_timestamp(os.path.getmtime(path))]
-        if display_name:
-            parts.append(display_name)
-        parts.append(truncate_text(self.text))
-        self.preview = ": ".join(parts)
+        display_name = "" if file_name.startswith("chat_") else file_name
+        self.text = messages[0]["text"] if messages else ""
+        ts = format_timestamp(os.path.getmtime(path))
+        ts = f"\033[34m{ts}\033[0m" if ts else ts
+        display_name = f"\033[32m{display_name}\033[0m" if display_name else display_name
+        parts = [
+            ts,
+            display_name,
+            truncate_text(self.text),
+        ]
+        self.preview = " ".join(part for part in parts if part)
 
     def __str__(self) -> str:
         return self.text
