@@ -116,7 +116,7 @@ local function edit_selected_text(opts)
         command = command .. " -i " .. input_file
     else
         input_file = write_to_temp_file(text, ".txt")
-        command = command .. " --attachment " .. input_file
+        command = command .. " --context " .. input_file
     end
 
     run_in_terminal(command, {
