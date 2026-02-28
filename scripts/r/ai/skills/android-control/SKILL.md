@@ -71,14 +71,6 @@ termux-media-player play song.mp3
 termux-tts-speak "Hello world"
 ```
 
-## Make media visible in Gallery
-
-```bash
-termux-media-scan photo.jpg
-```
-
----
-
 ## Call number
 
 ```bash
@@ -103,7 +95,7 @@ termux-sms-list
 termux-call-log
 ```
 
-## 📇 Contacts
+## Contacts
 
 ```bash
 termux-contact-list
@@ -138,4 +130,12 @@ echo "Hello" | termux-share
 
 ```bash
 termux-share file.txt
+```
+
+## Navigation
+
+For navigation or finding locations:
+
+```bash
+termux-open "https://www.google.com/maps/dir/?api=1&destination=ADDRESS"
 ```

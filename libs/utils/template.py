@@ -48,12 +48,17 @@ class Template:
         global_context["set"] = set
 
         # Include function
-        def include(file: str, context={}):
+        def include(file_name: str, context={}):
             nonlocal undefined_names
 
+            file_path = file_name
             if self.file_locator:
-                file = self.file_locator(file)
-            with open(file, "r", encoding="utf-8") as f:
+                file_path = self.file_locator(file_name)
+
+            if not file_path:
+                raise FileNotFoundError(f"Could not locate file: {file_name}")
+
+            with open(file_path, "r", encoding="utf-8") as f:
                 s = f.read()
             return Template(s, file_locator=self.file_locator).render(
                 context={**global_context, **context},

@@ -12,7 +12,7 @@ from ai.chat_menu import Line
 from ai.utils.env import get_env_info
 from ai.utils.filecontextmenu import FileContextMenu
 from ai.utils.message import Message
-from ai.utils.rules import get_rule_file, get_rules_prompt
+from ai.utils.rules import get_project_rule_file, get_rules_prompt
 from ai.utils.tools import Settings
 from ai.utils.tooluse import ToolUse
 from utils.checkpoints import (
@@ -81,11 +81,8 @@ class CodeAgentMenu(AgentMenu):
             self.voice_input()
 
     def __edit_instructions(self):
-        file = get_rule_file(self.get_data_dir(), "AGENTS.md")
+        file = get_project_rule_file(self.get_data_dir(), "AGENTS.md")
         self.run_raw(lambda: edit_text_file(str(file)))
-
-    def __get_rules(self) -> str:
-        return get_rules_prompt(self.get_data_dir())
 
     def __open_diff(self):
         messages = self.get_messages()
@@ -93,16 +90,21 @@ class CodeAgentMenu(AgentMenu):
             self.set_message("No messages found")
             return
 
+        files = []
         for history_dir, rel_path in get_oldest_files_since_timestamp(
             messages[0]["timestamp"]
         ):
-            DiffMenu(file1=os.path.join(history_dir, rel_path), file2=rel_path).exec()
+            files.append((os.path.join(history_dir, rel_path), rel_path))
+
+        if files:
+            DiffMenu(files=files).exec()
 
     def get_system_prompt(self) -> str:
         prompt_parts = []
 
-        if self.__extra_system_prompt:
-            prompt_parts.append(self.__extra_system_prompt)
+        rules = get_rules_prompt(self.get_data_dir())
+        if rules:
+            prompt_parts.append(rules)
 
         prompt_parts.append(_SYSTEM_PROMPT)
 
@@ -110,9 +112,8 @@ class CodeAgentMenu(AgentMenu):
         if system:
             prompt_parts.append(system)
 
-        rules = self.__get_rules()
-        if rules:
-            prompt_parts.append(rules)
+        if self.__extra_system_prompt:
+            prompt_parts.append(self.__extra_system_prompt)
 
         file_context = self.__file_context_menu.get_prompt()
         if file_context:
@@ -122,7 +123,7 @@ class CodeAgentMenu(AgentMenu):
         if env:
             prompt_parts.append(env)
 
-        return "\n".join(prompt_parts)
+        return "\n\n".join(p.strip() for p in prompt_parts if p.strip())
 
     def revert_messages(self, from_msg_index: int) -> List[Message]:
         removed_messages = super().revert_messages(from_msg_index=from_msg_index)

@@ -99,8 +99,9 @@ def get_windows() -> List[WindowItem]:
 class SwitchWindowMenu(Menu[WindowItem]):
     def __init__(self):
         super().__init__(prompt="activate", items=[])
-        self.add_command(self.refresh_windows, hotkey="ctrl+r")
-        self.refresh_windows()
+        self.add_command(self.__refresh_windows, hotkey="ctrl+r")
+        self.add_command(self.__close_window, hotkey="delete")
+        self.__refresh_windows()
 
         if sys.platform == "win32":
             user32 = ctypes.windll.user32
@@ -109,7 +110,7 @@ class SwitchWindowMenu(Menu[WindowItem]):
             self._my_hwnd = None
         self._was_foreground = True
 
-    def refresh_windows(self):
+    def __refresh_windows(self):
         self.items = get_windows()
         self.script_status = get_script_status()
         self.refresh()
@@ -137,6 +138,24 @@ class SwitchWindowMenu(Menu[WindowItem]):
             subprocess.call(["wmctrl", "-i", "-a", win_id])
             self.close()
 
+    def __close_window(self):
+        selected = self.get_selected_item()
+        if not selected:
+            return
+
+        win_id = selected.id
+        if isinstance(win_id, str) and win_id.startswith("tmux:"):
+            return
+
+        if sys.platform == "win32":
+            user32 = ctypes.windll.user32
+            WM_CLOSE = 0x10
+            user32.PostMessageW(win_id, WM_CLOSE, 0, 0)
+        elif sys.platform == "linux":
+            subprocess.call(["wmctrl", "-i", "-c", win_id])
+
+        self.__refresh_windows()
+
     def on_enter_pressed(self):
         selected = self.get_selected_item()
         if selected:
@@ -163,7 +182,7 @@ class SwitchWindowMenu(Menu[WindowItem]):
             is_foreground = hwnd == self._my_hwnd
             if is_foreground and not self._was_foreground:
                 self.set_message(f"{time.strftime('%H:%M:%S')}: refresh window")
-                self.refresh_windows()
+                self.__refresh_windows()
             self._was_foreground = is_foreground
         else:
             # TODO: detect foreground window change on Linux if needed

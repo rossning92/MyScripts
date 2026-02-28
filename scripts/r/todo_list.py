@@ -124,8 +124,14 @@ class TodoMenu(ListEditMenu[TodoItem]):
     def __toggle_status(self):
         selected = self.get_selected_item()
         if selected:
-            status = "closed" if selected.get("status") != "closed" else "none"
-            self.__set_selected_item_value({"status": status})
+            status_order = ("none", "in_progress", "closed")
+            current = selected.get("status", "none")
+            try:
+                idx = status_order.index(current)
+            except ValueError:
+                idx = 0
+            next_status = status_order[(idx + 1) % len(status_order)]
+            self.__set_selected_item_value({"status": next_status})
 
     def get_item_text(self, item: TodoItem) -> str:
         # Date

@@ -28,12 +28,13 @@ from ai.utils.tooluse import (
     get_tool_use_prompt,
     parse_text_for_tool_use,
 )
-from utils.notify import send_notify
 from utils.jsonschema import JSONSchema
 from utils.jsonutil import load_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
+from utils.notify import send_notify
 from utils.strutil import to_ordinal
+from utils.textutil import truncate_text
 
 MODULE_NAME = Path(__file__).stem
 DATA_DIR = os.path.join(".config", MODULE_NAME)
@@ -43,17 +44,17 @@ def _get_prompt(
     tools: Optional[List[ToolDefinition]] = None,
     skill: bool = False,
 ) -> str:
-    prompt = ""
+    prompt_parts = []
 
     if tools:
-        prompt += "\n" + get_tool_use_prompt(tools)
+        prompt_parts.append(get_tool_use_prompt(tools))
 
     if skill:
         skill_prompt = get_skill_prompt()
         if skill_prompt:
-            prompt += "\n" + skill_prompt
+            prompt_parts.append(skill_prompt)
 
-    return prompt
+    return "\n\n".join(p.strip() for p in prompt_parts if p.strip())
 
 
 class _MCP(TypedDict):
@@ -217,7 +218,7 @@ class AgentMenu(ChatMenu):
     def get_system_prompt(self) -> str:
         return _get_prompt(
             tools=None if self.get_settings()["function_call"] else self.__tools,
-            skill=self.get_settings()["skill"],
+            skill=self.get_settings()["skill"] and self.get_settings()["enable_tools"],
         )
 
     def __handle_response(self):
@@ -252,7 +253,7 @@ class AgentMenu(ChatMenu):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
-                                content="Tool was interrupted by user.",
+                                content="Tool was interrupted by user",
                             )
                         )
                     else:
@@ -325,7 +326,7 @@ class AgentMenu(ChatMenu):
                             tool_results.append(
                                 ToolResult(
                                     tool_use_id=tool_use["tool_use_id"],
-                                    content="Tool completed successfully.",
+                                    content="Tool completed",
                                 )
                             )
                         else:
@@ -353,7 +354,7 @@ class AgentMenu(ChatMenu):
                         tool_results.append(
                             ToolResult(
                                 tool_use_id=tool_use["tool_use_id"],
-                                content="Tool was interrupted by user.",
+                                content="Tool was interrupted by user",
                             )
                         )
                     else:
@@ -372,7 +373,7 @@ class AgentMenu(ChatMenu):
 
     def on_response(self, text: str, done: bool):
         if done:
-            send_notify(text[:100])
+            send_notify(truncate_text(text, max_lines=1))
 
     def on_tool_use_start(self, tool_use: ToolUse):
         if not self.get_settings()["function_call"]:

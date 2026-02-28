@@ -188,16 +188,21 @@ class _TextInput:
         )
 
         y, x = Menu._stdscr.getyx()  # type: ignore
-        x += 1  # add a space between label and text input
+        _addstr(stdscr, y, x, " ")  # Add a space between label and text input
+        y, x = Menu._stdscr.getyx()  # type: ignore
 
-        _addstr(stdscr, y, x, self.text[: self.caret_pos])
+        attr = Menu._get_color_pair(-1, "black")
+
+        # Draw text before caret with black background
+        _addstr(stdscr, y, x, self.text[: self.caret_pos], attr)
         cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
 
         s = self.text[self.caret_pos :]
         if show_enter_symbol:
             s += " [search]"
 
-        _addstr(stdscr, cursor_y, cursor_x, s)
+        # Draw text after caret with black background
+        _addstr(stdscr, cursor_y, cursor_x, s, attr)
         last_y, last_x = Menu._stdscr.getyx()  # type: ignore
 
         return _TextInput.DrawInputResult(

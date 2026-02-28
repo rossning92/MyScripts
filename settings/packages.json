@@ -875,6 +875,11 @@
       "packages": ["Syncthing.Syncthing"]
     }
   },
+  "tesseract": {
+    "pacman": {
+      "packages": ["tesseract", "tesseract-data-eng"]
+    }
+  },
   "tightvnc": {
     "choco": {
       "packages": ["tightvnc"]

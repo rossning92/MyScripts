@@ -1,14 +1,14 @@
 #SingleInstance, Force
 CoordMode, Mouse, Screen
 
-WIN_WIDTH := 275
+WIN_WIDTH := 250
 ROW := 1
 
 TRANS_COLOR = 010203 ; Can be any RGB color.
 Gui -DPIScale +LastFound +AlwaysOnTop -Caption +ToolWindow +E0x20 +HwndMyGuiHwnd
 Gui, Margin, 2, 2
 Gui, Color, %TRANS_COLOR%
-Gui, Font, q3 c00FF00 s9, Terminal
+Gui, Font, q3 c00FF00 s8, Terminal
 Gui, Add, Text, vMyText w%WIN_WIDTH% r%ROW%
 WinSet, TransColor, %TRANS_COLOR% ; Make background transparent
 WinPosX := A_ScreenWidth - WIN_WIDTH
@@ -78,11 +78,17 @@ UpdateStats() {
     used := Format("{:.1f}", used / 1024 / 1024 / 1024)
 
     try {
-        ping := IPHelper.Ping("8.8.8.8") "ms"
+        ping := IPHelper.Ping("8.8.8.8")
     } catch {
         ping := "n/a"
     }
-    msg := "CPU:" Format("{:-3}", cpu "%") "  RAM:" used "/" total "G  PING:" ping
+
+    DriveGet, diskTotal, Capacity, C:
+    DriveSpaceFree, diskFree, C:
+    diskUsed := diskTotal - diskFree
+    diskPercent := Format("{:.0f}", (diskUsed / diskTotal) * 100)
+
+    msg := "CPU:" Format("{:-3}", cpu "%") "  RAM:" used "/" total "G  PING:" ping "  DISK:" diskPercent "%"
     GuiControl,, MyText, %msg%
 }
 

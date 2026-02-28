@@ -1,13 +1,11 @@
 import os
 import re
 import subprocess
-import sys
 from typing import List, Optional, Tuple, Union
 
 from _script import start_script
 
 from utils.git import get_git_root
-from utils.process import start_process
 
 from .textmenu import TextMenu
 
@@ -52,62 +50,58 @@ def _get_diff_line_info(diff_lines: List[str], index: int) -> Optional[Tuple[str
     return None
 
 
-class DiffMenu(TextMenu):
-    def __init__(
-        self, file1: Optional[str] = None, file2: Optional[str] = None, **kwargs
-    ):
-        self.__file1 = file1
-        self.__file2 = file2
-        self.__git_root = None
+def _run_git_diff(args: List[str]) -> List[str]:
+    cmd = [
+        "git",
+        "diff",
+        "--color",
+        "--ignore-space-change",
+        "--color-moved=zebra",
+        "--color-moved-ws=allow-indentation-change",
+    ] + args
+    cp = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    lines = []
+    for line in cp.stdout.splitlines():
+        stripped = _strip_ansi(line)
+        if stripped.startswith(("diff --git", "index ")):
+            continue
+        lines.append(line)
+    return lines
 
-        cmd = [
-            "git",
-            "diff",
-            "--color",
-            "--ignore-space-change",
-            "--color-moved=zebra",
-            "--color-moved-ws=allow-indentation-change",
-        ]
-        if self.__file1 and self.__file2:
-            cmd.extend(["--no-index", self.__file1, self.__file2])
+
+class DiffMenu(TextMenu):
+    def __init__(self, files: Optional[List[Tuple[str, str]]] = None, **kwargs):
+        self.__git_root = None
+        lines = []
+
+        if files:
+            for f1, f2 in files:
+                lines.extend(_run_git_diff(["--no-index", f1, f2]))
         else:
             git_root = get_git_root()
             if git_root:
                 self.__git_root = str(git_root)
 
+            args = []
             if subprocess.run(["git", "diff", "--quiet"]).returncode == 0:
-                cmd.extend(["HEAD~1", "HEAD"])
+                args.extend(["HEAD~1", "HEAD"])
 
-        cp = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
+            lines = _run_git_diff(args)
 
-        raw_lines = cp.stdout.splitlines()
-        filtered_lines = []
-        for line in raw_lines:
-            stripped = _strip_ansi(line)
-            if stripped.startswith(
-                (
-                    "diff --git",
-                    "index ",
-                )
-            ):
-                continue
-            filtered_lines.append(line)
-
-        self.__diff_lines = [_strip_ansi(line) for line in filtered_lines]
+        self.__diff_lines = [_strip_ansi(line) for line in lines]
 
         super().__init__(
             prompt="diff",
-            text="\n".join(filtered_lines),
+            text="\n".join(lines),
             wrap_text=False,
             **kwargs,
         )
 
-        self.add_command(self.__open_in_vscode, hotkey="ctrl+o")
         self.add_command(self.__edit_file, hotkey="ctrl+e")
 
     def __edit_file(self):
@@ -123,21 +117,6 @@ class DiffMenu(TextMenu):
             start_script(
                 "ext/edit.py",
                 args=[os.path.abspath(filename), "--line", str(line_number)],
-            )
-
-    def __open_in_vscode(self):
-        if self.__file1 and self.__file2:
-            start_process(
-                [
-                    (
-                        r"C:\Program Files\Microsoft VS Code\bin\code.cmd"
-                        if sys.platform == "win32"
-                        else "code"
-                    ),
-                    "--diff",
-                    self.__file1,
-                    self.__file2,
-                ]
             )
 
     def get_item_color(self, item: str) -> Union[str, Tuple[str, str]]:

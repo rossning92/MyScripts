@@ -22,6 +22,10 @@ if __name__ == "__main__":
         default=(float(v) if (v := os.environ.get("SCREENSHOT_SCALE")) else None),
         type=float,
     )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     setup_logger()
@@ -34,5 +38,5 @@ if __name__ == "__main__":
         scale=args.scale,
     )
 
-    if args.out is None:
+    if args.out is None or args.open:
         shell_open(file_name)
