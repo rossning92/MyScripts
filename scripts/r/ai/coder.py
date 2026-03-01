@@ -26,7 +26,7 @@ from utils.menu.filemenu import FileMenu
 _DIFF_CONTEXT_LINES = 0
 
 _SYSTEM_PROMPT = (
-    (Path(__file__).parent / "code_agent.system.md").read_text(encoding="utf-8").strip()
+    (Path(__file__).parent / "coder.system.md").read_text(encoding="utf-8").strip()
 )
 
 
@@ -53,19 +53,21 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
         Settings.need_confirm = self.data["need_confirm"]
 
 
-class CodeAgentMenu(AgentMenu):
+class CoderMenu(AgentMenu):
     def __init__(
         self,
         files: Optional[List[str]],
         voice_input: bool = False,
         settings_menu_class=SettingsMenu,
         extra_system_prompt: Optional[str] = None,
+        enable_tools: bool = True,
         **kwargs,
     ):
         super().__init__(
             data_dir=os.path.join(".config", "coder"),
             settings_menu_class=settings_menu_class,
             subagents=load_subagents(),
+            enable_tools=enable_tools,
             **kwargs,
         )
         self.__file_context_menu = FileContextMenu(files=files)
@@ -242,6 +244,7 @@ def _main():
     parser.add_argument("-m", "--model", type=str)
     parser.add_argument("--allow", action="append", help="allow certain bash commands")
     parser.add_argument("--voice-input", action="store_true")
+    parser.add_argument("--no-tools", action="store_true", help="disable tools")
     args = parser.parse_args()
 
     if args.model:
@@ -280,11 +283,12 @@ def _main():
         with open(system_prompt, "r", encoding="utf-8") as f:
             system_prompt = f.read()
 
-    menu = CodeAgentMenu(
+    menu = CoderMenu(
         files=files,
         context=args.context,
         extra_system_prompt=system_prompt,
         voice_input=args.voice_input,
+        enable_tools=not args.no_tools,
     )
     menu.exec()
 

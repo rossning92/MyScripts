@@ -90,14 +90,13 @@ class SettingsMenu(JsonEditMenu):
             self.data["model"] = model
 
     def get_default_values(self) -> Dict[str, Any]:
-        return {"model": DEFAULT_MODEL, "web_search": False, "retry": False}
+        return {"model": DEFAULT_MODEL, "retry": False}
 
     def get_schema(self) -> Optional[JSONSchema]:
         return {
             "type": "object",
             "properties": {
                 "model": {"type": "string", "enum": MODELS},
-                "web_search": {"type": "boolean"},
                 "retry": {"type": "boolean"},
             },
         }
@@ -911,7 +910,6 @@ Following is my instructions:
                     on_reasoning=lambda text: self.post_event(
                         lambda: self.on_reasoning(text)
                     ),
-                    web_search=self.get_settings()["web_search"],
                     out_message=out_message,
                     usage=self.__usage,
                 ):

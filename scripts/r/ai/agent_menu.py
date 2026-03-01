@@ -116,6 +116,7 @@ class AgentMenu(ChatMenu):
         mcp: Optional[List[_MCP]] = None,
         subagents: Optional[List[_Subagent]] = None,
         tools_callable: Optional[List[Callable]] = None,
+        enable_tools: bool = True,
         **kwargs,
     ):
         self.__yes_always = yes_always
@@ -130,6 +131,8 @@ class AgentMenu(ChatMenu):
         self.__mcp_clients = [
             MCPClient(command=shlex.split(item["command"])) for item in mcp_items
         ]
+
+        self.set_setting("enable_tools", enable_tools)
 
         self.add_command(self.__open_file_menu, hotkey="alt+f")
         self.add_command(self.__toggle_tools, hotkey="ctrl+t")

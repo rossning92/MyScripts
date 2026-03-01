@@ -50,7 +50,6 @@ async def complete_chat(
     on_tool_use_args_delta: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
     on_reasoning: Optional[Callable[[str], None]] = None,
-    web_search=False,
     usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     OPENROUTER_PREFIX = "openrouter:"
@@ -90,7 +89,6 @@ async def complete_chat(
             tools=tools,
             on_image=on_image,
             on_tool_use=on_tool_use,
-            web_search=web_search,
             usage=usage,
         )
     elif model == "local_llm":
@@ -114,6 +112,5 @@ async def complete_chat(
             tools=tools,
             on_tool_use_start=on_tool_use_start,
             on_tool_use=on_tool_use,
-            web_search=web_search,
             usage=usage,
         )

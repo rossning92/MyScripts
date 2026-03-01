@@ -1695,7 +1695,7 @@ class Menu(Generic[T]):
 
             args = [
                 "start_script",
-                "r/ai/code_agent.py",
+                "r/ai/coder.py",
                 "--context",
                 tmpfile,
             ]

@@ -21,7 +21,13 @@ class MutableString:
 
 
 class ShellCmdMenu(Menu):
-    def __init__(self, command: Union[str, List[str]], prompt: str = "", **kwargs):
+    def __init__(
+        self,
+        command: Union[str, List[str]],
+        prompt: str = "",
+        raise_on_interrupt: bool = False,
+        **kwargs,
+    ):
         super().__init__(prompt=prompt, search_mode=False, line_number=False, **kwargs)
 
         self.__command = command
@@ -29,6 +35,8 @@ class ShellCmdMenu(Menu):
         self.__exception: Optional[Exception] = None
         self.__output = ""
         self.__process: Optional[subprocess.Popen] = None
+        self.__raise_on_interrupt = raise_on_interrupt
+        self.__interrupted = False
 
         self.__thread = Thread(target=self.__shell_cmd_thread)
         self.__spinner = cycle(["|", "/", "-", "\\"])
@@ -91,12 +99,19 @@ class ShellCmdMenu(Menu):
     def get_output(self) -> str:
         return self.__output
 
+    def is_interrupted(self) -> bool:
+        return self.__interrupted
+
     def __send_ctrl_c(self):
+        self.__interrupted = True
         if self.__process:
             if sys.platform == "win32":
                 os.kill(self.__process.pid, signal.CTRL_C_EVENT)
             else:
                 self.__process.send_signal(signal.SIGINT)
+
+            if self.__raise_on_interrupt:
+                raise KeyboardInterrupt()
 
     def __update_prompt(self):
         self.set_prompt(next(self.__spinner) + " " + self.__prompt)

@@ -204,7 +204,7 @@ local function run_coder()
             full_path = full_path .. "#" .. line_start .. "-" .. line_end
         end
 
-        run_in_terminal('start_script --cd=false r/ai/code_agent.py "' .. full_path .. '"', {
+        run_in_terminal('start_script --cd=false r/ai/coder.py "' .. full_path .. '"', {
             on_exit = function()
                 -- Reload the current file from disk
                 vim.api.nvim_command('edit!')

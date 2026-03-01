@@ -1,1 +1,1 @@
-run_script r/ai/code_agent.py --voice-input
+run_script r/ai/coder.py --voice-input

@@ -19,14 +19,10 @@ function activate(context) {
       const fileAndLines = selection.isEmpty
         ? fileName
         : `${fileName}#${selection.start.line + 1}-${selection.end.line + 1}`;
-      spawn(
-        "start_script",
-        ["--cd=false", "r/ai/code_agent.py", fileAndLines],
-        {
-          detached: true,
-          stdio: "ignore",
-        },
-      );
+      spawn("start_script", ["--cd=false", "r/ai/coder.py", fileAndLines], {
+        detached: true,
+        stdio: "ignore",
+      });
     },
   );
 

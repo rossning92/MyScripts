@@ -94,6 +94,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
                 "id": self.get_next_id(),
                 "status": "none",
                 "description": "",
+                "due_ts": parse_datetime("today").timestamp(),
             }
         )
 
@@ -293,12 +294,13 @@ def _add_todo(data_file: str, desc: str, due: Optional[str] = None):
         "id": menu.get_next_id(),
         "description": desc,
         "status": "none",
+        "due_ts": parse_datetime("today").timestamp(),
     }
     if due:
-        dt = parse_datetime(due)
-        if dt:
+        try:
+            dt = parse_datetime(due)
             item["due_ts"] = dt.timestamp()
-        else:
+        except ValueError:
             print(f"Error: Invalid date format: {due}")
             sys.exit(1)
     menu.items.append(item)
@@ -339,10 +341,10 @@ def _edit_todo(
     if status is not None:
         item["status"] = status  # type: ignore
     if due is not None:
-        dt = parse_datetime(due)
-        if dt:
+        try:
+            dt = parse_datetime(due)
             item["due_ts"] = dt.timestamp()
-        else:
+        except ValueError:
             print(f"Error: Invalid date format: {due}")
             sys.exit(1)
 

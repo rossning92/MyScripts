@@ -1,9 +1,9 @@
 import re
 from datetime import datetime, timedelta
-from typing import Optional
 
 
-def parse_datetime(text: str) -> Optional[datetime]:
+
+def parse_datetime(text: str) -> datetime:
     text_lower = text.strip().lower()
 
     is_next = False
@@ -69,9 +69,12 @@ def parse_datetime(text: str) -> Optional[datetime]:
             elif ampm == "am" and hour == 12:
                 hour = 0
 
-        return datetime(year, month, day, hour, minute)
+        try:
+            return datetime(year, month, day, hour, minute)
+        except ValueError as e:
+            raise ValueError(f"Invalid date/time: {text}") from e
 
-    return None
+    raise ValueError(f"Could not parse datetime: {text}")
 
 
 def format_datetime(dt: datetime, show_year: bool = False, show_hhmm=True) -> str:
