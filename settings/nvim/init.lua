@@ -23,6 +23,10 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz", { silent = true })
 vim.keymap.set("i", "WW", "<Esc>:w<CR>i")
 vim.keymap.set({ "n", "o" }, "WW", ":w<CR>")
 
+-- Quickly save and exit
+vim.keymap.set("i", "ZZ", "<Esc>:wq<CR>")
+vim.keymap.set({ "n", "o" }, "ZZ", ":wq<CR>")
+
 -- Terminal settings
 vim.api.nvim_command("autocmd TermOpen * startinsert")
 vim.api.nvim_command("autocmd TermOpen * setlocal nonumber norelativenumber signcolumn=no")

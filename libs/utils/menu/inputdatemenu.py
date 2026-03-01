@@ -64,8 +64,6 @@ def input_date(prompt: str, default_ts: Optional[float] = None) -> Optional[floa
     # Parse date and time
     try:
         dt = parse_datetime(val)
-        if not dt:
-            return None
     except ValueError:
         return None
 

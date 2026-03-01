@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -21,7 +22,37 @@ import android.widget.ImageView;
 public class FloatingService extends Service {
     private WindowManager windowManager;
     private View floatingView;
+    private WindowManager.LayoutParams params;
     private static final String CHANNEL_ID = "FloatingServiceChannel";
+
+    private String getPrefSuffix() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+                ? "_landscape"
+                : "_portrait";
+    }
+
+    private void savePosition() {
+        SharedPreferences prefs = getSharedPreferences("FloatingButtonPrefs", MODE_PRIVATE);
+        String suffix = getPrefSuffix();
+        prefs.edit()
+                .putInt("x" + suffix, params.x)
+                .putInt("y" + suffix, params.y)
+                .apply();
+    }
+
+    private void updatePositionFromPrefs() {
+        SharedPreferences prefs = getSharedPreferences("FloatingButtonPrefs", MODE_PRIVATE);
+        String suffix = getPrefSuffix();
+        params.x = prefs.getInt("x" + suffix, prefs.getInt("x", 100));
+        params.y = prefs.getInt("y" + suffix, prefs.getInt("y", 100));
+        windowManager.updateViewLayout(floatingView, params);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updatePositionFromPrefs();
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -51,16 +82,17 @@ public class FloatingService extends Service {
 
         int layoutType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
-        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+        params = new WindowManager.LayoutParams(
                 150, 150, layoutType,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
         params.gravity = Gravity.TOP | Gravity.LEFT;
 
-        final SharedPreferences prefs = getSharedPreferences("FloatingButtonPrefs", MODE_PRIVATE);
-        params.x = prefs.getInt("x", 100);
-        params.y = prefs.getInt("y", 100);
+        SharedPreferences prefs = getSharedPreferences("FloatingButtonPrefs", MODE_PRIVATE);
+        String suffix = getPrefSuffix();
+        params.x = prefs.getInt("x" + suffix, prefs.getInt("x", 100));
+        params.y = prefs.getInt("y" + suffix, prefs.getInt("y", 100));
 
         floatingView.setOnTouchListener(new View.OnTouchListener() {
             private int initialX, initialY;
@@ -101,7 +133,7 @@ public class FloatingService extends Service {
                             animator.addUpdateListener(animation -> {
                                 params.x = (int) animation.getAnimatedValue();
                                 windowManager.updateViewLayout(floatingView, params);
-                                prefs.edit().putInt("x", params.x).putInt("y", params.y).apply();
+                                savePosition();
                             });
                             animator.start();
                         }

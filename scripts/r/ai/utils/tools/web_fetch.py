@@ -35,7 +35,7 @@ def web_fetch(url: str) -> str:
     Fetch the content of a web page from the given URL.
     """
     while True:
-        menu = ShellCmdMenu(
+        cmd_menu = ShellCmdMenu(
             command=[
                 "run_script",
                 "r/web/browsercli/browsercli.js",
@@ -43,22 +43,23 @@ def web_fetch(url: str) -> str:
                 url,
             ],
             prompt=f"fetching: {url}",
+            raise_on_interrupt=True,
         )
-        menu.exec()
+        cmd_menu.exec()
 
-        returncode = menu.get_returncode()
-        stdout = menu.get_output()
+        returncode = cmd_menu.get_returncode()
+        stdout = cmd_menu.get_output()
 
         if returncode == 0 and stdout:
             return stdout
 
         error_message = stdout
-        menu = FetchRetryMenu(
+        retry_menu = FetchRetryMenu(
             error_message=error_message,
             prompt=f"failed to fetch {url}",
         )
-        menu.exec()
-        if not menu.should_retry:
+        retry_menu.exec()
+        if not retry_menu.should_retry:
             raise Exception(error_message)
 
 

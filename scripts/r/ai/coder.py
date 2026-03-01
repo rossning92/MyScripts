@@ -22,11 +22,13 @@ from utils.checkpoints import (
 from utils.editor import edit_text_file
 from utils.menu.diffmenu import DiffMenu
 from utils.menu.filemenu import FileMenu
+from utils.notify import send_notify
+from utils.textutil import truncate_text
 
 _DIFF_CONTEXT_LINES = 0
 
 _SYSTEM_PROMPT = (
-    (Path(__file__).parent / "code_agent.system.md").read_text(encoding="utf-8").strip()
+    (Path(__file__).parent / "coder.system.md").read_text(encoding="utf-8").strip()
 )
 
 
@@ -53,7 +55,7 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
         Settings.need_confirm = self.data["need_confirm"]
 
 
-class CodeAgentMenu(AgentMenu):
+class CoderMenu(AgentMenu):
     def __init__(
         self,
         files: Optional[List[str]],
@@ -166,6 +168,13 @@ class CodeAgentMenu(AgentMenu):
             msg_index, subindex = self.get_message_index_and_subindex()
             for line in self.__get_edit_diff_lines(tool_use, msg_index, subindex):
                 self.append_item(line)
+
+    def on_generating(self):
+        send_notify(app="coder", hint="running")
+
+    def on_response(self, text: str, done: bool):
+        if done:
+            send_notify(truncate_text(text, max_lines=1), app="coder", hint="done")
 
     def __get_edit_diff_lines(
         self, tool_use: ToolUse, msg_index: int, subindex: int
@@ -280,7 +289,7 @@ def _main():
         with open(system_prompt, "r", encoding="utf-8") as f:
             system_prompt = f.read()
 
-    menu = CodeAgentMenu(
+    menu = CoderMenu(
         files=files,
         context=args.context,
         extra_system_prompt=system_prompt,

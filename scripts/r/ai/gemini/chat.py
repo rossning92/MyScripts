@@ -30,7 +30,6 @@ def _strip_additional_properties(value: Any) -> Any:
 # Doc: https://ai.google.dev/gemini-api/docs/function-calling
 def _to_gemini_tools(
     tools: Optional[List[ToolDefinition]] = None,
-    web_search: bool = False,
 ) -> List[Dict[str, Any]]:
     gemini_tools: List[Dict[str, Any]] = []
     if tools:
@@ -55,9 +54,6 @@ def _to_gemini_tools(
                 }
             )
         gemini_tools.append({"functionDeclarations": function_declarations})
-
-    if web_search:
-        gemini_tools.append({"google_search": {}})
 
     return gemini_tools
 
@@ -207,7 +203,6 @@ async def complete_chat(
     tools: Optional[List[ToolDefinition]] = None,
     on_image: Optional[Callable[[str], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-    web_search=False,
     usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     logger.debug(f"messages: {messages}")
@@ -244,7 +239,7 @@ async def complete_chat(
         ],
     }
 
-    gemini_tools = _to_gemini_tools(tools=tools, web_search=web_search)
+    gemini_tools = _to_gemini_tools(tools=tools)
     if gemini_tools:
         payload["tools"] = gemini_tools
 

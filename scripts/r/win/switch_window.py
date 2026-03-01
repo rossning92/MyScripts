@@ -5,7 +5,7 @@ import time
 from typing import List
 
 from utils.menu import Menu
-from utils.script.status import get_script_status
+from utils.notify import get_notifications
 from utils.tmux import is_in_tmux
 
 
@@ -112,14 +112,18 @@ class SwitchWindowMenu(Menu[WindowItem]):
 
     def __refresh_windows(self):
         self.items = get_windows()
-        self.script_status = get_script_status()
+        notifications = get_notifications()
+        self.script_status = {
+            n["app"]: n.get("hint")
+            for n in (notifications or [])
+            if isinstance(n, dict) and isinstance(n.get("app"), str)
+        }
         self.refresh()
 
     def __activate_window(self, win_id):
         if isinstance(win_id, str) and win_id.startswith("tmux:"):
             target = win_id[len("tmux:") :]
             subprocess.call(["tmux", "select-window", "-t", target])
-            self.close()
         elif sys.platform == "win32":
             user32 = ctypes.windll.user32
 
@@ -136,7 +140,6 @@ class SwitchWindowMenu(Menu[WindowItem]):
             self.clear_input()
         elif sys.platform == "linux":
             subprocess.call(["wmctrl", "-i", "-a", win_id])
-            self.close()
 
     def __close_window(self):
         selected = self.get_selected_item()
@@ -170,6 +173,9 @@ class SwitchWindowMenu(Menu[WindowItem]):
                     self.__activate_window(self.items[item_indices[index]].id)
                     return True
         return super().on_char(ch)
+
+    def on_focus_gained(self):
+        self.__refresh_windows()
 
     def on_escape_pressed(self):
         self.clear_input()

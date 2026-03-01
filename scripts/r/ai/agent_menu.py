@@ -32,9 +32,7 @@ from utils.jsonschema import JSONSchema
 from utils.jsonutil import load_json
 from utils.menu.confirmmenu import ConfirmMenu
 from utils.menu.filemenu import FileMenu
-from utils.notify import send_notify
 from utils.strutil import to_ordinal
-from utils.textutil import truncate_text
 
 MODULE_NAME = Path(__file__).stem
 DATA_DIR = os.path.join(".config", MODULE_NAME)
@@ -372,8 +370,7 @@ class AgentMenu(ChatMenu):
                 self.send_message(reply, tool_results=tool_results)
 
     def on_response(self, text: str, done: bool):
-        if done:
-            send_notify(truncate_text(text, max_lines=1))
+        pass
 
     def on_tool_use_start(self, tool_use: ToolUse):
         if not self.get_settings()["function_call"]:

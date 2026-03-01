@@ -38,6 +38,8 @@ SHIFT_DOWN = 0x150
 SHIFT_UP = 0x151
 KEY_A2 = 450
 KEY_C2 = 456
+KEY_FOCUS_IN = 578
+KEY_FOCUS_OUT = 579
 
 
 def _clamp(n, smallest, largest):
@@ -191,9 +193,8 @@ class _TextInput:
         _addstr(stdscr, y, x, " ")  # Add a space between label and text input
         y, x = Menu._stdscr.getyx()  # type: ignore
 
-        attr = Menu._get_color_pair(-1, "black")
-
         # Draw text before caret with black background
+        attr = Menu._get_color_pair("gray", "black")
         _addstr(stdscr, y, x, self.text[: self.caret_pos], attr)
         cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
 
@@ -639,6 +640,10 @@ class Menu(Generic[T]):
         if Menu._stdscr is not None:
             return
 
+        # Enable focus reporting
+        sys.stdout.write("\x1b[?1004h")
+        sys.stdout.flush()
+
         # Remove escape key delay for Linux system
         # See also: ESCDELAY in https://linux.die.net/man/3/ncurses
         os.environ.setdefault("ESCDELAY", "25")
@@ -654,6 +659,7 @@ class Menu(Generic[T]):
         curses.start_color()
         curses.use_default_colors()  # The default color is assigned to -1
 
+        # Enable handling of special keys and parse escape sequences (e.g. arrow keys)
         stdscr.keypad(True)
         stdscr.nodelay(False)
         stdscr.timeout(1000)
@@ -677,6 +683,10 @@ class Menu(Generic[T]):
         curses.endwin()
         Menu._stdscr = None
         Menu._color_pair_map.clear()
+
+        # Disable focus reporting
+        sys.stdout.write("\x1b[?1004l")
+        sys.stdout.flush()
 
     def _update_screen(self):
         assert Menu._stdscr is not None
@@ -808,6 +818,12 @@ class Menu(Generic[T]):
             self.last_key_pressed_timestamp = time.time()
             if self.on_char(ch):
                 self.update_screen()
+
+            elif ch == KEY_FOCUS_IN:
+                self.on_focus_gained()
+
+            elif ch == KEY_FOCUS_OUT:
+                self.on_focus_lost()
 
             elif ch == curses.ascii.ctrl("c"):
                 if raise_keyboard_interrupt:
@@ -1613,6 +1629,12 @@ class Menu(Generic[T]):
     def on_item_selection_changed(self, item: Optional[T], i: int):
         pass
 
+    def on_focus_gained(self):
+        pass
+
+    def on_focus_lost(self):
+        pass
+
     def set_message(self, message: Optional[str] = None):
         if message:
             self.__message = message
@@ -1695,7 +1717,7 @@ class Menu(Generic[T]):
 
             args = [
                 "start_script",
-                "r/ai/code_agent.py",
+                "r/ai/coder.py",
                 "--context",
                 tmpfile,
             ]

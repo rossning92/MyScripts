@@ -33,6 +33,10 @@ class ListEditMenu(Menu, Generic[T]):
         self.add_command(self.__delete_item, hotkey="delete")
         self.add_command(self.__force_save, hotkey="ctrl+s")
 
+    @property
+    def last_mtime(self) -> float:
+        return self.__last_mtime
+
     def load_json(self) -> bool:
         if self.__json_file is not None:
             result = try_load_json(

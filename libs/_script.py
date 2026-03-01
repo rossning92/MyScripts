@@ -620,20 +620,15 @@ class Script:
     def get_window_title(self) -> str:
         if self.console_title:
             return self.console_title
-        elif self.cfg["title"]:
-            assert isinstance(self.cfg["title"], str)
-            return self.cfg["title"]
-        else:
-            return "!!" + self.name
 
-    def get_window_name_tmux(self) -> str:
-        if self.console_title:
-            return self.console_title
-        elif self.cfg["title"]:
+        if self.cfg["title"]:
             assert isinstance(self.cfg["title"], str)
             return self.cfg["title"]
-        else:
+
+        if is_in_tmux():
             return os.path.splitext(os.path.basename(self.script_path))[0]
+
+        return "!!" + self.name
 
     def get_script_path(self) -> str:
         return self.real_script_path if self.real_script_path else self.script_path
@@ -758,7 +753,7 @@ class Script:
     def __activate_window(self, run_in_tmux: bool) -> bool:
         title = self.get_window_title()
         if (run_in_tmux or is_in_tmux()) and subprocess.call(
-            ["tmux", "select-window", "-t", self.get_window_name_tmux()],
+            ["tmux", "select-window", "-t", self.get_window_title()],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         ) == 0:
@@ -796,7 +791,7 @@ class Script:
 
         elif run_in_tmux or is_in_tmux():
             cp = subprocess.run(
-                ["tmux", "kill-window", "-t", self.get_window_name_tmux()],
+                ["tmux", "kill-window", "-t", self.get_window_title()],
                 capture_output=True,
                 text=True,
             )
@@ -1519,7 +1514,7 @@ class Script:
                                 "new-window",
                                 "-a",  # Insert window after the current window
                                 "-n",
-                                self.get_window_name_tmux(),
+                                self.get_window_title(),
                             ]
                             + [  # Pass environmental variable to new window.
                                 item

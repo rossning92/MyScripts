@@ -19,6 +19,7 @@ class TextMenu(Menu[str]):
             wrap_text=wrap_text,
             **kwargs,
         )
+        assert file or text, "Either file or text needs to be provided"
         if file:
             with open(file, "r", encoding="utf-8") as f:
                 for line in f.read().splitlines():
@@ -26,8 +27,6 @@ class TextMenu(Menu[str]):
         elif text:
             for line in text.splitlines():
                 self.items.append(line)
-        else:
-            raise Exception("Either `file` or `text` needs to be provided")
 
     def on_enter_pressed(self):
         if self.search_by_input():

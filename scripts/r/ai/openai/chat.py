@@ -82,7 +82,6 @@ async def complete_chat(
     tools: Optional[List[ToolDefinition]] = None,
     on_tool_use_start: Optional[Callable[[ToolUse], None]] = None,
     on_tool_use: Optional[Callable[[ToolUse], None]] = None,
-    web_search=False,
     usage: Optional[UsageMetadata] = None,
 ) -> AsyncIterator[str]:
     api_key = os.environ["OPENAI_API_KEY"]
@@ -146,10 +145,6 @@ async def complete_chat(
                 for tool in tools
             ]
         )
-
-    if web_search:
-        # https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat#sources
-        payload_tools.append({"type": "web_search"})
 
     if payload_tools:
         payload["tools"] = payload_tools
