@@ -1,7 +1,16 @@
 from utils.menu import Menu
 
+
+class MyMenu(Menu):
+    def on_focus_gained(self):
+        self.set_message("Focus gained")
+
+    def on_focus_lost(self):
+        self.set_message("Focus lost")
+
+
 if __name__ == "__main__":
-    menu = Menu(
+    menu = MyMenu(
         items=[
             "Apple",
             "Banana",

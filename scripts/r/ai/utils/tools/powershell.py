@@ -75,7 +75,7 @@ def _run_powershell(command: str) -> str:
             "-ExecutionPolicy",
             "Bypass",
             "-Command",
-            f"Start-Transcript -Path '{log_file}' -Force; try {{ & '{script_file}' }} finally {{ Stop-Transcript }}",
+            f"Clear-Host; Start-Transcript -Path '{log_file}' -Force; try {{ & '{script_file}' }} finally {{ Stop-Transcript }}",
         ]
 
         Menu.run_raw(lambda: subprocess.run(ps_command, check=False))

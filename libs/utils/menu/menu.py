@@ -636,6 +636,45 @@ class Menu(Generic[T]):
         return idx
 
     @staticmethod
+    def _setup_focus_keys():
+        try:
+            if hasattr(curses, "define_key"):
+                logging.debug("Using curses.define_key for focus events")
+                curses.define_key("\x1b[I", KEY_FOCUS_IN)
+                curses.define_key("\x1b[O", KEY_FOCUS_OUT)
+            else:
+                import ctypes
+
+                logging.debug(
+                    "curses.define_key not found, attempting to load ncurses via ctypes"
+                )
+                ncurses = None
+                for libname in [
+                    "libncursesw.so.6",
+                    "libncursesw.so",
+                    "libncurses.so.6",
+                    "libncurses.so",
+                ]:
+                    try:
+                        ncurses = ctypes.cdll.LoadLibrary(libname)
+                        logging.debug(f"Loaded {libname}")
+                        break
+                    except Exception:
+                        continue
+                if ncurses:
+                    ncurses.define_key.argtypes = [ctypes.c_char_p, ctypes.c_int]
+                    ncurses.define_key.restype = ctypes.c_int
+                    ncurses.define_key(b"\x1b[I", KEY_FOCUS_IN)
+                    ncurses.define_key(b"\x1b[O", KEY_FOCUS_OUT)
+                    logging.debug("Defined focus keys via ctypes ncurses")
+                else:
+                    logging.warning(
+                        "Could not find ncurses library for focus key definition"
+                    )
+        except Exception as e:
+            logging.error(f"Failed to setup focus keys: {e}")
+
+    @staticmethod
     def init_curses():
         if Menu._stdscr is not None:
             return
@@ -661,6 +700,9 @@ class Menu(Generic[T]):
 
         # Enable handling of special keys and parse escape sequences (e.g. arrow keys)
         stdscr.keypad(True)
+
+        Menu._setup_focus_keys()
+
         stdscr.nodelay(False)
         stdscr.timeout(1000)
         Menu._stdscr = stdscr

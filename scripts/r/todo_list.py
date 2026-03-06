@@ -174,7 +174,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         now = time.time()
         if now > self.__last_tick + 1.0:
             self.__last_tick = now
-            self.__reload(sort=False)
+            self.__reload()
 
     def on_escape_pressed(self):
         if not self.clear_input():
@@ -263,11 +263,10 @@ class TodoMenu(ListEditMenu[TodoItem]):
             on_dict_update=lambda _: self.save_json(),
         ).exec()
 
-    def __reload(self, sort=True):
+    def __reload(self):
         if self.load_json():
             mtime_str = datetime.fromtimestamp(self.last_mtime).strftime("%H:%M:%S")
             self.set_message(f"reloaded ({mtime_str})")
-        if sort:
             self.__sort_tasks()
 
     def __sort_tasks(self):
