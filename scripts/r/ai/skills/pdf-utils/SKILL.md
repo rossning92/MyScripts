@@ -1,9 +1,14 @@
 ---
-description: pdf tools (including read text)
+description: Read and extract text from PDF files (supports OCR)
 ---
 
-to read pdf content:
+To read pdf content:
 
-```
-ocrmypdf <input_pdf_file> /dev/null -q --sidecar -
-```
+- Using `pdftotext` (fast, requires text layer):
+  ```bash
+  pdftotext <input_pdf_file> -
+  ```
+- Using `ocrmypdf` (slower, performs OCR if needed):
+  ```bash
+  ocrmypdf <input_pdf_file> /dev/null -q --sidecar -
+  ```

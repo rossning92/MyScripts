@@ -228,7 +228,7 @@ class FileMenu(Menu[_File]):
 
         return s
 
-    def get_item_text_llm(self, item: _File) -> str:
+    def get_item_metadata(self, item: _File) -> str:
         return item.full_path + (
             "/" if item.is_dir and not item.full_path.endswith("/") else ""
         )

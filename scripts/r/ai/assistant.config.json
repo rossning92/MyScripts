@@ -1,5 +1,6 @@
 {
   "globalHotkey": "win+k k",
   "hotkey": "space space",
-  "workingDir": "{HOME}/chat_menu"
+  "workingDir": "{HOME}/chat_menu",
+  "title": "chat_menu"
 }

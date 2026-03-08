@@ -153,7 +153,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
 
         return f"{_status_symbols[item['status']]} {date_str} {desc}"
 
-    def get_item_text_llm(self, item: TodoItem) -> str:
+    def get_item_metadata(self, item: TodoItem) -> str:
         return _get_todo_str(item)
 
     def get_item_color(self, item: TodoItem) -> str:

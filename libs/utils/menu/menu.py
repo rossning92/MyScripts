@@ -125,6 +125,7 @@ def _to_curses_color(color: Union[str, int]) -> int:
         "cyan": curses.COLOR_CYAN,
         "white": -1,
         "gray": curses.COLOR_WHITE,
+        "darkblue": 17,
     }.get(color.lower(), -1)
 
 
@@ -193,8 +194,8 @@ class _TextInput:
         _addstr(stdscr, y, x, " ")  # Add a space between label and text input
         y, x = Menu._stdscr.getyx()  # type: ignore
 
-        # Draw text before caret with black background
-        attr = Menu._get_color_pair("gray", "black")
+        # Draw text before caret with dark blue background
+        attr = Menu._get_color_pair("white", "darkblue")
         _addstr(stdscr, y, x, self.text[: self.caret_pos], attr)
         cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
 
@@ -202,7 +203,7 @@ class _TextInput:
         if show_enter_symbol:
             s += " [search]"
 
-        # Draw text after caret with black background
+        # Draw text after caret with dark blue background
         _addstr(stdscr, cursor_y, cursor_x, s, attr)
         last_y, last_x = Menu._stdscr.getyx()  # type: ignore
 
@@ -1351,7 +1352,7 @@ class Menu(Generic[T]):
     def get_item_text(self, item: T) -> str:
         return str(item)
 
-    def get_item_text_llm(self, item: T) -> str:
+    def get_item_metadata(self, item: T) -> str:
         return self.get_item_text(item)
 
     def get_item_color(self, item: T) -> Union[str, Tuple[str, str]]:
@@ -1749,9 +1750,9 @@ class Menu(Generic[T]):
                 f.write(
                     "\n".join(
                         [
-                            "<selected-items>",
-                            *(self.get_item_text_llm(x) for x in selected_items),
-                            "</selected-items>",
+                            "<selected>",
+                            *(self.get_item_metadata(x) for x in selected_items),
+                            "</selected>",
                         ]
                     )
                 )

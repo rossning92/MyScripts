@@ -310,6 +310,9 @@ class _MyScriptMenu(Menu[Script]):
             else:
                 return super().match_item(patt=keyword, item=script, index=index)
 
+    def get_item_metadata(self, script: Script) -> str:
+        return f"<file><path>{script.script_path}</path></file>"
+
     def _run_selected_script(self, close_on_exit=None, run_script_local=False):
         try:
             script = self.get_selected_item()

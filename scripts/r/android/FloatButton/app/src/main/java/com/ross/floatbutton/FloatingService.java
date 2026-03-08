@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.GradientDrawable;
-import android.os.Build;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -63,6 +62,7 @@ public class FloatingService extends Service {
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
+
         // All foreground services are required to show a persistent notification.
         Notification notification = new Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle("Floating Button")
@@ -122,7 +122,7 @@ public class FloatingService extends Service {
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
                         if (deltaX < CLICK_THRESHOLD && deltaY < CLICK_THRESHOLD) {
-                            runTermuxCommand("voice_input.sh", true);
+                            runTermuxCommand("on_float_button_click.sh", true);
                         } else {
                             int screenWidth = windowManager.getDefaultDisplay().getWidth();
                             int viewWidth = floatingView.getWidth();
@@ -172,10 +172,12 @@ public class FloatingService extends Service {
                         "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/" + scriptName });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", background);
-        if (!background) {
-            // https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java
-            intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", "2");
-        }
+        // https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java
+        final String VALUE_EXTRA_SESSION_ACTION_SWITCH_TO_NEW_SESSION_AND_OPEN_ACTIVITY = "0";
+        final String VALUE_EXTRA_SESSION_ACTION_RUN_IN_BACKGROUND = "2";
+        intent.putExtra("com.termux.RUN_COMMAND_SESSION_ACTION", background
+                ? VALUE_EXTRA_SESSION_ACTION_RUN_IN_BACKGROUND
+                : VALUE_EXTRA_SESSION_ACTION_SWITCH_TO_NEW_SESSION_AND_OPEN_ACTIVITY);
         try {
             startService(intent);
         } catch (Exception e) {

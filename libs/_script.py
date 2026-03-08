@@ -617,7 +617,7 @@ class Script:
                 return False
         return True
 
-    def get_window_title(self) -> str:
+    def get_window_title(self, run_in_tmux=False) -> str:
         if self.console_title:
             return self.console_title
 
@@ -625,7 +625,7 @@ class Script:
             assert isinstance(self.cfg["title"], str)
             return self.cfg["title"]
 
-        if is_in_tmux():
+        if run_in_tmux or is_in_tmux():
             return os.path.splitext(os.path.basename(self.script_path))[0]
 
         return "!!" + self.name
@@ -751,9 +751,14 @@ class Script:
         }
 
     def __activate_window(self, run_in_tmux: bool) -> bool:
-        title = self.get_window_title()
+        title = self.get_window_title(run_in_tmux=run_in_tmux)
         if (run_in_tmux or is_in_tmux()) and subprocess.call(
-            ["tmux", "select-window", "-t", self.get_window_title()],
+            [
+                "tmux",
+                "select-window",
+                "-t",
+                self.get_window_title(run_in_tmux=run_in_tmux),
+            ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         ) == 0:
@@ -780,7 +785,7 @@ class Script:
                 [
                     "screen",
                     "-S",
-                    slugify(self.get_window_title()),
+                    slugify(self.get_window_title(run_in_tmux=run_in_tmux)),
                     "-X",
                     "quit",
                 ]
@@ -791,7 +796,12 @@ class Script:
 
         elif run_in_tmux or is_in_tmux():
             cp = subprocess.run(
-                ["tmux", "kill-window", "-t", self.get_window_title()],
+                [
+                    "tmux",
+                    "kill-window",
+                    "-t",
+                    self.get_window_title(run_in_tmux=run_in_tmux),
+                ],
                 capture_output=True,
                 text=True,
             )
@@ -802,7 +812,7 @@ class Script:
 
         else:
             # Close exising instances
-            close_window_by_name(self.get_window_title())
+            close_window_by_name(self.get_window_title(run_in_tmux=run_in_tmux))
 
     def get_script_log_file(self) -> str:
         log_dir = os.path.join(get_data_dir(), "logs")
@@ -1370,7 +1380,9 @@ class Script:
             ):
                 # Add command wrapper to pause on exit
                 env["CMDW_CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
-                env["CMDW_WINDOW_TITLE"] = self.get_window_title()
+                env["CMDW_WINDOW_TITLE"] = self.get_window_title(
+                    run_in_tmux=run_in_tmux
+                )
                 arg_list = [
                     sys.executable,
                     os.path.join(get_bin_dir(), "command_wrapper.py"),
@@ -1451,7 +1463,7 @@ class Script:
                             arg_list = wrap_args_wt(
                                 arg_list,
                                 cwd=cwd,
-                                title=self.get_window_title(),
+                                title=self.get_window_title(run_in_tmux=run_in_tmux),
                                 wsl=self.cfg["wsl"],
                             )
                             no_wait = True
@@ -1462,7 +1474,7 @@ class Script:
                         ):
                             arg_list = wrap_args_alacritty(
                                 arg_list,
-                                title=self.get_window_title(),
+                                title=self.get_window_title(run_in_tmux=run_in_tmux),
                             )
 
                             # Workaround: prevent Alacritty from being closed by parent terminal. The "shell = True"
@@ -1481,7 +1493,7 @@ class Script:
                             arg_list = wrap_args_conemu(
                                 arg_list,
                                 cwd=cwd,
-                                title=self.get_window_title(),
+                                title=self.get_window_title(run_in_tmux=run_in_tmux),
                                 wsl=self.cfg["wsl"],
                                 always_on_top=True,
                             )
@@ -1489,7 +1501,9 @@ class Script:
                             open_in_terminal = True
 
                         elif self.__get_terminal() == "powershell":
-                            title = self.get_window_title().replace("'", "''")
+                            title = self.get_window_title(
+                                run_in_tmux=run_in_tmux
+                            ).replace("'", "''")
                             arg_list = [
                                 "powershell",
                                 "-Command",
@@ -1514,7 +1528,7 @@ class Script:
                                 "new-window",
                                 "-a",  # Insert window after the current window
                                 "-n",
-                                self.get_window_title(),
+                                self.get_window_title(run_in_tmux=run_in_tmux),
                             ]
                             + [  # Pass environmental variable to new window.
                                 item
@@ -1543,7 +1557,7 @@ class Script:
                                     "-xrm",
                                     "XTerm.vt100.allowTitleOps: false",
                                     "-T",
-                                    self.get_window_title(),
+                                    self.get_window_title(run_in_tmux=run_in_tmux),
                                     "-e",
                                     _args_to_str(arg_list, shell_type="bash"),
                                 ]
@@ -1554,7 +1568,7 @@ class Script:
                                 arg_list = [
                                     "xfce4-terminal",
                                     "-T",
-                                    self.get_window_title(),
+                                    self.get_window_title(run_in_tmux=run_in_tmux),
                                     "-e",
                                     _args_to_str(arg_list, shell_type="bash"),
                                     "--hold",
@@ -1566,7 +1580,7 @@ class Script:
                                 arg_list = [
                                     "kitty",
                                     "--title",
-                                    self.get_window_title(),
+                                    self.get_window_title(run_in_tmux=run_in_tmux),
                                 ] + arg_list
                                 no_wait = True
                                 open_in_terminal = True
@@ -1577,7 +1591,9 @@ class Script:
                             ):
                                 arg_list = wrap_args_alacritty(
                                     arg_list,
-                                    title=self.get_window_title(),
+                                    title=self.get_window_title(
+                                        run_in_tmux=run_in_tmux
+                                    ),
                                 )
                                 no_wait = True
                                 open_in_terminal = True
@@ -1586,7 +1602,9 @@ class Script:
                                 arg_list = [
                                     "screen",
                                     "-S",
-                                    slugify(self.get_window_title()),
+                                    slugify(
+                                        self.get_window_title(run_in_tmux=run_in_tmux)
+                                    ),
                                 ] + arg_list
 
                             else:
@@ -1602,7 +1620,7 @@ class Script:
                         if is_alacritty_installed():
                             arg_list = wrap_args_alacritty(
                                 arg_list,
-                                title=self.get_window_title(),
+                                title=self.get_window_title(run_in_tmux=run_in_tmux),
                             )
                             no_wait = True
                             open_in_terminal = True
@@ -1654,7 +1672,7 @@ class Script:
                 args2 = wrap_args_cmd(
                     arg_list,
                     cwd=cwd,
-                    title=self.get_window_title(),
+                    title=self.get_window_title(run_in_tmux=run_in_tmux),
                     env=env,
                 )
                 logging.debug("run_elevated(): args=%s" % args2)
