@@ -5,6 +5,8 @@ from typing import Optional, Tuple, TypeVar
 
 T = TypeVar("T")
 
+MTIME_TOLERANCE = 1.0
+
 
 def load_json(
     file: str,
@@ -39,7 +41,7 @@ def try_load_json(
 ) -> Optional[Tuple[T, float]]:
     # Check if the file has been modified since last time
     mtime = os.path.getmtime(file)
-    if mtime <= last_mtime:
+    if not (mtime > last_mtime + MTIME_TOLERANCE):
         return None
 
     return load_json(file=file, default=default), mtime
@@ -49,7 +51,7 @@ def try_save_json(file: str, data, last_mtime: float, backup=False):
     # Check if the file has been externally modified
     if os.path.exists(file):
         mtime = os.path.getmtime(file)
-        if mtime > last_mtime + 1.0:
+        if mtime > last_mtime + MTIME_TOLERANCE:
             raise RuntimeError("JSON file has been modified externally")
 
     # Backup JSON file

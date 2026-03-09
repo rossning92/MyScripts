@@ -21,6 +21,7 @@ if ! screen -ls $name >/dev/null 2>&1; then
         screen -dm -S $name bash
     fi
     if [[ -n "$commands" ]]; then
+        echo "Running in screen session '$name': $commands"
         screen -S $name -X stuff "($commands) && exit 0 || exit 1\n"
     fi
 else
