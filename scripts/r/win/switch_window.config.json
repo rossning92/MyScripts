@@ -1,6 +1,5 @@
 {
   "globalHotkey": "win+tab",
   "hotkey": "ctrl+w",
-  "terminal": "powershell",
   "title": "switch_window"
 }

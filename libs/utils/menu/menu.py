@@ -31,6 +31,9 @@ from utils.clip import get_clip, set_clip
 from utils.editor import edit_text
 from utils.jsonutil import load_json, save_json
 from utils.slugify import slugify
+from utils.term import enable_windows_vt
+
+EXPERIMENTAL_EANBLE_WINDOWS_VT = True
 
 GUTTER_SIZE = 1
 PROCESS_EVENT_INTERVAL_SEC = 0.1
@@ -52,6 +55,61 @@ def _is_backspace_key(ch: Union[int, str]):
         or ch == "\b"  # for windows
         or ch == "\x7f"  # for mac and linux
     )
+
+
+def _decode_escape_sequence(stdscr, ch: Union[int, str]) -> Union[int, str]:
+    if ch != "\x1b":
+        return ch
+
+    try:
+        ch2 = stdscr.get_wch()
+    except curses.error:
+        return ch
+
+    if ch2 != "[":
+        if isinstance(ch2, str) and (("a" <= ch2 <= "z") or ch2 == "\r" or ch2 == "\n"):
+            if ch2 == "\r" or ch2 == "\n":
+                return "alt+enter"
+            return f"alt+{ch2}"
+        return ch2
+
+    try:
+        ch3 = stdscr.get_wch()
+    except curses.error:
+        return -1
+
+    if ch3 == "I":
+        return KEY_FOCUS_IN
+    elif ch3 == "O":
+        return KEY_FOCUS_OUT
+    elif ch3 == "A":
+        return curses.KEY_UP
+    elif ch3 == "B":
+        return curses.KEY_DOWN
+    elif ch3 == "C":
+        return curses.KEY_RIGHT
+    elif ch3 == "D":
+        return curses.KEY_LEFT
+    elif ch3 == "H":
+        return curses.KEY_HOME
+    elif ch3 == "F":
+        return curses.KEY_END
+    elif ch3 in ("3", "5", "6"):
+        try:
+            ch4 = stdscr.get_wch()
+        except curses.error:
+            return -1
+        if ch4 == "~":
+            if ch3 == "3":
+                return curses.KEY_DC
+            elif ch3 == "5":
+                return curses.KEY_PPAGE
+            else:
+                return curses.KEY_NPAGE
+        else:
+            return ch4
+    else:
+        return ch3
 
 
 def _addstr(stdscr, *args) -> bool:
@@ -680,15 +738,17 @@ class Menu(Generic[T]):
         if Menu._stdscr is not None:
             return
 
-        # Enable focus reporting
-        sys.stdout.write("\x1b[?1004h")
-        sys.stdout.flush()
-
         # Remove escape key delay for Linux system
         # See also: ESCDELAY in https://linux.die.net/man/3/ncurses
         os.environ.setdefault("ESCDELAY", "25")
 
         stdscr = curses.initscr()
+
+        if EXPERIMENTAL_EANBLE_WINDOWS_VT and sys.platform == "win32":
+            enable_windows_vt()
+        sys.stdout.write("\x1b[?1004h")
+        sys.stdout.flush()
+
         curses.noecho()
         # Enter raw mode. In raw mode, normal line buffering and processing of
         # interrupt, quit, suspend, and flow control keys are turned off. This
@@ -852,6 +912,7 @@ class Menu(Generic[T]):
                 self.on_keyboard_interrupt()
 
         if ch != -1:  # getch() will return -1 when timeout
+            ch = _decode_escape_sequence(Menu._stdscr, ch)
             if self.__debug:
                 if isinstance(ch, str):
                     self.set_message(f"key={repr(ch)}")
@@ -859,7 +920,19 @@ class Menu(Generic[T]):
                     self.set_message(f"key=0x{ch:x}")
 
             self.last_key_pressed_timestamp = time.time()
-            if self.on_char(ch):
+
+            if isinstance(ch, str) and ch.startswith("alt+"):
+                if ch in self.__hotkeys:
+                    logging.debug(f"Hotkey pressed: {ch}")
+                    self.__hotkeys[ch].func()
+                elif ch == "alt+enter":
+                    self.__input.on_char("\n")
+                    self.update_screen()
+
+            elif self._check_alt_hotkey_win(ch):
+                pass
+
+            elif self.on_char(ch):
                 self.update_screen()
 
             elif ch == KEY_FOCUS_IN:
@@ -969,9 +1042,6 @@ class Menu(Generic[T]):
                 pass
 
             elif self._check_shift_hotkey(ch):
-                pass
-
-            elif self._check_alt_hotkey(ch):
                 pass
 
             elif (
@@ -1112,43 +1182,16 @@ class Menu(Generic[T]):
                     return True
         return False
 
-    def _check_alt_hotkey(self, ch: Union[int, str]) -> bool:
-        is_alt_hotkey = False
-        key_name: Optional[str] = None
+    def _check_alt_hotkey_win(self, ch: Union[int, str]) -> bool:
+        if sys.platform == "win32" and isinstance(ch, int):
+            if ch >= 0x1A1 and ch <= 0x1BA:
+                htk = "alt+" + chr(ord("a") + (ch - 0x1A1))
+                if htk in self.__hotkeys:
+                    logging.debug(f"Hotkey pressed: {htk}")
+                    self.__hotkeys[htk].func()
+                return True
 
-        if sys.platform == "win32":
-            if isinstance(ch, int):
-                if ch >= 0x1A1 and ch <= 0x1BA:
-                    key_name = chr(ord("a") + (ch - 0x1A1))
-                    is_alt_hotkey = True
-        else:
-            if ch == "\x1b":
-                assert Menu._stdscr is not None
-                # Try to immediately get the next key after ALT
-                Menu._stdscr.nodelay(True)
-                ch2 = Menu._stdscr.getch()
-                Menu._stdscr.nodelay(False)
-                if isinstance(ch2, int) and (
-                    (ch2 >= ord("a") and ch2 <= ord("z"))
-                    or ch2 == ord("\r")
-                    or ch2 == ord("\n")
-                ):
-                    key_name = chr(ch2)
-                    is_alt_hotkey = True
-
-        if key_name == "\n" or key_name == "\r":
-            key_name = "enter"
-
-        if key_name is not None:
-            htk = "alt+" + key_name
-            if htk in self.__hotkeys:
-                logging.debug(f"Hotkey pressed: {htk}")
-                self.__hotkeys[htk].func()
-            elif key_name == "enter":  # alt + enter
-                self.__input.on_char("\n")  # new line
-                self.update_screen()
-
-        return is_alt_hotkey
+        return False
 
     def _on_idle(self):
         self.on_idle()

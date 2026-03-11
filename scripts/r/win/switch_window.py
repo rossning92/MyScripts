@@ -1,7 +1,6 @@
 import ctypes
 import subprocess
 import sys
-import time
 from typing import List
 
 from utils.menu import Menu
@@ -103,13 +102,6 @@ class SwitchWindowMenu(Menu[WindowItem]):
         self.add_command(self.__close_window, hotkey="delete")
         self.__refresh_windows()
 
-        if sys.platform == "win32":
-            user32 = ctypes.windll.user32
-            self._my_hwnd = user32.FindWindowW(None, "switch_window")
-        else:
-            self._my_hwnd = None
-        self._was_foreground = True
-
     def __refresh_windows(self):
         self.items = get_windows()
         notifications = get_notifications()
@@ -175,24 +167,11 @@ class SwitchWindowMenu(Menu[WindowItem]):
         return super().on_char(ch)
 
     def on_focus_gained(self):
+        self.clear_input()
         self.__refresh_windows()
 
     def on_escape_pressed(self):
         self.clear_input()
-
-    def on_idle(self):
-        if sys.platform == "win32":
-            user32 = ctypes.windll.user32
-
-            hwnd = user32.GetForegroundWindow()
-            is_foreground = hwnd == self._my_hwnd
-            if is_foreground and not self._was_foreground:
-                self.set_message(f"{time.strftime('%H:%M:%S')}: refresh window")
-                self.__refresh_windows()
-            self._was_foreground = is_foreground
-        else:
-            # TODO: detect foreground window change on Linux if needed
-            pass
 
     def get_item_color(self, item: WindowItem) -> str:
         if item.title in self.script_status:
