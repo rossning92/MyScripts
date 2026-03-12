@@ -984,6 +984,11 @@
       "packages": ["wget"]
     }
   },
+  "windirstat": {
+    "winget": {
+      "packages": ["WinDirStat.WinDirStat"]
+    }
+  },
   "xdotool": {
     "pacman": {
       "packages": ["xdotool"]

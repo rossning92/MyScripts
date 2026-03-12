@@ -126,7 +126,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
     def __toggle_status(self):
         selected = self.get_selected_item()
         if selected:
-            status_order = ("none", "in_progress", "closed")
+            status_order = ("none", "closed")
             current = selected.get("status", "none")
             try:
                 idx = status_order.index(current)
