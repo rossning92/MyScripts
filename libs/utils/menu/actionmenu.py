@@ -27,15 +27,16 @@ class ActionMenu(Menu[_Action]):
 
     def __init__(self, **kwags):
         super().__init__(**kwags)
-        class_name = self.__class__.__name__
-        for act in ActionMenu.__class_actions[class_name]:
-            self.__add_action(
-                _Action(
-                    name=act.name,
-                    callback=partial(act.callback, self),
-                    hotkey=act.hotkey,
+        for cls in reversed(self.__class__.__mro__):
+            class_name = cls.__name__
+            for act in ActionMenu.__class_actions[class_name]:
+                self.__add_action(
+                    _Action(
+                        name=act.name,
+                        callback=partial(act.callback, self),
+                        hotkey=act.hotkey,
+                    )
                 )
-            )
 
     @staticmethod
     def action(name: Optional[str] = None, hotkey: Optional[str] = None):

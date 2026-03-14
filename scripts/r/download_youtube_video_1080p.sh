@@ -6,6 +6,6 @@ if [[ -n "$VIDEO_DOWNLOAD_DIR" ]]; then
 fi
 
 # https://github.com/yt-dlp/yt-dlp#format-selection
-yt-dlp -S "res:1080" --no-mtime "$1" --no-playlist
+yt-dlp -S "res:1080,ext:mp4:m4a" --no-mtime "$1" --no-playlist
 
 run_script r/save_video_url.py "$1"

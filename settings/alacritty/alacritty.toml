@@ -32,7 +32,7 @@ foreground = "#000000"
 
 [window.dimensions]
 columns = 120
-lines = 40
+lines = 30
 
 [window]
 padding.x = 0

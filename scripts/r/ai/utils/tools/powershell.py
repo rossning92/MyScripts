@@ -4,8 +4,8 @@ import subprocess
 import sys
 import tempfile
 
+from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
 from ai.utils.tools import Settings
-from utils.menu.confirmmenu import confirm
 from utils.menu.menu import Menu
 
 TRUSTED_COMMANDS = [
@@ -98,16 +98,8 @@ def powershell(command: str) -> str:
     - Ensure the command is properly formatted and does not contain any harmful instructions.
     """
 
-    need_confirm = not any(
-        re.match(rf"^\s*{re.escape(cmd)}(?:\s+|$)", command, re.IGNORECASE)
-        for cmd in TRUSTED_COMMANDS
+    ConfirmCommandMenu.confirm_command(
+        command, TRUSTED_COMMANDS, ignore_case=True, prompt_prefix="run in powershell:"
     )
-
-    if (
-        Settings.need_confirm
-        and need_confirm
-        and not confirm(f"run in powershell: `{command}`?")
-    ):
-        raise KeyboardInterrupt("Command execution was canceled by the user")
 
     return _run_powershell(command)
