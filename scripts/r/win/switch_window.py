@@ -1,11 +1,14 @@
 import ctypes
 import subprocess
 import sys
+import time
 from typing import List
 
 from utils.menu import Menu
 from utils.notify import get_notifications
 from utils.tmux import is_in_tmux
+
+WINDOW_CLOSE_WAIT_SECONDS = 1.0
 
 
 class WindowItem:
@@ -41,22 +44,24 @@ def get_windows_win() -> List[WindowItem]:
     assert sys.platform == "win32"
 
     user32 = ctypes.windll.user32
+    GW_OWNER = 4
+    GWL_EXSTYLE = -20
+    WS_EX_TOOLWINDOW = 0x00000080
 
     windows = []
     hwnd = user32.GetTopWindow(None)
     while hwnd:
         if user32.IsWindowVisible(hwnd):
             length = user32.GetWindowTextLengthW(hwnd)
-            if length > 0:
-                if user32.GetWindow(hwnd, 4) == 0:  # GW_OWNER = 4
-                    style = user32.GetWindowLongW(hwnd, -20)  # GWL_EXSTYLE = -20
-                    if not (style & 0x00000080):  # WS_EX_TOOLWINDOW = 0x00000080
-                        buff = ctypes.create_unicode_buffer(length + 1)
-                        user32.GetWindowTextW(hwnd, buff, length + 1)
-                        title = buff.value
-                        if title != "switch_window":
-                            windows.append(WindowItem(hwnd, title))
-        hwnd = user32.GetWindow(hwnd, 2)  # GW_HWNDNEXT = 2
+            if length > 0 and user32.GetWindow(hwnd, GW_OWNER) == 0:
+                if not user32.GetWindowLongW(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW:
+                    buff = ctypes.create_unicode_buffer(length + 1)
+                    user32.GetWindowTextW(hwnd, buff, length + 1)
+                    title = buff.value
+                    if title != "switch_window":
+                        windows.append(WindowItem(hwnd, title))
+        hwnd = user32.GetWindow(hwnd, 2)
+
     return windows
 
 
@@ -146,6 +151,13 @@ class SwitchWindowMenu(Menu[WindowItem]):
             user32 = ctypes.windll.user32
             WM_CLOSE = 0x10
             user32.PostMessageW(win_id, WM_CLOSE, 0, 0)
+
+            # Wait briefly for the window to close after requesting it.
+            timeout = time.time() + WINDOW_CLOSE_WAIT_SECONDS
+            while time.time() < timeout:
+                if not user32.IsWindow(win_id):
+                    break
+                time.sleep(0.1)
         elif sys.platform == "linux":
             subprocess.call(["wmctrl", "-i", "-c", win_id])
 

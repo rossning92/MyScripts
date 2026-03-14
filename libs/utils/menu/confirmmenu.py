@@ -7,7 +7,7 @@ class ConfirmMenu(Menu):
             prompt=prompt + " (y/n)",
             prompt_color=prompt_color,
             search_mode=False,
-            **kwargs
+            **kwargs,
         )
         self.__confirmed = False
         self.add_command(self.__confirm, hotkey="y")

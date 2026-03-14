@@ -183,6 +183,7 @@ def _to_curses_color(color: Union[str, int]) -> int:
         "cyan": curses.COLOR_CYAN,
         "white": -1,
         "gray": curses.COLOR_WHITE,
+        "darkgray": 238,
         "darkblue": 17,
     }.get(color.lower(), -1)
 
@@ -252,8 +253,8 @@ class _TextInput:
         _addstr(stdscr, y, x, " ")  # Add a space between label and text input
         y, x = Menu._stdscr.getyx()  # type: ignore
 
-        # Draw text before caret with black background
-        attr = Menu._get_color_pair("white", "black")
+        # Draw text before caret with dark gray background
+        attr = Menu._get_color_pair("white", "darkgray")
         _addstr(stdscr, y, x, self.text[: self.caret_pos], attr)
         cursor_y, cursor_x = Menu._stdscr.getyx()  # type: ignore
 
@@ -261,7 +262,7 @@ class _TextInput:
         if show_enter_symbol:
             s += " [search]"
 
-        # Draw text after caret with black background
+        # Draw text after caret with dark gray background
         _addstr(stdscr, cursor_y, cursor_x, s, attr)
         last_y, last_x = Menu._stdscr.getyx()  # type: ignore
 

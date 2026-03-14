@@ -10,13 +10,16 @@ from audio.record_audio import record_audio
 from utils.getch import getch
 
 
-def convert_audio_to_text(file: str) -> str:
+def convert_audio_to_text(file: str, prompt: str = "English and Simplified Chinese.") -> str:
     logging.info(f"Converting audio to text: {file}")
 
     # https://platform.openai.com/docs/guides/speech-to-text
     url = "https://api.openai.com/v1/audio/transcriptions"
     headers = {"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"]}
-    payload = {"model": "gpt-4o-mini-transcribe"}
+    payload = {
+        "model": "gpt-4o-mini-transcribe",
+        "prompt": prompt,
+    }
     with open(file, "rb") as f:
         files = {
             "file": (
@@ -32,7 +35,7 @@ def convert_audio_to_text(file: str) -> str:
     return json["text"]
 
 
-def speech_to_text() -> Optional[str]:
+def speech_to_text(prompt: str = "English and Simplified Chinese.") -> Optional[str]:
     fd, out_file = tempfile.mkstemp(suffix=".wav")
     os.close(fd)
     stop_event = Event()
@@ -61,7 +64,7 @@ def speech_to_text() -> Optional[str]:
             return None
 
         print("Converting audio to text...")
-        return convert_audio_to_text(file=out_file)
+        return convert_audio_to_text(file=out_file, prompt=prompt)
     finally:
         if os.path.exists(out_file):
             os.remove(out_file)

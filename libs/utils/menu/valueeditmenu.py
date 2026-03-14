@@ -30,6 +30,7 @@ class ValueEditMenu(Menu[str]):
         super().__init__(
             items=items,
             prompt=prompt,
+            auto_complete=True,
         )
 
         self.add_command(self.__delete_history_value, hotkey="delete")

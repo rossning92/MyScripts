@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import subprocess
@@ -5,12 +6,19 @@ import tempfile
 import time
 import uuid
 
-from ai.utils.tools import Settings
-from utils.menu.confirmmenu import confirm
+from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
 from utils.menu.menu import Menu
 from utils.term import clear_terminal
 
-TRUSTED_COMMANDS = ["ls", "pwd", "date"]
+# Load trusted commands from JSON file
+_TRUSTED_COMMANDS_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "trusted_commands.json"
+)
+try:
+    with open(_TRUSTED_COMMANDS_FILE, "r") as f:
+        TRUSTED_COMMANDS = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    TRUSTED_COMMANDS = ["ls", "pwd", "date"]
 
 
 def _run_script(command: str, log_file: str) -> None:
@@ -95,15 +103,7 @@ def bash(command: str) -> str:
     - Ensure the command is properly formatted and does not contain any harmful instructions.
     """
 
-    need_confirm = True
-    for cmd in TRUSTED_COMMANDS:
-        pattern = re.escape(cmd).replace(r"\*", ".*")
-        if re.match(rf"^\s*{pattern}(?:\s+|$)", command):
-            need_confirm = False
-            break
-
-    if Settings.need_confirm and need_confirm and not confirm(f"Run `{command}`?"):
-        raise KeyboardInterrupt("Command execution was canceled by the user")
+    ConfirmCommandMenu.confirm_command(command, TRUSTED_COMMANDS)
 
     output = _run_bash(command)
 

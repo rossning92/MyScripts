@@ -58,6 +58,8 @@ _MAX_CHAT_HISTORY = 200
 
 _INTERRUPT_MESSAGE = "[INTERRUPTED]"
 
+EXPERIMENTAL_FOLLOW_NEW_MESSAGE = True
+
 
 def _start_background_loop(loop: asyncio.AbstractEventLoop):
     """Run an asyncio loop forever in a background thread."""
@@ -270,7 +272,6 @@ class ChatMenu(Menu[Line]):
         **kwargs,
     ) -> None:
         self.__copy = copy
-        self.__cur_subindex = 0
         self.__edit_text = edit_text
         self.__first_message = message
         if context and is_text_file(context):
@@ -849,27 +850,25 @@ Following is my instructions:
 
     def on_reasoning(self, reasoning: str):
         msg_index, subindex = self.get_message_index_and_subindex()
-        self.append_item(
-            Line(
-                role="assistant",
-                text=get_reasoning_text(reasoning),
-                msg_index=msg_index,
-                subindex=subindex,
-                reasoning=reasoning,
-            )
+        line = Line(
+            role="assistant",
+            text=get_reasoning_text(reasoning),
+            msg_index=msg_index,
+            subindex=subindex,
+            reasoning=reasoning,
         )
+        self.append_item(line)
         self.process_events()
 
     def on_image(self, image_url: str):
         msg_index, subindex = self.get_message_index_and_subindex()
-        self.append_item(
-            Line(
-                role="assistant",
-                msg_index=msg_index,
-                subindex=subindex,
-                image_url=image_url,
-            )
+        line = Line(
+            role="assistant",
+            msg_index=msg_index,
+            subindex=subindex,
+            image_url=image_url,
         )
+        self.append_item(line)
         self.process_events()
 
     def __complete_chat(self, status: str = "generating"):
@@ -879,7 +878,6 @@ Following is my instructions:
         self.on_generating()
         self.set_message(status)
         self.__is_generating = True
-        self.__cur_subindex = 0
 
         self._out_message = out_message = Message(
             role="assistant",
@@ -941,16 +939,16 @@ Following is my instructions:
     def __on_chat_done(self, cancelled=False):
         assert self._out_message
         self.__is_generating = False
-        self.__cur_subindex = 0
 
         if cancelled:
             self._out_message["text"] += f"\n{_INTERRUPT_MESSAGE}"
+            msg_index, subindex = self.get_message_index_and_subindex()
             self.append_item(
                 Line(
                     role="assistant",
                     text=f"{_INTERRUPT_MESSAGE}",
-                    msg_index=self.get_message_index_and_subindex()[0],
-                    subindex=self.__cur_subindex,
+                    msg_index=msg_index,
+                    subindex=subindex,
                 )
             )
 
@@ -974,20 +972,22 @@ Following is my instructions:
     def __on_chat_chunk(self, chunk_index: int, chunk: str):
         for i, a in enumerate(chunk.split("\n")):
             if i > 0 or chunk_index == 0:
+                msg_index, subindex = self.get_message_index_and_subindex()
                 line = Line(
                     role="assistant",
-                    msg_index=self.get_message_index_and_subindex()[0],
-                    subindex=self.__cur_subindex,
+                    msg_index=msg_index,
+                    subindex=subindex,
                 )
                 self.append_item(line)
-                self.__cur_subindex += 1
+                if EXPERIMENTAL_FOLLOW_NEW_MESSAGE:
+                    if subindex == 0:
+                        self.goto_line(len(self.items) - 1)
             self.items[-1].text += a
 
         self.update_screen()
 
     def __on_chat_exception(self, exception: Exception):
         self.__is_generating = False
-        self.__cur_subindex = 0
 
         if self.get_settings()["retry"]:
             self.__retry_count += 1
