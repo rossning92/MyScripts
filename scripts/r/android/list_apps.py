@@ -28,71 +28,64 @@ def select_app_pkg():
         return lines[i]
 
 
-menu = ActionMenu(close_on_selection=True)
+class AppActionMenu(ActionMenu):
+    def __init__(self, pkg: str, **kwargs):
+        self.pkg = pkg
+        super().__init__(**kwargs)
 
+    @ActionMenu.action()
+    def restart_app(self):
+        start_script("r/android/restart_app.py")
 
-@menu.func()
-def restart_app():
-    start_script("r/android/restart_app.py")
+    @ActionMenu.action()
+    def restart_app_with_logcat(self):
+        start_script("r/android/restart_app_logcat.sh")
 
+    @ActionMenu.action()
+    def set_variable_package_name(self):
+        set_variable("PKG_NAME", self.pkg)
 
-@menu.func()
-def restart_app_with_logcat():
-    start_script("r/android/restart_app_logcat.sh")
+    @ActionMenu.action()
+    def copy_package_name_to_clipboard(self):
+        set_clip(self.pkg)
 
+    @ActionMenu.action()
+    def backup_app(self):
+        out_dir = os.environ.get("ANDROID_APP_BACKUP_DIR")
+        if not out_dir:
+            out_dir = os.path.expanduser("~/android_backup")
+        os.makedirs(out_dir, exist_ok=True)
+        backup_pkg(self.pkg, out_dir=out_dir)
+        shell_open(out_dir)
 
-@menu.func()
-def set_variable_package_name():
-    set_variable("PKG_NAME", pkg)
+    @ActionMenu.action(name="get_apk_path")
+    def _get_apk_path(self):
+        print(get_apk_path(self.pkg))
+        input("(press enter key to exit...)")
 
+    @ActionMenu.action()
+    def uninstall_app(self):
+        call_echo(["adb", "uninstall", self.pkg])
 
-@menu.func()
-def copy_package_name_to_clipboard():
-    set_clip(pkg)
+    @ActionMenu.action()
+    def dumpsys_package(self):
+        lines = subprocess.check_output(
+            ["adb", "shell", f"dumpsys package {self.pkg}"], universal_newlines=True
+        ).splitlines()
+        Menu(items=lines).exec()
 
+    @ActionMenu.action()
+    def dumpsys_package_permission(self):
+        lines = subprocess.check_output(
+            ["adb", "shell", f"dumpsys package {self.pkg} | grep permission"],
+            universal_newlines=True,
+        ).splitlines()
+        Menu(items=lines).exec()
 
-@menu.func()
-def backup_app():
-    out_dir = os.environ.get("ANDROID_APP_BACKUP_DIR")
-    if not out_dir:
-        out_dir = os.path.expanduser("~/android_backup")
-    os.makedirs(out_dir, exist_ok=True)
-    backup_pkg(pkg, out_dir=out_dir)
-    shell_open(out_dir)
-
-
-@menu.func()
-def _get_apk_path():
-    print(get_apk_path(pkg))
-    input("(press enter key to exit...)")
-
-
-@menu.func()
-def uninstall_app():
-    call_echo(["adb", "uninstall", pkg])
-
-
-@menu.func()
-def dumpsys_package():
-    lines = subprocess.check_output(
-        ["adb", "shell", f"dumpsys package {pkg}"], universal_newlines=True
-    ).splitlines()
-    Menu(items=lines).exec()
-
-
-@menu.func()
-def dumpsys_package_permission():
-    lines = subprocess.check_output(
-        ["adb", "shell", f"dumpsys package {pkg} | grep permission"],
-        universal_newlines=True,
-    ).splitlines()
-    Menu(items=lines).exec()
-
-
-@menu.func()
-def get_app_version():
-    call_echo(["run_script", "r/android/get_app_version.sh"])
-    input("(press enter to continue)")
+    @ActionMenu.action()
+    def get_app_version(self):
+        call_echo(["run_script", "r/android/get_app_version.sh"])
+        input("(press enter to continue)")
 
 
 if __name__ == "__main__":
@@ -102,4 +95,4 @@ if __name__ == "__main__":
     else:
         set_variable("PKG_NAME", pkg)
 
-    menu.exec()
+    AppActionMenu(pkg=pkg, close_on_selection=True).exec()

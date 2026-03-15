@@ -1,24 +1,19 @@
-import json
 import os
 import re
 import subprocess
 import tempfile
 import time
 import uuid
+from pathlib import Path
+from typing import List
 
 from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
+from utils.jsonutil import load_json
 from utils.menu.menu import Menu
 from utils.term import clear_terminal
 
-# Load trusted commands from JSON file
-_TRUSTED_COMMANDS_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "trusted_commands.json"
-)
-try:
-    with open(_TRUSTED_COMMANDS_FILE, "r") as f:
-        TRUSTED_COMMANDS = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError):
-    TRUSTED_COMMANDS = ["ls", "pwd", "date"]
+_ALLOWED_COMMANDS_FILE = Path(__file__).parent / "allowed_commands.json"
+ALLOWED_COMMANDS: List[str] = load_json(str(_ALLOWED_COMMANDS_FILE), default=[])
 
 
 def _run_script(command: str, log_file: str) -> None:
@@ -103,7 +98,11 @@ def bash(command: str) -> str:
     - Ensure the command is properly formatted and does not contain any harmful instructions.
     """
 
-    ConfirmCommandMenu.confirm_command(command, TRUSTED_COMMANDS)
+    ConfirmCommandMenu.confirm_command(
+        command=command,
+        allowed_commands=ALLOWED_COMMANDS,
+        save_path=str(_ALLOWED_COMMANDS_FILE),
+    )
 
     output = _run_bash(command)
 

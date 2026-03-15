@@ -1,32 +1,16 @@
 import os
-import re
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
+from typing import List
 
 from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
-from ai.utils.tools import Settings
+from utils.jsonutil import load_json
 from utils.menu.menu import Menu
 
-TRUSTED_COMMANDS = [
-    "Get-ChildItem",
-    "ls",
-    "dir",
-    "Get-Location",
-    "pwd",
-    "Get-Date",
-    "date",
-    "Get-Content",
-    "cat",
-    "type",
-    "Get-Process",
-    "ps",
-    "Get-Service",
-    "Get-Command",
-    "gcm",
-    "Get-Help",
-    "help",
-]
+_ALLOWED_COMMANDS_FILE = Path(__file__).parent / "allowed_commands_powershell.json"
+ALLOWED_COMMANDS: List[str] = load_json(str(_ALLOWED_COMMANDS_FILE), default=[])
 
 
 def _strip_transcript(text: str) -> str:
@@ -99,7 +83,11 @@ def powershell(command: str) -> str:
     """
 
     ConfirmCommandMenu.confirm_command(
-        command, TRUSTED_COMMANDS, ignore_case=True, prompt_prefix="run in powershell:"
+        command=command,
+        allowed_commands=ALLOWED_COMMANDS,
+        ignore_case=True,
+        prompt_prefix="run in powershell:",
+        save_path=str(_ALLOWED_COMMANDS_FILE),
     )
 
     return _run_powershell(command)

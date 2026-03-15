@@ -13,7 +13,7 @@ from _shutil import (
     get_time_str,
     print2,
 )
-from utils.menu.actionmenu import ActionMenu
+from utils.menu.actionmenu import ActionMenu, action
 from utils.script.path import get_my_script_root
 from utils.shutil import shell_open
 
@@ -50,7 +50,7 @@ class GitMenu(ActionMenu):
 
         super().__init__(prompt=self.repo_path, close_on_selection=False)
 
-    @ActionMenu.action()
+    @action
     def commit(self, dry_run=False, amend=False) -> bool:
         if is_working_tree_clean():
             print2("Working directory clean, changed files in HEAD:", color="gray")
@@ -88,7 +88,7 @@ class GitMenu(ActionMenu):
             with open(".gitignore", "w") as f:
                 f.writelines(["/build"])
 
-    @ActionMenu.action()
+    @action
     def amend_history_commit(self):
         commit_id = input("History commit ID: ")
 
@@ -110,42 +110,42 @@ class GitMenu(ActionMenu):
         )
         call_echo(["git", "tag", "-d", "history-rewrite"])
 
-    @ActionMenu.action(hotkey="alt+d")
+    @action(hotkey="alt+d")
     def diff(self):
         if not is_working_tree_clean():
             call_echo(["git", "diff"])
         else:
             call_echo(["git", "diff", "HEAD^", "HEAD"])
 
-    @ActionMenu.action()
+    @action
     def diff_previous_commit(self):
         call_echo("git diff HEAD^ HEAD")
 
-    @ActionMenu.action()
+    @action
     def diff_with_main_branch(self):
         call_echo("git diff origin/main...HEAD")
 
-    @ActionMenu.action()
+    @action
     def diff_commit(self):
         commit = input("commit hash: ")
         call_echo("git show %s" % commit)
 
-    @ActionMenu.action(hotkey="`")
+    @action(hotkey="`")
     def command(self):
         cmd = input("cmd> ")
         subprocess.call(cmd, shell=True)
 
-    @ActionMenu.action()
+    @action
     def open_folder(self):
         shell_open(os.getcwd())
 
-    @ActionMenu.action()
+    @action
     def fixup_commit(self):
         commit_id = input("Fixup commit (hash): ")
         call_echo(["git", "commit", "--fixup", commit_id])
         call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"])
 
-    @ActionMenu.action()
+    @action
     def sync_github(self):
         FNULL = fnull()
         ret = subprocess.call(
@@ -170,7 +170,7 @@ class GitMenu(ActionMenu):
             ]
         )
 
-    @ActionMenu.action()
+    @action
     def switch_branch(self):
         call_echo(["git", "branch"])
         name = input("Switch to branch [master]: ")

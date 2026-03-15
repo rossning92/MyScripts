@@ -1,4 +1,4 @@
-from .actionmenu import ActionMenu
+from .actionmenu import ActionMenu, action
 
 
 class ConfirmMenu(ActionMenu):
@@ -11,12 +11,12 @@ class ConfirmMenu(ActionMenu):
         )
         self.confirmed = False
 
-    @ActionMenu.action(name="Yes", hotkey="y")
+    @action("yes", k="y")
     def confirm(self):
         self.confirmed = True
         self.close()
 
-    @ActionMenu.action(name="No", hotkey="n")
+    @action("no", k="n")
     def cancel(self):
         self.confirmed = False
         self.close()

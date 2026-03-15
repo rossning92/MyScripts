@@ -1,0 +1,19 @@
+[
+    "Get-ChildItem",
+    "ls",
+    "dir",
+    "Get-Location",
+    "pwd",
+    "Get-Date",
+    "date",
+    "Get-Content",
+    "cat",
+    "type",
+    "Get-Process",
+    "ps",
+    "Get-Service",
+    "Get-Command",
+    "gcm",
+    "Get-Help",
+    "help"
+]

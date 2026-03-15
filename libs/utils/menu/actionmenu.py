@@ -1,6 +1,4 @@
-from collections import defaultdict
-from functools import partial
-from typing import Callable, DefaultDict, List, Optional
+from typing import Callable, Optional, Union
 
 from _shutil import get_hotkey_abbr
 
@@ -17,49 +15,50 @@ class _Action:
 
     def __str__(self):
         if self.hotkey:
-            return "%s (%s)" % (self.name, get_hotkey_abbr(self.hotkey))
+            return "[%s] %s" % (get_hotkey_abbr(self.hotkey), self.name)
         else:
             return self.name
 
 
 class ActionMenu(Menu[_Action]):
-    __class_actions: DefaultDict[str, List[_Action]] = defaultdict(list)
-
     def __init__(self, **kwags):
         super().__init__(**kwags)
         for cls in reversed(self.__class__.__mro__):
-            class_name = cls.__name__
-            for act in ActionMenu.__class_actions[class_name]:
-                self.__add_action(
-                    _Action(
-                        name=act.name,
-                        callback=partial(act.callback, self),
-                        hotkey=act.hotkey,
-                    )
-                )
+            for name, attr in cls.__dict__.items():
+                if hasattr(attr, "_action_info"):
+                    for info in getattr(attr, "_action_info"):
+                        self.add_action(
+                            name=info["name"] if info["name"] else name,
+                            callback=getattr(self, name),
+                            hotkey=info["hotkey"],
+                        )
 
     @staticmethod
-    def action(name: Optional[str] = None, hotkey: Optional[str] = None):
+    def action(
+        name_or_func: Optional[Union[str, Callable]] = None,
+        hotkey: Optional[str] = None,
+        **kwargs,
+    ):
+        if "name" in kwargs:
+            name = kwargs["name"]
+        elif isinstance(name_or_func, str):
+            name = name_or_func
+        else:
+            name = None
+
+        if "k" in kwargs:
+            hotkey = kwargs["k"]
+
         def decorator(method):
-            class_name = method.__qualname__.split(".")[0]
-            action = _Action(
-                name=name if name else method.__name__, callback=method, hotkey=hotkey
-            )
-            ActionMenu.__class_actions[class_name].append(action)
+            if not hasattr(method, "_action_info"):
+                setattr(method, "_action_info", [])
+            getattr(method, "_action_info").append({"name": name, "hotkey": hotkey})
             return method
 
-        return decorator
-
-    def func(self, name: Optional[str] = None, hotkey: Optional[str] = None):
-        def decorator(func):
-            self.__add_action(
-                _Action(
-                    name=name if name else func.__name__, callback=func, hotkey=hotkey
-                )
-            )
-            return func
-
-        return decorator
+        if callable(name_or_func):
+            return decorator(name_or_func)
+        else:
+            return decorator
 
     def on_enter_pressed(self):
         action = self.get_selected_item()
@@ -84,3 +83,6 @@ class ActionMenu(Menu[_Action]):
             self.close()
         else:
             self.update_screen()
+
+
+action = ActionMenu.action

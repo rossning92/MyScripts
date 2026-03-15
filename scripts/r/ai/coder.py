@@ -175,7 +175,14 @@ class CoderMenu(AgentMenu):
     def on_response(self, text: str, done: bool):
         if done:
             send_notify(
-                truncate_text(text, max_lines=1, max_chars=80), app="coder", hint="done"
+                truncate_text(
+                    text,
+                    max_lines=1,
+                    max_chars=80,
+                    include_line_count=False,
+                ),
+                app="coder",
+                hint="done",
             )
 
     def __get_edit_diff_lines(

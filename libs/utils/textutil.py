@@ -9,6 +9,7 @@ def truncate_text(
     text: str,
     max_chars: int = 240,
     max_lines: Optional[int] = None,
+    include_line_count: bool = True,
 ) -> str:
     lines = text.splitlines()
     n_lines = len(lines)
@@ -19,7 +20,8 @@ def truncate_text(
     text = " ".join(text.split())
 
     if len(text) > max_chars or (max_lines and n_lines > max_lines):
-        return f"({n_lines}) {text[:max_chars]}.."
+        prefix = f"({n_lines}) " if include_line_count else ""
+        return f"{prefix}{text[:max_chars]}.."
     else:
         return text
 

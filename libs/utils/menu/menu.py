@@ -138,7 +138,7 @@ class _Command:
 
     def __str__(self) -> str:
         if self.hotkey is not None:
-            return "%s (%s)" % (self.name, get_hotkey_abbr(self.hotkey))
+            return "[%s] %s" % (get_hotkey_abbr(self.hotkey), self.name)
         else:
             return self.name
 
