@@ -84,7 +84,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         self.add_command(self.__edit_description, hotkey="ctrl+e")
         self.add_command(self.__edit_due, hotkey="alt+d")
         self.add_command(self.__new_task, hotkey="ctrl+n")
-        self.add_command(self.__reload, hotkey="ctrl+r")
+        self.add_command(self.__reload_and_sort, hotkey="ctrl+r")
         self.add_command(self.__set_status_wip, hotkey="alt+w")
         self.add_command(self.__toggle_status, hotkey="alt+x")
 
@@ -176,6 +176,9 @@ class TodoMenu(ListEditMenu[TodoItem]):
             self.__last_tick = now
             self.__reload()
 
+    def __reload_and_sort(self):
+        self.__reload(force_sort=True)
+
     def on_escape_pressed(self):
         if not self.clear_input():
             if len(self.items) > 0:
@@ -263,10 +266,13 @@ class TodoMenu(ListEditMenu[TodoItem]):
             on_dict_update=lambda _: self.save_json(),
         ).exec()
 
-    def __reload(self):
+    def __reload(self, force_sort=False):
         if self.load_json():
             mtime_str = datetime.fromtimestamp(self.last_mtime).strftime("%H:%M:%S")
             self.set_message(f"reloaded ({mtime_str})")
+            force_sort = True
+
+        if force_sort:
             self.__sort_tasks()
 
     def __sort_tasks(self):

@@ -550,7 +550,10 @@
   "npm": {
     "pacman": {
       "packages": ["npm"]
-    }
+    },
+    "post_install": [
+      "grep -qF \"npm-global/bin\" ~/.bashrc || echo 'export PATH=\"$PATH:'$(npm config get prefix)'/bin\"' >> ~/.bashrc && source ~/.bashrc"
+    ]
   },
   "ocenaudio": {
     "choco": {

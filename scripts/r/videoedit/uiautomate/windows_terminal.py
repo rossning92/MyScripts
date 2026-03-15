@@ -1,8 +1,8 @@
 import os
 import time
 
-from _script import wrap_args_wt
 from _shutil import call_echo, exec_ahk, run_ahk
+from utils.term.windowsterminal import wrap_args_wt
 
 from .common import run_commands, send_hotkey
 from .record_screen import start_record, stop_record

@@ -451,10 +451,10 @@ class AgentMenu(ChatMenu):
                     if isinstance(allow, str):
                         allow = [allow]
                     for cmd in allow:
-                        if cmd not in ai.utils.tools.bash.TRUSTED_COMMANDS:
-                            ai.utils.tools.bash.TRUSTED_COMMANDS.append(cmd)
-                        if cmd not in ai.utils.tools.powershell.TRUSTED_COMMANDS:
-                            ai.utils.tools.powershell.TRUSTED_COMMANDS.append(cmd)
+                        if cmd not in ai.utils.tools.bash.ALLOWED_COMMANDS:
+                            ai.utils.tools.bash.ALLOWED_COMMANDS.append(cmd)
+                        if cmd not in ai.utils.tools.powershell.ALLOWED_COMMANDS:
+                            ai.utils.tools.powershell.ALLOWED_COMMANDS.append(cmd)
 
                 self.__update_tools()
                 return skill.content

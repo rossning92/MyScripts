@@ -2,19 +2,45 @@ import ctypes
 import subprocess
 import sys
 import time
-from typing import List
+from typing import Dict, List, Literal, Optional
 
 from utils.menu import Menu
 from utils.notify import get_notifications
 from utils.tmux import is_in_tmux
 
-WINDOW_CLOSE_WAIT_SECONDS = 1.0
+_WINDOW_CLOSE_WAIT_SECONDS = 1.0
+_AUTO_REFRESH_INTERVAL_SECONDS = 2.0
+
+WindowStatus = Literal["normal", "done", "error", "running"]
+
+_STATUS_COLOR_MAPPING: Dict[WindowStatus, str] = {
+    "done": "green",
+    "error": "red",
+    "running": "cyan",
+}
+
+_WINDOW_STATUS_PRIORITY: Dict[WindowStatus, int] = {
+    "done": 0,
+    "error": 1,
+    "running": 2,
+    "normal": 3,
+}
 
 
 class WindowItem:
     def __init__(self, id, title):
         self.id = id
         self.title = title
+
+    def get_status(self, script_status: Dict[str, str]) -> WindowStatus:
+        if "✳" in self.title:
+            return "done"
+        if any(c in self.title for c in "⠐⠂"):
+            return "running"
+        status = script_status.get(self.title, "normal")
+        if status in ["done", "error", "running"]:
+            return status  # type: ignore
+        return "normal"
 
     def __str__(self):
         return self.title
@@ -36,11 +62,10 @@ def get_windows_linux() -> List[WindowItem]:
         return []
 
 
-def get_windows_win() -> List[WindowItem]:
+def get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
     """
-    Get all top-level windows in Z-order (top to bottom).
+    Get all top-level windows.
     """
-
     assert sys.platform == "win32"
 
     user32 = ctypes.windll.user32
@@ -51,16 +76,23 @@ def get_windows_win() -> List[WindowItem]:
     windows = []
     hwnd = user32.GetTopWindow(None)
     while hwnd:
-        if user32.IsWindowVisible(hwnd):
+        if (
+            user32.IsWindowVisible(hwnd)
+            and user32.GetWindowTextLengthW(hwnd) > 0
+            and user32.GetWindow(hwnd, GW_OWNER) == 0
+            and not (user32.GetWindowLongW(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW)
+        ):
             length = user32.GetWindowTextLengthW(hwnd)
-            if length > 0 and user32.GetWindow(hwnd, GW_OWNER) == 0:
-                if not user32.GetWindowLongW(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW:
-                    buff = ctypes.create_unicode_buffer(length + 1)
-                    user32.GetWindowTextW(hwnd, buff, length + 1)
-                    title = buff.value
-                    if title != "switch_window":
-                        windows.append(WindowItem(hwnd, title))
+            buff = ctypes.create_unicode_buffer(length + 1)
+            user32.GetWindowTextW(hwnd, buff, length + 1)
+            title = buff.value
+            if title != "switch_window":
+                windows.append(WindowItem(id=hwnd, title=title))
+
         hwnd = user32.GetWindow(hwnd, 2)
+
+    if sort_by_title:
+        windows.sort(key=lambda x: x.title.lower())
 
     return windows
 
@@ -88,33 +120,58 @@ def get_windows_tmux() -> List[WindowItem]:
         return []
 
 
-def get_windows() -> List[WindowItem]:
-    windows = []
+def get_windows(
+    sort_by_title: bool = True, script_status: Optional[Dict[str, str]] = None
+) -> List[WindowItem]:
     if sys.platform == "linux":
-        windows.extend(get_windows_linux())
+        windows = get_windows_linux()
     elif sys.platform == "win32":
-        windows.extend(get_windows_win())
+        windows = get_windows_win(sort_by_title=sort_by_title)
+    elif is_in_tmux():
+        windows = get_windows_tmux()
+    else:
+        windows = []
 
-    if is_in_tmux():
-        windows.extend(get_windows_tmux())
+    if script_status:
+        windows.sort(
+            key=lambda x: (
+                _WINDOW_STATUS_PRIORITY.get(x.get_status(script_status), 3),
+                x.title.lower() if sort_by_title else 0,
+            )
+        )
+
     return windows
 
 
 class SwitchWindowMenu(Menu[WindowItem]):
     def __init__(self):
         super().__init__(prompt="activate", items=[])
+        self.__auto_refresh_enabled = True
+        self.__auto_refresh_last_time = 0.0
+        self.__sort_by_title = False
+        self.script_status: Dict[str, str] = {}
         self.add_command(self.__refresh_windows, hotkey="ctrl+r")
         self.add_command(self.__close_window, hotkey="delete")
+        self.add_command(self.__close_window, hotkey="ctrl+k")
+        self.add_command(self.__toggle_sort_mode, hotkey="ctrl+t")
+        self.__refresh_windows()
+
+    def __toggle_sort_mode(self):
+        self.__sort_by_title = not self.__sort_by_title
         self.__refresh_windows()
 
     def __refresh_windows(self):
-        self.items = get_windows()
         notifications = get_notifications()
         self.script_status = {
             n["app"]: n.get("hint")
             for n in (notifications or [])
             if isinstance(n, dict) and isinstance(n.get("app"), str)
         }
+        self.items = get_windows(
+            sort_by_title=self.__sort_by_title, script_status=self.script_status
+        )
+
+        self.set_message(f"{time.monotonic():.1f} refreshed")
         self.refresh()
 
     def __activate_window(self, win_id):
@@ -145,15 +202,15 @@ class SwitchWindowMenu(Menu[WindowItem]):
 
         win_id = selected.id
         if isinstance(win_id, str) and win_id.startswith("tmux:"):
-            return
-
-        if sys.platform == "win32":
+            target = win_id[len("tmux:") :]
+            subprocess.call(["tmux", "kill-window", "-t", target])
+        elif sys.platform == "win32":
             user32 = ctypes.windll.user32
             WM_CLOSE = 0x10
             user32.PostMessageW(win_id, WM_CLOSE, 0, 0)
 
             # Wait briefly for the window to close after requesting it.
-            timeout = time.time() + WINDOW_CLOSE_WAIT_SECONDS
+            timeout = time.time() + _WINDOW_CLOSE_WAIT_SECONDS
             while time.time() < timeout:
                 if not user32.IsWindow(win_id):
                     break
@@ -181,20 +238,27 @@ class SwitchWindowMenu(Menu[WindowItem]):
     def on_focus_gained(self):
         self.clear_input()
         self.__refresh_windows()
+        self.__auto_refresh_enabled = True
+        self.__auto_refresh_last_time = time.time()
+
+    def on_focus_lost(self):
+        self.__auto_refresh_enabled = False
+
+    def on_idle(self):
+        now = time.time()
+        if (
+            self.__auto_refresh_enabled
+            and now > self.__auto_refresh_last_time + _AUTO_REFRESH_INTERVAL_SECONDS
+        ):
+            self.__auto_refresh_last_time = now
+            self.__refresh_windows()
 
     def on_escape_pressed(self):
         self.clear_input()
 
     def get_item_color(self, item: WindowItem) -> str:
-        if item.title in self.script_status:
-            match = self.script_status[item.title]
-            if match == "done":
-                return "green"
-            elif match == "error":
-                return "red"
-            elif match == "running":
-                return "cyan"
-        return "white"
+        status = item.get_status(self.script_status)
+        return _STATUS_COLOR_MAPPING.get(status, "white")
 
 
 if __name__ == "__main__":

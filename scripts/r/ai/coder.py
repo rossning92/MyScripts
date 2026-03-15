@@ -73,8 +73,8 @@ class CoderMenu(AgentMenu):
         self.__file_context_menu = FileContextMenu(files=files)
         self.__extra_system_prompt = extra_system_prompt
         self.__voice_input_enabled = voice_input
-        self.add_command(self.__add_file, hotkey="@")
-        self.add_command(self.__edit_instructions)
+        self.add_command(self.__add_file, hotkey="alt+a")
+        self.add_command(self.__edit_project_rule)
         self.add_command(self.__open_diff, hotkey="ctrl+d")
 
     def on_created(self):
@@ -82,7 +82,7 @@ class CoderMenu(AgentMenu):
         if self.__voice_input_enabled:
             self.voice_input()
 
-    def __edit_instructions(self):
+    def __edit_project_rule(self):
         file = get_project_rule_file(self.get_data_dir(), "AGENTS.md")
         self.run_raw(lambda: edit_text_file(str(file)))
 
@@ -266,8 +266,8 @@ def _main():
         SettingsMenu.default_model = args.model
 
     if args.allow:
-        ai.utils.tools.bash.TRUSTED_COMMANDS.extend(args.allow)
-        ai.utils.tools.powershell.TRUSTED_COMMANDS.extend(args.allow)
+        ai.utils.tools.bash.ALLOWED_COMMANDS.extend(args.allow)
+        ai.utils.tools.powershell.ALLOWED_COMMANDS.extend(args.allow)
 
     # Change directory to the project root
     if len(args.files) == 1 and os.path.isabs(args.files[0]):

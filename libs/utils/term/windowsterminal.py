@@ -1,8 +1,12 @@
 import json
 import os
 import sys
+from typing import List
 
 DEFAULT_TERMINAL_FONT_SIZE = 9
+WINDOWS_TERMINAL_EXECUTABLE = (
+    os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
+)
 
 
 def setup_windows_terminal(
@@ -78,6 +82,24 @@ def setup_windows_terminal(
         updated = True
 
     if updated:
-        # Only update when config file is changed
         with open(CONFIG_FILE, "w") as f:
             json.dump(data, f, indent=4)
+
+
+def wrap_args_wt(
+    args,
+    title=None,
+    font_size=DEFAULT_TERMINAL_FONT_SIZE,
+    opacity=1.0,
+    **kwargs,
+) -> List[str]:
+    if sys.platform != "win32":
+        raise OSError(f"{sys.platform} is not supported")
+
+    setup_windows_terminal(font_size=font_size, opacity=opacity)
+
+    if title:
+        return [WINDOWS_TERMINAL_EXECUTABLE, "--title", title] + args
+    else:
+        return [WINDOWS_TERMINAL_EXECUTABLE] + args
+

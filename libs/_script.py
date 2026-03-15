@@ -22,7 +22,6 @@ from _cpp import setup_cmake
 from _filelock import FileLock
 from _pkgmanager import require_package
 from _shutil import (
-    CONEMU_INSTALL_DIR,
     IgnoreSigInt,
     convert_to_unix_path,
     format_time,
@@ -36,7 +35,6 @@ from _shutil import (
     run_elevated,
     setup_nodejs,
     update_json,
-    wrap_args_conemu,
     write_temp_file,
 )
 from utils.android import setup_android_env
@@ -66,11 +64,9 @@ from utils.script.path import (
 from utils.shutil import shell_open
 from utils.slugify import slugify
 from utils.template import render_template
+from utils.term import args_to_str, wrap_args_cmd
 from utils.term.alacritty import is_alacritty_installed, wrap_args_alacritty
-from utils.term.windowsterminal import (
-    DEFAULT_TERMINAL_FONT_SIZE,
-    setup_windows_terminal,
-)
+from utils.term.wezterm import WEZTERM_EXECUTABLE, wrap_args_wezterm
 from utils.timed import timed
 from utils.tmux import is_in_tmux
 from utils.venv import activate_python_venv, get_venv_python_executable
@@ -109,11 +105,6 @@ SCRIPT_EXTENSIONS = {
 BINARY_EXTENSIONS = {
     ".pdf",
 }
-
-if sys.platform == "win32":
-    WINDOWS_TERMINAL_EXEC = (
-        os.environ["LOCALAPPDATA"] + "\\Microsoft\\WindowsApps\\wt.exe"
-    )
 
 VARIABLE_NAME_EXCLUDE = {"HOME", "PATH"}
 
@@ -201,7 +192,7 @@ def wrap_wsl(
             sh += "export {}='{}'\n".format(k, v)
 
     if isinstance(commands, (list, tuple)):
-        sh += _args_to_str(commands, shell_type="bash")
+        sh += args_to_str(commands, shell_type="bash")
     else:
         sh += commands
 
@@ -270,7 +261,7 @@ def wrap_bash_win(
         # variable is not correctly set up.
         return [sh] + (["-l"] if args[0].endswith(".sh") else []) + [args[0]]
     else:
-        bash_cmd = _args_to_str(["bash"] + args, shell_type="bash")
+        bash_cmd = args_to_str(["bash"] + args, shell_type="bash")
 
     logging.debug("bash_cmd = %s" % bash_cmd)
     return [sh, "-l", "-c", bash_cmd]
@@ -297,7 +288,7 @@ def wrap_bash_commands(
         if len(args) == 1 and args[0].endswith(".sh"):
             return [shell, args[0]]
         else:
-            bash_cmd = f"{shell} " + _args_to_str(args, shell_type="bash")
+            bash_cmd = f"{shell} " + args_to_str(args, shell_type="bash")
             logging.debug("bash_cmd = %s" % bash_cmd)
             return [shell, "-c", bash_cmd]
 
@@ -307,11 +298,6 @@ def exec_cmd(cmd):
     file_name = write_temp_file(cmd, ".cmd")
     args = ["cmd.exe", "/c", file_name]
     subprocess.check_call(args)
-
-
-def _args_to_str(args, shell_type):
-    assert type(args) in [list, tuple]
-    return " ".join([quote_arg(x, shell_type=shell_type) for x in args])
 
 
 def get_all_variables() -> Dict[str, str]:
@@ -400,62 +386,6 @@ def setup_python_path(env, script_path=None, wsl=False):
 
     logging.debug("setup_python_path(): %s" % python_path)
     env["PYTHONPATH"] = python_path
-
-
-def wrap_args_tee(args, out_file):
-    assert isinstance(args, list)
-
-    if sys.platform == "win32":
-        s = (
-            # Powershell uses UTF-16 as default encoding, make tee output UTF-8
-            "$PSDefaultParameterValues = @{'Out-File:Encoding' = 'utf8'}; & "
-            + _args_to_str(args, shell_type="powershell")
-            + r" | Tee-Object -FilePath %s" % out_file
-        )
-        tmp_file = write_temp_file(s, ".ps1")
-        logging.debug('wrap_args_tee(file="%s"): %s' % (tmp_file, s))
-        return ["powershell", tmp_file]
-    else:
-        return args
-
-
-def wrap_args_cmd(args: List[str], title=None, cwd=None, env=None) -> str:
-    if sys.platform == "win32":
-        cmdline = "cmd /c "
-        if title:
-            cmdline += "title %s&" % quote_arg(title)
-        if cwd:
-            cmdline += "cd /d %s&" % quote_arg(cwd)
-        if env:
-            for k, v in env.items():
-                cmdline += "&".join(['set "%s=%s"' % (k, v)]) + "&"
-        cmdline += _args_to_str(args, shell_type="cmd")
-    else:
-        cmdline = ""
-        for k, v in env.items():
-            if k != "PATH":
-                cmdline += "%s=%s" % (k, v) + " "
-        cmdline += _args_to_str(args, shell_type="bash")
-
-    return cmdline
-
-
-def wrap_args_wt(
-    args,
-    title=None,
-    font_size=DEFAULT_TERMINAL_FONT_SIZE,
-    opacity=1.0,
-    **kwargs,
-) -> List[str]:
-    if sys.platform != "win32":
-        raise OSError(f"{sys.platform} is not supported")
-
-    setup_windows_terminal(font_size=font_size, opacity=opacity)
-
-    if title:
-        return [WINDOWS_TERMINAL_EXEC, "--title", title] + args
-    else:
-        return [WINDOWS_TERMINAL_EXEC] + args
 
 
 class LogPipe(threading.Thread):
@@ -893,7 +823,7 @@ class Script:
 
         logging.info(
             "execute: %s %s"
-            % (self.name, _args_to_str(args, shell_type="bash") if args else "")
+            % (self.name, args_to_str(args, shell_type="bash") if args else "")
         )
 
         close_on_exit = (
@@ -1454,12 +1384,17 @@ class Script:
 
                 try:
                     if sys.platform == "win32":
+                        from utils.term.windowsterminal import (
+                            WINDOWS_TERMINAL_EXECUTABLE,
+                            wrap_args_wt,
+                        )
+
                         # Open in specified terminal (e.g. Windows Terminal)
                         if self.__get_terminal() in [
                             "wt",
                             "wsl",
                             "windowsTerminal",
-                        ] and os.path.exists(WINDOWS_TERMINAL_EXEC):
+                        ] and os.path.exists(WINDOWS_TERMINAL_EXECUTABLE):
                             arg_list = wrap_args_wt(
                                 arg_list,
                                 cwd=cwd,
@@ -1469,12 +1404,28 @@ class Script:
                             no_wait = True
                             open_in_terminal = True
 
+                        elif self.__get_terminal() == "wezterm" and shutil.which(
+                            WEZTERM_EXECUTABLE
+                        ):
+                            arg_list = wrap_args_wezterm(
+                                arg_list,
+                                cwd=cwd,
+                                title=self.get_window_title(run_in_tmux=run_in_tmux),
+                            )
+                            no_wait = True
+                            open_in_terminal = True
+
                         elif self.__get_terminal() == "alacritty" and shutil.which(
                             "alacritty"
                         ):
                             arg_list = wrap_args_alacritty(
                                 arg_list,
-                                title=self.get_window_title(run_in_tmux=run_in_tmux),
+                                title=(
+                                    None
+                                    if self.cfg["dynamicTitle"]
+                                    else self.get_window_title(run_in_tmux=run_in_tmux)
+                                ),
+                                dynamic_title=self.cfg["dynamicTitle"],
                             )
 
                             # Workaround: prevent Alacritty from being closed by parent terminal. The "shell = True"
@@ -1487,19 +1438,6 @@ class Script:
                             no_wait = True
                             open_in_terminal = True
 
-                        elif self.__get_terminal() == "conemu" and os.path.isdir(
-                            CONEMU_INSTALL_DIR
-                        ):
-                            arg_list = wrap_args_conemu(
-                                arg_list,
-                                cwd=cwd,
-                                title=self.get_window_title(run_in_tmux=run_in_tmux),
-                                wsl=self.cfg["wsl"],
-                                always_on_top=True,
-                            )
-                            no_wait = True
-                            open_in_terminal = True
-
                         elif self.__get_terminal() == "powershell":
                             title = self.get_window_title(
                                 run_in_tmux=run_in_tmux
@@ -1508,7 +1446,7 @@ class Script:
                                 "powershell",
                                 "-Command",
                                 f"$Host.UI.RawUI.WindowTitle = '{title}'; "
-                                + _args_to_str(arg_list, shell_type="powershell"),
+                                + args_to_str(arg_list, shell_type="powershell"),
                             ]
                             popen_extra_args["creationflags"] = (
                                 subprocess.CREATE_NEW_CONSOLE
@@ -1548,7 +1486,7 @@ class Script:
                                     "bash",
                                     "-c",
                                     "%s || read -rsn1 -p 'Press any key to exit...'"
-                                    % _args_to_str(arg_list, shell_type="bash"),
+                                    % args_to_str(arg_list, shell_type="bash"),
                                 ]
 
                             elif term_emulator == "xterm":
@@ -1559,7 +1497,7 @@ class Script:
                                     "-T",
                                     self.get_window_title(run_in_tmux=run_in_tmux),
                                     "-e",
-                                    _args_to_str(arg_list, shell_type="bash"),
+                                    args_to_str(arg_list, shell_type="bash"),
                                 ]
                                 no_wait = True
                                 open_in_terminal = True
@@ -1570,7 +1508,7 @@ class Script:
                                     "-T",
                                     self.get_window_title(run_in_tmux=run_in_tmux),
                                     "-e",
-                                    _args_to_str(arg_list, shell_type="bash"),
+                                    args_to_str(arg_list, shell_type="bash"),
                                     "--hold",
                                 ]
                                 no_wait = True
@@ -1591,9 +1529,14 @@ class Script:
                             ):
                                 arg_list = wrap_args_alacritty(
                                     arg_list,
-                                    title=self.get_window_title(
-                                        run_in_tmux=run_in_tmux
+                                    title=(
+                                        None
+                                        if self.cfg["dynamicTitle"]
+                                        else self.get_window_title(
+                                            run_in_tmux=run_in_tmux
+                                        )
                                     ),
+                                    dynamic_title=self.cfg["dynamicTitle"],
                                 )
                                 no_wait = True
                                 open_in_terminal = True
@@ -1620,7 +1563,12 @@ class Script:
                         if is_alacritty_installed():
                             arg_list = wrap_args_alacritty(
                                 arg_list,
-                                title=self.get_window_title(run_in_tmux=run_in_tmux),
+                                title=(
+                                    None
+                                    if self.cfg["dynamicTitle"]
+                                    else self.get_window_title(run_in_tmux=run_in_tmux)
+                                ),
+                                dynamic_title=self.cfg["dynamicTitle"],
                             )
                             no_wait = True
                             open_in_terminal = True
@@ -1629,7 +1577,7 @@ class Script:
                                 "osascript",
                                 "-e",
                                 'tell app "Terminal" to do script "%s"'
-                                % _args_to_str(arg_list, shell_type="bash"),
+                                % args_to_str(arg_list, shell_type="bash"),
                                 "-e",
                                 'tell app "Terminal" to activate',
                             ]
@@ -1652,7 +1600,7 @@ class Script:
 
             if sys.platform == "win32" and use_shell_execute_win32:
                 SW_SHOWNORMAL = 1
-                lpParameters = _args_to_str(arg_list[1:], shell_type="cmd")
+                lpParameters = args_to_str(arg_list[1:], shell_type="cmd")
                 logging.debug(
                     f"ShellExecuteW(): lpFile={arg_list[0]} lpParameters={lpParameters}"
                 )
@@ -1817,7 +1765,7 @@ def start_script(
     # Print command line arguments
     logging.info(
         "cmdline: %s"
-        % _args_to_str(
+        % args_to_str(
             [file] + args, shell_type="cmd" if sys.platform == "win32" else "bash"
         )
     )
@@ -1918,6 +1866,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "cmdline": "",
         "commandWrapper": True,
         "conda": "",
+        "dynamicTitle": False,
         "globalHotkey": "",
         "gitBash": False,
         "hotkey": "",

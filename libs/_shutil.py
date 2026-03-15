@@ -26,7 +26,6 @@ from utils.jsonutil import load_json, save_json
 from utils.printc import printc
 
 logger = logging.getLogger(__name__)
-CONEMU_INSTALL_DIR = r"C:\Program Files\ConEmu"
 
 
 def get_hash(obj, digit=16):
@@ -133,63 +132,6 @@ def exec_ahk(script, tmp_script_path=None, wait=True):
             f.write("\ufeff")  # BOM utf-8
             f.write(script)
     run_ahk(tmp_script_path, wait=wait)
-
-
-def wrap_args_conemu(
-    args: List[str], title=None, cwd=None, wsl=False, always_on_top=False
-) -> List[str]:
-    assert sys.platform == "win32"
-
-    # Disable update check
-    PREFIX = r"reg add HKCU\Software\ConEmu\.Vanilla"
-
-    if os.path.exists(CONEMU_INSTALL_DIR):
-        call2(PREFIX + " /v KeyboardHooks /t REG_BINARY /d 02 /f >nul")
-        call2(PREFIX + " /v Update.CheckHourly /t REG_BINARY /d 00 /f >nul")
-        call2(PREFIX + " /v Update.CheckOnStartup /t REG_BINARY /d 00 /f >nul")
-        call2(PREFIX + " /v ClipboardConfirmEnter /t REG_BINARY /d 00 /f >nul")
-        call2(PREFIX + " /v ClipboardConfirmLonger /t REG_DWORD /d 00 /f >nul")
-        call2(PREFIX + " /v Multi.CloseConfirmFlags /t REG_BINARY /d 00 /f >nul")
-
-        args2 = [
-            CONEMU_INSTALL_DIR + "\\ConEmu64.exe",
-            "-NoUpdate",
-            # '-resetdefault',
-            # '-Config', CONF_PATH,
-            "-nokeyhooks",
-            "-nomacro",  # '-nohotkey',
-            "-nocloseconfirm",
-            "-GuiMacro",
-            'palette 1 "<Cobalt2>"',
-        ]
-
-        if cwd:
-            args2 += ["-Dir", cwd]
-        if title:
-            args2 += ["-Title", title]
-
-        if always_on_top:
-            args2 += [
-                "-GuiMacro",
-                "WindowPosSize 0 0 80 20",
-                "-GuiMacro",
-                "SetOption AlwaysOnTop 1",
-            ]
-
-        args2 += [
-            "-run",
-            # Enable exit confirmation
-            # "-cur_console:c0",
-            # Disable exit confirmation
-            "-cur_console:n",
-        ]
-
-        # args[0:0] = ['set', 'PATH=%PATH%;C:\Program Files\ConEmu\ConEmu\wsl', '&',
-        # CONEMU_INSTALL_DIR + "\\ConEmu\\conemu-cyg-64.exe"]
-
-        return args2 + args
-    else:
-        raise Exception("ConEmu not installed.")
 
 
 def chdir(path, expand=True):

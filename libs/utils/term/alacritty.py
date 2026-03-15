@@ -36,6 +36,7 @@ def setup_alacritty():
 def wrap_args_alacritty(
     args,
     borderless: bool = False,
+    dynamic_title: bool = False,
     font_size: Optional[int] = None,
     font: Optional[str] = None,
     padding: Optional[int] = None,
@@ -51,6 +52,8 @@ def wrap_args_alacritty(
 
     # Specify option key value pairs
     options = []
+    if dynamic_title:
+        options += ["window.dynamic_title=true"]
     if font_size is not None:
         options += [
             f"font.size={font_size}",
