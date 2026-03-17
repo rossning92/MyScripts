@@ -72,6 +72,7 @@ class ConfirmCommandMenu(ConfirmMenu):
         if menu.__always:
             if menu.command_base not in allowed_commands:
                 allowed_commands.append(menu.command_base)
+                allowed_commands.sort()
 
             if menu.__save and save_path:
                 with open(save_path, "w") as f:

@@ -69,24 +69,37 @@ def get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
     assert sys.platform == "win32"
 
     user32 = ctypes.windll.user32
+    dwmapi = ctypes.windll.dwmapi
     GW_OWNER = 4
     GWL_EXSTYLE = -20
     WS_EX_TOOLWINDOW = 0x00000080
+    DWMWA_CLOAKED = 14
 
     windows = []
     hwnd = user32.GetTopWindow(None)
     while hwnd:
+        is_visible = user32.IsWindowVisible(hwnd)
+        title_length = user32.GetWindowTextLengthW(hwnd)
+        owner = user32.GetWindow(hwnd, GW_OWNER)
+        ex_style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+
+        # Hidden by the system (like background Settings or Input Experience).
+        cloaked = ctypes.c_int(0)
+        dwmapi.DwmGetWindowAttribute(
+            hwnd, DWMWA_CLOAKED, ctypes.byref(cloaked), ctypes.sizeof(cloaked)
+        )
+
         if (
-            user32.IsWindowVisible(hwnd)
-            and user32.GetWindowTextLengthW(hwnd) > 0
-            and user32.GetWindow(hwnd, GW_OWNER) == 0
-            and not (user32.GetWindowLongW(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW)
+            is_visible
+            and title_length > 0
+            and owner == 0
+            and not (ex_style & WS_EX_TOOLWINDOW)
+            and cloaked.value == 0
         ):
-            length = user32.GetWindowTextLengthW(hwnd)
-            buff = ctypes.create_unicode_buffer(length + 1)
-            user32.GetWindowTextW(hwnd, buff, length + 1)
+            buff = ctypes.create_unicode_buffer(title_length + 1)
+            user32.GetWindowTextW(hwnd, buff, title_length + 1)
             title = buff.value
-            if title != "switch_window":
+            if title not in ["switch_window", "Program Manager"]:
                 windows.append(WindowItem(id=hwnd, title=title))
 
         hwnd = user32.GetWindow(hwnd, 2)

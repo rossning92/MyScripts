@@ -1420,6 +1420,7 @@ class Script:
                         ):
                             arg_list = wrap_args_alacritty(
                                 arg_list,
+                                maximized=self.cfg["maximized"],
                                 title=(
                                     None
                                     if self.cfg["dynamicTitle"]
@@ -1529,6 +1530,7 @@ class Script:
                             ):
                                 arg_list = wrap_args_alacritty(
                                     arg_list,
+                                    maximized=self.cfg["maximized"],
                                     title=(
                                         None
                                         if self.cfg["dynamicTitle"]
@@ -1563,6 +1565,7 @@ class Script:
                         if is_alacritty_installed():
                             arg_list = wrap_args_alacritty(
                                 arg_list,
+                                maximized=self.cfg["maximized"],
                                 title=(
                                     None
                                     if self.cfg["dynamicTitle"]
@@ -1871,6 +1874,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "gitBash": False,
         "hotkey": "",
         "matchClipboard": "",
+        "maximized": False,
         "minimized": False,
         "msys2": True,
         "newWindow": True,

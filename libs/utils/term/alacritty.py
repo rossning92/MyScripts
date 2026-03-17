@@ -39,6 +39,7 @@ def wrap_args_alacritty(
     dynamic_title: bool = False,
     font_size: Optional[int] = None,
     font: Optional[str] = None,
+    maximized: bool = False,
     padding: Optional[int] = None,
     position: Optional[Tuple[int, int]] = None,
     title: Optional[str] = None,
@@ -54,14 +55,20 @@ def wrap_args_alacritty(
     options = []
     if dynamic_title:
         options += ["window.dynamic_title=true"]
+    if maximized:
+        options += [
+            'window.startup_mode="Maximized"',
+            "window.dimensions.columns=0",
+            "window.dimensions.lines=0",
+        ]
     if font_size is not None:
         options += [
             f"font.size={font_size}",
         ]
     if font is not None:
-        options += [f"font.normal.family={font}"]
+        options += [f'font.normal.family="{font}"']
     if borderless:
-        options += ["window.decorations=none"]
+        options += ['window.decorations="none"']
     if position:
         options += [
             f"window.position.x={position[0]}",
@@ -69,8 +76,8 @@ def wrap_args_alacritty(
         ]
     if padding is not None:
         options += [f"window.padding.x={padding}", f"window.padding.y={padding}"]
-    if len(options) > 0:
-        out_args += ["-o"] + options
+    for opt in options:
+        out_args += ["-o", opt]
 
     if title:
         out_args += ["--title", title]
