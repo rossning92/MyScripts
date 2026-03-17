@@ -48,7 +48,9 @@ class WindowItem:
 
 def get_windows_linux() -> List[WindowItem]:
     try:
-        output = subprocess.check_output(["wmctrl", "-l"], text=True)
+        output = subprocess.check_output(
+            ["wmctrl", "-l"], text=True, stderr=subprocess.DEVNULL
+        )
         windows = []
         for line in output.strip().splitlines():
             # Format: 0x03400003  0 ross-pc title
@@ -173,7 +175,7 @@ class SwitchWindowMenu(Menu[WindowItem]):
         self.__sort_by_title = not self.__sort_by_title
         self.__refresh_windows()
 
-    def __refresh_windows(self):
+    def __refresh_windows(self, message: Optional[str] = None):
         notifications = get_notifications()
         self.script_status = {
             n["app"]: n.get("hint")
@@ -184,13 +186,20 @@ class SwitchWindowMenu(Menu[WindowItem]):
             sort_by_title=self.__sort_by_title, script_status=self.script_status
         )
 
-        self.set_message(f"{time.monotonic():.1f} refreshed")
+        if message:
+            self.set_message(message)
+        else:
+            self.set_message(f"{time.monotonic():.1f} refreshed")
         self.refresh()
 
     def __activate_window(self, win_id):
         if isinstance(win_id, str) and win_id.startswith("tmux:"):
             target = win_id[len("tmux:") :]
-            subprocess.call(["tmux", "select-window", "-t", target])
+            cp = subprocess.run(
+                ["tmux", "select-window", "-t", target], capture_output=True, text=True
+            )
+            if cp.returncode != 0:
+                self.set_message(cp.stderr.splitlines()[0] if cp.stderr else "Error")
         elif sys.platform == "win32":
             user32 = ctypes.windll.user32
 
@@ -206,17 +215,26 @@ class SwitchWindowMenu(Menu[WindowItem]):
 
             self.clear_input()
         elif sys.platform == "linux":
-            subprocess.call(["wmctrl", "-i", "-a", win_id])
+            cp = subprocess.run(
+                ["wmctrl", "-i", "-a", win_id], capture_output=True, text=True
+            )
+            if cp.returncode != 0:
+                self.set_message(cp.stderr.splitlines()[0] if cp.stderr else "Error")
 
     def __close_window(self):
         selected = self.get_selected_item()
         if not selected:
             return
 
+        error = None
         win_id = selected.id
         if isinstance(win_id, str) and win_id.startswith("tmux:"):
             target = win_id[len("tmux:") :]
-            subprocess.call(["tmux", "kill-window", "-t", target])
+            cp = subprocess.run(
+                ["tmux", "kill-window", "-t", target], capture_output=True, text=True
+            )
+            if cp.returncode != 0:
+                error = cp.stderr.splitlines()[0] if cp.stderr else "Error"
         elif sys.platform == "win32":
             user32 = ctypes.windll.user32
             WM_CLOSE = 0x10
@@ -229,9 +247,13 @@ class SwitchWindowMenu(Menu[WindowItem]):
                     break
                 time.sleep(0.1)
         elif sys.platform == "linux":
-            subprocess.call(["wmctrl", "-i", "-c", win_id])
+            cp = subprocess.run(
+                ["wmctrl", "-i", "-c", win_id], capture_output=True, text=True
+            )
+            if cp.returncode != 0:
+                error = cp.stderr.splitlines()[0] if cp.stderr else "Error"
 
-        self.__refresh_windows()
+        self.__refresh_windows(message=error)
 
     def on_enter_pressed(self):
         selected = self.get_selected_item()

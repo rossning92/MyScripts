@@ -55,7 +55,7 @@ def record_audio(
     out_file: Optional[str] = None,
     stop_event: Optional[Event] = None,
 ) -> str:
-    if sys.platform != "linux":
+    if sys.platform not in ("linux", "android"):
         raise NotImplementedError()
 
     if out_file is None:

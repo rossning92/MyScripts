@@ -12,7 +12,7 @@ def _main():
     )
 
     # symlink path
-    if sys.platform in ("linux", "darwin"):
+    if sys.platform in ("linux", "darwin", "android"):
         # Create the .config dir if it does not exist
         config_path = pathlib.Path.home() / ".config"
         config_path.mkdir(parents=True, exist_ok=True)

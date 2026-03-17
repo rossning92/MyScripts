@@ -822,12 +822,10 @@ def convert_to_unix_path(path: str, wsl: bool = False) -> str:
     if re.match(r'^[a-zA-Z]:/(((?![<>:"//|?*]).)+((?<![ .])/)?)*$', path):
         if wsl:
             path = re.sub(
-                r"^([a-zA-Z]):", lambda x: ("/mnt/" + x.group(0)[0].lower()), path
+                r"^([a-zA-Z]):", lambda x: "/mnt/" + x.group(0)[0].lower(), path
             )
         else:
-            path = re.sub(
-                r"^([a-zA-Z]):", lambda x: ("/" + x.group(0)[0].lower()), path
-            )
+            path = re.sub(r"^([a-zA-Z]):", lambda x: "/" + x.group(0)[0].lower(), path)
     return path
 
 
@@ -1003,7 +1001,7 @@ def setup_nodejs(install=True):
         if os.path.exists(yarn_global_module_path):
             node_path.append(yarn_global_module_path)
 
-    elif sys.platform == "linux":
+    elif sys.platform in ("linux", "android"):
         # npm global modules
         npm_global_module_path = "/usr/lib/node_modules"
         if os.path.exists(npm_global_module_path):

@@ -1477,7 +1477,7 @@ class Script:
                             + arg_list
                         )
 
-                    elif sys.platform == "linux":
+                    elif sys.platform in ("linux", "android"):
                         if _is_in_x_window_system():
                             term_emulator = DEFAULT_LINUX_TERMINAL
                             if term_emulator == "gnome":
@@ -1598,7 +1598,7 @@ class Script:
 
             # Spawn a new process to run commands
             if no_wait:
-                if sys.platform == "linux":
+                if sys.platform in ("linux", "android"):
                     popen_extra_args["start_new_session"] = True
 
             if sys.platform == "win32" and use_shell_execute_win32:

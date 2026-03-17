@@ -14,5 +14,5 @@ if __name__ == "__main__":
         subprocess.call("open .", shell=True)
     elif sys.platform == "win32":
         subprocess.call(["cmd", "/c", "start", "", os.getcwd()])
-    elif sys.platform == "linux":
+    elif sys.platform in ("linux", "android"):
         start_process(["xdg-open", "."])
