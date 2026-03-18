@@ -5,13 +5,15 @@ import sys
 from typing import List
 
 from _pkgmanager import require_package
-from _script import Script, _args_to_str, get_variable, start_script
+from _script import Script, get_variable, start_script
 from _shutil import (
     call_echo,
     convert_to_unix_path,
     quote_arg,
     write_temp_file,
 )
+
+from utils.term import args_to_str
 
 
 def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=False):
@@ -163,7 +165,7 @@ def push_file_ssh(
     args += ["{}:{}".format(_get_user_host(user=user, host=host), dest)]
 
     if use_wsl:
-        args = ["bash.exe", "-lic", _args_to_str(args, shell_type="bash")]
+        args = ["bash.exe", "-lic", args_to_str(args, shell_type="bash")]
 
     call_echo(args)
 

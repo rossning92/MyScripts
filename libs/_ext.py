@@ -103,19 +103,11 @@ def edit_script(
     else:
         require_package("neovim")
 
-        # Determine the appropriate cwd based on script directories
-        cwd = get_my_script_root()  # Default fallback
-        assert os.path.isabs(file)
-        for script_dir in get_script_directories():
-            if file.startswith(script_dir.path):
-                cwd = script_dir.path
-                break
-
         args = ["nvim"]
         if line is not None:
             args.append(f"+{line}")
         args.append(file)
-        subprocess.run(args, cwd=cwd)
+        subprocess.run(args)
 
 
 def enter_script_path():

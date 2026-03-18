@@ -33,9 +33,9 @@ class WindowItem:
         self.title = title
 
     def get_status(self, script_status: Dict[str, str]) -> WindowStatus:
-        if "✳" in self.title:
+        if "(done)" in self.title:
             return "done"
-        if any(c in self.title for c in "⠐⠂"):
+        if "(running)" in self.title:
             return "running"
         status = script_status.get(self.title, "normal")
         if status in ["done", "error", "running"]:

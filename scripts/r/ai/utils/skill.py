@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -18,6 +19,12 @@ class Skill:
 
 def _find_skills_roots() -> List[Path]:
     roots = [Path(__file__).resolve().parent.parent / "skills"]
+
+    if env_skills_path := os.getenv("AI_SKILLS_PATH"):
+        for path_str in env_skills_path.split(os.pathsep):
+            if path_str:
+                roots.append(Path(path_str).expanduser().resolve())
+
     cwd = Path.cwd().resolve()
     git_root = get_git_root()
     if git_root:

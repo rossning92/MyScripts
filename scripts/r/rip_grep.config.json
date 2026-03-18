@@ -1,4 +1,3 @@
 {
-  "packages": "ripgrep fzf",
-  "template": true
+  "packages": "ripgrep fzf"
 }

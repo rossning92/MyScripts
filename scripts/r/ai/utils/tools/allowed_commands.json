@@ -1,6 +1,8 @@
 [
+    "date",
+    "find",
+    "grep",
     "ls",
     "pwd",
-    "date",
-    "find"
+    "which"
 ]
