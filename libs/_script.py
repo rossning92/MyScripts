@@ -1885,6 +1885,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "restartInstance": None,
         "runAsAdmin": False,
         "runAtStartup": False,
+        "runAtTime": "",
         "runEveryNSec": "",
         "runOverSsh": False,
         "runpy": True,

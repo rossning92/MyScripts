@@ -1,8 +1,1 @@
-[
-    "date",
-    "find",
-    "grep",
-    "ls",
-    "pwd",
-    "which"
-]
+["cat", "date", "find", "git status", "grep", "ls", "pwd", "which"]
