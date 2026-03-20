@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -390,7 +391,7 @@ class ScriptManager:
                 self.scripts.append(script)
                 reloaded = True
 
-            if script.cfg["runEveryNSec"]:
+            if script.cfg["runEveryNSec"] or script.cfg["runAtTime"]:
                 self.__scheduled_script.append(script)
 
             if reloaded:
@@ -477,26 +478,53 @@ class ScriptManager:
             return
 
         has_any_script_to_run = False
-        now = time.time()
+        now_ts = time.time()
         for script in self.__scheduled_script:
             run_every_n_seconds = script.cfg["runEveryNSec"]
-            if run_every_n_seconds:
-                if (
-                    script.script_path not in self.next_scheduled_script_run_time
-                    or now > self.next_scheduled_script_run_time[script.script_path]
-                ):
-                    if script.is_running():
-                        logging.warning("Script is still running, skip scheduled task")
-                    else:
-                        logging.info(f"Run scheduled task: {script.name}")
-                        has_any_script_to_run = True
-                        yield script
+            run_at_time = script.cfg["runAtTime"]
+            next_run_ts = self.next_scheduled_script_run_time.get(script.script_path, 0)
+            should_run = False
 
-                    self.next_scheduled_script_run_time[script.script_path] = (
-                        time.time() + int(run_every_n_seconds)
-                    )
+            if run_at_time:
+                try:
+                    hour, minute = map(int, run_at_time.split(":"))
+                    run_at_time = f"{hour:02d}:{minute:02d}"
+                except ValueError:
+                    logging.error(f"Invalid runAtTime format: {run_at_time}")
+                    continue
+
+                # Recalculate if not set or if run_at_time has changed
+                if next_run_ts > 0 and datetime.datetime.fromtimestamp(next_run_ts).strftime("%H:%M") != run_at_time:
+                    next_run_ts = 0
+
+                if next_run_ts == 0:
+                    now = datetime.datetime.now()
+                    dt = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+                    if dt < now:
+                        dt += datetime.timedelta(days=1)
+                    next_run_ts = dt.timestamp()
+                    self.next_scheduled_script_run_time[script.script_path] = next_run_ts
+                    has_any_script_to_run = True
+
+                if now_ts > next_run_ts:
+                    should_run = True
+                    while now_ts > next_run_ts:
+                        next_run_ts += 24 * 3600
+                    self.next_scheduled_script_run_time[script.script_path] = next_run_ts
+
+            elif run_every_n_seconds:
+                if next_run_ts == 0 or now_ts > next_run_ts:
+                    should_run = True
+                    next_run_ts = now_ts + int(run_every_n_seconds)
+                    self.next_scheduled_script_run_time[script.script_path] = next_run_ts
+
+            if should_run:
+                if script.is_running():
+                    logging.warning(f"Script is still running, skip scheduled task: {script.name}")
+                else:
+                    logging.info(f"Run scheduled task: {script.name}")
+                    has_any_script_to_run = True
+                    yield script
 
         if has_any_script_to_run:
-            # Save last scheduled script run time
-            config_file = _get_next_scheduled_script_run_time_file()
-            save_json(config_file, self.next_scheduled_script_run_time)
+            save_json(_get_next_scheduled_script_run_time_file(), self.next_scheduled_script_run_time)

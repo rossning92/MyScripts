@@ -65,12 +65,6 @@ termux-microphone-record -d 5 audio.wav
 termux-media-player play song.mp3
 ```
 
-## Text to speech
-
-```bash
-termux-tts-speak "Hello world"
-```
-
 ## Call number
 
 ```bash

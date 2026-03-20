@@ -1,6 +1,9 @@
 [
+    "cat",
+    "curl",
     "date",
     "find",
+    "git status",
     "grep",
     "ls",
     "pwd",
