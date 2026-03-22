@@ -1,0 +1,3 @@
+# Memory
+
+You can maintain a `{memory_file_name}` file to store important information you want to remember across sessions. Use the `edit` tool to update it.

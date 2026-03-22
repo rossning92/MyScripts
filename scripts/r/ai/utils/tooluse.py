@@ -87,7 +87,13 @@ def parse_text_for_tool_use(
 
 
 def get_tool_use_prompt(tools: List[ToolDefinition]) -> str:
-    prompt = """# Tool Use
+    # Load prompt template from file
+    prompt_file = Path(__file__).resolve().parent.parent / "prompts" / "tool_use.txt"
+    if prompt_file.exists():
+        prompt = prompt_file.read_text(encoding="utf-8").strip() + "\n\n"
+    else:
+        # Fallback if file not found
+        prompt = """# Tool Use
 
 You can use the available tools to complete the user's task.
 

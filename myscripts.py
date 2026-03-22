@@ -245,6 +245,7 @@ class _MyScriptMenu(Menu[Script]):
         self.add_command(self._run_script_no_close, hotkey="alt+enter")
         self.add_command(self._run_script_no_close, hotkey="ctrl+enter")
         self.add_command(self._run_script_local)
+        self.add_command(self._run_script_background)
         self.add_command(self._reload_scripts, hotkey="ctrl+r")
         self.add_command(self._reload, hotkey="alt+l")
         self.add_command(self._rename_script, hotkey="alt+n")
@@ -276,6 +277,20 @@ class _MyScriptMenu(Menu[Script]):
 
             self.script_manager.scripts.remove(script)
 
+    def _execute_script_background(self, script: Script):
+        script.execute(
+            args=[],
+            close_on_exit=True,
+            restart_instance=False,
+            new_window=False,
+            background=True,
+        )
+
+    def _run_script_background(self):
+        script = self.get_selected_script()
+        if script:
+            self.run_raw(lambda: self._execute_script_background(script))
+
     def on_main_loop(self):
         # Reload scripts
         now = time.time()
@@ -286,18 +301,10 @@ class _MyScriptMenu(Menu[Script]):
             self._reload_scripts()
 
         for script in self.script_manager.get_scheduled_scripts_to_run():
-
-            def exec_script():
-                script.execute(
-                    args=[],
-                    close_on_exit=True,
-                    restart_instance=False,
-                    new_window=False,
-                    background=True,
-                )
-
             try:
-                self.run_raw(exec_script)
+                self.run_raw(
+                    lambda script=script: self._execute_script_background(script)
+                )
             except Exception as ex:
                 logging.error(f"Error on running scheduled script: {ex}")
 

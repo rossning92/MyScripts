@@ -1,9 +1,9 @@
-import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from ai.utils.env import get_global_config_path
 from utils.git import get_git_root
 from utils.markdown import parse_front_matter
 
@@ -20,10 +20,10 @@ class Skill:
 def _find_skills_roots() -> List[Path]:
     roots = [Path(__file__).resolve().parent.parent / "skills"]
 
-    if env_skills_path := os.getenv("AI_SKILLS_PATH"):
-        for path_str in env_skills_path.split(os.pathsep):
-            if path_str:
-                roots.append(Path(path_str).expanduser().resolve())
+    if config_path := get_global_config_path():
+        skills_path = config_path / "skills"
+        if skills_path.is_dir():
+            roots.append(skills_path)
 
     cwd = Path.cwd().resolve()
     git_root = get_git_root()
@@ -80,8 +80,14 @@ def get_skill_prompt() -> Optional[str]:
         return None
 
     skill_lines = "\n".join(f"`{s.file_path}`: {s.description}" for s in skills)
-    return (
-        "# Task-Specific Instructions\n\n"
-        "You should read the following Markdown file for detailed, task-specific, step-by-step instructions when a task matches the description:\n\n"
-        f"{skill_lines}\n"
-    )
+
+    prompt_file = Path(__file__).resolve().parent.parent / "prompts" / "skill.txt"
+    if prompt_file.exists():
+        header = prompt_file.read_text(encoding="utf-8").strip()
+    else:
+        header = (
+            "# Task-Specific Instructions\n\n"
+            "You should read the following Markdown file for detailed, task-specific, step-by-step instructions when a task matches the description:"
+        )
+
+    return f"{header}\n\n{skill_lines}\n"

@@ -19,6 +19,7 @@ import ai.utils.tools.web_fetch
 import ai.utils.tools.web_search
 from ai.chat_menu import ChatMenu, Line
 from ai.utils.mcp import MCPClient
+from ai.utils.memory import get_memory_prompt
 from ai.utils.skill import get_skill_prompt, get_skills
 from ai.utils.tooluse import (
     ToolDefinition,
@@ -42,8 +43,14 @@ DATA_DIR = os.path.join(".config", MODULE_NAME)
 def _get_prompt(
     tools: Optional[List[ToolDefinition]] = None,
     skill: bool = False,
+    memory: bool = False,
 ) -> str:
     prompt_parts = []
+
+    if memory:
+        memory_prompt = get_memory_prompt()
+        if memory_prompt:
+            prompt_parts.append(memory_prompt)
 
     if tools:
         prompt_parts.append(get_tool_use_prompt(tools))
@@ -77,6 +84,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "function_call": True,
             "mcp": [],
             "skill": True,
+            "memory": True,
             "subagent": False,
         }
 
@@ -90,6 +98,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "items": {"type": "object", "properties": {"command": {"type": "string"}}},
         }
         schema["properties"]["skill"] = {"type": "boolean"}
+        schema["properties"]["memory"] = {"type": "boolean"}
         schema["properties"]["subagent"] = {"type": "boolean"}
         return schema
 
@@ -219,6 +228,7 @@ class AgentMenu(ChatMenu):
         return _get_prompt(
             tools=None if self.get_settings()["function_call"] else self.__tools,
             skill=self.get_settings()["skill"] and self.get_settings()["enable_tools"],
+            memory=self.get_settings().get("memory", False),
         )
 
     def __handle_response(self):

@@ -42,12 +42,13 @@ def _format_seconds(seconds: float) -> str:
 if __name__ == "__main__":
     close_on_exit = int(os.environ.get("CMDW_CLOSE_ON_EXIT", "1"))
     window_title = os.environ.get("CMDW_WINDOW_TITLE")
+    enable_notify = os.environ.get("CMDW_ENABLE_NOTIFY") == "1"
 
     start_time = time.time()
     args = sys.argv[1:]
 
     script_path = os.path.abspath(args[0])
-    if window_title:
+    if window_title and enable_notify:
         send_notify(app=window_title, hint="running")
 
     try:
@@ -55,7 +56,7 @@ if __name__ == "__main__":
 
         end_time = time.time()
         has_error = code != 0
-        if window_title:
+        if window_title and enable_notify:
             send_notify(app=window_title, hint="error" if has_error else "done")
 
         duration = end_time - start_time

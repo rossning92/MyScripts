@@ -1,0 +1,7 @@
+# Memory
+
+The following is your memory of past interactions and information you have learned. You can update this memory using the `edit` tool on `{memory_file_name}`.
+
+<memory>
+{content}
+</memory>

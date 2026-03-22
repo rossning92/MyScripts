@@ -1313,6 +1313,7 @@ class Script:
                 env["CMDW_WINDOW_TITLE"] = self.get_window_title(
                     run_in_tmux=run_in_tmux
                 )
+                env["CMDW_ENABLE_NOTIFY"] = "1" if self.cfg["enableNotify"] else "0"
                 arg_list = [
                     sys.executable,
                     os.path.join(get_bin_dir(), "command_wrapper.py"),
@@ -1338,7 +1339,8 @@ class Script:
                     DETACHED_PROCESS = 0x00000008
                     popen_extra_args["creationflags"] = (
                         # DETACHED_PROCESS
-                        CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+                        CREATE_NO_WINDOW
+                        | subprocess.CREATE_NEW_PROCESS_GROUP
                     )
 
                 if BG_PROCESS_OUTPUT_TYPE == BackgroundProcessOutputType.LOG_PIPE:
@@ -1870,6 +1872,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "commandWrapper": True,
         "conda": "",
         "dynamicTitle": False,
+        "enableNotify": True,
         "globalHotkey": "",
         "gitBash": False,
         "hotkey": "",
