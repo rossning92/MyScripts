@@ -6,7 +6,7 @@ import time
 sys.path.insert(
     0, os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../libs")
 )
-from utils.notify import send_notify
+from utils.notify import clear_notifications, send_notify
 
 
 def _getch():
@@ -48,8 +48,11 @@ if __name__ == "__main__":
     args = sys.argv[1:]
 
     script_path = os.path.abspath(args[0])
-    if window_title and enable_notify:
-        send_notify(app=window_title, hint="running")
+    if window_title:
+        if enable_notify:
+            send_notify(app=window_title, hint="running")
+        else:
+            clear_notifications(app=window_title)
 
     try:
         code = subprocess.call(args)

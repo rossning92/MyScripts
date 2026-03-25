@@ -1,4 +1,5 @@
 {
+  "enableNotify": false,
   "globalHotkey": "win+alt+f",
   "hotkey": "alt+f"
 }

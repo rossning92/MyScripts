@@ -1,4 +1,5 @@
 {
+  "enableNotify": false,
   "packages": "syncthing",
   "title": "syncthing"
 }

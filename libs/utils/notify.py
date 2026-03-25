@@ -24,8 +24,18 @@ def get_notifications() -> List[Dict[str, Any]]:
         return load_json(path, default=[])
 
 
+def clear_notifications(app: str) -> None:
+    path = _get_notifications_path()
+    with FileLock("notifications"):
+        notifications = load_json(path, default=[])
+        notifications = [n for n in notifications if n.get("app") != app]
+        save_json(path, notifications)
+
+
 def send_notify(
-    text: Optional[str] = None, app: str = "MyScripts", hint: Optional[str] = None
+    text: Optional[str] = None,
+    app: str = "MyScripts",
+    hint: Optional[str] = None,
 ) -> None:
     # Save notification to history
     path = _get_notifications_path()
