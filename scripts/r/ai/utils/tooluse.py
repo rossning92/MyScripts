@@ -3,6 +3,7 @@ import logging
 import re
 import uuid
 from dataclasses import dataclass
+from pathlib import Path
 from typing import (
     Any,
     Callable,
@@ -89,35 +90,10 @@ def parse_text_for_tool_use(
 def get_tool_use_prompt(tools: List[ToolDefinition]) -> str:
     # Load prompt template from file
     prompt_file = Path(__file__).resolve().parent.parent / "prompts" / "tool_use.txt"
-    if prompt_file.exists():
-        prompt = prompt_file.read_text(encoding="utf-8").strip() + "\n\n"
-    else:
-        # Fallback if file not found
-        prompt = """# Tool Use
+    if not prompt_file.exists():
+        raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
 
-You can use the available tools to complete the user's task.
-
-IMPORTANT:
-- You MUST wait for the actual tool result before proceeding.
-
-## Formatting
-
-You MUST use the tools in the following format as part of your message. I will reply in the next message with the result of the tool use.
-Tool use is formatted using XML-style tags.
-The tool name is enclosed in opening and closing tags, and each parameter is similarly enclosed within its own set of tags.
-Do not escape any characters in parameters, such as `<`, `>`, and `&`, in XML tags. Do not wrap parameters in `<![CDATA[` and `]]>`.
-You can directly put multiline text in XML tags.
-Always adhere to this format for the tool use to ensure proper parsing and execution. Here's the structure:
-
-<tool_name>
-<param1>...</param1>
-<param2>...</param2>
-...
-</tool_name>
-
-## Tools
-
-"""
+    prompt = prompt_file.read_text(encoding="utf-8").strip() + "\n\n"
 
     for tool in tools:
         prompt += f"### {tool.name}\n\n"

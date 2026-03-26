@@ -3,6 +3,7 @@
     "curl",
     "date",
     "find",
+    "git",
     "git status",
     "grep",
     "ls",

@@ -12,6 +12,8 @@ MODELS = [
     "gemini-3-pro-image-preview",
     "gemini-3.1-flash-image-preview",
     "gemini-3.1-flash-lite-preview",
+    "openrouter:google/gemini-3-flash-preview",
+    "openrouter:openai/gpt-5.4",
     "local_llm",
 ]
 
