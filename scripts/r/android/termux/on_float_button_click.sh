@@ -1,38 +1,36 @@
 #!/bin/bash
-tmp_dir=$(mktemp -d)
-trap 'rm -rf "$tmp_dir"' EXIT
-fifo="$tmp_dir/stt_fifo"
-tmp_file="$tmp_dir/stt.txt"
-mkfifo "$fifo"
+DIR="$TMPDIR/termux_stt"
+mkdir -p "$DIR"
+LOCK="$DIR/listening.pid"
+FIFO="$DIR/listening.fifo"
 
-# Start STT in background, reading from FIFO for control signals
-exec 3<>"$fifo"
-bash "$HOME/MyScripts/bin/run_script" r/speech_to_text.py -o "$tmp_file" <&3 &
-pid=$!
-
-# Use termux-dialog sheet instead of confirm
-res=$(termux-dialog sheet -t "Listening..." -v "Finish,Assistant,Cancel")
-if echo "$res" | grep -q '"text": "Finish"'; then
-    echo >&3 # Signal completion
-    wait $pid
-    if [[ -s "$tmp_file" ]]; then
-        text=$(cat "$tmp_file")
-        # Use clipboard for multiline, tabs, or non-ASCII (more reliable/faster)
-        if [[ "$text" =~ [$'\n\t'] ]] || printf '%s' "$text" | LC_ALL=C grep -q '[^ -~]'; then
-            termux-clipboard-set <"$tmp_file"
-            su -c "input keyevent 279"
-        else
-            # Use 'input text' for simple ASCII strings
-            su -c "input text $(printf '%q' "${text// /%s}")"
-        fi
-    fi
-elif echo "$res" | grep -q '"text": "Assistant"'; then
-    python "$HOME/MyScripts/bin/start_script.py" --run-in-tmux r/ai/assistant.sh --voice-input
-    am start -n com.termux/com.termux.app.TermuxActivity
-    printf '\e' >&3 # Signal abort
-    wait $pid
-else
-    printf '\e' >&3 # Signal abort
-    wait $pid
+# Toggle: If already listening, signal completion and exit
+if PID=$(cat "$LOCK" 2>/dev/null) && kill -0 "$PID" 2>/dev/null; then
+    echo > "$FIFO"
+    exit 0
 fi
-exec 3>&-
+
+# Initialization
+echo $$ > "$LOCK"
+[[ -p "$FIFO" ]] || mkfifo "$FIFO"
+OUT=$(mktemp)
+trap 'rm -f "$LOCK" "$FIFO" "$OUT"' EXIT
+
+termux-toast "Listening..." &
+
+# Start STT (blocks until FIFO receives input)
+exec 3<> "$FIFO"
+bash "$HOME/MyScripts/bin/run_script" r/speech_to_text.py -o "$OUT" <&3
+
+# Handle result
+if [[ -s "$OUT" ]]; then
+    termux-vibrate -d 50 &
+    TEXT=$(<"$OUT")
+    # Use clipboard for multiline or non-ASCII; 'input text' for simple strings
+    if [[ "$TEXT" =~ [$'\n\t'] ]] || printf '%s' "$TEXT" | LC_ALL=C grep -q '[^ -~]'; then
+        termux-clipboard-set < "$OUT"
+        su -c "input keyevent 279"
+    else
+        su -c "input text $(printf '%q' "${TEXT// /%s}")"
+    fi
+fi

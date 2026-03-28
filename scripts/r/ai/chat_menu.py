@@ -447,29 +447,28 @@ class ChatMenu(Menu[Line]):
     def __edit_settings(self):
         self.__settings_menu.exec()
 
-    def __goto_message(self, direction: Literal["next", "prev"]):
+    def __navigate_message(self, direction: Literal["next", "prev"]):
         i = self.get_selected_index()
         if i < 0:
             return
 
-        if direction == "next":
-            range_params = (i + 1, len(self.__lines), 1)
-        else:  # direction == "prev"
-            range_params = (i - 1, -1, -1)
+        r = (
+            range(i + 1, len(self.__lines))
+            if direction == "next"
+            else range(i - 1, -1, -1)
+        )
 
-        for j in range(*range_params):
-            if (
-                self.__lines[j].subindex == 0
-                and self.__lines[j].msg_index != self.__lines[i].msg_index
-            ):
-                self.set_selected_item(self.__lines[j])
+        for j in r:
+            line = self.__lines[j]
+            if line.subindex == 0 and line.text:
+                self.set_selected_item(line)
                 return
 
     def __go_next_message(self):
-        self.__goto_message("next")
+        self.__navigate_message("next")
 
     def __go_prev_message(self):
-        self.__goto_message("prev")
+        self.__navigate_message("prev")
 
     def __edit_prompt(self):
         self.__edit_message(msg_index=0)

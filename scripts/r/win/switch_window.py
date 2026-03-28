@@ -221,38 +221,50 @@ class SwitchWindowMenu(Menu[WindowItem]):
             if cp.returncode != 0:
                 self.set_message(cp.stderr.splitlines()[0] if cp.stderr else "Error")
 
-    def __close_window(self):
-        selected = self.get_selected_item()
-        if not selected:
-            return
-
-        error = None
-        win_id = selected.id
+    def __close_window_by_id(self, win_id) -> Optional[str]:
         if isinstance(win_id, str) and win_id.startswith("tmux:"):
             target = win_id[len("tmux:") :]
             cp = subprocess.run(
                 ["tmux", "kill-window", "-t", target], capture_output=True, text=True
             )
-            if cp.returncode != 0:
-                error = cp.stderr.splitlines()[0] if cp.stderr else "Error"
+            return cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
         elif sys.platform == "win32":
             user32 = ctypes.windll.user32
             WM_CLOSE = 0x10
             user32.PostMessageW(win_id, WM_CLOSE, 0, 0)
-
-            # Wait briefly for the window to close after requesting it.
-            timeout = time.time() + _WINDOW_CLOSE_WAIT_SECONDS
-            while time.time() < timeout:
-                if not user32.IsWindow(win_id):
-                    break
-                time.sleep(0.1)
+            return None
         elif sys.platform == "linux":
             cp = subprocess.run(
                 ["wmctrl", "-i", "-c", win_id], capture_output=True, text=True
             )
-            if cp.returncode != 0:
-                error = cp.stderr.splitlines()[0] if cp.stderr else "Error"
+            return cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+        return None
 
+    def __close_window(self):
+        selected_items = list(self.get_selected_items())
+        if not selected_items:
+            return
+
+        error = None
+        win_ids_to_wait = []
+        for selected in selected_items:
+            err = self.__close_window_by_id(selected.id)
+            if err:
+                error = err
+            else:
+                win_ids_to_wait.append(selected.id)
+
+        # Wait briefly for the windows to close
+        if win_ids_to_wait:
+            timeout = time.time() + _WINDOW_CLOSE_WAIT_SECONDS
+            while time.time() < timeout:
+                current_ids = {w.id for w in get_windows(sort_by_title=False)}
+                win_ids_to_wait = [wid for wid in win_ids_to_wait if wid in current_ids]
+                if not win_ids_to_wait:
+                    break
+                time.sleep(0.1)
+
+        self.set_multi_select(False)
         self.__refresh_windows(message=error)
 
     def on_enter_pressed(self):

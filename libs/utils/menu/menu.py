@@ -184,6 +184,7 @@ def _to_curses_color(color: Union[str, int]) -> int:
         "white": -1,
         "gray": curses.COLOR_WHITE,
         "darkgray": 238,
+        "brightblack": 8,
         "darkblue": 17,
     }.get(color.lower(), -1)
 
@@ -1450,7 +1451,7 @@ class Menu(Generic[T]):
                     row=self._height - len(lines) + i,
                     col=0,
                     s=status_line,
-                    fg=curses.COLOR_BLUE,
+                    fg=_to_curses_color("blue"),
                     ymax=self._height,
                 )
             item_y_max -= len(lines) - 1
@@ -1525,13 +1526,13 @@ class Menu(Generic[T]):
 
             # Draw line number
             if self.__line_number:
+                line_number_fg = _to_curses_color("blue")
                 line_number_text = self.get_line_number_text(item_index)
                 self.__draw_text(
                     item_y,
                     0,
                     line_number_text.rjust(line_number_width) + (" " * GUTTER_SIZE),
-                    fg=curses.COLOR_WHITE,
-                    dim=not is_item_selected,
+                    fg=line_number_fg,
                     reverse=is_item_selected,
                     ymax=item_y_max,
                 )
@@ -1544,8 +1545,7 @@ class Menu(Generic[T]):
                         y,
                         0,
                         " " * (line_number_width + GUTTER_SIZE),
-                        fg=curses.COLOR_WHITE,
-                        dim=not is_item_selected,
+                        fg=line_number_fg,
                         reverse=is_item_selected,
                         ymax=item_y_max,
                     )

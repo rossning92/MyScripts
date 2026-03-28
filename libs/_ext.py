@@ -206,26 +206,24 @@ def copy_script_path_to_clipboard(
         if " " in script_path:  # quote  path if it contains spaces
             script_path = '"' + script_path + '"'
 
+        variables = script.get_variables() if with_variables else {}
+        variables.pop("MYSCRIPT_ROOT", None)
+
         if format == "cmdline":
             content = ""
-            if with_variables:
-                for k, v in script.get_variables().items():
-                    if v:
-                        content += "%s=%s " % (k, quote_arg(v, shell_type="bash"))
+            for k, v in variables.items():
+                if v:
+                    content += "%s=%s " % (k, quote_arg(v, shell_type="bash"))
 
             content += f"run_script {script_path}"
         elif format == "include":
-            if with_variables:
-                variables = script.get_variables()
-                if variables:
-                    content = "{{ include('%s', %s) }}" % (
-                        script_path,
-                        variables,
-                    )
-                else:
-                    content = "{{ include('%s') }}" % (script_path)
+            if variables:
+                content = "{{ include('%s', %s) }}" % (
+                    script_path,
+                    variables,
+                )
             else:
-                content = "{{ include('%s') }}" % script_path
+                content = "{{ include('%s') }}" % (script_path)
         else:
             raise Exception(f'Invalid format specified "{format}".')
 
