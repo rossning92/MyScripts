@@ -953,7 +953,10 @@ class Menu(Generic[T]):
                 self.__hotkeys["@"].func()
 
             elif (
-                ch == " " and self.__last_key == " " and "space space" in self.__hotkeys
+                ch == " "
+                and self.__last_key == " "
+                and self.__input.text == " "
+                and "space space" in self.__hotkeys
             ):
                 if (
                     self.__allow_input

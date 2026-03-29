@@ -6,6 +6,7 @@ FIFO="$DIR/listening.fifo"
 
 # Toggle: If already listening, signal completion and exit
 if PID=$(cat "$LOCK" 2>/dev/null) && kill -0 "$PID" 2>/dev/null; then
+    termux-toast -b green -c black "PROCESSING..." &
     echo > "$FIFO"
     exit 0
 fi
@@ -16,7 +17,7 @@ echo $$ > "$LOCK"
 OUT=$(mktemp)
 trap 'rm -f "$LOCK" "$FIFO" "$OUT"' EXIT
 
-termux-toast "Listening..." &
+termux-toast -b green -c black "LISTENING..." &
 
 # Start STT (blocks until FIFO receives input)
 exec 3<> "$FIFO"
@@ -24,7 +25,6 @@ bash "$HOME/MyScripts/bin/run_script" r/speech_to_text.py -o "$OUT" <&3
 
 # Handle result
 if [[ -s "$OUT" ]]; then
-    termux-vibrate -d 50 &
     TEXT=$(<"$OUT")
     # Use clipboard for multiline or non-ASCII; 'input text' for simple strings
     if [[ "$TEXT" =~ [$'\n\t'] ]] || printf '%s' "$TEXT" | LC_ALL=C grep -q '[^ -~]'; then
