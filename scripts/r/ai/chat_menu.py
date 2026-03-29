@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from pprint import pformat
 from threading import Thread
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 from urllib.parse import unquote_to_bytes
 
 from ai.chat import (
@@ -680,8 +680,8 @@ class ChatMenu(Menu[Line]):
         else:
             return " " * len(line_number_text)
 
-    def get_item_color(self, item: Line) -> str:
-        return "white" if item.role == "assistant" else "cyan"
+    def get_item_color(self, item: Line) -> Union[str, Tuple[str, str]]:
+        return "white" if item.role == "assistant" else ("white", "darkgray")
 
     def item_wrap(self, item: Line) -> bool:
         return super().item_wrap(item) if item.text else False

@@ -1,5 +1,7 @@
 package com.ross.floatbutton;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -16,7 +18,6 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 
 public class FloatingService extends Service {
     private WindowManager windowManager;
@@ -72,7 +73,7 @@ public class FloatingService extends Service {
         startForeground(1, notification);
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        floatingView = new ImageView(this);
+        floatingView = new View(this);
         floatingView.setHapticFeedbackEnabled(true);
 
         GradientDrawable shape = new GradientDrawable();
@@ -98,11 +99,22 @@ public class FloatingService extends Service {
             private int initialX, initialY;
             private float initialTouchX, initialTouchY;
             private static final int CLICK_THRESHOLD = 10;
+            private static final int LONG_PRESS_TIMEOUT = 500;
+            private final android.os.Handler longPressHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+            private boolean isLongPressed = false;
+
+            private final Runnable longPressRunnable = () -> {
+                isLongPressed = true;
+                floatingView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                runTermuxCommand("on_float_button_long_press.sh", true);
+            };
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        isLongPressed = false;
+                        longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT);
                         v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
                         initialX = params.x;
                         initialY = params.y;
@@ -113,33 +125,50 @@ public class FloatingService extends Service {
                         float dX = Math.abs(event.getRawX() - initialTouchX);
                         float dY = Math.abs(event.getRawY() - initialTouchY);
                         if (dX > CLICK_THRESHOLD || dY > CLICK_THRESHOLD) {
+                            if (!isLongPressed) {
+                                longPressHandler.removeCallbacks(longPressRunnable);
+                            }
                             params.x = initialX + (int) (event.getRawX() - initialTouchX);
                             params.y = initialY + (int) (event.getRawY() - initialTouchY);
                             windowManager.updateViewLayout(floatingView, params);
                         }
                         return true;
                     case MotionEvent.ACTION_UP:
+                        longPressHandler.removeCallbacks(longPressRunnable);
+                        if (isLongPressed) {
+                            savePositionToEdge();
+                            return true;
+                        }
                         float deltaX = Math.abs(event.getRawX() - initialTouchX);
                         float deltaY = Math.abs(event.getRawY() - initialTouchY);
                         if (deltaX < CLICK_THRESHOLD && deltaY < CLICK_THRESHOLD) {
                             runTermuxCommand("on_float_button_click.sh", true);
                         } else {
-                            int screenWidth = windowManager.getDefaultDisplay().getWidth();
-                            int viewWidth = floatingView.getWidth();
-                            int targetX = (params.x + viewWidth / 2 < screenWidth / 2) ? 0 : screenWidth - viewWidth;
-
-                            ValueAnimator animator = ValueAnimator.ofInt(params.x, targetX);
-                            animator.setDuration(200);
-                            animator.addUpdateListener(animation -> {
-                                params.x = (int) animation.getAnimatedValue();
-                                windowManager.updateViewLayout(floatingView, params);
-                                savePosition();
-                            });
-                            animator.start();
+                            savePositionToEdge();
                         }
                         return true;
                 }
                 return false;
+            }
+
+            private void savePositionToEdge() {
+                int screenWidth = windowManager.getDefaultDisplay().getWidth();
+                int viewWidth = floatingView.getWidth();
+                int targetX = (params.x + viewWidth / 2 < screenWidth / 2) ? 0 : screenWidth - viewWidth;
+
+                ValueAnimator animator = ValueAnimator.ofInt(params.x, targetX);
+                animator.setDuration(200);
+                animator.addUpdateListener(animation -> {
+                    params.x = (int) animation.getAnimatedValue();
+                    windowManager.updateViewLayout(floatingView, params);
+                });
+                animator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        savePosition();
+                    }
+                });
+                animator.start();
             }
         });
 

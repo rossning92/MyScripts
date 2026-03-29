@@ -9,8 +9,10 @@ import requests
 from audio.record_audio import record_audio
 from utils.getch import getch
 
+DEFAULT_PROMPT = "audio is english and simplified chinese."
 
-def convert_audio_to_text(file: str, prompt: str = "English and Simplified Chinese.") -> str:
+
+def convert_audio_to_text(file: str, prompt: str = DEFAULT_PROMPT) -> str:
     logging.info(f"Converting audio to text: {file}")
 
     # https://platform.openai.com/docs/guides/speech-to-text
@@ -35,7 +37,7 @@ def convert_audio_to_text(file: str, prompt: str = "English and Simplified Chine
     return json["text"]
 
 
-def speech_to_text(prompt: str = "English and Simplified Chinese.") -> Optional[str]:
+def speech_to_text(prompt: str = DEFAULT_PROMPT) -> Optional[str]:
     fd, out_file = tempfile.mkstemp(suffix=".wav")
     os.close(fd)
     stop_event = Event()

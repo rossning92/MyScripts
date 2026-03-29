@@ -2,7 +2,7 @@ import argparse
 import difflib
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import ai.agent_menu
 import ai.utils.tools.bash
@@ -220,7 +220,7 @@ class CoderMenu(AgentMenu):
             subindex += 1
         return lines
 
-    def get_item_color(self, item: Line) -> str:
+    def get_item_color(self, item: Line) -> Union[str, Tuple[str, str]]:
         if item.type == "diff":
             if item.text.startswith("+"):
                 return "green"
