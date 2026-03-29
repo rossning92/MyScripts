@@ -1,4 +1,8 @@
 #!/bin/bash
+toast() {
+    termux-toast -s -b green -c black "$1" &
+}
+
 DIR="$TMPDIR/termux_stt"
 mkdir -p "$DIR"
 LOCK="$DIR/listening.pid"
@@ -6,7 +10,7 @@ FIFO="$DIR/listening.fifo"
 
 # Toggle: If already listening, signal completion and exit
 if PID=$(cat "$LOCK" 2>/dev/null) && kill -0 "$PID" 2>/dev/null; then
-    termux-toast -b green -c black "PROCESSING..." &
+    toast "PROCESSING..."
     echo > "$FIFO"
     exit 0
 fi
@@ -17,7 +21,8 @@ echo $$ > "$LOCK"
 OUT=$(mktemp)
 trap 'rm -f "$LOCK" "$FIFO" "$OUT"' EXIT
 
-termux-toast -b green -c black "LISTENING..." &
+toast "LISTENING..."
+
 
 # Start STT (blocks until FIFO receives input)
 exec 3<> "$FIFO"

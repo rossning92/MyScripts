@@ -58,7 +58,8 @@ def get_windows_linux() -> List[WindowItem]:
             if len(parts) >= 3:
                 window_id = parts[0]
                 title = parts[3] if len(parts) == 4 else ""
-                windows.append(WindowItem(id=window_id, title=title))
+                if title != "WinSwitcher":
+                    windows.append(WindowItem(id=window_id, title=title))
         return windows
     except Exception:
         return []
@@ -101,7 +102,7 @@ def get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
             buff = ctypes.create_unicode_buffer(title_length + 1)
             user32.GetWindowTextW(hwnd, buff, title_length + 1)
             title = buff.value
-            if title not in ["switch_window", "Program Manager"]:
+            if title not in ["WinSwitcher", "Program Manager"]:
                 windows.append(WindowItem(id=hwnd, title=title))
 
         hwnd = user32.GetWindow(hwnd, 2)
@@ -129,7 +130,8 @@ def get_windows_tmux() -> List[WindowItem]:
         for line in output.strip().splitlines():
             if line:
                 target, name = line.split("\t", 1)
-                windows.append(WindowItem(id=f"tmux:{target}", title=name))
+                if name != "WinSwitcher":
+                    windows.append(WindowItem(id=f"tmux:{target}", title=name))
         return windows
     except Exception:
         return []
@@ -158,9 +160,9 @@ def get_windows(
     return windows
 
 
-class SwitchWindowMenu(Menu[WindowItem]):
+class WinSwitcherMenu(Menu[WindowItem]):
     def __init__(self):
-        super().__init__(prompt="activate", items=[])
+        super().__init__(prompt="activate", items=[], line_number=False)
         self.__auto_refresh_enabled = True
         self.__auto_refresh_last_time = 0.0
         self.__sort_by_title = False
@@ -212,8 +214,6 @@ class SwitchWindowMenu(Menu[WindowItem]):
             user32.keybd_event(0x12, 0, 0, 0)  # Alt Down
             user32.SetForegroundWindow(hwnd)
             user32.keybd_event(0x12, 0, 2, 0)  # Alt Up
-
-            self.clear_input()
         elif sys.platform == "linux":
             cp = subprocess.run(
                 ["wmctrl", "-i", "-a", win_id], capture_output=True, text=True
@@ -227,7 +227,9 @@ class SwitchWindowMenu(Menu[WindowItem]):
             cp = subprocess.run(
                 ["tmux", "kill-window", "-t", target], capture_output=True, text=True
             )
-            return cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+            return (
+                cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+            )
         elif sys.platform == "win32":
             user32 = ctypes.windll.user32
             WM_CLOSE = 0x10
@@ -237,7 +239,9 @@ class SwitchWindowMenu(Menu[WindowItem]):
             cp = subprocess.run(
                 ["wmctrl", "-i", "-c", win_id], capture_output=True, text=True
             )
-            return cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+            return (
+                cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+            )
         return None
 
     def __close_window(self):
@@ -283,7 +287,6 @@ class SwitchWindowMenu(Menu[WindowItem]):
         return super().on_char(ch)
 
     def on_focus_gained(self):
-        self.clear_input()
         self.__refresh_windows()
         self.__auto_refresh_enabled = True
         self.__auto_refresh_last_time = time.time()
@@ -303,10 +306,18 @@ class SwitchWindowMenu(Menu[WindowItem]):
     def on_escape_pressed(self):
         self.clear_input()
 
+    def get_item_text(self, item: WindowItem) -> str:
+        text = super().get_item_text(item)
+        item_indices = self.get_item_indices()
+        for i in range(min(9, len(item_indices))):
+            if self.items[item_indices[i]] == item:
+                return f"[{i + 1}] {text}"
+        return "    " + text
+
     def get_item_color(self, item: WindowItem) -> str:
         status = item.get_status(self.script_status)
         return _STATUS_COLOR_MAPPING.get(status, "white")
 
 
 if __name__ == "__main__":
-    SwitchWindowMenu().exec()
+    WinSwitcherMenu().exec()

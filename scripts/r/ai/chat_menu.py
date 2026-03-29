@@ -265,7 +265,7 @@ class ChatMenu(Menu[Line]):
         context: Optional[str] = None,
         image_urls: Optional[List[str]] = None,
         out_file: Optional[str] = None,
-        prompt: str = "u",
+        prompt: str = ">",
         prompt_file: Optional[str] = None,
         system_prompt="",
         settings_menu_class=SettingsMenu,
