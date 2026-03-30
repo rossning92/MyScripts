@@ -68,6 +68,7 @@ class CoderMenu(AgentMenu):
             data_dir=os.path.join(".config", "coder"),
             settings_menu_class=settings_menu_class,
             subagents=load_subagents(),
+            title="coder",
             **kwargs,
         )
         self.__file_context_menu = FileContextMenu(files=files)

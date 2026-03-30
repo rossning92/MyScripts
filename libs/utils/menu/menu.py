@@ -246,7 +246,7 @@ class _TextInput:
             stdscr,
             row,
             0,
-            self.prompt + ":",
+            self.prompt,
             Menu._get_color_pair(self.prompt_color),
         )
 
@@ -1448,7 +1448,10 @@ class Menu(Generic[T]):
                     status_line = parts[0]
                 else:
                     status_bar_text, b = parts
-                    status_line = f"{status_bar_text[: self.__width - len(b)]:<{self.__width - len(b)}}{b:>{len(b)}}"
+                    left_width = max(0, self.__width - len(b))
+                    status_line = (
+                        f"{status_bar_text[:left_width]:<{left_width}}{b:>{len(b)}}"
+                    )
 
                 self.__draw_text(
                     row=self._height - len(lines) + i,

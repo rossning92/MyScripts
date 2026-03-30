@@ -38,6 +38,7 @@ from _shutil import (
     write_temp_file,
 )
 from utils.android import setup_android_env
+from utils.browser import open_url
 from utils.clip import get_clip, get_selection
 from utils.dotenv import load_dotenv
 from utils.email import send_email_md
@@ -1253,7 +1254,7 @@ class Script:
                         break
 
             if fallback_to_shell_open:
-                shell_open(url)
+                open_url(url)
             return True
 
         else:

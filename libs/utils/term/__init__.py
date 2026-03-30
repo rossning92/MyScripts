@@ -36,17 +36,17 @@ def clear_terminal():
 
 def get_terminal_title():
     if sys.platform == "win32":
-        MAX_BUFFER = 260
-        title_buff = (ctypes.c_char * MAX_BUFFER)()
-        ret = ctypes.windll.kernel32.GetConsoleTitleA(title_buff, MAX_BUFFER)
-        assert ret > 0
-        return title_buff.value.decode(locale.getpreferredencoding())
+        MAX_BUFFER = 1024
+        title_buff = ctypes.create_unicode_buffer(MAX_BUFFER)
+        ret = ctypes.windll.kernel32.GetConsoleTitleW(title_buff, MAX_BUFFER)
+        if ret > 0:
+            return title_buff.value
+    return None
 
 
 def set_terminal_title(title):
     if sys.platform == "win32":
-        win_title = title.encode(locale.getpreferredencoding())
-        ctypes.windll.kernel32.SetConsoleTitleA(win_title)
+        ctypes.windll.kernel32.SetConsoleTitleW(title)
 
 
 def enable_windows_vt():

@@ -47,6 +47,7 @@ from utils.script.path import get_data_dir
 from utils.shutil import shell_open
 from utils.slugify import slugify
 from utils.template import render_template
+from utils.term import set_terminal_title
 from utils.textutil import is_text_file, truncate_text
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -265,14 +266,16 @@ class ChatMenu(Menu[Line]):
         context: Optional[str] = None,
         image_urls: Optional[List[str]] = None,
         out_file: Optional[str] = None,
-        prompt: str = ">",
+        prompt: str = "❯",
         prompt_file: Optional[str] = None,
         system_prompt="",
         settings_menu_class=SettingsMenu,
         settings_file: str = "settings.json",
         cancellable: bool = False,
+        title: str = "chat_menu",
         **kwargs,
     ) -> None:
+        self.__title = title
         self.__copy = copy
         self.__edit_text = edit_text
         self.__first_message = message
@@ -355,6 +358,7 @@ class ChatMenu(Menu[Line]):
         self.__messages: List[Message] = []
         self.__chat_file = self.__history_manager.get_new_file()
 
+        self.__update_terminal_title()
         self.__update_prompt()
 
     def __add_file(self):
@@ -440,6 +444,7 @@ class ChatMenu(Menu[Line]):
             del self.get_messages()[msg_index + 1 :]
 
             self.__refresh_lines()
+            self.__update_terminal_title()
 
             if message["role"] == "user":
                 self.__complete_chat()
@@ -622,6 +627,15 @@ class ChatMenu(Menu[Line]):
         if self.__image_urls:
             prompt += f" ({len(self.__image_urls)} images)"
         self.set_prompt(prompt)
+
+    def __update_terminal_title(self):
+        status = "⧗" if self.__is_generating else "✓"
+        title = self.__title + status
+        if self.__messages:
+            t = self.__messages[0].get("text", "")
+            if t:
+                title += " - " + t.splitlines()[0][:100]
+        set_terminal_title(title)
 
     def __show_system_prompt(self):
         system_prompt = self.get_system_prompt()
@@ -879,6 +893,7 @@ Following is my instructions:
         self.on_generating()
         self.set_message(status)
         self.__is_generating = True
+        self.__update_terminal_title()
 
         self._out_message = out_message = Message(
             role="assistant",
@@ -940,6 +955,7 @@ Following is my instructions:
     def __on_chat_done(self, cancelled=False):
         assert self._out_message
         self.__is_generating = False
+        self.__update_terminal_title()
 
         if cancelled:
             self._out_message["text"] += f"\n{_INTERRUPT_MESSAGE}"
@@ -989,6 +1005,7 @@ Following is my instructions:
 
     def __on_chat_exception(self, exception: Exception):
         self.__is_generating = False
+        self.__update_terminal_title()
 
         if self.get_settings()["retry"]:
             self.__retry_count += 1
@@ -1091,6 +1108,7 @@ Following is my instructions:
         self.__chat_file = file
         self.__messages = load_json(self.__chat_file)
         self.__refresh_lines()
+        self.__update_terminal_title()
 
     def clear_messages(self):
         self.__lines.clear()
@@ -1107,6 +1125,7 @@ Following is my instructions:
         self.__context_list.clear()
         self.__image_urls.clear()
         self.__update_prompt()
+        self.__update_terminal_title()
 
         self.__chat_file = self.__history_manager.get_new_file()
 

@@ -20,7 +20,8 @@ class TodoItem(TypedDict):
     due_ts: NotRequired[float]
 
 
-_status_symbols = {"closed": "[x]", "in_progress": "[=]", "none": "[ ]"}
+_STATUS_SYMBOLS = {"closed": "[✓]", "in_progress": "[…]", "none": "[ ]"}
+_STATUS_PRIORITY = {"in_progress": 0, "none": 1, "closed": 2}
 
 
 def get_relative_time_str(ts: float) -> str:
@@ -151,7 +152,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         # Description
         desc = truncate_text(item["description"], max_lines=1)
 
-        return f"{_status_symbols[item['status']]} {date_str} {desc}"
+        return f"{_STATUS_SYMBOLS[item['status']]} {date_str} {desc}"
 
     def get_item_metadata(self, item: TodoItem) -> str:
         return _get_todo_str(item)
@@ -279,7 +280,7 @@ class TodoMenu(ListEditMenu[TodoItem]):
         selected = self.get_selected_item()
         self.items.sort(
             key=lambda item: (
-                item.get("status", "none") == "closed",
+                _STATUS_PRIORITY.get(item.get("status", "none"), 1),
                 (
                     -item.get("due_ts", 0.0)
                     if item.get("status", "none") == "closed"
