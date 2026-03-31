@@ -58,8 +58,9 @@ def get_windows_linux() -> List[WindowItem]:
             if len(parts) >= 3:
                 window_id = parts[0]
                 title = parts[3] if len(parts) == 4 else ""
-                if title != "WinSwitcher":
-                    windows.append(WindowItem(id=window_id, title=title))
+                if title == "WinSwitcher":
+                    continue
+                windows.append(WindowItem(id=window_id, title=title))
         return windows
     except Exception:
         return []
@@ -121,7 +122,7 @@ def get_windows_tmux() -> List[WindowItem]:
                 "list-windows",
                 "-a",
                 "-F",
-                "#{session_name}:#{window_index}\t#{window_name}",
+                "#{session_name}:#{window_index}\t#{window_name}\t#{pane_title}",
             ],
             text=True,
             stderr=subprocess.DEVNULL,
@@ -129,9 +130,14 @@ def get_windows_tmux() -> List[WindowItem]:
         windows = []
         for line in output.strip().splitlines():
             if line:
-                target, name = line.split("\t", 1)
-                if name != "WinSwitcher":
-                    windows.append(WindowItem(id=f"tmux:{target}", title=name))
+                parts = line.split("\t", 2)
+                assert len(parts) == 3
+                target, name, pane_title = parts
+                if name == "WinSwitcher":
+                    continue
+
+                title = f"{name} - {pane_title}" if pane_title else name
+                windows.append(WindowItem(id=f"tmux:{target}", title=title))
         return windows
     except Exception:
         return []

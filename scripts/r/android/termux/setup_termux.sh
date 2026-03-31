@@ -43,10 +43,14 @@ done
 sed -i 's#^exec /system/bin/app_process /#exec /system/bin/app_process -Xnoimage-dex2oat /#' "$PREFIX/bin/am"
 
 # Config termux
-ln -f -s $HOME/MyScripts/settings/termux $HOME/.termux
+if [ -d "$HOME/.termux" ] && [ ! -L "$HOME/.termux" ]; then
+    rm -rf "$HOME/.termux"
+fi
+ln -f -s "$HOME/MyScripts/settings/termux" "$HOME/.termux"
+termux-reload-settings
 
 # Config vim
-ln -f -s $HOME/MyScripts/settings/vim/.vimrc $HOME/.vimrc
+ln -f -s "$HOME/MyScripts/settings/vim/.vimrc" "$HOME/.vimrc"
 
 # Set up hooks for sharing to Termux
 mkdir -p "$HOME/bin"

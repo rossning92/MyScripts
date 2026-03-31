@@ -29,10 +29,8 @@ if [[ "$(uname)" == "Linux" ]]; then
         check_and_install 'python'
     fi
 elif [[ -n "${TERMUX_VERSION}" ]]; then
-    if [[ ! -x "$(command -v python)" ]]; then
-        pkg update
-        pkg install -y python
-    fi
+    command -v python >/dev/null || pkg install -y python
+    command -v tmux >/dev/null || pkg install -y tmux
 fi
 
 append_line_dedup() {

@@ -295,6 +295,7 @@ class ChatMenu(Menu[Line]):
         self.__chat_task: Optional[asyncio.Task] = None
         self.__retry_count = 0
         self.__usage = UsageMetadata()
+        self.__message_queue: List[str] = []
 
         self._out_message: Optional[Message] = None
 
@@ -608,6 +609,8 @@ class ChatMenu(Menu[Line]):
         if not removed_messages:
             return []
 
+        self.__message_queue.clear()
+
         self.__refresh_lines()
         oldest_removed = removed_messages[0]
         if oldest_removed["role"] == "user":
@@ -626,6 +629,8 @@ class ChatMenu(Menu[Line]):
             prompt += f" ({len(self.__context_list)} context)"
         if self.__image_urls:
             prompt += f" ({len(self.__image_urls)} images)"
+        if self.__message_queue:
+            prompt += f" (queued: {len(self.__message_queue)})"
         self.set_prompt(prompt)
 
     def __update_terminal_title(self):
@@ -986,6 +991,14 @@ Following is my instructions:
 
             self.on_message(text)
 
+        if self.__message_queue:
+            if cancelled:
+                self.__message_queue.clear()
+                self.__update_prompt()
+            else:
+                next_text = self.__message_queue.pop(0)
+                self.send_message(next_text)
+
     def __on_chat_chunk(self, chunk_index: int, chunk: str):
         for i, a in enumerate(chunk.split("\n")):
             if i > 0 or chunk_index == 0:
@@ -1114,6 +1127,7 @@ Following is my instructions:
         self.__lines.clear()
         self.get_messages().clear()
         self.__usage.reset()
+        self.__message_queue.clear()
         self.reset_selection()
         self.set_follow(True)
         self.update_screen()
@@ -1130,10 +1144,17 @@ Following is my instructions:
         self.__chat_file = self.__history_manager.get_new_file()
 
     def on_enter_pressed(self):
-        if self.__is_generating:
+        text = self.get_input()
+        if not text:
             return
 
-        text = self.get_input()
+        if self.__is_generating:
+            self.__message_queue.append(text)
+            self.clear_input()
+            self.set_message(f"message queued ({len(self.__message_queue)})")
+            self.__update_prompt()
+            return
+
         if self.clear_input():
             self.send_message(text)
 

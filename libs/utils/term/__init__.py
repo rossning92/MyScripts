@@ -47,6 +47,9 @@ def get_terminal_title():
 def set_terminal_title(title):
     if sys.platform == "win32":
         ctypes.windll.kernel32.SetConsoleTitleW(title)
+    else:
+        sys.stdout.write(f"\033]0;{title}\007")
+        sys.stdout.flush()
 
 
 def enable_windows_vt():

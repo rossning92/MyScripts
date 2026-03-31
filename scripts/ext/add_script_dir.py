@@ -15,13 +15,17 @@ if __name__ == "__main__":
         script_dir_path = args.script_dir
         prefix = args.prefix
     else:
-        script_dir_path = FileMenu(prompt="script dir").select_directory()
+        script_dir_path = FileMenu(
+            prompt="select script dir", prompt_color="green"
+        ).select_directory()
         if not script_dir_path:
             exit(0)
 
         script_dir_name = os.path.basename(script_dir_path)
         prefix = InputMenu(
-            prompt="prefix", text=os.path.basename(script_dir_path)
+            prompt="enter prefix",
+            text=os.path.basename(script_dir_path),
+            prompt_color="green",
         ).request_input()
         if not prefix:
             exit(0)

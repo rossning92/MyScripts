@@ -8,5 +8,6 @@
     "grep",
     "ls",
     "pwd",
-    "which"
+    "which",
+    "xdg-open"
 ]

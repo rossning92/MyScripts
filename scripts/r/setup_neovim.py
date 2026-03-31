@@ -5,24 +5,17 @@ import sys
 from utils.symlink import create_symlink
 
 
-def _main():
-    # nvim config dir
-    nvim_config = str(
-        pathlib.Path(__file__).resolve().parent.parent.parent / "settings" / "nvim"
-    )
+def main():
+    src = pathlib.Path(__file__).resolve().parents[2] / "settings" / "nvim"
 
-    # symlink path
-    if sys.platform in ("linux", "darwin", "android"):
-        # Create the .config dir if it does not exist
-        config_path = pathlib.Path.home() / ".config"
-        config_path.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "win32":
+        dest = pathlib.Path(os.environ.get("LOCALAPPDATA", "")) / "nvim"
+    else:
+        dest = pathlib.Path.home() / ".config" / "nvim"
+        dest.parent.mkdir(parents=True, exist_ok=True)
 
-        symlink_path = str(config_path / "nvim")
-    elif sys.platform == "win32":
-        symlink_path = os.path.expandvars("%LOCALAPPDATA%\\nvim")
-
-    create_symlink(nvim_config, symlink_path)
+    create_symlink(str(src), str(dest))
 
 
 if __name__ == "__main__":
-    _main()
+    main()

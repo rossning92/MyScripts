@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import signal
 import subprocess
@@ -39,13 +40,35 @@ def _wait_for_key() -> bool:
 def _initialize_pulseaudio():
     if is_in_termux():
         require_package("pulseaudio")
+        logging.debug("Killing pulseaudio...")
         subprocess.call(
             ["pulseaudio", "-k"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+        android_version = 0
+        try:
+            version_str = (
+                subprocess.check_output(["getprop", "ro.build.version.release"])
+                .decode()
+                .strip()
+            )
+            if version_str:
+                android_version = int(version_str.split(".")[0])
+        except Exception:
+            pass
+
+        env = os.environ.copy()
+        if android_version >= 16:
+            lib_path = "/system/lib64/android.hardware.drm@1.3.so"
+            if os.path.exists(lib_path):
+                env["LD_PRELOAD"] = lib_path
+
+        logging.debug("Starting pulseaudio with module-sles-source...")
         subprocess.check_call(
             ["pulseaudio", "-L", "module-sles-source", "-D"],
+            env=env,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -70,6 +93,7 @@ def record_audio(
     if is_in_termux():
         _initialize_pulseaudio()
 
+    logging.debug(f"Recording to: {out_file}")
     process = subprocess.Popen(
         [
             "rec",
