@@ -171,6 +171,7 @@ class FileMenu(Menu[_File]):
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
         self.add_command(self._open_with_script)
+        self.add_command(self._preview_image, hotkey="alt+i")
         self.add_command(lambda: self.sort_by("name"), name="sort_by_name")
         self.add_command(lambda: self.sort_by("mtime"), name="sort_by_mtime")
 
@@ -694,6 +695,21 @@ class FileMenu(Menu[_File]):
             )
             if ret_code == 0:
                 self._refresh_cur_dir()
+
+    def _preview_image(self):
+        file = self.get_selected_file_full_path()
+        if file and os.path.isfile(file):
+            try:
+
+                def preview():
+                    subprocess.call(["viu", file])
+                    input("\nPress Enter to continue...")
+
+                self.run_raw(preview)
+            except FileNotFoundError:
+                self.set_message("Error: `viu` command not found")
+            except Exception as e:
+                self.set_message(str(e))
 
     def get_status_text(self) -> str:
         return f"sort={self.__config.sort_by} {super().get_status_text()}"

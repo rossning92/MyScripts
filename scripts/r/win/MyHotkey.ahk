@@ -45,6 +45,8 @@ return
     #!2::ActivateChrome(3)
     #m::ToggleMicrophone()
 
+    !q::Send !{F4}
+
     ^q::
         ; If explorer is active, copy file path to clipboard
         UpdateExplorerInfo()

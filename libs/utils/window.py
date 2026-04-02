@@ -6,13 +6,212 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple
+
+from .tmux import is_in_tmux
 
 TITLE_MATCH_MODE_EXACT = 0
 TITLE_MATCH_MODE_PARTIAL = 1
 TITLE_MATCH_MODE_START_WITH = 2
 TITLE_MATCH_MODE_REGEX = 3
 TITLE_MATCH_MODE_DEFAULT = TITLE_MATCH_MODE_REGEX
+
+WindowStatus = Literal["normal", "done", "error", "running"]
+
+_WINDOW_STATUS_PRIORITY: Dict[WindowStatus, int] = {
+    "done": 0,
+    "error": 1,
+    "running": 2,
+    "normal": 3,
+}
+
+
+class WindowItem:
+    def __init__(self, id, title):
+        self.id = id
+        self.title = title
+
+    def get_status(self, script_status: Dict[str, str]) -> WindowStatus:
+        if "✓" in self.title:
+            return "done"
+        if "⧗" in self.title:
+            return "running"
+        status = script_status.get(self.title, "normal")
+        if status in ["done", "error", "running"]:
+            return status  # type: ignore
+        return "normal"
+
+    def __str__(self):
+        return self.title
+
+
+def _get_windows_linux() -> List[WindowItem]:
+    try:
+        output = subprocess.check_output(
+            ["wmctrl", "-l"], text=True, stderr=subprocess.DEVNULL
+        )
+        windows = []
+        for line in output.strip().splitlines():
+            # Format: 0x03400003  0 ross-pc title
+            parts = line.split(None, 3)
+            if len(parts) >= 3:
+                window_id = parts[0]
+                title = parts[3] if len(parts) == 4 else ""
+                if title == "WinSwitcher":
+                    continue
+                windows.append(WindowItem(id=window_id, title=title))
+        return windows
+    except Exception:
+        return []
+
+
+def _get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
+    """
+    Get all top-level windows.
+    """
+    assert sys.platform == "win32"
+
+    user32 = ctypes.windll.user32
+    dwmapi = ctypes.windll.dwmapi
+    GW_OWNER = 4
+    GWL_EXSTYLE = -20
+    WS_EX_TOOLWINDOW = 0x00000080
+    DWMWA_CLOAKED = 14
+
+    windows = []
+    hwnd = user32.GetTopWindow(None)
+    while hwnd:
+        is_visible = user32.IsWindowVisible(hwnd)
+        title_length = user32.GetWindowTextLengthW(hwnd)
+        owner = user32.GetWindow(hwnd, GW_OWNER)
+        ex_style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
+
+        # Hidden by the system (like background Settings or Input Experience).
+        cloaked = ctypes.c_int(0)
+        dwmapi.DwmGetWindowAttribute(
+            hwnd, DWMWA_CLOAKED, ctypes.byref(cloaked), ctypes.sizeof(cloaked)
+        )
+
+        if (
+            is_visible
+            and title_length > 0
+            and owner == 0
+            and not (ex_style & WS_EX_TOOLWINDOW)
+            and cloaked.value == 0
+        ):
+            buff = ctypes.create_unicode_buffer(title_length + 1)
+            user32.GetWindowTextW(hwnd, buff, title_length + 1)
+            title = buff.value
+            if title not in ["WinSwitcher", "Program Manager"]:
+                windows.append(WindowItem(id=hwnd, title=title))
+
+        hwnd = user32.GetWindow(hwnd, 2)
+
+    if sort_by_title:
+        windows.sort(key=lambda x: x.title.lower())
+
+    return windows
+
+
+def _get_windows_tmux() -> List[WindowItem]:
+    try:
+        output = subprocess.check_output(
+            [
+                "tmux",
+                "list-windows",
+                "-a",
+                "-F",
+                "#{session_name}:#{window_index}\t#{window_name}\t#{pane_title}",
+            ],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+        windows = []
+        for line in output.strip().splitlines():
+            if line:
+                parts = line.split("\t", 2)
+                assert len(parts) == 3
+                target, name, pane_title = parts
+                if name == "WinSwitcher":
+                    continue
+
+                title = f"{name} - {pane_title}" if pane_title else name
+                windows.append(WindowItem(id=f"tmux:{target}", title=title))
+        return windows
+    except Exception:
+        return []
+
+
+def get_windows(
+    sort_by_title: bool = True, script_status: Optional[Dict[str, str]] = None
+) -> List[WindowItem]:
+    if sys.platform == "linux":
+        windows = _get_windows_linux()
+    elif sys.platform == "win32":
+        windows = _get_windows_win(sort_by_title=sort_by_title)
+    elif is_in_tmux():
+        windows = _get_windows_tmux()
+    else:
+        windows = []
+
+    if script_status:
+        windows.sort(
+            key=lambda x: (
+                _WINDOW_STATUS_PRIORITY.get(x.get_status(script_status), 3),
+                x.title.lower() if sort_by_title else 0,
+            )
+        )
+
+    return windows
+
+
+def activate_window(win_id) -> Optional[str]:
+    if isinstance(win_id, str) and win_id.startswith("tmux:"):
+        target = win_id[len("tmux:") :]
+        cp = subprocess.run(
+            ["tmux", "select-window", "-t", target], capture_output=True, text=True
+        )
+        if cp.returncode != 0:
+            return cp.stderr.splitlines()[0] if cp.stderr else "Error"
+    elif sys.platform == "win32":
+        user32 = ctypes.windll.user32
+
+        hwnd = win_id
+        if user32.IsIconic(hwnd):
+            user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+
+        # Use the "Alt" key hack to bypass focus stealing restrictions
+        # 0x12 is VK_MENU (Alt key)
+        user32.keybd_event(0x12, 0, 0, 0)  # Alt Down
+        user32.SetForegroundWindow(hwnd)
+        user32.keybd_event(0x12, 0, 2, 0)  # Alt Up
+    elif sys.platform == "linux":
+        cp = subprocess.run(
+            ["wmctrl", "-i", "-a", win_id], capture_output=True, text=True
+        )
+        if cp.returncode != 0:
+            return cp.stderr.splitlines()[0] if cp.stderr else "Error"
+    return None
+
+
+def close_window(win_id) -> Optional[str]:
+    if isinstance(win_id, str) and win_id.startswith("tmux:"):
+        target = win_id[len("tmux:") :]
+        cp = subprocess.run(
+            ["tmux", "kill-window", "-t", target], capture_output=True, text=True
+        )
+        return cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+    elif sys.platform == "win32":
+        user32 = ctypes.windll.user32
+        WM_CLOSE = 0x10
+        user32.PostMessageW(win_id, WM_CLOSE, 0, 0)
+        return None
+    elif sys.platform == "linux":
+        cp = subprocess.run(
+            ["wmctrl", "-i", "-c", win_id], capture_output=True, text=True
+        )
+        return cp.stderr.splitlines()[0] if cp.returncode != 0 and cp.stderr else None
+    return None
 
 
 def _activate_window_win(hwnd):
