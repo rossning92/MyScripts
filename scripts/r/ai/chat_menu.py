@@ -260,7 +260,6 @@ class ChatMenu(Menu[Line]):
         self,
         copy=False,
         data_dir: Optional[str] = None,
-        edit_text=False,
         message: Optional[str] = None,
         model: Optional[str] = None,
         context: Optional[str] = None,
@@ -277,7 +276,6 @@ class ChatMenu(Menu[Line]):
     ) -> None:
         self.__title = title
         self.__copy = copy
-        self.__edit_text = edit_text
         self.__first_message = message
         if context and is_text_file(context):
             with open(context, "r", encoding="utf-8") as f:
@@ -774,20 +772,6 @@ class ChatMenu(Menu[Line]):
         for c in self.__context_list:
             context.append(c)
 
-            if self.__edit_text:
-                text = f"""Edit the input text according to my instructions. You should only return the result, do not include any other text.
-
-Following is the input text:
-<input_text>
-{context[0].rstrip()}
-</input_text>
-
-Following is my instructions:
-<instructions>
-{text.rstrip()}
-</instructions>
-"""
-
         message = Message(
             role="user",
             text=text,
@@ -802,15 +786,15 @@ Following is my instructions:
 
         if context:
             message["context"] = context
-        for c in context:
-            self.append_item(
-                Line(
-                    role="user",
-                    msg_index=msg_index,
-                    subindex=subindex,
-                    context=c,
+            for c in context:
+                self.append_item(
+                    Line(
+                        role="user",
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        context=c,
+                    )
                 )
-            )
 
         if self.__image_urls:
             message["image_urls"] = self.__image_urls.copy()
@@ -1237,7 +1221,6 @@ def _main():
     parser.add_argument("-o", "--out-file", type=str)
     parser.add_argument("-m", "--model", type=str)
     parser.add_argument("-p", "--prompt-file", type=str)
-    parser.add_argument("--edit-text", action="store_true")
     parser.add_argument("--copy", action="store_true")
     args = parser.parse_args()
 
@@ -1264,7 +1247,6 @@ def _main():
         image_urls=image_urls,
         out_file=args.out_file,
         model=args.model,
-        edit_text=args.edit_text,
         copy=args.copy,
         prompt_file=args.prompt_file,
         data_dir=get_default_data_dir(),

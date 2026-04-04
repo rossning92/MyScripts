@@ -58,7 +58,7 @@ class SettingsMenu(ai.agent_menu.SettingsMenu):
 class CoderMenu(AgentMenu):
     def __init__(
         self,
-        files: Optional[List[str]],
+        files: Optional[List[str]] = None,
         voice_input: bool = False,
         settings_menu_class=SettingsMenu,
         extra_system_prompt: Optional[str] = None,

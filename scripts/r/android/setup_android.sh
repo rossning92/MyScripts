@@ -13,18 +13,18 @@ if [[ -n ${_REMOVE_WALLPAPER} ]]; then
     adb shell am start -a android.intent.action.ATTACH_DATA -c android.intent.category.DEFAULT -d file:///sdcard/empty.png -t "image/*" -e mimeType "image/*"
 fi
 
-# echo 'Disable navigation gestures...'
-# adb shell settings put system op_navigation_bar_type 3 # Navigation gestures
-# adb shell settings put system status_bar_show_battery_percent 1
-
-# echo 'Enable Lift up display (OP5t)...'
-# adb shell settings put system prox_wake_enabled 1
-# adb shell settings put system doze_enabled 1
-# adb shell settings put system aod_clock_style 1
-
 # https://github.com/agnostic-apollo/Android-Docs/blob/master/en/docs/apps/processes/phantom-cached-and-empty-processes.md#commands-to-disable-phantom-process-killing-and-tldr
 echo 'Disable the phantom processes killing'
-ANDROID_VERSION=$(adb shell getprop ro.build.version.release | tr -d '[:space:]')
-if [ "$ANDROID_VERSION" -ge "14" ]; then
+# Same as enabling "Disable child process restrictions" in Developer Options.
+adb shell settings put global settings_enable_monitor_phantom_procs false
+android_version=$(adb shell getprop ro.build.version.release | tr -d '[:space:]')
+if [ "$android_version" -ge "14" ] && adb shell command -v su >/dev/null 2>&1; then
     adb shell su -c "setprop persist.sys.fflag.override.settings_enable_monitor_phantom_procs false"
 fi
+
+# Reduce the height of the status bar / display cutout (Pixel 9/10)
+echo 'Reduce status bar height (hole cutout emulation)...'
+adb shell cmd overlay enable com.android.internal.display.cutout.emulation.hole
+
+echo 'Set screen timeout to 5 minutes...'
+adb shell settings put system screen_off_timeout 300000

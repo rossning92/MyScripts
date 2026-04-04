@@ -84,7 +84,7 @@ class SettingsMenu(ai.chat_menu.SettingsMenu):
             "function_call": True,
             "mcp": [],
             "skill": True,
-            "memory": True,
+            "memory": False,
             "subagent": False,
         }
 

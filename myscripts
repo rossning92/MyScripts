@@ -2,7 +2,10 @@
 set -e
 SCRIPT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ "$(uname)" == "Linux" ]]; then
+if [[ -n "${TERMUX_VERSION}" ]]; then
+    command -v python >/dev/null || pkg install -y python
+    command -v tmux >/dev/null || pkg install -y tmux
+elif [[ "$(uname)" == "Linux" ]]; then
     # Check if Debian-based distro
     if [[ -f "/etc/debian_version" ]]; then
         # Install required packages
@@ -28,9 +31,6 @@ if [[ "$(uname)" == "Linux" ]]; then
         }
         check_and_install 'python'
     fi
-elif [[ -n "${TERMUX_VERSION}" ]]; then
-    command -v python >/dev/null || pkg install -y python
-    command -v tmux >/dev/null || pkg install -y tmux
 fi
 
 append_line_dedup() {

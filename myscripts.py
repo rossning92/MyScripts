@@ -584,11 +584,8 @@ class _MyScriptMenu(Menu[Script]):
                                 )
                             ]
                         )
-                except FileNotFoundError:  # Scripts have been removed
-                    logging.warning(
-                        "Error on reading variables from script, script does not exist: %s"
-                        % script.script_path
-                    )
+                except Exception as e:
+                    logging.error(f"Error on script: {script.script_path}: {e}")
 
                 # Script configs
                 for name, value in script.cfg.items():

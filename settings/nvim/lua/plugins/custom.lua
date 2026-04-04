@@ -106,11 +106,14 @@ local function edit_selected_text(opts)
     local text, start_pos, end_pos = get_selected_text()
     local input_file = nil
     local output_file = os.tmpname()
-    local command = "run_script r/ai/chat_menu.py --edit-text -o " .. output_file
+    local command = "run_script r/ai/chat_menu.py -o " .. output_file
 
     opts = opts or {}
 
-    if opts.prefix then
+    if opts.message then
+        input_file = write_to_temp_file(text, ".txt")
+        command = command .. " --context " .. input_file .. " " .. vim.fn.shellescape(opts.message)
+    elseif opts.prefix then
         local prompt = opts.prefix .. text
         input_file = write_to_temp_file(prompt)
         command = command .. " -i " .. input_file
@@ -134,7 +137,7 @@ end
 
 local function fix()
     edit_selected_text({
-        prefix = "Fix the spelling and grammar of the following text and only return the corrected text:\n---\n"
+        message = "rephrase and fix grammar"
     })
 end
 

@@ -1678,11 +1678,14 @@ class Script:
         VARIABLE_NAME_PATT = r"\b([A-Z_$][A-Z_$0-9]{4,})\b"
         if self.cfg["variableNames"] == "auto":
             if self.ext in SCRIPT_EXTENSIONS:
-                with open(self.script_path, "r", encoding="utf-8") as f:
-                    s = f.read()
+                try:
+                    with open(self.script_path, "r", encoding="utf-8") as f:
+                        s = f.read()
+                except Exception as e:
+                    raise Exception(f"Error reading script {self.script_path}: {e}") from e
 
-                    # Find all uppercase names to use as variable names.
-                    variable_names = re.findall(VARIABLE_NAME_PATT, s)
+                # Find all uppercase names to use as variable names.
+                variable_names = re.findall(VARIABLE_NAME_PATT, s)
             else:
                 return []
         else:

@@ -16,8 +16,10 @@ class FileLock:
             lock_file = os.path.join(tempfile.gettempdir(), "filelock_%s" % self.name)
             if sys.platform == "win32":
                 try:
-                    if os.path.exists(lock_file):
+                    try:
                         os.remove(lock_file)
+                    except FileNotFoundError:
+                        pass
                     self.fh = open(lock_file, "x")
                     break
                 except FileExistsError:
