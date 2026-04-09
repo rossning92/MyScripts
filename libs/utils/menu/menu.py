@@ -162,7 +162,7 @@ def _match_regex(item: Any, patt: str) -> bool:
 
 
 def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
-    if patt.isdigit():
+    if patt[:1] == ':' and patt[1:].isdigit():
         return int(patt) == index + 1
     elif fuzzy_match:
         return _match_fuzzy(item, patt)
@@ -439,7 +439,7 @@ class Menu(Generic[T]):
         self.__hotkeys: Dict[str, _Command] = {}
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
-            self.add_command(self.open_ai_agent, hotkey="!")
+            self.add_command(self.open_ai_agent, hotkey="alt+k")
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")

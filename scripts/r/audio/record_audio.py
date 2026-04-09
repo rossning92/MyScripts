@@ -78,12 +78,17 @@ def record_audio(
     out_file: Optional[str] = None,
     stop_event: Optional[Event] = None,
 ) -> str:
-    if sys.platform not in ("linux", "android"):
+    if sys.platform not in ("linux", "android", "win32"):
         raise NotImplementedError()
 
     if out_file is None:
-        fd, out_file = tempfile.mkstemp(suffix=".mp3")
+        # On Windows, use .wav by default because libmp3lame is often missing for SoX.
+        suffix = ".wav" if sys.platform == "win32" else ".mp3"
+        fd, out_file_path = tempfile.mkstemp(suffix=suffix)
         os.close(fd)
+        out_file = out_file_path
+
+    assert out_file is not None
 
     if os.path.exists(out_file):
         os.remove(out_file)
@@ -94,28 +99,47 @@ def record_audio(
         _initialize_pulseaudio()
 
     logging.debug(f"Recording to: {out_file}")
-    process = subprocess.Popen(
-        [
-            "rec",
-            "--buffer",
-            "1024",
-            "--no-show-progress",
-            "-V1",  # Only show failure messages
-            "-r",
-            "16000",  # Sample rate: 16kHz
-            "-c",
-            "1",  # Number of channels
-            "-C",
-            "32",  # MP3 bitrate in kbps (optimal for 16kHz voice)
-            out_file,
-            "highpass",
-            "100",  # Remove low-frequency noise (optimal for voice)
-        ]
-    )
+
+    if sys.platform == "win32":
+        args = ["sox.exe", "-t", "waveaudio", "-d"]
+    else:
+        args = ["rec"]
+
+    args += [
+        "--buffer",
+        "1024",
+        "--no-show-progress",
+        "-V1",  # Only show failure messages
+        "-r",
+        "16000",  # Sample rate: 16kHz
+        "-c",
+        "1",  # Number of channels
+    ]
+    if out_file.endswith(".mp3"):
+        args += ["-C", "32"]  # MP3 bitrate in kbps (optimal for 16kHz voice)
+
+    args += [
+        out_file,
+        "highpass",
+        "100",  # Remove low-frequency noise (optimal for voice)
+    ]
+
+    if sys.platform == "win32":
+        process = subprocess.Popen(
+            args,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+        )
+    else:
+        process = subprocess.Popen(args)
 
     if stop_event:
         stop_event.wait()
-        process.send_signal(signal.SIGINT)
+        if sys.platform == "win32":
+            # On Windows, sending CTRL_BREAK_EVENT to a process in a new process group
+            # is a common way to signal graceful shutdown (similar to SIGINT).
+            process.send_signal(signal.CTRL_BREAK_EVENT)
+        else:
+            process.send_signal(signal.SIGINT)
 
     process.wait()
 

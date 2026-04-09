@@ -2,7 +2,7 @@ set -e
 name="$1"
 commands="$2"
 
-if [[ $(grep Microsoft /proc/version) ]]; then # WSL 1
+if ! grep -q "WSL2" /proc/version; then
     export SCREENDIR=$HOME/.screen
 fi
 
@@ -11,7 +11,7 @@ screen -wipe >/dev/null 2>&1 || true
 
 if ! screen -ls $name >/dev/null 2>&1; then
     echo "Create new screen session: $name"
-    if [[ $(grep Microsoft /proc/version) ]]; then # WSL 1
+    if ! grep -q "WSL2" /proc/version; then
         # HACK: If you run Windows commands within the current bash script, e.g.
         # cmd.exe, for some reason they will be killed when you close the
         # terminal. To avoid this, start a new session by running the `wsl`

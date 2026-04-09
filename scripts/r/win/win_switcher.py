@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from utils.menu import Menu
 from utils.notify import get_notifications
@@ -17,7 +17,7 @@ _AUTO_REFRESH_INTERVAL_SECONDS = 2.0
 _STATUS_COLOR_MAPPING: Dict[WindowStatus, str] = {
     "done": "green",
     "error": "red",
-    "running": "cyan",
+    "running": "yellow",
 }
 
 
