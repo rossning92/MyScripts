@@ -152,7 +152,7 @@ public class FloatingService extends Service {
             }
 
             private void savePositionToEdge() {
-                int screenWidth = windowManager.getDefaultDisplay().getWidth();
+                int screenWidth = windowManager.getCurrentWindowMetrics().getBounds().width();
                 int viewWidth = floatingView.getWidth();
                 int targetX = (params.x + viewWidth / 2 < screenWidth / 2) ? 0 : screenWidth - viewWidth;
 

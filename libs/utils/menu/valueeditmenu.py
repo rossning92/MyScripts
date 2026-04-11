@@ -34,6 +34,7 @@ class ValueEditMenu(Menu[str]):
         )
 
         self.add_command(self.__delete_history_value, hotkey="delete")
+        self.add_command(self.__delete_history_value, hotkey="ctrl+k")
 
     def on_enter_pressed(self):
         text = self.get_text()

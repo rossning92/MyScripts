@@ -2,6 +2,7 @@
   "enableNotify": false,
   "globalHotkey": "win+k k",
   "hotkey": "space space",
-  "title": "chat_menu",
+  "singleInstance": false,
+  "title": "coder",
   "workingDir": "{HOME}/chat_menu"
 }

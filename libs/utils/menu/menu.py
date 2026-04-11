@@ -439,7 +439,7 @@ class Menu(Generic[T]):
         self.__hotkeys: Dict[str, _Command] = {}
         self.__custom_commands: List[_Command] = []
         if enable_command_palette:
-            self.add_command(self.open_ai_agent, hotkey="alt+k")
+            self.add_command(self.ask_ai, hotkey="ctrl+space")
             self.add_command(self.__command_palette, hotkey="ctrl+p")
             self.add_command(self.__edit_text_in_external_editor, hotkey="ctrl+e")
             self.add_command(self.__goto, hotkey="ctrl+g")
@@ -1167,11 +1167,16 @@ class Menu(Generic[T]):
 
     def _check_ctrl_hotkey(self, ch: Union[str, int]) -> bool:
         if curses.ascii.isctrl(ch):
-            htk = "ctrl+" + curses.ascii.unctrl(ch)[-1].lower()
-            if htk in self.__hotkeys:
-                logging.debug(f"Hotkey pressed: {htk}")
-                self.__hotkeys[htk].func()
-                return True
+            char = curses.ascii.unctrl(ch)[-1].lower()
+            htks = ["ctrl+" + char]
+            if char == "@":
+                htks.append("ctrl+space")
+
+            for htk in htks:
+                if htk in self.__hotkeys:
+                    logging.debug(f"Hotkey pressed: {htk}")
+                    self.__hotkeys[htk].func()
+                    return True
         return False
 
     def _check_shift_hotkey(self, ch: Union[str, int]) -> bool:
@@ -1617,6 +1622,13 @@ class Menu(Generic[T]):
         else:
             return None
 
+    def get_selected_row_range(self) -> Tuple[int, int]:
+        i = self.__selected_row_begin
+        j = self.__selected_row_end
+        if i > j:
+            i, j = j, i
+        return i, j
+
     def get_selected_indices(self) -> Iterator[int]:
         if len(self.get_item_indices()) > 0:
             i = self.__selected_row_begin
@@ -1791,7 +1803,7 @@ class Menu(Generic[T]):
         selected_items = self.get_selected_items()
         return "\n".join([str(x) for x in selected_items])
 
-    def open_ai_agent(self, extra_args: Optional[List[str]] = None):
+    def ask_ai(self, extra_args: Optional[List[str]] = None):
         selected_items = self.get_selected_items()
         if selected_items:
             with tempfile.NamedTemporaryFile(

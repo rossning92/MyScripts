@@ -68,6 +68,8 @@ class WinSwitcherMenu(Menu[WindowItem]):
         if not selected_items:
             return
 
+        first_row, _ = self.get_selected_row_range()
+
         error = None
         win_ids_to_wait = []
         for selected in reversed(selected_items):
@@ -88,6 +90,7 @@ class WinSwitcherMenu(Menu[WindowItem]):
                 time.sleep(0.1)
 
         self.set_multi_select(False)
+        self.set_selected_row(first_row)
         self.__refresh_windows(message=error)
 
     def on_enter_pressed(self):

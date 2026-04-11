@@ -30,5 +30,8 @@ if __name__ == "__main__":
     )
     menu.add_command(lambda: print("alt+z pressed"), hotkey="alt+z")
     menu.add_command(lambda: print("alt+enter pressed"), hotkey="alt+enter")
+    menu.add_command(
+        lambda: menu.set_message("ctrl+space triggered"), hotkey="ctrl+space"
+    )
 
     menu.exec()

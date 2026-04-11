@@ -108,6 +108,7 @@ class EditVariableMenu(DictEditMenu):
         )
 
         self.add_command(self.__clear_value, hotkey="delete")
+        self.add_command(self.__clear_value, hotkey="ctrl+k")
         self.add_command(self.__select_directory, hotkey="alt+d")
         self.add_command(self.__select_file, hotkey="alt+f")
 

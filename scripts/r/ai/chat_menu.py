@@ -185,22 +185,6 @@ class _EditImageUrlsMenu(ListEditMenu):
             self.items.append(encoded)
 
 
-class _EditContextMenu(ListEditMenu):
-    def __init__(self, items: List[str]) -> None:
-        super().__init__(items=items, prompt="edit context")
-
-    def on_enter_pressed(self):
-        index = self.get_selected_index()
-        if index >= 0:
-            self.items[index] = self.run_raw(
-                lambda: edit_text(self.items[index], tmp_file_ext=".md")
-            )
-            self.update_screen()
-
-    def get_item_text(self, item: str) -> str:
-        return truncate_text(item)
-
-
 class _SelectChatMenu(Menu[_ChatItem]):
     def __init__(self, chat_dir: str) -> None:
         self.__chat_dir = chat_dir
@@ -280,7 +264,7 @@ class ChatMenu(Menu[Line]):
         if context and is_text_file(context):
             with open(context, "r", encoding="utf-8") as f:
                 context = f.read()
-        self.__context_list: List[str] = [context] if context else []
+        self.__context: Optional[str] = context
         self.__image_urls: List[str] = image_urls if image_urls else []
         self.__is_generating = False
         self.__last_yanked_line: Optional[Line] = None
@@ -361,8 +345,11 @@ class ChatMenu(Menu[Line]):
         self.__update_prompt()
 
     def __add_file(self):
-        self.__context_list.extend(self.__add_file_menu.select_files())
-        self.__update_prompt()
+        file = self.__add_file_menu.select_file()
+        if file:
+            with open(file, "r", encoding="utf-8") as f:
+                self.__context = f.read()
+            self.__update_prompt()
 
     def __copy_block(self, index: int):
         # Check if it's in the code block; if so, copy all the code.
@@ -413,7 +400,13 @@ class ChatMenu(Menu[Line]):
         )
 
     def __edit_context(self):
-        _EditContextMenu(items=self.__context_list).exec()
+        if self.__context is None:
+            self.__context = ""
+        self.__context = self.run_raw(
+            lambda: edit_text(self.__context, tmp_file_ext=".md")
+        )
+        if not self.__context.strip():
+            self.__context = None
         self.__update_prompt()
 
     def __edit_image_urls(self):
@@ -614,7 +607,7 @@ class ChatMenu(Menu[Line]):
         if oldest_removed["role"] == "user":
             self.set_input(oldest_removed["text"])
             self.__image_urls[:] = oldest_removed.get("image_urls", [])
-            self.__context_list[:] = oldest_removed.get("context", [])
+            self.__context = oldest_removed.get("context")
         else:
             self.clear_input()
 
@@ -623,8 +616,8 @@ class ChatMenu(Menu[Line]):
 
     def __update_prompt(self):
         prompt = f"{self.__prompt}"
-        if self.__context_list:
-            prompt += f" ({len(self.__context_list)} context)"
+        if self.__context:
+            prompt += " (context)"
         if self.__image_urls:
             prompt += f" ({len(self.__image_urls)} images)"
         if self.__message_queue:
@@ -710,8 +703,7 @@ class ChatMenu(Menu[Line]):
                     {
                         **message,
                         "text": message["text"]
-                        + "\n---\n"
-                        + ("\n---\n".join(message["context"])),
+                        + (f"\n---\n{message['context']}" if "context" in message else ""),
                     }
                     if i == 0 and "context" in message
                     else message
@@ -755,7 +747,7 @@ class ChatMenu(Menu[Line]):
         if last_line_index >= 0:
             self.set_selection(last_line_index, last_line_index)
 
-        self.__context_list.clear()
+        self.__context = None
         self.__retry_count = 0
         self.__update_prompt()
 
@@ -767,10 +759,6 @@ class ChatMenu(Menu[Line]):
         tool_results: Optional[List[ToolResult]] = None,
     ):
         msg_index = len(self.get_messages())
-
-        context: List[str] = []
-        for c in self.__context_list:
-            context.append(c)
 
         message = Message(
             role="user",
@@ -784,17 +772,17 @@ class ChatMenu(Menu[Line]):
             )
             subindex += 1
 
-        if context:
-            message["context"] = context
-            for c in context:
-                self.append_item(
-                    Line(
-                        role="user",
-                        msg_index=msg_index,
-                        subindex=subindex,
-                        context=c,
-                    )
+        if self.__context:
+            message["context"] = self.__context
+            self.append_item(
+                Line(
+                    role="user",
+                    msg_index=msg_index,
+                    subindex=subindex,
+                    context=self.__context,
                 )
+            )
+            subindex += 1
 
         if self.__image_urls:
             message["image_urls"] = self.__image_urls.copy()
@@ -1050,17 +1038,17 @@ class ChatMenu(Menu[Line]):
                     subindex += 1
 
             # Context
-            if message["text"]:
-                for context in message.get("context", []):
-                    self.__lines.append(
-                        Line(
-                            role=message["role"],
-                            msg_index=msg_index,
-                            subindex=subindex,
-                            context=context,
-                        )
+            context = message.get("context")
+            if context:
+                self.__lines.append(
+                    Line(
+                        role=message["role"],
+                        msg_index=msg_index,
+                        subindex=subindex,
+                        context=context,
                     )
-                    subindex += 1
+                )
+                subindex += 1
 
             # Image file
             image_urls = message.get("image_urls", [])
@@ -1120,7 +1108,7 @@ class ChatMenu(Menu[Line]):
         self.clear_messages()
 
         self.set_input("")
-        self.__context_list.clear()
+        self.__context = None
         self.__image_urls.clear()
         self.__update_prompt()
         self.__update_terminal_title()

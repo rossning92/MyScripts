@@ -13,4 +13,17 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    lintOptions {
+        // workaround: disable lint on release builds because the lint tool crashes with Java 26
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    buildTypes {
+        release {
+            // sign release builds with debug key so it can be installed easily
+            signingConfig signingConfigs.debug
+        }
+    }
 }
