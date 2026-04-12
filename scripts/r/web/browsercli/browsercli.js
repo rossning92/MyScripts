@@ -4,6 +4,7 @@ import { click } from "./commands/click.js";
 import { closeAllPages } from "./commands/closeAllPages.js";
 import { closeBrowser } from "./commands/closeBrowser.js";
 import { dump } from "./commands/dump.js";
+import { fill } from "./commands/fill.js";
 import { getAriaSnapshot } from "./commands/getAriaSnapshot.js";
 import { getMarkdown } from "./commands/getMarkdown.js";
 import { getText } from "./commands/getText.js";
@@ -11,6 +12,7 @@ import { openDevTools } from "./commands/openDevTools.js";
 import { pressKey } from "./commands/pressKey.js";
 import { scrape } from "./commands/scrape.js";
 import { scrollToBottom } from "./commands/scrollToBottom.js";
+import { snapshot } from "./commands/snapshot.js";
 import { typeText } from "./commands/typeText.js";
 
 program
@@ -69,6 +71,14 @@ program
   });
 
 program
+  .command("snapshot")
+  .description("Get a snapshot of the page with indices for interactive elements")
+  .action(async () => {
+    const text = await snapshot();
+    console.log(text);
+  });
+
+program
   .command("scroll-bottom")
   .description("Scroll to the bottom of the page")
   .action(async () => {
@@ -85,10 +95,20 @@ program
 
 program
   .command("type")
-  .description("Type text into the focused element")
+  .description("Type text into the focused element or a specific element ref")
   .argument("<text>", "Text to type")
-  .action(async (text) => {
-    await typeText(text);
+  .argument("[ref]", "Element ref to type into (e.g., @e1)")
+  .action(async (text, ref) => {
+    await typeText(text, ref);
+  });
+
+program
+  .command("fill")
+  .description("Clear and type text into a specific element ref")
+  .argument("<text>", "Text to fill")
+  .argument("<ref>", "Element ref to fill (e.g., @e1)")
+  .action(async (text, ref) => {
+    await fill(text, ref);
   });
 
 program

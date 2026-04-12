@@ -1,8 +1,8 @@
 {
+  "dynamicTitle": true,
   "enableNotify": false,
   "globalHotkey": "win+k k",
   "hotkey": "space space",
   "singleInstance": false,
-  "title": "coder",
   "workingDir": "{HOME}/chat_menu"
 }
