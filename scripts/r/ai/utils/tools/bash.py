@@ -4,16 +4,12 @@ import subprocess
 import tempfile
 import time
 import uuid
-from pathlib import Path
-from typing import List
 
 from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
-from utils.jsonutil import load_json
 from utils.menu.menu import Menu
 from utils.term import clear_terminal
 
-_ALLOWED_COMMANDS_FILE = Path(__file__).parent / "allowed_commands.json"
-ALLOWED_COMMANDS: List[str] = load_json(str(_ALLOWED_COMMANDS_FILE), default=[])
+from ai.utils.tools.permission import ALLOWED_COMMANDS, ALLOWED_COMMANDS_FILE
 
 
 def _run_script(command: str, log_file: str) -> None:
@@ -101,7 +97,7 @@ def bash(command: str) -> str:
     ConfirmCommandMenu.confirm_command(
         command=command,
         allowed_commands=ALLOWED_COMMANDS,
-        save_path=str(_ALLOWED_COMMANDS_FILE),
+        save_path=str(ALLOWED_COMMANDS_FILE),
     )
 
     output = _run_bash(command)

@@ -2,16 +2,10 @@ import os
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
-from typing import List
 
 from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
-from utils.jsonutil import load_json
+from ai.utils.tools.permission import ALLOWED_COMMANDS, ALLOWED_COMMANDS_FILE
 from utils.menu.menu import Menu
-
-_ALLOWED_COMMANDS_FILE = Path(__file__).parent / "allowed_commands_powershell.json"
-ALLOWED_COMMANDS: List[str] = load_json(str(_ALLOWED_COMMANDS_FILE), default=[])
-
 
 def _strip_transcript(text: str) -> str:
     lines = text.splitlines()
@@ -87,7 +81,7 @@ def powershell(command: str) -> str:
         allowed_commands=ALLOWED_COMMANDS,
         ignore_case=True,
         prompt_prefix="run in powershell:",
-        save_path=str(_ALLOWED_COMMANDS_FILE),
+        save_path=str(ALLOWED_COMMANDS_FILE),
     )
 
     return _run_powershell(command)

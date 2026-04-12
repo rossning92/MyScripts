@@ -1,5 +1,4 @@
-import { sleep, withActivePage } from "../browser-core.js";
-import { DEFAULT_DELAY_MS } from "../config.js";
+import { withActivePage } from "../browser-core.js";
 
 export async function pressKey(key) {
   return withActivePage(async (page) => {
@@ -30,6 +29,5 @@ export async function pressKey(key) {
       await page.keyboard.up(k);
     }
 
-    await sleep(DEFAULT_DELAY_MS);
   });
 }

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+run_script r/web/browsercli/browsercli.js "$@"

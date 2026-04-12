@@ -24,7 +24,7 @@ const getExecutablePath = () => {
   return puppeteer.executablePath();
 };
 
-async function launchDetachedChrome() {
+async function launchDetachedChrome(headed = false) {
   const executablePath = getExecutablePath();
   const chromeArgs = [
     `--remote-debugging-port=${DEBUG_PORT}`,
@@ -35,7 +35,7 @@ async function launchDetachedChrome() {
     "--disable-blink-features=AutomationControlled",
   ];
 
-  if (process.platform === "linux" || process.platform === "android") {
+  if (!headed && (process.platform === "linux" || process.platform === "android")) {
     const chromeProcess = spawn(
       "xvfb-run",
       [
@@ -62,14 +62,14 @@ async function launchDetachedChrome() {
     });
     chromeProcess.unref();
   } else {
-    const chromeProcess = spawn(
-      executablePath,
-      [...chromeArgs, "--headless=new"],
-      {
-        detached: true,
-        stdio: "ignore",
-      },
-    );
+    const args = [...chromeArgs];
+    if (!headed) {
+      args.push("--headless=new");
+    }
+    const chromeProcess = spawn(executablePath, args, {
+      detached: true,
+      stdio: "ignore",
+    });
     chromeProcess.unref();
   }
 }
@@ -120,7 +120,10 @@ export async function getOrOpenPage(browser, url) {
   return page;
 }
 
-export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
+export async function launchOrConnectBrowser({
+  headed = false,
+  browserURL = BROWSER_URL,
+} = {}) {
   const defaultViewport = {
     width: 1366,
     height: 768,
@@ -132,7 +135,7 @@ export async function launchOrConnectBrowser(browserURL = BROWSER_URL) {
   } catch (err) {
     console.log("Unable to connect, launching a new browser instance...");
 
-    await launchDetachedChrome();
+    await launchDetachedChrome(headed);
     const maxRetries = 5;
     const retryDelay = 1000;
     let connected = false;
@@ -182,6 +185,14 @@ export async function withActivePage(handler, { url } = {}) {
   } finally {
     browser.disconnect();
   }
+}
+
+export function refToSelector(ref) {
+  if (!ref) return null;
+  // Normalize: strip leading "@" if present, then ensure it starts with "e"
+  const cleaned = ref.startsWith("@") ? ref.substring(1) : ref;
+  if (!cleaned.startsWith("e")) return null;
+  return `[data-agent-ref="${cleaned}"]`;
 }
 
 export const runAction = ({ type, text } = {}) => {
