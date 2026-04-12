@@ -1,17 +1,17 @@
 import { program } from "commander";
 import { getOrOpenPage, launchOrConnectBrowser } from "./browser-core.js";
+import { check, uncheck } from "./commands/check.js";
 import { click } from "./commands/click.js";
 import { closeAllPages } from "./commands/closeAllPages.js";
 import { closeBrowser } from "./commands/closeBrowser.js";
-import { dump } from "./commands/dump.js";
 import { fill } from "./commands/fill.js";
-import { getAriaSnapshot } from "./commands/getAriaSnapshot.js";
 import { getMarkdown } from "./commands/getMarkdown.js";
 import { getText } from "./commands/getText.js";
-import { openDevTools } from "./commands/openDevTools.js";
+import { inspect } from "./commands/inspect.js";
 import { pressKey } from "./commands/pressKey.js";
 import { scrape } from "./commands/scrape.js";
 import { scrollToBottom } from "./commands/scrollToBottom.js";
+import { select } from "./commands/select.js";
 import { snapshot } from "./commands/snapshot.js";
 import { typeText } from "./commands/typeText.js";
 
@@ -63,14 +63,6 @@ program
   });
 
 program
-  .command("get-aria-snapshot")
-  .description("Get ARIA snapshot of the current page")
-  .action(async () => {
-    const text = await getAriaSnapshot();
-    console.log(text);
-  });
-
-program
   .command("snapshot")
   .description("Get a snapshot of the page with indices for interactive elements")
   .action(async () => {
@@ -87,28 +79,33 @@ program
 
 program
   .command("click")
-  .description("Click on an element with the specified text")
-  .argument("<text>", "Text to click")
-  .action(async (text) => {
-    await click(text);
+  .description("Click on an element by its ref (e.g. @e0, @e1)")
+  .argument("<ref>", "Element ref from snapshot (e.g. @e0)")
+  .action(async (ref) => {
+    await click(ref);
   });
 
 program
   .command("type")
   .description("Type text into the focused element or a specific element ref")
-  .argument("<text>", "Text to type")
+  .usage("[ref] <text>")
   .argument("[ref]", "Element ref to type into (e.g., @e1)")
-  .action(async (text, ref) => {
-    await typeText(text, ref);
+  .argument("[text]", "Text to type")
+  .action(async (ref, text) => {
+    if (text === undefined) {
+      await typeText(ref);
+    } else {
+      await typeText(text, ref);
+    }
   });
 
 program
   .command("fill")
   .description("Clear and type text into a specific element ref")
-  .argument("<text>", "Text to fill")
   .argument("<ref>", "Element ref to fill (e.g., @e1)")
-  .action(async (text, ref) => {
-    await fill(text, ref);
+  .argument("<text>", "Text to fill")
+  .action(async (ref, text) => {
+    await fill(ref, text);
   });
 
 program
@@ -120,18 +117,36 @@ program
   });
 
 program
-  .command("dump")
-  .description("Dump page content")
-  .action(async () => {
-    await dump();
+  .command("check")
+  .description("Check a checkbox or radio button")
+  .argument("<ref>", "Element ref (e.g. @e0)")
+  .action(async (ref) => {
+    await check(ref);
   });
 
 program
-  .command("debug")
-  .description("Open DevTools")
-  .argument("[url]", "URL to debug")
+  .command("uncheck")
+  .description("Uncheck a checkbox or radio button")
+  .argument("<ref>", "Element ref (e.g. @e0)")
+  .action(async (ref) => {
+    await uncheck(ref);
+  });
+
+program
+  .command("select")
+  .description("Select an option in a dropdown")
+  .argument("<ref>", "Element ref of the select element (e.g. @e0)")
+  .argument("<val>", "Value to select")
+  .action(async (ref, val) => {
+    await select(ref, val);
+  });
+
+program
+  .command("inspect")
+  .description("Open a screencast viewer for the page")
+  .argument("[url]", "URL to inspect")
   .action(async (url) => {
-    await openDevTools(url);
+    await inspect(url);
   });
 
 program

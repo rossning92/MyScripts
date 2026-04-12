@@ -21,10 +21,10 @@ class FetchRetryMenu(TextMenu):
         self.should_retry = True
         self.close()
 
-    def debug(self):
+    def inspect(self):
         self.run_raw(
             lambda: subprocess.run(
-                ["run_script", "r/web/browsercli/browsercli.js", "debug"]
+                ["run_script", "r/web/browsercli/browsercli.js", "inspect"]
             )
         )
 

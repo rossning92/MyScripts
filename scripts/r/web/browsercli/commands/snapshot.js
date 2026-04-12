@@ -1,77 +1,5 @@
 import { withActivePage } from "../browser-core.js";
 
-async function injectRefs(page) {
-  return await page.evaluate(() => {
-    // Roles that are typically interactive
-    const interactiveRoles = [
-      "button",
-      "link",
-      "checkbox",
-      "combobox",
-      "listbox",
-      "menuitem",
-      "menuitemcheckbox",
-      "menuitemradio",
-      "radio",
-      "searchbox",
-      "slider",
-      "spinbutton",
-      "switch",
-      "textbox",
-      "treeitem",
-    ];
-
-    function isInteractive(el) {
-      if (
-        el.tagName === "BUTTON" ||
-        el.tagName === "A" ||
-        (el.tagName === "INPUT" && el.type !== "hidden") ||
-        el.tagName === "TEXTAREA" ||
-        el.tagName === "SELECT" ||
-        el.onclick != null ||
-        window.getComputedStyle(el).cursor === "pointer"
-      ) {
-        return true;
-      }
-      const role = el.getAttribute("role");
-      if (role && interactiveRoles.includes(role)) {
-        return true;
-      }
-      return false;
-    }
-
-    // Clear old refs
-    const oldElements = document.querySelectorAll("[data-agent-ref]");
-    for (const el of oldElements) {
-      el.removeAttribute("data-agent-ref");
-    }
-
-    let index = 0;
-    const all = document.querySelectorAll("*");
-    const interactiveElements = [];
-    for (const el of all) {
-      if (isInteractive(el)) {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          el.setAttribute("data-agent-ref", `e${index}`);
-          interactiveElements.push({
-            ref: `e${index}`,
-            name:
-              el.getAttribute("aria-label") ||
-              el.innerText ||
-              el.value ||
-              el.placeholder ||
-              "",
-            role: el.getAttribute("role") || el.tagName.toLowerCase(),
-          });
-          index++;
-        }
-      }
-    }
-    return interactiveElements;
-  });
-}
-
 function isInteractiveRole(role) {
   const interactiveRoles = [
     "button",
@@ -151,8 +79,12 @@ export function formatSnapshot(node, state = { index: 0 }, depth = 0) {
 
 export async function snapshot() {
   return withActivePage(async (page) => {
-    // First, inject refs into the DOM.
-    await injectRefs(page);
+    // Clear old refs
+    await page.evaluate(() => {
+      document.querySelectorAll("[data-agent-ref]").forEach((el) =>
+        el.removeAttribute("data-agent-ref"),
+      );
+    });
 
     const title = await page.title();
     const url = await page.url();
@@ -162,6 +94,74 @@ export async function snapshot() {
       interestingOnly: true,
     });
     if (!snapshotData) return output + "(No accessibility data)";
+
+    // Use CDP to get the full AX tree with backendDOMNodeId, then assign
+    // data-agent-ref in the same depth-first order as formatSnapshot so that
+    // the displayed ref indices match the DOM attributes.
+    const client = await page.createCDPSession();
+    try {
+      const { nodes } = await client.send("Accessibility.getFullAXTree");
+
+      const nodeMap = new Map();
+      for (const node of nodes) {
+        nodeMap.set(node.nodeId, node);
+      }
+
+      const rootNode = nodes.find((n) => !n.parentId);
+      if (rootNode) {
+        // Walk depth-first, collect interactive nodes that would survive
+        // Puppeteer's interestingOnly filter.
+        const backendIds = [];
+        function walk(nodeId) {
+          const node = nodeMap.get(nodeId);
+          if (!node) return;
+
+          if (!node.ignored) {
+            const role = node.role?.value || "";
+            if (isInteractiveRole(role) && node.backendDOMNodeId) {
+              const name = node.name?.value || "";
+              let dominated = !!name;
+              if (!dominated && node.properties) {
+                for (const p of node.properties) {
+                  if (p.name === "focusable" && p.value?.value) {
+                    dominated = true;
+                    break;
+                  }
+                }
+              }
+              if (dominated) {
+                backendIds.push(node.backendDOMNodeId);
+              }
+            }
+          }
+
+          if (node.childIds) {
+            for (const childId of node.childIds) {
+              walk(childId);
+            }
+          }
+        }
+        walk(rootNode.nodeId);
+
+        // Set data-agent-ref on each DOM element via CDP
+        for (let i = 0; i < backendIds.length; i++) {
+          try {
+            const { object } = await client.send("DOM.resolveNode", {
+              backendNodeId: backendIds[i],
+            });
+            await client.send("Runtime.callFunctionOn", {
+              objectId: object.objectId,
+              functionDeclaration: `function(r) { this.setAttribute('data-agent-ref', r); }`,
+              arguments: [{ value: `e${i}` }],
+            });
+          } catch (_e) {
+            // Skip nodes that can't be resolved
+          }
+        }
+      }
+    } finally {
+      await client.detach();
+    }
 
     output += formatSnapshot(snapshotData).trim();
     return output;

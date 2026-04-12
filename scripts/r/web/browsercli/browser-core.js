@@ -184,6 +184,14 @@ export async function withActivePage(handler, { url } = {}) {
   }
 }
 
+export function refToSelector(ref) {
+  if (!ref) return null;
+  // Normalize: strip leading "@" if present, then ensure it starts with "e"
+  const cleaned = ref.startsWith("@") ? ref.substring(1) : ref;
+  if (!cleaned.startsWith("e")) return null;
+  return `[data-agent-ref="${cleaned}"]`;
+}
+
 export const runAction = ({ type, text } = {}) => {
   let elements = getClickables();
 
