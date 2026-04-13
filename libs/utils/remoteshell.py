@@ -62,8 +62,6 @@ def run_bash_script_in_remote_shell(script_path, send_prev_job_to_background=Fal
         args.append("wsl")
     args += ["bash", "-c"]
     screen_commands: List[str] = []
-    if sys.platform == "win32":
-        screen_commands.append("export SCREENDIR=$HOME/.screen")
     if send_prev_job_to_background:
         screen_commands.append("screen -d -X stuff ^Z^Mbg^M")
     else:

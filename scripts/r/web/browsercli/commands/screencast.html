@@ -15,44 +15,62 @@
 <script>
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
-const ws = new WebSocket(new URLSearchParams(location.search).get("ws"));
 let id = 1;
 let pageWidth = 1, pageHeight = 1;
+let ws = null;
+let currentWsUrl = null;
 
 function send(method, params = {}) {
-  ws.send(JSON.stringify({ id: id++, method, params }));
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ id: id++, method, params }));
+  }
 }
 
-ws.onopen = () => {
-  send("Page.startScreencast", { format: "jpeg", quality: 80, everyNthFrame: 1 });
-};
-
-ws.onmessage = (e) => {
-  const msg = JSON.parse(e.data);
-  if (msg.method === "Page.screencastFrame") {
-    const meta = msg.params.metadata;
-    pageWidth = meta.deviceWidth;
-    pageHeight = meta.deviceHeight;
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-    };
-    img.src = "data:image/jpeg;base64," + msg.params.data;
-    send("Page.screencastFrameAck", { sessionId: msg.params.sessionId });
+function connect(wsUrl) {
+  if (ws) {
+    ws.onclose = null;
+    ws.close();
   }
-};
+  currentWsUrl = wsUrl;
+  document.title = "Screencast";
+  ws = new WebSocket(wsUrl);
 
-ws.onclose = () => {
-  document.title = "Screencast (disconnected)";
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 24px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("Page disconnected", canvas.width / 2, canvas.height / 2);
-};
+  ws.onopen = () => {
+    send("Page.startScreencast", { format: "jpeg", quality: 80, everyNthFrame: 1 });
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.method === "Page.screencastFrame") {
+      const meta = msg.params.metadata;
+      pageWidth = meta.deviceWidth;
+      pageHeight = meta.deviceHeight;
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = "data:image/jpeg;base64," + msg.params.data;
+      send("Page.screencastFrameAck", { sessionId: msg.params.sessionId });
+    }
+  };
+
+  ws.onclose = () => { currentWsUrl = null; };
+}
+
+// Single poll loop handles initial connection, disconnects, and tab switches
+async function poll() {
+  try {
+    const res = await fetch("/active-ws");
+    const { ws: activeWs } = await res.json();
+    if (activeWs && activeWs !== currentWsUrl) {
+      connect(activeWs);
+    }
+  } catch (e) {}
+}
+poll();
+setInterval(poll, 1000);
 
 function toPageCoords(e) {
   const rect = canvas.getBoundingClientRect();
