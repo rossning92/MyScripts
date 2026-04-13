@@ -75,7 +75,12 @@ def _run_git_diff(args: List[str]) -> List[str]:
 
 
 class DiffMenu(TextMenu):
-    def __init__(self, files: Optional[List[Tuple[str, str]]] = None, **kwargs):
+    def __init__(
+        self,
+        files: Optional[List[Tuple[str, str]]] = None,
+        git_args: Optional[List[str]] = None,
+        **kwargs,
+    ):
         self.__git_root = None
         lines = []
 
@@ -87,9 +92,12 @@ class DiffMenu(TextMenu):
             if git_root:
                 self.__git_root = str(git_root)
 
-            args = []
-            if subprocess.run(["git", "diff", "--quiet"]).returncode == 0:
-                args.extend(["HEAD~1", "HEAD"])
+            if git_args is not None:
+                args = git_args
+            else:
+                args = []
+                if subprocess.run(["git", "diff", "--quiet"]).returncode == 0:
+                    args.extend(["HEAD~1", "HEAD"])
 
             lines = _run_git_diff(args)
 

@@ -1,202 +1,73 @@
 import os
 import subprocess
-import sys
-from urllib.request import urlretrieve
 
-from _shutil import (
-    call2,
-    call_echo,
-    cd,
-    confirm,
-    fnull,
-    get_output,
-    get_time_str,
-    print2,
-)
-from utils.menu.actionmenu import ActionMenu, action
+from utils.menu.actionmenu import ActionMenu
+from utils.menu.diffmenu import DiffMenu
 from utils.script.path import get_my_script_root
-from utils.shutil import shell_open
 
 
-def add_gitignore_node():
-    urlretrieve(
-        "https://raw.githubusercontent.com/github/gitignore/master/Node.gitignore",
-        ".gitignore",
-    )
-
-
-def is_working_tree_clean():
-    return (
-        subprocess.check_output(
+def get_git_status_items():
+    try:
+        status = subprocess.check_output(
             ["git", "status", "--short"], universal_newlines=True
-        ).strip()
-        == ""
-    )
+        )
+        if status.strip():
+            return status.splitlines(), False
+        else:
+            # Clean working tree, show changes in HEAD
+            show_output = subprocess.check_output(
+                ["git", "show", "--name-status", "--format=", "HEAD"],
+                universal_newlines=True,
+            )
+            items = []
+            for line in show_output.splitlines():
+                if line.strip():
+                    # git show --name-status gives "M\tfile"
+                    # convert to "M  file" to match "git status -s" format (XY file)
+                    parts = line.split("\t", 1)
+                    if len(parts) == 2:
+                        items.append(f"{parts[0]:<2} {parts[1]}")
+                    else:
+                        items.append(line)
+            return items, True
+    except subprocess.CalledProcessError:
+        return [], False
 
 
 class GitMenu(ActionMenu):
-    def __init__(self, repo_path: str):
-        self.repo_path = repo_path
+    def __init__(self):
+        super().__init__(close_on_selection=False)
+        self._populate_items()
 
-        self.repo_name = os.path.basename(repo_path)
-        if self.repo_name is None:
-            raise Exception("Invalid repo name")
+    def _populate_items(self):
+        items, is_clean = get_git_status_items()
+        for item in items:
+            filename = item[3:]
+            if " -> " in filename:
+                filename = filename.split(" -> ")[-1].strip('"')
 
-        self.bundle_file = None
-        if backup_dir:
-            self.bundle_file = os.path.join(backup_dir, self.repo_name + ".bundle")
-
-        cd(repo_path)
-
-        super().__init__(prompt=self.repo_path, close_on_selection=False)
-
-    @action
-    def commit(self, dry_run=False, amend=False) -> bool:
-        if is_working_tree_clean():
-            print2("Working directory clean, changed files in HEAD:", color="gray")
-            for line in get_output(
-                ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
-                shell=False,
-            ).splitlines():
-                print2("  " + line, color="gray")
-            return False
-
-        call_echo("git status --short")
-        if not dry_run and confirm("Commit all changes?"):
-            call_echo("git add -A")
-
-            if amend:
-                call_echo("git commit --amend --no-edit --quiet")
+            if is_clean:
+                git_args = ["HEAD~1", "HEAD", filename]
+            elif item.startswith("??"):
+                git_args = ["--no-index", os.devnull, filename]
             else:
-                message = input("commit message: ")
-                if not message:
-                    message = "Temporary commit @ %s" % get_time_str()
+                git_args = [filename]
 
-                call_echo(["git", "commit", "-m", message])
-            return True
-        else:
-            return False
+            self.add_action(
+                item,
+                callback=lambda args=git_args: DiffMenu(git_args=args).exec(),
+            )
 
-    def add_gitignore(self):
-        if os.path.exists(".gitignore"):
-            return
-
-        if os.path.exists("package.json"):
-            add_gitignore_node()
-
-        else:  # unknown project
-            with open(".gitignore", "w") as f:
-                f.writelines(["/build"])
-
-    @action
-    def amend_history_commit(self):
-        commit_id = input("History commit ID: ")
-
-        call_echo(["git", "tag", "history-rewrite", commit_id])
-        call2(["git", "config", "--global", "advice.detachedHead", "false"])
-        call_echo(["git", "checkout", commit_id])
-
-        input("Press enter to rebase children comments...")
-        call_echo(
-            [
-                "git",
-                "rebase",
-                "--onto",
-                "HEAD",
-                # from commit id <==> master
-                "tags/history-rewrite",
-                "master",
-            ]
-        )
-        call_echo(["git", "tag", "-d", "history-rewrite"])
-
-    @action(hotkey="alt+d")
-    def diff(self):
-        if not is_working_tree_clean():
-            call_echo(["git", "diff"])
-        else:
-            call_echo(["git", "diff", "HEAD^", "HEAD"])
-
-    @action
-    def diff_previous_commit(self):
-        call_echo("git diff HEAD^ HEAD")
-
-    @action
-    def diff_with_main_branch(self):
-        call_echo("git diff origin/main...HEAD")
-
-    @action
-    def diff_commit(self):
-        commit = input("commit hash: ")
-        call_echo("git show %s" % commit)
-
-    @action(hotkey="`")
-    def command(self):
-        cmd = input("cmd> ")
-        subprocess.call(cmd, shell=True)
-
-    @action
-    def open_folder(self):
-        shell_open(os.getcwd())
-
-    @action
-    def fixup_commit(self):
-        commit_id = input("Fixup commit (hash): ")
-        call_echo(["git", "commit", "--fixup", commit_id])
-        call_echo(["git", "rebase", commit_id + "^", "-i", "--autosquash"])
-
-    @action
-    def sync_github(self):
-        FNULL = fnull()
-        ret = subprocess.call(
-            "gh repo view rossning92/%s" % self.repo_name, shell=True, stdout=FNULL
-        )
-        if ret == 1:
-            os.chdir(os.path.dirname(self.repo_path))
-            if not confirm('Create "%s" on GitHub?' % self.repo_name):
-                sys.exit(1)
-            call_echo("gh repo create --private -y %s" % self.repo_name)
-        else:
-            print('GitHub repo already exists: "%s"' % self.repo_name)
-        os.chdir(self.repo_path)
-
-        subprocess.check_call(
-            [
-                "git",
-                "remote",
-                "add",
-                "origin",
-                f"https://github.com/rossning92/{self.repo_name}.git",
-            ]
-        )
-
-    @action
-    def switch_branch(self):
-        call_echo(["git", "branch"])
-        name = input("Switch to branch [master]: ")
-        if not name:
-            name = "master"
-        call_echo(["git", "checkout", name])
-
-    def checkout_branch(self, branch):
-        if (
-            subprocess.check_output(
-                ["git", "branch", "--list", branch], universal_newlines=True
-            ).strip()
-            == ""
-        ):
-            if confirm("Create branch %s?" % branch):
-                call_echo(["git", "checkout", "-b", branch])
-            else:
-                raise Exception('branch does not exist: "%s"' % branch)
-
-        call_echo(["git", "checkout", branch])
+    @ActionMenu.action("Refresh", k="ctrl+r")
+    def _refresh(self):
+        self.clear_items()
+        self._populate_items()
 
 
 if __name__ == "__main__":
-    backup_dir = os.environ.get("GIT_REPO_BACKUP_DIR")
     repo_path = os.environ.get("GIT_REPO", "")
     if not repo_path:
         repo_path = get_my_script_root()
+    os.chdir(repo_path)
 
-    GitMenu(repo_path=repo_path).exec()
+    GitMenu().exec()

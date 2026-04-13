@@ -27,7 +27,7 @@ _WINDOW_STATUS_PRIORITY: Dict[WindowStatus, int] = {
 
 _WINDOW_STATUS_SYMBOLS: Dict[WindowStatus, str] = {
     "done": "✓✳",
-    "running": "⧗⠂",
+    "running": "⧗⠂⠐",
 }
 
 

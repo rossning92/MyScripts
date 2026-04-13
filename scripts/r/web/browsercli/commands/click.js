@@ -1,4 +1,5 @@
 import { sleep, withActivePage, refToSelector } from "../browser-core.js";
+import { POST_CLICK_DELAY } from "../config.js";
 
 export async function click(ref) {
   return withActivePage(async (page) => {
@@ -31,5 +32,8 @@ export async function click(ref) {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     await page.mouse.click(centerX, centerY);
+
+    // Wait briefly to allow any beforeunload/leave-site dialogs to be auto-accepted
+    await sleep(POST_CLICK_DELAY);
   });
 }

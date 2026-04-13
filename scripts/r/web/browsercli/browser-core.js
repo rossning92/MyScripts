@@ -3,7 +3,13 @@ import fs from "fs";
 import puppeteerCore from "puppeteer-core";
 import puppeteerExtra from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { BROWSER_URL, DEBUG_PORT, USER_DATA_DIR } from "./config.js";
+import {
+  BROWSER_URL,
+  DEBUG_PORT,
+  USER_DATA_DIR,
+  WINDOW_HEIGHT,
+  WINDOW_WIDTH,
+} from "./config.js";
 
 const puppeteer = puppeteerExtra.addExtra(puppeteerCore);
 puppeteer.use(StealthPlugin());
@@ -31,23 +37,26 @@ async function launchDetachedChrome(headed = false) {
     `--user-data-dir=${USER_DATA_DIR}`,
     "--remote-allow-origins=*",
     "--no-sandbox",
-    "--window-size=1366,768",
+    `--window-size=${WINDOW_WIDTH},${WINDOW_HEIGHT}`,
     "--disable-blink-features=AutomationControlled",
   ];
 
-  if (!headed && (process.platform === "linux" || process.platform === "android")) {
+  if (
+    !headed &&
+    (process.platform === "linux" || process.platform === "android")
+  ) {
     const chromeProcess = spawn(
       "xvfb-run",
       [
         "--auto-servernum",
-        "--server-args=-screen 0 1366x768x24",
+        `--server-args=-screen 0 ${WINDOW_WIDTH}x${WINDOW_HEIGHT}x24`,
         executablePath,
         ...chromeArgs,
       ],
       {
         detached: true,
         stdio: "ignore",
-      },
+      }
     );
     chromeProcess.on("error", () => {
       const fallbackProcess = spawn(
@@ -56,7 +65,7 @@ async function launchDetachedChrome(headed = false) {
         {
           detached: true,
           stdio: "ignore",
-        },
+        }
       );
       fallbackProcess.unref();
     });
@@ -80,7 +89,7 @@ async function getActivePage(browser) {
     pages.map(async (p) => {
       const state = await p.evaluate(() => document.webkitHidden);
       return !state;
-    }),
+    })
   );
   let visiblePage = pages.filter((_v, index) => vis_results[index])[0];
   return visiblePage;
@@ -100,7 +109,7 @@ export async function getOrOpenPage(browser, url) {
     const response = await page.goto(url, { waitUntil: "domcontentloaded" });
     if (response && !response.ok()) {
       throw new Error(
-        `Failed to load page: ${response.status()} ${response.statusText()}`,
+        `Failed to load page: ${response.status()} ${response.statusText()}`
       );
     }
     await sleep(3000);
@@ -110,8 +119,8 @@ export async function getOrOpenPage(browser, url) {
 
   if (page) {
     const defaultViewport = {
-      width: 1366,
-      height: 768,
+      width: WINDOW_WIDTH,
+      height: WINDOW_HEIGHT,
       deviceScaleFactor: 1,
     };
     await page.setViewport(defaultViewport);
@@ -125,8 +134,8 @@ export async function launchOrConnectBrowser({
   browserURL = BROWSER_URL,
 } = {}) {
   const defaultViewport = {
-    width: 1366,
-    height: 768,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
     deviceScaleFactor: 1,
   };
   let browser;
@@ -156,11 +165,18 @@ export async function launchOrConnectBrowser({
 
   const handleDialog = async (dialog) => {
     console.log(
-      `Automatically accepting dialog: [${dialog.type()}] ${dialog.message()}`,
+      `Automatically accepting dialog: [${dialog.type()}] ${dialog.message()}`
     );
     await dialog.accept().catch(() => {});
   };
 
+  // Attach to existing pages
+  const existingPages = await browser.pages();
+  for (const page of existingPages) {
+    page.on("dialog", handleDialog);
+  }
+
+  // Attach to future pages
   browser.on("targetcreated", async (target) => {
     if (target.type() === "page") {
       const page = await target.page();
@@ -236,7 +252,7 @@ export const runAction = ({ type, text } = {}) => {
     if (el.id) {
       try {
         const labelEl = document.querySelector(
-          `label[for="${CSS.escape(el.id)}"]`,
+          `label[for="${CSS.escape(el.id)}"]`
         );
         if (labelEl) return labelEl.innerText;
       } catch (e) {}
@@ -341,7 +357,7 @@ export const runAction = ({ type, text } = {}) => {
 
     // If one element contains another, return the contained one.
     elements = elements.filter(
-      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y)),
+      (x) => !elements.some((y) => x.el.contains(y.el) && !(x == y))
     );
     return elements;
   }
