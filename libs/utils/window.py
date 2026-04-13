@@ -25,6 +25,11 @@ _WINDOW_STATUS_PRIORITY: Dict[WindowStatus, int] = {
     "normal": 3,
 }
 
+_WINDOW_STATUS_SYMBOLS: Dict[WindowStatus, str] = {
+    "done": "✓✳",
+    "running": "⧗⠂",
+}
+
 
 class WindowItem:
     def __init__(self, id, title):
@@ -32,10 +37,10 @@ class WindowItem:
         self.title = title
 
     def get_status(self, script_status: Dict[str, str]) -> WindowStatus:
-        if "✓" in self.title:
-            return "done"
-        if "⧗" in self.title:
-            return "running"
+        for status, symbols in _WINDOW_STATUS_SYMBOLS.items():
+            if any(s in self.title for s in symbols):
+                return status
+
         status = script_status.get(self.title, "normal")
         if status in ["done", "error", "running"]:
             return status  # type: ignore
