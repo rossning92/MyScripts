@@ -1,142 +1,249 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Screencast</title>
-<style>
-  * { margin: 0; padding: 0; }
-  body { background: #1e1e1e; display: flex; flex-direction: column; align-items: center; margin: 0; }
-  canvas { max-width: 100%; cursor: pointer; }
-</style>
-</head>
-<body>
-<canvas id="screen"></canvas>
-<script>
-const canvas = document.getElementById("screen");
-const ctx = canvas.getContext("2d");
-let id = 1;
-let pageWidth = 1, pageHeight = 1;
-let ws = null;
-let currentWsUrl = null;
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screencast</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+      }
+      canvas {
+        max-width: 100%;
+        cursor: pointer;
+      }
+      #hiddenInput {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        opacity: 0.01;
+        width: 1px;
+        height: 1px;
+        z-index: -1;
+      }
+      #kbBtn {
+        display: none;
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        width: 48px;
+        height: 48px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="screen"></canvas>
+    <input
+      id="hiddenInput"
+      type="text"
+      autocomplete="off"
+      autocapitalize="none"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    <button id="kbBtn">&#x2328;</button>
+    <script>
+      const canvas = document.getElementById("screen");
+      const ctx = canvas.getContext("2d");
+      let id = 1;
+      let pageWidth = 1,
+        pageHeight = 1;
+      let ws = null;
+      let currentWsUrl = null;
 
-function send(method, params = {}) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ id: id++, method, params }));
-  }
-}
+      function send(method, params = {}) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ id: id++, method, params }));
+        }
+      }
 
-function connect(wsUrl) {
-  if (ws) {
-    ws.onclose = null;
-    ws.close();
-  }
-  currentWsUrl = wsUrl;
-  document.title = "Screencast";
-  ws = new WebSocket(wsUrl);
+      function startScreencast() {
+        send("Page.startScreencast", {
+          format: "jpeg",
+          quality: 80,
+          everyNthFrame: 1,
+        });
+      }
 
-  ws.onopen = () => {
-    send("Page.startScreencast", { format: "jpeg", quality: 80, everyNthFrame: 1 });
-  };
+      function connect(wsUrl) {
+        if (ws) {
+          ws.onclose = null;
+          ws.close();
+        }
+        currentWsUrl = wsUrl;
+        document.title = "Screencast";
+        ws = new WebSocket(wsUrl);
 
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    if (msg.method === "Page.screencastFrame") {
-      const meta = msg.params.metadata;
-      pageWidth = meta.deviceWidth;
-      pageHeight = meta.deviceHeight;
-      const img = new Image();
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-      };
-      img.src = "data:image/jpeg;base64," + msg.params.data;
-      send("Page.screencastFrameAck", { sessionId: msg.params.sessionId });
-    }
-  };
+        ws.onopen = () => startScreencast();
 
-  ws.onclose = () => { currentWsUrl = null; };
-}
+        ws.onmessage = (e) => {
+          const msg = JSON.parse(e.data);
+          if (msg.method === "Page.screencastFrame") {
+            const meta = msg.params.metadata;
+            pageWidth = meta.deviceWidth;
+            pageHeight = meta.deviceHeight;
+            const img = new Image();
+            img.onload = () => {
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx.drawImage(img, 0, 0);
+            };
+            img.src = "data:image/jpeg;base64," + msg.params.data;
+            send("Page.screencastFrameAck", {
+              sessionId: msg.params.sessionId,
+            });
+          }
+        };
 
-// Single poll loop handles initial connection, disconnects, and tab switches
-async function poll() {
-  try {
-    const res = await fetch("/active-ws");
-    const { ws: activeWs } = await res.json();
-    if (activeWs && activeWs !== currentWsUrl) {
-      connect(activeWs);
-    }
-  } catch (e) {}
-}
-poll();
-setInterval(poll, 1000);
+        ws.onclose = () => {
+          currentWsUrl = null;
+        };
+      }
 
-function toPageCoords(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width * pageWidth;
-  const y = (e.clientY - rect.top) / rect.height * pageHeight;
-  return { x, y };
-}
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) startScreencast();
+      });
 
-function mouseButton(e) {
-  return ["left", "middle", "right"][e.button] || "left";
-}
+      // Single poll loop handles initial connection, disconnects, and tab switches
+      async function poll() {
+        try {
+          const res = await fetch("/active-ws");
+          const { ws: activeWs } = await res.json();
+          if (activeWs && activeWs !== currentWsUrl) {
+            connect(activeWs);
+          }
+        } catch (e) {}
+      }
+      poll();
+      setInterval(poll, 1000);
 
-canvas.addEventListener("mousedown", (e) => {
-  const { x, y } = toPageCoords(e);
-  send("Input.dispatchMouseEvent", {
-    type: "mousePressed", x, y, button: mouseButton(e), clickCount: 1
-  });
-});
+      function toPageCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * pageWidth;
+        const y = ((e.clientY - rect.top) / rect.height) * pageHeight;
+        return { x, y };
+      }
 
-canvas.addEventListener("mouseup", (e) => {
-  const { x, y } = toPageCoords(e);
-  send("Input.dispatchMouseEvent", {
-    type: "mouseReleased", x, y, button: mouseButton(e), clickCount: 1
-  });
-});
+      function mouseButton(e) {
+        return ["left", "middle", "right"][e.button] || "left";
+      }
 
-canvas.addEventListener("mousemove", (e) => {
-  const { x, y } = toPageCoords(e);
-  send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
-});
+      canvas.addEventListener("mousedown", (e) => {
+        const { x, y } = toPageCoords(e);
+        send("Input.dispatchMouseEvent", {
+          type: "mousePressed",
+          x,
+          y,
+          button: mouseButton(e),
+          clickCount: 1,
+        });
+      });
 
-canvas.addEventListener("wheel", (e) => {
-  e.preventDefault();
-  const { x, y } = toPageCoords(e);
-  send("Input.dispatchMouseEvent", {
-    type: "mouseWheel", x, y, deltaX: e.deltaX, deltaY: e.deltaY
-  });
-}, { passive: false });
+      canvas.addEventListener("mouseup", (e) => {
+        const { x, y } = toPageCoords(e);
+        send("Input.dispatchMouseEvent", {
+          type: "mouseReleased",
+          x,
+          y,
+          button: mouseButton(e),
+          clickCount: 1,
+        });
+      });
 
-canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+      canvas.addEventListener("mousemove", (e) => {
+        const { x, y } = toPageCoords(e);
+        send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
+      });
 
-document.addEventListener("keydown", (e) => {
-  e.preventDefault();
-  send("Input.dispatchKeyEvent", {
-    type: e.key.length === 1 ? "keyDown" : "rawKeyDown",
-    key: e.key,
-    code: e.code,
-    windowsVirtualKeyCode: e.keyCode,
-    nativeVirtualKeyCode: e.keyCode,
-    text: e.key.length === 1 ? e.key : undefined,
-    unmodifiedText: e.key.length === 1 ? e.key : undefined,
-    modifiers: (e.altKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.metaKey ? 4 : 0) | (e.shiftKey ? 8 : 0)
-  });
-});
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          const { x, y } = toPageCoords(e);
+          send("Input.dispatchMouseEvent", {
+            type: "mouseWheel",
+            x,
+            y,
+            deltaX: e.deltaX,
+            deltaY: e.deltaY,
+          });
+        },
+        { passive: false }
+      );
 
-document.addEventListener("keyup", (e) => {
-  e.preventDefault();
-  send("Input.dispatchKeyEvent", {
-    type: "keyUp",
-    key: e.key,
-    code: e.code,
-    windowsVirtualKeyCode: e.keyCode,
-    nativeVirtualKeyCode: e.keyCode,
-    modifiers: (e.altKey ? 1 : 0) | (e.ctrlKey ? 2 : 0) | (e.metaKey ? 4 : 0) | (e.shiftKey ? 8 : 0)
-  });
-});
-</script>
-</body>
+      canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+      if ("ontouchstart" in window) {
+        const hiddenInput = document.getElementById("hiddenInput");
+        const kbBtn = document.getElementById("kbBtn");
+        kbBtn.style.display = "block";
+        kbBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          hiddenInput.focus();
+        });
+        hiddenInput.addEventListener("input", (e) => {
+          const text = e.data;
+          if (!text) return;
+          for (const char of text) {
+            send("Input.dispatchKeyEvent", {
+              type: "keyDown",
+              key: char,
+              text: char,
+              unmodifiedText: char,
+            });
+            send("Input.dispatchKeyEvent", { type: "keyUp", key: char });
+          }
+          hiddenInput.value = "";
+        });
+      }
+
+      document.addEventListener("keydown", (e) => {
+        e.preventDefault();
+        send("Input.dispatchKeyEvent", {
+          type: e.key.length === 1 ? "keyDown" : "rawKeyDown",
+          key: e.key,
+          code: e.code,
+          windowsVirtualKeyCode: e.keyCode,
+          nativeVirtualKeyCode: e.keyCode,
+          text: e.key.length === 1 ? e.key : undefined,
+          unmodifiedText: e.key.length === 1 ? e.key : undefined,
+          modifiers:
+            (e.altKey ? 1 : 0) |
+            (e.ctrlKey ? 2 : 0) |
+            (e.metaKey ? 4 : 0) |
+            (e.shiftKey ? 8 : 0),
+        });
+      });
+
+      document.addEventListener("keyup", (e) => {
+        e.preventDefault();
+        send("Input.dispatchKeyEvent", {
+          type: "keyUp",
+          key: e.key,
+          code: e.code,
+          windowsVirtualKeyCode: e.keyCode,
+          nativeVirtualKeyCode: e.keyCode,
+          modifiers:
+            (e.altKey ? 1 : 0) |
+            (e.ctrlKey ? 2 : 0) |
+            (e.metaKey ? 4 : 0) |
+            (e.shiftKey ? 8 : 0),
+        });
+      });
+    </script>
+  </body>
 </html>

@@ -107,7 +107,7 @@ export async function getOrOpenPage(browser, url) {
 
     if (!/^https?:\/\//i.test(url)) url = `http://${url}`;
     const response = await page.goto(url, { waitUntil: "domcontentloaded" });
-    if (response && !response.ok()) {
+    if (response && !response.ok() && response.status() !== 304) {
       throw new Error(
         `Failed to load page: ${response.status()} ${response.statusText()}`
       );
@@ -139,6 +139,17 @@ export async function launchOrConnectBrowser({
     deviceScaleFactor: 1,
   };
   let browser;
+
+  if (headed) {
+    // Kill any existing browser so we can relaunch in headed mode
+    try {
+      const tmp = await puppeteer.connect({ browserURL, defaultViewport });
+      const cdp = await tmp.target().createCDPSession();
+      await cdp.send("Browser.close");
+      await sleep(1000);
+    } catch {}
+  }
+
   try {
     browser = await puppeteer.connect({ browserURL, defaultViewport });
   } catch (err) {
@@ -189,18 +200,27 @@ export async function launchOrConnectBrowser({
   return browser;
 }
 
-export async function withActivePage(handler, { url } = {}) {
-  const browser = await launchOrConnectBrowser();
-  try {
-    const page = await getOrOpenPage(browser, url);
+let _browser = null;
 
-    if (!page) {
-      throw "Failed to get active page";
-    }
-    return await handler(page, browser);
-  } finally {
-    browser.disconnect();
+export async function getBrowser(options) {
+  if (options?.headed && _browser && _browser.isConnected()) {
+    await _browser.close().catch(() => {});
+    _browser = null;
   }
+  if (_browser && _browser.isConnected()) return _browser;
+  _browser = await launchOrConnectBrowser(options);
+  _browser.on("disconnected", () => process.exit(0));
+  return _browser;
+}
+
+export async function withActivePage(handler, { url } = {}) {
+  const browser = await getBrowser();
+  const page = await getOrOpenPage(browser, url);
+
+  if (!page) {
+    throw "Failed to get active page";
+  }
+  return await handler(page, browser);
 }
 
 export function refToSelector(ref) {
@@ -363,91 +383,3 @@ export const runAction = ({ type, text } = {}) => {
   }
 };
 
-export const extractMostDirectChildren = (filters) => {
-  // Prepare filters for fast lookups when limiting results
-  const filterSet =
-    Array.isArray(filters) && filters.length ? new Set(filters) : null;
-  const body = document.body;
-  if (!body) return [];
-
-  // Find the element with the most direct children as the main container
-  let maxEl = null;
-  let maxCount = -1;
-  for (const el of body.querySelectorAll("*")) {
-    if (!(el instanceof HTMLElement)) {
-      continue;
-    }
-    const count = el.children.length;
-    if (count > maxCount) {
-      maxCount = count;
-      maxEl = el;
-    }
-  }
-
-  if (!maxEl) return [];
-
-  // Recursively extract text content and map it by class name
-  const extract = (el) => {
-    const className = (() => {
-      if (typeof el.className === "string") {
-        const trimmed = el.className.trim();
-        if (trimmed) return trimmed;
-      }
-      if (el.classList?.length) {
-        return Array.from(el.classList).join(" ");
-      }
-      return el.tagName?.toLowerCase() || "no-class";
-    })();
-    const text = Array.from(el.childNodes)
-      .map((node) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          return (node.textContent || "").trim();
-        }
-        if (
-          node.nodeType === Node.ELEMENT_NODE &&
-          typeof node.nodeName === "string" &&
-          node.nodeName.toLowerCase() === "em"
-        ) {
-          return (node.textContent || "").trim();
-        }
-        return "";
-      })
-      .filter(Boolean)
-      .join("");
-    let result = {};
-    if (text) {
-      result[className] = text;
-    }
-    Array.from(el.children).forEach((child) => {
-      const childResult = extract(child);
-      Object.entries(childResult).forEach(([key, value]) => {
-        let newKey = key;
-        let count = 2;
-        while (Object.prototype.hasOwnProperty.call(result, newKey)) {
-          newKey = `${key} ${count}`;
-          count += 1;
-        }
-        result[newKey] = value;
-      });
-    });
-
-    return result;
-  };
-
-  // Convert the top-level children into structured objects
-  let items = Array.from(maxEl.children).map(extract).filter(Boolean);
-  if (filterSet) {
-    items = items
-      .map((item) => {
-        const filtered = {};
-        Object.keys(item).forEach((key) => {
-          if (filterSet.has(key)) {
-            filtered[key] = item[key];
-          }
-        });
-        return filtered;
-      })
-      .filter((item) => Object.keys(item).length);
-  }
-  return items;
-};

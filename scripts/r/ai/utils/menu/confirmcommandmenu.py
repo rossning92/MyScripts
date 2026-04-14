@@ -1,5 +1,5 @@
 import json
-import re
+from fnmatch import fnmatch
 
 from ai.utils.tools import Settings
 from utils.menu.confirmmenu import ConfirmMenu
@@ -10,12 +10,11 @@ def is_command_allowed(
     allowed_commands: list[str],
     ignore_case: bool = False,
 ) -> bool:
-    flags = re.IGNORECASE if ignore_case else 0
-    for cmd in allowed_commands:
-        pattern = re.escape(cmd).replace(r"\*", ".*")
-        if re.match(rf"^\s*{pattern}(?:\s+|$)", command, flags=flags):
-            return True
-    return False
+    cmd = command.strip()
+    return any(
+        fnmatch(cmd.lower() if ignore_case else cmd, p.lower() if ignore_case else p)
+        for p in allowed_commands
+    )
 
 
 class ConfirmCommandMenu(ConfirmMenu):
@@ -70,8 +69,9 @@ class ConfirmCommandMenu(ConfirmMenu):
             raise KeyboardInterrupt("Command execution was canceled by the user")
 
         if menu.__always:
-            if menu.command_base not in allowed_commands:
-                allowed_commands.append(menu.command_base)
+            pattern = f"{menu.command_base} *"
+            if pattern not in allowed_commands:
+                allowed_commands.append(pattern)
                 allowed_commands.sort()
 
             if menu.__save and save_path:
