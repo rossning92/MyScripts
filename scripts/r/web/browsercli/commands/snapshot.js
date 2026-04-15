@@ -114,6 +114,8 @@ export async function snapshot() {
     const client = await page.createCDPSession();
     let snapshotData;
     try {
+      // Pierce shadow DOMs so DOM.resolveNode works for shadow DOM elements
+      await client.send("DOM.getDocument", { depth: -1, pierce: true });
       const { nodes } = await client.send("Accessibility.getFullAXTree");
 
       const nodeMap = new Map();

@@ -8,26 +8,31 @@ export async function click(ref) {
       throw new Error(`Invalid ref: "${ref}"`);
     }
 
-    const found = await page.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      if (el) {
-        el.scrollIntoView({ block: "center", inline: "center" });
-        return true;
+    // Try normal DOM first, then deep search through shadow roots
+    const rect = await page.evaluate((sel) => {
+      function deepQuery(root, s) {
+        const el = root.querySelector(s);
+        if (el) return el;
+        for (const host of root.querySelectorAll("*")) {
+          if (host.shadowRoot) {
+            const found = deepQuery(host.shadowRoot, s);
+            if (found) return found;
+          }
+        }
+        return null;
       }
-      return false;
+      const el = deepQuery(document, sel);
+      if (!el) return null;
+      el.scrollIntoView({ block: "center", inline: "center" });
+      const { left, top, width, height } = el.getBoundingClientRect();
+      return { left, top, width, height };
     }, selector);
 
-    if (!found) {
+    if (!rect) {
       throw new Error(`Unable to find element with ref "${ref}"`);
     }
 
     await sleep(500); // Wait for scroll
-
-    const rect = await page.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      const { left, top, width, height } = el.getBoundingClientRect();
-      return { left, top, width, height };
-    }, selector);
 
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
