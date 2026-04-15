@@ -19,6 +19,8 @@
     "grep *",
     "help *",
     "ls *",
+    "ocrmypdf *",
+    "pdftotext *",
     "ping *",
     "ps *",
     "pwd *",
