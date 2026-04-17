@@ -63,13 +63,21 @@ def _to_openai_responses_api_input(messages: List[Message]) -> List[Dict[str, An
             )
 
         for tool_result in message.get("tool_result", []):
-            input.append(
-                {
-                    "type": "function_call_output",
-                    "call_id": tool_result["tool_use_id"],
-                    "output": tool_result["content"],
-                }
-            )
+            item: Dict[str, Any] = {
+                "type": "function_call_output",
+                "call_id": tool_result["tool_use_id"],
+                "output": tool_result["content"],
+            }
+            input.append(item)
+
+            # Send images from tool results as separate user messages
+            for url in tool_result.get("image_urls", []):
+                input.append(
+                    {
+                        "role": "user",
+                        "content": [{"type": "input_image", "image_url": url}],
+                    }
+                )
 
     return input
 

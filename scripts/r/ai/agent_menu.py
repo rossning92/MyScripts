@@ -316,17 +316,20 @@ class AgentMenu(ChatMenu):
                             ret = menu.get_messages()[-1]["text"]
 
                     if ret:
+                        ret_str = str(ret)
                         if self.get_settings()["function_call"]:
-                            tool_results.append(
-                                ToolResult(
-                                    tool_use_id=tool_use["tool_use_id"],
-                                    content=str(ret),
-                                )
+                            tool_result = ToolResult(
+                                tool_use_id=tool_use["tool_use_id"],
+                                content=ret_str,
                             )
+                            if ret_str.startswith("data:image/"):
+                                tool_result["image_urls"] = [ret_str]
+                                tool_result["content"] = "Image content returned."
+                            tool_results.append(tool_result)
                         else:
                             reply += f"""The {to_ordinal(i + 1)} tool ({tool_use["tool_name"]}) returned:
 -------
-{str(ret)}
+{ret_str}
 -------
 
 """

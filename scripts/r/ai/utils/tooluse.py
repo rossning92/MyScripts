@@ -30,6 +30,7 @@ class ToolUse(TypedDict):
 class ToolResult(TypedDict):
     tool_use_id: str
     content: str
+    image_urls: NotRequired[List[str]]
 
 
 @dataclass

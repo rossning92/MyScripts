@@ -111,6 +111,17 @@ async def complete_chat(
                 }
             )
 
+            # Send images from tool results as separate user messages
+            for url in tool_result.get("image_urls", []):
+                payload["messages"].append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "image_url", "image_url": {"url": url}},
+                        ],
+                    }
+                )
+
     if extra_payload:
         payload.update(extra_payload)
 

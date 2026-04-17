@@ -15,6 +15,7 @@ from ai.utils.message import Message
 from ai.utils.tooluse import ToolDefinition, ToolUse
 from ai.utils.usagemetadata import UsageMetadata
 from utils.http import iter_lines
+from utils.imagedataurl import parse_image_data_url
 
 DEFAULT_MODEL = "claude-3-7-sonnet-latest"
 
@@ -24,6 +25,19 @@ def _to_claude_message_content(message: Message) -> List[Dict[str, Any]]:
 
     if message["text"]:
         content.append({"type": "text", "text": message["text"]})
+
+    for url in message.get("image_urls", []):
+        parsed = parse_image_data_url(url)
+        content.append(
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": parsed.mime_type,
+                    "data": parsed.data,
+                },
+            }
+        )
 
     for tool_use in message.get("tool_use", []):
         content.append(
@@ -36,11 +50,27 @@ def _to_claude_message_content(message: Message) -> List[Dict[str, Any]]:
         )
 
     for tool_result in message.get("tool_result", []):
+        result_content: Any = tool_result["content"]
+        image_urls = tool_result.get("image_urls", [])
+        if image_urls:
+            result_content = [{"type": "text", "text": tool_result["content"]}]
+            for url in image_urls:
+                parsed = parse_image_data_url(url)
+                result_content.append(
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": parsed.mime_type,
+                            "data": parsed.data,
+                        },
+                    }
+                )
         content.append(
             {
                 "type": "tool_result",
                 "tool_use_id": tool_result["tool_use_id"],
-                "content": tool_result["content"],
+                "content": result_content,
             }
         )
 

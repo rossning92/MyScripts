@@ -105,6 +105,17 @@ def _message_to_parts(message: Message, tool_name_by_id: Dict[str, str]):
                 }
             }
         )
+        for url in tool_result.get("image_urls", []):
+            if url.startswith("data:"):
+                result = parse_image_data_url(url)
+                parts.append(
+                    {
+                        "inline_data": {
+                            "mime_type": result.mime_type,
+                            "data": result.data,
+                        }
+                    }
+                )
 
     # Text
     text = message.get("text")
