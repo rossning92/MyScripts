@@ -559,7 +559,7 @@ class Script:
         if run_in_tmux or is_in_tmux():
             return os.path.splitext(os.path.basename(self.script_path))[0]
 
-        return "!!" + self.name
+        return self.name
 
     def get_script_path(self) -> str:
         return self.real_script_path if self.real_script_path else self.script_path
@@ -1682,7 +1682,9 @@ class Script:
                     with open(self.script_path, "r", encoding="utf-8") as f:
                         s = f.read()
                 except Exception as e:
-                    raise Exception(f"Error reading script {self.script_path}: {e}") from e
+                    raise Exception(
+                        f"Error reading script {self.script_path}: {e}"
+                    ) from e
 
                 # Find all uppercase names to use as variable names.
                 variable_names = re.findall(VARIABLE_NAME_PATT, s)

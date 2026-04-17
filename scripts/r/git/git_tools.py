@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from utils.menu.actionmenu import ActionMenu
+from utils.menu.menu import Menu
 from utils.menu.diffmenu import DiffMenu
 from utils.script.path import get_my_script_root
 
@@ -34,34 +34,54 @@ def get_git_status_items():
         return [], False
 
 
-class GitMenu(ActionMenu):
+def get_git_prompt(is_clean: bool) -> str:
+    try:
+        repo_root = (
+            subprocess.check_output(
+                ["git", "rev-parse", "--show-toplevel"],
+                universal_newlines=True,
+                stderr=subprocess.DEVNULL,
+            )
+            .strip()
+            .replace("\\", "/")
+        )
+        repo_name = os.path.basename(repo_root)
+    except subprocess.CalledProcessError:
+        repo_name = os.path.basename(os.getcwd())
+
+    status_str = "HEAD" if is_clean else "working tree"
+    return f"{repo_name} [{status_str}]>"
+
+
+class GitMenu(Menu):
     def __init__(self):
         super().__init__(close_on_selection=False)
-        self._populate_items()
+        self.add_command(self._refresh, hotkey="ctrl+r", name="Refresh")
+        self._refresh()
 
-    def _populate_items(self):
-        items, is_clean = get_git_status_items()
-        for item in items:
-            filename = item[3:]
-            if " -> " in filename:
-                filename = filename.split(" -> ")[-1].strip('"')
-
-            if is_clean:
-                git_args = ["HEAD~1", "HEAD", filename]
-            elif item.startswith("??"):
-                git_args = ["--no-index", os.devnull, filename]
-            else:
-                git_args = [filename]
-
-            self.add_action(
-                item,
-                callback=lambda args=git_args: DiffMenu(git_args=args).exec(),
-            )
-
-    @ActionMenu.action("Refresh", k="ctrl+r")
     def _refresh(self):
+        items, is_clean = get_git_status_items()
+        self.is_clean = is_clean
+
+        self.set_prompt(get_git_prompt(is_clean))
+
         self.clear_items()
-        self._populate_items()
+        for item in items:
+            self.append_item(item)
+
+    def on_item_selected(self, item):
+        filename = item[3:]
+        if " -> " in filename:
+            filename = filename.split(" -> ")[-1].strip('"')
+
+        if self.is_clean:
+            git_args = ["HEAD~1", "HEAD", filename]
+        elif item.startswith("??"):
+            git_args = ["--no-index", os.devnull, filename]
+        else:
+            git_args = [filename]
+
+        DiffMenu(git_args=git_args).exec()
 
 
 if __name__ == "__main__":

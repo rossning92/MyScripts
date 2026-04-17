@@ -171,6 +171,7 @@ class FileMenu(Menu[_File]):
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
         self.add_command(self._open_with_script)
+        self.add_command(self._duplicate_file, hotkey="ctrl+d")
         self.add_command(self._preview_image, hotkey="alt+i")
         self.add_command(lambda: self.sort_by("name"), name="sort_by_name")
         self.add_command(lambda: self.sort_by("mtime"), name="sort_by_mtime")
@@ -379,6 +380,38 @@ class FileMenu(Menu[_File]):
         self.set_message(f"recursive={self.__recursive}")
         self.goto_directory(self.get_cur_dir())
 
+    def _duplicate_file(self):
+        selected = self.get_selected_item()
+        if selected:
+            src = os.path.abspath(os.path.join(self.get_cur_dir(), selected.name))
+            if not os.path.isfile(src):
+                self.set_message("Can only duplicate files")
+                return
+
+            # Pre-fill with the original name so the user can tweak it
+            name, ext = os.path.splitext(selected.name)
+            default_name = f"{name}_copy{ext}"
+
+            new_name = InputMenu(
+                prompt="duplicate as", text=default_name
+            ).request_input()
+            if not new_name:
+                return
+
+            dest = os.path.abspath(os.path.join(self.get_cur_dir(), new_name))
+            if os.path.exists(dest):
+                if not confirm(f'"{new_name}" already exists. Overwrite?'):
+                    return
+
+            try:
+                shutil.copy2(src, dest)
+            except Exception as e:
+                self.set_message(str(e))
+                return
+
+            self._refresh_cur_dir()
+            self._select_file_by_name(new_name)
+
     def _rename_file(self):
         selected = self.get_selected_item()
         if selected:
@@ -392,6 +425,7 @@ class FileMenu(Menu[_File]):
             os.rename(src, dest)
 
             self._refresh_cur_dir()
+            self._select_file_by_name(new_name)
 
     def _goto_dir(self):
         path = InputMenu(
@@ -471,6 +505,16 @@ class FileMenu(Menu[_File]):
         if len(self.__config.path_history) > MAX_PATH_IN_HISTORY:
             self.__config.path_history.pop()
 
+    def _select_file_by_name(self, name: str):
+        try:
+            selected_row = next(
+                i for i, file in enumerate(self.__files) if file.name == name
+            )
+            self.set_selected_row(selected_row)
+            return True
+        except StopIteration:
+            return False
+
     def goto_directory(
         self,
         directory: str,
@@ -517,15 +561,7 @@ class FileMenu(Menu[_File]):
         if selected_file is None and self.get_cur_dir() in self.__selected_file_dict:
             selected_file = self.__selected_file_dict[self.get_cur_dir()]
         if selected_file is not None:
-            try:
-                selected_row = next(
-                    i
-                    for i, file in enumerate(self.__files)
-                    if file.name == selected_file
-                )
-                self.set_selected_row(selected_row)
-            except StopIteration:
-                pass
+            self._select_file_by_name(selected_file)
 
     def _list_files(self):
         self.__files.clear()

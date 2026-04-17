@@ -28,12 +28,10 @@ class WinSwitcherMenu(Menu[WindowItem]):
         )
         self.__auto_refresh_enabled = True
         self.__auto_refresh_last_time = 0.0
-        self.__sort_by_title = False
         self.script_status: Dict[str, str] = {}
         self.add_command(self.__refresh_windows, hotkey="ctrl+r")
         self.add_command(self.__close_windows, hotkey="delete")
         self.add_command(self.__close_windows, hotkey="ctrl+k")
-        self.add_command(self.__toggle_sort_mode, hotkey="ctrl+t")
 
         for i in range(26):
             self.add_command(
@@ -50,10 +48,6 @@ class WinSwitcherMenu(Menu[WindowItem]):
             return True
         return False
 
-    def __toggle_sort_mode(self):
-        self.__sort_by_title = not self.__sort_by_title
-        self.__refresh_windows()
-
     def __refresh_windows(self, message: Optional[str] = None):
         notifications = get_notifications()
         self.script_status = {
@@ -61,9 +55,7 @@ class WinSwitcherMenu(Menu[WindowItem]):
             for n in (notifications or [])
             if isinstance(n, dict) and isinstance(n.get("app"), str)
         }
-        self.items = get_windows(
-            sort_by_title=self.__sort_by_title, script_status=self.script_status
-        )
+        self.items = get_windows(sort_by_title=False, script_status=self.script_status)
 
         if message:
             self.set_message(message)

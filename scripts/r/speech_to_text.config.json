@@ -1,3 +1,4 @@
 {
-  "closeOnExit": false
+  "closeOnExit": false,
+  "variableNames": "OPENAI_API_KEY"
 }
