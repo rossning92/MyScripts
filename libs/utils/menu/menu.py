@@ -58,6 +58,20 @@ def _is_backspace_key(ch: Union[int, str]):
 
 
 def _decode_escape_sequence(stdscr, ch: Union[int, str]) -> Union[int, str]:
+    if isinstance(ch, int):
+        try:
+            name = curses.keyname(ch).decode()
+            if name == "kLFT5":
+                return "ctrl+left"
+            elif name == "kRIT5":
+                return "ctrl+right"
+            elif name == "kLFT3":
+                return "alt+left"
+            elif name == "kRIT3":
+                return "alt+right"
+        except Exception:
+            pass
+
     if ch != "\x1b":
         return ch
 
@@ -71,6 +85,10 @@ def _decode_escape_sequence(stdscr, ch: Union[int, str]) -> Union[int, str]:
             if ch2 == "\r" or ch2 == "\n":
                 return "alt+enter"
             return f"alt+{ch2}"
+        if ch2 == curses.KEY_LEFT:
+            return "alt+left"
+        if ch2 == curses.KEY_RIGHT:
+            return "alt+right"
         return ch2
 
     try:
@@ -94,22 +112,50 @@ def _decode_escape_sequence(stdscr, ch: Union[int, str]) -> Union[int, str]:
         return curses.KEY_HOME
     elif ch3 == "F":
         return curses.KEY_END
-    elif ch3 in ("3", "5", "6"):
+    elif ch3 in ("1", "3", "5", "6"):
         try:
             ch4 = stdscr.get_wch()
         except curses.error:
             return -1
+
         if ch4 == "~":
-            if ch3 == "3":
+            if ch3 == "1":
+                return curses.KEY_HOME
+            elif ch3 == "3":
                 return curses.KEY_DC
             elif ch3 == "5":
                 return curses.KEY_PPAGE
             else:
                 return curses.KEY_NPAGE
+        elif ch3 == "1" and ch4 == ";":
+            try:
+                ch5 = stdscr.get_wch()  # Modifier
+                ch6 = stdscr.get_wch()  # Direction
+                if ch5 == "5":  # Ctrl
+                    if ch6 == "D":
+                        return "ctrl+left"
+                    elif ch6 == "C":
+                        return "ctrl+right"
+                elif ch5 == "3":  # Alt
+                    if ch6 == "D":
+                        return "alt+left"
+                    elif ch6 == "C":
+                        return "alt+right"
+                return -1
+            except curses.error:
+                return -1
+        elif ch3 == "5" and ch4 == "D":
+            return "ctrl+left"
+        elif ch3 == "5" and ch4 == "C":
+            return "ctrl+right"
+        elif ch3 == "3" and ch4 == "D":
+            return "alt+left"
+        elif ch3 == "3" and ch4 == "C":
+            return "alt+right"
         else:
-            return ch4
+            return -1
     else:
-        return ch3
+        return -1
 
 
 def _addstr(stdscr, *args) -> bool:
@@ -162,7 +208,7 @@ def _match_regex(item: Any, patt: str) -> bool:
 
 
 def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
-    if patt[:1] == ':' and patt[1:].isdigit():
+    if patt[:1] == ":" and patt[1:].isdigit():
         return int(patt) == index + 1
     elif fuzzy_match:
         return _match_fuzzy(item, patt)
@@ -183,7 +229,7 @@ def _to_curses_color(color: Union[str, int]) -> int:
         "cyan": curses.COLOR_CYAN,
         "white": -1,
         "gray": curses.COLOR_WHITE,
-        "darkgray": 238,
+        "darkgray": 240,
         "brightblack": 8,
         "darkblue": 17,
     }.get(color.lower(), -1)
@@ -261,7 +307,7 @@ class _TextInput:
 
         s = self.text[self.caret_pos :]
         if show_enter_symbol:
-            s += " [search]"
+            s += " [↵]"
 
         # Draw text after caret with dark gray background
         _addstr(stdscr, cursor_y, cursor_x, s, attr)
@@ -275,6 +321,24 @@ class _TextInput:
         self.text = ""
         self.caret_pos = 0
 
+    def _move_word_backward(self):
+        s = self.text
+        i = self.caret_pos
+        while i > 0 and not (s[i - 1].isalnum() or s[i - 1] == "_"):
+            i -= 1
+        while i > 0 and (s[i - 1].isalnum() or s[i - 1] == "_"):
+            i -= 1
+        self.caret_pos = i
+
+    def _move_word_forward(self):
+        s = self.text
+        i = self.caret_pos
+        while i < len(s) and not (s[i].isalnum() or s[i] == "_"):
+            i += 1
+        while i < len(s) and (s[i].isalnum() or s[i] == "_"):
+            i += 1
+        self.caret_pos = i
+
     def on_char(self, ch):
         if ch == curses.ERR:
             pass
@@ -282,6 +346,10 @@ class _TextInput:
             self.caret_pos = max(self.caret_pos - 1, 0)
         elif ch == curses.KEY_RIGHT or ch == 454:  # curses.KEY_B3
             self.caret_pos = min(self.caret_pos + 1, len(self.text))
+        elif ch in ("ctrl+left", "alt+left"):
+            self._move_word_backward()
+        elif ch in ("ctrl+right", "alt+right"):
+            self._move_word_forward()
         elif _is_backspace_key(ch):
             if self.caret_pos > 0:
                 if self.auto_complete:
@@ -923,13 +991,9 @@ class Menu(Generic[T]):
 
             self.last_key_pressed_timestamp = time.time()
 
-            if isinstance(ch, str) and ch.startswith("alt+"):
-                if ch in self.__hotkeys:
-                    logging.debug(f"Hotkey pressed: {ch}")
-                    self.__hotkeys[ch].func()
-                elif ch == "alt+enter":
-                    self.__input.on_char("\n")
-                    self.update_screen()
+            if ch == "alt+enter" and "alt+enter" not in self.__hotkeys:
+                self.__input.on_char("\n")
+                self.update_screen()
 
             elif self._check_alt_hotkey_win(ch):
                 pass
@@ -1166,6 +1230,9 @@ class Menu(Generic[T]):
         pass
 
     def _check_ctrl_hotkey(self, ch: Union[str, int]) -> bool:
+        if isinstance(ch, str) and len(ch) > 1:
+            return False
+
         if curses.ascii.isctrl(ch):
             char = curses.ascii.unctrl(ch)[-1].lower()
             htks = ["ctrl+" + char]
@@ -1648,7 +1715,8 @@ class Menu(Generic[T]):
         if ch == "\t":
             return self.on_tab_pressed()
 
-        elif type(ch) is str and ch in self.__hotkeys:
+        elif isinstance(ch, str) and ch in self.__hotkeys:
+            logging.debug(f"Hotkey pressed: {ch}")
             self.__hotkeys[ch].func()
             return True
 
