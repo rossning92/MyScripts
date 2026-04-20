@@ -1,6 +1,6 @@
 # https://perfetto.dev/docs/contributing/build-instructions#standalone-builds
 
-set -e -x
+set -e
 
 {{ include('_setup_perfetto_project.sh') }}
 
