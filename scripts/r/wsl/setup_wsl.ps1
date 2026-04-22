@@ -16,6 +16,10 @@ fi" >> ~/.profile'
 wsl -u root -- bash -c 'echo "$(id -un 1000) ALL=(root) NOPASSWD: /usr/bin/mount -t drvfs G\: /mnt/g" > /etc/sudoers.d/gdrive-mount && chmod 440 /etc/sudoers.d/gdrive-mount'
 wsl -- ln -sfn "/mnt/g/My Drive" ~/gdrive
 
+# Passwordless sudo for the default user
+$sudoScript = 'u=$(id -un 1000); echo "$u ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$u && chmod 440 /etc/sudoers.d/$u'
+[System.Text.Encoding]::UTF8.GetBytes($sudoScript) | wsl -u root -- bash
+
 # Fix "Cannot make directory '/run/screen': Permission denied"
 # WSL2 doesn't run systemd-tmpfiles by default, so /run/screen is never created.
 $bootCmd = "command = mkdir -p /run/screen && chmod 777 /run/screen"

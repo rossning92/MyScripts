@@ -1,5 +1,5 @@
 # Install packages.
-required_packages=(g++-multilib ccache lbzip2)
+required_packages=(g++-multilib ccache lbzip2 python3-venv)
 missing_packages=()
 for package in "${required_packages[@]}"; do
     dpkg -s "$package" >/dev/null 2>&1 || missing_packages+=("$package")

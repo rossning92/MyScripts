@@ -44,6 +44,7 @@ class WinSwitcherMenu(Menu[WindowItem]):
     def __activate_by_index(self, index: int) -> bool:
         item_indices = list(self.get_item_indices())
         if index < len(item_indices):
+            self.set_selected_row(index)
             self.__activate_window(self.items[item_indices[index]].id)
             return True
         return False
