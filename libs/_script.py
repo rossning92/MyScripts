@@ -1414,6 +1414,7 @@ class Script:
                                 arg_list,
                                 cwd=cwd,
                                 title=self.get_window_title(run_in_tmux=run_in_tmux),
+                                maximized=self.cfg["maximized"],
                             )
                             no_wait = True
                             open_in_terminal = True
@@ -1903,7 +1904,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "tee": False,
         "template": None,
         "template.readVarFromCsv": "",
-        "terminal": "alacritty",
+        "terminal": "wezterm" if sys.platform == "win32" else "alacritty",
         "title": "",
         "updateSelectedScriptAccessTime": False,
         "variableNames": "auto",

@@ -1,5 +1,12 @@
 local wezterm = require 'wezterm'
 
+wezterm.on('gui-startup', function(cmd)
+  local tab, pane, window = wezterm.mux.spawn_window(cmd or {})
+  if os.getenv('WEZTERM_MAXIMIZED') == '1' then
+    window:gui_window():maximize()
+  end
+end)
+
 wezterm.on('format-window-title', function(tab, pane, tabs, panes, config)
   local title = os.getenv('WEZTERM_WINDOW_TITLE')
   local original_title = ''

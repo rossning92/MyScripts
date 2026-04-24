@@ -14,12 +14,18 @@ def wrap_args_wezterm(
     args,
     title=None,
     cwd=None,
+    maximized=False,
     **kwargs,
 ) -> List[str]:
     if sys.platform != "win32":
         raise OSError(f"{sys.platform} is not supported")
 
     wezterm_args = [WEZTERM_EXECUTABLE, "--config-file", WEZTERM_CONFIG, "start"]
+
+    if maximized:
+        os.environ["WEZTERM_MAXIMIZED"] = "1"
+    elif "WEZTERM_MAXIMIZED" in os.environ:
+        del os.environ["WEZTERM_MAXIMIZED"]
 
     if cwd:
         wezterm_args += ["--cwd", cwd]

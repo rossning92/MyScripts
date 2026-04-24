@@ -197,7 +197,7 @@ EndSection
 EOF
 
 # Auto-start MyScript
-append_line_dedup ~/.xinitrc 'alacritty -e "$HOME/MyScripts/myscripts" --startup &'
+append_line_dedup ~/.xinitrc 'alacritty -e "$HOME/myscripts/myscripts" --startup &'
 
 # Disable sudo password
 append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
