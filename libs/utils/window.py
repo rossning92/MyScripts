@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple, cast
 
 from .tmux import is_in_tmux
 
@@ -15,6 +15,8 @@ TITLE_MATCH_MODE_PARTIAL = 1
 TITLE_MATCH_MODE_START_WITH = 2
 TITLE_MATCH_MODE_REGEX = 3
 TITLE_MATCH_MODE_DEFAULT = TITLE_MATCH_MODE_REGEX
+
+TITLE_DIVIDER = " - "
 
 WindowStatus = Literal["normal", "done", "error", "running"]
 
@@ -41,9 +43,10 @@ class WindowItem:
             if any(s in self.title for s in symbols):
                 return status
 
-        status = script_status.get(self.title, "normal")
-        if status in ["done", "error", "running"]:
-            return status  # type: ignore
+        title = self.title.split(TITLE_DIVIDER)[0]
+        val = script_status.get(title, "normal")
+        if val in _WINDOW_STATUS_PRIORITY:
+            return cast(WindowStatus, val)
         return "normal"
 
     def __str__(self):
@@ -62,7 +65,7 @@ def _get_windows_linux() -> List[WindowItem]:
             if len(parts) >= 3:
                 window_id = parts[0]
                 title = parts[3] if len(parts) == 4 else ""
-                if title == "WinSwitcher":
+                if title.startswith("WinSwitcher"):
                     continue
                 windows.append(WindowItem(id=window_id, title=title))
         return windows
@@ -107,7 +110,7 @@ def _get_windows_win(sort_by_title: bool = True) -> List[WindowItem]:
             buff = ctypes.create_unicode_buffer(title_length + 1)
             user32.GetWindowTextW(hwnd, buff, title_length + 1)
             title = buff.value
-            if title not in ["WinSwitcher", "Program Manager"]:
+            if not title.startswith("WinSwitcher"):
                 windows.append(WindowItem(id=hwnd, title=title))
 
         hwnd = user32.GetWindow(hwnd, 2)

@@ -1416,6 +1416,10 @@ class Script:
                                 title=self.get_window_title(run_in_tmux=run_in_tmux),
                                 maximized=self.cfg["maximized"],
                             )
+                            popen_extra_args["creationflags"] = (
+                                subprocess.CREATE_NO_WINDOW
+                            )
+                            popen_extra_args["close_fds"] = True
                             no_wait = True
                             open_in_terminal = True
 
