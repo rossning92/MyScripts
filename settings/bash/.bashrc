@@ -7,7 +7,7 @@
 PROMPT_COMMAND='if [ -n "$LAST_PROMPT" ]; then echo; fi; LAST_PROMPT=1' # prints a newline after each command
 PS1='\[\e]0;\w\a\][\[\033[32m\]\u@\h \[\033[35m\]\W\[\033[0m\]]\n$ '
 
-export PATH="$HOME/MyScripts/bin:$PATH"
+export PATH="$HOME/myscripts/bin:$PATH"
 
 alias c='xclip -selection clipboard'
 alias grep='grep --color=auto'
@@ -16,5 +16,5 @@ alias ls='ls --color=auto'
 alias v=nvim
 
 if [[ -n "$TERMUX_VERSION" ]]; then
-	[[ "$(tty)" == "/dev/pts/0" ]] && $HOME/MyScripts/myscripts --startup
+	[[ "$(tty)" == "/dev/pts/0" ]] && $HOME/myscripts/myscripts --startup
 fi

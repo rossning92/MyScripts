@@ -9,6 +9,7 @@ from functools import lru_cache
 from typing import List, Optional
 
 from _shutil import convert_to_unix_path, is_in_wsl
+
 from utils.jsonutil import load_json, save_json
 
 
@@ -167,7 +168,7 @@ def get_script_config_file(script_path: str) -> Optional[str]:
 
 @lru_cache(maxsize=None)
 def get_temp_dir() -> str:
-    temp_dir = os.path.join(tempfile.gettempdir(), "MyScripts")
+    temp_dir = os.path.join(tempfile.gettempdir(), "myscripts")
     os.makedirs(temp_dir, exist_ok=True)
     return temp_dir
 

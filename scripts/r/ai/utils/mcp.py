@@ -110,7 +110,7 @@ class MCPClient:
             "initialize",
             {
                 "protocolVersion": "1.0",
-                "clientInfo": {"name": "MyScripts-MCP", "version": "1.0"},
+                "clientInfo": {"name": "myscripts-MCP", "version": "1.0"},
                 "capabilities": {},
             },
         )

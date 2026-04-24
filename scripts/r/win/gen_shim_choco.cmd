@@ -12,4 +12,4 @@ echo "%1" | find ":\" >nul || (
 
 cd "%~dp1"
 
-C:\ProgramData\chocolatey\tools\shimgen.exe --path=%~nx1 -o C:\MyScripts\bin\%~n1.exe
+C:\ProgramData\chocolatey\tools\shimgen.exe --path=%~nx1 -o C:\myscripts\bin\%~n1.exe

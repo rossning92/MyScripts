@@ -9,7 +9,7 @@ fi
 
 if [[ ! -d ".git" ]]; then
     git init
-    git remote add origin https://github.com/rossning92/MyScripts
+    git remote add origin https://github.com/rossning92/myscripts
     git fetch
     git reset --mixed origin/master
     git branch --set-upstream-to=origin/master master

@@ -2,7 +2,7 @@
 
 param (
     [string]$bodyText = "Test message",
-    [string]$titleText = "MyScripts"
+    [string]$titleText = "myscripts"
 )
 
 # ToastText02: A large image, one string of bold text on the first line, one string of regular text on the second line.

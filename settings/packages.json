@@ -745,7 +745,7 @@
     "pacman": {
       "packages": ["rofi"]
     },
-    "post_install": ["ln -sf ~/MyScripts/settings/rofi ~/.config/"]
+    "post_install": ["ln -sf ~/myscripts/settings/rofi ~/.config/"]
   },
   "rpi-imager": {
     "choco": {

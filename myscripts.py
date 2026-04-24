@@ -632,7 +632,7 @@ class _MyScriptMenu(Menu[Script]):
 def _main():
     global script_server
 
-    log_file = os.path.join(get_data_dir(), "MyScripts.log")
+    log_file = os.path.join(get_data_dir(), "myscripts.log")
     setup_logger(log_to_stderr=False, log_file=log_file)
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -743,7 +743,7 @@ def _main():
             )
 
     run_at_startup(
-        name="MyScripts",
+        name="myscripts",
         cmdline=quote_arg(os.path.join(MYSCRIPT_ROOT, "myscripts.cmd")) + " --startup",
     )
 

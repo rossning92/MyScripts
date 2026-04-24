@@ -34,14 +34,14 @@ done
 if [ -d "$HOME/.termux" ] && [ ! -L "$HOME/.termux" ]; then
     rm -rf "$HOME/.termux"
 fi
-ln -f -s "$HOME/MyScripts/settings/termux" "$HOME/.termux"
+ln -f -s "$HOME/myscripts/settings/termux" "$HOME/.termux"
 termux-reload-settings
 
 # Set up hooks for sharing to Termux
 mkdir -p "$HOME/bin"
 cat >"$HOME/bin/termux-file-editor" <<'EOF'
-bash "$HOME/MyScripts/bin/run_script" ext/contextmenu.py "$1"
+bash "$HOME/myscripts/bin/run_script" ext/contextmenu.py "$1"
 EOF
 cat >"$HOME/bin/termux-url-opener" <<'EOF'
-bash "$HOME/MyScripts/bin/run_script" ext/contextmenu.py "$1"
+bash "$HOME/myscripts/bin/run_script" ext/contextmenu.py "$1"
 EOF

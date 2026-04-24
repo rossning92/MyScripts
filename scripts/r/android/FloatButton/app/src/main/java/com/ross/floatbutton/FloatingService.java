@@ -198,7 +198,7 @@ public class FloatingService extends Service {
         intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
         intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS",
                 new String[] {
-                        "/data/data/com.termux/files/home/MyScripts/scripts/r/android/termux/" + scriptName });
+                        "/data/data/com.termux/files/home/myscripts/scripts/r/android/termux/" + scriptName });
         intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
         intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", background);
         // https://github.com/termux/termux-app/blob/master/termux-shared/src/main/java/com/termux/shared/termux/TermuxConstants.java

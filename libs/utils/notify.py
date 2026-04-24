@@ -34,7 +34,7 @@ def clear_notifications(app: str) -> None:
 
 def send_notify(
     text: Optional[str] = None,
-    app: str = "MyScripts",
+    app: str = "myscripts",
     hint: Optional[str] = None,
 ) -> None:
     # Save notification to history

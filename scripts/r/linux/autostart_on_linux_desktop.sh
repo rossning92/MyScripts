@@ -3,8 +3,8 @@ mkdir -p ~/.config/autostart/
 cat >~/.config/autostart/myscripts.desktop <<EOF
 [Desktop Entry]
 Type=Application
-Name=MyScripts
-Exec=alacritty -e $HOME/MyScripts/myscripts --startup
+Name=myscripts
+Exec=alacritty -e $HOME/myscripts/myscripts --startup
 StartupNotify=false
 Terminal=false
 EOF
