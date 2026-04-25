@@ -43,7 +43,7 @@ def reset_debug_sysprops():
             prop_name = matches[0]
 
             logger.debug("Reset %s" % prop_name)
-            adb_shell("setprop %s ''" % prop_name)
+            adb_shell(["setprop", prop_name, "''"])
     except Exception as ex:
         logging.error(ex)
 
@@ -55,7 +55,7 @@ def wake_up_device():
     )
     if "Asleep" in out:
         logging.info("Device is asleep, wake up by press power button.")
-        subprocess.check_call(["adb", "shell", "input keyevent 26"])  # power key
+        subprocess.check_call(["adb", "shell", "input", "keyevent", "26"])  # power key
 
 
 def get_main_activity(pkg):
@@ -77,7 +77,12 @@ def start_app(pkg, use_monkey=False, wake_up=True):
         args = [
             "adb",
             "shell",
-            "monkey -p %s -c android.intent.category.LAUNCHER 1" % pkg,
+            "monkey",
+            "-p",
+            pkg,
+            "-c",
+            "android.intent.category.LAUNCHER",
+            "1",
         ]
         logger.info("shell_cmd: %s" % " ".join(args))
         with open(os.devnull, "w") as fnull:
@@ -92,7 +97,7 @@ def start_app(pkg, use_monkey=False, wake_up=True):
             )
     else:
         pkg_activity = get_main_activity(pkg)
-        args = ["adb", "shell", "am start -n %s" % pkg_activity]
+        args = ["adb", "shell", "am", "start", "-n", pkg_activity]
         logger.info("shell_cmd: %s" % " ".join(args))
         out = subprocess.check_output(args, universal_newlines=True)
         logger.debug(out)
@@ -265,7 +270,7 @@ def logcat(
 
 def get_apk_path(pkg):
     out = subprocess.check_output(
-        ["adb", "shell", "pm path %s" % pkg], universal_newlines=True
+        ["adb", "shell", "pm", "path", pkg], universal_newlines=True
     )
     apk_path = out.splitlines()[0]
     apk_path = apk_path.replace("package:", "")
@@ -290,25 +295,29 @@ def backup_pkg(
         # 'package:/data/app/com.github.uiautomator-1AfatTFmPxzjNwUtT-5h7w==/base.apk'
         apk_path = get_apk_path(pkg)
 
-        subprocess.check_call("adb pull %s %s.apk" % (apk_path, pkg), cwd=out_dir)
+        subprocess.check_call(["adb", "pull", apk_path, f"{pkg}.apk"], cwd=out_dir)
 
     # Check root permission
-    if subprocess.call("adb shell type su") == 0:
-        su = "su -c"
+    if subprocess.call(["adb", "shell", "type", "su"]) == 0:
+        su = ["su", "-c"]
     else:
-        su = ""
+        su = []
 
     if backup_user_data:
         logging.info("Backup app data")
         subprocess.call(
-            f"adb exec-out {su} tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}"
+            ["adb", "exec-out"]
+            + su
+            + [
+                f"tar -cf /sdcard/{pkg}.tar --exclude='data/data/{pkg}/cache' /data/data/{pkg}"
+            ]
         )
-        subprocess.call(f"adb pull /sdcard/{pkg}.tar", cwd=out_dir)
-        subprocess.call(f"adb shell rm /sdcard/{pkg}.tar")
+        subprocess.call(["adb", "pull", f"/sdcard/{pkg}.tar"], cwd=out_dir)
+        subprocess.call(["adb", "shell", "rm", f"/sdcard/{pkg}.tar"])
 
     if backup_obb:
         logging.info("Backup obb")
-        subprocess.call(f"adb pull /sdcard/android/obb/{pkg}", cwd=obb_dir)
+        subprocess.call(["adb", "pull", f"/sdcard/android/obb/{pkg}"], cwd=obb_dir)
 
 
 def adb_tar(d, out_tar):
@@ -317,16 +326,19 @@ def adb_tar(d, out_tar):
         [
             "adb",
             "exec-out",
-            f"tar -cf {temp_tar} {d}",
+            "tar",
+            "-cf",
+            temp_tar,
+            d,
         ]
     )
     subprocess.check_call(["adb", "pull", temp_tar, out_tar])
-    subprocess.check_call(["adb", "shell", f"rm {temp_tar}"])
+    subprocess.check_call(["adb", "shell", "rm", temp_tar])
 
 
 def adb_untar(tar_file):
     subprocess.check_call(["adb", "push", tar_file, "/data/local/tmp/"])
-    adb_shell(f"tar -xf /data/local/tmp/{tar_file}")
+    adb_shell(["tar", "-xf", f"/data/local/tmp/{tar_file}"])
 
 
 def screenshot(out_file=None, scale=None):
@@ -343,13 +355,13 @@ def screenshot(out_file=None, scale=None):
         try:
             logger.info("Taking screenshot")
             subprocess.check_call(
-                ["adb", "shell", "screencap -p /sdcard/%s" % src_file]
+                ["adb", "shell", "screencap", "-p", "/sdcard/%s" % src_file]
             )
             logger.debug(["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file])
             subprocess.check_call(
                 ["adb", "pull", "-a", "/sdcard/%s" % src_file, out_file]
             )
-            subprocess.check_call(["adb", "shell", "rm /sdcard/%s" % src_file])
+            subprocess.check_call(["adb", "shell", "rm", "/sdcard/%s" % src_file])
 
             break
         except subprocess.CalledProcessError as ex:
@@ -415,9 +427,7 @@ def get_adk_path():
 
 
 def get_prop(name):
-    return (
-        subprocess.check_output(["adb", "shell", "getprop %s" % name]).decode().strip()
-    )
+    return subprocess.check_output(["adb", "shell", "getprop", name]).decode().strip()
 
 
 def setup_jdk(jdk_version=None, env=None):
@@ -556,17 +566,18 @@ def setup_android_env(
 
 
 def adb_shell(command, check=True, check_output=False, echo=False, **kwargs):
-    logger.debug('shell_cmd: adb shell "%s"' % command)
+    if isinstance(command, list):
+        args = ["adb", "shell"] + command
+    else:
+        args = ["adb", "shell", command]
 
     if echo:
-        print2('> adb shell "%s"' % command)
+        print2("> " + " ".join(args))
 
     if check_output:
-        return subprocess.check_output(
-            ["adb", "shell", command], universal_newlines=True
-        )
+        return subprocess.check_output(args, universal_newlines=True)
     else:
-        return subprocess.run(["adb", "shell", command], check=check, **kwargs)
+        return subprocess.run(args, check=check, **kwargs)
 
 
 def wait_for_device():
@@ -597,18 +608,24 @@ def wait_until_boot_complete():
 def adb_shell2(command, check=True, root=True):
     if root and not hasattr(adb_shell2, "super_su"):
         # Check root permission
-        adb_shell2.super_su = subprocess.call("adb shell type su") == 0
+        adb_shell2.super_su = subprocess.call(["adb", "shell", "type", "su"]) == 0
         if not adb_shell2.super_su:
             subprocess.check_call(["adb", "root"])
 
-    if adb_shell2.super_su:
-        command = "su -c " + command
+    if isinstance(command, list):
+        command = " ".join(command)
 
-    subprocess.run(["adb", "shell", command], check=check)
+    args = ["adb", "shell"]
+    if adb_shell2.super_su:
+        args += ["su", "-c", command]
+    else:
+        args.append(command)
+
+    subprocess.run(args, check=check)
 
 
 def pm_list_packages():
-    s = check_output("adb shell pm list packages").decode()
+    s = check_output(["adb", "shell", "pm", "list", "packages"]).decode()
     s = s.replace("package:", "")
     lines = s.splitlines()
     lines = sorted(lines)
@@ -705,7 +722,10 @@ def adb_install(
                         [
                             "adb",
                             "shell",
-                            "pm grant %s %s" % (apk_info.pkg_name, permission),
+                            "pm",
+                            "grant",
+                            apk_info.pkg_name,
+                            permission,
                         ],
                         stderr=fnull,
                         stdout=fnull,
@@ -742,17 +762,20 @@ def adb_install2(
         if os.path.exists(tar_file):
             logger.info("Restoring app data")
             subprocess.check_call(["adb", "push", tar_file, "/data/local/tmp/"])
-            adb_shell2(f"tar -xf /data/local/tmp/{pkg}.tar", root=True)
+            adb_shell2(["tar", "-xf", f"/data/local/tmp/{pkg}.tar"], root=True)
 
-            out = check_output(f"adb shell dumpsys package {pkg} | grep userId")
-            out = out.decode().strip()
+            out = check_output(
+                ["adb", "shell", f"dumpsys package {pkg} | grep userId"]
+            ).strip()
 
             userId = re.findall(r"userId=(\d+)", out)[0]
             logger.info(f"Changing owner of {pkg} => {userId}")
-            adb_shell2(f"chown -R {userId}:{userId} /data/data/{pkg}", root=True)
+            adb_shell2(
+                ["chown", "-R", f"{userId}:{userId}", f"/data/data/{pkg}"], root=True
+            )
 
             logger.info("Resetting SELinux permisions")
-            adb_shell2(f"restorecon -R /data/data/{pkg}", root=True)
+            adb_shell2(["restorecon", "-R", f"/data/data/{pkg}"], root=True)
 
         # Push obb file
         file = os.path.abspath(file)
@@ -784,7 +807,7 @@ def sample_proc_stat():
     """
     )
 
-    call2("adb pull /data/local/tmp/proc_stat.txt")
+    call2(["adb", "pull", "/data/local/tmp/proc_stat.txt"])
 
 
 def get_pkg_name_apk(file):
@@ -821,16 +844,16 @@ def unlock_device(pin):
     )
 
     if "Dozing" in out:
-        adb_shell("input keyevent 82")
+        adb_shell(["input", "keyevent", "82"])
         time.sleep(1)
 
         # Swipe up
-        adb_shell("input touchscreen swipe 930 880 930 380")
+        adb_shell(["input", "touchscreen", "swipe", "930", "880", "930", "380"])
         time.sleep(1)
 
         # Type pin
-        adb_shell("input text %s" % pin)
-        adb_shell("input keyevent KEYCODE_ENTER")
+        adb_shell(["input", "text", pin])
+        adb_shell(["input", "keyevent", "KEYCODE_ENTER"])
 
 
 def is_locked():
@@ -884,7 +907,7 @@ def logcat_bg(patt):
 
 def toggle_prop(name, values=("0", "1")):
     cur_val = subprocess.check_output(
-        ["adb", "shell", "getprop %s" % name], universal_newlines=True
+        ["adb", "shell", "getprop", name], universal_newlines=True
     ).strip()
 
     # Find next value
@@ -894,9 +917,8 @@ def toggle_prop(name, values=("0", "1")):
         i = 0
     new_val = values[(i + 1) % len(values)]
 
-    command = "setprop %s %s" % (name, new_val)
-    logger.debug(command)
-    subprocess.check_call(["adb", "shell", command])
+    logger.debug("setprop %s %s" % (name, new_val))
+    subprocess.check_call(["adb", "shell", "setprop", name, new_val])
 
 
 def run_apk(
