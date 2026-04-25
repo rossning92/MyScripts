@@ -1,6 +1,6 @@
 import argparse
 
-from utils.android import run_apk, setup_android_env
+from utils.android import run_apk
 from utils.logger import setup_logger
 
 if __name__ == "__main__":
@@ -13,8 +13,6 @@ if __name__ == "__main__":
     parser.add_argument("--skip_install_if_exist", default=False, action="store_true")
     args = parser.parse_args()
     apk = args.file
-
-    setup_android_env()
 
     run_apk(
         apk,

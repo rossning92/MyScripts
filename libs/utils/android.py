@@ -111,13 +111,13 @@ def clear_logcat():
 
 
 def kill_app(pkg):
-    args = "adb shell am force-stop %s" % pkg
+    args = ["adb", "shell", "am", "force-stop", pkg]
     call_echo(args)
 
 
 def restart_app(pkg, use_monkey=False, wake_up=True):
     logger.info("Stop app: " + pkg)
-    args = "adb shell am force-stop %s" % pkg
+    args = ["adb", "shell", "am", "force-stop", pkg]
     call2(args)
 
     start_app(pkg, use_monkey=use_monkey, wake_up=wake_up)
@@ -126,8 +126,8 @@ def restart_app(pkg, use_monkey=False, wake_up=True):
 def restart_current_app():
     pkg, activity = get_active_pkg_and_activity()
 
-    call2("adb shell am force-stop %s" % pkg)
-    call2("adb shell am start -n %s/%s" % (pkg, activity))
+    call2(["adb", "shell", "am", "force-stop", pkg])
+    call2(["adb", "shell", "am", "start", "-n", "%s/%s" % (pkg, activity)])
 
 
 def logcat(

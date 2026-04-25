@@ -218,7 +218,10 @@ def _match(item: Any, patt: str, fuzzy_match: bool, index: int) -> bool:
 
 def _to_curses_color(color: Union[str, int]) -> int:
     if isinstance(color, int):
+        if color >= curses.COLORS:
+            return -1
         return color
+    has_256 = curses.COLORS >= 256
     return {
         "black": curses.COLOR_BLACK,
         "red": curses.COLOR_RED,
@@ -229,9 +232,9 @@ def _to_curses_color(color: Union[str, int]) -> int:
         "cyan": curses.COLOR_CYAN,
         "white": -1,
         "gray": curses.COLOR_WHITE,
-        "darkgray": 240,
-        "brightblack": 8,
-        "darkblue": 17,
+        "darkgray": 240 if has_256 else curses.COLOR_BLACK,
+        "brightblack": 8 if has_256 else curses.COLOR_BLACK,
+        "darkblue": 17 if has_256 else curses.COLOR_BLUE,
     }.get(color.lower(), -1)
 
 
