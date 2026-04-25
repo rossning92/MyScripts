@@ -84,6 +84,6 @@ def format_datetime(dt: datetime, show_year: bool = False, show_hhmm=True) -> st
     return dt.strftime(format)
 
 
-def format_timestamp(ts: float, show_year: bool = False) -> str:
+def format_timestamp(ts: float, show_year: bool = False, show_hhmm: bool = True) -> str:
     dt = datetime.fromtimestamp(ts)
-    return format_datetime(dt=dt, show_year=show_year)
+    return format_datetime(dt=dt, show_year=show_year, show_hhmm=show_hhmm)

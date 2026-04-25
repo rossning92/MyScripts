@@ -46,7 +46,7 @@ def get_relative_time_str(ts: float) -> str:
 
 
 def get_pretty_ts(ts):
-    date_str = format_timestamp(ts).ljust(11)
+    date_str = format_timestamp(ts, show_hhmm=False).ljust(5)
     time_diff_str = get_relative_time_str(ts)
     return f"{time_diff_str:>7} {date_str}"
 
@@ -140,19 +140,19 @@ class TodoMenu(ListEditMenu[TodoItem]):
         # Date
         ts = item.get("due_ts")
         if ts:
-            date_str = f"{get_pretty_ts(ts):<19}"
+            date_str = f"{get_pretty_ts(ts):<13}"
             if (
                 item.get("status") not in ("closed", "in_progress")
                 and datetime.fromtimestamp(ts) < datetime.now()
             ):
                 date_str = f"\x1b[31m{date_str}\x1b[0m"
         else:
-            date_str = " " * 19
+            date_str = " " * 13
 
         # Description
         desc = truncate_text(item["description"], max_lines=1)
 
-        return f"{_STATUS_SYMBOLS[item['status']]} {date_str} {desc}"
+        return f"{_STATUS_SYMBOLS[item['status']]} {date_str}  {desc}"
 
     def get_item_metadata(self, item: TodoItem) -> str:
         return _get_todo_str(item)

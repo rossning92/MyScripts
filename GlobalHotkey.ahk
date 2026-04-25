@@ -1,5 +1,6 @@
 #SingleInstance, Force
 #InstallKeybdHook
+SetTitleMatchMode, RegEx ; Match window title using regular expressions
 #include ahk/ExplorerHelper.ahk
 #include ahk/WaitKey.ahk
 
@@ -14,13 +15,14 @@ return
 
 #enter::RestartLastScript()
 
-StartScript(scriptName, scriptPath, restartInstance)
+StartScript(scriptTitle, scriptPath, restartInstance)
 {
     global LastScript
 
-    if WinExist(scriptName) and not restartInstance
+    titlePattern := "^" . scriptTitle . "|" . scriptTitle . "$"
+    if WinExist(titlePattern) and not restartInstance
     {
-        WinActivate, %scriptName%
+        WinActivate
         return
     }
 

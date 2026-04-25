@@ -1,20 +1,10 @@
 import os
-import re
 import subprocess
 import tempfile
 import time
 import uuid
 
-from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
-from utils.menu.menu import Menu
-from utils.term import clear_terminal
-
-from ai.utils.tools.permission import ALLOWED_COMMANDS, ALLOWED_COMMANDS_FILE
-
-
-def _run_script(command: str, log_file: str) -> None:
-    clear_terminal()
-    subprocess.run(["script", "-q", "-e", "-c", command, log_file], check=False)
+from utils.textutil import truncate_output
 
 
 def _run_bash(command: str) -> str:
@@ -22,16 +12,40 @@ def _run_bash(command: str) -> str:
     with tempfile.NamedTemporaryFile(delete=False) as f:
         log_file = f.name
 
+    session_name = f"ai_bash_{uuid.uuid4().hex}"
+
+    # Start the command in a detached screen session.
+    # -D -m starts screen in detached mode but doesn't fork, so it blocks until finished.
+    # This allows the command to run in a real TTY while being backgrounded.
     try:
-        # Run command interactively using 'script' (-q: quiet, -e: return exit code, -c: run command)
-        Menu.run_raw(lambda: _run_script(command, log_file))
+        subprocess.run(
+            [
+                "screen",
+                "-L",
+                "-Logfile",
+                log_file,
+                "-DmS",
+                session_name,
+                "bash",
+                "-c",
+                command,
+            ],
+            check=False,
+        )
+    except KeyboardInterrupt:
+        # If the user interrupts (Ctrl+C), kill the background session
+        subprocess.run(["screen", "-S", session_name, "-X", "quit"], check=False)
+        raise
 
+    try:
         # Read the captured output
-        with open(log_file, "r") as f:
-            output = f.read()
+        if os.path.exists(log_file):
+            with open(log_file, "r") as f:
+                output = f.read()
+        else:
+            output = ""
 
-        output = re.sub(r"^Script started on .*\n?", "", output)
-        output = re.sub(r"Script done on .*", "", output.strip())
+        # Remove carriage returns (common in screen/TTY output) and strip whitespace
         return output.replace("\r", "").strip()
     finally:
         # Clean up the temporary file
@@ -56,32 +70,16 @@ def _truncate_output(output: str, tool_name: str) -> str:
     MAX_OUTPUT_LINES = 2000
     MAX_OUTPUT_BYTES = 50 * 1024
 
-    lines = output.splitlines()
-    if (
-        len(lines) <= MAX_OUTPUT_LINES
-        and len(output.encode("utf-8")) <= MAX_OUTPUT_BYTES
-    ):
+    truncated = truncate_output(
+        output, max_lines=MAX_OUTPUT_LINES, max_bytes=MAX_OUTPUT_BYTES
+    )
+    if truncated == output:
         return output
 
     full_output_path = _save_full_output(output, tool_name)
 
-    # Truncate to MAX_OUTPUT_LINES
-    truncated_lines = lines[:MAX_OUTPUT_LINES]
-    preview = "\n".join(truncated_lines)
-
-    # Further truncate if still exceeds MAX_OUTPUT_SIZE
-    preview_bytes = preview.encode("utf-8")
-    if len(preview_bytes) > MAX_OUTPUT_BYTES:
-        preview = (
-            preview_bytes[:MAX_OUTPUT_BYTES].decode("utf-8", errors="ignore")
-            + "\n... [preview truncated]"
-        )
-
-    num_truncated = len(lines) - len(preview.splitlines())
-
     return (
-        f"{preview}\n"
-        f"... {num_truncated} lines truncated ...\n"
+        f"{truncated}\n"
         f"Output was truncated, full output saved to: {full_output_path}\n"
         "Use `grep` to search the entire content, or use `read` with offset and limit to view specific sections"
     )
@@ -93,12 +91,6 @@ def bash(command: str) -> str:
     - Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task.
     - Ensure the command is properly formatted and does not contain any harmful instructions.
     """
-
-    ConfirmCommandMenu.confirm_command(
-        command=command,
-        allowed_commands=ALLOWED_COMMANDS,
-        save_path=str(ALLOWED_COMMANDS_FILE),
-    )
 
     output = _run_bash(command)
 

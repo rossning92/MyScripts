@@ -20,7 +20,9 @@ import ai.utils.tools.web_search
 from ai.chat_menu import ChatMenu, Line
 from ai.utils.mcp import MCPClient
 from ai.utils.memory import get_memory_prompt
+from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
 from ai.utils.skill import get_skill_prompt, get_skills
+from ai.utils.tools.permission import ALLOWED_COMMANDS, ALLOWED_COMMANDS_FILE
 from ai.utils.tooluse import (
     ToolDefinition,
     ToolParam,
@@ -284,6 +286,13 @@ class AgentMenu(ChatMenu):
                         None,
                     )
                     if tool:  # Call function tool
+                        if tool_name in ["bash", "powershell"]:
+                            ConfirmCommandMenu.confirm_command(
+                                command=tool_use["args"]["command"],
+                                allowed_commands=ALLOWED_COMMANDS,
+                                save_path=str(ALLOWED_COMMANDS_FILE),
+                            )
+
                         ret = tool(**tool_use["args"])
 
                     else:  # Call MCP tool

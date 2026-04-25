@@ -548,7 +548,7 @@ class Script:
                 return False
         return True
 
-    def get_window_title(self, run_in_tmux=False) -> str:
+    def get_window_title(self) -> str:
         if self.console_title:
             return self.console_title
 
@@ -556,10 +556,7 @@ class Script:
             assert isinstance(self.cfg["title"], str)
             return self.cfg["title"]
 
-        if run_in_tmux or is_in_tmux():
-            return os.path.splitext(os.path.basename(self.script_path))[0]
-
-        return self.name
+        return os.path.splitext(os.path.basename(self.script_path))[0]
 
     def get_script_path(self) -> str:
         return self.real_script_path if self.real_script_path else self.script_path
@@ -682,13 +679,13 @@ class Script:
         }
 
     def __activate_window(self, run_in_tmux: bool) -> bool:
-        title = self.get_window_title(run_in_tmux=run_in_tmux)
+        title = self.get_window_title()
         if (run_in_tmux or is_in_tmux()) and subprocess.call(
             [
                 "tmux",
                 "select-window",
                 "-t",
-                self.get_window_title(run_in_tmux=run_in_tmux),
+                self.get_window_title(),
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -716,7 +713,7 @@ class Script:
                 [
                     "screen",
                     "-S",
-                    slugify(self.get_window_title(run_in_tmux=run_in_tmux)),
+                    slugify(self.get_window_title()),
                     "-X",
                     "quit",
                 ]
@@ -731,7 +728,7 @@ class Script:
                     "tmux",
                     "kill-window",
                     "-t",
-                    self.get_window_title(run_in_tmux=run_in_tmux),
+                    self.get_window_title(),
                 ],
                 capture_output=True,
                 text=True,
@@ -743,7 +740,7 @@ class Script:
 
         else:
             # Close exising instances
-            close_window_by_name(self.get_window_title(run_in_tmux=run_in_tmux))
+            close_window_by_name(self.get_window_title())
 
     def get_script_log_file(self) -> str:
         log_dir = os.path.join(get_data_dir(), "logs")
@@ -1311,9 +1308,7 @@ class Script:
             ):
                 # Add command wrapper to pause on exit
                 env["CMDW_CLOSE_ON_EXIT"] = "1" if close_on_exit else "0"
-                env["CMDW_WINDOW_TITLE"] = self.get_window_title(
-                    run_in_tmux=run_in_tmux
-                )
+                env["CMDW_WINDOW_TITLE"] = self.get_window_title()
                 env["CMDW_ENABLE_NOTIFY"] = "1" if self.cfg["enableNotify"] else "0"
                 arg_list = [
                     sys.executable,
@@ -1401,7 +1396,7 @@ class Script:
                             arg_list = wrap_args_wt(
                                 arg_list,
                                 cwd=cwd,
-                                title=self.get_window_title(run_in_tmux=run_in_tmux),
+                                title=self.get_window_title(),
                                 wsl=self.cfg["wsl"],
                             )
                             no_wait = True
@@ -1413,7 +1408,7 @@ class Script:
                             arg_list = wrap_args_wezterm(
                                 arg_list,
                                 cwd=cwd,
-                                title=self.get_window_title(run_in_tmux=run_in_tmux),
+                                title=self.get_window_title(),
                                 maximized=self.cfg["maximized"],
                             )
                             popen_extra_args["creationflags"] = (
@@ -1432,7 +1427,7 @@ class Script:
                                 title=(
                                     None
                                     if self.cfg["dynamicTitle"]
-                                    else self.get_window_title(run_in_tmux=run_in_tmux)
+                                    else self.get_window_title()
                                 ),
                                 dynamic_title=self.cfg["dynamicTitle"],
                             )
@@ -1448,9 +1443,7 @@ class Script:
                             open_in_terminal = True
 
                         elif self.__get_terminal() == "powershell":
-                            title = self.get_window_title(
-                                run_in_tmux=run_in_tmux
-                            ).replace("'", "''")
+                            title = self.get_window_title().replace("'", "''")
                             arg_list = [
                                 "powershell",
                                 "-Command",
@@ -1475,7 +1468,7 @@ class Script:
                                 "new-window",
                                 "-a",  # Insert window after the current window
                                 "-n",
-                                self.get_window_title(run_in_tmux=run_in_tmux),
+                                self.get_window_title(),
                             ]
                             + [  # Pass environmental variable to new window.
                                 item
@@ -1504,7 +1497,7 @@ class Script:
                                     "-xrm",
                                     "XTerm.vt100.allowTitleOps: false",
                                     "-T",
-                                    self.get_window_title(run_in_tmux=run_in_tmux),
+                                    self.get_window_title(),
                                     "-e",
                                     args_to_str(arg_list, shell_type="bash"),
                                 ]
@@ -1515,7 +1508,7 @@ class Script:
                                 arg_list = [
                                     "xfce4-terminal",
                                     "-T",
-                                    self.get_window_title(run_in_tmux=run_in_tmux),
+                                    self.get_window_title(),
                                     "-e",
                                     args_to_str(arg_list, shell_type="bash"),
                                     "--hold",
@@ -1527,7 +1520,7 @@ class Script:
                                 arg_list = [
                                     "kitty",
                                     "--title",
-                                    self.get_window_title(run_in_tmux=run_in_tmux),
+                                    self.get_window_title(),
                                 ] + arg_list
                                 no_wait = True
                                 open_in_terminal = True
@@ -1542,9 +1535,7 @@ class Script:
                                     title=(
                                         None
                                         if self.cfg["dynamicTitle"]
-                                        else self.get_window_title(
-                                            run_in_tmux=run_in_tmux
-                                        )
+                                        else self.get_window_title()
                                     ),
                                     dynamic_title=self.cfg["dynamicTitle"],
                                 )
@@ -1555,9 +1546,7 @@ class Script:
                                 arg_list = [
                                     "screen",
                                     "-S",
-                                    slugify(
-                                        self.get_window_title(run_in_tmux=run_in_tmux)
-                                    ),
+                                    slugify(self.get_window_title()),
                                 ] + arg_list
 
                             else:
@@ -1577,7 +1566,7 @@ class Script:
                                 title=(
                                     None
                                     if self.cfg["dynamicTitle"]
-                                    else self.get_window_title(run_in_tmux=run_in_tmux)
+                                    else self.get_window_title()
                                 ),
                                 dynamic_title=self.cfg["dynamicTitle"],
                             )
@@ -1631,7 +1620,7 @@ class Script:
                 args2 = wrap_args_cmd(
                     arg_list,
                     cwd=cwd,
-                    title=self.get_window_title(run_in_tmux=run_in_tmux),
+                    title=self.get_window_title(),
                     env=env,
                 )
                 logging.debug("run_elevated(): args=%s" % args2)

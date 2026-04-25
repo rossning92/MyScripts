@@ -3,8 +3,6 @@ import subprocess
 import sys
 import tempfile
 
-from ai.utils.menu.confirmcommandmenu import ConfirmCommandMenu
-from ai.utils.tools.permission import ALLOWED_COMMANDS, ALLOWED_COMMANDS_FILE
 from utils.menu.menu import Menu
 
 def _strip_transcript(text: str) -> str:
@@ -75,13 +73,5 @@ def powershell(command: str) -> str:
     - Use this when you need to perform system operations or run specific commands to accomplish any step in the user's task.
     - Ensure the command is properly formatted and does not contain any harmful instructions.
     """
-
-    ConfirmCommandMenu.confirm_command(
-        command=command,
-        allowed_commands=ALLOWED_COMMANDS,
-        ignore_case=True,
-        prompt_prefix="run in powershell:",
-        save_path=str(ALLOWED_COMMANDS_FILE),
-    )
 
     return _run_powershell(command)

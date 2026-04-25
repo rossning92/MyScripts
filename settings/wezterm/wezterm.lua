@@ -24,6 +24,8 @@ wezterm.on('format-window-title', function(tab, pane, tabs, panes, config)
 end)
 
 return {
+  -- WebGpu (DirectX 12) avoids rendering corruption caused by buggy OpenGL drivers on Windows
+  front_end = "WebGpu",
   hide_tab_bar_if_only_one_tab = true,
   window_close_confirmation = 'NeverPrompt',
   initial_cols = 120,
@@ -63,5 +65,23 @@ return {
     { key = 'C',     mods = 'CTRL|SHIFT', action = wezterm.action.CopyTo 'Clipboard' },
     { key = 'V',     mods = 'CTRL|SHIFT', action = wezterm.action.PasteFrom 'Clipboard' },
     { key = 'Space', mods = 'CTRL',       action = wezterm.action.ActivateCopyMode },
+    {
+      key = 'i',
+      mods = 'ALT',
+      action = wezterm.action_callback(function(win, pane)
+        local text = pane:get_lines_as_text()
+        local tmp = os.getenv('TEMP') .. '\\wezterm_capture.txt'
+        local f, err = io.open(tmp, 'w')
+        if not f then
+          wezterm.log_error('Failed to open ' .. tmp .. ': ' .. (err or 'unknown error'))
+          return
+        end
+        f:write(text)
+        f:close()
+        wezterm.background_child_process {
+          'start_script', 'r/ai/coder.py', '-c', tmp,
+        }
+      end),
+    },
   },
 }

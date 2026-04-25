@@ -26,6 +26,32 @@ def truncate_text(
         return text
 
 
+def truncate_output(
+    text: str,
+    max_lines: int = 2000,
+    max_bytes: int = 51200,  # 50 KB
+) -> str:
+    lines = text.splitlines()
+    if len(lines) <= max_lines and len(text.encode("utf-8")) <= max_bytes:
+        return text
+
+    # Truncate to max_lines
+    truncated_lines = lines[:max_lines]
+    preview = "\n".join(truncated_lines)
+
+    # Further truncate if still exceeds max_bytes
+    preview_bytes = preview.encode("utf-8")
+    if len(preview_bytes) > max_bytes:
+        preview = (
+            preview_bytes[:max_bytes].decode("utf-8", errors="ignore")
+            + "\n... [preview truncated]"
+        )
+
+    num_truncated = len(lines) - len(preview.splitlines())
+
+    return f"{preview}\n... {num_truncated} lines truncated ..."
+
+
 def is_text_file(filepath: str, encoding="utf-8", buffer_size=4096, threshold=0.9):
     if not os.path.exists(filepath):
         return False
