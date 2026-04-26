@@ -127,7 +127,7 @@ if lspci -k | grep -q "NVIDIA Corporation"; then
     if [[ $kernel_version == *lts* ]]; then
         pac_install nvidia-lts
     else
-        pac_install nvidia
+        pac_install nvidia-open
     fi
     pac_install nvidia-settings
     sudo nvidia-xconfig --metamodes="nvidia-auto-select +0+0 {ForceCompositionPipeline=On, ForceFullCompositionPipeline=On}" --output-xconfig /etc/X11/xorg.conf.d/20-nvidia.conf
@@ -210,7 +210,7 @@ append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
 pac_install flameshot
 append_line_dedup ~/.xinitrc 'flameshot &'
 
-{{ include('r/linux/arch/setup_lock_screen.sh') }}
+{{# include('r/linux/arch/setup_lock_screen.sh') }}
 
 # Replace the current process with the awesomewm when initializing X.
 append_line_dedup ~/.xinitrc "exec awesome"
