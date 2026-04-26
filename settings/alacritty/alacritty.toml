@@ -30,6 +30,14 @@ foreground = "#000000"
 background = "#ffff00"
 foreground = "#000000"
 
+[selection]
+save_to_clipboard = true
+
+[mouse]
+bindings = [
+  { mouse = "Right", action = "Paste" },
+]
+
 [window.dimensions]
 columns = 120
 lines = 30

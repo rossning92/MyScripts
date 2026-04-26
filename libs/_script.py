@@ -1897,7 +1897,7 @@ def get_default_script_config() -> Dict[str, Union[str, bool, None]]:
         "tee": False,
         "template": None,
         "template.readVarFromCsv": "",
-        "terminal": "wezterm" if sys.platform == "win32" else "alacritty",
+        "terminal": "alacritty",
         "title": "",
         "updateSelectedScriptAccessTime": False,
         "variableNames": "auto",

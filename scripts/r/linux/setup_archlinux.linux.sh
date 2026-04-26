@@ -113,7 +113,7 @@ append_line_dedup ~/.xinitrc "udiskie &"
 sudo systemctl enable --now systemd-resolved.service
 
 # To avoid freezing at low memory
-sudo pacman -S earlyoom
+pac_install earlyoom
 sudo systemctl enable earlyoom --now
 
 # ------------------------------
@@ -210,7 +210,7 @@ append_line_sudo /etc/sudoers "$(whoami) ALL=(ALL:ALL) NOPASSWD: ALL"
 pac_install flameshot
 append_line_dedup ~/.xinitrc 'flameshot &'
 
-{{# include('r/linux/arch/setup_lock_screen.sh') }}
+run_script r/linux/arch/setup_lock_screen.sh
 
 # Replace the current process with the awesomewm when initializing X.
 append_line_dedup ~/.xinitrc "exec awesome"

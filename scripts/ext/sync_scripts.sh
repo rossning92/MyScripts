@@ -7,19 +7,6 @@ else
     echo "Sync repo: $(pwd)"
 fi
 
-if [[ ! -d ".git" ]]; then
-    git init
-    git remote add origin https://github.com/rossning92/myscripts
-    git fetch
-    git reset --mixed origin/master
-    git branch --set-upstream-to=origin/master master
-    git submodule update --init --recursive
-fi
-
-git config --global user.email "rossning92@gmail.com"
-git config --global user.name "Ross Ning"
-git config credential.helper store
-
 # Check if file is modified
 git status --short
 status=$(git status --short)
@@ -28,12 +15,6 @@ if [[ ! -z "$status" ]]; then
     read -n1 ans
     if [[ "$ans" == "y" ]]; then
         git add -A
-
-        # echo 'Submit submodule changes? (y/n)'
-        # read -n1 ans
-        # if [ "$ans" != "y" ]; then
-        #     git restore --staged scripts/r/videoedit/movy
-        # fi
 
         if [[ -n "$AMEND" ]]; then
             git commit --amend --no-edit
