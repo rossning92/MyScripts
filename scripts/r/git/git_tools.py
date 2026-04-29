@@ -1,9 +1,8 @@
 import os
 import subprocess
 
-from utils.menu.menu import Menu
 from utils.menu.diffmenu import DiffMenu
-from utils.script.path import get_my_script_root
+from utils.menu.menu import Menu
 
 
 def get_git_status_items():
@@ -86,8 +85,7 @@ class GitMenu(Menu):
 
 if __name__ == "__main__":
     repo_path = os.environ.get("GIT_REPO", "")
-    if not repo_path:
-        repo_path = get_my_script_root()
-    os.chdir(repo_path)
+    if repo_path:
+        os.chdir(repo_path)
 
     GitMenu().exec()
