@@ -868,6 +868,9 @@
     }
   },
   "syncthing": {
+    "brew": {
+      "packages": ["syncthing"]
+    },
     "pacman": {
       "packages": ["syncthing"]
     },

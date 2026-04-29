@@ -255,6 +255,45 @@ def _activate_window_win(hwnd):
     SetForegroundWindow(hwnd)
 
 
+def _activate_window_darwin(
+    name: str,
+    match_mode: int = TITLE_MATCH_MODE_DEFAULT,
+) -> bool:
+    # Select condition based on match_mode
+    if match_mode == TITLE_MATCH_MODE_EXACT:
+        condition_op = "is"
+    elif match_mode == TITLE_MATCH_MODE_PARTIAL:
+        condition_op = "contains"
+    elif match_mode == TITLE_MATCH_MODE_START_WITH:
+        condition_op = "starts with"
+    else:  # Default to partial match
+        condition_op = "contains"
+
+    apple_script = f"""
+    tell application "System Events"
+        repeat with theProcess in (every process where background only is false)
+            repeat with theWindow in (every window of theProcess)
+                try -- must be per-window; some windows throw on name access
+                    set winName to name of theWindow
+                    if winName is missing value or winName is "" then
+                        set winName to title of theWindow
+                    end if
+                    if winName {condition_op} "{name}" then
+                        set frontmost of theProcess to true
+                        tell theWindow to perform action "AXRaise"
+                        return true
+                    end if
+                end try
+            end repeat
+        end repeat
+    end tell
+    return false
+    """
+    return "true" in subprocess.check_output(
+        ["osascript", "-e", apple_script], text=True
+    ).lower()
+
+
 def _control_window(
     name,
     cmd: Literal["activate", "close"],
@@ -364,29 +403,7 @@ def _control_window(
 
     elif sys.platform == "darwin":
         if cmd == "activate":
-            return 0 == subprocess.call(
-                [
-                    "osascript",
-                    "-e",
-                    f"""set theTitle to "{name}"
-
-tell application "System Events"
-	set theProcesses to every process where background only is false
-	repeat with theProcess in theProcesses
-		tell theProcess
-			repeat with theWindow in windows
-				if name of theWindow contains theTitle then
-					tell theWindow to perform action "AXRaise"
-					set frontmost of theProcess to true
-					return
-				end if
-			end repeat
-		end tell
-	end repeat
-    error "not found"
-end tell""",
-                ]
-            )
+            return _activate_window_darwin(name=name, match_mode=match_mode)
         elif cmd == "close":
             logging.warning("Cannot close window on macos")
         else:
