@@ -1,3 +1,3 @@
 @echo off
 wsl --shutdown
-bash
+wsl echo WSL restarted successfully

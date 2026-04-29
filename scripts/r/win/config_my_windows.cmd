@@ -105,6 +105,9 @@ echo Disable CABC
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v DisableCABC /t REG_DWORD /d 1 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v CABCOption /t REG_DWORD /d 0 /f
 
+echo Disable SmartScreen
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v SmartScreenEnabled /t REG_SZ /d Off /f >NUL
+
 echo Revert to the full right-click menu
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
 

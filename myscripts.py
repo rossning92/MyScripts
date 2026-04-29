@@ -231,7 +231,7 @@ class _MyScriptMenu(Menu[Script]):
             items=self.script_manager.scripts,
             ascii_only=False,
             cancellable=run_script_and_quit,
-            prompt=prompt if prompt else platform.node(),
+            prompt=prompt if prompt else platform.node() + "$",
             text=input_text,
         )
 

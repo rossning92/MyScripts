@@ -42,22 +42,22 @@ sync_repo() (
     else
         git pull --rebase
 
-        # Update submodules
-        if [ -d "scripts/r/videoedit/movy" ]; then
-            if (cd scripts/r/videoedit/movy && git diff --quiet); then
-                echo "Update submodule movy..."
-                git submodule update --recursive --remote || true
-            else
-                echo "(Skip updating submodule movy - working tree is dirty.)"
-            fi
-        fi
-
         git push
     fi
 )
 
 # Sync current script directory
 sync_repo "$ROOT_DIR"
+
+# Update submodules
+if [ -d "$ROOT_DIR/scripts/r/videoedit/movy" ]; then
+    if (cd "$ROOT_DIR/scripts/r/videoedit/movy" && git diff --quiet); then
+        echo "Update submodule movy..."
+        (cd "$ROOT_DIR" && git submodule update --recursive --remote || true)
+    else
+        echo "(Skip updating submodule movy - working tree is dirty.)"
+    fi
+fi
 
 # Sync additional script directories
 run_script ext/get_script_dirs.py | while IFS= read -r line || [[ -n "$line" ]]; do

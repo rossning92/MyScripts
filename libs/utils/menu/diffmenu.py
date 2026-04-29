@@ -67,6 +67,7 @@ def _run_git_diff(args: List[str]) -> List[str]:
     )
     lines = []
     for line in cp.stdout.splitlines():
+        line = line.rstrip("\r")
         stripped = _strip_ansi(line)
         if stripped.startswith(("diff --git", "index ")):
             continue
