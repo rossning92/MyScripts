@@ -171,7 +171,7 @@ class FileMenu(Menu[_File]):
         self.add_command(self._refresh_cur_dir, hotkey="ctrl+r")
         self.add_command(self._rename_file, hotkey="alt+n")
         self.add_command(self._reveal_in_file_explorer, hotkey="ctrl+o")
-        self.add_command(self._open_with_script)
+        self.add_command(self._open_with_script, hotkey="alt+o")
         self.add_command(self._duplicate_file, hotkey="ctrl+d")
         self.add_command(self._preview_image)
         self.add_command(lambda: self.sort_by("name"), name="sort_by_name")

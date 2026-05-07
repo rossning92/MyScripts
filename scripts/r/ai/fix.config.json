@@ -1,5 +1,6 @@
 {
   "args.selectionAsFile": true,
   "globalHotkey": "win+k f",
-  "minimized": true
+  "minimized": true,
+  "singleInstance": false
 }
